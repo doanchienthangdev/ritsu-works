@@ -80,20 +80,27 @@ After each implementation session, document:
   `make<Skill>Handler` into a `makeAnthropicSkillHandler({prompt, parse,
   model?, maxTokens?})` higher-order factory
 
-#### 2026-05-05 — pg_cron worker tick + GUC-based secret
+#### 2026-05-05 — pg_cron worker tick + bootstrap-injected secret
 - **Pattern:** Schedule a worker function on a tight cadence (e.g. every
-  minute). The cron command reads the auth secret via
-  `current_setting('app.<name>', true)` so the secret never lives in source.
-  Founder sets the GUC ONCE via `ALTER DATABASE postgres SET app.<name> =
-  '<value>'` in the Supabase SQL editor. Cron is idempotent: DO block
-  unschedules existing job by name before re-creating it.
-  Concrete instance: `00014_pg_cron_minion_worker_tick.sql`.
+  minute). Migration creates the cron job with a "GUC pattern" command that
+  reads `current_setting('app.<name>', true)` — source-control-safe. After
+  migration, a bootstrap shell script runs `cron.unschedule + cron.schedule`
+  via the Management API with the secret INLINED into `cron.job.command`.
+  The secret then lives in `cron.job` (postgres-role-readable only), never
+  in source. Re-run bootstrap on rotation or after `db reset`.
+  Concrete instances:
+    - migration: `00014_pg_cron_minion_worker_tick.sql`
+    - bootstrap: `scripts/wave2-bootstrap-cron-secrets.sh`
 - **Generic level:** 100%
-- **Customization:** project URL; jobname; secret name; cadence
-- **Friction:** Supabase Management API role lacks `ALTER DATABASE`
-  permission, so the GUC ceremony is irreducibly manual on hosted Supabase.
-  The migration cannot fully self-bootstrap. Worth documenting in any
-  generated boilerplate so users aren't surprised.
+- **Customization:** project URL; jobname; secret env-var name; cadence;
+  source `.env` path
+- **Friction:** the GUC pattern (`ALTER DATABASE … SET app.<x>`) does NOT
+  work on hosted Supabase — `postgres` role lacks SUPERUSER and the call
+  fails with `42501: permission denied to set parameter` from EVERY channel
+  (SQL editor, `db push`, `db query --linked`). Verified empirically.
+  The bootstrap-script pattern is therefore the only workable shape on
+  hosted Supabase; document this clearly in any generated boilerplate so
+  users don't waste time on the GUC ceremony.
 
 ---
 

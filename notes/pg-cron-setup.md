@@ -3,8 +3,35 @@
 The two Edge Functions are deployed and tested end-to-end via curl. To make
 them run automatically, pg_cron in Supabase must call them on a schedule.
 Secrets used by `cron.schedule()` cannot live in source control, so this
-file documents the SQL the founder runs **manually once** in the Supabase
-SQL editor.
+file documents the SQL needed plus the operational reality on hosted
+Supabase.
+
+## Hosted Supabase reality (read first)
+
+The `postgres` role on hosted Supabase is NOT a true PostgreSQL SUPERUSER.
+It cannot `ALTER DATABASE postgres SET app.<custom_param>` — the request
+fails with `42501: permission denied to set parameter`. This is true both
+from the SQL editor and from the Management API SQL endpoint
+(`supabase db query --linked`). The GUC pattern (Steps 2-3 below) is
+therefore aspirational; it works on self-hosted Postgres but not on
+hosted Supabase.
+
+**Operational pattern that works on hosted Supabase:**
+
+1. Apply migration `00014_pg_cron_minion_worker_tick.sql` via
+   `supabase db push --linked --yes`. This registers the cron job with the
+   GUC-reading command (which will return NULL on hosted, leading to 401s).
+2. Run `scripts/wave2-bootstrap-cron-secrets.sh`. The script unschedules
+   and re-schedules the job with the worker secret INLINED into
+   `cron.job.command`. The secret then lives in the `cron.job` row
+   (postgres-role-readable only) instead of in source control.
+3. Re-run the bootstrap script on every WORKER_SECRET rotation OR after
+   any `supabase db reset` against the linked project (the reset re-runs
+   migration 00014 which restores the GUC-version command).
+
+The remainder of this document describes the GUC-based variant for
+reference, plus the dispatcher-side schedules that are intentionally NOT
+auto-cadenced today (founder enables individually when ready — Step 4).
 
 ## Step 1 — Pull the secrets from your local .env.local
 

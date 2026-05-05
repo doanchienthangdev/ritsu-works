@@ -14,19 +14,28 @@
 --   notes/pg-cron-setup.md Step 4 — that ceremony is intentionally manual to
 --   avoid surprise spend.
 --
--- Prerequisite (founder, one-time, in Supabase SQL editor):
---   The cron job reads the worker secret via current_setting() at fire time
---   so the secret never lives in source control. Founder must run ONCE:
---     ALTER DATABASE postgres SET app.worker_secret = '<WORKER_SECRET>';
---   The literal value comes from runtime/secrets/.env.local.
---   See notes/pg-cron-setup.md Step 3 for the full procedure including verify
---   query and rotation steps.
+-- IMPORTANT — hosted Supabase reality:
+--   On hosted Supabase, the `postgres` role is NOT a true SUPERUSER, so
+--   `ALTER DATABASE postgres SET app.worker_secret = '<value>'` fails with
+--   `42501: permission denied to set parameter "app.worker_secret"` — both
+--   from the SQL editor AND from the Management API SQL endpoint. The GUC
+--   pattern below is therefore aspirational (correct for self-hosted) and
+--   does not work on hosted Supabase.
 --
--- Behavior before founder runs the GUC step:
---   The cron job still fires every minute. net.http_post sends a request with
+-- Operational pattern that DOES work on hosted Supabase:
+--   After applying this migration, run `scripts/wave2-bootstrap-cron-secrets.sh`
+--   which uses `supabase db query --linked` to UNSCHEDULE + RESCHEDULE the
+--   cron job with the worker secret inlined into `cron.job.command`. The
+--   secret then lives in `cron.job` (DB-side, postgres-role-readable only)
+--   instead of the migration file. Re-run the script on every rotation OR
+--   after a `db reset` (the reset re-runs this migration which restores the
+--   GUC-reading command, so the bootstrap must re-apply).
+--
+-- Behavior before bootstrap script runs:
+--   Cron fires every minute. net.http_post sends a request with
 --   X-Worker-Auth: <empty>. The Edge Function rejects with 401 (per
---   _shared/worker.ts verifyAuthHeader fail-closed semantics). cron.job_run_
---   details logs the 401 reply. No queue work happens, no LLM call, no cost.
+--   _shared/worker.ts verifyAuthHeader fail-closed semantics).
+--   cron.job_run_details logs the 401s. No queue work, no LLM call, no cost.
 --
 -- Idempotency:
 --   DO block first unschedules any existing job of the same name. Migration
@@ -61,9 +70,12 @@ END $$;
 -- =============================================================================
 -- Founder verification (run in Supabase SQL editor after this migration applies):
 -- =============================================================================
---   -- 1. Confirm GUC is set (must return TRUE, TRUE):
---   SELECT current_setting('app.worker_secret', true) IS NOT NULL AS worker_set,
---          length(current_setting('app.worker_secret', true)) >= 32  AS worker_long_enough;
+--   -- 1. After bootstrap script runs, command should embed the secret literal
+--   --    (length far above the GUC-reading command's ~250 chars). DO NOT
+--   --    print `command` itself — it contains the secret.
+--   SELECT jobid, jobname, schedule, active, length(command) AS cmd_len
+--   FROM   cron.job
+--   WHERE  jobname = 'minion-worker-tick';
 --
 --   -- 2. Confirm the cron job is registered and active:
 --   SELECT jobid, jobname, schedule, active
