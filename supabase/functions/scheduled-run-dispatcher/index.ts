@@ -71,7 +71,7 @@ async function concurrencyLockHeld(scheduleId: string): Promise<boolean> {
     .from("scheduled_runs")
     .select("id")
     .eq("schedule_id", scheduleId)
-    .in("status", ["pending", "running"])
+    .in("state", ["pending", "running"])
     .limit(1);
   if (error) throw new Error(`lock check failed: ${error.message}`);
   return (data ?? []).length > 0;
@@ -98,14 +98,17 @@ async function insertScheduledRun(
   schedule: ScheduleEntry,
   triggeredAt: string,
 ): Promise<{ id: string }> {
+  // Column names match supabase/migrations/00003_schedules_sops.sql:
+  //   scheduled_at | fired_at | schedule_id | cron_expression | state | state_since | triggered_skill
   const { data, error } = await sb
     .from("scheduled_runs")
     .insert({
       schedule_id: schedule.id,
       scheduled_at: triggeredAt,
-      triggered_at: triggeredAt,
-      status: "pending",
-      retry_count: 0,
+      fired_at: triggeredAt,
+      cron_expression: schedule.cron,
+      triggered_skill: schedule.skill,
+      state: "pending",
     })
     .select("id")
     .single();

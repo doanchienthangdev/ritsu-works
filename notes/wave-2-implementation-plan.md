@@ -2,7 +2,22 @@
 
 **Scope:** Bài #8 (scheduling), #9 (SOPs), #11 (events). Per the master prompt 8-wave roadmap, Wave 2 is weeks 3-4.
 
-**Started:** 2026-05-05 (this commit) — only Bài #8 dispatcher scaffold landed.
+**Started:** 2026-05-05 — Bài #8 dispatcher scaffold landed; `ops.*` REST access verified end-to-end.
+
+## Wave 1 → Wave 2 transition findings (2026-05-05 verification)
+
+End-to-end smoke test of `ops.*` schema via PostgREST surfaced two template gaps that are now fixed:
+
+1. **Missing GRANTs.** No migration in 00001-00011 granted `USAGE ON SCHEMA ops` or table-level CRUD to `service_role` / `authenticated`. After exposing `ops` in Settings → API, every request returned `HTTP 403 "permission denied for schema ops"`. Fixed in `supabase/migrations/00012_grants_for_ops_schema.sql` (also sets `ALTER DEFAULT PRIVILEGES` so future tables inherit grants automatically).
+
+2. **DRAFT vs migration drift on column names.** `bai-8-scheduling-architecture-DRAFT.md` schema sketch uses `triggered_at`, `status`, `retry_count`. The actual migration `00003_schedules_sops.sql` ships with `fired_at`, `state`, no `retry_count`. Same for `audit_log`: DRAFT-style column `actor` does not exist; real columns are `actor_kind` + `actor_id`. The Bài #20 DRAFT roll-forward note: when DRAFT and migration disagree, **migration is the source of truth** (it's executable; DRAFT is design intent).
+   - Edge Function `scheduled-run-dispatcher/index.ts` aligned to actual columns.
+   - Future `retry_count` semantics may live in `output_payload.retry_count` until a schema change adds the column.
+
+End-to-end verification (after fix):
+  - SELECT `ops.audit_log` → HTTP 200, `[]` (empty table)
+  - INSERT `ops.audit_log` → HTTP 201, row returned with `occurred_at`/`actor_kind`/`actor_id`/`payload`
+  - INSERT `ops.scheduled_runs` → HTTP 201, row returned with `state='pending'`, `fired_at`, `triggered_skill`
 
 ## State machine
 
