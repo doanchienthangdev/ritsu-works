@@ -455,6 +455,78 @@ describe("processWorkerTick", () => {
         processed: [],
       });
     });
+
+    it("uses default batchSize=5 and default now=Date.now when both omitted", async () => {
+      // Covers worker.ts lines 253-254 default fallbacks:
+      //   const batchSize = deps.batchSize ?? 5;
+      //   const now = deps.now ?? (() => new Date().toISOString());
+      const sb = makeClaimMock({ pickResult: { data: [], error: null } });
+      const result = await processWorkerTick(
+        // intentionally omit batchSize and now from deps
+        { sb, registry: {}, workerSecret: "valid-secret" },
+        "POST",
+        "valid-secret",
+      );
+      expect(result.status).toBe(200);
+      expect(result.body).toEqual({ status: "ok", processed_count: 0, processed: [] });
+    });
+
+    it("invokes the default now() fallback when a row is processed without deps.now", async () => {
+      // The previous test only enters processWorkerTick with an empty queue,
+      // so the default `now` arrow function is created but never called. This
+      // test forces the default function body to execute.
+      let capturedNow: string | undefined;
+      const sb: SbClient = {
+        from(table) {
+          if (table !== "scheduled_runs") return {} as never;
+          return {
+            select: () => ({
+              eq: () => ({
+                order: () => ({
+                  limit: () => Promise.resolve({ data: [SAMPLE_RUN], error: null }),
+                }),
+              }),
+            }),
+            update: (row: Record<string, unknown>) => ({
+              eq: () => ({
+                eq: () => ({
+                  select: () => ({
+                    maybeSingle: () => Promise.resolve({ data: SAMPLE_RUN, error: null }),
+                  }),
+                }),
+                then: (resolve: (v: unknown) => void) => {
+                  // finalize path — capture the state_since written by `now()`
+                  if (row.state === "completed" || row.state === "failed") {
+                    capturedNow = row.state_since as string;
+                  }
+                  resolve({ error: null });
+                },
+              }),
+            }),
+          };
+        },
+      };
+      const before = new Date().toISOString();
+      const result = await processWorkerTick(
+        // intentionally omit `now`
+        {
+          sb,
+          registry: {
+            "heartbeat-ping": async () => ({ ok: true, output: { kind: "test" } }),
+          },
+          workerSecret: "valid-secret",
+          batchSize: 1,
+        },
+        "POST",
+        "valid-secret",
+      );
+      const after = new Date().toISOString();
+      expect(result.status).toBe(200);
+      expect(typeof capturedNow).toBe("string");
+      expect(capturedNow!).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      expect(capturedNow!.localeCompare(before)).toBeGreaterThanOrEqual(0);
+      expect(capturedNow!.localeCompare(after)).toBeLessThanOrEqual(0);
+    });
   });
 
   describe("happy path — single row processed", () => {
@@ -557,6 +629,56 @@ describe("processWorkerTick", () => {
       const result = await processWorkerTick(makeFullDeps({ sb }), "POST", "valid-secret");
       expect(result.status).toBe(500);
       expect(result.body).toMatchObject({ error: "claim", processed: [] });
+    });
+
+    it("returns 500 with finalize error when finalize step fails post-execute", async () => {
+      // Claim + execute succeed; finalize returns { error } → finalizeRun
+      // throws → orchestrator wraps into 500 with body.error = 'finalize'.
+      // This covers worker.ts line 277-280 (finalize-fail catch arm).
+      const sb: SbClient = {
+        from(table) {
+          if (table !== "scheduled_runs") return {} as never;
+          return {
+            select: () => ({
+              eq: () => ({
+                order: () => ({
+                  limit: () => Promise.resolve({ data: [SAMPLE_RUN], error: null }),
+                }),
+              }),
+            }),
+            update: () => ({
+              eq: () => ({
+                // Claim path: chain another .eq() then .select().maybeSingle().
+                eq: () => ({
+                  select: () => ({
+                    maybeSingle: () => Promise.resolve({ data: SAMPLE_RUN, error: null }),
+                  }),
+                }),
+                // Finalize path: awaited directly after first .eq() →
+                // Thenable resolves with an error so finalizeRun throws.
+                then: (resolve: (v: unknown) => void) => {
+                  resolve({ error: { message: "PG vanished mid-finalize" } });
+                },
+              }),
+            }),
+          };
+        },
+      };
+      const registry: SkillRegistry = {
+        "heartbeat-ping": async () => ({ ok: true, output: { kind: "test" } }),
+      };
+      const result = await processWorkerTick(
+        makeFullDeps({ sb, registry, batchSize: 1 }),
+        "POST",
+        "valid-secret",
+      );
+      expect(result.status).toBe(500);
+      const body = result.body as { error: string; detail: string; processed: unknown[] };
+      expect(body.error).toBe("finalize");
+      expect(body.detail).toContain("PG vanished mid-finalize");
+      // 'processed' carries any prior successes; in this single-row scenario
+      // the in-flight row is NOT pushed because finalize aborted the loop.
+      expect(body.processed).toEqual([]);
     });
 
     it("converts handler exceptions into failed result, does not crash loop", async () => {

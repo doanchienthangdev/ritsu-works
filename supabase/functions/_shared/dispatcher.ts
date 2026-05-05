@@ -119,6 +119,13 @@ export interface DispatchDeps {
   schedules: Record<string, ScheduleEntry>;
   dispatcherSecret: string;
   now?: () => string; // override in tests for deterministic timestamps
+  // Optional pre-flight gate overrides. Default to the module-level stubs
+  // (always-pass) when undefined. Tests inject implementations to exercise
+  // skip/hitl/budget branches; production wiring will inject the real
+  // ops.settings / hitl_runs / budget-hook implementations as they land.
+  checkSkipConditions?: typeof checkSkipConditions;
+  checkHitlGate?: typeof checkHitlGate;
+  checkBudget?: typeof checkBudget;
 }
 
 export interface DispatchHttpResponse {
@@ -155,7 +162,7 @@ export async function processDispatchRequest(
     return { status: 200, body: { status: "skipped", reason: "concurrency_lock" } };
   }
 
-  const skip = await checkSkipConditions(schedule);
+  const skip = await (deps.checkSkipConditions ?? checkSkipConditions)(schedule);
   if (skip.skip) {
     return {
       status: 200,
@@ -163,12 +170,12 @@ export async function processDispatchRequest(
     };
   }
 
-  const hitl = await checkHitlGate(schedule);
+  const hitl = await (deps.checkHitlGate ?? checkHitlGate)(schedule);
   if (hitl.requires_approval) {
     return { status: 202, body: { status: "queued_for_approval" } };
   }
 
-  const budget = await checkBudget(schedule);
+  const budget = await (deps.checkBudget ?? checkBudget)(schedule);
   if (!budget.ok) {
     return {
       status: 200,

@@ -25,13 +25,17 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-ENV_LOCAL="$REPO_ROOT/runtime/secrets/.env.local"
-PAT_SOURCE="/Users/doanchienthang/omg/ritsu/apps/web/.env.local"
-PROJECT_REF="mntobbmieuoaxipnjaau"
+# All paths and binaries can be overridden via env vars for testability.
+# Production callers should leave them unset.
+DEFAULT_REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="${RITSU_REPO_ROOT:-$DEFAULT_REPO_ROOT}"
+ENV_LOCAL="${RITSU_ENV_LOCAL:-$REPO_ROOT/runtime/secrets/.env.local}"
+PAT_SOURCE="${RITSU_PAT_SOURCE:-/Users/doanchienthang/omg/ritsu/apps/web/.env.local}"
+SUPABASE_BIN="${RITSU_SUPABASE_BIN:-$HOME/bin/supabase}"
+PROJECT_REF="${RITSU_PROJECT_REF:-mntobbmieuoaxipnjaau}"
 PROJECT_URL="https://${PROJECT_REF}.supabase.co"
-JOBNAME="minion-worker-tick"
-CRON_EXPR='* * * * *'
+JOBNAME="${RITSU_CRON_JOBNAME:-minion-worker-tick}"
+CRON_EXPR="${RITSU_CRON_EXPR:-* * * * *}"
 
 if [ ! -f "$ENV_LOCAL" ]; then
   echo "✗ env file missing: $ENV_LOCAL" >&2
@@ -42,13 +46,16 @@ if [ ! -f "$PAT_SOURCE" ]; then
   exit 2
 fi
 
-WORKER_SECRET="$(grep -E '^WORKER_SECRET=' "$ENV_LOCAL" | cut -d= -f2-)"
+# `|| true` keeps `set -e` happy when the var line is absent (grep exits 1
+# under pipefail, which would otherwise abort the script before the friendly
+# `[ -z ]` check below).
+WORKER_SECRET="$(grep -E '^WORKER_SECRET=' "$ENV_LOCAL" 2>/dev/null | cut -d= -f2- || true)"
 if [ -z "$WORKER_SECRET" ]; then
   echo "✗ WORKER_SECRET unset in $ENV_LOCAL" >&2
   exit 2
 fi
 
-SUPABASE_ACCESS_TOKEN="$(grep -E '^SUPABASE_ACCESS_TOKEN=' "$PAT_SOURCE" | cut -d= -f2-)"
+SUPABASE_ACCESS_TOKEN="$(grep -E '^SUPABASE_ACCESS_TOKEN=' "$PAT_SOURCE" 2>/dev/null | cut -d= -f2- || true)"
 if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
   echo "✗ SUPABASE_ACCESS_TOKEN unset in $PAT_SOURCE" >&2
   exit 2
@@ -90,12 +97,12 @@ SELECT cron.schedule(
 EOF
 
 echo "→ Re-creating cron job '${JOBNAME}' on ${PROJECT_REF} (secret never printed)..."
-~/bin/supabase db query --linked --file "$TMPFILE" >/dev/null 2>&1 \
+"$SUPABASE_BIN" db query --linked --file "$TMPFILE" >/dev/null 2>&1 \
   || { echo "✗ supabase db query failed — re-run with --debug if needed" >&2; exit 1; }
 
 # Verify (cmd_len printed; the secret value is NEVER printed)
 echo "→ Verifying registered cron entry:"
-~/bin/supabase db query --linked --output table \
+"$SUPABASE_BIN" db query --linked --output table \
   "SELECT jobid, jobname, schedule, active, length(command) AS cmd_len FROM cron.job WHERE jobname = '${JOBNAME}';" \
   2>&1 | grep -v "^Initialising\|^untrusted\|^Run with\|^$" || true
 

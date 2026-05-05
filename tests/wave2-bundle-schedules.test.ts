@@ -274,6 +274,48 @@ schedules:
     );
   });
 
+  it("throws when an entry is null (non-object)", () => {
+    const yamlPath = writeYaml(
+      tmp,
+      `version: "1.0.0"
+timezone: UTC
+schedules:
+  - null
+`,
+    );
+    expect(() => bundle({ yamlPath, outPath: outPathIn(tmp), now: FIXED_NOW })).toThrow(
+      /entry is not an object/,
+    );
+  });
+
+  it("throws when an entry is a plain string (non-object)", () => {
+    const yamlPath = writeYaml(
+      tmp,
+      `version: "1.0.0"
+timezone: UTC
+schedules:
+  - "just-a-string"
+`,
+    );
+    expect(() => bundle({ yamlPath, outPath: outPathIn(tmp), now: FIXED_NOW })).toThrow(
+      /entry is not an object/,
+    );
+  });
+
+  it("throws when an entry is a number (non-object)", () => {
+    const yamlPath = writeYaml(
+      tmp,
+      `version: "1.0.0"
+timezone: UTC
+schedules:
+  - 42
+`,
+    );
+    expect(() => bundle({ yamlPath, outPath: outPathIn(tmp), now: FIXED_NOW })).toThrow(
+      /entry is not an object/,
+    );
+  });
+
   it("does NOT write the output file when an error is thrown", () => {
     const yamlPath = writeYaml(
       tmp,
@@ -363,5 +405,62 @@ describe("bundle — real repo schedules.yaml", () => {
     const result = bundle({ yamlPath: DEFAULT_YAML, outPath, now: FIXED_NOW });
     expect(result.count).toBeGreaterThan(0);
     expect(result.ids).toContain("morning-brief-assembly");
+  });
+});
+
+// ============================================================================
+// CLI entry point — `if (require.main === module)` block
+// ============================================================================
+//
+// Subprocess test: spawn the script as a child process to exercise the
+// top-level CLI handler (lines 110-119 of the script). Two paths:
+//   1. happy → exit 0, prints success line + each id
+//   2. error → exit 1, prints '✗ <message>' on stderr
+
+describe("bundle — CLI entry point (subprocess)", () => {
+  it("exits 0 and prints success when run against the real repo schedules.yaml", () => {
+    const r = require_("node:child_process").spawnSync(
+      "node",
+      ["scripts/wave2-bundle-schedules.cjs"],
+      {
+        cwd: require_("node:path").resolve(__dirname, ".."),
+        encoding: "utf8",
+      },
+    );
+    expect(r.status).toBe(0);
+    expect(r.stdout).toMatch(/✓ Bundled \d+ schedule\(s\)/);
+    expect(r.stdout).toContain("morning-brief-assembly");
+  });
+
+  it("exits 1 with error printed when the bundler throws (subprocess catch arm)", () => {
+    // To exercise the script's CLI catch arm we must run the script as
+    // node's MAIN module (so `require.main === module` is true). We use
+    // node's `-r` flag to preload a tiny patcher that replaces the js-yaml
+    // module with one whose load() throws. The script then runs as main,
+    // imports patched js-yaml, and trips its own catch arm.
+    const path = require_("node:path");
+    const fs = require_("node:fs");
+    const child_process = require_("node:child_process");
+    const os = require_("node:os");
+    const scriptAbs = path.resolve(__dirname, "..", "scripts", "wave2-bundle-schedules.cjs");
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ritsu-cli-error-"));
+    const patcher = path.join(tmp, "patch.cjs");
+    fs.writeFileSync(
+      patcher,
+      `
+const Module = require('module');
+const origLoad = Module._load;
+Module._load = function (id) {
+  if (id === 'js-yaml') {
+    return { load: () => { throw new Error('synthetic yaml-parse failure'); } };
+  }
+  return origLoad.apply(this, arguments);
+};
+`,
+    );
+    const r = child_process.spawnSync("node", ["-r", patcher, scriptAbs], { encoding: "utf8" });
+    fs.rmSync(tmp, { recursive: true, force: true });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/✗ yaml parse failed: synthetic yaml-parse failure/);
   });
 });

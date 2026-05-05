@@ -632,6 +632,51 @@ describe("processDispatchRequest", () => {
       );
       expect(result.status).toBe(200);
     });
+
+    it("falls back to new Date().toISOString() when both triggered_at and deps.now are unset", async () => {
+      // Covers dispatcher.ts line 159 branch:
+      //   triggered_at ?? (deps.now ? deps.now() : new Date().toISOString())
+      // when deps.now is undefined.
+      let capturedFiredAt: string | undefined;
+      const sb: SbClient = {
+        from() {
+          return {
+            select: () => ({
+              eq: () => ({
+                in: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }),
+              }),
+            }),
+            insert: (row: Record<string, unknown>) => {
+              capturedFiredAt = row.fired_at as string;
+              return {
+                select: () => ({
+                  single: () => Promise.resolve({ data: { id: "x" }, error: null }),
+                }),
+              };
+            },
+          };
+        },
+      };
+      const before = new Date().toISOString();
+      const result = await processDispatchRequest(
+        {
+          sb,
+          schedules: DEFAULT_SCHEDULES,
+          dispatcherSecret: "valid-secret",
+          // intentionally NO `now` override
+        },
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      const after = new Date().toISOString();
+      expect(result.status).toBe(200);
+      expect(typeof capturedFiredAt).toBe("string");
+      expect(capturedFiredAt!).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+      // Sanity: the captured timestamp falls between before and after.
+      expect(capturedFiredAt!.localeCompare(before)).toBeGreaterThanOrEqual(0);
+      expect(capturedFiredAt!.localeCompare(after)).toBeLessThanOrEqual(0);
+    });
     it("ignores extra fields in body without erroring", async () => {
       const { sb } = makeMockSb({
         selectResult: { data: [], error: null },
@@ -661,6 +706,213 @@ describe("processDispatchRequest", () => {
     });
     it("README: POST with valid secret + unknown schedule returns 404", async () => {
       expect((await processDispatchRequest(baseDeps(), "POST", "valid-secret", { schedule_id: "no-such" })).status).toBe(404);
+    });
+  });
+
+  // ==========================================================================
+  // Pre-flight gate branches — exercise via injected gate overrides
+  // (defaults are always-pass stubs; tests inject implementations to cover
+  //  skip / hitl / budget paths in processDispatchRequest)
+  // ==========================================================================
+
+  describe("pre-flight gates — checkSkipConditions", () => {
+    it("returns 200 skipped with reason when skip=true and reason provided", async () => {
+      const { sb } = makeMockSb({ selectResult: { data: [], error: null } });
+      const result = await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkSkipConditions: async () => ({ skip: true, reason: "founder_vacation" }),
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(result.status).toBe(200);
+      expect(result.body).toEqual({ status: "skipped", reason: "founder_vacation" });
+    });
+
+    it("falls back to 'skip_condition' when skip=true but reason is undefined", async () => {
+      const { sb } = makeMockSb({ selectResult: { data: [], error: null } });
+      const result = await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkSkipConditions: async () => ({ skip: true }),
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(result.body).toEqual({ status: "skipped", reason: "skip_condition" });
+    });
+
+    it("does NOT call the gate when concurrency lock is already held", async () => {
+      // Concurrency lock check fires first; downstream gates should not run.
+      let skipCalled = false;
+      const { sb } = makeMockSb({
+        selectResult: { data: [{ id: "running" }], error: null },
+      });
+      await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkSkipConditions: async () => {
+            skipCalled = true;
+            return { skip: false };
+          },
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(skipCalled).toBe(false);
+    });
+
+    it("does NOT proceed to checkHitlGate when skip=true", async () => {
+      let hitlCalled = false;
+      const { sb } = makeMockSb({ selectResult: { data: [], error: null } });
+      await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkSkipConditions: async () => ({ skip: true, reason: "x" }),
+          checkHitlGate: async () => {
+            hitlCalled = true;
+            return { requires_approval: false };
+          },
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(hitlCalled).toBe(false);
+    });
+  });
+
+  describe("pre-flight gates — checkHitlGate", () => {
+    it("returns 202 queued_for_approval when requires_approval=true", async () => {
+      const { sb } = makeMockSb({ selectResult: { data: [], error: null } });
+      const result = await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkHitlGate: async () => ({ requires_approval: true }),
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(result.status).toBe(202);
+      expect(result.body).toEqual({ status: "queued_for_approval" });
+    });
+
+    it("does NOT proceed to checkBudget when hitl gates the run", async () => {
+      let budgetCalled = false;
+      const { sb } = makeMockSb({ selectResult: { data: [], error: null } });
+      await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkHitlGate: async () => ({ requires_approval: true }),
+          checkBudget: async () => {
+            budgetCalled = true;
+            return { ok: true };
+          },
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(budgetCalled).toBe(false);
+    });
+  });
+
+  describe("pre-flight gates — checkBudget", () => {
+    it("returns 200 blocked with reason when ok=false and reason provided", async () => {
+      const { sb } = makeMockSb({ selectResult: { data: [], error: null } });
+      const result = await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkBudget: async () => ({ ok: false, reason: "daily_cap" }),
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(result.status).toBe(200);
+      expect(result.body).toEqual({ status: "blocked", reason: "daily_cap" });
+    });
+
+    it("falls back to 'budget' when ok=false but reason is undefined", async () => {
+      const { sb } = makeMockSb({ selectResult: { data: [], error: null } });
+      const result = await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkBudget: async () => ({ ok: false }),
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(result.body).toEqual({ status: "blocked", reason: "budget" });
+    });
+
+    it("does NOT proceed to insertScheduledRun when budget blocks", async () => {
+      let insertCalled = false;
+      const sb: SbClient = {
+        from() {
+          return {
+            select: () => ({
+              eq: () => ({
+                in: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }),
+              }),
+            }),
+            insert: () => {
+              insertCalled = true;
+              return {
+                select: () => ({ single: () => Promise.resolve({ data: { id: "x" }, error: null }) }),
+              };
+            },
+          };
+        },
+      };
+      await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkBudget: async () => ({ ok: false, reason: "x" }),
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(insertCalled).toBe(false);
+    });
+  });
+
+  describe("pre-flight gates — gate ordering invariant", () => {
+    // Phase 2I: state & timing — verify the gate sequence is deterministic.
+    it("calls gates strictly in order: skip → hitl → budget when each passes", async () => {
+      const calls: string[] = [];
+      const { sb } = makeMockSb({
+        selectResult: { data: [], error: null },
+        insertResult: { data: { id: "x" }, error: null },
+      });
+      await processDispatchRequest(
+        baseDeps({
+          sb,
+          checkSkipConditions: async () => {
+            calls.push("skip");
+            return { skip: false };
+          },
+          checkHitlGate: async () => {
+            calls.push("hitl");
+            return { requires_approval: false };
+          },
+          checkBudget: async () => {
+            calls.push("budget");
+            return { ok: true };
+          },
+        }),
+        "POST",
+        "valid-secret",
+        { schedule_id: "morning-brief" },
+      );
+      expect(calls).toEqual(["skip", "hitl", "budget"]);
     });
   });
 });
