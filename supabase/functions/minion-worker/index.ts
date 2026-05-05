@@ -8,14 +8,17 @@
 //   supabase/functions/_shared/worker.ts — testable pure logic.
 //   tests/worker.test.ts — unit tests.
 //
-// Wave 2 status: SCAFFOLD. SKILL_REGISTRY has only heartbeat-ping; LLM-backed
-// skills return deferred_no_api_key until ANTHROPIC_API_KEY is wired into a
-// real handler.
+// Wave 2 status: SKILL_REGISTRY now includes synthesize-morning-brief
+// (Anthropic-backed). LLM-backed skills are only registered when
+// ANTHROPIC_API_KEY is set; otherwise the worker still serves heartbeat-ping
+// and returns deferred_no_api_key for any unregistered skill.
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import Anthropic from "npm:@anthropic-ai/sdk@0.69.0";
 import {
   makeHeartbeatPingHandler,
+  makeSynthesizeMorningBriefHandler,
   processWorkerTick,
   SkillRegistry,
 } from "../_shared/worker.ts";
@@ -30,8 +33,15 @@ const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   db: { schema: "ops" },
 });
 
+const anthropic = ANTHROPIC_API_KEY ? new Anthropic({ apiKey: ANTHROPIC_API_KEY }) : null;
+
 const SKILL_REGISTRY: SkillRegistry = {
   "heartbeat-ping": makeHeartbeatPingHandler(sb),
+  ...(anthropic
+    ? {
+        "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),
+      }
+    : {}),
 };
 
 serve(async (req) => {

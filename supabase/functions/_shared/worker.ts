@@ -106,6 +106,110 @@ export async function finalizeRun(
   if (error) throw new Error(`finalize failed: ${error.message}`);
 }
 
+// === Anthropic-backed skills (Wave 2 Task 3) ================================
+// Skills that call Anthropic Messages API. Designed with dependency injection
+// so unit tests mock the AnthropicLike contract instead of the real SDK.
+
+export interface AnthropicMessagesCreateParams {
+  model: string;
+  max_tokens: number;
+  system?: string;
+  messages: { role: "user" | "assistant"; content: string }[];
+}
+
+export interface AnthropicMessagesResponse {
+  id?: string;
+  content: Array<{ type: string; text?: string }>;
+  model?: string;
+  stop_reason?: string | null;
+  usage?: { input_tokens?: number; output_tokens?: number };
+}
+
+export interface AnthropicLike {
+  messages: {
+    create(params: AnthropicMessagesCreateParams): Promise<AnthropicMessagesResponse>;
+  };
+}
+
+export interface MorningBriefDeps {
+  anthropic: AnthropicLike;
+  model?: string;
+  maxTokens?: number;
+}
+
+export const DEFAULT_MORNING_BRIEF_MODEL = "claude-haiku-4-5";
+export const DEFAULT_MORNING_BRIEF_MAX_TOKENS = 1024;
+
+export const DEFAULT_MORNING_BRIEF_SYSTEM =
+  "You are Ritsu's morning brief assembler. Output exactly 4 plain-text bullets: " +
+  "(1) yesterday's headline metric movement, " +
+  "(2) today's most important task, " +
+  "(3) one risk or blocker, " +
+  "(4) one decision needing founder input. " +
+  "Keep total under 250 words. No preamble, no closing remarks.";
+
+export function isRetryableAnthropicError(message: string): boolean {
+  return /\b5\d\d\b|rate.?limit|timeout|ECONN|EAI_AGAIN/i.test(message);
+}
+
+export function extractTextFromContent(
+  content: AnthropicMessagesResponse["content"] | undefined,
+): string {
+  if (!Array.isArray(content)) return "";
+  return content
+    .filter((c) => c && c.type === "text" && typeof c.text === "string")
+    .map((c) => c.text as string)
+    .join("\n");
+}
+
+export function makeSynthesizeMorningBriefHandler(deps: MorningBriefDeps): SkillHandler {
+  return async (run) => {
+    const model = deps.model ?? DEFAULT_MORNING_BRIEF_MODEL;
+    const maxTokens = deps.maxTokens ?? DEFAULT_MORNING_BRIEF_MAX_TOKENS;
+
+    let response: AnthropicMessagesResponse;
+    try {
+      response = await deps.anthropic.messages.create({
+        model,
+        max_tokens: maxTokens,
+        system: DEFAULT_MORNING_BRIEF_SYSTEM,
+        messages: [
+          {
+            role: "user",
+            content:
+              `Generate Ritsu's morning brief for ${run.fired_at}. ` +
+              `This is a Wave 2 smoke-test invocation — no real ETL data is ` +
+              `wired yet. Produce a placeholder skeleton brief the founder ` +
+              `will replace once data sources land in Wave 3.`,
+          },
+        ],
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return {
+        ok: false,
+        error: `anthropic: ${msg}`,
+        retryable: isRetryableAnthropicError(msg),
+      };
+    }
+
+    const text = extractTextFromContent(response.content);
+
+    return {
+      ok: true,
+      output: {
+        kind: "morning_brief",
+        model: response.model ?? model,
+        message_id: response.id ?? null,
+        stop_reason: response.stop_reason ?? null,
+        input_tokens: response.usage?.input_tokens ?? 0,
+        output_tokens: response.usage?.output_tokens ?? 0,
+        text,
+      },
+    };
+  };
+}
+
 // Built-in heartbeat-ping skill — no LLM dependency. Registered in default registry.
 export function makeHeartbeatPingHandler(sb: SbClient): SkillHandler {
   return async (run) => {

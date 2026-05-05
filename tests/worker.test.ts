@@ -20,11 +20,20 @@ import {
   executeRun,
   finalizeRun,
   makeHeartbeatPingHandler,
+  makeSynthesizeMorningBriefHandler,
+  isRetryableAnthropicError,
+  extractTextFromContent,
+  DEFAULT_MORNING_BRIEF_MODEL,
+  DEFAULT_MORNING_BRIEF_MAX_TOKENS,
+  DEFAULT_MORNING_BRIEF_SYSTEM,
   processWorkerTick,
   type ScheduledRun,
   type SkillRegistry,
   type SbClient,
   type SkillResult,
+  type AnthropicLike,
+  type AnthropicMessagesCreateParams,
+  type AnthropicMessagesResponse,
 } from "../supabase/functions/_shared/worker.ts";
 
 const FIXED_TIME = "2026-05-05T05:00:00Z";
@@ -696,5 +705,360 @@ describe("processWorkerTick", () => {
       const body = result.body as { processed_count: number };
       expect(body.processed_count).toBe(2);
     });
+  });
+});
+
+// ============================================================================
+// isRetryableAnthropicError — pure classifier
+// ============================================================================
+//
+// Phase 1: 1 param (message string), returns boolean.
+// Phase 2: cover each regex alternation + non-matching strings.
+
+describe("isRetryableAnthropicError", () => {
+  it("matches 5xx codes (500, 502, 503, 504)", () => {
+    expect(isRetryableAnthropicError("HTTP 500 internal error")).toBe(true);
+    expect(isRetryableAnthropicError("502 bad gateway")).toBe(true);
+    expect(isRetryableAnthropicError("status 503")).toBe(true);
+    expect(isRetryableAnthropicError("got 504 timeout from upstream")).toBe(true);
+  });
+  it("matches rate limit phrasing variants", () => {
+    expect(isRetryableAnthropicError("rate_limit_exceeded")).toBe(true);
+    expect(isRetryableAnthropicError("Rate Limit hit")).toBe(true);
+    expect(isRetryableAnthropicError("rate limited by anthropic")).toBe(true);
+  });
+  it("matches timeout / network errors", () => {
+    expect(isRetryableAnthropicError("ECONNRESET")).toBe(true);
+    expect(isRetryableAnthropicError("EAI_AGAIN dns lookup failed")).toBe(true);
+    expect(isRetryableAnthropicError("request timeout after 30s")).toBe(true);
+  });
+  it("does NOT match 4xx client errors", () => {
+    expect(isRetryableAnthropicError("400 bad_request invalid payload")).toBe(false);
+    expect(isRetryableAnthropicError("401 unauthorized")).toBe(false);
+    expect(isRetryableAnthropicError("403 forbidden")).toBe(false);
+    expect(isRetryableAnthropicError("404 model_not_found")).toBe(false);
+  });
+  it("does NOT match generic non-retryable text", () => {
+    expect(isRetryableAnthropicError("invalid api key")).toBe(false);
+    expect(isRetryableAnthropicError("validation_error")).toBe(false);
+    expect(isRetryableAnthropicError("")).toBe(false);
+  });
+  it("does NOT match 3-digit numbers that are not 5xx (e.g. 200, 201, 422)", () => {
+    expect(isRetryableAnthropicError("HTTP 200 OK")).toBe(false);
+    expect(isRetryableAnthropicError("HTTP 201 created")).toBe(false);
+    expect(isRetryableAnthropicError("HTTP 422 unprocessable")).toBe(false);
+  });
+});
+
+// ============================================================================
+// extractTextFromContent
+// ============================================================================
+//
+// Phase 1: 1 param (content array | undefined), returns string.
+// Phase 2: arrays of mixed/empty/missing text blocks.
+
+describe("extractTextFromContent", () => {
+  it("returns empty string when content is undefined", () => {
+    expect(extractTextFromContent(undefined)).toBe("");
+  });
+  it("returns empty string when content is null (cast)", () => {
+    expect(extractTextFromContent(null as unknown as undefined)).toBe("");
+  });
+  it("returns empty string when content is not an array", () => {
+    expect(extractTextFromContent({} as unknown as undefined)).toBe("");
+  });
+  it("returns empty string when content array is empty", () => {
+    expect(extractTextFromContent([])).toBe("");
+  });
+  it("joins multiple text blocks with newline", () => {
+    expect(
+      extractTextFromContent([
+        { type: "text", text: "first" },
+        { type: "text", text: "second" },
+      ]),
+    ).toBe("first\nsecond");
+  });
+  it("filters out non-text blocks (e.g. tool_use)", () => {
+    expect(
+      extractTextFromContent([
+        { type: "text", text: "kept" },
+        { type: "tool_use" },
+        { type: "text", text: "also kept" },
+      ]),
+    ).toBe("kept\nalso kept");
+  });
+  it("filters out blocks where text is missing or non-string", () => {
+    expect(
+      extractTextFromContent([
+        { type: "text" }, // no text
+        { type: "text", text: undefined as unknown as string },
+        { type: "text", text: 42 as unknown as string },
+        { type: "text", text: "real" },
+      ]),
+    ).toBe("real");
+  });
+  it("preserves empty-string text entries (joined as blank line)", () => {
+    expect(
+      extractTextFromContent([
+        { type: "text", text: "" },
+        { type: "text", text: "x" },
+      ]),
+    ).toBe("\nx");
+  });
+});
+
+// ============================================================================
+// makeSynthesizeMorningBriefHandler
+// ============================================================================
+//
+// Phase 1: deps (anthropic, model?, maxTokens?) → SkillHandler.
+// Async handler branches:
+//   - anthropic.messages.create throws (Error / string / network) → ok:false
+//     • retryable if 5xx/rate_limit/timeout/ECONN/EAI_AGAIN
+//     • else retryable:false
+//   - happy: returns ok:true with full output payload
+//   - default model + maxTokens used when deps omits them
+//   - response missing fields (id/model/usage/stop_reason) → null/0 fallbacks
+// Classification: handles I/O via injected anthropic → dependency degradation
+//                 + error propagation tests required.
+
+interface MockAnthropicConfig {
+  response?: AnthropicMessagesResponse;
+  throwError?: unknown;
+}
+
+function makeMockAnthropic(cfg: MockAnthropicConfig = {}): {
+  anthropic: AnthropicLike;
+  calls: AnthropicMessagesCreateParams[];
+} {
+  const calls: AnthropicMessagesCreateParams[] = [];
+  const anthropic: AnthropicLike = {
+    messages: {
+      create: async (params) => {
+        calls.push(params);
+        if (cfg.throwError !== undefined) throw cfg.throwError;
+        return (
+          cfg.response ?? {
+            id: "msg_default",
+            content: [{ type: "text", text: "default" }],
+            model: "claude-haiku-4-5",
+            stop_reason: "end_turn",
+            usage: { input_tokens: 10, output_tokens: 5 },
+          }
+        );
+      },
+    },
+  };
+  return { anthropic, calls };
+}
+
+const MORNING_RUN: ScheduledRun = {
+  id: "run-mb-1",
+  schedule_id: "morning-brief-assembly",
+  triggered_skill: "synthesize-morning-brief",
+  fired_at: "2026-05-05T05:45:00Z",
+};
+
+describe("makeSynthesizeMorningBriefHandler — happy path", () => {
+  it("returns ok:true with full output payload from anthropic response", async () => {
+    const { anthropic } = makeMockAnthropic({
+      response: {
+        id: "msg_abc123",
+        content: [
+          { type: "text", text: "(1) yesterday metric ↑3%" },
+          { type: "text", text: "(2) ship Wave 2 task 3" },
+        ],
+        model: "claude-haiku-4-5",
+        stop_reason: "end_turn",
+        usage: { input_tokens: 250, output_tokens: 180 },
+      },
+    });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.output.kind).toBe("morning_brief");
+    expect(result.output.message_id).toBe("msg_abc123");
+    expect(result.output.model).toBe("claude-haiku-4-5");
+    expect(result.output.stop_reason).toBe("end_turn");
+    expect(result.output.input_tokens).toBe(250);
+    expect(result.output.output_tokens).toBe(180);
+    expect(result.output.text).toBe(
+      "(1) yesterday metric ↑3%\n(2) ship Wave 2 task 3",
+    );
+  });
+
+  it("uses DEFAULT_MORNING_BRIEF_MODEL when no model provided", async () => {
+    const { anthropic, calls } = makeMockAnthropic();
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    await handler(MORNING_RUN);
+    expect(calls[0].model).toBe(DEFAULT_MORNING_BRIEF_MODEL);
+  });
+
+  it("uses DEFAULT_MORNING_BRIEF_MAX_TOKENS when not provided", async () => {
+    const { anthropic, calls } = makeMockAnthropic();
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    await handler(MORNING_RUN);
+    expect(calls[0].max_tokens).toBe(DEFAULT_MORNING_BRIEF_MAX_TOKENS);
+  });
+
+  it("respects custom model and maxTokens", async () => {
+    const { anthropic, calls } = makeMockAnthropic();
+    const handler = makeSynthesizeMorningBriefHandler({
+      anthropic,
+      model: "claude-sonnet-4-6",
+      maxTokens: 2048,
+    });
+    await handler(MORNING_RUN);
+    expect(calls[0].model).toBe("claude-sonnet-4-6");
+    expect(calls[0].max_tokens).toBe(2048);
+  });
+
+  it("includes the system prompt and the run.fired_at in the user message", async () => {
+    const { anthropic, calls } = makeMockAnthropic();
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    await handler(MORNING_RUN);
+    expect(calls[0].system).toBe(DEFAULT_MORNING_BRIEF_SYSTEM);
+    expect(calls[0].messages).toHaveLength(1);
+    expect(calls[0].messages[0].role).toBe("user");
+    expect(calls[0].messages[0].content).toContain(MORNING_RUN.fired_at);
+  });
+});
+
+describe("makeSynthesizeMorningBriefHandler — degraded responses", () => {
+  it("falls back model to deps.model when response.model is missing", async () => {
+    const { anthropic } = makeMockAnthropic({
+      response: { content: [{ type: "text", text: "x" }] },
+    });
+    const handler = makeSynthesizeMorningBriefHandler({
+      anthropic,
+      model: "claude-opus-4-7",
+    });
+    const result = await handler(MORNING_RUN);
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.output.model).toBe("claude-opus-4-7");
+  });
+
+  it("falls back model to default when both response.model and deps.model are missing", async () => {
+    const { anthropic } = makeMockAnthropic({
+      response: { content: [{ type: "text", text: "x" }] },
+    });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.output.model).toBe(DEFAULT_MORNING_BRIEF_MODEL);
+  });
+
+  it("returns null for missing message_id and stop_reason", async () => {
+    const { anthropic } = makeMockAnthropic({
+      response: { content: [{ type: "text", text: "x" }] },
+    });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.output.message_id).toBeNull();
+    expect(result.output.stop_reason).toBeNull();
+  });
+
+  it("returns 0 for missing usage tokens", async () => {
+    const { anthropic } = makeMockAnthropic({
+      response: { content: [{ type: "text", text: "x" }] },
+    });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.output.input_tokens).toBe(0);
+    expect(result.output.output_tokens).toBe(0);
+  });
+
+  it("returns empty text when content array is empty", async () => {
+    const { anthropic } = makeMockAnthropic({
+      response: { content: [], usage: { input_tokens: 5, output_tokens: 0 } },
+    });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    if (!result.ok) throw new Error("expected ok");
+    expect(result.output.text).toBe("");
+    // ok:true is intentional — empty text is a valid (if degenerate) response.
+    // Caller decides whether to act on it; the handler does not editorialize.
+  });
+});
+
+describe("makeSynthesizeMorningBriefHandler — error paths", () => {
+  it("returns ok:false retryable when SDK throws 5xx", async () => {
+    const { anthropic } = makeMockAnthropic({
+      throwError: new Error("500 internal_server_error"),
+    });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain("anthropic:");
+    expect(result.error).toContain("500");
+    expect(result.retryable).toBe(true);
+  });
+
+  it("returns ok:false retryable on rate_limit_error", async () => {
+    const { anthropic } = makeMockAnthropic({
+      throwError: new Error("rate_limit_exceeded: please retry"),
+    });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    if (result.ok) throw new Error("expected failure");
+    expect(result.retryable).toBe(true);
+  });
+
+  it("returns ok:false NOT retryable on 4xx invalid_request", async () => {
+    const { anthropic } = makeMockAnthropic({
+      throwError: new Error("400 invalid_request_error: bad input"),
+    });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    if (result.ok) throw new Error("expected failure");
+    expect(result.retryable).toBe(false);
+  });
+
+  it("returns ok:false NOT retryable on auth error (no API key)", async () => {
+    const { anthropic } = makeMockAnthropic({
+      throwError: new Error("401 authentication_error: invalid x-api-key"),
+    });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    if (result.ok) throw new Error("expected failure");
+    expect(result.retryable).toBe(false);
+  });
+
+  it("handles non-Error thrown value (string)", async () => {
+    const { anthropic } = makeMockAnthropic({ throwError: "weird string error" });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    if (result.ok) throw new Error("expected failure");
+    expect(result.error).toContain("weird string error");
+  });
+
+  it("handles non-Error thrown value (object without message)", async () => {
+    const { anthropic } = makeMockAnthropic({ throwError: { code: "X" } });
+    const handler = makeSynthesizeMorningBriefHandler({ anthropic });
+    const result = await handler(MORNING_RUN);
+    if (result.ok) throw new Error("expected failure");
+    expect(typeof result.error).toBe("string");
+    expect(result.error.length).toBeGreaterThan(0);
+  });
+});
+
+describe("makeSynthesizeMorningBriefHandler — registered as SKILL", () => {
+  it("integrates with executeRun like any other handler", async () => {
+    const { anthropic } = makeMockAnthropic();
+    const registry: SkillRegistry = {
+      "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),
+    };
+    const result = await executeRun(
+      { ...MORNING_RUN, triggered_skill: "synthesize-morning-brief" },
+      registry,
+      "fake-key",
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect((result.output as { kind: string }).kind).toBe("morning_brief");
   });
 });
