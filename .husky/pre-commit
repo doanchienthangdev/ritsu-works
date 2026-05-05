@@ -1,8 +1,8 @@
 #!/bin/sh
-. "$(dirname -- "$0")/_/husky.sh" 2>/dev/null || true
+# husky v9: no longer sources _/husky.sh (removed in v10).
 
 # Reject if runtime files staged (except runtime/README.md)
-RUNTIME_FILES=$(git diff --cached --name-only | grep -E "^runtime/" | grep -v "^runtime/README.md$")
+RUNTIME_FILES=$(git diff --cached --name-only | grep -E "^runtime/" | grep -v "^runtime/README.md$" || true)
 if [ -n "$RUNTIME_FILES" ]; then
   echo "❌ ERROR: Attempting to commit runtime data!"
   echo ""
@@ -16,7 +16,7 @@ if [ -n "$RUNTIME_FILES" ]; then
 fi
 
 # Reject if .env files staged (except .env.example)
-ENV_FILES=$(git diff --cached --name-only | grep -E "^\.env" | grep -v "^\.env\.example$" | grep -v "^\.env\.template$")
+ENV_FILES=$(git diff --cached --name-only | grep -E "^\.env" | grep -v "^\.env\.example$" | grep -v "^\.env\.template$" || true)
 if [ -n "$ENV_FILES" ]; then
   echo "❌ ERROR: Attempting to commit .env file!"
   echo ""
