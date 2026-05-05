@@ -1,0 +1,19 @@
+# ingestion-sources.yaml — Knowledge ingestion sources (Bài #18)
+version: "1.0.0"
+
+source_kinds:
+  - id: article
+    adapter: article-adapter
+    fetch_method: url_fetch + readability_extraction
+    chunking: token_512_with_overlap_64
+  
+  - id: voice_note
+    adapter: voice-note-adapter
+    fetch_method: telegram_voice_message + whisper_transcription
+    classification_required: true
+    cost_estimate: $0.006/minute
+  
+  # {{ADD_SOURCE_KINDS}}
+
+active_subscriptions:
+  # {{ADD_PROJECT_SUBSCRIPTIONS}}

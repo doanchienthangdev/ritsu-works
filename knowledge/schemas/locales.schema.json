@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "locales.schema.json",
+  "title": "Multi-locale Configuration (B\u00e0i #17)",
+  "type": "object",
+  "required": [
+    "version",
+    "locales"
+  ],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "locales": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "primary": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

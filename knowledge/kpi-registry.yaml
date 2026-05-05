@@ -1,0 +1,19 @@
+# kpi-registry.yaml — KPIs (Bài #10)
+version: "1.0.0"
+
+kpis:
+  # Operational KPIs (cross-cutting)
+  - id: minion_queue_depth
+    type: operational
+    description: "Pending Minion jobs"
+    threshold_warn: 100
+    threshold_critical: 1000
+  
+  - id: hitl_backlog_size
+    type: operational
+    description: "Pending HITL approvals"
+    threshold_warn: 5
+    threshold_critical: 20
+  
+  # Business KPIs (customize per project)
+  # {{ADD_BUSINESS_KPIS}}

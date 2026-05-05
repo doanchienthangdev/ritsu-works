@@ -1,0 +1,12 @@
+# alert-rules.yaml — Alert routing (Bài #10)
+version: "1.0.0"
+
+rules:
+  # Generic operational alerts
+  - id: minion_queue_critical
+    condition: kpi.minion_queue_depth > 1000
+    severity: critical
+    notify: [telegram_founder]
+  
+  # Business alerts (customize per project)
+  # {{ADD_BUSINESS_ALERTS}}

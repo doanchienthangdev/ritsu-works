@@ -1,0 +1,316 @@
+---
+name: pre-tool-customer-message
+version: 0.2.0
+type: pre-tool
+tools: [
+  email_sender_*,
+  resend_*,
+  intercom_send,
+  helpscout_send,
+  twitter_dm,
+  linkedin_dm,
+  twitter_reply,
+  linkedin_reply,
+  *_customer_send_*
+]
+default_decision: escalate
+fail_mode: closed
+---
+
+# Hook: pre-tool-customer-message
+
+> The runtime safety net for customer-facing AI disclosure compliance. Per EU AI Act Article 50, missing disclosure is not a UX issue — it's a regulatory violation. This hook prevents shipping non-compliant messages.
+
+## What it does
+
+Inspects every outgoing customer-facing message tool call and verifies AI disclosure is present. If missing, escalates to founder for review or blocks if violation is unambiguous.
+
+The companion skill `ai-disclosure-check` is the **proactive** check — agents invoke it before sending. This hook is the **mandatory** check — it runs regardless of whether the agent invoked the skill. Defense in depth: agent intent + runtime enforcement.
+
+## Why this is critical
+
+- **Legal requirement.** EU AI Act Article 50 (effective 2 August 2026) mandates AI disclosure in chatbot interactions. Violations carry fines up to 7% of global revenue.
+- **Trust foundation.** Customers who later discover undisclosed AI lose trust in the brand. Reputation cost > regulatory cost.
+- **Asymmetric error cost.** A blocked-but-actually-fine message has tiny cost (founder reviews briefly). A sent-but-actually-non-compliant message has huge cost (legal + reputation). Optimize for the asymmetry.
+
+## Decision logic
+
+```
+function decide(payload):
+  message = extract_message_body(payload)
+  message_type = classify_message_type(payload)  # email_first, chat_first, etc.
+
+  # Skip non-customer-facing tools
+  if not is_customer_facing_tool(payload.tool_name):
+    return allow(reason="not customer-facing")
+
+  # Run the same checks as ai-disclosure-check skill
+  checks = run_disclosure_checks(message, message_type)
+
+  # Decide based on check results
+  errors = [c for c in checks if c.severity == 'error']
+  warnings = [c for c in checks if c.severity == 'warning']
+
+  if not errors and not warnings:
+    return allow(reason="all disclosure checks passed")
+
+  if errors:
+    # Critical: identity question not answered (Check C)
+    if any(c.code == 'IDENTITY_QUESTION_NOT_ANSWERED' for c in errors):
+      alert_founder_security(payload, "AI identity question not answered in customer reply")
+      return block(
+        reason="identity_question_not_answered",
+        log_extras={
+          "errors": errors,
+          "violation_type": "EU_AI_ACT_ARTICLE_50_HARD",
+        }
+      )
+
+    # Critical: human impersonation
+    if any(c.code == 'HUMAN_IMPERSONATION_DETECTED' for c in errors):
+      alert_founder_security(payload, "Outgoing message implies human, not AI")
+      return block(
+        reason="human_impersonation_detected",
+        log_extras={"errors": errors}
+      )
+
+    # Other errors: missing disclosure / signature / escalation path
+    return escalate(
+      reason="disclosure_compliance_issues",
+      log_extras={
+        "errors": errors,
+        "warnings": warnings,
+        "suggested_fixes": [c.suggested_fix for c in errors],
+      }
+    )
+
+  # Warnings only: allow with logged note
+  return allow(
+    reason="passed with warnings",
+    log_extras={"warnings": warnings}
+  )
+```
+
+## Tool classification
+
+Customer-facing tools (this hook applies):
+
+- `email_sender_transactional` (when recipient is a customer, not internal)
+- `email_sender_marketing` (always customer-facing by definition)
+- `resend_*` (Resend SDK calls to customer addresses)
+- `intercom_send` (in-product chat)
+- `helpscout_send` (support tool)
+- `twitter_dm`, `twitter_reply` (public/DM Twitter)
+- `linkedin_dm`, `linkedin_reply`
+- Any custom MCP tool with `_customer_send_` in its name
+
+Not customer-facing (this hook does NOT apply):
+
+- Telegram bot (founder-only)
+- Internal Slack channels
+- GitHub PR comments
+- Internal email (`@ritsu.ai` to internal team)
+- Database writes
+- File system operations
+
+The classification logic checks:
+1. Tool name pattern match (above lists)
+2. Recipient address domain (is it `@ritsu.ai` or external?)
+3. Channel-specific recipient checks (Slack channel public? Twitter user external?)
+
+## What gets blocked vs escalated vs allowed
+
+| Severity | Decision | Examples |
+|---|---|---|
+| `block` (hard) | Hook returns `block`, message NOT sent, founder alerted as security event | Identity question dodged; human impersonation; explicit denial of AI nature |
+| `escalate` | Hook returns `escalate`, founder reviews via Telegram before send | Missing disclosure on first contact; missing signature; missing escalation path |
+| `allow` with warnings | Hook returns `allow` but logs the warning | Disclosure present but late in body (>200 chars); informal escalation phrasing |
+| `allow` clean | Hook returns `allow` with no flags | All checks pass |
+
+The hard `block` cases (identity dodge, impersonation) are not sent for founder review — they go to security event log. These represent active misleading behavior that should never reach a customer, even with founder approval. Founder gets notified after the block.
+
+## Test cases
+
+| # | Scenario | Expected |
+|---|---|---|
+| 1 | Email first reply with full canonical disclosure + signature | allow |
+| 2 | Email first reply, body has good content, signature missing | escalate |
+| 3 | Email first reply, no AI disclosure anywhere | escalate |
+| 4 | Customer asked "are you human?", response says "Yes, I can help" without confirming AI | block (hard) |
+| 5 | Email body contains "I personally feel" | block (hard, impersonation) |
+| 6 | Subsequent email (not first), signature present, no first-contact disclosure | allow (n/a check) |
+| 7 | Internal email to `gps@ritsu.ai` (founder relay) | allow (not customer-facing) |
+| 8 | Twitter DM with disclosure in chat first message | allow |
+| 9 | Twitter public reply, no disclosure (assumed limited scope) | escalate (warning, customer can't see thread context) |
+| 10 | Vietnamese first email with proper Vietnamese disclosure | allow |
+| 11 | Vietnamese first email with English disclosure (locale mismatch) | escalate (warning) |
+| 12 | Disclosure present but in 5th paragraph of long email | escalate (weak placement) |
+| 13 | Marketing email blast to subscribers, all good | allow (per policy this is also Tier C+ via pre-tool-publish) |
+| 14 | Founder personally sending (founder role) | allow (founder is human, no AI claim) |
+
+## Hook composition with other hooks
+
+This hook composes with:
+
+- **`pre-tool-publish`** (Bài #2) — also runs on customer-facing send tools. Both hooks must pass:
+  - `pre-tool-publish` checks: tier classification, dry-run requirement, recipient count, founder approval flow
+  - `pre-tool-customer-message` checks: AI disclosure compliance
+  - If either says block, message blocked.
+  - If both say escalate, single founder approval covers both.
+
+- **`pre-tool-secrets`** (Bài #2) — runs first to verify the role can use the email/social token. If fail, message never reaches this hook.
+
+- **`pre-delegate-check`** (Bài #5) — informational only, doesn't gate this hook.
+
+## Performance notes
+
+- Disclosure checks are mostly regex on body (fast, < 50ms)
+- Vietnamese checks are second pass on translated/locale-tagged body (< 50ms)
+- Identity question detection scans last user message in conversation context (if available, <100ms)
+- Total target: p95 < 200ms
+
+## Observability
+
+Every escalate/block produces:
+
+- Entry in `ops.agent_runs.hook_events` with full check results
+- For blocks: Telegram alert to founder with severity
+- For escalates: Telegram approval request with proposed fixes pre-rendered
+
+Monthly review (`monthly-learning-review`, Bài #4) aggregates:
+- % of customer-facing messages with proper disclosure on first try
+- Most common reasons for escalation (training opportunity)
+- Block rate trend (should be near zero if agents are well-prompted)
+
+If block rate exceeds 1% of customer-facing volume, audit:
+- Are agent system prompts clear about disclosure?
+- Are skills `support-reply-drafting` etc. correctly invoking `ai-disclosure-check`?
+- Is brand voice document clear enough?
+
+## Compliance audit hook
+
+A separate scheduled job (post-Phase D) queries `ops.agent_runs.hook_events`:
+
+```sql
+SELECT
+  DATE_TRUNC('week', ts) AS week,
+  COUNT(*) FILTER (WHERE decision = 'block') AS blocks,
+  COUNT(*) FILTER (WHERE decision = 'escalate') AS escalates,
+  COUNT(*) FILTER (WHERE decision = 'allow') AS allows,
+  COUNT(*) AS total
+FROM ops.agent_runs
+JOIN LATERAL (
+  SELECT (jsonb_array_elements(hook_events) ->> 'hook_name') AS hook_name,
+         (jsonb_array_elements(hook_events) ->> 'decision') AS decision
+) h ON h.hook_name = 'pre-tool-customer-message'
+WHERE ts >= NOW() - INTERVAL '30 days'
+GROUP BY DATE_TRUNC('week', ts)
+ORDER BY week;
+```
+
+Compliance target: 99%+ allow rate with all checks `ok`. If allow rate drops below 95%, escalate to founder as a process issue.
+
+## Implementation reference
+
+```python
+import re
+
+DISCLOSURE_PATTERNS_EN = [
+    re.compile(r"I'?m Ritsu Assistant\s*[—,]\s*an? AI system", re.I),
+    re.compile(r"I'?m Ritsu Assistant,? an AI helper", re.I),
+]
+DISCLOSURE_PATTERNS_VI = [
+    re.compile(r"M[ìi]nh là Ritsu Assistant\s*[—,]?\s*một hệ thống AI", re.I),
+    re.compile(r"T[ôo]i là Ritsu Assistant,? một hệ thống trí tuệ nhân tạo", re.I),
+]
+
+IDENTITY_QUESTIONS_EN = [
+    re.compile(r"\bare you (an? )?(AI|bot|robot|human|real|person)\b", re.I),
+    re.compile(r"\bis this (a |an )?(real|live) (person|human)\b", re.I),
+]
+IDENTITY_QUESTIONS_VI = [
+    re.compile(r"b[ạa]n l[àa] (AI|robot)( à)?\??", re.I),
+    re.compile(r"có ph[ảa]i (robot|người th[ậâ]t)", re.I),
+]
+
+IMPERSONATION_PATTERNS = [
+    re.compile(r"\bI personally (feel|think|believe)\b", re.I),
+    re.compile(r"\bWhen I was a (student|kid|child|teenager)\b", re.I),
+    re.compile(r"\bMình c[ũu]ng l[àa] sinh viên\b", re.I),
+    # ... more patterns from voice doc
+]
+
+def decide(payload):
+    if not is_customer_facing(payload):
+        return {'decision': 'allow', 'reason': 'not customer-facing'}
+
+    body = extract_body(payload)
+    msg_type = classify_message_type(payload)
+    locale = detect_locale(body, payload)
+
+    errors = []
+    warnings = []
+
+    # Check A: first-contact disclosure
+    if msg_type.endswith('_first'):
+        patterns = DISCLOSURE_PATTERNS_VI if locale == 'vi' else DISCLOSURE_PATTERNS_EN
+        if not any(p.search(body[:500]) for p in patterns):
+            if any(p.search(body) for p in patterns):
+                warnings.append({'code': 'DISCLOSURE_LATE_PLACEMENT'})
+            else:
+                errors.append({'code': 'MISSING_FIRST_CONTACT_DISCLOSURE'})
+
+    # Check C: identity question response
+    prev_msg = get_previous_customer_message(payload)
+    if prev_msg:
+        questions = IDENTITY_QUESTIONS_VI + IDENTITY_QUESTIONS_EN
+        if any(p.search(prev_msg) for p in questions):
+            patterns = DISCLOSURE_PATTERNS_VI + DISCLOSURE_PATTERNS_EN
+            if not any(p.search(body[:300]) for p in patterns):
+                errors.append({'code': 'IDENTITY_QUESTION_NOT_ANSWERED'})
+
+    # Check E: human impersonation
+    for p in IMPERSONATION_PATTERNS:
+        if p.search(body):
+            errors.append({'code': 'HUMAN_IMPERSONATION_DETECTED', 'pattern': p.pattern})
+            break
+
+    # ... Checks B (signature) and D (escalation path) similar
+
+    # Decide
+    hard_blocks = [e for e in errors if e['code'] in
+                   ('IDENTITY_QUESTION_NOT_ANSWERED', 'HUMAN_IMPERSONATION_DETECTED')]
+    if hard_blocks:
+        alert_security(payload, hard_blocks)
+        return {'decision': 'block',
+                'reason': hard_blocks[0]['code'],
+                'log_extras': {'errors': errors}}
+
+    if errors:
+        return {'decision': 'escalate',
+                'reason': 'disclosure_compliance_issues',
+                'log_extras': {'errors': errors, 'warnings': warnings}}
+
+    return {'decision': 'allow',
+            'log_extras': {'warnings': warnings} if warnings else {}}
+```
+
+## Failure modes
+
+- **Hook errors / dependency unavailable** — fail-closed (block). Message held, founder alerted to investigate. Better to delay sends than to ship non-compliant.
+- **Body extraction fails** — `block` with reason `body_extraction_failed`. Founder investigates payload.
+- **Locale detection wrong** — checks may apply wrong patterns. Mitigation: if locale ambiguous, run BOTH English and Vietnamese checks. If neither passes, escalate.
+
+## When this hook changes
+
+Triggers to revisit:
+- New regulatory requirements (Vietnam AI law passes; California updates SB 1001; etc.)
+- New customer-facing channel added (e.g., voice — needs voice disclosure check)
+- New language support — add patterns
+- False positive rate exceeds 5% — refine patterns
+
+Each change is D-Std PR per `governance/HITL.md` (this is a critical safety hook).
+
+---
+
+*The cost of a non-compliant message is not the next message — it's the next 10,000 messages, the regulatory inquiry, the press story. This hook makes the cost asymmetry visible and acts on it.*

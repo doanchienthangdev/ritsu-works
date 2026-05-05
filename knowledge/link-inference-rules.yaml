@@ -1,0 +1,16 @@
+# link-inference-rules.yaml — Knowledge graph (Bài #14)
+# Auto-link extraction patterns (zero-LLM regex)
+version: "1.0.0"
+
+link_types:
+  - id: works_at
+    pattern: "(?:works at|employed by|employee of) \\[\\[company/([^\\]]+)\\]\\]"
+    source_type: person
+    target_type: company
+  
+  - id: founded
+    pattern: "(?:founded|founder of|created) \\[\\[(?:company|organization)/([^\\]]+)\\]\\]"
+    source_type: person
+    target_type: company
+  
+  # {{ADD_PROJECT_LINK_TYPES}}

@@ -1,0 +1,176 @@
+# ============================================================================
+# founder-rhythm.yaml — Founder Capacity Architecture (Bài #19)
+# ============================================================================
+# Tier 1 declarative file. Defines founder daily/weekly rhythms,
+# attention budget, cognitive load distribution.
+#
+# Capstone bài toán — touches every prior architecture layer.
+# ============================================================================
+
+version: "1.0.0"
+timezone: Asia/Ho_Chi_Minh
+
+# === Daily rhythm blocks ===
+# Each block defines: time range + mode + interrupt level
+
+daily_rhythm:
+  - id: morning-deep-work
+    start: 06:00            # e.g., "06:00"
+    end: 09:00                 # e.g., "09:00"
+    mode: focus
+    interrupt_level: emergency_only
+    suggested_activities: [strategic_thinking, major_decisions, deep_dev_work]
+    do_not_disturb: true
+  
+  - id: morning-brief
+    start: 06:00             # 15 min before deep work
+    end: 06:15           # e.g., "06:15"
+    mode: review
+    auto_assembled: true
+    sources:
+      - last_24h_kpis
+      - hitl_backlog
+      - calendar_today
+      - ingestion_summary
+      - customer_alerts
+      - stale_decisions
+  
+  - id: meeting-block-1
+    start: 09:00             # e.g., "09:00"
+    end: 12:00                  # e.g., "12:00"
+    mode: meeting
+    interrupt_level: scheduled_only
+    pre_call_dossier_minutes_before: 30
+  
+  - id: lunch
+    start: "12:00"
+    end: "13:00"
+    mode: break
+    interrupt_level: emergency_only
+  
+  - id: afternoon-reactive
+    start: "13:00"
+    end: "17:00"
+    mode: reactive
+    interrupt_level: tier_b_plus
+    suggested_activities: [hitl_approvals, customer_calls, async_engagement]
+  
+  - id: evening-reflection
+    start: "19:00"
+    end: "21:00"
+    mode: reflection
+    interrupt_level: tier_c_plus
+    suggested_activities: [voice_notes, weekly_planning, reading]
+  
+  - id: sleep
+    start: "22:00"
+    end: 06:00
+    mode: sleep
+    interrupt_level: critical_only
+    do_not_disturb: true
+
+# === Weekly rhythm ===
+
+weekly_rhythm:
+  - day: monday
+    theme: strategic_planning
+    activities:
+      - weekly_kpi_review
+      - week_priority_setting
+      - stale_decision_review
+  
+  - day: friday
+    theme: review_retrospective
+    activities:
+      - weekly_metrics_review
+      - cross_decision_pattern_muse_run
+      - voice_note_aggregation
+      - documentation_pass
+  
+  - day: weekend
+    theme: lighter_mode
+    interrupt_level: emergency_only
+
+# === Special modes ===
+
+special_modes:
+  - id: deep_work_mode
+    trigger: founder_invoked              # via Telegram /focus N
+    duration: 120_minutes_default
+    effects:
+      - tier_b_hitl_deferred
+      - non_emergency_alerts_suppressed
+      - dashboard_quiet
+  
+  - id: customer_call_mode
+    trigger: calendar_event_with_customer
+    duration: pre + meeting + 15min_post
+    pre_call:
+      - assemble_dossier
+      - silent_telegram
+      - calendar_block_buffer
+
+# === Daily attention budget ===
+
+daily_attention_budget:
+  total_focus_minutes: 480                # 8 hours focused work
+  
+  target_distribution:
+    deep_work: 180                        # 3h = 37.5%
+    meetings: 120                         # 2h = 25%
+    hitl_decisions: 60                    # 1h = 12.5%
+    triage_email: 30                      # 30m = 6.25%
+    customer_relationships: 60            # 1h = 12.5%
+    reflection: 30                        # 30m = 6.25%
+
+alert_thresholds:
+  - condition: triage_minutes > 90 in single day
+    severity: warning
+    message: "High triage load — review what should auto-handle"
+  
+  - condition: deep_work_minutes < 120 in single day
+    severity: warning
+    message: "Low deep work — defend morning block"
+  
+  - condition: hitl_decisions > 90 in single day
+    severity: critical
+    message: "HITL queue overflowing — review Tier B/C boundary"
+
+# === Cognitive load distribution ===
+
+cognitive_load_distribution:
+  founder_only:
+    description: "Tasks only founder should do"
+    examples:
+      - tier_c_plus_decisions
+      - {{FOUNDER_ONLY_DOMAIN_TASKS}}
+  
+  founder_drafts_ai_executes:
+    description: "Founder defines, AI implements"
+    examples:
+      - {{FOUNDER_DRAFTS_DOMAIN_TASKS}}
+  
+  ai_drafts_founder_reviews:
+    description: "AI proposes, founder approves"
+    examples:
+      - tier_b_hitl
+      - routine_customer_responses
+      - {{AI_DRAFTS_DOMAIN_TASKS}}
+  
+  ai_handles_autonomously:
+    description: "AI does, founder spot-checks weekly"
+    examples:
+      - tier_a_routine_ops
+      - knowledge_ingestion
+      - format_conversion
+      - schedule_polling
+
+# ============================================================================
+# Customization checklist
+# ============================================================================
+# After bootstrap:
+# 1. Update timezone (above)
+# 2. Customize 06:00, 09:00, etc. for founder's natural rhythm
+# 3. Define domain-specific cognitive load distribution
+# 4. Adjust attention budget targets per project priorities
+# 5. Add domain-specific special modes if needed

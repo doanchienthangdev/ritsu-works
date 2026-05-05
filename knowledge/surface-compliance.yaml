@@ -1,0 +1,21 @@
+# surface-compliance.yaml — Per-surface compliance (Bài #17)
+version: "1.0.0"
+
+compliance_rules:
+  - surface: email
+    rules:
+      - require_unsubscribe_link: true
+      - require_physical_address: true            # CAN-SPAM
+      - max_send_per_recipient_per_day: 1
+  
+  - surface: twitter
+    rules:
+      - max_chars: 280
+      - rate_limit_per_15min: 50
+  
+  - surface: linkedin
+    rules:
+      - max_chars: 3000
+      - require_business_appropriate: true
+  
+  # {{ADD_SURFACE_COMPLIANCE}}

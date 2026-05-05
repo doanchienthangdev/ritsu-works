@@ -1,4 +1,103 @@
-.archives/
+# ============================================================================
+# ritsu-works .gitignore
+# ============================================================================
+# Three workspace folders have specific sync policies.
+# See raw/README.md, wiki/README.md, .archives/README.md for the rationale.
+# ============================================================================
+
+# --- raw/ — local-only intake ---------------------------------------------
+# Raw source material before extraction. Each operator collects their own;
+# never synced to GitHub. The folder itself IS tracked (via .gitkeep) so
+# every clone has a place to drop raw files.
+raw/*
+!raw/.gitkeep
+!raw/README.md
+
+# --- .archives/ — local-only scratch space --------------------------------
+# Subfolder structure ("the shell") IS tracked via .gitkeep files, but file
+# contents are NOT. This lets agents create predictable subfolders that
+# survive a fresh clone, while keeping experimental drafts off GitHub.
+#
+# Pattern explanation: git won't recurse into an ignored directory to check
+# negation patterns, so we must NOT exclude directories themselves. We
+# exclude files at every depth via wildcards, then re-include .gitkeep files.
+.archives/**
+!.archives/**/
+!.archives/.gitkeep
+!.archives/**/.gitkeep
+!.archives/README.md
+
+# --- wiki/ — opt-in sync --------------------------------------------------
+# wiki/ is fully tracked by default. To keep a wiki note local-only,
+# add a leading underscore to the filename: `wiki/_my-private-note.md`.
+wiki/_*
+wiki/**/_*
+
+# --- Standard ignores -----------------------------------------------------
 .DS_Store
-.auto-memory/
-.claude/
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.env.local
+
+# Node
+node_modules/
+.next/
+dist/
+build/
+
+# Secrets — never commit anything that looks like a credential
+*.pem
+*.key
+*.cert
+.env*
+!.env.example
+secrets.yaml
+secrets.json
+
+# --- runtime/ — per-machine local data (NEVER commit) ---------------------
+# Per-machine runtime data: voice notes buffer, ingestion temp, local logs,
+# secrets, LLM caches, GDPR exports. Each user has own runtime/ folder.
+# See runtime/README.md for details.
+runtime/
+!runtime/README.md
+
+# --- _build/ — build outputs ----------------------------------------------
+_build/
+
+# --- Claude Code local state ----------------------------------------------
+.claude/local/
+.claude/sessions/
+*.claude-session
+
+# --- Supabase local -------------------------------------------------------
+supabase/.branches/
+supabase/.temp/
+
+# --- Database dumps -------------------------------------------------------
+*.dump
+*.sql.gz
+*.backup
+
+# --- LLM caches -----------------------------------------------------------
+llm-cache/
+embeddings-cache/
+
+# --- Test artifacts -------------------------------------------------------
+coverage/
+.nyc_output/
+*.lcov
+.tsbuildinfo
+*.tsbuildinfo

@@ -1,0 +1,92 @@
+# ============================================================================
+# capability-registry.yaml — Capability Registry (Bài #20)
+# ============================================================================
+# Tier 1 declarative file (Tier 1 #19). Tracks all capabilities deployed on
+# Agent OS — proposed, in-progress, deployed, deprecated.
+#
+# Each capability = unit of business value packaged as:
+# - 1+ skills, 0-N SOPs, 0-N Tier 1 changes, 0-N migrations,
+# - 0-N integrations, 0-N frontend pages, 0-N external services
+#
+# See playbook chương 33 + DRAFT bai-20-capability-lifecycle.
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/capability-registry.schema.json
+
+# === Lifecycle states (matches ops.capability_runs.state) ===
+# proposed: founder proposed, Phase 1-3 in progress
+# analyzing: Phase 2-3 (domain + system)
+# architecting: Phase 4-5 (options + spec)
+# planning: Phase 6 (sprint plan)
+# implementing: Phase 7 (active development)
+# deployed: Phase 8 done, in production
+# operating: stable, ongoing operation (no longer "newly deployed")
+# deprecated: scheduled for removal
+# superseded: replaced by newer capability
+
+# === HITL tier thresholds ===
+# Each phase transition has minimum HITL tier:
+hitl_thresholds:
+  proposed_to_analyzing: tier_a
+  analyzing_to_architecting: tier_a
+  architecting_to_planning: tier_b      # founder picks option
+  planning_to_implementing: tier_c      # founder approves architecture
+  implementing_to_deployed: tier_b      # per PR review
+  deployed_to_deprecated: tier_c        # founder approves deprecation
+
+# === Capabilities catalog ===
+# When CLA workflow runs, it appends capabilities here.
+
+capabilities:
+  # === Meta capability: CLA itself (ALWAYS first, deployed) ===
+  - id: capability-lifecycle-architecture
+    name: "Capability Lifecycle Architecture (Bài #20)"
+    description: "Standardized workflow để propose, analyze, architect, build new capabilities"
+    state: deployed
+    state_since: 2026-05-04
+    proposed_at: 2026-05-04
+    deployed_at: 2026-05-04
+    pillar_owner: 05-ai-ops
+    bài_toán_touched: [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19]
+    spec_path: knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md
+    cost_bucket: ai-ops-meta
+    notes: "Meta-capability. Deploys itself bootstrap-style trong Wave 1."
+  
+  # === Project-specific capabilities (added as founder runs CLA) ===
+  
+  # Example placeholder (remove or replace):
+  # - id: daily-customer-acquisition
+  #   name: "Daily Customer Acquisition Pipeline"
+  #   description: "Automated lead capture + scoring + outreach"
+  #   state: proposed
+  #   state_since: 2026-05-15
+  #   proposed_at: 2026-05-15
+  #   pillar_owner: 01-growth
+  #   bài_toán_touched: [11, 13, 16, 17]
+  #   spec_path: wiki/capabilities/daily-customer-acquisition/spec.md
+  #   sprint_plan: wiki/capabilities/daily-customer-acquisition/sprint-plan.md
+  #   cost_bucket: lead-acquisition
+  #   target_kpis: [daily_new_customers]
+  #   target_value: 10
+  #   estimated_cost_recurring_usd: 114
+  #   estimated_founder_hours: 32
+  #   estimated_completion: 2026-06-12
+
+# === Capability dependencies ===
+# Some capabilities depend on others being deployed first.
+dependencies:
+  # capability_id: [list of prerequisite capability ids]
+  # Example:
+  # daily-customer-acquisition: [lead-source-polling, multi-locale-publishing]
+
+# === Cost-bucket aggregation ===
+# Maps capabilities to Bài #7 cost-buckets cho monthly reporting.
+cost_buckets:
+  ai-ops-meta:
+    description: "Meta operations (CLA, infrastructure)"
+    capabilities: [capability-lifecycle-architecture]
+  
+  # lead-acquisition:
+  #   description: "All capabilities related to acquiring new customers"
+  #   capabilities: [daily-customer-acquisition, ...]

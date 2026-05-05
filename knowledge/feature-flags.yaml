@@ -1,0 +1,263 @@
+# ============================================================================
+# feature-flags.yaml — LLM Access Modes & Feature Gating
+# ============================================================================
+# Tier 1 declarative: which features run autonomously (need API keys) vs
+# manually (fallback to Claude Code session). Edit via PR governance.
+#
+# See playbook chương 30 for full explanation of modes.
+# ============================================================================
+
+version: "1.0.0"
+
+# === Operating mode ===
+# subscription: only Claude Pro/Max, no API keys, all autonomous features manual
+# hybrid:       Claude sub + selective API keys (DEFAULT for Ritsu v1.0)
+# full_api:     Full API keys, all autonomous features enabled (v1.5+)
+mode: hybrid
+
+# === API key requirements ===
+api_keys:
+  anthropic:
+    required_for: [autonomous_skills, muse_panel, customer_categorization]
+    provider: "Anthropic Claude API (https://console.anthropic.com)"
+    env_var: ANTHROPIC_API_KEY
+  
+  openai:
+    required_for: [whisper_transcription, embeddings]
+    provider: "OpenAI API (https://platform.openai.com)"
+    env_var: OPENAI_API_KEY
+
+# === Cost control ===
+cost_limits:
+  daily_budget_usd: 10
+  alert_threshold_pct: 80           # alert when 80% of daily budget used
+  hard_stop_at_limit: true          # disable autonomous skills when limit hit
+  
+  per_skill_limits:
+    morning_brief:        { max_per_day: 1, max_cost_usd: 0.10 }
+    pre_call_dossier:     { max_per_day: 10, max_cost_usd: 0.50 }
+    voice_note_classify:  { max_per_day: 30, max_cost_usd: 0.30 }
+    muse_panel:           { max_per_day: 3, max_cost_usd: 2.00 }
+    cross_decision_pattern: { max_per_week: 1, max_cost_usd: 10.00 }
+
+# === Feature flags ===
+
+features:
+  # === Always on (deterministic, no LLM needed) ===
+  state_transitions:
+    enabled: true
+    requires: []
+    description: "State machine transitions (Bài #13)"
+  
+  dashboard:
+    enabled: true
+    requires: []
+    description: "Real-time visibility (Bài #10)"
+  
+  hitl_routing:
+    enabled: true
+    requires: []
+    description: "HITL routing logic (Bài #2)"
+  
+  gdpr_deletion:
+    enabled: true
+    requires: []
+    description: "GDPR deletion deterministic SQL (Bài #16)"
+  
+  auto_link_extraction:
+    enabled: true
+    requires: []
+    description: "Knowledge graph auto-link (zero-LLM regex, Bài #14)"
+  
+  schedules:
+    enabled: true
+    requires: []
+    description: "Scheduled triggers (Bài #8)"
+  
+  events:
+    enabled: true
+    requires: []
+    description: "Event-driven triggers (Bài #11)"
+  
+  full_text_search:
+    enabled: true
+    requires: []
+    description: "Postgres FTS keyword search"
+  
+  # === Need anthropic API (autonomous LLM) ===
+  morning_brief:
+    enabled: true
+    requires_api: anthropic
+    fallback: manual_via_claude_code
+    description: "SOP-FOUNDER-001 morning brief (Bài #19)"
+    cost_estimate: "$0.03 per run, 1/day"
+  
+  pre_call_dossier:
+    enabled: true
+    requires_api: anthropic
+    fallback: manual_via_claude_code
+    description: "SOP-FOUNDER-002 pre-call prep (Bài #19)"
+    cost_estimate: "$0.05 per dossier, 1-3/day"
+  
+  voice_note_classify:
+    enabled: true
+    requires_api: anthropic
+    fallback: manual_via_claude_code
+    description: "Classify voice note: idea/decision/observation/task (Bài #18)"
+    cost_estimate: "$0.01 per classification"
+  
+  customer_360_summary:
+    enabled: true
+    requires_api: anthropic
+    fallback: raw_data_view
+    description: "Auto-summarize customer 360 (Bài #16)"
+    cost_estimate: "$0.02 per summary"
+  
+  weekly_review_synthesis:
+    enabled: false
+    requires_api: anthropic
+    fallback: manual_via_claude_code
+    description: "SOP-FOUNDER-003 weekly review (Bài #19)"
+    cost_estimate: "$0.50-1.00 per weekly run"
+  
+  # === Need openai API (Whisper + embeddings) ===
+  whisper_transcription:
+    enabled: true
+    requires_api: openai
+    fallback: manual_phone_transcription
+    description: "Voice-to-text via Whisper (Bài #18)"
+    cost_estimate: "$0.006 per minute audio"
+  
+  embeddings:
+    enabled: true
+    requires_api: openai
+    fallback: postgres_full_text_search
+    description: "Vector embeddings for semantic search (Bài #4, #14)"
+    cost_estimate: "$0.02 per 1M tokens (one-time per ingestion, cached)"
+  
+  semantic_search:
+    enabled: true
+    requires_api: openai
+    fallback: keyword_search
+    description: "pgvector similarity search (Bài #4)"
+    cost_estimate: "$0.001 per query"
+  
+  # === Need anthropic API + high cost (full_api mode) ===
+  muse_panel_autonomous:
+    enabled: false                    # Default off, enable when revenue justifies
+    requires_api: anthropic
+    fallback: manual_muse_via_claude_code
+    description: "29-persona Muse panel autonomous run (Bài #15)"
+    cost_estimate: "$0.50-1.00 per panel"
+    cost_warning: "Each persona = separate LLM call. 29 personas × $0.03 each."
+  
+  cross_decision_patterns:
+    enabled: false
+    requires_api: anthropic
+    fallback: manual_pattern_recognition
+    description: "Weekly cross-decision pattern recognition (Bài #15)"
+    cost_estimate: "$5-10 per weekly run"
+    cost_warning: "Heavy: traverses all decisions, runs Muse on aggregations."
+  
+  multi_surface_auto_adaptation:
+    enabled: false
+    requires_api: anthropic
+    fallback: manual_per_surface_in_claude_code
+    description: "Auto-adapt content for each surface (Bài #17)"
+    cost_estimate: "$0.10 × N surfaces per content piece"
+    cost_warning: "13 surfaces × $0.10 = $1.30 per content piece."
+  
+  customer_auto_categorization:
+    enabled: false
+    requires_api: anthropic
+    fallback: manual_categorization
+    description: "Auto-categorize customer feedback/messages (Bài #16)"
+    cost_estimate: "$0.01 per message, scales với volume"
+  
+  ingestion_full_pipeline:
+    enabled: false
+    requires_api: [anthropic, openai]
+    fallback: manual_ingestion_via_claude_code
+    description: "Full Bài #18 pipeline: fetch + transcribe + classify + embed + summarize"
+    cost_estimate: "Variable by source kind (article ~$0.05, podcast ~$0.50)"
+  
+  auto_translation:
+    enabled: false
+    requires_api: anthropic
+    fallback: manual_translation
+    description: "Auto-translate between locales (Bài #17)"
+    cost_estimate: "$0.05 per page per target locale"
+    cost_warning: "10 locales × $0.05 = $0.50 per page."
+  
+  decision_staleness_check:
+    enabled: false
+    requires_api: anthropic
+    fallback: manual_review
+    description: "Auto-detect stale decisions needing review (Bài #15)"
+    cost_estimate: "$0.10 per weekly run"
+
+# === Mode preset shortcuts ===
+# When `mode` is set above, these presets apply unless overridden by feature flag.
+
+mode_presets:
+  subscription:
+    description: "Pure subscription, no API costs. Manual via Claude Code."
+    auto_enable: [state_transitions, dashboard, hitl_routing, gdpr_deletion, 
+                  auto_link_extraction, schedules, events, full_text_search]
+    auto_disable: [morning_brief, pre_call_dossier, voice_note_classify, 
+                   whisper_transcription, embeddings, semantic_search, 
+                   customer_360_summary, weekly_review_synthesis,
+                   muse_panel_autonomous, cross_decision_patterns,
+                   multi_surface_auto_adaptation, customer_auto_categorization,
+                   ingestion_full_pipeline, auto_translation, decision_staleness_check]
+    estimated_monthly_cost_usd: 20-100   # subscription only
+    vision_retention_pct: 50
+  
+  hybrid:
+    description: "Selective API keys for high-leverage autonomous skills."
+    auto_enable: [state_transitions, dashboard, hitl_routing, gdpr_deletion,
+                  auto_link_extraction, schedules, events, full_text_search,
+                  morning_brief, pre_call_dossier, voice_note_classify,
+                  whisper_transcription, embeddings, semantic_search,
+                  customer_360_summary]
+    auto_disable: [muse_panel_autonomous, cross_decision_patterns,
+                   multi_surface_auto_adaptation, customer_auto_categorization,
+                   ingestion_full_pipeline, auto_translation, 
+                   decision_staleness_check, weekly_review_synthesis]
+    estimated_monthly_cost_usd: 45-65
+    vision_retention_pct: 85
+  
+  full_api:
+    description: "All features enabled. Production target v1.5+."
+    auto_enable: ALL
+    auto_disable: []
+    estimated_monthly_cost_usd: 160-300
+    vision_retention_pct: 100
+
+# === Migration triggers ===
+migration_triggers:
+  subscription_to_hybrid:
+    conditions:
+      - "founder spending >2h/day on manual LLM tasks"
+      - "voice note backlog >20 items"
+      - "search caps at keyword-only"
+      - "customer feedback piling up"
+      - "revenue >$500/mo"
+    actions:
+      - "Acquire ANTHROPIC_API_KEY ($20-50 initial credit)"
+      - "Acquire OPENAI_API_KEY ($20 initial credit)"
+      - "Set mode: hybrid in this file"
+      - "Enable selective features"
+      - "Monitor cost daily for first 2 weeks"
+  
+  hybrid_to_full_api:
+    conditions:
+      - "revenue >$5000/mo"
+      - "≥2 operators joined"
+      - "multi-locale customer base"
+      - "decision velocity bottleneck"
+    actions:
+      - "Increase RITSU_DAILY_BUDGET_USD"
+      - "Set mode: full_api in this file"
+      - "Enable cost-warning features"
+      - "Monitor weekly cost in Bài #7 dashboard"

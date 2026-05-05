@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "link-inference-rules.schema.json",
+  "title": "Link Inference Rules (Bài #14)",
+  "type": "object",
+  "required": ["version", "link_types"],
+  "properties": {
+    "version": {"type": "string"},
+    "link_types": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "pattern", "source_type", "target_type"],
+        "properties": {
+          "id": {"type": "string"},
+          "pattern": {"type": "string"},
+          "source_type": {"type": "string"},
+          "target_type": {"type": "string"}
+        }
+      }
+    }
+  }
+}

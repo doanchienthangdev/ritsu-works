@@ -1,0 +1,353 @@
+---
+name: ai-disclosure-check
+description: |
+  Use to verify an outgoing customer-facing message contains required
+  AI disclosure per `00-charter/transparency.md` and EU AI Act Article
+  50. Returns either "compliant" or specific fix recommendations.
+
+  Trigger conditions: any skill or agent producing customer-facing
+  output (email reply, chat message, social DM, public comment) MUST
+  invoke this skill before sending. The `pre-tool-customer-message`
+  hook also enforces this, but invoking the skill first lets the
+  agent fix issues without being blocked.
+
+  Skip when: internal-only messages (Telegram to founder, GitHub PR
+  comment, internal Slack), pure read operations, draft to
+  `.archives/` (not yet customer-facing).
+
+  Cost: ~50ms wall-clock. ~200 tokens input + ~100 tokens output.
+  Per-invocation cost: < $0.001.
+allowed-tools:
+  - Read
+disable-model-invocation: false
+---
+
+# AI Disclosure Check
+
+> The skill that turns "EU AI Act compliance" from "we hope it's there" into "verified before send."
+
+## When to use
+
+Invoke before any customer-facing message goes out. Specifically:
+
+- Email reply to customer
+- Chat message in Ritsu in-product chat
+- Social media DM reply
+- Public comment on social media (mention, reply)
+- Any message that would be visible to a non-Ritsu-employee
+
+Do NOT use when:
+
+- Internal Telegram message (founder ↔ workforce)
+- GitHub PR comment (developer-facing)
+- Internal Slack message
+- Pure data writes (DB, files)
+- Draft saved to `.archives/` (not yet sent)
+
+## Inputs
+
+| Input | Type | Required | Description |
+|---|---|---|---|
+| `message_body` | string | yes | The full text of the message about to be sent |
+| `message_type` | string | yes | `email_first` / `email_subsequent` / `chat_first` / `chat_subsequent` / `social_reply` / `social_dm` |
+| `message_locale` | string | no | `en` / `vi` (default `en`) |
+| `subject` | string | no | Email subject line (relevant for email_first) |
+| `from_address` | string | no | Sending email address (e.g. `support@ritsu.ai`) |
+| `recipient_first_message` | bool | no | Default true; whether this is the very first message of any kind sent to this recipient |
+
+## Outputs
+
+```yaml
+compliant: <true | false>
+checks:
+  first_contact_disclosure: <ok | missing | weak>
+  signature_present: <ok | missing>
+  on_request_response_pattern: <ok | n/a | failed>
+  escalation_path_visible: <ok | missing>
+  no_human_impersonation: <ok | flagged>
+
+issues:
+  - severity: <error | warning | info>
+    code: MISSING_FIRST_CONTACT_DISCLOSURE
+    description: "..."
+    suggested_fix: "..."
+
+recommended_action: <send | fix_then_send | escalate>
+```
+
+If `compliant: true`, the agent may proceed to send. If `false`, the agent MUST address every `error` severity issue before sending. The `pre-tool-customer-message` hook will also block the send if disclosure is missing.
+
+## Procedure
+
+### Step 1 — Read the disclosure rules
+
+Read `00-charter/transparency.md` and `knowledge/identity-architecture.md` (sub-domain C section) to know the current required patterns. Cache for the session.
+
+### Step 2 — Run the checks
+
+#### Check A — First-contact disclosure
+
+If `message_type` ends in `_first` (email_first, chat_first):
+
+- For English: must contain phrase matching one of:
+  - `I'm Ritsu Assistant — an AI system`
+  - `I'm Ritsu Assistant, an AI system`
+  - `Hi! I'm Ritsu Assistant, an AI helper`
+  - other approved variants from `00-charter/brand_voice.md`
+- For Vietnamese: must contain phrase matching one of:
+  - `Mình là Ritsu Assistant — một hệ thống AI`
+  - `Tôi là Ritsu Assistant, một hệ thống trí tuệ nhân tạo`
+
+If the phrase appears within the first 200 characters of the body → `ok`.
+If it appears later in the body → `weak` (warning, not error).
+If absent → `missing` (error).
+
+For `_subsequent` message types: check skipped (`n/a`).
+
+#### Check B — Signature presence (email only)
+
+For `email_first` and `email_subsequent`: body must end with a signature block matching one of:
+
+- English signature template (`00-charter/transparency.md` shows the canonical form)
+- Vietnamese signature template
+
+Specifically, the footer must include:
+- "Ritsu Assistant" identifier
+- "AI system" or "Hệ thống AI" descriptor
+- Escalation path (`help@ritsu.ai` or "Reply 'human'")
+
+If signature missing → `error`.
+If signature present but missing escalation path → `warning`.
+
+#### Check C — On-request response pattern
+
+If the message_body is a RESPONSE to a customer query, scan the customer's previous message (if available in context) for identity-questioning patterns:
+
+- "are you AI", "are you a bot", "are you human", "are you a person", "is this real", "is this a real person"
+- Vietnamese: "bạn là AI à", "có phải robot không", "bạn là người thật không"
+
+If detected, the agent's response must include explicit AI confirmation. Examples of acceptable responses:
+
+- "I'm an AI system — Ritsu Assistant. {rest of response}"
+- "Yes, I'm AI — Ritsu Assistant. {rest of response}"
+
+If detected and response does NOT confirm → `failed` (error). This is the hardest violation because it can look like deflection.
+
+If no identity question detected → `n/a`.
+
+#### Check D — Escalation path visibility
+
+Every customer-facing message must include a path to a human:
+
+- Email: signature has `help@ritsu.ai` or "Reply 'human'" or similar
+- Chat: button or text mentioning "talk to human" / "speak to a person" / similar
+
+If escalation path absent → `missing` (error for first-contact, warning otherwise).
+
+#### Check E — No human impersonation
+
+Scan body for phrases that imply the AI is a human:
+
+- "I'm Sarah from Ritsu" — flagged unless "Sarah" is a documented persona (none currently)
+- "Speaking as a person who" — flagged
+- "I personally feel" — flagged (AI doesn't have personal feelings; brand voice prohibits this)
+- "When I was a student myself" — flagged
+- Vietnamese: "Mình cũng là sinh viên", "Mình là người Việt Nam" — flagged
+
+If any flag → `error`. This is high-severity because it actively misleads.
+
+### Step 3 — Compile output
+
+Build the YAML output. Determine `recommended_action`:
+
+- All checks `ok` (or `n/a`) → `send`
+- Any `warning` only → `send` (issues recorded)
+- Any `error` → `fix_then_send`
+- Multiple high-severity errors → `escalate` (something is structurally wrong; alert founder)
+
+### Step 4 — Log
+
+Log invocation to `ops.agent_runs` with `action_name: 'ai-disclosure-check'` and the compliance result. This populates compliance auditing data for `monthly-learning-review` (Bài #4).
+
+## Examples
+
+### Example 1 — compliant first email
+
+**Input:**
+
+```yaml
+message_type: email_first
+message_locale: en
+subject: "Re: PDF upload not working"
+from_address: support@ritsu.ai
+message_body: |
+  Hi Linh,
+
+  I'm Ritsu Assistant — an AI system that helps with Ritsu account
+  questions. Looks like the upload failed because the PDF was over
+  50MB. Try this: split it into two PDFs (most browsers can do this
+  from print → save as PDF, choosing page ranges).
+
+  If you'd like, send me the file and I can split it for you.
+
+  —
+  Ritsu Assistant
+  support@ritsu.ai · AI system · Reply "human" for our team
+```
+
+**Output:**
+
+```yaml
+compliant: true
+checks:
+  first_contact_disclosure: ok
+  signature_present: ok
+  on_request_response_pattern: n/a
+  escalation_path_visible: ok
+  no_human_impersonation: ok
+
+issues: []
+recommended_action: send
+```
+
+### Example 2 — missing disclosure
+
+**Input:**
+
+```yaml
+message_type: email_first
+message_body: |
+  Hi Linh,
+
+  Looks like the upload failed because the PDF was over 50MB. Try
+  splitting it into two PDFs.
+
+  Best,
+  Ritsu Team
+```
+
+**Output:**
+
+```yaml
+compliant: false
+checks:
+  first_contact_disclosure: missing
+  signature_present: missing
+  on_request_response_pattern: n/a
+  escalation_path_visible: missing
+  no_human_impersonation: ok
+
+issues:
+  - severity: error
+    code: MISSING_FIRST_CONTACT_DISCLOSURE
+    description: "First-contact email lacks AI disclosure"
+    suggested_fix: |
+      Add early in body: "I'm Ritsu Assistant — an AI system that
+      helps with Ritsu account questions."
+  - severity: error
+    code: MISSING_SIGNATURE
+    description: "No compliant footer signature"
+    suggested_fix: |
+      Replace "Best, Ritsu Team" with the canonical signature:
+      "—\nRitsu Assistant\nsupport@ritsu.ai · AI system · Reply 'human' for our team"
+  - severity: error
+    code: NO_ESCALATION_PATH
+    description: "No path to human reach in message"
+    suggested_fix: "Add `help@ritsu.ai` or similar contact in signature"
+
+recommended_action: fix_then_send
+```
+
+### Example 3 — failed identity question response
+
+**Customer's previous message:** "Wait — are you a real person or AI?"
+
+**Agent's draft response:**
+
+```yaml
+message_type: email_subsequent
+message_body: |
+  Hi! Yes I'm here to help. About your billing question, the
+  charge you saw was the annual renewal at $39.99 which we
+  emailed about last month. Let me know if you'd like to discuss
+  options.
+```
+
+**Output:**
+
+```yaml
+compliant: false
+checks:
+  first_contact_disclosure: n/a
+  signature_present: missing
+  on_request_response_pattern: failed
+  escalation_path_visible: missing
+  no_human_impersonation: ok
+
+issues:
+  - severity: error
+    code: IDENTITY_QUESTION_NOT_ANSWERED
+    description: |
+      Customer directly asked if you are AI/human. Response does
+      not confirm AI nature. This is a high-severity disclosure
+      violation under EU AI Act and our transparency policy.
+    suggested_fix: |
+      Begin response with: "I'm an AI system — Ritsu Assistant. {rest of body}"
+  - severity: error
+    code: MISSING_SIGNATURE
+    description: "No compliant footer signature"
+    suggested_fix: "Add canonical signature block"
+  - severity: error
+    code: NO_ESCALATION_PATH
+    description: "No path to human reach in message"
+    suggested_fix: "Include 'help@ritsu.ai' contact"
+
+recommended_action: fix_then_send
+```
+
+## Quality criteria
+
+- Returns within 100ms wall-clock
+- Catches all error-severity violations (no false negatives — would result in regulatory exposure)
+- False positive rate (compliant message flagged) < 5%
+- Output specific enough that agent can fix without guessing
+
+## Failure modes
+
+- **Customer's previous message not in context** — Check C (on-request response) skipped. Log warning. Hook (`pre-tool-customer-message`) has its own pattern detection as backup.
+- **Charter not yet provisioned** — return error with pointer to `00-charter/transparency.md` template. Block send until disclosure rules exist.
+- **Locale unknown** — default to English checks. Log warning to `monthly-learning-review` for adding more locales.
+
+## Cost estimate
+
+- ~200 tokens input (message + checks logic)
+- ~100 tokens output (structured response)
+- Wall-clock < 100ms (regex + simple logic, no LLM call needed for compliant cases)
+- Per-invocation cost: < $0.001
+- Volume: every customer-facing send → at scale (1000 messages/day), $1/day = $30/month. Acceptable.
+
+For more complex cases (Check A on Vietnamese variants, Check E on subtle impersonation), an LLM call may be needed — increases cost to ~$0.005/call. Still acceptable.
+
+## Required secrets
+
+None. This skill operates on text inputs only. No external API calls.
+
+Roles allowed to invoke: any role producing customer-facing content. In v1.0: `support-agent`, `growth-orchestrator`, `gps`, `trust-safety`, `backoffice-clerk`. Per `governance/ROLES.md`.
+
+## Related skills
+
+- `support-reply-drafting` (planned, Phase H) — invokes this skill before returning draft
+- `blog-post-drafting` (planned, Phase G) — for public posts, uses subset of checks (E only)
+- `social-post-drafting` (planned, Phase G) — uses Check A + Check D + Check E
+
+## Related hooks
+
+- `pre-tool-customer-message` — runtime enforcement; blocks send if disclosure missing. This skill is the proactive companion.
+
+## Changelog
+
+- 2026-05-02 — initial version (Bài #6 v1.0 spec)
+
+---
+
+*Disclosure compliance is a legal requirement, not a UX preference. This skill makes verification fast and specific so it doesn't become a development burden — and so we don't ship messages that violate transparency promises.*

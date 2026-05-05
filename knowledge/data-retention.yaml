@@ -1,0 +1,20 @@
+# data-retention.yaml — GDPR data retention (Bài #16)
+version: "1.0.0"
+
+retention_policies:
+  # Generic operational data
+  - data_type: ops.audit_log
+    retention_period: 5_years
+    legal_basis: legitimate_interest
+  
+  - data_type: ops.minion_jobs
+    retention_period: 90_days
+    legal_basis: legitimate_interest
+  
+  # Customer data (customize per project)
+  - data_type: customers.profile
+    retention_period: account_lifetime + 2_years
+    legal_basis: contract
+    deletion_method: soft_delete
+  
+  # {{ADD_PROJECT_RETENTION_POLICIES}}

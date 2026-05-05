@@ -1,0 +1,19 @@
+# mcp-tools.yaml — MCP tools registry (Bài #12)
+version: "1.0.0"
+
+tools:
+  # Generic operational tools
+  - id: ritsu.system.health_check
+    description: "Returns system health summary"
+    role_required: any
+  
+  - id: ritsu.kpi.snapshot
+    description: "Get current KPI values"
+    role_required: founder
+  
+  - id: ritsu.sop.execute
+    description: "Execute SOP by ID"
+    role_required: founder
+  
+  # Domain tools (customize per project)
+  # {{ADD_DOMAIN_TOOLS}}

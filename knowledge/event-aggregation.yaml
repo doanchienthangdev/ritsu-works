@@ -1,0 +1,11 @@
+# event-aggregation.yaml — Event aggregation rules (Bài #11)
+version: "1.0.0"
+
+aggregations:
+  # Reduces noise. Aggregate similar events before triggering SOPs.
+  # Example:
+  # - source: telegram.message_received
+  #   window: 5_minutes
+  #   max_count_before_alert: 10
+  
+  # {{ADD_AGGREGATIONS}}

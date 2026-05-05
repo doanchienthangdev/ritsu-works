@@ -1,0 +1,254 @@
+---
+name: pre-delegate-check
+version: 0.2.0
+type: pre-tool
+tools: [*]   # observes any tool call, decides whether to flag
+default_decision: allow
+fail_mode: closed
+---
+
+# Hook: pre-delegate-check
+
+> Watches session metrics (tool count, context size, intermediate output volume) and emits warnings when an agent should consider delegating to a subagent. **This hook never blocks** — it only flags.
+
+## What it does
+
+Observes counters during a session and returns:
+
+- `decision: allow` always
+- `log_extras.delegation_signal`: one of `none`, `consider`, `strongly-recommended`
+- `log_extras.signal_reason`: human-readable reason if signal != none
+
+The agent's runtime is responsible for ACT on the signal — typically by checkpointing current work and invoking `task-decompose` skill, OR by simply continuing and accepting the cost.
+
+This hook is the soft-signal layer in `knowledge/orchestration-architecture.md` Axis 1. It complements (does not replace) the deterministic hard rules encoded in pillar orchestrators.
+
+## Why this is a hook, not a skill
+
+A skill must be invoked. An agent in flow may forget. A hook runs on every tool call regardless. By making delegation pressure visible at the runtime layer, we catch cases where the agent's own judgment would have missed them.
+
+This is the same pattern as `pre-edit-tier1` (also observation-based, also signals to the agent). Hook = ambient awareness. Skill = deliberate action.
+
+## Signal thresholds
+
+```yaml
+signal_thresholds:
+  consider:
+    current_session_tool_calls: ">= 8"
+    OR
+    current_context_tokens: ">= 50% of role's working_tokens"
+    OR
+    intermediate_output_tokens_since_last_checkpoint: ">= 3000"
+
+  strongly_recommended:
+    current_session_tool_calls: ">= 14"
+    OR
+    current_context_tokens: ">= 75% of role's working_tokens"
+    OR
+    intermediate_output_tokens_since_last_checkpoint: ">= 6000"
+    OR
+    role_has_done_specialist_work_outside_its_pillar: true
+```
+
+`current_context_tokens` is approximated by summing input tokens across the session's tool results plus the user/assistant message tokens.
+
+`role's working_tokens` comes from `governance/ROLES.md` `context_budget.working_tokens` for the calling role.
+
+`intermediate_output_tokens_since_last_checkpoint` resets when:
+- Agent invokes `/compact`
+- Agent dispatches a subagent (delegating the next chunk)
+- A new task is started (different action_name from prior)
+
+## Decision logic
+
+```
+function decide(payload):
+  metrics = collect_session_metrics(payload.session_id)
+  role = payload.agent_role
+  role_def = load_role(role)
+  budget = role_def.context_budget
+
+  signal = "none"
+  reasons = []
+
+  # Check tool call count
+  if metrics.tool_call_count >= 14:
+    signal = max(signal, "strongly_recommended")
+    reasons.append(f"tool_calls={metrics.tool_call_count} >= 14")
+  elif metrics.tool_call_count >= 8:
+    signal = max(signal, "consider")
+    reasons.append(f"tool_calls={metrics.tool_call_count} >= 8")
+
+  # Check context fill
+  context_fill_ratio = metrics.context_tokens / budget.working_tokens
+  if context_fill_ratio >= 0.75:
+    signal = max(signal, "strongly_recommended")
+    reasons.append(f"context at {context_fill_ratio:.0%} of working_tokens")
+  elif context_fill_ratio >= 0.50:
+    signal = max(signal, "consider")
+    reasons.append(f"context at {context_fill_ratio:.0%} of working_tokens")
+
+  # Check intermediate output bloat
+  if metrics.intermediate_output_tokens >= 6000:
+    signal = max(signal, "strongly_recommended")
+    reasons.append(f"verbose intermediate output: {metrics.intermediate_output_tokens} tokens")
+  elif metrics.intermediate_output_tokens >= 3000:
+    signal = max(signal, "consider")
+    reasons.append(f"verbose intermediate output: {metrics.intermediate_output_tokens} tokens")
+
+  # Check role-pillar mismatch
+  if metrics.recent_actions_outside_pillar(role_def.home_pillar):
+    signal = max(signal, "strongly_recommended")
+    reasons.append("recent actions are outside home_pillar — consider role re-route")
+
+  return {
+    "decision": "allow",
+    "log_extras": {
+      "delegation_signal": signal,
+      "signal_reason": "; ".join(reasons) if reasons else None,
+      "metrics": {
+        "tool_calls": metrics.tool_call_count,
+        "context_fill": f"{context_fill_ratio:.0%}",
+        "intermediate_tokens": metrics.intermediate_output_tokens,
+      }
+    }
+  }
+```
+
+## How the agent reacts
+
+When `delegation_signal == "consider"`, the runtime injects a brief note into the agent's next-step prompt:
+
+```
+[orchestration hint] You have 8 tool calls in this session and context is 52% full. Consider invoking task-decompose to delegate remaining work to subagents per knowledge/orchestration-architecture.md.
+```
+
+When `delegation_signal == "strongly_recommended"`, the note is more emphatic:
+
+```
+[orchestration alert] Session metrics indicate continued inline work will degrade quality. Recommended: checkpoint current progress to ops.tasks state_payload, invoke task-decompose for remaining work, then EITHER hand off to a subagent OR run /compact before continuing.
+```
+
+The agent decides; the hook informs. Neither blocks.
+
+## Special cases
+
+- **Agent is a subagent itself** — already in fresh context; signals fire later. Hook still observes but thresholds are typically not hit because subagents do narrower work. If a subagent IS hitting thresholds, that means decomposition was too coarse — log this for monthly review.
+
+- **Role is `founder` (human)** — hook skipped entirely. Humans manage their own context.
+
+- **Role is `gps` orchestrator** — DIFFERENT thresholds: GPS's job is orchestration, so its tool_calls and context tend higher legitimately. Use:
+  - `consider` at tool_calls >= 12
+  - `strongly_recommended` at tool_calls >= 20
+  This is configured per-role in `governance/ROLES.md` `context_budget` (additional optional field `delegate_check_thresholds`).
+
+- **Hook itself errors** — fail-closed default would block. But this hook is informational, not safety-critical. Override: `fail_mode: open` for this hook specifically. Document in audit but do not block.
+
+  **Wait — this contradicts the SPEC.md default of fail-closed.** Let me reconsider:
+
+  Actually, fail-closed IS appropriate here too. If the hook errors, the agent loses the orchestration signal — which is fine, agents can still proceed. But if we set `fail_mode: open`, hook errors silently propagate. Better: keep `fail_mode: closed` (block on hook error) but ensure hook logic is dead-simple and well-tested so errors are rare. The cost of an occasional false block is small (agent retries); the cost of silent-fail accumulation is real.
+
+  **Decision: fail_mode: closed, but keep hook logic minimal (read metrics, threshold check, no external calls).**
+
+## Test cases
+
+| # | Scenario | Expected log_extras |
+|---|---|---|
+| 1 | Fresh session, 1 tool call | `delegation_signal: none` |
+| 2 | 9 tool calls, context 30% | `consider` (tool count) |
+| 3 | 5 tool calls, context 55% | `consider` (context fill) |
+| 4 | 15 tool calls, context 80% | `strongly_recommended` |
+| 5 | gps role, 10 tool calls (under gps threshold of 12) | `none` |
+| 6 | gps role, 13 tool calls | `consider` |
+| 7 | growth-orchestrator doing content-drafter work | `strongly_recommended` (pillar mismatch) |
+| 8 | Subagent (parent_run_id present), 5 tool calls | `none` (lower thresholds for subs not implemented v1.0) |
+| 9 | After /compact triggered, counters reset | `none` (reset confirmed) |
+| 10 | Founder role | hook skipped |
+| 11 | Hook itself errors (e.g. role not found) | block (fail_closed); agent retries |
+| 12 | Intermediate output 4500 tokens | `consider` |
+| 13 | Intermediate output 7500 tokens | `strongly_recommended` |
+
+## Performance notes
+
+- Reading session metrics from in-process counters: O(1)
+- Loading role config: cached (mtime check)
+- No DB queries — keep this hook fast
+- p95 latency target: < 50ms (well within hook budget of 500ms)
+
+## Observability
+
+The `delegation_signal` field is logged to `ops.agent_runs.hook_events`. Monthly review aggregates:
+
+- How often does each role hit `consider`?
+- How often does each role hit `strongly_recommended`?
+- When agents see signals, do they delegate? (compare signal events to subsequent task-decompose invocations)
+
+If a role consistently sees `strongly_recommended` and ignores it → that role's `working_tokens` budget is too low OR the role is taking on work outside its scope. Both signal a needed change to ROLES.md.
+
+## Calibration
+
+These thresholds (8/14, 50%/75%, 3K/6K) are starting values. After 4-8 weeks of `ops.agent_runs.hook_events` data:
+
+- If `consider` signal is hit > 5x/day per role and agent delegates > 60% of the time → threshold is well-calibrated
+- If hit > 10x/day and delegate < 30% → thresholds too aggressive; raise
+- If hit < 1x/day and agents have visible context degradation → thresholds too lax; lower
+
+Recalibration is a Tier C PR to this hook spec.
+
+## Implementation reference
+
+```python
+def decide(payload):
+    role = payload['agent_role']
+    if role == 'founder':
+        return {'decision': 'allow'}
+
+    metrics = collect_metrics(payload['session_id'])
+    role_def = load_role_cached(role)
+    budget = role_def.get('context_budget', {})
+    working_tokens = budget.get('working_tokens', 60000)
+
+    # Per-role threshold override
+    thresholds = role_def.get('delegate_check_thresholds', {
+        'consider_tool_calls': 8,
+        'strong_tool_calls': 14,
+        'consider_context_fill': 0.50,
+        'strong_context_fill': 0.75,
+        'consider_intermediate': 3000,
+        'strong_intermediate': 6000,
+    })
+
+    signal = 'none'
+    reasons = []
+
+    if metrics.tool_calls >= thresholds['strong_tool_calls']:
+        signal = 'strongly_recommended'
+        reasons.append(f"tool_calls={metrics.tool_calls}")
+    elif metrics.tool_calls >= thresholds['consider_tool_calls']:
+        signal = 'consider'
+        reasons.append(f"tool_calls={metrics.tool_calls}")
+
+    fill = metrics.context_tokens / working_tokens
+    if fill >= thresholds['strong_context_fill']:
+        signal = 'strongly_recommended'
+        reasons.append(f"context_fill={fill:.0%}")
+    elif fill >= thresholds['consider_context_fill']:
+        if signal != 'strongly_recommended':
+            signal = 'consider'
+        reasons.append(f"context_fill={fill:.0%}")
+
+    # ... similar for intermediate_output_tokens
+
+    return {
+        'decision': 'allow',
+        'log_extras': {
+            'delegation_signal': signal,
+            'signal_reason': '; '.join(reasons) if reasons else None,
+            'metrics': dict(metrics),
+        }
+    }
+```
+
+---
+
+*An ambient signal in the right place beats a deliberate process the agent forgets to invoke. This hook is how Ritsu turns "you should have delegated" hindsight into "consider delegating now" foresight.*

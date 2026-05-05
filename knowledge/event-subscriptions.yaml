@@ -1,0 +1,12 @@
+# event-subscriptions.yaml — Event subscriptions (Bài #11)
+# See playbook chương 18 + DRAFT bai-11
+version: "1.0.0"
+
+subscriptions:
+  # Pattern: source.entity.action -> SOP/skill
+  # Example:
+  # - event: ritsu.customer.activated
+  #   trigger: SOP-CUSTOMER-002-welcome-sequence
+  #   tier: tier_a
+  
+  # {{ADD_PROJECT_SUBSCRIPTIONS}}

@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "kpi-registry.schema.json",
+  "title": "KPI Registry (Bài #10)",
+  "type": "object",
+  "required": ["version", "kpis"],
+  "properties": {
+    "version": {"type": "string"},
+    "kpis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "description"],
+        "properties": {
+          "id": {"type": "string"},
+          "type": {"type": "string", "enum": ["operational", "business", "founder"]},
+          "description": {"type": "string"},
+          "unit": {"type": "string"},
+          "threshold_warn": {"type": "number"},
+          "threshold_critical": {"type": "number"},
+          "computation_kind": {"type": "string", "enum": ["snapshot", "rolling_window", "aggregation"]}
+        }
+      }
+    }
+  }
+}

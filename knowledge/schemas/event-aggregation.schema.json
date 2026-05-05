@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "event-aggregation.schema.json",
+  "title": "Event Aggregation Rules (B\u00e0i #11)",
+  "type": "object",
+  "required": [
+    "version",
+    "aggregations"
+  ],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "aggregations": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "required": [
+          "source",
+          "window"
+        ],
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "window": {
+            "type": "string"
+          },
+          "max_count_before_alert": {
+            "type": "integer"
+          },
+          "aggregate_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

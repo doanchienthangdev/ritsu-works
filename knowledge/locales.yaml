@@ -1,0 +1,17 @@
+# locales.yaml — Multi-locale support (Bài #17)
+version: "1.0.0"
+
+locales:
+  - id: vi-VN
+    primary: true
+    name: "Vietnamese"
+    currency: VND
+  
+  # Add additional locales:
+  # - id: en
+  #   name: "English"
+  #   currency: USD
+  #
+  # - id: vi
+  #   name: "Vietnamese"
+  #   currency: VND

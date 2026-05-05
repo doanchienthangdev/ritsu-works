@@ -1,0 +1,20 @@
+# ingestion-routing.yaml — Voice note classification routing (Bài #18)
+version: "1.0.0"
+
+voice_note_routing:
+  idea:
+    target: wiki/raw-ideas/<date>-<slug>.md
+    follow_up: weekly_review_aggregation
+  
+  decision_request:
+    target: muse-panel
+    hitl: tier_c
+  
+  observation:
+    target: wiki/observations/<date>-<slug>.md
+    auto_link: true
+  
+  task:
+    target: ops.tasks
+    initial_state: pending
+    auto_assignee: founder

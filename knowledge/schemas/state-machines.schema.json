@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "state-machines.schema.json",
+  "title": "Domain State Machines",
+  "description": "Tier 1 declarative file for state machines (B\u00e0i #13). Schema convention: 4 columns (state, state_since, state_history, audit) + state_log sidecar.",
+  "type": "object",
+  "required": [
+    "version",
+    "state_machines"
+  ],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "state_machines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "entity",
+          "states",
+          "initial_state"
+        ],
+        "properties": {
+          "entity": {
+            "type": "string",
+            "description": "Database table name (singular)"
+          },
+          "states": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "initial_state": {
+            "type": "string"
+          },
+          "transitions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "from",
+                "to"
+              ],
+              "properties": {
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                },
+                "guard": {
+                  "type": "string"
+                },
+                "event": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

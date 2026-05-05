@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ingestion-routing.schema.json",
+  "title": "Voice Note Routing (Bài #18)",
+  "type": "object",
+  "required": ["version", "voice_note_routing"],
+  "properties": {
+    "version": {"type": "string"},
+    "voice_note_routing": {
+      "type": "object",
+      "patternProperties": {
+        "^(idea|decision_request|observation|task|mixed)$": {
+          "type": "object",
+          "properties": {
+            "target": {"type": "string"},
+            "follow_up": {"type": "string"},
+            "hitl": {"type": "string"},
+            "auto_link": {"type": "boolean"},
+            "initial_state": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,96 @@
+# ============================================================================
+# muse-personas.yaml — Decision Architecture personas (Bài #15)
+# ============================================================================
+# Tier 1 declarative file. Defines personas for Muse panel decision-making.
+# Each persona = expertise lens + use cases + activation patterns.
+#
+# 29 personas typical (founder, team, customer, market, technical, ethical, etc.)
+# Customize per project domain.
+# ============================================================================
+
+version: "1.0.0"
+
+personas:
+  # === Generic personas (work for most projects) ===
+  
+  - id: cynic
+    expertise: identifying flaws, devil's advocate
+    use_for: ["pre-mortem", "stress-testing decisions"]
+    activation_patterns: ["why won't this work?", "what could go wrong?"]
+  
+  - id: optimist
+    expertise: opportunity spotting, momentum
+    use_for: ["growth strategy", "morale check"]
+  
+  - id: brand-strategist
+    expertise: brand consistency, voice, positioning
+    use_for: ["content decisions", "messaging strategy"]
+  
+  - id: founder-friend
+    expertise: personal wellbeing, founder fatigue check
+    use_for: ["burnout signals", "founder capacity decisions"]
+  
+  - id: customer-advocate
+    expertise: customer pain, customer success
+    use_for: ["feature prioritization", "customer-affecting decisions"]
+  
+  - id: ethical-compass
+    expertise: ethics, fairness, harm reduction
+    use_for: ["high-stakes decisions", "user-affecting changes"]
+  
+  - id: data-pragmatist
+    expertise: statistics, analytics, evidence-based reasoning
+    use_for: ["metric interpretation", "evidence weighing"]
+  
+  - id: time-honest
+    expertise: realistic time estimation, scope creep prevention
+    use_for: ["sprint planning", "deadline decisions"]
+  
+  # === Domain-specific personas (customize per project) ===
+  
+  # {{ADD_DOMAIN_PERSONAS_HERE}}
+  
+  # Example (B2C EdTech / Ritsu):
+  # - id: pedagogy-expert
+  #   expertise: learning science, retention, engagement
+  #   use_for: ["lesson design", "assessment decisions"]
+  
+  # Example (Hollywood Channel):
+  # - id: martin-scorsese-style
+  #   expertise: classic cinema, directing analysis
+  #   use_for: ["directorial analysis decisions"]
+  # - id: roger-ebert-style
+  #   expertise: criticism, accessibility
+  #   use_for: ["review tone calibration"]
+  # - id: youtube-algorithm-expert
+  #   expertise: YouTube SEO, retention tactics
+  #   use_for: ["thumbnail/title decisions"]
+
+# === Panel compositions ===
+# Pre-defined panels for common decision types
+
+panels:
+  - id: high-stakes-decision-panel
+    description: "For Tier C+ decisions"
+    personas: [cynic, optimist, ethical-compass, data-pragmatist, time-honest]
+    min_consensus: 3                    # 3/5 must agree
+  
+  - id: customer-affecting-panel
+    description: "For decisions affecting customer experience"
+    personas: [customer-advocate, brand-strategist, ethical-compass]
+  
+  - id: founder-wellbeing-panel
+    description: "For founder capacity decisions (Bài #19)"
+    personas: [founder-friend, time-honest, cynic]
+  
+  # === Domain-specific panels ===
+  # {{ADD_DOMAIN_PANELS_HERE}}
+
+# ============================================================================
+# Customization checklist
+# ============================================================================
+# After bootstrap, customize:
+# 1. Add domain-specific personas in {{ADD_DOMAIN_PERSONAS_HERE}}
+# 2. Define domain-specific panels in {{ADD_DOMAIN_PANELS_HERE}}
+# 3. Aim for 20-30 personas total (10-15 generic + 10-15 domain)
+# 4. Document activation patterns for each persona

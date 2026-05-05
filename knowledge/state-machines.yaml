@@ -1,0 +1,70 @@
+# ============================================================================
+# state-machines.yaml — Domain state machines (Bài #13)
+# ============================================================================
+# Tier 1 declarative file. Defines state machines for domain entities.
+# Schema convention: 4 columns (state, state_since, state_history, audit) +
+# state_log sidecar table.
+#
+# Schema validation: schemas/state-machines.schema.json
+# Engine: 05-ai-ops/skills/state-transition/
+# ============================================================================
+
+version: "1.0.0"
+
+state_machines:
+  # === Customer state machine (cross-cutting, defined Bài #16) ===
+  - entity: customer
+    states: [signed_up, onboarding, activated, engaged, at_risk, churned]
+    initial_state: signed_up
+    
+    transitions:
+      # Customize per project domain
+      - from: signed_up
+        to: activated
+        guard: completed_onboarding
+        event: ritsu.customer.activated
+      
+      # ""
+    
+    notes:
+      - "Customer = unified entity across B2C + B2B (Bài #16)"
+      - "Discriminator: customer_kind ('individual' | 'organization')"
+  
+  # === Domain entities (customize per project) ===
+  
+  # ""
+  
+  # Example (B2C EdTech / Ritsu):
+  # - entity: lesson_session
+  #   states: [scheduled, in_progress, completed, abandoned]
+  #   initial_state: scheduled
+  
+  # Example (Hollywood Channel):
+  # - entity: video_project
+  #   states: [idea, researching, scripting, recording, editing, scheduled, published, analyzed]
+  #   initial_state: idea
+  
+  # === Operational state machines (always include) ===
+  
+  - entity: decision
+    states: [draft, in_muse_panel, awaiting_synthesis, decided, stale, superseded]
+    initial_state: draft
+    notes:
+      - "Decision lifecycle (Bài #15)"
+      - "stale = needs review per staleness check schedule"
+      - "superseded = replaced by newer decision"
+  
+  - entity: ingestion_job
+    states: [queued, fetching, processing, completed, failed, duplicate, low_quality]
+    initial_state: queued
+    notes:
+      - "Ingestion pipeline (Bài #18)"
+
+# ============================================================================
+# Customization checklist
+# ============================================================================
+# After bootstrap, customize:
+# 1. Define domain entities in ""
+# 2. Customize customer states for your business model
+# 3. Add transitions với guards
+# 4. Update notes section với domain context

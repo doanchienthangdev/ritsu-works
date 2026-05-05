@@ -1,0 +1,26 @@
+{
+  "name": "ritsu-works",
+  "version": "0.1.0",
+  "description": "Ritsu — B2C EdTech AI tutor — operations repo (Agent OS).",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "validate": "node scripts/validate-tier1.cjs",
+    "validate:tier1": "node scripts/validate-tier1.cjs",
+    "lint:yaml": "node scripts/validate-tier1.cjs",
+    "prepare": "husky",
+    "test": "echo 'No tests yet — add via CLA Phase 7' && exit 0",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset --debug",
+    "bootstrap": "bash .scripts/bootstrap.sh"
+  },
+  "devDependencies": {
+    "ajv": "^8.12.0",
+    "js-yaml": "^4.1.0",
+    "husky": "^9.0.0"
+  },
+  "license": "UNLICENSED"
+}

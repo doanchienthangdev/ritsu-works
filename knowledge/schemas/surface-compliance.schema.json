@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "surface-compliance.schema.json",
+  "title": "Surface Compliance Rules (Bài #17)",
+  "type": "object",
+  "required": ["version", "compliance_rules"],
+  "properties": {
+    "version": {"type": "string"},
+    "compliance_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["surface", "rules"],
+        "properties": {
+          "surface": {"type": "string"},
+          "rules": {"type": "array"}
+        }
+      }
+    }
+  }
+}

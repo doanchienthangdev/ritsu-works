@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "channels.schema.json",
+  "title": "Multi-Surface Channels",
+  "description": "Tier 1 declarative file for channels (Bài #17)",
+  "type": "object",
+  "required": ["version", "channels"],
+  "properties": {
+    "version": {"type": "string"},
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "adapter"],
+        "properties": {
+          "id": {"type": "string"},
+          "type": {
+            "type": "string",
+            "enum": ["video", "social", "email", "messaging", "dev_environment", "web_app", "in_app", "short_video", "subscription", "community", "podcast"]
+          },
+          "purpose": {"type": "string"},
+          "adapter": {"type": "string"},
+          "primary": {"type": "boolean"},
+          "enabled": {"type": "boolean"},
+          "url_pattern": {"type": "string"}
+        }
+      }
+    },
+    "compliance_groups": {"type": "object"}
+  }
+}

@@ -1,0 +1,220 @@
+# ============================================================================
+# SOP-AIOPS-001: Capability Lifecycle Architecture
+# ============================================================================
+# Master SOP cho Bài #20 — orchestrates 8-phase X workflow.
+# When founder proposes a new capability, this SOP runs end-to-end.
+#
+# See:
+# - DRAFT: knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md
+# - Skills: 05-ai-ops/skills/capability-lifecycle/
+# - Registry: knowledge/capability-registry.yaml
+# - Spec template: wiki/capabilities/_TEMPLATE/
+# ============================================================================
+
+id: SOP-AIOPS-001-capability-lifecycle
+version: 1.0.0
+title: "Capability Lifecycle Architecture (CLA)"
+description: "Standardized 8-phase workflow để propose → analyze → architect → build → deploy new capabilities"
+pillar: 05-ai-ops
+
+# === Trigger ===
+# 3 trigger paths (per Bài #20 DRAFT):
+trigger:
+  kinds:
+    - voice_note_classified_as_decision_request
+    - cla_command
+    - capability_wiki_entry_created
+  
+  filter:
+    capability_proposal_signal: true
+
+# === Initial state ===
+initial_capability_run_state: proposed
+initial_phase: 1
+
+# === Cost projection ===
+cost_estimate:
+  llm_cost_per_run_usd: 2.50              # ~rough, varies by complexity
+  founder_time_hours_per_run: 4-6          # not counting Phase 7 implementation
+
+# === Phases ===
+
+steps:
+  - id: phase-1-problem-framing
+    phase: 1
+    skill: capability-lifecycle/problem-framer
+    description: "Frame problem statement, surface assumptions, define success criteria"
+    inputs:
+      raw_proposal: $.trigger.payload.proposal_text
+    outputs:
+      - artifact: wiki/capabilities/{capability_id}/problem.md
+    state_transition: proposed → analyzing
+    hitl: tier_a
+    timeout_minutes: 30
+  
+  - id: phase-2-domain-deep-dive
+    phase: 2
+    skill: capability-lifecycle/domain-analyst
+    description: "Industry benchmarks, customer journey, competitive landscape, channel comparison"
+    requires_api: anthropic
+    fallback: manual_via_claude_code
+    inputs:
+      problem_path: wiki/capabilities/{capability_id}/problem.md
+    outputs:
+      - artifact: wiki/capabilities/{capability_id}/domain-analysis.md
+    state_transition: analyzing (continued)
+    hitl: tier_a
+    timeout_minutes: 60
+  
+  - id: phase-3-system-inventory
+    phase: 3
+    skill: capability-lifecycle/system-inventory-scanner
+    description: "Inventory existing skills, SOPs, Tier 1, integrations. Identify gaps."
+    requires_api: none                      # deterministic, no LLM needed
+    inputs:
+      problem_path: wiki/capabilities/{capability_id}/problem.md
+    outputs:
+      - artifact: wiki/capabilities/{capability_id}/gap-analysis.md
+    state_transition: analyzing → architecting
+    hitl: tier_a
+    timeout_minutes: 30
+  
+  - id: phase-4-options-generation
+    phase: 4
+    skill: capability-lifecycle/options-generator
+    description: "Generate 3-5 options với cost/time/founder-bandwidth analysis. Recommend one."
+    requires_api: anthropic
+    fallback: manual_via_claude_code
+    inputs:
+      problem_path: wiki/capabilities/{capability_id}/problem.md
+      domain_analysis_path: wiki/capabilities/{capability_id}/domain-analysis.md
+      gap_analysis_path: wiki/capabilities/{capability_id}/gap-analysis.md
+    outputs:
+      - artifact: wiki/capabilities/{capability_id}/options.md
+    state_transition: architecting (continued)
+    hitl: tier_b                            # founder reviews options + picks
+    hitl_message: "Review {capability_id} options. Pick one or request combination."
+    timeout_minutes: 90
+  
+  - id: phase-5-architecture-design
+    phase: 5
+    skill: capability-lifecycle/architect
+    description: "Per-Bài-toán impact analysis. Generate canonical spec.md."
+    requires_api: anthropic
+    inputs:
+      selected_option_id: $.hitl.phase-4-options-generation.selected_option_id
+      all_prior_artifacts: wiki/capabilities/{capability_id}/
+    outputs:
+      - artifact: wiki/capabilities/{capability_id}/spec.md
+      - artifact_drafts:
+        - migration_draft: wiki/capabilities/{capability_id}/draft/migrations/
+        - tier1_diffs: wiki/capabilities/{capability_id}/draft/tier1-diffs.yaml
+        - skill_stubs: wiki/capabilities/{capability_id}/draft/skill-stubs/
+    state_transition: architecting → planning
+    hitl: tier_c                            # CRITICAL: founder approves architecture
+    hitl_message: "Architecture proposal for {capability_id}. Tier C decision."
+    decision_persona_panel: high-stakes-decision-panel
+    timeout_minutes: 120
+  
+  - id: phase-6-sprint-planning
+    phase: 6
+    skill: capability-lifecycle/sprint-planner
+    description: "Break into 2-week sprints với acceptance criteria + Wave alignment."
+    requires_api: anthropic
+    inputs:
+      spec_path: wiki/capabilities/{capability_id}/spec.md
+    outputs:
+      - artifact: wiki/capabilities/{capability_id}/sprint-plan.md
+    state_transition: planning → implementing
+    hitl: tier_b
+    timeout_minutes: 45
+  
+  - id: phase-7-implementation
+    phase: 7
+    skill: capability-lifecycle/implementation-coordinator
+    description: "Execute sprints. Multi-session resilient. HITL Tier B per PR."
+    multi_session: true
+    sub_state_machine:
+      states: [sprint_1_foundation, sprint_2_skills, sprint_3_sops, sprint_4_external, testing, deployed]
+    inputs:
+      sprint_plan_path: wiki/capabilities/{capability_id}/sprint-plan.md
+    outputs:
+      - artifact: PRs in git history
+      - artifact: ops.events trail (one per phase transition)
+    state_transition: implementing → deployed
+    hitl: tier_b                            # per PR review
+    timeout_weeks: 1-4                      # sprint-dependent
+  
+  - id: phase-8-catalog-update
+    phase: 8
+    skill: capability-lifecycle/catalog-updater
+    description: "Update _CATALOG.md, capability-registry.yaml, retrospective. Identify boilerplate-extractable patterns."
+    requires_api: anthropic
+    inputs:
+      capability_id: $.capability_id
+      all_artifacts: wiki/capabilities/{capability_id}/
+    outputs:
+      - artifact: wiki/capabilities/{capability_id}/retrospective.md
+      - artifact: wiki/capabilities/_CATALOG.md (updated)
+      - artifact: knowledge/capability-registry.yaml (updated, state: deployed)
+      - artifact: notes/boilerplate-candidates.md (appended observations)
+    state_transition: deployed → operating
+    hitl: tier_a
+    timeout_minutes: 30
+
+# === Acceptance criteria for entire SOP ===
+acceptance_criteria:
+  - All 8 phases completed without unrecoverable error
+  - Capability state = 'operating'
+  - All artifacts present in wiki/capabilities/{capability_id}/
+  - capability-registry.yaml updated với deployed entry
+  - Retrospective captures lessons learned
+  - Boilerplate-candidates.md updated if generic patterns observed
+
+# === Failure modes (per Bài #20 DRAFT) ===
+failure_handling:
+  phase_4_skipped:
+    detection: "spec.md exists without options.md"
+    response: "BLOCK Phase 5. Force regenerate Phase 4."
+  
+  phase_5_no_tier_c_approval:
+    detection: "spec.md exists without HITL Tier C approval"
+    response: "BLOCK Phase 6. Require explicit founder approval."
+  
+  phase_7_session_lost:
+    detection: "implementing state > 7 days without progress event"
+    response: "Resume from last completed sprint. Notify founder."
+  
+  phase_8_skipped:
+    detection: "deployed state without retrospective.md"
+    response: "BLOCK state transition to 'operating'. Require retrospective."
+
+# === Cross-Bài-toán integration ===
+integrates_with:
+  - bài: 2
+    integration: "HITL tiers per phase (A/A/A/B/C/B/B/A)"
+  - bài: 5
+    integration: "8 subagents, Minions queue cho deterministic phases (3, 8)"
+  - bài: 7
+    integration: "Cost-bucket per capability, projected vs actual tracked"
+  - bài: 9
+    integration: "CLA itself = meta-SOP. Template for all future SOPs."
+  - bài: 11
+    integration: "Phase transitions fire ritsu.capability.<phase>_completed events"
+  - bài: 13
+    integration: "ops.capability_runs state machine"
+  - bài: 14
+    integration: "Capability spec links to entities trong knowledge graph"
+  - bài: 15
+    integration: "Phase 5 architecture = Tier C+ decision với Muse panel"
+  - bài: 18
+    integration: "Trigger 1 (voice note) uses ingestion pipeline"
+  - bài: 19
+    integration: "Phase 5 scheduled for founder deep-work block"
+
+# === Audit ===
+audit:
+  every_phase_logs:
+    - ops.events: "ritsu.capability.{phase}_completed"
+    - ops.audit_log: "phase transition with payload"
+    - ops.capability_runs: state update

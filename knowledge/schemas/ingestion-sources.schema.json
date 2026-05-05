@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ingestion-sources.schema.json",
+  "title": "Knowledge Ingestion Sources (B\u00e0i #18)",
+  "type": "object",
+  "required": [
+    "version",
+    "source_kinds"
+  ],
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "source_kinds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "adapter"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "adapter": {
+            "type": "string"
+          },
+          "fetch_method": {
+            "type": "string"
+          },
+          "chunking": {
+            "type": "string"
+          },
+          "classification_required": {
+            "type": "boolean"
+          },
+          "cost_estimate": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "active_subscriptions": {
+      "type": [
+        "array",
+        "null"
+      ]
+    }
+  }
+}

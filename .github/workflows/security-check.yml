@@ -1,0 +1,74 @@
+name: Security Check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  no-runtime-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for runtime data leaks
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            DIFF_RANGE="origin/${{ github.base_ref }}..HEAD"
+          else
+            DIFF_RANGE="HEAD~1..HEAD"
+          fi
+          
+          RUNTIME_FILES=$(git diff $DIFF_RANGE --name-only 2>/dev/null | grep -E "^runtime/" | grep -v "^runtime/README.md$" || true)
+          if [ -n "$RUNTIME_FILES" ]; then
+            echo "❌ Runtime data detected in PR!"
+            echo "$RUNTIME_FILES"
+            exit 1
+          fi
+          echo "✓ No runtime data leaks"
+
+      - name: Check for committed .env files
+        run: |
+          ENV_FILES=$(git ls-files | grep -E "^\.env" | grep -v "^\.env\.example$" | grep -v "^\.env\.template$" || true)
+          if [ -n "$ENV_FILES" ]; then
+            echo "❌ .env file in repo!"
+            echo "$ENV_FILES"
+            exit 1
+          fi
+          echo "✓ No .env files committed"
+
+      - name: TruffleHog secret scan
+        uses: trufflesecurity/trufflehog@main
+        continue-on-error: false
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.event.pull_request.head.sha || github.sha }}
+          extra_args: --only-verified
+
+  validate-tier1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      
+      - run: corepack enable
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        continue-on-error: true  # OK if package.json not yet created
+      
+      - name: Validate Tier 1 YAML files
+        run: |
+          if [ -f package.json ] && grep -q '"validate-tier1"' package.json; then
+            pnpm validate-tier1
+          else
+            echo "⚠️ Tier 1 validator not yet implemented (Wave 1 task)"
+          fi
+        continue-on-error: true

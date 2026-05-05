@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "muse-personas.schema.json",
+  "title": "Muse Personas (Decision Architecture)",
+  "description": "Tier 1 declarative file for Muse panel personas (Bài #15)",
+  "type": "object",
+  "required": ["version", "personas"],
+  "properties": {
+    "version": {"type": "string"},
+    "personas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "expertise"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "expertise": {"type": "string"},
+          "use_for": {"type": "array", "items": {"type": "string"}},
+          "activation_patterns": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "panels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "personas"],
+        "properties": {
+          "id": {"type": "string"},
+          "description": {"type": "string"},
+          "personas": {"type": "array", "items": {"type": "string"}},
+          "min_consensus": {"type": "integer", "minimum": 1}
+        }
+      }
+    }
+  }
+}

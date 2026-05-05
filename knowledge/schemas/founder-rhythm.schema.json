@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "founder-rhythm.schema.json",
+  "title": "Founder Capacity Architecture (Bài #19)",
+  "type": "object",
+  "required": ["version", "timezone", "daily_rhythm"],
+  "properties": {
+    "version": {"type": "string"},
+    "timezone": {"type": "string"},
+    "daily_rhythm": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "start", "end", "mode"],
+        "properties": {
+          "id": {"type": "string"},
+          "start": {"type": "string"},
+          "end": {"type": "string"},
+          "mode": {"type": "string", "enum": ["focus", "review", "meeting", "break", "reactive", "reflection", "sleep"]},
+          "interrupt_level": {"type": "string"},
+          "do_not_disturb": {"type": "boolean"}
+        }
+      }
+    },
+    "weekly_rhythm": {"type": "array"},
+    "special_modes": {"type": "array"},
+    "daily_attention_budget": {"type": "object"},
+    "alert_thresholds": {"type": "array"},
+    "cognitive_load_distribution": {"type": "object"}
+  }
+}

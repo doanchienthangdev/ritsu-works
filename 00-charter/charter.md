@@ -1,0 +1,116 @@
+# Ritsu — Operating Charter
+
+> Vision, market, monetization, cognitive style, and boundaries.
+
+**Status:** v1.0 spec (initial bootstrap)
+**Last updated:** 2026-05-04
+**Project:** Ritsu
+**Domain:** ritsu.ai
+
+---
+
+## 1. Vision
+
+<!--
+Replace this section với vision của project.
+
+Examples:
+- Ritsu (B2C EdTech): "Tỷ-đô company AI tutor B2C with 1-2 humans + AI workforce"
+- Hollywood Channel: "Solo-operator YouTube + TikTok cho film analysis, 1M subs trong 18 months"
+- Agency: "AI-native services agency với 1 founder + 5 operators"
+-->
+
+{{PROJECT_VISION}}
+
+## 2. Target Market
+
+<!--
+- Who are customers/audience?
+- What problem are we solving?
+- How do we differ from competition?
+-->
+
+{{TARGET_MARKET}}
+
+## 3. Monetization Model
+
+<!--
+- Subscription tiers? Pricing?
+- Ad revenue? Affiliate?
+- One-time purchases?
+- B2B vs B2C?
+
+Examples:
+- Ritsu: Free / Plus $29 / Pro $59 / Ultra $119 (4-tier subscription)
+- Hollywood Channel: YouTube AdSense + Patreon + sponsorships
+- Agency: Project-based pricing + retainers
+-->
+
+{{MONETIZATION_MODEL}}
+
+## 4. Cognitive Style
+
+<!--
+Founder's natural cognitive approach. Drives decision-making and brand voice.
+
+Examples:
+- Ritsu: Strategic + technical, systems thinking, direct/terse Vietnamese-primary
+- Hollywood Channel: Visual-first storytelling, witty + analytical
+-->
+
+{{COGNITIVE_STYLE}}
+
+## 5. Boundaries
+
+<!--
+What we will NOT do, even if profitable.
+
+Examples:
+- No deceptive marketing
+- No data sharing without explicit consent
+- No work that conflicts with [domain ethics]
+-->
+
+{{BOUNDARIES}}
+
+## 6. Stakeholders
+
+<!--
+Who matters?
+- Founder(s)
+- Operators (current + planned)
+- Customers
+- Partners
+- Regulators
+-->
+
+**Founder:** Doan Chien Thang
+**Locale primary:** vi-VN
+**Time zone:** Asia/Ho_Chi_Minh
+
+## 7. Success Metrics
+
+<!--
+How will we measure success?
+- Revenue targets
+- Customer metrics
+- Operational metrics
+- Time-to-value
+-->
+
+{{SUCCESS_METRICS}}
+
+---
+
+## Versioning
+
+| Version | Date | Changes |
+|---|---|---|
+| 1.0 | 2026-05-04 | Initial charter from agent-os-boilerplate |
+
+---
+
+**Tham khảo:**
+- Architecture: Agent OS Playbook (Phase A + A.2)
+- Brand voice: `00-charter/brand_voice.md`
+- Founder profile: `00-charter/founder-profile.md`

@@ -1,0 +1,102 @@
+# ============================================================================
+# channels.yaml — Multi-Surface channels (Bài #17)
+# ============================================================================
+# Tier 1 declarative file. Defines surfaces project publishes to / receives from.
+# Pattern: SurfaceAdapter interface implementation per channel.
+#
+# Each channel:
+# - Has type (video, social, email, dashboard, etc.)
+# - Has audience priority (primary, secondary, tertiary)
+# - Maps to SurfaceAdapter implementation in 05-ai-ops/surface-adapters/
+# ============================================================================
+
+version: "1.0.0"
+
+channels:
+  # === Founder workspace surfaces (always required) ===
+  
+  - id: claude-code
+    type: dev_environment
+    purpose: "Founder primary dev surface (Bài #6 sub-domain B)"
+    adapter: claude-code-adapter
+  
+  - id: telegram
+    type: messaging
+    purpose: "Founder HITL + voice notes + lightweight comms"
+    adapter: telegram-adapter
+    primary: true
+  
+  - id: dashboard
+    type: web_app
+    purpose: "Visibility + monitoring + drill-down (Bài #10)"
+    adapter: dashboard-adapter
+    url_pattern: "https://dashboard.ritsu.ai"
+  
+  - id: email
+    type: email
+    purpose: "Customer + investor + external comms"
+    adapter: email-adapter
+  
+  # === Customer-facing surfaces (customize per project) ===
+  
+  # {{ADD_DOMAIN_CHANNELS_HERE}}
+  
+  # Example (B2C EdTech / Ritsu):
+  # - id: in-app-chat
+  #   type: in_app
+  #   purpose: "Real-time tutor chat with customers"
+  #   adapter: in-app-chat-adapter
+  #   primary: true
+  
+  # Example (Hollywood Channel):
+  # - id: youtube-main
+  #   type: video
+  #   purpose: "Main video distribution"
+  #   adapter: youtube-adapter
+  #   primary: true
+  # - id: tiktok
+  #   type: short_video
+  #   purpose: "Short-form viral content"
+  #   adapter: tiktok-adapter
+  # - id: patreon
+  #   type: subscription
+  #   purpose: "Monetized content tier"
+  #   adapter: patreon-adapter
+  
+  # === Social media surfaces (enable as needed) ===
+  
+  - id: twitter
+    type: social
+    purpose: "Brand presence + engagement"
+    adapter: twitter-adapter
+    enabled: false                      # Enable when ready
+  
+  - id: linkedin
+    type: social
+    purpose: "B2B presence"
+    adapter: linkedin-adapter
+    enabled: false
+  
+  - id: discord
+    type: community
+    purpose: "Community engagement"
+    adapter: discord-adapter
+    enabled: false
+
+# === Compliance routing ===
+# Maps channels to compliance rules in surface-compliance.yaml
+
+compliance_groups:
+  high_visibility: [twitter, linkedin]              # Public, high-stakes
+  customer_direct: [email, in-app-chat, telegram]   # Direct to specific customer
+  community: [discord]                               # Multi-user public
+
+# ============================================================================
+# Customization checklist
+# ============================================================================
+# After bootstrap:
+# 1. Update ritsu.ai in dashboard URL
+# 2. Add domain-specific channels in {{ADD_DOMAIN_CHANNELS_HERE}}
+# 3. Set 'primary: true' on most-used channel
+# 4. Enable social channels gradually as ready
+# 5. Define compliance_groups for surface-compliance.yaml

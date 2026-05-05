@@ -1,0 +1,17 @@
+# mcp-roles.yaml — MCP role definitions (Bài #12)
+version: "1.0.0"
+
+roles:
+  - id: founder
+    description: "Project founder, full access"
+    tool_pattern: ".*"
+  
+  - id: operator
+    description: "Operator, scoped access"
+    tool_pattern: "ritsu\\.(read|write_limited)\\..*"
+  
+  - id: customer
+    description: "Customer-facing, read-only own data"
+    tool_pattern: "ritsu\\.customer\\.read_self\\..*"
+  
+  # {{ADD_PROJECT_ROLES}}

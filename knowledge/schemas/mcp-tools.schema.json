@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "mcp-tools.schema.json",
+  "title": "MCP Tools Registry (Bài #12)",
+  "type": "object",
+  "required": ["version", "tools"],
+  "properties": {
+    "version": {"type": "string"},
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "role_required"],
+        "properties": {
+          "id": {"type": "string"},
+          "description": {"type": "string"},
+          "role_required": {"type": "string"},
+          "hitl_required": {"type": "boolean"},
+          "rate_limit": {"type": "string"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+# ============================================================================
+# schedules.yaml — Scheduled triggers (Bài #8)
+# ============================================================================
+# Tier 1 declarative file. Edit via PR governance.
+# Defines when scheduled tasks fire. Dispatcher reads this + invokes skills.
+#
+# Schema validation: schemas/schedules.schema.json
+# Engine: supabase/functions/schedule-dispatcher/
+# ============================================================================
+
+version: "1.0.0"
+timezone: Asia/Ho_Chi_Minh
+
+schedules:
+  # === Founder rhythm-aware schedules ===
+  
+  # Morning brief assembly (Bài #19 capstone)
+  - id: morning-brief-assembly
+    cron: "45 5 * * *"               # 05:45 in Asia/Ho_Chi_Minh
+    description: "Assemble morning brief 15 min before founder block"
+    skill: synthesize-morning-brief
+    enabled_when_mode: [hybrid, full_api]
+    requires_api: anthropic
+    fallback: queue_for_founder_review
+    cost_estimate: $0.03 per run
+  
+  # === Domain schedules (customize per project) ===
+  
+  # {{ADD_DOMAIN_SCHEDULES_HERE}}
+  # Examples:
+  # - id: weekly-customer-pulse
+  #   cron: "0 9 * * MON"
+  #   description: "Weekly customer health snapshot"
+  #   skill: customer-pulse-aggregator
+  
+  # === Maintenance schedules ===
+  
+  - id: stale-decision-check
+    cron: "0 9 * * MON"               # Mondays 9 AM
+    description: "Identify decisions needing review (Bài #15)"
+    skill: stale-decision-detector
+    enabled_when_mode: [hybrid, full_api]
+  
+  - id: data-retention-scan
+    cron: "0 3 * * *"                 # Daily 3 AM
+    description: "GDPR data retention enforcement (Bài #16)"
+    skill: data-retention-scanner
+  
+  - id: ingestion-source-poll
+    cron: "*/30 * * * *"              # Every 30 min
+    description: "Poll active ingestion sources (Bài #18)"
+    skill: ingestion-source-poller
+    enabled_when_mode: [hybrid, full_api]
+  
+  - id: minion-queue-cleanup
+    cron: "0 4 * * *"                 # Daily 4 AM
+    description: "Cleanup completed Minion jobs > 30 days (Bài #5)"
+    skill: minion-queue-cleaner
+
+# ============================================================================
+# Customization checklist
+# ============================================================================
+# After bootstrap, customize:
+# 1. Update timezone (above)
+# 2. Add domain-specific schedules in {{ADD_DOMAIN_SCHEDULES_HERE}} section
+# 3. Disable schedules not relevant to your project
+# 4. Verify cron expressions match founder timezone

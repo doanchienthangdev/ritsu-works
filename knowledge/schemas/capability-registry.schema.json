@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "capability-registry.schema.json",
+  "title": "Capability Registry (Bài #20)",
+  "description": "Tier 1 declarative for capability lifecycle tracking",
+  "type": "object",
+  "required": ["version", "capabilities"],
+  "properties": {
+    "version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "schema": {"type": "string"},
+    "hitl_thresholds": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z_]+_to_[a-z_]+$": {
+          "type": "string",
+          "enum": ["tier_a", "tier_b", "tier_c", "tier_d", "tier_e"]
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "state", "pillar_owner"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "state": {
+            "type": "string",
+            "enum": ["proposed", "analyzing", "architecting", "planning", "implementing", "deployed", "operating", "deprecated", "superseded"]
+          },
+          "state_since": {"type": "string", "format": "date"},
+          "proposed_at": {"type": "string", "format": "date"},
+          "deployed_at": {"type": "string", "format": "date"},
+          "deprecated_at": {"type": "string", "format": "date"},
+          "pillar_owner": {
+            "type": "string",
+            "pattern": "^0[0-9]-[a-z-]+$"
+          },
+          "bài_toán_touched": {
+            "type": "array",
+            "items": {"type": "integer", "minimum": 1, "maximum": 30}
+          },
+          "spec_path": {"type": "string"},
+          "sprint_plan": {"type": "string"},
+          "retrospective_path": {"type": "string"},
+          "cost_bucket": {"type": "string"},
+          "target_kpis": {"type": "array", "items": {"type": "string"}},
+          "target_value": {"type": "number"},
+          "current_value": {"type": "number"},
+          "estimated_cost_setup_usd": {"type": "number", "minimum": 0},
+          "estimated_cost_recurring_usd": {"type": "number", "minimum": 0},
+          "estimated_founder_hours": {"type": "number", "minimum": 0},
+          "actual_cost_setup_usd": {"type": "number", "minimum": 0},
+          "actual_cost_recurring_usd": {"type": "number", "minimum": 0},
+          "actual_founder_hours": {"type": "number", "minimum": 0},
+          "estimated_completion": {"type": "string", "format": "date"},
+          "superseded_by_id": {"type": "string"},
+          "notes": {"type": "string"}
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string"}
+      }
+    },
+    "cost_buckets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "description": {"type": "string"},
+          "capabilities": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

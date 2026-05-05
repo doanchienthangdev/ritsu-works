@@ -1,0 +1,57 @@
+#!/bin/sh
+. "$(dirname -- "$0")/_/husky.sh" 2>/dev/null || true
+
+# Reject if runtime files staged (except runtime/README.md)
+RUNTIME_FILES=$(git diff --cached --name-only | grep -E "^runtime/" | grep -v "^runtime/README.md$")
+if [ -n "$RUNTIME_FILES" ]; then
+  echo "❌ ERROR: Attempting to commit runtime data!"
+  echo ""
+  echo "Files staged in runtime/:"
+  echo "$RUNTIME_FILES"
+  echo ""
+  echo "If this is a genuine commit (e.g., updating runtime/README.md),"
+  echo "review carefully. Otherwise, unstage with:"
+  echo "  git reset HEAD runtime/"
+  exit 1
+fi
+
+# Reject if .env files staged (except .env.example)
+ENV_FILES=$(git diff --cached --name-only | grep -E "^\.env" | grep -v "^\.env\.example$" | grep -v "^\.env\.template$")
+if [ -n "$ENV_FILES" ]; then
+  echo "❌ ERROR: Attempting to commit .env file!"
+  echo ""
+  echo "Files staged:"
+  echo "$ENV_FILES"
+  echo ""
+  echo "Unstage with: git reset HEAD .env*"
+  exit 1
+fi
+
+# Detect potential secret patterns in diff
+SECRET_PATTERN=$(git diff --cached -U0 | grep -iE "(api[_-]?key|secret|password|token|bearer)\s*[:=]\s*['\"]?[a-zA-Z0-9]{20,}" 2>/dev/null || true)
+if [ -n "$SECRET_PATTERN" ]; then
+  echo "⚠️  WARNING: Potential secret detected in diff!"
+  echo ""
+  echo "Review carefully before committing:"
+  echo "$SECRET_PATTERN" | head -5
+  echo ""
+  echo "If false positive, commit with --no-verify (use sparingly)"
+  exit 1
+fi
+
+# Check for committed .DS_Store, etc.
+JUNK_FILES=$(git diff --cached --name-only | grep -E "(\.DS_Store|Thumbs\.db|desktop\.ini)$" || true)
+if [ -n "$JUNK_FILES" ]; then
+  echo "⚠️  WARNING: OS junk files staged:"
+  echo "$JUNK_FILES"
+  echo ""
+  echo "Add to .gitignore or unstage with: git reset HEAD <file>"
+  exit 1
+fi
+
+# Run linter on staged files (if configured)
+if command -v pnpm >/dev/null 2>&1 && [ -f package.json ] && grep -q '"lint-staged"' package.json; then
+  pnpm lint-staged
+fi
+
+exit 0

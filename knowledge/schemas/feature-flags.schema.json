@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "feature-flags.schema.json",
+  "title": "Feature Flags Configuration",
+  "description": "Tier 1 declarative file for LLM Access Modes & feature gating (B\u00e0i #19 + ch\u01b0\u01a1ng 30)",
+  "type": "object",
+  "required": [
+    "version",
+    "mode",
+    "features"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "subscription",
+        "hybrid",
+        "full_api"
+      ],
+      "description": "Operating mode determines which features autonomously enabled"
+    },
+    "api_keys": {
+      "type": "object",
+      "properties": {
+        "anthropic": {
+          "type": "object"
+        },
+        "openai": {
+          "type": "object"
+        }
+      }
+    },
+    "cost_limits": {
+      "type": "object",
+      "properties": {
+        "daily_budget_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "alert_threshold_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "hard_stop_at_limit": {
+          "type": "boolean"
+        },
+        "per_skill_limits": {
+          "type": "object"
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z_]+$": {
+          "type": "object",
+          "required": [
+            "enabled"
+          ],
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "requires": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "requires_api": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "anthropic",
+                    "openai"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "anthropic",
+                      "openai"
+                    ]
+                  }
+                }
+              ]
+            },
+            "fallback": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "cost_estimate": {
+              "type": "string"
+            },
+            "cost_warning": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "mode_presets": {
+      "type": "object"
+    },
+    "migration_triggers": {
+      "type": "object"
+    }
+  }
+}
