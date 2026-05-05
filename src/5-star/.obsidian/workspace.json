@@ -1,0 +1,193 @@
+{
+  "main": {
+    "id": "89242df67c8804e0",
+    "type": "split",
+    "children": [
+      {
+        "id": "1ccd8c69f7b847e1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ce8a97d21addc972",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "9a5bf0fbd2996950",
+    "type": "split",
+    "children": [
+      {
+        "id": "eb40ef82812c0924",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "ea49969856a94e80",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "80020fdf76236e33",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "a4e61623a37e02af",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "73c82759cff90a3d",
+    "type": "split",
+    "children": [
+      {
+        "id": "70abca7e565d21e4",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1bb96fa7c5608138",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "01-positioning-bravo/kien-thuc-dinh-vi-bravo.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for kien-thuc-dinh-vi-bravo"
+            }
+          },
+          {
+            "id": "aeb53a14dab73b9a",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "01-positioning-bravo/kien-thuc-dinh-vi-bravo.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from kien-thuc-dinh-vi-bravo"
+            }
+          },
+          {
+            "id": "042da47157a58b8c",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "84c57dbf52601f6b",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "4e07a2ecc9f3c9a5",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "01-positioning-bravo/kien-thuc-dinh-vi-bravo.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of kien-thuc-dinh-vi-bravo"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "ea49969856a94e80",
+  "lastOpenFiles": [
+    "Untitled",
+    "04-process-customer-closer/kien-thuc-quy-trinh-chot-khach-hang.md",
+    "03-copywriting-persuasion/kien-thuc-viet-quang-cao-thuyet-phuc.md",
+    "02-presence-website-blueprint/knowledge.md",
+    "02-presence-website-blueprint/questions-generic.md",
+    "02-presence-website-blueprint/kien-thuc-hien-dien-website.md",
+    "01-positioning-bravo/kien-thuc-dinh-vi-bravo.md",
+    "02-presence-website-blueprint/questions-ritsu.md"
+  ]
+}

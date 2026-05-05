@@ -40,6 +40,28 @@ End-to-end verification (after fix):
 | #11 | Skill `event-aggregator` | ❌ TODO | Wave 2 | scheduled, reads aggregation yaml |
 | #11 | `ritsu-cli events replay` | ❌ TODO | Wave 4 (CLI doesn't exist yet) | — |
 
+## Wave 2 testing infrastructure (2026-05-05)
+
+Vitest set up. 146 tests across 3 files.
+
+| File | Tests | Coverage | Notes |
+|---|---|---|---|
+| `tests/dispatcher.test.ts` | ~75 | 94% stmt / 83% branch / 100% fn | `_shared/dispatcher.ts` |
+| `tests/worker.test.ts` | ~55 | 96% stmt / 95% branch / 88% fn | `_shared/worker.ts` |
+| `tests/validate-tier1.test.ts` | ~16 | subprocess-based; tests real repo + tmp fixture | `scripts/validate-tier1.cjs` |
+
+**Test caught a real prototype-pollution bug** in `executeRun`: dictionary access
+`registry[skillName]` resolves through `Object.prototype`, so a triggered_skill of
+`"toString"` would invoke `Object.prototype.toString` as if it were a registered
+skill. Fixed by guarding with `Object.prototype.hasOwnProperty.call(registry, skillName)`.
+
+**Refactor:** pure logic moved to `supabase/functions/_shared/{dispatcher,worker}.ts`.
+Edge Function `index.ts` files are now thin Deno-only shims that import from `_shared/`.
+Both redeployed; smoke tests pass post-refactor. `_shared/` modules are environment-
+agnostic — Deno (deploy) and Node/Vitest (tests) both consume them.
+
+**Run tests:** `pnpm test` (single run) | `pnpm test:watch` (dev) | `pnpm test:coverage`.
+
 ## End-to-end verification (2026-05-05)
 
 The Bài #5 Minions pattern is proven end-to-end via curl, no pg_cron yet:
