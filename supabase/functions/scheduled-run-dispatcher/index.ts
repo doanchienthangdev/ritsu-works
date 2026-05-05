@@ -9,15 +9,14 @@
 //   supabase/functions/_shared/dispatcher.ts — testable pure logic
 //   tests/dispatcher.test.ts                — unit tests
 //
-// Wave 2 status: SCAFFOLD. SCHEDULES is a hand-populated stub until the
-// schedules.yaml bundler lands (Wave 2 Step 4: scripts/wave2-bundle-schedules.cjs).
+// SCHEDULES is bundled at build time from knowledge/schedules.yaml via
+// scripts/wave2-bundle-schedules.cjs. Re-run `pnpm wave2:bundle-schedules`
+// after editing schedules.yaml, then redeploy this function.
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import {
-  ScheduleEntry,
-  processDispatchRequest,
-} from "../_shared/dispatcher.ts";
+import { processDispatchRequest } from "../_shared/dispatcher.ts";
+import { SCHEDULES } from "../_shared/schedules.generated.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -27,10 +26,6 @@ const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { persistSession: false },
   db: { schema: "ops" },
 });
-
-// Bundled at deploy time. To regenerate: pnpm wave2:bundle-schedules (Wave 2 GHA TODO).
-// Replace this object via codegen from knowledge/schedules.yaml.
-const SCHEDULES: Record<string, ScheduleEntry> = {};
 
 serve(async (req) => {
   let body: unknown = null;

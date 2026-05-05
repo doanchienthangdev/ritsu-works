@@ -17,6 +17,7 @@
     "test:coverage": "vitest run --coverage",
     "db:push": "supabase db push",
     "db:reset": "supabase db reset --debug",
+    "wave2:bundle-schedules": "node scripts/wave2-bundle-schedules.cjs",
     "bootstrap": "bash .scripts/bootstrap.sh"
   },
   "devDependencies": {
