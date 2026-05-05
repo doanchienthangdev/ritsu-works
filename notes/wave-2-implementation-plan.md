@@ -26,10 +26,12 @@ End-to-end verification (after fix):
 | #8 | `knowledge/schedules.yaml` | ✅ Phase A.2 (Wave 1) | — | — |
 | #8 | `ops.scheduled_runs` table | ✅ Wave 1 (migration 00003) | — | — |
 | #8 | `ops.settings` table | ✅ migration 00013 applied + 3 seed rows | — | — |
-| #8 | Edge Function `scheduled-run-dispatcher` | ✅ DEPLOYED (auth + concurrency + insert verified) | — | bundler for schedules.yaml still TODO |
-| #8 | GHA `regenerate-pg-cron` | ❌ TODO | Wave 2 | reads schedules.yaml, emits SQL |
-| #8 | Skill worker (`ops.scheduled_runs` consumer) | ✅ DEPLOYED as `minion-worker` Edge Function (Bài #5 pattern) | — | LLM skills deferred until ANTHROPIC_API_KEY |
-| #8 | pg_cron wiring (calls dispatcher + worker) | 🟨 docs ready (`notes/pg-cron-setup.md`) | founder runs SQL once | needs founder to paste secrets in SQL editor |
+| #8 | Bundler `scripts/wave2-bundle-schedules.cjs` | ✅ Wave 2 Task #2 (commit e3f7a38) | — | — |
+| #8 | Edge Function `scheduled-run-dispatcher` | ✅ DEPLOYED with bundled SCHEDULES (queued/skipped/404 verified) | — | — |
+| #8 | GHA `regenerate-pg-cron` | ❌ TODO (locally `pnpm wave2:bundle-schedules` works) | Wave 2/3 | — |
+| #8 | Skill worker (`ops.scheduled_runs` consumer) | ✅ DEPLOYED as `minion-worker` with `synthesize-morning-brief` (Anthropic Haiku 4.5) + `heartbeat-ping` skills | — | — |
+| #8 | pg_cron wiring (worker tick) | ✅ migration 00014 applied — `minion-worker-tick` job registered (`* * * * *`, jobid=3, active) | — | founder must run `ALTER DATABASE postgres SET app.worker_secret = '<value>'` ONCE in Supabase SQL editor; until then cron fires harmlessly with 401 |
+| #8 | pg_cron wiring (dispatcher schedules) | 🟨 INTENTIONALLY DEFERRED — no `cron.schedule()` for any LLM-firing schedule. Founder enables individual schedules per `notes/pg-cron-setup.md` Step 4 when cadence is desired | founder | — |
 | #9 | Per-pillar `sops/` folders | 🟨 only `05-ai-ops/sops/SOP-AIOPS-001-...` exists | Wave 2 | template + recipe |
 | #9 | `ops.sop_runs` table | ✅ Wave 1 (migration 00003) | — | — |
 | #9 | Skill `sop-execute` | ❌ TODO | Wave 2 | needs Bài #5 subagent pattern |
@@ -76,12 +78,30 @@ This validates: atomic claim, skill registry dispatch, write-from-edge-fn, error
 
 ## Recommended execution order (next session)
 
-1. **Founder runs `notes/pg-cron-setup.md` Steps 1-7** to schedule both functions on real cron.
-2. **Add ANTHROPIC_API_KEY** to `runtime/secrets/.env.local` AND `supabase secrets set` so LLM skills become callable in `minion-worker`.
-3. **Write `scripts/wave2-bundle-schedules.cjs`** — reads `knowledge/schedules.yaml`, emits a TS file imported by `scheduled-run-dispatcher/index.ts` to populate the `SCHEDULES` const at build time. Until this lands, dispatcher returns `unknown_schedule` for any id.
-4. **Register a real skill (e.g., `synthesize-morning-brief`)** in `minion-worker/index.ts` SKILL_REGISTRY with an Anthropic API call. End-to-end test: pg_cron → dispatcher → ops.scheduled_runs → minion-worker → Anthropic → output_payload.
-5. **Begin Bài #11 `event-dispatcher`** — reuse the Edge Function pattern but listen on `ops.events` INSERT via `pg_notify` instead of pg_cron.
-6. **Bài #9 SOP execution** — `sop-execute` skill that orchestrates multi-step SOPs by chaining Minion jobs. Land last in Wave 2.
+Tasks 1, 2, 3 from the original plan are all DONE as of 2026-05-05 (commits
+e3f7a38, 685b16f, and 00014 migration applied). End-to-end Anthropic call
+verified at 152 in / 270 out tokens via Haiku 4.5 (~$0.0015 dev cost).
+
+Remaining work, in priority order:
+
+1. **Founder runs ONE SQL line in Supabase SQL editor** to enable real cron→worker auth:
+   ```sql
+   ALTER DATABASE postgres SET app.worker_secret = '<value from runtime/secrets/.env.local>';
+   ```
+   Until this runs, the cron job fires every minute with NULL secret → worker
+   returns 401 → no work, no cost. After this, the queue is fully reactive
+   within 60 seconds end-to-end.
+
+2. **Begin Bài #11 `event-dispatcher`** — reuse the dispatcher Edge Function
+   pattern but listen on `ops.events` INSERT via `pg_notify` instead of pg_cron.
+   Tier 1 yaml: `event-subscriptions.yaml`.
+
+3. **Bài #9 SOP execution** — `sop-execute` skill that orchestrates multi-step
+   SOPs by chaining Minion jobs. Land last in Wave 2.
+
+4. **GHA `regenerate-pg-cron`** — when more dispatcher schedules are enabled,
+   automate cron entry generation from `knowledge/schedules.yaml` (today this
+   is documented in `notes/pg-cron-setup.md` Step 4 for manual runs).
 
 ## Key insight
 

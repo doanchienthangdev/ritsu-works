@@ -39,7 +39,61 @@ After each implementation session, document:
 
 ### Wave 2 — Triggers + Orchestration
 
-(Update during implementation)
+#### 2026-05-05 — Tier 1 YAML → bundled TS module pattern
+- **Pattern:** Node CJS bundler reads a Tier 1 yaml at build time and emits an
+  AUTO-GENERATED TS file with a typed const for the Edge Function (Deno) to
+  import. Bundler enforces the structural invariants the consumer cares about
+  (id presence, uniqueness) on top of schema-level validation.
+  Concrete instance: `scripts/wave2-bundle-schedules.cjs` →
+  `supabase/functions/_shared/schedules.generated.ts` consumed by
+  `scheduled-run-dispatcher`.
+- **Generic level:** 95% (the yaml→TS mechanics are pure boilerplate; only
+  the input filename and the consuming module path differ per Tier 1 file)
+- **Customization:** input yaml path; output TS path; ScheduleEntry type
+  import; structural invariants
+- **Reuse candidates:** any future Tier 1 yaml whose values must be available
+  to a Deno Edge Function at request time (e.g.
+  `event-subscriptions.yaml` → bundled module for the event-dispatcher in
+  Bài #11; `mcp-tools.yaml` → bundled module for any MCP server)
+- **Action:** when ≥ 2 such bundlers exist, factor out the common skeleton
+  into `scripts/_shared/yaml-to-ts.cjs` taking config
+
+#### 2026-05-05 — DI-friendly LLM skill factory
+- **Pattern:** Skills that call Anthropic are written as `make<Skill>Handler({
+  anthropic, model?, maxTokens? })` factories returning `SkillHandler`. The
+  factory takes an `AnthropicLike` typed contract, not the real SDK, so unit
+  tests inject a mock that captures `messages.create` calls. Errors from the
+  SDK are routed through a shared `isRetryableAnthropicError` classifier
+  (5xx / rate_limit / timeout / network) to set `retryable` flag for the
+  worker.
+  Concrete instance: `makeSynthesizeMorningBriefHandler` in
+  `_shared/worker.ts`.
+- **Generic level:** 90% (the factory + DI + retryable classifier are
+  reusable across every Anthropic-backed skill; the prompt and output
+  contract are skill-specific)
+- **Customization:** system prompt; user prompt template; output payload
+  shape; default model; max_tokens
+- **Reuse candidates:** every future Anthropic-backed skill — pre-call-
+  dossier, voice-note-classify, customer-360-summary, weekly-review-
+  synthesis, etc. All would follow the same factory shape.
+- **Action:** when ≥ 3 Anthropic skills exist, factor out
+  `make<Skill>Handler` into a `makeAnthropicSkillHandler({prompt, parse,
+  model?, maxTokens?})` higher-order factory
+
+#### 2026-05-05 — pg_cron worker tick + GUC-based secret
+- **Pattern:** Schedule a worker function on a tight cadence (e.g. every
+  minute). The cron command reads the auth secret via
+  `current_setting('app.<name>', true)` so the secret never lives in source.
+  Founder sets the GUC ONCE via `ALTER DATABASE postgres SET app.<name> =
+  '<value>'` in the Supabase SQL editor. Cron is idempotent: DO block
+  unschedules existing job by name before re-creating it.
+  Concrete instance: `00014_pg_cron_minion_worker_tick.sql`.
+- **Generic level:** 100%
+- **Customization:** project URL; jobname; secret name; cadence
+- **Friction:** Supabase Management API role lacks `ALTER DATABASE`
+  permission, so the GUC ceremony is irreducibly manual on hosted Supabase.
+  The migration cannot fully self-bootstrap. Worth documenting in any
+  generated boilerplate so users aren't surprised.
 
 ---
 
