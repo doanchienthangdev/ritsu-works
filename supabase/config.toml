@@ -1,0 +1,25 @@
+# Supabase project config — checked into git for repeatable deploys.
+# Reference: https://supabase.com/docs/guides/cli/config
+
+project_id = "ritsu-ops"
+
+# ----------------------------------------------------------------------------
+# Edge Functions config
+# ----------------------------------------------------------------------------
+# `verify_jwt = false` is required for our cron-driven functions because
+# pg_cron's `net.http_post` cannot inject a per-request `Authorization: Bearer
+# <anon_key>` header. Both functions authenticate at the application layer:
+#   - minion-worker            uses X-Worker-Auth     (WORKER_SECRET)
+#   - scheduled-run-dispatcher uses x-dispatcher-auth (DISPATCHER_SECRET)
+# Without verify_jwt=false, the Supabase gateway rejects with 401 before the
+# function sees the request — which is the pre-2026-05-14 bug we hit during
+# v1.0c smoke testing (Path A runbook).
+#
+# Without this file, `supabase functions deploy` defaults to verify_jwt=true.
+# Per-call workarounds (`--no-verify-jwt`) are not persisted across deploys.
+
+[functions.minion-worker]
+verify_jwt = false
+
+[functions.scheduled-run-dispatcher]
+verify_jwt = false

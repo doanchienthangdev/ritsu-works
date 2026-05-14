@@ -143,38 +143,19 @@ export async function executeInvariant(
   };
 }
 
-// v1.0c manifest ops tables list. Hand-maintained until a separate bundler
-// emits this from knowledge/manifest.yaml. Update when adding new ops tables.
-// Catch: if this list drifts from manifest.yaml, the manifest-tier2-tables-subset
-// L2 validator (CI) catches it before this list goes live.
-export const MANIFEST_OPS_TABLES_V1_0C: string[] = [
-  "agent_runs",
-  "alerts",
-  "attention_log",
-  "audit_log",
-  "budget_alerts",
-  "campaigns",
-  "capability_phase_events",
-  "capability_runs",
-  "consistency_checks",
-  "corrections",
-  "cost_attributions",
-  "decisions",
-  "events",
-  "hitl_runs",
-  "ingestion_jobs",
-  "knowledge_embeddings",
-  "knowledge_links",
-  "knowledge_pages",
-  "kpi_snapshots",
-  "mcp_calls",
-  "minion_jobs",
-  "optimization_recommendations",
-  "run_summaries",
-  "scheduled_runs",
-  "settings",
-  "sop_runs",
-  "task_state_transitions",
-  "tasks",
-  "tier3_index",
-];
+// Manifest ops tables list — bundled from knowledge/manifest.yaml by
+// scripts/wave2-bundle-manifest-tables.cjs. Pre-commit hook regenerates
+// when manifest.yaml changes. No more hand-maintained drift.
+//
+// Re-exported here under a stable name so consumers don't reach into the
+// generated module directly.
+import {
+  MANIFEST_OPS_TABLES as GEN_MANIFEST_OPS_TABLES,
+  MANIFEST_METRICS_TABLES as GEN_MANIFEST_METRICS_TABLES,
+} from "./manifest-tables.generated.ts";
+
+export const MANIFEST_OPS_TABLES: readonly string[] = GEN_MANIFEST_OPS_TABLES;
+export const MANIFEST_METRICS_TABLES: readonly string[] = GEN_MANIFEST_METRICS_TABLES;
+
+// Backwards-compat alias for v1.0c callers — TODO remove after v1.0e refactor.
+export const MANIFEST_OPS_TABLES_V1_0C: readonly string[] = GEN_MANIFEST_OPS_TABLES;

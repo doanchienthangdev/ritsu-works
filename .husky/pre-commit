@@ -75,6 +75,14 @@ if git diff --cached --name-only | grep -q '^knowledge/cross-tier-invariants\.ya
   fi
 fi
 
+# If manifest.yaml staged, regenerate the manifest-tables bundle.
+if git diff --cached --name-only | grep -q '^knowledge/manifest\.yaml$'; then
+  if [ -f scripts/wave2-bundle-manifest-tables.cjs ]; then
+    node scripts/wave2-bundle-manifest-tables.cjs >/dev/null
+    git add supabase/functions/_shared/manifest-tables.generated.ts
+  fi
+fi
+
 # Tier 1 YAML schema validation (~1s)
 if [ -f scripts/validate-tier1.cjs ]; then
   if ! node scripts/validate-tier1.cjs >/dev/null 2>&1; then

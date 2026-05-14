@@ -19,6 +19,7 @@
     "db:reset": "supabase db reset --debug",
     "wave2:bundle-schedules": "node scripts/wave2-bundle-schedules.cjs",
     "wave2:bundle-invariants": "node scripts/wave2-bundle-invariants.cjs",
+    "wave2:bundle-manifest-tables": "node scripts/wave2-bundle-manifest-tables.cjs",
     "bootstrap": "bash .scripts/bootstrap.sh"
   },
   "devDependencies": {
