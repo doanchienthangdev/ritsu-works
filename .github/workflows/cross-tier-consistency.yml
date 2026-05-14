@@ -1,0 +1,100 @@
+name: Cross-Tier Consistency
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  l1-tier1-yaml-schemas:
+    name: L1 — Tier 1 YAML schema validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - name: Validate all Tier 1 YAML files
+        run: node scripts/validate-tier1.cjs
+
+  l2-manifest-db:
+    name: L2 — manifest ↔ migrations
+    runs-on: ubuntu-latest
+    needs: l1-tier1-yaml-schemas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/cross-tier/validate-manifest-db.cjs
+
+  l2-skills-references:
+    name: L2 — skills .from() ↔ migrations
+    runs-on: ubuntu-latest
+    needs: l1-tier1-yaml-schemas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/cross-tier/validate-skills-references.cjs
+
+  l2-schedules-skills:
+    name: L2 — schedules ↔ skill registry
+    runs-on: ubuntu-latest
+    needs: l1-tier1-yaml-schemas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/cross-tier/validate-schedules-skills.cjs
+
+  l2-governance-roles:
+    name: L2 — governance/ROLES ↔ skills (warn)
+    runs-on: ubuntu-latest
+    needs: l1-tier1-yaml-schemas
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/cross-tier/validate-governance-roles.cjs
+
+  l2-hitl-hooks:
+    name: L2 — HITL.md ↔ hooks (warn)
+    runs-on: ubuntu-latest
+    needs: l1-tier1-yaml-schemas
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/cross-tier/validate-hitl-hooks.cjs

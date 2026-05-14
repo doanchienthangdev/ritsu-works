@@ -54,4 +54,40 @@ if command -v pnpm >/dev/null 2>&1 && [ -f package.json ] && grep -q '"lint-stag
   pnpm lint-staged
 fi
 
+# ──────────────────────────────────────────────────────────────────────────
+# Cross-Tier Consistency Engine — L1 checks
+# (knowledge/cross-tier-invariants.yaml)
+# ──────────────────────────────────────────────────────────────────────────
+
+# If schedules.yaml staged, regenerate bundle and add to commit.
+if git diff --cached --name-only | grep -q '^knowledge/schedules\.yaml$'; then
+  if [ -f scripts/wave2-bundle-schedules.cjs ]; then
+    node scripts/wave2-bundle-schedules.cjs >/dev/null
+    git add supabase/functions/_shared/schedules.generated.ts
+  fi
+fi
+
+# Tier 1 YAML schema validation (~1s)
+if [ -f scripts/validate-tier1.cjs ]; then
+  if ! node scripts/validate-tier1.cjs >/dev/null 2>&1; then
+    echo "❌ Tier 1 schema validation failed."
+    echo "   Run for details: node scripts/validate-tier1.cjs"
+    exit 1
+  fi
+fi
+
+# Cross-tier critical validators (~2s total). Warn-tier ones (governance-roles,
+# hitl-hooks) intentionally skipped at pre-commit — they run in CI as
+# continue-on-error.
+for V in validate-manifest-db.cjs validate-skills-references.cjs validate-schedules-skills.cjs; do
+  if [ -f "scripts/cross-tier/$V" ]; then
+    if ! node "scripts/cross-tier/$V" >/dev/null 2>&1; then
+      echo "❌ Cross-tier check failed: $V"
+      echo "   Run for details: node scripts/cross-tier/$V"
+      echo "   Override with --no-verify only if you understand the drift."
+      exit 1
+    fi
+  fi
+done
+
 exit 0
