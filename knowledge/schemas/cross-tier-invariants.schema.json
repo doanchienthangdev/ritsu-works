@@ -43,6 +43,12 @@
           "enum": ["L1", "L2", "L3"],
           "description": "Which detection layer enforces this invariant. L1 = local pre-commit (cheap structural), L2 = CI (cross-tier, may read schema snapshot), L3 = AI nightly (semantic)."
         },
+        "status": {
+          "type": "string",
+          "enum": ["live", "deferred"],
+          "default": "live",
+          "description": "live = sweep + executor handle it. deferred = recorded in spec but no executor yet (e.g., needs feature not shipped). Sweep filters out deferred."
+        },
         "ai_check_prompt": {
           "type": ["string", "null"],
           "description": "Only used by L3 AI invariants. Must instruct the model to emit ai_response_contract."

@@ -67,6 +67,14 @@ if git diff --cached --name-only | grep -q '^knowledge/schedules\.yaml$'; then
   fi
 fi
 
+# If cross-tier-invariants.yaml staged, regenerate the invariants bundle.
+if git diff --cached --name-only | grep -q '^knowledge/cross-tier-invariants\.yaml$'; then
+  if [ -f scripts/wave2-bundle-invariants.cjs ]; then
+    node scripts/wave2-bundle-invariants.cjs >/dev/null
+    git add supabase/functions/_shared/invariants.generated.ts
+  fi
+fi
+
 # Tier 1 YAML schema validation (~1s)
 if [ -f scripts/validate-tier1.cjs ]; then
   if ! node scripts/validate-tier1.cjs >/dev/null 2>&1; then

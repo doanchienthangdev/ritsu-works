@@ -224,66 +224,174 @@ export function makeDeferredStubHandler(reason: string): SkillHandler {
 }
 
 // ============================================================================
-// Cross-Tier Consistency Engine — L3 nightly sweep (v1.0b)
+// Cross-Tier Consistency Engine — L3 nightly sweep + executor (v1.0c)
 // ============================================================================
 //
 // The sweep skill fires on schedule (knowledge/schedules.yaml id:
-// consistency-sweep-nightly), reads the L3 invariants list, and inserts
-// `pending` consistency_checks rows for each. The actual check execution
-// against live DB metadata (which requires Postgres helper functions like
-// `get_ops_tables_with_rls()`) is wired in v1.0c — at which point a separate
-// worker tick claims each pending row, runs the check, transitions to
-// passed/failed, and emits drift events.
+// consistency-sweep-nightly). For each LIVE L3 invariant, it inserts a
+// `running` consistency_checks row, executes the invariant via the injected
+// executor, transitions the row to `passed` | `failed`, and emits a drift
+// event on failure.
 //
-// In v1.0b this skill demonstrates: lifecycle table works, scheduler fires,
-// rows get inserted with correct severity + hitl_tier mapping. Founder can
-// observe pending rows in Supabase Studio.
+// v1.0c handles ≤10 invariants inline (well within Edge Function timeout).
+// If L3 grows past that, refactor to a minion_jobs queue (per CEO plan).
+//
+// Dependency injection:
+//   - sb           : ops-schema client (writes consistency_checks, ops.events)
+//   - executor     : (inv) => Promise<CheckResult> — pluggable, defaults to
+//                    live-DB executor that calls ops.get_ops_* RPCs.
+//   - invariants   : injectable for tests; defaults to L3_INVARIANTS_LIVE.
 // ============================================================================
 
-import { getL3Invariants } from "./invariants.ts";
+import {
+  executeInvariant,
+  getL3Invariants,
+  MANIFEST_OPS_TABLES_V1_0C,
+  type CheckResult,
+  type ExecutorDeps,
+  type Invariant,
+} from "./invariants.ts";
+
+export type { CheckResult } from "./invariants.ts";
 
 export interface ConsistencySweepDeps {
-  sb: SbClient; // ops-schema client — writes consistency_checks rows
+  sb: SbClient;                                                   // ops client
+  executor?: (inv: Invariant) => Promise<CheckResult>;            // override for tests
+  invariants?: Invariant[];                                       // override for tests
+}
+
+// Default executor — wires Supabase RPC + the v1.0c manifest table list.
+export function makeDefaultExecutor(sb: SbClient): (inv: Invariant) => Promise<CheckResult> {
+  const deps: ExecutorDeps = {
+    callRpc: async (name) => {
+      // supabase-js: sb.rpc('get_ops_tables') returns a thenable.
+      // deno-lint-ignore no-explicit-any
+      const r: any = await (sb as any).rpc(name);
+      if (r.error) throw new Error(`rpc ${name} error: ${r.error.message}`);
+      return Array.isArray(r.data) ? r.data : [];
+    },
+    getManifestOpsTables: async () => MANIFEST_OPS_TABLES_V1_0C,
+  };
+  return (inv) => executeInvariant(inv, deps);
+}
+
+export interface SweepSummary {
+  kind: "consistency_sweep";
+  schedule_id: string;
+  invariants_processed: number;
+  passed: number;
+  failed: number;
+  errors: number;
+  drift_events_emitted: number;
 }
 
 export function makeConsistencySweepHandler(
   deps: ConsistencySweepDeps,
 ): SkillHandler {
+  const executor = deps.executor ?? makeDefaultExecutor(deps.sb);
   return async (run) => {
-    const invariants = getL3Invariants();
+    const invariants = deps.invariants ?? getL3Invariants();
     if (invariants.length === 0) {
       return {
         ok: true,
         output: {
           kind: "consistency_sweep",
-          inserted: 0,
-          reason: "no_l3_invariants",
-        },
+          schedule_id: run.schedule_id,
+          invariants_processed: 0,
+          passed: 0,
+          failed: 0,
+          errors: 0,
+          drift_events_emitted: 0,
+        } satisfies SweepSummary,
       };
     }
-    const rows = invariants.map((inv) => ({
-      invariant_id: inv.id,
-      check_kind: "L3",
-      state: "pending",
-      severity: inv.severity,
-      hitl_tier: inv.hitl_tier,
-    }));
-    const { error } = await deps.sb.from("consistency_checks").insert(rows);
-    if (error) {
-      return {
-        ok: false,
-        error: `consistency_checks insert: ${error.message}`,
-        retryable: true,
-      };
+
+    let passed = 0;
+    let failed = 0;
+    let errors = 0;
+    let driftEvents = 0;
+
+    for (const inv of invariants) {
+      // 1. Insert running row.
+      const { data: inserted, error: insErr } = await deps.sb
+        .from("consistency_checks")
+        .insert({
+          invariant_id: inv.id,
+          check_kind: "L3",
+          state: "running",
+          severity: inv.severity,
+          hitl_tier: inv.hitl_tier,
+        })
+        .select("id")
+        .single();
+      if (insErr || !inserted) {
+        errors += 1;
+        continue;
+      }
+      const rowId = (inserted as { id: string }).id;
+
+      // 2. Execute check.
+      let result: CheckResult;
+      try {
+        result = await executor(inv);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        result = {
+          passed: false,
+          drift_description: `executor_threw: ${msg}`,
+        };
+      }
+
+      // 3. Transition row state.
+      const finalState = result.passed ? "passed" : "failed";
+      const { error: updErr } = await deps.sb
+        .from("consistency_checks")
+        .update({
+          state: finalState,
+          drift_description: result.drift_description ?? null,
+          target_path: result.target_path ?? null,
+        })
+        .eq("id", rowId);
+      if (updErr) {
+        errors += 1;
+        continue;
+      }
+
+      if (result.passed) {
+        passed += 1;
+      } else {
+        failed += 1;
+        // 4. Emit drift event for warn+critical (info too noisy).
+        if (inv.severity !== "info") {
+          const { error: evtErr } = await deps.sb.from("events").insert({
+            event_type: "consistency.drift_detected",
+            source: "internal",
+            payload: {
+              invariant_id: inv.id,
+              severity: inv.severity,
+              hitl_tier: inv.hitl_tier,
+              check_id: rowId,
+              drift_description: result.drift_description,
+              target_path: result.target_path,
+              evidence: result.evidence,
+            },
+          });
+          if (!evtErr) driftEvents += 1;
+        }
+      }
     }
+
     return {
       ok: true,
       output: {
         kind: "consistency_sweep",
-        inserted: rows.length,
         schedule_id: run.schedule_id,
-        invariant_ids: rows.map((r) => r.invariant_id),
-      },
+        invariants_processed: invariants.length,
+        passed,
+        failed,
+        errors,
+        drift_events_emitted: driftEvents,
+      } satisfies SweepSummary,
     };
   };
 }
