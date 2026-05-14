@@ -21,9 +21,10 @@ invariants:
   # supabase/migrations/*.sql (concatenated). When a snapshot file is added
   # in v1.0b (via Docker or direct pg_dump), this invariant turns on.
   - id: snapshot-header-matches-newest-migration
-    description: "supabase/schema-snapshot.sql header must reference the newest migration file (v1.0b+)"
+    description: "supabase/schema-snapshot.sql header must reference the newest migration file"
     kind: header_match
     layer: L3
+    status: deferred
     source:
       tier: 1
       ref: supabase/schema-snapshot.sql
@@ -36,7 +37,8 @@ invariants:
     hitl_tier: B
     fix_strategy: regen_bundle
     notes: |
-      Deferred to v1.0b. In v1.0a, L2 validators read migrations directly.
+      Deferred — no snapshot file in v1.0a/b/c. Activates when v1.0d adds
+      `supabase db dump` pipeline (requires Docker or direct pg_dump).
 
   # --------------------------------------------------------------------------
   # Manifest ↔ migrations (L2 — derived from concatenated migrations)
@@ -232,9 +234,10 @@ invariants:
   # Schema snapshot existence (L3 deferred — see snapshot-header invariant)
   # --------------------------------------------------------------------------
   - id: schema-snapshot-exists
-    description: "supabase/schema-snapshot.sql must exist when v1.0b ships"
+    description: "supabase/schema-snapshot.sql must exist"
     kind: exists
     layer: L3
+    status: deferred
     source:
       tier: 1
       ref: supabase/schema-snapshot.sql
@@ -247,5 +250,49 @@ invariants:
     hitl_tier: A
     fix_strategy: regen_bundle
     notes: |
-      Deferred to v1.0b — needs Docker for `supabase db dump` OR direct pg_dump
-      via a non-pooled DB URL. Not in v1.0a scope.
+      Deferred — needs Docker or direct pg_dump. Activates with v1.0d.
+
+  # --------------------------------------------------------------------------
+  # Live-DB invariants (L3, runnable in v1.0c via ops.get_ops_* RPC helpers)
+  # --------------------------------------------------------------------------
+  - id: live-db-tables-match-manifest
+    description: "Every ops.* table in live DB must appear in manifest.tier2_operational.schemas.ops.tables"
+    kind: subset
+    layer: L3
+    status: live
+    source:
+      tier: 2
+      ref: "ops.*"
+      query: "rpc:ops.get_ops_tables"
+    target:
+      tier: 1
+      ref: knowledge/manifest.yaml
+      query: "$.tier2_operational.schemas.ops.tables[*].name"
+    severity: critical
+    hitl_tier: C
+    fix_strategy: patch_yaml
+    notes: |
+      Mirror of L2 manifest-tier2-tables-subset but uses LIVE DB (not migrations
+      on disk). Catches drift introduced via Supabase UI direct edits.
+
+  - id: live-db-tables-have-rls
+    description: "Every ops.* table in live DB should have RLS enabled"
+    kind: implies
+    layer: L3
+    status: live
+    source:
+      tier: 2
+      ref: "ops.*"
+      query: "rpc:ops.get_ops_rls_state"
+    target:
+      tier: 2
+      ref: "ops.*"
+      query: "rpc:ops.get_ops_rls_state[rls_enabled=true]"
+    severity: warn
+    hitl_tier: B
+    fix_strategy: add_migration
+    notes: |
+      Catches the failure pattern seen with capability_runs and
+      capability_phase_events — added in migration 00011, RLS forgotten until
+      00020 caught it manually. With this invariant active, any future RLS
+      gap would be reported within 24h.
