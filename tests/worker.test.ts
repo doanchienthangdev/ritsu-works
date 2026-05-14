@@ -19,6 +19,7 @@ import {
   claimNextRun,
   executeRun,
   finalizeRun,
+  makeEtlProductDauSnapshotHandler,
   makeHeartbeatPingHandler,
   makeSynthesizeMorningBriefHandler,
   isRetryableAnthropicError,
@@ -27,6 +28,7 @@ import {
   DEFAULT_MORNING_BRIEF_MAX_TOKENS,
   DEFAULT_MORNING_BRIEF_SYSTEM,
   processWorkerTick,
+  type ProductDauRow,
   type ScheduledRun,
   type SkillRegistry,
   type SbClient,
@@ -1182,5 +1184,281 @@ describe("makeSynthesizeMorningBriefHandler — registered as SKILL", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect((result.output as { kind: string }).kind).toBe("morning_brief");
+  });
+});
+
+// ============================================================================
+// makeEtlProductDauSnapshotHandler — Product Supabase → metrics.product_dau_snapshot
+// ============================================================================
+//
+// Phase 1 — Code Analysis:
+//   1 param (deps with metricsSb, opsSb, productSb|null). 3 main branches:
+//     (a) productSb === null → deferred_no_product_supabase_key (no retry)
+//     (b) product read returns row → insert into metrics
+//         (b1) insert ok → return {ok:true, inserted:true}
+//         (b2) insert returns 23505 → idempotent {ok:true, inserted:false}
+//         (b3) insert returns other error → retryable {ok:false}
+//     (c) product read returns null/empty → product_view_empty (no retry)
+//   Plus error sub-branches: product_read error, product_read throw.
+// Classification: I/O-heavy → dependency-degradation tests required.
+//                 Idempotency claim → must verify 23505 path explicitly.
+
+const SAMPLE_DAU_ROW: ProductDauRow = {
+  snapshot_at: "2026-05-14T03:00:00Z",
+  dau: 1234,
+  wau: 7890,
+  mau: 23456,
+  new_signups_24h: 45,
+  paid_users: 678,
+  free_users: 12345,
+  churned_users_24h: 12,
+  extra: { source: "v_ops_dau_export" },
+};
+
+interface ProductReadOutcome {
+  data?: ProductDauRow | null;
+  error?: { message: string } | null;
+  throws?: Error;
+}
+
+interface MetricsInsertOutcome {
+  error?: { message: string; code?: string } | null;
+  throws?: Error;
+}
+
+function makeEtlMocks(opts: {
+  productResult?: ProductReadOutcome | null;     // null → productSb is null
+  metricsResult?: MetricsInsertOutcome;
+}): {
+  metricsSb: SbClient;
+  opsSb: SbClient;
+  productSb: SbClient | null;
+  productCalls: { table: string }[];
+  metricsInserts: { table: string; row: unknown }[];
+} {
+  const productCalls: { table: string }[] = [];
+  const metricsInserts: { table: string; row: unknown }[] = [];
+
+  const productSb: SbClient | null =
+    opts.productResult === null
+      ? null
+      : {
+          from(table: string) {
+            productCalls.push({ table });
+            const chain: Record<string, unknown> = {
+              select: () => chain,
+              order: () => chain,
+              limit: () => chain,
+              maybeSingle: () => {
+                const r = opts.productResult!;
+                if (r.throws) throw r.throws;
+                return Promise.resolve({ data: r.data ?? null, error: r.error ?? null });
+              },
+            };
+            return chain;
+          },
+        };
+
+  const metricsSb: SbClient = {
+    from(table: string) {
+      return {
+        insert: (row: unknown) => {
+          metricsInserts.push({ table, row });
+          const r = opts.metricsResult;
+          if (r?.throws) throw r.throws;
+          return Promise.resolve({ error: r?.error ?? null });
+        },
+      };
+    },
+  };
+
+  // opsSb is unused by the handler today but the dep shape requires it.
+  const opsSb: SbClient = { from: () => ({}) };
+
+  return { metricsSb, opsSb, productSb, productCalls, metricsInserts };
+}
+
+describe("makeEtlProductDauSnapshotHandler", () => {
+  describe("happy path", () => {
+    it("reads from product, inserts into metrics, returns ok with inserted=true", async () => {
+      const m = makeEtlMocks({
+        productResult: { data: SAMPLE_DAU_ROW, error: null },
+        metricsResult: { error: null },
+      });
+      const handler = makeEtlProductDauSnapshotHandler({
+        metricsSb: m.metricsSb,
+        opsSb: m.opsSb,
+        productSb: m.productSb,
+      });
+
+      const result = await handler(SAMPLE_RUN);
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.output).toMatchObject({
+        kind: "etl_dau_snapshot",
+        snapshot_at: SAMPLE_DAU_ROW.snapshot_at,
+        dau: SAMPLE_DAU_ROW.dau,
+        inserted: true,
+      });
+      expect(m.productCalls).toEqual([{ table: "v_ops_dau_export" }]);
+      expect(m.metricsInserts).toHaveLength(1);
+      expect(m.metricsInserts[0].table).toBe("product_dau_snapshot");
+      expect(m.metricsInserts[0].row).toMatchObject({
+        snapshot_at: SAMPLE_DAU_ROW.snapshot_at,
+        dau: SAMPLE_DAU_ROW.dau,
+        etl_run_id: SAMPLE_RUN.id,
+      });
+    });
+  });
+
+  describe("gate: productSb missing", () => {
+    it("returns deferred_no_product_supabase_key when productSb is null", async () => {
+      const m = makeEtlMocks({ productResult: null });
+      const handler = makeEtlProductDauSnapshotHandler({
+        metricsSb: m.metricsSb,
+        opsSb: m.opsSb,
+        productSb: m.productSb,
+      });
+      const result = await handler(SAMPLE_RUN);
+      expect(result.ok).toBe(false);
+      const fail = result as { ok: false; error: string; retryable?: boolean };
+      expect(fail.error).toBe("deferred_no_product_supabase_key");
+      expect(fail.retryable).toBe(false);
+      expect(m.metricsInserts).toHaveLength(0);
+    });
+  });
+
+  describe("idempotency — duplicate snapshot_at returns ok with inserted=false", () => {
+    it("treats Postgres 23505 unique-violation as success (already-seen snapshot)", async () => {
+      const m = makeEtlMocks({
+        productResult: { data: SAMPLE_DAU_ROW, error: null },
+        metricsResult: { error: { message: "duplicate key", code: "23505" } },
+      });
+      const handler = makeEtlProductDauSnapshotHandler({
+        metricsSb: m.metricsSb,
+        opsSb: m.opsSb,
+        productSb: m.productSb,
+      });
+      const result = await handler(SAMPLE_RUN);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.output).toMatchObject({
+        kind: "etl_dau_snapshot",
+        inserted: false,
+        reason: "duplicate_snapshot_at",
+      });
+    });
+  });
+
+  describe("error handling", () => {
+    it("returns retryable failure when product read errors", async () => {
+      const m = makeEtlMocks({
+        productResult: { error: { message: "connection reset" } },
+      });
+      const handler = makeEtlProductDauSnapshotHandler({
+        metricsSb: m.metricsSb,
+        opsSb: m.opsSb,
+        productSb: m.productSb,
+      });
+      const result = await handler(SAMPLE_RUN);
+      expect(result.ok).toBe(false);
+      const fail = result as { ok: false; error: string; retryable?: boolean };
+      expect(fail.error).toMatch(/^product_read: connection reset/);
+      expect(fail.retryable).toBe(true);
+      expect(m.metricsInserts).toHaveLength(0);
+    });
+
+    it("returns retryable failure when product read throws", async () => {
+      const m = makeEtlMocks({
+        productResult: { throws: new Error("DNS lookup failed") },
+      });
+      const handler = makeEtlProductDauSnapshotHandler({
+        metricsSb: m.metricsSb,
+        opsSb: m.opsSb,
+        productSb: m.productSb,
+      });
+      const result = await handler(SAMPLE_RUN);
+      expect(result.ok).toBe(false);
+      const fail = result as { ok: false; error: string; retryable?: boolean };
+      expect(fail.error).toMatch(/^product_read_throw: DNS lookup failed/);
+      expect(fail.retryable).toBe(true);
+    });
+
+    it("returns retryable failure when metrics insert errors with non-23505 code", async () => {
+      const m = makeEtlMocks({
+        productResult: { data: SAMPLE_DAU_ROW, error: null },
+        metricsResult: { error: { message: "permission denied", code: "42501" } },
+      });
+      const handler = makeEtlProductDauSnapshotHandler({
+        metricsSb: m.metricsSb,
+        opsSb: m.opsSb,
+        productSb: m.productSb,
+      });
+      const result = await handler(SAMPLE_RUN);
+      expect(result.ok).toBe(false);
+      const fail = result as { ok: false; error: string; retryable?: boolean };
+      expect(fail.error).toMatch(/^metrics_insert: permission denied/);
+      expect(fail.retryable).toBe(true);
+    });
+  });
+
+  describe("dependency degradation", () => {
+    it("returns product_view_empty (no retry) when product returns null data", async () => {
+      const m = makeEtlMocks({
+        productResult: { data: null, error: null },
+      });
+      const handler = makeEtlProductDauSnapshotHandler({
+        metricsSb: m.metricsSb,
+        opsSb: m.opsSb,
+        productSb: m.productSb,
+      });
+      const result = await handler(SAMPLE_RUN);
+      expect(result.ok).toBe(false);
+      const fail = result as { ok: false; error: string; retryable?: boolean };
+      expect(fail.error).toBe("product_view_empty");
+      expect(fail.retryable).toBe(false);
+      expect(m.metricsInserts).toHaveLength(0);
+    });
+
+    it("normalises nullable upstream fields to safe defaults on insert", async () => {
+      // Row with only required fields filled — wau/mau/etc are null/undefined.
+      const sparseRow: ProductDauRow = {
+        snapshot_at: "2026-05-14T04:00:00Z",
+        dau: 100,
+      };
+      const m = makeEtlMocks({
+        productResult: { data: sparseRow, error: null },
+        metricsResult: { error: null },
+      });
+      const handler = makeEtlProductDauSnapshotHandler({
+        metricsSb: m.metricsSb,
+        opsSb: m.opsSb,
+        productSb: m.productSb,
+      });
+      await handler(SAMPLE_RUN);
+      const row = m.metricsInserts[0].row as Record<string, unknown>;
+      expect(row.dau).toBe(100);
+      expect(row.wau).toBeNull();
+      expect(row.mau).toBeNull();
+      expect(row.extra).toEqual({});
+    });
+  });
+
+  describe("contract boundaries — input from claimNextRun", () => {
+    it("uses run.id as etl_run_id for traceability", async () => {
+      const m = makeEtlMocks({
+        productResult: { data: SAMPLE_DAU_ROW, error: null },
+        metricsResult: { error: null },
+      });
+      const handler = makeEtlProductDauSnapshotHandler({
+        metricsSb: m.metricsSb,
+        opsSb: m.opsSb,
+        productSb: m.productSb,
+      });
+      await handler({ ...SAMPLE_RUN, id: "specific-run-uuid" });
+      const row = m.metricsInserts[0].row as Record<string, unknown>;
+      expect(row.etl_run_id).toBe("specific-run-uuid");
+    });
   });
 });
