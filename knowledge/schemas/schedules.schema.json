@@ -28,7 +28,7 @@
             "type": "array",
             "items": {"type": "string", "enum": ["subscription", "hybrid", "full_api"]}
           },
-          "requires_api": {"type": "string", "enum": ["anthropic", "openai"]},
+          "requires_api": {"type": "string", "enum": ["anthropic", "openai", "supabase_product_read"]},
           "fallback": {"type": "string"},
           "cost_estimate": {"type": "string"}
         }

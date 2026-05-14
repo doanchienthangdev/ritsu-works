@@ -32,7 +32,20 @@ schedules:
   #   cron: "0 9 * * MON"
   #   description: "Weekly customer health snapshot"
   #   skill: customer-pulse-aggregator
-  
+
+  # Hourly ETL: Product Supabase → metrics.product_dau_snapshot.
+  # Inert until SUPABASE_PRODUCT_URL + SUPABASE_PRODUCT_READONLY_ETL_KEY are
+  # provisioned for the minion-worker (D-MAX per governance/HITL.md). Until
+  # then the worker logs deferred_no_product_supabase_key on each fire.
+  - id: etl-product-dau-hourly
+    cron: "5 * * * *"
+    description: "Hourly ETL of Product DAU snapshot to metrics.product_dau_snapshot"
+    skill: etl-product-dau-snapshot
+    enabled_when_mode: [hybrid, full_api]
+    requires_api: supabase_product_read
+    fallback: queue_for_founder_review
+    cost_estimate: $0.00 per run
+
   # === Maintenance schedules ===
   
   - id: stale-decision-check

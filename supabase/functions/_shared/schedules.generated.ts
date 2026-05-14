@@ -3,8 +3,8 @@
 //
 // Source version:  1.0.0
 // Source timezone: Asia/Ho_Chi_Minh
-// Schedule count:  5
-// Generated at:    2026-05-05T16:06:42.090Z
+// Schedule count:  6
+// Generated at:    2026-05-14T04:56:14.376Z
 
 import type { ScheduleEntry } from "./dispatcher.ts";
 
@@ -21,6 +21,19 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
     "requires_api": "anthropic",
     "fallback": "queue_for_founder_review",
     "cost_estimate": "$0.03 per run"
+  },
+  "etl-product-dau-hourly": {
+    "id": "etl-product-dau-hourly",
+    "cron": "5 * * * *",
+    "description": "Hourly ETL of Product DAU snapshot to metrics.product_dau_snapshot",
+    "skill": "etl-product-dau-snapshot",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "requires_api": "supabase_product_read",
+    "fallback": "queue_for_founder_review",
+    "cost_estimate": "$0.00 per run"
   },
   "stale-decision-check": {
     "id": "stale-decision-check",
@@ -56,4 +69,4 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
   }
 };
 
-export const SCHEDULE_IDS: readonly string[] = ["data-retention-scan","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check"] as const;
+export const SCHEDULE_IDS: readonly string[] = ["data-retention-scan","etl-product-dau-hourly","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check"] as const;

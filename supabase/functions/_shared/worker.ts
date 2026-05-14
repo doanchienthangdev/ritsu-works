@@ -228,6 +228,140 @@ export function makeHeartbeatPingHandler(sb: SbClient): SkillHandler {
   };
 }
 
+// Shape of one DAU snapshot row returned by Product Supabase's
+// `v_ops_dau_export` view (read-only). Product team owns the view definition;
+// schema below is the agreed contract for ETL consumption.
+export interface ProductDauRow {
+  snapshot_at: string;          // ISO timestamp (hour-rounded)
+  dau: number;
+  wau?: number | null;
+  mau?: number | null;
+  new_signups_24h?: number | null;
+  paid_users?: number | null;
+  free_users?: number | null;
+  churned_users_24h?: number | null;
+  extra?: Record<string, unknown> | null;
+}
+
+export interface EtlProductDauDeps {
+  // Ops Supabase client (writes to metrics.product_dau_snapshot).
+  // The Edge Function passes a client scoped to schema='metrics' for inserts,
+  // and a separate `opsSb` scoped to 'ops' for audit/state.
+  metricsSb: SbClient;
+  opsSb: SbClient;
+  // Optional Product Supabase client. When null the handler returns a
+  // deferred result — the function ships disabled until the founder
+  // provisions SUPABASE_PRODUCT_READONLY_ETL_KEY (D-MAX per HITL.md).
+  productSb: SbClient | null;
+  // Override for tests; defaults to () => new Date().toISOString().
+  now?: () => string;
+}
+
+// etl-product-dau-snapshot — pulls one hourly DAU snapshot from Product
+// Supabase (view `v_ops_dau_export`) and writes it to
+// metrics.product_dau_snapshot. Idempotent on snapshot_at (UNIQUE).
+//
+// References:
+//   knowledge/manifest.yaml etl_flows.product_metrics_to_ops
+//   governance/HITL.md (Tier D-MAX for Product Supabase access)
+//   knowledge/economic-architecture.md (this is a "minion" task — cheap)
+export function makeEtlProductDauSnapshotHandler(
+  deps: EtlProductDauDeps,
+): SkillHandler {
+  return async (run) => {
+    // Gate 1: Product Supabase read key not provisioned yet.
+    if (deps.productSb === null) {
+      return {
+        ok: false,
+        error: "deferred_no_product_supabase_key",
+        retryable: false,
+      };
+    }
+
+    // Gate 2: pull latest hourly row from product.
+    let row: ProductDauRow | null = null;
+    try {
+      const { data, error } = await deps.productSb
+        .from("v_ops_dau_export")
+        .select(
+          "snapshot_at,dau,wau,mau,new_signups_24h,paid_users,free_users,churned_users_24h,extra",
+        )
+        .order("snapshot_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) {
+        return {
+          ok: false,
+          error: `product_read: ${error.message}`,
+          retryable: true,
+        };
+      }
+      row = (data ?? null) as ProductDauRow | null;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { ok: false, error: `product_read_throw: ${msg}`, retryable: true };
+    }
+
+    if (!row) {
+      return {
+        ok: false,
+        error: "product_view_empty",
+        retryable: false,
+      };
+    }
+
+    // Gate 3: insert into metrics.product_dau_snapshot (idempotent on UNIQUE).
+    const insertPayload = {
+      snapshot_at: row.snapshot_at,
+      dau: row.dau,
+      wau: row.wau ?? null,
+      mau: row.mau ?? null,
+      new_signups_24h: row.new_signups_24h ?? null,
+      paid_users: row.paid_users ?? null,
+      free_users: row.free_users ?? null,
+      churned_users_24h: row.churned_users_24h ?? null,
+      extra: row.extra ?? {},
+      etl_run_id: run.id,
+    };
+
+    const { error: insertErr } = await deps.metricsSb
+      .from("product_dau_snapshot")
+      .insert(insertPayload);
+
+    if (insertErr) {
+      // Postgres unique violation code is "23505" — treat as already-seen
+      // snapshot (idempotent success).
+      const code = (insertErr as { code?: string }).code;
+      if (code === "23505") {
+        return {
+          ok: true,
+          output: {
+            kind: "etl_dau_snapshot",
+            snapshot_at: row.snapshot_at,
+            inserted: false,
+            reason: "duplicate_snapshot_at",
+          },
+        };
+      }
+      return {
+        ok: false,
+        error: `metrics_insert: ${insertErr.message}`,
+        retryable: true,
+      };
+    }
+
+    return {
+      ok: true,
+      output: {
+        kind: "etl_dau_snapshot",
+        snapshot_at: row.snapshot_at,
+        dau: row.dau,
+        inserted: true,
+      },
+    };
+  };
+}
+
 export interface WorkerHttpResponse {
   status: number;
   body: unknown;
