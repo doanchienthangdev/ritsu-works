@@ -210,6 +210,19 @@ export function makeSynthesizeMorningBriefHandler(deps: MorningBriefDeps): Skill
   };
 }
 
+// Deferred stub handler — registers a placeholder for skills referenced by
+// schedules.yaml but not yet implemented. Returns a clear error and a
+// not-retryable signal so the audit log records intent but doesn't spam.
+// Tracked by the consistency engine (knowledge/cross-tier-invariants.yaml
+// invariant: schedules-skills-registered).
+export function makeDeferredStubHandler(reason: string): SkillHandler {
+  return async (_run) => ({
+    ok: false,
+    error: `deferred_stub: ${reason}`,
+    retryable: false,
+  });
+}
+
 // Built-in heartbeat-ping skill — no LLM dependency. Registered in default registry.
 export function makeHeartbeatPingHandler(sb: SbClient): SkillHandler {
   return async (run) => {

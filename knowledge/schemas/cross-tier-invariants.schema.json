@@ -1,0 +1,141 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "cross-tier-invariants.schema.json",
+  "title": "Cross-Tier Invariants",
+  "description": "Declarative ruleset of cross-tier relationships in ritsu-works. Single source of truth consumed by L1 pre-commit, L2 CI validators, and (in v1.0b+) L3 AI nightly sweep.",
+  "type": "object",
+  "required": ["version", "invariants"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "invariants": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/invariant" }
+    }
+  },
+  "definitions": {
+    "invariant": {
+      "type": "object",
+      "required": ["id", "description", "kind", "source", "target", "severity", "hitl_tier", "fix_strategy"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$",
+          "description": "Stable identifier; kebab-case; referenced from doc markers + DB rows"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "kind": {
+          "$ref": "#/definitions/kind"
+        },
+        "source": { "$ref": "#/definitions/endpoint" },
+        "target": { "$ref": "#/definitions/endpoint" },
+        "severity": { "$ref": "#/definitions/severity" },
+        "hitl_tier": { "$ref": "#/definitions/hitl_tier" },
+        "fix_strategy": { "$ref": "#/definitions/fix_strategy" },
+        "layer": {
+          "type": "string",
+          "enum": ["L1", "L2", "L3"],
+          "description": "Which detection layer enforces this invariant. L1 = local pre-commit (cheap structural), L2 = CI (cross-tier, may read schema snapshot), L3 = AI nightly (semantic)."
+        },
+        "ai_check_prompt": {
+          "type": ["string", "null"],
+          "description": "Only used by L3 AI invariants. Must instruct the model to emit ai_response_contract."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Human commentary; not consumed by validators"
+        }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "required": ["tier", "ref"],
+      "additionalProperties": false,
+      "properties": {
+        "tier": {
+          "type": "integer",
+          "enum": [1, 2, 3, 4]
+        },
+        "ref": {
+          "type": "string",
+          "description": "File path relative to repo root, OR schema-qualified DB object name"
+        },
+        "query": {
+          "type": "string",
+          "description": "JSONPath, SQL, or marker-comment reference describing exactly what to extract"
+        }
+      }
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["subset", "equal", "implies", "exists", "regex_match", "header_match"],
+      "description": "subset: source ⊆ target. equal: source == target. implies: source true → target true. exists: source must exist at target path. regex_match: source value matches target regex. header_match: header field == derived value (e.g., snapshot freshness)."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warn", "critical"]
+    },
+    "hitl_tier": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D-Std", "D-MAX"],
+      "description": "Maps severity → HITL handling. governance/HITL.md tiers."
+    },
+    "fix_strategy": {
+      "type": "string",
+      "enum": ["patch_yaml", "patch_md", "regen_bundle", "add_migration", "open_pr", "manual_only"]
+    },
+    "ai_response_contract": {
+      "type": "object",
+      "required": ["match", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "match": {
+          "type": "boolean",
+          "description": "true = invariant satisfied. false = drift detected."
+        },
+        "drift_description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "drift_severity_override": {
+          "type": "string",
+          "enum": ["info", "warn", "critical"],
+          "description": "Optional: AI may override severity if context warrants (rare)."
+        },
+        "suggested_fix": {
+          "type": "object",
+          "properties": {
+            "strategy": { "$ref": "#/definitions/fix_strategy" },
+            "diff": { "type": "string" },
+            "files_touched": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "line": { "type": "integer", "minimum": 1 },
+              "excerpt": { "type": "string", "maxLength": 200 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

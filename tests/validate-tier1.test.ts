@@ -38,6 +38,7 @@ const COVERED_YAMLS = [
   "ingestion-sources.yaml",
   "ingestion-routing.yaml",
   "founder-rhythm.yaml",
+  "cross-tier-invariants.yaml",
 ];
 
 interface RunResult {
@@ -73,10 +74,10 @@ function runValidator(cwd: string): RunResult {
 // ============================================================================
 
 describe("validate-tier1 — real repo (current state)", () => {
-  it("exits 0 with all 18 yamls valid", () => {
+  it("exits 0 with all 19 yamls valid", () => {
     const r = runValidator(REPO);
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/Valid:\s+18\/18/);
+    expect(r.stdout).toMatch(/Valid:\s+19\/19/);
     expect(r.stdout).toMatch(/Invalid:\s+0/);
     expect(r.stdout).toMatch(/Missing:\s+0/);
     expect(r.stdout).toContain("All present files valid");
@@ -223,10 +224,10 @@ describe("validate-tier1 — invariants", () => {
     expect(r1.status).toBe(r2.status);
   });
 
-  it("output mentions exactly 18 yamls (matches FILE_TO_SCHEMA size)", () => {
+  it("output mentions exactly 19 yamls (matches FILE_TO_SCHEMA size)", () => {
     const r = runValidator(REPO);
     // Count occurrences of yaml filenames in output
     const mentioned = COVERED_YAMLS.filter((y) => r.stdout.includes(y));
-    expect(mentioned).toHaveLength(18);
+    expect(mentioned).toHaveLength(19);
   });
 });

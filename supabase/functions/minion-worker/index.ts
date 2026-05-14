@@ -19,6 +19,7 @@ import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import Anthropic from "npm:@anthropic-ai/sdk@0.69.0";
 import {
+  makeDeferredStubHandler,
   makeEtlProductDauSnapshotHandler,
   makeHeartbeatPingHandler,
   makeSynthesizeMorningBriefHandler,
@@ -63,6 +64,13 @@ const SKILL_REGISTRY: SkillRegistry = {
     opsSb: sb,
     productSb,
   }),
+  // Deferred stubs — referenced by schedules.yaml but not yet implemented.
+  // Tracked by cross-tier-invariants.yaml (schedules-skills-registered).
+  // Replace each with a real handler when the skill ships.
+  "stale-decision-detector": makeDeferredStubHandler("stale-decision-detector not implemented yet (Bài #15)"),
+  "data-retention-scanner": makeDeferredStubHandler("data-retention-scanner not implemented yet (Bài #16)"),
+  "ingestion-source-poller": makeDeferredStubHandler("ingestion-source-poller not implemented yet (Bài #18)"),
+  "minion-queue-cleaner": makeDeferredStubHandler("minion-queue-cleaner not implemented yet"),
   ...(anthropic
     ? {
         "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),
