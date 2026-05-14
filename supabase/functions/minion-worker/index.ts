@@ -25,6 +25,7 @@ import {
   makeEtlProductDauSnapshotHandler,
   makeHeartbeatPingHandler,
   makeSynthesizeMorningBriefHandler,
+  makeVerifyDocClaimsHandler,
   processWorkerTick,
   SkillRegistry,
 } from "../_shared/worker.ts";
@@ -95,6 +96,15 @@ const SKILL_REGISTRY: SkillRegistry = {
   ...(anthropic
     ? {
         "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),
+        // verify-doc-claims: AI semantic check. Dormant until a doc-section
+        // bundler ships (v1.2.1) — loadDocSection always returns null in v1.2
+        // production, so the skill returns deferred_no_doc_section. Wiring
+        // the bundler activates it without registry changes.
+        "verify-doc-claims": makeVerifyDocClaimsHandler({
+          sb,
+          anthropic,
+          loadDocSection: async () => null,
+        }),
       }
     : {}),
 };

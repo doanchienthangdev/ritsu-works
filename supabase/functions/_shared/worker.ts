@@ -639,6 +639,264 @@ export function makeDriftFixProposerHandler(
   };
 }
 
+// ============================================================================
+// verify-doc-claims — v1.2 (Anthropic-backed AI semantic check)
+// ============================================================================
+//
+// For invariants where the source is a marker-comment section inside a .md
+// file (kind=regex_match + ai_check_prompt set), this skill:
+//   1. Receives the invariant id via run payload.
+//   2. Loads the doc content from the bundled DOC_SECTIONS map (built by
+//      a follow-up bundler that scans .md files for `<!-- invariant: <id> -->`
+//      markers). v1.2 takes doc content via dependency injection so the
+//      bundler can land in v1.2.1.
+//   3. Calls Anthropic with the invariant's ai_check_prompt + the extracted
+//      doc section.
+//   4. Parses the response per the ai_response_contract sub-schema in
+//      knowledge/schemas/cross-tier-invariants.schema.json.
+//   5. Inserts/updates a consistency_checks row with state=passed|failed and
+//      drift_description.
+//   6. Emits consistency.drift_detected on failure (warn+critical only).
+//
+// v1.2 ships the skill + AI plumbing + response parsing + tests. Activation
+// requires:
+//   - Marker comments added to target .md files (Tier C action when any
+//     target is governance/HITL.md or 00-charter/* per CEO plan E4e).
+//   - Bundler `wave2-bundle-doc-claims.cjs` (v1.2.1) to extract marker
+//     sections at pre-commit time.
+//   - Schedule entry `verify-doc-claims-nightly` (founder enables when ready).
+//
+// Parsing strategy: low confidence (< 0.4) → mark check failed with
+// drift_description from the AI; do NOT propose a fix. Mid confidence
+// (0.4-0.6) → manual review. High confidence (≥ 0.6) → fix_proposed path
+// (handed off to drift-fix-proposer in v1.1).
+// ============================================================================
+
+import {
+  invariantById as invariantByIdShared,
+} from "./invariants.ts";
+
+export interface DocClaimAiResponse {
+  match: boolean;
+  drift_description?: string;
+  drift_severity_override?: "info" | "warn" | "critical";
+  suggested_fix?: {
+    strategy?: "patch_yaml" | "patch_md" | "regen_bundle" | "add_migration" | "open_pr" | "manual_only";
+    diff?: string;
+    files_touched?: string[];
+  };
+  confidence: number;
+  evidence?: Array<{ file: string; line: number; excerpt: string }>;
+}
+
+export interface VerifyDocClaimsDeps {
+  sb: SbClient;
+  anthropic: AnthropicLike;
+  // Pluggable doc-section loader. Production wires a bundle of
+  // marker-extracted sections; tests inject directly.
+  loadDocSection: (invariantId: string) => Promise<{ doc_path: string; content: string } | null>;
+  model?: string;
+  maxTokens?: number;
+  // Pluggable invariant lookup (override for tests).
+  lookupInvariant?: (id: string) => Invariant | null;
+}
+
+const DEFAULT_VERIFY_MODEL = "claude-haiku-4-5";
+const DEFAULT_VERIFY_MAX_TOKENS = 1500;
+
+// Parse + validate the AI response against ai_response_contract. Returns null
+// when the response is malformed (caller treats as low-confidence drift).
+export function parseDocClaimResponse(text: string): DocClaimAiResponse | null {
+  // Find the JSON object (model may wrap in prose).
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== "object") return null;
+  const p = parsed as Record<string, unknown>;
+  if (typeof p.match !== "boolean") return null;
+  const conf = typeof p.confidence === "number" ? p.confidence : NaN;
+  if (Number.isNaN(conf) || conf < 0 || conf > 1) return null;
+  return parsed as DocClaimAiResponse;
+}
+
+export function makeVerifyDocClaimsHandler(
+  deps: VerifyDocClaimsDeps,
+): SkillHandler {
+  const model = deps.model ?? DEFAULT_VERIFY_MODEL;
+  const maxTokens = deps.maxTokens ?? DEFAULT_VERIFY_MAX_TOKENS;
+  const lookup = deps.lookupInvariant ?? invariantByIdShared;
+
+  return async (run) => {
+    const invariantId = (run as ScheduledRun & { payload?: { invariant_id?: string } })
+      .payload?.invariant_id;
+    if (!invariantId) {
+      return {
+        ok: false,
+        error: "verify-doc-claims requires run.payload.invariant_id",
+        retryable: false,
+      };
+    }
+
+    const inv = lookup(invariantId);
+    if (!inv) {
+      return {
+        ok: false,
+        error: `unknown invariant: ${invariantId}`,
+        retryable: false,
+      };
+    }
+    if (!inv.ai_check_prompt) {
+      return {
+        ok: false,
+        error: `invariant ${invariantId} has no ai_check_prompt`,
+        retryable: false,
+      };
+    }
+
+    const docSection = await deps.loadDocSection(invariantId);
+    if (!docSection) {
+      return {
+        ok: false,
+        error: `deferred_no_doc_section: no marker found for invariant ${invariantId}`,
+        retryable: false,
+      };
+    }
+
+    // Insert running consistency_checks row.
+    const { data: inserted, error: insErr } = await deps.sb
+      .from("consistency_checks")
+      .insert({
+        invariant_id: inv.id,
+        check_kind: "L3",
+        state: "running",
+        severity: inv.severity,
+        hitl_tier: inv.hitl_tier,
+        target_path: docSection.doc_path,
+      })
+      .select("id")
+      .single();
+    if (insErr || !inserted) {
+      return {
+        ok: false,
+        error: `consistency_checks insert: ${insErr?.message ?? "no row"}`,
+        retryable: true,
+      };
+    }
+    const rowId = (inserted as { id: string }).id;
+
+    // Call Anthropic.
+    let response: AnthropicMessagesResponse;
+    try {
+      response = await deps.anthropic.messages.create({
+        model,
+        max_tokens: maxTokens,
+        system: inv.ai_check_prompt,
+        messages: [
+          {
+            role: "user",
+            content:
+              `Invariant: ${inv.id}\nDoc path: ${docSection.doc_path}\n\n` +
+              `Doc section to verify:\n---\n${docSection.content}\n---\n\n` +
+              `Emit JSON conforming to ai_response_contract.`,
+          },
+        ],
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      const retryable = isRetryableAnthropicError(msg);
+      // Best-effort: transition row to failed with anthropic error description.
+      await deps.sb.from("consistency_checks").update({
+        state: "failed",
+        drift_description: `anthropic_error: ${msg}`,
+      }).eq("id", rowId);
+      return { ok: false, error: `anthropic: ${msg}`, retryable };
+    }
+
+    const text = extractTextFromContent(response.content);
+    const parsed = parseDocClaimResponse(text);
+    if (!parsed) {
+      await deps.sb.from("consistency_checks").update({
+        state: "failed",
+        drift_description: "ai_response_unparseable",
+        proposed_fix_confidence: 0,
+      }).eq("id", rowId);
+      // Emit drift event so founder sees the parser failure.
+      await deps.sb.from("events").insert({
+        event_type: "consistency.drift_detected",
+        source: "internal",
+        payload: {
+          invariant_id: inv.id,
+          severity: inv.severity,
+          drift_description: "ai_response_unparseable",
+          raw_text_preview: text.slice(0, 300),
+        },
+      });
+      return {
+        ok: true,
+        output: {
+          kind: "verify_doc_claims",
+          invariant_id: inv.id,
+          passed: false,
+          reason: "ai_response_unparseable",
+        },
+      };
+    }
+
+    const passed = parsed.match;
+    const severity = parsed.drift_severity_override ?? inv.severity;
+    const proposedStrategy = parsed.suggested_fix?.strategy ?? null;
+    const proposedDiff = parsed.suggested_fix?.diff ?? null;
+
+    // Update row state per result.
+    await deps.sb
+      .from("consistency_checks")
+      .update({
+        state: passed ? "passed" : "failed",
+        severity,
+        drift_description: passed ? null : (parsed.drift_description ?? "no_description"),
+        proposed_fix_strategy: passed ? null : proposedStrategy,
+        proposed_fix_diff: passed ? null : proposedDiff,
+        proposed_fix_confidence: parsed.confidence,
+      })
+      .eq("id", rowId);
+
+    if (!passed && severity !== "info") {
+      await deps.sb.from("events").insert({
+        event_type: "consistency.drift_detected",
+        source: "internal",
+        payload: {
+          invariant_id: inv.id,
+          severity,
+          hitl_tier: inv.hitl_tier,
+          check_id: rowId,
+          target_path: docSection.doc_path,
+          drift_description: parsed.drift_description,
+          confidence: parsed.confidence,
+          evidence: parsed.evidence,
+        },
+      });
+    }
+
+    return {
+      ok: true,
+      output: {
+        kind: "verify_doc_claims",
+        invariant_id: inv.id,
+        passed,
+        confidence: parsed.confidence,
+        severity,
+      },
+    };
+  };
+}
+
+
 // Built-in heartbeat-ping skill — no LLM dependency. Registered in default registry.
 export function makeHeartbeatPingHandler(sb: SbClient): SkillHandler {
   return async (run) => {
