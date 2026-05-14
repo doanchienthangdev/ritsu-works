@@ -21,6 +21,7 @@ import Anthropic from "npm:@anthropic-ai/sdk@0.69.0";
 import {
   makeConsistencySweepHandler,
   makeDeferredStubHandler,
+  makeDriftFixProposerHandler,
   makeEtlProductDauSnapshotHandler,
   makeHeartbeatPingHandler,
   makeSynthesizeMorningBriefHandler,
@@ -38,6 +39,13 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const SUPABASE_PRODUCT_URL = Deno.env.get("SUPABASE_PRODUCT_URL") ?? "";
 const SUPABASE_PRODUCT_READONLY_ETL_KEY =
   Deno.env.get("SUPABASE_PRODUCT_READONLY_ETL_KEY") ?? "";
+
+// GitHub PAT for the consistency engine drift-fix-proposer (v1.1+).
+// Scoped to contents:write + pull_requests:write on this repo only.
+// 90-day rotation per governance/SECRETS.md. Founder provisions via D-Std.
+const GITHUB_CONSISTENCY_BOT_TOKEN = Deno.env.get("GITHUB_CONSISTENCY_BOT_TOKEN") ?? "";
+const GITHUB_OWNER = Deno.env.get("GITHUB_OWNER") ?? "doanchienthangdev";
+const GITHUB_REPO = Deno.env.get("GITHUB_REPO") ?? "ritsu-works";
 
 const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { persistSession: false },
@@ -58,9 +66,20 @@ const productSb =
 
 const anthropic = ANTHROPIC_API_KEY ? new Anthropic({ apiKey: ANTHROPIC_API_KEY }) : null;
 
+const githubConfig = GITHUB_CONSISTENCY_BOT_TOKEN
+  ? { owner: GITHUB_OWNER, repo: GITHUB_REPO, token: GITHUB_CONSISTENCY_BOT_TOKEN }
+  : null;
+
 const SKILL_REGISTRY: SkillRegistry = {
   "heartbeat-ping": makeHeartbeatPingHandler(sb),
   "consistency-sweep": makeConsistencySweepHandler({ sb }),
+  "drift-fix-proposer": makeDriftFixProposerHandler({
+    sb,
+    github: githubConfig,
+    // generateRegenBundleFix is wired in a follow-up — v1.1 ships the skill
+    // scaffold + GitHub PR pipeline. Until the generator is wired, the skill
+    // reports "no handler" for every failed row and returns ok.
+  }),
   "etl-product-dau-snapshot": makeEtlProductDauSnapshotHandler({
     metricsSb,
     opsSb: sb,
