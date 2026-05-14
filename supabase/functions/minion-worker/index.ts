@@ -9,14 +9,17 @@
 //   tests/worker.test.ts — unit tests.
 //
 // Wave 2 status: SKILL_REGISTRY now includes synthesize-morning-brief
-// (Anthropic-backed). LLM-backed skills are only registered when
-// ANTHROPIC_API_KEY is set; otherwise the worker still serves heartbeat-ping
-// and returns deferred_no_api_key for any unregistered skill.
+// (Anthropic-backed) and etl-product-dau-snapshot (Product Supabase-gated).
+// LLM-backed skills are only registered when ANTHROPIC_API_KEY is set.
+// The ETL skill is always registered: it returns deferred_no_product_supabase_key
+// until SUPABASE_PRODUCT_URL + SUPABASE_PRODUCT_READONLY_ETL_KEY are
+// provisioned (D-MAX per governance/HITL.md).
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import Anthropic from "npm:@anthropic-ai/sdk@0.69.0";
 import {
+  makeEtlProductDauSnapshotHandler,
   makeHeartbeatPingHandler,
   makeSynthesizeMorningBriefHandler,
   processWorkerTick,
@@ -28,15 +31,38 @@ const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WORKER_SECRET = Deno.env.get("WORKER_SECRET") ?? "";
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 
+// Product Supabase read-only access for ETL. Only the etl-runner role's secret
+// bundle should populate these. See governance/SECRETS.md.
+const SUPABASE_PRODUCT_URL = Deno.env.get("SUPABASE_PRODUCT_URL") ?? "";
+const SUPABASE_PRODUCT_READONLY_ETL_KEY =
+  Deno.env.get("SUPABASE_PRODUCT_READONLY_ETL_KEY") ?? "";
+
 const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { persistSession: false },
   db: { schema: "ops" },
 });
 
+const metricsSb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+  auth: { persistSession: false },
+  db: { schema: "metrics" },
+});
+
+const productSb =
+  SUPABASE_PRODUCT_URL && SUPABASE_PRODUCT_READONLY_ETL_KEY
+    ? createClient(SUPABASE_PRODUCT_URL, SUPABASE_PRODUCT_READONLY_ETL_KEY, {
+        auth: { persistSession: false },
+      })
+    : null;
+
 const anthropic = ANTHROPIC_API_KEY ? new Anthropic({ apiKey: ANTHROPIC_API_KEY }) : null;
 
 const SKILL_REGISTRY: SkillRegistry = {
   "heartbeat-ping": makeHeartbeatPingHandler(sb),
+  "etl-product-dau-snapshot": makeEtlProductDauSnapshotHandler({
+    metricsSb,
+    opsSb: sb,
+    productSb,
+  }),
   ...(anthropic
     ? {
         "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),

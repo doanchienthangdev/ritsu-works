@@ -495,11 +495,25 @@ etl_flows:
     direction: product_supabase -> ritsu_ops
     mode: read_only
     cadence: hourly
-    script: scripts/sync/etl-product-metrics.sh
-    status: planned
+    implementation: supabase/functions/_shared/worker.ts (makeEtlProductDauSnapshotHandler)
+    scheduled_via: knowledge/schedules.yaml (id=etl-product-dau-hourly)
+    status: code_ready_secrets_pending
     rationale: |
       Operating AI needs DAU, MRR, churn to make growth/delivery decisions
       without ever touching the production database directly.
+    activation_requires: |
+      Founder must provision SUPABASE_PRODUCT_URL and
+      SUPABASE_PRODUCT_READONLY_ETL_KEY into the minion-worker Edge Function
+      env. This is a D-MAX action per governance/HITL.md (any access to
+      Product Supabase). Until provisioned, the hourly fire returns
+      `deferred_no_product_supabase_key` and writes nothing.
+    product_contract:
+      view: v_ops_dau_export
+      owner: product team (separate repo)
+      columns: |
+        snapshot_at timestamptz, dau int, wau int, mau int,
+        new_signups_24h int, paid_users int, free_users int,
+        churned_users_24h int, extra jsonb
   - name: tier3_to_tier4_embeddings
     direction: storage -> vector_store
     cadence: nightly

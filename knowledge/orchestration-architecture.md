@@ -112,8 +112,9 @@ This is more conservative than Anthropic's "Code Kit" recommendation (delegate a
                          ▼
        ┌────────────────────────────────────┐
        │         ops.tasks (Tier 2)          │
-       │  parent_task_id, state_payload,    │
-       │  blocked_on, retries_left, status  │
+       │  parent_task_id, state, state_     │
+       │  payload, assignee_kind/id,        │
+       │  priority, context_id              │
        └────────────────────────────────────┘
 ```
 
@@ -143,21 +144,28 @@ Agent Teams is documented by Anthropic as having "known limitations around sessi
 1. GPS receives coarse task from founder
 2. GPS reads governance/HITL.md to classify task tier
 3. GPS invokes `task-decompose` skill:
-   - SQL INSERT into ops.tasks for parent task
-   - SQL INSERT for each child task with parent_task_id
-   - Each child has acceptance_criteria, assignee_role, blocked_on
+   - SQL INSERT into ops.tasks for parent task (assignee_kind='agent',
+     assignee_id='gps', task_type='orchestrate', state='running',
+     state_payload.hitl_tier='C', state_payload.acceptance_criteria='…')
+   - SQL INSERT for each child task with parent_task_id, assignee_kind,
+     assignee_id (role slug), state='pending', state_payload carrying
+     acceptance_criteria + blocked_on (uuid[] of prerequisite task ids)
 4. GPS dispatches subagents:
-   For each child task with no `blocked_on`:
-     - GPS uses Task tool to spawn subagent matching assignee_role
-     - GPS passes child task_id to subagent (single integer reference, not full state)
-     - Subagent reads its task from ops.tasks, executes, updates state_payload + status
+   For each child task in state='pending' with state_payload.blocked_on
+   empty (or all referenced tasks completed):
+     - UPDATE ops.tasks SET state='assigned', state_since=now() ...
+     - GPS uses Task tool to spawn subagent matching assignee_id (role slug)
+     - GPS passes child task_id to subagent (single uuid, not full state)
+     - Subagent reads its task from ops.tasks, transitions state to 'running',
+       executes, updates state_payload, writes terminal state ('completed'|
+       'failed'|'cancelled')
 5. GPS polls (or waits-for-callback if implemented) ops.tasks
 6. As tasks complete:
-   - blocked_on dependencies cleared for downstream tasks
+   - GPS computes which siblings' state_payload.blocked_on now empties out
    - GPS dispatches the now-unblocked tasks
-7. When all children of parent task done:
+7. When all children of parent task in terminal state:
    - GPS synthesizes results (reading state_payload from each child)
-   - Updates parent task to complete
+   - Updates parent task state to 'completed'
    - Notifies founder via Telegram
 ```
 
@@ -165,17 +173,21 @@ This is the **orchestrator-workers pattern** from Anthropic's "Building Effectiv
 
 ### Failure handling
 
-Each task row has `retries_left` (default 3). If a subagent reports failure or times out:
+Retry budget is tracked as `state_payload.retries_left` (default 3) — not a
+dedicated column, to keep ops.tasks narrow. If a subagent reports failure or
+times out:
 
-- GPS decrements `retries_left`
-- If > 0: re-dispatch with same task_id
-- If = 0: mark task as `failed`, propagate up to parent
-  - Parent task marked `partially_failed` if some children succeeded
-  - Founder notified
+- GPS decrements `state_payload.retries_left`
+- If > 0: UPDATE state back to 'pending' and re-dispatch
+- If = 0: leave state='failed', propagate up to parent (parent's
+  `state_payload.children_failed[]` appended)
+- Founder notified via Telegram for any Tier B+ failure
 
 If GPS itself crashes mid-orchestration:
-- Next GPS session reads ops.tasks WHERE status IN ('in_progress', 'pending') AND parent_task_id IN (open parents)
+- Next GPS session reads ops.tasks WHERE state IN ('pending','assigned','running')
+  AND parent_task_id IN (open parents)
 - Resumes from observed state — no separate "checkpoint" needed
+- ops.task_state_transitions provides the full event log for forensics
 - This is why ops.tasks is canonical state, not memory tool API
 
 ---
@@ -186,44 +198,73 @@ If GPS itself crashes mid-orchestration:
 
 Memory tool API stays disabled per Bài #4 Strategy E. ops.tasks (extended schema) covers all v1.0 multi-agent state needs.
 
-### Schema additions
+### Schema (as implemented in `supabase/migrations/`)
 
-These extend `knowledge/manifest.yaml`'s `ops.tasks` table:
+The original v1.0 proposal in this document called for dedicated columns
+`blocked_on`, `retries_left`, `acceptance_criteria`, and `assignee_role`.
+Migration `00002_ops_core_tables.sql` instead kept ops.tasks narrow and
+pushed task-kind-specific metadata into `state_payload` jsonb. Below is the
+schema that actually ships:
 
 ```sql
-ALTER TABLE ops.tasks ADD COLUMN
-  parent_task_id      uuid REFERENCES ops.tasks(id),
-  spawned_by_run      uuid REFERENCES ops.agent_runs(id),
-  assignee_role       text NOT NULL,
-  state_payload       jsonb NOT NULL DEFAULT '{}',
-  blocked_on          uuid[] NOT NULL DEFAULT '{}',
-  estimated_done_at   timestamptz,
-  retries_left        int NOT NULL DEFAULT 3,
-  acceptance_criteria text;
-
-CREATE TABLE ops.task_state_transitions (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  task_id     uuid NOT NULL REFERENCES ops.tasks(id),
-  from_status text,
-  to_status   text NOT NULL,
-  by_run_id   uuid REFERENCES ops.agent_runs(id),
-  reason      text,
-  ts          timestamptz NOT NULL DEFAULT now()
+-- ops.tasks (from supabase/migrations/00002_ops_core_tables.sql)
+CREATE TABLE ops.tasks (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  task_type       text NOT NULL,                       -- skill name or SOP id
+  input_payload   jsonb NOT NULL DEFAULT '{}'::jsonb,
+  assignee_kind   text,                                -- 'agent'|'human'|'minion'
+  assignee_id     text,                                -- role slug / founder id
+  state           text NOT NULL DEFAULT 'pending',
+  state_since     timestamptz NOT NULL DEFAULT now(),
+  state_payload   jsonb,                               -- orchestration metadata
+  state_version   text NOT NULL DEFAULT '1.0.0',
+  output_payload  jsonb,
+  error           text,
+  priority        integer NOT NULL DEFAULT 5,          -- 1 high → 10 low
+  parent_task_id  uuid REFERENCES ops.tasks(id),
+  context_id      text,                                -- correlation ID
+  CONSTRAINT tasks_state_valid CHECK (state IN
+    ('pending', 'assigned', 'running', 'completed', 'failed', 'cancelled'))
 );
 
-CREATE INDEX idx_task_transitions_task ON ops.task_state_transitions (task_id, ts);
-CREATE INDEX idx_tasks_parent ON ops.tasks (parent_task_id) WHERE parent_task_id IS NOT NULL;
-CREATE INDEX idx_tasks_blocked_on ON ops.tasks USING GIN (blocked_on) WHERE array_length(blocked_on, 1) > 0;
-CREATE INDEX idx_tasks_assignee_status ON ops.tasks (assignee_role, status, created_at DESC);
+-- ops.task_state_transitions (from migration 00018)
+CREATE TABLE ops.task_state_transitions (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  task_id    uuid NOT NULL REFERENCES ops.tasks(id) ON DELETE CASCADE,
+  from_state text,
+  to_state   text NOT NULL,
+  by_run_id  uuid REFERENCES ops.agent_runs(id) ON DELETE SET NULL,
+  reason     text,
+  ts         timestamptz NOT NULL DEFAULT now()
+);
 ```
+
+**Note on column naming.** Migration 00018 uses `from_state` / `to_state` to
+match `ops.tasks.state`. The v1.0 proposal in this doc said `from_status` /
+`to_status`; DB is authoritative.
+
+**Note on missing columns.** What the v1.0 proposal called dedicated columns
+now live inside `state_payload`:
+
+| Proposed column | Actual location |
+|---|---|
+| `blocked_on uuid[]` | `state_payload.blocked_on` |
+| `retries_left int` | `state_payload.retries_left` |
+| `acceptance_criteria text` | `state_payload.acceptance_criteria` |
+| `estimated_done_at timestamptz` | `state_payload.estimated_done_at` |
+| `assignee_role text` | split into `assignee_kind` + `assignee_id` |
+| `spawned_by_run uuid` | tracked via `ops.task_state_transitions.by_run_id` (parent run is the row inserting the child task) |
 
 ### What goes where
 
 | Kind of state | Storage | Notes |
 |---|---|---|
-| Task identity, parent/child, dependencies | `ops.tasks` columns | Append-only rows; updates allowed only via state machine |
-| Status transitions (audit) | `ops.task_state_transitions` | Append-only log |
+| Task identity, parent/child | `ops.tasks` columns (`id`, `parent_task_id`) | One row per task; updates only via state machine |
+| Task dependencies | `state_payload.blocked_on uuid[]` | GPS scans on dispatch loop |
+| State transitions (audit) | `ops.task_state_transitions` | Append-only log; uses `from_state`/`to_state` |
 | Structured task state (waypoints, decisions) | `ops.tasks.state_payload` jsonb | Subagent updates atomically per cycle |
+| Retry budget | `state_payload.retries_left` | Decremented by GPS on failure |
 | Free-form scratch content per task | `.archives/tasks/<task-id>/` | Local-only, transient, NOT canonical |
 | Assets produced (images, reports) | Tier 3 storage (Supabase Storage) | Referenced from state_payload by URL/key |
 | Communication transcript with founder | Telegram + ops.agent_runs | Already covered by Bài #2 |
@@ -265,36 +306,45 @@ This is convention, not enforced schema (jsonb is flexible by design). Each pill
 
 Trade-off: less type safety. Mitigation: per-task-kind JSON Schema documents in `knowledge/schemas/task_payloads/<task-kind>.json` (created Phase F as task kinds emerge).
 
-### Status state machine
+### State machine (`ops.tasks.state`)
 
 ```
                   ┌──────────┐
-                  │ pending  │  ← task row created, blocked_on populated
-                  └────┬─────┘
-                       │  blocked_on cleared (deps done)
+                  │ pending  │  ← task row created; deps in
+                  └────┬─────┘     state_payload.blocked_on
+                       │  GPS sees deps cleared
+                       │  UPDATE state='assigned', spawn subagent
                        ▼
                   ┌──────────┐
-                  │ ready    │  ← GPS can dispatch
+                  │ assigned │  ← subagent picked up but not started
                   └────┬─────┘
-                       │  GPS dispatches subagent
+                       │  subagent begins work
+                       │  UPDATE state='running'
                        ▼
                   ┌──────────┐
-                  │ in_      │  ← subagent working
-                  │ progress │
+                  │ running  │  ← subagent working
                   └────┬─────┘
                        │
-        ┌──────────────┼──────────────┐
-        ▼              ▼              ▼
-   ┌────────┐    ┌──────────┐    ┌─────────┐
-   │ done   │    │ failed   │    │ blocked │  ← subagent reports
-   └────────┘    └────┬─────┘    │ (HITL)  │     blocking on
-                      │          └─────────┘     external thing
-                      │ retries_left > 0
+        ┌──────────────┼──────────────┬─────────────┐
+        ▼              ▼              ▼             ▼
+   ┌─────────┐   ┌──────────┐   ┌──────────┐  ┌──────────┐
+   │completed│   │ failed   │   │cancelled │  │ pending  │  ← retry path:
+   └─────────┘   └────┬─────┘   └──────────┘  └──────────┘     GPS resets when
+                      │                                          retries_left > 0
+                      │ retries_left == 0:
+                      │ state stays 'failed', propagate to parent
                       ▼
-                 ┌──────────┐
-                 │  ready   │  (back to dispatch)
-                 └──────────┘
+                 (terminal)
 ```
+
+**Note on missing states.** v1.0 proposal had explicit `ready` and `blocked`
+states. They are NOT in the implemented CHECK constraint:
+
+- `ready` collapsed into `pending`: a task with empty `state_payload.blocked_on`
+  IS effectively ready — GPS detects this and transitions straight to
+  `assigned`.
+- `blocked` (HITL-waiting) collapsed into `pending` with
+  `state_payload.hitl_state='waiting'` + an open row in `ops.hitl_runs`.
 
 `task_state_transitions` records every move with `by_run_id` for accountability.
 
@@ -327,7 +377,7 @@ ops.tasks is Tier 2. Schema changes via PR. Subagents have `tier2_schemas_write:
 - **"Skip ops.tasks for simple subagent calls."** No — every spawn writes to ops.tasks for audit, even single-task dispatches.
 - **"Use memory tool API for task working notes because it's convenient."** No — see Bài #4 Strategy E. `state_payload` jsonb covers this.
 - **"Let subagents write directly to other subagents via shared file."** No — communication is via ops.tasks updates only. Coordination through DB, not shared filesystem.
-- **"Run GPS without reading ops.tasks at session start."** No — GPS first action is "SELECT FROM ops.tasks WHERE status IN ('pending','ready','in_progress','blocked')" to recover state.
+- **"Run GPS without reading ops.tasks at session start."** No — GPS first action is `SELECT FROM ops.tasks WHERE state IN ('pending','assigned','running')` (plus rows with `state_payload.hitl_state='waiting'` for HITL-blocked work) to recover state.
 
 ## When this architecture changes
 
