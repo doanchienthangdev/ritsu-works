@@ -13,11 +13,13 @@
 #   - Tier 1 is the only tier where humans negotiate meaning. PRs only.
 #   - Tier 2/3 may be written by agents according to RACI in each SOP.
 #   - Tier 4 is never authoritative. Rebuild scripts in `scripts/sync/`.
-#   - Schema for every Tier 2 table must exist in `knowledge/schemas/`.
+#   - DDL for every Tier 2 table lives in `supabase/migrations/`.
+#     (`knowledge/schemas/` holds JSON Schemas validating registry YAML files,
+#      NOT SQL — do not look for table DDL there.)
 #   - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
 
-version: 0.1.0
-last_updated: 2026-05-02
+version: 0.2.0
+last_updated: 2026-05-14
 owner: founder
 
 # ---------------------------------------------------------------------------
@@ -155,141 +157,280 @@ where_things_go:
 # TIER 2 — Operational (Supabase: ritsu-ops project)
 # ---------------------------------------------------------------------------
 # Source of truth for "what is happening right now" in the company.
-# Schema for every table MUST exist in knowledge/schemas/.
+# DDL lives in `supabase/migrations/` (apply via `supabase db push`).
 # Agents query through the Supabase MCP server (configured per session).
+#
+# Each entry has:
+#   - migration_file: source-of-truth DDL location in supabase/migrations/
+#   - status: live (deployed) | planned (in PR) | deprecated
+#   - bai_ref: link to design note in knowledge/phase-a2-extensions/ when applicable
 tier2_operational:
   storage: supabase
-  project_ref: TBD  # fill when ritsu-ops project is provisioned
-  region: TBD
+  project_ref: mntobbmieuoaxipnjaau   # ritsu-ops (South Asia / Mumbai)
+  region: ap-south-1
   schemas:
     ops:
-      description: Operating AI workspace — tasks, runs, decisions
+      description: Operating AI workspace — tasks, runs, decisions, knowledge graph, cost
       tables:
-        # Examples; create migrations under knowledge/schemas/ when adding.
+        # ====================================================================
+        # Core agent + task tracking
+        # ====================================================================
         - name: agent_runs
-          schema_file: knowledge/schemas/agent_runs.sql
-          status: planned
+          migration_file: supabase/migrations/00002_ops_core_tables.sql
+          extended_by: supabase/migrations/00015_agent_runs_hitl_audit.sql
+          status: live
+          bai_ref: 5
           purpose: |
-            Audit log — one row per agent invocation. Required columns based
-            on governance/HITL.md, governance/ROLES.md, and
-            knowledge/memory-architecture.md:
-              - id, agent_role, action_name, started_at, completed_at
-              - tier ('A'|'B'|'C'|'D-Std'|'D-MAX')
-              - input_payload_hash, output_payload_hash
-              - tokens_used, tool_calls_count, cost_usd
-              - secrets_accessed (array of secret names — for SECRETS.md audit)
-              - was_override (bool), override_reason, override_method
-              - approved_by, approved_at, approval_message_url
-              - outcome ('success'|'failed'|'rejected'|'timeout'|'aborted'|'blocked')
-              - cooldown_seconds, correcting_run_id (for D-MAX corrections)
-              - recall_run_ids (uuid[]) — past runs that informed this one
-              - recall_tokens_loaded (int) — context cost of recall
-            Constraint: BEFORE UPDATE trigger raises if was_override = true.
-        - name: run_summaries
-          schema_file: knowledge/schemas/run_summaries.sql
-          status: planned
-          purpose: |
-            Post-hoc ~150-token summary of each completed agent_run. Powers
-            episodic-recall skill (Type 2 memory in memory-architecture.md).
-            Columns: run_id (PK, FK to agent_runs), agent_role, action_name,
-            summary (text), artifacts (jsonb), ts.
-            One row per agent_run with `emit_run_summary: true` in role config.
-        - name: corrections
-          schema_file: knowledge/schemas/corrections.sql
-          status: planned
-          purpose: |
-            Founder corrections to agent outputs. Powers learning loop in
-            memory-architecture.md Strategy E.
-            Columns: id, run_id (FK), corrected_by, correction_kind
-            ('reject'|'edit'|'redirect'|'reframe'), correction_note (text), ts.
-            Indexed on run_id and on (agent_role, ts) via join with agent_runs.
-        - name: campaigns
-          schema_file: knowledge/schemas/campaigns.sql
-          status: planned
-          purpose: Marketing/growth campaigns; FK from content, leads.
+            Audit log — one row per agent invocation.
+            Base columns (00002): id, started_at, ended_at, agent_slug,
+              agent_version, triggered_by_kind/id, task_id, parent_run_id,
+              state ('running'|'completed'|'failed'|'cancelled'), state_payload,
+              input_payload, output_payload, llm_provider, llm_model,
+              tokens_input, tokens_output, cost_usd, cost_bucket, error,
+              error_at_step.
+            HITL audit extension (00015, per governance/HITL.md):
+              tier ('A'|'B'|'C'|'D-Std'|'D-MAX'), was_override (bool),
+              override_reason, override_method, approved_by, approved_at,
+              approval_message_url, cooldown_seconds, correcting_run_id,
+              outcome ('success'|'failed'|'rejected'|'timeout'|'aborted'|'blocked'),
+              secrets_accessed text[].
+            Episodic recall extension (00015, per memory-architecture.md):
+              recall_run_ids uuid[], recall_tokens_loaded.
+            Hash extension (00015): input_payload_hash, output_payload_hash.
+            Immutability: trg_agent_runs_override_immutable raises on UPDATE
+              of rows with was_override = true.
         - name: tasks
-          schema_file: knowledge/schemas/tasks.sql
-          status: planned
+          migration_file: supabase/migrations/00002_ops_core_tables.sql
+          status: live
+          bai_ref: 5
           purpose: |
-            Cross-pillar task queue + multi-agent orchestration state
-            (per knowledge/orchestration-architecture.md).
-            Required columns:
-              - id, status, created_at, updated_at
-              - parent_task_id (FK to tasks.id) — for parent-child orchestration
-              - spawned_by_run (FK to agent_runs.id) — provenance
-              - assignee_role text NOT NULL — which role should execute
-              - state_payload jsonb DEFAULT '{}' — structured task state
-              - blocked_on uuid[] DEFAULT '{}' — task dependencies
-              - estimated_done_at, retries_left (default 3)
-              - acceptance_criteria text — what "done" means
-              - tier ('A'|'B'|'C'|'D-Std'|'D-MAX') — HITL tier propagated from parent
-            Status state machine: pending → ready → in_progress → done/failed/blocked.
-            Indexes: parent_task_id, blocked_on (GIN), (assignee_role, status).
+            Generic task queue (Bài #5). Used for both subagent + human work.
+            Columns: id, created_at, task_type, input_payload, assignee_kind
+              ('agent'|'human'|'minion'), assignee_id, state, state_since,
+              state_payload, state_version, output_payload, error, priority,
+              parent_task_id (self-FK), context_id (correlation ID).
+            State machine (Bài #13 convention):
+              pending → assigned → running → completed | failed | cancelled.
+            NOTE: this state machine differs from the proposal in
+              orchestration-architecture.md (which said
+              pending→ready→in_progress→done/failed/blocked). DB is the source
+              of truth; orchestration-architecture.md is being updated to match.
+            HITL tier propagation: store as state_payload.hitl_tier rather than
+              a dedicated column.
         - name: task_state_transitions
-          schema_file: knowledge/schemas/task_state_transitions.sql
-          status: planned
+          migration_file: supabase/migrations/00018_orchestration_storage_growth.sql
+          status: live
           purpose: |
-            Append-only audit log for every status change on a task.
-            Columns: id, task_id (FK), from_status, to_status, by_run_id (FK
-            to agent_runs), reason text, ts.
-            Indexed on (task_id, ts). Powers debugging and orchestration
-            forensics.
+            Append-only audit log for every state change on ops.tasks.
+            Columns: id, task_id (FK CASCADE), from_state, to_state,
+              by_run_id (FK agent_runs SET NULL), reason text, ts.
+            Powers debugging and orchestration forensics
+            (orchestration-architecture.md).
+        - name: minion_jobs
+          migration_file: supabase/migrations/00002_ops_core_tables.sql
+          status: live
+          bai_ref: 5
+          purpose: Deterministic work queue (GBrain Minions pattern). 100x cheaper than subagent for deterministic tasks.
+        # ====================================================================
+        # HITL + audit
+        # ====================================================================
+        - name: hitl_runs
+          migration_file: supabase/migrations/00002_ops_core_tables.sql
+          status: live
+          bai_ref: 2
+          purpose: |
+            Human-in-the-loop runs. Tier A=auto, B=batch, C=immediate,
+            D=critical, E=halt (per governance/HITL.md).
+        - name: audit_log
+          migration_file: supabase/migrations/00002_ops_core_tables.sql
+          status: live
+          bai_ref: 1
+          purpose: Append-only compliance audit trail. NEVER UPDATE/DELETE rows.
+        # ====================================================================
+        # Memory architecture (Strategy E)
+        # ====================================================================
+        - name: run_summaries
+          migration_file: supabase/migrations/00016_memory_architecture_tables.sql
+          status: live
+          purpose: |
+            ~150-token post-hoc summary per completed agent_run (Type 2 memory
+            in memory-architecture.md). Powers `episodic-recall` skill.
+            Columns: run_id (PK, FK agent_runs CASCADE), agent_slug,
+              action_name, summary, artifacts (jsonb), ts.
+        - name: corrections
+          migration_file: supabase/migrations/00016_memory_architecture_tables.sql
+          status: live
+          purpose: |
+            Founder corrections to agent outputs. Powers learning loop.
+            Columns: id, run_id (FK CASCADE), corrected_by, correction_kind
+              ('reject'|'edit'|'redirect'|'reframe'), correction_note, ts.
+        # ====================================================================
+        # Economic architecture
+        # ====================================================================
         - name: cost_attributions
-          schema_file: knowledge/schemas/cost_attributions.sql
-          status: planned
+          migration_file: supabase/migrations/00017_economic_architecture_tables.sql
+          status: live
           purpose: |
-            Per-LLM-call cost attribution
-            (per knowledge/economic-architecture.md Axis 1).
-            Required columns: id, run_id, task_id, agent_role, task_kind,
-            model, service_tier, input_tokens, cache_creation_tokens,
-            cache_read_tokens, output_tokens, cost_usd numeric(10,6), ts.
-            Populated by `pre-llm-call-budget` hook on each LLM call.
-            Indexes: (agent_role, ts DESC), (agent_role, task_kind, ts DESC),
-            (task_id), (ts DESC).
-            Daily reconciled against Anthropic Usage Admin API; >5%
-            discrepancy alerts founder.
+            Per-LLM-call cost ledger (economic-architecture.md Axis 1).
+            Populated by .claude/hooks/pre-llm-call-budget.md on every call.
+            Reconciled daily against Anthropic Usage Admin API; >5% drift
+            alerts founder.
         - name: budget_alerts
-          schema_file: knowledge/schemas/budget_alerts.sql
-          status: planned
+          migration_file: supabase/migrations/00017_economic_architecture_tables.sql
+          status: live
           purpose: |
             Per-role per-month budget breach events plus weekly Economic
-            Health Score history.
-            Required columns: id, alert_kind ('warning_80'|'escalate_100'|
-            'hard_block_150'|'health_score_low'), agent_role, period_month,
-            current_cost_usd, budget_usd, ratio numeric, health_score int,
-            score_breakdown jsonb, ts, resolved_ts, founder_action text.
-            Indexes: (agent_role, period_month, alert_kind),
-            (alert_kind, ts DESC) WHERE resolved_ts IS NULL.
+            Health Score history (Axes 2-3).
+            alert_kind: 'warning_80'|'escalate_100'|'hard_block_150'|'health_score_low'.
         - name: optimization_recommendations
-          schema_file: knowledge/schemas/optimization_recommendations.sql
-          status: planned
+          migration_file: supabase/migrations/00017_economic_architecture_tables.sql
+          status: live
           purpose: |
             Output of `cost-optimization-review` skill — weekly proposed
-            changes to reduce cost.
-            Required columns: id, generated_at, period_start, period_end,
-            recommendation_kind ('model_downgrade'|'prompt_caching'|
-            'batch_tier'|'context_trim'|'task_kind_split'|'budget_adjust'),
-            target_role text, target_task_kind text, current_cost_usd,
-            estimated_savings_usd, risk_level ('low'|'medium'|'high'),
-            description text, suggested_diff_path text, status
-            ('proposed'|'approved'|'rejected'|'implemented'), pr_url text,
-            founder_decision_ts.
-            Indexes: (status, generated_at DESC), (target_role).
+            changes to reduce cost (Axis 3). Founder approves/rejects via
+            Telegram → PR.
+        # ====================================================================
+        # Visibility, events, alerts, KPIs
+        # ====================================================================
+        - name: events
+          migration_file: supabase/migrations/00002_ops_core_tables.sql
+          status: live
+          bai_ref: 11
+          purpose: |
+            Event outbox + dispatch tracking. Insert events here;
+            event-dispatcher reads and fires SOPs per
+            knowledge/event-subscriptions.yaml.
+        - name: kpi_snapshots
+          migration_file: supabase/migrations/00002_ops_core_tables.sql
+          status: live
+          bai_ref: 10
+          purpose: KPI time-series, append-only. Use materialized views for aggregations.
+        - name: alerts
+          migration_file: supabase/migrations/00002_ops_core_tables.sql
+          status: live
+          bai_ref: 10
+          purpose: Alert lifecycle. Routes per knowledge/alert-rules.yaml.
+        - name: attention_log
+          migration_file: supabase/migrations/00007_decisions_ingestion_attention.sql
+          status: live
+          bai_ref: 19
+          purpose: Founder capacity / attention tracking.
+        # ====================================================================
+        # Scheduling, SOPs, MCP
+        # ====================================================================
+        - name: scheduled_runs
+          migration_file: supabase/migrations/00003_schedules_sops.sql
+          status: live
+          bai_ref: 8
+          purpose: pg_cron firing log. Dispatcher claims rows here.
+        - name: sop_runs
+          migration_file: supabase/migrations/00003_schedules_sops.sql
+          status: live
+          bai_ref: 9
+          purpose: SOP execution tracking — each row = 1 SOP run with full history.
+        - name: mcp_calls
+          migration_file: supabase/migrations/00004_visibility_mcp.sql
+          status: live
+          bai_ref: 12
+          purpose: MCP tool execution log. Audit trail of every tool call.
+        # ====================================================================
+        # Decisions + ingestion
+        # ====================================================================
+        - name: decisions
+          migration_file: supabase/migrations/00007_decisions_ingestion_attention.sql
+          status: live
+          bai_ref: 15
+          purpose: Decision log (Decision Architecture).
+        - name: ingestion_jobs
+          migration_file: supabase/migrations/00007_decisions_ingestion_attention.sql
+          status: live
+          bai_ref: 18
+          purpose: Knowledge ingestion pipeline jobs (per knowledge/ingestion-sources.yaml).
+        # ====================================================================
+        # Knowledge graph + embeddings (Tier 4 lives here, not separate vector store)
+        # ====================================================================
+        - name: knowledge_pages
+          migration_file: supabase/migrations/00006_knowledge_graph.sql
+          status: live
+          bai_ref: 14
+          purpose: Page metadata index. Files in wiki/ are source; this is the index.
+        - name: knowledge_links
+          migration_file: supabase/migrations/00006_knowledge_graph.sql
+          status: live
+          bai_ref: 14
+          purpose: Graph edges between pages. Auto-extracted via regex.
+        - name: knowledge_embeddings
+          migration_file: supabase/migrations/00006_knowledge_graph.sql
+          status: live
+          bai_ref: 14
+          purpose: |
+            pgvector HNSW embeddings (Tier 4 implementation). This is THE
+            vector store — manifest's tier4_derived references this table,
+            not a separate provider.
+        # ====================================================================
+        # Capability lifecycle
+        # ====================================================================
+        - name: capability_runs
+          migration_file: supabase/migrations/00011_capability_lifecycle.sql
+          status: live
+          bai_ref: 20
+          purpose: Capability lifecycle tracking — multi-session resilient, can span weeks.
+        - name: capability_phase_events
+          migration_file: supabase/migrations/00011_capability_lifecycle.sql
+          status: live
+          bai_ref: 20
+          purpose: Phase change events for capability_runs.
+        - name: v_capability_pipeline
+          migration_file: supabase/migrations/00011_capability_lifecycle.sql
+          kind: view
+          status: live
+          purpose: Roll-up view of capability_runs phase progress.
+        # ====================================================================
+        # Tier 3 index + Growth
+        # ====================================================================
+        - name: tier3_index
+          migration_file: supabase/migrations/00018_orchestration_storage_growth.sql
+          status: live
+          purpose: |
+            One row per Tier 3 blob (Supabase Storage). Referenced by
+            knowledge_embeddings.source_kind='tier3_blob' for source linkage.
+        - name: campaigns
+          migration_file: supabase/migrations/00018_orchestration_storage_growth.sql
+          status: live
+          purpose: Growth campaigns (01-growth pillar). FK target for future ops.content_drafts, ops.leads.
+        # ====================================================================
+        # Settings
+        # ====================================================================
+        - name: settings
+          migration_file: supabase/migrations/00013_ops_settings.sql
+          status: live
+          purpose: Runtime settings store (key-value config readable by Edge Functions).
     metrics:
       description: ETL'd snapshots of Product metrics (read-only mirror)
       tables:
         - name: product_dau_snapshot
-          schema_file: knowledge/schemas/product_dau_snapshot.sql
-          status: planned
+          migration_file: supabase/migrations/00019_metrics_schema_product_mirror.sql
+          status: live
           source: product.supabase via scheduled ETL
           refresh: hourly
+          note: |
+            Table exists as structural placeholder. ETL flow
+            etl_flows.product_metrics_to_ops is still `planned` — no rows yet.
+  public_schema:
+    description: |
+      Schema `public` holds customer-entity tables (00005_customer_entity.sql):
+      customers, persons, companies, company_persons + materialized view
+      mv_customer_360. These are Operating-AI-owned (CRM-style), distinct from
+      Product user data which never appears here.
+    tables: [customers, persons, companies, company_persons, mv_customer_360]
   isolation:
     cannot_write_to:
       - project: ritsu  # the Product Supabase
         rationale: |
           Operating AI must not be able to harm paying users. Even read access
-          to product.* should go through views in ops.* populated by ETL, not
-          direct queries.
+          to product.* should go through views in metrics.* populated by ETL,
+          not direct queries. The ONLY role holding the product read key is
+          `etl-runner` (governance/SECRETS.md).
 
 # ---------------------------------------------------------------------------
 # TIER 3 — Events & Artifacts (Supabase Storage / S3-compatible)
@@ -314,20 +455,32 @@ tier3_events:
 # TIER 4 — Derived (Vector DB + caches)
 # ---------------------------------------------------------------------------
 # Never authoritative. Always rebuildable.
+# Implementation: pgvector inside the ritsu-ops Postgres
+# (ops.knowledge_embeddings, HNSW index from migration 00006). NOT a separate
+# external vector store.
 tier4_derived:
   vector_store:
-    provider: TBD  # candidates: Supabase pgvector, Pinecone, Qdrant
+    provider: pgvector  # in-database, via ops.knowledge_embeddings
+    physical_table: ops.knowledge_embeddings
+    index_method: HNSW (vector_cosine_ops)
+    migration_file: supabase/migrations/00006_knowledge_graph.sql
     namespaces:
+      # Namespaces are logical partitions inside ops.knowledge_embeddings,
+      # distinguished by source_kind + source_ref columns. Rebuild scripts
+      # populate the same table with different source_kind values.
       - name: charter_embeddings
         source: tier1_canonical.charter
+        source_kind: charter_page
         rebuild_script: scripts/sync/rebuild-charter-embeddings.sh
         status: planned
       - name: skills_embeddings
-        source: tier1_canonical.skills
+        source: 05-ai-ops/skills/
+        source_kind: skill
         rebuild_script: scripts/sync/rebuild-skills-embeddings.sh
         status: planned
       - name: transcripts_embeddings
         source: tier3_events.buckets[ops-transcripts]
+        source_kind: tier3_blob
         rebuild_script: scripts/sync/rebuild-transcripts-embeddings.sh
         status: planned
   cache_layer:
@@ -390,8 +543,40 @@ secrets_map:
 add_new_source_checklist:
   - decide_tier: Is this canonical, operational, event, or derived?
   - if_tier1: Add file under appropriate pillar; open PR.
-  - if_tier2: Write migration in knowledge/schemas/; add entry under tier2_operational.schemas; open PR.
-  - if_tier3: Add bucket entry under tier3_events; document naming convention; open PR.
-  - if_tier4: Add namespace under tier4_derived; write rebuild script in scripts/sync/; open PR.
+  - if_tier2: Write migration in supabase/migrations/ (next sequence number); add entry under tier2_operational.schemas with migration_file pointer; open PR; apply with `supabase db push` after merge.
+  - if_tier3: Add bucket entry under tier3_events; document naming convention; insert blobs via Edge Function that also writes ops.tier3_index; open PR.
+  - if_tier4: Add a new namespace under tier4_derived with source_kind value; write rebuild script in scripts/sync/ that inserts into ops.knowledge_embeddings; open PR.
   - update_etl: If cross-tier, add to etl_flows.
   - update_secrets_map: If new credentials needed.
+
+# ---------------------------------------------------------------------------
+# Design notes index — resolves "Bài #N" references in migration comments
+# ---------------------------------------------------------------------------
+# Migrations under supabase/migrations/ reference design notes by number
+# (e.g. "Bài #5", "Bài #11"). Notes live in two folders depending on phase.
+design_notes_index:
+  phase_a1_root_problems:
+    location: notes/ (top-level) and brainstorm threads
+    range: "Bài #1 – Bài #7"
+    notes:
+      "Bài #1": 4-Tier Truth Model + audit log
+      "Bài #2": HITL tiers (also in governance/HITL.md)
+      "Bài #5": Multi-Agent Orchestration (tasks, agent_runs, minion_jobs)
+      "Bài #7": Economic Architecture (also knowledge/economic-architecture.md)
+  phase_a2_extensions:
+    location: knowledge/phase-a2-extensions/
+    range: "Bài #8 – Bài #20"
+    notes:
+      "Bài #8":  bai-8-scheduling-architecture-DRAFT.md     # scheduled_runs
+      "Bài #9":  bai-9-sop-architecture-DRAFT.md            # sop_runs
+      "Bài #10": bai-10-real-time-visibility-DRAFT.md       # kpi_snapshots, alerts
+      "Bài #11": bai-11-event-driven-triggers-DRAFT.md      # events outbox
+      "Bài #12": bai-12-mcp-integration-DRAFT.md            # mcp_calls
+      "Bài #13": bai-13-domain-state-machines-DRAFT.md      # state machine convention
+      "Bài #14": bai-14-knowledge-graph-DRAFT.md            # knowledge_pages/links/embeddings
+      "Bài #15": bai-15-decision-architecture-DRAFT.md      # decisions
+      "Bài #16": bai-16-customer-data-DRAFT.md              # customers, persons, companies
+      "Bài #17": bai-17-multi-surface-DRAFT.md
+      "Bài #18": bai-18-knowledge-ingestion-DRAFT.md        # ingestion_jobs
+      "Bài #19": bai-19-founder-capacity-DRAFT.md           # attention_log
+      "Bài #20": bai-20-capability-lifecycle-DRAFT.md       # capability_runs/phase_events
