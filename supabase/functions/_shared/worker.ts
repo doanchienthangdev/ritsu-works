@@ -396,6 +396,249 @@ export function makeConsistencySweepHandler(
   };
 }
 
+// ============================================================================
+// drift-fix-proposer — v1.1
+// ============================================================================
+//
+// Polls ops.consistency_checks for `failed` rows that don't yet have a
+// proposed_fix_pr_url, generates a fix (only for fix_strategy=regen_bundle in
+// v1.1), and opens a draft PR via the GitHub REST API. Updates the
+// consistency_checks row to state=fix_proposed with the PR url.
+//
+// v1.1 scope:
+//   - ONLY handles fix_strategy=regen_bundle (deterministic — no AI yet)
+//   - Backpressure: caps to 5 PRs per tick (per CEO plan E3)
+//   - Governance path exclusion: refuses to fix anything under
+//     00-charter/, governance/, manifest.yaml itself, or .claude/hooks/
+//     even if confidence would be 1.0 (forces draft + manual review only)
+//   - Gated on GITHUB_CONSISTENCY_BOT_TOKEN env var; missing token → skill
+//     returns deferred_no_github_token (matches morning-brief pattern).
+//
+// Future:
+//   - v1.1+: patch_yaml strategy (AI-generated for live-db-tables-match-manifest)
+//   - v1.2 : patch_md strategy (cross-doc claim verifier)
+//   - v1.x : revert path (post-merge L1+L2 re-check)
+// ============================================================================
+
+import {
+  openFixPr,
+  type GitHubClientDeps,
+  type OpenPrResult,
+} from "./github.ts";
+
+export interface DriftFixProposerDeps {
+  sb: SbClient;
+  github: GitHubClientDeps | null;        // null when token not provisioned → deferred
+  // Pluggable fix generator (regen_bundle path). Production passes a real one
+  // that runs `node scripts/wave2-bundle-schedules.cjs` etc. Tests inject.
+  generateRegenBundleFix?: (
+    invariantId: string,
+  ) => Promise<{ files: { path: string; content: string }[]; description: string } | null>;
+  // Pluggable PR opener — injectable for tests.
+  openPr?: (deps: GitHubClientDeps, input: Parameters<typeof openFixPr>[1]) => Promise<OpenPrResult>;
+  // Override: list of paths to block from auto-fix (governance exclusion).
+  blockedPathPrefixes?: string[];
+  // Max PRs per tick.
+  maxProposalsPerTick?: number;
+}
+
+const DEFAULT_BLOCKED_PREFIXES = [
+  "00-charter/",
+  "governance/",
+  "knowledge/manifest.yaml",
+  ".claude/hooks/",
+];
+
+const DEFAULT_MAX_PROPOSALS = 5;
+
+export interface ProposerSummary {
+  kind: "drift_fix_proposer";
+  proposed: number;
+  skipped_blocked: number;
+  skipped_no_handler: number;
+  errors: number;
+  pr_urls: string[];
+}
+
+interface ConsistencyCheckRow {
+  id: string;
+  invariant_id: string;
+  proposed_fix_strategy?: string | null;
+  target_path?: string | null;
+}
+
+export function makeDriftFixProposerHandler(
+  deps: DriftFixProposerDeps,
+): SkillHandler {
+  const maxProposals = deps.maxProposalsPerTick ?? DEFAULT_MAX_PROPOSALS;
+  const blockedPrefixes = deps.blockedPathPrefixes ?? DEFAULT_BLOCKED_PREFIXES;
+  const openPr = deps.openPr ?? openFixPr;
+
+  return async (_run) => {
+    // Gate 1: no GitHub token → deferred.
+    if (!deps.github) {
+      return {
+        ok: false,
+        error: "deferred_no_github_token",
+        retryable: false,
+      };
+    }
+
+    // Pull recent failed rows without a PR yet.
+    const { data, error } = await deps.sb
+      .from("consistency_checks")
+      .select("id, invariant_id, proposed_fix_strategy, target_path")
+      .eq("state", "failed")
+      .is("proposed_fix_pr_url", null)
+      .order("created_at", { ascending: true })
+      .limit(maxProposals + 10);
+
+    if (error) {
+      return {
+        ok: false,
+        error: `consistency_checks read: ${error.message}`,
+        retryable: true,
+      };
+    }
+
+    const rows = (data ?? []) as ConsistencyCheckRow[];
+    if (rows.length === 0) {
+      return {
+        ok: true,
+        output: {
+          kind: "drift_fix_proposer",
+          proposed: 0,
+          skipped_blocked: 0,
+          skipped_no_handler: 0,
+          errors: 0,
+          pr_urls: [],
+        } satisfies ProposerSummary,
+      };
+    }
+
+    let proposed = 0;
+    let skippedBlocked = 0;
+    let skippedNoHandler = 0;
+    let errors = 0;
+    const prUrls: string[] = [];
+
+    for (const row of rows) {
+      if (proposed >= maxProposals) break;
+
+      // Gate 2: governance path exclusion.
+      const targetPath = row.target_path ?? "";
+      const blocked = blockedPrefixes.some((p) => targetPath.startsWith(p));
+      if (blocked) {
+        skippedBlocked += 1;
+        await deps.sb
+          .from("consistency_checks")
+          .update({
+            state: "wont_fix",
+            founder_note: `auto-blocked: target_path '${targetPath}' is in governance exclusion list`,
+          })
+          .eq("id", row.id);
+        continue;
+      }
+
+      // Gate 3: handler exists for this strategy.
+      if (row.proposed_fix_strategy !== "regen_bundle") {
+        skippedNoHandler += 1;
+        continue;
+      }
+
+      // Generate the fix.
+      const gen = deps.generateRegenBundleFix;
+      if (!gen) {
+        skippedNoHandler += 1;
+        continue;
+      }
+      let fix: Awaited<ReturnType<typeof gen>>;
+      try {
+        fix = await gen(row.invariant_id);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        errors += 1;
+        await deps.sb
+          .from("consistency_checks")
+          .update({
+            state: "wont_fix",
+            founder_note: `generator_threw: ${msg}`,
+          })
+          .eq("id", row.id);
+        continue;
+      }
+      if (!fix || fix.files.length === 0) {
+        skippedNoHandler += 1;
+        continue;
+      }
+
+      // Open the PR.
+      const branchName = `drift-fix/${row.invariant_id}-${row.id.slice(0, 8)}`;
+      let pr: OpenPrResult;
+      try {
+        pr = await openPr(deps.github, {
+          branchName,
+          commitMessage: `chore(drift-fix): regen bundle for ${row.invariant_id}`,
+          prTitle: `[auto] Regen bundle for invariant ${row.invariant_id}`,
+          prBody: [
+            `Auto-generated by **drift-fix-proposer** (v1.1).`,
+            "",
+            `**Invariant:** \`${row.invariant_id}\``,
+            `**Strategy:** \`regen_bundle\``,
+            `**Drift detection:** \`consistency_checks.id = ${row.id}\``,
+            "",
+            `**Description:** ${fix.description}`,
+            "",
+            "This PR is **draft** — review the diff carefully before merging.",
+          ].join("\n"),
+          draft: true,
+          files: fix.files,
+        });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        errors += 1;
+        await deps.sb
+          .from("consistency_checks")
+          .update({
+            state: "wont_fix",
+            founder_note: `pr_open_failed: ${msg}`,
+          })
+          .eq("id", row.id);
+        continue;
+      }
+
+      // Record the PR url + transition state.
+      const { error: updErr } = await deps.sb
+        .from("consistency_checks")
+        .update({
+          state: "fix_proposed",
+          proposed_fix_pr_url: pr.pr_url,
+          proposed_fix_strategy: "regen_bundle",
+        })
+        .eq("id", row.id);
+      if (updErr) {
+        errors += 1;
+        continue;
+      }
+
+      proposed += 1;
+      prUrls.push(pr.pr_url);
+    }
+
+    return {
+      ok: true,
+      output: {
+        kind: "drift_fix_proposer",
+        proposed,
+        skipped_blocked: skippedBlocked,
+        skipped_no_handler: skippedNoHandler,
+        errors,
+        pr_urls: prUrls,
+      } satisfies ProposerSummary,
+    };
+  };
+}
+
 // Built-in heartbeat-ping skill — no LLM dependency. Registered in default registry.
 export function makeHeartbeatPingHandler(sb: SbClient): SkillHandler {
   return async (run) => {
