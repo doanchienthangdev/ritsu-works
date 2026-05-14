@@ -405,6 +405,18 @@ tier2_operational:
           migration_file: supabase/migrations/00013_ops_settings.sql
           status: live
           purpose: Runtime settings store (key-value config readable by Edge Functions).
+        # ====================================================================
+        # Cross-Tier Consistency Engine (v1.0b)
+        # ====================================================================
+        - name: consistency_checks
+          migration_file: supabase/migrations/00021_consistency_checks.sql
+          status: live
+          purpose: |
+            Lifecycle log for the Cross-Tier Consistency Engine. One row per
+            invariant evaluation (L1/L2/L3). States: pending → running →
+            passed | failed | fix_proposed | fix_merged | fix_reverted |
+            wont_fix. Owned by SOP-AIOPS-002. Powers founder dashboard +
+            alerts + drift-weekly-retro (deferred).
     metrics:
       description: ETL'd snapshots of Product metrics (read-only mirror)
       tables:

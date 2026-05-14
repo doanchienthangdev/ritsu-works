@@ -46,6 +46,15 @@ schedules:
     fallback: queue_for_founder_review
     cost_estimate: $0.00 per run
 
+  # Cross-Tier Consistency Engine — L3 nightly sweep (v1.0b).
+  # Inserts pending consistency_checks rows for each L3 invariant. Actual check
+  # execution against live DB (with helper RPC functions) is wired in v1.0c.
+  - id: consistency-sweep-nightly
+    cron: "0 3 * * *"
+    description: "Nightly L3 sweep: insert pending consistency_checks rows for each L3 invariant"
+    skill: consistency-sweep
+    cost_estimate: $0.00 per run
+
   # === Maintenance schedules ===
   
   - id: stale-decision-check
