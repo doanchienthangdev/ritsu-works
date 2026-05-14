@@ -1,0 +1,93 @@
+# ============================================================================
+# SOP-AIOPS-002: Cross-Tier Consistency Engine
+# ============================================================================
+# Master SOP for the consistency engine designed in
+# .archives/ceo-plans/2026-05-14-cross-tier-consistency-engine.md.
+#
+# v1.0b status: scaffold only. Sweep skill inserts pending consistency_checks
+# rows; check execution + auto-PR (v1.0c/v1.1) wired separately.
+# ============================================================================
+
+id: SOP-AIOPS-002-cross-tier-consistency
+version: 1.0.0
+title: "Cross-Tier Consistency Engine"
+description: |
+  Detects drift between Tier 1 git artifacts (manifest, governance, skills,
+  hooks, schedules) and Tier 2 Supabase state. Routes drift events through
+  ops.events → ops.hitl_runs based on severity (info/warn/critical) and
+  hitl_tier (A/B/C/D-Std/D-MAX) declared per invariant in
+  knowledge/cross-tier-invariants.yaml.
+pillar: 05-ai-ops
+
+# === Triggers ===
+trigger:
+  kinds:
+    - scheduled_run                              # nightly sweep (consistency-sweep-nightly)
+    - event:consistency.drift_detected           # L1/L2/L3 reports drift
+    - event:consistency.fix_proposed             # v1.1+
+    - event:consistency.fix_merged               # v1.1+
+    - event:consistency.fix_reverted             # v1.1+
+    - event:consistency.drift_batch_pending      # v1.1+ backpressure overflow
+
+# === Initial state ===
+initial_state: pending
+
+# === Cost projection ===
+cost_estimate:
+  llm_cost_per_run_usd: 0.00                     # v1.0b: pure structural, no LLM
+  founder_time_minutes_per_run: 0                # autonomous until drift escalates
+
+# === Phases (full vision; v1.0b implements only Phase 1) ===
+phases:
+  - id: 1
+    name: detect
+    description: "Sweep dispatches per-invariant check rows in 'pending' state."
+    artifact: ops.consistency_checks (one row per invariant per sweep)
+    status: live_in_v1_0b
+
+  - id: 2
+    name: execute
+    description: "Each check executes against live DB/files. Transitions state to passed | failed."
+    status: planned_v1_0c
+    requires: ["Postgres helper functions for live-DB metadata reads"]
+
+  - id: 3
+    name: route
+    description: "On failure, emit consistency.drift_detected. Severity maps to hitl_tier; governance-path exclusion prevents auto-fix for charter/governance files."
+    status: planned_v1_0c
+
+  - id: 4
+    name: propose
+    description: "AI drift-fix-proposer generates diff + confidence + strategy."
+    status: planned_v1_1
+    requires: ["GITHUB_CONSISTENCY_BOT_TOKEN", "AI subagent dispatch"]
+
+  - id: 5
+    name: review
+    description: "Auto-PR opened with diff. Founder reviews via GitHub mobile."
+    status: planned_v1_1
+
+  - id: 6
+    name: verify
+    description: "Post-merge L1+L2 re-run on the fix. On failure: revert PR (cap=1)."
+    status: planned_v1_1
+
+  - id: 7
+    name: archive
+    description: "Final state = fix_merged | wont_fix | fix_reverted. Aggregated by drift-weekly-retro skill."
+    status: planned_v1_3
+
+# === SLO ===
+slo:
+  mean_time_to_detect_hours: 24                  # any drift visible within 1 nightly sweep
+  false_positive_rate_max: 0.10                  # <10% of drifts marked wont_fix
+  auto_fix_acceptance_rate_min: 0.70             # v1.1 target
+  revert_rate_max: 0.05                          # v1.1 target
+
+# === References ===
+references:
+  ceo_plan: .archives/ceo-plans/2026-05-14-cross-tier-consistency-engine.md
+  test_plan: .archives/ceo-plans/2026-05-14-cross-tier-consistency-engine-TEST-PLAN.md
+  invariants_yaml: knowledge/cross-tier-invariants.yaml
+  invariants_schema: knowledge/schemas/cross-tier-invariants.schema.json
+  table: ops.consistency_checks (supabase/migrations/00021_consistency_checks.sql)

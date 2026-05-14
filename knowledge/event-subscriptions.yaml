@@ -10,3 +10,22 @@ subscriptions:
   #   tier: tier_a
   
   # {{ADD_PROJECT_SUBSCRIPTIONS}}
+
+  # Cross-Tier Consistency Engine events (v1.0b+).
+  # Emitted by consistency-sweep + (v1.0c) consistency-check workers when drift
+  # is detected. Each subscription routes the event to a SOP/skill for triage.
+  - event: consistency.drift_detected
+    trigger: SOP-AIOPS-002-cross-tier-consistency
+    tier: tier_b
+  - event: consistency.fix_proposed
+    trigger: SOP-AIOPS-002-cross-tier-consistency
+    tier: tier_b
+  - event: consistency.fix_merged
+    trigger: SOP-AIOPS-002-cross-tier-consistency
+    tier: tier_a
+  - event: consistency.fix_reverted
+    trigger: SOP-AIOPS-002-cross-tier-consistency
+    tier: tier_c
+  - event: consistency.drift_batch_pending
+    trigger: SOP-AIOPS-002-cross-tier-consistency
+    tier: tier_b

@@ -3,8 +3,8 @@
 //
 // Source version:  1.0.0
 // Source timezone: Asia/Ho_Chi_Minh
-// Schedule count:  6
-// Generated at:    2026-05-14T04:56:14.376Z
+// Schedule count:  7
+// Generated at:    2026-05-14T08:18:13.751Z
 
 import type { ScheduleEntry } from "./dispatcher.ts";
 
@@ -33,6 +33,13 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
     ],
     "requires_api": "supabase_product_read",
     "fallback": "queue_for_founder_review",
+    "cost_estimate": "$0.00 per run"
+  },
+  "consistency-sweep-nightly": {
+    "id": "consistency-sweep-nightly",
+    "cron": "0 3 * * *",
+    "description": "Nightly L3 sweep: insert pending consistency_checks rows for each L3 invariant",
+    "skill": "consistency-sweep",
     "cost_estimate": "$0.00 per run"
   },
   "stale-decision-check": {
@@ -69,4 +76,4 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
   }
 };
 
-export const SCHEDULE_IDS: readonly string[] = ["data-retention-scan","etl-product-dau-hourly","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check"] as const;
+export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","data-retention-scan","etl-product-dau-hourly","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check"] as const;

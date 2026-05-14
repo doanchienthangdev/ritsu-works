@@ -223,6 +223,71 @@ export function makeDeferredStubHandler(reason: string): SkillHandler {
   });
 }
 
+// ============================================================================
+// Cross-Tier Consistency Engine — L3 nightly sweep (v1.0b)
+// ============================================================================
+//
+// The sweep skill fires on schedule (knowledge/schedules.yaml id:
+// consistency-sweep-nightly), reads the L3 invariants list, and inserts
+// `pending` consistency_checks rows for each. The actual check execution
+// against live DB metadata (which requires Postgres helper functions like
+// `get_ops_tables_with_rls()`) is wired in v1.0c — at which point a separate
+// worker tick claims each pending row, runs the check, transitions to
+// passed/failed, and emits drift events.
+//
+// In v1.0b this skill demonstrates: lifecycle table works, scheduler fires,
+// rows get inserted with correct severity + hitl_tier mapping. Founder can
+// observe pending rows in Supabase Studio.
+// ============================================================================
+
+import { getL3Invariants } from "./invariants.ts";
+
+export interface ConsistencySweepDeps {
+  sb: SbClient; // ops-schema client — writes consistency_checks rows
+}
+
+export function makeConsistencySweepHandler(
+  deps: ConsistencySweepDeps,
+): SkillHandler {
+  return async (run) => {
+    const invariants = getL3Invariants();
+    if (invariants.length === 0) {
+      return {
+        ok: true,
+        output: {
+          kind: "consistency_sweep",
+          inserted: 0,
+          reason: "no_l3_invariants",
+        },
+      };
+    }
+    const rows = invariants.map((inv) => ({
+      invariant_id: inv.id,
+      check_kind: "L3",
+      state: "pending",
+      severity: inv.severity,
+      hitl_tier: inv.hitl_tier,
+    }));
+    const { error } = await deps.sb.from("consistency_checks").insert(rows);
+    if (error) {
+      return {
+        ok: false,
+        error: `consistency_checks insert: ${error.message}`,
+        retryable: true,
+      };
+    }
+    return {
+      ok: true,
+      output: {
+        kind: "consistency_sweep",
+        inserted: rows.length,
+        schedule_id: run.schedule_id,
+        invariant_ids: rows.map((r) => r.invariant_id),
+      },
+    };
+  };
+}
+
 // Built-in heartbeat-ping skill — no LLM dependency. Registered in default registry.
 export function makeHeartbeatPingHandler(sb: SbClient): SkillHandler {
   return async (run) => {

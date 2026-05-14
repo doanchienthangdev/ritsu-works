@@ -80,6 +80,7 @@ _build/
 # --- Claude Code local state ----------------------------------------------
 .claude/local/
 .claude/sessions/
+.claude/scheduled_tasks.lock
 *.claude-session
 
 # --- Supabase local -------------------------------------------------------
