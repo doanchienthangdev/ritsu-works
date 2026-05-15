@@ -21,7 +21,7 @@ This pillar owns the canonical answer to:
 
 This pillar does NOT own:
 - Operating playbooks (those live in their respective functional pillars)
-- KPI definitions (those live in `10-metrics/01-kpi-registry/`)
+- KPI definitions (those live in `10-metrics/kpi-registry/`)
 - Specific product features (the product lives in a separate repo)
 
 ## Sub-pillars

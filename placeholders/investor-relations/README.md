@@ -24,5 +24,5 @@ Until trigger: defer. **Default: do not raise.** Operating profitably with low b
 1. Founder approval Tier D-Std minimum (irreversible to "I am fundraising" mode)
 2. PR opens with sub-pillar tree
 3. Move from `placeholders/` to top-level (eg `12-investor-relations/`)
-4. Coordinate with `08-finance/03-investor-financials/` (gets activated simultaneously)
-5. **Top-idea warning:** activate `09-founder/01-cognition/SOP-FOUNDER-002-nile-perch-detection/` to track whether fundraising is eating attention from product
+4. Coordinate with `08-finance/investor-financials/` (gets activated simultaneously)
+5. **Top-idea warning:** activate `09-founder/cognition/SOP-FOUNDER-002-nile-perch-detection/` to track whether fundraising is eating attention from product

@@ -200,10 +200,10 @@ escalation_role: gps
 ```yaml
 role: support-agent
 purpose: Handle FAQ-categorized support tickets. Triage and tag non-FAQ for human or escalation.
-home_pillar: 05-customer/03-support     # Updated v1.0.1 (was: 03-delivery)
+home_pillar: 05-customer/support     # Updated v1.0.1 (was: 03-delivery)
 permissions:
   tier1_paths:
-    - "05-customer/03-support/**"        # PR-only as always
+    - "05-customer/support/**"        # PR-only as always
     - "wiki/customer/**"
     - ".archives/**"
   tier2_schemas_read:
@@ -665,9 +665,9 @@ escalation_role: gps
 ```yaml
 role: cs-coach
 purpose: Activation funnel ownership — surfaces stuck users, runs Collison install protocol, codifies onboarding scripts.
-home_pillar: 05-customer/01-success
+home_pillar: 05-customer/success
 permissions:
-  tier1_paths: ["05-customer/01-success/**", "05-customer/02-onboarding/**", ".archives/**"]
+  tier1_paths: ["05-customer/success/**", "05-customer/onboarding/**", ".archives/**"]
   tier2_schemas_read: [ops.*, metrics.product_dau_snapshot]
   tier2_schemas_write: [ops.tasks, ops.agent_runs]
 hitl_max_tier: B            # routine outreach = B; new onboarding script = C
@@ -679,9 +679,9 @@ escalation_role: customer-lead
 ```yaml
 role: retention-watcher
 purpose: Monitor silence-after-activation; trigger reactivation flows; escalate at-risk cohorts.
-home_pillar: 05-customer/04-retention
+home_pillar: 05-customer/retention
 permissions:
-  tier1_paths: ["05-customer/04-retention/**", ".archives/**"]
+  tier1_paths: ["05-customer/retention/**", ".archives/**"]
   tier2_schemas_read: [ops.*, metrics.product_dau_snapshot]
   tier2_schemas_write: [ops.tasks, ops.agent_runs]
 hitl_max_tier: B
@@ -693,9 +693,9 @@ escalation_role: customer-lead
 ```yaml
 role: escalation-router
 purpose: Decide which support tickets reach founder vs which stay in AI handling. Implements escalation criteria from SOP-CUSTOMER-012.
-home_pillar: 05-customer/03-support
+home_pillar: 05-customer/support
 permissions:
-  tier1_paths: ["05-customer/03-support/**", ".archives/**"]
+  tier1_paths: ["05-customer/support/**", ".archives/**"]
   tier2_schemas_read: [ops.*]
   tier2_schemas_write: [ops.tasks, ops.support_tickets, ops.agent_runs]
 hitl_max_tier: A            # routing decisions are reversible
@@ -707,9 +707,9 @@ escalation_role: customer-lead
 ```yaml
 role: feedback-aggregator
 purpose: Pull NPS, cancel-flow feedback, user interviews, social mentions into product feedback pipeline.
-home_pillar: 05-customer/05-feedback-and-research
+home_pillar: 05-customer/feedback-and-research
 permissions:
-  tier1_paths: ["05-customer/05-feedback-and-research/**", ".archives/**"]
+  tier1_paths: ["05-customer/feedback-and-research/**", ".archives/**"]
   tier2_schemas_read: [ops.*]
   tier2_schemas_write: [ops.tasks, ops.agent_runs]
 hitl_max_tier: A
@@ -721,7 +721,7 @@ escalation_role: customer-lead
 ```yaml
 role: founder-coach
 purpose: Surface top-idea drift in founder's attention, prompt weekly review, run Nile Perch detection.
-home_pillar: 09-founder/01-cognition
+home_pillar: 09-founder/cognition
 permissions:
   tier1_paths: ["09-founder/**", ".archives/**"]
   tier2_schemas_read: [ops.*, ops.attention_log]
@@ -735,9 +735,9 @@ escalation_role: founder
 ```yaml
 role: hitl-router
 purpose: Telegram bot logic for tier B/C/D approvals. Routes messages, validates magic-phrase format, enforces D-MAX cooldown.
-home_pillar: 09-founder/03-hitl-flow
+home_pillar: 09-founder/hitl-flow
 permissions:
-  tier1_paths: ["09-founder/03-hitl-flow/**", ".archives/**"]
+  tier1_paths: ["09-founder/hitl-flow/**", ".archives/**"]
   tier2_schemas_read: [ops.*]
   tier2_schemas_write: [ops.hitl_runs, ops.agent_runs]
 hitl_max_tier: A            # the router itself routes; it doesn't authorize
@@ -749,9 +749,9 @@ escalation_role: founder
 ```yaml
 role: health-tracker
 purpose: Weekly founder energy tracking, mandatory rest enforcement, burnout early-warning. 1-person company = 1-person SPOF.
-home_pillar: 09-founder/05-health
+home_pillar: 09-founder/health
 permissions:
-  tier1_paths: ["09-founder/05-health/**", ".archives/**"]
+  tier1_paths: ["09-founder/health/**", ".archives/**"]
   tier2_schemas_read: [ops.*, ops.attention_log]
   tier2_schemas_write: [ops.tasks, ops.agent_runs]
 hitl_max_tier: A
@@ -763,7 +763,7 @@ escalation_role: founder
 ```yaml
 role: metrics-curator
 purpose: Own KPI registry, weekly dashboard refresh, KPI ownership map (knowledge/kpi-ownership.yaml).
-home_pillar: 10-metrics/01-kpi-registry
+home_pillar: 10-metrics/kpi-registry
 permissions:
   tier1_paths: ["10-metrics/**", "knowledge/kpi-ownership.yaml", ".archives/**"]
   tier2_schemas_read: [ops.*, metrics.*]
@@ -777,9 +777,9 @@ escalation_role: founder
 ```yaml
 role: alert-router
 purpose: Receive ops.alerts rows, route per knowledge/alert-rules.yaml severity. P0 → Telegram immediate; P1 → daily digest.
-home_pillar: 10-metrics/04-alerting
+home_pillar: 10-metrics/alerting
 permissions:
-  tier1_paths: ["10-metrics/04-alerting/**", "knowledge/alert-rules.yaml", ".archives/**"]
+  tier1_paths: ["10-metrics/alerting/**", "knowledge/alert-rules.yaml", ".archives/**"]
   tier2_schemas_read: [ops.alerts, ops.kpi_snapshots]
   tier2_schemas_write: [ops.alerts (state transitions), ops.agent_runs]
   mcp_servers: [telegram (send to founder)]
@@ -792,9 +792,9 @@ escalation_role: metrics-curator
 ```yaml
 role: experiment-analyst
 purpose: Analyze A/B experiments — significance + lift calculation, stop-and-decide protocol. Called by Product/GTM.
-home_pillar: 10-metrics/05-experiment-measurement
+home_pillar: 10-metrics/experiment-measurement
 permissions:
-  tier1_paths: ["10-metrics/05-experiment-measurement/**", ".archives/**"]
+  tier1_paths: ["10-metrics/experiment-measurement/**", ".archives/**"]
   tier2_schemas_read: [ops.*, metrics.*]
   tier2_schemas_write: [ops.tasks, ops.agent_runs]
 hitl_max_tier: B

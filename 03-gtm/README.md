@@ -26,30 +26,42 @@ This pillar:
 
 ```
 03-gtm/
-├── 01-icp-and-segmentation/     # Composes from 01-marketing/modules/icp
+├── icp-and-segmentation/     # Composes from 01-marketing/modules/icp
 │   └── sops/SOP-GTM-001-icp-discovery-from-2-cofounders/
-├── 02-launch-sequence/           # End-stealth this month — singular timing
+├── launch-sequence/           # End-stealth this month — singular timing
 │   ├── sops/SOP-GTM-002-stealth-end-pre-launch-checklist/
 │   ├── sops/SOP-GTM-003-public-launch-channels/
 │   └── sops/SOP-GTM-004-day-one-monitoring/
-├── 03-distribution-engine/       # AI-multi-channel reach on TESTED message
+├── distribution-engine/       # AI-multi-channel reach on TESTED message
 │   ├── sops/SOP-GTM-005-message-test-before-amplify/   # PG gate — manual_gate trigger
 │   ├── sops/SOP-GTM-006-multi-channel-deploy-AI/        # Reddit + FB + LinkedIn + X + Discord + Substack + ProductHunt + HN
 │   ├── sops/SOP-GTM-007-apollo-outbound-cold-email/
 │   ├── sops/SOP-GTM-008-youtube-influencer-discovery/
 │   └── sops/SOP-GTM-009-channel-attribution-and-doubling-down/
-├── 04-funnel-orchestration/      # Composes from 02-sales/modules
+├── funnel-orchestration/      # Composes from 02-sales/modules
 │   ├── sops/SOP-GTM-010-landing-to-signup-conversion/
 │   ├── sops/SOP-GTM-011-signup-to-first-upload-activation/
 │   ├── sops/SOP-GTM-012-free-to-paid-trigger-detection/
 │   └── sops/SOP-GTM-013-weekly-funnel-review/
-├── 05-pmf-instrumentation/       # Composes from 10-metrics/02-pmf-instrumentation
+├── pmf-instrumentation/       # Composes from 10-metrics/pmf-instrumentation
 │   ├── sops/SOP-GTM-014-pmf-survey-sean-ellis/
 │   ├── sops/SOP-GTM-015-cohort-retention-tracking/
 │   └── sops/SOP-GTM-016-very-disappointed-percentage-tracking/
-└── 06-collison-install-protocol/ # Composes from 05-customer/02-onboarding
+└── collison-install-protocol/ # Composes from 05-customer/onboarding
     └── sops/SOP-GTM-017-hand-recruit-and-onboard-by-name/
 ```
+
+## Sub-pillar order (narrative)
+
+Filesystem order is alphabetical (no NN- prefix). The intended *narrative* reading
+order for this pillar is:
+
+1. **icp-and-segmentation** — who we serve before we ship anything
+2. **launch-sequence** — singular stealth-end timing
+3. **distribution-engine** — multi-channel reach AFTER message validated
+4. **funnel-orchestration** — landing → signup → activation → paid mechanics
+5. **pmf-instrumentation** — Sean-Ellis survey + cohort retention measurement
+6. **collison-install-protocol** — founder-personal first-30 onboarding
 
 ## SOPs
 
@@ -60,9 +72,9 @@ This pillar:
 ## Agents
 
 - `gtm-orchestrator` (home pillar) — owns weekly funnel review, cross-pillar coordination
-- `distribution-deployer` (under `03-distribution-engine`) — AI multi-channel deploy on tested message
-- `apollo-outbound-agent` (under `03-distribution-engine`) — cold email/LinkedIn outreach
-- `funnel-analyst` (under `04-funnel-orchestration`) — reads `ops.events`, surfaces drop-offs
+- `distribution-deployer` (under `distribution-engine`) — AI multi-channel deploy on tested message
+- `apollo-outbound-agent` (under `distribution-engine`) — cold email/LinkedIn outreach
+- `funnel-analyst` (under `funnel-orchestration`) — reads `ops.events`, surfaces drop-offs
 
 ## KPIs owned
 
@@ -85,10 +97,10 @@ This pillar consumes modules from:
 - `02-sales.pricing-tiers` — current Free/$29/$59/$119
 - `02-sales.conversion-funnel` — funnel stage definitions
 - `04-product.wedge-discovery` — what features specifically pull users
-- `05-customer.01-success.activation-metrics` — what counts as "activated"
-- `05-customer.02-onboarding.collison-install` — script for first 30 paying
+- `05-customer.success.activation-metrics` — what counts as "activated"
+- `05-customer.onboarding.collison-install` — script for first 30 paying
 - `06-ai-ops.cost-budget-architecture` — every campaign has cost ceiling
-- `10-metrics.02-pmf-instrumentation` — the numbers that tell us we're winning
+- `10-metrics.pmf-instrumentation` — the numbers that tell us we're winning
 
 ## Critical PG gate
 
@@ -100,12 +112,12 @@ When PMF criteria met, sub-pillars relocate per `.archives/pillars/PLAN.md` §4.
 
 | GTM sub-pillar | Relocates to on dissolution |
 |---|---|
-| `01-icp-and-segmentation` | `01-marketing/modules/icp/` |
-| `02-launch-sequence` | `.archives/historical/2026-launch/` (one-time) |
-| `03-distribution-engine` | `01-marketing/sub-pillars/distribution-engine/` (graduates to evergreen) |
-| `04-funnel-orchestration` | `02-sales/sub-pillars/funnel-orchestration/` (graduates to evergreen) |
-| `05-pmf-instrumentation` | `10-metrics/02-pmf-instrumentation/` (graduates; stage-2 composite metric replaces "100-paying" tile) |
-| `06-collison-install-protocol` | `05-customer/02-onboarding/` (folds into permanent sub-pillar) |
+| `icp-and-segmentation` | `01-marketing/modules/icp/` |
+| `launch-sequence` | `.archives/historical/2026-launch/` (one-time) |
+| `distribution-engine` | `01-marketing/sub-pillars/distribution-engine/` (graduates to evergreen) |
+| `funnel-orchestration` | `02-sales/sub-pillars/funnel-orchestration/` (graduates to evergreen) |
+| `pmf-instrumentation` | `10-metrics/pmf-instrumentation/` (graduates; stage-2 composite metric replaces "100-paying" tile) |
+| `collison-install-protocol` | `05-customer/onboarding/` (folds into permanent sub-pillar) |
 
 After dissolution, a new stage pillar (eg `Scale-to-1000` or `Internationalize`) may be created with its own composition tree.
 

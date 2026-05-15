@@ -3,7 +3,7 @@
 > The OS itself: SOP engine, MCP tooling, hooks, cost budgets, episodic memory, skill library, cross-tier consistency. This is the infrastructure that lets every other pillar's AI workforce actually run.
 
 **Layer:** Evergreen
-**Stage status:** DEEP (alive — partially built: `skills/`, `sops/`, `01-sop-engine/`)
+**Stage status:** DEEP (alive — partially built: `skills/`, `sops/`, `sop-engine/`)
 **Pillar code:** AIOPS
 **Owner role(s):** aiops-engineer, etl-runner, code-reviewer
 **HITL baseline:** B (routine ETL = B; schema/runtime changes = C; secret-touching = D)
@@ -32,22 +32,32 @@ This pillar does NOT own:
 
 ```
 06-ai-ops/
-├── 01-sop-engine/                       # NEW v1.0.1 — load-bearing
+├── sop-engine/                       # NEW v1.0.1 — load-bearing
 │   ├── SOP-AIOPS-003-sop-runtime-contract/  # Schema + validator (alive)
 │   └── SOP-AIOPS-004-flow-yaml-smoke-test/  # CI gate (alive)
-├── 02-skill-library/                    # → existing skills/ dir
-├── 03-mcp/                              # MERGED v1.0.1 (was 03-mcp-tooling + 08-integrations-as-mcp)
+├── skill-library/                    # → existing skills/ dir
+├── mcp/                              # MERGED v1.0.1 (was mcp-tooling + 08-integrations-as-mcp)
 │   ├── server-management/
 │   ├── per-pillar-server-grants/
 │   ├── stripe-mcp-readonly/             # Folded from old 08-integrations
 │   ├── github-mcp-scoped/
 │   ├── telegram-mcp/
 │   └── supabase-ops-mcp/
-├── 04-hooks-enforcement/                # → .claude/hooks/ implementations
-├── 05-cost-budget-architecture/         # Per knowledge/economic-architecture.md
-├── 06-episodic-memory-architecture/     # Per knowledge/memory-architecture.md
-└── 07-cross-tier-consistency/           # Extends current check-drift
+├── hooks-enforcement/                # → .claude/hooks/ implementations
+├── cost-budget-architecture/         # Per knowledge/economic-architecture.md
+├── episodic-memory-architecture/     # Per knowledge/memory-architecture.md
+└── cross-tier-consistency/           # Extends current check-drift
 ```
+
+## Sub-pillar order (narrative)
+
+1. **sop-engine** — load-bearing runtime contract + flow-yaml validator
+2. **skill-library** — composable skills agents invoke (currently lives at `skills/`)
+3. **mcp** — external system connections (merged from old mcp-tooling + integrations-as-mcp)
+4. **hooks-enforcement** — HITL/budget/secret gates (implementations at `.claude/hooks/`)
+5. **cost-budget-architecture** — per-role caps, per-task soft caps, reconciliation
+6. **episodic-memory-architecture** — `ops.run_summaries` + `ops.corrections` pipeline
+7. **cross-tier-consistency** — `check-drift` invariant runtime (locks conventions like sub-pillar numbering)
 
 **Existing assets preserved through rename:**
 - `skills/` — composable skills agents invoke (`episodic-recall`, etc.)
@@ -88,7 +98,7 @@ This pillar is the ONLY one that holds:
 - MCP server-management credentials
 - Cross-pillar permission grants
 
-This isolation is enforced via `.claude/hooks/secret-access-firewall` (planned, see `04-hooks-enforcement/`). Other roles request data through `metrics.*` tables populated by ETL; direct product DB access is forbidden.
+This isolation is enforced via `.claude/hooks/secret-access-firewall` (planned, see `hooks-enforcement/`). Other roles request data through `metrics.*` tables populated by ETL; direct product DB access is forbidden.
 
 ## HITL baseline
 

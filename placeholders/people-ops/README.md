@@ -12,7 +12,7 @@ Until trigger: defer. AI workforce + founder + cofounder is the experiment.
 
 ## Initial sub-pillars when activated
 - `hiring-funnel` — sourcing, screening, interview process, offer mechanics
-- `human-onboarding` — first-30-days for a human (different from `05-customer/02-onboarding/`, which is for customers)
+- `human-onboarding` — first-30-days for a human (different from `05-customer/onboarding/`, which is for customers)
 - `payroll-vn-or-other` — depends on hire location; coordinates with `placeholders/compliance-vn/` if VN-based
 
 ## On activation

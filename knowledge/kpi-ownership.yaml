@@ -69,7 +69,7 @@ hundred_paying_who_love_composite:
   owner_role: gtm-orchestrator
   sub_pillar: 05-pmf-instrumentation
   formula: "weighted blend of paying_count + week_4_retention + nps_very_disappointed_pct, normalized 0-100%"
-  composite_in: 10-metrics/02-pmf-instrumentation/SOP-METRICS-007
+  composite_in: 10-metrics/pmf-instrumentation/SOP-METRICS-007
   dashboard_tile: founder-monday/THE-tile
   alert_thresholds:
     p0: "value decreases week-over-week 2x in a row"

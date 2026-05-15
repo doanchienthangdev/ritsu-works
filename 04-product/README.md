@@ -17,36 +17,44 @@ This pillar owns:
 - **Build loop** — weekly feature prioritization, ship-then-listen cycle, rage detection from support
 - **Feedback pipeline** — NPS, cancel-flow feedback, in-app feedback → roadmap intake
 - **Pricing experiments** — A/B tests on tier boundaries (coordinates with `02-sales`)
-- **A/B test discipline** — decision protocols, statistical rigor (coordinates with `10-metrics/05-experiment-measurement`)
+- **A/B test discipline** — decision protocols, statistical rigor (coordinates with `10-metrics/experiment-measurement`)
 
 This pillar does NOT own:
 - The product codebase (separate repo, Product Supabase)
-- Customer onboarding flows (those execute in `05-customer/02-onboarding/`)
-- Distribution / channel experiments → `03-gtm/03-distribution-engine/`
+- Customer onboarding flows (those execute in `05-customer/onboarding/`)
+- Distribution / channel experiments → `03-gtm/distribution-engine/`
 - Pricing tier definitions → `02-sales/modules/pricing-tiers/`
 
 ## Sub-pillars (DEEP build now)
 
 ```
 04-product/
-├── 01-wedge-discovery/                          # N=10 strangers gate (PG)
+├── wedge-discovery/                          # N=10 strangers gate (PG)
 │   ├── sops/SOP-PRODUCT-001-cofounder-usage-analysis/   # What do N=2 ACTUALLY use weekly?
 │   ├── sops/SOP-PRODUCT-002-stranger-recruit-and-watch/ # 10 strangers, observed using
 │   └── sops/SOP-PRODUCT-003-wedge-feature-naming-and-doubling-down/
-├── 02-build-loop/
+├── build-loop/
 │   ├── sops/SOP-PRODUCT-004-weekly-feature-prioritization/
 │   ├── sops/SOP-PRODUCT-005-ship-then-listen-cycle/
 │   └── sops/SOP-PRODUCT-006-rage-detection-from-support/
-├── 03-feedback-pipeline/
+├── feedback-pipeline/
 │   ├── sops/SOP-PRODUCT-007-in-app-nps-collection/
 │   ├── sops/SOP-PRODUCT-008-cancel-flow-feedback/
 │   └── sops/SOP-PRODUCT-009-feedback-to-roadmap-pipeline/
-├── 04-pricing-experiments/
+├── pricing-experiments/
 │   ├── sops/SOP-PRODUCT-010-pricing-pull-test/
 │   └── sops/SOP-PRODUCT-011-tier-boundary-experiment/
-└── 05-ab-test-discipline/
+└── ab-test-discipline/
     └── sops/SOP-PRODUCT-012-ab-test-decision-protocol/
 ```
+
+## Sub-pillar order (narrative)
+
+1. **wedge-discovery** — N=10 strangers gate (PG critical_pg_gate). What works first.
+2. **build-loop** — weekly prioritization + ship-then-listen cycle
+3. **feedback-pipeline** — NPS, cancel-flow, in-product feedback → roadmap
+4. **pricing-experiments** — pricing-pull test, tier-boundary experiments
+5. **ab-test-discipline** — decision protocol for everything experiment-shaped
 
 ## SOPs
 
@@ -56,12 +64,12 @@ This pillar does NOT own:
 ## Agents
 
 - `product-orchestrator` (home) — weekly product review, feature prioritization
-- `feedback-aggregator` (cross-cuts with `05-customer/05-feedback-and-research`) — pulls from all feedback sources
-- `wedge-detector` (under `01-wedge-discovery`) — analyzes usage data for the 1-3 sticky features
+- `feedback-aggregator` (cross-cuts with `05-customer/feedback-and-research`) — pulls from all feedback sources
+- `wedge-detector` (under `wedge-discovery`) — analyzes usage data for the 1-3 sticky features
 
 ## KPIs owned
 
-(Surfaced in `10-metrics/01-kpi-registry/`.)
+(Surfaced in `10-metrics/kpi-registry/`.)
 
 - Weekly active users (WAU)
 - Magic moment completion rate (= aha moment percent)
@@ -72,7 +80,7 @@ This pillar does NOT own:
 ## Dependencies
 
 - **Composes from:** `00-charter/product.md` (canonical positioning), `02-sales/modules/pricing-tiers/` (pricing surface for experiments)
-- **Composed by:** `03-gtm/04-funnel-orchestration/` (consumes wedge-discovery output), `05-customer/05-feedback-and-research/` (feeds back upstream)
+- **Composed by:** `03-gtm/funnel-orchestration/` (consumes wedge-discovery output), `05-customer/feedback-and-research/` (feeds back upstream)
 
 ## Critical PG gate
 
