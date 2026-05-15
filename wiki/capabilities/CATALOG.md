@@ -9,16 +9,17 @@
 > promoted spec + retrospective.
 
 **Last updated:** 2026-05-15
-**Total capabilities (operating):** 1
-**Total capabilities (any state):** 1
+**Total capabilities (operating):** 2
+**Total capabilities (any state):** 2
 
 ---
 
 ## Operating
 
-| ID | Name | Pillar | Deployed | Spec | Retrospective |
-|---|---|---|---|---|---|
-| `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
+| ID | Name | Version | Pillar | Deployed | Spec | Retrospective |
+|---|---|---|---|---|---|---|
+| `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 1.0.0 | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
+| `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
 
 ## Implementing / Architecting / Analyzing
 

@@ -527,3 +527,95 @@ Other v1.0 additions:
 See `.archives/cla/PLAN.md` (local-only) for the full v1.0 plan and the
 PR series #23 / #24 / #25 that shipped it.
 
+---
+
+## v1.1 update (2026-05-15) — `/cla` evolution sub-flows shipped
+
+Resolves **OQ-CLA-2** (capability deprecation flow) plus adds 4 right-sized
+update workflows for operating capabilities. Capability `cla-update-mechanism`
+is the first non-meta capability built via Approach E (use `/cla` on itself).
+
+### New surfaces
+
+| Trigger | Purpose | HITL | SOP |
+|---|---|---|---|
+| `/cla fix <id>` | Bug fix — light delta | B | `SOP-AIOPS-001-fix/` |
+| `/cla extend <id>` | Scope expansion — auto-escalates Tier C if substantial | B → C | `SOP-AIOPS-001-extend/` |
+| `/cla revise <id>` | Architecture revision — full ceremony | C | `SOP-AIOPS-001-revise/` |
+| `/cla tune <id>` | KPI re-tuning — registry edit only | B | `SOP-AIOPS-001-tune/` |
+| `/cla deprecate <id>` | Sunset capability + cleanup (resolves **OQ-CLA-2**) | C | `SOP-AIOPS-001-deprecate/` |
+| `/cla history <id>` | Lineage chain timeline | A | (read-only — `ops.v_capability_lineage`) |
+| `/cla force-unlock <id>` | Break stuck update lock | **D-Std** | (lock break ceremony) |
+| `@cla` | Subagent for mid-conversation invocation | inherited | — |
+
+### New infrastructure
+
+- **Migration 00025** — `update_lock_session_id` + `update_lock_acquired_at`
+  + `version` columns on `ops.capability_runs`. Helper functions:
+  `capability_acquire_update_lock()`, `capability_release_update_lock()`.
+  View: `ops.v_capability_lineage` (recursive supersedes_id chain).
+- **2 new skills** — `dependency-scanner` (deterministic; scans
+  `wiki/capabilities/*/spec.md` for cross-references; mandatory blocker
+  in `:deprecate`) + `version-bumper` (pure semver helper; per-sub-flow
+  bump rules).
+- **8 existing skills extended** with `## Mode awareness (v1.1)` subsection
+  mapping each sub-flow mode to skill behavior.
+- **Spec versioning convention**: `wiki/capabilities/<id>/spec.md`
+  always-current; prior versions archived as `spec-v<X.Y.Z>.md`.
+- **Lineage chain**: NEW `ops.capability_runs` row per update, with
+  `supersedes_id` pointing to prior. Original state → `'superseded'`.
+  Deprecation terminal state is `'deprecated'` (NOT `'superseded'`).
+- **Concurrency lock**: 24h auto-expiry on read; founder `/cla force-unlock`
+  override (Tier D-Std magic phrase per HITL.md).
+
+### Updated phases (per sub-flow)
+
+Sub-flows execute subsets of the original 8 phases plus new Phase 0
+(pre-flight + lock acquisition):
+
+| Sub-flow | Phases executed |
+|---|---|
+| `:fix` | 0, 1-delta, 7, 8-light |
+| `:tune` | 0, 1-delta, 8-tune |
+| `:extend` | 0, 1-delta, 3 (with dep scan), 5-delta, 6, 7, 8 |
+| `:revise` | 0, 1-delta, 3, 4, 5 (always Tier C), 6, 7, 8 |
+| `:deprecate` | 0, 1-delta, 3 (mandatory dep scan), 8-deprecate |
+
+`/cla propose` (v1.0) remains the path for NEW capabilities (full Phase 0-8).
+
+### Auto-classification logic
+
+- `:extend` Phase 5 architect classifies the spec.md diff:
+  - Light (≤ 20% lines, no Section 4 component changes) → Tier B
+  - Substantial (> 20% lines OR component add/remove) → auto-Tier C with
+    full ceremony (@cto + Muse panel)
+- `@cla update <id> <description>` LLM-classifies the description into
+  fix/extend/revise; states classification before proceeding; refuses if
+  ambiguous.
+
+### Cost projection (cumulative across update sub-flows)
+
+| Sub-flow | Per-invocation LLM cost | Founder time |
+|---|---|---|
+| `:tune` | ~$0.10 | ~10 min |
+| `:fix` | ~$0.50 | 30 min - 2h |
+| `:deprecate` | ~$0.30 | ~30 min |
+| `:extend` | ~$1.50 (~$3 if escalated to C) | 2-4h or 1 week |
+| `:revise` | ~$3-5 | 1-2 weeks |
+
+All update sub-flows use `ai-ops-cla` cost-bucket (shared with parent
+capability).
+
+### Resolved Bài #20 open questions
+
+- **OQ-CLA-2** (deprecation flow) — resolved by `/cla deprecate` sub-flow
+  with mandatory dependency scan + schedule cleanup + Tier C ceremony +
+  terminal `'deprecated'` state.
+
+Other open questions (OQ-CLA-1 cost-bucket detail, OQ-CLA-3 cross-cap
+dependency graph, OQ-CLA-4 capability marketplace, OQ-CLA-5 voice-note
+auto-detect) remain open per current scope.
+
+See `.archives/cla/cla-update-mechanism/spec.md` (local-only) for the
+full v1.1 spec and PR series #26 / #27 / #28 that shipped it.
+

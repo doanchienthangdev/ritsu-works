@@ -116,13 +116,32 @@ Already DEEP. Further sub-pillar splits happen organically (eg `08-evals` sub-pi
 
 ## Capability lifecycle (Bài #20)
 
-This pillar hosts the master SOP for adding any new capability to Agent OS:
+This pillar hosts the master SOP for adding any new capability to Agent OS plus the v1.1 evolution sub-flows:
 
 - **Front-end:** `/cla` slash command — `.claude/commands/cla.md`
-- **SOP:** [`SOP-AIOPS-001-capability-lifecycle/`](sops/SOP-AIOPS-001-capability-lifecycle/)
-- **Skills:** [`skills/capability-lifecycle/`](skills/capability-lifecycle/) (8 phase skills)
+- **Subagent:** `@cla` mid-conversation variant — `.claude/agents/cla.md`
+- **SOPs (creation):** [`SOP-AIOPS-001-capability-lifecycle/`](sops/SOP-AIOPS-001-capability-lifecycle/)
+- **SOPs (evolution v1.1):** [`SOP-AIOPS-001-fix/`](sops/SOP-AIOPS-001-fix/), [`-extend/`](sops/SOP-AIOPS-001-extend/), [`-revise/`](sops/SOP-AIOPS-001-revise/), [`-tune/`](sops/SOP-AIOPS-001-tune/), [`-deprecate/`](sops/SOP-AIOPS-001-deprecate/)
+- **Skills:** [`skills/capability-lifecycle/`](skills/capability-lifecycle/) (8 phase skills + 2 v1.1 helpers: `dependency-scanner`, `version-bumper`)
 - **Routing:** [`knowledge/cla-routing-keywords.yaml`](../knowledge/cla-routing-keywords.yaml) (CxO dispatch by domain)
 - **Catalog:** [`wiki/capabilities/CATALOG.md`](../wiki/capabilities/CATALOG.md)
 - **Playbook:** [`knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md`](../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md)
+- **DB:** `ops.capability_runs` + `ops.v_capability_pipeline` (creation) + `ops.v_capability_lineage` (evolution v1.1) + helper functions `capability_acquire_update_lock` / `capability_release_update_lock`
 
-Use `/cla propose "<problem>"` for any new capability. The 8-phase workflow handles drift pre-flight, problem framing, domain analysis, system inventory, options + recommendation, architecture spec (Tier C HITL with @cto + Muse panel), sprint planning, multi-session implementation, and registry promotion.
+### Use `/cla propose` for NEW capabilities (v1.0)
+
+The 8-phase workflow handles drift pre-flight, problem framing, domain analysis, system inventory, options + recommendation, architecture spec (Tier C HITL with @cto + Muse panel), sprint planning, multi-session implementation, and registry promotion.
+
+### Use `/cla {fix,extend,revise,tune,deprecate}` for EVOLUTION (v1.1)
+
+Right-sized sub-flows for operating capabilities:
+
+| Sub-flow | When | HITL | Cost |
+|---|---|---|---|
+| `fix` | Bug fix, no spec change | B per PR | ~$0.50 |
+| `extend` | Scope expansion | B → auto-C if substantial | ~$1.50 |
+| `revise` | Architecture revision | C (always, full ceremony) | ~$3-5 |
+| `tune` | KPI re-tuning | B per PR | ~$0.10 |
+| `deprecate` | Sunset capability | C (irreversible) | ~$0.30 |
+
+Plus `/cla history <id>` (read-only timeline) and `/cla force-unlock <id>` (Tier D-Std lock break).

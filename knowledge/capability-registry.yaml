@@ -57,25 +57,29 @@ capabilities:
   # === v1.1 extension: update sub-flows ===
   - id: cla-update-mechanism
     name: "CLA Update Sub-flows (v1.1 — fix/extend/revise/tune/deprecate)"
-    description: "Right-sized evolution sub-flows for operating capabilities. Extends Bài #20 v1.0 with 5 sub-commands + dependency-scanner + spec versioning + concurrency lock + lineage chain. First non-meta capability built via Approach E (use /cla on itself)."
+    description: "Right-sized evolution sub-flows for operating capabilities. Extends Bài #20 v1.0 with 5 sub-commands + dependency-scanner + spec versioning + concurrency lock + lineage chain. First non-meta capability built via Approach E (use /cla on itself). Resolves Bài #20 OQ-CLA-2."
     version: "1.0.0"
-    state: implementing
+    state: operating
     state_since: 2026-05-15
     proposed_at: 2026-05-15
+    deployed_at: 2026-05-15
     pillar_owner: 06-ai-ops
     bài_toán_touched: [1, 2, 5, 7, 9, 10, 11, 13, 15, 20]
     spec_path: wiki/capabilities/cla-update-mechanism/spec.md
+    retrospective_path: wiki/capabilities/cla-update-mechanism/retrospective.md
     sprint_plan: ".archives/cla/cla-update-mechanism/sprint-plan.md (local-only working)"
     cost_bucket: ai-ops-meta
     estimated_cost_setup_usd: 2.00
     estimated_cost_recurring_usd: 0
     estimated_founder_hours: 1.5
+    actual_cost_setup_usd: 2.00
+    actual_cost_recurring_usd: 0
+    actual_founder_hours: 1.5
     estimated_completion: 2026-05-15
     notes: |
       Extends parent capability `capability-lifecycle-architecture` (v1.0).
-      State will advance to `operating` at end of Sprint 3 (Phase 8 catalog
-      promotion). spec.md path target wiki/capabilities/cla-update-mechanism/
-      will exist after Phase 8 promotion.
+      Shipped in PR series #26 / #27 / #28. Phase 8 promotion completed
+      Sprint 3. Dogfood TODO: /cla fix capability-lifecycle-architecture.
 
   # === Project-specific capabilities (added as founder runs CLA) ===
   
