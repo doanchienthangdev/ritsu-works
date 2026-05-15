@@ -234,6 +234,122 @@ Tier A. Auto-advance unless drift gate fails or wiki destination collision.
 - `tests/cla/fixtures/catalog-updater-wiki-collision.json` — wiki/capabilities/<id>/ exists, expects founder prompt.
 - `tests/cla/fixtures/catalog-updater-final-drift.json` — pnpm check fails after registry update, expects state held at `deployed`.
 
+## Mode awareness (v1.1 — `cla-update-mechanism`)
+
+This skill is invoked at Phase 8 of every flow. v1.1 adds mode-specific behavior. The orchestrator passes `mode` via `state_payload.update_mode`.
+
+### Common pre-Phase 8 across update modes (mandatory)
+
+Before mode-specific Phase 8 logic:
+1. Verify update lock owned by current session (read `update_lock_session_id`).
+2. Verify state_payload.update_mode is set.
+3. Run `version-bumper` skill (NEW v1.1) for fix/extend/revise/tune; skip for deprecate.
+
+### Per-mode behavior
+
+#### Mode `create` (default — v1.0 behavior)
+Full Process Steps 1-9 above. Output: `wiki/capabilities/<id>/spec.md` + `retrospective.md` promoted; CATALOG.md row added under Operating; registry updated to state=operating.
+
+#### Mode `fix`
+Light catalog update:
+1. Skip retrospective generation (single fix doesn't warrant; aggregate in CHANGELOG instead).
+2. Skip spec.md promotion (spec didn't change).
+3. Append entry to `wiki/capabilities/<id>/CHANGELOG.md` (create if missing):
+   ```markdown
+   ## v<X.Y.Z> — fix — YYYY-MM-DD
+   - <fix description from Phase 1>
+   - PR: <url>
+   ```
+4. Update `knowledge/capability-registry.yaml`:
+   - capability.version (from version-bumper)
+   - capability.actual_cost_setup_usd (cumulative)
+5. Release lock via `ops.capability_release_update_lock(<id>, <session_id>)`.
+6. Set capability_runs.state = 'operating' (NEW row); mark prior row state = 'superseded'.
+7. Final pnpm check.
+
+#### Mode `extend`
+Per-Spec versioning + promotion:
+1. Generate retrospective.md (extension-specific: estimated vs actual, dependency impact handled).
+2. Archive prior spec: `cp wiki/capabilities/<id>/spec.md wiki/capabilities/<id>/spec-v<prior_version>.md`.
+3. Promote new spec: `cp .archives/cla/<id>-extend-<session_id>/spec.md wiki/capabilities/<id>/spec.md`.
+4. Append CHANGELOG.md (minor version line).
+5. Update CATALOG.md row (new version, same Operating section).
+6. Update registry (version, actuals).
+7. Release lock.
+8. State advance + lineage as above.
+9. Final pnpm check.
+
+#### Mode `revise`
+Major catalog update:
+1. Generate full retrospective.md (revisions warrant comprehensive retro).
+2. Archive prior spec to `spec-v<prior>.md`. Archive prior retrospective to `retrospective-v<prior>.md`.
+3. Promote new spec.md AND new retrospective.md.
+4. Append CHANGELOG.md (major version line — MAJOR header in markdown).
+5. Update CATALOG.md row (new MAJOR version).
+6. Update registry (major version, actuals).
+7. Append boilerplate-extractable patterns to `notes/boilerplate-candidates.md` (revisions often surface generic patterns).
+8. Release lock.
+9. State advance + lineage as above.
+10. Final pnpm check.
+
+#### Mode `tune`
+Lightest catalog update:
+1. UPDATE `knowledge/capability-registry.yaml`:
+   - capability.target_value (from tune-spec.md)
+   - capability.target_kpis (if KPI list changed)
+   - capability.version (patch++ from version-bumper)
+2. Append CHANGELOG.md: `## v<X.Y.Z> — tune — YYYY-MM-DD\n- <KPI> target <old> → <new>\n- PR: <url>`.
+3. Open ONE PR with the registry edit. Husky pre-commit pnpm check.
+4. Founder Tier B approval per PR.
+5. Release lock.
+6. State: implementing → operating (compressed; no separate deployed phase).
+7. Mark prior row 'superseded'.
+8. NO spec.md change. NO retrospective. NO CATALOG row move.
+
+#### Mode `deprecate`
+Cleanup mode:
+1. Verify Tier C approval (founder approved deprecation per HITL.md ceremony).
+2. **Schedule cleanup:** read `knowledge/schedules.yaml`. For each schedule whose target SOP belongs to this capability (per spec.md § 4.2 SOPs list), set `enabled: false`. Log each disable to `ops.audit_log` with reason "capability-deprecation".
+3. **CATALOG move:** Move row from "## Operating" section → "## Deprecated / Superseded" section in `wiki/capabilities/CATALOG.md`. Add deprecation_at date to the row.
+4. **Registry update:** UPDATE capability:
+   - capability.state = 'deprecated'
+   - capability.deprecated_at = today
+   - NO version bump (state transition only)
+5. **Generate retrospective:** NEW `retrospective-deprecation.md` (deprecation-specific format: why deprecated, lessons learned, what to do differently next time, was it ever providing value, what replaces it). Promote to `wiki/capabilities/<id>/retrospective-deprecation.md`. Do NOT overwrite existing retrospective.md (keep for archeology).
+6. **Spec retention:** KEEP `wiki/capabilities/<id>/spec.md` (not deleted; archeology preserved).
+7. **CHANGELOG:** Append final entry: `## DEPRECATED — YYYY-MM-DD\n- Reason: <from deprecation-rationale.md>\n- Replaced by: <other capability id, if any>`.
+8. Release lock.
+9. **State machine special:** the deprecation cycle's NEW capability_runs row goes implementing → operating (the deprecation cycle itself is operating). Then immediately UPDATE the PARENT capability_runs row state = 'deprecated' (NOT 'superseded' — terminal state for the capability).
+10. Final pnpm check.
+
+### Failure mode additions (v1.1)
+
+| Symptom | Mode | Response |
+|---|---|---|
+| Update lock not owned by current session | any update | ABORT — lock release would corrupt; surface for investigation |
+| version-bumper returns conflict | fix/extend/revise/tune | ABORT — concurrent bump in flight; should be impossible if locks correct |
+| Schedule cleanup fails | deprecate | Hold state; surface error; founder manually disables before re-running |
+| Dependent capability still references | deprecate | BLOCK at Phase 8 (Phase 3 should have caught; this is defensive) |
+| Spec archive collision (spec-v<X>.md exists) | extend/revise | Append `-r2`, `-r3` suffix; flag for cleanup |
+| Wiki destination collision | create only | Already in v1.0 — ask founder overwrite/v2/abort |
+
+### Lock release timing
+
+In ALL update modes, lock release happens AFTER state transition to operating but BEFORE final pnpm check. Rationale: if pnpm check fails, the lock is already released so founder can retry without `/cla force-unlock`.
+
+Rollback if final pnpm check fails: re-acquire lock + revert state to 'deployed' + surface error.
+
+### Cost across modes
+
+| Mode | Phase 8 LLM cost |
+|---|---|
+| `create` | $0.30-0.50 (full retrospective) |
+| `fix` | $0.05 (CHANGELOG entry only) |
+| `extend` | $0.20 (light retrospective + archive) |
+| `revise` | $0.30-0.50 (full retrospective) |
+| `tune` | $0.02 (registry edit only) |
+| `deprecate` | $0.20 (deprecation retrospective + cleanup) |
+
 ---
 
-**End of CLA workflow.** Capability is now `operating`. Future enhancements go through their own CLA cycle (or a `<id>-v2` extension capability).
+**End of CLA workflow.** Capability is now `operating` (or `deprecated` for deprecate mode). Future enhancements go through their own CLA cycle: `/cla fix/extend/revise/tune` for evolution OR `/cla propose <id>-v2` for radical extensions.

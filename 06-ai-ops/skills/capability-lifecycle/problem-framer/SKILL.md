@@ -182,6 +182,21 @@ Tier A. Auto-advance unless founder cancels or replies "stop" / "rethink".
 - `tests/cla/fixtures/problem-framer-input-vague.json` — vague input, abort expected.
 - `tests/cla/fixtures/problem-framer-slug-collision.json` — slug exists deployed; extension prompt expected.
 
+## Mode awareness (v1.1 — `cla-update-mechanism`)
+
+This skill is invoked by `/cla propose` (mode=`create`, the v1.0 path) AND by all 5 update sub-flows (`/cla fix/extend/revise/tune/deprecate`). The orchestrator passes `mode` via `state_payload.update_mode` at Phase 0; this skill reads it and adapts its Process.
+
+| Mode | Skill behavior |
+|---|---|
+| `create` (default) | Full Process Steps 1-8 above. Generates 5-7 clarifying questions. Output: `.archives/cla/<id>/problem.md` |
+| `fix` | Skip Steps 1, 3, 5 (no slug gen, no clarifying questions, no assumptions). Read existing `wiki/capabilities/<id>/problem.md` + `spec.md`. Produce focused `fix-description.md` with: what's broken, root cause hypothesis, fix scope. ABORT if scope appears to require spec change. Output: `.archives/cla/<id>-fix-<session_id>/fix-description.md` |
+| `extend` | Skip Step 5 assumption surfacing (carry from existing). Generate 3-5 clarifying questions ONLY about the extension delta (not full re-framing). Output: `.archives/cla/<id>-extend-<session_id>/extension-description.md` |
+| `revise` | Read existing problem.md + spec.md. Generate 5-7 clarifying questions specific to architecture concerns ("what fundamentally changes? what's preserved? minimum viable revision?"). Output: `.archives/cla/<id>-revise-<session_id>/revision-problem.md` |
+| `tune` | Parse founder description into structured `tune-spec.md`: which KPI(s), old value(s), new value(s), reason. NO clarifying questions (tune small enough to fit in 1 description). Output: `.archives/cla/<id>-tune-<session_id>/tune-spec.md` |
+| `deprecate` | Capture deprecation rationale: why now, migration path for users, data handling. Single output `deprecation-rationale.md` becomes part of retrospective. NO clarifying questions (rationale is short). Output: `.archives/cla/<id>-deprecate-<session_id>/deprecation-rationale.md` |
+
+**Common across modes:** Phase 0 lock acquisition + lineage row INSERT happens BEFORE this skill runs (in the orchestrator). This skill assumes the row exists with `state_payload.update_mode` set.
+
 ---
 
-**Next phase invokes:** `domain-analyst` (Phase 2).
+**Next phase invokes:** `domain-analyst` (Phase 2) — only in `create` mode. Update sub-flows skip Phase 2 (domain inherited from parent capability).

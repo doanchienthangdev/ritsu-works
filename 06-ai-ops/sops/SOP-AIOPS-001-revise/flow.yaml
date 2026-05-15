@@ -1,0 +1,247 @@
+# ============================================================================
+# SOP-AIOPS-001-revise: /cla revise <id> — architecture revision sub-flow
+# ============================================================================
+# Heaviest update sub-flow. Re-runs full Phase 4 (options) + 5 (architect +
+# @cto + Muse panel) + 6 + 7 + 8. Bumps major version. Used when fundamental
+# architecture changes (e.g., re-platforming, swapping core dependency).
+#
+# HITL: C ceremony required. Multi-session expected.
+# See: .archives/cla/cla-update-mechanism/spec.md §4.2
+# ============================================================================
+
+id: SOP-AIOPS-001-revise
+version: 1.0.0
+title: "/cla revise — capability architecture revision sub-flow"
+description: "Heavy-weight workflow for architecture revision. Full ceremony (@cto + Muse panel + Tier C). Major version bump. Multi-session."
+pillar: 06-ai-ops
+parent_sop: SOP-AIOPS-001-capability-lifecycle
+update_mode: revise
+
+trigger:
+  kinds:
+    - cla_command_revise
+  filter:
+    target_capability_state_in: [operating, deployed]
+
+initial_capability_run_state: implementing
+initial_phase: 1
+update_mode_payload: '{"update_mode": "revise"}'
+
+drift_gates: [0, 3, 5, 7, 8]
+cxo_routing:
+  phase: 5
+  source: knowledge/cla-routing-keywords.yaml
+  cto_review: required
+  muse_panel: high-stakes-decision-panel
+
+cost_estimate:
+  llm_cost_per_run_usd: 4.00  # ~$3-5 range
+  founder_time_hours_per_run: 8  # spans 1-2 weeks
+
+steps:
+  - id: phase-0-preflight-revise
+    phase: 0
+    description: "Pre-flight + lock + lineage row. update_mode='revise'."
+    inputs:
+      target_capability_id: $.trigger.payload.capability_id
+      revision_description: $.trigger.payload.description
+    outputs:
+      - row: ops.capability_runs
+      - lock_acquired: true
+    state_transition: (none → implementing)
+    hitl: tier_a
+    drift_check: required
+    timeout_minutes: 5
+
+  - id: phase-1-delta-revise
+    phase: 1
+    skill: capability-lifecycle/problem-framer
+    skill_mode: revise
+    description: |
+      Delta problem framing for architecture revision. Reads existing
+      problem.md + spec.md. Asks: what fundamentally needs to change?
+      What's preserved? What's the minimum viable revision?
+      Surfaces 5-7 clarifying questions specific to architecture concerns.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      revision_description: $.trigger.payload.description
+      existing_problem_path: wiki/capabilities/{capability_id}/problem.md
+      existing_spec_path: wiki/capabilities/{capability_id}/spec.md
+    outputs:
+      - artifact: .archives/cla/{capability_id}-revise-{session_id}/revision-problem.md
+    state_transition: implementing (continued)
+    hitl: tier_a
+    timeout_minutes: 60
+
+  - id: phase-3-inventory-deps-revise
+    phase: 3
+    skill: capability-lifecycle/system-inventory-scanner
+    skill_mode: revise
+    description: |
+      Full system inventory + dependency-scanner. CRITICAL for revisions
+      since downstream impact is potentially large.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      revision_problem_path: .archives/cla/{capability_id}-revise-{session_id}/revision-problem.md
+    outputs:
+      - artifact: .archives/cla/{capability_id}-revise-{session_id}/revision-gap-analysis.md
+      - artifact: .archives/cla/{capability_id}-revise-{session_id}/dependency-impact.md
+    state_transition: implementing (continued)
+    hitl: tier_a
+    drift_check: informational
+    timeout_minutes: 30
+
+  - id: phase-4-options-revise
+    phase: 4
+    skill: capability-lifecycle/options-generator
+    skill_mode: revise
+    description: |
+      Full options generation (3-5 alternatives). Each option includes
+      migration strategy from current architecture. Cabinet polled per
+      v1.0 pattern (top-2 options × max-3 chiefs).
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      revision_artifacts: .archives/cla/{capability_id}-revise-{session_id}/
+    outputs:
+      - artifact: .archives/cla/{capability_id}-revise-{session_id}/revision-options.md
+    state_transition: implementing (continued)
+    hitl: tier_b  # founder picks option
+    timeout_minutes: 90
+
+  - id: phase-5-architect-revise
+    phase: 5
+    skill: capability-lifecycle/architect
+    skill_mode: revise
+    description: |
+      Full architect skill (per v1.0 Phase 5). Per-Bài-toán impact analysis,
+      spec.md generation, draft folder, dry-run pnpm check, @cto sanity
+      review, Muse high-stakes-decision-panel, ops.decisions Tier C row.
+      ALWAYS Tier C — revisions cannot be Tier B (per design).
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      selected_option_id: $.hitl.phase-4-options-revise.selected_option_id
+      revision_artifacts: .archives/cla/{capability_id}-revise-{session_id}/
+    outputs:
+      - artifact: .archives/cla/{capability_id}-revise-{session_id}/spec.md
+      - artifact: .archives/cla/{capability_id}-revise-{session_id}/draft/
+    state_transition: implementing (continued)
+    hitl: tier_c  # mandatory full ceremony
+    drift_check: dry_run
+    decision_persona_panel: high-stakes-decision-panel
+    timeout_minutes: 120
+
+  - id: phase-6-sprint-revise
+    phase: 6
+    skill: capability-lifecycle/sprint-planner
+    skill_mode: revise
+    description: "Multi-sprint plan (revise is multi-week)."
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      spec_path: .archives/cla/{capability_id}-revise-{session_id}/spec.md
+    outputs:
+      - artifact: .archives/cla/{capability_id}-revise-{session_id}/sprint-plan.md
+    state_transition: implementing (continued)
+    hitl: tier_b
+    timeout_minutes: 45
+
+  - id: phase-7-impl-revise
+    phase: 7
+    skill: capability-lifecycle/implementation-coordinator
+    skill_mode: revise
+    description: |
+      Multi-sprint multi-PR implementation. Includes migration strategy
+      from old architecture to new. May include feature flag for canary.
+      Multi-session resilient.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      sprint_plan_path: .archives/cla/{capability_id}-revise-{session_id}/sprint-plan.md
+    outputs:
+      - artifact: PRs in git history
+      - artifact: ops.events trail
+    state_transition: implementing → deployed
+    hitl: tier_b  # per PR
+    drift_check: per_commit
+    timeout_weeks: 2  # revise typically 1-2 weeks
+
+  - id: phase-8-revise
+    phase: 8
+    skill: capability-lifecycle/catalog-updater
+    skill_mode: revise
+    description: |
+      Major catalog update for revision:
+      1. Bump version: major++ (1.0.0 → 2.0.0)
+      2. Archive prior wiki/capabilities/<id>/spec.md → spec-v<prior>.md
+      3. Promote new spec.md
+      4. Generate retrospective.md (revisions warrant full retro)
+      5. Promote retrospective.md
+      6. Update CATALOG.md with new version
+      7. Update knowledge/capability-registry.yaml
+      8. Append boilerplate-extractable patterns
+      9. Release lock
+      10. State: deployed → operating
+      11. Mark prior row 'superseded'
+      12. Final pnpm check
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      session_id: $.trigger.payload.session_id
+    outputs:
+      - artifact: wiki/capabilities/{capability_id}/spec.md (major version)
+      - artifact: wiki/capabilities/{capability_id}/spec-v<prior>.md
+      - artifact: wiki/capabilities/{capability_id}/retrospective-v<X.Y.Z>.md
+      - artifact: wiki/capabilities/{capability_id}/CHANGELOG.md
+      - artifact: wiki/capabilities/CATALOG.md
+      - artifact: knowledge/capability-registry.yaml
+      - lock_released: true
+    state_transition: deployed → operating
+    hitl: tier_a
+    drift_check: required
+    timeout_minutes: 30
+
+acceptance_criteria:
+  - All 7 sub-phases complete (Phase 0, 1, 3, 4, 5, 6, 7, 8)
+  - Tier C ceremony completed at Phase 5 with @cto + Muse + ops.decisions row
+  - Major version bump in registry
+  - spec.md promoted; prior version archived
+  - retrospective.md written + promoted
+  - All sprint PRs merged
+  - Lock released, prior row superseded
+  - pnpm check clean post-Phase 8
+
+failure_handling:
+  lock_held:
+    detection: "ops.capability_acquire_update_lock returns NULL"
+    response: "Surface LockHeld + held-by + age. Wait or /cla force-unlock."
+  founder_rejects_phase_4:
+    detection: "Tier B option pick returns 'iterate' or 'reject'"
+    response: "Iterate options OR abort + release lock + new row 'deprecated'."
+  founder_rejects_phase_5:
+    detection: "Tier C ceremony returns 'reject'"
+    response: "Roll back to Phase 4 OR abort + release lock + new row 'deprecated'. Original capability stays operating with old spec."
+  cto_blocks_2x:
+    detection: "@cto returns BLOCK on 2 consecutive Phase 5 iterations"
+    response: "Escalate to founder. Manual review required."
+  pnpm_check_fails:
+    detection: "Phase 8 final check fails"
+    response: "Hold at 'deployed'. Lock stays. Founder fixes drift, re-runs Phase 8."
+
+integrates_with:
+  - bài: 2
+    integration: "HITL Tier C at Phase 5 — full ceremony per HITL.md"
+  - bài: 7
+    integration: "Cost-bucket: same as parent. Revise is most expensive sub-flow ~$3-5."
+  - bài: 13
+    integration: "Lineage: NEW row supersedes prior; major version delta marks the boundary"
+  - bài: 14
+    integration: "Dependency-scanner critical for revisions — surface impact on dependents"
+  - bài: 15
+    integration: "Phase 5 writes ops.decisions Tier C row with payload"
+  - bài: 20
+    integration: "Sub-flow of CLA evolution"
+
+audit:
+  every_phase_logs:
+    - ops.events: "ritsu.capability.revise_{phase}_completed"
+    - ops.capability_phase_events
+    - ops.capability_runs: state update
+    - ops.cost_attributions: parent capability bucket
+    - ops.decisions: Phase 5 Tier C row

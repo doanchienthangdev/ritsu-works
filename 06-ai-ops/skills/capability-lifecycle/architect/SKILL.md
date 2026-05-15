@@ -181,6 +181,30 @@ If founder rejects, set `state_payload.last_rejection = jsonb_build_object('phas
 - `tests/cla/fixtures/architect-cto-block.json` — @cto returns BLOCK, expects iteration.
 - `tests/cla/fixtures/architect-dry-run-fail.json` — dry-run pnpm check fails, expects surfaced flag.
 
+## Mode awareness (v1.1 — `cla-update-mechanism`)
+
+| Mode | Skill behavior |
+|---|---|
+| `create` (default) | Full Process Steps 1-10 above (per-Bài-toán impact + spec.md + draft + dry-run + @cto + Muse + Tier C). Output: `.archives/cla/<id>/spec.md` + draft folder. |
+| `fix` | **Not invoked.** Fix has no spec change; if it does, sub-flow aborts and redirects to extend/revise. |
+| `extend` | **Delta mode.** Read existing `wiki/capabilities/<id>/spec.md`. Generate new spec.md as a DIFF + classify diff size. If `>20% lines change` OR any Section 4 component added/removed → escalate to Tier C (full ceremony with @cto + Muse panel). Else Tier B sufficient. Output: `.archives/cla/<id>-extend-<session_id>/spec.md` + `spec-diff.md` + draft folder. |
+| `revise` | Full Process Steps 1-10 (always Tier C — no auto-escalation needed because revise IS the Tier C path). Includes migration strategy from current architecture in the spec. Output: `.archives/cla/<id>-revise-<session_id>/spec.md` + draft folder. |
+| `tune` | **Not invoked.** Tune is registry edit only. |
+| `deprecate` | **Not invoked.** No new spec needed; deprecation rationale captured in Phase 1 instead. |
+
+**Diff preview helper (cherry-pick #4):** in `extend` and `revise` modes, BEFORE writing the new spec.md, generate a unified diff showing prior version vs. proposed. Founder sees the diff inline during Tier C ceremony — much higher decision quality than prose-only summary.
+
+```bash
+# implementation hint:
+diff -u wiki/capabilities/<id>/spec.md /tmp/proposed-spec.md > .archives/cla/<id>-{mode}-{session_id}/spec-diff.md
+```
+
+**`@cto` review:** invoked in `extend` (if escalated) and `revise` modes. Reviews migrations + tier1-diffs + spec change. Verdict: APPROVE | NITS | BLOCK. BLOCK 2x → escalate to founder for redesign.
+
+**Muse panel:** invoked in `revise` mode (always). In `extend` mode (only if escalated to Tier C). Panel: `high-stakes-decision-panel`.
+
+**`ops.decisions` row:** written in `revise` (always Tier C) and `extend` (if escalated). Captures the decision for audit trail.
+
 ---
 
-**Next phase invokes:** `sprint-planner` (Phase 6).
+**Next phase invokes:** `sprint-planner` (Phase 6) in `create`, `extend`, `revise` modes.
