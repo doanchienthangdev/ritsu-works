@@ -141,10 +141,11 @@ escalation_role: founder
 ```yaml
 role: growth-orchestrator
 purpose: Plan and execute SEO content, social, email outreach, partnerships, ads. Track funnel.
-home_pillar: 01-growth
+home_pillars: [01-marketing, 02-sales]    # Updated v1.0.1 (was: 01-growth; split per pillar architecture)
 permissions:
   tier1_paths:
-    - "01-growth/**"
+    - "01-marketing/**"
+    - "02-sales/**"
     - "wiki/competitors/**"
     - "wiki/market/**"
     - ".archives/**"
@@ -199,10 +200,10 @@ escalation_role: gps
 ```yaml
 role: support-agent
 purpose: Handle FAQ-categorized support tickets. Triage and tag non-FAQ for human or escalation.
-home_pillar: 03-delivery
+home_pillar: 05-customer/03-support     # Updated v1.0.1 (was: 03-delivery)
 permissions:
   tier1_paths:
-    - "03-delivery/**"     # PR-only as always
+    - "05-customer/03-support/**"        # PR-only as always
     - "wiki/customer/**"
     - ".archives/**"
   tier2_schemas_read:
@@ -284,7 +285,7 @@ escalation_role: gps
 ```yaml
 role: code-reviewer
 purpose: Review PRs in this repo and the product repo. Suggest changes, flag risks. NEVER merges.
-home_pillar: 05-ai-ops
+home_pillar: 06-ai-ops    # Updated v1.0.1 (was: 05-ai-ops)
 permissions:
   tier1_paths: []        # read-only across the repo
   tier2_schemas_read:
@@ -313,7 +314,7 @@ escalation_role: gps
 ```yaml
 role: etl-runner
 purpose: Run scheduled ETL jobs that move data between tiers. Read product, write ops mirror, rebuild embeddings.
-home_pillar: 05-ai-ops (cross-cutting infra)
+home_pillar: 06-ai-ops (cross-cutting infra)    # Updated v1.0.1 (was: 05-ai-ops)
 permissions:
   tier1_paths: []
   tier2_schemas_read:
@@ -357,10 +358,10 @@ escalation_role: gps
 ```yaml
 role: trust-safety
 purpose: Review user-flagged content, DMCA notices, ToS violations, hallucination reports. Apply policy.
-home_pillar: 06-trust-safety
+home_pillar: 07-trust-safety    # Updated v1.0.1 (was: 06-trust-safety)
 permissions:
   tier1_paths:
-    - "06-trust-safety/**"      # PR-only as always
+    - "07-trust-safety/**"      # PR-only as always
     - "wiki/customer/**"
     - ".archives/**"
   tier2_schemas_read:
@@ -402,10 +403,10 @@ escalation_role: founder    # NOT gps; T&S goes direct
 ```yaml
 role: backoffice-clerk
 purpose: Categorize transactions, draft invoices, prepare tax filings (Vietnam-specific), manage SaaS subscriptions.
-home_pillar: 04-backoffice
+home_pillar: 08-finance    # Updated v1.0.1 (was: 04-backoffice; pillar renamed)
 permissions:
   tier1_paths:
-    - "04-backoffice/**"        # PR-only
+    - "08-finance/**"           # PR-only
     - ".archives/**"
   tier2_schemas_read:
     - ops.*
@@ -590,6 +591,219 @@ Budgets reset on the 1st of each month at 00:00 UTC.
 For ad-hoc legitimate spikes (launch event, content campaign), founder may pre-raise the cap via Tier C PR before the spike starts. This is preferred over reactive approvals during the spike.
 
 The 30-day calibration period (post-v1.0 launch) sets enforcement to alert-only initially. Full 3-tier enforcement activates day 14. See `knowledge/economic-architecture.md` "30-day calibration discipline" for the exact schedule.
+
+## v1.0.1 pillar architecture roles (added 2026-05-15)
+
+Added per pillar architecture v1.0.1 restructure (`.archives/pillars/PLAN.md`). Detailed role definitions and full permissions matrices to be authored as each pillar's first SOPs land. These stubs establish the role contract.
+
+### `cofounder` (the second human role)
+
+```yaml
+role: cofounder
+purpose: Co-equal operator alongside founder. Same permissions as founder for all pillars.
+home_pillar: cross-cutting
+permissions:
+  tier1_paths: ["**"]
+  tier2_schemas_read: "*"
+  tier2_schemas_write: "*"
+  tier3_buckets: "*"
+  tier4_namespaces: "*"
+  mcp_servers: "*"
+  skills: "*"
+  secrets: "*"
+hitl_max_tier: D-MAX        # Per CEO Finding 8: cofounder is co-equal founder
+budget: unlimited
+escalation_role: founder    # for tie-breaks when both online
+```
+
+> **HITL note:** Either founder OR cofounder may issue Tier C/D-Std overrides. D-MAX requires both magic phrase AND PR `/founder-approved-irreversible` from either GitHub account, plus the standard 1-hour cooldown.
+
+### `gtm-orchestrator` (NEW v1.0.1)
+
+```yaml
+role: gtm-orchestrator
+purpose: Drive customer funnel orchestration toward "100 paying who love" (PMF goal). Compose Marketing+Sales+Product+Customer modules.
+home_pillar: 03-gtm
+permissions:
+  tier1_paths: ["03-gtm/**", "wiki/competitors/**", ".archives/**"]
+  tier2_schemas_read: [ops.*, metrics.*]
+  tier2_schemas_write: [ops.campaigns, ops.tasks, ops.agent_runs]
+hitl_max_tier: C            # public posts + multi-recipient sends gate at C
+escalation_role: founder
+```
+
+### `product-orchestrator` (NEW v1.0.1)
+
+```yaml
+role: product-orchestrator
+purpose: Own weekly product review, feature prioritization, wedge-discovery audits. Drives 04-product/.
+home_pillar: 04-product
+permissions:
+  tier1_paths: ["04-product/**", ".archives/**"]
+  tier2_schemas_read: [ops.*, metrics.product_dau_snapshot]
+  tier2_schemas_write: [ops.tasks, ops.agent_runs]
+hitl_max_tier: C
+escalation_role: gps
+```
+
+### `customer-lead` (NEW v1.0.1)
+
+```yaml
+role: customer-lead
+purpose: Own weekly customer health review across success/onboarding/support/retention/feedback. Drives 05-customer/.
+home_pillar: 05-customer
+permissions:
+  tier1_paths: ["05-customer/**", "wiki/customer/**", ".archives/**"]
+  tier2_schemas_read: [ops.*, metrics.product_dau_snapshot, public.mv_customer_360]
+  tier2_schemas_write: [ops.tasks, ops.agent_runs]
+hitl_max_tier: C
+escalation_role: gps
+```
+
+### `cs-coach` (NEW v1.0.1)
+
+```yaml
+role: cs-coach
+purpose: Activation funnel ownership — surfaces stuck users, runs Collison install protocol, codifies onboarding scripts.
+home_pillar: 05-customer/01-success
+permissions:
+  tier1_paths: ["05-customer/01-success/**", "05-customer/02-onboarding/**", ".archives/**"]
+  tier2_schemas_read: [ops.*, metrics.product_dau_snapshot]
+  tier2_schemas_write: [ops.tasks, ops.agent_runs]
+hitl_max_tier: B            # routine outreach = B; new onboarding script = C
+escalation_role: customer-lead
+```
+
+### `retention-watcher` (NEW v1.0.1)
+
+```yaml
+role: retention-watcher
+purpose: Monitor silence-after-activation; trigger reactivation flows; escalate at-risk cohorts.
+home_pillar: 05-customer/04-retention
+permissions:
+  tier1_paths: ["05-customer/04-retention/**", ".archives/**"]
+  tier2_schemas_read: [ops.*, metrics.product_dau_snapshot]
+  tier2_schemas_write: [ops.tasks, ops.agent_runs]
+hitl_max_tier: B
+escalation_role: customer-lead
+```
+
+### `escalation-router` (NEW v1.0.1)
+
+```yaml
+role: escalation-router
+purpose: Decide which support tickets reach founder vs which stay in AI handling. Implements escalation criteria from SOP-CUSTOMER-012.
+home_pillar: 05-customer/03-support
+permissions:
+  tier1_paths: ["05-customer/03-support/**", ".archives/**"]
+  tier2_schemas_read: [ops.*]
+  tier2_schemas_write: [ops.tasks, ops.support_tickets, ops.agent_runs]
+hitl_max_tier: A            # routing decisions are reversible
+escalation_role: customer-lead
+```
+
+### `feedback-aggregator` (NEW v1.0.1)
+
+```yaml
+role: feedback-aggregator
+purpose: Pull NPS, cancel-flow feedback, user interviews, social mentions into product feedback pipeline.
+home_pillar: 05-customer/05-feedback-and-research
+permissions:
+  tier1_paths: ["05-customer/05-feedback-and-research/**", ".archives/**"]
+  tier2_schemas_read: [ops.*]
+  tier2_schemas_write: [ops.tasks, ops.agent_runs]
+hitl_max_tier: A
+escalation_role: customer-lead
+```
+
+### `founder-coach` (NEW v1.0.1)
+
+```yaml
+role: founder-coach
+purpose: Surface top-idea drift in founder's attention, prompt weekly review, run Nile Perch detection.
+home_pillar: 09-founder/01-cognition
+permissions:
+  tier1_paths: ["09-founder/**", ".archives/**"]
+  tier2_schemas_read: [ops.*, ops.attention_log]
+  tier2_schemas_write: [ops.attention_log, ops.tasks, ops.agent_runs]
+hitl_max_tier: A
+escalation_role: founder
+```
+
+### `hitl-router` (NEW v1.0.1)
+
+```yaml
+role: hitl-router
+purpose: Telegram bot logic for tier B/C/D approvals. Routes messages, validates magic-phrase format, enforces D-MAX cooldown.
+home_pillar: 09-founder/03-hitl-flow
+permissions:
+  tier1_paths: ["09-founder/03-hitl-flow/**", ".archives/**"]
+  tier2_schemas_read: [ops.*]
+  tier2_schemas_write: [ops.hitl_runs, ops.agent_runs]
+hitl_max_tier: A            # the router itself routes; it doesn't authorize
+escalation_role: founder
+```
+
+### `health-tracker` (NEW v1.0.1)
+
+```yaml
+role: health-tracker
+purpose: Weekly founder energy tracking, mandatory rest enforcement, burnout early-warning. 1-person company = 1-person SPOF.
+home_pillar: 09-founder/05-health
+permissions:
+  tier1_paths: ["09-founder/05-health/**", ".archives/**"]
+  tier2_schemas_read: [ops.*, ops.attention_log]
+  tier2_schemas_write: [ops.tasks, ops.agent_runs]
+hitl_max_tier: A
+escalation_role: founder
+```
+
+### `metrics-curator` (NEW v1.0.1)
+
+```yaml
+role: metrics-curator
+purpose: Own KPI registry, weekly dashboard refresh, KPI ownership map (knowledge/kpi-ownership.yaml).
+home_pillar: 10-metrics/01-kpi-registry
+permissions:
+  tier1_paths: ["10-metrics/**", "knowledge/kpi-ownership.yaml", ".archives/**"]
+  tier2_schemas_read: [ops.*, metrics.*]
+  tier2_schemas_write: [ops.kpi_snapshots, ops.tasks, ops.agent_runs]
+hitl_max_tier: B            # routine dashboards = B; new alert rule = C
+escalation_role: founder
+```
+
+### `alert-router` (NEW v1.0.1)
+
+```yaml
+role: alert-router
+purpose: Receive ops.alerts rows, route per knowledge/alert-rules.yaml severity. P0 → Telegram immediate; P1 → daily digest.
+home_pillar: 10-metrics/04-alerting
+permissions:
+  tier1_paths: ["10-metrics/04-alerting/**", "knowledge/alert-rules.yaml", ".archives/**"]
+  tier2_schemas_read: [ops.alerts, ops.kpi_snapshots]
+  tier2_schemas_write: [ops.alerts (state transitions), ops.agent_runs]
+  mcp_servers: [telegram (send to founder)]
+hitl_max_tier: A
+escalation_role: metrics-curator
+```
+
+### `experiment-analyst` (NEW v1.0.1)
+
+```yaml
+role: experiment-analyst
+purpose: Analyze A/B experiments — significance + lift calculation, stop-and-decide protocol. Called by Product/GTM.
+home_pillar: 10-metrics/05-experiment-measurement
+permissions:
+  tier1_paths: ["10-metrics/05-experiment-measurement/**", ".archives/**"]
+  tier2_schemas_read: [ops.*, metrics.*]
+  tier2_schemas_write: [ops.tasks, ops.agent_runs]
+hitl_max_tier: B
+escalation_role: metrics-curator
+```
+
+> **Default permission posture for new roles (per CEO review Finding 6):** read-only across pillar boundaries; explicit write only to own pillar's `ops.*` tables. Cross-pillar writes require explicit grant in role definition above (eg metrics-curator writes to `ops.kpi_snapshots` because that IS the metrics pillar's domain table).
+
+---
 
 ## What this file is NOT
 

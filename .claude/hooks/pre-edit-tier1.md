@@ -103,7 +103,7 @@ This hook never mutates payloads. Always allow/block/escalate.
 | 9 | Edit `knowledge/schemas/agent_runs.sql` | escalate |
 | 10 | Edit `.claude/hooks/pre-edit-tier1.md` (this file) | escalate |
 | 11 | Edit `.claude/agents/gps.md` | escalate |
-| 12 | Edit `01-growth/SOP-GROWTH-001/playbook.md` | escalate |
+| 12 | Edit `03-gtm/sops/SOP-GTM-001-icp-discovery-from-2-cofounders/playbook.md` | escalate |
 | 13 | Edit `skills/blog-post-drafting/SKILL.md` | escalate |
 | 14 | Edit `mcp/servers.yaml` | escalate |
 | 15 | MultiEdit covering both `wiki/foo.md` and `governance/HITL.md` | block (the strict one wins) |

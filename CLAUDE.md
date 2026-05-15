@@ -11,7 +11,7 @@ For canonical product description, full governance, and detailed structure, see 
 
 ## What this repo is and is not
 
-`ritsu-works` is **not** the Ritsu product codebase. The product (the tutor users use) lives in a separate repo backed by Product Supabase project `ritsu`. This repo is the **AI workforce that operates the company around the product**: marketing, sales, content, customer success, finance, compliance, AI-Ops itself.
+`ritsu-works` is **not** the Ritsu product codebase. The product (the tutor users use) lives in a separate repo backed by Product Supabase project `ritsu`. This repo is the **AI workforce that operates the company around the product**: marketing, sales, GTM, product-ops, customer, AI-ops, trust-safety, finance, founder-ops, metrics.
 
 Two things are fully isolated and must stay that way:
 
@@ -56,7 +56,9 @@ Always read `knowledge/manifest.yaml` before assuming where data lives. Do not i
 
 ## Path-scoped guidance
 
-When you navigate into a pillar (`01-growth/`, `02-product/`, etc.), Claude Code will auto-load that pillar's `README.md` and `CLAUDE.md` if present. Pillar-specific behavior lives there, not here. Do not bloat this file with per-pillar rules.
+When you navigate into a pillar (`00-charter/`, `01-marketing/`, `02-sales/`, `03-gtm/`, `04-product/`, `05-customer/`, `06-ai-ops/`, `07-trust-safety/`, `08-finance/`, `09-founder/`, `10-metrics/`), Claude Code will auto-load that pillar's `README.md` and `CLAUDE.md` if present. Pillar-specific behavior lives there, not here. Do not bloat this file with per-pillar rules.
+
+Pillar architecture: 10 evergreen functional pillars + 1 stage composition pillar (`03-gtm`, dissolves on PMF). Stage pillars compose modules from evergreen pillars to drive a stage-specific outcome. See `.archives/pillars/PLAN.md` (local-only) for the full architecture rationale.
 
 When you invoke a skill, full `SKILL.md` loads on-demand. Skill metadata (frontmatter) is what Claude sees during discovery — write descriptions that are specific enough to trigger correctly.
 

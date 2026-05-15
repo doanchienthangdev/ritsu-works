@@ -1,0 +1,171 @@
+# JSONSchema (in YAML) for every SOP flow.yaml in this repo.
+# Validated by SOP-AIOPS-004-flow-yaml-smoke-test on every PR.
+# Conforms to JSONSchema Draft 2020-12.
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://ritsu.ai/schemas/sop-flow.yaml"
+title: "SOP Flow Definition"
+description: "Canonical schema for every SOP flow.yaml. See SOP-AIOPS-003 README for full contract."
+type: object
+
+required:
+  - name
+  - version
+  - owner_pillar
+  - owner_role
+  - trigger
+  - inputs
+  - outputs
+  - steps
+  - hitl_tier
+  - cost_estimate
+  - idempotent
+  - partial_idempotent
+  - rollback
+
+properties:
+  name:
+    type: string
+    description: SOP name in form SOP-<PILLAR_CODE>-<NNN>-<slug>, matches the SOP directory name. Slug may start with digit (eg "100-paying"). Slug is all lowercase.
+    pattern: "^SOP-[A-Z]+-[0-9]{3,}-[a-z0-9][a-z0-9-]*[a-z0-9]$"
+
+  version:
+    type: string
+    description: Semver string
+    pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-z0-9.]+)?$"
+
+  owner_pillar:
+    type: string
+    description: Pillar id from manifest.yaml tier1_canonical.pillars
+    enum: [charter, marketing, sales, gtm, product, customer, ai_ops, trust_safety, finance, founder, metrics]
+
+  owner_role:
+    type: string
+    description: Role slug from governance/ROLES.md
+    pattern: "^[a-z][a-z-]+[a-z]$"
+
+  trigger:
+    type: string
+    enum: [cron, event, manual, manual_gate, api]
+
+  cron_schedule:
+    type: string
+    description: "Required if trigger=cron. Standard 5-field cron expression. Example: '0 9 * * MON' = every Monday at 09:00"
+    pattern: "^[\\d\\*\\,\\-\\/]+ [\\d\\*\\,\\-\\/]+ [\\d\\*\\,\\-\\/]+ [\\d\\*\\,\\-\\/A-Za-z]+ [\\d\\*\\,\\-\\/A-Za-z]+$"
+
+  event_filter:
+    type: object
+    description: "Required if trigger=event. Filter against ops.events rows."
+    properties:
+      event_type:
+        type: string
+      payload_match:
+        type: object
+
+  inputs:
+    type: object
+    description: "Typed input schema. Empty object if SOP takes no inputs."
+    additionalProperties:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [string, number, boolean, object, array, "null"]
+        required:
+          type: boolean
+        description:
+          type: string
+
+  outputs:
+    type: object
+    description: "Typed output schema. Empty object if SOP returns nothing."
+    additionalProperties:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [string, number, boolean, object, array, "null"]
+        description:
+          type: string
+
+  steps:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      required: [id, type]
+      properties:
+        id:
+          type: string
+          description: Step identifier, unique within this SOP
+        type:
+          type: string
+          enum: [llm_call, tool_call, subprocess, human_approval, db_write]
+        description:
+          type: string
+        cost_estimate:
+          type: number
+          description: USD estimate for this step. Sum of step estimates ≤ flow cost_estimate.
+        retry:
+          type: object
+          properties:
+            max_attempts:
+              type: integer
+              minimum: 1
+              maximum: 5
+            backoff:
+              type: string
+              enum: [linear, exponential]
+
+  hitl_tier:
+    type: string
+    enum: [A, B, C, D-Std, D-MAX]
+    description: Per governance/HITL.md classification
+
+  cost_estimate:
+    type: number
+    description: USD ceiling per run; budget gate fails if estimated cost exceeds
+    minimum: 0
+
+  idempotent:
+    type: boolean
+    description: True iff running this SOP multiple times with same inputs produces same outputs and no side-effect divergence
+
+  partial_idempotent:
+    type: boolean
+    description: True iff SOP is idempotent at the SOP level but individual steps may have side effects on retry. Affects error recovery strategy.
+
+  rollback:
+    type: string
+    enum: [none, automatic, manual_runbook]
+
+  rollback_steps:
+    type: array
+    description: Required if rollback=automatic. Defined inverse operations.
+    items:
+      type: object
+
+# Conditional requirements
+allOf:
+  - if:
+      properties:
+        trigger:
+          const: cron
+    then:
+      required: [cron_schedule]
+
+  - if:
+      properties:
+        trigger:
+          const: event
+    then:
+      required: [event_filter]
+
+  - if:
+      properties:
+        rollback:
+          const: automatic
+    then:
+      required: [rollback_steps]
+
+additionalProperties: false

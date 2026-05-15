@@ -1,0 +1,58 @@
+# Example: api-triggered SOP — invoked via HTTP from Edge Function or external system
+# Use case: Stripe webhook → fire SOP that records the event in ops.events
+
+name: SOP-EXAMPLE-005-stripe-webhook-receiver
+version: 1.0.0
+owner_pillar: finance
+owner_role: backoffice-clerk
+trigger: api
+
+inputs:
+  event_id:
+    type: string
+    required: true
+    description: Stripe event ID (idempotency key)
+  event_type:
+    type: string
+    required: true
+  payload:
+    type: object
+    required: true
+
+outputs:
+  recorded:
+    type: boolean
+  event_row_id:
+    type: string
+
+steps:
+  - id: validate_signature
+    type: subprocess
+    description: Verify Stripe webhook HMAC signature
+    cost_estimate: 0
+
+  - id: dedupe_check
+    type: tool_call
+    description: Check if event_id already exists in ops.events (Stripe webhooks may fire twice)
+    cost_estimate: 0.001
+
+  - id: record_event
+    type: db_write
+    description: INSERT INTO ops.events (event_type, payload, source) VALUES (...)
+    cost_estimate: 0.001
+
+  - id: respond_200
+    type: subprocess
+    description: Return HTTP 200 to Stripe so it doesn't retry
+    cost_estimate: 0
+
+hitl_tier: A    # event recording is reversible (delete row); no money moves here
+cost_estimate: 0.005
+idempotent: true        # dedupe_check ensures same event_id can't be recorded twice
+partial_idempotent: true
+rollback: automatic
+rollback_steps:
+  - id: delete_row_by_event_id
+    type: db_write
+    description: DELETE FROM ops.events WHERE event_id = inputs.event_id
+    cost_estimate: 0.001

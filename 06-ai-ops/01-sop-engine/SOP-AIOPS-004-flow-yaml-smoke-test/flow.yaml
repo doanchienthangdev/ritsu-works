@@ -1,0 +1,33 @@
+# This SOP is the smoke test that validates all OTHER SOPs.
+# It validates ITSELF too (this file conforms to flow-schema.yaml).
+
+name: SOP-AIOPS-004-flow-yaml-smoke-test
+version: 1.0.0
+owner_pillar: ai_ops
+owner_role: aiops-engineer
+trigger: manual
+
+inputs: {}
+
+outputs:
+  pass_count:
+    type: number
+    description: Number of flow.yaml files that passed
+  fail_count:
+    type: number
+    description: Number of flow.yaml files that failed
+  failed_files:
+    type: array
+    description: Paths to failed flow.yaml files
+
+steps:
+  - id: invoke_validator
+    type: subprocess
+    description: Run validate.sh from SOP-AIOPS-003 across every flow.yaml in repo
+    cost_estimate: 0
+
+hitl_tier: A
+cost_estimate: 0
+idempotent: true
+partial_idempotent: true
+rollback: none

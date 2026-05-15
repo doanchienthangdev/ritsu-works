@@ -1,0 +1,46 @@
+# Example: cron-triggered SOP — fires every Monday 09:00 UTC
+# Use case: weekly founder Monday dashboard refresh
+
+name: SOP-EXAMPLE-001-weekly-founder-monday-dashboard
+version: 1.0.0
+owner_pillar: metrics
+owner_role: metrics-curator
+trigger: cron
+cron_schedule: "0 9 * * MON"
+
+inputs: {}
+
+outputs:
+  dashboard_url:
+    type: string
+    description: URL to refreshed dashboard
+  composite_metric_value:
+    type: number
+    description: Current 100-paying-who-love composite progress %
+
+steps:
+  - id: query_kpis
+    type: tool_call
+    description: Pull all KPIs from ops.kpi_snapshots
+    cost_estimate: 0.001
+
+  - id: compute_composite
+    type: subprocess
+    description: Run composite metric formula
+    cost_estimate: 0.001
+
+  - id: render_dashboard
+    type: tool_call
+    description: Push to dashboard renderer
+    cost_estimate: 0.005
+
+  - id: notify_founder
+    type: tool_call
+    description: Post Telegram message with dashboard URL
+    cost_estimate: 0.001
+
+hitl_tier: A
+cost_estimate: 0.01
+idempotent: true
+partial_idempotent: true
+rollback: none

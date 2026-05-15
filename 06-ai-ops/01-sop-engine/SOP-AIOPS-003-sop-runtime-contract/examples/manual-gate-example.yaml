@@ -1,0 +1,50 @@
+# Example: manual_gate SOP — gates another SOP's progress
+# Use case: SOP-GTM-005 (message-test-before-amplify) gates GTM-006 (multi-channel deploy)
+
+name: SOP-EXAMPLE-004-message-test-gate
+version: 1.0.0
+owner_pillar: gtm
+owner_role: gtm-orchestrator
+trigger: manual_gate
+
+inputs:
+  campaign_id:
+    type: string
+    required: true
+  candidate_message:
+    type: string
+    required: true
+  channels:
+    type: array
+    required: true
+    description: Channels that downstream SOP-GTM-006 will deploy to
+
+outputs:
+  approved:
+    type: boolean
+    description: True iff founder approved the message after seeing 5-stranger test results
+  test_results:
+    type: object
+    description: Reactions from 5 hand-recruited testers
+
+steps:
+  - id: recruit_5_testers
+    type: human_approval
+    description: Founder hand-recruits 5 testers (NOT survey, NOT AI-generated reactions)
+    cost_estimate: 0
+
+  - id: collect_reactions
+    type: tool_call
+    description: Capture verbatim reactions to ops.tasks
+    cost_estimate: 0.001
+
+  - id: founder_approval_to_amplify
+    type: human_approval
+    description: Founder reads reactions, says yes/no to multi-channel deploy
+    cost_estimate: 0
+
+hitl_tier: C    # public message + multi-channel = stake C
+cost_estimate: 0.005
+idempotent: false       # reapproval is not the same as initial approval
+partial_idempotent: false
+rollback: none          # if approved-then-regret, downstream SOP handles its own rollback

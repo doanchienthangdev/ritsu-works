@@ -37,12 +37,17 @@ Detailed prompt + behavior specification.
 No agents yet — Claude Code default behavior với CLA workflow recognition.
 
 ### Wave 4-5 (Bài #5 multi-agent)
-Add specialized agents:
-- `support-triager.md` — classify tickets, route per `02-customer/sops/`
-- `content-strategist.md` — `01-growth/` ideation
-- `cost-watchdog.md` — Bài #7 cost monitoring
-- `gdpr-officer.md` — Bài #16 + 07-compliance/
-- `decision-recorder.md` — Bài #15 Muse panel orchestrator
+Add specialized agents (paths reflect post pillar architecture v1.0.1 restructure):
+- `support-agent.md` — classify tickets, route per `05-customer/03-support/sops/`
+- `cs-coach.md` — activation funnel per `05-customer/01-success/sops/`
+- `customer-lead.md` — weekly customer health review per `05-customer/`
+- `gtm-orchestrator.md` — funnel orchestration per `03-gtm/sops/`
+- `product-orchestrator.md` — weekly product review per `04-product/sops/`
+- `metrics-curator.md` — KPI registry + dashboards per `10-metrics/01-kpi-registry/sops/`
+- `cost-watchdog.md` — Bài #7 cost monitoring per `06-ai-ops/05-cost-budget-architecture/sops/`
+- `trust-safety.md` — DMCA, GDPR, hallucination triage per `07-trust-safety/sops/`
+- `founder-coach.md` — top-idea drift detection per `09-founder/01-cognition/sops/`
+- `hitl-router.md` — Telegram bot logic per `09-founder/03-hitl-flow/sops/`
 
 ### Wave 6+
 Per-pillar specialized agents as capabilities deploy.
@@ -52,7 +57,7 @@ Per-pillar specialized agents as capabilities deploy.
 - `governance/HITL.md` — HITL tier definitions per agent
 - `knowledge/mcp-tools.yaml` — tools each agent can call
 - `knowledge/mcp-roles.yaml` — per-role tool whitelists
-- `05-ai-ops/skills/` — composable skills agents invoke
+- `06-ai-ops/skills/` — composable skills agents invoke
 
 ## Agent vs Skill
 

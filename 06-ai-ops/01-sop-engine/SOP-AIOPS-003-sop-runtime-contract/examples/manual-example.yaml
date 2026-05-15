@@ -1,0 +1,45 @@
+# Example: manually-invoked SOP — founder triggers via Telegram or gps
+# Use case: founder asks "run weekly top-idea audit on my behalf"
+
+name: SOP-EXAMPLE-003-weekly-top-idea-audit
+version: 1.0.0
+owner_pillar: founder
+owner_role: founder-coach
+trigger: manual
+
+inputs: {}
+
+outputs:
+  current_top_idea:
+    type: string
+    description: What the founder's mind kept returning to this week
+  nile_perch_detected:
+    type: boolean
+    description: True if a money/dispute thought is eating the slot
+
+steps:
+  - id: pull_attention_log
+    type: tool_call
+    description: Read past 7 days from ops.attention_log
+    cost_estimate: 0.001
+
+  - id: classify_top_idea
+    type: llm_call
+    description: Apply Nile Perch detection per SOP-FOUNDER-002
+    cost_estimate: 0.05
+
+  - id: write_back
+    type: db_write
+    description: Append finding to ops.attention_log
+    cost_estimate: 0.001
+
+  - id: notify_founder
+    type: tool_call
+    description: Telegram message with finding + recommendations
+    cost_estimate: 0.001
+
+hitl_tier: A
+cost_estimate: 0.06
+idempotent: true        # rerunning produces same finding (deterministic input)
+partial_idempotent: true
+rollback: none
