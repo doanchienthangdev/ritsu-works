@@ -377,7 +377,77 @@ experiment_turnaround_days:
   formula: "median(decision_made_at - test_launched_at) in days"
 
 # ===========================================================================
+# Workforce persona KPIs (v1.0.2 — see knowledge/workforce-personas.yaml)
+# Owned by 06-ai-ops/workforce-personas/<slug>/kpis.md per persona spec.
+# Cost rolls up to bound role; correction/escalation/freshness rolls up to persona.
+# ===========================================================================
+
+persona.ceo.routing_accuracy_first_try:
+  owner_pillar: ai_ops
+  owner_role: gps
+  persona: ceo
+  formula: |
+    1 - (COUNT(*) FILTER (WHERE c.correction_kind IN ('redirect','reject'))::float
+         / NULLIF(COUNT(*), 0))
+    from ops.agent_runs r LEFT JOIN ops.corrections c ON c.run_id = r.id
+    WHERE r.persona_slug = 'ceo' AND r.started_at > now() - interval '7 days'
+  source: "ops.agent_runs + ops.corrections (persona_slug='ceo')"
+  target: "> 0.85 (4 weeks); > 0.90 (12 weeks)"
+  refresh: "weekly (Friday review)"
+  dashboard_tile: founder-friday/workforce
+
+persona.ceo.founder_correction_rate:
+  owner_pillar: ai_ops
+  owner_role: gps
+  persona: ceo
+  formula: "COUNT(corrections WHERE persona_slug='ceo') / COUNT(invocations WHERE persona_slug='ceo')"
+  source: "ops.corrections + ops.agent_runs"
+  target: "< 0.15"
+  alert_thresholds:
+    p2: "rate > 0.20 sustained 2 weeks (voice/routing drift)"
+
+persona.ceo.escalations_per_week:
+  owner_pillar: ai_ops
+  owner_role: gps
+  persona: ceo
+  formula: "COUNT(*) WHERE persona_slug='ceo' AND tier='C' AND was_override=false GROUP BY week"
+  source: ops.agent_runs
+  target: "3-8/week (band; too few = overstepping, too many = too cautious)"
+
+persona.ceo.tokens_per_invocation_avg:
+  owner_pillar: ai_ops
+  owner_role: gps
+  persona: ceo
+  formula: "AVG(tokens_input + tokens_output) WHERE persona_slug='ceo'"
+  source: ops.agent_runs
+  target: "< 8000 (well under gps working_tokens=80000)"
+
+persona.ceo.fanout_avg:
+  owner_pillar: ai_ops
+  owner_role: gps
+  persona: ceo
+  formula: "AVG(child run count per ceo run) — derived from parent_run_id"
+  source: ops.agent_runs
+  target: "1.5-3.0 (healthy delegation)"
+
+persona.ceo.dossier_freshness:
+  owner_pillar: ai_ops
+  owner_role: gps
+  persona: ceo
+  formula: "now() - mtime(06-ai-ops/workforce-personas/ceo/dossier.md)"
+  source: filesystem
+  target: "< 48h during active weeks"
+
+persona.ceo.morning_brief_invocation_rate:
+  owner_pillar: ai_ops
+  owner_role: gps
+  persona: ceo
+  formula: "weekdays_with_at_least_one_/ceo_session / 5 (business days/week)"
+  source: "ops.agent_runs (persona_slug='ceo', invocation_kind='slash')"
+  target: "> 0.60"
+
+# ===========================================================================
 # Anti-orphan check (any KPI not listed here should NOT exist in any pillar README)
 # ===========================================================================
-# Total KPIs registered: 47
+# Total KPIs registered: 54 (47 baseline + 7 CEO persona KPIs from PR 3/4 stack)
 # Status: All accounted for (1.7 cross-check passes)
