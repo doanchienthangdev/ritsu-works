@@ -81,7 +81,7 @@ npx shadcn-ui@latest init
 
 - Bài #10 visibility: `knowledge/phase-a2-extensions/bai-10-real-time-visibility-DRAFT.md`
 - Bài #2 HITL: `governance/HITL.md`
-- Bài #20 CLA: `wiki/capabilities/_CATALOG.md`
+- Bài #20 CLA: `wiki/capabilities/CATALOG.md`
 - Deployment: chương 29 (Bước A vs B)
 
 ---

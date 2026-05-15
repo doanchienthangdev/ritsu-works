@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "cla-routing-keywords.schema.json",
+  "title": "CLA Routing Keywords",
+  "description": "Tier 1 declarative file mapping problem-statement keywords to CxO personas + fallback roles. Used by /cla command Phase 2 (Domain Deep-Dive) to auto-route domain analysis to the right specialist chief. See: .archives/cla/03-architecture.md §6, .archives/cla/08-next-steps-checklist.md Sprint 1 §1.",
+  "type": "object",
+  "required": ["version", "routes", "ambiguous_fallback"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "SemVer string for the registry."
+    },
+    "owner": {
+      "type": "string",
+      "description": "Owner of this file (founder by default)."
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "ISO date string of last update."
+    },
+    "routes": {
+      "type": "object",
+      "description": "Map of domain slug → routing config. Domain slug is the conceptual area (growth, product, code, etc).",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z][a-z0-9_]*$": {
+          "type": "object",
+          "required": ["keywords", "cxo", "fallback_role"],
+          "additionalProperties": false,
+          "properties": {
+            "keywords": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 2
+              },
+              "description": "Words/phrases (case-insensitive substring match) that route a problem to this domain."
+            },
+            "cxo": {
+              "type": "string",
+              "pattern": "^[a-z]{3,5}$",
+              "description": "Persona slug from knowledge/workforce-personas.yaml (e.g. cgo, cpo, cto). Must exist in registry (active OR planned)."
+            },
+            "fallback_role": {
+              "type": "string",
+              "description": "Technical role from governance/ROLES.md to dispatch to when the bound persona is not yet active."
+            },
+            "notes": {
+              "type": "string",
+              "description": "Free-form notes on the routing rule."
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ambiguous_fallback": {
+      "type": "string",
+      "enum": ["muse_panel", "ceo_synthesis", "founder_decides"],
+      "description": "What to do when no route matches OR multiple routes tie. Default: muse_panel (Bài #15 cross-functional decision panel)."
+    }
+  }
+}
