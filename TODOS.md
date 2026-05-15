@@ -5,6 +5,37 @@ move to a `## Done` section instead.
 
 ## P2 — Soon
 
+### Hook runtime implementation (covers all 10 hook specs incl. persona hooks)
+
+All hooks in `.claude/hooks/*.md` are SPECS — markdown documentation of intended behavior. **None execute at runtime.** Per `.claude/hooks/README.md`: "This folder contains **specs** for hooks at v0.2. Implementation (actual executable code) happens in Phase C of `_build/ROADMAP.md`."
+
+Affected hooks (10 total):
+- 8 pre-existing: `pre-bash-dangerous`, `pre-delegate-check`, `pre-edit-tier1`, `pre-llm-call-budget`, `pre-tool-customer-message`, `pre-tool-publish`, `pre-tool-secrets`, `pre-tool-supabase-product`
+- 2 new (added by workforce Phase 1, PR #19): `pre-persona-resolve`, `post-persona-log`
+
+**Consequences of unwired runtime:**
+- `ops.agent_runs.persona_slug` column (migration 00024) exists but stays NULL — `post-persona-log` is supposed to populate it.
+- `06-ai-ops/workforce-personas/<slug>/dossier.md` files stay at empty stubs — `post-persona-log` is supposed to append entries.
+- HITL tier classification of actions is on the honor system — `pre-delegate-check` is supposed to enforce.
+- The 5 invariants in `validate-personas.cjs` still enforce drift via `pnpm check`, so static state stays consistent. Only runtime state (persona_slug + dossier) is missing.
+
+**What's needed to close the gap:**
+1. Pick implementation language per SPEC.md (Python or TypeScript; "whichever the team picks first; don't mix per-hook").
+2. Implement each `.md` spec as a script in same folder. Input: JSON via stdin. Output: JSON via stdout (per SPEC.md §Input/Output).
+3. Add `.claude/settings.json` with hook entries pointing to the script paths.
+4. Test with `claude --debug` to verify hooks fire on tool calls.
+5. Add hook-test fixtures in `tests/hooks/`.
+
+**Why:** Currently every governance rule (HITL tiers, budget caps, persona narrowing, Tier 1 edit gating) is on the honor system. Hooks are the difference between "agents should follow HITL.md" and "agents cannot violate HITL.md."
+**Pros:** Eliminates trust requirement on agents. Activates the persona_slug audit trail. Auto-populates dossier.md files.
+**Cons:** ~3-5 hours engineering work per hook (10 hooks total = ~30-50h). Tests need real Claude Code session fixtures. Hook errors can hard-block agent if not careful — needs fail_mode=open default during rollout.
+**Effort:** L (full implementation), M (per-hook MVP)
+**Priority:** P2 — the static validators provide most of the safety today. Runtime hooks are the proper enforcement; workaround is human review at PR/Telegram time.
+**Depends on:** Phase C of `_build/ROADMAP.md` (not yet authored)
+**Surfaced from:** workforce Phase 1.5 hardening review 2026-05-15
+
+---
+
 ### Migrate 2 pre-contract SOPs to flow-schema.yaml conformance
 
 `05-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml` and `06-ai-ops/sops/SOP-AIOPS-002-cross-tier-consistency/flow.yaml` (paths post Phase 2 rename) predate SOP-AIOPS-003 runtime contract. Both currently fail validation by SOP-AIOPS-004 smoke test.
