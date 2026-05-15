@@ -215,6 +215,7 @@ async function main() {
     ['validate-manifest-db.cjs', 'manifest ↔ migrations'],
     ['validate-skills-references.cjs', '.from() ↔ migrations'],
     ['validate-schedules-skills.cjs', 'schedules ↔ skill registry'],
+    ['validate-personas.cjs', 'workforce personas ↔ ROLES.md ↔ runtime'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;
