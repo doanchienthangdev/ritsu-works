@@ -58,6 +58,19 @@ Always read `knowledge/manifest.yaml` before assuming where data lives. Do not i
 
 For any new business capability (skill + SOP + Tier 1 changes + migrations + integrations), use `/cla propose "<problem>"`. This runs the 8-phase Capability Lifecycle Architecture (SOP-AIOPS-001, Bài #20) — drift pre-flight, problem framing, domain analysis, system inventory, options + recommendation, architecture spec with @cto + Muse panel review, sprint planning, multi-session implementation, and registry promotion. See `.claude/commands/cla.md`.
 
+## Evolving existing capabilities (v1.1)
+
+Once a capability is `operating`, evolution uses right-sized sub-flows:
+- `/cla fix <id>` — bug fix (Tier B, ~$0.50, 30min-2h)
+- `/cla extend <id>` — scope expansion (Tier B → C if substantial, ~$1.50)
+- `/cla revise <id>` — architecture revision (Tier C full ceremony, ~$3-5)
+- `/cla tune <id>` — KPI re-tuning (Tier B, ~$0.10, 10min)
+- `/cla deprecate <id>` — sunset capability (Tier C, irreversible)
+- `/cla history <id>` — show lineage chain (read-only)
+- `@cla` subagent — mid-conversation invocation for fix/tune/history/list/status
+
+See `06-ai-ops/sops/SOP-AIOPS-001-{fix,extend,revise,tune,deprecate}/` for sub-flow specs. See `wiki/capabilities/cla-update-mechanism/spec.md` for the v1.1 capability spec.
+
 ## Path-scoped guidance
 
 When you navigate into a pillar (`00-charter/`, `01-marketing/`, `02-sales/`, `03-gtm/`, `04-product/`, `05-customer/`, `06-ai-ops/`, `07-trust-safety/`, `08-finance/`, `09-founder/`, `10-metrics/`), Claude Code will auto-load that pillar's `README.md` and `CLAUDE.md` if present. Pillar-specific behavior lives there, not here. Do not bloat this file with per-pillar rules.
