@@ -272,7 +272,19 @@ tier1_canonical:
         C-suite persona façade layer (CEO, CTO, CGO, CPO Phase 1). Each
         persona binds to one or more technical roles defined in
         governance/ROLES.md — façade does NOT redeclare permissions. See
-        ADR-003 in the implementation history.
+        ADR-003 in the implementation history. /cla command (Phase 2) may
+        invoke any persona via the routing keywords below.
+    cla_routing:
+      registry: knowledge/cla-routing-keywords.yaml
+      schema: knowledge/schemas/cla-routing-keywords.schema.json
+      validator: scripts/cross-tier/validate-cla-routing-keywords.cjs
+      consumed_by:
+        - .claude/commands/cla.md (Phase 2 dispatch)
+        - 06-ai-ops/skills/capability-lifecycle/domain-analyst/SKILL.md
+      note: |
+        Maps problem-statement keywords → CxO persona + fallback role for
+        the /cla command's Phase 2 (Domain Deep-Dive) dispatch. See
+        .archives/cla/03-architecture.md §6.
 
 # ---------------------------------------------------------------------------
 # WORKSPACE PLANE — transient material, not canonical truth

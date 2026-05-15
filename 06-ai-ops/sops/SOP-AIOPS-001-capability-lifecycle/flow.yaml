@@ -6,16 +6,19 @@
 #
 # See:
 # - DRAFT: knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md
-# - Skills: 05-ai-ops/skills/capability-lifecycle/
-# - Registry: knowledge/capability-registry.yaml
-# - Spec template: wiki/capabilities/_TEMPLATE/
+# - Front-end: .claude/commands/cla.md (/cla command)
+# - Skills:    06-ai-ops/skills/capability-lifecycle/
+# - Registry:  knowledge/capability-registry.yaml
+# - Working:   .archives/cla/{capability_id}/  (local-only working folder)
+# - Promoted:  wiki/capabilities/{capability_id}/  (synced after Phase 8)
+# - Routing:   knowledge/cla-routing-keywords.yaml
 # ============================================================================
 
 id: SOP-AIOPS-001-capability-lifecycle
 version: 1.0.0
 title: "Capability Lifecycle Architecture (CLA)"
 description: "Standardized 8-phase workflow để propose → analyze → architect → build → deploy new capabilities"
-pillar: 05-ai-ops
+pillar: 06-ai-ops
 
 # === Trigger ===
 # 3 trigger paths (per Bài #20 DRAFT):
@@ -32,6 +35,29 @@ trigger:
 initial_capability_run_state: proposed
 initial_phase: 1
 
+# === Drift gates (per /cla v1.0) ===
+# Phases at which `pnpm check` MUST run. Phase 0 + 8 are blocking (failure
+# aborts state advance); Phase 3 + 5 are informational/dry-run; Phase 7 is
+# enforced by .husky/pre-commit on every implementation commit.
+drift_gates: [0, 3, 5, 8]
+
+# === CxO routing (Phase 2 dispatch) ===
+cxo_routing:
+  phase: 2
+  source: knowledge/cla-routing-keywords.yaml
+  ambiguous_fallback: muse_panel
+
+# === Promotion (Phase 8 archives → wiki) ===
+# At Phase 8, the canonical capability artifacts get promoted from the local
+# working folder into the synced wiki/. .archives/cla/<id>/ stays local; the
+# wiki entry becomes the long-term reference per CLAUDE.md workspace plane
+# discipline.
+promotion:
+  from: .archives/cla/{capability_id}/
+  to: wiki/capabilities/{capability_id}/
+  on_state: operating
+  promoted_artifacts: [spec.md, retrospective.md]
+
 # === Cost projection ===
 cost_estimate:
   llm_cost_per_run_usd: 2.50              # ~rough, varies by complexity
@@ -40,6 +66,28 @@ cost_estimate:
 # === Phases ===
 
 steps:
+  - id: phase-0-preflight
+    phase: 0
+    description: |
+      Drift pre-flight (NEW v1.0). Inline in /cla command — no skill invoked.
+      1. Run `pnpm check`. If non-zero exit, ABORT.
+      2. Generate slug from raw_proposal (kebab-case).
+      3. Copy .archives/cla/_TEMPLATE/ → .archives/cla/<slug>/ (root, not worktree).
+      4. INSERT ops.capability_runs row (state=proposed, current_phase=1).
+      5. Append placeholder to knowledge/capability-registry.yaml.
+      6. Optionally copy --refs files into .archives/cla/<slug>/refs/.
+    inputs:
+      raw_proposal: $.trigger.payload.proposal_text
+      refs: $.trigger.payload.refs            # optional list of paths
+    outputs:
+      - artifact: .archives/cla/{capability_id}/README.md
+      - row: ops.capability_runs
+      - registry_entry: knowledge/capability-registry.yaml
+    state_transition: (none → proposed)
+    hitl: tier_a
+    drift_check: required                     # blocks if pnpm check fails
+    timeout_minutes: 5
+
   - id: phase-1-problem-framing
     phase: 1
     skill: capability-lifecycle/problem-framer
@@ -47,7 +95,7 @@ steps:
     inputs:
       raw_proposal: $.trigger.payload.proposal_text
     outputs:
-      - artifact: wiki/capabilities/{capability_id}/problem.md
+      - artifact: .archives/cla/{capability_id}/problem.md
     state_transition: proposed → analyzing
     hitl: tier_a
     timeout_minutes: 30
@@ -55,120 +103,139 @@ steps:
   - id: phase-2-domain-deep-dive
     phase: 2
     skill: capability-lifecycle/domain-analyst
-    description: "Industry benchmarks, customer journey, competitive landscape, channel comparison"
+    description: "Industry benchmarks, customer journey, competitive landscape, channel comparison. Auto-routes to CxO per knowledge/cla-routing-keywords.yaml."
     requires_api: anthropic
     fallback: manual_via_claude_code
+    cxo_routing: required                   # see top-level cxo_routing block
     inputs:
-      problem_path: wiki/capabilities/{capability_id}/problem.md
+      problem_path: .archives/cla/{capability_id}/problem.md
+      routing_source: knowledge/cla-routing-keywords.yaml
     outputs:
-      - artifact: wiki/capabilities/{capability_id}/domain-analysis.md
+      - artifact: .archives/cla/{capability_id}/domain-analysis.md
     state_transition: analyzing (continued)
     hitl: tier_a
     timeout_minutes: 60
-  
+
   - id: phase-3-system-inventory
     phase: 3
     skill: capability-lifecycle/system-inventory-scanner
-    description: "Inventory existing skills, SOPs, Tier 1, integrations. Identify gaps."
+    description: "Inventory existing skills, SOPs, Tier 1, integrations. Identify gaps. Runs `pnpm check` for live state."
     requires_api: none                      # deterministic, no LLM needed
     inputs:
-      problem_path: wiki/capabilities/{capability_id}/problem.md
+      problem_path: .archives/cla/{capability_id}/problem.md
     outputs:
-      - artifact: wiki/capabilities/{capability_id}/gap-analysis.md
+      - artifact: .archives/cla/{capability_id}/gap-analysis.md
     state_transition: analyzing → architecting
     hitl: tier_a
+    drift_check: informational              # parses pnpm check output for inventory
     timeout_minutes: 30
-  
+
   - id: phase-4-options-generation
     phase: 4
     skill: capability-lifecycle/options-generator
-    description: "Generate 3-5 options với cost/time/founder-bandwidth analysis. Recommend one."
+    description: "Generate 3-5 options với cost/time/founder-bandwidth analysis. Parallel-poll relevant CxOs (top 2 options × max 3 chiefs). Recommend one."
     requires_api: anthropic
     fallback: manual_via_claude_code
+    cxo_routing: parallel_poll
     inputs:
-      problem_path: wiki/capabilities/{capability_id}/problem.md
-      domain_analysis_path: wiki/capabilities/{capability_id}/domain-analysis.md
-      gap_analysis_path: wiki/capabilities/{capability_id}/gap-analysis.md
+      problem_path: .archives/cla/{capability_id}/problem.md
+      domain_analysis_path: .archives/cla/{capability_id}/domain-analysis.md
+      gap_analysis_path: .archives/cla/{capability_id}/gap-analysis.md
+      routing_source: knowledge/cla-routing-keywords.yaml
     outputs:
-      - artifact: wiki/capabilities/{capability_id}/options.md
+      - artifact: .archives/cla/{capability_id}/options.md
     state_transition: architecting (continued)
     hitl: tier_b                            # founder reviews options + picks
     hitl_message: "Review {capability_id} options. Pick one or request combination."
     timeout_minutes: 90
-  
+
   - id: phase-5-architecture-design
     phase: 5
     skill: capability-lifecycle/architect
-    description: "Per-Bài-toán impact analysis. Generate canonical spec.md."
+    description: "Per-Bài-toán impact analysis. Generate canonical spec.md + draft/. @cto sanity-checks migration + tier1-diffs. Muse panel high-stakes-decision-panel."
     requires_api: anthropic
+    cxo_routing: cto_sanity_check           # always invoke @cto regardless of route
     inputs:
       selected_option_id: $.hitl.phase-4-options-generation.selected_option_id
-      all_prior_artifacts: wiki/capabilities/{capability_id}/
+      all_prior_artifacts: .archives/cla/{capability_id}/
     outputs:
-      - artifact: wiki/capabilities/{capability_id}/spec.md
+      - artifact: .archives/cla/{capability_id}/spec.md
       - artifact_drafts:
-        - migration_draft: wiki/capabilities/{capability_id}/draft/migrations/
-        - tier1_diffs: wiki/capabilities/{capability_id}/draft/tier1-diffs.yaml
-        - skill_stubs: wiki/capabilities/{capability_id}/draft/skill-stubs/
+        - migration_draft: .archives/cla/{capability_id}/draft/migrations/
+        - tier1_diffs: .archives/cla/{capability_id}/draft/tier1-diffs.yaml
+        - skill_stubs: .archives/cla/{capability_id}/draft/skills/
+        - command_stubs: .archives/cla/{capability_id}/draft/commands/
+        - agent_stubs: .archives/cla/{capability_id}/draft/agents/
+        - sop_stubs: .archives/cla/{capability_id}/draft/sops/
+        - mcp_configs: .archives/cla/{capability_id}/draft/mcp-configs/
+        - frontend_stubs: .archives/cla/{capability_id}/draft/frontend/
     state_transition: architecting → planning
     hitl: tier_c                            # CRITICAL: founder approves architecture
     hitl_message: "Architecture proposal for {capability_id}. Tier C decision."
     decision_persona_panel: high-stakes-decision-panel
+    drift_check: dry_run                    # pnpm check on draft tier1-diffs
     timeout_minutes: 120
-  
+
   - id: phase-6-sprint-planning
     phase: 6
     skill: capability-lifecycle/sprint-planner
     description: "Break into 2-week sprints với acceptance criteria + Wave alignment."
     requires_api: anthropic
     inputs:
-      spec_path: wiki/capabilities/{capability_id}/spec.md
+      spec_path: .archives/cla/{capability_id}/spec.md
     outputs:
-      - artifact: wiki/capabilities/{capability_id}/sprint-plan.md
+      - artifact: .archives/cla/{capability_id}/sprint-plan.md
     state_transition: planning → implementing
     hitl: tier_b
     timeout_minutes: 45
-  
+
   - id: phase-7-implementation
     phase: 7
     skill: capability-lifecycle/implementation-coordinator
-    description: "Execute sprints. Multi-session resilient. HITL Tier B per PR."
+    description: "Execute sprints. Multi-session resilient. HITL Tier B per PR. Drafts under .archives/cla/{capability_id}/draft/ get committed to canonical locations (supabase/migrations/, 06-ai-ops/skills/, .claude/commands/, etc)."
     multi_session: true
     sub_state_machine:
       states: [sprint_1_foundation, sprint_2_skills, sprint_3_sops, sprint_4_external, testing, deployed]
     inputs:
-      sprint_plan_path: wiki/capabilities/{capability_id}/sprint-plan.md
+      sprint_plan_path: .archives/cla/{capability_id}/sprint-plan.md
+      draft_root: .archives/cla/{capability_id}/draft/
     outputs:
       - artifact: PRs in git history
       - artifact: ops.events trail (one per phase transition)
     state_transition: implementing → deployed
     hitl: tier_b                            # per PR review
+    drift_check: per_commit                 # husky pre-commit enforces pnpm check
     timeout_weeks: 1-4                      # sprint-dependent
-  
+
   - id: phase-8-catalog-update
     phase: 8
     skill: capability-lifecycle/catalog-updater
-    description: "Update _CATALOG.md, capability-registry.yaml, retrospective. Identify boilerplate-extractable patterns."
+    description: "Update registry. Generate retrospective. Promote spec.md + retrospective.md to wiki/capabilities/{capability_id}/. Update CATALOG.md. Identify boilerplate-extractable patterns."
     requires_api: anthropic
     inputs:
       capability_id: $.capability_id
-      all_artifacts: wiki/capabilities/{capability_id}/
+      all_artifacts: .archives/cla/{capability_id}/
     outputs:
-      - artifact: wiki/capabilities/{capability_id}/retrospective.md
-      - artifact: wiki/capabilities/_CATALOG.md (updated)
-      - artifact: knowledge/capability-registry.yaml (updated, state: deployed)
+      - artifact: .archives/cla/{capability_id}/retrospective.md
+      - promoted: wiki/capabilities/{capability_id}/spec.md
+      - promoted: wiki/capabilities/{capability_id}/retrospective.md
+      - artifact: wiki/capabilities/CATALOG.md (updated)
+      - artifact: knowledge/capability-registry.yaml (updated, state: deployed→operating)
       - artifact: notes/boilerplate-candidates.md (appended observations)
     state_transition: deployed → operating
     hitl: tier_a
+    drift_check: required                   # final pnpm check; blocks 'operating' on failure
     timeout_minutes: 30
 
 # === Acceptance criteria for entire SOP ===
 acceptance_criteria:
-  - All 8 phases completed without unrecoverable error
+  - All 8 phases (incl Phase 0 pre-flight) completed without unrecoverable error
   - Capability state = 'operating'
-  - All artifacts present in wiki/capabilities/{capability_id}/
-  - capability-registry.yaml updated với deployed entry
+  - Working artifacts present in .archives/cla/{capability_id}/
+  - Promoted artifacts (spec.md + retrospective.md) present in wiki/capabilities/{capability_id}/
+  - capability-registry.yaml updated với operating entry
   - Retrospective captures lessons learned
+  - Final `pnpm check` clean (no drift introduced)
   - Boilerplate-candidates.md updated if generic patterns observed
 
 # === Failure modes (per Bài #20 DRAFT) ===
