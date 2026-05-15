@@ -1,0 +1,90 @@
+# 04-product — Product Operations Pillar
+
+> Build loop, user-listening pipeline, wedge-feature discovery, roadmap intake, A/B analysis. This is operations AROUND the product, NOT the product codebase (which lives in a separate repo backed by Product Supabase project `ritsu`).
+
+**Layer:** Evergreen
+**Stage status:** DEEP
+**Pillar code:** PRODUCT
+**Owner role(s):** product-orchestrator
+**HITL baseline:** C (new features prioritized + experiments launched gate at C)
+
+---
+
+## Scope
+
+This pillar owns:
+- **Wedge-feature discovery** — which of the 17+ activity types do real users come back for?
+- **Build loop** — weekly feature prioritization, ship-then-listen cycle, rage detection from support
+- **Feedback pipeline** — NPS, cancel-flow feedback, in-app feedback → roadmap intake
+- **Pricing experiments** — A/B tests on tier boundaries (coordinates with `02-sales`)
+- **A/B test discipline** — decision protocols, statistical rigor (coordinates with `10-metrics/05-experiment-measurement`)
+
+This pillar does NOT own:
+- The product codebase (separate repo, Product Supabase)
+- Customer onboarding flows (those execute in `05-customer/02-onboarding/`)
+- Distribution / channel experiments → `03-gtm/03-distribution-engine/`
+- Pricing tier definitions → `02-sales/modules/pricing-tiers/`
+
+## Sub-pillars (DEEP build now)
+
+```
+04-product/
+├── 01-wedge-discovery/                          # N=10 strangers gate (PG)
+│   ├── sops/SOP-PRODUCT-001-cofounder-usage-analysis/   # What do N=2 ACTUALLY use weekly?
+│   ├── sops/SOP-PRODUCT-002-stranger-recruit-and-watch/ # 10 strangers, observed using
+│   └── sops/SOP-PRODUCT-003-wedge-feature-naming-and-doubling-down/
+├── 02-build-loop/
+│   ├── sops/SOP-PRODUCT-004-weekly-feature-prioritization/
+│   ├── sops/SOP-PRODUCT-005-ship-then-listen-cycle/
+│   └── sops/SOP-PRODUCT-006-rage-detection-from-support/
+├── 03-feedback-pipeline/
+│   ├── sops/SOP-PRODUCT-007-in-app-nps-collection/
+│   ├── sops/SOP-PRODUCT-008-cancel-flow-feedback/
+│   └── sops/SOP-PRODUCT-009-feedback-to-roadmap-pipeline/
+├── 04-pricing-experiments/
+│   ├── sops/SOP-PRODUCT-010-pricing-pull-test/
+│   └── sops/SOP-PRODUCT-011-tier-boundary-experiment/
+└── 05-ab-test-discipline/
+    └── sops/SOP-PRODUCT-012-ab-test-decision-protocol/
+```
+
+## SOPs
+
+`sops/SOP-PRODUCT-NNN-<slug>/` — 12 SOPs scaffolded. Phase 5 implements:
+- `SOP-PRODUCT-001-cofounder-usage-analysis` — leverages existing N=2 cofounder data immediately
+
+## Agents
+
+- `product-orchestrator` (home) — weekly product review, feature prioritization
+- `feedback-aggregator` (cross-cuts with `05-customer/05-feedback-and-research`) — pulls from all feedback sources
+- `wedge-detector` (under `01-wedge-discovery`) — analyzes usage data for the 1-3 sticky features
+
+## KPIs owned
+
+(Surfaced in `10-metrics/01-kpi-registry/`.)
+
+- Weekly active users (WAU)
+- Magic moment completion rate (= aha moment percent)
+- Feature usage distribution (17 activity types — which get used)
+- Time-to-first-value (TTFV) — signup → first aha
+- "Very disappointed without Ritsu %" by feature (PMF signal disaggregated)
+
+## Dependencies
+
+- **Composes from:** `00-charter/product.md` (canonical positioning), `02-sales/modules/pricing-tiers/` (pricing surface for experiments)
+- **Composed by:** `03-gtm/04-funnel-orchestration/` (consumes wedge-discovery output), `05-customer/05-feedback-and-research/` (feeds back upstream)
+
+## Critical PG gate
+
+`SOP-PRODUCT-002-stranger-recruit-and-watch` is the canonical N=10 strangers gate: **no major feature build proceeds without observed (not surveyed) usage from 10 strangers (not cofounders, not friends).**
+
+## HITL baseline
+
+- Feature prioritization weekly review: Tier B
+- New experiment launch: Tier C
+- Pricing experiment with public surface change: Tier C (per HITL.md)
+- New SOP added: Tier C
+
+## Entry conditions
+
+Already DEEP. No promotion needed. After PMF, may add `05-platform-and-extensibility` sub-pillar if API access becomes a sticky product surface.

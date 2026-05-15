@@ -1,0 +1,50 @@
+# Example: event-triggered SOP — fires when ops.events row matches filter
+# Use case: new paying user → trigger Collison install onboarding
+
+name: SOP-EXAMPLE-002-new-paying-user-onboarding
+version: 1.0.0
+owner_pillar: customer
+owner_role: cs-coach
+trigger: event
+event_filter:
+  event_type: stripe_subscription_created
+  payload_match:
+    plan_status: active
+
+inputs:
+  user_id:
+    type: string
+    required: true
+    description: Stripe customer ID
+  plan_tier:
+    type: string
+    required: true
+    description: Free | Plus | Pro | Ultra
+
+outputs:
+  onboarding_call_scheduled:
+    type: boolean
+  onboarding_run_id:
+    type: string
+
+steps:
+  - id: lookup_user
+    type: db_write
+    description: Upsert customer row in public.customers
+    cost_estimate: 0.001
+
+  - id: schedule_onboarding_call
+    type: llm_call
+    description: Compose Collison-install Zoom invite per SOP-CUSTOMER-006
+    cost_estimate: 0.02
+
+  - id: send_invite
+    type: tool_call
+    description: Send via email-sender MCP
+    cost_estimate: 0.001
+
+hitl_tier: B    # founder is notified after; can revert
+cost_estimate: 0.05
+idempotent: false              # sending an invite twice is bad
+partial_idempotent: true        # the upsert is idempotent
+rollback: manual_runbook

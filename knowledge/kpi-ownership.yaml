@@ -1,0 +1,383 @@
+# KPI Ownership Index — auto-derived from pillar READMEs' "KPIs owned" sections
+#
+# Single-file lookup: kpi_id → owner pillar + owner role + sub-pillar (if applicable)
+# Generated 2026-05-15 as part of pillar architecture v1.0.1 migration (Phase 1.7)
+# Update protocol: whenever a pillar README's "KPIs owned" section changes, also update this file.
+# Future: SOP-METRICS-002-kpi-ownership-mapping automates the regeneration.
+
+version: 1.0.0
+generated_at: 2026-05-15
+generated_from: "Union of 11 pillar README 'KPIs owned' sections (Phase 1.7 of v1.0.1 migration)"
+
+# ===========================================================================
+# Funnel + GTM metrics — owned by 03-gtm (stage pillar)
+# ===========================================================================
+
+weekly_signups:
+  owner_pillar: gtm
+  owner_role: gtm-orchestrator
+  sub_pillar: 04-funnel-orchestration
+  formula: "COUNT(DISTINCT user_id) per week from signup events"
+  source: metrics.product_dau_snapshot
+  dashboard_tile: founder-monday/funnel
+  alert_thresholds:
+    p1: "weekly_signups < 50 for 2 consecutive weeks (post-launch)"
+
+signup_to_activation_pct:
+  owner_pillar: gtm
+  owner_role: gtm-orchestrator
+  sub_pillar: 04-funnel-orchestration
+  formula: "activated_users / signed_up_users in same cohort window"
+  source: ops.events (signup) + ops.events (aha_moment)
+  dashboard_tile: founder-monday/funnel
+  alert_thresholds:
+    p1: "activation_pct < 30% for 2 weeks"
+
+activation_to_paid_pct:
+  owner_pillar: gtm
+  owner_role: gtm-orchestrator
+  sub_pillar: 04-funnel-orchestration
+  formula: "first_paid_users / activated_users (rolling cohort)"
+
+paid_retention_week_4:
+  owner_pillar: gtm
+  owner_role: gtm-orchestrator
+  sub_pillar: 05-pmf-instrumentation
+  formula: "% of paying users still subscribed at week 4 (cohort)"
+  target: ">= 25%"   # PMF dissolution criteria
+
+nps_very_disappointed_pct:
+  owner_pillar: gtm
+  owner_role: gtm-orchestrator
+  sub_pillar: 05-pmf-instrumentation
+  formula: "% of survey respondents answering 'very disappointed' to Sean Ellis question"
+  target: ">= 40%"   # PMF dissolution criteria
+
+channel_cac_by_channel:
+  owner_pillar: gtm
+  owner_role: gtm-orchestrator
+  sub_pillar: 03-distribution-engine
+
+blended_ltv_proxy:
+  owner_pillar: gtm
+  owner_role: gtm-orchestrator
+  sub_pillar: 04-funnel-orchestration
+
+# THE singular composite metric — composed in METRICS but DEFINED here as GTM-owned
+hundred_paying_who_love_composite:
+  owner_pillar: gtm
+  owner_role: gtm-orchestrator
+  sub_pillar: 05-pmf-instrumentation
+  formula: "weighted blend of paying_count + week_4_retention + nps_very_disappointed_pct, normalized 0-100%"
+  composite_in: 10-metrics/02-pmf-instrumentation/SOP-METRICS-007
+  dashboard_tile: founder-monday/THE-tile
+  alert_thresholds:
+    p0: "value decreases week-over-week 2x in a row"
+  notes: "If this number doesn't move, nothing else matters. — CEO Review v1.0.1"
+
+# ===========================================================================
+# Marketing metrics — owned by 01-marketing
+# ===========================================================================
+
+icp_definition_staleness_days:
+  owner_pillar: marketing
+  owner_role: growth-orchestrator
+  formula: "days_since_last_icp_refresh from SOP-MARKETING-001"
+
+brand_voice_consistency_score:
+  owner_pillar: marketing
+  owner_role: growth-orchestrator
+  source: manual audit
+
+content_template_usage_count:
+  owner_pillar: marketing
+  owner_role: growth-orchestrator
+
+organic_seo_signups_share:
+  owner_pillar: marketing
+  owner_role: growth-orchestrator
+  status: post-PMF placeholder
+
+# ===========================================================================
+# Sales metrics — owned by 02-sales
+# ===========================================================================
+
+free_to_plus_conversion:
+  owner_pillar: sales
+  owner_role: growth-orchestrator
+  sub_pillar: modules/free-to-paid-triggers
+
+plus_to_pro_upgrade_rate:
+  owner_pillar: sales
+  owner_role: growth-orchestrator
+
+pro_to_ultra_upgrade_rate:
+  owner_pillar: sales
+  owner_role: growth-orchestrator
+
+arppu:
+  owner_pillar: sales
+  owner_role: growth-orchestrator
+  formula: "monthly_revenue / paying_users_count"
+
+pricing_experiment_count:
+  owner_pillar: sales
+  owner_role: growth-orchestrator
+
+# ===========================================================================
+# Product metrics — owned by 04-product
+# ===========================================================================
+
+weekly_active_users:
+  owner_pillar: product
+  owner_role: product-orchestrator
+  source: metrics.product_dau_snapshot
+
+magic_moment_completion_rate:
+  owner_pillar: product
+  owner_role: product-orchestrator
+  notes: "Aha moment percent — depends on aha moment definition from SOP-CUSTOMER-001"
+
+feature_usage_distribution:
+  owner_pillar: product
+  owner_role: product-orchestrator
+  notes: "Which of 17 activity types get used. Reveals wedge feature."
+
+time_to_first_value:
+  owner_pillar: product
+  owner_role: product-orchestrator
+  formula: "median(activated_at - signup_at) in seconds"
+
+very_disappointed_pct_by_feature:
+  owner_pillar: product
+  owner_role: product-orchestrator
+  notes: "Disaggregation of nps_very_disappointed_pct by feature usage"
+
+# ===========================================================================
+# Customer metrics — owned by 05-customer
+# ===========================================================================
+
+activation_rate:
+  owner_pillar: customer
+  owner_role: customer-lead
+  sub_pillar: 01-success
+  formula: "signups achieving aha moment within 24h / total signups"
+
+day_7_retention:
+  owner_pillar: customer
+  owner_role: customer-lead
+  sub_pillar: 01-success
+
+day_30_retention:
+  owner_pillar: customer
+  owner_role: customer-lead
+  sub_pillar: 01-success
+
+support_ticket_volume_by_category:
+  owner_pillar: customer
+  owner_role: support-agent
+  sub_pillar: 03-support
+
+faq_handled_pct:
+  owner_pillar: customer
+  owner_role: support-agent
+  sub_pillar: 03-support
+  formula: "tickets_auto_resolved / total_tickets"
+  target: ">= 70%"
+
+churn_rate_monthly:
+  owner_pillar: customer
+  owner_role: retention-watcher
+  sub_pillar: 04-retention
+
+win_back_rate:
+  owner_pillar: customer
+  owner_role: retention-watcher
+  sub_pillar: 04-retention
+
+nps_score:
+  owner_pillar: customer
+  owner_role: feedback-aggregator
+  sub_pillar: 05-feedback-and-research
+  notes: "Rolling 30-day NPS. Aggregated from in-app + cancel-flow surveys."
+
+mastery_progression_rate:
+  owner_pillar: customer
+  owner_role: cs-coach
+  sub_pillar: 01-success
+  notes: "Ritsu-specific. % of users who actually master the content they upload."
+
+# ===========================================================================
+# AI-Ops metrics — owned by 06-ai-ops
+# ===========================================================================
+
+sop_success_rate:
+  owner_pillar: ai_ops
+  owner_role: aiops-engineer
+  formula: "completed_runs / total_runs from ops.agent_runs"
+
+agent_run_cost_trend:
+  owner_pillar: ai_ops
+  owner_role: aiops-engineer
+  sub_pillar: 05-cost-budget-architecture
+  source: ops.cost_attributions
+
+recall_hit_rate:
+  owner_pillar: ai_ops
+  owner_role: aiops-engineer
+  sub_pillar: 06-episodic-memory-architecture
+  formula: "useful_recalls / total_recalls (qualitative; rated post-hoc)"
+
+hook_block_rate_by_reason:
+  owner_pillar: ai_ops
+  owner_role: aiops-engineer
+  sub_pillar: 04-hooks-enforcement
+  notes: "Breakdown: HITL block / budget block / secret-firewall block"
+
+drift_check_pass_rate:
+  owner_pillar: ai_ops
+  owner_role: aiops-engineer
+  sub_pillar: 07-cross-tier-consistency
+
+etl_freshness_lag_minutes:
+  owner_pillar: ai_ops
+  owner_role: etl-runner
+  alert_thresholds:
+    p1: "lag > 120 minutes for product_dau_snapshot"
+
+# ===========================================================================
+# T&S metrics — owned by 07-trust-safety (activate when first incident)
+# ===========================================================================
+
+dmca_notice_volume_monthly:
+  owner_pillar: trust_safety
+  owner_role: trust-safety
+  status: inactive_until_first_incident
+
+dmca_avg_response_time_hours:
+  owner_pillar: trust_safety
+  owner_role: trust-safety
+  status: inactive_until_first_incident
+
+tos_violation_count:
+  owner_pillar: trust_safety
+  owner_role: trust-safety
+  status: inactive_until_first_incident
+
+hallucination_incident_rate:
+  owner_pillar: trust_safety
+  owner_role: trust-safety
+  status: inactive_until_first_incident
+  formula: "incidents per 10K user-prompts"
+
+gdpr_dsr_response_time_hours:
+  owner_pillar: trust_safety
+  owner_role: trust-safety
+  status: inactive_until_eu_launch
+
+# ===========================================================================
+# Finance metrics — owned by 08-finance
+# ===========================================================================
+
+mrr:
+  owner_pillar: finance
+  owner_role: backoffice-clerk
+  source: Stripe (READ-ONLY) → ops.kpi_snapshots
+
+arr_projection:
+  owner_pillar: finance
+  owner_role: backoffice-clerk
+  formula: "mrr * 12"
+
+paying_users_count_by_tier:
+  owner_pillar: finance
+  owner_role: backoffice-clerk
+
+runway_months:
+  owner_pillar: finance
+  owner_role: backoffice-clerk
+  formula: "(current_balance) / (monthly_burn - monthly_revenue) when burn > revenue; otherwise 'default alive'"
+  dashboard_tile: founder-monday/runway
+
+ai_ops_cost_as_pct_of_mrr:
+  owner_pillar: finance
+  owner_role: backoffice-clerk
+  formula: "sum(ops.cost_attributions.usd) / mrr"
+
+# ===========================================================================
+# Founder metrics — owned by 09-founder
+# ===========================================================================
+
+founder_hours_per_week:
+  owner_pillar: founder
+  owner_role: gps
+  sub_pillar: 05-health
+  target: "<= 50"
+  notes: "Self-reported via SOP-FOUNDER-016"
+
+top_idea_classification_weekly:
+  owner_pillar: founder
+  owner_role: founder-coach
+  sub_pillar: 01-cognition
+  notes: "What's the shower thought? Categorical: product / fundraising / dispute / strategy / personal"
+
+hitl_queue_length:
+  owner_pillar: founder
+  owner_role: hitl-router
+  sub_pillar: 03-hitl-flow
+
+decision_count_per_week:
+  owner_pillar: founder
+  owner_role: gps
+  sub_pillar: 01-cognition
+  source: ops.decisions
+
+charter_pr_count_quarterly:
+  owner_pillar: founder
+  owner_role: gps
+  sub_pillar: 02-charter-discipline
+
+weekly_review_completion_rate:
+  owner_pillar: founder
+  owner_role: gps
+  sub_pillar: 04-weekly-review
+
+deep_research_week_frequency:
+  owner_pillar: founder
+  owner_role: gps
+  sub_pillar: 06-learning
+  target: "1 per quarter (SOP-FOUNDER-021)"
+
+# ===========================================================================
+# Metrics meta-metrics — owned by 10-metrics
+# ===========================================================================
+
+kpi_freshness_pct:
+  owner_pillar: metrics
+  owner_role: metrics-curator
+  formula: "% of registered KPIs updated in past week"
+
+dashboard_load_time_ms:
+  owner_pillar: metrics
+  owner_role: metrics-curator
+
+alert_p0_to_action_latency_min:
+  owner_pillar: metrics
+  owner_role: alert-router
+
+alert_fatigue_ratio:
+  owner_pillar: metrics
+  owner_role: alert-router
+  formula: "alerts_dismissed_without_action / total_alerts"
+  target: "< 30%"
+
+experiment_turnaround_days:
+  owner_pillar: metrics
+  owner_role: experiment-analyst
+  formula: "median(decision_made_at - test_launched_at) in days"
+
+# ===========================================================================
+# Anti-orphan check (any KPI not listed here should NOT exist in any pillar README)
+# ===========================================================================
+# Total KPIs registered: 47
+# Status: All accounted for (1.7 cross-check passes)

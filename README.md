@@ -2,7 +2,7 @@
 
 Operating OS for [Ritsu](https://ritsu.ai) — the AI-Native company that runs around the Ritsu product.
 
-This repo is **not** the Ritsu product. The product (the AI tutor users talk to) lives in a separate repository. This repo is the workforce that operates the company: marketing, sales, content, customer success, finance, compliance, and the AI workforce itself.
+This repo is **not** the Ritsu product. The product (the AI tutor users talk to) lives in a separate repository. This repo is the workforce that operates the company across 11 pillars: charter, marketing, sales, GTM (stage), product-ops, customer, AI-ops, trust-safety, finance, founder, metrics.
 
 > **If you are an AI agent:** start with [`CLAUDE.md`](./CLAUDE.md) and then [`knowledge/manifest.yaml`](./knowledge/manifest.yaml). Do not search anywhere else first.
 >
@@ -10,15 +10,26 @@ This repo is **not** the Ritsu product. The product (the AI tutor users talk to)
 
 ## Status
 
-**v0 scaffold — May 2026.** Three files exist: the agent context (`CLAUDE.md`), the knowledge contract (`knowledge/manifest.yaml`), and the product charter (`00-charter/product.md`). Everything else is planned.
+**v0.2 — May 2026 (post pillar architecture v1.0.1 restructure).** Foundation in place: agent context (`CLAUDE.md`), knowledge contract (`knowledge/manifest.yaml`), product charter (`00-charter/product.md`), governance (`governance/HITL.md`, `governance/ROLES.md`), AI-Ops infrastructure (`06-ai-ops/skills/`, `06-ai-ops/sops/`).
 
-The next iterations will add:
-1. `governance/` — ROLES, HITL, BUDGET, SECRETS
-2. `00-charter/` — vision, mission, values, brand_voice, glossary
-3. `05-ai-ops/` — first because it builds the workforce that builds everything else
-4. `01-growth/`, `02-product/`, `03-delivery/`, `04-backoffice/`, `06-trust-safety/`
-5. `skills/`, `.claude/agents/`, `workflows/`, `mcp/`
-6. `knowledge/schemas/` — first migrations
+Pillar structure (11 pillars, 6 DEEP at this stage, 3 LITE, 2 skeleton):
+
+```
+00-charter/      — vision, brand voice, founder profile           [maintenance]
+01-marketing/    — brand, content engine, ICP                      [LITE]
+02-sales/        — pricing, conversion funnel, free→paid           [LITE]
+03-gtm/          — STAGE pillar: customer funnel to PMF (100 paying who love) [DEEP]
+04-product/      — build loop, user-listening, wedge discovery     [DEEP]
+05-customer/     — success, onboarding, support, retention, feedback, data [DEEP]
+06-ai-ops/       — the OS itself (SOP engine, MCP, hooks, memory)  [DEEP]
+07-trust-safety/ — DMCA, GDPR, hallucination triage                [skeleton]
+08-finance/      — Stripe, runway, invoicing                       [skeleton]
+09-founder/      — cognition, charter, HITL flow, weekly review, health, learning [DEEP]
+10-metrics/      — KPI registry, dashboards, alerting, PMF instrumentation [DEEP]
+placeholders/    — i18n, enterprise-sales, vn-compliance, IR, people-ops [files only]
+```
+
+Next iterations: SOP runtime contract (`06-ai-ops/01-sop-engine/`), first 7 operational SOPs (Phase 5), Telegram HITL bot.
 
 ## Architecture in one diagram
 

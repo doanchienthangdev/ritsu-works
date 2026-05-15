@@ -62,7 +62,7 @@ capabilities:
   #   state: proposed
   #   state_since: 2026-05-15
   #   proposed_at: 2026-05-15
-  #   pillar_owner: 01-growth
+  #   pillar_owner: 03-gtm   # Updated v1.0.1 (was 01-growth; for current-stage capabilities)
   #   bài_toán_touched: [11, 13, 16, 17]
   #   spec_path: wiki/capabilities/daily-customer-acquisition/spec.md
   #   sprint_plan: wiki/capabilities/daily-customer-acquisition/sprint-plan.md

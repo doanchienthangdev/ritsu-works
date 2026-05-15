@@ -5,6 +5,34 @@ move to a `## Done` section instead.
 
 ## P2 — Soon
 
+### Migrate 2 pre-contract SOPs to flow-schema.yaml conformance
+
+`05-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml` and `06-ai-ops/sops/SOP-AIOPS-002-cross-tier-consistency/flow.yaml` (paths post Phase 2 rename) predate SOP-AIOPS-003 runtime contract. Both currently fail validation by SOP-AIOPS-004 smoke test.
+
+**Why:** These SOPs work today but would fail CI gating once SOP-AIOPS-004 is wired to `pnpm check`. Either migrate them to the schema, or document an explicit exemption in the validator.
+**Pros:** Brings full repo to single contract. Removes "two formats" cognitive load.
+**Cons:** Touches working code. Requires understanding existing flow.yaml semantics.
+**Effort:** S (CC ~30 min for both)
+**Priority:** P2 — not blocking pillar restructure, but blocking CI gating of new SOPs.
+**Depends on:** Phase 2 of pillar architecture v1.0.1 migration (rename 05-ai-ops → 06-ai-ops)
+**Surfaced from:** /plan-eng-review 2026-05-15 (pillar architecture v1.0.1, validator first run)
+
+---
+
+### Update ops.campaigns.pillar default value (was '01-growth')
+
+`supabase/migrations/00018_orchestration_storage_growth.sql` line 64 sets `pillar text NOT NULL DEFAULT '01-growth'`. After pillar architecture v1.0.1 migration, '01-growth' is deprecated. New campaigns inserted without explicit pillar value get a deprecated value.
+
+**Why:** Currently no production campaigns (0 paying users), so no real data corruption today. But before launching marketing operations, fix the default.
+**Pros:** Prevents silent default-to-deprecated-value bug at scale.
+**Cons:** Requires a new migration. Needs decision on new default value (likely '03-gtm' for stage-pillar-owned campaigns, or '01-marketing' for evergreen-owned).
+**Effort:** S (CC ~15 min for migration + decision)
+**Priority:** P2 — pre-launch, before first campaign created.
+**Depends on:** Phase 2 of pillar architecture v1.0.1 migration
+**Surfaced from:** /plan-eng-review 2026-05-15 (post-eng-review scan, retroactive Eng E6)
+
+---
+
 ### E5 — Pre-edit linkage warning hook
 Extend `.claude/hooks/pre-edit-tier1.md` to read `knowledge/cross-tier-invariants.yaml`
 and warn when the file being edited has linked invariants. Format: "this file is
@@ -24,7 +52,7 @@ benefit. Limited scope.
 ---
 
 ### F1 — Drift weekly retro skill
-New skill `drift-weekly-retro` in `05-ai-ops/skills/`. Aggregates
+New skill `drift-weekly-retro` in `06-ai-ops/skills/`. Aggregates
 `ops.consistency_checks` over past 7 days. Outputs: most-drifting invariants,
 average MTTD, false-positive rate, recurring patterns suggesting architectural
 refactor. Posts to Telegram + appends to `_build/notes/`.

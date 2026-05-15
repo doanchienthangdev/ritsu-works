@@ -18,9 +18,10 @@
 #      NOT SQL — do not look for table DDL there.)
 #   - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
 
-version: 0.2.0
-last_updated: 2026-05-14
+version: 0.3.0
+last_updated: 2026-05-15
 owner: founder
+migration_note: "Updated to pillar architecture v1.0.1 (10 evergreen + 1 stage). See .archives/pillars/PLAN.md for the full architecture rationale."
 
 # ---------------------------------------------------------------------------
 # TIER 1 — Canonical (this repo)
@@ -29,54 +30,228 @@ tier1_canonical:
   storage: git
   repo: doanchienthangdev/ritsu-works
   branch_protection: main  # PRs required; see governance/HITL.md
+
+  # Pillar architecture v1.0.1: two-layer model (evergreen functional + stage composition)
+  # Total: 11 pillars (10 evergreen + 1 stage), 6 DEEP at this stage, 3 LITE, 2 skeleton
   pillars:
     charter:
       path: 00-charter/
+      layer: evergreen
+      stage_status: maintenance
+      pillar_code: CHARTER
       contents: [vision, mission, values, product, glossary, brand_voice]
       change_policy: pr_human_review
-    growth:
-      path: 01-growth/
-      status: planned
-    product_ops:
-      path: 02-product/
-      status: planned
+      status: alive
+
+    marketing:
+      path: 01-marketing/
+      layer: evergreen
+      stage_status: lite
+      pillar_code: MARKETING
+      sops_namespace: SOP-MARKETING-NNN
+      sub_pillars: [icp, brand-voice-kit, content-templates]
+      composes_from: [charter]
       note: |
-        This is operations AROUND the product (roadmap intake, release notes,
-        feedback triage). The product codebase itself is in a separate repo.
-    delivery:
-      path: 03-delivery/
-      status: planned
-      note: B2C product ops at scale — support, onboarding, churn, in-app engagement.
-    backoffice:
-      path: 04-backoffice/
-      status: planned
-      note: Vietnam-specific tax & compliance context.
+        Brand, positioning, content engine, ICP definition. Modules feed GTM.
+        Defer SEO-deep, brand campaigns, partnerships until post-PMF.
+
+    sales:
+      path: 02-sales/
+      layer: evergreen
+      stage_status: lite
+      pillar_code: SALES
+      sops_namespace: SOP-SALES-NNN
+      sub_pillars: [pricing-tiers, conversion-funnel, plg-self-serve, free-to-paid-triggers]
+      composes_from: [marketing, product]
+      note: |
+        Pricing experiments, conversion funnel, free→paid mechanics. Modules feed GTM.
+        Defer outbound + enterprise until 1 paying ≥$500/mo OR 3 enterprise leads.
+
+    gtm:
+      path: 03-gtm/
+      layer: stage
+      stage_status: deep
+      pillar_code: GTM
+      sops_namespace: SOP-GTM-NNN
+      sub_pillars:
+        - 01-icp-and-segmentation
+        - 02-launch-sequence
+        - 03-distribution-engine
+        - 04-funnel-orchestration
+        - 05-pmf-instrumentation
+        - 06-collison-install-protocol
+      composes_from: [marketing, sales, product, customer, ai-ops, metrics]
+      dissolves_when: "≥100 paying retained 30d AND NPS ≥40 AND week-4 retention ≥25%"
+      note: |
+        Stage composition pillar. Drives "100 paying customers who love" goal.
+        Dissolves on PMF; sub-pillars relocate per dissolution-target mapping
+        in .archives/pillars/PLAN.md §4.1.
+
+    product:
+      path: 04-product/
+      layer: evergreen
+      stage_status: deep
+      pillar_code: PRODUCT
+      sops_namespace: SOP-PRODUCT-NNN
+      sub_pillars:
+        - 01-wedge-discovery
+        - 02-build-loop
+        - 03-feedback-pipeline
+        - 04-pricing-experiments
+        - 05-ab-test-discipline
+      composes_from: [charter, sales]
+      critical_pg_gate: "SOP-PRODUCT-002 mandates N=10 strangers observed using product before any major feature build"
+
+    customer:
+      path: 05-customer/
+      layer: evergreen
+      stage_status: deep
+      pillar_code: CUSTOMER
+      sops_namespace: SOP-CUSTOMER-NNN
+      sub_pillars:
+        - 01-success
+        - 02-onboarding
+        - 03-support
+        - 04-retention
+        - 05-feedback-and-research
+        - 06-customer-data
+      composes_from: [product, founder, metrics]
+      critical_pg_gate: "SOP-CUSTOMER-006 = founder personally onboards first ~30 paying via Zoom; SOP-CUSTOMER-009 automates from N=31"
+      note: |
+        Big pillar covering full customer lifecycle. Renamed from 05-customer-success
+        (success is now sub-pillar 01-success). Matches public.customers + persons +
+        companies schema (00005_customer_entity.sql).
+
     ai_ops:
-      path: 05-ai-ops/
-      status: planned
+      path: 06-ai-ops/
+      layer: evergreen
+      stage_status: deep
+      pillar_code: AIOPS
+      sops_namespace: SOP-AIOPS-NNN
+      sub_pillars:
+        - 01-sop-engine
+        - 02-skill-library
+        - 03-mcp                              # Merged from old 03-mcp-tooling + 08-integrations-as-mcp
+        - 04-hooks-enforcement
+        - 05-cost-budget-architecture
+        - 06-episodic-memory-architecture
+        - 07-cross-tier-consistency
+      composes_from: []
+      status: alive  # skills/ + sops/ exist on disk
+
     trust_safety:
-      path: 06-trust-safety/
-      status: planned
+      path: 07-trust-safety/
+      layer: evergreen
+      stage_status: skeleton
+      pillar_code: TS
+      sops_namespace: SOP-TS-NNN
+      sub_pillars: []
+      entry_conditions:
+        - "First DMCA notice received → SOP-TS-002-dmca-evaluation"
+        - "First ToS report → SOP-TS-003-tos-violation-classification"
+        - "First hallucination incident → SOP-TS-004-hallucination-triage"
+        - "EU launch confirmed → GDPR-deep sub-pillar"
+        - "100 paying users milestone → proactive content moderation review"
       note: |
         B2C EdTech-specific. Copyright/DMCA, hallucination guardrails, GDPR/PDPA,
-        minor users (under 18), user-uploaded content moderation.
+        minor users (under 18), user-uploaded content moderation. Active only when
+        first incident.
+
+    finance:
+      path: 08-finance/
+      layer: evergreen
+      stage_status: skeleton
+      pillar_code: FIN
+      sops_namespace: SOP-FIN-NNN
+      sub_pillars: []
+      entry_conditions:
+        - "50 paying users → invoicing-prep + tax-classification sub-pillars"
+        - "VN entity formed → placeholders/compliance-vn (separate pillar)"
+        - "$10K MRR → accounting-tool integration sub-pillar"
+        - "Founder decides to raise → investor-financials sub-pillar"
+      note: Vietnam-specific tax & compliance context. Stripe revenue tracking, runway calculator, invoice prep.
+
+    founder:
+      path: 09-founder/
+      layer: evergreen
+      stage_status: deep
+      pillar_code: FOUNDER
+      sops_namespace: SOP-FOUNDER-NNN
+      sub_pillars:
+        - 01-cognition
+        - 02-charter-discipline
+        - 03-hitl-flow
+        - 04-weekly-review
+        - 05-health
+        - 06-learning
+      composes_from: [charter, ai-ops, metrics]
+      note: |
+        Big pillar covering founder operations. Renamed from 09-founder-cognition
+        (cognition is now sub-pillar 01-cognition). The founder is the bottleneck;
+        this pillar codifies how founder thinks, decides, governs, recovers, learns.
+
+    metrics:
+      path: 10-metrics/
+      layer: evergreen
+      stage_status: deep
+      pillar_code: METRICS
+      sops_namespace: SOP-METRICS-NNN
+      sub_pillars:
+        - 01-kpi-registry
+        - 02-pmf-instrumentation
+        - 03-dashboards
+        - 04-alerting
+        - 05-experiment-measurement
+        - 06-revenue-and-cost-views
+      composes_from: [ai-ops]      # reads ops.kpi_snapshots, ops.alerts, metrics.product_dau_snapshot
+      composed_by: [gtm, product, customer, founder]
+      critical_pg_gate: "SOP-METRICS-007 = the 100-paying-who-love composite tile (singular metric on founder Monday dashboard)"
+      note: |
+        KPI registry + ownership map, dashboards, alerting rules, PMF instrumentation,
+        experiment measurement. Storage substrate (ops.kpi_snapshots, ops.alerts,
+        metrics.product_dau_snapshot) lives in AI-Ops; Metrics pillar provides
+        definition + readout layer on top.
+
+  # Placeholder pillars — file-only, no SOPs/agents until activated
+  placeholder_pillars:
+    internationalization:
+      path: placeholders/internationalization/
+      entry_condition: "30%+ users non-English"
+      initial_sub_pillars: [i18n-string-extraction, RTL-support, locale-payment]
+    enterprise_sales:
+      path: placeholders/enterprise-sales/
+      entry_condition: "1 deal ≥ $500/mo OR 3 enterprise inbound leads"
+      initial_sub_pillars: [outbound-motion, contract-templates, procurement-handling]
+      promotes: "02-sales from LITE to DEEP"
+    compliance_vn:
+      path: placeholders/compliance-vn/
+      entry_condition: "VN entity formation decision"
+      initial_sub_pillars: [VAT, PIT, social-insurance, e-invoicing-mst]
+    investor_relations:
+      path: placeholders/investor-relations/
+      entry_condition: "Founder decides to raise"
+      initial_sub_pillars: [data-room, investor-update-monthly, runway-deck-current]
+    people_ops:
+      path: placeholders/people-ops/
+      entry_condition: "First non-AI hire"
+      initial_sub_pillars: [hiring-funnel, human-onboarding, payroll-vn-or-other]
+
+  # Cross-cutting infrastructure (not pillars, but Tier 1 paths)
+  cross_cutting:
     skills:
-      path: skills/
-      status: planned
-      note: SKILL.md files following Anthropic convention. Composable.
+      path: 06-ai-ops/skills/
+      note: SKILL.md files following Anthropic convention. Composable. Lives under AI-Ops.
     agents:
       path: .claude/agents/
-      status: planned
+      note: Agent definitions per ROLES.md. home_pillar field MUST match a pillar id above.
     workflows:
       path: workflows/
       status: planned
     governance:
       path: governance/
-      status: planned
       contents: [ROLES.md, HITL.md, BUDGET.md, SECRETS.md]
     tool_plane:
       path: mcp/
-      status: planned
       note: |
         MCP server configs (servers.yaml) and custom MCP servers. This is the
         ONLY way agents reach external systems. If a needed tool isn't here,
@@ -397,7 +572,7 @@ tier2_operational:
         - name: campaigns
           migration_file: supabase/migrations/00018_orchestration_storage_growth.sql
           status: live
-          purpose: Growth campaigns (01-growth pillar). FK target for future ops.content_drafts, ops.leads.
+          purpose: Growth campaigns (now owned by 03-gtm stage pillar; pre-v1.0.1 was 01-growth). FK target for future ops.content_drafts, ops.leads. Note column default still '01-growth' — see TODOS.md "Update ops.campaigns.pillar default value".
         # ====================================================================
         # Settings
         # ====================================================================
