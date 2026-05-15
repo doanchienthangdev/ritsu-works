@@ -31,37 +31,52 @@ This pillar does NOT own:
 
 ```
 05-customer/
-├── 01-success/                              # User achieves value (THE pillar's namesake)
+├── success/                              # User achieves value (THE pillar's namesake)
 │   ├── sops/SOP-CUSTOMER-001-aha-moment-definition-and-tracking/
 │   ├── sops/SOP-CUSTOMER-002-activation-event-instrumentation/
 │   ├── sops/SOP-CUSTOMER-003-day-1-day-7-day-30-cohort-tracking/
 │   ├── sops/SOP-CUSTOMER-004-streak-and-emotional-hook-design/
 │   └── sops/SOP-CUSTOMER-005-mastery-progression-tracking/    # Ritsu-specific
-├── 02-onboarding/                           # First 30 days
+├── onboarding/                           # First 30 days
 │   ├── sops/SOP-CUSTOMER-006-collison-install-script/         # Founder personally onboards first ~30 paying
 │   ├── sops/SOP-CUSTOMER-007-stuck-user-detection-and-outreach/
 │   ├── sops/SOP-CUSTOMER-008-onboarding-call-runbook/
 │   └── sops/SOP-CUSTOMER-009-onboarding-script-automation-31plus/  # AI takes over N=31+
-├── 03-support/                              # Reactive
+├── support/                              # Reactive
 │   ├── sops/SOP-CUSTOMER-010-faq-classification-and-routing/
 │   ├── sops/SOP-CUSTOMER-011-support-reply-drafting/
 │   ├── sops/SOP-CUSTOMER-012-escalation-to-founder-criteria/
 │   └── sops/SOP-CUSTOMER-013-incident-status-page-update/
-├── 04-retention/                            # Proactive
+├── retention/                            # Proactive
 │   ├── sops/SOP-CUSTOMER-014-reactivation-email-on-7-day-silence/
 │   ├── sops/SOP-CUSTOMER-015-cancel-flow-design/
 │   ├── sops/SOP-CUSTOMER-016-win-back-attempt-protocol/
 │   └── sops/SOP-CUSTOMER-017-deep-engagement-celebration-protocol/
-├── 05-feedback-and-research/                # Voice of customer
+├── feedback-and-research/                # Voice of customer
 │   ├── sops/SOP-CUSTOMER-018-in-app-nps-collection/
 │   ├── sops/SOP-CUSTOMER-019-cancel-flow-feedback-capture/
 │   ├── sops/SOP-CUSTOMER-020-user-interview-recruitment/
-│   └── sops/SOP-CUSTOMER-021-feedback-to-product-pipeline/   # ↔ 04-product/03-feedback-pipeline
-└── 06-customer-data/                        # CRM, 360, GDPR mechanics
+│   └── sops/SOP-CUSTOMER-021-feedback-to-product-pipeline/   # ↔ 04-product/feedback-pipeline
+└── customer-data/                        # CRM, 360, GDPR mechanics
     ├── sops/SOP-CUSTOMER-022-customer-360-refresh/
     ├── sops/SOP-CUSTOMER-023-gdpr-account-deletion/         # ↔ 07-trust-safety policy
     └── sops/SOP-CUSTOMER-024-segmentation-by-behavior/
 ```
+
+## Sub-pillar order (narrative)
+
+The customer lifecycle reads in two passes — the chronological journey of one user,
+then the cross-cutting "infrastructure" pillars that serve all of them.
+
+**Journey (user-time order):**
+1. **onboarding** — first 30 days (founder personally onboards first ~30 paying)
+2. **success** — user achieves value, "aha moment"; THE pillar's namesake
+3. **support** — reactive resolution when things go wrong
+4. **retention** — proactive engagement, win-back, deep-engagement celebration
+5. **feedback-and-research** — voice of customer through every channel
+
+**Cross-cutting:**
+6. **customer-data** — CRM/360 schema + GDPR mechanics (serves the other five)
 
 ## SOPs
 
@@ -71,15 +86,15 @@ This pillar does NOT own:
 ## Agents
 
 - `customer-lead` (home, pillar-level) — owns weekly customer-health review
-- `cs-coach` (under `01-success`) — activation funnel ownership
-- `support-agent` (under `03-support`) — FAQ-handled tickets, escalation
-- `retention-watcher` (under `04-retention`) — silence detection
-- `escalation-router` (under `03-support`) — ticket → founder routing
-- `feedback-aggregator` (under `05-feedback-and-research`) — voice of customer
+- `cs-coach` (under `success`) — activation funnel ownership
+- `support-agent` (under `support`) — FAQ-handled tickets, escalation
+- `retention-watcher` (under `retention`) — silence detection
+- `escalation-router` (under `support`) — ticket → founder routing
+- `feedback-aggregator` (under `feedback-and-research`) — voice of customer
 
 ## KPIs owned
 
-(Surfaced in `10-metrics/01-kpi-registry/`.)
+(Surfaced in `10-metrics/kpi-registry/`.)
 
 - Activation rate (signup → first aha)
 - Day 7 / Day 30 retention (rolling cohorts)
@@ -93,11 +108,11 @@ This pillar does NOT own:
 ## Dependencies
 
 - **Composes from:** `04-product` (wedge feature → activation), `09-founder` (founder personally onboards first ~30), `10-metrics` (PMF instrumentation feeds activation tracking), `public.customers + persons + companies + mv_customer_360`
-- **Composed by:** `03-gtm/04-funnel-orchestration/` (consumes activation metrics), `07-trust-safety` (GDPR account-deletion uses `06-customer-data` mechanics)
+- **Composed by:** `03-gtm/funnel-orchestration/` (consumes activation metrics), `07-trust-safety` (GDPR account-deletion uses `customer-data` mechanics)
 
 ## Critical PG gate
 
-`02-onboarding/SOP-CUSTOMER-006-collison-install-script` is the literal Collison-install protocol: **for first ~30 paying users, founder does the onboarding by Zoom in person, captures the script verbatim, then `SOP-CUSTOMER-009-onboarding-script-automation-31plus` automates from N=31 onwards.** Do NOT let AI handle onboarding for first 30 paying — these calls produce the wedge insight that no other research captures.
+`onboarding/SOP-CUSTOMER-006-collison-install-script` is the literal Collison-install protocol: **for first ~30 paying users, founder does the onboarding by Zoom in person, captures the script verbatim, then `SOP-CUSTOMER-009-onboarding-script-automation-31plus` automates from N=31 onwards.** Do NOT let AI handle onboarding for first 30 paying — these calls produce the wedge insight that no other research captures.
 
 ## HITL baseline
 
@@ -109,4 +124,4 @@ This pillar does NOT own:
 
 ## Entry conditions
 
-Already DEEP. After 1000 paying users, `06-customer-data` may split into separate `account-management` sub-pillar.
+Already DEEP. After 1000 paying users, `customer-data` may split into separate `account-management` sub-pillar.

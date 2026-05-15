@@ -205,6 +205,10 @@ async function main() {
   const r0 = runNodeCheck('validate-tier1.cjs', path.join(REPO_ROOT, 'scripts/validate-tier1.cjs'));
   if (!r0.passed) criticalFailures += 1;
 
+  header('L1 — pillar numbering convention');
+  const rPN = runNodeCheck('validate-pillar-numbering.cjs', path.join(CT_DIR, 'validate-pillar-numbering.cjs'));
+  if (!rPN.passed) criticalFailures += 1;
+
   // === L2 critical ===================================================
   header('L2 — cross-tier validators (critical)');
   for (const v of [

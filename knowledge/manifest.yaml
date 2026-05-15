@@ -18,10 +18,10 @@
 #      NOT SQL — do not look for table DDL there.)
 #   - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
 
-version: 0.3.0
+version: 0.4.0
 last_updated: 2026-05-15
 owner: founder
-migration_note: "Updated to pillar architecture v1.0.1 (10 evergreen + 1 stage). See .archives/pillars/PLAN.md for the full architecture rationale."
+migration_note: "v0.4.0 (2026-05-15): dropped NN- numeric prefix from all sub-pillar directories (30 renames). Top-level pillar numbering preserved. SOP namespace unchanged. Convention locked by check-drift validators (validate-pillar-numbering.cjs). Plan: .archives/sub-pillar-renumbering/ (local-only). Prior: v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage); see .archives/pillars/PLAN.md."
 
 # ---------------------------------------------------------------------------
 # TIER 1 — Canonical (this repo)
@@ -74,12 +74,12 @@ tier1_canonical:
       pillar_code: GTM
       sops_namespace: SOP-GTM-NNN
       sub_pillars:
-        - 01-icp-and-segmentation
-        - 02-launch-sequence
-        - 03-distribution-engine
-        - 04-funnel-orchestration
-        - 05-pmf-instrumentation
-        - 06-collison-install-protocol
+        - icp-and-segmentation
+        - launch-sequence
+        - distribution-engine
+        - funnel-orchestration
+        - pmf-instrumentation
+        - collison-install-protocol
       composes_from: [marketing, sales, product, customer, ai-ops, metrics]
       dissolves_when: "≥100 paying retained 30d AND NPS ≥40 AND week-4 retention ≥25%"
       note: |
@@ -94,11 +94,11 @@ tier1_canonical:
       pillar_code: PRODUCT
       sops_namespace: SOP-PRODUCT-NNN
       sub_pillars:
-        - 01-wedge-discovery
-        - 02-build-loop
-        - 03-feedback-pipeline
-        - 04-pricing-experiments
-        - 05-ab-test-discipline
+        - wedge-discovery
+        - build-loop
+        - feedback-pipeline
+        - pricing-experiments
+        - ab-test-discipline
       composes_from: [charter, sales]
       critical_pg_gate: "SOP-PRODUCT-002 mandates N=10 strangers observed using product before any major feature build"
 
@@ -109,17 +109,17 @@ tier1_canonical:
       pillar_code: CUSTOMER
       sops_namespace: SOP-CUSTOMER-NNN
       sub_pillars:
-        - 01-success
-        - 02-onboarding
-        - 03-support
-        - 04-retention
-        - 05-feedback-and-research
-        - 06-customer-data
+        - success
+        - onboarding
+        - support
+        - retention
+        - feedback-and-research
+        - customer-data
       composes_from: [product, founder, metrics]
       critical_pg_gate: "SOP-CUSTOMER-006 = founder personally onboards first ~30 paying via Zoom; SOP-CUSTOMER-009 automates from N=31"
       note: |
         Big pillar covering full customer lifecycle. Renamed from 05-customer-success
-        (success is now sub-pillar 01-success). Matches public.customers + persons +
+        (success is now sub-pillar `success`). Matches public.customers + persons +
         companies schema (00005_customer_entity.sql).
 
     ai_ops:
@@ -129,13 +129,13 @@ tier1_canonical:
       pillar_code: AIOPS
       sops_namespace: SOP-AIOPS-NNN
       sub_pillars:
-        - 01-sop-engine
-        - 02-skill-library
-        - 03-mcp                              # Merged from old 03-mcp-tooling + 08-integrations-as-mcp
-        - 04-hooks-enforcement
-        - 05-cost-budget-architecture
-        - 06-episodic-memory-architecture
-        - 07-cross-tier-consistency
+        - sop-engine
+        - skill-library
+        - mcp                                 # Merged from old mcp-tooling + integrations-as-mcp
+        - hooks-enforcement
+        - cost-budget-architecture
+        - episodic-memory-architecture
+        - cross-tier-consistency
       composes_from: []
       status: alive  # skills/ + sops/ exist on disk
 
@@ -178,16 +178,16 @@ tier1_canonical:
       pillar_code: FOUNDER
       sops_namespace: SOP-FOUNDER-NNN
       sub_pillars:
-        - 01-cognition
-        - 02-charter-discipline
-        - 03-hitl-flow
-        - 04-weekly-review
-        - 05-health
-        - 06-learning
+        - cognition
+        - charter-discipline
+        - hitl-flow
+        - weekly-review
+        - health
+        - learning
       composes_from: [charter, ai-ops, metrics]
       note: |
         Big pillar covering founder operations. Renamed from 09-founder-cognition
-        (cognition is now sub-pillar 01-cognition). The founder is the bottleneck;
+        (cognition is now sub-pillar `cognition`). The founder is the bottleneck;
         this pillar codifies how founder thinks, decides, governs, recovers, learns.
 
     metrics:
@@ -197,12 +197,12 @@ tier1_canonical:
       pillar_code: METRICS
       sops_namespace: SOP-METRICS-NNN
       sub_pillars:
-        - 01-kpi-registry
-        - 02-pmf-instrumentation
-        - 03-dashboards
-        - 04-alerting
-        - 05-experiment-measurement
-        - 06-revenue-and-cost-views
+        - kpi-registry
+        - pmf-instrumentation
+        - dashboards
+        - alerting
+        - experiment-measurement
+        - revenue-and-cost-views
       composes_from: [ai-ops]      # reads ops.kpi_snapshots, ops.alerts, metrics.product_dau_snapshot
       composed_by: [gtm, product, customer, founder]
       critical_pg_gate: "SOP-METRICS-007 = the 100-paying-who-love composite tile (singular metric on founder Monday dashboard)"

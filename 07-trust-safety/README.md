@@ -21,7 +21,7 @@ This pillar owns:
 - **Content moderation** — user-uploaded content (Ritsu accepts PDF/video/slides — needs vetting at scale)
 
 This pillar does NOT own:
-- Account-deletion mechanics → `05-customer/06-customer-data/SOP-CUSTOMER-023-gdpr-account-deletion/` (TS owns POLICY, Customer owns EXECUTION)
+- Account-deletion mechanics → `05-customer/customer-data/SOP-CUSTOMER-023-gdpr-account-deletion/` (TS owns POLICY, Customer owns EXECUTION)
 - Code-level safety (input validation, prompt injection defenses) → that's product team in separate repo
 - Tax/regulatory financial compliance → `placeholders/compliance-vn/` (separate concern)
 
@@ -40,7 +40,7 @@ No sub-pillars at this stage. Skeleton only. See entry conditions below.
 
 ## KPIs owned
 
-(Surfaced in `10-metrics/01-kpi-registry/` once active.)
+(Surfaced in `10-metrics/kpi-registry/` once active.)
 
 - DMCA notice volume (per month)
 - Average DMCA response time
@@ -51,7 +51,7 @@ No sub-pillars at this stage. Skeleton only. See entry conditions below.
 ## Dependencies
 
 - **Composes from:** `governance/HITL.md` (all T&S actions are Tier C minimum)
-- **Composed by:** `05-customer/06-customer-data/` (GDPR deletion execution)
+- **Composed by:** `05-customer/customer-data/` (GDPR deletion execution)
 
 ## HITL baseline
 

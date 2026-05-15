@@ -31,34 +31,43 @@ This pillar does NOT own:
 
 ```
 09-founder/
-├── 01-cognition/                            # PG signature — top-idea, attention, decision velocity
+├── cognition/                            # PG signature — top-idea, attention, decision velocity
 │   ├── sops/SOP-FOUNDER-001-weekly-top-idea-audit/       # What's the shower thought? (Friday cron)
 │   ├── sops/SOP-FOUNDER-002-nile-perch-detection/        # Money/dispute eating the slot
 │   ├── sops/SOP-FOUNDER-003-makers-schedule-protection/  # vs manager-schedule fragmentation
 │   ├── sops/SOP-FOUNDER-004-decision-log-discipline/     # Per Bài #15 ops.decisions
 │   └── sops/SOP-FOUNDER-005-reversible-vs-irreversible-router/
-├── 02-charter-discipline/
+├── charter-discipline/
 │   ├── sops/SOP-FOUNDER-006-weekly-charter-reread/
 │   ├── sops/SOP-FOUNDER-007-charter-violation-detection/
 │   └── sops/SOP-FOUNDER-008-charter-evolution-pr-protocol/
-├── 03-hitl-flow/                            # Per governance/HITL.md
+├── hitl-flow/                            # Per governance/HITL.md
 │   ├── sops/SOP-FOUNDER-009-telegram-hitl-bot-config/
 │   ├── sops/SOP-FOUNDER-010-tier-c-d-batch-and-clear/
 │   ├── sops/SOP-FOUNDER-011-override-magic-phrase-discipline/
 │   └── sops/SOP-FOUNDER-012-d-max-cooldown-protocol/
-├── 04-weekly-review/                        # Single forcing function for solo
+├── weekly-review/                        # Single forcing function for solo
 │   ├── sops/SOP-FOUNDER-013-friday-review-template/
 │   ├── sops/SOP-FOUNDER-014-week-ahead-pillar-priorities/  # Reads from metrics dashboards
 │   └── sops/SOP-FOUNDER-015-monthly-charter-and-budget-reset/
-├── 05-health/                               # 1-person company = 1-person SPOF
+├── health/                               # 1-person company = 1-person SPOF
 │   ├── sops/SOP-FOUNDER-016-weekly-energy-tracking/
 │   ├── sops/SOP-FOUNDER-017-mandatory-rest-window/
 │   └── sops/SOP-FOUNDER-018-burnout-early-warning-signs/
-└── 06-learning/                             # Founder skill compounding
+└── learning/                             # Founder skill compounding
     ├── sops/SOP-FOUNDER-019-weekly-reading-budget/
     ├── sops/SOP-FOUNDER-020-monthly-skill-gap-audit/
     └── sops/SOP-FOUNDER-021-quarterly-deep-research-week/
 ```
+
+## Sub-pillar order (narrative)
+
+1. **cognition** — PG signature: top-idea audit, attention, decision velocity
+2. **charter-discipline** — keeping company aligned to written vision
+3. **hitl-flow** — Telegram bot, override ceremony, approval queue
+4. **weekly-review** — single forcing function (Friday) — the heartbeat of solo ops
+5. **health** — energy tracking + mandatory rest (1-person company = 1-person SPOF)
+6. **learning** — reading budget + deep-research weeks (founder skill compounding)
 
 ## SOPs
 
@@ -68,13 +77,13 @@ This pillar does NOT own:
 ## Agents
 
 - `gps` (home, chief of staff) — owns pillar-level coordination, batches HITL decisions
-- `founder-coach` (under `01-cognition`) — surfaces top-idea drift, weekly review prompts
-- `hitl-router` (under `03-hitl-flow`) — Telegram bot logic for B/C/D approvals
-- `health-tracker` (under `05-health`) — energy + burnout watch
+- `founder-coach` (under `cognition`) — surfaces top-idea drift, weekly review prompts
+- `hitl-router` (under `hitl-flow`) — Telegram bot logic for B/C/D approvals
+- `health-tracker` (under `health`) — energy + burnout watch
 
 ## KPIs owned
 
-(Surfaced in `10-metrics/01-kpi-registry/`.)
+(Surfaced in `10-metrics/kpi-registry/`.)
 
 - Founder hours / week (target ≤ 50)
 - Top-idea-in-mind tracking (weekly classification)

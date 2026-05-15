@@ -22,8 +22,8 @@ This pillar owns:
 
 This pillar does NOT own:
 - Pricing decisions → `02-sales/modules/pricing-tiers/`
-- Customer billing problems → `05-customer/03-support/`
-- Pricing experiments → `04-product/04-pricing-experiments/`
+- Customer billing problems → `05-customer/support/`
+- Pricing experiments → `04-product/pricing-experiments/`
 - VN tax filing execution → `placeholders/compliance-vn/` (separate pillar when activated)
 
 ## Sub-pillars
@@ -41,7 +41,7 @@ No sub-pillars at this stage. Skeleton + minimum-viable SOPs.
 
 ## KPIs owned
 
-(Surfaced in `10-metrics/01-kpi-registry/` once active.)
+(Surfaced in `10-metrics/kpi-registry/` once active.)
 
 - MRR (monthly recurring revenue)
 - ARR projection
@@ -52,8 +52,8 @@ No sub-pillars at this stage. Skeleton + minimum-viable SOPs.
 
 ## Dependencies
 
-- **Composes from:** Stripe (READ-ONLY MCP), `06-ai-ops/05-cost-budget-architecture/` (AI cost feed)
-- **Composed by:** `10-metrics/06-revenue-and-cost-views/` (consumes runway + MRR for dashboards), `09-founder/04-weekly-review/` (founder Monday dashboard reads runway)
+- **Composes from:** Stripe (READ-ONLY MCP), `06-ai-ops/cost-budget-architecture/` (AI cost feed)
+- **Composed by:** `10-metrics/revenue-and-cost-views/` (consumes runway + MRR for dashboards), `09-founder/weekly-review/` (founder Monday dashboard reads runway)
 
 ## HITL baseline
 

@@ -32,33 +32,42 @@ Metrics owns: definitions + dashboards + alerting routing. Like a small data tea
 
 ```
 10-metrics/
-├── 01-kpi-registry/                         # Canonical metrics list + ownership
+├── kpi-registry/                         # Canonical metrics list + ownership
 │   ├── sops/SOP-METRICS-001-kpi-definition-template/
 │   ├── sops/SOP-METRICS-002-kpi-ownership-mapping/      # knowledge/kpi-ownership.yaml
 │   └── sops/SOP-METRICS-003-kpi-deprecation-protocol/
-├── 02-pmf-instrumentation/                  # The PMF numbers
+├── pmf-instrumentation/                  # The PMF numbers
 │   ├── sops/SOP-METRICS-004-sean-ellis-very-disappointed-tracking/
 │   ├── sops/SOP-METRICS-005-cohort-retention-week-1-week-4/
 │   ├── sops/SOP-METRICS-006-nps-collection-and-aggregation/
 │   └── sops/SOP-METRICS-007-100-paying-who-love-composite-metric/   # The singular tile
-├── 03-dashboards/                           # Founder + cross-pillar views
+├── dashboards/                           # Founder + cross-pillar views
 │   ├── sops/SOP-METRICS-008-founder-monday-dashboard/   # 5-tile screen
 │   ├── sops/SOP-METRICS-009-cross-pillar-weekly-review-board/
 │   └── sops/SOP-METRICS-010-pillar-health-rollup/       # G/Y/R status per pillar
-├── 04-alerting/                             # Rule definitions + routing
+├── alerting/                             # Rule definitions + routing
 │   ├── sops/SOP-METRICS-011-alert-rule-yaml-format/     # leverages knowledge/alert-rules.yaml
 │   ├── sops/SOP-METRICS-012-alert-routing-by-severity/  # P0 → Telegram; P1 → daily digest
 │   └── sops/SOP-METRICS-013-alert-fatigue-audit/        # Monthly review
-├── 05-experiment-measurement/               # A/B test rigor
+├── experiment-measurement/               # A/B test rigor
 │   ├── sops/SOP-METRICS-014-experiment-design-checklist/
 │   ├── sops/SOP-METRICS-015-significance-and-lift-calculation/
-│   └── sops/SOP-METRICS-016-experiment-stop-and-decide-protocol/  # ↔ 04-product/05-ab-test-discipline
-└── 06-revenue-and-cost-views/               # Read-only views over Finance + AI-Ops
+│   └── sops/SOP-METRICS-016-experiment-stop-and-decide-protocol/  # ↔ 04-product/ab-test-discipline
+└── revenue-and-cost-views/               # Read-only views over Finance + AI-Ops
     ├── sops/SOP-METRICS-017-mrr-growth-rate-weekly/
-    ├── sops/SOP-METRICS-018-blended-cac-ltv-by-channel/  # ↔ 03-gtm/03-distribution-engine
-    ├── sops/SOP-METRICS-019-ai-ops-cost-per-task-trend/  # ↔ 06-ai-ops/05-cost-budget-architecture
+    ├── sops/SOP-METRICS-018-blended-cac-ltv-by-channel/  # ↔ 03-gtm/distribution-engine
+    ├── sops/SOP-METRICS-019-ai-ops-cost-per-task-trend/  # ↔ 06-ai-ops/cost-budget-architecture
     └── sops/SOP-METRICS-020-runway-projection-monthly/    # ↔ 08-finance
 ```
+
+## Sub-pillar order (narrative)
+
+1. **kpi-registry** — canonical metric definitions + ownership map (foundation)
+2. **pmf-instrumentation** — the PMF numbers: Sean-Ellis, cohort retention, the "100 paying who love" composite tile
+3. **dashboards** — founder Monday dashboard + cross-pillar weekly review board
+4. **alerting** — rule definitions + severity-based routing (P0 Telegram, P1 daily digest)
+5. **experiment-measurement** — A/B test rigor: design, significance, stop-and-decide
+6. **revenue-and-cost-views** — read-only views over Finance + AI-Ops cost data
 
 ## SOPs
 
@@ -69,8 +78,8 @@ Metrics owns: definitions + dashboards + alerting routing. Like a small data tea
 ## Agents
 
 - `metrics-curator` (home) — owns KPI registry, weekly dashboard refresh
-- `alert-router` (under `04-alerting`) — receives `ops.alerts` rows, routes per rules
-- `experiment-analyst` (under `05-experiment-measurement`) — A/B test analysis on demand
+- `alert-router` (under `alerting`) — receives `ops.alerts` rows, routes per rules
+- `experiment-analyst` (under `experiment-measurement`) — A/B test analysis on demand
 
 ## KPIs owned (meta — KPIs about KPIs)
 
@@ -82,8 +91,8 @@ Metrics owns: definitions + dashboards + alerting routing. Like a small data tea
 
 ## Dependencies
 
-- **Composes from:** `06-ai-ops/05-cost-budget-architecture/` (cost trend feed), `08-finance/` (MRR + Stripe data), Supabase tables `ops.kpi_snapshots`, `ops.alerts`, `metrics.product_dau_snapshot`
-- **Composed by:** every operational pillar reads metrics for decisions; especially `03-gtm/05-pmf-instrumentation/` and `09-founder/04-weekly-review/`
+- **Composes from:** `06-ai-ops/cost-budget-architecture/` (cost trend feed), `08-finance/` (MRR + Stripe data), Supabase tables `ops.kpi_snapshots`, `ops.alerts`, `metrics.product_dau_snapshot`
+- **Composed by:** every operational pillar reads metrics for decisions; especially `03-gtm/pmf-instrumentation/` and `09-founder/weekly-review/`
 
 ## Critical PG gate
 

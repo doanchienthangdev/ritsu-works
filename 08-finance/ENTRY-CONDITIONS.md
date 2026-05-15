@@ -10,7 +10,7 @@
 
 ## Process
 
-1. Trigger observed (founder confirms or `09-founder/04-weekly-review/` flags)
+1. Trigger observed (founder confirms or `09-founder/weekly-review/` flags)
 2. Founder approval to activate (Tier C minimum)
 3. PR opens with sub-pillar README + scaffolded SOPs + manifest.yaml update
-4. Hooks in `06-ai-ops/04-hooks-enforcement/` reload to recognize new SOPs
+4. Hooks in `06-ai-ops/hooks-enforcement/` reload to recognize new SOPs

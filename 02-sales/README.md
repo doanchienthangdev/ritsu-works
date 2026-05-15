@@ -21,7 +21,7 @@ This pillar owns:
 
 This pillar does NOT own:
 - Marketing content / SEO / brand → `01-marketing/`
-- Customer onboarding (post-paid) → `05-customer/02-onboarding/`
+- Customer onboarding (post-paid) → `05-customer/onboarding/`
 - Stripe revenue tracking / runway → `08-finance/`
 - Refund processing → `08-finance/` (with founder Tier C/D approval per money-out rules)
 
@@ -56,7 +56,7 @@ LITE at this stage. Modules consumed by GTM:
 
 ## KPIs owned
 
-(Surfaced in `10-metrics/01-kpi-registry/`.)
+(Surfaced in `10-metrics/kpi-registry/`.)
 
 - Free → Plus conversion rate
 - Plus → Pro upgrade rate
@@ -67,7 +67,7 @@ LITE at this stage. Modules consumed by GTM:
 ## Dependencies
 
 - **Composes from:** `04-product` (wedge feature drives pricing surface), `01-marketing` (positioning)
-- **Composed by:** `03-gtm/04-funnel-orchestration/` (pulls pricing tiers + free→paid triggers)
+- **Composed by:** `03-gtm/funnel-orchestration/` (pulls pricing tiers + free→paid triggers)
 
 ## HITL baseline
 

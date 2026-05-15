@@ -20,10 +20,10 @@ This pillar owns:
 - **Social presence** — channel strategy, posting cadence
 
 This pillar does NOT own:
-- Current-stage campaign execution → `03-gtm/03-distribution-engine/`
-- Funnel orchestration → `03-gtm/04-funnel-orchestration/`
+- Current-stage campaign execution → `03-gtm/distribution-engine/`
+- Funnel orchestration → `03-gtm/funnel-orchestration/`
 - Pricing experiments → `02-sales/sub-pillars/pricing-tiers/` (sales owns money mechanics)
-- Customer-facing reply drafting → `05-customer/03-support/`
+- Customer-facing reply drafting → `05-customer/support/`
 
 ## Sub-pillars
 
@@ -57,7 +57,7 @@ LITE at this stage. The "modules" (not sub-pillars) below are reusable assets th
 
 ## KPIs owned
 
-(These KPIs are surfaced in `10-metrics/01-kpi-registry/` for cross-pillar visibility.)
+(These KPIs are surfaced in `10-metrics/kpi-registry/` for cross-pillar visibility.)
 
 - ICP definition staleness (days since last refresh)
 - Brand voice consistency score (across published content — manual audit)
@@ -67,7 +67,7 @@ LITE at this stage. The "modules" (not sub-pillars) below are reusable assets th
 ## Dependencies
 
 - **Composes from:** `00-charter` (brand voice, product positioning)
-- **Composed by:** `03-gtm` (consumes ICP, brand-voice-kit, content-templates), `05-customer/05-feedback-and-research` (uses ICP for interview recruitment)
+- **Composed by:** `03-gtm` (consumes ICP, brand-voice-kit, content-templates), `05-customer/feedback-and-research` (uses ICP for interview recruitment)
 
 ## HITL baseline
 
