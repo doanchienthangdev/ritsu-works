@@ -51,6 +51,7 @@ const FILE_TO_SCHEMA = {
   'ingestion-routing.yaml': 'ingestion-routing.schema.json',
   'founder-rhythm.yaml': 'founder-rhythm.schema.json',
   'cross-tier-invariants.yaml': 'cross-tier-invariants.schema.json',
+  'workforce-personas.yaml': 'workforce-personas.schema.json',
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });

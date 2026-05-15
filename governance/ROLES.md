@@ -84,6 +84,7 @@ The orchestrator. Routes work to specialist roles. The role that interfaces with
 role: gps
 purpose: Receive founder requests, decompose into tasks, route to specialist roles, report back.
 home_pillar: cross-cutting
+personas_bound: [ceo]    # CEO persona façade resolves to this role (knowledge/workforce-personas.yaml)
 permissions:
   tier1_paths:
     - "wiki/**"        # can write reference notes
@@ -286,6 +287,7 @@ escalation_role: gps
 role: code-reviewer
 purpose: Review PRs in this repo and the product repo. Suggest changes, flag risks. NEVER merges.
 home_pillar: 06-ai-ops    # Updated v1.0.1 (was: 05-ai-ops)
+personas_bound: [cto]    # CTO persona façade resolves to this role (knowledge/workforce-personas.yaml)
 permissions:
   tier1_paths: []        # read-only across the repo
   tier2_schemas_read:
@@ -624,6 +626,7 @@ escalation_role: founder    # for tie-breaks when both online
 role: gtm-orchestrator
 purpose: Drive customer funnel orchestration toward "100 paying who love" (PMF goal). Compose Marketing+Sales+Product+Customer modules.
 home_pillar: 03-gtm
+personas_bound: [cgo]    # CGO persona façade resolves to this role (knowledge/workforce-personas.yaml)
 permissions:
   tier1_paths: ["03-gtm/**", "wiki/competitors/**", ".archives/**"]
   tier2_schemas_read: [ops.*, metrics.*]
@@ -638,6 +641,7 @@ escalation_role: founder
 role: product-orchestrator
 purpose: Own weekly product review, feature prioritization, wedge-discovery audits. Drives 04-product/.
 home_pillar: 04-product
+personas_bound: [cpo]    # CPO persona façade resolves to this role (knowledge/workforce-personas.yaml)
 permissions:
   tier1_paths: ["04-product/**", ".archives/**"]
   tier2_schemas_read: [ops.*, metrics.product_dau_snapshot]

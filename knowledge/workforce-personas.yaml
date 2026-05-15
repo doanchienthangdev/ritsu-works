@@ -1,0 +1,295 @@
+# Workforce Persona Registry
+#
+# Source of truth for the C-suite persona → technical role binding. Personas
+# are FAÇADE — they do NOT redeclare permissions, budgets, secrets, or HITL
+# tiers. Those live in governance/ROLES.md against the bound role.
+#
+# Resolution rule: when the runtime sees /<slug> or @<slug>:
+#   1. Look up persona here → find binds_to.primary.
+#   2. Apply ROLES.md policy for the bound role.
+#   3. Persona may NARROW its default HITL max below the role's ceiling.
+#      Persona may NEVER broaden any permission.
+#
+# Validators (PR 2/4 in workforce phase 1 stack):
+#   - verify-persona-role-binding.cjs (L1)
+#   - verify-persona-spec-sync.cjs (L1)
+#   - verify-persona-routing-completeness.cjs (L2)
+#
+# See: .archives/workforces/00-architecture-decisions/ADR-003-mapping-csuite-to-roles.md
+#      .archives/workforces/01-workforce-roster.md
+#      .archives/workforces/05-integration-with-existing.md
+
+version: 1.0.0
+last_updated: "2026-05-15"
+owner: founder
+current_phase: 1   # Phase 1 personas are active; later phases ship on trigger
+
+# ---------------------------------------------------------------------------
+# Phase 1 personas (MVP — operational this week)
+# ---------------------------------------------------------------------------
+personas:
+
+  ceo:
+    full_name: Chief Executive Officer
+    phase: 1
+    status: active
+    pillar_home: 06-ai-ops/workforce-personas/ceo/
+    binds_to:
+      primary: gps
+      contextual: [founder-coach]
+    invocations:
+      slash_command: /ceo
+      subagent_mention: "@ceo"
+    routing_targets:
+      - cto
+      - cgo
+      - cpo
+      # Phase 2-4 targets activated when those personas ship:
+      - cmo
+      - cso
+      - cco
+      - cdo
+      - cfo
+      - ciso
+      - cds
+      - coo
+    voice_profile: strategic-terse-decisive
+    default_hitl_max: C
+    notify_founder: true
+    notes: |
+      Founder's primary routing interface. Owns the master routing-matrix.md.
+      For multi-turn strategic sessions use /ceo; for bounded one-shot
+      delegation use @ceo.
+
+  cto:
+    full_name: Chief Technology Officer
+    phase: 1
+    status: active
+    pillar_home: 06-ai-ops/workforce-personas/cto/
+    binds_to:
+      primary: code-reviewer
+      contextual: [aiops-engineer]   # TODO: role to be added in next ROLES.md PR (see STATUS.md)
+    invocations:
+      slash_command: /cto
+      subagent_mention: "@cto"
+    routing_targets: []              # leaf — does the work itself
+    voice_profile: senior-eng-cite-line-numbers
+    default_hitl_max: B
+    notify_founder: false
+
+  cgo:
+    full_name: Chief Growth Officer (GTM)
+    phase: 1
+    status: active
+    pillar_home: 06-ai-ops/workforce-personas/cgo/
+    binds_to:
+      primary: gtm-orchestrator
+      contextual: [metrics-curator]
+    invocations:
+      slash_command: /cgo
+      subagent_mention: "@cgo"
+    routing_targets:
+      - cmo      # Phase 2
+      - cso      # Phase 2
+    voice_profile: funnel-obsessed-experimental
+    default_hitl_max: C
+    notify_founder: false
+    notes: |
+      Drives 03-gtm stage pillar toward "100 paying who love". Composes
+      modules from marketing+sales+product+customer+metrics evergreen pillars.
+      Phase 1 dependency: CPO validates wedge before CGO ships GTM messaging.
+      CPO/CGO boundary: in-product = CPO; external distribution = CGO.
+
+  cpo:
+    full_name: Chief Product Officer
+    phase: 1
+    status: active
+    pillar_home: 06-ai-ops/workforce-personas/cpo/
+    binds_to:
+      primary: product-orchestrator
+    invocations:
+      slash_command: /cpo
+      subagent_mention: "@cpo"
+    routing_targets: []              # leaf Phase 1; Phase 2+ routes to cmo/cgo
+    voice_profile: user-observed-evidence-first
+    default_hitl_max: C
+    notify_founder: false
+    notes: |
+      Owns 04-product/. Custodian of N=10 strangers PG gate
+      (SOP-PRODUCT-002). PG/Collison discipline — name the stranger, name
+      the metric, never speculate. CPO unblocks CGO by validating the wedge.
+
+# ---------------------------------------------------------------------------
+# Phase 2 personas (planned — design preserved, build on trigger)
+# Trigger: first marketing experiment OR first paying user.
+# ---------------------------------------------------------------------------
+
+  cmo:
+    full_name: Chief Marketing Officer
+    phase: 2
+    status: planned
+    pillar_home: 06-ai-ops/workforce-personas/cmo/
+    binds_to:
+      primary: growth-orchestrator       # scoped to 01-marketing/
+    invocations:
+      slash_command: /cmo
+      subagent_mention: "@cmo"
+    routing_targets:
+      - cdo                              # Phase 3
+    voice_profile: brand-punchy-anti-passive
+    default_hitl_max: C
+    notify_founder: false
+    spec_dir: .archives/workforces/04-phase2-specs/cmo/
+
+  cso:
+    full_name: Chief Sales Officer
+    phase: 2
+    status: planned
+    pillar_home: 06-ai-ops/workforce-personas/cso/
+    binds_to:
+      primary: growth-orchestrator       # scoped to 02-sales/
+    invocations:
+      slash_command: /cso
+      subagent_mention: "@cso"
+    routing_targets: []
+    voice_profile: conversion-numeric
+    default_hitl_max: C
+    notify_founder: false
+    spec_dir: .archives/workforces/04-phase2-specs/cso/
+
+# ---------------------------------------------------------------------------
+# Phase 3 personas (post-launch)
+# Trigger: public launch OR first ≥10 paying users.
+# ---------------------------------------------------------------------------
+
+  cco:
+    full_name: Chief Customer Officer
+    phase: 3
+    status: planned
+    pillar_home: 06-ai-ops/workforce-personas/cco/
+    binds_to:
+      primary: customer-lead
+      contextual: [cs-coach, retention-watcher, escalation-router, feedback-aggregator]
+    invocations:
+      slash_command: /cco
+      subagent_mention: "@cco"
+    routing_targets: []
+    voice_profile: empathetic-but-systematic
+    default_hitl_max: C
+    notify_founder: false
+    spec_dir: .archives/workforces/05-phase3-specs/cco/
+
+  cdo:
+    full_name: Chief Design Officer
+    phase: 3
+    status: planned
+    pillar_home: 06-ai-ops/workforce-personas/cdo/
+    binds_to:
+      primary: design-lead               # NEW role — must be added to ROLES.md before CDO ships
+    invocations:
+      slash_command: /cdo
+      subagent_mention: "@cdo"
+    routing_targets: []
+    voice_profile: dieter-rams-less-but-better
+    default_hitl_max: C
+    notify_founder: false
+    spec_dir: .archives/workforces/05-phase3-specs/cdo/
+    blocking_dependencies:
+      - "design-lead role must be added to governance/ROLES.md (Tier C PR) before CDO compiles to runtime"
+
+# ---------------------------------------------------------------------------
+# Phase 4 personas (post-PMF)
+# Trigger varies per persona (DMCA → CISO, 50 paying → CFO, etc.).
+# ---------------------------------------------------------------------------
+
+  cfo:
+    full_name: Chief Financial Officer
+    phase: 4
+    status: planned
+    pillar_home: 06-ai-ops/workforce-personas/cfo/
+    binds_to:
+      primary: backoffice-clerk
+    invocations:
+      slash_command: /cfo
+      subagent_mention: "@cfo"
+    routing_targets: []
+    voice_profile: cautious-risk-flagging
+    default_hitl_max: C
+    notify_founder: false
+    spec_dir: .archives/workforces/06-phase4-specs/cfo/
+    activation_trigger: "50 paying users (per knowledge/manifest.yaml finance entry_conditions)"
+
+  ciso:
+    full_name: Chief Information Security Officer
+    phase: 4
+    status: planned
+    pillar_home: 06-ai-ops/workforce-personas/ciso/
+    binds_to:
+      primary: trust-safety
+    invocations:
+      slash_command: /ciso
+      subagent_mention: "@ciso"
+    routing_targets: []
+    voice_profile: policy-precise-no-shortcuts
+    default_hitl_max: C
+    notify_founder: false
+    escalation_bypass_ceo: true   # T&S escalates direct to founder per ROLES.md
+    spec_dir: .archives/workforces/06-phase4-specs/ciso/
+    activation_trigger: "First DMCA / ToS / hallucination incident (per 07-trust-safety entry_conditions)"
+
+  cds:
+    full_name: Chief Data Scientist
+    phase: 4
+    status: planned
+    pillar_home: 06-ai-ops/workforce-personas/cds/
+    binds_to:
+      primary: metrics-curator
+      contextual: [experiment-analyst, alert-router]
+    invocations:
+      slash_command: /cds
+      subagent_mention: "@cds"
+    routing_targets: []
+    voice_profile: statistically-conservative
+    default_hitl_max: C
+    notify_founder: false
+    spec_dir: .archives/workforces/06-phase4-specs/cds/
+
+  coo:
+    full_name: Chief Operating Officer
+    phase: 4
+    status: deferred                 # may drop entirely per ADR-006
+    pillar_home: 06-ai-ops/workforce-personas/coo/
+    binds_to:
+      primary: TBD                   # was product-orchestrator + customer-lead composite (both reassigned)
+    invocations:
+      slash_command: /coo
+      subagent_mention: "@coo"
+    routing_targets: []
+    voice_profile: systems-thinker-flags-coupling
+    default_hitl_max: C
+    notify_founder: false
+    spec_dir: .archives/workforces/06-phase4-specs/coo/
+    activation_trigger: "founder reports coordination pain ≥2 weeks in a row OR cabinet reaches 8 active personas"
+    deferred_rationale: "Per ADR-006 — CPO took product, CCO took customer; COO scope is now cross-pillar coordination only. May be dropped if Phase 3 evolution does not generate the pain."
+
+# ---------------------------------------------------------------------------
+# Personas explicitly NOT in the roster (rejected/redundant)
+# ---------------------------------------------------------------------------
+not_in_roster:
+  - slug: chro
+    rationale: "Activated only on first non-AI hire (placeholders/people-ops)."
+  - slug: cro
+    rationale: "CGO + CSO + CFO cover the surface; redundant layer."
+  - slug: pm
+    rationale: "Rejected per ADR-006 — product entity is CPO, not PM."
+  - slug: jarvis
+    rationale: "General-assistant role is CEO; no second general-purpose persona."
+
+# ---------------------------------------------------------------------------
+# Naming policy (enforced by validators)
+# ---------------------------------------------------------------------------
+naming_policy:
+  slug_pattern: "^[a-z]{3,5}$"         # lowercase 3-5 letters (CISO=4, default expected 3)
+  slash_command_pattern: "^/[a-z]{3,5}$"
+  mention_pattern: "^@[a-z]{3,5}$"
+  no_prefix: "no ritsu:/rs: namespace; flat slugs only"

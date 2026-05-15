@@ -46,7 +46,8 @@ This pillar does NOT own:
 ├── hooks-enforcement/                # → .claude/hooks/ implementations
 ├── cost-budget-architecture/         # Per knowledge/economic-architecture.md
 ├── episodic-memory-architecture/     # Per knowledge/memory-architecture.md
-└── cross-tier-consistency/           # Extends current check-drift
+├── cross-tier-consistency/           # Extends current check-drift
+└── workforce-personas/               # NEW v1.0.2 — C-suite façade layer (CEO/CTO/CGO/CPO Phase 1)
 ```
 
 ## Sub-pillar order (narrative)
@@ -58,6 +59,7 @@ This pillar does NOT own:
 5. **cost-budget-architecture** — per-role caps, per-task soft caps, reconciliation
 6. **episodic-memory-architecture** — `ops.run_summaries` + `ops.corrections` pipeline
 7. **cross-tier-consistency** — `check-drift` invariant runtime (locks conventions like sub-pillar numbering)
+8. **workforce-personas** — C-suite façade layer (CEO/CTO/CGO/CPO Phase 1); binds personas to roles via `knowledge/workforce-personas.yaml`
 
 **Existing assets preserved through rename:**
 - `skills/` — composable skills agents invoke (`episodic-recall`, etc.)
