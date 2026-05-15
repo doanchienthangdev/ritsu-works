@@ -446,8 +446,142 @@ persona.ceo.morning_brief_invocation_rate:
   source: "ops.agent_runs (persona_slug='ceo', invocation_kind='slash')"
   target: "> 0.60"
 
+# --- CTO persona (bound to code-reviewer) -----------------------------------
+
+persona.cto.review_turnaround_minutes:
+  owner_pillar: ai_ops
+  owner_role: code-reviewer
+  persona: cto
+  formula: "AVG(ended_at - started_at) WHERE persona_slug='cto' AND task_kind='pr_review'"
+  source: ops.agent_runs
+  target: "< 5 min for diffs < 500 LOC; < 15 min for 500-2000 LOC"
+
+persona.cto.founder_override_rate:
+  owner_pillar: ai_ops
+  owner_role: code-reviewer
+  persona: cto
+  formula: "merges_against_cto_must_fix / total_cto_reviews"
+  source: ops.corrections + ops.agent_runs
+  target: "< 0.10"
+
+persona.cto.missed_bug_rate:
+  owner_pillar: ai_ops
+  owner_role: code-reviewer
+  persona: cto
+  formula: "bugs_reported_within_14d_after_cto_approved / total_cto_approvals"
+  source: ops.corrections
+  target: "< 0.05"
+
+persona.cto.drift_catch_rate:
+  owner_pillar: ai_ops
+  owner_role: code-reviewer
+  persona: cto
+  formula: "cto_surfaced_drift / total_drift_in_same_week"
+  source: ops.consistency_checks + ops.agent_runs
+  target: "> 0.80"
+
+persona.cto.tokens_per_review_avg:
+  owner_pillar: ai_ops
+  owner_role: code-reviewer
+  persona: cto
+  formula: "AVG(tokens_input + tokens_output) per review"
+  source: ops.agent_runs
+  target: "< $0.30/review"
+
+# --- CGO persona (bound to gtm-orchestrator) --------------------------------
+
+persona.cgo.weekly_funnel_kpi_delta:
+  owner_pillar: ai_ops
+  owner_role: gtm-orchestrator
+  persona: cgo
+  formula: "AVG(funnel_kpi_delta) across CGO-actioned funnel stages, weekly"
+  source: ops.kpi_snapshots cross-ref with ops.agent_runs.state_payload.funnel_stage
+  target: "positive average over 4-week windows"
+
+persona.cgo.experiments_shipped_per_week:
+  owner_pillar: ai_ops
+  owner_role: gtm-orchestrator
+  persona: cgo
+  formula: "COUNT(experiments_started_with_kill_threshold) per week"
+  source: ops.campaigns
+  target: "1-3/week sustained"
+
+persona.cgo.time_from_experiment_to_decision:
+  owner_pillar: ai_ops
+  owner_role: gtm-orchestrator
+  persona: cgo
+  formula: "MEDIAN(decided_at - launched_at) in days"
+  source: ops.campaigns
+  target: "≤ 7 days"
+
+persona.cgo.experiment_kill_rate:
+  owner_pillar: ai_ops
+  owner_role: gtm-orchestrator
+  persona: cgo
+  formula: "killed_experiments / total_decided_experiments"
+  source: ops.campaigns
+  target: "50-70% (band)"
+
+persona.cgo.upstream_wait_count:
+  owner_pillar: ai_ops
+  owner_role: gtm-orchestrator
+  persona: cgo
+  formula: "COUNT(cgo runs blocked on @cpo wedge validation)"
+  source: ops.agent_runs (outcome='blocked-upstream')
+  target: "tracked, not bounded (discipline signal)"
+
+# --- CPO persona (bound to product-orchestrator) ----------------------------
+
+persona.cpo.wedge_validity_rate:
+  owner_pillar: ai_ops
+  owner_role: product-orchestrator
+  persona: cpo
+  formula: "features_surviving_N=10_observation_and_30d_post_launch / total_features"
+  source: ops.events (feature-launched + feature-killed) + CPO wedge-validation outputs
+  target: "> 0.60 after 3 months operation"
+
+persona.cpo.features_shipped_per_week:
+  owner_pillar: ai_ops
+  owner_role: product-orchestrator
+  persona: cpo
+  formula: "COUNT(features moved PRD → shipped) per week"
+  source: ops.tasks (task_type='feature') + ops.events
+  target: "1-2/week sustained"
+
+persona.cpo.founder_correction_rate_on_prioritization:
+  owner_pillar: ai_ops
+  owner_role: product-orchestrator
+  persona: cpo
+  formula: "corrections_to_prioritization_recommendations / total_prioritization_recommendations"
+  source: ops.corrections (filtered to task_kind='prioritization')
+  target: "< 0.20"
+
+persona.cpo.cancel_flow_insights_converted_to_backlog:
+  owner_pillar: ai_ops
+  owner_role: product-orchestrator
+  persona: cpo
+  formula: "cancel_flow_themes_added_to_backlog_same_month / total_cancel_flow_themes"
+  source: ops.events (cancel-flow) + ops.tasks (backlog)
+  target: "> 0.70"
+
+persona.cpo.observe_to_decision_days:
+  owner_pillar: ai_ops
+  owner_role: product-orchestrator
+  persona: cpo
+  formula: "MEDIAN(decision_made_at - observation_kickoff_at) in days"
+  source: ops.agent_runs + ops.tasks
+  target: "≤ 14 days"
+
+persona.cpo.cpo_cgo_boundary_conflicts:
+  owner_pillar: ai_ops
+  owner_role: product-orchestrator
+  persona: cpo
+  formula: "founder_corrections_about_persona_routing between cpo and cgo per week"
+  source: ops.corrections
+  target: "≤ 1/week sustained"
+
 # ===========================================================================
 # Anti-orphan check (any KPI not listed here should NOT exist in any pillar README)
 # ===========================================================================
-# Total KPIs registered: 54 (47 baseline + 7 CEO persona KPIs from PR 3/4 stack)
+# Total KPIs registered: 70 (47 baseline + 7 CEO + 5 CTO + 5 CGO + 6 CPO from PR 3/4 stack)
 # Status: All accounted for (1.7 cross-check passes)
