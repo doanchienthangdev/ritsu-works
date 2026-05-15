@@ -1,0 +1,230 @@
+# ============================================================================
+# SOP-AIOPS-001-extend: /cla extend <id> — scope expansion sub-flow
+# ============================================================================
+# Medium-weight workflow for adding new components/scope to operating
+# capability. Bumps minor version. Triggered by: `/cla extend <capability_id>`.
+#
+# Flow: 0 (preflight + lock) → 1-delta → 3 (system inventory + dep scan) →
+#       5-delta (architect produces spec.md diff; auto-escalate Tier C if
+#       diff substantial) → 6 (sprint plan if multi-PR needed) →
+#       7 (multi-PR or single PR) → 8 (registry minor++, spec.md promotion
+#       w/ archive of prior).
+#
+# HITL: B per PR; auto-escalates to C if spec.md diff > threshold.
+# See: .archives/cla/cla-update-mechanism/spec.md §4.2
+# ============================================================================
+
+id: SOP-AIOPS-001-extend
+version: 1.0.0
+title: "/cla extend — capability scope expansion sub-flow"
+description: "Medium-weight workflow for scope expansion. Adds new components; auto-escalates Tier C if spec changes are substantial."
+pillar: 06-ai-ops
+parent_sop: SOP-AIOPS-001-capability-lifecycle
+update_mode: extend
+
+trigger:
+  kinds:
+    - cla_command_extend
+  filter:
+    target_capability_state_in: [operating, deployed]
+
+initial_capability_run_state: implementing
+initial_phase: 1
+update_mode_payload: '{"update_mode": "extend"}'
+
+drift_gates: [0, 3, 5, 7, 8]
+cxo_routing:
+  phase: 5
+  source: knowledge/cla-routing-keywords.yaml
+
+cost_estimate:
+  llm_cost_per_run_usd: 1.50  # ~$1-3 range
+  founder_time_hours_per_run: 2  # ~2-4h range
+
+steps:
+  - id: phase-0-preflight-extend
+    phase: 0
+    description: |
+      Same as SOP-AIOPS-001-fix Phase 0 (drift, dirty, state, lock,
+      lineage row), but `state_payload.update_mode = 'extend'`.
+    inputs:
+      target_capability_id: $.trigger.payload.capability_id
+      extension_description: $.trigger.payload.description
+    outputs:
+      - row: ops.capability_runs
+      - lock_acquired: true
+    state_transition: (none → implementing)
+    hitl: tier_a
+    drift_check: required
+    timeout_minutes: 5
+
+  - id: phase-1-delta-extend
+    phase: 1
+    skill: capability-lifecycle/problem-framer
+    skill_mode: extend
+    description: |
+      Delta problem framing for scope expansion. Reads existing problem.md
+      + spec.md. Produces extension-description.md with: what new
+      capability/scope, why now, success criteria for the extension,
+      assumptions about existing behavior preservation.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      extension_description: $.trigger.payload.description
+      existing_problem_path: wiki/capabilities/{capability_id}/problem.md
+      existing_spec_path: wiki/capabilities/{capability_id}/spec.md
+    outputs:
+      - artifact: .archives/cla/{capability_id}-extend-{session_id}/extension-description.md
+    state_transition: implementing (continued)
+    hitl: tier_a
+    timeout_minutes: 30
+
+  - id: phase-3-inventory-deps-extend
+    phase: 3
+    skill: capability-lifecycle/system-inventory-scanner
+    skill_mode: extend
+    description: |
+      System inventory + dependency-scanner (NEW skill). Identifies:
+      1. What components are already in place (reuse opportunities)
+      2. What dependent capabilities reference this one (forward refs in
+         their spec.md). If any, surface to founder for impact ack
+         before proceeding.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      extension_description_path: .archives/cla/{capability_id}-extend-{session_id}/extension-description.md
+    outputs:
+      - artifact: .archives/cla/{capability_id}-extend-{session_id}/extension-gap-analysis.md
+      - artifact: .archives/cla/{capability_id}-extend-{session_id}/dependency-impact.md
+    state_transition: implementing (continued)
+    hitl: tier_a
+    drift_check: informational
+    timeout_minutes: 30
+
+  - id: phase-5-delta-extend
+    phase: 5
+    skill: capability-lifecycle/architect
+    skill_mode: extend
+    description: |
+      Architect produces a spec.md diff (current spec.md vs proposed
+      new spec.md). If diff is substantial (>20% of lines change OR
+      any Section 4 component added/removed), auto-escalate to Tier C
+      ceremony with @cto sanity review + Muse high-stakes-decision-panel.
+      Otherwise, Tier B is sufficient.
+      Produces draft/ folder with new component stubs (per usual
+      Phase 5 pattern).
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      extension_artifacts: .archives/cla/{capability_id}-extend-{session_id}/
+    outputs:
+      - artifact: .archives/cla/{capability_id}-extend-{session_id}/spec.md (new version)
+      - artifact: .archives/cla/{capability_id}-extend-{session_id}/spec-diff.md
+      - artifact: .archives/cla/{capability_id}-extend-{session_id}/draft/
+    state_transition: implementing (continued)
+    hitl: tier_b  # auto-escalates to C per skill logic
+    drift_check: dry_run
+    timeout_minutes: 90
+
+  - id: phase-6-sprint-extend
+    phase: 6
+    skill: capability-lifecycle/sprint-planner
+    skill_mode: extend
+    description: |
+      Sprint plan IF multiple PRs needed. For small extensions (1 PR),
+      this phase outputs a "single sprint" plan and continues; for
+      larger extensions, multi-sprint plan w/ Wave alignment.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      spec_path: .archives/cla/{capability_id}-extend-{session_id}/spec.md
+    outputs:
+      - artifact: .archives/cla/{capability_id}-extend-{session_id}/sprint-plan.md
+    state_transition: implementing (continued)
+    hitl: tier_b
+    timeout_minutes: 30
+
+  - id: phase-7-impl-extend
+    phase: 7
+    skill: capability-lifecycle/implementation-coordinator
+    skill_mode: extend
+    description: |
+      Per-sprint @cto delegation + PR opening. Multi-session resilient
+      via state_payload.completed_sprints. Founder Tier B per PR.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      sprint_plan_path: .archives/cla/{capability_id}-extend-{session_id}/sprint-plan.md
+    outputs:
+      - artifact: PRs in git history
+      - artifact: ops.events trail
+    state_transition: implementing → deployed
+    hitl: tier_b
+    drift_check: per_commit
+    timeout_weeks: 1  # extend should fit in 1 week max
+
+  - id: phase-8-extend
+    phase: 8
+    skill: capability-lifecycle/catalog-updater
+    skill_mode: extend
+    description: |
+      Catalog update for scope expansion:
+      1. Bump version: minor++ via version-bumper (1.0.0 → 1.1.0)
+      2. Archive prior wiki/capabilities/<id>/spec.md → spec-v<X.Y.Z>.md
+      3. Promote .archives/cla/.../spec.md → wiki/capabilities/<id>/spec.md
+      4. Update knowledge/capability-registry.yaml: version, actuals
+      5. Append entry to wiki/capabilities/<id>/CHANGELOG.md
+      6. Release lock
+      7. State: deployed → operating
+      8. Mark prior row 'superseded'
+      9. Final pnpm check
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      session_id: $.trigger.payload.session_id
+    outputs:
+      - artifact: wiki/capabilities/{capability_id}/spec.md (new version)
+      - artifact: wiki/capabilities/{capability_id}/spec-v<prior>.md (archived)
+      - artifact: wiki/capabilities/{capability_id}/CHANGELOG.md
+      - artifact: knowledge/capability-registry.yaml (version bumped)
+      - lock_released: true
+    state_transition: deployed → operating
+    hitl: tier_a
+    drift_check: required
+    timeout_minutes: 15
+
+acceptance_criteria:
+  - Lock acquired Phase 0, released Phase 8
+  - NEW capability_runs row, supersedes_id set, prior superseded
+  - Version bumped minor++
+  - spec.md promoted; prior version archived
+  - CHANGELOG.md entry added
+  - All sprint PRs merged
+  - pnpm check clean post-Phase 8
+
+failure_handling:
+  lock_held:
+    detection: "ops.capability_acquire_update_lock returns NULL"
+    response: "Surface LockHeld error. Founder waits or /cla force-unlock."
+  dependents_block:
+    detection: "Phase 3 dependency-scanner finds capabilities depending on <id> that would break"
+    response: "Surface to founder. Require explicit ack OR extend dependents first."
+  spec_diff_substantial:
+    detection: "Phase 5 architect classifies diff as substantial"
+    response: "Auto-escalate to Tier C ceremony (@cto + Muse panel). Founder approves before Phase 6."
+  founder_rejects_phase_5:
+    detection: "Tier B/C rejection at Phase 5"
+    response: "Iterate Phase 5 OR abort + release lock + mark new row 'deprecated'."
+
+integrates_with:
+  - bài: 2
+    integration: "HITL Tier B per PR; auto-escalate to C if spec change substantial"
+  - bài: 7
+    integration: "Cost-bucket: same as parent capability"
+  - bài: 13
+    integration: "Lineage chain: NEW row supersedes prior"
+  - bài: 14
+    integration: "Dependency-scanner uses Phase 3 cross-capability spec.md scan"
+  - bài: 20
+    integration: "Sub-flow of CLA evolution"
+
+audit:
+  every_phase_logs:
+    - ops.events: "ritsu.capability.extend_{phase}_completed"
+    - ops.capability_phase_events
+    - ops.capability_runs: state update
+    - ops.cost_attributions: parent capability bucket

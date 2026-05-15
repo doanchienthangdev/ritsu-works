@@ -176,6 +176,19 @@ Tier A. Auto-advance.
 - `tests/cla/fixtures/system-inventory-clean.json` — clean repo state, full enumeration.
 - `tests/cla/fixtures/system-inventory-drift.json` — `pnpm check` would fail; expects STOP.
 
+## Mode awareness (v1.1 — `cla-update-mechanism`)
+
+| Mode | Skill behavior |
+|---|---|
+| `create` (default) | Full Process Steps 1-10 above. Output: `.archives/cla/<id>/gap-analysis.md` |
+| `fix` | **Not invoked.** Fix is small enough to skip inventory; @cto direct delegation handles scope. |
+| `extend` | Run Steps 1-8 + invoke `dependency-scanner` skill (NEW v1.1) at Step 9. Output: `.archives/cla/<id>-extend-<session_id>/extension-gap-analysis.md` AND `dependency-impact.md`. The dependency impact is informational; founder gets warned but not blocked. |
+| `revise` | Same as `extend` — full inventory + dependency scan. Output goes under `<id>-revise-<session_id>/`. Critical for revisions since downstream impact is potentially large. |
+| `tune` | **Not invoked.** Tune is registry edit only; no new components to inventory. |
+| `deprecate` | Run `dependency-scanner` ONLY (skip the rest of Steps 1-8). MANDATORY blocker — if any active dependent capability found, BLOCK Phase 8. Founder may override via Tier D-Std magic phrase. Output: `.archives/cla/<id>-deprecate-<session_id>/dependency-impact.md`. |
+
+**Common across modes:** when `dependency-scanner` is invoked, it reads all `wiki/capabilities/*/spec.md` for cross-references. See `06-ai-ops/skills/capability-lifecycle/dependency-scanner/SKILL.md`.
+
 ---
 
-**Next phase invokes:** `options-generator` (Phase 4).
+**Next phase invokes:** `options-generator` (Phase 4) in `create` and `revise` modes; `architect` (Phase 5) in `extend` mode (skips Phase 4); `catalog-updater` (Phase 8) in `tune` and `deprecate` modes (skips Phases 4-7).

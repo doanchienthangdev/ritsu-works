@@ -1,0 +1,179 @@
+# ============================================================================
+# SOP-AIOPS-001-deprecate: /cla deprecate <id> — capability sunset sub-flow
+# ============================================================================
+# Sunsets an operating capability. Cleanup: state→deprecated, schedule
+# cancellation, CATALOG move, dependent capabilities check. IRREVERSIBLE.
+# Tier C ceremony required.
+#
+# Resolves Bài #20 OQ-CLA-2 ("Capability deprecation flow").
+# ============================================================================
+
+id: SOP-AIOPS-001-deprecate
+version: 1.0.0
+title: "/cla deprecate — capability sunset sub-flow"
+description: "Deprecate operating capability. Cleanup scheduled SOPs, CATALOG move, dependent check. Tier C ceremony. Irreversible."
+pillar: 06-ai-ops
+parent_sop: SOP-AIOPS-001-capability-lifecycle
+update_mode: deprecate
+
+trigger:
+  kinds:
+    - cla_command_deprecate
+  filter:
+    target_capability_state_in: [operating, deployed]
+
+initial_capability_run_state: implementing
+initial_phase: 1
+update_mode_payload: '{"update_mode": "deprecate"}'
+
+drift_gates: [0, 8]
+
+cost_estimate:
+  llm_cost_per_run_usd: 0.30
+  founder_time_hours_per_run: 0.5  # ~30 min ceremony
+
+steps:
+  - id: phase-0-preflight-deprecate
+    phase: 0
+    description: "Pre-flight + lock + lineage row. update_mode='deprecate'."
+    inputs:
+      target_capability_id: $.trigger.payload.capability_id
+      deprecation_reason: $.trigger.payload.description
+    outputs:
+      - row: ops.capability_runs
+      - lock_acquired: true
+    state_transition: (none → implementing)
+    hitl: tier_a
+    drift_check: required
+    timeout_minutes: 5
+
+  - id: phase-1-delta-deprecate
+    phase: 1
+    skill: capability-lifecycle/problem-framer
+    skill_mode: deprecate
+    description: |
+      Capture deprecation reason. Why now? What's the migration path
+      for users (if external)? What happens to data? Generated
+      deprecation-rationale.md becomes part of retrospective.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      deprecation_reason: $.trigger.payload.description
+      existing_spec_path: wiki/capabilities/{capability_id}/spec.md
+    outputs:
+      - artifact: .archives/cla/{capability_id}-deprecate-{session_id}/deprecation-rationale.md
+    state_transition: implementing (continued)
+    hitl: tier_a
+    timeout_minutes: 15
+
+  - id: phase-3-deps-deprecate
+    phase: 3
+    skill: capability-lifecycle/dependency-scanner
+    description: |
+      MANDATORY dependency scan. Reads all wiki/capabilities/*/spec.md +
+      knowledge/capability-registry.yaml dependencies block.
+      Identifies any capability that depends on <id>.
+
+      If any operating capability depends → BLOCK deprecation. Surface to
+      founder: "Cannot deprecate; capabilities {list} depend on this. Update
+      or deprecate them first."
+
+      Founder may override with explicit ack (acknowledged-breakage) but
+      this requires a Tier D-Std magic phrase per HITL.md.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+    outputs:
+      - artifact: .archives/cla/{capability_id}-deprecate-{session_id}/dependency-impact.md
+    state_transition: implementing (continued)
+    hitl: tier_a  # informational; blocking is automatic
+    drift_check: informational
+    timeout_minutes: 5
+
+  - id: phase-8-deprecate
+    phase: 8
+    skill: capability-lifecycle/catalog-updater
+    skill_mode: deprecate
+    description: |
+      Deprecation cleanup:
+      1. Verify Tier C HITL approval (founder approved deprecation).
+      2. Find any pg_cron schedules in knowledge/schedules.yaml referencing
+         this capability's SOPs. Disable them (set enabled: false). Log to
+         ops.audit_log.
+      3. Move CATALOG.md row from "Operating" → "Deprecated" section with
+         deprecation_at date.
+      4. Update knowledge/capability-registry.yaml: capability.state =
+         'deprecated', deprecated_at = today.
+      5. NEW retrospective.md (deprecation-specific: lessons learned,
+         what we'd do differently). Promote to wiki/capabilities/<id>/.
+      6. KEEP wiki/capabilities/<id>/spec.md (don't delete; for archeology).
+      7. Append CHANGELOG.md "deprecated YYYY-MM-DD: <reason>".
+      8. Release lock.
+      9. State (NEW row): implementing → deployed → operating
+         (the deprecation cycle itself reaches operating). Then immediately
+         set parent capability_runs row state = 'deprecated' (NOT
+         'superseded' — this is the terminal state for the capability).
+      10. Final pnpm check.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      session_id: $.trigger.payload.session_id
+      deprecation_rationale_path: .archives/cla/{capability_id}-deprecate-{session_id}/deprecation-rationale.md
+    outputs:
+      - artifact: knowledge/capability-registry.yaml (state=deprecated)
+      - artifact: knowledge/schedules.yaml (any matching schedules disabled)
+      - artifact: wiki/capabilities/CATALOG.md (row moved)
+      - artifact: wiki/capabilities/{capability_id}/retrospective-deprecation.md
+      - artifact: wiki/capabilities/{capability_id}/CHANGELOG.md
+      - lock_released: true
+    state_transition: implementing → operating  # deprecation cycle done; parent is now deprecated
+    hitl: tier_c  # mandatory founder approval per HITL.md
+    drift_check: required
+    timeout_minutes: 20
+
+acceptance_criteria:
+  - Lock acquired Phase 0, released Phase 8
+  - Phase 3 dependency scan completed
+  - If dependents found, founder explicit acknowledged via Tier D-Std (else BLOCK)
+  - Tier C ceremony at Phase 8 (founder approves deprecation)
+  - All schedules referencing the capability are disabled
+  - CATALOG.md updated
+  - capability-registry.yaml state = 'deprecated'
+  - retrospective-deprecation.md written + promoted
+  - pnpm check clean
+
+failure_handling:
+  lock_held:
+    detection: "ops.capability_acquire_update_lock returns NULL"
+    response: "Surface LockHeld. Wait or /cla force-unlock."
+  dependents_block:
+    detection: "Phase 3 finds capabilities depending on <id>"
+    response: "BLOCK. Tell founder: deprecate or update dependents first. Founder may override via Tier D-Std magic phrase (acknowledged-breakage)."
+  tier_c_rejected:
+    detection: "Founder rejects Phase 8 Tier C ceremony"
+    response: "Abort. Release lock. Mark new row 'deprecated'. Original capability stays 'operating' (no change)."
+  schedule_cancel_fails:
+    detection: "Schedules.yaml update fails or pg_cron disable fails"
+    response: "Hold state. Surface error. Founder manually disables before re-running Phase 8."
+  pnpm_check_fails:
+    detection: "Phase 8 final check fails"
+    response: "Hold state. Lock stays. Founder fixes drift, re-runs Phase 8."
+
+integrates_with:
+  - bài: 2
+    integration: "HITL Tier C at Phase 8 (deprecation is irreversible). Tier D-Std for dependent override."
+  - bài: 7
+    integration: "Cost-bucket: same as parent capability (final attribution)"
+  - bài: 8
+    integration: "Schedules.yaml updates — disable matching pg_cron schedules"
+  - bài: 13
+    integration: "Lineage: parent capability state → 'deprecated' (terminal, NOT 'superseded')"
+  - bài: 14
+    integration: "Dependency-scanner mandatory at Phase 3"
+  - bài: 20
+    integration: "Resolves OQ-CLA-2 (deprecation flow open question)"
+
+audit:
+  every_phase_logs:
+    - ops.events: "ritsu.capability.deprecate_{phase}_completed"
+    - ops.capability_phase_events
+    - ops.capability_runs: state update
+    - ops.cost_attributions: parent capability bucket
+    - ops.audit_log: schedule cancellation entries

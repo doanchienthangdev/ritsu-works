@@ -189,6 +189,19 @@ If founder picks "Iterate", repeat Steps 1-4 with the founder's hint, max 1 iter
 - `tests/cla/fixtures/options-generator-typical.json` — populated history, full cabinet poll on top 2.
 - `tests/cla/fixtures/options-generator-tier-d.json` — recommended option triggers D-Std refusal.
 
+## Mode awareness (v1.1 — `cla-update-mechanism`)
+
+| Mode | Skill behavior |
+|---|---|
+| `create` (default) | Full Process Steps 1-7 above (3-5 options + cabinet poll). Output: `.archives/cla/<id>/options.md` |
+| `fix` | **Not invoked.** Fix has no architecture decision; @cto picks implementation directly. |
+| `extend` | **Not invoked typically.** If extend escalates to Tier C (substantial spec change), Phase 4 may be invoked retroactively — but standard `extend` flow skips this phase. |
+| `revise` | Full Process Steps 1-7. Each option includes migration strategy from current architecture (carry-over from existing spec). Cabinet polled per v1.0 pattern. Output: `.archives/cla/<id>-revise-<session_id>/revision-options.md`. |
+| `tune` | **Not invoked.** Registry edit only. |
+| `deprecate` | **Not invoked.** Deprecation has no options to weigh — the option is "deprecate yes/no" and Tier C ceremony at Phase 8 handles the yes/no. |
+
+**Note:** `revise` is the only update mode where this skill runs. That's by design — Phase 4 is the "options" phase, and only architectural revisions need fresh option exploration. Other update modes have a single forced path.
+
 ---
 
-**Next phase invokes:** `architect` (Phase 5).
+**Next phase invokes:** `architect` (Phase 5) in `create` and `revise` modes.

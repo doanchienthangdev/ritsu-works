@@ -210,6 +210,19 @@ Template:
 - `tests/cla/fixtures/sprint-planner-typical.json` — 8 work items, expects 3 sprints.
 - `tests/cla/fixtures/sprint-planner-large.json` — 18 work items, expects 4-5 sprints + spike.
 
+## Mode awareness (v1.1 — `cla-update-mechanism`)
+
+| Mode | Skill behavior |
+|---|---|
+| `create` (default) | Full Process Steps 1-9 above. Output: `.archives/cla/<id>/sprint-plan.md` |
+| `fix` | **Not invoked.** Fix is single-PR; no sprint plan needed. implementation-coordinator handles directly. |
+| `extend` | Run Steps 1-9, BUT typical extends fit in 1 sprint → output is "single sprint" plan. Multi-sprint only if work-item count > 8. Output: `.archives/cla/<id>-extend-<session_id>/sprint-plan.md`. |
+| `revise` | Full Steps 1-9. Multi-sprint expected (revise is the heaviest sub-flow). Topological sort across migration → tier1 → MCP → skills → agents → commands → SOPs → frontend. Output: `.archives/cla/<id>-revise-<session_id>/sprint-plan.md`. |
+| `tune` | **Not invoked.** Tune is single registry edit; no sprint plan. |
+| `deprecate` | **Not invoked.** Deprecation is cleanup actions; no sprint plan. |
+
+**Tier C prerequisite check** (Step 1 of original Process): in `extend` mode, only check Tier C if Phase 5 escalated. In `revise` mode, ALWAYS Tier C-required (revise is intrinsically Tier C). The check uses `ops.decisions JOIN ops.capability_runs ON phase_5_decision_id WHERE hitl_tier='C' AND outcome='approved'`.
+
 ---
 
-**Next phase invokes:** `implementation-coordinator` (Phase 7).
+**Next phase invokes:** `implementation-coordinator` (Phase 7) in `create`, `extend`, `revise` modes.

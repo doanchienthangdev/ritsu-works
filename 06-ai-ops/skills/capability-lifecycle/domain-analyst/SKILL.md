@@ -145,6 +145,19 @@ Tier A. Founder may spot-check (5 min) but auto-advances.
 - `tests/cla/fixtures/domain-analyst-keyword-ambiguous.json` — 0 matches, expects `muse_panel`.
 - `tests/cla/fixtures/domain-analyst-keyword-multi.json` — 2 matches, expects max-hit winner.
 
+## Mode awareness (v1.1 — `cla-update-mechanism`)
+
+This skill runs ONLY in `mode='create'` (`/cla propose`). All 5 update sub-flows SKIP Phase 2 entirely — domain context is inherited from the parent capability's original `domain-analysis.md`.
+
+| Mode | Skill behavior |
+|---|---|
+| `create` (default) | Full Process Steps 1-6 above. Output: `.archives/cla/<id>/domain-analysis.md` |
+| `fix`, `extend`, `revise`, `tune`, `deprecate` | **Not invoked.** Sub-flow skips Phase 2. Caller (orchestrator) reads existing `wiki/capabilities/<id>/domain-analysis.md` if needed for context. |
+
+**Rationale:** updating an operating capability doesn't change its domain. Re-running domain analysis would waste $0.30-0.50 per call with no decision-relevant output.
+
+If founder believes a revision actually changes the domain (e.g., pivoting `lead-acquisition` from B2C to B2B) — that's not an update; that's deprecate-the-old + propose-the-new. Surface to founder with that recommendation.
+
 ---
 
-**Next phase invokes:** `system-inventory-scanner` (Phase 3).
+**Next phase invokes:** `system-inventory-scanner` (Phase 3) in `create` mode. Update sub-flows skip to Phase 3 directly.

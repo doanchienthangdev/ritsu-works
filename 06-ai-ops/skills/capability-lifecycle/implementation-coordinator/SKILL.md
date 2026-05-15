@@ -154,6 +154,21 @@ If `main` has moved significantly since the architect's drafts were written (e.g
 - `tests/cla/fixtures/impl-coord-stale-7-days.json` — state_since old, expects `phase_7_session_lost` warning.
 - `tests/cla/fixtures/impl-coord-husky-fail.json` — drift on commit, expects iteration.
 
+## Mode awareness (v1.1 — `cla-update-mechanism`)
+
+| Mode | Skill behavior |
+|---|---|
+| `create` (default) | Full Process Steps 1-7 above. Multi-sprint, multi-PR via @cto. State persisted to `state_payload.completed_sprints[]`. |
+| `fix` | **Single sprint, single PR.** Skip sprint loop logic. Delegate ONE deliverable to @cto. Open ONE PR. Founder Tier B per PR. NO multi-session expected (fix should fit in one session). |
+| `extend` | Multi-sprint capable but typically 1 sprint. Same per-sprint loop as `create` but reads from `.archives/cla/<id>-extend-<session_id>/sprint-plan.md`. |
+| `revise` | Same as `create` — multi-sprint, multi-week. Reads from `.archives/cla/<id>-revise-<session_id>/sprint-plan.md`. Multi-session resilient. |
+| `tune` | **Not invoked.** Tune skips Phase 7 entirely; goes Phase 1 → Phase 8. catalog-updater handles the registry edit + single PR. |
+| `deprecate` | **Not invoked.** Deprecate skips Phase 7; goes Phase 1 → Phase 3 → Phase 8. catalog-updater handles cleanup actions. |
+
+**Lock awareness:** the `state_payload.session_id` set at Phase 0 (acquire) MUST be re-passed across sessions. On `/cla resume <id>`, this skill reads `state_payload.session_id` and uses it for any DB updates that touch lock-protected fields. The lock auto-expires after 24h, so resume after >24h gap requires re-acquisition (or `/cla force-unlock` if another session grabbed it).
+
+**Final E2E gate** behavior unchanged across modes — must pass before state advances to `deployed`.
+
 ---
 
-**Next phase invokes:** `catalog-updater` (Phase 8) — only after final E2E passes.
+**Next phase invokes:** `catalog-updater` (Phase 8) in all modes after Phase 7 completes — except `tune`/`deprecate` which skip Phase 7.

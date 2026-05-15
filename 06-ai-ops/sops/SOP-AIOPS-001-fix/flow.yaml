@@ -1,0 +1,187 @@
+# ============================================================================
+# SOP-AIOPS-001-fix: /cla fix <id> — bug fix sub-flow
+# ============================================================================
+# Light delta workflow for bug fixes on operating capabilities.
+# Triggered by: `/cla fix <capability_id>` slash command.
+#
+# Flow: 0 (preflight + lock) → 1-delta (problem-framer in fix mode) →
+#       7 (single PR via @cto) → 8-light (registry version bump patch++)
+#
+# HITL: B per PR. NO architecture review (use /cla revise for that).
+#
+# See:
+#   - .claude/commands/cla.md "Evolution sub-flows § /cla fix"
+#   - .archives/cla/cla-update-mechanism/spec.md §4.2
+# ============================================================================
+
+id: SOP-AIOPS-001-fix
+version: 1.0.0
+title: "/cla fix — capability bug fix sub-flow"
+description: "Light delta workflow for bug fixes on operating capabilities. Patch-version bump; no spec change; single PR."
+pillar: 06-ai-ops
+parent_sop: SOP-AIOPS-001-capability-lifecycle  # extends the parent's pattern
+update_mode: fix
+
+trigger:
+  kinds:
+    - cla_command_fix
+  filter:
+    target_capability_state_in: [operating, deployed]
+
+# === Initial state ===
+initial_capability_run_state: implementing
+initial_phase: 1
+update_mode_payload: '{"update_mode": "fix"}'  # set in state_payload at row INSERT
+
+# === Drift gates ===
+drift_gates: [0, 7]
+
+# === Cost projection ===
+cost_estimate:
+  llm_cost_per_run_usd: 0.50
+  founder_time_hours_per_run: 0.5
+
+# === Phases ===
+steps:
+  - id: phase-0-preflight-fix
+    phase: 0
+    description: |
+      Drift pre-flight + lock acquire + lineage row insertion. Inline in
+      /cla command — no skill invoked.
+      1. Run `pnpm check`. If non-zero, ABORT.
+      2. `git status --porcelain` — if dirty, ABORT.
+      3. Look up capability by id. Must be in state ('operating', 'deployed').
+      4. Generate session_id (uuid).
+      5. Call ops.capability_acquire_update_lock(<id>, <session_id>).
+         If returns NULL → ABORT with LockHeld + held-by + age.
+      6. INSERT NEW ops.capability_runs row with:
+         - capability_id = <id> (same as parent)
+         - state = 'implementing', current_phase = 1
+         - supersedes_id = <prior row id>
+         - state_payload = {update_mode: 'fix', session_id: <uuid>, parent_version: <X.Y.Z>}
+         - update_lock_session_id, update_lock_acquired_at (set by acquire helper)
+    inputs:
+      target_capability_id: $.trigger.payload.capability_id
+      fix_description: $.trigger.payload.description
+    outputs:
+      - row: ops.capability_runs
+      - lock_acquired: true
+    state_transition: (none → implementing)
+    hitl: tier_a
+    drift_check: required
+    timeout_minutes: 5
+
+  - id: phase-1-delta-fix
+    phase: 1
+    skill: capability-lifecycle/problem-framer
+    skill_mode: fix
+    description: |
+      Delta problem-framing in fix mode. Reads existing
+      wiki/capabilities/<id>/problem.md + spec.md for context. Produces
+      a focused fix-description.md with: what's broken, root cause
+      hypothesis, fix scope (must NOT touch architecture; if it does,
+      escalate to /cla revise).
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      fix_description: $.trigger.payload.description
+      existing_problem_path: wiki/capabilities/{capability_id}/problem.md
+      existing_spec_path: wiki/capabilities/{capability_id}/spec.md
+    outputs:
+      - artifact: .archives/cla/{capability_id}-fix-{session_id}/fix-description.md
+    state_transition: implementing (continued)
+    hitl: tier_a
+    timeout_minutes: 30
+
+  - id: phase-7-impl-fix
+    phase: 7
+    skill: capability-lifecycle/implementation-coordinator
+    skill_mode: fix
+    description: |
+      Single sprint, single PR. Delegates to @cto for the actual code
+      fix. Husky pre-commit enforces pnpm check. Founder reviews + merges
+      (Tier B per PR). NO multi-sprint; NO multi-session by design (use
+      /cla revise for that).
+    inputs:
+      fix_description_path: .archives/cla/{capability_id}-fix-{session_id}/fix-description.md
+      capability_id: $.trigger.payload.capability_id
+    outputs:
+      - artifact: PR in git history
+      - artifact: ops.events trail
+    state_transition: implementing → deployed
+    hitl: tier_b
+    drift_check: per_commit
+    timeout_minutes: 120  # 2 hours max per fix
+
+  - id: phase-8-light-fix
+    phase: 8
+    skill: capability-lifecycle/catalog-updater
+    skill_mode: fix
+    description: |
+      Light catalog update for fixes:
+      1. Bump version: patch++ via version-bumper (e.g., 1.0.0 → 1.0.1)
+      2. Update knowledge/capability-registry.yaml: capability.version,
+         capability.actual_cost_recurring_usd (cumulative)
+      3. Append fix entry to wiki/capabilities/<id>/CHANGELOG.md (create
+         if missing).
+      4. NO spec.md promotion (spec didn't change).
+      5. NO retrospective.md (single fix doesn't warrant; aggregated in
+         CHANGELOG instead).
+      6. Release lock: ops.capability_release_update_lock(<id>, <session_id>).
+      7. Set capability_runs.state = 'operating', state_since = now().
+      8. Mark prior row state = 'superseded'.
+      9. Final pnpm check. Else hold at 'deployed'.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      session_id: $.trigger.payload.session_id
+    outputs:
+      - artifact: knowledge/capability-registry.yaml (version bumped)
+      - artifact: wiki/capabilities/{capability_id}/CHANGELOG.md (appended)
+      - lock_released: true
+    state_transition: deployed → operating
+    hitl: tier_a
+    drift_check: required
+    timeout_minutes: 10
+
+# === Acceptance criteria ===
+acceptance_criteria:
+  - Lock acquired at Phase 0, released at Phase 8
+  - NEW capability_runs row created with supersedes_id pointing to prior
+  - Prior row state = 'superseded'
+  - Version bumped patch++ in registry
+  - CHANGELOG.md entry added
+  - Single PR merged (no spec.md change)
+  - pnpm check clean post-Phase 8
+
+# === Failure handling ===
+failure_handling:
+  lock_held:
+    detection: "ops.capability_acquire_update_lock returns NULL"
+    response: "Surface LockHeld error with held-by + age. Founder waits or /cla force-unlock <id>."
+  fix_touches_spec:
+    detection: "@cto review identifies spec.md change required"
+    response: "Abort. Release lock. Tell founder: use /cla extend or /cla revise instead."
+  pnpm_check_fails:
+    detection: "Phase 8 final check fails"
+    response: "Hold state at 'deployed'. Lock stays acquired. Founder fixes drift, re-runs Phase 8."
+  founder_rejects_pr:
+    detection: "Founder requests changes Tier B prompt"
+    response: "Iterate; re-dispatch @cto with comments. Same row, same lock."
+
+# === Cross-Bài-toán integration ===
+integrates_with:
+  - bài: 2
+    integration: "HITL Tier B per PR (no Tier C — fixes don't change spec)"
+  - bài: 7
+    integration: "Cost-bucket: same as parent capability"
+  - bài: 13
+    integration: "Lineage chain: NEW row supersedes prior"
+  - bài: 20
+    integration: "Sub-flow of CLA evolution (cla-update-mechanism v1.1)"
+
+# === Audit ===
+audit:
+  every_phase_logs:
+    - ops.events: "ritsu.capability.fix_{phase}_completed"
+    - ops.capability_phase_events: phase transition with lock + lineage payload
+    - ops.capability_runs: state update
+    - ops.cost_attributions: cost-bucket of parent capability

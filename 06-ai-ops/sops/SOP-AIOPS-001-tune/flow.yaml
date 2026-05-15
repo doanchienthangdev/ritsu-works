@@ -1,0 +1,134 @@
+# ============================================================================
+# SOP-AIOPS-001-tune: /cla tune <id> — KPI re-tuning sub-flow
+# ============================================================================
+# Lightest update sub-flow. Edits registry only — no spec change, no code
+# change. Just bumps target_value (or adds/removes target_kpis) for a
+# capability. Patch version bump for tracking.
+# ============================================================================
+
+id: SOP-AIOPS-001-tune
+version: 1.0.0
+title: "/cla tune — capability KPI re-tuning sub-flow"
+description: "Lightest workflow. Registry edit only. No spec or code change. Patch version bump for tracking."
+pillar: 06-ai-ops
+parent_sop: SOP-AIOPS-001-capability-lifecycle
+update_mode: tune
+
+trigger:
+  kinds:
+    - cla_command_tune
+  filter:
+    target_capability_state_in: [operating, deployed]
+
+initial_capability_run_state: implementing
+initial_phase: 1
+update_mode_payload: '{"update_mode": "tune"}'
+
+drift_gates: [0, 8]
+
+cost_estimate:
+  llm_cost_per_run_usd: 0.10
+  founder_time_hours_per_run: 0.2  # ~10 min
+
+steps:
+  - id: phase-0-preflight-tune
+    phase: 0
+    description: "Pre-flight + lock + lineage row. update_mode='tune'."
+    inputs:
+      target_capability_id: $.trigger.payload.capability_id
+      tune_description: $.trigger.payload.description
+    outputs:
+      - row: ops.capability_runs
+      - lock_acquired: true
+    state_transition: (none → implementing)
+    hitl: tier_a
+    drift_check: required
+    timeout_minutes: 5
+
+  - id: phase-1-delta-tune
+    phase: 1
+    skill: capability-lifecycle/problem-framer
+    skill_mode: tune
+    description: |
+      Delta problem framing for KPI tune. Parses founder description into
+      structured tune-spec: which KPI(s), old value(s), new value(s),
+      reason for change. NO clarifying questions (tune is small enough
+      to fit in one description).
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      tune_description: $.trigger.payload.description
+      existing_spec_path: wiki/capabilities/{capability_id}/spec.md
+    outputs:
+      - artifact: .archives/cla/{capability_id}-tune-{session_id}/tune-spec.md
+    state_transition: implementing (continued)
+    hitl: tier_a
+    timeout_minutes: 5
+
+  - id: phase-8-tune
+    phase: 8
+    skill: capability-lifecycle/catalog-updater
+    skill_mode: tune
+    description: |
+      Tune-mode catalog update:
+      1. UPDATE knowledge/capability-registry.yaml capability.target_value
+         (and/or target_kpis array). NO spec.md change. NO code change.
+      2. Bump version: patch++ (tune counts as a release for tracking).
+      3. Append CHANGELOG.md entry: "tune: <KPI> <old> → <new>".
+      4. Single PR with the registry edit. Husky pre-commit pnpm check.
+      5. Founder Tier B approval per PR.
+      6. Release lock.
+      7. State: implementing → deployed → operating (compressed).
+      8. Mark prior row 'superseded'.
+      9. Final pnpm check.
+    inputs:
+      capability_id: $.trigger.payload.capability_id
+      session_id: $.trigger.payload.session_id
+      tune_spec_path: .archives/cla/{capability_id}-tune-{session_id}/tune-spec.md
+    outputs:
+      - artifact: knowledge/capability-registry.yaml (target_value updated)
+      - artifact: wiki/capabilities/{capability_id}/CHANGELOG.md
+      - artifact: PR in git history
+      - lock_released: true
+    state_transition: implementing → operating  # compressed; no separate deployed
+    hitl: tier_b  # founder approves PR
+    drift_check: required
+    timeout_minutes: 10
+
+acceptance_criteria:
+  - Lock acquired Phase 0, released Phase 8
+  - NEW capability_runs row, supersedes_id set, prior superseded
+  - Version bumped patch++
+  - target_value updated in registry
+  - CHANGELOG.md entry added
+  - Single PR merged
+  - pnpm check clean
+
+failure_handling:
+  lock_held:
+    detection: "ops.capability_acquire_update_lock returns NULL"
+    response: "Surface LockHeld. Founder waits or /cla force-unlock."
+  tune_touches_spec:
+    detection: "Phase 1 detects tune description references spec changes"
+    response: "Abort. Release lock. Tell founder: use /cla extend or /cla revise."
+  pnpm_check_fails:
+    detection: "Phase 8 final check fails"
+    response: "Hold at 'implementing'. Lock stays. Founder fixes drift."
+
+integrates_with:
+  - bài: 2
+    integration: "HITL Tier B per PR"
+  - bài: 7
+    integration: "Cost-bucket: same as parent. Cheapest sub-flow ~$0.10."
+  - bài: 10
+    integration: "KPI registry update — feeds Phase 8 catalog refresh"
+  - bài: 13
+    integration: "Lineage: NEW row supersedes prior"
+  - bài: 20
+    integration: "Sub-flow of CLA evolution"
+
+audit:
+  every_phase_logs:
+    - ops.events: "ritsu.capability.tune_{phase}_completed"
+    - ops.capability_phase_events
+    - ops.capability_runs: state update
+    - ops.cost_attributions: parent capability bucket
