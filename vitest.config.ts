@@ -4,6 +4,12 @@ export default defineConfig({
   test: {
     include: ["tests/**/*.test.ts", "tests/**/*.test.cjs"],
     environment: "node",
+    // Some tests (e.g. tests/cla/preflight-drift.test.ts) deliberately mutate
+    // the live repo's knowledge/*.yaml files to exercise drift validators,
+    // then restore. Other tests (e.g. tests/validate-tier1.test.ts) read the
+    // same files. File-level parallelism would race. Serialize files; tests
+    // within a file still run in declaration order.
+    fileParallelism: false,
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],

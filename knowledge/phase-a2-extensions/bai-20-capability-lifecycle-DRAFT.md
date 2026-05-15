@@ -491,3 +491,39 @@ Meta: CLA tự nó là capability đầu tiên implementing on Agent OS.
 ---
 
 **Bài #20 = bridge giữa "Agent OS architecture" (chương 1-32) và "Agent OS operations" (Wave 1+ founder usage). Without Bài #20, every X = ad-hoc. With Bài #20, X = standardized package install.**
+
+---
+
+## v1.0 update (2026-05-15) — `/cla` command shipped
+
+The 8-phase workflow above is now operationalised by the `/cla` slash command
+(`.claude/commands/cla.md`). Two changes vs. the original spec:
+
+1. **Phase 0 (Drift Pre-Flight) added** — runs `pnpm check` before any LLM
+   work, generates the slug, creates `.archives/cla/<id>/` from
+   `_TEMPLATE/`, INSERTs `ops.capability_runs` row, appends to
+   `knowledge/capability-registry.yaml`. Phase 0 is inline in the command,
+   not a skill. Aborts cleanly if drift is detected.
+
+2. **`.archives/cla/<id>/` is the working location; canonical specs are
+   promoted to `wiki/capabilities/<id>/` in Phase 8.** The original spec
+   wrote everything to `wiki/capabilities/<id>/` directly. This violated
+   the workspace plane discipline in CLAUDE.md (wiki = synced reference;
+   `.archives/` = local working scratch). v1.0 fixes by:
+   - Phases 1-7 write to `.archives/cla/<id>/` (local-only).
+   - Phase 8 `catalog-updater` promotes `spec.md` + `retrospective.md` to
+     `wiki/capabilities/<id>/` once state advances to `operating`.
+   - The `.archives/cla/<id>/` folder stays local for retrospective context
+     (not deleted post-promotion).
+
+Other v1.0 additions:
+- CxO routing in Phase 2 via `knowledge/cla-routing-keywords.yaml`
+  (9 routes → CxO + fallback role).
+- Parallel CxO polling in Phase 4 (top-2 options × max-3 chiefs).
+- `@cto` sanity review + Muse `high-stakes-decision-panel` in Phase 5.
+- Multi-session resume via `state_payload.completed_sprints` in Phase 7.
+- Drift gates at Phases 0/3/5/8.
+
+See `.archives/cla/PLAN.md` (local-only) for the full v1.0 plan and the
+PR series #23 / #24 / #25 that shipped it.
+
