@@ -18,10 +18,10 @@
 #      NOT SQL — do not look for table DDL there.)
 #   - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
 
-version: 0.4.0
+version: 0.5.0
 last_updated: 2026-05-15
 owner: founder
-migration_note: "v0.4.0 (2026-05-15): dropped NN- numeric prefix from all sub-pillar directories (30 renames). Top-level pillar numbering preserved. SOP namespace unchanged. Convention locked by check-drift validators (validate-pillar-numbering.cjs). Plan: .archives/sub-pillar-renumbering/ (local-only). Prior: v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage); see .archives/pillars/PLAN.md."
+migration_note: "v0.5.0 (2026-05-15): Workforce persona layer v1.0 — added 06-ai-ops/workforce-personas sub-pillar and cross_cutting.workforce_personas registry pointer. Phase 1 personas (CEO, CTO, CGO, CPO) bind to existing technical roles per ADR-003. Schema: knowledge/schemas/workforce-personas.schema.json. Prior: v0.4.0 (2026-05-15): dropped NN- numeric prefix from sub-pillar dirs. v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage)."
 
 # ---------------------------------------------------------------------------
 # TIER 1 — Canonical (this repo)
@@ -136,6 +136,7 @@ tier1_canonical:
         - cost-budget-architecture
         - episodic-memory-architecture
         - cross-tier-consistency
+        - workforce-personas                  # v1.0.2 — C-suite façade layer (see knowledge/workforce-personas.yaml)
       composes_from: []
       status: alive  # skills/ + sops/ exist on disk
 
@@ -262,6 +263,16 @@ tier1_canonical:
       note: |
         Telegram bot, Slack app, CLI, and (future) web dashboard. The founder's
         primary entry points to delegate work to the AI workforce.
+    workforce_personas:
+      registry: knowledge/workforce-personas.yaml
+      runtime_agents: .claude/agents/
+      runtime_commands: .claude/commands/
+      home_dir: 06-ai-ops/workforce-personas/
+      note: |
+        C-suite persona façade layer (CEO, CTO, CGO, CPO Phase 1). Each
+        persona binds to one or more technical roles defined in
+        governance/ROLES.md — façade does NOT redeclare permissions. See
+        ADR-003 in the implementation history.
 
 # ---------------------------------------------------------------------------
 # WORKSPACE PLANE — transient material, not canonical truth
