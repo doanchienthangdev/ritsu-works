@@ -95,7 +95,7 @@ fi
 # Cross-tier critical validators (~2s total). Warn-tier ones (governance-roles,
 # hitl-hooks) intentionally skipped at pre-commit — they run in CI as
 # continue-on-error.
-for V in validate-manifest-db.cjs validate-skills-references.cjs validate-schedules-skills.cjs; do
+for V in validate-manifest-db.cjs validate-skills-references.cjs validate-schedules-skills.cjs validate-personas.cjs; do
   if [ -f "scripts/cross-tier/$V" ]; then
     if ! node "scripts/cross-tier/$V" >/dev/null 2>&1; then
       echo "❌ Cross-tier check failed: $V"

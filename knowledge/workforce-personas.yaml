@@ -32,7 +32,7 @@ personas:
   ceo:
     full_name: Chief Executive Officer
     phase: 1
-    status: active
+    status: planned       # flips to 'active' when PR 3/4 wires up runtime files
     pillar_home: 06-ai-ops/workforce-personas/ceo/
     binds_to:
       primary: gps
@@ -64,7 +64,7 @@ personas:
   cto:
     full_name: Chief Technology Officer
     phase: 1
-    status: active
+    status: planned       # flips to 'active' when PR 4 wires up runtime files
     pillar_home: 06-ai-ops/workforce-personas/cto/
     binds_to:
       primary: code-reviewer
@@ -80,7 +80,7 @@ personas:
   cgo:
     full_name: Chief Growth Officer (GTM)
     phase: 1
-    status: active
+    status: planned       # flips to 'active' when PR 4 wires up runtime files
     pillar_home: 06-ai-ops/workforce-personas/cgo/
     binds_to:
       primary: gtm-orchestrator
@@ -103,7 +103,7 @@ personas:
   cpo:
     full_name: Chief Product Officer
     phase: 1
-    status: active
+    status: planned       # flips to 'active' when PR 4 wires up runtime files
     pillar_home: 06-ai-ops/workforce-personas/cpo/
     binds_to:
       primary: product-orchestrator
@@ -250,9 +250,13 @@ personas:
       subagent_mention: "@cds"
     routing_targets: []
     voice_profile: statistically-conservative
-    default_hitl_max: C
+    default_hitl_max: B               # matches metrics-curator hitl_max_tier=B (routine dashboards)
     notify_founder: false
     spec_dir: .archives/workforces/06-phase4-specs/cds/
+    notes: |
+      "New alert rule" actions promote tier to C; that escalation requires
+      founder ceremony per HITL.md regardless of persona default. CDS persona
+      itself never broadens metrics-curator's role-level ceiling.
 
   coo:
     full_name: Chief Operating Officer
