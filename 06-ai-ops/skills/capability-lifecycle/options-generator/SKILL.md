@@ -1,117 +1,194 @@
 ---
 name: options-generator
-description: Phase 4 of CLA workflow (Bài #20). Generates 3-5 implementation options với cost/time/complexity analysis + recommendation. Founder picks one or requests combination via Tier B HITL.
+description: Phase 4 of CLA workflow (Bài #20). Generates 3-5 implementation options for the capability with cost projection (from `ops.cost_attributions` history), founder-time estimates, time-to-MVP, time-to-production, risks, and a recommendation. Polls relevant CxOs in parallel for the top 2 options. Founder picks via HITL Tier B. Writes `.archives/cla/<id>/options.md`.
 ---
 
 # Options Generator (CLA Phase 4)
 
 ## When to use
 
-After Phase 3 gap-analysis.md ready. Capability state = `architecting`.
+- After Phase 3 `gap-analysis.md` exists. `ops.capability_runs.current_phase = 4`.
+- State = `architecting`.
 
 ## Inputs
 
-- All Phase 1-3 artifacts
-- `feature-flags.yaml` (current LLM mode)
-- `capability-registry.yaml` (existing capabilities for context)
+- `capability_id`
+- `problem_path`, `domain_analysis_path`, `gap_analysis_path` (under `.archives/cla/<id>/`)
+- `routing_source` — `knowledge/cla-routing-keywords.yaml`
+- `cost_history_window` — last 90 days of `ops.cost_attributions` (for projection)
 
 ## Process
 
-### Step 1: Brainstorm options (3-5 viable)
-Per capability, typical options:
-- **Pure organic** (free, slow)
-- **Pure paid** (fast, expensive)
-- **Mostly automation + minimal external** (moderate cost, leverages Agent OS)
-- **Heavy external service stack** (high cost, fast deploy)
-- **Combination** (pragmatic mix — usually recommended)
+### Step 1 — Generate 3-5 options
 
-### Step 2: Per-option analysis
+Pull from this canonical option-shape distribution (per Bài #20 §32.5):
 
-Each option scores:
-- **Cost setup** (one-time)
-- **Cost recurring** (monthly)
-- **Founder time setup** (hours)
-- **Founder time ongoing** (hours/week)
-- **Complexity** (low/medium/high)
-- **Time to MVP** (weeks)
-- **Time to production** (weeks)
-- **Risk level** (low/medium/high)
-- **Reversibility** (Bài #15)
-- **Decision tier** (Bài #2 A-E)
-- **Bài toán touched** (which architecture layers)
+| Shape | Description | When to include |
+|---|---|---|
+| Pure organic | Free + slow | Always |
+| Pure paid | Fast + expensive | When time-to-result matters |
+| Mostly automation | Leverages Agent OS, modest external | Default — usually recommended |
+| Heavy external stack | Buy not build | When founder time is the bottleneck |
+| Combination | Mix of 2-3 above | When tradeoffs are real |
 
-### Step 3: Recommendation
+Generate 3 minimum, 5 maximum. Each option needs the per-option analysis below.
 
-End document với `## Recommended Option`:
-- Why selected
-- What we trade off vs other options
-- Suggested adjustments (e.g., "Option C, but defer X to Phase 2")
+### Step 2 — Per-option analysis (LLM call)
 
-### Step 4: Output options.md
+For each option, output:
+
+| Field | Source / how to compute |
+|---|---|
+| Approach summary | LLM, ≤ 80 words |
+| Components | Skills + SOPs + integrations + external services from gap-analysis.md |
+| Cost setup ($, one-time) | LLM estimate using gap-analysis.md external service prices |
+| Cost recurring ($/mo) | Same |
+| LLM cost recurring ($/mo) | **Compute deterministically**: median per-call cost from `ops.cost_attributions WHERE cost_bucket LIKE 'ai-ops-cla%'` × estimated calls/month. If history is < 30 calls, fall back to "estimate: $X" with a flag. |
+| Founder time setup (h) | LLM estimate, anchored on similar past capabilities |
+| Founder time ongoing (h/wk) | Same |
+| Complexity | low | medium | high |
+| Time to MVP (weeks) | LLM estimate |
+| Time to production (weeks) | LLM estimate |
+| Risk level | low | medium | high — naming the top risk |
+| Reversibility (1-5, Bài #15) | 1 = one-way door, 5 = trivial revert |
+| Decision tier (Bài #2) | A | B | C | D-Std | D-MAX |
+| Bài-toán touched | Subset of {1,2,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20} |
+| Recommendation strength | weak | medium | strong |
+
+### Step 3 — CxO parallel poll on top 2 options
+
+Sort by recommendation strength (strong > medium > weak). Pick top 2.
+
+For each top-2 option:
+1. Use `knowledge/cla-routing-keywords.yaml` keyword scan against the option's `Approach summary` to identify ≤ 3 relevant chiefs (e.g., growth-related → `@cgo`; cost-heavy → `@cfo` if active else `@backoffice-clerk`; new MCP → `@cto`).
+2. For each chief, dispatch a parallel Agent call with prompt:
+   > Given option {N}: {summary}, components {list}, cost {setup + recurring}, time {MVP + prod}. Reply in ≤ 150 words: pros / cons / 1 hidden cost the founder may miss / 1-line recommendation. Cite at least 1 file in this repo.
+
+Cap fan-out at 2 options × 3 chiefs = 6 parallel Agent calls per Phase 4 run.
+
+### Step 4 — Synthesize
+
+For each option, append a "Cabinet review" subsection summarizing each chief's lens (1-2 sentences each + their recommendation).
+
+Use the cabinet input to (possibly) revise recommendation strength. If multiple chiefs flag the same hidden cost, surface it prominently.
+
+### Step 5 — Write `.archives/cla/<capability_id>/options.md`
 
 ```markdown
-# Options: <capability>
+# Options: {capability-name}
 
-## Option A: <name>
-[full analysis as above]
+**Capability ID:** {capability_id}
+**Phase:** 4 — Options Generation
+**Generated:** {date}
+**Cost projection basis:** {N past LLM calls in cost_attributions} ({date_range})
 
-## Option B: <name>
-[full analysis]
+## Option A: {name}
+**Approach:** {summary}
+**Components:** {list}
+**Cost:** ${X} setup, ${Y}/mo recurring (incl ${Z}/mo LLM)
+**Founder time:** {H} h setup, {h/wk} ongoing
+**Complexity:** {low|med|high}
+**Time to value:** MVP {W} weeks, production {W'} weeks
+**Risk:** {level} — top: {risk}
+**Reversibility:** {1-5}
+**Decision tier:** {A-D}
+**Bài toán touched:** {list}
+**Cabinet review:**
+- @cgo: {1-2 sentences, recommendation}
+- @cto: ...
+**Recommendation strength:** {weak|medium|strong}
 
-## Option C: <name>
-[full analysis]
+## Option B: {name}
+... (same shape)
+
+## Option C: ...
 
 ## Comparison matrix
 | Dimension | A | B | C |
 |---|---|---|---|
 | Setup cost | | | |
 | Recurring | | | |
+| Founder hours/wk | | | |
 | Time to MVP | | | |
-| ... | | | |
+| Risk | | | |
+| Reversibility | | | |
 
-## Recommended: Option <X>
-**Reasoning:** <why>
-**Trade-offs accepted:** <what we give up>
-**Suggested adjustments:** <if any>
+## RECOMMENDATION
+
+**Recommended option:** {X}
+**Why:** {≤ 100 words, citing the cabinet alignment}
+**Trade-offs accepted:** {what we're giving up}
+**Suggested adjustments:** {if any — e.g., "Option B but defer Reddit ads to v2"}
+
+## HITL Tier B prompt
+{This block is what `/cla` surfaces to the founder via AskUserQuestion}
 ```
 
-### Step 5: HITL prompt (Tier B)
+### Step 6 — HITL Tier B (handled by orchestrator)
 
+The `/cla` command builds an `AskUserQuestion`:
+
+```jsonc
+{
+  "question": "Phase 4 produced N options. Recommendation: Option {X}. Pick one.",
+  "header": "Pick option",
+  "multiSelect": false,
+  "options": [
+    { "label": "Approve recommended (Option X)", "description": "..." },
+    { "label": "Different option (specify)", "description": "..." },
+    { "label": "Combine (specify)", "description": "..." },
+    { "label": "Iterate (more options)", "description": "..." }
+  ]
+}
 ```
-[HITL Tier B] Options ready for <capability_id>
 
-Reviewed: 3 options analyzed
-Recommended: Option <X>
+If founder picks "Iterate", repeat Steps 1-4 with the founder's hint, max 1 iteration before escalating to Tier C.
 
-Choose:
-1. Approve recommended (Option X)
-2. Pick different option (specify A/B/C)
-3. Request combination (specify)
-4. Iterate (request more options)
+### Step 7 — Persist state
 
-Decision required by: <date>
-```
+- UPDATE `ops.capability_runs` SET `options_path = '.archives/cla/<id>/options.md'`, `phases_completed = phases_completed || 4`, `state_payload = state_payload || jsonb_build_object('selected_option_id', '<X>')`, `current_phase = 5`.
+- INSERT `ops.hitl_runs` row (Tier B, action = `phase-4-option-pick`, decision_payload = `{ selected: 'X' }`).
+- INSERT `ops.capability_phase_events`, `ops.events` (`ritsu.capability.options_generated`), `ops.run_summaries`, `ops.cost_attributions` rows for each LLM/CxO call.
 
 ## Outputs
 
-- `wiki/capabilities/<id>/options.md`
-- HITL Tier B record
-- Decision record (Bài #15)
+- `.archives/cla/<capability_id>/options.md`
+- 1 `ops.hitl_runs` row + ≤ 7 `ops.cost_attributions` rows.
 
 ## State transition
 
-`architecting` (continued, awaiting HITL B → Phase 5)
+`architecting` (continued — Phase 5 still architecting; transitions to `planning` after Phase 5).
+
+## HITL
+
+**Tier B**. Founder picks via `AskUserQuestion`. Refusal modes per HITL.md.
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| Cost history empty (< 30 calls) | Use static defaults; flag "low-confidence cost projection" prominently. |
+| Cabinet poll: 1+ chiefs unreachable | Mark "(no input)"; reduce recommendation strength by 1 step. |
+| Founder picks "Iterate" twice | Escalate to Tier C; defer Phase 5 until founder gives a Tier-C green-light. |
+| Recommended option's `decision_tier` ≥ D-Std | Refuse to advance; require explicit Tier D ceremony per HITL.md. |
 
 ## LLM mode awareness
 
-- **Subscription:** Founder + Claude Code generate options manually
-- **Hybrid/Full API:** Auto-generate options, founder reviews
+- **Subscription / Hybrid / Full API:** Same flow.
+- **Fallback (no API):** Skill produces only the comparison matrix template; founder fills the option content manually.
 
 ## Cost estimate
 
-- Anthropic API: ~$0.50 per invocation (multiple option drafts + comparison)
-- Founder time: 30-60 min review + decide
+- Anthropic API: ~$0.50-1.50 per invocation (3-5 option drafts + cabinet poll).
+- Founder time: 30-60 min review + decide.
+- Cost-bucket: `ai-ops-cla`; per-task-kind cap should be set in `governance/ROLES.md` for `phase-4-options` ≤ $2.
+
+## Test fixtures
+
+- `tests/cla/fixtures/options-generator-fresh.json` — empty cost_attributions, expects "low-confidence" flag.
+- `tests/cla/fixtures/options-generator-typical.json` — populated history, full cabinet poll on top 2.
+- `tests/cla/fixtures/options-generator-tier-d.json` — recommended option triggers D-Std refusal.
 
 ---
 
-**Next phase:** `architect`
+**Next phase invokes:** `architect` (Phase 5).

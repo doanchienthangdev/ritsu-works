@@ -1,160 +1,187 @@
 ---
 name: problem-framer
-description: Phase 1 of CLA workflow (Bài #20). Frames raw capability proposal into canonical problem statement với clarifying questions, success criteria, constraints. Use this skill when founder proposes new business capability ("Tôi cần X", "Làm sao Y") and SOP-AIOPS-001 is invoked.
+description: Phase 1 of CLA workflow (Bài #20). Frames a raw capability proposal into a canonical problem statement with refined wording, success criteria, surfaced assumptions, and 5-7 clarifying questions for the founder. Invoked by /cla propose after Phase 0 drift pre-flight succeeds. Writes `.archives/cla/<id>/problem.md`.
 ---
 
 # Problem Framer (CLA Phase 1)
 
 ## When to use
 
-Invoke this skill khi:
-- Founder proposes new business capability
-- SOP-AIOPS-001 phase 1 fires
-- `ops.capability_runs.current_phase = 1`
+- Invoked by `.claude/commands/cla.md` after Phase 0 succeeds, with the capability folder + `ops.capability_runs` row already created.
+- `ops.capability_runs.current_phase = 1`, `state = 'proposed'`.
 
 ## Inputs
 
-- `raw_proposal` (string): Founder's raw text proposal
-- `capability_id` (string, optional): Pre-assigned slug; otherwise auto-generate
-- `triggered_by` (enum): voice_note | cla_command | wiki_entry
+- `capability_id` — slug, set by Phase 0.
+- `raw_proposal` — founder's original problem text.
+- `triggered_by` — `cla_command` (v1.0). Future: `voice_note`, `wiki_entry`.
+- `refs_dir` — optional `.archives/cla/<capability_id>/refs/` if the founder passed `--refs`.
 
 ## Process
 
-### Step 1: Parse raw proposal
-Extract:
-- Verb (what action): "kiếm", "automate", "scale", etc.
-- Object (what entity): "khách hàng", "support tickets", "content"
-- Constraints (if mentioned): volume, time, budget
+### Step 1 — Ingest reference docs (optional)
 
-### Step 2: Generate slug
-From extracted terms, generate kebab-case slug:
-- "Kiếm thêm 10 khách hàng mới mỗi ngày" → "daily-customer-acquisition"
-- "Tự động xử lý support tickets" → "support-triage-automation"
+If `.archives/cla/<capability_id>/refs/` exists:
+- List the files.
+- Read each (cap at 5 files, 50 KB each — beyond that, summarise the rest as filenames only).
+- Build a short "context excerpts" section (≤ 800 tokens) that will be embedded into the LLM prompt for steps 2-4.
+- If a ref looks like an existing capability's `problem.md` or `spec.md`, surface that as a duplicate-or-extension hint for step 5.
 
-If similar capability exists trong registry, append qualifier: `-v2`, `-extended`.
+### Step 2 — Refine the problem statement
 
-### Step 3: Generate clarifying questions (5-7)
-Required dimensions:
-- **Đối tượng:** Ai là target (B2C learner? B2B admin? specific segment)?
-- **Định nghĩa:** "Khách hàng" = signup? activated? paid? specific tier?
-- **Volume:** N/day = floor or ceiling? sustainable hay burst?
-- **Budget:** CAC ceiling? monthly recurring max?
-- **Time horizon:** Production-ready by when? MVP date?
-- **Constraints:** Founder bandwidth limits? Channels off-limits? Ethics red lines?
-- **Existing fit:** Touches which pillar (01-growth? 02-customer?)?
+From `raw_proposal` (+ optional refs context), produce a single tight paragraph in the form:
 
-### Step 4: Draft success criteria (measurable)
-Format: "X happens, measured by Y, target Z, by date D"
+> {verb} {object} {quantity or quality target} {time horizon} {constraint, if any}
 
-Example:
-- "10 new customers signed up daily, measured by ops.kpi_snapshots[daily_new_customers], target = 10, by 2026-06-12"
+Examples:
+- "Acquire 10 new paying customers per day, sustained over a rolling 30-day window, with CAC under $20."
+- "Auto-triage support tickets from Telegram into FAQ-handled vs founder-required within 5 minutes of arrival."
 
-### Step 5: Surface assumptions
+The refined statement should be ≤ 50 words, contain at least one measurable target, and avoid generic words ("scale", "improve", "automate stuff").
 
-Explicit list ASSUMING:
-- Current state of metric (e.g., "Currently 2-3 customers/day")
-- Available resources (e.g., "Budget $200/mo for paid acquisition")
-- Channels in scope (e.g., "Content + organic + paid; no cold calling")
+### Step 3 — Generate 5-7 clarifying questions
 
-### Step 6: Output problem.md
+Each question covers one of these dimensions; pick whichever are actually ambiguous. Skip dimensions that are clear from the raw proposal.
 
-Generate `wiki/capabilities/<id>/problem.md`:
+| # | Dimension | Question pattern |
+|---|---|---|
+| 1 | Đối tượng | "Who is the target user/customer/persona?" |
+| 2 | Định nghĩa | "When you say '{key noun}', do you mean {option A} / {option B} / {option C}?" |
+| 3 | Volume | "Is the {target} a floor (sustained) or a peak (one-off)?" |
+| 4 | Budget | "What's the spend ceiling (setup + monthly)?" |
+| 5 | Time horizon | "By when do you want this in production?" |
+| 6 | Constraints | "Anything off-limits — channels, ethical lines, founder bandwidth, dependencies?" |
+| 7 | Existing fit | "Which pillar does this live in? Is it net-new or an extension of an existing capability?" |
+
+Format each question for `AskUserQuestion`:
+
+```jsonc
+{
+  "question": "When you say 'customer', do you mean ...",
+  "header": "Customer def",
+  "multiSelect": false,
+  "options": [
+    { "label": "Signed up", "description": "..." },
+    { "label": "Activated (first quiz)", "description": "..." },
+    { "label": "Paid", "description": "..." }
+  ]
+}
+```
+
+Group the questions into batches of ≤ 4 per `AskUserQuestion` call (Anthropic limit). The orchestrator command will issue the call(s); this skill produces the question payloads.
+
+### Step 4 — Draft success criteria
+
+Format each criterion as:
+
+> {observation} happens, measured by {table/path/KPI}, target {value}, by {date}
+
+Surface ≥ 2 criteria. Each MUST be measurable from `ops.kpi_snapshots` or `metrics.*` (do not invent KPIs that don't exist — if a new KPI is needed, flag it as "NEW: needs registration in Phase 5").
+
+### Step 5 — Surface assumptions + duplicate check
+
+- List 3-7 assumptions, each starting with "ASSUMING ...".
+- Run a slug-collision check: read `knowledge/capability-registry.yaml`; if the slug or a similar slug exists, surface: "Existing capability `<slug>` is in state `<state>`. Extension or independent?"
+
+### Step 6 — Write `.archives/cla/<capability_id>/problem.md`
+
+The orchestrator template at `.archives/cla/_TEMPLATE/problem.md` is the starting point. Fill in every section. Final shape:
 
 ```markdown
-# Capability: <name>
+# Problem: {refined-name}
 
-**ID:** <id>
-**Proposed:** <date>
-**Proposer:** <founder>
-**Pillar (tentative):** <pillar>
-**Current phase:** 1 (problem-framing)
+**Capability ID:** {capability_id}
+**Pillar (tentative):** {pillar}
+**Phase:** 1 — Problem Framing
+**Triggered by:** {cla_command | voice_note | wiki_entry}
 
 ## Raw proposal
-<original text from founder>
+{verbatim raw_proposal}
 
 ## Refined problem statement
-<concise, unambiguous version>
+{step 2 output}
 
 ## Success criteria
-- [ ] <measurable criterion 1>
-- [ ] <measurable criterion 2>
+- [ ] {criterion 1}
+- [ ] {criterion 2}
 
-## Clarifying questions
+## Clarifying questions (answers fill below as the founder responds)
+### Q1 — {dimension}: {text}
+**Founder answer:** _to be filled_
+**Why this matters:** {1-2 sentence impact}
 
-### Q1: <question>
-**Founder answer:** <to be filled>
-**Why this matters:** <impact on solution>
-
-(Q2-Q7 same format)
+(... Q2 through Q5-Q7)
 
 ## Assumptions
-- <assumption 1>
-- <assumption 2>
+- ASSUMING ...
 
-## Out of scope
-<things explicitly NOT covered>
+## Existing-capability check
+- Slug `{slug}` collision: {none | <existing slug + state>}
+- If extension: link the parent.
+
+## Out of scope (deferred)
+- ...
 
 ## Next phase
-Phase 2: Domain Deep-Dive
+Phase 2 — Domain Deep-Dive (`domain-analyst` skill)
 ```
 
-### Step 7: HITL prompt
+### Step 7 — Persist state
 
-After draft generated, present to founder via Telegram or Claude Code session:
+- UPDATE `ops.capability_runs` SET `problem_path = '.archives/cla/<id>/problem.md'`, `phases_completed = phases_completed || 1`, `current_phase = 2`, `state = 'analyzing'`, `state_since = now()` WHERE `capability_id = '<id>'`.
+- INSERT `ops.capability_phase_events` row (`phase = 1`, `event = 'completed'`).
+- INSERT `ops.events` row (`event_type = 'ritsu.capability.problem_framed'`).
+- INSERT `ops.run_summaries` row (~150 tokens summarising the framing decision + how many clarifying questions remain unanswered).
 
-```
-[HITL Tier A] Capability proposal framed: <name>
+### Step 8 — Return to orchestrator
 
-Review at: wiki/capabilities/<id>/problem.md
-
-7 clarifying questions need answers. Respond:
-- Inline answers in problem.md, OR
-- "/cla answer <id>" to provide via Telegram, OR
-- "/cla skip" to proceed với assumptions
-
-Auto-proceed in 24h if no response.
-```
+The orchestrator (`.claude/commands/cla.md`) takes over:
+- Issues the `AskUserQuestion` batches built in Step 3.
+- Folds founder answers back into `problem.md` under each `**Founder answer:**` line.
+- If founder answers `skip` to every question, the assumptions list IS the answer set — note that explicitly in problem.md.
+- Auto-advances to Phase 2 once all questions resolved (or 24h timeout per HITL Tier A).
 
 ## Outputs
 
-- `wiki/capabilities/<id>/problem.md` (canonical)
-- Updated `ops.capability_runs.problem_path`
-- Audit log entry: `phase_1_completed`
-- Event fired: `ritsu.capability.problem_framed`
+- `.archives/cla/<capability_id>/problem.md` (canonical for Phases 2-7)
+- Updated `ops.capability_runs` row
+- 1 row in `ops.capability_phase_events`, `ops.events`, `ops.run_summaries`
 
 ## State transition
 
-`proposed → analyzing` (when founder confirms or 24h passes)
+`proposed → analyzing` (Phase 2 starts immediately after the founder's last clarifying-question answer or auto-advance timeout).
+
+## HITL
+
+Tier A. Auto-advance unless founder cancels or replies "stop" / "rethink".
 
 ## Failure modes
 
-- **Ambiguous proposal:** > 50% words vague → request rewrite
-- **Duplicate capability:** Similar slug already in registry → ask if extending or net-new
-- **Out of scope:** Proposal not actually a capability (e.g., bug report) → re-route
+| Symptom | Response |
+|---|---|
+| Raw proposal too vague (≥ 60% generic words: "scale", "improve", "automate stuff") | Ask the founder for a rewrite before doing any LLM work. |
+| Slug collision with `state IN ('deployed', 'operating')` | Ask founder: extension (`-v2`) or distinct capability? |
+| Refs contain copyrighted material | Do NOT embed verbatim in the LLM prompt; reference by filename + summary only. |
+| Founder gives empty `raw_proposal` | Abort; do not insert ops.capability_runs row. |
 
 ## LLM mode awareness (per chương 30)
 
-- **Subscription mode:** Founder uses Claude Code session manually → prompt-based interaction
-- **Hybrid/Full API:** Auto-proceed với LLM-generated clarifying questions
-- **Fallback:** Queue for founder review, no auto-generation
+- **Subscription mode:** Founder is already in Claude Code; just produce the questions inline and write `problem.md` from the prompt.
+- **Hybrid / Full API:** Same flow; cost is below the per-task-kind cap.
+- **Fallback (no API):** Skip auto-question generation; produce a `problem.md` skeleton with the 7 dimensions empty for the founder to fill manually.
 
-## Cost estimate (Bài #7)
+## Cost estimate
 
-- Anthropic API: ~$0.05 per invocation (1 LLM call to draft problem.md)
-- Founder time: 5-10 min answering clarifying questions
+- Anthropic API: ~$0.05-0.10 per invocation (1-2 LLM calls).
+- Founder time: 5-10 minutes answering the clarifying questions.
+- Cost-bucket: `ai-ops-cla`.
 
-## Examples
+## Test fixtures (for Sprint 3 unit tests)
 
-### Example 1
-**Input:** "Tôi cần kiếm thêm 10 khách hàng mới mỗi ngày"
-**Output slug:** `daily-customer-acquisition`
-**Output:** problem.md với 7 clarifying questions covering segments, definition of customer, sustainability, budget, etc.
-
-### Example 2
-**Input:** "Tự động xử lý support tickets từ Telegram"
-**Output slug:** `telegram-support-auto-triage`
-**Output:** problem.md với 6 clarifying questions covering ticket types, escalation criteria, response SLA, etc.
+- `tests/cla/fixtures/problem-framer-input-clear.json` — clean input, 6 questions expected.
+- `tests/cla/fixtures/problem-framer-input-vague.json` — vague input, abort expected.
+- `tests/cla/fixtures/problem-framer-slug-collision.json` — slug exists deployed; extension prompt expected.
 
 ---
 
-**Next phase invokes:** `domain-analyst` skill
+**Next phase invokes:** `domain-analyst` (Phase 2).
