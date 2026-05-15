@@ -32,7 +32,7 @@ personas:
   ceo:
     full_name: Chief Executive Officer
     phase: 1
-    status: planned       # flips to 'active' when PR 3/4 wires up runtime files
+    status: active
     pillar_home: 06-ai-ops/workforce-personas/ceo/
     binds_to:
       primary: gps
