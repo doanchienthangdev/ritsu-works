@@ -26,6 +26,11 @@
           "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
           "name": {"type": "string"},
           "description": {"type": "string"},
+          "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "description": "Semver of the capability spec. Bumped per /cla update sub-flow by version-bumper skill. Defaults to '1.0.0' for capabilities created before v1.1 of /cla."
+          },
           "state": {
             "type": "string",
             "enum": ["proposed", "analyzing", "architecting", "planning", "implementing", "deployed", "operating", "deprecated", "superseded"]

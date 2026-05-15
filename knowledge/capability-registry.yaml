@@ -43,16 +43,40 @@ capabilities:
   - id: capability-lifecycle-architecture
     name: "Capability Lifecycle Architecture (Bài #20)"
     description: "Standardized workflow để propose, analyze, architect, build new capabilities"
+    version: "1.0.0"
     state: deployed
     state_since: 2026-05-04
     proposed_at: 2026-05-04
     deployed_at: 2026-05-04
-    pillar_owner: 05-ai-ops
+    pillar_owner: 06-ai-ops
     bài_toán_touched: [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19]
     spec_path: knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md
     cost_bucket: ai-ops-meta
     notes: "Meta-capability. Deploys itself bootstrap-style trong Wave 1."
-  
+
+  # === v1.1 extension: update sub-flows ===
+  - id: cla-update-mechanism
+    name: "CLA Update Sub-flows (v1.1 — fix/extend/revise/tune/deprecate)"
+    description: "Right-sized evolution sub-flows for operating capabilities. Extends Bài #20 v1.0 with 5 sub-commands + dependency-scanner + spec versioning + concurrency lock + lineage chain. First non-meta capability built via Approach E (use /cla on itself)."
+    version: "1.0.0"
+    state: implementing
+    state_since: 2026-05-15
+    proposed_at: 2026-05-15
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [1, 2, 5, 7, 9, 10, 11, 13, 15, 20]
+    spec_path: wiki/capabilities/cla-update-mechanism/spec.md
+    sprint_plan: ".archives/cla/cla-update-mechanism/sprint-plan.md (local-only working)"
+    cost_bucket: ai-ops-meta
+    estimated_cost_setup_usd: 2.00
+    estimated_cost_recurring_usd: 0
+    estimated_founder_hours: 1.5
+    estimated_completion: 2026-05-15
+    notes: |
+      Extends parent capability `capability-lifecycle-architecture` (v1.0).
+      State will advance to `operating` at end of Sprint 3 (Phase 8 catalog
+      promotion). spec.md path target wiki/capabilities/cla-update-mechanism/
+      will exist after Phase 8 promotion.
+
   # === Project-specific capabilities (added as founder runs CLA) ===
   
   # Example placeholder (remove or replace):
@@ -85,7 +109,7 @@ dependencies:
 cost_buckets:
   ai-ops-meta:
     description: "Meta operations (CLA, infrastructure)"
-    capabilities: [capability-lifecycle-architecture]
+    capabilities: [capability-lifecycle-architecture, cla-update-mechanism]
   
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"

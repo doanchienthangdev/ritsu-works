@@ -5,7 +5,7 @@ description: |
   end-to-end. Front-end orchestrator for SOP-AIOPS-001 (Bài #20). Dispatches
   to skills in 06-ai-ops/skills/capability-lifecycle/, routes to CxOs per
   knowledge/cla-routing-keywords.yaml, persists state in ops.capability_runs.
-argument-hint: "[propose <problem> | resume <id> | status <id> | list | cancel <id>]"
+argument-hint: "[propose <problem> | resume <id> | status <id> | list | cancel <id> | fix <id> | extend <id> | revise <id> | tune <id> | deprecate <id> | history <id> | force-unlock <id>]"
 ---
 
 # /cla
@@ -24,6 +24,7 @@ This command is a **thin orchestrator**. Phase logic lives in the 8 skills under
 
 ## Subcommands
 
+### Creation (v1.0)
 | Invocation | Purpose | HITL | Persistence |
 |---|---|---|---|
 | `/cla` | Show menu + active capabilities | A | read-only |
@@ -33,8 +34,20 @@ This command is a **thin orchestrator**. Phase logic lives in the 8 skills under
 | `/cla list [--state=<filter>]` | List all capabilities + age | A | read-only |
 | `/cla cancel <id>` | Mark capability as deprecated without deploying | B | UPDATE state→deprecated |
 
-`/cla propose` is the primary entry point. Other subcommands are for managing
-in-flight or completed runs.
+### Evolution (v1.1, capability `cla-update-mechanism`)
+| Invocation | Purpose | HITL | SOP folder |
+|---|---|---|---|
+| `/cla fix <id>` | Bug fix — light delta workflow | B | `SOP-AIOPS-001-fix/` |
+| `/cla extend <id>` | Scope expansion — adds new components | B → C if spec.md changes | `SOP-AIOPS-001-extend/` |
+| `/cla revise <id>` | Architecture revision — full ceremony | C | `SOP-AIOPS-001-revise/` |
+| `/cla tune <id>` | KPI re-tuning — registry edit only | B | `SOP-AIOPS-001-tune/` |
+| `/cla deprecate <id>` | Sunset capability + cleanup | C | `SOP-AIOPS-001-deprecate/` |
+| `/cla history <id>` | Show full lineage chain | A | (read-only — `ops.v_capability_lineage` view) |
+| `/cla force-unlock <id>` | Break stuck update lock (>24h or known-dead session) | **D-Std** | (lock break — magic phrase per HITL.md) |
+
+`/cla propose` is the primary entry point for NEW capabilities. The 5 evolution
+sub-flows (`/cla fix/extend/revise/tune/deprecate`) operate on EXISTING capabilities
+in `state IN ('operating', 'deployed')`.
 
 ## Workflow
 
@@ -128,6 +141,70 @@ Skill: `capability-lifecycle/catalog-updater`. Updates
 Updates `wiki/capabilities/CATALOG.md`. Appends boilerplate-extractable
 patterns to `notes/boilerplate-candidates.md` if any. Final `pnpm check` —
 must be clean to advance. State: `deployed → operating`. HITL A.
+
+## Evolution sub-flows (v1.1)
+
+The 5 evolution subcommands all share Phase 0 drift pre-flight + lock
+acquisition + lineage chain semantics. Per-sub-flow phase lists below
+(sub-flow yamls live at `06-ai-ops/sops/SOP-AIOPS-001-{flow}/flow.yaml`).
+
+### Common pre-flight (all 5 sub-flows)
+1. **Drift gate**: `pnpm check` clean. Else ABORT.
+2. **Lock acquire** (atomic): call `ops.capability_acquire_update_lock(<id>, <session_id>)`.
+   - NULL return → `LockHeld` error with held-by + age. Founder waits or `/cla force-unlock <id>`.
+   - UUID return → lock acquired; proceed.
+3. **State check**: capability must be in `state IN ('operating', 'deployed')`. Else ABORT.
+4. **Insert NEW row** in `ops.capability_runs`:
+   - `capability_id = <id>` (same as parent — multiple rows per capability)
+   - `state = 'implementing'`, `current_phase = 1`
+   - `supersedes_id = <prior row id>`
+   - `state_payload = jsonb_build_object('update_mode', '<fix|extend|revise|tune|deprecate>', 'session_id', '<uuid>', 'parent_version', '<X.Y.Z>')`
+   - `update_lock_session_id`, `update_lock_acquired_at` set by acquire
+5. **Skill invocation** with `mode` parameter passed via state_payload.
+
+### `/cla fix <id>` — bug fix (HITL B)
+Phases: 0 (preflight) → 1-delta (problem-framer in fix mode — what's broken?) → 7 (implementation, single PR via @cto) → 8-light (registry version bump patch++, no spec promotion).
+Time: ~30 min. Cost: ~$0.50.
+Spec.md NOT changed (unless bug was a spec bug — in that case escalate to `:revise`).
+
+### `/cla extend <id>` — scope expansion (HITL B → C)
+Phases: 0 → 1-delta (what's new?) → 3 (system inventory + dependency-scanner) → 5-delta (architect produces spec.md diff; if diff substantial, escalate Tier C) → 6 (sprint plan) → 7 (multi-PR) → 8 (registry minor++, spec.md promotion w/ archive of prior).
+Time: ~2-4h. Cost: ~$1.50-3.
+
+### `/cla revise <id>` — architecture revision (HITL C)
+Phases: 0 → 1-delta (what fundamentally changes?) → 3 (inventory + deps) → 4 (options regenerate) → 5 (full architect + @cto + Muse panel) → 6 → 7 → 8 (registry major++, spec.md promotion).
+Time: ~1-2 weeks (multi-session). Cost: ~$3-5.
+**This is the heaviest sub-flow.** Use only when fundamental architecture changes (e.g., re-platforming).
+
+### `/cla tune <id>` — KPI re-tuning (HITL B)
+Phases: 0 → 1-delta (which KPI? new target?) → 8-tune (registry edit only — no spec change, no skill change).
+Time: ~10 min. Cost: ~$0.10.
+Spec.md NOT changed. Version patch++ for tracking.
+
+### `/cla deprecate <id>` — sunset (HITL C)
+Phases: 0 → 1-delta (why deprecate?) → 3-deps (dependency-scanner — block if dependents) → 8-deprecate (state→`deprecated`, cancel any scheduled SOPs, move CATALOG.md row to Deprecated section).
+Time: ~30 min. Cost: ~$0.30.
+**Irreversible.** Confirms via founder Tier C ceremony per HITL.md. No version bump (state transition only).
+
+### `/cla history <id>` — read-only timeline (HITL A)
+Queries `ops.v_capability_lineage WHERE capability_id = <id>`. Outputs chronological table:
+
+```
+chain_depth | version | state       | proposed_at         | sub_flow  | cost  | duration
+------------|---------|-------------|---------------------|-----------|-------|--------
+0           | 1.0.0   | superseded  | 2026-05-04 12:00    | (initial) | $4.20 | 8 days
+1           | 1.0.1   | superseded  | 2026-05-12 09:00    | fix       | $0.45 | 2 hours
+2           | 1.1.0   | operating   | 2026-05-15 14:00    | extend    | $2.10 | 2 days
+```
+
+### `/cla force-unlock <id>` — break stuck lock (HITL D-Std)
+**This is a Tier D-Std action per `governance/HITL.md`.** Requires magic phrase
+`override: <reason 5+ words>` from founder. Should only be used when:
+- Lock is older than 24h (auto-expired but not cleared)
+- Known dead session (Claude Code process killed mid-cycle)
+- Founder explicitly resolved any in-flight state externally
+
+Releases the lock by setting `update_lock_session_id = NULL` + `update_lock_acquired_at = NULL`. Logs to `ops.audit_log` with override reason.
 
 ## Resume semantics
 
