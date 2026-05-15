@@ -64,7 +64,7 @@ personas:
   cto:
     full_name: Chief Technology Officer
     phase: 1
-    status: planned       # flips to 'active' when PR 4 wires up runtime files
+    status: active
     pillar_home: 06-ai-ops/workforce-personas/cto/
     binds_to:
       primary: code-reviewer
@@ -80,7 +80,7 @@ personas:
   cgo:
     full_name: Chief Growth Officer (GTM)
     phase: 1
-    status: planned       # flips to 'active' when PR 4 wires up runtime files
+    status: active
     pillar_home: 06-ai-ops/workforce-personas/cgo/
     binds_to:
       primary: gtm-orchestrator
@@ -103,7 +103,7 @@ personas:
   cpo:
     full_name: Chief Product Officer
     phase: 1
-    status: planned       # flips to 'active' when PR 4 wires up runtime files
+    status: active
     pillar_home: 06-ai-ops/workforce-personas/cpo/
     binds_to:
       primary: product-orchestrator
