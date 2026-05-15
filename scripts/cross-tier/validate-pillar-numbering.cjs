@@ -6,6 +6,10 @@
  *   - Top-level pillars MUST match ^[0-9]{2}-[a-z][a-z0-9-]+$  (e.g., 05-customer)
  *   - Sub-pillars MUST NOT match ^[0-9]{2}-  (use unprefixed slugs)
  *
+ * Only considers git-tracked directories. Untracked local cruft (stray build
+ * outputs, uncommitted work-in-progress folders, typo'd dir names) is ignored,
+ * matching CI behavior where only committed state is visible.
+ *
  * Convention rationale: .archives/sub-pillar-renumbering/00-rationale.md (local-only)
  *
  * SOP folder names (SOP-CUSTOMER-009-foo) are unaffected; this validator does
@@ -22,6 +26,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
@@ -52,14 +57,38 @@ function listDirs(dir) {
     .map((e) => e.name);
 }
 
+// A directory is "tracked" if git has at least one file recorded under it.
+// Used to filter out local cruft (untracked top-level dirs like `--version/`,
+// stray build outputs, work-in-progress folders) that has no bearing on the
+// committed repo state. This makes the validator's behavior match CI: only
+// directories present in the index/HEAD trigger pillar/subpillar checks.
+//
+// Implementation: `git ls-files <relpath>` lists tracked files; nonempty
+// output means at least one tracked file. Untracked dirs return empty.
+//
+// NOTE: a tracked .gitkeep counts as "tracked content" — this is intentional.
+// If a contributor commits an empty pillar dir with .gitkeep, the validator
+// catches it (the shell IS the commitment).
+function isTracked(relativeDir) {
+  const result = spawnSync('git', ['-C', REPO_ROOT, 'ls-files', '--', relativeDir], {
+    encoding: 'utf-8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  if (result.error || result.status !== 0) return false;
+  return result.stdout.trim().length > 0;
+}
+
 function verifyToplevelPillarsNumbered() {
   const allDirs = listDirs(REPO_ROOT);
 
-  // A pillar candidate = directory at repo root that isn't in NON_PILLAR_TOPLEVEL
-  // and doesn't start with a dot (filesystem hidden).
-  const pillarCandidates = allDirs.filter(
-    (name) => !name.startsWith('.') && !NON_PILLAR_TOPLEVEL.has(name)
-  );
+  // A pillar candidate = directory at repo root that:
+  //   - isn't in NON_PILLAR_TOPLEVEL allow-list
+  //   - doesn't start with a dot (filesystem hidden)
+  //   - is git-tracked (has at least one file recorded in the index)
+  // The tracked filter ignores local cruft and uncommitted work-in-progress.
+  const pillarCandidates = allDirs
+    .filter((name) => !name.startsWith('.') && !NON_PILLAR_TOPLEVEL.has(name))
+    .filter((name) => isTracked(name));
 
   const violations = pillarCandidates.filter(
     (name) => !TOPLEVEL_PILLAR_REGEX.test(name)
@@ -83,9 +112,14 @@ function verifyNoSubpillarNumbering() {
   let totalSubpillars = 0;
 
   for (const pillar of pillarDirs) {
+    // Skip pillars that aren't git-tracked (matches verifyToplevelPillarsNumbered's
+    // filter — keeps both invariants consistent in what they consider "real").
+    if (!isTracked(pillar)) continue;
+
     const subDirs = listDirs(path.join(REPO_ROOT, pillar))
       .filter((name) => !PILLAR_INTERNAL_DIRS.has(name))
-      .filter((name) => !name.startsWith('.'));
+      .filter((name) => !name.startsWith('.'))
+      .filter((name) => isTracked(`${pillar}/${name}`));
 
     totalSubpillars += subDirs.length;
 
