@@ -1,121 +1,215 @@
 ---
 name: sprint-planner
-description: Phase 6 of CLA workflow (Bài #20). Breaks approved capability spec into 2-week sprints với clear deliverables, acceptance criteria, Wave alignment. Outputs sprint-plan.md.
+description: Phase 6 of CLA workflow (Bài #20). Breaks the founder-approved spec.md into 2-week sprints with deliverables, acceptance criteria, effort estimates, and Wave alignment (per playbook chương 28). Refuses to run if no Tier C approval exists for this capability. Writes `.archives/cla/<id>/sprint-plan.md`. **Tier B HITL** — founder approves the sprint plan.
 ---
 
 # Sprint Planner (CLA Phase 6)
 
 ## When to use
 
-After Phase 5 Tier C HITL approves architecture. Capability state = `planning`.
+- After Phase 5 produces `spec.md` AND `ops.capability_runs.phase_5_decision_id` references a Tier-C-approved decision.
+- `ops.capability_runs.current_phase = 6`, state = `planning`.
 
 ## Inputs
 
-- `spec_path`: Approved spec.md
-- Current Phase B Wave (per chương 28)
-- `feature-flags.yaml` (LLM mode determines what's automatable)
+- `capability_id`
+- `spec_path` — `.archives/cla/<id>/spec.md`
+- `current_wave` — read from `notes/wave.md` if it exists, else infer from registry (most recent capability's reported wave)
+- `feature_flags_path` — `knowledge/feature-flags.yaml` (for LLM mode awareness)
 
 ## Process
 
-### Step 1: Decompose into work items
+### Step 1 — Refuse if no Tier C approval
 
-From spec.md, list every:
-- New skill needed
-- New SOP needed
-- Tier 1 yaml change
-- Database migration
-- New integration
-- Frontend page
-- External service signup
+Per `flow.yaml.failure_handling.phase_5_no_tier_c_approval`:
 
-### Step 2: Topological sort
+```sql
+SELECT d.outcome
+FROM ops.decisions d
+JOIN ops.capability_runs cr ON cr.phase_5_decision_id = d.id
+WHERE cr.capability_id = '<id>' AND d.hitl_tier = 'C';
+```
 
-Order work items:
-- Foundation (migrations, Tier 1) FIRST
-- Skills depending on foundation
-- SOPs depending on skills
-- Integrations
-- Frontend
+If no row OR `outcome != 'approved'`, ABORT with: "Phase 6 requires Tier C approval for the architecture. Run Phase 5 to completion first."
 
-### Step 3: Group into 2-week sprints
+### Step 2 — Extract work items from spec.md
 
-Typical pattern:
-- **Sprint 1: Foundation** (migrations + Tier 1 + cost setup)
-- **Sprint 2: Skills** (new skills implementation + tests)
-- **Sprint 3: SOPs + integration** (SOP YAMLs + chain skills + first integration)
-- **Sprint 4: External + E2E** (external service integration + end-to-end testing)
+Read `.archives/cla/<id>/spec.md` and inventory every:
+- New skill (Section 4.1)
+- New SOP (Section 4.2)
+- Tier 1 yaml change (Section 4.3 + `draft/tier1-diffs.yaml`)
+- Database migration (Section 4.4 + `draft/migrations/*.sql`)
+- New integration / MCP server (Section 4.5)
+- Frontend page (Section 4.6 — usually empty pre-PMF)
+- New command / agent (Section 4.7)
 
-Adjust per capability complexity. Simple = 2 sprints, complex = 6 sprints.
+Each becomes a work item with: name, type, source draft path, dependencies.
 
-### Step 4: Per-sprint acceptance criteria
+### Step 3 — Topological sort (build order)
+
+Order rules:
+1. Migrations FIRST (other things may reference new tables/columns).
+2. Tier 1 yaml changes SECOND (cost-bucket, channels, KPI registry must be in place before skills can reference them).
+3. New MCP servers THIRD (skills may invoke them).
+4. Skills FOURTH (depend on Tier 1 + MCPs).
+5. Subagents FIFTH (depend on skills, may invoke them).
+6. Commands SIXTH (orchestrate skills + agents).
+7. SOPs SEVENTH (chain skills + commands; trigger via schedules / events).
+8. Frontend pages LAST (consume the deployed APIs).
+
+A work item that depends on another in a later layer is a smell — flag and ask whether to refactor.
+
+### Step 4 — Group into 2-week sprints
+
+Default 2-week boxes. Apply size heuristic:
+
+| Layer load | Sprint pattern |
+|---|---|
+| 1-3 work items | Single sprint (combine layers) |
+| 4-8 work items | 2 sprints |
+| 9-15 work items | 3 sprints |
+| 16+ work items | 4-5 sprints; force a "spike" sprint at front for unknowns |
+
+Typical 3-sprint pattern:
+
+- **Sprint 1: Foundation** — migrations, Tier 1, cost-bucket setup.
+- **Sprint 2: Skills** — new skills implemented + tested.
+- **Sprint 3: SOPs + integration + deploy** — SOPs, commands, end-to-end test, deploy.
+
+### Step 5 — Per-sprint structure
 
 Each sprint:
-- **Deliverables:** specific files + commits
-- **Acceptance:** automated tests pass + manual verification done
-- **HITL:** Tier B per sprint completion
-- **Effort estimate:** founder hours
-- **Cost:** monthly delta
-
-### Step 5: Wave alignment
-
-Map sprints to Phase B Wave (chương 28):
-- Wave 1-3: foundation work
-- Wave 4-6: most capabilities
-- Wave 7+: advanced capabilities
-
-Ensure sprints align với current Wave (e.g., if currently Wave 4, capability should leverage Wave 4 infrastructure).
-
-### Step 6: Output sprint-plan.md
 
 ```markdown
-# Sprint Plan: <capability>
+## Sprint N: {name} (Week X-Y)
+
+**Deliverables:**
+- [ ] {file or migration name}
+- [ ] {file or migration name}
+
+**Acceptance criteria:**
+- [ ] {automated test that proves the deliverable works}
+- [ ] {manual verification step if applicable}
+- [ ] `pnpm check` clean
+- [ ] PR opened, CI green, founder reviews + merges
+
+**Effort estimate:** {H} hours (founder)
+**HITL:** Tier B at sprint end (per PR)
+**Cost delta:** ${X}/mo at end of this sprint (cumulative)
+**Risk:** {1-2 lines of what could go sideways}
+```
+
+### Step 6 — Wave alignment lookup
+
+Read playbook chương 28 expectations (or `notes/wave.md` if exists). Mark which sprint aligns to which wave. If the capability requires infrastructure from a future wave (e.g., Wave 5 needs Telegram bot but we're at Wave 3), surface the prerequisite as a Sprint 0 spike or call out the dependency explicitly.
+
+### Step 7 — Output sprint-plan.md
+
+Template:
+
+```markdown
+# Sprint Plan: {capability-name}
+
+**Capability ID:** {capability_id}
+**Phase:** 6 — Sprint Planning
+**Generated:** {date}
+**Spec:** [.archives/cla/{capability_id}/spec.md](spec.md)
+**Wave alignment:** Wave {N}
 
 ## Overview
-- Total sprints: N
-- Total weeks: 2N
-- Total founder hours: X
-- Monthly cost delta: $Y
-- Wave alignment: Wave Z
+- Total sprints: {N}
+- Total weeks: {2N}
+- Total founder hours: {sum}
+- Monthly cost delta (after final sprint): ${X}/mo
+- One-time setup cost: ${Y}
+
+## Work item inventory ({total})
+| Item | Type | Source draft | Sprint |
+|---|---|---|---|
 
 ## Sprint 1: Foundation (Week 1-2)
-**Deliverables:**
-- [ ] Migration <num>_<name>.sql applied
-- [ ] Tier 1 yaml updates merged
-- [ ] Cost-bucket tracker setup
+... (Step 5 template)
 
-**Acceptance:**
-- [ ] supabase db push succeeds
-- [ ] validate-tier1.js passes
-- [ ] cost-bucket entries flowing
+## Sprint 2: Skills (Week 3-4)
+... (Step 5 template)
 
-**Effort:** Xh
-**HITL:** Tier B at sprint end
-**Cost:** $0/mo (foundation only)
+## Sprint 3: SOPs + Integration + Deploy (Week 5-6)
+... (Step 5 template)
 
-## Sprint 2: ...
-[same structure]
+## Wave alignment notes
+- Wave {N}: {capability fits cleanly | needs Sprint 0 spike for prereq X}
 
 ## Total
-- Founder time: X hours
-- Monthly recurring cost: $Y
-- One-time setup cost: $Z
-- Time to production: 2N weeks
+- Founder time: {H} hours
+- Monthly recurring cost: ${X}
+- One-time setup cost: ${Y}
+- Time to production: {2N} weeks
+
+## HITL Tier B prompt
+{What `/cla` surfaces to founder via AskUserQuestion}
 ```
+
+### Step 8 — HITL Tier B (handled by orchestrator)
+
+`/cla` issues `AskUserQuestion`:
+
+```jsonc
+{
+  "question": "Sprint plan: {N} sprints over {2N} weeks, {H} founder hours, ${X}/mo recurring. Approve?",
+  "header": "Sprint plan",
+  "multiSelect": false,
+  "options": [
+    { "label": "Approve as-is", "description": "..." },
+    { "label": "Modify (specify)", "description": "..." },
+    { "label": "Reject", "description": "Send back to Phase 5 for re-architect" }
+  ]
+}
+```
+
+### Step 9 — Persist state
+
+- UPDATE `ops.capability_runs` SET `sprint_plan_path = '.archives/cla/<id>/sprint-plan.md'`, `phases_completed = phases_completed || 6`, `current_phase = 7`, `state = 'implementing'`.
+- INSERT `ops.hitl_runs` (Tier B), `ops.capability_phase_events`, `ops.events` (`ritsu.capability.sprint_planned`), `ops.run_summaries`, `ops.cost_attributions`.
 
 ## Outputs
 
-- `wiki/capabilities/<id>/sprint-plan.md`
-- HITL Tier B record (sprint plan approval)
+- `.archives/cla/<capability_id>/sprint-plan.md`
+- 1 `ops.hitl_runs` row + 1 `ops.cost_attributions`.
 
 ## State transition
 
-`planning → implementing`
+`planning → implementing` after founder approval.
+
+## HITL
+
+**Tier B**.
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| No Tier C approval for Phase 5 | ABORT (per Step 1). |
+| Spec missing component sections | Use only what's there; flag gaps in sprint-plan.md preamble. |
+| Founder modifies plan substantially | Re-run skill with founder's modifications baked in (max 1 iteration). |
+| Cumulative cost delta > $200/mo | Surface to founder in Tier B prompt; suggest scope reduction. |
+
+## LLM mode awareness
+
+- **Subscription / Hybrid / Full API:** Same flow.
+- **Fallback (no API):** Skill produces the work item table + sprint scaffold; founder fills sprint contents manually.
 
 ## Cost estimate
 
-- Anthropic API: ~$0.30 per invocation
-- Founder time: 30-45 min review
+- Anthropic API: ~$0.30 per invocation.
+- Founder time: 30-45 min review + approve.
+- Cost-bucket: `ai-ops-cla`.
+
+## Test fixtures
+
+- `tests/cla/fixtures/sprint-planner-no-tier-c.json` — no Tier C row, expects ABORT.
+- `tests/cla/fixtures/sprint-planner-typical.json` — 8 work items, expects 3 sprints.
+- `tests/cla/fixtures/sprint-planner-large.json` — 18 work items, expects 4-5 sprints + spike.
 
 ---
 
-**Next phase:** `implementation-coordinator`
+**Next phase invokes:** `implementation-coordinator` (Phase 7).

@@ -1,89 +1,150 @@
 ---
 name: domain-analyst
-description: Phase 2 of CLA workflow (Bài #20). Conducts domain deep-dive với industry benchmarks, customer journey, competitive landscape, channel comparison. Uses Bài #15 Muse panel với domain experts. Invoke after problem-framer (Phase 1) completes.
+description: Phase 2 of CLA workflow (Bài #20). Conducts domain deep-dive — industry benchmarks, customer journey, competitive landscape, channel comparison. Auto-routes to a CxO persona based on `knowledge/cla-routing-keywords.yaml`; falls back to a Muse panel for ambiguous problems. Writes `.archives/cla/<id>/domain-analysis.md`.
 ---
 
 # Domain Analyst (CLA Phase 2)
 
 ## When to use
 
-After Phase 1 problem.md confirmed. Capability state = `analyzing`.
+- After Phase 1 `problem.md` exists. `ops.capability_runs.current_phase = 2`.
+- State = `analyzing`.
 
 ## Inputs
 
-- `problem_path`: Path to confirmed problem.md
-- `capability_id`: Capability slug
+- `capability_id` — slug.
+- `problem_path` — `.archives/cla/<id>/problem.md`.
+- `routing_source` — `knowledge/cla-routing-keywords.yaml` (Tier 1).
 
 ## Process
 
-### Step 1: Identify domain
-From problem.md, extract domain (growth, support, content, finance, etc.).
+### Step 1 — Keyword scan (deterministic)
 
-### Step 2: Invoke Muse panel (Bài #15)
-Select 4-5 personas from `muse-personas.yaml`:
-- Domain expert (e.g., growth-strategist for acquisition, pedagogy-expert for education)
-- Industry-benchmark analyst
-- Customer-advocate
-- Cost-conscious cynic
-- Time-honest
+Read `knowledge/cla-routing-keywords.yaml`. For each `routes.<domain>.keywords[]` keyword:
+- Lowercase both the keyword and the full `problem.md` text (refined statement + assumptions + answers).
+- Check substring presence (whole-keyword match preferred but substring is the spec).
 
-### Step 3: Generate domain analysis
-Each persona contributes section:
+Collect a `matches: { domain: [hits] }` map. Decide:
+- **Exactly 1 domain matched** → primary route.
+- **Multiple domains matched** → primary = max-hit domain; if tie, use `ambiguous_fallback` from the yaml (default: `muse_panel`).
+- **0 domains matched** → use `ambiguous_fallback`.
 
-**Industry benchmarks:** Typical CAC, conversion rates, ROI per channel
-**Customer journey:** Awareness → consideration → purchase → activation → retention
-**Competitive landscape:** Who solves this in industry? How?
-**Channel comparison:** Pros/cons of each viable channel
-**Founder bandwidth realism:** Time required vs available
+Log the scan result to `.archives/cla/<id>/domain-analysis.md` § "Routing scan" so the founder can see which keywords fired.
 
-### Step 4: Output domain-analysis.md
+### Step 2 — Resolve persona vs fallback role
+
+For the chosen route, look up the `cxo` slug in `knowledge/workforce-personas.yaml`:
+- If `status: active` → invoke `@<cxo>` (subagent).
+- If `status: planned | deferred` → invoke the `fallback_role` (e.g., `@growth-orchestrator`). The agent's `description` should match the fallback role; if no agent file exists, dispatch the skill via Skill/Task tooling against the `gtm-orchestrator` etc. role.
+
+### Step 3 — Parallel invocation
+
+Issue **two parallel** Agent calls in a single message:
+
+1. The CxO subagent (or fallback role) with prompt:
+   > Read `.archives/cla/<id>/problem.md`. Produce a 200-300 word "domain lens" covering: who the user/customer is here, what's actually scarce, what an experienced {domain} chief would attack first, what would be a beginner mistake. Cite at least 1 file in this repo. End with a single 1-line recommendation.
+2. The full domain-analysis worker (yourself, this skill) with prompt:
+   > Same problem. Produce industry benchmarks (cite a source where you can; otherwise mark "estimate"), a customer journey map, a competitive landscape brief (top 3-5 competitors), and a channel comparison matrix (channel × CAC × volume × time-to-result × sustainability).
+
+If the route resolved to `ambiguous_fallback: muse_panel`, replace step 3.1 with a 4-persona Muse panel call (pick from `knowledge/muse-personas.yaml` — typical: `growth-strategist`, `customer-advocate`, `cost-conscious-cynic`, `time-honest`).
+
+### Step 4 — Synthesize
+
+Merge both outputs. Tensions (where the CxO and the worker disagree on, e.g., channel viability or timeline) are explicitly called out under "## Cabinet vs analyst tension".
+
+### Step 5 — Write `.archives/cla/<capability_id>/domain-analysis.md`
+
+Template:
 
 ```markdown
-# Domain Analysis: <capability>
+# Domain Analysis: {capability-name}
 
-## Industry context
-<from industry-benchmark-analyst>
+**Capability ID:** {capability_id}
+**Phase:** 2 — Domain Deep-Dive
+**Detected domain:** {growth | product | code | customer | marketing | sales | metrics | finance | trust_safety | ambiguous}
+**Routed to:** {@cxo | @<fallback-role> | muse_panel:<list>}
+**Routing scan:**
+| Keyword | Matched in | Domain |
+|---|---|---|
+| ...    | problem.md  | growth |
+
+## Industry context (benchmarks)
+{industry-benchmark prose with cited sources or "estimate" tags}
 
 ## Customer journey map
-<from customer-advocate>
+{awareness → consideration → activation → retention; mark which stages this capability touches}
 
 ## Competitive landscape
-<who solves this in industry, gaps>
+{top 3-5 competitors, what they do, gap they leave open}
 
 ## Channel comparison matrix
-| Channel | CAC | Volume | Time-to-results | Sustainability |
+| Channel | CAC est | Volume | Time-to-result | Sustainability |
 |---|---|---|---|---|
+| ... | ... | ... | ... | ... |
+
+## CxO lens (or Muse panel)
+{200-300 word lens from the parallel invocation}
+
+## Cabinet vs analyst tension
+{explicit calls-out of disagreements; if none, write "(no material disagreement)"}
 
 ## Founder time reality check
-<from time-honest>
+{honest estimate of weekly time needed; flag if >5h/week}
 
 ## Critical risks
-<from cynic>
+{top 3 risks the founder should know about before Phase 4}
 
-## Muse panel synthesis
-<consensus + dissent>
+## Next phase
+Phase 3 — System Inventory (`system-inventory-scanner`).
 ```
+
+### Step 6 — Persist state
+
+- UPDATE `ops.capability_runs` SET `domain_analysis_path = '.archives/cla/<id>/domain-analysis.md'`, `phases_completed = phases_completed || 2`, `current_phase = 3` WHERE `capability_id = '<id>'`.
+- INSERT `ops.capability_phase_events` row.
+- INSERT `ops.events` row (`ritsu.capability.domain_analyzed`).
+- INSERT `ops.run_summaries` row (~150 tokens: domain detected, headline tension, one critical risk).
+- INSERT `ops.cost_attributions` rows for each LLM call (cost-bucket: `ai-ops-cla`).
 
 ## Outputs
 
-- `wiki/capabilities/<id>/domain-analysis.md`
-- Audit + event fired
+- `.archives/cla/<capability_id>/domain-analysis.md`
+- 1-2 `ops.cost_attributions` rows (skill + CxO/panel).
 
 ## State transition
 
-`analyzing` (continued, → Phase 3)
+`analyzing` (continued — Phase 3 is also `analyzing` until Phase 3 advances it).
+
+## HITL
+
+Tier A. Founder may spot-check (5 min) but auto-advances.
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| Routing yaml missing or invalid | Abort phase; surface the validator's drift error to the founder. |
+| Both parallel calls fail | Write a stub domain-analysis.md noting "LLM unavailable; proceed manually" and don't advance state. |
+| CxO returns < 100 words or refuses | Fall back to Muse panel for that lens. |
 
 ## LLM mode awareness
 
-- **Subscription:** Founder + Claude Code conversation; manual Muse panel run
-- **Hybrid:** Auto-fires Muse panel với selected personas
-- **Fallback:** Manual via Claude Code session
+- **Subscription:** Run inline; founder watches.
+- **Hybrid / Full API:** Run autonomously; surface result.
+- **Fallback (no API):** Skill produces only the routing scan + an empty domain-analysis.md skeleton; founder fills manually.
 
 ## Cost estimate
 
-- Anthropic API: ~$0.30 per invocation (5 persona calls × ~1500 tokens each)
-- Founder time: 10-15 min review
+- Anthropic API: ~$0.30-0.50 per invocation (skill + 1 CxO/panel call).
+- Founder time: 5-10 min review.
+- Cost-bucket: `ai-ops-cla`.
+
+## Test fixtures
+
+- `tests/cla/fixtures/domain-analyst-keyword-growth.json` — single match, expects route to `cgo` → fallback `gtm-orchestrator`.
+- `tests/cla/fixtures/domain-analyst-keyword-ambiguous.json` — 0 matches, expects `muse_panel`.
+- `tests/cla/fixtures/domain-analyst-keyword-multi.json` — 2 matches, expects max-hit winner.
 
 ---
 
-**Next phase:** `system-inventory-scanner`
+**Next phase invokes:** `system-inventory-scanner` (Phase 3).
