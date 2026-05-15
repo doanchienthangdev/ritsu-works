@@ -113,3 +113,16 @@ This isolation is enforced via `.claude/hooks/secret-access-firewall` (planned, 
 ## Entry conditions
 
 Already DEEP. Further sub-pillar splits happen organically (eg `08-evals` sub-pillar when LLM eval framework lands).
+
+## Capability lifecycle (Bài #20)
+
+This pillar hosts the master SOP for adding any new capability to Agent OS:
+
+- **Front-end:** `/cla` slash command — `.claude/commands/cla.md`
+- **SOP:** [`SOP-AIOPS-001-capability-lifecycle/`](sops/SOP-AIOPS-001-capability-lifecycle/)
+- **Skills:** [`skills/capability-lifecycle/`](skills/capability-lifecycle/) (8 phase skills)
+- **Routing:** [`knowledge/cla-routing-keywords.yaml`](../knowledge/cla-routing-keywords.yaml) (CxO dispatch by domain)
+- **Catalog:** [`wiki/capabilities/CATALOG.md`](../wiki/capabilities/CATALOG.md)
+- **Playbook:** [`knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md`](../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md)
+
+Use `/cla propose "<problem>"` for any new capability. The 8-phase workflow handles drift pre-flight, problem framing, domain analysis, system inventory, options + recommendation, architecture spec (Tier C HITL with @cto + Muse panel), sprint planning, multi-session implementation, and registry promotion.

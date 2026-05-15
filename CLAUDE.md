@@ -54,6 +54,10 @@ Always read `knowledge/manifest.yaml` before assuming where data lives. Do not i
 - Any irreversible action without HITL approval when required.
 - Any direct edit to `00-charter/` or `governance/` (must be PR).
 
+## New capabilities
+
+For any new business capability (skill + SOP + Tier 1 changes + migrations + integrations), use `/cla propose "<problem>"`. This runs the 8-phase Capability Lifecycle Architecture (SOP-AIOPS-001, Bài #20) — drift pre-flight, problem framing, domain analysis, system inventory, options + recommendation, architecture spec with @cto + Muse panel review, sprint planning, multi-session implementation, and registry promotion. See `.claude/commands/cla.md`.
+
 ## Path-scoped guidance
 
 When you navigate into a pillar (`00-charter/`, `01-marketing/`, `02-sales/`, `03-gtm/`, `04-product/`, `05-customer/`, `06-ai-ops/`, `07-trust-safety/`, `08-finance/`, `09-founder/`, `10-metrics/`), Claude Code will auto-load that pillar's `README.md` and `CLAUDE.md` if present. Pillar-specific behavior lives there, not here. Do not bloat this file with per-pillar rules.
