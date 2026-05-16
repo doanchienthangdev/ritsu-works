@@ -202,3 +202,116 @@ transitions. Phase 1 ships INSERT only. Phase 1.5 adds:
 **Priority:** P2
 **Depends on:** Phase 1 in production, real demand from a specific skill
 **Surfaced from:** /plan-eng-review 2026-05-16 (MCP Phase 1)
+
+---
+
+### CLA-MCP-1 — system-inventory-scanner: switch to Phase 1 paths
+
+`06-ai-ops/skills/capability-lifecycle/system-inventory-scanner/SKILL.md:49-51`
+Step 5 reads `mcp/servers.yaml` (legacy Bài #12 design path that was never
+created). After Phase 1 (PR #29), the canonical sources are:
+- `.mcp.json` at repo root — registered MCP servers from Claude Code's POV
+- `knowledge/mcp-tools.yaml` — registered tools + role_scope + tier_default
+- `mcp-server/` — actual server source (presence = supabase-ops live)
+
+Same file lines 105 + 161 also reference `mcp/servers.yaml`; update all three.
+
+**Why:** When `/cla propose` runs Phase 3 on a capability that needs MCP
+integration, it will currently miss the live shim entirely and report "MCP
+layer not configured" — wrong, would lead architect (Phase 5) to design a
+duplicate server.
+**Pros:** Future capabilities correctly enumerate existing tools and reuse
+`mcp__supabase-ops__query/insert` instead of recreating.
+**Cons:** Minor edit, low risk; ~15 min CC. Side effect: a smoke test of CLA
+Phase 3 should be run before next `/cla propose`.
+**Effort:** S (CC ~15 min)
+**Priority:** P2 — block first `/cla propose` that touches MCP
+**Depends on:** none
+**Surfaced from:** founder Q on /cla integration with MCP, 2026-05-16
+
+---
+
+### CLA-MCP-2 — architect: update Bài #12 impact mapping path
+
+`06-ai-ops/skills/capability-lifecycle/architect/SKILL.md:42`
+Row 12 of Bài-toán impact table says "MCP | mcp/servers.yaml entry". After
+Phase 1, the impact for a capability needing MCP integration is:
+- **Use existing tool**: declare in skill `allowed-tools:` (no architect work)
+- **Extend shim**: add tool entry to `knowledge/mcp-tools.yaml` + handler to
+  `mcp-server/src/tools/<name>.ts` + test under `tests/mcp-server/`
+- **New external MCP server** (not supabase-ops): add to `.mcp.json` + write
+  the server source (Phase 2 semantic tools may also fit here)
+
+Architect's `mcp-configs/` draft folder convention from line 73 is still OK
+conceptually but should output to the 3 destinations above, not a stub
+`mcp/servers.yaml`.
+
+**Why:** Without this, architect generates dead artifacts when a capability
+needs MCP work — drafts at wrong paths that nothing reads.
+**Pros:** Architect's `spec.md` template stays accurate; sprint-planner can
+consume drafts correctly.
+**Cons:** ~20 min CC; need to choose template format for the 3 paths.
+**Effort:** S (CC ~20 min)
+**Priority:** P2 — block first `/cla propose` that proposes a new MCP tool
+**Depends on:** CLA-MCP-1 (path conventions consistent)
+**Surfaced from:** founder Q on /cla integration with MCP, 2026-05-16
+
+---
+
+### CLA-MCP-3 — sprint-planner: 3-path MCP work classification
+
+`06-ai-ops/skills/capability-lifecycle/sprint-planner/SKILL.md:42, 53, 220`
+Section 4.5 + topological sort currently treats "MCP work" as one bucket
+("new MCP server THIRD"). Post-Phase 1, MCP work has 3 distinct paths with
+different effort + risk:
+
+| Path | Sprint cost | Risk | Examples |
+|---|---|---|---|
+| **A. Use existing tool** | 0 (just skill frontmatter) | Low | new skill that reads `ops.tasks` |
+| **B. Extend supabase-ops shim** | S-M | Low (1 file + 1 test) | add `update` tool to Phase 1.5 |
+| **C. New external MCP server** | L | High (server lifecycle) | Discord MCP, GitHub MCP, etc. |
+
+Sprint-planner should classify and order:
+- A → no MCP sprint phase needed
+- B → 1 sprint phase (extend shim BEFORE skills that use it)
+- C → multi-sprint (server scaffold → tools → auth → skills)
+
+Currently treats all 3 as Path C, inflating estimates and risk for trivial
+Path A capabilities.
+
+**Why:** Right-sizing CLA sprint plans — currently any capability touching
+MCP gets the full-server-build treatment.
+**Pros:** Faster CLA workflow for capabilities that only consume MCP.
+**Cons:** Template changes need example flow per path; ~30 min CC.
+**Effort:** S (CC ~30 min)
+**Priority:** P2 — block when first `/cla propose` reaches Phase 6
+**Depends on:** CLA-MCP-1, CLA-MCP-2 (consistent classification)
+**Surfaced from:** founder Q on /cla integration with MCP, 2026-05-16
+
+---
+
+### CLA-MCP-4 — cla.md line 69: clarify shim is the audit insert path
+
+`.claude/commands/cla.md:69`
+"INSERT row into `ops.capability_runs` (via supabase MCP)" — was design
+intent in v1.0. After Phase 1 the supabase-ops shim is live; CLA Phase 1
+problem-framer could literally use `mcp__supabase-ops__insert` to write the
+capability_runs row instead of bash + `supabase db query --linked`.
+
+To take this further: 10 CLA skills (`system-inventory-scanner`, `architect`,
+`sprint-planner`, `catalog-updater`, `dependency-scanner`, `domain-analyst`,
+`implementation-coordinator`, `options-generator`, `problem-framer`,
+`version-bumper`) currently don't declare `mcp__supabase-ops__*` in their
+`allowed-tools` frontmatter. Adding the declaration makes every CLA state op
+audited automatically in `ops.mcp_calls`. Useful for debugging "why was CLA
+Phase 5 slow last Tuesday."
+
+**Why:** Observability for CLA workflow itself + dogfood the shim.
+**Pros:** Every CLA write attributed in audit log; consistent path with
+other skills.
+**Cons:** Touches 10 skill files + cla.md prose; ~45 min CC. No functional
+change (skills still do same work, just routed through shim).
+**Effort:** M (CC ~45 min)
+**Priority:** P3 — observability win, not a blocker
+**Depends on:** CLA-MCP-1..3 (consistent baseline)
+**Surfaced from:** founder Q on /cla integration with MCP, 2026-05-16
