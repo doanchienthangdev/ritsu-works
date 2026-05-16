@@ -1,19 +1,135 @@
 # mcp-tools.yaml — MCP tools registry (Bài #12)
-version: "1.0.0"
+#
+# Lists every MCP tool the workforce may invoke, what server hosts it, the HITL
+# tier required by default, and which roles may call it.
+#
+# Phase 1 (2026-05-16): real entries for the supabase-ops shim. Bài #12 generic
+# placeholders kept as PLANNED until Phase 2 (semantic tool layer).
+#
+# Validated by: scripts/cross-tier/validate-mcp-tools-skill-refs.cjs (TODO-MCP-2)
+version: "1.1.0"
 
 tools:
-  # Generic operational tools
+  # ===========================================================================
+  # Phase 1 — supabase-ops shim (mcp-server/, LIVE)
+  # ===========================================================================
+
+  - id: query
+    server: supabase-ops
+    description: |
+      Execute a parameterized read-only SELECT against ritsu-ops. The shim's
+      sql-guard rejects multi-statement, SELECT INTO, and any non-SELECT/WITH
+      leading keyword BEFORE the DB even sees the SQL. RLS applies via the
+      connection's role.
+    input_schema_ref: mcp-server/src/tools/query.ts#queryInputSchema
+    output_schema:
+      rows: array
+      row_count: integer
+      truncated: boolean
+      query_ms: integer
+    tier_default: A
+    cost_bucket: ops-read
+    rate_limit: "100/min per role"
+    # Every role MAY read — read is the universal capability. The role-resolver
+    # in mcp-server still enforces tier2_schemas_read per role (governance/ROLES.md).
+    role_scope:
+      - founder
+      - cofounder
+      - gps
+      - growth-orchestrator
+      - support-agent
+      - content-drafter
+      - code-reviewer
+      - etl-runner
+      - trust-safety
+      - backoffice-clerk
+      - gtm-orchestrator
+      - product-orchestrator
+      - customer-lead
+      - cs-coach
+      - retention-watcher
+      - escalation-router
+      - feedback-aggregator
+      - founder-coach
+      - hitl-router
+      - health-tracker
+      - metrics-curator
+      - alert-router
+      - experiment-analyst
+    db_dependency:
+      function: ops.ops_run_select
+      migration: supabase/migrations/00026_mcp_query_rpc.sql
+
+  - id: insert
+    server: supabase-ops
+    description: |
+      INSERT 1..100 rows into a ritsu-ops table the caller's role may write.
+      Table allowlist enforced from governance/ROLES.md tier2_schemas_write
+      via mcp-server role-resolver. Phase 1: on_conflict=error|ignore only;
+      no UPDATE/UPSERT (Phase 1.5).
+    input_schema_ref: mcp-server/src/tools/insert.ts#insertInputSchema
+    output_schema:
+      inserted_count: integer
+      returned_rows: array
+      query_ms: integer
+    tier_default: B
+    tier_per_role:
+      gps: A                 # gps orchestration into ops.tasks/agent_runs is autonomous
+      etl-runner: A          # ETL writes to metrics.* autonomously
+      escalation-router: A
+      feedback-aggregator: A
+      founder-coach: A
+      hitl-router: A
+      health-tracker: A
+      alert-router: A
+    cost_bucket: ops-write
+    rate_limit: "60/min per role"
+    role_scope:
+      - founder
+      - cofounder
+      - gps
+      - growth-orchestrator
+      - support-agent
+      - content-drafter         # writes own ops.agent_runs + ops.run_summaries
+      - etl-runner
+      - trust-safety
+      - backoffice-clerk
+      - gtm-orchestrator
+      - product-orchestrator
+      - customer-lead
+      - cs-coach
+      - retention-watcher
+      - escalation-router
+      - feedback-aggregator
+      - founder-coach
+      - hitl-router
+      - health-tracker
+      - metrics-curator
+      - alert-router
+      - experiment-analyst
+      # code-reviewer omitted — governance/ROLES.md says tier1_paths:[]; runs only
+
+  # ===========================================================================
+  # Phase 2 — Bài #12 semantic tools (PLANNED, not yet implemented)
+  # ===========================================================================
+  # These stay PLANNED until the Phase 2 work in
+  # .archives/plans/2026-05-16-mcp-ritsu-ops-integration/ (Phase 2 sprint, TBD).
+  # When promoted, change `status: planned` → `status: live` and add server:/handler refs.
+
   - id: ritsu.system.health_check
-    description: "Returns system health summary"
-    role_required: any
-  
+    status: planned
+    description: "Returns system health summary (Phase 2)"
+    tier_default: A
+    role_scope: [founder, cofounder, gps]
+
   - id: ritsu.kpi.snapshot
-    description: "Get current KPI values"
-    role_required: founder
-  
+    status: planned
+    description: "Get current KPI values (Phase 2)"
+    tier_default: A
+    role_scope: [founder, cofounder, metrics-curator]
+
   - id: ritsu.sop.execute
-    description: "Execute SOP by ID"
-    role_required: founder
-  
-  # Domain tools (customize per project)
-  # {{ADD_DOMAIN_TOOLS}}
+    status: planned
+    description: "Execute SOP by ID (Phase 2)"
+    tier_default: C
+    role_scope: [founder, cofounder]

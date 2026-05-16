@@ -112,3 +112,93 @@ PR volume grows past ~5/day. Most likely permanent-deferred.
 **Priority:** P3
 **Depends on:** PR volume exceeding manual-review capacity (unlikely v1.x)
 **Surfaced from:** /plan-ceo-review 2026-05-14
+
+---
+
+### MCP-1 — Wire pre-tool-supabase-product hook to inspect official plugin calls
+The `.claude/hooks/pre-tool-supabase-product.md` spec currently only matches
+tool name patterns. If the founder ever auths the official Supabase plugin
+(`mcp__supabase__*`) to BOTH Product (`ixfvqxnohlmayzuesrrq`) and Operating
+(`mntobbmieuoaxipnjaau`) projects, the hook needs to inspect the project_ref
+parameter and block any call targeting Product. The shim only protects
+`mcp__supabase-ops__*` paths.
+
+**Why:** Defense in depth — supabase-ops shim blocks the dangerous path for
+governed skills, but ad-hoc plugin calls bypass it.
+**Pros:** Closes the only known gap in the project-ref allowlist coverage.
+**Cons:** Hook needs runtime first (TODOS P2 § "Hook runtime implementation").
+**Effort:** S (CC ~30 min once hook runtime exists)
+**Priority:** P2
+**Depends on:** Hook runtime implementation
+**Surfaced from:** /plan-eng-review 2026-05-16 (MCP Phase 1)
+
+---
+
+### MCP-2 — validate-mcp-tools-skill-refs.cjs cross-tier validator
+Build `scripts/cross-tier/validate-mcp-tools-skill-refs.cjs` and wire to CI.
+For every `06-ai-ops/skills/*/SKILL.md` `allowed-tools:` entry matching
+`mcp__supabase-ops__*`, assert the tool exists in `knowledge/mcp-tools.yaml`
+with `server: supabase-ops`. Also assert the calling skill is referenced by
+some role's allowlist (cross-check governance/ROLES.md).
+
+**Why:** Prevent silent drift — a skill referencing a non-existent tool name
+would only fail at runtime.
+**Pros:** Catches MCP drift in CI; symmetric to existing validators in
+`scripts/cross-tier/`.
+**Cons:** Need to parse SKILL.md YAML frontmatter properly.
+**Effort:** M (CC ~1h)
+**Priority:** P2
+**Depends on:** none
+**Surfaced from:** /plan-eng-review 2026-05-16 (MCP Phase 1)
+
+---
+
+### MCP-3 — Switch from tsx to pre-built dist/ if cold-start > 500ms
+Phase 1 uses `npx -y tsx mcp-server/src/server.ts` for zero-build dev ergonomics.
+If session-startup latency becomes annoying (anything > 500ms felt), switch
+`.mcp.json` to point at `node mcp-server/dist/server.js` and add a build step
+to the bootstrap script.
+
+**Why:** Faster Claude Code session starts.
+**Pros:** ~3-5× faster MCP cold start.
+**Cons:** Adds a build step; needs CI to publish dist/ or have devs build locally.
+**Effort:** S (CC ~30 min)
+**Priority:** P3
+**Depends on:** Observed slowness (anecdotal)
+**Surfaced from:** /plan-eng-review 2026-05-16 (MCP Phase 1)
+
+---
+
+### MCP-4 — Periodic audit-row-presence alert
+Add a `kpi-snapshots` cron (or `scheduled-run-dispatcher` entry) that confirms
+≥1 row added to `ops.mcp_calls` per day per active role. Alert via
+`ops.alerts` (rule_id=`mcp_audit_pipeline_silent`, severity=warning) if any
+active role goes 24h with no audit rows.
+
+**Why:** Detect silent audit failure. Phase 1 is fail-open — without this,
+audit could be broken for days unnoticed.
+**Pros:** Closes the obvious observability gap of the fail-open design.
+**Cons:** Need to define "active role" — count of agent_runs in last 7d?
+**Effort:** S (CC ~45 min — one cron + one rule + one alert handler)
+**Priority:** P2
+**Depends on:** none (uses existing ops.alerts infrastructure)
+**Surfaced from:** /plan-eng-review 2026-05-16 (MCP Phase 1)
+
+---
+
+### MCP-5 — Phase 1.5: add update/upsert/delete tools with stricter HITL
+Skills like `cost-optimization-review` and capability lifecycle may need
+UPDATE for marking recommendations as applied or capability_runs phase
+transitions. Phase 1 ships INSERT only. Phase 1.5 adds:
+- `update` (Tier C default — every update is approve-before unless role overrides)
+- `upsert` (Tier C default)
+- `delete` (Tier D-Std default — never autonomous)
+
+**Why:** Closes the read+insert-only gap so skills don't need direct
+`supabase db query --linked` for state transitions.
+**Pros:** Reduces founder manual-CLI burden for routine UPDATE patterns.
+**Cons:** Higher blast radius; requires careful per-table HITL mapping.
+**Effort:** M (CC ~2h — handlers + sql-guard for UPDATE/DELETE + tests)
+**Priority:** P2
+**Depends on:** Phase 1 in production, real demand from a specific skill
+**Surfaced from:** /plan-eng-review 2026-05-16 (MCP Phase 1)

@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "mcp-tools.schema.json",
   "title": "MCP Tools Registry (Bài #12)",
+  "description": "Registry of MCP tools available to the workforce. v1.0 used 'role_required: string' (single-role). v1.1+ adds 'role_scope: string[]' (multi-role) + 'server', 'tier_default', 'tier_per_role' fields to align with the supabase-ops shim (mcp-server/) and the Phase 1 plan in .archives/plans/2026-05-16-mcp-ritsu-ops-integration/. Either shape is valid — a tool entry MUST have role_required OR role_scope (or `status: planned` for placeholders).",
   "type": "object",
   "required": ["version", "tools"],
   "properties": {
@@ -10,14 +11,70 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "description", "role_required"],
+        "required": ["id", "description"],
         "properties": {
           "id": {"type": "string"},
+          "server": {
+            "type": "string",
+            "description": "MCP server hosting this tool. Phase 1 servers: 'supabase-ops'."
+          },
           "description": {"type": "string"},
-          "role_required": {"type": "string"},
-          "hitl_required": {"type": "boolean"},
-          "rate_limit": {"type": "string"}
-        }
+          "status": {
+            "type": "string",
+            "enum": ["live", "planned", "deprecated"],
+            "description": "Lifecycle. Defaults to 'live' when omitted."
+          },
+          "role_required": {
+            "type": "string",
+            "description": "v1.0 — single role string ('founder', 'any', etc.). For v1.1+ tools, prefer role_scope."
+          },
+          "role_scope": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "v1.1+ — list of role slugs from governance/ROLES.md permitted to invoke this tool. Either role_required or role_scope must be present unless status='planned'."
+          },
+          "tier_default": {
+            "type": "string",
+            "enum": ["A", "B", "C", "D-Std", "D-MAX"],
+            "description": "v1.1+ — default HITL tier required to invoke (per governance/HITL.md)."
+          },
+          "tier_per_role": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": ["A", "B", "C", "D-Std", "D-MAX"]
+            },
+            "description": "v1.1+ — per-role override of tier_default. Useful when an autonomous role can take a tier that's notify-after for others."
+          },
+          "hitl_required": {
+            "type": "boolean",
+            "description": "v1.0 — boolean shortcut. v1.1+ tools should use tier_default/tier_per_role instead."
+          },
+          "rate_limit": {"type": "string"},
+          "cost_bucket": {"type": "string"},
+          "input_schema_ref": {
+            "type": "string",
+            "description": "Pointer to the in-code JSONSchema (e.g. 'mcp-server/src/tools/query.ts#queryInputSchema')."
+          },
+          "output_schema": {
+            "type": "object",
+            "description": "Loose shape of the tool's output. Documentation, not enforced at runtime."
+          },
+          "db_dependency": {
+            "type": "object",
+            "description": "Optional: SQL function or table this tool relies on. Helps drift validators flag missing migrations.",
+            "properties": {
+              "function": {"type": "string"},
+              "table": {"type": "string"},
+              "migration": {"type": "string"}
+            }
+          }
+        },
+        "anyOf": [
+          {"required": ["role_required"]},
+          {"required": ["role_scope"]},
+          {"properties": {"status": {"const": "planned"}}, "required": ["status"]}
+        ]
       }
     }
   }
