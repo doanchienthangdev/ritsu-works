@@ -1,0 +1,179 @@
+# SOP-INGEST-001 — Wiki Sync Pipeline
+#
+# Implements a 6-step subset of Bài #18's 11-step ingestion pipeline,
+# scoped to founder-triggered `/wiki sync` invocations. Active subscriptions
+# (Bài #18 axis 1 cron polling) and voice-note classification (axis 3) are
+# deferred to v1.1+.
+#
+# Each step is a stage in a single ops.ingestion_jobs row's lifecycle.
+# Deterministic steps (fetch, dedup-check, write-wiki) run as
+# ops.minion_jobs; LLM-bearing steps (extract, entity-link, embed) run as
+# subagent calls.
+#
+# Owner: 06-ai-ops (capability `wiki-sync-from-refs`)
+# HITL tier: A (founder-triggered, additive writes); B if cost > per-task-kind cap.
+
+version: "1.0.0"
+sop_id: SOP-INGEST-001
+sop_name: wiki-sync
+capability_id: wiki-sync-from-refs
+pillar: 06-ai-ops
+cost_bucket: ai-ops-knowledge
+
+invocation:
+  triggered_by: slash_command   # /wiki sync <path>
+  authorized_roles: [gps, founder]
+  hitl_tier: A
+  hitl_tier_escalation:
+    condition: "estimated_cost_usd > per_task_kind_cap"
+    target: B
+
+inputs:
+  path: text                 # raw/<entity_type>/<filename> OR https://... OR youtube URL
+  split_mode: enum           # null | toc | count | heading (only when chapter-splittable)
+  force: bool                # default false; bypass dedup
+  entity_type_override: enum # null | article | book | episode | meeting | idea (overrides path heuristic)
+
+steps:
+
+  - id: 1_fetch
+    name: Fetch raw content
+    kind: minion              # deterministic
+    skill: wiki-sync/adapters/<adapter>     # picked from ingestion-sources.yaml
+    timeout_seconds: 120
+    on_failure: mark_state_failed
+    outputs:
+      raw_text: text
+      source_ref: text        # URL / file path
+      source_hash: text       # sha256 of raw content
+      attribution: jsonb      # author / publication / published_at if extractable
+
+  - id: 2_dedup_check
+    name: Dedup against ingestion_jobs
+    kind: minion
+    skill: inline_sql         # no skill needed; SELECT-then-decide
+    sql: |
+      SELECT id, state FROM ops.ingestion_jobs
+       WHERE (source_hash = $1 OR content_hash = $2)
+         AND state IN ('queued', 'fetching', 'processing', 'completed')
+         AND ($3 IS FALSE);   -- skip dedup when force=true
+    on_match_completed: |
+      Skip pipeline; return existing resulting_slug; set state='duplicate'.
+    on_match_active: |
+      Bail (the UNIQUE partial index from migration 00022 also enforces this);
+      surface "another /wiki sync for this ref is in progress".
+
+  - id: 3_acquire_lock
+    name: Acquire advisory lock on (entity_type, slug)
+    kind: minion
+    skill: inline_sql
+    sql: |
+      SELECT ops.wiki_sync_lock($1, $2);   -- entity_type, slug
+    note: |
+      Lock is transaction-scoped; auto-released at COMMIT or rollback.
+      Cross-process safe — protects against ETL/cron racing with manual sync.
+
+  - id: 4_chapter_split_if_needed
+    name: Detect and split oversized refs
+    kind: subagent            # has LLM judgment for TOC detection
+    skill: wiki-sync/chapter-splitter
+    condition: |
+      pages > 100 OR markdown_size > 25_KB OR split_mode != null
+    on_split: |
+      Each chapter becomes its own ingestion_jobs row (parent_job_id pointing
+      to this row); proceeds independently through steps 5-9.
+    on_no_split: |
+      Continue with the original raw content as one unit.
+
+  - id: 5_extract
+    name: Extract entities + concepts
+    kind: subagent            # LLM
+    skill: wiki-sync/adapters/<adapter>      # adapter has format-specific extraction logic
+    cost_attribution:
+      bucket: ai-ops-knowledge
+      task_kind: wiki-ingest-<adapter>
+    outputs:
+      structured_content: jsonb   # { title, summary, sections[], entities[] }
+      llm_cost_usd: numeric
+
+  - id: 6_entity_link
+    name: Auto-extract cross-references (regex first, LLM fallback)
+    kind: hybrid              # regex via minion; LLM-fallback via subagent
+    skill: wiki-sync/link-extractor
+    process:
+      regex_pass:
+        rules_source: knowledge/link-inference-rules.yaml
+        emit_to: ops.knowledge_links
+      llm_fallback:
+        condition: |
+          regex_pass yielded < 3 links AND chunk has > 1000 tokens
+        max_cost_per_invocation_usd: 0.05
+        feature_flag: knowledge/feature-flags.yaml#wiki-sync.llm_fallback_enabled
+    outputs:
+      links_created: int
+      links_method_breakdown: jsonb   # {regex: N, llm: M}
+
+  - id: 7_embed
+    name: Compute embeddings + write to knowledge_embeddings
+    kind: minion
+    skill: inline_embed
+    model: text-embedding-3-small
+    dim: 1536
+    chunk_strategy: adapter_chunk_method  # from ingestion-sources.yaml
+    outputs:
+      embeddings_count: int
+      embedding_cost_usd: numeric
+
+  - id: 8_write_wiki
+    name: Write Markdown to wiki/ + insert knowledge_pages row
+    kind: minion
+    skill: inline_write
+    target_path_template: "wiki/<entity_type>/<slug>.md"
+    page_type: matches knowledge_pages.page_type CHECK
+    marker_header: "<!-- generated-by: wiki-sync v1.0 -->"
+    if_path_exists:
+      check_marker: required
+      on_marker_present: overwrite_with_diff_in_run_summary
+      on_marker_absent: warn_founder_show_3way_diff_then_abort_unless_force
+
+  - id: 9_emit_events
+    name: Emit completion event + cost attribution
+    kind: minion
+    skill: inline_emit
+    emits:
+      - event: ritsu.wiki.synced
+        payload:
+          ingestion_job_id: uuid
+          knowledge_page_id: uuid
+          entity_type: text
+          slug: text
+          source_kind: text
+          chapters_count: int           # 1 if not split
+      - cost_attribution_row: |
+          INSERT INTO ops.cost_attributions
+            (cost_bucket, task_kind, instance_ref, cost_usd, ts)
+          VALUES
+            ('ai-ops-knowledge', 'wiki-ingest-<adapter>', ingestion_job_id::text, total, now());
+
+# ──────────────────────────────────────────────────────────────────────────
+# End-of-pipeline state transition
+# ──────────────────────────────────────────────────────────────────────────
+end_state:
+  on_success: completed
+  on_failure: failed
+  on_dedup_skip: duplicate
+  on_quality_below_threshold: low_quality  # future hook for quality_score
+
+# ──────────────────────────────────────────────────────────────────────────
+# Observability
+# ──────────────────────────────────────────────────────────────────────────
+observability:
+  metrics:
+    - name: wiki_ingest_pipeline_duration_seconds
+      labels: [adapter, state]
+    - name: wiki_ingest_cost_usd
+      labels: [adapter, cost_step]
+    - name: wiki_ingest_links_extracted
+      labels: [method]
+  events_emitted: [ritsu.wiki.synced, ritsu.wiki.sync_failed]
+  agent_runs_log: per-step (one row per pipeline run + child rows per subagent)

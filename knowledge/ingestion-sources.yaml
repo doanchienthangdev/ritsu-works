@@ -2,18 +2,55 @@
 version: "1.0.0"
 
 source_kinds:
+  # `article` — edited per Sprint 1 of wiki-sync-from-refs to swap adapter + add
+  # extraction/cost_estimate/wiki_target fields (was: article-adapter + bare fetch).
   - id: article
-    adapter: article-adapter
-    fetch_method: url_fetch + readability_extraction
+    adapter: url-adapter
+    fetch_method: http_get_with_readability
+    extraction: html_to_markdown
     chunking: token_512_with_overlap_64
-  
+    cost_estimate: "$0.05-$0.10 / article"
+    wiki_target: wiki/articles/<slug>.md
+
   - id: voice_note
     adapter: voice-note-adapter
     fetch_method: telegram_voice_message + whisper_transcription
     classification_required: true
     cost_estimate: $0.006/minute
-  
-  # {{ADD_SOURCE_KINDS}}
+
+  # Added per Sprint 1 of wiki-sync-from-refs:
+  - id: book
+    adapter: pdf-adapter
+    fetch_method: local_file
+    extraction: pymupdf_text + optional_ocr_fallback
+    chunking: structural_per_chapter_else_token_1024_overlap_128
+    cost_estimate: "$0.40-$0.70 / 50-page book"
+    chapter_split: prompt_when_pages_gt_100_or_flag
+    wiki_target: wiki/books/<slug>.md (or wiki/books/<slug>/chapter-NN.md when split)
+
+  - id: markdown_passthrough
+    adapter: markdown-adapter
+    fetch_method: local_file
+    extraction: passthrough
+    chunking: structural_per_h2_else_token_512
+    cost_estimate: "$0.02-$0.05 / file"
+    wiki_target: wiki/<entity_type_from_frontmatter>/<slug>.md
+
+  - id: youtube_video
+    adapter: youtube-adapter
+    fetch_method: yt_dlp_transcript
+    extraction: vtt_or_caption_passthrough_else_whisper_fallback
+    chunking: structural_per_yt_chapter_else_token_1024
+    cost_estimate: "$0.15-$0.25 / hour video"
+    wiki_target: wiki/episodes/<slug>.md
+
+  - id: meeting_transcript
+    adapter: meeting-adapter
+    fetch_method: local_file
+    extraction: vtt_srt_txt_passthrough
+    chunking: structural_per_speaker_turn
+    cost_estimate: "$0.10-$0.20 / hour transcript"
+    wiki_target: wiki/meetings/<slug>.md
 
 active_subscriptions:
   # {{ADD_PROJECT_SUBSCRIPTIONS}}
