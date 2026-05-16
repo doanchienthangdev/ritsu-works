@@ -5,9 +5,9 @@
       "command": "npx",
       "args": ["-y", "tsx", "mcp-server/src/server.ts"],
       "env": {
-        "SUPABASE_OPS_URL": "${SUPABASE_OPS_URL:-${SUPABASE_URL}}",
-        "SUPABASE_OPS_SERVICE_KEY": "${SUPABASE_OPS_SERVICE_KEY:-${SUPABASE_SERVICE_KEY}}",
-        "SUPABASE_OPS_ANON_KEY": "${SUPABASE_OPS_ANON_KEY:-${SUPABASE_ANON_KEY:-}}",
+        "SUPABASE_OPS_URL": "${SUPABASE_URL}",
+        "SUPABASE_OPS_SERVICE_KEY": "${SUPABASE_SERVICE_KEY}",
+        "SUPABASE_OPS_ANON_KEY": "${SUPABASE_ANON_KEY:-}",
         "MCP_CALLER_ROLE": "${MCP_CALLER_ROLE:-gps}",
         "MCP_CALLER_SESSION_ID": "${MCP_CALLER_SESSION_ID:-}",
         "RITSU_REPO_ROOT": "${RITSU_REPO_ROOT:-}"
