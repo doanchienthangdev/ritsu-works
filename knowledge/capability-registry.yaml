@@ -82,7 +82,39 @@ capabilities:
       Sprint 3. Dogfood TODO: /cla fix capability-lifecycle-architecture.
 
   # === Project-specific capabilities (added as founder runs CLA) ===
-  
+
+  - id: wiki-sync-from-refs
+    name: "Wiki Sync from External Refs"
+    description: |
+      Founder drops PDF / URL / transcript into raw/<topic>/; command extracts
+      entities + concepts, projects them into wiki/<topic>/<slug>.md with
+      cross-references, supports re-sync when ref content changes, answers
+      questions by citing wiki pages (not training data), and self-audits for
+      orphan/dead/stale links. Big files prompt chapter/part splitting. Single-
+      source-of-truth: ref = source, wiki = projection.
+    state: implementing
+    state_since: 2026-05-16
+    proposed_at: 2026-05-16
+    pillar_owner: 06-ai-ops      # confirmed Phase 3 — knowledge-graph + ingestion both live here
+    bài_toán_touched: [1, 2, 4, 5, 7, 9, 11, 12, 13, 14, 15, 17, 18, 19, 20]
+    spec_path: wiki/capabilities/wiki-sync-from-refs/spec.md
+    sprint_plan: ".archives/cla/wiki-sync-from-refs/sprint-plan.md (local-only working until Phase 8 promotion)"
+    cost_bucket: ai-ops-knowledge
+    estimated_cost_setup_usd: 8.00
+    estimated_cost_recurring_usd: 35.00
+    estimated_founder_hours: 6
+    estimated_completion: 2026-05-30
+    selected_option: B
+    migration_files: [00027_wiki_sync_extensions.sql]
+    notes: |
+      /cla propose 2026-05-16. Phase 0-5 complete in one session. CTO consulted
+      twice (Phase 2: request-changes / Phase 5: NITS — all patched). Option B
+      ("Aligned with Bài #18") approved at HITL Tier C; sprint plan finalized
+      at HITL Tier B. Phase 7 (implementation) per-PR gated.
+      DB INSERT/UPDATE for ops.capability_runs + ops.decisions deferred (no
+      SUPABASE_ACCESS_TOKEN this session) — full SQL in
+      .archives/cla/wiki-sync-from-refs/PENDING_STATE.md.
+
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition
   #   name: "Daily Customer Acquisition Pipeline"
@@ -114,6 +146,10 @@ cost_buckets:
   ai-ops-meta:
     description: "Meta operations (CLA, infrastructure)"
     capabilities: [capability-lifecycle-architecture, cla-update-mechanism]
+
+  ai-ops-knowledge:
+    description: "Knowledge engine — wiki sync, RAG queries, ref-ingestion, audit. Activates dormant Bài #14 / #18 infrastructure."
+    capabilities: [wiki-sync-from-refs]
   
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
