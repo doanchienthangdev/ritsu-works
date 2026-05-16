@@ -15,6 +15,9 @@
  * which is exactly the friction we want around something this dangerous.
  */
 
+import { existsSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+
 export class MissingEnvError extends Error {
   constructor(varName: string) {
     super(`MissingEnv: ${varName} is required to start supabase-ops MCP server`);
@@ -166,8 +169,10 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): ServerEnv {
 
   const repoRoot =
     env.RITSU_REPO_ROOT?.trim() ||
-    // Default: assume we're invoked with CWD at repo root (which is how .mcp.json
-    // resolution works — Claude Code spawns relative to where .mcp.json was found).
+    // When invoked via `npm --prefix mcp-server run doctor`, npm sets the
+    // process CWD to `mcp-server/`. Walk up looking for a marker file
+    // (knowledge/manifest.yaml or .mcp.json) to find the actual repo root.
+    findRepoRoot(process.cwd()) ||
     process.cwd();
 
   return {
@@ -179,6 +184,36 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): ServerEnv {
     callerSessionId,
     repoRoot,
   };
+}
+
+/**
+ * Walk up from `start` looking for a repo-root marker file.
+ * Exported so doctor.ts (and any other tool) can use the same logic.
+ *
+ * Markers (in priority order):
+ *   1. `knowledge/manifest.yaml` — canonical Tier 1 file
+ *   2. `.mcp.json`               — present at repo root per Phase 1
+ *
+ * Returns the absolute path of the first ancestor containing a marker, or
+ * `null` if walked all the way to the filesystem root with no hit.
+ *
+ * This solves: `npm --prefix mcp-server run doctor` sets CWD to mcp-server/
+ * before script runs, so `process.cwd()` returns the WRONG directory for
+ * repo-relative file lookups. Walking up to a marker gives the right answer.
+ */
+export function findRepoRoot(start: string): string | null {
+  let current = resolve(start);
+  while (true) {
+    if (
+      existsSync(join(current, "knowledge", "manifest.yaml")) ||
+      existsSync(join(current, ".mcp.json"))
+    ) {
+      return current;
+    }
+    const parent = dirname(current);
+    if (parent === current) return null; // hit filesystem root
+    current = parent;
+  }
 }
 
 /**

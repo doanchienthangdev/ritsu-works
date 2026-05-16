@@ -75,7 +75,18 @@ Status: HEALTHY
 
 ## Bash to execute
 
+The bash below auto-detects repo root and sources `runtime/secrets/.env.local`
+from the **root repo** (not the worktree — runtime/secrets/ is gitignored and
+lives only at the canonical repo location). Doctor's repo-root walk-up
+handles the npm CWD change automatically (see env.ts findRepoRoot).
+
 ```bash
-cd "$(git rev-parse --show-toplevel)" 2>/dev/null || cd /Users/doanchienthang/ritsu-works
-npm --prefix mcp-server run doctor 2>&1
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || REPO_ROOT="/Users/doanchienthang/ritsu-works"
+cd "$REPO_ROOT" || exit 1
+# Source env from root repo path (runtime/secrets/ is gitignored, only at root)
+ROOT_ENV="/Users/doanchienthang/ritsu-works/runtime/secrets/.env.local"
+if [ -f "$ROOT_ENV" ]; then
+  set -a; source "$ROOT_ENV"; set +a
+fi
+RITSU_REPO_ROOT="$REPO_ROOT" npm --prefix mcp-server run doctor 2>&1
 ```
