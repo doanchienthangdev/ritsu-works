@@ -37,8 +37,7 @@ CREATE INDEX IF NOT EXISTS idx_capability_runs_update_lock
   WHERE update_lock_session_id IS NOT NULL;
 
 COMMENT ON COLUMN ops.capability_runs.update_lock_session_id IS
-  'Concurrency lock owner for /cla update sub-flows. NULL = unlocked. ' ||
-  'Acquired at Phase 0; released at Phase 8 or abort. Auto-expires 24h on read.';
+  'Concurrency lock owner for /cla update sub-flows. NULL = unlocked. Acquired at Phase 0; released at Phase 8 or abort. Auto-expires 24h on read.';
 
 COMMENT ON COLUMN ops.capability_runs.update_lock_acquired_at IS
   'When the update lock was acquired. Used for 24h auto-expiry on read.';
@@ -98,8 +97,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION ops.capability_acquire_update_lock IS
-  'Atomic acquire of update lock for /cla update sub-flows. Returns the ' ||
-  'capability_runs.id on success, NULL if locked by a live session (<24h).';
+  'Atomic acquire of update lock for /cla update sub-flows. Returns the capability_runs.id on success, NULL if locked by a live session (<24h).';
 
 -- ----------------------------------------------------------------------------
 -- 4. Helper function: release update lock
@@ -128,8 +126,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION ops.capability_release_update_lock IS
-  'Release update lock. Returns true if released, false if not owned ' ||
-  'by p_session_id (already released or owned by other).';
+  'Release update lock. Returns true if released, false if not owned by p_session_id (already released or owned by other).';
 
 -- ----------------------------------------------------------------------------
 -- 5. View: lineage chain (for /cla history command)
@@ -161,8 +158,7 @@ SELECT * FROM chain
 ORDER BY capability_id, chain_depth;
 
 COMMENT ON VIEW ops.v_capability_lineage IS
-  'Full lineage chain of every capability via supersedes_id. ' ||
-  'Used by /cla history <id> command. chain_depth = 0 for original row.';
+  'Full lineage chain of every capability via supersedes_id. Used by /cla history <id> command. chain_depth = 0 for original row.';
 
 -- ============================================================================
 -- DONE — migration 00025
