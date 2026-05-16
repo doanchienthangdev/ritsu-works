@@ -1,0 +1,124 @@
+---
+name: wiki-sync/adapters/pdf-adapter
+description: |
+  PDF source adapter for wiki-sync. Extracts text from PDF refs via pymupdf
+  (text layer first; OCR fallback in Sprint 2+ when pages have no text).
+  Emits raw_text, source_ref (abspath), source_hash (sha256 of file bytes),
+  attribution (from PDF metadata if extractable), and pages_metric for
+  chapter-split threshold. Maps to source_kind=`book`, entity_type=`book`,
+  wiki target `wiki/books/<slug>.md`.
+---
+
+# PDF adapter (Sprint 1 baseline)
+
+## When to use
+
+- Dispatched by `wiki-sync/ingest` when path ends in `.pdf`
+- source_kind: `book`
+- entity_type: `book`
+- wiki target: `wiki/books/<slug>.md` (or `wiki/books/<slug>/chapter-NN.md` when split)
+
+## Inputs
+
+- `path` — absolute path under `raw/books/<filename>.pdf`
+
+## Process
+
+### Step 1 — Validate
+
+- File exists? Else bail.
+- File extension `.pdf`? Else delegate back.
+- File size > 0? Else bail.
+
+### Step 2 — Compute source_hash
+
+```bash
+sha256sum "$path"
+```
+
+Returns `<sha256>:<filename>`. This is the `source_hash` for dedup.
+
+### Step 3 — Extract text via pymupdf
+
+Sprint 1: shell out to `python3 -c "import pymupdf; ..."` script. Sprint 2+ may
+adopt a Node-native PDF library if pymupdf install proves fragile.
+
+Pseudocode:
+```python
+import pymupdf, json, sys
+doc = pymupdf.open(sys.argv[1])
+pages = [p.get_text() for p in doc]
+meta = doc.metadata  # author, title, subject, etc.
+print(json.dumps({
+  'pages_count': len(pages),
+  'pages': pages,
+  'meta': meta
+}))
+```
+
+### Step 4 — Detect text-empty pages (Sprint 2+ feature)
+
+If > 30 % of pages return empty text → file is scanned PDF; need OCR.
+Sprint 1: warn but don't OCR (defer). Mark `state_payload.ocr_needed=true`.
+
+### Step 5 — Synthesize raw_text
+
+Concatenate pages with `\n\n---PAGE-BREAK-PP-<N>---\n\n` separator so downstream
+chunker can preserve page boundaries when chunking structurally.
+
+### Step 6 — Slug generation
+
+- Prefer PDF title from metadata; else use filename stem.
+- Kebab-case, lowercase, strip punctuation.
+- Cap at 50 chars.
+
+## Outputs
+
+```jsonc
+{
+  "raw_text": "...",
+  "source_ref": "/Users/doanchienthang/ritsu-works/raw/books/make-it-stick.pdf",
+  "source_hash": "sha256:abcdef...",
+  "attribution": {
+    "author": "Brown / Roediger / McDaniel",
+    "title": "Make It Stick",
+    "subject": null,
+    "publication_date": null,
+    "format_metadata": "PDF 1.7, 256 pages"
+  },
+  "pages_or_size_metric": 256,
+  "suggested_slug": "make-it-stick",
+  "suggested_entity_type": "book",
+  "ocr_needed": false
+}
+```
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| File not found | Bail with absolute path in error |
+| Not a PDF (magic bytes wrong) | Bail; suggest correct adapter |
+| pymupdf not installed | Bail with `pip install pymupdf` instruction |
+| > 30 % pages empty text | Continue with warning; flag OCR-needed for Sprint 2 |
+| Corrupt PDF (pymupdf raises) | Bail with the pymupdf exception |
+
+## Cost estimate
+
+- Extraction (pymupdf): FREE (local process)
+- Embedding (downstream): ~$0.004 / 50-page book
+- LLM-fallback (downstream, if triggered): ~$0.05 / chunk
+
+Total per book typically: $0.40-$0.70 (LLM-fallback drives variance).
+
+## Sprint scope
+
+Sprint 1: text-layer only; no OCR; pymupdf via Python shell-out.
+Sprint 2: OCR fallback via tesseract; chapter-split integration.
+Sprint 4: LLM-fallback link extraction wired via feature flag.
+
+## Related
+
+- Parent: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md`
+- Sibling adapters: `06-ai-ops/skills/wiki-sync/adapters/{url,markdown,youtube,meeting}-adapter/`
+- Tier 1 config: `knowledge/ingestion-sources.yaml` entry `book`

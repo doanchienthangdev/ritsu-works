@@ -66,6 +66,10 @@ When in doubt, **escalate one tier up**. The cost of asking when you didn't need
 - Read `metrics.product_dau_snapshot` (the read-only mirror of product data)
 - Generate embeddings for new content in `wiki/` or `tier3` storage
 - Run a dry-run of any tool (preview without execute)
+- Run `/wiki sync <path>` to ingest a ref into wiki/ (writes wiki Markdown + ops.ingestion_jobs row + ops.knowledge_pages row + embeddings) — escalates to B if estimated cost > per-task-kind cap
+- Run `/wiki ask "<question>"` (read-only retrieval over wiki + ops.knowledge_embeddings)
+- Run `/wiki audit` (read-only integrity scan; writes report to `.archives/wiki-audits/`)
+- Call `mcp__wiki__ask`, `mcp__wiki__list_pages`, `mcp__wiki__get_page` from any agent (read-only retrieval surface)
 
 *Search & research:*
 - Web search, fetch public URLs
@@ -345,6 +349,10 @@ Web search, fetch public page                       A
 Save to .archives/ or raw/                          A
 Open a draft PR                                     A
 Comment on own issue/PR                             A
+Run /wiki sync (ingest a ref into wiki/)            A
+Run /wiki ask (read-only RAG query)                 A
+Run /wiki audit (read-only integrity check)         A
+Call mcp__wiki__ask from any agent                  A
 
 Open a non-draft PR (non-Tier-1)                    B
 Reply to FAQ-categorized support ticket             B

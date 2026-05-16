@@ -693,6 +693,12 @@ tier4_derived:
         source_kind: tier3_blob
         rebuild_script: scripts/sync/rebuild-transcripts-embeddings.sh
         status: planned
+      # Added per Sprint 1 of wiki-sync-from-refs (Bài #14 + Bài #18):
+      - name: wiki_embeddings
+        source: tier1_canonical.wiki (the wiki/ folder)
+        source_kind: wiki_page          # matches knowledge_pages.page_type values
+        rebuild_script: scripts/sync/rebuild-wiki-embeddings.sh
+        status: planned                  # advances to `active` when Sprint 4 lands
   cache_layer:
     provider: TBD  # candidates: Upstash Redis, Cloudflare KV
     purpose: Memoize expensive LLM calls and tool results.

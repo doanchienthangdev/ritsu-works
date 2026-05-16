@@ -12,5 +12,31 @@ link_types:
     pattern: "(?:founded|founder of|created) \\[\\[(?:company|organization)/([^\\]]+)\\]\\]"
     source_type: person
     target_type: company
-  
-  # {{ADD_PROJECT_LINK_TYPES}}
+
+  # Added per Sprint 1 of wiki-sync-from-refs:
+  - id: cites
+    pattern: "\\[\\[(?:article|book|episode|repo|paper)/([^\\]]+)\\]\\]"
+    source_type: any
+    target_type: any
+    description: "Page cites another wiki page as a source/reference."
+
+  - id: defines
+    pattern: "(?:defined in|definition from) \\[\\[concept/([^\\]]+)\\]\\]"
+    source_type: any
+    target_type: concept
+
+  - id: references_section
+    pattern: "(?:see|cf\\.|cf|see also) \\[\\[(?:book|article)/([^\\]]+)#([^\\]]+)\\]\\]"
+    source_type: any
+    target_type: any
+    description: "References a specific section in another page (page#section anchor)."
+
+  - id: transcribes
+    pattern: "(?:transcript of|verbatim from) \\[\\[(?:episode|meeting)/([^\\]]+)\\]\\]"
+    source_type: any
+    target_type: any
+
+  - id: excerpted_from
+    pattern: "(?:excerpted from|quoting) \\[\\[(?:book|article|episode|meeting)/([^\\]]+)\\]\\]"
+    source_type: any
+    target_type: any
