@@ -10,9 +10,57 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+
+/**
+ * Auto-source `runtime/secrets/.env.local` if SUPABASE_URL not already in env.
+ * This makes `/mcp-doctor` work from any worktree without bash sourcing.
+ *
+ * Tries (in order):
+ *   1. <repoRoot>/runtime/secrets/.env.local
+ *   2. /Users/doanchienthang/ritsu-works/runtime/secrets/.env.local (canonical root,
+ *      because runtime/secrets/ is gitignored and only exists at the canonical repo)
+ */
+function autoSourceEnvLocal(repoRoot: string): { sourcedFrom: string | null } {
+  if (process.env.SUPABASE_URL || process.env.SUPABASE_OPS_URL) {
+    return { sourcedFrom: null }; // already set, don't overwrite
+  }
+  const candidates = [
+    join(repoRoot, "runtime", "secrets", ".env.local"),
+    "/Users/doanchienthang/ritsu-works/runtime/secrets/.env.local",
+  ];
+  for (const p of candidates) {
+    if (!existsSync(p)) continue;
+    try {
+      const content = readFileSync(p, "utf-8");
+      for (const line of content.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const eqIdx = trimmed.indexOf("=");
+        if (eqIdx === -1) continue;
+        const key = trimmed.slice(0, eqIdx).trim();
+        let val = trimmed.slice(eqIdx + 1).trim();
+        // Strip surrounding quotes
+        if (
+          (val.startsWith('"') && val.endsWith('"')) ||
+          (val.startsWith("'") && val.endsWith("'"))
+        ) {
+          val = val.slice(1, -1);
+        }
+        if (key && !(key in process.env)) {
+          process.env[key] = val;
+        }
+      }
+      return { sourcedFrom: p };
+    } catch {
+      // skip on read error
+    }
+  }
+  return { sourcedFrom: null };
+}
 import {
   ALLOWED_PROJECT_REFS,
   extractProjectRef,
+  findRepoRoot,
   loadEnv,
   MissingEnvError,
   ProjectRefMismatchError,
@@ -34,8 +82,13 @@ interface Check {
 async function runChecks(): Promise<Check[]> {
   const checks: Check[] = [];
 
-  // 1. .mcp.json presence at repo root
-  const repoRoot = process.env.RITSU_REPO_ROOT?.trim() || process.cwd();
+  // 1. .mcp.json presence at repo root.
+  //    Use findRepoRoot walk-up to handle `npm --prefix mcp-server run doctor`
+  //    which sets CWD to `mcp-server/` before script runs.
+  const repoRoot =
+    process.env.RITSU_REPO_ROOT?.trim() ||
+    findRepoRoot(process.cwd()) ||
+    process.cwd();
   const mcpJsonPath = join(repoRoot, ".mcp.json");
   if (existsSync(mcpJsonPath)) {
     checks.push({ name: ".mcp.json found", status: "PASS", detail: mcpJsonPath });
@@ -44,6 +97,17 @@ async function runChecks(): Promise<Check[]> {
       name: ".mcp.json found",
       status: "WARN",
       detail: `not at ${mcpJsonPath} — Claude Code will not auto-load supabase-ops`,
+    });
+  }
+
+  // Auto-source env BEFORE loadEnv check — runtime/secrets/.env.local is
+  // gitignored and not picked up by npm subprocess inheritance otherwise.
+  const sourced = autoSourceEnvLocal(repoRoot);
+  if (sourced.sourcedFrom) {
+    checks.push({
+      name: "env auto-sourced",
+      status: "PASS",
+      detail: sourced.sourcedFrom,
     });
   }
 
