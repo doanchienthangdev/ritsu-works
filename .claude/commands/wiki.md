@@ -10,8 +10,8 @@ under `06-ai-ops/skills/wiki-sync/`. Follows the same orchestrator pattern as
 | Invocation | Purpose | HITL | Persistence |
 |---|---|---|---|
 | `/wiki` | Show menu + recent ingests / asks / audits | A | read-only |
-| `/wiki sync <path>` | Ingest one ref into wiki | A (B if cost > per-task-kind cap) | INSERT ops.ingestion_jobs + ops.knowledge_pages + embeddings |
-| `/wiki sync <path> --split=<toc\|count=N\|heading=h2>` | Ingest with chapter splitting | A | per chapter row |
+| `/wiki sync <path>` | Ingest one ref into wiki. `<path>` may be a file OR a directory (v2.0 PR3 — folder = collection, Cách C). | A (B if cost > per-task-kind cap) | INSERT ops.ingestion_jobs + ops.knowledge_pages + embeddings |
+| `/wiki sync <path> --split=<toc\|count=N\|heading=h2>` | Ingest with chapter splitting (PDFs > 100pp; Markdown > 25KB; or explicit flag) | A | per chapter row with `parent_job_id` (migration 00030 Block C) |
 | `/wiki sync <path> --force` | Re-sync ignoring change-detection (overwrite) | B | UPDATE row |
 | `/wiki ask "<question>"` | RAG query against wiki | A | INSERT ops.agent_runs entry (no wiki write) |
 | `/wiki audit` | Integrity scan (orphan / dead / stale) | A | writes `.archives/wiki-audits/<date>.md` |
@@ -24,12 +24,15 @@ under `06-ai-ops/skills/wiki-sync/`. Follows the same orchestrator pattern as
 
 ### `/wiki sync <path>`
 
-1. **Detect adapter** — read `<path>` extension / URL pattern. Map to one of the 5 source-kind adapters in `knowledge/ingestion-sources.yaml`. Bail with helpful error if no adapter matches.
-2. **Chapter-split prompt** — if PDF > 100 pages OR `--split` flag passed, run `chapter-splitter` skill which uses `AskUserQuestion` to confirm split mode (`toc` / `count=N` / `heading=h2`).
-3. **Acquire lock** — `SELECT ops.wiki_sync_lock(<entity_type>, <slug>)` (migration 00022) to prevent concurrent writes.
+1. **Detect adapter** — read `<path>`:
+   - If directory → `folder-adapter` (v2.0 PR3; iterates files alphabetically; refuses subdirectories; children use slug `<col-slug>__<file-slug>`)
+   - Else extension / URL pattern → one of the 5 file adapters in `knowledge/ingestion-sources.yaml`
+   - Bail with helpful error if no adapter matches
+2. **Chapter-split prompt** — if PDF > 100 pages OR `--split` flag passed, run `chapter-splitter` skill which uses `AskUserQuestion` to confirm split mode (`toc` / `count=N` / `heading=h2`). Children get their own `ingestion_jobs` rows with `parent_job_id` (migration 00030 Block C).
+3. **Acquire lock** — `SELECT ops.wiki_sync_lock(<entity_type>, <slug>)` (migration 00027) to prevent concurrent writes.
 4. **Dedup check** — compute `source_hash = sha256(ref_content)`; query `ops.ingestion_jobs WHERE source_hash = ? AND state IN ('completed')`. If exists and `--force` not set, return "ref unchanged; wiki up-to-date".
-5. **Run SOP-INGEST-001** — invokes the 6-step pipeline skill via `06-ai-ops/sops/SOP-INGEST-001-wiki-sync/`.
-6. **Confirm to founder** — print summary (entity type, slug, page count, cost) + link to written wiki path.
+5. **Run SOP-INGEST-001** — invokes the 6-step pipeline skill via `06-ai-ops/sops/SOP-INGEST-001-wiki-sync/`. For markdown + folder paths, prefer the CLI helper `scripts/wiki-sync/ingest.cjs` (v2.0 PR3) for deterministic file-side steps; LLM-touching steps stay in this command's session.
+6. **Confirm to founder** — print summary (entity type, slug, page count, cost) + link to written wiki path. For folder ingest, also prints the per-file summary table.
 
 ### `/wiki ask "<question>"`
 

@@ -60,6 +60,7 @@ Per `governance/HITL.md`:
 |---|---|
 | `wiki-ingest-pdf` | $1.00 / invocation |
 | `wiki-ingest-url` / `markdown` / `youtube` / `meeting` | $0.30 |
+| `wiki-ingest-folder` (v2.0 Sprint 2 PR3) | $2.00 / invocation (sum of children) |
 | `wiki-ask` | $0.10 |
 | `wiki-audit` | $0.50 |
 

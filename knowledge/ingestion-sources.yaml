@@ -52,5 +52,20 @@ source_kinds:
     cost_estimate: "$0.10-$0.20 / hour transcript"
     wiki_target: wiki/meetings/<slug>.md
 
+  # Added per Sprint 2 PR3 of wiki-sync-from-refs (folder = collection, Cách C):
+  - id: folder_collection
+    adapter: folder-adapter
+    fetch_method: local_directory_glob
+    extraction: per_file_dispatch_to_sibling_adapter
+    chunking: per_file_per_adapter
+    cost_estimate: "$0.20-$2.00 / folder (N files x per-file cost; cap wiki-ingest-folder)"
+    wiki_target: "wiki/<file-page-type>/<col-slug>__<file-slug>.md"
+    discipline:
+      slug_uniqueness: global              # v2.0 Hybrid B/A; v2.1 may relax to (page_type, slug)
+      recursive: false                     # v2.0 flat-only; subdirectories refused
+      page_type_for_children: inherited    # NO new 'collection' enum in v2.0
+      hidden_files: skipped
+      unsupported_extensions: skipped_with_summary
+
 active_subscriptions:
   # {{ADD_PROJECT_SUBSCRIPTIONS}}

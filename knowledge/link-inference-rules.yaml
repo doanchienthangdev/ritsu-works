@@ -31,6 +31,19 @@ link_types:
     target_type: any
     description: "References a specific section in another page (page#section anchor)."
 
+  # Added per Sprint 2 PR3 of wiki-sync-from-refs (G2 — concept→concept coverage):
+  - id: related_concept
+    pattern: "(?:see also|cf\\.) \\[\\[concept/([^\\]]+)\\]\\]"
+    source_type: any
+    target_type: concept
+    description: "Informal cross-reference between concepts via 'see also' or 'cf.' prefix. Sprint 2 PR3 / v2.0.0 — fills the gap where `cites` excludes concept/ and `references_section` requires #anchor."
+
+  # NOTE on evaluation order (CTO NIT 2): rules are evaluated top-to-bottom.
+  # `related_concept` MUST fire before any future generalized prefix rule that
+  # also matches `(see also)` or `(cf.)`, or it gets silently swallowed.
+  # Today no such generalized rule exists; if/when one is added, place it BELOW
+  # this entry OR write its prefix to explicitly exclude `(see also|cf\.)`.
+
   - id: transcribes
     pattern: "(?:transcript of|verbatim from) \\[\\[(?:episode|meeting)/([^\\]]+)\\]\\]"
     source_type: any
