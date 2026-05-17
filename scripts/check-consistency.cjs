@@ -228,6 +228,7 @@ async function main() {
     for (const v of [
       ['validate-governance-roles.cjs', 'governance/ROLES ↔ skills'],
       ['validate-hitl-hooks.cjs', 'HITL.md Tier-D ↔ hooks'],
+      ['validate-wiki-integrity.cjs', 'wiki-integrity (file/frontmatter)'],
     ]) {
       const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]), 'warn');
       if (!r.passed) warnFailures += 1;
