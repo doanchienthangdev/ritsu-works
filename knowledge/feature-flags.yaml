@@ -187,6 +187,34 @@ features:
     fallback: manual_translation
     description: "Auto-translate between locales (Bài #17)"
     cost_estimate: "$0.05 per page per target locale"
+
+  # === Wiki-sync flags (added Sprint 2 PR3 of wiki-sync-from-refs v2.0.0) ===
+  wiki_sync_llm_fallback:
+    enabled: false                        # Sprint 4 may flip after measured baseline
+    requires_api: anthropic
+    fallback: regex_only_link_extraction
+    description: "LLM-fallback for link-extractor when regex misses (wiki-sync v2.0)"
+    cost_estimate: "$0.02-$0.05 per page when triggered"
+
+  wiki_sync_cli_helper:
+    enabled: true                         # v2.0 Sprint 2 PR3 — deterministic CLI for subagent/cron use
+    requires_api: []
+    fallback: claude_walked_skill
+    description: "scripts/wiki-sync/ingest.cjs CLI for file-side steps of /wiki sync"
+    cost_estimate: "$0 — pure deterministic file IO + frontmatter parse"
+
+  wiki_sync_embeddings_backfill:
+    enabled: true                         # cron always discovers; v0.1 dry-runs only
+    requires_api: openai                  # for v0.2 actual embed calls
+    fallback: manual_via_claude_code
+    description: "Hourly pg_cron backfill of soft-deferred wiki page embeddings (G3 disposition)"
+    cost_estimate: "$0.00004 per page (~$0.04 to backfill 1000 deferred)"
+
+  wiki_sync_recursive_folders:
+    enabled: false                        # v2.1 candidate per Tier C decision
+    requires_api: []
+    fallback: refuse_with_workaround_message
+    description: "Recursive folder ingestion (v2.0 = flat-only)"
     cost_warning: "10 locales × $0.05 = $0.50 per page."
   
   decision_staleness_check:

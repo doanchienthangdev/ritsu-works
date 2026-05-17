@@ -27,10 +27,11 @@ description: |
 
 ### Step 1 — Pick adapter
 
-Read `knowledge/ingestion-sources.yaml`. Match `<path>` extension / URL pattern to one of the 5 adapters:
+Read `knowledge/ingestion-sources.yaml`. Match `<path>` to one of the 6 adapters:
 
 | Pattern | Adapter | source_kind |
 |---|---|---|
+| `<path>` is a directory | `wiki-sync/adapters/folder-adapter` (v2.0 PR3) | `folder_collection` |
 | `*.pdf` | `wiki-sync/adapters/pdf-adapter` | `book` |
 | `http(s)://...` | `wiki-sync/adapters/url-adapter` | `article` |
 | `*.md` / `*.markdown` | `wiki-sync/adapters/markdown-adapter` | `markdown_passthrough` |
@@ -38,6 +39,10 @@ Read `knowledge/ingestion-sources.yaml`. Match `<path>` extension / URL pattern 
 | `*.vtt | *.srt | *.txt` (in `raw/meetings/`) | `wiki-sync/adapters/meeting-adapter` | `meeting_transcript` |
 
 If no match: bail with helpful error listing supported patterns.
+
+**Folder dispatch (v2.0 PR3):** the folder-adapter iterates files alphabetically and dispatches each to its matching sibling adapter (markdown / pdf / meeting). Children use slug `<col-slug>__<file-slug>` and inherit `page_type` from each file's frontmatter (NO new `'collection'` enum — that's a v2.1 candidate). Subdirectories refused with workaround message. See `06-ai-ops/skills/wiki-sync/adapters/folder-adapter/SKILL.md` for the 8-step folder pipeline.
+
+**CLI helper (v2.0 PR3):** `scripts/wiki-sync/ingest.cjs` covers the deterministic file-side parts of this pipeline for markdown + folder adapters. Subagents and cron handlers SHOULD invoke the CLI rather than walking SKILL prose. PDF/URL/YouTube/meeting still walk this SKILL until CLI v0.2.
 
 ### Step 2 — Adapter fetch + extract
 

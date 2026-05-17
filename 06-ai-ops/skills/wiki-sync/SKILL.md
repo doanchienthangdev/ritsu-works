@@ -31,13 +31,14 @@ This skill is dispatcher-only. It reads the verb and delegates:
 
 | Verb | Sub-skill | Purpose |
 |---|---|---|
-| `sync` | `wiki-sync/ingest` | full 6-step pipeline (see SOP-INGEST-001) |
+| `sync` | `wiki-sync/ingest` | full 6-step pipeline (see SOP-INGEST-001); dispatches to `folder-adapter` if path is a directory (v2.0 PR3) |
 | `resync` | `wiki-sync/ingest` with `force=true` | re-fetch + diff |
 | `ask` | `wiki-sync/ask` | RAG with citation discipline |
 | `audit` | `wiki-sync/audit` | integrity check |
 | `audit --fix` | `wiki-sync/audit` with `fix=true` | + open one PR per fix class |
 | `list` | inline DB query (no sub-skill) | list wiki pages by type |
 | `status` | inline DB query | current queue + recent audits |
+| (cron/follow-up) | `wiki-sync/embeddings-backfill` | hourly backfill of soft-deferred embeddings (G3); v2.0 PR3 ships script + SKILL; pg_cron wiring is PR4 |
 
 Each sub-skill writes its own `ops.agent_runs` row; this umbrella does not log a run of its own.
 
@@ -72,4 +73,5 @@ Inherits from sub-skill. Sync = A (B if cost > cap); Ask = A; Audit = A (B with 
 ## Version notes
 
 - **v1.0.0** (Sprint 1, 2026-05-16): umbrella + ingest + 3 baseline adapters (pdf, url, markdown); chapter-splitter STUB; ask/audit stubs.
-- **v2.0.0** (Sprint 2 PR2, 2026-05-17): chapter-splitter REAL (`toc | count=N | heading=h2` modes); migration 00030 adds `parent_job_id` for chapter children. Per Tier C decision `ops.decisions[fff2bf7c-efeb-4169-b430-8139ad4d4de3]`. folder-adapter + CLI helper + remaining bug fixes still in Sprint 2 PR3+.
+- **v2.0.0** (Sprint 2 PR2, 2026-05-17): chapter-splitter REAL (`toc | count=N | heading=h2` modes); migration 00030 adds `parent_job_id` for chapter children. Per Tier C decision `ops.decisions[fff2bf7c-efeb-4169-b430-8139ad4d4de3]`.
+- **v2.0.0** (Sprint 2 PR3, 2026-05-17): folder-adapter (Cách C; `folder_collection` source_kind; `<col-slug>__<file-slug>` global UNIQUE; flat-only); embeddings-backfill SKILL + dry-run CLI script (G3 soft-defer); CLI helper `scripts/wiki-sync/ingest.cjs` v0.1 (markdown + folder; G6 hybrid runner); link-inference-rules.yaml `related_concept` rule (G2); feature-flags `wiki_sync_*` section.

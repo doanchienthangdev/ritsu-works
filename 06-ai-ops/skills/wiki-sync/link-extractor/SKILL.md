@@ -2,11 +2,13 @@
 name: wiki-sync/link-extractor
 description: |
   Sprint 1 baseline: regex-only extraction per Bài #14 link-inference-rules.
+  Sprint 2 PR3 (v2.0) added `related_concept` rule for informal concept→concept
+  cross-references with "(see also)" / "(cf.)" prefixes (G2 disposition).
   Sprint 4 will add LLM-fallback (escalate to LLM when regex finds < 3 links
-  in a > 1000-token chunk) gated by feature flag `wiki-sync.llm_fallback_enabled`.
+  in a > 1000-token chunk) gated by feature flag `wiki_sync_llm_fallback`.
 ---
 
-# wiki-sync / link-extractor (Sprint 1 baseline)
+# wiki-sync / link-extractor (Sprint 1 baseline + Sprint 2 PR3 G2 patch)
 
 ## When to use
 
