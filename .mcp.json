@@ -2,15 +2,15 @@
   "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/mcp-config.schema.json",
   "mcpServers": {
     "supabase-ops": {
-      "command": "npx",
-      "args": ["-y", "tsx", "mcp-server/src/server.ts"],
+      "command": "/bin/sh",
+      "args": [
+        "-c",
+        "set -a; [ -f /Users/doanchienthang/ritsu-works/runtime/secrets/.env.local ] && . /Users/doanchienthang/ritsu-works/runtime/secrets/.env.local; set +a; exec npx -y tsx /Users/doanchienthang/ritsu-works/mcp-server/src/server.ts"
+      ],
       "env": {
-        "SUPABASE_OPS_URL": "${SUPABASE_URL}",
-        "SUPABASE_OPS_SERVICE_KEY": "${SUPABASE_SERVICE_KEY}",
-        "SUPABASE_OPS_ANON_KEY": "${SUPABASE_ANON_KEY:-}",
         "MCP_CALLER_ROLE": "${MCP_CALLER_ROLE:-gps}",
         "MCP_CALLER_SESSION_ID": "${MCP_CALLER_SESSION_ID:-}",
-        "RITSU_REPO_ROOT": "${RITSU_REPO_ROOT:-}"
+        "RITSU_REPO_ROOT": "${PWD:-/Users/doanchienthang/ritsu-works}"
       }
     }
   }
