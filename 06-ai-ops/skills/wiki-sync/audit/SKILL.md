@@ -1,48 +1,178 @@
 ---
 name: wiki-sync/audit
 description: |
-  STUB (Sprint 1) — placeholder for the wiki-sync audit verb. Will implement
-  orphan / dead-link / stale-claim integrity check over the wiki + DB in
-  Sprint 4. Writes report to .archives/wiki-audits/<date>.md.
+  Wiki integrity scan (Sprint 4 PR6, v2.0.0). Five checks: hash drift (file
+  vs DB), orphan links (target_page_id NULL), dead URLs (HTTP HEAD on
+  source_ref for url_article pages), file-missing-on-disk (DB row points
+  to wiki/<path> that doesn't exist), stale-claim sample (LLM-evaluate
+  random 10% of pages). Writes report to .archives/wiki-audits/<date>.md.
+  `--fix` mode opens one PR per defect class. Companion L2 CI validator at
+  scripts/cross-tier/validate-wiki-integrity.cjs catches the deterministic
+  subset (orphans + file-missing + hash drift) on every commit.
 ---
 
-# wiki-sync / audit (STUB — Sprint 4)
+# wiki-sync / audit (Sprint 4 PR6 baseline — v2.0.0)
 
-This file is a placeholder so `wiki-sync/SKILL.md`'s `audit` dispatch entry has a
-target. Sprint 1 ships ingest verb only.
+## When to use
 
-## When implemented (Sprint 4)
+- Founder runs `/wiki audit` (Tier A) → comprehensive report
+- Founder runs `/wiki audit --fix` (Tier B per PR) → audit + opens one PR per defect class
+- CI runs `scripts/cross-tier/validate-wiki-integrity.cjs` (warn-tier) → deterministic-subset check on every PR
 
-Per spec.md § Sprint 4:
-- Hash check (re-compute source_hash from source_ref; flag drift)
-- Link walk (find orphan `ops.knowledge_links` rows with NULL target_page_id)
-- Dead URL check (HTTP HEAD against `source_ref` for `source_kind=article`)
-- Stale-claim sample (LLM-evaluate 10 % of pages — "is this still consistent with source ref?")
-- Writes report `.archives/wiki-audits/<date>.md`
-- `--fix` mode opens one PR per defect class
+## Inputs
 
-## Sprint 1 behaviour
+- `--fix` — optional; for each defect class with ≥ 1 instance, open a remediation PR
+- `--sample-pct` — optional; LLM stale-claim sample size (default 10%; cap at 50%)
+- `--skip-llm` — optional; skip the stale-claim check (faster, free)
+- `--filter=<page_type>` — optional; scope all checks to one page_type
 
-If founder invokes `/wiki audit` in Sprint 1:
+## Process (5 checks)
 
+### Check 1 — Hash drift (deterministic)
+
+For every `ops.knowledge_pages` row WHERE `file_hash IS NOT NULL`:
+- Read the wiki file at `wiki/<file_path>`
+- Compute current `sha256(file_content)`
+- Compare to DB's `file_hash`
+- Flag drift if hashes differ
+
+**Common causes:**
+- Founder hand-edited the page (`<!-- generated-by: wiki-sync vN -->` marker still present → unintentional edit on a generated page)
+- Founder hand-edited a generated page AND removed the marker → DELIBERATE override; not a defect
+- File regenerated via `/wiki sync --force` without DB updated → bug; reconcile
+
+**Disposition:**
+- If marker present + drift → flag as "untracked_edit_to_generated_page"
+- If marker absent + drift → not a defect (founder owns this page now)
+- If file missing entirely → see Check 4
+
+### Check 2 — Orphan links (deterministic)
+
+```sql
+SELECT id, source_page_id, link_type, source_text, extracted_from_section
+  FROM ops.knowledge_links
+ WHERE is_active = true
+   AND target_page_id IS NULL;
 ```
-Audit not yet implemented (Sprint 4 ETA).
-Sprint 1 has wiki/ structure ready and DB tables populated, but no defects to
-audit yet. Run /wiki sync first to populate wiki.
-```
 
-## Acceptance criterion (Sprint 4)
+Each result = a `[[type/slug]]` reference whose target hasn't been created yet. Not necessarily a defect (founder may intend to create it later) — but tracked for retroactive cross-reference once the target lands.
 
-Per spec.md success criterion 3:
-- Catches ≥ 95 % of seeded defects (10 orphan + 10 dead + 10 stale)
-- False-positive rate ≤ 5 % on clean control corpus
+**Disposition:**
+- Group by `target_slug_extracted_from_source_text`
+- Report: "N links point to <target>, which doesn't exist yet"
+- `--fix` mode: open a PR with stub `wiki/<type>/<target>.md` files containing a TODO comment
+
+### Check 3 — Dead URLs (network)
+
+For every page WHERE `source_kind = 'article'` AND `source_ref LIKE 'http%'`:
+- HTTP HEAD against `source_ref`
+- 30s timeout per URL; max 10 concurrent
+- Flag if response code is 4xx OR 5xx OR request fails (DNS, timeout)
+- Skip if response is 2xx OR 3xx
+
+**Cost:** free (network only); ~1 minute for 100 URLs at 10 concurrent.
+
+**Disposition:**
+- `--fix` mode: open a PR adding `dead_url: true` to the page's frontmatter + a `<!-- dead-url-detected: <date>; was: <code> -->` comment
+- Founder can decide: re-ingest from a wayback snapshot, replace with archive.org URL, or mark page deprecated
+
+### Check 4 — File missing on disk (deterministic)
+
+For every `ops.knowledge_pages` row:
+- Check that `wiki/<file_path>` exists on disk
+- Flag if missing
+
+**Common causes:**
+- Founder deleted the file directly without using `/wiki` command
+- Filesystem corruption / git merge conflict left a stub
+- Migration moved the file but DB wasn't updated
+
+**Disposition:**
+- `--fix` mode: founder confirms either "regenerate from source_ref" (re-run /wiki sync) or "delete the orphan DB row"
+- Report includes both options + the source_ref so founder can choose
+
+### Check 5 — Stale-claim sample (LLM; off by default)
+
+For a random N% of pages (default 10%; capped at 50%):
+- Fetch the page's body + the original source_ref content (re-fetch if URL; re-read if file)
+- Send both to Claude Haiku with prompt:
+  ```
+  You are auditing whether a wiki page's claims still match its source ref.
+
+  Wiki page (current):
+  <body>
+
+  Source ref (re-fetched):
+  <source_content>
+
+  Output JSON:
+  {
+    "claims_consistent": bool,
+    "stale_claims": [{ claim: string, why_stale: string, source_says: string }],
+    "confidence": 0..1
+  }
+
+  If unsure, set confidence < 0.6 and return empty stale_claims.
+  ```
+- Flag pages with `claims_consistent: false AND confidence > 0.6`
+
+**Cost:** ~$0.005/page (Haiku is cheap). For 100 pages × 10% sample = 10 evaluations = ~$0.05.
+
+**Disposition:**
+- `--fix` mode: open a PR with frontmatter `stale_claims_detected: <date>` + body comment listing each stale claim
+- Founder reviews + manually corrects OR re-runs `/wiki sync --force` to regenerate from current source
+
+## Output: `.archives/wiki-audits/<YYYY-MM-DD>.md`
+
+Per-defect details in Markdown table form. Summary header shows total findings per check + total cost. Linked to `ops.agent_runs` row via `triggered_by_id`.
+
+## HITL
+
+- Tier A for read-only audit (no --fix)
+- Tier B per PR for `--fix` (one PR per defect class)
+- Tier B if `--sample-pct > 25` (cost concern; cap at $0.50)
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| `wiki/` folder missing | Bail "no wiki to audit" |
+| `OPENAI_API_KEY/ANTHROPIC_API_KEY` missing AND --skip-llm not set | Skip Check 5 with warning; complete other 4 |
+| Network errors on Check 3 | Mark URLs as `unreachable`; retry once after 5 min |
+| pgvector or embeddings table missing | Skip Check 5 (it needs to call LLM, not embeddings); proceed |
 
 ## Cost
 
-Sprint 4+: ~$0.10 / full audit (hash + link walk free; stale-sample LLM cost dominates).
+| Mode | Per audit on 100-page wiki |
+|---|---|
+| Default (--skip-llm) | $0 |
+| With Check 5 default sample (10%) | ~$0.05 |
+| With Check 5 full (--sample-pct=50) | ~$0.25 |
+
+Per-task-kind cap from SOP-INGEST-001 README: `wiki-audit` = $0.50 / invocation.
+
+## Acceptance criterion (Sprint 4 promotion target)
+
+Per spec v2 §0 success criterion (inherited from v1.0 problem.md):
+- Catches ≥ 95% of seeded defects on `tests/wiki-sync/fixtures/audit-corpus/` (10 orphan + 10 dead + 10 stale plants) — fixture creation deferred to test-fixtures PR
+- False-positive rate ≤ 5% on clean control corpus
+- Total runtime ≤ 5 minutes for a 100-page wiki
+
+## CI integration
+
+Companion L2 warn-tier validator at `scripts/cross-tier/validate-wiki-integrity.cjs` runs on every PR (when `pnpm check --full`). It implements the DETERMINISTIC subset (Checks 1, 2, 4) without needing network or LLM access:
+- Hash drift detection
+- Orphan link count (warns if > 0)
+- File-missing-on-disk detection
+- Frontmatter presence on auto-generated pages
+
+Network-bound Check 3 and LLM-bound Check 5 are interactive-only (would slow PRs unacceptably + need network/key access in CI). The L2 validator is sufficient to catch broken filesystem ↔ DB invariants before they compound.
 
 ## Related
 
+- L2 validator: `scripts/cross-tier/validate-wiki-integrity.cjs` (this PR)
+- Audit reports: `.archives/wiki-audits/<YYYY-MM-DD>.md` (gitignored; `.gitkeep` init in PR6+)
+- Feature flag (Check 5): `wiki_sync_llm_fallback` in `knowledge/feature-flags.yaml` (off in v2.0)
 - Parent: `06-ai-ops/skills/wiki-sync/SKILL.md`
-- Companion validator (Sprint 4): `scripts/cross-tier/validate-wiki-integrity.cjs`
-- Audit reports dir: `.archives/wiki-audits/` (gitignored; init Sprint 4)
+- Test fixtures (deferred): `tests/wiki-sync/fixtures/audit-corpus/`
+- Command: `.claude/commands/wiki.md` `/wiki audit` subcommand
