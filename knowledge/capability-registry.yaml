@@ -86,34 +86,47 @@ capabilities:
   - id: wiki-sync-from-refs
     name: "Wiki Sync from External Refs"
     description: |
-      Founder drops PDF / URL / transcript into raw/<topic>/; command extracts
-      entities + concepts, projects them into wiki/<topic>/<slug>.md with
-      cross-references, supports re-sync when ref content changes, answers
-      questions by citing wiki pages (not training data), and self-audits for
-      orphan/dead/stale links. Big files prompt chapter/part splitting. Single-
-      source-of-truth: ref = source, wiki = projection.
-    state: implementing
-    state_since: 2026-05-16
+      Founder drops PDF / URL / Markdown / YouTube / meeting transcript / FOLDER
+      into raw/<topic>/; command extracts entities + concepts, projects them
+      into wiki/<topic>/<slug>.md with cross-references, supports re-sync when
+      ref content changes, answers questions by citing wiki pages (not training
+      data), and self-audits for orphan/dead/stale links. Big files prompt
+      chapter/part splitting. Folders become collections with slug discipline
+      <col>__<file> (v2.0 reuses 'book' page_type; v2.1 may add 'collection').
+      Single-source-of-truth: ref = source, wiki = projection.
+    state: operating       # Promoted 2026-05-17 (Phase 8 of revise; was: implementing)
+    version: "2.0.0"       # Bumped from 1.0.0 by revise (Hybrid B/A); v2.1 conditions in spec §0
+    state_since: 2026-05-17
     proposed_at: 2026-05-16
-    pillar_owner: 06-ai-ops      # confirmed Phase 3 — knowledge-graph + ingestion both live here
+    deployed_at: 2026-05-17
+    operating_since: 2026-05-17
+    pillar_owner: 06-ai-ops
     bài_toán_touched: [1, 2, 4, 5, 7, 9, 11, 12, 13, 14, 15, 17, 18, 19, 20]
     spec_path: wiki/capabilities/wiki-sync-from-refs/spec.md
-    sprint_plan: ".archives/cla/wiki-sync-from-refs/sprint-plan.md (local-only working until Phase 8 promotion)"
+    retrospective_path: wiki/capabilities/wiki-sync-from-refs/retrospective.md
     cost_bucket: ai-ops-knowledge
-    estimated_cost_setup_usd: 8.00
-    estimated_cost_recurring_usd: 35.00
-    estimated_founder_hours: 6
-    estimated_completion: 2026-05-30
-    selected_option: B
-    migration_files: [00027_wiki_sync_extensions.sql]
+    estimated_cost_setup_usd: 8.00      # v1.0 estimate; v2.0 revise actual was ~$6-8 + ~$3.5 revise
+    estimated_cost_recurring_usd: 35.00 # unchanged from v1.0 spec
+    estimated_founder_hours: 6           # v1.0 estimate; v2.0 revise actual was ~6-8h founder time
+    actual_cost_setup_usd: 14.00         # v1.0 (~$8) + v2.0 revise (~$6) cumulative
+    actual_founder_hours: 14             # v1.0 (~6h) + v2.0 revise (~8h) cumulative
+    selected_option: "B (v1.0) → Hybrid B/A (v2.0 revise)"
+    migration_files:
+      - 00027_wiki_sync_extensions.sql                 # v1.0
+      - 00028_capability_lock_allow_implementing.sql   # v2.0 Phase 0 unblock (bonus)
+      - 00029_capability_runs_root_only_unique.sql     # v2.0 Phase 0 unblock (bonus)
+      - 00030_wiki_sync_v2_schema_deltas.sql           # v2.0 Sprint 2 PR1
     notes: |
-      /cla propose 2026-05-16. Phase 0-5 complete in one session. CTO consulted
-      twice (Phase 2: request-changes / Phase 5: NITS — all patched). Option B
-      ("Aligned with Bài #18") approved at HITL Tier C; sprint plan finalized
-      at HITL Tier B. Phase 7 (implementation) per-PR gated.
-      DB INSERT/UPDATE for ops.capability_runs + ops.decisions deferred (no
-      SUPABASE_ACCESS_TOKEN this session) — full SQL in
-      .archives/cla/wiki-sync-from-refs/PENDING_STATE.md.
+      /cla propose 2026-05-16 → operating 2026-05-17 in 2 calendar days.
+      v1.0 (Sprint 1 only) shipped PR #35 (2026-05-16). Day-1 acceptance test
+      surfaced 6 gaps + folder scope request → /cla revise → v2.0 Hybrid B/A
+      via 8 PRs (#37-44) in one session 2026-05-17. Lineage: parent
+      ops.capability_runs 911973a2 (v1.0, superseded) ← child 638811f8 (v2.0,
+      operating). v2.1 re-trigger conditions in wiki/capabilities/wiki-sync-
+      from-refs/spec.md §0.
+      Phase 8 promotion: spec.md + retrospective.md promoted to
+      wiki/capabilities/; PENDING_STATE.md from v1.0 propose is historic
+      (deferred writes were applied 2026-05-16).
 
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition
