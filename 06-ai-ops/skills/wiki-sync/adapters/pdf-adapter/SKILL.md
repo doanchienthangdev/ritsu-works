@@ -114,8 +114,16 @@ Total per book typically: $0.40-$0.70 (LLM-fallback drives variance).
 ## Sprint scope
 
 Sprint 1: text-layer only; no OCR; pymupdf via Python shell-out.
-Sprint 2: OCR fallback via tesseract; chapter-split integration.
-Sprint 4: LLM-fallback link extraction wired via feature flag.
+Sprint 2 PR2 (v2.0.0): chapter-split integration LIVE — when `pages_or_size_metric > 100` OR founder passes `--split`, ingest dispatches to `wiki-sync/chapter-splitter` per its v2.0 SKILL spec; this adapter returns its outputs unchanged and the splitter consumes them.
+Sprint 4: OCR fallback via tesseract; LLM-fallback link extraction wired via feature flag.
+
+## Chapter-split contract (v2.0)
+
+When `pages_or_size_metric > 100`:
+- This adapter still returns the standard outputs (raw_text with PAGE-BREAK separators, `pages_or_size_metric`, `attribution`, etc.).
+- `wiki-sync/ingest` Step 5 sees the threshold trip + dispatches `wiki-sync/chapter-splitter`.
+- Splitter reads back `attribution.title` for the book_slug derivation and `raw_text` for chapter boundary detection (`toc` mode reads PDF bookmarks via `doc.get_toc()` — the splitter calls pymupdf directly, not through this adapter).
+- Each chapter child gets its own `ingestion_jobs` row with `parent_job_id` pointing to the parent (this adapter's invocation).
 
 ## Related
 

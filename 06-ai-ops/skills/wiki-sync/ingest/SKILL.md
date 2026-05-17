@@ -65,9 +65,13 @@ Lock is transaction-scoped. Released at COMMIT/rollback. Cross-process safe.
 
 ### Step 5 — Chapter split (if applicable)
 
-If `pages > 100` OR `markdown_size > 25 KB` OR `split_mode` was passed → dispatch to `wiki-sync/chapter-splitter` skill. Each chapter becomes its own `ingestion_jobs` row with `parent_job_id` pointing to this row. Steps 6-9 run independently per chapter.
+If `pages > 100` OR `markdown_size > 25 KB` OR `split_mode` was passed → dispatch to `wiki-sync/chapter-splitter` skill. Each chapter becomes its own `ingestion_jobs` row with `parent_job_id` pointing to this row (column added in v2.0 migration 00030 Block C). Steps 6-9 run independently per chapter.
 
-Sprint 1: chapter-splitter is a STUB (returns "split not yet implemented"); split path defers to Sprint 2. Single-file path works.
+Sprint 2 (v2.0): chapter-splitter is REAL — implements modes `toc` / `count=N` / `heading=h2` with TOC→heading→count fallback chain. See `06-ai-ops/skills/wiki-sync/chapter-splitter/SKILL.md` for the full 8-step splitter spec.
+
+When the splitter returns `{split: true}`, this ingest skill SKIPS its own Steps 6-9 for the parent (children handle it independently). The parent gets a book-level `index.md` page that lists chapters.
+
+When splitter returns `{split: false}` (founder picked "no split" in the Tier B prompt, OR the file was under threshold and `--split` was not passed), this ingest skill continues Steps 6-9 as a single-page ingest.
 
 ### Step 6 — Extract + entity-link
 

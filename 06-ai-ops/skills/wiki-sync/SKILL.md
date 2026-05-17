@@ -68,3 +68,8 @@ Inherits from sub-skill. Sync = A (B if cost > cap); Ask = A; Audit = A (B with 
 - SOP: `06-ai-ops/sops/SOP-INGEST-001-wiki-sync/`
 - Command: `.claude/commands/wiki.md`
 - Spec: `wiki/capabilities/wiki-sync-from-refs/spec.md`
+
+## Version notes
+
+- **v1.0.0** (Sprint 1, 2026-05-16): umbrella + ingest + 3 baseline adapters (pdf, url, markdown); chapter-splitter STUB; ask/audit stubs.
+- **v2.0.0** (Sprint 2 PR2, 2026-05-17): chapter-splitter REAL (`toc | count=N | heading=h2` modes); migration 00030 adds `parent_job_id` for chapter children. Per Tier C decision `ops.decisions[fff2bf7c-efeb-4169-b430-8139ad4d4de3]`. folder-adapter + CLI helper + remaining bug fixes still in Sprint 2 PR3+.

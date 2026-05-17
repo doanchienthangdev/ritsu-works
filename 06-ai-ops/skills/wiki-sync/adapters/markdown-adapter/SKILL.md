@@ -27,7 +27,8 @@ description: |
 - File exists? Else bail.
 - Extension `.md` or `.markdown`? Else delegate.
 - Size > 0? Else bail.
-- Size < 5 MB? Else bail (use chapter-splitter for large Markdown).
+- Size < 5 MB? Else bail (manual split required).
+- Report `pages_or_size_metric = file_size_bytes`. v2.0 (Sprint 2 PR2): `wiki-sync/ingest` Step 5 dispatches to `wiki-sync/chapter-splitter` when `pages_or_size_metric > 25 KB` (or founder passes `--split=heading=h2`); splitter reads back this adapter's `raw_text` and runs the heading=h2 boundary detection on it.
 
 ### Step 2 — Compute source_hash
 
