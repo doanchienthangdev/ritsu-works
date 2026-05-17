@@ -8,7 +8,75 @@ description: |
   in a > 1000-token chunk) gated by feature flag `wiki_sync_llm_fallback`.
 ---
 
-# wiki-sync / link-extractor (Sprint 1 baseline + Sprint 2 PR3 G2 patch)
+# wiki-sync / link-extractor (Sprint 1 baseline + Sprint 2 PR3 G2 + Sprint 3 PR5 LLM-fallback spec)
+
+## v2.0 LLM-fallback path (added Sprint 3 PR5)
+
+Behind feature flag `wiki_sync_llm_fallback` in `knowledge/feature-flags.yaml`
+(default `false` for v2.0; Sprint 4 may flip to true after measured baseline).
+
+### When LLM-fallback fires (v0.2+)
+
+After the regex pass completes, count the regex-extracted links:
+- If `links_extracted >= 3` per 1000 tokens of chunk_text → STOP. Regex coverage is sufficient.
+- If `links_extracted < 3` per 1000 tokens AND chunk_text contains entity-like patterns (proper nouns, [[brackets]] without slash, "according to ...", "per <name>") → LLM-fallback fires.
+
+### LLM-fallback API call
+
+```
+POST https://api.anthropic.com/v1/messages
+  model: claude-haiku-4-5 (cheap, structured-output-good)
+  system: |
+    Extract knowledge-graph links from this chunk. Output JSON array of:
+    [{ link_type, target_slug, target_type, source_text, confidence }]
+    
+    Allowed link_types: (list from link-inference-rules.yaml)
+    Allowed target_types: (page_type enum values)
+    
+    Rules:
+    - Only extract links to entities likely to have wiki pages
+    - confidence in [0.0, 1.0]; reject < 0.6
+    - Do not invent slugs; use kebab-case derivations from the source_text
+    - Return empty array if no clear links
+  user: <chunk_text>
+```
+
+Cost: ~$0.005-$0.02 per chunk fall-through (haiku is cheap).
+
+### Validation + dedup
+
+For each LLM-suggested link:
+- Check if target slug exists in `ops.knowledge_pages` (resolved → `target_page_id`)
+- If not, leave as orphan link (target_page_id NULL) — same as regex behavior
+- Skip duplicates of already-extracted regex links (same source_text)
+- Apply confidence threshold (drop < 0.6)
+
+### Audit + cost attribution
+
+Every LLM-fallback call writes to:
+- `ops.cost_attributions` with `model='claude-haiku-4-5'`, `task_kind='wiki-link-llm-fallback'`
+- The cost is attributed to the parent ingestion_jobs row (not its own row)
+
+Per-task-kind cap (added to SOP-INGEST-001 README in this PR): `wiki-link-llm-fallback` = $0.10/page (typically 5-20 chunks × $0.01 each).
+
+## v0.1 STUB behavior (THIS commit)
+
+When `wiki_sync_llm_fallback` is `false`:
+- Skip LLM-fallback entirely.
+- Return regex-only results.
+- Log to `ops.agent_runs.output_payload`: `llm_fallback_skipped: { reason: 'feature_flag_off', would_have_triggered: <bool> }` so Sprint 4 can analyse hit rate.
+
+## Sprint 3 PR5 deliverables (this commit)
+
+- Spec documented for v0.2 LLM-fallback path (above)
+- No code change — pure SKILL prose update + feature-flag check
+- `wiki_sync_llm_fallback` flag already declared in PR3's `knowledge/feature-flags.yaml`
+
+## Sprint 4 PR6 will
+
+- Wire actual Anthropic API call in `wiki-sync/ingest` Step 6 (per spec above)
+- Add `claude-haiku-4-5` cost row entry to `pre-llm-call-budget` pricing table
+- Add measurement skill `wiki-link-fallback-hit-rate` for telemetry
 
 ## When to use
 

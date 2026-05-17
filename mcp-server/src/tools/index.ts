@@ -10,6 +10,21 @@ import type { CallerContext, ToolResult } from "../types.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { handleQuery, queryInputSchema, queryDescription } from "./query.ts";
 import { handleInsert, insertInputSchema, insertDescription } from "./insert.ts";
+import {
+  handleWikiListPages,
+  wikiListPagesInputSchema,
+  wikiListPagesDescription,
+} from "./wiki-list-pages.ts";
+import {
+  handleWikiGetPage,
+  wikiGetPageInputSchema,
+  wikiGetPageDescription,
+} from "./wiki-get-page.ts";
+import {
+  handleWikiAsk,
+  wikiAskInputSchema,
+  wikiAskDescription,
+} from "./wiki-ask.ts";
 
 export interface ToolDef {
   /** MCP tool name as the client sees it (without the server prefix) */
@@ -38,6 +53,25 @@ export const TOOLS: ToolDef[] = [
     description: insertDescription,
     inputSchema: insertInputSchema,
     handler: handleInsert,
+  },
+  // === Wiki tools (Sprint 3 PR5 of wiki-sync-from-refs v2.0.0) ===
+  {
+    name: "wiki_list_pages",
+    description: wikiListPagesDescription,
+    inputSchema: wikiListPagesInputSchema,
+    handler: handleWikiListPages,
+  },
+  {
+    name: "wiki_get_page",
+    description: wikiGetPageDescription,
+    inputSchema: wikiGetPageInputSchema,
+    handler: handleWikiGetPage,
+  },
+  {
+    name: "wiki_ask",
+    description: wikiAskDescription,
+    inputSchema: wikiAskInputSchema,
+    handler: handleWikiAsk,
   },
 ];
 
