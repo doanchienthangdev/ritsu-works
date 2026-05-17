@@ -8,9 +8,9 @@
 > catalog is the human-readable view that links into each capability's
 > promoted spec + retrospective.
 
-**Last updated:** 2026-05-15
-**Total capabilities (operating):** 2
-**Total capabilities (any state):** 2
+**Last updated:** 2026-05-17
+**Total capabilities (operating):** 3
+**Total capabilities (any state):** 3
 
 ---
 
@@ -20,6 +20,7 @@
 |---|---|---|---|---|---|---|
 | `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 1.0.0 | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
+| `wiki-sync-from-refs` | Wiki Sync from External Refs (Cách C folder + chapter splitter + CLI helper) | 2.0.0 | 06-ai-ops | 2026-05-17 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective.md](wiki-sync-from-refs/retrospective.md) |
 
 ## Implementing / Architecting / Analyzing
 
