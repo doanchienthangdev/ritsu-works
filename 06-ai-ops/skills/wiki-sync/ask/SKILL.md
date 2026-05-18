@@ -1,14 +1,15 @@
 ---
 name: wiki-sync/ask
 description: |
-  Citation-disciplined RAG over wiki/ + ops.knowledge_embeddings (Sprint 3 PR5,
-  v2.0.0). Embeds the question via OpenAI text-embedding-3-small, hybrid-
-  retrieves top-K wiki chunks (vector + keyword), synthesises an answer that
-  cites real wiki paths via Markdown links `[wiki/<type>/<slug>.md#chunk-NN]`.
-  Returns `{answer:null, reason:'no_coverage'}` if no wiki hit; NEVER falls back
-  to training data. v0.1 = STUB that returns the contract structure + reports
-  wiki state; v0.2 wires real OpenAI calls (gated on wiki_sync_llm_fallback
-  feature flag + OPENAI_API_KEY).
+  Citation-disciplined RAG over wiki/ + ops.knowledge_embeddings.
+  v3.0 update (Sprint 4): ENTITY-FIRST retrieval. Prefer derived entity pages
+  (page_type IN concept/observation/decision/idea where extracted_from_source_id
+  IS NOT NULL) over source RECORD chunks. Citation format includes ORIGINAL
+  SOURCE TITLE (per Muse M5): "<extracted_quote>" — extracted from
+  [Source Title](wiki/<source-type>/<source-slug>.md#chunk-N), confidence X.XX.
+  Falls through to v2.0 source-chunk retrieval if no entity hits.
+  Sprint 3 PR5 v0.1 = STUB returning contract structure; v0.2 wires real
+  OpenAI calls (gated on wiki_sync_llm_fallback flag + OPENAI_API_KEY).
 ---
 
 # wiki-sync / ask (Sprint 3 PR5 baseline — v2.0.0)
@@ -37,7 +38,37 @@ POST https://api.openai.com/v1/embeddings
 
 Cost: ~$0.00002 per question (negligible).
 
-### Step 2 — Hybrid retrieval
+### Step 2 — ENTITY-FIRST hybrid retrieval (v3.0)
+
+**v3.0 update:** retrieval prefers DERIVED ENTITY pages (the distilled knowledge graph) over source RECORD chunks. The intuition: the founder asks "what does the literature say about X" — the answer should surface the cross-source concept page about X first, with multi-source citation; the source chunks themselves are secondary detail.
+
+**Retrieval order:**
+
+a) **Entity-first query:**
+```sql
+SELECT kp.id, kp.slug, kp.page_type, kp.title,
+       kp.frontmatter->>'summary' AS summary,
+       ke.embedding,
+       1 - (ke.embedding <=> $question_embedding) AS cosine_similarity
+  FROM ops.knowledge_pages kp
+  JOIN ops.knowledge_embeddings ke ON ke.page_id = kp.id
+ WHERE kp.extracted_from_source_id IS NOT NULL    -- derived entities only
+   AND kp.deleted_at IS NULL
+   AND kp.legacy_v2_verbatim = false
+   AND kp.review_state IN ('auto_accepted', 'founder_approved')
+   AND (1 - (ke.embedding <=> $question_embedding)) > 0.7
+ ORDER BY cosine_similarity DESC
+ LIMIT $k;
+```
+
+If ≥ 3 entity hits with sim > 0.7 → ENTITY-FIRST PATH. Skip to Step 3a.
+If < 3 entity hits → FALL THROUGH to source-chunk retrieval (b).
+
+b) **Source-chunk fallback (v2.0 hybrid):** original vector + keyword + backlink path (unchanged from v2.0).
+
+**Why entity-first:** the v3.0 reframe is that wiki/ is a knowledge graph of extracted entities, not a file-projection store. Retrieval should mirror that semantic.
+
+### Step 2b — Original v2.0 hybrid retrieval (fallback path)
 
 Per Bài #14 ranking, the score is `vector*0.5 + keyword*0.3 + backlink*0.2`:
 
@@ -80,20 +111,45 @@ Call OpenAI rerank model on the top-K chunks against the question. Re-order by r
 
 For each top-K chunk, fetch the page's frontmatter + the chunk's neighboring chunks (chunk_index ± 1) for context.
 
-### Step 5 — Synthesize answer
+### Step 5 — Synthesize answer (v3.0 citation format)
 
-Call Claude (Sonnet or Opus per `wiki_sync_llm_fallback` flag) with a system prompt that enforces citation discipline:
+Call Claude (Sonnet or Opus per `wiki_sync_llm_fallback` flag) with a system prompt that enforces v3.0 citation discipline (Muse M5):
 
+**v3.0 entity-first citation format:**
 ```
-You are answering from a corpus of wiki pages. RULES:
-1. Every claim MUST cite a wiki page in the form [wiki/<type>/<slug>.md#chunk-NN].
-2. If the corpus does not contain enough information to answer, return
+"<extracted_quote_from_entity_summary_or_raw_quote>" — extracted from
+[Source Title](wiki/<source-type>/<source-slug>.md#chunk-N), confidence X.XX
+```
+
+Example:
+> "Companies that activate users within their first session retain 4-5x better at 30 days" — extracted from [Growth Playbook Fixture](wiki/article/growth-playbook-fixture.md#chunk-3), confidence 0.92
+
+**System prompt:**
+```
+You are answering from a corpus of wiki ENTITIES (distilled knowledge graph)
++ optional source chunks. RULES:
+
+1. PREFER entity pages (concept/observation/decision/idea with
+   extracted_from_source_id set) over source chunks. Cite the ENTITY first,
+   and the source chunk via its citation footer.
+
+2. Every claim MUST cite via this format:
+   "<raw_quote>" — extracted from [Source Title](wiki/<source-type>/<slug>.md#chunk-N), confidence X.XX
+
+   The Source Title comes from the source RECORD page's frontmatter.title.
+   The chunk-N corresponds to knowledge_extractions.source_chunk_index.
+   Confidence is the knowledge_extractions.confidence value.
+
+3. If the corpus does not contain enough information to answer, return
    {answer: null, reason: "no_coverage"}.
-3. NEVER use information that is not in the provided chunks.
-4. NEVER cite a path that wasn't in the input — that's a hallucination.
+
+4. NEVER use information not in the provided entities/chunks.
+
+5. NEVER invent a Source Title or wiki path. If you don't have title metadata
+   for a cited chunk, omit the title (use bare wiki path).
 ```
 
-Input to Claude: question + top-K chunks (with explicit wiki path + chunk_index labels).
+Input to Claude: question + top-K entities (entity-first path) OR + top-K chunks (fallback path), each with explicit metadata block including page slug, source RECORD reference, raw_quote from knowledge_extractions if entity, page_type.
 
 ### Step 6 — Validate citations
 
