@@ -1,14 +1,16 @@
 ---
 name: wiki-sync
 description: |
-  Umbrella for the wiki-sync capability (`wiki-sync-from-refs`). Three verbs —
-  sync (ref → entity-typed wiki page + embeddings + auto-extracted links),
-  ask (citation-disciplined retrieval that quotes specific wiki paths, not
-  training data), audit (orphan / dead-link / stale-claim integrity check).
-  Five source-kind adapters (PDF, URL, Markdown, YouTube, meeting transcript)
-  cover ~95 % of founder intake. Invoked by `.claude/commands/wiki.md`
-  sub-commands or programmatically via the `mcp__wiki__ask` tool. Reuses
-  Bài #14 knowledge-graph schema + Bài #18 ingestion-jobs substrate.
+  Umbrella for the wiki-sync capability (`wiki-sync-from-refs`).
+  v3.0 (2026-05-18 onward): DEFAULT semantic = distill+extract.
+  Source files become RECORD pages; the IMPORTANT KNOWLEDGE
+  (concept / observation / decision / idea) is LLM-extracted into separate
+  wiki/<type>/<slug>.md entity pages with citation via ops.knowledge_extractions.
+  6 source-kind adapters (PDF, URL, Markdown, YouTube, meeting, folder).
+  --verbatim flag falls through to v2.0 verbatim-projection. Invoked by
+  .claude/commands/wiki.md sub-commands or programmatically via mcp__wiki__*
+  tools. Built on Bài #14 knowledge-graph + Bài #18 ingestion substrate +
+  v3.0 migration 00031 (knowledge_extractions table).
 ---
 
 # Wiki Sync (umbrella)
@@ -29,26 +31,48 @@ description: |
 
 This skill is dispatcher-only. It reads the verb and delegates:
 
-| Verb | Sub-skill | Purpose |
+| Verb | Sub-skill | Purpose (v3.0) |
 |---|---|---|
-| `sync` | `wiki-sync/ingest` | full 6-step pipeline (see SOP-INGEST-001); dispatches to `folder-adapter` if path is a directory (v2.0 PR3) |
-| `resync` | `wiki-sync/ingest` with `force=true` | re-fetch + diff |
-| `ask` | `wiki-sync/ask` | RAG with citation discipline |
-| `audit` | `wiki-sync/audit` | integrity check |
-| `audit --fix` | `wiki-sync/audit` with `fix=true` | + open one PR per fix class |
+| `sync` (default = distill+extract) | `wiki-sync/ingest` | full pipeline (SOP-INGEST-001); Step 6 dispatches to `wiki-sync/distill` for entity extraction (Haiku for concept+idea; Sonnet for observation+decision); Step 7 dedup pass; multi-page write (source RECORD + N derived entities) |
+| `sync --verbatim` | `wiki-sync/ingest` (verbatim path) | v2.0 fallback: single-page write, no distill, no entity pages. v3.1 auto-deprecation trigger: if invoked < 1× in first 30 days post-promotion, flag removed in v3.1. |
+| `sync --split=...` | `wiki-sync/ingest` + `wiki-sync/chapter-splitter` | Chapter split for big PDFs (TOC/count/heading); chapters feed distill independently |
+| `sync --force` | `wiki-sync/ingest` with force=true | Re-extract everything; bypass chunk-diff |
+| `resync` | `wiki-sync/ingest` | chunk-diff first; re-extract only changed chunks (v3.0 — Tier B if > 50% changed) |
+| `distill` (alias) | `wiki-sync/ingest` | Same as `sync`; explicit verb for clarity |
+| `extract --type=...` | `wiki-sync/distill` (selective) | Run extractor for one entity type only (concept/observation/decision/idea) |
+| `merge` | `wiki-sync/merge` | Manual dedup: merge two pages founder identifies as same. Soft-delete loser via `deleted_at`. `--undo` clears. (Sprint 4) |
+| `source` | inline DB query | Given source slug, list all derived entities + their `knowledge_extractions` confidence + raw_quote (reverse lookup) |
+| `review` | `wiki-sync/review` | Process founder-review queue (pending_review pages with confidence 0.6-0.85). Tier B per item. (Sprint 4) |
+| `ask` | `wiki-sync/ask` | RAG with citation discipline. v3.0: entity-first retrieval; citation format includes original source title + raw_quote. (Sprint 4 update) |
+| `audit` | `wiki-sync/audit` | integrity check. v3.0 adds 3 new checks: distillation completeness + dedup consistency + citation integrity. (Sprint 4 update) |
+| `audit --fix` | `wiki-sync/audit` with fix=true | + open one PR per fix class |
 | `list` | inline DB query (no sub-skill) | list wiki pages by type |
-| `status` | inline DB query | current queue + recent audits |
-| (cron/follow-up) | `wiki-sync/embeddings-backfill` | hourly backfill of soft-deferred embeddings (G3); v2.0 PR3 ships script + SKILL; pg_cron wiring is PR4 |
+| `status` | inline DB query | current queue + recent audits + pending_review count |
+| (cron) | `wiki-sync/embeddings-backfill` | hourly backfill of soft-deferred embeddings (G3); v3.0 also backfills derived entity pages |
+| (cron) | `wiki-review-queue-digest` | daily Telegram digest of pending_review extraction count |
+| (background) | `wiki-sync/attribution-watcher` | Tier B Telegram heads-up when copyrighted source contributes ≥3 obs to a content draft (per Muse M2 axis A11). (Sprint 4) |
 
 Each sub-skill writes its own `ops.agent_runs` row; this umbrella does not log a run of its own.
 
 ## Cost tracking
 
-All sub-skills attribute cost to `ai-ops-knowledge` cost-bucket. Per-task-kind soft caps from spec.md §5:
-- `wiki-ingest-pdf` $1.00
-- `wiki-ingest-other` $0.30
-- `wiki-ask` $0.10
-- `wiki-audit` $0.50
+All sub-skills attribute cost to `ai-ops-knowledge` cost-bucket. v3.0 per-task-kind caps (spec v3.0 §0):
+
+| task_kind | Cap | Tier B threshold | Notes |
+|---|---|---|---|
+| `wiki-distill-pdf` | $2.00 | — | 5-20 chunks × Haiku+Sonnet |
+| `wiki-distill-folder` | $15.00 (raised per Muse M6) | $5.00 | 20-paper growth corpus = ~$10 expected |
+| `wiki-distill-other` | $0.50 | — | URL/Markdown/YouTube/meeting |
+| `wiki-ingest-verbatim` | $0.30 | — | `--verbatim` flag invocations |
+| `wiki-review-batch` | $0.20 | — | one `/wiki review` session |
+| `wiki-dedup-batch` | $0.30 | — | per-source dedup pass |
+| `wiki-ask` | $0.10 | — | unchanged from v2.0 |
+| `wiki-audit` | $0.50 | — | unchanged from v2.0 |
+| `wiki-merge` | $0.05 | — | mostly DB rewires |
+
+DEPRECATED (kept for transition; auto-mapped to new caps):
+- `wiki-ingest-pdf` ($1.00) → `wiki-distill-pdf` (default) OR `wiki-ingest-verbatim` (--verbatim)
+- `wiki-ingest-other` ($0.30) → `wiki-distill-other` (default) OR `wiki-ingest-verbatim` (--verbatim)
 
 ## HITL
 
@@ -75,3 +99,4 @@ Inherits from sub-skill. Sync = A (B if cost > cap); Ask = A; Audit = A (B with 
 - **v1.0.0** (Sprint 1, 2026-05-16): umbrella + ingest + 3 baseline adapters (pdf, url, markdown); chapter-splitter STUB; ask/audit stubs.
 - **v2.0.0** (Sprint 2 PR2, 2026-05-17): chapter-splitter REAL (`toc | count=N | heading=h2` modes); migration 00030 adds `parent_job_id` for chapter children. Per Tier C decision `ops.decisions[fff2bf7c-efeb-4169-b430-8139ad4d4de3]`.
 - **v2.0.0** (Sprint 2 PR3, 2026-05-17): folder-adapter (Cách C; `folder_collection` source_kind; `<col-slug>__<file-slug>` global UNIQUE; flat-only); embeddings-backfill SKILL + dry-run CLI script (G3 soft-defer); CLI helper `scripts/wiki-sync/ingest.cjs` v0.1 (markdown + folder; G6 hybrid runner); link-inference-rules.yaml `related_concept` rule (G2); feature-flags `wiki_sync_*` section.
+- **v3.0.0** (Sprint 1-5, 2026-05-18 onward): FUNDAMENTAL SEMANTIC FLIP — distill+extract becomes default; verbatim becomes `--verbatim` flag. Per Tier C decision `ops.decisions[562b2e4e-7f50-47f2-a3bb-1291c30f6709]`. Migration 00031 adds `ops.knowledge_extractions` citation spine + 4 new columns on `ops.knowledge_pages` (extracted_from_source_id, legacy_v2_verbatim, review_state, deleted_at). 4 new skills (distill, dedup, review, merge), 1 new MCP tool (wiki-source), 1 new background skill (attribution-watcher). Hard kill criterion at day-30 + day-60 post-promotion (≥5 growth-domain ingests + 1 content piece citing v3.0 entity OR freeze v3.x).
