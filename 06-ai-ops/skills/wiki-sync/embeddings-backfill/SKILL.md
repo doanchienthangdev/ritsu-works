@@ -2,11 +2,15 @@
 name: wiki-sync/embeddings-backfill
 description: |
   Backfill embeddings for wiki pages that were ingested without OPENAI_API_KEY
-  present (per G3 soft-defer disposition, capability v2.0.0). Invoked by
-  pg_cron entry `wiki-embeddings-backfill` hourly. Self-throttles per CTO NIT 4
-  (skip if last 6h had 0 affected rows). Scans ops.ingestion_jobs for
+  present (G3 soft-defer disposition, capability v2.0.0). Invoked by pg_cron
+  entry `wiki-embeddings-backfill` hourly. Self-throttles per CTO NIT 4 (skip
+  if last 6h had 0 affected rows). Scans ops.ingestion_jobs for
   metadata.embeddings_deferred=true; processes up to 10 pages per tick to
   avoid OpenAI rate limit spike.
+  v3.0 update (Sprint 3): also backfills embeddings for derived entity pages
+  (page_type IN concept/observation/decision/idea where
+  extracted_from_source_id IS NOT NULL) — required for cross-source semantic
+  dedup (wiki-sync/dedup vector similarity matching).
 ---
 
 # wiki-sync / embeddings-backfill (Sprint 2 PR3 baseline — v2.0.0)
@@ -57,20 +61,41 @@ Return without API calls.
 
 ### Step 2 — Find deferred pages
 
+v3.0 update: query covers BOTH source RECORD pages AND derived entity pages.
+Derived entity pages (page_type IN concept/observation/decision/idea where
+extracted_from_source_id IS NOT NULL) are produced by wiki-sync/distill —
+they need embeddings so wiki-sync/dedup can do cross-source semantic matching.
+
 ```sql
-SELECT kp.id, kp.slug, kp.file_path, ij.id AS ingestion_job_id
-  FROM ops.knowledge_pages kp
-  JOIN ops.ingestion_jobs ij ON ij.resulting_page_id = kp.id
- WHERE ij.metadata->>'embeddings_deferred' = 'true'
-   AND NOT EXISTS (
-     SELECT 1 FROM ops.knowledge_embeddings ke WHERE ke.page_id = kp.id
-   )
- ORDER BY kp.created_at ASC          -- oldest first; FIFO fairness
- LIMIT $max_pages;
+-- Source RECORD pages with deferred embeddings (v2.0 pattern, preserved)
+(SELECT kp.id, kp.slug, kp.file_path, kp.page_type,
+        ij.id AS ingestion_job_id, 'source_record' AS page_class
+   FROM ops.knowledge_pages kp
+   JOIN ops.ingestion_jobs ij ON ij.resulting_page_id = kp.id
+  WHERE ij.metadata->>'embeddings_deferred' = 'true'
+    AND kp.deleted_at IS NULL
+    AND NOT EXISTS (SELECT 1 FROM ops.knowledge_embeddings ke WHERE ke.page_id = kp.id))
+UNION ALL
+-- Derived entity pages (v3.0 — from distill skill)
+(SELECT kp.id, kp.slug, kp.file_path, kp.page_type,
+        ij.id AS ingestion_job_id, 'derived_entity' AS page_class
+   FROM ops.knowledge_pages kp
+   LEFT JOIN ops.ingestion_jobs ij ON ij.resulting_page_id = kp.extracted_from_source_id
+  WHERE kp.extracted_from_source_id IS NOT NULL
+    AND kp.legacy_v2_verbatim = false
+    AND kp.deleted_at IS NULL
+    AND kp.page_type IN ('concept', 'observation', 'decision', 'idea')
+    AND NOT EXISTS (SELECT 1 FROM ops.knowledge_embeddings ke WHERE ke.page_id = kp.id))
+ORDER BY created_at ASC          -- oldest first; FIFO fairness
+LIMIT $max_pages;
 ```
 
 If 0 rows → write `affected_rows=0` to scheduled_runs and return (next tick
 will self-throttle if still 0 in 6h).
+
+Per spec §3.7: dedup skill REQUIRES derived entity embeddings to function.
+If derived entity backlog grows > 100 pages, dedup queue rate slows; founder
+Telegram heads-up via daily digest.
 
 ### Step 3 — Read each wiki file + chunk
 
