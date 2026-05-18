@@ -32,8 +32,9 @@ import { canReadSchema } from "../governance/role-resolver.ts";
 export const wikiAskDescription = `Citation-disciplined RAG retrieval over wiki/ + ops.knowledge_embeddings. \
 v3.0 entity-first: prefers derived entity pages (concept/observation/decision/idea where extracted_from_source_id IS NOT NULL) \
 over source RECORD chunks. Citation format includes original source title + raw_quote + confidence per Muse M5. \
-Inputs: { question: string (required), k?: 1..20 (default 10), entity_only?: boolean (default false; if true, never falls through to source chunks), filter?: { page_type? } }. \
-Output (v0.2): { answer: null, retrieval_results: [{ page_slug, page_type, page_title, source_slug, source_title, similarity, is_derived_entity, chunk_text, citation_format }], reason: 'retrieved'|'no_coverage'|'embedding_search_deferred_v0_2', synthesis_hint: '...' }. \
+v4.0 source-grouped layout: filter.source / filter.packages let callers scope retrieval to specific source packages (v4.0 §0 B9). \
+Inputs: { question: string (required), k?: 1..20 (default 10), entity_only?: boolean (default false), filter?: { page_type?, source?: string (single source-slug), packages?: string[] (multiple source-slugs) } }. \
+Output (v0.2): { answer: null, retrieval_results: [{ page_slug, page_type, page_title, source_slug, source_title, package_slug, similarity, is_derived_entity, chunk_text, citation_format }], reason: 'retrieved'|'no_coverage'|'embedding_search_deferred_v0_2', synthesis_hint: '...' }. \
 Caller (Claude Code session) synthesizes final answer per ask/SKILL.md system prompt. NEVER falls back to training data.`;
 
 export const wikiAskInputSchema = {
@@ -69,17 +70,32 @@ export const wikiAskInputSchema = {
             "weekly_review",
           ],
         },
+        source: {
+          type: "string",
+          description: "v4.0: scope retrieval to a single source package. Value is the source RECORD slug (e.g. 'growth-playbook-fixture'). Filters derived entities by extracted_from_source.slug = this value.",
+        },
+        packages: {
+          type: "array",
+          items: { type: "string" },
+          description: "v4.0: scope retrieval to a union of source packages. Each entry is a source RECORD slug. If both `source` and `packages` are set, `packages` wins.",
+        },
       },
-      description: "Optional filter to scope retrieval to one page_type.",
+      description: "Optional filter to scope retrieval. page_type for entity-type filter; source / packages (v4.0) for package-scoped retrieval.",
     },
   },
 } as const;
+
+interface WikiAskFilter {
+  page_type?: string;
+  source?: string;
+  packages?: string[];
+}
 
 interface WikiAskInput {
   question: string;
   k?: number;
   entity_only?: boolean;
-  filter?: { page_type?: string };
+  filter?: WikiAskFilter;
 }
 
 function parseInput(raw: unknown): WikiAskInput {
@@ -91,11 +107,22 @@ function parseInput(raw: unknown): WikiAskInput {
   if (typeof q !== "string" || q.length < 3 || q.length > 2000) {
     throw new MCPToolError("invalid_input", "wiki_ask: `question` (3..2000 chars) is required");
   }
+  const filterRaw = obj.filter as Record<string, unknown> | undefined;
+  let filter: WikiAskFilter | undefined;
+  if (filterRaw && typeof filterRaw === "object") {
+    filter = {};
+    if (typeof filterRaw.page_type === "string") filter.page_type = filterRaw.page_type;
+    if (typeof filterRaw.source === "string" && filterRaw.source.length > 0) filter.source = filterRaw.source;
+    if (Array.isArray(filterRaw.packages)) {
+      filter.packages = filterRaw.packages.filter((p): p is string => typeof p === "string" && p.length > 0);
+      if (filter.packages.length === 0) delete filter.packages;
+    }
+  }
   return {
     question: q,
     k: typeof obj.k === "number" ? Math.min(20, Math.max(1, Math.floor(obj.k))) : 10,
     entity_only: Boolean(obj.entity_only),
-    filter: obj.filter as { page_type?: string } | undefined,
+    filter,
   };
 }
 
@@ -223,6 +250,43 @@ export async function handleWikiAsk(
     throw new MCPToolError("openai_api_error", `Failed to embed question: ${(e as Error).message}`);
   }
 
+  // v4.0: resolve filter.source / filter.packages source-slugs → source-ids
+  // BEFORE the entity query so we can filter derived entities by their parent.
+  let sourceIdAllowlist: string[] | null = null;
+  const sourceSlugs: string[] = [];
+  if (args.filter?.packages && args.filter.packages.length > 0) {
+    sourceSlugs.push(...args.filter.packages);
+  } else if (args.filter?.source) {
+    sourceSlugs.push(args.filter.source);
+  }
+  if (sourceSlugs.length > 0) {
+    const { data: sourceRows, error: sourceErr } = await client
+      .schema("ops")
+      .from("knowledge_pages")
+      .select("id, slug")
+      .is("extracted_from_source_id", null)
+      .in("slug", sourceSlugs);
+    if (sourceErr) {
+      throw new MCPToolError("sql_execution_error", `source slug resolution: ${sourceErr.message}`);
+    }
+    sourceIdAllowlist = (sourceRows ?? []).map((r: any) => r.id);
+    if (sourceIdAllowlist.length === 0) {
+      // No matching packages — return no_coverage immediately.
+      return {
+        state: "completed",
+        output: {
+          answer: null,
+          reason: "no_coverage",
+          version: "0.2",
+          question_echoed: args.question,
+          retrieval_results: [],
+          v4_filter: { source_slugs: sourceSlugs, resolved_ids: 0 },
+          note: `No source packages matched slug(s): ${sourceSlugs.join(", ")}. Run wiki_list_pages with page_type filter to see available sources.`,
+        },
+      };
+    }
+  }
+
   // Step 1 — Entity-first query: fetch derived entity pages + their embeddings.
   const entityQuery = client
     .schema("ops")
@@ -234,6 +298,9 @@ export async function handleWikiAsk(
     .in("review_state", ["auto_accepted", "founder_approved"]);
   if (args.filter?.page_type) {
     entityQuery.eq("page_type", args.filter.page_type);
+  }
+  if (sourceIdAllowlist) {
+    entityQuery.in("extracted_from_source_id", sourceIdAllowlist);
   }
   const { data: entityPages, error: entityErr } = await entityQuery;
   if (entityErr) {
