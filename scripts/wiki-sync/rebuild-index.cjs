@@ -149,12 +149,14 @@ function harvestPackage(pkgDir, pkgSlug, entitiesByTypeName) {
 }
 
 function walkPackages() {
-  // v4.2-aware walker. Two layout modes per top-level wiki/<X>/:
-  //   - single-package: wiki/<X>/source.md exists → X is a package
-  //   - multi-package (namespace): wiki/<X>/<Y>/source.md exists → X is a
-  //     namespace; each Y is a package
-  // The two modes are mutually exclusive at a given level: if source.md is at
-  // the top, we DON'T also recurse into subfolders looking for packages.
+  // v4.2-aware walker. Recurses through wiki/ looking for any folder that
+  // contains a source.md (= a package). Handles arbitrary nesting:
+  //   - depth 1: wiki/<X>/source.md (single-package mode, v4.0/v4.1)
+  //   - depth 2: wiki/<X>/<Y>/source.md (v4.2 namespace + package)
+  //   - depth 3+: wiki/<X>/<Y>/<Z>/source.md (v4.2 namespace + collection + child)
+  // When a folder is identified as a package, its type subfolders are
+  // harvested by harvestPackage and we DON'T recurse further (each package
+  // is a leaf in the recursion).
   const entitiesByTypeName = new Map();
 
   if (!fs.existsSync(WIKI_DIR)) {
@@ -162,33 +164,40 @@ function walkPackages() {
     process.exit(1);
   }
 
-  const topEntries = fs.readdirSync(WIKI_DIR, { withFileTypes: true });
-  for (const top of topEntries) {
-    if (!top.isDirectory()) continue;
-    if (top.name === '_index') continue;
-    if (top.name === 'capabilities') continue;
-    if (top.name.startsWith('.') || top.name.startsWith('_')) continue;
+  const TYPE_FOLDER_NAMES = new Set(Object.keys(TYPE_FOLDERS_TO_TYPE));
+  const SKIP_TOP = new Set(['_index', 'capabilities']);
 
-    const topAbs = path.join(WIKI_DIR, top.name);
-    const topEntries2 = fs.readdirSync(topAbs, { withFileTypes: true });
+  const queue = [{ dir: WIKI_DIR, depth: 0 }];
+  while (queue.length > 0) {
+    const { dir, depth } = queue.shift();
 
-    const hasSourceMd = topEntries2.some((e) => e.isFile() && e.name === 'source.md');
-
-    if (hasSourceMd) {
-      // single-package mode (v4.0/v4.1 legacy or v4.2 collapsed)
-      harvestPackage(topAbs, top.name, entitiesByTypeName);
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
       continue;
     }
 
-    // multi-package mode (v4.2 namespace): each subdirectory with source.md is a package
-    const subdirs = topEntries2.filter((e) => e.isDirectory() && !e.name.startsWith('.') && !e.name.startsWith('_'));
-    for (const sub of subdirs) {
-      const subAbs = path.join(topAbs, sub.name);
-      const subHasSource = fs.existsSync(path.join(subAbs, 'source.md'));
-      if (!subHasSource) continue;
-      harvestPackage(subAbs, sub.name, entitiesByTypeName);
+    const hasSourceMd = entries.some((e) => e.isFile() && e.name === 'source.md');
+    if (hasSourceMd && depth > 0) {
+      // depth > 0 because we skip the wiki/ root itself
+      const pkgSlug = path.basename(dir);
+      harvestPackage(dir, pkgSlug, entitiesByTypeName);
+      continue; // do NOT recurse into a package's type subfolders
+    }
+
+    // Not a package (or wiki/ root) — recurse into subdirs
+    for (const e of entries) {
+      if (!e.isDirectory()) continue;
+      if (e.name.startsWith('.') || e.name.startsWith('_')) continue;
+      if (depth === 0 && SKIP_TOP.has(e.name)) continue;
+      // Don't recurse INTO type subfolders (they hold derived entity .md
+      // files but never their own source.md)
+      if (TYPE_FOLDER_NAMES.has(e.name)) continue;
+      queue.push({ dir: path.join(dir, e.name), depth: depth + 1 });
     }
   }
+
   return entitiesByTypeName;
 }
 
