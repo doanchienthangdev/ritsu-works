@@ -30,7 +30,7 @@ description: |
 - INSERT N rows into `ops.knowledge_pages` for derived entities (`page_type` IN `concept` | `observation` | `decision` | `idea`; `extracted_from_source_id = source_page_id`; `legacy_v2_verbatim = false`)
 - INSERT M rows into `ops.knowledge_extractions` (citation spine: `source_page_id`, `source_chunk_index`, `derived_page_id`, `link_type`, `confidence`, `llm_model`, `extraction_cost_usd`, `raw_quote`)
 - INSERT N rows into `ops.knowledge_links` (relational graph: from source RECORD page → derived entity pages; `link_type` IN `extracted_concept` | `extracted_observation` | `extracted_decision` | `extracted_idea`)
-- WRITE N Markdown files at `wiki/<page_type>/<slug>.md` with v3.0 frontmatter (see Frontmatter spec below)
+- WRITE N Markdown files at `wiki/<source-slug>/<page_type>s/<slug>.md` with v3.0 frontmatter (see Frontmatter spec below); `<page_type>s` is the plural folder name (concepts/observations/decisions/ideas)
 - One row in `ops.agent_runs` summarizing the distill (cost, entity counts, confidence distribution)
 - Cost-bucket attribution: `ai-ops-knowledge`; task_kind per source_kind (see Cost section)
 
@@ -172,7 +172,7 @@ type: <concept | observation | decision | idea>
 title: <name>
 slug: <slug>
 source_ref: <source_page_id slug or wiki path>
-extracted_from_source: wiki/<source-type>/<source-slug>.md
+extracted_from_source: wiki/<source-slug>/source.md
 license_status_inherited: <from source frontmatter>
 confidence: <max confidence across this entity's extractions>
 review_state: <auto_accepted | pending_review>
@@ -187,7 +187,7 @@ created_at: <ISO timestamp>
 ## Sources cited
 
 <for each knowledge_extractions row:>
-- **From [<source-title>](wiki/<source-type>/<source-slug>.md#chunk-<source_chunk_index>)** (confidence: <conf>):
+- **From [<source-title>](wiki/<source-slug>/source.md#chunk-<source_chunk_index>)** (confidence: <conf>):
 
   > "<raw_quote>"
 
@@ -196,7 +196,9 @@ created_at: <ISO timestamp>
 <!-- generated-by: wiki-sync/distill v0.1 -->
 ```
 
-Write to `wiki/<page_type>/<slug>.md`. File path goes into `knowledge_pages.file_path`.
+Write to `wiki/<source-slug>/<page_type>s/<slug>.md` (v4.0 source-grouped layout; `<page_type>s` is the plural folder — concepts/observations/decisions/ideas). File path goes into `knowledge_pages.file_path`.
+
+> **v4.0 composite UNIQUE:** slug uniqueness for derived entities is now `(extracted_from_source_id, slug)` (not global). Two sources may legitimately extract the same slug (e.g., `wedge` from both `pg-do-things/` and `blank-4-steps/`) as distinct entities — Step 3's collision check is scoped per-source, not global.
 
 ### Step 6 — Write knowledge_extractions citation rows
 

@@ -5,7 +5,7 @@ description: |
   via yt-dlp (auto-captions first; whisper fallback when captions missing,
   feature-flag gated). Parses YouTube native chapter markers from the video's
   description timestamps. source_kind=`youtube_video`; entity_type=`episode`;
-  wiki target `wiki/episodes/<slug>.md`. URL accepted forms:
+  wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout). URL accepted forms:
   youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID.
 ---
 
@@ -21,7 +21,7 @@ Dispatched by `wiki-sync/ingest` Step 1 when `<path>` matches:
 
 source_kind: `youtube_video`
 entity_type: `episode`
-wiki target: `wiki/episodes/<slug>.md`
+wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; derived entities land under `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, etc.)
 
 ## Inputs
 

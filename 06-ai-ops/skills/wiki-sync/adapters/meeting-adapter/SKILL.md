@@ -5,7 +5,7 @@ description: |
   blocks into speaker-attributed Markdown; plain TXT passes through with
   paragraph-only chunking. Chunking strategy: structural per speaker turn
   (per cue block). source_kind=`meeting_transcript`; entity_type=`meeting`;
-  wiki target `wiki/meetings/<slug>.md`. File location convention:
+  wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout). File location convention:
   `raw/meetings/<filename>.{vtt,srt,txt}` (other extensions delegate back to ingest).
 ---
 
@@ -19,7 +19,7 @@ TXT files that could otherwise be plain markdown or other content).
 
 source_kind: `meeting_transcript`
 entity_type: `meeting`
-wiki target: `wiki/meetings/<slug>.md`
+wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; derived entities land under `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, etc.)
 
 ## Inputs
 

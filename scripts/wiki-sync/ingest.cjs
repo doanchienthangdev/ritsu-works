@@ -149,10 +149,19 @@ function ingestMarkdown(absPath, opts = {}) {
     source_ref: sourceRefRel,
     source_hash: sourceHash,
     ingested_at: ingestedAt,
-    generated_by: 'wiki-sync v2.0 cli-helper',
+    generated_by: 'wiki-sync v4.0 cli-helper',
   };
 
-  const wikiPathRel = path.join('wiki', type, `${slug}.md`);
+  // v4.0 source-grouped layout: every ingested markdown file becomes a source
+  // RECORD at wiki/<source-slug>/source.md (or, when nested under a folder
+  // adapter, at wiki/<parent-col-slug>/<child-slug>/source.md). The
+  // frontmatter `type` is captured but does NOT control the folder anymore
+  // (distill, NOT ingest, creates derived entity pages under
+  // wiki/<source-slug>/<page_type>s/).
+  const sourceSlug = opts.parentColSlug
+    ? path.join(opts.parentColSlug, slug)
+    : slug;
+  const wikiPathRel = path.join('wiki', sourceSlug, 'source.md');
   const wikiPathAbs = path.join(REPO_ROOT, wikiPathRel);
 
   fs.mkdirSync(path.dirname(wikiPathAbs), { recursive: true });
@@ -226,9 +235,16 @@ function ingestFolder(absPath, opts = {}) {
         continue;
       }
       const childSlugBase = childFm.slug || kebabCase(path.basename(f.name, ext));
-      const combinedSlug = `${colSlug}__${childSlugBase}`.slice(0, 80);
 
-      const childResult = ingestMarkdown(childAbs, { slugOverride: combinedSlug });
+      // v4.0 source-grouped folder layout: children land at
+      // wiki/<colSlug>/<childSlug>/source.md (NOT wiki/<colSlug>__<childSlug>.md).
+      // The slugOverride passes the child slug; parentColSlug nests under the
+      // collection. Composite UNIQUE (extracted_from_source_id, slug) makes
+      // same-slug children across different collections legitimate.
+      const childResult = ingestMarkdown(childAbs, {
+        slugOverride: childSlugBase,
+        parentColSlug: colSlug,
+      });
       if (childResult.error) {
         skipped.push({ file: f.name, reason: childResult.error, detail: childResult.detail });
       } else {

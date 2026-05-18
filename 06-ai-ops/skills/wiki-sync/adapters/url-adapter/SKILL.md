@@ -3,7 +3,7 @@ name: wiki-sync/adapters/url-adapter
 description: |
   URL source adapter for wiki-sync. Fetches HTML via HTTP GET, extracts main
   content via readability (Mozilla Readability port), converts HTML→Markdown.
-  source_kind=`article`, entity_type=`article`, wiki target `wiki/articles/<slug>.md`.
+  source_kind=`article`, entity_type=`article`, wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout).
 ---
 
 # URL adapter (Sprint 1 baseline)
@@ -13,7 +13,7 @@ description: |
 - Dispatched by `wiki-sync/ingest` when path starts with `http://` or `https://`
 - source_kind: `article`
 - entity_type: `article`
-- wiki target: `wiki/articles/<slug>.md`
+- wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; derived entities extracted by `distill` land at `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, etc.)
 
 ## Inputs
 

@@ -3,7 +3,7 @@ name: wiki-sync/chapter-splitter
 description: |
   Splits oversized refs (PDFs > 100 pages, Markdown > 25 KB, or any ref with
   explicit --split flag) into per-chapter child ingestion_jobs rows + per-chapter
-  wiki pages under wiki/books/<book-slug>/. Modes: toc (PDF bookmarks /
+  wiki pages under wiki/<book-slug>/chapters/ (v4.0 source-grouped layout). Modes: toc (PDF bookmarks /
   Markdown TOC, default when available), count=N (equal parts), heading=h2.
   Each chapter is its own knowledge_pages row with page_type='book' and slug
   '<book-slug>__chapter-NN-<chapter-slug>'. Uses ops.ingestion_jobs.parent_job_id
@@ -136,19 +136,25 @@ For each chapter row, delegate back to `wiki-sync/ingest` Steps 6-9 (extract +
 link-extract + embed + write wiki + emit events + cost). Each chapter becomes
 its own:
 - `ops.knowledge_pages` row with `page_type='book'`, `slug=<final_slug>`,
-  `file_path='wiki/books/<book-slug>/chapter-NN-<chapter-slug>.md'`,
+  `file_path='wiki/<book-slug>/chapters/chapter-NN-<chapter-slug>.md'` (v4.0 source-grouped: chapters live under their parent book's package),
   `frontmatter.chapter_of=<book_slug>`, `frontmatter.chapter_index=<NN>`
 - `ops.knowledge_links` rows (extracted from chapter content)
 - `ops.knowledge_embeddings` chunks (or `embeddings_deferred=true` per G3)
 - `ops.events` row (`ritsu.wiki.synced` per chapter)
 
-Wiki file layout:
+Wiki file layout (v4.0 source-grouped — chapters nest inside their parent book's package alongside source.md and any derived entity folders):
 ```
-wiki/books/<book-slug>/
-  chapter-01-<title-slug>.md
-  chapter-02-<title-slug>.md
-  ...
-  chapter-NN-<title-slug>.md
+wiki/<book-slug>/
+  source.md                        # parent book RECORD page (replaces v3.0 index.md role; auto-lists chapters via "Entities distilled from this source" section)
+  chapters/
+    chapter-01-<title-slug>.md
+    chapter-02-<title-slug>.md
+    ...
+    chapter-NN-<title-slug>.md
+  concepts/                        # derived entities extracted across all chapters (if distill ran)
+  observations/
+  decisions/
+  ideas/
 ```
 
 Frontmatter of each chapter wiki file:
@@ -184,41 +190,22 @@ ingestion_jobs row:
 - `metadata = metadata || jsonb_build_object('chapters_count', N, 'split_mode', $mode)`
 - `total_cost_usd = SUM(child total_cost_usd) + parent extract cost`
 
-The parent does NOT get a wiki page (the children DO). The parent `knowledge_pages`
-row IS created with page_type='book', slug=<book-slug>, file_path pointing to
-a book-level index page `wiki/books/<book-slug>/index.md` that lists all chapters.
+v4.0 source-grouped layout: the parent book gets its standard source RECORD page at `wiki/<book-slug>/source.md` (created by the pdf-adapter / markdown-adapter as it would for any source). The parent `knowledge_pages` row has `page_type='book'`, `slug=<book-slug>`, `file_path='wiki/<book-slug>/source.md'`. The chapter list appears as part of the auto-generated "Entities distilled from this source" section inside `source.md` (per spec.md §3 B3) — no separate index.md page is generated. The chapters in `wiki/<book-slug>/chapters/` are discoverable from `/wiki ask` via either the parent source.md's chapter list or directly via link-extractor `[[book/<book-slug>__chapter-NN-<slug>]]` references resolving into the chapters folder.
 
-### Step 8 — Index page generation
+### Step 8 — Source RECORD chapter-list section (v4.0)
 
-Auto-generated `wiki/books/<book-slug>/index.md`:
+The parent book's `wiki/<book-slug>/source.md` page (created by the pdf-adapter / markdown-adapter as the source RECORD) has its body augmented with an auto-generated "Chapters" section (under the same "Entities distilled from this source" umbrella per spec §3 B3):
+
 ```markdown
----
-type: book
-slug: <book-slug>
-title: <book_title>
-is_book_index: true
-chapters_count: <N>
-source_kind: <source_kind>
-source_ref: <source_ref>
-source_hash: <source_hash>
-ingested_at: <ts>
-generated_by: wiki-sync v2.0 chapter-splitter
----
+## Chapters (auto-extracted, <split_mode>)
 
-<!-- generated-by: wiki-sync v2.0 chapter-splitter -->
-
-# <book_title>
-
-Chapters (auto-extracted, <split_mode>):
-
-1. [Chapter 01 — <title>](chapter-01-<slug>.md)
-2. [Chapter 02 — <title>](chapter-02-<slug>.md)
+1. [Chapter 01 — <title>](chapters/chapter-01-<slug>.md)
+2. [Chapter 02 — <title>](chapters/chapter-02-<slug>.md)
 ...
-N. [Chapter NN — <title>](chapter-NN-<slug>.md)
+N. [Chapter NN — <title>](chapters/chapter-NN-<slug>.md)
 ```
 
-The index page's slug is `<book-slug>` (NOT prefixed), which makes it discoverable
-from `/wiki ask` and link-extractor `[[book/<book-slug>]]` references.
+This section lives INSIDE the parent source RECORD page; no separate index.md is generated in v4.0. The parent `knowledge_pages.slug` is `<book-slug>` (NOT prefixed), which keeps it discoverable from `/wiki ask` and `[[book/<book-slug>]]` references.
 
 ## Outputs
 
@@ -231,9 +218,9 @@ Returns to caller (`wiki-sync/ingest`):
   "chapters_count": N,
   "child_ingestion_job_ids": ["<uuid>", "<uuid>", ...],
   "child_knowledge_page_ids": ["<uuid>", "<uuid>", ...],
-  "book_index_page_id": "<uuid>",
-  "wiki_index_path": "wiki/books/<book-slug>/index.md",
-  "wiki_chapter_paths": ["wiki/books/<book-slug>/chapter-01-...md", ...],
+  "book_source_page_id": "<uuid>",   // v4.0: the parent source RECORD page (replaces v3.0 book_index_page_id role)
+  "wiki_source_path": "wiki/<book-slug>/source.md",   // v4.0: parent source RECORD with auto-listed chapters (replaces v3.0 wiki_index_path)
+  "wiki_chapter_paths": ["wiki/<book-slug>/chapters/chapter-01-...md", ...],
   "total_cost_usd": <sum across children>,
   "errors_per_chapter": []   // [] if clean; objects { chapter_index, error } otherwise
 }

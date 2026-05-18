@@ -239,6 +239,24 @@ features:
     fallback: no_attribution_check
     description: "Tier B Telegram heads-up when a copyrighted_internal_only source contributes ≥3 extracted observations to a single content draft (correlation: /wiki ask within ±10 min of 01-marketing/ or 02-sales/ file edit). Per Muse NIT M2 attribution discipline axis A11."
     cost_estimate: "$0 — DB correlation + Telegram bot call"
+
+  # === Wiki-sync v4.0 flags (Sprint 1 of wiki-sync-from-refs v4.0.0 — source-grouped layout) ===
+  wiki_layout_version:
+    enabled: true                         # state value, not a behavior toggle; "4.0" once migration 00032 + migrate-to-v4 have both run
+    requires_api: []
+    fallback: keep_value_unchanged
+    description: "Active wiki layout convention. Enum {'3.0', '4.0'}. v3.0 = entity-type-grouped (wiki/concept/, wiki/observation/, …); v4.0 = source-grouped (wiki/<source-slug>/{source.md, concepts/, ...}/). Validators read this to pick the expected path pattern. Set by Sprint 1 PR + migrate-to-v4 to '4.0'."
+    type: enum
+    allowed_values: ["3.0", "4.0"]
+    default: "4.0"
+    cost_estimate: "$0 — state value only"
+
+  wiki_sync_index_rebuild:
+    enabled: true                         # v4.0 Sprint 2 — wiki/_index/ reverse-lookup link-lists
+    requires_api: anthropic               # uses LLM for alias resolution from frontmatter
+    fallback: skip_index_rebuild
+    description: "Generate wiki/_index/<page_type>/<canonical-name>.md link-lists pointing at all source packages mentioning that entity. Sprint 2 of wiki-sync-from-refs v4.0. Excluded from /wiki audit orphan checks."
+    cost_estimate: "$0.02-$0.05 per /wiki index rebuild invocation"
   
   decision_staleness_check:
     enabled: false

@@ -33,14 +33,17 @@ INPUT: raw/<topic>/<file>   OR   URL   OR   folder
 10. emit events + cost                          [deterministic]
          │
          ▼
-OUTPUT:
-  wiki/<source-type>/<source-slug>.md          (1 source RECORD — thin: frontmatter + summary + pointer)
-+ wiki/concept/<slug>.md       ×N
-+ wiki/observation/<slug>.md   ×M  (entity pages — distilled knowledge)
-+ wiki/decision/<slug>.md      ×K
-+ wiki/idea/<slug>.md          ×J
+OUTPUT (v4.0 source-grouped layout — Sprint 1 of v4.0 revise, 2026-05-18):
+  wiki/<source-slug>/source.md                      (1 source RECORD — thin: frontmatter + summary + pointer)
++ wiki/<source-slug>/concepts/<slug>.md       ×N
++ wiki/<source-slug>/observations/<slug>.md   ×M    (entity pages — distilled knowledge)
++ wiki/<source-slug>/decisions/<slug>.md      ×K
++ wiki/<source-slug>/ideas/<slug>.md          ×J
++ wiki/<source-slug>/chapters/chapter-NN.md   ×P    (only when chapter-split fires; page_type='book')
 + DB rows in ops.{ingestion_jobs, knowledge_pages, knowledge_links, knowledge_extractions, knowledge_embeddings, events, cost_attributions}
 ```
+
+The composite UNIQUE on `(extracted_from_source_id, slug)` (migration 00032) means same-slug derived entities across different source packages (e.g. `wedge` in both `wiki/pg-do-things/concepts/wedge.md` and `wiki/blank-4-steps/concepts/wedge.md`) coexist legitimately.
 
 ## v2.0 fallback pipeline (`--verbatim` flag)
 
@@ -51,7 +54,7 @@ INPUT → 1. fetch → 2. dedup → 3. lock → 4. chapter-split → 5. extract 
        → 9. write SINGLE wiki page (v2.0 behavior)
        → 10. emit events + cost
 
-OUTPUT: wiki/<entity_type>/<slug>.md   (1 verbatim page; no entity extraction)
+OUTPUT (v4.0 layout for --verbatim mode): wiki/<source-slug>/source.md   (1 verbatim page; no entity extraction)
 ```
 
 Auto-deprecation trigger (per v3.0 spec §0): if `--verbatim` invoked < 1× in first 30 days post-v3.0 promotion, flag removed in v3.1 first PR.

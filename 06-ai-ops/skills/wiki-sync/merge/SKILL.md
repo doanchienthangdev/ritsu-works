@@ -9,7 +9,11 @@ description: |
   Tier B (recoverable via --undo).
 ---
 
-# wiki-sync / merge (v3.0)
+# wiki-sync / merge (v3.0 → v4.0 semantics flip)
+
+## v4.0 merge semantics (Sprint 1, 2026-05-18 onward)
+
+v4.0 source-grouped layout changes merge from "the default consolidation pass" to "the explicit cross-package consolidation step". Composite UNIQUE `(extracted_from_source_id, slug)` lets the same derived-entity slug legitimately exist in multiple source packages (e.g., `wedge` extracted from both `pg-do-things/` and `blank-4-steps/`). By default, distill no longer auto-merges across sources; merge is the founder-invoked operation when same-slug entities should be CONSOLIDATED into one canonical page citing all original sources. The semantics of `--undo`, soft-delete, and citation rewiring all carry over unchanged from v3.0.
 
 ## When this skill runs
 
@@ -27,7 +31,7 @@ description: |
 
 - UPDATE `ops.knowledge_extractions SET derived_page_id = <canonical_id> WHERE derived_page_id = <duplicate_id>` (rewire)
 - UPDATE `ops.knowledge_pages SET deleted_at = now() WHERE slug = <duplicate_slug>` (soft-delete)
-- DELETE wiki/<page_type>/<duplicate_slug>.md file from filesystem (canonical at canonical path stays)
+- DELETE `wiki/<source-slug-loser>/<page_type>s/<duplicate_slug>.md` file from filesystem (v4.0 source-grouped path — when merging cross-package, the duplicate's source-slug is the "loser" package; canonical lives at the winner's source-slug path under `wiki/<source-slug-winner>/<page_type>s/<canonical_slug>.md` and stays)
 - INSERT `ops.events` row (`ritsu.wiki.merge_executed` or `ritsu.wiki.merge_undone`)
 - Append "Merged from <duplicate_slug>" line to canonical page's `## Sources cited` section
 - Re-embed canonical page (its summary now reflects merged content; embedding stale)
@@ -103,10 +107,10 @@ COMMIT;
 ```
 
 Then:
-- DELETE the wiki file at `wiki/<page_type>/<duplicate_slug>.md` (rm)
+- DELETE the wiki file at `wiki/<source-slug-loser>/<page_type>s/<duplicate_slug>.md` (rm) — v4.0 source-grouped path
 - Append to canonical page's body:
   ```markdown
-  > **Merged from** `wiki/<page_type>/<duplicate_slug>.md` (now deleted) on <date>.
+  > **Merged from** `wiki/<source-slug-loser>/<page_type>s/<duplicate_slug>.md` (now deleted) on <date>.
   > All citations from that page have been rewired to this canonical entity.
   > Undo: `/wiki merge <canonical_slug> <duplicate_slug> --undo`
   ```
@@ -183,7 +187,7 @@ Then:
 ### Step 3 — Notify founder
 
 ```
-✓ Merged wiki/<page_type>/<duplicate_slug>.md INTO wiki/<page_type>/<canonical_slug>.md
+✓ Merged wiki/<source-slug-loser>/<page_type>s/<duplicate_slug>.md INTO wiki/<source-slug-winner>/<page_type>s/<canonical_slug>.md
    Rewired N extractions.
    Canonical page now cites M total sources.
    Soft-delete: knowledge_pages.deleted_at = <ts>

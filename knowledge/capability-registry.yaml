@@ -126,6 +126,7 @@ capabilities:
       - 00029_capability_runs_root_only_unique.sql     # v2.0 Phase 0 unblock (bonus)
       - 00030_wiki_sync_v2_schema_deltas.sql           # v2.0 Sprint 2 PR1
       - 00031_wiki_distillation.sql                    # v3.0 Sprint 1 (citation spine + 4 new knowledge_pages columns + RLS)
+      - 00032_wiki_v4_source_grouped.sql               # v4.0 Sprint 1 (composite UNIQUE on derived slugs via partial indexes — source-grouped layout flip)
     notes: |
       Lineage chain (3-deep):
         911973a2 (v1.0.0, superseded 2026-05-17)
@@ -149,6 +150,18 @@ capabilities:
       evaluation per spec §0. If 0 content cites v3.0 entities by day 60,
       freeze v3.x and reopen only with paying-user-tied evidence.
       v3.0.5 + v3.1 re-trigger conditions in retrospective-v3.0.0.md §10.
+
+      v4.0 revise IN-FLIGHT (Sprint 1 lands first, 2026-05-18):
+      Layout flip from entity-type-grouped to source-grouped per
+      ops.decisions[e558913a-fb5d-444a-ab0b-305f38ce80a0] (Tier C approved
+      2026-05-18). Capability run id: f75502d4-c7b2-44c1-86a5-395b4578f93d
+      (state: implementing). Sprint 1 ships migration 00032 + skill rewrites;
+      Sprint 2 ships /wiki package cmd + wiki/_index/. Phase 8 promotion will
+      bump version → 4.0.0 and state_since/operating_since/spec_path/
+      retrospective_path accordingly. v3.0 kill criterion clock continues
+      (day-30: 2026-06-17; day-60: 2026-07-17) — v4.0 does NOT reset it.
+      Founder 7-day post-ship commitment (Muse M1): ingest ≥3 growth
+      playbooks via /wiki sync by 2026-05-25 (clock starts at Sprint 1 ship).
 
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition
