@@ -13,9 +13,9 @@ import type { CallerContext, ToolResult } from "../types.ts";
 import { MCPToolError } from "../types.ts";
 import { canReadSchema } from "../governance/role-resolver.ts";
 
-export const wikiListPagesDescription = `List wiki pages in ops.knowledge_pages, optionally filtered by page_type. \
-Inputs: { page_type?: 'concept'|'book'|'article'|'episode'|'meeting'|... (else returns all 14 page types), limit?: 1..200 (default 50) }. \
-Output: { rows: [{id, slug, page_type, title, file_path, created_at}], row_count }. \
+export const wikiListPagesDescription = `List wiki pages in ops.knowledge_pages, optionally filtered. \
+Inputs: { page_type?: 'concept'|'book'|'article'|'episode'|'meeting'|... (else returns all 13 page types), limit?: 1..200 (default 50), entity_only?: boolean (v3.0; if true, only return derived entity pages where extracted_from_source_id IS NOT NULL), include_deleted?: boolean (default false; v3.0 soft-deleted pages excluded by default) }. \
+Output: { rows: [{id, slug, page_type, title, file_path, extracted_from_source_id, legacy_v2_verbatim, review_state, deleted_at, created_at}], row_count }. \
 Read-only; respects caller's tier2_schemas_read (must include 'ops'). \
 Powers /wiki list command + agent-side wiki discovery before /wiki ask.`;
 
@@ -38,12 +38,24 @@ export const wikiListPagesInputSchema = {
       default: 50,
       description: "Cap on rows returned. Use small limits for menu-style listings.",
     },
+    entity_only: {
+      type: "boolean",
+      default: false,
+      description: "v3.0: if true, only return derived entity pages (extracted_from_source_id IS NOT NULL). Useful for browsing the distilled knowledge graph.",
+    },
+    include_deleted: {
+      type: "boolean",
+      default: false,
+      description: "v3.0: if true, include soft-deleted pages (deleted_at IS NOT NULL). Default false excludes merged-loser pages from /wiki merge.",
+    },
   },
 } as const;
 
 interface WikiListPagesInput {
   page_type?: string;
   limit?: number;
+  entity_only?: boolean;
+  include_deleted?: boolean;
 }
 
 function parseInput(raw: unknown): WikiListPagesInput {
@@ -64,6 +76,8 @@ function parseInput(raw: unknown): WikiListPagesInput {
     }
     out.limit = obj.limit;
   }
+  out.entity_only = obj.entity_only === undefined ? false : Boolean(obj.entity_only);
+  out.include_deleted = obj.include_deleted === undefined ? false : Boolean(obj.include_deleted);
   return out;
 }
 
@@ -84,12 +98,18 @@ export async function handleWikiListPages(
   let q = client
     .schema("ops")
     .from("knowledge_pages")
-    .select("id, slug, page_type, title, file_path, created_at")
+    .select("id, slug, page_type, title, file_path, extracted_from_source_id, legacy_v2_verbatim, review_state, deleted_at, created_at")
     .order("created_at", { ascending: false })
     .limit(args.limit ?? 50);
 
   if (args.page_type) {
     q = q.eq("page_type", args.page_type);
+  }
+  if (args.entity_only) {
+    q = q.not("extracted_from_source_id", "is", null);
+  }
+  if (!args.include_deleted) {
+    q = q.is("deleted_at", null);
   }
 
   const { data, error } = await q;

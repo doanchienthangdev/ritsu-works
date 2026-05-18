@@ -81,12 +81,15 @@ describe("validate-wiki-integrity v0.2 (wiki-sync v3.0 Sprint 1)", () => {
     );
     const result = JSON.parse(r.stdout ?? "");
     expect(result.db_checks).toBeTruthy();
-    expect(result.db_checks.v3_invariants_contracted).toBeInstanceOf(Array);
-    expect(result.db_checks.v3_invariants_contracted.length).toBeGreaterThanOrEqual(3);
-    const all = result.db_checks.v3_invariants_contracted.join("\n");
-    expect(all).toContain("v3_citation_integrity");
-    expect(all).toContain("v3_extraction_fk_consistency");
-    expect(all).toContain("v3_dedup_consistency");
+    // v3.0.5: db_checks is now executed live via runAllDbChecks. Shape:
+    //   { status: 'executed', timestamp, invariants: { D4_..., D5_..., D6_... }, total_violations }
+    // Each invariant entry is { violations, sample } OR { error, message }
+    // depending on whether subprocess succeeded.
+    expect(result.db_checks.status).toBe("executed");
+    expect(result.db_checks.invariants).toBeTruthy();
+    expect(result.db_checks.invariants).toHaveProperty("D4_citation_integrity");
+    expect(result.db_checks.invariants).toHaveProperty("D5_extraction_fk_consistency");
+    expect(result.db_checks.invariants).toHaveProperty("D6_dedup_consistency");
   });
 });
 
@@ -259,5 +262,120 @@ describe("Tier 1 yaml declarations for v3.0", () => {
     expect(flags).toContain("wiki_sync_distill_enabled");
     expect(flags).toContain("wiki_sync_review_queue_telegram_digest");
     expect(flags).toContain("wiki_sync_attribution_watcher");
+  });
+});
+
+// ============================================================================
+// v3.0.5 patch — Batch C (cron entries + minion-worker stubs)
+// ============================================================================
+
+describe("v3.0.5 cron + minion-worker handlers (Batch C)", () => {
+  it("schedules.yaml declares wiki-embeddings-backfill + wiki-review-queue-digest", () => {
+    const sched = readFileSync(join(REPO, "knowledge/schedules.yaml"), "utf-8");
+    expect(sched).toContain("id: wiki-embeddings-backfill");
+    expect(sched).toContain("id: wiki-review-queue-digest");
+  });
+
+  it("minion-worker SKILL_REGISTRY pairs both v3.0.5 cron entries with handlers", () => {
+    const mw = readFileSync(
+      join(REPO, "supabase/functions/minion-worker/index.ts"),
+      "utf-8"
+    );
+    expect(mw).toContain('"wiki-embeddings-backfill":');
+    expect(mw).toContain('"wiki-review-queue-digest":');
+  });
+
+  it("economic-architecture.md documents v3.0 wiki-distill-* task_kinds", () => {
+    const econ = readFileSync(
+      join(REPO, "knowledge/economic-architecture.md"),
+      "utf-8"
+    );
+    expect(econ).toContain("wiki-distill-pdf");
+    expect(econ).toContain("wiki-distill-folder");
+    expect(econ).toContain("wiki-ingest-verbatim");
+    expect(econ).toContain("wiki-dedup-batch");
+    expect(econ).toContain("wiki-review-batch");
+  });
+});
+
+// ============================================================================
+// v3.0.5 patch — Batch A (wiki-ask + wiki-list-pages updates)
+// ============================================================================
+
+describe("v3.0.5 MCP tool updates (Batch A)", () => {
+  it("wiki-ask.ts v0.2 entity-first description references Muse M5 citation format", () => {
+    const src = readFileSync(
+      join(REPO, "mcp-server/src/tools/wiki-ask.ts"),
+      "utf-8"
+    );
+    expect(src).toContain("entity-first");
+    expect(src).toContain("Muse M5");
+    expect(src).toContain("text-embedding-3-small");
+    expect(src).toMatch(/embedQuestion/);
+  });
+
+  it("wiki-ask.ts v0.2 falls back gracefully if OPENAI_API_KEY absent", () => {
+    const src = readFileSync(
+      join(REPO, "mcp-server/src/tools/wiki-ask.ts"),
+      "utf-8"
+    );
+    expect(src).toContain("OPENAI_API_KEY");
+    expect(src).toContain("embedding_search_deferred_v0_2");
+    expect(src).toContain("fallback_tools");
+  });
+
+  it("wiki-list-pages.ts v0.2 supports entity_only + include_deleted filters", () => {
+    const src = readFileSync(
+      join(REPO, "mcp-server/src/tools/wiki-list-pages.ts"),
+      "utf-8"
+    );
+    expect(src).toContain("entity_only");
+    expect(src).toContain("include_deleted");
+    expect(src).toContain('extracted_from_source_id');
+  });
+});
+
+// ============================================================================
+// v3.0.5 patch — Batch B (DB invariants D4/D5/D6 + M7 traceability)
+// ============================================================================
+
+describe("v3.0.5 validator + content-traceability (Batch B)", () => {
+  it("validate-wiki-integrity.cjs wires runAllDbChecks for --with-db mode", () => {
+    const src = readFileSync(
+      join(REPO, "scripts/cross-tier/validate-wiki-integrity.cjs"),
+      "utf-8"
+    );
+    expect(src).toContain("function runAllDbChecks");
+    expect(src).toContain("runDbCheck");
+    expect(src).toContain("D4_citation_integrity");
+    expect(src).toContain("D5_extraction_fk_consistency");
+    expect(src).toContain("D6_dedup_consistency");
+  });
+
+  it("content-traceability check script exists with day-30 + day-60 gates", () => {
+    const scriptPath = join(REPO, "scripts/wiki-sync/check-content-traceability.cjs");
+    expect(existsSync(scriptPath)).toBe(true);
+    const src = readFileSync(scriptPath, "utf-8");
+    expect(src).toContain("DAY30_SQL");
+    expect(src).toContain("WIKI_ASK_RUNS_SQL");
+    expect(src).toContain("correlateAskWithEdits");
+    expect(src).toContain("01-marketing/");
+    expect(src).toContain("02-sales/");
+  });
+});
+
+// ============================================================================
+// v3.0.5 patch — Batch D (merge --undo cleanup)
+// ============================================================================
+
+describe("v3.0.5 merge skill --undo cleanup (Batch D)", () => {
+  it("merge SKILL.md v0.2 captures extraction_ids + link_ids in merge_executed payload", () => {
+    const src = readFileSync(
+      join(REPO, "06-ai-ops/skills/wiki-sync/merge/SKILL.md"),
+      "utf-8"
+    );
+    expect(src).toContain("extraction_ids_rewired");
+    expect(src).toContain("link_ids_rewired");
+    expect(src).toMatch(/v0\.2.*v3\.0\.5/s);
   });
 });

@@ -3,8 +3,8 @@
 //
 // Source version:  1.0.0
 // Source timezone: Asia/Ho_Chi_Minh
-// Schedule count:  7
-// Generated at:    2026-05-14T08:18:13.751Z
+// Schedule count:  9
+// Generated at:    2026-05-18T05:18:05.478Z
 
 import type { ScheduleEntry } from "./dispatcher.ts";
 
@@ -73,7 +73,32 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
     "cron": "0 4 * * *",
     "description": "Cleanup completed Minion jobs > 30 days (Bài #5)",
     "skill": "minion-queue-cleaner"
+  },
+  "wiki-embeddings-backfill": {
+    "id": "wiki-embeddings-backfill",
+    "cron": "0 * * * *",
+    "description": "Backfill soft-deferred wiki embeddings (v2.0 G3 + v3.0 derived entities)",
+    "skill": "wiki-embeddings-backfill",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "requires_api": "openai",
+    "fallback": "skip_if_no_key",
+    "cost_estimate": "$0.00004 per page"
+  },
+  "wiki-review-queue-digest": {
+    "id": "wiki-review-queue-digest",
+    "cron": "0 9 * * *",
+    "description": "Daily digest of pending_review extraction count (v3.0 Tier B)",
+    "skill": "wiki-review-queue-digest",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "fallback": "no_notification",
+    "cost_estimate": "$0 per run (DB read + Telegram bot call)"
   }
 };
 
-export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","data-retention-scan","etl-product-dau-hourly","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check"] as const;
+export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","data-retention-scan","etl-product-dau-hourly","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;

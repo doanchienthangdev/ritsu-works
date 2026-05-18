@@ -93,6 +93,14 @@ const SKILL_REGISTRY: SkillRegistry = {
   "data-retention-scanner": makeDeferredStubHandler("data-retention-scanner not implemented yet (Bài #16)"),
   "ingestion-source-poller": makeDeferredStubHandler("ingestion-source-poller not implemented yet (Bài #18)"),
   "minion-queue-cleaner": makeDeferredStubHandler("minion-queue-cleaner not implemented yet"),
+  // === Wiki-sync v3.0.5 cron handler stubs ===
+  // Both added 2026-05-18 to satisfy L2 paired-handler validator. Real
+  // implementations defer to v3.1 OR founder manual invocation:
+  //   wiki-embeddings-backfill: founder runs
+  //     `node scripts/sync/backfill-wiki-embeddings.cjs` manually for now
+  //   wiki-review-queue-digest: founder runs `/wiki review` interactively
+  "wiki-embeddings-backfill": makeDeferredStubHandler("wiki-embeddings-backfill stub: needs OpenAI dep + scripts/sync/backfill-wiki-embeddings.cjs v0.2 wiring. Founder may run manually in the meantime."),
+  "wiki-review-queue-digest": makeDeferredStubHandler("wiki-review-queue-digest stub: needs Telegram bot wiring. Founder runs /wiki review interactively in the meantime."),
   ...(anthropic
     ? {
         "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),

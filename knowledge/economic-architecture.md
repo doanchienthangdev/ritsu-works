@@ -182,6 +182,20 @@ Beyond the per-role monthly cap, each task_kind has a per-instance soft cap. Ini
 | monthly-learning-review | $3.00 | |
 | code-review | $0.30 | |
 | etl-sync | $0.05 | |
+| **wiki-distill-pdf** | $2.00 | v3.0; per-PDF chunk-split + extract |
+| **wiki-distill-folder** | $15.00 (Tier B confirm above $5) | v3.0; raised per Muse M6 — 20-paper growth corpus ≈ $10 expected |
+| **wiki-distill-other** | $0.50 | v3.0; URL/Markdown/YouTube/meeting distill |
+| **wiki-ingest-verbatim** | $0.30 | v3.0; `--verbatim` flag (v2.0 fallback path) |
+| **wiki-review-batch** | $0.20 | v3.0; one `/wiki review` session |
+| **wiki-dedup-batch** | $0.30 | v3.0; per-source dedup pass (OpenAI embedding cost) |
+| **wiki-merge** | $0.05 | v3.0; mostly DB rewires |
+| **wiki-ask** | $0.10 | v3.0; question embedding + retrieval; synthesis done by caller LLM |
+| **wiki-audit** | $0.50 | v3.0 (unchanged from v2.0); 9 checks including 4 v3.0 distill-aware |
+
+DEPRECATED wiki task_kinds (kept for transition window through v3.1; auto-mapped at hook level):
+- `wiki-ingest-pdf` ($1.00) → `wiki-distill-pdf` (default) OR `wiki-ingest-verbatim` (`--verbatim`)
+- `wiki-ingest-other` ($0.30) → `wiki-distill-other` OR `wiki-ingest-verbatim`
+- `wiki-ingest-folder` ($2.00) → `wiki-distill-folder` (raised to $15)
 
 Per-instance soft cap = task itself triggers escalation if estimated cost exceeds threshold mid-run (not just total monthly). This catches the "single bug looped task" scenario.
 
