@@ -76,6 +76,30 @@ function kebabCase(str) {
     .slice(0, 60);
 }
 
+// v4.2: namespace conflict resolution. Given a desired namespace folder name,
+// returns the first available variant under `wiki/`. If `wiki/<desired>/`
+// already exists, tries `<desired>-1`, `<desired>-2`, ..., up to MAX_SUFFIX.
+// Caller passes the absolute wiki/ root.
+const NAMESPACE_MAX_SUFFIX = 100;
+function resolveNamespace(wikiRootAbs, desiredName) {
+  const slug = kebabCase(desiredName);
+  if (!slug) {
+    throw new Error('resolveNamespace: empty slug after kebab-case of ' + JSON.stringify(desiredName));
+  }
+  let candidate = slug;
+  let suffix = 0;
+  while (fs.existsSync(path.join(wikiRootAbs, candidate))) {
+    suffix++;
+    if (suffix > NAMESPACE_MAX_SUFFIX) {
+      throw new Error(
+        `resolveNamespace: too many conflicts for '${slug}' under wiki/ (tried up to ${slug}-${NAMESPACE_MAX_SUFFIX})`,
+      );
+    }
+    candidate = `${slug}-${suffix}`;
+  }
+  return { namespace: candidate, was_renamed: suffix > 0, original: slug, suffix };
+}
+
 function parseFrontmatter(text) {
   // Match leading --- ... --- YAML block
   const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
@@ -149,19 +173,26 @@ function ingestMarkdown(absPath, opts = {}) {
     source_ref: sourceRefRel,
     source_hash: sourceHash,
     ingested_at: ingestedAt,
-    generated_by: 'wiki-sync v4.0 cli-helper',
+    generated_by: 'wiki-sync v4.2 cli-helper',
   };
 
-  // v4.0 source-grouped layout: every ingested markdown file becomes a source
-  // RECORD at wiki/<source-slug>/source.md (or, when nested under a folder
-  // adapter, at wiki/<parent-col-slug>/<child-slug>/source.md). The
-  // frontmatter `type` is captured but does NOT control the folder anymore
-  // (distill, NOT ingest, creates derived entity pages under
-  // wiki/<source-slug>/<page_type>s/).
-  const sourceSlug = opts.parentColSlug
-    ? path.join(opts.parentColSlug, slug)
-    : slug;
-  const wikiPathRel = path.join('wiki', sourceSlug, 'source.md');
+  // v4.2: namespace prefix becomes the top-level wiki/ folder. opts.pathPrefix
+  // is the precomputed prefix (relative to wiki/) that contains the resolved
+  // namespace + optional package slug for folder-adapter children:
+  //   - Single file ingest: opts.pathPrefix = '<namespace>'
+  //     → wiki/<namespace>/source.md
+  //   - Folder single-package mode (1 leaf @ depth 0, ns == col_slug):
+  //     opts.pathPrefix = '<namespace>/<file-slug>'
+  //     → wiki/<namespace>/<file-slug>/source.md  (collapsed; package == namespace)
+  //   - Folder multi-package mode (multiple leaves OR leaf deeper than root):
+  //     opts.pathPrefix = '<namespace>/<col-slug>/<file-slug>'
+  //     → wiki/<namespace>/<col-slug>/<file-slug>/source.md
+  // Backward compat (no opts.pathPrefix passed): treat slug as the namespace
+  // (matches v4.0/v4.1 single-file behavior — wiki/<slug>/source.md).
+  const pathPrefix = opts.pathPrefix
+    ? opts.pathPrefix
+    : (opts.parentColSlug ? path.join(opts.parentColSlug, slug) : slug);
+  const wikiPathRel = path.join('wiki', pathPrefix, 'source.md');
   const wikiPathAbs = path.join(REPO_ROOT, wikiPathRel);
 
   fs.mkdirSync(path.dirname(wikiPathAbs), { recursive: true });
@@ -309,8 +340,24 @@ function ingestFolder(absPath, opts = {}) {
     };
   }
 
-  // For each discovered package (= folder containing files), ingest its files
-  // as children of that folder's slug. v4 layout: wiki/<col-slug>/<child-slug>/source.md.
+  // v4.2: resolve namespace. Default = slugify(input basename). Auto-suffix
+  // -1, -2, … if `wiki/<name>/` already exists. CLI override via --out=<name>.
+  const wikiRootAbs = path.join(REPO_ROOT, 'wiki');
+  const desiredNamespace = opts.out ? opts.out : path.basename(absPath);
+  const namespaceInfo = resolveNamespace(wikiRootAbs, desiredNamespace);
+  const namespace = namespaceInfo.namespace;
+
+  // Collapse rule: if BFS produced exactly 1 leaf at depth 0 (i.e. the input
+  // root itself with NO subfolders), AND its derived col_slug matches the
+  // resolved namespace, treat it as single-package mode → no inner col_slug
+  // layer in the output paths. Files land at wiki/<namespace>/<file>/source.md.
+  // Otherwise multi-package mode: each package nests at
+  // wiki/<namespace>/<col-slug>/<file>/source.md.
+  const isSinglePackage =
+    packages.length === 1 &&
+    packages[0].depth === 0 &&
+    kebabCase(path.basename(packages[0].folderPath)) === namespaceInfo.original;
+
   const packagesOut = [];
   const allChildren = [];
   const allSkipped = [];
@@ -334,13 +381,16 @@ function ingestFolder(absPath, opts = {}) {
       }
       const childSlugBase = childFm.slug || kebabCase(path.basename(fileName, ext));
 
-      // v4 source-grouped folder layout: children land at
-      // wiki/<colSlug>/<childSlug>/source.md.
-      // Composite UNIQUE (extracted_from_source_id, slug) makes same-slug
-      // children across different folder packages legitimate.
+      // v4.2 path prefix construction:
+      //   single-package mode: <namespace>/<file-slug>
+      //   multi-package mode:  <namespace>/<col-slug>/<file-slug>
+      const pathPrefix = isSinglePackage
+        ? path.join(namespace, childSlugBase)
+        : path.join(namespace, colSlug, childSlugBase);
+
       const childResult = ingestMarkdown(filePath, {
         slugOverride: childSlugBase,
-        parentColSlug: colSlug,
+        pathPrefix,
       });
       if (childResult.error) {
         pkgSkipped.push({
@@ -360,6 +410,9 @@ function ingestFolder(absPath, opts = {}) {
       file_count: pkg.files.length,
       succeeded: pkgChildren.length,
       skipped: pkgSkipped.length,
+      wiki_package_root: isSinglePackage
+        ? path.join('wiki', namespace)
+        : path.join('wiki', namespace, colSlug),
     });
     allChildren.push(...pkgChildren);
     allSkipped.push(...pkgSkipped);
@@ -369,6 +422,14 @@ function ingestFolder(absPath, opts = {}) {
     adapter: 'folder',
     source_kind: 'folder_collection',
     source_ref: path.relative(REPO_ROOT, absPath),
+    namespace: {
+      name: namespace,
+      requested: namespaceInfo.original,
+      was_renamed: namespaceInfo.was_renamed,
+      suffix: namespaceInfo.suffix,
+      mode: isSinglePackage ? 'single_package' : 'multi_package',
+      wiki_root: path.join('wiki', namespace),
+    },
     bfs: {
       max_depth: maxDepth,
       max_folder_nodes: maxFolderNodes,
@@ -397,21 +458,27 @@ function main() {
     console.error('');
     console.error('Flags:');
     console.error('  --slug=<override>      override the auto-derived slug (single-file mode only)');
+    console.error('  --out=<name>           (v4.2) namespace output folder name (child of wiki/).');
+    console.error('                         Default: slugify(basename(input)). Auto-suffix -1, -2, …');
+    console.error('                         if wiki/<name>/ already exists.');
     console.error('  --depth=<N>            (folder mode) max BFS depth, default 3, hard cap 10');
     console.error('  --max-nodes=<N>        (folder mode) max folder nodes visited via BFS,');
     console.error('                         default 20, hard cap 500. Files within a visited');
     console.error('                         folder are ingested wholesale.');
     console.error('');
     console.error('CLI helper for SOP-INGEST-001 file-side steps. Supports markdown adapter');
-    console.error('(single file) + folder adapter (recursive BFS since v4.1). Outputs JSON to');
-    console.error('stdout. Does NOT write to DB (caller handles via supabase-ops MCP).');
-    console.error('Capability: wiki-sync-from-refs v4.1.0 (recursive folder support).');
+    console.error('(single file) + folder adapter (recursive BFS since v4.1, namespace output');
+    console.error('since v4.2). Outputs JSON to stdout. Does NOT write to DB (caller handles).');
+    console.error('Capability: wiki-sync-from-refs v4.2.0 (namespace output folder).');
     process.exit(argv.length === 0 ? 1 : 0);
   }
 
   const input = argv[0];
   const slugMatch = argv.find((a) => a.startsWith('--slug='));
   const slugOverride = slugMatch ? slugMatch.split('=')[1] : undefined;
+
+  const outMatch = argv.find((a) => a.startsWith('--out='));
+  const outOpt = outMatch ? outMatch.split('=')[1] : undefined;
 
   const depthMatch = argv.find((a) => a.startsWith('--depth='));
   const depthOpt = depthMatch ? parseInt(depthMatch.split('=')[1], 10) : undefined;
@@ -432,13 +499,35 @@ function main() {
   if (stat.isDirectory()) {
     result = ingestFolder(absPath, {
       slugOverride,
+      out: outOpt,
       depth: depthOpt,
       maxNodes: maxNodesOpt,
     });
   } else {
     const ext = path.extname(absPath).toLowerCase();
     if (ext === '.md' || ext === '.markdown') {
-      result = ingestMarkdown(absPath, { slugOverride });
+      // v4.2: single-file ingest also respects --out for namespace.
+      // Default namespace = the file's own slug (matches v4.0/v4.1 behavior).
+      const wikiRootAbs = path.join(REPO_ROOT, 'wiki');
+      const fileSlug = slugOverride
+        || kebabCase(path.basename(absPath, ext));
+      const desiredNs = outOpt || fileSlug;
+      const nsInfo = resolveNamespace(wikiRootAbs, desiredNs);
+      result = ingestMarkdown(absPath, {
+        slugOverride: fileSlug,
+        pathPrefix: nsInfo.namespace,
+      });
+      // Attach namespace info to result for caller visibility (matches folder mode shape)
+      if (result && !result.error) {
+        result.namespace = {
+          name: nsInfo.namespace,
+          requested: nsInfo.original,
+          was_renamed: nsInfo.was_renamed,
+          suffix: nsInfo.suffix,
+          mode: 'single_file',
+          wiki_root: path.join('wiki', nsInfo.namespace),
+        };
+      }
     } else {
       result = {
         error: 'unsupported_adapter',

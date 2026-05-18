@@ -94,8 +94,67 @@ function safeReadSourceTitle(sourceSlug) {
   }
 }
 
+function safeReadSourceTitleAt(absPath) {
+  // Reads a specific source.md (by absolute path), returns frontmatter.title or basename(dir).
+  if (!fs.existsSync(absPath)) return path.basename(path.dirname(absPath));
+  try {
+    const fm = parseFrontmatter(fs.readFileSync(absPath, 'utf8'));
+    return (fm && fm.title) || path.basename(path.dirname(absPath));
+  } catch {
+    return path.basename(path.dirname(absPath));
+  }
+}
+
+function harvestPackage(pkgDir, pkgSlug, entitiesByTypeName) {
+  // A "package" is a folder containing source.md. Its derived entities live
+  // under recognized type subfolders.
+  const sourceMd = path.join(pkgDir, 'source.md');
+  const sourceTitle = safeReadSourceTitleAt(sourceMd);
+
+  const entries = fs.readdirSync(pkgDir, { withFileTypes: true });
+  const typeSubdirs = entries.filter(
+    (e) => e.isDirectory() && Object.prototype.hasOwnProperty.call(TYPE_FOLDERS_TO_TYPE, e.name),
+  );
+
+  for (const td of typeSubdirs) {
+    const pageType = TYPE_FOLDERS_TO_TYPE[td.name];
+    const typeDir = path.join(pkgDir, td.name);
+    const files = fs.readdirSync(typeDir, { withFileTypes: true });
+    for (const f of files) {
+      if (!f.isFile()) continue;
+      if (!f.name.endsWith('.md')) continue;
+      const entitySlug = f.name.replace(/\.md$/, '');
+      const filePath = path.relative(REPO_ROOT, path.join(typeDir, f.name));
+      const fm = parseFrontmatter(fs.readFileSync(path.join(typeDir, f.name), 'utf8'));
+      const canonicalNames = [entitySlug];
+      if (FLAGS.aliasResolve && fm && Array.isArray(fm.aliases)) {
+        for (const a of fm.aliases) {
+          const aSlug = String(a).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          if (aSlug && aSlug !== entitySlug) canonicalNames.push(aSlug);
+        }
+      }
+      for (const name of canonicalNames) {
+        const key = pageType + '::' + name;
+        if (!entitiesByTypeName.has(key)) entitiesByTypeName.set(key, []);
+        entitiesByTypeName.get(key).push({
+          source_slug: pkgSlug,
+          source_title: sourceTitle,
+          entity_slug: entitySlug,
+          file_path: filePath,
+          page_type: pageType,
+        });
+      }
+    }
+  }
+}
+
 function walkPackages() {
-  // Returns { entitiesByTypeName: { '<type>::<name>': [ {source_slug, source_title, entity_slug, file_path}, ... ] } }
+  // v4.2-aware walker. Two layout modes per top-level wiki/<X>/:
+  //   - single-package: wiki/<X>/source.md exists → X is a package
+  //   - multi-package (namespace): wiki/<X>/<Y>/source.md exists → X is a
+  //     namespace; each Y is a package
+  // The two modes are mutually exclusive at a given level: if source.md is at
+  // the top, we DON'T also recurse into subfolders looking for packages.
   const entitiesByTypeName = new Map();
 
   if (!fs.existsSync(WIKI_DIR)) {
@@ -110,51 +169,24 @@ function walkPackages() {
     if (top.name === 'capabilities') continue;
     if (top.name.startsWith('.') || top.name.startsWith('_')) continue;
 
-    const sourceSlug = top.name;
-    const pkgDir = path.join(WIKI_DIR, sourceSlug);
-    const pkgEntries = fs.readdirSync(pkgDir, { withFileTypes: true });
+    const topAbs = path.join(WIKI_DIR, top.name);
+    const topEntries2 = fs.readdirSync(topAbs, { withFileTypes: true });
 
-    // Verify it looks like a v4 source package: has source.md OR a recognized type subfolder
-    const hasSourceMd = pkgEntries.some((e) => e.isFile() && e.name === 'source.md');
-    const typeSubdirs = pkgEntries.filter(
-      (e) => e.isDirectory() && Object.prototype.hasOwnProperty.call(TYPE_FOLDERS_TO_TYPE, e.name),
-    );
-    if (!hasSourceMd && typeSubdirs.length === 0) continue;
+    const hasSourceMd = topEntries2.some((e) => e.isFile() && e.name === 'source.md');
 
-    const sourceTitle = safeReadSourceTitle(sourceSlug);
+    if (hasSourceMd) {
+      // single-package mode (v4.0/v4.1 legacy or v4.2 collapsed)
+      harvestPackage(topAbs, top.name, entitiesByTypeName);
+      continue;
+    }
 
-    for (const td of typeSubdirs) {
-      const pageType = TYPE_FOLDERS_TO_TYPE[td.name];
-      const typeDir = path.join(pkgDir, td.name);
-      const files = fs.readdirSync(typeDir, { withFileTypes: true });
-      for (const f of files) {
-        if (!f.isFile()) continue;
-        if (!f.name.endsWith('.md')) continue;
-        const entitySlug = f.name.replace(/\.md$/, '');
-        const filePath = path.relative(
-          REPO_ROOT,
-          path.join(typeDir, f.name),
-        );
-        const fm = parseFrontmatter(fs.readFileSync(path.join(typeDir, f.name), 'utf8'));
-        const canonicalNames = [entitySlug];
-        if (FLAGS.aliasResolve && fm && Array.isArray(fm.aliases)) {
-          for (const a of fm.aliases) {
-            const aSlug = String(a).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            if (aSlug && aSlug !== entitySlug) canonicalNames.push(aSlug);
-          }
-        }
-        for (const name of canonicalNames) {
-          const key = pageType + '::' + name;
-          if (!entitiesByTypeName.has(key)) entitiesByTypeName.set(key, []);
-          entitiesByTypeName.get(key).push({
-            source_slug: sourceSlug,
-            source_title: sourceTitle,
-            entity_slug: entitySlug,
-            file_path: filePath,
-            page_type: pageType,
-          });
-        }
-      }
+    // multi-package mode (v4.2 namespace): each subdirectory with source.md is a package
+    const subdirs = topEntries2.filter((e) => e.isDirectory() && !e.name.startsWith('.') && !e.name.startsWith('_'));
+    for (const sub of subdirs) {
+      const subAbs = path.join(topAbs, sub.name);
+      const subHasSource = fs.existsSync(path.join(subAbs, 'source.md'));
+      if (!subHasSource) continue;
+      harvestPackage(subAbs, sub.name, entitiesByTypeName);
     }
   }
   return entitiesByTypeName;

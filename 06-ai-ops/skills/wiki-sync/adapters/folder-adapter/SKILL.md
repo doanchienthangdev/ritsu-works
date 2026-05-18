@@ -5,11 +5,14 @@ description: |
   path, traverses the folder tree via breadth-first search (BFS) and
   dispatches each leaf folder's files to its matching sibling adapter
   (markdown/pdf/url/youtube/meeting). v4.0: each leaf folder becomes its
-  own wiki/<col-slug>/ source-grouped package; children land at
-  wiki/<col-slug>/<child-slug>/source.md (composite UNIQUE on derived slugs
-  within source). v4.1: recursive subdirectories supported, bounded by
-  max_depth (default 3, hard cap 10) and max_folder_nodes (default 20,
-  hard cap 500). CLI flags: --depth=N --max-nodes=N.
+  own source-grouped package. v4.1: recursive subdirectories supported,
+  bounded by max_depth (default 3, hard cap 10) and max_folder_nodes
+  (default 20, hard cap 500). v4.2: ALL output nests under a namespace
+  folder at wiki/<namespace>/ — namespace defaults to slugify(basename(input))
+  with auto-suffix `-1`, `-2`, … on conflict; CLI override via --out=<name>.
+  Multi-package mode: wiki/<namespace>/<col-slug>/source.md. Single-package
+  collapse: wiki/<namespace>/<file>/source.md (when BFS finds 1 leaf == root
+  AND col_slug == namespace).
 ---
 
 # wiki-sync / adapters / folder-adapter (Sprint 2 PR3 baseline — v2.0.0)
@@ -32,6 +35,7 @@ wiki target for children: `wiki/<col-slug>/<child-slug>/source.md` (v4.0 source-
 - `force` — bool; passed through to each child ingestion
 - `depth` — int, optional. **v4.1** BFS max depth (root folder = depth 0). Default 3. Hard cap 10. CLI: `--depth=N`.
 - `max_nodes` — int, optional. **v4.1** BFS folder-node budget (max folders visited). Default 20. Hard cap 500. Files within a visited folder are ingested wholesale (no per-file cap). CLI: `--max-nodes=N`.
+- `out` — string, optional. **v4.2** namespace output folder name (child of `wiki/`). Default: slugify(basename(input)). Auto-suffix `-1`, `-2`, … if `wiki/<name>/` already exists. CLI: `--out=<name>`.
 
 ## Process
 
@@ -77,11 +81,24 @@ while queue not empty:
 
 If `packages.length === 0` after traversal: bail `empty_tree` with the depth/node budget settings included in the error for context.
 
+### Step 2.5 — Resolve namespace (v4.2)
+
+After BFS finds packages, resolve the namespace folder name:
+
+- `namespace = slugify(--out value)` if `--out` flag passed, else `slugify(basename(input))`.
+- If `wiki/<namespace>/` already exists, try `<namespace>-1`, `<namespace>-2`, … up to `<namespace>-100`. Bail with `namespace_too_many_conflicts` if all 100 suffixes taken.
+- Record the resolved namespace + whether it was renamed (`was_renamed`, `suffix`) in the output for caller visibility.
+
+Then determine layout mode:
+
+- **Single-package mode** (collapse): if BFS produced exactly 1 leaf folder at depth 0 (i.e. the input root itself with NO subfolders) AND `kebab-case(basename(input)) === namespace_original`, files land at `wiki/<namespace>/<file>/source.md` — no inner col_slug layer. Used for simple input folders.
+- **Multi-package mode**: any other case. Files land at `wiki/<namespace>/<col-slug>/<file>/source.md` per BFS-discovered leaf folder.
+
 > **Per-package processing (Steps 3-7 below):** Run Steps 3-7 once for EACH
-> package returned by BFS. Each leaf folder becomes its own
-> `wiki/<col-slug>/` source-grouped package; its files become children at
-> `wiki/<col-slug>/<child-slug>/source.md`. Cross-package cross-paper
-> aggregation (Step 7b) runs ONCE at the end across all packages.
+> package returned by BFS. Output paths use `wiki/<namespace>/<col-slug>/` or
+> `wiki/<namespace>/` depending on layout mode (see Step 2.5).
+> Cross-package cross-paper aggregation (Step 7) runs ONCE at the end
+> across all packages.
 
 ### Step 3.A — Derive collection slug (per-package)
 
