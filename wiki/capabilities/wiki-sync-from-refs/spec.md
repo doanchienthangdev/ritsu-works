@@ -1,162 +1,84 @@
-# Wiki Sync from External Refs — Architecture Spec v3.0.0
+# Wiki Sync from External Refs — Architecture Spec v4.0.0
 
 **Capability:** `wiki-sync-from-refs`
-**Version:** 3.0.0 (revise of v2.0.0; supersedes_id `638811f8-94d0-4fc8-8d61-dcf6db6a74c7`)
+**Version:** 4.0.0 (revise of v3.0.0; supersedes_id `36836749-06f7-48e8-8a31-f5a3f2e401a1`)
 **Phase:** 5 (architect; Tier C — pending founder approval)
-**Author:** /cla revise session `ff5e2a89-3877-45ea-a27a-171a64a3003d` (2026-05-18)
-**Selected option:** **B (full 4-entity) + all 7 CTO NITs** (founder reconsidered after Phase 4 cabinet DEFER; new S1 evidence resolves PMF concern)
-**Status:** DRAFT — pending @cto sanity review + Muse high-stakes-decision-panel + Tier C founder approval
+**Author:** `/cla revise` session `caf0cd84-af27-45e0-807d-e15912ebb926` (resumed from prior session `f55023d9-...` after force-unlock 2026-05-18T08:04Z)
+**Selected option:** **B (source-grouped layout + reverse-lookup `wiki/_index/`)** per Phase 4 decision `ed521734-8ed0-4b71-9fa0-14df3d9277b8`.
+**Status:** DRAFT — pending @cto sanity review + Muse high-stakes-decision-panel + Tier C founder approval.
 
 ---
 
 ## 0. FINAL DISPOSITION (pending Tier C founder approval)
 
-Reviews completed 2026-05-18:
-- @cto: **APPROVE-WITH-NITS** — [cto-review.md](./cto-review.md). All 7 prior CTO NITs honored Y/Y/Y/Y/Y/Y/Y; 6 P2/P3 tweaks added + 1 hard fix (ROLES.md drift).
-- @oracle (Muse high-stakes-decision-panel substitute): **PROCEED-WITH-NITS** — [muse-panel.md](./muse-panel.md). 8 NITs (M1-M8); falsifiability gates required; ethical-compass A11 axis added.
-
-Final commitments (this disposition supersedes any conflicting §1-§7 text):
-
 ### Selected option
 
-**Option B (full 4-entity) + all 7 prior CTO NITs + 6 CTO P2/P3 tweaks + Muse NITs M1, M2, M3, M4, M5, M6, M8** (M7 = `content_traceability` link type deferred to v3.0.5 — not blocking). The growth-content-prep S1 evidence is the founder's stated rationale; the kill criterion below (M1) makes that claim falsifiable.
+**Option B (source-grouped + `_index/`)** per Phase 4. Phase 5 settles 5 open sub-decisions with the recommended values from `revision-options.md` "What Phase 5 must decide":
 
-### Cost-cap audit (Muse M6 applied)
-
-| Task kind | v3.0 cap | Tier B threshold | Notes |
+| # | Sub-decision | Recommended | Adopted in this spec |
 |---|---|---|---|
-| `wiki-distill-pdf` | $2.00 | — (auto) | PDF distill per source |
-| `wiki-distill-folder` | **$15.00** (raised from $5) | **$5.00** | A 20-paper growth corpus at $0.50/paper avg = ~$10 expected; cap accommodates founder's stated use case |
-| `wiki-distill-other` | $0.50 | — | URL/Markdown/YouTube/meeting |
-| `wiki-ingest-verbatim` | $0.30 | — | `--verbatim` flag invocations |
-| `wiki-review-batch` | $0.20 | — | One `/wiki review` session |
-| `wiki-dedup-batch` | $0.30 | — | Per-source dedup pass |
-| `wiki-ask` | $0.10 | — | Unchanged |
-| `wiki-audit` | $0.50 | — | Unchanged |
-| `wiki-merge` | $0.05 | — | Mostly DB rewires |
+| 1 | Slug uniqueness | Composite UNIQUE `(extracted_from_source_id, slug)` for derived entities; global UNIQUE preserved only for source RECORDs (`extracted_from_source_id IS NULL`). | ✅ |
+| 2 | Empty plural dirs (`wiki/concepts/`, `wiki/observations/`, …) | DELETE in Phase 7; record in retrospective. | ✅ |
+| 3 | Legacy `wiki/concept/spaced-repetition.md` (no source RECORD) | Retroactively regenerate `wiki/sample/source.md` from `tests/wiki-sync/fixtures/sample.md`; cost ~$0.02. **Halt-on-divergence:** if regenerated entity slug != `spaced-repetition` exactly, migrate-to-v4 aborts before any `git mv` and surfaces choice (rename source vs keep file at v3 location). Sprint 1 fixture-pins the expected slug. | ✅ |
+| 4 | Chapter-split normalize | `wiki/<book-slug>/chapters/chapter-NN.md` (uniform with the new `concepts/`, `observations/` pattern). | ✅ |
+| 5 | Migration tool packaging | Sprint 1 PR includes: migration tool script (one-shot, idempotent) + 14-entity migration + validator updates + frontmatter rewrites. | ✅ |
 
-### Honest founder-time estimate (Muse M4 applied)
+### Decision quality stance
 
-| Item | Original spec | Honest estimate |
-|---|---|---|
-| Founder hours | 30-40h over 5 sprints | **38-50h over 5 sprints** (1.3× risk multiplier if Sprint 1 validator rework triggers downstream re-Phase-5) |
-| Calendar | 6-10 weeks OR compressed ~3 weeks | **7-9 weeks** (compressed-3-weeks option dropped — unrealistic given parallel customer-pillar work) |
-| LLM setup + impl cost | $20-27 | $22-30 (same range; honest upper end) |
+This revise is **scope-contained** (file paths + 1 DDL change + skill template rewrites). No new system pieces (no new MCP servers, no new pillars, no new SOPs, no new cost-buckets). All v3.0 semantics carry forward unchanged (distill+extract, per-type model picker, citation spine, license inheritance, kill criterion clock).
 
-### HARD KILL CRITERION (Muse M1 applied — load-bearing for whether S1 was real)
+### Reversibility
 
-> **If by day 30 post-promotion there are < 5 growth-domain `/wiki sync` invocations AND by day 60 post-promotion there are 0 `01-marketing/` or `02-sales/` content pieces citing a v3.0-extracted entity, FREEZE further v3.x investment. Reopen `/cla revise wiki-sync-from-refs` only with paying-user-tied evidence that includes explicit acknowledgment of why v3.0 didn't get used.**
+File paths are data, not contracts. If v4.0 fails the use-case check, a v5 revise can revert the migration. But:
 
-This is not "Phase 8 retro will honestly reflect" — it is an automatic decision gate. `10-metrics/alerting/` SOP will fire a Tier B Telegram at day 30 (`ingest_count` check) and day 60 (`content_cite_count` check). If either gate fails, capability state transitions to `frozen` (new state to add in migration 00031 OR document as `state_payload.frozen_at = ts`).
+- The composite UNIQUE constraint is sticky — reverting requires `DROP CONSTRAINT` + global re-uniqueness check.
+- 30-day soft-deprecation window for any downstream consumer that hardcoded v3.0 paths.
+- Today's downstream consumer count: **0 production callers** (per `revision-gap-analysis.md` §J). Skills that reference `wiki/<type>/` paths are all within the wiki-sync capability itself and get rewritten in Sprint 1.
 
-### Sprint 0 — MANUAL WORKFLOW VALIDATION (Muse M3 applied — BEFORE Sprint 1 starts)
+### Cost summary
 
-Before any code work on v3.0, founder spends **~2h** doing the distill-then-write workflow MANUALLY on ONE real growth playbook:
-1. Read a 50-page growth playbook PDF (founder-chosen — preferably already in their reading queue)
-2. Hand-extract ≥ 5 concepts + ≥ 3 observations + ≥ 2 decisions to a Markdown file
-3. Use those extracted items to write a content paragraph (blog draft, social post, sales-page line — founder-chosen)
-4. Write findings to `.archives/cla/wiki-sync-from-refs-revise-ff5e2a89/manual-workflow-test.md`:
-   - Time spent at each step
-   - Bottleneck identification: was the EXTRACTION the slow part? Or playbook selection? Or content writing itself?
-   - Confidence: would automating extraction realistically save you 3-5h on the next playbook?
-
-**Gate:** if manual extraction takes < 30 min on the 50-page playbook (i.e., the bottleneck is NOT distillation), v3.0 premise weakens. Re-confirm Phase 5 disposition with founder before Sprint 1 starts. Cost: 2h founder; if it kills v3.0, saves 35-50h.
-
-### Attribution discipline — NEW axis A11 (Muse M2 + M5 applied)
-
-| A11 sub-item | Commitment |
+| Item | Estimate |
 |---|---|
-| Source RECORD frontmatter | NEW field `license_status` enum: `{public_domain, creative_commons, fair_use_excerpt, copyrighted_internal_only}`. Distill skill prompts founder via AskUserQuestion on first ingest of a source if not auto-inferable from source_kind |
-| `/wiki ask` retrieval citation format | UPDATED — MUST include original source title, not just wiki slug. Format: `"<extracted_quote>" — extracted from [Hooked by Nir Eyal, ch. 4](wiki/books/hooked.md#chunk-7), confidence 0.92` |
-| Copyrighted-source content trigger | When a `copyrighted_internal_only` source contributes ≥ 3 extracted observations to a single content draft (correlation via `01-marketing/` or `02-sales/` file edit ±10 min after `/wiki ask`), Tier B Telegram heads-up fires to founder per `growth-orchestrator` role's brand-voice review discipline. Skill: NEW `wiki-sync/attribution-watcher/SKILL.md` (Sprint 4) |
-| Audit | `/wiki audit` checks: every source RECORD has `license_status` set; no `copyrighted_internal_only` source has > 5 extractions in `knowledge_extractions` without founder review |
+| Sprint 1 (migration + skill rewrites + validators + dir cleanup) | ~6-8h founder, ~$3-4 LLM |
+| Sprint 2 (`_index/` rebuild skill + `--source` flag on `/wiki ask` + `/wiki package` cmd) | ~3-4h founder, ~$1-2 LLM |
+| Phase 8 promotion + retro | ~2h founder, ~$0.50 LLM |
+| **Total** | **~11-14h founder, ~$4.50-6.50 LLM** |
 
-### Sprint-order enforcement strategy (CTO 3-layer)
+This is a smaller revise than v3.0 (which was ~42-52h / $23-30). v4.0 is path-rearrangement plus 1 DDL, not a semantic flip.
 
-Sprint 1 (validators + migration 00031) MUST land before Sprint 2 (distill skill). Three layers of enforcement:
+### Kill criterion (carries from v3.0)
 
-1. **Sprint plan declares dependency:** `wiki/capabilities/wiki-sync-from-refs/sprint-plan.md` (Phase 6 output) has `sprint_2.depends_on: [sprint_1]` in its frontmatter. Phase 6 sprint-planner enforces this in its template.
-2. **Sprint 2 PR CI gate:** Sprint 2 PR's CI step runs a 3-line grep check that `scripts/cross-tier/validate-wiki-integrity.cjs` exists AND contains the literal string `extracted_from_source_id IS NOT NULL`. If absent → CI fails → PR cannot merge.
-3. **Optional @cto subagent review:** Sprint 2 PR open triggers @cto review with explicit instruction to verify Sprint 1 validators are merged.
+The v3.0 kill criterion (< 5 growth-domain `/wiki sync` invocations by day 30 OR 0 `01-marketing/`/`02-sales/` content citing extracted entities by day 60 → freeze v3.x) **carries forward unchanged**. v4.0 does not reset the clock — it inherits the day-30 / day-60 evaluation that began at v3.0 promotion (2026-05-18). If the kill criterion fires before v4.0 ships, v4.0 work pauses and the kill criterion supersedes.
 
-Minimum bar: (1) + (2). Layer (3) is optional but recommended.
+### Risk register (top 3, see also §6)
 
-### CTO P2/P3 tweaks applied to migration 00031 + spec
-
-1. Migration 00031 header comment: explain asymmetric `link_type` CHECK on `knowledge_extractions` (constrained to 4 `extracted_*` values) vs `knowledge_links.link_type` (free-text) — different design intent.
-2. Block C backfill: `RAISE NOTICE` → `RAISE WARNING` so Sprint 1 reviewer sees the line in CI output, not just psql notices.
-3. Sprint 1 PR reviewer MUST explicitly verify RLS policy `extractions_read_anon_authenticated` doesn't leak copyrighted `raw_quote` to anon — adjust policy if needed (likely `auth.role() = 'service_role' OR auth.role() = 'authenticated'` instead of TO anon).
-4. **ROLES.md drift fix (HARD):** `governance/ROLES.md` `etl-runner.tier2_schemas_write` doesn't list `ops.knowledge_*` at all (pre-existing drift from v2.0). Sprint 1 PR adds the grant: `ops.knowledge_pages`, `ops.knowledge_links`, `ops.knowledge_embeddings`, `ops.knowledge_extractions`. This is a Tier C change (governance edit) — Sprint 1 PR is a Tier C PR for this reason alone.
-5. `mcp-server/src/tools/insert.ts` allowlist collapses into ROLES.md fix — insert.ts derives allowlist from ROLES.md; no separate edit.
-6. `/wiki merge` gains `--undo` flag (Tier B preserves; without --undo it would need to be Tier C since merge is hard to reverse). Migration 00031 adds `deleted_at timestamptz NULL` column to `knowledge_pages` (additive) so `/wiki merge` soft-deletes (sets `deleted_at = now()`) and `/wiki merge --undo` clears it. Audit-trail-clean for the v3.1+ housekeeping job.
-
-### Phase 8 acceptance — Muse M8 applied (evidence cites, not subjective)
-
-`retrospective.md` v3.0 §7 MUST cite:
-- Specific `ops.agent_runs.id` row IDs for the ≥ 5 growth-domain distill invocations
-- Specific git commit SHAs or `01-marketing/` / `02-sales/` file paths for content pieces citing v3.0 entities
-- Specific `knowledge_extractions.id` rows that the content cites
-
-A subjective "yes, I felt productive" does NOT pass the gate. Phase 8 catalog-updater rejects retrospective.md if these citations are missing.
-
-### Net effect on migration 00031
-
-Adds 1 column to original draft (`deleted_at timestamptz NULL` on `knowledge_pages`). Otherwise unchanged from §3.1. RLS policy text adjusted per CTO P2/P3 #3.
-
-### Effort summary
-
-- **Sprint 0 (manual workflow validation):** ~2h founder, $0 LLM. BEFORE Sprint 1.
-- **Sprint 1 (validators + migration + ROLES.md fix + governance edits):** ~6-8h founder, ~$3 LLM. Tier C PR.
-- **Sprint 2 (distill skill + per-type model picker):** ~10-12h founder, ~$8 LLM.
-- **Sprint 3 (dedup skill + folder aggregation + embeddings-backfill update):** ~8-10h founder, ~$4 LLM.
-- **Sprint 4 (review + merge skills + attribution-watcher + ask SKILL update + audit SKILL update + MCP wiki-source tool):** ~10-12h founder, ~$5 LLM.
-- **Sprint 5 (SOP-INGEST-001 rewrite + acceptance corpus + Phase 8 promotion):** ~6-8h founder, ~$3 LLM. Tier C PR.
-- **Total:** ~42-52h founder over 5 sprints (~7-9 weeks); $23-30 LLM setup + recurring per-invocation cost.
-
-### Re-trigger conditions for v3.1+ (if kill criterion NOT triggered)
-
-- (a) `--verbatim` flag invoked < 1 time in first 30 days → auto-deprecate flag in v3.1 first PR (CTO NIT 1)
-- (b) Founder retunes confidence threshold from 0.85 to a different value 3+ times → revisit A6 in v3.0.1
-- (c) `content_traceability` telemetry from M7 lands → unlocks day-60 gate automated detection
-- (d) Real second caller (subagent / cron / hook) needs `/wiki sync` invocation → revisit Edge Function runner (G6 from v2.0)
-- (e) Per-adapter quality variance shows PDF distill consistently underperforms (< 0.7 conf majority) → consider per-adapter prompt tuning in v3.0.5
+| Risk | Probability | Mitigation |
+|---|---|---|
+| Slug collision in legacy `wiki/concept/spaced-repetition.md` if `wiki/sample/source.md` regen produces different slug | LOW | Migration tool checks first; if collision, founder picks (rename source or rename derived) via AskUserQuestion. |
+| Skills hard-code v3.0 paths somewhere outside scanned set | LOW | Phase 7 Sprint 1 PR runs `git grep "wiki/concept/"` + `wiki/observation/` + `wiki/decision/` + `wiki/idea/` + `wiki/article/` across repo and fails CI if matches remain. |
+| `/wiki ask` retrieval citation format changes break downstream consumers | NONE | No downstream consumers exist yet. |
 
 ---
 
-## 1. What's revised vs v2.0.0
+## 1. What's revised vs v3.0.0
 
-This spec inherits all of v2.0.0's domain semantics that still apply (pillar ownership `06-ai-ops`, cost-bucket `ai-ops-knowledge`, single-source-of-truth principle "ref = source, wiki = projection", citation discipline, HITL tier mapping, 3-verb conceptual model `sync/ask/audit`, slug discipline `<col-slug>__<file-slug>`, chapter splitter, embeddings backfill cron, schema migrations 00027-00030 stay applied). Only the items below are revised.
+This spec inherits all v3.0.0 semantics that still apply (pillar ownership `06-ai-ops`, cost-bucket `ai-ops-knowledge`, distill+extract semantic, per-type model picker, citation spine `ops.knowledge_extractions`, confidence 3-bucket signal, kill criterion clock, A11 attribution-watcher, all migrations 00027-00031 stay applied). Only the items below are revised.
 
-### The core semantic flip
+### The core change
 
-v1.0 + v2.0: `/wiki sync` = **ingest + index** (verbatim projection of source body + regex link extraction + vector embeddings).
-v3.0: `/wiki sync` = **distill + extract** (LLM extracts entities — concept, observation, decision, idea — into separately-projected wiki/<type>/<slug>.md pages, each with citation back to source chunk via `ops.knowledge_extractions`).
+**v3.0:** wiki layout is entity-type-grouped. `wiki/concept/`, `wiki/observation/`, `wiki/decision/`, `wiki/idea/` hold derived entities (slug globally unique). `wiki/article/`, `wiki/books/`, etc. hold source RECORDs. Optimized for cross-source dedup (graph mode).
 
-The source body itself is no longer the wiki page; the **extracted entities are**. Source becomes a thin RECORD (frontmatter + summary + pointer to `raw/` + list of derived entities). Wiki/ becomes a derived knowledge graph, not a file-projection store.
+**v4.0:** wiki layout is source-grouped. `wiki/<source-slug>/source.md` holds the source RECORD; `wiki/<source-slug>/{concepts,observations,decisions,ideas}/<entity-slug>.md` hold derived entities from that source (slug unique within source). Optimized for curated-library mode — skills/templates/workflows consume a package as a coherent input.
 
-### S1 — Why now (RESOLVED 2026-05-18)
+A thin reverse-lookup surface at `wiki/_index/<type>/<canonical-name>.md` (markdown link-list, regenerated on demand by `/wiki index rebuild`) covers the "show me all packages that mention wedge" case without resurrecting graph-mode dedup.
 
-The Phase 4 cabinet recommended DEFER on the premise that wiki-sync was internal infra alternative to PMF work. Founder added evidence 2026-05-18 that refutes the premise:
+### Founder anchor statement (verbatim from `revision-problem.md`)
 
-> "tôi cần dùng lệnh wiki này để extract + distill tri thức từ các tài liệu chuẩn đề chuẩn bị cho tìm kiếm khách hàng (việc quan trọng), đặc biệt liên quan đến growth … cái tôi cần là distill + extract được kiến thức quan trọng từ files/folders đầu vào để có thể viết các content, nội dung, plan…"
+> "triển khai input wiki files/folders tường minh để phục vụ cho ritsu-works dùng đi dùng lại nhiều lần hay giải các bài toán"
 
-Translation: "I need to use this wiki command to extract + distill knowledge from standard/reference documents to PREPARE for customer acquisition (important work), especially related to growth … What I need is to distill + extract important knowledge from input files/folders to be able to write content, copy, plans…"
+(*"Explicitly specify wiki files/folders as inputs to serve ritsu-works for repeated use or for solving specific problems."*)
 
-→ Wiki-sync v3.0 IS the PMF tool. It processes growth playbooks, customer-acquisition reference materials, sales/marketing literature into queryable concept/observation/decision/idea pages that directly accelerate founder content production. The 25-35h is not alternative-to-PMF; it is on-the-path-of-PMF. Cabinet DEFER premise dissolves.
-
-Concrete return on investment: ~1h of distill on a growth playbook PDF replaces ~5h of read-and-summarize. Cohort of 10-20 growth playbooks distilled = a knowledge graph the founder queries while writing content, instead of re-reading source material per article.
-
-### S2 — Product / Founder-Ops boundary (CONFIRM ISOLATION in v3.0)
-
-NO shared infrastructure between Ritsu PRODUCT (user-facing distillation for textbook-style learning) and wiki-sync (founder-internal growth-content-prep). Different inputs (founder growth playbooks vs user textbook chapters), different outputs (concept/observation/decision/idea vs quiz/flashcard/mindmap), different citation discipline (reference RAG vs learning recall). Re-evaluate only when product team explicitly requests a wiki-sync prompt or schema as prototype.
-
-### S3 — Scope: 4 entity types in v3.0 (CONFIRMED full per founder "đầy đủ chính xác")
-
-All 4 entity types ship in v3.0: concept, observation, decision, idea. All 4 are well-suited to growth-content-prep workflow:
-- **concept** = vocabulary (e.g., "PLG", "wedge", "ARR ramp", "ICP")
-- **observation** = empirical claims (e.g., "Companies with X traction had Y churn outcome")
-- **decision** = framework choices (e.g., "Pick wedge before brand", "Free trial > freemium for sub-$100 ACV")
-- **idea** = unfinished thoughts to revisit (e.g., "What if onboarding email cadence A vs B?")
+This makes `input = wiki/<source-slug>/` and `input = wiki/<source-slug>/concepts/` first-class skill input contracts. Phase 5 is settling the architecture to make those contracts mechanical.
 
 ---
 
@@ -164,351 +86,296 @@ All 4 entity types ship in v3.0: concept, observation, decision, idea. All 4 are
 
 | Axis | Disposition | Rationale |
 |---|---|---|
-| **A1** SOURCE PRESERVATION | **B + CTO NIT 1**: distill default; `--verbatim` flag for v2.0 behavior; **explicit v3.1 auto-deprecation trigger in this spec §0**: if `--verbatim` invoked < 1 time in first 30 days post-promotion, remove flag in v3.1 first PR | Avoids Oracle v2.0 Finding 1.1 dual-code-path anti-pattern; auto-sunset prevents permanent legacy branch |
-| **A2** ENTITY TYPES | All 4: concept + observation + decision + idea | Founder "đầy đủ chính xác"; all 4 serve growth-content-prep |
-| **A3** EXTRACTION ENGINE | Per-type model picker: Haiku for concept + idea; Sonnet for observation + decision | Concepts are noun-phrases (Haiku fine); observations + decisions need fidelity to source phrasing (Sonnet); ~$0.04-0.10 per chunk average |
-| **A4** DEDUPLICATION | Slug-equality fast path + vector similarity > 0.92 auto-merge; 0.75-0.92 → review queue (Tier B); < 0.75 = distinct | Standard pattern; threshold tunable in spec.md §0 if first 10 ingests show drift |
-| **A5** CITATION CONTRACT | NEW `ops.knowledge_extractions` table per §2.1 below + page-level `review_state` column (NOT per-extraction state machine per CTO NIT 2) | Every derived entity MUST have ≥ 1 extraction row. Page-level state is simpler. |
-| **A6** CONFIDENCE THRESHOLDS | Auto-accept ≥ 0.85; review 0.6 ≤ conf < 0.85; auto-reject < 0.6. **CTO NIT 4**: document confidence as coarse 3-bucket signal (~0.6/0.8/0.95) in distill/SKILL.md, not continuous probability | Haiku self-report is not calibrated probability; future tuning hooks must treat it as bucketed |
-| **A7** FOLDER SEMANTICS | Per-paper extract (Haiku/Sonnet per type); folder-level aggregation pass at end (concept page cites all papers; observations stay per-paper-attached) | Cheaper than folder-level prompt with all 10 papers; quality regression acceptable for v3.0 |
-| **A8** RE-EXTRACTION TRIGGER | chunk-diff first; founder confirms scope when > 50% of chunks changed via AskUserQuestion; `--force` bypasses chunk-diff | Saves cost on minor source edits |
-| **A9** COST DISCIPLINE | Per-task-kind caps per §4 below. Total cost projection: setup ~$22-28 LLM; ~30-40h founder time over 5 sprints | Caps mean a single runaway folder triggers Tier B confirm at $2 |
-| **A10** BACKWARD COMPAT | `legacy_v2_verbatim boolean DEFAULT false` column on `knowledge_pages`. Migration 00031 UPDATEs the 1 existing v2.0 row (`spaced-repetition`) → `true`. No migration wizard | 1 row to flag; trivial; preserves v2.0 fixture |
+| **B1** STORAGE LAYOUT | Source-grouped (`wiki/<source-slug>/{source.md,concepts/,observations/,decisions/,ideas/}/`). Per-book chapters move to `wiki/<book-slug>/chapters/chapter-NN.md`. | Founder anchor: skill input ergonomics + navigation locality. |
+| **B2** SLUG UNIQUENESS | Composite UNIQUE `(extracted_from_source_id, slug)` for derived entities (`extracted_from_source_id IS NOT NULL`); preserve global UNIQUE for source RECORDs (`extracted_from_source_id IS NULL`). | Library mode EXPECTS the same slug (e.g. `wedge`) to appear in multiple packages with distinct nuance per source. Composite UNIQUE keeps slug human-readable; source-prefixing slug (e.g. `gpfp__wedge`) would be ugly and bake the source name into the entity. |
+| **B3** REVERSE-LOOKUP INDEX | NEW `wiki/_index/<page_type>/<canonical-name>.md`. Markdown link-list ONLY (not entity pages). Generated by `/wiki index rebuild`, not by distill. Excluded from `/wiki audit` orphan checks (derivative). | Cheap (no DB table) coverage of "show me all wedges" without dedup ceremony. `rm -rf wiki/_index/` recovers Option A if `_index/` proves useless. |
+| **B4** EMPTY PLURAL DIRS | DELETE in Phase 7 PR. List: `wiki/articles/`, `wiki/concepts/`, `wiki/decisions/`, `wiki/ideas/`, `wiki/observations/`, `wiki/books/`, `wiki/episodes/`, `wiki/meetings/`, `wiki/customers/`, `wiki/companies/`, `wiki/persons/`, `wiki/repos/`, `wiki/weekly_reviews/`. Record in retrospective as "v3.0 legacy folders not used since promotion". | Keeping them as empty placeholders pollutes the layout. Wiki is folder-as-data; empty folders mislead. |
+| **B5** LEGACY ENTITY (`spaced-repetition`) | Regenerate `wiki/sample/source.md` retroactively from `tests/wiki-sync/fixtures/sample.md` via `/wiki sync --regen-source --skip-extract`. New flag (`--regen-source`) is internal-only, used by the migration tool. Cost ~$0.02. After regen: `git mv wiki/concept/spaced-repetition.md wiki/sample/concepts/spaced-repetition.md`. | Avoids permanent v2.0 orphan in the corpus; aligns the only legacy file with v4.0 layout discipline. |
+| **B6** CHAPTER-SPLIT NORMALIZE | v3.0 wrote `wiki/books/<book-slug>/chapter-NN.md`. v4.0 normalizes to `wiki/<book-slug>/chapters/chapter-NN.md`. Same flat folder pattern as `concepts/`. `page_type='book'` still applies to the chapter pages (they're slices of the source). | Uniform "type subfolder" convention. Skill input `input = wiki/<book-slug>/chapters/` matches `input = wiki/<book-slug>/concepts/`. |
+| **B7** MIGRATION TOOL PACKAGING | Sprint 1 PR ships `scripts/wiki-sync/migrate-to-v4.cjs` — one-shot, idempotent, drift-safe. Runs in this order: (1) regen `wiki/sample/source.md` from fixture, (2) `git mv` 14 entity files + 1 source RECORD into v4 paths, (3) rewrite frontmatter `extracted_from_source` paths, (4) `UPDATE ops.knowledge_pages SET file_path = <new>` for the 14 rows, (5) write a one-shot `UPDATE ops.ingestion_jobs SET metadata = jsonb_set(metadata, '{wiki_path}', to_jsonb(<new>))`, (6) regenerate `wiki/_index/` for the first time. Idempotent — re-running is a no-op. | Founder runs `node scripts/wiki-sync/migrate-to-v4.cjs --dry-run` first; if dry-run shows expected actions, runs without `--dry-run`. No DB UPDATE happens in `--dry-run`. |
+| **B8** SKILL INPUT CONTRACTS | Skills now specify `input = <wiki path>` with 3 valid shapes: whole package `wiki/<source-slug>/`, type slice `wiki/<source-slug>/<type>s/`, single entity `wiki/<source-slug>/<type>s/<slug>.md`. `/wiki ask` gains `--source <slug>` (single) and `--packages <slug1,slug2>` (multi-package union) flags for retrieval-side scoping. NEW `/wiki package <slug>` command lists package inventory for skill planning. | Makes the founder anchor case mechanical. |
+| **B9** `/wiki ask` CITATION FORMAT | Citation MUST include both source title AND package: `"<extracted_quote>" — extracted from [<source title>](wiki/<source-slug>/source.md#chunk-N), package `<source-slug>`, confidence 0.92`. Same shape as v3.0 A11; gain `package` suffix. | Skills consuming `/wiki ask` output can route by package. |
+| **B10** `_index/` REGEN POLICY | `wiki/_index/` rebuilt on every `/wiki sync` completion AND on `/wiki index rebuild` manual invocation. NEW skill `06-ai-ops/skills/wiki-sync/index-rebuild/SKILL.md`. Cost-bucket `ai-ops-knowledge`; per-invocation cost ~$0.02 (mostly file I/O). Aliases drive index entries (frontmatter `aliases: [PLG, product-led growth]` → both names appear in `_index/concept/`). | Auto-keep on sync means founder never thinks about it. Manual rebuild covers manual-edit cases. |
 
-### CTO NITs explicitly applied (from Phase 4 cabinet)
+### v3.0 commitments that carry forward unchanged
 
-1. **NIT 1: `--verbatim` v3.1 auto-deprecation trigger** in this spec §0 disposition table (above). Written into SOP-INGEST-001-wiki-sync README, not buried.
-2. **NIT 2: page-level `review_state` only.** Migration 00031 adds `review_state` to `knowledge_pages`; extractions get `founder_decision text` only (no per-edge state machine to sync transactionally).
-3. **NIT 3: partial index threshold-drift safeguard.** `idx_extractions_review_queue` predicate is `WHERE founder_reviewed = false AND confidence < 0.95` (not `BETWEEN 0.6 AND 0.85`) — over-includes a bit; index stays correct if founder retunes the 0.85 threshold to 0.80 or 0.90 in v3.0.1.
-4. **NIT 4: confidence = coarse 3-bucket signal.** `distill/SKILL.md` documents this explicitly. Future tuning hooks read this — no calibrated-probability assumptions.
-5. **NIT 5: per-type model picker** (Haiku vs Sonnet) per A3 above. Justified.
-6. **NIT 6: `mcp__wiki__ask` description update in lockstep** with the entity-first retrieval rewrite. Same PR that rewrites the tool body must update its registered description string in `mcp-server/src/tools/index.ts`.
-7. **NIT 7 (from gap-analysis): L2 wiki-integrity validator HARD GATE.** Sprint 1 MUST ship extended validators BEFORE Sprint 2 ships distill skill. Sprint 2 PR MUST NOT merge until Sprint 1 PR landed. (No hook enforces this today; sprint-planner's Phase 6 acceptance criteria for Sprint 2 explicitly cites Sprint 1 validators as a prerequisite.)
-
----
-
-## 3. Component diff (what files change in v3.0)
-
-### 3.1 Migrations (1 new file)
-
-**`supabase/migrations/00031_wiki_distillation.sql`** — surgical single-DDL:
-
-```sql
--- ============================================================================
--- 00031_wiki_distillation.sql — v3.0 distill+extract schema
--- ============================================================================
--- Reframes wiki-sync from verbatim-projection to distill+extract per founder's
--- 2026-05-18 reframe ("đầy đủ chính xác"). See:
--- - wiki/capabilities/wiki-sync-from-refs/spec.md v3.0.0 §0
--- - ops.decisions row hitl_tier='C' for this revise
---
--- Changes:
--- 1. NEW TABLE ops.knowledge_extractions — citation contract per (source_chunk,
---    derived_entity) with confidence, llm_model, raw_quote, founder_decision.
--- 2. knowledge_pages adds extracted_from_source_id (nullable FK; NULL = manual
---    or v2.0 legacy) + legacy_v2_verbatim boolean DEFAULT false +
---    review_state text DEFAULT 'auto_accepted' CHECK enum.
--- 3. Indexes for review queue + source-to-derived lookups.
--- 4. Backfill: UPDATE existing 1 row (slug='spaced-repetition') to
---    legacy_v2_verbatim=true.
--- ============================================================================
-
--- Block A: knowledge_extractions table
-CREATE TABLE ops.knowledge_extractions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  source_page_id uuid NOT NULL REFERENCES ops.knowledge_pages(id) ON DELETE CASCADE,
-  source_chunk_index int,                      -- nullable; some extractions are page-level
-  derived_page_id uuid NOT NULL REFERENCES ops.knowledge_pages(id) ON DELETE CASCADE,
-  link_type text NOT NULL CHECK (link_type IN (
-    'extracted_concept', 'extracted_observation', 'extracted_decision', 'extracted_idea'
-  )),
-  confidence numeric CHECK (confidence >= 0 AND confidence <= 1),
-  llm_model text NOT NULL,
-  extraction_cost_usd numeric,
-  raw_quote text,                              -- literal source text supporting the extraction
-  founder_reviewed boolean NOT NULL DEFAULT false,
-  founder_decision text CHECK (founder_decision IN ('accepted', 'rejected', 'edited', 'merged') OR founder_decision IS NULL),
-  founder_reviewed_at timestamptz,
-  CONSTRAINT extraction_self_ref_distinct CHECK (source_page_id <> derived_page_id)
-);
-
-COMMENT ON TABLE ops.knowledge_extractions IS 'v3.0 citation spine. One row per (source_chunk → derived_entity) edge produced by /wiki distill. Founder reviews queue 0.6-0.85; auto-accept ≥0.85; auto-reject <0.6.';
-
--- Indexes
-CREATE INDEX idx_extractions_source ON ops.knowledge_extractions(source_page_id);
-CREATE INDEX idx_extractions_derived ON ops.knowledge_extractions(derived_page_id);
--- CTO NIT 3: widen partial predicate so threshold tuning doesn't invalidate index
-CREATE INDEX idx_extractions_review_queue ON ops.knowledge_extractions(confidence, founder_reviewed)
-  WHERE founder_reviewed = false AND confidence < 0.95;
-
--- Block B: knowledge_pages new columns
-ALTER TABLE ops.knowledge_pages
-  ADD COLUMN extracted_from_source_id uuid REFERENCES ops.knowledge_pages(id) ON DELETE SET NULL,
-  ADD COLUMN legacy_v2_verbatim boolean NOT NULL DEFAULT false,
-  ADD COLUMN review_state text NOT NULL DEFAULT 'auto_accepted'
-    CHECK (review_state IN ('auto_accepted', 'pending_review', 'founder_approved', 'founder_rejected'));
-
-COMMENT ON COLUMN ops.knowledge_pages.extracted_from_source_id IS 'v3.0: source RECORD page from which this entity was distilled. NULL = manually-created page OR v2.0 legacy verbatim page.';
-COMMENT ON COLUMN ops.knowledge_pages.legacy_v2_verbatim IS 'v3.0: TRUE for v2.0-era verbatim pages preserved for backward compat. Audit treats these differently (no citation integrity check).';
-COMMENT ON COLUMN ops.knowledge_pages.review_state IS 'v3.0: page-level review state. auto_accepted = above 0.85 confidence on all extractions; pending_review = at least one extraction in 0.6-0.85; founder_approved/rejected = /wiki review processed.';
-
-CREATE INDEX idx_pages_extracted_from ON ops.knowledge_pages(extracted_from_source_id) WHERE extracted_from_source_id IS NOT NULL;
-CREATE INDEX idx_pages_review_pending ON ops.knowledge_pages(review_state) WHERE review_state = 'pending_review';
-
--- Block C: backfill A10 — flag the 1 existing v2.0 verbatim row
-DO $$
-DECLARE
-  v_rows int;
-BEGIN
-  UPDATE ops.knowledge_pages
-    SET legacy_v2_verbatim = true
-    WHERE slug = 'spaced-repetition';
-  GET DIAGNOSTICS v_rows = ROW_COUNT;
-  IF v_rows <> 1 THEN
-    RAISE NOTICE 'A10 backfill: expected 1 row (slug=spaced-repetition), updated %', v_rows;
-  END IF;
-END $$;
-
--- Block D: RLS — mirror knowledge_pages RLS for the new table
-ALTER TABLE ops.knowledge_extractions ENABLE ROW LEVEL SECURITY;
--- (Specific policies depend on migration 00010 + 00020 patterns; see CTO review for exact wording.)
-CREATE POLICY extractions_read_anon_authenticated ON ops.knowledge_extractions
-  FOR SELECT TO anon, authenticated USING (true);
-CREATE POLICY extractions_write_service_role ON ops.knowledge_extractions
-  FOR ALL TO service_role USING (true) WITH CHECK (true);
-
--- Rollback (documented; NOT executed):
--- DROP INDEX ops.idx_pages_extracted_from;
--- DROP INDEX ops.idx_pages_review_pending;
--- ALTER TABLE ops.knowledge_pages
---   DROP COLUMN review_state,
---   DROP COLUMN legacy_v2_verbatim,
---   DROP COLUMN extracted_from_source_id;
--- DROP INDEX ops.idx_extractions_review_queue;
--- DROP INDEX ops.idx_extractions_derived;
--- DROP INDEX ops.idx_extractions_source;
--- DROP TABLE ops.knowledge_extractions;
-```
-
-**Rationale for single migration:** atomic apply on `db push`; rollback is one file; 4 surgical blocks all reversible. Block C backfill is a guarded `DO` block — bails noisily if the 1-row assumption fails.
-
-### 3.2 Skills (4 new + 7 updates)
-
-| Path | Change | Sprint |
-|---|---|---|
-| `06-ai-ops/skills/wiki-sync/distill/SKILL.md` | **NEW core engine.** LLM-driven entity extraction; per-type model picker (Haiku for concept+idea, Sonnet for observation+decision); writes `knowledge_extractions` rows; documents confidence as 3-bucket signal (CTO NIT 4); cost-bucket `ai-ops-knowledge` task_kinds `wiki-distill-*` | 2 |
-| `06-ai-ops/skills/wiki-sync/dedup/SKILL.md` | **NEW.** Slug equality fast path + vector similarity > 0.92 auto-merge; 0.75-0.92 queue Tier B; cross-source equivalence across `knowledge_pages` | 3 |
-| `06-ai-ops/skills/wiki-sync/review/SKILL.md` | **NEW.** Process `pending_review` queue: AskUserQuestion-driven approve/reject/edit per extraction OR per page; UPDATE founder_decision + page review_state; emit ops.events | 4 |
-| `06-ai-ops/skills/wiki-sync/merge/SKILL.md` | **NEW.** Manual concept merge invoked by `/wiki merge <a> <b>`; rewires `knowledge_extractions.derived_page_id` from `b` to `a`; soft-deletes page `b`; emits ops.events | 4 |
-| `06-ai-ops/skills/wiki-sync/SKILL.md` (umbrella) | UPDATE — verb table reflects v3.0 semantics; add distill/dedup/review/merge dispatch rows; mark v2.0 verbs (sync verbatim) as `--verbatim` flag invocation | 2 |
-| `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` | UPDATE — Steps 6-8 rewritten: Step 6 = run distill (replaces former extract-then-embed); Step 7 = dedup pass; Step 8 = write source RECORD + derived entity pages + extractions rows + embeddings on entity pages | 2 |
-| `06-ai-ops/skills/wiki-sync/adapters/{markdown,pdf,url,youtube,meeting,folder}-adapter/SKILL.md` | UPDATE (minor) — adapters output chunks; chunks feed distill (not just embed); folder-adapter additionally calls folder-level aggregation pass per A7 | 2 |
-| `06-ai-ops/skills/wiki-sync/link-extractor/SKILL.md` | UNCHANGED — regex `[[concept/X]]` extraction stays as PARALLEL pass; distill is separate; both write `knowledge_links` rows | — |
-| `06-ai-ops/skills/wiki-sync/embeddings-backfill/SKILL.md` | UPDATE — also backfills embeddings on derived entity pages | 3 |
-| `06-ai-ops/skills/wiki-sync/ask/SKILL.md` | UPDATE — entity-first retrieval: prefer `knowledge_pages WHERE extracted_from_source_id IS NOT NULL` over source RECORD pages; citation format: "extracted from [source.md#chunk-N]" footer with `raw_quote` | 4 |
-| `06-ai-ops/skills/wiki-sync/audit/SKILL.md` | UPDATE — 3 new checks: distillation completeness (source pages with no derived entities) + dedup consistency (semantically-equivalent concepts split across 2 pages, flagged by post-hoc sim > 0.92) + citation integrity (every derived `extracted_from_source_id` MUST have matching `knowledge_extractions` row) | 4 |
-
-### 3.3 SOP (1 update)
-
-**`06-ai-ops/sops/SOP-INGEST-001-wiki-sync/{README.md,flow.yaml}`** — pipeline gains stages between extract + write:
-
-```
-INPUT: raw/<topic>/<file>  OR  URL  OR  folder
-         │
-         ▼
- 1. fetch (adapter)                            [unchanged from v2]
- 2. dedup check                                 [unchanged from v2]
- 3. acquire advisory lock                       [unchanged from v2]
- 4. chapter split (if needed)                   [unchanged from v2]
- 5. extract chunks (adapter)                    [unchanged from v2; chunks now feed distill]
- 6. distill entities                            [NEW v3 — per-type Haiku/Sonnet; writes knowledge_extractions]
- 7. dedup pass (per-source + folder aggregation)[NEW v3 — semantic + slug match]
- 8. embed entity pages                           [unchanged — embedding model unchanged]
- 9. write source RECORD + entity pages + DB rows [updated — multi-page write per source]
-10. emit events + cost                          [unchanged from v2]
-         │
-         ▼
-OUTPUT: wiki/<source-type>/<source-slug>.md (RECORD)
-      + wiki/concept/<slug>.md, wiki/observation/<slug>.md, wiki/decision/<slug>.md, wiki/idea/<slug>.md (entities)
-      + ops.{knowledge_pages × N, knowledge_extractions × M, knowledge_links × K, knowledge_embeddings × P, events, cost_attributions}
-```
-
-State machine `ops.ingestion_jobs.state` gains transient state `distilling` between `processing` and `completed`.
-
-### 3.4 Tier 1 yamls
-
-**`knowledge/manifest.yaml`** — add `ops.knowledge_extractions` under `tier2_operational.schemas.ops.tables`; bump `version`.
-
-**`knowledge/capability-registry.yaml`** — bump `wiki-sync-from-refs.version` 2.0.0 → 3.0.0; description updates to lead with distill+extract; migration_files appends 00031; actual_cost_setup_usd + actual_founder_hours updated post-Sprint-5; notes appends lineage `638811f8 (v2.0 superseded) ← 36836749 (v3.0 operating)`.
-
-**`knowledge/ingestion-sources.yaml`** — each source kind gains `distillation_supported: true` flag (default true in v3.0); `wiki_target` semantics documented as "multi-page output (RECORD + entities)".
-
-**`knowledge/link-inference-rules.yaml`** — UNCHANGED. Link extraction stays parallel to distill.
-
-**`knowledge/feature-flags.yaml`** — add:
-```yaml
-  wiki_sync_distill_enabled:
-    default: true        # v3.0.0 default-on
-    description: "Run distill+extract pipeline by default. --verbatim flag opts out."
-  wiki_sync_review_queue_telegram_digest:
-    default: true
-    description: "Daily Telegram digest of pending_review extraction count."
-```
-
-**`knowledge/economic-architecture.md`** — replace v2.0 caps with v3.0 caps per §4 below. Keep `wiki-ingest-verbatim` for `--verbatim` invocations.
-
-**`knowledge/schedules.yaml`** — add `wiki-review-queue-digest` cron (daily, 09:00 ICT; minion-worker handler emits Telegram if `pending_review` count > 0).
-
-### 3.5 Commands
-
-**`.claude/commands/wiki.md`** — full verb table refresh per founder brief Part 5:
-
-| Verb | v3.0 semantic | HITL |
-|---|---|---|
-| `/wiki sync <path>` | DEFAULT = distill+extract. Multi-page output. | A (B if cost > cap) |
-| `/wiki sync <path> --verbatim` | v2.0 passthrough: single RECORD page, no distill | A |
-| `/wiki sync <path> --split=<toc\|count=N\|heading=h2>` | Chapter split (unchanged from v2.0); chapters become distill input | A |
-| `/wiki sync <path> --force` | Re-extract everything (bypass chunk-diff) | B |
-| `/wiki resync <path>` | Chunk-diff first; re-extract only changed chunks | A (B if > 50% changed) |
-| `/wiki distill <path>` (alias) | Same as `/wiki sync`; explicit verb for clarity | A |
-| `/wiki extract <path> --type=concept\|observation\|decision\|idea` | Selective extraction (one entity type) | A |
-| `/wiki merge <slug-a> <slug-b>` | Manual dedup: merge two pages founder identifies as same | B |
-| `/wiki source <slug>` | List all derived entities from a source RECORD (reverse lookup) | A |
-| `/wiki review` | Process founder-review queue (Tier B per extraction) | B per item |
-| `/wiki ask "<question>"` | UPDATED: entity-first retrieval; citation format includes raw_quote | A |
-| `/wiki audit` | UPDATED: distillation completeness + dedup consistency + citation integrity checks | A |
-| `/wiki audit --fix` | Audit + offer auto-fixes (per fix class) | B per PR |
-| `/wiki list [--type=...]` | Unchanged | A |
-| `/wiki status` | UPDATED: include distillation queue depth + review queue size | A |
-
-### 3.6 MCP server
-
-| Path | v3.0 change |
-|---|---|
-| `mcp-server/src/tools/wiki-ask.ts` | UPDATE — entity-first retrieval per §3.5 ingest spec. **CTO NIT 6**: registered description string in `tools/index.ts` updated in same PR. |
-| `mcp-server/src/tools/wiki-list-pages.ts` | UPDATE (minor) — optional filter `extracted_from_source_id IS NOT NULL` to list entity pages only |
-| `mcp-server/src/tools/wiki-get-page.ts` | UPDATE — returned row includes new columns `extracted_from_source_id`, `legacy_v2_verbatim`, `review_state` |
-| (NEW) `mcp-server/src/tools/wiki-source.ts` | NEW tool — given a source page slug, list all derived entity pages with their `knowledge_extractions` confidence + raw_quote |
-
-### 3.7 Scripts
-
-| Path | v3.0 change |
-|---|---|
-| `scripts/wiki-sync/ingest.cjs` | UPDATE — adds `--verbatim` flag handling; deterministic file-side prep stays; LLM distill step stays in skill-walked path; calls supabase-ops MCP for multi-page writes |
-| `scripts/sync/backfill-wiki-embeddings.cjs` | UPDATE — also backfill embeddings for derived entity pages (page_type IN concept/observation/decision/idea where `extracted_from_source_id IS NOT NULL`) |
-| `scripts/cross-tier/validate-wiki-integrity.cjs` | **CTO NIT 7 HARD GATE — ships Sprint 1.** Adds 3 invariants: (a) every page with `extracted_from_source_id IS NOT NULL` has ≥ 1 `knowledge_extractions` row pointing to it; (b) every `knowledge_extractions.source_page_id` exists and matches `derived_page_id.extracted_from_source_id`; (c) no semantically-equivalent concept pages (cosine sim > 0.92 on title + first 200 chars of summary) |
-
-### 3.8 Tests + fixtures
-
-| Path | Change |
-|---|---|
-| `tests/wiki-sync/fixtures/sample.md` | KEEP (v2.0 baseline) |
-| `tests/wiki-sync/fixtures/sample-distill.md` | NEW — small Markdown with ≥ 3 extractable concepts + ≥ 2 observations + ≥ 1 decision for v3.0 acceptance |
-| `tests/wiki-sync/fixtures/growth-playbook-fixture.md` | NEW — copyright-clear growth/customer-acquisition fixture (the founder's actual use case); ≥ 5 concepts (PLG, ICP, wedge, etc.) + ≥ 3 observations + ≥ 2 decisions |
-| `tests/wiki-sync/fixtures/sample-distill-pdf.pdf` | NEW (Sprint 2-3) — copyright-clear ≥ 20pp PDF for distill end-to-end |
-| `tests/wiki-sync/fixtures/sample-corpus/` | NEW — 3-5 markdown files about the same growth domain (cross-source dedup validation) |
-| `tests/wiki-sync/distill.test.ts` | NEW — Sprint 2; confidence > 0.85 majority assertion |
-| `tests/wiki-sync/dedup.test.ts` | NEW — Sprint 3; cross-source dedup |
-| `tests/wiki-sync/citation-integrity.test.ts` | NEW — Sprint 1 (alongside validator); every derived entity traces to source chunk |
-| `tests/wiki-sync/review-flow.test.ts` | NEW — Sprint 4; founder-review queue UX |
-| `tests/mcp-server/wiki-ask-entity-first.test.ts` | NEW — Sprint 4; retrieval prefers entity pages |
-| `tests/cross-tier/validate-wiki-integrity-v3.test.ts` | NEW — Sprint 1; validator unit tests |
+- **A1** `--verbatim` flag with v3.1 auto-deprecation trigger.
+- **A2** All 4 entity types (concept, observation, decision, idea).
+- **A3** Per-type model picker (Haiku for concept+idea; Sonnet for observation+decision).
+- **A4** Slug-equality + vector similarity dedup thresholds (0.92 auto-merge, 0.75-0.92 review queue, < 0.75 distinct) — **but now scoped within source-package by default**. Cross-source dedup is opt-in via `/wiki merge` only.
+- **A5** Citation contract via `ops.knowledge_extractions` (page-level `review_state`, NOT per-edge state machine).
+- **A6** Confidence as coarse 3-bucket signal.
+- **A7** Per-paper extract + folder-level aggregation pass.
+- **A8** Re-extraction trigger via chunk-diff.
+- **A9** Cost discipline per-task-kind caps from v3.0 spec (no v4.0 changes here; v4.0 doesn't add task kinds).
+- **A10** `legacy_v2_verbatim` column on knowledge_pages.
+- **A11** Attribution-watcher / license_status / copyrighted-content trigger.
 
 ---
 
-## 4. Cost & calendar
+## 3. Component diff (what files change in v4.0)
 
-| Item | Value |
-|---|---|
-| Setup cost (LLM — Phase 5-7 architect + reviews + Tier C ceremony) | ~$5-7 (this revise's own spend) |
-| Implementation cost (Sprint 1-5 LLM for code generation + iteration) | ~$15-20 |
-| Recurring cost (per `/wiki sync` invocation) | $0.05-2.00 depending on adapter + size |
-| Founder hours (review + Tier C ceremony + 5-PR review burden) | ~30-40h over 5 sprints |
-| Calendar | 5 sprints × 2-week sprint cadence (≈ 6-10 weeks elapsed) OR compressed to ~3 weeks if multi-session push |
-| Migrations | 1 (00031) |
-| New skills | 4 (distill, dedup, review, merge) |
-| New MCP tools | 1 (wiki-source) |
-| New scripts | 0 (existing scripts updated) |
-| Sprint count | 5 |
+### 3.1 Migration — 1 new file
 
-### Per-task-kind cost caps (v3.0 active set)
+**`supabase/migrations/00032_wiki_v4_source_grouped.sql`** — single forward-only DDL. See `draft/migrations/00032_wiki_v4_source_grouped.sql` for the full text. Summary:
 
-| Task kind | Cap | Notes |
+- Block A: drop global UNIQUE `knowledge_pages_slug_key`.
+- Block B: add partial UNIQUE INDEX `knowledge_pages_source_record_slug_uniq` ON `(slug) WHERE extracted_from_source_id IS NULL` (preserves global uniqueness for source RECORDs).
+- Block C: add partial UNIQUE INDEX `knowledge_pages_derived_slug_uniq` ON `(extracted_from_source_id, slug) WHERE extracted_from_source_id IS NOT NULL` (composite uniqueness for derived entities).
+- Block D: header comment documenting v4.0 layout flip, links to spec.md and ops.decisions row, lineage parent `36836749`.
+
+**No data migration in the SQL itself.** Data migration lives in `scripts/wiki-sync/migrate-to-v4.cjs` (Sprint 1 PR), which runs the FS moves + frontmatter rewrites + targeted UPDATEs. Why split: keeps migration 00032 surgical (DDL-only, instantly reversible if needed); the FS+UPDATE work depends on filesystem state that doesn't exist in CI, so it has to run on founder's machine post-merge.
+
+**Sequencing safety:** the partial indexes must be created BEFORE the global unique is dropped, OR the global unique stays in place until the migrate-to-v4 script has run. Block sequence chosen: (A) create both partial indexes, (B) drop global unique. Both partial indexes' predicates are mutually exclusive (NULL vs NOT NULL on `extracted_from_source_id`), so they don't conflict during the create step. Then drop global unique. Atomically within the migration transaction.
+
+### 3.2 Skill updates — 14 files
+
+| Skill | Change | Risk |
 |---|---|---|
-| `wiki-distill-pdf` | $2.00 | PDF distill: chapter-split + per-chunk extract; 5-20 chunks × $0.05-0.10 |
-| `wiki-distill-folder` | $5.00 (Tier B confirms above $2) | 10-paper folder = 10× per-file cost |
-| `wiki-distill-other` | $0.50 | URL/Markdown/YouTube/meeting: typically 1-5 chunks |
-| `wiki-ingest-verbatim` | $0.30 | `--verbatim` flag invocations; same as v2.0 `wiki-ingest-other` |
-| `wiki-review-batch` | $0.20 | One `/wiki review` session; LLM may judge equivalence |
-| `wiki-dedup-batch` | $0.30 | Per-source dedup pass; mostly OpenAI embedding cost |
-| `wiki-ask` | $0.10 | Unchanged |
-| `wiki-audit` | $0.50 | Unchanged |
-| `wiki-merge` | $0.05 | Mostly DB rewires; minimal LLM |
+| `06-ai-ops/skills/wiki-sync/SKILL.md` | Update §"Layout" section to describe v4.0 source-grouped. | low |
+| `06-ai-ops/skills/wiki-sync/distill/SKILL.md` | Step 5 path template: `wiki/<page_type>/<slug>.md` → `wiki/<source-slug>/<page_type>s/<slug>.md`. Document slug-uniqueness scoped-to-source. | high |
+| `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` | Step 9 output spec. Source RECORD path: `wiki/<source-slug>/source.md`. | high |
+| `06-ai-ops/skills/wiki-sync/ask/SKILL.md` | Add `--source` / `--packages` flags. Update citation format (B9). | high |
+| `06-ai-ops/skills/wiki-sync/audit/SKILL.md` | Walk pattern + expected layout v4.0. Exclude `wiki/_index/` from orphan checks. | high |
+| `06-ai-ops/skills/wiki-sync/adapters/url-adapter/SKILL.md` | `wiki_target: wiki/articles/<slug>.md` → `wiki/<slug>/source.md`. | medium |
+| `06-ai-ops/skills/wiki-sync/adapters/pdf-adapter/SKILL.md` | `wiki_target: wiki/books/<slug>.md` → `wiki/<slug>/source.md`. Chapter pattern: `wiki/<slug>/chapters/chapter-NN.md`. | medium |
+| `06-ai-ops/skills/wiki-sync/adapters/youtube-adapter/SKILL.md` | `wiki/episodes/<slug>.md` → `wiki/<slug>/source.md`. | medium |
+| `06-ai-ops/skills/wiki-sync/adapters/meeting-adapter/SKILL.md` | `wiki/meetings/<slug>.md` → `wiki/<slug>/source.md`. | medium |
+| `06-ai-ops/skills/wiki-sync/adapters/markdown-adapter/SKILL.md` | `wiki/<entity_type_from_frontmatter>/<slug>.md` → `wiki/<slug>/source.md`. | medium |
+| `06-ai-ops/skills/wiki-sync/adapters/folder-adapter/SKILL.md` | Children land at `wiki/<col-slug>/<child-slug>/source.md` (per-child source RECORD). Revisit `<col-slug>__<file-slug>` slug convention — now redundant given source-grouping; child files just get clean slugs at `wiki/<col-slug>/<child-slug>/`. | medium |
+| `06-ai-ops/skills/wiki-sync/chapter-splitter/SKILL.md` | `wiki/books/<book-slug>/chapter-NN.md` → `wiki/<book-slug>/chapters/chapter-NN.md`. | medium |
+| `06-ai-ops/skills/wiki-sync/link-extractor/SKILL.md` | Cross-page link format must include package prefix when traversing packages. | low |
+| `06-ai-ops/skills/wiki-sync/merge/SKILL.md` | Now operates BETWEEN packages by default (manual opt-in `/wiki merge wiki/A/concepts/wedge.md wiki/B/concepts/wedge.md`). | medium |
+| **NEW** `06-ai-ops/skills/wiki-sync/index-rebuild/SKILL.md` | `_index/` regen logic; alias resolution; orphan handling. | medium |
 
-DEPRECATED (kept for transition window through v3.1):
-- `wiki-ingest-pdf` ($1.00) — replaced by `wiki-distill-pdf` + `wiki-ingest-verbatim`
-- `wiki-ingest-other` ($0.30) — replaced by `wiki-distill-other` + `wiki-ingest-verbatim`
+Deferred (no change in this revise): `dedup`, `review`, `attribution-watcher`, `embeddings-backfill` — all page_id-keyed, file_path-agnostic.
+
+### 3.3 Tier 1 / config updates
+
+| File | Change |
+|---|---|
+| `knowledge/ingestion-sources.yaml` | All 6 adapter `wiki_target` values updated to v4.0 paths. |
+| `knowledge/ingestion-routing.yaml` | 2 entries' output path strings updated. |
+| `knowledge/feature-flags.yaml` | Add `wiki_layout_version: '4.0'` (enum string). `wiki_sync_distill_enabled` carries over from v3.0. |
+| `knowledge/capability-registry.yaml` | `wiki-sync-from-refs.version: 3.0.0 → 4.0.0`; bump `state_since`, `migration_files` list append `00032_wiki_v4_source_grouped.sql`; `notes` block append v4.0 lineage entry; `spec_path` carries forward; `retrospective_path` updated to `wiki/capabilities/wiki-sync-from-refs/retrospective-v4.0.0.md`. |
+| `knowledge/manifest.yaml` | `tier4_derived.vector_store.namespaces[wiki_embeddings]` description updated: `source_kind` values now include `wiki_v4_source` and `wiki_v4_derived`. Re-embed only happens on file_path UPDATE, which the migrate-to-v4 script triggers. |
+| `wiki/capabilities/CATALOG.md` | Update wiki-sync entry: version 4.0.0, layout-flip noted. |
+
+### 3.4 Scripts / validators
+
+| File | Change |
+|---|---|
+| **NEW** `scripts/wiki-sync/migrate-to-v4.cjs` | One-shot migration tool per B7. Idempotent. Dry-run flag. Logs to `.archives/wiki-audits/migrate-v4-<date>.md`. |
+| `scripts/wiki-sync/ingest.cjs` | Path derivation: `path.join('wiki', type, slug+'.md')` → `path.join('wiki', sourceSlug, type+'s', slug+'.md')`. Source RECORD goes to `path.join('wiki', sourceSlug, 'source.md')`. |
+| `scripts/cross-tier/validate-wiki-integrity.cjs` | Update layout-validation patterns: source RECORD path regex, derived entity path regex, exclude `wiki/_index/` from orphan-check. Add v4.0 layout assertion (no files in deprecated plural-dirs). |
+| `scripts/wiki-sync/check-content-traceability.cjs` | Path patterns updated. |
+| **NEW** `scripts/sync/rebuild-wiki-index.sh` | Wraps `/wiki index rebuild` skill invocation for cron/CI. (Optional Sprint 2.) |
+
+### 3.5 Slash command
+
+**`.claude/commands/wiki.md`** — update sections:
+- `/wiki sync` — output path semantics updated to v4.0.
+- `/wiki ask` — gain `--source <slug>` and `--packages <slug1,slug2>` flags.
+- **NEW** `/wiki package <slug>` — list a package's full inventory.
+- **NEW** `/wiki index rebuild` — regenerate `wiki/_index/` for all packages.
+- `/wiki audit` — note that `wiki/_index/` is excluded from orphan checks (it's derivative).
+- `/wiki merge` — note that v4.0 merge operates BETWEEN packages by default (cross-package opt-in).
+
+### 3.6 Docs
+
+| File | Change |
+|---|---|
+| `wiki/ENTITY_TYPES.md` | Rewrite around v4.0 layout. Source-grouped layout diagram. Keep page_type CHECK enum unchanged (singular page_type, but folder convention is now `<source-slug>/<page_type>s/`). |
+| `wiki/README.md` | Layout description updated. |
+| `wiki/capabilities/wiki-sync-from-refs/spec.md` | Promoted in Phase 8 from this draft. Archive v3.0 spec as `spec-v3.md`. |
+| `wiki/capabilities/wiki-sync-from-refs/retrospective-v4.0.0.md` | Post-Phase-8. |
+
+### 3.7 Tests / fixtures
+
+| File | Change |
+|---|---|
+| `tests/wiki-sync/fixtures/*.md` | UNCHANGED — these are source inputs, not wiki outputs. |
+| `tests/wiki-sync/` test scripts | Update expected output paths. |
+
+### 3.8 NOT touched (preservation contract)
+
+- All migrations 00027-00031 stay applied.
+- `ops.knowledge_extractions`, `ops.knowledge_links`, `ops.knowledge_embeddings` schemas — page_id opaque to layout.
+- HITL flow, cost attribution, attribution-watcher, role permissions for customer/finance/etc.
+- `mcp-server/src/tools/wiki-*` — page-id-keyed, file-path-agnostic. **Sprint 1 PR CI gates a grep** (per `draft/tier1-diffs.yaml.phase_7_enforcement.sprint_1.must_grep_clean_mcp_server`) verifying no v3.0 path literals were silently added between v3.0 ship and v4.0 merge.
+
+### 3.9 Deferred to Sprint 1 (CTO NITS surfaced post-Phase-5)
+
+- **`legacy_v2_verbatim` semantics post-migrate-to-v4.** Currently the legacy `spaced-repetition` row has `legacy_v2_verbatim=true` AND `extracted_from_source_id IS NULL` (per migration 00031's backfill). After migrate-to-v4 regenerates `wiki/sample/source.md` and the row gets `extracted_from_source_id` set, those two flags coexist confusingly. Sprint 1 PR resolves: either (a) clear `legacy_v2_verbatim` on rows that get a real source after-the-fact, OR (b) explicitly note in migration 00031's column comment that `legacy_v2_verbatim` means "ingested under v2.0 semantics", independent of whether a source RECORD was retroactively attached. **Recommended: (a)** — keeps the flag's semantics tight ("still in v2.0 layout/semantics today"). Migrate-to-v4 script sets `legacy_v2_verbatim = false` after attaching `extracted_from_source_id`.
 
 ---
 
-## 5. Risks + mitigations
+## 4. Migration strategy (FS + data + DDL)
 
-| Risk | Likelihood | Impact | Mitigation |
+Order matters. The migration tool MUST run in this sequence:
+
+1. **DDL (migration 00032)** runs first (creates partial indexes, drops global unique). Transaction-safe.
+2. **Regen sample source RECORD** — `node scripts/wiki-sync/migrate-to-v4.cjs --regen-sample` writes `wiki/sample/source.md` from `tests/wiki-sync/fixtures/sample.md`. Uses `/wiki sync --regen-source --skip-extract` skill invocation under the hood. Cost ~$0.02.
+3. **FS moves** via `git mv` (preserves history):
+   - `wiki/article/growth-playbook-fixture.md` → `wiki/growth-playbook-fixture/source.md`
+   - 13 entity files into `wiki/growth-playbook-fixture/{concepts,observations,decisions,ideas}/`
+   - `wiki/concept/spaced-repetition.md` → `wiki/sample/concepts/spaced-repetition.md`
+4. **Frontmatter rewrites** in moved files: `source_ref`, `extracted_from_source`, and any `file_path` field updated to new paths.
+5. **DB UPDATEs** via parameterized SQL (one transaction):
+   - `UPDATE ops.knowledge_pages SET file_path = $new WHERE id = $id` for 14 derived + 2 source RECORDs.
+   - `UPDATE ops.ingestion_jobs SET metadata = jsonb_set(metadata, '{wiki_path}', to_jsonb($new)) WHERE id = $id` for related job rows.
+6. **Empty plural dirs deletion** — only after step 3 confirms all files moved. Dirs in B4 list deleted via `git rm -r`.
+7. **`_index/` initial generation** — `node scripts/sync/rebuild-wiki-index.sh` runs once at end of migration. Populates `wiki/_index/concept/wedge.md` etc.
+8. **Validation** — `pnpm check` must be clean. Any failure rolls back step 5 via SAVEPOINT and exits with error.
+
+The migrate-to-v4 script is **idempotent**: re-running detects already-migrated state via `ops.knowledge_pages.file_path LIKE 'wiki/_/%' AND NOT LIKE 'wiki/<old>/%'` and exits cleanly.
+
+---
+
+## 5. Per-Bài-toán impact
+
+| Bài | Topic | v4.0 impact |
+|---|---|---|
+| 1 | 4-tier truth | Tier 1 yaml updates (3 files); Tier 2 DDL (migration 00032) + DML (14 file_path updates); Tier 3 embeddings re-trigger via file_path UPDATE; Tier 4 namespace description tweaked. |
+| 2 | HITL | This spec = Tier C decision. Migration apply = Tier C-adjacent (founder runs). `/wiki merge` cross-package = Tier B (since v3.0). Force-unlock used today (D-Std) recorded in audit. |
+| 4 | Memory | `ops.run_summaries` continues to record `/wiki sync` invocations. No change. |
+| 5 | Multi-Agent | 1 new skill (`index-rebuild`). 14 skill updates. No new subagents. |
+| 7 | Cost | Cost-bucket `ai-ops-knowledge` carries over. NEW task kind `wiki-index-rebuild` at ~$0.02/run (folded into `ai-ops-knowledge`; no new bucket). |
+| 8 | Schedule | OPTIONAL — `pg_cron` for nightly `_index/` rebuild defers to v4.1 (cost-vs-value not yet established; founder-triggered rebuild covers the 80% case for now). |
+| 9 | SOP | `SOP-INGEST-001-wiki-sync/flow.yaml` updated for v4.0 paths (Sprint 1). |
+| 10 | Visibility | KPI `wiki_sync_v4_migration_complete` (one-shot, set true post-migration); no recurring KPIs added. |
+| 11 | Events | No new events. v3.0 `ritsu.wiki.synced` continues. |
+| 12 | MCP | `mcp__wiki__list_pages` and `mcp__wiki__source` continue working (page_id-keyed). `mcp__wiki__ask` description text updated in v4.0 PR to mention `--source` flag (analogous to v3.0 NIT 6 discipline). |
+| 13 | State machine | None. |
+| 14 | Knowledge graph | LAYOUT change. Composite UNIQUE on derived entity slugs. Cross-source dedup demoted from default to opt-in (was already deferred in v3.0; cleanly recast in v4.0). |
+| 15 | Decision | This spec IS a Tier C decision row. |
+| 16 | Customer data | None. `public.customers` etc. unaffected. |
+| 17 | Multi-surface | None. |
+| 18 | Ingestion | All 6 adapters change output path. Source kinds unchanged. |
+| 19 | Founder capacity | ~11-14h founder over 2 sprints; lighter than v3.0 (~42-52h). |
+| 20 | CLA | This IS a CLA-produced unit (CLA v1.1 revise sub-flow). |
+
+---
+
+## 6. Success criteria
+
+A v4.0 ingest succeeds when ALL hold:
+
+1. **Layout invariant.** `find wiki/ -name "*.md" -not -path "wiki/_index/*" -not -path "wiki/capabilities/*"` returns ONLY files matching pattern `wiki/<source-slug>/(source\.md|(concepts|observations|decisions|ideas|chapters)/<entity-slug>\.md)`.
+2. **Skill input contract.** Founder runs `cd wiki/growth-playbook-fixture/concepts/ && ls` and sees 6 standalone concept files; no need to scan other directories.
+3. **Source-scoped retrieval.** `/wiki ask "wedge" --source growth-playbook-fixture` returns ONLY that source's framing.
+4. **Cross-package retrieval.** `/wiki ask "wedge"` returns top hits across all packages with package attribution in each result.
+5. **Reverse-lookup.** `wiki/_index/concept/wedge.md` exists and lists all packages that mention "wedge".
+6. **DB invariants.** `ops.knowledge_pages` rows: source RECORDs have `extracted_from_source_id IS NULL` and globally unique slugs; derived entities have `extracted_from_source_id IS NOT NULL` and slugs unique within source.
+7. **No production-blocking drift.** `pnpm check` clean after Phase 8 promotion.
+8. **All 14 existing entities + 1 legacy migrated.** Migration tool log shows 14 entities + 1 sample source RECORD regenerated + 1 legacy file `git mv`'d.
+9. **Empty plural dirs gone.** `ls wiki/` shows no `concepts/`, `observations/`, etc. directories.
+10. **`_index/` populated.** `wiki/_index/concept/`, `wiki/_index/observation/`, `wiki/_index/decision/`, `wiki/_index/idea/` exist with at least 1 link-list file each.
+
+### Out of scope (explicitly deferred to v4.1 or beyond)
+
+- Auto-promote aliased canonical entries to a curated `wiki/canon/` pool (Option C territory).
+- Cron-scheduled `_index/` rebuild (current: founder-triggered or post-sync).
+- Search-engine-like ranking inside `_index/<type>/<name>.md` link-lists (current: insertion order).
+- Per-package retrieval cache.
+- Web UI / dashboard surface for packages.
+
+---
+
+## 7. Effort summary
+
+| Sprint | Goal | Founder hours | LLM cost |
 |---|---|---|---|
-| L2 validator NOT ready Sprint 1 → bad extractions slip through Sprint 2 CI | MEDIUM | HIGH | **CTO NIT 7 HARD GATE**: Sprint 2 PR explicitly blocked until Sprint 1 validator PR merged; sprint-planner Phase 6 acceptance criteria for Sprint 2 cites this. |
-| Distill quality varies across adapters (PDF distill quality ≠ URL distill quality ≠ YouTube distill quality) | HIGH | LOW (per-adapter tuning expected) | Adapter-specific extraction prompts (per A3 model picker); Sprint 2-3 iteration with founder feedback |
-| Cross-source dedup mis-merges semantically-distinct concepts ("attention" ML vs psychology) | MEDIUM | MEDIUM (silent data loss) | Founder-review queue 0.6-0.85 catches borderline; auto-merge only above 0.92; per-merge audit log row; `/wiki merge` for manual override |
-| `knowledge_extractions` grows unbounded if every chunk yields entities | LOW | LOW | Per-task-kind cost caps act as natural ceiling; monthly housekeeping in v3.1+ |
-| Migration 00031 RLS mis-grant (raw_quote in extractions = sensitive source text) | LOW | HIGH | RLS policies mirror `knowledge_pages` (service_role write; anon/authenticated read); @cto reviews exact wording in Sprint 1 PR |
-| Founder-review queue UX unusable (too much friction) | MEDIUM | MEDIUM | First iteration: Telegram daily digest + `/wiki review` interactive session; tune cadence per founder feedback in Sprint 4 |
-| `--verbatim` flag becomes permanent dual-code-path (Oracle v2.0 Finding 1.1 anti-pattern) | LOW (auto-deprecation trigger active) | LOW | **CTO NIT 1**: spec §0 disposition explicitly states "if `--verbatim` invoked < 1× in 30 days post-promotion, remove flag in v3.1 first PR" |
-| Per-type model picker (Haiku for concept; Sonnet for observation/decision) cost-out-of-band | LOW | LOW | Per-task-kind cap acts as backstop; founder Telegram alert at 80% monthly budget per economic-architecture.md |
-| Confidence-as-bucketed-signal documentation forgotten; future hook treats as continuous | MEDIUM | MEDIUM | **CTO NIT 4**: explicit text in `distill/SKILL.md`; code review at Sprint 2 PR checks for this |
-| Phase 5 spec.md drifts during implementation (5-sprint span) | MEDIUM | MEDIUM | `/cla resume wiki-sync-from-refs` re-runs Phase 0 drift check; if main moved significantly, re-validate Phase 5 dispositions |
-| Founder energy state worsens during 5-sprint span (1-person SPOF) | HIGH | HIGH | Calendar can stretch to 6-10 weeks at lower hours/week; HEALTH alerts via 09-founder/health pillar; sprint-planner explicitly notes flex |
-| Growth-content-prep use case fails to materialize 5 acceptance ingests in first month post-promotion | MEDIUM | MEDIUM | **Phase 8 retro MUST honestly answer**: "did v3.0 actually deliver distill+extract for the growth-content-prep use case as defined?" (per founder brief) |
+| 1 | Migration 00032 + migrate-to-v4 script + skill rewrites (14 files) + tier1-diff updates + validator updates + dir cleanup PR | 6-8h | $3-4 |
+| 2 | NEW `index-rebuild` skill + `--source` / `--packages` flags on `/wiki ask` + `/wiki package` cmd + rebuild-wiki-index.sh | 3-4h | $1-2 |
+| Phase 8 | Promotion (spec promote + CATALOG + registry version bump + retrospective-v4.0.0.md) | 2h | $0.50 |
+| **Total** | | **11-14h** | **$4.50-6.50** |
+
+Compared to v3.0 (~42-52h / $23-30), v4.0 is **3-4× cheaper** because it's path-rearrangement + 1 DDL, not a semantic flip.
 
 ---
 
-## 6. Open NITs for @cto + Muse review (this draft)
+## 8. Re-trigger conditions for v4.1+
 
-1. **Per-source dedup batch vs incremental** — Phase 3 NIT #2 was "tentative: batch at end of each source ingest, with per-corpus batch when folder-adapter dispatches." Architect commits this — but should the per-corpus batch run BEFORE or AFTER individual source ingests complete? Tentative: AFTER (let each source finish + dedup local; then folder pass merges across). @cto + Muse reviewers — does this give the right wins per A7?
-2. **CLI helper extension to distill** — Phase 3 NIT #3 said "distill stays skill-walked in v3.0; CLI helper handles file-side prep." Confirm: `scripts/wiki-sync/ingest.cjs` v0.3 (Sprint 2-3) handles `--verbatim` deterministic path; calls supabase-ops MCP for entity-page writes; LLM distill stays in Claude Code session. No Edge Function in v3.0 per v2.0 Hybrid B/A G6 disposition.
-3. **Single-pass vs double-pass confidence** — Phase 3 NIT #4: single-pass Haiku self-report in v3.0; double-pass (model-of-model) as v3.1 if first 10 ingests show > 30% mis-confidence. @cto — is this the right metric for "should we double-pass"?
-4. **Telegram heartbeat for review queue** — Phase 3 NIT #6: per-source (one msg per source ingest with "N pending review" link) + daily digest if backlog > N. Confirm N=5 daily digest threshold.
-5. **Folder-level aggregation prompt** — A7's per-paper + folder-level aggregation pass: the folder pass needs to know which CONCEPTS to aggregate without the source bodies present (cost limit). Architect commits: folder pass uses cosine sim > 0.92 on entity name + 200-char summary, NOT a full re-distill. @cto — is this a quality concern?
-6. **Growth-content-prep specific entity types** — should v3.0 add a "tactic" or "playbook-move" entity type beyond the 4? Architect's recommendation: NO — `observation` covers "X tactic produced Y outcome" and `decision` covers "Pick tactic A over B". Adding "tactic" inflates the page_type CHECK enum (currently has 13 values, no room without ALTER) for no clear semantic win. v3.1+ if growth-content-prep actual use shows the 4 types miss a category.
-7. **Tier 1 ROLES.md update** — does `etl-runner` need a new permission to write `ops.knowledge_extractions`? Per existing role grant `tier2_schemas_write: [metrics.*, ops.agent_runs, ops.tier3_index]` — knowledge_extractions is `ops.*`. Need explicit grant for `ops.knowledge_extractions` OR a glob `ops.knowledge_*`. @cto verifies.
-8. **MCP tools/insert.ts allowlist** — `ops.knowledge_extractions` must be added to the allowlist in `mcp-server/src/tools/insert.ts` so distill skill can INSERT via the MCP. Same PR as migration 00031.
-9. **Founder-decision audit trail on `/wiki merge`** — when founder runs `/wiki merge <a> <b>`, the merge rewires extractions from `b` to `a` and soft-deletes `b`. Should the soft-delete also `legacy_v2_verbatim: true` + `review_state: founder_rejected`? Or is a NEW state needed? Architect tentative: re-use `founder_rejected` to keep the enum small. @cto + Muse — what's the audit-trail cleanest shape?
-10. **Sprint 5 acceptance criteria — growth fixture** — Phase 8 retro requirement: "5 ingests across PDF/Markdown/URL/folder must all produce confidence > 0.85 majority before promotion." The fixtures must include growth/customer-acquisition material (per founder's S1 evidence), not just generic learning material like Make-It-Stick. Architect commits: at least 2 of 5 acceptance ingests are growth-domain.
+- (a) Founder later wants graph-mode dedup back as a default → consider v5.0 revise.
+- (b) `_index/` proves valuable enough that founder asks for cron-scheduled rebuild → v4.1 adds the cron entry to `knowledge/schedules.yaml`.
+- (c) Skill template authors find package-input ergonomics still awkward (e.g. want `input = wiki/<source-slug>/concepts/wedge.md AND wiki/<source-slug>/observations/wedge-as-traction-metric.md`) → v4.1 introduces "named selection" syntax.
+- (d) > 50 packages exist and `_index/` files grow > 1MB each → introduce sharded `_index/` or DB-backed alternative.
+- (e) Auto-canonization (Option C territory) becomes a felt need → v4.1 introduces `/wiki canonize` + `wiki/canon/`.
 
 ---
 
-## 7. Acceptance criteria (Phase 8)
+## 9. CTO sanity-check
 
-Per founder brief — revise complete when ALL:
+**Verdict: NITS** — merge-ready after a handful of small cleanups; would not block. Full review at [cto-review.md](./cto-review.md).
 
-- [ ] `spec.md` v3.0 promoted to `wiki/capabilities/wiki-sync-from-refs/spec.md`; prior spec archived to `spec-v2.md`
-- [ ] All 4 entity types (concept + observation + decision + idea) extract successfully on `tests/wiki-sync/fixtures/growth-playbook-fixture.md` with confidence > 0.85 majority
-- [ ] Dedup correctly merges semantically-equivalent concepts across `sample-corpus/` (seeded with 3 papers mentioning "PLG" or "wedge")
-- [ ] Citation integrity: every derived entity row has `knowledge_extractions` record linking back to a real source chunk (validator green on `validate-wiki-integrity.cjs`)
-- [ ] `/wiki review` handles founder-approval queue cleanly end-to-end (UX usable for batch of 10+ pending)
-- [ ] `pnpm check` clean; `mcp-server` tsc clean; all 5 sprint PRs merged
-- [ ] `ops.capability_runs` lineage: `638811f8` (v2.0 superseded) ← `36836749` (v3.0 operating)
-- [ ] `retrospective.md` v3.0 includes section: "Has v3.0 actually delivered DISTILL+EXTRACT for the GROWTH-CONTENT-PREP USE CASE as founder defined it?" Required to be answered honestly with evidence (number of growth playbooks ingested; number of content pieces written citing v3.0-extracted entities)
-- [ ] First-month post-promotion: founder has ingested ≥ 5 growth-domain sources via distill (S1 evidence validation)
+The 4 explicit sequencing questions answered with confidence:
+
+1. **Partial indexes before drop = SAFE.** `00032:47-49, 59-61, 72-77` all live inside the `BEGIN/COMMIT`. The two partial predicates (`IS NULL` vs `IS NOT NULL`) exhaustively partition the table. During the window where all three constraints coexist, every row is covered by exactly one partial index plus the old global UNIQUE. **No uniqueness gap.**
+2. **Composite UNIQUE `(extracted_from_source_id, slug)` with `WHERE extracted_from_source_id IS NOT NULL` = SAFE.** Verified against current 14 rows: 13 derived share one source FK with distinct slugs; the legacy `spaced-repetition` is currently `extracted_from_source_id IS NULL` so it falls under Block A. **No FK breakage** — all FKs on `ops.knowledge_pages` target `id` (uuid PK), never `slug`.
+3. **DDL/data deferral window = real but LOW risk.** Between 00032 commit and `migrate-to-v4.cjs` finishing, the DB allows INSERTs with v3.0 paths that satisfy the new partial indexes. Mitigation: single-operator runs both back-to-back. Header comment promotes this.
+4. **RLS = no new attack surface.** Partial indexes inherit table RLS from 00031. The only new surface is `wiki/_index/*.md` alias-text markdown injection — handled in Sprint 2 `index-rebuild` SKILL.md sanitization note.
+
+**NITs applied in this Phase 5 (during finalization):**
+- nit a: RAISE NOTICE → real RAISE EXCEPTION assertions in 00032 DO block ✅
+- nit b: `IF NOT EXISTS` on both partial indexes (partial-reapply foot-gun) ✅
+- nit c: `wiki/article(s?)` mismatch reconciliation note in `tier1-diffs.yaml` ✅
+- nit d: Phase 7 grep regex expanded to all 14 plural-dir patterns ✅
+- nit e: Halt-on-divergence note for regen-then-mv slug determinism ✅ (spec.md §0 row 3 + risk register)
+- nit g: `mcp-server/src/tools/wiki-*.ts` Phase 7 grep gate added ✅
+
+**NITs deferred to Sprint 1 PR (with line items):**
+- nit f: `legacy_v2_verbatim` semantics post-migrate-to-v4 — resolved as Option (a) in §3.9 of this spec.
 
 ---
 
-## 8. Phase 5 done — state transition
+## 10. Muse panel synthesis
 
-Pending Tier C founder approval:
-- `ops.capability_runs[36836749…]` `phases_completed` += `5`; `current_phase → 6`.
-- `ops.decisions` row INSERT with `hitl_tier='C'`, payload linking this spec.md + cabinet polls + @cto verdict + Muse panel synthesis.
-- `state_payload.selected_option = 'B_full_4_entity_with_cto_nits'`.
-- INSERT `ops.capability_phase_events` (phase=5, event_type='completed').
-- INSERT `ops.events` (event_type='ritsu.capability.revise_phase_5_completed').
+**Verdict: 2 of 3 PROCEED** (Graham NIT, Feynman clean); **Rams CONCERN** on `_index/` as premature ornament. Full panel at [muse-panel.md](./muse-panel.md).
 
-Next phase: **Phase 6 — Sprint planner (`sprint-planner` mode=revise)**. 5-sprint multi-week plan with Sprint 1 = validator + migration (CTO NIT 7 HARD GATE precedes distill).
+| Persona | Frame | Verdict | Key contribution |
+|---|---|---|---|
+| Paul Graham | Default-alive vs default-dead; v3.0 kill clock | NIT | Layout flip is an enabler, not a wedge. 7-day commitment: ingest ≥3 growth playbooks within 7 days of v4.0 ship, else kill criterion supersedes regardless of layout. |
+| Dieter Rams | Less but better; obvious-is-easy | CONCERN | `_index/` is addition disguised as completeness. Recommend ship as Option A (defer `_index/` to v4.1 entry condition b); add only when 20+ packages or real skill demands it. |
+| Richard Feynman | Essential vs accidental complexity | PROCEED | Composite UNIQUE is essential complexity (correctness, not workaround). DDL+script split is unavoidable. One residual rough edge: `jsonb_set` UPDATE on `ops.ingestion_jobs.metadata` deserves a comment in the script header. |
+
+**Aggregate recommendation:** founder MAY approve at Tier C, but should explicitly decide (a) Option B-with-`_index/` vs Option A-defer-`_index/`, AND (b) commit to 7-day ingest discipline post-ship. v4.0 does NOT reset the v3.0 kill criterion clock.
+
+---
+
+## 11. Tier C decision record
+
+**Approved 2026-05-18 by founder via AskUserQuestion inline ceremony.**
+
+- **Decision slug:** `wiki-sync-v4-source-grouped-layout`
+- **ops.decisions row id:** `e558913a-fb5d-444a-ab0b-305f38ce80a0`
+- **Decision state:** `decided` (transitioned from `draft` at 2026-05-18T08:24Z founder approval)
+- **Approval method:** AskUserQuestion inline (Claude Code CLI; this session)
+- **Founder identity:** verified via session continuity (override-authorized session `caf0cd84-af27-45e0-807d-e15912ebb926`; prior session `f55023d9-...` force-unlocked at 2026-05-18T08:04Z per Tier D-Std `override:` ceremony, audit_log id `e6f5e17b-6db6-466f-a616-0907dcaf1213`)
+- **Cooldown:** N/A for Tier C
+- **Founder approved at:** 2026-05-18T08:24Z (`ops.capability_runs.approved_at` + `ops.decisions.decided_at`)
+- **Sub-decisions resolved:**
+  - **SD-1 (Option A vs B):** **B (with `wiki/_index/`)**. Rams's CONCERN noted but founder elected `_index/` inclusion at v4.0 ship for skill-input ergonomics; v4.1 re-evaluation per re-trigger condition (b).
+  - **SD-2 (7-day ingest commitment):** **YES**. Founder commits: by 2026-05-25, ingest ≥ 3 growth playbooks via `/wiki sync` so v3.0 kill-criterion (day-30: 2026-06-17) is informed by real v4.0 usage.
+  - **SD-3 (CTO nits):** **Apply 6 at Phase 5 (a, b, c, d, e, g); defer f to Sprint 1.** Implemented in this spec + draft files before approval.
+
+### State transitions persisted
+
+- `ops.decisions[e558913a].state`: `draft → decided`
+- `ops.capability_runs[f75502d4].state`: `implementing → planning`
+- `ops.capability_runs[f75502d4].current_phase`: `5 → 6`
+- `ops.capability_runs[f75502d4].phases_completed`: `[0, 1, 3, 4] → [0, 1, 3, 4, 5]`
+- `ops.capability_phase_events`: appended phase=5 event_type='completed' row.
+
+### Next phase
+
+**Phase 6 — Sprint Planning** (Tier B). Skill `capability-lifecycle/sprint-planner` breaks this spec into 2 sprints (per §7 effort summary). Founder approves the sprint plan at Tier B. Then Phase 7 (implementation) begins, which is multi-session (one PR per sprint). Lock stays held by session `caf0cd84-...` until Phase 8 catalog promotion.
+
+---
+
+## 12. Operating notes
+
+- Once `wiki/_index/` exists, founder NEVER hand-edits it. Always regenerate via `/wiki index rebuild`.
+- The migrate-to-v4 script is **single-use** but kept in `scripts/wiki-sync/` indefinitely for audit / replay if a v5 revert is ever needed.
+- Composite UNIQUE on `(extracted_from_source_id, slug)` makes one legitimate query slower: "find this exact slug globally". This is a 14-row table; no observable slowdown. If table grows past 10K rows, add a non-unique index on `(slug)` for that lookup.
+- The 30-day v3.0 kill criterion clock continues running. If v4.0 ships day-25 and v3.0 fails day-30, freeze applies to v4.0 work too.

@@ -20,7 +20,7 @@
 |---|---|---|---|---|---|---|
 | `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 1.0.0 | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
-| `wiki-sync-from-refs` | Wiki Sync from External Refs (v3.0 distill+extract) | **3.0.0** | 06-ai-ops | 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v3.0.0.md](wiki-sync-from-refs/retrospective-v3.0.0.md) |
+| `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.0 source-grouped distill+extract) | **4.0.0** | 06-ai-ops | 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.0.0.md](wiki-sync-from-refs/retrospective-v4.0.0.md) |
 
 ### Wiki-sync version history (lineage chain)
 
@@ -28,13 +28,22 @@
 |---|---|---|---|---|
 | 1.0.0 | superseded | 2026-05-16 → 2026-05-17 | (never promoted) | (never promoted) |
 | 2.0.0 | superseded | 2026-05-17 → 2026-05-18 | [spec-v2.md](wiki-sync-from-refs/spec-v2.md) | [retrospective-v2.0.0.md](wiki-sync-from-refs/retrospective-v2.0.0.md) |
-| **3.0.0** | **operating** (current) | 2026-05-18 → present | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v3.0.0.md](wiki-sync-from-refs/retrospective-v3.0.0.md) |
+| 3.0.0 | superseded | 2026-05-18 (~5h) → 2026-05-18 | [spec-v3.md](wiki-sync-from-refs/spec-v3.md) | [retrospective-v3.0.0.md](wiki-sync-from-refs/retrospective-v3.0.0.md) |
+| **4.0.0** | **operating** (current) | 2026-05-18 → present | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.0.0.md](wiki-sync-from-refs/retrospective-v4.0.0.md) |
 
-**v3.0 Phase 8 promotion details:**
+**v4.0 Phase 8 promotion details:**
+- Sprint 1 merge commit: `0cd0c62` (PR [#45](https://github.com/doanchienthangdev/ritsu-works/pull/45))
+- Sprint 2 merge commit: `70ee2ee` (PR [#46](https://github.com/doanchienthangdev/ritsu-works/pull/46))
+- Migration applied: `00032_wiki_v4_source_grouped.sql` (drops global UNIQUE on `knowledge_pages.slug`; adds 2 partial UNIQUE indexes)
+- migrate-to-v4.cjs ran: 15 FS moves (`git mv`) + 1 new sample source RECORD; 14 wiki/_index/ link-lists generated
+- ops.capability_runs lineage: `911973a2 (v1)` ← `638811f8 (v2)` ← `36836749 (v3.0 superseded 2026-05-18)` ← `f75502d4 (v4.0 operating 2026-05-18)`
+- v3.0 hard kill criterion clock CONTINUES (day-30: 2026-06-17; day-60: 2026-07-17) — v4.0 does NOT reset it
+- 7-day post-ship commitment (Muse M1): founder ingests ≥3 growth playbooks via `/wiki sync` by **2026-05-25**
+
+**v3.0 Phase 8 promotion details (historical):**
 - Merge commit: `7f39b2c` (5 sprint commits squashed via `--no-ff`)
 - Migration applied: `00031_wiki_distillation.sql` (Block E backfill flagged 1 row `spaced-repetition` as `legacy_v2_verbatim=true`)
-- ops.capability_runs lineage: `911973a2 (v1.0 superseded)` ← `638811f8 (v2.0 superseded 2026-05-18)` ← `36836749 (v3.0 operating since 2026-05-18T04:50:32Z)`
-- Hard kill criterion clock starts: 2026-05-18; day-30 + day-60 evaluations per spec §0
+- Hard kill criterion clock starts: 2026-05-18; day-30 + day-60 evaluations per spec-v3.md §0
 
 ## Implementing / Architecting / Analyzing
 
