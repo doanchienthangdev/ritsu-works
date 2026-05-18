@@ -110,6 +110,168 @@ tools:
       # code-reviewer omitted — governance/ROLES.md says tier1_paths:[]; runs only
 
   # ===========================================================================
+  # Wiki-sync tools — supabase-ops shim (mcp-server/, LIVE since v3.0.5 patch)
+  # ===========================================================================
+  # Read-only tools over wiki/ + ops.knowledge_pages + ops.knowledge_extractions.
+  # Powers /wiki list, /wiki ask, /wiki source, /wiki get-page slash commands +
+  # agent-side wiki discovery. v4.0 layout-aware (source-grouped paths). All
+  # tier A (read-only); every role with tier2_schemas_read.ops may call.
+
+  - id: wiki_list_pages
+    server: supabase-ops
+    description: |
+      List wiki pages in ops.knowledge_pages, optionally filtered by page_type.
+      v3.0 adds entity_only flag (filter to derived entity pages). v3.0 default
+      excludes soft-deleted pages (include_deleted=false).
+    input_schema_ref: mcp-server/src/tools/wiki-list-pages.ts#wikiListPagesInputSchema
+    output_schema:
+      rows: array
+      row_count: integer
+    tier_default: A
+    cost_bucket: ops-read
+    role_scope:
+      - founder
+      - cofounder
+      - gps
+      - growth-orchestrator
+      - support-agent
+      - content-drafter
+      - code-reviewer
+      - etl-runner
+      - trust-safety
+      - backoffice-clerk
+      - gtm-orchestrator
+      - product-orchestrator
+      - customer-lead
+      - cs-coach
+      - retention-watcher
+      - escalation-router
+      - feedback-aggregator
+      - founder-coach
+      - hitl-router
+      - health-tracker
+      - metrics-curator
+      - alert-router
+      - experiment-analyst
+
+  - id: wiki_get_page
+    server: supabase-ops
+    description: |
+      Fetch a single wiki page by slug + optionally read its Markdown file.
+      Slug is global UNIQUE (v2.0); v4.0 adds composite UNIQUE on derived
+      entities (extracted_from_source_id, slug) but lookup remains by id-or-slug.
+    input_schema_ref: mcp-server/src/tools/wiki-get-page.ts#wikiGetPageInputSchema
+    output_schema:
+      row: object
+      content: string
+    tier_default: A
+    cost_bucket: ops-read
+    role_scope:
+      - founder
+      - cofounder
+      - gps
+      - growth-orchestrator
+      - support-agent
+      - content-drafter
+      - code-reviewer
+      - etl-runner
+      - trust-safety
+      - backoffice-clerk
+      - gtm-orchestrator
+      - product-orchestrator
+      - customer-lead
+      - cs-coach
+      - retention-watcher
+      - escalation-router
+      - feedback-aggregator
+      - founder-coach
+      - hitl-router
+      - health-tracker
+      - metrics-curator
+      - alert-router
+      - experiment-analyst
+
+  - id: wiki_source
+    server: supabase-ops
+    description: |
+      Reverse lookup: list all derived entities extracted FROM a source RECORD.
+      Returns source frontmatter + the extracted concepts/observations/decisions/
+      ideas joined via ops.knowledge_extractions (with confidence + raw_quote
+      depending on include_raw_quotes). v3.0 surface; unchanged in v4.0.
+    input_schema_ref: mcp-server/src/tools/wiki-source.ts#wikiSourceInputSchema
+    output_schema:
+      source_row: object
+      derived_entities: array
+      row_count: integer
+    tier_default: A
+    cost_bucket: ops-read
+    role_scope:
+      - founder
+      - cofounder
+      - gps
+      - growth-orchestrator
+      - support-agent
+      - content-drafter
+      - code-reviewer
+      - etl-runner
+      - trust-safety
+      - backoffice-clerk
+      - gtm-orchestrator
+      - product-orchestrator
+      - customer-lead
+      - cs-coach
+      - retention-watcher
+      - escalation-router
+      - feedback-aggregator
+      - founder-coach
+      - hitl-router
+      - health-tracker
+      - metrics-curator
+      - alert-router
+      - experiment-analyst
+
+  - id: wiki_ask
+    server: supabase-ops
+    description: |
+      Citation-disciplined RAG over wiki/ + ops.knowledge_embeddings. v3.0
+      entity-first retrieval (prefers derived entity pages over source chunks).
+      v4.0 adds filter.source / filter.packages for package-scoped retrieval.
+      Returns structured retrieval_results (no synthesis — caller LLM synthesizes
+      with Muse M5 citation discipline). NEVER falls back to training data.
+    input_schema_ref: mcp-server/src/tools/wiki-ask.ts#wikiAskInputSchema
+    output_schema:
+      answer: null
+      retrieval_results: array
+      reason: string
+    tier_default: A
+    cost_bucket: ai-ops-knowledge
+    rate_limit: "30/min per role"
+    role_scope:
+      - founder
+      - cofounder
+      - gps
+      - growth-orchestrator
+      - support-agent
+      - content-drafter
+      - code-reviewer
+      - etl-runner
+      - trust-safety
+      - backoffice-clerk
+      - gtm-orchestrator
+      - product-orchestrator
+      - customer-lead
+      - cs-coach
+      - retention-watcher
+      - escalation-router
+      - feedback-aggregator
+      - founder-coach
+      - hitl-router
+      - health-tracker
+      - metrics-curator
+      - alert-router
+      - experiment-analyst
+
+  # ===========================================================================
   # Phase 2 — Bài #12 semantic tools (PLANNED, not yet implemented)
   # ===========================================================================
   # These stay PLANNED until the Phase 2 work in
