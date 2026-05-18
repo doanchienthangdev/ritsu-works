@@ -111,8 +111,8 @@ capabilities:
       (2026-07-17) shows 0 content pieces citing v3.0+ entities → freeze v3.x.
       7-day post-v4-ship commitment (Muse Paul Graham M1, Tier C ceremony):
       founder ingests ≥3 growth playbooks by 2026-05-25.
-    state: operating       # Promoted 2026-05-18 (Phase 8 of v4.0 revise); Sprint 1 merge 0cd0c62; Sprint 2 merge 70ee2ee; migration 00032 applied 2026-05-18; ops.capability_runs[f75502d4] operating_since 2026-05-18T~09:30Z. v4.1 minor extension 2026-05-18 (recursive folder support).
-    version: "4.1.0"       # Minor bump from 4.0.0 — backward-compatible folder-adapter recursive BFS support (lifts v2.0 hard-refuse). No DDL change; no spec.md flip; documented in §8 re-trigger condition.
+    state: operating       # Promoted 2026-05-18 (Phase 8 of v4.0 revise); Sprint 1 merge 0cd0c62; Sprint 2 merge 70ee2ee; migration 00032 applied 2026-05-18; ops.capability_runs[f75502d4] operating_since 2026-05-18T~09:30Z. v4.1 minor extension 2026-05-18 (recursive folder support). v4.2 minor extension 2026-05-18 (namespace output folder).
+    version: "4.2.0"       # Minor bump from 4.1.0 — backward-compatible folder-adapter namespace output (--out flag, auto-suffix on conflict, multi-package nesting under wiki/<namespace>/). No DDL change; backward compat with v4.0/v4.1 single-package layout.
     state_since: 2026-05-18
     proposed_at: 2026-05-16
     deployed_at: 2026-05-18  # v4.0 Sprint 1 + Sprint 2 merged 2026-05-18
@@ -189,6 +189,18 @@ capabilities:
       folders reported when budget exhausts. No DDL change; lifts the
       v2.0 hard-refuse on subdirectories. Triggered by founder needing
       to ingest raw/5-star/ (11 playbook subfolders × 4 files each).
+
+      v4.2 (2026-05-18, minor extension via /cla extend Tier B):
+      namespace output folder. --out=<name> flag (default slugify(basename
+      (input)), auto-suffix -1, -2, … if wiki/<name>/ already exists)
+      wraps ALL ingestion output under wiki/<namespace>/. Multi-package
+      mode: wiki/<namespace>/<col-slug>/source.md per package (BFS leaf
+      folders). Single-package collapse: when BFS finds 1 leaf == root AND
+      col_slug == namespace, files land at wiki/<namespace>/<file>/source.md
+      (no inner col_slug layer). No DDL change. Validator + index-rebuild
+      walker accept both shapes. migrate-to-v4.2.cjs retrofit script moves
+      legacy top-level packages into a namespace. Triggered by founder
+      observing top-level wiki/ name conflicts after raw/5-star/ ingest.
 
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition

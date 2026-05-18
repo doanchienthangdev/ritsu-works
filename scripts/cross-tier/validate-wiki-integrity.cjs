@@ -176,8 +176,10 @@ function checkLocalIntegrity() {
       }
     } else {
       // No frontmatter is OK for some legacy pages (e.g. wiki/README.md, capability docs)
-      // Only warn if path looks like an auto-generated page (under wiki/<page_type>/ for v3.0,
-      // or wiki/<source-slug>/{source.md,<type>s/<entity>.md} for v4.0).
+      // Only warn if path looks like an auto-generated page:
+      //   v3.0: wiki/<page_type>/<slug>.md (entity-type grouped)
+      //   v4.0: wiki/<source-slug>/{source.md, <type>s/<entity>.md} (single-package mode)
+      //   v4.2: wiki/<namespace>/<package-slug>/{source.md, <type>s/<entity>.md} (multi-package mode)
       const parts = relPath.split('/');
       if (parts.length >= 3 && parts[0] === 'wiki') {
         // Exempt: wiki/capabilities/ (Phase 8 promoted specs/retros — not auto-gen)
