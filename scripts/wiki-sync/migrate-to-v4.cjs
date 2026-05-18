@@ -385,6 +385,7 @@ function main() {
     newSampleSourceRow = {
       slug: 'sample',
       page_type: 'article',
+      title: 'Sample fixture (v2.0 legacy compatibility)',
       file_path: sampleSourcePath,
     };
   }
@@ -468,8 +469,8 @@ function main() {
       '-- jsonb payload — Feynman nit comment).',
       '',
       `WITH new_sample_source AS (`,
-      `  INSERT INTO ops.knowledge_pages (slug, page_type, file_path, extracted_from_source_id)`,
-      `  VALUES (${escSql(newSampleSourceRow.slug)}, ${escSql(newSampleSourceRow.page_type)}, ${escSql(newSampleSourceRow.file_path)}, NULL)`,
+      `  INSERT INTO ops.knowledge_pages (slug, page_type, title, file_path, extracted_from_source_id)`,
+      `  VALUES (${escSql(newSampleSourceRow.slug)}, ${escSql(newSampleSourceRow.page_type)}, ${escSql(newSampleSourceRow.title || 'Sample fixture (v2.0 legacy compatibility)')}, ${escSql(newSampleSourceRow.file_path)}, NULL)`,
       `  RETURNING id`,
       `)`,
     );

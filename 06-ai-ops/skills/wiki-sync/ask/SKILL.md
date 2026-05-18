@@ -24,7 +24,11 @@ description: |
 - `question` — natural language string (3..2000 chars)
 - `k` — optional top-K (default 10)
 - `rerank` — optional bool (default false; adds ~$0.05 cost when true)
-- `filter` — optional `{ page_type? }` to scope retrieval
+- `filter` — optional retrieval scoping:
+  - `page_type?` — filter by entity type (concept/observation/decision/idea)
+  - `source?` — **v4.0:** package-scoped retrieval; source RECORD slug. Returns only entities whose `extracted_from_source_id` points at the source with this slug. E.g. `--source growth-playbook-fixture`.
+  - `packages?` — **v4.0:** union over multiple packages. Array of source RECORD slugs. E.g. `--packages growth-playbook-fixture,sample`.
+- `--source <slug>` / `--packages <slug1,slug2>` flag syntax from `/wiki ask` slash command translates to `filter.source` / `filter.packages` here.
 
 ## Process (v0.2 target — full implementation)
 
@@ -44,22 +48,30 @@ Cost: ~$0.00002 per question (negligible).
 
 **Retrieval order:**
 
-a) **Entity-first query:**
+a) **Entity-first query (v4.0 with package-scope support):**
 ```sql
 SELECT kp.id, kp.slug, kp.page_type, kp.title,
        kp.frontmatter->>'summary' AS summary,
+       src.slug AS package_slug,
+       src.title AS source_title,
        ke.embedding,
        1 - (ke.embedding <=> $question_embedding) AS cosine_similarity
   FROM ops.knowledge_pages kp
+  JOIN ops.knowledge_pages src ON src.id = kp.extracted_from_source_id
   JOIN ops.knowledge_embeddings ke ON ke.page_id = kp.id
  WHERE kp.extracted_from_source_id IS NOT NULL    -- derived entities only
    AND kp.deleted_at IS NULL
    AND kp.legacy_v2_verbatim = false
    AND kp.review_state IN ('auto_accepted', 'founder_approved')
    AND (1 - (ke.embedding <=> $question_embedding)) > 0.7
+   -- v4.0: package-scope filters
+   AND ($filter_source IS NULL OR src.slug = $filter_source)
+   AND ($filter_packages IS NULL OR src.slug = ANY($filter_packages))
  ORDER BY cosine_similarity DESC
  LIMIT $k;
 ```
+
+The JOIN to `src` gives us the package_slug + source_title — both used in the v4.0 citation format (spec B9). The `$filter_source` / `$filter_packages` params come from `--source` / `--packages` flags.
 
 If ≥ 3 entity hits with sim > 0.7 → ENTITY-FIRST PATH. Skip to Step 3a.
 If < 3 entity hits → FALL THROUGH to source-chunk retrieval (b).
