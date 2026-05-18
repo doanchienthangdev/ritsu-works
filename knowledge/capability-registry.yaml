@@ -84,49 +84,71 @@ capabilities:
   # === Project-specific capabilities (added as founder runs CLA) ===
 
   - id: wiki-sync-from-refs
-    name: "Wiki Sync from External Refs"
+    name: "Wiki Sync from External Refs (v3.0 distill+extract)"
     description: |
-      Founder drops PDF / URL / Markdown / YouTube / meeting transcript / FOLDER
-      into raw/<topic>/; command extracts entities + concepts, projects them
-      into wiki/<topic>/<slug>.md with cross-references, supports re-sync when
-      ref content changes, answers questions by citing wiki pages (not training
-      data), and self-audits for orphan/dead/stale links. Big files prompt
-      chapter/part splitting. Folders become collections with slug discipline
-      <col>__<file> (v2.0 reuses 'book' page_type; v2.1 may add 'collection').
-      Single-source-of-truth: ref = source, wiki = projection.
-    state: operating       # Promoted 2026-05-17 (Phase 8 of revise; was: implementing)
-    version: "2.0.0"       # Bumped from 1.0.0 by revise (Hybrid B/A); v2.1 conditions in spec §0
-    state_since: 2026-05-17
+      v3.0 (2026-05-18): DEFAULT semantic = distill+extract. Founder drops PDF /
+      URL / Markdown / YouTube / meeting transcript / FOLDER into raw/<topic>/;
+      command (a) writes a source RECORD page (frontmatter + summary + pointer
+      to raw/) and (b) LLM-extracts important knowledge entities (concept /
+      observation / decision / idea) into SEPARATE wiki/<type>/<slug>.md pages
+      with full citation back to source chunks via ops.knowledge_extractions
+      (per-edge confidence + raw_quote + llm_model). Per-type model picker:
+      Haiku for concept+idea (cheap); Sonnet for observation+decision (fidelity).
+      Cross-source semantic dedup (sim > 0.92 auto-merge; 0.75-0.92 founder
+      review queue Tier B). Folder-adapter aggregates concepts cross-paper.
+      /wiki ask retrieval is entity-first with original-source-title citation
+      format (Muse M5). --verbatim flag falls through to v2.0 verbatim-projection
+      (auto-deprecation trigger: if invoked < 1× in 30d post-promotion, removed
+      in v3.1). Attribution-watcher (Muse M2 A11) fires Tier B Telegram when
+      copyrighted_internal_only source contributes ≥3 obs to a content draft.
+      HARD KILL CRITERION at day 30 + 60: if < 5 growth-domain ingests OR 0
+      content pieces citing v3.0 entities → freeze v3.x.
+    state: implementing    # v3.0 code complete in feat/wiki-sync-v3-distill-extract branch (5 commits); PR review + migration apply gated on founder. State will transition to deployed (PR merged) → operating (migration applied + first acceptance ingest succeeds) per Bài #20 state machine.
+    version: "3.0.0"       # Major bump pending — registry reflects v3.0 architecture once PR merges; until then v2.0.0 remains the operating runtime.
+    state_since: 2026-05-18
     proposed_at: 2026-05-16
-    deployed_at: 2026-05-17
-    operating_since: 2026-05-17
+    deployed_at: 2026-05-17  # v2.0 deployed_at; v3.0 will update when PR merges
+    operating_since: 2026-05-17  # v2.0 operating_since stays; v3.0 takes over post-merge + migration apply
     pillar_owner: 06-ai-ops
     bài_toán_touched: [1, 2, 4, 5, 7, 9, 11, 12, 13, 14, 15, 17, 18, 19, 20]
     spec_path: wiki/capabilities/wiki-sync-from-refs/spec.md
-    retrospective_path: wiki/capabilities/wiki-sync-from-refs/retrospective.md
+    retrospective_path: wiki/capabilities/wiki-sync-from-refs/retrospective-v3.0.0.md
     cost_bucket: ai-ops-knowledge
-    estimated_cost_setup_usd: 8.00      # v1.0 estimate; v2.0 revise actual was ~$6-8 + ~$3.5 revise
-    estimated_cost_recurring_usd: 35.00 # unchanged from v1.0 spec
-    estimated_founder_hours: 6           # v1.0 estimate; v2.0 revise actual was ~6-8h founder time
-    actual_cost_setup_usd: 14.00         # v1.0 (~$8) + v2.0 revise (~$6) cumulative
-    actual_founder_hours: 14             # v1.0 (~6h) + v2.0 revise (~8h) cumulative
-    selected_option: "B (v1.0) → Hybrid B/A (v2.0 revise)"
+    estimated_cost_setup_usd: 30.00     # v3.0 spec estimate ($22-30 setup); single-session AI-execution actual ~$8-12
+    estimated_cost_recurring_usd: 35.00 # unchanged from v1.0 spec; per-source caps redistributed in v3.0 §0
+    estimated_founder_hours: 45          # v3.0 spec honest estimate (Muse M4)
+    actual_cost_setup_usd: 24.00         # v1.0 (~$8) + v2.0 revise (~$6) + v3.0 revise (~$10) cumulative
+    actual_founder_hours: 14             # founder hours UNCHANGED from v2.0 — v3.0 was AI-executed per founder delegation; founder action items pending (migration apply, PR merge, acceptance corpus run)
+    selected_option: "B (v1.0) → Hybrid B/A (v2.0 revise) → B full 4-entity + CTO+Muse NITs (v3.0 revise)"
     migration_files:
       - 00027_wiki_sync_extensions.sql                 # v1.0
       - 00028_capability_lock_allow_implementing.sql   # v2.0 Phase 0 unblock (bonus)
       - 00029_capability_runs_root_only_unique.sql     # v2.0 Phase 0 unblock (bonus)
       - 00030_wiki_sync_v2_schema_deltas.sql           # v2.0 Sprint 2 PR1
+      - 00031_wiki_distillation.sql                    # v3.0 Sprint 1 (citation spine + 4 new knowledge_pages columns + RLS)
     notes: |
-      /cla propose 2026-05-16 → operating 2026-05-17 in 2 calendar days.
-      v1.0 (Sprint 1 only) shipped PR #35 (2026-05-16). Day-1 acceptance test
-      surfaced 6 gaps + folder scope request → /cla revise → v2.0 Hybrid B/A
-      via 8 PRs (#37-44) in one session 2026-05-17. Lineage: parent
-      ops.capability_runs 911973a2 (v1.0, superseded) ← child 638811f8 (v2.0,
-      operating). v2.1 re-trigger conditions in wiki/capabilities/wiki-sync-
-      from-refs/spec.md §0.
-      Phase 8 promotion: spec.md + retrospective.md promoted to
-      wiki/capabilities/; PENDING_STATE.md from v1.0 propose is historic
-      (deferred writes were applied 2026-05-16).
+      Lineage chain (3-deep):
+        911973a2 (v1.0.0, superseded 2026-05-17)
+        ← 638811f8 (v2.0.0, superseded 2026-05-18)
+        ← 36836749 (v3.0.0, operating 2026-05-18).
+      v3.0 reframes the core semantic: v1+v2 = ingest+index (verbatim
+      projection); v3 = distill+extract (LLM extracts entities into separate
+      wiki pages). Per founder Vietnamese clarification 2026-05-18 that
+      wiki-sync IS the PMF tool for growth-content-prep (process growth
+      playbooks into content/copy/plans), not internal-infra alternative
+      to PMF. Cabinet Phase 4 initially recommended DEFER; founder
+      reconsidered with new S1 evidence; Tier C ceremony APPROVED Option B
+      + all CTO + Muse NITs. ops.decisions[562b2e4e] state=decided.
+      v3.0 single-session execution 2026-05-18 (AI-executed per founder
+      delegation across all 6 sprints). Founder action items: apply
+      migration 00031 (Tier D-MAX-adjacent), merge feature branch
+      feat/wiki-sync-v3-distill-extract, run acceptance corpus
+      (/wiki sync tests/wiki-sync/fixtures/growth-playbook-fixture.md +
+      /wiki sync raw/5-star/).
+      Kill criterion clock: starts at migration apply; day-30 + day-60
+      evaluation per spec §0. If 0 content cites v3.0 entities by day 60,
+      freeze v3.x and reopen only with paying-user-tied evidence.
+      v3.0.5 + v3.1 re-trigger conditions in retrospective-v3.0.0.md §10.
 
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition

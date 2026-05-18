@@ -78,24 +78,67 @@ When the splitter returns `{split: true}`, this ingest skill SKIPS its own Steps
 
 When splitter returns `{split: false}` (founder picked "no split" in the Tier B prompt, OR the file was under threshold and `--split` was not passed), this ingest skill continues Steps 6-9 as a single-page ingest.
 
-### Step 6 — Extract + entity-link
+### Step 6 — Distill entities (v3.0 reframe) — OR — verbatim link-extract (v2.0 fallback)
 
-Call `wiki-sync/link-extractor` skill:
-1. Regex pass (Bài #14 patterns from `link-inference-rules.yaml`)
-2. LLM-fallback (only if `wiki-sync.llm_fallback_enabled` feature flag is true — DEFAULT FALSE in v1.0)
+**DEFAULT (v3.0 — `wiki_sync_distill_enabled = true` AND `--verbatim` flag absent):**
+Dispatch to `wiki-sync/distill` skill. It:
+- Writes source RECORD page (single page per source) with `extracted_from_source_id = NULL`
+- Loops over chunks; per-type model picker (Haiku for concept+idea; Sonnet for observation+decision)
+- INSERTs derived entity pages (`page_type` IN `concept`/`observation`/`decision`/`idea`) with `extracted_from_source_id = <source_page_id>`
+- INSERTs `ops.knowledge_extractions` rows (citation spine: source_chunk → derived_entity with confidence + raw_quote + llm_model + cost)
+- Confidence ≥ 0.85 → auto-accept; 0.6-0.85 → `review_state = 'pending_review'`; < 0.6 → rejected
+- Cost-bucket task_kinds: `wiki-distill-pdf` / `wiki-distill-folder` / `wiki-distill-other`
 
-Outputs:
+Also calls `wiki-sync/link-extractor` IN PARALLEL (regex pass for explicit `[[concept/X]]` cross-references typed by author). Distill and link-extractor are SEPARATE passes serving different intents:
+- Link-extractor: explicit author intent (free-text `knowledge_links.link_type` like `defines`/`see_also`/`related_concept`)
+- Distill: inferred entities (strict CHECK enum `extracted_concept`/`extracted_observation`/`extracted_decision`/`extracted_idea`)
+
+Both write to `ops.knowledge_links`; values coexist.
+
+**FALLBACK (v2.0 path — `--verbatim` flag set OR `wiki_sync_distill_enabled = false`):**
+Skip distill. Call `wiki-sync/link-extractor` only (regex + optional LLM-fallback). Outputs same as v2.0:
 - `structured_content` — { title, summary, sections[], entities[] }
 - `links_created` — int
 - `llm_cost_usd` — numeric (0 if regex-only)
 
-### Step 7 — Embed
+Cost-bucket task_kind: `wiki-ingest-verbatim` (v3.0 successor to deprecated `wiki-ingest-pdf` / `wiki-ingest-other`).
 
-Chunk per adapter's chunking strategy. Call OpenAI `text-embedding-3-small`. INSERT into `ops.knowledge_embeddings` with `page_id` (linked to the knowledge_pages row we'll insert next), `chunk_index`, `chunk_text`, `embedding`, `chunk_hash`.
+Per spec §0 auto-deprecation trigger: if `--verbatim` flag invoked < 1 time in first 30 days post-v3.0 promotion, remove flag in v3.1 first PR.
+
+### Step 7 — Dedup pass (v3.0 — distill mode only)
+
+If Step 6 ran distill (not verbatim): dispatch to `wiki-sync/dedup` skill (Sprint 3). Per-source batch dedup + folder-level aggregation when ingest was triggered by folder-adapter.
+
+Dedup mechanism:
+- Slug-equality fast path (matched in Step 6 Step 3 already; this is the explicit re-check)
+- Vector similarity > 0.92 on (title + first 200 chars of summary) → auto-merge derived entity pages from THIS source with existing entities in `ops.knowledge_pages`
+- 0.75-0.92 → queue: derived entity stays separate but `review_state = 'pending_review'` and Telegram digest surfaces the borderline merge candidate for founder `/wiki review`
+- < 0.75 → distinct; no merge
+
+Cost-bucket task_kind: `wiki-dedup-batch`.
+
+If `--verbatim` flag set (Step 6 fell through to v2.0 path): SKIP Step 7. Verbatim mode produces 1 page per source; nothing to dedup against entity graph.
+
+### Step 8 — Embed
+
+Chunk per adapter's chunking strategy (already in Step 5 if chapter-split fired; else use adapter's default chunking).
+
+Call OpenAI `text-embedding-3-small` on:
+- v3.0 distill mode: source RECORD page + each derived entity page (1 embedding per page, body content)
+- v2.0 verbatim mode: chunks of the single page body (unchanged from v2.0)
+
+INSERT into `ops.knowledge_embeddings`. If `OPENAI_API_KEY` absent → mark `embeddings_deferred = true`; hourly `wiki-embeddings-backfill` cron picks up (v2.0 G3 pattern continues; backfill SKILL updated in Sprint 3 to handle derived entity pages too).
 
 Cost: ~$0.00002 / 1K tokens. Track in `embedding_cost_usd`.
 
-### Step 8 — Write wiki page + knowledge_pages row
+### Step 9 — Write wiki page(s) + knowledge_pages row(s)
+
+**v3.0 distill mode: MULTI-PAGE OUTPUT**
+- Source RECORD page at `wiki/<source-type>/<source-slug>.md` (1 page) with `extracted_from_source_id = NULL`. Frontmatter includes `license_status` (founder set in distill Step 1).
+- N derived entity pages at `wiki/concept/<slug>.md` + `wiki/observation/<slug>.md` + `wiki/decision/<slug>.md` + `wiki/idea/<slug>.md` with `extracted_from_source_id = <source_page_id>`. Distill skill wrote these in its Step 5.
+- This Step 9 is a no-op for distill mode — distill already wrote everything during its loop.
+
+**v2.0 verbatim mode (--verbatim flag): SINGLE-PAGE OUTPUT**
 
 a) Write Markdown to `wiki/<entity_type>/<slug>.md` with frontmatter:
 
@@ -107,34 +150,57 @@ source_kind: <source_kind>
 source_ref: <source_ref>
 source_hash: <source_hash>
 ingested_at: <timestamp>
-generated_by: wiki-sync v1.0
+generated_by: wiki-sync v3.0 (verbatim mode)
+legacy_v2_verbatim: false  # this is a v3.0-era verbatim ingest, not a v2.0 leftover
 ---
 
-<!-- generated-by: wiki-sync v1.0 -->
+<!-- generated-by: wiki-sync v3.0 (verbatim mode) -->
 
 <structured content as Markdown>
 ```
 
-b) INSERT into `ops.knowledge_pages` (using new `source_kind`/`source_ref`/`source_hash` columns from migration 00027):
+b) INSERT into `ops.knowledge_pages` (using source_kind/source_ref/source_hash columns from migration 00027):
 
 ```sql
-INSERT INTO ops.knowledge_pages (slug, page_type, title, file_path, file_hash, source_kind, source_ref, source_hash, frontmatter)
-VALUES (..., ON CONFLICT (slug) DO UPDATE SET ...);
+INSERT INTO ops.knowledge_pages (
+  slug, page_type, title, file_path, file_hash,
+  source_kind, source_ref, source_hash, frontmatter,
+  extracted_from_source_id,  -- NULL for verbatim mode (no source-derived chain)
+  legacy_v2_verbatim,        -- false for v3.0 verbatim ingests
+  review_state               -- 'auto_accepted' for verbatim
+)
+VALUES (..., NULL, false, 'auto_accepted', ON CONFLICT (slug) DO UPDATE SET ...);
 ```
 
-c) If page already existed (re-sync flow), warn if `<!-- generated-by: wiki-sync vN -->` marker is missing (founder hand-edited). Show 3-way diff. Bail unless `--force` or `--merge` (merge mode is Sprint 4+).
+c) If page already existed (re-sync flow), warn if `<!-- generated-by: wiki-sync vN -->` marker is missing (founder hand-edited). Show 3-way diff. Bail unless `--force` or `--merge`.
 
-### Step 9 — Emit events + cost attribution
+### Step 10 — Emit events + cost attribution
 
 ```sql
 INSERT INTO ops.events (event_type, source, payload, state)
-VALUES ('ritsu.wiki.synced', 'wiki-sync', jsonb_build_object(...), 'pending');
+VALUES (
+  CASE WHEN distill_mode THEN 'ritsu.wiki.distill_synced' ELSE 'ritsu.wiki.synced' END,
+  'wiki-sync',
+  jsonb_build_object(...),
+  'pending'
+);
 
 INSERT INTO ops.cost_attributions (run_id, task_kind, cost_usd, ...)
-VALUES (..., 'wiki-ingest-<adapter>', ...);
+VALUES (
+  ...,
+  CASE
+    WHEN distill_mode AND source_kind = 'book' THEN 'wiki-distill-pdf'
+    WHEN distill_mode AND source_kind = 'folder_collection' THEN 'wiki-distill-folder'
+    WHEN distill_mode THEN 'wiki-distill-other'
+    ELSE 'wiki-ingest-verbatim'
+  END,
+  ...
+);
 ```
 
 UPDATE `ops.ingestion_jobs` SET state='completed', `total_cost_usd`=sum(steps).
+
+If distill mode produced entities with `review_state = 'pending_review'`: count them; daily `wiki-review-queue-digest` cron (Sprint 4) batches Telegram heads-up.
 
 ## Return
 
@@ -156,7 +222,12 @@ UPDATE `ops.ingestion_jobs` SET state='completed', `total_cost_usd`=sum(steps).
 ## HITL
 
 - Tier A normally
-- Escalates to Tier B if estimated cost > `wiki-ingest-pdf=$1.00` / `wiki-ingest-other=$0.30` per-task-kind cap (per economic-architecture.md)
+- Escalates to Tier B if estimated cost exceeds per-task-kind cap (per spec §0 cost table):
+  - `wiki-distill-pdf` $2.00 (Tier B above $2; auto-confirm below)
+  - `wiki-distill-folder` $15.00 (Tier B above $5 per Muse M6)
+  - `wiki-distill-other` $0.50
+  - `wiki-ingest-verbatim` $0.30
+- Distill skill internal: Tier B for license_status prompt on first ingest of a source (founder picks {public_domain | creative_commons | fair_use_excerpt | copyrighted_internal_only})
 
 ## Failure modes
 

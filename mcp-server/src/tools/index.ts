@@ -25,6 +25,11 @@ import {
   wikiAskInputSchema,
   wikiAskDescription,
 } from "./wiki-ask.ts";
+import {
+  handleWikiSource,
+  wikiSourceInputSchema,
+  wikiSourceDescription,
+} from "./wiki-source.ts";
 
 export interface ToolDef {
   /** MCP tool name as the client sees it (without the server prefix) */
@@ -72,6 +77,13 @@ export const TOOLS: ToolDef[] = [
     description: wikiAskDescription,
     inputSchema: wikiAskInputSchema,
     handler: handleWikiAsk,
+  },
+  // === v3.0 reverse lookup tool (Sprint 4 of wiki-sync-from-refs v3.0.0) ===
+  {
+    name: "wiki_source",
+    description: wikiSourceDescription,
+    inputSchema: wikiSourceInputSchema,
+    handler: handleWikiSource,
   },
 ];
 

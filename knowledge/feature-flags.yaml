@@ -216,6 +216,29 @@ features:
     fallback: refuse_with_workaround_message
     description: "Recursive folder ingestion (v2.0 = flat-only)"
     cost_warning: "10 locales × $0.05 = $0.50 per page."
+
+  # === Wiki-sync v3.0 flags (added Sprint 1 of wiki-sync-from-refs v3.0.0) ===
+  wiki_sync_distill_enabled:
+    enabled: true                         # v3.0.0 default — distill+extract is the new default semantic
+    requires_api: anthropic               # Haiku for concept+idea; Sonnet for observation+decision (per-type picker)
+    fallback: verbatim_passthrough        # --verbatim flag falls through to v2.0 single-page write
+    description: "v3.0 distill+extract pipeline: LLM-driven entity extraction (concept/observation/decision/idea) from source chunks into separately-projected wiki pages with citation via ops.knowledge_extractions"
+    cost_estimate: "Haiku $0.005-0.02/chunk; Sonnet $0.025-0.10/chunk. Per-task-kind caps in economic-architecture.md."
+    v3_1_deprecation_trigger: "If --verbatim flag invoked < 1 time in first 30 days post-promotion, remove flag in v3.1 first PR (CTO NIT 1)"
+
+  wiki_sync_review_queue_telegram_digest:
+    enabled: true                         # v3.0.0 default — daily Telegram digest of pending_review extractions
+    requires_api: []
+    fallback: no_notification             # founder polls /wiki status manually
+    description: "Daily Telegram digest at 09:00 ICT of pending_review extraction count (confidence 0.6-0.85 queue). Self-throttles to 0-1 messages/day."
+    cost_estimate: "$0 — pure DB read + Telegram bot call"
+
+  wiki_sync_attribution_watcher:
+    enabled: true                         # v3.0.0 Sprint 4 — ships with attribution-watcher SKILL
+    requires_api: []
+    fallback: no_attribution_check
+    description: "Tier B Telegram heads-up when a copyrighted_internal_only source contributes ≥3 extracted observations to a single content draft (correlation: /wiki ask within ±10 min of 01-marketing/ or 02-sales/ file edit). Per Muse NIT M2 attribution discipline axis A11."
+    cost_estimate: "$0 — DB correlation + Telegram bot call"
   
   decision_staleness_check:
     enabled: false

@@ -18,10 +18,10 @@
 #      NOT SQL — do not look for table DDL there.)
 #   - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
 
-version: 0.5.0
-last_updated: 2026-05-15
+version: 0.6.0
+last_updated: 2026-05-18
 owner: founder
-migration_note: "v0.5.0 (2026-05-15): Workforce persona layer v1.0 — added 06-ai-ops/workforce-personas sub-pillar and cross_cutting.workforce_personas registry pointer. Phase 1 personas (CEO, CTO, CGO, CPO) bind to existing technical roles per ADR-003. Schema: knowledge/schemas/workforce-personas.schema.json. Prior: v0.4.0 (2026-05-15): dropped NN- numeric prefix from sub-pillar dirs. v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage)."
+migration_note: "v0.6.0 (2026-05-18): wiki-sync v3.0 distill+extract foundation — added ops.knowledge_extractions table (citation spine) per migration 00031. Reframes wiki-sync from verbatim-projection (v1/v2) to distill+extract (v3.0). See wiki/capabilities/wiki-sync-from-refs/spec.md §0 + ops.decisions[562b2e4e]. Prior: v0.5.0 (2026-05-15): Workforce persona layer v1.0 — added 06-ai-ops/workforce-personas sub-pillar and cross_cutting.workforce_personas registry pointer. Phase 1 personas (CEO, CTO, CGO, CPO) bind to existing technical roles per ADR-003. Schema: knowledge/schemas/workforce-personas.schema.json. Prior: v0.4.0 (2026-05-15): dropped NN- numeric prefix from sub-pillar dirs. v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage)."
 
 # ---------------------------------------------------------------------------
 # TIER 1 — Canonical (this repo)
@@ -565,6 +565,20 @@ tier2_operational:
             pgvector HNSW embeddings (Tier 4 implementation). This is THE
             vector store — manifest's tier4_derived references this table,
             not a separate provider.
+        - name: knowledge_extractions
+          migration_file: supabase/migrations/00031_wiki_distillation.sql
+          status: live
+          bai_ref: 14
+          purpose: |
+            v3.0 distill+extract CITATION SPINE. One row per (source_chunk,
+            derived_entity) edge produced by /wiki distill. Every derived
+            entity page (concept/observation/decision/idea) MUST trace back
+            to a source chunk via this table. confidence is a coarse 3-bucket
+            signal (~0.6/0.8/0.95) per Haiku/Sonnet self-report, NOT a
+            calibrated probability. founder_decision: NULL until reviewed;
+            accepted/rejected/edited/merged when /wiki review processes.
+            See: 06-ai-ops/skills/wiki-sync/distill/SKILL.md;
+                 wiki/capabilities/wiki-sync-from-refs/spec.md §3.1 Block A.
         # ====================================================================
         # Capability lifecycle
         # ====================================================================

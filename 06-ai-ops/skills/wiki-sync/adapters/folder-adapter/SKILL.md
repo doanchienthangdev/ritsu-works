@@ -114,6 +114,24 @@ Build summary table:
 | 3 | react.pdf | pdf | ✗ slug conflict | papers__react | $0.00 |
 | 4 | notes.docx | — | skipped: unsupported | — | — |
 
+### Step 6b — Cross-paper concept aggregation (v3.0 — distill mode only)
+
+If `wiki_sync_distill_enabled = true` AND `--verbatim` flag absent: after ALL files in the folder have completed individual distill (Step 5 per-file dispatch finishes), invoke `wiki-sync/dedup` skill with:
+
+```
+corpus_scope: "folder_aggregation"
+derived_entity_ids: <union of all derived_entity_ids from per-file distill runs>
+```
+
+Dedup skill (Sprint 3, see `06-ai-ops/skills/wiki-sync/dedup/SKILL.md` Step 4):
+- Groups derived entities by `(page_type, slug)` across ALL files
+- For `page_type = 'concept'`: auto-merges duplicates → ONE canonical page citing all source files in folder (e.g., "PLG" concept extracted from 10 papers → 1 wiki/concept/plg.md citing 10 sources)
+- For `page_type IN ('observation', 'decision', 'idea')`: leaves per-source (these are intentionally per-source — observations cite specific paper claims; decisions reflect per-source framework rulings)
+
+Cost: ~$0.30 cap per folder (wiki-dedup-batch task_kind).
+
+Per spec A7: this aggregation is the headline value of folder ingest — without it, a 10-paper growth corpus produces 50+ duplicate concept pages. With it, the founder gets a clean concept graph with multi-source provenance.
+
 ### Step 7 — Update parent ingestion_jobs row
 
 ```sql

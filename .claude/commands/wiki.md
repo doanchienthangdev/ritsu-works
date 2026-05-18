@@ -5,20 +5,34 @@ Project-scoped command for ritsu-works. Front-end for the wiki-sync capability
 under `06-ai-ops/skills/wiki-sync/`. Follows the same orchestrator pattern as
 `/cla` (delegate to skill; manage HITL gates; persist state).
 
-## Subcommands
+**v3.0 (2026-05-18 onward): DEFAULT semantic = distill+extract.** Source files
+become RECORD pages; important knowledge (concept / observation / decision / idea)
+is LLM-extracted into separately-projected `wiki/<type>/<slug>.md` entity pages
+with citation via `ops.knowledge_extractions`. `--verbatim` flag falls through
+to v2.0 verbatim-projection behavior.
+
+## Subcommands (v3.0 verb table)
 
 | Invocation | Purpose | HITL | Persistence |
 |---|---|---|---|
-| `/wiki` | Show menu + recent ingests / asks / audits | A | read-only |
-| `/wiki sync <path>` | Ingest one ref into wiki. `<path>` may be a file OR a directory (v2.0 PR3 — folder = collection, Cách C). | A (B if cost > per-task-kind cap) | INSERT ops.ingestion_jobs + ops.knowledge_pages + embeddings |
-| `/wiki sync <path> --split=<toc\|count=N\|heading=h2>` | Ingest with chapter splitting (PDFs > 100pp; Markdown > 25KB; or explicit flag) | A | per chapter row with `parent_job_id` (migration 00030 Block C) |
-| `/wiki sync <path> --force` | Re-sync ignoring change-detection (overwrite) | B | UPDATE row |
-| `/wiki ask "<question>"` | RAG query against wiki | A | INSERT ops.agent_runs entry (no wiki write) |
-| `/wiki audit` | Integrity scan (orphan / dead / stale) | A | writes `.archives/wiki-audits/<date>.md` |
+| `/wiki` | Show menu + recent ingests / asks / audits / review queue size | A | read-only |
+| `/wiki sync <path>` | **DEFAULT = distill+extract.** Source becomes RECORD page + N derived entity pages (concept/observation/decision/idea). `<path>` may be a file OR a directory (folder-adapter v2.0 + cross-paper aggregation v3.0). | A (B if cost > cap) | INSERT source RECORD + N entity pages + extractions + links + embeddings |
+| `/wiki sync <path> --verbatim` | v2.0 fallback: single-page write, no distill. Auto-deprecation trigger: if invoked < 1× in 30 days post-promotion, flag removed in v3.1. | A | INSERT single page (v2.0 behavior) |
+| `/wiki sync <path> --split=<toc\|count=N\|heading=h2>` | Chapter split (PDFs > 100pp; chapters feed distill independently) | A | per chapter row with `parent_job_id` (migration 00030 Block C) |
+| `/wiki sync <path> --force` | Re-extract everything; bypass chunk-diff | B | UPDATE row |
+| `/wiki resync <path>` | Chunk-diff first; re-extract only changed chunks. Tier B if > 50% chunks changed (founder confirms scope per spec A8). | A (B if > 50% changed) | UPDATE row |
+| `/wiki distill <path>` (alias) | Same as `/wiki sync`. Explicit verb for clarity. | A (B if cost > cap) | same as sync |
+| `/wiki extract <path> --type=concept\|observation\|decision\|idea` | Selective: run extractor for ONE entity type only. Useful for re-running after threshold tuning. | A | INSERT/UPDATE only matching-type entity pages |
+| `/wiki merge <canonical-slug> <duplicate-slug>` | Manual dedup: merge two pages founder identifies as same. Soft-delete loser via `deleted_at`. | B | UPDATE extractions rewire + soft-delete duplicate |
+| `/wiki merge <a> <b> --undo` | Reverse most recent merge of the pair. Restores `deleted_at = NULL`. | B | UPDATE (reverse rewire) |
+| `/wiki source <slug>` | Reverse lookup: list all derived entities from a source RECORD with their `knowledge_extractions` confidence + raw_quote. | A | read-only |
+| `/wiki review` | Process founder-review queue (pending_review pages with extraction confidence 0.6-0.85 OR dedup queue 0.75-0.92). | B per item | UPDATE `knowledge_extractions.founder_decision` + page review_state |
+| `/wiki ask "<question>"` | **v3.0 entity-first retrieval.** Prefer derived entity pages over source chunks; citation format includes original source title + raw_quote (Muse M5). | A | INSERT ops.agent_runs entry (no wiki write) |
+| `/wiki audit` | Integrity scan. v3.0 adds 4 new checks: distillation completeness, citation integrity, dedup consistency, attribution discipline (A11). | A | writes `.archives/wiki-audits/<date>.md` |
 | `/wiki audit --fix` | Audit + offer auto-fixes (one PR per fix class) | B | one PR per fix class |
-| `/wiki status` | Show current ingestion queue + recent audit results | A | read-only |
-| `/wiki list [--type=<entity_type>]` | List wiki pages by type | A | read-only |
-| `/wiki resync <path>` | Re-fetch ref + diff against existing wiki page | A (B if writes) | UPDATE row |
+| `/wiki attribution-check <content-file>` | Manual trigger of `wiki-sync/attribution-watcher` — checks if recent `/wiki ask` correlated with this content file edit, ≥3 obs from copyrighted source → Tier B heads-up | B | INSERT ops.events row |
+| `/wiki status` | Show current ingestion queue + recent audit results + pending_review count | A | read-only |
+| `/wiki list [--type=<page_type>]` | List wiki pages by type | A | read-only |
 
 ## Workflow
 

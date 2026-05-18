@@ -1,17 +1,19 @@
 ---
 name: wiki-sync/audit
 description: |
-  Wiki integrity scan (Sprint 4 PR6, v2.0.0). Five checks: hash drift (file
-  vs DB), orphan links (target_page_id NULL), dead URLs (HTTP HEAD on
-  source_ref for url_article pages), file-missing-on-disk (DB row points
-  to wiki/<path> that doesn't exist), stale-claim sample (LLM-evaluate
-  random 10% of pages). Writes report to .archives/wiki-audits/<date>.md.
-  `--fix` mode opens one PR per defect class. Companion L2 CI validator at
-  scripts/cross-tier/validate-wiki-integrity.cjs catches the deterministic
-  subset (orphans + file-missing + hash drift) on every commit.
+  Wiki integrity scan. v2.0 base = 5 checks (hash drift, orphan links, dead
+  URLs, file-missing, stale-claim sample). v3.0 adds 3 distill+extract
+  checks: distillation completeness (sources with no derived entities),
+  citation integrity (derived entities trace back to real source chunks),
+  dedup consistency (no semantically-equivalent split pages). Plus A11
+  attribution audit: every source has license_status; no copyrighted source
+  has > 5 extractions without founder review. Writes report to
+  .archives/wiki-audits/<date>.md. --fix opens one PR per defect class.
+  Companion L2 CI validator validate-wiki-integrity.cjs (v0.2) catches
+  deterministic-subset on every PR.
 ---
 
-# wiki-sync / audit (Sprint 4 PR6 baseline — v2.0.0)
+# wiki-sync / audit (Sprint 4 PR6 + Sprint 4 v3.0 update)
 
 ## When to use
 
@@ -26,7 +28,7 @@ description: |
 - `--skip-llm` — optional; skip the stale-claim check (faster, free)
 - `--filter=<page_type>` — optional; scope all checks to one page_type
 
-## Process (5 checks)
+## Process (5 v2.0 checks + 4 v3.0 checks = 9 total)
 
 ### Check 1 — Hash drift (deterministic)
 
@@ -121,6 +123,114 @@ For a random N% of pages (default 10%; capped at 50%):
 **Disposition:**
 - `--fix` mode: open a PR with frontmatter `stale_claims_detected: <date>` + body comment listing each stale claim
 - Founder reviews + manually corrects OR re-runs `/wiki sync --force` to regenerate from current source
+
+### Check 6 — Distillation completeness (v3.0 — deterministic)
+
+For every `ops.knowledge_pages` row WHERE `extracted_from_source_id IS NULL` AND `legacy_v2_verbatim = false` AND `source_kind IS NOT NULL` AND `deleted_at IS NULL` (i.e., source RECORD pages from v3.0-era ingests):
+
+```sql
+SELECT id, slug, source_kind, source_ref, created_at,
+  (SELECT COUNT(*) FROM ops.knowledge_extractions WHERE source_page_id = ops.knowledge_pages.id) AS extraction_count
+  FROM ops.knowledge_pages
+ WHERE extracted_from_source_id IS NULL
+   AND legacy_v2_verbatim = false
+   AND source_kind IS NOT NULL
+   AND deleted_at IS NULL
+   AND NOT EXISTS (SELECT 1 FROM ops.knowledge_extractions WHERE source_page_id = ops.knowledge_pages.id);
+```
+
+Each result = a source page that has NO derived entities. Possible causes:
+- Distill skill produced 0 entities above confidence threshold (low-quality source OR distill prompt mis-tuned)
+- Distill skill was skipped (`--verbatim` flag) — NOT a defect; expected if frontmatter shows `legacy_v2_verbatim=false AND distill_mode='verbatim'` (TODO add field)
+- Distill run failed mid-pipeline and source RECORD was committed without entities (defect)
+
+**Disposition:**
+- `--fix` mode: open PR with frontmatter flag `distillation_pending=true` + Telegram heads-up "Source X has 0 derived entities; run /wiki sync --force or skip if intentional"
+
+### Check 7 — Citation integrity (v3.0 — deterministic)
+
+```sql
+SELECT kp.id, kp.slug, kp.page_type, kp.extracted_from_source_id
+  FROM ops.knowledge_pages kp
+ WHERE kp.extracted_from_source_id IS NOT NULL
+   AND kp.legacy_v2_verbatim = false
+   AND kp.deleted_at IS NULL
+   AND NOT EXISTS (
+     SELECT 1 FROM ops.knowledge_extractions ke
+     WHERE ke.derived_page_id = kp.id
+   );
+```
+
+Each result = a derived entity page WITHOUT a corresponding `knowledge_extractions` row. This is a CITATION DISCIPLINE FAILURE — the entity exists but cannot trace back to its source chunk.
+
+Possible causes:
+- Distill skill INSERT'd knowledge_pages row but transaction rolled back before knowledge_extractions INSERT (partial write)
+- Schema bug: a downstream operation deleted the extraction without soft-deleting the derived page
+
+**Disposition:**
+- `--fix` mode: this is the load-bearing v3.0 invariant. Open Tier B PR proposing: (a) hard-delete the orphan derived page (cleanest), OR (b) attempt to recreate the extraction by re-running distill on the source if possible. Founder picks.
+
+Also enforced by `validate-wiki-integrity.cjs` v0.2 in DB mode (D4 invariant).
+
+### Check 8 — Dedup consistency (v3.0 — LLM-augmented)
+
+For each `page_type` IN `concept` / `observation` / `decision` / `idea`:
+
+```sql
+WITH pairs AS (
+  SELECT a.id AS a_id, b.id AS b_id, a.slug AS a_slug, b.slug AS b_slug,
+         a.page_type,
+         1 - (ae.embedding <=> be.embedding) AS cosine_similarity
+    FROM ops.knowledge_pages a
+    JOIN ops.knowledge_pages b ON b.page_type = a.page_type AND b.id < a.id
+    JOIN ops.knowledge_embeddings ae ON ae.page_id = a.id
+    JOIN ops.knowledge_embeddings be ON be.page_id = b.id
+   WHERE a.deleted_at IS NULL
+     AND b.deleted_at IS NULL
+     AND a.extracted_from_source_id IS NOT NULL
+     AND b.extracted_from_source_id IS NOT NULL
+)
+SELECT * FROM pairs WHERE cosine_similarity > 0.92;
+```
+
+Each result = a pair of derived entity pages that SHOULD have been merged by `wiki-sync/dedup` but weren't. Possible causes:
+- Dedup skill ran when one of the pair didn't have embeddings yet (deferred state); never re-ran after backfill
+- Dedup skill threshold mis-tuned
+
+**Disposition:**
+- `--fix` mode: queue each pair into `wiki-sync/review` queue (page-level `review_state='pending_review'` + `pending_merge_candidate_id` frontmatter hint)
+- Founder runs `/wiki review` to confirm/reject each merge
+
+Also enforced by `validate-wiki-integrity.cjs` v0.2 in DB mode (D6 invariant).
+
+### Check 9 — A11 attribution discipline (v3.0 — deterministic + LLM-light)
+
+a) Every source RECORD page MUST have `license_status` frontmatter:
+```sql
+SELECT id, slug, source_kind FROM ops.knowledge_pages
+ WHERE extracted_from_source_id IS NULL
+   AND legacy_v2_verbatim = false
+   AND source_kind IS NOT NULL
+   AND deleted_at IS NULL
+   AND (frontmatter->>'license_status' IS NULL
+     OR frontmatter->>'license_status' NOT IN ('public_domain', 'creative_commons', 'fair_use_excerpt', 'copyrighted_internal_only'));
+```
+
+b) No `copyrighted_internal_only` source has > 5 unreviewed extractions of type observation:
+```sql
+SELECT sp.id, sp.slug, COUNT(*) AS unreviewed_obs_count
+  FROM ops.knowledge_pages sp
+  JOIN ops.knowledge_extractions ke ON ke.source_page_id = sp.id
+ WHERE sp.frontmatter->>'license_status' = 'copyrighted_internal_only'
+   AND ke.link_type = 'extracted_observation'
+   AND ke.founder_reviewed = false
+ GROUP BY sp.id, sp.slug
+HAVING COUNT(*) > 5;
+```
+
+**Disposition:**
+- `--fix` (a): prompt founder per source via AskUserQuestion to set license_status
+- `--fix` (b): Telegram heads-up "Source X has N unreviewed observations; review before any public content uses them" — escalates to `attribution-watcher` skill (Sprint 4)
 
 ## Output: `.archives/wiki-audits/<YYYY-MM-DD>.md`
 

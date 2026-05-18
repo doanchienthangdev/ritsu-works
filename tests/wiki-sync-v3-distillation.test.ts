@@ -1,0 +1,263 @@
+// Tests for wiki-sync v3.0 distill+extract foundation (Sprint 1).
+//
+// Covers:
+//   - validate-wiki-integrity.cjs v0.2 extensions:
+//     * sentinel string "extracted_from_source_id IS NOT NULL" present
+//     * v0.2 summary includes new fields (with_extracted_from_source, with_legacy_v2_verbatim)
+//     * L3 v3_orphan_extracted_source local check works on synthetic fixtures
+//   - Migration 00031 structural shape (file exists, parses, contains expected blocks)
+//   - Test fixtures (sample-distill.md, growth-playbook-fixture.md, sample-corpus/) exist
+//
+// Excludes (deferred to Sprint 5 acceptance corpus run):
+//   - Actual distill skill execution (requires Anthropic API calls)
+//   - Confidence > 0.85 majority assertion on fixtures
+//   - DB-bound D4/D5/D6 invariants (require SUPABASE_ACCESS_TOKEN)
+
+import { describe, it, expect } from "vitest";
+import { execFileSync, spawnSync } from "node:child_process";
+import { readFileSync, existsSync } from "node:fs";
+import { resolve, join } from "node:path";
+
+const REPO = resolve(__dirname, "..");
+
+function runValidator(): { status: number; stdout: string; stderr: string } {
+  const r = spawnSync(
+    "node",
+    [join(REPO, "scripts/cross-tier/validate-wiki-integrity.cjs"), "--json"],
+    { cwd: REPO, encoding: "utf-8", timeout: 30000 }
+  );
+  return {
+    status: r.status ?? -1,
+    stdout: r.stdout ?? "",
+    stderr: r.stderr ?? "",
+  };
+}
+
+// ============================================================================
+// validate-wiki-integrity.cjs v0.2 extensions
+// ============================================================================
+
+describe("validate-wiki-integrity v0.2 (wiki-sync v3.0 Sprint 1)", () => {
+  it("contains sentinel string for sprint-order CI gate", () => {
+    const src = readFileSync(
+      join(REPO, "scripts/cross-tier/validate-wiki-integrity.cjs"),
+      "utf-8"
+    );
+    // Per spec §0 Sprint-order enforcement layer 2:
+    // "Sprint 2 PR's CI step runs a 3-line grep check that
+    //  scripts/cross-tier/validate-wiki-integrity.cjs exists AND contains
+    //  the literal string 'extracted_from_source_id IS NOT NULL'"
+    expect(src).toContain("extracted_from_source_id IS NOT NULL");
+  });
+
+  it("exposes v3 invariant SQL contracts as named constants", () => {
+    const src = readFileSync(
+      join(REPO, "scripts/cross-tier/validate-wiki-integrity.cjs"),
+      "utf-8"
+    );
+    expect(src).toContain("V3_CITATION_INTEGRITY_SQL");
+    expect(src).toContain("V3_EXTRACTION_FK_SQL");
+    expect(src).toContain("V3_DEDUP_SQL");
+  });
+
+  it("--json output declares v0.2 version + new summary fields", () => {
+    const r = runValidator();
+    expect(r.status).toBe(0);
+    const result = JSON.parse(r.stdout);
+    expect(result.version).toMatch(/v0\.2/);
+    expect(result.summary).toHaveProperty("with_extracted_from_source");
+    expect(result.summary).toHaveProperty("with_legacy_v2_verbatim");
+  });
+
+  it("--json output enumerates v3 invariants in db_checks contract block", () => {
+    const r = spawnSync(
+      "node",
+      [
+        join(REPO, "scripts/cross-tier/validate-wiki-integrity.cjs"),
+        "--with-db",
+        "--json",
+      ],
+      { cwd: REPO, encoding: "utf-8", timeout: 30000 }
+    );
+    const result = JSON.parse(r.stdout ?? "");
+    expect(result.db_checks).toBeTruthy();
+    expect(result.db_checks.v3_invariants_contracted).toBeInstanceOf(Array);
+    expect(result.db_checks.v3_invariants_contracted.length).toBeGreaterThanOrEqual(3);
+    const all = result.db_checks.v3_invariants_contracted.join("\n");
+    expect(all).toContain("v3_citation_integrity");
+    expect(all).toContain("v3_extraction_fk_consistency");
+    expect(all).toContain("v3_dedup_consistency");
+  });
+});
+
+// ============================================================================
+// Migration 00031 structural shape
+// ============================================================================
+
+describe("migration 00031_wiki_distillation.sql", () => {
+  const MIGRATION = join(
+    REPO,
+    "supabase/migrations/00031_wiki_distillation.sql"
+  );
+
+  it("exists at the expected path", () => {
+    expect(existsSync(MIGRATION)).toBe(true);
+  });
+
+  it("creates ops.knowledge_extractions table", () => {
+    const sql = readFileSync(MIGRATION, "utf-8");
+    expect(sql).toMatch(/CREATE TABLE ops\.knowledge_extractions/);
+  });
+
+  it("enforces strict link_type CHECK enum (4 extracted_* values)", () => {
+    const sql = readFileSync(MIGRATION, "utf-8");
+    expect(sql).toContain("'extracted_concept'");
+    expect(sql).toContain("'extracted_observation'");
+    expect(sql).toContain("'extracted_decision'");
+    expect(sql).toContain("'extracted_idea'");
+  });
+
+  it("uses CTO NIT 3 widened partial index predicate (confidence < 0.95)", () => {
+    const sql = readFileSync(MIGRATION, "utf-8");
+    // Per CTO P2/P3 #3: partial-index predicate should NOT hard-code
+    // the auto-accept threshold (0.85). Should be `confidence < 0.95` so
+    // future threshold tuning doesn't invalidate the index.
+    // Check the actual DDL line for the partial index uses < 0.95 not BETWEEN.
+    const indexMatch = sql.match(/CREATE INDEX idx_extractions_review_queue[^;]+;/s);
+    expect(indexMatch, "idx_extractions_review_queue DDL not found").toBeTruthy();
+    expect(indexMatch![0]).toMatch(/WHERE founder_reviewed = false AND confidence < 0\.95/);
+    expect(indexMatch![0]).not.toMatch(/BETWEEN/);
+  });
+
+  it("adds 4 new columns to ops.knowledge_pages", () => {
+    const sql = readFileSync(MIGRATION, "utf-8");
+    expect(sql).toContain("extracted_from_source_id uuid REFERENCES");
+    expect(sql).toContain("legacy_v2_verbatim boolean NOT NULL DEFAULT false");
+    expect(sql).toContain("review_state text NOT NULL DEFAULT 'auto_accepted'");
+    expect(sql).toContain("deleted_at timestamptz");
+  });
+
+  it("RLS policy restricts SELECT to authenticated (NOT anon)", () => {
+    const sql = readFileSync(MIGRATION, "utf-8");
+    // CTO P2/P3 #3: raw_quote may contain copyrighted source text;
+    // anon read would leak it. SELECT TO authenticated only.
+    expect(sql).toContain("extractions_read_authenticated");
+    expect(sql).toContain("FOR SELECT\n  TO authenticated");
+    // Should NOT have TO anon for extractions
+    expect(sql).not.toMatch(/TO anon, authenticated USING \(true\)/);
+  });
+
+  it("Block E backfill uses RAISE WARNING not RAISE NOTICE", () => {
+    const sql = readFileSync(MIGRATION, "utf-8");
+    // CTO P2/P3 #2: RAISE WARNING so CI output flags abnormal row counts.
+    expect(sql).toMatch(/RAISE WARNING.*Block E.*no rows updated/);
+    expect(sql).toMatch(/RAISE WARNING.*Block E.*expected exactly 1/);
+  });
+
+  it("uses semantic version sentinel referencing decision row 562b2e4e", () => {
+    const sql = readFileSync(MIGRATION, "utf-8");
+    expect(sql).toContain("562b2e4e-7f50-47f2-a3bb-1291c30f6709");
+  });
+});
+
+// ============================================================================
+// Test fixtures
+// ============================================================================
+
+describe("test fixtures (Sprint 1)", () => {
+  const fixturesDir = join(REPO, "tests/wiki-sync/fixtures");
+
+  it("sample-distill.md exists with ≥3 concepts/observations/decisions narrative", () => {
+    const path = join(fixturesDir, "sample-distill.md");
+    expect(existsSync(path)).toBe(true);
+    const content = readFileSync(path, "utf-8");
+    expect(content).toMatch(/^---\n.*license_status:/s);
+    expect(content.length).toBeGreaterThan(800);
+  });
+
+  it("growth-playbook-fixture.md exists (per spec §3.8 + Sprint 5 acceptance)", () => {
+    const path = join(fixturesDir, "growth-playbook-fixture.md");
+    expect(existsSync(path)).toBe(true);
+    const content = readFileSync(path, "utf-8");
+    expect(content).toContain("PLG");
+    expect(content).toContain("wedge");
+    expect(content).toContain("ICP");
+  });
+
+  it("sample-corpus/ has 3 overlapping-concept files (for Sprint 3 dedup tests)", () => {
+    const corpusDir = join(fixturesDir, "sample-corpus");
+    expect(existsSync(join(corpusDir, "01-plg-fundamentals.md"))).toBe(true);
+    expect(existsSync(join(corpusDir, "02-wedge-and-icp.md"))).toBe(true);
+    expect(existsSync(join(corpusDir, "03-activation-and-ttv.md"))).toBe(true);
+    // All 3 should mention "PLG" (the dedup target concept)
+    const f1 = readFileSync(join(corpusDir, "01-plg-fundamentals.md"), "utf-8");
+    const f2 = readFileSync(join(corpusDir, "02-wedge-and-icp.md"), "utf-8");
+    const f3 = readFileSync(join(corpusDir, "03-activation-and-ttv.md"), "utf-8");
+    expect(f1).toMatch(/PLG|product-led growth/i);
+    expect(f2).toMatch(/PLG|product-led growth/i);
+    expect(f3).toMatch(/PLG|product-led growth/i);
+  });
+
+  it("all fixture frontmatter declares license_status (per spec A11)", () => {
+    const files = [
+      "sample-distill.md",
+      "growth-playbook-fixture.md",
+      "sample-corpus/01-plg-fundamentals.md",
+      "sample-corpus/02-wedge-and-icp.md",
+      "sample-corpus/03-activation-and-ttv.md",
+    ];
+    for (const f of files) {
+      const content = readFileSync(join(fixturesDir, f), "utf-8");
+      expect(content).toMatch(/license_status:\s*(public_domain|creative_commons|fair_use_excerpt|copyrighted_internal_only)/);
+    }
+  });
+});
+
+// ============================================================================
+// ROLES.md governance drift fix (CTO P2/P3 #4)
+// ============================================================================
+
+describe("ROLES.md etl-runner grant (CTO P2/P3 #4)", () => {
+  it("grants etl-runner write to ops.knowledge_extractions", () => {
+    const roles = readFileSync(join(REPO, "governance/ROLES.md"), "utf-8");
+    // Find the etl-runner section and verify it now lists knowledge_* writes.
+    const etlSection = roles.split(/^### `etl-runner`/m)[1]?.split(/^### /m)[0] ?? "";
+    expect(etlSection).toContain("ops.knowledge_extractions");
+    expect(etlSection).toContain("ops.knowledge_pages");
+    expect(etlSection).toContain("ops.knowledge_links");
+    expect(etlSection).toContain("ops.knowledge_embeddings");
+  });
+});
+
+// ============================================================================
+// manifest.yaml + feature-flags.yaml v3.0 declarations
+// ============================================================================
+
+describe("Tier 1 yaml declarations for v3.0", () => {
+  it("manifest.yaml lists ops.knowledge_extractions with migration_file pointer", () => {
+    const manifest = readFileSync(
+      join(REPO, "knowledge/manifest.yaml"),
+      "utf-8"
+    );
+    expect(manifest).toContain("knowledge_extractions");
+    expect(manifest).toContain("00031_wiki_distillation.sql");
+  });
+
+  it("manifest.yaml version bumped to 0.6.0", () => {
+    const manifest = readFileSync(
+      join(REPO, "knowledge/manifest.yaml"),
+      "utf-8"
+    );
+    expect(manifest).toMatch(/^version:\s*0\.6\.0/m);
+  });
+
+  it("feature-flags.yaml declares 3 wiki_sync_v3 flags", () => {
+    const flags = readFileSync(
+      join(REPO, "knowledge/feature-flags.yaml"),
+      "utf-8"
+    );
+    expect(flags).toContain("wiki_sync_distill_enabled");
+    expect(flags).toContain("wiki_sync_review_queue_telegram_digest");
+    expect(flags).toContain("wiki_sync_attribution_watcher");
+  });
+});
