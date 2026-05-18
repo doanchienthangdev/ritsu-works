@@ -187,8 +187,96 @@ function ingestMarkdown(absPath, opts = {}) {
 }
 
 // ----------------------------------------------------------------------------
-// Folder adapter (v0.1)
+// Folder adapter (v4.1 — recursive BFS)
 // ----------------------------------------------------------------------------
+//
+// v4.1 (post 2026-05-18): folder ingestion supports recursive subdirectory
+// traversal via breadth-first search, bounded by:
+//   - maxDepth (--depth=N, default 3): max tree depth to descend from root.
+//     Depth 0 = root folder; depth 1 = direct children; etc. Folders deeper
+//     than maxDepth are NOT enumerated.
+//   - maxFolderNodes (--max-nodes=N, default 20): hard cap on TOTAL FOLDERS
+//     visited during BFS. Files within a visited folder are always ingested
+//     (no per-file cap). Stops descent early when the cap is reached;
+//     remaining queued folders are reported as 'truncated_folders' but NOT
+//     ingested.
+//
+// Why folders (not files+folders) for the N counter: in source-grouped v4
+// layout, each LEAF folder (folder containing files) becomes its own
+// wiki/<col-slug>/ package. Counting folders aligns the BFS budget with the
+// number of packages produced. Files within a visited folder are always
+// processed wholesale so packages aren't half-populated.
+//
+// Hard ceiling: maxDepth max 10 (sanity), maxFolderNodes max 500. CLI
+// rejects values outside these bounds.
+// ----------------------------------------------------------------------------
+
+const FOLDER_BFS_MAX_DEPTH_CAP = 10;
+const FOLDER_BFS_MAX_NODES_CAP = 500;
+
+function bfsCollectPackages(rootPath, maxDepth, maxFolderNodes) {
+  const queue = [{ path: rootPath, depth: 0 }];
+  const packages = []; // [{ folderPath, depth, files: [absPath,...] }]
+  let foldersVisited = 0;
+  const truncatedFolders = []; // folders queued but not visited (BFS budget exhausted)
+
+  while (queue.length > 0) {
+    if (foldersVisited >= maxFolderNodes) {
+      // Budget exhausted — record remaining queue as truncated, stop.
+      for (const item of queue) {
+        truncatedFolders.push({
+          path: path.relative(rootPath, item.path) || '.',
+          depth: item.depth,
+        });
+      }
+      break;
+    }
+
+    const { path: current, depth } = queue.shift();
+    foldersVisited++;
+
+    let entries;
+    try {
+      entries = fs.readdirSync(current, { withFileTypes: true });
+    } catch (e) {
+      continue;
+    }
+
+    // Filter hidden + .obsidian + .git noise
+    const visibleEntries = entries.filter((e) => !e.name.startsWith('.'));
+
+    const files = visibleEntries
+      .filter((e) => e.isFile())
+      .map((e) => path.join(current, e.name))
+      .sort();
+
+    const subdirs = visibleEntries
+      .filter((e) => e.isDirectory())
+      .map((e) => path.join(current, e.name))
+      .sort();
+
+    // Only register a package for folders that actually contain ingestable
+    // files (skip purely-structural folders like raw/5-star/ that just hold
+    // subdirs).
+    const ingestableFiles = files.filter((f) => {
+      const ext = path.extname(f).toLowerCase();
+      return ext === '.md' || ext === '.markdown';
+    });
+
+    if (ingestableFiles.length > 0) {
+      packages.push({ folderPath: current, depth, files: ingestableFiles });
+    }
+
+    // Enqueue subdirs only if would-be depth ≤ maxDepth.
+    if (depth + 1 <= maxDepth) {
+      for (const sub of subdirs) {
+        queue.push({ path: sub, depth: depth + 1 });
+      }
+    }
+  }
+
+  return { packages, foldersVisited, truncatedFolders };
+}
 
 function ingestFolder(absPath, opts = {}) {
   const stat = fs.statSync(absPath);
@@ -196,75 +284,105 @@ function ingestFolder(absPath, opts = {}) {
     return { error: 'input_validation', detail: `${absPath} is not a directory`, exit_code: 1 };
   }
 
-  const entries = fs.readdirSync(absPath, { withFileTypes: true })
-    .filter((e) => !e.name.startsWith('.')); // skip hidden
+  const maxDepth = Math.min(
+    typeof opts.depth === 'number' ? Math.max(0, Math.floor(opts.depth)) : 3,
+    FOLDER_BFS_MAX_DEPTH_CAP,
+  );
+  const maxFolderNodes = Math.min(
+    typeof opts.maxNodes === 'number' ? Math.max(1, Math.floor(opts.maxNodes)) : 20,
+    FOLDER_BFS_MAX_NODES_CAP,
+  );
 
-  const subdirs = entries.filter((e) => e.isDirectory());
-  if (subdirs.length > 0) {
+  const { packages, foldersVisited, truncatedFolders } = bfsCollectPackages(
+    absPath,
+    maxDepth,
+    maxFolderNodes,
+  );
+
+  if (packages.length === 0) {
     return {
-      error: 'recursive_refused',
-      detail: `Recursive folder ingestion deferred to v2.1. Subdirectories found: ${subdirs.map((d) => d.name).join(', ')}`,
-      workaround: 'Flatten the input OR run /wiki sync per subdirectory.',
+      error: 'empty_tree',
+      detail: 'No markdown files found within the BFS budget (depth ≤ ' + maxDepth + ', folder nodes ≤ ' + maxFolderNodes + ')',
+      folders_visited: foldersVisited,
+      truncated_folders: truncatedFolders,
       exit_code: 1,
     };
   }
 
-  const files = entries.filter((e) => e.isFile());
-  if (files.length === 0) {
-    return { error: 'empty_collection', detail: 'No supported files found', exit_code: 1 };
-  }
+  // For each discovered package (= folder containing files), ingest its files
+  // as children of that folder's slug. v4 layout: wiki/<col-slug>/<child-slug>/source.md.
+  const packagesOut = [];
+  const allChildren = [];
+  const allSkipped = [];
 
-  files.sort((a, b) => a.name.localeCompare(b.name));
+  for (const pkg of packages) {
+    const colSlug = kebabCase(path.basename(pkg.folderPath));
+    const pkgChildren = [];
+    const pkgSkipped = [];
 
-  const colSlug = kebabCase(path.basename(absPath));
-  const children = [];
-  const skipped = [];
+    for (const filePath of pkg.files) {
+      const fileName = path.basename(filePath);
+      const ext = path.extname(fileName).toLowerCase();
 
-  for (const f of files) {
-    const childAbs = path.join(absPath, f.name);
-    const ext = path.extname(f.name).toLowerCase();
-
-    if (ext === '.md' || ext === '.markdown') {
-      // Compute combined slug
-      const childRaw = fs.readFileSync(childAbs, 'utf8');
+      const childRaw = fs.readFileSync(filePath, 'utf8');
       let childFm;
       try {
         ({ frontmatter: childFm } = parseFrontmatter(childRaw));
       } catch (e) {
-        skipped.push({ file: f.name, reason: `parse_error: ${e.message}` });
+        pkgSkipped.push({ file: fileName, reason: `parse_error: ${e.message}` });
         continue;
       }
-      const childSlugBase = childFm.slug || kebabCase(path.basename(f.name, ext));
+      const childSlugBase = childFm.slug || kebabCase(path.basename(fileName, ext));
 
-      // v4.0 source-grouped folder layout: children land at
-      // wiki/<colSlug>/<childSlug>/source.md (NOT wiki/<colSlug>__<childSlug>.md).
-      // The slugOverride passes the child slug; parentColSlug nests under the
-      // collection. Composite UNIQUE (extracted_from_source_id, slug) makes
-      // same-slug children across different collections legitimate.
-      const childResult = ingestMarkdown(childAbs, {
+      // v4 source-grouped folder layout: children land at
+      // wiki/<colSlug>/<childSlug>/source.md.
+      // Composite UNIQUE (extracted_from_source_id, slug) makes same-slug
+      // children across different folder packages legitimate.
+      const childResult = ingestMarkdown(filePath, {
         slugOverride: childSlugBase,
         parentColSlug: colSlug,
       });
       if (childResult.error) {
-        skipped.push({ file: f.name, reason: childResult.error, detail: childResult.detail });
+        pkgSkipped.push({
+          file: fileName,
+          reason: childResult.error,
+          detail: childResult.detail,
+        });
       } else {
-        children.push({ file: f.name, ...childResult });
+        pkgChildren.push({ file: fileName, ...childResult });
       }
-    } else {
-      skipped.push({ file: f.name, reason: `unsupported_extension: ${ext} (v0.1 CLI supports markdown only)` });
     }
+
+    packagesOut.push({
+      col_slug: colSlug,
+      folder_path: path.relative(REPO_ROOT, pkg.folderPath),
+      depth: pkg.depth,
+      file_count: pkg.files.length,
+      succeeded: pkgChildren.length,
+      skipped: pkgSkipped.length,
+    });
+    allChildren.push(...pkgChildren);
+    allSkipped.push(...pkgSkipped);
   }
 
   return {
     adapter: 'folder',
     source_kind: 'folder_collection',
     source_ref: path.relative(REPO_ROOT, absPath),
-    col_slug: colSlug,
-    files_total: files.length,
-    succeeded_count: children.length,
-    skipped_count: skipped.length,
-    children,
-    skipped,
+    bfs: {
+      max_depth: maxDepth,
+      max_folder_nodes: maxFolderNodes,
+      folders_visited: foldersVisited,
+      packages_produced: packagesOut.length,
+      truncated_folders: truncatedFolders,
+      truncated: truncatedFolders.length > 0,
+    },
+    packages: packagesOut,
+    files_total: allChildren.length + allSkipped.length,
+    succeeded_count: allChildren.length,
+    skipped_count: allSkipped.length,
+    children: allChildren,
+    skipped: allSkipped,
   };
 }
 
@@ -275,17 +393,31 @@ function ingestFolder(absPath, opts = {}) {
 function main() {
   const argv = process.argv.slice(2);
   if (argv.length === 0 || argv.includes('--help') || argv.includes('-h')) {
-    console.error('Usage: node scripts/wiki-sync/ingest.cjs <path> [--slug=<override>]');
+    console.error('Usage: node scripts/wiki-sync/ingest.cjs <path> [flags]');
     console.error('');
-    console.error('v0.1 CLI helper (Sprint 2 PR3): markdown + folder adapters only.');
-    console.error('Outputs JSON to stdout. Does NOT write to DB (caller handles).');
-    console.error('Capability: wiki-sync-from-refs v2.0.0 (G6 hybrid runner disposition).');
+    console.error('Flags:');
+    console.error('  --slug=<override>      override the auto-derived slug (single-file mode only)');
+    console.error('  --depth=<N>            (folder mode) max BFS depth, default 3, hard cap 10');
+    console.error('  --max-nodes=<N>        (folder mode) max folder nodes visited via BFS,');
+    console.error('                         default 20, hard cap 500. Files within a visited');
+    console.error('                         folder are ingested wholesale.');
+    console.error('');
+    console.error('CLI helper for SOP-INGEST-001 file-side steps. Supports markdown adapter');
+    console.error('(single file) + folder adapter (recursive BFS since v4.1). Outputs JSON to');
+    console.error('stdout. Does NOT write to DB (caller handles via supabase-ops MCP).');
+    console.error('Capability: wiki-sync-from-refs v4.1.0 (recursive folder support).');
     process.exit(argv.length === 0 ? 1 : 0);
   }
 
   const input = argv[0];
   const slugMatch = argv.find((a) => a.startsWith('--slug='));
   const slugOverride = slugMatch ? slugMatch.split('=')[1] : undefined;
+
+  const depthMatch = argv.find((a) => a.startsWith('--depth='));
+  const depthOpt = depthMatch ? parseInt(depthMatch.split('=')[1], 10) : undefined;
+
+  const maxNodesMatch = argv.find((a) => a.startsWith('--max-nodes='));
+  const maxNodesOpt = maxNodesMatch ? parseInt(maxNodesMatch.split('=')[1], 10) : undefined;
 
   const absPath = path.isAbsolute(input) ? input : path.resolve(process.cwd(), input);
 
@@ -298,7 +430,11 @@ function main() {
   let result;
 
   if (stat.isDirectory()) {
-    result = ingestFolder(absPath, { slugOverride });
+    result = ingestFolder(absPath, {
+      slugOverride,
+      depth: depthOpt,
+      maxNodes: maxNodesOpt,
+    });
   } else {
     const ext = path.extname(absPath).toLowerCase();
     if (ext === '.md' || ext === '.markdown') {

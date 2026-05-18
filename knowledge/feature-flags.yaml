@@ -211,11 +211,19 @@ features:
     cost_estimate: "$0.00004 per page (~$0.04 to backfill 1000 deferred)"
 
   wiki_sync_recursive_folders:
-    enabled: false                        # v2.1 candidate per Tier C decision
+    enabled: true                         # v4.1 (2026-05-18): lifted from v2.0 hard-refuse via /cla extend
     requires_api: []
     fallback: refuse_with_workaround_message
-    description: "Recursive folder ingestion (v2.0 = flat-only)"
-    cost_warning: "10 locales × $0.05 = $0.50 per page."
+    description: |
+      Recursive folder ingestion via breadth-first search (BFS). Bounded by
+      max_depth (default 3, hard cap 10) and max_folder_nodes (default 20,
+      hard cap 500). Each LEAF folder (folder containing markdown files)
+      becomes its own wiki/<col-slug>/ package. Defaults are conservative;
+      founder overrides per-invocation via /wiki sync --depth=N --max-nodes=N.
+    defaults:
+      max_depth: 3
+      max_folder_nodes: 20
+    cost_warning: "Each folder package = N files × per-file LLM cost in distill phase. Bound via max_folder_nodes."
 
   # === Wiki-sync v3.0 flags (added Sprint 1 of wiki-sync-from-refs v3.0.0) ===
   wiki_sync_distill_enabled:

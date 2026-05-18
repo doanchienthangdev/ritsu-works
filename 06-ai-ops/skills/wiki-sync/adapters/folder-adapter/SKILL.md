@@ -1,14 +1,15 @@
 ---
 name: wiki-sync/adapters/folder-adapter
 description: |
-  Folder = collection adapter (Sprint 2 PR3, capability v2.0.0). When /wiki sync
-  is invoked with a directory path, iterates the directory's files alphabetically
-  and dispatches each to its matching sibling adapter (markdown/pdf/url/youtube/
-  meeting). Children inherit page_type from each file's frontmatter (per Hybrid
-  B/A: NO new 'collection' page_type). Slug discipline:
-  `<col-slug>__<file-slug>` global UNIQUE. Flat-only in v2.0; recursive
-  subdirectories refused. Parent/child wired via ops.ingestion_jobs.parent_job_id
-  (migration 00030 Block C, CASCADE).
+  Folder = collection adapter. When /wiki sync is invoked with a directory
+  path, traverses the folder tree via breadth-first search (BFS) and
+  dispatches each leaf folder's files to its matching sibling adapter
+  (markdown/pdf/url/youtube/meeting). v4.0: each leaf folder becomes its
+  own wiki/<col-slug>/ source-grouped package; children land at
+  wiki/<col-slug>/<child-slug>/source.md (composite UNIQUE on derived slugs
+  within source). v4.1: recursive subdirectories supported, bounded by
+  max_depth (default 3, hard cap 10) and max_folder_nodes (default 20,
+  hard cap 500). CLI flags: --depth=N --max-nodes=N.
 ---
 
 # wiki-sync / adapters / folder-adapter (Sprint 2 PR3 baseline — v2.0.0)
@@ -29,6 +30,8 @@ wiki target for children: `wiki/<col-slug>/<child-slug>/source.md` (v4.0 source-
 - `path` — absolute path to a directory under `raw/<topic>/<folder>/`
 - `entity_type_override` — optional; if passed, forces ALL children to that page_type
 - `force` — bool; passed through to each child ingestion
+- `depth` — int, optional. **v4.1** BFS max depth (root folder = depth 0). Default 3. Hard cap 10. CLI: `--depth=N`.
+- `max_nodes` — int, optional. **v4.1** BFS folder-node budget (max folders visited). Default 20. Hard cap 500. Files within a visited folder are ingested wholesale (no per-file cap). CLI: `--max-nodes=N`.
 
 ## Process
 
@@ -36,16 +39,51 @@ wiki target for children: `wiki/<col-slug>/<child-slug>/source.md` (v4.0 source-
 
 - Path exists? Else bail with clear error.
 - Is a directory? Else delegate back to ingest (single-file path).
-- Contains at least 1 file (after filtering)? Else bail "empty collection".
-- NO subdirectories present? Else bail with v2.0 refuse-recursive error:
-  ```
-  Recursive folder ingestion is deferred to v2.1.
-  Found subdirectories under <path>: <list>.
-  Workaround: flatten the input, OR run /wiki sync on each subdirectory
-  separately (each becomes its own collection).
-  ```
+- Resolve effective `max_depth` and `max_folder_nodes` (CLI flag → opts → defaults).
 
-### Step 2 — Derive collection slug
+### Step 2 — BFS folder traversal (v4.1)
+
+```pseudo
+queue = [(rootPath, depth=0)]
+packages = []        // [{folder_path, depth, files}]
+folders_visited = 0
+truncated = []
+
+while queue not empty:
+  if folders_visited >= max_folder_nodes:
+    truncated = remaining queue       // record but DON'T ingest
+    break
+
+  (current, depth) = queue.shift()
+  folders_visited += 1
+
+  entries = readdir(current).filter(not .hidden)
+  files = entries.files where extension in {.md, .markdown}
+  subdirs = entries.dirs
+
+  if files.length > 0:
+    packages.push({folder_path: current, depth, files})   // leaf folder = a package
+
+  if depth + 1 <= max_depth:
+    for sub in subdirs:
+      queue.push((sub, depth+1))
+```
+
+**Semantics:**
+- "Node" in the budget = folder node (not file). Each folder dequeue counts 1 toward the budget.
+- A folder is a "leaf folder" if it contains at least 1 markdown file. Only leaf folders become packages; purely-structural folders (e.g. `raw/5-star/` that only holds subfolders) are traversed but don't produce a package.
+- BFS guarantees stable "top-of-tree first" behavior under budget pressure. When the budget exhausts, deeper / later folders get dropped.
+- `truncated` list is reported in output so founder knows what was skipped and can rerun with raised `--max-nodes=N` to include them.
+
+If `packages.length === 0` after traversal: bail `empty_tree` with the depth/node budget settings included in the error for context.
+
+> **Per-package processing (Steps 3-7 below):** Run Steps 3-7 once for EACH
+> package returned by BFS. Each leaf folder becomes its own
+> `wiki/<col-slug>/` source-grouped package; its files become children at
+> `wiki/<col-slug>/<child-slug>/source.md`. Cross-package cross-paper
+> aggregation (Step 7b) runs ONCE at the end across all packages.
+
+### Step 3.A — Derive collection slug (per-package)
 
 - `col_slug = kebab-case(basename(path))`
 - Cap at 40 chars
@@ -57,7 +95,7 @@ wiki target for children: `wiki/<col-slug>/<child-slug>/source.md` (v4.0 source-
   the collection itself has no own page. Continue? [Tier B confirm]
   ```
 
-### Step 3 — Enumerate files
+### Step 3.B — Enumerate files (per-package)
 
 - `files = readdirSync(path).filter(f => !f.startsWith('.'))` — skip hidden files
 - Sort alphabetically (default; future v2.1 may support manual ordering via INDEX.md)
@@ -68,7 +106,7 @@ wiki target for children: `wiki/<col-slug>/<child-slug>/source.md` (v4.0 source-
   - Other extensions: include in summary as "skipped: unsupported extension"
 - If zero supported files after filter → bail "no supported files in collection"
 
-### Step 4 — Create parent ingestion_jobs row
+### Step 4 — Create parent ingestion_jobs row (per-package)
 
 ```sql
 INSERT INTO ops.ingestion_jobs (
@@ -114,7 +152,7 @@ Build summary table:
 | 3 | react.pdf | pdf | ✗ slug conflict | papers/react | $0.00 |
 | 4 | notes.docx | — | skipped: unsupported | — | — |
 
-### Step 6b — Cross-paper concept aggregation (v3.0 — distill mode only)
+### Step 7 — Cross-paper concept aggregation (v3.0 — distill mode only; runs ONCE across all packages produced by BFS)
 
 If `wiki_sync_distill_enabled = true` AND `--verbatim` flag absent: after ALL files in the folder have completed individual distill (Step 5 per-file dispatch finishes), invoke `wiki-sync/dedup` skill with:
 
@@ -133,7 +171,7 @@ Cost: ~$0.30 cap per folder (wiki-dedup-batch task_kind).
 
 Per spec A7: this aggregation is the headline value of folder ingest — without it, a 10-paper growth corpus produces 50+ duplicate concept pages. With it, the founder gets a clean concept graph with multi-source provenance.
 
-### Step 7 — Update parent ingestion_jobs row
+### Step 8 — Update parent ingestion_jobs row (per-package)
 
 ```sql
 UPDATE ops.ingestion_jobs SET
@@ -157,7 +195,7 @@ a small ALTER CHECK in a follow-up migration OR map partial → completed with
 metadata flag. **Disposition: map to `completed` with `metadata.has_partial_failures=true`**
 to avoid yet another migration. CTO can revisit in Sprint 4 cleanup PR.
 
-### Step 8 — Telegram heartbeat (per CTO NIT 1)
+### Step 9 — Telegram heartbeat (per CTO NIT 1)
 
 Two messages only (NOT per-file):
 - Start: "Folder ingest started: <col_slug> (<N> files; <skipped_count> skipped). ETA ~<estimate>."
