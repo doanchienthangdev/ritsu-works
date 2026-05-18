@@ -77,9 +77,21 @@ source_kinds:
     wiki_target: "wiki/<col-slug>/<child-slug>/source.md"       # v4.0 — children land at clean nested paths (drops the __ flat-slug pattern from v2/v3)
     discipline:
       slug_uniqueness: scoped              # v4.0: source RECORDs (extracted_from_source_id IS NULL) globally unique; derived entities composite UNIQUE (extracted_from_source_id, slug); enforced by migration 00032 partial indexes
-      recursive: false                     # v2.0 flat-only; subdirectories refused
+      recursive: true                      # v4.1: BFS-recursive (lifted from v2.0 hard-refuse). Bounded by max_depth + max_folder_nodes.
+      recursive_defaults:                  # v4.1 defaults; CLI override via --depth=N / --max-nodes=N
+        max_depth: 3                       # tree depth budget; root folder = depth 0
+        max_folder_nodes: 20               # max FOLDERS visited via BFS; files within a visited folder are always ingested (no per-file cap)
+        max_depth_cap: 10                  # hard ceiling (safety)
+        max_folder_nodes_cap: 500          # hard ceiling (safety)
+      recursive_semantics: |
+        BFS over folder tree from input root. Each LEAF folder (folder containing
+        markdown files) becomes its own wiki/<col-slug>/ package. Files within
+        each visited folder are processed wholesale. When max_folder_nodes is
+        reached mid-traversal, remaining queued folders are reported as
+        truncated_folders (NOT ingested) — founder reruns with raised --max-nodes
+        to include them. Depth > max_depth folders are silently skipped.
       page_type_for_children: inherited    # NO new 'collection' enum in v2.0
-      hidden_files: skipped
+      hidden_files: skipped                # .DS_Store, .obsidian, .git, .* skipped
       unsupported_extensions: skipped_with_summary
 
 active_subscriptions:

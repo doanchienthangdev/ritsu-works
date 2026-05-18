@@ -111,8 +111,8 @@ capabilities:
       (2026-07-17) shows 0 content pieces citing v3.0+ entities → freeze v3.x.
       7-day post-v4-ship commitment (Muse Paul Graham M1, Tier C ceremony):
       founder ingests ≥3 growth playbooks by 2026-05-25.
-    state: operating       # Promoted 2026-05-18 (Phase 8 of v4.0 revise); Sprint 1 merge 0cd0c62; Sprint 2 merge 70ee2ee; migration 00032 applied 2026-05-18; ops.capability_runs[f75502d4] operating_since 2026-05-18T~09:30Z
-    version: "4.0.0"       # Major bump from 3.0.0 — layout flip entity-type-grouped → source-grouped per founder anchor "input wiki files/folders tường minh"
+    state: operating       # Promoted 2026-05-18 (Phase 8 of v4.0 revise); Sprint 1 merge 0cd0c62; Sprint 2 merge 70ee2ee; migration 00032 applied 2026-05-18; ops.capability_runs[f75502d4] operating_since 2026-05-18T~09:30Z. v4.1 minor extension 2026-05-18 (recursive folder support).
+    version: "4.1.0"       # Minor bump from 4.0.0 — backward-compatible folder-adapter recursive BFS support (lifts v2.0 hard-refuse). No DDL change; no spec.md flip; documented in §8 re-trigger condition.
     state_since: 2026-05-18
     proposed_at: 2026-05-16
     deployed_at: 2026-05-18  # v4.0 Sprint 1 + Sprint 2 merged 2026-05-18
@@ -180,6 +180,15 @@ capabilities:
       2026-07-17) — v4.0 does NOT reset it. Founder 7-day post-ship
       commitment (Muse M1): ingest ≥3 growth playbooks via /wiki sync
       by 2026-05-25.
+
+      v4.1 (2026-05-18, minor extension via /cla extend Tier B):
+      folder-adapter recursive support via BFS, bounded by --depth=N
+      (default 3, hard cap 10) and --max-nodes=N (default 20, hard cap 500).
+      Each LEAF folder becomes its own wiki/<col-slug>/ source-grouped
+      package; files within a visited folder ingested wholesale; truncated
+      folders reported when budget exhausts. No DDL change; lifts the
+      v2.0 hard-refuse on subdirectories. Triggered by founder needing
+      to ingest raw/5-star/ (11 playbook subfolders × 4 files each).
 
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition
