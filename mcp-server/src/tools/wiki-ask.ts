@@ -1,28 +1,27 @@
 /**
- * `wiki_ask` tool — RAG over wiki/ + ops.knowledge_embeddings.
+ * `wiki_ask` tool — citation-disciplined RAG over wiki/ + ops.knowledge_embeddings.
  *
- * Added Sprint 3 / PR5 of wiki-sync-from-refs v2.0.0. v0.1 STUB: returns
- * a clear "embedding-search-deferred-to-v0.2" contract so callers can wire
- * up to this tool now and benefit when v0.2 lands without a contract change.
+ * v0.2 (wiki-sync v3.0.5 patch, 2026-05-18): ENTITY-FIRST retrieval.
+ * Prefer derived entity pages (extracted_from_source_id IS NOT NULL) over
+ * source RECORD chunks. Citation format per Muse M5: includes original
+ * source title + raw_quote + confidence.
  *
- * v0.2 will:
- *   - Embed the question via OpenAI text-embedding-3-small
- *   - Vector top-K search against ops.knowledge_embeddings (k=10)
- *   - Optional keyword (BM25) hybrid join
- *   - Synthesize answer with strict citation discipline:
- *     every claim cites [wiki/<type>/<slug>.md#chunk-NN]
- *   - Return {answer:null, reason:'no_coverage'} if no wiki hit;
- *     NEVER falls back to training data
+ * Architecture decision: this MCP tool RETURNS structured retrieval data
+ * + citations; the calling Claude Code session synthesizes the final answer.
+ * This avoids a per-call Anthropic synthesis cost in the MCP server and
+ * lets the caller use whatever model is best for the context. The SKILL
+ * spec at 06-ai-ops/skills/wiki-sync/ask/SKILL.md documents both the
+ * retrieval contract (this tool) and the synthesis prompt (caller-side).
  *
- * v0.1 contract (THIS commit) is contract-complete for callers:
- *   - Same input/output shape as v0.2 will have
- *   - Returns explicit reason='embedding_search_deferred_v0_2'
- *   - Includes pointers to wiki_list_pages + wiki_get_page so the caller
- *     agent can manually browse + cite (the v0 fallback path)
+ * v0.2 capabilities (gated on OPENAI_API_KEY presence):
+ *   - Embed question via OpenAI text-embedding-3-small (1536 dims)
+ *   - Entity-first cosine similarity (TypeScript-side) — preferred ranking
+ *   - Falls through to source-chunk retrieval if < 3 entity hits with sim > 0.7
+ *   - Joins source RECORD metadata for Muse M5 citation format
+ *   - Returns {answer:null, reason:'no_coverage'} if no hits;
+ *     NEVER hallucinates from training data
  *
- * Per Tier C ops.decisions[fff2bf7c-…] Hybrid B/A: this tool is wired into
- * mcp-server so agents (@cto, @cpo, @cgo, subagents) have a single API
- * surface, even before the actual embedding integration lands.
+ * If OPENAI_API_KEY is absent, falls back to v0.1 stub behavior.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -30,11 +29,12 @@ import type { CallerContext, ToolResult } from "../types.ts";
 import { MCPToolError } from "../types.ts";
 import { canReadSchema } from "../governance/role-resolver.ts";
 
-export const wikiAskDescription = `Ask a citation-disciplined RAG question over the wiki. \
-Inputs: { question: string (required), k?: 1..20 (default 10), rerank?: boolean (default false), filter?: { page_type? } }. \
-Output v0.2 (TARGET): { answer: string | null, citations: [{wiki_path, slug, chunk_index, score}], reason: 'answered'|'no_coverage' }. \
-Output v0.1 (STUB): { answer: null, reason: 'embedding_search_deferred_v0_2', fallback_tools: ['wiki_list_pages', 'wiki_get_page'], note: '...' }. \
-Citation discipline: every claim MUST cite a wiki path; NEVER falls back to training data.`;
+export const wikiAskDescription = `Citation-disciplined RAG retrieval over wiki/ + ops.knowledge_embeddings. \
+v3.0 entity-first: prefers derived entity pages (concept/observation/decision/idea where extracted_from_source_id IS NOT NULL) \
+over source RECORD chunks. Citation format includes original source title + raw_quote + confidence per Muse M5. \
+Inputs: { question: string (required), k?: 1..20 (default 10), entity_only?: boolean (default false; if true, never falls through to source chunks), filter?: { page_type? } }. \
+Output (v0.2): { answer: null, retrieval_results: [{ page_slug, page_type, page_title, source_slug, source_title, similarity, is_derived_entity, chunk_text, citation_format }], reason: 'retrieved'|'no_coverage'|'embedding_search_deferred_v0_2', synthesis_hint: '...' }. \
+Caller (Claude Code session) synthesizes final answer per ask/SKILL.md system prompt. NEVER falls back to training data.`;
 
 export const wikiAskInputSchema = {
   type: "object",
@@ -44,19 +44,19 @@ export const wikiAskInputSchema = {
       type: "string",
       minLength: 3,
       maxLength: 2000,
-      description: "Natural language question to answer from wiki contents.",
+      description: "Natural language question to retrieve wiki entities for.",
     },
     k: {
       type: "integer",
       minimum: 1,
       maximum: 20,
       default: 10,
-      description: "Top-K vector neighbors (v0.2). Ignored in v0.1.",
+      description: "Top-K results to return (per ranking tier).",
     },
-    rerank: {
+    entity_only: {
       type: "boolean",
       default: false,
-      description: "If true, apply OpenAI rerank model on top-K (v0.2; adds ~$0.05 to cost). Off by default.",
+      description: "If true, only return derived entity pages; never fall through to source chunks.",
     },
     filter: {
       type: "object",
@@ -78,7 +78,7 @@ export const wikiAskInputSchema = {
 interface WikiAskInput {
   question: string;
   k?: number;
-  rerank?: boolean;
+  entity_only?: boolean;
   filter?: { page_type?: string };
 }
 
@@ -93,11 +93,85 @@ function parseInput(raw: unknown): WikiAskInput {
   }
   return {
     question: q,
-    k: typeof obj.k === "number" ? obj.k : 10,
-    rerank: Boolean(obj.rerank),
+    k: typeof obj.k === "number" ? Math.min(20, Math.max(1, Math.floor(obj.k))) : 10,
+    entity_only: Boolean(obj.entity_only),
     filter: obj.filter as { page_type?: string } | undefined,
   };
 }
+
+// ---------------------------------------------------------------------------
+// OpenAI embedding (text-embedding-3-small, 1536 dims)
+// ---------------------------------------------------------------------------
+// Direct fetch() — no `openai` npm dep needed. ~$0.00002/1K tokens.
+
+interface OpenAIEmbeddingResponse {
+  data: Array<{ embedding: number[] }>;
+}
+
+async function embedQuestion(question: string, apiKey: string): Promise<number[]> {
+  const resp = await fetch("https://api.openai.com/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "text-embedding-3-small",
+      input: question,
+    }),
+  });
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new MCPToolError(
+      "openai_api_error",
+      `OpenAI embeddings API ${resp.status}: ${errText.slice(0, 300)}`,
+    );
+  }
+  const json = (await resp.json()) as OpenAIEmbeddingResponse;
+  if (!json.data?.[0]?.embedding) {
+    throw new MCPToolError("openai_api_error", "OpenAI embeddings: no embedding in response");
+  }
+  return json.data[0].embedding;
+}
+
+// ---------------------------------------------------------------------------
+// Cosine similarity (TypeScript — fine for < ~5K embeddings; pgvector RPC if scale)
+// ---------------------------------------------------------------------------
+
+function cosineSimilarity(a: number[], b: number[]): number {
+  if (a.length !== b.length) return 0;
+  let dot = 0, magA = 0, magB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    magA += a[i] * a[i];
+    magB += b[i] * b[i];
+  }
+  if (magA === 0 || magB === 0) return 0;
+  return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+}
+
+// ---------------------------------------------------------------------------
+// Retrieval result shape
+// ---------------------------------------------------------------------------
+
+interface RetrievalResult {
+  page_id: string;
+  page_slug: string;
+  page_type: string;
+  page_title: string;
+  is_derived_entity: boolean;
+  source_page_id: string | null;
+  source_slug: string | null;
+  source_title: string | null;
+  chunk_index: number | null;
+  chunk_text: string;
+  similarity: number;
+  citation_format: string; // Muse M5 format
+}
+
+// ---------------------------------------------------------------------------
+// Main handler
+// ---------------------------------------------------------------------------
 
 export async function handleWikiAsk(
   input: unknown,
@@ -112,48 +186,264 @@ export async function handleWikiAsk(
     );
   }
 
-  // v0.1 STUB: report how many pages + embeddings exist so caller can decide
-  // whether to fall through to wiki_list_pages + wiki_get_page.
-  const { count: pagesCount } = await client
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (!openaiKey || openaiKey.length < 20) {
+    // Fall back to v0.1 stub behavior so callers get an explicit signal.
+    const { count: pagesCount } = await client
+      .schema("ops")
+      .from("knowledge_pages")
+      .select("*", { count: "exact", head: true });
+    const { count: embeddingsCount } = await client
+      .schema("ops")
+      .from("knowledge_embeddings")
+      .select("*", { count: "exact", head: true });
+    return {
+      state: "completed",
+      output: {
+        answer: null,
+        reason: "embedding_search_deferred_v0_2",
+        version: "0.2_no_openai_key",
+        question_echoed: args.question,
+        wiki_state: {
+          knowledge_pages_count: pagesCount ?? 0,
+          knowledge_embeddings_count: embeddingsCount ?? 0,
+        },
+        note: "OPENAI_API_KEY not set in env. wiki_ask v0.2 needs OpenAI for question embedding. Set OPENAI_API_KEY then retry. Fallback: use wiki_list_pages + wiki_get_page to browse manually.",
+        fallback_tools: ["wiki_list_pages", "wiki_get_page", "wiki_source"],
+      },
+    };
+  }
+
+  const startMs = Date.now();
+  let questionEmbedding: number[];
+  try {
+    questionEmbedding = await embedQuestion(args.question, openaiKey);
+  } catch (e) {
+    if (e instanceof MCPToolError) throw e;
+    throw new MCPToolError("openai_api_error", `Failed to embed question: ${(e as Error).message}`);
+  }
+
+  // Step 1 — Entity-first query: fetch derived entity pages + their embeddings.
+  const entityQuery = client
     .schema("ops")
     .from("knowledge_pages")
-    .select("*", { count: "exact", head: true });
+    .select("id, slug, page_type, title, file_path, frontmatter, extracted_from_source_id, review_state, deleted_at, legacy_v2_verbatim")
+    .not("extracted_from_source_id", "is", null)
+    .is("deleted_at", null)
+    .eq("legacy_v2_verbatim", false)
+    .in("review_state", ["auto_accepted", "founder_approved"]);
+  if (args.filter?.page_type) {
+    entityQuery.eq("page_type", args.filter.page_type);
+  }
+  const { data: entityPages, error: entityErr } = await entityQuery;
+  if (entityErr) {
+    throw new MCPToolError("sql_execution_error", `entity query: ${entityErr.message}`);
+  }
 
-  const { count: embeddingsCount } = await client
-    .schema("ops")
-    .from("knowledge_embeddings")
-    .select("*", { count: "exact", head: true });
+  const entityResults = await rankByEmbedding(
+    client,
+    entityPages ?? [],
+    questionEmbedding,
+    args.k ?? 10,
+    /* isDerived */ true,
+  );
+
+  // Step 2 — Decide whether to fall through to source chunks
+  const STRONG_ENTITY_HIT_COUNT = 3;
+  const STRONG_ENTITY_THRESHOLD = 0.7;
+  const strongEntityCount = entityResults.filter((r) => r.similarity > STRONG_ENTITY_THRESHOLD).length;
+
+  let sourceResults: RetrievalResult[] = [];
+  if (!args.entity_only && strongEntityCount < STRONG_ENTITY_HIT_COUNT) {
+    // Source-chunk fallback (v2.0 retrieval mode)
+    const sourceQuery = client
+      .schema("ops")
+      .from("knowledge_pages")
+      .select("id, slug, page_type, title, file_path, frontmatter, extracted_from_source_id, deleted_at, legacy_v2_verbatim")
+      .is("deleted_at", null);
+    if (args.filter?.page_type) {
+      sourceQuery.eq("page_type", args.filter.page_type);
+    }
+    const { data: sourcePages, error: sourceErr } = await sourceQuery;
+    if (sourceErr) {
+      throw new MCPToolError("sql_execution_error", `source query: ${sourceErr.message}`);
+    }
+    // Only consider pages that ARE source RECORDS or are legacy_v2_verbatim
+    // (not already covered by entity-first pass)
+    const filtered = (sourcePages ?? []).filter(
+      (p: any) => p.extracted_from_source_id === null,
+    );
+    sourceResults = await rankByEmbedding(
+      client,
+      filtered,
+      questionEmbedding,
+      args.k ?? 10,
+      /* isDerived */ false,
+    );
+  }
+
+  // Combine: entity-first ordering, then source chunks
+  const allResults = [...entityResults, ...sourceResults].slice(0, args.k ?? 10);
+
+  if (allResults.length === 0) {
+    return {
+      state: "completed",
+      output: {
+        answer: null,
+        reason: "no_coverage",
+        version: "0.2",
+        question_echoed: args.question,
+        retrieval_results: [],
+        query_ms: Date.now() - startMs,
+        note: "No wiki pages matched. Consider /wiki sync to ingest more sources, or use wiki_list_pages to browse.",
+      },
+    };
+  }
 
   return {
     state: "completed",
     output: {
       answer: null,
-      reason: "embedding_search_deferred_v0_2",
-      version: "0.1",
-      citations: [],
+      reason: "retrieved",
+      version: "0.2",
       question_echoed: args.question,
-      wiki_state: {
-        knowledge_pages_count: pagesCount ?? 0,
-        knowledge_embeddings_count: embeddingsCount ?? 0,
-      },
-      v0_2_target: {
-        embedding_model: "openai/text-embedding-3-small",
-        retrieval: "hybrid (vector top-K=10 + optional BM25; score = vector*0.5 + keyword*0.3 + backlink*0.2)",
-        synthesis: "Claude Sonnet/Opus with strict citation contract",
-        cost_estimate_usd: 0.02,
-        gated_on: "OPENAI_API_KEY + npm dep openai + feature-flag wiki_sync_llm_fallback (currently FALSE per knowledge/feature-flags.yaml)",
-      },
-      fallback_tools_v0_1: [
-        {
-          name: "wiki_list_pages",
-          purpose: "Browse all pages by page_type to identify candidates",
-        },
-        {
-          name: "wiki_get_page",
-          purpose: "Fetch a specific page by slug; read its Markdown body",
-        },
-      ],
-      note: "v0.1 returns a contract-complete stub. Caller agent should use wiki_list_pages + wiki_get_page to browse-and-cite manually. When v0.2 ships (OpenAI integration), this tool's payload shape will change ONLY by adding actual answer + citations; the fallback fields will remain for compatibility.",
+      retrieval_results: allResults,
+      strong_entity_hits: strongEntityCount,
+      fell_through_to_source: sourceResults.length > 0,
+      query_ms: Date.now() - startMs,
+      synthesis_hint: "You (the calling LLM) MUST synthesize the answer using the retrieval_results above. Citation discipline (Muse M5): every claim cites via the citation_format string from each result. NEVER use training data. If no retrieval_result actually answers the question, return { answer: null, reason: 'no_coverage' } in your response. See 06-ai-ops/skills/wiki-sync/ask/SKILL.md Step 5 for the full synthesis prompt.",
     },
   };
+}
+
+// ---------------------------------------------------------------------------
+// rankByEmbedding — fetch embeddings for a set of pages, compute cosine, sort
+// ---------------------------------------------------------------------------
+
+async function rankByEmbedding(
+  client: SupabaseClient,
+  pages: any[],
+  questionEmbedding: number[],
+  topK: number,
+  isDerived: boolean,
+): Promise<RetrievalResult[]> {
+  if (pages.length === 0) return [];
+
+  const pageIds = pages.map((p) => p.id);
+  const { data: embeddings, error: embErr } = await client
+    .schema("ops")
+    .from("knowledge_embeddings")
+    .select("page_id, chunk_index, chunk_text, embedding")
+    .in("page_id", pageIds);
+  if (embErr) {
+    throw new MCPToolError("sql_execution_error", `embeddings query: ${embErr.message}`);
+  }
+
+  // Index pages by id for join
+  const pageById = new Map<string, any>();
+  for (const p of pages) pageById.set(p.id, p);
+
+  // For derived entities, fetch source RECORD metadata for citation
+  const sourceMetaById = new Map<string, { slug: string; title: string }>();
+  if (isDerived) {
+    const sourceIds = Array.from(
+      new Set(pages.map((p) => p.extracted_from_source_id).filter(Boolean)),
+    );
+    if (sourceIds.length > 0) {
+      const { data: sources, error: srcErr } = await client
+        .schema("ops")
+        .from("knowledge_pages")
+        .select("id, slug, title")
+        .in("id", sourceIds);
+      if (srcErr) {
+        throw new MCPToolError("sql_execution_error", `source meta query: ${srcErr.message}`);
+      }
+      for (const s of sources ?? []) {
+        sourceMetaById.set(s.id, { slug: s.slug, title: s.title });
+      }
+    }
+  }
+
+  // Compute similarities + build results
+  const results: RetrievalResult[] = [];
+  for (const emb of embeddings ?? []) {
+    const p = pageById.get(emb.page_id);
+    if (!p) continue;
+    let embVec: number[];
+    if (typeof emb.embedding === "string") {
+      // pgvector returns embedding as string "[0.1,0.2,...]" via supabase-js
+      embVec = parseEmbeddingString(emb.embedding);
+    } else if (Array.isArray(emb.embedding)) {
+      embVec = emb.embedding as number[];
+    } else {
+      continue;
+    }
+    const sim = cosineSimilarity(questionEmbedding, embVec);
+    if (sim < 0.5) continue; // weak signal; skip
+
+    const sourceMeta = (isDerived && p.extracted_from_source_id
+      ? sourceMetaById.get(p.extracted_from_source_id)
+      : null) ?? null;
+    const citationFormat = formatCitation({
+      page: p,
+      chunk_index: emb.chunk_index,
+      chunk_text: emb.chunk_text,
+      similarity: sim,
+      source_meta: sourceMeta,
+      is_derived: isDerived,
+    });
+    results.push({
+      page_id: p.id,
+      page_slug: p.slug,
+      page_type: p.page_type,
+      page_title: p.title,
+      is_derived_entity: isDerived,
+      source_page_id: p.extracted_from_source_id ?? null,
+      source_slug: sourceMeta?.slug ?? null,
+      source_title: sourceMeta?.title ?? null,
+      chunk_index: emb.chunk_index ?? null,
+      chunk_text: emb.chunk_text,
+      similarity: sim,
+      citation_format: citationFormat,
+    });
+  }
+
+  results.sort((a, b) => b.similarity - a.similarity);
+  return results.slice(0, topK);
+}
+
+function parseEmbeddingString(s: string): number[] {
+  // pgvector serializes as "[0.1,0.2,0.3]" — strip brackets, split, parse
+  const trimmed = s.replace(/^\[|\]$/g, "");
+  return trimmed.split(",").map((x) => parseFloat(x));
+}
+
+// ---------------------------------------------------------------------------
+// Muse M5 citation format
+// ---------------------------------------------------------------------------
+
+interface FormatCitationArgs {
+  page: any;
+  chunk_index: number | null;
+  chunk_text: string;
+  similarity: number;
+  source_meta: { slug: string; title: string } | null;
+  is_derived: boolean;
+}
+
+function formatCitation(a: FormatCitationArgs): string {
+  const simStr = a.similarity.toFixed(2);
+  const quote = a.chunk_text.slice(0, 200).replace(/\s+/g, " ").trim();
+  if (a.is_derived && a.source_meta) {
+    // Entity page citing source: "<quote>" — extracted from [Source Title](wiki/.../source-slug.md#chunk-N), confidence X.XX
+    const sourcePath = a.page.file_path
+      ? `wiki/${a.page.page_type}/${a.page.slug}.md`
+      : `wiki/<unknown>/${a.page.slug}.md`;
+    const sourceLink = `wiki/${a.source_meta.slug}.md${a.chunk_index !== null ? `#chunk-${a.chunk_index}` : ""}`;
+    return `"${quote}" — extracted from [${a.source_meta.title}](${sourceLink}), similarity ${simStr} (entity: [${a.page.title}](${sourcePath}))`;
+  } else {
+    // Source-chunk citation (fallback): "<quote>" — from [Page Title](wiki/.../page-slug.md#chunk-N), similarity X.XX
+    const path = `wiki/${a.page.page_type}/${a.page.slug}.md${a.chunk_index !== null ? `#chunk-${a.chunk_index}` : ""}`;
+    return `"${quote}" — from [${a.page.title}](${path}), similarity ${simStr}`;
+  }
 }

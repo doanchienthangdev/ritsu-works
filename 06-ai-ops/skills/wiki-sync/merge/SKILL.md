@@ -47,13 +47,23 @@ SELECT id, page_type, deleted_at FROM ops.knowledge_pages WHERE slug IN ($canoni
 
 If validation fails → bail with explanatory error.
 
-### Step 2a — Standard merge (NOT --undo)
+### Step 2a — Standard merge (NOT --undo) — v3.0.5 cleanup
 
 ```sql
 BEGIN;
 
--- Count extractions to rewire (for audit log)
-SELECT COUNT(*) FROM ops.knowledge_extractions WHERE derived_page_id = $duplicate_id;
+-- v3.0.5 enhancement (was best-effort in v0.1): capture exact extraction_ids
+-- BEFORE rewire so --undo can restore the precise mapping. Caller (merge
+-- skill) reads this into $extraction_ids_rewired variable for the audit event.
+SELECT array_agg(id) AS extraction_ids_rewired,
+       COUNT(*) AS rewire_count
+  FROM ops.knowledge_extractions
+ WHERE derived_page_id = $duplicate_id;
+
+-- Also capture the knowledge_links to rewire (for clean --undo)
+SELECT array_agg(id) AS link_ids_rewired
+  FROM ops.knowledge_links
+ WHERE target_page_id = $duplicate_id;
 
 -- Rewire extractions
 UPDATE ops.knowledge_extractions
@@ -71,7 +81,7 @@ UPDATE ops.knowledge_links
   SET target_page_id = $canonical_id
   WHERE target_page_id = $duplicate_id;
 
--- Audit event
+-- Audit event (v3.0.5: payload includes precise extraction_ids + link_ids for clean undo)
 INSERT INTO ops.events (event_type, source, payload)
 VALUES (
   'ritsu.wiki.merge_executed',
@@ -81,7 +91,9 @@ VALUES (
     'duplicate_page_id', $duplicate_id,
     'canonical_slug', $canonical_slug,
     'duplicate_slug', $duplicate_slug,
-    'extractions_rewired', $count,
+    'extractions_rewired', $rewire_count,
+    'extraction_ids_rewired', $extraction_ids_rewired,  -- v3.0.5: exact array for undo
+    'link_ids_rewired', $link_ids_rewired,              -- v3.0.5: exact array for undo
     'merged_by', 'founder',
     'merge_kind', 'manual'  -- or 'review_dispatch' if invoked from review skill
   )
@@ -117,6 +129,16 @@ SELECT payload->>'extractions_rewired' AS count,
  LIMIT 1;
 
 -- (If no match found, bail: "No prior merge found to undo")
+-- v3.0.5: also read precise extraction_ids_rewired + link_ids_rewired from payload
+-- for clean reversal (replaces v0.1 best-effort approximation).
+SELECT payload->'extraction_ids_rewired' AS extraction_ids,
+       payload->'link_ids_rewired' AS link_ids
+  FROM ops.events
+ WHERE event_type = 'ritsu.wiki.merge_executed'
+   AND payload->>'canonical_slug' = $canonical_slug
+   AND payload->>'duplicate_slug' = $duplicate_slug
+ ORDER BY occurred_at DESC
+ LIMIT 1;
 
 -- Re-clear soft-delete on duplicate
 UPDATE ops.knowledge_pages
@@ -124,10 +146,17 @@ UPDATE ops.knowledge_pages
       review_state = 'founder_approved'
   WHERE id = $duplicate_id;
 
--- Rewire extractions back
--- (This is approximate — we don't have a precise log of which extractions were rewired vs already pointing to canonical. Best-effort: rewire all extractions whose source_page_id was in the duplicate's prior source set.)
--- Cleaner alternative: store the list of extraction_ids in the merge_executed payload at Step 2a (TODO v3.0.5 enhancement).
--- For v0.1: founder bears responsibility to verify post-undo state.
+-- v3.0.5 clean undo: rewire EXACTLY the extractions captured at merge time
+-- (was approximate in v0.1). Only valid if merge_executed was emitted v3.0.5+
+-- with extraction_ids_rewired array in payload.
+UPDATE ops.knowledge_extractions
+  SET derived_page_id = $duplicate_id
+  WHERE id = ANY($extraction_ids_rewired_array);  -- precise undo via captured ids
+
+-- Rewire knowledge_links back
+UPDATE ops.knowledge_links
+  SET target_page_id = $duplicate_id
+  WHERE id = ANY($link_ids_rewired_array);
 
 INSERT INTO ops.events (event_type, source, payload)
 VALUES (
@@ -136,6 +165,8 @@ VALUES (
   jsonb_build_object(
     'canonical_page_id', $canonical_id,
     'duplicate_page_id', $duplicate_id,
+    'extractions_restored', array_length($extraction_ids_rewired_array, 1),
+    'links_restored', array_length($link_ids_rewired_array, 1),
     'undone_at', now()
   )
 );
@@ -147,7 +178,7 @@ Then:
 - Restore the wiki file by reading from git history (the file was committed before merge; git checkout <commit-before-merge> -- <path>)
 - Remove the "Merged from X" footer from canonical page
 
-Caveat for v0.1: undo is best-effort for extraction rewiring. v3.0.5 enhancement: store full extraction_id list in `merge_executed` event payload for clean reversal.
+**v3.0.5 enhancement (merged into v0.2 of this skill):** undo is now precise via `extraction_ids_rewired` + `link_ids_rewired` arrays in the `merge_executed` event payload. Merges performed under v0.1 of this skill (before this enhancement) still use best-effort fallback — for those, founder verifies post-undo state.
 
 ### Step 3 — Notify founder
 
@@ -184,4 +215,5 @@ Caveat for v0.1: undo is best-effort for extraction rewiring. v3.0.5 enhancement
 
 ## Version
 
-- **v0.1** (Sprint 4 of wiki-sync v3.0.0): basic merge + --undo. Caveat on undo extraction rewiring (best-effort; founder verifies). v3.0.5 will store extraction_ids list in merge_executed payload for clean reversal.
+- **v0.1** (Sprint 4 of wiki-sync v3.0.0): basic merge + --undo. Caveat on undo extraction rewiring (best-effort; founder verifies).
+- **v0.2** (wiki-sync v3.0.5 patch, 2026-05-18): merge_executed event payload now includes `extraction_ids_rewired` + `link_ids_rewired` arrays. `--undo` reads these for precise reversal. Merges from v0.1 still use best-effort fallback.

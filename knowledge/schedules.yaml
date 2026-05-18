@@ -79,6 +79,35 @@ schedules:
     description: "Cleanup completed Minion jobs > 30 days (Bài #5)"
     skill: minion-queue-cleaner
 
+  # === Wiki-sync v3.0.5 cron entries ===
+  # Both added 2026-05-18 (wiki-sync v3.0.5 patch). Handler stubs in
+  # supabase/functions/minion-worker/index.ts SKILL_REGISTRY satisfy the
+  # L2 validator paired-handler requirement; real implementation v3.1 OR
+  # founder manual invocation in the meantime.
+
+  # Hourly backfill of soft-deferred wiki embeddings (v2.0 G3 disposition).
+  # Handles both source RECORD pages AND v3.0 derived entity pages.
+  # See 06-ai-ops/skills/wiki-sync/embeddings-backfill/SKILL.md.
+  - id: wiki-embeddings-backfill
+    cron: "0 * * * *"                 # Hourly
+    description: "Backfill soft-deferred wiki embeddings (v2.0 G3 + v3.0 derived entities)"
+    skill: wiki-embeddings-backfill
+    enabled_when_mode: [hybrid, full_api]
+    requires_api: openai
+    fallback: skip_if_no_key
+    cost_estimate: "$0.00004 per page"
+
+  # Daily Telegram digest of pending_review extraction count (v3.0 — Sprint 4).
+  # Self-throttles: 0 messages if pending_review count = 0.
+  # See 06-ai-ops/skills/wiki-sync/review/SKILL.md.
+  - id: wiki-review-queue-digest
+    cron: "0 9 * * *"                 # Daily 09:00 ICT
+    description: "Daily digest of pending_review extraction count (v3.0 Tier B)"
+    skill: wiki-review-queue-digest
+    enabled_when_mode: [hybrid, full_api]
+    fallback: no_notification
+    cost_estimate: "$0 per run (DB read + Telegram bot call)"
+
 # ============================================================================
 # Customization checklist
 # ============================================================================

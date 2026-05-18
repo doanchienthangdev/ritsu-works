@@ -232,20 +232,80 @@ const V3_EXTRACTION_FK_SQL = `
 
 // D6 — Dedup consistency SQL (pgvector cosine_distance)
 const V3_DEDUP_SQL = `
-  -- No two non-deleted entity pages with cosine similarity > 0.92 on title embedding.
-  -- (Requires title embedding stored in knowledge_embeddings; v3.0.5 wiring TBD)
-  SELECT a.id, b.id, a.slug, b.slug, a.page_type,
+  SELECT a.id AS a_id, b.id AS b_id, a.slug AS a_slug, b.slug AS b_slug,
+         a.page_type,
          1 - (ae.embedding <=> be.embedding) AS cosine_similarity
   FROM ops.knowledge_pages a
   JOIN ops.knowledge_pages b ON b.page_type = a.page_type AND b.id < a.id
-  JOIN ops.knowledge_embeddings ae ON ae.source_ref = a.slug
-  JOIN ops.knowledge_embeddings be ON be.source_ref = b.slug
+  JOIN ops.knowledge_embeddings ae ON ae.page_id = a.id
+  JOIN ops.knowledge_embeddings be ON be.page_id = b.id
   WHERE a.deleted_at IS NULL
     AND b.deleted_at IS NULL
     AND a.extracted_from_source_id IS NOT NULL
     AND b.extracted_from_source_id IS NOT NULL
-    AND (1 - (ae.embedding <=> be.embedding)) > 0.92;
+    AND (1 - (ae.embedding <=> be.embedding)) > 0.92
+  LIMIT 50;
 `;
+
+// ----------------------------------------------------------------------------
+// Subprocess executor for DB checks (--with-db mode)
+// ----------------------------------------------------------------------------
+//
+// Uses `supabase db query --linked` subprocess (same pattern as repo's other
+// supabase calls). Requires SUPABASE_ACCESS_TOKEN in env (typically sourced
+// from runtime/secrets/.env.local).
+
+const { execFileSync } = require('child_process');
+
+function runDbCheck(sql, checkName) {
+  try {
+    // Compact SQL onto one line; supabase db query accepts multi-line but
+    // single-line is safer for shell escaping.
+    const compact = sql.replace(/\s+/g, ' ').trim();
+    const out = execFileSync('supabase', ['db', 'query', '--linked', compact], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 30000,
+    });
+    // supabase CLI prints {boundary,rows,warning} JSON to stdout after some
+    // header lines. Extract the JSON object.
+    const jsonStart = out.indexOf('{');
+    const jsonEnd = out.lastIndexOf('}');
+    if (jsonStart === -1 || jsonEnd === -1) {
+      return { error: 'no_json_in_output', rows: [], stdout: out.slice(0, 300) };
+    }
+    const parsed = JSON.parse(out.slice(jsonStart, jsonEnd + 1));
+    return { rows: parsed.rows ?? [], row_count: (parsed.rows ?? []).length };
+  } catch (e) {
+    return { error: `${checkName}_subprocess_failed`, message: String(e.message ?? e).slice(0, 300) };
+  }
+}
+
+function runAllDbChecks() {
+  const results = {
+    D4_citation_integrity: runDbCheck(V3_CITATION_INTEGRITY_SQL, 'D4'),
+    D5_extraction_fk_consistency: runDbCheck(V3_EXTRACTION_FK_SQL, 'D5'),
+    D6_dedup_consistency: runDbCheck(V3_DEDUP_SQL, 'D6'),
+  };
+  // Compute summary: how many rows each check returned (rows = violations)
+  const violationsByCheck = {};
+  for (const [k, v] of Object.entries(results)) {
+    if (v.error) {
+      violationsByCheck[k] = { error: v.error, message: v.message };
+    } else {
+      violationsByCheck[k] = { violations: v.row_count, sample: v.rows.slice(0, 3) };
+    }
+  }
+  return {
+    status: 'executed',
+    timestamp: new Date().toISOString(),
+    invariants: violationsByCheck,
+    total_violations: Object.values(violationsByCheck).reduce(
+      (sum, v) => sum + (typeof v.violations === 'number' ? v.violations : 0),
+      0,
+    ),
+  };
+}
 
 // ============================================================================
 // Main
@@ -273,17 +333,7 @@ function main() {
     },
     findings: stats.findings,
     findings_count: stats.findings.length,
-    db_checks: WITH_DB
-      ? {
-          status: 'not_implemented_in_v0_2',
-          note: 'DB-mode checks D1-D6 require SUPABASE_ACCESS_TOKEN + supabase CLI. SQL contracts defined in source (V3_CITATION_INTEGRITY_SQL, V3_EXTRACTION_FK_SQL, V3_DEDUP_SQL). Wiring TBD in v3.0.5 follow-up or /wiki audit interactive SKILL.',
-          v3_invariants_contracted: [
-            'D4: v3_citation_integrity — every page WHERE extracted_from_source_id IS NOT NULL has ≥1 knowledge_extractions row pointing to it',
-            'D5: v3_extraction_fk_consistency — knowledge_extractions.source_page_id matches derived_page_id.extracted_from_source_id',
-            'D6: v3_dedup_consistency — no two non-deleted entity pages with cosine sim > 0.92',
-          ],
-        }
-      : null,
+    db_checks: WITH_DB ? runAllDbChecks() : null,
   };
 
   if (JSON_OUTPUT) {
