@@ -1,19 +1,27 @@
 # ingestion-routing.yaml — Voice note classification routing (Bài #18)
-version: "1.0.0"
+#
+# v4.0 boundary note (wiki-sync-from-refs revise, Sprint 1, 2026-05-18):
+# The targets below (wiki/raw-ideas/, wiki/observations/) are for the
+# VOICE-NOTE direct-ingest flow, NOT for wiki-sync's distill+extract pipeline.
+# v4.0 source-grouped layout (wiki/<source-slug>/{source.md, concepts/, ...}/)
+# applies to wiki-sync output. Voice notes don't have an external source — the
+# founder IS the source. These flows are EXPLICITLY NOT v4.0-migrated for now.
+# Re-evaluate in v4.1 if a unified "founder-inbox" layout helps.
+version: "1.1.0"
 
 voice_note_routing:
   idea:
-    target: wiki/raw-ideas/<date>-<slug>.md
+    target: wiki/raw-ideas/<date>-<slug>.md       # NOT v4.0-migrated; see top-of-file note
     follow_up: weekly_review_aggregation
-  
+
   decision_request:
     target: muse-panel
     hitl: tier_c
-  
+
   observation:
-    target: wiki/observations/<date>-<slug>.md
+    target: wiki/observations/<date>-<slug>.md    # NOT v4.0-migrated; see top-of-file note
     auto_link: true
-  
+
   task:
     target: ops.tasks
     initial_state: pending

@@ -8,7 +8,13 @@
 #
 # v3.0 cost caps live in capability-registry.yaml.cost_caps_per_task_kind
 # (raised wiki-distill-folder $15 with Tier B at $5 per Muse M6).
-version: "1.1.0"
+#
+# v4.0 update (2026-05-18, Sprint 1): wiki_target values flipped from entity-
+# type-grouped (wiki/articles/<slug>.md) to source-grouped (wiki/<slug>/source.md).
+# Source RECORDs always at wiki/<slug>/source.md; derived entities at
+# wiki/<source-slug>/<page_type>s/<entity-slug>.md (composite UNIQUE within
+# source). See spec.md §0 B1 + migration 00032.
+version: "1.2.0"
 
 source_kinds:
   # `article` — edited per Sprint 1 of wiki-sync-from-refs to swap adapter + add
@@ -19,7 +25,7 @@ source_kinds:
     extraction: html_to_markdown
     chunking: token_512_with_overlap_64
     cost_estimate: "$0.05-$0.10 / article"
-    wiki_target: wiki/articles/<slug>.md
+    wiki_target: wiki/<slug>/source.md       # v4.0 source-grouped layout (was wiki/articles/<slug>.md)
 
   - id: voice_note
     adapter: voice-note-adapter
@@ -35,7 +41,7 @@ source_kinds:
     chunking: structural_per_chapter_else_token_1024_overlap_128
     cost_estimate: "$0.40-$0.70 / 50-page book"
     chapter_split: prompt_when_pages_gt_100_or_flag
-    wiki_target: wiki/books/<slug>.md (or wiki/books/<slug>/chapter-NN.md when split)
+    wiki_target: wiki/<slug>/source.md (or wiki/<slug>/chapters/chapter-NN.md when split)  # v4.0 source-grouped (was wiki/books/<slug>.md)
 
   - id: markdown_passthrough
     adapter: markdown-adapter
@@ -43,7 +49,7 @@ source_kinds:
     extraction: passthrough
     chunking: structural_per_h2_else_token_512
     cost_estimate: "$0.02-$0.05 / file"
-    wiki_target: wiki/<entity_type_from_frontmatter>/<slug>.md
+    wiki_target: wiki/<slug>/source.md       # v4.0 — source RECORD; derived entities (if distilled) at wiki/<slug>/<page_type>s/<entity-slug>.md
 
   - id: youtube_video
     adapter: youtube-adapter
@@ -51,7 +57,7 @@ source_kinds:
     extraction: vtt_or_caption_passthrough_else_whisper_fallback
     chunking: structural_per_yt_chapter_else_token_1024
     cost_estimate: "$0.15-$0.25 / hour video"
-    wiki_target: wiki/episodes/<slug>.md
+    wiki_target: wiki/<slug>/source.md       # v4.0 source-grouped layout (was wiki/episodes/<slug>.md)
 
   - id: meeting_transcript
     adapter: meeting-adapter
@@ -59,7 +65,7 @@ source_kinds:
     extraction: vtt_srt_txt_passthrough
     chunking: structural_per_speaker_turn
     cost_estimate: "$0.10-$0.20 / hour transcript"
-    wiki_target: wiki/meetings/<slug>.md
+    wiki_target: wiki/<slug>/source.md       # v4.0 source-grouped layout (was wiki/meetings/<slug>.md)
 
   # Added per Sprint 2 PR3 of wiki-sync-from-refs (folder = collection, Cách C):
   - id: folder_collection
@@ -68,9 +74,9 @@ source_kinds:
     extraction: per_file_dispatch_to_sibling_adapter
     chunking: per_file_per_adapter
     cost_estimate: "$0.20-$2.00 / folder (N files x per-file cost; cap wiki-ingest-folder)"
-    wiki_target: "wiki/<file-page-type>/<col-slug>__<file-slug>.md"
+    wiki_target: "wiki/<col-slug>/<child-slug>/source.md"       # v4.0 — children land at clean nested paths (drops the __ flat-slug pattern from v2/v3)
     discipline:
-      slug_uniqueness: global              # v2.0 Hybrid B/A; v2.1 may relax to (page_type, slug)
+      slug_uniqueness: scoped              # v4.0: source RECORDs (extracted_from_source_id IS NULL) globally unique; derived entities composite UNIQUE (extracted_from_source_id, slug); enforced by migration 00032 partial indexes
       recursive: false                     # v2.0 flat-only; subdirectories refused
       page_type_for_children: inherited    # NO new 'collection' enum in v2.0
       hidden_files: skipped

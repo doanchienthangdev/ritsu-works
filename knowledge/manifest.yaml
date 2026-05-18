@@ -18,10 +18,10 @@
 #      NOT SQL — do not look for table DDL there.)
 #   - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
 
-version: 0.6.0
+version: 0.7.0
 last_updated: 2026-05-18
 owner: founder
-migration_note: "v0.6.0 (2026-05-18): wiki-sync v3.0 distill+extract foundation — added ops.knowledge_extractions table (citation spine) per migration 00031. Reframes wiki-sync from verbatim-projection (v1/v2) to distill+extract (v3.0). See wiki/capabilities/wiki-sync-from-refs/spec.md §0 + ops.decisions[562b2e4e]. Prior: v0.5.0 (2026-05-15): Workforce persona layer v1.0 — added 06-ai-ops/workforce-personas sub-pillar and cross_cutting.workforce_personas registry pointer. Phase 1 personas (CEO, CTO, CGO, CPO) bind to existing technical roles per ADR-003. Schema: knowledge/schemas/workforce-personas.schema.json. Prior: v0.4.0 (2026-05-15): dropped NN- numeric prefix from sub-pillar dirs. v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage)."
+migration_note: "v0.7.0 (2026-05-18): wiki-sync v4.0 source-grouped layout flip — added migration 00032 (composite UNIQUE on derived entity slugs via partial indexes). Wiki layout changes from entity-type-grouped (wiki/concept/, wiki/observation/, …) to source-grouped (wiki/<source-slug>/{source.md, concepts/, observations/, decisions/, ideas/, chapters/}/). Skill input contract: input = wiki/<source-slug>/ is now a coherent package. wiki/_index/ reverse-lookup link-lists added Sprint 2. See wiki/capabilities/wiki-sync-from-refs/spec.md (v4.0 after Phase 8 promotion) + ops.decisions[e558913a-fb5d-444a-ab0b-305f38ce80a0] (slug wiki-sync-v4-source-grouped-layout). Prior: v0.6.0 (2026-05-18): wiki-sync v3.0 distill+extract foundation — added ops.knowledge_extractions table (citation spine) per migration 00031. Reframes wiki-sync from verbatim-projection (v1/v2) to distill+extract (v3.0). See wiki/capabilities/wiki-sync-from-refs/spec.md §0 + ops.decisions[562b2e4e]. Prior: v0.5.0 (2026-05-15): Workforce persona layer v1.0 — added 06-ai-ops/workforce-personas sub-pillar and cross_cutting.workforce_personas registry pointer. Phase 1 personas (CEO, CTO, CGO, CPO) bind to existing technical roles per ADR-003. Schema: knowledge/schemas/workforce-personas.schema.json. Prior: v0.4.0 (2026-05-15): dropped NN- numeric prefix from sub-pillar dirs. v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage)."
 
 # ---------------------------------------------------------------------------
 # TIER 1 — Canonical (this repo)
@@ -708,9 +708,12 @@ tier4_derived:
         rebuild_script: scripts/sync/rebuild-transcripts-embeddings.sh
         status: planned
       # Added per Sprint 1 of wiki-sync-from-refs (Bài #14 + Bài #18):
+      # v4.0 update (Sprint 1, 2026-05-18): source-grouped layout. Embeddings
+      # are page_id-keyed (file_path-agnostic) so re-embed only triggers when
+      # the migrate-to-v4 script UPDATEs file_path on existing rows.
       - name: wiki_embeddings
-        source: tier1_canonical.wiki (the wiki/ folder)
-        source_kind: wiki_page          # matches knowledge_pages.page_type values
+        source: tier1_canonical.wiki (the wiki/ folder; v4.0 source-grouped layout)
+        source_kind: wiki_page          # matches knowledge_pages.page_type values (singular per CHECK enum); file_path is now wiki/<source-slug>/source.md (source RECORDs) or wiki/<source-slug>/<page_type>s/<entity-slug>.md (derived)
         rebuild_script: scripts/sync/rebuild-wiki-embeddings.sh
         status: planned                  # advances to `active` when Sprint 4 lands
   cache_layer:

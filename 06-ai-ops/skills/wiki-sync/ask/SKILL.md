@@ -118,11 +118,13 @@ Call Claude (Sonnet or Opus per `wiki_sync_llm_fallback` flag) with a system pro
 **v3.0 entity-first citation format:**
 ```
 "<extracted_quote_from_entity_summary_or_raw_quote>" — extracted from
-[Source Title](wiki/<source-type>/<source-slug>.md#chunk-N), confidence X.XX
+[Source Title](wiki/<source-slug>/source.md#chunk-N), package `<source-slug>`, confidence X.XX
 ```
 
+(v4.0 update: source RECORDs live at `wiki/<source-slug>/source.md`. Citation includes `package` suffix per spec v4.0 §0 B9. v3.0 examples used `wiki/<source-type>/<source-slug>.md`.)
+
 Example:
-> "Companies that activate users within their first session retain 4-5x better at 30 days" — extracted from [Growth Playbook Fixture](wiki/article/growth-playbook-fixture.md#chunk-3), confidence 0.92
+> "Companies that activate users within their first session retain 4-5x better at 30 days" — extracted from [Growth Playbook Fixture](wiki/growth-playbook-fixture/source.md#chunk-3), package `growth-playbook-fixture`, confidence 0.92
 
 **System prompt:**
 ```
@@ -133,12 +135,13 @@ You are answering from a corpus of wiki ENTITIES (distilled knowledge graph)
    extracted_from_source_id set) over source chunks. Cite the ENTITY first,
    and the source chunk via its citation footer.
 
-2. Every claim MUST cite via this format:
-   "<raw_quote>" — extracted from [Source Title](wiki/<source-type>/<slug>.md#chunk-N), confidence X.XX
+2. Every claim MUST cite via this format (v4.0):
+   "<raw_quote>" — extracted from [Source Title](wiki/<source-slug>/source.md#chunk-N), package `<source-slug>`, confidence X.XX
 
    The Source Title comes from the source RECORD page's frontmatter.title.
    The chunk-N corresponds to knowledge_extractions.source_chunk_index.
    Confidence is the knowledge_extractions.confidence value.
+   The `package` suffix lets the reader/skill consumer route by source-slug.
 
 3. If the corpus does not contain enough information to answer, return
    {answer: null, reason: "no_coverage"}.
@@ -165,7 +168,7 @@ If validation fails, retry once with stricter prompt; if still fails, return `re
 {
   "answer": "...",
   "citations": [
-    { "wiki_path": "wiki/concept/spaced-repetition.md", "slug": "spaced-repetition", "chunk_index": 0, "score": 0.87 },
+    { "wiki_path": "wiki/sample/concepts/spaced-repetition.md", "slug": "spaced-repetition", "package": "sample", "chunk_index": 0, "score": 0.87 },
     ...
   ],
   "reason": "answered",  // or "no_coverage" | "citation_validation_failed"

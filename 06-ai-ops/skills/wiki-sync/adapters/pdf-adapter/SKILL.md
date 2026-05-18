@@ -6,7 +6,7 @@ description: |
   Emits raw_text, source_ref (abspath), source_hash (sha256 of file bytes),
   attribution (from PDF metadata if extractable), and pages_metric for
   chapter-split threshold. Maps to source_kind=`book`, entity_type=`book`,
-  wiki target `wiki/books/<slug>.md`.
+  wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout; chapters at `wiki/<slug>/chapters/`).
 ---
 
 # PDF adapter (Sprint 1 baseline)
@@ -16,7 +16,7 @@ description: |
 - Dispatched by `wiki-sync/ingest` when path ends in `.pdf`
 - source_kind: `book`
 - entity_type: `book`
-- wiki target: `wiki/books/<slug>.md` (or `wiki/books/<slug>/chapter-NN.md` when split)
+- wiki target: `wiki/<slug>/source.md` (or `wiki/<slug>/chapters/chapter-NN.md` when split — v4.0 source-grouped layout)
 
 ## Inputs
 

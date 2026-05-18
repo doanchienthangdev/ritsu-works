@@ -133,14 +133,14 @@ Cost: ~$0.00002 / 1K tokens. Track in `embedding_cost_usd`.
 
 ### Step 9 — Write wiki page(s) + knowledge_pages row(s)
 
-**v3.0 distill mode: MULTI-PAGE OUTPUT**
-- Source RECORD page at `wiki/<source-type>/<source-slug>.md` (1 page) with `extracted_from_source_id = NULL`. Frontmatter includes `license_status` (founder set in distill Step 1).
-- N derived entity pages at `wiki/concept/<slug>.md` + `wiki/observation/<slug>.md` + `wiki/decision/<slug>.md` + `wiki/idea/<slug>.md` with `extracted_from_source_id = <source_page_id>`. Distill skill wrote these in its Step 5.
+**v3.0 distill mode: MULTI-PAGE OUTPUT (v4.0 source-grouped layout)**
+- Source RECORD page at `wiki/<source-slug>/source.md` (1 page) with `extracted_from_source_id = NULL`. Frontmatter includes `license_status` (founder set in distill Step 1).
+- N derived entity pages under the same package at `wiki/<source-slug>/concepts/<slug>.md` + `wiki/<source-slug>/observations/<slug>.md` + `wiki/<source-slug>/decisions/<slug>.md` + `wiki/<source-slug>/ideas/<slug>.md` with `extracted_from_source_id = <source_page_id>`. Distill skill wrote these in its Step 5.
 - This Step 9 is a no-op for distill mode — distill already wrote everything during its loop.
 
 **v2.0 verbatim mode (--verbatim flag): SINGLE-PAGE OUTPUT**
 
-a) Write Markdown to `wiki/<entity_type>/<slug>.md` with frontmatter:
+a) Write Markdown to `wiki/<source-slug>/source.md` (v4.0 source-grouped layout — verbatim mode is a single source RECORD; no derived entities, so no `<page_type>s/` subfolders) with frontmatter:
 
 ```yaml
 ---
@@ -208,7 +208,7 @@ If distill mode produced entities with `review_state = 'pending_review'`: count 
 {
   "ingestion_job_id": "uuid",
   "knowledge_page_id": "uuid",
-  "wiki_path": "wiki/<entity_type>/<slug>.md",
+  "wiki_path": "wiki/<source-slug>/<page_type>s/<slug>.md",   // derived entities; source RECORDs use "wiki/<source-slug>/source.md"
   "source_kind": "<kind>",
   "source_hash": "<sha256>",
   "chapters_count": 1,  // > 1 if split

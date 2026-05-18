@@ -315,3 +315,40 @@ change (skills still do same work, just routed through shim).
 **Priority:** P3 — observability win, not a blocker
 **Depends on:** CLA-MCP-1..3 (consistent baseline)
 **Surfaced from:** founder Q on /cla integration with MCP, 2026-05-16
+
+---
+
+### CLA-FN-1 — `ops.capability_acquire_update_lock` fails when same capability has both `operating` and `implementing` rows
+
+`supabase/migrations/00028_capability_lock_allow_implementing.sql` (function definition)
+
+**Symptom (observed 2026-05-18T08:05Z during `/cla resume wiki-sync-from-refs`):**
+
+```sql
+SELECT ops.capability_acquire_update_lock(
+  'wiki-sync-from-refs',
+  'caf0cd84-af27-45e0-807d-e15912ebb926'
+);
+-- ERROR: query returned more than one row
+```
+
+**Root cause:** the function's UPDATE matches `WHERE capability_id = $1 AND state IN ('implementing', 'operating', 'deployed') AND update_lock_session_id IS NULL AND superseded_by_id IS NULL`. During an active revise sub-flow, the parent row (v3.0.0, `state='operating'`, `superseded_by_id IS NULL` because v4.0 hasn't promoted yet) AND the new in-flight row (v4.0.0, `state='implementing'`) BOTH match. The UPDATE locks both. Then `RETURNING id INTO v_row_id` fails because that's a scalar assignment and Postgres got 2 rows.
+
+**Workaround used today:** direct `UPDATE ops.capability_runs SET update_lock_session_id = '<uuid>', update_lock_acquired_at = now() WHERE id = '<specific row id>'` via supabase CLI. Bypasses the broken function.
+
+**Fix options:**
+
+1. **Function update — accept `p_run_id` parameter.** Add an overload `ops.capability_acquire_update_lock(p_capability_id, p_session_id, p_run_id uuid DEFAULT NULL)`. When `p_run_id` is non-NULL, scope UPDATE to that specific row. When NULL, retain current behavior (which is fine for the create flow before any v2/v3 exists).
+2. **Function update — prefer non-operating row.** Order the UPDATE selection by `(state = 'implementing') DESC` and use `LIMIT 1` semantics (PL/pgSQL: switch to SELECT FOR UPDATE + UPDATE BY id pattern).
+3. **Caller responsibility — only call after marking parent superseded.** Forces the v3→v4 transition to set `superseded_by_id` early. Semantically wrong: v3.0 isn't truly superseded until v4 deploys.
+
+**Recommended: option 1.** Minimum-disruption; preserves existing callers; gives revise sub-flow the precision it needs. Optional sweep on existing callers later.
+
+**Why:** Blocks `/cla resume` and any future `/cla force-unlock` + re-acquire path during in-flight revisions. Will hit again every time a `/cla revise` resumes from a fresh session.
+
+**Pros:** Solid fix; removes a real Bash + CLI workaround from the resume flow.
+**Cons:** Migration file + adapter sweep in calling skills (where `mcp__supabase-ops__rpc` would be the natural call site).
+**Effort:** M (CC ~30-45 min — write migration, update problem-framer skill's lock-acquire snippet, update `/cla` doc).
+**Priority:** P2 — manifested during real founder use today; not catastrophic (workaround exists) but disrupts the audited path.
+**Depends on:** none.
+**Surfaced from:** `/cla resume wiki-sync-from-refs` 2026-05-18; force-unlock + re-acquire ceremony; audit_log id `e6f5e17b-6db6-466f-a616-0907dcaf1213`; capability v4 row id `f75502d4-c7b2-44c1-86a5-395b4578f93d`.

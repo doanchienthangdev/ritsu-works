@@ -14,7 +14,7 @@ description: |
 - Dispatched by `wiki-sync/ingest` when path ends in `.md` or `.markdown`
 - source_kind: `markdown_passthrough`
 - entity_type: read from file frontmatter `type:` (if absent → `concept`)
-- wiki target: `wiki/<entity_type>/<slug>.md`
+- wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; the source RECORD always lives at `source.md` regardless of frontmatter `type:` field — derived entities extracted by `distill` land under sibling `concepts/`, `observations/`, `decisions/`, `ideas/` folders)
 
 ## Inputs
 
