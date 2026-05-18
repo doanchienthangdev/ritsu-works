@@ -1,5 +1,14 @@
 # ingestion-sources.yaml — Knowledge ingestion sources (Bài #18)
-version: "1.0.0"
+#
+# v3.0 update (2026-05-18): wiki-sync v3.0 distill+extract is now the default
+# semantic. Each source_kind gains `distillation_supported: true|false` flag.
+# When true, ingest pipeline runs distill skill (Sprint 2) after extract.
+# When false (or --verbatim flag), pipeline writes single source RECORD page
+# without entity extraction. See wiki/capabilities/wiki-sync-from-refs/spec.md §0.
+#
+# v3.0 cost caps live in capability-registry.yaml.cost_caps_per_task_kind
+# (raised wiki-distill-folder $15 with Tier B at $5 per Muse M6).
+version: "1.1.0"
 
 source_kinds:
   # `article` — edited per Sprint 1 of wiki-sync-from-refs to swap adapter + add

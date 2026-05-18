@@ -326,6 +326,14 @@ permissions:
     - metrics.*           # the ONLY role that writes to metrics.*
     - ops.agent_runs
     - ops.tier3_index
+    # Added v3.0 wiki-sync (migration 00031 — fixes pre-existing drift from v2.0
+    # where etl-runner had implicit ops.knowledge_* writes via supabase-ops MCP
+    # but never had explicit grant. CTO Phase 5 review flagged.):
+    - ops.knowledge_pages          # source RECORD pages + derived entity pages
+    - ops.knowledge_links          # regex-extracted + extracted_* link_types
+    - ops.knowledge_embeddings     # pgvector embeddings on entity pages
+    - ops.knowledge_extractions    # v3.0 citation spine (migration 00031)
+    - ops.ingestion_jobs           # pipeline state + parent/child via parent_job_id
   tier3_buckets:
     - ops-transcripts (read+write)
     - ops-artifacts (read)

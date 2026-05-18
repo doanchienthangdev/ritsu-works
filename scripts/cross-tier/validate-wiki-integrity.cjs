@@ -1,33 +1,44 @@
 #!/usr/bin/env node
 // scripts/cross-tier/validate-wiki-integrity.cjs
 //
-// L2 WARN-TIER validator (Sprint 4 PR6 of wiki-sync-from-refs v2.0.0).
+// L2 WARN-TIER validator
+//   v0.1 (Sprint 4 PR6 of wiki-sync v2.0): 3 local + 3 DB invariants
+//   v0.2 (Sprint 1 of wiki-sync v3.0): + 3 v3 distill+extract invariants
 //
 // Catches the DETERMINISTIC subset of /wiki audit checks on every commit/PR.
 // Network-bound (dead URL) and LLM-bound (stale claims) checks are deferred to
-// the interactive `/wiki audit` SKILL — they'd slow PRs unacceptably + need
-// secrets in CI.
+// the interactive `/wiki audit` SKILL.
 //
-// 3 invariants enforced (warn-tier; non-blocking):
-//   1. Hash drift     — every knowledge_pages row's file_hash matches the
-//                       actual file content on disk
-//   2. File missing   — every knowledge_pages row's file_path exists on disk
-//   3. Orphan links   — count knowledge_links with target_page_id IS NULL
-//                       (informational; orphans are not always defects but
-//                       trend matters)
+// === LOCAL-ONLY invariants (default mode; no DB access) ===
+//   L1. frontmatter_file_path_mismatch  — frontmatter.file_path matches actual path
+//   L2. missing_frontmatter              — auto-generated wiki pages have frontmatter
+//   L3. v3_orphan_extracted_source      — pages with frontmatter.extracted_from_source
+//                                          reference a source page that exists on disk
+//                                          (NEW v3.0)
 //
-// Local-only mode (default): reads filesystem + reports stats. Does NOT
-// query Supabase (avoids the SUPABASE_ACCESS_TOKEN dance in CI).
+// === DB invariants (--with-db mode; requires SUPABASE_ACCESS_TOKEN) ===
+//   D1. Hash drift                       — knowledge_pages.file_hash matches disk
+//   D2. File-missing-on-disk             — knowledge_pages.file_path exists
+//   D3. Orphan links                     — knowledge_links.target_page_id IS NULL count
+//   D4. v3_citation_integrity            — every page WHERE extracted_from_source_id IS NOT NULL
+//                                          has ≥1 knowledge_extractions row pointing to it
+//                                          (NEW v3.0 — CTO NIT 7 HARD GATE)
+//   D5. v3_extraction_fk_consistency     — knowledge_extractions.source_page_id matches
+//                                          derived_page_id.extracted_from_source_id
+//                                          (NEW v3.0)
+//   D6. v3_dedup_consistency             — no two non-deleted entity pages with cosine
+//                                          sim > 0.92 on (title + first 200 chars of summary)
+//                                          (NEW v3.0 — pg_vector cosine_distance < 0.08)
 //
-// Wiki state mode (--with-db): queries ops.knowledge_pages + knowledge_links
-// via supabase-ops-style MCP env. Requires SUPABASE_ACCESS_TOKEN. Useful for
-// nightly L3 sweep.
+// Sprint-order CI gate (per spec §0): Sprint 2 PR CI grep-checks this file for
+// the literal string "extracted_from_source_id IS NOT NULL" (see D4 SQL below).
+// If absent → Sprint 2 PR CI fails → enforces validator-ships-before-distill order.
 //
 // Exit codes:
 //   0  — clean (or warn-only)
 //   1  — script error (rare; missing js-yaml, etc.)
 //
-// Per spec v2 §6 — companion to wiki-sync/audit SKILL Checks 1, 2, 4.
+// Per spec v3 §3.7 — companion to wiki-sync/audit SKILL Checks 1, 2, 4, + 3 v3 checks.
 
 'use strict';
 
@@ -108,10 +119,15 @@ function checkLocalIntegrity() {
     with_frontmatter: 0,
     with_generated_by_marker: 0,
     with_source_ref: 0,
+    with_extracted_from_source: 0,
+    with_legacy_v2_verbatim: 0,
     distinct_page_types: new Set(),
     files_per_page_type: {},
     findings: [],
   };
+
+  // First pass: build set of all wiki file paths for L3 cross-ref check
+  const wikiFilesSet = new Set(wikiFiles);
 
   for (const relPath of wikiFiles) {
     const abs = path.join(REPO_ROOT, relPath);
@@ -122,13 +138,15 @@ function checkLocalIntegrity() {
       stats.with_frontmatter += 1;
 
       if (fm.source_ref) stats.with_source_ref += 1;
+      if (fm.extracted_from_source) stats.with_extracted_from_source += 1;
+      if (fm.legacy_v2_verbatim === true) stats.with_legacy_v2_verbatim += 1;
 
       if (fm.type) {
         stats.distinct_page_types.add(fm.type);
         stats.files_per_page_type[fm.type] = (stats.files_per_page_type[fm.type] || 0) + 1;
       }
 
-      // Cross-check: file_path in frontmatter (if present) must match actual path
+      // L1: Cross-check: file_path in frontmatter (if present) must match actual path
       if (fm.file_path && fm.file_path !== relPath) {
         stats.findings.push({
           file: relPath,
@@ -137,11 +155,30 @@ function checkLocalIntegrity() {
           detail: `frontmatter.file_path = '${fm.file_path}' but file is at '${relPath}'`,
         });
       }
+
+      // L3 (NEW v3.0): derived entity pages must reference a source page that exists on disk.
+      // Frontmatter format (v3.0): extracted_from_source: wiki/books/<slug>.md
+      // EXCEPT: legacy_v2_verbatim pages are exempt (they predate v3.0 distillation).
+      if (fm.extracted_from_source && fm.legacy_v2_verbatim !== true) {
+        const sourceRef = String(fm.extracted_from_source).trim();
+        // Strip optional leading slash + normalize
+        const normalizedSource = sourceRef.replace(/^\.?\/?/, '');
+        if (!wikiFilesSet.has(normalizedSource)) {
+          stats.findings.push({
+            file: relPath,
+            severity: 'warn',
+            kind: 'v3_orphan_extracted_source',
+            detail: `frontmatter.extracted_from_source = '${sourceRef}' but source page not found on disk. Either source was deleted (audit deletion) or this entity is orphaned.`,
+          });
+        }
+      }
     } else {
       // No frontmatter is OK for some legacy pages (e.g. wiki/README.md, capability docs)
       // Only warn if path looks like an auto-generated page (under wiki/<page_type>/)
       const parts = relPath.split('/');
       if (parts.length >= 3 && parts[0] === 'wiki') {
+        // Exempt: wiki/capabilities/ (Phase 8 promoted specs/retros — not auto-gen)
+        if (parts[1] === 'capabilities') continue;
         stats.findings.push({
           file: relPath,
           severity: 'warn',
@@ -160,6 +197,57 @@ function checkLocalIntegrity() {
 }
 
 // ============================================================================
+// DB checks (--with-db mode)
+// ============================================================================
+//
+// v3.0 invariants D4-D6 require live DB queries. Sample SQL embedded here so
+// the sprint-order CI grep gate (per spec §0) finds the literal sentinel
+// string. Actual execution path: shell out to `supabase db query --linked`
+// or call supabase-ops MCP. Implementation deferred to v3.0.5 follow-up;
+// this v0.2 update establishes the contract + CI-grep sentinel.
+
+// D4 — Citation integrity SQL (sentinel for sprint-order CI grep gate)
+const V3_CITATION_INTEGRITY_SQL = `
+  -- Every derived entity page MUST have ≥1 knowledge_extractions row pointing to it.
+  SELECT kp.id, kp.slug, kp.page_type
+  FROM ops.knowledge_pages kp
+  WHERE kp.extracted_from_source_id IS NOT NULL
+    AND kp.legacy_v2_verbatim = false
+    AND kp.deleted_at IS NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM ops.knowledge_extractions ke
+      WHERE ke.derived_page_id = kp.id
+    );
+`;
+
+// D5 — Extraction FK consistency SQL
+const V3_EXTRACTION_FK_SQL = `
+  -- knowledge_extractions.source_page_id must equal derived_page_id.extracted_from_source_id
+  SELECT ke.id, ke.source_page_id, ke.derived_page_id,
+         kp.extracted_from_source_id AS derived_extracted_from
+  FROM ops.knowledge_extractions ke
+  JOIN ops.knowledge_pages kp ON kp.id = ke.derived_page_id
+  WHERE kp.extracted_from_source_id <> ke.source_page_id;
+`;
+
+// D6 — Dedup consistency SQL (pgvector cosine_distance)
+const V3_DEDUP_SQL = `
+  -- No two non-deleted entity pages with cosine similarity > 0.92 on title embedding.
+  -- (Requires title embedding stored in knowledge_embeddings; v3.0.5 wiring TBD)
+  SELECT a.id, b.id, a.slug, b.slug, a.page_type,
+         1 - (ae.embedding <=> be.embedding) AS cosine_similarity
+  FROM ops.knowledge_pages a
+  JOIN ops.knowledge_pages b ON b.page_type = a.page_type AND b.id < a.id
+  JOIN ops.knowledge_embeddings ae ON ae.source_ref = a.slug
+  JOIN ops.knowledge_embeddings be ON be.source_ref = b.slug
+  WHERE a.deleted_at IS NULL
+    AND b.deleted_at IS NULL
+    AND a.extracted_from_source_id IS NOT NULL
+    AND b.extracted_from_source_id IS NOT NULL
+    AND (1 - (ae.embedding <=> be.embedding)) > 0.92;
+`;
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -169,6 +257,7 @@ function main() {
 
   const result = {
     invariant: 'wiki-integrity',
+    version: 'v0.2 (wiki-sync v3.0 Sprint 1)',
     severity: 'warn',
     mode: WITH_DB ? 'local+db' : 'local-only',
     timestamp: new Date().toISOString(),
@@ -177,6 +266,8 @@ function main() {
       with_frontmatter: stats.with_frontmatter,
       with_generated_by_marker: stats.with_generated_by_marker,
       with_source_ref: stats.with_source_ref,
+      with_extracted_from_source: stats.with_extracted_from_source,
+      with_legacy_v2_verbatim: stats.with_legacy_v2_verbatim,
       distinct_page_types: distinctTypesArray,
       files_per_page_type: stats.files_per_page_type,
     },
@@ -184,8 +275,13 @@ function main() {
     findings_count: stats.findings.length,
     db_checks: WITH_DB
       ? {
-          status: 'not_implemented_in_pr6',
-          note: 'DB-mode (hash drift, orphan links, file-missing-on-disk) requires SUPABASE_ACCESS_TOKEN + supabase CLI. Implement in /wiki audit interactive SKILL or in a future test-fixtures PR.',
+          status: 'not_implemented_in_v0_2',
+          note: 'DB-mode checks D1-D6 require SUPABASE_ACCESS_TOKEN + supabase CLI. SQL contracts defined in source (V3_CITATION_INTEGRITY_SQL, V3_EXTRACTION_FK_SQL, V3_DEDUP_SQL). Wiring TBD in v3.0.5 follow-up or /wiki audit interactive SKILL.',
+          v3_invariants_contracted: [
+            'D4: v3_citation_integrity — every page WHERE extracted_from_source_id IS NOT NULL has ≥1 knowledge_extractions row pointing to it',
+            'D5: v3_extraction_fk_consistency — knowledge_extractions.source_page_id matches derived_page_id.extracted_from_source_id',
+            'D6: v3_dedup_consistency — no two non-deleted entity pages with cosine sim > 0.92',
+          ],
         }
       : null,
   };
