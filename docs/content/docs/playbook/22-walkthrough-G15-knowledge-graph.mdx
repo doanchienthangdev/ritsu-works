@@ -1,0 +1,361 @@
+---
+title: "Chương 22 — Walkthrough G15: Knowledge Graph (Bài #14 candidate)"
+description: "Chương 22 — Walkthrough G15: Knowledge Graph (Bài #14 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/22-walkthrough-G15-knowledge-graph.md
+source_hash: 5751083363bf46bbb1390ef6581f08e2204316eda12bf1f7e83a90b0d4b75557
+generated_at: '2026-05-19T16:57:54.925Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 5751083363bf46bbb1390ef6581f08e2204316eda12bf1f7e83a90b0d4b75557
+translated_at: '2026-05-19T16:57:54.925Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 22
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 22 — Walkthrough G15: Knowledge Graph (Bài #14 candidate)
+
+> *"GBrain BrainBench: graph + hybrid = P@5 49.1%, no-graph hybrid = 17.7%. 2.8x precision gap. Knowledge graph isn't optional — it's the difference between agent that knows and agent that guesses."*
+
+## 22.1 Tình huống
+
+Founder TH8 anchor (post-GBrain analysis): *"Ritsu cần search knowledge giống GBrain — typed relationships, không chỉ vector."*
+
+5 concrete graph queries:
+
+1. **Customer relationship discovery** — full relational context in single query (uses, opened tickets, referred_by, attended, employed_by)
+2. **Pre-call preparation** — investor dossier với portfolio + network connections + meeting history + open threads
+3. **Content authoring với context** — auto-link extracts mentions, backlinks suggest references
+4. **GDPR compliance** — find ALL customer X data systematically across tables
+5. **Decision archaeology** — "tại sao chúng ta chọn Supabase" 6 months later, full rationale
+
+**Founder expected:** every page write auto-extracts entity relationships (zero LLM cost), graph queries unlock relational thinking, search precision 2-3x baseline.
+
+**Khi sai:** vector caps at ~17-22% P@5, "who knows what" unanswerable, GDPR error-prone, decision archaeology fails, knowledge silos per pillar.
+
+## 22.2 Walk through Phase A + prior walkthroughs
+
+### Have
+
+- ✅ Bài #4 Memory Architecture (4 memory types)
+- ✅ Strategy A: Postgres + pgvector
+- ✅ Vector + keyword hybrid search
+- ✅ wiki/, .archives/, raw/ workspace plane
+
+### Phase A's explicit defer
+
+Bài #4 brainstorm note: *"Defer knowledge graph to v1.x — premature complexity."*
+
+**GBrain BrainBench reveals defer is wrong:**
+
+| Approach | P@5 | R@5 |
+|---|---|---|
+| GBrain v0.12 (graph + hybrid) | **49.1%** | 97.9% |
+| GBrain v0.11 (less link extract) | 22.1% | — |
+| Hybrid no-graph | 17.7% | — |
+| ripgrep BM25 | ~17% | — |
+| Vector-only RAG | ~17% | — |
+
+**2.8x precision improvement.** Auto-link extraction = $0/write (deterministic regex). Cost-benefit obvious.
+
+GBrain quote: *"v0.11→v0.12 moved the same gbrain codebase from P@5 22.1% → 49.1% on identical inputs, so typed-link extract quality is load-bearing."*
+
+### Don't have (12 gaps)
+
+Knowledge graph schema, auto-link extraction, typed inference rules, page format convention, slug convention, graph traversal API, graph query MCP tool, backlink boost, stale reconciliation, cross-domain edges, maintenance cadence, visualization.
+
+## 22.3 Workaround vs proper extension
+
+### Workaround
+- Z1: Continue vector + keyword only — caps at baseline
+- Z2: 3rd-party graph DB (Neo4j) — sync nightmare, infra overhead
+- Z3: Postgres-native + ops.knowledge_links — same approach GBrain took, proven at 17,888 pages
+
+**Recommendation: Z3.**
+
+### Proper extension — Bài #14
+
+4 axes:
+
+#### Axis 1 — Schema & Page Format
+
+**Page format adoption (GBrain pattern):**
+
+```yaml
+---
+type: customer | company | concept | decision | meeting | episode | person | content
+slug: customer/acme-edtech-inc
+tags: [b2b, edtech]
+created_at: 2026-05-03
+last_assessed_at: 2026-05-03
+---
+
+# Acme EdTech Inc
+
+## Compiled Truth (above ---, mutable)
+
+B2B Business customer, 50 seats Pro tier, since 2026-Q1.
+Primary contact: [[person/john-doe]] (CEO).
+Status: [[customer-state/active]] since 2026-03-15.
+
+---
+
+## Timeline (below ---, append-only)
+
+- 2026-02-10 — First contact via [[campaign/2026-q1-edtech-outreach]]
+- 2026-03-15 — Contract signed, 50 seats Pro
+- 2026-04-20 — Feature request: SAML SSO [[ticket/SUP-2026-0420]]
+```
+
+**Pattern:** compiled truth (mutable) + timeline (append-only). `[[wiki-link/slug]]` references = automatic edges.
+
+**Slug convention:** `<type>/<kebab-case-name>`, lowercase, globally unique.
+
+**Schema:**
+
+```sql
+CREATE TABLE ops.knowledge_links (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_slug     text NOT NULL,
+  target_slug     text NOT NULL,
+  link_type       text NOT NULL,
+  confidence      numeric DEFAULT 1.0,
+  occurrence_count int DEFAULT 1,
+  source_context  text,
+  first_seen_at   timestamptz DEFAULT now(),
+  last_seen_at    timestamptz DEFAULT now(),
+  is_stale        boolean DEFAULT false,
+  metadata        jsonb,
+  
+  UNIQUE (source_slug, target_slug, link_type)
+);
+
+CREATE INDEX ON ops.knowledge_links (source_slug, link_type) WHERE NOT is_stale;
+CREATE INDEX ON ops.knowledge_links (target_slug, link_type) WHERE NOT is_stale;  -- backlinks
+```
+
+#### Axis 2 — Auto-Link Extraction (zero LLM)
+
+**post-page-write hook flow:**
+
+```
+1. Parse markdown → wikilinks + bare slugs
+2. Strip code-fences (no false positives)
+3. Validate target slug exists
+4. Type inference cascade (specific > generic):
+   - "founded" pattern → founded edge
+   - "works at" + role → works_at với metadata
+   - "invested in" → invested_in
+   - default → mentions
+5. Within-page dedup (5 references = 1 edge với occurrence_count=5)
+6. Stale reconciliation:
+   - Diff old vs new version
+   - Links removed → mark is_stale=true
+   - New links → INSERT
+7. Atomic transaction
+```
+
+**Tier 1 declarative rules:**
+
+```yaml
+# knowledge/link-inference-rules.yaml
+rules:
+  - id: founder-pattern
+    pattern: "(\\[\\[person/[\\w-]+\\]\\]) (?:founded|co-founded) (\\[\\[company/[\\w-]+\\]\\])"
+    edge_type: founded
+    confidence: 0.95
+    
+  - id: works-at-with-role
+    pattern: <regex with role capture>
+    edge_type: works_at
+    metadata: { role: "$2" }
+    confidence: 0.90
+    
+  - id: invested-in
+    pattern: <regex>
+    edge_type: invested_in
+    confidence: 0.95
+    
+  - id: customer-uses-product
+    pattern: <regex>
+    edge_type: uses
+    confidence: 0.85
+    
+  - id: mentions-fallback
+    pattern: "\\[\\[([\\w-]+/[\\w-]+)\\]\\]"
+    edge_type: mentions
+    confidence: 1.0
+```
+
+**Cost: $0/page write** (regex only, no LLM call).
+
+**Skill marked deterministic** → ops.minion_jobs queue (GBrain Minions). Bulk backfill = parallel jobs.
+
+#### Axis 3 — Cross-Source Edges
+
+State transitions (Bài #13) + events (Bài #11) + ops.tasks (Bài #5) auto-emit edges.
+
+**Bài #13 integration — DB trigger after state transition:**
+
+```sql
+CREATE OR REPLACE FUNCTION emit_state_transition_edge()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO ops.knowledge_links (source_slug, target_slug, link_type, ...)
+  VALUES (
+    'customer/' || (SELECT slug FROM customers WHERE id = NEW.customer_id),
+    'customer-state/' || NEW.to_state,
+    'transitioned_to',
+    1.0,
+    jsonb_build_object('at', NEW.changed_at, 'from_state', NEW.from_state)
+  )
+  ON CONFLICT DO UPDATE SET occurrence_count = ops.knowledge_links.occurrence_count + 1;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+**Pattern:** Knowledge graph emerges from BOTH text content AND structured operational data. Unified table, unified queries.
+
+#### Axis 4 — Graph API + Search Integration
+
+**Recursive CTE traversal:**
+
+```sql
+WITH RECURSIVE traversal AS (
+  SELECT source_slug, target_slug, link_type, 1 AS depth, ARRAY[source_slug] AS path
+  FROM ops.knowledge_links
+  WHERE source_slug = $1 AND NOT is_stale
+  
+  UNION ALL
+  
+  SELECT kl.source_slug, kl.target_slug, kl.link_type, t.depth + 1, t.path || kl.source_slug
+  FROM ops.knowledge_links kl
+  JOIN traversal t ON kl.source_slug = t.target_slug
+  WHERE NOT kl.is_stale
+    AND t.depth < 10  -- DoS prevention
+    AND NOT (kl.target_slug = ANY(t.path))  -- cycle prevention
+)
+SELECT DISTINCT * FROM traversal ORDER BY depth, source_slug;
+```
+
+**`graph-traverse` skill** wraps CTE với type filters, direction, depth, output formatting.
+
+**MCP tool `ritsu.knowledge.graph_query`** (Bài #12):
+- Inputs: source_slug, edge_types[], direction, depth (max 10)
+- Returns connected entities với typed edges
+- Role-scoped (founder + operator-all)
+- Cost-bucket: read-only
+
+**Search ranking upgrade (Bài #4):**
+
+```
+score = vector_score * 0.5 + keyword_score * 0.3 + backlink_score * 0.2
+
+where backlink_score = log(1 + count(*) FROM ops.knowledge_links WHERE target_slug = page_slug)
+```
+
+Well-connected entities surface in search.
+
+**Maintenance:**
+- Daily backfill cron (Bài #8 schedules.yaml)
+- Stale link cleanup nightly (purge is_stale=true older than 30 days)
+- Re-extraction on inference rule changes
+
+**Visualization:**
+
+```bash
+ritsu-cli graph diagram customer/acme-edtech-inc --depth 2
+```
+
+Outputs Mermaid → `wiki/graph-views/customer/acme-edtech-inc.mmd`.
+
+## 22.4 New components (22)
+
+22 components: schema + Tier 1 + runtime + visualization + 5 cross-bài-toán updates (#4, #5, #11, #12, #13). Knowledge graph integrates với entire stack.
+
+## 22.5 Bài #14 candidate
+
+**Bài #14 — Knowledge Graph Architecture**
+
+**Question core:** Page writes auto-extract typed entity relationships (zero LLM). Graph traversal answers relational questions vector search can't. Search precision 2-3x baseline. State transitions, events, ops.tasks emit edges automatically.
+
+**Dependencies:** Bài #1, #4, #5, #8 DRAFT, #11 DRAFT, #12 DRAFT, #13 DRAFT
+
+## 22.6 Lessons captured
+
+1. **Graph is not optional.** 2.8x P@5 gap per BrainBench.
+2. **Auto-link extraction = $0/write.** Deterministic regex, no LLM cost.
+3. **Page format convention essential.** Compiled-truth + timeline.
+4. **Slug convention non-negotiable.** Without `<type>/<slug>`, edges ambiguous.
+5. **Operational data = graph data too.** State transitions, events, ops.tasks emit edges.
+6. **Postgres-native > separate graph DB.** Recursive CTEs at v1.0 scale.
+7. **Backlink boost in search ranking.** Well-connected entities surface.
+8. **Stale-link reconciliation prevents drift.**
+9. **Type inference cascade (specific overrides generic).**
+10. **GBrain validates Postgres + recursive CTE + auto-link at 17,888-page scale.**
+
+## 22.7 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ14.1 | Multi-language inference (VI vs EN)? | VI-heavy content surfaces |
+| OQ14.2 | Confidence thresholds (LLM verification trigger)? | After 1000 pages |
+| OQ14.3 | Cross-instance graph sync? | Second instance |
+| OQ14.4 | Graph versioning on rule change? | Phase C |
+| OQ14.5 | Operator role graph access? | Operators join |
+| OQ14.6 | Cycle handling beyond prevention? | After traversal usage |
+| OQ14.7 | Edge expiration (former vs current)? | Time-dependent edges |
+| OQ14.8 | Entity disambiguation? | Ambiguity surfaces |
+
+## 22.8 Anti-patterns
+
+- ❌ Skip graph layer (P@5 caps at baseline)
+- ❌ LLM-based link extraction (cost explosion: 17,888 pages × $0.01 = $178/extraction)
+- ❌ Separate graph DB (Neo4j sync nightmare)
+- ❌ Skip slug convention
+- ❌ No stale reconciliation (graph rots)
+- ❌ Skip page format convention
+- ❌ Inference rules in code (use Tier 1 YAML)
+- ❌ No depth cap (DoS risk)
+- ❌ Skip backlink boost
+- ❌ Treat graph as separate query domain
+
+## 22.9 Cross-references
+
+- **Bài #4:** page format, search ranking backlink boost, episodic emits edges
+- **Bài #5:** ops.tasks payload → edges; auto-link-extract = Minions (deterministic)
+- **Bài #8:** daily backfill cron entry
+- **Bài #9:** SOP runs reference customers/content → edges via outbox
+- **Bài #10:** dashboard `/knowledge/graph` page; backlink count = search signal
+- **Bài #11:** events with entity refs emit edges
+- **Bài #12:** ritsu.knowledge.graph_query tool (high-value)
+- **Bài #13:** state transitions emit `transitioned_to` edges automatically
+- **GBrain heritage:** direct adoption of compiled-truth, auto-link, recursive CTE, backlink boost
+
+## 22.10 Tổng kết
+
+- **Bài #14 candidate: Knowledge Graph Architecture**
+- **4 axes:** schema+page format / auto-link extraction / cross-source edges / graph API+search
+- **22 new components**
+- **5 cross-bài-toán updates** — knowledge graph integrates với entire stack
+- **GBrain BrainBench validation:** 2.8x precision improvement at production scale
+- **Pattern emerges:** unified ops.knowledge_links from text + structured data sources
+
+**Pattern after 7 walkthroughs:** declarative-first architecture với 9 Tier 1 files (schedules + kpi-registry + alert-rules + event-subscriptions + event-aggregation + mcp-tools + mcp-roles + state-machines + **link-inference-rules**) = operational DNA + knowledge layer.
+
+Sang chương sau — walkthrough G10 Decision Architecture (Muse cross-cutting).
+
+---
+
+**Tham khảo:**
+- High-altitude pass: G15 entry (score 6.45, NEW from GBrain)
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G15-knowledge-graph.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-14-knowledge-graph-DRAFT.md`
+- GBrain repo: https://github.com/garrytan/gbrain
+- BrainBench evals: https://github.com/garrytan/gbrain-evals
+- Phase A dependencies: Chương 7 (Bài #4 Memory)
+- Phase A.2 dependencies: Chương 16, 17, 19, 20, 21 (cross-bài-toán updates)

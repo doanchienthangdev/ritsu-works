@@ -1,0 +1,114 @@
+---
+title: "Phụ lục A1 — Glossary"
+description: "Phụ lục A1 — Glossary"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/A1-glossary.md
+source_hash: bbb676bc6340ede5fc8a290bc819e1dea50ade038f15a6d749888dca1ccd0644
+generated_at: '2026-05-19T16:57:54.965Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: bbb676bc6340ede5fc8a290bc819e1dea50ade038f15a6d749888dca1ccd0644
+translated_at: '2026-05-19T16:57:54.965Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 36
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Phụ lục A1 — Glossary
+
+> Từ điển thuật ngữ tiếng Việt – tiếng Anh dùng xuyên suốt playbook. Sắp xếp theo alphabet tiếng Anh.
+
+| Thuật ngữ tiếng Anh | Tiếng Việt | Định nghĩa ngắn |
+|---|---|---|
+| Agent | Agent / tác nhân AI | Một LLM-powered entity có role + permissions + state. Thực thi tasks autonomously hoặc semi-autonomously. |
+| Agent Teams | Agent Teams (giữ nguyên) | Tính năng thử nghiệm của Anthropic cho phép nhiều agent ngang hàng cùng làm việc trong một workspace. **Defer to v1.x trong Ritsu.** |
+| Anthropic | Anthropic (giữ nguyên) | Công ty phát triển Claude. |
+| `@imports` | `@imports` (giữ nguyên) | Cú pháp trong CLAUDE.md để reference file mà không inline content (lazy load). |
+| API key | API key / khóa API | Credential để gọi Anthropic API. Trong Ritsu: per-role (`ANTHROPIC_GPS_KEY`, etc.). |
+| Append-only | Append-only / chỉ thêm | Property của database table cho phép INSERT nhưng không UPDATE/DELETE. Dùng cho audit trails. |
+| `apply_patch` | `apply_patch` (giữ nguyên) | Tool của Anthropic cho file editing. |
+| Architecture decision document (ADR) | Tài liệu quyết định kiến trúc | File `knowledge/*-architecture.md` ghi rõ a decision + rationale + alternatives. |
+| Asset storage | Lưu trữ asset | Tier 3 — Supabase Storage hoặc S3 cho binary content (images, PDFs). |
+| Attribution | Attribution / quy gán | Việc gán mỗi action cho specific role/agent qua audit trail. |
+| Audit trail | Audit trail / lộ trình kiểm toán | Record append-only của mọi action. Trong Ritsu: `ops.agent_runs`. |
+| Batch tier | Batch tier (giữ nguyên) | Service tier của Anthropic — giảm 50% cost cho non-time-sensitive tasks (~24h delivery). |
+| Bilingual | Song ngữ | Hai ngôn ngữ. Ritsu's brand voice là bilingual EN+VI. |
+| Blast radius | Blast radius / phạm vi ảnh hưởng | Scope của thiệt hại nếu một action sai. Tier hierarchy của HITL gắn với blast radius. |
+| Brainstorm | Brainstorm / phiên động não | Phiên thảo luận structured giữa founder + assistant để decide architecture. |
+| Brand voice | Brand voice / giọng thương hiệu | Voice guide cho mọi output. Internal vs external. Bilingual. |
+| Budget cap | Budget cap / mức trần ngân sách | Monthly USD limit per role. Trong Ritsu: hierarchical (alert 80% / escalate 100% / block 150%). |
+| Cache hit ratio | Tỷ lệ cache hit | `cache_read_tokens / total_input_tokens`. Cao = caching efficient. |
+| Calibration | Calibration / hiệu chỉnh | Quá trình quan sát data thực để tinh chỉnh thresholds. Trong Ritsu: 30-day post-launch. |
+| Charter | Charter / điều lệ | Files trong `00-charter/` — most fundamental knowledge của org. |
+| CLAUDE.md | CLAUDE.md (giữ nguyên) | Entry point file cho Claude Code sessions. Trong Ritsu: lean (~1.2K tokens). |
+| Claude Code | Claude Code (giữ nguyên) | Coding agent runtime của Anthropic. Đọc CLAUDE.md, `.claude/agents/`, `.claude/hooks/`. |
+| Compaction | Compaction / nén | Quá trình rút gọn context window khi gần đầy. Lossy. Trong Ritsu: trigger ở `trigger_compact_at`. |
+| Context budget | Ngân sách context | Per-role limits trên `preamble_tokens`, `working_tokens`, `trigger_compact_at`. |
+| Context window | Cửa sổ ngữ cảnh | Max tokens model có thể process trong 1 request. Claude Opus 4.7 = 200K-1M. |
+| Cost attribution | Cost attribution / quy gán chi phí | Attribute mỗi LLM call về (role, task_kind). Trong Ritsu: `ops.cost_attributions`. |
+| Declarative knowledge | Tri thức khai báo | Loại memory về facts ("our refund policy"). Storage: Tier 1 git. |
+| Delegate / delegation | Ủy thác | Việc main agent giao task cho subagent. |
+| DKIM | DKIM (giữ nguyên) | Email authentication standard. Per-domain key. |
+| EU AI Act | EU AI Act / Đạo luật AI EU | Regulation EU 2024/1689. Article 50 mandates AI disclosure. Effective Aug 2026. |
+| Episodic memory | Trí nhớ tình tiết | Memory loại "what HAS happened". Per-event log. Storage: `ops.agent_runs`. |
+| ETL | ETL (giữ nguyên) | Extract-Transform-Load. Trong Ritsu: `etl-runner` role pulls Product DB, aggregates, writes to ops.*. |
+| Fail-closed | Fail-closed / fail an toàn | Default: nếu hook errors, BLOCK. Better delay than skip safety. |
+| Fail-open | Fail-open / fail mở | Default: nếu hook errors, ALLOW. **Anti-pattern trong Ritsu** (trừ informational hooks). |
+| FOCUS format | FOCUS format (giữ nguyên) | FinOps Foundation's open standard cho cost data. Datadog dùng cho Anthropic integration. |
+| Founder | Founder / nhà sáng lập | Human operator của one-person company. |
+| FTC | FTC / Ủy ban Thương mại Liên bang Mỹ | Federal Trade Commission. AI persona disclosure guidelines. |
+| GDPR | GDPR (giữ nguyên) | General Data Protection Regulation (EU). Applies cross-jurisdictionally for EU users. |
+| GPS (General Purpose Steward) | GPS / Chief of Staff | Orchestrator role. Routes work to specialists. Default founder interface. |
+| Health Score | Health Score / điểm sức khỏe | Single number 0-100 weekly metric của Bài #7. |
+| HITL (Human-in-the-Loop) | HITL / Con người trong vòng lặp | Pattern requiring human approval. Trong Ritsu: 5-tier (A / B / C / D-Std / D-MAX). |
+| Hook | Hook (giữ nguyên) | Mandatory runtime enforcement. Fires on every tool call. Cannot be skipped. |
+| Inner Harness | Inner Harness / dây nịt trong | Mọi thứ inside agent runtime: model, system prompt, tool dispatch. **Anthropic's job.** |
+| Lost in the middle | Lost in the middle / mất ở giữa | Phenomenon: model degrades trong dài context, info ở giữa bị overlook. |
+| LTV (Lifetime Value) | LTV / Giá trị vòng đời khách hàng | Total revenue 1 customer tạo ra over relationship. |
+| Magic phrase | Magic phrase / cụm từ ma | Câu founder phải gõ tay (không paste) cho Tier D-Std/D-MAX. Forces conscious decision. |
+| Manifest | Manifest / kê khai | Single canonical inventory file (`knowledge/manifest.yaml`). |
+| MCP (Model Context Protocol) | MCP / Giao thức Ngữ cảnh Mô hình | Anthropic standard cho external integrations. Ritsu uses for Supabase, GitHub, Telegram. |
+| Memory tool API | Memory tool API (giữ nguyên) | Anthropic primitive cho persistent memory across sessions. **Ritsu disable at v1.0** (Strategy E). |
+| Multi-agent | Multi-agent / đa-agent | Pattern dùng nhiều agents. Anthropic warns "multi-agent systems are a trap" — defer cho until justified. |
+| Non-human identity (NHI) | Non-human identity / danh tính phi-con-người | Service accounts cho agents. Outnumber humans 50-100x trong enterprises. |
+| ops schema | ops schema (giữ nguyên) | Supabase schema chứa operational tables (`ops.agent_runs`, `ops.tasks`, etc.). |
+| Operating DB | Operating DB / DB vận hành | `ritsu-ops` Supabase project. Separate từ Product DB. |
+| Orchestration | Orchestration / điều phối | Pattern multi-agent với one orchestrator (GPS) + specialists. |
+| Outer Harness | Outer Harness / dây nịt ngoài | Mọi thứ outside agent runtime: governance, attribution, observability. **Your org's job.** |
+| Per-role | Per-role / theo role | Pattern: mỗi role có own resource (API key, GitHub bot, email address). |
+| pgvector | pgvector (giữ nguyên) | Postgres extension cho vector embeddings. Tier 4 trong Ritsu. |
+| Pillar | Pillar / trụ cột | Top-level functional area trong Ritsu (e.g., `01-growth/`, `05-ai-ops/`). |
+| Procedural memory | Trí nhớ thủ tục | Memory loại "how to do things". Storage: `05-ai-ops/skills/<skill>/SKILL.md`. |
+| Product DB | Product DB / DB sản phẩm | `ritsu` Supabase project. Customer data. Separate firewall từ Operating DB. |
+| Prompt caching | Prompt caching (giữ nguyên) | Anthropic feature: cached input ~10% cost của standard. Auto-applied cho repeated content. |
+| Prompt injection | Prompt injection / tiêm prompt | Attack: malicious instructions embedded trong content agent reads. |
+| RACI | RACI (giữ nguyên) | Responsibility / Accountable / Consulted / Informed. SOP role assignment matrix. |
+| Recipe | Recipe / công thức | Multi-step workflow trong `_build/recipes/`. |
+| Rotation cadence | Cadence rotation | Frequency để rotate secrets (30/60/90/180 days based on sensitivity). |
+| Run | Run (giữ nguyên) | Single agent invocation. Logged to `ops.agent_runs`. |
+| Run summary | Run summary / tóm tắt run | ~150-token summary của agent run, written to `ops.run_summaries` for episodic recall. |
+| Schema | Schema (giữ nguyên) | Database table structure. SQL files trong `knowledge/schemas/`. |
+| Secret | Secret / bí mật | Credential (API key, token). Stored in secret manager (1Password). |
+| Secrets governance | Quản trị secrets | Naming + rotation + access matrix. Trong Ritsu: `governance/SECRETS.md`. |
+| Semantic memory | Trí nhớ ngữ nghĩa | Loose informal knowledge. Storage: `wiki/`. |
+| Service tier | Service tier (giữ nguyên) | Anthropic billing tier: Standard / Batch / Priority. |
+| Single Source of Truth | Single Source of Truth / nguồn chân lý duy nhất | Bài #1. Mỗi loại knowledge có exactly ONE tier. |
+| Skill | Skill (giữ nguyên) | Tài sản tái sử dụng cho agents. Directory với SKILL.md frontmatter + procedure. |
+| SOP (Standard Operating Procedure) | SOP / Quy trình vận hành chuẩn | Documented procedure cho recurring task. |
+| State machine | State machine / máy trạng thái | Finite-state model. Trong Ritsu: `ops.tasks` status (pending → ready → in_progress → done/failed). |
+| Strategy E (Episodic-first) | Strategy E (Ưu tiên tình tiết) | Memory strategy của Bài #4: episodic memory canonical, no memory tool API. |
+| Subagent | Subagent / sub-agent | Spawned by parent với fresh context. Returns summary only. |
+| Supabase | Supabase (giữ nguyên) | Postgres-based BaaS. Trong Ritsu: 2 projects (`ritsu`, `ritsu-ops`). |
+| Task kind | Task kind / loại task | Categorization của tasks (e.g., `support-ticket-reply`, `blog-post-draft`). Foundation cho unit economics. |
+| Telegram | Telegram (giữ nguyên) | Messaging app. Trong Ritsu: founder ↔ workforce primary interface. |
+| Tier (HITL) | Tier (HITL) / cấp HITL | Level (A/B/C/D-Std/D-MAX) trong HITL hierarchy. Tỷ lệ với blast radius. |
+| Tier 1/2/3/4 (truth model) | Tier 1/2/3/4 (mô hình chân lý) | Storage layer: declarative (1) / operational (2) / assets (3) / vectors (4). |
+| Token | Token (giữ nguyên) | Đơn vị billing của LLM. ~4 chars / 0.75 word per token (English). |
+| Transparency | Transparency / minh bạch | Public-facing AI disclosure. EU AI Act mandate. Source: `00-charter/transparency.md`. |
+| Vector embedding | Vector embedding (giữ nguyên) | Semantic representation của text. Tier 4. |
+| Wiki | Wiki / wiki | Workspace plane folder cho synced loose notes. Promotion path to Tier 1. |
+| Workforce | Workforce / lực lượng lao động | Tổ hợp agents + founder. 9 roles trong Ritsu v1.0. |
+| Workspace plane | Workspace plane / mặt phẳng workspace | `raw/` + `wiki/` + `.archives/`. Cho work-in-progress, không canonical. |
+| YAML | YAML (giữ nguyên) | Data serialization. Trong Ritsu: `manifest.yaml`, hook frontmatter, schema configs. |

@@ -1,0 +1,895 @@
+---
+title: "Chương 29 — Repo Runtime Strategy & Deployment Workflow"
+description: "Chương 29 — Repo Runtime Strategy & Deployment Workflow"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/29-repo-runtime-strategy.md
+source_hash: d8212e64e0454c3d38281840735c7b1453e09a3d96a5d6cb6837424e5a73b63c
+generated_at: '2026-05-19T16:57:54.948Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: d8212e64e0454c3d38281840735c7b1453e09a3d96a5d6cb6837424e5a73b63c
+translated_at: '2026-05-19T16:57:54.948Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 29
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 29 — Repo Runtime Strategy & Deployment Workflow
+
+> *"Một repo duy nhất, runtime data tách biệt qua `runtime/` folder gitignored. Local-first dev → GitHub source of truth → Phương án A khởi động → migrate B khi cần."*
+
+## 29.1 Quyết định cốt lõi
+
+### Repo strategy: Single repo + runtime/ gitignored
+
+**Không tách 2 repos.** Một `ritsu-works/` repo chứa:
+- Code + architecture (committed)
+- Tier 1 declarative YAML files (committed)
+- Wiki pages — Bài #14 entities (committed v1.0, migrate to Supabase Storage v2.0+)
+- Runtime data trong `runtime/` folder (gitignored — never committed)
+
+**Lý do:**
+1. Phase A architecture giả định filesystem (Bài #14 wiki/, .archives/, raw/)
+2. Onboarding lowest friction (1 clone command)
+3. Multi-operator works (Supabase Cloud = shared truth, runtime/ = per-laptop local data)
+4. Backup separate from Git (rsync, Borg, cloud storage)
+5. Defer over-engineering until concrete need
+
+### Deployment strategy: A → B migration path
+
+**Tuần 1-6 (Phương án A — Local-first):**
+- Founder dev local
+- Supabase Cloud (Free tier) cho database
+- Push to GitHub
+- Migrations apply via `supabase db push`
+- Cost: $0/mo
+
+**Tuần 7+ (Phương án B — VPS-Hosted Worker):**
+- Add Hetzner VPS €5/mo cho always-on workers
+- Telegram bot, MCP HTTP server, webhook receivers chạy on VPS
+- Auto-deploy via GitHub webhook
+- Founder vẫn dev local
+- Cost: ~$10/mo
+
+**Trigger để migrate A → B:**
+- Cần Telegram bot 24/7
+- Cần test Bài #18 voice notes ingestion
+- Operator joins
+- Founder đang Wave 4+ (Visibility + Access)
+
+## 29.2 Cấu trúc repo concrete
+
+```
+ritsu-works/                          ← single GitHub repo
+│
+├── 00-charter/                       ← committed (Phase A)
+│   ├── charter.md
+│   ├── ROLES.md
+│   ├── brand_voice/
+│   │   ├── brand_voice.md
+│   │   ├── brand_voice.en.md         ← Bài #17 locale variants
+│   │   └── brand_voice.vi.md
+│   └── founder-profile.md            ← Bài #19 identity entity
+│
+├── governance/                       ← committed (Phase A)
+│   ├── tier-classification.md
+│   ├── pr-templates/
+│   ├── HEARTBEAT.md                  ← GBrain soul-audit pattern
+│   └── ROLES.md
+│
+├── knowledge/                        ← committed (Tier 1 source of truth)
+│   ├── manifest.yaml                 ← Phase A
+│   ├── schemas/                      ← JSON Schemas for Tier 1 validation
+│   │
+│   ├── schedules.yaml                ← Bài #8
+│   ├── kpi-registry.yaml             ← Bài #10
+│   ├── alert-rules.yaml              ← Bài #10
+│   ├── event-subscriptions.yaml      ← Bài #11
+│   ├── event-aggregation.yaml        ← Bài #11
+│   ├── mcp-tools.yaml                ← Bài #12
+│   ├── mcp-roles.yaml                ← Bài #12
+│   ├── state-machines.yaml           ← Bài #13
+│   ├── link-inference-rules.yaml    ← Bài #14
+│   ├── muse-personas.yaml            ← Bài #15
+│   ├── data-retention.yaml           ← Bài #16
+│   ├── channels.yaml                 ← Bài #17
+│   ├── locales.yaml                  ← Bài #17
+│   ├── surface-compliance.yaml       ← Bài #17
+│   ├── ingestion-sources.yaml        ← Bài #18
+│   ├── ingestion-routing.yaml        ← Bài #18
+│   ├── founder-rhythm.yaml           ← Bài #19
+│   │
+│   └── phase-a2-extensions/          ← committed (12 DRAFTs reference)
+│       └── bai-{8-19}-*-DRAFT.md
+│
+├── 01-growth/                        ← committed (pillar SOPs)
+├── 02-customer/                      ← committed
+├── 03-product/                       ← committed
+├── 04-content/                       ← committed
+├── 05-ai-ops/                        ← committed (skills + adapters)
+│   ├── skills/
+│   │   ├── state-transition/
+│   │   ├── auto-link-extract/
+│   │   ├── customer-data-scan/
+│   │   ├── muse-panel/
+│   │   ├── voice-note-classify/
+│   │   ├── founder-triage-score/
+│   │   └── ...
+│   ├── surface-adapters/             ← Bài #17
+│   │   ├── types.ts
+│   │   ├── telegram-adapter.ts
+│   │   ├── email-adapter.ts
+│   │   ├── twitter-adapter.ts
+│   │   └── ...
+│   ├── ingestion-adapters/           ← Bài #18
+│   │   ├── types.ts
+│   │   ├── article-adapter.ts
+│   │   ├── voice-note-adapter.ts
+│   │   ├── podcast-adapter.ts
+│   │   └── ...
+│   └── format-converters/            ← Bài #17
+│       ├── twitter-thread.ts
+│       ├── linkedin-post.ts
+│       └── ...
+├── 06-finance/                       ← committed
+├── 07-compliance/                    ← committed
+│   └── sops/
+│       ├── SOP-COMPLIANCE-002-gdpr-deletion/
+│       ├── SOP-COMPLIANCE-003-gdpr-access/
+│       └── SOP-COMPLIANCE-004-gdpr-rectification/
+├── 08-integrations/                  ← committed (Bài #10)
+│
+├── frontend/                         ← committed (Next.js 15 PWA dashboard)
+│   ├── app/
+│   │   ├── business/
+│   │   ├── operations/
+│   │   ├── governance/
+│   │   └── founder/                  ← Bài #19 founder pages
+│   ├── components/
+│   └── package.json
+│
+├── mcp-server/                       ← committed (Bài #12)
+│   ├── stdio-server.ts
+│   ├── http-server.ts
+│   └── tools/
+│
+├── supabase/                         ← committed (DB migrations + Edge Functions)
+│   ├── migrations/                   ← SQL files (timestamped)
+│   │   ├── 20260501000000_initial_schema.sql
+│   │   ├── 20260502000000_add_state_machines.sql
+│   │   └── ...
+│   ├── functions/                    ← Edge Functions
+│   │   ├── event-dispatcher/
+│   │   ├── schedule-dispatcher/
+│   │   ├── ingestion-orchestrator/
+│   │   └── telegram-webhook/
+│   └── seed.sql                      ← Seed data for dev
+│
+├── wiki/                             ← committed (Bài #14 entities — v1.0)
+│   ├── customers/                    ← will populate as customers added
+│   ├── persons/
+│   ├── companies/
+│   ├── concepts/
+│   ├── decisions/
+│   ├── meetings/
+│   ├── episodes/                     ← podcasts ingested
+│   ├── articles/                     ← articles ingested
+│   ├── books/
+│   ├── repos/
+│   ├── raw-ideas/                    ← voice note classifications
+│   ├── observations/
+│   ├── weekly-reviews/
+│   ├── graph-views/                  ← Mermaid diagrams (auto-generated)
+│   └── state-machines/               ← Mermaid diagrams (auto-generated)
+│
+├── .archives/                        ← committed (raw evidence per Bài #1)
+│   ├── handoff-bundles/              ← architectural artifacts
+│   └── ...
+│
+├── raw/                              ← committed (Phase A workspace plane)
+│   ├── customer-calls/
+│   ├── market-research/
+│   └── competitor-data/
+│
+├── _build/                           ← gitignored (build outputs, transcripts)
+│
+├── runtime/                          ← ⚠️ gitignored (NEVER commit)
+│   ├── README.md                     ← committed (instructions for runtime/ usage)
+│   ├── workspaces/                   ← per-user/per-machine local data
+│   │   └── founder/
+│   │       ├── wiki-cache/           ← optional cache
+│   │       ├── voice-notes-buffer/   ← pre-upload buffer
+│   │       ├── ingestion-tmp/        ← in-flight ingestion
+│   │       └── attention-log-local.db ← optional offline mirror
+│   ├── secrets/                      ← .env files
+│   │   ├── .env.local
+│   │   └── .env.production           ← NEVER on local laptop
+│   ├── logs/                         ← local execution logs
+│   ├── tmp/                          ← scratch space for any operation
+│   ├── exports/                      ← GDPR exports, backups
+│   └── caches/
+│       ├── llm-responses/            ← cache for LLM calls
+│       └── embeddings/
+│
+├── .claude/                          ← committed
+│   ├── agents/                       ← 9 role placeholders
+│   └── hooks/                        ← pre-edit-tier1, post-page-write, etc.
+│
+├── .github/workflows/                ← committed (CI/CD)
+│   ├── security-check.yml            ← runtime data + secret detection
+│   ├── schema-validation.yml         ← Tier 1 YAML validation
+│   ├── tier1-pr-check.yml            ← PR governance enforcement
+│   └── deploy.yml                    ← Phase B auto-deploy
+│
+├── playbook/                         ← committed (29 chapter sources)
+│   └── chapters/
+│
+├── _build/notes/                     ← committed (brainstorm + Phase A.2)
+│   ├── (7 Phase A brainstorms)
+│   └── phase-a2/
+│       ├── (4 meta files)
+│       ├── walkthroughs/             (12 walkthrough notes)
+│       └── PHASE_A2_FINAL_ARCHITECTURE.md
+│
+├── .gitignore                        ← committed
+├── .env.example                      ← committed (template, no secrets)
+├── README.md                         ← committed
+├── package.json                      ← committed (root pnpm workspace)
+├── pnpm-workspace.yaml               ← committed
+├── pnpm-lock.yaml                    ← committed
+├── tsconfig.json                     ← committed
+├── .editorconfig                     ← committed
+├── .prettierrc                       ← committed
+├── .eslintrc.json                    ← committed
+├── .nvmrc                            ← committed (Node version)
+└── .husky/                           ← committed (Git hooks)
+    ├── pre-commit
+    └── commit-msg
+```
+
+## 29.3 .gitignore complete
+
+```gitignore
+# === Runtime data (NEVER commit) ===
+runtime/
+!runtime/README.md                    ← keep instructions visible
+_build/
+
+# === Secrets ===
+.env
+.env.*
+!.env.example
+!.env.template
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+secrets/
+.secrets/
+*.secret
+
+# === Build outputs ===
+dist/
+build/
+.next/
+out/
+node_modules/
+.pnpm-store/
+.turbo/
+
+# === Logs ===
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# === Generated ===
+*.generated.*
+*.tsbuildinfo
+.tsbuildinfo
+
+# === Coverage / test artifacts ===
+coverage/
+.nyc_output/
+*.lcov
+
+# === IDE ===
+.vscode/
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# === Claude Code local state ===
+.claude/local/
+.claude/sessions/
+*.claude-session
+
+# === Supabase local ===
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# === Database dumps ===
+*.dump
+*.sql.gz
+*.backup
+
+# === LLM caches ===
+llm-cache/
+embeddings-cache/
+
+# === Allow these specifically ===
+!.gitkeep
+!.env.example
+!.env.template
+!.gitignore
+!.gitattributes
+```
+
+## 29.4 runtime/README.md — committed instructions
+
+```markdown
+# Runtime Data Directory
+
+This folder contains all per-machine runtime data:
+- Local secrets (.env files)
+- Voice note buffers
+- Ingestion temp files
+- Local logs
+- LLM response caches
+- Local embeddings cache
+- GDPR exports
+
+## ⚠️ NEVER COMMIT THIS FOLDER
+
+The `.gitignore` excludes `runtime/` entirely. If you see runtime
+data in a git diff, STOP and check your gitignore.
+
+## Setup new machine
+
+After `git clone`:
+
+\`\`\`bash
+mkdir -p runtime/{workspaces/founder,secrets,logs,tmp,exports,caches}
+cp .env.example runtime/secrets/.env.local
+# Edit runtime/secrets/.env.local with your credentials
+ln -s runtime/secrets/.env.local .env  # if scripts read .env from root
+\`\`\`
+
+## Backup runtime data
+
+This folder is NOT version controlled. To backup:
+
+\`\`\`bash
+# Local backup:
+rsync -av runtime/ ~/backups/ritsu-works-runtime-$(date +%Y%m%d)/
+
+# Cloud backup (e.g., to encrypted Borg repository):
+borg create /path/to/borg-repo::ritsu-runtime-{now} runtime/
+\`\`\`
+
+## Restore on new machine
+
+\`\`\`bash
+# After git clone:
+rsync -av ~/backups/ritsu-works-runtime-LATEST/ runtime/
+# OR
+borg extract /path/to/borg-repo::ritsu-runtime-LATEST
+\`\`\`
+
+## Multi-operator note
+
+Each user has THEIR OWN runtime/ folder. Shared data lives in
+Supabase Cloud (database) and GitHub repo (committed wiki/, code).
+
+If you need to share runtime data between operators (e.g., test data),
+use a separate mechanism (Supabase Storage, shared cloud folder).
+```
+
+## 29.5 Pre-commit hook (.husky/pre-commit)
+
+```bash
+#!/bin/sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Reject if runtime files staged
+if git diff --cached --name-only | grep -E "^runtime/[^R]" > /dev/null; then
+  echo "❌ ERROR: Attempting to commit runtime data!"
+  echo ""
+  echo "Files staged in runtime/:"
+  git diff --cached --name-only | grep -E "^runtime/"
+  echo ""
+  echo "If this is a genuine commit (e.g., updating runtime/README.md),"
+  echo "review carefully. Otherwise, unstage with:"
+  echo "  git reset HEAD runtime/"
+  exit 1
+fi
+
+# Reject if .env files staged (except .env.example)
+if git diff --cached --name-only | grep -E "^\.env(\..+)?$" | grep -v "^\.env\.example$" > /dev/null; then
+  echo "❌ ERROR: Attempting to commit .env file!"
+  echo ""
+  echo "Files staged:"
+  git diff --cached --name-only | grep -E "^\.env"
+  exit 1
+fi
+
+# Detect potential secret patterns
+git diff --cached -U0 | grep -iE "(api[_-]?key|secret|password|token)\s*[:=]\s*['\"]?[a-z0-9]{16,}" && {
+  echo "⚠️ WARNING: Potential secret detected in diff!"
+  echo "Review carefully before committing."
+  exit 1
+}
+
+# Run linter on staged files
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm lint-staged
+fi
+```
+
+## 29.6 GitHub Actions security check
+
+```yaml
+# .github/workflows/security-check.yml
+name: Security Check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  no-runtime-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for runtime data leaks
+        run: |
+          if git diff origin/main..HEAD --name-only 2>/dev/null | grep -E "^runtime/[^R]"; then
+            echo "❌ Runtime data detected in PR!"
+            git diff origin/main..HEAD --name-only | grep -E "^runtime/[^R]"
+            exit 1
+          fi
+
+      - name: Check for committed .env files
+        run: |
+          if git ls-files | grep -E "^\.env(\..+)?$" | grep -v "^\.env\.example$"; then
+            echo "❌ .env file in repo!"
+            git ls-files | grep -E "^\.env"
+            exit 1
+          fi
+
+      - name: TruffleHog secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.event.pull_request.head.sha || github.sha }}
+          extra_args: --only-verified
+
+  validate-tier1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm validate-tier1
+        # validates all knowledge/*.yaml against JSON Schemas
+```
+
+## 29.7 .env.example template
+
+```bash
+# === Supabase (required) ===
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_KEY=eyJ...    # for server-side migrations + admin
+
+# === LLM providers ===
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+# Whisper transcription uses OPENAI_API_KEY (Bài #18)
+
+# === Telegram (Bài #6 sub-domain B + Bài #17 surface) ===
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_FOUNDER_CHAT_ID=         # founder's Telegram ID for HITL
+
+# === Email (Bài #17 surface, optional v1.0) ===
+EMAIL_SMTP_HOST=
+EMAIL_SMTP_PORT=
+EMAIL_SMTP_USER=
+EMAIL_SMTP_PASS=
+EMAIL_IMAP_HOST=
+EMAIL_INGEST_ADDRESS=ingest@ritsu.ai
+
+# === Stripe (Bài #16 customer + Bài #11 webhook events) ===
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PUBLISHABLE_KEY=
+
+# === GitHub (Bài #11 events + auto-deploy) ===
+GITHUB_TOKEN=
+GITHUB_WEBHOOK_SECRET=
+
+# === MCP server (Phase B) ===
+RITSU_MCP_HTTP_URL=https://mcp.ritsu.ai
+RITSU_MCP_AUTH_TOKEN=             # generated server-side
+
+# === Runtime config ===
+RITSU_ENV=development              # development | staging | production
+RITSU_LOG_LEVEL=info
+RITSU_LOCALE_DEFAULT=vi
+RITSU_DATA_REGION=eu               # eu | us | apac
+RITSU_TIMEZONE=Asia/Ho_Chi_Minh
+
+# === Feature flags ===
+RITSU_FEATURE_INGESTION_PIPELINE=true
+RITSU_FEATURE_KNOWLEDGE_GRAPH=true
+RITSU_FEATURE_MUSE_PANEL=false     # enable when persona registry ready
+
+# === Cost limits ===
+RITSU_DAILY_BUDGET_USD=10
+RITSU_DAILY_WHISPER_MINUTES_MAX=60
+RITSU_DAILY_LLM_TOKENS_MAX=1000000
+
+# === Multi-surface (Bài #17) ===
+TWITTER_API_KEY=
+TWITTER_API_SECRET=
+TWITTER_BEARER_TOKEN=
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+WHATSAPP_BUSINESS_TOKEN=
+DISCORD_BOT_TOKEN=
+SLACK_BOT_TOKEN=
+SLACK_SIGNING_SECRET=
+
+# === VPS deployment (Phase B) ===
+DEPLOY_VPS_HOST=
+DEPLOY_VPS_USER=ritsu
+DEPLOY_BRANCH=main
+
+# === Optional: external services ===
+SENTRY_DSN=                        # error tracking
+POSTHOG_API_KEY=                   # analytics (privacy-respectful)
+```
+
+## 29.8 Bootstrap script (.scripts/bootstrap.sh)
+
+```bash
+#!/bin/bash
+# Bootstrap Ritsu Works for new local environment
+set -e
+
+echo "🚀 Bootstrapping ritsu-works..."
+
+# Verify prerequisites
+command -v node >/dev/null || { echo "❌ Node.js required"; exit 1; }
+command -v pnpm >/dev/null || { echo "❌ pnpm required"; exit 1; }
+command -v git >/dev/null || { echo "❌ git required"; exit 1; }
+command -v supabase >/dev/null || { echo "⚠️ Supabase CLI recommended"; }
+
+# Create runtime/ structure
+echo "📁 Creating runtime/ folders..."
+mkdir -p runtime/{workspaces/founder/{wiki-cache,voice-notes-buffer,ingestion-tmp},secrets,logs,tmp,exports,caches/{llm-responses,embeddings}}
+
+# Setup .env if missing
+if [ ! -f .env.local ]; then
+  echo "⚙️ Creating .env.local from template..."
+  cp .env.example runtime/secrets/.env.local
+  ln -sf runtime/secrets/.env.local .env.local
+  echo "  → Edit runtime/secrets/.env.local with your credentials"
+fi
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+pnpm install
+
+# Setup git hooks
+echo "🪝 Setting up git hooks..."
+pnpm husky install
+
+# Validate Tier 1 YAML
+echo "✅ Validating Tier 1 YAML files..."
+pnpm validate-tier1 || echo "  ⚠️ Some Tier 1 files may need fixing"
+
+echo ""
+echo "✅ Bootstrap complete!"
+echo ""
+echo "Next steps:"
+echo "  1. Edit runtime/secrets/.env.local with your credentials"
+echo "  2. supabase link --project-ref <your-ref>"
+echo "  3. supabase db push  # apply migrations"
+echo "  4. pnpm dev          # start local dev"
+```
+
+## 29.9 Workflow patterns
+
+### Pattern 1: Founder dev workflow (daily)
+
+```bash
+# Morning startup
+cd ~/dev/ritsu-works
+git pull origin main
+
+# Check Supabase status
+supabase status
+
+# Open Claude Code
+claude code .
+
+# Founder works on tasks via Claude Code
+# Files saved go to runtime/ for local data, repo for code+config
+
+# End of day commit
+git add 02-customer/sops/SOP-CUSTOMER-001-onboarding/
+git commit -m "feat(customer): add onboarding SOP"
+git push origin feature/sop-customer-001
+gh pr create
+```
+
+### Pattern 2: Operator joining (Phase B+)
+
+```bash
+# Operator's first day
+git clone git@github.com:doanchienthangdev/ritsu-works.git
+cd ritsu-works
+./.scripts/bootstrap.sh
+
+# Founder shares Supabase project access
+# Operator edits runtime/secrets/.env.local with given credentials
+
+# Verify connection
+pnpm test:integration
+
+# Read playbook chapters
+open playbook/ai-native-company-playbook-v2.3.pdf
+
+# Start work
+claude code .
+```
+
+### Pattern 3: Use case-driven implementation
+
+```bash
+# Founder picks use case: "Customer signup → activation"
+# Reads relevant DRAFTs:
+# - bai-13-domain-state-machines-DRAFT.md
+# - bai-11-event-driven-triggers-DRAFT.md
+# - bai-9-sop-architecture-DRAFT.md
+
+# In Claude Code:
+# > "Implement use case: customer signup → activation, following Wave 2 plan"
+
+# Claude Code:
+# 1. Reads PHASE_A2_FINAL_ARCHITECTURE.md
+# 2. Reads relevant DRAFTs
+# 3. Generates migration: supabase/migrations/...customer_state.sql
+# 4. Generates skills: 05-ai-ops/skills/state-transition/
+# 5. Generates SOP: 02-customer/sops/SOP-CUSTOMER-001-onboarding/
+# 6. Writes tests
+# 7. Updates state-machines.yaml
+
+# Founder reviews + tests:
+pnpm test
+supabase db push
+pnpm sop-execute SOP-CUSTOMER-001 --dry-run
+
+# Commit + PR
+```
+
+## 29.10 Sync với multi-operator
+
+### Source of truth ranking
+
+| Type | Source of truth | Sync mechanism |
+|---|---|---|
+| Code (skills, adapters) | GitHub repo | git pull |
+| Tier 1 YAML | GitHub repo | git pull |
+| Wiki pages (Bài #14) | GitHub repo (v1.0), Supabase Storage (v2.0+) | git pull |
+| Database schemas | `supabase/migrations/` in GitHub | `supabase db push` |
+| Database data | Supabase Cloud | Realtime / direct queries |
+| Secrets | Supabase Vault (server) + .env.local (per-laptop) | Manual share |
+| Runtime cache | Per-laptop `runtime/` | NOT shared (per-machine) |
+| Logs | VPS centralized (Phase B) | Optional: aggregator service |
+
+### Multi-operator coordination
+
+**Daily standup pattern:**
+- Founder + operators meet 15 min daily (or async via Telegram)
+- Discuss "Who's working on what"
+- Avoid PR conflicts (parallel work on different bài toán)
+
+**Lock files (optional):**
+```
+runtime/locks/
+├── operator-1-working-on-bai-13.lock
+└── founder-working-on-bai-19.lock
+```
+
+**Tools (founder picks one):**
+- Linear (issues + sprints)
+- GitHub Projects (issues + Kanban)
+- Notion (lighter)
+- Plain Telegram channel + voice updates
+
+## 29.11 Migration A → B step-by-step
+
+When trigger conditions met (Telegram 24/7, ingestion testing, operator joins):
+
+### Step 1: Provision Hetzner VPS (1h)
+
+1. Create Hetzner Cloud account
+2. Create CX22 server (€5.18/mo)
+3. Region: Frankfurt (EU)
+4. OS: Ubuntu 24.04 LTS
+5. Add SSH key
+
+### Step 2: Initial VPS setup (30 min)
+
+```bash
+ssh root@<vps-ip>
+
+# Update system
+apt update && apt upgrade -y
+
+# Create deploy user
+adduser ritsu
+usermod -aG sudo ritsu
+
+# Firewall
+ufw allow 22,80,443
+ufw enable
+
+# Install runtime
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs git
+npm install -g pnpm
+
+# Install Caddy (auto-SSL)
+apt install caddy
+```
+
+### Step 3: Deploy ritsu-works (30 min)
+
+```bash
+# As ritsu user
+su - ritsu
+cd /opt
+sudo mkdir ritsu-works && sudo chown ritsu:ritsu ritsu-works
+git clone git@github.com:doanchienthangdev/ritsu-works.git
+cd ritsu-works
+./.scripts/bootstrap.sh
+
+# Edit production env
+vim runtime/secrets/.env.production
+
+# Build for production
+pnpm build
+```
+
+### Step 4: Setup systemd services (1h)
+
+```bash
+# Telegram bot
+sudo cp .scripts/systemd/ritsu-telegram-bot.service /etc/systemd/system/
+sudo systemctl enable --now ritsu-telegram-bot
+
+# MCP HTTP server
+sudo cp .scripts/systemd/ritsu-mcp-server.service /etc/systemd/system/
+sudo systemctl enable --now ritsu-mcp-server
+
+# Background workers (Minions queue processor)
+sudo cp .scripts/systemd/ritsu-workers.service /etc/systemd/system/
+sudo systemctl enable --now ritsu-workers
+
+# Verify
+systemctl status ritsu-*
+```
+
+### Step 5: Setup auto-deploy (30 min)
+
+```bash
+# Webhook listener for GitHub push events
+sudo cp .scripts/systemd/ritsu-deploy-webhook.service /etc/systemd/system/
+sudo systemctl enable --now ritsu-deploy-webhook
+
+# Caddy reverse proxy
+sudo cp .scripts/Caddyfile /etc/caddy/Caddyfile
+sudo systemctl reload caddy
+
+# Add GitHub webhook in repo settings
+# URL: https://deploy.ritsu.ai/webhook
+# Secret: <set in .env.production>
+```
+
+### Step 6: Verify (15 min)
+
+```bash
+# From local laptop
+curl https://mcp.ritsu.ai/health
+# {"status": "ok", "version": "..."}
+
+# Send test Telegram message to bot
+# Bot should respond from VPS
+
+# Push test commit
+git commit --allow-empty -m "test: trigger deploy"
+git push
+# VPS auto-pulls + restarts services
+
+ssh ritsu@<vps-ip> "git -C /opt/ritsu-works log -1"
+ssh ritsu@<vps-ip> "systemctl status ritsu-*"
+```
+
+## 29.12 Defense in depth — preventing accidents
+
+### Layer 1: .gitignore
+- `runtime/` excluded entirely
+- `.env*` excluded (except `.env.example`)
+- Build outputs excluded
+
+### Layer 2: Pre-commit hook
+- Reject commits với runtime/ files
+- Reject commits với .env files
+- Detect secret patterns in diffs
+
+### Layer 3: GitHub Actions security check
+- Re-validate on every PR
+- TruffleHog secret scan
+- Schema validation
+
+### Layer 4: Branch protection
+- main requires PR review
+- main requires passing CI
+- No force-push allowed
+
+### Layer 5: Founder vigilance
+- Periodic `git log --all --full-history -- runtime/` checks
+- Quarterly secret rotation
+- Audit team access lists
+
+## 29.13 Tóm lại
+
+**Repo strategy:** Single `ritsu-works/` repo. Runtime data in `runtime/` folder. `.gitignore` strict. Pre-commit hook + CI defense.
+
+**Deployment path:** Phương án A (local-first) → Phương án B (VPS) when triggers met.
+
+**Dev workflow:** Local edit → test → commit → push → (Phase B: auto-deploy).
+
+**Multi-operator:** Each user clones repo, owns their `runtime/`, shares Supabase Cloud + GitHub.
+
+**Defense:** 5 layers prevent accidents (.gitignore + hook + CI + branch protection + vigilance).
+
+**Migration:** A → B = provision VPS, deploy services, no code change.
+
+---
+
+**Tham khảo:**
+- Phase A.2 dependencies: tất cả 12 bài toán
+- Deployment workflow: chương 13 (roadmap failure modes)
+- Bootstrap script: `.scripts/bootstrap.sh`
+- Pre-commit hook: `.husky/pre-commit`
+- CI workflows: `.github/workflows/`

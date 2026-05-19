@@ -1,0 +1,418 @@
+---
+title: "Chương 11 — Cấu trúc repo của một AI-Native Company"
+description: "Chương 11 — Cấu trúc repo của một AI-Native Company"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/11-cau-truc-repo.md
+source_hash: 696cd780037af4da01b4502b10f7c449a9c2003033921b2b7b4a9d80d8b22c9f
+generated_at: '2026-05-19T16:57:54.900Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 696cd780037af4da01b4502b10f7c449a9c2003033921b2b7b4a9d80d8b22c9f
+translated_at: '2026-05-19T16:57:54.900Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 11
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 11 — Cấu trúc repo của một AI-Native Company
+
+> Phần III nói về **what to build**. Phần IV bắt đầu **how to actually build**. Bắt đầu bằng cách layout files.
+
+## 11.1 Tại sao layout matters
+
+Một file in wrong place = drift theo thời gian. "Brand voice trong Notion" lại trở thành "brand voice rải rác giữa 4 nơi" sau 3 tháng. Layout fixes the gravity:
+
+- **Tier 1 files trong git** → version-controlled, reviewable, recoverable
+- **Tier 2 schemas trong manifest** → discoverable, cross-referenceable
+- **Workspace plane separate** → low-ceremony for drafts, không pollute Tier 1
+
+Cấu trúc dưới đây là Ritsu's actual repo structure sau Phase A. Có thể fork làm template.
+
+## 11.2 Top-level layout
+
+```
+ritsu-works/
+├── README.md
+├── CLAUDE.md                    # ~1.16K tokens, lean entry point
+├── .gitignore
+│
+├── 00-charter/                  # Tier 1 — declarative knowledge
+│   ├── product.md
+│   ├── brand_voice.md           # bilingual EN+VI
+│   └── transparency.md          # source for ritsu.ai/transparency
+│
+├── governance/                  # Tier 1 — policy
+│   ├── HITL.md                  # 5-tier HITL policy
+│   ├── ROLES.md                 # 9 roles + permissions
+│   ├── SECRETS.md               # secret naming + rotation + access
+│   └── IDENTITY.md              # per-role per-system mapping
+│
+├── knowledge/                   # Tier 1 — architecture decisions
+│   ├── manifest.yaml            # single canonical inventory
+│   ├── memory-architecture.md   # Bài #4 spec
+│   ├── orchestration-architecture.md  # Bài #5 spec
+│   ├── identity-architecture.md # Bài #6 spec
+│   ├── economic-architecture.md # Bài #7 spec
+│   ├── schemas/                 # SQL schemas referenced from manifest
+│   │   ├── agent_runs.sql
+│   │   ├── tasks.sql
+│   │   └── cost_attributions.sql
+│   └── pricing/
+│       └── anthropic.yaml       # cached pricing table
+│
+├── 05-ai-ops/                   # operational pillar
+│   └── skills/                  # Tier 1 — procedural knowledge
+│       ├── episodic-recall/
+│       │   └── SKILL.md
+│       ├── monthly-learning-review/
+│       │   └── SKILL.md
+│       ├── task-decompose/
+│       │   └── SKILL.md
+│       ├── task-status/
+│       │   └── SKILL.md
+│       ├── ai-disclosure-check/
+│       │   └── SKILL.md
+│       ├── cost-report/
+│       │   └── SKILL.md
+│       └── cost-optimization-review/
+│           └── SKILL.md
+│
+├── .claude/                     # Claude Code runtime config
+│   ├── agents/                  # per-role runtime files
+│   │   ├── gps.md
+│   │   ├── growth-orchestrator.md
+│   │   ├── support-agent.md
+│   │   └── ... (9 total)
+│   └── hooks/                   # Tier 1 — runtime enforcement
+│       ├── README.md
+│       ├── SPEC.md              # hook spec format
+│       ├── pre-edit-tier1.md
+│       ├── pre-bash-dangerous.md
+│       ├── pre-tool-publish.md
+│       ├── pre-tool-supabase-product.md
+│       ├── pre-tool-secrets.md
+│       ├── pre-delegate-check.md
+│       ├── pre-tool-customer-message.md
+│       └── pre-llm-call-budget.md
+│
+├── raw/                         # workspace plane — local-only
+│   ├── README.md
+│   └── .gitkeep                 # gitignored beyond this
+│
+├── wiki/                        # workspace plane — synced loose notes
+│   └── README.md
+│
+├── .archives/                   # workspace plane — shell committed
+│   ├── conversations/.gitkeep
+│   ├── diffs/.gitkeep
+│   ├── drafts/.gitkeep
+│   ├── experiments/.gitkeep
+│   └── thinking/.gitkeep
+│
+└── _build/                      # meta — tools for the founder
+    ├── README.md
+    ├── ROADMAP.md
+    ├── recipes/
+    ├── checklists/
+    ├── templates/
+    └── notes/                   # brainstorm summaries
+        ├── problem-1-single-source-of-truth.md
+        ├── problem-2-trust-blast-radius.md
+        ├── problem-3-context-window-economics.md
+        ├── problem-4-memory-learning-loop.md
+        ├── problem-5-multi-agent-orchestration.md
+        ├── problem-6-identity-interface.md
+        └── problem-7-economic-unit.md
+```
+
+**Total trong Ritsu repo sau Phase A: 66 files, ~7,300 lines doc/skills/hooks.**
+
+## 11.3 Top-level files
+
+### `README.md`
+
+Brief intro to the repo. Audiences:
+
+- **Founder** — pointer to current ROADMAP, CLAUDE.md
+- **Future contributors** — overview of structure
+- **Outside reader** — context if they stumble on the repo
+
+Convention: keep \< 100 lines. Detailed docs live elsewhere.
+
+### `CLAUDE.md`
+
+Entry point cho Claude Code sessions. Per Bài #3, **lean** (\< 2K tokens). Use `@imports` for full content of governance/charter/architecture.
+
+### `.gitignore`
+
+Critical patterns:
+```
+# Workspace plane (local-only)
+raw/*
+!raw/.gitkeep
+!raw/README.md
+
+# Wiki local overrides
+wiki/_*
+
+# Archives (shell only)
+.archives/conversations/*
+.archives/diffs/*
+.archives/drafts/*
+.archives/experiments/*
+.archives/thinking/*
+!.archives/*/.gitkeep
+
+# Standard
+node_modules/
+.env
+.env.local
+*.pyc
+__pycache__/
+.DS_Store
+```
+
+## 11.4 `00-charter/`
+
+Why `00-` prefix: **alphabetically first**. Charter is most fundamental; emphasize via ordering.
+
+### `00-charter/product.md`
+
+What Ritsu is. Source of truth for product description used by:
+- All customer-facing skills
+- Marketing content drafting
+- Onboarding new agents
+
+Convention: ~200-300 lines. Cover: target user, value prop, monetization, moats, phases.
+
+### `00-charter/brand_voice.md`
+
+Bilingual voice guide. Internal vs external. Per Bài #6.
+
+Read by:
+- All customer-facing skills (drafting blog posts, support replies, etc.)
+- `ai-disclosure-check` (reads voice for disclosure phrasing)
+- New agent onboarding
+
+### `00-charter/transparency.md`
+
+Source for `ritsu.ai/transparency` page. Public-facing. Updates via PR (Tier C).
+
+## 11.5 `governance/`
+
+Policy layer. **Read by hooks at runtime to make decisions.**
+
+### `governance/HITL.md`
+
+5-tier HITL policy (A / B / C / D-Std / D-MAX). Magic phrases. Tier classification rules.
+
+Hooks reference HITL.md:
+- `pre-tool-publish` checks tier of outgoing publish actions
+- `pre-edit-tier1` enforces Tier C+ for sensitive Tier 1 files
+- `pre-llm-call-budget` enforces Tier C escalation at 100% budget
+
+### `governance/ROLES.md`
+
+9 roles + permissions schema. The single source for "what each role may do".
+
+Schema fields per role:
+- `permissions` (files, tier 2 schemas, MCP servers, skills, secrets)
+- `hitl_max_tier`
+- `budget` + `economic_budget`
+- `context_budget` (Bài #3)
+- `memory_config` (Bài #4)
+
+### `governance/SECRETS.md`
+
+Secret naming + rotation + access matrix. Per-role identity secrets section (Bài #6).
+
+### `governance/IDENTITY.md`
+
+Per-role per-system identity mapping. New in Bài #6.
+
+## 11.6 `knowledge/`
+
+Architecture decisions + canonical inventory.
+
+### `knowledge/manifest.yaml`
+
+Single canonical inventory. Lists:
+- Tier 1 files (what's in 00-charter/, governance/, knowledge/)
+- Tier 2 schemas (Supabase tables, schema files)
+- Tier 3 buckets (storage)
+- Tier 4 namespaces (vector DB)
+- Secrets map
+- MCP servers
+- Pricing table location
+
+### `knowledge/*-architecture.md`
+
+Each architectural concern has its own architecture doc:
+- `memory-architecture.md` (Bài #4)
+- `orchestration-architecture.md` (Bài #5)
+- `identity-architecture.md` (Bài #6)
+- `economic-architecture.md` (Bài #7)
+
+Bài #1, #2, #3 don't have separate architecture doc — họ live trong governance/ và CLAUDE.md respectively.
+
+### `knowledge/schemas/`
+
+SQL schema files referenced from manifest. Each schema = 1 file. Indexes, constraints, comments included.
+
+Convention: schema file changes coupled with manifest update in same PR.
+
+### `knowledge/pricing/`
+
+Cached pricing tables (e.g., `anthropic.yaml`). Refreshed monthly via PR. Used by `pre-llm-call-budget` hook.
+
+## 11.7 `05-ai-ops/`
+
+The operational pillar. `05-` prefix because alphabetically AFTER charter (00-) and content pillars (01-, 02-, 03-, 04- if they exist).
+
+In Ritsu, `05-ai-ops/` is currently the only fully-built pillar. Other pillars (growth, support, etc.) will be added when scope expands beyond Phase A.
+
+### `05-ai-ops/skills/`
+
+7 skills currently:
+- `episodic-recall` (Bài #4)
+- `monthly-learning-review` (Bài #4)
+- `task-decompose` (Bài #5)
+- `task-status` (Bài #5)
+- `ai-disclosure-check` (Bài #6)
+- `cost-report` (Bài #7)
+- `cost-optimization-review` (Bài #7)
+
+Each skill = 1 directory với SKILL.md + optional supporting files (templates, examples).
+
+## 11.8 `.claude/`
+
+Claude Code runtime config. Read by Claude Code at session start.
+
+### `.claude/agents/<role>.md`
+
+Per-role runtime files. Format per Claude Code agent spec. Each file:
+- Inherits from `governance/ROLES.md` policy spec
+- Adds runtime-specific instructions
+- References allowed tools
+
+Convention: agent file thin (~50-100 lines). System prompt logic lives in CLAUDE.md + governance + skills.
+
+### `.claude/hooks/`
+
+Hook spec files (markdown with frontmatter). Read by hook framework at session start.
+
+Each hook file describes:
+- When it fires (`type: pre-tool`, `tools: [...]`)
+- Decision logic (allow / escalate / block)
+- Failure mode (`fail_mode: closed`)
+
+8 hooks currently shipped (per Phase A).
+
+## 11.9 Workspace plane
+
+Per Bài #1.
+
+### `raw/`
+
+Local-only. README explains rules. `.gitkeep` ensures directory exists.
+
+### `wiki/`
+
+Synced loose notes. README. Convention: `_filename.md` = local override (gitignored).
+
+### `.archives/`
+
+Shell committed. 5 sub-folders: conversations, diffs, drafts, experiments, thinking. Each has `.gitkeep`. Contents gitignored.
+
+## 11.10 `_build/`
+
+Meta-layer. Tools cho founder dùng để iterate trên repo.
+
+### `_build/ROADMAP.md`
+
+Phase progression. Currently:
+- Phase A — 7 problems brainstormed (✅ done)
+- Phase B — Provision Tier 2/3/4 infrastructure
+- Phase C — Implement skills (procedural code)
+- ...
+
+### `_build/recipes/`
+
+Common workflows:
+- `add-new-skill.md` — step-by-step
+- `add-new-pillar.md`
+- `provision-supabase-ops.md`
+- `add-new-mcp-server.md`
+- `promote-wiki-to-tier1.md`
+
+### `_build/checklists/`
+
+Atomic operation checklists:
+- `new-role.md` — 10-step checklist
+- `new-secret.md`
+- `pre-tier1-edit.md`
+
+### `_build/templates/`
+
+Boilerplate:
+- `pillar/` — new pillar template (orchestrator.md, README.md, sops/)
+- `sop/` — SOP template
+- `skill/` — skill template (SKILL.md skeleton)
+- `agent/` — `.claude/agents/<role>.md` template
+- `mcp-server/` — MCP server config template
+
+### `_build/notes/`
+
+Brainstorm summaries. One per bài toán. Captures the thinking that led to current architecture. Future rereaders (or future founder selves) reconstruct the WHY.
+
+7 notes for 7 bài toán + (future) more notes per phase.
+
+## 11.11 What's NOT in this repo
+
+Explicit non-locations:
+
+- **Customer data.** Lives in separate Supabase project (`ritsu` = Product DB).
+- **Source code of the product itself.** Separate repo.
+- **Secret values.** In secret manager (1Password Service Accounts).
+- **Internal Slack/Telegram conversations.** Stay in those tools.
+- **Customer support tickets raw.** In Helpscout/Intercom.
+
+This repo is **the operating system of the company**, not the company itself. Product, customer data, conversations live in their respective tools.
+
+## 11.12 Naming conventions
+
+- **Files in Tier 1:** `kebab-case.md`
+- **SQL tables:** `snake_case` in `ops` schema
+- **Role slugs:** `kebab-case` (e.g., `growth-orchestrator`)
+- **Skills:** `kebab-case-action` (e.g., `cost-report`, `task-decompose`)
+- **Secrets:** `UPPER_SNAKE_CASE_WITH_SCOPE` (e.g., `ANTHROPIC_GPS_KEY`)
+- **Hooks:** `kebab-case.md` matching `pre-tool-*`, `post-tool-*` pattern
+- **Brainstorm notes:** `problem-N-short-name.md`
+
+Conventions enforced by:
+- Hooks (e.g., `pre-tool-secrets` validates SECRET_NAME format)
+- Code reviewer (`code-reviewer` role checks PR for naming compliance)
+- Manual review (founder approves new conventions via PR)
+
+## 11.13 Tổng kết
+
+- **66 files / ~7,300 lines** in Ritsu repo after Phase A
+- **Top-level structure:** charter → governance → knowledge → pillars → workspace → _build
+- **`00-charter/`** = most fundamental (alphabetically first)
+- **`05-ai-ops/`** = operational pillar (more pillars added when needed)
+- **`.claude/`** = Claude Code runtime config (agents + hooks)
+- **Workspace plane** = `raw/` + `wiki/` + `.archives/`
+- **`_build/`** = meta-layer (ROADMAP, recipes, checklists, templates, brainstorm notes)
+- **Naming conventions** enforced by hooks + code-reviewer
+
+Repository structure encodes a lot of architectural intent. Next chapter (12): `_build/` infrastructure trong chi tiết — recipes, checklists, templates.
+
+---
+
+**Tham khảo:**
+- Ritsu repo: https://github.com/doanchienthangdev/ritsu-works
+- Anthropic agent skills documentation: https://docs.claude.com/en/docs/skills/overview
+- Anthropic Claude Code subagents: https://code.claude.com/docs/en/sub-agents
+- Bài học từ Phase A: `_build/notes/problem-{1-7}-*.md`

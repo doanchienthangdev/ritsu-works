@@ -1,0 +1,354 @@
+---
+title: "Chương 10 — Bài #7: Economic Unit"
+description: "Chương 10 — Bài #7: Economic Unit"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/10-bai-7-economic-unit.md
+source_hash: c79fcf90136004fbb7424865152943f40b9f5962fed6c5f1d7b14911f1d3c7ae
+generated_at: '2026-05-19T16:57:54.899Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: c79fcf90136004fbb7424865152943f40b9f5962fed6c5f1d7b14911f1d3c7ae
+translated_at: '2026-05-19T16:57:54.899Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 10
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 10 — Bài #7: Economic Unit
+
+> *"Bài #1-#6 covered quality và governance. Bài #7 covers solvency. Without economic instrumentation, Ritsu may operate in economic darkness — possibly losing money without knowing."*
+
+## 10.1 Failure mode đặc thù
+
+Bài #7 phải giải 6 failure mode:
+
+1. **Silent cost spiral.** Bug trong skill loops, $200 disappears overnight. Founder phát hiện next billing cycle.
+2. **Aggregate visibility trap.** Founder thấy "$300 spent this month" nhưng không biết role nào, task nào, customer nào đang tốn.
+3. **Wrong unit economics.** Founder pricing $7.99/month dựa trên gut feel, không biết actual cost-per-active-user.
+4. **No optimization signal.** Khi cost cao, không biết tối ưu chỗ nào: model downgrade? Prompt caching? Batch tier?
+5. **Soft budgets, no enforcement.** Per-role budget caps trong ROLES.md chỉ là *target*. Khi role chạy 4x budget, không có gì block.
+6. **Customer LTV unknown.** Free user worth $0 immediately + chance convert. Without LTV tracking, không biết customer-facing AI tạo ra giá trị tương xứng cost không.
+
+## 10.2 4 axes of economic instrumentation
+
+```
+Axis 1 — Cost Attribution Granularity
+  Where does cost get attributed?
+  → 1B: per-role + per-task-kind
+
+Axis 2 — Budget Enforcement
+  What happens when budget exceeded?
+  → 2C: 3-tier (alert 80% / escalate 100% / block 150%)
+
+Axis 3 — Unit Economics Surfacing
+  How does founder see economics?
+  → 3D: cost-report skill + monthly digest extension
+
+Axis 4 — Optimization Triggers
+  When and how to trigger optimization?
+  → 4C: weekly recommendation skill (PR generator)
+```
+
+## 10.3 Axis 1: Cost Attribution
+
+**Decision: per-role + per-task-kind (1B).**
+
+Every Anthropic API call attributed to:
+
+- **Role** (per-role API keys from Bài #6)
+- **Task kind** (from `ops.tasks.state_payload.task_kind`)
+
+Combined: `(role, task_kind, ts)` is the granularity unit.
+
+Why not per-customer (1C):
+- Privacy/schema overhead
+- Hard for non-customer-facing tasks
+- v1.0 LTV uses heuristics ("cost / signups"); per-customer defer to v1.x
+
+Why not per-role only (1A):
+- Can't answer unit economics ("cost per support ticket")
+- Optimization is guesswork without task-kind breakdown
+
+**New table `ops.cost_attributions`:**
+
+```sql
+CREATE TABLE ops.cost_attributions (
+  id                    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  run_id                uuid REFERENCES ops.agent_runs(id),
+  task_id               uuid REFERENCES ops.tasks(id),
+  agent_role            text NOT NULL,
+  task_kind             text NOT NULL,
+  model                 text NOT NULL,
+  service_tier          text NOT NULL DEFAULT 'standard',
+  input_tokens          int NOT NULL,
+  cache_creation_tokens int NOT NULL DEFAULT 0,
+  cache_read_tokens     int NOT NULL DEFAULT 0,
+  output_tokens         int NOT NULL,
+  cost_usd              numeric(10,6) NOT NULL,
+  ts                    timestamptz NOT NULL DEFAULT now()
+);
+```
+
+**Initial task_kind taxonomy:**
+
+- `support-ticket-reply`, `support-ticket-thread`
+- `blog-post-draft`, `blog-post-revision`
+- `weekly-newsletter`, `social-post-draft`
+- `competitive-research-single`, `competitive-research-brief`
+- `code-review`, `etl-sync`
+- `monthly-learning-review`, `cost-report-query`
+- `ad-hoc` (alert if > 10% of volume)
+
+## 10.4 Axis 2: Budget Enforcement
+
+**Decision: 3-tier hybrid (alert 80% / escalate 100% / block 150%).**
+
+```
+                  Monthly cap = $300
+                  
+   $0 ──────────────── $240 ────── $300 ────── $450
+                       (80%)      (100%)     (150%)
+                        │           │           │
+                        ▼           ▼           ▼
+                     ALERT     ESCALATE       BLOCK
+                  (Telegram)  (founder        (PR required
+                              approval        to raise cap)
+                              required)
+```
+
+### Level 1 — Soft alert at 80%
+
+Hook returns `allow` + `delegation_signal: 'budget-warning-80'`. Agent runtime injects ambient note:
+
+```
+[budget hint] Your role's monthly budget is 80% consumed. 6 days
+remain. Consider:
+- Switch to Sonnet/Haiku for remaining tasks where appropriate
+- Defer non-urgent work to next month
+- Check cost-report skill for top consumers
+```
+
+Telegram notify on first 80% breach per role per month, then quiet (no notification fatigue).
+
+### Level 2 — Escalate at 100%
+
+Tool call held; founder approval required.
+
+```
+⚠️ growth-orchestrator hit 100% monthly budget ($300)
+   Run #abc123 wants to use Opus on competitive-research-brief (~$2)
+   Approve override? (Y/N)  - or set budget to $400 for this month
+```
+
+Founder approves → call proceeds. Founder denies → call blocked, agent must adapt.
+
+### Level 3 — Hard block at 150%
+
+No founder approval option from hook (security ceiling). To exceed 150%, founder PR to ROLES.md (Tier C ceremony) raising `monthly_cap_usd`.
+
+Protects against:
+- Founder approving overages reflexively
+- Compromised role draining budget
+- Programming bug needing investigation, not approval
+
+### Per-task-kind sub-budgets
+
+Beyond per-role monthly cap, each task_kind has per-instance soft cap:
+
+| task_kind | Soft cap per instance |
+|---|---|
+| support-ticket-reply | $0.10 |
+| blog-post-draft | $2.00 |
+| weekly-newsletter | $5.00 |
+| competitive-research-single | $1.00 |
+| monthly-learning-review | $3.00 |
+| code-review | $0.30 |
+| etl-sync | $0.05 |
+
+If single task projected to exceed 2x its cap → escalate (catches "single bug looped task").
+
+## 10.5 Axis 3: Unit Economics Surfacing
+
+**Decision: skill + monthly digest extension (3D).**
+
+### `cost-report` skill
+
+Founder invokes via Telegram (`/cost`, `/cost per-ticket`).
+
+Modes:
+- `summary` — total + role breakdown + projected EOM
+- `by_role` — per-role detailed
+- `by_task_kind` — task_kind breakdown with percentiles
+- `unit_economics` — cost per support ticket / blog post / signup
+- `health_score` — Economic Health Score breakdown
+- `budget_status` — budget consumption + active alerts
+- `time_series` — trends
+
+Telegram example:
+```
+💰 May 2026 cost so far (12 days in, 19 to go)
+
+Total: $324 / $1400 (23%)
+Projected EOM: $837 (60%)
+Health Score: 84 ✅
+
+Top roles:
+🥇 growth-orchestrator: $128 / $300 (43%)
+🥈 support-agent: $89 / $400 (22%)
+🥉 content-drafter: $61 / $200 (31%)
+
+Cache: 73% ✅ · Output/input: 0.28 ✅
+Status: healthy
+
+/cost by_task_kind · /cost unit_economics
+```
+
+### Economic Health Score
+
+Single number 0-100, computed weekly:
+
+```
+score = (
+    40 * budget_health         # 1.0 if total < 50% budget
+  + 30 * unit_economics_health # within_cap_pct across task_kinds
+  + 15 * cache_efficiency      # cache_read / total_input
+  + 15 * io_ratio_health       # capped at output/input = 0.4
+)
+```
+
+- ≥ 80: healthy
+- 60-79: warning
+- \< 60: action needed
+
+### Monthly digest extension
+
+`monthly-learning-review` (Bài #4) extended với "Economics" section. Includes:
+
+- Total spend vs budget
+- Top 3 cost drivers
+- Unit economics highlights
+- Anomalies (outlier runs, ad-hoc % too high)
+- Recommendations (auto-generated from `cost-optimization-review`)
+
+## 10.6 Axis 4: Optimization Triggers
+
+**Decision: weekly recommendation skill, generates PR (4C).**
+
+### `cost-optimization-review` skill
+
+Runs weekly (cron in v1.x; manual command in v1.0). Analyzers:
+
+- **Analyzer A** — Model downgrade candidates (Opus → Sonnet/Haiku for FAQ-style tasks)
+- **Analyzer B** — Prompt caching candidates (static-content > 2K tokens, cache hit \< 50%)
+- **Analyzer C** — Batch tier candidates (time-tolerant tasks → 50% off)
+- **Analyzer D** — Context bloat candidates (avg input > 30K tokens)
+- **Analyzer E** — Task kind taxonomy gaps (ad-hoc > 10% → propose new task_kinds)
+- **Analyzer F** — Outlier investigations (top 5 most expensive runs)
+- **Analyzer G** — Budget cap rightsizing (consistent \< 30% or > 90%)
+
+Filter: drop recommendations \< $5/month savings. Cap at top 10.
+
+For each recommendation, generate concrete diff (saved to `.archives/cost-reviews/{YYYY-WW}/`). Auto-create PR.
+
+Telegram notify:
+```
+💡 Cost optimization review for week 18
+
+Found 4 actionable recommendations
+Estimated monthly savings: $187
+
+Top 3:
+1. Switch support-ticket-reply to Sonnet ($78/mo) — low risk
+2. Add prompt caching to blog-post-draft ($12/mo) — low risk
+3. Move etl-sync to Batch tier ($9/mo) — low risk
+
+PR opened: github.com/ritsu/ritsu-works/pull/89
+Review at your convenience.
+```
+
+### Why recommendation, not auto-optimize
+
+Auto-optimization (Option 4B) risks:
+- Quality regression silent (Haiku gives wrong answer on edge cases)
+- Capability boundaries shift unmonitored
+- Founder loses understanding of WHY costs decreased
+
+Manual-only (4A) misses opportunities (founder busy, opportunities accumulate).
+
+Recommendation pattern (4C):
+- Skill surfaces opportunities (the FIND is hard)
+- Founder approves with full context (low cognitive load)
+- Each PR is a small lesson — knowledge stays with founder
+
+## 10.7 30-day calibration discipline
+
+**Numerical thresholds in this chapter are STARTING POINTS, not truths.**
+
+First 30 days post-v1.0 launch = observation period:
+
+```
+Day 1-14:   Hook in calibration mode (allow regardless of ratio).
+            Alerts still fire for visibility. ops.budget_alerts populated.
+
+Day 15-21:  Founder reviews ops.cost_attributions distributions.
+            Adjust per-task-kind caps to p95 of observed healthy runs.
+
+Day 22-28:  Activate full 3-tier enforcement (alert + escalate + block).
+            Per-role budget caps adjusted based on observed trajectory.
+
+Day 30:     First monthly-learning-review with Economics section.
+            Decide if defaults need further tuning.
+
+Quarterly:  Re-calibration. Healthy patterns over time should let
+            thresholds stay stable.
+```
+
+Calibration mode set via global flag `economic_calibration_mode: true` trong manifest.yaml. Founder PR flips to `false` after day 14.
+
+## 10.8 Outer Harness deliverables
+
+8 files cho Bài #7:
+
+1. **`knowledge/economic-architecture.md`** — canonical 4-axes spec
+2. **Update `knowledge/manifest.yaml`** — added `cost_attributions`, `budget_alerts`, `optimization_recommendations` tables
+3. **Update `governance/ROLES.md`** — extended `economic_budget` schema; 3-tier enforcement section
+4. **`05-ai-ops/skills/cost-report/SKILL.md`** — query-on-demand skill
+5. **`05-ai-ops/skills/cost-optimization-review/SKILL.md`** — weekly PR generator
+6. **`.claude/hooks/pre-llm-call-budget.md`** — 3-tier enforcement hook
+7. **`_build/notes/problem-7-economic-unit.md`** — brainstorm summary
+8. **Pricing table** — `knowledge/pricing/anthropic.yaml` (cached locally, refreshed monthly via PR)
+
+## 10.9 Anti-patterns Bài #7
+
+- **"Skip cost tracking now, add it after v1.0 launch."** No — calibration takes 30 days and needs data. Tracking ON from day 0; enforcement starts day 14.
+- **"Auto-downgrade all roles to Haiku to save money."** No — auto-optimization rejected. Quality regression > cost saved.
+- **"Don't show me cost data unless something is wrong."** No — economic discipline requires regular review even when healthy.
+- **"Block aggressively at 100% budget."** No — over-protection causes false positives, founder learns to dismiss alerts.
+- **"Calculate cost per call dynamically using LLM."** No — pricing table cached locally. Don't pay LLM to calculate cost (recursive economics).
+- **"Skip per-task-kind tracking, just use per-role."** No — unit economics requires task-kind breakdown.
+
+## 10.10 Tổng kết Bài #7
+
+- **6 failure mode**: silent spiral, aggregate trap, wrong unit economics, no optimization signal, soft budgets, LTV unknown
+- **4 axes**: 1B (attribution) + 2C (enforcement) + 3D (surfacing) + 4C (optimization)
+- **3-tier enforcement**: alert 80% / escalate 100% / block 150%
+- **Economic Health Score** = single weekly metric (0-100)
+- **30-day calibration discipline**: thresholds are starting points, data-driven adjustment
+- **Recommendation > auto-optimize**: founder learns through reviewing PRs
+
+Bài #7 closes Phase A. Sang Phần IV — implementation chapters.
+
+**Phần IV** sẽ bridge từ "what to build" (Phần III) sang "how to actually build". Chương 11: cấu trúc repo. Chương 12: boilerplate `_build/`. Chương 13: roadmap + failure modes.
+
+---
+
+**Tham khảo:**
+- Anthropic Usage and Cost API: https://platform.claude.com/docs/en/build-with-claude/usage-cost-api
+- Anthropic Agent SDK cost tracking: https://platform.claude.com/docs/en/agent-sdk/cost-tracking
+- Datadog Anthropic integration: https://www.datadoghq.com/blog/anthropic-usage-and-costs/
+- CloudZero State of AI Costs 2025: https://www.cloudzero.com/blog/finops-for-claude/
+- MindStudio agent token budget: https://www.mindstudio.ai/blog/ai-agent-token-budget-management-claude-code
+- Ritsu repo: `knowledge/economic-architecture.md`, `05-ai-ops/skills/cost-report/`, `05-ai-ops/skills/cost-optimization-review/`, `.claude/hooks/pre-llm-call-budget.md`
+- Brainstorm note: `_build/notes/problem-7-economic-unit.md`

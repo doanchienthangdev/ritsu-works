@@ -12,5 +12,6 @@
     "pre-tool-publish",
     "pre-tool-secrets",
     "pre-tool-supabase-product"
-  ]
+  ],
+  "icon": "Plug"
 }

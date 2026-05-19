@@ -1,0 +1,352 @@
+---
+title: "Chương 13 — Roadmap triển khai và các failure mode điển hình"
+description: "Chương 13 — Roadmap triển khai và các failure mode điển hình"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/13-roadmap-failure-modes.md
+source_hash: 8e1614c924fdb8593546269298e3682fb43ea2d43a2f12520bd34a9573a632f3
+generated_at: '2026-05-19T16:57:54.907Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 8e1614c924fdb8593546269298e3682fb43ea2d43a2f12520bd34a9573a632f3
+translated_at: '2026-05-19T16:57:54.907Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 13
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 13 — Roadmap triển khai và các failure mode điển hình
+
+> Chương cuối. Điều này phải hoạt động khi bạn fork template, không phải khi bạn build từ đầu.
+
+## 13.1 Roadmap chi tiết: từ fork đến v1.0
+
+Giả định: bạn fork Ritsu template hoặc start from scratch với playbook này.
+
+### Tuần 1-2 — Phase A.1: Brainstorm
+
+**Mục tiêu:** quyết định 7 bài toán cho YOUR org.
+
+Thậm chí nếu bạn dùng nguyên Ritsu's decisions, bạn vẫn cần brainstorm vì:
+- Per-role budget caps phải fit your scale
+- Brand voice phải fit your product
+- Per-task-kind taxonomy phải fit your workload
+
+Process:
+- 1 bài/buổi (~2-3 hours)
+- Output: brainstorm note + Tier 1 docs + skills/hooks scaffolded
+- Order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+
+**Failure mode:** rush brainstorm để launch sớm. Result: defaults wrong, calibration period extends, founder spends Phase B-C re-doing Phase A.
+
+### Tuần 3-4 — Phase B: Infrastructure
+
+**Mục tiêu:** provision Tier 2/3/4 infrastructure.
+
+Checklist:
+- [ ] Supabase project `ritsu-ops` (separate từ Product DB)
+- [ ] All ops.* tables created from `knowledge/schemas/`
+- [ ] Secret manager (1Password Service Accounts)
+- [ ] Per-role GitHub bot accounts
+- [ ] Email forwarders (\{role}@yourdomain.com)
+- [ ] Anthropic API keys (per-role với budget caps set at provider level)
+- [ ] Telegram bot for founder ↔ workforce
+- [ ] Pricing table cached in `knowledge/pricing/anthropic.yaml`
+- [ ] Supabase Storage buckets (Tier 3)
+- [ ] pgvector extension enabled (Tier 4)
+
+**Failure mode:** skip secret manager, store secrets in `.env` files. First leak = compromised. Set up 1Password Day 1.
+
+### Tuần 5-7 — Phase C: Skills
+
+**Mục tiêu:** implement procedural code cho 7 skills + pillar-specific skills.
+
+Order:
+- Foundation skills first: `episodic-recall`, `task-status` (used by other skills)
+- Then orchestration: `task-decompose`
+- Then customer-facing: `ai-disclosure-check` (legal compliance critical)
+- Then economics: `cost-report`, `cost-optimization-review`
+- Then learning loop: `monthly-learning-review`
+
+For each skill:
+1. Code in your stack (Python, TypeScript, etc.)
+2. Test với manual invocation
+3. Wire into role's permissions
+4. Monitor first 5-10 invocations
+
+**Failure mode:** skip testing, deploy all skills simultaneously. First production bug affects multiple skills, hard to isolate. Ship one at a time.
+
+### Tuần 8 — Phase D: Hooks
+
+**Mục tiêu:** activate runtime enforcement.
+
+Hooks ship in this order (low-stakes first, high-stakes last):
+
+1. `pre-edit-tier1` (low-stakes, just blocks direct main pushes)
+2. `pre-bash-dangerous` (low-stakes, blocks rm -rf etc.)
+3. `pre-tool-secrets` (medium, prevents wrong-role secret access)
+4. `pre-tool-supabase-product` (medium, enforces Product DB firewall)
+5. `pre-tool-publish` (high, gates customer-facing send)
+6. `pre-tool-customer-message` (high, EU AI Act compliance)
+7. `pre-delegate-check` (informational only, soft signals)
+8. `pre-llm-call-budget` (high — but starts in calibration mode for 14 days)
+
+For each hook:
+- Test in staging first (calibration mode)
+- Activate in prod với fail-closed default
+- Monitor first 24h for unexpected blocks
+
+**Failure mode:** activate `pre-llm-call-budget` in full enforcement mode immediately. False positives block legitimate work; founder loses trust in hooks. Calibration mode (14 days) là essential.
+
+### Tuần 9-10 — Phase E: Charter
+
+**Mục tiêu:** finalize 00-charter/.
+
+Steps:
+- product.md final (after iteration with real customer feedback)
+- brand_voice.md proofread bilingual (native speaker if possible)
+- transparency.md → publish to ritsu.ai/transparency
+
+**Failure mode:** publish transparency.md without legal review. Some statements may be incorrect for your jurisdiction. Have legal review before publish.
+
+### Tuần 11-12 — Phase F: Pillars
+
+**Mục tiêu:** build out beyond `05-ai-ops/` to actual product pillars.
+
+Likely pillars:
+- `01-growth/` — marketing, sales, content
+- `02-product/` — product team SOPs
+- `03-support/` — customer support SOPs
+
+Each pillar gets:
+- `orchestrator.md` (pillar-level coordination)
+- `README.md`
+- `sops/` (multiple SOPs)
+- Pillar-specific skills if needed
+
+**Failure mode:** build all pillars at once. Each pillar takes time to calibrate. Sequential is better.
+
+### Tuần 13-14 — Phase G: Calibration
+
+**Mục tiêu:** observe + tune Bài #7 thresholds.
+
+Per `economic-architecture.md` 30-day discipline:
+- Day 1-14: hook in calibration mode (allow regardless of ratio)
+- Day 15-21: founder reviews distributions, adjusts caps
+- Day 22-28: full 3-tier enforcement active
+- Day 30: first monthly digest with Economics section
+
+**Failure mode:** skip calibration, ship hard caps from day 1. Caps wrong, false positives, founder dismisses budget alerts.
+
+### Tuần 15 — Phase H: Soft Launch
+
+**Mục tiêu:** invite first 50-100 users, observe.
+
+Focus:
+- AI disclosure compliance (auditable trail)
+- Customer support turnaround (target metrics established)
+- Cost actuals vs budgets (validate calibration)
+- Support volume vs capacity
+
+**Failure mode:** announce publicly before soft launch. Volume spike before calibration done = system overwhelm.
+
+### Tuần 16+ — Phase I: Growth
+
+**Mục tiêu:** scale customer base.
+
+Triggers for next phase additions:
+- 100+ active users → consider adding pillars
+- 500+ active users → consider hiring first operator (revisits Bài #6 sub-domain B)
+- 1000+ active users → consider Agent Teams (revisits Bài #5)
+- $5K+/month spend → consider per-customer attribution (Bài #7 1C)
+
+## 13.2 Failure mode #1 — Skip Bài #1, jump to Bài #5
+
+**Symptom:** "Multi-agent orchestration is exciting, let's build that first."
+
+**Why it fails:** ops.tasks needs Tier 2 to exist. Tier 2 needs manifest. Manifest needs Tier 1 organization. You can't orchestrate state without canonical state location.
+
+**Recovery:** stop orchestration work, do Bài #1 properly, then resume.
+
+## 13.3 Failure mode #2 — Defer Bài #2
+
+**Symptom:** "Governance is bureaucracy, let's iterate fast first."
+
+**Why it fails:** without HITL, every action is silent autonomy or full founder approval. Either blast radius too wide or founder bottlenecked. The first "agent did something I didn't expect" incident = founder regrets.
+
+**Recovery:** stop new work, do Bài #2, retroactively classify existing actions into tiers.
+
+## 13.4 Failure mode #3 — Build personas (Hana, Linh) early
+
+**Symptom:** "Personas are friendly, customers will love them."
+
+**Why it fails:** persona bias (per Nojitter), maintenance overhead, retrofitting disclosure compliance. Once customers know "Hana", changing to "Ritsu Assistant" = brand confusion.
+
+**Recovery:** if you've shipped personas, add disclosure layer for compliance, gradually transition external comms to "Ritsu Assistant" while keeping internal personas archived. Don't retroactively delete persona memory; just stop creating new touchpoints.
+
+## 13.5 Failure mode #4 — Skip cost tracking until billing surprise
+
+**Symptom:** "Cost tracking is FinOps, that's later."
+
+**Why it fails:** silent cost spiral. $200 disappears overnight. Found in next billing cycle. Calibration impossible (no data).
+
+**Recovery:** activate `ops.cost_attributions` immediately even before enforcement. Tracking ON from day 0; enforcement starts day 14. Even tracking-only mode catches spikes.
+
+## 13.6 Failure mode #5 — Memory tool API enabled
+
+**Symptom:** "Anthropic shipped memory tool, let's use it."
+
+**Why it fails:** prompt injection risk (Cowork incident Jan 2026). Bypasses PR governance. Cross-role pollution.
+
+**Recovery:** disable memory tool API for all roles. Migrate any "memory" to ops.run_summaries + ops.corrections. Restart episodic recall via SQL skill.
+
+## 13.7 Failure mode #6 — Operating + Product DB merged
+
+**Symptom:** "Two Supabase projects = expensive, let's just one."
+
+**Why it fails:** compromise of one = compromise of both. Customer privacy + cost data + agent runs all leakable together. Hard to roll back; data already cross-pollinated.
+
+**Recovery:** create separate `ritsu-ops` project NOW. Migrate ops.* tables. Keep product DB for product only. Set up `etl-runner` as single bridge.
+
+## 13.7 Failure mode #7 — CLAUDE.md grows to 50K tokens
+
+**Symptom:** "More context = better answers."
+
+**Why it fails:** preamble cost spiral (Bài #3), lost-in-the-middle, every session pays full preamble.
+
+**Recovery:** rewrite CLAUDE.md as router (~1.2K tokens) using `@imports`. Test session, verify quality not regressed (often quality IMPROVES with lean preamble).
+
+## 13.8 Failure mode #8 — Hooks fail-open
+
+**Symptom:** "Hooks block too aggressively, let's fail-open."
+
+**Why it fails:** silent fail-open accumulates. After 3 months, governance is theater — hooks don't enforce; agents do whatever; audit gap large.
+
+**Recovery:** keep fail-closed. If hook errors are common, fix the hook (or thresholds). Don't workaround safety with fail-open.
+
+## 13.9 Failure mode #9 — Founder approves Tier C+ reflexively
+
+**Symptom:** "Telegram approval popups, founder taps yes without reading."
+
+**Why it fails:** approval fatigue. Founder rubber-stamps. First disaster = founder approved it without reading.
+
+**Recovery:**
+- Reduce notification volume (auto-batch Tier B, narrow Tier C triggers)
+- For Tier D-Std: enforce magic phrase (forces conscious typing)
+- For Tier D-MAX: enforce 1-hour cooldown + final EXECUTE confirmation
+- Monthly review founder approval rate; if > 95%, threshold too low
+
+## 13.10 Failure mode #10 — Forking template without `_build/notes/`
+
+**Symptom:** "I'll just fork the structure and skip the brainstorm notes."
+
+**Why it fails:** in 6 months, you forget WHY architecture is this shape. Re-research, re-discover, re-decide. Notes prevent regret.
+
+**Recovery:** read the original brainstorm notes (if accessible). Or do your own brainstorm round, generating your own notes. Don't ship without notes capturing reasoning.
+
+## 13.11 Quick decision matrix: when to revisit each bài
+
+```
+Bài #1 (Single Source of Truth)
+  Revisit when: Tier 1 file edits feel wrong; manifest drift suspected;
+                cross-Tier confusion arising
+
+Bài #2 (Trust & Blast Radius)
+  Revisit when: founder approval rate > 95%; new role added; security
+                incident; compliance audit needs evidence
+
+Bài #3 (Context Window Economics)
+  Revisit when: per-session cost > expected; agent quality degrading;
+                new platform features (caching, longer context, etc.)
+
+Bài #4 (Memory & Learning)
+  Revisit when: same correction made > 3 times; episodic recall not
+                helpful; memory tool API matures + isolation primitives
+
+Bài #5 (Multi-Agent Orchestration)
+  Revisit when: ops.tasks query latency growing; multi-day workflow
+                needs direct agent communication; Agent Teams matures
+
+Bài #6 (Identity & Interface)
+  Revisit when: Vietnam (or your jurisdiction) passes specific AI law;
+                first operator hired beyond founder; voice channel
+                considered
+
+Bài #7 (Economic Unit)
+  Revisit when: 30-day calibration done (Day 30); pricing model
+                changes; new Anthropic features (new tier, new model);
+                volume scales 10x
+```
+
+## 13.12 Maintaining vs growing
+
+After v1.0, modes change:
+
+**Maintenance mode (months 1-6):**
+- Weekly cost-optimization-review PRs
+- Monthly learning review
+- Quarterly secret rotation
+- Charter updates as legal/policy evolves
+- Ad-hoc bug fixes
+
+**Growth mode (months 6+):**
+- New pillars added (per Phase F pattern)
+- New roles for new pillars
+- Per-customer attribution (Bài #7 1C) when justified
+- Agent Teams (Bài #5) when matured
+- Multi-language disclosure (Bài #6) when expanding markets
+
+**Scale mode (year 2+):**
+- First operator hired (revisits sub-domain B for richer interface)
+- SOC 2 considerations for cost attribution
+- Multi-currency support
+- Regulatory variation across jurisdictions
+
+Each mode shift is conscious decision, not drift. Trigger documented in respective architecture docs.
+
+## 13.13 Closing thoughts
+
+**Building an AI-Native Company is not a one-time architecture choice. It's a continuous calibration discipline.**
+
+The 7 bài toán give you the structure. The 10 components give you the components. The repo template gives you the starting point. The brainstorm notes give you the WHY.
+
+But the FOUNDER must:
+- Maintain the discipline (PR everything, no shortcuts)
+- Calibrate the thresholds (data > intuition)
+- Update the playbook (your own learnings → notes)
+- Defer over add (resist new feature urge)
+
+The companies that survive AI workforce era are not those với most sophisticated agents. They are those với most disciplined operators.
+
+Ritsu's Phase A took 7 brainstorm sessions over ~10 days. Each session was conservative — defer most things, build only what's clearly needed. 7 problems × 6 deliverables average = 42 components. Manageable.
+
+Your version may differ — different industry, different regulations, different team size. But the **shape of the architecture** (4-tier truth + 5-tier HITL + 4 memory types + ops.tasks state machine + per-role identity + 3-tier budget) likely transfers.
+
+Take the playbook. Adapt to your context. Document your reasoning. Ship slowly. Calibrate consistently.
+
+Good luck.
+
+---
+
+**Tham khảo:**
+- Ritsu repo (forkable): https://github.com/doanchienthangdev/ritsu-works
+- Phase A brainstorm notes (your starting point):
+  - `_build/notes/problem-1-single-source-of-truth.md`
+  - `_build/notes/problem-2-trust-blast-radius.md`
+  - `_build/notes/problem-3-context-window-economics.md`
+  - `_build/notes/problem-4-memory-learning-loop.md`
+  - `_build/notes/problem-5-multi-agent-orchestration.md`
+  - `_build/notes/problem-6-identity-interface.md`
+  - `_build/notes/problem-7-economic-unit.md`
+- Inner/Outer Harness foundations:
+  - Phúc Nguyễn: https://phucnt.substack.com/p/outer-harness-tai-sao-process-va
+  - Martin Fowler: https://martinfowler.com/articles/harness-engineering.html
+  - Anthropic: https://www.anthropic.com/engineering/harness-design-long-running-apps
+- Compliance:
+  - EU AI Act Article 50: https://artificialintelligenceact.eu/article/50/
+- Multi-agent caveats:
+  - Anthropic "Building Effective Agents": https://www.anthropic.com/engineering/building-effective-agents
+- Cost discipline:
+  - Anthropic Usage and Cost API: https://platform.claude.com/docs/en/build-with-claude/usage-cost-api
+  - CloudZero State of AI Costs 2025: https://www.cloudzero.com/blog/finops-for-claude/

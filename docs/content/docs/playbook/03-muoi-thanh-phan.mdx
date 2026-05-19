@@ -1,0 +1,315 @@
+---
+title: "Chương 3 — Mười thành phần (10 Components) của AI-Native Company"
+description: "Chương 3 — Mười thành phần (10 Components) của AI-Native Company"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/03-muoi-thanh-phan.md
+source_hash: 5ee396aed4ffaacc75be6c00adaa8cdaed30219510a69a100bc5aa4275349983
+generated_at: '2026-05-19T16:57:54.880Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 5ee396aed4ffaacc75be6c00adaa8cdaed30219510a69a100bc5aa4275349983
+translated_at: '2026-05-19T16:57:54.880Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 3
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 3 — Mười thành phần (10 Components) của AI-Native Company
+
+> Chương 2 nói về **bài toán**. Chương 3 nói về **thành phần** — tức là những thứ thực sự tồn tại trong repo, có file, có schema, có code.
+
+## 3.1 Tại sao 10 thành phần?
+
+Khi đọc 7 bài toán ở Chương 2, dễ nhầm rằng "1 bài = 1 thành phần". Không. Một bài toán cần nhiều thành phần (Bài #6 cần 4 doc), và một thành phần phục vụ nhiều bài (`ops.agent_runs` phục vụ Bài #2, #4, #7).
+
+Sau Phase A của Ritsu, **10 thành phần concrete** nổi lên:
+
+| # | Thành phần | Loại | Phục vụ bài |
+|---|---|---|---|
+| 1 | Charter | Tier 1 docs | All |
+| 2 | Manifest | Tier 1 spec file | #1 |
+| 3 | Governance | Tier 1 docs | #2, #6, #7 |
+| 4 | Architecture Library | Tier 1 docs | #4, #5, #6, #7 |
+| 5 | Skills | Tier 1 dirs | #4, #5, #6, #7 |
+| 6 | Hooks | Tier 1 specs | #2, #5, #6, #7 |
+| 7 | Roles (.claude/agents/) | Runtime config | #2, #3 |
+| 8 | Operational DB (ops schema) | Tier 2 | #2, #4, #5, #7 |
+| 9 | Workspace plane | Workspace | #1 |
+| 10 | _build/ infrastructure | Meta | All |
+
+## 3.2 Sơ đồ thành phần và relationships
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                         git repo (Tier 1)                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐  │
+│  │ 1. Charter   │  │ 2. Manifest  │  │  3. Governance           │  │
+│  │ (00-charter/)│  │ (knowledge/  │  │  (governance/)           │  │
+│  │  product.md  │  │  manifest    │  │   HITL.md, ROLES.md,     │  │
+│  │  brand_voice │  │  .yaml)      │  │   SECRETS.md, IDENTITY   │  │
+│  │  transparency│  │              │  │                          │  │
+│  └──────┬───────┘  └──────┬───────┘  └────────────┬─────────────┘  │
+│         │                 │                       │                │
+│         └─────────────────┼───────────────────────┘                │
+│                           │                                        │
+│  ┌────────────────────────┴────────────────────────┐               │
+│  │ 4. Architecture Library (knowledge/)            │               │
+│  │ memory-, orchestration-, identity-, economic-   │               │
+│  │ architecture.md                                 │               │
+│  └────────────────────────┬────────────────────────┘               │
+│                           │                                        │
+│         ┌─────────────────┼─────────────────────┐                  │
+│         │                 │                     │                  │
+│  ┌──────▼──────┐  ┌───────▼──────┐  ┌───────────▼──────────────┐   │
+│  │ 5. Skills   │  │ 6. Hooks     │  │ 7. Roles                 │   │
+│  │ (05-ai-ops/ │  │ (.claude/    │  │ (.claude/agents/         │   │
+│  │  skills/)   │  │  hooks/)     │  │  <role>.md)              │   │
+│  └─────────────┘  └──────────────┘  └──────────────────────────┘   │
+│                                                                    │
+└──────────────────────────────────┬─────────────────────────────────┘
+                                   │  read/write at runtime
+                                   ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                    Operational DB (Tier 2)                         │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │ 8. Operational DB (Supabase ops schema)                    │    │
+│  │   ops.agent_runs, ops.tasks, ops.task_state_transitions,   │    │
+│  │   ops.run_summaries, ops.corrections,                      │    │
+│  │   ops.cost_attributions, ops.budget_alerts,                │    │
+│  │   ops.optimization_recommendations                         │    │
+│  └────────────────────────────────────────────────────────────┘    │
+└────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────────────┐
+│                        Other planes                                │
+│                                                                    │
+│  ┌──────────────────────┐    ┌────────────────────────────┐        │
+│  │ 9. Workspace plane   │    │ 10. _build/ infrastructure │        │
+│  │  raw/  wiki/  archives│    │  ROADMAP, recipes,        │        │
+│  │  (transient/local)   │    │  checklists, templates,    │        │
+│  │                      │    │  notes (brainstorm logs)   │        │
+│  └──────────────────────┘    └────────────────────────────┘        │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+## 3.3 Đi sâu vào từng thành phần
+
+### Thành phần 1 — Charter
+
+**Là gì:** Cốt lõi nhất. Trả lời các câu hỏi: "Công ty này làm gì? Cho ai? Voice ra sao? Cam kết với customer thế nào?"
+
+**Files trong Ritsu:**
+- `00-charter/product.md` — sản phẩm là gì, target user, monetization
+- `00-charter/brand_voice.md` — voice guide (internal vs external, EN + VI)
+- `00-charter/transparency.md` — public-facing transparency policy (source cho ritsu.ai/transparency)
+
+**Đặc điểm:**
+- Tier C để thay đổi (founder approval)
+- Read by mọi customer-facing skill
+- Bilingual nếu serve nhiều market
+- Source-controlled — published version nằm trong git history
+
+**Phổ biến lỗi:** không có brand voice document → mỗi blog post tone khác nhau, mỗi support reply formality khác nhau.
+
+### Thành phần 2 — Manifest
+
+**Là gì:** Spec file định nghĩa "có gì" trong tổ chức. Tier 1/2/3/4 schemas, secrets map, MCP servers, integrations.
+
+**File trong Ritsu:** `knowledge/manifest.yaml`
+
+**Tại sao quan trọng:** đây là **single canonical inventory**. Khi agent cần biết "có table nào trong Supabase ops?", "secret nào tồn tại?", "MCP server nào available?" → manifest.
+
+**Phổ biến lỗi:** schema được tạo trên Supabase mà không update manifest → drift; agent không biết schema mới.
+
+### Thành phần 3 — Governance
+
+**Là gì:** Quy tắc, không phải tài liệu mô tả. Bao gồm:
+
+- `governance/HITL.md` — 4-tier human-in-the-loop policy
+- `governance/ROLES.md` — định nghĩa các role + permissions + budgets
+- `governance/SECRETS.md` — secret naming, rotation, access matrix
+- `governance/IDENTITY.md` — per-role per-system identity mapping (Bài #6)
+
+**Đặc điểm:**
+- Mỗi file là **policy**, không phải doc — agent runtime đọc và **enforce**
+- Version-controlled, atomic-PR
+- Hooks reference governance để decide allow/escalate/block
+
+**Phổ biến lỗi:** governance ở dạng Notion doc → agent không enforce; chỉ là "khuyến nghị".
+
+### Thành phần 4 — Architecture Library
+
+**Là gì:** Một thư mục `knowledge/` chứa các architecture decision documents (ADR-style nhưng dài hơn). Mỗi file là canonical reference cho 1 architectural concern.
+
+**Files trong Ritsu:**
+- `knowledge/memory-architecture.md` (Bài #4)
+- `knowledge/orchestration-architecture.md` (Bài #5)
+- `knowledge/identity-architecture.md` (Bài #6)
+- `knowledge/economic-architecture.md` (Bài #7)
+
+**Đặc điểm:**
+- Mỗi doc ~300-500 lines
+- Cấu trúc consistent: Why → Decision → Mechanics → Anti-patterns → When-to-revisit
+- Cross-link to related governance, skills, hooks
+- Updated qua PR khi architecture thay đổi
+
+**Tại sao tách khỏi governance:** governance là rule (HITL, secrets); architecture là design decision (memory strategy, orchestration topology). Hai loại knowledge, hai folder.
+
+### Thành phần 5 — Skills
+
+**Là gì:** Tài sản tái sử dụng cho agents. Mỗi skill là 1 directory với SKILL.md (frontmatter + procedure) và optional supporting files.
+
+**Pattern Anthropic platform:**
+- Frontmatter (~100 tokens) trong tool list
+- Full SKILL.md loaded when invoked
+- Tools restricted via `allowed-tools`
+- `disable-model-invocation: false` cho skills agent có thể tự invoke
+
+**Files trong Ritsu (sau Phase A):**
+- `episodic-recall` (Bài #4)
+- `monthly-learning-review` (Bài #4)
+- `task-decompose` (Bài #5)
+- `task-status` (Bài #5)
+- `ai-disclosure-check` (Bài #6)
+- `cost-report` (Bài #7)
+- `cost-optimization-review` (Bài #7)
+
+**Cốt lõi:** skill = deliberate proactive action. Agent invoke khi có context thấy cần.
+
+### Thành phần 6 — Hooks
+
+**Là gì:** Mandatory runtime enforcement. Fire on every tool call (or specific tools). Cannot be skipped.
+
+**Files trong Ritsu (sau Phase A):**
+- `pre-edit-tier1` (Bài #1) — block edits to Tier 1 without PR
+- `pre-bash-dangerous` (Bài #2) — block dangerous bash commands
+- `pre-tool-publish` (Bài #2) — gate publish actions through tier checks
+- `pre-tool-supabase-product` (Bài #2) — restrict Product DB writes
+- `pre-tool-secrets` (Bài #2) — enforce per-role secret access
+- `pre-delegate-check` (Bài #5) — soft signals for delegation
+- `pre-tool-customer-message` (Bài #6) — disclosure compliance
+- `pre-llm-call-budget` (Bài #7) — 3-tier budget enforcement
+
+**Cốt lõi:** hook = ambient mandatory. Agent có thể quên invoke skill; hook luôn fire.
+
+**Pattern lặp lại 3 lần (Bài #5, #6, #7):** skill (proactive) + hook (mandatory) = defense in depth.
+
+### Thành phần 7 — Roles
+
+**Là gì:** Định nghĩa runtime của mỗi agent — system prompt, allowed tools, permissions, budgets.
+
+**Two-layer:**
+- `governance/ROLES.md` — policy layer (định nghĩa role spec)
+- `.claude/agents/<role>.md` — runtime layer (Claude Code agent format)
+
+Hai phải nhất quán. ROLES.md là source of truth; agent file là instantiation.
+
+**9 roles trong Ritsu:**
+- gps (orchestrator)
+- growth-orchestrator
+- support-agent
+- content-drafter
+- code-reviewer
+- etl-runner
+- trust-safety
+- backoffice-clerk
+- founder
+
+Mỗi role có schema chuẩn (xem `governance/ROLES.md`):
+- `home_pillar`
+- `permissions` (file globs, Tier 2 schemas, MCP servers, skills, secrets)
+- `hitl_max_tier`
+- `budget` + `economic_budget`
+- `context_budget`
+- `memory_config`
+
+### Thành phần 8 — Operational DB (ops schema)
+
+**Là gì:** Supabase project `ritsu-ops` với schema `ops.*`. Đây là **canonical state machine** cho mọi operational data.
+
+**Tables (sau Phase A):**
+- `ops.agent_runs` — every agent invocation (Bài #2 audit foundation)
+- `ops.tasks` — multi-agent orchestration state (Bài #5)
+- `ops.task_state_transitions` — append-only audit log (Bài #5)
+- `ops.run_summaries` — per-run summaries for episodic recall (Bài #4)
+- `ops.corrections` — founder reject/edit reasons (Bài #4)
+- `ops.cost_attributions` — per-LLM-call cost (Bài #7)
+- `ops.budget_alerts` — alert/escalate/block events + Health Score (Bài #7)
+- `ops.optimization_recommendations` — weekly PRs from cost-optimization-review (Bài #7)
+
+**Tách khỏi Product DB:** Ritsu's product là một Supabase project KHÁC (`ritsu`). Ops và Product KHÔNG bao giờ cross — firewall mạnh ở Bài #1 và enforce qua hook ở Bài #2.
+
+### Thành phần 9 — Workspace plane
+
+**Là gì:** Nơi work-in-progress sống. KHÔNG phải Tier 1/2/3/4. Ba thư mục:
+
+- `raw/` — local-only, gitignored. Drafts, scratch, downloaded materials. KHÔNG sync.
+- `wiki/` — synced (tracked) loose notes. Files prefix `_` là local-only. Promotion qua PR.
+- `.archives/` — committed shell, contents gitignored. Folder structure tồn tại; nội dung không.
+
+**Tại sao cần:**
+- Tier 1 (canonical) phải pass review để add → tốn ceremony
+- Cần nơi cho ideas chưa chín, drafts đang viết, materials đang process
+- Workspace plane = staging area; promotion là explicit PR
+
+**Pattern phổ biến:**
+1. Founder/agent dump idea vào `raw/`
+2. Refine thành `wiki/_some-note.md` (local-only)
+3. Khi mature, promote: rename to `wiki/some-note.md` (synced)
+4. Khi đủ canonical, PR thành `00-charter/` hoặc `knowledge/`
+
+### Thành phần 10 — _build/ infrastructure
+
+**Là gì:** Meta-layer. Tools cho founder dùng để build/iterate trên repo này.
+
+**Files trong Ritsu:**
+- `_build/ROADMAP.md` — phase progression
+- `_build/recipes/` — common workflows (add new role, provision Supabase ops, etc.)
+- `_build/checklists/` — atomic operation checklists (new role checklist, pre-tier1-edit, etc.)
+- `_build/templates/` — boilerplate cho new pillars/SOPs/skills/agents/MCP servers
+- `_build/notes/` — brainstorm summaries (`problem-{1-7}-*.md`)
+
+**Cốt lõi:** founder không nhớ "cách nào để add role mới" qua mỗi tháng. _build/recipes có procedure cụ thể. Save thinking time.
+
+## 3.4 Mapping: bài toán → thành phần
+
+Một matrix gọn:
+
+| Component | Bài #1 | Bài #2 | Bài #3 | Bài #4 | Bài #5 | Bài #6 | Bài #7 |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 1. Charter | | | | | | ● | |
+| 2. Manifest | ● | | | ● | ● | | ● |
+| 3. Governance | | ● | | | | ● | ● |
+| 4. Architecture Library | | | | ● | ● | ● | ● |
+| 5. Skills | | | | ● | ● | ● | ● |
+| 6. Hooks | ● | ● | | | ● | ● | ● |
+| 7. Roles | | ● | ● | ● | ● | ● | ● |
+| 8. Ops DB | | ● | | ● | ● | | ● |
+| 9. Workspace | ● | | | | | | |
+| 10. _build/ | | | | | | | |
+
+(● = component được modified/extended bởi bài toán)
+
+**Quan sát:**
+
+- Component 7 (Roles) được touched bởi 6/7 bài. Lý do: roles là central abstraction — mỗi bài thêm field vào role schema (context_budget, memory_config, economic_budget, etc.)
+- Component 1 (Charter) chỉ touched bởi Bài #6. Charter là static foundational; ít update.
+- Component 10 (_build/) không phải foundation cho bài nào, nhưng critical cho founder iterate.
+
+## 3.5 Tổng kết
+
+- **10 thành phần concrete** = những gì bạn thực sự build trong repo.
+- **Component 7 (Roles)** là central abstraction — mỗi bài extend.
+- **Pattern:** charter (what) → manifest (inventory) → governance (rules) → architecture library (decisions) → skills/hooks/roles (runtime) → ops DB (state) → workspace (drafts) → _build/ (meta).
+- **Mỗi component có Tier riêng** — Tier 1 cho declarative, Tier 2 cho operational, workspace plane cho transient.
+
+Phần II của playbook (Chương 4-5) sẽ đi sâu vào Bài #1 (Single Source of Truth) và Bài #2 (Trust & Blast Radius). Đây là 2 bài foundation — phải xong trước các bài khác.
+
+---
+
+**Tham khảo:**
+- Ritsu repo `ritsu-works/` — exemplifies all 10 components in concrete form
+- Anthropic Skills documentation — https://platform.claude.com/docs/en/skills/overview
+- Anthropic Subagents docs — https://code.claude.com/docs/en/sub-agents

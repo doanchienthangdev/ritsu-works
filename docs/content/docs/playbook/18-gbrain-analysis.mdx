@@ -1,0 +1,276 @@
+---
+title: "Chương 18 — GBrain Analysis: Trích Lọc & Upgrade Hệ Thống"
+description: "Chương 18 — GBrain Analysis: Trích Lọc & Upgrade Hệ Thống"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/18-gbrain-analysis.md
+source_hash: df6049e66fa898ffe6b2e8888aced44b3f92ff45c67c37d48111131b3ceca135
+generated_at: '2026-05-19T16:57:54.917Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: df6049e66fa898ffe6b2e8888aced44b3f92ff45c67c37d48111131b3ceca135
+translated_at: '2026-05-19T16:57:54.917Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 18
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 18 — GBrain Analysis: Trích Lọc & Upgrade Hệ Thống
+
+> *"AI Agent có thể rất thông minh, nhưng nếu không có trí nhớ, không có cấu trúc tri thức, không có khả năng liên kết thông tin theo thời gian, thì nó vẫn chỉ là một 'chatbot làm việc theo phiên'." — Founder, 2026-05-03*
+
+## 18.1 Tại sao đào sâu GBrain
+
+Sau 3 walkthroughs đầu (G1 Scheduling, G5 SOP, G4 Dashboard), founder nhắc: *"Trước khi walkthrough tiếp hãy tham khảo GBrain của Garry Tan và phân tích, trích lọc và nâng cấp hệ thống dựa trên những gì học được từ GBrain."*
+
+GBrain là production AI agent brain của Garry Tan (President & CEO Y Combinator). Stats đáng chú ý:
+
+- **17,888 pages, 4,383 people, 723 companies** in production
+- **21 cron jobs running autonomously**
+- **12 days build** time
+- **11.1k stars, 1.3k forks** GitHub
+- **TypeScript 98.2%, MIT license**
+- **BrainBench: P@5 49.1%, R@5 97.9%** — beats vector-only RAG by **+31.4 P@5 points**
+
+Đây không phải toy project. Production system của một YC president, validated by community + benchmarks.
+
+## 18.2 6 Pillars Architecture của GBrain
+
+GBrain demonstrates **6 architectural pillars** mà mọi production AI agent system cần:
+
+| Pillar | Description | Ritsu Phase A status |
+|---|---|---|
+| 1. Memory | Long-term, compiled-truth + timeline format | ✅ Bài #4 (4 memory types) |
+| 2. Knowledge Graph | Auto-link, typed edges, zero LLM | ❌ **MISSING** |
+| 3. Hybrid Search | Vector + keyword + graph + RRF | ⚠️ Partial (no graph) |
+| 4. Skills | Markdown workflow docs, distributable | ✅ Phase A + Bài #9 SOP |
+| 5. MCP | Multi-client, stdio/HTTP/OAuth | ⚠️ Manifest slot only |
+| 6. Governance | Perms, log, OAuth, R/W/admin | ✅ Bài #2 |
+
+**Gap quan trọng nhất: Knowledge Graph.** BrainBench shows graph + extract quality = 2-3x precision improvement. Without it: search caps at ~17-22% P@5. With it: 49.1%.
+
+## 18.3 12 Patterns trích lọc
+
+### Pattern 1 — Compiled Truth + Timeline knowledge model
+
+```
+---
+type: concept
+title: <topic>
+---
+<Compiled truth — current best understanding, mutable>
+
+---
+- 2024-11-15: <event>  (timeline append-only)
+- 2024-12-01: <event>
+```
+
+**Insight:** 2 zones per page — assessment (mutable) + evidence (immutable).
+**Adopt for Ritsu:** semantic memory pages format.
+
+### Pattern 2 — Auto-link extraction (zero LLM)
+
+```
+on every put_page:
+  Parse markdown → Extract entity refs → Strip code-fences →
+  Typed inference cascade → Within-page dedup → Stale-link reconciliation
+```
+
+Cost: $0/write. **Adopt for Ritsu:** post-page-write hook + ops.knowledge_links.
+
+### Pattern 3 — Hybrid search stack
+
+```
+Query → Intent classifier → Multi-query expansion → 
+[Vector + Keyword] → RRF → Cosine re-score → Backlink boost → 4-layer dedup
+```
+
+~20 deterministic techniques. **Adopt for Ritsu:** Bài #4 episodic recall upgrade.
+
+### Pattern 4 — Minions: deterministic job queue
+
+| | Minions | Sub-agents |
+|---|---|---|
+| Wall time | 753ms | >10s (gateway timeout) |
+| Cost | $0 | ~$0.03/run |
+| Success rate | 100% | 0% |
+| Memory | 2 MB | 80 MB |
+
+**Routing rule:** Deterministic → Minions, Judgment → Sub-agents.
+**Adopt for Ritsu:** Bài #5 extension — ops.minion_jobs table. **Cost saving: $50-100/month at v1.0 scale.**
+
+### Pattern 5 — Skillify: codify failures into permanent skills
+
+10-step audit (scaffold → logic → tests → evals → resolver → trigger eval → routing eval → check gate → filing audit → conformance).
+
+**Insight:** Skills tree survives 6 months without decay.
+**Adopt for Ritsu:** Bài #9 SOP authoring discipline upgrade.
+
+### Pattern 6 — Skill packs: distributable bundles
+
+```
+gbrain skillpack list                 # 25 curated skills
+gbrain skillpack install brain-ops    # one + dependencies
+gbrain skillpack diff brain-ops       # bundle vs local
+```
+
+**Adopt for Ritsu:** pillar packs cho 7-pillar structure.
+
+### Pattern 7 — Engine pluggable (PGLite ↔ Postgres)
+
+Local dev (PGLite) ↔ Prod (Supabase) bidirectional migration. **Defer for Ritsu:** consider later.
+
+### Pattern 8 — Cron-scheduler advanced features
+
+- Schedule staggering (5-min offsets) — prevents thundering herd
+- Quiet hours (timezone-aware, wake-up override)
+- Idempotency
+
+**Adopt for Ritsu:** Bài #8 enhancement.
+
+### Pattern 9 — Signal-detector always-on parallel
+
+Fires every message, cheap model parallel, never blocks. Brain compounds passively.
+**Defer for Ritsu:** v1.x evaluate post-launch (cost concern).
+
+### Pattern 10 — Daily-task-prep morning briefing
+
+Calendar lookahead + brain context per attendee, generated overnight.
+**Note for G9 walkthrough** (Founder Capacity).
+
+### Pattern 11 — Cross-modal-review: AI quality gate
+
+Output reviewed by second model. Refusal routing.
+**Defer for Ritsu:** v1.x; could reduce founder approval load 30-50%.
+
+### Pattern 12 — Soul-audit identity files
+
+SOUL.md (agent identity), USER.md (user profile), ACCESS_POLICY.md (privacy), HEARTBEAT.md (cadence).
+**Adopt for Ritsu:** Bài #6 — add founder-profile.md + HEARTBEAT.md.
+
+## 18.4 Performance Numbers Critical
+
+### BrainBench Results
+
+| Approach | P@5 | R@5 |
+|---|---|---|
+| GBrain v0.12 (graph + hybrid) | **49.1%** | 97.9% |
+| GBrain v0.11 (less link extract) | 22.1% | — |
+| Hybrid no-graph | 17.7% | — |
+| ripgrep BM25 only | ~17% | — |
+| Vector-only RAG | ~17% | — |
+
+**Lesson:** Knowledge graph layer + extract quality = 2-3x precision. Without it, search caps at ~17-22%.
+
+### Minions vs Sub-agents (Production)
+
+19 cron jobs concurrent, real load:
+- Wall time: **753ms vs 10s+** (gateway timeout)
+- Cost: **$0 vs ~$0.03/run**
+- Success: **100% vs 0%**
+- Throughput: **~10× faster**
+- Fan-out: **~21× với no failure wall**
+
+## 18.5 What NOT to Adopt
+
+| GBrain pattern | Reason for Ritsu |
+|---|---|
+| PGLite default | Multi-tenant from day 1, Supabase from start |
+| Voice-to-Brain (Twilio + ngrok) | Founder prefers Telegram; scope creep cho v1 |
+| Personal entity types (Garry's people) | Ritsu schema = customers + vendors + competitors |
+| OpenClaw/Hermes hosts | Ritsu uses Claude Code |
+| smoke-tests.d/*.sh | Over-engineering v1.0 |
+| Ngrok tunnels remote MCP | Vercel + Supabase production URLs |
+
+## 18.6 5 Concrete Upgrades to Ritsu Architecture
+
+### Upgrade #1 — New G15 Knowledge Graph generalized issue
+
+Add to high-altitude pass:
+- Touches ~12 issues (customer entity, content authoring, decision logging, knowledge ingestion)
+- Score 6.45 → walkthrough slot #7
+- New bài toán: **Bài #15 — Knowledge Graph Architecture**
+
+### Upgrade #2 — Bài #5 Multi-Agent: Add Minions Routing
+
+Routing rule:
+- Deterministic (same input → same steps → same output) → ops.minion_jobs queue
+- Judgment (input requires assessment) → subagent (existing)
+
+Schema:
+```sql
+CREATE TABLE ops.minion_jobs (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  job_kind        text NOT NULL,
+  payload         jsonb NOT NULL,
+  status          text NOT NULL,
+  parent_task_id  uuid REFERENCES ops.tasks(id),
+  attempt_count   int DEFAULT 0,
+  ...
+);
+```
+
+**Cost impact: ~$50-100/month savings at v1.0 scale.**
+
+### Upgrade #3 — Bài #4 Memory: Compiled-Truth + Auto-Link
+
+Page format adoption + post-page-write hook for auto-link extraction. New schema:
+```sql
+CREATE TABLE ops.knowledge_links (
+  source_slug     text NOT NULL,
+  target_slug     text NOT NULL,
+  link_type       text,
+  occurrence_count int DEFAULT 1,
+  ...
+);
+```
+
+### Upgrade #4 — Bài #6 Identity: Add USER.md + HEARTBEAT.md
+
+```
+00-charter/founder-profile.md    (USER.md analog — decision style, working hours)
+governance/HEARTBEAT.md          (operational cadence — referenced by schedules.yaml)
+```
+
+Single source of truth for quiet hours, batching, escalation.
+
+### Upgrade #5 — Bài #9 SOP: Adopt Skillify 10-Step Audit
+
+`sop-author` skill enforces 10-step pattern + new CLI commands:
+```bash
+ritsu-cli sop scaffold SOP-GROWTH-002
+ritsu-cli sop check 01-growth/sops/SOP-GROWTH-002.yaml
+ritsu-cli sop check-resolvable
+ritsu-cli sop routing-eval --llm
+```
+
+## 18.7 Cross-cutting consequences
+
+1. **G15 Knowledge Graph** new walkthrough → 11 → 12 generalized issues
+2. **Minions** integration → Bài #8 dispatcher, Bài #11 event-dispatcher leverage minion queue
+3. **Auto-link** integration → ops.tasks state_payload references knowledge_links
+4. **HEARTBEAT.md** → schedules.yaml references for quiet hours
+5. **Skillify** → SOP CI integration
+
+**Phase A.2 estimate update:** từ 9-10 → **10-11 new bài toán** (G15 added).
+
+## 18.8 Tổng kết
+
+- GBrain validates 6-pillar architecture cho production AI agent
+- Ritsu Phase A có 4-5 pillars, missing knowledge graph
+- 12 patterns extracted, 5 upgrades incorporated
+- New G15 walkthrough scheduled
+- Bài #5 + #4 + #6 + #9 enhanced với GBrain learnings
+- Performance evidence: graph layer drives 2-3x search precision
+
+Sang chương sau — walkthrough G2 Event-Driven Triggers, walkthrough đầu tiên áp dụng GBrain learnings (Minions pattern cho event dispatcher).
+
+---
+
+**Tham khảo:**
+- GBrain repo: https://github.com/garrytan/gbrain
+- BrainBench evals: https://github.com/garrytan/gbrain-evals
+- "Skill files are code" thread: https://x.com/garrytan/status/2042925773300908103
+- Thin Harness, Fat Skills: https://github.com/garrytan/gbrain/blob/master/docs/ethos/THIN_HARNESS_FAT_SKILLS.md
+- Full analysis: `_build/notes/phase-a2/GBRAIN_ANALYSIS.md`

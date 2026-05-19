@@ -1,0 +1,401 @@
+---
+title: "Chương 32 — Schema Foundation, Pillars, & Bootstrap Automation"
+description: "Chương 32 — Schema Foundation, Pillars, & Bootstrap Automation"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/32-schema-foundation.md
+source_hash: dad1749b5457097c6b5a56c143a6f47b3f1d62b366567fa2b7eb22030dba5679
+generated_at: '2026-05-19T16:57:54.956Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: dad1749b5457097c6b5a56c143a6f47b3f1d62b366567fa2b7eb22030dba5679
+translated_at: '2026-05-19T16:57:54.956Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 32
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 32 — Schema Foundation, Pillars, & Bootstrap Automation
+
+> *"Architecture documentation is necessary but not sufficient. Founder needs concrete starting point: schemas + pillar scaffolds + bootstrap automation. Chương 32 closes the gap between architecture (chương 1-31) và implementation (Wave 1)."*
+
+## 32.1 Bài toán
+
+Founder hỏi câu quan trọng sau khi nhận bundle v2.6:
+
+> "Phần Supabase schemas hay migration ở đâu? Tôi chỉ thấy 00-charter và 05-ai-ops; các folder số khác xử lý như nào?"
+
+Câu hỏi expose 2 gaps trong v2.6:
+
+1. **Gap 1: Concrete Supabase migrations.** Bundle có 12 DRAFTs với schemas described prose-style + SQL fragments, nhưng chưa consolidate thành actionable migration files.
+
+2. **Gap 2: 7 missing pillar folders.** Bundle có `00-charter/` và `05-ai-ops/` nhưng thiếu `01-growth`, `02-customer`, `03-product`, `04-content`, `06-finance`, `07-compliance`, `08-integrations`.
+
+Cả 2 gaps đều block Wave 1 implementation. Founder mỗi session phải re-derive schemas, mỗi pillar phải decide structure ad-hoc.
+
+## 32.2 Strategy: Generic core + project overlay
+
+Phân tích kỹ: schemas + pillar structure thuộc loại nào — generic hay project-specific?
+
+### 10 Supabase migrations: 100% generic
+
+| Migration | Content | Generic? |
+|---|---|---|
+| 00001 | Extensions (uuid, vector, pg_cron, pgcrypto) + ops schema | ✅ |
+| 00002 | ops core: audit_log, events, tasks, hitl_runs, agent_runs, minion_jobs | ✅ |
+| 00003 | ops.scheduled_runs, ops.sop_runs | ✅ |
+| 00004 | ops.kpi_snapshots, alerts, mcp_calls | ✅ |
+| 00005 | customers, persons, companies, company_persons (Bài #16) | ✅ |
+| 00006 | knowledge_pages, knowledge_links, knowledge_embeddings (Bài #14) | ✅ |
+| 00007 | decisions, ingestion_jobs, attention_log | ✅ |
+| 00008 | hybrid_search + graph_traversal helpers | ✅ |
+| 00009 | pg_cron + dispatcher functions | ✅ |
+| 00010 | Generic RLS policies | ✅ |
+
+**Tổng:** 62KB SQL, 100% reusable across Agent OS projects. Project-specific tables (Ritsu lessons, Hollywood video_projects) go in migrations 1xxxx_ range.
+
+### 18 JSON Schemas: 100% generic
+
+Mỗi Tier 1 YAML có corresponding `schema.json` for strict validation:
+
+```
+knowledge/schemas/
+├── feature-flags.schema.json
+├── schedules.schema.json
+├── state-machines.schema.json
+├── muse-personas.schema.json
+├── channels.schema.json
+├── event-subscriptions.schema.json
+├── event-aggregation.schema.json
+├── kpi-registry.schema.json
+├── alert-rules.schema.json
+├── mcp-tools.schema.json
+├── mcp-roles.schema.json
+├── link-inference-rules.schema.json
+├── data-retention.schema.json
+├── locales.schema.json
+├── surface-compliance.schema.json
+├── ingestion-sources.schema.json
+├── ingestion-routing.schema.json
+└── founder-rhythm.schema.json
+```
+
+Schemas validate:
+- Required fields present
+- Enum values valid (e.g., `mode: subscription | hybrid | full_api`)
+- Types correct (string, number, boolean, array, object)
+- Pattern matching (slug format, cron expression, etc.)
+
+### 7 missing pillars: structure generic, content project-specific
+
+Pillar structure (`README.md`, `sops/`, `agents/` folders) là generic. Content (which SOPs, which agents) là project-specific.
+
+| Pillar | Generic structure | Project-specific content |
+|---|---|---|
+| 01-growth | sops/, agents/, README.md | Marketing strategy, lead-gen tactics |
+| 02-customer | sops/, agents/, README.md | Customer onboarding flow, support tier |
+| 03-product | sops/, agents/, README.md | Roadmap, feedback triage |
+| 04-content | sops/, agents/, README.md | Content themes, editorial calendar |
+| 06-finance | sops/, README.md | Tax jurisdiction, accounting rules |
+| 07-compliance | sops/, README.md | GDPR scope, copyright posture, age verification |
+| 08-integrations | webhooks/, sops/, README.md | Specific webhooks (Stripe, GitHub, Telegram) |
+
+## 32.3 Migration architecture
+
+### Numbering convention
+
+```
+00001-09999: generic core (boilerplate)
+10001-19999: project-specific domain tables
+20001-29999: project-specific RLS extensions
+30001-39999: project-specific seed data
+```
+
+### Why 5-digit prefix?
+
+Allows interleaving when boilerplate updates ship after project starts:
+
+```
+00001_initial_extensions.sql       (boilerplate v1.0)
+00002_ops_core_tables.sql          (boilerplate v1.0)
+...
+00010_rls_policies.sql             (boilerplate v1.0)
+00011_audit_log_partitioning.sql   (boilerplate v1.1, added later)
+10001_ritsu_lessons.sql            (project Wave 1)
+10002_ritsu_subscriptions.sql      (project Wave 2)
+```
+
+### Schema inheritance
+
+Project tables inherit Bài #13 convention (4-col + audit) automatically:
+
+```sql
+-- 10001_ritsu_lessons.sql
+CREATE TABLE lessons (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- domain-specific fields
+  topic           text NOT NULL,
+  difficulty      text NOT NULL,
+  
+  -- Bài #13 standardized state columns
+  state           text NOT NULL DEFAULT 'draft',
+  state_since     timestamptz NOT NULL DEFAULT now(),
+  state_payload   jsonb,
+  state_version   text NOT NULL DEFAULT '1.0.0',
+  
+  CONSTRAINT lessons_state_valid CHECK (
+    state IN ('draft', 'published', 'in_progress', 'completed', 'archived')
+  )
+);
+
+-- Reuse boilerplate state-since trigger
+CREATE TRIGGER trg_lessons_state_since
+  BEFORE UPDATE ON lessons
+  FOR EACH ROW
+  EXECUTE FUNCTION ops.touch_state_since();
+```
+
+## 32.4 Bootstrap automation: the 9-step pipeline
+
+`bootstrap-new-project.sh` thực hiện 9 steps:
+
+1. **Folder structure** — 10 pillar folders + frontend + supabase + wiki + runtime + .archives + raw + _build + notes + .claude + .scripts + .github + .husky + knowledge/schemas
+2. **Charter templates** — process `charter.template.md`, `brand_voice.template.md`, `founder-profile.template.md` với 14 placeholders
+3. **Tier 1 templates** — process all 19 `*.template.yaml` files
+4. **Infrastructure files** — copy bootstrap.sh, validate-tier1.js, husky pre-commit, GitHub workflows
+5. **Migrations** — copy 10 generic migrations to `supabase/migrations/`
+6. **JSON Schemas** — copy 18 schemas to `knowledge/schemas/`
+7. **Pillar READMEs** — process 7 pillar template READMEs
+8. **Project metadata** — generate `agent-os.config.yaml`, `README.md`, `.env.example`
+9. **Git init** — initial commit with metadata
+
+Total time: ~3 seconds. Output: 100+ files ready for Wave 1.
+
+## 32.5 Validation pipeline
+
+`scripts/validate-tier1.js` runs in 3 contexts:
+
+### 1. Pre-commit hook (.husky/pre-commit)
+
+```bash
+#!/bin/bash
+# Pre-commit validation
+node scripts/validate-tier1.js || exit 1
+```
+
+Catches errors before commit.
+
+### 2. CI (.github/workflows/security-check.yml)
+
+```yaml
+- name: Validate Tier 1 YAML
+  run: node scripts/validate-tier1.js
+```
+
+Catches errors on PR.
+
+### 3. Manual
+
+```bash
+$ node scripts/validate-tier1.js
+
+🔍 Validating Tier 1 YAML files...
+
+  ✓  feature-flags.yaml
+  ✓  schedules.yaml
+  ⚠️  state-machines.yaml — file missing (OK if Wave 1 not done)
+  ❌ muse-personas.yaml
+       /personas/0/expertise must be string
+
+📊 Summary:
+  Valid:   2/18
+  Invalid: 1
+  Missing: 15
+
+❌ Validation failed. Fix errors above.
+```
+
+## 32.6 Pillar discipline
+
+### Naming convention: `XX-pillar-name/`
+
+- `XX` = 2-digit prefix (00-99)
+- `pillar-name` = lowercase, hyphenated
+- Sortable in file explorer (alphabetical = natural order)
+
+### Reserved prefixes
+
+| Prefix | Usage | Mandatory? |
+|---|---|---|
+| 00 | charter (identity, vision, brand voice) | ✅ Always |
+| 05 | ai-ops (skills, adapters, agents) | ✅ Always |
+| 01-04 | front-of-house pillars (growth, customer, product, content) | ✅ Most projects |
+| 06-08 | back-of-house (finance, compliance, integrations) | ✅ Most projects |
+| 09+ | project-specific (e.g., 09-research for academic project) | Optional |
+
+### Each pillar contains
+
+```
+XX-pillar-name/
+├── README.md              ← scope, dependencies, Wave plan
+├── sops/                   ← SOP folders (per Bài #9)
+│   └── SOP-PREFIX-XXX-name/
+│       ├── flow.yaml
+│       ├── steps/
+│       ├── tests/
+│       └── README.md
+└── agents/                 ← agent definitions (per Bài #5)
+    └── agent-name.md
+```
+
+Some pillars omit `agents/` if they don't have specialized agents (e.g., 06-finance, 07-compliance).
+
+### SOP naming convention
+
+```
+SOP-{PILLAR}-{XXX}-{slug}/
+```
+
+Examples:
+- `SOP-GROWTH-001-content-publishing-cross-surface/`
+- `SOP-CUSTOMER-004-account-deletion-gdpr/`
+- `SOP-COMPLIANCE-001-gdpr-deletion/`
+- `SOP-INT-001-webhook-stripe-process/`
+
+Pillar prefix shortcuts:
+- GROWTH, CUSTOMER, PRODUCT, CONTENT
+- AI-OPS, FINANCE, COMPLIANCE
+- INT (integrations — short enough)
+
+## 32.7 Boilerplate vs Project structure mapping
+
+```
+agent-os-boilerplate/                         <-- generic
+├── core/
+│   ├── supabase-core/migrations/             ← 10 generic migrations
+│   ├── knowledge-template/
+│   │   ├── schemas/                          ← 18 JSON Schemas
+│   │   └── *.template.yaml                   ← 19 Tier 1 templates
+│   ├── pillar-templates/                     ← 7 pillar README templates
+│   ├── 00-charter-template/                  ← 3 identity templates
+│   └── .scripts-core/
+│       ├── bootstrap-new-project.sh
+│       └── validate-tier1.js
+
+ritsu-works/                                  <-- project (filled in)
+├── 00-charter/                               ← FILLED IN từ templates
+├── 01-growth/, 02-customer/, ..., 08-integrations/  ← 7 pillars (per chương 32)
+├── 05-ai-ops/                                ← AI workforce
+├── frontend/, mcp-server/                    ← (Wave 4)
+├── supabase/migrations/                      ← 10 generic + project-specific 1xxxx_
+├── knowledge/
+│   ├── schemas/                              ← 18 JSON Schemas (copied)
+│   └── *.yaml                                ← 19 Tier 1 (filled in từ templates)
+├── scripts/validate-tier1.js                 ← validation script
+└── ...
+```
+
+## 32.8 Implementation impact
+
+### What founder receives in v2.7 bundle
+
+- **62KB Supabase SQL** — 10 migrations ready to `supabase db push`
+- **18 JSON Schemas** — strict validation cho 18 Tier 1 YAML
+- **7 pillar scaffolds** — `XX-pillar-name/{README.md, sops/, agents/}` ready
+- **Validation script** — node `scripts/validate-tier1.js`
+- **Updated bootstrap** — automation pipeline 9 steps, ~3s
+
+### What Wave 1 looks like now
+
+**Before chương 32:**
+1. Read 12 DRAFTs (2h)
+2. Extract SQL fragments → consolidate (2h)
+3. Decide pillar structure (1h)
+4. Create folders, write READMEs (1h)
+5. Run migrations (30 min)
+6. Implement first SOP (4h)
+7. **Total: 10.5h before any business logic**
+
+**After chương 32:**
+1. `./.scripts-core/bootstrap-new-project.sh ...` (3 sec)
+2. `cd <project>; supabase db push` (5 min)
+3. Customize charter + Tier 1 YAML files (2-4h)
+4. Implement first SOP (4h)
+5. **Total: 6-8h, schema work skipped**
+
+**Saving: 4-6h Wave 1 acceleration.**
+
+### Cross-project consistency
+
+Mỗi project mới từ boilerplate có:
+- Same 10 ops migrations (same schemas across projects)
+- Same JSON validation rules
+- Same pillar structure
+- Different content (charter, Tier 1 values, pillar SOPs)
+
+→ Operators familiar với Project A có instant context khi join Project B.
+
+## 32.9 Bundle versioning
+
+Trước chương 32:
+- v2.6: architecture-only bundle (341 trang playbook)
+
+Sau chương 32:
+- v2.7: architecture + implementation foundation
+  - Same 341+ playbook (will be 360 với chương 32)
+  - + 10 migrations
+  - + 18 JSON Schemas
+  - + 7 pillar scaffolds
+  - + validation script
+
+Boilerplate:
+- v1.0: initial framework (architecture only)
+- v1.1: + migrations + schemas + pillars (parity với Ritsu v2.7)
+
+## 32.10 Recommendation cho founder
+
+### Maturity progression
+
+| Level | Repo state | What to do |
+|---|---|---|
+| 0 | v2.6 architecture-only | Read playbook, understand patterns |
+| 1 | v2.7 with migrations + schemas | Run bootstrap, customize charter, push to Supabase |
+| 2 | Wave 1 in progress | Implement first SOPs, populate Tier 1 YAML |
+| 3 | Wave 1 stable | Document boilerplate patterns observed |
+| 4 | 2nd project starts | Tách boilerplate (per chương 31) |
+
+### Anti-patterns to avoid
+
+1. **Modifying generic migrations.** Edits go in 1xxxx_ range. Generic migrations (00001-00010) are upstream — modifications break boilerplate sync.
+
+2. **Skipping JSON Schema validation.** Without strict validation, Tier 1 YAML drift là silent killer. Run validate before every commit.
+
+3. **Ignoring pillar structure.** "01-business" hoặc "01-go-to-market" instead of "01-growth" → loses cross-project consistency.
+
+4. **Mixing concerns across pillars.** Customer support belongs in 02-customer, NOT 01-growth. Don't blur boundaries.
+
+5. **Inventing new pillar prefixes carelessly.** 09+ reserved, but adding 09-research randomly without thought → confuses operators.
+
+## 32.11 Tóm lại
+
+Chương 32 closes the gap between architecture (chương 1-31) và implementation (Wave 1+).
+
+**3 deliverables:**
+1. **10 Supabase migrations** (62KB SQL, generic core)
+2. **18 JSON Schemas** (strict Tier 1 validation)
+3. **7 pillar scaffolds** (consistent structure, project-specific content)
+
+**1 bootstrap script** automates 9-step pipeline (3 seconds).
+
+**Result:** Founder Wave 1 starts với complete schema foundation. ~5h saved per project. Cross-project consistency guaranteed.
+
+---
+
+**Tham khảo:**
+- Phase A.2 final architecture: chương 28
+- Repo runtime strategy: chương 29
+- Working modes A→B: chương 30
+- Boilerplate strategy: chương 31
+- Bài #13 Domain State Machines: chương 21
+- Bài #16 Customer Data: chương 24

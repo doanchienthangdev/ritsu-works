@@ -1,0 +1,671 @@
+---
+title: "Chương 33 — Capability Lifecycle Architecture (Bài #20)"
+description: "Chương 33 — Capability Lifecycle Architecture (Bài #20)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/33-capability-lifecycle-architecture.md
+source_hash: 410a45bbe36d5555b9d0134ec35480397bae95648d8d1639d248733792d90638
+generated_at: '2026-05-19T16:57:54.960Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 410a45bbe36d5555b9d0134ec35480397bae95648d8d1639d248733792d90638
+translated_at: '2026-05-19T16:57:54.960Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 33
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 33 — Capability Lifecycle Architecture (Bài #20)
+
+> *"Phase A + A.2 build kernel của Agent OS. Bài #20 build package manager. Without #20, every business problem = manual `make`. With #20, every business problem = `apt-get install <capability>`."*
+
+## 33.1 Bài toán cuối cùng — bridge architecture với operations
+
+Founder hỏi câu critical sau khi nhận bundle v2.7:
+
+> *"Mỗi khi tôi đề xuất 1 bài toán cốt lõi (ví dụ 'Làm sao kiếm thêm khách hàng mới mỗi ngày'), khi đó sẽ cần 1 brainstorming + implementation workflow X. Cần 1 quy trình tương tác chuẩn cho X."*
+
+Đây là gap đã tồn tại implicitly suốt 32 chapters — không có pattern chuẩn để đi từ business problem → integrated solution trên Agent OS.
+
+**Bài #20 Capability Lifecycle Architecture (CLA)** giải quyết.
+
+## 33.2 Khái niệm: Capability
+
+**Capability** = đơn vị giá trị nghiệp vụ deployed trên Agent OS, package gồm:
+
+- 1+ Skills (`05-ai-ops/skills/`)
+- 0-N SOPs (`<pillar>/sops/`)
+- 0-N Tier 1 changes (`knowledge/*.yaml`)
+- 0-N Database migrations (`supabase/migrations/`)
+- 0-N Integrations (`08-integrations/`)
+- 0-N Frontend pages (`frontend/`)
+- 0-N External services (Typeform, Stripe, Apollo.io, etc.)
+- 1 Capability spec (`wiki/capabilities/<id>/spec.md`)
+- 1 Retrospective (`wiki/capabilities/<id>/retrospective.md`)
+
+**Examples:**
+- `daily-customer-acquisition`
+- `support-triage-automation`
+- `multi-locale-content-publishing`
+- `founder-weekly-review-automation`
+
+Mỗi capability có lifecycle riêng + tracked in `capability-registry.yaml` + `ops.capability_runs`.
+
+## 33.3 8-Phase CLA Workflow
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  Phase 1: Problem Framing       (30 min, HITL: A)                │
+│  Phase 2: Domain Deep-Dive      (60 min, HITL: A)                │
+│  Phase 3: System Inventory      (30 min, HITL: A)                │
+│  Phase 4: Options Generation    (90 min, HITL: B founder picks)  │
+│  Phase 5: Architecture Design   (120 min, HITL: C critical)      │
+│  Phase 6: Sprint Planning       (45 min, HITL: B)                │
+│  Phase 7: Implementation        (1-4 weeks, HITL: B per PR)      │
+│  Phase 8: Catalog Update        (30 min, HITL: A)                │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Pre-implementation total:** ~6h founder time (Phases 1-6)
+**Implementation:** 1-4 weeks (Phase 7)
+**Wrap-up:** ~30 min (Phase 8)
+
+### Why 8 phases?
+
+Each phase = decision gate hoặc artifact production. Compressing phases = quality loss:
+
+- **Skip Phase 1 (Framing):** Architect from ambiguous problem → wrong solution
+- **Skip Phase 2 (Domain):** Miss industry context → reinvent suboptimally
+- **Skip Phase 3 (Inventory):** Duplicate existing capabilities
+- **Skip Phase 4 (Options):** Pick first idea without comparison
+- **Skip Phase 5 (Architecture):** No canonical spec → drift during build
+- **Skip Phase 6 (Sprints):** No acceptance criteria → unclear when done
+- **Skip Phase 7 (Implementation):** Just spec, no working capability
+- **Skip Phase 8 (Catalog):** Lessons lost, no boilerplate extraction
+
+Each phase blocks until prior complete (failure-handling rules).
+
+## 33.4 Trigger paths (3 ways)
+
+### Trigger 1: Voice note (Bài #18)
+
+Founder gửi voice note via Telegram:
+```
+"Tôi cần kiếm thêm 10 khách hàng mới mỗi ngày."
+```
+
+Pipeline:
+1. Bài #18 Whisper transcribe
+2. Voice classifier detects `decision_request` + capability proposal signal
+3. Auto-creates `wiki/capabilities/<auto-slug>/problem.md`
+4. Notifies founder: "Capability proposal logged. Start CLA workflow?"
+
+### Trigger 2: Claude Code command
+
+```bash
+> /cla propose "Kiếm 10 khách hàng mới mỗi ngày"
+```
+
+Or in conversation:
+```
+Bắt đầu CLA cho việc kiếm thêm khách hàng mỗi ngày
+```
+
+Claude Code reads SOP-AIOPS-001, kicks off Phase 1.
+
+### Trigger 3: Manual wiki entry
+
+Founder tạo `wiki/capabilities/<id>/problem.md` rồi commit. Pre-commit hook detects new capability folder → creates `ops.capability_runs` row → fires SOP.
+
+## 33.5 `/cla` command — operational reference (v1.0)
+
+`/cla` là thin orchestrator front-end cho SOP-AIOPS-001. Lệnh được defined tại `.claude/commands/cla.md` và đọc `06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml` để dispatch tới 10 skills phụ trong `06-ai-ops/skills/capability-lifecycle/`. Thiết kế là **idempotent + multi-session resilient**: state persisted vào `ops.capability_runs`, founder có thể `resume` bất kỳ lúc nào.
+
+### 33.5.1 Subcommands tổng quan (v1.0)
+
+| Invocation | Mục đích | HITL tier max | Persistence |
+|---|---|---|---|
+| `/cla` | Show menu + active capabilities | A | read-only |
+| `/cla propose "<problem>" [--refs <files>]` | Tạo capability MỚI từ Phase 0 | per-phase (max C) | INSERT `ops.capability_runs` |
+| `/cla resume <id>` | Tiếp tục capability đang dang dở | per-phase | UPDATE |
+| `/cla status <id>` | Show full state của 1 capability | A | read-only |
+| `/cla list [--state=<filter>]` | List tất cả capabilities + age | A | read-only |
+| `/cla cancel <id>` | Mark capability deprecated mà không deploy | B | UPDATE state→deprecated |
+
+### 33.5.2 Phase 0 — Drift Pre-Flight (v1.0 mới)
+
+Trước khi bất kỳ phase nào LLM-driven chạy, Phase 0 inline chạy:
+
+1. **`pnpm check`** (~3s). Non-zero exit → ABORT. Founder phải fix drift trước.
+2. **Generate slug** từ problem statement (kebab-case, ≤ 6 từ). Slug collision → hỏi "Resume hiện có / append `-v2` / pick slug khác?"
+3. **Tạo working folder** từ `_TEMPLATE`:
+   - Path: `/Users/doanchienthang/ritsu-works/.archives/cla/<slug>/`
+   - **Luôn root, không phải worktree** (per memory `archives_location_root_not_worktree`)
+4. **INSERT row** vào `ops.capability_runs` (via supabase MCP):
+   - `capability_id`, `capability_name`, `pillar_owner='06-ai-ops'` (refined Phase 3)
+   - `state='proposed', current_phase=1, phases_completed=ARRAY[]`
+   - `triggered_by_kind='cla_command'`, `triggered_by_payload={source:'/cla propose', refs:[...]}`
+5. **Append placeholder** vào `knowledge/capability-registry.yaml` (state: proposed, spec_path target)
+6. **Copy `--refs`** files (nếu có) vào `.archives/cla/<slug>/refs/`
+7. **Confirm + auto-advance** sang Phase 1 unless founder cancel
+
+**HITL: A** (auto-advance, log only).
+
+### 33.5.3 Phase 1-8 invocation chain (v1.0)
+
+Phase 0 → Phase 1 (problem-framer skill, HITL A) → Phase 2 (domain-analyst + CxO routing, HITL A) → Phase 3 (system-inventory-scanner, deterministic, HITL A) → Phase 4 (options-generator + parallel CxO fan-out, **HITL B founder picks**) → Phase 5 (architect + @cto + Muse panel + `ops.decisions` row, **HITL C full ceremony**) → Phase 6 (sprint-planner, HITL B) → Phase 7 (implementation-coordinator, 1 PR/sprint, HITL B per PR) → Phase 8 (catalog-updater promotion, HITL A).
+
+Mỗi phase invocation persists:
+- `ops.agent_runs` row (with `persona_slug` nếu invoke qua CxO; `agent_slug=capability-lifecycle/<skill-name>`)
+- `ops.run_summaries` row (~150 token, post-hoc per Strategy E memory)
+- `ops.capability_phase_events` row (state transition log)
+- `ops.events` row (`ritsu.capability.<phase>_completed`)
+- `ops.cost_attributions` row (bucket `ai-ops-cla` cho orchestration, `<capability-id>` cho capability-specific spend Phase 7)
+
+### 33.5.4 Resume semantics
+
+`/cla resume <id>` đảm bảo multi-session:
+
+1. Read `ops.capability_runs WHERE capability_id = <id>` cho current state
+2. **Re-run Phase 0 drift check** — state có thể đổi từ last session
+3. Validate `.archives/cla/<id>/` folder + draft consistency
+4. **Jump tới first incomplete phase** (per `phases_completed` array)
+5. Nếu `main` thay đổi đáng kể từ Phase 5 drafts → warn + offer re-run Phase 5
+6. Nếu `state_since > 7 days` → prompt staleness check
+
+### 33.5.5 Drift gates per phase
+
+| Phase | Gate | Fail khi |
+|---|---|---|
+| 0 | `pnpm check` mandatory trước INSERT | bất kỳ L1 / critical L2 drift |
+| 3 | `pnpm check` parsed cho inventory | informational only |
+| 5 | dry-run `pnpm check` trên `tier1-diffs` | validator errors trên draft yaml |
+| 7 | `pnpm check` per commit (husky) | L1 enforcement |
+| 8 | final `pnpm check` trước `deployed → operating` | drift sau registry update |
+
+### 33.5.6 CxO routing (Phases 2, 4, 5)
+
+Command đọc `knowledge/cla-routing-keywords.yaml`, match problem text:
+- **1 match** → dispatch `@<cxo>` (hoặc `fallback_role` nếu persona `status: planned`)
+- **0 hoặc >1 match** → `ambiguous_fallback` (mặc định: muse_panel)
+- **Phase 4**: fan-out top 2 options × max 3 chiefs song song
+- **Phase 5**: luôn invoke `@cto` cho migration + tier1-diff review, bất kể routing
+
+### 33.5.7 Information subcommands
+
+**`/cla list [--state=<filter>]`** — reads `ops.v_capability_pipeline` (view từ migration 00011) cho live state, merge với `knowledge/capability-registry.yaml` để pre-existing meta entries vẫn xuất hiện. Filter: `proposed | analyzing | architecting | planning | implementing | deployed | operating | deprecated | superseded`.
+
+**`/cla status <id>`** — queries `ops.v_capability_pipeline WHERE capability_id = <id>`, prints state, current_phase, phase_progress_pct, hours_in_current_state, file list dưới `.archives/cla/<id>/`.
+
+**`/cla cancel <id>`** — Tier B `AskUserQuestion` confirm; set `state='deprecated'` (KHÔNG delete row — preserve audit lineage). Là cách an toàn duy nhất để abort capability đang dang dở.
+
+## 33.6 Evolution sub-flows (v1.1)
+
+v1.1 (capability `cla-update-mechanism`) thêm 7 subcommand cho capabilities đã `state IN ('operating', 'deployed')`. Mỗi sub-flow có flow.yaml riêng tại `06-ai-ops/sops/SOP-AIOPS-001-{fix,extend,revise,tune,deprecate}/`.
+
+### 33.6.1 Subcommands tổng quan (v1.1)
+
+| Invocation | Mục đích | HITL | Time | Cost |
+|---|---|---|---|---|
+| `/cla fix <id>` | Bug fix — light delta workflow | B | ~30 min | ~$0.50 |
+| `/cla extend <id>` | Scope expansion — adds new components | B → C nếu spec đổi | 2-4h | $1.5-3 |
+| `/cla revise <id>` | Architecture revision — full ceremony | C | 1-2 tuần | $3-5 |
+| `/cla tune <id>` | KPI re-tuning — registry edit only | B | ~10 min | ~$0.10 |
+| `/cla deprecate <id>` | Sunset capability + cleanup | C | ~30 min | ~$0.30 |
+| `/cla history <id>` | Show lineage chain qua các sub-flow | A | \<1 min | ~$0 |
+| `/cla force-unlock <id>` | Phá lock kẹt (>24h hoặc dead session) | **D-Std** | \<1 min | ~$0 |
+
+### 33.6.2 Common pre-flight (5 evolution sub-flows)
+
+Trước mọi sub-flow:
+
+1. **Drift gate**: `pnpm check` clean. Else ABORT.
+2. **Lock acquire** (atomic): call `ops.capability_acquire_update_lock(<id>, <session_id>)`:
+   - NULL return → `LockHeld` error với held-by + age. Founder wait hoặc `/cla force-unlock <id>`.
+   - UUID return → lock acquired; proceed.
+3. **State check**: capability phải `state IN ('operating', 'deployed')`. Else ABORT.
+4. **INSERT NEW row** vào `ops.capability_runs`:
+   - `capability_id = <id>` (same parent — multiple rows per capability)
+   - `state='implementing', current_phase=1`
+   - `supersedes_id = <prior row id>` (lineage chain)
+   - `state_payload = {update_mode: 'fix|extend|revise|tune|deprecate', session_id: ..., parent_version: 'X.Y.Z'}`
+   - `update_lock_session_id`, `update_lock_acquired_at` set by acquire
+5. **Skill invocation** với `mode` parameter via state_payload.
+
+### 33.6.3 `/cla fix <id>` — bug fix (HITL B, ~30 phút, ~$0.50)
+
+**Phases:** 0 (preflight) → 1-delta (problem-framer in fix mode — what's broken?) → 7 (implementation, single PR via @cto) → 8-light (registry version patch++, NO spec promotion).
+
+**Output:** 1 PR + version bump `1.0.0 → 1.0.1`. **`spec.md` KHÔNG đổi.** Nếu phát hiện bug là spec bug → auto-escalate sang `:revise`.
+
+### 33.6.4 `/cla extend <id>` — scope expansion (HITL B → C, 2-4h, $1.5-3)
+
+**Phases:** 0 → 1-delta (what's new?) → 3 (system inventory + dependency-scanner) → 5-delta (architect produces `spec.md` diff; diff substantial → escalate Tier C) → 6 (sprint plan) → 7 (multi-PR) → 8 (registry minor++, `spec.md` promotion w/ archive of prior).
+
+**Output:** PR(s) + `spec.md` updated + version `1.0.0 → 1.1.0`.
+
+### 33.6.5 `/cla revise <id>` — architecture revision (HITL C, 1-2 tuần, $3-5)
+
+**Phases:** Full 0 → 1-delta (what fundamentally changes?) → 3 (inventory + deps) → 4 (options regenerate) → 5 (full architect + @cto + Muse panel) → 6 → 7 → 8 (registry major++, `spec.md` promotion).
+
+**Đây là sub-flow nặng nhất.** Chỉ dùng khi fundamental architecture changes (vd re-platforming). Version `1.0.0 → 2.0.0`.
+
+### 33.6.6 `/cla tune <id>` — KPI re-tuning (HITL B, ~10 phút, ~$0.10)
+
+**Phases:** 0 → 1-delta (which KPI? new target?) → 8-tune (registry edit only — không spec change, không skill change).
+
+**Output:** `spec.md` KHÔNG đổi. Version patch++ chỉ để tracking.
+
+### 33.6.7 `/cla deprecate <id>` — sunset (HITL C, ~30 phút, ~$0.30, **IRREVERSIBLE**)
+
+**Phases:** 0 → 1-delta (why deprecate?) → 3-deps (dependency-scanner — **block nếu có dependents**) → 8-deprecate (state→`deprecated`, cancel scheduled SOPs, move `CATALOG.md` row sang Deprecated section).
+
+Founder Tier C ceremony per `governance/HITL.md`. Không version bump (state transition only).
+
+### 33.6.8 `/cla history <id>` — read-only timeline (HITL A)
+
+Queries `ops.v_capability_lineage WHERE capability_id = <id>`. Output chronological table:
+
+```
+chain_depth | version | state       | proposed_at         | sub_flow  | cost  | duration
+------------|---------|-------------|---------------------|-----------|-------|--------
+0           | 1.0.0   | superseded  | 2026-05-04 12:00    | (initial) | $4.20 | 8 days
+1           | 1.0.1   | superseded  | 2026-05-12 09:00    | fix       | $0.45 | 2 hours
+2           | 1.1.0   | operating   | 2026-05-15 14:00    | extend    | $2.10 | 2 days
+```
+
+### 33.6.9 `/cla force-unlock <id>` — emergency lock break (HITL D-Std)
+
+**Tier D-Std action per `governance/HITL.md`.** Yêu cầu magic phrase `override: <reason 5+ words>` từ founder.
+
+Chỉ dùng khi:
+- Lock >24h (auto-expired nhưng chưa clear)
+- Known dead session (Claude Code process killed mid-cycle)
+- Founder đã resolve in-flight state externally
+
+Sets `update_lock_session_id=NULL` + `update_lock_acquired_at=NULL`. Logs to `ops.audit_log` với override reason.
+
+### 33.6.10 HITL discipline matrix (v1.0 + v1.1 consolidated)
+
+| Tier | Khi nào trong CLA flow | Cơ chế |
+|---|---|---|
+| **A** | Phase 0, 1, 2, 3, 8; `/cla list/status/history` | Auto-advance, log only |
+| **B** | Phase 4 (option pick), 6 (sprint approve), 7 (per PR); `/cla fix/tune/cancel` | `AskUserQuestion` gate — founder confirm |
+| **C** | Phase 5 (architecture); `/cla revise/extend (nếu spec đổi) /deprecate` | Full ceremony per HITL.md — dry-run preview + Telegram approval + cooldown |
+| **D-Std** | `/cla force-unlock` | Magic phrase ceremony |
+| **D-MAX** | Không bao giờ trong standard CLA flow | Refuse + surface to founder |
+
+## 33.7 State machine (Bài #13 convention)
+
+```
+proposed → analyzing → architecting → planning → 
+  implementing → deployed → operating
+                                    ↓
+                                  deprecated/superseded
+```
+
+Persistence: `ops.capability_runs.state`
+
+Multi-session resilient — Phase 7 spans weeks. Each session resumes từ last completed step.
+
+## 33.8 8 Specialized subagents
+
+CLA = orchestration of 8 subagents (per Bài #5):
+
+| Subagent | Phase | Type |
+|---|---|---|
+| `problem-framer` | 1 | LLM-driven (clarifying questions) |
+| `domain-analyst` | 2 | LLM-driven (Muse panel) |
+| `system-inventory-scanner` | 3 | **Deterministic** (file scanning) |
+| `options-generator` | 4 | LLM-driven (creative + analytical) |
+| `architect` | 5 | LLM-driven (heavy analysis) |
+| `sprint-planner` | 6 | LLM-driven (planning) |
+| `implementation-coordinator` | 7 | Hybrid (LLM + deterministic execution) |
+| `catalog-updater` | 8 | Hybrid (LLM retrospective + deterministic catalog update) |
+
+Phase 3 deterministic — runs in `ops.minion_jobs` queue (per Bài #5 Minions pattern, 100x cost reduction). No LLM needed for file scanning.
+
+## 33.9 Artifacts produced
+
+```
+wiki/capabilities/<capability_id>/
+├── problem.md             ← Phase 1 (canonical problem statement)
+├── domain-analysis.md     ← Phase 2 (industry context)
+├── gap-analysis.md        ← Phase 3 (system inventory + gaps)
+├── options.md             ← Phase 4 (3-5 options + recommendation)
+├── spec.md                ← Phase 5 (canonical capability spec)
+├── sprint-plan.md         ← Phase 6 (2-week sprint breakdown)
+├── retrospective.md       ← Phase 8 (lessons learned)
+└── draft/                 ← Phase 5 working drafts
+    ├── migrations/        ← SQL drafts
+    ├── tier1-diffs.yaml   ← Tier 1 yaml changes
+    └── skill-stubs/       ← New skill outlines
+```
+
+**Master index:** `wiki/capabilities/_CATALOG.md` — list of all capabilities by state.
+**Template:** `wiki/capabilities/_TEMPLATE/` — boilerplate cho new capabilities.
+
+## 33.10 Spec.md — canonical capability format
+
+12-section spec.md template (see `wiki/capabilities/_TEMPLATE/spec.md`):
+
+1. Problem statement
+2. Domain analysis summary
+3. Selected option
+4. Architecture impact (skills, SOPs, Tier 1, migrations, integrations, frontend, KPIs, Bài-toán impact)
+5. Cost-bucket impact (Bài #7)
+6. Founder time impact (Bài #19)
+7. HITL points (Bài #2)
+8. Decision tier (Bài #15)
+9. Sprint plan reference
+10. Acceptance criteria
+11. Rollback plan
+12. Operating mode (post-deployment)
+
+**Critical sections:**
+- **Section 4 (Architecture impact):** Per-Bài-toán impact analysis (16 dimensions)
+- **Section 11 (Rollback plan):** Required for HITL Tier C approval
+
+## 33.11 Cross-Bài-toán integration (16 layers)
+
+CLA = capstone integrating all prior bài toán:
+
+| Bài toán | Integration |
+|---|---|
+| #1 Truth | Capability spec = Tier 1 truth, retrospective = Tier 3 |
+| #2 HITL | Tier A/A/A/B/C/B/B/A across 8 phases |
+| #4 Memory | Capability catalog searchable via knowledge graph |
+| #5 Multi-Agent | 8 subagents, Minions cho deterministic phases (3) |
+| #7 Cost | Per-capability cost-bucket, projected vs actual |
+| #8 Schedule | Long-running implementations weekly progress check |
+| #9 SOP | CLA itself = meta-SOP, template cho future SOPs |
+| #10 Visibility | Dashboard view `v_capability_pipeline` |
+| #11 Events | Phase transitions fire `ritsu.capability.<phase>_completed` |
+| #13 State Machine | `ops.capability_runs.state` |
+| #14 Knowledge Graph | Spec links to entities (customers, decisions, etc.) |
+| #15 Decision | Phase 5 = Tier C+ với Muse panel |
+| #16 Customer Data | Many capabilities affect customer schema |
+| #17 Multi-Surface | Capabilities often need new surfaces |
+| #18 Ingestion | Trigger 1 (voice note) uses ingestion pipeline |
+| #19 Founder Capacity | Phase 5 scheduled cho deep-work block |
+
+## 33.12 Tier 1 file: `capability-registry.yaml`
+
+Tier 1 file #19 (after `feature-flags.yaml` = #18).
+
+Total Tier 1 files: 19 (12 Phase A.2 + 5 Phase A + feature-flags + capability-registry).
+
+Schema: `knowledge/schemas/capability-registry.schema.json`
+
+Validates:
+- Required fields (id, name, state, pillar_owner)
+- Slug pattern (`^[a-z][a-z0-9-]*$`)
+- State enum (9 valid states)
+- Pillar pattern (`^0[0-9]-[a-z-]+$`)
+- Date formats
+- Cost amounts (non-negative)
+
+## 33.13 Database: 2 new tables
+
+### `ops.capability_runs`
+
+Lifecycle tracking + Bài #7 cost-bucket integration + Bài #15 decision links + Bài #2 HITL trail.
+
+Indexes optimize:
+- Active pipeline queries (`v_capability_pipeline`)
+- State-based filtering
+- Pillar-based filtering
+- Lineage (supersedes/superseded_by)
+
+### `ops.capability_phase_events`
+
+Append-only log. Each phase produces multiple events:
+- `started`
+- `artifact_created`
+- `hitl_requested`
+- `hitl_decided`
+- `completed`
+- `failed`
+
+Enables timeline reconstruction + retrospective analysis.
+
+## 33.14 Helper functions
+
+### `ops.capability_advance_phase(run_id, completed_phase, artifact_path)`
+
+Atomic transaction:
+1. Update `ops.capability_runs.state` + `current_phase` + `phases_completed`
+2. Insert `ops.capability_phase_events` row
+3. Insert `ops.events` row (outbox pattern, per Bài #11)
+4. Set `deployed_at` / `operating_since` if applicable
+
+Single function call advances workflow + fires all downstream subscribers.
+
+## 33.15 Failure modes & guards
+
+### Failure mode 1: Skip Phase 4 (Options)
+
+**Detection:** `spec.md` exists without `options.md`
+**Response:** Block Phase 5. Force regenerate Phase 4.
+
+### Failure mode 2: Skip Phase 5 Tier C HITL
+
+**Detection:** spec.md exists without `hitl_phase_5_run_id`
+**Response:** Block Phase 6. Require explicit founder Tier C approval.
+
+### Failure mode 3: Phase 7 session lost
+
+**Detection:** `state = implementing` + last `capability_phase_events` > 7 days ago
+**Response:** Resume from last completed sprint. Notify founder.
+
+### Failure mode 4: Phase 8 skipped
+
+**Detection:** `state = deployed` without `retrospective_path`
+**Response:** Block transition to `operating`. Require retrospective.
+
+### Failure mode 5: Cost overrun
+
+**Detection:** `actual_cost_recurring_usd > estimated_cost_recurring_usd × 1.5`
+**Response:** Alert (Bài #10), require founder review before continuing.
+
+## 33.16 Operating mode (post-Phase 8)
+
+After Phase 8 completes, capability state = `operating`:
+
+### Continuous monitoring
+- KPIs tracked in `ops.kpi_snapshots`
+- Alerts active (per `alert-rules.yaml`)
+- Dashboard page renders `v_capability_pipeline` view
+
+### Periodic review
+- Weekly: KPI trends
+- Monthly: cost-bucket review (Bài #7)
+- Quarterly: capability still relevant?
+
+### Re-evaluation triggers
+- KPI drift > 20% from target
+- Cost overrun > 50% of estimate
+- Founder time burden > 2x estimate
+- New capability supersedes this one
+
+When superseded:
+- Mark old: `state = superseded`, `superseded_by_id = <new>`
+- Old continues operating until new fully deployed
+- Decommission per rollback plan in spec.md
+
+## 33.17 CLA itself = capability
+
+Meta-bootstrap: CLA tự nó là capability đầu tiên implementing on Agent OS.
+
+```yaml
+- id: capability-lifecycle-architecture
+  name: "Capability Lifecycle Architecture (Bài #20)"
+  state: deployed
+  deployed_at: 2026-05-04
+  pillar_owner: 05-ai-ops
+  bài_toán_touched: [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19]
+  spec_path: knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md
+```
+
+This capability deploys via Wave 1:
+- Migration 00011 applied
+- 8 skill stubs created
+- SOP-AIOPS-001 in `05-ai-ops/sops/`
+- Templates in `wiki/capabilities/_TEMPLATE/`
+- `capability-registry.yaml` populated
+
+Once Wave 1 deployed, CLA is self-hosting — every future capability flows through it.
+
+## 33.18 Multi-project applicability
+
+CLA is **100% generic** — applies to any Agent OS project.
+
+Boilerplate v1.2 ships với complete CLA infrastructure:
+- DRAFT bai-20
+- SOP-AIOPS-001 template
+- 8 skill stub templates
+- Migration 00011
+- Capability spec template
+- `capability-registry.yaml` template + JSON Schema
+
+For new project (e.g., Hollywood Channel):
+- Bootstrap copies all CLA infrastructure
+- Founder runs first CLA cycle for first business problem (e.g., "10 new YouTube subscribers/day")
+- Same 8 phases, same artifacts, different domain content
+
+Cross-project pattern recognition: capabilities solving similar problems across projects → boilerplate extraction candidates (chương 31).
+
+## 33.19 Founder workflow practical example
+
+### Day 1, 09:00 — Trigger
+Founder gửi voice note: "Tôi cần kiếm thêm 10 khách hàng mới mỗi ngày cho Ritsu."
+
+### Day 1, 09:05 — Phase 1 (auto)
+Bài #18 transcribes + classifies. `problem-framer` skill creates `wiki/capabilities/daily-customer-acquisition/problem.md` với 7 clarifying questions.
+
+Founder receives Telegram notification: "Capability proposal logged. 7 questions to answer."
+
+### Day 1, 14:00 — Founder answers questions
+Founder edits `problem.md` directly hoặc replies via Telegram.
+
+### Day 1, 14:30 — Phase 2 (auto)
+`domain-analyst` invokes Muse panel: growth-strategist + cynic + customer-advocate + cost-conscious + time-honest.
+Outputs `domain-analysis.md`.
+
+### Day 1, 15:30 — Phase 3 (auto, deterministic)
+`system-inventory-scanner` reads Agent OS state. Outputs `gap-analysis.md`:
+- ✅ Have: surface adapters, cost-tracker
+- ❌ Need: lead source poller, lead scorer, outreach personalizer
+- ❌ Need: Typeform + Apollo.io + Instantly.ai integrations
+
+### Day 1, 16:30 — Phase 4 (auto)
+`options-generator` produces 4 options:
+- A: Pure organic content ($0 setup, slow)
+- B: Paid acquisition ($500/mo, fast)
+- C: Hybrid automation ($114/mo, moderate) ← recommended
+- D: Heavy external stack ($300/mo, fastest)
+
+Founder receives HITL Tier B notification.
+
+### Day 2, 09:00 — Founder reviews options
+Picks Option C with adjustments.
+
+### Day 2, 10:00 — Phase 5 (auto)
+`architect` generates `spec.md` (12 sections) + draft migrations + draft skill stubs.
+Founder receives HITL Tier C notification: critical decision.
+
+### Day 2, 14:00 — Founder Tier C decision
+Reviews spec.md during morning deep-work block. Approves architecture.
+
+### Day 2, 14:30 — Phase 6 (auto)
+`sprint-planner` outputs 4-sprint plan (8 weeks).
+Founder Tier B approval.
+
+### Day 3-Day 56 — Phase 7 (multi-session)
+Founder + Claude Code execute sprints sequentially. Each PR triggers Tier B review.
+
+State persisted in `ops.capability_runs.state_payload`. If session ends, next session resumes.
+
+### Day 56 — Phase 8
+`catalog-updater` generates retrospective. Updates `_CATALOG.md`, `capability-registry.yaml`. Identifies generic patterns for `boilerplate-candidates.md`.
+
+### Day 57+ — Operating mode
+Capability operating. KPI `daily_new_customers` tracked. Founder weekly KPI review.
+
+**Total founder time:** ~6h Phases 1-6 + ~2h/week Phase 7 = ~22h over 8 weeks.
+
+## 33.20 Recommendation cho founder
+
+### Wave 1 priorities
+
+1. **Apply migration 00011** (capability_lifecycle table)
+2. **Validate `capability-registry.yaml`** với JSON schema
+3. **Implement `problem-framer` skill** (Phase 1) first — easiest, deterministic
+4. **Test với dry-run** capability proposal
+5. **Mark CLA capability state = deployed** in registry
+
+### After Wave 1, Wave 4+
+
+Once Bài #11 events + Bài #18 ingestion deployed (Wave 4-6), enable:
+- Trigger 1 (voice note auto-detection)
+- HITL Tier B/C notifications via Telegram
+
+### Long-term
+
+After 5+ capabilities deployed via CLA:
+- Pattern emerges: which Bài toán touched most often?
+- Common skills emerge: candidates cho boilerplate (per chương 31)
+- Cross-project: same CLA on Hollywood Channel project produces parallel learnings
+
+## 33.21 Anti-patterns
+
+### ❌ Skipping CLA cho "small" capabilities
+Even small capabilities benefit from 8 phases (compressed timing). Skipping = ad-hoc reinvention.
+
+### ❌ Phase 5 without Tier C HITL
+Architecture decisions are usually irreversible. Tier C HITL = safety check. Bypassing = expensive rollback risk.
+
+### ❌ Treating CLA as one-shot
+CLA iterates Agent OS. Each capability adds skills, SOPs, integrations. Architecture evolves cumulatively.
+
+### ❌ Skipping retrospective (Phase 8)
+Lessons not captured = repeated mistakes across capabilities.
+
+### ❌ Modifying spec.md after Phase 5 approval
+Spec is canonical contract. Modifications require new HITL Tier C round.
+
+### ❌ Multiple "active" capabilities với same slug
+Use `superseded_by_id` lineage. Don't bypass uniqueness constraint.
+
+## 33.22 Tóm lại
+
+Bài #20 CLA = **OS-level pattern cho deploying business capabilities trên Agent OS**.
+
+**3 deliverables:**
+1. **8-phase workflow** (problem → analysis → architecture → planning → implementation → operating)
+2. **Capability lifecycle infrastructure** (Tier 1 + database + 8 skills + SOP + templates)
+3. **Cross-Bài-toán integration** (16 prior bài toán)
+
+**Founder benefit:**
+- Standardized X workflow
+- Capability catalog (searchable history)
+- Cross-project pattern recognition
+- Cumulative architecture evolution
+- Lessons learned discipline
+
+**Result:** Founder mỗi lần proposed business problem → flows through CLA → integrated capability deployed → captured in catalog → patterns extracted to boilerplate.
+
+**Phase A + A.2 + Bài #20 = complete Agent OS.** Architecture (chương 1-19) + Implementation foundation (chương 32) + Lifecycle pattern (chương 33) = ready for any business problem.
+
+---
+
+**Tham khảo:**
+- DRAFT bai-20: `knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md`
+- SOP-AIOPS-001: `05-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/`
+- 8 skill stubs: `05-ai-ops/skills/capability-lifecycle/`
+- Templates: `wiki/capabilities/_TEMPLATE/`
+- Migration: `supabase/migrations/00011_capability_lifecycle.sql`
+- Tier 1: `knowledge/capability-registry.yaml`
+- Phase A.2 final architecture: chương 28
+- Boilerplate strategy: chương 31

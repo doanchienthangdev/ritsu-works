@@ -1,0 +1,375 @@
+---
+title: "Chương 25 — Walkthrough G7: Multi-Surface + Multilingual Operations (Bài #17 candidate)"
+description: "Chương 25 — Walkthrough G7: Multi-Surface + Multilingual Operations (Bài #17 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/25-walkthrough-G7-multi-surface.md
+source_hash: 312065dc6e0430e5e3b20d908e5c24e617ff3f5e52a279787af8f01a9d093c97
+generated_at: '2026-05-19T16:57:54.936Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 312065dc6e0430e5e3b20d908e5c24e617ff3f5e52a279787af8f01a9d093c97
+translated_at: '2026-05-19T16:57:54.936Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 25
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 25 — Walkthrough G7: Multi-Surface + Multilingual Operations (Bài #17 candidate)
+
+> *"Ritsu phục vụ 10 ngôn ngữ, hoạt động trên 10 social channels. Phase A treat communication channels as ad-hoc. Phase A.2 reveals: surfaces có shared concerns (auth, rate limit, format conversion, locale, compliance) cần unified architecture."*
+
+## 25.1 Tình huống
+
+Founder TH11 anchor: *"Tôi đăng content lên 10 channels — Twitter/X, LinkedIn, Facebook, Instagram, TikTok, YouTube, Threads, Reddit, Discord, Telegram. Mỗi channel có format riêng, schedule riêng, audience riêng. Manual posting = không scale."*
+
+5 scenarios:
+1. **Content publish** — 1 source → 100 variants (10 channels × 10 langs)
+2. **Customer support multilingual** — VI Telegram + KR email + PT WhatsApp
+3. **Inbound aggregation** — mentions/comments/threads across surfaces → unified ops.events
+4. **Localized founder communication** — VI primary + EN cultural framing
+5. **Channel-specific compliance** — Email CAN-SPAM, WhatsApp 24h window, LinkedIn no-spam
+
+**Founder expected:** single source → multi-surface variants automated, inbound unified, locale-aware, per-surface rate limits + compliance built-in.
+
+**Khi sai:** manual posting (bandwidth sink), signals lost (reputation damage), wrong formality (brand damage), rate violations (bans).
+
+## 25.2 Walk through Phase A + prior walkthroughs
+
+### Have
+- ✅ Bài #6 brand_voice.md (multilingual EN+VI), Telegram interface
+- ✅ Bài #2 HITL (Telegram primary)
+- ✅ Bài #11 events ingestion
+- ✅ Bài #16 customer locale + data_region
+- ✅ Bài #14 content entity type
+- ✅ Bài #9 SOP architecture
+- ✅ Bài #12 MCP
+
+### Don't have
+
+16 gaps — adapter pattern, channel registry, format converters, locale routing, translation, cultural register, rate limiting, compliance rules, inbound aggregation, conversation threading, surface health, content variants, outbound authorship, channel scheduling, multi-language workflow, locale-aware brand voice.
+
+## 25.3 Workaround vs proper extension
+
+### Workaround
+- Z1: One skill per channel — 10 × 10 = 100 skills, drift inevitable
+- Z2: 3rd-party (Buffer, Hootsuite) — no AI integration
+- Z3: Surface adapter architecture với declarative registry — proper
+
+**Recommendation: Z3.**
+
+### Proper extension — Bài #17
+
+4 axes:
+
+#### Axis 1 — Surface Adapter + Channel Registry
+
+**SurfaceAdapter interface:**
+
+```typescript
+export interface SurfaceAdapter {
+  channel_id: string;
+  publish(content: NormalizedContent, options: PublishOptions): Promise<PublishResult>;
+  reply(to_message_id: string, content: NormalizedContent): Promise<ReplyResult>;
+  poll_inbox(since_ts: timestamp): Promise<NormalizedMessage[]>;
+  subscribe_webhook(url: string): Promise<WebhookSubscription>;
+  check_health(): Promise<HealthStatus>;
+  rate_limit_status(): Promise<RateLimitStatus>;
+}
+```
+
+**Channel registry (Tier 1):**
+
+```yaml
+# knowledge/channels.yaml
+channels:
+  - id: twitter
+    adapter: "twitter-adapter-v2"
+    type: social
+    auth:
+      kind: oauth_2_0
+      credential_ref: secrets/twitter-oauth
+    formats_supported: [tweet, thread, image, video]
+    rate_limits:
+      tweets_per_15min: 50
+    compliance:
+      - rule: "no spam patterns (5+ identical tweets)"
+  
+  - id: telegram
+    adapter: "telegram-bot-adapter"
+    type: messaging
+    purpose: [hitl, founder_broadcast, customer_support]
+    rate_limits:
+      messages_per_second: 30
+  
+  - id: email
+    adapter: "email-adapter"
+    type: direct
+    formats_supported: [plain, html, attachments]
+    compliance:
+      - rule: "CAN-SPAM unsubscribe link mandatory"
+      - rule: "GDPR opt-in for marketing"
+  
+  - id: whatsapp
+    adapter: "whatsapp-business-adapter"
+    type: messaging
+    compliance:
+      - rule: "24-hour customer service window"
+      - rule: "Templates require Meta approval"
+  
+  # 10 social + email + telegram + dashboard + MCP = 13+ surfaces
+```
+
+#### Axis 2 — Format Converter + Variant Generation
+
+**Pattern: O(N) converters, not O(N × M):**
+
+```
+Source: NormalizedContent (markdown + metadata)
+   ↓ format-converter library (per channel)
+Variants:
+- twitter-thread (8-12 tweets)
+- linkedin-post (1500 chars)
+- facebook-post (caption + image)
+- instagram-carousel (10 slides + caption)
+- email-html (với unsubscribe link)
+- ...
+```
+
+**Format converter library:**
+
+```
+05-ai-ops/format-converters/
+├── twitter-thread.ts
+├── linkedin-post.ts
+├── facebook-post.ts
+├── instagram-carousel.ts
+├── tiktok-script.ts
+├── email-html.ts
+├── reddit-post.ts
+└── ...
+```
+
+**Multi-language workflow:**
+
+```
+1. Source written in primary language (VI or EN)
+2. Translation (LLM-based) với brand_voice context per locale
+3. Cultural adaptation (formality registers per locale)
+4. Per-channel formatting
+```
+
+**Routing (Minions pattern):**
+- Deterministic conversions (markdown → HTML, JSON) → ops.minion_jobs
+- Judgment conversions (LinkedIn rephrasing, locale cultural adaptation) → subagent
+
+#### Axis 3 — Inbound Aggregation + Threading
+
+**Inbound flow:**
+
+```
+Each surface adapter polls/webhook
+  ↓ Normalize message → ops.external_events (Bài #10 ingestion)
+  ↓ Deduplication (cross-surface)
+  ↓ ops.events unified (Bài #11)
+  ↓ Triggers SOPs:
+- Tweet mention "@ritsu" → SOP-CONTENT-005-engagement-response
+- LinkedIn comment → SOP-CONTENT-006-professional-engagement
+- Email support → SOP-CUSTOMER-002-support-response
+- Discord community message → SOP-COMMUNITY-001-engagement
+```
+
+**Cross-surface conversation threading:**
+
+```sql
+CREATE TABLE ops.conversations (
+  id              uuid PRIMARY KEY,
+  customer_id     uuid REFERENCES customers(id),
+  primary_locale  text,
+  state           text NOT NULL,         -- 'open' | 'awaiting_customer' | 'awaiting_us' | 'resolved'
+  state_since     timestamptz,
+  surface_thread_refs jsonb               -- {telegram: chat_id, email: thread_id, ...}
+);
+
+CREATE TABLE ops.conversation_messages (
+  id              uuid PRIMARY KEY,
+  conversation_id uuid REFERENCES ops.conversations(id),
+  surface_id      text NOT NULL,
+  surface_message_id text,
+  direction       text NOT NULL,
+  author_role     text,
+  locale          text,
+  content         text,
+  occurred_at     timestamptz NOT NULL
+);
+```
+
+Customer matching:
+- Email → primary_email
+- Phone (Telegram/WhatsApp) → persons.phone
+- Twitter/social → handle if known, else create person stub
+
+#### Axis 4 — Locale + Cultural + Compliance
+
+**Locale registry (Tier 1):**
+
+```yaml
+# knowledge/locales.yaml
+locales:
+  - id: en
+    formality_default: neutral
+    direction: ltr
+    date_format: "MMM dd, yyyy"
+  
+  - id: vi
+    formality_default: neutral
+    formality_options: [casual, neutral, formal]
+    honorifics: [anh, chị, em, cô, chú, bác]
+    cultural_notes: |
+      Vietnamese highly contextual. Formality depends on:
+      - Age relationship
+      - Power distance
+      - Familiarity
+      Default to neutral với "anh/chị" honorifics.
+  
+  - id: jp
+    formality_default: formal
+    formality_options: [casual, polite_です/ます, formal_keigo]
+    honorifics: [-san, -sama, -kun, -chan]
+    cultural_notes: |
+      Japanese requires careful keigo (敬語).
+      Default to です/ます polite for B2C.
+      Use 敬語 for B2B enterprise.
+```
+
+**Brand voice variants:**
+
+```
+00-charter/brand_voice/
+├── brand_voice.md              # source (EN+VI bilingual)
+├── brand_voice.en.md           # English variant
+├── brand_voice.vi.md           # Vietnamese
+├── brand_voice.jp.md           # Japanese
+└── ...
+```
+
+Each variant inherits philosophy, adapts: tone, honorifics, cultural references, date/number formats.
+
+**Per-surface compliance:**
+
+```yaml
+# knowledge/surface-compliance.yaml
+compliance_rules:
+  email-can-spam:
+    requirements:
+      - unsubscribe_link_mandatory: true
+      - sender_address_required: true
+    enforced_by_adapter: email-adapter
+  
+  whatsapp-24h-window:
+    requirements:
+      - free_form_after_inbound_only: true
+      - templates_after_24h_only: true
+    enforced_by_adapter: whatsapp-business-adapter
+  
+  twitter-no-spam:
+    requirements:
+      - no_5_identical_tweets: true
+    enforced_by_adapter: twitter-adapter
+```
+
+**Enforced before publish** — fail-safe pattern.
+
+## 25.4 New components (25)
+
+25 components — 3 Tier 1 registries + 13+ adapters + format converter library + 2 schemas + skills + brand voice variants + 4 cross-bài-toán updates (#6, #9, #11, #16).
+
+## 25.5 Bài #17 candidate
+
+**Bài #17 — Multi-Surface + Multilingual Operations**
+
+**Question core:** Single content source produces variants across 13+ surfaces × 10 locales. Inbound signals unified. Cross-surface conversation threading. Per-surface rate limits + compliance enforced. Locale-aware brand voice + cultural adaptation.
+
+**Dependencies:** Bài #1, #2, #4, #6, #8 DRAFT, #9 DRAFT, #11 DRAFT, #12 DRAFT, #13 DRAFT, #16 DRAFT
+
+## 25.6 Lessons captured
+
+1. **Surface = adapter pattern** (common interface).
+2. **Channel registry as Tier 1.**
+3. **Format converter library = O(N), not O(N × M)** (channels × locales = exponential).
+4. **Locale ≠ language** (formality, honorifics, cultural references differ).
+5. **Brand voice per locale** — inherit philosophy, adapt register.
+6. **Conversation threading across surfaces.**
+7. **Per-surface compliance non-negotiable** (WhatsApp template rejection = permanent ban).
+8. **Inbound + outbound symmetric architecture.**
+9. **Rate limit enforcement at adapter, not skill.**
+10. **Deterministic vs judgment converter routing** (Minions pattern).
+11. **Surface health = first-class observability.**
+12. **Cross-surface deduplication essential.**
+
+## 25.7 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ17.1 | Voice surfaces (Twilio, phone)? | Voice need surfaces |
+| OQ17.2 | In-app messaging native chat? | App development |
+| OQ17.3 | API marketplace (Zapier, Make)? | Customer requests |
+| OQ17.4 | Persona consistency? | Content style review |
+| OQ17.5 | Cross-surface campaign attribution? | Marketing analytics |
+| OQ17.6 | Group chat threading? | Community surface |
+| OQ17.7 | Encryption at rest? | Phase D security |
+| OQ17.8 | Multi-account per surface? | When 2nd account needed |
+| OQ17.9 | Real-time vs polling? | Per-surface implementation |
+
+## 25.8 Anti-patterns
+
+- ❌ One skill per channel (drift)
+- ❌ Per-channel auth in code (use credential refs)
+- ❌ Direct API calls bypassing adapter
+- ❌ Skip inbound aggregation (signals lost)
+- ❌ Translate without cultural adaptation
+- ❌ Single brand_voice.md across locales
+- ❌ Skip per-surface compliance
+- ❌ Hardcode rate limits in skills
+- ❌ Conversation threading via memory only
+- ❌ Same persona voice across surfaces
+- ❌ Customer matching via email only
+- ❌ Skip surface health monitoring
+
+## 25.9 Cross-references
+
+- **Bài #2:** Telegram primary HITL
+- **Bài #4:** Multi-locale brand voice extends
+- **Bài #6:** Brand voice variants per locale; sub-domain B extended
+- **Bài #8:** Channel-specific scheduling
+- **Bài #9:** Content publish SOPs use surface adapters
+- **Bài #10:** /operations/surfaces/\<channel_id> health pages
+- **Bài #11:** All inbound → ops.events với surface_id
+- **Bài #12:** ritsu.content.publish + ritsu.conversation.thread MCP tools
+- **Bài #13:** Conversation state machine, content publish state
+- **Bài #14:** Content piece → published_on edges
+- **Bài #16:** Customer locale + data_region drives surface routing
+- **GBrain heritage:** Auto-link, compiled-truth, Skillify
+- **GBrain Minions:** Format converters mostly deterministic → minion queue
+
+## 25.10 Tổng kết
+
+- **Bài #17 candidate: Multi-Surface + Multilingual Operations**
+- **4 axes:** adapter+registry / format converters+variants / inbound aggregation+threading / locale+cultural+compliance
+- **25 new components**
+- **3 new Tier 1 registries:** channels.yaml, locales.yaml, surface-compliance.yaml
+- **13+ surfaces** + **10 locales** = scalable architecture
+
+**Pattern after 10 walkthroughs:** declarative-first architecture với 14 Tier 1 files (operational DNA + knowledge + judgment + privacy + multi-surface): + **channels.yaml + locales.yaml + surface-compliance.yaml**.
+
+Sang chương sau — walkthrough G13 Knowledge Ingestion.
+
+---
+
+**Tham khảo:**
+- High-altitude pass: G7 entry (score 5.80)
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G7-multi-surface.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-17-multi-surface-DRAFT.md`
+- Phase A dependencies: Chương 9 (Bài #6 Identity)
+- Phase A.2 dependencies: Chương 16-24 (all prior bài toán)

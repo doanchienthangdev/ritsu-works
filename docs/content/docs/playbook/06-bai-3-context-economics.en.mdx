@@ -1,0 +1,322 @@
+---
+title: "Chương 6 — Bài #3: Context Window Economics"
+description: "Chương 6 — Bài #3: Context Window Economics"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/06-bai-3-context-economics.md
+source_hash: 6f186b014b9f0483efe4375275de834198d47c450e0941cc1aecaf9b5eeb9b57
+generated_at: '2026-05-19T16:57:54.892Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 6f186b014b9f0483efe4375275de834198d47c450e0941cc1aecaf9b5eeb9b57
+translated_at: '2026-05-19T16:57:54.892Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 6
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 6 — Bài #3: Context Window Economics
+
+> *"Mỗi LLM call costs theo token. Context window 200K. 100 sessions/ngày × 50K tokens preamble = $300/ngày chỉ riêng preamble — chưa làm gì cả."*
+
+## 6.1 Failure mode đặc thù
+
+Bài #3 phải giải 6 failure mode:
+
+1. **Token cost spiral từ preamble.** Mỗi session load full CLAUDE.md (10K tokens) + 9 SOPs (45K tokens) + 3 brand docs (10K tokens) = 65K input tokens BEFORE bất kỳ task nào. Multiplied across calls/day.
+2. **"Lost in the middle".** Research từ Anthropic và OpenAI: model performance degrades khi context dài. Information ở giữa context bị overlook. Long contexts ≠ better contexts.
+3. **Repetitive context.** Cùng CLAUDE.md được rebill trên mỗi request — không cache. 200K tokens × 100 requests = 20M tokens charged for the SAME content.
+4. **Cross-task pollution.** Session làm task A → context dài → tiếp tục task B trong cùng session → context của A vẫn ở đó, "pollute" reasoning về B.
+5. **No graduation between roles.** GPS (orchestrator, complex reasoning) và `etl-runner` (simple data pulls) cùng có context budget = 200K. Lãng phí cho roles nhẹ.
+6. **Trigger compaction wrong time.** Compaction quá sớm = mất useful context; quá muộn = hit hard limit, fail.
+
+## 6.2 Pivot lesson
+
+Đây là bài Ritsu had the **biggest pivot** trong Phase A. Initial design: build custom context management layer (custom skill loaders, custom compaction, custom caching).
+
+Sau khi research Anthropic platform: **~70% planned scope là overengineering**. Anthropic platform đã ship:
+
+- **Skills progressive disclosure** — frontmatter ~100 tokens trong tool list, full SKILL.md loaded on-demand
+- **`@imports` trong CLAUDE.md** — lazy reference thay vì copy content
+- **Server-side compaction** — `/compact` command, auto-trigger ở threshold
+- **Subagents** — fresh context, return summary only
+- **Prompt caching** — auto-applied cho repeated content
+
+→ Lesson: **research platform first, build only the gap**.
+
+Ritsu's Outer Harness layer cho Bài #3 chỉ cần:
+- CLAUDE.md discipline (lean, \<2K tokens)
+- Per-role `context_budget` field (Ritsu-specific policy)
+- Default budgets by role archetype
+
+3 thành phần. Không có hook, không có skill mới. Phần lớn work là REMOVING things từ initial design.
+
+## 6.3 CLAUDE.md discipline
+
+CLAUDE.md là file mỗi Claude Code session load đầu tiên. Đây là entry point.
+
+**Tham:** stuff everything vào CLAUDE.md (governance, brand voice, all SOPs, all skills metadata).
+
+**Discipline:** CLAUDE.md là **router**, không phải repository. Use `@imports` để reference khi cần.
+
+### CLAUDE.md template (1.16K tokens)
+
+```markdown
+# Ritsu Workforce — Operating Principles
+
+You are a member of Ritsu's AI workforce. This file is your entry point.
+
+## Identity
+You are operating as <role-slug> per `.claude/agents/<role-slug>.md`.
+See `governance/IDENTITY.md` for what role slug means in external systems.
+
+## Knowledge architecture
+- Tier 1 (declarative): `00-charter/`, `governance/`, `knowledge/`
+- Tier 2 (operational): Supabase `ritsu-ops`
+- Tier 3 (assets): Supabase Storage
+- Tier 4 (vectors): pgvector
+See `knowledge/manifest.yaml` for complete inventory.
+
+## Governance
+@governance/HITL.md
+@governance/ROLES.md
+- Your role's `hitl_max_tier` is the highest tier you may attempt without escalating to founder.
+- Escalation always goes via Telegram per the configured channel.
+
+## Memory & learning
+- Episodic recall: invoke `episodic-recall` skill at task start.
+- Run summaries: emit on completion (configured in your role's `memory_config`).
+- Corrections: respect founder edits; do not argue.
+See `knowledge/memory-architecture.md` for full strategy.
+
+## Orchestration
+- Decompose only when decomposition is justified (see `task-decompose` skill).
+- State lives in `ops.tasks`. Never invent ad-hoc state stores.
+See `knowledge/orchestration-architecture.md`.
+
+## Identity (customer-facing)
+External persona is "Ritsu Assistant" — see `00-charter/transparency.md`.
+EU AI Act Article 50 compliance is mandatory; `ai-disclosure-check` skill before
+any customer-facing send.
+
+## Economic discipline
+Per-role budget in your `economic_budget`. Budget breaches trigger 3-tier
+escalation. Do not work around budget — escalate.
+See `knowledge/economic-architecture.md`.
+
+## Voice
+Internal: terse, technical (per `00-charter/brand_voice.md` internal voice).
+External (when applicable): "Ritsu Assistant" voice — see brand_voice.md.
+
+## Anti-patterns to refuse
+- Working around governance ("just this once")
+- Skipping disclosure for routine messages
+- Creating ad-hoc storage outside Tier 1-4
+- Auto-approving Tier C+ on behalf of founder
+- Persona drift (claiming to be human)
+```
+
+**~1.16K tokens. Mọi thứ khác là `@import` reference.**
+
+### `@imports` mechanics
+
+`@governance/HITL.md` không inline content. Khi agent thực sự cần HITL details (e.g., classifying a tool call's tier), agent TÌM file đó qua tool. Không load upfront.
+
+Lợi ích:
+- Preamble nhỏ → mỗi session start cheap
+- Knowledge available on-demand (full file readable when needed)
+- Updates to imported file không invalidate session cache
+
+### Anti-pattern
+
+```markdown
+# CLAUDE.md (BAD)
+
+You are a member of Ritsu workforce.
+
+## Full HITL policy
+[copies entire HITL.md content, 8K tokens]
+
+## Full ROLES.md
+[copies entire ROLES.md, 14K tokens]
+
+## All skills available
+[lists every skill with full description, 20K tokens]
+
+## Brand voice
+[copies brand_voice.md, 6K tokens]
+
+[total: 50K+ tokens, charged on every session]
+```
+
+This is the most common shape of CLAUDE.md and the most expensive.
+
+## 6.4 Per-role `context_budget`
+
+Mỗi role có 3 numbers trong `context_budget`:
+
+```yaml
+context_budget:
+  preamble_tokens: 2000      # max session-start preamble
+  working_tokens: 60000      # max accumulated working context
+  trigger_compact_at: 0.75   # fraction at which agent self-invokes /compact
+```
+
+### Default budgets by role archetype
+
+```yaml
+# Heavy reasoners (orchestration, deep synthesis)
+gps:
+  preamble_tokens: 2500
+  working_tokens: 80000
+  trigger_compact_at: 0.70
+
+# Mid-volume specialists
+growth-orchestrator:
+  preamble_tokens: 2000
+  working_tokens: 60000
+  trigger_compact_at: 0.75
+
+content-drafter:
+  preamble_tokens: 2500    # needs brand voice loaded
+  working_tokens: 70000
+  trigger_compact_at: 0.70
+
+# High-volume light roles
+support-agent:
+  preamble_tokens: 1500
+  working_tokens: 30000
+  trigger_compact_at: 0.80   # compact aggressively, sessions short
+
+etl-runner:
+  preamble_tokens: 1000
+  working_tokens: 15000
+  trigger_compact_at: 0.85   # most ETL is single-shot
+
+# Read-only roles
+code-reviewer:
+  preamble_tokens: 1500
+  working_tokens: 40000
+  trigger_compact_at: 0.75
+```
+
+**Rationale:**
+
+- `preamble_tokens` = how rich CLAUDE.md + role-specific preamble may be
+- `working_tokens` = how much accumulated reasoning before compact mandatory
+- `trigger_compact_at` = aggressiveness; high-volume roles compact aggressively (0.80-0.85), heavy reasoners less aggressive (0.70)
+
+### Setting budgets — heuristic
+
+Ask: *"Nếu role này tiêu hết working_tokens, nó đã làm bao nhiêu work?"*
+
+- `etl-runner` 15K tokens = ~10 SQL queries. Compact reasonable.
+- `support-agent` 30K tokens = ~20 customer interactions. Compact reasonable.
+- `gps` 80K tokens = orchestration of 3-4 sub-tasks deep. Compact loses context.
+
+Set budget at point where **further accumulation degrades quality more than compaction loses context**.
+
+## 6.5 How budgets interact with platform features
+
+### Skills progressive disclosure
+
+Anthropic platform: skill frontmatter (~100 tokens) là always loaded; full SKILL.md only loaded khi agent invokes skill.
+
+→ With 7 skills in Ritsu, frontmatter total ~700 tokens. Full skills (~3K tokens each) only loaded when invoked.
+
+Without progressive disclosure, 7 skills × 3K tokens = 21K tokens always loaded. With it: 700 tokens always + 3K when actively in use.
+
+### Subagents
+
+Subagent có **fresh context window**. Parent passes only task_id (uuid); subagent reads task from `ops.tasks`, executes, returns summary.
+
+→ Parent's `working_tokens` không grow when subagent does verbose work. The verbose part lives in subagent's context (then dies when subagent completes).
+
+Compose with Bài #5 orchestration: spawn subagent when own context gets full = strategy of context preservation.
+
+### Compaction
+
+`/compact` (manual or auto-triggered):
+- Anthropic generates compressed summary of conversation
+- Replaces full history với summary
+- Conversation continues from summary
+
+Important: compaction is LOSSY. Some details discarded. If you have task state that MUST persist, write to `ops.tasks.state_payload` (Bài #5) BEFORE compacting.
+
+### Caching
+
+Anthropic auto-caches repeated content (e.g., CLAUDE.md, system prompt). Cache reads ~10% of standard input cost.
+
+→ With lean CLAUDE.md (1.2K tokens) + cache: cost is negligible across sessions. Without lean (50K tokens) + cache: cache reads of 50K tokens × N sessions still adds up.
+
+Caching helps but doesn't eliminate the cost of bloat. Lean first, cache second.
+
+## 6.6 Diagram — request lifecycle với platform primitives
+
+```
+[Session start]
+     │
+     ▼
+┌───────────────────────────────────┐
+│ Load preamble (cached after 1st)  │
+│ - CLAUDE.md (~1.2K tokens)        │
+│ - Role file (~500 tokens)         │
+│ - Skills frontmatter (~700)       │
+│ Total: ~2.4K tokens preamble      │
+└─────────────┬─────────────────────┘
+              │
+              ▼
+┌───────────────────────────────────┐
+│ Agent receives task               │
+│ - Reads ops.tasks if continuation │
+│ - Invokes episodic-recall skill   │
+│ - Loads only relevant SKILL.md    │
+└─────────────┬─────────────────────┘
+              │
+              ▼
+┌───────────────────────────────────┐
+│ Working                           │
+│ - Tool calls accumulate context   │
+│ - At trigger_compact_at:          │
+│     auto-/compact if continuing   │
+│     OR spawn subagent if delegate │
+└─────────────┬─────────────────────┘
+              │
+              ▼
+┌───────────────────────────────────┐
+│ Completion                        │
+│ - Emit run_summary (Bài #4)       │
+│ - Update ops.tasks state          │
+│ - Cost attribution write (Bài #7) │
+└───────────────────────────────────┘
+```
+
+## 6.7 Anti-patterns Bài #3
+
+- **"Stuff everything into CLAUDE.md just in case."** Tăng preamble cost mỗi session. Use `@imports` thay.
+- **"Disable compaction để giữ full history."** Working tokens hit ceiling, session fail. Compact aggressively cho high-volume roles.
+- **"Per-role budget = 200K cho mọi role."** Lãng phí. Tail role (etl-runner) chỉ cần 15K.
+- **"Skills frontmatter dài 1000 tokens."** Defeats progressive disclosure. Frontmatter ~100 tokens; details trong body.
+- **"Pre-load every skill at session start."** Same problem. Trust progressive disclosure.
+- **"Custom context manager thay vì platform compaction."** Often overengineered. Platform tested at scale; your custom layer not.
+
+## 6.8 Tổng kết Bài #3
+
+- **Pivot lesson:** research platform first, build gap only. ~70% initial scope was overengineering.
+- **Platform primitives** Ritsu rely on: skills progressive disclosure, `@imports`, `/compact`, subagents fresh context, auto-caching.
+- **Outer Harness layer** chỉ 3 thành phần: CLAUDE.md lean (~1.2K tokens), per-role `context_budget`, archetype defaults.
+- **No hook, no skill** new for Bài #3 (đặc biệt — minimal infrastructure).
+- **Compaction is lossy.** State that MUST persist → ops.tasks state_payload BEFORE compact.
+- **Lean first, cache second.** Caching không eliminate bloat cost.
+
+Bài #3 là bài shortest infrastructure-wise. Sang Chương 7 (Bài #4 — Memory & Learning Loop) — bài long-form về cách workforce HỌC theo thời gian.
+
+---
+
+**Tham khảo:**
+- Anthropic Skills documentation: https://docs.claude.com/en/docs/skills/overview
+- Anthropic Subagents: https://code.claude.com/docs/en/sub-agents
+- Anthropic CLAUDE.md best practices: https://docs.claude.com/en/docs/claude-code/memory
+- "Lost in the middle" research: https://arxiv.org/abs/2307.03172
+- Ritsu repo: `CLAUDE.md` (~1.16K tokens), `governance/ROLES.md` Context budget guidance section

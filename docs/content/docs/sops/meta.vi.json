@@ -104,5 +104,6 @@
     "SOP-PRODUCT-010-pricing-pull-test",
     "SOP-PRODUCT-011-tier-boundary-experiment",
     "SOP-PRODUCT-012-ab-test-decision-protocol"
-  ]
+  ],
+  "icon": "ListChecks"
 }

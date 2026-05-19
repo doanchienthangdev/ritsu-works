@@ -1,0 +1,366 @@
+---
+title: "Chương 24 — Walkthrough G8: Customer Data Architecture & Privacy (Bài #16 candidate)"
+description: "Chương 24 — Walkthrough G8: Customer Data Architecture & Privacy (Bài #16 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/24-walkthrough-G8-customer-data.md
+source_hash: 3011144839529994325624b377291301dd24fab009d6405177f618dab5e9d339
+generated_at: '2026-05-19T16:57:54.928Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 3011144839529994325624b377291301dd24fab009d6405177f618dab5e9d339
+translated_at: '2026-05-19T16:57:54.928Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 24
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 24 — Walkthrough G8: Customer Data Architecture & Privacy (Bài #16 candidate)
+
+> *"Phase A defers customer data to per-pillar Phase B. Phase A.2 reveals: customer entity là cross-cutting concern across customer-success, growth, compliance, finance, content. Without unified architecture: B2C/B2B segmentation drift, GDPR breach risk, churn signals fragmented."*
+
+## 24.1 Tình huống
+
+Founder TH10 anchor (issue catalog C2.19): *"GDPR data deletion request từ EU customer — phải tìm và xóa TẤT CẢ data của customer X. Hiện tại không có way to know all locations."*
+
+5 concrete scenarios:
+
+1. **B2C signup (free tier)** — anonymous → email signup, consent tracking, locale, payment_method=null
+2. **B2C upgrade** — Stripe webhook → subscription state machine (Bài #13) → onboarding SOP (Bài #9) → knowledge graph edges (Bài #14)
+3. **B2B signup (enterprise)** — different shape: company entity + multiple persons (decision_maker, technical_evaluator, procurement), SAML, custom contract
+4. **GDPR deletion** — find ALL locations, categorize delete vs anonymize vs legal retention, execute với audit trail, comply within 30 days
+5. **Customer 360 view** — single query across profile + subscription + usage + support + LTV + health + graph relationships
+
+**Founder expected:**
+- Unified customer schema (B2C + B2B)
+- All customer data findable từ single starting point
+- GDPR machinery (find → categorize → delete/anonymize/retain)
+- Consent tracking với legal basis
+- Customer 360 single query
+- Privacy by design (PII isolation, encryption, access logging)
+
+**Khi sai:**
+- B2C/B2B drift (2x maintenance)
+- GDPR misses tables → €20M / 4% global revenue fine
+- Consent untrackable
+- Context-switching across 5 systems
+
+## 24.2 Walk through Phase A + prior walkthroughs
+
+### Have
+- ✅ Bài #1 4-tier (customer = TIER2)
+- ✅ Bài #2 HITL (GDPR = Tier C)
+- ✅ Bài #4 episodic memory captures interactions
+- ✅ Compliance pillar placeholder
+- ✅ Bài #11 events with payload.customer_id implicit
+- ✅ Bài #13 customer state machine
+- ✅ Bài #14 customer = first-class entity
+- ✅ Bài #15 GDPR retention = Tier C decision
+
+### Phase A's customer treatment incomplete
+
+Phase A: *"Customer entity defined per pillar in Phase B."*
+
+**Phase A.2 reveals defer wrong** (similar to Bài #13):
+- Customer entity = cross-cutting (8+ pillars touch)
+- B2C/B2B unified prevents drift
+- GDPR machinery centralized
+
+### Don't have
+
+15 gaps — unified schema, person↔company, consent, PII isolation, data inventory, GDPR SOPs, retention registry, customer 360, anonymization routing, residency, audit logging, segment registry, EU AI Act metadata.
+
+## 24.3 Workaround vs proper extension
+
+### Workaround
+- Z1: Two separate schemas (b2c_customers, b2b_customers) — drift
+- Z2: Single với jsonb extras — validation hard
+- Z3: Unified với discriminator + companion tables — proper
+
+**Recommendation: Z3.**
+
+### Proper extension — Bài #16
+
+4 axes:
+
+#### Axis 1 — Unified Entity Schema
+
+```sql
+CREATE TABLE customers (
+  id              uuid PRIMARY KEY,
+  segment         text NOT NULL,         -- 'b2c' | 'b2b' | 'partner'
+  display_name    text NOT NULL,
+  primary_email   text NOT NULL UNIQUE,
+  tier            text NOT NULL,
+  stripe_customer_id text UNIQUE,
+  
+  -- State (Bài #13)
+  state           text NOT NULL,
+  state_since     timestamptz NOT NULL,
+  state_payload   jsonb,
+  
+  -- Localization
+  locale          text NOT NULL DEFAULT 'en',
+  data_region     text NOT NULL,         -- 'eu' | 'us' | 'apac'
+  
+  -- Compliance
+  consent_version text,
+  consent_accepted_at timestamptz,
+  deletion_requested_at timestamptz,
+  deletion_completed_at timestamptz,
+  is_anonymized   boolean DEFAULT false,
+  
+  CONSTRAINT customers_segment_valid CHECK (segment IN ('b2c', 'b2b', 'partner'))
+);
+
+CREATE TABLE companies (...);  -- B2B detail
+CREATE TABLE persons (
+  id, primary_email, display_name,
+  customer_id_as_billing,
+  phone,        -- encrypted at rest (pgcrypto)
+  metadata,     -- encrypted
+  consent_status jsonb
+);
+CREATE TABLE company_persons (...);  -- B2B relationships
+```
+
+**Pattern:**
+- customers = billing entity (B2C: 1 person; B2B: company với persons)
+- companies = optional B2B detail
+- persons = humans (separate for PII isolation)
+- Knowledge graph (Bài #14) auto-extracts edges: person→works_at→company
+
+#### Axis 2 — Consent + Privacy Architecture
+
+**Per-purpose consent (persons.consent_status):**
+
+```yaml
+consent_status:
+  version: "1.0.0"
+  accepted_at: 2026-04-15
+  
+  purposes:
+    service_delivery:
+      legal_basis: contract  # GDPR Article 6(1)(b)
+      consent_required: false
+      status: active
+    
+    marketing_email:
+      legal_basis: consent  # 6(1)(a)
+      consent_required: true
+      status: granted | denied | withdrawn
+    
+    analytics:
+      legal_basis: legitimate_interest  # 6(1)(f)
+      status: granted | denied
+    
+    ai_personalization:  # EU AI Act
+      legal_basis: consent
+      status: granted
+```
+
+**Tier 1 retention registry:**
+
+```yaml
+# knowledge/data-retention.yaml
+categories:
+  - id: customer_pii
+    legal_basis: contract
+    retention_active: indefinite
+    retention_post_termination: 30 days
+    deletion_method: hard_delete | anonymize
+    
+  - id: payment_history
+    legal_basis: legal_obligation  # tax law
+    retention: 7 years
+    deletion_method: anonymize  # cannot hard-delete
+    
+  - id: ai_training_data
+    legal_basis: consent
+    retention: 1 year  # EU AI Act max
+    deletion_method: hard_delete
+
+inventory:
+  - location: customers (table)
+    categories: [customer_pii, subscription_metadata]
+  - location: persons (table)
+    categories: [customer_pii, consent_status]
+  - location: ops.events (filtered by payload.customer_id)
+    categories: [usage_analytics, ai_training_data]
+  - location: stripe (external)
+    categories: [payment_history, customer_pii]
+  - location: backups (S3)
+    retention_override: 30 days
+```
+
+**PII isolation:**
+- persons.phone, persons.metadata encrypted at column level (pgcrypto)
+- Encryption key in Supabase Vault
+- ops.audit_log every PII column read
+
+#### Axis 3 — GDPR Machinery
+
+3 SOPs trong 07-compliance/sops/:
+
+**SOP-COMPLIANCE-002-gdpr-deletion** (Article 17):
+
+```yaml
+sla_minutes: 43200  # 30 days
+steps:
+  - validate-request (verify identity)
+  - scan-data-locations (customer-data-scan skill)
+  - categorize-deletion-vs-retention (gdpr-categorize)
+  - founder-review (Tier C HITL)
+  - execute-deletion
+  - notify-requestor
+  - regulatory-record
+```
+
+**`customer-data-scan` skill** = deterministic → ops.minion_jobs queue (Minions pattern):
+
+```
+For each location in retention.yaml inventory:
+  - Execute location-specific query (SQL or filesystem)
+  - Tag với category
+  - Aggregate counts
+Output: structured inventory report
+```
+
+**SOP-COMPLIANCE-003-gdpr-access** (Article 15) — data export.
+**SOP-COMPLIANCE-004-gdpr-rectification** (Article 16) — correction.
+
+#### Axis 4 — Customer 360 + Integrations
+
+**Materialized view `mv_customer_360`:**
+
+```sql
+CREATE MATERIALIZED VIEW mv_customer_360 AS
+SELECT c.id, c.segment, c.tier, c.state,
+       s.lifetime_value_usd, s.churn_risk_score,
+       usage.events_last_30d, usage.last_login_at,
+       support.open_tickets,
+       graph.related_companies, graph.referrals_count
+FROM customers c
+LEFT JOIN subscription_stats s ON true
+LEFT JOIN usage_stats usage ON true
+LEFT JOIN support_stats support ON true
+LEFT JOIN LATERAL (
+  SELECT array_agg(target_slug) FILTER (WHERE link_type = 'works_at') AS related_companies,
+         count(*) FILTER (WHERE link_type = 'referred') AS referrals_count
+  FROM ops.knowledge_links
+  WHERE source_slug = 'customer/' || c.id::text
+) graph ON true
+WHERE c.deletion_completed_at IS NULL;
+```
+
+Refresh hourly via Bài #8 schedule.
+
+**Dashboard `/business/customers/360/<id>`:**
+- Profile, subscription timeline (Bài #13 transitions)
+- Usage chart, support tickets
+- Knowledge graph neighborhood (Bài #14)
+- LTV/MRR (Bài #7)
+- Recent decisions affecting (Bài #15)
+
+**MCP tool `ritsu.customer.profile`** (Bài #12):
+- Inputs: customer_id_or_email
+- Outputs: full 360 view
+- PII redaction per role
+
+## 24.4 New components (28)
+
+28 components — schema (4 tables + audit_log + materialized view) + Tier 1 retention + 3 GDPR SOPs + skills + dashboard + MCP tools + 7 cross-bài-toán updates.
+
+**Largest set so far** — customer data architecture touches every layer.
+
+## 24.5 Bài #16 candidate
+
+**Bài #16 — Customer Data Architecture & Privacy**
+
+**Question core:** Unified customer entity (B2C + B2B). PII isolated với encryption. Per-purpose consent với legal basis. GDPR machinery (deletion/access/rectification SOPs) với automated scan. Customer 360. Data retention registry.
+
+**Dependencies:** Bài #1, #2, #4, #7, #9 DRAFT, #10 DRAFT, #11 DRAFT, #12 DRAFT, #13 DRAFT, #14 DRAFT
+
+## 24.6 Lessons captured
+
+1. **Customer entity = cross-cutting.** Phase A defer wrong (similar to Bài #13).
+2. **Unified schema với discriminator** handles B2C + B2B.
+3. **PII isolation** through dedicated persons table.
+4. **Consent per-purpose, not blanket** (GDPR Article 6 legal bases differ).
+5. **Data retention registry as Tier 1.**
+6. **Customer-data inventory critical** — without it, GDPR deletion incomplete = €20M fine.
+7. **Anonymization vs deletion routing** (tax records cannot hard-delete).
+8. **Audit logging for PII access.**
+9. **Customer 360 = materialized view + MCP tool.**
+10. **EU AI Act adds layer** (ai_personalization consent + 1-year max retention).
+11. **Knowledge graph reveals B2B relationships.**
+12. **GDPR SOPs leverage Bài #9 architecture** (HITL gating, SLA, audit log built-in).
+
+## 24.7 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ16.1 | Cross-region residency enforcement? | EU base >10% |
+| OQ16.2 | Multi-tenant B2B isolation? | Phase D |
+| OQ16.3 | Export format (Article 20)? | First request |
+| OQ16.4 | Dual-control deletion (>$50K LTV)? | Compliance review |
+| OQ16.5 | Backup deletion strategy? | Backup decision |
+| OQ16.6 | Consent preference center UI? | Operator joins |
+| OQ16.7 | Cookies/analytics flow? | Web app dev |
+| OQ16.8 | ML model export (Article 20)? | First request |
+| OQ16.9 | EU AI Act high-risk classification? | Legal counsel |
+| OQ16.10 | DPA chain với vendors (Stripe, OpenAI, Anthropic)? | Phase B compliance review |
+
+## 24.8 Anti-patterns
+
+- ❌ Two separate B2C/B2B schemas
+- ❌ Skip consent tracking
+- ❌ PII without isolation
+- ❌ Skip data inventory
+- ❌ Hard-delete legal-retention data
+- ❌ Replace PII với NULL (use REDACTED-\<uuid> for referential integrity)
+- ❌ No customer 360
+- ❌ Boolean consent (per-purpose required)
+- ❌ Skip audit logging
+- ❌ Pre-checked consent boxes
+- ❌ Customer data sprawl (5+ services)
+- ❌ Skip cross-region residency
+- ❌ Manual GDPR deletion
+
+## 24.9 Cross-references
+
+- **Bài #1:** schema = TIER1, consent = TIER2, interactions = TIER3, health = Insight
+- **Bài #2:** GDPR deletion = Tier C HITL
+- **Bài #4:** customer interactions = episodic memory; AI personalization → consent gate
+- **Bài #7:** LTV per customer → cost attribution
+- **Bài #9:** 3 GDPR SOPs leverage SOP architecture
+- **Bài #10:** /business/customers/360/\<id>, /operations/compliance/gdpr-requests
+- **Bài #11:** customer state events, GDPR email synthetic event triggers SOP
+- **Bài #12:** ritsu.customer.profile, ritsu.compliance.gdpr_request MCP tools
+- **Bài #13:** customer state machine refined (added deleted, anonymized states)
+- **Bài #14:** customer/person/company entity types, B2B edges
+- **Bài #15:** GDPR retention = Tier C decision với compliance-officer + customer-advocate personas
+- **GBrain heritage:** person/company schema, compiled-truth + timeline format
+- **GBrain Minions:** customer-data-scan deterministic → minion queue, bulk anonymization parallel jobs
+
+## 24.10 Tổng kết
+
+- **Bài #16 candidate: Customer Data Architecture & Privacy**
+- **4 axes:** unified schema / consent+privacy / GDPR machinery / customer 360+integrations
+- **28 new components** (largest set, touches every layer)
+- **7 cross-bài-toán updates** (#7, #10, #11, #12, #13, #14, #15)
+- **GDPR/EU AI Act compliance ready**
+
+**Pattern after 9 walkthroughs:** declarative-first architecture với 11 Tier 1 files (operational DNA + knowledge + judgment + privacy): + **data-retention.yaml**.
+
+Sang chương sau — walkthrough G7 Multi-Surface + Multilingual Operations.
+
+---
+
+**Tham khảo:**
+- High-altitude pass: G8 entry (score 6.10)
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G8-customer-data.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-16-customer-data-DRAFT.md`
+- Phase A dependencies: Chương 4 (Bài #1), Chương 5 (Bài #2), Chương 7 (Bài #4)
+- Phase A.2 dependencies: Chương 16-23 (all prior bài toán)

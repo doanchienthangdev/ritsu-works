@@ -1,0 +1,1012 @@
+---
+title: "Chương 30 — Cơ Chế Làm Việc 2 Bước: A (Local) → B (Remote VPS)"
+description: "Chương 30 — Cơ Chế Làm Việc 2 Bước: A (Local) → B (Remote VPS)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/30-working-modes-A-B.md
+source_hash: 9cfa3d3df22f4311ec05d4f576e3f34a839e9a50b32d96cb1bf613ec244d0113
+generated_at: '2026-05-19T16:57:54.951Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 9cfa3d3df22f4311ec05d4f576e3f34a839e9a50b32d96cb1bf613ec244d0113
+translated_at: '2026-05-19T16:57:54.951Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 30
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 30 — Cơ Chế Làm Việc 2 Bước: A (Local) → B (Remote VPS)
+
+> *"Phase A.2 architecture xây cho autonomous AI workforce. Reality: founder cần linh hoạt giữa subscription mode (rẻ, manual-heavy) và API mode (đắt, autonomous). 2 bước A→B áp dụng cho cả deployment infrastructure VÀ LLM access strategy."*
+
+## 30.1 Hai trục độc lập
+
+Founder phải hiểu 2 trục quyết định **độc lập**, có thể combine theo nhu cầu:
+
+### Trục 1 — Infrastructure: A (Local) → B (Remote VPS)
+
+| Bước | Where workers run | Always-on? | Cost |
+|---|---|---|---|
+| **A: Local** | Founder laptop | No (laptop sleeps) | $0 |
+| **B: Remote VPS** | Hetzner Cloud | Yes (24/7) | €5-10/mo |
+
+### Trục 2 — LLM Access: Subscription → Hybrid → Full API
+
+| Mode | API Keys | Autonomous capability | Cost |
+|---|---|---|---|
+| **Sub-only** | None | None (manual via Claude Code) | $20-100/mo |
+| **Hybrid** | Selective | Selective (high-leverage only) | $40-70/mo |
+| **Full API** | All | Full autonomous workforce | $70-300/mo |
+
+### Combination matrix (6 cells)
+
+| | A: Local | B: Remote VPS |
+|---|---|---|
+| **Sub-only** | Workshop mode | Limited workshop |
+| **Hybrid** | Power user mode | **Sweet spot** ⭐ |
+| **Full API** | Dev preview | Production target |
+
+**Founder's typical journey:**
+
+```
+Tuần 1-2: A + Sub-only         → Validate architecture, $0 spend
+Tuần 3-6: A + Hybrid            → Add selective API for autonomous skills
+Tuần 7-12: B + Hybrid           → Migrate to VPS for always-on
+Tuần 13+: B + Full API (or Hybrid) → Scale based on revenue
+```
+
+---
+
+## 30.2 Bước A — Local Workshop Mode
+
+### 30.2.1 Định nghĩa
+
+**Bước A:** Tất cả workloads chạy local trên laptop founder/operator. Supabase Cloud cung cấp database, nhưng:
+- Background workers chạy local (chỉ khi laptop on)
+- Telegram bot chạy local (chỉ khi laptop on)
+- MCP server stdio mode (chỉ Claude Code đang mở)
+- Schedules/Events fire on Supabase Cloud (always-on), nhưng skill execution có thể queue đợi laptop online
+
+### 30.2.2 Topology Bước A
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  Founder Laptop                                           │
+│                                                           │
+│  ┌──────────────────────┐                                │
+│  │  Claude Code session  │ ← founder primary surface     │
+│  └──────────┬───────────┘                                │
+│             │ MCP stdio                                   │
+│             ↓                                             │
+│  ┌──────────────────────┐                                │
+│  │  ritsu-works/        │                                │
+│  │  ├── skills/         │                                │
+│  │  ├── adapters/       │                                │
+│  │  └── runtime/        │ ← local workspace              │
+│  └──────────┬───────────┘                                │
+│             │                                             │
+│  ┌──────────────────────┐                                │
+│  │  pnpm workers        │ ← Minions queue processor      │
+│  │  pnpm telegram-bot   │ ← optional, when laptop on     │
+│  └──────────┬───────────┘                                │
+└─────────────┼────────────────────────────────────────────┘
+              │
+              ↓
+       ┌────────────────────────┐
+       │  Supabase Cloud         │ ← always-on
+       │  ─ Postgres + pgvector  │
+       │  ─ Edge Functions       │
+       │  ─ pg_cron              │
+       │  ─ Realtime             │
+       │  ─ Vault                │
+       │  ─ Storage              │
+       └────────────────────────┘
+              ↑
+              │ outbound webhooks  
+              │ (auto-fired by pg_cron + triggers)
+       ┌────────────────────────┐
+       │  External services      │
+       │  ─ Stripe webhooks      │
+       │  ─ GitHub events        │
+       │  ─ Telegram updates     │
+       └────────────────────────┘
+```
+
+### 30.2.3 Đặc điểm Bước A
+
+**Pros:**
+- ✅ Setup nhanh (~2h)
+- ✅ Cost = $0 (Supabase Free tier)
+- ✅ Privacy 100% (no third-party VPS)
+- ✅ Offline dev possible (local workers)
+- ✅ Validate architecture trước khi cam kết VPS
+
+**Cons:**
+- ⚠️ Telegram bot offline khi laptop sleep
+- ⚠️ Schedules fire ở Supabase, but skill execution có thể delay nếu laptop offline
+- ⚠️ Webhooks (Stripe, GitHub) cần Supabase Edge Functions hoặc ngrok cho local
+- ⚠️ Multi-operator coordination thủ công hơn
+
+### 30.2.4 Cấu hình Bước A
+
+`.env.local`:
+```bash
+# Bước A configuration
+RITSU_DEPLOYMENT_MODE=local
+RITSU_WORKERS_LOCATION=local
+RITSU_TELEGRAM_BOT_LOCATION=local        # or 'disabled' if not running
+RITSU_MCP_SERVER_MODE=stdio              # for Claude Code
+
+# Supabase (cloud-only)
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_KEY=eyJ...
+
+# LLM access (sub-thuần or hybrid — see section 30.4)
+ANTHROPIC_API_KEY=                        # empty = sub mode, filled = hybrid/full
+OPENAI_API_KEY=                           # empty = no Whisper/embeddings
+```
+
+Local commands daily:
+```bash
+# Morning: start everything
+cd ~/dev/ritsu-works
+git pull origin main
+
+# Terminal 1: start Minions worker
+pnpm workers:start
+
+# Terminal 2: start Telegram bot (optional)
+pnpm telegram-bot:start
+
+# Terminal 3: open Claude Code
+claude code .
+
+# When done for day:
+# Just close terminals — workers stop, system fine
+```
+
+### 30.2.5 Webhooks trong Bước A
+
+**Vấn đề:** External services (Stripe, GitHub) cần URL public để post webhooks. Laptop không có IP public.
+
+**Giải pháp 3 lựa chọn:**
+
+#### Option A.1 — Supabase Edge Functions làm webhook receiver
+- ✅ Always-on (Supabase managed)
+- ✅ No local setup
+- ✅ Recommended cho Bước A
+
+```typescript
+// supabase/functions/stripe-webhook/index.ts
+Deno.serve(async (req) => {
+  const event = await verifyStripeWebhook(req)
+  // Insert to ops.events outbox
+  await db.from('ops.events').insert({
+    source: 'stripe',
+    event_type: event.type,
+    payload: event.data
+  })
+  return new Response('OK')
+})
+```
+
+External webhook URL: `https://<project-ref>.supabase.co/functions/v1/stripe-webhook`
+
+#### Option A.2 — ngrok / Cloudflare Tunnel cho local dev
+- Use `ngrok http 3000` → get temporary public URL
+- Useful when developing webhook handlers
+- ❌ Not for production (URL changes)
+
+#### Option A.3 — Skip webhooks entirely cho Bước A
+- Use polling instead (Stripe API poll, GitHub API poll)
+- Simpler nhưng higher latency
+- OK cho v0.5 validation phase
+
+---
+
+## 30.3 Bước B — Remote VPS Production Mode
+
+### 30.3.1 Định nghĩa
+
+**Bước B:** Add VPS layer cho always-on workers. Local laptop vẫn là dev environment, but production workloads chạy 24/7 trên VPS.
+
+### 30.3.2 Topology Bước B
+
+```
+┌────────────────────────────┐    ┌────────────────────────────┐
+│  Founder Laptop (dev)       │    │  Operator Laptop (dev)     │
+│  ─ Claude Code              │    │  ─ Claude Code              │
+│  ─ Local pnpm dev workers   │    │  ─ Local pnpm dev workers   │
+└────────────┬───────────────┘    └────────────┬───────────────┘
+             │                                  │
+             └────────────┬─────────────────────┘
+                          ↓
+                   ┌────────────────┐
+                   │  GitHub        │ ← code source of truth
+                   │  ritsu-works   │
+                   └────────┬───────┘
+                            │ webhook on push to main
+                            ↓
+       ┌──────────────────────────────────────────┐
+       │  VPS (Hetzner CX22, Frankfurt EU)         │
+       │  ─ /opt/ritsu-works/ (auto-pulled)        │
+       │  ─ systemd: ritsu-telegram-bot            │
+       │  ─ systemd: ritsu-mcp-http (mcp.ritsu.ai) │
+       │  ─ systemd: ritsu-workers (Minions)       │
+       │  ─ systemd: ritsu-deploy-webhook          │
+       │  ─ Caddy (auto-SSL reverse proxy)         │
+       └──────────────────┬───────────────────────┘
+                          │
+                          ↓
+                   ┌────────────────────────┐
+                   │  Supabase Cloud         │ ← shared truth
+                   │  (same as Bước A)       │
+                   └────────────────────────┘
+                          ↑
+                          │
+                   ┌────────────────────────┐
+                   │  External services      │
+                   │  → mcp.ritsu.ai         │
+                   │  → bot @ritsu_bot       │
+                   │  → webhook endpoints    │
+                   └────────────────────────┘
+```
+
+### 30.3.3 Đặc điểm Bước B
+
+**Pros:**
+- ✅ Always-on (24/7)
+- ✅ Real-time Telegram bot
+- ✅ Public webhook endpoints
+- ✅ Multi-operator transparent
+- ✅ Auto-deploy on git push
+- ✅ Centralized logs
+
+**Cons:**
+- ⚠️ €5-10/mo recurring cost
+- ⚠️ DevOps overhead initial setup (~3h)
+- ⚠️ Single VPS = potential SPOF (mitigation: backups + recovery plan)
+- ⚠️ Founder cần biết Linux/systemd basics
+
+### 30.3.4 Cấu hình Bước B
+
+#### Trên VPS (`/opt/ritsu-works/runtime/secrets/.env.production`):
+```bash
+# Bước B configuration
+RITSU_DEPLOYMENT_MODE=production
+RITSU_WORKERS_LOCATION=vps
+RITSU_TELEGRAM_BOT_LOCATION=vps
+RITSU_MCP_SERVER_MODE=http
+RITSU_MCP_HTTP_PORT=3001
+RITSU_MCP_PUBLIC_URL=https://mcp.ritsu.ai
+
+# Supabase (same as A)
+SUPABASE_URL=...
+SUPABASE_SERVICE_KEY=...
+
+# LLM access (typically full API in production)
+ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
+
+# Telegram (deployed)
+TELEGRAM_BOT_TOKEN=...
+```
+
+#### Trên local laptop (`.env.local`):
+```bash
+# Connect to production for testing/admin
+RITSU_DEPLOYMENT_MODE=local
+RITSU_MCP_SERVER_MODE=http
+RITSU_MCP_HTTP_URL=https://mcp.ritsu.ai    # production MCP
+
+# Or for dev mode connecting to local
+# RITSU_MCP_HTTP_URL=http://localhost:3001
+```
+
+### 30.3.5 Migration A → B step-by-step
+
+#### Trigger conditions (when to migrate):
+- ✅ Telegram bot 24/7 needed
+- ✅ Cần test Bài #18 voice notes ingestion
+- ✅ External webhooks (Stripe production, GitHub auto-deploy) cần public URL stable
+- ✅ Operator joins
+- ✅ Founder Wave 4+ implementation
+
+#### Step 1: Provision VPS (15 min)
+
+```bash
+# Hetzner Cloud Console → New Server
+# - Image: Ubuntu 24.04 LTS
+# - Type: CX22 (€5.18/mo, 2 vCPU, 4GB, 40GB)
+# - Location: Frankfurt (EU) or Helsinki
+# - SSH key: add your public key
+# - Hostname: ritsu-vps-prod
+```
+
+#### Step 2: Initial server setup (30 min)
+
+```bash
+ssh root@<vps-ip>
+
+# Update + harden
+apt update && apt upgrade -y
+ufw allow 22 && ufw allow 80 && ufw allow 443
+ufw enable
+
+# Create deploy user
+adduser ritsu
+usermod -aG sudo ritsu
+mkdir -p /home/ritsu/.ssh
+cp ~/.ssh/authorized_keys /home/ritsu/.ssh/
+chown -R ritsu:ritsu /home/ritsu/.ssh
+chmod 600 /home/ritsu/.ssh/authorized_keys
+
+# Install runtime
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs git caddy
+npm install -g pnpm
+
+# Verify
+su - ritsu
+node -v && pnpm -v && git --version && caddy version
+```
+
+#### Step 3: Deploy ritsu-works (30 min)
+
+```bash
+# As ritsu user
+sudo mkdir /opt/ritsu-works
+sudo chown ritsu:ritsu /opt/ritsu-works
+cd /opt
+git clone git@github.com:doanchienthangdev/ritsu-works.git
+cd ritsu-works
+./.scripts/bootstrap.sh
+
+# Create production .env
+vim runtime/secrets/.env.production
+# Fill in production credentials
+
+# Symlink for systemd
+ln -sf runtime/secrets/.env.production .env.production
+```
+
+#### Step 4: Setup systemd services (1h)
+
+Create `/etc/systemd/system/ritsu-telegram-bot.service`:
+
+```ini
+[Unit]
+Description=Ritsu Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=ritsu
+WorkingDirectory=/opt/ritsu-works
+EnvironmentFile=/opt/ritsu-works/runtime/secrets/.env.production
+ExecStart=/usr/bin/pnpm telegram-bot:start
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Tương tự cho:
+- `ritsu-mcp-http.service` → port 3001, công cụ Bài #12
+- `ritsu-workers.service` → Minions queue processor
+- `ritsu-deploy-webhook.service` → port 3002, GitHub webhook listener
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now ritsu-telegram-bot ritsu-mcp-http ritsu-workers ritsu-deploy-webhook
+
+# Verify
+sudo systemctl status ritsu-*
+```
+
+#### Step 5: Setup Caddy reverse proxy + SSL (15 min)
+
+`/etc/caddy/Caddyfile`:
+```
+mcp.ritsu.ai {
+  reverse_proxy localhost:3001
+}
+
+deploy.ritsu.ai {
+  reverse_proxy localhost:3002
+}
+```
+
+DNS: A record `mcp.ritsu.ai` + `deploy.ritsu.ai` → VPS IP.
+
+```bash
+sudo systemctl reload caddy
+# Caddy auto-fetches SSL via Let's Encrypt
+
+# Verify
+curl https://mcp.ritsu.ai/health
+# Should return 200 OK
+```
+
+#### Step 6: Setup auto-deploy via GitHub webhook (15 min)
+
+Deploy webhook handler (in `ritsu-deploy-webhook.service`) listens on port 3002, verifies signature, runs:
+```bash
+cd /opt/ritsu-works
+git pull origin main
+pnpm install --frozen-lockfile
+pnpm build
+sudo systemctl restart ritsu-telegram-bot ritsu-mcp-http ritsu-workers
+```
+
+GitHub repo → Settings → Webhooks → Add:
+- URL: `https://deploy.ritsu.ai/webhook`
+- Secret: `<from .env.production GITHUB_WEBHOOK_SECRET>`
+- Events: Just push events to main
+- Active: ✅
+
+#### Step 7: Smoke test (15 min)
+
+```bash
+# From local laptop
+curl https://mcp.ritsu.ai/health
+# {"status": "ok"}
+
+# Send test Telegram message — bot responds from VPS
+# Push test commit — VPS auto-deploys
+
+git commit --allow-empty -m "test: trigger deploy"
+git push
+
+ssh ritsu@<vps-ip> "git -C /opt/ritsu-works log -1"
+ssh ritsu@<vps-ip> "sudo systemctl status ritsu-*"
+ssh ritsu@<vps-ip> "journalctl -u ritsu-telegram-bot -n 50"
+```
+
+### 30.3.6 Workloads moved A → B
+
+Migration không touch code hoặc database. Chỉ deploy infrastructure layer:
+
+| Workload | Bước A location | Bước B location |
+|---|---|---|
+| Telegram bot | Local laptop | VPS systemd |
+| Webhook receivers | Supabase Edge Functions / ngrok | VPS endpoints |
+| MCP server | localhost stdio | mcp.ritsu.ai HTTP |
+| Background workers (Minions queue) | Local pnpm | VPS systemd |
+| Cron jobs | Supabase pg_cron | Supabase pg_cron (unchanged) |
+| Edge Functions | Supabase | Supabase (unchanged) |
+| Database | Supabase Cloud | Supabase Cloud (unchanged) |
+| Frontend dashboard | localhost:3000 | dashboard.ritsu.ai (Vercel) |
+
+---
+
+## 30.4 LLM Access Modes (Trục độc lập với A/B)
+
+### 30.4.1 Tại sao cần modes?
+
+Phase A.2 architecture đầu tư heavy vào autonomous patterns. Reality: founder có thể bắt đầu với chi phí thấp (subscription only) và scale up theo revenue.
+
+3 modes để founder chọn:
+
+### 30.4.2 Mode 1 — Subscription-Only
+
+#### Định nghĩa
+- Chỉ dùng Claude Pro/Max subscription
+- Không có ANTHROPIC_API_KEY hay OPENAI_API_KEY
+- Mọi LLM call qua Claude Code session (manual interaction)
+
+#### Cost
+- Claude Pro $20/mo (5x usage)
+- Claude Max $100/mo (20x usage, recommended)
+
+#### Lost capabilities
+- ❌ Background AI workforce 24/7
+- ❌ Auto-morning brief
+- ❌ Auto-pre-call dossier
+- ❌ Voice note auto-transcription (Whisper)
+- ❌ Embeddings + semantic search (need OpenAI)
+- ❌ Muse panel autonomous runs (29 personas)
+- ❌ Multi-surface auto-adaptation
+- ❌ Customer data auto-categorization
+- ❌ Stale decision auto-review
+
+#### Retained capabilities
+- ✅ Full data architecture (schemas, state machines)
+- ✅ Tier 1 declarative configs work as-is
+- ✅ MCP integration (Claude Code = primary surface)
+- ✅ Dashboard + visibility
+- ✅ Knowledge graph auto-link extraction (zero-LLM regex)
+- ✅ HITL workflows (deterministic gating)
+- ✅ Deterministic SOPs
+- ✅ GDPR deletion (deterministic SQL)
+- ✅ Full-text search (Postgres FTS, no embeddings needed)
+
+#### Vision impact
+**~50-60% Phase A.2 features lost.** Vision shifts from "AI-native services với autonomous workforce" → "AI-augmented founder workflow với strong data architecture."
+
+#### When to choose
+- v0.5 proof-of-concept phase
+- Privacy-conscious (no data sent to API providers)
+- Cost-conscious early stage
+- Validating architecture before committing
+
+### 30.4.3 Mode 2 — Hybrid (Recommended sweet spot)
+
+#### Định nghĩa
+- Claude Pro/Max subscription cho dev work
+- ANTHROPIC_API_KEY ONLY cho high-leverage autonomous skills
+- OPENAI_API_KEY cho Whisper + embeddings
+
+#### Cost
+- Claude Pro $20/mo + Anthropic API $20-30/mo + OpenAI API $5-15/mo
+- **Total: $45-65/mo**
+
+#### Selective API usage (which skills get API key)
+```bash
+# In .env.local
+ANTHROPIC_API_KEY=sk-ant-...     # for autonomous skills
+OPENAI_API_KEY=sk-...             # for Whisper + embeddings
+
+# Feature flags — turn on selectively
+RITSU_FEATURE_AUTO_MORNING_BRIEF=true       # 1 LLM call/day = ~$0.03
+RITSU_FEATURE_AUTO_PRE_CALL_DOSSIER=true    # 1-3 LLM calls/day = ~$0.10
+RITSU_FEATURE_VOICE_NOTE_CLASSIFY=true      # ~$0.01 per note
+RITSU_FEATURE_AUTO_INGESTION=true           # cost depends on volume
+
+# Disable expensive features initially
+RITSU_FEATURE_AUTO_MUSE_PANEL=false         # 29 personas = $0.50/run
+RITSU_FEATURE_CROSS_DECISION_PATTERNS=false # weekly heavy
+RITSU_FEATURE_AUTO_SURFACE_ADAPTATION=false # multi-surface variants
+```
+
+#### Code-level pattern
+
+Skills check feature flag before calling API:
+
+```typescript
+async function executeMorningBrief() {
+  if (process.env.RITSU_FEATURE_AUTO_MORNING_BRIEF !== 'true' || 
+      !process.env.ANTHROPIC_API_KEY) {
+    // Subscription mode: queue for manual review in Claude Code
+    await queueTaskForFounder({
+      type: 'morning-brief-manual',
+      data: gatherSourcesData(),
+      hint: 'Open Claude Code, ask "synthesize this morning brief"'
+    })
+    return { mode: 'manual', queued: true }
+  }
+  
+  // API mode: execute autonomously
+  const sources = await gatherAllSources()
+  const brief = await callAnthropic({
+    system: morningBriefSystem,
+    messages: [{ role: 'user', content: JSON.stringify(sources) }]
+  })
+  await deliverViaTelegram(brief)
+  return { mode: 'auto', delivered: true }
+}
+```
+
+#### Vision retention
+**~85% Phase A.2 features functional.** Critical autonomous workflows preserved (morning brief, pre-call dossier, voice classification), expensive ones manual.
+
+#### When to choose
+- **Default recommendation cho Ritsu v1.0+**
+- Founder wants autonomous high-leverage tasks
+- Cost-conscious but accept $50/mo
+- Phase B implementation Wave 1-7
+
+### 30.4.4 Mode 3 — Full API
+
+#### Định nghĩa
+- Claude Pro/Max + full API keys
+- All autonomous features enabled
+- Phase A.2 vision 100% realized
+
+#### Cost
+- Claude Max $100/mo + Anthropic API $50-150/mo + OpenAI $10-50/mo
+- **Total: $160-300/mo**
+
+#### Capabilities
+- ✅ All autonomous AI workforce features
+- ✅ 24/7 ingestion processing
+- ✅ Real-time Muse panels
+- ✅ Multi-surface auto-adaptation
+- ✅ Cross-decision pattern recognition
+- ✅ Auto-translation 10 locales
+
+#### When to choose
+- v1.5+ when revenue offsets cost
+- Multi-operator scale (operators expect autonomous)
+- Production target after validation phase
+
+### 30.4.5 Mode comparison matrix
+
+| Capability | Sub-Only | Hybrid | Full API |
+|---|---|---|---|
+| Architecture (Bài #1, #6, #10, #12) | ✅ | ✅ | ✅ |
+| MCP integration | ✅ | ✅ | ✅ |
+| Knowledge graph (auto-link) | ✅ | ✅ | ✅ |
+| Knowledge graph (embeddings) | ❌ | ✅ | ✅ |
+| Semantic search | ❌ | ✅ | ✅ |
+| Morning brief auto | ❌ | ✅ | ✅ |
+| Pre-call dossier auto | ❌ | ✅ | ✅ |
+| Voice note transcription | ❌ | ✅ | ✅ |
+| Voice note classification | ❌ | ✅ | ✅ |
+| Article ingestion | Manual | Auto | Auto |
+| Muse panel | Manual | Manual or Auto | Auto |
+| Multi-surface adaptation | Manual | Manual | Auto |
+| Cross-decision patterns | ❌ | ❌ | ✅ |
+| Customer auto-categorization | ❌ | ❌ | ✅ |
+| Background workforce 24/7 | ❌ | Partial | ✅ |
+| Cost/month | $20-100 | $45-65 | $160-300 |
+| Vision retention | ~50% | ~85% | 100% |
+
+### 30.4.6 Migration Subscription → Hybrid → Full API
+
+**Sub → Hybrid (when ready to spend $30-50/mo extra):**
+1. Anthropic Console → API Keys → Create
+2. OpenAI Console → API Keys → Create
+3. Add to `.env.local` (or VPS `.env.production`)
+4. Enable feature flags one-by-one, monitor cost
+5. Verify autonomous skills working
+
+**Hybrid → Full API (when revenue justifies):**
+1. Increase API budgets (set RITSU_DAILY_BUDGET_USD higher)
+2. Enable remaining feature flags
+3. Monitor weekly cost in dashboard (Bài #7)
+4. Optimize/disable if cost spike
+
+---
+
+## 30.5 Combination playbook — 6 cells
+
+### Cell 1: A + Sub-Only (Workshop mode)
+
+**Setup:**
+- Local laptop only
+- Claude Pro/Max subscription
+- No API keys
+
+**Use case:** v0.5 proof-of-concept, validating Phase B Wave 1-3 architecture.
+
+**Daily workflow:**
+```
+07:00 Founder opens laptop, runs `pnpm workers:start`
+07:15 Opens Claude Code, asks "build today's morning brief"
+       (manual, takes 5 min)
+09:00 Customer call — manually preps via Claude Code (~5 min before)
+12:00 Lunch — closes laptop
+13:00 Reopens — workers resume
+17:00 Closes laptop — workers stop
+```
+
+**Cost:** $20-100/mo (subscription only)
+
+### Cell 2: A + Hybrid (Power user mode)
+
+**Setup:**
+- Local laptop only
+- Claude Pro + selective API keys
+- Workers run when laptop on
+
+**Use case:** Founder solo, validating autonomous skills before committing to VPS.
+
+**Daily workflow:**
+```
+07:00 Founder opens laptop
+07:01 Workers auto-start (systemd-like via launchd/pm2)
+07:05 Auto-morning brief delivered to Telegram (1 LLM call)
+09:00 Customer call — auto-pre-call dossier delivered 8:30 (Telegram)
+12:00 Lunch — workers continue if laptop on
+17:00 Closes laptop — autonomous workflows pause
+```
+
+**Caveat:** Bot offline khi laptop off. OK cho v0.5-v1.0 solo founder.
+
+**Cost:** $45-65/mo
+
+### Cell 3: A + Full API (Dev preview)
+
+**Setup:**
+- Local laptop, full API keys
+- All features enabled
+
+**Use case:** Rare. Maybe testing performance trước khi deploy VPS.
+
+**Cost:** $120-200/mo (most expensive cell relative to value — paying for full API but limited by laptop uptime)
+
+### Cell 4: B + Sub-Only (Limited workshop)
+
+**Setup:**
+- VPS for always-on (Telegram bot, MCP HTTP)
+- No API keys
+- Subscription cho Claude Code dev
+
+**Use case:** Founder wants always-on Telegram bot but không muốn API costs yet.
+
+**Reality check:** Telegram bot trên VPS chỉ làm được rất ít without LLM. Mainly:
+- Receive voice notes (store raw, can't transcribe without Whisper)
+- Receive HITL approvals (deterministic state changes)
+- Forward to Claude Code session manually
+
+**Cost:** $25-110/mo (Claude sub + €5 VPS)
+
+**Honestly:** This cell is awkward. Either bump to Hybrid or stay at A.
+
+### Cell 5: B + Hybrid (⭐ Sweet spot)
+
+**Setup:**
+- VPS always-on workers
+- Selective API keys
+- Subscription cho dev work
+
+**Use case:** **Recommended cho Ritsu v1.0 production.**
+
+**Daily workflow:**
+```
+05:45 ICT — VPS auto-runs morning brief assembly (autonomous)
+06:00 — Telegram delivers brief to founder
+06:00-09:00 — Founder deep work (laptop opens whenever)
+09:00 — Customer call, auto-dossier delivered 30 min before
+       (assembled by VPS, no laptop needed)
+Throughout day — Telegram bot always responsive
+22:00 — Sleep mode active (no notifications)
+05:45 next day — Cycle repeats
+```
+
+**Cost:** $50-75/mo (Claude sub + API + VPS)
+
+### Cell 6: B + Full API (Production target)
+
+**Setup:**
+- VPS + full API
+- All features
+- Multi-operator ready
+
+**Use case:** v1.5+ scale, revenue justifies, operators joined.
+
+**Cost:** $170-310/mo
+
+---
+
+## 30.6 Trigger conditions tổng hợp
+
+### Trigger để migrate A → B (infrastructure)
+- Telegram bot 24/7 needed (founder daily-active surface)
+- External webhooks production (Stripe, GitHub auto-deploy)
+- Operator joins
+- Founder Wave 4+ implementation
+- Voice note ingestion testing (Bài #18)
+
+### Trigger để migrate Sub → Hybrid (LLM mode)
+- Founder spending >2h/day on manual LLM tasks (e.g., morning brief)
+- Want voice note auto-transcription (Whisper irreplaceable feature)
+- Knowledge graph search caps at keyword-only (need embeddings)
+- Customer feedback piling up (need auto-categorization)
+- Revenue >$500/mo (cost manageable)
+
+### Trigger để migrate Hybrid → Full API
+- Revenue >$5000/mo
+- ≥2 operators joined (operators expect autonomous workflows)
+- Customer base requires multi-locale auto-translation
+- Decision velocity becoming bottleneck
+
+---
+
+## 30.7 Decision tree cho founder
+
+```
+Bắt đầu (v0.5):
+  ↓
+  Cell 1: A + Sub-only
+  Validate architecture, $20/mo only
+  ↓
+  Sau 2-4 tuần, evaluate:
+  ├─ Manual workload OK? → Stay Cell 1
+  └─ Manual workload nặng? → Add API keys → Cell 2
+  ↓
+  Cell 2: A + Hybrid (default Wave 1-4)
+  ↓
+  Trigger A→B met? (Telegram 24/7, operator, Wave 4+)
+  ├─ Not yet → Stay Cell 2
+  └─ Yes → Provision VPS → Cell 5
+  ↓
+  Cell 5: B + Hybrid (default Wave 5-7)
+  Sweet spot for v1.0
+  ↓
+  Trigger Hybrid→Full API met? (revenue, scale, operators)
+  ├─ Not yet → Stay Cell 5
+  └─ Yes → Enable all features → Cell 6
+  ↓
+  Cell 6: B + Full API (v1.5+ production target)
+```
+
+---
+
+## 30.8 Implementation: feature flag matrix
+
+`knowledge/feature-flags.yaml` (recommend create as Tier 1 file):
+
+```yaml
+version: "1.0.0"
+mode: hybrid     # subscription | hybrid | full_api
+
+# === LLM access requirements ===
+api_keys:
+  anthropic: required_for_autonomous   # null in subscription mode
+  openai: required_for_whisper_embeddings
+
+# === Feature flags by mode ===
+features:
+  # Always on (deterministic, work without API)
+  state_transitions:           { enabled: true, requires: [] }
+  dashboard:                    { enabled: true, requires: [] }
+  hitl_routing:                 { enabled: true, requires: [] }
+  gdpr_deletion:                { enabled: true, requires: [] }
+  auto_link_extraction:         { enabled: true, requires: [] }    # zero-LLM
+  
+  # Subscription mode: manual via Claude Code
+  morning_brief:
+    enabled: true
+    requires_api: anthropic
+    fallback: manual_via_claude_code
+  
+  pre_call_dossier:
+    enabled: true
+    requires_api: anthropic
+    fallback: manual_via_claude_code
+  
+  voice_note_classify:
+    enabled: true
+    requires_api: anthropic
+    fallback: manual_via_claude_code
+  
+  # Hybrid mode: enable selectively
+  whisper_transcription:
+    enabled: true
+    requires_api: openai
+    fallback: manual_phone_transcription
+  
+  embeddings:
+    enabled: true
+    requires_api: openai
+    fallback: postgres_full_text_search
+  
+  semantic_search:
+    enabled: true
+    requires_api: openai
+    fallback: keyword_search
+  
+  # Full API mode: enable when scale justifies
+  muse_panel_autonomous:
+    enabled: false
+    requires_api: anthropic
+    cost_warning: "$0.50 per panel run"
+    fallback: manual_muse_via_claude_code
+  
+  cross_decision_patterns:
+    enabled: false
+    requires_api: anthropic
+    cost_warning: "$5-10 per weekly run"
+    fallback: manual_pattern_recognition
+  
+  multi_surface_auto_adaptation:
+    enabled: false
+    requires_api: anthropic
+    cost_warning: "$0.10 per content piece × N surfaces"
+    fallback: manual_per_surface_in_claude_code
+  
+  customer_auto_categorization:
+    enabled: false
+    requires_api: anthropic
+    fallback: manual_categorization
+```
+
+Skill loader reads this and routes accordingly:
+- API available + flag enabled → autonomous
+- API missing or flag disabled → queue task for founder Claude Code review
+
+---
+
+## 30.9 Cost projection theo Wave
+
+### Wave 1-3 (Foundation, no autonomous yet)
+
+**Recommend:** Cell 1 (A + Sub-only) hoặc Cell 2 (A + Hybrid prep)
+
+| Item | Cost |
+|---|---|
+| Claude Pro | $20/mo |
+| Supabase Free | $0 |
+| Anthropic API (optional) | $0-10/mo |
+| OpenAI API (optional) | $0-5/mo |
+| **Total** | **$20-35/mo** |
+
+### Wave 4-6 (Visibility + Privacy + Surfaces)
+
+**Recommend:** Cell 2 → Cell 5 transition (A + Hybrid → B + Hybrid)
+
+| Item | Cost |
+|---|---|
+| Claude Pro | $20/mo |
+| Supabase Free | $0 |
+| Anthropic API | $20-30/mo |
+| OpenAI API | $10-15/mo |
+| Hetzner VPS (Wave 4+) | €5-6/mo |
+| **Total** | **$55-75/mo** |
+
+### Wave 7+ (Founder Capacity capstone, production)
+
+**Recommend:** Cell 5 (B + Hybrid)
+
+| Item | Cost |
+|---|---|
+| Claude Pro/Max | $20-100/mo |
+| Supabase Pro | $25/mo |
+| Anthropic API | $30-60/mo |
+| OpenAI API | $15-30/mo |
+| Hetzner VPS | €5-10/mo |
+| **Total** | **$95-230/mo** |
+
+### v1.5+ (Scale, multi-operator)
+
+**Recommend:** Cell 6 (B + Full API)
+
+| Item | Cost |
+|---|---|
+| Claude Max | $100/mo |
+| Supabase Pro | $25/mo |
+| Anthropic API | $80-150/mo |
+| OpenAI API | $30-80/mo |
+| Hetzner CX32 | €10-15/mo |
+| External services (Sentry, BetterStack) | $20-40/mo |
+| **Total** | **$265-410/mo** |
+
+---
+
+## 30.10 Tóm lại
+
+### Quyết định lớn cho founder
+
+**Bước 1 — Infrastructure trục:** Bắt đầu Cell A (local), migrate Cell B (VPS) khi trigger met.
+
+**Bước 2 — LLM Access trục:** Bắt đầu Sub-only (validate), upgrade Hybrid (default), Full API khi revenue scales.
+
+### Recommended journey cho Ritsu
+
+```
+v0.5 (Wave 1-3):  Cell 1 (A + Sub) → $20-35/mo
+v1.0 (Wave 4-7):  Cell 2 → Cell 5 (A→B + Hybrid) → $55-75/mo
+v1.5 (post-launch): Cell 5 (B + Hybrid) → $95-230/mo
+v2.0+ (scale):    Cell 6 (B + Full API) → $265-410/mo
+```
+
+### Critical insight
+
+**Cell 5 (B + Hybrid) là sweet spot cho Ritsu v1.0.** Không phải vì "cân bằng cost" đơn thuần, mà vì:
+1. Phase A.2 architecture investment (autonomous patterns) preserved ~85%
+2. Always-on infrastructure (VPS) enables Bài #19 founder workflow capstone
+3. Cost ~$60/mo = nhỏ hơn 1 Pro customer ($59/mo)
+4. Easy to upgrade Cell 6 khi revenue grows (just enable more flags)
+5. Easy to downgrade Cell 1-2 nếu cost concerns (disable flags, decommission VPS)
+
+### Anti-patterns to avoid
+
+- ❌ Skip Cell 1 entirely — losing validation phase value
+- ❌ Jump straight to Cell 6 — burning cash before validating
+- ❌ Cell 4 (B + Sub) — paying VPS for limited automation
+- ❌ Permanent Cell 1 — eventually founder bandwidth = bottleneck
+- ❌ Mix modes per skill ad-hoc — use feature flags YAML for declarative control
+
+---
+
+**Tham khảo:**
+- Repo runtime strategy: chương 29
+- Phase A.2 final architecture: chương 28
+- Cost-bucket tracking: Bài #7 (Phase A)
+- Founder capacity: Bài #19 (chương 27)
+- Feature flags YAML: `knowledge/feature-flags.yaml` (Wave 1 task)

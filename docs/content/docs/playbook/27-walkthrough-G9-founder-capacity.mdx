@@ -1,0 +1,459 @@
+---
+title: "Chương 27 — Walkthrough G9: Founder Capacity & Interface (Bài #19 candidate, FINAL)"
+description: "Chương 27 — Walkthrough G9: Founder Capacity & Interface (Bài #19 candidate, FINAL)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/27-walkthrough-G9-founder-capacity.md
+source_hash: 9201da2ad5f16aa72b8872e4f7455e2a6ce0def21ab290f8d2169dbc1ff37a23
+generated_at: '2026-05-19T16:57:54.944Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 9201da2ad5f16aa72b8872e4f7455e2a6ce0def21ab290f8d2169dbc1ff37a23
+translated_at: '2026-05-19T16:57:54.944Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 27
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 27 — Walkthrough G9: Founder Capacity & Interface (Bài #19 candidate, FINAL)
+
+> *"Sau 11 walkthroughs về infrastructure, Phase A.2 chưa address founder mình. Founder = scarcest resource, highest-leverage decision-maker. Phase A có Bài #6 sub-domain B. Phase A.2 reveals: founder capacity = first-class architectural concern."*
+
+## 27.1 Tình huống
+
+Founder TH13 anchor (issue catalog C-Founder + reflection sau 11 walkthroughs): *"Tôi 24h/ngày = 8h sleep + 8h focused work + 8h other. Phase A.2 builds 11 systems mà tôi phải INTERACT với. Nếu không có architecture cho TÔI, tất cả thành burden."*
+
+5 scenarios:
+
+1. **Daily founder rhythm** — morning deep work (06:00-09:00) + meetings (09:00-12:00) + reactive (13:00-17:00) + reflection (19:00-21:00) + sleep (22:00-06:00)
+2. **Weekly founder rhythm** — Monday strategic / Tue-Thu execution / Friday review / weekend lighter
+3. **Attention budget** — 200+ daily interrupts (Telegram + email + Slack + Twitter + LinkedIn) need triage layer
+4. **Context-switching cost** — 5-15 min refocus per switch, unified workspace concept needed
+5. **Cognitive load distribution** — match founder time to leverage (high-leverage strategic vs low-leverage routine)
+
+**Founder expected:**
+- AI triages all interrupts → priority queue
+- Daily morning brief assembled overnight
+- Pre-call dossiers auto-prepared
+- Cognitive load distributed by leverage
+- Single workspace concept across surfaces
+- Weekly rhythm has dedicated planning + reflection slots
+- Attention budget tracking
+
+**Khi sai:**
+- 4+ hours/day on triage = no strategic work
+- Context-switching kills deep work
+- Decisions delayed → bottleneck for entire AI workforce
+- Customer relationships suffer
+- Burnout — exactly Phase A roadmap chương 13's failure mode #1
+
+## 27.2 Walk through Phase A + prior walkthroughs
+
+### Have
+- ✅ Bài #2 HITL 5-tier system
+- ✅ Bài #6 sub-domain B (founder interface): Telegram + dashboard + MCP
+- ✅ Bài #6 brand_voice
+- ✅ Phase A roadmap chương 13 warns founder bandwidth = failure mode #1
+
+### Phase A.2 prior walkthroughs all relevant
+- Bài #8 schedules (morning brief assembly)
+- Bài #10 dashboard (visibility)
+- Bài #11 events (interrupt aggregation)
+- Bài #12 MCP (Claude Code primary)
+- Bài #14 knowledge graph (pre-call dossier)
+- Bài #15 decisions (Muse panel for major)
+- Bài #16 customer (customer 360)
+- Bài #17 multi-surface (founder surfaces)
+- Bài #18 ingestion (overnight content processing)
+
+### Don't have
+
+15 gaps — rhythm registry, attention budget, triage scoring, morning brief, pre-call dossier, founder workspace concept, cognitive load rules, weekly review SOP, deep work protection, energy tracking, HITL deferral, cognitive preferences, recovery time, effectiveness metrics, boundary protection.
+
+## 27.3 Workaround vs proper extension
+
+### Workaround
+- Z1: Founder discipline alone — degrades over time
+- Z2: 3rd-party (Reclaim.ai, Motion, Sunsama) — not integrated với Ritsu context
+- Z3: Founder capacity architecture với Tier 1 rhythm + integrated triage — proper
+
+**Recommendation: Z3.** Phase A roadmap warned founder bandwidth = failure mode #1. Architectural investment matches risk.
+
+### Proper extension — Bài #19
+
+4 axes:
+
+#### Axis 1 — Rhythm Registry + Workspace Concept
+
+**Founder profile (extends Bài #6, uses Bài #14 page format):**
+
+```yaml
+---
+type: identity
+slug: founder/doan-chien-thang
+created_at: 2026-05-03
+last_assessed_at: 2026-05-03
+---
+
+# Founder: Doan Chien Thang
+
+## Compiled Truth
+
+Solo founder of Ritsu. Vietnamese-primary, English-fluent.
+Vision: tỷ-đô company với 1-2 humans + AI workforce.
+
+**Cognitive style:** Strategic + technical. Systems thinking.
+**Communication:** Direct, terse, prefers data. VI for team, EN for repo.
+**Time zone:** Asia/Ho_Chi_Minh (UTC+7).
+
+**Primary surfaces:**
+1. Claude Code (deep work + dev)
+2. Telegram (HITL + voice notes)
+3. Dashboard (visibility)
+4. Email (customer + investor)
+
+**Focus blocks:**
+- Morning (06:00-09:00 ICT): deep work
+- Afternoon (13:00-17:00): meetings + reactive
+- Evening (19:00-21:00): reflection
+
+**Boundaries:**
+- Weekend lighter mode
+- Sleep block 22:00-06:00 (no notifications)
+
+---
+
+## Timeline (append-only)
+- 2026-05-03 — Profile created during Phase A.2 G9 walkthrough
+```
+
+**Rhythm registry (Tier 1):**
+
+```yaml
+# knowledge/founder-rhythm.yaml
+timezone: Asia/Ho_Chi_Minh
+
+daily_rhythm:
+  - id: morning-deep-work
+    start: "06:00"
+    end: "09:00"
+    mode: focus
+    interrupt_level: emergency_only
+    do_not_disturb: true
+  
+  - id: morning-brief
+    start: "06:00"
+    end: "06:15"
+    mode: review
+    auto_assembled: true
+    sources: [last_24h_kpis, hitl_backlog, calendar, ingestion_summary, customer_alerts]
+  
+  - id: meeting-block-1
+    start: "09:00"
+    end: "12:00"
+    mode: meeting
+    pre_call_dossier_minutes_before: 30
+  
+  - id: afternoon-reactive
+    start: "13:00"
+    end: "17:00"
+    mode: reactive
+    interrupt_level: tier_b_plus
+  
+  - id: evening-reflection
+    start: "19:00"
+    end: "21:00"
+    mode: reflection
+    interrupt_level: tier_c_plus
+  
+  - id: sleep
+    start: "22:00"
+    end: "06:00"
+    mode: sleep
+    interrupt_level: critical_only
+
+weekly_rhythm:
+  - day: monday
+    theme: strategic_planning
+  - day: friday
+    theme: review_retrospective
+    activities:
+      - weekly_kpi_review
+      - cross_decision_pattern_muse_run  # Bài #15
+      - voice_note_aggregation  # Bài #18
+  - day: weekend
+    theme: lighter_mode
+
+special_modes:
+  - id: customer_call_mode
+    trigger: calendar_event_with_customer
+    pre_call:
+      - assemble_dossier
+      - silent_telegram
+  
+  - id: deep_work_mode
+    trigger: founder_invoked  # Telegram /focus N
+    duration: 120_minutes_default
+    effects:
+      - tier_b_hitl_deferred
+      - non_emergency_alerts_suppressed
+```
+
+**Workspace mapping:**
+
+| Surface | Primary use | When |
+|---|---|---|
+| Claude Code | Deep work + complex queries | Morning deep block |
+| Telegram | HITL + voice notes + quick approvals | Throughout day |
+| Dashboard | Visibility + monitoring + drill-down | Reactive afternoon |
+| Email | Customer + investor + external | Reactive afternoon |
+
+#### Axis 2 — Attention Budget + Triage Scoring
+
+**Schema:**
+
+```sql
+CREATE TABLE ops.attention_log (
+  id              uuid PRIMARY KEY,
+  occurred_at     timestamptz NOT NULL,
+  founder_id      text NOT NULL DEFAULT 'founder',
+  category        text NOT NULL,         -- 'deep_work' | 'meeting' | 'hitl' | 'triage' | 'reactive' | 'reflection' | 'recovery'
+  duration_minutes numeric NOT NULL,
+  source          text,
+  related_entities jsonb,
+  estimated_leverage text,               -- 'high' | 'medium' | 'low'
+  notes           text
+);
+```
+
+**Triage scoring skill:**
+
+```yaml
+name: founder-triage-score
+scoring_factors:
+  - urgency: 0-10 (deadline-based)
+  - leverage: 0-10 (impact if right; cost if wrong)
+  - reversibility: 0-10 (irreversible = higher)
+  - founder_uniqueness: 0-10 (only founder vs AI can)
+  - rhythm_block_match: bonus/penalty
+
+routing:
+  - score 9-10: notify immediately (Tier C/D)
+  - score 6-8: batch to next reactive block (Tier B)
+  - score 3-5: defer to evening reflection
+  - score 0-2: AI handles autonomously
+```
+
+**Daily attention budget (Tier 1):**
+
+```yaml
+daily_attention_budget:
+  total_focus_minutes: 480  # 8 hours focused
+  
+  target_distribution:
+    deep_work: 180           # 37.5%
+    meetings: 120             # 25%
+    hitl_decisions: 60        # 12.5%
+    triage_email: 30          # 6.25%
+    customer_relationships: 60  # 12.5%
+    reflection: 30             # 6.25%
+
+alert_thresholds:
+  - condition: triage_minutes > 90 in single day
+    severity: warning
+  - condition: deep_work_minutes < 120 in single day
+    severity: warning
+  - condition: hitl_decisions > 90 in single day
+    severity: critical
+```
+
+#### Axis 3 — Morning Brief + Pre-Call Dossier + Weekly Review
+
+**SOP-FOUNDER-001-morning-brief:**
+
+```yaml
+trigger: schedule daily 05:45 ICT
+sla_minutes: 15
+steps:
+  - gather-kpis (Bài #10)
+  - gather-hitl-backlog (Bài #2)
+  - gather-calendar (MCP Bài #12)
+  - gather-stale-decisions (Bài #15)
+  - gather-customer-alerts (Bài #16)
+  - gather-ingestion-summary (Bài #18)
+  - gather-emerging-patterns (Bài #1 Insight tier)
+  - assemble-brief (subagent)
+  - deliver via telegram + dashboard at 06:00
+```
+
+Output example:
+```
+# Morning Brief — 2026-05-04 (Mon)
+## Yesterday: 1,247 customers (+12), MRR $42K (+$1.2K)
+## HITL Backlog: Tier C 2 pending, Tier B 7 pending
+## Today's Calendar: 09:00 Acme call, 11:00 Investor update, 14:00 Hiring interview
+## Stale Decisions: decision/2026-04-supabase-vs-planetscale (90-day review)
+## Emerging Patterns: 3 customers asking SAML SSO, "AI tutor partnership" mentioned 4x in voice notes
+## Today's Suggested Focus: 
+1. Review SAML SSO prioritization (deep work, 30min)
+2. Pre-call prep Acme + Investor
+3. Stale Supabase decision review
+```
+
+**SOP-FOUNDER-002-pre-call-dossier:**
+- Trigger: 30 min before calendar event
+- Steps: knowledge graph traverse (Bài #14) + customer 360 (Bài #16) + episodic recall (Bài #4) + open thread items + assemble + deliver
+
+**SOP-FOUNDER-003-weekly-review:**
+- Trigger: Friday 17:00 ICT
+- Steps: weekly KPIs + cross-decision Muse (Bài #15) + attention distribution analysis + voice aggregation (Bài #18) + customer pulse + cost review (Bài #7)
+
+#### Axis 4 — Cognitive Load Distribution + Boundary Protection
+
+**Cognitive load distribution rules (Tier 1):**
+
+```yaml
+cognitive_load_distribution:
+  founder_only:
+    examples:
+      - tier_c_plus_decisions
+      - investor_relations
+      - existential_strategic_choices
+      - first_customer_calls (per segment)
+  
+  founder_drafts_ai_executes:
+    examples:
+      - blog_post_strategy
+      - hiring_decision_finalization
+  
+  ai_drafts_founder_reviews:
+    examples:
+      - tier_b_hitl
+      - content_publishing_variants
+      - routine_customer_responses
+  
+  ai_handles_autonomously:
+    examples:
+      - tier_a_routine_ops
+      - knowledge_ingestion
+      - format_conversion
+      - schedule_polling
+```
+
+**Do-not-disturb mode:**
+
+```
+Telegram bot: /focus 90
+→ deep_work_mode for 90 minutes
+→ Tier B HITL deferred
+→ Non-emergency alerts suppressed
+→ End-of-block summary delivered
+```
+
+**Founder dashboard pages (Bài #10):**
+- /founder/attention-budget — daily distribution vs target
+- /founder/effectiveness — weekly trend
+- /founder/leverage-distribution — high vs medium vs low
+- /founder/decision-velocity — avg time per tier
+
+## 27.4 New components (28)
+
+28 components — 2 Tier 1 + ops.attention_log + 4 skills + 3 SOPs + 4 synthesis + 4 dashboards + DND + 2 MCP tools + 6 cross-bài-toán updates.
+
+## 27.5 Bài #19 candidate (FINAL)
+
+**Bài #19 — Founder Capacity & Interface Architecture**
+
+**Question core:** Founder = scarcest resource. Daily/weekly rhythm declarative. Attention budget tracked + protected. Triage scoring routes interrupts. Morning brief + pre-call dossier + weekly review auto-assembled. Cognitive load distributed by leverage. Founder workspace unified across surfaces.
+
+**Dependencies:** Touches every Phase A.2 bài toán (Bài #1, #2, #4, #6, #7, #8 DRAFT, #10 DRAFT, #11 DRAFT, #12 DRAFT, #14 DRAFT, #15 DRAFT, #16 DRAFT, #17 DRAFT, #18 DRAFT)
+
+## 27.6 Lessons captured
+
+1. **Founder = scarcest resource** — all 11 prior bài toán produce work flowing to founder.
+2. **Rhythm registry = Tier 1 declarative.**
+3. **Triage scoring prevents drowning.**
+4. **Attention budget finite** (8h focused/day).
+5. **Morning brief = highest-leverage SOP** for founder.
+6. **Pre-call dossier = knowledge graph + customer 360 + episodic recall** in 30-min window.
+7. **Weekly review = pattern recognition.**
+8. **Cognitive load distribution rules make explicit.**
+9. **Boundary protection = first-class architectural feature.**
+10. **Founder profile = identity entity** in knowledge graph.
+11. **Single workspace concept** across surfaces.
+12. **Bài #19 = capstone** — closes 11-walkthrough loop với human-side architecture.
+
+## 27.7 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ19.1 | Per-founder customization? | Operator joins |
+| OQ19.2 | Energy/state ML prediction? | After 6 months data |
+| OQ19.3 | Day-type rhythm variants? | Pattern surfaces |
+| OQ19.4 | Health/wellness integration? | Founder request |
+| OQ19.5 | Coaching feedback loop? | After 3 months |
+| OQ19.6 | Multi-founder rhythms? | Co-founder joins |
+| OQ19.7 | Recovery time science? | Phase D research |
+| OQ19.8 | Vacation mode? | Founder vacation |
+| OQ19.9 | Pair-programming-with-AI mode? | Dev-heavy weeks |
+
+## 27.8 Anti-patterns
+
+- ❌ Founder as unlimited resource (Phase A roadmap warned)
+- ❌ No rhythm registry
+- ❌ All interrupts equally weighted
+- ❌ No attention budget tracking
+- ❌ Morning brief manual
+- ❌ Pre-call prep manual
+- ❌ Cognitive rules in founder's head only
+- ❌ No boundary protection
+- ❌ Skip weekly review
+- ❌ Single-surface workspace
+- ❌ Ignore founder energy/state
+- ❌ Premature ML attention prediction (need 6+ months data)
+
+## 27.9 Cross-references
+
+Bài #19 touches **EVERY** Phase A.2 bài toán — cap-stone integrates entire stack:
+
+- **Bài #1 4-Tier:** founder profile = TIER1 identity
+- **Bài #2 HITL:** Tier C immediate / Tier B batched
+- **Bài #4 Memory:** episodic recall feeds pre-call
+- **Bài #6 Identity:** sub-domain B formalized as workspace
+- **Bài #7 Economic:** founder-time = highest cost
+- **Bài #8 Scheduling:** rhythm-aware scheduling
+- **Bài #9 SOP:** 3 founder SOPs leverage architecture
+- **Bài #10 Visibility:** 4 founder dashboard pages
+- **Bài #11 Events:** event aggregation respects rhythm
+- **Bài #12 MCP:** ritsu.founder.* tools
+- **Bài #13 State Machines:** founder cognitive state implicit
+- **Bài #14 Knowledge Graph:** founder profile = identity entity
+- **Bài #15 Decisions:** decision queue prioritized by triage
+- **Bài #16 Customer:** customer 360 feeds pre-call
+- **Bài #17 Multi-Surface:** founder primary surfaces
+- **Bài #18 Ingestion:** overnight ingestion produces brief inputs
+- **GBrain heritage:** USER.md/HEARTBEAT.md identity files
+- **GBrain Soul-audit:** founder profile reviewed quarterly
+
+## 27.10 Tổng kết — Final walkthrough
+
+- **Bài #19 candidate: Founder Capacity & Interface Architecture**
+- **4 axes:** rhythm registry+workspace / attention budget+triage / morning brief+pre-call+weekly review / cognitive load+boundary protection
+- **28 new components**
+- **6 cross-bài-toán updates** + touches all 11 prior bài toán
+
+**Pattern after 12 walkthroughs (COMPLETE):** declarative-first architecture với 17 Tier 1 files (operational DNA + knowledge + judgment + privacy + multi-surface + ingestion + founder): + **founder-rhythm.yaml**.
+
+**Phase A.2 bottom-up walkthroughs COMPLETE — 12/12 (100%).**
+
+Sang phase tiếp theo: **pattern extraction + Phase A.2 final architecture synthesis.**
+
+---
+
+**Tham khảo:**
+- High-altitude pass: G9 entry (score 5.55, FINAL)
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G9-founder-capacity.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-19-founder-capacity-DRAFT.md`
+- Phase A dependencies: Chương 5 (Bài #2 HITL), Chương 9 (Bài #6 Identity), Chương 13 (Roadmap failure mode #1)
+- Phase A.2 dependencies: Chương 16-26 (all prior bài toán)
