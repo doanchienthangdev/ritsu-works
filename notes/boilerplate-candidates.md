@@ -230,3 +230,44 @@ If 3+ checkboxes ticked, start Phase 1 generalization (per chương 31.5).
 ---
 
 *This file is a living document. Update during every implementation session that touches generic patterns.*
+
+---
+
+## docs-engine v1.0 Phase 8 contributions (2026-05-19)
+
+Promotion of `docs-engine` (Live Documentation Engine — Fumadocs + Vercel) surfaced 4 reusable patterns. Source: `wiki/capabilities/docs-engine/retrospective.md` § Boilerplate-extractable patterns.
+
+### 1. `scripts/<capability>-sync.cjs` walker template
+
+The walker pattern in `scripts/docs-sync.cjs` is reusable for ANY codebase-to-rendered-artifact pipeline:
+- Recursive `listSources` per source-kind
+- Per-adapter dispatch
+- 3-layer secret redaction
+- `{/* generated-by */}` idempotency marker
+- `--dry-run`, `--force`, `--area=<a>` CLI flags
+- Frontmatter parser via `js-yaml`
+- `source_hash = sha256(canonicalize(content))` drift detection
+
+Future candidate extractions:
+- `content-sync` (Tier 1 → blog posts on `ritsu.ai/blog`)
+- `kpi-sync` (Tier 1 KPI definitions → dashboard config)
+- `partner-sync` (CRM data → outreach content)
+
+### 2. 3-layer fail-loud secret redactor
+
+`docs/lint-secrets.cjs` pattern reusable for ANY auto-published surface:
+- Layer 1: walker-exclude (never enter corpus)
+- Layer 2: MDX/HTML regex scrub (fail-loud on match)
+- Layer 3: CI gate (block deploy)
+- Fail-loud not silent-scrub: a leak should produce loud build failure + incident issue
+
+Future candidates: newsletter generator, public-facing changelog, status page, customer email templates.
+
+### 3. CLA self-merge accelerated mode
+
+Single-session compression of 3-sprint plan into ~6 hours via founder-authorized self-merge per PR. Worth documenting as optional `--accelerated` mode in `SOP-AIOPS-001-capability-lifecycle/`. Trade-off: founder time savings vs reduced per-PR review (founder reviews PR description on GitHub asynchronously instead of synchronous walk-through). Best for low-risk capabilities (reference-only docs, infrastructure scaffolding); NOT for capabilities touching production data, customer-facing surfaces, or D-tier actions.
+
+### 4. CxO routing keyword extension when new domains emerge
+
+`knowledge/cla-routing-keywords.yaml` `routes.code.keywords` should add: `docs`, `mdx`, `fumadocs`, `vercel`, `nextjs`. Currently routing worked by coincidence (matches on `code` + `hook` + `MCP`). Future doc/frontend capabilities may miss routing without keyword extension. Could be its own Phase 4 candidate `/cla fix cla-routing-keywords` task.
+

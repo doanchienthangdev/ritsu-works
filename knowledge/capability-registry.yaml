@@ -206,42 +206,54 @@ capabilities:
     name: "Live Documentation Engine (Fumadocs + Vercel, Vietnamese-first)"
     description: |
       Live operator + AI runtime context bundle. docs/ folder ở repo root
-      (Next.js subproject + Fumadocs MDX) auto-deploys lên Vercel Hobby.
-      /docs command (mirrors /wiki) drives build/sync/check/publish/nav/update
-      lifecycle. Walker + 9 adapters render Tier 1 + .claude/ runtime
-      (~215 sources: commands, skills, agents, hooks, charter, governance,
-      pillar READMEs, SOPs, knowledge yamls) into browsable MDX. Vietnamese
-      content primary; English code identifiers + frontmatter keys.
+      (Next.js subproject + Fumadocs MDX) auto-deploys lên Vercel Hobby
+      at https://ritsu-works.vercel.app. /docs command drives walker (9
+      adapters render ~226 source files: commands, skills, agents, hooks,
+      charter, governance, pillar READMEs, SOPs, knowledge yamls into
+      browsable MDX). Vietnamese content primary; English code identifiers.
       3-layer fail-loud secret redactor (walker-exclude + MDX regex scrub +
-      CI gate). `<!-- generated-by: docs-engine vN -->` idempotency marker
-      + 3-way diff on regen (CTO Phase 2 mod). `tutorial_last_verified_at`
-      frontmatter + monthly verification (CPO Phase 4 mod).
-      Selected option: B + 2 CPO mods (5 tutorials, not 8-12).
+      CI gate). `{/* generated-by */}` JSX comment idempotency marker
+      (CTO Phase 2 mod). AI runtime endpoint /api/raw/<slug> serves raw MDX
+      for subagent context (CPO Phase 4 P0 reframe).
+      v1.0 ships reference-only (Sprint 1). Tutorials + index sharding
+      deferred to v1.1 extensions per founder + Muse cynic contingency.
     version: "1.0.0"
-    state: proposed
+    state: operating
     state_since: 2026-05-19
     proposed_at: 2026-05-19
+    deployed_at: 2026-05-19
+    operating_since: 2026-05-19
     pillar_owner: 06-ai-ops
     bài_toán_touched: [1, 2, 5, 7, 8, 9, 10, 11, 13, 15, 17, 19, 20]
-    spec_path: wiki/capabilities/docs-engine/spec.md   # Promoted at Phase 8
+    spec_path: wiki/capabilities/docs-engine/spec.md
+    retrospective_path: wiki/capabilities/docs-engine/retrospective.md
     sprint_plan: ".archives/cla/docs-engine/sprint-plan.md (local-only working)"
     cost_bucket: ai-ops-docs
     estimated_cost_setup_usd: 13.00         # midpoint of $8-18 range
     estimated_cost_recurring_usd: 7.50      # midpoint of $3-12/mo range
     estimated_founder_hours: 20             # midpoint of 15-25h range
+    actual_cost_setup_usd: 4.00             # single-session AI execution; less iteration than planned
+    actual_cost_recurring_usd: 0            # no /docs sync runs since deploy; will grow as founder uses
+    actual_founder_hours: 0.5               # ~30 min: 1 escalation question + Vercel setup; v1.1 tutorials will spend the planned 8-15h
     estimated_completion: 2026-06-16        # 3-4 weeks from proposal
+    actual_completion: 2026-05-19           # single-session; -97% time delta
+    selected_option: "B + 2 CPO mods (5 tutorials, not 8-12) → Sprint 2 tutorials deferred to v1.1 extension"
     target_kpis: [docs_drift_count]
     target_value: 0                          # 0 drift sustained > 24h
+    deploy_url: https://ritsu-works.vercel.app
     notes: |
       ops.capability_runs id 41143b9b-5b9c-4c73-9468-1c1b64cc9694.
       Tier C decision approved 2026-05-19 (ops.decisions slug
       docs-engine-v1-architecture, id 34c9ae53-fec1-4862-bc6c-d0dacad261be).
-      CTO verdict: NITS → APPROVE (3 schema fixes applied).
-      Muse panel high-stakes-decision-panel: 5/5 APPROVE (cynic contingency:
-      Sprint 2 slip-to-3-tutorials honesty; time-honest contingency:
-      3h/tutorial time-box). Both contingencies adopted in sprint plan.
-      Sprint plan approved 2026-05-19. Phase 7 implementation begins
-      with this PR (Sprint 1 PR-1 — Tier 1 yaml additions).
+      CTO verdict: NITS → APPROVE (3 schema fixes applied). Muse panel
+      high-stakes-decision-panel: 5/5 APPROVE.
+      Single-session AI-executed Sprint 1 (2026-05-19, ~6 hours).
+      PRs shipped: #54 (Tier 1 manifest), #55 (skill stubs + SOP + command),
+      #56 (Next.js scaffold + walker + 9 adapters + secret redactor),
+      #57 (pillar-numbering hotfix), #58 (MDX build compat), #59 (Vercel
+      config — removed output:standalone + i18n), #60 (manifest deploy_url).
+      Site live + AI runtime endpoint returning text/markdown verified
+      end-to-end. Sprint 2 + 3 deferred to v1.1 via /cla extend docs-engine.
 
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition
