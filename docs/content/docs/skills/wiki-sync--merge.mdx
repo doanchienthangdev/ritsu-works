@@ -9,12 +9,12 @@ description: |
   Tier B (recoverable via --undo).
 source_path: 06-ai-ops/skills/wiki-sync/merge/SKILL.md
 source_hash: 156ca42e32da7abbfdd6a53f9cdd496a78774a11e5302c891e2199e53e9de3b6
-generated_at: '2026-05-19T03:36:59.989Z'
+generated_at: '2026-05-19T03:58:13.366Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # wiki-sync / merge (v3.0 → v4.0 semantics flip)
@@ -41,7 +41,7 @@ v4.0 source-grouped layout changes merge from "the default consolidation pass" t
 - UPDATE `ops.knowledge_pages SET deleted_at = now() WHERE slug = <duplicate_slug>` (soft-delete)
 - DELETE `wiki/<source-slug-loser>/<page_type>s/<duplicate_slug>.md` file from filesystem (v4.0 source-grouped path — when merging cross-package, the duplicate's source-slug is the "loser" package; canonical lives at the winner's source-slug path under `wiki/<source-slug-winner>/<page_type>s/<canonical_slug>.md` and stays)
 - INSERT `ops.events` row (`ritsu.wiki.merge_executed` or `ritsu.wiki.merge_undone`)
-- Append "Merged from <duplicate_slug>" line to canonical page's `## Sources cited` section
+- Append "Merged from \<duplicate_slug>" line to canonical page's `## Sources cited` section
 - Re-embed canonical page (its summary now reflects merged content; embedding stale)
 
 ## Process
@@ -187,7 +187,7 @@ COMMIT;
 ```
 
 Then:
-- Restore the wiki file by reading from git history (the file was committed before merge; git checkout <commit-before-merge> -- <path>)
+- Restore the wiki file by reading from git history (the file was committed before merge; git checkout \<commit-before-merge> -- \<path>)
 - Remove the "Merged from X" footer from canonical page
 
 **v3.0.5 enhancement (merged into v0.2 of this skill):** undo is now precise via `extraction_ids_rewired` + `link_ids_rewired` arrays in the `merge_executed` event payload. Merges performed under v0.1 of this skill (before this enhancement) still use best-effort fallback — for those, founder verifies post-undo state.

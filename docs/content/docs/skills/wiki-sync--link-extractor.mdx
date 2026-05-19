@@ -8,12 +8,12 @@ description: |
   in a > 1000-token chunk) gated by feature flag `wiki_sync_llm_fallback`.
 source_path: 06-ai-ops/skills/wiki-sync/link-extractor/SKILL.md
 source_hash: 8e313544e05eab2c7d2186a94e96601ac510e5759a140347616448b7ef7b48fe
-generated_at: '2026-05-19T03:36:59.989Z'
+generated_at: '2026-05-19T03:58:13.365Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # wiki-sync / link-extractor (Sprint 1 baseline + Sprint 2 PR3 G2 + Sprint 3 PR5 LLM-fallback spec)
@@ -31,7 +31,7 @@ Behind feature flag `wiki_sync_llm_fallback` in `knowledge/feature-flags.yaml`
 
 After the regex pass completes, count the regex-extracted links:
 - If `links_extracted >= 3` per 1000 tokens of chunk_text → STOP. Regex coverage is sufficient.
-- If `links_extracted < 3` per 1000 tokens AND chunk_text contains entity-like patterns (proper nouns, [[brackets]] without slash, "according to ...", "per <name>") → LLM-fallback fires.
+- If `links_extracted < 3` per 1000 tokens AND chunk_text contains entity-like patterns (proper nouns, [[brackets]] without slash, "according to ...", "per \<name>") → LLM-fallback fires.
 
 ### LLM-fallback API call
 
@@ -61,7 +61,7 @@ For each LLM-suggested link:
 - Check if target slug exists in `ops.knowledge_pages` (resolved → `target_page_id`)
 - If not, leave as orphan link (target_page_id NULL) — same as regex behavior
 - Skip duplicates of already-extracted regex links (same source_text)
-- Apply confidence threshold (drop < 0.6)
+- Apply confidence threshold (drop \< 0.6)
 
 ### Audit + cost attribution
 

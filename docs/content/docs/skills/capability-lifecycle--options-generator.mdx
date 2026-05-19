@@ -3,12 +3,12 @@ title: 'Skill: options-generator'
 description: Phase 4 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/options-generator/SKILL.md
 source_hash: 777b72307f09f9517539f143b613a563eca91a2751246add3ffbf0b0e2d80a0a
-generated_at: '2026-05-19T03:36:59.965Z'
+generated_at: '2026-05-19T03:58:13.336Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Options Generator (CLA Phase 4)
@@ -51,7 +51,7 @@ For each option, output:
 | Components | Skills + SOPs + integrations + external services from gap-analysis.md |
 | Cost setup ($, one-time) | LLM estimate using gap-analysis.md external service prices |
 | Cost recurring ($/mo) | Same |
-| LLM cost recurring ($/mo) | **Compute deterministically**: median per-call cost from `ops.cost_attributions WHERE cost_bucket LIKE 'ai-ops-cla%'` × estimated calls/month. If history is < 30 calls, fall back to "estimate: $X" with a flag. |
+| LLM cost recurring ($/mo) | **Compute deterministically**: median per-call cost from `ops.cost_attributions WHERE cost_bucket LIKE 'ai-ops-cla%'` × estimated calls/month. If history is \< 30 calls, fall back to "estimate: $X" with a flag. |
 | Founder time setup (h) | LLM estimate, anchored on similar past capabilities |
 | Founder time ongoing (h/wk) | Same |
 | Complexity | low | medium | high |
@@ -60,7 +60,7 @@ For each option, output:
 | Risk level | low | medium | high — naming the top risk |
 | Reversibility (1-5, Bài #15) | 1 = one-way door, 5 = trivial revert |
 | Decision tier (Bài #2) | A | B | C | D-Std | D-MAX |
-| Bài-toán touched | Subset of {1,2,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20} |
+| Bài-toán touched | Subset of \{1,2,4,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20} |
 | Recommendation strength | weak | medium | strong |
 
 ### Step 3 — CxO parallel poll on top 2 options
@@ -70,7 +70,7 @@ Sort by recommendation strength (strong > medium > weak). Pick top 2.
 For each top-2 option:
 1. Use `knowledge/cla-routing-keywords.yaml` keyword scan against the option's `Approach summary` to identify ≤ 3 relevant chiefs (e.g., growth-related → `@cgo`; cost-heavy → `@cfo` if active else `@backoffice-clerk`; new MCP → `@cto`).
 2. For each chief, dispatch a parallel Agent call with prompt:
-   > Given option {N}: {summary}, components {list}, cost {setup + recurring}, time {MVP + prod}. Reply in ≤ 150 words: pros / cons / 1 hidden cost the founder may miss / 1-line recommendation. Cite at least 1 file in this repo.
+   > Given option \{N}: \{summary}, components \{list}, cost \{setup + recurring}, time \{MVP + prod}. Reply in ≤ 150 words: pros / cons / 1 hidden cost the founder may miss / 1-line recommendation. Cite at least 1 file in this repo.
 
 Cap fan-out at 2 options × 3 chiefs = 6 parallel Agent calls per Phase 4 run.
 
@@ -175,7 +175,7 @@ If founder picks "Iterate", repeat Steps 1-4 with the founder's hint, max 1 iter
 
 | Symptom | Response |
 |---|---|
-| Cost history empty (< 30 calls) | Use static defaults; flag "low-confidence cost projection" prominently. |
+| Cost history empty (\< 30 calls) | Use static defaults; flag "low-confidence cost projection" prominently. |
 | Cabinet poll: 1+ chiefs unreachable | Mark "(no input)"; reduce recommendation strength by 1 step. |
 | Founder picks "Iterate" twice | Escalate to Tier C; defer Phase 5 until founder gives a Tier-C green-light. |
 | Recommended option's `decision_tier` ≥ D-Std | Refuse to advance; require explicit Tier D ceremony per HITL.md. |

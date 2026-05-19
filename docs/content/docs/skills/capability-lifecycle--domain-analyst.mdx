@@ -3,12 +3,12 @@ title: 'Skill: domain-analyst'
 description: Phase 2 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/domain-analyst/SKILL.md
 source_hash: a30605f6937bc14cc9e901a6671c5a744548d5bbc70094121e5eecfb8d7ce92f
-generated_at: '2026-05-19T03:36:59.964Z'
+generated_at: '2026-05-19T03:58:13.334Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Domain Analyst (CLA Phase 2)
@@ -50,7 +50,7 @@ For the chosen route, look up the `cxo` slug in `knowledge/workforce-personas.ya
 Issue **two parallel** Agent calls in a single message:
 
 1. The CxO subagent (or fallback role) with prompt:
-   > Read `.archives/cla/<id>/problem.md`. Produce a 200-300 word "domain lens" covering: who the user/customer is here, what's actually scarce, what an experienced {domain} chief would attack first, what would be a beginner mistake. Cite at least 1 file in this repo. End with a single 1-line recommendation.
+   > Read `.archives/cla/<id>/problem.md`. Produce a 200-300 word "domain lens" covering: who the user/customer is here, what's actually scarce, what an experienced \{domain} chief would attack first, what would be a beginner mistake. Cite at least 1 file in this repo. End with a single 1-line recommendation.
 2. The full domain-analysis worker (yourself, this skill) with prompt:
    > Same problem. Produce industry benchmarks (cite a source where you can; otherwise mark "estimate"), a customer journey map, a competitive landscape brief (top 3-5 competitors), and a channel comparison matrix (channel × CAC × volume × time-to-result × sustainability).
 
@@ -133,7 +133,7 @@ Tier A. Founder may spot-check (5 min) but auto-advances.
 |---|---|
 | Routing yaml missing or invalid | Abort phase; surface the validator's drift error to the founder. |
 | Both parallel calls fail | Write a stub domain-analysis.md noting "LLM unavailable; proceed manually" and don't advance state. |
-| CxO returns < 100 words or refuses | Fall back to Muse panel for that lens. |
+| CxO returns \< 100 words or refuses | Fall back to Muse panel for that lens. |
 
 ## LLM mode awareness
 

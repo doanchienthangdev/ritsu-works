@@ -3,12 +3,12 @@ title: Agent Roles & Permissions
 description: ''
 source_path: governance/ROLES.md
 source_hash: ac310ca9712bfe48aa9d39b815478ac9d0bbae54bbec5ee40c95d39f9d8ee396
-generated_at: '2026-05-19T03:37:00.007Z'
+generated_at: '2026-05-19T03:58:13.389Z'
 generated_by: docs-engine v0.1.0
 category: governance
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 # Agent Roles & Permissions
 
@@ -564,7 +564,7 @@ Each role's `memory_config` sets the role's posture toward learning across sessi
 
 **`recall_window_days` tuning.** Start with the default. After 4 weeks of `ops.agent_runs` data:
 - If a role's recalls consistently surface only the past 7 days of runs (older runs irrelevant), shrink `recall_window_days`
-- If recalls return < 3 results often (sparse history), grow `recall_window_days`
+- If recalls return \< 3 results often (sparse history), grow `recall_window_days`
 - If a role frequently faces novel situations not covered by recalls, recalibrate `recall_max_runs` upward — but cost-watch (each recall costs ~200 tokens × max_runs)
 
 **`recall_max_runs` budget impact.** Each recall row is ~200 tokens including the run_summary. 5 recalls = ~1K tokens added to every task's preamble. Across thousands of tasks/month, this is real cost. Set conservatively; raise only when value is demonstrated.

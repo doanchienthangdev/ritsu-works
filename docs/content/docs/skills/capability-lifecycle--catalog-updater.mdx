@@ -3,12 +3,12 @@ title: 'Skill: catalog-updater'
 description: Phase 8 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/catalog-updater/SKILL.md
 source_hash: a821475edd9a6333a4f241bfd92e946cf482cb2f0d74c208ceed10915543d2c1
-generated_at: '2026-05-19T03:36:59.963Z'
+generated_at: '2026-05-19T03:58:13.332Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Catalog Updater (CLA Phase 8)
@@ -95,7 +95,7 @@ Copy:
 
 Promotion rules:
 - `mkdir -p wiki/capabilities/<id>/`.
-- If destination already exists (e.g., a v2 with same slug), STOP and ask founder: "wiki/capabilities/<id>/ exists. Overwrite (capability re-deployment), append `-v2`, or abort?"
+- If destination already exists (e.g., a v2 with same slug), STOP and ask founder: "wiki/capabilities/\<id>/ exists. Overwrite (capability re-deployment), append `-v2`, or abort?"
 - After copy, the `.archives/cla/<id>/` folder STAYS local (gitignored) for retrospective context. Don't delete.
 
 ### Step 4 — Update `wiki/capabilities/CATALOG.md`
@@ -104,7 +104,7 @@ Read the existing CATALOG (or use the bootstrap version from Sprint 1). Append/u
 
 | ID | Name | Pillar | Deployed | Spec | Retrospective |
 |---|---|---|---|---|---|
-| `<id>` | <name> | <pillar> | <deployed_at> | [spec](<id>/spec.md) | [retro](<id>/retrospective.md) |
+| `<id>` | \<name> | \<pillar> | \<deployed_at> | [spec](\<id>/spec.md) | [retro](\<id>/retrospective.md) |
 
 Move the row out of any in-progress sections if it was there.
 
@@ -239,7 +239,7 @@ Tier A. Auto-advance unless drift gate fails or wiki destination collision.
 ## Test fixtures
 
 - `tests/cla/fixtures/catalog-updater-no-retrospective.json` — retrospective.md missing, expects ABORT.
-- `tests/cla/fixtures/catalog-updater-wiki-collision.json` — wiki/capabilities/<id>/ exists, expects founder prompt.
+- `tests/cla/fixtures/catalog-updater-wiki-collision.json` — wiki/capabilities/\<id>/ exists, expects founder prompt.
 - `tests/cla/fixtures/catalog-updater-final-drift.json` — pnpm check fails after registry update, expects state held at `deployed`.
 
 ## Mode awareness (v1.1 — `cla-update-mechanism`)
@@ -338,7 +338,7 @@ Cleanup mode:
 | version-bumper returns conflict | fix/extend/revise/tune | ABORT — concurrent bump in flight; should be impossible if locks correct |
 | Schedule cleanup fails | deprecate | Hold state; surface error; founder manually disables before re-running |
 | Dependent capability still references | deprecate | BLOCK at Phase 8 (Phase 3 should have caught; this is defensive) |
-| Spec archive collision (spec-v<X>.md exists) | extend/revise | Append `-r2`, `-r3` suffix; flag for cleanup |
+| Spec archive collision (spec-v\<X>.md exists) | extend/revise | Append `-r2`, `-r3` suffix; flag for cleanup |
 | Wiki destination collision | create only | Already in v1.0 — ask founder overwrite/v2/abort |
 
 ### Lock release timing

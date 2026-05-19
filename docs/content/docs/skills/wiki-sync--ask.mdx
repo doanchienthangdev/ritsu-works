@@ -12,12 +12,12 @@ description: |
   OpenAI calls (gated on wiki_sync_llm_fallback flag + OPENAI_API_KEY).
 source_path: 06-ai-ops/skills/wiki-sync/ask/SKILL.md
 source_hash: c556c66f810d44d9b238b50f3ff0ccbcb8c6e8705b35053a17e2177ff469c09d
-generated_at: '2026-05-19T03:36:59.983Z'
+generated_at: '2026-05-19T03:58:13.356Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # wiki-sync / ask (Sprint 3 PR5 baseline — v2.0.0)
@@ -82,7 +82,7 @@ SELECT kp.id, kp.slug, kp.page_type, kp.title,
 The JOIN to `src` gives us the package_slug + source_title — both used in the v4.0 citation format (spec B9). The `$filter_source` / `$filter_packages` params come from `--source` / `--packages` flags.
 
 If ≥ 3 entity hits with sim > 0.7 → ENTITY-FIRST PATH. Skip to Step 3a.
-If < 3 entity hits → FALL THROUGH to source-chunk retrieval (b).
+If \< 3 entity hits → FALL THROUGH to source-chunk retrieval (b).
 
 b) **Source-chunk fallback (v2.0 hybrid):** original vector + keyword + backlink path (unchanged from v2.0).
 

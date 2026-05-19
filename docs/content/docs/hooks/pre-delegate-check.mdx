@@ -3,12 +3,12 @@ title: 'Hook: pre-delegate-check'
 description: ''
 source_path: .claude/hooks/pre-delegate-check.md
 source_hash: 68bfc98f3647a2ad70a733580184bf8073ecc3c25f828ee193f27aed8fb21949
-generated_at: '2026-05-19T03:36:59.995Z'
+generated_at: '2026-05-19T03:58:13.371Z'
 generated_by: docs-engine v0.1.0
 category: hook
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Hook: pre-delegate-check
@@ -177,7 +177,7 @@ The agent decides; the hook informs. Neither blocks.
 - Reading session metrics from in-process counters: O(1)
 - Loading role config: cached (mtime check)
 - No DB queries — keep this hook fast
-- p95 latency target: < 50ms (well within hook budget of 500ms)
+- p95 latency target: \< 50ms (well within hook budget of 500ms)
 
 ## Observability
 
@@ -194,8 +194,8 @@ If a role consistently sees `strongly_recommended` and ignores it → that role'
 These thresholds (8/14, 50%/75%, 3K/6K) are starting values. After 4-8 weeks of `ops.agent_runs.hook_events` data:
 
 - If `consider` signal is hit > 5x/day per role and agent delegates > 60% of the time → threshold is well-calibrated
-- If hit > 10x/day and delegate < 30% → thresholds too aggressive; raise
-- If hit < 1x/day and agents have visible context degradation → thresholds too lax; lower
+- If hit > 10x/day and delegate \< 30% → thresholds too aggressive; raise
+- If hit \< 1x/day and agents have visible context degradation → thresholds too lax; lower
 
 Recalibration is a Tier C PR to this hook spec.
 

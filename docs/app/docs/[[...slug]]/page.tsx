@@ -11,12 +11,18 @@ export default async function Page({
   const page = source.getPage(slug);
   if (!page) notFound();
 
-  const MDX = page.data.body;
+  // Fumadocs 14 API: page.data has `body` (default MDX export) and `toc`.
+  // Cast through `any` here because the generated types from fumadocs-mdx
+  // don't always re-export the runtime fields cleanly. v1.0 pragmatic;
+  // v1.0.1 can refine when stable Fumadocs APIs land.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = page.data as any;
+  const MDX = data.body;
 
   return (
-    <DocsPage toc={page.data.toc}>
+    <DocsPage toc={data.toc}>
       <DocsBody>
-        <h1>{page.data.title}</h1>
+        <h1>{data.title}</h1>
         <MDX />
       </DocsBody>
     </DocsPage>
@@ -35,8 +41,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const page = source.getPage(slug);
   if (!page) return {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = page.data as any;
   return {
-    title: page.data.title,
-    description: page.data.description,
+    title: data.title,
+    description: data.description,
   };
 }

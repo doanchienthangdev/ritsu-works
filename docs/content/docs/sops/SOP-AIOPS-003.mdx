@@ -3,12 +3,12 @@ title: 'SOP-AIOPS-003: docs-sync'
 description: ''
 source_path: 06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml
 source_hash: f2539b5b4e854b605391f1f7fae6beb0dee5d6fb1a286f0b729cad764b7c0651
-generated_at: '2026-05-19T03:37:00.034Z'
+generated_at: '2026-05-19T03:58:13.420Z'
 generated_by: docs-engine v0.1.0
 category: sop
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 **SOP ID:** `SOP-AIOPS-003`
 **Pillar:** 06-ai-ops
@@ -81,9 +81,9 @@ walker_exclude path leaked into source_inventory.
 
 Regex pass on every mdx page body. Patterns:
   /override:\s+\S+/i                    (magic phrase prefix)
-  /[a-z0-9]{20}\.supabase\.co/          (project_ref)
-  /sk-[A-Za-z0-9]{32,}/                 (API keys)
-  /sb_[a-z]+_[A-Za-z0-9_-]{20,}/        (Supabase tokens)
+  /[a-z0-9]\{20}\.supabase\.co/          (project_ref)
+  /sk-[A-Za-z0-9]\{32,}/                 (API keys)
+  /sb_[a-z]+_[A-Za-z0-9_-]\{20,}/        (Supabase tokens)
 
 
 ### Step 6_three_way_diff_for_hand_edits — 3-way diff on regen (CTO mod

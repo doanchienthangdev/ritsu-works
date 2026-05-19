@@ -30,12 +30,12 @@ description: |
   freshness metadata).
 source_path: 06-ai-ops/skills/synthesize-morning-brief/SKILL.md
 source_hash: caa1a3344473416615cf1ca3357850c04fe04294692f65dae703dde87393a25d
-generated_at: '2026-05-19T03:36:59.978Z'
+generated_at: '2026-05-19T03:58:13.350Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Synthesize Morning Brief
@@ -129,7 +129,7 @@ The skill makes step 4 a one-line fetch instead of CEO synthesizing from raw dat
 
 ## Freshness contract
 
-- **Fresh** (< 12h): present verbatim with one-line "from 05:45 brief" attribution.
+- **Fresh** (\< 12h): present verbatim with one-line "from 05:45 brief" attribution.
 - **Stale** (12-36h): present + warn + recommend CEO synthesize fresh inline.
 - **Missing** (> 36h or never): cron is failing. Surface as a P1 alert to founder + return fallback signal.
 

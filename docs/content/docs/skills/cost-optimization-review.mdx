@@ -16,12 +16,12 @@ description: |
   ~3-5K tokens output. Wall-clock ~5s.
 source_path: 06-ai-ops/skills/cost-optimization-review/SKILL.md
 source_hash: 499d5cc3d18ae04211afa8872f796e4230c37dacc99c865332c8c9f88a45f574
-generated_at: '2026-05-19T03:36:59.968Z'
+generated_at: '2026-05-19T03:58:13.340Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Cost Optimization Review
@@ -189,14 +189,14 @@ Known-Opus-required:
 
 For each role:
 - Estimate static-content tokens loaded per session (CLAUDE.md + brand_voice + transparency, etc.)
-- If static_tokens > 2000 AND cache_hit_ratio < 0.5 AND invocation_count > 50/period:
+- If static_tokens > 2000 AND cache_hit_ratio \< 0.5 AND invocation_count > 50/period:
   - Estimate savings = static_tokens * (calls - 1) * (input_price - cache_read_price)
   - Risk: low (caching is reversible)
 
 #### Analyzer C — Batch tier candidates
 
 For each `(role, task_kind)`:
-- Check if tasks are time-sensitive (heuristic: avg time_to_first_response_required < 1h?)
+- Check if tasks are time-sensitive (heuristic: avg time_to_first_response_required \< 1h?)
 - If task tolerates 24h delay AND cost > $5/period:
   - Recommend Batch tier (50% off)
   - Risk: low if delay tolerance verified
@@ -226,7 +226,7 @@ For top 5 most expensive single runs in period:
 #### Analyzer G — Budget cap rightsizing
 
 For each role:
-- If consistent monthly usage < 30% of cap → suggest lowering cap (saves "ceiling overhead" attention)
+- If consistent monthly usage \< 30% of cap → suggest lowering cap (saves "ceiling overhead" attention)
 - If consistent monthly usage > 90% of cap with no enforcement issues → suggest raising cap
 - Risk: low (cap is just a ceiling)
 
@@ -261,7 +261,7 @@ INSERT INTO ops.optimization_recommendations (
 
 PR contents:
 
-- Title: "Cost optimization recommendations — week {W} of {YYYY}"
+- Title: "Cost optimization recommendations — week \{W} of \{YYYY}"
 - Body: rendered markdown summary of all recommendations
 - Files changed: the actual diffs (patches applied to relevant files)
 - Labels: `cost-optimization`, `tier-c` (if any rec is structural), `tier-b` (if all are reversible)

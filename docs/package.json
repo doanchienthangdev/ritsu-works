@@ -12,12 +12,12 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
-    "fumadocs-core": "^14.0.0",
-    "fumadocs-mdx": "^11.0.0",
-    "fumadocs-ui": "^14.0.0",
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "fumadocs-core": "14.7.7",
+    "fumadocs-mdx": "11.0.0",
+    "fumadocs-ui": "14.7.7",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
     "@types/mdx": "^2.0.13",

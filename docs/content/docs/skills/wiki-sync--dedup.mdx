@@ -9,12 +9,12 @@ description: |
   aggregation per spec A7. Cost-bucket task_kind wiki-dedup-batch ($0.30 cap).
 source_path: 06-ai-ops/skills/wiki-sync/dedup/SKILL.md
 source_hash: 896a7c83ade98d821222a367d92e640f1b737d1a6242a8535c2bb7ded868bc7f
-generated_at: '2026-05-19T03:36:59.985Z'
+generated_at: '2026-05-19T03:58:13.361Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # wiki-sync / dedup (v3.0)
@@ -35,7 +35,7 @@ category: skill
 
 - For auto-merge matches (sim > 0.92): UPDATE `knowledge_extractions.derived_page_id` rewires from duplicate to canonical; soft-delete duplicate via `knowledge_pages.deleted_at = now()`
 - For queue matches (0.75-0.92): UPDATE duplicate `knowledge_pages.review_state = 'pending_review'` (founder sees in `/wiki review` queue)
-- For distinct (< 0.75): no change
+- For distinct (\< 0.75): no change
 - One `ops.agent_runs` row summarizing matches found + actions taken
 - One row in `ops.events` (`event_type='ritsu.wiki.dedup_completed'`)
 
@@ -95,7 +95,7 @@ For each match returned in Step 2:
 |---|---|
 | **> 0.92** | **AUTO-MERGE**: same as Step 1 merge (rewire extractions, soft-delete duplicate, delete wiki file). Founder NOT notified (auto-confidence enough). |
 | **0.75-0.92** | **QUEUE**: UPDATE `knowledge_pages.review_state = 'pending_review'` on BOTH the new entity AND the existing match. Insert hint into `knowledge_pages.frontmatter::jsonb` with `pending_merge_candidate_id = <existing_id>` so `/wiki review` knows to surface the pair. |
-| **< 0.75** | **DISTINCT**: no action. New entity stays as its own page. |
+| **\< 0.75** | **DISTINCT**: no action. New entity stays as its own page. |
 
 ### Step 4 — Folder-level aggregation (corpus_scope = 'folder_aggregation')
 
@@ -153,7 +153,7 @@ One `ops.cost_attributions` row per batch invocation. Cost is mostly OpenAI embe
 
 ## Why these thresholds?
 
-- **0.92**: high-confidence semantic match. False-positive rate < 5% on (title + summary[:200]) for cohort of GTM/growth/marketing entities tested against. Auto-merging at this threshold rarely surprises founder.
+- **0.92**: high-confidence semantic match. False-positive rate \< 5% on (title + summary[:200]) for cohort of GTM/growth/marketing entities tested against. Auto-merging at this threshold rarely surprises founder.
 - **0.75**: low-confidence semantic match. Below this, entities are usually genuinely distinct (e.g., "active learning" the educational concept vs "active learning" the ML training paradigm). Above 0.75 deserves a human eyeball.
 - **Between 0.75-0.92**: founder review queue. Empirically this is where homonyms and near-synonyms live. 1-2 minute per-pair review via `/wiki review`.
 

@@ -9,12 +9,12 @@ description: |
   `raw/meetings/<filename>.{vtt,srt,txt}` (other extensions delegate back to ingest).
 source_path: 06-ai-ops/skills/wiki-sync/adapters/meeting-adapter/SKILL.md
 source_hash: 98170d72e9a5c88193278606699a9d7408b701d2259093a90f9102d077d64fc7
-generated_at: '2026-05-19T03:36:59.981Z'
+generated_at: '2026-05-19T03:58:13.354Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Meeting transcript adapter (Sprint 2 PR4 baseline — v2.0.0)
@@ -42,7 +42,7 @@ wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; derived entiti
 - Extension `.vtt`, `.srt`, or `.txt`? Else delegate back to ingest.
 - Path under `raw/meetings/`? Else bail with "meeting-adapter expects raw/meetings/ prefix; for plain text use markdown-adapter with frontmatter type=meeting".
 - File size > 0? Else bail.
-- File size < 10 MB? Else bail (use chapter-splitter manually first).
+- File size \< 10 MB? Else bail (use chapter-splitter manually first).
 
 ### Step 2 — Compute source_hash
 

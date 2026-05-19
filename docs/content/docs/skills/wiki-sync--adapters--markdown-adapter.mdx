@@ -7,12 +7,12 @@ description: |
   `concept` if absent).
 source_path: 06-ai-ops/skills/wiki-sync/adapters/markdown-adapter/SKILL.md
 source_hash: 0d93141936b5e5606450213bece87c1632a1a83d05b6251b253c36b1ae55106b
-generated_at: '2026-05-19T03:36:59.981Z'
+generated_at: '2026-05-19T03:58:13.353Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Markdown adapter (Sprint 1 baseline)
@@ -35,7 +35,7 @@ category: skill
 - File exists? Else bail.
 - Extension `.md` or `.markdown`? Else delegate.
 - Size > 0? Else bail.
-- Size < 5 MB? Else bail (manual split required).
+- Size \< 5 MB? Else bail (manual split required).
 - Report `pages_or_size_metric = file_size_bytes`. v2.0 (Sprint 2 PR2): `wiki-sync/ingest` Step 5 dispatches to `wiki-sync/chapter-splitter` when `pages_or_size_metric > 25 KB` (or founder passes `--split=heading=h2`); splitter reads back this adapter's `raw_text` and runs the heading=h2 boundary detection on it.
 
 ### Step 2 — Compute source_hash
@@ -110,7 +110,7 @@ Total per Markdown file: ~$0.02-$0.05. Cheapest adapter.
 
 ## Sprint scope
 
-Sprint 1: full implementation. Markdown is the simplest case — first acceptance test fixture uses this adapter (per spec.md Sprint 1 acceptance: "MD round-trip < $0.10").
+Sprint 1: full implementation. Markdown is the simplest case — first acceptance test fixture uses this adapter (per spec.md Sprint 1 acceptance: "MD round-trip \< $0.10").
 
 ## Related
 

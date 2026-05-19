@@ -6,12 +6,12 @@ description: |
   for DEEP pillars (e.g. 03-gtm has 6 sub-pillars each with own README).
 source_path: 06-ai-ops/skills/docs-engine/adapters/pillar-readme-adapter/SKILL.md
 source_hash: 6887fa355b8f4a2dd1873ff8e2f8f6bedef7348461cf3568347c8dd38067b97f
-generated_at: '2026-05-19T03:36:59.972Z'
+generated_at: '2026-05-19T03:58:13.345Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # docs-engine/adapters/pillar-readme-adapter
@@ -34,7 +34,7 @@ category: skill
 ## Process
 
 1. Walk recursively (BFS-bounded; depth ≤ 3, similar to wiki-sync/folder-adapter v4.1).
-2. Title from first H1; fallback to "Pillar: <slug>" or "Sub-pillar: <slug>".
+2. Title from first H1; fallback to "Pillar: \<slug>" or "Sub-pillar: \<slug>".
 3. Compute `source_hash`.
 4. Render MDX. Add pillar metadata frontmatter from `knowledge/manifest.yaml`:
    - `layer: evergreen | stage`

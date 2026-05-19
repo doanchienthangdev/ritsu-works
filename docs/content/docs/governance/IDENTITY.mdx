@@ -3,12 +3,12 @@ title: Identity & Service Account Mapping
 description: ''
 source_path: governance/IDENTITY.md
 source_hash: 1f924122b54de30c430f3e49f565b66259ae098418e9f8c65c6c9079fe6cc3ca
-generated_at: '2026-05-19T03:37:00.006Z'
+generated_at: '2026-05-19T03:58:13.387Z'
 generated_by: docs-engine v0.1.0
 category: governance
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 # Identity & Service Account Mapping
 
@@ -85,7 +85,7 @@ Per role, one sending email address. All addresses are aliases routing to founde
 | `backoffice-clerk` | `billing@ritsu.ai` | "Ritsu Billing" | configured | `RESEND_BILLING_KEY` |
 | `founder` | `founder@ritsu.ai` | (founder name) | configured | uses founder's primary key |
 
-**Important:** the **display name** customers see is "Ritsu Assistant" or a similar branded name — NOT the role slug. Even though the email comes from `support@ritsu.ai`, the From header reads "Ritsu Assistant <support@ritsu.ai>". This is the unified external persona pattern from sub-domain C.
+**Important:** the **display name** customers see is "Ritsu Assistant" or a similar branded name — NOT the role slug. Even though the email comes from `support@ritsu.ai`, the From header reads "Ritsu Assistant \<support@ritsu.ai>". This is the unified external persona pattern from sub-domain C.
 
 The role attribution is preserved in:
 - The sending address subdomain (audit trail)

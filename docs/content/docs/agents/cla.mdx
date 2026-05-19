@@ -9,12 +9,12 @@ description: |
   for that (multi-session ceremony).
 source_path: .claude/agents/cla.md
 source_hash: 49dc418164df8552a3439da91869a6f2aea078e348bdecfc9e46d209c4973731
-generated_at: '2026-05-19T03:36:59.992Z'
+generated_at: '2026-05-19T03:58:13.368Z'
 generated_by: docs-engine v0.1.0
 category: agent
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # @cla (Capability Lifecycle Architecture subagent)
@@ -69,10 +69,10 @@ Before any action that touches state:
    proceed on top of existing drift.
    ```
 3. **Capability state check.** Read `ops.v_capability_pipeline WHERE
-   capability_id = <id>`. Capability must be in `state IN
+   capability_id = \<id>`. Capability must be in `state IN
    ('operating', 'deployed')`. Else REFUSE with current state.
 4. **Lock check.** Read `ops.capability_runs` lock columns. If locked
-   by another live session (<24h), REFUSE with held-by + age.
+   by another live session (\<24h), REFUSE with held-by + age.
 
 If all 4 pass, proceed to verb-specific action.
 
@@ -129,7 +129,7 @@ Every invocation writes to `ops.agent_runs` with `agent_slug=cla-subagent`, `per
 > 1. Pre-flight 4 checks
 > 2. Acquire lock
 > 3. Spawn `/cla fix lead-acquisition` flow with the description as Phase 1 input
-> 4. Return: "Started fix flow. Resume in fresh session via `/cla resume lead-acquisition`. Lock acquired (session_id: <uuid>). Founder reviews Sprint 1 PR."
+> 4. Return: "Started fix flow. Resume in fresh session via `/cla resume lead-acquisition`. Lock acquired (session_id: \<uuid>). Founder reviews Sprint 1 PR."
 
 ### Pattern 3 — KPI tune
 > Founder: "@cla tune lead-acquisition — daily_new_customers target 10 → 25"

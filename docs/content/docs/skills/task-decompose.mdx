@@ -18,12 +18,12 @@ description: |
   Cost: ~3-5 SQL inserts + ~500 tokens reasoning. Wall-clock ~200ms.
 source_path: 06-ai-ops/skills/task-decompose/SKILL.md
 source_hash: a008b83731c0ae496ce38ecc3f81b4c9ef183d4c59f6ad6611e8e65e232c2668
-generated_at: '2026-05-19T03:36:59.978Z'
+generated_at: '2026-05-19T03:58:13.351Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Task Decompose
@@ -43,7 +43,7 @@ Do NOT use when:
 
 - The task is a single SELECT, lookup, or compute
 - The output feeds immediately into the next sentence of reasoning
-- Estimated total tool calls < 4 AND single role
+- Estimated total tool calls \< 4 AND single role
 
 If unsure, default to NOT decomposing. Decomposition has overhead; un-needed decomposition is the more expensive error.
 
@@ -309,7 +309,7 @@ A successful invocation:
 - ~5-10 SQL operations
 - ~500-1500 tokens of reasoning
 - Wall-clock 200-500ms
-- Per-invocation cost: < $0.02
+- Per-invocation cost: \< $0.02
 
 For a workforce processing 10-30 multi-agent tasks/day, monthly cost ~$5-15.
 

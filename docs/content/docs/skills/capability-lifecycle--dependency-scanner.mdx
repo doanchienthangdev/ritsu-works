@@ -8,12 +8,12 @@ description: >-
   capabilities.
 source_path: 06-ai-ops/skills/capability-lifecycle/dependency-scanner/SKILL.md
 source_hash: bc310188da5a5ba5e3f79449a985083dc6de78a2165a08f52db5c82a7303ba90
-generated_at: '2026-05-19T03:36:59.964Z'
+generated_at: '2026-05-19T03:58:13.333Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Dependency Scanner (CLA v1.1)
@@ -46,8 +46,8 @@ For each spec.md, search for the `target_capability_id` string. Match modes:
 | Pattern | Match strength | Confidence |
 |---|---|---|
 | `wiki/capabilities/<id>/` (path reference) | strong | high — explicit path |
-| `\`<id>\`` (backtick code-quoted) | strong | high — explicit ref |
-| `capability \`<id>\`` (prose ref) | strong | high |
+| `\`\<id>\`` (backtick code-quoted) | strong | high — explicit ref |
+| `capability \`\<id>\`` (prose ref) | strong | high |
 | `<id>` as standalone word (whitespace bounded) | medium | medium — could be coincidence if id is generic |
 | `<id>` substring within other word | weak | low — likely false positive; ignore |
 

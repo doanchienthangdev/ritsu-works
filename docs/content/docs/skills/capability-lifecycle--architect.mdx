@@ -3,12 +3,12 @@ title: 'Skill: architect'
 description: Phase 5 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/architect/SKILL.md
 source_hash: 401d998b1d64bc5b7b80d12ca9f876701b219176d2801ff5ba948b8826fb406e
-generated_at: '2026-05-19T03:36:59.962Z'
+generated_at: '2026-05-19T03:58:13.331Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Architect (CLA Phase 5)
@@ -168,7 +168,7 @@ If founder rejects, set `state_payload.last_rejection = jsonb_build_object('phas
 | `options.md` missing or `selected_option_id` null | ABORT with "Phase 4 must complete first." (`flow.yaml.failure_handling.phase_4_skipped`) |
 | Dry-run `pnpm check` fails on draft tier1-diffs | Surface to spec.md § Pre-flight; fix and retry, OR escalate. |
 | `@cto` returns BLOCK 2x in a row | Escalate to founder; do NOT auto-iterate forever. |
-| Muse panel reaches < 3/5 consensus on approve | Reduce recommendation strength; surface dissent prominently in HITL prompt. |
+| Muse panel reaches \< 3/5 consensus on approve | Reduce recommendation strength; surface dissent prominently in HITL prompt. |
 | Founder rejects | Roll back to Phase 4 OR mark capability `deprecated`. Do NOT silently retry. |
 
 ## LLM mode awareness

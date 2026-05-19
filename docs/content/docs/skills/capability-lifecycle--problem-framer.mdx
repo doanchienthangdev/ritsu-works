@@ -3,12 +3,12 @@ title: 'Skill: problem-framer'
 description: Phase 1 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/problem-framer/SKILL.md
 source_hash: 10b611cf833ae0d24c6a37c904adc6f0f7b6a6b3eb5c509303bce216b362a581
-generated_at: '2026-05-19T03:36:59.966Z'
+generated_at: '2026-05-19T03:58:13.336Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Problem Framer (CLA Phase 1)
@@ -39,7 +39,7 @@ If `.archives/cla/<capability_id>/refs/` exists:
 
 From `raw_proposal` (+ optional refs context), produce a single tight paragraph in the form:
 
-> {verb} {object} {quantity or quality target} {time horizon} {constraint, if any}
+> \{verb} \{object} \{quantity or quality target} \{time horizon} \{constraint, if any}
 
 Examples:
 - "Acquire 10 new paying customers per day, sustained over a rolling 30-day window, with CAC under $20."
@@ -54,8 +54,8 @@ Each question covers one of these dimensions; pick whichever are actually ambigu
 | # | Dimension | Question pattern |
 |---|---|---|
 | 1 | Đối tượng | "Who is the target user/customer/persona?" |
-| 2 | Định nghĩa | "When you say '{key noun}', do you mean {option A} / {option B} / {option C}?" |
-| 3 | Volume | "Is the {target} a floor (sustained) or a peak (one-off)?" |
+| 2 | Định nghĩa | "When you say '\{key noun}', do you mean \{option A} / \{option B} / \{option C}?" |
+| 3 | Volume | "Is the \{target} a floor (sustained) or a peak (one-off)?" |
 | 4 | Budget | "What's the spend ceiling (setup + monthly)?" |
 | 5 | Time horizon | "By when do you want this in production?" |
 | 6 | Constraints | "Anything off-limits — channels, ethical lines, founder bandwidth, dependencies?" |
@@ -82,7 +82,7 @@ Group the questions into batches of ≤ 4 per `AskUserQuestion` call (Anthropic 
 
 Format each criterion as:
 
-> {observation} happens, measured by {table/path/KPI}, target {value}, by {date}
+> \{observation} happens, measured by \{table/path/KPI}, target \{value}, by \{date}
 
 Surface ≥ 2 criteria. Each MUST be measurable from `ops.kpi_snapshots` or `metrics.*` (do not invent KPIs that don't exist — if a new KPI is needed, flag it as "NEW: needs registration in Phase 5").
 
