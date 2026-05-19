@@ -39,6 +39,10 @@ const NON_PILLAR_TOPLEVEL = new Set([
   'supabase', 'notes', 'knowledge', 'governance', 'raw',
   'src', 'scripts', 'placeholders', '_templates',
   'runtime', 'dist', 'build', 'coverage',
+  // docs-engine capability (Sprint 1 PR-3): docs/ is the Fumadocs Next.js
+  // subproject (not a pillar). Distinct from wiki/ (RAG-only) — see
+  // knowledge/manifest.yaml tier1_canonical.cross_cutting.docs_engine.
+  'docs',
 ]);
 
 // Conventional directory names that appear inside pillars but are NOT sub-pillars.
