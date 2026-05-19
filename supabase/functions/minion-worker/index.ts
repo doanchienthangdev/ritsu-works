@@ -101,6 +101,14 @@ const SKILL_REGISTRY: SkillRegistry = {
   //   wiki-review-queue-digest: founder runs `/wiki review` interactively
   "wiki-embeddings-backfill": makeDeferredStubHandler("wiki-embeddings-backfill stub: needs OpenAI dep + scripts/sync/backfill-wiki-embeddings.cjs v0.2 wiring. Founder may run manually in the meantime."),
   "wiki-review-queue-digest": makeDeferredStubHandler("wiki-review-queue-digest stub: needs Telegram bot wiring. Founder runs /wiki review interactively in the meantime."),
+  // docs-engine drift detection (Sprint 1 PR-3). Real implementation is
+  // deterministic (scripts/validate-docs-coverage.cjs + scripts/docs-sync.cjs --dry-run);
+  // when the worker tick infrastructure is wired (Sprint 2+), this handler will
+  // shell out to those scripts. Until then, schedule fires + worker returns
+  // deferred — founder may run `node scripts/validate-docs-coverage.cjs` manually.
+  // Naming: registry key is flat-hyphenated (L2 validator regex requirement).
+  // Sub-skill umbrella in 06-ai-ops/skills/docs-engine/check/ remains `docs-engine/check`.
+  "docs-engine-check": makeDeferredStubHandler("docs-engine-check stub: deterministic logic in scripts/validate-docs-coverage.cjs. Worker-side shell-out wiring lands in Sprint 2+. Founder may run manually: `node scripts/validate-docs-coverage.cjs`."),
   ...(anthropic
     ? {
         "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),

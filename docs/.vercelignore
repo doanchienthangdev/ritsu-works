@@ -1,0 +1,14 @@
+# Vercel ignores everything outside docs/ thanks to rootDirectory=docs.
+# This file is for in-docs/ paths to skip during deploy.
+
+# Source-of-truth working folders that should NEVER be deployed
+# (these don't exist inside docs/ but listed defensively in case future refactor moves them):
+../wiki/
+../.archives/
+../raw/
+../runtime/secrets/
+../governance/SECRETS.md
+../00-charter/founder-profile.md
+
+# Local-only
+.env*.local

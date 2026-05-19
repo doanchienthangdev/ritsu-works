@@ -1,0 +1,193 @@
+---
+title: 'Skill: wiki-sync/attribution-watcher'
+description: |
+  v3.0 Muse M2 axis A11 — attribution discipline. Background skill (no
+  /wiki invocation). Monitors 01-marketing/ and 02-sales/ file edits;
+  correlates with recent /wiki ask invocations (±10 min). When a
+  copyrighted_internal_only source contributes ≥3 extracted observations
+  to a single content draft, fires Tier B Telegram heads-up so founder
+  reviews attribution before publishing. Falls into growth-orchestrator
+  role's brand-voice review discipline.
+source_path: 06-ai-ops/skills/wiki-sync/attribution-watcher/SKILL.md
+source_hash: 385bb03f1e20d9122d3764aefa85b4c35fa4977d7e445f0c81e6c8e3e2c1c721
+generated_at: '2026-05-19T03:36:59.984Z'
+generated_by: docs-engine v0.1.0
+category: skill
+---
+
+<!-- generated-by: docs-engine v0.1.0 -->
+
+
+# wiki-sync / attribution-watcher (v3.0)
+
+## When this skill runs
+
+- Background: triggered by `ops.events` rows of `event_type IN ('ritsu.file_edit_01_marketing', 'ritsu.file_edit_02_sales')` (these events are emitted by a file-watcher background process; see Wiring section below).
+- Reactive: founder may explicitly invoke `/wiki attribution-check <content-file>` (Sprint 4+ — not in v3.0.0 first PR).
+
+## Purpose (Muse M2 / axis A11)
+
+When the founder writes content in `01-marketing/` or `02-sales/`, that content may paraphrase distilled observations from copyrighted sources (`license_status='copyrighted_internal_only'`). If >= 3 observations from a single copyrighted source feed into one content piece, the resulting public content may:
+- Cross the substantiality line of fair use
+- Require explicit attribution (which the founder may forget)
+
+This skill catches that pattern PRE-PUBLISH and surfaces it to founder via Telegram heads-up. Founder either:
+- Adds explicit attribution to the content (and ignores future alerts for this pair)
+- Removes some of the paraphrased observations
+- Re-frames content to be more original (less direct paraphrase)
+
+## Inputs (event-driven)
+
+When a `01-marketing/` or `02-sales/` file edit event fires:
+- `content_file_path` — the edited file
+- `edit_timestamp` — when edit happened
+- `edit_diff_summary` — `git diff` of new content vs prior commit (file-watcher captures)
+
+## Outputs
+
+- Tier B Telegram message to founder when threshold (3+ obs from copyrighted_internal_only source) crossed
+- One `ops.events` row per alert (`ritsu.wiki.attribution_alert`)
+- `ops.cost_attributions` row (cost = $0 — DB queries + Telegram bot)
+
+## Process
+
+### Step 1 — Find recent /wiki ask invocations correlated with this edit
+
+```sql
+SELECT
+  ar.id AS run_id,
+  ar.input_payload->>'question' AS question,
+  ar.output_payload->'citations' AS citations,
+  ar.completed_at
+FROM ops.agent_runs ar
+WHERE ar.agent_slug = 'wiki-sync/ask'
+  AND ar.completed_at BETWEEN $edit_timestamp - interval '10 minutes' AND $edit_timestamp
+ORDER BY ar.completed_at DESC;
+```
+
+If 0 results → no correlation; this edit was written without `/wiki ask` lookup. Skip (attribution-watcher only fires when content was likely informed by wiki retrieval).
+
+### Step 2 — For each correlated /wiki ask, count copyrighted observations cited
+
+```sql
+WITH cited_entities AS (
+  SELECT DISTINCT
+    citation->>'page_id' AS derived_page_id
+  FROM jsonb_array_elements($citations) AS citation
+),
+copyrighted_sources AS (
+  SELECT DISTINCT
+    ke.source_page_id,
+    sp.title AS source_title,
+    sp.slug AS source_slug,
+    COUNT(*) AS observation_count
+  FROM ops.knowledge_extractions ke
+  JOIN ops.knowledge_pages dp ON dp.id = ke.derived_page_id
+  JOIN ops.knowledge_pages sp ON sp.id = ke.source_page_id
+  JOIN cited_entities ce ON ce.derived_page_id::uuid = dp.id
+  WHERE sp.frontmatter->>'license_status' = 'copyrighted_internal_only'
+    AND ke.link_type = 'extracted_observation'
+  GROUP BY ke.source_page_id, sp.title, sp.slug
+)
+SELECT * FROM copyrighted_sources WHERE observation_count >= 3;
+```
+
+### Step 3 — Fire Telegram heads-up if threshold met
+
+For each row in Step 2:
+
+```
+⚠️ Attribution heads-up — wiki-sync v3.0
+
+You just edited <content_file_path> within 10 min of /wiki ask.
+The retrieval surfaced N observations from:
+  📚 <source_title>  (license: copyrighted_internal_only)
+
+Per the v3.0 attribution discipline (Muse M2 axis A11), please verify your
+content piece either:
+  ✓ explicitly cites this source, OR
+  ✓ has been re-framed enough to not require attribution
+
+If you want to mute future alerts for this content+source pair, reply MUTE.
+```
+
+Founder reply options handled by `hitl-router` skill (per `governance/HITL.md` Tier B).
+
+### Step 4 — Log event
+
+```sql
+INSERT INTO ops.events (event_type, source, payload)
+VALUES (
+  'ritsu.wiki.attribution_alert',
+  'wiki-sync/attribution-watcher',
+  jsonb_build_object(
+    'content_file_path', $content_file_path,
+    'edit_timestamp', $edit_timestamp,
+    'source_page_id', $source_page_id,
+    'source_title', $source_title,
+    'observation_count', $observation_count,
+    'wiki_ask_run_ids', $correlated_run_ids,
+    'tier', 'B'
+  )
+);
+```
+
+## Wiring (operational notes)
+
+This skill needs a file-watcher background process emitting `ops.events` rows when `01-marketing/` or `02-sales/` files change. Options:
+
+**v3.0.0 (Sprint 4): manual trigger only.**
+Skill is implemented + tested but the file-watcher event emitter is NOT yet wired. Founder explicitly invokes via:
+```
+/wiki attribution-check <content-file>
+```
+This runs Steps 1-4 against the founder-specified file as if it had just been edited.
+
+**v3.0.5 (future): cron-driven scan.**
+Daily cron at 18:00 ICT runs `git log --since="24 hours ago" --name-only -- 01-marketing/ 02-sales/` and feeds each file into Steps 1-4. Catches edits done outside Claude Code sessions.
+
+**v3.1 (future): real-time file-watcher.**
+A long-running background process (fswatch or similar) emits events in real-time. Most expensive option; only worth it if v3.0.0 + v3.0.5 prove inadequate.
+
+## License-status discipline
+
+For attribution-watcher to fire correctly, every distilled source MUST have `license_status` set on its source RECORD frontmatter. Distill skill (Step 1 pre-flight) prompts founder via AskUserQuestion on first ingest of a source if frontmatter doesn't already declare it.
+
+Enum:
+- `public_domain` — no attribution required (e.g., government reports, expired-copyright works)
+- `creative_commons` — attribution required per CC license terms (already standard)
+- `fair_use_excerpt` — short quotation; safe for any v3.0 content
+- `copyrighted_internal_only` — proprietary; founder must NOT paraphrase publicly without explicit attribution agreement OR transformative re-framing
+
+Default if founder doesn't pick: `copyrighted_internal_only` (safer to over-warn than under-warn).
+
+## HITL discipline
+
+- **Tier B** when heads-up fires. Founder may MUTE per (content_file, source) pair.
+- Tier A for the scan itself (DB reads + Telegram bot call).
+
+## Cost
+
+- Per scan: ~$0 (DB queries + 1 Telegram message)
+- Per alert: ~$0 (no LLM)
+- Task_kind: `wiki-attribution-scan` (cap $0.05; rarely binding)
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| Source frontmatter missing `license_status` | Treat as `copyrighted_internal_only` (conservative); founder can override by editing the source page's frontmatter directly. |
+| `/wiki ask` was used but content NOT in 01-marketing/ or 02-sales/ (e.g., 04-product/ doc) | Out of scope for v3.0; v3.1 may expand monitored paths to 04-product/ and 06-ai-ops/. |
+| False-positive: founder paraphrased common-knowledge concept that happens to share words with copyrighted source | Founder MUTE response; logged for future tuning of correlation heuristic. |
+
+## Related
+
+- Schema: `ops.knowledge_extractions` (sources observations from), `knowledge_pages.frontmatter::jsonb.license_status`
+- Producer of license_status: `wiki-sync/distill` Step 1 (founder prompt)
+- HITL Tier B: governance/HITL.md
+- Falsifiability gate: spec.md §0 NIT M2
+
+## Version
+
+- **v0.1** (Sprint 4 of wiki-sync v3.0.0): manual `/wiki attribution-check` trigger. File-watcher wiring deferred to v3.0.5 (daily cron) or v3.1 (real-time).
+

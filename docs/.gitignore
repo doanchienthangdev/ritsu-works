@@ -1,0 +1,12 @@
+# docs/ — Next.js + Fumadocs subproject
+# Repo-root .gitignore already excludes node_modules/, .next/, dist/, build/, _build/, coverage/
+# This file is for docs-specific additions.
+
+# Fumadocs generated artifacts
+.source/
+
+# Local env (Vercel project secrets — never commit)
+.env*.local
+
+# OS scratch
+.DS_Store

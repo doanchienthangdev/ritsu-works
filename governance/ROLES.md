@@ -307,6 +307,18 @@ hitl_max_tier: B
 budget:
   monthly_token_usd: 200
   monthly_tool_calls: 5000
+economic_budget:
+  monthly_cap_usd: 200
+  alert_at_pct: 0.80
+  escalate_at_pct: 1.00
+  hard_block_at_pct: 1.50
+  per_task_kind_caps:
+    # docs-engine capability (Sprint 1 PR-3) — per spec.md §5 cost projection.
+    docs-scaffold: 0.50         # one-time Next.js + Fumadocs scaffold
+    docs-sync-full-walk: 1.00   # full corpus walk (~215 sources)
+    docs-nav-edit: 0.10         # meta.json edit
+    # docs-check: $0 (deterministic; no LLM)
+    phase-7-implementation-pr: 2.00
 notify_on_completion: false
 escalation_role: gps
 ```

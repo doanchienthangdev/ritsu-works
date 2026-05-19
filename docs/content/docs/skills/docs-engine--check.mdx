@@ -1,0 +1,71 @@
+---
+title: 'Skill: docs-engine/check'
+description: |
+  Deterministic drift detector. Compares filesystem inventory of walker scope
+  against docs/content/ MDX pages (via source_path frontmatter). Reports missing
+  pages, orphan pages, and stale source_hash. Records `docs_drift_count` KPI.
+  Used by /docs check command + docs-drift-nightly cron + .github/workflows/docs-check.yml.
+  No LLM call. Sibling pattern: wiki-sync/audit.
+source_path: 06-ai-ops/skills/docs-engine/check/SKILL.md
+source_hash: cce37e432499d3cded15fe5f9816a429ab9be413af8f1617e35b1d8a10d02a84
+generated_at: '2026-05-19T03:36:59.973Z'
+generated_by: docs-engine v0.1.0
+category: skill
+---
+
+<!-- generated-by: docs-engine v0.1.0 -->
+
+
+# docs-engine/check
+
+## When to use
+
+- `/docs check` command.
+- `/docs check --tutorials` (subset: tutorials' `tutorial_last_verified_at` freshness — CPO mod).
+- `docs-drift-nightly` cron.
+- `.github/workflows/docs-check.yml` PR gate.
+
+## Inputs
+
+- `mode` — `all` | `tutorials-only` (default `all`).
+- `output_format` — `markdown` | `json` (default `markdown`).
+
+## Process
+
+1. Walk Phase 1 Q3 scope; build `source_inventory` (file_path → source_hash).
+2. Walk `docs/content/**/*.mdx`; read `source_path` + `source_hash` frontmatter; build `mdx_inventory`.
+3. Compute three sets:
+   - **Missing**: source exists but no MDX. → `docs_drift_count` ++.
+   - **Orphan**: MDX exists but no source. → `docs_drift_count` ++.
+   - **Stale**: source_hash mismatch (source changed, MDX not regenerated). → `docs_drift_count` ++.
+4. If `mode == 'tutorials-only'`: also check `tutorial_last_verified_at` frontmatter on each tutorial; flag any older than 60 days. (CPO mod #1.)
+5. Output drift report.
+6. INSERT `ops.kpi_snapshots (kpi_id='docs_drift_count', value=<count>)`.
+7. Emit `ritsu.docs.drift_detected` if count > 0.
+8. Exit non-zero if count > 0 (so PR gate can fail).
+
+## Outputs
+
+- Drift report (stdout or `.archives/docs-engine/drift-reports/<date>.md`).
+- 1 `ops.kpi_snapshots` row.
+- 1 `ops.events` row (if drift > 0).
+
+## HITL
+
+Tier A. (KPI alert may escalate to founder Tier B if count > 10 sustained > 1h per `knowledge/alert-rules.yaml`.)
+
+## Failure modes
+
+- Walker errors → propagate; treat as drift (defensive: missing scan = unknown state).
+- Frontmatter parse errors → count as orphan; flag in report.
+
+## Cost estimate
+
+$0 (no LLM). Compute: ~5-10s for ~215 sources.
+
+## See also
+
+- Sibling pattern: `wiki-sync/audit/SKILL.md`
+- KPI: `docs_drift_count` in `knowledge/kpi-registry.yaml`
+- Cross-tier-invariants: `docs-page-has-source` (L1), `docs-source-has-page` (L2)
+

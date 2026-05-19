@@ -1,0 +1,31 @@
+---
+title: 'Tier 1 yaml: state-machines'
+description: Schema overview for `knowledge/state-machines.yaml`.
+source_path: knowledge/state-machines.yaml
+source_hash: 5b9cec6edad3249e0b70add8c55ffa6b442f8b4ade8a8721fc7c9c54ad88422b
+generated_at: '2026-05-19T03:37:00.058Z'
+generated_by: docs-engine v0.1.0
+category: tier1-yaml
+---
+
+<!-- generated-by: docs-engine v0.1.0 -->
+
+## Description
+
+============================================================================
+state-machines.yaml — Domain state machines (Bài #13)
+============================================================================
+Tier 1 declarative file. Defines state machines for domain entities.
+Schema convention: 4 columns (state, state_since, state_history, audit) +
+state_log sidecar table.
+
+Schema validation: schemas/state-machines.schema.json
+Engine: 05-ai-ops/skills/state-transition/
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `state_machines`
+
+> Live values in [`knowledge/state-machines.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/state-machines.yaml). This page describes the schema; not the data.

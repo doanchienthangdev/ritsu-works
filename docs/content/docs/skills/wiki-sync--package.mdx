@@ -1,0 +1,115 @@
+---
+title: 'Skill: wiki-sync/package'
+description: |
+  v4.0 Sprint 2 — `/wiki package <slug>`. Lists a wiki source-package's full
+  inventory: source RECORD frontmatter + counts by entity type + per-entity
+  slugs grouped by type. Pure file-system read; no LLM call required. Used
+  for skill input planning (e.g. "what entities are in wiki/growth-playbook/?").
+source_path: 06-ai-ops/skills/wiki-sync/package/SKILL.md
+source_hash: dc2d27b16707298dfa9dc3e9add2a8efe6317c292be385a3265cbfe2a18dd3bf
+generated_at: '2026-05-19T03:36:59.990Z'
+generated_by: docs-engine v0.1.0
+category: skill
+---
+
+<!-- generated-by: docs-engine v0.1.0 -->
+
+
+# wiki-sync / package (Sprint 2 of v4.0 revise)
+
+## When to use
+
+- Founder runs `/wiki package <slug>` → dispatches here.
+- Skill author wants to know if a package has the entities their template requires.
+
+## Inputs
+
+- `slug` — source package slug (folder name under `wiki/`)
+
+## Process
+
+### Step 1 — Validate
+
+- Check `wiki/<slug>/` directory exists.
+- Check `wiki/<slug>/source.md` exists. If absent, surface "not a v4.0 package" and offer `/wiki sync` to create it.
+
+### Step 2 — Read source RECORD
+
+Parse `wiki/<slug>/source.md` frontmatter:
+- `type`, `slug`, `title`, `source_ref`, `source_hash`, `license_status`, `source_kind`
+
+### Step 3 — Enumerate by type subfolder
+
+For each of `{concepts, observations, decisions, ideas, chapters}/` subfolder of `wiki/<slug>/`:
+- `ls *.md` (only `.md` files; skip `.gitkeep`, hidden)
+- For each entity file, read frontmatter `type`, `slug`, `title`
+
+### Step 4 — Render inventory
+
+Output (Markdown to stdout for slash command; or JSON for callers):
+
+```
+# Package: <title> (`<slug>`)
+
+- **Type:** <page_type> (source RECORD)
+- **Source:** <source_ref>
+- **License:** <license_status>
+- **Hash:** <source_hash>
+
+## Entities
+
+### Concepts (N)
+- [<entity-title>](wiki/<slug>/concepts/<entity-slug>.md)
+- ...
+
+### Observations (M)
+- ...
+
+### Decisions (K)
+- ...
+
+### Ideas (J)
+- ...
+
+### Chapters (P) (only if book / chapter-split)
+- ...
+```
+
+### Step 5 — Cost
+
+This skill makes no LLM call. Pure FS read. Cost: $0 (file I/O only).
+
+## Outputs
+
+```json
+{
+  "package_slug": "growth-playbook-fixture",
+  "source_record": { "type": "article", "title": "...", ... },
+  "counts": { "concepts": 6, "observations": 3, "decisions": 2, "ideas": 2, "chapters": 0 },
+  "entities": {
+    "concepts": [{ "slug": "wedge", "title": "Wedge", "file_path": "wiki/growth-playbook-fixture/concepts/wedge.md" }],
+    "observations": [...],
+    "decisions": [...],
+    "ideas": [...],
+    "chapters": []
+  },
+  "cost_usd": 0,
+  "duration_ms": 30
+}
+```
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| `wiki/<slug>/` does not exist | Bail "not a package" + suggest `/wiki list` for available packages |
+| `wiki/<slug>/source.md` missing | Bail "incomplete package" + suggest `/wiki sync` to create source RECORD |
+| Frontmatter parse error on source.md | Bail with file:line + parse error detail |
+
+## Related
+
+- Parent: `06-ai-ops/skills/wiki-sync/SKILL.md` (v4.0 umbrella)
+- Slash command: `.claude/commands/wiki.md` → `/wiki package <slug>`
+- Counterpart: `mcp__wiki__list_pages` (returns flat list across all packages; this skill is package-scoped)
+- Counterpart: `mcp__wiki__source` (returns derived-entity link-list for one source RECORD; this skill ALSO adds counts + source RECORD frontmatter)
+

@@ -1,0 +1,319 @@
+---
+title: 'Skill: wiki-sync/adapters/folder-adapter'
+description: |
+  Folder = collection adapter. When /wiki sync is invoked with a directory
+  path, traverses the folder tree via breadth-first search (BFS) and
+  dispatches each leaf folder's files to its matching sibling adapter
+  (markdown/pdf/url/youtube/meeting). v4.0: each leaf folder becomes its
+  own source-grouped package. v4.1: recursive subdirectories supported,
+  bounded by max_depth (default 3, hard cap 10) and max_folder_nodes
+  (default 20, hard cap 500). v4.2: ALL output nests under a namespace
+  folder at wiki/<namespace>/ — namespace defaults to slugify(basename(input))
+  with auto-suffix `-1`, `-2`, … on conflict; CLI override via --out=<name>.
+  Multi-package mode: wiki/<namespace>/<col-slug>/source.md. Single-package
+  collapse: wiki/<namespace>/<file>/source.md (when BFS finds 1 leaf == root
+  AND col_slug == namespace).
+source_path: 06-ai-ops/skills/wiki-sync/adapters/folder-adapter/SKILL.md
+source_hash: 7c753777f830581946872db6c88a6a58856ea772bc381fd17a50d196feb85909
+generated_at: '2026-05-19T03:36:59.980Z'
+generated_by: docs-engine v0.1.0
+category: skill
+---
+
+<!-- generated-by: docs-engine v0.1.0 -->
+
+
+# wiki-sync / adapters / folder-adapter (Sprint 2 PR3 baseline — v2.0.0)
+
+## When this adapter runs
+
+Dispatched by `wiki-sync/ingest` Step 1 when `<path>` arg to `/wiki sync` is a
+directory (i.e. `fs.statSync(path).isDirectory() === true`). The other 5
+adapters all require single files; this is the ONLY adapter that consumes
+directory input.
+
+source_kind: `folder_collection`
+entity_type for children: derived per-file (each file's adapter decides)
+wiki target for children: `wiki/<col-slug>/<child-slug>/source.md` (v4.0 source-grouped layout — drops the `<col-slug>__<file-slug>` flat-slug pattern; each child lands at a clean nested package path under the collection's slug)
+
+## Inputs
+
+- `path` — absolute path to a directory under `raw/<topic>/<folder>/`
+- `entity_type_override` — optional; if passed, forces ALL children to that page_type
+- `force` — bool; passed through to each child ingestion
+- `depth` — int, optional. **v4.1** BFS max depth (root folder = depth 0). Default 3. Hard cap 10. CLI: `--depth=N`.
+- `max_nodes` — int, optional. **v4.1** BFS folder-node budget (max folders visited). Default 20. Hard cap 500. Files within a visited folder are ingested wholesale (no per-file cap). CLI: `--max-nodes=N`.
+- `out` — string, optional. **v4.2** namespace output folder name (child of `wiki/`). Default: slugify(basename(input)). Auto-suffix `-1`, `-2`, … if `wiki/<name>/` already exists. CLI: `--out=<name>`.
+
+## Process
+
+### Step 1 — Validate input
+
+- Path exists? Else bail with clear error.
+- Is a directory? Else delegate back to ingest (single-file path).
+- Resolve effective `max_depth` and `max_folder_nodes` (CLI flag → opts → defaults).
+
+### Step 2 — BFS folder traversal (v4.1)
+
+```pseudo
+queue = [(rootPath, depth=0)]
+packages = []        // [{folder_path, depth, files}]
+folders_visited = 0
+truncated = []
+
+while queue not empty:
+  if folders_visited >= max_folder_nodes:
+    truncated = remaining queue       // record but DON'T ingest
+    break
+
+  (current, depth) = queue.shift()
+  folders_visited += 1
+
+  entries = readdir(current).filter(not .hidden)
+  files = entries.files where extension in {.md, .markdown}
+  subdirs = entries.dirs
+
+  if files.length > 0:
+    packages.push({folder_path: current, depth, files})   // leaf folder = a package
+
+  if depth + 1 <= max_depth:
+    for sub in subdirs:
+      queue.push((sub, depth+1))
+```
+
+**Semantics:**
+- "Node" in the budget = folder node (not file). Each folder dequeue counts 1 toward the budget.
+- A folder is a "leaf folder" if it contains at least 1 markdown file. Only leaf folders become packages; purely-structural folders (e.g. `raw/5-star/` that only holds subfolders) are traversed but don't produce a package.
+- BFS guarantees stable "top-of-tree first" behavior under budget pressure. When the budget exhausts, deeper / later folders get dropped.
+- `truncated` list is reported in output so founder knows what was skipped and can rerun with raised `--max-nodes=N` to include them.
+
+If `packages.length === 0` after traversal: bail `empty_tree` with the depth/node budget settings included in the error for context.
+
+### Step 2.5 — Resolve namespace (v4.2)
+
+After BFS finds packages, resolve the namespace folder name:
+
+- `namespace = slugify(--out value)` if `--out` flag passed, else `slugify(basename(input))`.
+- If `wiki/<namespace>/` already exists, try `<namespace>-1`, `<namespace>-2`, … up to `<namespace>-100`. Bail with `namespace_too_many_conflicts` if all 100 suffixes taken.
+- Record the resolved namespace + whether it was renamed (`was_renamed`, `suffix`) in the output for caller visibility.
+
+Then determine layout mode:
+
+- **Single-package mode** (collapse): if BFS produced exactly 1 leaf folder at depth 0 (i.e. the input root itself with NO subfolders) AND `kebab-case(basename(input)) === namespace_original`, files land at `wiki/<namespace>/<file>/source.md` — no inner col_slug layer. Used for simple input folders.
+- **Multi-package mode**: any other case. Files land at `wiki/<namespace>/<col-slug>/<file>/source.md` per BFS-discovered leaf folder.
+
+> **Per-package processing (Steps 3-7 below):** Run Steps 3-7 once for EACH
+> package returned by BFS. Output paths use `wiki/<namespace>/<col-slug>/` or
+> `wiki/<namespace>/` depending on layout mode (see Step 2.5).
+> Cross-package cross-paper aggregation (Step 7) runs ONCE at the end
+> across all packages.
+
+### Step 3.A — Derive collection slug (per-package)
+
+- `col_slug = kebab-case(basename(path))`
+- Cap at 40 chars
+- Sanity check: must match `^[a-z0-9][a-z0-9-]*[a-z0-9]$` regex
+- If `col_slug` already exists in `ops.knowledge_pages` (any page_type), warn:
+  ```
+  Slug '<col_slug>' already used. Children will be created as
+  `<col_slug>__<file-slug>` which is still globally unique, but
+  the collection itself has no own page. Continue? [Tier B confirm]
+  ```
+
+### Step 3.B — Enumerate files (per-package)
+
+- `files = readdirSync(path).filter(f => !f.startsWith('.'))` — skip hidden files
+- Sort alphabetically (default; future v2.1 may support manual ordering via INDEX.md)
+- Filter by supported extensions:
+  - `.md`, `.markdown` → markdown-adapter
+  - `.pdf` → pdf-adapter
+  - `.vtt`, `.srt`, `.txt` (if under `raw/meetings/`) → meeting-adapter
+  - Other extensions: include in summary as "skipped: unsupported extension"
+- If zero supported files after filter → bail "no supported files in collection"
+
+### Step 4 — Create parent ingestion_jobs row (per-package)
+
+```sql
+INSERT INTO ops.ingestion_jobs (
+  source_kind, source_ref, source_hash, state, current_step,
+  attribution, metadata
+) VALUES (
+  'folder_collection',
+  $path,
+  sha256(concat-of-all-child-source-hashes),
+  'processing',
+  'folder_dispatch',
+  jsonb_build_object('col_slug', $col_slug, 'files_count', $N),
+  jsonb_build_object(
+    'supported_files', $supported_array,
+    'skipped_files', $skipped_array,
+    'recursive_check', 'passed'
+  )
+) RETURNING id;  -- this is parent_job_id for all children
+```
+
+### Step 5 — Per-file dispatch (alphabetical order)
+
+For each supported file:
+
+1. Resolve adapter from extension
+2. Compute file's slug: `child_slug = derived-from-frontmatter-or-filename`
+3. v4.0 source-grouped path: child source RECORD lands at `wiki/<col_slug>/<child_slug>/source.md`. The child's slug field in `knowledge_pages` is `child_slug` (NOT prefixed); uniqueness is enforced by the composite `(extracted_from_source_id, slug)` rule + the global slug uniqueness on source RECORDs scoped to the path. For derived entities under the child, the source-grouped path naturally namespaces them per package.
+4. Pre-check: scope by package path — `SELECT 1 FROM ops.knowledge_pages WHERE file_path = 'wiki/<col_slug>/<child_slug>/source.md'`. If exists, log error + continue (partial-failure semantics).
+5. Acquire `ops.wiki_sync_lock(<file-page-type>, '<col_slug>/<child_slug>')`. Release at COMMIT.
+6. Invoke the sibling adapter normally, but inject:
+   - `parent_job_id = <parent_id>` (from Step 4) — added to the child's `ingestion_jobs` row
+   - `path_override = wiki/<col_slug>/<child_slug>/source.md` — bypasses adapter's default path derivation (v4.0 replaces v3.0's `slug_override = <col_slug>__<file_slug>` pattern)
+7. The adapter returns its normal outputs; ingest's Steps 6-9 run per child as usual.
+
+### Step 6 — Per-file results tally
+
+Build summary table:
+
+| # | File | Adapter | Status | Slug | Cost |
+|---|---|---|---|---|---|
+| 1 | attention.md | markdown | ✓ | papers/attention | $0.03 |
+| 2 | cot.md | markdown | ✓ | papers/cot | $0.03 |
+| 3 | react.pdf | pdf | ✗ slug conflict | papers/react | $0.00 |
+| 4 | notes.docx | — | skipped: unsupported | — | — |
+
+### Step 7 — Cross-paper concept aggregation (v3.0 — distill mode only; runs ONCE across all packages produced by BFS)
+
+If `wiki_sync_distill_enabled = true` AND `--verbatim` flag absent: after ALL files in the folder have completed individual distill (Step 5 per-file dispatch finishes), invoke `wiki-sync/dedup` skill with:
+
+```
+corpus_scope: "folder_aggregation"
+derived_entity_ids: <union of all derived_entity_ids from per-file distill runs>
+```
+
+Dedup skill (Sprint 3, see `06-ai-ops/skills/wiki-sync/dedup/SKILL.md` Step 4):
+- Groups derived entities by `(page_type, slug)` across ALL files
+- v4.0 source-grouped layout flips the default: each derived entity lives in its own source package (composite UNIQUE `(extracted_from_source_id, slug)` allows same slug across sources). So "PLG" concept extracted from 10 papers in the folder produces 10 distinct pages: `wiki/papers/<paper-1>/concepts/plg.md`, ..., `wiki/papers/<paper-10>/concepts/plg.md` — each preserves its source's framing. The reverse-lookup aggregate lives at `wiki/_index/concept/plg.md` (link-list pointing to all 10 packages; regenerated by `wiki-sync/index-rebuild`), NOT a canonical entity page.
+- For `page_type IN ('observation', 'decision', 'idea')`: same per-source treatment (observations cite specific paper claims; decisions reflect per-source framework rulings — unchanged from v3.0 intent, now natively expressed by the source-grouped layout).
+- `/wiki merge` is OPT-IN if the founder later wants to consolidate same-slug entities across sources into a single canonical page (changes ONE concept's per-source split into one shared concept — see `wiki-sync/merge` SKILL).
+
+Cost: ~$0.30 cap per folder (wiki-dedup-batch task_kind).
+
+Per spec A7: this aggregation is the headline value of folder ingest — without it, a 10-paper growth corpus produces 50+ duplicate concept pages. With it, the founder gets a clean concept graph with multi-source provenance.
+
+### Step 8 — Update parent ingestion_jobs row (per-package)
+
+```sql
+UPDATE ops.ingestion_jobs SET
+  state = CASE WHEN $failed_count = 0 THEN 'completed' ELSE 'partial' END,
+  current_step = 'folder_dispatch_done',
+  total_cost_usd = $sum_of_child_costs,
+  ingested_at = now(),
+  metadata = metadata || jsonb_build_object(
+    'succeeded_count', $succeeded,
+    'failed_count', $failed,
+    'skipped_count', $skipped,
+    'results_table', $results_array
+  )
+WHERE id = $parent_id;
+```
+
+Note: `state = 'partial'` is NOT in the current `ops.ingestion_jobs.state` CHECK
+allowlist (00007 declares `queued | fetching | processing | completed | failed |
+duplicate | low_quality`). v2.0 PR3 should add `'partial'` to the allowlist via
+a small ALTER CHECK in a follow-up migration OR map partial → completed with
+metadata flag. **Disposition: map to `completed` with `metadata.has_partial_failures=true`**
+to avoid yet another migration. CTO can revisit in Sprint 4 cleanup PR.
+
+### Step 9 — Telegram heartbeat (per CTO NIT 1)
+
+Two messages only (NOT per-file):
+- Start: "Folder ingest started: <col_slug> (<N> files; <skipped_count> skipped). ETA ~<estimate>."
+- End: "Folder ingest done: <succeeded>/<N> succeeded; <failed> failed; <skipped> skipped. Total cost $<sum>. <link to summary>."
+
+If `failed > 0`, end message tagged with ⚠️ icon.
+
+## Outputs
+
+Returns to caller (`wiki-sync/ingest`):
+
+```jsonc
+{
+  "split": false,                       // folder is its own split unit; not chapter-split
+  "is_folder": true,
+  "col_slug": "papers",
+  "parent_ingestion_job_id": "<uuid>",
+  "files_total": N,
+  "succeeded_count": K,
+  "failed_count": F,
+  "skipped_count": S,
+  "child_ingestion_job_ids": [<uuids>],
+  "child_knowledge_page_ids": [<uuids>],
+  "child_wiki_paths": ["wiki/papers/attention/source.md", ...],   // v4.0 source-grouped: each child gets a package folder under <col-slug>/<child-slug>/
+  "total_cost_usd": <sum>,
+  "results_table": [{ file, adapter, status, slug, cost, error? }, ...]
+}
+```
+
+## HITL
+
+- Tier A normally
+- Tier B if:
+  - col_slug already exists in knowledge_pages (warn + confirm)
+  - Estimated total cost > `wiki-ingest-folder` per-task-kind cap ($2.00 per `knowledge/economic-architecture.md`)
+  - `failed_count > 0` at end of run → surface to founder for triage
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| Path doesn't exist | Bail with abs path in error |
+| Path is a file, not dir | Delegate back to ingest single-file path |
+| Subdirectory found | Bail with refuse-recursive error + workaround |
+| Empty (after hidden-file filter) | Bail "empty collection" |
+| 0 supported files | Bail "no supported files" |
+| One file's ingest fails | Continue + log to results_table; `state = 'completed'` w/ `has_partial_failures=true` |
+| All files fail | `state = 'failed'`; surface to founder |
+| Slug conflict on a child | That child = "skipped: slug conflict"; continue with others |
+| Concurrent /wiki sync on same folder | Lock acquired per child; whichever caller gets the parent's slug INSERT first wins; second caller gets dedup hit on parent's `source_hash` |
+
+## Cost estimate
+
+Per-task-kind cap: `wiki-ingest-folder` = $2.00 per `knowledge/economic-architecture.md`.
+
+Realistic costs (mostly sum-of-children):
+- Folder of 5 markdown files: ~$0.15 ($0.03 × 5 per markdown-adapter cost)
+- Folder of 10 papers (URL articles): ~$0.70
+- Folder of 3 PDFs (50pp each): ~$1.20-$1.50 (chapter-splitter may fire per PDF, multiplying cost)
+- Folder of 50 markdown files: ~$1.50 (~cap; founder confirms via Tier B)
+
+## Slug discipline (v4.0 source-grouped)
+
+Per Hybrid B/A Tier C decision + v4.0 source-grouped layout flip:
+- v2.0/v3.0 used global UNIQUE `<col-slug>__<file-slug>` flat slugs. v4.0 DROPS this pattern in favor of nested package paths.
+- Each child source RECORD lives at `wiki/<col-slug>/<child-slug>/source.md`. The `knowledge_pages.slug` field stores `child-slug` (not the prefixed flat form); composite UNIQUE `(extracted_from_source_id, slug)` allows the same `child-slug` to legitimately appear across different collections (e.g., `attention` exists in both `wiki/papers/attention/source.md` AND `wiki/ml-survey/attention/source.md`).
+- The COLLECTION ITSELF does NOT get its own knowledge_pages row in v2.0/v4.0
+  (the folder-adapter's parent ingestion_jobs row is the only "collection" record)
+- v2.1 may add a collection-index page (similar to chapter-splitter's chapters index for books)
+  + the `'collection'` page_type enum value
+- Founder can discover children via `[[<file-page-type>/<child-slug>]]` references resolved within the collection's package, or via the reverse-lookup `wiki/_index/` link-lists.
+
+## Sprint scope (this skill)
+
+Sprint 2 PR3 baseline:
+- All 8 steps implemented in prose
+- Markdown + PDF + meeting children supported (URL/YouTube are URL-based not file-based; folder-adapter intentionally does NOT recurse into URLs)
+- Flat-only (no recursive subdirs)
+- Skip hidden files; skip unsupported extensions silently with summary
+- Telegram heartbeat: start + end only
+
+Deferred to v2.1+:
+- Recursive subdirectory support (becomes nested collections)
+- Manual ordering via `INDEX.md` in folder
+- `'collection'` page_type + auto-generated collection-index page
+- `.gitignore` filter support (currently only hidden-file `.foo` is skipped)
+
+## Related
+
+- Parent: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` Step 1 (dispatch)
+- Sibling adapters delegated to: `wiki-sync/adapters/{markdown,pdf,meeting}-adapter/`
+- Schema: `supabase/migrations/00030_wiki_sync_v2_schema_deltas.sql` Block C (`parent_job_id`)
+- Decision: `ops.decisions[fff2bf7c-efeb-4169-b430-8139ad4d4de3]` — Hybrid B/A
+- Tier 1 config: `knowledge/ingestion-sources.yaml` entry `folder_collection`
+- Economic cap: `knowledge/economic-architecture.md` task `wiki-ingest-folder`
+
