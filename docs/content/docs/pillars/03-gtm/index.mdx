@@ -1,0 +1,149 @@
+---
+title: 03-gtm — Go-to-Market (Stage Pillar)
+description: ''
+source_path: 03-gtm/README.md
+source_hash: dacc842ca1a87aee897061ffb92048c2471bff9ed503de73539ab9e6bf9fa81a
+generated_at: '2026-05-19T05:20:46.417Z'
+generated_by: docs-engine v1.1.0
+category: pillar
+language: vi
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+# 03-gtm — Go-to-Market (Stage Pillar)
+
+> Customer funnel orchestration toward "100 paying customers who love Ritsu in 90 days." Composes modules from Marketing, Sales, Product, Customer, AI-Ops, Metrics. **This is a stage pillar — it dissolves when PMF criteria are met.**
+
+**Layer:** Stage (Layer 2 — composition pillar, not evergreen)
+**Stage status:** DEEP
+**Pillar code:** GTM
+**Owner role(s):** gtm-orchestrator
+**HITL baseline:** C (all public posts, multi-channel deploys, email batches ≥1 recipient gate at C)
+**Dissolves when:** ≥100 paying customers retained ≥30 days AND NPS ≥40 AND week-4 retention ≥25%
+
+---
+
+## Scope
+
+This stage pillar owns the **integrated funnel** from first impression to first-month retention. It does NOT own the function modules themselves (those live in evergreen pillars). It owns the orchestration, the sequencing, the funnel-level decisions.
+
+This pillar:
+- **Drives** the "100 paying who love" goal (singular composite metric SOP-METRICS-007)
+- **Sequences** end-of-stealth launch and post-launch experiments
+- **Tests** which messaging + which channels actually convert
+- **Coordinates** Collison-install handoff to Customer pillar
+- **Dissolves** cleanly when PMF achieved — sub-pillars relocate per dissolution-target mapping below
+
+## Sub-pillars (DEEP build now)
+
+```
+03-gtm/
+├── icp-and-segmentation/     # Composes from 01-marketing/modules/icp
+│   └── sops/SOP-GTM-001-icp-discovery-from-2-cofounders/
+├── launch-sequence/           # End-stealth this month — singular timing
+│   ├── sops/SOP-GTM-002-stealth-end-pre-launch-checklist/
+│   ├── sops/SOP-GTM-003-public-launch-channels/
+│   └── sops/SOP-GTM-004-day-one-monitoring/
+├── distribution-engine/       # AI-multi-channel reach on TESTED message
+│   ├── sops/SOP-GTM-005-message-test-before-amplify/   # PG gate — manual_gate trigger
+│   ├── sops/SOP-GTM-006-multi-channel-deploy-AI/        # Reddit + FB + LinkedIn + X + Discord + Substack + ProductHunt + HN
+│   ├── sops/SOP-GTM-007-apollo-outbound-cold-email/
+│   ├── sops/SOP-GTM-008-youtube-influencer-discovery/
+│   └── sops/SOP-GTM-009-channel-attribution-and-doubling-down/
+├── funnel-orchestration/      # Composes from 02-sales/modules
+│   ├── sops/SOP-GTM-010-landing-to-signup-conversion/
+│   ├── sops/SOP-GTM-011-signup-to-first-upload-activation/
+│   ├── sops/SOP-GTM-012-free-to-paid-trigger-detection/
+│   └── sops/SOP-GTM-013-weekly-funnel-review/
+├── pmf-instrumentation/       # Composes from 10-metrics/pmf-instrumentation
+│   ├── sops/SOP-GTM-014-pmf-survey-sean-ellis/
+│   ├── sops/SOP-GTM-015-cohort-retention-tracking/
+│   └── sops/SOP-GTM-016-very-disappointed-percentage-tracking/
+└── collison-install-protocol/ # Composes from 05-customer/onboarding
+    └── sops/SOP-GTM-017-hand-recruit-and-onboard-by-name/
+```
+
+## Sub-pillar order (narrative)
+
+Filesystem order is alphabetical (no NN- prefix). The intended *narrative* reading
+order for this pillar is:
+
+1. **icp-and-segmentation** — who we serve before we ship anything
+2. **launch-sequence** — singular stealth-end timing
+3. **distribution-engine** — multi-channel reach AFTER message validated
+4. **funnel-orchestration** — landing → signup → activation → paid mechanics
+5. **pmf-instrumentation** — Sean-Ellis survey + cohort retention measurement
+6. **collison-install-protocol** — founder-personal first-30 onboarding
+
+## SOPs
+
+`sops/SOP-GTM-NNN-<slug>/` — 17 SOPs scaffolded (see Phase 4 of migration-checklist). Phase 5 implements:
+- `SOP-GTM-002-stealth-end-pre-launch-checklist` — runs ONCE before public launch
+- `SOP-GTM-005-message-test-before-amplify` — gate before any AI multi-channel deploy
+
+## Agents
+
+- `gtm-orchestrator` (home pillar) — owns weekly funnel review, cross-pillar coordination
+- `distribution-deployer` (under `distribution-engine`) — AI multi-channel deploy on tested message
+- `apollo-outbound-agent` (under `distribution-engine`) — cold email/LinkedIn outreach
+- `funnel-analyst` (under `funnel-orchestration`) — reads `ops.events`, surfaces drop-offs
+
+## KPIs owned
+
+(Singular composite tile is `SOP-METRICS-007` in Metrics pillar; this pillar OWNS the underlying funnel KPIs.)
+
+- Weekly signups (by channel)
+- Signup → activation %
+- Activation → first-paid %
+- Paid retention week-4 (rolling cohorts)
+- NPS / "very disappointed without Ritsu" %
+- Channel CAC (cost per acquired user, per channel)
+- Blended LTV proxy (subscription duration projection)
+- **100-paying-who-love composite progress %** (the one metric)
+
+## Dependencies (composes_from)
+
+This pillar consumes modules from:
+- `01-marketing.icp` — who specifically we're targeting
+- `01-marketing.brand-voice-kit` — voice consistency across channels
+- `02-sales.pricing-tiers` — current Free/$29/$59/$119
+- `02-sales.conversion-funnel` — funnel stage definitions
+- `04-product.wedge-discovery` — what features specifically pull users
+- `05-customer.success.activation-metrics` — what counts as "activated"
+- `05-customer.onboarding.collison-install` — script for first 30 paying
+- `06-ai-ops.cost-budget-architecture` — every campaign has cost ceiling
+- `10-metrics.pmf-instrumentation` — the numbers that tell us we're winning
+
+## Critical PG gate
+
+`SOP-GTM-005-message-test-before-amplify` is a `manual_gate` SOP. **No AI multi-channel deploy may run without a successful message-test pass.** This prevents the failure mode of spraying an untested message across 10 channels in parallel (AI amplifies bad messages as efficiently as good ones).
+
+## Dissolution-target mapping
+
+When PMF criteria met, sub-pillars relocate per `.archives/pillars/PLAN.md` §4.1:
+
+| GTM sub-pillar | Relocates to on dissolution |
+|---|---|
+| `icp-and-segmentation` | `01-marketing/modules/icp/` |
+| `launch-sequence` | `.archives/historical/2026-launch/` (one-time) |
+| `distribution-engine` | `01-marketing/sub-pillars/distribution-engine/` (graduates to evergreen) |
+| `funnel-orchestration` | `02-sales/sub-pillars/funnel-orchestration/` (graduates to evergreen) |
+| `pmf-instrumentation` | `10-metrics/pmf-instrumentation/` (graduates; stage-2 composite metric replaces "100-paying" tile) |
+| `collison-install-protocol` | `05-customer/onboarding/` (folds into permanent sub-pillar) |
+
+After dissolution, a new stage pillar (eg `Scale-to-1000` or `Internationalize`) may be created with its own composition tree.
+
+## HITL baseline
+
+- All public posts (any social channel, blog, ProductHunt, HN, Reddit): Tier C
+- Email to >1 recipient: Tier C
+- Email to >50 recipients: Tier D-Std (per HITL.md)
+- New paid ad campaign budget: Tier C
+- New SOP added under any sub-pillar: Tier C
+- Pillar dissolution decision: Tier D-Std (founder + cofounder both must approve)
+
+## Lifetime
+
+This stage pillar is expected to live ~90 days from end-of-stealth (target dissolve: ~2026-08-15). If PMF not achieved by then, re-evaluate via `/muse:paul-graham` brainstorm — likely options: extend stage, pivot product, or wind down.
+

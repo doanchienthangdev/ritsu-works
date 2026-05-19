@@ -1,0 +1,81 @@
+---
+title: 'SOP-INGEST-001: wiki-sync'
+description: ''
+source_path: 06-ai-ops/sops/SOP-INGEST-001-wiki-sync/flow.yaml
+source_hash: f9d9a77485544ea5de686301238651ee4a0afec510b4bd8f5919b3ba2ad770a2
+generated_at: '2026-05-19T05:20:46.456Z'
+generated_by: docs-engine v1.1.0
+category: sop
+language: vi
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+**SOP ID:** `SOP-INGEST-001`
+**Pillar:** 06-ai-ops
+**Cost bucket:** `ai-ops-knowledge`
+**Capability:** `wiki-sync-from-refs`
+
+## Invocation
+
+```yaml
+invocation:
+  triggered_by: slash_command
+  authorized_roles:
+    - gps
+    - founder
+  hitl_tier: A
+  hitl_tier_escalation:
+    condition: estimated_cost_usd > per_task_kind_cap
+    target: B
+```
+
+## Steps
+
+### Step 1_fetch — Fetch raw content
+
+- **Kind:** minion
+- **Skill:** `wiki-sync/adapters/<adapter>`
+- **Timeout:** 120s
+- **On failure:** mark_state_failed
+
+### Step 2_dedup_check — Dedup against ingestion_jobs
+
+- **Kind:** minion
+- **Skill:** `inline_sql`
+
+### Step 3_acquire_lock — Acquire advisory lock on (entity_type, slug)
+
+- **Kind:** minion
+- **Skill:** `inline_sql`
+
+### Step 4_chapter_split_if_needed — Detect and split oversized refs
+
+- **Kind:** subagent
+- **Skill:** `wiki-sync/chapter-splitter`
+
+### Step 5_extract — Extract entities + concepts
+
+- **Kind:** subagent
+- **Skill:** `wiki-sync/adapters/<adapter>`
+
+### Step 6_entity_link — Auto-extract cross-references (regex first, LLM fallback)
+
+- **Kind:** hybrid
+- **Skill:** `wiki-sync/link-extractor`
+
+### Step 7_embed — Compute embeddings + write to knowledge_embeddings
+
+- **Kind:** minion
+- **Skill:** `inline_embed`
+
+### Step 8_write_wiki — Write Markdown to wiki/ + insert knowledge_pages row
+
+- **Kind:** minion
+- **Skill:** `inline_write`
+
+### Step 9_emit_events — Emit completion event + cost attribution
+
+- **Kind:** minion
+- **Skill:** `inline_emit`
+
