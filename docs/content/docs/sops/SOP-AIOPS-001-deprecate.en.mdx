@@ -1,0 +1,78 @@
+---
+title: 'SOP-AIOPS-001-deprecate: /cla deprecate — capability sunset sub-flow'
+description: >-
+  Deprecate operating capability. Cleanup scheduled SOPs, CATALOG move, dependent check. Tier C
+  ceremony. Irreversible.
+source_path: 06-ai-ops/sops/SOP-AIOPS-001-deprecate/flow.yaml
+source_hash: a82a7eb24f4f6d6343840b7432082485aa237709d9faac16527c50603c7f4140
+generated_at: '2026-05-19T05:01:53.920Z'
+generated_by: docs-engine v1.1.0
+category: sop
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+**SOP ID:** `SOP-AIOPS-001-deprecate`
+**Pillar:** 06-ai-ops
+
+## Overview
+
+Deprecate operating capability. Cleanup scheduled SOPs, CATALOG move, dependent check. Tier C ceremony. Irreversible.
+
+## Steps
+
+### Step phase-0-preflight-deprecate — phase-0-preflight-deprecate
+
+
+### Step phase-1-delta-deprecate — phase-1-delta-deprecate
+
+- **Skill:** `capability-lifecycle/problem-framer`
+
+### Step phase-3-deps-deprecate — phase-3-deps-deprecate
+
+- **Skill:** `capability-lifecycle/dependency-scanner`
+
+### Step phase-8-deprecate — phase-8-deprecate
+
+- **Skill:** `capability-lifecycle/catalog-updater`
+
+## Acceptance criteria
+
+- Lock acquired Phase 0, released Phase 8
+- Phase 3 dependency scan completed
+- If dependents found, founder explicit acknowledged via Tier D-Std (else BLOCK)
+- Tier C ceremony at Phase 8 (founder approves deprecation)
+- All schedules referencing the capability are disabled
+- CATALOG.md updated
+- capability-registry.yaml state = 'deprecated'
+- retrospective-deprecation.md written + promoted
+- pnpm check clean
+
+## Failure handling
+
+```yaml
+failure_handling:
+  lock_held:
+    detection: ops.capability_acquire_update_lock returns NULL
+    response: Surface LockHeld. Wait or /cla force-unlock.
+  dependents_block:
+    detection: Phase 3 finds capabilities depending on <id>
+    response: >-
+      BLOCK. Tell founder: deprecate or update dependents first. Founder may
+      override via Tier D-Std magic phrase (acknowledged-breakage).
+  tier_c_rejected:
+    detection: Founder rejects Phase 8 Tier C ceremony
+    response: >-
+      Abort. Release lock. Mark new row 'deprecated'. Original capability stays
+      'operating' (no change).
+  schedule_cancel_fails:
+    detection: Schedules.yaml update fails or pg_cron disable fails
+    response: >-
+      Hold state. Surface error. Founder manually disables before re-running
+      Phase 8.
+  pnpm_check_fails:
+    detection: Phase 8 final check fails
+    response: Hold state. Lock stays. Founder fixes drift, re-runs Phase 8.
+```
+

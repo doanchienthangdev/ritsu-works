@@ -1,0 +1,71 @@
+---
+title: 'SOP-AIOPS-001-fix: /cla fix — capability bug fix sub-flow'
+description: >-
+  Light delta workflow for bug fixes on operating capabilities. Patch-version bump; no spec change;
+  single PR.
+source_path: 06-ai-ops/sops/SOP-AIOPS-001-fix/flow.yaml
+source_hash: f115dea11ccfa9b5ee6aed3df0d27c7570be2a6547f6577d44c0adc112158a14
+generated_at: '2026-05-19T05:01:53.922Z'
+generated_by: docs-engine v1.1.0
+category: sop
+language: vi
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+**SOP ID:** `SOP-AIOPS-001-fix`
+**Pillar:** 06-ai-ops
+
+## Overview
+
+Light delta workflow for bug fixes on operating capabilities. Patch-version bump; no spec change; single PR.
+
+## Steps
+
+### Step phase-0-preflight-fix — phase-0-preflight-fix
+
+
+### Step phase-1-delta-fix — phase-1-delta-fix
+
+- **Skill:** `capability-lifecycle/problem-framer`
+
+### Step phase-7-impl-fix — phase-7-impl-fix
+
+- **Skill:** `capability-lifecycle/implementation-coordinator`
+
+### Step phase-8-light-fix — phase-8-light-fix
+
+- **Skill:** `capability-lifecycle/catalog-updater`
+
+## Acceptance criteria
+
+- Lock acquired at Phase 0, released at Phase 8
+- NEW capability_runs row created with supersedes_id pointing to prior
+- Prior row state = 'superseded'
+- Version bumped patch++ in registry
+- CHANGELOG.md entry added
+- Single PR merged (no spec.md change)
+- pnpm check clean post-Phase 8
+
+## Failure handling
+
+```yaml
+failure_handling:
+  lock_held:
+    detection: ops.capability_acquire_update_lock returns NULL
+    response: >-
+      Surface LockHeld error with held-by + age. Founder waits or /cla
+      force-unlock <id>.
+  fix_touches_spec:
+    detection: '@cto review identifies spec.md change required'
+    response: 'Abort. Release lock. Tell founder: use /cla extend or /cla revise instead.'
+  pnpm_check_fails:
+    detection: Phase 8 final check fails
+    response: >-
+      Hold state at 'deployed'. Lock stays acquired. Founder fixes drift,
+      re-runs Phase 8.
+  founder_rejects_pr:
+    detection: Founder requests changes Tier B prompt
+    response: Iterate; re-dispatch @cto with comments. Same row, same lock.
+```
+

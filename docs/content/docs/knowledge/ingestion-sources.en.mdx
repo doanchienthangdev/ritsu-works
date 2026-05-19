@@ -1,0 +1,39 @@
+---
+title: 'Tier 1 yaml: ingestion-sources'
+description: Schema overview for `knowledge/ingestion-sources.yaml`.
+source_path: knowledge/ingestion-sources.yaml
+source_hash: 97a85d84a2d6663d8cd6e8b4129715f7179087fd8b2f3ec1f3fd55a5957b7d36
+generated_at: '2026-05-19T05:01:53.946Z'
+generated_by: docs-engine v1.1.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+## Description
+
+ingestion-sources.yaml — Knowledge ingestion sources (Bài #18)
+
+v3.0 update (2026-05-18): wiki-sync v3.0 distill+extract is now the default
+semantic. Each source_kind gains `distillation_supported: true|false` flag.
+When true, ingest pipeline runs distill skill (Sprint 2) after extract.
+When false (or --verbatim flag), pipeline writes single source RECORD page
+without entity extraction. See wiki/capabilities/wiki-sync-from-refs/spec.md §0.
+
+v3.0 cost caps live in capability-registry.yaml.cost_caps_per_task_kind
+(raised wiki-distill-folder $15 with Tier B at $5 per Muse M6).
+
+v4.0 update (2026-05-18, Sprint 1): wiki_target values flipped from entity-
+type-grouped (wiki/articles/\<slug>.md) to source-grouped (wiki/\<slug>/source.md).
+Source RECORDs always at wiki/\<slug>/source.md; derived entities at
+wiki/\<source-slug>/\<page_type>s/\<entity-slug>.md (composite UNIQUE within
+source). See spec.md §0 B1 + migration 00032.
+
+## Top-level keys
+
+- `version`
+- `source_kinds`
+- `active_subscriptions`
+
+> Live values in [`knowledge/ingestion-sources.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/ingestion-sources.yaml). This page describes the schema; not the data.

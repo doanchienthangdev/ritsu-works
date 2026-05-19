@@ -1,0 +1,16 @@
+{
+  "title": "Hooks",
+  "description": "Pre-tool + post-tool hooks protecting Tier 1 + secrets + budget",
+  "pages": [
+    "post-persona-log",
+    "pre-bash-dangerous",
+    "pre-delegate-check",
+    "pre-edit-tier1",
+    "pre-llm-call-budget",
+    "pre-persona-resolve",
+    "pre-tool-customer-message",
+    "pre-tool-publish",
+    "pre-tool-secrets",
+    "pre-tool-supabase-product"
+  ]
+}

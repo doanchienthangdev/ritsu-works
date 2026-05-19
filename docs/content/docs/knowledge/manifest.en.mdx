@@ -1,0 +1,53 @@
+---
+title: 'Tier 1 yaml: manifest'
+description: Schema overview for `knowledge/manifest.yaml`.
+source_path: knowledge/manifest.yaml
+source_hash: 539fdce9f76c137b44e8e1b98296caef4b9347dd2dce80f5668bdeebfe48ca48
+generated_at: '2026-05-19T05:01:53.949Z'
+generated_by: docs-engine v1.1.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+## Description
+
+Ritsu Works — Knowledge Manifest
+
+This file is the CONTRACT that tells every agent where each kind of company
+truth lives. Read it before searching, querying, or writing data.
+
+Four tiers:
+  T1 = Canonical (this git repo) — identity, strategy, SOPs, skills, agents
+  T2 = Operational (Postgres / Supabase ritsu-ops) — current state
+  T3 = Events & Artifacts (Supabase Storage / S3) — append-only, immutable
+  T4 = Derived (Vector DB + caches) — rebuildable from T1+T3
+
+Rules:
+  - Tier 1 is the only tier where humans negotiate meaning. PRs only.
+  - Tier 2/3 may be written by agents according to RACI in each SOP.
+  - Tier 4 is never authoritative. Rebuild scripts in `scripts/sync/`.
+  - DDL for every Tier 2 table lives in `supabase/migrations/`.
+    (`knowledge/schemas/` holds JSON Schemas validating registry YAML files,
+     NOT SQL — do not look for table DDL there.)
+  - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
+
+## Top-level keys
+
+- `version`
+- `last_updated`
+- `owner`
+- `migration_note`
+- `tier1_canonical`
+- `workspace_plane`
+- `where_things_go`
+- `tier2_operational`
+- `tier3_events`
+- `tier4_derived`
+- `etl_flows`
+- `secrets_map`
+- `add_new_source_checklist`
+- `design_notes_index`
+
+> Live values in [`knowledge/manifest.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/manifest.yaml). This page describes the schema; not the data.

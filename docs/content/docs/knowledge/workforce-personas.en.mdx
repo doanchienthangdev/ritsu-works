@@ -1,0 +1,47 @@
+---
+title: 'Tier 1 yaml: workforce-personas'
+description: Schema overview for `knowledge/workforce-personas.yaml`.
+source_path: knowledge/workforce-personas.yaml
+source_hash: 9782d6c80a6ceda006e7bda9d34ace11819a23634b643ef56e9dfd163ed8e43d
+generated_at: '2026-05-19T05:01:53.952Z'
+generated_by: docs-engine v1.1.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+## Description
+
+Workforce Persona Registry
+
+Source of truth for the C-suite persona → technical role binding. Personas
+are FAÇADE — they do NOT redeclare permissions, budgets, secrets, or HITL
+tiers. Those live in governance/ROLES.md against the bound role.
+
+Resolution rule: when the runtime sees /\<slug> or @\<slug>:
+  1. Look up persona here → find binds_to.primary.
+  2. Apply ROLES.md policy for the bound role.
+  3. Persona may NARROW its default HITL max below the role's ceiling.
+     Persona may NEVER broaden any permission.
+
+Validators (PR 2/4 in workforce phase 1 stack):
+  - verify-persona-role-binding.cjs (L1)
+  - verify-persona-spec-sync.cjs (L1)
+  - verify-persona-routing-completeness.cjs (L2)
+
+See: .archives/workforces/00-architecture-decisions/ADR-003-mapping-csuite-to-roles.md
+     .archives/workforces/01-workforce-roster.md
+     .archives/workforces/05-integration-with-existing.md
+
+## Top-level keys
+
+- `version`
+- `last_updated`
+- `owner`
+- `current_phase`
+- `personas`
+- `not_in_roster`
+- `naming_policy`
+
+> Live values in [`knowledge/workforce-personas.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/workforce-personas.yaml). This page describes the schema; not the data.

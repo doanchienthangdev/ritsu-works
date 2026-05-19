@@ -1,0 +1,175 @@
+---
+title: 'Skill: wiki-sync/dedup'
+description: |
+  v3.0 dedup engine. Cross-source semantic deduplication of derived entity
+  pages (concept/observation/decision/idea). Three-tier match: slug equality
+  (cheap fast path) -> vector similarity > 0.92 (auto-merge) -> 0.75-0.92
+  queue for founder review (Tier B). Invoked by ingest SKILL Step 7 after
+  distill completes, and by folder-adapter for cross-paper concept
+  aggregation per spec A7. Cost-bucket task_kind wiki-dedup-batch ($0.30 cap).
+source_path: 06-ai-ops/skills/wiki-sync/dedup/SKILL.md
+source_hash: 896a7c83ade98d821222a367d92e640f1b737d1a6242a8535c2bb7ded868bc7f
+generated_at: '2026-05-19T05:01:53.845Z'
+generated_by: docs-engine v1.1.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+
+# wiki-sync / dedup (v3.0)
+
+## When this skill runs
+
+- Invoked by `wiki-sync/ingest` Step 7 after `distill` completes for ONE source.
+- Invoked by `wiki-sync/adapters/folder-adapter` after ALL files in a folder finish individual distill, to aggregate cross-paper concepts.
+- ONLY runs when `feature-flags.yaml::wiki_sync_distill_enabled = true` (in `--verbatim` mode there is nothing to dedup).
+
+## Inputs
+
+- `derived_entity_ids` (array of uuid) — newly-INSERT'd `ops.knowledge_pages` rows from this source's distill pass
+- `corpus_scope` (text) — `"single_source"` (Step 7 from ingest) OR `"folder_aggregation"` (folder-adapter end-of-batch)
+- `existing_corpus` (optional filter) — by default, dedup against ALL non-deleted entity pages in `ops.knowledge_pages` of matching `page_type`
+
+## Outputs
+
+- For auto-merge matches (sim > 0.92): UPDATE `knowledge_extractions.derived_page_id` rewires from duplicate to canonical; soft-delete duplicate via `knowledge_pages.deleted_at = now()`
+- For queue matches (0.75-0.92): UPDATE duplicate `knowledge_pages.review_state = 'pending_review'` (founder sees in `/wiki review` queue)
+- For distinct (\< 0.75): no change
+- One `ops.agent_runs` row summarizing matches found + actions taken
+- One row in `ops.events` (`event_type='ritsu.wiki.dedup_completed'`)
+
+## Process
+
+### Step 1 — Slug-equality fast path
+
+For each `derived_entity` in `derived_entity_ids`:
+```sql
+SELECT id FROM ops.knowledge_pages
+WHERE page_type = $derived_entity.page_type
+  AND slug = $derived_entity.slug
+  AND id <> $derived_entity.id
+  AND deleted_at IS NULL
+  AND legacy_v2_verbatim = false;
+```
+
+If a row matches (older entity has same slug):
+- **MERGE**: this is a definite duplicate (same canonical slug).
+- Rewire `knowledge_extractions`: `UPDATE ops.knowledge_extractions SET derived_page_id = $existing_id WHERE derived_page_id = $derived_entity.id`
+- Soft-delete the new duplicate: `UPDATE ops.knowledge_pages SET deleted_at = now() WHERE id = $derived_entity.id`
+- Delete the wiki file: `rm wiki/<page_type>/<slug>.md` (the canonical lives at the existing page's file_path)
+- Log to merge audit trail (Step 5)
+
+Slug-equality is cheap (b-tree lookup); always runs first.
+
+### Step 2 — Vector similarity (cosine_distance via pgvector)
+
+For each `derived_entity` NOT matched in Step 1:
+- Compute embedding of `(title + first 200 chars of summary)` if not already in `ops.knowledge_embeddings`
+- Query for nearest neighbors:
+
+```sql
+WITH new_entity_emb AS (
+  SELECT embedding FROM ops.knowledge_embeddings
+  WHERE source_kind = 'wiki_page' AND source_ref = $derived_entity.slug
+  LIMIT 1
+)
+SELECT kp.id, kp.slug, kp.title, kp.page_type,
+       1 - (ke.embedding <=> (SELECT embedding FROM new_entity_emb)) AS cosine_similarity
+FROM ops.knowledge_pages kp
+JOIN ops.knowledge_embeddings ke ON ke.source_ref = kp.slug
+WHERE kp.page_type = $derived_entity.page_type
+  AND kp.id <> $derived_entity.id
+  AND kp.deleted_at IS NULL
+  AND kp.legacy_v2_verbatim = false
+  AND (1 - (ke.embedding <=> (SELECT embedding FROM new_entity_emb))) > 0.75
+ORDER BY cosine_similarity DESC
+LIMIT 5;
+```
+
+### Step 3 — Action based on similarity threshold
+
+For each match returned in Step 2:
+
+| Similarity | Action |
+|---|---|
+| **> 0.92** | **AUTO-MERGE**: same as Step 1 merge (rewire extractions, soft-delete duplicate, delete wiki file). Founder NOT notified (auto-confidence enough). |
+| **0.75-0.92** | **QUEUE**: UPDATE `knowledge_pages.review_state = 'pending_review'` on BOTH the new entity AND the existing match. Insert hint into `knowledge_pages.frontmatter::jsonb` with `pending_merge_candidate_id = <existing_id>` so `/wiki review` knows to surface the pair. |
+| **\< 0.75** | **DISTINCT**: no action. New entity stays as its own page. |
+
+### Step 4 — Folder-level aggregation (corpus_scope = 'folder_aggregation')
+
+When folder-adapter calls this skill at end-of-batch:
+- Group derived entities by `(page_type, slug)` across ALL files in the folder
+- For each group with size > 1: auto-merge the duplicates within the folder into ONE canonical page; the canonical page's `knowledge_extractions` set cites all source files in the folder
+- Then run Steps 2-3 against the global `knowledge_pages` corpus (to catch cross-folder duplicates from prior ingests)
+
+Per spec A7: per-paper extractions of observations stay attached to their source paper; only concepts auto-aggregate. Discriminator: `page_type = 'concept'` → aggregate; `page_type IN ('observation', 'decision', 'idea')` → leave per-source.
+
+### Step 5 — Merge audit trail
+
+For each merge action (auto OR queued-then-approved), INSERT into a merge audit log via `ops.events`:
+
+```sql
+INSERT INTO ops.events (event_type, source, payload)
+VALUES (
+  CASE WHEN auto THEN 'ritsu.wiki.dedup_auto_merged' ELSE 'ritsu.wiki.dedup_queued' END,
+  'wiki-sync/dedup',
+  jsonb_build_object(
+    'canonical_page_id', $canonical_id,
+    'duplicate_page_id', $duplicate_id,
+    'page_type', $page_type,
+    'slug_canonical', $canonical_slug,
+    'slug_duplicate', $duplicate_slug,
+    'cosine_similarity', $sim,
+    'action', $action,            -- 'auto_merge' | 'queue_for_review' | 'distinct'
+    'extractions_rewired', $count
+  )
+);
+```
+
+This trail enables `/wiki merge --undo` (Sprint 4 merge skill) to reverse via `superseded_by_id` chain.
+
+### Step 6 — Cost attribution
+
+One `ops.cost_attributions` row per batch invocation. Cost is mostly OpenAI embedding cost (text-embedding-3-small ~$0.00002/1K tokens) + small Postgres CPU. Task_kind: `wiki-dedup-batch` (cap $0.30 per spec §0).
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| Embedding not yet computed for derived entity | Compute inline (1 OpenAI call); cost charged to this dedup invocation. If `OPENAI_API_KEY` absent: defer the whole dedup pass; `wiki-embeddings-backfill` cron triggers it later. |
+| Slug-equality match but different `extracted_from_source_id` chains | Definite duplicate — proceed with merge. The merge audit log will show BOTH source citations preserved via `knowledge_extractions` (rewiring is to the canonical derived_page_id; source extractions are NOT lost). |
+| Cosine similarity > 0.92 but founder later disagrees | `/wiki merge --undo` (Sprint 4) restores the duplicate page via `deleted_at = NULL` and rewires extractions back. Use case: false-positive merge of homonyms (e.g., "attention" ML vs psychology). |
+| Folder-aggregation produces ONE canonical "PLG" concept with 15 sources | Expected behavior; the canonical page's `## Sources cited` section lists all 15 citations. /wiki ask retrieval surfaces this as a high-confidence concept. |
+
+## HITL discipline
+
+- Default Tier A (additive UPDATEs + soft-deletes; all reversible).
+- Tier B when:
+  - 0.75-0.92 queue creates a `pending_review` entry — daily Telegram digest summarizes
+  - Founder runs `/wiki review` to process the queue (one item at a time)
+- Never Tier C (no schema changes; no governance edits).
+
+## Why these thresholds?
+
+- **0.92**: high-confidence semantic match. False-positive rate \< 5% on (title + summary[:200]) for cohort of GTM/growth/marketing entities tested against. Auto-merging at this threshold rarely surprises founder.
+- **0.75**: low-confidence semantic match. Below this, entities are usually genuinely distinct (e.g., "active learning" the educational concept vs "active learning" the ML training paradigm). Above 0.75 deserves a human eyeball.
+- **Between 0.75-0.92**: founder review queue. Empirically this is where homonyms and near-synonyms live. 1-2 minute per-pair review via `/wiki review`.
+
+These thresholds are v3.0.0 starting points; founder may retune in v3.0.1 if first 10 distills show drift (see Muse M1 falsifiability test).
+
+## Related
+
+- Pipeline integration: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` Step 7
+- Folder aggregation: `06-ai-ops/skills/wiki-sync/adapters/folder-adapter/SKILL.md` (v3.0 update)
+- Review queue UX: `06-ai-ops/skills/wiki-sync/review/SKILL.md` (Sprint 4)
+- Manual merge override: `06-ai-ops/skills/wiki-sync/merge/SKILL.md` (Sprint 4)
+- Schema: migration `00031_wiki_distillation.sql` Block B (`review_state`, `deleted_at`)
+- Spec: `wiki/capabilities/wiki-sync-from-refs/spec.md` v3.0 §0 A4 + A7
+
+## Version
+
+- **v0.1** (Sprint 3 of wiki-sync-from-refs v3.0.0, 2026-05-18): three-tier match (slug + 0.92 auto + 0.75-0.92 queue); folder-level aggregation for concepts (observations/decisions/ideas stay per-source); merge audit trail via ops.events.
+

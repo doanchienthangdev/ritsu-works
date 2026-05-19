@@ -1,0 +1,30 @@
+{
+  "title": "Knowledge (Tier 1 yaml)",
+  "description": "Declarative knowledge files under knowledge/ — schemas + overviews",
+  "pages": [
+    "alert-rules",
+    "capability-registry",
+    "channels",
+    "cla-routing-keywords",
+    "cross-tier-invariants",
+    "data-retention",
+    "event-aggregation",
+    "event-subscriptions",
+    "feature-flags",
+    "founder-rhythm",
+    "ingestion-routing",
+    "ingestion-sources",
+    "kpi-ownership",
+    "kpi-registry",
+    "link-inference-rules",
+    "locales",
+    "manifest",
+    "mcp-roles",
+    "mcp-tools",
+    "muse-personas",
+    "schedules",
+    "state-machines",
+    "surface-compliance",
+    "workforce-personas"
+  ]
+}

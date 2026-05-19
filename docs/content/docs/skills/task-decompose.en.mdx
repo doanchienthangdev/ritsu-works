@@ -1,0 +1,336 @@
+---
+title: 'Skill: task-decompose'
+description: |
+  Use when GPS or a pillar orchestrator receives a coarse-grained task
+  that needs decomposition into sub-tasks for delegation to specialist
+  subagents. Inserts parent + child rows into ops.tasks with proper
+  parent_task_id, blocked_on dependencies, assignee_role, and
+  acceptance_criteria. Returns the parent task_id and list of child
+  task_ids ready for dispatch.
+
+  Trigger: any task that meets delegation criteria per
+  knowledge/orchestration-architecture.md Axis 1 (cross-role,
+  parallel branches, OR observed runtime signals).
+
+  Skip when: task is single-shot, single-role, < 4 tool calls expected,
+  or output feeds immediately into next reasoning step.
+
+  Cost: ~3-5 SQL inserts + ~500 tokens reasoning. Wall-clock ~200ms.
+source_path: 06-ai-ops/skills/task-decompose/SKILL.md
+source_hash: a008b83731c0ae496ce38ecc3f81b4c9ef183d4c59f6ad6611e8e65e232c2668
+generated_at: '2026-05-19T05:01:53.830Z'
+generated_by: docs-engine v1.1.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+
+# Task Decompose
+
+> The skill that turns "launch Q4 campaign" into a structured plan in `ops.tasks`. The first step of every multi-agent orchestration.
+
+## When to use
+
+Use when ALL of:
+
+- The task as received cannot be completed by a single role using tools available to that role
+- OR there are 2+ independent sub-streams of work
+- OR the task spans more than a single session (multi-day work)
+- OR the parent task tier is C+ and decomposition allows lower-tier sub-tasks
+
+Do NOT use when:
+
+- The task is a single SELECT, lookup, or compute
+- The output feeds immediately into the next sentence of reasoning
+- Estimated total tool calls \< 4 AND single role
+
+If unsure, default to NOT decomposing. Decomposition has overhead; un-needed decomposition is the more expensive error.
+
+## Inputs
+
+| Input | Type | Required | Description |
+|---|---|---|---|
+| `parent_task_description` | string | yes | The coarse task as received |
+| `tier` | string | yes | HITL tier of parent task (A/B/C/D-Std/D-MAX) |
+| `requesting_role` | string | yes | Role that triggered decomposition (typically `gps`) |
+| `requesting_run_id` | uuid | yes | The current `ops.agent_runs` row that's invoking this |
+| `deadline` | timestamptz | no | Founder-specified deadline if any |
+| `decomposition_hint` | string | no | Optional founder-provided hints on how to split |
+
+## Outputs
+
+```yaml
+parent_task_id: <uuid>
+child_task_ids: [<uuid>, <uuid>, <uuid>, ...]
+ready_to_dispatch: [<uuid>, <uuid>]   # tasks with empty blocked_on
+blocked: [<uuid>]                      # tasks waiting on others
+synthesis_plan: |
+  After all children complete, parent will:
+  - Aggregate state_payload from children
+  - Notify founder
+  - Mark parent as done
+```
+
+## Procedure
+
+### Step 1 — Read context
+
+- Read `governance/HITL.md` to confirm tier handling
+- Read `governance/ROLES.md` to know which roles exist and what they can do
+- Read `knowledge/orchestration-architecture.md` (this file's sibling) for decomposition rules
+- Optionally invoke `episodic-recall` skill to see how similar past parent tasks were decomposed
+
+### Step 2 — Classify decomposition pattern
+
+Match the parent task to one of Anthropic's 5 patterns (per `_build/notes/problem-5-multi-agent-orchestration.md`):
+
+| Pattern | When to use | Example |
+|---|---|---|
+| Routing | Task type determines specialist | Support ticket → classify → route to specialist agent |
+| Parallelization | 2+ truly independent branches | Research 3 competitors simultaneously |
+| Orchestrator-workers | Subtasks discovered as orchestrator works | Multi-step campaign with adaptive planning |
+| Prompt chaining | Sequential steps with each output as next input | Outline → draft → polish → fact-check |
+| Evaluator-optimizer | Generate + critique loop | Draft post → evaluator scores → optimizer revises |
+
+Pick ONE primary pattern. Combinations are allowed but rare at v1.0.
+
+### Step 3 — Identify child tasks
+
+For each subtask, determine:
+
+- **`assignee_role`** — match against `governance/ROLES.md`. Must be a defined role.
+- **`acceptance_criteria`** — what "done" means; concrete enough that GPS can verify
+- **`blocked_on`** — list of sibling task IDs that must complete first (often empty for parallel pattern)
+- **`tier`** — usually inherited from parent, but may DROP if subtask doesn't trigger the parent's tier reason
+- **`estimated_done_at`** — best estimate based on similar past tasks (from episodic recall)
+
+Anti-patterns to refuse during this step:
+
+- Spawning > 5 sub-tasks at the same level → too many parallel sub-agents; redesign with hierarchy
+- Sub-task with no clear acceptance criteria → not ready to delegate; refine first
+- Sub-task assigned to role that lacks needed permissions → reassign or add permission via PR (not in this skill)
+- Sub-task with tier higher than its assignee's `hitl_max_tier` → escalate to founder, don't auto-create
+
+### Step 4 — Insert parent task
+
+```sql
+INSERT INTO ops.tasks (
+  status, parent_task_id, spawned_by_run,
+  assignee_role, state_payload, blocked_on,
+  estimated_done_at, retries_left, acceptance_criteria, tier
+) VALUES (
+  'in_progress',  -- parent starts in_progress, GPS is actively orchestrating
+  NULL,
+  $requesting_run_id,
+  'gps',  -- parent always belongs to orchestrator
+  jsonb_build_object(
+    'version', 1,
+    'task_kind', 'parent-orchestration',
+    'pattern', $pattern_chosen,
+    'description', $parent_task_description,
+    'children', '[]'::jsonb,  -- filled after step 5
+    'next_action', 'dispatch_unblocked'
+  ),
+  '{}',
+  $deadline_or_estimate,
+  3,
+  $synthesis_plan,
+  $tier
+) RETURNING id;
+```
+
+Capture the returned `parent_task_id`.
+
+### Step 5 — Insert child tasks
+
+For each child:
+
+```sql
+INSERT INTO ops.tasks (
+  status, parent_task_id, spawned_by_run,
+  assignee_role, state_payload, blocked_on,
+  estimated_done_at, retries_left, acceptance_criteria, tier
+) VALUES (
+  CASE WHEN array_length($blocked_on, 1) > 0 THEN 'pending' ELSE 'ready' END,
+  $parent_task_id,
+  $requesting_run_id,
+  $child_assignee_role,
+  jsonb_build_object(
+    'version', 1,
+    'task_kind', $child_task_kind,
+    'inputs', $child_inputs,
+    'checkpoints', '[]'::jsonb,
+    'decisions', '[]'::jsonb,
+    'open_questions', '[]'::jsonb,
+    'next_action', 'start'
+  ),
+  $blocked_on::uuid[],
+  $child_estimate,
+  3,
+  $child_acceptance_criteria,
+  $child_tier
+) RETURNING id;
+```
+
+Capture each child's `id`. Build the `child_task_ids` list.
+
+### Step 6 — Log initial state transitions
+
+For parent:
+
+```sql
+INSERT INTO ops.task_state_transitions
+  (task_id, from_status, to_status, by_run_id, reason)
+VALUES
+  ($parent_task_id, NULL, 'in_progress', $requesting_run_id, 'created and orchestration started');
+```
+
+For each child:
+
+```sql
+INSERT INTO ops.task_state_transitions
+  (task_id, from_status, to_status, by_run_id, reason)
+VALUES
+  ($child_id, NULL, $initial_status, $requesting_run_id, 'spawned by parent ' || $parent_task_id);
+```
+
+(`$initial_status` is 'ready' or 'pending' depending on `blocked_on`.)
+
+### Step 7 — Update parent's state_payload with child IDs
+
+```sql
+UPDATE ops.tasks
+SET state_payload = jsonb_set(
+      state_payload,
+      '{children}',
+      $child_task_ids_as_jsonb
+    ),
+    updated_at = now()
+WHERE id = $parent_task_id;
+```
+
+### Step 8 — Return decomposition plan
+
+Build and return the output YAML. The calling GPS session will:
+- Use `ready_to_dispatch` list to spawn first wave of subagents (via Task tool)
+- Monitor `ops.tasks` for child completions
+- When children complete, unblock dependents
+- When all children done, synthesize and close parent
+
+## Examples
+
+### Example 1 — Parallelization pattern
+
+**Input:**
+```yaml
+parent_task_description: "Compile competitive intelligence brief on top 3 EdTech AI tutoring competitors (Quizlet, Anki, Khanmigo)"
+tier: C
+requesting_role: gps
+deadline: 2026-05-09
+```
+
+**Decomposition:**
+
+```
+parent_task: gps orchestration of competitive brief
+  ├── child_1: research Quizlet (assignee: growth-orchestrator, tier: A, blocked_on: [])
+  ├── child_2: research Anki (assignee: growth-orchestrator, tier: A, blocked_on: [])
+  ├── child_3: research Khanmigo (assignee: growth-orchestrator, tier: A, blocked_on: [])
+  └── child_4: synthesize brief from research (assignee: content-drafter, tier: C, blocked_on: [child_1, child_2, child_3])
+```
+
+**Output:**
+
+```yaml
+parent_task_id: 8a3f...
+child_task_ids: [c1..., c2..., c3..., c4...]
+ready_to_dispatch: [c1..., c2..., c3...]
+blocked: [c4...]
+synthesis_plan: |
+  Once child_4 completes (depends on 1-3), parent reads c4 state_payload
+  for the synthesized brief, attaches to parent state_payload, marks done.
+```
+
+### Example 2 — Prompt chaining pattern
+
+**Input:**
+```yaml
+parent_task_description: "Draft and publish weekly Ritsu newsletter for May week 2"
+tier: C
+```
+
+**Decomposition:**
+
+```
+parent_task
+  ├── child_1: gather highlights (research) — assignee: growth-orchestrator, tier: A, blocked_on: []
+  ├── child_2: draft newsletter copy — assignee: content-drafter, tier: A, blocked_on: [child_1]
+  ├── child_3: review against brand voice — assignee: code-reviewer (acting as content-reviewer), tier: A, blocked_on: [child_2]
+  ├── child_4: schedule send — assignee: growth-orchestrator, tier: C, blocked_on: [child_3]  # founder approval before send
+```
+
+Note: the SEND step (child_4) inherits parent's Tier C; everything before is Tier A because they're internal.
+
+### Example 3 — REFUSE decomposition
+
+**Input:**
+```yaml
+parent_task_description: "What's our current MAU?"
+tier: A
+```
+
+This is a single-shot read. Decompose skill should REFUSE:
+
+```yaml
+error: REFUSED_DECOMPOSITION
+reason: Single-shot read does not warrant orchestration. Handle inline with metrics-query skill.
+recommended_action: Invoke `metrics-query` directly. Estimated cost: $0.01, 2 tool calls.
+```
+
+## Quality criteria
+
+A successful invocation:
+- Produces ≤ 5 children per parent (else re-design with hierarchy)
+- Every child has a defined assignee_role from ROLES.md
+- Every child has a non-empty acceptance_criteria
+- Tier classification follows HITL.md rules (parent's tier ≥ max child tier)
+- Returns within 500ms wall-clock
+
+## Failure modes
+
+- **Schema not provisioned (pre-Phase B)** — return error suggesting "ops.tasks not yet created; run provision-supabase-ops recipe first"
+- **No matching role for needed work** — return error with proposed new role; founder must add via PR
+- **Parent task already exists for same description** — query first; return existing parent_task_id with note "resuming"
+- **Decomposition fails partway** — wrap all inserts in BEGIN; ROLLBACK on error so no orphan task rows
+
+## Cost estimate
+
+- ~5-10 SQL operations
+- ~500-1500 tokens of reasoning
+- Wall-clock 200-500ms
+- Per-invocation cost: \< $0.02
+
+For a workforce processing 10-30 multi-agent tasks/day, monthly cost ~$5-15.
+
+## Required secrets
+
+- `SUPABASE_OPS_FULL_SERVICE_KEY` (for INSERT) per `governance/SECRETS.md`
+
+Roles allowed to invoke: `gps` and pillar orchestrators (growth-orchestrator, support-agent, etc.). Per `governance/ROLES.md`.
+
+## Related skills
+
+- `task-status` — check current orchestration progress (also reads ops.tasks)
+- `episodic-recall` (Bài #4) — surface how similar parent tasks were decomposed in past
+- (Phase F) `task-dispatch` — actually invokes subagents based on `ready_to_dispatch` list
+
+## Changelog
+
+- 2026-05-02 — initial version (Bài #5 v1.0 spec)
+
+---
+
+*Decomposition is the moment a coarse intent becomes a concrete plan. Get it wrong and the rest of orchestration compounds the error. This skill makes the moment deliberate.*
+

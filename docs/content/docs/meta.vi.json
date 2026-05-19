@@ -1,0 +1,18 @@
+{
+  "title": "Ritsu Works Docs",
+  "pages": [
+    "index",
+    "---Tham khảo---",
+    "skills",
+    "agents",
+    "hooks",
+    "commands",
+    "knowledge",
+    "---Quy trình---",
+    "sops",
+    "---Tổng quan---",
+    "charter",
+    "governance",
+    "pillars"
+  ]
+}

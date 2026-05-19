@@ -1,0 +1,18 @@
+{
+  "title": "Ritsu Works Docs",
+  "pages": [
+    "index",
+    "---Reference---",
+    "skills",
+    "agents",
+    "hooks",
+    "commands",
+    "knowledge",
+    "---How-to---",
+    "sops",
+    "---Explanation---",
+    "charter",
+    "governance",
+    "pillars"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "title": "Commands",
+  "description": "Slash commands available in Claude Code (/cla, /wiki, /docs, …)",
+  "pages": [
+    "ceo",
+    "cgo",
+    "check-drift",
+    "cla",
+    "cpo",
+    "cto",
+    "docs",
+    "mcp-doctor",
+    "wiki"
+  ]
+}

@@ -1,0 +1,163 @@
+---
+title: 'SOP-AIOPS-003: docs-sync'
+description: ''
+source_path: 06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml
+source_hash: f2539b5b4e854b605391f1f7fae6beb0dee5d6fb1a286f0b729cad764b7c0651
+generated_at: '2026-05-19T05:01:53.926Z'
+generated_by: docs-engine v1.1.0
+category: sop
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+**SOP ID:** `SOP-AIOPS-003`
+**Pillar:** 06-ai-ops
+**Cost bucket:** `ai-ops-docs`
+**Capability:** `docs-engine`
+
+## Invocation
+
+```yaml
+invocation:
+  triggered_by:
+    - slash_command
+    - scheduled
+    - event
+  authorized_roles:
+    - gps
+    - founder
+    - code-reviewer
+  hitl_tier: A
+  hitl_tier_escalation:
+    - condition: verb == 'publish'
+      target: B
+    - condition: estimated_cost_usd > per_task_kind_cap
+      target: B
+    - condition: drift_count > 10 sustained 24h
+      target: B
+```
+
+## Steps
+
+### Step 1_drift_preflight — Drift gate
+
+- **Kind:** minion
+- **Cmd:** `pnpm check`
+- **Timeout:** 30s
+- **On failure:** abort_with_drift_report
+
+Per /cla Phase 0 discipline. If drift exists, fix BEFORE generating docs
+(else docs will mirror drifted state).
+
+
+### Step 2_walk_sources — Walk corpus per Phase 1 Q3 scope
+
+- **Kind:** minion
+- **Skill:** `docs-engine/sync`
+- **Timeout:** 60s
+
+### Step 3_secret_redact_layer1 — Secret redaction layer 1 (walker-exclude)
+
+- **Kind:** minion
+- **Cmd:** `node docs/lint-secrets.cjs --layer=walker`
+- **On failure:** abort_loud
+
+CTO mod #2 (Phase 2 lens): fail-loud not scrub-silently. Bail if any
+walker_exclude path leaked into source_inventory.
+
+
+### Step 4_adapter_dispatch — Dispatch each source to its adapter
+
+- **Kind:** subagent_or_minion
+- **Skill:** `docs-engine/adapters/<auto-picked-by-source-kind>`
+- **Timeout:** 120s
+- **On failure:** collect_errors_continue
+
+### Step 5_secret_redact_layer2 — Secret redaction layer 2 (MDX regex scrub)
+
+- **Kind:** minion
+- **Cmd:** `node docs/lint-secrets.cjs --layer=mdx`
+- **On failure:** abort_loud
+
+Regex pass on every mdx page body. Patterns:
+  /override:\s+\S+/i                    (magic phrase prefix)
+  /[a-z0-9]\{20}\.supabase\.co/          (project_ref)
+  /sk-[A-Za-z0-9]\{32,}/                 (API keys)
+  /sb_[a-z]+_[A-Za-z0-9_-]\{20,}/        (Supabase tokens)
+
+
+### Step 6_three_way_diff_for_hand_edits — 3-way diff on regen (CTO mod
+
+- **Kind:** minion
+- **Skill:** `docs-engine/sync`
+
+For every MDX page with `<!-- generated-by: docs-engine vN -->` marker,
+compare (a) prior MDX in git, (b) currently-living MDX (may have hand-edits),
+(c) new MDX from this run. If diff (a)→(b) ≠ empty AND diff (b)→(c) would
+overwrite (b)'s edits, ABORT with conflict report and require founder
+decision (/docs sync --force overrides; /docs accept-mine keeps the hand-edit).
+
+
+### Step 7_write_mdx — Write MDX to docs/content/
+
+- **Kind:** minion
+- **Skill:** `docs-engine/sync`
+- **On failure:** rollback_writes
+
+### Step 8_run_pnpm_check — Final drift check on coverage validator
+
+- **Kind:** minion
+- **Cmd:** `pnpm check`
+- **On failure:** surface_drift_report
+
+### Step 9_emit_events — Emit ops.events
+
+- **Kind:** minion
+
+Per Bài #11 event-driven discipline:
+  ritsu.docs.synced — every /docs sync completion
+  ritsu.docs.drift_detected — when step 8 finds drift
+  ritsu.docs.built — first-time /docs scaffold
+  ritsu.docs.published — /docs publish + Vercel deploy ID
+
+
+### Step 10_record_kpi_snapshot — Record docs_drift_count KPI
+
+- **Kind:** minion
+- **Cmd:** `INSERT INTO ops.kpi_snapshots (kpi_id, value, captured_at, source) VALUES ('docs_drift_count', $1, now(), 'sop-aiops-003')`
+
+Bài
+
+## Acceptance criteria
+
+- Every walked source either has matching MDX OR is in walker_exclude.
+- Zero secrets (matching the 4 regex patterns) leaked to docs/content/.
+- No hand-edited tutorial overwritten without conflict report.
+- `pnpm check` exits 0 post-step-8.
+- Vercel preview deploys within 5 min of merge (Phase 1 C2 success criterion).
+
+## Failure handling
+
+```yaml
+failure_handling:
+  drift_preflight_failed:
+    detection: step 1 pnpm check exit != 0
+    response: Abort sync. Surface drift report. Re-run only after `pnpm check` clean.
+  secret_leak_detected:
+    detection: step 3 or step 5 layer match
+    response: >-
+      Abort. Open GitHub issue tagged 'secret-leak-suspected'. Founder reviews;
+      do NOT silent-scrub.
+  hand_edit_conflict:
+    detection: step 6 3-way diff detects loss
+    response: >-
+      Write conflict report. Surface to founder. Skip the affected file;
+      continue rest of sync.
+  adapter_partial_failure:
+    detection: step 4 some adapters errored
+    response: >-
+      Continue rest. Aggregate errors into final report. KPI docs_drift_count
+      incremented per missed page.
+```
+

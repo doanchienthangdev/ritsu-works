@@ -1,0 +1,230 @@
+---
+title: 'Skill: wiki-sync/adapters/meeting-adapter'
+description: |
+  Meeting transcript adapter (Sprint 2 PR4, v2.0.0). Parses VTT/SRT cue
+  blocks into speaker-attributed Markdown; plain TXT passes through with
+  paragraph-only chunking. Chunking strategy: structural per speaker turn
+  (per cue block). source_kind=`meeting_transcript`; entity_type=`meeting`;
+  wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout). File location convention:
+  `raw/meetings/<filename>.{vtt,srt,txt}` (other extensions delegate back to ingest).
+source_path: 06-ai-ops/skills/wiki-sync/adapters/meeting-adapter/SKILL.md
+source_hash: 98170d72e9a5c88193278606699a9d7408b701d2259093a90f9102d077d64fc7
+generated_at: '2026-05-19T05:01:53.836Z'
+generated_by: docs-engine v1.1.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+
+# Meeting transcript adapter (Sprint 2 PR4 baseline — v2.0.0)
+
+## When this adapter runs
+
+Dispatched by `wiki-sync/ingest` Step 1 when `<path>` ends in `.vtt`, `.srt`, or
+`.txt` AND is located under `raw/meetings/` (the path prefix constraint disambiguates
+TXT files that could otherwise be plain markdown or other content).
+
+source_kind: `meeting_transcript`
+entity_type: `meeting`
+wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; derived entities land under `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, etc.)
+
+## Inputs
+
+- `path` — absolute path under `raw/meetings/<filename>.{vtt|srt|txt}`
+- `force` — bool; passed through
+
+## Process
+
+### Step 1 — Validate
+
+- File exists? Else bail.
+- Extension `.vtt`, `.srt`, or `.txt`? Else delegate back to ingest.
+- Path under `raw/meetings/`? Else bail with "meeting-adapter expects raw/meetings/ prefix; for plain text use markdown-adapter with frontmatter type=meeting".
+- File size > 0? Else bail.
+- File size \< 10 MB? Else bail (use chapter-splitter manually first).
+
+### Step 2 — Compute source_hash
+
+```bash
+sha256sum "$path"
+```
+
+### Step 3 — Parse YAML frontmatter (optional)
+
+If TXT file starts with `---\n...\n---\n` block, parse via js-yaml. Common keys:
+- `title` — meeting title (else derive from filename)
+- `participants` — list of names (used for speaker disambiguation)
+- `date` — meeting date (else derive from file mtime)
+- `slug` — override (else derive from filename)
+
+### Step 4 — Detect format + parse
+
+**VTT (WebVTT):**
+```
+WEBVTT
+
+NOTE Speaker: Alice
+
+00:00:01.500 --> 00:00:04.000
+Welcome everyone, let's get started.
+
+NOTE Speaker: Bob
+
+00:00:04.500 --> 00:00:08.000
+Thanks Alice. So today's agenda...
+```
+
+Parser:
+- Each cue block: `{ start_ms, end_ms, text, speaker? }`
+- Speaker extracted from `NOTE Speaker: <name>` immediately preceding the cue (Otter.ai / Riverside convention) OR from `<v Speaker>...</v>` voice tag inside cue text
+- If speaker unknown, label as `Unknown` for that cue
+
+**SRT (SubRip):**
+```
+1
+00:00:01,500 --> 00:00:04,000
+Alice: Welcome everyone, let's get started.
+
+2
+00:00:04,500 --> 00:00:08,000
+Bob: Thanks Alice...
+```
+
+Parser:
+- Each block: number, time, text
+- Speaker extracted from `<Name>: ` prefix in text (common convention)
+- Else label as `Unknown`
+
+**TXT (plain):**
+
+No structured parsing. Pass through verbatim. Speaker chunks heuristically detected if every paragraph starts with `^[A-Z][a-z]+( [A-Z][a-z]+)?: ` (e.g., "Alice:" or "Alice Smith:") otherwise treat each blank-line-separated block as one chunk.
+
+### Step 5 — Synthesize raw_text (Markdown)
+
+```markdown
+# <meeting_title>
+
+**Date:** <YYYY-MM-DD>
+**Participants:** <comma-separated names from frontmatter or detected from speakers>
+**Duration:** <H:MM:SS (from cue timestamps)>
+**Format:** VTT|SRT|TXT
+**Source file:** <relative path under raw/meetings/>
+
+---
+
+## [00:00:01] Alice
+
+Welcome everyone, let's get started.
+
+## [00:00:04] Bob
+
+Thanks Alice. So today's agenda...
+
+## [00:00:25] Alice
+
+Right. First item, the Q3 numbers...
+```
+
+Each speaker turn gets its own H2 heading with timestamp + speaker name. Multi-cue speaker turns (consecutive cues from same speaker) merge into one H2 block.
+
+### Step 6 — Slug generation
+
+- If frontmatter `slug` present, use it.
+- Else: `slug = kebab-case(meeting_title || basename(path, ext))`.
+- Cap at 50 chars.
+- Append date suffix if title is generic: `weekly-sync-2026-05-17`.
+
+### Step 7 — Attribution
+
+```jsonc
+{
+  "title": "<meeting_title>",
+  "participants": ["<name1>", "<name2>"],
+  "date": "<YYYY-MM-DD>",
+  "duration_seconds": <N>,
+  "format": "VTT" | "SRT" | "TXT",
+  "cues_count": <N>,
+  "speakers_detected": ["<name1>", "<name2>", "Unknown"]
+}
+```
+
+## Outputs
+
+```jsonc
+{
+  "raw_text": "<structured Markdown>",
+  "source_ref": "<abspath>",
+  "source_hash": "sha256:...",
+  "source_kind": "meeting_transcript",
+  "attribution": <see Step 7>,
+  "pages_or_size_metric": <cues_count or file_bytes for TXT>,
+  "suggested_slug": "<slug-or-with-date-suffix>",
+  "suggested_entity_type": "meeting"
+}
+```
+
+## Chunking strategy
+
+Per `knowledge/ingestion-sources.yaml`: `structural_per_speaker_turn`. Each H2 speaker block becomes one chunk for embedding. Long monologues (> 1500 tokens in one speaker turn) split further at paragraph boundaries.
+
+## HITL
+
+- Tier A normally
+- Tier B if:
+  - 0 speakers detected (all "Unknown") — founder confirms transcript is meaningful
+  - File > 5 MB — cost concern; founder confirms ingest
+  - Duration > 3 hours — possibly multi-meeting file; founder confirms boundaries
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| Path not under raw/meetings/ | Bail with redirect to markdown-adapter + frontmatter workaround |
+| Extension not vtt/srt/txt | Delegate back to ingest |
+| File > 10 MB | Bail; manual chapter-split required |
+| Malformed VTT (no WEBVTT header) | Try as plain TXT |
+| Malformed SRT (no time arrows) | Bail with format error |
+| All cues no speaker info | Continue with "Unknown" labels; warn founder |
+| Empty file after parse | Bail "no transcript content" |
+
+## Cost estimate
+
+| Format | Per 1 hour meeting |
+|---|---|
+| VTT/SRT (structured) | $0 parse + $0.005 embed = **$0.005** |
+| TXT (passthrough) | $0 parse + $0.005 embed = **$0.005** |
+| + LLM-fallback link extraction (Sprint 4 flag) | +$0.05/N speakers on top |
+
+Per-task-kind cap from SOP-INGEST-001 README: `wiki-ingest-meeting` = $0.30 / invocation.
+
+## Chapter-split integration (v2.0)
+
+For very long meetings (> 200 cues OR file > 1 MB), `wiki-sync/ingest` Step 5
+dispatches chapter-splitter in `heading=h2` mode (each speaker turn becomes
+a chapter unit). Less common than for books/articles; usually meetings under
+2 hours stay single-page.
+
+## Sprint scope (this skill)
+
+Sprint 2 PR4 (v2.0.0):
+- VTT, SRT, TXT parsers all documented
+- Speaker detection (NOTE Speaker:, voice tags, `Name:` prefix)
+- Frontmatter parsing for TXT files
+- Slug + attribution conventions
+- All 7 steps documented in prose
+
+Deferred to Sprint 3+:
+- Diarization (auto speaker labeling when format has no speaker info) — would need pyannote.audio or similar; out of scope v2.0
+- Multi-language transcript handling
+- Per-cue confidence scoring (some VTT formats emit `<c.confidence>`)
+
+## Related
+
+- Parent: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` (Step 1 dispatch)
+- Tier 1 config: `knowledge/ingestion-sources.yaml` entry `meeting_transcript`
+- Sibling: `youtube-adapter` (also produces VTT for transcript content)
+- Chapter-split integration: `chapter-splitter` SKILL
+- Test fixture (deferred to test-fixtures PR): `tests/wiki-sync/fixtures/sample.vtt`
+
