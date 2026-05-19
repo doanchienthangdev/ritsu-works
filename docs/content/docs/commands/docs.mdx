@@ -2,18 +2,18 @@
 title: 'Command: /docs'
 description: ''
 source_path: .claude/commands/docs.md
-source_hash: 013d97ae01f3a4d91e49a80b39ed01950403af5d9ab3f6483da949cfb36ea1f9
-generated_at: '2026-05-19T05:20:46.402Z'
-generated_by: docs-engine v1.1.0
-translated: true
-translated_source_hash: 013d97ae01f3a4d91e49a80b39ed01950403af5d9ab3f6483da949cfb36ea1f9
-translated_at: 2026-05-19T15:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
+source_hash: 4418830707f33c0f9dd60ff81cdb842b3bee6e4cd13518f4e9218434aac29687
+generated_at: '2026-05-19T15:45:53.661Z'
+generated_by: docs-engine v1.2.0
 category: command
 language: vi
+translated: true
+translated_at: '2026-05-19T16:30:00Z'
+translated_by: 'Claude Opus 4.7 (Claude Code Desktop, /docs translate session)'
+translated_source_hash: 4418830707f33c0f9dd60ff81cdb842b3bee6e4cd13518f4e9218434aac29687
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
 # /docs
 
@@ -35,7 +35,8 @@ với redaction secret tại thời điểm build (theo câu trả lời của f
 |---|---|---|---|
 | `/docs` | Hiển thị menu + trạng thái hiện tại (số trang, trạng thái trôi dạt, sync gần nhất, publish gần nhất) | A | chỉ-đọc |
 | `/docs scaffold` | Scaffold idempotent cho subproject `docs/` Next.js + Fumadocs. Chỉ lần đầu. | A | thay đổi git dưới `docs/` |
-| `/docs sync [--area=<a>] [--dry-run] [--force]` | Đi qua corpus → tạo MDX. `--area` giới hạn phạm vi (commands\|skills\|agents\|hooks\|charter\|governance\|pillars\|sops\|tier1\|all). `--dry-run` xem trước diff mà không ghi. `--force` bỏ qua dedup theo source_hash. | A (B nếu chi phí ước tính > cap HOẶC > 50% trang thay đổi) | thay đổi git dưới `docs/content/`; ops.kpi_snapshots |
+| `/docs sync [--area=<a>] [--dry-run] [--force]` | Đi qua corpus → tạo MDX. `--area` giới hạn phạm vi (commands\|skills\|agents\|hooks\|charter\|governance\|pillars\|sops\|tier1\|all). `--dry-run` xem trước diff mà không ghi. `--force` bỏ qua dedup theo source_hash. **v1.2:** bảo toàn nội dung VI đã dịch khi source thay đổi (đánh cờ `needs_retranslation: true` để `/docs translate` xử lý sau). | A (B nếu chi phí ước tính > cap HOẶC > 50% trang thay đổi) | thay đổi git dưới `docs/content/`; ops.kpi_snapshots |
+| `/docs translate [--category=<c>] [--dry-run] [--force]` | **MỚI trong v1.2.** Dịch incremental sang tiếng Việt cho các file VI cũ + chưa được dịch. Dispatch các Claude Code subagent song song (model haiku, không cần `ANTHROPIC_API_KEY` khi chạy bên trong Claude Code Desktop). Đặt `translated_source_hash = source_hash` sau mỗi file. | A (B nếu > 50 file bị động chạm) | thay đổi git dưới `docs/content/`; ops.agent_runs |
 | `/docs check` | Phát hiện trôi dạt (source_hash không khớp + trang thiếu/mồ côi). Tất định; không LLM. Ghi KPI `docs_drift_count`. | A | INSERT ops.kpi_snapshots; phát ritsu.docs.drift_detected nếu > 0 |
 | `/docs check --tutorials` | Kiểm tra tập con: `tutorial_last_verified_at` của mọi tutorial phải \< 60d. (CPO mod, hàng tháng qua SOP-FOUNDER-013.) | A | Báo cáo danh sách tutorial cũ |
 | `/docs publish` | Kích hoạt deploy production Vercel từ `main` mới nhất. Founder xác nhận. | **B** | INSERT ops.events ritsu.docs.published |
@@ -76,6 +77,27 @@ với redaction secret tại thời điểm build (theo câu trả lời của f
 10. **Snapshot KPI** — `docs_drift_count`.
 
 **Chi phí:** ~$0.40-1.00 mỗi lần sync đầy đủ (215 trang × chi phí adapter ÷ batching). Cap per-task-kind: $1.
+
+### `/docs translate` (v1.2)
+
+Dịch incremental sang tiếng Việt. Dispatch các Claude Code subagent song song — không cần `ANTHROPIC_API_KEY` khi được gọi từ phiên Claude Code Desktop.
+
+1. **Cổng trôi dạt** — `pnpm check`. Hủy nếu không sạch.
+2. **Khám phá** — chạy `node scripts/verify-vi-translation.cjs --list-needs-translation`. Trả về hợp của:
+   - File chưa được dịch: tỉ lệ dấu tiếng Việt trong body VI \< 3% (vẫn còn chủ yếu là tiếng Anh).
+   - File cũ: `translated_source_hash !== source_hash` HOẶC `needs_retranslation: true` trong frontmatter.
+3. **Batch** — gom nhóm theo category, chia thành các batch 6 file (batch nhỏ hơn giảm thiểu các lỗi metadata-flip do context-fatigue được quan sát trong v1.1.1).
+4. **Dispatch** — một Claude Code subagent cho mỗi batch (`subagent_type: general-purpose`, `model: "haiku"`). Mỗi subagent:
+   - Đọc từng file.
+   - Dịch prose trong body sang tiếng Việt (bảo toàn frontmatter, code fence, inline code, identifier, JSX comment, ký tự escape, URL link).
+   - Đặt `translated_at` thành hiện tại, `translated_source_hash` thành `source_hash` hiện tại, gỡ cờ `needs_retranslation`.
+5. **Re-verify** — chạy lại verifier. Nếu còn file chưa dịch/cũ, dispatch agent tập trung cho các file cụ thể đó. Lặp tối đa 3 lần.
+6. **Build cục bộ** — `cd docs && pnpm build`. Nếu thất bại, HỦY.
+7. **Commit + push** — message điển hình: `feat(docs-engine): incremental translation — N files`.
+
+**Chi phí:** ~$0-$9 (miễn phí qua subscription Claude Code nếu dispatch bên trong phiên Desktop; ~$0.05-0.15 mỗi file qua haiku API).
+
+**Cap per-task-kind:** $5.
 
 ### `/docs check`
 
