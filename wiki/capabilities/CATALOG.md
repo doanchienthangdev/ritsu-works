@@ -8,7 +8,7 @@
 > catalog is the human-readable view that links into each capability's
 > promoted spec + retrospective.
 
-**Last updated:** 2026-05-19 (post-docs-engine v1.0 promotion)
+**Last updated:** 2026-05-19 (post-docs-engine v1.1 promotion)
 **Total capabilities (operating):** 4
 **Total capabilities (any state):** 4
 
@@ -21,7 +21,21 @@
 | `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 1.0.0 | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
 | `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.0 source-grouped distill+extract) | **4.0.0** | 06-ai-ops | 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.0.0.md](wiki-sync-from-refs/retrospective-v4.0.0.md) |
-| `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, Vietnamese-first) | **1.0.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective.md](docs-engine/retrospective.md) |
+| `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN) | **1.1.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective-v1.1.0.md](docs-engine/retrospective-v1.1.0.md) |
+
+### docs-engine version history (lineage chain)
+
+| Version | State | Operating range | Spec | Retrospective |
+|---|---|---|---|---|
+| 1.0.0 | superseded | 2026-05-19 → 2026-05-19 (~6h) | [spec.md](docs-engine/spec.md) | [retrospective-v1.0.0.md](docs-engine/retrospective-v1.0.0.md) |
+| **1.1.0** | **operating** (current) | 2026-05-19 → present | [spec.md](docs-engine/spec.md) | [retrospective-v1.1.0.md](docs-engine/retrospective-v1.1.0.md) |
+
+**v1.1.0 Phase 8 promotion details:**
+- PRs shipped (same-session extend): [#62](https://github.com/doanchienthangdev/ritsu-works/pull/62) (i18n infra + walker bilingual + landing cards), [#63](https://github.com/doanchienthangdev/ritsu-works/pull/63) (Fumadocs v14 default-locale fix + Cards import)
+- Founder asks addressed: bilingual VI+EN, sidebar grouping (Diátaxis), `/` → `/docs` redirect, Cards landing
+- Walker v1.1: outputs 225 `.mdx` (vi default) + 225 `.en.mdx` (alt) = 450 MDX + 18 meta.{lang}.json
+- Live verified: `/`, `/docs`, `/en/docs`, `/docs/agents/cto`, `/en/docs/agents/cto`, `/api/raw/agents/cto` all HTTP 200
+- **Founder action pending v1.1.1:** run `scripts/docs-translate.cjs` to replace English placeholder in VI files with actual Vietnamese translations (~$0.50-2 LLM, ~10-20 min)
 
 ### docs-engine v1.0 Phase 8 promotion details
 
