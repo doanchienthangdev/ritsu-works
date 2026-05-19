@@ -4,13 +4,17 @@ const withMDX = createMDX();
 
 const config = {
   reactStrictMode: true,
-  // Vietnamese-first per Phase 1 Q1 of docs-engine spec. Reserve `en` route for future translation.
-  i18n: {
-    defaultLocale: "vi",
-    locales: ["vi", "en"],
-  },
-  // Vercel deploys with rootDirectory=docs (per CTO Phase 2 architectural call).
-  output: "standalone",
+  // NOTE on i18n: Next.js 14 App Router does NOT use the legacy `i18n` config
+  // field (that's Pages Router). For Vietnamese-first content per Phase 1 Q1
+  // of docs-engine spec, we rely on:
+  //   - root `<html lang="vi">` in app/layout.tsx
+  //   - default content language Vietnamese
+  // Future English route /en/* will be implemented via App Router `[lang]`
+  // dynamic segment + middleware (v1.0.1+).
+  //
+  // NOTE on output: `output: 'standalone'` was REMOVED — Vercel handles its
+  // own serverless/edge optimization. Standalone mode produced a non-standard
+  // build layout that Vercel couldn't route, causing edge 404s.
 };
 
 export default withMDX(config);
