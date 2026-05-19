@@ -1,15 +1,18 @@
 ---
 title: 'Skill: docs-engine/publish'
 description: |
-  Trigger Vercel production deploy from latest `main`. Tier B HITL (founder
-  visually confirms preview URL before production). Wraps the Vercel CLI or
-  webhook trigger; emits `ritsu.docs.published` event with deploy ID.
+  Kích hoạt triển khai sản xuất Vercel từ `main` mới nhất. Tier B HITL (founder
+  xác nhận trực quan URL xem trước trước sản xuất). Bọc Vercel CLI hoặc
+  kích hoạt webhook; emit sự kiện `ritsu.docs.published` với deploy ID.
 source_path: 06-ai-ops/skills/docs-engine/publish/SKILL.md
 source_hash: 896d7d95dcd08dcabf2bc1a5577e94dc49c6e1ef06939c6bf07da8aaac47722b
 generated_at: '2026-05-19T05:20:46.355Z'
 generated_by: docs-engine v1.1.0
 category: skill
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -17,45 +20,44 @@ language: vi
 
 # docs-engine/publish
 
-## When to use
+## Khi nào dùng
 
-- `/docs publish` command (founder-initiated production deploy).
+- Lệnh `/docs publish` (triển khai sản xuất do founder khởi tạo).
 
 ## Inputs
 
-- (None — uses `main` HEAD.)
+- (Không có — sử dụng `main` HEAD.)
 
 ## Process
 
-1. Verify `docs_drift_count == 0` (query latest `ops.kpi_snapshots`).
-2. Verify `pnpm check` clean on current HEAD.
-3. Fetch latest Vercel preview URL for HEAD.
-4. **AskUserQuestion** (Tier B): show preview URL; founder confirms publish.
-5. Trigger Vercel production deploy (CLI `vercel --prod` or webhook).
-6. Poll deploy status up to 120s.
-7. Emit `ritsu.docs.published` with `{deploy_id, deploy_url, status}`.
+1. Xác minh `docs_drift_count == 0` (truy vấn `ops.kpi_snapshots` mới nhất).
+2. Xác minh `pnpm check` sạch trên HEAD hiện tại.
+3. Lấy URL xem trước Vercel mới nhất cho HEAD.
+4. **AskUserQuestion** (Tier B): hiển thị URL xem trước; founder xác nhận publish.
+5. Kích hoạt triển khai sản xuất Vercel (CLI `vercel --prod` hoặc webhook).
+6. Poll trạng thái deploy lên đến 120s.
+7. Emit `ritsu.docs.published` với `{deploy_id, deploy_url, status}`.
 
 ## Outputs
 
-- `ops.events` row `ritsu.docs.published`.
-- `ops.hitl_runs` row (Tier B confirmation).
+- Hàng `ops.events` sự kiện `ritsu.docs.published`.
+- Hàng `ops.hitl_runs` (xác nhận Tier B).
 
 ## HITL
 
-**Tier B.** Founder confirms via `AskUserQuestion` with preview URL.
+**Tier B.** Founder xác nhận thông qua `AskUserQuestion` với URL xem trước.
 
 ## Failure modes
 
-- Drift present → refuse to publish; surface drift report.
-- Vercel deploy times out → emit event with `status: timeout`; founder investigates manually.
-- Vercel API auth fails → surface; check `VERCEL_TOKEN` env (governance/SECRETS.md).
+- Drift hiện tại → từ chối publish; hiển thị báo cáo drift.
+- Vercel deploy timeout → emit sự kiện với `status: timeout`; founder điều tra thủ công.
+- Vercel API auth thất bại → hiển thị; kiểm tra biến môi trường `VERCEL_TOKEN` (governance/SECRETS.md).
 
 ## Cost estimate
 
-$0 LLM. Per-task-kind cap: `docs-publish` ≤ $0.10 (essentially just the AskUserQuestion overhead).
+$0 LLM. Per-task-kind cap: `docs-publish` ≤ $0.10 (về cơ bản chỉ là chi phí AskUserQuestion).
 
 ## See also
 
 - Vercel CLI docs: https://vercel.com/docs/cli
-- Command: `.claude/commands/docs.md` (`/docs publish`)
-
+- Lệnh: `.claude/commands/docs.md` (`/docs publish`)

@@ -1,28 +1,31 @@
 ---
 title: 'Skill: episodic-recall'
 description: |
-  Use AT THE START of any non-trivial task to surface the role's recent
-  comparable past runs from ops.agent_runs. Returns up to 5 prior runs
-  with their summaries, outcomes, costs, and any founder corrections.
-  This is the primary learning mechanism for Ritsu agents — invoke
-  before reasoning about how to approach a recurring action type.
+  Sử dụng ở PHẦN ĐẦU của bất kỳ task không tầm thường nào để hiển thị
+  những lần chạy tương tự trong quá khứ gần đây của role từ ops.agent_runs.
+  Trả về tối đa 5 lần chạy trước với tóm tắt, kết quả, chi phí và các sửa chữa
+  từ người sáng lập. Đây là cơ chế học tập chính cho các agent Ritsu — gọi
+  trước khi suy luận về cách tiếp cận một loại hành động lặp lại.
 
-  Trigger conditions: any task that takes more than one tool call, any
-  task that has been performed by this role before, any task where
-  founder feedback would have been likely on past runs.
+  Điều kiện kích hoạt: bất kỳ task nào mất hơn một lần gọi tool, bất kỳ task
+  nào đã được role này thực hiện trước, bất kỳ task nào mà phản hồi từ người
+  sáng lập sẽ có khả năng xảy ra trên các lần chạy trước.
 
-  Skip when: pure read-only one-shot operations (e.g. fetching a single
-  metric value), tasks with no historical comparable (action_name has
-  never been used), or when role's `episodic_recall_enabled` is false.
+  Bỏ qua khi: thao tác chỉ đọc một lần (ví dụ: lấy một giá trị metric duy nhất),
+  các task không có lịch sử tương tự (action_name chưa bao giờ được sử dụng),
+  hoặc khi `episodic_recall_enabled` của role là false.
 
-  Returns ~1K tokens of structured context. Cost ~50ms wall-clock for
-  the SQL query.
+  Trả về ~1K tokens của context có cấu trúc. Chi phí ~50ms wall-clock cho
+  truy vấn SQL.
 source_path: 06-ai-ops/skills/episodic-recall/SKILL.md
 source_hash: e59c4d91ed9b5371f1e6ed38fc4b384f4c57c48d80bef7583706f28315b2eaf0
 generated_at: '2026-05-19T05:20:46.357Z'
 generated_by: docs-engine v1.1.0
 category: skill
 language: vi
+translated: true
+translated_at: 2026-05-19T10:30:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -30,44 +33,44 @@ language: vi
 
 # Episodic Recall
 
-> Surface relevant past runs before tackling a new task. Strategy E's primary learning loop.
+> Hiển thị các lần chạy trước đó liên quan trước khi bắt tay vào một task mới. Vòng lặp học tập chính của Strategy E.
 
-This skill is the heart of how Ritsu agents learn across sessions without file-based memory. Before reasoning about a task, the agent queries `ops.agent_runs` for comparable past runs and reads their summaries. The agent then incorporates those insights — what worked, what failed, what the founder corrected — into the current approach.
+Kỹ năng này là trái tim của cách các agent Ritsu học tập qua các session mà không có bộ nhớ dựa trên tệp. Trước khi suy luận về một task, agent sẽ truy vấn `ops.agent_runs` để tìm các lần chạy tương tự trong quá khứ và đọc các bản tóm tắt của chúng. Agent sau đó kết hợp những hiểu biết đó — những gì hoạt động, những gì thất bại, những gì người sáng lập đã sửa chữa — vào cách tiếp cận hiện tại.
 
-## When to use
+## Khi nào dùng
 
-Use at the **start** of a task, before any other tool calls (except reading task input). Specifically:
+Sử dụng ở **phần đầu** của một task, trước bất kỳ lệnh gọi tool nào khác (ngoại trừ đọc input của task). Cụ thể:
 
-- Any task that takes more than one tool call
-- Any task whose `action_name` has been performed before by this role
-- Any task where founder feedback would likely have happened previously
-- Any task where understanding "how this went last time" changes the approach
+- Bất kỳ task nào mất hơn một lần gọi tool
+- Bất kỳ task nào có `action_name` đã được role này thực hiện trước
+- Bất kỳ task nào mà phản hồi từ người sáng lập sẽ có khả năng xảy ra trước đó
+- Bất kỳ task nào mà hiểu biết "cách này diễn ra lần trước" thay đổi cách tiếp cận
 
-Do NOT use when:
+KHÔNG dùng khi:
 
-- Single-shot read operations (e.g., "what's the current count of users?")
-- Pure compute operations with no domain context
-- The role's `memory_config.episodic_recall_enabled` is `false`
-- This is a brand-new `action_name` (no history exists)
+- Các thao tác đọc một lần (ví dụ: "số lượng người dùng hiện tại là bao nhiêu?")
+- Các thao tác tính toán thuần túy không có context miền
+- `memory_config.episodic_recall_enabled` của role là `false`
+- Đây là `action_name` hoàn toàn mới (không có lịch sử tồn tại)
 
 ## Inputs
 
 | Input | Type | Required | Description |
 |---|---|---|---|
-| `action_name` | string | yes | The canonical name of the action being performed (e.g. "blog-post-draft", "billing-ticket-reply") |
-| `agent_role` | string | yes | The role of the calling agent; defaults to current session's role |
-| `match_fields` | string[] | no | Additional fields to match for similarity (default: from role's `recall_match_fields`) |
-| `window_days` | int | no | Override role default; how far back to look |
-| `max_runs` | int | no | Override role default; cap on rows returned |
+| `action_name` | string | yes | Tên chính tắc của hành động đang được thực hiện (ví dụ: "blog-post-draft", "billing-ticket-reply") |
+| `agent_role` | string | yes | Role của agent gọi; mặc định là role của session hiện tại |
+| `match_fields` | string[] | no | Các trường bổ sung để so khớp cho tương tự (mặc định: từ `recall_match_fields` của role) |
+| `window_days` | int | no | Ghi đè mặc định của role; quãng thời gian cần tìm |
+| `max_runs` | int | no | Ghi đè mặc định của role; giới hạn trên số hàng trả về |
 
 ## Outputs
 
-A structured summary containing:
+Một tóm tắt có cấu trúc chứa:
 
 ```yaml
-recall_count: 3                    # how many past runs were found
-recall_run_ids: [uuid, uuid, uuid] # exact run IDs (logged into current run for lineage)
-recall_tokens_loaded: 612          # cost accounting
+recall_count: 3                    # bao nhiêu lần chạy quá khứ được tìm thấy
+recall_run_ids: [uuid, uuid, uuid] # run ID chính xác (được ghi vào run hiện tại để theo dõi)
+recall_tokens_loaded: 612          # tính toán chi phí
 
 past_runs:
   - run_id: <uuid>
@@ -79,24 +82,24 @@ past_runs:
       {{run_summaries.summary content, ~150 tokens}}
     corrections:
       - kind: edit
-        note: "Founder shortened the third paragraph; preferred more concrete examples"
+        note: "Founder rút gọn đoạn thứ ba; thích các ví dụ cụ thể hơn"
         ts: 2026-04-28T15:01:00Z
   - run_id: <uuid>
     ...
 ```
 
-The agent receives this and incorporates lessons:
-- Recurring failure modes → adjust approach
-- Past corrections → respect on this run
-- Cost trajectory → set realistic budget expectation
+Agent nhận được điều này và kết hợp những bài học:
+- Các chế độ lỗi lặp lại → điều chỉnh cách tiếp cận
+- Các sửa chữa trước → tôn trọng trên lần chạy này
+- Quỹ đạo chi phí → đặt kỳ vọng ngân sách thực tế
 
 ## Procedure
 
-### Step 1 — Determine query parameters
+### Bước 1 — Xác định các tham số truy vấn
 
-Read the role's `memory_config` from `governance/ROLES.md` (cached at session start; re-read if config has been hot-reloaded). Extract `recall_window_days`, `recall_max_runs`, `recall_match_fields`. Override with explicit inputs if provided.
+Đọc `memory_config` của role từ `governance/ROLES.md` (được lưu trong bộ đệm ở đầu session; đọc lại nếu config đã được hot-reload). Trích xuất `recall_window_days`, `recall_max_runs`, `recall_match_fields`. Ghi đè bằng explicit inputs nếu được cung cấp.
 
-### Step 2 — Build the SQL query
+### Bước 2 — Xây dựng truy vấn SQL
 
 ```sql
 WITH candidate_runs AS (
@@ -109,7 +112,7 @@ WITH candidate_runs AS (
   WHERE ar.agent_role = $1
     AND ar.action_name = $2
     AND ar.completed_at > NOW() - ($3 || ' days')::interval
-    AND ar.outcome IN ('success', 'failed', 'rejected')  -- exclude blocked/aborted
+    AND ar.outcome IN ('success', 'failed', 'rejected')  -- loại trừ blocked/aborted
   ORDER BY ar.completed_at DESC
   LIMIT $4
 ),
@@ -134,29 +137,29 @@ with_corrections AS (
 SELECT * FROM with_corrections ORDER BY completed_at DESC;
 ```
 
-Parameters:
+Các tham số:
 - `$1` = `agent_role`
 - `$2` = `action_name`
-- `$3` = `window_days` as text
+- `$3` = `window_days` dưới dạng text
 - `$4` = `max_runs`
 
-### Step 3 — Execute via MCP supabase-ops
+### Bước 3 — Thực thi qua MCP supabase-ops
 
-Use the `etl-runner`-scoped readonly query path. Note: this skill must be in the role's `skills:` list AND the calling role must have `tier2_schemas_read: ops.*` permission per `governance/ROLES.md`.
+Sử dụng đường dẫn truy vấn readonly được phân loại `etl-runner`. Lưu ý: kỹ năng này phải nằm trong danh sách `skills:` của role VÀ role gọi phải có quyền `tier2_schemas_read: ops.*` theo `governance/ROLES.md`.
 
-### Step 4 — Format the result
+### Bước 4 — Định dạng kết quả
 
-Convert SQL result rows into the YAML output format above. Include:
-- The `recall_run_ids` list (record into current `agent_runs.recall_run_ids[]` for lineage)
-- The `recall_tokens_loaded` count (sum of summary lengths × token estimate)
+Chuyển đổi các hàng kết quả SQL thành định dạng output YAML ở trên. Bao gồm:
+- Danh sách `recall_run_ids` (ghi vào `agent_runs.recall_run_ids[]` hiện tại để theo dõi)
+- Số lượng `recall_tokens_loaded` (tổng độ dài tóm tắt × ước tính token)
 
-If 0 runs found: return `recall_count: 0` and a brief note "no comparable past runs in last N days" — do not error.
+Nếu tìm thấy 0 lần chạy: trả về `recall_count: 0` và một ghi chú ngắn "không có lần chạy tương tự trong N ngày gần đây" — không báo lỗi.
 
-### Step 5 — Return to caller
+### Bước 5 — Trả lại cho caller
 
-Return the formatted YAML. Caller agent reads it as part of its preamble and proceeds to the actual task.
+Trả về YAML đã định dạng. Agent caller đọc nó như một phần của preamble của nó và tiếp tục task thực tế.
 
-## Example output (good)
+## Ví dụ output (tốt)
 
 ```yaml
 recall_count: 3
@@ -173,10 +176,10 @@ past_runs:
     cost_usd: 0.04
     tokens_used: 8400
     summary: |
-      Drafted blog post about "AI tutoring for STEM students". Used
-      brand voice (active, concrete). Included 2 internal links.
-      Founder approved unedited. Took 6 tool calls including 1 wiki
-      fetch for competitor pricing context.
+      Soạn bài blog về "AI tutoring cho sinh viên STEM". Sử dụng
+      brand voice (chủ động, cụ thể). Bao gồm 2 liên kết nội bộ.
+      Người sáng lập phê duyệt không chỉnh sửa. Mất 6 lệnh gọi tool
+      bao gồm 1 lần tìm nạp wiki để lấy context về giá cạnh tranh.
     corrections: []
 
   - run_id: 3e9d6f2a-...
@@ -185,13 +188,13 @@ past_runs:
     cost_usd: 0.05
     tokens_used: 9100
     summary: |
-      Drafted blog post about "Why flashcards still beat AI chat".
-      Used brand voice. Included no internal links (mistake — see
-      correction).
+      Soạn bài blog về "Tại sao flashcard vẫn hơn AI chat".
+      Sử dụng brand voice. Không bao gồm liên kết nội bộ (lỗi — xem
+      sửa chữa).
     corrections:
       - kind: edit
-        note: "Add 1-2 internal links per blog post — improves SEO
-               and bounces. Standard going forward."
+        note: "Thêm 1-2 liên kết nội bộ cho mỗi bài blog — cải thiện SEO
+               và bounce. Tiêu chuẩn kể từ nay."
         ts: 2026-04-21T11:30:00Z
 
   - run_id: 1c4b7d8e-...
@@ -200,54 +203,54 @@ past_runs:
     cost_usd: 0.03
     tokens_used: 6200
     summary: |
-      Attempted draft about competitor's funding round. Founder
-      rejected — "not our voice; we don't comment on competitors'
-      business news, only on product/learning-science angles".
+      Cố gắng soạn về vòng gọi vốn của cạnh tranh. Người sáng lập
+      từ chối — "không phải giọng của chúng ta; chúng ta không bình luận
+      về tin tức kinh doanh của cạnh tranh, chỉ về các góc độ sản phẩm/learning-science".
     corrections:
       - kind: reject
-        note: "Don't draft posts about competitor funding/business
-               news. Stay in the product + learning-science lane."
+        note: "Không soạn bài về tài trợ/tin tức kinh doanh cạnh tranh.
+               Giữ trong làn đường sản phẩm + learning-science."
         ts: 2026-04-15T09:45:00Z
 ```
 
-The agent reading this learns:
-- Active-voice brand voice is consistent
-- Add 1-2 internal links (corrected once already)
-- Stay away from competitor business news
-- Cost expectation: $0.03-0.05 per draft
+Agent đọc điều này học được:
+- Brand voice dạng active-voice là nhất quán
+- Thêm 1-2 liên kết nội bộ (đã sửa lần rồi)
+- Tránh xa tin tức kinh doanh cạnh tranh
+- Kỳ vọng chi phí: $0.03-0.05 cho mỗi bản soạn
 
-## Quality criteria
+## Tiêu chí chất lượng
 
-A successful invocation:
-- Returns within 200ms wall-clock
-- Loads ≤ `recall_max_runs × 250` tokens into context
-- Includes corrections data when present (most valuable signal)
-- Records `recall_run_ids` into current `agent_runs.recall_run_ids` for lineage
+Một lần gọi thành công:
+- Trả về trong 200ms wall-clock
+- Tải ≤ `recall_max_runs × 250` tokens vào context
+- Bao gồm dữ liệu sửa chữa khi có (tín hiệu giá trị nhất)
+- Ghi `recall_run_ids` vào `agent_runs.recall_run_ids` hiện tại để theo dõi
 
-## Failure modes
+## Chế độ lỗi
 
-- **Schema not yet provisioned** — if `ops.run_summaries` or `ops.corrections` don't exist (pre-Phase B), return empty result with a note. Do not error the calling task.
-- **Query timeout** — if SQL takes > 1s, return empty with note. Recall is helpful but not required; never block the actual task.
-- **Permission denied** — if calling role lacks `tier2_schemas_read: ops.*`, return empty with a clear note that the role's `memory_config` says recall is enabled but role permissions don't grant access. Open a governance issue.
+- **Schema chưa được cung cấp** — nếu `ops.run_summaries` hoặc `ops.corrections` không tồn tại (pre-Phase B), trả về kết quả trống với ghi chú. Không báo lỗi task gọi.
+- **Timeout truy vấn** — nếu SQL mất > 1s, trả về trống với ghi chú. Recall là hữu ích nhưng không bắt buộc; không bao giờ chặn task thực tế.
+- **Từ chối quyền hạn** — nếu role gọi thiếu `tier2_schemas_read: ops.*`, trả về trống với ghi chú rõ ràng rằng `memory_config` của role cho biết recall được bật nhưng quyền hạn của role không được cấp quyền truy cập. Mở một vấn đề governance.
 
-## Cost estimate
+## Ước tính chi phí
 
-- Tokens loaded into context: ~150 × `max_runs` (summaries dominate) + ~50 overhead
-- SQL query cost: ~free (\<$0.0001 per call assuming Supabase free tier query overhead)
-- Wall-clock: ~50-150ms typical
+- Tokens tải vào context: ~150 × `max_runs` (tóm tắt chiếm ưu thế) + ~50 overhead
+- Chi phí truy vấn SQL: ~free (\<$0.0001 cho mỗi lệnh gọi giả sử Supabase free tier query overhead)
+- Wall-clock: ~50-150ms điển hình
 
-For a role doing 1000 tasks/month with `max_runs=5`, recall adds ~750K tokens/month to context. At Sonnet rates, that's roughly $2-3/month per high-volume role. Strategy E's compounding learning is worth this.
+Đối với một role thực hiện 1000 tasks/tháng với `max_runs=5`, recall thêm ~750K tokens/tháng vào context. Với tỷ giá Sonnet, đó là khoảng $2-3/tháng cho mỗi role có khối lượng cao. Learning lũy tiến của Strategy E đáng giá điều này.
 
-## Required secrets
+## Bí mật cần thiết
 
-- `SUPABASE_OPS_ANON_KEY` (read-only) per `governance/SECRETS.md`
+- `SUPABASE_OPS_ANON_KEY` (read-only) theo `governance/SECRETS.md`
 
-Roles allowed to invoke: any role with `episodic_recall_enabled: true` per `governance/ROLES.md`. Currently: all 8 non-founder roles.
+Các role được phép gọi: bất kỳ role nào có `episodic_recall_enabled: true` theo `governance/ROLES.md`. Hiện tại: tất cả 8 role không phải founder.
 
-## Related skills
+## Kỹ năng liên quan
 
-- `monthly-learning-review` — uses ops.corrections + ops.agent_runs to identify patterns worth promoting to Tier 1
-- (planned post-v1.0) `cross-role-recall` — for cases where pattern from one role informs another
+- `monthly-learning-review` — sử dụng `ops.corrections` + `ops.agent_runs` để xác định các mẫu đáng được thúc đẩy lên Tier 1
+- (planned post-v1.0) `cross-role-recall` — cho các trường hợp mà mẫu từ một role thông báo cho role khác
 
 ## Changelog
 
@@ -255,5 +258,4 @@ Roles allowed to invoke: any role with `episodic_recall_enabled: true` per `gove
 
 ---
 
-*The session ends, but the database persists. This skill is how that persistence becomes useful — by giving the next session a structured glimpse of what came before.*
-
+*Session kết thúc, nhưng database vẫn tồn tại. Kỹ năng này là cách mà sự kiên trì đó trở thành hữu ích — bằng cách cung cấp cho session tiếp theo một cái nhìn sâu sắc có cấu trúc về những gì đã xảy ra trước.*

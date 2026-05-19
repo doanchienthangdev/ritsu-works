@@ -1,14 +1,16 @@
 ---
-title: 'SOP-AIOPS-001-extend: /cla extend — capability scope expansion sub-flow'
+title: 'SOP-AIOPS-001-extend: /cla extend — quy trình mở rộng phạm vi khả năng'
 description: >-
-  Medium-weight workflow for scope expansion. Adds new components; auto-escalates Tier C if spec
-  changes are substantial.
+  Quy trình trung bình cho mở rộng phạm vi. Thêm các thành phần mới; tự động nâng cấp Tier C nếu các thay đổi spec đáng kể.
 source_path: 06-ai-ops/sops/SOP-AIOPS-001-extend/flow.yaml
 source_hash: b2000ce966ea37cd220625ff27d7911374585041884262adfcfca23829cb3179
 generated_at: '2026-05-19T05:20:46.449Z'
 generated_by: docs-engine v1.1.0
 category: sop
 language: vi
+translated: true
+translated_at: '2026-05-19T12:30:00Z'
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -16,11 +18,11 @@ language: vi
 **SOP ID:** `SOP-AIOPS-001-extend`
 **Pillar:** 06-ai-ops
 
-## Overview
+## Tổng quan
 
-Medium-weight workflow for scope expansion. Adds new components; auto-escalates Tier C if spec changes are substantial.
+Quy trình trung bình cho mở rộng phạm vi. Thêm các thành phần mới; tự động nâng cấp Tier C nếu các thay đổi spec đáng kể.
 
-## Steps
+## Các bước
 
 ### Step phase-0-preflight-extend — phase-0-preflight-extend
 
@@ -49,17 +51,17 @@ Medium-weight workflow for scope expansion. Adds new components; auto-escalates 
 
 - **Skill:** `capability-lifecycle/catalog-updater`
 
-## Acceptance criteria
+## Tiêu chí chấp nhận
 
-- Lock acquired Phase 0, released Phase 8
-- NEW capability_runs row, supersedes_id set, prior superseded
-- Version bumped minor++
-- spec.md promoted; prior version archived
-- CHANGELOG.md entry added
-- All sprint PRs merged
+- Lock được cấp tại Phase 0, được giải phóng tại Phase 8
+- Dòng capability_runs MỚI, supersedes_id được đặt, dòng trước được đánh dấu là superseded
+- Phiên bản được nâng cấp minor++
+- spec.md được promot; phiên bản trước được lưu trữ
+- Mục CHANGELOG.md được thêm
+- Tất cả sprint PRs được merge
 - pnpm check clean post-Phase 8
 
-## Failure handling
+## Xử lý lỗi
 
 ```yaml
 failure_handling:
@@ -80,4 +82,3 @@ failure_handling:
     detection: Tier B/C rejection at Phase 5
     response: Iterate Phase 5 OR abort + release lock + mark new row 'deprecated'.
 ```
-

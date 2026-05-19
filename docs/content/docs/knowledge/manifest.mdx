@@ -7,31 +7,33 @@ generated_at: '2026-05-19T05:20:46.477Z'
 generated_by: docs-engine v1.1.0
 category: tier1-yaml
 language: vi
+translated: true
+translated_at: 2026-05-19T12:30:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-## Description
+## Mô tả
 
 Ritsu Works — Knowledge Manifest
 
-This file is the CONTRACT that tells every agent where each kind of company
-truth lives. Read it before searching, querying, or writing data.
+File này là HỢP ĐỒNG nói cho tất cả agent biết nơi mỗi loại sự thật công ty được lưu trữ. Đọc file này trước khi tìm kiếm, query, hoặc ghi dữ liệu.
 
-Four tiers:
-  T1 = Canonical (this git repo) — identity, strategy, SOPs, skills, agents
-  T2 = Operational (Postgres / Supabase ritsu-ops) — current state
-  T3 = Events & Artifacts (Supabase Storage / S3) — append-only, immutable
-  T4 = Derived (Vector DB + caches) — rebuildable from T1+T3
+Bốn tầng:
+  T1 = Canonical (repo git này) — nhân dạng, chiến lược, SOP, skill, agent
+  T2 = Operational (Postgres / Supabase ritsu-ops) — trạng thái hiện tại
+  T3 = Events & Artifacts (Supabase Storage / S3) — append-only, bất biến
+  T4 = Derived (Vector DB + cache) — có thể xây dựng lại từ T1+T3
 
-Rules:
-  - Tier 1 is the only tier where humans negotiate meaning. PRs only.
-  - Tier 2/3 may be written by agents according to RACI in each SOP.
-  - Tier 4 is never authoritative. Rebuild scripts in `scripts/sync/`.
-  - DDL for every Tier 2 table lives in `supabase/migrations/`.
-    (`knowledge/schemas/` holds JSON Schemas validating registry YAML files,
-     NOT SQL — do not look for table DDL there.)
-  - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
+Quy tắc:
+  - Tier 1 là nơi duy nhất con người thương lượng ý nghĩa. Chỉ PR.
+  - Tier 2/3 có thể được ghi bởi agent theo RACI trong mỗi SOP.
+  - Tier 4 không bao giờ có thẩm quyền. Rebuild scripts nằm trong `scripts/sync/`.
+  - DDL cho mọi Tier 2 table nằm trong `supabase/migrations/`.
+    (`knowledge/schemas/` chứa JSON Schemas xác thực file YAML registry,
+     KHÔNG phải SQL — đừng tìm DDL table ở đó.)
+  - Operating AI PHẢI KHÔNG được ghi vào product.supabase. Chỉ read-only qua ETL.
 
 ## Top-level keys
 
@@ -50,4 +52,4 @@ Rules:
 - `add_new_source_checklist`
 - `design_notes_index`
 
-> Live values in [`knowledge/manifest.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/manifest.yaml). This page describes the schema; not the data.
+> Giá trị trực tiếp trong [`knowledge/manifest.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/manifest.yaml). Page này mô tả schema; không phải dữ liệu.

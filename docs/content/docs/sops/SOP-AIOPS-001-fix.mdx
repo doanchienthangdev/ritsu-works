@@ -1,14 +1,16 @@
 ---
-title: 'SOP-AIOPS-001-fix: /cla fix — capability bug fix sub-flow'
+title: 'SOP-AIOPS-001-fix: /cla fix — quy trình sửa lỗi khả năng'
 description: >-
-  Light delta workflow for bug fixes on operating capabilities. Patch-version bump; no spec change;
-  single PR.
+  Quy trình delta nhẹ để sửa lỗi trên các khả năng operating. Nâng cấp phiên bản patch; không thay đổi spec; một PR.
 source_path: 06-ai-ops/sops/SOP-AIOPS-001-fix/flow.yaml
 source_hash: f115dea11ccfa9b5ee6aed3df0d27c7570be2a6547f6577d44c0adc112158a14
-generated_at: '2026-05-19T05:20:46.451Z'
+generated_at: '2026-05-19T05:20:46.450Z'
 generated_by: docs-engine v1.1.0
 category: sop
 language: vi
+translated: true
+translated_at: '2026-05-19T12:30:00Z'
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -16,11 +18,11 @@ language: vi
 **SOP ID:** `SOP-AIOPS-001-fix`
 **Pillar:** 06-ai-ops
 
-## Overview
+## Tổng quan
 
-Light delta workflow for bug fixes on operating capabilities. Patch-version bump; no spec change; single PR.
+Quy trình delta nhẹ để sửa lỗi trên các khả năng operating. Nâng cấp phiên bản patch; không thay đổi spec; một PR.
 
-## Steps
+## Các bước
 
 ### Step phase-0-preflight-fix — phase-0-preflight-fix
 
@@ -37,17 +39,17 @@ Light delta workflow for bug fixes on operating capabilities. Patch-version bump
 
 - **Skill:** `capability-lifecycle/catalog-updater`
 
-## Acceptance criteria
+## Tiêu chí chấp nhận
 
-- Lock acquired at Phase 0, released at Phase 8
-- NEW capability_runs row created with supersedes_id pointing to prior
-- Prior row state = 'superseded'
-- Version bumped patch++ in registry
-- CHANGELOG.md entry added
-- Single PR merged (no spec.md change)
+- Lock được cấp tại Phase 0, được giải phóng tại Phase 8
+- Dòng capability_runs MỚI được tạo với supersedes_id trỏ tới dòng trước
+- Dòng trước state = 'superseded'
+- Phiên bản được nâng cấp patch++ trong registry
+- Mục CHANGELOG.md được thêm
+- Một PR được merge (không thay đổi spec.md)
 - pnpm check clean post-Phase 8
 
-## Failure handling
+## Xử lý lỗi
 
 ```yaml
 failure_handling:
@@ -68,4 +70,3 @@ failure_handling:
     detection: Founder requests changes Tier B prompt
     response: Iterate; re-dispatch @cto with comments. Same row, same lock.
 ```
-

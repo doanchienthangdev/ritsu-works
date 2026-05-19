@@ -7,22 +7,25 @@ generated_at: '2026-05-19T05:20:46.469Z'
 generated_by: docs-engine v1.1.0
 category: tier1-yaml
 language: vi
+translated: true
+translated_at: 2026-05-19T12:31:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-## Description
+## Mô tả
 
 ============================================================================
-channels.yaml — Multi-Surface channels (Bài #17)
+channels.yaml — Các channel Multi-Surface (Bài #17)
 ============================================================================
-Tier 1 declarative file. Defines surfaces project publishes to / receives from.
-Pattern: SurfaceAdapter interface implementation per channel.
+File declarative Tier 1. Định nghĩa các surface mà dự án công bố / nhận dữ liệu.
+Pattern: Triển khai interface SurfaceAdapter trên mỗi channel.
 
-Each channel:
-- Has type (video, social, email, dashboard, etc.)
-- Has audience priority (primary, secondary, tertiary)
-- Maps to SurfaceAdapter implementation in 05-ai-ops/surface-adapters/
+Mỗi channel:
+- Có type (video, social, email, dashboard, v.v.)
+- Có audience priority (primary, secondary, tertiary)
+- Maps tới triển khai SurfaceAdapter trong 05-ai-ops/surface-adapters/
 ============================================================================
 
 ## Top-level keys
@@ -31,4 +34,4 @@ Each channel:
 - `channels`
 - `compliance_groups`
 
-> Live values in [`knowledge/channels.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/channels.yaml). This page describes the schema; not the data.
+> Giá trị trực tiếp trong [`knowledge/channels.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/channels.yaml). Page này mô tả schema; không phải dữ liệu.

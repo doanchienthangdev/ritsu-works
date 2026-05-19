@@ -1,32 +1,35 @@
 ---
 title: 'Tier 1 yaml: state-machines'
-description: Schema overview for `knowledge/state-machines.yaml`.
+description: Tổng quan lược đồ cho `knowledge/state-machines.yaml`.
 source_path: knowledge/state-machines.yaml
 source_hash: 5b9cec6edad3249e0b70add8c55ffa6b442f8b4ade8a8721fc7c9c54ad88422b
 generated_at: '2026-05-19T05:20:46.479Z'
 generated_by: docs-engine v1.1.0
 category: tier1-yaml
 language: vi
+translated: true
+translated_at: '2026-05-19T13:00:00Z'
+translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-## Description
+## Mô tả
 
 ============================================================================
-state-machines.yaml — Domain state machines (Bài #13)
+state-machines.yaml — Máy trạng thái miền (Bài #13)
 ============================================================================
-Tier 1 declarative file. Defines state machines for domain entities.
-Schema convention: 4 columns (state, state_since, state_history, audit) +
-state_log sidecar table.
+File khai báo Tier 1. Định nghĩa các máy trạng thái cho thực thể miền.
+Quy ước lược đồ: 4 cột (state, state_since, state_history, audit) +
+bảng phụ state_log.
 
-Schema validation: schemas/state-machines.schema.json
-Engine: 05-ai-ops/skills/state-transition/
+Xác thực lược đồ: schemas/state-machines.schema.json
+Động cơ: 05-ai-ops/skills/state-transition/
 ============================================================================
 
-## Top-level keys
+## Các key cấp 1
 
 - `version`
 - `state_machines`
 
-> Live values in [`knowledge/state-machines.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/state-machines.yaml). This page describes the schema; not the data.
+> Giá trị trực tiếp trong [`knowledge/state-machines.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/state-machines.yaml). Trang này mô tả lược đồ; không phải dữ liệu.

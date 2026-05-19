@@ -3,10 +3,13 @@ title: 'SOP-AIOPS-003: docs-sync'
 description: ''
 source_path: 06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml
 source_hash: f2539b5b4e854b605391f1f7fae6beb0dee5d6fb1a286f0b729cad764b7c0651
-generated_at: '2026-05-19T05:20:46.455Z'
+generated_at: '2026-05-19T05:20:46.454Z'
 generated_by: docs-engine v1.1.0
 category: sop
 language: vi
+translated: true
+translated_at: '2026-05-19T12:30:00Z'
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -38,49 +41,49 @@ invocation:
       target: B
 ```
 
-## Steps
+## Các bước
 
-### Step 1_drift_preflight — Drift gate
+### Step 1_drift_preflight — Kiểm tra drift
 
 - **Kind:** minion
 - **Cmd:** `pnpm check`
 - **Timeout:** 30s
 - **On failure:** abort_with_drift_report
 
-Per /cla Phase 0 discipline. If drift exists, fix BEFORE generating docs
-(else docs will mirror drifted state).
+Theo kỷ luật /cla Phase 0. Nếu tồn tại drift, hãy sửa trước khi tạo docs
+(nếu không docs sẽ phản ánh trạng thái đã drift).
 
 
-### Step 2_walk_sources — Walk corpus per Phase 1 Q3 scope
+### Step 2_walk_sources — Duyệt corpus theo phạm vi Phase 1 Q3
 
 - **Kind:** minion
 - **Skill:** `docs-engine/sync`
 - **Timeout:** 60s
 
-### Step 3_secret_redact_layer1 — Secret redaction layer 1 (walker-exclude)
+### Step 3_secret_redact_layer1 — Lớp redaction bí mật 1 (walker-exclude)
 
 - **Kind:** minion
 - **Cmd:** `node docs/lint-secrets.cjs --layer=walker`
 - **On failure:** abort_loud
 
-CTO mod #2 (Phase 2 lens): fail-loud not scrub-silently. Bail if any
-walker_exclude path leaked into source_inventory.
+CTO mod #2 (Phase 2 lens): fail-loud không phải scrub-silently. Bail nếu có
+bất kỳ đường dẫn walker_exclude nào bị rò rỉ vào source_inventory.
 
 
-### Step 4_adapter_dispatch — Dispatch each source to its adapter
+### Step 4_adapter_dispatch — Dispatch mỗi source tới adapter của nó
 
 - **Kind:** subagent_or_minion
 - **Skill:** `docs-engine/adapters/<auto-picked-by-source-kind>`
 - **Timeout:** 120s
 - **On failure:** collect_errors_continue
 
-### Step 5_secret_redact_layer2 — Secret redaction layer 2 (MDX regex scrub)
+### Step 5_secret_redact_layer2 — Lớp redaction bí mật 2 (MDX regex scrub)
 
 - **Kind:** minion
 - **Cmd:** `node docs/lint-secrets.cjs --layer=mdx`
 - **On failure:** abort_loud
 
-Regex pass on every mdx page body. Patterns:
+Regex pass trên mỗi body trang mdx. Patterns:
   /override:\s+\S+/i                    (magic phrase prefix)
   /[a-z0-9]\{20}\.supabase\.co/          (project_ref)
   /sk-[A-Za-z0-9]\{32,}/                 (API keys)
@@ -92,20 +95,19 @@ Regex pass on every mdx page body. Patterns:
 - **Kind:** minion
 - **Skill:** `docs-engine/sync`
 
-For every MDX page with `<!-- generated-by: docs-engine vN -->` marker,
-compare (a) prior MDX in git, (b) currently-living MDX (may have hand-edits),
-(c) new MDX from this run. If diff (a)→(b) ≠ empty AND diff (b)→(c) would
-overwrite (b)'s edits, ABORT with conflict report and require founder
-decision (/docs sync --force overrides; /docs accept-mine keeps the hand-edit).
+Với mỗi trang MDX có `<!-- generated-by: docs-engine vN -->` marker,
+so sánh (a) MDX trước đây trong git, (b) MDX hiện tại đang sống (có thể có hand-edits),
+(c) MDX mới từ lần chạy này. Nếu diff (a)→(b) ≠ trống VÀ diff (b)→(c) sẽ
+ghi đè các hand-edit của (b), ABORT với báo cáo conflict và yêu cầu quyết định founder (/docs sync --force overrides; /docs accept-mine giữ hand-edit).
 
 
-### Step 7_write_mdx — Write MDX to docs/content/
+### Step 7_write_mdx — Viết MDX tới docs/content/
 
 - **Kind:** minion
 - **Skill:** `docs-engine/sync`
 - **On failure:** rollback_writes
 
-### Step 8_run_pnpm_check — Final drift check on coverage validator
+### Step 8_run_pnpm_check — Kiểm tra drift cuối cùng trên coverage validator
 
 - **Kind:** minion
 - **Cmd:** `pnpm check`
@@ -115,29 +117,29 @@ decision (/docs sync --force overrides; /docs accept-mine keeps the hand-edit).
 
 - **Kind:** minion
 
-Per Bài #11 event-driven discipline:
-  ritsu.docs.synced — every /docs sync completion
-  ritsu.docs.drift_detected — when step 8 finds drift
-  ritsu.docs.built — first-time /docs scaffold
+Theo kỷ luật event-driven Bài #11:
+  ritsu.docs.synced — mỗi hoàn thành /docs sync
+  ritsu.docs.drift_detected — khi step 8 tìm thấy drift
+  ritsu.docs.built — lần đầu tiên /docs scaffold
   ritsu.docs.published — /docs publish + Vercel deploy ID
 
 
-### Step 10_record_kpi_snapshot — Record docs_drift_count KPI
+### Step 10_record_kpi_snapshot — Ghi lại KPI docs_drift_count
 
 - **Kind:** minion
 - **Cmd:** `INSERT INTO ops.kpi_snapshots (kpi_id, value, captured_at, source) VALUES ('docs_drift_count', $1, now(), 'sop-aiops-003')`
 
 Bài
 
-## Acceptance criteria
+## Tiêu chí chấp nhận
 
-- Every walked source either has matching MDX OR is in walker_exclude.
-- Zero secrets (matching the 4 regex patterns) leaked to docs/content/.
-- No hand-edited tutorial overwritten without conflict report.
-- `pnpm check` exits 0 post-step-8.
-- Vercel preview deploys within 5 min of merge (Phase 1 C2 success criterion).
+- Mỗi source đã duyệt có MDX matching hoặc nằm trong walker_exclude.
+- Không có bí mật nào (khớp với 4 regex patterns) bị rò rỉ tới docs/content/.
+- Không có hand-edited tutorial nào bị ghi đè mà không có báo cáo conflict.
+- `pnpm check` exit 0 post-step-8.
+- Vercel preview deploys trong vòng 5 phút kể từ merge (Phase 1 C2 success criterion).
 
-## Failure handling
+## Xử lý lỗi
 
 ```yaml
 failure_handling:
@@ -160,4 +162,3 @@ failure_handling:
       Continue rest. Aggregate errors into final report. KPI docs_drift_count
       incremented per missed page.
 ```
-

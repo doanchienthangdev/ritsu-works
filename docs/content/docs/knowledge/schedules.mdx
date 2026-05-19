@@ -1,32 +1,36 @@
 ---
 title: 'Tier 1 yaml: schedules'
-description: Schema overview for `knowledge/schedules.yaml`.
+description: Tổng quan lược đồ cho `knowledge/schedules.yaml`.
 source_path: knowledge/schedules.yaml
 source_hash: c518546bf43e350e246b660077e2b4d93a0a1fff68701b4331ca1a30ff42fa2e
 generated_at: '2026-05-19T05:20:46.479Z'
 generated_by: docs-engine v1.1.0
 category: tier1-yaml
 language: vi
+translated: true
+translated_at: '2026-05-19T13:00:00Z'
+translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-## Description
+## Mô tả
 
 ============================================================================
-schedules.yaml — Scheduled triggers (Bài #8)
+schedules.yaml — Kích hoạt theo lịch (Bài #8)
 ============================================================================
-Tier 1 declarative file. Edit via PR governance.
-Defines when scheduled tasks fire. Dispatcher reads this + invokes skills.
+File khai báo Tier 1. Chỉnh sửa thông qua quản lý PR.
+Định nghĩa khi các tác vụ theo lịch kích hoạt. Dispatcher đọc cái này +
+gọi skill.
 
-Schema validation: schemas/schedules.schema.json
-Engine: supabase/functions/schedule-dispatcher/
+Xác thực lược đồ: schemas/schedules.schema.json
+Động cơ: supabase/functions/schedule-dispatcher/
 ============================================================================
 
-## Top-level keys
+## Các key cấp 1
 
 - `version`
 - `timezone`
 - `schedules`
 
-> Live values in [`knowledge/schedules.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/schedules.yaml). This page describes the schema; not the data.
+> Giá trị trực tiếp trong [`knowledge/schedules.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/schedules.yaml). Trang này mô tả lược đồ; không phải dữ liệu.

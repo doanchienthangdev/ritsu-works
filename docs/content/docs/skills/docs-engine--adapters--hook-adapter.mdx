@@ -1,15 +1,18 @@
 ---
 title: 'Skill: docs-engine/adapters/hook-adapter'
 description: |
-  Adapter that renders `.claude/hooks/<name>.md` into MDX page. Hook frontmatter
-  is rich (name, version, type, tools, default_decision, fail_mode); rendered as
-  structured policy spec.
+  Adapter hiển thị `.claude/hooks/<name>.md` thành trang MDX. Frontmatter hook
+  phong phú (name, version, type, tools, default_decision, fail_mode); hiển thị
+  dưới dạng spec chính sách có cấu trúc.
 source_path: 06-ai-ops/skills/docs-engine/adapters/hook-adapter/SKILL.md
 source_hash: ccfa2fa214cba5630bccb83f27de4da0c7c457d417d1667ff76a15872dbd7d4f
 generated_at: '2026-05-19T05:20:46.352Z'
 generated_by: docs-engine v1.1.0
 category: skill
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -19,7 +22,7 @@ language: vi
 
 ## Input pattern
 
-`.claude/hooks/*.md` (excluding `README.md`, `SPEC.md` — those become explanation pages, not hook references)
+`.claude/hooks/*.md` (loại trừ `README.md`, `SPEC.md` — những cái này trở thành trang giải thích, không phải tham chiếu hook)
 
 ## Output pattern
 
@@ -27,24 +30,23 @@ language: vi
 
 ## Process
 
-1. Parse YAML frontmatter (6 keys: `name`, `version`, `type`, `tools`, `default_decision`, `fail_mode`).
-2. Compute `source_hash`.
-3. Render MDX with sections: "Policy", "Triggers (tools list)", "Decision logic", "Default behavior", "Failure mode".
-4. Render `tools: [*]` as "All tools" callout.
-5. Render `default_decision` + `fail_mode` as a 2-row Fumadocs `<Cards>` block.
-6. Add idempotency marker.
+1. Parse YAML frontmatter (6 khoá: `name`, `version`, `type`, `tools`, `default_decision`, `fail_mode`).
+2. Tính `source_hash`.
+3. Hiển thị MDX với các phần: "Policy", "Triggers (tools list)", "Decision logic", "Default behavior", "Failure mode".
+4. Hiển thị `tools: [*]` dưới dạng callout "All tools".
+5. Hiển thị `default_decision` + `fail_mode` dưới dạng khối Fumadocs `<Cards>` 2 hàng.
+6. Thêm marker idempotency.
 
 ## Edge cases
 
-- `tools: [*]` glob → expand to explanatory note ("This hook fires on every tool call").
-- Multi-line `description:` (none currently, but defensive).
+- `tools: [*]` glob → mở rộng thành ghi chú giải thích ("This hook fires on every tool call").
+- Multi-line `description:` (không hiện tại, nhưng phòng chứng).
 
 ## HITL / Cost
 
-Tier A. ~$0.02 per file. Deterministic.
+Tier A. ~$0.02 mỗi tệp. Deterministic.
 
 ## See also
 
-- `governance/HITL.md` for hook ↔ HITL tier mapping
-- `.claude/hooks/README.md` + `SPEC.md` — rendered separately as explanation pages
-
+- `governance/HITL.md` cho ánh xạ hook ↔ HITL tier
+- `.claude/hooks/README.md` + `SPEC.md` — hiển thị riêng biệt dưới dạng trang giải thích

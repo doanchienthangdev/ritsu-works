@@ -3,33 +3,35 @@ title: 'Hook: pre-edit-tier1'
 description: pre-tool hook
 source_path: .claude/hooks/pre-edit-tier1.md
 source_hash: 5fbcae0c2b8b4c7581ff99a65b1f38cf6eb3c018e2239a4a503b62d277678b53
-generated_at: '2026-05-19T05:20:46.390Z'
+generated_at: '2026-05-19T05:20:46.389Z'
 generated_by: docs-engine v1.1.0
 category: hook
 language: vi
+translated: true
+translated_at: '2026-05-19T12:33:00.000Z'
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-
 # Hook: pre-edit-tier1
 
-> Blocks direct edits to Tier 1 files. Forces all changes through PR + governance per `governance/HITL.md`.
+> Blocks direct edits tới Tier 1 files. Forces tất cả changes qua PR + governance per `governance/HITL.md`.
 
-## What it does
+## Những gì nó làm
 
-Inspects the file path for any Edit/Write/MultiEdit operation. If the path matches a Tier 1 protected pattern AND the operation is on the `main` branch (or detached HEAD on a Tier 1 file), the hook escalates or blocks per the file's specific tier.
+Inspects file path cho bất kỳ Edit/Write/MultiEdit operation nào. Nếu path matches một Tier 1 protected pattern VÀ operation trên `main` branch (hoặc detached HEAD trên một Tier 1 file), hook escalates hoặc blocks per file's specific tier.
 
 ## Protected paths
 
-The protected patterns map to HITL tiers as follows:
+Các protected patterns map tới HITL tiers như sau:
 
 ```
 00-charter/**                    → Tier C  (escalate, require PR)
 governance/ROLES.md              → Tier C  (escalate, require PR)
 governance/HITL.md               → D-MAX   (block unless override+ceremony)
 governance/SECRETS.md            → D-MAX   (block unless override+ceremony)
-governance/BUDGET.md             → C       (when file exists; planned)
+governance/BUDGET.md             → C       (khi file tồn tại; planned)
 knowledge/manifest.yaml          → C       (escalate)
 knowledge/schemas/*.sql          → D-Std   (escalate, magic phrase)
 .claude/hooks/*                  → D-Std   (escalate; modifying hooks weakens safety)
@@ -42,18 +44,18 @@ _build/**                        → C       (escalate)
 workflows/**                     → C       (escalate)
 ```
 
-Paths NOT in the list are not Tier 1 protected. The hook lets them through unconditionally:
+Paths KHÔNG trong danh sách không được Tier 1 protected. Hook cho phép chúng qua vô điều kiện:
 
 - `wiki/**`, `raw/**`, `.archives/**` (workspace plane)
 - `.archives/**/*.gitkeep` (shell tracking)
-- README.md and CLAUDE.md at root → these ARE Tier 1, but special-cased: agents propose updates via PR only via the standard flow
+- README.md và CLAUDE.md ở root → những cái này ARE Tier 1, nhưng special-cased: agents propose updates via PR only via standard flow
 
-## Decision logic
+## Logic quyết định
 
 ```
 function decide(payload):
     path = payload.tool_payload.file_path
-    branch = current_git_branch()  # from cwd
+    branch = current_git_branch()  # từ cwd
 
     if path matches D-MAX pattern:
         if has_active_override(payload.session_id, action="edit:" + path):
@@ -74,59 +76,59 @@ function decide(payload):
     return allow()
 ```
 
-## Inputs needed
+## Dữ liệu đầu vào cần thiết
 
-- `payload.tool_payload.file_path` — the file being edited
-- `payload.session_id` — for override check
-- Current git branch — read from `.git/HEAD` or `git symbolic-ref HEAD`
-- Override state — query `ops.agent_runs.was_override` recent rows for this session_id (cache aggressively)
+- `payload.tool_payload.file_path` — tập tin được chỉnh sửa
+- `payload.session_id` — cho override check
+- Current git branch — đọc từ `.git/HEAD` hoặc `git symbolic-ref HEAD`
+- Override state — query `ops.agent_runs.was_override` recent rows cho session_id này (cache aggressively)
 
-## Special cases
+## Các trường hợp đặc biệt
 
-- **Symlinks:** resolve to canonical path before matching
-- **`.gitignore`'d paths matching protected patterns:** still block, even though the change wouldn't be committed (defense in depth)
-- **Multi-file operations (MultiEdit):** apply check to each file; if any single file would be blocked, the entire operation is blocked
-- **`create_file`:** treated same as Edit — creating `governance/HITL.md` afresh is even more dangerous than editing
-- **Renames within protected dirs:** treated as Edit on the destination
+- **Symlinks:** resolve tới canonical path trước khi matching
+- **`.gitignore`'d paths matching protected patterns:** vẫn block, ngay cả khi change sẽ không được committed (defense in depth)
+- **Multi-file operations (MultiEdit):** apply check tới mỗi tập tin; nếu bất kỳ single file nào sẽ bị block, toàn bộ operation bị block
+- **`create_file`:** treated tương tự như Edit — creating `governance/HITL.md` afresh còn dangerous hơn editing
+- **Renames trong protected dirs:** treated như Edit trên destination
 
 ## Mutation cases
 
-This hook never mutates payloads. Always allow/block/escalate.
+Hook này không bao giờ mutates payloads. Always allow/block/escalate.
 
-## Test cases
+## Các trường hợp kiểm thử
 
 | # | Scenario | Expected |
 |---|---|---|
 | 1 | Edit `wiki/competitors/anki.md` | allow |
 | 2 | Edit `wiki/_private-note.md` | allow |
 | 3 | Edit `.archives/drafts/foo.md` | allow |
-| 4 | Edit `00-charter/product.md` on a feature branch | escalate |
-| 5 | Edit `00-charter/product.md` on `main` | block |
-| 6 | Edit `governance/HITL.md` with no override | block |
-| 7 | Edit `governance/HITL.md` with active override for this session | allow |
+| 4 | Edit `00-charter/product.md` trên feature branch | escalate |
+| 5 | Edit `00-charter/product.md` trên `main` | block |
+| 6 | Edit `governance/HITL.md` với no override | block |
+| 7 | Edit `governance/HITL.md` với active override cho session này | allow |
 | 8 | Edit `governance/SECRETS.md` (D-MAX) | block |
 | 9 | Edit `knowledge/schemas/agent_runs.sql` | escalate |
-| 10 | Edit `.claude/hooks/pre-edit-tier1.md` (this file) | escalate |
+| 10 | Edit `.claude/hooks/pre-edit-tier1.md` (file này) | escalate |
 | 11 | Edit `.claude/agents/gps.md` | escalate |
 | 12 | Edit `03-gtm/sops/SOP-GTM-001-icp-discovery-from-2-cofounders/playbook.md` | escalate |
 | 13 | Edit `skills/blog-post-drafting/SKILL.md` | escalate |
 | 14 | Edit `mcp/servers.yaml` | escalate |
-| 15 | MultiEdit covering both `wiki/foo.md` and `governance/HITL.md` | block (the strict one wins) |
-| 16 | Create `governance/HITL.md` from scratch (file doesn't exist) | block |
-| 17 | Symlink `governance/HITL.md` → `/tmp/foo` then edit `/tmp/foo` | block (resolve symlink) |
+| 15 | MultiEdit covering cả `wiki/foo.md` và `governance/HITL.md` | block (cái strict nhất wins) |
+| 16 | Create `governance/HITL.md` từ scratch (file không tồn tại) | block |
+| 17 | Symlink `governance/HITL.md` → `/tmp/foo` rồi edit `/tmp/foo` | block (resolve symlink) |
 
-## Performance notes
+## Ghi chú hiệu năng
 
-- Cache `governance/HITL.md` and the path-pattern table; re-read only on mtime change
-- Override check should hit a local cache populated by the Telegram bot ack callback; falling back to Supabase query is acceptable but slow
+- Cache `governance/HITL.md` và path-pattern table; re-read chỉ khi mtime change
+- Override check nên hit một local cache được populate bởi Telegram bot ack callback; falling back tới Supabase query là acceptable nhưng slow
 
-## Observability
+## Quan sát
 
-Log every block with `match_rule = "<path-pattern>"` so dashboard can show which files trigger most blocks. High-frequency blocks indicate either (a) a confused agent (training opportunity) or (b) a workflow gap that should become a recipe.
+Log mỗi block với `match_rule = "<path-pattern>"` để dashboard có thể show tập tin nào trigger most blocks. High-frequency blocks chỉ ra (a) một confused agent (training opportunity) hoặc (b) một workflow gap mà nên trở thành recipe.
 
-## Implementation reference
+## Tham chiếu triển khai
 
-Pseudocode in TypeScript style:
+Pseudocode trong TypeScript style:
 
 ```typescript
 import { resolve } from 'path';
@@ -159,5 +161,4 @@ export function decide(payload: HookInput): HookDecision {
 
 ---
 
-*The first line of defense. If this hook fails, every other safety mechanism in the repo is on the honor system.*
-
+*Dòng phòng vệ đầu tiên. Nếu hook này fail, mỗi cơ chế safety khác trong repo đều dựa trên honor system.*
