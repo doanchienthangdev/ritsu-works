@@ -97,6 +97,12 @@ function titleFromBody(body) {
   return match ? match[1].trim() : "Chapter";
 }
 
+// Strip leading `# Title` line (and any blank lines before/after it) so
+// Fumadocs's frontmatter-title H1 isn't duplicated by an in-body H1.
+function stripLeadingH1(body) {
+  return body.replace(/^\s*#\s+[^\n]+\n+/, "");
+}
+
 // MDX escape — CommonMark-correct fence handling: closing fence has NO info
 // string (only whitespace after the backticks). Lines like ```yaml inside an
 // already-open fence remain CONTENT, not a new fence.
@@ -167,7 +173,7 @@ function escapeMdxSpecialChars(body) {
 }
 
 function emitMdx({ title, sourcePath, sourceHash, body, lang, order }) {
-  const scrubbedBody = escapeMdxSpecialChars(body);
+  const scrubbedBody = escapeMdxSpecialChars(stripLeadingH1(body));
   // Trim leading # heading (Fumadocs renders title separately from MDX h1)
   // — keep the H1 in body for the chapter-internal reading.
   const desc = title.length > 140 ? title.slice(0, 137) + "..." : title;
