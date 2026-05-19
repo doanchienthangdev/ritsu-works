@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:30:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,74 +19,74 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Khi nào sử dụng
 
-- Invoked bởi `.claude/commands/cla.md` sau Phase 0 succeeds.
-- State = `proposed`.
+- Được gọi bởi `.claude/commands/cla.md` sau khi Phase 0 thành công.
+- Trạng thái = `proposed`.
 
-## Inputs
+## Đầu vào
 
 - `capability_id`
-- `raw_proposal` — founder's problem text
+- `raw_proposal` — văn bản mô tả vấn đề của founder
 - `triggered_by` — `cla_command` (v1.0)
-- `refs_dir` — optional
+- `refs_dir` — tùy chọn
 
-## Quá trình
+## Quy trình
 
-### Step 1 — Ingest reference docs
+### Bước 1 — Tiếp nhận tài liệu tham chiếu
 
-Nếu refs dir exists, list + read.
+Nếu thư mục refs tồn tại, liệt kê và đọc.
 
-### Step 2 — Refine problem statement
+### Bước 2 — Tinh chỉnh phát biểu vấn đề
 
-Tạo single tight paragraph.
+Tạo một đoạn văn duy nhất, súc tích.
 
-### Step 3 — Generate 5-7 clarifying questions
+### Bước 3 — Tạo 5-7 câu hỏi làm rõ
 
-Cover ambiguous dimensions.
+Bao quát các khía cạnh còn mơ hồ.
 
-### Step 4 — Draft success criteria
+### Bước 4 — Soạn thảo tiêu chí thành công
 
-Measurable observations.
+Các quan sát có thể đo lường được.
 
-### Step 5 — Surface assumptions
+### Bước 5 — Nêu rõ các giả định
 
-List assumptions, duplicate check.
+Liệt kê các giả định, kiểm tra trùng lặp.
 
-### Step 6 — Write problem.md
+### Bước 6 — Viết problem.md
 
-Fill template.
+Điền vào mẫu.
 
-### Step 7 — Persist state
+### Bước 7 — Lưu trạng thái
 
-UPDATE ops.capability_runs.
+Cập nhật ops.capability_runs.
 
-### Step 8 — Return to orchestrator
+### Bước 8 — Trả về cho bộ điều phối
 
-Orchestrator issues AskUserQuestion batches.
+Bộ điều phối phát hành các đợt AskUserQuestion.
 
-## Outputs
+## Đầu ra
 
 - `.archives/cla/<id>/problem.md`
-- Updated ops.capability_runs row
-- ops.capability_phase_events, ops.events, ops.run_summaries rows
+- Bản ghi ops.capability_runs đã cập nhật
+- Các bản ghi ops.capability_phase_events, ops.events, ops.run_summaries
 
-## State transition
+## Chuyển trạng thái
 
 `proposed → analyzing`
 
 ## HITL
 
-Tier A. Auto-advance.
+Tier A. Tự động tiến tới.
 
-## Failure modes
+## Chế độ thất bại
 
-Vague proposal, slug collision, empty raw_proposal.
+Đề xuất mơ hồ, slug trùng lặp, raw_proposal rỗng.
 
-## Cost estimate
+## Ước tính chi phí
 
-- ~$0.05-0.10 mỗi invocation
-- Founder time: 5-10 min
+- ~$0.05-0.10 mỗi lần gọi
+- Thời gian của founder: 5-10 phút
 - Cost-bucket: `ai-ops-cla`
 
 ---
 
-Next: `domain-analyst` (Phase 2) ở `create` mode.
+Tiếp theo: `domain-analyst` (Phase 2) ở chế độ `create`.

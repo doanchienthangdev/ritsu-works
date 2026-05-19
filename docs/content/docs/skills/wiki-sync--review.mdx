@@ -1,13 +1,13 @@
 ---
 title: 'Skill: wiki-sync/review'
 description: |
-  v3.0 founder-review queue processor. Invoked by /wiki review. Iterates
-  knowledge_pages where review_state='pending_review' (confidence 0.6-0.85
-  extractions, OR dedup queue 0.75-0.92 merge candidates). For each item:
-  AskUserQuestion -> founder picks accept/reject/edit/merge -> UPDATE
+  Bộ xử lý queue review của founder v3.0. Được gọi bởi /wiki review. Lặp qua
+  knowledge_pages có review_state='pending_review' (extraction confidence 0.6-0.85,
+  HOẶC candidate merge dedup queue 0.75-0.92). Với mỗi mục:
+  AskUserQuestion -> founder chọn accept/reject/edit/merge -> UPDATE
   knowledge_extractions.founder_decision + knowledge_pages.review_state.
-  Tier B per item. Daily Telegram digest from wiki-review-queue-digest cron
-  surfaces backlog.
+  Tier B mỗi mục. Digest Telegram hàng ngày từ cron wiki-review-queue-digest
+  đưa backlog lên.
 source_path: 06-ai-ops/skills/wiki-sync/review/SKILL.md
 source_hash: 5d66585d28822f7a3f58a293938659b767f51a5c99ade399011094f9d29e2fee
 generated_at: '2026-05-19T05:20:46.382Z'
@@ -15,7 +15,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: 2026-05-19T15:00:00Z
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -24,29 +24,29 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 # wiki-sync / review (v3.0)
 
-## When this skill runs
+## Khi nào skill này chạy
 
-- Founder runs `/wiki review` (optionally `/wiki review --limit=N` or `/wiki review --type=concept`).
-- Daily cron `wiki-review-queue-digest` (09:00 ICT) checks `pending_review` count; if > 0, fires Telegram heads-up: "N extractions pending /wiki review."
+- Founder chạy `/wiki review` (tùy chọn `/wiki review --limit=N` hoặc `/wiki review --type=concept`).
+- Cron hàng ngày `wiki-review-queue-digest` (09:00 ICT) kiểm tra count `pending_review`; nếu > 0, kích hoạt Telegram heads-up: "N extractions pending /wiki review."
 
-## Inputs
+## Đầu vào
 
-- `limit` — process up to N items per session (default 10; founder may run multiple sessions)
-- `type` — optional `page_type` filter (concept / observation / decision / idea)
-- `min_confidence` / `max_confidence` — optional bracket filter (default 0.6-0.85)
-- `source_page_id` — optional: only review extractions from a specific source
+- `limit` — xử lý tối đa N mục mỗi session (mặc định 10; founder có thể chạy nhiều session)
+- `type` — bộ lọc `page_type` tùy chọn (concept / observation / decision / idea)
+- `min_confidence` / `max_confidence` — bộ lọc khoảng tùy chọn (mặc định 0.6-0.85)
+- `source_page_id` — tùy chọn: chỉ review các extraction từ một nguồn cụ thể
 
-## Outputs
+## Đầu ra
 
-- For each reviewed item: UPDATE `knowledge_extractions.founder_decision` + `founder_reviewed = true` + `founder_reviewed_at = now()`
-- If item's last extraction transitions out of pending: UPDATE `knowledge_pages.review_state = 'founder_approved'` (if all accepted) OR `'founder_rejected'` (if all rejected)
-- If founder chooses "merge": dispatch to `wiki-sync/merge` skill (Sprint 4)
-- If founder chooses "edit": open the wiki Markdown file in $EDITOR (or surface as content for inline editing); UPDATE the file + re-INSERT corrected knowledge_extractions row
-- One `ops.agent_runs` row summarizing decisions in this session
+- Với mỗi mục được review: UPDATE `knowledge_extractions.founder_decision` + `founder_reviewed = true` + `founder_reviewed_at = now()`
+- Nếu extraction cuối cùng của mục chuyển khỏi pending: UPDATE `knowledge_pages.review_state = 'founder_approved'` (nếu tất cả accepted) HOẶC `'founder_rejected'` (nếu tất cả rejected)
+- Nếu founder chọn "merge": dispatch đến skill `wiki-sync/merge` (Sprint 4)
+- Nếu founder chọn "edit": mở tệp Markdown wiki trong $EDITOR (hoặc đưa nội dung lên để edit inline); UPDATE tệp + re-INSERT row knowledge_extractions đã sửa
+- Một row `ops.agent_runs` tóm tắt các quyết định trong session này
 
-## Process
+## Quy trình
 
-### Step 1 — Build queue
+### Bước 1 — Xây queue
 
 ```sql
 WITH pending_extractions AS (
@@ -78,11 +78,11 @@ WITH pending_extractions AS (
 SELECT * FROM pending_extractions;
 ```
 
-Also include dedup-queue items (page-level `review_state='pending_review'` with `frontmatter.pending_merge_candidate_id` set).
+Cũng bao gồm các mục dedup-queue (cấp trang `review_state='pending_review'` với `frontmatter.pending_merge_candidate_id` được set).
 
-### Step 2 — Per-item review (loop)
+### Bước 2 — Review từng mục (vòng lặp)
 
-For each item in queue:
+Với mỗi mục trong queue:
 
 ```
 ┌─ Pending review N of M ─────────────────────────────────────┐
@@ -100,20 +100,20 @@ For each item in queue:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-AskUserQuestion options:
-1. **Accept** — extraction is correct as-is. UPDATE founder_decision='accepted'.
-2. **Reject** — extraction is wrong. UPDATE founder_decision='rejected'. If this was the LAST extraction tying derived_page to source, founder decides whether to soft-delete the derived_page (separate prompt).
-3. **Edit** — extraction is mostly right but title/summary needs adjustment. Open derived page Markdown for inline edit. UPDATE founder_decision='edited'.
-4. **Merge** — this entity is the same as an existing entity. Dispatch to `wiki-sync/merge`; founder picks the canonical slug.
+Các tùy chọn AskUserQuestion:
+1. **Accept** — extraction đúng như hiện trạng. UPDATE founder_decision='accepted'.
+2. **Reject** — extraction sai. UPDATE founder_decision='rejected'. Nếu đây là extraction CUỐI CÙNG nối derived_page với source, founder quyết định có soft-delete derived_page không (prompt riêng).
+3. **Edit** — extraction phần lớn đúng nhưng title/summary cần điều chỉnh. Mở Markdown trang derived để edit inline. UPDATE founder_decision='edited'.
+4. **Merge** — thực thể này giống một thực thể hiện có. Dispatch đến `wiki-sync/merge`; founder chọn canonical slug.
 
-For dedup-queue items (page-level pending merge):
-1. **Confirm merge** — yes, these are the same. Dispatch to `wiki-sync/merge` with canonical = existing entity.
-2. **Reject merge** — no, these are distinct. UPDATE both pages: `review_state='founder_approved'`, clear `pending_merge_candidate_id` from frontmatter.
-3. **Skip for now** — leave in queue; next session.
+Với các mục dedup-queue (pending merge cấp trang):
+1. **Confirm merge** — đúng, chúng là cùng một thứ. Dispatch đến `wiki-sync/merge` với canonical = thực thể hiện có.
+2. **Reject merge** — không, chúng riêng biệt. UPDATE cả hai trang: `review_state='founder_approved'`, clear `pending_merge_candidate_id` khỏi frontmatter.
+3. **Skip for now** — để lại trong queue; session tiếp theo.
 
-### Step 3 — Page review_state rollup
+### Bước 3 — Rollup review_state cấp trang
 
-After each extraction reviewed, recompute page-level review_state:
+Sau mỗi extraction được review, tính lại review_state cấp trang:
 ```sql
 WITH ext_summary AS (
   SELECT
@@ -134,9 +134,9 @@ END
 WHERE id = $page_id;
 ```
 
-### Step 4 — Session summary
+### Bước 4 — Tổng kết session
 
-After all items processed (or founder stops via `/skip-rest`):
+Sau khi tất cả các mục được xử lý (hoặc founder dừng qua `/skip-rest`):
 
 ```
 ✓ Review session complete:
@@ -146,35 +146,34 @@ After all items processed (or founder stops via `/skip-rest`):
   - Cost this session: $<cost>
 ```
 
-Emit `ops.events`: `ritsu.wiki.review_session_completed` with summary.
+Emit `ops.events`: `ritsu.wiki.review_session_completed` với tổng kết.
 
-## HITL discipline
+## Kỷ luật HITL
 
-- **Tier B per item.** Each AskUserQuestion is its own gate. Founder may abort mid-session; partial progress saved to DB.
-- **Telegram daily digest** (cron `wiki-review-queue-digest`) is Tier A (read-only Postgres + Telegram bot call).
+- **Tier B mỗi mục.** Mỗi AskUserQuestion là cổng riêng. Founder có thể abort giữa session; tiến độ một phần được lưu vào DB.
+- **Digest Telegram hàng ngày** (cron `wiki-review-queue-digest`) là Tier A (Postgres chỉ đọc + gọi bot Telegram).
 
-## Cost
+## Chi phí
 
-- Per item: ~$0 (no LLM in review — just DB reads + AskUserQuestion + DB writes)
-- Task_kind: `wiki-review-batch` ($0.20 cap per spec §0; rarely reached unless LLM helps suggest synonyms during merge dispatch)
+- Mỗi mục: ~$0 (không có LLM trong review — chỉ đọc DB + AskUserQuestion + ghi DB)
+- Task_kind: `wiki-review-batch` (cap $0.20 theo spec §0; hiếm khi đạt trừ khi LLM giúp gợi ý từ đồng nghĩa khi dispatch merge)
 
-## Failure modes
+## Các tình huống lỗi
 
-| Symptom | Response |
+| Triệu chứng | Phản ứng |
 |---|---|
-| Founder picks "Edit" but $EDITOR not set | Fallback: surface page content as AskUserQuestion prompt for inline edit (multiline); save back to file via Write tool. |
-| Founder picks "Merge" but target slug doesn't exist | Dispatch to merge skill which prompts for canonical slug (search-as-you-type from existing knowledge_pages). |
-| Cron digest fires but founder doesn't respond for N days | After 7 days of unresponded pending, increase Telegram heads-up frequency to per-3-day. After 14 days, escalate via daily reminders. Pending count never auto-clears. |
+| Founder chọn "Edit" nhưng $EDITOR không set | Fallback: đưa nội dung trang lên AskUserQuestion prompt để edit inline (nhiều dòng); lưu lại vào tệp qua Write tool. |
+| Founder chọn "Merge" nhưng slug target không tồn tại | Dispatch đến skill merge sẽ prompt cho canonical slug (search-as-you-type từ knowledge_pages hiện có). |
+| Cron digest kích hoạt nhưng founder không phản hồi trong N ngày | Sau 7 ngày pending không phản hồi, tăng tần suất Telegram heads-up lên 3 ngày/lần. Sau 14 ngày, escalate qua nhắc nhở hàng ngày. Count pending không bao giờ auto-clear. |
 
-## Related
+## Liên quan
 
-- Producer: `wiki-sync/distill` (auto-accepted ≥ 0.85; 0.6-0.85 → here)
-- Producer: `wiki-sync/dedup` (auto-merge > 0.92; 0.75-0.92 → here)
-- Action dispatch: `wiki-sync/merge` (when founder picks "merge")
-- Cron: `wiki-review-queue-digest` in `knowledge/schedules.yaml` (Sprint 4 wires this)
-- Schema: `knowledge_pages.review_state` + `knowledge_extractions.founder_decision` from migration 00031
+- Producer: `wiki-sync/distill` (auto-accept ≥ 0.85; 0.6-0.85 → đây)
+- Producer: `wiki-sync/dedup` (auto-merge > 0.92; 0.75-0.92 → đây)
+- Dispatch action: `wiki-sync/merge` (khi founder chọn "merge")
+- Cron: `wiki-review-queue-digest` trong `knowledge/schedules.yaml` (Sprint 4 nối dây)
+- Schema: `knowledge_pages.review_state` + `knowledge_extractions.founder_decision` từ migration 00031
 
-## Version
+## Phiên bản
 
-- **v0.1** (Sprint 4 of wiki-sync v3.0.0): initial founder-review UX. Per-item AskUserQuestion. Page-level review_state rollup. Cron digest tier-A integration.
-
+- **v0.1** (Sprint 4 của wiki-sync v3.0.0): UX review founder ban đầu. AskUserQuestion mỗi mục. Rollup review_state cấp trang. Tích hợp cron digest tier-A.

@@ -8,36 +8,36 @@ generated_by: docs-engine v1.1.0
 category: governance
 language: vi
 translated: true
-translated_at: '2026-05-19T13:00:00Z'
+translated_at: '2026-05-19T15:00:00Z'
 translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-# Agent Roles & Permissions
+# Vai trò agent & Quyền hạn
 
-> Defines the agent roles operating in `ritsu-works`, what each is permitted to do, and how roles map to skills, tools, and secrets.
+> Định nghĩa các vai trò agent vận hành trong `ritsu-works`, mỗi vai trò được phép làm gì, và cách các vai trò ánh xạ tới skill, tool và secrets.
 
-**Owner:** founder
-**Last updated:** 2026-05-02
-**Change policy:** PR + founder review. Tier C per `governance/HITL.md`.
+**Chủ sở hữu:** founder
+**Cập nhật lần cuối:** 2026-05-02
+**Chính sách thay đổi:** PR + founder review. Tier C theo `governance/HITL.md`.
 
 ---
 
-## Why roles exist
+## Tại sao vai trò tồn tại
 
-Without role separation, the only choice is "the agent can do everything" or "the agent can do nothing." Both are wrong.
+Không có sự phân tách vai trò, lựa chọn duy nhất là "agent có thể làm mọi thứ" hoặc "agent không thể làm gì." Cả hai đều sai.
 
-Roles let us answer questions like:
-- *Why can a content drafter read public docs but not query the customer database?*
-- *Why can the ETL runner read Product Supabase but never write?*
-- *Why does the support agent get a different LLM budget than the growth orchestrator?*
+Vai trò cho phép chúng ta trả lời các câu hỏi như:
+- *Tại sao content drafter có thể đọc tài liệu công khai nhưng không thể truy vấn database khách hàng?*
+- *Tại sao ETL runner có thể đọc Product Supabase nhưng không bao giờ ghi?*
+- *Tại sao support agent có ngân sách LLM khác với growth orchestrator?*
 
-The answer is always: **principle of least privilege.** Each role has the minimum capabilities to do its job. Everything else is denied.
+Câu trả lời luôn là: **nguyên tắc đặc quyền tối thiểu.** Mỗi vai trò có khả năng tối thiểu để làm việc của mình. Mọi thứ khác đều bị từ chối.
 
-## How a role is defined
+## Cách định nghĩa một vai trò
 
-Every role has the following attributes:
+Mỗi vai trò có các thuộc tính sau:
 
 ```yaml
 role: <slug>
@@ -82,19 +82,19 @@ notify_on_completion: <bool>     # default Telegram ping after Tier B+ actions
 escalation_role: <role slug>     # who to fallback to if this role can't proceed
 ```
 
-See "Context budget guidance" section below for how to set these values.
+Xem phần "Hướng dẫn ngân sách context" bên dưới để biết cách đặt các giá trị này.
 
-Roles are defined as files in `.claude/agents/<role>.md` (Claude Code agent format). This file is the policy reference; the agent file is the runtime instantiation.
+Các vai trò được định nghĩa dưới dạng file trong `.claude/agents/<role>.md` (định dạng agent của Claude Code). File này là tham chiếu chính sách; file agent là sự khởi tạo runtime.
 
 ---
 
-## The roles, v0.1
+## Các vai trò, v0.1
 
-These are the initial roles. More will be added as pillars come online. Status: ◐ defined here, ○ runtime file `.claude/agents/<role>.md` not yet created.
+Đây là các vai trò ban đầu. Sẽ có thêm khi các pillar lên hoạt động. Trạng thái: ◐ định nghĩa ở đây, ○ file runtime `.claude/agents/<role>.md` chưa được tạo.
 
 ### `gps` — General Purpose Steward (Chief of Staff)
 
-The orchestrator. Routes work to specialist roles. The role that interfaces with the founder by default.
+Bộ điều phối. Định tuyến công việc tới các vai trò chuyên gia. Vai trò giao tiếp với founder theo mặc định.
 
 ```yaml
 role: gps
@@ -151,9 +151,9 @@ notify_on_completion: true
 escalation_role: founder
 ```
 
-> **Why GPS doesn't have direct write to most things:** it's a router, not a worker. If GPS itself starts editing 00-charter or running migrations, the role boundaries blur. GPS proposes; specialists execute (or PR).
+> **Tại sao GPS không có quyền write trực tiếp tới hầu hết mọi thứ:** nó là router, không phải worker. Nếu chính GPS bắt đầu chỉnh 00-charter hoặc chạy migrations, ranh giới vai trò bị mờ. GPS đề xuất; chuyên gia thực thi (hoặc PR).
 
-### `growth-orchestrator` — Marketing & Sales lead
+### `growth-orchestrator` — Lead Marketing & Sales
 
 ```yaml
 role: growth-orchestrator
@@ -212,7 +212,7 @@ notify_on_completion: true
 escalation_role: gps
 ```
 
-### `support-agent` — Tier-1 customer support
+### `support-agent` — Hỗ trợ khách hàng Tier-1
 
 ```yaml
 role: support-agent
@@ -254,9 +254,9 @@ notify_on_completion: true     # for B-tier FAQ replies, batched daily summary
 escalation_role: gps
 ```
 
-> **Why no direct Product Supabase access:** support might need to look up a user's subscription state. The right answer is to expand the ETL into `metrics.*` to include the relevant fields, not to hand support-agent direct read. Direct read = blast radius up.
+> **Tại sao không có truy cập Product Supabase trực tiếp:** support có thể cần tra cứu trạng thái subscription của user. Câu trả lời đúng là mở rộng ETL vào `metrics.*` để bao gồm các trường liên quan, không phải trao quyền đọc trực tiếp cho support-agent. Đọc trực tiếp = phạm vi tác động tăng.
 
-### `content-drafter` — Pure-text draft generation
+### `content-drafter` — Tạo bản nháp text thuần
 
 ```yaml
 role: content-drafter
@@ -295,9 +295,9 @@ notify_on_completion: false
 escalation_role: gps
 ```
 
-> **The "never ships" boundary is enforced.** content-drafter has no access to email-sender, Twitter, GitHub merge, or any publishing MCP. Whatever it produces ends up in `.archives/drafts/` or `ops.content_drafts`. Another role with publishing permission must explicitly pick it up and ship.
+> **Ranh giới "không bao giờ ship" được thực thi.** content-drafter không có quyền truy cập email-sender, Twitter, GitHub merge, hoặc bất kỳ MCP publishing nào. Bất cứ thứ gì nó tạo ra đều kết thúc ở `.archives/drafts/` hoặc `ops.content_drafts`. Một vai trò khác có quyền publish phải lấy nó lên và ship một cách rõ ràng.
 
-### `code-reviewer` — Code review on PRs
+### `code-reviewer` — Review code trên các PR
 
 ```yaml
 role: code-reviewer
@@ -339,7 +339,7 @@ notify_on_completion: false
 escalation_role: gps
 ```
 
-### `etl-runner` — Cross-tier data plumbing
+### `etl-runner` — Đường ống dữ liệu cross-tier
 
 ```yaml
 role: etl-runner
@@ -389,9 +389,9 @@ notify_on_completion: false  # logs only; daily summary
 escalation_role: gps
 ```
 
-> **Critical:** etl-runner is the **only** role that holds `SUPABASE_PRODUCT_READ_KEY`. Any other role that needs product data must request it via metrics.* tables that etl-runner populates. This is the single most important access boundary in the company.
+> **Quan trọng:** etl-runner là vai trò **duy nhất** giữ `SUPABASE_PRODUCT_READ_KEY`. Bất kỳ vai trò nào khác cần dữ liệu sản phẩm đều phải yêu cầu qua các bảng metrics.* mà etl-runner populate. Đây là ranh giới truy cập quan trọng nhất trong công ty.
 
-### `trust-safety` — T&S triage and policy
+### `trust-safety` — Triage và policy T&S
 
 ```yaml
 role: trust-safety
@@ -434,9 +434,9 @@ notify_on_completion: true
 escalation_role: founder    # NOT gps; T&S goes direct
 ```
 
-> T&S has direct escalation to founder, bypassing GPS. T&S decisions affect users' rights — the routing must be unambiguous.
+> T&S leo thang trực tiếp tới founder, bỏ qua GPS. Các quyết định T&S ảnh hưởng đến quyền của người dùng — việc định tuyến phải rõ ràng.
 
-### `backoffice-clerk` — Finance & admin
+### `backoffice-clerk` — Tài chính & admin
 
 ```yaml
 role: backoffice-clerk
@@ -479,9 +479,9 @@ notify_on_completion: true
 escalation_role: founder
 ```
 
-> **Stripe is READ-ONLY for backoffice-clerk.** Issuing a charge or refund requires founder action via Tier C/D ceremony. This is intentional — money out is the highest-blast-radius action category.
+> **Stripe là READ-ONLY cho backoffice-clerk.** Việc phát hành một khoản phí hoặc hoàn tiền cần hành động của founder qua nghi thức Tier C/D. Đây là chủ ý — tiền ra ngoài là phạm vi tác động cao nhất.
 
-### `founder` (the human role)
+### `founder` (vai trò con người)
 
 ```yaml
 role: founder
@@ -501,34 +501,34 @@ budget: unlimited
 escalation_role: none
 ```
 
-The founder role is documented for completeness, but its policy is "everything." The constraints on the founder are organizational, not technical:
+Vai trò founder được tài liệu hóa cho đầy đủ, nhưng policy của nó là "mọi thứ." Các ràng buộc lên founder là tổ chức, không phải kỹ thuật:
 
-- Even the founder should follow the override ceremony when bypassing rules — it creates the audit trail.
-- The founder should not directly perform actions that an agent role is configured for; this defeats observability.
-- When in doubt, the founder routes through `gps` to maintain pattern consistency.
+- Ngay cả founder cũng nên tuân theo nghi thức override khi bỏ qua các quy tắc — nó tạo ra audit trail.
+- Founder không nên trực tiếp thực hiện các hành động mà một vai trò agent được cấu hình; điều này phá vỡ khả năng quan sát.
+- Khi nghi ngờ, founder route qua `gps` để duy trì sự nhất quán pattern.
 
 ---
 
-## Context budget guidance
+## Hướng dẫn ngân sách context
 
-Each role above carries a `context_budget`. This section explains how to set the three numbers.
+Mỗi vai trò ở trên có một `context_budget`. Phần này giải thích cách đặt ba số.
 
-**Why context budgets exist.** The Anthropic platform provides progressive disclosure (Skills + subagents) and compaction (`/compact`, server-side). The platform CANNOT decide for Ritsu *how aggressively* each role should manage context — that's a Ritsu policy decision. Light, high-volume roles (e.g. `support-agent`) need different settings than heavy, deep-reasoning roles (e.g. `gps`).
+**Tại sao ngân sách context tồn tại.** Nền tảng Anthropic cung cấp tiết lộ tiến trình (Skills + subagents) và nén (`/compact`, server-side). Nền tảng KHÔNG THỂ quyết định cho Ritsu *mức độ tích cực* mà mỗi vai trò nên quản lý context — đó là quyết định chính sách của Ritsu. Các vai trò nhẹ, lượng cao (ví dụ `support-agent`) cần các cài đặt khác với các vai trò nặng, suy luận sâu (ví dụ `gps`).
 
-**Default budgets by role archetype:**
+**Ngân sách mặc định theo loại vai trò:**
 
-| Archetype | preamble_tokens | working_tokens | trigger_compact_at | Rationale |
+| Loại | preamble_tokens | working_tokens | trigger_compact_at | Lý do |
 |---|---|---|---|---|
-| Orchestrator (gps, growth-orchestrator) | 6000 | 80000 | 0.6 | reads full pillar context; long sessions |
-| Specialist drafter (content-drafter) | 3000 | 30000 | 0.7 | narrow task; should compact aggressively |
-| High-volume responder (support-agent) | 3000 | 25000 | 0.7 | many short tickets; restart often |
-| ETL / data plumbing (etl-runner) | 2000 | 20000 | 0.8 | mostly tool calls; minimal reasoning context |
-| T&S triage (trust-safety) | 5000 | 50000 | 0.6 | needs full charter + policy refs |
-| Backoffice (backoffice-clerk) | 4000 | 40000 | 0.65 | structured workflows; medium horizon |
-| Code reviewer | 4000 | 50000 | 0.65 | reads diffs; medium-long sessions |
-| Founder | unlimited | unlimited | 0.85 | human discretion; trigger only at near-limit |
+| Orchestrator (gps, growth-orchestrator) | 6000 | 80000 | 0.6 | đọc full pillar context; phiên dài |
+| Specialist drafter (content-drafter) | 3000 | 30000 | 0.7 | task hẹp; nên compact tích cực |
+| Người phản hồi lượng cao (support-agent) | 3000 | 25000 | 0.7 | nhiều ticket ngắn; restart thường xuyên |
+| ETL / đường ống dữ liệu (etl-runner) | 2000 | 20000 | 0.8 | chủ yếu là tool calls; context suy luận tối thiểu |
+| Triage T&S (trust-safety) | 5000 | 50000 | 0.6 | cần full charter + tham chiếu policy |
+| Backoffice (backoffice-clerk) | 4000 | 40000 | 0.65 | quy trình có cấu trúc; chân trời trung bình |
+| Code reviewer | 4000 | 50000 | 0.65 | đọc diff; phiên trung-dài |
+| Founder | không giới hạn | không giới hạn | 0.85 | tự định đoạt; chỉ trigger khi gần giới hạn |
 
-**How `trigger_compact_at` works.** When agent's working context reaches `working_tokens × trigger_compact_at`, the agent self-invokes `/compact` with role-appropriate instructions. Example for a content-drafter at 30000 × 0.7 = 21000 tokens working:
+**Cách `trigger_compact_at` hoạt động.** Khi context làm việc của agent đạt `working_tokens × trigger_compact_at`, agent tự gọi `/compact` với các chỉ dẫn phù hợp với vai trò. Ví dụ cho content-drafter ở 30000 × 0.7 = 21000 tokens working:
 
 ```
 /compact Preserve: the active draft, the brand_voice citations,
@@ -536,105 +536,105 @@ any open HITL approvals. Drop: tool result transcripts, file-search
 intermediate steps.
 ```
 
-**How to tune.** First-month settings are conservative defaults from this table. After 4 weeks of `ops.agent_runs` data:
+**Cách tinh chỉnh.** Cài đặt tháng đầu là các giá trị mặc định bảo thủ từ bảng này. Sau 4 tuần dữ liệu `ops.agent_runs`:
 
-- If a role rarely hits `trigger_compact_at`, raise `working_tokens` (allow longer sessions before compact)
-- If a role's quality degrades before compact triggers, lower `trigger_compact_at` (compact earlier)
-- If preamble is consistently within 50% of `preamble_tokens`, the role isn't reading enough context — investigate
-- If preamble blows past `preamble_tokens`, role is reading too much — split context, use subagents
+- Nếu một vai trò hiếm khi chạm `trigger_compact_at`, nâng `working_tokens` (cho phép phiên dài hơn trước khi compact)
+- Nếu chất lượng của một vai trò suy giảm trước khi compact trigger, hạ `trigger_compact_at` (compact sớm hơn)
+- Nếu preamble nhất quán trong 50% của `preamble_tokens`, vai trò không đọc đủ context — điều tra
+- Nếu preamble vượt xa `preamble_tokens`, vai trò đọc quá nhiều — chia context, dùng subagents
 
-These values are part of governance and change via PR.
+Các giá trị này là một phần của governance và thay đổi qua PR.
 
-## Memory configuration guidance
+## Hướng dẫn cấu hình memory
 
-Each role's `memory_config` sets the role's posture toward learning across sessions. The full architecture is documented in `knowledge/memory-architecture.md` — this section is the operational guidance for filling in role values.
+`memory_config` của mỗi vai trò đặt thái độ của vai trò hướng tới học hỏi qua các phiên. Kiến trúc đầy đủ được tài liệu hóa trong `knowledge/memory-architecture.md` — phần này là hướng dẫn vận hành để điền các giá trị vai trò.
 
-**Strategy E baseline (v1.0):** all roles use episodic recall (Type 2 memory: `ops.agent_runs`); no role uses the memory tool API (Type 3 file memory). Rationale and decision detail are in `_build/notes/problem-4-memory-learning-loop.md`.
+**Strategy E baseline (v1.0):** tất cả các vai trò sử dụng episodic recall (Type 2 memory: `ops.agent_runs`); không vai trò nào sử dụng memory tool API (Type 3 file memory). Lý do và chi tiết quyết định nằm trong `_build/notes/problem-4-memory-learning-loop.md`.
 
-**Default values by role archetype:**
+**Giá trị mặc định theo loại vai trò:**
 
-| Archetype | memory_tool | recall_window_days | recall_max_runs | emit_run_summary |
+| Loại | memory_tool | recall_window_days | recall_max_runs | emit_run_summary |
 |---|---|---|---|---|
 | Orchestrator (gps, growth-orchestrator) | false | 90 | 5 | true |
 | Specialist drafter (content-drafter) | false | 60 | 3 | true |
-| High-volume responder (support-agent) | false | 30 | 5 | true |
-| ETL / data plumbing (etl-runner) | false | 7 | 2 | true |
-| T&S triage (trust-safety) | false | 180 | 5 | true |
+| Người phản hồi lượng cao (support-agent) | false | 30 | 5 | true |
+| ETL / đường ống dữ liệu (etl-runner) | false | 7 | 2 | true |
+| Triage T&S (trust-safety) | false | 180 | 5 | true |
 | Backoffice (backoffice-clerk) | false | 90 | 3 | true |
 | Code reviewer | false | 60 | 3 | true |
-| Founder (human) | n/a | n/a | n/a | n/a |
+| Founder (con người) | n/a | n/a | n/a | n/a |
 
-**`memory_tool_enabled: true` is a D-Std change** — requires PR ceremony plus a documented use case for multi-day file-based state that episodic recall cannot serve. As of v1.0 specification, no role meets this bar. Re-evaluate when Bài #5 (Multi-Agent Orchestration) brainstorm completes.
+**`memory_tool_enabled: true` là thay đổi D-Std** — cần nghi thức PR cộng với use case được tài liệu hóa cho trạng thái file-based đa ngày mà episodic recall không thể phục vụ. Tính đến spec v1.0, không vai trò nào đáp ứng tiêu chuẩn này. Đánh giá lại khi brainstorm Bài #5 (Multi-Agent Orchestration) hoàn thành.
 
-**`recall_window_days` tuning.** Start with the default. After 4 weeks of `ops.agent_runs` data:
-- If a role's recalls consistently surface only the past 7 days of runs (older runs irrelevant), shrink `recall_window_days`
-- If recalls return \< 3 results often (sparse history), grow `recall_window_days`
-- If a role frequently faces novel situations not covered by recalls, recalibrate `recall_max_runs` upward — but cost-watch (each recall costs ~200 tokens × max_runs)
+**Tinh chỉnh `recall_window_days`.** Bắt đầu với mặc định. Sau 4 tuần dữ liệu `ops.agent_runs`:
+- Nếu các recall của một vai trò nhất quán chỉ hiển thị các run trong 7 ngày qua (các run cũ hơn không liên quan), thu nhỏ `recall_window_days`
+- Nếu các recall trả về \< 3 kết quả thường xuyên (lịch sử thưa thớt), mở rộng `recall_window_days`
+- Nếu một vai trò thường xuyên đối mặt với tình huống mới không được bao phủ bởi các recall, hiệu chỉnh lại `recall_max_runs` lên — nhưng theo dõi chi phí (mỗi recall tốn ~200 tokens × max_runs)
 
-**`recall_max_runs` budget impact.** Each recall row is ~200 tokens including the run_summary. 5 recalls = ~1K tokens added to every task's preamble. Across thousands of tasks/month, this is real cost. Set conservatively; raise only when value is demonstrated.
+**Tác động ngân sách của `recall_max_runs`.** Mỗi recall row là ~200 tokens bao gồm run_summary. 5 recalls = ~1K tokens thêm vào preamble của mỗi task. Qua hàng nghìn task/tháng, đây là chi phí thực. Đặt bảo thủ; chỉ tăng khi giá trị được chứng minh.
 
-**`emit_run_summary: true`** is the default for almost all roles. The ~150-token post-hoc summary is what makes episodic recall useful for OTHER sessions later. Disabling it only makes sense for very high-frequency roles where summary cost exceeds learning value (revisit if etl-runner runs > 1000 times/day, for example).
+**`emit_run_summary: true`** là mặc định cho hầu hết các vai trò. Tóm tắt hậu kỳ ~150 token là thứ làm cho episodic recall hữu ích cho các phiên KHÁC sau này. Vô hiệu hóa nó chỉ có ý nghĩa cho các vai trò tần suất rất cao nơi chi phí tóm tắt vượt quá giá trị học hỏi (đánh giá lại nếu etl-runner chạy > 1000 lần/ngày, chẳng hạn).
 
-**`accept_corrections: true`** is the default. When the founder rejects or edits an agent's output, the runtime writes the reason to `ops.corrections`. Future recalls surface these. Disable only for roles where correction is meaningless (e.g., pure-read ETL).
+**`accept_corrections: true`** là mặc định. Khi founder từ chối hoặc chỉnh output của agent, runtime ghi lý do vào `ops.corrections`. Các recall tương lai sẽ hiển thị các bản này. Vô hiệu hóa chỉ cho các vai trò mà correction là vô nghĩa (ví dụ, ETL chỉ đọc).
 
-These values are part of governance and change via PR.
+Các giá trị này là một phần của governance và thay đổi qua PR.
 
 
 
-| Role | T1 write | ops.* read | ops.* write | Product DB | Public post | Money in/out | Max HITL |
+| Vai trò | T1 write | ops.* read | ops.* write | Product DB | Đăng công khai | Tiền vào/ra | Max HITL |
 |---|---|---|---|---|---|---|---|
-| `gps` | wiki only | full | tasks/runs | none | no | no | C |
-| `growth-orchestrator` | 01-growth | full | growth tables | metrics only | yes (with HITL) | no | C |
-| `support-agent` | 03-delivery | partial | support tables | metrics only | no | no | C |
-| `content-drafter` | drafts only | partial | drafts | none | **never** | no | A |
-| `code-reviewer` | none | partial | runs only | none | no | no | B |
-| `etl-runner` | none | full | metrics+sync | **read only** | no | no | B |
-| `trust-safety` | 06-T&S | full | TS tables | metrics only | direct comms | no | C |
-| `backoffice-clerk` | 04-back | partial | finance tables | none | no | **read-only** | C |
-| `founder` | all | all | all | all | all | all | D-MAX |
+| `gps` | chỉ wiki | đầy đủ | tasks/runs | không | không | không | C |
+| `growth-orchestrator` | 01-growth | đầy đủ | growth tables | chỉ metrics | có (với HITL) | không | C |
+| `support-agent` | 03-delivery | một phần | support tables | chỉ metrics | không | không | C |
+| `content-drafter` | chỉ drafts | một phần | drafts | không | **không bao giờ** | không | A |
+| `code-reviewer` | không | một phần | chỉ runs | không | không | không | B |
+| `etl-runner` | không | đầy đủ | metrics+sync | **chỉ đọc** | không | không | B |
+| `trust-safety` | 06-T&S | đầy đủ | TS tables | chỉ metrics | giao tiếp trực tiếp | không | C |
+| `backoffice-clerk` | 04-back | một phần | finance tables | không | không | **chỉ đọc** | C |
+| `founder` | tất cả | tất cả | tất cả | tất cả | tất cả | tất cả | D-MAX |
 
-> The **only** role with any access to product Supabase is `etl-runner`, and that access is read-only via dedicated read keys. Every other role gets product data through `metrics.*` tables. This is the firewall.
+> Vai trò **duy nhất** có bất kỳ truy cập nào tới product Supabase là `etl-runner`, và truy cập đó chỉ đọc qua các khóa đọc dành riêng. Mọi vai trò khác lấy dữ liệu product qua các bảng `metrics.*`. Đây là tường lửa.
 
-## Role lifecycle
+## Vòng đời vai trò
 
-When a new role is needed:
+Khi cần một vai trò mới:
 
-1. Open a PR adding to this file (Tier C action).
-2. Add the runtime config in `.claude/agents/<role>.md`.
-3. If new secrets needed, update `governance/SECRETS.md`.
-4. If new MCP servers needed, update `mcp/servers.yaml` (Tier C action).
-5. If new tables/buckets needed, update `knowledge/manifest.yaml` and `knowledge/schemas/`.
-6. Founder approval required (HITL Tier C).
+1. Mở PR thêm vào file này (hành động Tier C).
+2. Thêm cấu hình runtime trong `.claude/agents/<role>.md`.
+3. Nếu cần secrets mới, cập nhật `governance/SECRETS.md`.
+4. Nếu cần MCP server mới, cập nhật `mcp/servers.yaml` (hành động Tier C).
+5. Nếu cần bảng/bucket mới, cập nhật `knowledge/manifest.yaml` và `knowledge/schemas/`.
+6. Cần sự chấp thuận của founder (HITL (Human-in-the-Loop) Tier C).
 
-When deprecating a role:
+Khi loại bỏ một vai trò:
 
-1. Remove from active rotation by editing `.claude/agents/<role>.md` to `status: deprecated`.
-2. **Do not delete** for ≥ 90 days — past `agent_runs` reference the role; deletion breaks audit traceability.
-3. After 90 days, archive the agent file to `.archives/deprecated-roles/<role>-<date>.md` and remove from active config.
+1. Loại khỏi luân phiên đang hoạt động bằng cách chỉnh `.claude/agents/<role>.md` thành `status: deprecated`.
+2. **Đừng xóa** trong ≥ 90 ngày — các `agent_runs` quá khứ tham chiếu vai trò; xóa phá vỡ truy nguyên audit.
+3. Sau 90 ngày, lưu trữ file agent vào `.archives/deprecated-roles/<role>-<date>.md` và xóa khỏi cấu hình hoạt động.
 
-## When a role hits its budget
+## Khi một vai trò chạm ngân sách
 
-Per `knowledge/economic-architecture.md` Axis 2, the `pre-llm-call-budget` hook enforces a 3-tier escalation against `economic_budget.monthly_cap_usd`:
+Theo `knowledge/economic-architecture.md` Trục 2, hook `pre-llm-call-budget` thực thi leo thang 3 tầng so với `economic_budget.monthly_cap_usd`:
 
-- **80% (`alert_at_pct`)** — first breach posts Telegram heads-up: "Growth-orchestrator at 80% monthly budget ($240 of $300). 6 days remain in month." Subsequent calls in the same month allowed without re-alerting (no notification fatigue).
+- **80% (`alert_at_pct`)** — vi phạm đầu tiên đăng cảnh báo qua Telegram: "Growth-orchestrator ở 80% ngân sách hàng tháng ($240 trên $300). Còn 6 ngày trong tháng." Các call tiếp theo trong cùng tháng được cho phép mà không cảnh báo lại (tránh mệt mỏi thông báo).
 
-- **100% (`escalate_at_pct`)** — every additional LLM call is HELD; founder approval required via Telegram. Founder may approve individually, or temporarily raise the cap for the rest of the month via inline command.
+- **100% (`escalate_at_pct`)** — mọi LLM call thêm bị TẠM GIỮ; cần sự chấp thuận của founder qua Telegram. Founder có thể chấp thuận từng cái, hoặc tạm thời nâng cap cho phần còn lại của tháng qua lệnh inline.
 
-- **150% (`hard_block_at_pct`)** — hard ceiling. No founder approval option from the hook itself. To exceed 150%, founder must open a PR to this file (Tier C ceremony per HITL.md) raising `monthly_cap_usd`. This protects against approval fatigue and forces investigation when usage is structurally off-target.
+- **150% (`hard_block_at_pct`)** — trần cứng. Không có tùy chọn chấp thuận của founder từ chính hook. Để vượt 150%, founder phải mở PR cho file này (nghi thức Tier C theo HITL.md) nâng `monthly_cap_usd`. Điều này bảo vệ chống mệt mỏi chấp thuận và buộc điều tra khi sử dụng đang lệch cấu trúc khỏi mục tiêu.
 
-Per-task-kind soft caps (`per_task_kind_caps`) act independently: even if monthly budget is healthy, a single task instance whose estimated cost exceeds its task_kind cap will escalate. This catches the "single bug looped task" failure mode.
+Các cap mềm per-task-kind (`per_task_kind_caps`) hoạt động độc lập: ngay cả khi ngân sách hàng tháng khỏe, một instance task đơn lẻ có chi phí ước tính vượt cap task_kind của nó sẽ leo thang. Điều này bắt chế độ thất bại "single bug looped task".
 
-Budgets reset on the 1st of each month at 00:00 UTC.
+Ngân sách reset vào ngày 1 mỗi tháng lúc 00:00 UTC.
 
-For ad-hoc legitimate spikes (launch event, content campaign), founder may pre-raise the cap via Tier C PR before the spike starts. This is preferred over reactive approvals during the spike.
+Đối với các đợt tăng đột biến hợp lệ ad-hoc (sự kiện ra mắt, chiến dịch nội dung), founder có thể nâng cap trước qua PR Tier C trước khi đợt tăng bắt đầu. Điều này được ưu tiên hơn các chấp thuận phản ứng trong đợt tăng.
 
-The 30-day calibration period (post-v1.0 launch) sets enforcement to alert-only initially. Full 3-tier enforcement activates day 14. See `knowledge/economic-architecture.md` "30-day calibration discipline" for the exact schedule.
+Giai đoạn hiệu chỉnh 30 ngày (sau khi ra mắt v1.0) đặt thực thi ở chế độ chỉ cảnh báo ban đầu. Thực thi 3 tầng đầy đủ kích hoạt ngày 14. Xem `knowledge/economic-architecture.md` "30-day calibration discipline" để biết lịch trình chính xác.
 
-## v1.0.1 pillar architecture roles (added 2026-05-15)
+## Các vai trò kiến trúc pillar v1.0.1 (thêm 2026-05-15)
 
-Added per pillar architecture v1.0.1 restructure (`.archives/pillars/PLAN.md`). Detailed role definitions and full permissions matrices to be authored as each pillar's first SOPs land. These stubs establish the role contract.
+Thêm theo cấu trúc lại kiến trúc pillar v1.0.1 (`.archives/pillars/PLAN.md`). Định nghĩa vai trò chi tiết và ma trận quyền đầy đủ sẽ được soạn khi SOP đầu tiên của mỗi pillar được phát triển. Các stub này thiết lập hợp đồng vai trò.
 
-### `cofounder` (the second human role)
+### `cofounder` (vai trò con người thứ hai)
 
 ```yaml
 role: cofounder
@@ -654,9 +654,9 @@ budget: unlimited
 escalation_role: founder    # for tie-breaks when both online
 ```
 
-> **HITL note:** Either founder OR cofounder may issue Tier C/D-Std overrides. D-MAX requires both magic phrase AND PR `/founder-approved-irreversible` from either GitHub account, plus the standard 1-hour cooldown.
+> **Lưu ý HITL (Human-in-the-Loop):** Hoặc founder HOẶC cofounder có thể phát hành các override Tier C/D-Std. D-MAX cần cả magic phrase VÀ PR `/founder-approved-irreversible` từ một trong hai tài khoản GitHub, cộng với cooldown 1 giờ tiêu chuẩn.
 
-### `gtm-orchestrator` (NEW v1.0.1)
+### `gtm-orchestrator` (MỚI v1.0.1)
 
 ```yaml
 role: gtm-orchestrator
@@ -671,7 +671,7 @@ hitl_max_tier: C            # public posts + multi-recipient sends gate at C
 escalation_role: founder
 ```
 
-### `product-orchestrator` (NEW v1.0.1)
+### `product-orchestrator` (MỚI v1.0.1)
 
 ```yaml
 role: product-orchestrator
@@ -686,7 +686,7 @@ hitl_max_tier: C
 escalation_role: gps
 ```
 
-### `customer-lead` (NEW v1.0.1)
+### `customer-lead` (MỚI v1.0.1)
 
 ```yaml
 role: customer-lead
@@ -700,7 +700,7 @@ hitl_max_tier: C
 escalation_role: gps
 ```
 
-### `cs-coach` (NEW v1.0.1)
+### `cs-coach` (MỚI v1.0.1)
 
 ```yaml
 role: cs-coach
@@ -714,7 +714,7 @@ hitl_max_tier: B            # routine outreach = B; new onboarding script = C
 escalation_role: customer-lead
 ```
 
-### `retention-watcher` (NEW v1.0.1)
+### `retention-watcher` (MỚI v1.0.1)
 
 ```yaml
 role: retention-watcher
@@ -728,7 +728,7 @@ hitl_max_tier: B
 escalation_role: customer-lead
 ```
 
-### `escalation-router` (NEW v1.0.1)
+### `escalation-router` (MỚI v1.0.1)
 
 ```yaml
 role: escalation-router
@@ -742,7 +742,7 @@ hitl_max_tier: A            # routing decisions are reversible
 escalation_role: customer-lead
 ```
 
-### `feedback-aggregator` (NEW v1.0.1)
+### `feedback-aggregator` (MỚI v1.0.1)
 
 ```yaml
 role: feedback-aggregator
@@ -756,7 +756,7 @@ hitl_max_tier: A
 escalation_role: customer-lead
 ```
 
-### `founder-coach` (NEW v1.0.1)
+### `founder-coach` (MỚI v1.0.1)
 
 ```yaml
 role: founder-coach
@@ -770,7 +770,7 @@ hitl_max_tier: A
 escalation_role: founder
 ```
 
-### `hitl-router` (NEW v1.0.1)
+### `hitl-router` (MỚI v1.0.1)
 
 ```yaml
 role: hitl-router
@@ -784,7 +784,7 @@ hitl_max_tier: A            # the router itself routes; it doesn't authorize
 escalation_role: founder
 ```
 
-### `health-tracker` (NEW v1.0.1)
+### `health-tracker` (MỚI v1.0.1)
 
 ```yaml
 role: health-tracker
@@ -798,7 +798,7 @@ hitl_max_tier: A
 escalation_role: founder
 ```
 
-### `metrics-curator` (NEW v1.0.1)
+### `metrics-curator` (MỚI v1.0.1)
 
 ```yaml
 role: metrics-curator
@@ -812,7 +812,7 @@ hitl_max_tier: B            # routine dashboards = B; new alert rule = C
 escalation_role: founder
 ```
 
-### `alert-router` (NEW v1.0.1)
+### `alert-router` (MỚI v1.0.1)
 
 ```yaml
 role: alert-router
@@ -827,7 +827,7 @@ hitl_max_tier: A
 escalation_role: metrics-curator
 ```
 
-### `experiment-analyst` (NEW v1.0.1)
+### `experiment-analyst` (MỚI v1.0.1)
 
 ```yaml
 role: experiment-analyst
@@ -841,20 +841,19 @@ hitl_max_tier: B
 escalation_role: metrics-curator
 ```
 
-> **Default permission posture for new roles (per CEO review Finding 6):** read-only across pillar boundaries; explicit write only to own pillar's `ops.*` tables. Cross-pillar writes require explicit grant in role definition above (eg metrics-curator writes to `ops.kpi_snapshots` because that IS the metrics pillar's domain table).
+> **Tư thế quyền mặc định cho các vai trò mới (theo CEO review Finding 6):** chỉ đọc qua các ranh giới pillar; write rõ ràng chỉ vào các bảng `ops.*` của pillar riêng. Write cross-pillar cần grant rõ ràng trong định nghĩa vai trò ở trên (ví dụ metrics-curator ghi vào `ops.kpi_snapshots` vì đó CHÍNH LÀ bảng miền của pillar metrics).
 
 ---
 
-## What this file is NOT
+## File này KHÔNG phải là gì
 
-- Not the runtime config — that's `.claude/agents/<role>.md`
-- Not the secret store — values live in the secret manager (see `SECRETS.md`)
-- Not the workflow definition — that's `workflows/`
-- Not the skill implementation — that's `skills/<skill>/SKILL.md`
+- Không phải cấu hình runtime — đó là `.claude/agents/<role>.md`
+- Không phải kho secret — các giá trị nằm trong trình quản lý secrets (xem `SECRETS.md`)
+- Không phải định nghĩa workflow — đó là `workflows/`
+- Không phải triển khai skill — đó là `skills/<skill>/SKILL.md`
 
-This file is the **policy contract**. The runtime artifacts must conform to it.
+File này là **hợp đồng chính sách**. Các artifact runtime phải tuân theo nó.
 
 ---
 
-*A role is a promise. It says "this is exactly what I am allowed to do — and nothing more." Without that promise written down, every agent is a god, and gods make for terrible employees.*
-
+*Một vai trò là một lời hứa. Nó nói "đây chính xác là những gì tôi được phép làm — và không gì khác." Không có lời hứa đó được viết xuống, mọi agent đều là một vị thần, và các vị thần là những nhân viên tồi tệ.*

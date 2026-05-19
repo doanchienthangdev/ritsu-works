@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,11 +19,11 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Khi nào sử dụng
 
-- Sau Phase 6 sprint-plan.md approved.
-- State = `implementing`.
-- Re-invoked bởi `/cla resume <id>`.
+- Sau khi Phase 6 sprint-plan.md đã được phê duyệt.
+- Trạng thái = `implementing`.
+- Được kích hoạt lại bởi `/cla resume <id>`.
 
-## Inputs
+## Đầu vào
 
 - `capability_id`
 - `sprint_plan_path` — `.archives/cla/<id>/sprint-plan.md`
@@ -31,65 +31,65 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 - `draft_root` — `.archives/cla/<id>/draft/`
 - `state_payload.completed_sprints`
 
-## Quá trình — multi-session, multi-week
+## Quá trình — đa phiên, kéo dài nhiều tuần
 
-### Step 1 — Read state, identify next sprint
+### Bước 1 — Đọc trạng thái, xác định sprint tiếp theo
 
-Query ops.capability_runs, extract state.
+Truy vấn ops.capability_runs, trích xuất trạng thái.
 
-### Step 2 — Read sprint deliverables
+### Bước 2 — Đọc các sản phẩm bàn giao của sprint
 
-Từ sprint-plan.md, extract deliverables.
+Từ sprint-plan.md, trích xuất các sản phẩm bàn giao (deliverables).
 
-### Step 3 — Delegate code tới @cto
+### Bước 3 — Ủy thác code cho @cto
 
-Focused Agent calls.
+Gọi Focused Agent.
 
-### Step 4 — Stage + commit + PR
+### Bước 4 — Stage + commit + PR
 
-Git add, commit, push, PR create.
+Git add, commit, push, tạo PR.
 
-### Step 5 — HITL Tier B per PR
+### Bước 5 — HITL Tier B cho mỗi PR
 
-Founder merges via GitHub.
+Founder merge thông qua GitHub.
 
-### Step 6 — Persist sprint completion
+### Bước 6 — Lưu trạng thái sprint hoàn thành
 
 UPDATE ops.capability_runs.
 
-### Step 7 — Loop or finalize
+### Bước 7 — Lặp lại hoặc hoàn tất
 
-Tiếp tục sprints hoặc finalize ở deployed.
+Tiếp tục các sprint hoặc hoàn tất ở trạng thái deployed.
 
-## Multi-session resume
+## Khôi phục phiên đa phiên
 
-`/cla resume <id>` reads state, runs Phase 0 drift check, resumes ở Step 2.
+`/cla resume <id>` đọc trạng thái, chạy kiểm tra trôi dạt ở Phase 0, tiếp tục từ Bước 2.
 
-## Outputs
+## Đầu ra
 
-- N PRs trong git history
-- Drafts committed tới canonical locations
-- ops.events trail
-- Updated state_payload
+- N PR trong lịch sử git
+- Bản nháp được commit vào các vị trí chính thức
+- Dấu vết ops.events
+- state_payload đã cập nhật
 
-## State transition
+## Chuyển trạng thái
 
-`implementing → deployed` (after final sprint + E2E).
+`implementing → deployed` (sau sprint cuối cùng + E2E).
 
 ## HITL
 
-**Tier B per PR**.
+**Tier B cho mỗi PR**.
 
-## Failure modes
+## Các chế độ thất bại
 
-Deliverable no draft, husky fails, founder requests changes.
+Sản phẩm bàn giao không có bản nháp, husky thất bại, founder yêu cầu thay đổi.
 
-## Cost estimate
+## Ước lượng chi phí
 
-- ~$0.50-2.00 mỗi sprint
-- Founder time: per sprint estimate
+- ~$0.50-2.00 cho mỗi sprint
+- Thời gian của founder: ước lượng theo từng sprint
 - Cost-bucket: `<capability_id>`
 
 ---
 
-Next: `catalog-updater` (Phase 8).
+Tiếp theo: `catalog-updater` (Phase 8).

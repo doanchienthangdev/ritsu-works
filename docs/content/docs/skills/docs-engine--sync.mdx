@@ -1,6 +1,6 @@
 ---
 title: 'Skill: docs-engine/sync'
-description: Walker + adapter dispatch + MDX writer
+description: Walker + dispatch adapter + writer MDX
 source_path: 06-ai-ops/skills/docs-engine/sync/SKILL.md
 source_hash: e446c382c0e11d5dae2f69e7f4db16cd5e0e6edd7d5061bddc9510507ce6821f
 generated_at: '2026-05-19T05:20:46.356Z'
@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,9 +19,9 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Khi nào sử dụng
 
-- `/docs sync` command
-- `/docs update <area>` (scoped variant)
-- `docs-drift-nightly` cron (với `--dry-run` flag)
+- Lệnh `/docs sync`
+- `/docs update <area>` (biến thể có phạm vi)
+- Cron `docs-drift-nightly` (với cờ `--dry-run`)
 
 ## Inputs
 
@@ -31,40 +31,40 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Quá trình
 
-Implements SOP-AIOPS-003 Steps 1-10:
+Triển khai các Bước 1-10 của SOP-AIOPS-003:
 
-1. Preflight pnpm check
-2. Walk corpus per area
-3. Secret redaction layer 1
-4. Dispatch tới adapters
-5. Secret redaction layer 2
-6. 3-way diff trên marked pages
-7. Write MDX tới docs/content/
-8. Post-validation pnpm check
-9. Emit events
+1. Kiểm tra preflight pnpm
+2. Walker đi qua corpus theo area
+3. Lớp 1 của việc loại bỏ secret
+4. Dispatch tới các adapter
+5. Lớp 2 của việc loại bỏ secret
+6. Diff 3 chiều trên các trang đã đánh dấu
+7. Ghi MDX tới docs/content/
+8. Kiểm tra pnpm sau khi xác thực
+9. Phát events
 10. INSERT KPI snapshot
 
 ## Outputs
 
-- MDX files dưới `docs/content/`
-- Conflict report nếu cần
-- 2-3 `ops.events` rows
-- 1 `ops.kpi_snapshots` row
+- File MDX dưới `docs/content/`
+- Báo cáo xung đột nếu cần
+- 2-3 dòng `ops.events`
+- 1 dòng `ops.kpi_snapshots`
 
 ## HITL
 
-Tier A. Escalates to Tier B nếu cost > cap hoặc > 50% pages change.
+Tier A. Leo thang lên Tier B nếu cost > cap hoặc > 50% trang thay đổi.
 
 ## Failure modes
 
-Drift, secret leak, hand-edit conflict, adapter failure, disk write failure.
+Trôi dạt, lộ secret, xung đột chỉnh sửa thủ công, adapter fail, lỗi ghi đĩa.
 
-## Cost estimate
+## Ước tính cost
 
 - Full walk: ~$0.40-1.00
-- Area-scoped: $0.05-0.40
+- Có giới hạn area: $0.05-0.40
 - Cap: `docs-sync-full-walk` ≤ $1.00
 
 ---
 
-See: `docs-engine/SKILL.md`, `SOP-AIOPS-003-docs-sync`, `wiki-sync/ingest` pattern.
+Xem: `docs-engine/SKILL.md`, `SOP-AIOPS-003-docs-sync`, pattern `wiki-sync/ingest`.

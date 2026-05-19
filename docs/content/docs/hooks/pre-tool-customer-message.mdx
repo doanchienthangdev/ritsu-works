@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: hook
 language: vi
 translated: true
-translated_at: '2026-05-19T13:00:00Z'
+translated_at: '2026-05-19T15:00:00Z'
 translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
@@ -17,21 +17,21 @@ translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 
 # Hook: pre-tool-customer-message
 
-> The runtime safety net for customer-facing AI disclosure compliance. Per EU AI Act Article 50, missing disclosure is not a UX issue — it's a regulatory violation. This hook prevents shipping non-compliant messages.
+> Lưới an toàn runtime cho việc tuân thủ tiết lộ AI hướng tới khách hàng. Theo EU AI Act Điều 50, việc thiếu tiết lộ không phải vấn đề UX — đó là vi phạm pháp lý. Hook này ngăn chặn việc gửi đi các tin nhắn không tuân thủ.
 
-## What it does
+## Hook làm gì
 
-Inspects every outgoing customer-facing message tool call and verifies AI disclosure is present. If missing, escalates to founder for review or blocks if violation is unambiguous.
+Kiểm tra mọi tool call gửi tin nhắn hướng tới khách hàng đi ra ngoài và xác minh tiết lộ AI có mặt. Nếu thiếu, escalate lên founder để xem xét hoặc chặn nếu vi phạm rõ ràng.
 
-The companion skill `ai-disclosure-check` is the **proactive** check — agents invoke it before sending. This hook is the **mandatory** check — it runs regardless of whether the agent invoked the skill. Defense in depth: agent intent + runtime enforcement.
+Skill đồng hành `ai-disclosure-check` là việc kiểm tra **chủ động** — agent gọi nó trước khi gửi. Hook này là việc kiểm tra **bắt buộc** — nó chạy bất kể agent có gọi skill hay không. Phòng thủ theo lớp: ý định của agent + cưỡng chế runtime.
 
-## Why this is critical
+## Vì sao điều này quan trọng
 
-- **Legal requirement.** EU AI Act Article 50 (effective 2 August 2026) mandates AI disclosure in chatbot interactions. Violations carry fines up to 7% of global revenue.
-- **Trust foundation.** Customers who later discover undisclosed AI lose trust in the brand. Reputation cost > regulatory cost.
-- **Asymmetric error cost.** A blocked-but-actually-fine message has tiny cost (founder reviews briefly). A sent-but-actually-non-compliant message has huge cost (legal + reputation). Optimize for the asymmetry.
+- **Yêu cầu pháp lý.** EU AI Act Điều 50 (có hiệu lực 2 tháng 8 năm 2026) bắt buộc tiết lộ AI trong các tương tác chatbot. Vi phạm có mức phạt lên tới 7% doanh thu toàn cầu.
+- **Nền tảng niềm tin.** Khách hàng sau này phát hiện AI không được tiết lộ sẽ mất niềm tin vào thương hiệu. Chi phí danh tiếng > chi phí pháp lý.
+- **Chi phí lỗi bất đối xứng.** Một tin nhắn bị chặn nhưng thực ra ổn có chi phí rất nhỏ (founder xem xét nhanh). Một tin nhắn được gửi nhưng thực ra không tuân thủ có chi phí khổng lồ (pháp lý + danh tiếng). Tối ưu cho sự bất đối xứng này.
 
-## Decision logic
+## Logic ra quyết định
 
 ```
 function decide(payload):
@@ -89,105 +89,105 @@ function decide(payload):
   )
 ```
 
-## Tool classification
+## Phân loại tool
 
-Customer-facing tools (this hook applies):
+Các tool hướng tới khách hàng (hook này áp dụng):
 
-- `email_sender_transactional` (when recipient is a customer, not internal)
-- `email_sender_marketing` (always customer-facing by definition)
-- `resend_*` (Resend SDK calls to customer addresses)
-- `intercom_send` (in-product chat)
-- `helpscout_send` (support tool)
-- `twitter_dm`, `twitter_reply` (public/DM Twitter)
+- `email_sender_transactional` (khi người nhận là khách hàng, không phải nội bộ)
+- `email_sender_marketing` (luôn hướng tới khách hàng theo định nghĩa)
+- `resend_*` (các cuộc gọi Resend SDK tới địa chỉ khách hàng)
+- `intercom_send` (chat trong sản phẩm)
+- `helpscout_send` (công cụ hỗ trợ)
+- `twitter_dm`, `twitter_reply` (Twitter công khai/DM)
 - `linkedin_dm`, `linkedin_reply`
-- Any custom MCP tool with `_customer_send_` in its name
+- Bất kỳ tool MCP tùy chỉnh nào có `_customer_send_` trong tên
 
-Not customer-facing (this hook does NOT apply):
+Không hướng tới khách hàng (hook này KHÔNG áp dụng):
 
-- Telegram bot (founder-only)
-- Internal Slack channels
-- GitHub PR comments
-- Internal email (`@ritsu.ai` to internal team)
-- Database writes
-- File system operations
+- Telegram bot (chỉ dành cho founder)
+- Các kênh Slack nội bộ
+- Các bình luận PR trên GitHub
+- Email nội bộ (`@ritsu.ai` tới team nội bộ)
+- Ghi vào database
+- Các thao tác trên hệ thống file
 
-The classification logic checks:
-1. Tool name pattern match (above lists)
-2. Recipient address domain (is it `@ritsu.ai` or external?)
-3. Channel-specific recipient checks (Slack channel public? Twitter user external?)
+Logic phân loại kiểm tra:
+1. Khớp pattern tên tool (các danh sách trên)
+2. Domain địa chỉ người nhận (có phải `@ritsu.ai` hay bên ngoài?)
+3. Các kiểm tra người nhận theo kênh (kênh Slack có công khai không? Người dùng Twitter có phải bên ngoài không?)
 
-## What gets blocked vs escalated vs allowed
+## Cái gì bị chặn vs escalate vs allow
 
-| Severity | Decision | Examples |
+| Mức độ nghiêm trọng | Quyết định | Ví dụ |
 |---|---|---|
-| `block` (hard) | Hook returns `block`, message NOT sent, founder alerted as security event | Identity question dodged; human impersonation; explicit denial of AI nature |
-| `escalate` | Hook returns `escalate`, founder reviews via Telegram before send | Missing disclosure on first contact; missing signature; missing escalation path |
-| `allow` with warnings | Hook returns `allow` but logs the warning | Disclosure present but late in body (>200 chars); informal escalation phrasing |
-| `allow` clean | Hook returns `allow` with no flags | All checks pass |
+| `block` (cứng) | Hook trả về `block`, tin nhắn KHÔNG được gửi, founder được cảnh báo như sự kiện bảo mật | Né câu hỏi danh tính; giả mạo con người; phủ nhận tường minh bản chất AI |
+| `escalate` | Hook trả về `escalate`, founder xem xét qua Telegram trước khi gửi | Thiếu tiết lộ trong tiếp xúc đầu tiên; thiếu chữ ký; thiếu đường dẫn escalation |
+| `allow` kèm cảnh báo | Hook trả về `allow` nhưng log cảnh báo | Có tiết lộ nhưng muộn trong body (>200 ký tự); cách diễn đạt escalation không trang trọng |
+| `allow` sạch | Hook trả về `allow` không có cờ | Tất cả kiểm tra đều qua |
 
-The hard `block` cases (identity dodge, impersonation) are not sent for founder review — they go to security event log. These represent active misleading behavior that should never reach a customer, even with founder approval. Founder gets notified after the block.
+Các trường hợp `block` cứng (né danh tính, giả mạo) không được gửi cho founder xem xét — chúng đi vào log sự kiện bảo mật. Các trường hợp này thể hiện hành vi lừa dối tích cực không bao giờ nên đến được khách hàng, kể cả với phê duyệt của founder. Founder được thông báo sau khi chặn.
 
-## Test cases
+## Các trường hợp test
 
-| # | Scenario | Expected |
+| # | Tình huống | Kỳ vọng |
 |---|---|---|
-| 1 | Email first reply with full canonical disclosure + signature | allow |
-| 2 | Email first reply, body has good content, signature missing | escalate |
-| 3 | Email first reply, no AI disclosure anywhere | escalate |
-| 4 | Customer asked "are you human?", response says "Yes, I can help" without confirming AI | block (hard) |
-| 5 | Email body contains "I personally feel" | block (hard, impersonation) |
-| 6 | Subsequent email (not first), signature present, no first-contact disclosure | allow (n/a check) |
-| 7 | Internal email to `gps@ritsu.ai` (founder relay) | allow (not customer-facing) |
-| 8 | Twitter DM with disclosure in chat first message | allow |
-| 9 | Twitter public reply, no disclosure (assumed limited scope) | escalate (warning, customer can't see thread context) |
-| 10 | Vietnamese first email with proper Vietnamese disclosure | allow |
-| 11 | Vietnamese first email with English disclosure (locale mismatch) | escalate (warning) |
-| 12 | Disclosure present but in 5th paragraph of long email | escalate (weak placement) |
-| 13 | Marketing email blast to subscribers, all good | allow (per policy this is also Tier C+ via pre-tool-publish) |
-| 14 | Founder personally sending (founder role) | allow (founder is human, no AI claim) |
+| 1 | Email trả lời đầu tiên với tiết lộ chuẩn đầy đủ + chữ ký | allow |
+| 2 | Email trả lời đầu tiên, body có nội dung tốt, chữ ký thiếu | escalate |
+| 3 | Email trả lời đầu tiên, không có tiết lộ AI ở đâu | escalate |
+| 4 | Khách hàng hỏi "are you human?", phản hồi nói "Yes, I can help" mà không xác nhận AI | block (cứng) |
+| 5 | Email body chứa "I personally feel" | block (cứng, giả mạo) |
+| 6 | Email tiếp theo (không phải đầu tiên), chữ ký có mặt, không có tiết lộ tiếp xúc đầu tiên | allow (không áp dụng kiểm tra) |
+| 7 | Email nội bộ tới `gps@ritsu.ai` (founder relay) | allow (không hướng tới khách hàng) |
+| 8 | Twitter DM với tiết lộ trong tin nhắn chat đầu tiên | allow |
+| 9 | Twitter trả lời công khai, không có tiết lộ (giả định phạm vi hạn chế) | escalate (cảnh báo, khách hàng không thấy context thread) |
+| 10 | Email tiếng Việt đầu tiên với tiết lộ tiếng Việt phù hợp | allow |
+| 11 | Email tiếng Việt đầu tiên với tiết lộ tiếng Anh (locale không khớp) | escalate (cảnh báo) |
+| 12 | Có tiết lộ nhưng ở đoạn thứ 5 của email dài | escalate (vị trí yếu) |
+| 13 | Email marketing blast tới subscribers, mọi thứ ổn | allow (theo chính sách đây cũng là Tier C+ qua pre-tool-publish) |
+| 14 | Founder đích thân gửi (role founder) | allow (founder là người, không có khai báo AI) |
 
-## Hook composition with other hooks
+## Hook kết hợp với các hook khác
 
-This hook composes with:
+Hook này kết hợp với:
 
-- **`pre-tool-publish`** (Bài #2) — also runs on customer-facing send tools. Both hooks must pass:
-  - `pre-tool-publish` checks: tier classification, dry-run requirement, recipient count, founder approval flow
-  - `pre-tool-customer-message` checks: AI disclosure compliance
-  - If either says block, message blocked.
-  - If both say escalate, single founder approval covers both.
+- **`pre-tool-publish`** (Bài #2) — cũng chạy trên các tool gửi hướng tới khách hàng. Cả hai hook đều phải qua:
+  - `pre-tool-publish` kiểm tra: phân loại tier, yêu cầu dry-run, số người nhận, luồng phê duyệt founder
+  - `pre-tool-customer-message` kiểm tra: tuân thủ tiết lộ AI
+  - Nếu một trong hai nói block, tin nhắn bị chặn.
+  - Nếu cả hai nói escalate, một lần phê duyệt founder bao trùm cả hai.
 
-- **`pre-tool-secrets`** (Bài #2) — runs first to verify the role can use the email/social token. If fail, message never reaches this hook.
+- **`pre-tool-secrets`** (Bài #2) — chạy đầu tiên để xác minh role có thể dùng token email/mạng xã hội. Nếu thất bại, tin nhắn không bao giờ đến được hook này.
 
-- **`pre-delegate-check`** (Bài #5) — informational only, doesn't gate this hook.
+- **`pre-delegate-check`** (Bài #5) — chỉ mang tính thông tin, không khống chế hook này.
 
-## Performance notes
+## Ghi chú về hiệu năng
 
-- Disclosure checks are mostly regex on body (fast, \< 50ms)
-- Vietnamese checks are second pass on translated/locale-tagged body (\< 50ms)
-- Identity question detection scans last user message in conversation context (if available, \<100ms)
-- Total target: p95 \< 200ms
+- Các kiểm tra tiết lộ phần lớn là regex trên body (nhanh, \< 50ms)
+- Các kiểm tra tiếng Việt là pass thứ hai trên body được dịch/gắn tag locale (\< 50ms)
+- Phát hiện câu hỏi danh tính quét tin nhắn cuối cùng của user trong context hội thoại (nếu có sẵn, \<100ms)
+- Mục tiêu tổng: p95 \< 200ms
 
-## Observability
+## Khả năng quan sát
 
-Every escalate/block produces:
+Mỗi lần escalate/block tạo ra:
 
-- Entry in `ops.agent_runs.hook_events` with full check results
-- For blocks: Telegram alert to founder with severity
-- For escalates: Telegram approval request with proposed fixes pre-rendered
+- Entry trong `ops.agent_runs.hook_events` với kết quả kiểm tra đầy đủ
+- Đối với block: cảnh báo Telegram tới founder với mức độ nghiêm trọng
+- Đối với escalate: yêu cầu phê duyệt Telegram với các đề xuất sửa được render trước
 
-Monthly review (`monthly-learning-review`, Bài #4) aggregates:
-- % of customer-facing messages with proper disclosure on first try
-- Most common reasons for escalation (training opportunity)
-- Block rate trend (should be near zero if agents are well-prompted)
+Rà soát hàng tháng (`monthly-learning-review`, Bài #4) tổng hợp:
+- % tin nhắn hướng tới khách hàng có tiết lộ phù hợp ngay lần thử đầu tiên
+- Các lý do escalate phổ biến nhất (cơ hội đào tạo)
+- Xu hướng tỷ lệ block (nên gần bằng 0 nếu các agent được prompt tốt)
 
-If block rate exceeds 1% of customer-facing volume, audit:
-- Are agent system prompts clear about disclosure?
-- Are skills `support-reply-drafting` etc. correctly invoking `ai-disclosure-check`?
-- Is brand voice document clear enough?
+Nếu tỷ lệ block vượt 1% khối lượng hướng tới khách hàng, audit:
+- Các system prompt của agent có rõ ràng về tiết lộ không?
+- Các skill `support-reply-drafting` v.v. có gọi `ai-disclosure-check` đúng cách không?
+- Tài liệu brand voice có đủ rõ ràng không?
 
-## Compliance audit hook
+## Hook audit tuân thủ
 
-A separate scheduled job (post-Phase D) queries `ops.agent_runs.hook_events`:
+Một job lên lịch riêng (sau Phase D) truy vấn `ops.agent_runs.hook_events`:
 
 ```sql
 SELECT
@@ -206,9 +206,9 @@ GROUP BY DATE_TRUNC('week', ts)
 ORDER BY week;
 ```
 
-Compliance target: 99%+ allow rate with all checks `ok`. If allow rate drops below 95%, escalate to founder as a process issue.
+Mục tiêu tuân thủ: tỷ lệ allow 99%+ với tất cả kiểm tra `ok`. Nếu tỷ lệ allow rơi xuống dưới 95%, escalate lên founder như một vấn đề quy trình.
 
-## Implementation reference
+## Tham chiếu triển khai
 
 ```python
 import re
@@ -293,23 +293,23 @@ def decide(payload):
             'log_extras': {'warnings': warnings} if warnings else {}}
 ```
 
-## Failure modes
+## Các chế độ thất bại
 
-- **Hook errors / dependency unavailable** — fail-closed (block). Message held, founder alerted to investigate. Better to delay sends than to ship non-compliant.
-- **Body extraction fails** — `block` with reason `body_extraction_failed`. Founder investigates payload.
-- **Locale detection wrong** — checks may apply wrong patterns. Mitigation: if locale ambiguous, run BOTH English and Vietnamese checks. If neither passes, escalate.
+- **Hook lỗi / dependency không khả dụng** — fail-closed (chặn). Tin nhắn được giữ lại, founder được cảnh báo để điều tra. Tốt hơn là trì hoãn việc gửi còn hơn là gửi đi tin nhắn không tuân thủ.
+- **Trích xuất body thất bại** — `block` với lý do `body_extraction_failed`. Founder điều tra payload.
+- **Phát hiện locale sai** — các kiểm tra có thể áp dụng pattern sai. Giảm thiểu: nếu locale mơ hồ, chạy CẢ kiểm tra tiếng Anh và tiếng Việt. Nếu cả hai đều không qua, escalate.
 
-## When this hook changes
+## Khi nào hook này thay đổi
 
-Triggers to revisit:
-- New regulatory requirements (Vietnam AI law passes; California updates SB 1001; etc.)
-- New customer-facing channel added (e.g., voice — needs voice disclosure check)
-- New language support — add patterns
-- False positive rate exceeds 5% — refine patterns
+Các yếu tố kích hoạt việc xem xét lại:
+- Yêu cầu pháp lý mới (luật AI Việt Nam được thông qua; California cập nhật SB 1001; v.v.)
+- Kênh hướng tới khách hàng mới được thêm (ví dụ: giọng nói — cần kiểm tra tiết lộ bằng giọng nói)
+- Hỗ trợ ngôn ngữ mới — thêm pattern
+- Tỷ lệ false positive vượt 5% — tinh chỉnh pattern
 
-Each change is D-Std PR per `governance/HITL.md` (this is a critical safety hook).
+Mỗi thay đổi là PR D-Std theo `governance/HITL.md` (đây là hook an toàn quan trọng).
 
 ---
 
-*The cost of a non-compliant message is not the next message — it's the next 10,000 messages, the regulatory inquiry, the press story. This hook makes the cost asymmetry visible and acts on it.*
+*Chi phí của một tin nhắn không tuân thủ không phải là tin nhắn tiếp theo — đó là 10.000 tin nhắn tiếp theo, cuộc điều tra pháp lý, câu chuyện trên báo chí. Hook này làm cho sự bất đối xứng chi phí trở nên hiển thị và hành động theo nó.*
 

@@ -1,6 +1,6 @@
 ---
 title: 'Skill: docs-engine/check'
-description: Deterministic drift detector
+description: Bộ phát hiện trôi dạt mang tính tất định
 source_path: 06-ai-ops/skills/docs-engine/check/SKILL.md
 source_hash: cce37e432499d3cded15fe5f9816a429ab9be413af8f1617e35b1d8a10d02a84
 generated_at: '2026-05-19T05:20:46.354Z'
@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,10 +19,10 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Khi nào sử dụng
 
-- `/docs check` command
-- `/docs check --tutorials` (subset)
-- `docs-drift-nightly` cron
-- `.github/workflows/docs-check.yml` PR gate
+- Lệnh `/docs check`
+- `/docs check --tutorials` (tập con)
+- Cron `docs-drift-nightly`
+- Cổng PR `.github/workflows/docs-check.yml`
 
 ## Inputs
 
@@ -31,20 +31,20 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Quá trình
 
-1. Walk Phase 1 Q3 scope
-2. Walk `docs/content/**/*.mdx`
-3. Compute missing, orphan, stale
-4. Nếu tutorials-only, check freshness
-5. Output drift report
-6. INSERT `ops.kpi_snapshots`
-7. Emit event nếu drift
-8. Exit non-zero nếu drift
+1. Walker đi qua phạm vi Phase 1 Q3
+2. Walker đi qua `docs/content/**/*.mdx`
+3. Tính toán missing, orphan, stale
+4. Nếu tutorials-only, kiểm tra độ tươi
+5. Xuất báo cáo trôi dạt
+6. INSERT vào `ops.kpi_snapshots`
+7. Phát event nếu có trôi dạt
+8. Exit non-zero nếu có trôi dạt
 
 ## Outputs
 
-- Drift report
-- 1 `ops.kpi_snapshots` row
-- 1 `ops.events` row (nếu drift > 0)
+- Báo cáo trôi dạt
+- 1 dòng `ops.kpi_snapshots`
+- 1 dòng `ops.events` (nếu trôi dạt > 0)
 
 ## HITL
 
@@ -52,12 +52,12 @@ Tier A.
 
 ## Failure modes
 
-Walker errors, frontmatter parse errors.
+Lỗi walker, lỗi parse frontmatter.
 
-## Cost estimate
+## Ước tính cost
 
-$0 (no LLM). ~5-10s compute.
+$0 (không có LLM). ~5-10s tính toán.
 
 ---
 
-See: `wiki-sync/audit/` pattern, `docs_drift_count` KPI.
+Xem: pattern `wiki-sync/audit/`, KPI `docs_drift_count`.

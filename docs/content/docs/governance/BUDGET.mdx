@@ -8,137 +8,136 @@ generated_by: docs-engine v1.1.0
 category: governance
 language: vi
 translated: true
-translated_at: '2026-05-19T13:00:00Z'
+translated_at: '2026-05-19T15:00:00Z'
 translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-# BUDGET — Cost Caps & Economic Discipline
+# BUDGET — Giới hạn chi phí & Kỷ luật kinh tế
 
-> Hard limits + soft thresholds cho AI workforce spending. Per Bài #7 economic architecture + chương 30 LLM modes.
+> Hard limits + soft thresholds cho chi tiêu của AI workforce. Theo kiến trúc kinh tế Bài #7 + chương 30 LLM modes.
 
-**Status:** v1.0
-**Last updated:** 2026-05-04
-**Owner:** founder
-**Tier 1 link:** `knowledge/feature-flags.yaml`
+**Trạng thái:** v1.0
+**Cập nhật lần cuối:** 2026-05-04
+**Chủ sở hữu:** founder
+**Liên kết Tier 1:** `knowledge/feature-flags.yaml`
 
 ---
 
-## Overall budget envelope
+## Bao bì ngân sách tổng thể
 
-### LLM mode (per chương 30)
+### Chế độ LLM (theo chương 30)
 
-Default: **Cell 5 — Bước B (VPS) + Hybrid mode** (recommended startup posture)
+Mặc định: **Cell 5 — Bước B (VPS) + Hybrid mode** (tư thế khởi nghiệp được khuyến nghị)
 
-Per-mode budget targets:
+Mục tiêu ngân sách per-mode:
 
-| Mode | Monthly LLM API | Monthly infra | Total target |
+| Chế độ | LLM API hàng tháng | Hạ tầng hàng tháng | Tổng mục tiêu |
 |---|---|---|---|
-| Subscription-only | $0 (Claude Pro $20 included) | $0-5 | $20-25 |
-| **Hybrid (recommended)** | **$25-45** | **$10-20** | **$45-65** |
+| Subscription-only | $0 (Claude Pro $20 đã bao gồm) | $0-5 | $20-25 |
+| **Hybrid (khuyến nghị)** | **$25-45** | **$10-20** | **$45-65** |
 | Full API | $140-280 | $20-40 | $160-320 |
 
-## Hard caps (per cost-bucket — Bài #7)
+## Giới hạn cứng (per cost-bucket — Bài #7)
 
-These trigger **hard halt** if exceeded. Configured trong `knowledge/feature-flags.yaml.cost_limits`.
+Những giới hạn này gây **hard halt** nếu vượt. Cấu hình trong `knowledge/feature-flags.yaml.cost_limits`.
 
-| Cost-bucket | Daily cap | Monthly cap | Hard stop? |
+| Cost-bucket | Giới hạn hàng ngày | Giới hạn hàng tháng | Hard stop? |
 |---|---|---|---|
-| `llm-anthropic` | $5 | $80 | ✅ Yes |
-| `llm-openai` | $3 | $40 | ✅ Yes |
-| `whisper` | $1 | $20 | ✅ Yes |
-| `embeddings` | $1 | $15 | ✅ Yes |
-| `external-services` | $5 | $100 | ⚠️ Alert + 2x cap |
-| `infra` (Supabase + VPS) | n/a (fixed) | $25 | n/a |
+| `llm-anthropic` | $5 | $80 | ✅ Có |
+| `llm-openai` | $3 | $40 | ✅ Có |
+| `whisper` | $1 | $20 | ✅ Có |
+| `embeddings` | $1 | $15 | ✅ Có |
+| `external-services` | $5 | $100 | ⚠️ Cảnh báo + cap gấp 2 |
+| `infra` (Supabase + VPS) | n/a (cố định) | $25 | n/a |
 
-**Total hard ceiling:** $260/month — beyond this, system halts pending founder review.
+**Trần cứng tổng:** $260/tháng — vượt mức này, hệ thống tạm dừng chờ founder review.
 
-## Soft thresholds (per cost-bucket)
+## Ngưỡng mềm (per cost-bucket)
 
-Trigger **alert** (per Bài #10 alert-rules.yaml):
+Kích hoạt **cảnh báo** (theo Bài #10 alert-rules.yaml):
 
-| Threshold | Action |
+| Ngưỡng | Hành động |
 |---|---|
-| 50% monthly | Info alert |
-| 75% monthly | Warning alert |
-| 90% monthly | Critical alert + pause non-essential schedules |
-| 100% monthly | Hard halt (per above) |
+| 50% hàng tháng | Cảnh báo thông tin |
+| 75% hàng tháng | Cảnh báo cảnh giác |
+| 90% hàng tháng | Cảnh báo nghiêm trọng + tạm dừng các lịch không thiết yếu |
+| 100% hàng tháng | Hard halt (theo trên) |
 
-## Per-capability budget (per Bài #20 CLA)
+## Ngân sách per-capability (theo Bài #20 CLA)
 
-Each capability proposed via CLA workflow has cost projection (Phase 4 options + Phase 5 spec).
+Mỗi capability được đề xuất qua workflow CLA có dự báo chi phí (tùy chọn Phase 4 + spec Phase 5).
 
-Tracking:
-- **Setup cost:** projected vs actual (Phase 8 retrospective)
-- **Recurring cost:** monthly delta vs estimate
-- **Cost-bucket assignment:** mandatory per capability
+Theo dõi:
+- **Chi phí setup:** dự báo so với thực tế (retrospective Phase 8)
+- **Chi phí định kỳ:** delta hàng tháng so với ước tính
+- **Gán cost-bucket:** bắt buộc cho mỗi capability
 
-Trigger Tier C HITL re-review if:
-- Actual recurring > 1.5x estimated for 2 consecutive months
-- Setup cost > 2x estimated
+Kích hoạt re-review HITL (Human-in-the-Loop) Tier C nếu:
+- Định kỳ thực tế > 1.5 lần ước tính trong 2 tháng liên tiếp
+- Chi phí setup > 2 lần ước tính
 
-## Founder time budget (per Bài #19)
+## Ngân sách thời gian của founder (theo Bài #19)
 
-Per `knowledge/founder-rhythm.yaml`:
+Theo `knowledge/founder-rhythm.yaml`:
 
-| Category | Daily target |
+| Hạng mục | Mục tiêu hàng ngày |
 |---|---|
-| Deep work | 4 hours |
-| Meetings | 2 hours |
-| HITL decisions | 1 hour |
-| Reactive (triage, support) | 30 min |
-| Reflection | 30 min |
+| Deep work | 4 giờ |
+| Họp | 2 giờ |
+| Quyết định HITL (Human-in-the-Loop) | 1 giờ |
+| Phản ứng (triage, support) | 30 phút |
+| Suy ngẫm | 30 phút |
 
-**Total founder budget:** 8 hours/day, 5 days/week.
+**Ngân sách founder tổng:** 8 giờ/ngày, 5 ngày/tuần.
 
-Tier C decisions (Bài #2) consume disproportionate budget — limit to 1-2 per week.
+Quyết định Tier C (Bài #2) tiêu thụ ngân sách không cân xứng — giới hạn 1-2 lần mỗi tuần.
 
-## Burn rate monitoring
+## Giám sát tốc độ tiêu
 
-Weekly review (per `knowledge/schedules.yaml`):
-- Total spend vs budget
-- Per-cost-bucket breakdown
-- Trend (increasing/decreasing)
-- Top 3 cost drivers
+Review hàng tuần (theo `knowledge/schedules.yaml`):
+- Tổng chi tiêu so với ngân sách
+- Phân tích per-cost-bucket
+- Xu hướng (tăng/giảm)
+- Top 3 yếu tố đẩy chi phí
 
-Monthly review:
-- Capability cost actual vs estimated
-- Mode evaluation (still Hybrid? upgrade Full API?)
-- Boilerplate-extractable cost savings
+Review hàng tháng:
+- Chi phí capability thực tế so với ước tính
+- Đánh giá mode (vẫn Hybrid? nâng cấp Full API?)
+- Tiết kiệm chi phí có thể trích xuất boilerplate
 
-## Override authority
+## Quyền override
 
-| Override action | Authority | Audit |
+| Hành động override | Quyền hạn | Audit |
 |---|---|---|
-| Temporary increase 1 cost-bucket cap (24h) | Founder | ops.audit_log |
-| Permanent cap change | Founder PR | git history |
-| Mode switch (Hybrid → Full API) | Founder PR | git + audit |
-| Disable cost limits entirely | NOT ALLOWED | n/a |
+| Tăng tạm thời cap 1 cost-bucket (24h) | Founder | ops.audit_log |
+| Thay đổi cap vĩnh viễn | Founder PR | git history |
+| Chuyển mode (Hybrid → Full API) | Founder PR | git + audit |
+| Vô hiệu hóa hoàn toàn cost limits | KHÔNG ĐƯỢC PHÉP | n/a |
 
-## Failure modes
+## Các chế độ thất bại
 
-### Mode 1: Silent runaway (caps disabled)
-**Mitigation:** Cost caps mandatory in `feature-flags.yaml`. CI rejects PR if caps removed.
+### Mode 1: Runaway thầm lặng (caps bị vô hiệu hóa)
+**Giảm thiểu:** Cost caps bắt buộc trong `feature-flags.yaml`. CI từ chối PR nếu caps bị xóa.
 
-### Mode 2: Cap too high (no early warning)
-**Mitigation:** 50/75/90% thresholds → progressive alerts.
+### Mode 2: Cap quá cao (không có cảnh báo sớm)
+**Giảm thiểu:** Các ngưỡng 50/75/90% → cảnh báo theo cấp độ tiến trình.
 
-### Mode 3: External service surprise bill
-**Mitigation:** External services tracked separately với 2x cap (Stripe webhooks, etc.).
+### Mode 3: Bill bất ngờ từ dịch vụ ngoài
+**Giảm thiểu:** External services được theo dõi riêng với cap gấp 2 (Stripe webhooks, v.v.).
 
-### Mode 4: Founder time overrun
-**Mitigation:** Bài #19 attention budget logging + weekly review.
+### Mode 4: Founder vượt thời gian
+**Giảm thiểu:** Bài #19 ghi log ngân sách attention + review hàng tuần.
 
-## Cross-references
+## Tham chiếu chéo
 
-- `knowledge/feature-flags.yaml` — runtime cost limits config
-- `knowledge/alert-rules.yaml` — alert conditions
-- `knowledge/kpi-registry.yaml` — cost KPIs
-- `knowledge/founder-rhythm.yaml` — founder time budget
-- `knowledge/economic-architecture.md` — Bài #7 design rationale
+- `knowledge/feature-flags.yaml` — cấu hình cost limits runtime
+- `knowledge/alert-rules.yaml` — điều kiện cảnh báo
+- `knowledge/kpi-registry.yaml` — KPIs chi phí
+- `knowledge/founder-rhythm.yaml` — ngân sách thời gian founder
+- `knowledge/economic-architecture.md` — căn cứ thiết kế Bài #7
 
 ---
 
-*Customize per project. Different domains have different cost profiles (B2C EdTech ≠ B2B SaaS ≠ content channel).*
-
+*Tùy chỉnh theo dự án. Các domain khác nhau có hồ sơ chi phí khác nhau (B2C EdTech ≠ B2B SaaS ≠ content channel).*

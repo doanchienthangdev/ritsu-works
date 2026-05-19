@@ -1,6 +1,6 @@
 ---
 title: 'Skill: cost-optimization-review'
-description: Weekly cost optimization recommendations
+description: Khuyến nghị tối ưu cost hàng tuần
 source_path: 06-ai-ops/skills/cost-optimization-review/SKILL.md
 source_hash: 499d5cc3d18ae04211afa8872f796e4230c37dacc99c865332c8c9f88a45f574
 generated_at: '2026-05-19T05:20:46.346Z'
@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -17,19 +17,19 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 # Cost Optimization Review
 
-Skill surfaces "bạn có thể save $80/month bằng cách switching support-ticket-reply sang Sonnet" như một reviewable PR.
+Skill làm nổi bật "bạn có thể tiết kiệm $80/tháng bằng cách chuyển support-ticket-reply sang Sonnet" như một PR có thể review được.
 
 ## Khi nào sử dụng
 
-Ba trigger contexts:
+Ba context kích hoạt:
 
-1. **Scheduled weekly run.** v1.x: cron. v1.0: founder manual `/optimize-cost`.
-2. **Ad-hoc investigation.** Founder suspects something off.
-3. **Pre-month-end check.** Ensure all opportunities addressed.
+1. **Chạy theo lịch hàng tuần.** v1.x: cron. v1.0: founder gọi thủ công `/optimize-cost`.
+2. **Điều tra đột xuất.** Founder nghi ngờ có gì đó không ổn.
+3. **Kiểm tra trước cuối tháng.** Đảm bảo tất cả các cơ hội đều đã được xử lý.
 
 ## Inputs
 
-| Input | Type | Required |
+| Input | Kiểu | Bắt buộc |
 |---|---|---|
 | `lookback_days` | int | optional |
 | `compare_lookback_days` | int | optional |
@@ -40,49 +40,49 @@ Ba trigger contexts:
 
 ## Quá trình
 
-### Step 1 — Sanity check data
+### Bước 1 — Kiểm tra tính hợp lệ của dữ liệu
 
-Verify sufficient cost data exists.
+Xác minh có đủ dữ liệu cost.
 
-### Step 2 — Pull review + baseline stats
+### Bước 2 — Lấy review + baseline stats
 
-Per-role, per-task-kind, cache hit, I/O ratio.
+Theo role, theo task-kind, cache hit, tỉ lệ I/O.
 
-### Step 3 — Run analyzers
+### Bước 3 — Chạy analyzer
 
-Model downgrade, prompt caching, batch tier, context bloat, taxonomy gaps, outliers, budget cap.
+Hạ cấp model, prompt caching, batch tier, context bloat, lỗ hổng taxonomy, outlier, budget cap.
 
-### Step 4 — Filter + rank
+### Bước 4 — Lọc + xếp hạng
 
-Filter below threshold, rank by savings.
+Lọc dưới ngưỡng, xếp hạng theo mức tiết kiệm.
 
-### Step 5 — Generate diffs
+### Bước 5 — Tạo diff
 
-Draft diffs với Sonnet.
+Soạn diff bằng Sonnet.
 
-### Step 6 — Log to ops
+### Bước 6 — Ghi log vào ops
 
-INSERT rows.
+INSERT các dòng.
 
-### Step 7 — Create PR
+### Bước 7 — Tạo PR
 
 Nếu auto_create_pr=true.
 
-### Step 8 — Notify founder
+### Bước 8 — Thông báo founder
 
-Telegram message.
+Tin nhắn Telegram.
 
 ## Outputs
 
-Recommendations YAML hoặc PR.
+YAML khuyến nghị hoặc PR.
 
-## Cost estimate
+## Ước tính cost
 
-- ~5-10 SQL queries
-- 1 Sonnet call
-- Per-invocation: ~$0.30
-- Weekly: $1.20/month
+- ~5-10 SQL query
+- 1 lần gọi Sonnet
+- Mỗi lần gọi: ~$0.30
+- Hàng tuần: $1.20/tháng
 
 ---
 
-Related: `cost-report`.
+Liên quan: `cost-report`.

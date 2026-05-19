@@ -8,106 +8,106 @@ generated_by: docs-engine v1.1.0
 category: pillar
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-# 06-ai-ops/workforce-personas — C-suite Persona Layer
+# 06-ai-ops/workforce-personas — Lớp Persona C-suite
 
-> Mặt phẳng façade. CEO, CTO, CGO, CPO và (later) CMO, CSO, CCO, CDO, CFO, CISO, CDS, COO. Mỗi persona là voice + decomposition + routing overlay on top của technical role defined in `governance/ROLES.md`.
+> Mặt phẳng façade. CEO, CTO, CGO, CPO và (sau này) CMO, CSO, CCO, CDO, CFO, CISO, CDS, COO. Mỗi persona là một lớp phủ giọng nói + phân rã + định tuyến trên đỉnh của technical role được định nghĩa trong `governance/ROLES.md`.
 
 **Layer:** Evergreen (sub-pillar của `06-ai-ops`)
-**Stage status:** Phase 1 active (CEO, CTO, CGO, CPO) — see `knowledge/workforce-personas.yaml`
-**Owner role(s):** `aiops-engineer` (TBD — see STATUS.md), `gps` (CEO binds here)
-**HITL baseline:** inherited từ mỗi persona's bound role
+**Stage status:** Phase 1 active (CEO, CTO, CGO, CPO) — xem `knowledge/workforce-personas.yaml`
+**Vai trò sở hữu:** `aiops-engineer` (TBD — xem STATUS.md), `gps` (CEO bind ở đây)
+**HITL baseline:** kế thừa từ role được bind của mỗi persona
 
 ---
 
-## Why this exists
+## Tại sao tồn tại
 
-Một persona là what founder *talks to*. Một role là what *acts under the hood*. Một pillar là where *the work lives on disk*. Ba mặt phẳng; explicit mapping.
+Một persona là cái mà founder *nói chuyện cùng*. Một role là cái *hành động dưới capô*. Một pillar là nơi *công việc tồn tại trên đĩa*. Ba mặt phẳng; ánh xạ rõ ràng.
 
 ```
   ┌───────────────────────────────────────────────────────────┐
-  │ PERSONA LAYER (this sub-pillar)                            │
+  │ PERSONA LAYER (sub-pillar này)                             │
   │ /ceo, /cmo, /cgo, /cto, /cpo, ...                          │
-  │ Voice, decomposition, routing, escalation defaults         │
+  │ Giọng nói, phân rã, định tuyến, mặc định escalation        │
   └────────────────────┬──────────────────────────────────────┘
-                       │  binds via knowledge/workforce-personas.yaml
+                       │  bind qua knowledge/workforce-personas.yaml
                        ▼
   ┌───────────────────────────────────────────────────────────┐
   │ ROLE LAYER (governance/ROLES.md)                           │
   │ gps, gtm-orchestrator, product-orchestrator, ...           │
-  │ Secrets, budgets, MCP grants, HITL tier                    │
+  │ Secrets, budget, cấp MCP, HITL tier                        │
   └────────────────────┬──────────────────────────────────────┘
                        │  home_pillar
                        ▼
   ┌───────────────────────────────────────────────────────────┐
   │ PILLAR LAYER (manifest.yaml)                               │
-  │ Where SOPs/skills/data live on disk                        │
+  │ Nơi SOPs/skill/dữ liệu tồn tại trên đĩa                    │
   └───────────────────────────────────────────────────────────┘
 ```
 
-Personas do NOT redeclare permissions. Chúng MAY narrow defaults dưới bound role's ceiling. Chúng MAY NEVER broaden. Validators in `scripts/cross-tier/` enforce điều này.
+Persona KHÔNG khai báo lại quyền. Chúng CÓ THỂ thu hẹp mặc định dưới trần của role được bind. Chúng KHÔNG BAO GIỜ có thể mở rộng. Các validator trong `scripts/cross-tier/` thực thi điều này.
 
-## What lives here
+## Cái gì nằm ở đây
 
 ```
 06-ai-ops/workforce-personas/
-├── README.md                  (this file)
-├── ceo/                       Phase 1 — bound to `gps`
+├── README.md                  (file này)
+├── ceo/                       Phase 1 — bind với `gps`
 │   ├── README.md
-│   ├── PERSONA.md             voice, posture, decision style
-│   ├── playbook.md            common workflows + decision trees
-│   ├── routing-matrix.md      ← CEO owns the master copy
-│   ├── kpis.md                what this persona is measured on
-│   ├── agent.md               spec for .claude/agents/ceo.md
-│   ├── command.md             spec for .claude/commands/ceo.md
-│   └── dossier.md             auto-updated chronological log
-├── cto/                       Phase 1 — bound to `code-reviewer`
-├── cgo/                       Phase 1 — bound to `gtm-orchestrator`
-└── cpo/                       Phase 1 — bound to `product-orchestrator`
+│   ├── PERSONA.md             giọng nói, tư thế, phong cách quyết định
+│   ├── playbook.md            workflow phổ biến + cây quyết định
+│   ├── routing-matrix.md      ← CEO sở hữu bản chính
+│   ├── kpis.md                những gì persona này được đo lường
+│   ├── agent.md               spec cho .claude/agents/ceo.md
+│   ├── command.md             spec cho .claude/commands/ceo.md
+│   └── dossier.md             nhật ký thời gian tự cập nhật
+├── cto/                       Phase 1 — bind với `code-reviewer`
+├── cgo/                       Phase 1 — bind với `gtm-orchestrator`
+└── cpo/                       Phase 1 — bind với `product-orchestrator`
 ```
 
-Phase 2-4 sub-folders ship khi corresponding business trigger fires (see `knowledge/workforce-personas.yaml` `activation_trigger` fields).
+Các sub-folder Phase 2-4 được ship khi trigger kinh doanh tương ứng được kích hoạt (xem các trường `activation_trigger` trong `knowledge/workforce-personas.yaml`).
 
-## How to add hoặc modify một persona
+## Cách thêm hoặc sửa đổi một persona
 
-1. Spec lives in `.archives/workforces/` planning area first (local-only).
-2. Khi approved, copy spec files to `06-ai-ops/workforce-personas/<slug>/`.
-3. Add hoặc update row in `knowledge/workforce-personas.yaml`.
-4. Add `personas_bound: [<slug>]` back-reference to bound role in `governance/ROLES.md`.
-5. Compile `<slug>/agent.md` → `.claude/agents/<slug>.md`.
-6. Compile `<slug>/command.md` → `.claude/commands/<slug>.md`.
-7. Update CEO's `routing-matrix.md` to include persona mới.
-8. Run `pnpm check` — drift validators (PR 2/4 in workforce phase 1 stack) catch missing pieces.
-9. Open PR (Tier C per HITL.md).
+1. Spec đầu tiên tồn tại trong khu vực lập kế hoạch `.archives/workforces/` (chỉ local).
+2. Khi được phê duyệt, sao chép file spec sang `06-ai-ops/workforce-personas/<slug>/`.
+3. Thêm hoặc cập nhật row trong `knowledge/workforce-personas.yaml`.
+4. Thêm tham chiếu ngược `personas_bound: [<slug>]` vào role được bind trong `governance/ROLES.md`.
+5. Biên dịch `<slug>/agent.md` → `.claude/agents/<slug>.md`.
+6. Biên dịch `<slug>/command.md` → `.claude/commands/<slug>.md`.
+7. Cập nhật `routing-matrix.md` của CEO để bao gồm persona mới.
+8. Chạy `pnpm check` — các drift validator (PR 2/4 trong workforce phase 1 stack) bắt các phần còn thiếu.
+9. Mở PR (Tier C theo HITL.md).
 
-## Invariants enforced by `check-drift`
+## Bất biến được thực thi bởi `check-drift`
 
-- L1: every active persona có folder here với 7 canonical files.
-- L1: every active persona's bound role exists in `governance/ROLES.md`.
-- L1: every active persona có matching `.claude/agents/<slug>.md` + `.claude/commands/<slug>.md`.
-- L2: `default_hitl_max` ≤ bound role's `hitl_max_tier` (never broadens).
-- L2: voice block in `<slug>/PERSONA.md` matches inlined block in compiled agent.md/command.md (whitespace-tolerant).
-- L2: CEO's `routing-matrix.md` có entries cho every active persona.
+- L1: mọi persona active có folder ở đây với 7 file chuẩn.
+- L1: role được bind của mọi persona active tồn tại trong `governance/ROLES.md`.
+- L1: mọi persona active có `.claude/agents/<slug>.md` + `.claude/commands/<slug>.md` tương ứng.
+- L2: `default_hitl_max` ≤ `hitl_max_tier` của role được bind (không bao giờ mở rộng).
+- L2: block giọng nói trong `<slug>/PERSONA.md` khớp với block được inline trong agent.md/command.md đã biên dịch (chấp nhận sai khác về whitespace).
+- L2: `routing-matrix.md` của CEO có entry cho mọi persona active.
 
-(Validators land in PR 2/4 của workforce-phase1-stack.)
+(Validator được ship trong PR 2/4 của workforce-phase1-stack.)
 
-## Audit trail
+## Dấu vết audit
 
-Every invocation writes one row to `ops.agent_runs` with BOTH:
-- `agent_slug` = bound technical role doing the work
-- `persona_slug` = persona façade mà routed/invoked it
+Mỗi lần invocation ghi một row vào `ops.agent_runs` với CẢ HAI:
+- `agent_slug` = technical role được bind đang thực hiện công việc
+- `persona_slug` = persona façade đã định tuyến/gọi nó
 
-One row, hai mặt phẳng. Cost is attributed to role; observability flows through both.
+Một row, hai mặt phẳng. Chi phí được quy cho role; observability chảy qua cả hai.
 
-## See also
+## Xem thêm
 
-- `governance/ROLES.md` — technical role permissions (the source của truth cho what each role can do)
-- `governance/HITL.md` — Tier A/B/C/D ceremony (personas inherit; never broaden)
-- `knowledge/workforce-personas.yaml` — the binding registry
-- `.claude/agents/README.md` — how persona files coexist with role-named agents
-- `.archives/workforces/` — design history (planning artifacts, ADRs, scaffolds cho Phase 2-4)
+- `governance/ROLES.md` — quyền của technical role (nguồn sự thật cho những gì mỗi role có thể làm)
+- `governance/HITL.md` — nghi lễ Tier A/B/C/D (persona kế thừa; không bao giờ mở rộng)
+- `knowledge/workforce-personas.yaml` — registry binding
+- `.claude/agents/README.md` — cách file persona cùng tồn tại với agent được đặt tên theo role
+- `.archives/workforces/` — lịch sử thiết kế (artifact lập kế hoạch, ADR, scaffold cho Phase 2-4)

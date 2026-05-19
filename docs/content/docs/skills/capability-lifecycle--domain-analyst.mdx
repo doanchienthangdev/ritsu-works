@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,10 +19,10 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Khi nào sử dụng
 
-- Sau Phase 1 `problem.md` exists.
-- State = `analyzing`.
+- Sau khi Phase 1 `problem.md` đã tồn tại.
+- Trạng thái = `analyzing`.
 
-## Inputs
+## Đầu vào
 
 - `capability_id`
 - `problem_path` — `.archives/cla/<id>/problem.md`
@@ -30,53 +30,53 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Quá trình
 
-### Step 1 — Keyword scan (deterministic)
+### Bước 1 — Quét từ khóa (xác định)
 
-Đọc routing keywords, scan problem.md.
+Đọc routing keywords, quét problem.md.
 
-### Step 2 — Resolve persona
+### Bước 2 — Phân giải persona
 
-Lookup CxO slug trong workforce-personas.yaml.
+Tra cứu CxO slug trong workforce-personas.yaml.
 
-### Step 3 — Parallel invocation
+### Bước 3 — Gọi song song
 
-Issue hai parallel Agent calls cho CxO + worker.
+Phát hai lệnh gọi Agent song song cho CxO và worker.
 
-### Step 4 — Synthesize
+### Bước 4 — Tổng hợp
 
-Merge outputs, surface tensions.
+Hợp nhất đầu ra, làm nổi bật các căng thẳng.
 
-### Step 5 — Write domain-analysis.md
+### Bước 5 — Viết domain-analysis.md
 
-Template với insights.
+Mẫu kèm theo các insight.
 
-### Step 6 — Persist state
+### Bước 6 — Lưu trạng thái
 
 UPDATE ops.capability_runs.
 
-## Outputs
+## Đầu ra
 
 - `.archives/cla/<id>/domain-analysis.md`
-- 1-2 `ops.cost_attributions` rows
+- 1-2 dòng trong `ops.cost_attributions`
 
-## State transition
+## Chuyển trạng thái
 
-`analyzing` (continued — Phase 3 cũng analyzing).
+`analyzing` (tiếp tục — Phase 3 cũng ở trạng thái analyzing).
 
 ## HITL
 
-Tier A. Auto-advances.
+Tier A. Tự động chuyển tiếp.
 
-## Failure modes
+## Các chế độ thất bại
 
-Routing yaml missing, both parallel calls fail.
+Routing yaml bị thiếu, cả hai cuộc gọi song song đều thất bại.
 
-## Cost estimate
+## Ước lượng chi phí
 
-- ~$0.30-0.50 mỗi invocation
-- Founder time: 5-10 min
+- ~$0.30-0.50 cho mỗi lần gọi
+- Thời gian của founder: 5-10 phút
 - Cost-bucket: `ai-ops-cla`
 
 ---
 
-Next: `system-inventory-scanner` (Phase 3) ở `create` mode.
+Tiếp theo: `system-inventory-scanner` (Phase 3) ở chế độ `create`.

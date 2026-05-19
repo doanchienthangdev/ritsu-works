@@ -5,137 +5,136 @@ source_path: .claude/commands/docs.md
 source_hash: 013d97ae01f3a4d91e49a80b39ed01950403af5d9ab3f6483da949cfb36ea1f9
 generated_at: '2026-05-19T05:20:46.402Z'
 generated_by: docs-engine v1.1.0
+translated: true
+translated_at: 2026-05-19T15:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 category: command
 language: vi
 ---
-translated: true
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 {/* generated-by: docs-engine v1.1.0 */}
 
 # /docs
 
-Project-scoped command for ritsu-works. Front-end for the `docs-engine` capability.
-Thin orchestrator — phase logic lives in skills under `06-ai-ops/skills/docs-engine/`.
-Mirrors `/wiki` ergonomics 1:1 (per @cto Phase 2 lens).
+Lệnh phạm vi dự án cho ritsu-works. Front-end cho capability `docs-engine`.
+Orchestrator mỏng — logic của phase nằm trong các skill dưới `06-ai-ops/skills/docs-engine/`.
+Phản chiếu ergonomics của `/wiki` 1:1 (theo lăng kính @cto Phase 2).
 
-This command operates the live Fumadocs documentation site at `docs/` (Next.js
-subproject deployed on Vercel Hobby). The 9 source adapters convert
-Tier 1 + `.claude/` runtime files into MDX pages. The site is read-only public
-with build-time secret redaction (per founder Phase 1 Q4 answer).
+Lệnh này vận hành trang tài liệu Fumadocs trực tiếp tại `docs/` (Next.js
+subproject được triển khai trên Vercel Hobby). 9 source adapter chuyển đổi
+Tier 1 + các file runtime trong `.claude/` thành các trang MDX. Trang này chỉ-đọc, công khai
+với redaction secret tại thời điểm build (theo câu trả lời của founder cho Phase 1 Q4).
 
-**Audience:** founder + cofounder + AI workforce (per Phase 1 Q1).
-**Vietnamese-first content;** English code identifiers + frontmatter keys.
+**Đối tượng:** founder + cofounder + AI workforce (theo Phase 1 Q1).
+**Nội dung ưu tiên tiếng Việt;** code identifier + key trong frontmatter giữ tiếng Anh.
 
-## Subcommands
+## Các lệnh con
 
-| Invocation | Purpose | HITL | Persistence |
+| Cách gọi | Mục đích | HITL | Lưu trữ |
 |---|---|---|---|
-| `/docs` | Show menu + current state (page count, drift status, last sync, last publish) | A | read-only |
-| `/docs scaffold` | Idempotent scaffold of `docs/` Next.js + Fumadocs subproject. First-time only. | A | git changes under `docs/` |
-| `/docs sync [--area=<a>] [--dry-run] [--force]` | Walk corpus → generate MDX. `--area` limits scope (commands\|skills\|agents\|hooks\|charter\|governance\|pillars\|sops\|tier1\|all). `--dry-run` previews diff without writing. `--force` bypasses source_hash dedup. | A (B if estimated cost > cap OR > 50% pages changed) | git changes under `docs/content/`; ops.kpi_snapshots |
-| `/docs check` | Drift detection (source_hash mismatch + missing/orphan pages). Deterministic; no LLM. Records `docs_drift_count` KPI. | A | INSERT ops.kpi_snapshots; emits ritsu.docs.drift_detected if > 0 |
-| `/docs check --tutorials` | Subset check: every tutorial's `tutorial_last_verified_at` must be \< 60d old. (CPO mod, monthly via SOP-FOUNDER-013.) | A | Reports stale tutorial list |
-| `/docs publish` | Trigger Vercel production deploy from latest `main`. Founder confirms. | **B** | INSERT ops.events ritsu.docs.published |
-| `/docs nav` | Edit `docs/content/meta.json` (sidebar order, groups). Interactive prompts for pillar grouping. | A | git change under `docs/content/meta.json` |
-| `/docs update <area>` | Refresh one content area (alias for `/docs sync --area=<a>`). | A | per-area changes |
-| `/docs accept-mine <path>` | When `/docs sync` reports a 3-way diff conflict on `<path>`, this preserves the hand-edit and skips regen for that file. | B | flag in MDX frontmatter |
-| `/docs status` | Show sync state, last drift report, page counts, Vercel deploy status. | A | read-only |
-| `/docs list [--area=<a>]` | List all generated MDX pages by area. | A | read-only |
+| `/docs` | Hiển thị menu + trạng thái hiện tại (số trang, trạng thái trôi dạt, sync gần nhất, publish gần nhất) | A | chỉ-đọc |
+| `/docs scaffold` | Scaffold idempotent cho subproject `docs/` Next.js + Fumadocs. Chỉ lần đầu. | A | thay đổi git dưới `docs/` |
+| `/docs sync [--area=<a>] [--dry-run] [--force]` | Đi qua corpus → tạo MDX. `--area` giới hạn phạm vi (commands\|skills\|agents\|hooks\|charter\|governance\|pillars\|sops\|tier1\|all). `--dry-run` xem trước diff mà không ghi. `--force` bỏ qua dedup theo source_hash. | A (B nếu chi phí ước tính > cap HOẶC > 50% trang thay đổi) | thay đổi git dưới `docs/content/`; ops.kpi_snapshots |
+| `/docs check` | Phát hiện trôi dạt (source_hash không khớp + trang thiếu/mồ côi). Tất định; không LLM. Ghi KPI `docs_drift_count`. | A | INSERT ops.kpi_snapshots; phát ritsu.docs.drift_detected nếu > 0 |
+| `/docs check --tutorials` | Kiểm tra tập con: `tutorial_last_verified_at` của mọi tutorial phải \< 60d. (CPO mod, hàng tháng qua SOP-FOUNDER-013.) | A | Báo cáo danh sách tutorial cũ |
+| `/docs publish` | Kích hoạt deploy production Vercel từ `main` mới nhất. Founder xác nhận. | **B** | INSERT ops.events ritsu.docs.published |
+| `/docs nav` | Sửa `docs/content/meta.json` (thứ tự sidebar, nhóm). Prompt tương tác để nhóm theo pillar. | A | thay đổi git dưới `docs/content/meta.json` |
+| `/docs update <area>` | Refresh một vùng nội dung (alias cho `/docs sync --area=<a>`). | A | thay đổi theo-vùng |
+| `/docs accept-mine <path>` | Khi `/docs sync` báo xung đột 3-way diff trên `<path>`, lệnh này giữ lại sửa thủ công và bỏ qua regen cho file đó. | B | cờ trong frontmatter MDX |
+| `/docs status` | Hiển thị trạng thái sync, báo cáo trôi dạt gần nhất, số trang, trạng thái deploy Vercel. | A | chỉ-đọc |
+| `/docs list [--area=<a>]` | Liệt kê tất cả trang MDX được tạo theo vùng. | A | chỉ-đọc |
 
-## Workflow
+## Quy trình làm việc
 
-### `/docs scaffold` (first-time scaffold)
+### `/docs scaffold` (scaffold lần đầu)
 
-1. Verify `docs/` does not exist (or is empty).
-2. Run `npx create-fumadocs-app docs/ --template next-mdx --lang vi` (or equivalent).
-3. Customize `docs/source.config.ts` to pull from ritsu-works file system via the 9 adapter content sources.
-4. Add `docs/lint-secrets.cjs` (3-layer fail-loud redactor).
-5. Add `docs/app/api/raw/[...slug]/route.ts` (AI-runtime raw-MDX endpoint).
-6. Add `docs/.vercelignore` to skip irrelevant directories.
-7. First sync: run `/docs sync --area=all` automatically.
-8. Emit `ritsu.docs.built` event.
+1. Xác minh `docs/` không tồn tại (hoặc rỗng).
+2. Chạy `npx create-fumadocs-app docs/ --template next-mdx --lang vi` (hoặc tương đương).
+3. Tuỳ chỉnh `docs/source.config.ts` để pull từ file system của ritsu-works thông qua 9 nguồn nội dung adapter.
+4. Thêm `docs/lint-secrets.cjs` (redactor fail-loud 3 lớp).
+5. Thêm `docs/app/api/raw/[...slug]/route.ts` (endpoint raw-MDX cho AI-runtime).
+6. Thêm `docs/.vercelignore` để bỏ qua các thư mục không liên quan.
+7. Sync đầu tiên: chạy `/docs sync --area=all` tự động.
+8. Phát event `ritsu.docs.built`.
 
-**Cost:** ~$0.50 LLM (mostly the source.config.ts boilerplate generation). One-time per repo.
+**Chi phí:** ~$0.50 LLM (chủ yếu là sinh boilerplate source.config.ts). Một lần mỗi repo.
 
-### `/docs sync` (the workhorse)
+### `/docs sync` (con ngựa thồ)
 
-Dispatches to skill `docs-engine/sync` which orchestrates SOP-AIOPS-003 step 1-10:
+Điều phối đến skill `docs-engine/sync` mà nó orchestrate SOP-AIOPS-003 bước 1-10:
 
-1. **Drift gate** — `pnpm check`. Abort if not clean.
-2. **Walker** — per Phase 1 Q3 scope (~215 sources).
-3. **Secret redaction layer 1** (walker-exclude check).
-4. **Adapter dispatch** — 9 adapters render per source kind.
-5. **Secret redaction layer 2** (MDX regex scrub).
-6. **3-way diff** for any page with `<!-- generated-by -->` marker (CTO mod #1) — prevents overwriting hand-edits.
-7. **Write MDX** to `docs/content/`.
-8. **Coverage validator** — `pnpm check` (which now runs `validate-docs-coverage.cjs`).
-9. **Emit events** — `ritsu.docs.synced` + maybe `ritsu.docs.drift_detected`.
-10. **KPI snapshot** — `docs_drift_count`.
+1. **Cổng trôi dạt** — `pnpm check`. Hủy nếu không sạch.
+2. **Walker** — theo phạm vi Phase 1 Q3 (~215 nguồn).
+3. **Redaction secret lớp 1** (kiểm tra walker-exclude).
+4. **Điều phối adapter** — 9 adapter render theo loại nguồn.
+5. **Redaction secret lớp 2** (regex scrub trên MDX).
+6. **3-way diff** cho mọi trang có marker `<!-- generated-by -->` (CTO mod #1) — ngăn ghi đè lên sửa thủ công.
+7. **Ghi MDX** vào `docs/content/`.
+8. **Bộ xác thực coverage** — `pnpm check` (mà bây giờ chạy `validate-docs-coverage.cjs`).
+9. **Phát events** — `ritsu.docs.synced` + có thể `ritsu.docs.drift_detected`.
+10. **Snapshot KPI** — `docs_drift_count`.
 
-**Cost:** ~$0.40-1.00 per full sync (215 pages × adapter cost ÷ batching). Per-task-kind cap: $1.
+**Chi phí:** ~$0.40-1.00 mỗi lần sync đầy đủ (215 trang × chi phí adapter ÷ batching). Cap per-task-kind: $1.
 
 ### `/docs check`
 
-Deterministic — no LLM. Compares filesystem inventory of walker scope against `docs/content/` MDX (via `source_path` frontmatter). Reports:
-- Missing pages (source exists but no MDX) → `docs_drift_count` ++
-- Orphan pages (MDX with no source) → `docs_drift_count` ++
-- Stale source_hash (source changed but MDX not regenerated) → `docs_drift_count` ++
+Tất định — không LLM. So sánh kho file system của phạm vi walker với MDX trong `docs/content/` (qua frontmatter `source_path`). Báo cáo:
+- Trang thiếu (nguồn tồn tại nhưng không có MDX) → `docs_drift_count` ++
+- Trang mồ côi (MDX không có nguồn) → `docs_drift_count` ++
+- source_hash cũ (nguồn đã đổi nhưng MDX chưa được regenerate) → `docs_drift_count` ++
 
-Exit non-zero if `docs_drift_count > 0`. Used by `.github/workflows/docs-check.yml` as soft PR gate (v1.0); hard gate in v1.1.
+Thoát non-zero nếu `docs_drift_count > 0`. Được dùng bởi `.github/workflows/docs-check.yml` như cổng PR mềm (v1.0); cổng cứng trong v1.1.
 
 ### `/docs publish` (Tier B)
 
-1. Verify `docs_drift_count == 0`.
-2. Verify `pnpm check` clean on `main`.
-3. Show preview URL of latest commit.
-4. **AskUserQuestion**: confirm publish to production Vercel.
-5. Trigger Vercel production deploy (via Vercel CLI or webhook).
-6. Wait for deploy to succeed (poll up to 120s).
-7. Emit `ritsu.docs.published` with Vercel deploy ID.
+1. Xác minh `docs_drift_count == 0`.
+2. Xác minh `pnpm check` sạch trên `main`.
+3. Hiển thị URL xem trước của commit mới nhất.
+4. **AskUserQuestion**: xác nhận publish lên Vercel production.
+5. Kích hoạt deploy production Vercel (qua Vercel CLI hoặc webhook).
+6. Chờ deploy thành công (poll tối đa 120s).
+7. Phát `ritsu.docs.published` với ID deploy Vercel.
 
-## State persistence
+## Lưu trữ trạng thái
 
-Every `/docs` invocation writes:
-- `ops.agent_runs` row (with `cost_bucket = 'ai-ops-docs'`)
-- `ops.events` row per emitted event (`ritsu.docs.*`)
-- `ops.kpi_snapshots` row for `docs_drift_count` (sync + check verbs)
-- `ops.cost_attributions` row per LLM call
+Mỗi lần gọi `/docs` ghi:
+- Một row `ops.agent_runs` (với `cost_bucket = 'ai-ops-docs'`)
+- Một row `ops.events` cho mỗi event được phát (`ritsu.docs.*`)
+- Một row `ops.kpi_snapshots` cho `docs_drift_count` (verb sync + check)
+- Một row `ops.cost_attributions` cho mỗi lệnh gọi LLM
 
-## Drift gates
+## Cổng trôi dạt
 
-| Verb | Gate | What fails the gate |
+| Verb | Cổng | Điều gì làm fail cổng |
 |---|---|---|
-| `scaffold` | `pnpm check` before AND after | Any L1 / critical L2 drift |
-| `sync` | `pnpm check` before AND after | Same |
-| `check` | itself | Surfaces drift to KPI; doesn't fail |
-| `publish` | requires drift_count == 0 + `pnpm check` clean | Both must pass |
+| `scaffold` | `pnpm check` trước VÀ sau | Bất kỳ trôi dạt L1 / L2 nghiêm trọng |
+| `sync` | `pnpm check` trước VÀ sau | Tương tự |
+| `check` | chính nó | Hiển thị trôi dạt lên KPI; không fail |
+| `publish` | yêu cầu drift_count == 0 + `pnpm check` sạch | Cả hai phải pass |
 
-## HITL discipline
+## Kỷ luật HITL
 
-Per verb:
-- **A** — sync, check, nav, update, status, list, scaffold (after first time)
-- **B** — publish, accept-mine, sync if estimated cost > cap or > 50% changed pages
+Theo verb:
+- **A** — sync, check, nav, update, status, list, scaffold (sau lần đầu)
+- **B** — publish, accept-mine, sync nếu chi phí ước tính > cap hoặc > 50% trang đã thay đổi
 
-`/docs publish` Tier B uses `AskUserQuestion` with preview URL — founder visually confirms before production deploy.
+`/docs publish` Tier B dùng `AskUserQuestion` với URL xem trước — founder xác nhận trực quan trước khi deploy production.
 
-## Defensive notes
+## Lưu ý phòng thủ
 
-- `docs/` is a Next.js subproject — has its OWN `package.json`, distinct from root.
-- Vercel `rootDirectory=docs` keeps the operating repo's identity unpolluted.
-- The 3-way diff on regen (step 6) is mandatory — without it, founder hand-edits get silently overwritten on next sync (Week-4 biter per @cto Phase 2 lens).
-- Secret redaction is fail-loud across 3 layers — never scrub silently.
-- `governance/SECRETS.md` and `runtime/secrets/**` are EXCLUDED at layer 1 (walker scope) — they NEVER enter the MDX corpus, regardless of regex matches.
-- `00-charter/founder-profile.md` is in the walker exclude list (PII concern per Phase 3).
-- Vietnamese as primary content language; Fumadocs `defaultLanguage: 'vi'` + `hideLocale: 'default-locale'`.
+- `docs/` là một subproject Next.js — có `package.json` RIÊNG, tách biệt với root.
+- `rootDirectory=docs` của Vercel giữ cho danh tính của repo vận hành không bị nhiễu.
+- 3-way diff trên regen (bước 6) là bắt buộc — không có nó, sửa thủ công của founder sẽ bị ghi đè ngầm vào lần sync sau (kẻ cắn ở Tuần-4 theo lăng kính @cto Phase 2).
+- Redaction secret là fail-loud qua 3 lớp — không bao giờ scrub ngầm.
+- `governance/SECRETS.md` và `runtime/secrets/**` bị LOẠI TRỪ ở lớp 1 (phạm vi walker) — chúng KHÔNG BAO GIỜ vào corpus MDX, bất kể regex có khớp hay không.
+- `00-charter/founder-profile.md` nằm trong danh sách loại trừ của walker (lo ngại PII theo Phase 3).
+- Tiếng Việt là ngôn ngữ nội dung chính; Fumadocs `defaultLanguage: 'vi'` + `hideLocale: 'default-locale'`.
 
-## See also
+## Xem thêm
 
-- Skills: `06-ai-ops/skills/docs-engine/` (16 sub-skills: 7 verbs + 9 adapters)
+- Skills: `06-ai-ops/skills/docs-engine/` (16 sub-skill: 7 verb + 9 adapter)
 - SOP: `06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml`
-- Capability registry: `knowledge/capability-registry.yaml` (search `id: docs-engine`)
-- Spec: `wiki/capabilities/docs-engine/spec.md` (after Phase 8 promotion)
-- Sibling: `.claude/commands/wiki.md` (closest sibling; pattern source)
+- Capability registry: `knowledge/capability-registry.yaml` (tìm `id: docs-engine`)
+- Spec: `wiki/capabilities/docs-engine/spec.md` (sau khi promotion Phase 8)
+- Sibling: `.claude/commands/wiki.md` (sibling gần nhất; nguồn pattern)
 - Cross-tier invariants: `docs-page-has-source` (L1), `docs-source-has-page` (L2)
-

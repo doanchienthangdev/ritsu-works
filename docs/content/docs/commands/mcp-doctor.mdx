@@ -9,7 +9,7 @@ description: |
 source_path: .claude/commands/mcp-doctor.md
 source_hash: f413621aadb1c88efe718b66f38de73d2c7791f17cd2e9302a03ea07fb367e4b
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: 2026-05-19T15:00:00Z
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 generated_at: '2026-05-19T05:20:46.402Z'
 generated_by: docs-engine v1.1.0
@@ -22,34 +22,34 @@ language: vi
 
 # /mcp-doctor
 
-Run the supabase-ops MCP shim's diagnostic CLI and surface the result.
+Chạy CLI chẩn đoán của supabase-ops MCP shim và hiển thị kết quả.
 
-## What it does
+## Lệnh này làm gì
 
-Executes the diagnostic from `mcp-server/src/cli/doctor.ts`. Each check is one
-of PASS / FAIL / WARN / SKIP. Failures point at the specific fix (missing env
-var name, missing migration, etc).
+Thực thi chẩn đoán từ `mcp-server/src/cli/doctor.ts`. Mỗi check là một
+trong các trạng thái PASS / FAIL / WARN / SKIP. Failures chỉ ra cách sửa
+cụ thể (tên env var thiếu, migration thiếu, v.v.).
 
-## When to use
+## Khi nào sử dụng
 
-- Right after pulling main / switching worktrees — verifies your env is plumbed
-- When a skill that uses `mcp__supabase-ops__*` tools fails — quickly
-  triage whether the shim itself is healthy
-- After applying migration 00026_mcp_query_rpc.sql — confirms the RPC is live
-- Periodically (e.g. start of session) as a sanity check
+- Ngay sau khi pull main / chuyển worktrees — xác minh môi trường đã được cấu hình
+- Khi một skill sử dụng tool `mcp__supabase-ops__*` thất bại — nhanh chóng
+  phân loại xem shim có ổn hay không
+- Sau khi áp dụng migration 00026_mcp_query_rpc.sql — xác nhận RPC đã hoạt động
+- Định kỳ (ví dụ đầu phiên) như một kiểm tra cơ bản
 
-## How to run
+## Cách chạy
 
 ```bash
-cd /Users/doanchienthang/ritsu-works   # or whatever the repo root is
-npm --prefix mcp-server install         # one-time, if not already done
+cd /Users/doanchienthang/ritsu-works   # hoặc thư mục gốc repo phù hợp
+npm --prefix mcp-server install         # chạy một lần, nếu chưa làm
 npm --prefix mcp-server run doctor
 ```
 
-Or invoke this slash command in Claude Code — it will run the same bash and
-return the rendered output.
+Hoặc gọi slash command này trong Claude Code — nó sẽ chạy cùng bash
+và trả về output đã render.
 
-## Sample healthy output
+## Mẫu output khi healthy
 
 ```
 supabase-ops MCP doctor
@@ -76,22 +76,22 @@ supabase-ops MCP doctor
 Status: HEALTHY
 ```
 
-## Common failure modes
+## Các chế độ lỗi thường gặp
 
-| Symptom | Likely cause | Fix |
+| Triệu chứng | Nguyên nhân có thể | Cách sửa |
 |---|---|---|
-| `env loaded FAIL — MissingEnv: SUPABASE_OPS_URL` | env var not exported | `export SUPABASE_OPS_URL=https://<project_ref>.supabase.co` |
-| `project_ref allowlisted FAIL` | URL points at Product Supabase | **STOP — this is a security event**. Verify URL is ritsu-ops, not ritsu |
-| `mcp-tools.yaml loaded FAIL` | File missing or YAML parse error | check `knowledge/mcp-tools.yaml` syntax |
-| `ops.ops_run_select RPC FAIL — not deployed` | migration 00026 not applied | `bash scripts/wave2-bootstrap-cron-secrets.sh` not relevant here — use `supabase db push --linked --yes` |
-| `supabase connectivity FAIL — JWT expired` | service key rotated | rotate `SUPABASE_OPS_SERVICE_KEY` from project settings |
+| `env loaded FAIL — MissingEnv: SUPABASE_OPS_URL` | env var chưa được export | `export SUPABASE_OPS_URL=https://<project_ref>.supabase.co` |
+| `project_ref allowlisted FAIL` | URL trỏ vào Product Supabase | **DỪNG — đây là sự cố bảo mật**. Xác minh URL là ritsu-ops, không phải ritsu |
+| `mcp-tools.yaml loaded FAIL` | File thiếu hoặc lỗi parse YAML | kiểm tra cú pháp `knowledge/mcp-tools.yaml` |
+| `ops.ops_run_select RPC FAIL — not deployed` | migration 00026 chưa được áp dụng | `bash scripts/wave2-bootstrap-cron-secrets.sh` không phù hợp ở đây — dùng `supabase db push --linked --yes` |
+| `supabase connectivity FAIL — JWT expired` | service key đã được rotate | rotate `SUPABASE_OPS_SERVICE_KEY` từ project settings |
 
-## Bash to execute
+## Bash để thực thi
 
-The bash below auto-detects repo root and sources `runtime/secrets/.env.local`
-from the **root repo** (not the worktree — runtime/secrets/ is gitignored and
-lives only at the canonical repo location). Doctor's repo-root walk-up
-handles the npm CWD change automatically (see env.ts findRepoRoot).
+Bash bên dưới tự động phát hiện thư mục gốc repo và source `runtime/secrets/.env.local`
+từ **root repo** (không phải worktree — runtime/secrets/ bị gitignore và
+chỉ tồn tại tại vị trí canonical của repo). Việc đi ngược lên thư mục gốc repo
+của Doctor xử lý tự động việc đổi CWD của npm (xem env.ts findRepoRoot).
 
 ```bash
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || REPO_ROOT="/Users/doanchienthang/ritsu-works"
@@ -103,4 +103,3 @@ if [ -f "$ROOT_ENV" ]; then
 fi
 RITSU_REPO_ROOT="$REPO_ROOT" npm --prefix mcp-server run doctor 2>&1
 ```
-

@@ -14,18 +14,18 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
 
-# YouTube adapter (Sprint 2 PR4 baseline — v2.0.0)
+# YouTube adapter (baseline Sprint 2 PR4 — v2.0.0)
 
-## When this adapter runs
+## Khi nào adapter này chạy
 
-Dispatched by `wiki-sync/ingest` Step 1 when `<path>` matches:
+Được điều phối bởi `wiki-sync/ingest` Bước 1 khi `<path>` khớp với:
 - `youtube.com/watch?v=*`
 - `youtu.be/*`
 - `youtube.com/shorts/*`
@@ -33,28 +33,28 @@ Dispatched by `wiki-sync/ingest` Step 1 when `<path>` matches:
 
 source_kind: `youtube_video`
 entity_type: `episode`
-wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; derived entities land under `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, etc.)
+wiki target: `wiki/<slug>/source.md` (layout source-grouped v4.0; các thực thể dẫn xuất được đặt dưới `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, v.v.)
 
 ## Inputs
 
-- `path` — YouTube URL (any of the supported forms above)
-- `force` — bool; passed through
+- `path` — URL YouTube (bất kỳ dạng nào trong các dạng được hỗ trợ ở trên)
+- `force` — bool; được truyền xuống
 
-## External dependencies
+## Phụ thuộc bên ngoài
 
-- **yt-dlp** — `pip install yt-dlp` OR via brew `brew install yt-dlp`. Must be in PATH.
-- **ffmpeg** — required by yt-dlp for audio extraction when whisper fallback fires. `brew install ffmpeg`.
-- **OPENAI_API_KEY** — required ONLY if whisper fallback fires (auto-captions missing AND `wiki_sync_llm_fallback` flag enabled).
+- **yt-dlp** — `pip install yt-dlp` HOẶC qua brew `brew install yt-dlp`. Phải có trong PATH.
+- **ffmpeg** — bắt buộc bởi yt-dlp để trích xuất audio khi whisper fallback chạy. `brew install ffmpeg`.
+- **OPENAI_API_KEY** — chỉ bắt buộc nếu whisper fallback chạy (auto-captions vắng mặt VÀ cờ `wiki_sync_llm_fallback` được bật).
 
-The adapter fails fast with clear install instructions if a missing dep is detected.
+Adapter fail fast với hướng dẫn cài đặt rõ ràng nếu phát hiện dep thiếu.
 
-## Process
+## Quy trình
 
-### Step 1 — Normalize URL + extract video_id
+### Bước 1 — Chuẩn hóa URL + trích xuất video_id
 
-Match URL against the 4 supported forms; extract `video_id` (11-character base64-ish string). Reject playlist URLs (`playlist?list=...`) with workaround: "ingest individual videos one at a time, or fold into a folder-adapter pattern v2.1+".
+Khớp URL với 4 dạng được hỗ trợ; trích xuất `video_id` (chuỗi base64-ish 11 ký tự). Từ chối URL playlist (`playlist?list=...`) với giải pháp: "ingest từng video một, hoặc gộp vào pattern folder-adapter v2.1+".
 
-### Step 2 — Fetch metadata via yt-dlp
+### Bước 2 — Lấy metadata qua yt-dlp
 
 ```bash
 yt-dlp --no-download --print-json --no-playlist "<url>" 2>/dev/null
@@ -62,34 +62,34 @@ yt-dlp --no-download --print-json --no-playlist "<url>" 2>/dev/null
 
 Capture:
 - `id` — video_id
-- `title` — for slug derivation + wiki page title
+- `title` — để dẫn xuất slug + title trang wiki
 - `uploader` / `uploader_id` — attribution
-- `upload_date` — YYYYMMDD format
-- `duration` — seconds (for cost estimate)
-- `chapters` — array of `{start_time, end_time, title}` (if present in description)
-- `description` — full video description (parsed for additional refs)
+- `upload_date` — định dạng YYYYMMDD
+- `duration` — giây (để ước tính chi phí)
+- `chapters` — mảng `{start_time, end_time, title}` (nếu có trong description)
+- `description` — description đầy đủ của video (được parse cho ref bổ sung)
 
-Failure modes:
-- yt-dlp not in PATH → bail with install instructions
-- Video private / age-gated / removed → bail with clear error
-- Region-blocked → bail; suggest VPN or alternative source
+Các chế độ thất bại:
+- yt-dlp không có trong PATH → dừng lại với hướng dẫn cài đặt
+- Video riêng tư / giới hạn tuổi / đã bị xóa → dừng lại với lỗi rõ ràng
+- Bị chặn khu vực → dừng lại; gợi ý VPN hoặc nguồn thay thế
 
-### Step 3 — Fetch transcript
+### Bước 3 — Lấy transcript
 
-Try auto-captions first (free, ~instant):
+Thử auto-captions trước (miễn phí, ~tức thì):
 ```bash
 yt-dlp --write-auto-subs --skip-download --sub-format vtt --sub-langs en \
        --no-warnings -o "/tmp/yt-%(id)s.%(ext)s" "<url>"
 ```
 
-If `en.vtt` exists → parse it (Step 4).
-If not, try manual subs (sometimes uploader provides):
+Nếu `en.vtt` tồn tại → parse nó (Bước 4).
+Nếu không, thử manual sub (đôi khi uploader cung cấp):
 ```bash
 yt-dlp --write-subs --skip-download --sub-format vtt --sub-langs en,vi \
        --no-warnings -o "/tmp/yt-%(id)s.%(ext)s" "<url>"
 ```
 
-If still no transcript AND `wiki_sync_llm_fallback` feature flag is enabled AND `OPENAI_API_KEY` is present → whisper fallback (Step 3b). Otherwise bail:
+Nếu vẫn không có transcript VÀ feature flag `wiki_sync_llm_fallback` được bật VÀ `OPENAI_API_KEY` có mặt → whisper fallback (Bước 3b). Nếu không thì dừng lại:
 ```
 No transcript available for video <id>. Auto-captions not generated by YouTube.
 Workaround:
@@ -98,19 +98,19 @@ Workaround:
   3. Re-run /wiki sync (will whisper-transcribe; cost ~$0.006/min audio)
 ```
 
-### Step 3b — Whisper fallback (feature-flagged, off by default)
+### Bước 3b — Whisper fallback (feature-flagged, tắt mặc định)
 
 ```bash
 yt-dlp -x --audio-format mp3 -o "/tmp/yt-%(id)s.%(ext)s" "<url>"
 ```
 
-Then call OpenAI Whisper API on `/tmp/yt-<id>.mp3`. Cost: `$0.006 × ceil(duration_min)`. Track in `ops.cost_attributions` with `model='whisper-1'`.
+Sau đó gọi OpenAI Whisper API trên `/tmp/yt-<id>.mp3`. Chi phí: `$0.006 × ceil(duration_min)`. Track trong `ops.cost_attributions` với `model='whisper-1'`.
 
-Resulting transcript: plain text without timestamps (Whisper API limitation in standard mode; use `response_format=verbose_json` to get word-level timestamps if needed for chapter alignment).
+Transcript kết quả: text thuần không có timestamp (giới hạn của Whisper API ở chế độ chuẩn; dùng `response_format=verbose_json` để có timestamp ở mức từ nếu cần để căn chỉnh chapter).
 
-### Step 4 — Parse VTT to structured transcript
+### Bước 4 — Parse VTT thành transcript có cấu trúc
 
-VTT format (typical YouTube auto-caption):
+Format VTT (auto-caption YouTube điển hình):
 ```
 WEBVTT
 
@@ -121,15 +121,15 @@ intro music plays
 welcome back to the channel today we
 ```
 
-Parser output: array of `{ start_ms, end_ms, text }` cues. Strip duplicate cues (YouTube auto-captions often repeat for visual rolling effect).
+Output parser: mảng các cue `{ start_ms, end_ms, text }`. Loại bỏ các cue trùng lặp (auto-caption YouTube thường lặp lại để tạo hiệu ứng cuộn trực quan).
 
-### Step 5 — Align with YouTube chapters
+### Bước 5 — Căn chỉnh với chapter YouTube
 
-If `metadata.chapters` array is non-empty, partition the cue array into chapter buckets (cue's `start_ms` falls in `[chapter.start, chapter.end)`).
+Nếu mảng `metadata.chapters` không rỗng, phân vùng mảng cue thành các bucket chapter (`start_ms` của cue nằm trong `[chapter.start, chapter.end)`).
 
-If no native chapters AND duration > 10 minutes, auto-detect chapters from VTT cue gaps (gap > 5 seconds of silence often = section break). Output 3-10 chapters max.
+Nếu không có native chapter VÀ duration > 10 phút, tự động phát hiện chapter từ khoảng trống cue VTT (gap > 5 giây im lặng thường = ngắt section). Output 3-10 chapter tối đa.
 
-### Step 6 — Compose raw_text
+### Bước 6 — Compose raw_text
 
 ```
 # <video_title>
@@ -156,18 +156,18 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ...
 ```
 
-The structured raw_text preserves chapter boundaries for downstream chunking (per `ingestion-sources.yaml` `chunking: structural_per_yt_chapter_else_token_1024`).
+raw_text có cấu trúc bảo toàn ranh giới chapter cho chunking downstream (theo `ingestion-sources.yaml` `chunking: structural_per_yt_chapter_else_token_1024`).
 
-### Step 7 — Slug generation
+### Bước 7 — Tạo slug
 
 - Slug base: `kebab-case(metadata.title)`
-- Cap at 60 chars
-- Append disambiguator: `<slug-base>-<video_id-first-6>` to handle title collisions across videos
-- Example: `make-it-stick-talk-by-roediger-a1b2c3`
+- Giới hạn ở 60 ký tự
+- Thêm disambiguator: `<slug-base>-<video_id-first-6>` để xử lý đụng độ title giữa các video
+- Ví dụ: `make-it-stick-talk-by-roediger-a1b2c3`
 
-### Step 8 — Compute source_hash
+### Bước 8 — Tính source_hash
 
-`source_hash = sha256(video_id + transcript_text)`. video_id ensures different videos with identical transcripts (unlikely but possible) get different hashes. Transcript content hash means re-running on the same video AFTER YouTube regenerates captions correctly identifies the new content.
+`source_hash = sha256(video_id + transcript_text)`. video_id đảm bảo các video khác nhau có transcript giống hệt (khó xảy ra nhưng có thể) sẽ có hash khác nhau. Hash nội dung transcript có nghĩa là chạy lại trên cùng video SAU KHI YouTube tái tạo caption sẽ xác định đúng nội dung mới.
 
 ## Outputs
 
@@ -185,7 +185,7 @@ The structured raw_text preserves chapter boundaries for downstream chunking (pe
     "duration_seconds": N,
     "transcript_method": "auto_captions" | "manual_subs" | "whisper_fallback"
   },
-  "pages_or_size_metric": "<duration_seconds>",  // used by chapter-splitter if very long
+  "pages_or_size_metric": "<duration_seconds>",  // được chapter-splitter dùng nếu rất dài
   "suggested_slug": "<title-slug-<id6>>",
   "suggested_entity_type": "episode",
   "chapters_detected": N
@@ -194,62 +194,61 @@ The structured raw_text preserves chapter boundaries for downstream chunking (pe
 
 ## HITL
 
-- Tier A normally
-- Tier B if:
-  - whisper fallback would fire (cost > $0.30 for video > 50 min)
-  - duration > 2 hours (cost concern + chunker pressure)
-  - description contains URL spam or suspicious affiliate links (extract carefully)
+- Tier A bình thường
+- Tier B nếu:
+  - whisper fallback sẽ chạy (chi phí > $0.30 cho video > 50 phút)
+  - duration > 2 giờ (lo ngại chi phí + áp lực chunker)
+  - description chứa URL spam hoặc affiliate link đáng ngờ (trích xuất cẩn thận)
 
-## Failure modes
+## Các chế độ thất bại
 
-| Symptom | Response |
+| Triệu chứng | Phản ứng |
 |---|---|
-| yt-dlp not installed | Bail with install instructions (`brew install yt-dlp` or `pip install yt-dlp`) |
-| Video private/removed/age-gated | Bail with clear error + video URL |
-| Region-blocked | Bail; suggest manual transcript download |
-| No transcript + flag off | Bail with workaround instructions (Step 3) |
-| No transcript + flag on + no key | Bail "OPENAI_API_KEY missing for whisper fallback" |
-| Whisper API rate limit | Retry with exponential backoff (1m → 5m → 30m); after 3 fails, surface to founder |
-| VTT parse error (malformed cues) | Log warning; continue with best-effort cue parsing |
-| Playlist URL | Bail with refuse-playlist error + single-video workaround |
+| yt-dlp chưa cài | Dừng lại với hướng dẫn cài (`brew install yt-dlp` hoặc `pip install yt-dlp`) |
+| Video riêng tư/đã xóa/giới hạn tuổi | Dừng lại với lỗi rõ ràng + URL video |
+| Bị chặn khu vực | Dừng lại; gợi ý tải transcript thủ công |
+| Không có transcript + cờ tắt | Dừng lại với hướng dẫn giải pháp (Bước 3) |
+| Không có transcript + cờ bật + không có key | Dừng lại "OPENAI_API_KEY missing for whisper fallback" |
+| Whisper API rate limit | Retry với exponential backoff (1m → 5m → 30m); sau 3 lần fail, đưa lên founder |
+| Lỗi parse VTT (cue bị lỗi) | Log cảnh báo; tiếp tục với parse cue cố gắng tốt nhất |
+| URL playlist | Dừng lại với lỗi refuse-playlist + giải pháp single-video |
 
-## Cost estimate
+## Ước tính chi phí
 
-| Path | Per 1 hour video |
+| Đường dẫn | Mỗi video 1 giờ |
 |---|---|
-| Auto-captions (most common) | $0 fetch + $0.005 embed = **$0.005** |
-| Manual subs (some uploaders) | $0 fetch + $0.005 embed = **$0.005** |
-| Whisper fallback (when captions missing) | $0.006/min × 60 + $0.005 embed = **$0.36** |
-| + LLM-fallback link extraction (Sprint 4 flag) | +$0.05/chapter on top |
+| Auto-captions (phổ biến nhất) | $0 fetch + $0.005 embed = **$0.005** |
+| Manual sub (một số uploader) | $0 fetch + $0.005 embed = **$0.005** |
+| Whisper fallback (khi caption thiếu) | $0.006/phút × 60 + $0.005 embed = **$0.36** |
+| + Trích xuất link LLM-fallback (cờ Sprint 4) | +$0.05/chapter thêm vào |
 
-Per-task-kind cap from SOP-INGEST-001 README: `wiki-ingest-youtube` = $0.30 / invocation. Whisper fallback for > 50 min videos breaches this → Tier B founder confirm.
+Cap per-task-kind từ README SOP-INGEST-001: `wiki-ingest-youtube` = $0.30 / lần gọi. Whisper fallback cho video > 50 phút vượt cap này → Tier B founder xác nhận.
 
-## Chapter-split integration (v2.0)
+## Tích hợp Chapter-split (v2.0)
 
-For videos > 100 cues OR `--split` flag:
-- This adapter returns standard outputs (raw_text with chapter-headed sections, `pages_or_size_metric=duration_seconds`).
-- `wiki-sync/ingest` Step 5 dispatches `wiki-sync/chapter-splitter` in `toc` mode (uses YouTube native chapters from this adapter's `chapters_detected`).
-- If native chapters absent, splitter falls back to `count=N` (N derived from duration; ~10 minutes per chapter).
-- Each chapter becomes own `ingestion_jobs` row with `parent_job_id` (migration 00030 Block C).
+Cho video > 100 cue HOẶC cờ `--split`:
+- Adapter này trả về output chuẩn (raw_text với section có heading chapter, `pages_or_size_metric=duration_seconds`).
+- `wiki-sync/ingest` Bước 5 điều phối `wiki-sync/chapter-splitter` ở chế độ `toc` (dùng native chapter của YouTube từ `chapters_detected` của adapter này).
+- Nếu native chapter vắng mặt, splitter fallback sang `count=N` (N được dẫn xuất từ duration; ~10 phút mỗi chapter).
+- Mỗi chapter trở thành row `ingestion_jobs` riêng với `parent_job_id` (migration 00030 Block C).
 
-## Sprint scope (this skill)
+## Phạm vi sprint (skill này)
 
 Sprint 2 PR4 (v2.0.0):
-- yt-dlp metadata + transcript fetch (auto-captions + manual subs)
-- VTT parsing + chapter alignment (native + auto-detected)
-- Slug + source_hash conventions
-- All 8 steps documented in prose for Claude-walked execution
+- yt-dlp metadata + lấy transcript (auto-captions + manual sub)
+- Parse VTT + căn chỉnh chapter (native + tự động phát hiện)
+- Quy ước slug + source_hash
+- Tất cả 8 bước được tài liệu hóa dưới dạng prose để Claude thực thi
 
-Deferred to Sprint 4:
-- Whisper fallback wiring (currently prose-only; needs `wiki_sync_llm_fallback=true` + OPENAI_API_KEY + actual API integration)
-- Multi-language transcript handling beyond en+vi
-- Playlist support (v2.1 candidate)
+Hoãn lại đến Sprint 4:
+- Kết nối whisper fallback (hiện tại chỉ prose; cần `wiki_sync_llm_fallback=true` + OPENAI_API_KEY + tích hợp API thực tế)
+- Xử lý transcript đa ngôn ngữ ngoài en+vi
+- Hỗ trợ playlist (ứng viên v2.1)
 
-## Related
+## Liên quan
 
-- Parent: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` (dispatched per URL pattern in Step 1)
-- Tier 1 config: `knowledge/ingestion-sources.yaml` entry `youtube_video`
-- Feature flag: `wiki_sync_llm_fallback` in `knowledge/feature-flags.yaml`
-- Sibling adapter handling local VTT: `06-ai-ops/skills/wiki-sync/adapters/meeting-adapter/SKILL.md`
-- Chapter-split integration: `06-ai-ops/skills/wiki-sync/chapter-splitter/SKILL.md`
-
+- Cha: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` (được điều phối theo pattern URL trong Bước 1)
+- Cấu hình Tier 1: entry `youtube_video` của `knowledge/ingestion-sources.yaml`
+- Feature flag: `wiki_sync_llm_fallback` trong `knowledge/feature-flags.yaml`
+- Sibling adapter xử lý VTT local: `06-ai-ops/skills/wiki-sync/adapters/meeting-adapter/SKILL.md`
+- Tích hợp Chapter-split: `06-ai-ops/skills/wiki-sync/chapter-splitter/SKILL.md`
