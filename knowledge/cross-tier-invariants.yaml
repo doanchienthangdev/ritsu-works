@@ -296,3 +296,52 @@ invariants:
       capability_phase_events — added in migration 00011, RLS forgotten until
       00020 caught it manually. With this invariant active, any future RLS
       gap would be reported within 24h.
+
+  # === docs-engine invariants (Tier 1 ↔ docs/ MDX) ===
+  # Status `deferred` until Sprint 1 lands the walker + validator. Once the
+  # docs-engine `check` skill ships, flip to `live`. See capability `docs-engine`
+  # in knowledge/capability-registry.yaml.
+  - id: docs-page-has-source
+    description: "Every MDX page in docs/content/ with source_path frontmatter must have a matching live source file in the codebase. Surfaces orphan pages."
+    kind: exists
+    layer: L1
+    status: deferred
+    source:
+      tier: 1
+      ref: docs/content/
+      query: "frontmatter:source_path for *.mdx"
+    target:
+      tier: 1
+      ref: "<source_path values>"
+      query: "fs:exists"
+    severity: critical
+    hitl_tier: B
+    fix_strategy: open_pr
+    notes: |
+      docs-engine v1.0 capability. Activates when Sprint 1 PR-3 lands the
+      walker + scripts/validate-docs-coverage.cjs. Auto-fix: /docs sync
+      regenerates MDX from source; if source deleted, /docs sync removes
+      orphan MDX. Reports into docs_drift_count KPI.
+
+  - id: docs-source-has-page
+    description: "Every operating skill/agent/hook/command/SOP must have an MDX page in docs/content/. Surfaces missing pages."
+    kind: subset
+    layer: L2
+    status: deferred
+    source:
+      tier: 1
+      ref: "<docs-engine walker scope>"
+      query: "fs:walk + matches walker scope"
+    target:
+      tier: 1
+      ref: docs/content/
+      query: "rg '^source_path:' for each source file"
+    severity: warn
+    hitl_tier: A
+    fix_strategy: open_pr
+    notes: |
+      docs-engine v1.0 capability. Activates with Sprint 1. Reports into
+      docs_drift_count KPI. Currently deferred until the walker validator
+      lands; once active, this invariant is the source of truth for
+      whether docs are in sync with the codebase. Auto-fix flow: /docs sync
+      generates the missing MDX and opens a PR (per `open_pr` strategy).

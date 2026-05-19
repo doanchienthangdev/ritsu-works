@@ -3,9 +3,9 @@
 // Re-run with: pnpm wave2:bundle-invariants
 //
 // Source version: 1.0.0
-// Invariant count: 14
-// By layer: L1=3 L2=7 L3=4
-// Generated at: 2026-05-14T08:40:21.189Z
+// Invariant count: 16
+// By layer: L1=4 L2=8 L3=4
+// Generated at: 2026-05-19T01:33:08.531Z
 
 import type { Invariant } from "./invariants.ts";
 
@@ -285,6 +285,48 @@ export const ALL_INVARIANTS: Invariant[] = [
     "hitl_tier": "B",
     "fix_strategy": "add_migration",
     "notes": "Catches the failure pattern seen with capability_runs and\ncapability_phase_events — added in migration 00011, RLS forgotten until\n00020 caught it manually. With this invariant active, any future RLS\ngap would be reported within 24h.\n"
+  },
+  {
+    "id": "docs-page-has-source",
+    "description": "Every MDX page in docs/content/ with source_path frontmatter must have a matching live source file in the codebase. Surfaces orphan pages.",
+    "kind": "exists",
+    "layer": "L1",
+    "status": "deferred",
+    "source": {
+      "tier": 1,
+      "ref": "docs/content/",
+      "query": "frontmatter:source_path for *.mdx"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "<source_path values>",
+      "query": "fs:exists"
+    },
+    "severity": "critical",
+    "hitl_tier": "B",
+    "fix_strategy": "open_pr",
+    "notes": "docs-engine v1.0 capability. Activates when Sprint 1 PR-3 lands the\nwalker + scripts/validate-docs-coverage.cjs. Auto-fix: /docs sync\nregenerates MDX from source; if source deleted, /docs sync removes\norphan MDX. Reports into docs_drift_count KPI.\n"
+  },
+  {
+    "id": "docs-source-has-page",
+    "description": "Every operating skill/agent/hook/command/SOP must have an MDX page in docs/content/. Surfaces missing pages.",
+    "kind": "subset",
+    "layer": "L2",
+    "status": "deferred",
+    "source": {
+      "tier": 1,
+      "ref": "<docs-engine walker scope>",
+      "query": "fs:walk + matches walker scope"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "docs/content/",
+      "query": "rg '^source_path:' for each source file"
+    },
+    "severity": "warn",
+    "hitl_tier": "A",
+    "fix_strategy": "open_pr",
+    "notes": "docs-engine v1.0 capability. Activates with Sprint 1. Reports into\ndocs_drift_count KPI. Currently deferred until the walker validator\nlands; once active, this invariant is the source of truth for\nwhether docs are in sync with the codebase. Auto-fix flow: /docs sync\ngenerates the missing MDX and opens a PR (per `open_pr` strategy).\n"
   }
 ] as unknown as Invariant[];
 

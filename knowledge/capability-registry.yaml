@@ -202,6 +202,47 @@ capabilities:
       legacy top-level packages into a namespace. Triggered by founder
       observing top-level wiki/ name conflicts after raw/5-star/ ingest.
 
+  - id: docs-engine
+    name: "Live Documentation Engine (Fumadocs + Vercel, Vietnamese-first)"
+    description: |
+      Live operator + AI runtime context bundle. docs/ folder ở repo root
+      (Next.js subproject + Fumadocs MDX) auto-deploys lên Vercel Hobby.
+      /docs command (mirrors /wiki) drives build/sync/check/publish/nav/update
+      lifecycle. Walker + 9 adapters render Tier 1 + .claude/ runtime
+      (~215 sources: commands, skills, agents, hooks, charter, governance,
+      pillar READMEs, SOPs, knowledge yamls) into browsable MDX. Vietnamese
+      content primary; English code identifiers + frontmatter keys.
+      3-layer fail-loud secret redactor (walker-exclude + MDX regex scrub +
+      CI gate). `<!-- generated-by: docs-engine vN -->` idempotency marker
+      + 3-way diff on regen (CTO Phase 2 mod). `tutorial_last_verified_at`
+      frontmatter + monthly verification (CPO Phase 4 mod).
+      Selected option: B + 2 CPO mods (5 tutorials, not 8-12).
+    version: "1.0.0"
+    state: proposed
+    state_since: 2026-05-19
+    proposed_at: 2026-05-19
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [1, 2, 5, 7, 8, 9, 10, 11, 13, 15, 17, 19, 20]
+    spec_path: wiki/capabilities/docs-engine/spec.md   # Promoted at Phase 8
+    sprint_plan: ".archives/cla/docs-engine/sprint-plan.md (local-only working)"
+    cost_bucket: ai-ops-docs
+    estimated_cost_setup_usd: 13.00         # midpoint of $8-18 range
+    estimated_cost_recurring_usd: 7.50      # midpoint of $3-12/mo range
+    estimated_founder_hours: 20             # midpoint of 15-25h range
+    estimated_completion: 2026-06-16        # 3-4 weeks from proposal
+    target_kpis: [docs_drift_count]
+    target_value: 0                          # 0 drift sustained > 24h
+    notes: |
+      ops.capability_runs id 41143b9b-5b9c-4c73-9468-1c1b64cc9694.
+      Tier C decision approved 2026-05-19 (ops.decisions slug
+      docs-engine-v1-architecture, id 34c9ae53-fec1-4862-bc6c-d0dacad261be).
+      CTO verdict: NITS → APPROVE (3 schema fixes applied).
+      Muse panel high-stakes-decision-panel: 5/5 APPROVE (cynic contingency:
+      Sprint 2 slip-to-3-tutorials honesty; time-honest contingency:
+      3h/tutorial time-box). Both contingencies adopted in sprint plan.
+      Sprint plan approved 2026-05-19. Phase 7 implementation begins
+      with this PR (Sprint 1 PR-1 — Tier 1 yaml additions).
+
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition
   #   name: "Daily Customer Acquisition Pipeline"
@@ -237,7 +278,11 @@ cost_buckets:
   ai-ops-knowledge:
     description: "Knowledge engine — wiki sync, RAG queries, ref-ingestion, audit. Activates dormant Bài #14 / #18 infrastructure."
     capabilities: [wiki-sync-from-refs]
-  
+
+  ai-ops-docs:
+    description: "Live docs site — Fumadocs scaffolder, walker + 9 adapters, drift detector, secret redactor, Vercel deploy. docs-engine capability."
+    capabilities: [docs-engine]
+
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
   #   capabilities: [daily-customer-acquisition, ...]
