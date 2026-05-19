@@ -1,0 +1,301 @@
+---
+title: "Chương 9 — Bài #6: Identity & Interface"
+description: "Chương 9 — Bài #6: Identity & Interface"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/09-bai-6-identity-interface.md
+source_hash: 4d8a3ebfa116ac454e1271d479c02600b3ab7d8a170c2f34c103fab8778593c0
+generated_at: '2026-05-19T16:57:54.896Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 4d8a3ebfa116ac454e1271d479c02600b3ab7d8a170c2f34c103fab8778593c0
+translated_at: '2026-05-19T16:57:54.896Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 9
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 9 — Bài #6: Identity & Interface
+
+> *"EU AI Act Article 50 (effective Aug 2026) mandates AI disclosure for chatbots. Vi phạm = up to 7% global revenue fine. Identity của AI workforce không phải UX preference — là legal infrastructure."*
+
+## 9.1 Failure mode đặc thù
+
+Bài #6 phải giải 6 failure mode:
+
+1. **Persona drift.** Mỗi agent có persona khác nhau (Hana cho marketing, Linh cho support). Customer tương tác với cả 2 thấy 2 personality không nhất quán.
+2. **Channel sprawl.** Founder vision Telegram + Slack + dashboard. Reality: 1 founder cần concentrate, không thể split attention 5 channels.
+3. **Legal/compliance risk.** EU AI Act, FTC guidelines, California SB 1001 — tất cả mandate AI disclosure cho customer-facing AI.
+4. **Audit nightmare.** Mọi agent commit qua một GitHub token "ritsu-ops" → không attribute "ai đã change governance/HITL.md tuần trước" cho specific agent.
+5. **Hard-to-reverse decisions.** Đặt persona "Hana" rồi sau đổi tên = ảnh hưởng customer relationships đã build. Phải đúng từ đầu.
+6. **Identity is foundation.** Sai ở đây compound khi tích hợp với nhiều external system — GitHub, Email, Slack, Anthropic API.
+
+## 9.2 4 sub-domain interconnect
+
+Bài #6 đặc biệt vì 4 sub-domain phải resolve **cùng nhau**:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ (A) Workforce Identity                                       │
+│     What does each agent call itself internally?             │
+│     → A3: Internal role-based, external "Ritsu Assistant"    │
+└──────────────────────────────────────────────────────────────┘
+                              │
+┌──────────────────────────────────────────────────────────────┐
+│ (B) Founder Interface                                        │
+│     How does founder control the workforce?                  │
+│     → B4: Telegram + GitHub PR; defer dashboard to v1.x      │
+└──────────────────────────────────────────────────────────────┘
+                              │
+┌──────────────────────────────────────────────────────────────┐
+│ (C) External Identity                                        │
+│     How does customer see Ritsu's AI?                        │
+│     → C2: Regulatory-aligned disclosure (EU AI Act Article 50)│
+└──────────────────────────────────────────────────────────────┘
+                              │
+┌──────────────────────────────────────────────────────────────┐
+│ (D) Auth & Attribution                                       │
+│     How are agent actions attributed across systems?         │
+│     → D3: Hybrid per-role for external, shared for internal  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Combination = A3 + B4 + C2 + D3.** Mỗi sub-domain có fail mode riêng, nhưng resolve riêng = drift. Resolve cùng nhau = coherent system.
+
+## 9.3 Sub-domain A — Workforce Identity
+
+**Decision A3: Internal role-based, external unified "Ritsu Assistant".**
+
+```
+INTERNAL (founder + agents)
+  ┌──────────────┐
+  │ gps          │
+  │ growth-orch. │
+  │ support-     │  ← role slugs, no human personas
+  │   agent      │
+  │ etc.         │
+  └──────────────┘
+
+EXTERNAL (customers)
+  ┌──────────────────────────┐
+  │   "Ritsu Assistant"      │  ← single unified persona
+  │   (an AI system)         │
+  └──────────────────────────┘
+```
+
+**Tại sao no human personas (Hana, Linh, Minh):**
+
+1. **Persona bias risk.** Research (Nojitter, Jan 2026) documents how named personas embed perception bias. Users defer to or discount agents based on persona cues unrelated to actual capability.
+2. **Honest by default.** "growth-orchestrator" là role slug rõ ràng. "Hana" implies a person, requiring explicit disclosure to correct.
+3. **Maintenance overhead.** Personas require voice tuning, persona docs, consistency enforcement. Role slugs require none.
+
+**Tại sao "Ritsu Assistant" thay vì role slugs externally:**
+
+- Customer không cần biết "growth-orchestrator handled this email vs support-agent".
+- Internal role differentiation là implementation detail, không phải brand experience.
+- Single voice external = consistent brand.
+
+## 9.4 Sub-domain B — Founder Interface
+
+**Decision B4: Telegram + GitHub PR cho v1.0; defer dashboard to v1.x.**
+
+Notification policy by tier:
+
+| Tier | Channel | Push priority | Sound |
+|---|---|---|---|
+| A (autonomous) | log only, no notify | n/a | n/a |
+| B (notify-after) | Telegram | normal | none |
+| C (approve-before) | Telegram inline buttons | high | default |
+| D-Std (override) | Telegram + push | high | alert |
+| D-MAX | Telegram + GitHub PR comment | critical | alert |
+| Security alerts | Telegram + GitHub issue | critical | alert |
+
+**Channels NOT used at v1.0:**
+
+- Slack (workforce uses internal Slack only post-v1.0 when team grows)
+- Email-to-founder (founder reads enough customer email)
+- SMS (Telegram covers mobile)
+- Voice/phone (out of scope)
+- Discord (out of scope)
+- Mobile app for workforce control (defer; Telegram bot fills role)
+
+**Tại sao defer dashboard:** Bài #6 đã commit Telegram. Adding Web dashboard now = scope creep. ops.tasks + task-status skill (Bài #5) đủ cho founder query progress qua Telegram. Supabase dashboard UI là escape hatch cho power-user moments.
+
+Revisit when:
+- Ritsu hires first operator beyond founder (multi-user UI needed)
+- Telegram message volume becomes overwhelming (> 50 actionable items/day)
+
+## 9.5 Sub-domain C — External-Facing Identity
+
+**Decision C2: Regulatory-aligned disclosure.**
+
+Hard requirements (legal, không phải preference):
+
+- **EU AI Act Article 50** (effective 2 August 2026) — chatbot phải inform user là interacting với AI
+- **California SB 1001** — disclosure for bots with commercial intent
+- **FTC guidelines** — AI persona disclosure required when material to consumer decisions
+- **Vietnam** — chưa có hard requirement nhưng draft AI law expected (Ministry of Information and Communications)
+
+→ Tất cả chung 1 message: **upfront AI disclosure for customer-facing AI = mandatory**.
+
+### 4 disclosure mechanics
+
+#### 1. First-contact disclosure (mandatory)
+
+Email first reply:
+```
+Hi {name},
+
+I'm Ritsu Assistant — an AI system that helps with {topic}.
+{Body of reply.}
+
+If you'd prefer a human, just reply with "human" and one of
+our team will follow up.
+
+Best,
+Ritsu Assistant
+support@ritsu.ai
+```
+
+Vietnamese variant:
+```
+Chào {tên},
+
+Mình là Ritsu Assistant — một hệ thống AI hỗ trợ {chủ đề}.
+{Nội dung trả lời.}
+
+Nếu bạn muốn nói chuyện với người thật, trả lời "human" để
+mình chuyển cho đội của Ritsu.
+
+— Ritsu Assistant
+support@ritsu.ai
+```
+
+#### 2. Persistent disclosure (every email)
+
+Footer:
+```
+—
+Sent by Ritsu Assistant — an AI system.
+Reply STOP to opt out · Contact a human at help@ritsu.ai
+```
+
+#### 3. On-request disclosure (mandatory affirmative)
+
+Khi user hỏi "are you AI / human / bot / real?", agent MUST respond với explicit confirmation. Hardcoded; never deflect or roleplay-deny.
+
+```
+User: "Wait — are you a real person?"
+Agent: "I'm an AI system — Ritsu Assistant. I can help with most
+       things, but if you'd prefer a human, reply 'human' and we'll
+       route you to our team."
+```
+
+Enforced by `ai-disclosure-check` skill + `pre-tool-customer-message` hook.
+
+#### 4. Escalation to human (mandatory available)
+
+Every customer-facing AI interaction surfaces path to human:
+- Email: footer line "Contact a human at help@ritsu.ai"
+- Chat: button or text "Talk to human"
+- Auto-escalation: trigger phrases ("speak to a person", "human please") → immediate route to founder via Telegram
+
+## 9.6 Sub-domain D — Auth & Attribution
+
+**Decision D3: Hybrid per-role for external attribution systems; shared for internal.**
+
+System categorization:
+
+| System | Category | Identity strategy |
+|---|---|---|
+| GitHub (commits, PRs) | External-attribution | Per role: `ritsu-{role}-bot` accounts |
+| Email send | External-attribution | Per role: `{role}@ritsu.ai` addresses |
+| Slack (when activated) | External-attribution | Per role: distinct bots, same workspace |
+| Stripe | Founder-only | No agent identity |
+| Supabase ops | Internal | Shared service key, RLS-restricted |
+| Supabase product | Internal | Single key for `etl-runner` only |
+| Telegram (founder bot) | Internal abstraction | Single bot |
+| Internal logs | Internal | `ops.agent_runs.agent_role` canonical |
+| Anthropic API | Internal-attribution | Per-role API keys |
+
+**Identity naming conventions:**
+
+- Email addresses: `{role-slug}@ritsu.ai` (gps@, support@, growth@)
+- GitHub usernames: `ritsu-{role-slug}-bot` (ritsu-gps-bot, ritsu-support-bot)
+- Anthropic keys: `ANTHROPIC_{ROLE}_KEY`
+- All bots have profile: "AI agent operating as part of Ritsu workforce — see ritsu.ai/transparency"
+
+**Subtle but important constraint:** GitHub commits attributed to `ritsu-support-bot`, but email signature reads "Ritsu Assistant". Role attribution exists for audit; customer sees unified persona.
+
+This works because:
+- Audit attribution lives in `ops.agent_runs.agent_role`, not customer-visible headers
+- The "from" address (`support@ritsu.ai`) functionally tied to support-agent, but display name is "Ritsu Assistant"
+- Consistent with how human-staffed support works: customer sees brand, internal records show specific staff
+
+## 9.7 Outer Harness deliverables
+
+8 file built cho Bài #6 (lớn nhất trong 7 bài):
+
+1. **`knowledge/identity-architecture.md`** — canonical 4-sub-domain spec
+2. **`00-charter/brand_voice.md`** — voice guide internal + external + bilingual EN+VI
+3. **`00-charter/transparency.md`** — public-facing transparency policy (source for ritsu.ai/transparency)
+4. **`governance/IDENTITY.md`** — per-role per-system identity mapping
+5. **Update `governance/SECRETS.md`** — added per-role identity secrets section
+6. **`05-ai-ops/skills/ai-disclosure-check/SKILL.md`** — proactive disclosure verification
+7. **`.claude/hooks/pre-tool-customer-message.md`** — runtime disclosure enforcement
+8. **`_build/notes/problem-6-identity-interface.md`** — brainstorm summary
+
+### `ai-disclosure-check` skill
+
+Invoked before any customer-facing send. Checks:
+
+- **Check A** (first-contact disclosure) — phrase "Ritsu Assistant — an AI system" within first 200 chars
+- **Check B** (signature) — footer with disclosure + escalation path
+- **Check C** (on-request) — if user asked identity question, response explicitly confirms AI
+- **Check D** (escalation path) — message includes path to human
+- **Check E** (no human impersonation) — scan for "I personally feel", "When I was a student", etc.
+
+Returns `compliant: true | false` + specific `issues` + `suggested_fix` for each.
+
+### `pre-tool-customer-message` hook
+
+Runtime enforcement. Mirrors skill's checks but always fires (even if agent forgot to invoke skill).
+
+Decision logic:
+- Hard violations (identity question dodge, human impersonation) → `block` immediately, alert security
+- Soft violations (missing disclosure, missing signature) → `escalate` to founder for review
+- Pass → `allow`
+
+Composes với `pre-tool-publish` hook (Bài #2) — both must pass.
+
+## 9.8 Anti-patterns Bài #6
+
+- **"Let's give support agent a friendly name like Hana for marketing copy."** No — bias risk + persona drift. If marketing wants persona, that's a sub-domain A change via PR with full impact analysis.
+- **"Disclosure is implied — customers know AI exists in 2026."** No — EU AI Act mandates explicit disclosure. Implication ≠ compliance.
+- **"Use one GitHub token for all bots, attribute via commit message."** No — commit message attribution is post-hoc and tamperable. Per-bot accounts upfront and immutable.
+- **"Add Slack notifications now, founder will use whatever they want."** No — channel sprawl. Telegram + GitHub PR for v1.0.
+- **"Build the dashboard now, will be useful eventually."** No — defer. Build when need is concrete.
+- **"Customer-facing email shows `support-agent` as sender."** No — display name is "Ritsu Assistant". Internal attribution preserved separately.
+
+## 9.9 Tổng kết Bài #6
+
+- **6 failure mode**: persona drift, channel sprawl, legal risk, audit nightmare, hard-to-reverse, foundation risk
+- **4 sub-domain decision**: A3 + B4 + C2 + D3
+- **Legal anchor**: EU AI Act Article 50 (Aug 2026) là hard requirement
+- **8 deliverables** (largest set among 7 bài)
+- **Per-role identity** for GitHub/Email/Anthropic API; **shared** for internal Supabase
+- **Bilingual brand voice** from day 1 (EN + VI)
+- **Skill + hook defense in depth** cho disclosure compliance
+
+Sang Chương 10 (Bài #7 — Economic Unit) — chương cuối của Phần III.
+
+---
+
+**Tham khảo:**
+- EU AI Act Article 50: https://artificialintelligenceact.eu/article/50/
+- FTC AI persona disclosure (2025): https://www.influencers-time.com/ftc-guidelines-for-disclosing-ai-personas-in-2025-explained/
+- AI persona bias research (Nojitter): https://www.nojitter.com/ai-automation/hidden-bias-in-ai-agent-personas
+- Non-human identity management: https://www.oasis.security/blog/non-human-identity-management
+- Ritsu repo: `knowledge/identity-architecture.md`, `governance/IDENTITY.md`, `00-charter/brand_voice.md`, `00-charter/transparency.md`
+- Brainstorm note: `_build/notes/problem-6-identity-interface.md`

@@ -1,0 +1,284 @@
+---
+title: "Chương 7 — Bài #4: Memory & Learning Loop"
+description: "Chương 7 — Bài #4: Memory & Learning Loop"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/07-bai-4-memory-learning.md
+source_hash: 25a3675ca0aa66dc01fb9856ff497d172acdedd8822b9792ae715ab53a128b57
+generated_at: '2026-05-19T16:57:54.893Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 25a3675ca0aa66dc01fb9856ff497d172acdedd8822b9792ae715ab53a128b57
+translated_at: '2026-05-19T16:57:54.893Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 7
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 7 — Bài #4: Memory & Learning Loop
+
+> *"Sau 6 tháng vận hành, AI workforce có học được gì không? Hay lặp lại cùng mistakes mỗi tuần?"*
+
+## 7.1 Failure mode đặc thù
+
+6 failure mode của Bài #4:
+
+1. **No improvement over time.** Founder correct cùng error 50 lần. Agent không biết. Tháng sau lặp lại.
+2. **Context drift between sessions.** Mỗi session bắt đầu từ scratch. Agent không nhớ "bài học từ tuần trước".
+3. **Lossy promotion.** Insight có giá trị nhưng không được capture vào canonical knowledge. Sau 6 tháng, tri thức tích lũy bị mất.
+4. **False memory.** Memory tool API có thể bị poisoned (prompt injection), agent "nhớ" thứ chưa từng xảy ra.
+5. **Cross-role pollution.** Memory của `support-agent` rò rỉ vào `growth-orchestrator`. Mỗi role nên học từ kinh nghiệm CỦA NÓ.
+6. **No correction mechanism.** Founder edit output của agent — edit này không được capture là "negative example for next time".
+
+## 7.2 Critical reversal trong brainstorm
+
+Đây là bài có **assistant reversal** lớn nhất trong Phase A. Initial recommendation: **Strategy C** (memory tool API enabled cho GPS only).
+
+Sau khi đào sâu Anthropic memory tool documentation và Cowork incident (Jan 2026 prompt injection in memory tool), I reversed to **Strategy E** (no memory tool API at v1.0).
+
+Lesson: assistant willing to reverse own initial recommendation when reasoning deepens. Đây là pattern lặp lại trong Phase A — Bài #4, #5, #7 đều có moments where founder push back hoặc deeper research changed initial recommendation.
+
+## 7.3 4 loại memory
+
+Memory không phải single thing. **4 loại** với storage và mutation rules khác nhau:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ DECLARATIVE memory                                              │
+│   What is true (facts about world, brand, customer base)        │
+│   Storage: Tier 1 git (00-charter/, governance/, knowledge/)    │
+│   Mutation: PR with founder approval (Tier B/C)                 │
+│   Examples: "Our refund policy", "Brand voice guide"            │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ EPISODIC memory                                                 │
+│   What HAS happened (per-event log)                             │
+│   Storage: Tier 2 — ops.agent_runs (append-only)                │
+│   Mutation: write at run completion; never edit                 │
+│   Examples: "On 2026-04-15, support-agent replied ticket #42    │
+│             using approach X, founder approved, took 12 min"    │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ PROCEDURAL memory                                               │
+│   How to do things                                              │
+│   Storage: Tier 1 git — 05-ai-ops/skills/<skill>/SKILL.md      │
+│   Mutation: PR with founder approval (Tier B/C)                 │
+│   Examples: "How to write a blog post", "Cost report procedure" │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ SEMANTIC memory                                                 │
+│   Loose informal knowledge                                      │
+│   Storage: Workspace plane — wiki/                              │
+│   Mutation: anyone can add (low ceremony)                       │
+│   Promotion: wiki → Tier 1 PR when mature                       │
+│   Examples: "Customer X tends to ask about edge case Y"         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Quy tắc:** mỗi piece of knowledge có exactly ONE memory type. No "hybrid".
+
+If something seems both declarative and episodic, split: declarative spec ở Tier 1, episodic occurrences ở `ops.agent_runs`.
+
+## 7.4 Strategy E — Episodic-first
+
+**Strategy E** (chọn) cốt lõi:
+
+1. **Episodic memory là canonical học liệu.** Mỗi agent run logs to `ops.agent_runs` với enough info để recall later.
+2. **Recall qua SQL skill, không qua memory tool API.** Skill `episodic-recall` queries `ops.agent_runs WHERE role = X AND action_name = Y ORDER BY ts DESC LIMIT N`.
+3. **No memory tool API at v1.0** cho mọi role. `memory_tool_enabled: false` trong every role's `memory_config`.
+4. **Promotion qua monthly review.** Skill `monthly-learning-review` (cron monthly) finds patterns in `ops.corrections`, suggests promotions to procedural/declarative knowledge as PRs.
+
+### Tại sao no memory tool API
+
+Anthropic memory tool API allows agents to store/retrieve persistent memory across sessions. Powerful, but:
+
+- **Prompt injection risk.** Agent's own memory can be poisoned. Cowork incident (Jan 2026) demonstrated this; attacker injected fake "facts" via memory tool.
+- **No cross-role isolation by default.** Memory pool shared, leak between roles.
+- **Hard to audit.** Memory entries opaque vs SQL rows traceable.
+- **PR governance bypass.** Agent self-modifying memory undermines Bài #1's "PR for canonical knowledge" rule.
+
+→ Defer memory tool to v1.x when:
+- Anthropic ships isolation primitives
+- Audit trails for memory entries available
+- Use case where SQL + skill insufficient becomes concrete
+
+For v1.0: `ops.agent_runs` SQL queries are primary recall mechanism. Battle-tested storage, append-only audit, queryable, founder can review.
+
+### Two new tables
+
+Two extensions to operational schema:
+
+```sql
+-- ops.run_summaries — short post-hoc summary per run
+CREATE TABLE ops.run_summaries (
+  run_id        uuid PRIMARY KEY REFERENCES ops.agent_runs(id),
+  summary       text NOT NULL,        -- ~150 tokens
+  outcome       text,                  -- success | failed | escalated
+  key_decisions jsonb,
+  ts            timestamptz NOT NULL DEFAULT now()
+);
+
+-- ops.corrections — founder rejections/edits
+CREATE TABLE ops.corrections (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  run_id       uuid REFERENCES ops.agent_runs(id),
+  agent_role   text NOT NULL,
+  task_kind    text,
+  what_was_proposed text,
+  what_was_corrected text,
+  reason       text,
+  severity     text,              -- nit | minor | major
+  ts           timestamptz NOT NULL DEFAULT now()
+);
+```
+
+**run_summaries** populated by skill `episodic-recall` consumes — it's faster to read 150-token summaries than re-read full agent_runs payloads.
+
+**corrections** populated when founder rejects/edits agent output. Captures "negative examples for future reference".
+
+## 7.5 Two new skills
+
+### `episodic-recall`
+
+Invoked at task start by roles with `memory_config.episodic_recall_enabled: true`.
+
+```
+Procedure:
+  1. Read agent's role + current task_kind
+  2. Query: SELECT run_id, summary, outcome FROM ops.run_summaries
+            JOIN ops.agent_runs USING(run_id)
+            WHERE agent_role = $role
+              AND action_name = $task_kind
+              AND ts >= now() - interval '$recall_window_days'
+            ORDER BY ts DESC LIMIT $recall_max_runs;
+  3. Format as ~200 tokens per recall row
+  4. Inject into agent's working context
+  5. Track recall_run_ids for cost attribution
+```
+
+Per-role config:
+- `recall_window_days`: 7-30 days typically
+- `recall_max_runs`: 3-7 typical (each ~200 tokens, total 600-1400 added)
+
+Cost: each recall ~200 tokens × 5 = ~1K tokens per task. Across 100 tasks/day = 100K tokens/day. Acceptable.
+
+### `monthly-learning-review`
+
+Cron monthly (or manual `/learning-review`).
+
+```
+Procedure:
+  1. Pull ops.corrections from last 30 days
+  2. Cluster corrections by (role, task_kind, reason pattern)
+  3. For each cluster size > 3:
+     - Surface as "candidate promotion to procedural/declarative knowledge"
+     - Generate proposed PR (skill update or charter update)
+  4. Founder reviews PRs in batch
+  5. Merge approved PRs
+  6. Patterns now baked into procedural knowledge (Tier 1)
+```
+
+Output to `_build/notes/monthly-review-{YYYY-MM}.md` + Telegram digest.
+
+## 7.6 Per-role `memory_config`
+
+Each role's role file has:
+
+```yaml
+memory_config:
+  memory_tool_enabled: false      # Strategy E — disabled at v1.0
+  episodic_recall_enabled: true   # use SQL recall
+  recall_window_days: 30
+  recall_max_runs: 5
+  emit_run_summary: true          # write to ops.run_summaries on completion
+  accept_corrections: true        # write to ops.corrections when edited
+```
+
+Different by role:
+- High-volume roles (`support-agent`): smaller recall_max_runs (3), shorter window (14d) — fast recent patterns
+- Heavy reasoners (`gps`): bigger recall (7), longer window (60d) — deeper reasoning context
+- Low-volume roles (`monthly-learning-review` itself): episodic_recall_enabled: false (only runs monthly, recall not useful)
+
+## 7.7 Sơ đồ — full memory loop
+
+```
+┌──────────────┐                    ┌─────────────────┐
+│ Agent run    │ ── run completed ─▶│ ops.agent_runs  │
+│ task A       │                    │ ops.run_summaries│
+└──────┬───────┘                    └────────┬────────┘
+       │                                     │
+       │  task B (same role)                 │
+       ▼                                     │
+┌──────────────┐                             │
+│ Agent run    │◀── episodic-recall ─────────┘
+│ task B       │       (queries past runs)
+│              │
+│              │ ── proposes output
+└──────┬───────┘
+       │
+       ▼
+   Founder reviews via Telegram/PR
+       │
+       ├── approves → run_summary written, no correction
+       │
+       └── edits/rejects ─────┐
+                              ▼
+                     ┌────────────────┐
+                     │ ops.corrections│
+                     └────────┬───────┘
+                              │
+                              ▼
+                  (monthly cron)
+                  monthly-learning-review
+                              │
+                              │ clusters corrections
+                              ▼
+                  Generates proposed PR
+                              │
+                              ▼
+                  Founder reviews PR
+                              │
+                  ┌───────────┴────────────┐
+                  ▼                        ▼
+              Approve → merge          Reject → drop
+                  │
+                  ▼
+              Pattern baked into:
+              - Skill (procedural)
+              - Charter (declarative)
+              - Brand voice
+              - etc.
+```
+
+## 7.8 Anti-patterns Bài #4
+
+- **"Enable memory tool API for GPS only."** Sounded reasonable; broke Strategy E. No exception at v1.0.
+- **"Memory tool of Claude Code IDE auto-enabled."** Drift outside PR governance is failure mode. Disable.
+- **"Skip run summaries — episodic queries can re-read full agent_runs."** Full agent_runs = 10K+ tokens. Summary = 150 tokens. 50x cheaper to recall.
+- **"Cross-role recall: support-agent learns from growth-orchestrator's runs."** Different work patterns. Per-role isolation default.
+- **"Auto-promote frequent corrections to skill update."** Founder must approve. Auto-promotion = drift outside PR.
+- **"Memory tool because 'agent should remember'."** Misses point: memory should LIVE somewhere. SQL does that. Memory tool is one mechanism among many; not always best.
+
+## 7.9 Tổng kết Bài #4
+
+- **6 failure mode**: no improvement, drift, lossy promotion, false memory, cross-role pollution, no correction mechanism
+- **4 memory types**: declarative (Tier 1), episodic (`ops.agent_runs`), procedural (skills), semantic (`wiki/`)
+- **Strategy E**: episodic-first, no memory tool API at v1.0
+- **2 new tables**: `ops.run_summaries`, `ops.corrections`
+- **2 new skills**: `episodic-recall`, `monthly-learning-review`
+- **Per-role `memory_config`**: granular control of memory behavior per role
+- **Promotion path**: corrections cluster → monthly review → founder PR → procedural/declarative
+
+Bài #4 là **how the workforce learns over time**. Without it, AI workforce stays at month-1 quality forever. Sang Chương 8 (Bài #5 — Multi-Agent Orchestration).
+
+---
+
+**Tham khảo:**
+- Anthropic memory tool API docs: https://platform.claude.com/docs/en/build-with-claude/memory-tool
+- Cowork incident (memory tool prompt injection, Jan 2026): https://cowork.ai/blog/incident-jan-2026
+- Ritsu repo: `knowledge/memory-architecture.md`, `05-ai-ops/skills/episodic-recall/`, `05-ai-ops/skills/monthly-learning-review/`
+- Brainstorm note: `_build/notes/problem-4-memory-learning-loop.md`

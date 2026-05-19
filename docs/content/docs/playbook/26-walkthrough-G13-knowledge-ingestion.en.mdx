@@ -1,0 +1,377 @@
+---
+title: "Chương 26 — Walkthrough G13: Knowledge Ingestion Pipeline (Bài #18 candidate)"
+description: "Chương 26 — Walkthrough G13: Knowledge Ingestion Pipeline (Bài #18 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/26-walkthrough-G13-knowledge-ingestion.md
+source_hash: 31bab7be6c91d51d278a1c1ce4494111408d3e950318ab20aaf4bdcc2918710d
+generated_at: '2026-05-19T16:57:54.942Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 31bab7be6c91d51d278a1c1ce4494111408d3e950318ab20aaf4bdcc2918710d
+translated_at: '2026-05-19T16:57:54.942Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 26
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 26 — Walkthrough G13: Knowledge Ingestion Pipeline (Bài #18 candidate)
+
+> *"Phase A có Bài #4 Memory + Bài #14 Knowledge Graph. Nhưng làm sao để external knowledge (articles, podcasts, books, GitHub repos, videos, founder voice notes) BƯỚC VÀO Ritsu? — Phase A defers to per-pillar Phase B. Không có pipeline standard."*
+
+## 26.1 Tình huống
+
+Founder TH12 anchor (issue catalog C10.1): *"Tôi đọc 5 articles/day, listen 2 podcasts/week, watch 3 YouTube videos/week, take 10 voice notes/week. Cộng thêm tài liệu khách hàng, transcripts. Hiện tại knowledge ingestion = manual → wiki/. Cần pipeline tự động."*
+
+5 scenarios:
+
+1. **Article ingestion** — URL fetch + Readability + chunk + embed + wiki page (Bài #14 format)
+2. **Podcast ingestion** — RSS + Whisper transcription + topic segmentation + speaker diarization
+3. **Book/PDF** — OCR + chapter segmentation + per-chapter notes
+4. **GitHub repo** — selective paths (README, docs/, SKILL.md)
+5. **Voice note** — Whisper + classify (idea/decision/observation/task) + auto-route
+
+**Founder expected:**
+- Single command/action ingest
+- Quality filters
+- Dedup
+- Source attribution preserved
+- Voice notes auto-classify + route
+- Pipeline observability + cost tracking
+
+**Khi sai:**
+- Manual copy-paste = bandwidth sink
+- Duplicate ingestion = vector index bloat, search noise
+- Lost source attribution = fact-checking broken
+- Voice notes lost in transcription queue = ideas forgotten
+- Low-quality content (clickbait) ingested = signal-to-noise drops
+
+## 26.2 Walk through Phase A + prior walkthroughs
+
+### Have
+- ✅ Bài #4 Memory (pgvector episodic recall, hybrid search)
+- ✅ Bài #1 4-tier (TIER3 = raw evidence)
+- ✅ Bài #14 knowledge graph (auto-link extraction từ pages — downstream)
+- ✅ Bài #11 events (ingestion = event source)
+- ✅ Bài #8 schedules (RSS polling)
+- ✅ Bài #5 + Minions (ingestion = deterministic-heavy)
+- ✅ Bài #17 multi-surface (voice via Telegram)
+
+### Phase A's defer = wrong
+
+Phase A: *"Ingestion pipeline = per-pillar Phase B. Manual paste-to-wiki suffices initially."*
+
+**Phase A.2 reveals:**
+- Founder daily content consumption requires automation
+- Voice notes time-sensitive
+- Per-pillar reinvention = drift
+
+### Don't have
+
+13 gaps — source registry, adapter pattern, quality filter, dedup, chunking strategy, source attribution, voice classification, observability, cost tracking, quality scoring, re-ingestion, content owner consent, auto-routing rules.
+
+## 26.3 Workaround vs proper extension
+
+### Workaround
+- Z1: Manual paste-to-wiki — bandwidth sink
+- Z2: 3rd-party (Reader, Mem.ai, Notion Web Clipper) — not integrated
+- Z3: Adapter pattern + Tier 1 source registry + pipeline observability — proper
+
+**Recommendation: Z3.**
+
+### Proper extension — Bài #18
+
+4 axes:
+
+#### Axis 1 — Source Registry + Adapter Pattern
+
+**IngestionAdapter interface:**
+
+```typescript
+export interface IngestionAdapter {
+  source_kind: string;
+  fetch(input: IngestInput): Promise<RawSource>;
+  normalize(raw: RawSource): Promise<NormalizedSource>;
+  assess_quality(normalized: NormalizedSource): Promise<QualityScore>;
+  chunk(normalized: NormalizedSource): Promise<Chunk[]>;
+  attribution(raw: RawSource): SourceAttribution;
+}
+```
+
+**Source registry (Tier 1):**
+
+```yaml
+# knowledge/ingestion-sources.yaml
+source_kinds:
+  - id: article
+    adapter: article-adapter
+    fetch_method: url_fetch + readability_extraction
+    chunking: token_512_with_overlap_64
+    quality_filters: [min-word-count-300, language-supported, not-paywall]
+    attribution_required: [url, author, publication, published_at]
+    
+  - id: podcast
+    adapter: podcast-adapter
+    fetch_method: rss_feed + audio_download + whisper_transcription
+    chunking: time_segment_60s_with_speaker_label
+    cost_estimate: $0.006/minute (Whisper)
+    quality_filters: [min-duration-300s]
+    
+  - id: voice_note
+    adapter: voice-note-adapter
+    fetch_method: telegram_voice_message + whisper_transcription
+    chunking: full_text_or_topic_split
+    classification_required: true  # idea | decision | observation | task
+    
+  # ... + book, repo, youtube_video, tweet_thread
+
+active_subscriptions:
+  - source_kind: podcast
+    name: "Lenny's Podcast"
+    feed_url: "https://feeds.transistor.fm/lennys-podcast"
+    poll_cadence: daily
+  - source_kind: article
+    name: "Stratechery"
+    feed_url: "https://stratechery.com/feed/"
+    poll_cadence: daily
+```
+
+#### Axis 2 — Pipeline Orchestration + Minions
+
+**Pipeline pattern:**
+
+```
+ritsu.knowledge.ingest_request event
+  ↓
+SOP-INGEST-001-knowledge-ingest
+  ↓
+Steps (deterministic-heavy → Minions queue):
+1. Fetch raw source
+2. Dedup check (URL hash + content hash + similarity)
+3. Quality assessment (filter low-value)
+4. Normalization
+5. Chunking
+6. Per-chunk parallel:
+   - Embed (pgvector)
+   - Topic classification
+   - Entity extraction
+7. Aggregate per-source:
+   - Generate summary (judgment → subagent)
+   - Generate slug
+8. Write wiki page (Bài #14 format)
+9. Auto-link extraction triggers (Bài #14)
+10. Emit ritsu.knowledge.ingested event
+11. Update ops.ingestion_jobs status
+```
+
+**SOP definition (Bài #9):**
+
+```yaml
+sop_id: SOP-INGEST-001-knowledge-ingest
+hitl_tier: tier_a  # automatic
+sla_minutes: 30
+trigger:
+  - event: ritsu.knowledge.ingest_request
+  - manual: founder-initiated CLI
+steps:
+  - fetch (minion)
+  - dedup-check (minion)
+  - quality-assess (minion)
+  - normalize (minion)
+  - chunk (minion)
+  - embed-and-extract (minion, parallelism 8)
+  - summarize (subagent)
+  - write-wiki-page (minion)
+  - emit-event
+```
+
+**Cost-aware:** Whisper + LLM logged to Bài #7 cost-bucket "knowledge-ingestion".
+
+#### Axis 3 — Voice Note Classification + Auto-Routing
+
+**voice-note-classify skill:**
+
+```yaml
+inputs:
+  - name: transcript
+    type: string
+outputs:
+  - classification: idea | decision_request | observation | task | mixed
+  - extracted_entities: array
+  - action_items: array
+  - routing: target + hitl + follow_up
+```
+
+**Routing rules (Tier 1):**
+
+```yaml
+# knowledge/ingestion-routing.yaml
+voice_note_routing:
+  idea:
+    target: wiki/raw-ideas/<date>-<slug>.md
+    follow_up: weekly_review_aggregation
+    
+  decision_request:
+    target: muse-panel  # Bài #15
+    hitl: tier_c
+    
+  observation:
+    target: wiki/observations/<date>-<slug>.md
+    auto_link: true
+    
+  task:
+    target: ops.tasks  # Bài #5
+    initial_state: pending
+    auto_assignee: founder
+    
+  mixed:
+    target: wiki/raw-mixed/<date>-<slug>.md
+    follow_up: founder_review_required
+```
+
+**Telegram integration:** voice messages → bot → ingest_request event → SOP → classify → route per declarative rules.
+
+#### Axis 4 — Observability + Quality + Lifecycle
+
+**Schema:**
+
+```sql
+CREATE TABLE ops.ingestion_jobs (
+  id              uuid PRIMARY KEY,
+  source_kind     text NOT NULL,
+  source_url      text,
+  source_hash     text,                  -- URL hash dedup
+  content_hash    text,                  -- content-level dedup
+  status          text NOT NULL,         -- 'queued' | 'fetching' | 'processing' | 'completed' | 'failed' | 'duplicate' | 'low_quality'
+  state_since     timestamptz NOT NULL,
+  resulting_slug  text,
+  whisper_cost_usd numeric,
+  llm_cost_usd     numeric,
+  total_cost_usd   numeric,
+  quality_score   numeric,
+  attribution     jsonb,
+  ingested_at     timestamptz,
+  last_refreshed_at timestamptz,
+  error_message   text
+);
+
+CREATE INDEX ON ops.ingestion_jobs (source_hash) WHERE source_hash IS NOT NULL;
+CREATE INDEX ON ops.ingestion_jobs (content_hash) WHERE content_hash IS NOT NULL;
+```
+
+**Dashboard pages (Bài #10):**
+- /operations/ingestion/jobs — recent jobs
+- /operations/ingestion/queue — currently processing
+- /operations/ingestion/cost — trends per source kind
+- /operations/ingestion/quality — quality distribution
+- /operations/ingestion/sources — active subscriptions health
+
+**Quality scoring (post-ingest, async):**
+- Based on retrieval frequency, founder feedback
+- Low-quality flagged for archival after 90 days unused
+
+**Re-ingestion:**
+- last_refreshed_at tracks
+- Weekly check active subscriptions
+- Slug preserved, compiled-truth updated, timeline appended
+
+## 26.4 New components (31)
+
+31 components — 2 Tier 1 registries + 7 adapters + 9 skills + SOP + table + 5 dashboards + 2 MCP tools + browser extension + email handler + 7 cross-bài-toán updates.
+
+**Largest set so far** — ingestion = upstream of entire knowledge layer.
+
+## 26.5 Bài #18 candidate
+
+**Bài #18 — Knowledge Ingestion Pipeline**
+
+**Question core:** External knowledge flows through unified pipeline với adapter pattern, dedup, quality filter, chunk, embed, extract entities, write wiki, emit events. Voice notes classify + auto-route. Pipeline observable, cost-tracked, refreshable.
+
+**Dependencies:** Bài #1, #4, #5, #6, #7, #8 DRAFT, #9 DRAFT, #11 DRAFT, #14 DRAFT, #15 DRAFT, #17 DRAFT
+
+## 26.6 Lessons captured
+
+1. **Ingestion = upstream of knowledge graph** (Bài #14).
+2. **Adapter pattern parallels surface adapter** (Bài #17).
+3. **Dedup essential** (3 layers: URL hash + content hash + similarity).
+4. **Voice notes = special category** (time-sensitive, classification + auto-routing).
+5. **Cost tracking critical** (Whisper $0.006/min × 100 min/week = $30+/month).
+6. **Quality filter prevents signal-to-noise drop.**
+7. **Chunking strategy per source kind** (podcast time-based, article token-based, book chapter-based).
+8. **Source attribution non-negotiable.**
+9. **Re-ingestion preserves slug, updates compiled-truth.**
+10. **Pipeline as SOP + Minions** (deterministic-heavy, parallel).
+11. **Active subscriptions = scheduled polling.**
+12. **Cross-bài-toán integration heaviest** (7 updates).
+
+## 26.7 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ18.1 | Re-ingestion frequency per kind? | After 3 months |
+| OQ18.2 | Vector sharding at 10K+ pages? | Index size grows |
+| OQ18.3 | Translation step for non-EN sources? | Multi-language ingestion |
+| OQ18.4 | Personal recording GDPR consent? | Compliance review |
+| OQ18.5 | Real-time vs batch? | Live ingestion need |
+| OQ18.6 | Image/video frame extraction? | Visual surface |
+| OQ18.7 | Custom chunking per author? | After quality data |
+| OQ18.8 | Selective within long sources? | Phase D |
+| OQ18.9 | Cross-source disambiguation? | Ambiguity surfaces |
+| OQ18.10 | LLM vs rule-based voice classification? | After 100+ notes |
+
+## 26.8 Anti-patterns
+
+- ❌ Manual paste-to-wiki (bandwidth sink)
+- ❌ Skip dedup (vector bloat)
+- ❌ No quality filter (clickbait pollution)
+- ❌ One-size-fits-all chunking
+- ❌ Skip source attribution
+- ❌ Voice notes without classification
+- ❌ Skip cost tracking
+- ❌ Adapter bypassed
+- ❌ No pipeline observability
+- ❌ Single LLM call for whole document (chunk first)
+- ❌ Skip re-ingestion lifecycle
+- ❌ Voice classification rules in code
+
+## 26.9 Cross-references
+
+- **Bài #1:** raw=TIER3, chunks=TIER2, summaries=Insight
+- **Bài #4:** chunks → pgvector, search index updated
+- **Bài #5:** voice tasks → ops.tasks; Minions for ingestion
+- **Bài #6:** voice via Telegram (sub-domain B)
+- **Bài #7:** knowledge-ingestion cost bucket
+- **Bài #8:** active subscriptions polled
+- **Bài #9:** SOP-INGEST-001
+- **Bài #10:** 5 dashboard pages
+- **Bài #11:** ingest_request + ingested events
+- **Bài #12:** ritsu.knowledge.ingest MCP tool
+- **Bài #13:** ingestion job state machine
+- **Bài #14:** auto-link triggers, source attribution edges
+- **Bài #15:** voice decision_request → muse-panel
+- **Bài #16:** customer-related ingestion tagged
+- **Bài #17:** voice via Telegram, Twitter thread via twitter adapter
+- **GBrain heritage:** page format, auto-link, Skillify, BrainBench validates 49.1% P@5
+- **GBrain Minions:** ingestion = textbook use case (deterministic, parallel)
+
+## 26.10 Tổng kết
+
+- **Bài #18 candidate: Knowledge Ingestion Pipeline**
+- **4 axes:** source registry+adapter / pipeline+Minions / voice classification+routing / observability+lifecycle
+- **31 new components** (largest set, biggest cross-bài-toán integration)
+- **2 new Tier 1 registries:** ingestion-sources.yaml, ingestion-routing.yaml
+
+**Pattern after 11 walkthroughs:** declarative-first architecture với 16 Tier 1 files (operational DNA + knowledge + judgment + privacy + multi-surface + ingestion): + **ingestion-sources.yaml + ingestion-routing.yaml**.
+
+Sang chương sau — final walkthrough G9 Founder Capacity & Interface.
+
+---
+
+**Tham khảo:**
+- High-altitude pass: G13 entry (score 5.85)
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G13-knowledge-ingestion.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-18-knowledge-ingestion-DRAFT.md`
+- GBrain repo: https://github.com/garrytan/gbrain
+- Phase A dependencies: Chương 7 (Bài #4 Memory)
+- Phase A.2 dependencies: Chương 16-25 (all prior bài toán)

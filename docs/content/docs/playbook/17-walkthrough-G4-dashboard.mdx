@@ -1,0 +1,348 @@
+---
+title: "Chương 17 — Walkthrough G4: Real-Time Visibility (Bài #10 candidate)"
+description: "Chương 17 — Walkthrough G4: Real-Time Visibility (Bài #10 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/17-walkthrough-G4-dashboard.md
+source_hash: 0f33cf6270523399ea42046515743cbff06c2c94f0227f9eae04a428ee741445
+generated_at: '2026-05-19T16:57:54.915Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 0f33cf6270523399ea42046515743cbff06c2c94f0227f9eae04a428ee741445
+translated_at: '2026-05-19T16:57:54.915Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 17
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 17 — Walkthrough G4: Real-Time Visibility (Bài #10 candidate)
+
+> *"Founder không thể vận hành nếu không thấy state. Phase A có monthly digest. Phase A.2 cần real-time. TH3 founder reveal trigger condition met — un-defer Bài #6's deferred dashboard."*
+
+## 17.1 Tình huống
+
+Founder TH3 anchor: *"Build dashboard về tình hình kinh doanh thời gian thực."*
+
+1 ngày trong đời founder của Ritsu:
+
+**07:00 morning check (mobile, breakfast):** Telegram daily digest đến. MRR $12,847 (+$143). Activation rate 38% ⚠️ (target 45%). **Cần drill-down ngay.** Phase A: founder mở laptop, write SQL trong Supabase, copy CSV, analyze (30 phút). Founder needs: 1 URL trên mobile, click data point → drill down.
+
+**11:00 investor call prep:** Cần screenshots MRR trend, churn, cohort. Phase A: founder writes SQL, exports CSV, opens Sheets, builds charts (30 phút prep). Founder needs: pre-built investor dashboard.
+
+**13:30 silent Stripe failure:** Webhook fail overnight, 23 payments stuck. Phase A: founder discover only 18:00 daily revenue summary (4h-late). Founder needs: real-time anomaly alert.
+
+**15:00 workforce check:** "Workforce đang làm gì? Blocked tasks?" Phase A: query ops.tasks manually. Founder needs: workforce activity dashboard.
+
+**Founder expected outcome:** real-time URL, mobile-friendly, drill-down clickable, push alert on anomalies, role-based views.
+
+**Khi sai:**
+- 4-hour incident detection latency
+- Context-switch Telegram → SQL → spreadsheet → charts
+- Desk-only operation (founder không leave desk)
+
+## 17.2 Walk through Phase A
+
+### Phase A có
+- ✅ Bài #7 cost-report skill (Telegram /cost)
+- ✅ Bài #4 monthly-learning-review (digest)
+- ✅ Telegram bot
+- ✅ ops.* tables in Supabase
+- ✅ Strategy E queryable via SQL
+
+### Phase A KHÔNG có
+
+12 gaps:
+
+| ID | Gap | Severity |
+|---|---|---|
+| G4.1 | Dashboard frontend infrastructure | High |
+| G4.2 | Real-time data layer | High |
+| G4.3 | Anomaly detection / alerting beyond budget | High |
+| G4.4 | Mobile-first visualization | Med |
+| G4.5 | Drill-down interactivity | Med |
+| G4.6 | Pre-built dashboard library | Med |
+| G4.7 | External data integration (Stripe/GA/Sentry) | High |
+| G4.8 | Role-scoped views (multi-user readiness) | Low |
+| G4.9 | Dashboard config versioning | Low |
+| G4.10 | KPI registry | Med |
+| G4.11 | Alert acknowledgment workflow | Med |
+| G4.12 | Drill-down → action workflow | Med |
+
+### Phase A's defer reasoning revisit
+
+Per Bài #6 brainstorm: *"Defer dashboard to v1.x. Build when need is concrete. Revisit when: Telegram volume overwhelming."*
+
+Phase A.2 reveals trigger condition met:
+- Founder concrete need (TH3)
+- 4h latency on incidents (silent Stripe failure)
+- Mobility constraint (founder operates from cafes, transit, weekend)
+
+Phase A's reasoning was **right at the time** (don't pre-build infrastructure). Phase A.2 reveals **trigger condition** (real-time visibility need surfaced). Time to un-defer.
+
+## 17.3 Workaround tạm vs proper extension
+
+### Workaround
+- Z1: Supabase Studio — không mobile, không drill-down
+- Z2: Metabase/Grafana self-hosted — another service to maintain
+- Z3: Build proper Ritsu dashboard — engineering investment, justified
+
+**Recommendation: Z3 (proper).** Ritsu engineering-capable, dashboard = founder's primary cockpit.
+
+### Proper extension — Bài #10: Real-Time Visibility & Alerting
+
+4 axes:
+
+#### Axis 1 — Data Layer
+
+Supabase Realtime + materialized views. ops.* extensions:
+
+```sql
+CREATE TABLE ops.external_events (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  source          text NOT NULL,  -- 'stripe' | 'sentry' | 'google-analytics' | 'vercel'
+  event_type      text NOT NULL,
+  external_id     text,           -- source's ID for dedup
+  payload         jsonb NOT NULL,
+  occurred_at     timestamptz NOT NULL,
+  ingested_at     timestamptz DEFAULT now()
+);
+
+CREATE TABLE ops.metrics (
+  metric_id       text NOT NULL,
+  value           numeric NOT NULL,
+  measured_at     timestamptz NOT NULL,
+  dimensions      jsonb,
+  PRIMARY KEY (metric_id, measured_at, dimensions)
+);
+
+CREATE TABLE ops.alerts (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  alert_id        text NOT NULL,
+  severity        text NOT NULL,  -- info | warning | critical
+  title           text NOT NULL,
+  triggered_at    timestamptz NOT NULL DEFAULT now(),
+  acknowledged_at timestamptz,
+  acknowledged_by text,
+  resolved_at     timestamptz,
+  related_metrics jsonb
+);
+```
+
+**Tại sao not separate analytics DB (e.g., ClickHouse):**
+- v1.0 scale doesn't need it (thousands of users, not millions)
+- Postgres + materialized views handle 99% OLAP queries
+- Less infra to maintain
+- Defer ClickHouse to v1.x when materialized view query latency degrades
+
+#### Axis 2 — Frontend Infrastructure
+
+Next.js 15 PWA at `dashboard.ritsu.ai`:
+
+- Vercel hosting
+- Supabase Auth (existing for product)
+- Recharts charts library
+- Mobile-first (320px baseline)
+
+**Pages structure:**
+
+```
+dashboard.ritsu.ai/
+├── /                  # Founder home — overview KPIs
+├── /workforce         # AI workforce activity
+│   ├── /tasks
+│   ├── /agents
+│   └── /sops          # SOP execution health (Bài #9)
+├── /business
+│   ├── /revenue
+│   ├── /customers
+│   ├── /content
+│   └── /growth
+├── /operations
+│   ├── /costs         # Bài #7 visualized
+│   ├── /incidents     # Sentry + alerts
+│   └── /schedules     # ops.scheduled_runs (Bài #8)
+├── /alerts            # ops.alerts inbox
+└── /settings
+```
+
+**Widget library:** KPI card, time series chart, cohort heatmap, funnel, table with filters, alert banner, drill-down link.
+
+#### Axis 3 — Anomaly Detection + Alerting
+
+Hybrid: threshold rules + statistical anomaly detection.
+
+**Threshold rules (Tier 1 declarative):**
+
+```yaml
+# knowledge/alert-rules.yaml
+rules:
+  - id: mrr-drop-5pct
+    metric: mrr_daily
+    condition: "value < ma_7d * 0.95"
+    severity: warning
+    notify: [founder]
+    channels: [telegram, dashboard]
+    cooldown_min: 60
+    
+  - id: stripe-webhook-stale
+    metric: stripe_events_per_hour
+    condition: "value == 0 AND last_event > '1h ago'"
+    severity: critical
+    notify: [founder]
+    channels: [telegram, dashboard, email]
+    cooldown_min: 30
+    
+  - id: activation-rate-drop
+    metric: activation_rate_24h
+    condition: "value < 0.30 AND ma_30d > 0.40"
+    severity: warning
+    notify: [founder, growth-orchestrator]
+    cooldown_min: 360
+```
+
+**Statistical anomaly detection (`anomaly-detect` skill):**
+- Runs every 15 minutes via Bài #8 schedule
+- Z-score, IQR outlier, change-point detection
+- Flags suspicious metrics → ops.alerts (severity: info)
+- Founder review weekly to graduate stat-detected → threshold rule
+
+**Alert dispatch:**
+- ops.alerts INSERT triggers ops.alert_dispatch (Bài #8 dispatcher pattern)
+- Telegram inline: "Acknowledge", "Investigate", "Snooze 1h"
+
+#### Axis 4 — Integration + Bidirectional Workflow
+
+**New pillar `08-integrations/`** for webhook receivers:
+
+```
+dashboard.ritsu.ai/api/webhooks/
+├── /stripe         → ops.external_events
+├── /sentry         → ops.external_events + ops.alerts
+├── /google-analytics → ops.external_events (batched)
+├── /vercel         → ops.external_events
+└── /github         → ops.external_events
+```
+
+**Bidirectional: dashboard drill-down → spawn agent task:**
+
+User flow:
+1. Founder sees alert "Stripe webhook stale"
+2. Click "Investigate" → spawns ops.tasks, task_kind='investigate-alert', state_payload includes alert_id
+3. Trust-safety role picks up task
+4. Investigation result → updates ops.alerts (resolved_at + resolution_note)
+5. Dashboard reflects "resolved"
+
+**Pattern: dashboard is read view + action launcher, not just static viz.**
+
+**KPI Registry (Tier 1 declarative):**
+
+```yaml
+# knowledge/kpi-registry.yaml
+kpis:
+  - id: mrr
+    name: Monthly Recurring Revenue
+    unit: USD
+    refresh_cadence: 1m
+    source: materialized_view
+    view_name: mv_mrr_current
+    target: 50000
+    target_direction: above
+```
+
+KPI registry → materialized views compute → API serves → dashboard widgets consume. Single source of truth for "what metrics matter."
+
+## 17.4 New components (17)
+
+| ID | Component | Type | Phase |
+|---|---|---|---|
+| CN10.1 | dashboard.ritsu.ai Next.js PWA | Frontend | Phase B/C |
+| CN10.2 | ops.external_events | Tier 2 | Phase B |
+| CN10.3 | ops.metrics | Tier 2 | Phase B |
+| CN10.4 | ops.alerts | Tier 2 | Phase B |
+| CN10.5 | mv_* materialized views library | Tier 2 SQL | Phase B |
+| CN10.6 | knowledge/alert-rules.yaml | Tier 1 | A.2 |
+| CN10.7 | knowledge/kpi-registry.yaml | Tier 1 | A.2 |
+| CN10.8 | Pillar 08-integrations/ | Pillar | A.2 |
+| CN10.9 | Webhook receivers (Edge Functions) | Runtime | Phase B/C |
+| CN10.10 | Skill anomaly-detect | Procedural | Phase C |
+| CN10.11 | Skill alert-dispatch | Procedural | Phase C |
+| CN10.12 | Dashboard widget template library | Meta | A.2 |
+| CN10.13 | Recipe add-kpi.md | Meta | A.2 |
+| CN10.14 | Recipe add-alert-rule.md | Meta | A.2 |
+| CN10.15 | Recipe add-webhook-receiver.md | Meta | A.2 |
+| CN10.16 | Bài #6 sub-domain B update | Governance update | A.2 |
+| CN10.17 | Brainstorm note problem-10 | Meta | A.2 |
+
+17 new components. Touches frontend + backend + data layer + governance + meta.
+
+## 17.5 Bài #10 candidate
+
+**Bài #10 — Real-Time Visibility & Alerting**
+
+**Question core:** Founder thấy business state real-time, anomalies detected automatically, drill-down → actions integrated với workforce.
+
+**Dependencies:** Bài #1, #2, #5, #7, #8 DRAFT, #9 DRAFT
+
+**Independence:** Doesn't depend on G2, G6, G3.
+
+**Bài #10 explicitly UN-DEFERS dashboard previously deferred in Bài #6 sub-domain B.**
+
+## 17.6 Cross-references với prior walkthroughs
+
+- **Bài #10 + Bài #8 Scheduling:** anomaly-detect scheduled 15min via knowledge/schedules.yaml
+- **Bài #10 + Bài #9 SOP:** "Investigate alert" workflow can be SOP-OPS-001
+- **Bài #10 + Bài #7 Economic:** cost dashboard page consumes cost-report skill
+- **Bài #10 + Bài #6 Identity:** update Bài #6 sub-domain B doc — dashboard active
+
+## 17.7 Lessons captured
+
+1. **"Defer to v1.x" needs revisit triggers documented** in original architecture.
+2. **Dashboard ≠ static viz.** Drill-down → action = operational loop closure.
+3. **Materialized views > separate analytics DB at v1.0 scale.** Defer ClickHouse to v1.x.
+4. **Threshold + statistical hybrid** mitigates each's weakness.
+5. **KPI registry = single source of truth** for "what matters."
+6. **External integration earns own pillar** (08-integrations/).
+7. **Bidirectional dashboard = cockpit pattern.**
+8. **Mobile-first = founder mobility constraint.**
+
+## 17.8 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ10.1 | Multi-tenant dashboard? | First operator joins |
+| OQ10.2 | Public status page? | After v1.0 launch |
+| OQ10.3 | Alert fatigue auto-tuning? | After 30-day data |
+| OQ10.4 | Custom dashboard per role? | v1.x |
+| OQ10.5 | Embed iframes vs custom UI? | Phase B implementation |
+| OQ10.6 | Push notifications? | After mobile usage analysis |
+
+## 17.9 Anti-patterns
+
+- ❌ Separate analytics DB v1.0
+- ❌ Static dashboard, no drill-down
+- ❌ Push every metric change (alert fatigue)
+- ❌ Hard-code KPI definitions in widget code
+- ❌ Skip mobile responsive
+- ❌ Auto-resolve alerts via ML (founder loses signal)
+- ❌ Pre-build 50 dashboard pages (build 5 core, evolve)
+
+## 17.10 Tổng kết
+
+- **Bài #10 candidate: Real-Time Visibility & Alerting**
+- **4 axes:** data layer / frontend / anomaly detection / integration+bidirectional
+- **17 new components**
+- **Dependencies:** Bài #1, #2, #5, #7, #8 DRAFT, #9 DRAFT
+- **UN-DEFERS Bài #6 sub-domain B** (dashboard previously deferred)
+- **New pillar 08-integrations/** for webhook receivers
+
+Sang chương sau — walkthrough G2 Event-Driven Triggers.
+
+---
+
+**Tham khảo:**
+- High-altitude pass: `_build/notes/phase-a2/HIGH_ALTITUDE_PASS.md`
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G4-dashboard.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-10-real-time-visibility-DRAFT.md`
+- Issue catalog: C5.9 anchor + C5.13 + C7.6 + C8.7 + C8.11
+- Phase A dependencies: Chương 9 (Bài #6 sub-domain B defer)

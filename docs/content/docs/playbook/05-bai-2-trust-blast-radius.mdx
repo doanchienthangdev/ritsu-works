@@ -1,0 +1,442 @@
+---
+title: "Chương 5 — Bài #2: Trust & Blast Radius"
+description: "Chương 5 — Bài #2: Trust & Blast Radius"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/05-bai-2-trust-blast-radius.md
+source_hash: d68904c7138863bbe5cbd158074f32d016076d411ef46045f32f4e1de23516f1
+generated_at: '2026-05-19T16:57:54.886Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: d68904c7138863bbe5cbd158074f32d016076d411ef46045f32f4e1de23516f1
+translated_at: '2026-05-19T16:57:54.886Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 5
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 5 — Bài #2: Trust & Blast Radius
+
+> *"Một agent gửi email nhầm 1000 customer là một incident. Một agent revoke own token và lock founder out là một crisis. Một agent push code vô production thiếu test là một outage. Mỗi failure mode có blast radius khác nhau — và governance phải có structure tương ứng."*
+
+## 5.1 Failure mode đặc thù
+
+Bài #2 phải giải 6 failure mode:
+
+1. **Privilege escalation.** Agent có quyền nhỏ tự cấp thêm quyền cho mình hoặc agent khác. Một bug nhỏ trở thành compromise lớn.
+2. **Audit gap.** Khi customer khiếu nại "AI gửi tôi email lúc 3am", founder không biết agent nào, run nào, prompt gì, model gì. Không trace được = không học được.
+3. **Secret leak.** Token GitHub bị leak qua log; token Stripe bị paste vào prompt; rotation cadence không có; founder không biết khi nào secret được dùng cuối.
+4. **Customer-facing send mistake.** Agent gửi email/Slack/social post không qua review. 1000 customer nhận message sai, retract được nhưng damage permanent.
+5. **Permission sprawl.** Theo thời gian, mỗi role tích lũy permissions ngày càng rộng (vì "đôi khi cần"). Không ai dám remove. Sau 1 năm, role có 10x permissions cần thiết.
+6. **No HITL graduation.** Founder approve mọi action → quá tốn time founder. Hoặc agent autonomous mọi thứ → blast radius rộng. Cần graduated trust system.
+
+## 5.2 HITL 4-tier (đúng ra là 5-tier)
+
+Câu hỏi cốt lõi: **mức độ trust của founder cho agent action?** Có 5 mức:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ Tier A — Autonomous                                              │
+│   Agent execute, log, không notify. Founder review post-hoc      │
+│   nếu muốn (qua monthly digest).                                 │
+│   Examples: read-only DB queries, log entries, internal compute  │
+│   Blast radius: minimal (just compute resources)                 │
+└──────────────────────────────────────────────────────────────────┘
+                              ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ Tier B — Notify-after                                            │
+│   Agent execute, log, then ping founder via Telegram.            │
+│   Founder không cần phản ứng; ping là awareness.                 │
+│   Examples: internal file write, ops.* INSERT, low-stakes refactor│
+│   Blast radius: contained to internal state                      │
+└──────────────────────────────────────────────────────────────────┘
+                              ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ Tier C — Approve-before                                          │
+│   Agent draft action, send proposal to founder via Telegram      │
+│   inline buttons. Founder approve/reject. No execution without   │
+│   explicit approval.                                             │
+│   Examples: customer email send, GitHub PR merge, Tier 1 file    │
+│   edit, Stripe refund                                            │
+│   Blast radius: external impact possible                         │
+└──────────────────────────────────────────────────────────────────┘
+                              ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ Tier D-Std — Override (magic phrase)                             │
+│   Action that requires not just approval but explicit acknowled- │
+│   gement of risk. Founder types magic phrase + 30-second confirm.│
+│   Examples: governance/SECRETS.md edit, IDENTITY.md edit, hook   │
+│   spec edit, role permission expansion                           │
+│   Blast radius: governance/security infrastructure               │
+└──────────────────────────────────────────────────────────────────┘
+                              ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ Tier D-MAX — Highest risk                                        │
+│   Action that could destroy or compromise the organization.      │
+│   Magic phrase + PR + 1-hour cooldown (forces sleep-on-it) +     │
+│   final EXECUTE confirmation.                                    │
+│   Examples: revoke all secrets, drop ops schema, transfer org    │
+│   ownership, mass-delete customer data                           │
+│   Blast radius: existential                                      │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Quan sát quan trọng:**
+
+- **Mỗi tier có một mechanism khác nhau.** Tier A = log only. Tier C = inline button. Tier D-Std = magic phrase. Tier D-MAX = magic phrase + PR + cooldown. Tăng dần ceremony.
+- **Ceremony tỷ lệ thuận với blast radius.** Đây là key design principle.
+- **Magic phrase** = founder phải gõ một câu specific (e.g., "I confirm rotating SECRETS"). Không phải "yes" hay click button. Forces conscious decision.
+- **Cooldown** ở Tier D-MAX = chống reflexive approval. Founder không thể "approve trong tức giận lúc 2am."
+
+### Mỗi role có `hitl_max_tier`
+
+Mỗi role có **mức tier cao nhất role được phép attempt** mà không escalate:
+
+| Role | hitl_max_tier | Lý do |
+|---|---|---|
+| gps | C | Orchestrator; có thể approve subordinate actions |
+| growth-orchestrator | C | Có thể trigger customer email, marketing posts |
+| support-agent | B | Reply customer là Tier B unless content sensitive |
+| content-drafter | A | Chỉ tạo drafts, không publish |
+| code-reviewer | A | Read + comment only |
+| etl-runner | B | DB writes to ops.*, never Product |
+| trust-safety | C | Có thể bypass GPS for emergency |
+| backoffice-clerk | A | Read Stripe; no write |
+| founder | D-MAX | Human; can do anything |
+
+Khi role attempt action có tier cao hơn `hitl_max_tier`:
+- Tier B-attempt-on-A-role → escalate to founder
+- Tier C-attempt-on-B-role → escalate to founder
+- etc.
+
+## 5.3 9 roles của Ritsu
+
+Ritsu's workforce có 9 roles. Mỗi role có purpose rõ, permissions giới hạn, budgets.
+
+### gps — General Purpose Steward (Chief of Staff)
+
+**Purpose:** Orchestrator. Routes work to specialist roles. Default interface với founder.
+
+**Allowed:** All Tier 2 read; Tier 1 read; Telegram interaction; spawn subagents.
+
+**Denied:** Direct edit Tier 1 files (proposes via PR); direct write to Stripe; direct DB schema change.
+
+**Why not let GPS do everything:** nếu GPS edit charter/, run migrations, post to social — role boundaries blur. GPS proposes; specialists execute (or PR).
+
+### growth-orchestrator — Marketing & Sales lead
+
+**Purpose:** Lead gen, content marketing, social engagement, campaigns.
+
+**Allowed:** GitHub write to `ritsu-content` repo; email send via `growth@ritsu.ai`; HubSpot CRM write; social media draft (founder publishes).
+
+**Denied:** Customer support replies (delegate to support-agent); financial transactions; secrets rotation.
+
+### support-agent — Customer support
+
+**Purpose:** Reply customer tickets, help articles maintenance, CSAT tracking.
+
+**Allowed:** Email send via `support@ritsu.ai`; in-product chat replies; refund propose (founder approves Tier C).
+
+**Denied:** Refund execute (Tier C+ founder); delete customer account (Tier D-Std); access founder's email.
+
+### content-drafter — Long-form content writer
+
+**Purpose:** Drafts blog posts, newsletters, ebooks, ad copy. NEVER ships content.
+
+**Allowed:** Read all Tier 1 charter; read past content from `.archives/`; write drafts to `.archives/drafts/`.
+
+**Denied:** Publish anything customer-facing; modify brand voice; access customer data.
+
+### code-reviewer — Code & PR review
+
+**Purpose:** Review PRs for code quality, governance compliance, schema correctness.
+
+**Allowed:** Read all repo; comment on PRs; check schemas against manifest.
+
+**Denied:** Approve PR (founder Tier C); push code; merge PR.
+
+### etl-runner — Data extraction
+
+**Purpose:** Pull product data, aggregate, write summaries to Operating DB.
+
+**Allowed:** Read Product Supabase (RLS-restricted columns); write `ops.product_metrics_daily`.
+
+**Denied:** Write to Product DB; access raw customer PII columns; cross-org operations.
+
+### trust-safety — Safety & compliance
+
+**Purpose:** Emergency response, abuse detection, compliance audit, incident response.
+
+**Allowed:** Bypass GPS for direct founder ping (security-critical); read all Tier 1/2; suspend customer accounts (Tier C).
+
+**Denied:** Customer support routing (delegate to support-agent); financial writes; identity/role changes (founder D-Std).
+
+### backoffice-clerk — Finance reading & reporting
+
+**Purpose:** Stripe READ; finance reporting; invoice tracking; budget reconciliation.
+
+**Allowed:** Stripe `read_only` API key; ops.cost_attributions write summaries; financial report generation.
+
+**Denied:** Stripe write/refund/charge (founder); modify financial records; access founder's bank.
+
+### founder — Human (no code)
+
+The human. Not a Claude agent. Has full access. Magic phrases registered. Telegram primary interface.
+
+### Quan sát quan trọng
+
+- **No "admin" role.** Each agent has narrow permissions; founder is the only "admin."
+- **Specialists never escalate to other specialists.** They escalate to GPS or founder.
+- **`trust-safety` is the only role with bypass-GPS authority** — for security incidents where GPS itself might be compromised.
+- **`founder` role is special** — not a Claude agent, but tracked in ROLES.md to make the human node explicit in the workforce graph.
+
+## 5.4 Permissions schema
+
+Mỗi role trong `governance/ROLES.md` có schema chuẩn:
+
+```yaml
+role: <role-slug>
+home_pillar: <pillar-name>     # which pillar owns this role
+status: active | deprecated
+
+permissions:
+  files:                      # what file paths this role may edit
+    - "05-ai-ops/skills/**"
+    - "wiki/**"
+    - "!00-charter/**"        # explicitly excluded
+  tier2_schemas_read: ['ops.*']
+  tier2_schemas_write: ['ops.tasks', 'ops.agent_runs']
+  tier3_namespaces: []
+  mcp_servers: ['github', 'telegram', 'supabase-ops']
+  skills: ['task-decompose', 'task-status', 'episodic-recall']
+  secrets: ['GITHUB_GPS_BOT_TOKEN', 'TELEGRAM_BOT_TOKEN', 'ANTHROPIC_GPS_KEY']
+
+hitl_max_tier: C
+notify_on_completion: true
+escalation_role: founder
+
+budget:
+  monthly_token_usd: 200
+  monthly_tool_calls: 5000
+
+economic_budget:
+  monthly_cap_usd: 200
+  alert_at_pct: 0.80
+  escalate_at_pct: 1.00
+  hard_block_at_pct: 1.50
+  per_task_kind_caps:
+    parent-orchestration: 0.50
+
+context_budget:
+  preamble_tokens: 2000
+  working_tokens: 60000
+  trigger_compact_at: 0.75
+
+memory_config:
+  memory_tool_enabled: false  # Bài #4 Strategy E
+  episodic_recall_enabled: true
+  recall_window_days: 30
+  recall_max_runs: 5
+  emit_run_summary: true
+  accept_corrections: true
+```
+
+**Đặc điểm:**
+
+- **Schema phải nhất quán across all roles.** Validation hook check schema completeness.
+- **Permissions = whitelist + blocklist.** Default deny.
+- **Atomic update.** Khi add/remove permission, PR đụng cả ROLES.md + .claude/agents/\<role>.md.
+- **Cross-references** với SECRETS.md, IDENTITY.md, manifest.yaml. Drift detected via reconciliation hook.
+
+## 5.5 Hooks: runtime enforcement
+
+Governance là policy. Hooks là enforcement. Bài #2 ship 5 hooks:
+
+### `pre-edit-tier1`
+
+Block edits to Tier 1 files unless on PR branch with proper format.
+
+```
+on edit to: 00-charter/**, governance/**, knowledge/*.md, .claude/hooks/**
+  if not on feature branch: BLOCK
+  if commit message doesn't match format: BLOCK
+  if Tier C+ change without brainstorm note: ESCALATE
+```
+
+### `pre-bash-dangerous`
+
+Block dangerous bash commands.
+
+```
+on bash command:
+  if matches: rm -rf /, sudo, chmod 777, curl | sh, etc.: BLOCK
+  if matches: psql with destructive SQL: ESCALATE
+  if matches: git push --force: ESCALATE
+```
+
+### `pre-tool-publish`
+
+Gate any publish action through tier classification.
+
+```
+on tool: email_sender_*, social_post_*, twitter_*, etc.
+  classify tier (A/B/C based on recipient count, content type)
+  enforce tier per HITL.md
+  log to ops.agent_runs with tier annotation
+```
+
+### `pre-tool-supabase-product`
+
+Restrict Product DB access — only `etl-runner` can read; nobody can write.
+
+```
+on tool: supabase_product_*
+  if role != etl-runner: BLOCK
+  if action != SELECT: BLOCK
+  log every access for audit
+```
+
+### `pre-tool-secrets`
+
+Enforce per-role secret access.
+
+```
+on any tool that uses a secret:
+  extract secret_name from tool config
+  cross-reference ROLES.md (secrets:) and SECRETS.md (used_by:)
+  if role not in used_by: BLOCK + alert (potential compromise)
+```
+
+**Composability:** multiple hooks can fire on same tool call. All must pass. If any blocks → call blocked. If multiple escalate → single founder approval covers all.
+
+**Fail-closed default:** if hook itself errors, BLOCK. Better delay than skip safety.
+
+## 5.6 SECRETS.md — secrets governance
+
+Secrets là phần infra mà compromise = catastrophic. Ritsu's `governance/SECRETS.md` covers:
+
+### Secret naming convention
+
+`<SERVICE>_<ENV>_<SCOPE>_<TYPE>`
+
+Examples:
+- `GITHUB_GPS_BOT_TOKEN` — GitHub PAT cho ritsu-gps-bot
+- `RESEND_SUPPORT_TRANSACTIONAL_KEY` — Resend key cho `support@ritsu.ai`
+- `SUPABASE_OPS_ANON_KEY` — read access to Operating DB
+- `ANTHROPIC_GPS_KEY` — Claude API key cho gps role
+
+Convention enforces:
+- **Service** (GITHUB, RESEND, etc.)
+- **Environment** (PROD, STAGING — usually omitted in single-env startups)
+- **Scope** (which role/role-cluster uses)
+- **Type** (TOKEN, KEY, SECRET)
+
+### Rotation cadence
+
+| Cadence | Examples |
+|---|---|
+| 30 days | Customer-facing API keys (Stripe, payment) |
+| 60 days | Internal write tokens (GitHub, Resend write keys) |
+| 90 days | Read tokens, internal-only |
+| 180 days | Long-lived service keys, vendor SDK tokens |
+| Event-driven | Anytime suspected compromise |
+
+Rotation procedure documented; reminders set in calendar; first rotation drilled at v1.0 launch +7 days.
+
+### Access matrix
+
+Per service, per role, what's allowed:
+
+```
+| Service | Role | Permission |
+|---|---|---|
+| GITHUB_GPS_BOT_TOKEN | gps | read+write |
+| GITHUB_GPS_BOT_TOKEN | * (other roles) | DENIED |
+| ANTHROPIC_GPS_KEY | gps | full |
+| ANTHROPIC_SUPPORT_KEY | support-agent | full |
+| ANTHROPIC_SUPPORT_KEY | * (other roles) | DENIED |
+```
+
+Cross-referenced với ROLES.md `secrets:` field. Hook `pre-tool-secrets` enforces at runtime.
+
+### Per-role identity secrets section
+
+(Added in Bài #6) Maps each role to per-system identity:
+- GitHub bot account
+- Sending email address
+- Anthropic API key
+- Slack bot (when activated)
+
+Source of truth for the mapping is `governance/IDENTITY.md`. SECRETS.md cross-links.
+
+## 5.7 Audit trail: `ops.agent_runs`
+
+Mỗi agent invocation logs đến `ops.agent_runs`. Schema:
+
+```sql
+CREATE TABLE ops.agent_runs (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_role      text NOT NULL,
+  action_name     text NOT NULL,
+  task_id         uuid REFERENCES ops.tasks(id),
+  parent_run_id   uuid REFERENCES ops.agent_runs(id),
+  hitl_tier       text NOT NULL,        -- A | B | C | D-Std | D-MAX
+  hooks_fired     jsonb NOT NULL DEFAULT '[]',
+  hooks_decisions jsonb NOT NULL DEFAULT '[]',
+  cost_usd        numeric(10,6),
+  duration_ms     int,
+  outcome         text,                  -- success | failed | escalated | blocked
+  error_summary   text,
+  started_at      timestamptz NOT NULL DEFAULT now(),
+  completed_at    timestamptz
+);
+```
+
+Foundation for:
+- Bài #4 episodic recall (query past runs by role+action)
+- Bài #5 task orchestration (parent_run_id chains)
+- Bài #7 cost attribution (cost_usd)
+- Bài #2 audit (hooks_fired, hooks_decisions)
+
+Append-only by design. UPDATE allowed only for `completed_at`, `outcome`, `error_summary` (final state). Never DELETE.
+
+## 5.8 Anti-patterns Bài #2
+
+- **"Tier system rườm rà, để mọi action default Tier B (notify-after)."** Founder bị spam notification, sẽ tắt Telegram → Tier B effective trở thành Tier A. Tier system phải fit blast radius.
+- **"Magic phrase quá dài, founder sẽ copy-paste từ note."** Magic phrase phải là something founder gõ tay và think. Nếu founder copy-paste, không có "conscious decision."
+- **"Một role 'admin' có mọi quyền cho convenience."** Tránh. Founder là single human admin; agents narrow.
+- **"Permission expansion qua Slack message thay vì PR."** Permission change phải atomic in git. Slack approval chỉ là pre-PR discussion.
+- **"Secrets rotation 'khi có thời gian'."** Cadence phải có reminder; founder failing rotation = security incident.
+- **"Hooks fail-open vì lỡ block legitimate."** Fail-closed always. Nếu hook errors thường xuyên, fix the hook. Don't fail-open as workaround.
+
+## 5.9 Quan hệ giữa Bài #1 và Bài #2
+
+Bài #1 (Single Source of Truth) và Bài #2 (Trust & Blast Radius) tightly coupled:
+
+- Bài #1's `pre-edit-tier1` hook là một hook của Bài #2's hook system
+- Bài #2's HITL tier classification phụ thuộc vào Bài #1's file/folder organization
+- Bài #2's SECRETS.md nằm trong Tier 1 mà Bài #1 protects
+- Bài #2's role permissions reference Bài #1's manifest
+
+**Hai bài này phải build cùng lúc.** Skip 1, không thể làm 2 properly.
+
+## 5.10 Tổng kết Bài #2
+
+- **6 failure mode**: privilege escalation, audit gap, secret leak, customer-facing mistake, permission sprawl, no graduation
+- **5-tier HITL** (A / B / C / D-Std / D-MAX) — ceremony tỷ lệ với blast radius
+- **9 roles + founder** — narrow specialists, no admin role
+- **5 hooks** — runtime enforcement (pre-edit-tier1, pre-bash-dangerous, pre-tool-publish, pre-tool-supabase-product, pre-tool-secrets)
+- **SECRETS.md** — naming convention + rotation + access matrix
+- **`ops.agent_runs`** — append-only audit trail
+- **Bài #1 + Bài #2 = foundation pair**, must build together
+
+Phần III sẽ đào sâu 5 bài còn lại — scaling và intelligence layer của AI-Native Company. Sang Chương 6 (Bài #3 — Context Window Economics).
+
+---
+
+**Tham khảo:**
+- Ritsu repo: `governance/HITL.md`, `governance/ROLES.md`, `governance/SECRETS.md`, `.claude/hooks/`
+- Brainstorm note: `_build/notes/problem-2-trust-blast-radius.md` (TODO backfill)
+- Anthropic docs on agent permissions: https://platform.claude.com/docs/en/build-with-claude/agent-skills
+- Auth0 on non-human identity: https://auth0.com/blog/dealing-with-non-human-identities-nhi/

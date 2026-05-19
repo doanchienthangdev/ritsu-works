@@ -1,0 +1,160 @@
+---
+title: "Chương 1 — Inner Harness vs Outer Harness"
+description: "Chương 1 — Inner Harness vs Outer Harness"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/01-inner-outer-harness.md
+source_hash: 670542eb6efffce9f789ff2f2e559a848a1f28dbfa3c2f1fcea7e9e724f15692
+generated_at: '2026-05-19T16:57:54.861Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 670542eb6efffce9f789ff2f2e559a848a1f28dbfa3c2f1fcea7e9e724f15692
+translated_at: '2026-05-19T16:57:54.867Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 1
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 1 — Inner Harness vs Outer Harness
+
+> *"Trong kỹ thuật ô tô, 'wiring harness' chia thành inner harness (dây cáp hàn cố định trong engine block, đừng đụng vào) và outer harness (dây nối tùy biến ra dashboard, sensors, phụ kiện, thay đổi tùy mẫu xe)."* — Phúc Nguyễn, "Outer Harness: Tại sao Process và Data quan trọng hơn Agent"
+
+## 1.1 Vấn đề: Anthropic làm Inner Harness rất tốt — và đó là cái bẫy
+
+Năm 2026, mọi developer đều đã sử dụng Claude Code. Source code Claude Code bị leak; community mổ xẻ và đồng thuận: đây là Inner Harness chuẩn mực — system prompt được tinh chỉnh, retrieval mechanism thông minh, orchestration sophisticated. Nhiều người reverse-engineer làm Inner Harness của riêng mình.
+
+Nhưng đây là điều dễ bị bỏ qua: **toàn bộ thứ được khen ngợi đó đều là Inner Harness**. Không có gì trong Claude Code nói về:
+
+- Cách tổ chức của BẠN phân phối context theo tầng
+- Cách BẠN kiểm soát ngân sách API
+- Cách BẠN trace incident khi production sập
+- Cách BẠN đảm bảo customer-facing AI tuân thủ EU AI Act
+- Cách BẠN attribute cost cho từng customer/team/feature
+
+Đó là **Outer Harness**. Anthropic không thể, và cũng không có lý do gì để xây thay bạn. Outer Harness mang DNA của tổ chức bạn: context doanh nghiệp, quy trình phê duyệt, tiêu chuẩn chất lượng, cách chia sẻ tri thức.
+
+### Định nghĩa
+
+**Inner Harness** = mọi thứ bên trong agent runtime: model, system prompt, tool dispatch, context management, retrieval, memory primitives. Đây là phần Anthropic (hoặc OpenAI, Google, etc.) build. Đã ổn định, đã được tối ưu, đừng tự build lại.
+
+**Outer Harness** = mọi thứ bên ngoài agent runtime: governance, attribution, observability, knowledge organization, approval workflows, identity mapping, economic instrumentation. Đây là phần BẠN phải build. Đây là phần KHÔNG ai build thay được.
+
+## 1.2 Hai mindset cốt lõi của Outer Harness
+
+Khi xây Outer Harness, **2 mindset quan trọng hơn mọi quyết định kỹ thuật**:
+
+### Process-centric (xoay quanh quy trình)
+
+Đừng xây hệ thống xoay quanh con người ("nhớ paste policy nhé") hay xoay quanh agent ("nó thông minh, kệ nó"). **Quy trình là xương sống.** Human và Agent đều là node trên cùng một pipeline; ai cắm vào cũng phải chạy đúng luồng.
+
+Ví dụ trong Ritsu: khi cần đăng blog post mới, quy trình là:
+
+1. `growth-orchestrator` (agent) hoặc founder (human) tạo draft
+2. Draft đi qua `ai-disclosure-check` skill (Tier A check)
+3. Draft đi qua `pre-tool-customer-message` hook (mandatory)
+4. Founder approve via Telegram (Tier C HITL)
+5. Đăng
+
+Cả agent và human đều phải đi qua đúng 5 bước này. Founder không thể "skip vì gấp"; agent không thể "tôi chắc chắn rồi". Process quyết định.
+
+### Data-driven (xoay quanh dữ liệu)
+
+Mọi thao tác phải sinh ra **structured data**. Không có data thì không có visibility; không có visibility thì không thể improve.
+
+Ví dụ trong Ritsu:
+
+- Mọi LLM call → `ops.cost_attributions` (Bài #7)
+- Mọi agent run → `ops.agent_runs` (Bài #4)
+- Mọi correction từ founder → `ops.corrections` (Bài #4)
+- Mọi task spawn → `ops.tasks` + `ops.task_state_transitions` (Bài #5)
+- Mọi disclosure check → log với check results (Bài #6)
+
+Mỗi table không chỉ là log — nó là **ground truth** cho monthly review, cost optimization, trend detection. Nếu một thao tác không sinh structured data, nó là một blackbox và bạn sẽ mù về nó.
+
+## 1.3 Nghịch lý của Outer Harness
+
+Phúc Nguyễn chỉ ra một nghịch lý:
+
+> *"Hầu hết tổ chức đang chi hàng trăm ngàn đô cho Inner (token fees), trong khi Outer, thứ thực sự quyết định chất lượng output, thì nằm rải rác trên laptop từng người. Khi scale lên 50, 200, 1000 engineer, nó vỡ."*
+
+Áp dụng cho one-person company: Outer Harness của bạn nằm rải rác trên các Notion docs, Telegram chat, Google Docs, mỗi nơi một mẩu. Khi:
+
+- Cost spiral xảy ra → bạn không biết cost nằm đâu
+- Bug trong agent → bạn không biết agent nào, run nào, context gì
+- Customer complaint về AI → bạn không biết agent nào reply, có disclosure đúng không
+- Audit (legal, regulatory) → bạn không có evidence
+
+**Khi scale lên** (kể cả với 1 founder + AI workforce), nó vỡ. Outer Harness phải ở MỘT NƠI — version-controlled, atomic-PR, structured. Phần còn lại của playbook này nói về cách build cái "một nơi" đó.
+
+## 1.4 Inner vs Outer: ranh giới thay đổi theo thời gian
+
+Một câu hỏi xuất hiện thường xuyên trên Hacker News:
+
+> *"How much of this outer harness engineering will become obsolete very shortly when Claude et al make similar enhancements to the inner harness?"*
+
+Trả lời: **một phần SẼ obsolete, phần còn lại KHÔNG**.
+
+Ví dụ:
+
+- **Đã chuyển từ Outer sang Inner:** prompt caching (trước đây phải implement; giờ Claude Code tự làm), context compaction (trước đây phải design; giờ `/compact` tự động).
+- **Sẽ chuyển từ Outer sang Inner trong tương lai:** memory tool API (Anthropic đang phát triển; Bài #4 v1.0 chọn KHÔNG dùng vì lý do an toàn, có thể v2 sẽ dùng), Agent Teams (đang experimental; Bài #5 v1.0 defer).
+- **SẼ KHÔNG bao giờ chuyển sang Inner:** governance specific to your org (HITL tier, role permissions), brand voice của BẠN, customer disclosure compliance phù hợp với jurisdictions của BẠN, cost budgets phù hợp với business model của BẠN.
+
+Nguyên tắc: **những gì có DNA của tổ chức = mãi mãi Outer**. Những gì là pure technical primitive = có thể chuyển vào Inner khi platform mature.
+
+Khi quyết định build cái gì trong Outer Harness, hỏi: *"5 năm nữa, có thể nào platform tự build cái này cho mọi user không?"* Nếu có thể, defer hoặc build mỏng. Nếu không thể (vì nó phụ thuộc vào tổ chức bạn), build cẩn thận.
+
+## 1.5 Outer Harness của one-person AI-Native Company
+
+Phần lớn tài liệu về Outer Harness assume tổ chức 50-1000 người. Nhưng **one-person company có một lợi thế đặc biệt**: bạn không cần coordinate giữa các team. Outer Harness của bạn chỉ cần phục vụ **một founder + AI workforce**, không cần multi-team governance, không cần cross-org policies.
+
+Lợi thế này có 2 mặt:
+
+**Mặt tích cực:**
+- Quyết định nhanh hơn (không cần consensus)
+- Iteration cycle ngắn (founder = product owner = engineer = ops)
+- Less overhead (không cần meetings, alignment docs)
+
+**Mặt tiêu cực:**
+- Founder = single point of failure (bạn ốm = tổ chức ngừng hoạt động)
+- Không có peer review từ humans (chỉ có agent + structured data)
+- Cognitive load lớn (founder phải hiểu mọi thứ)
+
+→ Outer Harness của one-person company phải:
+1. **Đặt founder vào vị trí HITL ở các điểm quyết định cao** (Tier C+)
+2. **Nhưng đừng đặt founder vào mọi quyết định nhỏ** (Tier A/B autonomous)
+3. **Sinh đủ structured data để founder review periodically** (monthly digest)
+4. **Cảnh báo proactively khi có gì bất thường** (hooks)
+
+Đây là yêu cầu thiết kế tinh tế hơn so với enterprise Outer Harness. Phần còn lại của playbook là cách giải quyết yêu cầu này.
+
+## 1.6 Cảnh báo: cám dỗ "build everything"
+
+Khi đọc về Outer Harness lần đầu, cám dỗ là build mọi thứ ngay: cost dashboard, multi-agent teams, memory tool API, custom personas, web dashboard, voice channel...
+
+**Đừng.**
+
+Bài học từ Phase A của Ritsu:
+- **Defer over add.** Mỗi feature deferred là một bug không xảy ra.
+- **Ship simple first.** Telegram + GitHub PR đủ cho v1.0 founder interface; web dashboard defer.
+- **Calibrate, don't guess.** Cost thresholds là starting points; data sẽ điều chỉnh sau 30 ngày.
+- **Hooks + skills > custom infrastructure.** Bài #5/#6/#7 đều dùng pattern: skill cho deliberate action + hook cho ambient enforcement. Đơn giản, đủ.
+
+## 1.7 Tổng kết
+
+- **Inner Harness = Anthropic's job.** Đừng tự build lại.
+- **Outer Harness = your job.** Mang DNA của tổ chức bạn.
+- **Process-centric + Data-driven** là 2 mindset bắt buộc.
+- **One-person company** có lợi thế (decision speed) và bất lợi (cognitive load) — Outer Harness phải tinh tế ở việc đặt founder đúng nơi.
+- **Defer over add.** Build minimum cần thiết; expand khi có evidence.
+
+Chương 2 sẽ map ra 7 bài toán cốt lõi — đây là 7 mảng của Outer Harness mà mọi AI-Native Company phải giải quyết.
+
+---
+
+**Tham khảo:**
+- Phúc Nguyễn, "Outer Harness: Tại sao Process và Data quan trọng hơn Agent" — https://phucnt.substack.com/p/outer-harness-tai-sao-process-va
+- Martin Fowler, "Harness engineering for coding agent users" — https://martinfowler.com/articles/harness-engineering.html
+- Anthropic, "Harness design for long-running application development" — https://www.anthropic.com/engineering/harness-design-long-running-apps
+- Goon Nguyễn, "Harness Engineering là gì?" — https://goonnguyen.substack.com/p/harness-engineering-la-gi

@@ -1,0 +1,349 @@
+---
+title: "Chương 4 — Bài #1: Single Source of Truth"
+description: "Chương 4 — Bài #1: Single Source of Truth"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/04-bai-1-single-source-of-truth.md
+source_hash: e5bb86139c191ea3c09d02d7b7c6e349c1c423f9501bf608e6800f1df158d74e
+generated_at: '2026-05-19T16:57:54.883Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: e5bb86139c191ea3c09d02d7b7c6e349c1c423f9501bf608e6800f1df158d74e
+translated_at: '2026-05-19T16:57:54.883Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 4
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 4 — Bài #1: Single Source of Truth
+
+> *"Khi 5 nơi cùng nói khác nhau về 'brand voice', bạn không có brand voice — bạn có 5 phiên bản và một câu hỏi 'cái nào đúng?'"*
+
+## 4.1 Failure mode đặc thù
+
+Trước khi đào sâu giải pháp, hãy nhìn rõ 6 failure mode mà Bài #1 phải giải:
+
+1. **Knowledge fragmentation.** Brand voice trong Notion, customer FAQ trong Google Docs, schema database trong dbdiagram, secrets trong 1Password. Khi agent cần "what's our refund policy?", agent đi đâu?
+2. **Drift theo thời gian.** Founder update brand voice trong Notion. 1 tuần sau, founder update lần nữa trong Google Docs (không nhớ Notion có). Sau 6 tháng, 3 phiên bản tồn tại; không ai biết version nào canonical.
+3. **Untraceable changes.** Khi customer khiếu nại "blog post sai facts", founder hỏi "ai viết, dựa trên nguồn nào, version nào của brand voice?" — không trace được.
+4. **Cross-system contradiction.** SOP nói gửi email format A, brand voice nói format B, agent runtime config dùng C. Mỗi nơi tự nhất quán nhưng tổng thể mâu thuẫn.
+5. **Promotion chaos.** Founder có ý hay trong Telegram chat. Nửa năm sau muốn tìm lại — đã trôi xuống. Hoặc viết draft trong Google Docs, không biết khi nào "đủ chín" để promote thành official.
+6. **Cross-environment leak.** Operating data (cost, agent runs) nhầm với product data (customer info). Khi compromise xảy ra ở một bên, không có firewall ngăn lan sang bên kia.
+
+Nếu bất kỳ failure mode nào trên đây xảy ra, đó là Bài #1 chưa giải.
+
+## 4.2 4-tier truth model
+
+Ritsu giải Bài #1 bằng **4 tier rõ ràng cho 4 loại knowledge khác nhau**:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ TIER 1 — Declarative knowledge (git repo)                       │
+│   What is true about the world & the org                        │
+│   Source: ritsu-works/ on GitHub                                │
+│   Examples:                                                     │
+│     • 00-charter/product.md, brand_voice.md, transparency.md    │
+│     • governance/HITL.md, ROLES.md, SECRETS.md, IDENTITY.md     │
+│     • knowledge/*-architecture.md                               │
+│     • 05-ai-ops/skills/<skill>/SKILL.md                         │
+│     • .claude/hooks/<hook>.md                                   │
+│   Mutations: PR-based, atomic, tier C+ for sensitive files      │
+│   Audit: full git history                                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ agents read at runtime
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ TIER 2 — Operational data (Supabase ritsu-ops)                  │
+│   What HAS happened and what IS happening                       │
+│   Source: separate Supabase project (NOT product DB)            │
+│   Examples:                                                     │
+│     • ops.agent_runs (every invocation logged)                  │
+│     • ops.tasks, ops.task_state_transitions                     │
+│     • ops.run_summaries, ops.corrections                        │
+│     • ops.cost_attributions, ops.budget_alerts                  │
+│   Mutations: agents write per their permissions                 │
+│   Audit: append-only by design; transitions logged              │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ agents read/write per role
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ TIER 3 — Asset storage (Supabase Storage / S3)                  │
+│   Large binary content                                          │
+│   Examples:                                                     │
+│     • Generated images for blog posts                           │
+│     • PDF reports                                               │
+│     • Customer-uploaded materials (Product side)                │
+│   Reference: by URL/key from Tier 1 or Tier 2                   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ referenced from Tier 1/2
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ TIER 4 — Vector embeddings (Pinecone / pgvector)                │
+│   Searchable semantic representation                            │
+│   Examples:                                                     │
+│     • Past blog posts embedded for semantic search              │
+│     • Customer support knowledge base embeddings                │
+│     • Brand voice examples for similarity matching              │
+│   Source: derived from Tier 1/2 — never canonical               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Quy tắc cốt lõi: mỗi loại knowledge có exactly ONE tier.** Brand voice là Tier 1 (declarative). Cost của agent run là Tier 2 (operational). Image generated cho blog là Tier 3. Embeddings của brand voice cho similarity search là Tier 4.
+
+KHÔNG có "hybrid" — nếu một thứ vừa declarative vừa operational, tách thành 2 (e.g., brand voice spec ở Tier 1, brand voice usage stats ở Tier 2).
+
+## 4.3 Workspace plane: nơi work-in-progress sống
+
+Tier 1-4 là nơi **canonical knowledge** sống. Nhưng founder và agents cần nơi để **draft, scratch, experiment** trước khi promote thành canonical.
+
+Đây là nơi nhiều org thất bại: drafts sống trên Google Docs, scratch sống trong Telegram, experiments sống trên laptop. Lost forever.
+
+Ritsu giải pháp: **3 workspace folders trong cùng repo**, có rule rõ về sync và promotion:
+
+```
+ritsu-works/
+├── raw/             # local-only, gitignored
+│   ├── README.md    # explains the rules
+│   └── .gitkeep
+├── wiki/            # synced (committed)
+│   ├── README.md
+│   ├── _idea-x.md   # underscore prefix = local-only override
+│   └── note-y.md    # synced
+└── .archives/       # shell committed, contents gitignored
+    ├── conversations/.gitkeep
+    ├── diffs/.gitkeep
+    ├── drafts/.gitkeep
+    ├── experiments/.gitkeep
+    └── thinking/.gitkeep
+```
+
+### `raw/` — local-only dump zone
+
+Mọi thứ "tải về", "paste vào", "muốn xem nhanh" — vào `raw/`. Gitignored. Chỉ tồn tại trên laptop founder.
+
+Use cases:
+- Tài liệu reference download từ web (RFCs, docs, articles)
+- Customer call recordings
+- Screenshots cho debug
+- Raw data trước khi process
+- Personal notes founder không muốn share với agents
+
+**Quy tắc:** không commit. Không sync. Founder backup riêng nếu cần.
+
+### `wiki/` — synced loose notes
+
+Notes informal nhưng valuable. Synced (committed), nên agents có thể read. Nhưng KHÔNG canonical — chỉ là Tier-1.5, on the way to Tier 1.
+
+**Convention:**
+- `wiki/note-name.md` — synced, all agents see
+- `wiki/_note-name.md` — local-only override (gitignore pattern matches `_*`)
+
+Use cases:
+- Founder ghi lại "ý tưởng cho Bài #4 phase 2"
+- Investigation notes về bug
+- Half-formed brand voice tweaks chưa ready cho official update
+- Meeting notes
+
+**Promotion path:** khi note đủ chín (e.g., được reference 3+ lần, được apply trong skill drafting), promote thành Tier 1 qua PR.
+
+### `.archives/` — shell committed, contents gitignored
+
+Folder structure tồn tại trong git, nhưng nội dung không. 5 sub-folders:
+
+- `conversations/` — exported chat transcripts (founder ↔ agent)
+- `diffs/` — proposed diffs chưa apply
+- `drafts/` — drafts của blog posts, emails, etc.
+- `experiments/` — proof-of-concept code
+- `thinking/` — long-form reasoning artifacts
+
+**Tại sao shell committed?** Để repo clone xuống có sẵn structure. Founder không phải tự tạo lại folder hierarchy mỗi clone.
+
+**Tại sao contents gitignored?** Vì content thường lớn, transient, sensitive (PII trong customer call transcripts). Founder có riêng strategy backup nếu cần.
+
+## 4.4 Promotion path: từ workspace → Tier 1
+
+Khi note trong `wiki/` đủ chín thành canonical knowledge, promotion là **explicit PR**:
+
+```
+1. Founder/agent identify note đủ chín
+   ↓
+2. Open PR:
+   - Move file from wiki/ to appropriate Tier 1 location
+   - Update knowledge/manifest.yaml if it's a new pillar
+   - Add cross-references where needed
+   ↓
+3. PR review (Tier C if 00-charter or governance change; Tier B otherwise)
+   ↓
+4. Merge → file is now canonical
+```
+
+**Anti-pattern:** copy nội dung từ wiki sang Tier 1 mà không delete trong wiki. Bây giờ cùng nội dung tồn tại 2 nơi → drift sẽ xảy ra. Promotion = move (rename), không phải copy.
+
+Ngược lại: nếu Tier 1 file becomes obsolete, demote về `.archives/deprecated/` và remove từ Tier 1. Don't keep "just in case."
+
+## 4.5 Manifest: single canonical inventory
+
+Một component foundational cho Bài #1: `knowledge/manifest.yaml`. Đây là spec file định nghĩa **"có gì" ở mỗi Tier**:
+
+```yaml
+# knowledge/manifest.yaml (excerpt)
+
+tier1:
+  charter:
+    location: 00-charter/
+    files:
+      - product.md
+      - brand_voice.md
+      - transparency.md
+  governance:
+    location: governance/
+    files: [HITL.md, ROLES.md, SECRETS.md, IDENTITY.md]
+  knowledge_library:
+    location: knowledge/
+    files:
+      - manifest.yaml
+      - memory-architecture.md
+      - orchestration-architecture.md
+      - identity-architecture.md
+      - economic-architecture.md
+
+tier2:
+  supabase_project: ritsu-ops
+  schemas:
+    ops:
+      tables:
+        - name: agent_runs
+          schema_file: knowledge/schemas/agent_runs.sql
+        - name: tasks
+          schema_file: knowledge/schemas/tasks.sql
+        # ... all 8 tables
+
+tier3:
+  storage_buckets:
+    - name: ritsu-assets-prod
+    - name: ritsu-assets-staging
+
+tier4:
+  vector_store: pgvector  # using Supabase pgvector extension
+  namespaces:
+    - name: brand_voice_examples
+    - name: support_kb_v1
+
+secrets_map:
+  # which secrets exist, which roles use which (cross-ref to SECRETS.md)
+```
+
+**Tại sao manifest quan trọng:**
+
+- Khi agent cần biết "có table nào trong ops?" → đọc manifest
+- Khi founder muốn audit "có Tier 3 bucket nào không nằm trong governance?" → so manifest với reality
+- Khi schema change xảy ra → manifest update là phần của PR, atomic
+
+**Manifest là 'single canonical inventory'.** Drift giữa manifest và reality = bug. Hooks có thể reconcile (cron job: list buckets vs manifest, alert if mismatch).
+
+## 4.6 Critical firewall: Operating DB ≠ Product DB
+
+Một quyết định kiến trúc khó undo: **Operating Supabase (`ritsu-ops`) phải FULLY SEPARATE từ Product Supabase (`ritsu`)**.
+
+Đây không phải optimization — đây là security boundary.
+
+### Tại sao tách?
+
+| Concern | Operating DB | Product DB |
+|---|---|---|
+| Contains | Cost data, agent runs, internal SOPs | Customer PII, payments, conversations |
+| Compromise blast radius | Internal cost reveal | Customer privacy violation |
+| Compliance | Internal audit | GDPR / data protection |
+| Read patterns | Agents query frequently | Customer requests, ETL only |
+| Backup cadence | Daily | Hourly |
+| Rotation cadence | Different keys, separate rotation | More frequent, more sensitive |
+
+Nếu một database compromise, blast radius chỉ trong domain đó. Cross-pollination = catastrophic.
+
+### Hook enforcement
+
+`pre-tool-supabase-product` hook (Bài #2) **block mọi non-etl-runner role từ writing vào Product DB**:
+
+```
+allowed:
+  - role: etl-runner
+    actions: SELECT (read-only)
+denied:
+  - all other roles, all write actions
+
+violations: trigger immediate security alert + block
+```
+
+Đây là failure-closed default. Nếu hook itself errors, no agent gets through. Founder phải investigate.
+
+### `etl-runner` role — bridge có kiểm soát
+
+Một role duy nhất có quyền đọc Product DB: `etl-runner`. Use case: extract product analytics data, compute aggregates, write SUMMARY (không phải raw data) vào Operating DB.
+
+Quy trình ETL:
+1. `etl-runner` đọc Product DB (limited columns, RLS-restricted)
+2. Aggregate / anonymize trong process
+3. Write summary stats vào `ops.product_metrics_daily` (Tier 2)
+4. Other roles read aggregated stats from Tier 2; never touch Product DB
+
+Đây là **single bridge với attribution rõ**. Compromise `etl-runner` = compromise this single role; blast radius vẫn giới hạn.
+
+## 4.7 Tier 1 protection: `pre-edit-tier1` hook
+
+Bài #1 cần protection để Tier 1 không bị edit casually. Hook `pre-edit-tier1`:
+
+```
+on every edit to Tier 1 files (charter/, governance/, knowledge/, etc.)
+  → require active PR branch
+  → require commit message format
+  → require associated brainstorm note (for architecture changes)
+  → block if direct push to main
+```
+
+**Tier classification cho edits:**
+
+| File | Tier | Approval cần |
+|---|---|---|
+| `00-charter/*.md` | C | founder approve |
+| `governance/HITL.md` | D-Std | magic phrase + 30s confirm |
+| `governance/SECRETS.md` | D-Std | magic phrase + 30s confirm |
+| `governance/IDENTITY.md` | D-Std | magic phrase + 30s confirm |
+| `governance/ROLES.md` | C | founder approve |
+| `knowledge/*-architecture.md` | C | founder approve + brainstorm note |
+| `knowledge/manifest.yaml` | B | auto if schemas align |
+| `05-ai-ops/skills/<skill>/SKILL.md` | B | auto if owning role approved |
+| `.claude/hooks/<hook>.md` | D-Std | high-risk safety infrastructure |
+
+Đây là Bài #1 protection layer. Nó cũng là entry point vào Bài #2 (governance) — 2 bài này tightly coupled.
+
+## 4.8 Anti-patterns Bài #1
+
+- **"Brand voice ở Notion, dễ edit, sync nhanh."** Đến tháng thứ 6 sẽ có 4 phiên bản. Move to git Tier 1.
+- **"Skip workspace folders, dump trực tiếp vào main repo."** Tier 1 ceremony cho mọi rough idea = friction kiềm hãm thinking. Có workspace.
+- **"Promotion từ wiki → Tier 1 bằng copy."** Tạo drift ngay lập tức. Move/rename, không copy.
+- **"Operating + Product cùng database, RLS đủ."** RLS là application-level, có thể bypass khi role có service key. Tách project là physical separation, much harder to bypass.
+- **"Manifest tạo một lần, không cần update."** Manifest drift là bug. Schema change = manifest update trong cùng PR, atomic.
+- **"Tier 4 (vector embeddings) là canonical."** Không. Embeddings derived. Source data ở Tier 1 hoặc 2 mới canonical.
+
+## 4.9 Tổng kết Bài #1
+
+- **6 failure mode** mà Bài #1 phải giải: fragmentation, drift, untraceable, contradiction, promotion chaos, cross-env leak
+- **4-tier truth model** — declarative (Tier 1) / operational (Tier 2) / assets (Tier 3) / embeddings (Tier 4)
+- **Workspace plane** — `raw/` (local) + `wiki/` (synced loose) + `.archives/` (shell committed)
+- **Manifest** — single canonical inventory cho mọi Tier
+- **Firewall** — Operating DB ≠ Product DB; chỉ `etl-runner` bridge
+- **`pre-edit-tier1` hook** — protects canonical knowledge
+- **Promotion** = move, không copy. Drift = bug.
+
+Bài #1 là foundation. Bài #2 (governance) build trên nó. Sang Chương 5.
+
+---
+
+**Tham khảo:**
+- Ritsu repo: `knowledge/manifest.yaml`, `00-charter/`, `governance/`, `knowledge/`
+- Brainstorm note: `_build/notes/problem-1-single-source-of-truth.md` (TODO backfill)
+- Anthropic docs on file-based knowledge: https://docs.claude.com/en/docs/build-with-claude/files

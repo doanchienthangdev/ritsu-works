@@ -1,0 +1,506 @@
+---
+title: "Chương 12 — Boilerplate `_build/`: ROADMAP, recipes, checklists, templates"
+description: "Chương 12 — Boilerplate `_build/`: ROADMAP, recipes, checklists, templates"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/12-build-infrastructure.md
+source_hash: ed04c162f93e7bad7d784d368ecb3e2bd16578f2c984829a0dd96593c5a919ca
+generated_at: '2026-05-19T16:57:54.902Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: ed04c162f93e7bad7d784d368ecb3e2bd16578f2c984829a0dd96593c5a919ca
+translated_at: '2026-05-19T16:57:54.902Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 12
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 12 — Boilerplate `_build/`: ROADMAP, recipes, checklists, templates
+
+> Founder không nhớ "cách add new role" qua mỗi tháng. `_build/` chứa **procedural memory cho founder** — recipes, checklists, templates. Founder reads, follows, ships.
+
+## 12.1 Tại sao `_build/` quan trọng
+
+One-person company phải optimize founder's cognitive load. Mỗi lần phải re-think "how to add a role" = lãng phí. `_build/` chứa:
+
+- **ROADMAP.md** — what's done, what's next, where we are
+- **recipes/** — multi-step workflows ("how to do X")
+- **checklists/** — atomic operations ("did I do all 10 steps for Y?")
+- **templates/** — boilerplate ("starting point for new Z")
+- **notes/** — brainstorm summaries (the WHY behind decisions)
+
+Đây là thư viện trí nhớ founder. Sau 6 tháng, founder không nhớ chi tiết của Phase A; `_build/notes/problem-3-context-window-economics.md` reconstructs the reasoning.
+
+## 12.2 `_build/ROADMAP.md`
+
+Phase progression. Format:
+
+```markdown
+# Ritsu Works — Roadmap
+
+## Status (as of YYYY-MM-DD)
+
+Currently in: Phase A — Brainstorm and scaffolding
+
+## Phase A — 7 problems brainstormed (✅ done 2026-05-02)
+
+- [x] Problem #1 — Single Source of Truth
+- [x] Problem #2 — Trust & Blast Radius
+- [x] Problem #3 — Context Window Economics
+- [x] Problem #4 — Memory & Learning Loop
+- [x] Problem #5 — Multi-Agent Orchestration
+- [x] Problem #6 — Identity & Interface
+- [x] Problem #7 — Economic Unit
+
+🎉 Phase A complete. All 7 core problems brainstormed, decided, and scaffolded.
+
+## Phase B — Infrastructure provisioning (NEXT)
+
+- [ ] Provision Supabase ritsu-ops project
+- [ ] Create all 8 tables in ops schema
+- [ ] Set up secret manager (1Password Service Accounts)
+- [ ] Create per-role GitHub bot accounts
+- [ ] Configure email forwarders ({role}@ritsu.ai)
+- [ ] Create per-role Anthropic API keys with budget caps
+- [ ] Wire Telegram bot for founder interface
+
+## Phase C — Skill implementation
+
+- [ ] Implement episodic-recall skill (SQL queries)
+- [ ] Implement task-decompose skill
+- [ ] Implement cost-report skill
+- [ ] Implement ai-disclosure-check skill
+- ...
+
+## Phase D — Hook implementation
+
+- [ ] Implement pre-edit-tier1 hook
+- [ ] Implement pre-tool-secrets hook
+- [ ] Implement pre-llm-call-budget hook (with 14-day calibration mode)
+- ...
+
+## Phase E — Charter completion
+
+- [ ] Finalize 00-charter/product.md
+- [ ] Bilingual brand_voice.md (EN + VI proofread)
+- [ ] Publish ritsu.ai/transparency from transparency.md
+
+## Phase F — Pillar expansion
+
+- [ ] Add 01-growth/ pillar
+- [ ] Add 02-product/ pillar
+- [ ] Add 03-support/ pillar
+
+## Phase G — v1.0 launch
+...
+
+## Target v1.0 status
+1. All 7 core problems brainstormed and decided ✅ (Phase A complete 2026-05-02)
+2. Infrastructure provisioned (Phase B)
+3. Skills + hooks implemented (Phase C-D)
+4. Pillars built (Phase F)
+5. Calibration period complete (Bài #7 30-day)
+6. Public launch ready
+```
+
+**Convention:** ROADMAP gets updated mỗi turn meaningful work happens. Stale ROADMAP = lost trust.
+
+## 12.3 `_build/recipes/`
+
+Multi-step workflows. Each recipe assumes founder knows context but không nhớ steps.
+
+### Example: `_build/recipes/add-new-skill.md`
+
+```markdown
+# Recipe: Add a new skill
+
+When you want to add a skill to Ritsu's workforce:
+
+## Steps
+
+1. **Identify the trigger pattern**
+   - When should agents invoke this skill?
+   - What's the input/output?
+   - Reference: similar existing skills in 05-ai-ops/skills/
+
+2. **Determine owning role**
+   - Which role is allowed to invoke?
+   - Add to that role's `permissions.skills` list in
+     governance/ROLES.md
+
+3. **Copy template**
+   - cp -r _build/templates/skill 05-ai-ops/skills/<your-skill>
+   - Edit SKILL.md frontmatter:
+     - name: kebab-case
+     - description: when to use, when NOT to use
+     - allowed-tools: subset role can use
+     - disable-model-invocation: false (or true for safety-critical)
+
+4. **Write the procedure**
+   - Step-by-step what the skill does
+   - Inputs / Outputs schema
+   - Examples (3+ examples typical)
+   - Anti-patterns to refuse
+
+5. **Cost estimate**
+   - SQL queries × est latency
+   - Token estimate (input + output)
+   - Per-invocation cost
+   - Per-month projection
+
+6. **Update governance/ROLES.md**
+   - Add skill to invoking roles' permissions.skills
+
+7. **Open PR**
+   - Tier B (skill addition is reversible)
+   - Title: "Add skill: <name> (Bài #N)"
+
+8. **After merge:**
+   - Skill available next session
+   - Test with manual invocation
+   - Monitor first 5-10 invocations for unexpected behavior
+
+## Time estimate
+- Simple skill: 30-60 min
+- Complex skill (multi-step + new schema): 2-4 hours
+```
+
+### Other recipes in Ritsu
+
+- `add-new-pillar.md` — when scope expands beyond 05-ai-ops
+- `provision-supabase-ops.md` — Phase B step-by-step
+- `add-new-mcp-server.md` — when new MCP integration needed
+- `promote-wiki-to-tier1.md` — when wiki note matures
+- `add-new-role.md` — when new specialist needed
+
+**Convention:** new recipes added when founder finds self re-thinking same workflow. Recipe lives in `_build/recipes/`, atomic PR.
+
+## 12.4 `_build/checklists/`
+
+Atomic operation checklists. Different from recipes (which are workflows): checklists ensure NOTHING IS FORGOTTEN in a single high-stakes operation.
+
+### Example: `_build/checklists/new-role.md`
+
+```markdown
+# Checklist: Adding a new role
+
+Per `governance/ROLES.md` schema requirements + Bài #6 identity mapping.
+
+Atomic — all items in one PR.
+
+## Identity & secrets (must exist before role activates)
+
+- [ ] GitHub bot account created (`ritsu-{role}-bot`)
+- [ ] Email forwarder configured (`{role}@ritsu.ai`)
+- [ ] Anthropic API key created with monthly cap
+- [ ] All secrets stored in secret manager (1Password)
+- [ ] Secrets named per `governance/SECRETS.md` convention
+
+## Documentation
+
+- [ ] Role added to `governance/ROLES.md` with full schema:
+  - [ ] permissions (files, schemas, mcp_servers, skills, secrets)
+  - [ ] hitl_max_tier
+  - [ ] budget + economic_budget
+  - [ ] context_budget (Bài #3)
+  - [ ] memory_config (Bài #4)
+- [ ] Identity mapping added to `governance/IDENTITY.md`
+- [ ] Secrets entry added to `governance/SECRETS.md`
+
+## Runtime
+
+- [ ] `.claude/agents/<role>.md` created (Claude Code agent file)
+- [ ] System prompt thin (<100 lines)
+- [ ] References governance + relevant skills
+
+## Hooks tests
+
+- [ ] `pre-tool-secrets` recognizes new role
+- [ ] `pre-tool-publish` tier classification correct for role
+- [ ] `pre-llm-call-budget` reads new role's economic_budget
+
+## Verification
+
+- [ ] Role can be invoked manually
+- [ ] First invocation logs correctly to ops.agent_runs
+- [ ] Telegram notifications work for role's tier escalations
+
+## After merge
+- [ ] Monitor first 24h for unexpected behavior
+- [ ] First weekly cost review check role's actuals vs budget
+```
+
+**Convention:** checklists are checkboxes for FOUNDER, not agents. Founder runs through, ticks each. PR description includes "checklist completed".
+
+### Other checklists in Ritsu
+
+- `new-secret.md` — when adding a new credential
+- `pre-tier1-edit.md` — before editing 00-charter/, governance/, knowledge/
+- `monthly-review.md` — monthly cadence operations
+- `quarterly-audit.md` — quarterly secret rotation + identity reconciliation
+
+## 12.5 `_build/templates/`
+
+Boilerplate. Starting points to reduce blank-page friction.
+
+### `_build/templates/skill/`
+
+```
+templates/skill/
+└── SKILL.md (skeleton)
+```
+
+```markdown
+---
+name: <kebab-case-action>
+description: |
+  Use when <specific trigger>.
+
+  Skip when: <when not applicable>.
+
+  Cost: <SQL queries + tokens estimate>.
+allowed-tools:
+  - Read
+  - <add tools as needed>
+disable-model-invocation: false
+---
+
+# <Skill Name>
+
+> <One-line summary of what this skill does>.
+
+## When to use
+
+<Specific triggers, 3-5 conditions>
+
+Do NOT use when:
+- <Anti-trigger 1>
+- <Anti-trigger 2>
+
+## Inputs
+
+| Input | Type | Required | Description |
+|---|---|---|---|
+
+## Outputs
+
+```yaml
+<output schema>
+```
+
+## Procedure
+
+### Step 1 — \<name>
+
+\<details>
+
+### Step 2 — \<name>
+
+...
+
+## Examples
+
+### Example 1
+
+...
+
+## Quality criteria
+
+- \<criterion 1>
+- \<criterion 2>
+
+## Failure modes
+
+- **\<scenario>** — \<what to do>
+
+## Cost estimate
+
+- \<SQL queries × est latency>
+- \<token estimate>
+- Per-invocation cost: \< $X
+- Volume estimate
+
+## Required secrets
+
+- \<secret name from SECRETS.md>
+
+Roles allowed to invoke: \<role list>.
+
+## Related skills
+
+- \<related skill 1>
+- \<related skill 2>
+
+## Changelog
+
+- YYYY-MM-DD — initial version
+```
+
+### `_build/templates/agent/`
+
+Per-role `.claude/agents/<role>.md` template:
+
+```markdown
+---
+name: <role-slug>
+description: <one-liner what this agent does>
+tools: <subset of all tools>
+---
+
+# <Role Name>
+
+You are <role-slug>, a member of Ritsu's AI workforce.
+
+## Your scope
+
+<2-3 sentences>
+
+## Your boundaries
+
+You may NOT:
+- <boundary 1>
+- <boundary 2>
+
+When in doubt, escalate to <escalation_role>.
+
+## Reference (read on demand)
+
+@governance/ROLES.md (your role's full schema)
+@knowledge/<relevant-architecture>.md (if applicable)
+@00-charter/brand_voice.md (if customer-facing)
+
+## Your skills
+
+The following skills are available; invoke when triggers match:
+- <skill 1> — <when to use>
+- <skill 2> — <when to use>
+```
+
+Other templates:
+- `_build/templates/pillar/` — new pillar layout (orchestrator.md, README.md, sops/)
+- `_build/templates/sop/` — SOP template
+- `_build/templates/mcp-server/` — MCP server config template
+
+## 12.6 `_build/notes/`
+
+Brainstorm summaries. **The WHY behind decisions.**
+
+Each problem brainstormed gets a note. Sample structure:
+
+```markdown
+# Brainstorm: Problem #N — <name>
+
+**Date:** YYYY-MM-DD
+**Participants:** founder + assistant
+**Outcome:** decided
+**Related Tier 1 changes:**
+- <list of files changed>
+
+---
+
+## Problem
+
+<Problem statement, 2-3 paragraphs>
+
+## Critical pivot in this brainstorm
+
+<What changed during the brainstorm — assistant's reversal, founder's
+push-back, deeper research that shifted recommendation>
+
+## <Axes / Sub-domains> considered
+
+### <Axis 1>
+
+**Options considered:**
+- A: <description>
+- B: <description>
+- C: <description>
+
+**Verdict: <chosen>.**
+
+**Why <chosen> wins:**
+- <reason 1>
+- <reason 2>
+
+### <Axis 2>
+...
+
+## Decision summary
+
+| Q | Decision |
+|---|---|
+| Q1 | <answer> |
+| Q2 | <answer> |
+
+## What Ritsu uses (platform primitives)
+
+| Need | Platform answer |
+|---|---|
+
+## What Ritsu adds (Outer Harness)
+
+1. <component 1>
+2. <component 2>
+
+## Open questions
+
+- <unresolved question 1>
+- <unresolved question 2>
+
+## Lessons captured
+
+1. <lesson 1>
+2. <lesson 2>
+
+## References
+
+- <link 1>
+- <link 2>
+```
+
+**Critical: notes capture the WHY.** A future founder (or future self) reading the note can:
+- Understand WHY the architecture is this shape
+- Identify when to revisit (open questions)
+- See what was rejected and why
+
+**Convention:** notes don't get edited after creation. They're historical artifacts. If decision changes, add new note + update relevant Tier 1 docs.
+
+## 12.7 Anti-patterns `_build/`
+
+- **"ROADMAP gets updated when we feel like it."** Stale = lost trust. Update each meaningful work session.
+- **"Recipes are duplicates of architecture docs."** No — architecture docs say WHAT and WHY. Recipes say HOW. Different audiences.
+- **"Templates so detailed they don't need filling in."** Defeats purpose. Templates are skeletons; specifics fill in.
+- **"Brainstorm notes get edited as decisions evolve."** No — notes are historical. New decisions = new notes + update Tier 1.
+- **"Skip checklists, just do it."** Checklists exist for high-stakes operations. Skipping = forgetting.
+
+## 12.8 How `_build/` evolves
+
+After Phase A, `_build/` contains 7 brainstorm notes + foundational recipes/checklists/templates. As phases progress:
+
+- **Phase B+** adds infrastructure provisioning recipes (provisioned-supabase, configured-secrets, etc.)
+- **Phase C+** adds skill implementation logs (skill-X-implementation-notes.md)
+- **Phase F+** adds pillar build records (pillar-growth-build-log.md)
+
+Each meaningful project = a note (or recipe, or checklist). Over 12 months, `_build/` accumulates institutional memory.
+
+For a new founder forking this template: `_build/` is **the most valuable folder**. Tier 1 files describe WHAT. `_build/` describes HOW and WHY. Without it, fork is just markdown; with it, fork is institutional memory.
+
+## 12.9 Tổng kết
+
+- **`_build/`** = procedural + historical memory cho founder
+- **`ROADMAP.md`** = phase progression, updated each meaningful turn
+- **`recipes/`** = multi-step workflows (add new skill, provision infra)
+- **`checklists/`** = atomic operations (new role, new secret, monthly review)
+- **`templates/`** = boilerplate (skill, agent, pillar, SOP)
+- **`notes/`** = brainstorm summaries (the WHY)
+- **Notes are historical** — don't edit; new decisions = new notes
+- **Without `_build/`**, fork is markdown. With it, fork is institutional memory.
+
+Sang Chương 13 — final chapter on roadmap + failure modes.
+
+---
+
+**Tham khảo:**
+- Ritsu repo `_build/`: https://github.com/doanchienthangdev/ritsu-works/tree/main/_build
+- Phase A brainstorm notes: 7 files in `_build/notes/`

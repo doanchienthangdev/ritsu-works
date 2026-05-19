@@ -1,0 +1,308 @@
+---
+title: "Chương 28 — Phase A.2 Final Architecture: Pattern Extraction & Synthesis"
+description: "Chương 28 — Phase A.2 Final Architecture: Pattern Extraction & Synthesis"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/28-phase-a2-final-architecture.md
+source_hash: eb0121c48d10d0e9c78e802245ad6e97580bc79d31ec46a1790f351cf777e44d
+generated_at: '2026-05-19T16:57:54.945Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: eb0121c48d10d0e9c78e802245ad6e97580bc79d31ec46a1790f351cf777e44d
+translated_at: '2026-05-19T16:57:54.945Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 28
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 28 — Phase A.2 Final Architecture: Pattern Extraction & Synthesis
+
+> *"12 walkthroughs raw data. Synthesis crystallizes the patterns. Top-down skeleton (Phase A) + bottom-up validation (Phase A.2) = complete architecture."*
+
+## 28.1 Executive Summary
+
+Phase A.2 reveals through 12 systematic walkthroughs:
+
+- **2.8x search precision** via knowledge graph (Bài #14 BrainBench)
+- **100x cost reduction** for deterministic workflows (GBrain Minions pattern)
+- **GDPR readiness** preventing €20M fine risk (Bài #16)
+- **Founder capacity protection** addressing Phase A roadmap failure mode #1 (Bài #19)
+- **~260 new components** organized into 12 bài toán candidates
+- **17 Tier 1 declarative YAML files** = operational DNA across 10 layers
+
+## 28.2 Architectural Principles (Distilled)
+
+### Principle 1 — Declarative-First
+
+17 Tier 1 YAML files. Runtime engines = thin executors. Edits via PR governance.
+
+10 architectural layers:
+
+| Layer | Tier 1 Files | From Bài toán |
+|---|---|---|
+| Triggers | schedules, event-subscriptions, event-aggregation | #8, #11 |
+| Visibility | kpi-registry, alert-rules | #10 |
+| State | state-machines | #13 |
+| Knowledge | link-inference-rules | #14 |
+| Judgment | muse-personas | #15 |
+| Privacy | data-retention | #16 |
+| Multi-Surface | channels, locales, surface-compliance | #17 |
+| Ingestion | ingestion-sources, ingestion-routing | #18 |
+| Founder | founder-rhythm | #19 |
+| Access | mcp-tools, mcp-roles | #12 |
+
+### Principle 2 — Cross-Cutting > Per-Pillar
+
+Phase A defers 4 concerns to per-pillar Phase B. Phase A.2 reveals all 4 = wrong abstraction:
+
+1. **State machines** (Bài #13) — was per-pillar, now standard convention
+2. **Knowledge graph** (Bài #14) — was deferred v1.x, now load-bearing (2.8x precision)
+3. **Customer data** (Bài #16) — was per-pillar, now unified với GDPR machinery
+4. **Founder capacity** (Bài #19) — was discipline, now architectural protection
+
+**Pattern:** When concern touches 3+ pillars, lift to architectural primitive.
+
+### Principle 3 — Adapter Pattern for External Integration
+
+Universal pattern: define interface, multiple implementations.
+
+- Bài #17 SurfaceAdapter (13+ surfaces: 10 social + email + telegram + dashboard + MCP)
+- Bài #18 IngestionAdapter (7+ source kinds: article, podcast, book, repo, voice, video, tweet thread)
+- Bài #12 MCP servers themselves are adapter instances
+
+Common: auth abstraction, rate limit, health check, compliance enforcement at adapter layer.
+
+### Principle 4 — Minions for Deterministic Work (GBrain pattern)
+
+Routing decision per skill:
+- Deterministic (rules → action) → ops.minion_jobs queue, parallel
+- Judgment (context → decision) → subagent, full LLM context
+
+**Cost impact:** ~$50-100/mo savings at v1.0 scale, scales linearly.
+
+### Principle 5 — Outbox Pattern for Internal Events
+
+After Bài #11, all event-emitting operations:
+1. DB transaction commits domain change + INSERT outbox
+2. Outbox consumer dispatches event after commit
+3. Idempotent consumer + replay capability
+
+### Principle 6 — Compiled-Truth + Timeline Page Format (GBrain)
+
+Universal entity representation:
+- Compiled truth (mutable) = current best understanding
+- Timeline (append-only) = evidence trail
+- `[[wiki-link/slug]]` = automatic graph edges
+
+Applied to: customers, persons, companies, decisions, founder profile, ingested sources.
+
+### Principle 7 — Tier C HITL for Major Operations
+
+Architecture defaults to safety. Used in:
+- Major decisions (Bài #15 Muse synthesis)
+- GDPR deletion plans (Bài #16)
+- State machine migrations (Bài #13)
+- Public publishing (selective Bài #17)
+
+## 28.3 12 Bài Toán Summary
+
+| Bài | Title | Components |
+|---|---|---|
+| #8 | Scheduling & Triggers | 9 |
+| #9 | SOP Architecture | 15 |
+| #10 | Real-Time Visibility & Alerting | 17 |
+| #11 | Event-Driven Triggers | 17 |
+| #12 | MCP Integration Architecture | 24 |
+| #13 | Domain State Machine Architecture | 20 |
+| #14 | Knowledge Graph Architecture | 22 |
+| #15 | Decision Architecture & Muse Integration | 24 |
+| #16 | Customer Data Architecture & Privacy | 28 |
+| #17 | Multi-Surface + Multilingual Operations | 25 |
+| #18 | Knowledge Ingestion Pipeline | 31 |
+| #19 | Founder Capacity & Interface Architecture | 28 |
+
+**Total: ~260 new components.**
+
+## 28.4 Dependency Map
+
+### Phase A Foundations (already done)
+- Bài #1 (Truth) → Bài #4 (Memory) → Bài #5 (Multi-Agent) → Bài #6 (Identity)
+- Bài #2 (HITL), Bài #3 (Boundary), Bài #7 (Economic) parallel
+
+### Phase A.2 Layered Dependencies
+
+| Depth | Bài toán | Depends on |
+|---|---|---|
+| 1 | #8 Scheduling | Phase A only |
+| 2 | #9 SOP, #11 Events | #8 |
+| 3 | #10 Visibility, #12 MCP | #9, #11 |
+| 4 | #13 State Machines | #9, #10, #11 |
+| 5 | #14 Knowledge Graph, #15 Decisions | #13 |
+| 6 | #16 Customer Data | #13, #14, #15 |
+| 7 | #17 Multi-Surface | #16 |
+| 8 | #18 Ingestion | #14, #15, #17 |
+| Capstone | #19 Founder Capacity | EVERYTHING |
+
+**Insight:** Bài #8 = critical path (must implement first). Bài #19 = capstone (last to implement).
+
+## 28.5 Implementation Roadmap (8 Waves, 14+ Weeks)
+
+### Wave 1 — Foundation Schema (Week 1-2)
+- 17 Tier 1 YAML files với schema validation
+- Database tables (ops.* + customers + companies + persons + ops.knowledge_links + state_log sidecars)
+- Postgres triggers cho state machine guards
+- Bài #13 4-column convention applied universally
+
+### Wave 2 — Triggers + Orchestration (Week 3-4)
+- Bài #8 dispatcher Edge Function (pg_cron → schedules.yaml)
+- Bài #11 event-dispatcher + outbox pattern
+- Bài #9 sop-execute skill + first SOP per pillar
+- Bài #5 ops.minion_jobs queue (Minions worker)
+
+### Wave 3 — State + Knowledge (Week 5-6)
+- Bài #13 state-transition skill + DB trigger guards
+- 5+ domain state machines (customer, content_piece, lead, compliance_review, subscription)
+- Bài #14 ops.knowledge_links + auto-link extraction
+- Bài #14 graph-traverse skill
+
+### Wave 4 — Visibility + Access (Week 7-8)
+- Dashboard scaffolding (Next.js 15 PWA)
+- Supabase Realtime subscriptions
+- mv_customer_360 + dashboard pages
+- MCP server (stdio + HTTP) at mcp.ritsu.ai
+- First 5 read-only MCP tools
+
+### Wave 5 — Judgment + Privacy (Week 9-10)
+- Bài #15 muse-panel skill + 29 personas
+- decision pages + ops.decisions
+- Bài #16 data-retention.yaml inventory
+- customer-data-scan skill (Minions)
+- 3 GDPR SOPs (deletion, access, rectification)
+
+### Wave 6 — Multi-Surface + Ingestion (Week 11-12)
+- Bài #17 SurfaceAdapter (telegram + email + twitter first)
+- Format converter library
+- Bài #18 IngestionAdapter (article + voice_note + podcast first)
+- SOP-INGEST-001 + 9 ingestion skills
+
+### Wave 7 — Founder Capacity (Week 13-14)
+- Bài #19 founder profile + founder-rhythm.yaml
+- ops.attention_log + founder-triage-score
+- 3 founder SOPs (morning brief, pre-call dossier, weekly review)
+- /founder/* dashboard pages
+- Telegram /focus command + DND
+
+### Wave 8+ — Iteration (Week 15+)
+Per-bài-toán refinements based on Phase B feedback.
+
+## 28.6 GBrain Heritage Summary
+
+5 GBrain patterns adopted, influencing 8+ bài toán:
+
+| GBrain Pattern | Bài toán | Impact |
+|---|---|---|
+| Knowledge graph + auto-link | #14 | 2.8x P@5 precision |
+| Compiled-truth + timeline | #14, #15, #19 | Universal page format |
+| Minions queue | #5, #11, #12, #13, #14, #16, #17, #18 | $50-100/mo savings |
+| Skillify 10-step audit | #9, #12 | Reliable skill quality |
+| Soul-audit identity files | #6, #19 | Founder profile integration |
+
+## 28.7 Critical Failure Modes (20)
+
+### Critical (architectural)
+1. Skip walkthrough discipline
+2. Subagent for deterministic work (100x cost waste)
+3. Skip outbox pattern (events lost)
+4. Skip knowledge graph layer (search caps)
+5. Skip data inventory Tier 1 (€20M GDPR risk)
+6. Per-pillar custom state column (drift)
+7. **Founder as unlimited resource** (Phase A failure mode #1)
+
+### High (specific)
+8. Hardcode tool list, no role scoping (#12)
+9. Skip HITL gate at MCP layer (#12)
+10. Direct SQL UPDATE bypassing state-transition (#13)
+11. LLM-based link extraction (cost explosion #14)
+12. Decisions in Slack only (#15)
+13. Skip Muse panel for Tier C+ (#15)
+14. Two separate B2C/B2B schemas (#16)
+15. Hard-delete legal-retention data (#16)
+16. One skill per channel (#17)
+17. Skip per-surface compliance (#17)
+
+### Medium (operational)
+18. Manual paste-to-wiki ingestion (#18)
+19. Skip dedup (vector bloat #18)
+20. Skip founder rhythm registry (#19)
+
+## 28.8 Open Questions (83 total) — Triage Buckets
+
+| Category | Count | Defer until |
+|---|---|---|
+| Multi-tenant / Operator | 5+ | 2nd person joins |
+| Scale (vector sharding, voice surfaces) | 6+ | Growth surfaces |
+| Compliance / Legal | 4+ | Consult counsel |
+| ML / Optimization | 8+ | Data accumulates (3-6 months) |
+| Phase C/D refinements | 60+ | Implementation surfaces |
+
+## 28.9 Phase A.2 vs Phase A — Methodology Comparison
+
+| Aspect | Phase A (Top-Down) | Phase A.2 (Bottom-Up) |
+|---|---|---|
+| Approach | Theory → architecture | Issues → walkthroughs |
+| Output | 7 bài toán (foundations) | 12 bài toán (operational + capstone) |
+| Strength | Conceptual framework | Reveals what theory missed |
+| Defer-was-wrong moments | 0 surfaced | 4 revealed |
+| Tier 1 files | ~5 | +12 |
+| Component count | ~50 | +260 |
+
+**Lesson:** Top-down + bottom-up = complete architecture. Either alone = incomplete.
+
+## 28.10 Status & Next Steps
+
+**Phase A: COMPLETE.** Foundations laid (7 bài toán, 66 files, 13 chapters).
+
+**Phase A.2: COMPLETE.** Bottom-up walkthroughs delivered:
+- 200 issues catalogued
+- 12 walkthroughs synthesized (chapters 14-27)
+- 12 bài toán candidates với DRAFTs
+- 17 Tier 1 declarative files
+- 10-layer architecture
+- Pattern extraction synthesis (this chapter)
+
+**Phase B: READY.** Implementation roadmap = 8 waves over 14+ weeks.
+
+### Immediate next steps (Phase B Wave 1):
+1. Tier 1 file scaffolding với JSON Schema validation
+2. Database migrations applied
+3. Postgres trigger guards installed
+4. Schema baseline runnable
+
+### Subsequent steps:
+- Wave 2-7 implementation (specific bài toán)
+- Phase C: skill implementation
+- Phase D: operator onboarding + external integrations
+
+## 28.11 Architectural Insight Capstone
+
+**The bottom-up methodology validates the top-down framework.** Phase A's 4-tier truth model + 9 roles + 5-tier HITL provided the skeleton. Phase A.2's walkthroughs revealed:
+
+1. What was missing (12 new bài toán)
+2. What was wrong (4 defer-was-wrong moments)
+3. What needed unification (cross-cutting concerns)
+4. What needed external validation (GBrain heritage adoption)
+
+**Without Phase A:** No vocabulary, no roles, no governance, no truth model. Phase A.2 walkthroughs would lack framework.
+
+**Without Phase A.2:** Per-pillar drift, missing knowledge graph (2.8x precision lost), GDPR breach risk, founder burnout.
+
+**Together:** Complete architectural foundation for Ritsu's tỷ-đô vision với 1-2 humans + AI workforce.
+
+---
+
+**Tham khảo:**
+- All 12 walkthroughs: chapters 15-27
+- All 12 DRAFTs: `knowledge/phase-a2-extensions/bai-{8-19}-*-DRAFT.md`
+- 17 Tier 1 file scaffolds: `knowledge/*.yaml` (to be created Wave 1)
+- Final architecture document: `_build/notes/phase-a2/PHASE_A2_FINAL_ARCHITECTURE.md`

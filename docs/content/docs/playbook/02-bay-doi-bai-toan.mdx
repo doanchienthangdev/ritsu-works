@@ -1,0 +1,246 @@
+---
+title: "Chương 2 — Bản đồ 7 bài toán cốt lõi"
+description: "Chương 2 — Bản đồ 7 bài toán cốt lõi"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/02-bay-doi-bai-toan.md
+source_hash: 9a5458d1446e3d6c8e0d190be92f343cd6c606928d4820083a79c7d4e756232f
+generated_at: '2026-05-19T16:57:54.876Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 9a5458d1446e3d6c8e0d190be92f343cd6c606928d4820083a79c7d4e756232f
+translated_at: '2026-05-19T16:57:54.876Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 2
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 2 — Bản đồ 7 bài toán cốt lõi
+
+> Mọi AI-Native Company — bất kể quy mô — phải giải quyết 7 bài toán này. Sai một, các bài còn lại bù không hết.
+
+## 2.1 Tại sao đúng 7?
+
+Không có gì thiêng liêng về số 7. Có thể chia 5, 9, 12 — depends on framing. Nhưng sau Phase A của Ritsu, 7 bài này nổi lên một cách tự nhiên vì mỗi bài giải một loại failure mode KHÁC NHAU mà các bài khác không che được.
+
+Bằng chứng: trong 7 bài, mỗi bài có **6 failure mode cụ thể** đặc thù. Tổng 42 failure modes, không trùng lặp.
+
+| # | Bài toán | Loại failure mode chính |
+|---|---|---|
+| 1 | Single Source of Truth | Knowledge fragmentation, drift, untraceable changes |
+| 2 | Trust & Blast Radius | Privilege escalation, audit gap, secret leak |
+| 3 | Context Window Economics | Token cost spiral, lost-in-the-middle, repetition |
+| 4 | Memory & Learning Loop | No improvement over time, repeated mistakes |
+| 5 | Multi-Agent Orchestration | Premature multi-agent, coordination overhead |
+| 6 | Identity & Interface | Persona drift, regulatory non-compliance, audit nightmare |
+| 7 | Economic Unit | Silent cost spiral, wrong unit economics, no optimization |
+
+## 2.2 Sơ đồ phụ thuộc giữa 7 bài
+
+```
+                           ┌─────────────────────┐
+                           │    Bài #1           │
+                           │ Single Source       │
+                           │ of Truth            │
+                           │ (Foundation)        │
+                           └──────────┬──────────┘
+                                      │
+                ┌─────────────────────┼─────────────────────┐
+                │                     │                     │
+                ▼                     ▼                     ▼
+        ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+        │  Bài #2      │      │  Bài #3      │      │  Bài #6      │
+        │  Trust &     │      │  Context     │      │  Identity &  │
+        │  Blast Radius│      │  Window      │      │  Interface   │
+        │              │      │  Economics   │      │              │
+        └──────┬───────┘      └──────┬───────┘      └──────┬───────┘
+               │                     │                     │
+               │                     │                     │
+               └──────────┬──────────┴─────────┬───────────┘
+                          │                    │
+                          ▼                    ▼
+                  ┌──────────────┐      ┌──────────────┐
+                  │  Bài #4      │      │  Bài #5      │
+                  │  Memory &    │      │  Multi-Agent │
+                  │  Learning    │      │  Orchestrat. │
+                  │  Loop        │      │              │
+                  └──────┬───────┘      └──────┬───────┘
+                         │                     │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                           ┌──────────────┐
+                           │  Bài #7      │
+                           │  Economic    │
+                           │  Unit        │
+                           │  (Solvency)  │
+                           └──────────────┘
+```
+
+**Đọc sơ đồ:**
+
+- **Bài #1 là foundation.** Mọi bài khác giả định bạn đã có Single Source of Truth.
+- **Bài #2, #3, #6 là 3 trục độc lập** xây trên Bài #1. Có thể giải song song.
+- **Bài #4 và #5 dựa trên Bài #2, #3, #6.** Memory cần governance + role identity. Orchestration cần governance + context budget.
+- **Bài #7 dựa trên 6 bài trước.** Economic instrumentation đo cost cho mọi role/task — và cả 6 bài trước đều phải xong thì Bài #7 mới có data sạch để đo.
+
+## 2.3 Tóm tắt 7 bài toán
+
+### Bài #1 — Single Source of Truth
+
+**Câu hỏi cốt lõi:** Khi agent (hoặc founder) cần biết "what's the latest brand voice?", "what's the customer's status?", "what does the company think about X?" — họ tra ở đâu?
+
+**Failure mode:** mỗi agent có 1 phiên bản của câu trả lời, trên laptop riêng, drift theo thời gian. Founder không biết version nào là canonical. Sau 6 tháng, không thể audit.
+
+**Giải pháp Ritsu:** **4-tier truth model**
+- **Tier 1:** git repo `ritsu-works` — declarative knowledge (charters, voice, governance)
+- **Tier 2:** Supabase `ritsu-ops` — operational data (agent_runs, tasks, secrets_log)
+- **Tier 3:** Object storage — assets (images, drafts, large files)
+- **Tier 4:** Vector DB — embeddings for RAG
+
+Mỗi loại knowledge có exactly ONE tier. Workspace plane (`raw/`, `wiki/`, `.archives/`) cho work-in-progress; promotion qua PR.
+
+→ Chương 4 (Bài #1) sẽ đào sâu.
+
+### Bài #2 — Trust & Blast Radius
+
+**Câu hỏi cốt lõi:** Khi agent tự động làm gì đó (gửi email, push code, charge customer), founder cần approve trước? Hay sau? Hay không cần?
+
+**Failure mode:** agent tự động gửi email nhầm 1000 customers. Hoặc agent revoke own token và lock founder out. Hoặc agent push code vô production thiếu test. Mỗi failure mode có blast radius khác nhau, cần governance khác nhau.
+
+**Giải pháp Ritsu:** **HITL 4-tier + 9 roles + secrets governance**
+- **Tier A:** autonomous, no approval
+- **Tier B:** notify-after, founder review post-hoc
+- **Tier C:** approve-before, founder confirms via Telegram inline button
+- **Tier D-Std:** override, founder magic phrase + 30s confirm
+- **Tier D-MAX:** highest risk, magic phrase + PR + 1h cooldown + EXECUTE
+
+Mỗi action classified vào tier. 9 roles có `hitl_max_tier` riêng. Secrets có rotation cadence, naming convention, access matrix.
+
+→ Chương 5 (Bài #2) sẽ đào sâu.
+
+### Bài #3 — Context Window Economics
+
+**Câu hỏi cốt lõi:** Mỗi LLM call cost theo token. Context window là 200K tokens. Làm thế nào quản lý context để không lãng phí, không bị "lost in the middle", không phải pay token cho cùng content lặp đi lặp lại?
+
+**Failure mode:** mỗi session load 50K tokens preamble (CLAUDE.md + 9 SOPs + 3 brand docs). 100 sessions/ngày = 5M input tokens/ngày = $300/ngày chỉ riêng preamble. Quality cũng giảm vì lost-in-the-middle.
+
+**Giải pháp Ritsu:** **Lean CLAUDE.md (~1.2K tokens) + per-role `context_budget` + Anthropic platform primitives**
+- CLAUDE.md dùng `@imports` để lazy load
+- Skills (progressive disclosure): frontmatter ~100 tokens, full SKILL.md on-demand
+- Subagents: fresh context, return summary
+- Server-side compaction + manual `/compact`
+- Per-role budgets: `preamble_tokens`, `working_tokens`, `trigger_compact_at`
+
+→ Chương 6 (Bài #3) sẽ đào sâu.
+
+### Bài #4 — Memory & Learning Loop
+
+**Câu hỏi cốt lõi:** Sau 6 tháng vận hành, AI workforce có học được gì không? Hay lặp lại cùng mistakes mỗi tuần?
+
+**Failure mode:** founder correct cùng error 50 lần. Agent không biết. Tháng sau lại làm sai cùng kiểu.
+
+**Giải pháp Ritsu:** **Strategy E (Episodic-first), 4 memory types, no memory tool API at v1.0**
+- **Declarative** (Tier 1 PR) — facts about the world
+- **Episodic** (`ops.agent_runs` append-only) — past actions + outcomes
+- **Procedural** (skills/SKILL.md PR) — how to do things
+- **Semantic** (wiki loose) — informal notes
+- 2 new tables: `ops.run_summaries`, `ops.corrections`
+- 2 new skills: `episodic-recall` (query past runs), `monthly-learning-review` (founder approves promotions)
+
+→ Chương 7 (Bài #4) sẽ đào sâu.
+
+### Bài #5 — Multi-Agent Orchestration
+
+**Câu hỏi cốt lõi:** Khi nào delegate work cho subagent? Bao nhiêu subagent đồng thời? State coordination giữa chúng ra sao?
+
+**Failure mode:** "spawn 10 subagents to research 10 competitors in parallel" sounds smart, costs 10x token + coordination overhead, debug-able by no one.
+
+**Giải pháp Ritsu:** **Custom layer trên subagents + ops.tasks; defer Agent Teams to v1.x**
+- 3 axes: delegation depth (threshold rules), topology (subagents + DB), state persistence (ops.tasks canonical)
+- Hard rules + soft signals (hook) + never rules
+- 2 new skills: `task-decompose`, `task-status`
+- 1 new hook: `pre-delegate-check` (soft signals)
+
+→ Chương 8 (Bài #5) sẽ đào sâu.
+
+### Bài #6 — Identity & Interface
+
+**Câu hỏi cốt lõi:** Mỗi agent có persona riêng không? Founder điều khiển workforce qua kênh nào? Customer thấy AI là ai? Mỗi action attribute đến identity nào?
+
+**Failure mode (legal):** EU AI Act Article 50 (Aug 2026) mandate AI disclosure cho chatbots. Vi phạm = up to 7% global revenue fine.
+
+**Giải pháp Ritsu:** **A3 + B4 + C2 + D3 hybrid**
+- (A3) Internal role-based names; external unified "Ritsu Assistant"
+- (B4) Telegram + GitHub PR cho v1.0; defer dashboard
+- (C2) Regulatory-aligned disclosure (first-contact + signature + on-request + escalation)
+- (D3) Per-role identity for external systems (GitHub, Email, Anthropic API); shared for internal
+
+→ Chương 9 (Bài #6) sẽ đào sâu.
+
+### Bài #7 — Economic Unit
+
+**Câu hỏi cốt lõi:** AI workforce có lãi không? Cost per task là bao nhiêu? Khi nào unprofitable?
+
+**Failure mode (cũng là #1 phổ biến nhất):** silent cost spiral. Bug trong skill loop, $200 disappears overnight, founder phát hiện next billing cycle.
+
+**Giải pháp Ritsu:** **1B + 2C + 3D + 4C**
+- (1B) Per-role + per-task-kind attribution
+- (2C) 3-tier enforcement: alert 80% / escalate 100% / block 150%
+- (3D) `cost-report` skill + monthly digest extension
+- (4C) `cost-optimization-review` skill — weekly recommendation PR
+- Economic Health Score = single-number metric
+
+→ Chương 10 (Bài #7) sẽ đào sâu.
+
+## 2.4 Mỗi bài có 1 architecture doc + 1+ skill + 1+ hook
+
+Pattern xuất hiện qua 7 bài:
+
+| Bài | Architecture doc | Skill(s) | Hook(s) |
+|---|---|---|---|
+| 1 | `manifest.yaml` | n/a (foundational) | `pre-edit-tier1` |
+| 2 | `governance/HITL.md`, `ROLES.md`, `SECRETS.md` | n/a | `pre-bash-dangerous`, `pre-tool-publish`, `pre-tool-supabase-product`, `pre-tool-secrets` |
+| 3 | (CLAUDE.md là chính) | n/a | n/a (platform handles) |
+| 4 | `knowledge/memory-architecture.md` | `episodic-recall`, `monthly-learning-review` | n/a |
+| 5 | `knowledge/orchestration-architecture.md` | `task-decompose`, `task-status` | `pre-delegate-check` |
+| 6 | `knowledge/identity-architecture.md`, `IDENTITY.md`, `brand_voice.md`, `transparency.md` | `ai-disclosure-check` | `pre-tool-customer-message` |
+| 7 | `knowledge/economic-architecture.md` | `cost-report`, `cost-optimization-review` | `pre-llm-call-budget` |
+
+**Pattern: skill cho deliberate action + hook cho ambient mandatory enforcement.** Skill có thể bị quên (agent flow không invoke); hook luôn fire. Defense in depth.
+
+Một số bài chỉ có doc (Bài #3 là CLAUDE.md), một số có nhiều doc (Bài #6 có 4). Tổng 7 bài → ~15 doc + ~10 skill + ~10 hook trong repo.
+
+## 2.5 Thứ tự giải bài toán
+
+Khi build từ scratch, **thứ tự khuyến nghị:**
+
+1. **Bài #1** trước (mọi thứ phụ thuộc vào nó)
+2. **Bài #2** ngay sau (governance phải có sớm; thiếu = blast radius rộng)
+3. **Bài #3 + #6 song song** (đều xây trên #1, #2)
+4. **Bài #4 + #5 song song** (đều cần #1-3, #6)
+5. **Bài #7 cuối cùng** (cần data từ 1-6 sạch để đo)
+
+Trong Phase A của Ritsu, thứ tự thực tế: **1 → 2 → 3 → 4 → 5 → 6 → 7** (sequential, mỗi bài 1-2 tuần). Total ~10-14 tuần cho Phase A.
+
+Nếu bạn rush, có thể skip một số bài tạm thời:
+- Skip Bài #4 (memory) → mistakes lặp lại, nhưng có thể vận hành
+- Skip Bài #7 (economic) → cost spiral risk, nhưng có thể vận hành (CHO ĐẾN khi spiral xảy ra)
+- KHÔNG skip Bài #1, #2, #6 — vi phạm Bài #2 = security incident, vi phạm Bài #6 = legal violation
+
+## 2.6 Tổng kết
+
+- **7 bài là minimum complete set.** Ít hơn = fail mode không che; nhiều hơn = scope creep.
+- **Mỗi bài giải 1 loại failure mode** — không trùng lặp.
+- **Bài #1 là foundation; Bài #7 là solvency layer; 5 bài giữa là body.**
+- **Pattern: architecture doc + skill + hook.** Skills cho deliberate, hooks cho mandatory.
+- **Thứ tự: 1 → 2 → (3 + 6 parallel) → (4 + 5 parallel) → 7.**
+
+Chương 3 sẽ đi sâu vào "10 thành phần" của AI-Native Company — đây là cách map các bài toán xuống concrete components mà bạn thực sự build.
+
+---
+
+**Tham khảo:**
+- Ritsu Phase A brainstorm summaries — `_build/notes/problem-{1-7}-*.md` trong repo
+- Anthropic Engineering Blog "Multi-Agent Systems Are a Trap" — anchor cho Bài #5 conservativeness

@@ -1,0 +1,224 @@
+---
+title: "Chương 14 — Phase A.2: Từ Kiến Trúc Cơ Chế đến Năng Lực Thực Thi"
+description: "Chương 14 — Phase A.2: Từ Kiến Trúc Cơ Chế đến Năng Lực Thực Thi"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/14-phase-a2-introduction.md
+source_hash: 1730a65d4af345d9505843f05670f534d900935beddf02bedf12ffa4f6fe34a9
+generated_at: '2026-05-19T16:57:54.909Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 1730a65d4af345d9505843f05670f534d900935beddf02bedf12ffa4f6fe34a9
+translated_at: '2026-05-19T16:57:54.909Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 14
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 14 — Phase A.2: Từ Kiến Trúc Cơ Chế đến Năng Lực Thực Thi
+
+> *Phase A đã giải 7 bài toán cơ chế: governance, memory, orchestration, identity, economics — cách AI workforce vận hành về nội tại. Phase A.2 giải kiến trúc năng lực thực thi: AI workforce thực sự làm gì để tạo ra giá trị business.*
+
+## 14.1 Hai tầng kiến trúc khác nhau
+
+Sau khi ship Phase A (66 files, 13 chương playbook, 7 bài toán + 10 components), founder mang 6 tình huống thực tế đến đặt câu hỏi:
+
+1. *"Tôi có tư liệu marketing framework — tích hợp ở đâu?"*
+2. *"Workflow tìm 100 khách hàng mới — làm thế nào trên kiến trúc?"*
+3. *"Dashboard thời gian thực về business — ở đâu?"*
+4. *"Daily lead-gen liên tục — triển khai sao?"*
+5. *"Nhiều hoạt động chạy theo lịch — quản lý thế nào?"*
+6. *"Sentry → Telegram → agent fix → deploy — luồng tự động?"*
+
+Phase A có thể trả lời một phần (HITL cho mỗi action, ops.tasks cho state), nhưng **không có lời giải hệ thống**. Đây là gap có thật, không phải edge case.
+
+| | Phase A — Kiến trúc cơ chế | Phase A.2 — Kiến trúc năng lực thực thi |
+|---|---|---|
+| **Hỏi gì** | Agent ĐƯỢC PHÉP làm gì, làm THẾ NÀO, tốn BAO NHIÊU? | Agent THỰC SỰ làm GÌ để tạo ra giá trị? |
+| **Output** | 7 bài toán + 10 components + governance | Pillars + SOPs + integrations + scheduling + observability |
+| **Failure khi thiếu** | Agent không an toàn, không trace, drift | Agent không tạo business value, founder không thấy state, workflow không repeat |
+| **Anchor** | Inner vs Outer Harness | Business operations + use cases |
+
+## 14.2 Phương pháp Phase A.2: Bottom-up Reinforcement Improvement Loop
+
+Phase A là **top-down** — brainstorm 7 bài toán abstractly, derive components, ship template.
+
+Phase A.2 đảo ngược: **bottom-up từ kho vấn đề comprehensive**, walkthrough lần lượt theo priority, mỗi tình huống → cải tiến kiến trúc immediately. Đây là **Reinforcement Improvement Loop**:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│  1. Pick high-priority issue from catalog                      │
+│            │                                                   │
+│            ▼                                                   │
+│  2. Walkthrough chi tiết:                                      │
+│     - Tình huống cụ thể                                        │
+│     - Walk through current Phase A architecture                │
+│     - Identify gaps                                            │
+│     - Workaround tạm vs proper extension                       │
+│     - Tentative new components                                 │
+│            │                                                   │
+│            ▼                                                   │
+│  3. Update kiến trúc immediately:                              │
+│     - DRAFT architecture doc                                   │
+│     - Walkthrough note                                         │
+│            │                                                   │
+│            ▼                                                   │
+│  4. Repeat đến khi đủ data extract patterns                    │
+│            │                                                   │
+│            ▼                                                   │
+│  5. Pattern extraction:                                        │
+│     - Group gaps thành themes                                  │
+│     - Name new bài toán (Bài #8, #9, ...)                      │
+│     - Promote DRAFT thành canonical                            │
+│     - Update governance, manifest, ROLES.md                    │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Tại sao bottom-up:**
+
+- **Concrete data hơn abstract guess.** Phase A guess được 7 bài toán đúng vì đã làm research kỹ. Phase A.2 không thể guess — vận hành thực tế khác mỗi org.
+- **Categories emerge tự nhiên.** Trong Phase A, "10 components" emerge từ 7 brainstorms. Same pattern Phase A.2: bài toán mới emerge từ walkthroughs.
+- **Concrete reveals what abstract misses.** Tình huống "tìm 100 leads/ngày" reveal scheduling layer; abstract "growth pillar" không reveal.
+
+## 14.3 Kho 200 vấn đề — 10 categories
+
+Bottom-up đòi hỏi kho vấn đề **comprehensive**. Sau khi research Ritsu thực tế (https://ritsu.ai), 10 categories nổi lên:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│           FOUNDER'S OPERATIONAL UNIVERSE                    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │       C9. COMPANY BUILDING (foundational)           │    │
+│  │  Vision/strategy, OKRs, fundraise, hiring, legal    │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
+│  │C1 Growth │ │C2 Cust.  │ │C3 Product│ │C4 Content│        │
+│  │Marketing │ │Lifecycle │ │ Develop. │ │   Ops    │        │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘        │
+│                                                             │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐                     │
+│  │C5 Finance│ │C6 Compli-│ │C7 Founder│                     │
+│  │ Analytics│ │ ance/Leg │ │  Product.│                     │
+│  └──────────┘ └──────────┘ └──────────┘                     │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │      C10. KNOWLEDGE & SOP OPERATIONS                │    │
+│  │ External frameworks, SOP authoring, decision logs   │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │             C8. WORKFORCE OPERATIONS                │    │
+│  │   Self-management cho AI workforce (meta-layer)     │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                             │
+│  ⊗ MUSE — Decision support cross-cutting                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Category | # Issues | High | Med | Low |
+|---|---|---|---|---|
+| C1 — Growth & Marketing | 20 | 8 | 11 | 1 |
+| C2 — Customer Lifecycle | 20 | 11 | 9 | 0 |
+| C3 — Product Development | 20 | 12 | 8 | 0 |
+| C4 — Content Operations | 20 | 6 | 11 | 3 |
+| C5 — Finance & Analytics | 20 | 12 | 7 | 1 |
+| C6 — Compliance & Legal | 20 | 7 | 11 | 2 |
+| C7 — Founder Productivity | 20 | 7 | 9 | 4 |
+| C8 — Workforce Operations | 20 | 5 | 14 | 1 |
+| C9 — Company Building | 20 | 13 | 6 | 1 |
+| C10 — Knowledge & SOP | 20 | 9 | 10 | 1 |
+| **TOTAL** | **200** | **90** | **96** | **14** |
+
+Kho đầy đủ 200 issues nằm tại `_build/notes/phase-a2/ISSUE_CATALOG.md`.
+
+## 14.4 Patterns sơ bộ (cross-category)
+
+Quan sát qua 200 issues, một số patterns nổi lên:
+
+1. **Scheduling pervasive** — 60+ vấn đề có cadence rõ. Phase A không có scheduler.
+2. **Multilingual coupling** — 10 ngôn ngữ touch C1, C2, C4. Phase A không cover.
+3. **Multi-channel coordination** — 10 social channels + 5 inboxes + Telegram + Discord. Phase A 1 channel.
+4. **Event-driven coupling** — Sentry, Stripe webhooks, signup events. Phase A cron-able only.
+5. **Cross-role handoffs** — "lead becomes customer", "support reveals bug". Phase A no handoff workflow.
+6. **Real-time visibility** — Dashboard, không monthly digest. Phase A defers dashboard.
+7. **Dual-motion reality** — B2C self-serve + B2B sales. Phase A treats workforce uniformly.
+8. **Decision-level discipline** (C9 + C10 + Muse) — Phase A có HITL cho actions, không có cho decisions.
+9. **Knowledge ingestion velocity** (C10) — Founder learns continuously. Learning chưa codified systematically.
+10. **SOP layer above skills** (C10) — Skills là procedural primitives. SOPs là business workflows compose skills. Phase A không có SOP layer.
+11. **Stage-aware operations** (C9) — Seed vs Series A vs Series B. Phase A treats uniformly.
+
+**Pattern #10 (SOP layer) đặc biệt critical** — đây là missing layer giữa **business intent** và **technical execution**.
+
+## 14.5 Muse Integration — Decision Support Cross-Cutting
+
+Muse (https://github.com/doanchienthangdev/muse) là **agentic skill** runtime cho 29+ cognitive personas (Buffett, Grove, Marcus Aurelius, Munger, Feynman, Jobs, Horowitz, Christensen, etc.). Mỗi persona = a "cognitive frame" cho hard decisions.
+
+Muse không phải category riêng — là **tool cross-cutting** dùng across mọi category:
+
+| Category | Use case Muse |
+|---|---|
+| C1 Growth | `/muse:seth-godin who'd miss us if we disappeared?` — positioning |
+| C2 Customer | `/muse:chris-voss handle this angry refund?` — tactical empathy |
+| C3 Product | `/muse:steve-jobs what to say no to in this PRD?` — focus |
+| C5 Finance | `/muse:warren-buffett take this $500K SAFE at $5M cap?` — value |
+| C6 Compliance | `/muse:munger invert: what could go wrong?` — pre-mortem |
+| C7 Founder | `/muse:marcus-aurelius what's in my control here?` — Stoic |
+| C9 Company | `/muse:peter-thiel is Ritsu actually a monopoly?` — strategy |
+| C10 Knowledge | `/muse:chain feynman→socrates→christensen` — multi-frame |
+
+**Integration patterns:**
+
+- **Pattern A — Founder-invoked:** founder hard decision → muse session → save artifact
+- **Pattern B — Workforce-invoked:** AI agent ambiguity → invoke muse internally → log
+- **Pattern C — Pre-flight:** Tier D-Std/D-MAX action → mandatory muse pre-mortem
+- **Pattern D — Periodic:** quarterly OKRs via `/muse:chain`
+
+**Architectural questions raised** (resolve qua walkthroughs):
+
+1. Storage cho muse sessions — `~/.muse/sessions/` vs Ritsu's `.archives/thinking/` vs new `decisions/`?
+2. Attribution — workforce muse usage logged where?
+3. Cost — Muse tokens attributed to which role?
+4. Mandatory triggers — which Tier requires Muse pre-flight?
+5. Skill vs external — fork Muse into Ritsu repo or reference path?
+
+## 14.6 Walkthrough order (priority-driven)
+
+Walkthrough order theo **architectural foundationality** — does resolution enable many other issues?
+
+| # | Issue | Why this order |
+|---|---|---|
+| 1 | C8.1 — Scheduling layer | Foundationality: 60+ issues depend on it |
+| 2 | C5.9 — Real-time dashboard | Foundationality: observability layer |
+| 3 | C10.5 — SOP authoring discipline | Foundationality: abstraction layer above skills |
+| 4 | C10.1 + Muse | Knowledge ingestion + decision support |
+| 5 | C1.1 — Daily lead gen | First business workflow |
+| 6 | C2.3 — Support triage | Customer-facing workflow |
+| 7 | C3.1 — Sentry incident response | Event-driven workflow |
+| 8 | C4.1 + C4.6 — Multi-channel + multilingual | Content scale |
+| 9 | C9.3 — OKR setting | Company alignment |
+| 10 | C6.4 — EU AI Act compliance | Legal foundation |
+
+Sau ~10 walkthroughs, đủ data extract patterns + name 5-8 new bài toán Phase A.2.
+
+## 14.7 Tổng kết
+
+- **Phase A** giải mechanism architecture (7 bài toán cốt lõi)
+- **Phase A.2** giải execution capability architecture (làm thế nào tạo business value)
+- **Methodology bottom-up:** Reinforcement Improvement Loop với kho 200 issues
+- **10 categories:** từ growth/customer/product đến company-building và knowledge ops
+- **Muse cross-cutting:** decision support primitive across mọi category
+- **11 patterns sơ bộ** observed; refined qua walkthroughs
+
+Chương sau ghi lại chi tiết walkthrough đầu tiên — C8.1 Scheduling Layer — và Bài #8 candidate nổi lên từ đó.
+
+---
+
+**Tham khảo:**
+- Issue catalog đầy đủ: `_build/notes/phase-a2/ISSUE_CATALOG.md`
+- Phase A.2 methodology: `_build/notes/phase-a2/README.md`
+- Muse: https://github.com/doanchienthangdev/muse
+- Ritsu product: https://ritsu.ai
+- Pricing: https://ritsu.ai/pricing

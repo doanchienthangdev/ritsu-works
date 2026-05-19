@@ -1,0 +1,864 @@
+---
+title: "Chương 31 — Agent OS Boilerplate Strategy & Multi-Project Reuse"
+description: "Chương 31 — Agent OS Boilerplate Strategy & Multi-Project Reuse"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/31-boilerplate-strategy.md
+source_hash: be3ea82d94d7eb0e1cce50053a3eaae35e917f001d418e09893efd49512f7252
+generated_at: '2026-05-19T16:57:54.954Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: be3ea82d94d7eb0e1cce50053a3eaae35e917f001d418e09893efd49512f7252
+translated_at: '2026-05-19T16:57:54.954Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 31
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 31 — Agent OS Boilerplate Strategy & Multi-Project Reuse
+
+> *"Phase A.2 architecture không phải Ritsu-specific. ~80% là generic Agent OS framework. Câu hỏi không phải 'có thể tái sử dụng không?' mà là 'WHEN và HOW để tái sử dụng?'"*
+
+## 31.1 Bài toán tái sử dụng
+
+Founder có 1 framework architecture (Phase A + A.2 = 19 bài toán, 18 Tier 1 files, 10 layers). Nếu founder muốn vận hành nhiều dự án (Ritsu + Hollywood film channel + future projects), có 3 lựa chọn:
+
+### Option A — Build từ đầu mỗi project
+
+**Pros:** Tối ưu cho từng dự án.
+
+**Cons:** 9-18 months mỗi project. Architecture inconsistent. Lessons learned không chuyển giao.
+
+### Option B — Copy-paste rồi modify
+
+**Pros:** Nhanh hơn Option A.
+
+**Cons:** Drift theo thời gian. Bug fixes không sync. Improvements ở project sau không apply ở project trước.
+
+### Option C — Boilerplate framework
+
+**Pros:** Architecture consistent. Bug fixes propagate. Lessons learned → framework improvements. 50-70% time saved per subsequent project.
+
+**Cons:** Upfront investment refactor. Versioning complexity. Cần ≥2 projects để justify.
+
+**Recommendation cho Ritsu founder:** **Option C — sau khi Ritsu Wave 1-3 stable.** Premature generalization là anti-pattern.
+
+## 31.2 Generic vs Specific — phân tích Phase A + A.2
+
+Audit toàn bộ Phase A + A.2 deliverables:
+
+### Layer 1 — Generic Agent OS (~80%)
+
+**Architecture patterns hoàn toàn không phụ thuộc Ritsu:**
+
+| Component | Generic? | Lý do |
+|---|---|---|
+| Bài #1 4-Tier Truth Model | ✅ 100% | Truth classification universal |
+| Bài #2 HITL 5-tier | ✅ 100% | Human-in-loop pattern |
+| Bài #3 Boundary | ✅ 100% | Permission patterns |
+| Bài #4 Memory architecture | ✅ 95% | Postgres + pgvector pattern |
+| Bài #5 Multi-Agent + Minions | ✅ 100% | Subagent vs deterministic queue |
+| Bài #6 Identity & Interface (architecture) | ✅ 90% | Sub-domain pattern; values change |
+| Bài #7 Economic Unit | ✅ 100% | Cost-bucket framework |
+| Bài #8 Scheduling | ✅ 100% | pg_cron + dispatcher |
+| Bài #9 SOP architecture | ✅ 100% | SOP framework universal |
+| Bài #10 Visibility (framework) | ✅ 95% | Dashboard pattern; KPIs specific |
+| Bài #11 Event-Driven Triggers | ✅ 100% | Outbox + dispatcher |
+| Bài #12 MCP Integration | ✅ 100% | MCP server pattern |
+| Bài #13 Domain State Machines | ✅ 100% | State machine framework |
+| Bài #14 Knowledge Graph | ✅ 100% | Auto-link, page format, traverse |
+| Bài #15 Decision Architecture | ✅ 95% | Pattern; specific personas vary |
+| Bài #16 Customer Data + GDPR | ✅ 90% | GDPR machinery, customer schema |
+| Bài #17 Multi-Surface | ✅ 95% | SurfaceAdapter; channel list specific |
+| Bài #18 Ingestion Pipeline | ✅ 95% | IngestionAdapter; sources specific |
+| Bài #19 Founder Capacity | ✅ 100% | Rhythm + attention budget |
+
+**Infrastructure & deployment (100% generic):**
+- Repo runtime strategy (chương 29)
+- 5-layer defense
+- Bước A → B migration
+- 6-cell combination matrix
+- Bootstrap script
+- Pre-commit hook
+- GitHub Actions security check
+- 8-wave implementation roadmap
+- GBrain heritage patterns
+
+**Tier 1 schemas (100% generic), values (specific):**
+
+| File | Schema | Values |
+|---|---|---|
+| schedules.yaml | ✅ Generic | ⚠️ Specific rhythms |
+| state-machines.yaml | ✅ Generic | ⚠️ Specific entities |
+| muse-personas.yaml | ✅ Generic | ⚠️ Specific personas |
+| data-retention.yaml | ✅ Generic | ⚠️ Specific data types |
+| channels.yaml | ✅ Generic | ⚠️ Specific channels |
+| ingestion-sources.yaml | ✅ Generic | ⚠️ Specific sources |
+| founder-rhythm.yaml | ✅ Generic | ⚠️ Specific rhythms |
+| feature-flags.yaml | ✅ Generic | ⚠️ Specific features |
+
+### Layer 2 — Project-Specific (~20%)
+
+**Identity layer (Bài #6):**
+- charter.md (vision, market, monetization)
+- brand_voice/* (tone, locales)
+- founder-profile.md (cognitive style, time zone, surfaces)
+
+**Domain entities:**
+- Pricing tiers
+- Customer types
+- Product features
+- Specific surfaces
+
+**Pillar SOPs:**
+- 01-growth/* (marketing for that domain)
+- 02-customer/* (customer ops for that domain)
+- 03-product/* (product workflows)
+- 04-content/* (content strategy)
+- 06-finance/* (mostly generic)
+- 07-compliance/* (domain-specific regulations)
+
+**Specific Tier 1 values:**
+- Specific rhythms cho founder
+- Specific Muse personas
+- Specific channels
+- Specific data retention rules
+
+## 31.3 Bundle vs Core architecture
+
+### Hiện tại: Bundle v2.5 = monolithic
+
+```
+ritsu-handoff-bundle-v2.5/
+├── playbook/
+└── ritsu-works-template/
+    ├── (everything mixed: generic + Ritsu-specific)
+    └── ...
+```
+
+**Vấn đề:**
+- Generic patterns trộn với Ritsu values
+- Khó identify what to change cho dự án mới
+- Updates không propagate giữa projects
+
+### Đề xuất: Tách Bundle thành 2 layers
+
+```
+agent-os-boilerplate/                           ← Layer 1: generic
+├── core/
+│   ├── playbook-core/                          ← generic 19 bài toán
+│   ├── 00-charter-template/                    ← templates với placeholders
+│   ├── governance-core/                        ← generic Tier 1 rules
+│   ├── knowledge-core/
+│   │   ├── schemas/                            ← JSON Schemas
+│   │   ├── templates/                          ← Tier 1 templates
+│   │   └── examples/
+│   │       ├── b2c-edtech/                     ← Ritsu reference
+│   │       ├── content-channel/                ← Hollywood reference
+│   │       └── b2b-saas/                       ← future
+│   ├── 05-ai-ops-core/                         ← generic skills + adapters
+│   ├── frontend-core/                          ← generic dashboard scaffolding
+│   ├── mcp-server-core/                        ← generic MCP framework
+│   ├── supabase-core/                          ← generic schema migrations
+│   ├── .claude-core/                           ← generic hooks + agents
+│   └── .scripts-core/
+│       ├── bootstrap.sh
+│       ├── bootstrap-new-project.sh           ← create project from boilerplate
+│       └── deploy-vps.sh
+│
+ritsu-works/                                     ← Layer 2: project-specific
+├── agent-os.config.yaml                         ← config: which boilerplate version
+├── 00-charter/                                  ← FILLED IN
+├── knowledge/                                   ← FILLED IN từ templates
+├── 01-growth/, 02-customer/, etc.               ← Ritsu pillar SOPs
+├── 05-ai-ops/                                   ← extends 05-ai-ops-core
+└── ...
+
+hollywood-channel-works/                         ← another project
+├── agent-os.config.yaml
+├── 00-charter/                                  ← FILLED IN cho film channel
+├── knowledge/
+├── 01-content-production/, 02-audience/, etc.   ← film channel pillars
+├── 05-ai-ops/                                   ← extends 05-ai-ops-core
+└── ...
+```
+
+### Sharing strategies (3 lựa chọn)
+
+#### Strategy 1 — Git submodule
+
+```bash
+cd ritsu-works
+git submodule add git@github.com:doanchienthangdev/agent-os-boilerplate.git core
+```
+
+**Pros:** Version pinning explicit, clear separation.
+**Cons:** Submodule complexity, friction cho operators không quen.
+
+#### Strategy 2 — pnpm workspace + npm package
+
+```yaml
+# pnpm-workspace.yaml (in agent-os-boilerplate monorepo)
+packages:
+  - 'core/*'
+```
+
+```json
+// package.json (in ritsu-works)
+{
+  "dependencies": {
+    "@doanchienthangdev/agent-os-core": "^1.0.0"
+  }
+}
+```
+
+**Pros:** Native package manager, natural versioning.
+**Cons:** Cần publish package (private registry hoặc public npm).
+
+#### Strategy 3 — Template repo + cherry-pick (RECOMMENDED)
+
+```bash
+# Create new project from template
+gh repo create ritsu-works \
+  --template=doanchienthangdev/agent-os-boilerplate \
+  --private
+
+# Run init script
+cd ritsu-works
+./.scripts/bootstrap-new-project.sh \
+  --name "Ritsu" \
+  --domain "B2C EdTech" \
+  --locale "vi"
+
+# Boilerplate updates merged manually via cherry-pick
+git remote add boilerplate git@github.com:doanchienthangdev/agent-os-boilerplate.git
+git fetch boilerplate
+git cherry-pick <improvement-commit>
+```
+
+**Pros:** Đơn giản nhất, no extra tooling, GitHub native.
+**Cons:** Manual sync upstream changes (acceptable cho ≤5 projects).
+
+**Recommendation: Strategy 3** cho founder solo / small team.
+
+## 31.4 Hollywood film channel example
+
+Để minh họa concrete, đây là cấu hình specific cho dự án thứ 2 — Hollywood film channel.
+
+### Charter changes
+
+```markdown
+# 00-charter/charter.md (Hollywood project)
+
+# Hollywood Movie Channel — Operating System
+
+## Vision
+Solo-operator YouTube + TikTok channel cho Hollywood film analysis.
+Target: 1M subs trong 18 months.
+
+## Business model
+- YouTube AdSense + sponsored content
+- Patreon for in-depth analysis
+- Affiliate links to streaming services
+
+## Cognitive style
+- Visual-first storytelling
+- Movie buff perspective
+- Witty + analytical tone
+```
+
+### State machines khác Ritsu
+
+```yaml
+# knowledge/state-machines.yaml (Hollywood)
+state_machines:
+  - entity: video_project
+    states: [idea, researching, scripting, recording, editing, scheduled, published, analyzed]
+  
+  - entity: movie_review
+    states: [watched, drafting, recording, edited, published, performance_analyzed]
+  
+  - entity: sponsorship
+    states: [pitched, negotiating, contracted, content_in_progress, delivered, paid]
+```
+
+### Channels khác Ritsu (video-heavy)
+
+```yaml
+# knowledge/channels.yaml (Hollywood)
+channels:
+  - id: youtube-main
+    type: video
+    primary: true
+  - id: tiktok
+    type: short_video
+  - id: instagram-reels
+    type: short_video
+  - id: patreon
+    type: subscription
+  - id: discord-community
+    type: community
+```
+
+### Muse personas khác Ritsu
+
+```yaml
+# knowledge/muse-personas.yaml (Hollywood)
+personas:
+  # Domain-specific
+  - id: martin-scorsese
+    expertise: classic cinema, directing
+  - id: roger-ebert
+    expertise: criticism, accessibility
+  - id: youtube-algorithm-expert
+    expertise: YouTube SEO, retention
+  - id: copyright-lawyer
+    expertise: fair use, DMCA
+  
+  # Generic (could move to core)
+  - id: cynic
+  - id: optimist
+  - id: brand-strategist
+```
+
+### Pillar SOPs khác Ritsu
+
+```
+Ritsu pillars:                 Hollywood pillars:
+01-growth/                      01-content-production/
+  ├── content-publishing          ├── video-research
+  ├── lead-gen                    ├── script-writing
+  └── partnerships                └── edit-workflow
+
+02-customer/                    02-audience-engagement/
+  ├── onboarding                  ├── comment-triage
+  └── support                     └── community-moderation
+
+03-product/                     03-monetization/
+  └── lesson-generation           ├── sponsorship-pitch
+                                  └── patreon-tiers
+
+04-content/                     04-distribution/
+  └── multi-locale-publish        └── multi-platform-publish
+
+05-ai-ops/                      05-ai-ops/
+  └── (extends core)              └── (extends core, MOSTLY SAME)
+
+06-finance/                     06-finance/
+  └── (mostly generic)            └── (mostly generic)
+
+07-compliance/                  07-compliance/
+  └── GDPR focus                  └── Copyright + DMCA focus
+```
+
+### Reuse rate
+
+| Layer | Reuse |
+|---|---|
+| Architecture (Bài #1-19) | 100% |
+| Infrastructure (chương 29-30) | 100% |
+| Skills + adapters (core) | 80% |
+| Pillar SOPs | 30% |
+| Charter + brand voice | 0% (must customize) |
+| Tier 1 schemas | 100% |
+| Tier 1 values | 0% (must customize) |
+| **Average** | **~75%** |
+
+**Time saved per subsequent project: 6-9 months.**
+
+## 31.5 Implementation roadmap để tách boilerplate
+
+### Trigger conditions để bắt đầu generalization
+
+- ✅ Ritsu Wave 1-3 (foundation + triggers + state) đã stable
+- ✅ Founder identifies real friction points (vs theoretical)
+- ✅ Có dự án thứ 2 trong roadmap (real, not hypothetical)
+- ✅ Bug fixes / improvements ở project 1 muốn apply project 2
+
+**Anti-pattern:** Generalize trước khi có 2 use cases. Premature generalization = wrong abstractions.
+
+### Phase 1 — Audit (1 week)
+
+```bash
+# Find Ritsu-specific references
+grep -r "Ritsu" ritsu-works/
+grep -r "B2C EdTech" ritsu-works/
+grep -r "doan-chien-thang" ritsu-works/
+grep -r "ritsu.ai" ritsu-works/
+
+# Tag each finding: GENERIC vs SPECIFIC
+```
+
+### Phase 2 — Tách (1-2 weeks)
+
+```bash
+# Create boilerplate structure
+mkdir -p agent-os-boilerplate/core/{playbook-core,knowledge-core/{schemas,templates,examples},05-ai-ops-core,frontend-core,mcp-server-core,supabase-core,.claude-core,.scripts-core}
+
+# Move generic patterns
+mv ritsu-works/05-ai-ops/skills/state-transition agent-os-boilerplate/core/05-ai-ops-core/skills/
+mv ritsu-works/05-ai-ops/skills/auto-link-extract agent-os-boilerplate/core/05-ai-ops-core/skills/
+# ... etc
+
+# Convert Tier 1 files → templates
+cp ritsu-works/knowledge/state-machines.yaml \
+   agent-os-boilerplate/core/knowledge-core/templates/state-machines.template.yaml
+# Add placeholders {{PROJECT_NAME}}, {{ENTITY_TYPE}}, etc.
+
+# Move Ritsu-specific examples
+cp -r ritsu-works/{00-charter,01-growth,knowledge} \
+      agent-os-boilerplate/core/knowledge-core/examples/b2c-edtech/
+```
+
+### Phase 3 — Templates với placeholders (1 week)
+
+```yaml
+# core/knowledge-core/templates/schedules.template.yaml
+version: "1.0.0"
+timezone: {{PROJECT_TIMEZONE}}              # e.g., Asia/Ho_Chi_Minh
+
+daily_rhythm:
+  - id: morning-deep-work
+    start: {{MORNING_START}}                # e.g., "06:00"
+    end: {{MORNING_END}}                    # e.g., "09:00"
+    mode: focus
+    interrupt_level: emergency_only
+
+  # Add your specific rhythms
+```
+
+```bash
+# core/.scripts-core/bootstrap-new-project.sh
+#!/bin/bash
+set -e
+
+PROJECT_NAME=${1:?"Usage: $0 <project-name> <domain>"}
+PROJECT_DOMAIN=${2:?"Usage: $0 <project-name> <domain>"}
+PROJECT_TIMEZONE=${3:-"UTC"}
+PROJECT_LOCALE=${4:-"en"}
+
+echo "🚀 Creating new Agent OS project: $PROJECT_NAME"
+
+# Replace placeholders
+find core/knowledge-core/templates -name "*.template.yaml" | while read template; do
+  output="knowledge/$(basename ${template%.template.yaml}.yaml)"
+  sed -e "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" \
+      -e "s|{{PROJECT_DOMAIN}}|$PROJECT_DOMAIN|g" \
+      -e "s|{{PROJECT_TIMEZONE}}|$PROJECT_TIMEZONE|g" \
+      -e "s|{{PROJECT_LOCALE}}|$PROJECT_LOCALE|g" \
+      "$template" > "$output"
+done
+
+# Copy charter template
+mkdir -p 00-charter
+sed -e "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" \
+    -e "s|{{PROJECT_DOMAIN}}|$PROJECT_DOMAIN|g" \
+    core/00-charter-template/charter.template.md > 00-charter/charter.md
+
+# Generate agent-os.config.yaml
+cat > agent-os.config.yaml <<EOF
+boilerplate:
+  version: "1.0.0"
+  upstream: github.com:doanchienthangdev/agent-os-boilerplate
+  pinned_commit: $(git -C core rev-parse HEAD)
+project:
+  name: "$PROJECT_NAME"
+  domain: "$PROJECT_DOMAIN"
+  timezone: "$PROJECT_TIMEZONE"
+  locale: "$PROJECT_LOCALE"
+EOF
+
+echo "✅ Project $PROJECT_NAME scaffolded!"
+echo "Next: Customize 00-charter/charter.md, then knowledge/*.yaml files"
+```
+
+### Phase 4 — Examples library (1 week)
+
+Trong `core/knowledge-core/examples/`:
+
+```
+examples/
+├── b2c-edtech/                  ← Ritsu reference (copy of values)
+│   ├── 00-charter/
+│   ├── knowledge/
+│   ├── pillars/
+│   └── README.md                ← "Reference: Ritsu B2C EdTech"
+│
+├── content-channel/             ← Hollywood reference
+│   ├── 00-charter/
+│   ├── knowledge/
+│   ├── pillars/
+│   └── README.md                ← "Reference: solo content channel"
+│
+├── b2b-saas/                    ← future
+└── agency/                      ← future
+```
+
+Mỗi example = working configuration founder có thể copy-paste làm starting point.
+
+### Phase 5 — Documentation (1 week)
+
+`agent-os-boilerplate/README.md`:
+
+```markdown
+# Agent OS Boilerplate
+
+Generic framework để vận hành tỷ-đô company với 1-2 humans + AI workforce.
+
+## Quick start
+
+\`\`\`bash
+# Create new project from template
+gh repo create my-project-works \\
+  --template=doanchienthangdev/agent-os-boilerplate \\
+  --private
+
+cd my-project-works
+./.scripts/bootstrap-new-project.sh "My Project" "domain description"
+
+# Customize
+vim 00-charter/charter.md
+vim knowledge/*.yaml
+\`\`\`
+
+## Examples
+
+- B2C EdTech: \`examples/b2c-edtech/\` (Ritsu reference)
+- Content Channel: \`examples/content-channel/\` (Hollywood reference)
+
+## Architecture
+
+19 bài toán, 18 Tier 1 declarative files, 10 layers.
+See \`playbook-core/ai-native-company-playbook.pdf\` for full architecture.
+
+## Customization points
+
+Per-project must customize:
+- Charter (vision, market, monetization)
+- Brand voice (per locale)
+- Founder profile
+- 18 Tier 1 YAML files
+- Pillar SOPs
+- Domain tables migrations
+- Frontend pages
+
+Per-project optional:
+- Custom skills extending core
+- Custom adapters cho specific APIs
+- Custom MCP tools
+```
+
+### Phase 6 — Versioning (ongoing)
+
+```yaml
+# agent-os.config.yaml (in project repo)
+boilerplate:
+  version: "1.0.0"
+  upstream: github.com:doanchienthangdev/agent-os-boilerplate
+  pinned_commit: abc123...
+  
+migration:
+  last_synced: 2026-05-15
+  pending_upstream:
+    - "v1.1.0: Bài #20 Multi-modal ingestion"
+    - "v1.0.5: Bug fix in state-transition skill"
+```
+
+Founder periodically syncs:
+```bash
+git fetch boilerplate
+git log boilerplate/main --since=2026-05-15
+git cherry-pick <commits-to-apply>
+```
+
+## 31.6 Multi-project workflow patterns
+
+### Pattern 1 — Founder solo, multiple projects
+
+```
+~/dev/
+├── agent-os-boilerplate/      ← cloned, watched for updates
+├── ritsu-works/                ← project 1
+└── hollywood-channel-works/    ← project 2
+
+Daily workflow:
+- Edit project 1 specific
+- Edit project 2 specific
+- Notice generic improvement → push to boilerplate
+- Cherry-pick boilerplate update → all projects
+```
+
+### Pattern 2 — Founder + operators per project
+
+```
+Founder: maintains boilerplate
+Operator A: works on ritsu-works only
+Operator B: works on hollywood-channel-works only
+
+Workflow:
+- Operators don't touch boilerplate
+- Founder approves boilerplate changes
+- Boilerplate updates → founder cherry-picks per project
+- Operators see updates as PRs in their project repo
+```
+
+### Pattern 3 — Operators across projects
+
+```
+Operator A: works on both projects
+- A's GitHub access: ritsu-works + hollywood-channel-works
+- A may not have access to agent-os-boilerplate
+
+Workflow:
+- Founder syncs boilerplate updates
+- Operators work in project repos
+- Cross-project lessons → founder updates boilerplate
+```
+
+## 31.7 Versioning & breaking changes
+
+### Semantic versioning cho boilerplate
+
+```
+v1.0.0 — Initial release
+v1.0.x — Bug fixes, no breaking changes
+v1.x.0 — New features (e.g., Bài #20 added)
+v2.0.0 — Breaking changes (e.g., schema migration required)
+```
+
+### Breaking change protocol
+
+Khi boilerplate có breaking change:
+
+1. Document migration steps trong `MIGRATIONS.md`
+2. Provide migration scripts (`.scripts-core/migrate-vX-to-vY.sh`)
+3. Tag boilerplate với new major version
+4. Project repos chọn upgrade timing
+5. Project bumps `agent-os.config.yaml.boilerplate.version`
+
+### Project pinning strategy
+
+```yaml
+# Conservative: pin minor version
+boilerplate:
+  version: "~1.0"  # accepts 1.0.x patches
+
+# Aggressive: pin patch version
+boilerplate:
+  version: "1.0.5"  # exact
+
+# Bleeding edge: track main branch
+boilerplate:
+  branch: main  # not recommended
+```
+
+## 31.8 So sánh effort
+
+### Building Hollywood channel project
+
+**Without boilerplate:**
+- Architecture design: 3-6 months
+- Implementation Wave 1-7: 6-12 months
+- Total: **9-18 months**
+
+**With boilerplate (mature):**
+- Bootstrap from template: 1 day
+- Customize charter + Tier 1 files: 1 week
+- Implement domain-specific SOPs: 2-4 weeks
+- Phase B implementation Wave 1-7: 14 weeks
+- Total: **4-5 months**
+
+**Savings: 50-70% per subsequent project.**
+
+### Boilerplate maturity levels
+
+```
+Maturity Level 0: Single project (Ritsu)
+- No boilerplate
+- All code in 1 repo
+
+Maturity Level 1: Copy-paste (Ritsu → Hollywood)
+- Manual copy
+- Drift starts
+
+Maturity Level 2: Tách boilerplate (after Wave 3 Ritsu)
+- Generic core extracted
+- Templates with placeholders
+- Examples library
+
+Maturity Level 3: Versioned boilerplate
+- Semantic versioning
+- Breaking change protocol
+- Migration scripts
+
+Maturity Level 4: Mature ecosystem
+- Multiple projects using boilerplate
+- Community contributions (open source)
+- Plugin architecture
+```
+
+**Recommended progression cho founder:**
+- Now: Level 0 (focus Ritsu)
+- After Wave 3: Level 1 (copy when needed)
+- When 2nd project starts: Level 2 (tách boilerplate)
+- After 3+ projects: Level 3 (versioning)
+- Public release: Level 4 (open-source)
+
+## 31.9 Anti-patterns
+
+### ❌ Generalize quá sớm
+**Symptom:** Founder spent weeks tách boilerplate trước khi build Ritsu Wave 1.
+**Why bad:** Architecture chưa battle-tested. Generalization based on theory, not real friction.
+**Fix:** Build Ritsu Wave 1-3 first. Generalize sau khi có data points.
+
+### ❌ Generalize quá muộn
+**Symptom:** Founder copy-paste Ritsu → Hollywood, drift xảy ra trong 6 tháng.
+**Why bad:** Bug fixes ở Hollywood không apply Ritsu. Improvements scattered.
+**Fix:** Khi 2nd project đầu, tách boilerplate ngay (Maturity Level 2).
+
+### ❌ Over-abstraction
+**Symptom:** Boilerplate có 100 config options "for flexibility."
+**Why bad:** Nobody uses 90%. Maintenance burden. Onboarding harder.
+**Fix:** Start với minimal config. Add option chỉ khi 2+ projects cần.
+
+### ❌ Tight coupling project ↔ boilerplate
+**Symptom:** Project code import directly from boilerplate paths.
+**Why bad:** Boilerplate refactor breaks all projects.
+**Fix:** Boilerplate exports stable interfaces. Project depends on interface, not implementation.
+
+### ❌ Boilerplate becomes monorepo
+**Symptom:** All projects merged into single boilerplate repo.
+**Why bad:** Conflict between projects. Permissions issues. Deploy complexity.
+**Fix:** Boilerplate = template + library. Projects = separate repos.
+
+## 31.10 Recommendation cho founder
+
+### Bước 1 — KHÔNG generalize ngay (Tuần 1-12 Ritsu)
+
+Focus 100% Ritsu Wave 1-3. Document friction points trong notes:
+
+```markdown
+# notes/boilerplate-candidates.md
+
+## Patterns observed during Ritsu implementation
+
+### 2026-05-10
+- state-transition skill: 80% generic, 20% Ritsu schema
+- auto-link-extract: 100% generic
+- voice-note-classify: 70% generic, 30% Ritsu categories
+
+### 2026-05-15
+- pillar SOPs: very domain-specific
+- ...
+```
+
+### Bước 2 — Quan sát patterns thực tế (Wave 4-7 Ritsu)
+
+Khi implement Wave 4-7, founder sẽ thấy:
+- Real generic patterns (vs theoretical)
+- Real friction points
+- Real customization needs
+
+Update `boilerplate-candidates.md` continuously.
+
+### Bước 3 — Tách boilerplate khi 2nd project starts
+
+Trigger: founder commits to building dự án thứ 2.
+
+```bash
+# Day 1 of 2nd project:
+# - Audit Ritsu repo (already done via boilerplate-candidates.md)
+# - Create agent-os-boilerplate repo
+# - Move generic parts
+# - Update Ritsu to use boilerplate
+# - Bootstrap 2nd project from boilerplate
+```
+
+### Bước 4 — Mature ecosystem (3+ projects)
+
+Khi có 3+ projects sử dụng boilerplate:
+- Versioning becomes critical
+- Migration scripts cần thiết
+- Documentation phải solid
+- Có thể consider open-source
+
+## 31.11 Bundle vs Core decisions cho founder
+
+### Quyết định 1 — Maturity level hiện tại
+
+**Recommend: Level 0 (single project).**
+
+Lý do:
+- Ritsu chưa Wave 1 implementation
+- No 2nd project trong concrete roadmap
+- Architecture chưa battle-tested
+
+### Quyết định 2 — Khi nào move to Level 2
+
+**Triggers:**
+- Ritsu Wave 1-3 stable (foundation + triggers + state)
+- 2nd project becomes concrete (not hypothetical)
+- Founder thấy clear pattern repetition trong Ritsu code
+
+### Quyết định 3 — Strategy khi tách
+
+**Recommend: Strategy 3 (template repo + cherry-pick).**
+
+Lý do:
+- Đơn giản nhất (no submodule, no npm package)
+- GitHub native (founder already familiar)
+- Acceptable cho ≤5 projects (founder unlikely to scale beyond)
+- Easy to upgrade later (Strategy 2) if needed
+
+### Quyết định 4 — Bundle distribution strategy
+
+**Hiện tại (v2.5):** Single `ritsu-handoff-bundle-v2.5.zip` cho Ritsu only.
+
+**Future (v3.x):**
+
+```
+agent-os-boilerplate-v1.0.zip       ← generic, public-ish
+ritsu-domain-pack-v1.0.zip           ← Ritsu-specific overlay
+hollywood-domain-pack-v1.0.zip       ← Hollywood-specific overlay
+```
+
+Founder downloads boilerplate + domain pack overlay. Domain pack = changes Ritsu/Hollywood made on top of boilerplate.
+
+**But:** This is Maturity Level 3-4. Defer until needed.
+
+## 31.12 Tóm lại
+
+### Câu hỏi: "Có thể clone sang dự án khác không?"
+
+**Có. ~80% Phase A + A.2 architecture là generic Agent OS framework.**
+
+### Câu hỏi: "Khi nào nên tách boilerplate?"
+
+**Khi 2nd project becomes concrete.** Không phải bây giờ. Premature generalization = anti-pattern.
+
+### Câu hỏi: "Strategy nào để tách?"
+
+**Template repo + cherry-pick (Strategy 3).** Đơn giản nhất cho founder solo / small team.
+
+### Câu hỏi: "Reuse rate?"
+
+**~75% average.** Architecture (100%) + Infrastructure (100%) + Skills (80%) + Pillar SOPs (30%) + Domain (0%).
+
+**Time saved per subsequent project: 6-9 months.**
+
+### Founder action
+
+1. **Now:** Focus Ritsu, document patterns trong `notes/boilerplate-candidates.md`
+2. **After Wave 3:** Re-evaluate, decide nếu tách boilerplate ngay
+3. **When 2nd project:** Phase 1-6 generalization (5-7 weeks one-time investment)
+4. **Long-term:** Maturity Level 3-4 with versioning + ecosystem
+
+---
+
+**Tham khảo:**
+- Phase A.2 final architecture: chương 28
+- Repo runtime strategy: chương 29
+- Working modes A→B: chương 30
+- Notes file: `notes/boilerplate-candidates.md` (create as Wave 1 task)
+- Future repos: `agent-os-boilerplate/` (defer until needed)

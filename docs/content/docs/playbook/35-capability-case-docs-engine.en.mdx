@@ -1,0 +1,274 @@
+---
+title: "Chương 35 — Capability Case Study #2: Docs Engine"
+description: "Chương 35 — Capability Case Study #2: Docs Engine"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/35-capability-case-docs-engine.md
+source_hash: 6a6d3ca8d8171203ebdc935286af1659e7d91870daafaa495a86454d9ddb10f5
+generated_at: '2026-05-19T16:57:54.964Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 6a6d3ca8d8171203ebdc935286af1659e7d91870daafaa495a86454d9ddb10f5
+translated_at: '2026-05-19T16:57:54.964Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 35
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 35 — Capability Case Study #2: Docs Engine
+
+> *"Wiki Sync ingest knowledge ngoài vào. Docs Engine project knowledge trong (Tier 1 + `.claude/` runtime) ra ngoài thành browsable bilingual docs site cho operator + AI agent."*
+
+Chương này document capability **`docs-engine`** — capability thứ hai ship qua Bài #20 framework, đi từ v1.0 → v1.2 trong ~10 giờ single-session AI execution (2026-05-19). Live tại https://ritsu-works.vercel.app.
+
+**Trạng thái:** operating v1.2.0. Lineage: v1.0 → v1.1 → v1.1.1 → v1.1.2 → v1.2.
+
+## 35.1 Bài toán
+
+Founder + cofounder + AI workforce cần **đọc** repo content như docs site (không phải scroll qua 100+ markdown file trên GitHub):
+
+- "Skill `wiki-sync/distill` làm gì?" → cần đọc `06-ai-ops/skills/wiki-sync/distill/SKILL.md` nhưng path khó nhớ.
+- "Persona @cto routing flow ra sao?" → cần đọc `.claude/agents/cto.md` + `06-ai-ops/workforce-personas/cto/playbook.md` ghép lại.
+- "SOP-AIOPS-001-extend chạy phase nào?" → cần đọc YAML flow definition.
+- AI subagent cần fetch raw MDX cho runtime context (e.g. "load CTO persona spec" → expect URL endpoint return `text/markdown`).
+
+Constraint:
+- **Bilingual VI+EN.** Founder default Vietnamese. AI agents request EN khi cần.
+- **Auto-sync với codebase.** Sửa source `.md`/`.yaml` → site update ≤ 5 phút.
+- **No PII leak.** Site công khai; cannot leak secrets, founder profile, customer data.
+- **Vercel Hobby tier.** $0 cost ceiling.
+
+## 35.2 Bài #20 walkthrough — Tier C decision
+
+### Phase 1-3: Problem framing + Domain + Inventory
+
+- Phase 1 (problem-framer): output `.archives/cla/docs-engine/problem.md`. 4 stakeholder Q&A pairs.
+- Phase 2 (domain-analyst): dispatch @cto (tech stack) + @cpo (audience).
+- Phase 3 (system-inventory-scanner): nothing exists yet — `docs/` folder doesn't exist; no walker; no MDX renderer.
+
+### Phase 4: Options
+
+3 options:
+- **A** — VuePress + GitHub Pages. Pros: $0, MD-native. Cons: no JSX, no `/api/raw` for AI runtime.
+- **B** — Fumadocs + Next.js + Vercel. Pros: best DX, MDX strict, built-in i18n, Vercel auto-deploy. Cons: Next.js learning curve, Vercel free-tier rate-limits.
+- **C** — Custom static site with esbuild. Pros: full control. Cons: weeks of work, bus factor.
+
+@cto verdict: B (Fumadocs has best ecosystem). @cpo: B (Cards landing component fit operator audience). Founder: B.
+
+### Phase 5: Architecture (Tier C, Muse panel)
+
+CTO mods:
+1. **3-way diff for hand-edits.** Walker uses `<!-- generated-by -->` marker (later changed to `{/* generated-by */}` JSX comment due to MDX2 strict parser). Hand-edited files w/o marker → walker refuses to overwrite.
+2. **3-layer secret redactor** (fail-loud, not silent scrub):
+   - Layer 1: walker excludes `governance/SECRETS.md`, `00-charter/founder-profile.md`, `runtime/secrets/`, `wiki/`, `.archives/`, `raw/`, `node_modules/`, `.next/`
+   - Layer 2: MDX regex scrub at build time (`docs/lint-secrets.cjs`) — patterns for `override:` magic phrase, Anthropic API keys, Supabase URL, GitHub PATs, Telegram tokens. Build FAILS on match (no silent redaction).
+   - Layer 3: CI gate — `pnpm check` runs lint-secrets before merge.
+3. **`/api/raw/<slug>` endpoint** returns `text/markdown` for AI runtime (CPO Phase 4 P0 reframe — AI agents are first-class audience, not just operators).
+
+Muse high-stakes panel verdict: 5/5 APPROVE.
+
+### Phase 6-8: Sprint + Implement + Promote
+
+- Sprint 1: Next.js scaffold + 9 source adapters + secret redactor.
+- Sprint 2: Tutorials (5 Vietnamese hand-written — deferred to v1.3 per CPO Muse cynic contingency).
+- Sprint 3: Vercel deploy + custom domain (custom domain deferred).
+
+## 35.3 Lineage: 5 versions trong 10 giờ
+
+| Version | State | Operating range | Key change |
+|---|---|---|---|
+| 1.0.0 | superseded | 2026-05-19 → 2026-05-19 (~6h) | Initial ship. 226 EN MDX pages auto-generated. 8 PR shipped: #54-#60. Live tại Vercel. |
+| 1.1.0 | superseded | 2026-05-19 → 2026-05-19 (~2h) | Bilingual VI+EN via Fumadocs i18n. Sidebar Diátaxis grouping. `/` → `/docs` redirect. `<Cards>` landing component. PRs #62-#63. |
+| 1.1.1 | merged | 2026-05-19 (~2h) | First Vietnamese translation pass via Claude Code subagents (haiku, no API key). 225 .mdx file marked `translated: true`. PR #65. Caveat: walker re-run sẽ overwrite. |
+| 1.1.2 | merged | 2026-05-19 (~1h) | Translation completeness gate. `scripts/verify-vi-translation.cjs` — diacritic ratio measure. Re-dispatched agent cho 60 remaining English-content file. 100% coverage verified. PR #66. |
+| **1.2.0** | **operating** (current) | 2026-05-19 → present | **Incremental translation.** Walker preserves VI body khi source thay đổi. New `translated_source_hash` field + `needs_retranslation` flag. New `/docs translate` skill + slash command. Translation work no longer destroyed by `/docs sync`. PRs #67-#68. |
+
+Toàn bộ 5 version trong ~10 giờ single session. Total cost ~$4 LLM (mostly Sprint 1 scaffold). v1.2 self-demoed: walker preserved VI khi source change, `/docs translate` re-translated 2 stale files, verifier confirmed 100% Fresh.
+
+## 35.4 Components shipped
+
+### Slash command
+
+`.claude/commands/docs.md`:
+- `/docs` — status menu
+- `/docs scaffold` — first-time Next.js scaffold (one-shot)
+- `/docs sync [--area=<a>] [--dry-run] [--force]` — walker pass
+- `/docs translate [--category=<c>]` — v1.2 incremental translator
+- `/docs check` — drift detection (deterministic, no LLM)
+- `/docs publish` — Vercel production deploy
+- `/docs nav` — edit sidebar grouping
+- `/docs update <area>` — alias for `/docs sync --area=<a>`
+
+### Skills (under `06-ai-ops/skills/docs-engine/`)
+
+| Skill | Purpose |
+|---|---|
+| `docs-engine/scaffold` | One-time Next.js + Fumadocs scaffold |
+| `docs-engine/sync` | Walker orchestration (10-step SOP-AIOPS-003 pipeline) |
+| `docs-engine/check` | Drift detection |
+| `docs-engine/publish` | Vercel production deploy trigger |
+| `docs-engine/nav` | Sidebar meta.json editor |
+| `docs-engine/update` | Per-area sync (alias) |
+| `docs-engine/translate` | **v1.2 NEW** — incremental translation dispatcher |
+| `docs-engine/adapters/<kind>-adapter` | 9 source kind adapters |
+
+### Adapters (9 dưới `06-ai-ops/skills/docs-engine/adapters/`)
+
+| Adapter | Source | Output |
+|---|---|---|
+| `skill-adapter` | `06-ai-ops/skills/**/SKILL.md` | `docs/content/docs/skills/<slug>.mdx` |
+| `agent-adapter` | `.claude/agents/*.md` | `docs/content/docs/agents/<name>.mdx` |
+| `hook-adapter` | `.claude/hooks/*.md` | `docs/content/docs/hooks/<name>.mdx` |
+| `command-adapter` | `.claude/commands/*.md` | `docs/content/docs/commands/<name>.mdx` |
+| `charter-adapter` | `00-charter/*.md` | `docs/content/docs/charter/<name>.mdx` |
+| `governance-adapter` | `governance/*.md` | `docs/content/docs/governance/<name>.mdx` |
+| `pillar-readme-adapter` | `0[1-9]-*/README.md`, `10-*/README.md` | `docs/content/docs/pillars/<NN-name>/index.mdx` |
+| `sop-flow-adapter` | `<pillar>/sops/**/flow.yaml` | `docs/content/docs/sops/<slug>.mdx` |
+| `tier1-yaml-adapter` | `knowledge/*.yaml` | `docs/content/docs/knowledge/<name>.mdx` |
+
+### Walker (`scripts/docs-sync.cjs`)
+
+- ~875 dòng JavaScript (CommonJS).
+- 9 adapter dispatch.
+- 3-layer secret redaction (Layer 1: walker-exclude; Layer 2 enforced by `docs/lint-secrets.cjs` at build time).
+- MDX escape: `<` outside fenced/inline code → `\<`; `{` outside JSX comment → `\{`.
+- Source_hash idempotency: skip nếu hash match.
+- **v1.2 preserve-VI-on-source-change branch:** khi `lang === "vi" && existing.translated === true && existingHash !== sourceHash`, walker preserve body+title+description, set `translated_source_hash = oldHash`, set `needs_retranslation: true`.
+
+### Translation persistence (v1.2 invariant)
+
+Mỗi translated VI `.mdx` carry 3 hash:
+- `source_hash` — current; matches source file right now.
+- `translated_source_hash` — hash that was translated FROM.
+- Match ⇒ fresh; mismatch ⇒ stale (re-translate on next `/docs translate`).
+
+### `/api/raw/[...slug]/route.ts`
+
+Returns `text/markdown` cho any rendered MDX. AI agents fetch as runtime context:
+```
+GET /api/raw/agents/cto       → CTO persona spec
+GET /api/raw/skills/wiki-sync/distill → distill skill spec
+```
+
+## 35.5 Bilingual architecture (v1.1+)
+
+Fumadocs v14 i18n. Default locale = `vi` (Vietnamese). Alternative = `en`.
+
+File naming convention:
+- `<slug>.mdx` = Vietnamese (default; no suffix per Fumadocs v14 dot parser)
+- `<slug>.en.mdx` = English (suffix required for non-default)
+
+Walker emit **both** per source file (cùng English content initially). Translator (Claude Code subagent dispatch hoặc `scripts/docs-translate.cjs` với ANTHROPIC_API_KEY) translate `.mdx` (VI default) body sang Vietnamese.
+
+Per-category `meta.{lang}.json` define sidebar order. Diátaxis grouping at top-level: Reference (auto-gen) / How-to (SOPs) / Explanation (Tier 1).
+
+`<Cards>` Fumadocs component on landing pages cho category navigation.
+
+Language switcher in nav — built-in Fumadocs UI feature.
+
+## 35.6 Secret redaction (3-layer fail-loud)
+
+Layer 1: walker exclude list (in `scripts/docs-sync.cjs`):
+```javascript
+const WALKER_EXCLUDE = [
+  "governance/SECRETS.md",
+  "00-charter/founder-profile.md",
+  "runtime/secrets/",
+  "wiki/", ".archives/", "raw/",
+  "node_modules/", ".next/",
+];
+```
+
+Layer 2: regex scrub `docs/lint-secrets.cjs`. Patterns:
+- `override:\s+\S+(\s+\S+){4,}` — HITL magic phrase
+- `[a-z0-9]{20}\.supabase\.co` — Supabase project URL
+- `sk-ant-[A-Za-z0-9_-]{20,}` — Anthropic API key
+- `sk-[A-Za-z0-9]{32,}` — OpenAI API key
+- `sb_(public|secret|publishable)_...` — Supabase service keys
+- `ghp_[A-Za-z0-9]{36,}` + `github_pat_...` — GitHub PATs
+- Telegram bot tokens
+
+Layer 3: Husky pre-commit + Vercel build prebuild script invoke `node lint-secrets.cjs`. **Fail loud, no silent scrub** — operator must fix source or add to WALKER_EXCLUDE.
+
+## 35.7 v1.2 incremental translation deep dive
+
+**Pre-v1.2 bug:** walker overwrote VI body khi source changed → mọi `/docs sync` after source edit erased translations.
+
+**v1.2 fix:** walker has 2 idempotency branches now:
+```
+existingHash === sourceHash               → SKIP (preserve both .mdx + .en.mdx)
+existingHash !== sourceHash AND lang=vi   → PRESERVE VI body + flag stale
+                              AND lang=en → REWRITE EN (always fresh)
+```
+
+Stale flag = `needs_retranslation: true` + `translated_source_hash: <old_hash>`.
+
+`/docs translate` skill orchestrates re-translation:
+1. Run verifier `--list-needs-translation` → list stale + untranslated files.
+2. Batch by category (~6 files/batch).
+3. Dispatch Claude Code subagent (haiku, no API key) per batch.
+4. Each subagent translates → updates `translated_source_hash = source_hash` + removes `needs_retranslation`.
+5. Re-verify. Iterate ≤ 3 times.
+6. Local `pnpm build` + commit + push.
+
+**Self-demo proof (PR #68):**
+- Edited `.claude/commands/docs.md` + `knowledge/capability-registry.yaml` (this v1.2 work)
+- Walker on commands area: 1 stale VI preserved (`docs.mdx`)
+- Walker full pass: 1 more stale (`capability-registry.mdx`)
+- `/docs translate` agent dispatched → 2 files translated
+- Verifier: 100% Fresh / 0 Stale
+
+## 35.8 Lessons learned
+
+1. **CTO's `<!-- generated-by -->` marker had to change.** MDX2 strict parser rejects `<!--`. Changed to JSX comment `{/* generated-by */}` mid-Sprint 1. Lesson: validate idempotency markers against the actual rendering toolchain BEFORE Sprint 5 architect freeze.
+
+2. **MDX escape is pervasive.** Walker escapes ALL `<` outside code blocks → `\<`. Caught `<email@x>`, `<source-slug>`, `<task-id>` patterns that would otherwise crash MDX parser. v1.0.1 candidate: known-tag allowlist (`<a>`, `<details>`, `<summary>`) — current blanket-escape is pragmatic.
+
+3. **Fumadocs v14 vs v15 docs.** v15 introduces `defineI18n`, dot-suffix parser. v14 (pinned for stability) uses different APIs. Spent ~30 min debugging because Context7 + Fumadocs docs serve v15 examples. Lesson: pin docs URL alongside library version in spec.
+
+4. **Sandbox blocks `.env.local` read.** API-based translator (`scripts/docs-translate.cjs`) needs `ANTHROPIC_API_KEY` but Claude Code sandbox blocks read of `runtime/secrets/.env.local`. Workaround: dispatch subagents inside Claude Code Desktop (use subscription, no API key). v1.2 codified này thành `docs-engine/translate` skill.
+
+5. **`<Cards>` Fumadocs component for landing is the canonical pattern.** Hand-written HTML on landing → operators confused. `<Cards><Card href ... description />` → operators recognize, theme-respecting, mobile-responsive.
+
+6. **`/api/raw/<slug>` endpoint = first-class AI runtime support.** Built originally for cofounder convenience; turned out to be MORE valuable for AI subagent context loading. Lesson per CPO Phase 4 P0 reframe: AI agents are primary audience for many "internal" pages, not just operators.
+
+7. **5 versions in 10 hours is fine if each is cheap.** Total v1.0→v1.2 cost ~$4 LLM, ~10 hour wall-clock. Pre-CLA framework, đây sẽ là weeks. Bài #20 sub-flows (fix/extend/revise/tune) are right-sized — không cần full ceremony cho minor extend.
+
+## 35.9 KPIs
+
+- `docs_drift_count` — số trang trong filesystem-walker scope không có MDX hoặc source_hash mismatch
+- `docs_pages_total` — total MDX file (target: ≥ source count × 2 for bilingual)
+- `docs_translated_fresh_pct` — % VI .mdx có `translated_source_hash === source_hash`
+- `docs_translated_stale_count` — files với `needs_retranslation: true`
+- `docs_vercel_build_p95_ms` — Vercel build wall-clock
+- `docs_vercel_404_rate` — % requests returning 404 (target: \< 0.1%)
+- `docs_api_raw_requests_per_day` — usage of AI runtime endpoint
+
+## 35.10 Open work
+
+1. **v1.3 — 5 hand-written Vietnamese tutorials.** Đã defer từ Sprint 2 v1.0. Path: `/cla extend docs-engine` cho tutorials cluster. Time-box 3h/tutorial.
+
+2. **v1.3 — `.github/workflows/docs-translate-check.yml`.** PR-time gate: any file `needs_retranslation: true` blocks merge cho đến khi `/docs translate` cleared. Soft gate đầu tiên; hard sau 2 tuần.
+
+3. **v1.3 — Auto-dispatch `/docs translate` trong `/docs sync`.** Currently 2-step. Could become `/docs sync --then-translate`. Saves founder action.
+
+4. **v1.4 — Translation drift dashboard tile** on founder Monday dashboard. Source: verifier `--json` output → `ops.kpi_snapshots`.
+
+5. **v1.4 — Custom domain `docs.ritsu.works`.** Founder adds via Vercel dashboard.
+
+6. **v1.4 — Per-page prev/next navigation.** Fumadocs supports `<DocsCategory />` + breadcrumbs but requires explicit config.
+
+7. **v1.5 — Translation memory** per-segment cache so re-translating an unchanged paragraph in a changed file is free. Worth nó once `/docs translate` cost meaningful.
+
+8. **Search localization.** Vietnamese diacritic tokenization untested. Orama (Fumadocs default search) accepts custom tokenizer.
+
+## 35.11 Pattern reuse với wiki-sync
+
+`docs-engine` borrow patterns from `wiki-sync-from-refs` (Chương 34):
+- **Adapter pattern** (9 source kind ↔ 6 source kind trong wiki-sync).
+- **Hash-based idempotency** (`source_hash` field per artifact).
+- **Citation spine analog** (`translated_source_hash` analogous to `ops.knowledge_extractions.source_chunk_id`).
+- **Skill-per-stage** (scaffold/sync/check/publish/nav/translate analogous to ingest/distill/extract/audit/dedup/merge/review).
+
+This là Bài #20 framework working as designed: capability template + reuse + accelerated development cho subsequent capabilities.

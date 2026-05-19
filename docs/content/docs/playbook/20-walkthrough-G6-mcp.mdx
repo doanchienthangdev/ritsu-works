@@ -1,0 +1,336 @@
+---
+title: "Chương 20 — Walkthrough G6: MCP Integration Architecture (Bài #12 candidate)"
+description: "Chương 20 — Walkthrough G6: MCP Integration Architecture (Bài #12 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/20-walkthrough-G6-mcp.md
+source_hash: 58c5ea99156f22411f5d0d4a15ad773e6af992d4cb3d3bd26a19d5f0722d25a6
+generated_at: '2026-05-19T16:57:54.922Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 58c5ea99156f22411f5d0d4a15ad773e6af992d4cb3d3bd26a19d5f0722d25a6
+translated_at: '2026-05-19T16:57:54.922Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 20
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 20 — Walkthrough G6: MCP Integration Architecture (Bài #12 candidate)
+
+> *"Phase A có manifest slot cho MCP. Không có architecture. Founder dùng Claude Code mỗi ngày → MCP là cầu nối Ritsu skills/SOPs/data ↔ Claude Code (và Cursor, Windsurf, ChatGPT future)."*
+
+## 20.1 Tình huống
+
+Founder TH4 anchor: *"Tôi muốn Claude Code biết về Ritsu — query knowledge, run skills, check ops.tasks status — without copy-paste."*
+
+5 concrete scenarios:
+
+1. **Founder asks customer info** trong Claude Code → ritsu.customer.get(slug) → returns profile + history + tickets
+2. **Run SOP from Claude Code** → ritsu.sop.execute(SOP-GROWTH-002) → HITL Tier B → Telegram approve → execute
+3. **Check workforce status** → ritsu.ops.tasks_active() → "12 active, 3 blocked, 2 pending HITL"
+4. **Query knowledge graph** (post-G15) → ritsu.knowledge.graph_query(source, edge_type, filter)
+5. **Future operators (Cursor + ChatGPT)** → role-scoped tools, OAuth-protected HTTP endpoint
+
+**Founder expected:** unified Ritsu interface accessible from any AI client với role scoping + governance.
+
+**Khi sai:**
+- Copy-paste cognitive overhead
+- Accidental $5000 ad campaign (no Tier C HITL)
+- Operator sees finance data (privacy breach)
+- Manual MCP registration per skill
+
+## 20.2 Walk through Phase A + prior walkthroughs
+
+After 4 walkthroughs, Ritsu has **rich primitive set** ready cho MCP exposure:
+
+| Resource type | Source | Potential MCP tool |
+|---|---|---|
+| Skills (Phase A) + SOPs (Bài #9) | manifest.yaml | ritsu.skill.list/run, ritsu.sop.execute |
+| Workforce state | Bài #5 | ritsu.ops.tasks_active |
+| KPI data | Bài #10 | ritsu.kpi.get/history |
+| Events | Bài #11 | ritsu.events.query/replay |
+| Alerts | Bài #10 | ritsu.alerts.list/acknowledge |
+| Knowledge (post-G15) | wiki/, .archives/ | ritsu.knowledge.search/graph_query |
+| Cost (Bài #7) | ops.cost_attributions | ritsu.cost.report |
+
+**Phase A doesn't define HOW these become MCP tools.** Bài #12 fills.
+
+### Don't have
+
+15 gaps (G6.1 through G6.15) covering server architecture, tool catalog, role scoping, authorization, testing, versioning, OAuth, observability, cost attribution, schema validation, rate limiting, error semantics, and tool descriptions.
+
+## 20.3 Workaround vs proper extension
+
+### Workaround
+- Z1: No MCP, Claude Code's standard tools — context-switching pain
+- Z2: Anthropic-published MCPs only (Supabase MCP, GitHub MCP) — no domain tools
+- Z3: Build Ritsu MCP với architecture — engineering investment
+
+**Recommendation: Z3 + Z2 combo.** Build domain (Z3), use Anthropic for generic data (Z2). Don't reinvent generic primitives.
+
+### Proper extension — Bài #12: MCP Integration Architecture
+
+4 axes:
+
+#### Axis 1 — Server Architecture: Dual-mode (stdio + HTTP)
+
+**Stdio mode:** Founder primary
+- Launched by Claude Code via npm install or npx
+- Local socket = trusted, founder-only
+- Accesses local repo + Supabase prod
+
+**HTTP mode:** Remote + multi-client
+- Vercel deployment at `mcp.ritsu.ai`
+- OAuth 2.1 protected
+- For Claude Desktop, ChatGPT, mobile, future operators
+
+**Single TypeScript codebase:**
+
+```
+05-ai-ops/mcp-server/
+├── src/
+│   ├── server.ts           # dual-mode bootstrap
+│   ├── stdio.ts            # stdio transport
+│   ├── http.ts             # HTTP transport + OAuth
+│   ├── tools/              # tool definitions per resource
+│   ├── auth/               # OAuth + role resolver
+│   ├── governance/         # HITL + budget + audit gates
+│   └── lib/                # supabase, tool-registry
+├── test/
+│   ├── tools/              # contract tests
+│   ├── integration/        # E2E
+│   └── eval/               # routing-eval
+└── docs/                   # per-client guides
+```
+
+**Distribution:**
+- Stdio: npm `@ritsu/mcp-server`
+- HTTP: Vercel deployment
+
+#### Axis 2 — Tool Catalog: knowledge/mcp-tools.yaml
+
+```yaml
+tools:
+  - id: ritsu.ops.tasks_active
+    description: |
+      List active workforce tasks (status: pending, in_progress, blocked).
+      Use this when founder wants to see what AI workforce is currently doing.
+    inputs:
+      - name: limit
+        type: integer
+        default: 50
+    role_scope: [founder, operator-ops]
+    requires_hitl: false
+    cost_bucket: read-only
+    
+  - id: ritsu.sop.execute
+    description: |
+      Execute a SOP by ID with parameters.
+      Triggers ops.sop_runs creation. Subject to SOP's HITL tier.
+    inputs:
+      - name: sop_id
+        type: string
+        required: true
+        validation: "^SOP-[A-Z]+-\\d{3}-.+"
+      - name: params
+        type: object
+        required: true
+    role_scope: [founder, operator-by-pillar]
+    requires_hitl: per_sop  # follows SOP definition
+
+# Auto-discovery: skills/SOPs become tools automatically
+auto_discovery:
+  - source: manifest.yaml.skills
+    template: { id: "ritsu.skill.{{skill_name}}", ... }
+  - source: knowledge/<pillar>/sops/SOP-*.yaml
+    template: { id: "ritsu.sop.{{sop.id}}", ... }
+```
+
+**Properties:**
+- Static curated cho stable LLM-facing interface
+- Auto-discovery cho skills/SOPs
+- Naming: `ritsu.<resource>.<action>`
+- Schema validation
+- Tool descriptions = LLM-consumed product copy (rich examples)
+
+#### Axis 3 — Role-Scoped Access + HITL Gate
+
+```yaml
+# knowledge/mcp-roles.yaml
+roles:
+  founder:
+    tools: ["ritsu.*"]
+    rate_limit: unlimited
+    cost_bucket: founder
+    
+  operator-ops:
+    tools: ["ritsu.ops.*", "ritsu.alerts.*", "ritsu.events.query"]
+    rate_limit: 1000/hour
+    excludes_pii: true
+    
+  operator-growth:
+    tools: ["ritsu.sop.execute(sop_id starting with SOP-GROWTH-*)", 
+            "ritsu.kpi.*", "ritsu.knowledge.search"]
+    rate_limit: 500/hour
+    
+  trust-safety-reviewer:
+    tools: ["ritsu.alerts.*", "ritsu.events.query", "ritsu.knowledge.search"]
+    rate_limit: 200/hour
+```
+
+**Authorization flow:**
+
+```
+Tool call arrives
+  ↓ Identify caller (stdio: founder, HTTP: from token)
+  ↓ Lookup role permissions
+  ↓ Check tool allowed → if not, 403
+  ↓ If requires_hitl Tier B/C/D:
+     spawn HITL request (Bài #2) → block until approve/deny
+  ↓ If has cost (Bài #7):
+     check budget → if over, 429
+  ↓ Execute tool
+  ↓ Audit log to ops.mcp_calls
+  ↓ Return result
+```
+
+#### Axis 4 — Observability + Governance
+
+**ops.mcp_calls audit:**
+
+```sql
+CREATE TABLE ops.mcp_calls (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  caller_id       text NOT NULL,
+  caller_client   text NOT NULL,         -- 'claude-code' | 'cursor' | 'chatgpt'
+  tool_id         text NOT NULL,
+  inputs_hash     text,
+  inputs          jsonb,                 -- redacted PII
+  status          text NOT NULL,         -- success | error | denied | hitl_pending | hitl_denied
+  started_at      timestamptz NOT NULL DEFAULT now(),
+  completed_at    timestamptz,
+  duration_ms     int,
+  cost_usd        numeric,
+  hitl_run_id     uuid,
+  result_summary  text,
+  error           text
+);
+```
+
+**Integration:**
+- Dashboard `/operations/mcp` page (Bài #10) — top tools, error rate, HITL gate rate, cost
+- Cost attribution to bucket (Bài #7) — nightly aggregation
+- Tool call emits `ritsu.mcp.tool_called` event (Bài #11)
+
+**Tool testing framework:**
+- Unit tests (per tool)
+- Integration tests (E2E with test Supabase)
+- LLM routing-eval (does LLM pick correct tool from description)
+- Schema validation tests
+
+## 20.4 New components (24)
+
+| Category | Count |
+|---|---|
+| Code (server + transports + tools + auth + governance) | 11 |
+| Tier 1 declarative (mcp-tools.yaml, mcp-roles.yaml) | 2 |
+| Tier 2 schema (ops.mcp_calls) | 1 |
+| Frontend (dashboard page) | 1 |
+| Distribution (npm + Vercel) | 2 |
+| CLI (auth issue) | 1 |
+| Meta (recipes, checklist, framework, brainstorm) | 5 |
+| Cross-bài-toán updates (#6, #7, #11) | 3 |
+| Multi-client docs | 1 |
+
+**24 new components — biggest set of all walkthroughs so far.** MCP touches every layer.
+
+## 20.5 Bài #12 candidate
+
+**Bài #12 — MCP Integration Architecture**
+
+**Question core:** Ritsu skills/SOPs/data accessible from any AI client với role-scoped tools, governance enforced, observability + cost integrated.
+
+**Dependencies:** Bài #1, #2, #5, #6, #7, #8 DRAFT, #9 DRAFT, #10 DRAFT, #11 DRAFT
+
+**Independence:** Doesn't depend on G3, G15, G10, G8, G7, G13, G9. But integrates với many.
+
+## 20.6 Lessons captured
+
+1. **MCP is interface layer, not infrastructure layer.** Phase A treats as "manifest slot." Reality: MCP is full architectural concern.
+2. **Dual-mode (stdio + HTTP) single codebase essential.** Founder uses stdio daily; remote needs HTTP. Don't fork.
+3. **Tool descriptions matter as much as implementations.** LLM routes based on description.
+4. **Auto-discovery + curation hybrid.** Not all skills/SOPs should be tools.
+5. **Role-scoped tools = privacy + safety.**
+6. **HITL gate at MCP layer crucial.** Defense in depth.
+7. **Tool versioning needs explicit strategy.**
+8. **Multi-client = multi-quirk.**
+9. **GBrain MCP architecture is reference-quality.** Adopt patterns directly.
+10. **MCP layer = audit trail goldmine.** Primary observability source.
+
+## 20.7 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ12.1 | Hot-reload tool schemas? | Phase D |
+| OQ12.2 | Tool deprecation flow? | After 6 months |
+| OQ12.3 | Tool aliases? | Phase D |
+| OQ12.4 | Streaming responses? | When need surfaces |
+| OQ12.5 | Tool composition? | v1.x |
+| OQ12.6 | Per-customer scoped (B2B)? | When B2B grows |
+| OQ12.7 | MCP marketplace publishing? | After v1.0 launch |
+| OQ12.8 | Webhook tools? | When need surfaces |
+
+## 20.8 Anti-patterns
+
+- ❌ Hardcode tool list (use auto-discovery + curation)
+- ❌ Skip tool testing (LLM picks wrong tool silently)
+- ❌ No role scoping (single token compromise = total access)
+- ❌ No HITL gate at MCP layer ($5000 ad campaign auto-fired)
+- ❌ No audit trail (cannot debug "who called what")
+- ❌ Stdio-only or HTTP-only
+- ❌ Tool description as docstring afterthought
+- ❌ No schema validation
+- ❌ No rate limiting (Cursor agent loop = cost explosion)
+- ❌ No cost attribution (Bài #7 budgets meaningless)
+- ❌ PII in responses without redaction (GDPR)
+- ❌ Synchronous HITL block (use async pending pattern)
+
+## 20.9 Cross-references
+
+**Bài #12 + Bài #2 HITL:** requires_hitl per tool, async pending pattern
+**Bài #12 + Bài #5 Multi-Agent:** tool spawns ops.tasks
+**Bài #12 + Bài #6 Identity:** MCP = sub-domain B (alongside dashboard)
+**Bài #12 + Bài #7 Economic:** cost_bucket per call, budget gate
+**Bài #12 + Bài #9 SOP:** ritsu.sop.execute, auto-discovery generates tool per SOP
+**Bài #12 + Bài #10 Visibility:** dashboard /operations/mcp consumes ops.mcp_calls
+**Bài #12 + Bài #11 Events:** every call emits ritsu.mcp.tool_called
+**Bài #12 + Future Bài #15 Knowledge Graph:** ritsu.knowledge.graph_query
+**Bài #12 + GBrain Minions:** deterministic tools = direct, judgment = subagent
+
+## 20.10 Tổng kết
+
+- **Bài #12 candidate: MCP Integration Architecture**
+- **4 axes:** server architecture / tool catalog / role-scoped access / observability
+- **24 new components — biggest set so far**
+- **First walkthrough touching every prior bài toán** (Bài #1 → #11)
+- **GBrain MCP architecture as reference**
+
+**Pattern after 5 walkthroughs:**
+- Bài #8 + #11 → triggers (schedule + event)
+- Bài #9 → SOP execution
+- Bài #5 + Minions → orchestration
+- Bài #10 → visibility (dashboard + alerts)
+- Bài #12 → access (MCP)
+
+Ritsu architecture starts converging on **complete operational stack**. Sang chương sau — walkthrough G3 Domain State Machines.
+
+---
+
+**Tham khảo:**
+- High-altitude pass: G6 entry (score 7.30)
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G6-mcp.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-12-mcp-integration-DRAFT.md`
+- GBrain reference: gbrain `docs/mcp/` per-client guides
+- Phase A dependencies: Chương 9 (Bài #6 sub-domain B)
+- Phase A.2 dependencies: All prior walkthroughs (#15-19)

@@ -1,0 +1,427 @@
+---
+title: "Phụ lục A3 — Mẫu PR cho từng loại thay đổi"
+description: "Phụ lục A3 — Mẫu PR cho từng loại thay đổi"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/A3-pr-templates.md
+source_hash: 3e6d4f9dc422e9d98ef1c713fe98a953548e775669870e7bc03b902165c6a0cf
+generated_at: '2026-05-19T16:57:54.967Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 3e6d4f9dc422e9d98ef1c713fe98a953548e775669870e7bc03b902165c6a0cf
+translated_at: '2026-05-19T16:57:54.967Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 38
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Phụ lục A3 — Mẫu PR cho từng loại thay đổi
+
+> Mỗi tier HITL có một template PR khác nhau. Founder dùng làm reference khi opens PR; reviewer (founder hoặc code-reviewer) check completeness.
+
+## A3.1 Mẫu PR — Tier A (autonomous)
+
+**Khi nào:** read-only changes, internal compute, no external impact.
+
+**Examples:**
+- Bug fix in skill that doesn't change behavior
+- Documentation typo fix
+- Adding clarifying comment to schema
+- Updating internal reference link
+
+**Template:**
+
+```markdown
+## Summary
+
+Tier: **A**
+
+[1-2 sentences on what this changes]
+
+## Changed files
+
+- `<file>` — [what changed]
+
+## Verification
+
+- [ ] No customer-facing behavior change
+- [ ] No schema change
+- [ ] No new permissions
+- [ ] No new secrets needed
+- [ ] CI passes (if applicable)
+
+## Notes
+
+[Optional: anything reviewer should know]
+```
+
+**Ceremony:**
+- Self-merge OK if no reviewer required
+- 1 reviewer optional (code-reviewer agent comment)
+- Time-to-merge: minutes
+
+---
+
+## A3.2 Mẫu PR — Tier B (notify-after)
+
+**Khi nào:** internal write, low-stakes refactor, ops.* INSERT, schema additions reversible.
+
+**Examples:**
+- Adding new ops table (with migration)
+- Refactoring skill internals (same I/O)
+- Updating manifest.yaml entries
+- Adding new task_kind to taxonomy
+- Lowering budget cap (conservative direction)
+
+**Template:**
+
+```markdown
+## Summary
+
+Tier: **B**
+
+[2-3 sentences on what this changes and WHY]
+
+## Changed files
+
+- `<file>` — [what changed]
+- `<file>` — [what changed]
+
+## Schema changes (if applicable)
+
+[ ] None
+[ ] Migration: `<schema-file>.sql` added/modified
+
+If migration:
+- Forward: [description]
+- Rollback: [description]
+- Tested in staging: [yes/no, details]
+
+## Verification
+
+- [ ] No customer-facing behavior change visible to customers
+- [ ] If schema: migration tested in staging
+- [ ] If new permissions added: documented in ROLES.md
+- [ ] If new task_kind: added to taxonomy in `economic-architecture.md`
+
+## Notes
+
+Founder will be notified after merge via Telegram. No approval needed.
+
+[Anything reviewer should know]
+```
+
+**Ceremony:**
+- Reviewer recommended (code-reviewer agent comment + founder skim)
+- Founder Telegram notification post-merge
+- Time-to-merge: hours
+
+---
+
+## A3.3 Mẫu PR — Tier C (approve-before)
+
+**Khi nào:** customer-facing send, GitHub PR merge cho production, Tier 1 file edits, refunds, role permission changes.
+
+**Examples:**
+- New blog post publish
+- New role added to workforce
+- Charter/governance file edit
+- Refund issue (Stripe write)
+- Brand voice update
+- New skill that customer-facing roles will invoke
+- Raising budget cap (expansive direction)
+
+**Template:**
+
+```markdown
+## Summary
+
+Tier: **C**
+
+**Approval required from founder before merge.**
+
+[3-5 sentences explaining what this changes, WHY, and what could go wrong]
+
+## Context
+
+- **Bài toán affected:** [#N if applicable]
+- **Architecture doc reference:** [link if applicable]
+- **Brainstorm note:** [link if architecture change]
+
+## Changed files
+
+- `<file>` — [what changed + WHY]
+- `<file>` — [what changed + WHY]
+
+## Trade-offs considered
+
+- **Option chosen:** [what + why]
+- **Alternatives rejected:** [what + why not]
+
+## Risk assessment
+
+| Risk | Severity | Mitigation |
+|---|---|---|
+| [risk 1] | low/med/high | [how mitigated] |
+| [risk 2] | low/med/high | [how mitigated] |
+
+## Verification
+
+- [ ] Customer-facing impact described
+- [ ] Tier 1 file edits cross-checked với governance/HITL.md
+- [ ] If brand voice: bilingual EN+VI verified
+- [ ] If new role: full ROLES.md schema completed (permissions, hitl_max_tier, budget, context_budget, memory_config, economic_budget)
+- [ ] If new role: identity mapping added to IDENTITY.md
+- [ ] If new role: secrets section updated in SECRETS.md
+- [ ] If customer-facing change: ai-disclosure-check skill still passes
+
+## Rollback plan
+
+[How to revert if regression observed]
+
+## Approval
+
+Founder approve via comment "/approve" or Telegram inline button.
+
+cc: [@founder]
+```
+
+**Ceremony:**
+- Founder approval REQUIRED before merge
+- Approval via Telegram inline button OR `/approve` PR comment
+- Time-to-merge: 1-24 hours typical
+- For brand/charter changes: legal review recommended (post-v1.0 if applicable)
+
+---
+
+## A3.4 Mẫu PR — Tier D-Std (override, magic phrase)
+
+**Khi nào:** governance/SECRETS.md edit, governance/IDENTITY.md edit, hook spec edit, role permission expansion, new MCP server activation.
+
+**Examples:**
+- Adding new GitHub bot account + secret
+- Modifying disclosure compliance rules
+- Activating new MCP server (e.g., HubSpot integration)
+- Changing rotation cadence cho secrets
+- Hook threshold adjustments
+
+**Template:**
+
+```markdown
+## Summary
+
+Tier: **D-Std (override required)**
+
+⚠️ **Magic phrase + 30-second confirm required.**
+
+[Detailed explanation: what this changes, WHY, what could go SERIOUSLY wrong]
+
+## Context
+
+- **Architecture doc reference:** [link]
+- **Brainstorm note (if architectural):** [link]
+- **Related governance files:** [list]
+
+## Changed files
+
+- `<file>` — [what changed + WHY + impact analysis]
+
+## Threat model
+
+What could happen if this PR is wrong:
+
+1. [scenario 1] → [impact]
+2. [scenario 2] → [impact]
+3. [scenario 3] → [impact]
+
+## Mitigations
+
+How each scenario is prevented or limited:
+
+1. [mitigation for scenario 1]
+2. [mitigation for scenario 2]
+3. [mitigation for scenario 3]
+
+## Verification
+
+- [ ] All cross-references updated atomically (ROLES.md ↔ SECRETS.md ↔ IDENTITY.md ↔ manifest.yaml)
+- [ ] Hook tests pass
+- [ ] Security implications fully described
+- [ ] Compromise scenarios assessed
+
+## Approval ceremony
+
+1. Founder reviews PR completely
+2. Founder types magic phrase: `<the registered phrase for this PR type>`
+3. 30-second confirm timer (anti-reflexive)
+4. PR merges automatically post-confirm
+
+If founder doesn't confirm within 5 minutes, PR remains open.
+
+## Rollback plan
+
+[Detailed rollback procedure]
+
+## Notification
+
+Telegram alert WILL fire on merge. Acknowledged.
+```
+
+**Ceremony:**
+- Magic phrase required (founder gõ tay, không paste)
+- 30-second confirm timer
+- No reflexive approval possible
+- Time-to-merge: minutes after magic phrase, but PR may stay open hours/days for review
+- Mandatory: brainstorm note if architectural change
+
+---
+
+## A3.5 Mẫu PR — Tier D-MAX (highest risk)
+
+**Khi nào:** existential changes — could destroy or compromise the organization.
+
+**Examples:**
+- Revoke ALL secrets (mass rotation)
+- Drop ops schema (data destruction)
+- Transfer org ownership
+- Mass-delete customer data (e.g., GDPR full deletion request scaled)
+- Disable ALL hooks
+- Change charter foundational claims
+
+**Template:**
+
+```markdown
+## Summary
+
+Tier: **D-MAX**
+
+🔴 **CRITICAL: Magic phrase + PR + 1-hour cooldown + EXECUTE confirmation required.**
+
+This PR proposes an action that, if wrong, may **destroy or compromise the organization**.
+
+## Context
+
+[Detailed explanation: full context, WHY this is needed, why no other path exists]
+
+## What this does
+
+[Comprehensive description, no ambiguity]
+
+## What could go irreversibly wrong
+
+[Worst-case scenarios. Be specific. Include data loss, compliance violation, customer trust loss, financial impact.]
+
+## Why we believe it's still correct
+
+[Reasoning + evidence]
+
+## Alternative paths considered
+
+| Alternative | Why rejected |
+|---|---|
+| [alt 1] | [reason] |
+| [alt 2] | [reason] |
+| [alt 3] | [reason] |
+
+## Cross-references atomic
+
+This PR touches:
+- [ ] [file 1]
+- [ ] [file 2]
+- [ ] [file 3]
+[Every cross-reference must be atomic in this PR.]
+
+## Backups verified
+
+- [ ] Database backup taken < 24h ago: [backup ID]
+- [ ] Tier 1 git branch saved: [tag name]
+- [ ] Secrets manifest snapshot: [snapshot ID]
+
+## Rollback plan
+
+[VERY detailed rollback. If irreversible, state explicitly.]
+
+## Approval ceremony
+
+1. PR opens
+2. Founder reviews PR completely
+3. Founder writes brainstorm-style note explaining decision
+4. Founder types magic phrase: `I AUTHORIZE EXECUTION OF [specific change]`
+5. **1-hour cooldown timer** (founder MUST sleep on it)
+6. After cooldown, founder types final confirmation: `EXECUTE`
+7. PR merges; action executes
+
+If at any point founder cancels, the PR closes; reset to step 1 if revisited.
+
+## Post-execution
+
+- [ ] Verify execution result
+- [ ] Document outcome in brainstorm note
+- [ ] If any unexpected consequence: incident response per `_build/recipes/incident-response.md`
+```
+
+**Ceremony:**
+- Magic phrase + 1-hour cooldown + EXECUTE confirmation
+- No reflexive approval possible
+- Founder MUST be alone (not in social context where anchored)
+- Time-to-merge: minimum 1 hour, often days
+- Mandatory: brainstorm note pre-PR
+- Mandatory: backups verified pre-execution
+
+---
+
+## A3.6 Khi nào dùng template nào
+
+| Change type | Tier | Template |
+|---|---|---|
+| Typo fix | A | A3.1 |
+| Skill internal refactor (same I/O) | A or B | A3.1 / A3.2 |
+| Documentation update (knowledge/) | B | A3.2 |
+| New ops table | B | A3.2 |
+| New task_kind taxonomy | B | A3.2 |
+| Brand voice update | C | A3.3 |
+| Charter file edit (00-charter/) | C | A3.3 |
+| ROLES.md non-permission change | C | A3.3 |
+| New role added | C | A3.3 |
+| Architecture doc edit (knowledge/*-architecture.md) | C | A3.3 |
+| Refund / Stripe write | C | A3.3 |
+| New skill that customer-facing | C | A3.3 |
+| SECRETS.md edit | D-Std | A3.4 |
+| IDENTITY.md edit | D-Std | A3.4 |
+| Hook spec edit | D-Std | A3.4 |
+| Role permission EXPANSION | D-Std | A3.4 |
+| New MCP server activation | D-Std | A3.4 |
+| HITL.md edit | D-Std | A3.4 |
+| Mass secret rotation | D-MAX | A3.5 |
+| Schema drop | D-MAX | A3.5 |
+| Mass customer data deletion | D-MAX | A3.5 |
+| Org ownership transfer | D-MAX | A3.5 |
+| Disable ALL hooks | D-MAX | A3.5 |
+
+## A3.7 Anti-patterns
+
+- **"Use Tier A template for everything to save ceremony."** No — template signals to reviewer what kind of approval is needed. Wrong tier = wrong ceremony.
+- **"Skip Risk Assessment section because risks are obvious."** Risks documented even if obvious. Future reviewer (or future self) won't have current context.
+- **"Magic phrase đã quen, cứ paste cho nhanh."** Defeats purpose. Type it. Forces conscious decision.
+- **"Skip 1-hour cooldown for Tier D-MAX vì gấp."** No urgency justifies skipping cooldown. If truly urgent, escalate to founder verbally for one-time process exception (very rare).
+- **"PR description ngắn vì commit message đã rõ."** PR description is for REVIEWER, not author. Reviewer sees PR; commit message buried. Description must be self-contained.
+
+## A3.8 Tổng kết
+
+- **5 templates** matching 5 tiers (A / B / C / D-Std / D-MAX)
+- **Ceremony tỷ lệ với blast radius** — A is light, D-MAX is maximally heavy
+- **Magic phrase + cooldown** = anti-reflexive mechanisms cho high-risk
+- **Atomic cross-references** = essential cho governance changes
+- **Backups verified** = pre-D-MAX requirement
+
+Templates này live trong `_build/templates/pr/` của repo. Founder copy-paste khi opens PR; reviewer compares actual PR vs template completeness.
+
+---
+
+**Tham khảo:**
+- `governance/HITL.md` — full HITL policy
+- `governance/ROLES.md` — role permissions
+- `governance/SECRETS.md` — secret governance
+- Phụ lục A1 — Glossary cho thuật ngữ
+- Chương 5 (Bài #2) — full HITL discussion

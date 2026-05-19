@@ -1,0 +1,306 @@
+---
+title: "Chương 19 — Walkthrough G2: Event-Driven Triggers (Bài #11 candidate)"
+description: "Chương 19 — Walkthrough G2: Event-Driven Triggers (Bài #11 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/19-walkthrough-G2-events.md
+source_hash: b322756cdfbdbcf3984d6501a40a95d1fbc764ee5c6702ba556abdd4e7df2fa9
+generated_at: '2026-05-19T16:57:54.918Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: b322756cdfbdbcf3984d6501a40a95d1fbc764ee5c6702ba556abdd4e7df2fa9
+translated_at: '2026-05-19T16:57:54.918Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 19
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 19 — Walkthrough G2: Event-Driven Triggers (Bài #11 candidate)
+
+> *"Bài #8 covers cron-based (pull). Reality also needs event-based (push). Stripe webhook stale isn't a schedule — it's a non-event. Sentry critical isn't a schedule — it's an emergent error. Customer login event isn't a schedule — it's behavioral signal."*
+
+## 19.1 Tình huống
+
+Founder TH6 anchor: *"Sentry → Telegram → agent fix → deploy — luồng tự động?"*
+
+5 concrete event scenarios:
+
+1. **Sentry critical error** (01:23 UTC) → investigate-sentry-incident SOP → Telegram + suggested fix → founder approve morning → deployed by 09:00
+2. **Customer churn signal** (login event aggregation, 14d inactive) → churn-intervention SOP → personal email draft → Tier B HITL
+3. **Stripe webhook stale** (heartbeat anti-event, no events 1.5h) → investigate-stripe-stale SOP → Telegram critical alert
+4. **DMCA takedown received** (email parser) → dmca-handling SOP với 24h SLA → founder approve takedown
+5. **High-value signup** (Stripe webhook + Pro tier) → high-value-onboarding SOP → personal welcome + 7d check-in
+
+**Common pattern:** Event arrives → trigger evaluation → SOP execution → outcome.
+
+**Founder expected:** events automatically trigger appropriate SOPs without polling.
+
+**Khi sai:**
+- Events lost (Sentry alert seen 12h late)
+- Wrong routing (customer churn email → support agent role)
+- Duplicate processing (same Stripe event fires SOP 2x)
+- Race conditions (3 alerts simultaneously, dispatcher can't queue)
+
+## 19.2 Walk through Phase A + prior walkthroughs
+
+### Have
+- ✅ Bài #2 HITL + Tier
+- ✅ Bài #5 ops.tasks + subagent
+- ✅ Bài #8 (G1) schedule registry + dispatcher
+- ✅ Bài #9 (G5) SOP architecture + sop-execute
+- ✅ Bài #10 (G4) ops.external_events + ops.alerts
+
+### Don't have
+13 gaps:
+
+| ID | Gap | Severity |
+|---|---|---|
+| G2.1 | Event router | High |
+| G2.2 | Event matching rules | High |
+| G2.3 | Event deduplication | High |
+| G2.4 | Event ordering | Med |
+| G2.5 | Internal event emission | High |
+| G2.6 | Event replay | Med |
+| G2.7 | Event aggregation | High |
+| G2.8 | Cross-event correlation | Med |
+| G2.9 | Event-driven HITL pre-flight | High |
+| G2.10 | Event audit beyond ingestion | Med |
+| G2.11 | Event budget control | Med |
+| G2.12 | Dead letter | Med |
+| G2.13 | Outbox pattern | Med |
+
+**Bài #10 covered ingestion + alerting. Alerting → notification, not alerting → SOP execution.** Different abstractions.
+
+## 19.3 Workaround vs proper extension
+
+### Workaround
+- Z1: Hardcode in webhook receivers — scattered
+- Z2: pg_trigger on ops.external_events — plpgsql logic not Tier 1
+- Z3: Event router as new layer — clean
+
+**Recommendation: Z3 (proper).**
+
+### Proper extension — Bài #11: Event-Driven Triggers
+
+4 axes:
+
+#### Axis 1 — Event Taxonomy (3 sources, unified)
+
+**Source 1 — External events** (Bài #10 webhooks): Stripe/Sentry/GA/Vercel/GitHub
+
+**Source 2 — Internal events** (NEW): workforce state transitions, customer state transitions
+- Outbox pattern: same transaction = no event loss
+- Helper function `emit_event()` called from skills/triggers
+
+**Source 3 — Synthetic events** (NEW): aggregations/correlations
+- Computed by `event-aggregator` skill (scheduled)
+- "Customer-inactive-14d", "activation-funnel-completed"
+
+**Unified table:**
+
+```sql
+CREATE TABLE ops.events (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_type      text NOT NULL,
+  source          text NOT NULL,
+  external_id     text,
+  occurred_at     timestamptz NOT NULL,
+  ingested_at     timestamptz DEFAULT now(),
+  payload         jsonb NOT NULL,
+  routing_status  text DEFAULT 'pending',
+  routed_to       text[],
+  routing_error   text
+);
+CREATE UNIQUE INDEX ON ops.events (source, external_id) WHERE external_id IS NOT NULL;
+```
+
+#### Axis 2 — Subscription Registry
+
+`knowledge/event-subscriptions.yaml` Tier 1 declarative:
+
+```yaml
+subscriptions:
+  - id: sentry-critical-to-investigate
+    event_type: "sentry.error.created"
+    condition: "payload.level == 'error' AND payload.severity_count > 50"
+    action:
+      kind: trigger_sop
+      sop_id: SOP-OPS-001-investigate-sentry-incident
+    hitl_tier: B
+    dedup_key: "payload.fingerprint"
+    
+  - id: customer-inactive-14d-intervention
+    event_type: "ritsu.customer.inactive_14d"  # synthetic
+    condition: "payload.customer.tier IN ('plus', 'pro', 'ultra')"
+    action:
+      kind: trigger_sop
+      sop_id: SOP-CUSTOMER-003-churn-intervention
+    hitl_tier: B
+    dedup_key: "payload.customer_id"
+    cooldown_days: 30
+    
+  - id: dmca-takedown-handling
+    event_type: "ritsu.email.dmca_received"
+    condition: "true"
+    action:
+      kind: trigger_sop
+      sop_id: SOP-COMPLIANCE-001-dmca-handling
+    hitl_tier: C
+    dedup_key: "payload.email_message_id"
+    sla_minutes: 1440
+```
+
+Properties: declarative, condition expression, actions, dedup_key, cooldown, HITL override, SLA.
+
+#### Axis 3 — Event Router
+
+`event-dispatcher` Edge Function reuses Bài #8 pattern:
+
+```
+ops.events INSERT
+  ↓ pg_notify('events_pending', event_id)
+event-dispatcher
+  ↓
+1. Load matching subscriptions
+2. For each match:
+   a. Dedup check (ops.event_dedup)
+   b. Pre-flight (HITL, budget per Bài #7)
+   c. Spawn action (sop-execute / skill / chain emit)
+3. Update routing_status, routed_to
+```
+
+**GBrain Minions integration:** event-dispatcher = deterministic (rule match → action) → ops.minion_jobs queue, NOT subagent. **60-80% cost saving.**
+
+`ops.event_dedup`:
+```sql
+CREATE TABLE ops.event_dedup (
+  subscription_id text NOT NULL,
+  dedup_key       text NOT NULL,
+  triggered_at    timestamptz NOT NULL,
+  expires_at      timestamptz NOT NULL,
+  PRIMARY KEY (subscription_id, dedup_key)
+);
+```
+
+#### Axis 4 — Aggregation + Replay
+
+`event-aggregator` skill (scheduled every 15min via Bài #8):
+
+```yaml
+# knowledge/event-aggregation.yaml
+aggregations:
+  - id: customer-inactive-14d
+    output_event_type: "ritsu.customer.inactive_14d"
+    cadence: "15 minutes"
+    query: |
+      SELECT c.id AS customer_id, c.tier
+      FROM customers c
+      LEFT JOIN events e ON e.payload->>'customer_id' = c.id::text
+        AND e.event_type = 'ritsu.user.login'
+        AND e.occurred_at > now() - interval '14 days'
+      WHERE c.status = 'active' AND e.id IS NULL
+    payload_template: '{ "customer_id": "{{customer_id}}", "tier": "{{tier}}" }'
+    idempotency_window: "30 days"
+```
+
+**Replay:** `ritsu-cli events replay --from <ts> --to <ts>` for outage recovery. Idempotency via dedup table.
+
+**Cross-event correlation:** defer to v1.x.
+
+## 19.4 New components (17)
+
+| ID | Component | Type | Phase |
+|---|---|---|---|
+| CN11.1 | ops.events unified | Tier 2 | B |
+| CN11.2 | ops.event_dedup | Tier 2 | B |
+| CN11.3 | ops.aggregation_state | Tier 2 | B |
+| CN11.4 | knowledge/event-subscriptions.yaml | Tier 1 | A.2 |
+| CN11.5 | knowledge/event-aggregation.yaml | Tier 1 | A.2 |
+| CN11.6 | event-dispatcher Edge Function | Runtime | D |
+| CN11.7 | event-aggregator skill | Procedural | C |
+| CN11.8 | emit_event() helper | Tier 2 | B |
+| CN11.9 | Outbox trigger docs | Meta | A.2 |
+| CN11.10 | ritsu-cli events replay | CLI | C/D |
+| CN11.11 | Recipe add-event-subscription.md | Meta | A.2 |
+| CN11.12 | Recipe add-event-aggregation.md | Meta | A.2 |
+| CN11.13 | Checklist event-subscription-pre-flight.md | Meta | A.2 |
+| CN11.14 | Update Bài #5 emit events | Update | A.2 |
+| CN11.15 | Update Bài #10 receivers → ops.events | Update | A.2 |
+| CN11.16 | Update Bài #9 triggered_by='event' | Update | A.2 |
+| CN11.17 | Brainstorm note problem-11 | Meta | A.2 |
+
+**17 new components**, including 3 cross-bài-toán updates.
+
+## 19.5 Bài #11 candidate
+
+**Bài #11 — Event-Driven Triggers**
+
+**Question core:** External + internal + synthetic events trigger appropriate SOPs/skills automatically với deduplication, governance, replay capability.
+
+**Dependencies:** Bài #1, #2, #5, #7, #8 DRAFT, #9 DRAFT, #10 DRAFT
+
+## 19.6 Lessons captured
+
+1. **Events ≠ alerts.** Bài #10 alerts → notifications. Bài #11 events → workflow triggers.
+2. **3 event sources unified.** External + internal + synthetic → ops.events.
+3. **Outbox pattern essential cho internal events.**
+4. **Subscription registry > scattered handlers.**
+5. **Dedup key + cooldown prevents fatigue.**
+6. **Aggregation > raw event subscription.**
+7. **Reuse Bài #8 dispatcher pattern.**
+8. **GBrain Minions pattern applies — first walkthrough adopting it.**
+
+## 19.7 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ11.1 | Cross-event correlation language? | v1.x |
+| OQ11.2 | Event ordering guarantees? | When issue surfaces |
+| OQ11.3 | Multi-tenancy events? | First operator |
+| OQ11.4 | Event archival? | After 6 months |
+| OQ11.5 | Event-driven HITL UX? | Phase D |
+| OQ11.6 | DLQ retry strategy? | Phase D |
+
+## 19.8 Anti-patterns
+
+- ❌ Hardcoded handlers in webhook receivers
+- ❌ Skip outbox pattern
+- ❌ Single event → N SOPs no dedup
+- ❌ Synchronous event processing
+- ❌ Skip cooldown
+- ❌ Aggregation as subscription
+- ❌ Skip replay
+- ❌ Subagent for event matching (use Minions pattern)
+
+## 19.9 Cross-references
+
+**Bài #11 + Bài #8 Scheduling:** event-aggregator scheduled, synthetic events emerge.
+
+**Bài #11 + Bài #9 SOP:** SOPs triggered by events via subscriptions, ops.sop_runs.triggered_by='event'.
+
+**Bài #11 + Bài #10 Real-Time Visibility:** receivers write to ops.events (unified), alerts can emit events.
+
+**Bài #11 + Bài #5 + GBrain Minions:** event-dispatcher = deterministic → ops.minion_jobs queue. **60-80% cost reduction vs subagent.**
+
+**Bài #11 + Bài #2 HITL:** subscription-level HITL tier override.
+
+## 19.10 Tổng kết
+
+- **Bài #11 candidate: Event-Driven Triggers**
+- **4 axes:** taxonomy / subscription registry / event router / aggregation+replay
+- **17 new components** (3 cross-bài-toán updates)
+- **First walkthrough applying GBrain Minions pattern**
+- **Pattern complete:** schedule (Bài #8) + event (Bài #11) → SOP (Bài #9) → dashboard (Bài #10)
+
+Sang chương sau — walkthrough G6 MCP Integration Architecture.
+
+---
+
+**Tham khảo:**
+- High-altitude pass: G2 entry (score 7.30)
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G2-events.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-11-event-driven-triggers-DRAFT.md`
+- GBrain analysis: `_build/notes/phase-a2/GBRAIN_ANALYSIS.md`
+- Phase A dependencies: Chương 5 (Bài #2), Chương 8 (Bài #5)
+- Phase A.2 dependencies: Chương 15 (Bài #8), Chương 16 (Bài #9), Chương 17 (Bài #10)

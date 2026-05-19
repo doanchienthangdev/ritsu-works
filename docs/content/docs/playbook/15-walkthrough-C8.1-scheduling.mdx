@@ -1,0 +1,293 @@
+---
+title: "Chương 15 — Walkthrough C8.1: Scheduling Layer (Bài #8 candidate)"
+description: "Chương 15 — Walkthrough C8.1: Scheduling Layer (Bài #8 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/15-walkthrough-C8.1-scheduling.md
+source_hash: 237c7bc8ebf33527c802e6ffff5cf9bae11eabd4eb58941f670af20a181d3da7
+generated_at: '2026-05-19T16:57:54.910Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 237c7bc8ebf33527c802e6ffff5cf9bae11eabd4eb58941f670af20a181d3da7
+translated_at: '2026-05-19T16:57:54.910Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 15
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 15 — Walkthrough C8.1: Scheduling Layer (Bài #8 candidate)
+
+> *60+ vấn đề trong kho có cadence rõ. Tất cả đều assume scheduling đã giải quyết. Phase A không có nó.*
+
+## 15.1 Tình huống
+
+Founder context: workforce có 14+ activities cần cadence rõ ràng:
+
+- **Daily** (5+): morning digest, support triage, lead gen, content publishing, anomaly check
+- **Weekly** (4): content calendar, newsletter, cost-optimization-review, business retrospective
+- **Monthly** (3): monthly-learning-review, secret rotation, investor update
+- **Quarterly** (1+): full audit, OKR check-in
+
+Founder expected outcome: activities run on time autonomously. Founder không phải nhớ "thứ Sáu 4pm cần invoke cost-optimization-review".
+
+Khi sai: activity bị skip = loss of visibility. Activity chạy 2x = duplicate cost + duplicate output.
+
+## 15.2 Walk through Phase A
+
+### Phase A có
+
+- ✅ Skills (`monthly-learning-review`, `cost-optimization-review`, etc.)
+- ✅ Hooks runtime (8 hooks)
+- ✅ Roles với `permissions.skills`
+- ✅ ops.tasks state machine
+- ✅ ops.agent_runs audit trail
+- ✅ Telegram bot
+
+### Phase A KHÔNG có
+
+- ❌ Trigger mechanism (cron, scheduler)
+- ❌ Schedule registry
+- ❌ Failure recovery cho scheduled jobs
+- ❌ Skip logic (vacation, holidays)
+- ❌ Audit distinction "scheduled vs ad-hoc"
+
+### Quick check
+
+Phase A architecture docs ASSUME scheduling but DEFER to v1.x. Kho 200 issues reveal: defer không khả thi nữa, 60+ activities cần scheduling.
+
+## 15.3 Gaps revealed
+
+| ID | Gap | Severity |
+|---|---|---|
+| G1.1 | No schedule registry | High |
+| G1.2 | No trigger mechanism | High |
+| G1.3 | No execution attribution | Med |
+| G1.4 | No failure handling | High |
+| G1.5 | No concurrency control | Med |
+| G1.6 | No timezone/jitter | Med |
+| G1.7 | No skip logic | Low |
+| G1.8 | No state for upcoming runs | Med |
+| G1.9 | No HITL interaction cho scheduled Tier C+ | High |
+| G1.10 | No budget integration | High |
+
+3 gaps đặc biệt critical: G1.1 (registry), G1.4 (failure), G1.9 (HITL interaction).
+
+## 15.4 Workaround tạm vs proper extension
+
+### Workaround (NOT recommended)
+
+GitHub Actions cron + curl manual. Pattern Phase A explicitly avoid: scattered schedules, no audit trail in ops, no HITL integration.
+
+### Proper extension — Bài #8: Scheduling & Triggers
+
+4 axes (Phase A pattern):
+
+#### Axis 1 — Schedule registry
+
+`knowledge/schedules.yaml` Tier 1 declarative file:
+
+```yaml
+schedules:
+  - id: monthly-learning-review
+    skill: monthly-learning-review
+    invoking_role: gps
+    cron: "0 0 1 * *"
+    timezone: UTC
+    hitl_tier: B
+    economic_attribution:
+      task_kind: monthly-learning-review
+    retry_policy:
+      max_retries: 3
+      backoff: exponential
+      dead_letter_after: 4h
+    skip_conditions:
+      - founder_vacation_mode
+    status: active
+```
+
+PR-edited (Tier B normal). Single canonical inventory.
+
+#### Axis 2 — Trigger mechanism
+
+Supabase pg_cron + Edge Function dispatcher. NOT GitHub Actions.
+
+```
+knowledge/schedules.yaml (Tier 1)
+   ↓ on PR merge
+GitHub Action regenerates pg_cron entries
+   ↓
+Supabase pg_cron jobs (mirrors yaml)
+   ↓ pg_notify on schedule fire
+ops.scheduled_runs INSERT
+   ↓
+Edge Function dispatcher
+   ↓ pre-flight checks
+Spawn agent run via Anthropic API
+   ↓
+ops.agent_runs với scheduled_run_id reference
+```
+
+Tại sao pg_cron > external:
+- Already have Supabase ops (no new infra)
+- Postgres-native audit
+- Triggers write directly to ops.* — same trail
+
+#### Axis 3 — Failure handling
+
+```sql
+CREATE TABLE ops.scheduled_runs (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  schedule_id     text NOT NULL,
+  scheduled_at    timestamptz NOT NULL,
+  triggered_at    timestamptz,
+  agent_run_id    uuid REFERENCES ops.agent_runs(id),
+  status          text NOT NULL,  -- pending/running/done/failed/dead_letter/skipped
+  retry_count     int DEFAULT 0,
+  next_retry_at   timestamptz,
+  failure_reason  text,
+  skipped_reason  text,
+  created_at      timestamptz DEFAULT now()
+);
+
+CREATE TABLE ops.settings (
+  key             text PRIMARY KEY,
+  value           jsonb NOT NULL,
+  updated_at      timestamptz DEFAULT now(),
+  updated_by      text
+);
+```
+
+Retry: exponential backoff (5min, 25min, 2h). After max → `dead_letter` + Telegram alert.
+
+Skip: `skip_conditions` evaluated before trigger. Skipped ≠ failed (preserves analytics).
+
+#### Axis 4 — HITL + Budget integration
+
+Pre-flight checks in dispatcher:
+
+```python
+def trigger_scheduled_run(schedule_id):
+    schedule = load_from_yaml(schedule_id)
+    
+    # 1. HITL check
+    if schedule.hitl_tier in ['C', 'D-Std', 'D-MAX']:
+        await queue_for_founder_approval(schedule)
+        return  # Don't auto-execute Tier C+ scheduled
+    
+    # 2. Budget check (Bài #7's logic)
+    budget_status = check_budget(schedule.invoking_role, projected_cost=...)
+    if budget_status == 'block':
+        await alert_telegram(f"Schedule {schedule_id} blocked")
+        return
+    elif budget_status == 'escalate':
+        await queue_for_founder_approval(schedule, reason='budget_overage')
+        return
+    
+    # 3. Concurrency lock
+    lock = await acquire_lock(f"schedule:{schedule_id}", timeout='1m')
+    if not lock:
+        await alert_telegram(f"Schedule {schedule_id} skipped: previous still running")
+        return
+    
+    # 4. Skip conditions
+    for cond in schedule.skip_conditions:
+        if await check_condition(cond):
+            await mark_skipped(schedule_id, reason=cond)
+            return
+    
+    # 5. Execute
+    try:
+        agent_run_id = await invoke_agent(schedule)
+        await mark_done(schedule_id, agent_run_id)
+    except Exception as e:
+        await handle_failure(schedule_id, e)
+    finally:
+        await release_lock(lock)
+```
+
+Tier C scheduled UX flow:
+
+```
+Friday 4pm UTC: cost-optimization-review scheduled (Tier C)
+   ↓
+Dispatcher pre-flight: Tier C detected
+   ↓
+Telegram cho founder:
+   "📅 Scheduled: cost-optimization-review (weekly)
+    Will analyze last week's costs and propose PR.
+    Approve now / Defer 1h / Skip this week"
+   ↓
+Founder approve → execute
+   ↓
+PR opened → "Cost review PR #123 ready"
+```
+
+## 15.5 New components (CN)
+
+| ID | Component | Type | Phase to build |
+|---|---|---|---|
+| CN1.1 | `knowledge/schedules.yaml` | Tier 1 | Phase A.2 founding |
+| CN1.2 | `ops.scheduled_runs` | Tier 2 | Phase B provision |
+| CN1.3 | `ops.settings` | Tier 2 | Phase B provision |
+| CN1.4 | Edge Function dispatcher | Runtime | Phase D implement |
+| CN1.5 | GHA `regenerate-pg-cron` | CI | Phase B implement |
+| CN1.6 | Recipe `add-scheduled-activity.md` | Meta | Phase A.2 founding |
+| CN1.7 | Checklist `schedule-activation.md` | Meta | Phase A.2 founding |
+| CN1.8 | governance/HITL.md "Scheduled HITL flow" section | Update | Phase A.2 founding |
+| CN1.9 | Skill `daily-morning-digest` | Procedural | Phase C implement |
+
+9 new components — pattern Phase A: 1 bài toán → 6-9 deliverables.
+
+## 15.6 Bài #8 candidate
+
+**Bài #8 — Scheduling & Triggers**
+
+**Question core:** Workforce activities recurring chạy tự động đúng giờ với governance discipline.
+
+**Dependencies:** Bài #1 (Tier 1), Bài #2 (HITL), Bài #7 (cost budget)
+
+**Independence:** Không phụ thuộc Bài #3, #4, #5, #6 → có thể build sớm.
+
+## 15.7 Lessons captured
+
+1. **Scheduling = layer, not skill.** Skill executes; scheduler triggers. Different abstractions.
+2. **pg_cron > external scheduler.** Same-database = same audit trail.
+3. **Pre-flight in dispatcher, not skill.** Skill doesn't know scheduled vs ad-hoc.
+4. **Tier C scheduled = HITL queue.** Don't auto-execute just because scheduled.
+5. **Skip ≠ failure.** Distinct status preserves analytics.
+6. **Bottom-up validation works:** không thể design Bài #8 đúng nếu không list 60+ schedules cụ thể.
+
+## 15.8 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ1.1 | pg_cron concurrent jobs limit? | Phase B provisioning |
+| OQ1.2 | Edge function timeout? | Phase B benchmarking |
+| OQ1.3 | Hot-reload schedules.yaml? | Phase D implementation |
+| OQ1.4 | Multi-tenant scheduling? | v1.x defer |
+| OQ1.5 | Calendar integration? | v1.x defer |
+
+## 15.9 Anti-patterns
+
+- ❌ External cron (GitHub Actions, Cloudflare): scattered schedules, no audit trail
+- ❌ Auto-execute Tier C scheduled runs: bypasses HITL discipline
+- ❌ Fail-open on retry exhaustion: silent failures
+- ❌ No concurrency lock: duplicate runs
+- ❌ Hot-modify cron via curl: drift outside PR governance
+
+## 15.10 Tổng kết
+
+- **Bài #8 candidate: Scheduling & Triggers**
+- **4 axes:** registry / mechanism / failure / HITL+budget
+- **9 new components**
+- **Dependencies:** Bài #1, #2, #7 (build sớm trong Phase B)
+- **Open questions:** 5 (3 Phase B, 2 v1.x defer)
+
+---
+
+**Tham khảo:**
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/C8.1-scheduling.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-8-scheduling-architecture-DRAFT.md`
+- Issue catalog C8.1 entry
+- Phase A dependencies: Chương 4 (Bài #1), Chương 5 (Bài #2), Chương 10 (Bài #7)

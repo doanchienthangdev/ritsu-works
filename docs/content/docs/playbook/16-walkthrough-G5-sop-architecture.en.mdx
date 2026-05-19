@@ -1,0 +1,399 @@
+---
+title: "Chương 16 — Walkthrough G5: SOP Architecture (Bài #9 candidate)"
+description: "Chương 16 — Walkthrough G5: SOP Architecture (Bài #9 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/16-walkthrough-G5-sop-architecture.md
+source_hash: ae9e76e0ec7b384a461780e2f35d724193ce28db52cf9ed4e50468e53fa71da2
+generated_at: '2026-05-19T16:57:54.912Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: ae9e76e0ec7b384a461780e2f35d724193ce28db52cf9ed4e50468e53fa71da2
+translated_at: '2026-05-19T16:57:54.912Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 16
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 16 — Walkthrough G5: SOP Architecture (Bài #9 candidate)
+
+> *"Skills là procedural primitives. SOPs là business workflows compose skills. Phase A có skills, không có SOPs. Đây là missing layer between business intent và technical execution. Đây là architectural multiplier — touches 50+ issues."*
+
+## 16.1 High-altitude pass đã reveal
+
+Trước khi đào sâu G5, founder yêu cầu **dạo qua 200 cases với high-altitude pass** để identify obvious architectural issues + generalize patterns + prioritize đào sâu.
+
+Pass identified **11 generalized architectural issues** (collapsed from 14 via 2 merges + 1 deferred):
+
+| ID | Issue | Touches | Status |
+|---|---|---|---|
+| G1 | Scheduling & Triggering Layer | ~22 issues | ✅ Done (Bài #8) |
+| **G5** | **SOP Architecture** | **~50 issues** | **🎯 NOW** |
+| G4 | Real-Time Dashboards | ~5 | Next |
+| G2 | Event-Driven Triggers | ~13 | Pending |
+| G6 | MCP Integration Architecture | ~15 | Pending |
+| G3 | Domain State Machines | ~6 | Pending |
+| G10 | Decision Architecture | ~12 | Pending |
+| G8 | Customer Data Architecture | ~10 | Pending |
+| G7 | Multi-Surface + Multilingual | ~16 | Pending |
+| G13 | Knowledge Ingestion Pipeline | ~10 | Pending |
+| G9 | Founder Capacity | ~8 | Pending |
+
+**Prioritization formula (4 axes):** Priority = 35×Foundationality + 25×IssuesTouched + 25×FounderPain + 15×Efficiency.
+
+G5 score = 8.50 (rank #2 sau G1). **Highest "Issues touched" score (10/10)** — touches ~50 issues = architectural multiplier.
+
+## 16.2 Tình huống
+
+Founder TH2 anchor: *"Workflow tìm 100 khách hàng mới — làm thế nào trên kiến trúc?"*
+
+Concrete walkthrough — daily lead-gen as 1 SOP với 7 steps:
+
+```
+SOP-GROWTH-001 — Daily Lead Generation Batch
+─────────────────────────────────────────────
+Step 1: Define ICP filter         (skill: define-icp-query)
+Step 2: Apollo search + enrich    (skill: apollo-search) — NEW MCP
+Step 3: Email verification         (skill: findymail-verify) — NEW MCP
+Step 4: Dedupe vs CRM              (skill: hubspot-dedup) — NEW MCP
+Step 5: Segment by persona         (skill: classify-leads)
+Step 6: Push to Instantly          (skill: instantly-add-leads) — NEW MCP
+Step 7: Telegram digest            (skill: lead-gen-summary)
+```
+
+7 steps, 6 skills (4 MCP-integrated), state passes step→step, errors at any step needs handling.
+
+Founder expected: invoke "Daily Lead Gen" → SOP runs end-to-end → digest. Khi sai: step 3 fails → step 4 receives empty list → step 7 reports "0 leads" — founder thinks workflow broken, không biết Findymail issue.
+
+## 16.3 Walk through Phase A
+
+### Phase A có
+
+- ✅ Skills (procedural primitives)
+- ✅ Roles, permissions
+- ✅ ops.tasks state machine (cho tasks, không cho SOPs)
+- ✅ task-decompose skill (Bài #5)
+- ✅ HITL governing each action
+- ✅ `_build/templates/sop/` — exists nhưng EMPTY content
+
+### Phase A KHÔNG có
+
+12 gaps high-severity:
+
+| Gap | Severity |
+|---|---|
+| G5.1 No SOP definition format/schema | High |
+| G5.2 No SOP storage location (Tier 1 home) | High |
+| G5.3 No SOP execution engine | High |
+| G5.4 No step composition primitives | High |
+| G5.5 No step-level error handling | High |
+| G5.12 No authoring discipline (when to codify) | High |
+
+### Tại sao Phase A skip SOP layer
+
+Phase A focused on **agent mechanism** (HITL, memory, etc.). Business workflow layer (SOPs) là execution capability layer, fall under Phase A.2 scope.
+
+`task-decompose` (Bài #5) gần SOP execution but:
+- Decomposition is **ad-hoc** per invocation
+- SOP is **codified, repeatable, versioned**
+- Decomposition one-shot; SOP documented + auditable
+
+→ SOP ≠ task decomposition. SOP layer **sits ABOVE** skill layer + ABOVE task decomposition.
+
+## 16.4 Workaround tạm vs proper extension
+
+### Workaround (NOT recommended)
+
+Each workflow as 1 giant skill (`daily-lead-gen-skill/SKILL.md` 800 lines). Fails:
+- Skill testing impossible
+- No reuse (steps duplicated)
+- No per-step versioning
+- No step-level audit
+- Hard for AI agent to reason about
+
+### Proper extension — Bài #9: SOP Architecture
+
+4 axes (Phase A pattern):
+
+#### Axis 1 — SOP definition format
+
+Tier 1 declarative YAML files. Schema:
+
+```yaml
+# 01-growth/sops/SOP-GROWTH-001-daily-lead-generation.yaml
+
+id: SOP-GROWTH-001
+version: 1.2.0
+title: Daily Lead Generation Batch
+status: active
+home_pillar: 01-growth
+owner_role: growth-orchestrator
+hitl_tier: B  # whole-SOP tier
+
+triggers:
+  - type: scheduled
+    schedule_id: daily-lead-gen  # references Bài #8 schedules.yaml
+  - type: manual
+    invocation: "/sop run SOP-GROWTH-001"
+
+inputs:
+  - name: campaign_theme
+    default: "general-edtech"
+
+estimated_cost_usd: 0.85
+estimated_duration_min: 12
+
+steps:
+  - id: step-1-define-icp
+    title: Define ICP filter
+    invoking_role: growth-orchestrator
+    skill: define-icp-query
+    inputs:
+      icp_spec: "@knowledge/icp.yaml"
+      campaign_theme: "{{ inputs.campaign_theme }}"
+    outputs:
+      apollo_query: object
+    on_failure: abort
+    timeout_sec: 60
+
+  - id: step-2-apollo-search
+    depends_on: [step-1-define-icp]
+    skill: apollo-search
+    inputs:
+      query: "{{ steps.step-1-define-icp.outputs.apollo_query }}"
+      max_results: 500
+    on_failure:
+      action: retry
+      max_retries: 2
+      backoff: exponential
+
+  - id: step-3-email-verify
+    depends_on: [step-2-apollo-search]
+    skill: findymail-verify
+    quality_gate:
+      condition: "pass_rate >= 0.50"
+      on_fail: escalate
+
+  # ... steps 4-7
+
+dependencies:
+  skills: [...]
+  mcp_servers: [apollo, findymail, hubspot, instantly]
+  knowledge_files: [knowledge/icp.yaml]
+  secrets: [APOLLO_GROWTH_KEY, FINDYMAIL_GROWTH_KEY, ...]
+
+quality_metrics:
+  target_leads_per_run: 30  # net-new after dedup
+  alert_if_leads_below: 10
+```
+
+Per-step granularity. Built-in error handling (`on_failure`). Quality gates (`quality_gate`). Dependency tracking.
+
+#### Axis 2 — SOP storage
+
+Per-pillar `sops/` folder, naming `SOP-<PILLAR>-<NNN>-<slug>.yaml`:
+
+```
+ritsu-works/
+├── 01-growth/sops/SOP-GROWTH-001-daily-lead-generation.yaml
+├── 02-customer/sops/SOP-CUSTOMER-001-support-triage.yaml
+├── 03-product/sops/SOP-PRODUCT-001-...
+├── 04-content/sops/SOP-CONTENT-001-...
+├── 05-ai-ops/                    ← existing
+├── 06-finance/sops/SOP-FINANCE-001-...
+└── 07-compliance/sops/SOP-COMPLIANCE-001-...
+```
+
+Pillar template (`_build/templates/pillar/`):
+
+```
+<pillar-name>/
+├── README.md           # pillar description, KPIs, owner role
+├── orchestrator.md     # pillar-level coordination logic
+├── sops/               # SOPs ở pillar
+├── skills/             # pillar-specific skills
+└── knowledge/          # pillar-specific knowledge
+```
+
+Tại sao per-pillar:
+- Cohesion (SOPs cluster theo business domain)
+- Ownership (pillar owner role responsible)
+- Discovery (`01-growth/sops/`)
+- Manifest reconciliation (`pillars` section in manifest.yaml)
+
+#### Axis 3 — SOP execution engine
+
+**`sop-execute` skill** + reuse `ops.tasks` + new `ops.sop_runs` index table.
+
+Flow:
+```
+1. Load SOP YAML
+2. Validate dependencies (skills, MCP, secrets, knowledge)
+3. Insert ops.tasks row, task_kind='sop-execution', state_payload includes sop_id, current_step
+4. For each step in order:
+   a. Resolve inputs (templating from prior outputs)
+   b. Pre-flight checks (HITL step-level if specified, budget, dependencies)
+   c. Invoke skill via subagent (Bài #5 pattern)
+   d. Capture outputs to state_payload.steps[step.id].outputs
+   e. Quality gates check
+   f. on_failure handler
+   g. Update ops.task_state_transitions
+5. Final summary writes to ops.sop_runs
+6. Trigger side effects (Telegram digest, etc.)
+```
+
+`ops.sop_runs` table:
+
+```sql
+CREATE TABLE ops.sop_runs (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  sop_id          text NOT NULL,
+  sop_version     text NOT NULL,
+  task_id         uuid REFERENCES ops.tasks(id),
+  triggered_by    text NOT NULL,  -- 'scheduled' | 'manual' | 'event'
+  trigger_ref     text,
+  status          text NOT NULL,  -- pending | running | done | failed | aborted | escalated
+  current_step    text,
+  steps_completed text[],
+  steps_failed    text[],
+  inputs          jsonb,
+  outputs         jsonb,
+  total_cost_usd  numeric(10,6),
+  started_at      timestamptz NOT NULL DEFAULT now(),
+  completed_at    timestamptz,
+  error_summary   text
+);
+```
+
+Step-level state in `ops.tasks.state_payload`:
+
+```json
+{
+  "task_kind": "sop-execution",
+  "sop_id": "SOP-GROWTH-001",
+  "current_step": "step-3-email-verify",
+  "steps": {
+    "step-1-define-icp": { "status": "done", "outputs": {...} },
+    "step-2-apollo-search": { "status": "done", "outputs": {"raw_leads_count": 423} },
+    "step-3-email-verify": { "status": "running" },
+    "step-4-dedup": { "status": "pending" }
+  }
+}
+```
+
+Tại sao reuse ops.tasks (không tạo new state machine):
+- ops.tasks already has parent_task_id, state_payload, blocked_on
+- SOP execution = 1 parent task + N step-tasks
+- Reuse audit + cost attribution
+- ops.sop_runs là **summary index** for SOP-level analytics
+
+#### Axis 4 — Authoring discipline + governance
+
+**3 rules:**
+
+1. **When to codify:** Workflow runs **3+ times** ad-hoc → codify as SOP. Hook tracks task patterns; flags candidates.
+2. **SOP must be testable:** Each step có clear inputs, outputs, success criteria. Quality gates explicit.
+3. **SOP-level tier ≥ max(step tiers):** Whole-SOP HITL tier ≥ highest tier of any step. Prevents Tier-B-SOP containing Tier-C step (escalation gap).
+
+**Hook `pre-sop-execute`:**
+```
+on sop-execute skill invocation:
+  1. Validate SOP YAML schema
+  2. Check dependencies exist (skills, MCP, secrets)
+  3. Cross-check SOP tier ≥ max step tiers
+  4. Budget pre-flight (sum estimated step costs vs role budget)
+  5. HITL pre-flight (if SOP tier C+, queue founder approval)
+  6. Concurrency check (active SOP run of same SOP_id?)
+on success: allow execution
+on violation: escalate or block
+```
+
+**Skills:**
+- `sop-author` — helps founder/agent author SOPs (decompose + identify skills + draft YAML + validate + PR)
+- `sop-candidate-detector` — scans ops.agent_runs weekly, flags workflows running 3+ times ad-hoc
+
+## 16.5 New components (15)
+
+15 new components — largest set so far. SOP architecture is foundational → many downstream artifacts.
+
+| ID | Component | Type | Phase |
+|---|---|---|---|
+| CN5.1 | `<pillar>/sops/` folder convention | Tier 1 | A.2 founding |
+| CN5.2 | SOP YAML schema | Tier 1 spec | A.2 founding |
+| CN5.3 | `ops.sop_runs` table | Tier 2 | Phase B |
+| CN5.4 | ops.tasks.state_payload SOP extension | Tier 2 | Phase B |
+| CN5.5 | Skill `sop-execute` | Procedural | Phase C |
+| CN5.6 | Skill `sop-author` | Procedural | Phase C |
+| CN5.7 | Skill `sop-candidate-detector` | Procedural | Phase C |
+| CN5.8 | Hook `pre-sop-execute` | Runtime | Phase D |
+| CN5.9 | Pillar template | Meta | A.2 |
+| CN5.10 | Recipe `codify-sop.md` | Meta | A.2 |
+| CN5.11 | Recipe `add-pillar.md` | Meta | A.2 |
+| CN5.12 | Checklist `sop-pre-flight.md` | Meta | A.2 |
+| CN5.13 | manifest.yaml `pillars` section | Tier 1 update | A.2 |
+| CN5.14 | ROLES.md `permissions.sops` field | Governance update | A.2 |
+| CN5.15 | Brainstorm note `problem-9-sop-architecture.md` | Meta | A.2 |
+
+## 16.6 Bài #9 candidate
+
+**Bài #9 — SOP Architecture**
+
+**Question core:** Recurring business workflows codified as repeatable, testable, versionable SOP files với execution engine bridging skill layer.
+
+**Dependencies:** Bài #1, #2, #5, #7, #8 (DRAFT)
+
+**Independence:** Doesn't depend on Bài #3, #4, #6 directly.
+
+**Cross-reference với Bài #8 (Scheduling):** Most schedules trong `knowledge/schedules.yaml` will reference SOPs (skill: `sop-execute`, sop_id: ...) instead of raw skills. Pattern: schedule fires → trigger SOP → SOP orchestrates skills.
+
+## 16.7 Lessons captured
+
+1. **SOP ≠ skill ≠ task decomposition.** Three distinct abstractions.
+2. **YAML > Python for SOP definition.** Declarative, version-controlled, agent-readable.
+3. **Per-pillar storage > global sops/ folder.** Cohesion + ownership + discovery.
+4. **Reuse ops.tasks, don't create new state machine.** state_payload covers step orchestration.
+5. **Hook + skill defense pattern continues.**
+6. **Authoring discipline is content-level, not infrastructure.**
+7. **Pillars emerge from SOP need.** Phase A had only `05-ai-ops/`; SOPs need pillars (growth, customer, etc.).
+8. **SOP tier ≥ max step tier.** Escalation gap prevention.
+
+## 16.8 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ5.1 | Cross-pillar SOPs (handoff between pillars)? | Concrete cross-pillar use case |
+| OQ5.2 | SOP composition (SOP invokes SOP)? | v1.x defer |
+| OQ5.3 | Conditional branching? | When use case emerges |
+| OQ5.4 | Rollback / Saga pattern? | Per use case |
+| OQ5.5 | Authoring tooling UX? | Phase D |
+| OQ5.6 | Multilingual SOPs? | Defer to G7 walkthrough |
+
+## 16.9 Anti-patterns
+
+- ❌ SOP as 1 giant skill (defeats per-step audit, versioning, error handling)
+- ❌ SOP in code (Python file) — breaks "content as runtime"
+- ❌ Global sops/ folder — loss of pillar cohesion
+- ❌ Step state in skill memory — must be ops.tasks.state_payload
+- ❌ SOP without quality gates — silent failures
+- ❌ Auto-promote ad-hoc workflow to SOP — founder must approve codification
+
+## 16.10 Tổng kết
+
+- **Bài #9 candidate: SOP Architecture**
+- **4 axes:** definition format / storage / execution engine / authoring discipline
+- **15 new components** (largest set so far)
+- **Dependencies:** Bài #1, #2, #5, #7, #8 (DRAFT)
+- **Cross-reference Bài #8:** schedules → trigger SOPs → SOPs orchestrate skills
+- **Open questions:** 6 (mostly v1.x defer or per-use-case)
+
+Sang chương sau — walkthrough G4 Real-Time Dashboard.
+
+---
+
+**Tham khảo:**
+- High-altitude pass: `_build/notes/phase-a2/HIGH_ALTITUDE_PASS.md`
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G5-sop-architecture.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-9-sop-architecture-DRAFT.md`
+- Issue catalog: `_build/notes/phase-a2/ISSUE_CATALOG.md` (C10.5 anchor + ~50 business workflow issues)
+- Phase A dependencies: Chương 4 (Bài #1), Chương 5 (Bài #2), Chương 8 (Bài #5), Chương 10 (Bài #7), Chương 15 (Bài #8 candidate)

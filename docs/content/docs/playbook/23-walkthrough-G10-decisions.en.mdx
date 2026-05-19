@@ -1,0 +1,402 @@
+---
+title: "Chương 23 — Walkthrough G10: Decision Architecture & Muse Integration (Bài #15 candidate)"
+description: "Chương 23 — Walkthrough G10: Decision Architecture & Muse Integration (Bài #15 candidate)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/23-walkthrough-G10-decisions.md
+source_hash: 7c7b47b114543f5f5baaa0bbb9cde68fd57677c7fcdee0289b6bf55bf3fffee3
+generated_at: '2026-05-19T16:57:54.927Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 7c7b47b114543f5f5baaa0bbb9cde68fd57677c7fcdee0289b6bf55bf3fffee3
+translated_at: '2026-05-19T16:57:54.927Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 23
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 23 — Walkthrough G10: Decision Architecture & Muse Integration (Bài #15 candidate)
+
+> *"Phase A có 4-tier truth model. Phase A.2 reveals: decisions thuộc tầng riêng — không phải fact, không phải observation, không phải synthesis. Decisions có rationale, alternatives, participants, reversibility, time-decay. Là 5th truth category."*
+
+## 23.1 Tình huống
+
+Founder TH9 anchor (issue catalog C-Muse): *"Muse có 29 cognitive personas — strategist, analyst, skeptic, creative, etc. Khi tôi cần làm decision lớn, tôi muốn invoke Muse panel. Nhưng decision đó phải được capture, retrievable, time-stamped, traceable."*
+
+5 concrete decision scenarios:
+
+1. **Tech stack decision** — Supabase vs PlanetScale vs Neon (Muse panel với strategist + analyst + skeptic + budget-hawk)
+2. **Product feature prioritization** — SAML SSO vs activation funnel vs B2B pricing (Muse + knowledge graph data)
+3. **Hiring decision** — first operator (cultural-fit + skill-match + ROI + risk-assessor personas)
+4. **Policy/governance** — GDPR retention (compliance-officer + customer-success + founder)
+5. **Reversal of prior decision** — link to original, why changed, time-decay
+
+**Founder expected:**
+- Every Tier C+ decision captured như decision page
+- Rationale + alternatives + participants + reversibility + revisit triggers
+- Muse panel personas systematic
+- Decisions queryable (knowledge graph Bài #14)
+- Time-decay surfaces stale decisions
+- Reversals/supersession traceable
+
+**Khi sai:**
+- Decisions in Slack threads → lost in 6 months
+- Rationale not captured → "why X?" unanswerable
+- Alternatives not documented → can't evaluate revisit
+- No reversibility assessment → trapped
+- No revisit triggers → stale persists
+- Reversals lose original context
+
+## 23.2 Walk through Phase A + prior walkthroughs
+
+### Have
+- ✅ Bài #1 4-tier truth model (TIER1/2/3/Insight)
+- ✅ Bài #2 HITL (Tier C = founder approval)
+- ✅ Bài #4 procedural memory ("how we do X")
+- ✅ Bài #11 events
+- ✅ Bài #13 state machines
+- ✅ Bài #14 knowledge graph
+
+### Phase A's decision treatment incomplete
+
+Decisions don't fit 4-tier cleanly:
+- Not pure TIER1 (often time-bounded)
+- Not pure TIER2 (more than operational)
+- Not pure TIER3 (synthesized, not raw)
+- Not pure Insight (specific moment)
+
+**Decisions = 5th truth category: judgment events with explicit reasoning chain.**
+
+Phase A doesn't address Muse. Without architecture: outputs ephemeral, personas ad-hoc, patterns invisible.
+
+## 23.3 Workaround vs proper extension
+
+### Workaround
+- Z1: Notion database — not integrated
+- Z2: Plain wiki/ pages — leverages Bài #14 but no schema
+- Z3: First-class decision entity với Muse orchestration — proper
+
+**Recommendation: Z3.**
+
+### Proper extension — Bài #15
+
+4 axes:
+
+#### Axis 1 — Decision Page Format & Schema
+
+Extend Bài #14 page format với decision-specific frontmatter:
+
+```yaml
+---
+type: decision
+slug: decision/2026-04-supabase-vs-planetscale
+participants: [founder, advisor/advisor-x]
+decision_status: active  # active | superseded | reversed | stale | archived
+decision_tier: tier_c
+reversibility: reversible_with_effort
+revisit_triggers:
+  - "Monthly costs exceed $10K"
+  - "Realtime feature deprecated by Supabase"
+revisit_cadence: 90_days
+muse_panel:
+  invoked: true
+  personas: [strategist, analyst, skeptic, budget-hawk]
+  invocation_id: muse_run_2026-04-15-001
+superseded_by: null
+supersedes: null
+---
+
+# Decision: Database Platform Choice
+
+## Compiled Truth
+**Final choice:** Supabase (Pro tier, 8GB Postgres).
+**Rationale:** Aligns với realtime + edge functions roadmap...
+Connected to: [[architecture/bai-10-real-time-visibility]]
+
+---
+
+## Alternatives considered
+### Option A: PlanetScale
+- Pros, Cons, Disqualifying factors
+### Option B: Neon
+...
+
+## Muse panel positions
+### strategist (link to detailed paper)
+> "Supabase aligns với realtime..."
+### analyst
+> "Cost analysis: 12-month TCO $4.8K..."
+### skeptic
+> "Vendor lock-in risk..."
+### budget-hawk
+> "Worth $1.2K premium..."
+
+## Reversibility assessment
+**Category:** reversible_with_effort
+- Migration to managed PG: ~2 weeks
+- Lock-in level: medium
+
+## Revisit triggers
+- Monthly costs > $10K (currently $400)
+- Realtime feature deprecated
+- 12-month default review
+
+---
+
+## Timeline (append-only)
+- 2026-04-15 — Decision made via Muse panel
+- 2026-05-01 — 30-day cost review: $87 ✓
+```
+
+**Schema (Tier 2):**
+
+```sql
+CREATE TABLE ops.decisions (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug            text NOT NULL UNIQUE,
+  title           text NOT NULL,
+  decision_status text NOT NULL,
+  decision_tier   text NOT NULL,
+  reversibility   text NOT NULL,
+  revisit_cadence interval,
+  next_review_at  timestamptz,
+  superseded_by   text,
+  supersedes      text,
+  participants    text[],
+  muse_panel_run  uuid,
+  rationale_summary text,
+  created_at      timestamptz DEFAULT now(),
+  last_assessed_at timestamptz DEFAULT now()
+);
+```
+
+Markdown file primary (Bài #14 leverage), DB mirror sync.
+
+#### Axis 2 — Muse Persona Registry & Panel
+
+```yaml
+# knowledge/muse-personas.yaml
+personas:
+  - id: strategist
+    name: "Strategic Architect"
+    description: "Frames decisions in 18-36 month horizon"
+    invocation_prompt: |
+      Frame this decision strategically. Consider 18-36 month implications.
+      Identify how this aligns với Ritsu's vision.
+      Highlight option value created or destroyed.
+    skill_used: claude-sonnet-with-strategy-context
+    cost_bucket: muse-strategist
+  
+  - id: analyst
+    description: "Quantitative evaluation"
+    invocation_prompt: |
+      Quantify this decision. Provide:
+      - Cost analysis (TCO 12/36 month)
+      - ROI projection với assumptions
+      - Sensitivity analysis
+      - Base/Bull/Bear scenarios
+  
+  - id: skeptic
+    description: "Devil's Advocate"
+    invocation_prompt: |
+      Argue strongly against the leading option. Identify:
+      - Top 3 failure modes
+      - Hidden costs
+      - Vendor/path lock-in
+      - Reversibility constraints
+  
+  - id: budget-hawk
+  - id: founder-context-keeper
+  # ... 24+ more personas
+
+panels:
+  - id: panel:tech-stack-decision
+    personas: [strategist, analyst, skeptic, budget-hawk, founder-context-keeper]
+  - id: panel:hiring-decision
+    personas: [cultural-fit, skill-match, roi-projection, risk-assessor, founder-context-keeper]
+  - id: panel:policy-decision
+    personas: [compliance-officer, customer-advocate, founder, skeptic]
+  - id: panel:product-prioritization
+    personas: [customer-advocate, analyst, strategist, skeptic, founder-context-keeper]
+```
+
+**`muse-panel` skill flow:**
+
+```
+muse-panel(decision_topic, panel_id, alternatives, context_pages)
+  ↓
+1. Load persona definitions
+2. Each persona invocation:
+   - Pull context from knowledge graph (Bài #14)
+   - Generate position paper (parallel, Minions queue if deterministic enrichment)
+3. Aggregate papers → ops.muse_runs row
+4. Trigger Tier C HITL request to founder
+5. Founder synthesis (must approve)
+6. On approval → decision-capture skill
+   - Creates wiki/decisions/<slug>.md
+   - Mirrors to ops.decisions
+   - Emits ritsu.decision.made event
+```
+
+Schema:
+
+```sql
+CREATE TABLE ops.muse_runs (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  decision_topic  text NOT NULL,
+  panel_id        text,
+  personas        text[],
+  context_pages   text[],
+  alternatives    jsonb,
+  status          text NOT NULL,
+  cost_usd        numeric,
+  invoked_at      timestamptz DEFAULT now(),
+  papers_ready_at timestamptz,
+  synthesized_at  timestamptz,
+  decision_slug   text
+);
+```
+
+#### Axis 3 — Time-Decay & Supersession
+
+Decision domain state machine (Bài #13):
+
+```yaml
+# Add to knowledge/state-machines.yaml
+domains:
+  decision:
+    initial_state: active
+    states:
+      - name: active
+      - name: stale
+        sla:
+          to_state: [active, superseded, reversed]
+          deadline: 30 days
+          alert_on_breach: stale-decision-needs-review
+      - name: superseded
+      - name: reversed
+      - name: archived
+    transitions:
+      - id: decision-becomes-stale
+        from: active
+        to: stale
+        guard: "now() > next_review_at"
+        triggered_by:
+          - schedule: daily-decision-staleness-check
+        emits:
+          - event: ritsu.decision.stale
+```
+
+**Daily staleness check** runs via Bài #8 schedule, marks past-deadline decisions stale, alerts founder.
+
+**Supersession edges in knowledge graph:**
+- New decision page có `supersedes: <old slug>`
+- Old decision page updated: `superseded_by: <new slug>`
+- Edges via Bài #14 auto-link extraction
+- Old decision auto-transitions to superseded state
+
+#### Axis 4 — Dashboard + Outcome + Insight
+
+Dashboard pages (Bài #10):
+- `/governance/decisions/active` — currently active với next_review_at
+- `/governance/decisions/stale` — backlog needing review
+- `/governance/decisions/by-tier`
+- `/governance/decisions/recent` — last 30 days
+- `/governance/muse-runs` — invocation history với cost
+
+**Outcome linking** — decision page timeline tracks actuals:
+```
+- 2026-04-15 — Decision made
+- 2026-05-01 — 30-day cost review: $87 (under $10K trigger ✓)
+- 2026-07-15 — 90-day review: features delivered, no migration triggers
+- 2026-12-15 — Annual review: reaffirmed
+```
+
+**Cross-decision pattern recognition** — monthly Muse run analyzes recent decisions, surfaces patterns ("founder consistently chose realtime > cost in Q2"). Patterns → Insight pages (Bài #1).
+
+**Persona effectiveness** deferred v1.x (need 6+ months data).
+
+## 23.4 New components (24)
+
+24 components: page format extension + 2 schemas + 6 skills + 2 dashboards + 29 personas + 4-6 panel templates + 5 cross-bài-toán updates (#1, #2, #14, #11, #10).
+
+## 23.5 Bài #15 candidate
+
+**Bài #15 — Decision Architecture & Muse Integration**
+
+**Question core:** Significant decisions captured như first-class entities với rationale + alternatives + participants + reversibility + revisit triggers. Muse panel of 29 personas systematic. Decisions queryable, time-decay surfaces stale, supersession traceable, outcomes linked.
+
+**Dependencies:** Bài #1, #2, #4, #8 DRAFT, #10 DRAFT, #11 DRAFT, #13 DRAFT, #14 DRAFT
+
+## 23.6 Lessons captured
+
+1. **Decisions = 5th truth category** beyond Bài #1's 4-tier.
+2. **Muse panel = systematic cognitive diversity.**
+3. **Persona registry as Tier 1 declarative.**
+4. **Pre-defined panel templates accelerate.**
+5. **Time-decay critical** (revisit triggers + staleness alerts).
+6. **Supersession edges → knowledge graph (Bài #14).**
+7. **Decision entity type unlocks queries** ("all Tier C in 2026-Q1").
+8. **Outcome linking closes loop** (was decision good?).
+9. **Reversibility category** for risk assessment.
+10. **Cross-decision patterns → procedural memory updates.**
+
+## 23.7 Open questions
+
+| ID | Question | Resolve when |
+|---|---|---|
+| OQ15.1 | Persona effectiveness metrics? | After 6 months |
+| OQ15.2 | Multi-decision dependency? | When surfaces |
+| OQ15.3 | Tier B operator decisions? | Operator joins |
+| OQ15.4 | Muse panel cost budget? | Phase C |
+| OQ15.5 | Persona disagreement (2-2 split)? | Phase D |
+| OQ15.6 | Decision archival? | When obsolete accumulate |
+| OQ15.7 | Cross-org B2B decisions? | B2B requests |
+| OQ15.8 | Visual decision tree? | v1.x |
+
+## 23.8 Anti-patterns
+
+- ❌ Decisions in Slack only
+- ❌ Skip Muse panel for Tier C+
+- ❌ No revisit triggers
+- ❌ Treat decisions as Insight
+- ❌ Personas as freeform prompts
+- ❌ No reversibility assessment
+- ❌ No outcome linking
+- ❌ Skip supersession edges
+- ❌ Muse panel without HITL synthesis (founder cannot auto-decide)
+- ❌ Single persona for major decision
+- ❌ Persona effectiveness from day 1 (premature)
+
+## 23.9 Cross-references
+
+- **Bài #1 4-Tier:** decisions = 5th truth category
+- **Bài #2 HITL:** Tier C HITL routes through muse-panel for major decisions
+- **Bài #4 Memory:** decisions = procedural; patterns → procedural memory updates
+- **Bài #8 Scheduling:** decision-staleness-check daily, monthly pattern Muse run
+- **Bài #10 Visibility:** /governance/decisions/* pages, Muse cost tracking
+- **Bài #11 Events:** decision events (made, stale, superseded, reaffirmed)
+- **Bài #13 State Machines:** decision domain state machine
+- **Bài #14 Knowledge Graph:** decisions = first-class entities với supersession edges; founder-context-keeper persona uses graph traversal
+
+## 23.10 Tổng kết
+
+- **Bài #15 candidate: Decision Architecture & Muse Integration**
+- **4 axes:** page format / Muse personas / time-decay+supersession / dashboard+outcomes
+- **24 new components** (29 personas + 4-6 panel templates + 5 cross-bài-toán updates)
+- **Pattern reveal:** decisions = 5th truth category, judgment events distinct from facts/observations/synthesis
+- **Muse formalized** — first walkthrough integrating cognitive personas
+
+**Pattern after 8 walkthroughs:** declarative-first architecture với 10 Tier 1 files (operational DNA + knowledge layer + judgment layer): schedules, kpi-registry, alert-rules, event-subscriptions, event-aggregation, mcp-tools, mcp-roles, state-machines, link-inference-rules, **muse-personas**.
+
+Sang chương sau — walkthrough G8 Customer Data Architecture.
+
+---
+
+**Tham khảo:**
+- High-altitude pass: G10 entry (score 6.40, Muse cross-cutting)
+- Walkthrough note: `_build/notes/phase-a2/walkthroughs/G10-decisions.md`
+- DRAFT architecture: `knowledge/phase-a2-extensions/bai-15-decision-architecture-DRAFT.md`
+- Phase A dependencies: Chương 4 (Bài #1 4-tier), Chương 5 (Bài #2 HITL), Chương 7 (Bài #4 Memory)
+- Phase A.2 dependencies: Chương 21 (Bài #13 State Machines), Chương 22 (Bài #14 Knowledge Graph)

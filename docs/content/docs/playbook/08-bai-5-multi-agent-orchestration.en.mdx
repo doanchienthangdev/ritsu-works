@@ -1,0 +1,311 @@
+---
+title: "Chương 8 — Bài #5: Multi-Agent Orchestration"
+description: "Chương 8 — Bài #5: Multi-Agent Orchestration"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/08-bai-5-multi-agent-orchestration.md
+source_hash: 420b4cd137f7ba2641a582457b502233313aa2425f6e8ab6ee99141306cc0e29
+generated_at: '2026-05-19T16:57:54.895Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 420b4cd137f7ba2641a582457b502233313aa2425f6e8ab6ee99141306cc0e29
+translated_at: '2026-05-19T16:57:54.895Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 8
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 8 — Bài #5: Multi-Agent Orchestration
+
+> *"Multi-agent systems are a trap."* — Anthropic Engineering, "Building Effective Agents"
+>
+> Nhiều team build multi-agent systems prematurely. Phần lớn workflows fit single-agent với good context management. Multi-agent đáng giá khi work fan-out parallel hoặc cross-role mandatory.
+
+## 8.1 Failure mode đặc thù
+
+Bài #5 phải giải 6 failure mode:
+
+1. **Premature multi-agent.** "Spawn 10 subagents to research 10 competitors in parallel" sounds smart. Reality: 10x token cost + coordination overhead. Single agent với fan-out skill cheaper.
+2. **Orchestration without persistence.** Agent A passes work to Agent B in-memory. A crashes mid-flow. State lost. No recovery.
+3. **Coordination overhead exceeds value.** Bug debugging trong 5-agent system requires reconstructing 5 contexts. Single agent debug-able by 1 founder.
+4. **Hidden Agent Teams cost.** Agent Teams (experimental, Anthropic) keeps N persistent context windows. ~7x cost vs orchestrator-workers.
+5. **No graduation between simple and complex.** Founder needs both "spawn one subagent" và "decompose 5-step plan". Rigid pattern doesn't fit both.
+6. **Loss of audit trail.** Multi-agent calls without logging = unknowable history. "Why did the system do that yesterday?" → no answer.
+
+## 8.2 3 axes of orchestration
+
+Bài #5 decisions split into 3 independent axes:
+
+```
+Axis 1 — Delegation depth
+  When does main agent delegate vs handle inline?
+
+Axis 2 — Coordination topology
+  Subagents (parent-child) or Agent Teams (peer)?
+
+Axis 3 — Task state persistence
+  In-memory or DB?
+```
+
+Each axis has separate v1.0 answer.
+
+### Axis 1: when to delegate
+
+Answer: **threshold rules + soft signals + never rules**.
+
+**Hard rules** (deterministic):
+
+| Condition | Decision |
+|---|---|
+| Subtask requires permissions current role lacks | Delegate (mandatory) |
+| 2+ independent work branches identifiable | Delegate parallel (recommended) |
+| Subtask is single SELECT, file read, or trivial compute | Never delegate |
+| Subtask output feeds immediately into next step | Never delegate |
+| Total tool calls expected \< 4 AND single role | Never delegate |
+
+**Soft signals** (observed at runtime, hook-flagged):
+
+| Observation | Hook signal |
+|---|---|
+| Tool call count ≥ 8 | "consider checkpoint + delegate" |
+| Context tokens ≥ 50% of role's working_tokens | "consider delegate" |
+| Single role accumulating > 3K tokens of intermediate analysis | "delegate verbose work" |
+
+Hook `pre-delegate-check` watches counters, emits warnings. Agent decides whether to act on the signal. **Hook never blocks** — informational only.
+
+**Never rules** (anti-patterns):
+
+- Single-shot reads ("what's the current count?")
+- Pure compute with no domain context
+- Operations whose output is consumed immediately
+- Tasks under role's `hitl_max_tier` not crossing pillar boundaries
+
+### Axis 2: coordination topology
+
+**Choice: Custom layer on subagents + ops.tasks. Defer Agent Teams to v1.x.**
+
+```
+                  ┌────────────────┐
+                  │    FOUNDER     │
+                  │  (Telegram)    │
+                  └────────┬───────┘
+                           │
+                           ▼
+                  ┌────────────────┐
+                  │      GPS       │ ← orchestrator
+                  └────────┬───────┘
+                           │
+            spawn via Task tool
+            state via ops.tasks
+                           │
+        ┌──────────────────┼──────────────────┐
+        ▼                  ▼                  ▼
+   ┌─────────┐       ┌─────────┐        ┌─────────┐
+   │subagent │       │subagent │        │subagent │
+   │growth-  │       │content- │        │growth-  │ ← fresh
+   │orch     │       │drafter  │        │orch     │   contexts
+   └────┬────┘       └────┬────┘        └────┬────┘
+        │                 │                  │
+        └─────────────────┼──────────────────┘
+                          ▼
+            ┌──────────────────────────┐
+            │     ops.tasks (Tier 2)   │
+            │  parent_task_id, state,  │
+            │  blocked_on, retries     │
+            └──────────────────────────┘
+```
+
+**Roles:**
+
+- **GPS** = canonical orchestrator. Decomposes, dispatches, monitors, synthesizes. Does NOT do specialist work itself.
+- **Pillar orchestrators** (growth-orchestrator, support-agent's classifier) = mid-level coordinators within pillar.
+- **Specialist subagents** (content-drafter, etl-runner) = narrow work. Don't spawn further subagents.
+- **Founder** observes via Telegram (`task-status` skill).
+
+### Axis 3: state persistence
+
+**Choice: ops.tasks canonical (no memory tool API).**
+
+Schema additions for orchestration:
+
+```sql
+ALTER TABLE ops.tasks ADD COLUMN
+  parent_task_id      uuid REFERENCES ops.tasks(id),
+  spawned_by_run      uuid REFERENCES ops.agent_runs(id),
+  assignee_role       text NOT NULL,
+  state_payload       jsonb NOT NULL DEFAULT '{}',
+  blocked_on          uuid[] NOT NULL DEFAULT '{}',
+  estimated_done_at   timestamptz,
+  retries_left        int NOT NULL DEFAULT 3,
+  acceptance_criteria text;
+
+CREATE TABLE ops.task_state_transitions (
+  task_id     uuid REFERENCES ops.tasks(id),
+  from_status text,
+  to_status   text NOT NULL,
+  by_run_id   uuid REFERENCES ops.agent_runs(id),
+  reason      text,
+  ts          timestamptz NOT NULL DEFAULT now()
+);
+```
+
+`state_payload` jsonb structure:
+
+```json
+{
+  "version": 1,
+  "task_kind": "blog-post-draft",
+  "inputs": {"topic": "...", "deadline": "..."},
+  "checkpoints": [
+    {"step": "research", "completed_at": "...", "summary": "..."},
+    {"step": "outline", "completed_at": "...", "summary": "..."}
+  ],
+  "decisions": [
+    {"q": "...", "a": "...", "ts": "..."}
+  ],
+  "open_questions": [],
+  "next_action": "founder_review"
+}
+```
+
+Orchestration is **database-backed** instead of in-memory. Crash recovery: next session reads `ops.tasks WHERE status IN ('pending','in_progress','blocked')` — resume from observed state.
+
+## 8.3 Status state machine
+
+```
+              ┌──────────┐
+              │ pending  │  ← task row created, blocked_on populated
+              └────┬─────┘
+                   │  blocked_on cleared (deps done)
+                   ▼
+              ┌──────────┐
+              │ ready    │  ← GPS can dispatch
+              └────┬─────┘
+                   │  GPS dispatches subagent
+                   ▼
+              ┌──────────┐
+              │   in_    │  ← subagent working
+              │ progress │
+              └────┬─────┘
+                   │
+       ┌───────────┼───────────┐
+       ▼           ▼           ▼
+   ┌──────┐   ┌────────┐   ┌─────────┐
+   │ done │   │ failed │   │ blocked │ ← subagent reports
+   └──────┘   └────┬───┘   │  (HITL) │   blocking on external
+                   │       └─────────┘
+                   │ retries_left > 0
+                   ▼
+              ┌──────────┐
+              │  ready   │  (back to dispatch)
+              └──────────┘
+```
+
+`ops.task_state_transitions` records every state change with `by_run_id` (accountability).
+
+## 8.4 Two new skills + one new hook
+
+### `task-decompose`
+
+Used by GPS when receiving coarse task. Breaks parent into children with dependencies.
+
+```
+Procedure (simplified):
+  1. Read governance/HITL.md (tier handling)
+  2. Read governance/ROLES.md (which roles available)
+  3. Classify decomposition pattern (one of Anthropic's 5):
+     - Routing
+     - Parallelization
+     - Orchestrator-workers
+     - Prompt chaining
+     - Evaluator-optimizer
+  4. For each child task:
+     - assignee_role (must be a defined role)
+     - acceptance_criteria (concrete enough to verify)
+     - blocked_on (dependencies on sibling tasks)
+     - tier (inherited or dropped from parent)
+  5. Insert parent + children into ops.tasks (atomic)
+  6. Log initial state transitions
+  7. Return parent_task_id + ready-to-dispatch list
+```
+
+Refuses decomposition if:
+- > 5 sub-tasks at same level (redesign with hierarchy)
+- Sub-task without clear acceptance criteria
+- Sub-task assigned to role lacking permissions
+- Tier higher than assignee's `hitl_max_tier` (escalate to founder)
+
+### `task-status`
+
+Founder observability + GPS internal checks.
+
+Two modes:
+- `mode: tree` — single parent + descendants tree view
+- `mode: list` — open orchestrations summary
+
+Output formatted for Telegram (compact text) or YAML (programmatic).
+
+Telegram example:
+```
+📋 3 open orchestrations:
+
+🟡 Q4 campaign launch
+   4 children: 1 done · 1 active · 2 blocked
+   ETA May 9 · cost so far $0.13
+
+🟢 Newsletter May W2
+   3 children: 2 done · 1 active
+   ETA today 4pm · cost so far $0.08
+```
+
+### `pre-delegate-check` hook
+
+Runtime soft-signal hook. Watches:
+- `tool_call_count` per session
+- `context_tokens` ratio vs working_tokens budget
+- `intermediate_output_tokens` since last checkpoint
+
+Returns `delegation_signal: 'none' | 'consider' | 'strongly_recommended'` — agent's runtime injects ambient note. **Never blocks** — informational only.
+
+## 8.5 Anti-patterns Bài #5
+
+- **"Spawn 10 subagents to research 10 competitors in parallel."** No — 10× full overhead. Better: 1 subagent with fan-out skill, OR 3 subagents handling 3-4 each.
+- **"GPS orchestrates AND drafts content directly."** No — GPS orchestrates only. Dispatch to content-drafter.
+- **"Skip ops.tasks for simple subagent calls."** No — every spawn writes to ops.tasks for audit.
+- **"Use memory tool API for task working notes."** No — see Bài #4 Strategy E. `state_payload` jsonb covers.
+- **"Subagents communicate via shared file."** No — communication via ops.tasks updates only. DB, not filesystem.
+- **"Run GPS without reading ops.tasks at session start."** No — first action: query open tasks to recover state.
+- **"Activate Agent Teams now because experimental flag exists."** No — defer until matures + cost model improves + concrete need appears.
+
+## 8.6 Defer to v1.x
+
+Items explicitly deferred:
+
+- **Agent Teams** (Anthropic experimental). When stabilizes + cost model fits + concrete multi-day workflow needs direct teammate-teammate communication.
+- **Pub/sub vs poll for child completion.** Currently GPS polls ops.tasks. Could move to Postgres LISTEN/NOTIFY. Defer until polling latency causes UX issue.
+- **Nested decomposition.** Subagents can't spawn further subagents (Claude Code limitation). If child needs decomposition, returns to GPS asking for additional siblings. Acceptable v1.0.
+- **Cost cap per orchestration.** Multi-agent could spiral cost. Add `max_total_cost_usd` field to parent task; GPS aborts if exceeded. Add when first cost overrun observed.
+
+## 8.7 Tổng kết Bài #5
+
+- **6 failure mode**: premature multi-agent, no persistence, coordination overhead, hidden Agent Teams cost, no graduation, audit loss
+- **3 axes**: delegation depth (threshold rules) / coordination topology (subagents + ops.tasks) / state persistence (ops.tasks canonical)
+- **No Agent Teams at v1.0** — defer to v1.x
+- **Schema additions**: 7 new columns on `ops.tasks` + new `ops.task_state_transitions`
+- **2 new skills**: `task-decompose`, `task-status`
+- **1 new hook**: `pre-delegate-check` (soft signal, never blocks)
+- **Pattern: simple-by-default, observable-via-DB, scale-via-row-not-process**
+
+Bài #5 là where most AI workforces fail prematurely. Ritsu's answer is conservative: subagents for parallelism, database for state, founder oversight via Telegram.
+
+Phần III continues với 2 chương cuối — Bài #6 (Identity & Interface) và Bài #7 (Economic Unit).
+
+---
+
+**Tham khảo:**
+- Anthropic "Building Effective Agents" — 5 patterns: https://www.anthropic.com/engineering/building-effective-agents
+- Anthropic Subagents (Claude Code): https://code.claude.com/docs/en/sub-agents
+- Anthropic Agent Teams (experimental): https://code.claude.com/docs/en/agent-teams
+- Ritsu repo: `knowledge/orchestration-architecture.md`, `05-ai-ops/skills/task-decompose/`, `05-ai-ops/skills/task-status/`, `.claude/hooks/pre-delegate-check.md`
+- Brainstorm note: `_build/notes/problem-5-multi-agent-orchestration.md`

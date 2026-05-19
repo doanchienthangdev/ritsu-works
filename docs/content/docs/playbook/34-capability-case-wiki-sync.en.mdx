@@ -1,0 +1,225 @@
+---
+title: "Chương 34 — Capability Case Study #1: Wiki Sync From Refs"
+description: "Chương 34 — Capability Case Study #1: Wiki Sync From Refs"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/34-capability-case-wiki-sync.md
+source_hash: 3207277099ac7910b345afb296755ba5c116abde2bd8fac0b7096809eaee5cee
+generated_at: '2026-05-19T16:57:54.962Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 3207277099ac7910b345afb296755ba5c116abde2bd8fac0b7096809eaee5cee
+translated_at: '2026-05-19T16:57:54.962Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 34
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+# Chương 34 — Capability Case Study #1: Wiki Sync From Refs
+
+> *"Bài #20 cho ta package manager. Wiki Sync là `apt install` đầu tiên — capability biến raw PDF/folder/youtube thành citation-spine knowledge graph queryable bởi any agent."*
+
+Chương này document capability **`wiki-sync-from-refs`** — capability đầu tiên ship qua `/cla` framework (Bài #20, Chương 33). Activates dormant Bài #14 (Knowledge Graph) + Bài #18 (Knowledge Ingestion) infrastructure.
+
+**Trạng thái hiện tại:** operating v4.2.0 (2026-05-18). Lineage chain: v1.0 → v2.0 → v3.0 → v4.0 → v4.1 → v4.2.
+
+## 34.1 Bài toán bắt đầu
+
+Founder có ~20 GB raw knowledge cần ingest vào ritsu-works:
+
+- 4 PDF marketing textbook (Kotler *Marketing Management*, Kotler *Principles of Marketing*, Ries+Trout *Positioning*, etc.)
+- 1 collection markdown growth-playbook (~11 chapter, 5-star "courses" về SEO, copywriting, paid ads)
+- Notion exports, YouTube transcripts, Apify-scraped competitor sites
+
+Vấn đề:
+1. **Không có entry point để ingest.** Founder phải copy-paste từng phần vào Claude conversation, mất context giữa lần.
+2. **Không có citation tracking.** Khi AI sinh "5 ý tưởng growth", founder không biết những ý đó **TỪ ĐÂU** trong textbook → không thể fact-check.
+3. **Re-ingest đắt + không idempotent.** Mỗi lần re-process toàn bộ textbook = $30-50 LLM cost.
+4. **Tier 4 (vector store) trống.** Bài #14 schema có sẵn nhưng zero data; RAG queries không hoạt động.
+
+## 34.2 Bài #20 walkthrough — Phase 1 đến Phase 8
+
+### Phase 1 — Problem Framing
+
+`/cla propose "Founder có 20 GB raw refs; cần pipeline ingest → distill → query qua RAG. Activate dormant Bài #14 + #18."`
+
+Phase 1 framer thu thập clarifying questions:
+- Q: Có cần "edit-friendly intermediate" (Markdown) hay direct embed?
+- A: Cần — founder muốn review distilled output trước khi ingest, sửa được nếu AI hiểu sai.
+- Q: Citation granularity?
+- A: Source chunk → derived entity (1-to-many). Mỗi entity (concept/observation/decision/idea) MUST trace back to source chunk.
+
+### Phase 2 — Domain Deep-Dive
+
+Routing dispatch (`knowledge/cla-routing-keywords.yaml`):
+- "ingest" + "knowledge" → @cto (data plumbing)
+- "RAG" + "distill" → @cgo (vì textbook là marketing — content for growth)
+
+### Phase 3 — System Inventory
+
+Inventory scanner phát hiện:
+- ✅ `ops.knowledge_pages` + `ops.knowledge_links` + `ops.knowledge_embeddings` tồn tại (Bài #14, migration 00006).
+- ✅ `ops.ingestion_jobs` tồn tại (Bài #18, migration 00007).
+- ❌ Chưa có skill nào write vào các table này.
+- ❌ Chưa có walker adapter nào cho PDF / YouTube / folder.
+- ❌ Chưa có schema migration cho `knowledge_extractions` (citation spine).
+
+### Phase 4 — Options Generation
+
+3 options sinh ra:
+- **Option A — Verbatim projection:** chuyển PDF → markdown nguyên văn → embed. Đơn giản, không lossy nhưng không có structure.
+- **Option B — Heavy distillation:** AI summarize từng chapter → ingest summary. Lossy, mất câu cú gốc.
+- **Option C — Distill + extract với citation spine:** AI tạo derived entity (concept/observation/decision/idea) MỚI từ source chunk, mỗi entity có pointer back to source chunk via `ops.knowledge_extractions`.
+
+Founder chọn **C** sau khi @cgo phản đối A (founder cần actionable insight, không phải verbatim text).
+
+### Phase 5 — Architecture Design (Tier C)
+
+@cto + Muse panel review spec v3.0:
+- New migration `00031_wiki_distillation.sql` — `ops.knowledge_extractions` table.
+- `confidence` field coarse 3-bucket (0.6/0.8/0.95) — không phải calibrated probability; reflect Haiku/Sonnet self-report về uncertainty.
+- `founder_decision` field: NULL until review → accepted/rejected/edited/merged.
+- Wiki layout: `wiki/<source-slug>/{source.md, concepts/, observations/, decisions/, ideas/, chapters/}`.
+
+Muse panel verdict: 5/5 APPROVE.
+
+### Phase 6 — Sprint Planning
+
+3 sprint:
+- **Sprint 1:** schema migration + ingest skill + 2 adapter (markdown, folder).
+- **Sprint 2:** distill skill + extract skill + chapter-splitter + audit.
+- **Sprint 3:** review skill + merge + dedup + 4 more adapter (PDF, YouTube, URL, meeting).
+
+### Phase 7 — Implementation
+
+Multi-session, 3-tuần. PR per sprint.
+
+### Phase 8 — Catalog Update
+
+Promote spec.md → `wiki/capabilities/wiki-sync-from-refs/spec.md`. Update CATALOG. Write retrospective.
+
+## 34.3 Lineage: v1.0 → v4.2 (the bumpy road)
+
+Đây là capability đầu tiên dùng `/cla update` sub-flows. Lineage chain là **5 version trong 5 ngày**, 3 trong số đó là `superseded` chỉ trong ~hours.
+
+| Version | State | Operating range | Sub-flow | Key change |
+|---|---|---|---|---|
+| 1.0.0 | superseded | 2026-05-16 → 2026-05-17 | (initial) | First ship — verbatim projection (option A). 1 day later, founder thấy không trace được citation → revise. |
+| 2.0.0 | superseded | 2026-05-17 → 2026-05-18 | revise | Add citation field nhưng chưa có table dedicated. Hacky. |
+| 3.0.0 | superseded | 2026-05-18 (~5h) → 2026-05-18 | revise | Add `ops.knowledge_extractions` table. Citation spine formal. 5 hour operating range — nhanh chóng deprecate vì wiki layout flat (`wiki/concept/`, `wiki/observation/`) khó scan visually. |
+| 4.0.0 | superseded | 2026-05-18 → 2026-05-18 | revise | Wiki layout flip sang source-grouped (`wiki/<source-slug>/`). Migration 00032. |
+| 4.1.0 | superseded | 2026-05-18 | extend | Folder adapter recursive support via BFS. |
+| **4.2.0** | **operating** (current) | 2026-05-18 → present | extend | Namespace output folder (`--out` flag, auto-suffix). |
+
+Lesson: ship sớm, deprecate nhanh nếu thấy sai. Mỗi version cost ~$0.50-3 (via `/cla update` sub-flows), không phải $10+ như full `/cla propose` lại từ đầu.
+
+## 34.4 Components shipped
+
+### Skills (10 dưới `06-ai-ops/skills/wiki-sync/`)
+
+| Skill | Purpose |
+|---|---|
+| `wiki-sync/ingest` | Master orchestrator — gọi adapter → split → distill → extract → embed → write |
+| `wiki-sync/distill` | Block A: chunk source → ask Haiku to produce concepts/observations/decisions/ideas |
+| `wiki-sync/extract` (in skill `wiki-sync` umbrella) | Block B: write `ops.knowledge_extractions` rows (citation spine) |
+| `wiki-sync/chapter-splitter` | Split long source into chapter chunks |
+| `wiki-sync/link-extractor` | Regex-extract `[link](path)` + `wiki:`-prefix references |
+| `wiki-sync/embeddings-backfill` | Re-embed entities when embedding model changes |
+| `wiki-sync/ask` | RAG query over `ops.knowledge_embeddings` HNSW index |
+| `wiki-sync/audit` | Read-only integrity check (orphan entities, missing source) |
+| `wiki-sync/dedup` | Merge near-duplicate entities |
+| `wiki-sync/merge` | Merge entity X into entity Y (founder explicit) |
+| `wiki-sync/review` | Founder review flow for `founder_decision` field |
+| `wiki-sync/package` | Build artifact bundle (source.md + entity folders) |
+| `wiki-sync/index-rebuild` | Rebuild `wiki/_index/` reverse-lookup link-lists |
+| `wiki-sync/attribution-watcher` | Detect when AI references entity without citation chain |
+
+### Adapters (6 dưới `06-ai-ops/skills/wiki-sync/adapters/`)
+
+| Adapter | Input | Output chunks |
+|---|---|---|
+| `folder-adapter` | folder tree | recursive BFS, 1 chunk per markdown file |
+| `markdown-adapter` | single markdown file | 1 chunk (or chapter-split if long) |
+| `pdf-adapter` | PDF binary | text extraction via pdfplumber, 1 chunk per page-cluster |
+| `youtube-adapter` | YouTube URL | transcript via yt-dlp + auto-translate if needed |
+| `url-adapter` | web URL | Readability extract + 1 chunk per H1 section |
+| `meeting-adapter` | audio file | Whisper transcript → 1 chunk per speaker turn |
+
+### Schema migrations
+
+- `00031_wiki_distillation.sql` — citation spine. `ops.knowledge_extractions` (source_chunk_id, derived_entity_page_id, confidence, founder_decision, distill_model, distill_prompt_hash, ts).
+- `00032_wiki_v4_source_grouped.sql` — partial UNIQUE indexes for entity slugs grouped by source.
+
+### Wiki layout (post-v4.0 source-grouped)
+
+```
+wiki/
+├── <source-slug>/             ← one folder per ingested source
+│   ├── source.md              ← raw original source markdown (or extracted)
+│   ├── concepts/              ← derived entities, one .md per concept
+│   ├── observations/
+│   ├── decisions/
+│   ├── ideas/
+│   └── chapters/              ← optional, when source is chapter-structured
+├── _index/                    ← reverse-lookup link-lists (auto-built)
+│   ├── concept/
+│   ├── observation/
+│   └── ...
+└── capabilities/              ← Bài #20 promoted specs + retros
+```
+
+## 34.5 Citation spine design
+
+Mỗi derived entity (e.g. `wiki/principles-of-marketing-kotler/concepts/4-Ps-of-marketing.md`) carry frontmatter:
+
+```yaml
+---
+title: 4 Ps of Marketing
+entity_type: concept
+source_id: principles-of-marketing-kotler
+chunks: [chapter-01-defining-marketing#para-12, chapter-02-marketing-planning#para-3]
+confidence: 0.95
+distilled_by: claude-haiku-4-5
+distilled_at: 2026-05-18T...
+founder_decision: accepted
+---
+```
+
+Mỗi `chunks` reference resolve qua `ops.knowledge_extractions` → tìm raw source chunk → fact-check.
+
+**RAG query path:** founder hỏi qua `/wiki ask "what is 4 Ps of marketing?"` → embed query → HNSW kNN trong `ops.knowledge_embeddings` (page_type=`concept`) → top-5 derived entities → response cites entity slugs → click → trace back qua citation spine.
+
+## 34.6 Lessons learned
+
+1. **Citation spine first; embeddings second.** v2.0 ship trước citation table → không trace được. v3.0 add citation table → tất cả các capability sau (docs-engine) học theo pattern này.
+
+2. **Source-grouped layout > entity-type-grouped.** v3.0 ship `wiki/concept/`, `wiki/observation/` flat — founder không thể scan "this source produced these entities". v4.0 flip thành `wiki/<source-slug>/<entity-type>/`. Migration `00032` add partial UNIQUE per-source.
+
+3. **`confidence` không phải probability.** Coarse 3-bucket reflecting LLM self-report. Không hữu ích cho calibration; chỉ hữu ích để filter "high confidence only" trong RAG retrieval.
+
+4. **`founder_decision` field là circuit breaker.** Without `founder_decision = 'accepted'`, RAG retrieval optionally filters out NULL → founder review gate.
+
+5. **Adapter pattern dễ extend.** Add new source kind = add new `<kind>-adapter.cjs` file + register trong `wiki-sync/ingest`. Pattern này tái sử dụng được trong docs-engine (Chương 35).
+
+6. **Bumpy lineage là OK trong CLA framework.** 5 version trong 5 ngày, mỗi update qua `/cla revise` hoặc `/cla extend` cost ~$0.50-3. Trong pre-CLA world, đây là $50+ rebuild.
+
+## 34.7 KPIs
+
+- `wiki_entities_total` — số derived entities trong `ops.knowledge_pages WHERE page_type IN ('concept', 'observation', 'decision', 'idea')`
+- `wiki_citation_coverage` — % entities có ≥ 1 row trong `ops.knowledge_extractions`
+- `wiki_founder_decision_accepted_pct` — % entities `founder_decision = 'accepted'` (proxy for AI quality)
+- `wiki_rag_query_latency_p95` — `/wiki ask` p95 wall-clock
+- `wiki_rag_citation_chain_completeness` — % RAG responses where every cited entity resolves back to source chunk
+
+## 34.8 Open work
+
+1. **`founder_decision` review queue.** Currently 259 entities (after Kotler distill) sit at `founder_decision = NULL`. `/wiki review` skill exists nhưng founder chưa chạy. Backlog growing.
+
+2. **Multi-source attribution.** Khi 2 source independently describe same concept (e.g. "4 Ps" trong cả Marketing Management + Principles of Marketing), how to merge without losing citation chain? `/wiki merge` skill exists nhưng chưa test.
+
+3. **Embedding model upgrade.** Embeddings hiện dùng `text-embedding-3-small`. `wiki-sync/embeddings-backfill` skill cho phép re-embed nhưng cost ~$5-10 cho 259 entities + re-evaluate retrieval quality.
+
+4. **Audio + meeting adapter chưa test end-to-end.** Whisper integration đã wire nhưng chưa có acceptance corpus.
+
+5. **v5 candidate — incremental re-distill.** Khi source thay đổi (founder sửa source.md), re-distill incremental (chỉ chunks đã change) thay vì re-distill toàn bộ source. Analog với docs-engine v1.2 incremental translation (Chương 35).

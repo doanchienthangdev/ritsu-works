@@ -56,5 +56,6 @@
     "wiki-sync--merge",
     "wiki-sync--package",
     "wiki-sync--review"
-  ]
+  ],
+  "icon": "Wrench"
 }
