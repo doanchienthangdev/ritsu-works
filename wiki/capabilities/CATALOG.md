@@ -8,7 +8,7 @@
 > catalog is the human-readable view that links into each capability's
 > promoted spec + retrospective.
 
-**Last updated:** 2026-05-19 (post-docs-engine v1.1 promotion)
+**Last updated:** 2026-05-19 (post-docs-engine v1.2 promotion)
 **Total capabilities (operating):** 4
 **Total capabilities (any state):** 4
 
@@ -21,14 +21,27 @@
 | `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 1.0.0 | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
 | `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.0 source-grouped distill+extract) | **4.0.0** | 06-ai-ops | 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.0.0.md](wiki-sync-from-refs/retrospective-v4.0.0.md) |
-| `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN) | **1.1.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective-v1.1.0.md](docs-engine/retrospective-v1.1.0.md) |
+| `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN, incremental translation) | **1.2.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective-v1.2.0.md](docs-engine/retrospective-v1.2.0.md) |
 
 ### docs-engine version history (lineage chain)
 
 | Version | State | Operating range | Spec | Retrospective |
 |---|---|---|---|---|
 | 1.0.0 | superseded | 2026-05-19 → 2026-05-19 (~6h) | [spec.md](docs-engine/spec.md) | [retrospective-v1.0.0.md](docs-engine/retrospective-v1.0.0.md) |
-| **1.1.0** | **operating** (current) | 2026-05-19 → present | [spec.md](docs-engine/spec.md) | [retrospective-v1.1.0.md](docs-engine/retrospective-v1.1.0.md) |
+| 1.1.0 | superseded | 2026-05-19 → 2026-05-19 (~2h) | [spec.md](docs-engine/spec.md) | [retrospective-v1.1.0.md](docs-engine/retrospective-v1.1.0.md) |
+| 1.1.1 (translation) | merged into 1.2 lineage | 2026-05-19 → 2026-05-19 (PR #65) | — | — |
+| 1.1.2 (translation 100%) | merged into 1.2 lineage | 2026-05-19 → 2026-05-19 (PR #66) | — | — |
+| **1.2.0** | **operating** (current) | 2026-05-19 → present | [spec.md](docs-engine/spec.md) | [retrospective-v1.2.0.md](docs-engine/retrospective-v1.2.0.md) |
+
+**v1.2.0 Phase 8 promotion details:**
+- Founder ask addressed: "đa ngôn ngữ có tự động cho nội dung mới không?" — answer pre-v1.2 was NO (walker overwrote translations on source change); post-v1.2 the walker preserves VI bodies + flags stale.
+- Walker change (scripts/docs-sync.cjs): new `preservedVi` branch (~47 lines). Title/description/body all preserved when source changes; `translated_source_hash` + `needs_retranslation: true` added to frontmatter.
+- Verifier extended (scripts/verify-vi-translation.cjs): `--list-stale`, `--list-needs-translation` flags. Summary table now Fresh / Stale / Untrans / Skipped.
+- New skill: `06-ai-ops/skills/docs-engine/translate/SKILL.md` (incremental translation orchestration via Claude Code subagent dispatch — no Anthropic API key needed).
+- New `/docs translate` slash command (workflow section in `.claude/commands/docs.md`).
+- One-time migration: 224 already-translated files backfilled with `translated_source_hash = source_hash`.
+- Idempotency test passed (edit source → walker preserved VI; revert source → walker skipped).
+- v1.3 candidates: 5 hand-written tutorials, `docs-translate-check.yml` CI gate, auto-dispatch via `--then-translate`, custom domain `docs.ritsu.works`.
 
 **v1.1.0 Phase 8 promotion details:**
 - PRs shipped (same-session extend): [#62](https://github.com/doanchienthangdev/ritsu-works/pull/62) (i18n infra + walker bilingual + landing cards), [#63](https://github.com/doanchienthangdev/ritsu-works/pull/63) (Fumadocs v14 default-locale fix + Cards import)

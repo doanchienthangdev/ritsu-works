@@ -18,7 +18,8 @@ with build-time secret redaction (per founder Phase 1 Q4 answer).
 |---|---|---|---|
 | `/docs` | Show menu + current state (page count, drift status, last sync, last publish) | A | read-only |
 | `/docs scaffold` | Idempotent scaffold of `docs/` Next.js + Fumadocs subproject. First-time only. | A | git changes under `docs/` |
-| `/docs sync [--area=<a>] [--dry-run] [--force]` | Walk corpus → generate MDX. `--area` limits scope (commands\|skills\|agents\|hooks\|charter\|governance\|pillars\|sops\|tier1\|all). `--dry-run` previews diff without writing. `--force` bypasses source_hash dedup. | A (B if estimated cost > cap OR > 50% pages changed) | git changes under `docs/content/`; ops.kpi_snapshots |
+| `/docs sync [--area=<a>] [--dry-run] [--force]` | Walk corpus → generate MDX. `--area` limits scope (commands\|skills\|agents\|hooks\|charter\|governance\|pillars\|sops\|tier1\|all). `--dry-run` previews diff without writing. `--force` bypasses source_hash dedup. **v1.2:** preserves translated VI bodies when source changes (flags `needs_retranslation: true` for `/docs translate` to pick up). | A (B if estimated cost > cap OR > 50% pages changed) | git changes under `docs/content/`; ops.kpi_snapshots |
+| `/docs translate [--category=<c>] [--dry-run] [--force]` | **v1.2 NEW.** Incremental Vietnamese re-translation of stale + untranslated VI files. Dispatches Claude Code subagents in parallel (haiku model, no `ANTHROPIC_API_KEY` needed when run inside Claude Code Desktop). Sets `translated_source_hash = source_hash` after each file. | A (B if > 50 files touched) | git changes under `docs/content/`; ops.agent_runs |
 | `/docs check` | Drift detection (source_hash mismatch + missing/orphan pages). Deterministic; no LLM. Records `docs_drift_count` KPI. | A | INSERT ops.kpi_snapshots; emits ritsu.docs.drift_detected if > 0 |
 | `/docs check --tutorials` | Subset check: every tutorial's `tutorial_last_verified_at` must be < 60d old. (CPO mod, monthly via SOP-FOUNDER-013.) | A | Reports stale tutorial list |
 | `/docs publish` | Trigger Vercel production deploy from latest `main`. Founder confirms. | **B** | INSERT ops.events ritsu.docs.published |
@@ -59,6 +60,27 @@ Dispatches to skill `docs-engine/sync` which orchestrates SOP-AIOPS-003 step 1-1
 10. **KPI snapshot** — `docs_drift_count`.
 
 **Cost:** ~$0.40-1.00 per full sync (215 pages × adapter cost ÷ batching). Per-task-kind cap: $1.
+
+### `/docs translate` (v1.2)
+
+Incremental Vietnamese translation. Dispatches Claude Code subagents in parallel — no `ANTHROPIC_API_KEY` required when invoked from a Claude Code Desktop session.
+
+1. **Drift gate** — `pnpm check`. Abort if not clean.
+2. **Discovery** — run `node scripts/verify-vi-translation.cjs --list-needs-translation`. Returns union of:
+   - Untranslated files: VI body diacritic ratio < 3% (still mostly English).
+   - Stale files: `translated_source_hash !== source_hash` OR `needs_retranslation: true` in frontmatter.
+3. **Batch** — group by category, split into batches of 6 files (smaller batches reduce context-fatigue induced metadata-flip failures observed during v1.1.1).
+4. **Dispatch** — one Claude Code subagent per batch (`subagent_type: general-purpose`, `model: "haiku"`). Each subagent:
+   - Reads each file.
+   - Translates body prose to Vietnamese (preserves frontmatter, code fences, inline code, identifiers, JSX comments, escaped chars, link URLs).
+   - Sets `translated_at` to now, `translated_source_hash` to current `source_hash`, removes `needs_retranslation` flag.
+5. **Re-verify** — re-run verifier. If any files still untranslated/stale, dispatch focused agents for those specific files. Iterate up to 3 times.
+6. **Local build** — `cd docs && pnpm build`. If fails, ABORT.
+7. **Commit + push** — typical message: `feat(docs-engine): incremental translation — N files`.
+
+**Cost:** ~$0-$9 (free via Claude Code subscription if dispatched inside Desktop session; ~$0.05-0.15 per file via haiku API).
+
+**Per-task-kind cap:** $5.
 
 ### `/docs check`
 

@@ -51,7 +51,7 @@ try {
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const DOCS_CONTENT = path.join(REPO_ROOT, "docs", "content", "docs");
-const GENERATED_BY = "docs-engine v1.1.0";
+const GENERATED_BY = "docs-engine v1.2.0";
 
 // v1.1: bilingual output. Fumadocs v14 dot parser convention:
 //   default locale (vi):    `<slug>.mdx`     (NO suffix; locale optional for default)
@@ -794,44 +794,85 @@ function main() {
 
     for (const lang of LANGUAGES) {
       const targetPath = `${baseTargetPath}${LANG_SUFFIX(lang)}.mdx`;
-      const mdxContent = emitMdx({
-        targetPath,
-        title: result.title,
-        description: result.description || "",
-        sourcePath: relPath,
-        sourceHash,
-        body: result.body, // English content; VI gets translated later
-        category: result.category,
-        extraFm: { ...(result.extraFm || {}), language: lang },
-      });
 
-      // Idempotency check per file
+      // Idempotency check per file (must run BEFORE emitMdx so we can compute
+      // the v1.2 preservedVi branch and pass it to emitMdx)
+      let preservedVi = null; // v1.2: if source changed but VI is translated, preserve body + flag stale
       if (fs.existsSync(targetPath) && !force) {
         const existing = fs.readFileSync(targetPath, "utf8");
         const existingHas = existing.includes(`generated-by: docs-engine`);
-        const existingFm = parseFrontmatter(existing).frontmatter;
+        const existingParsed = parseFrontmatter(existing);
+        const existingFm = existingParsed.frontmatter;
         const existingHash = existingFm && existingFm.source_hash;
         const existingTranslated = existingFm && existingFm.translated === true;
+        const existingTranslatedSourceHash =
+          existingFm && existingFm.translated_source_hash;
 
         if (!existingHas) {
           console.warn(`[docs-sync] ⚠ ${targetPath} lacks generated-by marker; skipping (use --force to overwrite)`);
           conflicts++;
           continue;
         }
-        // Preserve translated VI content: if .vi.mdx is translated AND source unchanged, skip
-        if (lang === "vi" && existingTranslated && existingHash === sourceHash) {
+        // Source unchanged → SKIP (preserve content as-is, both VI and EN).
+        if (existingHash === sourceHash) {
           skipped++;
           continue;
         }
-        // For .en.mdx OR untranslated .vi.mdx: rewrite if source_hash matches → skip
-        if (lang === "en" && existingHash === sourceHash) {
-          skipped++;
-          continue;
+        // v1.2 incremental translation: source changed AND VI is translated →
+        // preserve translated body, bump source_hash, record translated_source_hash,
+        // flag needs_retranslation. Translator (`/docs translate`) picks up later.
+        if (lang === "vi" && existingTranslated) {
+          // Strip leading generated-by marker + blank lines so emitMdx can
+          // re-add its own (avoid duplicate marker). Body shape after strip
+          // is the same as what adapter would return.
+          const strippedBody = existingParsed.body
+            .replace(/^\s*\{\/\*\s*generated-by:[^*]*\*\/\}\s*\n+/, "");
+          preservedVi = {
+            body: strippedBody,
+            description: existingFm.description, // preserve translated description
+            title: existingFm.title, // preserve translated title
+            translated_at: existingFm.translated_at,
+            translated_by: existingFm.translated_by,
+            // If field was set previously, keep it (it points at the LAST translated hash);
+            // else use existingHash (this is the hash that was translated from).
+            translated_source_hash:
+              existingTranslatedSourceHash || existingHash,
+          };
         }
+        // For .en.mdx or untranslated .vi.mdx: drop through to rewrite.
       }
 
+      // Build the MDX content. If preservedVi, body + title + description = old
+      // VI content (translated); extra fields = translation lineage + flag.
+      const extraFm = { ...(result.extraFm || {}), language: lang };
+      let bodyToWrite = result.body;
+      let titleToWrite = result.title;
+      let descriptionToWrite = result.description || "";
+      if (preservedVi) {
+        bodyToWrite = preservedVi.body;
+        if (preservedVi.title) titleToWrite = preservedVi.title;
+        if (preservedVi.description !== undefined)
+          descriptionToWrite = preservedVi.description;
+        extraFm.translated = true;
+        extraFm.translated_at = preservedVi.translated_at;
+        extraFm.translated_by = preservedVi.translated_by;
+        extraFm.translated_source_hash = preservedVi.translated_source_hash;
+        extraFm.needs_retranslation = true;
+      }
+      const mdxContent = emitMdx({
+        targetPath,
+        title: titleToWrite,
+        description: descriptionToWrite,
+        sourcePath: relPath,
+        sourceHash,
+        body: bodyToWrite,
+        category: result.category,
+        extraFm,
+      });
+
       if (dryRun) {
-        console.log(`[docs-sync] DRY ${path.relative(REPO_ROOT, targetPath)}`);
+        const tag = preservedVi ? "DRY-PRESERVE" : "DRY";
+        console.log(`[docs-sync] ${tag} ${path.relative(REPO_ROOT, targetPath)}`);
         written++;
         continue;
       }
@@ -839,6 +880,11 @@ function main() {
       try {
         ensureDir(targetPath);
         fs.writeFileSync(targetPath, mdxContent, "utf8");
+        if (preservedVi) {
+          console.log(
+            `[docs-sync] ⚑ stale VI preserved: ${path.relative(REPO_ROOT, targetPath)} (needs_retranslation)`
+          );
+        }
         written++;
       } catch (e) {
         console.error(`[docs-sync] ✗ write failed ${targetPath}: ${e.message}`);

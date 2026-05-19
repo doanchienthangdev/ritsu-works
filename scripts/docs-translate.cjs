@@ -200,6 +200,7 @@ async function main() {
       }
 
       // Write .vi.mdx with translated frontmatter
+      // v1.2: also set translated_source_hash = source_hash + clear needs_retranslation
       const newFm = {
         ...enParsed.frontmatter,
         language: "vi",
@@ -207,7 +208,10 @@ async function main() {
         translated_at: new Date().toISOString(),
         translated_by: TRANSLATOR_VERSION,
         translation_model: MODEL,
+        translated_source_hash: enHash,
       };
+      // Remove the stale flag if it was set
+      delete newFm.needs_retranslation;
       const out = ["---", dumpFrontmatter(newFm), "---", "", translatedBody.trimEnd(), ""].join("\n");
       fs.writeFileSync(viFile, out, "utf8");
       translated++;
