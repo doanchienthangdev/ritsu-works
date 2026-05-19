@@ -8,9 +8,9 @@
 > catalog is the human-readable view that links into each capability's
 > promoted spec + retrospective.
 
-**Last updated:** 2026-05-18 (post-v3.0 promotion)
-**Total capabilities (operating):** 3
-**Total capabilities (any state):** 3
+**Last updated:** 2026-05-19 (post-docs-engine v1.0 promotion)
+**Total capabilities (operating):** 4
+**Total capabilities (any state):** 4
 
 ---
 
@@ -21,6 +21,25 @@
 | `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 1.0.0 | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
 | `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.0 source-grouped distill+extract) | **4.0.0** | 06-ai-ops | 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.0.0.md](wiki-sync-from-refs/retrospective-v4.0.0.md) |
+| `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, Vietnamese-first) | **1.0.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective.md](docs-engine/retrospective.md) |
+
+### docs-engine v1.0 Phase 8 promotion details
+
+- **Live URL:** https://ritsu-works.vercel.app
+- **PRs shipped (single-session, 2026-05-19):**
+  - [#54](https://github.com/doanchienthangdev/ritsu-works/pull/54) Tier 1 manifest registration
+  - [#55](https://github.com/doanchienthangdev/ritsu-works/pull/55) Skill stubs + SOP + `/docs` command
+  - [#56](https://github.com/doanchienthangdev/ritsu-works/pull/56) Next.js scaffold + walker + 9 adapters + secret redactor
+  - [#57](https://github.com/doanchienthangdev/ritsu-works/pull/57) pillar-numbering hotfix (`docs/` to allowlist)
+  - [#58](https://github.com/doanchienthangdev/ritsu-works/pull/58) MDX build compatibility (escape `<`/`{`, version pinning, type casts)
+  - [#59](https://github.com/doanchienthangdev/ritsu-works/pull/59) Vercel config fix (removed `output: standalone` + `i18n`)
+  - [#60](https://github.com/doanchienthangdev/ritsu-works/pull/60) Manifest deploy_url
+- **226 auto-generated MDX pages** rendered from Tier 1 + `.claude/` runtime (1 SOP yaml drift skip — pre-existing)
+- **AI runtime endpoint** `/api/raw/<slug>` returns `text/markdown` — verified end-to-end (CPO Phase 4 P0 reframe)
+- **Founder time actuals:** ~30 min (-97% vs estimated 15-25h; reference-only v1.0)
+- **Setup cost actuals:** ~$4 LLM (-50% vs estimated $8-18 midpoint; single-session execution)
+- **Sprint 2 + 3 deferred to v1.1** per founder choice + Muse cynic contingency (avoid stale tutorials)
+- **v1.1 candidate extensions:** 5 Vietnamese tutorials, Orama index sharding, Diátaxis nav grouping, custom domain `docs.ritsu.works`, `.github/workflows/docs-check.yml` soft-gate
 
 ### Wiki-sync version history (lineage chain)
 
