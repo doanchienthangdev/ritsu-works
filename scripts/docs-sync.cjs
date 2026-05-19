@@ -51,7 +51,17 @@ try {
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const DOCS_CONTENT = path.join(REPO_ROOT, "docs", "content", "docs");
-const GENERATED_BY = "docs-engine v0.1.0";
+const GENERATED_BY = "docs-engine v1.1.0";
+
+// v1.1: bilingual output. For each source file, emit BOTH `.en.mdx` and
+// `.vi.mdx`. English content is the source verbatim; Vietnamese content
+// starts as English placeholder, gets translated by scripts/docs-translate.cjs
+// in a separate pass (calls Anthropic API; ~$1-3 cost; cached by source_hash).
+//
+// Fumadocs `parser: 'dot'` + `hideLocale: 'default-locale'` (vi=default):
+//   `<slug>.vi.mdx` → URL `/docs/<slug>`
+//   `<slug>.en.mdx` → URL `/en/docs/<slug>`
+const LANGUAGES = ["en", "vi"];
 
 // === Walker exclude list (Layer 1 secret redaction) ===
 const WALKER_EXCLUDE = [
@@ -603,6 +613,123 @@ function listSources(area) {
   return sources;
 }
 
+// v1.1: per-category meta.json generation for proper Fumadocs sidebar grouping.
+// Each category gets: { title, icon?, description, pages: [...] }
+// Top-level meta.json organizes by Diátaxis quadrant.
+//
+// Fumadocs meta.json supports:
+//   - "pages": ["slug-a", "slug-b", "---Heading---", "slug-c"]
+//     Where `---Text---` becomes a visual separator/heading in the sidebar.
+//   - "pages": ["...skills"] glob-expands to all files in skills/ folder.
+//   - Per-language: meta.vi.json + meta.en.json for localized titles.
+
+const CATEGORY_META = {
+  agents: {
+    vi: { title: "Agents", description: "AI agent personas (CEO/CTO/CGO/CPO + CLA subagent)" },
+    en: { title: "Agents", description: "AI agent personas (CEO/CTO/CGO/CPO + CLA subagent)" },
+  },
+  charter: {
+    vi: { title: "Charter", description: "Định hướng + tầm nhìn + ranh giới của ritsu-works" },
+    en: { title: "Charter", description: "Vision, mission, boundaries of ritsu-works" },
+  },
+  commands: {
+    vi: { title: "Commands", description: "Slash commands trong Claude Code (/cla, /wiki, /docs, …)" },
+    en: { title: "Commands", description: "Slash commands available in Claude Code (/cla, /wiki, /docs, …)" },
+  },
+  governance: {
+    vi: { title: "Governance", description: "HITL tiers, ROLES, BUDGET, IDENTITY — chính sách điều hành" },
+    en: { title: "Governance", description: "HITL tiers, ROLES, BUDGET, IDENTITY — operating policy" },
+  },
+  hooks: {
+    vi: { title: "Hooks", description: "Pre-tool + post-tool hooks bảo vệ Tier 1 + secrets + budget" },
+    en: { title: "Hooks", description: "Pre-tool + post-tool hooks protecting Tier 1 + secrets + budget" },
+  },
+  knowledge: {
+    vi: { title: "Knowledge (Tier 1 yaml)", description: "Declarative knowledge files trong knowledge/ — schemas + overviews" },
+    en: { title: "Knowledge (Tier 1 yaml)", description: "Declarative knowledge files under knowledge/ — schemas + overviews" },
+  },
+  pillars: {
+    vi: { title: "Pillars", description: "10 evergreen + 1 stage pillar tổ chức công ty" },
+    en: { title: "Pillars", description: "10 evergreen + 1 stage pillar organizing the company" },
+  },
+  skills: {
+    vi: { title: "Skills", description: "AI skills (capability-lifecycle, wiki-sync, docs-engine, …)" },
+    en: { title: "Skills", description: "AI skills (capability-lifecycle, wiki-sync, docs-engine, …)" },
+  },
+  sops: {
+    vi: { title: "SOPs", description: "102 Standard Operating Procedures (flow.yaml) trên các pillars" },
+    en: { title: "SOPs", description: "102 Standard Operating Procedures (flow.yaml) across pillars" },
+  },
+};
+
+const ROOT_META = {
+  vi: {
+    title: "Ritsu Works Docs",
+    pages: [
+      "index",
+      "---Tham khảo---",
+      "skills",
+      "agents",
+      "hooks",
+      "commands",
+      "knowledge",
+      "---Quy trình---",
+      "sops",
+      "---Tổng quan---",
+      "charter",
+      "governance",
+      "pillars",
+    ],
+  },
+  en: {
+    title: "Ritsu Works Docs",
+    pages: [
+      "index",
+      "---Reference---",
+      "skills",
+      "agents",
+      "hooks",
+      "commands",
+      "knowledge",
+      "---How-to---",
+      "sops",
+      "---Explanation---",
+      "charter",
+      "governance",
+      "pillars",
+    ],
+  },
+};
+
+function writeCategoryMetaFiles() {
+  // Top-level meta — one per language
+  for (const lang of LANGUAGES) {
+    const metaPath = path.join(DOCS_CONTENT, `meta.${lang}.json`);
+    fs.writeFileSync(metaPath, JSON.stringify(ROOT_META[lang], null, 2) + "\n", "utf8");
+  }
+
+  // Per-category meta — list pages alphabetically
+  for (const [category, perLang] of Object.entries(CATEGORY_META)) {
+    const categoryDir = path.join(DOCS_CONTENT, category);
+    if (!fs.existsSync(categoryDir)) continue;
+
+    // List all .en.mdx files in category and derive slugs
+    const slugs = fs
+      .readdirSync(categoryDir, { withFileTypes: true })
+      .filter((e) => e.isFile() && e.name.endsWith(".en.mdx"))
+      .map((e) => e.name.replace(/\.en\.mdx$/, ""))
+      .sort();
+
+    for (const lang of LANGUAGES) {
+      const metaPath = path.join(categoryDir, `meta.${lang}.json`);
+      const data = { ...perLang[lang], pages: slugs };
+      fs.writeFileSync(metaPath, JSON.stringify(data, null, 2) + "\n", "utf8");
+    }
+  }
+
+  console.log("[docs-sync] meta.json files written for top-level + 9 categories × 2 languages");
+}
+
 function main() {
   const argv = process.argv.slice(2);
   const area = (argv.find((a) => a.startsWith("--area="))?.split("=")[1]) || "all";
@@ -660,52 +787,76 @@ function main() {
     }
 
     const sourceHash = sha256(raw);
-    const mdxContent = emitMdx({
-      targetPath: result.targetPath,
-      title: result.title,
-      description: result.description || "",
-      sourcePath: relPath,
-      sourceHash,
-      body: result.body,
-      category: result.category,
-      extraFm: result.extraFm,
-    });
+    // v1.1: emit one MDX per language. English content is the source
+    // verbatim; Vietnamese content starts as English placeholder (translation
+    // happens in scripts/docs-translate.cjs in a separate pass).
+    const baseTargetPath = result.targetPath.replace(/\.mdx$/, "");
 
-    // CTO mod #1: idempotency marker check + 3-way diff (simplified for v1.0).
-    // Marker syntax: MDX JSX comment `{/* generated-by: ... */}`. v0.1 PR-3 used
-    // HTML `<!-- ... -->` (incompatible with MDX parser); migrated to JSX comments.
-    if (fs.existsSync(result.targetPath) && !force) {
-      const existing = fs.readFileSync(result.targetPath, "utf8");
-      const existingHas = existing.includes(`generated-by: ${GENERATED_BY}`);
-      const existingFm = parseFrontmatter(existing).frontmatter;
-      const existingHash = existingFm && existingFm.source_hash;
+    for (const lang of LANGUAGES) {
+      const targetPath = `${baseTargetPath}.${lang}.mdx`;
+      const mdxContent = emitMdx({
+        targetPath,
+        title: result.title,
+        description: result.description || "",
+        sourcePath: relPath,
+        sourceHash,
+        body: result.body, // English content; VI gets translated later
+        category: result.category,
+        extraFm: { ...(result.extraFm || {}), language: lang },
+      });
 
-      if (!existingHas) {
-        // Hand-edited or unmarked — DO NOT overwrite without --force
-        console.warn(`[docs-sync] ⚠ ${result.targetPath} lacks generated-by marker; skipping (use --force to overwrite)`);
-        conflicts++;
+      // Idempotency check per file
+      if (fs.existsSync(targetPath) && !force) {
+        const existing = fs.readFileSync(targetPath, "utf8");
+        const existingHas = existing.includes(`generated-by: docs-engine`);
+        const existingFm = parseFrontmatter(existing).frontmatter;
+        const existingHash = existingFm && existingFm.source_hash;
+        const existingTranslated = existingFm && existingFm.translated === true;
+
+        if (!existingHas) {
+          console.warn(`[docs-sync] ⚠ ${targetPath} lacks generated-by marker; skipping (use --force to overwrite)`);
+          conflicts++;
+          continue;
+        }
+        // Preserve translated VI content: if .vi.mdx is translated AND source unchanged, skip
+        if (lang === "vi" && existingTranslated && existingHash === sourceHash) {
+          skipped++;
+          continue;
+        }
+        // For .en.mdx OR untranslated .vi.mdx: rewrite if source_hash matches → skip
+        if (lang === "en" && existingHash === sourceHash) {
+          skipped++;
+          continue;
+        }
+      }
+
+      if (dryRun) {
+        console.log(`[docs-sync] DRY ${path.relative(REPO_ROOT, targetPath)}`);
+        written++;
         continue;
       }
-      if (existingHash === sourceHash) {
-        skipped++;
-        continue; // unchanged
+
+      try {
+        ensureDir(targetPath);
+        fs.writeFileSync(targetPath, mdxContent, "utf8");
+        written++;
+      } catch (e) {
+        console.error(`[docs-sync] ✗ write failed ${targetPath}: ${e.message}`);
+        errors++;
       }
     }
 
-    if (dryRun) {
-      console.log(`[docs-sync] DRY ${path.relative(REPO_ROOT, result.targetPath)}`);
-      written++;
-      continue;
+    // Remove legacy single-language file if it exists (v1.0 layout)
+    if (fs.existsSync(result.targetPath)) {
+      try {
+        fs.unlinkSync(result.targetPath);
+      } catch (_e) { /* ignore */ }
     }
+  }
 
-    try {
-      ensureDir(result.targetPath);
-      fs.writeFileSync(result.targetPath, mdxContent, "utf8");
-      written++;
-    } catch (e) {
-      console.error(`[docs-sync] ✗ write failed ${result.targetPath}: ${e.message}`);
-      errors++;
-    }
+  // v1.1: write per-category meta.json for proper sidebar grouping (Diátaxis).
+  if (!dryRun) {
+    writeCategoryMetaFiles();
   }
 
   console.log("");

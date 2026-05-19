@@ -1,0 +1,56 @@
+---
+title: 'Skill: docs-engine/adapters/tier1-yaml-adapter'
+description: |
+  Adapter for `knowledge/*.yaml` (top-level only). Each Tier 1 yaml is a
+  declarative manifest; rendered as MDX with top-of-file comments as prose
+  intro + structured key schema as the body.
+source_path: 06-ai-ops/skills/docs-engine/adapters/tier1-yaml-adapter/SKILL.md
+source_hash: ba65d4169a1138acc6c8770184aecdf74912321a01d10fabbe54794a5d98a5ea
+generated_at: '2026-05-19T05:01:53.824Z'
+generated_by: docs-engine v1.1.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+
+# docs-engine/adapters/tier1-yaml-adapter
+
+## Input pattern
+
+`knowledge/*.yaml` (NOT `knowledge/schemas/**`, NOT `knowledge/phase-a2-extensions/**`)
+
+## Output pattern
+
+`docs/content/knowledge/<yaml-name>.mdx`
+e.g. `docs/content/knowledge/manifest.mdx`, `docs/content/knowledge/capability-registry.mdx`
+
+## Process
+
+1. Parse YAML. Capture top-of-file comments (everything before first non-comment line) as prose intro.
+2. Compute `source_hash` of the yaml file.
+3. Render MDX with sections:
+   - **Description** (top-of-file comments)
+   - **Schema** (from `knowledge/schemas/<yaml-name>.schema.json` if exists — render as auto-doc)
+   - **Current state** (key names + sample row counts; NO full content dump — link to git for live values)
+4. Add `<Callout>: "Live values in knowledge/<yaml-name>.yaml — this page describes the schema, not the data."`
+5. Add idempotency marker.
+
+## Edge cases
+
+- `manifest.yaml` is huge (~600+ lines) — render only the structure (top-level keys + 1-line summary each), not full content.
+- `capability-registry.yaml` — render schema + count of capabilities by state.
+- `kpi-registry.yaml` — list all KPI ids; each one becomes a Fumadocs `<Cards>` entry.
+- `cla-routing-keywords.yaml` — render the route → CxO map as a Fumadocs `<Tabs>` per domain.
+- yamls with `{{ADD_X_HERE}}` placeholder comments — skip those sections.
+
+## HITL / Cost
+
+Tier A. ~$0.10-0.20 total for 24 yamls.
+
+## See also
+
+- Sibling: `wiki-sync/adapters/markdown-adapter/SKILL.md` (pattern for prose-from-comments)
+- `knowledge/schemas/*.schema.json` — schema source for auto-doc
+

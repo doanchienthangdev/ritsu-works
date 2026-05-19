@@ -1,0 +1,34 @@
+---
+title: 'Tier 1 yaml: channels'
+description: Schema overview for `knowledge/channels.yaml`.
+source_path: knowledge/channels.yaml
+source_hash: 477cfc709c023d8695c9b309101aa849b52c7a3c983b9ab2e58a2bddba038e14
+generated_at: '2026-05-19T05:01:53.942Z'
+generated_by: docs-engine v1.1.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+## Description
+
+============================================================================
+channels.yaml — Multi-Surface channels (Bài #17)
+============================================================================
+Tier 1 declarative file. Defines surfaces project publishes to / receives from.
+Pattern: SurfaceAdapter interface implementation per channel.
+
+Each channel:
+- Has type (video, social, email, dashboard, etc.)
+- Has audience priority (primary, secondary, tertiary)
+- Maps to SurfaceAdapter implementation in 05-ai-ops/surface-adapters/
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `channels`
+- `compliance_groups`
+
+> Live values in [`knowledge/channels.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/channels.yaml). This page describes the schema; not the data.

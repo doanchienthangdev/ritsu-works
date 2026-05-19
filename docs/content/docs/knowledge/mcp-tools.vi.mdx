@@ -1,0 +1,31 @@
+---
+title: 'Tier 1 yaml: mcp-tools'
+description: Schema overview for `knowledge/mcp-tools.yaml`.
+source_path: knowledge/mcp-tools.yaml
+source_hash: 43e79a946feb13d78e3d11d6159b1db405822341de8705a08f86efbd96c73e82
+generated_at: '2026-05-19T05:01:53.950Z'
+generated_by: docs-engine v1.1.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+## Description
+
+mcp-tools.yaml — MCP tools registry (Bài #12)
+
+Lists every MCP tool the workforce may invoke, what server hosts it, the HITL
+tier required by default, and which roles may call it.
+
+Phase 1 (2026-05-16): real entries for the supabase-ops shim. Bài #12 generic
+placeholders kept as PLANNED until Phase 2 (semantic tool layer).
+
+Validated by: scripts/cross-tier/validate-mcp-tools-skill-refs.cjs (TODO-MCP-2)
+
+## Top-level keys
+
+- `version`
+- `tools`
+
+> Live values in [`knowledge/mcp-tools.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/mcp-tools.yaml). This page describes the schema; not the data.

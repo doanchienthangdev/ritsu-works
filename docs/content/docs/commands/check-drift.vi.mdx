@@ -1,0 +1,77 @@
+---
+title: 'Command: /check-drift'
+description: >-
+  Run the Cross-Tier Consistency Engine on demand. Detects drift between Tier 1 git artifacts
+  (manifest, governance, skills, schedules) and Tier 2 Supabase state. Default mode (~3s) runs L1 +
+  3 critical L2 validators. `--full` adds 2 warn-tier validators. `--remote` triggers the L3 nightly
+  sweep against the live ritsu-ops DB.
+source_path: .claude/commands/check-drift.md
+source_hash: c4f09f027dc05fe1164ebf5e4842fb5b201512d11dfc0def955614232d47f800
+generated_at: '2026-05-19T05:01:53.870Z'
+generated_by: docs-engine v1.1.0
+category: command
+language: vi
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+
+# /check-drift
+
+Project-scoped command for ritsu-works. Runs the Cross-Tier Consistency Engine
+that was built across PRs #1, #3, #4, #5, #6, #7, #8, #9 (see git log + main).
+
+## What it does
+
+This is the on-demand version of the same checks that already run automatically:
+- **L1** — every `git commit` (via `.husky/pre-commit`)
+- **L2** — every PR/push (via `.github/workflows/cross-tier-consistency.yml`)
+- **L3** — every night at 03:00 UTC (via `pg_cron` once enabled, see runbook)
+
+Use this command when you want to verify state *right now* without committing,
+or when you want to trigger the L3 live-DB sweep instead of waiting for 03:00.
+
+## Modes
+
+| Invocation | Scope | Time | Cost |
+|---|---|---|---|
+| `/check-drift` | L1 + 3 critical L2 (manifest↔DB, skills↔tables, schedules↔registry) | ~3s | $0 |
+| `/check-drift --full` | + 2 warn-tier validators (ROLES.md, HITL.md heuristic) | ~5s | $0 |
+| `/check-drift --remote` | full + invokes ritsu-ops L3 sweep + waits 75s + queries result | ~80s | ~$0 |
+
+## How to invoke
+
+Run the underlying pnpm script in the project root:
+
+```bash
+pnpm check               # default mode
+pnpm check:full          # adds warn-tier
+pnpm check:remote        # triggers L3 (needs DISPATCHER_SECRET + SUPABASE_ACCESS_TOKEN locally)
+```
+
+Then summarize the output for the user in clear bullets:
+- For each section (L1, L2 critical, L2 warn if --full, L3 if --remote):
+  - List each check as ✓ clean OR ✗ FAIL OR ⚠ warn
+  - For any failure, surface the first 1-2 lines of the validator's error message
+- At the end: state the overall verdict (ALL CLEAN / N CRITICAL drift / N WARN drift)
+- Exit code 0 = clean, 1 = critical drift (CI-blocking), 3 = warn-only, 2 = script error
+
+## When to recommend running
+
+- User just edited `knowledge/manifest.yaml`, `knowledge/cross-tier-invariants.yaml`,
+  or `knowledge/schedules.yaml` → suggest `pnpm check` before commit
+- User added a new migration → suggest `pnpm check` to verify manifest entry exists
+- User added a new skill → suggest `pnpm check` (catches schedule references)
+- User wants to verify live DB matches repo → suggest `pnpm check:remote`
+
+## Defensive notes
+
+- `--remote` reads secrets from `runtime/secrets/.env.local` (DISPATCHER_SECRET,
+  SUPABASE_ANON_KEY) and `/Users/doanchienthang/omg/ritsu/apps/web/.env.local`
+  (SUPABASE_ACCESS_TOKEN). If these are not present, the script falls back to
+  dispatcher-only mode and tells the user to verify in Supabase Studio.
+- The command does NOT auto-fix drift. It reports. Manual fix or wait for v1.1
+  drift-fix-proposer (currently dormant — requires `GITHUB_CONSISTENCY_BOT_TOKEN`).
+- Project-scoped: this command only exists when Claude Code is opened inside
+  ritsu-works. Source: `.claude/commands/check-drift.md` (committed to repo).
+

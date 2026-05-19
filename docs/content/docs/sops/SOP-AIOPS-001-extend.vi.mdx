@@ -1,0 +1,83 @@
+---
+title: 'SOP-AIOPS-001-extend: /cla extend — capability scope expansion sub-flow'
+description: >-
+  Medium-weight workflow for scope expansion. Adds new components; auto-escalates Tier C if spec
+  changes are substantial.
+source_path: 06-ai-ops/sops/SOP-AIOPS-001-extend/flow.yaml
+source_hash: b2000ce966ea37cd220625ff27d7911374585041884262adfcfca23829cb3179
+generated_at: '2026-05-19T05:01:53.921Z'
+generated_by: docs-engine v1.1.0
+category: sop
+language: vi
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+**SOP ID:** `SOP-AIOPS-001-extend`
+**Pillar:** 06-ai-ops
+
+## Overview
+
+Medium-weight workflow for scope expansion. Adds new components; auto-escalates Tier C if spec changes are substantial.
+
+## Steps
+
+### Step phase-0-preflight-extend — phase-0-preflight-extend
+
+
+### Step phase-1-delta-extend — phase-1-delta-extend
+
+- **Skill:** `capability-lifecycle/problem-framer`
+
+### Step phase-3-inventory-deps-extend — phase-3-inventory-deps-extend
+
+- **Skill:** `capability-lifecycle/system-inventory-scanner`
+
+### Step phase-5-delta-extend — phase-5-delta-extend
+
+- **Skill:** `capability-lifecycle/architect`
+
+### Step phase-6-sprint-extend — phase-6-sprint-extend
+
+- **Skill:** `capability-lifecycle/sprint-planner`
+
+### Step phase-7-impl-extend — phase-7-impl-extend
+
+- **Skill:** `capability-lifecycle/implementation-coordinator`
+
+### Step phase-8-extend — phase-8-extend
+
+- **Skill:** `capability-lifecycle/catalog-updater`
+
+## Acceptance criteria
+
+- Lock acquired Phase 0, released Phase 8
+- NEW capability_runs row, supersedes_id set, prior superseded
+- Version bumped minor++
+- spec.md promoted; prior version archived
+- CHANGELOG.md entry added
+- All sprint PRs merged
+- pnpm check clean post-Phase 8
+
+## Failure handling
+
+```yaml
+failure_handling:
+  lock_held:
+    detection: ops.capability_acquire_update_lock returns NULL
+    response: Surface LockHeld error. Founder waits or /cla force-unlock.
+  dependents_block:
+    detection: >-
+      Phase 3 dependency-scanner finds capabilities depending on <id> that would
+      break
+    response: Surface to founder. Require explicit ack OR extend dependents first.
+  spec_diff_substantial:
+    detection: Phase 5 architect classifies diff as substantial
+    response: >-
+      Auto-escalate to Tier C ceremony (@cto + Muse panel). Founder approves
+      before Phase 6.
+  founder_rejects_phase_5:
+    detection: Tier B/C rejection at Phase 5
+    response: Iterate Phase 5 OR abort + release lock + mark new row 'deprecated'.
+```
+

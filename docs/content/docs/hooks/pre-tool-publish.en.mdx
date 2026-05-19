@@ -1,0 +1,193 @@
+---
+title: 'Hook: pre-tool-publish'
+description: pre-tool hook
+source_path: .claude/hooks/pre-tool-publish.md
+source_hash: 2978b6d4985fd1c27a45ac3a96fe1bc08b75c17dad4a18ea31114dec335588c1
+generated_at: '2026-05-19T05:01:53.866Z'
+generated_by: docs-engine v1.1.0
+category: hook
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+
+# Hook: pre-tool-publish
+
+> Any tool call that publishes externally goes through HITL per `governance/HITL.md`. This hook is the enforcement.
+
+## What it does
+
+For any tool invocation that produces external surface (sends email, posts public content, merges a PR), the hook:
+
+1. Classifies the action's tier per `governance/HITL.md`
+2. Checks dry-run requirement is met for Tier C/D
+3. Verifies recipient/audience size against thresholds
+4. Initiates HITL approval flow if Tier C/D
+5. Blocks if Tier D-MAX without proper override ceremony
+
+## Tier classification logic
+
+```
+Tool: email_sender / resend_*
+  recipients_count == 1 (transactional template) → B (notify-after)
+  recipients_count == 1 (custom content) → C (approve-before)
+  recipients_count 2-50 → C
+  recipients_count 51-1000 → D-Std
+  recipients_count > 1000 → D-MAX
+
+Tool: twitter_post / linkedin_post / discord_announce
+  Always Tier C minimum (public surface)
+  If account has > 10K followers → D-Std (larger blast radius)
+  If post mentions a person/competitor by name → D-Std
+
+Tool: youtube_upload
+  Always D-Std (irreversible-ish; takedowns are public events)
+
+Tool: github_pr_merge
+  PR merging non-Tier-1 to non-main → C
+  PR merging to main → C
+  PR merging Tier 1 changes → D-Std
+  Force-merge bypassing CI → D-MAX
+
+Tool: github_release_create
+  Release with tag → D-Std (public artifact)
+
+Tool: slack_post (channel with external members)
+  Same as social → C minimum
+```
+
+## Dry-run enforcement
+
+For Tier C and above, the tool payload MUST include the rendered output the agent intends to send. The hook verifies:
+
+- `dry_run` was previously executed for this same payload (check `ops.agent_runs` for matching dry-run within last 30 minutes)
+- Approval message contains the dry-run preview (the host's approval flow attaches this)
+
+If no dry-run found:
+- Reason: `dry_run_required: tier {{X}} action without preview`
+- Decision: `block` (agent must run dry-run first)
+
+## Approval flow integration
+
+When the hook returns `escalate`, the host:
+
+1. Pauses the action
+2. Sends Telegram approval request to founder (per HITL.md tier-specific format)
+3. Includes dry-run preview in the message
+4. Waits for response per HITL.md timeout policy
+5. On `Approve & Execute` → action proceeds with original payload
+6. On `Reject` → returns to agent as `block`
+7. On timeout → defers per HITL.md
+
+The hook itself doesn't implement the Telegram bot — it returns `escalate` and the host wires it up. But the hook MUST include enough context in `log_extras` for the bot to render the approval message:
+
+```json
+{
+  "decision": "escalate",
+  "reason": "Tier C: external publish requires approval",
+  "log_extras": {
+    "tier": "C",
+    "tool": "twitter_post",
+    "audience_size_estimate": 2500,
+    "preview_payload_hash": "sha256:...",
+    "dry_run_run_id": "<run_id>",
+    "expected_telegram_buttons": ["Approve & Execute", "Reject", "View details"]
+  }
+}
+```
+
+## Recipient counting
+
+For email sends:
+- `to`, `cc`, `bcc` are summed
+- Distribution lists (e.g. `subscribers@`) count as their resolved size if known; if unknown, treat as > 1000 (most pessimistic tier)
+
+For social posts:
+- Audience = follower count + retweet potential. Use a conservative estimate.
+- If audience can't be estimated, treat as > 1000 to err on safety side
+
+## Special cases
+
+- **`is_dry_run: true` flag in payload:** the action IS a dry-run itself. Hook returns `allow` (dry-runs are Tier A). The dry-run output gets stored for the subsequent real call to reference.
+- **Reply to existing thread:** if replying to someone who messaged us first, Tier reduces by one (a reply is less unsolicited). Use payload context to detect.
+- **Auto-reply to self-triggered events:** transactional emails (password reset, payment confirmation) sent in response to user action are Tier B if from a pre-approved template.
+- **Internal Slack channels (no external members):** treated as Tier B if message length \< 500 chars; A if shorter.
+
+## Test cases
+
+| # | Tool / payload | Expected |
+|---|---|---|
+| 1 | `email_sender_transactional` to 1 recipient, template `password_reset` | allow (Tier B; template approved; transactional) |
+| 2 | `email_sender_marketing` to 1 recipient, custom content | escalate (C) |
+| 3 | `email_sender_marketing` to 47 recipients | escalate (C) |
+| 4 | `email_sender_marketing` to 500 recipients, no dry-run | block (dry-run required) |
+| 5 | `email_sender_marketing` to 500 recipients with dry-run id | escalate (D-Std) |
+| 6 | `email_sender_marketing` to 5000 recipients | escalate (D-MAX) requires override+ceremony |
+| 7 | `twitter_post` (Ritsu account, 5K followers) | escalate (C) |
+| 8 | `twitter_post` mentioning "@AnkiApp" by name | escalate (D-Std) |
+| 9 | `github_pr_merge` PR #42 (non-Tier-1, target=feature) | escalate (C) |
+| 10 | `github_pr_merge` PR #42 (target=main) | escalate (C) |
+| 11 | `github_pr_merge` PR with `--admin` (force) | block + alert (D-MAX without ceremony) |
+| 12 | `youtube_upload` new video | escalate (D-Std) |
+| 13 | `slack_post` to internal `#dev` channel | allow (Tier B-like, no external) |
+| 14 | `slack_post` to channel with external members | escalate (C) |
+| 15 | `email_sender_marketing` with `is_dry_run: true` | allow (it's the preview) |
+| 16 | `email_sender_marketing` after Telegram approval received | allow (approval state from host) |
+
+## Inputs needed
+
+- `payload.tool_name` and `payload.tool_payload`
+- Override state for session (for D-MAX cases)
+- Recent dry-run records (for dry-run enforcement)
+- For email tools: recipient resolution
+- For social tools: account follower count (cached; refresh weekly)
+
+## Implementation reference
+
+```typescript
+function classifyTier(toolName: string, payload: any): Tier {
+  if (toolName.startsWith('email_sender_')) {
+    const recipients = countRecipients(payload);
+    const isTransactional = toolName.endsWith('_transactional')
+                            && payload.template in APPROVED_TRANSACTIONAL_TEMPLATES;
+    if (isTransactional && recipients === 1) return 'B';
+    if (recipients === 1) return 'C';
+    if (recipients <= 50) return 'C';
+    if (recipients <= 1000) return 'D-Std';
+    return 'D-MAX';
+  }
+  if (toolName === 'twitter_post' || toolName === 'linkedin_post') {
+    if (mentionsExternalEntity(payload.content)) return 'D-Std';
+    return 'C';
+  }
+  // ...
+}
+
+export function decide(payload: HookInput): HookDecision {
+  if (payload.tool_payload.is_dry_run === true) {
+    return { decision: 'allow', reason: 'dry-run' };
+  }
+  const tier = classifyTier(payload.tool_name, payload.tool_payload);
+  if (tier === 'A' || tier === 'B') {
+    return { decision: 'allow', reason: `tier ${tier}` };
+  }
+  if (tier === 'C' || tier === 'D-Std') {
+    if (!hasDryRunRecord(payload)) {
+      return { decision: 'block', reason: 'dry_run_required' };
+    }
+    return { decision: 'escalate', reason: `tier ${tier} requires HITL`,
+             log_extras: { tier, /* ... */ } };
+  }
+  // D-MAX
+  if (!hasFullCeremony(payload)) {
+    return { decision: 'block', reason: 'D-MAX requires override ceremony' };
+  }
+  return { decision: 'escalate', reason: 'D-MAX with active ceremony' };
+}
+```
+
+---
+
+*This hook is where governance becomes operational. Most agent mistakes that would damage Ritsu's reputation are caught here.*
+

@@ -1,0 +1,103 @@
+---
+title: 'Command: /mcp-doctor'
+description: |
+  Diagnose supabase-ops MCP shim health. Verifies .mcp.json, env vars,
+  project_ref allowlist, registry, role resolution, registered tools,
+  Supabase connectivity, ops_run_select RPC presence, and today's audit
+  row count. Output: HEALTHY | DEGRADED | UNHEALTHY plus a per-check
+  table.
+source_path: .claude/commands/mcp-doctor.md
+source_hash: f413621aadb1c88efe718b66f38de73d2c7791f17cd2e9302a03ea07fb367e4b
+generated_at: '2026-05-19T05:01:53.874Z'
+generated_by: docs-engine v1.1.0
+category: command
+language: en
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+
+# /mcp-doctor
+
+Run the supabase-ops MCP shim's diagnostic CLI and surface the result.
+
+## What it does
+
+Executes the diagnostic from `mcp-server/src/cli/doctor.ts`. Each check is one
+of PASS / FAIL / WARN / SKIP. Failures point at the specific fix (missing env
+var name, missing migration, etc).
+
+## When to use
+
+- Right after pulling main / switching worktrees — verifies your env is plumbed
+- When a skill that uses `mcp__supabase-ops__*` tools fails — quickly
+  triage whether the shim itself is healthy
+- After applying migration 00026_mcp_query_rpc.sql — confirms the RPC is live
+- Periodically (e.g. start of session) as a sanity check
+
+## How to run
+
+```bash
+cd /Users/doanchienthang/ritsu-works   # or whatever the repo root is
+npm --prefix mcp-server install         # one-time, if not already done
+npm --prefix mcp-server run doctor
+```
+
+Or invoke this slash command in Claude Code — it will run the same bash and
+return the rendered output.
+
+## Sample healthy output
+
+```
+supabase-ops MCP doctor
+──────────────────────────────────────────────────
+[OK]   .mcp.json found
+       /Users/doanchienthang/ritsu-works/.mcp.json
+[OK]   env loaded
+       url=https://<project_ref>.supabase.co | project_ref=mntobbmieuoaxipnjaau | service_key=set(******) | anon_key=unset | role=gps | session=cc-xxxx | repo_root=/Users/.../ritsu-works
+[OK]   project_ref allowlisted
+       mntobbmieuoaxipnjaau ∈ [mntobbmieuoaxipnjaau]
+[OK]   mcp-tools.yaml loaded
+       version=1.1.0, tools=5
+[OK]   role resolved
+       role=gps, hitl_max=C
+[OK]   tools registered
+       query, insert
+[OK]   supabase connectivity
+       ops.mcp_calls row count: 47
+[OK]   ops.ops_run_select RPC
+       ping returned 1 row
+[OK]   today's audit rows
+       3 calls audited since 2026-05-16T00:00:00Z
+──────────────────────────────────────────────────
+Status: HEALTHY
+```
+
+## Common failure modes
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `env loaded FAIL — MissingEnv: SUPABASE_OPS_URL` | env var not exported | `export SUPABASE_OPS_URL=https://<project_ref>.supabase.co` |
+| `project_ref allowlisted FAIL` | URL points at Product Supabase | **STOP — this is a security event**. Verify URL is ritsu-ops, not ritsu |
+| `mcp-tools.yaml loaded FAIL` | File missing or YAML parse error | check `knowledge/mcp-tools.yaml` syntax |
+| `ops.ops_run_select RPC FAIL — not deployed` | migration 00026 not applied | `bash scripts/wave2-bootstrap-cron-secrets.sh` not relevant here — use `supabase db push --linked --yes` |
+| `supabase connectivity FAIL — JWT expired` | service key rotated | rotate `SUPABASE_OPS_SERVICE_KEY` from project settings |
+
+## Bash to execute
+
+The bash below auto-detects repo root and sources `runtime/secrets/.env.local`
+from the **root repo** (not the worktree — runtime/secrets/ is gitignored and
+lives only at the canonical repo location). Doctor's repo-root walk-up
+handles the npm CWD change automatically (see env.ts findRepoRoot).
+
+```bash
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || REPO_ROOT="/Users/doanchienthang/ritsu-works"
+cd "$REPO_ROOT" || exit 1
+# Source env from root repo path (runtime/secrets/ is gitignored, only at root)
+ROOT_ENV="/Users/doanchienthang/ritsu-works/runtime/secrets/.env.local"
+if [ -f "$ROOT_ENV" ]; then
+  set -a; source "$ROOT_ENV"; set +a
+fi
+RITSU_REPO_ROOT="$REPO_ROOT" npm --prefix mcp-server run doctor 2>&1
+```
+

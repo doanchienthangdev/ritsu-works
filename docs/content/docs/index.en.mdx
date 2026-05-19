@@ -1,0 +1,52 @@
+---
+title: Getting started
+description: Operating docs for ritsu-works — Operator + AI runtime context bundle (Vietnamese default, English available).
+generated_by: docs-engine-landing v1.1.0
+---
+
+# Ritsu Works — Operating Docs
+
+This site is the **Operator + AI Runtime Context Bundle** for [`ritsu-works`](https://github.com/doanchienthangdev/ritsu-works) — the AI workforce repo operating Ritsu (B2C EdTech AI tutor).
+
+- **Operators** (founder + cofounder + future hires): look up commands, understand agent roles, read SOPs
+- **AI agents** (Claude Code subagents): fetch raw MDX via `/api/raw/<slug>` for runtime context
+- **Auto-sync with codebase:** every merge to `main` → Vercel build → site updates ≤ 5 min
+
+<Cards>
+  <Card title="Skills" href="/en/docs/skills/docs-engine" description="38 AI skills (capability-lifecycle, wiki-sync, docs-engine, cost-report, …)" />
+  <Card title="Agents" href="/en/docs/agents/cto" description="C-suite personas: @cto @cpo @cgo @ceo + @cla subagent" />
+  <Card title="Commands" href="/en/docs/commands/cla" description="Slash commands in Claude Code: /cla /wiki /docs …" />
+  <Card title="Hooks" href="/en/docs/hooks/pre-edit-tier1" description="Pre-tool hooks protecting Tier 1 + secrets + budget" />
+  <Card title="SOPs" href="/en/docs/sops/SOP-AIOPS-001-deprecate" description="102 Standard Operating Procedures across pillars" />
+  <Card title="Knowledge (Tier 1 yaml)" href="/en/docs/knowledge/manifest" description="24 declarative yamls: manifest, KPIs, schedules, …" />
+  <Card title="Charter" href="/en/docs/charter/charter" description="Vision, market, brand, founder profile (redacted)" />
+  <Card title="Governance" href="/en/docs/governance/HITL" description="HITL tiers, ROLES, BUDGET, IDENTITY" />
+  <Card title="Pillars" href="/en/docs/pillars/06-ai-ops" description="10 evergreen + 1 stage pillar organizing the company" />
+</Cards>
+
+## Diátaxis taxonomy
+
+| Quadrant | Role | Content |
+|---|---|---|
+| **Reference** (auto-gen) | Specific lookup | Skills, Agents, Hooks, Commands, Knowledge yamls |
+| **How-to** (auto-gen from SOPs) | Operation guides | SOPs (`flow.yaml` per process) |
+| **Explanation** (Tier 1) | Understand why & how | Charter, Governance, Pillars |
+| **Tutorials** (hand-written) | Learn from scratch | Sprint 2 will ship 5 Vietnamese tutorials |
+
+## AI Runtime endpoint
+
+Each MDX page has a stable endpoint:
+
+```
+GET /api/raw/<category>/<slug>
+```
+
+Returns `text/markdown` (frontmatter + body) so AI agents can fetch as runtime context. Examples:
+
+- `/api/raw/agents/cto` → CTO persona definition
+- `/api/raw/skills/docs-engine` → docs-engine umbrella skill
+- `/api/raw/sops/SOP-AIOPS-001-deprecate` → SOP deprecate flow
+
+## Capability
+
+[`docs-engine`](https://github.com/doanchienthangdev/ritsu-works/blob/main/wiki/capabilities/docs-engine/spec.md) v1.1.0 — bilingual + sidebar grouping + landing redirect.
