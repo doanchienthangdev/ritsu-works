@@ -17,12 +17,12 @@ description: >
   (ON DELETE CASCADE) to link chapter children to the parent book ingestion.
 source_path: 06-ai-ops/skills/wiki-sync/chapter-splitter/SKILL.md
 source_hash: e7ceb27d418f47638bee21eda87c6ed39d37aee16eb4a7812b5cec2ec22924e2
-generated_at: '2026-05-19T03:36:59.985Z'
+generated_at: '2026-05-19T03:58:13.360Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # wiki-sync / chapter-splitter (Sprint 2 baseline — v2.0.0)
@@ -255,7 +255,7 @@ Returns to caller (`wiki-sync/ingest`):
 |---|---|
 | TOC empty | Warn + fall back to heading=h2 (Tier B confirm if interactive) |
 | heading=h2 finds 0 headings | Warn + fall back to count=4 (Tier B confirm) |
-| count=N with N<2 or N>50 | Bail with clear error message |
+| count=N with N\<2 or N>50 | Bail with clear error message |
 | Slug conflict on chapter row | Bail entire batch; founder can `--force` or rename book_slug |
 | Lock acquire times out (>30s) | Bail; release locks; surface concurrent-write conflict |
 | Some chapter rows succeed, some fail | Rollback all (transactional batch); parent stays in 'processing' |

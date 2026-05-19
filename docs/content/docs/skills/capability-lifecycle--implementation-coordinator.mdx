@@ -3,12 +3,12 @@ title: 'Skill: implementation-coordinator'
 description: Phase 7 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/implementation-coordinator/SKILL.md
 source_hash: 9293b2612c37edce0f37a40fe192eb779018e582d684a33d10f2c1e36343114a
-generated_at: '2026-05-19T03:36:59.965Z'
+generated_at: '2026-05-19T03:58:13.335Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Implementation Coordinator (CLA Phase 7)
@@ -49,10 +49,10 @@ Cross-reference with `.archives/cla/<id>/draft/`:
 
 For each deliverable, dispatch a focused Agent call to `@cto` (subagent):
 
-> Implement deliverable: {name}.
+> Implement deliverable: \{name}.
 > Source draft: `.archives/cla/<id>/draft/{relative-path}`.
-> Target canonical location: {e.g., `supabase/migrations/00025_<name>.sql`}.
-> Spec context: `.archives/cla/<id>/spec.md` § {section}.
+> Target canonical location: \{e.g., `supabase/migrations/00025_<name>.sql`}.
+> Spec context: `.archives/cla/<id>/spec.md` § \{section}.
 > Constraints: must pass `pnpm check`; must follow repo conventions (file headers, idempotency, etc.).
 > Open: a single change-set ready for git add (do NOT commit; orchestrator commits per sprint).
 

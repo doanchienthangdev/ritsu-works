@@ -3,12 +3,12 @@ title: 'Hook: pre-tool-customer-message'
 description: ''
 source_path: .claude/hooks/pre-tool-customer-message.md
 source_hash: 28f90a40fd109712bae541c323a6091dc16c0dae446ccca4f623935093a2970c
-generated_at: '2026-05-19T03:36:59.997Z'
+generated_at: '2026-05-19T03:58:13.374Z'
 generated_by: docs-engine v0.1.0
 category: hook
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Hook: pre-tool-customer-message
@@ -158,10 +158,10 @@ This hook composes with:
 
 ## Performance notes
 
-- Disclosure checks are mostly regex on body (fast, < 50ms)
-- Vietnamese checks are second pass on translated/locale-tagged body (< 50ms)
-- Identity question detection scans last user message in conversation context (if available, <100ms)
-- Total target: p95 < 200ms
+- Disclosure checks are mostly regex on body (fast, \< 50ms)
+- Vietnamese checks are second pass on translated/locale-tagged body (\< 50ms)
+- Identity question detection scans last user message in conversation context (if available, \<100ms)
+- Total target: p95 \< 200ms
 
 ## Observability
 

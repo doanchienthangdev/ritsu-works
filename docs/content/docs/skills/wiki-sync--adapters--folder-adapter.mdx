@@ -15,12 +15,12 @@ description: |
   AND col_slug == namespace).
 source_path: 06-ai-ops/skills/wiki-sync/adapters/folder-adapter/SKILL.md
 source_hash: 7c753777f830581946872db6c88a6a58856ea772bc381fd17a50d196feb85909
-generated_at: '2026-05-19T03:36:59.980Z'
+generated_at: '2026-05-19T03:58:13.353Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # wiki-sync / adapters / folder-adapter (Sprint 2 PR3 baseline — v2.0.0)
@@ -223,8 +223,8 @@ to avoid yet another migration. CTO can revisit in Sprint 4 cleanup PR.
 ### Step 9 — Telegram heartbeat (per CTO NIT 1)
 
 Two messages only (NOT per-file):
-- Start: "Folder ingest started: <col_slug> (<N> files; <skipped_count> skipped). ETA ~<estimate>."
-- End: "Folder ingest done: <succeeded>/<N> succeeded; <failed> failed; <skipped> skipped. Total cost $<sum>. <link to summary>."
+- Start: "Folder ingest started: \<col_slug> (\<N> files; \<skipped_count> skipped). ETA ~\<estimate>."
+- End: "Folder ingest done: \<succeeded>/\<N> succeeded; \<failed> failed; \<skipped> skipped. Total cost $\<sum>. \<link to summary>."
 
 If `failed > 0`, end message tagged with ⚠️ icon.
 

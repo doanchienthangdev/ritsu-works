@@ -9,12 +9,12 @@ description: |
   short-circuit on dedup unless --force.
 source_path: 06-ai-ops/skills/wiki-sync/ingest/SKILL.md
 source_hash: 449e843bff4386aa35675a2b4e12261a832f9ed0c60d47d85d882860d33f8a5e
-generated_at: '2026-05-19T03:36:59.988Z'
+generated_at: '2026-05-19T03:58:13.365Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # wiki-sync / ingest (Sprint 1 baseline)
@@ -58,7 +58,7 @@ Invoke adapter; receive:
 - `raw_text` — extracted text content
 - `source_ref` — canonical reference (URL / abspath)
 - `source_hash` — sha256 of raw bytes (NOT of extracted text — for FILE refs; for URLs use ETag-or-body-hash)
-- `attribution` — { author, publication, published_at, ... } (best-effort)
+- `attribution` — \{ author, publication, published_at, ... } (best-effort)
 - `pages_or_size_metric` — for chapter-split threshold check
 
 ### Step 3 — Dedup check
@@ -94,7 +94,7 @@ Dispatch to `wiki-sync/distill` skill. It:
 - Loops over chunks; per-type model picker (Haiku for concept+idea; Sonnet for observation+decision)
 - INSERTs derived entity pages (`page_type` IN `concept`/`observation`/`decision`/`idea`) with `extracted_from_source_id = <source_page_id>`
 - INSERTs `ops.knowledge_extractions` rows (citation spine: source_chunk → derived_entity with confidence + raw_quote + llm_model + cost)
-- Confidence ≥ 0.85 → auto-accept; 0.6-0.85 → `review_state = 'pending_review'`; < 0.6 → rejected
+- Confidence ≥ 0.85 → auto-accept; 0.6-0.85 → `review_state = 'pending_review'`; \< 0.6 → rejected
 - Cost-bucket task_kinds: `wiki-distill-pdf` / `wiki-distill-folder` / `wiki-distill-other`
 
 Also calls `wiki-sync/link-extractor` IN PARALLEL (regex pass for explicit `[[concept/X]]` cross-references typed by author). Distill and link-extractor are SEPARATE passes serving different intents:
@@ -105,13 +105,13 @@ Both write to `ops.knowledge_links`; values coexist.
 
 **FALLBACK (v2.0 path — `--verbatim` flag set OR `wiki_sync_distill_enabled = false`):**
 Skip distill. Call `wiki-sync/link-extractor` only (regex + optional LLM-fallback). Outputs same as v2.0:
-- `structured_content` — { title, summary, sections[], entities[] }
+- `structured_content` — \{ title, summary, sections[], entities[] }
 - `links_created` — int
 - `llm_cost_usd` — numeric (0 if regex-only)
 
 Cost-bucket task_kind: `wiki-ingest-verbatim` (v3.0 successor to deprecated `wiki-ingest-pdf` / `wiki-ingest-other`).
 
-Per spec §0 auto-deprecation trigger: if `--verbatim` flag invoked < 1 time in first 30 days post-v3.0 promotion, remove flag in v3.1 first PR.
+Per spec §0 auto-deprecation trigger: if `--verbatim` flag invoked \< 1 time in first 30 days post-v3.0 promotion, remove flag in v3.1 first PR.
 
 ### Step 7 — Dedup pass (v3.0 — distill mode only)
 
@@ -121,7 +121,7 @@ Dedup mechanism:
 - Slug-equality fast path (matched in Step 6 Step 3 already; this is the explicit re-check)
 - Vector similarity > 0.92 on (title + first 200 chars of summary) → auto-merge derived entity pages from THIS source with existing entities in `ops.knowledge_pages`
 - 0.75-0.92 → queue: derived entity stays separate but `review_state = 'pending_review'` and Telegram digest surfaces the borderline merge candidate for founder `/wiki review`
-- < 0.75 → distinct; no merge
+- \< 0.75 → distinct; no merge
 
 Cost-bucket task_kind: `wiki-dedup-batch`.
 
@@ -235,7 +235,7 @@ If distill mode produced entities with `review_state = 'pending_review'`: count 
   - `wiki-distill-folder` $15.00 (Tier B above $5 per Muse M6)
   - `wiki-distill-other` $0.50
   - `wiki-ingest-verbatim` $0.30
-- Distill skill internal: Tier B for license_status prompt on first ingest of a source (founder picks {public_domain | creative_commons | fair_use_excerpt | copyrighted_internal_only})
+- Distill skill internal: Tier B for license_status prompt on first ingest of a source (founder picks \{public_domain | creative_commons | fair_use_excerpt | copyrighted_internal_only})
 
 ## Failure modes
 

@@ -3,12 +3,12 @@ title: 'Hook: pre-llm-call-budget'
 description: ''
 source_path: .claude/hooks/pre-llm-call-budget.md
 source_hash: fa76d4ef92d62f5d92067f89253f4f1a38faf7f143e54f0fbf8a93d808fc3430
-generated_at: '2026-05-19T03:36:59.996Z'
+generated_at: '2026-05-19T03:58:13.372Z'
 generated_by: docs-engine v0.1.0
 category: hook
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Hook: pre-llm-call-budget
@@ -198,7 +198,7 @@ If model not found in table → log warning, use Opus rates as conservative fall
 - Role budget lookup: cached per-process per-role with 30-second TTL
 - Current cost calculation: cached 30 seconds; invalidated by post-tool writes
 - Pricing table: cached for entire session
-- Target: p95 < 50ms for the pre-tool half
+- Target: p95 \< 50ms for the pre-tool half
 
 For high-volume roles (100+ calls/min), the 30-second cache is essential. Cache misses do a single SQL query (`SELECT SUM(cost_usd) FROM ops.cost_attributions WHERE agent_role = X AND ts >= month_start`).
 

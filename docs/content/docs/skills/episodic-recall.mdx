@@ -19,12 +19,12 @@ description: |
   the SQL query.
 source_path: 06-ai-ops/skills/episodic-recall/SKILL.md
 source_hash: e59c4d91ed9b5371f1e6ed38fc4b384f4c57c48d80bef7583706f28315b2eaf0
-generated_at: '2026-05-19T03:36:59.976Z'
+generated_at: '2026-05-19T03:58:13.348Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Episodic Recall
@@ -232,7 +232,7 @@ A successful invocation:
 ## Cost estimate
 
 - Tokens loaded into context: ~150 × `max_runs` (summaries dominate) + ~50 overhead
-- SQL query cost: ~free (<$0.0001 per call assuming Supabase free tier query overhead)
+- SQL query cost: ~free (\<$0.0001 per call assuming Supabase free tier query overhead)
 - Wall-clock: ~50-150ms typical
 
 For a role doing 1000 tasks/month with `max_runs=5`, recall adds ~750K tokens/month to context. At Sonnet rates, that's roughly $2-3/month per high-volume role. Strategy E's compounding learning is worth this.

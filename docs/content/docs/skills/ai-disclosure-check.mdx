@@ -19,12 +19,12 @@ description: |
   Per-invocation cost: < $0.001.
 source_path: 06-ai-ops/skills/ai-disclosure-check/SKILL.md
 source_hash: 8ee7ddf396fb19474841a1b4bb4817f76eadf79b59df2d151391080729ad1ec7
-generated_at: '2026-05-19T03:36:59.959Z'
+generated_at: '2026-05-19T03:58:13.328Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # AI Disclosure Check
@@ -133,8 +133,8 @@ If the message_body is a RESPONSE to a customer query, scan the customer's previ
 
 If detected, the agent's response must include explicit AI confirmation. Examples of acceptable responses:
 
-- "I'm an AI system — Ritsu Assistant. {rest of response}"
-- "Yes, I'm AI — Ritsu Assistant. {rest of response}"
+- "I'm an AI system — Ritsu Assistant. \{rest of response}"
+- "Yes, I'm AI — Ritsu Assistant. \{rest of response}"
 
 If detected and response does NOT confirm → `failed` (error). This is the hardest violation because it can look like deflection.
 
@@ -314,7 +314,7 @@ recommended_action: fix_then_send
 
 - Returns within 100ms wall-clock
 - Catches all error-severity violations (no false negatives — would result in regulatory exposure)
-- False positive rate (compliant message flagged) < 5%
+- False positive rate (compliant message flagged) \< 5%
 - Output specific enough that agent can fix without guessing
 
 ## Failure modes
@@ -327,8 +327,8 @@ recommended_action: fix_then_send
 
 - ~200 tokens input (message + checks logic)
 - ~100 tokens output (structured response)
-- Wall-clock < 100ms (regex + simple logic, no LLM call needed for compliant cases)
-- Per-invocation cost: < $0.001
+- Wall-clock \< 100ms (regex + simple logic, no LLM call needed for compliant cases)
+- Per-invocation cost: \< $0.001
 - Volume: every customer-facing send → at scale (1000 messages/day), $1/day = $30/month. Acceptable.
 
 For more complex cases (Check A on Vietnamese variants, Check E on subtle impersonation), an LLM call may be needed — increases cost to ~$0.005/call. Still acceptable.

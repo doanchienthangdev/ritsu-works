@@ -14,12 +14,12 @@ description: |
   v3.0 migration 00031 (knowledge_extractions table).
 source_path: 06-ai-ops/skills/wiki-sync/SKILL.md
 source_hash: 927c099756ce3a5fbc6beaab02dce09b31bd37286728e89a7a0e9dd0ca8fb949
-generated_at: '2026-05-19T03:36:59.979Z'
+generated_at: '2026-05-19T03:58:13.351Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Wiki Sync (umbrella)
@@ -43,7 +43,7 @@ This skill is dispatcher-only. It reads the verb and delegates:
 | Verb | Sub-skill | Purpose (v3.0) |
 |---|---|---|
 | `sync` (default = distill+extract) | `wiki-sync/ingest` | full pipeline (SOP-INGEST-001); Step 6 dispatches to `wiki-sync/distill` for entity extraction (Haiku for concept+idea; Sonnet for observation+decision); Step 7 dedup pass; multi-page write (source RECORD + N derived entities) |
-| `sync --verbatim` | `wiki-sync/ingest` (verbatim path) | v2.0 fallback: single-page write, no distill, no entity pages. v3.1 auto-deprecation trigger: if invoked < 1× in first 30 days post-promotion, flag removed in v3.1. |
+| `sync --verbatim` | `wiki-sync/ingest` (verbatim path) | v2.0 fallback: single-page write, no distill, no entity pages. v3.1 auto-deprecation trigger: if invoked \< 1× in first 30 days post-promotion, flag removed in v3.1. |
 | `sync --split=...` | `wiki-sync/ingest` + `wiki-sync/chapter-splitter` | Chapter split for big PDFs (TOC/count/heading); chapters feed distill independently |
 | `sync --force` | `wiki-sync/ingest` with force=true | Re-extract everything; bypass chunk-diff |
 | `resync` | `wiki-sync/ingest` | chunk-diff first; re-extract only changed chunks (v3.0 — Tier B if > 50% changed) |

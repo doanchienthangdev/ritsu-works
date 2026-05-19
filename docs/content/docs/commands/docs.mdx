@@ -3,12 +3,12 @@ title: 'Command: /docs'
 description: ''
 source_path: .claude/commands/docs.md
 source_hash: 013d97ae01f3a4d91e49a80b39ed01950403af5d9ab3f6483da949cfb36ea1f9
-generated_at: '2026-05-19T03:37:00.001Z'
+generated_at: '2026-05-19T03:58:13.380Z'
 generated_by: docs-engine v0.1.0
 category: command
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 # /docs
 
@@ -32,7 +32,7 @@ with build-time secret redaction (per founder Phase 1 Q4 answer).
 | `/docs scaffold` | Idempotent scaffold of `docs/` Next.js + Fumadocs subproject. First-time only. | A | git changes under `docs/` |
 | `/docs sync [--area=<a>] [--dry-run] [--force]` | Walk corpus → generate MDX. `--area` limits scope (commands\|skills\|agents\|hooks\|charter\|governance\|pillars\|sops\|tier1\|all). `--dry-run` previews diff without writing. `--force` bypasses source_hash dedup. | A (B if estimated cost > cap OR > 50% pages changed) | git changes under `docs/content/`; ops.kpi_snapshots |
 | `/docs check` | Drift detection (source_hash mismatch + missing/orphan pages). Deterministic; no LLM. Records `docs_drift_count` KPI. | A | INSERT ops.kpi_snapshots; emits ritsu.docs.drift_detected if > 0 |
-| `/docs check --tutorials` | Subset check: every tutorial's `tutorial_last_verified_at` must be < 60d old. (CPO mod, monthly via SOP-FOUNDER-013.) | A | Reports stale tutorial list |
+| `/docs check --tutorials` | Subset check: every tutorial's `tutorial_last_verified_at` must be \< 60d old. (CPO mod, monthly via SOP-FOUNDER-013.) | A | Reports stale tutorial list |
 | `/docs publish` | Trigger Vercel production deploy from latest `main`. Founder confirms. | **B** | INSERT ops.events ritsu.docs.published |
 | `/docs nav` | Edit `docs/content/meta.json` (sidebar order, groups). Interactive prompts for pillar grouping. | A | git change under `docs/content/meta.json` |
 | `/docs update <area>` | Refresh one content area (alias for `/docs sync --area=<a>`). | A | per-area changes |

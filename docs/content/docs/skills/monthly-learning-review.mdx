@@ -16,12 +16,12 @@ description: |
   Founder approval converts a candidate into a PR.
 source_path: 06-ai-ops/skills/monthly-learning-review/SKILL.md
 source_hash: f501c7aec7f5d317eb799d0ce9db978cb7d83043f1a4e6a0150988af311501ae
-generated_at: '2026-05-19T03:36:59.977Z'
+generated_at: '2026-05-19T03:58:13.349Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Monthly Learning Review
@@ -38,7 +38,7 @@ This skill closes the loop in Strategy E. Throughout the month, agents emit run 
 
 Do NOT use:
 - More frequently than monthly (signal is too noisy)
-- For < 4 weeks of accumulated data (too few samples)
+- For \< 4 weeks of accumulated data (too few samples)
 - During an ongoing incident (defer until after — stable conditions matter)
 
 ## Inputs
@@ -297,14 +297,14 @@ Log this skill's run to `ops.agent_runs` with `action_name: 'monthly-learning-re
 ## Quality criteria
 
 A successful run:
-- Completes in < 5 minutes wall-clock
+- Completes in \< 5 minutes wall-clock
 - Produces between 5 and 30 candidates (too few = noise; too many = no signal)
 - Each candidate cites concrete run_ids as evidence
 - High-priority candidates have a complete `draft_diff`
 
 ## Failure modes
 
-- **Insufficient data** — if total runs in the month < 100, skip generation and report "insufficient data, deferring." Do not produce noise.
+- **Insufficient data** — if total runs in the month \< 100, skip generation and report "insufficient data, deferring." Do not produce noise.
 - **No new patterns** — if 0 candidates surface, generate a brief "no significant patterns" report. Founder still gets confirmation that review ran.
 - **Telegram delivery fails** — write report file regardless; founder will see report on next /run-monthly-review.
 

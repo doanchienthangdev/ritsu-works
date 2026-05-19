@@ -122,7 +122,9 @@ function scrubBody(body) {
     //    negative lookahead. Real-looking phrases get neutralized.
     .replace(
       /\boverride:\s+(?![<"'\[`])\S+(?:\s+\S+){4,}/gi,
-      "override: <example: documented magic phrase format — see governance/HITL.md>"
+      // Replacement must NOT re-match the lint pattern (which requires
+      // ≥5 plain words). Use a single bracketed token so lint passes.
+      "override: [redacted-example]"
     )
     // 2. Supabase project_ref: 20-char alphanumeric subdomain.
     //    Per CTO Phase 5 — project_ref enables SSRF + override-forging reconnaissance.
@@ -133,8 +135,93 @@ function scrubBody(body) {
     );
 }
 
+// MDX 2+ parser is stricter than markdown:
+//   - Any `<` is interpreted as JSX tag start
+//   - Any `{` is interpreted as JSX expression start
+// Markdown patterns like `<@cto>`, `<1>`, `<email@x.com>`, `{var}`,
+// `{config: value}` all break MDX compilation.
+//
+// This helper escapes `<` and `{` outside fenced code blocks to defer MDX
+// expression parsing. JSX tags that LOOK like real HTML elements
+// (`<a>`, `<div>`, etc.) are left alone via lookahead.
+//
+// We deliberately DO NOT touch content inside ``` fences or inline `code`.
+function escapeMdxSpecialChars(body) {
+  const lines = body.split("\n");
+  let inFence = false;
+  const out = [];
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      out.push(line);
+      continue;
+    }
+    if (inFence) {
+      out.push(line);
+      continue;
+    }
+    // Escape inline code spans (`...`) FIRST — preserve content inside as-is.
+    // Then for non-code text:
+    //   - `<` not followed by [a-zA-Z!/] → `\<`
+    //   - `{` not part of `{/* */}` JSX comment → `\{`
+    let processed = "";
+    let i = 0;
+    while (i < line.length) {
+      const ch = line[i];
+      if (ch === "`") {
+        // Find matching closing backtick on the same line.
+        const close = line.indexOf("`", i + 1);
+        if (close !== -1) {
+          // Properly-closed inline code: emit verbatim, skip escaping.
+          processed += line.slice(i, close + 1);
+          i = close + 1;
+          continue;
+        }
+        // Unclosed backtick — emit the backtick alone + fall through to
+        // escape rest of line normally (handles source markdown with stray
+        // single backticks). Prevents `<example>` after stray backtick from
+        // bypassing the `<` escape.
+        processed += ch;
+        i++;
+        continue;
+      }
+      if (ch === "<" && line[i - 1] !== "\\") {
+        // v1.0 PR-3 pragmatic: escape ALL `<` outside code blocks.
+        // Multi-line HTML comments (`<!-- ... -->` spanning ≥2 lines) trip
+        // MDX2 strict; auto-link `<email@x>`, agent `<@cto>`, and placeholder
+        // `<source-slug>` all fail. Auto-gen content has minimal real HTML,
+        // so blanket escape is safe. v1.0.1 can refine with a known-tag
+        // allowlist (`<a>`, `<details>`, `<summary>`) if needed.
+        processed += "\\<";
+        i++;
+        continue;
+      }
+      if (ch === "{") {
+        // Allow `{/* ... */}` JSX comments (used by our generated-by marker)
+        if (line.slice(i, i + 3) === "{/*") {
+          const end = line.indexOf("*/}", i);
+          if (end !== -1) {
+            processed += line.slice(i, end + 3);
+            i = end + 3;
+            continue;
+          }
+        }
+        if (line[i - 1] !== "\\") {
+          processed += "\\{";
+          i++;
+          continue;
+        }
+      }
+      processed += ch;
+      i++;
+    }
+    out.push(processed);
+  }
+  return out.join("\n");
+}
+
 function emitMdx({ targetPath, title, description, sourcePath, sourceHash, body, category, extraFm }) {
-  const scrubbedBody = scrubBody(body);
+  const scrubbedBody = escapeMdxSpecialChars(scrubBody(body));
   const fm = {
     title,
     description: description || "",
@@ -146,12 +233,15 @@ function emitMdx({ targetPath, title, description, sourcePath, sourceHash, body,
     ...(extraFm || {}),
   };
   const fmYaml = yaml.dump(fm, { lineWidth: 100 }).trimEnd();
+  // MDX comment syntax: `{/* ... */}` (NOT HTML `<!-- ... -->`).
+  // MDX parser rejects `<!` as it tries to read it as a JSX element name.
+  // The marker is used by walker + lint-secrets to detect auto-generated pages.
   return [
     "---",
     fmYaml,
     "---",
     "",
-    `<!-- generated-by: ${GENERATED_BY} -->`,
+    `{/* generated-by: ${GENERATED_BY} */}`,
     "",
     scrubbedBody,
     "",
@@ -581,7 +671,9 @@ function main() {
       extraFm: result.extraFm,
     });
 
-    // CTO mod #1: idempotency marker check + 3-way diff (simplified for v1.0)
+    // CTO mod #1: idempotency marker check + 3-way diff (simplified for v1.0).
+    // Marker syntax: MDX JSX comment `{/* generated-by: ... */}`. v0.1 PR-3 used
+    // HTML `<!-- ... -->` (incompatible with MDX parser); migrated to JSX comments.
     if (fs.existsSync(result.targetPath) && !force) {
       const existing = fs.readFileSync(result.targetPath, "utf8");
       const existingHas = existing.includes(`generated-by: ${GENERATED_BY}`);

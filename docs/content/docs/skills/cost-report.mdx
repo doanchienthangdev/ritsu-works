@@ -20,12 +20,12 @@ description: |
   Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 source_path: 06-ai-ops/skills/cost-report/SKILL.md
 source_hash: 990a3639e02e56a154e74802aa50eb6d6906583042bbe614c41eabf5d8160e96
-generated_at: '2026-05-19T03:36:59.970Z'
+generated_at: '2026-05-19T03:58:13.341Z'
 generated_by: docs-engine v0.1.0
 category: skill
 ---
 
-<!-- generated-by: docs-engine v0.1.0 -->
+{/* generated-by: docs-engine v0.1.0 */}
 
 
 # Cost Report
@@ -381,13 +381,13 @@ Status: 1 warning (blog outliers)
 ## Quality criteria
 
 - Returns within 200ms wall-clock for periods up to 90 days
-- Telegram output fits in single message (< 4096 chars)
+- Telegram output fits in single message (\< 4096 chars)
 - Health score reproducible (deterministic given same data)
 - Period-over-period comparisons accurate (no double-counting in overlap)
 
 ## Failure modes
 
-- **No data for period** — return graceful "no cost data for {period}" with suggestion to check `ops.cost_attributions` table is populated
+- **No data for period** — return graceful "no cost data for \{period}" with suggestion to check `ops.cost_attributions` table is populated
 - **Role budget not found in ROLES.md** — assume monthly_cap_usd = $0 (unlimited tracking, no enforcement). Log warning.
 - **Period > 1 year** — refuse with note "use a smaller window or build a custom query for long-term trends"
 - **Database unreachable** — return graceful error; don't block calling skill
@@ -397,7 +397,7 @@ Status: 1 warning (blog outliers)
 - 1-3 SQL queries, ~50ms each
 - ~500 input tokens (period defs + format)
 - ~500-1500 output tokens depending on mode
-- Per-invocation cost: < $0.01
+- Per-invocation cost: \< $0.01
 - Founder uses ~2-5x/day = $0.05/day = $1.50/month. Negligible.
 
 ## Required secrets
