@@ -245,6 +245,18 @@ etl_freshness_lag_minutes:
   alert_thresholds:
     p1: "lag > 120 minutes for product_dau_snapshot"
 
+docs_drift_count:
+  owner_pillar: ai_ops
+  owner_role: code-reviewer
+  sub_pillar: skill-library
+  formula: "count(pages WHERE source_hash != computed_hash) from scripts/validate-docs-coverage.cjs"
+  source: scripts/validate-docs-coverage.cjs
+  dashboard_tile: founder-monday/system-health
+  alert_thresholds:
+    p2: "docs_drift_count > 0 for > 24h"
+    p1: "docs_drift_count > 10 (sustained > 1h)"
+  notes: "docs-engine capability — reports drift between source filesystem and docs/ MDX. Aim: 0 sustained drift."
+
 # ===========================================================================
 # T&S metrics — owned by 07-trust-safety (activate when first incident)
 # ===========================================================================

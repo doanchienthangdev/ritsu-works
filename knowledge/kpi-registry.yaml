@@ -14,6 +14,12 @@ kpis:
     description: "Pending HITL approvals"
     threshold_warn: 5
     threshold_critical: 20
-  
+
+  - id: docs_drift_count
+    type: operational
+    description: "Pages where source_hash mismatch between codebase source and docs/ MDX. Surfaces drift between Tier 1 + .claude/ runtime and the live Fumadocs site (docs-engine capability)."
+    threshold_warn: 1
+    threshold_critical: 10
+
   # Business KPIs (customize per project)
   # {{ADD_BUSINESS_KPIS}}

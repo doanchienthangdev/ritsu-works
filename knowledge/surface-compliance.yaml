@@ -17,5 +17,12 @@ compliance_rules:
     rules:
       - max_chars: 3000
       - require_business_appropriate: true
-  
+
+  - surface: vercel-docs
+    rules:
+      - require_secret_redaction: true
+      - require_generated_by_marker_on_auto_pages: true
+      - max_pages_per_index_chunk: 200      # Orama static-index sweet spot
+      - require_canonical_url_stability: true
+
   # {{ADD_SURFACE_COMPLIANCE}}

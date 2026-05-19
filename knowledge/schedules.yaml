@@ -108,6 +108,12 @@ schedules:
     fallback: no_notification
     cost_estimate: "$0 per run (DB read + Telegram bot call)"
 
+  # NOTE: docs-drift-nightly schedule deferred to docs-engine Sprint 1 PR-3.
+  # The schedule references skill `docs-engine/check` which must exist in
+  # supabase/functions/minion-worker/index.ts SKILL_REGISTRY before this
+  # schedule can be added (L2 validator: schedules ↔ skill registry).
+  # See .archives/cla/docs-engine/sprint-plan.md PR-3 deliverables.
+
 # ============================================================================
 # Customization checklist
 # ============================================================================
