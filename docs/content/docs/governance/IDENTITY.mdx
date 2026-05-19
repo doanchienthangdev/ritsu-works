@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: governance
 language: vi
 translated: true
-translated_at: '2026-05-19T13:00:00Z'
+translated_at: '2026-05-19T15:00:00Z'
 translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
@@ -16,53 +16,53 @@ translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 
 # Identity & Service Account Mapping
 
-> Operational governance for Ritsu's per-role service identities across external systems. The implementation reference for the strategy in `knowledge/identity-architecture.md` sub-domain D.
+> Quản trị vận hành cho các định danh service per-role của Ritsu trên các hệ thống bên ngoài. Tham chiếu triển khai cho chiến lược trong `knowledge/identity-architecture.md` sub-domain D.
 
-**Status:** v1.0 spec
-**Tier:** D-Std (changes require magic phrase + PR + 30s confirm — adding/removing identities is high-risk)
-**Last updated:** 2026-05-02
-**Related:** `knowledge/identity-architecture.md`, `governance/SECRETS.md`, `governance/ROLES.md`
+**Trạng thái:** spec v1.0
+**Tier:** D-Std (các thay đổi cần magic phrase + PR + xác nhận 30s — thêm/xóa định danh có rủi ro cao)
+**Cập nhật lần cuối:** 2026-05-02
+**Liên quan:** `knowledge/identity-architecture.md`, `governance/SECRETS.md`, `governance/ROLES.md`
 
 ---
 
-## Why this file exists
+## Tại sao file này tồn tại
 
-Per `knowledge/identity-architecture.md` sub-domain D, Ritsu uses **per-role service identities for external attribution systems** and **shared internal identities** otherwise. This file is the canonical mapping: which role uses which identity on which system. Without it, drift between roles and identities is silent and dangerous.
+Theo `knowledge/identity-architecture.md` sub-domain D, Ritsu sử dụng **định danh service per-role cho các hệ thống attribution bên ngoài** và **định danh nội bộ dùng chung** trong các trường hợp khác. File này là mapping canonical: vai trò nào sử dụng định danh nào trên hệ thống nào. Không có nó, trôi dạt giữa vai trò và định danh là âm thầm và nguy hiểm.
 
-This file is policy. Implementation lives in:
-- Secret manager (per Bài #2 SECRETS.md) — actual credentials
-- `.claude/agents/<role>.md` — per-agent runtime config that reads this mapping
-- Hooks (`pre-tool-secrets`, `pre-tool-publish`) — runtime enforcement
+File này là policy. Triển khai nằm ở:
+- Trình quản lý secrets (theo Bài #2 SECRETS.md) — credentials thực tế
+- `.claude/agents/<role>.md` — cấu hình runtime per-agent đọc mapping này
+- Hooks (`pre-tool-secrets`, `pre-tool-publish`) — thực thi runtime
 
-## How to use this file
+## Cách sử dụng file này
 
-When creating a new role, adding a new external system, or auditing existing identities:
+Khi tạo vai trò mới, thêm hệ thống bên ngoài mới, hoặc audit các định danh hiện có:
 
-1. **Read this file first** — see what already exists
-2. **Cross-check `governance/ROLES.md`** — does the role exist? Is it active?
-3. **Cross-check `governance/SECRETS.md`** — does the secret exist with correct rotation policy?
-4. **Update this file** — add/modify the mapping
-5. **Open PR** with all 3 files changed in one diff (atomic update)
+1. **Đọc file này trước** — xem cái gì đã tồn tại
+2. **Đối chiếu `governance/ROLES.md`** — vai trò có tồn tại không? Có hoạt động không?
+3. **Đối chiếu `governance/SECRETS.md`** — secret có tồn tại với chính sách rotation đúng không?
+4. **Cập nhật file này** — thêm/sửa đổi mapping
+5. **Mở PR** với cả 3 file thay đổi trong cùng một diff (cập nhật nguyên tử)
 
-## The mapping
+## Mapping
 
-### GitHub identities
+### Các định danh GitHub
 
-Per role, one GitHub bot account. Founder owns each account; service tokens rotate per `governance/SECRETS.md` (90-day default for git tokens).
+Mỗi vai trò một tài khoản bot GitHub. Founder sở hữu mỗi tài khoản; service token rotate theo `governance/SECRETS.md` (mặc định 90 ngày cho git token).
 
-| Role | GitHub username | Email of bot owner | Permissions scope | Secret name |
+| Vai trò | GitHub username | Email của chủ bot | Phạm vi quyền | Tên secret |
 |---|---|---|---|---|
-| `gps` | `ritsu-gps-bot` | `gps@ritsu.ai` | repo:write on `ritsu-works` only | `GITHUB_GPS_BOT_TOKEN` |
-| `growth-orchestrator` | `ritsu-growth-bot` | `growth@ritsu.ai` | repo:write on `ritsu-works`, `ritsu-content` | `GITHUB_GROWTH_BOT_TOKEN` |
-| `support-agent` | `ritsu-support-bot` | `support@ritsu.ai` | repo:read on all, issues:write on `ritsu-works` | `GITHUB_SUPPORT_BOT_TOKEN` |
-| `content-drafter` | `ritsu-content-bot` | `content@ritsu.ai` | repo:write on `ritsu-content` only | `GITHUB_CONTENT_BOT_TOKEN` |
-| `code-reviewer` | `ritsu-codereview-bot` | `codereview@ritsu.ai` | repo:read + PR comment on `ritsu-works` | `GITHUB_CODEREVIEW_BOT_TOKEN` |
-| `etl-runner` | `ritsu-etl-bot` | `etl@ritsu.ai` | repo:read on `ritsu-works` only | `GITHUB_ETL_BOT_TOKEN` |
-| `trust-safety` | `ritsu-ts-bot` | `ts@ritsu.ai` | repo:read all + issues:write | `GITHUB_TS_BOT_TOKEN` |
-| `backoffice-clerk` | `ritsu-backoffice-bot` | `backoffice@ritsu.ai` | none (no GitHub use case at v1.0) | n/a |
-| `founder` | (founder's personal account) | (founder's email) | full | n/a (uses personal token) |
+| `gps` | `ritsu-gps-bot` | `gps@ritsu.ai` | repo:write chỉ trên `ritsu-works` | `GITHUB_GPS_BOT_TOKEN` |
+| `growth-orchestrator` | `ritsu-growth-bot` | `growth@ritsu.ai` | repo:write trên `ritsu-works`, `ritsu-content` | `GITHUB_GROWTH_BOT_TOKEN` |
+| `support-agent` | `ritsu-support-bot` | `support@ritsu.ai` | repo:read trên tất cả, issues:write trên `ritsu-works` | `GITHUB_SUPPORT_BOT_TOKEN` |
+| `content-drafter` | `ritsu-content-bot` | `content@ritsu.ai` | repo:write chỉ trên `ritsu-content` | `GITHUB_CONTENT_BOT_TOKEN` |
+| `code-reviewer` | `ritsu-codereview-bot` | `codereview@ritsu.ai` | repo:read + PR comment trên `ritsu-works` | `GITHUB_CODEREVIEW_BOT_TOKEN` |
+| `etl-runner` | `ritsu-etl-bot` | `etl@ritsu.ai` | repo:read chỉ trên `ritsu-works` | `GITHUB_ETL_BOT_TOKEN` |
+| `trust-safety` | `ritsu-ts-bot` | `ts@ritsu.ai` | repo:read tất cả + issues:write | `GITHUB_TS_BOT_TOKEN` |
+| `backoffice-clerk` | `ritsu-backoffice-bot` | `backoffice@ritsu.ai` | không (không có use case GitHub ở v1.0) | n/a |
+| `founder` | (tài khoản cá nhân của founder) | (email founder) | đầy đủ | n/a (dùng token cá nhân) |
 
-Bot profile bio template (must match for all 8 bots):
+Template tiểu sử bot (phải khớp cho cả 8 bot):
 
 ```
 AI agent operating as part of Ritsu workforce, role: {role-slug}.
@@ -71,38 +71,38 @@ https://ritsu.ai/transparency
 Owner: founder@ritsu.ai
 ```
 
-Profile picture: monochrome Ritsu logo. NO human face. NO custom illustrations that imply individuality.
+Ảnh đại diện: logo Ritsu đơn sắc. KHÔNG mặt người. KHÔNG hình minh họa tùy chỉnh gợi ý cá tính riêng.
 
-### Email sending identities
+### Các định danh gửi email
 
-Per role, one sending email address. All addresses are aliases routing to founder inbox (catch-all). Sending happens via Resend (or chosen provider) with SPF/DKIM configured per address.
+Mỗi vai trò một địa chỉ email gửi. Tất cả các địa chỉ là alias chuyển hướng đến inbox founder (catch-all). Việc gửi xảy ra qua Resend (hoặc nhà cung cấp được chọn) với SPF/DKIM được cấu hình cho mỗi địa chỉ.
 
-| Role | Sending address | Display name | DKIM key | Secret name |
+| Vai trò | Địa chỉ gửi | Tên hiển thị | Khóa DKIM | Tên secret |
 |---|---|---|---|---|
-| `gps` | `gps@ritsu.ai` | "Ritsu Assistant" | configured | `RESEND_GPS_SEND_KEY` |
-| `growth-orchestrator` | `growth@ritsu.ai` | "Ritsu" (marketing) | configured | `RESEND_GROWTH_MARKETING_KEY` |
-| `support-agent` | `support@ritsu.ai` | "Ritsu Assistant" | configured | `RESEND_SUPPORT_TRANSACTIONAL_KEY` |
-| `content-drafter` | (no send capability) | n/a | n/a | n/a |
-| `code-reviewer` | (no send capability) | n/a | n/a | n/a |
-| `etl-runner` | (no send capability) | n/a | n/a | n/a |
-| `trust-safety` | `ts@ritsu.ai` | "Ritsu Trust & Safety" | configured | `RESEND_TS_KEY` |
-| `backoffice-clerk` | `billing@ritsu.ai` | "Ritsu Billing" | configured | `RESEND_BILLING_KEY` |
-| `founder` | `founder@ritsu.ai` | (founder name) | configured | uses founder's primary key |
+| `gps` | `gps@ritsu.ai` | "Ritsu Assistant" | đã cấu hình | `RESEND_GPS_SEND_KEY` |
+| `growth-orchestrator` | `growth@ritsu.ai` | "Ritsu" (marketing) | đã cấu hình | `RESEND_GROWTH_MARKETING_KEY` |
+| `support-agent` | `support@ritsu.ai` | "Ritsu Assistant" | đã cấu hình | `RESEND_SUPPORT_TRANSACTIONAL_KEY` |
+| `content-drafter` | (không có khả năng gửi) | n/a | n/a | n/a |
+| `code-reviewer` | (không có khả năng gửi) | n/a | n/a | n/a |
+| `etl-runner` | (không có khả năng gửi) | n/a | n/a | n/a |
+| `trust-safety` | `ts@ritsu.ai` | "Ritsu Trust & Safety" | đã cấu hình | `RESEND_TS_KEY` |
+| `backoffice-clerk` | `billing@ritsu.ai` | "Ritsu Billing" | đã cấu hình | `RESEND_BILLING_KEY` |
+| `founder` | `founder@ritsu.ai` | (tên founder) | đã cấu hình | dùng khóa chính của founder |
 
-**Important:** the **display name** customers see is "Ritsu Assistant" or a similar branded name — NOT the role slug. Even though the email comes from `support@ritsu.ai`, the From header reads "Ritsu Assistant \<support@ritsu.ai>". This is the unified external persona pattern from sub-domain C.
+**Quan trọng:** **tên hiển thị** mà khách hàng thấy là "Ritsu Assistant" hoặc tên thương hiệu tương tự — KHÔNG phải slug vai trò. Mặc dù email đến từ `support@ritsu.ai`, header From hiển thị "Ritsu Assistant \<support@ritsu.ai>". Đây là pattern persona ngoại thống nhất từ sub-domain C.
 
-The role attribution is preserved in:
-- The sending address subdomain (audit trail)
-- The DKIM signature (cryptographic proof)
-- `ops.agent_runs.agent_role` (internal log)
+Sự gán vai trò được bảo tồn trong:
+- Subdomain địa chỉ gửi (audit trail)
+- Chữ ký DKIM (chứng minh mật mã)
+- `ops.agent_runs.agent_role` (log nội bộ)
 
-But customer-visible "from" name is unified.
+Nhưng tên "from" hiển thị cho khách hàng được thống nhất.
 
-### Anthropic API keys
+### Các khóa API Anthropic
 
-Per role, one Claude API key. Enables per-role usage tracking, rate limit isolation, separate budget caps.
+Mỗi vai trò một khóa Claude API. Cho phép theo dõi sử dụng per-role, cô lập rate limit, các cap ngân sách riêng biệt.
 
-| Role | Key name | Monthly budget cap | Model access |
+| Vai trò | Tên khóa | Cap ngân sách hàng tháng | Quyền truy cập model |
 |---|---|---|---|
 | `gps` | `ANTHROPIC_GPS_KEY` | $200 | opus, sonnet, haiku |
 | `growth-orchestrator` | `ANTHROPIC_GROWTH_KEY` | $300 | opus, sonnet, haiku |
@@ -112,138 +112,137 @@ Per role, one Claude API key. Enables per-role usage tracking, rate limit isolat
 | `etl-runner` | `ANTHROPIC_ETL_KEY` | $50 | haiku |
 | `trust-safety` | `ANTHROPIC_TS_KEY` | $100 | opus, sonnet |
 | `backoffice-clerk` | `ANTHROPIC_BACKOFFICE_KEY` | $50 | sonnet, haiku |
-| `founder` | (founder's personal key) | (no cap, founder direct) | all |
+| `founder` | (khóa cá nhân founder) | (không cap, founder trực tiếp) | tất cả |
 
-Budgets here are caps at the API provider level. Per-role budget tracking inside `ops.agent_runs` is for fine-grained accounting (per Bài #7 — Economic Unit, upcoming brainstorm). API-level cap is the hard ceiling; ops-level tracking is the observability layer.
+Các ngân sách ở đây là cap ở cấp độ nhà cung cấp API. Theo dõi ngân sách per-role bên trong `ops.agent_runs` dành cho hạch toán chi tiết (theo Bài #7 — Economic Unit, brainstorm sắp tới). Cap cấp API là trần cứng; theo dõi cấp ops là lớp quan sát.
 
-### Supabase identities
+### Các định danh Supabase
 
-| Role | Supabase identity | Project | Secret name |
+| Vai trò | Định danh Supabase | Project | Tên secret |
 |---|---|---|---|
-| All non-`etl-runner` roles | `ritsu-ops` anon role | `ritsu-ops` | `SUPABASE_OPS_ANON_KEY` (read), `SUPABASE_OPS_SERVICE_KEY` (write, restricted) |
-| `etl-runner` | `ritsu-ops` service role | `ritsu-ops` | `SUPABASE_OPS_FULL_SERVICE_KEY` |
-| `etl-runner` (read-only product) | `ritsu` etl-readonly role | `ritsu` (Product) | `SUPABASE_PRODUCT_READONLY_ETL_KEY` |
-| All other roles → Product | NO ACCESS | n/a | enforced by `pre-tool-supabase-product` hook |
+| Tất cả vai trò non-`etl-runner` | vai trò anon `ritsu-ops` | `ritsu-ops` | `SUPABASE_OPS_ANON_KEY` (read), `SUPABASE_OPS_SERVICE_KEY` (write, hạn chế) |
+| `etl-runner` | vai trò service `ritsu-ops` | `ritsu-ops` | `SUPABASE_OPS_FULL_SERVICE_KEY` |
+| `etl-runner` (read-only product) | vai trò `ritsu` etl-readonly | `ritsu` (Product) | `SUPABASE_PRODUCT_READONLY_ETL_KEY` |
+| Tất cả vai trò khác → Product | KHÔNG TRUY CẬP | n/a | thực thi bởi hook `pre-tool-supabase-product` |
 
-Per-role write capability within `ritsu-ops` is enforced via Postgres RLS policies (per Bài #2 SECRETS.md). Service key is the same physical credential, but RLS limits each role's effective write surface.
+Khả năng write per-role trong `ritsu-ops` được thực thi qua các chính sách Postgres RLS (theo Bài #2 SECRETS.md). Service key là cùng một credential vật lý, nhưng RLS giới hạn bề mặt write hiệu quả của mỗi vai trò.
 
-### Slack (when activated, post-v1.0)
+### Slack (khi kích hoạt, sau v1.0)
 
-Reserved per-role bot mapping. Not yet provisioned.
+Mapping bot per-role đã được bảo lưu. Chưa được cấp phát.
 
-| Role | Bot username | App name | Status |
+| Vai trò | Tên bot | Tên app | Trạng thái |
 |---|---|---|---|
-| `gps` | `ritsu-gps` | "Ritsu GPS Bot" | reserved, not provisioned |
-| `growth-orchestrator` | `ritsu-growth` | "Ritsu Growth Bot" | reserved |
-| `support-agent` | `ritsu-support` | "Ritsu Support Bot" | reserved |
-| `trust-safety` | `ritsu-ts` | "Ritsu T&S Bot" | reserved |
+| `gps` | `ritsu-gps` | "Ritsu GPS Bot" | đã bảo lưu, chưa cấp phát |
+| `growth-orchestrator` | `ritsu-growth` | "Ritsu Growth Bot" | đã bảo lưu |
+| `support-agent` | `ritsu-support` | "Ritsu Support Bot" | đã bảo lưu |
+| `trust-safety` | `ritsu-ts` | "Ritsu T&S Bot" | đã bảo lưu |
 
-Provisioning happens when Slack channel becomes operational (post-v1.0). Until then, no Slack identities exist.
+Việc cấp phát xảy ra khi kênh Slack trở nên hoạt động (sau v1.0). Cho đến lúc đó, không có định danh Slack nào tồn tại.
 
 ### Telegram
 
-Single bot for founder ↔ workforce abstraction. Founder talks to "the workforce" via this bot; the bot routes messages to specific agents internally per the orchestration layer (Bài #5).
+Một bot duy nhất cho trừu tượng founder ↔ workforce. Founder nói chuyện với "the workforce" qua bot này; bot route các tin nhắn đến các agent cụ thể nội bộ theo lớp orchestration (Bài #5).
 
-| Identity | Token name | Purpose |
+| Định danh | Tên token | Mục đích |
 |---|---|---|
-| `@RitsuWorkforceBot` (or chosen name) | `TELEGRAM_FOUNDER_BOT_TOKEN` | Founder ↔ workforce private bot |
+| `@RitsuWorkforceBot` (hoặc tên được chọn) | `TELEGRAM_FOUNDER_BOT_TOKEN` | Bot riêng tư founder ↔ workforce |
 
-Customer-facing Telegram (if ever activated) would use a SEPARATE bot identity with separate token. Not provisioned at v1.0.
+Telegram đối khách (nếu được kích hoạt) sẽ sử dụng định danh bot RIÊNG với token riêng. Chưa được cấp phát ở v1.0.
 
 ### Stripe
 
-No agent identity. Stripe access requires founder approval per `governance/HITL.md` Tier D-Std for any non-read action. Per Bài #2 SECRETS.md:
+Không có định danh agent. Truy cập Stripe cần sự chấp thuận của founder theo `governance/HITL.md` Tier D-Std cho bất kỳ hành động non-read nào. Theo Bài #2 SECRETS.md:
 
-- `STRIPE_PROD_READ_ONLY_KEY` — accessible to `backoffice-clerk` for reporting only
-- All write actions on Stripe = founder-only, no agent identity exists
+- `STRIPE_PROD_READ_ONLY_KEY` — có thể truy cập cho `backoffice-clerk` chỉ để báo cáo
+- Tất cả các hành động write trên Stripe = chỉ founder, không có định danh agent nào tồn tại
 
-This is intentional. Money movement does not have agent attribution because no agent has authority.
+Đây là chủ ý. Sự di chuyển tiền không có sự gán agent vì không agent nào có quyền hạn.
 
-### Other systems (reserved)
+### Các hệ thống khác (đã bảo lưu)
 
-When any of the following systems become operational, this file gets updated via PR:
+Khi bất kỳ hệ thống nào sau đây trở nên hoạt động, file này được cập nhật qua PR:
 
-- HubSpot (CRM) — per-role API tokens
-- Notion (internal docs) — per-role workspace integrations
-- Linear (issue tracking) — per-role API tokens
-- Twitter/X (social posting) — single brand account, founder-controlled
-- LinkedIn (social posting) — single brand page, founder-controlled
-- YouTube — single brand channel, founder-controlled
-- Webflow / Vercel (website hosting) — founder-controlled
+- HubSpot (CRM) — các API token per-role
+- Notion (docs nội bộ) — các tích hợp workspace per-role
+- Linear (theo dõi issue) — các API token per-role
+- Twitter/X (đăng xã hội) — một tài khoản thương hiệu duy nhất, do founder kiểm soát
+- LinkedIn (đăng xã hội) — một page thương hiệu duy nhất, do founder kiểm soát
+- YouTube — một kênh thương hiệu duy nhất, do founder kiểm soát
+- Webflow / Vercel (hosting website) — do founder kiểm soát
 
-Pattern: **internal tools** get per-role identities; **brand-owned external presence** stays founder-controlled (see "Why brand-owned channels stay founder-only" below).
+Pattern: **công cụ nội bộ** được định danh per-role; **sự hiện diện ngoại thuộc thương hiệu** vẫn do founder kiểm soát (xem "Tại sao kênh thuộc thương hiệu vẫn chỉ founder" bên dưới).
 
-## Why brand-owned channels stay founder-only
+## Tại sao kênh thuộc thương hiệu vẫn chỉ founder
 
-Twitter/LinkedIn/YouTube etc. are brand-owned channels with reputation accumulation. A compromise on these affects company brand directly — different blast radius than internal GitHub bots.
+Twitter/LinkedIn/YouTube v.v. là các kênh thuộc thương hiệu với sự tích lũy danh tiếng. Một compromise trên những kênh này ảnh hưởng trực tiếp đến thương hiệu công ty — phạm vi tác động khác với các bot GitHub nội bộ.
 
-For v1.0:
-- Agent (e.g., growth-orchestrator) DRAFTS the post in `.archives/drafts/`
-- Founder reviews via Telegram (Tier C HITL per `governance/HITL.md`)
-- Founder posts manually using founder's own credential
-- ops.agent_runs records the draft authorship
+Đối với v1.0:
+- Agent (ví dụ, growth-orchestrator) SOẠN bài đăng trong `.archives/drafts/`
+- Founder review qua Telegram (HITL (Human-in-the-Loop) Tier C theo `governance/HITL.md`)
+- Founder đăng thủ công bằng credential riêng của founder
+- ops.agent_runs ghi lại tác giả bản nháp
 
-Post-v1.0, when patterns prove safe, automated posting may be added with separate per-channel bots. Each addition = D-Std PR per this file.
+Sau v1.0, khi các pattern chứng minh là an toàn, đăng tự động có thể được thêm với các bot per-channel riêng biệt. Mỗi lần thêm = D-Std PR theo file này.
 
-## Identity provisioning checklist (when adding a new role)
+## Danh sách kiểm tra cấp phát định danh (khi thêm vai trò mới)
 
-Per the role-add ceremony in Bài #2:
+Theo nghi thức thêm vai trò trong Bài #2:
 
-1. ☐ GitHub bot account created by founder (`ritsu-{role}-bot`)
-2. ☐ Email forwarder created (`{role}@ritsu.ai`)
-3. ☐ Anthropic API key created with budget cap
-4. ☐ Supabase RLS policy added if role has DB write
-5. ☐ All secrets stored in secret manager per `governance/SECRETS.md`
-6. ☐ This file (`IDENTITY.md`) updated with new mapping
-7. ☐ `governance/ROLES.md` updated with role definition
-8. ☐ `governance/SECRETS.md` updated with secret names
-9. ☐ `.claude/agents/{role}.md` runtime file created
-10. ☐ Hooks tests pass (`pre-tool-secrets` recognizes new role)
+1. ☐ Tài khoản bot GitHub được tạo bởi founder (`ritsu-{role}-bot`)
+2. ☐ Tạo email forwarder (`{role}@ritsu.ai`)
+3. ☐ Khóa API Anthropic được tạo với cap ngân sách
+4. ☐ Chính sách Supabase RLS được thêm nếu vai trò có DB write
+5. ☐ Tất cả secrets được lưu trong trình quản lý secrets theo `governance/SECRETS.md`
+6. ☐ File này (`IDENTITY.md`) được cập nhật với mapping mới
+7. ☐ `governance/ROLES.md` được cập nhật với định nghĩa vai trò
+8. ☐ `governance/SECRETS.md` được cập nhật với các tên secret
+9. ☐ Tạo file runtime `.claude/agents/{role}.md`
+10. ☐ Tests hooks pass (`pre-tool-secrets` nhận ra vai trò mới)
 
-PR includes ALL of the above changes. Atomic.
+PR bao gồm TẤT CẢ các thay đổi trên. Nguyên tử.
 
-## Identity decommission checklist (when deprecating a role)
+## Danh sách kiểm tra ngừng định danh (khi loại bỏ vai trò)
 
-1. ☐ Mark role `status: deprecated` in `governance/ROLES.md`
-2. ☐ Revoke all secrets at secret manager
-3. ☐ Archive (do NOT delete) GitHub bot account — preserves commit history
-4. ☐ Disable email forwarder (existing emails route to founder)
-5. ☐ Set Anthropic API key to disabled state
-6. ☐ Update this file marking row as `status: deprecated YYYY-MM-DD`
-7. ☐ After 90 days, audit-clear: confirm no references in code/skills, then strike row (preserve in git history)
+1. ☐ Đánh dấu vai trò `status: deprecated` trong `governance/ROLES.md`
+2. ☐ Thu hồi tất cả secrets tại trình quản lý secrets
+3. ☐ Lưu trữ (KHÔNG xóa) tài khoản bot GitHub — bảo tồn lịch sử commit
+4. ☐ Vô hiệu hóa email forwarder (các email hiện tại được chuyển đến founder)
+5. ☐ Đặt khóa API Anthropic ở trạng thái disabled
+6. ☐ Cập nhật file này đánh dấu row là `status: deprecated YYYY-MM-DD`
+7. ☐ Sau 90 ngày, làm sạch audit: xác nhận không có tham chiếu trong code/skills, sau đó xóa row (bảo tồn trong git history)
 
-Deprecation is D-Std PR.
+Loại bỏ là D-Std PR.
 
-## Audit cadence
+## Tần suất audit
 
-Quarterly (per `governance/SECRETS.md`):
+Hàng quý (theo `governance/SECRETS.md`):
 
-1. **Reconciliation:** every secret in this file exists in secret manager? Every secret in manager has an entry here?
-2. **Activity check:** every per-role bot has had recent activity per its expected use? Dormant bots flagged.
-3. **Permission check:** GitHub bot scopes match table? Email DKIM still valid?
-4. **Compromise sweep:** any unusual activity in `ops.agent_runs.secrets_accessed`? Any role accessing secrets it shouldn't?
+1. **Đối chiếu:** mỗi secret trong file này có tồn tại trong trình quản lý secrets không? Mỗi secret trong trình quản lý có entry ở đây không?
+2. **Kiểm tra hoạt động:** mỗi bot per-role có hoạt động gần đây theo mục đích sử dụng dự kiến của nó không? Các bot ngủ được đánh dấu.
+3. **Kiểm tra quyền:** phạm vi bot GitHub khớp với bảng không? Email DKIM vẫn hợp lệ không?
+4. **Quét compromise:** bất kỳ hoạt động bất thường nào trong `ops.agent_runs.secrets_accessed` không? Bất kỳ vai trò nào truy cập secrets nó không nên không?
 
-Output: quarterly audit report in `.archives/audits/identity-{YYYY-Q}.md`. Failed items become PRs.
+Output: báo cáo audit hàng quý trong `.archives/audits/identity-{YYYY-Q}.md`. Các mục thất bại trở thành PR.
 
-## Anti-patterns to refuse
+## Các anti-pattern cần từ chối
 
-- **"Reuse one GitHub bot for two new roles."** No — defeats the per-role attribution purpose. Add a new bot.
-- **"Skip provisioning email for `code-reviewer`, it doesn't send anyway."** Correct — but still document the "no send capability" in this file as `n/a`. Future agents looking up the table need to see "explicitly nothing."
-- **"Founder posts to Twitter via agent in v1.0 to save time."** No — brand channels stay founder-controlled until proven safe pattern. Re-evaluate post-v1.0.
-- **"Customer-facing email shows `support-agent` as sender."** No — display name is "Ritsu Assistant" per sub-domain C. Internal attribution preserved separately.
-- **"Add new system access without updating this file."** No — atomic PR or rollback. Drift between mapping and reality is the core failure mode this file prevents.
+- **"Sử dụng lại một bot GitHub cho hai vai trò mới."** Không — phá vỡ mục đích gán per-role. Thêm một bot mới.
+- **"Bỏ qua cấp phát email cho `code-reviewer`, nó không gửi gì cả."** Đúng — nhưng vẫn ghi lại "không có khả năng gửi" trong file này là `n/a`. Các agent tương lai tra cứu bảng cần thấy "không có gì rõ ràng."
+- **"Founder đăng lên Twitter qua agent ở v1.0 để tiết kiệm thời gian."** Không — kênh thương hiệu vẫn do founder kiểm soát cho đến khi pattern được chứng minh là an toàn. Đánh giá lại sau v1.0.
+- **"Email đối khách hiển thị `support-agent` là người gửi."** Không — tên hiển thị là "Ritsu Assistant" theo sub-domain C. Sự gán nội bộ được bảo tồn riêng.
+- **"Thêm truy cập hệ thống mới mà không cập nhật file này."** Không — PR nguyên tử hoặc rollback. Trôi dạt giữa mapping và thực tế là chế độ thất bại cốt lõi mà file này ngăn chặn.
 
-## Cross-reference summary
+## Tóm tắt tham chiếu chéo
 
-| Concern | This file | Cross-ref |
+| Mối quan tâm | File này | Tham chiếu chéo |
 |---|---|---|
-| Which secret a role can use | (this file) | `governance/SECRETS.md` `used_by` |
-| Which role exists | n/a | `governance/ROLES.md` |
-| Runtime enforcement | n/a | `.claude/hooks/pre-tool-secrets` |
-| Customer-facing identity | mention | `knowledge/identity-architecture.md` sub-domain C |
-| Disclosure compliance | mention | `00-charter/transparency.md` |
+| Secret mà một vai trò có thể sử dụng | (file này) | `governance/SECRETS.md` `used_by` |
+| Vai trò nào tồn tại | n/a | `governance/ROLES.md` |
+| Thực thi runtime | n/a | `.claude/hooks/pre-tool-secrets` |
+| Định danh đối khách | đề cập | `knowledge/identity-architecture.md` sub-domain C |
+| Tuân thủ tiết lộ | đề cập | `00-charter/transparency.md` |
 
 ---
 
-*Identity is the substrate of attribution. This file is the substrate of identity. Keep it accurate; the rest depends on it.*
-
+*Identity là chất nền của attribution. File này là chất nền của identity. Giữ nó chính xác; phần còn lại phụ thuộc vào nó.*

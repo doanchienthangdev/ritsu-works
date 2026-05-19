@@ -1,5 +1,5 @@
 ---
-title: 05-customer — Customer Pillar
+title: 05-customer — Pillar Khách hàng
 description: ''
 source_path: 05-customer/README.md
 source_hash: 7369e8fb27d9c8977a4984b18ed5b536adae11e6653fe1881a18c61214ad631e
@@ -8,42 +8,42 @@ generated_by: docs-engine v1.1.0
 category: pillar
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: 2026-05-19T15:00:00Z
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-# 05-customer — Customer Pillar
+# 05-customer — Pillar Khách hàng
 
-> Big pillar covering full customer lifecycle. Customer là danh từ (entity we serve); success/onboarding/support/retention/feedback/data là aspects của working with that noun. Matches `public.customers + persons + companies` schema (00005_customer_entity.sql).
+> Pillar lớn bao trùm toàn bộ vòng đời khách hàng. Customer là danh từ (thực thể chúng ta phục vụ); success/onboarding/support/retention/feedback/data là các khía cạnh của việc làm việc với danh từ đó. Khớp với schema `public.customers + persons + companies` (00005_customer_entity.sql).
 
 **Layer:** Evergreen
 **Stage status:** DEEP
 **Pillar code:** CUSTOMER
 **Owner role(s):** customer-lead, cs-coach, support-agent, retention-watcher, escalation-router, feedback-aggregator
-**HITL baseline:** C (FAQ-handled replies = Tier B; non-FAQ = Tier C per HITL.md)
+**HITL baseline:** C (FAQ-handled replies = Tier B; non-FAQ = Tier C theo HITL.md)
 
 ---
 
-## Scope
+## Phạm vi
 
-Trụ cột này sở hữu **toàn bộ customer relationship** post-signup:
+Pillar này sở hữu **toàn bộ mối quan hệ khách hàng** sau khi signup:
 
-1. **Success** — does user achieve value? (activation, aha moment, mastery progression)
-2. **Onboarding** — first-30-days experience (Collison install cho first 30 paying, AI takeover N=31+)
-3. **Support** — reactive help khi things go wrong
-4. **Retention** — proactive engagement to prevent churn
-5. **Feedback & Research** — voice of customer (NPS, interviews, cancel-flow feedback)
-6. **Customer Data** — CRM, customer-360, profile management (uses `public.customers`)
+1. **Success** — người dùng có đạt được giá trị không? (activation, aha moment, mastery progression)
+2. **Onboarding** — trải nghiệm 30 ngày đầu tiên (Collison install cho 30 người trả tiền đầu tiên, AI tiếp quản từ N=31+)
+3. **Support** — trợ giúp phản ứng khi mọi thứ trở nên sai
+4. **Retention** — tương tác chủ động để ngăn churn
+5. **Feedback & Research** — tiếng nói của khách hàng (NPS, phỏng vấn, feedback cancel-flow)
+6. **Customer Data** — CRM, customer-360, quản lý profile (sử dụng `public.customers`)
 
-Trụ cột này KHÔNG sở hữu:
-- The product itself → `04-product/`
-- Distribution / acquisition channels → `03-gtm/`
-- Billing / refund processing → `08-finance/`
-- DMCA / GDPR enforcement → `07-trust-safety/` (data deletion mechanics are here, policy là there)
+Pillar này KHÔNG sở hữu:
+- Bản thân sản phẩm → `04-product/`
+- Kênh phân phối / acquisition → `03-gtm/`
+- Xử lý billing / refund → `08-finance/`
+- Thực thi DMCA / GDPR → `07-trust-safety/` (cơ chế xóa dữ liệu nằm ở đây, chính sách nằm ở đó)
 
-## Sub-pillars (DEEP build now)
+## Sub-pillars (build DEEP ngay bây giờ)
 
 ```
 05-customer/
@@ -79,64 +79,64 @@ Trụ cột này KHÔNG sở hữu:
     └── sops/SOP-CUSTOMER-024-segmentation-by-behavior/
 ```
 
-## Sub-pillar order (narrative)
+## Thứ tự sub-pillar (narrative)
 
-Customer lifecycle reads in two passes — chronological journey của one user, rồi cross-cutting "infrastructure" pillars mà serve all của chúng.
+Vòng đời khách hàng đọc theo hai lượt — hành trình theo thứ tự thời gian của một người dùng, rồi đến các pillar "infrastructure" cắt ngang phục vụ tất cả chúng.
 
-**Journey (user-time order):**
-1. **onboarding** — first 30 days (founder personally onboards first ~30 paying)
-2. **success** — user achieves value, "aha moment"; THE pillar's namesake
-3. **support** — reactive resolution khi things go wrong
-4. **retention** — proactive engagement, win-back, deep-engagement celebration
-5. **feedback-and-research** — voice of customer through every channel
+**Hành trình (theo thứ tự thời gian của người dùng):**
+1. **onboarding** — 30 ngày đầu (founder đích thân onboard ~30 người trả tiền đầu tiên)
+2. **success** — người dùng đạt được giá trị, "aha moment"; THE pillar's namesake
+3. **support** — giải quyết phản ứng khi mọi thứ trở nên sai
+4. **retention** — tương tác chủ động, win-back, ăn mừng tương tác sâu
+5. **feedback-and-research** — tiếng nói của khách hàng qua mọi kênh
 
-**Cross-cutting:**
-6. **customer-data** — CRM/360 schema + GDPR mechanics (serves the other five)
+**Cắt ngang:**
+6. **customer-data** — CRM/360 schema + cơ chế GDPR (phục vụ năm cái còn lại)
 
 ## SOPs
 
-`sops/SOP-CUSTOMER-NNN-<slug>/` — 24 SOPs scaffolded. Phase 5 implements:
-- `SOP-CUSTOMER-006-collison-install-script` — script cho first 30 paying users
+`sops/SOP-CUSTOMER-NNN-<slug>/` — 24 SOP đã được dựng khung. Phase 5 triển khai:
+- `SOP-CUSTOMER-006-collison-install-script` — script cho 30 người dùng trả tiền đầu tiên
 
 ## Agents
 
-- `customer-lead` (home, pillar-level) — owns weekly customer-health review
-- `cs-coach` (under `success`) — activation funnel ownership
-- `support-agent` (under `support`) — FAQ-handled tickets, escalation
-- `retention-watcher` (under `retention`) — silence detection
-- `escalation-router` (under `support`) — ticket → founder routing
-- `feedback-aggregator` (under `feedback-and-research`) — voice of customer
+- `customer-lead` (home, cấp pillar) — sở hữu đánh giá customer-health hàng tuần
+- `cs-coach` (dưới `success`) — quyền sở hữu phễu activation
+- `support-agent` (dưới `support`) — vé FAQ-handled, escalation
+- `retention-watcher` (dưới `retention`) — phát hiện im lặng
+- `escalation-router` (dưới `support`) — định tuyến vé → founder
+- `feedback-aggregator` (dưới `feedback-and-research`) — tiếng nói khách hàng
 
-## KPIs owned
+## KPI sở hữu
 
-(Surfaced in `10-metrics/kpi-registry/`.)
+(Được hiển thị tại `10-metrics/kpi-registry/`.)
 
-- Activation rate (signup → first aha)
-- Day 7 / Day 30 retention (rolling cohorts)
-- Support ticket volume by category
-- % FAQ-handled vs human-needed (ratio over time)
-- Churn rate (monthly)
-- Win-back rate (cancelled → re-subscribed)
-- NPS score (rolling)
-- Mastery-progression rate (Ritsu-specific — % của users actually mastering content)
+- Tỷ lệ activation (signup → aha đầu tiên)
+- Day 7 / Day 30 retention (cohort cuốn chiếu)
+- Khối lượng vé support theo danh mục
+- % FAQ-handled vs human-needed (tỷ lệ theo thời gian)
+- Tỷ lệ churn (hàng tháng)
+- Tỷ lệ win-back (đã hủy → đăng ký lại)
+- Điểm NPS (cuốn chiếu)
+- Tỷ lệ mastery-progression (Ritsu-specific — % người dùng thực sự thành thạo nội dung)
 
-## Dependencies
+## Phụ thuộc
 
-- **Composes from:** `04-product` (wedge feature → activation), `09-founder` (founder personally onboards first ~30), `10-metrics` (PMF instrumentation feeds activation tracking), `public.customers + persons + companies + mv_customer_360`
-- **Composed by:** `03-gtm/funnel-orchestration/` (consumes activation metrics), `07-trust-safety` (GDPR account-deletion uses `customer-data` mechanics)
+- **Composes from:** `04-product` (wedge feature → activation), `09-founder` (founder đích thân onboard ~30 đầu tiên), `10-metrics` (PMF instrumentation cấp dữ liệu cho theo dõi activation), `public.customers + persons + companies + mv_customer_360`
+- **Composed by:** `03-gtm/funnel-orchestration/` (tiêu thụ metrics activation), `07-trust-safety` (GDPR account-deletion sử dụng cơ chế `customer-data`)
 
 ## Critical PG gate
 
-`onboarding/SOP-CUSTOMER-006-collison-install-script` là literal Collison-install protocol: **cho first ~30 paying users, founder does onboarding by Zoom in person, captures script verbatim, rồi `SOP-CUSTOMER-009-onboarding-script-automation-31plus` automates from N=31 onwards.** Do NOT let AI handle onboarding cho first 30 paying — những calls này produce wedge insight mà no other research captures.
+`onboarding/SOP-CUSTOMER-006-collison-install-script` là giao thức Collison-install nguyên bản: **cho ~30 người dùng trả tiền đầu tiên, founder thực hiện onboarding qua Zoom trực tiếp, ghi lại script nguyên văn, rồi `SOP-CUSTOMER-009-onboarding-script-automation-31plus` tự động hóa từ N=31 trở đi.** KHÔNG để AI xử lý onboarding cho 30 người trả tiền đầu tiên — những cuộc gọi này tạo ra wedge insight mà không nghiên cứu nào khác có thể nắm bắt được.
 
 ## HITL baseline
 
-- FAQ-handled support replies: Tier B (per ROLES.md `support-agent` definition)
+- FAQ-handled support replies: Tier B (theo định nghĩa `support-agent` trong ROLES.md)
 - Non-FAQ support replies: Tier C
-- Account suspension (any duration): Tier C
-- GDPR data deletion: Tier D-Std (irreversible, requires founder approval)
-- New SOP added: Tier C
+- Tạm ngưng tài khoản (mọi thời lượng): Tier C
+- Xóa dữ liệu GDPR: Tier D-Std (không thể đảo ngược, yêu cầu founder phê duyệt)
+- SOP mới được thêm: Tier C
 
-## Entry conditions
+## Điều kiện vào (entry conditions)
 
-Already DEEP. After 1000 paying users, `customer-data` có thể split into separate `account-management` sub-pillar.
+Đã DEEP. Sau 1000 người dùng trả tiền, `customer-data` có thể tách thành sub-pillar `account-management` riêng.

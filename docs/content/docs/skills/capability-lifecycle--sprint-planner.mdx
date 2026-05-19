@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:30:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,60 +19,60 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Khi nào sử dụng
 
-- Sau Phase 5 spec.md + Tier C approval.
-- State = `planning`.
+- Sau khi Phase 5 có spec.md và được Tier C phê duyệt.
+- Trạng thái = `planning`.
 
-## Inputs
+## Đầu vào
 
 - `capability_id`
 - `spec_path` — `.archives/cla/<id>/spec.md`
 - `current_wave` — từ `notes/wave.md`
 - `feature_flags_path` — `knowledge/feature-flags.yaml`
 
-## Quá trình
+## Quy trình
 
-### Step 1 — Refuse nếu no Tier C
+### Bước 1 — Từ chối nếu không có phê duyệt Tier C
 
-Query ops.decisions, ABORT nếu missing.
+Truy vấn ops.decisions, HỦY BỎ nếu thiếu.
 
-### Step 2 — Extract work items
+### Bước 2 — Trích xuất các hạng mục công việc
 
-Từ spec.md: skills, SOPs, tier1, migrations, MCP, frontend, commands.
+Từ spec.md: skills, SOPs, tier1, migrations, MCP, frontend, lệnh.
 
-### Step 3 — Topological sort
+### Bước 3 — Sắp xếp theo thứ tự tô-pô
 
-Migrations → tier1 → MCP → skills → agents → commands → SOPs → frontend.
+Migrations → tier1 → MCP → skills → agents → lệnh → SOPs → frontend.
 
-### Step 4 — Group into 2-week sprints
+### Bước 4 — Nhóm thành các sprint 2 tuần
 
-Default 2-week, apply heuristics.
+Mặc định 2 tuần, áp dụng các quy tắc.
 
-### Step 5 — Per-sprint structure
+### Bước 5 — Cấu trúc cho mỗi sprint
 
-Deliverables, acceptance criteria, effort, HITL, cost delta, risk.
+Sản phẩm bàn giao, tiêu chí chấp nhận, công sức, HITL, chênh lệch chi phí, rủi ro.
 
-### Step 6 — Wave alignment
+### Bước 6 — Căn chỉnh với wave
 
-Read playbook, mark wave alignment.
+Đọc playbook, đánh dấu căn chỉnh với wave.
 
-### Step 7 — Output sprint-plan.md
+### Bước 7 — Xuất sprint-plan.md
 
-Template.
+Mẫu.
 
-### Step 8 — HITL Tier B
+### Bước 8 — HITL Tier B
 
-Founder approves via AskUserQuestion.
+Founder phê duyệt qua AskUserQuestion.
 
-### Step 9 — Persist state
+### Bước 9 — Lưu trạng thái
 
-UPDATE ops.capability_runs.
+Cập nhật ops.capability_runs.
 
-## Outputs
+## Đầu ra
 
 - `.archives/cla/<id>/sprint-plan.md`
-- 1 `ops.hitl_runs` row + 1 `ops.cost_attributions`
+- 1 bản ghi `ops.hitl_runs` + 1 bản ghi `ops.cost_attributions`
 
-## State transition
+## Chuyển trạng thái
 
 `planning → implementing`
 
@@ -80,16 +80,16 @@ UPDATE ops.capability_runs.
 
 **Tier B**.
 
-## Failure modes
+## Chế độ thất bại
 
-No Tier C, spec missing components, cost > $200/mo.
+Không có phê duyệt Tier C, spec thiếu thành phần, chi phí > $200/tháng.
 
-## Cost estimate
+## Ước tính chi phí
 
-- ~$0.30 mỗi invocation
-- Founder time: 30-45 min
+- ~$0.30 mỗi lần gọi
+- Thời gian của founder: 30-45 phút
 - Cost-bucket: `ai-ops-cla`
 
 ---
 
-Next: `implementation-coordinator` (Phase 7).
+Tiếp theo: `implementation-coordinator` (Phase 7).

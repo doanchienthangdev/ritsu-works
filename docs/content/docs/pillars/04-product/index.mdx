@@ -1,5 +1,5 @@
 ---
-title: 04-product — Product Operations Pillar
+title: 04-product — Pillar Vận hành Sản phẩm
 description: ''
 source_path: 04-product/README.md
 source_hash: d7c245abaef60f06b295af08527197571f4d5aac5d3b18a14d023437e56c902e
@@ -8,40 +8,40 @@ generated_by: docs-engine v1.1.0
 category: pillar
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: 2026-05-19T15:00:00Z
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-# 04-product — Product Operations Pillar
+# 04-product — Pillar Vận hành Sản phẩm
 
-> Build loop, user-listening pipeline, wedge-feature discovery, roadmap intake, A/B analysis. Đây là operations AROUND sản phẩm, KHÔNG là sản phẩm codebase (nằm ở một repo riêng backed by Product Supabase project `ritsu`).
+> Vòng lặp build, đường ống lắng nghe người dùng, phát hiện điểm tựa (wedge) tính năng, tiếp nhận lộ trình, phân tích A/B test. Đây là operations XUNG QUANH sản phẩm, KHÔNG phải là codebase sản phẩm (nằm ở một repo riêng backed by Product Supabase project `ritsu`).
 
 **Layer:** Evergreen
 **Stage status:** DEEP
 **Pillar code:** PRODUCT
 **Owner role(s):** product-orchestrator
-**HITL baseline:** C (new features prioritized + experiments launched gate at C)
+**HITL baseline:** C (ưu tiên tính năng mới + thử nghiệm được khởi động cổng tại C)
 
 ---
 
-## Scope
+## Phạm vi
 
-Trụ cột này sở hữu:
-- **Wedge-feature discovery** — which của 17+ activity types do real users come back for?
-- **Build loop** — weekly feature prioritization, ship-then-listen cycle, rage detection from support
-- **Feedback pipeline** — NPS, cancel-flow feedback, in-app feedback → roadmap intake
-- **Pricing experiments** — A/B tests on tier boundaries (coordinates with `02-sales`)
-- **A/B test discipline** — decision protocols, statistical rigor (coordinates with `10-metrics/experiment-measurement`)
+Pillar này sở hữu:
+- **Phát hiện điểm tựa (wedge) tính năng** — trong 17+ loại hoạt động, người dùng thực sự quay lại vì cái nào?
+- **Vòng lặp build** — ưu tiên tính năng hàng tuần, chu kỳ ship-rồi-lắng-nghe, phát hiện rage từ support
+- **Đường ống feedback** — NPS, feedback từ cancel-flow, feedback in-app → tiếp nhận lộ trình
+- **Thử nghiệm giá** — A/B test trên ranh giới các tier (phối hợp với `02-sales`)
+- **Kỷ luật A/B test** — giao thức quyết định, độ chặt chẽ thống kê (phối hợp với `10-metrics/experiment-measurement`)
 
-Trụ cột này KHÔNG sở hữu:
-- The product codebase (separate repo, Product Supabase)
-- Customer onboarding flows (those execute in `05-customer/onboarding/`)
-- Distribution / channel experiments → `03-gtm/distribution-engine/`
-- Pricing tier definitions → `02-sales/modules/pricing-tiers/`
+Pillar này KHÔNG sở hữu:
+- Codebase sản phẩm (repo riêng, Product Supabase)
+- Các luồng onboarding khách hàng (chúng được thực thi tại `05-customer/onboarding/`)
+- Thử nghiệm phân phối / kênh → `03-gtm/distribution-engine/`
+- Định nghĩa pricing tier → `02-sales/modules/pricing-tiers/`
 
-## Sub-pillars (DEEP build now)
+## Sub-pillars (build DEEP ngay bây giờ)
 
 ```
 04-product/
@@ -64,51 +64,51 @@ Trụ cột này KHÔNG sở hữu:
     └── sops/SOP-PRODUCT-012-ab-test-decision-protocol/
 ```
 
-## Sub-pillar order (narrative)
+## Thứ tự sub-pillar (narrative)
 
-1. **wedge-discovery** — N=10 strangers gate (PG critical_pg_gate). What works first.
-2. **build-loop** — weekly prioritization + ship-then-listen cycle
-3. **feedback-pipeline** — NPS, cancel-flow, in-product feedback → roadmap
-4. **pricing-experiments** — pricing-pull test, tier-boundary experiments
-5. **ab-test-discipline** — decision protocol cho mọi thứ experiment-shaped
+1. **wedge-discovery** — N=10 strangers gate (PG critical_pg_gate). Cái gì hoạt động trước.
+2. **build-loop** — ưu tiên hàng tuần + chu kỳ ship-rồi-lắng-nghe
+3. **feedback-pipeline** — NPS, cancel-flow, feedback in-product → lộ trình
+4. **pricing-experiments** — pricing-pull test, thử nghiệm ranh giới tier
+5. **ab-test-discipline** — giao thức quyết định cho mọi thứ có dạng thử nghiệm
 
 ## SOPs
 
-`sops/SOP-PRODUCT-NNN-<slug>/` — 12 SOPs scaffolded. Phase 5 implements:
-- `SOP-PRODUCT-001-cofounder-usage-analysis` — leverages existing N=2 cofounder data immediately
+`sops/SOP-PRODUCT-NNN-<slug>/` — 12 SOP đã được dựng khung. Phase 5 triển khai:
+- `SOP-PRODUCT-001-cofounder-usage-analysis` — tận dụng dữ liệu N=2 cofounder hiện có ngay lập tức
 
 ## Agents
 
-- `product-orchestrator` (home) — weekly product review, feature prioritization
-- `feedback-aggregator` (cross-cuts with `05-customer/feedback-and-research`) — pulls từ tất cả feedback sources
-- `wedge-detector` (under `wedge-discovery`) — analyzes usage data cho 1-3 sticky features
+- `product-orchestrator` (home) — đánh giá sản phẩm hàng tuần, ưu tiên tính năng
+- `feedback-aggregator` (cắt ngang với `05-customer/feedback-and-research`) — kéo từ tất cả các nguồn feedback
+- `wedge-detector` (dưới `wedge-discovery`) — phân tích dữ liệu sử dụng cho 1-3 tính năng dính chặt
 
-## KPIs owned
+## KPI sở hữu
 
-(Surfaced in `10-metrics/kpi-registry/`.)
+(Được hiển thị tại `10-metrics/kpi-registry/`.)
 
-- Weekly active users (WAU)
-- Magic moment completion rate (= aha moment percent)
-- Feature usage distribution (17 activity types — which get used)
-- Time-to-first-value (TTFV) — signup → first aha
-- "Very disappointed without Ritsu %" by feature (PMF signal disaggregated)
+- Người dùng hoạt động hàng tuần (WAU)
+- Tỷ lệ hoàn thành khoảnh khắc kỳ diệu (= phần trăm aha moment)
+- Phân bổ sử dụng tính năng (17 loại hoạt động — cái nào được sử dụng)
+- Thời gian-đến-giá-trị-đầu-tiên (TTFV) — signup → aha đầu tiên
+- "Very disappointed without Ritsu %" theo tính năng (tín hiệu PMF được phân tách)
 
-## Dependencies
+## Phụ thuộc
 
-- **Composes from:** `00-charter/product.md` (canonical positioning), `02-sales/modules/pricing-tiers/` (pricing surface for experiments)
-- **Composed by:** `03-gtm/funnel-orchestration/` (consumes wedge-discovery output), `05-customer/feedback-and-research/` (feeds back upstream)
+- **Composes from:** `00-charter/product.md` (định vị chuẩn mực), `02-sales/modules/pricing-tiers/` (bề mặt giá cho thử nghiệm)
+- **Composed by:** `03-gtm/funnel-orchestration/` (tiêu thụ output wedge-discovery), `05-customer/feedback-and-research/` (phản hồi ngược dòng)
 
 ## Critical PG gate
 
-`SOP-PRODUCT-002-stranger-recruit-and-watch` là canonical N=10 strangers gate: **no major feature build proceeds without observed (not surveyed) usage từ 10 strangers (not cofounders, not friends).**
+`SOP-PRODUCT-002-stranger-recruit-and-watch` là N=10 strangers gate chuẩn mực: **không có việc build tính năng lớn nào được tiến hành mà không có usage được quan sát (không phải khảo sát) từ 10 người lạ (không phải cofounder, không phải bạn bè).**
 
 ## HITL baseline
 
-- Feature prioritization weekly review: Tier B
-- New experiment launch: Tier C
-- Pricing experiment with public surface change: Tier C (per HITL.md)
-- New SOP added: Tier C
+- Đánh giá ưu tiên tính năng hàng tuần: Tier B
+- Khởi động thử nghiệm mới: Tier C
+- Thử nghiệm giá có thay đổi bề mặt công khai: Tier C (theo HITL.md)
+- SOP mới được thêm: Tier C
 
-## Entry conditions
+## Điều kiện vào (entry conditions)
 
-Already DEEP. No promotion needed. After PMF, có thể add `05-platform-and-extensibility` sub-pillar if API access becomes sticky product surface.
+Đã DEEP. Không cần thăng cấp. Sau PMF, có thể thêm sub-pillar `05-platform-and-extensibility` nếu API access trở thành bề mặt sản phẩm dính chặt.

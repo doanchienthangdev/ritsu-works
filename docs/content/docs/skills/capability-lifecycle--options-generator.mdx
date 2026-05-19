@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:30:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,69 +19,69 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Khi nào sử dụng
 
-- Sau Phase 3 `gap-analysis.md` exists.
-- State = `architecting`.
+- Sau khi Phase 3 đã có `gap-analysis.md`.
+- Trạng thái = `architecting`.
 
-## Inputs
+## Đầu vào
 
 - `capability_id`
 - `problem_path`, `domain_analysis_path`, `gap_analysis_path`
 - `routing_source` — `knowledge/cla-routing-keywords.yaml`
-- `cost_history_window` — 90 ngày past
+- `cost_history_window` — 90 ngày trước đây
 
-## Quá trình
+## Quy trình
 
-### Step 1 — Generate 3-5 options
+### Bước 1 — Tạo 3-5 phương án
 
-Pure organic, pure paid, mostly automation, heavy external, combination.
+Hoàn toàn hữu cơ, hoàn toàn trả phí, chủ yếu tự động hóa, dựa nhiều vào bên ngoài, kết hợp.
 
-### Step 2 — Per-option analysis
+### Bước 2 — Phân tích từng phương án
 
-Approach, components, costs, time, complexity, risk, reversibility, decision tier.
+Cách tiếp cận, thành phần, chi phí, thời gian, độ phức tạp, rủi ro, khả năng đảo ngược, mức tier ra quyết định.
 
-### Step 3 — CxO parallel poll
+### Bước 3 — Khảo sát CxO song song
 
-Top 2 options, ≤ 3 chiefs mỗi.
+Top 2 phương án, không quá 3 chiefs mỗi phương án.
 
-### Step 4 — Synthesize
+### Bước 4 — Tổng hợp
 
-Append cabinet review, revise recommendation strength.
+Thêm phần đánh giá của nội các, điều chỉnh độ mạnh của khuyến nghị.
 
-### Step 5 — Write options.md
+### Bước 5 — Viết options.md
 
-Template với options, matrix, recommendation.
+Mẫu gồm các phương án, ma trận, khuyến nghị.
 
-### Step 6 — HITL Tier B
+### Bước 6 — HITL Tier B
 
-Founder picks via AskUserQuestion.
+Founder chọn qua AskUserQuestion.
 
-### Step 7 — Persist state
+### Bước 7 — Lưu trạng thái
 
-UPDATE ops.capability_runs.
+Cập nhật ops.capability_runs.
 
-## Outputs
+## Đầu ra
 
 - `.archives/cla/<id>/options.md`
-- 1 `ops.hitl_runs` row + ≤ 7 `ops.cost_attributions` rows
+- 1 bản ghi `ops.hitl_runs` + không quá 7 bản ghi `ops.cost_attributions`
 
-## State transition
+## Chuyển trạng thái
 
-`architecting` (Phase 5 vẫn architecting).
+`architecting` (Phase 5 vẫn ở architecting).
 
 ## HITL
 
 **Tier B**.
 
-## Failure modes
+## Chế độ thất bại
 
-Cost history empty, cabinet poll unreachable, founder picks "Iterate" twice.
+Lịch sử chi phí trống, không gọi được khảo sát nội các, founder chọn "Iterate" hai lần.
 
-## Cost estimate
+## Ước tính chi phí
 
-- ~$0.50-1.50 mỗi invocation
-- Founder time: 30-60 min
+- ~$0.50-1.50 mỗi lần gọi
+- Thời gian của founder: 30-60 phút
 - Cost-bucket: `ai-ops-cla`
 
 ---
 
-Next: `architect` (Phase 5) ở `create`/`revise` modes.
+Tiếp theo: `architect` (Phase 5) ở chế độ `create`/`revise`.

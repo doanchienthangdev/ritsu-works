@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -25,10 +25,10 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 - Founder chạy `/docs publish`
 - Founder chạy `/docs nav`
 - Founder chạy `/docs update <area>`
-- Scheduled `docs-drift-nightly` cron
-- Agent gọi `mcp__docs__ask` (v1.1 feature)
+- Cron `docs-drift-nightly` theo lịch
+- Agent gọi `mcp__docs__ask` (tính năng v1.1)
 
-## Sub-skill routing
+## Định tuyến sub-skill
 
 | Verb | Dispatches to | HITL |
 |---|---|---|
@@ -39,37 +39,37 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 | `nav` | `docs-engine/nav` | A |
 | `update` | `docs-engine/update` | A |
 
-## Adapter routing
+## Định tuyến adapter
 
-9 adapters cho source kinds:
+9 adapter cho các loại source:
 - skill, agent, hook, command, charter, governance, pillar-readme, sop-flow, tier1-yaml
 
 ## Outputs
 
-- MDX files dưới `docs/content/`
-- `docs/content/meta.json` updates
-- `ops.agent_runs` row
-- `ops.events` row
-- `ops.kpi_snapshots` row
+- File MDX dưới `docs/content/`
+- `docs/content/meta.json` được cập nhật
+- Một dòng trong `ops.agent_runs`
+- Một dòng trong `ops.events`
+- Một dòng trong `ops.kpi_snapshots`
 
-## State
+## Trạng thái
 
-Stateless w.r.t. capability.
+Stateless về mặt capability.
 
 ## HITL
 
-Per verb. Default Tier A; `publish` Tier B.
+Theo verb. Mặc định Tier A; `publish` Tier B.
 
 ## Failure modes
 
-Drift trước sync, secret leak, hand-edit conflict, adapter failure.
+Trôi dạt trước sync, lộ secret, xung đột chỉnh sửa thủ công, adapter fail.
 
-## Cost estimate
+## Ước tính cost
 
 - Cost-bucket: `ai-ops-docs`
-- Per-task-kind caps: scaffold $0.50, sync $1.00, nav $0.10, check $0, publish varies
-- Monthly: $30
+- Cap theo task-kind: scaffold $0.50, sync $1.00, nav $0.10, check $0, publish thay đổi
+- Hàng tháng: $30
 
 ---
 
-See: `.claude/commands/docs.md`, `SOP-AIOPS-003-docs-sync`, `wiki-sync` pattern.
+Xem: `.claude/commands/docs.md`, `SOP-AIOPS-003-docs-sync`, pattern `wiki-sync`.

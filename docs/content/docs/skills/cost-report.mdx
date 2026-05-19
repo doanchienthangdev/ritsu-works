@@ -1,6 +1,6 @@
 ---
 title: 'Skill: cost-report'
-description: Cost breakdown + unit economics reporting
+description: Phân tích báo cáo cost + unit economics
 source_path: 06-ai-ops/skills/cost-report/SKILL.md
 source_hash: 990a3639e02e56a154e74802aa50eb6d6906583042bbe614c41eabf5d8160e96
 generated_at: '2026-05-19T05:20:46.348Z'
@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -17,19 +17,19 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 # Cost Report
 
-> Skill turns rows của `ops.cost_attributions` thành Telegram message founder reads ở 15 seconds.
+> Skill biến các dòng của `ops.cost_attributions` thành tin nhắn Telegram mà founder đọc trong 15 giây.
 
 ## Khi nào sử dụng
 
-Ba trigger contexts:
+Ba context kích hoạt:
 
 1. **Founder hỏi về cost.** `/cost`, `/cost monthly`, `/cost per-ticket`
-2. **Monthly digest generation.** `monthly-learning-review` Economics section
-3. **Optimization review prep.** `cost-optimization-review` skill
+2. **Tạo digest hàng tháng.** Mục Economics của `monthly-learning-review`
+3. **Chuẩn bị review tối ưu.** Skill `cost-optimization-review`
 
 ## Inputs
 
-| Input | Type | Required |
+| Input | Kiểu | Bắt buộc |
 |---|---|---|
 | `mode` | string | yes |
 | `period` | string | conditional |
@@ -40,44 +40,44 @@ Ba trigger contexts:
 
 ## Modes
 
-- `summary` — top-level overview
-- `by_role` — per-role breakdown
-- `by_task_kind` — unit economics per task
-- `unit_economics` — cost-per-output metrics
-- `health_score` — composite health
-- `budget_status` — per-role vs cap
-- `time_series` — trends
+- `summary` — tổng quan cấp cao nhất
+- `by_role` — phân tích theo từng role
+- `by_task_kind` — unit economics cho mỗi task
+- `unit_economics` — chỉ số cost-per-output
+- `health_score` — sức khỏe tổng hợp
+- `budget_status` — theo role so với cap
+- `time_series` — xu hướng
 
 ## Outputs
 
-YAML, Telegram-formatted, hoặc markdown.
+YAML, được định dạng cho Telegram, hoặc markdown.
 
-## Procedure
+## Quy trình
 
-### Step 1 — Validate inputs
+### Bước 1 — Validate inputs
 
-### Step 2 — Run primary query
+### Bước 2 — Chạy primary query
 
-Per mode.
+Theo mode.
 
-### Step 3 — Compute health score
+### Bước 3 — Tính health score
 
-Weighted formula.
+Công thức có trọng số.
 
-### Step 4 — Format output
+### Bước 4 — Định dạng output
 
-Per format.
+Theo format.
 
-### Step 5 — Log
+### Bước 5 — Ghi log
 
 ops.agent_runs.
 
-## Cost estimate
+## Ước tính cost
 
-- 1-3 SQL queries
-- \< $0.01 per invocation
-- Founder uses ~2-5x/day = $1.50/month
+- 1-3 SQL query
+- \< $0.01 mỗi lần gọi
+- Founder sử dụng ~2-5 lần/ngày = $1.50/tháng
 
 ---
 
-Related: `cost-optimization-review`.
+Liên quan: `cost-optimization-review`.

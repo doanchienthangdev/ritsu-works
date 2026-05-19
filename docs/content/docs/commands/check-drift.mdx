@@ -9,7 +9,7 @@ source_path: .claude/commands/check-drift.md
 source_hash: c4f09f027dc05fe1164ebf5e4842fb5b201512d11dfc0def955614232d47f800
 generated_at: '2026-05-19T05:20:46.399Z'
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: 2026-05-19T15:00:00Z
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 generated_by: docs-engine v1.1.0
 category: command
@@ -21,60 +21,59 @@ language: vi
 
 # /check-drift
 
-Project-scoped command for ritsu-works. Runs the Cross-Tier Consistency Engine
-that was built across PRs #1, #3, #4, #5, #6, #7, #8, #9 (see git log + main).
+Lệnh phạm vi dự án dành cho ritsu-works. Chạy Cross-Tier Consistency Engine
+đã được xây dựng qua các PR #1, #3, #4, #5, #6, #7, #8, #9 (xem git log + main).
 
-## What it does
+## Lệnh này làm gì
 
-This is the on-demand version of the same checks that already run automatically:
-- **L1** — every `git commit` (via `.husky/pre-commit`)
-- **L2** — every PR/push (via `.github/workflows/cross-tier-consistency.yml`)
-- **L3** — every night at 03:00 UTC (via `pg_cron` once enabled, see runbook)
+Đây là phiên bản theo yêu cầu của cùng các check đã tự động chạy:
+- **L1** — mỗi `git commit` (qua `.husky/pre-commit`)
+- **L2** — mỗi PR/push (qua `.github/workflows/cross-tier-consistency.yml`)
+- **L3** — mỗi đêm lúc 03:00 UTC (qua `pg_cron` khi đã bật, xem runbook)
 
-Use this command when you want to verify state *right now* without committing,
-or when you want to trigger the L3 live-DB sweep instead of waiting for 03:00.
+Sử dụng lệnh này khi bạn muốn xác minh trạng thái *ngay bây giờ* mà không commit,
+hoặc khi bạn muốn kích hoạt L3 live-DB sweep thay vì đợi đến 03:00.
 
-## Modes
+## Các chế độ
 
-| Invocation | Scope | Time | Cost |
+| Cách gọi | Phạm vi | Thời gian | Chi phí |
 |---|---|---|---|
-| `/check-drift` | L1 + 3 critical L2 (manifest↔DB, skills↔tables, schedules↔registry) | ~3s | $0 |
-| `/check-drift --full` | + 2 warn-tier validators (ROLES.md, HITL.md heuristic) | ~5s | $0 |
-| `/check-drift --remote` | full + invokes ritsu-ops L3 sweep + waits 75s + queries result | ~80s | ~$0 |
+| `/check-drift` | L1 + 3 L2 quan trọng (manifest↔DB, skills↔tables, schedules↔registry) | ~3s | $0 |
+| `/check-drift --full` | + 2 validator mức cảnh báo (ROLES.md, HITL.md heuristic) | ~5s | $0 |
+| `/check-drift --remote` | full + gọi L3 sweep ritsu-ops + đợi 75s + truy vấn kết quả | ~80s | ~$0 |
 
-## How to invoke
+## Cách gọi
 
-Run the underlying pnpm script in the project root:
+Chạy pnpm script bên dưới tại thư mục gốc dự án:
 
 ```bash
-pnpm check               # default mode
-pnpm check:full          # adds warn-tier
-pnpm check:remote        # triggers L3 (needs DISPATCHER_SECRET + SUPABASE_ACCESS_TOKEN locally)
+pnpm check               # chế độ mặc định
+pnpm check:full          # thêm warn-tier
+pnpm check:remote        # kích hoạt L3 (cần DISPATCHER_SECRET + SUPABASE_ACCESS_TOKEN cục bộ)
 ```
 
-Then summarize the output for the user in clear bullets:
-- For each section (L1, L2 critical, L2 warn if --full, L3 if --remote):
-  - List each check as ✓ clean OR ✗ FAIL OR ⚠ warn
-  - For any failure, surface the first 1-2 lines of the validator's error message
-- At the end: state the overall verdict (ALL CLEAN / N CRITICAL drift / N WARN drift)
-- Exit code 0 = clean, 1 = critical drift (CI-blocking), 3 = warn-only, 2 = script error
+Sau đó tóm tắt output cho người dùng bằng các bullet rõ ràng:
+- Cho mỗi section (L1, L2 critical, L2 warn nếu --full, L3 nếu --remote):
+  - Liệt kê mỗi check là ✓ sạch HOẶC ✗ FAIL HOẶC ⚠ warn
+  - Với mỗi failure, hiển thị 1-2 dòng đầu của thông báo lỗi của validator
+- Cuối cùng: nêu kết luận tổng thể (ALL CLEAN / N CRITICAL drift / N WARN drift)
+- Exit code 0 = sạch, 1 = critical drift (chặn CI), 3 = chỉ warn, 2 = lỗi script
 
-## When to recommend running
+## Khi nào nên đề xuất chạy
 
-- User just edited `knowledge/manifest.yaml`, `knowledge/cross-tier-invariants.yaml`,
-  or `knowledge/schedules.yaml` → suggest `pnpm check` before commit
-- User added a new migration → suggest `pnpm check` to verify manifest entry exists
-- User added a new skill → suggest `pnpm check` (catches schedule references)
-- User wants to verify live DB matches repo → suggest `pnpm check:remote`
+- Người dùng vừa chỉnh `knowledge/manifest.yaml`, `knowledge/cross-tier-invariants.yaml`,
+  hoặc `knowledge/schedules.yaml` → gợi ý `pnpm check` trước commit
+- Người dùng vừa thêm migration mới → gợi ý `pnpm check` để xác minh entry manifest tồn tại
+- Người dùng vừa thêm skill mới → gợi ý `pnpm check` (bắt schedule references)
+- Người dùng muốn xác minh live DB khớp với repo → gợi ý `pnpm check:remote`
 
-## Defensive notes
+## Lưu ý phòng vệ
 
-- `--remote` reads secrets from `runtime/secrets/.env.local` (DISPATCHER_SECRET,
-  SUPABASE_ANON_KEY) and `/Users/doanchienthang/omg/ritsu/apps/web/.env.local`
-  (SUPABASE_ACCESS_TOKEN). If these are not present, the script falls back to
-  dispatcher-only mode and tells the user to verify in Supabase Studio.
-- The command does NOT auto-fix drift. It reports. Manual fix or wait for v1.1
-  drift-fix-proposer (currently dormant — requires `GITHUB_CONSISTENCY_BOT_TOKEN`).
-- Project-scoped: this command only exists when Claude Code is opened inside
-  ritsu-works. Source: `.claude/commands/check-drift.md` (committed to repo).
-
+- `--remote` đọc secrets từ `runtime/secrets/.env.local` (DISPATCHER_SECRET,
+  SUPABASE_ANON_KEY) và `/Users/doanchienthang/omg/ritsu/apps/web/.env.local`
+  (SUPABASE_ACCESS_TOKEN). Nếu không có, script chuyển sang chế độ chỉ dispatcher
+  và bảo người dùng xác minh trong Supabase Studio.
+- Lệnh KHÔNG tự động sửa drift. Nó chỉ báo cáo. Sửa thủ công hoặc đợi v1.1
+  drift-fix-proposer (hiện đang ngủ — cần `GITHUB_CONSISTENCY_BOT_TOKEN`).
+- Phạm vi dự án: lệnh này chỉ tồn tại khi Claude Code được mở bên trong
+  ritsu-works. Nguồn: `.claude/commands/check-drift.md` (commit vào repo).

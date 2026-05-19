@@ -18,7 +18,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -27,38 +27,38 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 # wiki-sync / audit (Sprint 4 PR6 + Sprint 4 v3.0 update)
 
-## When to use
+## Khi nào sử dụng
 
-- Founder runs `/wiki audit` (Tier A) → comprehensive report
-- Founder runs `/wiki audit --fix` (Tier B per PR) → audit + opens one PR per defect class
-- CI runs `scripts/cross-tier/validate-wiki-integrity.cjs` (warn-tier) → deterministic-subset check on every PR
+- Founder chạy `/wiki audit` (Tier A) → báo cáo toàn diện
+- Founder chạy `/wiki audit --fix` (Tier B mỗi PR) → audit + mở một PR cho mỗi defect class
+- CI chạy `scripts/cross-tier/validate-wiki-integrity.cjs` (warn-tier) → kiểm tra deterministic-subset trên mỗi PR
 
-## Inputs
+## Đầu vào
 
-- `--fix` — optional; for each defect class with ≥ 1 instance, open a remediation PR
-- `--sample-pct` — optional; LLM stale-claim sample size (default 10%; cap at 50%)
-- `--skip-llm` — optional; skip the stale-claim check (faster, free)
-- `--filter=<page_type>` — optional; scope all checks to one page_type
+- `--fix` — tùy chọn; cho mỗi defect class có ≥ 1 instance, mở một PR remediation
+- `--sample-pct` — tùy chọn; kích thước mẫu LLM stale-claim (mặc định 10%; tối đa 50%)
+- `--skip-llm` — tùy chọn; bỏ qua check stale-claim (nhanh hơn, miễn phí)
+- `--filter=<page_type>` — tùy chọn; giới hạn tất cả check vào một page_type
 
-## Process (5 v2.0 checks + 4 v3.0 checks = 9 total)
+## Quy trình (5 check v2.0 + 4 check v3.0 = 9 tổng)
 
 ### Check 1 — Hash drift (deterministic)
 
-For every `ops.knowledge_pages` row WHERE `file_hash IS NOT NULL`:
-- Read the wiki file at `wiki/<file_path>`
-- Compute current `sha256(file_content)`
-- Compare to DB's `file_hash`
-- Flag drift if hashes differ
+Với mỗi dòng `ops.knowledge_pages` WHERE `file_hash IS NOT NULL`:
+- Đọc file wiki tại `wiki/<file_path>`
+- Tính `sha256(file_content)` hiện tại
+- So sánh với `file_hash` trong DB
+- Đánh dấu drift nếu hash khác
 
-**Common causes:**
-- Founder hand-edited the page (`<!-- generated-by: wiki-sync vN -->` marker still present → unintentional edit on a generated page)
-- Founder hand-edited a generated page AND removed the marker → DELIBERATE override; not a defect
-- File regenerated via `/wiki sync --force` without DB updated → bug; reconcile
+**Nguyên nhân thường gặp:**
+- Founder edit trang bằng tay (marker `<!-- generated-by: wiki-sync vN -->` vẫn có → edit không cố ý trên trang được generate)
+- Founder edit trang được generate bằng tay VÀ xóa marker → override CÓ CHỦ Ý; không phải defect
+- File được regenerate qua `/wiki sync --force` mà không update DB → bug; cần đối chiếu
 
-**Disposition:**
-- If marker present + drift → flag as "untracked_edit_to_generated_page"
-- If marker absent + drift → not a defect (founder owns this page now)
-- If file missing entirely → see Check 4
+**Xử lý:**
+- Nếu có marker + có drift → đánh dấu là "untracked_edit_to_generated_page"
+- Nếu không có marker + có drift → không phải defect (founder làm chủ trang này)
+- Nếu thiếu file hoàn toàn → xem Check 4
 
 ### Check 2 — Orphan links (deterministic)
 
@@ -69,49 +69,49 @@ SELECT id, source_page_id, link_type, source_text, extracted_from_section
    AND target_page_id IS NULL;
 ```
 
-Each result = a `[[type/slug]]` reference whose target hasn't been created yet. Not necessarily a defect (founder may intend to create it later) — but tracked for retroactive cross-reference once the target lands.
+Mỗi kết quả = một tham chiếu `[[type/slug]]` mà target chưa được tạo. Không nhất thiết là defect (founder có thể dự định tạo sau) — nhưng được theo dõi để cross-reference hồi tố khi target xuất hiện.
 
-**Disposition:**
-- Group by `target_slug_extracted_from_source_text`
-- Report: "N links point to \<target>, which doesn't exist yet"
-- `--fix` mode: open a PR with stub `wiki/<source-slug>/<type>s/<target>.md` files containing a TODO comment (v4.0 source-grouped layout — `--fix` needs source context from the link's `source_page_id`'s `extracted_from_source_id` chain to pick the right package; orphan stubs cannot be placed without a source context, so links lacking traceable source-slug are flagged for founder rather than auto-stubbed)
+**Xử lý:**
+- Group theo `target_slug_extracted_from_source_text`
+- Báo cáo: "N links point to \<target>, which doesn't exist yet"
+- Chế độ `--fix`: mở PR với các file stub `wiki/<source-slug>/<type>s/<target>.md` chứa comment TODO (layout v4.0 source-grouped — `--fix` cần source context từ chuỗi `extracted_from_source_id` của `source_page_id` của link để chọn đúng package; các stub orphan không thể đặt nếu không có source context, nên các link thiếu source-slug có thể truy vết được sẽ được flag cho founder thay vì auto-stub)
 
-**v4.0 exclusion:** `wiki/_index/` is excluded from orphan-link target resolution. `_index/` pages are reverse-lookup link-lists regenerated by the `wiki-sync/index-rebuild` skill from `ops.knowledge_pages` + `ops.knowledge_extractions`; they are DERIVATIVE, not canonical entity stores. A `[[concept/wedge]]` link does NOT resolve to `wiki/_index/concept/wedge.md` — it resolves to the per-package canonical pages under `wiki/<source-slug>/concepts/wedge.md`. Audit walks `_index/` files for hash-drift purposes only (regenerated output integrity), not orphan resolution.
+**Loại trừ v4.0:** `wiki/_index/` được loại trừ khỏi giải pháp target orphan-link. Các trang `_index/` là link-list reverse-lookup được regenerate bởi skill `wiki-sync/index-rebuild` từ `ops.knowledge_pages` + `ops.knowledge_extractions`; chúng là DERIVATIVE, không phải nơi lưu canonical entity. Một link `[[concept/wedge]]` KHÔNG resolve về `wiki/_index/concept/wedge.md` — nó resolve về các trang canonical per-package tại `wiki/<source-slug>/concepts/wedge.md`. Audit walk các file `_index/` chỉ cho mục đích hash-drift (tính toàn vẹn của output được regenerate), không phải resolve orphan.
 
 ### Check 3 — Dead URLs (network)
 
-For every page WHERE `source_kind = 'article'` AND `source_ref LIKE 'http%'`:
-- HTTP HEAD against `source_ref`
-- 30s timeout per URL; max 10 concurrent
-- Flag if response code is 4xx OR 5xx OR request fails (DNS, timeout)
-- Skip if response is 2xx OR 3xx
+Với mỗi trang WHERE `source_kind = 'article'` AND `source_ref LIKE 'http%'`:
+- HTTP HEAD đến `source_ref`
+- Timeout 30s mỗi URL; tối đa 10 concurrent
+- Đánh dấu nếu mã response là 4xx HOẶC 5xx HOẶC request fail (DNS, timeout)
+- Bỏ qua nếu response 2xx HOẶC 3xx
 
-**Cost:** free (network only); ~1 minute for 100 URLs at 10 concurrent.
+**Chi phí:** miễn phí (chỉ network); ~1 phút cho 100 URLs ở mức 10 concurrent.
 
-**Disposition:**
-- `--fix` mode: open a PR adding `dead_url: true` to the page's frontmatter + a `<!-- dead-url-detected: <date>; was: <code> -->` comment
-- Founder can decide: re-ingest from a wayback snapshot, replace with archive.org URL, or mark page deprecated
+**Xử lý:**
+- Chế độ `--fix`: mở PR thêm `dead_url: true` vào frontmatter của trang + comment `<!-- dead-url-detected: <date>; was: <code> -->`
+- Founder có thể quyết định: re-ingest từ wayback snapshot, thay bằng URL archive.org, hoặc đánh dấu trang deprecated
 
-### Check 4 — File missing on disk (deterministic)
+### Check 4 — File missing trên disk (deterministic)
 
-For every `ops.knowledge_pages` row:
-- Check that `wiki/<file_path>` exists on disk
-- Flag if missing
+Với mỗi dòng `ops.knowledge_pages`:
+- Kiểm tra `wiki/<file_path>` có tồn tại trên disk
+- Đánh dấu nếu thiếu
 
-**Common causes:**
-- Founder deleted the file directly without using `/wiki` command
-- Filesystem corruption / git merge conflict left a stub
-- Migration moved the file but DB wasn't updated
+**Nguyên nhân thường gặp:**
+- Founder xóa file trực tiếp mà không dùng lệnh `/wiki`
+- Filesystem corruption / git merge conflict để lại stub
+- Migration di chuyển file nhưng DB chưa update
 
-**Disposition:**
-- `--fix` mode: founder confirms either "regenerate from source_ref" (re-run /wiki sync) or "delete the orphan DB row"
-- Report includes both options + the source_ref so founder can choose
+**Xử lý:**
+- Chế độ `--fix`: founder xác nhận "regenerate from source_ref" (chạy lại /wiki sync) hoặc "delete the orphan DB row"
+- Báo cáo bao gồm cả hai lựa chọn + source_ref để founder chọn
 
-### Check 5 — Stale-claim sample (LLM; off by default)
+### Check 5 — Mẫu stale-claim (LLM; mặc định tắt)
 
-For a random N% of pages (default 10%; capped at 50%):
-- Fetch the page's body + the original source_ref content (re-fetch if URL; re-read if file)
-- Send both to Claude Haiku with prompt:
+Với N% trang ngẫu nhiên (mặc định 10%; tối đa 50%):
+- Fetch body của trang + nội dung source_ref gốc (re-fetch nếu URL; re-read nếu file)
+- Gửi cả hai đến Claude Haiku với prompt:
   ```
   You are auditing whether a wiki page's claims still match its source ref.
 
@@ -130,17 +130,17 @@ For a random N% of pages (default 10%; capped at 50%):
 
   If unsure, set confidence < 0.6 and return empty stale_claims.
   ```
-- Flag pages with `claims_consistent: false AND confidence > 0.6`
+- Đánh dấu trang có `claims_consistent: false AND confidence > 0.6`
 
-**Cost:** ~$0.005/page (Haiku is cheap). For 100 pages × 10% sample = 10 evaluations = ~$0.05.
+**Chi phí:** ~$0.005/trang (Haiku rẻ). Cho 100 trang × 10% sample = 10 đánh giá = ~$0.05.
 
-**Disposition:**
-- `--fix` mode: open a PR with frontmatter `stale_claims_detected: <date>` + body comment listing each stale claim
-- Founder reviews + manually corrects OR re-runs `/wiki sync --force` to regenerate from current source
+**Xử lý:**
+- Chế độ `--fix`: mở PR với frontmatter `stale_claims_detected: <date>` + comment body liệt kê từng stale claim
+- Founder review + sửa thủ công HOẶC chạy lại `/wiki sync --force` để regenerate từ source hiện tại
 
 ### Check 6 — Distillation completeness (v3.0 — deterministic)
 
-For every `ops.knowledge_pages` row WHERE `extracted_from_source_id IS NULL` AND `legacy_v2_verbatim = false` AND `source_kind IS NOT NULL` AND `deleted_at IS NULL` (i.e., source RECORD pages from v3.0-era ingests):
+Với mỗi dòng `ops.knowledge_pages` WHERE `extracted_from_source_id IS NULL` AND `legacy_v2_verbatim = false` AND `source_kind IS NOT NULL` AND `deleted_at IS NULL` (tức các trang source RECORD từ các ingest thời v3.0):
 
 ```sql
 SELECT id, slug, source_kind, source_ref, created_at,
@@ -153,13 +153,13 @@ SELECT id, slug, source_kind, source_ref, created_at,
    AND NOT EXISTS (SELECT 1 FROM ops.knowledge_extractions WHERE source_page_id = ops.knowledge_pages.id);
 ```
 
-Each result = a source page that has NO derived entities. Possible causes:
-- Distill skill produced 0 entities above confidence threshold (low-quality source OR distill prompt mis-tuned)
-- Distill skill was skipped (`--verbatim` flag) — NOT a defect; expected if frontmatter shows `legacy_v2_verbatim=false AND distill_mode='verbatim'` (TODO add field)
-- Distill run failed mid-pipeline and source RECORD was committed without entities (defect)
+Mỗi kết quả = một trang source KHÔNG có derived entity nào. Nguyên nhân khả dĩ:
+- Skill distill sản sinh 0 entity trên ngưỡng confidence (source chất lượng thấp HOẶC prompt distill chưa tune)
+- Skill distill bị skip (flag `--verbatim`) — KHÔNG phải defect; mong đợi nếu frontmatter hiển thị `legacy_v2_verbatim=false AND distill_mode='verbatim'` (TODO thêm field)
+- Distill run fail giữa pipeline và source RECORD đã commit mà không có entity (defect)
 
-**Disposition:**
-- `--fix` mode: open PR with frontmatter flag `distillation_pending=true` + Telegram heads-up "Source X has 0 derived entities; run /wiki sync --force or skip if intentional"
+**Xử lý:**
+- Chế độ `--fix`: mở PR với cờ frontmatter `distillation_pending=true` + Telegram heads-up "Source X has 0 derived entities; run /wiki sync --force or skip if intentional"
 
 ### Check 7 — Citation integrity (v3.0 — deterministic)
 
@@ -175,20 +175,20 @@ SELECT kp.id, kp.slug, kp.page_type, kp.extracted_from_source_id
    );
 ```
 
-Each result = a derived entity page WITHOUT a corresponding `knowledge_extractions` row. This is a CITATION DISCIPLINE FAILURE — the entity exists but cannot trace back to its source chunk.
+Mỗi kết quả = một trang derived entity KHÔNG có dòng `knowledge_extractions` tương ứng. Đây là LỖI KỶ LUẬT CITATION — entity tồn tại nhưng không thể truy ngược về source chunk của nó.
 
-Possible causes:
-- Distill skill INSERT'd knowledge_pages row but transaction rolled back before knowledge_extractions INSERT (partial write)
-- Schema bug: a downstream operation deleted the extraction without soft-deleting the derived page
+Nguyên nhân khả dĩ:
+- Skill distill INSERT dòng knowledge_pages nhưng transaction rollback trước khi INSERT knowledge_extractions (partial write)
+- Bug schema: một thao tác downstream xóa extraction mà không soft-delete trang derived
 
-**Disposition:**
-- `--fix` mode: this is the load-bearing v3.0 invariant. Open Tier B PR proposing: (a) hard-delete the orphan derived page (cleanest), OR (b) attempt to recreate the extraction by re-running distill on the source if possible. Founder picks.
+**Xử lý:**
+- Chế độ `--fix`: đây là invariant load-bearing của v3.0. Mở PR Tier B đề xuất: (a) hard-delete trang derived orphan (sạch nhất), HOẶC (b) thử tạo lại extraction bằng cách chạy lại distill trên source nếu có thể. Founder chọn.
 
-Also enforced by `validate-wiki-integrity.cjs` v0.2 in DB mode (D4 invariant).
+Cũng được enforce bởi `validate-wiki-integrity.cjs` v0.2 ở chế độ DB (invariant D4).
 
 ### Check 8 — Dedup consistency (v3.0 — LLM-augmented)
 
-For each `page_type` IN `concept` / `observation` / `decision` / `idea`:
+Với mỗi `page_type` IN `concept` / `observation` / `decision` / `idea`:
 
 ```sql
 WITH pairs AS (
@@ -207,19 +207,19 @@ WITH pairs AS (
 SELECT * FROM pairs WHERE cosine_similarity > 0.92;
 ```
 
-Each result = a pair of derived entity pages that SHOULD have been merged by `wiki-sync/dedup` but weren't. Possible causes:
-- Dedup skill ran when one of the pair didn't have embeddings yet (deferred state); never re-ran after backfill
-- Dedup skill threshold mis-tuned
+Mỗi kết quả = một cặp trang derived entity LẼ RA phải được merge bởi `wiki-sync/dedup` nhưng không được merge. Nguyên nhân khả dĩ:
+- Skill dedup chạy khi một trong hai trang chưa có embedding (trạng thái deferred); không bao giờ chạy lại sau backfill
+- Ngưỡng skill dedup chưa tune chuẩn
 
-**Disposition:**
-- `--fix` mode: queue each pair into `wiki-sync/review` queue (page-level `review_state='pending_review'` + `pending_merge_candidate_id` frontmatter hint)
-- Founder runs `/wiki review` to confirm/reject each merge
+**Xử lý:**
+- Chế độ `--fix`: đưa từng cặp vào queue `wiki-sync/review` (gợi ý frontmatter ở mức trang: `review_state='pending_review'` + `pending_merge_candidate_id`)
+- Founder chạy `/wiki review` để confirm/reject từng merge
 
-Also enforced by `validate-wiki-integrity.cjs` v0.2 in DB mode (D6 invariant).
+Cũng được enforce bởi `validate-wiki-integrity.cjs` v0.2 ở chế độ DB (invariant D6).
 
-### Check 9 — A11 attribution discipline (v3.0 — deterministic + LLM-light)
+### Check 9 — Kỷ luật ghi nhận nguồn A11 (v3.0 — deterministic + LLM-light)
 
-a) Every source RECORD page MUST have `license_status` frontmatter:
+a) Mọi trang source RECORD PHẢI có frontmatter `license_status`:
 ```sql
 SELECT id, slug, source_kind FROM ops.knowledge_pages
  WHERE extracted_from_source_id IS NULL
@@ -230,7 +230,7 @@ SELECT id, slug, source_kind FROM ops.knowledge_pages
      OR frontmatter->>'license_status' NOT IN ('public_domain', 'creative_commons', 'fair_use_excerpt', 'copyrighted_internal_only'));
 ```
 
-b) No `copyrighted_internal_only` source has > 5 unreviewed extractions of type observation:
+b) Không có source `copyrighted_internal_only` nào có > 5 extraction loại observation chưa được review:
 ```sql
 SELECT sp.id, sp.slug, COUNT(*) AS unreviewed_obs_count
   FROM ops.knowledge_pages sp
@@ -242,62 +242,61 @@ SELECT sp.id, sp.slug, COUNT(*) AS unreviewed_obs_count
 HAVING COUNT(*) > 5;
 ```
 
-**Disposition:**
-- `--fix` (a): prompt founder per source via AskUserQuestion to set license_status
-- `--fix` (b): Telegram heads-up "Source X has N unreviewed observations; review before any public content uses them" — escalates to `attribution-watcher` skill (Sprint 4)
+**Xử lý:**
+- `--fix` (a): prompt founder mỗi source qua AskUserQuestion để set license_status
+- `--fix` (b): Telegram heads-up "Source X has N unreviewed observations; review before any public content uses them" — leo thang sang skill `attribution-watcher` (Sprint 4)
 
-## Output: `.archives/wiki-audits/<YYYY-MM-DD>.md`
+## Đầu ra: `.archives/wiki-audits/<YYYY-MM-DD>.md`
 
-Per-defect details in Markdown table form. Summary header shows total findings per check + total cost. Linked to `ops.agent_runs` row via `triggered_by_id`.
+Chi tiết per-defect ở dạng bảng Markdown. Phần header tóm tắt tổng số findings mỗi check + tổng chi phí. Liên kết tới dòng `ops.agent_runs` qua `triggered_by_id`.
 
 ## HITL
 
-- Tier A for read-only audit (no --fix)
-- Tier B per PR for `--fix` (one PR per defect class)
-- Tier B if `--sample-pct > 25` (cost concern; cap at $0.50)
+- Tier A cho audit read-only (không --fix)
+- Tier B mỗi PR cho `--fix` (một PR mỗi defect class)
+- Tier B nếu `--sample-pct > 25` (lo ngại chi phí; cap $0.50)
 
-## Failure modes
+## Các chế độ lỗi
 
-| Symptom | Response |
+| Triệu chứng | Phản ứng |
 |---|---|
-| `wiki/` folder missing | Bail "no wiki to audit" |
-| `OPENAI_API_KEY/ANTHROPIC_API_KEY` missing AND --skip-llm not set | Skip Check 5 with warning; complete other 4 |
-| Network errors on Check 3 | Mark URLs as `unreachable`; retry once after 5 min |
-| pgvector or embeddings table missing | Skip Check 5 (it needs to call LLM, not embeddings); proceed |
+| Folder `wiki/` thiếu | Bail "no wiki to audit" |
+| `OPENAI_API_KEY/ANTHROPIC_API_KEY` thiếu AND --skip-llm chưa set | Bỏ qua Check 5 với cảnh báo; hoàn tất 4 check còn lại |
+| Lỗi mạng ở Check 3 | Đánh dấu URL là `unreachable`; retry một lần sau 5 phút |
+| Bảng pgvector hoặc embeddings thiếu | Bỏ qua Check 5 (nó cần gọi LLM, không phải embeddings); tiếp tục |
 
-## Cost
+## Chi phí
 
-| Mode | Per audit on 100-page wiki |
+| Mode | Mỗi audit trên wiki 100 trang |
 |---|---|
 | Default (--skip-llm) | $0 |
-| With Check 5 default sample (10%) | ~$0.05 |
-| With Check 5 full (--sample-pct=50) | ~$0.25 |
+| Với Check 5 default sample (10%) | ~$0.05 |
+| Với Check 5 full (--sample-pct=50) | ~$0.25 |
 
-Per-task-kind cap from SOP-INGEST-001 README: `wiki-audit` = $0.50 / invocation.
+Cap per-task-kind từ README SOP-INGEST-001: `wiki-audit` = $0.50 / lần gọi.
 
-## Acceptance criterion (Sprint 4 promotion target)
+## Tiêu chí chấp nhận (mục tiêu promotion Sprint 4)
 
-Per spec v2 §0 success criterion (inherited from v1.0 problem.md):
-- Catches ≥ 95% of seeded defects on `tests/wiki-sync/fixtures/audit-corpus/` (10 orphan + 10 dead + 10 stale plants) — fixture creation deferred to test-fixtures PR
-- False-positive rate ≤ 5% on clean control corpus
-- Total runtime ≤ 5 minutes for a 100-page wiki
+Theo spec v2 §0 success criterion (kế thừa từ problem.md v1.0):
+- Bắt được ≥ 95% defect đã seed trên `tests/wiki-sync/fixtures/audit-corpus/` (10 orphan + 10 dead + 10 stale plants) — tạo fixture được hoãn sang PR test-fixtures
+- Tỷ lệ false-positive ≤ 5% trên corpus control sạch
+- Tổng runtime ≤ 5 phút cho wiki 100 trang
 
-## CI integration
+## Tích hợp CI
 
-Companion L2 warn-tier validator at `scripts/cross-tier/validate-wiki-integrity.cjs` runs on every PR (when `pnpm check --full`). It implements the DETERMINISTIC subset (Checks 1, 2, 4) without needing network or LLM access:
-- Hash drift detection
-- Orphan link count (warns if > 0)
-- File-missing-on-disk detection
-- Frontmatter presence on auto-generated pages
+Validator L2 warn-tier kèm theo tại `scripts/cross-tier/validate-wiki-integrity.cjs` chạy trên mỗi PR (khi `pnpm check --full`). Nó triển khai phần con DETERMINISTIC (Check 1, 2, 4) mà không cần truy cập mạng hoặc LLM:
+- Phát hiện hash drift
+- Đếm orphan link (cảnh báo nếu > 0)
+- Phát hiện file-missing-on-disk
+- Sự hiện diện của frontmatter trên các trang auto-generated
 
-Network-bound Check 3 and LLM-bound Check 5 are interactive-only (would slow PRs unacceptably + need network/key access in CI). The L2 validator is sufficient to catch broken filesystem ↔ DB invariants before they compound.
+Check 3 cần network và Check 5 cần LLM chỉ chạy ở chế độ interactive (sẽ làm chậm PR không chấp nhận được + cần truy cập network/key trong CI). Validator L2 đủ để bắt các invariant filesystem ↔ DB bị hỏng trước khi chúng tích tụ.
 
-## Related
+## Liên quan
 
-- L2 validator: `scripts/cross-tier/validate-wiki-integrity.cjs` (this PR)
-- Audit reports: `.archives/wiki-audits/<YYYY-MM-DD>.md` (gitignored; `.gitkeep` init in PR6+)
-- Feature flag (Check 5): `wiki_sync_llm_fallback` in `knowledge/feature-flags.yaml` (off in v2.0)
+- L2 validator: `scripts/cross-tier/validate-wiki-integrity.cjs` (PR này)
+- Audit reports: `.archives/wiki-audits/<YYYY-MM-DD>.md` (gitignored; `.gitkeep` init trong PR6+)
+- Feature flag (Check 5): `wiki_sync_llm_fallback` trong `knowledge/feature-flags.yaml` (tắt ở v2.0)
 - Parent: `06-ai-ops/skills/wiki-sync/SKILL.md`
-- Test fixtures (deferred): `tests/wiki-sync/fixtures/audit-corpus/`
-- Command: `.claude/commands/wiki.md` `/wiki audit` subcommand
-
+- Test fixtures (hoãn): `tests/wiki-sync/fixtures/audit-corpus/`
+- Command: subcommand `/wiki audit` của `.claude/commands/wiki.md`

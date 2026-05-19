@@ -1,6 +1,6 @@
 ---
 title: 'Skill: dependency-scanner'
-description: Scans capabilities for reverse dependencies
+description: Quét các capability để tìm các phụ thuộc ngược
 source_path: 06-ai-ops/skills/capability-lifecycle/dependency-scanner/SKILL.md
 source_hash: bc310188da5a5ba5e3f79449a985083dc6de78a2165a08f52db5c82a7303ba90
 generated_at: '2026-05-19T05:20:46.336Z'
@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,58 +19,58 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Khi nào sử dụng
 
-- `/cla extend <id>` Phase 3 — informational
-- `/cla deprecate <id>` Phase 3 — mandatory blocker
-- `@cla deps <id>` — read-only query
+- `/cla extend <id>` Phase 3 — mang tính thông tin
+- `/cla deprecate <id>` Phase 3 — bắt buộc, có thể chặn
+- `@cla deps <id>` — truy vấn chỉ đọc
 
-## Inputs
+## Đầu vào
 
 - `target_capability_id`
 - `mode` — `extend` | `deprecate` | `query`
 
-## Quá trình — DETERMINISTIC
+## Quá trình — XÁC ĐỊNH (DETERMINISTIC)
 
-### Step 1 — Enumerate spec.md files
+### Bước 1 — Liệt kê các file spec.md
 
-Find tất cả wiki/capabilities/*/spec.md.
+Tìm tất cả wiki/capabilities/*/spec.md.
 
-### Step 2 — Scan references
+### Bước 2 — Quét các tham chiếu
 
-Tìm target_capability_id trong mỗi spec.
+Tìm target_capability_id trong từng spec.
 
-### Step 3 — Cross-reference registry
+### Bước 3 — Đối chiếu với registry
 
-Kiểm tra `knowledge/capability-registry.yaml` dependencies block.
+Kiểm tra khối dependencies trong `knowledge/capability-registry.yaml`.
 
-### Step 4 — Filter by state
+### Bước 4 — Lọc theo trạng thái
 
-Active, inactive, in-flight dependents.
+Các capability phụ thuộc đang hoạt động, không hoạt động, đang triển khai.
 
-### Step 5 — Detect circular
+### Bước 5 — Phát hiện vòng lặp (circular)
 
-Recursively check cho cycles.
+Kiểm tra đệ quy để tìm các chu trình.
 
-### Step 6 — Output dependency-impact.md
+### Bước 6 — Xuất dependency-impact.md
 
-Markdown report với verdicts.
+Báo cáo markdown kèm theo kết luận (verdict).
 
-## Outputs
+## Đầu ra
 
 - `.archives/cla/<target_capability_id>-{mode}/dependency-impact.md`
-- `ops.events` row
+- Một dòng trong `ops.events`
 
 ## HITL
 
 Tier A.
 
-## Failure modes
+## Các chế độ thất bại
 
-Unparseable files, unreachable DB, circular detected.
+File không thể phân tích cú pháp, DB không thể truy cập, phát hiện vòng lặp circular.
 
-## Cost estimate
+## Ước lượng chi phí
 
-$0 (deterministic).
+$0 (xác định).
 
 ---
 
-Used by: `SOP-AIOPS-001-extend/flow.yaml`, `SOP-AIOPS-001-deprecate/flow.yaml`.
+Được sử dụng bởi: `SOP-AIOPS-001-extend/flow.yaml`, `SOP-AIOPS-001-deprecate/flow.yaml`.

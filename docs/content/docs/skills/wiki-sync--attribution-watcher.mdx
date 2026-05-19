@@ -15,7 +15,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -24,38 +24,38 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 # wiki-sync / attribution-watcher (v3.0)
 
-## When this skill runs
+## Khi nào skill này chạy
 
-- Background: triggered by `ops.events` rows of `event_type IN ('ritsu.file_edit_01_marketing', 'ritsu.file_edit_02_sales')` (these events are emitted by a file-watcher background process; see Wiring section below).
-- Reactive: founder may explicitly invoke `/wiki attribution-check <content-file>` (Sprint 4+ — not in v3.0.0 first PR).
+- Background: được kích hoạt bởi các dòng `ops.events` có `event_type IN ('ritsu.file_edit_01_marketing', 'ritsu.file_edit_02_sales')` (các sự kiện này được phát ra bởi tiến trình file-watcher chạy nền; xem mục Wiring bên dưới).
+- Reactive: founder có thể gọi rõ ràng `/wiki attribution-check <content-file>` (Sprint 4+ — không có trong PR đầu của v3.0.0).
 
-## Purpose (Muse M2 / axis A11)
+## Mục đích (Muse M2 / axis A11)
 
-When the founder writes content in `01-marketing/` or `02-sales/`, that content may paraphrase distilled observations from copyrighted sources (`license_status='copyrighted_internal_only'`). If >= 3 observations from a single copyrighted source feed into one content piece, the resulting public content may:
-- Cross the substantiality line of fair use
-- Require explicit attribution (which the founder may forget)
+Khi founder viết nội dung trong `01-marketing/` hoặc `02-sales/`, nội dung đó có thể diễn giải lại (paraphrase) các observation đã được distill từ những nguồn có bản quyền (`license_status='copyrighted_internal_only'`). Nếu >= 3 observation từ cùng một nguồn có bản quyền cùng cấp dữ liệu cho một bài nội dung, kết quả công khai có thể:
+- Vượt qua ranh giới substantiality của fair use
+- Yêu cầu ghi nhận nguồn rõ ràng (mà founder có thể quên)
 
-This skill catches that pattern PRE-PUBLISH and surfaces it to founder via Telegram heads-up. Founder either:
-- Adds explicit attribution to the content (and ignores future alerts for this pair)
-- Removes some of the paraphrased observations
-- Re-frames content to be more original (less direct paraphrase)
+Skill này phát hiện pattern đó TRƯỚC KHI XUẤT BẢN và đưa nó tới founder qua heads-up trên Telegram. Founder sẽ chọn một trong các hành động:
+- Thêm ghi nhận nguồn rõ ràng vào nội dung (và bỏ qua các cảnh báo tương lai cho cặp này)
+- Bỏ bớt một số observation đã paraphrase
+- Viết lại nội dung cho nguyên bản hơn (ít paraphrase trực tiếp hơn)
 
-## Inputs (event-driven)
+## Đầu vào (event-driven)
 
-When a `01-marketing/` or `02-sales/` file edit event fires:
-- `content_file_path` — the edited file
-- `edit_timestamp` — when edit happened
-- `edit_diff_summary` — `git diff` of new content vs prior commit (file-watcher captures)
+Khi một sự kiện edit file `01-marketing/` hoặc `02-sales/` được phát:
+- `content_file_path` — file vừa được edit
+- `edit_timestamp` — thời điểm edit xảy ra
+- `edit_diff_summary` — `git diff` của nội dung mới so với commit trước (file-watcher chụp lại)
 
-## Outputs
+## Đầu ra
 
-- Tier B Telegram message to founder when threshold (3+ obs from copyrighted_internal_only source) crossed
-- One `ops.events` row per alert (`ritsu.wiki.attribution_alert`)
-- `ops.cost_attributions` row (cost = $0 — DB queries + Telegram bot)
+- Tin nhắn Telegram Tier B đến founder khi vượt ngưỡng (3+ obs từ nguồn copyrighted_internal_only)
+- Một dòng `ops.events` cho mỗi cảnh báo (`ritsu.wiki.attribution_alert`)
+- Một dòng `ops.cost_attributions` (chi phí = $0 — chỉ truy vấn DB + bot Telegram)
 
-## Process
+## Quy trình
 
-### Step 1 — Find recent /wiki ask invocations correlated with this edit
+### Bước 1 — Tìm các lần gọi /wiki ask gần đây tương quan với edit này
 
 ```sql
 SELECT
@@ -69,9 +69,9 @@ WHERE ar.agent_slug = 'wiki-sync/ask'
 ORDER BY ar.completed_at DESC;
 ```
 
-If 0 results → no correlation; this edit was written without `/wiki ask` lookup. Skip (attribution-watcher only fires when content was likely informed by wiki retrieval).
+Nếu 0 kết quả → không có tương quan; edit này được viết mà không có tra cứu `/wiki ask`. Bỏ qua (attribution-watcher chỉ kích hoạt khi nội dung có khả năng đã được thông tin bởi truy xuất wiki).
 
-### Step 2 — For each correlated /wiki ask, count copyrighted observations cited
+### Bước 2 — Với mỗi /wiki ask tương quan, đếm số observation có bản quyền được cite
 
 ```sql
 WITH cited_entities AS (
@@ -96,9 +96,9 @@ copyrighted_sources AS (
 SELECT * FROM copyrighted_sources WHERE observation_count >= 3;
 ```
 
-### Step 3 — Fire Telegram heads-up if threshold met
+### Bước 3 — Gửi heads-up Telegram nếu vượt ngưỡng
 
-For each row in Step 2:
+Cho mỗi dòng ở Bước 2:
 
 ```
 ⚠️ Attribution heads-up — wiki-sync v3.0
@@ -115,9 +115,9 @@ content piece either:
 If you want to mute future alerts for this content+source pair, reply MUTE.
 ```
 
-Founder reply options handled by `hitl-router` skill (per `governance/HITL.md` Tier B).
+Các lựa chọn phản hồi của founder được xử lý bởi skill `hitl-router` (theo `governance/HITL.md` Tier B).
 
-### Step 4 — Log event
+### Bước 4 — Ghi event
 
 ```sql
 INSERT INTO ops.events (event_type, source, payload)
@@ -136,62 +136,61 @@ VALUES (
 );
 ```
 
-## Wiring (operational notes)
+## Wiring (ghi chú vận hành)
 
-This skill needs a file-watcher background process emitting `ops.events` rows when `01-marketing/` or `02-sales/` files change. Options:
+Skill này cần một tiến trình file-watcher chạy nền phát các dòng `ops.events` khi các file `01-marketing/` hoặc `02-sales/` thay đổi. Các lựa chọn:
 
-**v3.0.0 (Sprint 4): manual trigger only.**
-Skill is implemented + tested but the file-watcher event emitter is NOT yet wired. Founder explicitly invokes via:
+**v3.0.0 (Sprint 4): chỉ kích hoạt thủ công.**
+Skill được triển khai + kiểm thử nhưng emitter sự kiện của file-watcher CHƯA được wire. Founder gọi rõ ràng qua:
 ```
 /wiki attribution-check <content-file>
 ```
-This runs Steps 1-4 against the founder-specified file as if it had just been edited.
+Lệnh này chạy Bước 1-4 với file do founder chỉ định, như thể nó vừa được edit.
 
-**v3.0.5 (future): cron-driven scan.**
-Daily cron at 18:00 ICT runs `git log --since="24 hours ago" --name-only -- 01-marketing/ 02-sales/` and feeds each file into Steps 1-4. Catches edits done outside Claude Code sessions.
+**v3.0.5 (tương lai): quét theo cron.**
+Cron hằng ngày lúc 18:00 ICT chạy `git log --since="24 hours ago" --name-only -- 01-marketing/ 02-sales/` và đưa từng file vào Bước 1-4. Phát hiện các edit được thực hiện ngoài session Claude Code.
 
-**v3.1 (future): real-time file-watcher.**
-A long-running background process (fswatch or similar) emits events in real-time. Most expensive option; only worth it if v3.0.0 + v3.0.5 prove inadequate.
+**v3.1 (tương lai): file-watcher thời gian thực.**
+Một tiến trình background chạy lâu dài (fswatch hoặc tương tự) phát events thời gian thực. Lựa chọn tốn kém nhất; chỉ đáng làm nếu v3.0.0 + v3.0.5 chứng minh là chưa đủ.
 
-## License-status discipline
+## Kỷ luật license-status
 
-For attribution-watcher to fire correctly, every distilled source MUST have `license_status` set on its source RECORD frontmatter. Distill skill (Step 1 pre-flight) prompts founder via AskUserQuestion on first ingest of a source if frontmatter doesn't already declare it.
+Để attribution-watcher kích hoạt đúng, mọi distilled source PHẢI có `license_status` được set trên frontmatter của source RECORD của nó. Skill Distill (Bước 1 pre-flight) prompt founder qua AskUserQuestion khi ingest lần đầu một source nếu frontmatter chưa khai báo.
 
 Enum:
-- `public_domain` — no attribution required (e.g., government reports, expired-copyright works)
-- `creative_commons` — attribution required per CC license terms (already standard)
-- `fair_use_excerpt` — short quotation; safe for any v3.0 content
-- `copyrighted_internal_only` — proprietary; founder must NOT paraphrase publicly without explicit attribution agreement OR transformative re-framing
+- `public_domain` — không cần ghi nhận nguồn (ví dụ: báo cáo chính phủ, các tác phẩm hết bản quyền)
+- `creative_commons` — cần ghi nhận nguồn theo điều khoản CC license (đã là chuẩn)
+- `fair_use_excerpt` — trích dẫn ngắn; an toàn cho bất kỳ nội dung v3.0 nào
+- `copyrighted_internal_only` — độc quyền; founder KHÔNG được paraphrase công khai mà không có thỏa thuận ghi nhận nguồn rõ ràng HOẶC viết lại biến đổi
 
-Default if founder doesn't pick: `copyrighted_internal_only` (safer to over-warn than under-warn).
+Mặc định nếu founder không chọn: `copyrighted_internal_only` (an toàn hơn khi over-warn còn hơn under-warn).
 
-## HITL discipline
+## Kỷ luật HITL
 
-- **Tier B** when heads-up fires. Founder may MUTE per (content_file, source) pair.
-- Tier A for the scan itself (DB reads + Telegram bot call).
+- **Tier B** khi heads-up phát ra. Founder có thể MUTE theo cặp (content_file, source).
+- Tier A cho chính việc scan (đọc DB + gọi bot Telegram).
 
-## Cost
+## Chi phí
 
-- Per scan: ~$0 (DB queries + 1 Telegram message)
-- Per alert: ~$0 (no LLM)
-- Task_kind: `wiki-attribution-scan` (cap $0.05; rarely binding)
+- Mỗi lần scan: ~$0 (truy vấn DB + 1 tin nhắn Telegram)
+- Mỗi cảnh báo: ~$0 (không LLM)
+- Task_kind: `wiki-attribution-scan` (cap $0.05; hiếm khi binding)
 
-## Failure modes
+## Các chế độ lỗi
 
-| Symptom | Response |
+| Triệu chứng | Phản ứng |
 |---|---|
-| Source frontmatter missing `license_status` | Treat as `copyrighted_internal_only` (conservative); founder can override by editing the source page's frontmatter directly. |
-| `/wiki ask` was used but content NOT in 01-marketing/ or 02-sales/ (e.g., 04-product/ doc) | Out of scope for v3.0; v3.1 may expand monitored paths to 04-product/ and 06-ai-ops/. |
-| False-positive: founder paraphrased common-knowledge concept that happens to share words with copyrighted source | Founder MUTE response; logged for future tuning of correlation heuristic. |
+| Frontmatter của source thiếu `license_status` | Coi như `copyrighted_internal_only` (bảo thủ); founder có thể override bằng cách edit trực tiếp frontmatter của trang source. |
+| `/wiki ask` được dùng nhưng nội dung KHÔNG nằm trong 01-marketing/ hay 02-sales/ (ví dụ: doc trong 04-product/) | Ngoài phạm vi của v3.0; v3.1 có thể mở rộng các path được monitor sang 04-product/ và 06-ai-ops/. |
+| False-positive: founder paraphrase concept common-knowledge tình cờ trùng chữ với source có bản quyền | Founder phản hồi MUTE; được log để tuning heuristic tương quan trong tương lai. |
 
-## Related
+## Liên quan
 
-- Schema: `ops.knowledge_extractions` (sources observations from), `knowledge_pages.frontmatter::jsonb.license_status`
-- Producer of license_status: `wiki-sync/distill` Step 1 (founder prompt)
+- Schema: `ops.knowledge_extractions` (nguồn observation đến từ), `knowledge_pages.frontmatter::jsonb.license_status`
+- Producer của license_status: `wiki-sync/distill` Bước 1 (prompt founder)
 - HITL Tier B: governance/HITL.md
-- Falsifiability gate: spec.md §0 NIT M2
+- Cổng falsifiability: spec.md §0 NIT M2
 
-## Version
+## Phiên bản
 
-- **v0.1** (Sprint 4 of wiki-sync v3.0.0): manual `/wiki attribution-check` trigger. File-watcher wiring deferred to v3.0.5 (daily cron) or v3.1 (real-time).
-
+- **v0.1** (Sprint 4 của wiki-sync v3.0.0): trigger thủ công `/wiki attribution-check`. Wiring file-watcher hoãn sang v3.0.5 (cron hằng ngày) hoặc v3.1 (thời gian thực).

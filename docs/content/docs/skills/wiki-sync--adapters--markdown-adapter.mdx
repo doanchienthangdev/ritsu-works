@@ -12,45 +12,45 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
 
-# Markdown adapter (Sprint 1 baseline)
+# Markdown adapter (baseline Sprint 1)
 
-## When to use
+## Khi nào dùng
 
-- Dispatched by `wiki-sync/ingest` when path ends in `.md` or `.markdown`
+- Được điều phối bởi `wiki-sync/ingest` khi path kết thúc bằng `.md` hoặc `.markdown`
 - source_kind: `markdown_passthrough`
-- entity_type: read from file frontmatter `type:` (if absent → `concept`)
-- wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; the source RECORD always lives at `source.md` regardless of frontmatter `type:` field — derived entities extracted by `distill` land under sibling `concepts/`, `observations/`, `decisions/`, `ideas/` folders)
+- entity_type: đọc từ frontmatter `type:` của file (nếu vắng mặt → `concept`)
+- wiki target: `wiki/<slug>/source.md` (layout source-grouped v4.0; RECORD nguồn luôn sống tại `source.md` bất kể trường `type:` của frontmatter — các thực thể dẫn xuất được trích xuất bởi `distill` được đặt dưới các thư mục anh em `concepts/`, `observations/`, `decisions/`, `ideas/`)
 
 ## Inputs
 
-- `path` — absolute path under `raw/`
+- `path` — đường dẫn tuyệt đối dưới `raw/`
 
-## Process
+## Quy trình
 
-### Step 1 — Validate
+### Bước 1 — Validate
 
-- File exists? Else bail.
-- Extension `.md` or `.markdown`? Else delegate.
-- Size > 0? Else bail.
-- Size \< 5 MB? Else bail (manual split required).
-- Report `pages_or_size_metric = file_size_bytes`. v2.0 (Sprint 2 PR2): `wiki-sync/ingest` Step 5 dispatches to `wiki-sync/chapter-splitter` when `pages_or_size_metric > 25 KB` (or founder passes `--split=heading=h2`); splitter reads back this adapter's `raw_text` and runs the heading=h2 boundary detection on it.
+- File có tồn tại không? Nếu không, dừng lại.
+- Extension `.md` hoặc `.markdown`? Nếu không, ủy thác.
+- Kích thước > 0? Nếu không, dừng lại.
+- Kích thước \< 5 MB? Nếu không, dừng lại (cần split thủ công).
+- Báo cáo `pages_or_size_metric = file_size_bytes`. v2.0 (Sprint 2 PR2): `wiki-sync/ingest` Bước 5 điều phối đến `wiki-sync/chapter-splitter` khi `pages_or_size_metric > 25 KB` (hoặc founder truyền `--split=heading=h2`); splitter đọc lại `raw_text` của adapter này và chạy phát hiện ranh giới heading=h2 trên nó.
 
-### Step 2 — Compute source_hash
+### Bước 2 — Tính source_hash
 
 ```bash
 sha256sum "$path"
 ```
 
-### Step 3 — Parse YAML frontmatter
+### Bước 3 — Parse YAML frontmatter
 
-If file starts with `---\n` block:
+Nếu file bắt đầu bằng block `---\n`:
 ```yaml
 language: vi
 translated: true
@@ -69,19 +69,19 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 ```
 
-Parse via `js-yaml`. Extract `type`, `slug`, `title` for entity_type and slug suggestion. Carry remaining fields into `attribution`.
+Parse qua `js-yaml`. Trích xuất `type`, `slug`, `title` cho entity_type và gợi ý slug. Mang các trường còn lại vào `attribution`.
 
-If no frontmatter: default `entity_type='concept'`, slug from filename stem.
+Nếu không có frontmatter: mặc định `entity_type='concept'`, slug từ stem filename.
 
-### Step 4 — Synthesize raw_text
+### Bước 4 — Tổng hợp raw_text
 
-Strip the frontmatter block (if present). Return the body as `raw_text`.
+Loại bỏ block frontmatter (nếu có). Trả về body làm `raw_text`.
 
-### Step 5 — Slug + attribution
+### Bước 5 — Slug + attribution
 
-- Slug: frontmatter `slug:` first; else from filename stem.
-- Title: frontmatter `title:` first; else first `# Heading` in body; else from filename.
-- Attribution: frontmatter fields not in (`type`, `slug`, `title`).
+- Slug: ưu tiên `slug:` của frontmatter; nếu không thì từ stem filename.
+- Title: ưu tiên `title:` của frontmatter; nếu không thì `# Heading` đầu tiên trong body; nếu không thì từ filename.
+- Attribution: các trường frontmatter không thuộc (`type`, `slug`, `title`).
 
 ## Outputs
 
@@ -102,31 +102,30 @@ Strip the frontmatter block (if present). Return the body as `raw_text`.
 }
 ```
 
-## Failure modes
+## Các chế độ thất bại
 
-| Symptom | Response |
+| Triệu chứng | Phản ứng |
 |---|---|
-| File not found | Bail with absolute path |
-| Not Markdown (binary detected) | Bail; suggest correct adapter |
-| Invalid YAML frontmatter | Warn; treat file as no-frontmatter |
-| `type:` in frontmatter not in 14-type enum | Bail with valid types list |
-| File > 5 MB | Bail; ask founder to split first |
+| File không tìm thấy | Dừng lại với đường dẫn tuyệt đối |
+| Không phải Markdown (phát hiện binary) | Dừng lại; gợi ý adapter đúng |
+| YAML frontmatter không hợp lệ | Cảnh báo; xử lý file như không có frontmatter |
+| `type:` trong frontmatter không thuộc enum 14 loại | Dừng lại với danh sách type hợp lệ |
+| File > 5 MB | Dừng lại; yêu cầu founder split trước |
 
-## Cost estimate
+## Ước tính chi phí
 
-- Extraction: FREE (just file IO + yaml parse)
+- Trích xuất: MIỄN PHÍ (chỉ file IO + yaml parse)
 - Embedding (downstream): ~$0.001-$0.005 / file
-- LLM-fallback (downstream, if triggered): ~$0.05 / chunk
+- LLM-fallback (downstream, nếu được kích hoạt): ~$0.05 / chunk
 
-Total per Markdown file: ~$0.02-$0.05. Cheapest adapter.
+Tổng cho mỗi file Markdown: ~$0.02-$0.05. Adapter rẻ nhất.
 
-## Sprint scope
+## Phạm vi sprint
 
-Sprint 1: full implementation. Markdown is the simplest case — first acceptance test fixture uses this adapter (per spec.md Sprint 1 acceptance: "MD round-trip \< $0.10").
+Sprint 1: triển khai đầy đủ. Markdown là trường hợp đơn giản nhất — fixture acceptance test đầu tiên dùng adapter này (theo spec.md Sprint 1 acceptance: "MD round-trip \< $0.10").
 
-## Related
+## Liên quan
 
-- Parent: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md`
-- Tier 1 config: `knowledge/ingestion-sources.yaml` entry `markdown_passthrough`
-- Test fixture: `tests/wiki-sync/fixtures/sample.md` (created Sprint 1 for acceptance test)
-
+- Cha: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md`
+- Cấu hình Tier 1: entry `markdown_passthrough` của `knowledge/ingestion-sources.yaml`
+- Test fixture: `tests/wiki-sync/fixtures/sample.md` (tạo trong Sprint 1 cho acceptance test)

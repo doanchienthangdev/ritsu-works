@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:30:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,78 +19,78 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Khi nào sử dụng
 
-- Sau Phase 2 `domain-analysis.md` exists.
-- State = `analyzing`.
+- Sau khi Phase 2 đã có `domain-analysis.md`.
+- Trạng thái = `analyzing`.
 
-## Inputs
+## Đầu vào
 
 - `capability_id`
 - `problem_path` — `.archives/cla/<id>/problem.md`
 - `domain_analysis_path` — `.archives/cla/<id>/domain-analysis.md`
 
-## Quá trình — DETERMINISTIC
+## Quy trình — TẤT ĐỊNH
 
-### Step 1 — Run drift check
+### Bước 1 — Chạy kiểm tra trôi dạt
 
-`pnpm check` first.
+`pnpm check` trước tiên.
 
-### Step 2 — Enumerate skills
+### Bước 2 — Liệt kê skills
 
-Find `06-ai-ops/skills/*/SKILL.md`.
+Tìm `06-ai-ops/skills/*/SKILL.md`.
 
-### Step 3 — Enumerate SOPs
+### Bước 3 — Liệt kê SOPs
 
-Find `*/sops/*/flow.yaml`.
+Tìm `*/sops/*/flow.yaml`.
 
-### Step 4 — Enumerate Tier 1 yamls
+### Bước 4 — Liệt kê Tier 1 yamls
 
-List `knowledge/*.yaml`.
+Liệt kê `knowledge/*.yaml`.
 
-### Step 5 — Enumerate MCP servers
+### Bước 5 — Liệt kê MCP servers
 
-Read `mcp/servers.yaml`.
+Đọc `mcp/servers.yaml`.
 
-### Step 6 — Enumerate capabilities
+### Bước 6 — Liệt kê capabilities
 
-Query ops.capability_runs.
+Truy vấn ops.capability_runs.
 
-### Step 7 — Enumerate KPI snapshots
+### Bước 7 — Liệt kê KPI snapshots
 
-Last 7 days signals.
+Tín hiệu trong 7 ngày gần đây.
 
-### Step 8 — Match against problem
+### Bước 8 — Đối chiếu với vấn đề
 
-Reuse vs build matrix.
+Ma trận tái sử dụng hay xây mới.
 
-### Step 9 — Write gap-analysis.md
+### Bước 9 — Viết gap-analysis.md
 
-Template.
+Mẫu.
 
-### Step 10 — Persist state
+### Bước 10 — Lưu trạng thái
 
-UPDATE ops.capability_runs.
+Cập nhật ops.capability_runs.
 
-## Outputs
+## Đầu ra
 
 - `.archives/cla/<id>/gap-analysis.md`
-- No `ops.cost_attributions` (deterministic)
+- Không có `ops.cost_attributions` (tất định)
 
-## State transition
+## Chuyển trạng thái
 
 `analyzing → architecting`
 
 ## HITL
 
-Tier A. Auto-advance.
+Tier A. Tự động tiến tới.
 
-## Failure modes
+## Chế độ thất bại
 
-pnpm check non-zero, Supabase unreachable, servers.yaml missing.
+pnpm check trả về khác 0, không kết nối được Supabase, thiếu servers.yaml.
 
-## Cost estimate
+## Ước tính chi phí
 
-$0 (no LLM).
+$0 (không gọi LLM).
 
 ---
 
-Next: `options-generator` (Phase 4) ở `create`/`revise` modes.
+Tiếp theo: `options-generator` (Phase 4) ở chế độ `create`/`revise`.

@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: sop
 language: vi
 translated: true
-translated_at: '2026-05-19T12:30:00Z'
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -19,7 +19,7 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 **Cost bucket:** `ai-ops-knowledge`
 **Capability:** `wiki-sync-from-refs`
 
-## Invocation
+## Khởi gọi
 
 ```yaml
 invocation:
@@ -33,51 +33,51 @@ invocation:
     target: B
 ```
 
-## Steps
+## Các bước
 
-### Step 1_fetch — Fetch raw content
+### Bước 1_fetch — Lấy nội dung thô
 
 - **Kind:** minion
 - **Skill:** `wiki-sync/adapters/<adapter>`
 - **Timeout:** 120s
 - **On failure:** mark_state_failed
 
-### Step 2_dedup_check — Dedup against ingestion_jobs
+### Bước 2_dedup_check — Kiểm tra trùng lặp đối chiếu với ingestion_jobs
 
 - **Kind:** minion
 - **Skill:** `inline_sql`
 
-### Step 3_acquire_lock — Acquire advisory lock on (entity_type, slug)
+### Bước 3_acquire_lock — Lấy advisory lock trên (entity_type, slug)
 
 - **Kind:** minion
 - **Skill:** `inline_sql`
 
-### Step 4_chapter_split_if_needed — Detect and split oversized refs
+### Bước 4_chapter_split_if_needed — Phát hiện và tách các ref quá lớn
 
 - **Kind:** subagent
 - **Skill:** `wiki-sync/chapter-splitter`
 
-### Step 5_extract — Extract entities + concepts
+### Bước 5_extract — Trích xuất thực thể và khái niệm
 
 - **Kind:** subagent
 - **Skill:** `wiki-sync/adapters/<adapter>`
 
-### Step 6_entity_link — Auto-extract cross-references (regex first, LLM fallback)
+### Bước 6_entity_link — Tự động trích tham chiếu chéo (regex trước, LLM dự phòng)
 
 - **Kind:** hybrid
 - **Skill:** `wiki-sync/link-extractor`
 
-### Step 7_embed — Compute embeddings + write to knowledge_embeddings
+### Bước 7_embed — Tính embeddings và ghi vào knowledge_embeddings
 
 - **Kind:** minion
 - **Skill:** `inline_embed`
 
-### Step 8_write_wiki — Write Markdown to wiki/ + insert knowledge_pages row
+### Bước 8_write_wiki — Ghi Markdown vào wiki/ và chèn dòng knowledge_pages
 
 - **Kind:** minion
 - **Skill:** `inline_write`
 
-### Step 9_emit_events — Emit completion event + cost attribution
+### Bước 9_emit_events — Phát sự kiện hoàn tất và quy chi phí
 
 - **Kind:** minion
 - **Skill:** `inline_emit`

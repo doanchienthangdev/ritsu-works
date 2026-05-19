@@ -1,6 +1,6 @@
 ---
 title: 'Skill: version-bumper'
-description: Pure semver helper cho CLA update flows
+description: Trợ giúp semver thuần túy cho các luồng cập nhật CLA
 source_path: 06-ai-ops/skills/capability-lifecycle/version-bumper/SKILL.md
 source_hash: e1ffabde5728132f5cf74a28d0ac0484a3e4a95d70f897d33d35f630eab1f160
 generated_at: '2026-05-19T05:20:46.345Z'
@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
@@ -23,61 +23,61 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 - Phase 8 của `/cla extend` — minor++
 - Phase 8 của `/cla revise` — major++
 - Phase 8 của `/cla tune` — patch++
-- NOT used by `/cla deprecate`
+- KHÔNG được dùng bởi `/cla deprecate`
 
-## Inputs
+## Đầu vào
 
 - `capability_id`
 - `sub_flow` — `fix` | `extend` | `revise` | `tune`
 
-## Quá trình — DETERMINISTIC
+## Quá trình — XÁC ĐỊNH (DETERMINISTIC)
 
-### Step 1 — Read current version
+### Bước 1 — Đọc version hiện tại
 
 Từ `knowledge/capability-registry.yaml`.
 
-### Step 2 — Compute next version
+### Bước 2 — Tính version tiếp theo
 
-Parse và bump per rules.
+Phân tích cú pháp và thực hiện version bump theo các quy tắc.
 
-### Step 3 — Idempotency check
+### Bước 3 — Kiểm tra idempotency
 
-Verify no concurrent bump.
+Xác minh không có version bump nào đang chạy đồng thời.
 
-### Step 4 — Write version to registry
+### Bước 4 — Ghi version vào registry
 
-Edit registry, validate.
+Chỉnh sửa registry, xác thực.
 
-### Step 5 — Write version to ops
+### Bước 5 — Ghi version vào ops
 
 UPDATE ops.capability_runs.
 
-### Step 6 — Output
+### Bước 6 — Đầu ra
 
-Returns `{old, new, changed}`.
+Trả về `{old, new, changed}`.
 
-## Outputs
+## Đầu ra
 
-- Updated registry.yaml
-- Updated ops.capability_runs
-- No cost, no file
+- registry.yaml đã cập nhật
+- ops.capability_runs đã cập nhật
+- Không có chi phí, không có file
 
-## State transition
+## Chuyển trạng thái
 
-None directly.
+Không có trực tiếp.
 
 ## HITL
 
 Tier A.
 
-## Failure modes
+## Các chế độ thất bại
 
-Invalid version, missing version, idempotency conflict, yaml invalid.
+Version không hợp lệ, thiếu version, xung đột idempotency, yaml không hợp lệ.
 
-## Cost estimate
+## Ước lượng chi phí
 
 $0, \< 1s.
 
 ---
 
-Used by: `catalog-updater` Phase 8 của update sub-flows.
+Được sử dụng bởi: `catalog-updater` Phase 8 của các sub-flow cập nhật.

@@ -8,7 +8,7 @@ generated_by: docs-engine v1.1.0
 category: hook
 language: vi
 translated: true
-translated_at: '2026-05-19T13:00:00Z'
+translated_at: '2026-05-19T15:00:00Z'
 translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
@@ -17,27 +17,27 @@ translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 
 # Hook: pre-delegate-check
 
-> Watches session metrics (tool count, context size, intermediate output volume) and emits warnings when an agent should consider delegating to a subagent. **This hook never blocks** — it only flags.
+> Theo dõi các chỉ số phiên (số lượng tool call, kích thước context, khối lượng output trung gian) và phát ra cảnh báo khi một agent nên cân nhắc giao việc cho subagent. **Hook này không bao giờ chặn** — nó chỉ đánh dấu (flag).
 
-## What it does
+## Hook làm gì
 
-Observes counters during a session and returns:
+Quan sát các bộ đếm trong phiên và trả về:
 
-- `decision: allow` always
-- `log_extras.delegation_signal`: one of `none`, `consider`, `strongly-recommended`
-- `log_extras.signal_reason`: human-readable reason if signal != none
+- `decision: allow` luôn luôn
+- `log_extras.delegation_signal`: một trong các giá trị `none`, `consider`, `strongly-recommended`
+- `log_extras.signal_reason`: lý do dễ đọc nếu signal != none
 
-The agent's runtime is responsible for ACT on the signal — typically by checkpointing current work and invoking `task-decompose` skill, OR by simply continuing and accepting the cost.
+Runtime của agent chịu trách nhiệm HÀNH ĐỘNG dựa trên tín hiệu — thường bằng cách checkpoint công việc hiện tại và gọi skill `task-decompose`, HOẶC đơn giản là tiếp tục và chấp nhận chi phí.
 
-This hook is the soft-signal layer in `knowledge/orchestration-architecture.md` Axis 1. It complements (does not replace) the deterministic hard rules encoded in pillar orchestrators.
+Hook này là tầng tín hiệu mềm trong `knowledge/orchestration-architecture.md` Trục 1. Nó bổ sung (không thay thế) các luật cứng tất định được mã hóa trong các pillar orchestrator.
 
-## Why this is a hook, not a skill
+## Vì sao đây là hook, không phải skill
 
-A skill must be invoked. An agent in flow may forget. A hook runs on every tool call regardless. By making delegation pressure visible at the runtime layer, we catch cases where the agent's own judgment would have missed them.
+Một skill phải được gọi rõ ràng. Một agent đang trong dòng chảy công việc có thể quên. Một hook chạy trên mỗi tool call bất kể điều gì. Bằng cách làm cho áp lực giao việc trở nên hiển thị ở tầng runtime, ta bắt được các trường hợp mà khả năng phán đoán của chính agent có thể bỏ sót.
 
-This is the same pattern as `pre-edit-tier1` (also observation-based, also signals to the agent). Hook = ambient awareness. Skill = deliberate action.
+Đây là cùng một pattern với `pre-edit-tier1` (cũng dựa trên quan sát, cũng phát tín hiệu cho agent). Hook = nhận thức môi trường (ambient awareness). Skill = hành động có chủ ý.
 
-## Signal thresholds
+## Ngưỡng tín hiệu
 
 ```yaml
 signal_thresholds:
@@ -58,16 +58,16 @@ signal_thresholds:
     role_has_done_specialist_work_outside_its_pillar: true
 ```
 
-`current_context_tokens` is approximated by summing input tokens across the session's tool results plus the user/assistant message tokens.
+`current_context_tokens` được ước lượng bằng cách cộng các input token của tool result trong phiên cộng với các token tin nhắn user/assistant.
 
-`role's working_tokens` comes from `governance/ROLES.md` `context_budget.working_tokens` for the calling role.
+`role's working_tokens` lấy từ `governance/ROLES.md` `context_budget.working_tokens` cho role đang gọi.
 
-`intermediate_output_tokens_since_last_checkpoint` resets when:
-- Agent invokes `/compact`
-- Agent dispatches a subagent (delegating the next chunk)
-- A new task is started (different action_name from prior)
+`intermediate_output_tokens_since_last_checkpoint` được reset khi:
+- Agent gọi `/compact`
+- Agent dispatch một subagent (giao chunk tiếp theo)
+- Một task mới bắt đầu (khác action_name so với trước đó)
 
-## Decision logic
+## Logic ra quyết định
 
 ```
 function decide(payload):
@@ -123,87 +123,87 @@ function decide(payload):
   }
 ```
 
-## How the agent reacts
+## Agent phản ứng như thế nào
 
-When `delegation_signal == "consider"`, the runtime injects a brief note into the agent's next-step prompt:
+Khi `delegation_signal == "consider"`, runtime sẽ chèn một ghi chú ngắn vào prompt bước tiếp theo của agent:
 
 ```
 [orchestration hint] You have 8 tool calls in this session and context is 52% full. Consider invoking task-decompose to delegate remaining work to subagents per knowledge/orchestration-architecture.md.
 ```
 
-When `delegation_signal == "strongly_recommended"`, the note is more emphatic:
+Khi `delegation_signal == "strongly_recommended"`, ghi chú mang tính nhấn mạnh hơn:
 
 ```
 [orchestration alert] Session metrics indicate continued inline work will degrade quality. Recommended: checkpoint current progress to ops.tasks state_payload, invoke task-decompose for remaining work, then EITHER hand off to a subagent OR run /compact before continuing.
 ```
 
-The agent decides; the hook informs. Neither blocks.
+Agent quyết định; hook chỉ thông báo. Cả hai đều không chặn.
 
-## Special cases
+## Các trường hợp đặc biệt
 
-- **Agent is a subagent itself** — already in fresh context; signals fire later. Hook still observes but thresholds are typically not hit because subagents do narrower work. If a subagent IS hitting thresholds, that means decomposition was too coarse — log this for monthly review.
+- **Agent chính là subagent** — đã trong context tươi mới; tín hiệu sẽ kích hoạt sau. Hook vẫn quan sát nhưng các ngưỡng thường không bị chạm vì subagent làm việc hẹp hơn. Nếu một subagent ĐANG chạm ngưỡng, điều đó có nghĩa là việc decompose quá thô — log lại điều này cho việc rà soát hàng tháng.
 
-- **Role is `founder` (human)** — hook skipped entirely. Humans manage their own context.
+- **Role là `founder` (người)** — hook bỏ qua hoàn toàn. Con người tự quản lý context của mình.
 
-- **Role is `gps` orchestrator** — DIFFERENT thresholds: GPS's job is orchestration, so its tool_calls and context tend higher legitimately. Use:
-  - `consider` at tool_calls >= 12
-  - `strongly_recommended` at tool_calls >= 20
-  This is configured per-role in `governance/ROLES.md` `context_budget` (additional optional field `delegate_check_thresholds`).
+- **Role là orchestrator `gps`** — ngưỡng KHÁC: việc của GPS là orchestration, nên số tool_calls và context của nó thường cao hơn một cách hợp lý. Dùng:
+  - `consider` tại tool_calls >= 12
+  - `strongly_recommended` tại tool_calls >= 20
+  Cấu hình này theo từng role trong `governance/ROLES.md` `context_budget` (trường tùy chọn bổ sung `delegate_check_thresholds`).
 
-- **Hook itself errors** — fail-closed default would block. But this hook is informational, not safety-critical. Override: `fail_mode: open` for this hook specifically. Document in audit but do not block.
+- **Bản thân hook gặp lỗi** — mặc định fail-closed sẽ chặn. Nhưng hook này mang tính thông tin, không phải bảo mật quan trọng. Override: `fail_mode: open` riêng cho hook này. Ghi vào audit nhưng không chặn.
 
-  **Wait — this contradicts the SPEC.md default of fail-closed.** Let me reconsider:
+  **Khoan đã — điều này mâu thuẫn với mặc định fail-closed của SPEC.md.** Để tôi cân nhắc lại:
 
-  Actually, fail-closed IS appropriate here too. If the hook errors, the agent loses the orchestration signal — which is fine, agents can still proceed. But if we set `fail_mode: open`, hook errors silently propagate. Better: keep `fail_mode: closed` (block on hook error) but ensure hook logic is dead-simple and well-tested so errors are rare. The cost of an occasional false block is small (agent retries); the cost of silent-fail accumulation is real.
+  Thực ra, fail-closed CŨNG phù hợp ở đây. Nếu hook gặp lỗi, agent mất tín hiệu orchestration — điều đó ổn, agent vẫn có thể tiếp tục. Nhưng nếu ta đặt `fail_mode: open`, các lỗi hook lan truyền âm thầm. Tốt hơn: giữ `fail_mode: closed` (chặn khi hook lỗi) nhưng đảm bảo logic hook đơn giản tới mức tối đa và được test kỹ để lỗi hiếm xảy ra. Chi phí của một lần chặn nhầm thi thoảng là nhỏ (agent thử lại); chi phí của việc tích lũy lỗi âm thầm là thực.
 
-  **Decision: fail_mode: closed, but keep hook logic minimal (read metrics, threshold check, no external calls).**
+  **Quyết định: fail_mode: closed, nhưng giữ logic hook tối giản (đọc metrics, kiểm tra ngưỡng, không gọi bên ngoài).**
 
-## Test cases
+## Các trường hợp test
 
-| # | Scenario | Expected log_extras |
+| # | Tình huống | log_extras kỳ vọng |
 |---|---|---|
-| 1 | Fresh session, 1 tool call | `delegation_signal: none` |
-| 2 | 9 tool calls, context 30% | `consider` (tool count) |
-| 3 | 5 tool calls, context 55% | `consider` (context fill) |
+| 1 | Phiên mới, 1 tool call | `delegation_signal: none` |
+| 2 | 9 tool calls, context 30% | `consider` (số lượng tool) |
+| 3 | 5 tool calls, context 55% | `consider` (context đầy) |
 | 4 | 15 tool calls, context 80% | `strongly_recommended` |
-| 5 | gps role, 10 tool calls (under gps threshold of 12) | `none` |
-| 6 | gps role, 13 tool calls | `consider` |
-| 7 | growth-orchestrator doing content-drafter work | `strongly_recommended` (pillar mismatch) |
-| 8 | Subagent (parent_run_id present), 5 tool calls | `none` (lower thresholds for subs not implemented v1.0) |
-| 9 | After /compact triggered, counters reset | `none` (reset confirmed) |
-| 10 | Founder role | hook skipped |
-| 11 | Hook itself errors (e.g. role not found) | block (fail_closed); agent retries |
-| 12 | Intermediate output 4500 tokens | `consider` |
-| 13 | Intermediate output 7500 tokens | `strongly_recommended` |
+| 5 | role gps, 10 tool calls (dưới ngưỡng 12 của gps) | `none` |
+| 6 | role gps, 13 tool calls | `consider` |
+| 7 | growth-orchestrator đang làm việc của content-drafter | `strongly_recommended` (mismatch pillar) |
+| 8 | Subagent (có parent_run_id), 5 tool calls | `none` (ngưỡng thấp hơn cho subagent chưa triển khai v1.0) |
+| 9 | Sau khi /compact kích hoạt, các bộ đếm reset | `none` (xác nhận đã reset) |
+| 10 | Role founder | hook bỏ qua |
+| 11 | Bản thân hook lỗi (ví dụ role không tìm thấy) | chặn (fail_closed); agent thử lại |
+| 12 | Output trung gian 4500 tokens | `consider` |
+| 13 | Output trung gian 7500 tokens | `strongly_recommended` |
 
-## Performance notes
+## Ghi chú về hiệu năng
 
-- Reading session metrics from in-process counters: O(1)
-- Loading role config: cached (mtime check)
-- No DB queries — keep this hook fast
-- p95 latency target: \< 50ms (well within hook budget of 500ms)
+- Đọc metrics phiên từ bộ đếm in-process: O(1)
+- Tải role config: được cache (kiểm tra mtime)
+- Không truy vấn DB — giữ hook này nhanh
+- Mục tiêu độ trễ p95: \< 50ms (nằm gọn trong ngân sách hook 500ms)
 
-## Observability
+## Khả năng quan sát (observability)
 
-The `delegation_signal` field is logged to `ops.agent_runs.hook_events`. Monthly review aggregates:
+Trường `delegation_signal` được log vào `ops.agent_runs.hook_events`. Rà soát hàng tháng tổng hợp:
 
-- How often does each role hit `consider`?
-- How often does each role hit `strongly_recommended`?
-- When agents see signals, do they delegate? (compare signal events to subsequent task-decompose invocations)
+- Mỗi role chạm `consider` bao nhiêu lần?
+- Mỗi role chạm `strongly_recommended` bao nhiêu lần?
+- Khi agent thấy tín hiệu, chúng có giao việc không? (so sánh sự kiện signal với các lần gọi task-decompose tiếp theo)
 
-If a role consistently sees `strongly_recommended` and ignores it → that role's `working_tokens` budget is too low OR the role is taking on work outside its scope. Both signal a needed change to ROLES.md.
+Nếu một role liên tục thấy `strongly_recommended` và phớt lờ → ngân sách `working_tokens` của role đó quá thấp HOẶC role đó đang gánh việc ngoài phạm vi của mình. Cả hai đều báo hiệu cần thay đổi ROLES.md.
 
-## Calibration
+## Hiệu chỉnh (calibration)
 
-These thresholds (8/14, 50%/75%, 3K/6K) are starting values. After 4-8 weeks of `ops.agent_runs.hook_events` data:
+Các ngưỡng này (8/14, 50%/75%, 3K/6K) là giá trị khởi điểm. Sau 4-8 tuần dữ liệu `ops.agent_runs.hook_events`:
 
-- If `consider` signal is hit > 5x/day per role and agent delegates > 60% of the time → threshold is well-calibrated
-- If hit > 10x/day and delegate \< 30% → thresholds too aggressive; raise
-- If hit \< 1x/day and agents have visible context degradation → thresholds too lax; lower
+- Nếu tín hiệu `consider` xảy ra > 5 lần/ngày mỗi role và agent giao việc > 60% thời gian → ngưỡng được hiệu chỉnh tốt
+- Nếu xảy ra > 10 lần/ngày và giao việc \< 30% → ngưỡng quá khắt khe; nâng lên
+- Nếu xảy ra \< 1 lần/ngày và agent có dấu hiệu suy giảm context rõ rệt → ngưỡng quá lỏng; hạ xuống
 
-Recalibration is a Tier C PR to this hook spec.
+Việc hiệu chỉnh lại là PR Tier C cho spec hook này.
 
-## Implementation reference
+## Tham chiếu triển khai
 
 ```python
 def decide(payload):
@@ -259,5 +259,5 @@ def decide(payload):
 
 ---
 
-*An ambient signal in the right place beats a deliberate process the agent forgets to invoke. This hook is how Ritsu turns "you should have delegated" hindsight into "consider delegating now" foresight.*
+*Một tín hiệu môi trường đặt đúng chỗ thắng một quy trình có chủ đích mà agent quên gọi. Hook này là cách Ritsu biến cái nhìn lại "lẽ ra bạn nên đã giao việc" thành tầm nhìn xa "cân nhắc giao việc ngay bây giờ".*
 

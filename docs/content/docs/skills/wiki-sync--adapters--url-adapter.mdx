@@ -14,50 +14,50 @@ generated_by: docs-engine v1.1.0
 category: skill
 language: vi
 translated: true
-translated_at: 2026-05-19T13:00:00Z
+translated_at: "2026-05-19T15:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
 
-# URL adapter (Sprint 1 baseline)
+# URL adapter (baseline Sprint 1)
 
-## When to use
+## Khi nào dùng
 
-- Dispatched by `wiki-sync/ingest` when path starts with `http://` or `https://`
+- Được điều phối bởi `wiki-sync/ingest` khi path bắt đầu bằng `http://` hoặc `https://`
 - source_kind: `article`
 - entity_type: `article`
-- wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; derived entities extracted by `distill` land at `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, etc.)
+- wiki target: `wiki/<slug>/source.md` (layout source-grouped v4.0; các thực thể dẫn xuất được trích xuất bởi `distill` được đặt tại `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, v.v.)
 
 ## Inputs
 
 - `path` — URL (http/https)
 
-## Process
+## Quy trình
 
-### Step 1 — Validate URL
+### Bước 1 — Validate URL
 
-- URL parseable? Else bail.
-- Scheme http/https? Else bail.
-- Host not in blocklist (e.g., `localhost`, `127.0.0.1`, `169.254.169.254` (AWS metadata SSRF)).
+- URL có parse được không? Nếu không, dừng lại.
+- Scheme http/https? Nếu không, dừng lại.
+- Host không nằm trong blocklist (ví dụ, `localhost`, `127.0.0.1`, `169.254.169.254` (AWS metadata SSRF)).
 
-### Step 2 — Fetch HTML
+### Bước 2 — Lấy HTML
 
 ```bash
 curl -sL -A "ritsu-wiki-sync/1.0" -H "Accept: text/html" --max-time 30 "$url" -o /tmp/raw.html
 ```
 
 Capture:
-- HTTP status (must be 200; redirects auto-followed)
-- `ETag` header (for re-sync detection)
-- `Last-Modified` header (fallback for re-sync)
-- Final URL after redirects
+- HTTP status (phải là 200; redirect tự động được follow)
+- Header `ETag` (để phát hiện re-sync)
+- Header `Last-Modified` (fallback cho re-sync)
+- URL cuối cùng sau redirect
 
-### Step 3 — Compute source_hash
+### Bước 3 — Tính source_hash
 
 ```bash
-# Prefer ETag if present, else body hash
+# Ưu tiên ETag nếu có, nếu không thì hash body
 if [[ -n "$etag" ]]; then
   echo "etag:$etag"
 else
@@ -65,9 +65,9 @@ else
 fi
 ```
 
-### Step 4 — Readability extraction
+### Bước 4 — Trích xuất Readability
 
-Use `@mozilla/readability` (Node package; add to mcp-server deps OR a new wiki-sync helper package). Pseudocode:
+Dùng `@mozilla/readability` (package Node; thêm vào deps mcp-server HOẶC một package helper wiki-sync mới). Pseudocode:
 
 ```javascript
 import { Readability } from '@mozilla/readability';
@@ -79,9 +79,9 @@ const article = reader.parse();
 // { title, content (HTML), textContent, length, excerpt, byline, siteName, publishedTime }
 ```
 
-### Step 5 — HTML→Markdown
+### Bước 5 — HTML→Markdown
 
-Use `turndown` Node package (or similar):
+Dùng package Node `turndown` (hoặc tương tự):
 
 ```javascript
 import TurndownService from 'turndown';
@@ -89,10 +89,10 @@ const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' }
 const markdown = td.turndown(article.content);
 ```
 
-### Step 6 — Slug + attribution
+### Bước 6 — Slug + attribution
 
-- Slug: from article title → kebab-case, lowercase, strip punctuation, 50-char cap.
-  Fallback: from URL path tail.
+- Slug: từ title bài viết → kebab-case, chữ thường, loại bỏ dấu câu, giới hạn 50 ký tự.
+  Fallback: từ phần đuôi của URL path.
 - Attribution: \{ author: article.byline, publication: article.siteName, published_at: article.publishedTime, url }
 
 ## Outputs
@@ -117,40 +117,39 @@ const markdown = td.turndown(article.content);
 }
 ```
 
-## Failure modes
+## Các chế độ thất bại
 
-| Symptom | Response |
+| Triệu chứng | Phản ứng |
 |---|---|
-| URL unreachable / DNS fail | Bail with curl exit code |
-| Non-2xx HTTP status | Bail with status; suggest manual save → markdown adapter |
-| Readability finds no main content | Bail; suggest manual extraction |
-| Content \< 200 chars after extraction | Warn; flag low_quality |
-| URL blocked (SSRF host) | Bail with explicit security rejection |
+| URL không thể truy cập / DNS fail | Dừng lại với exit code của curl |
+| HTTP status không phải 2xx | Dừng lại với status; gợi ý save thủ công → markdown adapter |
+| Readability không tìm thấy nội dung chính | Dừng lại; gợi ý trích xuất thủ công |
+| Nội dung \< 200 ký tự sau khi trích xuất | Cảnh báo; gắn cờ low_quality |
+| URL bị chặn (host SSRF) | Dừng lại với từ chối bảo mật rõ ràng |
 
-## Security
+## Bảo mật
 
-- Block private/loopback hosts (SSRF defense)
-- Time out at 30s
-- Cap response size at 10 MB (drop oversized fetches)
-- Strip `<script>` tags before readability (readability does this too, defense-in-depth)
+- Chặn host private/loopback (phòng vệ SSRF)
+- Timeout sau 30 giây
+- Giới hạn kích thước response ở 10 MB (drop các fetch quá lớn)
+- Loại bỏ tag `<script>` trước khi readability xử lý (readability cũng làm việc này, defense-in-depth)
 
-## Cost estimate
+## Ước tính chi phí
 
-- HTTP fetch: FREE
-- Readability + turndown: FREE (local)
-- Embedding (downstream): ~$0.001-$0.005 / article
-- LLM-fallback (downstream, if triggered): ~$0.05 / chunk
+- HTTP fetch: MIỄN PHÍ
+- Readability + turndown: MIỄN PHÍ (local)
+- Embedding (downstream): ~$0.001-$0.005 / bài viết
+- LLM-fallback (downstream, nếu được kích hoạt): ~$0.05 / chunk
 
-Total per article typically: $0.05-$0.10.
+Tổng cho mỗi bài viết thường: $0.05-$0.10.
 
-## Sprint scope
+## Phạm vi sprint
 
-Sprint 1: single-URL fetch + readability + turndown.
-Sprint 2: multi-page article handling (paginated/infinite-scroll).
-Sprint 4+: active subscriptions (Bài #18) — auto-poll feeds.
+Sprint 1: lấy URL đơn lẻ + readability + turndown.
+Sprint 2: xử lý bài viết nhiều trang (paginated/infinite-scroll).
+Sprint 4+: subscription chủ động (Bài #18) — tự động poll feed.
 
-## Related
+## Liên quan
 
-- Parent: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md`
-- Tier 1 config: `knowledge/ingestion-sources.yaml` entry `article`
-
+- Cha: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md`
+- Cấu hình Tier 1: entry `article` của `knowledge/ingestion-sources.yaml`
