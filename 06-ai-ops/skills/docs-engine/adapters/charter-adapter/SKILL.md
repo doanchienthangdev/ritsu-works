@@ -1,0 +1,38 @@
+---
+name: docs-engine/adapters/charter-adapter
+description: |
+  Adapter for `00-charter/*.md`. Pass-through markdown with title-from-H1
+  fallback. **EXCLUDES `founder-profile.md` by default** (PII concern flagged
+  in Phase 3 system inventory).
+---
+
+# docs-engine/adapters/charter-adapter
+
+## Input pattern
+
+`00-charter/*.md` MINUS `founder-profile.md`
+
+## Output pattern
+
+`docs/content/charter/<name>.mdx`
+
+## Process
+
+1. Hard-exclude `00-charter/founder-profile.md` (PII allowlist requires explicit override in `docs/excluded-paths.yaml`).
+2. For remaining: title from first H1.
+3. Compute `source_hash`.
+4. Render MDX. Charter files are free-form prose; no special structuring beyond Fumadocs default.
+5. Add idempotency marker.
+
+## Edge cases
+
+- Charter files may grow to include embedded data (e.g. brand voice samples). Pass through.
+- If `founder-profile.md` is referenced from other charter files (e.g. links), render as `<Callout>: "This page contains PII; ask founder for access."`.
+
+## HITL / Cost
+
+Tier A. ~$0.02 per file. Charter is small (6 files − 1 excluded = 5 pages).
+
+## See also
+
+- `docs/excluded-paths.yaml` (NEW Sprint 1 deliverable; lists hard-excludes + allowlist overrides)

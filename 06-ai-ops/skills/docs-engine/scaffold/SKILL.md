@@ -1,0 +1,57 @@
+---
+name: docs-engine/scaffold
+description: |
+  Idempotent scaffolder for the `docs/` Next.js + Fumadocs subproject.
+  First-time only (after first run, `docs/` exists and re-running is a no-op).
+  Generates Vercel-deployable Next.js app with rootDirectory=docs, plus the
+  3-layer secret redactor and AI-runtime raw-MDX route handler from day 1.
+  (Verb was renamed from `build` to `scaffold` to (a) avoid collision with
+  the repo-wide `build/` gitignore pattern and (b) match Kent Beck's
+  intention-revealing-names principle — `scaffold` describes the action more
+  precisely than `build`.)
+---
+
+# docs-engine/scaffold
+
+## When to use
+
+- First-time docs site setup, OR full-rebuild after `/cla deprecate docs-engine` reversal.
+- Invoked by `/docs scaffold` command.
+
+## Inputs
+
+- (None — reads only the repo's existing state to detect already-scaffolded.)
+
+## Process
+
+1. Verify `docs/` does not exist (or is empty). If exists with content → abort with "Already scaffolded; use `/docs sync` instead".
+2. Run `npx create-fumadocs-app docs/ --template next-mdx --lang vi` (or equivalent template).
+3. Write `docs/source.config.ts` with custom content sources (9 adapters wired in).
+4. Write `docs/lint-secrets.cjs` (3-layer fail-loud redactor; CTO mod #2).
+5. Write `docs/app/api/raw/[...slug]/route.ts` (AI-runtime raw-MDX endpoint).
+6. Write `docs/.vercelignore` to skip irrelevant directories.
+7. First sync: dispatch to `docs-engine/sync --area=all` automatically.
+8. Emit `ritsu.docs.built` event.
+
+## Outputs
+
+- `docs/` folder fully scaffolded.
+- `ops.events` row `ritsu.docs.built`.
+
+## HITL
+
+Tier A.
+
+## Failure modes
+
+- `npx create-fumadocs-app` fails → surface error; abort. Don't leave partial scaffold.
+- Vercel template doesn't include i18n config → patch `next.config.ts` manually with `defaultLanguage: 'vi'`.
+
+## Cost estimate
+
+~$0.50 per invocation. Cost-bucket: `ai-ops-docs`. Per-task-kind cap: `docs-scaffold` ≤ $0.50.
+
+## See also
+
+- Umbrella: `docs-engine/SKILL.md`
+- Command: `.claude/commands/docs.md` (`/docs scaffold`)

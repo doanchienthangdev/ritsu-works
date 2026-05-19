@@ -1,0 +1,212 @@
+# ============================================================================
+# SOP-AIOPS-003: Docs Sync Pipeline
+# ============================================================================
+# Implements the `/docs sync` lifecycle: walk codebase sources via 9 adapters,
+# generate MDX into `docs/content/`, detect drift, run secret redaction.
+#
+# Sibling to SOP-INGEST-001-wiki-sync (which goes external→wiki); this one
+# goes internal→docs. Distinct corpora, distinct output substrate.
+#
+# Owner: 06-ai-ops (capability `docs-engine`)
+# HITL tier: A (founder-triggered, additive writes); B if cost > per-task-kind cap OR `/docs publish` invocation
+#
+# References:
+#   - DRAFT: knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md
+#   - Capability spec: wiki/capabilities/docs-engine/spec.md (after Phase 8 promotion)
+#   - Front-end: .claude/commands/docs.md (/docs command)
+#   - Skills: 06-ai-ops/skills/docs-engine/
+#   - Cross-tier-invariants: docs-page-has-source (L1), docs-source-has-page (L2)
+
+version: "1.0.0"
+sop_id: SOP-AIOPS-003
+sop_name: docs-sync
+capability_id: docs-engine
+pillar: 06-ai-ops
+cost_bucket: ai-ops-docs
+
+invocation:
+  triggered_by:
+    - slash_command         # /docs sync, /docs scaffold, /docs check, /docs publish, /docs nav, /docs update
+    - scheduled             # docs-drift-nightly cron
+    - event                 # ritsu.docs.* events (deferred subscribers v1.1)
+  authorized_roles: [gps, founder, code-reviewer]
+  hitl_tier: A
+  hitl_tier_escalation:
+    - condition: "verb == 'publish'"
+      target: B
+    - condition: "estimated_cost_usd > per_task_kind_cap"
+      target: B
+    - condition: "drift_count > 10 sustained 24h"
+      target: B
+
+inputs:
+  verb: enum                  # build | sync | check | publish | nav | update
+  area: enum                  # commands | skills | agents | hooks | charter | governance | pillars | sops | tier1 | tutorials | all
+  force: bool                 # default false; force regen even if source_hash unchanged
+  dry_run: bool               # default false; preview MDX diff without writing
+
+steps:
+
+  - id: 1_drift_preflight
+    name: Drift gate
+    kind: minion
+    cmd: "pnpm check"
+    timeout_seconds: 30
+    on_failure: abort_with_drift_report
+    rationale: |
+      Per /cla Phase 0 discipline. If drift exists, fix BEFORE generating docs
+      (else docs will mirror drifted state).
+
+  - id: 2_walk_sources
+    name: Walk corpus per Phase 1 Q3 scope
+    kind: minion
+    skill: docs-engine/sync
+    timeout_seconds: 60
+    inputs:
+      walker_scope: |
+        00-charter/**, governance/**, 0[0-9]-*/{README,CLAUDE}.md,
+        0[0-9]-*/<sub-pillar>/{README,CLAUDE}.md, 0[0-9]-*/sops/*/flow.yaml,
+        06-ai-ops/skills/**/SKILL.md, .claude/commands/*.md,
+        .claude/agents/*.md, .claude/hooks/*.md, knowledge/*.yaml
+      walker_exclude:
+        - governance/SECRETS.md
+        - 00-charter/founder-profile.md   # PII; flagged in spec
+        - runtime/secrets/**
+        - wiki/**
+        - .archives/**
+        - raw/**
+        - docs/content/tutorials/**       # hand-written; protected by tutorial_last_verified_at
+    outputs:
+      source_inventory: jsonb     # { file_path, source_kind, source_hash, mtime }[]
+
+  - id: 3_secret_redact_layer1
+    name: Secret redaction layer 1 (walker-exclude)
+    kind: minion
+    cmd: "node docs/lint-secrets.cjs --layer=walker"
+    on_failure: abort_loud      # NOT scrub_silently
+    rationale: |
+      CTO mod #2 (Phase 2 lens): fail-loud not scrub-silently. Bail if any
+      walker_exclude path leaked into source_inventory.
+
+  - id: 4_adapter_dispatch
+    name: Dispatch each source to its adapter
+    kind: subagent_or_minion    # adapters are deterministic for now; LLM optional for prose enrichment
+    skill: docs-engine/adapters/<auto-picked-by-source-kind>
+    fanout: per_source
+    timeout_seconds: 120        # per file
+    on_failure: collect_errors_continue
+    outputs:
+      mdx_pages: jsonb          # { mdx_path, source_path, source_hash, frontmatter, body }[]
+      adapter_errors: jsonb     # per-source failures
+
+  - id: 5_secret_redact_layer2
+    name: Secret redaction layer 2 (MDX regex scrub)
+    kind: minion
+    cmd: "node docs/lint-secrets.cjs --layer=mdx"
+    on_failure: abort_loud
+    rationale: |
+      Regex pass on every mdx page body. Patterns:
+        /override:\s+\S+/i                    (magic phrase prefix)
+        /[a-z0-9]{20}\.supabase\.co/          (project_ref)
+        /sk-[A-Za-z0-9]{32,}/                 (API keys)
+        /sb_[a-z]+_[A-Za-z0-9_-]{20,}/        (Supabase tokens)
+
+  - id: 6_three_way_diff_for_hand_edits
+    name: 3-way diff on regen (CTO mod #1)
+    kind: minion
+    skill: docs-engine/sync
+    rationale: |
+      For every MDX page with `<!-- generated-by: docs-engine vN -->` marker,
+      compare (a) prior MDX in git, (b) currently-living MDX (may have hand-edits),
+      (c) new MDX from this run. If diff (a)→(b) ≠ empty AND diff (b)→(c) would
+      overwrite (b)'s edits, ABORT with conflict report and require founder
+      decision (/docs sync --force overrides; /docs accept-mine keeps the hand-edit).
+    on_conflict: write_conflict_report_and_abort
+
+  - id: 7_write_mdx
+    name: Write MDX to docs/content/
+    kind: minion
+    skill: docs-engine/sync
+    inputs:
+      generated_by_marker: "<!-- generated-by: docs-engine v0.1.0 -->"
+    on_failure: rollback_writes
+
+  - id: 8_run_pnpm_check
+    name: Final drift check on coverage validator
+    kind: minion
+    cmd: "pnpm check"           # validate-docs-coverage.cjs is part of pnpm check
+    on_failure: surface_drift_report
+
+  - id: 9_emit_events
+    name: Emit ops.events
+    kind: minion
+    rationale: |
+      Per Bài #11 event-driven discipline:
+        ritsu.docs.synced — every /docs sync completion
+        ritsu.docs.drift_detected — when step 8 finds drift
+        ritsu.docs.built — first-time /docs scaffold
+        ritsu.docs.published — /docs publish + Vercel deploy ID
+    outputs:
+      event_ids: text[]
+
+  - id: 10_record_kpi_snapshot
+    name: Record docs_drift_count KPI
+    kind: minion
+    cmd: "INSERT INTO ops.kpi_snapshots (kpi_id, value, captured_at, source) VALUES ('docs_drift_count', $1, now(), 'sop-aiops-003')"
+    rationale: Bài #10 visibility — KPI surfaced on founder Monday dashboard system-health tile.
+
+# === Acceptance criteria ===
+acceptance_criteria:
+  - Every walked source either has matching MDX OR is in walker_exclude.
+  - Zero secrets (matching the 4 regex patterns) leaked to docs/content/.
+  - No hand-edited tutorial overwritten without conflict report.
+  - `pnpm check` exits 0 post-step-8.
+  - Vercel preview deploys within 5 min of merge (Phase 1 C2 success criterion).
+
+# === Failure handling ===
+failure_handling:
+  drift_preflight_failed:
+    detection: "step 1 pnpm check exit != 0"
+    response: "Abort sync. Surface drift report. Re-run only after `pnpm check` clean."
+
+  secret_leak_detected:
+    detection: "step 3 or step 5 layer match"
+    response: "Abort. Open GitHub issue tagged 'secret-leak-suspected'. Founder reviews; do NOT silent-scrub."
+
+  hand_edit_conflict:
+    detection: "step 6 3-way diff detects loss"
+    response: "Write conflict report. Surface to founder. Skip the affected file; continue rest of sync."
+
+  adapter_partial_failure:
+    detection: "step 4 some adapters errored"
+    response: "Continue rest. Aggregate errors into final report. KPI docs_drift_count incremented per missed page."
+
+# === Cross-Bài-toán integration ===
+integrates_with:
+  - bài: 5
+    integration: "10 sub-skills (umbrella + 6 verbs + 9 adapters); subagent calls for prose; minion for deterministic walking"
+  - bài: 7
+    integration: "Cost-bucket `ai-ops-docs`; per-task-kind caps in governance/ROLES.md"
+  - bài: 8
+    integration: "docs-drift-nightly cron triggers this SOP with verb=check"
+  - bài: 9
+    integration: "SOP itself"
+  - bài: 10
+    integration: "docs_drift_count KPI snapshot at step 10"
+  - bài: 11
+    integration: "Step 9 fires 4 event types"
+  - bài: 15
+    integration: "Phase 5 architecture decision = Tier C; per-PR review = Tier B"
+  - bài: 17
+    integration: "vercel-docs surface compliance enforced at step 5"
+  - bài: 19
+    integration: "Founder review at /docs publish (Tier B); ongoing 2-4h/mo"
+  - bài: 20
+    integration: "Capability docs-engine = CLA-produced unit"
+
+# === Audit ===
+audit:
+  every_step_logs:
+    - ops.events: "ritsu.docs.<verb>_<state>"
+    - ops.audit_log: "step + payload"
+    - ops.kpi_snapshots (step 10 only)

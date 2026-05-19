@@ -1,0 +1,50 @@
+---
+name: docs-engine/adapters/pillar-readme-adapter
+description: |
+  Adapter for pillar-level docs: `0[0-9]-*/{README,CLAUDE}.md` AND recursive
+  sub-pillar `README.md` + `CLAUDE.md`. Most content lives at sub-pillar level
+  for DEEP pillars (e.g. 03-gtm has 6 sub-pillars each with own README).
+---
+
+# docs-engine/adapters/pillar-readme-adapter
+
+## Input patterns
+
+- `0[0-9]-*/README.md` (top-level pillar overview)
+- `0[0-9]-*/CLAUDE.md` (path-scoped Claude guidance; per CLAUDE.md root file)
+- `0[0-9]-*/<sub-pillar>/README.md` (sub-pillar overview)
+- `0[0-9]-*/<sub-pillar>/CLAUDE.md` (sub-pillar Claude guidance)
+- `10-*/README.md` + `10-*/<sub-pillar>/README.md` (10-metrics)
+
+## Output pattern
+
+`docs/content/pillars/<pillar-slug>/index.mdx` for pillar README.
+`docs/content/pillars/<pillar-slug>/<sub-pillar>/index.mdx` for sub-pillar README.
+`docs/content/pillars/<pillar-slug>/_claude.mdx` for pillar CLAUDE.md (note: `_claude` to distinguish from index).
+`docs/content/pillars/<pillar-slug>/<sub-pillar>/_claude.mdx` similar.
+
+## Process
+
+1. Walk recursively (BFS-bounded; depth ≤ 3, similar to wiki-sync/folder-adapter v4.1).
+2. Title from first H1; fallback to "Pillar: <slug>" or "Sub-pillar: <slug>".
+3. Compute `source_hash`.
+4. Render MDX. Add pillar metadata frontmatter from `knowledge/manifest.yaml`:
+   - `layer: evergreen | stage`
+   - `stage_status: deep | lite | skeleton | maintenance`
+   - `pillar_code: PILLAR | GTM | etc.`
+5. Add idempotency marker.
+
+## Edge cases
+
+- Some pillars have no CLAUDE.md (skeleton pillars) — skip silently.
+- Sub-pillars with no README → don't generate empty page; just note in adapter_errors.
+- Cross-references to other pillars' READMEs → preserve as relative links (Fumadocs handles).
+
+## HITL / Cost
+
+Tier A. ~$0.05-0.10 total (BFS over ~20-30 files).
+
+## See also
+
+- `knowledge/manifest.yaml` pillars block — source of truth for pillar metadata
+- Sibling pattern: `wiki-sync/adapters/folder-adapter/SKILL.md` (BFS walking)

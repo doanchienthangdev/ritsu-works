@@ -1,0 +1,43 @@
+---
+name: docs-engine/adapters/governance-adapter
+description: |
+  Adapter for `governance/*.md`. **HARD EXCLUDES `governance/SECRETS.md`** —
+  this file enumerates secrets by name and MUST NEVER appear in public docs.
+  Renders HITL.md, ROLES.md, BUDGET.md, IDENTITY.md as structured reference pages.
+---
+
+# docs-engine/adapters/governance-adapter
+
+## Input pattern
+
+`governance/*.md` MINUS `SECRETS.md`
+
+## Output pattern
+
+`docs/content/governance/<name>.mdx`
+
+## Process
+
+1. **Hard-exclude `governance/SECRETS.md`** at walker level (layer 1 redaction). Adapter never sees it.
+2. For each remaining: title from first H1.
+3. Compute `source_hash`.
+4. Render MDX. Apply special handling:
+   - `HITL.md` → detect 4-tier table; render as Fumadocs `<Tabs>` per tier.
+   - `ROLES.md` → detect role definitions; render as `<Cards>` grid per role.
+   - `BUDGET.md` → render economic_budget snippets as tables.
+   - `IDENTITY.md` → standard pass-through.
+5. **Regex scrub layer 2** still runs on all output (defense-in-depth) — should be redundant after exclude but mandatory per CTO mod #2.
+6. Add idempotency marker.
+
+## Edge cases
+
+- HITL.md mentions magic phrases as EXAMPLES — these match the regex and would trip layer 2. Solution: walker emits raw HITL.md to adapter; adapter replaces example magic phrases with `<placeholder>` BEFORE regex scrub.
+
+## HITL / Cost
+
+Tier A. ~$0.03-0.05 per file (higher due to per-file specialization).
+
+## See also
+
+- `governance/SECRETS.md` (excluded; never rendered)
+- 3-layer secret redaction model in `docs/lint-secrets.cjs`
