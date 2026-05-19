@@ -280,8 +280,12 @@ tier1_canonical:
       vercel:
         project_root: docs/
         plan: hobby
+        deploy_url: https://ritsu-works.vercel.app
+        deployed_at: 2026-05-19   # Sprint 1 deploy verified all routes 200
+        team: AK Studios
+        project_name: ritsu-works
         secret_redaction_layers: [walker-exclude, mdx-regex-scrub, ci-gate]
-      ai_runtime_endpoint: docs/app/api/raw/[...slug]/route.ts
+      ai_runtime_endpoint: https://ritsu-works.vercel.app/api/raw/[...slug]
       capability_id: docs-engine
       note: |
         See `wiki/capabilities/docs-engine/spec.md` (Phase 8 promotion).
