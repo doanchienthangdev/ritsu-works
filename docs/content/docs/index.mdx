@@ -1,0 +1,37 @@
+---
+title: Bắt đầu
+description: Tài liệu vận hành ritsu-works — cách operators + AI agents sử dụng docs site này.
+---
+
+# Tài liệu vận hành ritsu-works
+
+Site này là **Operator + AI Runtime Context Bundle** cho `ritsu-works` — repo AI workforce vận hành Ritsu (B2C EdTech AI tutor).
+
+## Cách dùng
+
+- **Operators** (founder + cofounder): tra cứu cách chạy command, hiểu vai trò agent, đọc SOP. Tutorials Sprint 2 (5 bài) sẽ cover các luồng tra cứu chính.
+- **AI agents** (Claude Code subagents): fetch raw MDX qua `/api/raw/<slug>` để load làm runtime context. Stable canonical URLs; YAML frontmatter parseable.
+
+## Cấu trúc nội dung (Diátaxis)
+
+| Quadrant | Content |
+|---|---|
+| **Reference** (auto-gen) | skills/, agents/, hooks/, commands/, knowledge/ (Tier 1 yamls), governance/ |
+| **How-to** (auto-gen từ SOPs) | sops/SOP-AIOPS-001-capability-lifecycle, sops/SOP-INGEST-001-wiki-sync, ... (102 SOPs) |
+| **Explanation** (Tier 1 docs) | charter/, pillars/00-charter, pillars/06-ai-ops, ... |
+| **Tutorials** (Sprint 2 hand-written) | tutorials/cla-propose-walkthrough, tutorials/hitl-primer, tutorials/roles-and-agent-map, tutorials/wiki-sync-walkthrough, tutorials/manifest-tour |
+
+## Đồng bộ với codebase
+
+Reference pages được auto-gen từ source files bằng `/docs sync`. Mỗi MDX page có:
+- `source_path` — đường dẫn source file (relative to repo root).
+- `source_hash` — `sha256(canonical(source_file))`.
+- `generated_by: docs-engine v0.1.0` — idempotency marker (CTO mod #1).
+
+`/docs check` báo drift khi source và MDX không khớp (KPI `docs_drift_count`).
+
+Tutorials hand-written cũng có `tutorial_last_verified_at` frontmatter (CPO mod #1) — monthly verification qua `/docs check --tutorials` trong `SOP-FOUNDER-013-friday-review-template`.
+
+## Capability
+
+`docs-engine` v1.0. Spec đầy đủ ở `wiki/capabilities/docs-engine/spec.md` (sau Phase 8 promotion).

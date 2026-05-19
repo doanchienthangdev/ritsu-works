@@ -1,0 +1,65 @@
+---
+title: 'Skill: docs-engine/adapters/sop-flow-adapter'
+description: |
+  Adapter for SOP `flow.yaml` files. Renders the structured YAML
+  (steps, inputs, outputs, acceptance_criteria, failure_handling, audit) into
+  Fumadocs MDX with `<Steps>` component for the steps array. Most-visited
+  adapter (102 SOPs in repo).
+source_path: 06-ai-ops/skills/docs-engine/adapters/sop-flow-adapter/SKILL.md
+source_hash: 110446cf53f8598cecc04a2c4aa48458665352fd97a9b72f267f0b5903947f93
+generated_at: '2026-05-19T03:36:59.973Z'
+generated_by: docs-engine v0.1.0
+category: skill
+---
+
+<!-- generated-by: docs-engine v0.1.0 -->
+
+
+# docs-engine/adapters/sop-flow-adapter
+
+## Input pattern
+
+`0[0-9]-*/sops/SOP-*/flow.yaml` + adjacent `README.md` (if present)
+
+## Output pattern
+
+`docs/content/sops/<pillar-slug>/<sop-id>.mdx`
+e.g. `docs/content/sops/06-ai-ops/SOP-AIOPS-001-capability-lifecycle.mdx`
+
+## Process
+
+1. Parse `flow.yaml` (it's all YAML, no markdown).
+2. Extract `id`, `title`, `description`, `pillar`, `cost_bucket`, `trigger`, `steps`, `acceptance_criteria`, `failure_handling`, `integrates_with`, `audit`.
+3. Compute `source_hash` of the yaml file.
+4. Render MDX with sections:
+   - **Overview** (description prose)
+   - **Trigger** (kinds + authorized_roles + hitl_tier)
+   - **Inputs** (yaml table)
+   - **Steps** — Fumadocs `<Steps>` component, each step rendered as collapsible with `name`, `kind`, `skill`, `timeout`, `on_failure`, `outputs`
+   - **Acceptance criteria** (checklist)
+   - **Failure modes** (table)
+   - **Cross-Bài-toán integration** (table)
+   - **Audit** (one-liner)
+5. Add Fumadocs frontmatter:
+   - `title: <sop-id>: <title>`
+   - `description: <description>`
+   - `pillar: <pillar-slug>`
+   - `cost_bucket: <bucket>`
+   - `status: <derived from pillar.stage_status>` (deep / lite / skeleton)
+6. Add idempotency marker.
+
+## Edge cases
+
+- SOP yaml may have multi-line strings (`|` literal blocks) — preserve formatting.
+- Some SOPs reference other SOPs in `integrates_with` — render as Fumadocs internal links.
+- Adjacent `README.md` (if present) → prepend as "Operator Notes" section before the structured spec.
+
+## HITL / Cost
+
+Tier A. ~$0.30-0.50 total for 102 SOPs (deterministic mostly; LLM only for prose summarization of complex flows — disabled at v1.0).
+
+## See also
+
+- Existing SOPs to test against: `06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml` (complex; has 9 steps), `06-ai-ops/sops/SOP-AIOPS-001-fix/flow.yaml` (simpler)
+- Fumadocs `<Steps>`: https://www.fumadocs.dev/docs/ui/components/steps
+

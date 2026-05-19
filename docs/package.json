@@ -1,0 +1,32 @@
+{
+  "name": "ritsu-works-docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Live documentation site for ritsu-works (Fumadocs + Vercel, Vietnamese-first). docs-engine capability.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint:secrets": "node lint-secrets.cjs",
+    "prebuild": "node lint-secrets.cjs",
+    "postinstall": "fumadocs-mdx"
+  },
+  "dependencies": {
+    "fumadocs-core": "^14.0.0",
+    "fumadocs-mdx": "^11.0.0",
+    "fumadocs-ui": "^14.0.0",
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

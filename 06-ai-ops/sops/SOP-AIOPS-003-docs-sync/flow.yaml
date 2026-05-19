@@ -157,11 +157,11 @@ steps:
 
 # === Acceptance criteria ===
 acceptance_criteria:
-  - Every walked source either has matching MDX OR is in walker_exclude.
-  - Zero secrets (matching the 4 regex patterns) leaked to docs/content/.
-  - No hand-edited tutorial overwritten without conflict report.
-  - `pnpm check` exits 0 post-step-8.
-  - Vercel preview deploys within 5 min of merge (Phase 1 C2 success criterion).
+  - "Every walked source either has matching MDX OR is in walker_exclude."
+  - "Zero secrets (matching the 4 regex patterns) leaked to docs/content/."
+  - "No hand-edited tutorial overwritten without conflict report."
+  - "`pnpm check` exits 0 post-step-8."
+  - "Vercel preview deploys within 5 min of merge (Phase 1 C2 success criterion)."
 
 # === Failure handling ===
 failure_handling:

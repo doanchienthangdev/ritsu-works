@@ -3,8 +3,8 @@
 //
 // Source version:  1.0.0
 // Source timezone: Asia/Ho_Chi_Minh
-// Schedule count:  9
-// Generated at:    2026-05-19T01:33:08.461Z
+// Schedule count:  10
+// Generated at:    2026-05-19T03:38:37.800Z
 
 import type { ScheduleEntry } from "./dispatcher.ts";
 
@@ -98,7 +98,19 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
     ],
     "fallback": "no_notification",
     "cost_estimate": "$0 per run (DB read + Telegram bot call)"
+  },
+  "docs-drift-nightly": {
+    "id": "docs-drift-nightly",
+    "cron": "30 2 * * *",
+    "description": "Run /docs check to detect codebase ↔ MDX drift overnight",
+    "skill": "docs-engine-check",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "fallback": "no_op",
+    "cost_estimate": "$0 per run (deterministic; reads filesystem + writes ops.kpi_snapshots)"
   }
 };
 
-export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","data-retention-scan","etl-product-dau-hourly","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;
+export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","data-retention-scan","docs-drift-nightly","etl-product-dau-hourly","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;

@@ -1,0 +1,31 @@
+---
+title: 'Tier 1 yaml: schedules'
+description: Schema overview for `knowledge/schedules.yaml`.
+source_path: knowledge/schedules.yaml
+source_hash: c518546bf43e350e246b660077e2b4d93a0a1fff68701b4331ca1a30ff42fa2e
+generated_at: '2026-05-19T03:37:00.057Z'
+generated_by: docs-engine v0.1.0
+category: tier1-yaml
+---
+
+<!-- generated-by: docs-engine v0.1.0 -->
+
+## Description
+
+============================================================================
+schedules.yaml — Scheduled triggers (Bài #8)
+============================================================================
+Tier 1 declarative file. Edit via PR governance.
+Defines when scheduled tasks fire. Dispatcher reads this + invokes skills.
+
+Schema validation: schemas/schedules.schema.json
+Engine: supabase/functions/schedule-dispatcher/
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `timezone`
+- `schedules`
+
+> Live values in [`knowledge/schedules.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/schedules.yaml). This page describes the schema; not the data.

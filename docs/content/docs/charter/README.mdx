@@ -1,0 +1,68 @@
+---
+title: 00-charter — Charter Pillar
+description: ''
+source_path: 00-charter/README.md
+source_hash: 104512cc9ec6238528cca70643a56d46ec1501e358864f47c633818a6748830b
+generated_at: '2026-05-19T03:37:00.003Z'
+generated_by: docs-engine v0.1.0
+category: charter
+---
+
+<!-- generated-by: docs-engine v0.1.0 -->
+
+# 00-charter — Charter Pillar
+
+> Foundation: vision, brand voice, product positioning, founder profile, transparency stance. The "who is Ritsu" answer that every other pillar refers back to.
+
+**Layer:** Evergreen
+**Stage status:** Maintenance (alive)
+**Pillar code:** CHARTER
+**Owner role(s):** founder, cofounder, gps
+**HITL baseline:** C (any edit is PR-only per HITL.md)
+
+---
+
+## Scope
+
+This pillar owns the canonical answer to:
+- **What is Ritsu?** → `product.md`
+- **What's the brand voice / writing style?** → `brand_voice.md`
+- **Who is the founder + cofounder?** → `founder-profile.md`
+- **What's the company stance on transparency?** → `transparency.md`
+- **Charter / mission / values** → `charter.md`
+
+This pillar does NOT own:
+- Operating playbooks (those live in their respective functional pillars)
+- KPI definitions (those live in `10-metrics/kpi-registry/`)
+- Specific product features (the product lives in a separate repo)
+
+## Sub-pillars
+
+None at this stage. Charter is foundational and lives as flat files. No sub-pillars planned unless the charter itself grows multiple sections per topic (eg `brand-voice/` containing voice + tone + examples + anti-patterns).
+
+## SOPs
+
+`sops/SOP-CHARTER-NNN-<slug>/` — namespace reserved. No SOPs at this stage; charter changes happen via direct PR review, not via SOP runtime.
+
+## Agents
+
+No agents are home in this pillar. `gps` and `founder` are the only roles that edit charter files, both via PR per HITL.md.
+
+## KPIs owned
+
+- Quarterly charter review completion (yes/no per quarter)
+- Charter-driven PR count per quarter (signal of drift between agents and charter)
+
+## Dependencies
+
+- **Composed by:** every other pillar (they cite charter for brand voice, ICP, positioning)
+- **Composes from:** none
+
+## HITL baseline
+
+Every edit to any file in `00-charter/` is Tier C. Any "rewrite from scratch" of charter docs is Tier D-Std. Cofounder + founder both qualify as approvers per `governance/ROLES.md` v1.0.1.
+
+## Entry conditions
+
+Not applicable (always active from day 1).
+

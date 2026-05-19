@@ -1,0 +1,83 @@
+---
+title: 'Skill: docs-engine/sync'
+description: |
+  Walker + adapter dispatch + MDX writer. The workhorse of docs-engine.
+  Walks Tier 1 + `.claude/` runtime per Phase 1 Q3 scope (~215 sources),
+  fans out to 9 adapters, runs 3-layer secret redaction (CTO mod #2),
+  performs 3-way diff on `<!-- generated-by -->` marked pages (CTO mod #1),
+  writes MDX to `docs/content/`, emits events, snapshots KPI.
+source_path: 06-ai-ops/skills/docs-engine/sync/SKILL.md
+source_hash: e446c382c0e11d5dae2f69e7f4db16cd5e0e6edd7d5061bddc9510507ce6821f
+generated_at: '2026-05-19T03:36:59.976Z'
+generated_by: docs-engine v0.1.0
+category: skill
+---
+
+<!-- generated-by: docs-engine v0.1.0 -->
+
+
+# docs-engine/sync
+
+## When to use
+
+- `/docs sync` command (default verb).
+- `/docs update <area>` (scoped variant).
+- `docs-drift-nightly` cron (with `--dry-run` flag for read-only check).
+
+## Inputs
+
+- `area` — `commands` | `skills` | `agents` | `hooks` | `charter` | `governance` | `pillars` | `sops` | `tier1` | `all` (default `all`).
+- `dry_run` — bool, default false.
+- `force` — bool, default false; skips source_hash dedup.
+
+## Process
+
+Implements SOP-AIOPS-003 steps 1-10 (see `06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml`):
+
+1. `pnpm check` preflight (abort if drift).
+2. Walk corpus per `area`; build source_inventory.
+3. Secret redaction layer 1 (walker-exclude check).
+4. Dispatch each source to its adapter via `06-ai-ops/skills/docs-engine/adapters/<kind>-adapter`.
+5. Secret redaction layer 2 (MDX regex scrub).
+6. 3-way diff on `<!-- generated-by: docs-engine vN -->` marked pages (CTO mod #1). Abort + write conflict report if hand-edit would be lost.
+7. Write MDX to `docs/content/`.
+8. `pnpm check` post-validation (validate-docs-coverage.cjs).
+9. Emit `ritsu.docs.synced` + maybe `ritsu.docs.drift_detected`.
+10. INSERT ops.kpi_snapshots row for `docs_drift_count`.
+
+## Outputs
+
+- MDX files under `docs/content/` (per Fumadocs convention).
+- Conflict report under `.archives/docs-engine/conflicts/<timestamp>.md` if step 6 detects conflicts.
+- 2-3 `ops.events` rows.
+- 1 `ops.kpi_snapshots` row.
+
+## HITL
+
+Tier A. Escalates to Tier B if:
+- Estimated cost > `docs-sync-full-walk` cap ($1).
+- > 50% of pages would change (founder confirms scope).
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| Preflight drift | Abort with drift summary. |
+| Secret leak detected (layer 1 or 2) | Abort loud; open `secret-leak-suspected` GitHub issue. |
+| Hand-edit conflict | Write conflict report; skip file; continue sync. |
+| Adapter partial failure | Continue; aggregate errors; affected pages count toward drift. |
+| Disk write failure | Rollback all writes from this run. |
+
+## Cost estimate
+
+- Full walk: ~$0.40-1.00 (~215 pages × adapter cost ÷ batching).
+- Area-scoped: $0.05-0.40 depending on area.
+- Cost-bucket: `ai-ops-docs`. Cap: `docs-sync-full-walk` ≤ $1.00.
+
+## See also
+
+- Umbrella: `docs-engine/SKILL.md`
+- SOP: `06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml`
+- Sibling: `wiki-sync/ingest/SKILL.md` (pattern source for walker scaffolding)
+- Adapters: `docs-engine/adapters/*-adapter/SKILL.md` (9 sub-skills)
+
