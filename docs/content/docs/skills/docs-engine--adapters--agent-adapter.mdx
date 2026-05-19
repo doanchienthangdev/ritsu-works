@@ -1,15 +1,18 @@
 ---
 title: 'Skill: docs-engine/adapters/agent-adapter'
 description: |
-  Adapter that renders `.claude/agents/<name>.md` into an MDX page under
-  `docs/content/agents/<name>.mdx`. Includes role binding from
-  `knowledge/workforce-personas.yaml` + permissions cross-ref to `governance/ROLES.md`.
+  Adapter hiển thị `.claude/agents/<name>.md` thành trang MDX dưới
+  `docs/content/agents/<name>.mdx`. Bao gồm ràng buộc role từ
+  `knowledge/workforce-personas.yaml` + tham chiếu quyền cho `governance/ROLES.md`.
 source_path: 06-ai-ops/skills/docs-engine/adapters/agent-adapter/SKILL.md
 source_hash: fc73b80170a99b6ba43e472c3655ff5a8fd9aebea83ee22c44f63538ad910e46
 generated_at: '2026-05-19T05:20:46.350Z'
 generated_by: docs-engine v1.1.0
 category: skill
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -19,7 +22,7 @@ language: vi
 
 ## Input pattern
 
-`.claude/agents/*.md` (excluding `README.md`)
+`.claude/agents/*.md` (trừ `README.md`)
 
 ## Output pattern
 
@@ -28,22 +31,21 @@ language: vi
 ## Process
 
 1. Parse YAML frontmatter (`name`, `description`, `tools`).
-2. Cross-reference `knowledge/workforce-personas.yaml` to find bound role (e.g. cto → code-reviewer).
-3. Cross-reference `governance/ROLES.md` to fetch role permissions + budget.
-4. Compute `source_hash`.
-5. Render MDX with sections: "Description", "Tools", "Bound role", "Permissions", "Activation patterns".
-6. Add idempotency marker.
+2. Tham chiếu chéo `knowledge/workforce-personas.yaml` để tìm role ràng buộc (ví dụ: cto → code-reviewer).
+3. Tham chiếu chéo `governance/ROLES.md` để lấy quyền role + ngân sách.
+4. Tính `source_hash`.
+5. Hiển thị MDX với các phần: "Description", "Tools", "Bound role", "Permissions", "Activation patterns".
+6. Thêm marker idempotency.
 
 ## Edge cases
 
-- Persona `status: planned` → flag MDX with "🏗️ planned" badge; document fallback_role.
-- Tools list spans multiple lines → render as `<Files>` or `<Tabs>`.
+- Persona `status: planned` → đánh dấu MDX với "🏗️ planned" badge; ghi chú fallback_role.
+- Danh sách Tools trải dài nhiều dòng → hiển thị dưới dạng `<Files>` hoặc `<Tabs>`.
 
 ## HITL / Cost
 
-Tier A. ~$0.02 per file. Deterministic.
+Tier A. ~$0.02 mỗi tệp. Deterministic.
 
 ## See also
 
-- `06-ai-ops/skills/docs-engine/adapters/skill-adapter/SKILL.md` (sibling pattern)
-
+- `06-ai-ops/skills/docs-engine/adapters/skill-adapter/SKILL.md` (mẫu anh em)

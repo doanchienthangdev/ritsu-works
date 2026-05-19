@@ -7,13 +7,16 @@ generated_at: '2026-05-19T05:20:46.416Z'
 generated_by: docs-engine v1.1.0
 category: pillar
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
 # 02-sales — Sales Pillar
 
-> Pricing experiments, conversion funnel patterns, free→paid mechanics, sales motion design. Provides reusable modules consumed by `03-gtm` (stage pillar). Self-serve PLG at current stage; outbound + enterprise deferred.
+> Pricing experiments, conversion funnel patterns, free→paid mechanics, sales motion design. Cung cấp các module có thể tái sử dụng được tiêu thụ bởi `03-gtm` (stage pillar). Self-serve PLG ở giai đoạn hiện tại; outbound + enterprise deferred.
 
 **Layer:** Evergreen
 **Stage status:** LITE (sub-modules feed GTM; deep build deferred until Enterprise tier triggered)
@@ -25,14 +28,14 @@ language: vi
 
 ## Scope
 
-This pillar owns:
+Trụ cột này sở hữu:
 - **Pricing tiers** — current Free/$29/$59/$119 canonical definition
 - **Conversion funnel** — landing → signup → activation → first-aha → paid mechanics
 - **Free→paid triggers** — when to nudge upgrade, what credits/limits force tier transitions
-- **Sales motion design** — PLG self-serve at current stage; outbound motion templates (deferred)
+- **Sales motion design** — PLG self-serve ở giai đoạn hiện tại; outbound motion templates (deferred)
 - **Pricing experiments** — A/B tests on tier boundaries, credit allocations, billing periods
 
-This pillar does NOT own:
+Trụ cột này KHÔNG sở hữu:
 - Marketing content / SEO / brand → `01-marketing/`
 - Customer onboarding (post-paid) → `05-customer/onboarding/`
 - Stripe revenue tracking / runway → `08-finance/`
@@ -40,7 +43,7 @@ This pillar does NOT own:
 
 ## Sub-pillars
 
-LITE at this stage. Modules consumed by GTM:
+LITE ở giai đoạn này. Modules consumed by GTM:
 
 ```
 02-sales/
@@ -60,7 +63,7 @@ LITE at this stage. Modules consumed by GTM:
 
 ## SOPs
 
-`sops/SOP-SALES-NNN-<slug>/` — namespace reserved. First SOP at this stage:
+`sops/SOP-SALES-NNN-<slug>/` — namespace được bảo lưu. First SOP ở giai đoạn này:
 - `SOP-SALES-001-pricing-experiment-decision` — protocol for proposing + running + deciding pricing A/B tests
 
 ## Agents
@@ -90,9 +93,8 @@ LITE at this stage. Modules consumed by GTM:
 
 ## Entry conditions
 
-This pillar is LITE at current stage. Promote sub-pillars to DEEP when:
+Trụ cột này là LITE ở giai đoạn hiện tại. Promote sub-pillars to DEEP khi:
 - 1 paying deal ≥ $500/mo OR 3 enterprise inbound leads → activate `outbound-motion` + `enterprise-contracts`
 - 100 paying users + 10K MRR → activate `partner-channel-sales` discussion
 
 When sub-pillar activates, also promote pillar `stage_status` from `lite` → `deep` in `manifest.yaml`.
-

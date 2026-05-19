@@ -3,17 +3,20 @@ title: 05-customer — Customer Pillar
 description: ''
 source_path: 05-customer/README.md
 source_hash: 7369e8fb27d9c8977a4984b18ed5b536adae11e6653fe1881a18c61214ad631e
-generated_at: '2026-05-19T05:20:46.419Z'
+generated_at: '2026-05-19T05:20:46.418Z'
 generated_by: docs-engine v1.1.0
 category: pillar
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
 # 05-customer — Customer Pillar
 
-> Big pillar covering full customer lifecycle. Customer is the noun (the entity we serve); success/onboarding/support/retention/feedback/data are aspects of working with that noun. Matches `public.customers + persons + companies` schema (00005_customer_entity.sql).
+> Big pillar covering full customer lifecycle. Customer là danh từ (entity we serve); success/onboarding/support/retention/feedback/data là aspects của working with that noun. Matches `public.customers + persons + companies` schema (00005_customer_entity.sql).
 
 **Layer:** Evergreen
 **Stage status:** DEEP
@@ -25,20 +28,20 @@ language: vi
 
 ## Scope
 
-This pillar owns the **entire customer relationship** post-signup:
+Trụ cột này sở hữu **toàn bộ customer relationship** post-signup:
 
-1. **Success** — does the user achieve value? (activation, aha moment, mastery progression)
-2. **Onboarding** — first-30-days experience (Collison install for first 30 paying, AI takeover N=31+)
-3. **Support** — reactive help when things go wrong
+1. **Success** — does user achieve value? (activation, aha moment, mastery progression)
+2. **Onboarding** — first-30-days experience (Collison install cho first 30 paying, AI takeover N=31+)
+3. **Support** — reactive help khi things go wrong
 4. **Retention** — proactive engagement to prevent churn
 5. **Feedback & Research** — voice of customer (NPS, interviews, cancel-flow feedback)
 6. **Customer Data** — CRM, customer-360, profile management (uses `public.customers`)
 
-This pillar does NOT own:
+Trụ cột này KHÔNG sở hữu:
 - The product itself → `04-product/`
 - Distribution / acquisition channels → `03-gtm/`
 - Billing / refund processing → `08-finance/`
-- DMCA / GDPR enforcement → `07-trust-safety/` (data deletion mechanics are here, policy is there)
+- DMCA / GDPR enforcement → `07-trust-safety/` (data deletion mechanics are here, policy là there)
 
 ## Sub-pillars (DEEP build now)
 
@@ -78,13 +81,12 @@ This pillar does NOT own:
 
 ## Sub-pillar order (narrative)
 
-The customer lifecycle reads in two passes — the chronological journey of one user,
-then the cross-cutting "infrastructure" pillars that serve all of them.
+Customer lifecycle reads in two passes — chronological journey của one user, rồi cross-cutting "infrastructure" pillars mà serve all của chúng.
 
 **Journey (user-time order):**
 1. **onboarding** — first 30 days (founder personally onboards first ~30 paying)
 2. **success** — user achieves value, "aha moment"; THE pillar's namesake
-3. **support** — reactive resolution when things go wrong
+3. **support** — reactive resolution khi things go wrong
 4. **retention** — proactive engagement, win-back, deep-engagement celebration
 5. **feedback-and-research** — voice of customer through every channel
 
@@ -94,7 +96,7 @@ then the cross-cutting "infrastructure" pillars that serve all of them.
 ## SOPs
 
 `sops/SOP-CUSTOMER-NNN-<slug>/` — 24 SOPs scaffolded. Phase 5 implements:
-- `SOP-CUSTOMER-006-collison-install-script` — script for first 30 paying users
+- `SOP-CUSTOMER-006-collison-install-script` — script cho first 30 paying users
 
 ## Agents
 
@@ -116,7 +118,7 @@ then the cross-cutting "infrastructure" pillars that serve all of them.
 - Churn rate (monthly)
 - Win-back rate (cancelled → re-subscribed)
 - NPS score (rolling)
-- Mastery-progression rate (Ritsu-specific — % of users actually mastering content)
+- Mastery-progression rate (Ritsu-specific — % của users actually mastering content)
 
 ## Dependencies
 
@@ -125,7 +127,7 @@ then the cross-cutting "infrastructure" pillars that serve all of them.
 
 ## Critical PG gate
 
-`onboarding/SOP-CUSTOMER-006-collison-install-script` is the literal Collison-install protocol: **for first ~30 paying users, founder does the onboarding by Zoom in person, captures the script verbatim, then `SOP-CUSTOMER-009-onboarding-script-automation-31plus` automates from N=31 onwards.** Do NOT let AI handle onboarding for first 30 paying — these calls produce the wedge insight that no other research captures.
+`onboarding/SOP-CUSTOMER-006-collison-install-script` là literal Collison-install protocol: **cho first ~30 paying users, founder does onboarding by Zoom in person, captures script verbatim, rồi `SOP-CUSTOMER-009-onboarding-script-automation-31plus` automates from N=31 onwards.** Do NOT let AI handle onboarding cho first 30 paying — những calls này produce wedge insight mà no other research captures.
 
 ## HITL baseline
 
@@ -137,5 +139,4 @@ then the cross-cutting "infrastructure" pillars that serve all of them.
 
 ## Entry conditions
 
-Already DEEP. After 1000 paying users, `customer-data` may split into separate `account-management` sub-pillar.
-
+Already DEEP. After 1000 paying users, `customer-data` có thể split into separate `account-management` sub-pillar.

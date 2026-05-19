@@ -9,10 +9,14 @@ description: |
   short-circuit on dedup unless --force.
 source_path: 06-ai-ops/skills/wiki-sync/ingest/SKILL.md
 source_hash: 449e843bff4386aa35675a2b4e12261a832f9ed0c60d47d85d882860d33f8a5e
-generated_at: '2026-05-19T05:20:46.380Z'
+generated_at: '2026-05-19T05:20:46.379Z'
 generated_by: docs-engine v1.1.0
 category: skill
+language: en
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -152,6 +156,10 @@ Cost: ~$0.00002 / 1K tokens. Track in `embedding_cost_usd`.
 a) Write Markdown to `wiki/<source-slug>/source.md` (v4.0 source-grouped layout — verbatim mode is a single source RECORD; no derived entities, so no `<page_type>s/` subfolders) with frontmatter:
 
 ```yaml
+language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 type: <entity_type>
 slug: <slug>
@@ -161,6 +169,10 @@ source_hash: <source_hash>
 ingested_at: <timestamp>
 generated_by: wiki-sync v3.0 (verbatim mode)
 legacy_v2_verbatim: false  # this is a v3.0-era verbatim ingest, not a v2.0 leftover
+language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 <!-- generated-by: wiki-sync v3.0 (verbatim mode) -->

@@ -1,15 +1,18 @@
 ---
 title: 'Skill: docs-engine/adapters/charter-adapter'
 description: |
-  Adapter for `00-charter/*.md`. Pass-through markdown with title-from-H1
-  fallback. **EXCLUDES `founder-profile.md` by default** (PII concern flagged
-  in Phase 3 system inventory).
+  Adapter cho `00-charter/*.md`. Markdown pass-through với fallback title-from-H1.
+  **LOẠI TRỪ `founder-profile.md` theo mặc định** (mối quan tâm PII được cờ trong
+  Phase 3 system inventory).
 source_path: 06-ai-ops/skills/docs-engine/adapters/charter-adapter/SKILL.md
 source_hash: bbb00726f6beb7f28d5c85923bdf5a6e31c353fb43279a800efe58d3e2aafb54
 generated_at: '2026-05-19T05:20:46.351Z'
 generated_by: docs-engine v1.1.0
 category: skill
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -19,7 +22,7 @@ language: vi
 
 ## Input pattern
 
-`00-charter/*.md` MINUS `founder-profile.md`
+`00-charter/*.md` TRỪ `founder-profile.md`
 
 ## Output pattern
 
@@ -27,22 +30,21 @@ language: vi
 
 ## Process
 
-1. Hard-exclude `00-charter/founder-profile.md` (PII allowlist requires explicit override in `docs/excluded-paths.yaml`).
-2. For remaining: title from first H1.
-3. Compute `source_hash`.
-4. Render MDX. Charter files are free-form prose; no special structuring beyond Fumadocs default.
-5. Add idempotency marker.
+1. Loại trừ cứng `00-charter/founder-profile.md` (yêu cầu allowlist PII ghi đè rõ ràng trong `docs/excluded-paths.yaml`).
+2. Cho phần còn lại: title từ H1 đầu tiên.
+3. Tính `source_hash`.
+4. Hiển thị MDX. Các tệp Charter là prose tự do; không có cấu trúc đặc biệt ngoài mặc định Fumadocs.
+5. Thêm marker idempotency.
 
 ## Edge cases
 
-- Charter files may grow to include embedded data (e.g. brand voice samples). Pass through.
-- If `founder-profile.md` is referenced from other charter files (e.g. links), render as `<Callout>: "This page contains PII; ask founder for access."`.
+- Các tệp Charter có thể phát triển để bao gồm dữ liệu nhúng (ví dụ: mẫu brand voice). Pass through.
+- Nếu `founder-profile.md` được tham chiếu từ các tệp charter khác (ví dụ: links), hiển thị dưới dạng `<Callout>: "This page contains PII; ask founder for access."`.
 
 ## HITL / Cost
 
-Tier A. ~$0.02 per file. Charter is small (6 files − 1 excluded = 5 pages).
+Tier A. ~$0.02 mỗi tệp. Charter nhỏ (6 tệp − 1 loại trừ = 5 trang).
 
 ## See also
 
-- `docs/excluded-paths.yaml` (NEW Sprint 1 deliverable; lists hard-excludes + allowlist overrides)
-
+- `docs/excluded-paths.yaml` (NEW Sprint 1 deliverable; liệt kê hard-excludes + allowlist overrides)

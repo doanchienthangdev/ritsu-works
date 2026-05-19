@@ -1,34 +1,38 @@
 ---
 title: 'Tier 1 yaml: cross-tier-invariants'
-description: Schema overview for `knowledge/cross-tier-invariants.yaml`.
+description: Tổng quan lược đồ cho `knowledge/cross-tier-invariants.yaml`.
 source_path: knowledge/cross-tier-invariants.yaml
 source_hash: 9a5a1827e145d82bbf05d8ff8be71d2af88fbea7b08b889d711afd953e991e55
 generated_at: '2026-05-19T05:20:46.470Z'
 generated_by: docs-engine v1.1.0
 category: tier1-yaml
 language: vi
+translated: true
+translated_at: '2026-05-19T13:00:00Z'
+translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-## Description
+## Mô tả
 
 ============================================================================
-Cross-Tier Invariants — Ritsu Works Consistency Engine
+Bất biến xuyên tầng — Động cơ nhất quán của Ritsu Works
 ============================================================================
-Declarative manifest of relationships between Tier 1 git artifacts, Tier 2
-Supabase ops state, and (later) Tier 3/4 derived artifacts. Consumed by:
-  - L1 pre-commit: structural invariants (file existence, basic refs)
-  - L2 CI validators: cross-tier checks (manifest ↔ DB, skills ↔ tables, ...)
-  - L3 AI nightly sweep (v1.0b+): semantic invariants with ai_check_prompt
+Tuyên bố khai báo các mối quan hệ giữa các tạo tác Tier 1 git, trạng thái
+ops Tier 2 Supabase, và (sau này) các tạo tác Tier 3/4 được suy ra. Được
+tiêu thụ bởi:
+  - L1 pre-commit: bất biến cấu trúc (tồn tại tệp, tham chiếu cơ bản)
+  - L2 trình xác thực CI: kiểm tra xuyên tầng (manifest ↔ DB, skill ↔ bảng, ...)
+  - L3 quét AI ban đêm (v1.0b+): bất biến ngữ nghĩa với ai_check_prompt
 
-Schema: knowledge/schemas/cross-tier-invariants.schema.json
-Background: .archives/ceo-plans/2026-05-14-cross-tier-consistency-engine.md
+Lược đồ: knowledge/schemas/cross-tier-invariants.schema.json
+Nền tảng: .archives/ceo-plans/2026-05-14-cross-tier-consistency-engine.md
 ============================================================================
 
-## Top-level keys
+## Các key cấp 1
 
 - `version`
 - `invariants`
 
-> Live values in [`knowledge/cross-tier-invariants.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/cross-tier-invariants.yaml). This page describes the schema; not the data.
+> Giá trị trực tiếp trong [`knowledge/cross-tier-invariants.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/cross-tier-invariants.yaml). Trang này mô tả lược đồ; không phải dữ liệu.

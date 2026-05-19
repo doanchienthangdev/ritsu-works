@@ -7,29 +7,31 @@ generated_at: '2026-05-19T05:20:46.388Z'
 generated_by: docs-engine v1.1.0
 category: hook
 language: vi
+translated: true
+translated_at: '2026-05-19T12:30:00.000Z'
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
-
 # Hook: pre-bash-dangerous
 
-> Detects dangerous shell command patterns and escalates or blocks per severity. The set of patterns is empirical — built from "things that have caused incidents elsewhere."
+> Phát hiện các mẫu lệnh shell nguy hiểm và escalate hoặc block tùy theo mức độ nghiêm trọng. Tập hợp các mẫu được xây dựng từ thực tế — từ "những điều đã gây ra sự cố ở nơi khác."
 
-## What it does
+## Những gì nó làm
 
-Inspects the `command` field of any Bash invocation. Matches against a curated list of pattern categories:
+Kiểm tra trường `command` của bất kỳ lệnh Bash nào. So khớp với danh sách các loại mẫu được quản lý:
 
-- **Catastrophic** → block unconditionally
-- **High-risk** → escalate with full preview
-- **Medium-risk** → escalate with brief preview
-- **Sensitive context** → escalate if executed against sensitive paths
+- **Catastrophic** → block vô điều kiện
+- **High-risk** → escalate với full preview
+- **Medium-risk** → escalate với brief preview
+- **Sensitive context** → escalate nếu được thực thi trên các đường dẫn nhạy cảm
 
-## Pattern categories
+## Các loại mẫu
 
-### Catastrophic (BLOCK, no override allowed)
+### Catastrophic (BLOCK, không cho phép override)
 
-These patterns are blocked even with override. The override mechanism is not a license for irreversibility-against-policy.
+Những mẫu này bị block ngay cả khi có override. Cơ chế override không phải là giấy phép cho những hành động không thể đảo ngược.
 
 ```
 rm -rf /                         # nuke filesystem
@@ -41,34 +43,34 @@ dd if=/dev/zero of=/dev/sd[a-z]  # overwrite disk
 chmod -R 000 /                   # lock permissions
 ```
 
-If matched: `block` with reason `catastrophic_pattern: <pattern>`. Founder is alerted via Telegram regardless. This is treated as a security event.
+Nếu khớp: `block` với lý do `catastrophic_pattern: <pattern>`. Founder sẽ được thông báo qua Telegram bất kể điều gì. Đây được coi là một sự kiện bảo mật.
 
-### High-risk (ESCALATE; allow with override)
+### High-risk (ESCALATE; cho phép với override)
 
 ```
-rm -rf <any path>                # outside catastrophic, but still scary
-git push --force                 # rewrites remote history
-git push -f                      # same
-git reset --hard <ref>           # destroys local work
-git clean -fd                    # destroys untracked files
+rm -rf <any path>                # bên ngoài catastrophic, nhưng vẫn đáng sợ
+git push --force                 # viết lại lịch sử remote
+git push -f                      # tương tự
+git reset --hard <ref>           # phá hủy công việc local
+git clean -fd                    # phá hủy các tập tin untracked
 DROP TABLE                       # SQL destructive
-DELETE FROM .* WHERE             # bulk delete; gate even with WHERE
+DELETE FROM .* WHERE             # bulk delete; gate ngay cả với WHERE
 TRUNCATE                         # SQL destructive
 sudo                             # privilege elevation
-chmod -R 777 <any>               # opens permissions globally
+chmod -R 777 <any>               # mở permissions globally
 chown -R                         # bulk ownership change
 > /dev/sd                        # write to raw disk
 curl <...> | bash                # execute remote script
-curl <...> | sh                  # same
-wget <...> -O- | bash            # same
+curl <...> | sh                  # tương tự
+wget <...> -O- | bash            # tương tự
 ```
 
-If matched: `escalate` with `high_risk_pattern: <pattern>`. HITL flow per Tier C with mandatory dry-run preview.
+Nếu khớp: `escalate` với `high_risk_pattern: <pattern>`. Luồng HITL theo Tier C với mandatory dry-run preview.
 
 ### Medium-risk (ESCALATE; brief preview)
 
 ```
-rm -r <any>                      # recursive delete (less than rf)
+rm -r <any>                      # recursive delete (ít hơn rf)
 rm <large-glob>                  # glob delete
 git rebase                       # history rewrite
 git push (to protected branch)   # main, master
@@ -78,22 +80,22 @@ gh pr merge                      # merging PR via CLI
 gh release create                # public release
 ```
 
-If matched: `escalate` with `medium_risk_pattern: <pattern>`. HITL flow per Tier B-C depending on context.
+Nếu khớp: `escalate` với `medium_risk_pattern: <pattern>`. Luồng HITL theo Tier B-C tùy theo ngữ cảnh.
 
 ### Sensitive context (CHECK PATH)
 
-These commands aren't dangerous in general but become risky when applied to sensitive paths:
+Những lệnh này không nguy hiểm nói chung nhưng trở thành rủi ro khi áp dụng vào các đường dẫn nhạy cảm:
 
 ```
 git checkout <ref> -- governance/    # discards Tier 1 changes
-git stash                            # if cwd has uncommitted Tier 1 changes
+git stash                            # nếu cwd có uncommitted Tier 1 changes
 mv <Tier 1 file>                     # renaming Tier 1 file
 cat <secret file pattern>            # reading .env, *.key
 ```
 
-If matched and path is Tier 1 OR a secret pattern: `escalate`.
+Nếu khớp và đường dẫn là Tier 1 HOẶC mẫu secret pattern: `escalate`.
 
-## Decision logic
+## Logic quyết định
 
 ```
 function decide(payload):
@@ -128,21 +130,21 @@ function decide(payload):
     return allow()
 ```
 
-## Inputs needed
+## Dữ liệu đầu vào cần thiết
 
 - `payload.tool_payload.command` — full shell command string
-- Optional: cwd from `payload.context.current_working_directory`
-- Override state for session
+- Optional: cwd từ `payload.context.current_working_directory`
+- Override state cho session
 
-## Special cases
+## Các trường hợp đặc biệt
 
-- **Composite commands (`&&`, `||`, `;`):** split and check each part individually. Block if ANY part is catastrophic; escalate if ANY part is high-risk
-- **Pipes:** check each component; the consumer side is often the dangerous one (e.g. `curl | bash`)
-- **Subshells (`$(...)`):** extract and check the inner command
-- **Aliases / functions:** if the command invokes a custom function defined earlier in the session, this hook can't see inside it. Document this limitation; mitigated by `pre-bash` running on every Bash call (even those issued from a function)
-- **`echo`:** completely allowed — even if the content matches a pattern. The pattern is content, not action
+- **Composite commands (`&&`, `||`, `;`):** chia và kiểm tra từng phần riêng biệt. Block nếu BẤT KỲ phần nào là catastrophic; escalate nếu BẤT KỲ phần nào là high-risk
+- **Pipes:** kiểm tra từng thành phần; phía consumer thường là phía nguy hiểm (ví dụ `curl | bash`)
+- **Subshells (`$(...)`):** trích xuất và kiểm tra lệnh bên trong
+- **Aliases / functions:** nếu lệnh gọi một hàm tùy chỉnh được định nghĩa sớm hơn trong session, hook này không thể nhìn vào bên trong. Ghi lại hạn chế này; được giảm nhẹ bằng cách `pre-bash` chạy trên mọi lệnh Bash (ngay cả những lệnh được phát hành từ một function)
+- **`echo`:** hoàn toàn cho phép — ngay cả khi nội dung khớp với mẫu. Mẫu là nội dung, không phải hành động
 
-## Test cases
+## Các trường hợp kiểm thử
 
 | # | Command | Expected |
 |---|---|---|
@@ -165,27 +167,27 @@ function decide(payload):
 | 17 | `:(){ :\|:& };:` | block (fork bomb) |
 | 18 | `find . -name '*.tmp' -delete` | escalate (bulk delete) |
 
-## Performance notes
+## Ghi chú hiệu năng
 
-- Patterns are pre-compiled regex; matching is O(n × patterns) but n is small
-- Path extraction can be expensive for complex commands; cap at first 100 chars of command for path-extraction phase
+- Các mẫu được compile sẵn regex; matching là O(n × patterns) nhưng n rất nhỏ
+- Path extraction có thể tốn kém đối với các lệnh phức tạp; giới hạn tại 100 ký tự đầu tiên của lệnh cho phase path-extraction
 
-## Observability
+## Quan sát
 
-Log every escalation/block with the matched pattern. After 30 days of logs, review the top-10 most-blocked patterns:
-- Are any false-positives? Refine the pattern.
-- Are any genuinely dangerous and being attempted often? Train the agents (update CLAUDE.md or role prompts).
+Ghi lại mỗi escalation/block với mẫu được khớp. Sau 30 ngày nhật ký, xem lại 10 mẫu được block nhiều nhất:
+- Có false-positives nào không? Tinh chỉnh mẫu.
+- Có mẫu nào thực sự nguy hiểm và được cố gắng thường xuyên không? Huấn luyện các agent (cập nhật CLAUDE.md hoặc role prompts).
 
-## Limitations
+## Hạn chế
 
-This hook is **not** a sandbox. It's a tripwire. A determined adversary can bypass any pattern list with sufficient obfuscation:
+Hook này **không phải** là một sandbox. Đó là một tripwire. Một kẻ thù có mục đích có thể vượt qua bất kỳ danh sách mẫu nào với đủ obfuscation:
 
 - `r''m -rf /` (quoted)
 - `bash -c $'$(echo cm0gLXJmIC8= | base64 -d)'` (encoded)
 
-Defense in depth: the agent runs in a non-root user with limited filesystem access, and the host (Claude Code) provides additional sandboxing.
+Defense in depth: agent chạy trong một non-root user với quyền truy cập tệp hạn chế, và host (Claude Code) cung cấp thêm sandboxing.
 
-## Implementation reference
+## Tham chiếu triển khai
 
 ```python
 CATASTROPHIC = [
@@ -222,5 +224,4 @@ def decide(payload):
 
 ---
 
-*A pattern list is never complete. New dangerous shell incantations are invented yearly. Treat this hook as a defense layer, not a panacea.*
-
+*Danh sách mẫu không bao giờ hoàn chỉnh. Các lệnh shell nguy hiểm mới được phát minh hàng năm. Coi hook này là một layer phòng vệ, không phải một giải pháp hoàn hảo.*

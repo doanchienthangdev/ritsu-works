@@ -1,15 +1,18 @@
 ---
 title: 'Skill: docs-engine/adapters/pillar-readme-adapter'
 description: |
-  Adapter for pillar-level docs: `0[0-9]-*/{README,CLAUDE}.md` AND recursive
-  sub-pillar `README.md` + `CLAUDE.md`. Most content lives at sub-pillar level
-  for DEEP pillars (e.g. 03-gtm has 6 sub-pillars each with own README).
+  Adapter cho tài liệu cấp pillar: `0[0-9]-*/{README,CLAUDE}.md` VÀ `README.md` + `CLAUDE.md`
+  recursive sub-pillar. Hầu hết nội dung sống ở cấp sub-pillar cho DEEP pillars
+  (ví dụ: 03-gtm có 6 sub-pillars mỗi cái có README riêng).
 source_path: 06-ai-ops/skills/docs-engine/adapters/pillar-readme-adapter/SKILL.md
 source_hash: 6887fa355b8f4a2dd1873ff8e2f8f6bedef7348461cf3568347c8dd38067b97f
-generated_at: '2026-05-19T05:20:46.353Z'
+generated_at: '2026-05-19T05:20:46.352Z'
 generated_by: docs-engine v1.1.0
 category: skill
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -19,42 +22,41 @@ language: vi
 
 ## Input patterns
 
-- `0[0-9]-*/README.md` (top-level pillar overview)
-- `0[0-9]-*/CLAUDE.md` (path-scoped Claude guidance; per CLAUDE.md root file)
-- `0[0-9]-*/<sub-pillar>/README.md` (sub-pillar overview)
-- `0[0-9]-*/<sub-pillar>/CLAUDE.md` (sub-pillar Claude guidance)
+- `0[0-9]-*/README.md` (tổng quan pillar cấp cao)
+- `0[0-9]-*/CLAUDE.md` (hướng dẫn Claude có phạm vi đường dẫn; per root file CLAUDE.md)
+- `0[0-9]-*/<sub-pillar>/README.md` (tổng quan sub-pillar)
+- `0[0-9]-*/<sub-pillar>/CLAUDE.md` (hướng dẫn Claude sub-pillar)
 - `10-*/README.md` + `10-*/<sub-pillar>/README.md` (10-metrics)
 
 ## Output pattern
 
-`docs/content/pillars/<pillar-slug>/index.mdx` for pillar README.
-`docs/content/pillars/<pillar-slug>/<sub-pillar>/index.mdx` for sub-pillar README.
-`docs/content/pillars/<pillar-slug>/_claude.mdx` for pillar CLAUDE.md (note: `_claude` to distinguish from index).
-`docs/content/pillars/<pillar-slug>/<sub-pillar>/_claude.mdx` similar.
+`docs/content/pillars/<pillar-slug>/index.mdx` cho pillar README.
+`docs/content/pillars/<pillar-slug>/<sub-pillar>/index.mdx` cho sub-pillar README.
+`docs/content/pillars/<pillar-slug>/_claude.mdx` cho pillar CLAUDE.md (lưu ý: `_claude` để phân biệt với index).
+`docs/content/pillars/<pillar-slug>/<sub-pillar>/_claude.mdx` tương tự.
 
 ## Process
 
-1. Walk recursively (BFS-bounded; depth ≤ 3, similar to wiki-sync/folder-adapter v4.1).
-2. Title from first H1; fallback to "Pillar: \<slug>" or "Sub-pillar: \<slug>".
-3. Compute `source_hash`.
-4. Render MDX. Add pillar metadata frontmatter from `knowledge/manifest.yaml`:
+1. Duyệt recursive (BFS-bounded; depth ≤ 3, tương tự wiki-sync/folder-adapter v4.1).
+2. Title từ H1 đầu tiên; fallback thành "Pillar: \<slug>" hoặc "Sub-pillar: \<slug>".
+3. Tính `source_hash`.
+4. Hiển thị MDX. Thêm frontmatter metadata pillar từ `knowledge/manifest.yaml`:
    - `layer: evergreen | stage`
    - `stage_status: deep | lite | skeleton | maintenance`
    - `pillar_code: PILLAR | GTM | etc.`
-5. Add idempotency marker.
+5. Thêm marker idempotency.
 
 ## Edge cases
 
-- Some pillars have no CLAUDE.md (skeleton pillars) — skip silently.
-- Sub-pillars with no README → don't generate empty page; just note in adapter_errors.
-- Cross-references to other pillars' READMEs → preserve as relative links (Fumadocs handles).
+- Một số pillar không có CLAUDE.md (skeleton pillars) — bỏ qua yên tĩnh.
+- Sub-pillar không có README → không tạo trang rỗng; chỉ ghi chú trong adapter_errors.
+- Tham chiếu chéo tới README của các pillar khác → giữ nguyên dưới dạng relative links (Fumadocs xử lý).
 
 ## HITL / Cost
 
-Tier A. ~$0.05-0.10 total (BFS over ~20-30 files).
+Tier A. ~$0.05-0.10 tổng cộng (BFS qua ~20-30 tệp).
 
 ## See also
 
-- `knowledge/manifest.yaml` pillars block — source of truth for pillar metadata
-- Sibling pattern: `wiki-sync/adapters/folder-adapter/SKILL.md` (BFS walking)
-
+- `knowledge/manifest.yaml` blok pillars — source of truth cho metadata pillar
+- Mẫu anh em: `wiki-sync/adapters/folder-adapter/SKILL.md` (BFS walking)

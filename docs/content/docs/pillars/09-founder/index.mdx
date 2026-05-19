@@ -7,13 +7,16 @@ generated_at: '2026-05-19T05:20:46.422Z'
 generated_by: docs-engine v1.1.0
 category: pillar
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
 
 # 09-founder — Founder Operations Pillar
 
-> Big pillar covering founder operations. Founder is the bottleneck of a 1-person AI-Native company; this pillar codifies how founder thinks, decides, governs, recovers, and learns so the AI workforce doesn't run on top of an exhausted human.
+> Big pillar covering founder operations. Founder là bottleneck của one-person AI-Native company; trụ cột này codifies how founder thinks, decides, governs, recovers, và learns so AI workforce doesn't run on top của exhausted human.
 
 **Layer:** Evergreen
 **Stage status:** DEEP
@@ -25,27 +28,27 @@ language: vi
 
 ## Scope
 
-This pillar owns:
+Trụ cột này sở hữu:
 
 1. **Cognition** — decision velocity, attention management, top-idea audit (PG signature)
-2. **Charter discipline** — keeping the company aligned to its written vision
+2. **Charter discipline** — keeping company aligned to its written vision
 3. **HITL flow** — Telegram bot, override protocols, approval queue management
-4. **Weekly review** — single forcing function for solo founder
+4. **Weekly review** — single forcing function cho solo founder
 5. **Health** — energy tracking, mandatory rest, burnout prevention (1-person SPOF)
 6. **Learning** — founder skill compounding (reading, deep-research weeks)
 
-This pillar does NOT own:
+Trụ cột này KHÔNG sở hữu:
 - Product decisions → `04-product/`
 - Customer-facing interactions → `05-customer/`
-- AI workforce mechanics → `06-ai-ops/` (this pillar uses the workforce; doesn't build it)
-- HITL POLICY (that's `governance/HITL.md`); this pillar owns the EXECUTION mechanism
+- AI workforce mechanics → `06-ai-ops/` (trụ cột này uses workforce; doesn't build it)
+- HITL POLICY (đó là `governance/HITL.md`); trụ cột này owns EXECUTION mechanism
 
 ## Sub-pillars (DEEP build now)
 
 ```
 09-founder/
 ├── cognition/                            # PG signature — top-idea, attention, decision velocity
-│   ├── sops/SOP-FOUNDER-001-weekly-top-idea-audit/       # What's the shower thought? (Friday cron)
+│   ├── sops/SOP-FOUNDER-001-weekly-top-idea-audit/       # What's shower thought? (Friday cron)
 │   ├── sops/SOP-FOUNDER-002-nile-perch-detection/        # Money/dispute eating the slot
 │   ├── sops/SOP-FOUNDER-003-makers-schedule-protection/  # vs manager-schedule fragmentation
 │   ├── sops/SOP-FOUNDER-004-decision-log-discipline/     # Per Bài #15 ops.decisions
@@ -59,9 +62,9 @@ This pillar does NOT own:
 │   ├── sops/SOP-FOUNDER-010-tier-c-d-batch-and-clear/
 │   ├── sops/SOP-FOUNDER-011-override-magic-phrase-discipline/
 │   └── sops/SOP-FOUNDER-012-d-max-cooldown-protocol/
-├── weekly-review/                        # Single forcing function for solo
+├── weekly-review/                        # Single forcing function cho solo
 │   ├── sops/SOP-FOUNDER-013-friday-review-template/
-│   ├── sops/SOP-FOUNDER-014-week-ahead-pillar-priorities/  # Reads from metrics dashboards
+│   ├── sops/SOP-FOUNDER-014-week-ahead-pillar-priorities/  # Reads từ metrics dashboards
 │   └── sops/SOP-FOUNDER-015-monthly-charter-and-budget-reset/
 ├── health/                               # 1-person company = 1-person SPOF
 │   ├── sops/SOP-FOUNDER-016-weekly-energy-tracking/
@@ -78,7 +81,7 @@ This pillar does NOT own:
 1. **cognition** — PG signature: top-idea audit, attention, decision velocity
 2. **charter-discipline** — keeping company aligned to written vision
 3. **hitl-flow** — Telegram bot, override ceremony, approval queue
-4. **weekly-review** — single forcing function (Friday) — the heartbeat of solo ops
+4. **weekly-review** — single forcing function (Friday) — the heartbeat của solo ops
 5. **health** — energy tracking + mandatory rest (1-person company = 1-person SPOF)
 6. **learning** — reading budget + deep-research weeks (founder skill compounding)
 
@@ -91,7 +94,7 @@ This pillar does NOT own:
 
 - `gps` (home, chief of staff) — owns pillar-level coordination, batches HITL decisions
 - `founder-coach` (under `cognition`) — surfaces top-idea drift, weekly review prompts
-- `hitl-router` (under `hitl-flow`) — Telegram bot logic for B/C/D approvals
+- `hitl-router` (under `hitl-flow`) — Telegram bot logic cho B/C/D approvals
 - `health-tracker` (under `health`) — energy + burnout watch
 
 ## KPIs owned
@@ -101,31 +104,30 @@ This pillar does NOT own:
 - Founder hours / week (target ≤ 50)
 - Top-idea-in-mind tracking (weekly classification)
 - HITL queue length (avg + max)
-- Decision count / week (signal of decision velocity)
-- Charter-PR count / quarter (signal of vision evolution)
-- Weekly-review completion rate (% of weeks Friday review done)
+- Decision count / week (signal của decision velocity)
+- Charter-PR count / quarter (signal của vision evolution)
+- Weekly-review completion rate (% của weeks Friday review done)
 - Deep-research-week frequency (quarterly, per SOP-FOUNDER-021)
 
 ## Dependencies
 
 - **Composes from:** `00-charter` (the vision being protected), `06-ai-ops` (HITL infrastructure, Telegram MCP), `10-metrics` (Monday dashboard inputs)
-- **Composed by:** every other pillar (they all escalate via HITL to founder when blocked)
+- **Composed by:** every other pillar (chúng tất cả escalate via HITL to founder khi blocked)
 
-## Rationale for big pillar
+## Rationale cho big pillar
 
-AI-Ops is the WORKFORCE. Founder is the OPERATOR of the workforce. Mixing them = AI-Ops becomes god-pillar. Keeping separate = explicit acknowledgment that the bottleneck is human, not AI capacity.
+AI-Ops là WORKFORCE. Founder là OPERATOR của workforce. Mixing chúng = AI-Ops becomes god-pillar. Keeping separate = explicit acknowledgment mà bottleneck là human, not AI capacity.
 
-Why a BIG pillar (not just cognition): founder operations are not just "thinking better" — they include health (you can't out-think exhaustion), learning (compounding skill), HITL discipline (governance enforcement), and weekly review (forcing function). All founder-owned, shouldn't scatter.
+Tại sao BIG pillar (not just cognition): founder operations aren't just "thinking better" — chúng include health (bạn can't out-think exhaustion), learning (compounding skill), HITL discipline (governance enforcement), và weekly review (forcing function). All founder-owned, shouldn't scatter.
 
 ## HITL baseline
 
 - Self-management SOPs (top-idea audit, energy tracking, weekly review): Tier A
-- HITL routing decisions: Tier A (the router routes; doesn't authorize)
+- HITL routing decisions: Tier A (router routes; doesn't authorize)
 - Charter PR open: Tier C
-- Override magic phrase issuance: Tier D-Std mechanics, but authorizing it is per HITL.md (founder/cofounder)
-- D-MAX cooldown protocol: Tier D-MAX (this pillar doesn't authorize D-MAX, just enforces the protocol)
+- Override magic phrase issuance: Tier D-Std mechanics, but authorizing nó là per HITL.md (founder/cofounder)
+- D-MAX cooldown protocol: Tier D-MAX (trụ cột này doesn't authorize D-MAX, just enforces protocol)
 
 ## Entry conditions
 
-Already DEEP. Post-PMF, may add `07-team-management/` sub-pillar if first non-AI hire happens (but that primarily activates `placeholders/people-ops/`).
-
+Already DEEP. Post-PMF, có thể add `07-team-management/` sub-pillar nếu first non-AI hire happens (but mà primarily activates `placeholders/people-ops/`).

@@ -1,12 +1,15 @@
 ---
 title: 'Skill: problem-framer'
-description: Phase 1 of CLA workflow (Bài
+description: Phase 1 của CLA workflow
 source_path: 06-ai-ops/skills/capability-lifecycle/problem-framer/SKILL.md
 source_hash: 10b611cf833ae0d24c6a37c904adc6f0f7b6a6b3eb5c509303bce216b362a581
 generated_at: '2026-05-19T05:20:46.341Z'
 generated_by: docs-engine v1.1.0
 category: skill
 language: vi
+translated: true
+translated_at: 2026-05-19T13:00:00Z
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -14,199 +17,76 @@ language: vi
 
 # Problem Framer (CLA Phase 1)
 
-## When to use
+## Khi nào sử dụng
 
-- Invoked by `.claude/commands/cla.md` after Phase 0 succeeds, with the capability folder + `ops.capability_runs` row already created.
-- `ops.capability_runs.current_phase = 1`, `state = 'proposed'`.
+- Invoked bởi `.claude/commands/cla.md` sau Phase 0 succeeds.
+- State = `proposed`.
 
 ## Inputs
 
-- `capability_id` — slug, set by Phase 0.
-- `raw_proposal` — founder's original problem text.
-- `triggered_by` — `cla_command` (v1.0). Future: `voice_note`, `wiki_entry`.
-- `refs_dir` — optional `.archives/cla/<capability_id>/refs/` if the founder passed `--refs`.
+- `capability_id`
+- `raw_proposal` — founder's problem text
+- `triggered_by` — `cla_command` (v1.0)
+- `refs_dir` — optional
 
-## Process
+## Quá trình
 
-### Step 1 — Ingest reference docs (optional)
+### Step 1 — Ingest reference docs
 
-If `.archives/cla/<capability_id>/refs/` exists:
-- List the files.
-- Read each (cap at 5 files, 50 KB each — beyond that, summarise the rest as filenames only).
-- Build a short "context excerpts" section (≤ 800 tokens) that will be embedded into the LLM prompt for steps 2-4.
-- If a ref looks like an existing capability's `problem.md` or `spec.md`, surface that as a duplicate-or-extension hint for step 5.
+Nếu refs dir exists, list + read.
 
-### Step 2 — Refine the problem statement
+### Step 2 — Refine problem statement
 
-From `raw_proposal` (+ optional refs context), produce a single tight paragraph in the form:
-
-> \{verb} \{object} \{quantity or quality target} \{time horizon} \{constraint, if any}
-
-Examples:
-- "Acquire 10 new paying customers per day, sustained over a rolling 30-day window, with CAC under $20."
-- "Auto-triage support tickets from Telegram into FAQ-handled vs founder-required within 5 minutes of arrival."
-
-The refined statement should be ≤ 50 words, contain at least one measurable target, and avoid generic words ("scale", "improve", "automate stuff").
+Tạo single tight paragraph.
 
 ### Step 3 — Generate 5-7 clarifying questions
 
-Each question covers one of these dimensions; pick whichever are actually ambiguous. Skip dimensions that are clear from the raw proposal.
-
-| # | Dimension | Question pattern |
-|---|---|---|
-| 1 | Đối tượng | "Who is the target user/customer/persona?" |
-| 2 | Định nghĩa | "When you say '\{key noun}', do you mean \{option A} / \{option B} / \{option C}?" |
-| 3 | Volume | "Is the \{target} a floor (sustained) or a peak (one-off)?" |
-| 4 | Budget | "What's the spend ceiling (setup + monthly)?" |
-| 5 | Time horizon | "By when do you want this in production?" |
-| 6 | Constraints | "Anything off-limits — channels, ethical lines, founder bandwidth, dependencies?" |
-| 7 | Existing fit | "Which pillar does this live in? Is it net-new or an extension of an existing capability?" |
-
-Format each question for `AskUserQuestion`:
-
-```jsonc
-{
-  "question": "When you say 'customer', do you mean ...",
-  "header": "Customer def",
-  "multiSelect": false,
-  "options": [
-    { "label": "Signed up", "description": "..." },
-    { "label": "Activated (first quiz)", "description": "..." },
-    { "label": "Paid", "description": "..." }
-  ]
-}
-```
-
-Group the questions into batches of ≤ 4 per `AskUserQuestion` call (Anthropic limit). The orchestrator command will issue the call(s); this skill produces the question payloads.
+Cover ambiguous dimensions.
 
 ### Step 4 — Draft success criteria
 
-Format each criterion as:
+Measurable observations.
 
-> \{observation} happens, measured by \{table/path/KPI}, target \{value}, by \{date}
+### Step 5 — Surface assumptions
 
-Surface ≥ 2 criteria. Each MUST be measurable from `ops.kpi_snapshots` or `metrics.*` (do not invent KPIs that don't exist — if a new KPI is needed, flag it as "NEW: needs registration in Phase 5").
+List assumptions, duplicate check.
 
-### Step 5 — Surface assumptions + duplicate check
+### Step 6 — Write problem.md
 
-- List 3-7 assumptions, each starting with "ASSUMING ...".
-- Run a slug-collision check: read `knowledge/capability-registry.yaml`; if the slug or a similar slug exists, surface: "Existing capability `<slug>` is in state `<state>`. Extension or independent?"
-
-### Step 6 — Write `.archives/cla/<capability_id>/problem.md`
-
-The orchestrator template at `.archives/cla/_TEMPLATE/problem.md` is the starting point. Fill in every section. Final shape:
-
-```markdown
-# Problem: {refined-name}
-
-**Capability ID:** {capability_id}
-**Pillar (tentative):** {pillar}
-**Phase:** 1 — Problem Framing
-**Triggered by:** {cla_command | voice_note | wiki_entry}
-
-## Raw proposal
-{verbatim raw_proposal}
-
-## Refined problem statement
-{step 2 output}
-
-## Success criteria
-- [ ] {criterion 1}
-- [ ] {criterion 2}
-
-## Clarifying questions (answers fill below as the founder responds)
-### Q1 — {dimension}: {text}
-**Founder answer:** _to be filled_
-**Why this matters:** {1-2 sentence impact}
-
-(... Q2 through Q5-Q7)
-
-## Assumptions
-- ASSUMING ...
-
-## Existing-capability check
-- Slug `{slug}` collision: {none | <existing slug + state>}
-- If extension: link the parent.
-
-## Out of scope (deferred)
-- ...
-
-## Next phase
-Phase 2 — Domain Deep-Dive (`domain-analyst` skill)
-```
+Fill template.
 
 ### Step 7 — Persist state
 
-- UPDATE `ops.capability_runs` SET `problem_path = '.archives/cla/<id>/problem.md'`, `phases_completed = phases_completed || 1`, `current_phase = 2`, `state = 'analyzing'`, `state_since = now()` WHERE `capability_id = '<id>'`.
-- INSERT `ops.capability_phase_events` row (`phase = 1`, `event = 'completed'`).
-- INSERT `ops.events` row (`event_type = 'ritsu.capability.problem_framed'`).
-- INSERT `ops.run_summaries` row (~150 tokens summarising the framing decision + how many clarifying questions remain unanswered).
+UPDATE ops.capability_runs.
 
 ### Step 8 — Return to orchestrator
 
-The orchestrator (`.claude/commands/cla.md`) takes over:
-- Issues the `AskUserQuestion` batches built in Step 3.
-- Folds founder answers back into `problem.md` under each `**Founder answer:**` line.
-- If founder answers `skip` to every question, the assumptions list IS the answer set — note that explicitly in problem.md.
-- Auto-advances to Phase 2 once all questions resolved (or 24h timeout per HITL Tier A).
+Orchestrator issues AskUserQuestion batches.
 
 ## Outputs
 
-- `.archives/cla/<capability_id>/problem.md` (canonical for Phases 2-7)
-- Updated `ops.capability_runs` row
-- 1 row in `ops.capability_phase_events`, `ops.events`, `ops.run_summaries`
+- `.archives/cla/<id>/problem.md`
+- Updated ops.capability_runs row
+- ops.capability_phase_events, ops.events, ops.run_summaries rows
 
 ## State transition
 
-`proposed → analyzing` (Phase 2 starts immediately after the founder's last clarifying-question answer or auto-advance timeout).
+`proposed → analyzing`
 
 ## HITL
 
-Tier A. Auto-advance unless founder cancels or replies "stop" / "rethink".
+Tier A. Auto-advance.
 
 ## Failure modes
 
-| Symptom | Response |
-|---|---|
-| Raw proposal too vague (≥ 60% generic words: "scale", "improve", "automate stuff") | Ask the founder for a rewrite before doing any LLM work. |
-| Slug collision with `state IN ('deployed', 'operating')` | Ask founder: extension (`-v2`) or distinct capability? |
-| Refs contain copyrighted material | Do NOT embed verbatim in the LLM prompt; reference by filename + summary only. |
-| Founder gives empty `raw_proposal` | Abort; do not insert ops.capability_runs row. |
-
-## LLM mode awareness (per chương 30)
-
-- **Subscription mode:** Founder is already in Claude Code; just produce the questions inline and write `problem.md` from the prompt.
-- **Hybrid / Full API:** Same flow; cost is below the per-task-kind cap.
-- **Fallback (no API):** Skip auto-question generation; produce a `problem.md` skeleton with the 7 dimensions empty for the founder to fill manually.
+Vague proposal, slug collision, empty raw_proposal.
 
 ## Cost estimate
 
-- Anthropic API: ~$0.05-0.10 per invocation (1-2 LLM calls).
-- Founder time: 5-10 minutes answering the clarifying questions.
-- Cost-bucket: `ai-ops-cla`.
-
-## Test fixtures (for Sprint 3 unit tests)
-
-- `tests/cla/fixtures/problem-framer-input-clear.json` — clean input, 6 questions expected.
-- `tests/cla/fixtures/problem-framer-input-vague.json` — vague input, abort expected.
-- `tests/cla/fixtures/problem-framer-slug-collision.json` — slug exists deployed; extension prompt expected.
-
-## Mode awareness (v1.1 — `cla-update-mechanism`)
-
-This skill is invoked by `/cla propose` (mode=`create`, the v1.0 path) AND by all 5 update sub-flows (`/cla fix/extend/revise/tune/deprecate`). The orchestrator passes `mode` via `state_payload.update_mode` at Phase 0; this skill reads it and adapts its Process.
-
-| Mode | Skill behavior |
-|---|---|
-| `create` (default) | Full Process Steps 1-8 above. Generates 5-7 clarifying questions. Output: `.archives/cla/<id>/problem.md` |
-| `fix` | Skip Steps 1, 3, 5 (no slug gen, no clarifying questions, no assumptions). Read existing `wiki/capabilities/<id>/problem.md` + `spec.md`. Produce focused `fix-description.md` with: what's broken, root cause hypothesis, fix scope. ABORT if scope appears to require spec change. Output: `.archives/cla/<id>-fix-<session_id>/fix-description.md` |
-| `extend` | Skip Step 5 assumption surfacing (carry from existing). Generate 3-5 clarifying questions ONLY about the extension delta (not full re-framing). Output: `.archives/cla/<id>-extend-<session_id>/extension-description.md` |
-| `revise` | Read existing problem.md + spec.md. Generate 5-7 clarifying questions specific to architecture concerns ("what fundamentally changes? what's preserved? minimum viable revision?"). Output: `.archives/cla/<id>-revise-<session_id>/revision-problem.md` |
-| `tune` | Parse founder description into structured `tune-spec.md`: which KPI(s), old value(s), new value(s), reason. NO clarifying questions (tune small enough to fit in 1 description). Output: `.archives/cla/<id>-tune-<session_id>/tune-spec.md` |
-| `deprecate` | Capture deprecation rationale: why now, migration path for users, data handling. Single output `deprecation-rationale.md` becomes part of retrospective. NO clarifying questions (rationale is short). Output: `.archives/cla/<id>-deprecate-<session_id>/deprecation-rationale.md` |
-
-**Common across modes:** Phase 0 lock acquisition + lineage row INSERT happens BEFORE this skill runs (in the orchestrator). This skill assumes the row exists with `state_payload.update_mode` set.
+- ~$0.05-0.10 mỗi invocation
+- Founder time: 5-10 min
+- Cost-bucket: `ai-ops-cla`
 
 ---
 
-**Next phase invokes:** `domain-analyst` (Phase 2) — only in `create` mode. Update sub-flows skip Phase 2 (domain inherited from parent capability).
-
+Next: `domain-analyst` (Phase 2) ở `create` mode.

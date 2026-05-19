@@ -1,12 +1,15 @@
 ---
-title: 'SOP-AIOPS-001-tune: /cla tune — capability KPI re-tuning sub-flow'
-description: Lightest workflow. Registry edit only. No spec or code change. Patch version bump for tracking.
+title: 'SOP-AIOPS-001-tune: /cla tune — quy trình điều chỉnh lại KPI khả năng'
+description: Quy trình nhẹ nhất. Chỉ chỉnh sửa registry. Không thay đổi spec hoặc code. Nâng cấp phiên bản patch để theo dõi.
 source_path: 06-ai-ops/sops/SOP-AIOPS-001-tune/flow.yaml
 source_hash: 48764354b571965a7a6bb50d1dcb88a4a816d58ac7f8f912e06b8df7f5e8ec45
 generated_at: '2026-05-19T05:20:46.452Z'
 generated_by: docs-engine v1.1.0
 category: sop
 language: vi
+translated: true
+translated_at: '2026-05-19T12:30:00Z'
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 {/* generated-by: docs-engine v1.1.0 */}
@@ -14,11 +17,11 @@ language: vi
 **SOP ID:** `SOP-AIOPS-001-tune`
 **Pillar:** 06-ai-ops
 
-## Overview
+## Tổng quan
 
-Lightest workflow. Registry edit only. No spec or code change. Patch version bump for tracking.
+Quy trình nhẹ nhất. Chỉ chỉnh sửa registry. Không thay đổi spec hoặc code. Nâng cấp phiên bản patch để theo dõi.
 
-## Steps
+## Các bước
 
 ### Step phase-0-preflight-tune — phase-0-preflight-tune
 
@@ -31,17 +34,17 @@ Lightest workflow. Registry edit only. No spec or code change. Patch version bum
 
 - **Skill:** `capability-lifecycle/catalog-updater`
 
-## Acceptance criteria
+## Tiêu chí chấp nhận
 
-- Lock acquired Phase 0, released Phase 8
-- NEW capability_runs row, supersedes_id set, prior superseded
-- Version bumped patch++
-- target_value updated in registry
-- CHANGELOG.md entry added
-- Single PR merged
+- Lock được cấp Phase 0, được giải phóng Phase 8
+- Dòng capability_runs MỚI, supersedes_id được đặt, dòng trước được đánh dấu superseded
+- Phiên bản được nâng cấp patch++
+- target_value được cập nhật trong registry
+- Mục CHANGELOG.md được thêm
+- Một PR được merge
 - pnpm check clean
 
-## Failure handling
+## Xử lý lỗi
 
 ```yaml
 failure_handling:
@@ -55,4 +58,3 @@ failure_handling:
     detection: Phase 8 final check fails
     response: Hold at 'implementing'. Lock stays. Founder fixes drift.
 ```
-
