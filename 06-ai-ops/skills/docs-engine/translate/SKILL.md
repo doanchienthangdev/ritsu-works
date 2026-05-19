@@ -1,0 +1,128 @@
+---
+name: docs-engine/translate
+description: |
+  Incremental translation orchestrator for the docs-engine bilingual pipeline.
+  Re-translates only files marked `needs_retranslation: true` or with
+  `translated_source_hash !== source_hash` (introduced in docs-engine v1.2).
+  Dispatches Claude Code subagents in parallel batches; preserves
+  translations across walker re-runs. No Anthropic API key required when
+  invoked from a Claude Code Desktop session.
+---
+
+# docs-engine/translate
+
+## When to use
+
+- `/docs translate` command (the founder-facing entry point).
+- After `/docs sync` reports `stale VI preserved` for any file.
+- Periodically to clear translation backlog before a Vercel deploy.
+- NOT for first-time translation of a brand-new docs-engine setup —
+  for that, use the same flow but starting from `translated: false` files.
+
+## Why this skill exists (v1.2 motivation)
+
+Before v1.2, `/docs sync` overwrote translated VI files whenever the source
+content changed, destroying translation work. The walker now (v1.2)
+*preserves* the existing VI body and only updates frontmatter to flag the
+file as stale (`needs_retranslation: true` + `translated_source_hash`
+pointing at the hash that WAS translated). This skill picks up the slack:
+finds stale files, dispatches subagents to re-translate.
+
+## Inputs
+
+- `category` — optional filter: `agents` | `charter` | `commands` | `governance`
+  | `hooks` | `knowledge` | `pillars` | `skills` | `sops`. Default: all stale.
+- `dry_run` — bool, default false. Lists what would be re-translated.
+- `force` — bool, default false. Re-translates even files that look fresh.
+- `batch_size` — int, default 6. Files per subagent batch.
+
+## Process
+
+1. **Drift gate.** Run `pnpm check`. If non-zero, ABORT.
+
+2. **Discovery.** Run `node scripts/verify-vi-translation.cjs --list-needs-translation`
+   to get the union of (a) untranslated files (VI body still mostly English,
+   diacritic ratio < 3%) and (b) stale files (`translated_source_hash !==
+   source_hash` or `needs_retranslation: true`). Filter by `category` if
+   provided.
+
+3. **Batch.** Group by category, then split into batches of `batch_size`.
+   Smaller batches reduce context-fatigue induced "metadata-flip-without-
+   translating" failures (observed during docs-engine v1.1.1 translation).
+
+4. **Dispatch.** For each batch, spawn a Claude Code subagent
+   (`subagent_type: general-purpose`, `model: "haiku"`) with these exact
+   instructions:
+
+   - Read each file at its absolute path.
+   - Body = everything AFTER the second `---` line (i.e. after frontmatter).
+   - Translate ALL English prose to natural Vietnamese (headings, bullets,
+     paragraphs, table cells).
+   - PRESERVE: frontmatter (only update `translated_at` to current ISO
+     timestamp and **`translated_source_hash` to current `source_hash`**;
+     REMOVE `needs_retranslation` flag if present), code fences ` ``` `,
+     inline `` `code` ``, file paths, identifier names, JSX comment
+     `{/* generated-by: docs-engine v1.2.0 */}`, markdown link URLs (only
+     translate the link text), escaped `\<` `\{`, HTML comments `<!-- ... -->`.
+   - Vocabulary: see `docs-engine/translate/vocabulary.md` (TBD; for v1.2
+     inline the vocab table in the dispatch prompt).
+   - Use `Write` tool to save each file (full overwrite).
+   - CRITICAL: translate EVERY file in the batch. Do NOT stop after one.
+     Do NOT just flip metadata — body MUST contain real Vietnamese prose
+     with ≥ 5% diacritic ratio.
+
+5. **Re-verify.** After all batches return, run
+   `node scripts/verify-vi-translation.cjs`. If any files remain
+   untranslated or stale, re-dispatch focused agents for those specific
+   files with stricter instructions ("PREVIOUS agent left this English —
+   translate every word now").
+
+6. **Iterate** until verifier reports 100% Fresh (or until 3 iterations
+   without progress, then ABORT and surface to founder).
+
+7. **Local build.** Run `cd docs && pnpm build`. If fails, ABORT.
+
+8. **Commit + push.** One commit per batch is acceptable, or a single
+   commit for the whole translation pass. Message:
+   `feat(docs-engine): incremental translation — N files (v<version>)`.
+
+## Outputs
+
+- `ops.agent_runs` log entry per dispatched subagent (cost attribution
+  bucket: `docs-engine/translate`).
+- Updated `.mdx` files with refreshed `translated_at` + `translated_source_hash`.
+- Console summary: per-category before/after coverage.
+
+## HITL
+
+Tier B (notify-after). Founder gets Telegram summary after each `/docs
+translate` invocation completes. Tier A acceptable if dispatched inside an
+already-active Claude Code session at founder's keyboard.
+
+## Failure modes
+
+| Mode | Cause | Recovery |
+|---|---|---|
+| Agent flips metadata without translating | Context fatigue, vague prompt | Re-dispatch focused agent with stricter instructions per Step 5 |
+| Walker overwrites translation during a `/docs translate` run | Concurrent `/docs sync` call | Acquire lock via `ops.capability_runs.update_lock_session_id` for docs-engine capability before starting |
+| Verifier false-positive on heavily-coded SOP stubs | Body has <50 prose alphas after stripping | Verifier marks Skipped, not Untranslated — accept; revisit when sub-pillar gets fleshed out |
+| MDX parse error after translation | Translator broke an escape pattern (`\<` `\{` `<!-- -->`) | Run `pnpm build` locally; fix specific file by reading EN variant + re-escaping; commit |
+
+## Cost
+
+- Subagent dispatch: ~$0.05-0.15 per file at haiku rates.
+- 60-file translation pass: ~$3-9 (v1.1.2 observed $0 via Claude Code
+  Desktop subscription).
+- Founder time: ~10-20 min to invoke + verify; subagents run in parallel.
+
+## Related
+
+- Walker: `scripts/docs-sync.cjs` (v1.2+ preserves VI bodies on source change).
+- Verifier: `scripts/verify-vi-translation.cjs` (`--list-needs-translation`).
+- Migration: `scripts/migrate-translated-source-hash.cjs` (one-time backfill).
+- API-based alternative: `scripts/docs-translate.cjs` (needs `ANTHROPIC_API_KEY`).
+- Spec: `wiki/capabilities/docs-engine/spec.md` §v1.2.
+
+## Version notes
+
+- v1.0 (docs-engine v1.2.0 introduction): first release.

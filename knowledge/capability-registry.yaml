@@ -216,14 +216,14 @@ capabilities:
       CI gate). `{/* generated-by */}` JSX comment idempotency marker
       (CTO Phase 2 mod). AI runtime endpoint /api/raw/<slug> serves raw MDX
       for subagent context (CPO Phase 4 P0 reframe).
-    version: "1.1.0"
+    version: "1.2.0"
     state: operating
     state_since: 2026-05-19
     proposed_at: 2026-05-19
     deployed_at: 2026-05-19
     operating_since: 2026-05-19
     pillar_owner: 06-ai-ops
-    bài_toán_touched: [1, 2, 5, 7, 8, 9, 10, 11, 13, 15, 17, 19, 20]
+    bài_toán_touched: [1, 2, 5, 7, 8, 9, 10, 11, 13, 14, 15, 17, 19, 20]
     spec_path: wiki/capabilities/docs-engine/spec.md
     retrospective_path: wiki/capabilities/docs-engine/retrospective.md
     sprint_plan: ".archives/cla/docs-engine/sprint-plan.md (local-only working)"
@@ -262,7 +262,28 @@ capabilities:
       225 EN files + 225 VI files (placeholder English content; founder
       runs scripts/docs-translate.cjs to populate real Vietnamese).
       9 categories × 2 meta.{lang}.json for sidebar Diátaxis grouping.
-      Sprint 2 tutorials (5 Vietnamese) STILL deferred to v1.2.
+      Sprint 2 tutorials (5 Vietnamese) STILL deferred to v1.3 (was v1.2 plan;
+      v1.2 took the incremental-translation slot per founder ask).
+
+      v1.1.1 ship (2026-05-19) — first translation pass via Claude Code
+      Desktop subagents (haiku, no API key). 225 .mdx files translated
+      with `translated: true` frontmatter. PR #65 merged. Caveat: walker
+      re-runs would overwrite translations from EN source.
+
+      v1.1.2 ship (2026-05-19) — translation completeness gate.
+      scripts/verify-vi-translation.cjs added: measures VI-diacritic
+      ratio per file. Re-dispatched agents for 60 remaining English-content
+      files. Verified 100% coverage (133/133 measurable; 93 SOP stubs
+      skipped). PR #66 merged. Translation persistence STILL deferred.
+
+      v1.2 extend (2026-05-19) — incremental translation. Walker NOW
+      preserves translated VI bodies when source changes; flags with
+      `needs_retranslation: true` + `translated_source_hash` field.
+      New `/docs translate` slash command + skill (`docs-engine/translate`)
+      orchestrates re-translation via Claude Code subagent dispatch.
+      Verifier extended with `--list-stale` + `--list-needs-translation`.
+      One-time migration backfilled `translated_source_hash` on 224 files.
+      Translation work is NO LONGER destroyed by walker re-runs.
 
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition
