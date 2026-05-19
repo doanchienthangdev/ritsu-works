@@ -1,0 +1,35 @@
+---
+title: 'Tier 1 yaml: feature-flags'
+description: Schema overview for `knowledge/feature-flags.yaml`.
+source_path: knowledge/feature-flags.yaml
+source_hash: f8ff5774b3eda567c6bfd8a9e96a607679b60551855e715bb29f9f97e4234b55
+generated_at: '2026-05-19T05:20:46.472Z'
+generated_by: docs-engine v1.1.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.1.0 */}
+
+## Description
+
+============================================================================
+feature-flags.yaml — LLM Access Modes & Feature Gating
+============================================================================
+Tier 1 declarative: which features run autonomously (need API keys) vs
+manually (fallback to Claude Code session). Edit via PR governance.
+
+See playbook chương 30 for full explanation of modes.
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `mode`
+- `api_keys`
+- `cost_limits`
+- `features`
+- `mode_presets`
+- `migration_triggers`
+
+> Live values in [`knowledge/feature-flags.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/feature-flags.yaml). This page describes the schema; not the data.

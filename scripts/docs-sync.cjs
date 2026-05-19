@@ -53,15 +53,15 @@ const REPO_ROOT = path.resolve(__dirname, "..");
 const DOCS_CONTENT = path.join(REPO_ROOT, "docs", "content", "docs");
 const GENERATED_BY = "docs-engine v1.1.0";
 
-// v1.1: bilingual output. For each source file, emit BOTH `.en.mdx` and
-// `.vi.mdx`. English content is the source verbatim; Vietnamese content
-// starts as English placeholder, gets translated by scripts/docs-translate.cjs
-// in a separate pass (calls Anthropic API; ~$1-3 cost; cached by source_hash).
+// v1.1: bilingual output. Fumadocs v14 dot parser convention:
+//   default locale (vi):    `<slug>.mdx`     (NO suffix; locale optional for default)
+//   alternative locale (en): `<slug>.en.mdx`
 //
-// Fumadocs `parser: 'dot'` + `hideLocale: 'default-locale'` (vi=default):
-//   `<slug>.vi.mdx` → URL `/docs/<slug>`
-//   `<slug>.en.mdx` → URL `/en/docs/<slug>`
+// Vietnamese content starts as English placeholder; gets translated by
+// scripts/docs-translate.cjs in a separate pass.
+const DEFAULT_LANG = "vi";
 const LANGUAGES = ["en", "vi"];
+const LANG_SUFFIX = (lang) => (lang === DEFAULT_LANG ? "" : `.${lang}`);
 
 // === Walker exclude list (Layer 1 secret redaction) ===
 const WALKER_EXCLUDE = [
@@ -713,11 +713,11 @@ function writeCategoryMetaFiles() {
     const categoryDir = path.join(DOCS_CONTENT, category);
     if (!fs.existsSync(categoryDir)) continue;
 
-    // List all .en.mdx files in category and derive slugs
+    // List all default-locale `.mdx` files in category (excludes `.en.mdx` etc.)
     const slugs = fs
       .readdirSync(categoryDir, { withFileTypes: true })
-      .filter((e) => e.isFile() && e.name.endsWith(".en.mdx"))
-      .map((e) => e.name.replace(/\.en\.mdx$/, ""))
+      .filter((e) => e.isFile() && e.name.endsWith(".mdx") && !/\.\w+\.mdx$/.test(e.name))
+      .map((e) => e.name.replace(/\.mdx$/, ""))
       .sort();
 
     for (const lang of LANGUAGES) {
@@ -787,13 +787,13 @@ function main() {
     }
 
     const sourceHash = sha256(raw);
-    // v1.1: emit one MDX per language. English content is the source
-    // verbatim; Vietnamese content starts as English placeholder (translation
-    // happens in scripts/docs-translate.cjs in a separate pass).
+    // v1.1: emit one MDX per language. Fumadocs v14 default-locale convention:
+    //   default lang (vi): `<slug>.mdx` (no suffix)
+    //   alt lang (en):     `<slug>.en.mdx`
     const baseTargetPath = result.targetPath.replace(/\.mdx$/, "");
 
     for (const lang of LANGUAGES) {
-      const targetPath = `${baseTargetPath}.${lang}.mdx`;
+      const targetPath = `${baseTargetPath}${LANG_SUFFIX(lang)}.mdx`;
       const mdxContent = emitMdx({
         targetPath,
         title: result.title,
@@ -846,12 +846,8 @@ function main() {
       }
     }
 
-    // Remove legacy single-language file if it exists (v1.0 layout)
-    if (fs.existsSync(result.targetPath)) {
-      try {
-        fs.unlinkSync(result.targetPath);
-      } catch (_e) { /* ignore */ }
-    }
+    // v1.1 layout: default lang (vi) uses `<slug>.mdx` so no legacy cleanup needed.
+    // Note: walker no longer writes `<slug>.vi.mdx` — VI content lives in `<slug>.mdx`.
   }
 
   // v1.1: write per-category meta.json for proper sidebar grouping (Diátaxis).
