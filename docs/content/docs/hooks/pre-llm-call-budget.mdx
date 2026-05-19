@@ -201,7 +201,7 @@ Nếu model không tìm trong table → log warning, sử dụng Opus rates như
 - Role budget lookup: cached per-process per-role với 30-second TTL
 - Current cost calculation: cached 30 seconds; invalidated bởi post-tool writes
 - Pricing table: cached cho entire session
-- Target: p95 < 50ms cho pre-tool half
+- Target: p95 \< 50ms cho pre-tool half
 
 Cho high-volume roles (100+ calls/min), 30-second cache là essential. Cache misses làm single SQL query (`SELECT SUM(cost_usd) FROM ops.cost_attributions WHERE agent_role = X AND ts >= month_start`).
 

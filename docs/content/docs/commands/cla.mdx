@@ -26,35 +26,35 @@ Lệnh phạm vi dự án cho ritsu-works. Front-end cho Capability Lifecycle Ar
 
 Lệnh này là một **thin orchestrator**. Phase logic tồn tại trong 8 skills dưới `06-ai-ops/skills/capability-lifecycle/`. Lệnh:
 - Phân tích subcommand,
-- Đọc \`06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml\`,
-- Cho mỗi phase: gọi skill tương ứng, quản lý HITL gate, duy trì trạng thái cho \`ops.capability_runs\`,
-- Routes tới CxOs trong Phases 2/4/5 per \`knowledge/cla-routing-keywords.yaml\`,
-- Chạy \`pnpm check\` tại gates 0, 3, 5, 8.
+- Đọc `06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml`,
+- Cho mỗi phase: gọi skill tương ứng, quản lý HITL gate, duy trì trạng thái cho `ops.capability_runs`,
+- Routes tới CxOs trong Phases 2/4/5 per `knowledge/cla-routing-keywords.yaml`,
+- Chạy `pnpm check` tại gates 0, 3, 5, 8.
 
 ## Subcommands
 
 ### Creation (v1.0)
 | Invocation | Purpose | HITL | Persistence |
 |---|---|---|---|
-| \`/cla\` | Show menu + active capabilities | A | read-only |
-| \`/cla propose "<problem>" [--refs <files>]\` | Bắt đầu capability mới tại Phase 0 | per phase | INSERT ops.capability_runs |
-| \`/cla resume <id>\` | Tiếp tục tại phase không hoàn thành cuối cùng | per phase | UPDATE |
-| \`/cla status <id>\` | Hiển thị trạng thái đầy đủ của một capability | A | read-only |
-| \`/cla list [--state=<filter>]\` | Liệt kê tất cả capabilities + tuổi | A | read-only |
-| \`/cla cancel <id>\` | Đánh dấu capability là deprecated mà không triển khai | B | UPDATE state→deprecated |
+| `/cla` | Show menu + active capabilities | A | read-only |
+| `/cla propose "<problem>" [--refs <files>]` | Bắt đầu capability mới tại Phase 0 | per phase | INSERT ops.capability_runs |
+| `/cla resume <id>` | Tiếp tục tại phase không hoàn thành cuối cùng | per phase | UPDATE |
+| `/cla status <id>` | Hiển thị trạng thái đầy đủ của một capability | A | read-only |
+| `/cla list [--state=<filter>]` | Liệt kê tất cả capabilities + tuổi | A | read-only |
+| `/cla cancel <id>` | Đánh dấu capability là deprecated mà không triển khai | B | UPDATE state→deprecated |
 
-### Evolution (v1.1, capability \`cla-update-mechanism\`)
+### Evolution (v1.1, capability `cla-update-mechanism`)
 | Invocation | Purpose | HITL | SOP folder |
 |---|---|---|---|
-| \`/cla fix <id>\` | Bug fix — light delta workflow | B | \`SOP-AIOPS-001-fix/\` |
-| \`/cla extend <id>\` | Scope expansion — thêm các thành phần mới | B → C if spec.md changes | \`SOP-AIOPS-001-extend/\` |
-| \`/cla revise <id>\` | Architecture revision — full ceremony | C | \`SOP-AIOPS-001-revise/\` |
-| \`/cla tune <id>\` | KPI re-tuning — registry edit only | B | \`SOP-AIOPS-001-tune/\` |
-| \`/cla deprecate <id>\` | Sunset capability + cleanup | C | \`SOP-AIOPS-001-deprecate/\` |
-| \`/cla history <id>\` | Hiển thị full lineage chain | A | (read-only — \`ops.v_capability_lineage\` view) |
-| \`/cla force-unlock <id>\` | Break stuck update lock (>24h or known-dead session) | **D-Std** | (lock break — magic phrase per HITL.md) |
+| `/cla fix <id>` | Bug fix — light delta workflow | B | `SOP-AIOPS-001-fix/` |
+| `/cla extend <id>` | Scope expansion — thêm các thành phần mới | B → C if spec.md changes | `SOP-AIOPS-001-extend/` |
+| `/cla revise <id>` | Architecture revision — full ceremony | C | `SOP-AIOPS-001-revise/` |
+| `/cla tune <id>` | KPI re-tuning — registry edit only | B | `SOP-AIOPS-001-tune/` |
+| `/cla deprecate <id>` | Sunset capability + cleanup | C | `SOP-AIOPS-001-deprecate/` |
+| `/cla history <id>` | Hiển thị full lineage chain | A | (read-only — `ops.v_capability_lineage` view) |
+| `/cla force-unlock <id>` | Break stuck update lock (>24h or known-dead session) | **D-Std** | (lock break — magic phrase per HITL.md) |
 
-\`/cla propose\` là điểm vào chính cho NEW capabilities. 5 evolution sub-flows (\`/cla fix/extend/revise/tune/deprecate\`) hoạt động trên EXISTING capabilities trong \`state IN ('operating', 'deployed')\`.
+`/cla propose` là điểm vào chính cho NEW capabilities. 5 evolution sub-flows (`/cla fix/extend/revise/tune/deprecate`) hoạt động trên EXISTING capabilities trong `state IN ('operating', 'deployed')`.
 
 ## Workflow
 
@@ -62,123 +62,123 @@ Lệnh này là một **thin orchestrator**. Phase logic tồn tại trong 8 ski
 
 Trước khi bất kỳ LLM-driven phase nào chạy:
 
-1. **Chạy \`pnpm check\`** (~3s). Nếu non-zero exit, ABORT với output của validator và nói với founder: "Repo có drift trước khi bắt đầu CLA — sửa trước, rồi chạy lại."
-2. **Tạo slug** từ problem statement (kebab-case, ≤ 6 từ). Nếu slug đã tồn tại trong \`knowledge/capability-registry.yaml\`, hỏi: "Resume existing run, append \`-v2\`, hay chọn một slug mới?"
-3. **Tạo working folder**: copy \`/Users/doanchienthang/ritsu-works/.archives/cla/_TEMPLATE/\` → \`/Users/doanchienthang/ritsu-works/.archives/cla/<slug>/\`. **Luôn viết vào root \`.archives/\`, không bao giờ vào \`.archives/\` của worktree** — worktree scratch bị bỏ đi.
-4. **INSERT row** vào \`ops.capability_runs\` (via supabase MCP):
-   - \`capability_id = <slug>\`
-   - \`capability_name = <one-line title>\`
-   - \`pillar_owner = 06-ai-ops\` (refined in Phase 3)
-   - \`state = 'proposed'\`, \`current_phase = 1\`, \`phases_completed = ARRAY[]\`
-   - \`triggered_by_kind = 'cla_command'\`
-   - \`triggered_by_payload = { source: '/cla propose', refs: <list> }\`
-5. **Append placeholder** tới \`knowledge/capability-registry.yaml\` dưới \`capabilities:\` với \`state: proposed\`, \`proposed_at: <today>\`, \`spec_path: wiki/capabilities/<slug>/spec.md\` (target path).
-6. **Optionally**: copy bất kỳ \`--refs\` files nào vào \`.archives/cla/<slug>/refs/\`.
+1. **Chạy `pnpm check`** (~3s). Nếu non-zero exit, ABORT với output của validator và nói với founder: "Repo có drift trước khi bắt đầu CLA — sửa trước, rồi chạy lại."
+2. **Tạo slug** từ problem statement (kebab-case, ≤ 6 từ). Nếu slug đã tồn tại trong `knowledge/capability-registry.yaml`, hỏi: "Resume existing run, append `-v2`, hay chọn một slug mới?"
+3. **Tạo working folder**: copy `/Users/doanchienthang/ritsu-works/.archives/cla/_TEMPLATE/` → `/Users/doanchienthang/ritsu-works/.archives/cla/<slug>/`. **Luôn viết vào root `.archives/`, không bao giờ vào `.archives/` của worktree** — worktree scratch bị bỏ đi.
+4. **INSERT row** vào `ops.capability_runs` (via supabase MCP):
+   - `capability_id = <slug>`
+   - `capability_name = <one-line title>`
+   - `pillar_owner = 06-ai-ops` (refined in Phase 3)
+   - `state = 'proposed'`, `current_phase = 1`, `phases_completed = ARRAY[]`
+   - `triggered_by_kind = 'cla_command'`
+   - `triggered_by_payload = { source: '/cla propose', refs: <list> }`
+5. **Append placeholder** tới `knowledge/capability-registry.yaml` dưới `capabilities:` với `state: proposed`, `proposed_at: <today>`, `spec_path: wiki/capabilities/<slug>/spec.md` (target path).
+6. **Optionally**: copy bất kỳ `--refs` files nào vào `.archives/cla/<slug>/refs/`.
 7. **Confirm với founder** — print summary; auto-advance tới Phase 1 ngoại trừ founder cancel.
 
 **HITL:** A (auto-advance unless founder cancels)
 
 ### Phase 1 — Problem Framing
-Skill: \`capability-lifecycle/problem-framer\`. Invokes the skill, presents clarifying questions via \`AskUserQuestion\` (max 4 per call), writes \`.archives/cla/<id>/problem.md\`. State: \`proposed → analyzing\`. HITL A.
+Skill: `capability-lifecycle/problem-framer`. Invokes the skill, presents clarifying questions via `AskUserQuestion` (max 4 per call), writes `.archives/cla/<id>/problem.md`. State: `proposed → analyzing`. HITL A.
 
 ### Phase 2 — Domain Deep-Dive
-Skill: \`capability-lifecycle/domain-analyst\`. Scans problem text against \`knowledge/cla-routing-keywords.yaml\`, dispatches tới \`@<cxo>\` parallel với skill. Nếu route của CxO persona là \`status: planned\`, dispatch tới \`fallback_role\` thay vào đó. Synthesizes cả output vào \`.archives/cla/<id>/domain-analysis.md\`. State: \`analyzing\` (continued). HITL A.
+Skill: `capability-lifecycle/domain-analyst`. Scans problem text against `knowledge/cla-routing-keywords.yaml`, dispatches tới `@<cxo>` parallel với skill. Nếu route của CxO persona là `status: planned`, dispatch tới `fallback_role` thay vào đó. Synthesizes cả output vào `.archives/cla/<id>/domain-analysis.md`. State: `analyzing` (continued). HITL A.
 
 ### Phase 3 — System Inventory
-Skill: \`capability-lifecycle/system-inventory-scanner\`. Chạy \`pnpm check\`, parse output, enumerate existing skills/SOPs/Tier 1 yamls/MCPs/deployed capabilities, identify gaps. Deterministic — không LLM call. Writes \`.archives/cla/<id>/gap-analysis.md\`. State: \`analyzing → architecting\`. HITL A.
+Skill: `capability-lifecycle/system-inventory-scanner`. Chạy `pnpm check`, parse output, enumerate existing skills/SOPs/Tier 1 yamls/MCPs/deployed capabilities, identify gaps. Deterministic — không LLM call. Writes `.archives/cla/<id>/gap-analysis.md`. State: `analyzing → architecting`. HITL A.
 
 ### Phase 4 — Options Generation
-Skill: \`capability-lifecycle/options-generator\`. Generates 3-5 options với component lists + cost projections + recommendation strength. Identifies 2 top options, fans out parallel \`@<cxo>\` polling (max 3 chiefs per option) cho second opinions. Synthesizes vào \`.archives/cla/<id>/options.md\`. Founder picks via \`AskUserQuestion\`. State: \`architecting\` (continued). **HITL B.**
+Skill: `capability-lifecycle/options-generator`. Generates 3-5 options với component lists + cost projections + recommendation strength. Identifies 2 top options, fans out parallel `@<cxo>` polling (max 3 chiefs per option) cho second opinions. Synthesizes vào `.archives/cla/<id>/options.md`. Founder picks via `AskUserQuestion`. State: `architecting` (continued). **HITL B.**
 
 ### Phase 5 — Architecture Design
-Skill: \`capability-lifecycle/architect\`. Per-Bài-toán impact analysis cho selected option. Writes \`.archives/cla/<id>/spec.md\` + populates \`.archives/cla/<id>/draft/\` (migrations/, skills/, commands/, agents/, sops/, mcp-configs/, frontend/, tier1-diffs.yaml). Runs \`pnpm check\` as a dry-run on draft \`tier1-diffs.yaml\`. Invokes \`@cto\` for migration + tier1-diff sanity review. Invokes Muse panel \`high-stakes-decision-panel\`. Writes \`ops.decisions\` row. Founder approves via Tier C ceremony per \`governance/HITL.md\`. State: \`architecting → planning\`. **HITL C.**
+Skill: `capability-lifecycle/architect`. Per-Bài-toán impact analysis cho selected option. Writes `.archives/cla/<id>/spec.md` + populates `.archives/cla/<id>/draft/` (migrations/, skills/, commands/, agents/, sops/, mcp-configs/, frontend/, tier1-diffs.yaml). Runs `pnpm check` as a dry-run on draft `tier1-diffs.yaml`. Invokes `@cto` for migration + tier1-diff sanity review. Invokes Muse panel `high-stakes-decision-panel`. Writes `ops.decisions` row. Founder approves via Tier C ceremony per `governance/HITL.md`. State: `architecting → planning`. **HITL C.**
 
 ### Phase 6 — Sprint Planning
-Skill: \`capability-lifecycle/sprint-planner\`. Breaks Phase 5 spec vào 2-week sprints với acceptance criteria + Wave alignment. Writes \`.archives/cla/<id>/sprint-plan.md\`. Founder approves via \`AskUserQuestion\`. State: \`planning → implementing\`. HITL B.
+Skill: `capability-lifecycle/sprint-planner`. Breaks Phase 5 spec vào 2-week sprints với acceptance criteria + Wave alignment. Writes `.archives/cla/<id>/sprint-plan.md`. Founder approves via `AskUserQuestion`. State: `planning → implementing`. HITL B.
 
 ### Phase 7 — Implementation (multi-session)
-Skill: \`capability-lifecycle/implementation-coordinator\`. Cho mỗi sprint: delegates tới \`@cto\` for code work, opens one PR per sprint, husky \`pre-commit\` runs \`pnpm check\`, CI runs L2 validators. Founder reviews + merges per PR. State persisted tới \`ops.capability_runs.state_payload.completed_sprints\` array để \`/cla resume <id>\` có thể pick up at first incomplete sprint. State: \`implementing → deployed\` (when all sprints merged + final test passes). HITL B per PR.
+Skill: `capability-lifecycle/implementation-coordinator`. Cho mỗi sprint: delegates tới `@cto` for code work, opens one PR per sprint, husky `pre-commit` runs `pnpm check`, CI runs L2 validators. Founder reviews + merges per PR. State persisted tới `ops.capability_runs.state_payload.completed_sprints` array để `/cla resume <id>` có thể pick up at first incomplete sprint. State: `implementing → deployed` (when all sprints merged + final test passes). HITL B per PR.
 
 ### Phase 8 — Catalog Update + Promotion
-Skill: \`capability-lifecycle/catalog-updater\`. Updates \`knowledge/capability-registry.yaml\` (state, actuals). **Promotes** \`.archives/cla/<id>/spec.md\` → \`wiki/capabilities/<id>/spec.md\` and \`.archives/cla/<id>/retrospective.md\` → \`wiki/capabilities/<id>/retrospective.md\`. Updates \`wiki/capabilities/CATALOG.md\`. Appends boilerplate-extractable patterns tới \`notes/boilerplate-candidates.md\` if any. Final \`pnpm check\` — must be clean to advance. State: \`deployed → operating\`. HITL A.
+Skill: `capability-lifecycle/catalog-updater`. Updates `knowledge/capability-registry.yaml` (state, actuals). **Promotes** `.archives/cla/<id>/spec.md` → `wiki/capabilities/<id>/spec.md` and `.archives/cla/<id>/retrospective.md` → `wiki/capabilities/<id>/retrospective.md`. Updates `wiki/capabilities/CATALOG.md`. Appends boilerplate-extractable patterns tới `notes/boilerplate-candidates.md` if any. Final `pnpm check` — must be clean to advance. State: `deployed → operating`. HITL A.
 
 ## Evolution sub-flows (v1.1)
 
-5 evolution subcommands đều chia sẻ Phase 0 drift pre-flight + lock acquisition + lineage chain semantics. Per-sub-flow phase lists dưới đây (sub-flow yamls tồn tại at \`06-ai-ops/sops/SOP-AIOPS-001-{flow}/flow.yaml\`).
+5 evolution subcommands đều chia sẻ Phase 0 drift pre-flight + lock acquisition + lineage chain semantics. Per-sub-flow phase lists dưới đây (sub-flow yamls tồn tại at `06-ai-ops/sops/SOP-AIOPS-001-{flow}/flow.yaml`).
 
 ### Common pre-flight (all 5 sub-flows)
-1. **Drift gate**: \`pnpm check\` clean. Else ABORT.
-2. **Lock acquire** (atomic): call \`ops.capability_acquire_update_lock(<id>, <session_id>)\`. NULL return → \`LockHeld\` error với held-by + age. Founder waits hoặc \`/cla force-unlock <id>\`. UUID return → lock acquired; proceed.
-3. **State check**: capability phải ở \`state IN ('operating', 'deployed')\`. Else ABORT.
-4. **Insert NEW row** trong \`ops.capability_runs\`: \`capability_id = <id>\` (same as parent — multiple rows per capability), \`state = 'implementing'\`, \`current_phase = 1\`, \`supersedes_id = <prior row id>\`, \`state_payload = jsonb_build_object('update_mode', '<fix|extend|revise|tune|deprecate>', 'session_id', '<uuid>', 'parent_version', '<X.Y.Z>')\`, \`update_lock_session_id\`, \`update_lock_acquired_at\` set by acquire.
-5. **Skill invocation** với \`mode\` parameter passed via state_payload.
+1. **Drift gate**: `pnpm check` clean. Else ABORT.
+2. **Lock acquire** (atomic): call `ops.capability_acquire_update_lock(<id>, <session_id>)`. NULL return → `LockHeld` error với held-by + age. Founder waits hoặc `/cla force-unlock <id>`. UUID return → lock acquired; proceed.
+3. **State check**: capability phải ở `state IN ('operating', 'deployed')`. Else ABORT.
+4. **Insert NEW row** trong `ops.capability_runs`: `capability_id = <id>` (same as parent — multiple rows per capability), `state = 'implementing'`, `current_phase = 1`, `supersedes_id = <prior row id>`, `state_payload = jsonb_build_object('update_mode', '<fix|extend|revise|tune|deprecate>', 'session_id', '<uuid>', 'parent_version', '<X.Y.Z>')`, `update_lock_session_id`, `update_lock_acquired_at` set by acquire.
+5. **Skill invocation** với `mode` parameter passed via state_payload.
 
-### \`/cla fix <id>\` — bug fix (HITL B)
+### `/cla fix <id>` — bug fix (HITL B)
 Phases: 0 (preflight) → 1-delta (problem-framer in fix mode — what's broken?) → 7 (implementation, single PR via @cto) → 8-light (registry version bump patch++, no spec promotion).
 Time: ~30 min. Cost: ~$0.50.
-Spec.md NOT changed (unless bug was spec bug — in that case escalate to \`:revise\`).
+Spec.md NOT changed (unless bug was spec bug — in that case escalate to `:revise`).
 
-### \`/cla extend <id>\` — scope expansion (HITL B → C)
+### `/cla extend <id>` — scope expansion (HITL B → C)
 Phases: 0 → 1-delta (what's new?) → 3 (system inventory + dependency-scanner) → 5-delta (architect produces spec.md diff; if diff substantial, escalate Tier C) → 6 (sprint plan) → 7 (multi-PR) → 8 (registry minor++, spec.md promotion w/ archive of prior).
 Time: ~2-4h. Cost: ~$1.50-3.
 
-### \`/cla revise <id>\` — architecture revision (HITL C)
+### `/cla revise <id>` — architecture revision (HITL C)
 Phases: 0 → 1-delta (what fundamentally changes?) → 3 (inventory + deps) → 4 (options regenerate) → 5 (full architect + @cto + Muse panel) → 6 → 7 → 8 (registry major++, spec.md promotion).
 Time: ~1-2 weeks (multi-session). Cost: ~$3-5.
 **This is the heaviest sub-flow.** Use chỉ khi fundamental architecture changes (e.g., re-platforming).
 
-### \`/cla tune <id>\` — KPI re-tuning (HITL B)
+### `/cla tune <id>` — KPI re-tuning (HITL B)
 Phases: 0 → 1-delta (which KPI? new target?) → 8-tune (registry edit only — no spec change, no skill change).
 Time: ~10 min. Cost: ~$0.10.
 Spec.md NOT changed. Version patch++ for tracking.
 
-### \`/cla deprecate <id>\` — sunset (HITL C)
-Phases: 0 → 1-delta (why deprecate?) → 3-deps (dependency-scanner — block if dependents) → 8-deprecate (state→\`deprecated\`, cancel any scheduled SOPs, move CATALOG.md row to Deprecated section).
+### `/cla deprecate <id>` — sunset (HITL C)
+Phases: 0 → 1-delta (why deprecate?) → 3-deps (dependency-scanner — block if dependents) → 8-deprecate (state→`deprecated`, cancel any scheduled SOPs, move CATALOG.md row to Deprecated section).
 Time: ~30 min. Cost: ~$0.30.
 **Irreversible.** Confirms via founder Tier C ceremony per HITL.md. No version bump (state transition only).
 
-### \`/cla history <id>\` — read-only timeline (HITL A)
-Queries \`ops.v_capability_lineage WHERE capability_id = <id>\`. Outputs chronological table:
+### `/cla history <id>` — read-only timeline (HITL A)
+Queries `ops.v_capability_lineage WHERE capability_id = <id>`. Outputs chronological table:
 
-\`\`\`
+```
 chain_depth | version | state       | proposed_at         | sub_flow  | cost  | duration
 ------------|---------|-------------|---------------------|-----------|-------|--------
 0           | 1.0.0   | superseded  | 2026-05-04 12:00    | (initial) | $4.20 | 8 days
 1           | 1.0.1   | superseded  | 2026-05-12 09:00    | fix       | $0.45 | 2 hours
 2           | 1.1.0   | operating   | 2026-05-15 14:00    | extend    | $2.10 | 2 days
-\`\`\`
+```
 
-### \`/cla force-unlock <id>\` — break stuck lock (HITL D-Std)
-**This is a Tier D-Std action per \`governance/HITL.md\`.** Requires magic phrase \`override: <reason 5+ words>\` từ founder. Should only be used khi:
+### `/cla force-unlock <id>` — break stuck lock (HITL D-Std)
+**This is a Tier D-Std action per `governance/HITL.md`.** Requires magic phrase `override: <reason 5+ words>` từ founder. Should only be used khi:
 - Lock is older than 24h (auto-expired but not cleared)
 - Known dead session (Claude Code process killed mid-cycle)
 - Founder explicitly resolved any in-flight state externally
 
-Releases lock bằng cách setting \`update_lock_session_id = NULL\` + \`update_lock_acquired_at = NULL\`. Logs to \`ops.audit_log\` with override reason.
+Releases lock bằng cách setting `update_lock_session_id = NULL` + `update_lock_acquired_at = NULL`. Logs to `ops.audit_log` with override reason.
 
 ## Resume semantics
 
-\`/cla resume <id>\`:
-1. Read \`ops.capability_runs WHERE capability_id = <id>\` cho current state.
+`/cla resume <id>`:
+1. Read `ops.capability_runs WHERE capability_id = <id>` cho current state.
 2. Re-run Phase 0 drift check (state may have changed since last session).
-3. Validate \`.archives/cla/<id>/\` folder + draft consistency.
-4. Jump tới first incomplete phase (per \`phases_completed\` array).
-5. Nếu \`main\` has moved significantly since architect drafts (Phase 5), warn founder và offer để re-run Phase 5.
-6. Nếu \`state_since\` is > 7 days old, prompt for staleness check.
+3. Validate `.archives/cla/<id>/` folder + draft consistency.
+4. Jump tới first incomplete phase (per `phases_completed` array).
+5. Nếu `main` has moved significantly since architect drafts (Phase 5), warn founder và offer để re-run Phase 5.
+6. Nếu `state_since` is > 7 days old, prompt for staleness check.
 
 ## State persistence
 
 Mỗi phase invocation writes:
-- \`ops.agent_runs\` row (with \`persona_slug\` if invoked through CxO, \`agent_slug = capability-lifecycle/<skill-name>\`).
-- \`ops.run_summaries\` row (~150 tokens, post-hoc).
-- \`ops.capability_phase_events\` row (state transition log).
-- \`ops.events\` row (\`ritsu.capability.<phase>_completed\`).
-- \`ops.cost_attributions\` row (cost-bucket: \`ai-ops-cla\` for orchestration, \`<capability-id>\` for capability-specific spend later).
+- `ops.agent_runs` row (with `persona_slug` if invoked through CxO, `agent_slug = capability-lifecycle/<skill-name>`).
+- `ops.run_summaries` row (~150 tokens, post-hoc).
+- `ops.capability_phase_events` row (state transition log).
+- `ops.events` row (`ritsu.capability.<phase>_completed`).
+- `ops.cost_attributions` row (cost-bucket: `ai-ops-cla` for orchestration, `<capability-id>` for capability-specific spend later).
 
-\`/cla list\` reads \`ops.v_capability_pipeline\` (view defined in migration 00011) for live state. Nếu view empty (first run), nó merges với entries từ \`knowledge/capability-registry.yaml\` nên pre-existing \`capability-lifecycle-architecture\` meta entry vẫn hiển thị.
+`/cla list` reads `ops.v_capability_pipeline` (view defined in migration 00011) for live state. Nếu view empty (first run), nó merges với entries từ `knowledge/capability-registry.yaml` nên pre-existing `capability-lifecycle-architecture` meta entry vẫn hiển thị.
 
-\`/cla status <id>\` queries \`ops.v_capability_pipeline WHERE capability_id = <id>\` và prints state, current_phase, phase_progress_pct, hours_in_current_state, plus file list dưới \`.archives/cla/<id>/\`.
+`/cla status <id>` queries `ops.v_capability_pipeline WHERE capability_id = <id>` và prints state, current_phase, phase_progress_pct, hours_in_current_state, plus file list dưới `.archives/cla/<id>/`.
 
 ## Drift gates (per phase)
 
-\`pnpm check\` runs at: gates 0, 3, 5, 8. If any returns non-zero, phase ABORTS và founder được thông báo để FIX trước tiếp tục. Ví dụ: "Phase 7 lấy CI FAIL trên PR #123 (SQLite migration syntax). Fix and re-run."
+`pnpm check` runs at: gates 0, 3, 5, 8. If any returns non-zero, phase ABORTS và founder được thông báo để FIX trước tiếp tục. Ví dụ: "Phase 7 lấy CI FAIL trên PR #123 (SQLite migration syntax). Fix and re-run."

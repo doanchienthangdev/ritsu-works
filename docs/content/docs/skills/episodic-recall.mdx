@@ -236,7 +236,7 @@ Một lần gọi thành công:
 ## Ước tính chi phí
 
 - Tokens tải vào context: ~150 × `max_runs` (tóm tắt chiếm ưu thế) + ~50 overhead
-- Chi phí truy vấn SQL: ~free (<$0.0001 cho mỗi lệnh gọi giả sử Supabase free tier query overhead)
+- Chi phí truy vấn SQL: ~free (\<$0.0001 cho mỗi lệnh gọi giả sử Supabase free tier query overhead)
 - Wall-clock: ~50-150ms điển hình
 
 Đối với một role thực hiện 1000 tasks/tháng với `max_runs=5`, recall thêm ~750K tokens/tháng vào context. Với tỷ giá Sonnet, đó là khoảng $2-3/tháng cho mỗi role có khối lượng cao. Learning lũy tiến của Strategy E đáng giá điều này.

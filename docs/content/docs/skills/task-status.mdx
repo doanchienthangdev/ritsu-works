@@ -38,9 +38,9 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 Ba bối cảnh kích hoạt:
 
-1. **Founder hỏi về tiến độ.** Gọi trực tiếp thông qua Telegram bot (\`/tasks\`, \`/status <id>\`) hoặc CLI.
-2. **GPS kiểm tra trước khi tiến hành parent.** Trước khi đánh dấu parent task \`done\`, GPS xác minh tất cả children ở trạng thái terminal.
-3. **Chuẩn bị monthly review.** Skill \`monthly-learning-review\` dùng cái này để thu thập completion stats cho tháng qua.
+1. **Founder hỏi về tiến độ.** Gọi trực tiếp thông qua Telegram bot (`/tasks`, `/status <id>`) hoặc CLI.
+2. **GPS kiểm tra trước khi tiến hành parent.** Trước khi đánh dấu parent task `done`, GPS xác minh tất cả children ở trạng thái terminal.
+3. **Chuẩn bị monthly review.** Skill `monthly-learning-review` dùng cái này để thu thập completion stats cho tháng qua.
 
 Không dùng khi:
 - Người gọi muốn raw SQL — dùng Supabase query trực tiếp, skill này hiển thị cho consumption con người
@@ -50,18 +50,18 @@ Không dùng khi:
 
 | Input | Type | Bắt buộc | Description |
 |---|---|---|---|
-| \`mode\` | string | yes | \`tree\` (single parent + descendants) HOẶC \`list\` (open orchestrations) |
-| \`task_id\` | uuid | conditional | Bắt buộc cho \`tree\` mode |
-| \`assignee_role\` | string | no | Lọc list mode theo role |
-| \`since\` | timestamptz | no | Lọc list mode tới tasks tạo sau timestamp |
-| \`include_done\` | bool | no | Mặc định false; có include terminal tasks hay không |
+| `mode` | string | yes | `tree` (single parent + descendants) HOẶC `list` (open orchestrations) |
+| `task_id` | uuid | conditional | Bắt buộc cho `tree` mode |
+| `assignee_role` | string | no | Lọc list mode theo role |
+| `since` | timestamptz | no | Lọc list mode tới tasks tạo sau timestamp |
+| `include_done` | bool | no | Mặc định false; có include terminal tasks hay không |
 
 ## Quality criteria
 
 - Trả về trong 200ms wall-clock cho trees lên đến 20 children
 - Output cho founder mode vừa trong 1 Telegram message (\< 4096 chars)
 - Tính chi phí bao gồm tất cả subagent costs chính xác
-- \`next_action\` field luôn non-empty cho in-progress orchestrations
+- `next_action` field luôn non-empty cho in-progress orchestrations
 
 ## Failure modes
 
@@ -79,9 +79,9 @@ Không dùng khi:
 
 ## Related skills
 
-- \`task-decompose\` — tạo các tasks mà skill này báo cáo
-- (Phase F) \`task-dispatch\` — dùng "ready" list của skill này để spawn subagents
-- \`monthly-learning-review\` (Bài #4) — dùng skill này trong aggregate mode để thu thập monthly stats
+- `task-decompose` — tạo các tasks mà skill này báo cáo
+- (Phase F) `task-dispatch` — dùng "ready" list của skill này để spawn subagents
+- `monthly-learning-review` (Bài #4) — dùng skill này trong aggregate mode để thu thập monthly stats
 
 ## Changelog
 

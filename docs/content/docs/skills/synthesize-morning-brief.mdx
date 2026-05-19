@@ -46,8 +46,8 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Kiến trúc
 
-\`\`\`
-05:45 ICT hàng ngày ──► pg_cron kích hoạt \`morning-brief-assembly\`
+```
+05:45 ICT hàng ngày ──► pg_cron kích hoạt `morning-brief-assembly`
                         │
                         ▼
                   scheduled-run-dispatcher Edge Function
@@ -66,7 +66,7 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
                     output_payload.text: <4-bullet brief>
                         │
                         ▼
-                  Founder mở \`/ceo\` sau đó trong ngày
+                  Founder mở `/ceo` sau đó trong ngày
                         │
                         ▼
                   CEO command đọc skill này
@@ -80,29 +80,29 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
                         │
                         ▼
                   CEO trình bày cho founder + thêm framing Top-3-today
-\`\`\`
+```
 
 ## Skill này làm gì
 
-1. Truy vấn \`ops.agent_runs\` cho row mới nhất có:
-   - \`state_payload.skill = 'synthesize-morning-brief'\` (hoặc trường định danh skill tương đương per \`schedules.generated.ts\`)
-   - \`state = 'completed'\`
-   - \`ended_at > now() - interval '12 hours'\`
+1. Truy vấn `ops.agent_runs` cho row mới nhất có:
+   - `state_payload.skill = 'synthesize-morning-brief'` (hoặc trường định danh skill tương đương per `schedules.generated.ts`)
+   - `state = 'completed'`
+   - `ended_at > now() - interval '12 hours'`
 
 2. Nếu row tồn tại:
-   - Đọc \`output_payload.text\` (4-bullet brief từ Anthropic)
-   - Đọc \`output_payload.input_tokens\`, \`output_tokens\` (để báo cáo chi phí)
-   - Đọc \`fired_at\` (khi cron được kích hoạt)
-   - Trả về \`{ brief, fired_at, cost_usd_estimate, freshness: 'fresh' }\`.
+   - Đọc `output_payload.text` (4-bullet brief từ Anthropic)
+   - Đọc `output_payload.input_tokens`, `output_tokens` (để báo cáo chi phí)
+   - Đọc `fired_at` (khi cron được kích hoạt)
+   - Trả về `{ brief, fired_at, cost_usd_estimate, freshness: 'fresh' }`.
 
 3. Nếu không có fresh row (cron thất bại HOẶC > 12h):
    - Hiển thị tình trạng cũ rõ ràng
-   - Trả về \`{ brief: null, freshness: 'stale-or-missing', fallback: 'CEO synthesizes inline' }\`
+   - Trả về `{ brief: null, freshness: 'stale-or-missing', fallback: 'CEO synthesizes inline' }`
    - CEO's playbook Pattern 1 tiếp quản
 
 ## Freshness contract
 
-- **Fresh** (< 12h): trình bày nguyên bản với attribution one-line "from 05:45 brief".
+- **Fresh** (\< 12h): trình bày nguyên bản với attribution one-line "from 05:45 brief".
 - **Stale** (12-36h): trình bày + cảnh báo + khuyến nghị CEO tổng hợp fresh inline.
 - **Missing** (> 36h hoặc không bao giờ): cron đang thất bại. Hiển thị dưới dạng P1 alert cho founder + trả về fallback signal.
 
@@ -110,8 +110,8 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 | Trường hợp | Hành vi Skill |
 |---|---|
-| Cron không kích hoạt (pg_cron down) | \`freshness: stale-or-missing\`; CEO tổng hợp inline. Hiển thị alert cho founder. |
-| Cron kích hoạt nhưng Anthropic API lỗi | Giống ở trên; kiểm tra \`ops.agent_runs.error\`. |
+| Cron không kích hoạt (pg_cron down) | `freshness: stale-or-missing`; CEO tổng hợp inline. Hiển thị alert cho founder. |
+| Cron kích hoạt nhưng Anthropic API lỗi | Giống ở trên; kiểm tra `ops.agent_runs.error`. |
 | Nhiều briefs trong cửa sổ 12h (cron duplicate) | Trả về most recent; ghi log anomaly. |
 | Brief text trống | Giống cron failure path. |
 | ANTHROPIC_API_KEY thiếu | Cron handler degrade thành placeholder text per worker.ts; skill trả về placeholder + warning. |
@@ -124,4 +124,4 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Status
 
-**Skill folder thêm 2026-05-15 (workforce phase 1.5 hardening).** Server-side handler đã ship trong commit \`685b16f\` (2026-05-05). SKILL.md này đóng documentation gap — CEO files tham chiếu tên skill nhưng local-skill folder không tồn tại, làm \`pnpm check\` và human readers nghĩ skill là phantom reference. Cron + handler đã operational suốt thời gian.
+**Skill folder thêm 2026-05-15 (workforce phase 1.5 hardening).** Server-side handler đã ship trong commit `685b16f` (2026-05-05). SKILL.md này đóng documentation gap — CEO files tham chiếu tên skill nhưng local-skill folder không tồn tại, làm `pnpm check` và human readers nghĩ skill là phantom reference. Cron + handler đã operational suốt thời gian.
