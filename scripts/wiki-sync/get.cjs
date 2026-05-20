@@ -1,27 +1,42 @@
 #!/usr/bin/env node
 /**
- * scripts/wiki-sync/get.cjs — `/wiki get` implementation (v4.3, 2026-05-20).
+ * scripts/wiki-sync/get.cjs — `/wiki get` implementation (v4.3 / v4.4).
  *
  * Extract content bundle from a wiki/ source-grouped package. Output suitable
  * for stdin/stdout (paste into another command's prompt) OR write to a file
  * via --to=<path>.
  *
- * Source spec grammar (--src=<spec>):
- *   <source-slug>                          → full source: source.md + all chapters + all entities
- *   <source-slug>/chapter-N                → chapter-N + entities where frontmatter source_chapter_index == N
- *   <source-slug>/chapter-NN-<slug>        → specific chapter file (filename basename)
- *   <source-slug>/<type>/<entity-slug>     → one entity page (type ∈ {concepts,observations,decisions,ideas})
- *   <source-slug>/<type>                   → all entities of that type from the source
+ * THREE invocation modes:
  *
- * Usage:
- *   node scripts/wiki-sync/get.cjs --src=<spec> [--to=<path>] [--summary] [--include-frontmatter]
+ * 1. Spec mode (--src=<spec>): structured filesystem path → bundle.
+ *    Source spec grammar:
+ *      <source-slug>                         → full source: source.md + chapters + entities
+ *      <source-slug>/chapter-N               → chapter-N + entities citing it
+ *      <source-slug>/chapter-NN-<slug>       → specific chapter file
+ *      <source-slug>/<type>/<entity-slug>    → one entity page
+ *      <source-slug>/<type>                  → all entities of that type
+ *
+ * 2. Entity-list mode (--entities=<csv>): explicit slug list → bundle. v4.4.
+ *    Each entry is either a full spec (<source>/<type>/<slug>) OR a bare
+ *    <entity-slug> (must be combined with --src=<source-slug> for scope).
+ *
+ * 3. Query mode (--query=<text>): semantic retrieval → bundle. v4.4.
+ *    NOTE: get.cjs alone cannot run embedding-based retrieval (would need
+ *    OPENAI_API_KEY + Supabase HTTP). Mode 3 is invoked by the SLASH COMMAND
+ *    ORCHESTRATOR in a Claude session: orchestrator calls
+ *    mcp__supabase-ops__wiki_ask → resolves to entity slugs → invokes
+ *    get.cjs with --entities=<csv> + --query-context-header=<text>.
+ *    Direct CLI invocation with --query= bails with a helpful error.
  *
  * Flags:
- *   --src=<spec>            REQUIRED
- *   --to=<path>             write to file (idempotent); else print to stdout
- *   --summary               include only entity headers + slug list (no full body)
- *   --include-frontmatter   include YAML frontmatter of each entity (default: stripped)
- *   --max-entities=<N>      cap on entities in bundle (default 100; chapter-spec typically ~10-15)
+ *   --src=<spec>                  spec mode source OR scope for --entities short-slug
+ *   --entities=<csv>              v4.4 entity-list mode (comma-separated)
+ *   --query=<text>                v4.4 query mode (slash-command-orchestrator only)
+ *   --query-context-header=<text> v4.4 annotation in bundle header (set by orchestrator)
+ *   --to=<path>                   write to file; else stdout
+ *   --summary                     compact: chapters → outline; entities → first paragraph
+ *   --include-frontmatter         include entity YAML frontmatter in body
+ *   --max-entities=<N>            cap (default 100)
  *
  * Output: markdown bundle with citation-chain header + chapter + entities,
  * each section delimited by H2/H3 + provenance.
@@ -31,8 +46,9 @@
  *
  * Exit codes:
  *   0 — success
- *   1 — src not found / spec parse error
+ *   1 — src/entities parse error / not found
  *   2 — output write error
+ *   3 — --query= invoked directly (no orchestrator). Use slash command instead.
  */
 
 "use strict";
@@ -118,9 +134,15 @@ function entityChapterIndex(filePath) {
   const txt = readIfExists(filePath);
   if (!txt) return null;
   const { fm } = parseFrontmatter(txt);
-  return typeof fm.source_chapter_index === "number"
-    ? fm.source_chapter_index
-    : null;
+  // Schema A (Marketing Management style): integer field
+  if (typeof fm.source_chapter_index === "number") return fm.source_chapter_index;
+  // Schema B (Principles of Marketing style): parse chapter number from
+  // extracted_from_source slug, e.g. "...__chapter-07-...", "...__chapter-14-..."
+  if (typeof fm.extracted_from_source === "string") {
+    const m = fm.extracted_from_source.match(/chapter-0*(\d+)/);
+    if (m) return parseInt(m[1], 10);
+  }
+  return null;
 }
 
 // === Spec resolver ===
@@ -180,24 +202,100 @@ function resolveSpec(spec) {
   };
 }
 
+// === v4.4: Entity-list resolver ===
+// Each entry in `entitiesCsv` is either:
+//   - Full spec: <source-slug>/<type>/<entity-slug>
+//   - Bare entity slug: <entity-slug> (requires scope=<source-slug> for resolution)
+// Returns array of { type, file } and the inferred sourceSlug (if all entries share one source).
+function resolveEntityList(entitiesCsv, fallbackSourceSlug) {
+  const refs = entitiesCsv
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (refs.length === 0) dieErr(`empty --entities list`);
+  const entities = [];
+  const sourceSlugs = new Set();
+  for (const ref of refs) {
+    const parts = ref.split("/").filter(Boolean);
+    let sourceSlug, type, entitySlug;
+    if (parts.length === 3) {
+      [sourceSlug, type, entitySlug] = parts;
+    } else if (parts.length === 2) {
+      // <type>/<entity-slug> — needs --src for source scope
+      if (!fallbackSourceSlug)
+        dieErr(`entity "${ref}" needs --src=<source-slug> for scope or use full <source>/<type>/<slug> form`);
+      sourceSlug = fallbackSourceSlug;
+      [type, entitySlug] = parts;
+    } else if (parts.length === 1) {
+      if (!fallbackSourceSlug)
+        dieErr(`entity "${ref}" needs --src=<source-slug> for scope or use full <source>/<type>/<slug> form`);
+      sourceSlug = fallbackSourceSlug;
+      // Type unknown — search all four type folders
+      const sourceDir = path.join(WIKI_ROOT, sourceSlug);
+      let found = null;
+      for (const t of ENTITY_TYPES) {
+        const candidate = path.join(sourceDir, t, `${ref}.md`);
+        if (fs.existsSync(candidate)) {
+          found = { type: t, file: candidate };
+          break;
+        }
+      }
+      if (!found)
+        dieErr(`entity not found in any type folder under wiki/${sourceSlug}/: ${ref}`);
+      sourceSlugs.add(sourceSlug);
+      entities.push(found);
+      continue;
+    } else {
+      dieErr(`invalid entity ref "${ref}" — expected <source>/<type>/<slug>, <type>/<slug>, or <entity-slug> with --src`);
+    }
+    if (!ENTITY_TYPES.includes(type))
+      dieErr(`invalid type "${type}" in entity ref "${ref}"`);
+    const file = path.join(WIKI_ROOT, sourceSlug, type, `${entitySlug}.md`);
+    if (!fs.existsSync(file))
+      dieErr(`entity not found: ${path.relative(REPO_ROOT, file)}`);
+    sourceSlugs.add(sourceSlug);
+    entities.push({ type, file });
+  }
+  // If all entities share one source slug, return that as inferred source
+  const inferredSourceSlug =
+    sourceSlugs.size === 1 ? [...sourceSlugs][0] : null;
+  return { entities, inferredSourceSlug, multipleSources: sourceSlugs.size > 1 };
+}
+
 // === Bundle assembler ===
 function assembleBundle(spec, options) {
-  const { summary, includeFrontmatter, maxEntities } = options;
+  const { summary, includeFrontmatter, maxEntities, queryContextHeader } =
+    options;
   const sections = [];
 
   // Header
   const now = new Date().toISOString();
-  const sourceMdPath = path.join(spec.sourceDir, "source.md");
-  const { fm: sourceFm } = parseFrontmatter(readIfExists(sourceMdPath));
-  const sourceTitle = sourceFm.title || spec.sourceSlug;
+  let sourceFm = {};
+  if (spec.sourceDir) {
+    const sourceMdPath = path.join(spec.sourceDir, "source.md");
+    sourceFm = parseFrontmatter(readIfExists(sourceMdPath)).fm;
+  }
+  const sourceTitle = sourceFm.title || spec.sourceSlug || "(multiple sources)";
 
   let headerSection = [];
-  headerSection.push("<!-- wiki-context-bundle generated by /wiki get v4.3 -->");
+  headerSection.push("<!-- wiki-context-bundle generated by /wiki get v4.4 -->");
   headerSection.push("# Wiki Context Bundle");
   headerSection.push("");
-  headerSection.push(`- **Source spec:** \`${spec.specArg}\``);
+  if (queryContextHeader) {
+    headerSection.push(`- **Query:** ${queryContextHeader}`);
+  }
+  if (spec.specArg) {
+    headerSection.push(`- **Source spec:** \`${spec.specArg}\``);
+  }
+  if (spec.entitiesArg) {
+    const n = spec.entitiesArg.split(",").length;
+    headerSection.push(`- **Entities (list):** ${n} explicit slugs`);
+  }
   headerSection.push(`- **Source title:** ${sourceTitle}`);
-  headerSection.push(`- **Source slug:** \`${spec.sourceSlug}\``);
+  if (spec.sourceSlug)
+    headerSection.push(`- **Source slug:** \`${spec.sourceSlug}\``);
+  if (spec.multipleSources)
+    headerSection.push(`- **Source scope:** multiple sources (entity list)`);
   if (sourceFm.license_status)
     headerSection.push(`- **License:** ${sourceFm.license_status}`);
   if (sourceFm.source_kind)
@@ -211,7 +309,10 @@ function assembleBundle(spec, options) {
   const chapters = [];
   const entities = [];
 
-  if (spec.scope === "full") {
+  if (spec.scope === "entity-list") {
+    // v4.4: explicit entity list (already resolved)
+    spec.preResolvedEntities.forEach((e) => entities.push(e));
+  } else if (spec.scope === "full") {
     // Source + all chapters + all entities
     listChapters(spec.sourceDir).forEach((f) => chapters.push(f));
     for (const t of ENTITY_TYPES) {
@@ -373,13 +474,24 @@ function assembleBundle(spec, options) {
   footer.push("");
   footer.push("## Provenance");
   footer.push("");
+  const invocation = spec.specArg
+    ? `--src=${spec.specArg}`
+    : spec.entitiesArg
+      ? `--entities=<${spec.entitiesArg.split(",").length} slugs>`
+      : "(unknown)";
   footer.push(
-    `Generated by \`/wiki get --src=${spec.specArg}\` at ${now}. Bundle from source-grouped layout v4.0+. Every entity carries citation chain via \`extracted_from\` + \`source_chunk_index\` + \`book_pages\` frontmatter — trace back to original source via \`ops.knowledge_extractions\` table.`
+    `Generated by \`/wiki get ${invocation}\` at ${now}. Bundle from source-grouped layout v4.0+. Every entity carries citation chain via \`extracted_from\` + \`source_chunk_index\` + \`book_pages\` frontmatter — trace back to original source via \`ops.knowledge_extractions\` table.`
   );
   footer.push("");
-  footer.push(
-    `Do NOT edit this bundle directly. Edit source files under \`wiki/${spec.sourceSlug}/\` and re-run \`/wiki get\`.`
-  );
+  if (spec.sourceSlug) {
+    footer.push(
+      `Do NOT edit this bundle directly. Edit source files under \`wiki/${spec.sourceSlug}/\` and re-run \`/wiki get\`.`
+    );
+  } else {
+    footer.push(
+      `Do NOT edit this bundle directly. Edit source files under \`wiki/\` and re-run \`/wiki get\`.`
+    );
+  }
   footer.push("");
   sections.push({ kind: "footer", header: footer });
 
@@ -398,20 +510,59 @@ function assembleBundle(spec, options) {
 
 function main() {
   const args = parseArgs(process.argv);
-  if (!args.src) {
+
+  // v4.4: --query= cannot run standalone (needs OpenAI + Supabase HTTP).
+  // Slash command orchestrator (Claude session) does retrieval via MCP
+  // wiki_ask, then calls get.cjs with --entities=<csv resolved slugs>.
+  if (args.query && !args.entities) {
     console.error(
-      "Usage: node scripts/wiki-sync/get.cjs --src=<spec> [--to=<path>] [--summary] [--include-frontmatter] [--max-entities=N]"
+      "[wiki-get] ✗ --query= cannot run standalone (script has no embedding/retrieval access).\n" +
+        "  Use the slash command `/wiki get --query=\"<text>\"` so the orchestrator\n" +
+        "  resolves the query via MCP wiki_ask, then re-invokes this script with\n" +
+        "  --entities=<csv> + --query-context-header=\"<text>\"."
+    );
+    process.exit(3);
+  }
+
+  if (!args.src && !args.entities) {
+    console.error(
+      "Usage:\n" +
+        "  Spec mode:        node scripts/wiki-sync/get.cjs --src=<spec> [--to=<path>] [--summary] [--include-frontmatter] [--max-entities=N]\n" +
+        "  Entity-list mode: node scripts/wiki-sync/get.cjs --entities=<csv> [--src=<source-slug>] [--query-context-header=<text>] [--to=<path>] [--summary] [--include-frontmatter] [--max-entities=N]\n" +
+        "\n" +
+        "Spec forms: <source>, <source>/chapter-N, <source>/chapter-NN-<slug>, <source>/<type>, <source>/<type>/<entity-slug>\n" +
+        "Entity refs: <source>/<type>/<entity-slug> OR (with --src=<source>) bare <entity-slug>"
     );
     process.exit(1);
   }
-  const spec = resolveSpec(args.src);
-  spec.specArg = args.src;
+
+  let spec;
+  if (args.entities) {
+    const { entities: resolved, inferredSourceSlug, multipleSources } =
+      resolveEntityList(args.entities, args.src || null);
+    spec = {
+      scope: "entity-list",
+      preResolvedEntities: resolved,
+      sourceSlug: inferredSourceSlug,
+      sourceDir: inferredSourceSlug
+        ? path.join(WIKI_ROOT, inferredSourceSlug)
+        : null,
+      multipleSources,
+      entitiesArg: args.entities,
+      specArg: args.src || null,
+    };
+  } else {
+    spec = resolveSpec(args.src);
+    spec.specArg = args.src;
+  }
+
   const options = {
     summary: !!args.summary,
     includeFrontmatter: !!args["include-frontmatter"],
     maxEntities: args["max-entities"]
       ? parseInt(args["max-entities"], 10)
       : 100,
+    queryContextHeader: args["query-context-header"] || null,
   };
   const { bundle, stats } = assembleBundle(spec, options);
 

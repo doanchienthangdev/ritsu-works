@@ -2,15 +2,15 @@
 title: 'Command: /wiki'
 description: ''
 source_path: .claude/commands/wiki.md
-source_hash: de7b80c66ec8fb5504de49bf6dae534252351f0da5fae7c978b40ea1aaa6d23f
-generated_at: '2026-05-20T11:11:22.330Z'
+source_hash: e5efe87f3eaa68846c237cc16d55eb6d4b9f72ba5459ca15c9c99c2e4d232a29
+generated_at: '2026-05-20T11:45:58.217Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_at: "2026-05-20T11:30:00Z"
+translated_at: "2026-05-20T12:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
-translated_source_hash: de7b80c66ec8fb5504de49bf6dae534252351f0da5fae7c978b40ea1aaa6d23f
+translated_source_hash: e5efe87f3eaa68846c237cc16d55eb6d4b9f72ba5459ca15c9c99c2e4d232a29
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -60,7 +60,9 @@ link-lists tại `wiki/_index/<page_type>/<canonical-name>.md` (Sprint 2;
 | `/wiki ask "<question>" --source <slug>` | v4.0: retrieval theo phạm vi package. Chỉ trả về các hit từ package của source được đặt tên. | A | chỉ-đọc |
 | `/wiki ask "<question>" --packages <s1,s2>` | v4.0: union qua các package được đặt tên. | A | chỉ-đọc |
 | `/wiki package <slug>` | v4.0: liệt kê inventory của một package (source RECORD + đếm theo type + per-entity slug). Cho lập kế hoạch input cho skill. | A | chỉ-đọc |
-| `/wiki get --src=<spec> [--to=<path>] [--summary] [--include-frontmatter] [--max-entities=<N>]` | **MỚI v4.3.** Extract context được bundle từ một wiki source package dưới dạng MỘT khối markdown. Ngữ pháp `<spec>`: `<source-slug>` (full), `<source-slug>/chapter-N` (chapter + các entity citing nó), `<source-slug>/chapter-NN-<slug>` (chapter file cụ thể), `<source-slug>/<type>/<entity-slug>` (một entity), `<source-slug>/<type>` (tất cả của type). Với `--to=<path>`, ghi bundle ra file; nếu không, in ra stdout. Dùng cho: feed chapter context tới các lệnh khác (`/cla propose`, `@cgo`, `@cpo`) mà không cần duplicate vào file trung gian. | A | chỉ-đọc (log vào ops.agent_runs) |
+| `/wiki get --src=<spec> [--to=<path>] [--summary] [--include-frontmatter] [--max-entities=<N>]` | **v4.3.** Spec mode — extract context được bundle từ một wiki source package dưới dạng MỘT khối markdown. Ngữ pháp `<spec>`: `<source-slug>` (full), `<source-slug>/chapter-N` (chapter + các entity citing nó), `<source-slug>/chapter-NN-<slug>` (chapter file cụ thể), `<source-slug>/<type>/<entity-slug>` (một entity), `<source-slug>/<type>` (tất cả của type). Với `--to=<path>`, ghi bundle ra file; nếu không, in ra stdout. | A | chỉ-đọc (log vào ops.agent_runs) |
+| `/wiki get --query=<text> [--src=<source>] [--to=<path>]` | **v4.4 MỚI.** Query mode — bundle dạng semantic retrieval. Orchestrator gọi `mcp__supabase-ops__wiki_ask` với query (+ `filter.source=<source>` nếu `--src` được truyền để giới hạn phạm vi), nhận về top-K entity slug, gọi lại get.cjs với `--entities=<csv> --query-context-header="<text>"`. Fall back về filesystem keyword match nếu MCP trả về `no_coverage` (cho tới khi embeddings backfill v0.2 hoàn tất). | A | chỉ-đọc (log vào ops.agent_runs) |
+| `/wiki get --entities=<csv> [--src=<source>] [--to=<path>]` | **v4.4 MỚI.** Entity-list mode — danh sách slug tường minh. Mỗi entry: full spec `<source>/<type>/<slug>`, HOẶC `<type>/<slug>` / `<entity-slug>` với phạm vi `--src=<source>`. Dùng nội bộ bởi query mode nhưng cũng được founder/agent dùng trực tiếp cho các bundle multi-entity ad-hoc. | A | chỉ-đọc |
 | `/wiki index rebuild` | v4.0 Sprint 2: regenerate các link-list reverse-lookup `wiki/_index/<page_type>/<canonical-name>.md`. Đọc alias từ frontmatter. | A | UPDATE các file link-list dưới wiki/_index/ |
 | `/wiki audit` | Quét tính toàn vẹn. v3.0 thêm 4 check mới: distillation completeness, citation integrity, dedup consistency, attribution discipline (A11). | A | ghi `.archives/wiki-audits/<date>.md` |
 | `/wiki audit --fix` | Audit + chào auto-fix (một PR mỗi fix class) | B | một PR mỗi fix class |
@@ -82,9 +84,15 @@ link-lists tại `wiki/_index/<page_type>/<canonical-name>.md` (Sprint 2;
 5. **Chạy SOP-INGEST-001** — gọi skill 6-step pipeline thông qua `06-ai-ops/sops/SOP-INGEST-001-wiki-sync/`. Với đường dẫn markdown + folder, ưu tiên CLI helper `scripts/wiki-sync/ingest.cjs` (v2.0 PR3) cho các bước thiên về file deterministic; các bước LLM-touching ở lại trong session của lệnh này.
 6. **Confirm tới founder** — in tóm tắt (loại entity, slug, số trang, cost) + link tới đường dẫn wiki đã ghi. Với folder ingest, cũng in bảng tóm tắt per-file.
 
-### `/wiki get --src=<spec>` (v4.3)
+### `/wiki get` — 3 chế độ (v4.3 + v4.4)
 
-Extract context được bundle từ một wiki source-grouped package. Output phù hợp để pipe vào prompt của lệnh khác HOẶC ghi ra file thông qua `--to=<path>`. **Không gọi LLM** — chỉ filesystem read + lắp ráp thuần tuý.
+Extract context được bundle từ một wiki source-grouped package. Output phù hợp để pipe vào prompt của lệnh khác HOẶC ghi ra file thông qua `--to=<path>`.
+
+**Chế độ 1: Spec mode** (v4.3) — filesystem read thuần + lắp ráp, cost $0.
+**Chế độ 2: Query mode** (v4.4 MỚI) — semantic retrieval qua MCP `wiki_ask` → danh sách entity → bundle.
+**Chế độ 3: Entity-list mode** (v4.4 MỚI) — danh sách slug tường minh → bundle. Được Chế độ 2 dùng nội bộ; cũng dùng ad-hoc trực tiếp.
+
+#### Chế độ 1: Spec mode
 
 **Ngữ pháp source spec:**
 
@@ -126,6 +134,40 @@ Extract context được bundle từ một wiki source-grouped package. Output p
 **Cost**: $0 (không gọi LLM; chỉ filesystem read thuần).
 
 **Composition pattern**: paste output (hoặc đọc từ file `--to=<path>`) vào prompt của lệnh kế tiếp. Chuỗi citation của bundle được bảo toàn thông qua các trích đoạn frontmatter.
+
+#### Chế độ 2: Query mode (v4.4 MỚI)
+
+Bundle dạng semantic retrieval. Được gọi khi `/wiki get` bao gồm flag `--query=<text>`.
+
+**Workflow:**
+
+1. Orchestrator (session Claude Code) gọi `mcp__supabase-ops__wiki_ask` với query.
+2. Nếu `--src=<source>` cũng được truyền, pass `filter.source=<source>` để giới hạn phạm vi retrieval về package đó.
+3. MCP trả về tối đa 15 entity slug được xếp hạng theo độ tương đồng. Nếu `no_coverage` (ví dụ embeddings backfill chưa hoàn tất), orchestrator fall back về filesystem keyword match trên slug + title của entity.
+4. Orchestrator xây dựng CSV entity: `<source>/<type>/<slug>` cho mỗi kết quả.
+5. Orchestrator gọi `scripts/wiki-sync/get.cjs --entities=<csv> --query-context-header="<query>" [--src=<source>] [--to=<path>]`.
+6. Header bundle annotate **Query**: `<text>` gốc để bundle tự ghi nhận query nào đã sinh ra nó.
+
+**Cost**: $0–$0.01 (chỉ gọi MCP embedding; phần lắp ráp bundle là filesystem).
+
+**Ví dụ:**
+
+- `/wiki get --query="customer segmentation strategies" --src=principles-of-marketing-kotler --to=.archives/cla/<id>/segmentation.md` — các entity về segmentation giới hạn phạm vi một cuốn sách
+- `/wiki get --query="email lifecycle marketing" --to=.archives/email-ctx.md` — qua tất cả wiki package
+- `/wiki get --query="pricing strategies"` — in ra stdout
+
+#### Chế độ 3: Entity-list mode (v4.4 MỚI)
+
+Danh sách slug tường minh. Mỗi entry trong `--entities=<csv>` là một trong:
+- Full spec: `<source-slug>/<type>/<entity-slug>`
+- Với `--src=<source-slug>`: bare `<type>/<entity-slug>` HOẶC `<entity-slug>` (auto-resolve qua các folder type)
+
+Được Chế độ 2 dùng nội bộ (orchestrator pass các slug đã resolve cho script). Cũng dùng ad-hoc trực tiếp khi founder/agent đã biết chính xác các entity.
+
+**Ví dụ:**
+
+- `/wiki get --entities=marketing-management-kotler/concepts/4-Ps-of-marketing,principles-of-marketing-kotler/concepts/market-segmentation-bases` — bundle tường minh cross-source
+- `/wiki get --src=principles-of-marketing-kotler --entities=market-segmentation-bases,behavioral-segmentation-variables` — bare slug với source scope
 
 ### `/wiki ask "<question>"`
 
@@ -183,4 +225,5 @@ Theo `governance/HITL.md`:
 - MCP exposure: `mcp__wiki__ask`, `mcp__wiki__list_pages`, `mcp__wiki__get_page`
 - Migration: `supabase/migrations/00022_wiki_sync_extensions.sql`
 - Bài #14 (knowledge graph) + Bài #18 (ingestion pipeline) — tổ tiên kiến trúc
+
 

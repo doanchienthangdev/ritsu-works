@@ -20,7 +20,7 @@
 |---|---|---|---|---|---|---|
 | `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 1.0.0 | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
-| `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.3 source-grouped + bundler) | **4.3.0** | 06-ai-ops | 2026-05-20 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.3.0.md](wiki-sync-from-refs/retrospective-v4.3.0.md) |
+| `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.4 source-grouped + 3-mode bundler) | **4.4.0** | 06-ai-ops | 2026-05-20 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.4.0.md](wiki-sync-from-refs/retrospective-v4.4.0.md) |
 | `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN, incremental translation) | **1.2.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective-v1.2.0.md](docs-engine/retrospective-v1.2.0.md) |
 
 ### docs-engine version history (lineage chain)
@@ -78,7 +78,17 @@
 | 4.0.0 | superseded | 2026-05-18 → 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.0.0.md](wiki-sync-from-refs/retrospective-v4.0.0.md) |
 | 4.1.0 | superseded | 2026-05-18 → 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | (folder-adapter recursive) |
 | 4.2.0 | superseded | 2026-05-18 → 2026-05-20 | [spec.md](wiki-sync-from-refs/spec.md) | (namespace output folder) |
-| **4.3.0** | **operating** (current) | 2026-05-20 → present | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.3.0.md](wiki-sync-from-refs/retrospective-v4.3.0.md) |
+| 4.3.0 | superseded | 2026-05-20 → 2026-05-20 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.3.0.md](wiki-sync-from-refs/retrospective-v4.3.0.md) |
+| **4.4.0** | **operating** (current) | 2026-05-20 → present | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.4.0.md](wiki-sync-from-refs/retrospective-v4.4.0.md) |
+
+**v4.4 Phase 8 promotion details:**
+- Founder ask addressed: `/wiki get --query=<text>` semantic mode + schema fix for POM frontmatter (Bug #1: chapter-N returned 0 entities)
+- 3 modes in `/wiki get`: Spec (v4.3) / Query (v4.4 NEW) / Entity-list (v4.4 NEW)
+- Orchestrator + script split: `--query=` resolved by Claude session via MCP wiki_ask → script bundles
+- Filesystem keyword grep fallback when MCP returns `no_coverage` (until embeddings v0.2 backfill)
+- 5 test scenarios pass including end-to-end query mode (24 entities matched for "List all marketing segments…")
+- Schema fix: `entityChapterIndex()` now parses chapter from `extracted_from_source: ...__chapter-NN-...` slug as fallback when `source_chapter_index` field absent
+- v4.5 candidates: direct CLI `--query=` with OPENAI_API_KEY, embeddings backfill v0.2, schema audit in `/wiki audit`, confidence threshold filter, cross-source dedup hint
 
 **v4.3 Phase 8 promotion details:**
 - Founder ask addressed: how to feed wiki chapter as context to other commands without intermediate context files

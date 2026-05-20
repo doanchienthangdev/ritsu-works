@@ -8,25 +8,26 @@ description: |
   propose`, `@cgo`, `@cpo`) WITHOUT duplicating into intermediate context
   files (anti-pattern: drift + manual labor + broken citation chain).
 source_path: 06-ai-ops/skills/wiki-sync/get/SKILL.md
-source_hash: 63da34cb5187a2bb78a82818ef17edede0032d47cad0437c14bf1ae49d9ae11c
-generated_at: '2026-05-20T11:11:22.434Z'
+source_hash: d5a87d321771d9f2a0dcbbff7d9cf7c69e49329ba72c148275745b34fa92cc4c
+generated_at: '2026-05-20T11:45:58.307Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_at: "2026-05-20T11:30:00Z"
+translated_at: "2026-05-20T12:00:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
-translated_source_hash: 63da34cb5187a2bb78a82818ef17edede0032d47cad0437c14bf1ae49d9ae11c
+translated_source_hash: d5a87d321771d9f2a0dcbbff7d9cf7c69e49329ba72c148275745b34fa92cc4c
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
-
 
 # wiki-sync/get
 
 ## Khi nào sử dụng
 
 - Lệnh `/wiki get --src=<spec>` (entry point cho founder/operator).
+- `/wiki get --query=<text>` cho semantic retrieval (v4.4).
+- `/wiki get --entities=<csv>` cho bundle danh sách slug tường minh (v4.4).
 - Bên trong logic của một skill hoặc persona khi cần tải một wiki package
   làm context đầu vào để xử lý LLM tiếp theo.
 - Như bước bundling trong một pipeline được tổ hợp (ví dụ: `/wiki get | /cla propose`).
@@ -116,7 +117,31 @@ Lý do:
 
 Với các workflow cần context dai dẳng qua NHIỀU session (ví dụ một brainstorm `/cla propose` kéo dài nhiều ngày), dùng `--to=.archives/cla/<id>/<spec-name>-context.md` VÀ coi file đó là ephemeral — chạy lại `/wiki get --src=<same-spec> --to=<same-path>` để refresh bất cứ khi nào cần.
 
+## Bổ sung v4.4 — query mode + entity-list mode
+
+**Query mode** (`--query=<text>`):
+- Slash command orchestrator (session Claude) gọi `mcp__supabase-ops__wiki_ask` với query (và `filter.source=<src>` nếu `--src` được cung cấp).
+- MCP trả về top-K entity slug được xếp hạng theo độ tương đồng.
+- Nếu MCP trả về `no_coverage` (embeddings backfill chưa hoàn tất cho source được yêu cầu), orchestrator fall back về filesystem keyword match: `grep` slug + title theo từ khoá query qua `wiki/<src>/<type>/*.md`.
+- Orchestrator sau đó gọi lại `get.cjs --entities=<resolved-csv> --query-context-header="<query>"`.
+- Gọi CLI trực tiếp `--query=` mà không có orchestrator bail với exit code 3.
+
+**Entity-list mode** (`--entities=<csv>`):
+- Ba dạng tham chiếu:
+  - Full spec: `<source>/<type>/<slug>`
+  - Type+slug (cần `--src`): `<type>/<slug>`
+  - Bare slug (cần `--src`, auto-search qua tất cả folder type): `<slug>`
+- Hỗ trợ bundle cross-source (entity từ nhiều source package) — header phản ánh scope "multiple sources".
+
+**Sửa schema (Bug từ v4.3.1)**:
+- `entityChapterIndex()` giờ xử lý cả hai schema:
+  - Schema A (Marketing Management): `source_chapter_index: <int>`
+  - Schema B (Principles of Marketing): parse số chapter từ slug `extracted_from_source: ...__chapter-NN-...`
+- Fix bug chapter-N spec trả về 0 entity cho cuốn POM.
+
 ## Ghi chú phiên bản
 
 - v1.0 (wiki-sync v4.3, 2026-05-20): release đầu tiên. Năm scope spec được hỗ trợ.
+- v1.1 (wiki-sync v4.4, 2026-05-20): thêm query mode (`--query=`) + entity-list mode (`--entities=`); sửa schema cho định dạng frontmatter POM.
+
 
