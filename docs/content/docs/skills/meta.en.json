@@ -30,6 +30,7 @@
     "docs-engine--publish",
     "docs-engine--scaffold",
     "docs-engine--sync",
+    "docs-engine--translate",
     "docs-engine--update",
     "episodic-recall",
     "monthly-learning-review",
@@ -50,12 +51,12 @@
     "wiki-sync--dedup",
     "wiki-sync--distill",
     "wiki-sync--embeddings-backfill",
+    "wiki-sync--get",
     "wiki-sync--index-rebuild",
     "wiki-sync--ingest",
     "wiki-sync--link-extractor",
     "wiki-sync--merge",
     "wiki-sync--package",
     "wiki-sync--review"
-  ],
-  "icon": "Wrench"
+  ]
 }
