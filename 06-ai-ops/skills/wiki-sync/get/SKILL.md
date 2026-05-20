@@ -14,6 +14,8 @@ description: |
 ## When to use
 
 - `/wiki get --src=<spec>` command (the founder/operator entry point).
+- `/wiki get --query=<text>` for semantic retrieval (v4.4).
+- `/wiki get --entities=<csv>` for explicit slug-list bundle (v4.4).
 - Inside a skill or persona's logic when it needs to load a wiki package
   as input context for further LLM processing.
 - As the bundling step in a composed pipeline (e.g. `/wiki get | /cla propose`).
@@ -103,6 +105,29 @@ Reasons:
 
 For workflows that need persistent context across MULTIPLE sessions (e.g. a multi-day `/cla propose` brainstorm), use `--to=.archives/cla/<id>/<spec-name>-context.md` AND treat the file as ephemeral — re-run `/wiki get --src=<same-spec> --to=<same-path>` to refresh whenever needed.
 
+## v4.4 additions — query mode + entity-list mode
+
+**Query mode** (`--query=<text>`):
+- Slash command orchestrator (Claude session) calls `mcp__supabase-ops__wiki_ask` with the query (and `filter.source=<src>` if `--src` provided).
+- MCP returns top-K entity slugs ranked by similarity.
+- If MCP returns `no_coverage` (embeddings backfill not yet complete for the requested source), orchestrator falls back to filesystem keyword match: `grep` slug + title for query keywords across `wiki/<src>/<type>/*.md`.
+- Orchestrator then re-invokes `get.cjs --entities=<resolved-csv> --query-context-header="<query>"`.
+- Direct CLI invocation of `--query=` without orchestrator bails with exit code 3.
+
+**Entity-list mode** (`--entities=<csv>`):
+- Three reference forms:
+  - Full spec: `<source>/<type>/<slug>`
+  - Type+slug (needs `--src`): `<type>/<slug>`
+  - Bare slug (needs `--src`, auto-search all type folders): `<slug>`
+- Supports cross-source bundles (entities from multiple source packages) — header reflects "multiple sources" scope.
+
+**Schema fix (Bug from v4.3.1)**:
+- `entityChapterIndex()` now handles both schemas:
+  - Schema A (Marketing Management): `source_chapter_index: <int>`
+  - Schema B (Principles of Marketing): parses chapter number from `extracted_from_source: ...__chapter-NN-...` slug
+- Fixed chapter-N spec returning 0 entities for POM book.
+
 ## Version notes
 
 - v1.0 (wiki-sync v4.3, 2026-05-20): first release. Five spec scopes supported.
+- v1.1 (wiki-sync v4.4, 2026-05-20): added query mode (`--query=`) + entity-list mode (`--entities=`); schema fix for POM frontmatter format.
