@@ -1,0 +1,122 @@
+---
+title: 'Skill: wiki-sync/get'
+description: |
+  Extract bundled context from a v4.0 source-grouped wiki package into
+  one markdown block. Pure filesystem read, no LLM. Backend for the
+  `/wiki get` slash command. Used by operators + agents to feed
+  chapter/source/entity context to downstream commands (e.g. `/cla
+  propose`, `@cgo`, `@cpo`) WITHOUT duplicating into intermediate context
+  files (anti-pattern: drift + manual labor + broken citation chain).
+source_path: 06-ai-ops/skills/wiki-sync/get/SKILL.md
+source_hash: 63da34cb5187a2bb78a82818ef17edede0032d47cad0437c14bf1ae49d9ae11c
+generated_at: '2026-05-20T11:11:22.434Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_at: "2026-05-20T11:30:00Z"
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
+translated_source_hash: 63da34cb5187a2bb78a82818ef17edede0032d47cad0437c14bf1ae49d9ae11c
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+
+# wiki-sync/get
+
+## Khi nào sử dụng
+
+- Lệnh `/wiki get --src=<spec>` (entry point cho founder/operator).
+- Bên trong logic của một skill hoặc persona khi cần tải một wiki package
+  làm context đầu vào để xử lý LLM tiếp theo.
+- Như bước bundling trong một pipeline được tổ hợp (ví dụ: `/wiki get | /cla propose`).
+
+## Tại sao skill này tồn tại (động lực v4.3)
+
+Trước v4.3, chỉ có những cách sau để dùng nội dung wiki làm context cho lệnh:
+1. Read file trực tiếp trên đường dẫn `wiki/<source>/...` — yêu cầu operator phải biết đường dẫn.
+2. `/wiki ask --source <slug>` — Q&A hẹp, không phải dump toàn diện.
+3. File `.archives/context-bundle-X.md` thủ công — anti-pattern (drift, chi phí copy-paste, đứt gãy liên kết citation).
+
+`/wiki get` giải quyết #3 bằng cách cung cấp một bundler **stateless, deterministic, citation-preserving**. Source spec → bundle string → hoặc stdout (paste vào prompt kế tiếp) hoặc file (`--to=<path>`).
+
+## Đầu vào
+
+- `src` (bắt buộc) — source spec. Ngữ pháp:
+  - `<source-slug>` — full source package
+  - `<source-slug>/chapter-N` — chapter N + các entity được trích dẫn từ nó (composition pattern phổ biến nhất)
+  - `<source-slug>/chapter-NN-<slug>` — chapter file cụ thể
+  - `<source-slug>/<type>` — tất cả entity của type (concepts | observations | decisions | ideas)
+  - `<source-slug>/<type>/<entity-slug>` — một entity
+- `to` (tuỳ chọn) — output file path. Nếu bỏ qua, output đi ra stdout.
+- `summary` (bool tuỳ chọn) — dạng compact: chỉ outline cho chapters; chỉ paragraph đầu tiên cho entities.
+- `include-frontmatter` (bool tuỳ chọn) — bao gồm YAML frontmatter của entity trong body (mặc định: bị strip).
+- `max-entities` (int tuỳ chọn, mặc định 100) — giới hạn số entity trong bundle.
+
+## Quy trình
+
+1. **Parse spec** — split theo `/`. Resolve thư mục `wiki/<source-slug>/`; bail nếu thiếu hoặc `source.md` vắng mặt.
+2. **Xác định scope** — `full` | `chapter` | `chapter-file` | `type` | `entity`.
+3. **Thu thập chapters** — `wiki/<source>/chapters/*.md` được lọc theo scope.
+4. **Thu thập entities** — `wiki/<source>/{concepts,observations,decisions,ideas}/*.md` được lọc theo scope (chapter-N lọc theo frontmatter `source_chapter_index`).
+5. **Áp dụng cap** — slice entities về `--max-entities`; theo dõi số bị drop.
+6. **Lắp ráp bundle** —
+   - Header: spec arg, source title, slug, license, scope, generated_at
+   - Inventory: số chapter + số entity theo type + số đã drop
+   - Frontmatter source RECORD (block YAML)
+   - Các section per-chapter (full body HOẶC outline nếu `--summary`)
+   - Các section per-entity (full body HOẶC first-paragraph nếu `--summary`)
+   - Footer: provenance + gợi ý tái sử dụng
+7. **Output** — nếu `to`, ghi file (mkdir -p parent). Ngược lại stdout. Dòng tóm tắt ra stderr.
+
+## Đầu ra
+
+- Chuỗi markdown bundle (stdout) HOẶC file tại `--to=<path>`.
+- Tóm tắt stderr: `[wiki-get] ✓ ... — chapters=N entities=M (dropped X) chars=Y`.
+- Dòng `ops.agent_runs` được ghi bởi slash command orchestrator (agent_slug=`wiki-sync/get`, cost-bucket=`ai-ops-knowledge`).
+
+## HITL
+
+Tier A (chỉ-đọc, không gọi LLM, không ghi DB ngoài log agent_runs).
+
+## Chế độ thất bại
+
+| Mode | Nguyên nhân | Khôi phục |
+|---|---|---|
+| `source not found` | wiki/\<slug>/ bị thiếu | Chạy `/wiki list` để xem các source có sẵn |
+| `source.md missing — not a v4.0 source package` | Layout pre-v4.0 (entity-type-grouped) | Source phải được re-sync dưới layout v4.0 thông qua `/wiki resync` |
+| `chapter file not found` | Sai tên file chapter | Chạy `/wiki package <slug>` để liệt kê chapters |
+| `entity not found` | Sai entity slug | Chạy `/wiki source <slug>` để xem tất cả entities; kiểm tra chính tả |
+| `unknown entity type` | Spec dùng sai từ type | Phải là một trong: concepts, observations, decisions, ideas (dạng số nhiều) |
+
+## Chi phí
+
+- $0 mỗi lần gọi (filesystem read thuần).
+- Thời gian founder: ~5 giây để gõ spec + paste output / mở file.
+
+## Liên quan
+
+- Backend: `scripts/wiki-sync/get.cjs`
+- Slash command: `.claude/commands/wiki.md` dòng `/wiki get` + section workflow
+- Spec layout source-grouped: `wiki/capabilities/wiki-sync-from-refs/spec.md` v4.0+
+- Citation spine: bảng `ops.knowledge_extractions` (migration 00031)
+- Skill đồng hành: `wiki-sync/source` (liệt kê các derived entity cho một source RECORD)
+- Skill đồng hành: `wiki/package` (liệt kê chỉ metadata inventory của package)
+
+## Anti-pattern (KHÔNG được làm)
+
+❌ Copy output bundle vào `.archives/context-X.md` và tham chiếu nó từ nhiều lệnh.
+
+Lý do:
+- Source thay đổi → bundle trở nên stale → lệnh chạy với context cũ
+- Chuỗi citation tưởng chừng được bảo toàn trong text bundle nhưng bị ngắt kết nối khỏi `ops.knowledge_extractions`
+- Founder phải nhớ rebuild mỗi khi source được sửa
+
+✅ Thay vào đó: chạy lại `/wiki get` ở ĐẦU mỗi command session cần context. Bundle luôn fresh by construction.
+
+Với các workflow cần context dai dẳng qua NHIỀU session (ví dụ một brainstorm `/cla propose` kéo dài nhiều ngày), dùng `--to=.archives/cla/<id>/<spec-name>-context.md` VÀ coi file đó là ephemeral — chạy lại `/wiki get --src=<same-spec> --to=<same-path>` để refresh bất cứ khi nào cần.
+
+## Ghi chú phiên bản
+
+- v1.0 (wiki-sync v4.3, 2026-05-20): release đầu tiên. Năm scope spec được hỗ trợ.
+

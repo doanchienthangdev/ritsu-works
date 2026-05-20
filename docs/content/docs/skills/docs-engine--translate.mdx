@@ -1,0 +1,141 @@
+---
+title: 'Skill: docs-engine/translate'
+description: |
+  Incremental translation orchestrator for the docs-engine bilingual pipeline.
+  Re-translates only files marked `needs_retranslation: true` or with
+  `translated_source_hash !== source_hash` (introduced in docs-engine v1.2).
+  Dispatches Claude Code subagents in parallel batches; preserves
+  translations across walker re-runs. No Anthropic API key required when
+  invoked from a Claude Code Desktop session.
+source_path: 06-ai-ops/skills/docs-engine/translate/SKILL.md
+source_hash: 40488ce3957dd45cb9e5cc66428b739374dae8d38388c75e4c38c743e0df5648
+generated_at: '2026-05-20T11:11:22.418Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_at: "2026-05-20T11:30:00Z"
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
+translated_source_hash: 40488ce3957dd45cb9e5cc66428b739374dae8d38388c75e4c38c743e0df5648
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+
+# docs-engine/translate
+
+## Khi nào sử dụng
+
+- Lệnh `/docs translate` (entry point hướng tới founder).
+- Sau khi `/docs sync` báo `stale VI preserved` cho bất kỳ file nào.
+- Định kỳ để xoá backlog dịch thuật trước một deploy Vercel.
+- KHÔNG dùng cho dịch lần đầu của một docs-engine mới toanh —
+  trong trường hợp đó, vẫn dùng flow này nhưng bắt đầu từ các file `translated: false`.
+
+## Tại sao skill này tồn tại (động lực v1.2)
+
+Trước v1.2, `/docs sync` ghi đè lên các file VI đã dịch mỗi khi nội dung
+source thay đổi, phá huỷ công sức dịch thuật. Walker bây giờ (v1.2)
+*bảo toàn* body VI hiện có và chỉ cập nhật frontmatter để đánh dấu file
+là stale (`needs_retranslation: true` + `translated_source_hash` trỏ tới
+hash mà ĐÃ ĐƯỢC dịch). Skill này nhận phần còn lại: tìm các file stale,
+dispatch subagent để dịch lại.
+
+## Đầu vào
+
+- `category` — filter tuỳ chọn: `agents` | `charter` | `commands` | `governance`
+  | `hooks` | `knowledge` | `pillars` | `skills` | `sops`. Mặc định: tất cả stale.
+- `dry_run` — bool, mặc định false. Liệt kê những gì sẽ được dịch lại.
+- `force` — bool, mặc định false. Dịch lại cả những file trông có vẻ fresh.
+- `batch_size` — int, mặc định 6. Số file mỗi batch subagent.
+
+## Quy trình
+
+1. **Drift gate.** Chạy `pnpm check`. Nếu non-zero, ABORT.
+
+2. **Discovery.** Chạy `node scripts/verify-vi-translation.cjs --list-needs-translation`
+   để lấy union của (a) các file chưa dịch (body VI vẫn chủ yếu là tiếng Anh,
+   diacritic ratio \< 3%) và (b) các file stale (`translated_source_hash !==
+   source_hash` hoặc `needs_retranslation: true`). Filter theo `category` nếu
+   được cung cấp.
+
+3. **Batch.** Group theo category, rồi chia thành các batch có kích thước `batch_size`.
+   Batch nhỏ hơn làm giảm các lỗi "metadata-flip-without-translating" do
+   context-fatigue gây ra (đã quan sát thấy trong quá trình dịch docs-engine v1.1.1).
+
+4. **Dispatch.** Với mỗi batch, spawn một Claude Code subagent
+   (`subagent_type: general-purpose`, `model: "haiku"`) với các chỉ dẫn chính xác sau:
+
+   - Đọc mỗi file ở đường dẫn tuyệt đối của nó.
+   - Body = mọi thứ SAU dòng `---` thứ hai (tức là sau frontmatter).
+   - Dịch TẤT CẢ văn xuôi tiếng Anh sang tiếng Việt tự nhiên (headings, bullets,
+     paragraphs, table cells).
+   - PRESERVE: frontmatter (chỉ cập nhật `translated_at` thành ISO timestamp
+     hiện tại và **`translated_source_hash` thành `source_hash` hiện tại**;
+     REMOVE flag `needs_retranslation` nếu có), code fences ` ``` `,
+     inline `` `code` ``, file paths, identifier names, JSX comment
+     `{/* generated-by: docs-engine v1.2.0 */}`, markdown link URLs (chỉ
+     dịch link text), escaped `\<` `\{`, HTML comments `<!-- ... -->`.
+   - Từ vựng: xem `docs-engine/translate/vocabulary.md` (TBD; cho v1.2
+     inline bảng từ vựng vào trong dispatch prompt).
+   - Dùng tool `Write` để lưu mỗi file (ghi đè toàn bộ).
+   - CRITICAL: dịch MỌI file trong batch. KHÔNG được dừng sau một file.
+     KHÔNG chỉ flip metadata — body PHẢI chứa văn xuôi tiếng Việt thực
+     với diacritic ratio ≥ 5%.
+
+5. **Re-verify.** Sau khi tất cả batch return, chạy
+   `node scripts/verify-vi-translation.cjs`. Nếu còn file nào chưa dịch
+   hoặc stale, re-dispatch focused agent cho những file cụ thể đó với
+   chỉ dẫn nghiêm ngặt hơn ("PREVIOUS agent đã để cái này dạng tiếng Anh —
+   dịch từng từ ngay").
+
+6. **Iterate** cho đến khi verifier báo 100% Fresh (hoặc đến 3 vòng lặp
+   mà không có tiến triển, sau đó ABORT và surface lên founder).
+
+7. **Local build.** Chạy `cd docs && pnpm build`. Nếu fail, ABORT.
+
+8. **Commit + push.** Một commit per batch là chấp nhận được, hoặc một
+   commit duy nhất cho toàn bộ translation pass. Message:
+   `feat(docs-engine): incremental translation — N files (v<version>)`.
+
+## Đầu ra
+
+- Một dòng log `ops.agent_runs` per subagent được dispatch (cost
+  attribution bucket: `docs-engine/translate`).
+- Các file `.mdx` đã được cập nhật với `translated_at` + `translated_source_hash` mới.
+- Tóm tắt console: coverage trước/sau theo category.
+
+## HITL
+
+Tier B (notify-after). Founder nhận tóm tắt Telegram sau khi mỗi lần
+gọi `/docs translate` hoàn tất. Tier A chấp nhận được nếu được dispatch
+bên trong một Claude Code session đã active tại bàn phím founder.
+
+## Chế độ thất bại
+
+| Mode | Nguyên nhân | Khôi phục |
+|---|---|---|
+| Agent flip metadata mà không dịch | Context fatigue, prompt mơ hồ | Re-dispatch focused agent với chỉ dẫn nghiêm ngặt hơn theo Step 5 |
+| Walker ghi đè bản dịch trong khi `/docs translate` đang chạy | Concurrent `/docs sync` call | Acquire lock thông qua `ops.capability_runs.update_lock_session_id` cho capability docs-engine trước khi bắt đầu |
+| Verifier false-positive trên các SOP stub có nhiều code | Body có \<50 prose alpha sau khi strip | Verifier đánh dấu Skipped, không phải Untranslated — accept; xem lại khi sub-pillar được mở rộng |
+| Lỗi parse MDX sau khi dịch | Translator đã phá vỡ một escape pattern (`\<` `\{` `<!-- -->`) | Chạy `pnpm build` local; sửa file cụ thể bằng cách đọc bản EN + re-escape; commit |
+
+## Chi phí
+
+- Dispatch subagent: ~$0.05-0.15 mỗi file ở rate haiku.
+- Translation pass 60-file: ~$3-9 (v1.1.2 quan sát thấy $0 thông qua
+  subscription Claude Code Desktop).
+- Thời gian founder: ~10-20 phút để invoke + verify; subagent chạy song song.
+
+## Liên quan
+
+- Walker: `scripts/docs-sync.cjs` (v1.2+ bảo toàn các VI body khi source thay đổi).
+- Verifier: `scripts/verify-vi-translation.cjs` (`--list-needs-translation`).
+- Migration: `scripts/migrate-translated-source-hash.cjs` (backfill một lần).
+- Phương án dựa-trên-API: `scripts/docs-translate.cjs` (cần `ANTHROPIC_API_KEY`).
+- Spec: `wiki/capabilities/docs-engine/spec.md` §v1.2.
+
+## Ghi chú phiên bản
+
+- v1.0 (giới thiệu docs-engine v1.2.0): release đầu tiên.
+

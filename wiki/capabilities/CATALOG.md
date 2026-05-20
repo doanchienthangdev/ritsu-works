@@ -20,7 +20,7 @@
 |---|---|---|---|---|---|---|
 | `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 1.0.0 | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
-| `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.0 source-grouped distill+extract) | **4.0.0** | 06-ai-ops | 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.0.0.md](wiki-sync-from-refs/retrospective-v4.0.0.md) |
+| `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.3 source-grouped + bundler) | **4.3.0** | 06-ai-ops | 2026-05-20 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.3.0.md](wiki-sync-from-refs/retrospective-v4.3.0.md) |
 | `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN, incremental translation) | **1.2.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective-v1.2.0.md](docs-engine/retrospective-v1.2.0.md) |
 
 ### docs-engine version history (lineage chain)
@@ -75,7 +75,19 @@
 | 1.0.0 | superseded | 2026-05-16 → 2026-05-17 | (never promoted) | (never promoted) |
 | 2.0.0 | superseded | 2026-05-17 → 2026-05-18 | [spec-v2.md](wiki-sync-from-refs/spec-v2.md) | [retrospective-v2.0.0.md](wiki-sync-from-refs/retrospective-v2.0.0.md) |
 | 3.0.0 | superseded | 2026-05-18 (~5h) → 2026-05-18 | [spec-v3.md](wiki-sync-from-refs/spec-v3.md) | [retrospective-v3.0.0.md](wiki-sync-from-refs/retrospective-v3.0.0.md) |
-| **4.0.0** | **operating** (current) | 2026-05-18 → present | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.0.0.md](wiki-sync-from-refs/retrospective-v4.0.0.md) |
+| 4.0.0 | superseded | 2026-05-18 → 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.0.0.md](wiki-sync-from-refs/retrospective-v4.0.0.md) |
+| 4.1.0 | superseded | 2026-05-18 → 2026-05-18 | [spec.md](wiki-sync-from-refs/spec.md) | (folder-adapter recursive) |
+| 4.2.0 | superseded | 2026-05-18 → 2026-05-20 | [spec.md](wiki-sync-from-refs/spec.md) | (namespace output folder) |
+| **4.3.0** | **operating** (current) | 2026-05-20 → present | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.3.0.md](wiki-sync-from-refs/retrospective-v4.3.0.md) |
+
+**v4.3 Phase 8 promotion details:**
+- Founder ask addressed: how to feed wiki chapter as context to other commands without intermediate context files
+- New `/wiki get --src=<spec> [--to=<path>]` subcommand — extracts bundled context from source-grouped package
+- New `scripts/wiki-sync/get.cjs` (~280 LoC) — 5-scope spec grammar (full / chapter-N / chapter-file / type / entity); pure filesystem read, $0 cost
+- New skill `06-ai-ops/skills/wiki-sync/get/SKILL.md` with anti-pattern guidance (don't copy bundle into `.archives/`; re-run on every session)
+- `.claude/commands/wiki.md` updated with new row + workflow section
+- Tested 6 spec modes including --to=<path> file write + error handling
+- v4.4 candidates: MCP tool wrapper, `--via-db` flag, auto-compose flag on `/cla` and `@cxo`, JSON output mode
 
 **v4.0 Phase 8 promotion details:**
 - Sprint 1 merge commit: `0cd0c62` (PR [#45](https://github.com/doanchienthangdev/ritsu-works/pull/45))

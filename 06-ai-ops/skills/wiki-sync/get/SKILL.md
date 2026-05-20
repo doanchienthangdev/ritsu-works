@@ -1,0 +1,108 @@
+---
+name: wiki-sync/get
+description: |
+  Extract bundled context from a v4.0 source-grouped wiki package into
+  one markdown block. Pure filesystem read, no LLM. Backend for the
+  `/wiki get` slash command. Used by operators + agents to feed
+  chapter/source/entity context to downstream commands (e.g. `/cla
+  propose`, `@cgo`, `@cpo`) WITHOUT duplicating into intermediate context
+  files (anti-pattern: drift + manual labor + broken citation chain).
+---
+
+# wiki-sync/get
+
+## When to use
+
+- `/wiki get --src=<spec>` command (the founder/operator entry point).
+- Inside a skill or persona's logic when it needs to load a wiki package
+  as input context for further LLM processing.
+- As the bundling step in a composed pipeline (e.g. `/wiki get | /cla propose`).
+
+## Why this skill exists (v4.3 motivation)
+
+Before v4.3, the only ways to use wiki content as command context were:
+1. Direct file Read on `wiki/<source>/...` paths — required operator to know paths.
+2. `/wiki ask --source <slug>` — narrow Q&A, not exhaustive dump.
+3. Manual `.archives/context-bundle-X.md` files — anti-pattern (drift, copy-paste cost, broken citation linkage).
+
+`/wiki get` solves #3 by providing a **stateless, deterministic, citation-preserving** bundler. Source spec → bundle string → either stdout (paste into next prompt) or file (`--to=<path>`).
+
+## Inputs
+
+- `src` (required) — source spec. Grammar:
+  - `<source-slug>` — full source package
+  - `<source-slug>/chapter-N` — chapter N + entities cited from it (most common composition pattern)
+  - `<source-slug>/chapter-NN-<slug>` — specific chapter file
+  - `<source-slug>/<type>` — all entities of type (concepts | observations | decisions | ideas)
+  - `<source-slug>/<type>/<entity-slug>` — one entity
+- `to` (optional) — output file path. If omitted, output goes to stdout.
+- `summary` (optional bool) — compact form: outline only for chapters; first paragraph only for entities.
+- `include-frontmatter` (optional bool) — include entity YAML frontmatter in body (default: stripped).
+- `max-entities` (optional int, default 100) — cap on entities in bundle.
+
+## Process
+
+1. **Parse spec** — split by `/`. Resolve `wiki/<source-slug>/` directory; bail if missing or `source.md` absent.
+2. **Determine scope** — `full` | `chapter` | `chapter-file` | `type` | `entity`.
+3. **Collect chapters** — `wiki/<source>/chapters/*.md` filtered per scope.
+4. **Collect entities** — `wiki/<source>/{concepts,observations,decisions,ideas}/*.md` filtered per scope (chapter-N filters by frontmatter `source_chapter_index`).
+5. **Apply cap** — slice entities to `--max-entities`; track dropped count.
+6. **Assemble bundle** —
+   - Header: spec arg, source title, slug, license, scope, generated_at
+   - Inventory: chapter count + entity counts per type + dropped
+   - Source RECORD frontmatter (YAML block)
+   - Per-chapter sections (full body OR outline if `--summary`)
+   - Per-entity sections (full body OR first-paragraph if `--summary`)
+   - Footer: provenance + reuse hint
+7. **Output** — if `to`, write file (mkdir -p parent). Else stdout. Summary line to stderr.
+
+## Outputs
+
+- Markdown bundle string (stdout) OR file at `--to=<path>`.
+- Stderr summary: `[wiki-get] ✓ ... — chapters=N entities=M (dropped X) chars=Y`.
+- `ops.agent_runs` row written by slash command orchestrator (agent_slug=`wiki-sync/get`, cost-bucket=`ai-ops-knowledge`).
+
+## HITL
+
+Tier A (read-only, no LLM call, no DB write besides agent_runs log).
+
+## Failure modes
+
+| Mode | Cause | Recovery |
+|---|---|---|
+| `source not found` | wiki/<slug>/ missing | Run `/wiki list` to see available sources |
+| `source.md missing — not a v4.0 source package` | Pre-v4.0 layout (entity-type-grouped) | Source must be re-synced under v4.0 layout via `/wiki resync` |
+| `chapter file not found` | Wrong chapter filename | Run `/wiki package <slug>` to list chapters |
+| `entity not found` | Wrong entity slug | Run `/wiki source <slug>` to see all entities; check spelling |
+| `unknown entity type` | Spec used wrong type word | Must be one of: concepts, observations, decisions, ideas (plural form) |
+
+## Cost
+
+- $0 per invocation (pure filesystem read).
+- Founder time: ~5 sec to type spec + paste output / open file.
+
+## Related
+
+- Backend: `scripts/wiki-sync/get.cjs`
+- Slash command: `.claude/commands/wiki.md` `/wiki get` row + workflow section
+- Source-grouped layout spec: `wiki/capabilities/wiki-sync-from-refs/spec.md` v4.0+
+- Citation spine: `ops.knowledge_extractions` table (migration 00031)
+- Companion skill: `wiki-sync/source` (lists derived entities for a source RECORD)
+- Companion skill: `wiki-sync/package` (lists package inventory metadata only)
+
+## Anti-pattern (DO NOT do)
+
+❌ Copy bundle output into `.archives/context-X.md` and reference it from multiple commands.
+
+Reasons:
+- Source changes → bundle becomes stale → command runs with outdated context
+- Citation chain ostensibly preserved in bundle text but disconnected from `ops.knowledge_extractions`
+- Founder must remember to rebuild on every source edit
+
+✅ Instead: re-run `/wiki get` at the START of every command session that needs the context. The bundle is fresh by construction.
+
+For workflows that need persistent context across MULTIPLE sessions (e.g. a multi-day `/cla propose` brainstorm), use `--to=.archives/cla/<id>/<spec-name>-context.md` AND treat the file as ephemeral — re-run `/wiki get --src=<same-spec> --to=<same-path>` to refresh whenever needed.
+
+## Version notes
+
+- v1.0 (wiki-sync v4.3, 2026-05-20): first release. Five spec scopes supported.

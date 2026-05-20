@@ -679,6 +679,8 @@ const ROOT_META = {
       "charter",
       "governance",
       "pillars",
+      "---Playbook---",
+      "playbook",
     ],
   },
   en: {
@@ -697,6 +699,8 @@ const ROOT_META = {
       "charter",
       "governance",
       "pillars",
+      "---Playbook---",
+      "playbook",
     ],
   },
 };

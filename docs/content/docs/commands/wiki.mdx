@@ -2,137 +2,185 @@
 title: 'Command: /wiki'
 description: ''
 source_path: .claude/commands/wiki.md
-source_hash: 249b614eef4f282516c198192bc934c9f2c0959dc3ccf4e0e67110728862dc9e
-generated_at: '2026-05-19T05:20:46.403Z'
-generated_by: docs-engine v1.1.0
+source_hash: de7b80c66ec8fb5504de49bf6dae534252351f0da5fae7c978b40ea1aaa6d23f
+generated_at: '2026-05-20T11:11:22.330Z'
+generated_by: docs-engine v1.2.0
 category: command
 language: vi
----
 translated: true
-translated_at: 2026-05-19T15:00:00Z
+translated_at: "2026-05-20T11:30:00Z"
 translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
+translated_source_hash: de7b80c66ec8fb5504de49bf6dae534252351f0da5fae7c978b40ea1aaa6d23f
+---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
 # /wiki
 
-Lệnh phạm vi dự án dành cho ritsu-works. Giao diện front-end cho capability wiki-sync
-(`wiki-sync-from-refs`). Bộ điều phối mỏng — logic phase nằm trong các skill
+Lệnh có phạm vi project cho ritsu-works. Front-end cho capability wiki-sync
+(`wiki-sync-from-refs`). Orchestrator mỏng — logic phase nằm trong các skill
 dưới `06-ai-ops/skills/wiki-sync/`. Tuân theo cùng pattern orchestrator như
-`/cla` (ủy quyền cho skill; quản lý các HITL gate; lưu trữ trạng thái).
+`/cla` (uỷ thác cho skill; quản lý các HITL gate; persist state).
 
-**v3.0 (từ 2026-05-18 trở đi): semantic MẶC ĐỊNH = distill+extract.** Các file nguồn
-trở thành RECORD pages; tri thức quan trọng (concept / observation / decision / idea)
-được LLM trích xuất thành các entity page `wiki/<type>/<slug>.md` được chiếu riêng
-với citation qua `ops.knowledge_extractions`. Flag `--verbatim` chuyển sang
-hành vi verbatim-projection v2.0.
+**v3.0 (từ 2026-05-18 trở đi): semantic MẶC ĐỊNH = distill+extract.** Các file source
+trở thành RECORD page; kiến thức quan trọng (concept / observation / decision / idea)
+được LLM trích xuất thành các entity page `wiki/<type>/<slug>.md` được projection
+riêng biệt với citation thông qua `ops.knowledge_extractions`. Flag `--verbatim`
+fall through về hành vi verbatim-projection của v2.0.
 
 **v4.0 (Sprint 1 của v4 revise, 2026-05-18): LAYOUT source-grouped.** Source RECORD
-nằm tại `wiki/<source-slug>/source.md`; các derived entity nằm tại
+nằm tại `wiki/<source-slug>/source.md`; các derived entity tại
 `wiki/<source-slug>/{concepts,observations,decisions,ideas}/<entity-slug>.md`
-(composite UNIQUE bên trong source). Các chapter theo từng cuốn sách nằm tại
-`wiki/<book-slug>/chapters/chapter-NN.md`. Skills có thể chỉ định
-`input = wiki/<source-slug>/` như một gói input mạch lạc. Các link-list reverse-lookup
-tại `wiki/_index/<page_type>/<canonical-name>.md` (Sprint 2;
-được regenerate bởi skill `index-rebuild`, bị loại trừ khỏi check orphan của `/wiki audit`).
+(composite UNIQUE trong phạm vi source). Per-book chapters tại
+`wiki/<book-slug>/chapters/chapter-NN.md`. Skill có thể chỉ định
+`input = wiki/<source-slug>/` như một input package mạch lạc. Reverse-lookup
+link-lists tại `wiki/_index/<page_type>/<canonical-name>.md` (Sprint 2;
+được regenerate bởi skill `index-rebuild`, bị loại trừ khỏi orphan check của `/wiki audit`).
 
-## Các subcommand (bảng verb v3.0)
+## Subcommands (bảng verb v3.0)
 
-| Cách gọi | Mục đích | HITL | Lưu trữ |
+| Invocation | Mục đích | HITL | Persistence |
 |---|---|---|---|
-| `/wiki` | Hiển thị menu + các ingest / ask / audit gần đây / kích thước review queue | A | chỉ đọc |
-| `/wiki sync <path>` | **MẶC ĐỊNH = distill+extract.** Source trở thành RECORD page + N derived entity page (concept/observation/decision/idea). `<path>` có thể là file HOẶC directory (folder-adapter v4.1 = BFS đệ quy, giới hạn bởi `--depth=d` / `--max-nodes=N`). | A (B nếu chi phí > cap) | INSERT source RECORD + N entity pages + extractions + links + embeddings |
-| `/wiki sync <dir> --depth=<d>` | **v4.1** chế độ folder: BFS độ sâu tối đa (mặc định 3, cứng 10). Folder gốc = depth 0; con trực tiếp = depth 1; v.v. Depth > d sẽ bị bỏ qua. | A | theo package |
-| `/wiki sync <dir> --max-nodes=<N>` | **v4.1** chế độ folder: số node folder tối đa được duyệt qua BFS (mặc định 20, cứng 500). Files trong folder đã được duyệt được ingest toàn bộ. Các folder còn xếp hàng được báo cáo là `truncated_folders` trong kết quả. | A | theo package |
-| `/wiki sync <path> --out=<name>` | **v4.2** namespace tên thư mục output (con của `wiki/`). Mặc định: slugify(basename(input)). Tự động thêm suffix `-1`, `-2`, … nếu `wiki/<name>/` đã tồn tại. Chế độ multi-package bố trí thành `wiki/<name>/<package-slug>/source.md`; single-package gập thành `wiki/<name>/source.md`. | A | theo package, dưới namespace |
-| `/wiki sync <path> --verbatim` | Fallback v2.0: ghi single-page, không distill. Trigger tự động deprecation: nếu được gọi \< 1× trong 30 ngày sau promotion, flag sẽ bị xóa ở v3.1. | A | INSERT single page (hành vi v2.0) |
-| `/wiki sync <path> --split=<toc\|count=N\|heading=h2>` | Chia chapter (PDF > 100tr; các chapter feed distill độc lập) | A | mỗi chapter row với `parent_job_id` (migration 00030 Block C) |
-| `/wiki sync <path> --force` | Re-extract mọi thứ; bỏ qua chunk-diff | B | UPDATE row |
-| `/wiki resync <path>` | Chunk-diff trước; chỉ re-extract những chunk thay đổi. Tier B nếu > 50% chunks thay đổi (founder xác nhận phạm vi theo spec A8). | A (B nếu > 50% thay đổi) | UPDATE row |
-| `/wiki distill <path>` (alias) | Giống `/wiki sync`. Verb tường minh để rõ ràng. | A (B nếu chi phí > cap) | giống sync |
-| `/wiki extract <path> --type=concept\|observation\|decision\|idea` | Selective: chạy extractor cho CHỈ MỘT entity type. Hữu ích cho việc chạy lại sau khi tinh chỉnh threshold. | A | INSERT/UPDATE chỉ các entity page thuộc type khớp |
-| `/wiki merge <canonical-slug> <duplicate-slug>` | Dedup thủ công: merge hai page mà founder xác định là cùng một. Soft-delete loser qua `deleted_at`. | B | UPDATE extractions rewire + soft-delete duplicate |
-| `/wiki merge <a> <b> --undo` | Đảo ngược merge gần nhất của cặp. Khôi phục `deleted_at = NULL`. | B | UPDATE (đảo ngược rewire) |
-| `/wiki source <slug>` | Reverse lookup: liệt kê tất cả derived entity từ source RECORD với confidence + raw_quote từ `knowledge_extractions`. | A | chỉ đọc |
-| `/wiki review` | Xử lý hàng đợi founder-review (các page pending_review với confidence trích xuất 0.6-0.85 HOẶC dedup queue 0.75-0.92). | B mỗi item | UPDATE `knowledge_extractions.founder_decision` + review_state của page |
-| `/wiki ask "<question>"` | **Truy xuất entity-first v3.0.** Ưu tiên các derived entity page hơn source chunks; định dạng citation bao gồm tiêu đề source gốc + raw_quote + suffix package (v4.0 B9). | A | INSERT entry ops.agent_runs (không ghi wiki) |
-| `/wiki ask "<question>" --source <slug>` | v4.0: truy xuất phạm vi package. Trả về chỉ các kết quả từ package của source được chỉ định. | A | chỉ đọc |
-| `/wiki ask "<question>" --packages <s1,s2>` | v4.0: union qua các package được chỉ định. | A | chỉ đọc |
-| `/wiki package <slug>` | v4.0: liệt kê inventory của một package (source RECORD + đếm theo type + slug từng entity). Cho việc lập kế hoạch input của skill. | A | chỉ đọc |
-| `/wiki index rebuild` | v4.0 Sprint 2: regenerate các link-list reverse-lookup `wiki/_index/<page_type>/<canonical-name>.md`. Đọc các alias từ frontmatter. | A | UPDATE các file link-list dưới wiki/_index/ |
-| `/wiki audit` | Quét toàn vẹn. v3.0 thêm 4 check mới: distillation completeness, citation integrity, dedup consistency, attribution discipline (A11). | A | ghi `.archives/wiki-audits/<date>.md` |
-| `/wiki audit --fix` | Audit + đề xuất auto-fix (một PR cho mỗi class fix) | B | một PR cho mỗi class fix |
-| `/wiki attribution-check <content-file>` | Trigger thủ công của `wiki-sync/attribution-watcher` — kiểm tra xem `/wiki ask` gần đây có liên quan đến việc chỉnh file content này, ≥3 obs từ nguồn có bản quyền → cảnh báo Tier B | B | INSERT row ops.events |
-| `/wiki status` | Hiển thị hàng đợi ingestion hiện tại + kết quả audit gần đây + đếm pending_review | A | chỉ đọc |
-| `/wiki list [--type=<page_type>]` | Liệt kê các wiki page theo type | A | chỉ đọc |
+| `/wiki` | Hiển thị menu + các ingest / ask / audit / kích thước queue review gần đây | A | chỉ-đọc |
+| `/wiki sync <path>` | **MẶC ĐỊNH = distill+extract.** Source trở thành RECORD page + N derived entity page (concept/observation/decision/idea). `<path>` có thể là file HOẶC một thư mục (folder-adapter v4.1 = BFS đệ quy, giới hạn bởi `--depth=d` / `--max-nodes=N`). | A (B nếu cost > cap) | INSERT source RECORD + N entity page + extractions + links + embeddings |
+| `/wiki sync <dir> --depth=<d>` | **v4.1** folder mode: BFS độ sâu tối đa (mặc định 3, cap cứng 10). Folder gốc = depth 0; con trực tiếp = depth 1; v.v. Depth > d bị bỏ qua. | A | mỗi package |
+| `/wiki sync <dir> --max-nodes=<N>` | **v4.1** folder mode: tối đa số folder node được thăm qua BFS (mặc định 20, cap cứng 500). File trong một folder được thăm được ingest toàn bộ. Các folder còn queue được báo cáo là `truncated_folders` trong kết quả. | A | mỗi package |
+| `/wiki sync <path> --out=<name>` | **v4.2** tên folder output namespace (con của `wiki/`). Mặc định: slugify(basename(input)). Tự động suffix `-1`, `-2`, … nếu `wiki/<name>/` đã tồn tại. Multi-package mode lay out thành `wiki/<name>/<package-slug>/source.md`; single-package collapse thành `wiki/<name>/source.md`. | A | mỗi package, dưới namespace |
+| `/wiki sync <path> --verbatim` | v2.0 fallback: ghi single-page, không distill. Trigger tự động deprecate: nếu được gọi \< 1× trong 30 ngày sau promotion, flag bị gỡ trong v3.1. | A | INSERT single page (hành vi v2.0) |
+| `/wiki sync <path> --split=<toc\|count=N\|heading=h2>` | Chapter split (PDF > 100pp; các chapter feed distill độc lập) | A | mỗi chapter row với `parent_job_id` (migration 00030 Block C) |
+| `/wiki sync <path> --force` | Re-extract mọi thứ; bypass chunk-diff | B | UPDATE row |
+| `/wiki resync <path>` | Chunk-diff trước; chỉ re-extract các chunk thay đổi. Tier B nếu > 50% chunk thay đổi (founder confirm scope theo spec A8). | A (B nếu > 50% thay đổi) | UPDATE row |
+| `/wiki distill <path>` (alias) | Giống như `/wiki sync`. Verb tường minh để rõ nghĩa. | A (B nếu cost > cap) | giống như sync |
+| `/wiki extract <path> --type=concept\|observation\|decision\|idea` | Selective: chạy extractor chỉ cho MỘT loại entity. Hữu ích cho re-run sau khi tune threshold. | A | INSERT/UPDATE chỉ các entity page khớp loại |
+| `/wiki merge <canonical-slug> <duplicate-slug>` | Dedup thủ công: merge hai page mà founder xác định là cùng một. Soft-delete loser thông qua `deleted_at`. | B | UPDATE extractions rewire + soft-delete bản trùng |
+| `/wiki merge <a> <b> --undo` | Đảo ngược merge gần nhất của cặp này. Khôi phục `deleted_at = NULL`. | B | UPDATE (đảo ngược rewire) |
+| `/wiki source <slug>` | Reverse lookup: liệt kê tất cả derived entity từ một source RECORD cùng với confidence + raw_quote của `knowledge_extractions`. | A | chỉ-đọc |
+| `/wiki review` | Xử lý queue founder-review (các page pending_review với confidence extraction 0.6-0.85 HOẶC dedup queue 0.75-0.92). | B per item | UPDATE `knowledge_extractions.founder_decision` + page review_state |
+| `/wiki ask "<question>"` | **v3.0 entity-first retrieval.** Ưu tiên các derived entity page hơn các source chunk; định dạng citation bao gồm tiêu đề source gốc + raw_quote + package suffix (v4.0 B9). | A | INSERT ops.agent_runs entry (không ghi wiki) |
+| `/wiki ask "<question>" --source <slug>` | v4.0: retrieval theo phạm vi package. Chỉ trả về các hit từ package của source được đặt tên. | A | chỉ-đọc |
+| `/wiki ask "<question>" --packages <s1,s2>` | v4.0: union qua các package được đặt tên. | A | chỉ-đọc |
+| `/wiki package <slug>` | v4.0: liệt kê inventory của một package (source RECORD + đếm theo type + per-entity slug). Cho lập kế hoạch input cho skill. | A | chỉ-đọc |
+| `/wiki get --src=<spec> [--to=<path>] [--summary] [--include-frontmatter] [--max-entities=<N>]` | **MỚI v4.3.** Extract context được bundle từ một wiki source package dưới dạng MỘT khối markdown. Ngữ pháp `<spec>`: `<source-slug>` (full), `<source-slug>/chapter-N` (chapter + các entity citing nó), `<source-slug>/chapter-NN-<slug>` (chapter file cụ thể), `<source-slug>/<type>/<entity-slug>` (một entity), `<source-slug>/<type>` (tất cả của type). Với `--to=<path>`, ghi bundle ra file; nếu không, in ra stdout. Dùng cho: feed chapter context tới các lệnh khác (`/cla propose`, `@cgo`, `@cpo`) mà không cần duplicate vào file trung gian. | A | chỉ-đọc (log vào ops.agent_runs) |
+| `/wiki index rebuild` | v4.0 Sprint 2: regenerate các link-list reverse-lookup `wiki/_index/<page_type>/<canonical-name>.md`. Đọc alias từ frontmatter. | A | UPDATE các file link-list dưới wiki/_index/ |
+| `/wiki audit` | Quét tính toàn vẹn. v3.0 thêm 4 check mới: distillation completeness, citation integrity, dedup consistency, attribution discipline (A11). | A | ghi `.archives/wiki-audits/<date>.md` |
+| `/wiki audit --fix` | Audit + chào auto-fix (một PR mỗi fix class) | B | một PR mỗi fix class |
+| `/wiki attribution-check <content-file>` | Trigger thủ công của `wiki-sync/attribution-watcher` — kiểm tra nếu `/wiki ask` gần đây có tương quan với edit file content này, ≥3 obs từ source có copyright → Tier B heads-up | B | INSERT row ops.events |
+| `/wiki status` | Hiển thị queue ingestion hiện tại + kết quả audit gần đây + đếm pending_review | A | chỉ-đọc |
+| `/wiki list [--type=<page_type>]` | Liệt kê các trang wiki theo loại | A | chỉ-đọc |
 
-## Quy trình làm việc
+## Workflow
 
 ### `/wiki sync <path>`
 
 1. **Phát hiện adapter** — đọc `<path>`:
-   - Nếu là directory → `folder-adapter` (v4.1: BFS đệ quy giới hạn bởi `--depth=d` mặc định 3, `--max-nodes=N` mặc định 20. v4.2: output lồng dưới `wiki/<namespace>/`, trong đó namespace = flag `--out=<name>` hoặc basename input đã slugify + suffix `-N` nếu xung đột).
+   - Nếu directory → `folder-adapter` (v4.1: BFS-đệ quy giới hạn bởi `--depth=d` mặc định 3, `--max-nodes=N` mặc định 20. v4.2: output lồng dưới `wiki/<namespace>/`, trong đó namespace = flag `--out=<name>` hoặc input basename đã slugify + suffix `-N` nếu trùng).
    - Ngược lại extension / pattern URL → một trong 5 file adapter trong `knowledge/ingestion-sources.yaml`
-   - Thoát với lỗi hữu ích nếu không adapter nào khớp
-2. **Prompt chia chapter** — nếu PDF > 100 trang HOẶC flag `--split` được truyền, chạy skill `chapter-splitter` sử dụng `AskUserQuestion` để xác nhận chế độ split (`toc` / `count=N` / `heading=h2`). Các con có row `ingestion_jobs` riêng với `parent_job_id` (migration 00030 Block C).
-3. **Lấy lock** — `SELECT ops.wiki_sync_lock(<entity_type>, <slug>)` (migration 00027) để ngăn ghi đồng thời.
-4. **Check dedup** — tính `source_hash = sha256(ref_content)`; truy vấn `ops.ingestion_jobs WHERE source_hash = ? AND state IN ('completed')`. Nếu tồn tại và không set `--force`, trả về "ref unchanged; wiki up-to-date".
-5. **Chạy SOP-INGEST-001** — gọi skill pipeline 6 bước qua `06-ai-ops/sops/SOP-INGEST-001-wiki-sync/`. Với markdown + folder paths, ưu tiên CLI helper `scripts/wiki-sync/ingest.cjs` (v2.0 PR3) cho các bước file-side xác định; các bước LLM nằm trong phiên của lệnh này.
-6. **Xác nhận với founder** — in summary (entity type, slug, số page, chi phí) + link đến đường dẫn wiki đã ghi. Với folder ingest, cũng in bảng summary per-file.
+   - Bail với lỗi hữu ích nếu không có adapter nào khớp
+2. **Prompt chapter-split** — nếu PDF > 100 trang HOẶC có flag `--split`, chạy skill `chapter-splitter` mà dùng `AskUserQuestion` để confirm split mode (`toc` / `count=N` / `heading=h2`). Các con nhận row `ingestion_jobs` riêng với `parent_job_id` (migration 00030 Block C).
+3. **Acquire lock** — `SELECT ops.wiki_sync_lock(<entity_type>, <slug>)` (migration 00027) để ngăn ghi đồng thời.
+4. **Dedup check** — compute `source_hash = sha256(ref_content)`; query `ops.ingestion_jobs WHERE source_hash = ? AND state IN ('completed')`. Nếu tồn tại và `--force` không được set, return "ref unchanged; wiki up-to-date".
+5. **Chạy SOP-INGEST-001** — gọi skill 6-step pipeline thông qua `06-ai-ops/sops/SOP-INGEST-001-wiki-sync/`. Với đường dẫn markdown + folder, ưu tiên CLI helper `scripts/wiki-sync/ingest.cjs` (v2.0 PR3) cho các bước thiên về file deterministic; các bước LLM-touching ở lại trong session của lệnh này.
+6. **Confirm tới founder** — in tóm tắt (loại entity, slug, số trang, cost) + link tới đường dẫn wiki đã ghi. Với folder ingest, cũng in bảng tóm tắt per-file.
+
+### `/wiki get --src=<spec>` (v4.3)
+
+Extract context được bundle từ một wiki source-grouped package. Output phù hợp để pipe vào prompt của lệnh khác HOẶC ghi ra file thông qua `--to=<path>`. **Không gọi LLM** — chỉ filesystem read + lắp ráp thuần tuý.
+
+**Ngữ pháp source spec:**
+
+| Spec | Resolve thành |
+|---|---|
+| `<source-slug>` | Full source: frontmatter của source.md + tất cả chapter + tất cả entity (giới hạn bởi `--max-entities`) |
+| `<source-slug>/chapter-N` | File chapter N + tất cả entity với frontmatter `source_chapter_index: N` |
+| `<source-slug>/chapter-NN-<slug>` | File chapter cụ thể (full filename) + các entity citing nó |
+| `<source-slug>/<type>` | Tất cả entity của type (concepts \| observations \| decisions \| ideas) |
+| `<source-slug>/<type>/<entity-slug>` | Một entity page (full body + frontmatter tuỳ chọn) |
+
+**Workflow:**
+
+1. **Parse spec** — split theo `/`; resolve source dir; bail nếu không phải v4.0 source package (không có `source.md`).
+2. **Thu thập chapters** — dựa trên scope.
+3. **Thu thập entities** — filter theo frontmatter `source_chapter_index` (cho spec chapter-N) hoặc theo file path.
+4. **Lắp ráp bundle** — header (spec + source metadata) + inventory + frontmatter source RECORD + các chapter body + các entity body + footer provenance.
+5. **Output** — ghi vào `--to=<path>` (tạo parent dir) HOẶC stdout. Dòng tóm tắt ra stderr.
+
+**Định dạng output**: Bundle markdown bắt đầu bằng `<!-- wiki-context-bundle generated by /wiki get v4.3 -->` + các section H1/H2/H3 có cấu trúc. Mọi entity mang theo provenance (file path, chapter index, confidence, review state). Footer nhắc operator KHÔNG edit bundle trực tiếp.
+
+**Cap mặc định**: 100 entity mỗi bundle (over-cap được báo cáo dưới dạng `dropped` count). Tăng thông qua `--max-entities=N`.
+
+**Flags:**
+
+- `--src=<spec>` BẮT BUỘC. Source spec.
+- `--to=<path>` Tuỳ chọn. Output file path (tương đối với repo root hoặc tuyệt đối). Không có nó, in ra stdout.
+- `--summary` Chế độ compact: chapter → chỉ outline; entity → chỉ paragraph đầu tiên.
+- `--include-frontmatter` Bao gồm YAML frontmatter của entity trong output (mặc định: bị strip, chỉ key metadata trong header).
+- `--max-entities=<N>` Cap số entity (mặc định 100). Các drop được báo cáo.
+
+**Ví dụ:**
+
+- `/wiki get --src=marketing-management-kotler/chapter-14` — in Kotler MM Ch 14 + 8 entity ra stdout
+- `/wiki get --src=marketing-management-kotler/chapter-19 --to=.archives/cla/<id>/ch19-context.md` — bundle ra file để `/cla propose` tái sử dụng
+- `/wiki get --src=principles-of-marketing-kotler --summary --max-entities=20` — outline cấp cao của toàn bộ cuốn sách
+- `/wiki get --src=marketing-management-kotler/decisions/decision-ritsu-direct-marketing-engine-email-lifecycle` — full body của một decision entity
+
+**Cost**: $0 (không gọi LLM; chỉ filesystem read thuần).
+
+**Composition pattern**: paste output (hoặc đọc từ file `--to=<path>`) vào prompt của lệnh kế tiếp. Chuỗi citation của bundle được bảo toàn thông qua các trích đoạn frontmatter.
 
 ### `/wiki ask "<question>"`
 
-1. **Nhúng câu hỏi** — OpenAI `text-embedding-3-small`.
-2. **Truy xuất** — hybrid search: vector top-K (k=10) + keyword (BM25) join, dedupe, chấm điểm theo Bài #14 ranking (vector*0.5 + keyword*0.3 + backlink*0.2).
-3. **Rerank tùy chọn** — nếu truyền flag `--rerank` (mặc định tắt vì chi phí), gọi OpenAI rerank model trên top 10.
-4. **Tổng hợp** — gọi skill `wiki-sync/ask` soạn câu trả lời với kỷ luật citation nghiêm ngặt (mọi claim đều cite một wiki path + chunk anchor; nếu không thể cite, nói "no wiki coverage").
-5. **Trả về** — câu trả lời + danh sách citation. KHÔNG BAO GIỜ rơi về dữ liệu huấn luyện.
+1. **Embed câu hỏi** — OpenAI `text-embedding-3-small`.
+2. **Retrieve** — hybrid search: vector top-K (k=10) + keyword (BM25) join, dedup, scored theo Bài #14 ranking (vector*0.5 + keyword*0.3 + backlink*0.2).
+3. **Optional rerank** — nếu flag `--rerank` được pass (mặc định off vì cost), gọi OpenAI rerank model trên top 10.
+4. **Synthesize** — gọi skill `wiki-sync/ask` mà compose câu trả lời với citation discipline nghiêm ngặt (mọi tuyên bố cite một wiki path + chunk anchor; nếu không thể cite, nói "no wiki coverage").
+5. **Return** — câu trả lời + danh sách citation. KHÔNG BAO GIỜ fall back về dữ liệu training.
 
 ### `/wiki audit`
 
-1. **Kiểm tra hash** — `source_hash` của mọi row `ops.knowledge_pages` được tính lại từ `source_ref`; cờ nếu trôi dạt > 0.
-2. **Đi qua link** — mọi `ops.knowledge_links.target_page_id IS NULL` → orphan.
-3. **Kiểm tra URL chết** — mọi source RECORD page (`wiki/<source-slug>/source.md`) với `source_kind='url_article'` → HTTP HEAD `source_ref`; cờ nếu 4xx/5xx.
-4. **Mẫu stale-claim** — ngẫu nhiên 10% các page; LLM đánh giá "claim này vẫn nhất quán với source ref không?" (mẫu rẻ; full sweep quá đắt).
-5. **Ghi báo cáo** — `.archives/wiki-audits/<date>.md` với độ chính xác file:line cho từng defect + tỷ lệ defect tổng.
-6. **Nếu `--fix`** — cho mỗi class fix (orphan, dead, stale), mở một PR với đề xuất khắc phục.
+1. **Hash check** — mỗi `source_hash` của row `ops.knowledge_pages` được tính lại từ `source_ref`; flag nếu drift > 0.
+2. **Link walk** — mỗi `ops.knowledge_links.target_page_id IS NULL` → orphan.
+3. **Dead URL check** — mỗi source RECORD page (`wiki/<source-slug>/source.md`) với `source_kind='url_article'` → HTTP HEAD `source_ref`; flag nếu 4xx/5xx.
+4. **Stale-claim sample** — ngẫu nhiên 10 % các page; LLM-evaluate "tuyên bố này còn nhất quán với source ref không?" (sample rẻ; full sweep quá đắt).
+5. **Write report** — `.archives/wiki-audits/<date>.md` với độ chính xác per-defect file:line + tổng tỉ lệ defect.
+6. **Nếu `--fix`** — cho mỗi fix class (orphan, dead, stale), mở một PR với đề xuất remediation.
 
-## Lưu trữ trạng thái
+## State persistence
 
-Mỗi lần gọi đều ghi:
+Mọi invocation đều ghi:
 - Row `ops.agent_runs` với `agent_slug = wiki-sync/<verb>`.
-- Cho sync: row `ops.ingestion_jobs`, sau đó row `ops.knowledge_pages`, sau đó các row `ops.knowledge_embeddings`.
+- Cho sync: row `ops.ingestion_jobs`, rồi row `ops.knowledge_pages`, rồi các row `ops.knowledge_embeddings`.
 - Row `ops.cost_attributions` (cost-bucket: `ai-ops-knowledge`).
 - Row `ops.events` (`ritsu.wiki.<verb>_completed`).
 
-## Kỷ luật HITL (Human-in-the-Loop)
+## HITL discipline
 
 Theo `governance/HITL.md`:
-- `/wiki sync` (ingest bổ sung) — **Tier A**.
-- `/wiki sync --force` (re-sync overwrites) — **Tier B** (Telegram notify sau — undo = `git revert`).
-- `/wiki ask` — **Tier A** (chỉ đọc).
-- `/wiki audit` — **Tier A** (chỉ đọc).
-- `/wiki audit --fix` — **Tier B** cho mỗi PR đã mở.
-- Một lần gọi `/wiki sync` có chi phí ước tính vượt cap per-task-kind `wiki-ingest-*` (xem capability-registry.yaml) — leo thang đến **Tier B** (Telegram preview + duyệt).
+- `/wiki sync` (ingest additive) — **Tier A**.
+- `/wiki sync --force` (re-sync ghi đè) — **Tier B** (Telegram notify after — undo = `git revert`).
+- `/wiki ask` — **Tier A** (chỉ-đọc).
+- `/wiki audit` — **Tier A** (chỉ-đọc).
+- `/wiki audit --fix` — **Tier B** mỗi PR được mở.
+- Một invocation `/wiki sync` mà cost ước tính vượt quá cap per-task-kind `wiki-ingest-*` (xem capability-registry.yaml) — escalate thành **Tier B** (Telegram preview + approve).
 
 ## Drift gates
 
 | Touchpoint | Gate |
 |---|---|
-| Trước mọi DB write | check `pnpm check` sạch (rẻ; ~1s) |
-| Trước khi promote một audit-fix PR | `pnpm check --full` |
+| Trước bất kỳ DB write nào | check `pnpm check` clean (rẻ; ~1s) |
+| Trước khi promote một PR audit-fix | `pnpm check --full` |
 
-## Lưu ý phòng vệ
+## Defensive notes
 
-- **Các chỉnh sửa wiki là của founder**. Lệnh ghi các page với marker `<!-- generated-by: wiki-sync vN -->`. Các page KHÔNG có marker này (hoặc đã bị xóa) được coi là founder-edited; re-sync cảnh báo và hiển thị 3-way diff.
-- **Re-sync regenerate theo mặc định.** Single-source-of-truth: ref = source, wiki = projection. Nếu founder hand-edit một generated page, đó là exception cần `--merge` (v1.1+) hoặc chấp nhận cảnh báo.
-- **Tất cả file path được log vào `ops.agent_runs`**. Dễ tìm "page nào đến từ ref nào."
+- **Wiki edit là của founder**. Lệnh ghi các trang với marker `<!-- generated-by: wiki-sync vN -->`. Các trang KHÔNG có marker này (hoặc bị strip nó) được coi là founder-edited; re-sync warn và show 3-way diff.
+- **Re-sync regenerate mặc định.** Single-source-of-truth: ref = source, wiki = projection. Nếu founder hand-edit một generated page, đó là exception yêu cầu `--merge` (v1.1+) hoặc chấp nhận cảnh báo.
+- **Tất cả file path log vào `ops.agent_runs`**. Dễ dàng tìm "trang nào đến từ ref nào."
 
 ## Liên quan
 
-- Spec capability: `wiki/capabilities/wiki-sync-from-refs/spec.md` (promote ở Phase 8)
+- Capability spec: `wiki/capabilities/wiki-sync-from-refs/spec.md` (promoted ở Phase 8)
 - SOP: `06-ai-ops/sops/SOP-INGEST-001-wiki-sync/`
 - Skills: `06-ai-ops/skills/wiki-sync/{ingest,ask,audit,adapters,chapter-splitter,link-extractor}/`
-- Expose qua MCP: `mcp__wiki__ask`, `mcp__wiki__list_pages`, `mcp__wiki__get_page`
+- MCP exposure: `mcp__wiki__ask`, `mcp__wiki__list_pages`, `mcp__wiki__get_page`
 - Migration: `supabase/migrations/00022_wiki_sync_extensions.sql`
-- Bài #14 (knowledge graph) + Bài #18 (ingestion pipeline) — các tiền nhân kiến trúc
+- Bài #14 (knowledge graph) + Bài #18 (ingestion pipeline) — tổ tiên kiến trúc
+

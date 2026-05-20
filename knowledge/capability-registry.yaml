@@ -112,7 +112,7 @@ capabilities:
       7-day post-v4-ship commitment (Muse Paul Graham M1, Tier C ceremony):
       founder ingests ≥3 growth playbooks by 2026-05-25.
     state: operating       # Promoted 2026-05-18 (Phase 8 of v4.0 revise); Sprint 1 merge 0cd0c62; Sprint 2 merge 70ee2ee; migration 00032 applied 2026-05-18; ops.capability_runs[f75502d4] operating_since 2026-05-18T~09:30Z. v4.1 minor extension 2026-05-18 (recursive folder support). v4.2 minor extension 2026-05-18 (namespace output folder).
-    version: "4.2.0"       # Minor bump from 4.1.0 — backward-compatible folder-adapter namespace output (--out flag, auto-suffix on conflict, multi-package nesting under wiki/<namespace>/). No DDL change; backward compat with v4.0/v4.1 single-package layout.
+    version: "4.3.0"       # Minor bump from 4.2.0 — adds /wiki get subcommand + wiki-sync/get skill (extract bundled context from source-grouped package). Pure filesystem read, no LLM, no DDL, no migration. Backward compatible.
     state_since: 2026-05-18
     proposed_at: 2026-05-16
     deployed_at: 2026-05-18  # v4.0 Sprint 1 + Sprint 2 merged 2026-05-18
@@ -120,7 +120,7 @@ capabilities:
     pillar_owner: 06-ai-ops
     bài_toán_touched: [1, 2, 4, 5, 7, 9, 11, 12, 13, 14, 15, 17, 18, 19, 20]
     spec_path: wiki/capabilities/wiki-sync-from-refs/spec.md
-    retrospective_path: wiki/capabilities/wiki-sync-from-refs/retrospective-v4.0.0.md
+    retrospective_path: wiki/capabilities/wiki-sync-from-refs/retrospective-v4.3.0.md
     cost_bucket: ai-ops-knowledge
     estimated_cost_setup_usd: 36.50     # v3.0 ($22-30) + v4.0 revise ($4.50-6.50) cumulative
     estimated_cost_recurring_usd: 35.00 # unchanged from v1.0 spec; per-source caps redistributed in v3.0 §0
