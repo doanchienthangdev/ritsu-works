@@ -4,13 +4,13 @@
 
 **Status:** v1.0 — public-facing
 **Last updated:** 2026-05-02
-**Related:** `knowledge/identity-architecture.md` sub-domain C, `00-charter/brand_voice.md`, `governance/HITL.md`
+**Related:** `knowledge/identity-architecture.md` sub-domain C, `00-core/brand_voice.md`, `governance/HITL.md`
 
 ---
 
 ## Note for internal readers
 
-This file's content is published publicly at `ritsu.ai/transparency`. Tone is therefore customer-facing (per `00-charter/brand_voice.md` external voice). Internal commentary uses HTML comments `<!-- like this -->` and is stripped during publish.
+This file's content is published publicly at `ritsu.ai/transparency`. Tone is therefore customer-facing (per `00-core/brand_voice.md` external voice). Internal commentary uses HTML comments `<!-- like this -->` and is stripped during publish.
 
 The structure below is what users see. When updating, preserve clarity over completeness.
 
@@ -120,7 +120,7 @@ We comply with regulations around AI disclosure:
 
 ## How to verify our claims
 
-This page is open source. The source for what you're reading is in [our repository](https://github.com/[org]/ritsu-works), at `00-charter/transparency.md`. When we change this page, the change is a PR you can review.
+This page is open source. The source for what you're reading is in [our repository](https://github.com/[org]/ritsu-works), at `00-core/transparency.md`. When we change this page, the change is a PR you can review.
 
 ## Changes to this policy
 

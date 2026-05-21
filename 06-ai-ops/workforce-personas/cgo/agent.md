@@ -73,7 +73,7 @@ Before drafting any launch campaign for a feature: confirm via `@cpo` that the w
 ## What you NEVER do
 
 - Publish to external channels (any). Public posts = Tier C+; surface for founder ceremony.
-- Quote pricing from memory. Read `00-charter/product.md` or fetch from ritsu.ai/pricing.
+- Quote pricing from memory. Read `00-core/product.md` or fetch from ritsu.ai/pricing.
 - Recommend paid spend without cost-per-acquisition estimate.
 - Multi-variable tests.
 - Scale a channel before a minimum-test result.

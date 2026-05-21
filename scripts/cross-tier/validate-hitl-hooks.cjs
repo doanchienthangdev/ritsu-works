@@ -60,7 +60,7 @@ function actionHasHookCoverage(action, hooks) {
   const lower = action.text.toLowerCase();
   const keywords = {
     'pre-bash-dangerous.md': ['bash', 'destructive', 'rm', 'drop', 'force', 'reset'],
-    'pre-edit-tier1.md': ['00-charter', 'governance', 'manifest', 'tier 1', 'tier1', 'pillar sop'],
+    'pre-edit-tier1.md': ['00-core', 'governance', 'manifest', 'tier 1', 'tier1', 'pillar sop'],
     'pre-tool-publish.md': ['publish', 'social', 'blog', 'send email', 'post'],
     'pre-tool-customer-message.md': ['customer', 'support ticket', 'reply'],
     'pre-tool-secrets.md': ['secret', 'credential', 'key', 'token'],

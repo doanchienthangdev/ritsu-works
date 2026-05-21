@@ -2,14 +2,14 @@
 title: "Chương 5 — Bài #2: Trust & Blast Radius"
 description: "Chương 5 — Bài #2: Trust & Blast Radius"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/05-bai-2-trust-blast-radius.md
-source_hash: d68904c7138863bbe5cbd158074f32d016076d411ef46045f32f4e1de23516f1
-generated_at: '2026-05-19T17:13:00.263Z'
+source_hash: 0812b85e913b1a15c6122bb46b828547aa85516f0749bf7306282ed4c1ce6f8a
+generated_at: '2026-05-21T03:51:28.551Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: d68904c7138863bbe5cbd158074f32d016076d411ef46045f32f4e1de23516f1
-translated_at: '2026-05-19T17:13:00.263Z'
+translated_source_hash: 0812b85e913b1a15c6122bb46b828547aa85516f0749bf7306282ed4c1ce6f8a
+translated_at: '2026-05-21T03:51:28.551Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 5
 ---
@@ -202,7 +202,7 @@ permissions:
   files:                      # what file paths this role may edit
     - "05-ai-ops/skills/**"
     - "wiki/**"
-    - "!00-charter/**"        # explicitly excluded
+    - "!00-core/**"        # explicitly excluded
   tier2_schemas_read: ['ops.*']
   tier2_schemas_write: ['ops.tasks', 'ops.agent_runs']
   tier3_namespaces: []
@@ -256,7 +256,7 @@ Governance là policy. Hooks là enforcement. Bài #2 ship 5 hooks:
 Block edits to Tier 1 files unless on PR branch with proper format.
 
 ```
-on edit to: 00-charter/**, governance/**, knowledge/*.md, .claude/hooks/**
+on edit to: 00-core/**, governance/**, knowledge/*.md, .claude/hooks/**
   if not on feature branch: BLOCK
   if commit message doesn't match format: BLOCK
   if Tier C+ change without brainstorm note: ESCALATE

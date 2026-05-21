@@ -2,14 +2,14 @@
 title: "Chương 35 — Capability Case Study #2: Docs Engine"
 description: "Chương 35 — Capability Case Study #2: Docs Engine"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/35-capability-case-docs-engine.md
-source_hash: 6a6d3ca8d8171203ebdc935286af1659e7d91870daafaa495a86454d9ddb10f5
-generated_at: '2026-05-19T17:13:00.303Z'
+source_hash: f05d2f89820053eccd88d11165b13c9f6797d3902954551258f8210495cebf75
+generated_at: '2026-05-21T03:51:28.582Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: 6a6d3ca8d8171203ebdc935286af1659e7d91870daafaa495a86454d9ddb10f5
-translated_at: '2026-05-19T17:13:00.303Z'
+translated_source_hash: f05d2f89820053eccd88d11165b13c9f6797d3902954551258f8210495cebf75
+translated_at: '2026-05-21T03:51:28.582Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 35
 ---
@@ -59,7 +59,7 @@ Constraint:
 CTO mods:
 1. **3-way diff for hand-edits.** Walker uses `<!-- generated-by -->` marker (later changed to `{/* generated-by */}` JSX comment due to MDX2 strict parser). Hand-edited files w/o marker → walker refuses to overwrite.
 2. **3-layer secret redactor** (fail-loud, not silent scrub):
-   - Layer 1: walker excludes `governance/SECRETS.md`, `00-charter/founder-profile.md`, `runtime/secrets/`, `wiki/`, `.archives/`, `raw/`, `node_modules/`, `.next/`
+   - Layer 1: walker excludes `governance/SECRETS.md`, `00-core/founder-profile.md`, `runtime/secrets/`, `wiki/`, `.archives/`, `raw/`, `node_modules/`, `.next/`
    - Layer 2: MDX regex scrub at build time (`docs/lint-secrets.cjs`) — patterns for `override:` magic phrase, Anthropic API keys, Supabase URL, GitHub PATs, Telegram tokens. Build FAILS on match (no silent redaction).
    - Layer 3: CI gate — `pnpm check` runs lint-secrets before merge.
 3. **`/api/raw/<slug>` endpoint** returns `text/markdown` for AI runtime (CPO Phase 4 P0 reframe — AI agents are first-class audience, not just operators).
@@ -119,7 +119,7 @@ Toàn bộ 5 version trong ~10 giờ single session. Total cost ~$4 LLM (mostly 
 | `agent-adapter` | `.claude/agents/*.md` | `docs/content/docs/agents/<name>.mdx` |
 | `hook-adapter` | `.claude/hooks/*.md` | `docs/content/docs/hooks/<name>.mdx` |
 | `command-adapter` | `.claude/commands/*.md` | `docs/content/docs/commands/<name>.mdx` |
-| `charter-adapter` | `00-charter/*.md` | `docs/content/docs/charter/<name>.mdx` |
+| `charter-adapter` | `00-core/*.md` | `docs/content/docs/charter/<name>.mdx` |
 | `governance-adapter` | `governance/*.md` | `docs/content/docs/governance/<name>.mdx` |
 | `pillar-readme-adapter` | `0[1-9]-*/README.md`, `10-*/README.md` | `docs/content/docs/pillars/<NN-name>/index.mdx` |
 | `sop-flow-adapter` | `<pillar>/sops/**/flow.yaml` | `docs/content/docs/sops/<slug>.mdx` |
@@ -171,7 +171,7 @@ Layer 1: walker exclude list (in `scripts/docs-sync.cjs`):
 ```javascript
 const WALKER_EXCLUDE = [
   "governance/SECRETS.md",
-  "00-charter/founder-profile.md",
+  "00-core/founder-profile.md",
   "runtime/secrets/",
   "wiki/", ".archives/", "raw/",
   "node_modules/", ".next/",

@@ -4,7 +4,7 @@ You are operating inside `ritsu-works`, the Operating OS for Ritsu (https://rits
 
 For canonical product description, full governance, and detailed structure, see the imports below — they load when needed; do not duplicate their content here.
 
-@00-charter/product.md
+@00-core/product.md
 @governance/HITL.md
 @governance/ROLES.md
 @knowledge/manifest.yaml
@@ -40,7 +40,7 @@ Always read `knowledge/manifest.yaml` before assuming where data lives. Do not i
 ## Operating principles (non-negotiable)
 
 1. **Read before write.** View existing files in the relevant pillar before creating new ones.
-2. **PR everything Tier 1.** No direct commits to `main` for `00-charter/`, `governance/`, or any `SOP-*`. Hooks enforce this.
+2. **PR everything Tier 1.** No direct commits to `main` for `00-core/`, `governance/`, or any `SOP-*`. Hooks enforce this.
 3. **Schema in git, data in DB.** Before querying Tier 2, read `knowledge/schemas/<table>.sql`.
 4. **Idempotent + dry-runnable.** Any action touching Tier 2/3 supports `--dry-run` and is preferred when uncertain.
 5. **Cite, don't paraphrase.** When referencing an SOP or charter doc, link the path. Do not restate from memory.
@@ -52,7 +52,7 @@ Always read `knowledge/manifest.yaml` before assuming where data lives. Do not i
 - Any write to Product Supabase project `ritsu`.
 - Any exfiltration of user PII outside the company stack.
 - Any irreversible action without HITL approval when required.
-- Any direct edit to `00-charter/` or `governance/` (must be PR).
+- Any direct edit to `00-core/` or `governance/` (must be PR).
 
 ## New capabilities
 
@@ -73,7 +73,7 @@ See `06-ai-ops/sops/SOP-AIOPS-001-{fix,extend,revise,tune,deprecate}/` for sub-f
 
 ## Path-scoped guidance
 
-When you navigate into a pillar (`00-charter/`, `01-marketing/`, `02-sales/`, `03-gtm/`, `04-product/`, `05-customer/`, `06-ai-ops/`, `07-trust-safety/`, `08-finance/`, `09-founder/`, `10-metrics/`), Claude Code will auto-load that pillar's `README.md` and `CLAUDE.md` if present. Pillar-specific behavior lives there, not here. Do not bloat this file with per-pillar rules.
+When you navigate into a pillar (`00-core/`, `01-marketing/`, `02-sales/`, `03-gtm/`, `04-product/`, `05-customer/`, `06-ai-ops/`, `07-trust-safety/`, `08-finance/`, `09-founder/`, `10-metrics/`), Claude Code will auto-load that pillar's `README.md` and `CLAUDE.md` if present. Pillar-specific behavior lives there, not here. Do not bloat this file with per-pillar rules.
 
 Pillar architecture: 10 evergreen functional pillars + 1 stage composition pillar (`03-gtm`, dissolves on PMF). Stage pillars compose modules from evergreen pillars to drive a stage-specific outcome. See `.archives/pillars/PLAN.md` (local-only) for the full architecture rationale.
 

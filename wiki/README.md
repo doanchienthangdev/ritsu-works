@@ -64,7 +64,7 @@ A wiki note never *automatically* affects agent behavior. To act on it:
 
 1. Agent (or human) reads the wiki note.
 2. Decides whether the insight should change canonical truth (e.g. "Quizlet just dropped to $3.99 — our pricing positioning needs revisit").
-3. Opens a PR to the relevant Tier 1 file (`00-charter/product.md`, an SOP, a skill).
+3. Opens a PR to the relevant Tier 1 file (`00-core/product.md`, an SOP, a skill).
 4. The PR description **cites the wiki note** by path: "Per `wiki/competitors/quizlet.md` (updated 2026-04-28), …"
 5. Human (or designated reviewer agent) approves the PR.
 
@@ -115,7 +115,7 @@ sources:
 status: current  # current | stale | superseded
 related:
   - wiki/competitors/anki.md
-  - 00-charter/product.md
+  - 00-core/product.md
 ---
 ```
 
@@ -133,6 +133,6 @@ This lets agents reason about freshness, traceability, and connections.
 
 - **Agent-generated drafts in progress** → `.archives/`
 - **Raw exports, screenshots, binaries** → `raw/`
-- **Statements about Ritsu's identity, strategy, or operations** → `00-charter/` or pillars
+- **Statements about Ritsu's identity, strategy, or operations** → `00-core/` or pillars
 - **Procedural knowledge for reuse** → `skills/`
 - **Live operational data** → Tier 2 (Supabase)

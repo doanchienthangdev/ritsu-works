@@ -94,7 +94,7 @@ Always ask founder which one.
 |---|---|---|
 | **A** Autonomous | edit `wiki/`, `.archives/`, read any data, web search, draft PR | just do, log to `ops.agent_runs` |
 | **B** Notify-after | non-Tier-1 PR, FAQ reply, transactional email, pre-approved migration on ritsu-ops, `pnpm db:push` | do then ping Telegram |
-| **C** Approve-before | PR touching `00-charter/`/`governance/`/SOPs, merge any PR, send to >1 external recipient, public post, refund <$200, deploy to staging, add MCP server, update pricing | dry-run + Telegram approval + wait |
+| **C** Approve-before | PR touching `00-core/`/`governance/`/SOPs, merge any PR, send to >1 external recipient, public post, refund <$200, deploy to staging, add MCP server, update pricing | dry-run + Telegram approval + wait |
 | **D** Forbidden default | Send email >50, refund $200-2K, suspend user >7d, **anything Product Supabase**, delete data, force-push, refund >$2K, sign legal, edit HITL.md | magic phrase override + 30s confirm + (D-MAX) +1h cooldown + GitHub PR |
 
 Default: **escalate one tier up** when unsure. The cost of asking is small.

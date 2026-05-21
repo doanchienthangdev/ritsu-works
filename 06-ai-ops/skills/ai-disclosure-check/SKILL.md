@@ -2,7 +2,7 @@
 name: ai-disclosure-check
 description: |
   Use to verify an outgoing customer-facing message contains required
-  AI disclosure per `00-charter/transparency.md` and EU AI Act Article
+  AI disclosure per `00-core/transparency.md` and EU AI Act Article
   50. Returns either "compliant" or specific fix recommendations.
 
   Trigger conditions: any skill or agent producing customer-facing
@@ -81,7 +81,7 @@ If `compliant: true`, the agent may proceed to send. If `false`, the agent MUST 
 
 ### Step 1 — Read the disclosure rules
 
-Read `00-charter/transparency.md` and `knowledge/identity-architecture.md` (sub-domain C section) to know the current required patterns. Cache for the session.
+Read `00-core/transparency.md` and `knowledge/identity-architecture.md` (sub-domain C section) to know the current required patterns. Cache for the session.
 
 ### Step 2 — Run the checks
 
@@ -93,7 +93,7 @@ If `message_type` ends in `_first` (email_first, chat_first):
   - `I'm Ritsu Assistant — an AI system`
   - `I'm Ritsu Assistant, an AI system`
   - `Hi! I'm Ritsu Assistant, an AI helper`
-  - other approved variants from `00-charter/brand_voice.md`
+  - other approved variants from `00-core/brand_voice.md`
 - For Vietnamese: must contain phrase matching one of:
   - `Mình là Ritsu Assistant — một hệ thống AI`
   - `Tôi là Ritsu Assistant, một hệ thống trí tuệ nhân tạo`
@@ -108,7 +108,7 @@ For `_subsequent` message types: check skipped (`n/a`).
 
 For `email_first` and `email_subsequent`: body must end with a signature block matching one of:
 
-- English signature template (`00-charter/transparency.md` shows the canonical form)
+- English signature template (`00-core/transparency.md` shows the canonical form)
 - Vietnamese signature template
 
 Specifically, the footer must include:
@@ -315,7 +315,7 @@ recommended_action: fix_then_send
 ## Failure modes
 
 - **Customer's previous message not in context** — Check C (on-request response) skipped. Log warning. Hook (`pre-tool-customer-message`) has its own pattern detection as backup.
-- **Charter not yet provisioned** — return error with pointer to `00-charter/transparency.md` template. Block send until disclosure rules exist.
+- **Charter not yet provisioned** — return error with pointer to `00-core/transparency.md` template. Block send until disclosure rules exist.
 - **Locale unknown** — default to English checks. Log warning to `monthly-learning-review` for adding more locales.
 
 ## Cost estimate

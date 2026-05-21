@@ -79,7 +79,7 @@ This pillar does NOT own:
 
 ## Dependencies
 
-- **Composes from:** `00-charter/product.md` (canonical positioning), `02-sales/modules/pricing-tiers/` (pricing surface for experiments)
+- **Composes from:** `00-core/product.md` (canonical positioning), `02-sales/modules/pricing-tiers/` (pricing surface for experiments)
 - **Composed by:** `03-gtm/funnel-orchestration/` (consumes wedge-discovery output), `05-customer/feedback-and-research/` (feeds back upstream)
 
 ## Critical PG gate

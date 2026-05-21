@@ -2,14 +2,14 @@
 title: 'Hook: pre-edit-tier1'
 description: pre-tool hook
 source_path: .claude/hooks/pre-edit-tier1.md
-source_hash: 5fbcae0c2b8b4c7581ff99a65b1f38cf6eb3c018e2239a4a503b62d277678b53
-generated_at: '2026-05-19T05:20:46.389Z'
-generated_by: docs-engine v1.1.0
+source_hash: 1e7882ee7e36600403416cc00b81bd86a5e5567860ef14fc5cb37118d2156d3d
+generated_at: '2026-05-21T03:49:53.279Z'
+generated_by: docs-engine v1.2.0
 category: hook
 language: en
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
 
 # Hook: pre-edit-tier1
@@ -25,7 +25,7 @@ Inspects the file path for any Edit/Write/MultiEdit operation. If the path match
 The protected patterns map to HITL tiers as follows:
 
 ```
-00-charter/**                    → Tier C  (escalate, require PR)
+00-core/**                    → Tier C  (escalate, require PR)
 governance/ROLES.md              → Tier C  (escalate, require PR)
 governance/HITL.md               → D-MAX   (block unless override+ceremony)
 governance/SECRETS.md            → D-MAX   (block unless override+ceremony)
@@ -100,8 +100,8 @@ This hook never mutates payloads. Always allow/block/escalate.
 | 1 | Edit `wiki/competitors/anki.md` | allow |
 | 2 | Edit `wiki/_private-note.md` | allow |
 | 3 | Edit `.archives/drafts/foo.md` | allow |
-| 4 | Edit `00-charter/product.md` on a feature branch | escalate |
-| 5 | Edit `00-charter/product.md` on `main` | block |
+| 4 | Edit `00-core/product.md` on a feature branch | escalate |
+| 5 | Edit `00-core/product.md` on `main` | block |
 | 6 | Edit `governance/HITL.md` with no override | block |
 | 7 | Edit `governance/HITL.md` with active override for this session | allow |
 | 8 | Edit `governance/SECRETS.md` (D-MAX) | block |
@@ -137,7 +137,7 @@ const PATTERNS = [
   { match: /^governance\/SECRETS\.md$/, tier: 'D-MAX' },
   { match: /^knowledge\/schemas\/.+\.sql$/, tier: 'D-Std' },
   { match: /^\.claude\/hooks\/.+/, tier: 'D-Std' },
-  { match: /^00-charter\//, tier: 'C' },
+  { match: /^00-core\//, tier: 'C' },
   { match: /^governance\/ROLES\.md$/, tier: 'C' },
   { match: /^knowledge\/manifest\.yaml$/, tier: 'C' },
   { match: /^.+\/SOP-[A-Z]+-\d+\//, tier: 'C' },

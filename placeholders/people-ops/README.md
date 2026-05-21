@@ -19,4 +19,4 @@ Until trigger: defer. AI workforce + founder + cofounder is the experiment.
 1. Founder + cofounder approval Tier D-Std (hiring is high-magnitude, semi-reversible)
 2. PR opens with sub-pillar tree
 3. Move from `placeholders/` to top-level
-4. **Cultural decision:** does this hire change the "1-person AI Native Company" thesis? Document explicitly in `00-charter/charter.md` if so. If not, this is auxiliary hire (contractor, advisor); thesis intact.
+4. **Cultural decision:** does this hire change the "1-person AI Native Company" thesis? Document explicitly in `00-core/charter.md` if so. If not, this is auxiliary hire (contractor, advisor); thesis intact.

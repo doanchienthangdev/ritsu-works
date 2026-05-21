@@ -79,7 +79,7 @@
 | Request signal | Tier | Target | Phase |
 |---|---|---|---|
 | "Design new landing page" | 3 → C | Phase 3+: `@cdo`; Phase 1-2: founder + skills | 1-2 (founder), 3 (CDO) |
-| "Update brand voice" | 2 → C | Phase 3+: `@cdo` + `@cmo`; Phase 1-2: founder direct via PR to `00-charter/brand_voice.md` | 1-2 (founder), 3 (CDO) |
+| "Update brand voice" | 2 → C | Phase 3+: `@cdo` + `@cmo`; Phase 1-2: founder direct via PR to `00-core/brand_voice.md` | 1-2 (founder), 3 (CDO) |
 
 ### Finance
 

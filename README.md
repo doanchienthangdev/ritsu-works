@@ -6,16 +6,16 @@ This repo is **not** the Ritsu product. The product (the AI tutor users talk to)
 
 > **If you are an AI agent:** start with [`CLAUDE.md`](./CLAUDE.md) and then [`knowledge/manifest.yaml`](./knowledge/manifest.yaml). Do not search anywhere else first.
 >
-> **If you are a human:** start with [`00-charter/product.md`](./00-charter/product.md) to align on what Ritsu is, then read `CLAUDE.md` to understand how the workforce operates.
+> **If you are a human:** start with [`00-core/product.md`](./00-core/product.md) to align on what Ritsu is, then read `CLAUDE.md` to understand how the workforce operates.
 
 ## Status
 
-**v0.2 — May 2026 (post pillar architecture v1.0.1 restructure).** Foundation in place: agent context (`CLAUDE.md`), knowledge contract (`knowledge/manifest.yaml`), product charter (`00-charter/product.md`), governance (`governance/HITL.md`, `governance/ROLES.md`), AI-Ops infrastructure (`06-ai-ops/skills/`, `06-ai-ops/sops/`).
+**v0.2 — May 2026 (post pillar architecture v1.0.1 restructure).** Foundation in place: agent context (`CLAUDE.md`), knowledge contract (`knowledge/manifest.yaml`), product charter (`00-core/product.md`), governance (`governance/HITL.md`, `governance/ROLES.md`), AI-Ops infrastructure (`06-ai-ops/skills/`, `06-ai-ops/sops/`).
 
 Pillar structure (11 pillars, 6 DEEP at this stage, 3 LITE, 2 skeleton):
 
 ```
-00-charter/      — vision, brand voice, founder profile           [maintenance]
+00-core/      — vision, brand voice, founder profile           [maintenance]
 01-marketing/    — brand, content engine, ICP                      [LITE]
 02-sales/        — pricing, conversion funnel, free→paid           [LITE]
 03-gtm/          — STAGE pillar: customer funnel to PMF (100 paying who love) [DEEP]

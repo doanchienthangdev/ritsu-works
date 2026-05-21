@@ -2,18 +2,18 @@
 title: Agent Roles & Permissions
 description: ''
 source_path: governance/ROLES.md
-source_hash: ac310ca9712bfe48aa9d39b815478ac9d0bbae54bbec5ee40c95d39f9d8ee396
-generated_at: '2026-05-19T05:20:46.414Z'
-generated_by: docs-engine v1.1.0
+source_hash: e3b8ca66ae781828923ce42e22f03e8e80bd948ab2c3381bdf647db163869cf4
+generated_at: '2026-05-21T03:49:53.309Z'
+generated_by: docs-engine v1.2.0
 category: governance
 language: vi
 translated: true
-translated_source_hash: ac310ca9712bfe48aa9d39b815478ac9d0bbae54bbec5ee40c95d39f9d8ee396
 translated_at: '2026-05-19T15:00:00Z'
-translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
+translated_by: Claude Opus 4.7 (Claude Code Desktop, session translation)
+translated_source_hash: e3b8ca66ae781828923ce42e22f03e8e80bd948ab2c3381bdf647db163869cf4
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
 # Vai trò agent & Quyền hạn
 
@@ -43,7 +43,7 @@ Mỗi vai trò có các thuộc tính sau:
 ```yaml
 role: <slug>
 purpose: <one-sentence description>
-home_pillar: <00-charter | 01-growth | 02-product | 03-delivery | 04-backoffice | 05-ai-ops | 06-trust-safety | cross-cutting>
+home_pillar: <00-core | 01-growth | 02-product | 03-delivery | 04-backoffice | 05-ai-ops | 06-trust-safety | cross-cutting>
 permissions:
   tier1_paths:           # which paths in this repo it can edit (PR-only)
   tier2_schemas_read:    # which Supabase schemas it can SELECT
@@ -106,7 +106,7 @@ permissions:
   tier1_paths:
     - "wiki/**"        # can write reference notes
     - ".archives/**"   # scratch space
-    # NO write to 00-charter, governance, pillar SOPs, skills, .claude
+    # NO write to 00-core, governance, pillar SOPs, skills, .claude
   tier2_schemas_read:
     - ops.*            # full read of ops state
     - metrics.*        # full read of mirrored product metrics
@@ -152,7 +152,7 @@ notify_on_completion: true
 escalation_role: founder
 ```
 
-> **Tại sao GPS không có quyền write trực tiếp tới hầu hết mọi thứ:** nó là router, không phải worker. Nếu chính GPS bắt đầu chỉnh 00-charter hoặc chạy migrations, ranh giới vai trò bị mờ. GPS đề xuất; chuyên gia thực thi (hoặc PR).
+> **Tại sao GPS không có quyền write trực tiếp tới hầu hết mọi thứ:** nó là router, không phải worker. Nếu chính GPS bắt đầu chỉnh 00-core hoặc chạy migrations, ranh giới vai trò bị mờ. GPS đề xuất; chuyên gia thực thi (hoặc PR).
 
 ### `growth-orchestrator` — Lead Marketing & Sales
 
@@ -858,3 +858,4 @@ File này là **hợp đồng chính sách**. Các artifact runtime phải tuân
 ---
 
 *Một vai trò là một lời hứa. Nó nói "đây chính xác là những gì tôi được phép làm — và không gì khác." Không có lời hứa đó được viết xuống, mọi agent đều là một vị thần, và các vị thần là những nhân viên tồi tệ.*
+

@@ -2,14 +2,14 @@
 title: "Chương 4 — Bài #1: Single Source of Truth"
 description: "Chương 4 — Bài #1: Single Source of Truth"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/04-bai-1-single-source-of-truth.md
-source_hash: e5bb86139c191ea3c09d02d7b7c6e349c1c423f9501bf608e6800f1df158d74e
-generated_at: '2026-05-19T17:13:00.261Z'
+source_hash: 4d88981db3b051a21cfe878d87745e4cc1dd550ada25e65f46e999ea6d805190
+generated_at: '2026-05-21T03:51:28.549Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: e5bb86139c191ea3c09d02d7b7c6e349c1c423f9501bf608e6800f1df158d74e
-translated_at: '2026-05-19T17:13:00.261Z'
+translated_source_hash: 4d88981db3b051a21cfe878d87745e4cc1dd550ada25e65f46e999ea6d805190
+translated_at: '2026-05-21T03:51:28.549Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 4
 ---
@@ -41,7 +41,7 @@ Ritsu giải Bài #1 bằng **4 tier rõ ràng cho 4 loại knowledge khác nhau
 │   What is true about the world & the org                        │
 │   Source: ritsu-works/ on GitHub                                │
 │   Examples:                                                     │
-│     • 00-charter/product.md, brand_voice.md, transparency.md    │
+│     • 00-core/product.md, brand_voice.md, transparency.md    │
 │     • governance/HITL.md, ROLES.md, SECRETS.md, IDENTITY.md     │
 │     • knowledge/*-architecture.md                               │
 │     • 05-ai-ops/skills/<skill>/SKILL.md                         │
@@ -174,7 +174,7 @@ Khi note trong `wiki/` đủ chín thành canonical knowledge, promotion là **e
    - Update knowledge/manifest.yaml if it's a new pillar
    - Add cross-references where needed
    ↓
-3. PR review (Tier C if 00-charter or governance change; Tier B otherwise)
+3. PR review (Tier C if 00-core or governance change; Tier B otherwise)
    ↓
 4. Merge → file is now canonical
 ```
@@ -192,7 +192,7 @@ Một component foundational cho Bài #1: `knowledge/manifest.yaml`. Đây là s
 
 tier1:
   charter:
-    location: 00-charter/
+    location: 00-core/
     files:
       - product.md
       - brand_voice.md
@@ -306,7 +306,7 @@ on every edit to Tier 1 files (charter/, governance/, knowledge/, etc.)
 
 | File | Tier | Approval cần |
 |---|---|---|
-| `00-charter/*.md` | C | founder approve |
+| `00-core/*.md` | C | founder approve |
 | `governance/HITL.md` | D-Std | magic phrase + 30s confirm |
 | `governance/SECRETS.md` | D-Std | magic phrase + 30s confirm |
 | `governance/IDENTITY.md` | D-Std | magic phrase + 30s confirm |
@@ -342,6 +342,6 @@ Bài #1 là foundation. Bài #2 (governance) build trên nó. Sang Chương 5.
 ---
 
 **Tham khảo:**
-- Ritsu repo: `knowledge/manifest.yaml`, `00-charter/`, `governance/`, `knowledge/`
+- Ritsu repo: `knowledge/manifest.yaml`, `00-core/`, `governance/`, `knowledge/`
 - Brainstorm note: `_build/notes/problem-1-single-source-of-truth.md` (TODO backfill)
 - Anthropic docs on file-based knowledge: https://docs.claude.com/en/docs/build-with-claude/files

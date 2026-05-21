@@ -2,15 +2,15 @@
 title: 'Command: /docs'
 description: ''
 source_path: .claude/commands/docs.md
-source_hash: 4418830707f33c0f9dd60ff81cdb842b3bee6e4cd13518f4e9218434aac29687
-generated_at: '2026-05-19T15:45:53.661Z'
+source_hash: 4c1eaa52431f2b79dd695a179b12999ae28dbddd75092e2fa658190761e2c12b
+generated_at: '2026-05-21T03:49:53.291Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
 translated_at: '2026-05-19T16:30:00Z'
-translated_by: 'Claude Opus 4.7 (Claude Code Desktop, /docs translate session)'
-translated_source_hash: 4418830707f33c0f9dd60ff81cdb842b3bee6e4cd13518f4e9218434aac29687
+translated_by: Claude Opus 4.7 (Claude Code Desktop, /docs translate session)
+translated_source_hash: 4c1eaa52431f2b79dd695a179b12999ae28dbddd75092e2fa658190761e2c12b
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -150,7 +150,7 @@ Theo verb:
 - 3-way diff trên regen (bước 6) là bắt buộc — không có nó, sửa thủ công của founder sẽ bị ghi đè ngầm vào lần sync sau (kẻ cắn ở Tuần-4 theo lăng kính @cto Phase 2).
 - Redaction secret là fail-loud qua 3 lớp — không bao giờ scrub ngầm.
 - `governance/SECRETS.md` và `runtime/secrets/**` bị LOẠI TRỪ ở lớp 1 (phạm vi walker) — chúng KHÔNG BAO GIỜ vào corpus MDX, bất kể regex có khớp hay không.
-- `00-charter/founder-profile.md` nằm trong danh sách loại trừ của walker (lo ngại PII theo Phase 3).
+- `00-core/founder-profile.md` nằm trong danh sách loại trừ của walker (lo ngại PII theo Phase 3).
 - Tiếng Việt là ngôn ngữ nội dung chính; Fumadocs `defaultLanguage: 'vi'` + `hideLocale: 'default-locale'`.
 
 ## Xem thêm
@@ -161,3 +161,4 @@ Theo verb:
 - Spec: `wiki/capabilities/docs-engine/spec.md` (sau khi promotion Phase 8)
 - Sibling: `.claude/commands/wiki.md` (sibling gần nhất; nguồn pattern)
 - Cross-tier invariants: `docs-page-has-source` (L1), `docs-source-has-page` (L2)
+

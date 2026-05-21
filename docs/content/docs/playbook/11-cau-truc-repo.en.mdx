@@ -2,14 +2,14 @@
 title: "Chương 11 — Cấu trúc repo của một AI-Native Company"
 description: "Chương 11 — Cấu trúc repo của một AI-Native Company"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/11-cau-truc-repo.md
-source_hash: 696cd780037af4da01b4502b10f7c449a9c2003033921b2b7b4a9d80d8b22c9f
-generated_at: '2026-05-19T17:13:00.271Z'
+source_hash: ccd48608e1c1117974c770ee8a2005080d053e0b4cc073b95804793b683ef603
+generated_at: '2026-05-21T03:51:28.559Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: 696cd780037af4da01b4502b10f7c449a9c2003033921b2b7b4a9d80d8b22c9f
-translated_at: '2026-05-19T17:13:00.271Z'
+translated_source_hash: ccd48608e1c1117974c770ee8a2005080d053e0b4cc073b95804793b683ef603
+translated_at: '2026-05-21T03:51:28.559Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 11
 ---
@@ -36,7 +36,7 @@ ritsu-works/
 ├── CLAUDE.md                    # ~1.16K tokens, lean entry point
 ├── .gitignore
 │
-├── 00-charter/                  # Tier 1 — declarative knowledge
+├── 00-core/                  # Tier 1 — declarative knowledge
 │   ├── product.md
 │   ├── brand_voice.md           # bilingual EN+VI
 │   └── transparency.md          # source for ritsu.ai/transparency
@@ -172,11 +172,11 @@ __pycache__/
 .DS_Store
 ```
 
-## 11.4 `00-charter/`
+## 11.4 `00-core/`
 
 Why `00-` prefix: **alphabetically first**. Charter is most fundamental; emphasize via ordering.
 
-### `00-charter/product.md`
+### `00-core/product.md`
 
 What Ritsu is. Source of truth for product description used by:
 - All customer-facing skills
@@ -185,7 +185,7 @@ What Ritsu is. Source of truth for product description used by:
 
 Convention: ~200-300 lines. Cover: target user, value prop, monetization, moats, phases.
 
-### `00-charter/brand_voice.md`
+### `00-core/brand_voice.md`
 
 Bilingual voice guide. Internal vs external. Per Bài #6.
 
@@ -194,7 +194,7 @@ Read by:
 - `ai-disclosure-check` (reads voice for disclosure phrasing)
 - New agent onboarding
 
-### `00-charter/transparency.md`
+### `00-core/transparency.md`
 
 Source for `ritsu.ai/transparency` page. Public-facing. Updates via PR (Tier C).
 
@@ -237,7 +237,7 @@ Architecture decisions + canonical inventory.
 ### `knowledge/manifest.yaml`
 
 Single canonical inventory. Lists:
-- Tier 1 files (what's in 00-charter/, governance/, knowledge/)
+- Tier 1 files (what's in 00-core/, governance/, knowledge/)
 - Tier 2 schemas (Supabase tables, schema files)
 - Tier 3 buckets (storage)
 - Tier 4 namespaces (vector DB)
@@ -398,7 +398,7 @@ Conventions enforced by:
 
 - **66 files / ~7,300 lines** in Ritsu repo after Phase A
 - **Top-level structure:** charter → governance → knowledge → pillars → workspace → _build
-- **`00-charter/`** = most fundamental (alphabetically first)
+- **`00-core/`** = most fundamental (alphabetically first)
 - **`05-ai-ops/`** = operational pillar (more pillars added when needed)
 - **`.claude/`** = Claude Code runtime config (agents + hooks)
 - **Workspace plane** = `raw/` + `wiki/` + `.archives/`

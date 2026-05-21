@@ -127,7 +127,7 @@ The site copy uses these patterns. Marketing output should match.
 - **Friendly, not corporate.** "🎯 You got 4/5 on Neural Networks!" The product has emotional warmth; marketing should too.
 - **No filler adjectives.** "Powerful," "amazing," "revolutionary" — avoid. Show specifics instead.
 
-For full brand voice rules, see `00-charter/brand_voice.md` (TODO).
+For full brand voice rules, see `00-core/brand_voice.md` (TODO).
 
 ---
 

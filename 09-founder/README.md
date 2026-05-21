@@ -95,7 +95,7 @@ This pillar does NOT own:
 
 ## Dependencies
 
-- **Composes from:** `00-charter` (the vision being protected), `06-ai-ops` (HITL infrastructure, Telegram MCP), `10-metrics` (Monday dashboard inputs)
+- **Composes from:** `00-core` (the vision being protected), `06-ai-ops` (HITL infrastructure, Telegram MCP), `10-metrics` (Monday dashboard inputs)
 - **Composed by:** every other pillar (they all escalate via HITL to founder when blocked)
 
 ## Rationale for big pillar

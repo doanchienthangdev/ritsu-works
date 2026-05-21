@@ -18,10 +18,10 @@
 #      NOT SQL — do not look for table DDL there.)
 #   - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
 
-version: 0.7.0
-last_updated: 2026-05-18
+version: 0.8.0
+last_updated: 2026-05-21
 owner: founder
-migration_note: "v0.7.0 (2026-05-18): wiki-sync v4.0 source-grouped layout flip — added migration 00032 (composite UNIQUE on derived entity slugs via partial indexes). Wiki layout changes from entity-type-grouped (wiki/concept/, wiki/observation/, …) to source-grouped (wiki/<source-slug>/{source.md, concepts/, observations/, decisions/, ideas/, chapters/}/). Skill input contract: input = wiki/<source-slug>/ is now a coherent package. wiki/_index/ reverse-lookup link-lists added Sprint 2. See wiki/capabilities/wiki-sync-from-refs/spec.md (v4.0 after Phase 8 promotion) + ops.decisions[e558913a-fb5d-444a-ab0b-305f38ce80a0] (slug wiki-sync-v4-source-grouped-layout). Prior: v0.6.0 (2026-05-18): wiki-sync v3.0 distill+extract foundation — added ops.knowledge_extractions table (citation spine) per migration 00031. Reframes wiki-sync from verbatim-projection (v1/v2) to distill+extract (v3.0). See wiki/capabilities/wiki-sync-from-refs/spec.md §0 + ops.decisions[562b2e4e]. Prior: v0.5.0 (2026-05-15): Workforce persona layer v1.0 — added 06-ai-ops/workforce-personas sub-pillar and cross_cutting.workforce_personas registry pointer. Phase 1 personas (CEO, CTO, CGO, CPO) bind to existing technical roles per ADR-003. Schema: knowledge/schemas/workforce-personas.schema.json. Prior: v0.4.0 (2026-05-15): dropped NN- numeric prefix from sub-pillar dirs. v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage)."
+migration_note: "v0.8.0 (2026-05-21): Pillar `charter` renamed to `core` (more general — contains ALL ritsu-works core docs). Folder 00-charter/ → 00-core/ via git mv (preserves file history). pillar_code CHARTER → CORE. composes_from references updated in marketing/product/founder. SOP namespace unchanged (no SOPs under this pillar). docs-engine `charter-adapter` retains name; walks 00-core/*.md transparently. Walker exclude list updated (00-charter/founder-profile.md → 00-core/founder-profile.md). 52 file refs updated batch-sed. Prior: v0.7.0 (2026-05-18): wiki-sync v4.0 source-grouped layout flip — added migration 00032 (composite UNIQUE on derived entity slugs via partial indexes). Wiki layout changes from entity-type-grouped (wiki/concept/, wiki/observation/, …) to source-grouped (wiki/<source-slug>/{source.md, concepts/, observations/, decisions/, ideas/, chapters/}/). Skill input contract: input = wiki/<source-slug>/ is now a coherent package. wiki/_index/ reverse-lookup link-lists added Sprint 2. See wiki/capabilities/wiki-sync-from-refs/spec.md (v4.0 after Phase 8 promotion) + ops.decisions[e558913a-fb5d-444a-ab0b-305f38ce80a0] (slug wiki-sync-v4-source-grouped-layout). Prior: v0.6.0 (2026-05-18): wiki-sync v3.0 distill+extract foundation — added ops.knowledge_extractions table (citation spine) per migration 00031. Reframes wiki-sync from verbatim-projection (v1/v2) to distill+extract (v3.0). See wiki/capabilities/wiki-sync-from-refs/spec.md §0 + ops.decisions[562b2e4e]. Prior: v0.5.0 (2026-05-15): Workforce persona layer v1.0 — added 06-ai-ops/workforce-personas sub-pillar and cross_cutting.workforce_personas registry pointer. Phase 1 personas (CEO, CTO, CGO, CPO) bind to existing technical roles per ADR-003. Schema: knowledge/schemas/workforce-personas.schema.json. Prior: v0.4.0 (2026-05-15): dropped NN- numeric prefix from sub-pillar dirs. v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage)."
 
 # ---------------------------------------------------------------------------
 # TIER 1 — Canonical (this repo)
@@ -34,14 +34,21 @@ tier1_canonical:
   # Pillar architecture v1.0.1: two-layer model (evergreen functional + stage composition)
   # Total: 11 pillars (10 evergreen + 1 stage), 6 DEEP at this stage, 3 LITE, 2 skeleton
   pillars:
-    charter:
-      path: 00-charter/
+    core:
+      path: 00-core/
       layer: evergreen
       stage_status: maintenance
-      pillar_code: CHARTER
-      contents: [vision, mission, values, product, glossary, brand_voice]
+      pillar_code: CORE
+      contents: [vision, mission, values, product, glossary, brand_voice, founder_profile, transparency]
       change_policy: pr_human_review
       status: alive
+      note: |
+        Renamed 2026-05-21 from "charter" → "core" (more general — contains
+        ALL ritsu-works core docs, not just the charter spec). Folder
+        renamed 00-charter/ → 00-core/. The charter spec (charter.md) lives
+        inside this pillar as one of multiple core docs. SOP namespace
+        unchanged (no SOPs under this pillar yet). docs-engine charter-
+        adapter retained name for now (walks 00-core/*.md unchanged).
 
     marketing:
       path: 01-marketing/
@@ -50,7 +57,7 @@ tier1_canonical:
       pillar_code: MARKETING
       sops_namespace: SOP-MARKETING-NNN
       sub_pillars: [icp, brand-voice-kit, content-templates]
-      composes_from: [charter]
+      composes_from: [core]
       note: |
         Brand, positioning, content engine, ICP definition. Modules feed GTM.
         Defer SEO-deep, brand campaigns, partnerships until post-PMF.
@@ -99,7 +106,7 @@ tier1_canonical:
         - feedback-pipeline
         - pricing-experiments
         - ab-test-discipline
-      composes_from: [charter, sales]
+      composes_from: [core, sales]
       critical_pg_gate: "SOP-PRODUCT-002 mandates N=10 strangers observed using product before any major feature build"
 
     customer:
@@ -185,7 +192,7 @@ tier1_canonical:
         - weekly-review
         - health
         - learning
-      composes_from: [charter, ai-ops, metrics]
+      composes_from: [core, ai-ops, metrics]
       note: |
         Big pillar covering founder operations. Renamed from 09-founder-cognition
         (cognition is now sub-pillar `cognition`). The founder is the bottleneck;
@@ -374,7 +381,7 @@ where_things_go:
   external_source_material: raw/
   notes_about_external_things: wiki/
   agent_drafts_and_intermediate: .archives/
-  who_ritsu_is: 00-charter/
+  who_ritsu_is: 00-core/
   how_ritsu_operates: 0X-pillar/SOP-*/
   what_ai_can_do: skills/
   current_state: tier2_operational

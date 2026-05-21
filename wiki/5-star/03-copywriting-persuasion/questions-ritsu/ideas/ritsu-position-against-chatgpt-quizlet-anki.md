@@ -19,7 +19,7 @@ The Ritsu workbook proposes that Ritsu's competitive positioning should be tailo
 - **Versus Quizlet** — "Better than flashcards. Spaced repetition actually works." (Concedes Quizlet's flashcard mindshare, repositions Ritsu as a category up by emphasising scientific method.)
 - **Versus Anki** — "Spaced repetition, but without the setup headache." (Concedes Anki's algorithmic credibility; attacks Anki's notorious onboarding friction.)
 
-This is a speculative pattern, not a tested framework — none of the three lines have been validated. The underlying idea worth preserving: competitor-specific copy is more persuasive than generic "Ritsu is the AI tutor that does it all," because the prospect has already weighed at least one alternative and needs to be told why Ritsu beats that specific one. Charter `00-charter/product.md` already names ChatGPT, Anki, Quizlet, Kahoot, and Notion as the head-to-head reference set; the workbook's contribution is the per-target attack angle.
+This is a speculative pattern, not a tested framework — none of the three lines have been validated. The underlying idea worth preserving: competitor-specific copy is more persuasive than generic "Ritsu is the AI tutor that does it all," because the prospect has already weighed at least one alternative and needs to be told why Ritsu beats that specific one. Charter `00-core/product.md` already names ChatGPT, Anki, Quizlet, Kahoot, and Notion as the head-to-head reference set; the workbook's contribution is the per-target attack angle.
 
 ## Sources cited
 

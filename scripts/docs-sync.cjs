@@ -66,7 +66,7 @@ const LANG_SUFFIX = (lang) => (lang === DEFAULT_LANG ? "" : `.${lang}`);
 // === Walker exclude list (Layer 1 secret redaction) ===
 const WALKER_EXCLUDE = [
   "governance/SECRETS.md",
-  "00-charter/founder-profile.md",
+  "00-core/founder-profile.md",
   "runtime/secrets/",
   "wiki/",
   ".archives/",
@@ -558,7 +558,7 @@ function listSources(area) {
     flatGlob(path.join(REPO_ROOT, ".claude", "commands"), /\.md$/, adapterCommand);
   }
   if (area === "charter" || area === "all") {
-    flatGlob(path.join(REPO_ROOT, "00-charter"), /\.md$/, adapterCharter, {
+    flatGlob(path.join(REPO_ROOT, "00-core"), /\.md$/, adapterCharter, {
       excludeBasenames: ["founder-profile.md"], // PII
     });
   }

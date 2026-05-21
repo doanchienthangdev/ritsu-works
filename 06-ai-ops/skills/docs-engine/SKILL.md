@@ -52,7 +52,7 @@ description: |
 | agent | `adapters/agent-adapter` | `.claude/agents/*.md` (excl. README) |
 | hook | `adapters/hook-adapter` | `.claude/hooks/*.md` (excl. README, SPEC) |
 | command | `adapters/command-adapter` | `.claude/commands/*.md` |
-| charter | `adapters/charter-adapter` | `00-charter/*.md` (excl. `founder-profile.md`) |
+| charter | `adapters/charter-adapter` | `00-core/*.md` (excl. `founder-profile.md`) |
 | governance | `adapters/governance-adapter` | `governance/*.md` (excl. `SECRETS.md`) |
 | pillar-readme | `adapters/pillar-readme-adapter` | `0[0-9]-*/{README,CLAUDE}.md` + sub-pillars |
 | sop-flow | `adapters/sop-flow-adapter` | `0[0-9]-*/sops/*/flow.yaml` + adjacent README |

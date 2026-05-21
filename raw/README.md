@@ -58,7 +58,7 @@ Use `inbox/` as the default landing zone, then move files into the right subfold
 
 ## What does NOT go here
 
-- Anything that should be PR-reviewed → Tier 1 (`00-charter/`, pillars, skills)
+- Anything that should be PR-reviewed → Tier 1 (`00-core/`, pillars, skills)
 - Anything that should be queried by agents at runtime → Tier 2 (Supabase) via proper schema
 - Anything that should persist forever and be searchable → Tier 3 (Storage) with index in manifest
 - Drafts or intermediate work → `.archives/`

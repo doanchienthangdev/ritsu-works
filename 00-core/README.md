@@ -1,25 +1,13 @@
----
-title: 00-charter — Charter Pillar
-description: ''
-source_path: 00-charter/README.md
-source_hash: 104512cc9ec6238528cca70643a56d46ec1501e358864f47c633818a6748830b
-generated_at: '2026-05-19T05:20:46.415Z'
-generated_by: docs-engine v1.1.0
-category: pillar
-language: en
----
+# 00-core — Core Pillar
 
-{/* generated-by: docs-engine v1.1.0 */}
-
-# 00-charter — Charter Pillar
-
-> Foundation: vision, brand voice, product positioning, founder profile, transparency stance. The "who is Ritsu" answer that every other pillar refers back to.
+> Foundation: vision, brand voice, product positioning, founder profile, transparency stance, charter spec. The "who is Ritsu" + ALL cốt lõi answer that every other pillar refers back to.
 
 **Layer:** Evergreen
 **Stage status:** Maintenance (alive)
-**Pillar code:** CHARTER
+**Pillar code:** CORE
 **Owner role(s):** founder, cofounder, gps
 **HITL baseline:** C (any edit is PR-only per HITL.md)
+**Renamed:** 2026-05-21 — was `00-charter` → `00-core` (more general per founder request; contains ALL ritsu-works core docs, charter.md is now one of multiple core docs). See `knowledge/manifest.yaml` migration_note v0.8.0.
 
 ---
 
@@ -61,9 +49,8 @@ No agents are home in this pillar. `gps` and `founder` are the only roles that e
 
 ## HITL baseline
 
-Every edit to any file in `00-charter/` is Tier C. Any "rewrite from scratch" of charter docs is Tier D-Std. Cofounder + founder both qualify as approvers per `governance/ROLES.md` v1.0.1.
+Every edit to any file in `00-core/` is Tier C. Any "rewrite from scratch" of charter docs is Tier D-Std. Cofounder + founder both qualify as approvers per `governance/ROLES.md` v1.0.1.
 
 ## Entry conditions
 
 Not applicable (always active from day 1).
-

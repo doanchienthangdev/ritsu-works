@@ -20,7 +20,7 @@ Inspects the file path for any Edit/Write/MultiEdit operation. If the path match
 The protected patterns map to HITL tiers as follows:
 
 ```
-00-charter/**                    → Tier C  (escalate, require PR)
+00-core/**                    → Tier C  (escalate, require PR)
 governance/ROLES.md              → Tier C  (escalate, require PR)
 governance/HITL.md               → D-MAX   (block unless override+ceremony)
 governance/SECRETS.md            → D-MAX   (block unless override+ceremony)
@@ -95,8 +95,8 @@ This hook never mutates payloads. Always allow/block/escalate.
 | 1 | Edit `wiki/competitors/anki.md` | allow |
 | 2 | Edit `wiki/_private-note.md` | allow |
 | 3 | Edit `.archives/drafts/foo.md` | allow |
-| 4 | Edit `00-charter/product.md` on a feature branch | escalate |
-| 5 | Edit `00-charter/product.md` on `main` | block |
+| 4 | Edit `00-core/product.md` on a feature branch | escalate |
+| 5 | Edit `00-core/product.md` on `main` | block |
 | 6 | Edit `governance/HITL.md` with no override | block |
 | 7 | Edit `governance/HITL.md` with active override for this session | allow |
 | 8 | Edit `governance/SECRETS.md` (D-MAX) | block |
@@ -132,7 +132,7 @@ const PATTERNS = [
   { match: /^governance\/SECRETS\.md$/, tier: 'D-MAX' },
   { match: /^knowledge\/schemas\/.+\.sql$/, tier: 'D-Std' },
   { match: /^\.claude\/hooks\/.+/, tier: 'D-Std' },
-  { match: /^00-charter\//, tier: 'C' },
+  { match: /^00-core\//, tier: 'C' },
   { match: /^governance\/ROLES\.md$/, tier: 'C' },
   { match: /^knowledge\/manifest\.yaml$/, tier: 'C' },
   { match: /^.+\/SOP-[A-Z]+-\d+\//, tier: 'C' },

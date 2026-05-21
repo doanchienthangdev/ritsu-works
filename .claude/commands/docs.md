@@ -133,7 +133,7 @@ Per verb:
 - The 3-way diff on regen (step 6) is mandatory — without it, founder hand-edits get silently overwritten on next sync (Week-4 biter per @cto Phase 2 lens).
 - Secret redaction is fail-loud across 3 layers — never scrub silently.
 - `governance/SECRETS.md` and `runtime/secrets/**` are EXCLUDED at layer 1 (walker scope) — they NEVER enter the MDX corpus, regardless of regex matches.
-- `00-charter/founder-profile.md` is in the walker exclude list (PII concern per Phase 3).
+- `00-core/founder-profile.md` is in the walker exclude list (PII concern per Phase 3).
 - Vietnamese as primary content language; Fumadocs `defaultLanguage: 'vi'` + `hideLocale: 'default-locale'`.
 
 ## See also

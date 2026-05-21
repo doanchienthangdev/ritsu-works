@@ -15,7 +15,7 @@ CREATE TABLE ops.capability_runs (
   -- Capability identification
   capability_id   text NOT NULL,                -- slug from problem.md
   capability_name text NOT NULL,
-  pillar_owner    text NOT NULL,                -- 00-charter | 01-growth | ...
+  pillar_owner    text NOT NULL,                -- 00-core | 01-growth | ...
   
   -- State machine (Bài #13 convention)
   state           text NOT NULL DEFAULT 'proposed',

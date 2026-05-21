@@ -160,7 +160,7 @@ describe("makeDriftFixProposerHandler", () => {
     it("blocks fixes targeting governance/ paths and marks wont_fix", async () => {
       const rows: MockRow[] = [
         { id: "r1", invariant_id: "any", proposed_fix_strategy: "regen_bundle", target_path: "governance/HITL.md" },
-        { id: "r2", invariant_id: "any", proposed_fix_strategy: "regen_bundle", target_path: "00-charter/product.md" },
+        { id: "r2", invariant_id: "any", proposed_fix_strategy: "regen_bundle", target_path: "00-core/product.md" },
         { id: "r3", invariant_id: "any", proposed_fix_strategy: "regen_bundle", target_path: "knowledge/manifest.yaml" },
         { id: "r4", invariant_id: "any", proposed_fix_strategy: "regen_bundle", target_path: ".claude/hooks/pre-bash.md" },
       ];
