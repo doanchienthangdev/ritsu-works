@@ -1,13 +1,20 @@
 ---
-name: eval-evo/propose-improvement
+title: 'Skill: eval-evo/propose-improvement'
 description: |
   Generates an improvement diff for an entity based on current score + sub-scores
   + memory context + corrections. Output: unified diff. Constraints: must touch
   only paths in playbook.allowed_paths_for_proposer. Reverse-Goodhart prompt
   discipline. Invoked by orchestrator each iter.
-trigger: invoked-by-orchestrator-only
-budget_cap_task_kind: eval-evo-iteration  # $0.50 (shared with install + drift + post-judge)
+source_path: 06-ai-ops/skills/eval-evo/propose-improvement/SKILL.md
+source_hash: 9b4db156fa9b54c5f342889314f1fbd9c270dc53dc8eb46b35a7ba2df4b4ca5c
+generated_at: '2026-05-21T20:44:59.071Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
 ---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
 
 # Skill: eval-evo/propose-improvement
 
@@ -143,3 +150,4 @@ This skill is type-agnostic. The PROMPT adapts via:
 - `<entity_content>` is the entity file body — works for any text file type
 
 No per-type skill needed for proposer (unlike scoring which is per-type).
+

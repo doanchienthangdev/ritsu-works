@@ -1,23 +1,21 @@
 ---
-name: eval-evo/orchestrator
+title: 'Skill: eval-evo/orchestrator'
 description: |
   Runs the /evolve iteration loop on a single entity. Loads context (entity
   + last 3 run_summaries + relevant corrections), invokes per-type judge,
   invokes proposer, applies diff via git stash isolation, re-scores, keeps
   or reverts per Karpathy K4, repeats until --loop or --stop met. Returns
   final state for the command to persist. Invoked by .claude/commands/evolve.md.
-trigger: invoked-by-command-only
-judge_persona: per-type (see playbooks/<type>.md)
-proposer: eval-evo-orchestrator (this skill IS the proposer dispatcher)
-budget_caps:
-  per_task_kind:
-    eval-evo-iteration: 0.50
-    eval-evo-evaluation: 0.10
-    eval-evo-outside-voice: 0.30
-  per_run_hard_cap: 2.50
-spec: wiki/capabilities/evolve/spec.md
-sop: 06-ai-ops/sops/SOP-AIOPS-004-evolve/flow.yaml
+source_path: 06-ai-ops/skills/eval-evo/orchestrator/SKILL.md
+source_hash: 5577d74aaf06d309a942bce7727b5c56406768354f145c9a2d6fbb58e65818cb
+generated_at: '2026-05-21T20:44:59.069Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
 ---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
 
 # Skill: eval-evo/orchestrator
 
@@ -70,7 +68,7 @@ sop: 06-ai-ops/sops/SOP-AIOPS-004-evolve/flow.yaml
 1. **Episodic recall** — invoke `episodic-recall` skill with
    `agent_slug='evolve'` + `recall_filter.entity_slug=<entity_name>`
    + `recall_max_runs=3`. Append summaries to context.
-2. **Corrections** — query `ops.corrections WHERE entity_slug=<entity_name>
+2. **Corrections** — query `ops.corrections WHERE entity_slug=\<entity_name>
    AND ts > NOW() - INTERVAL '90 days' ORDER BY ts DESC LIMIT 10`.
    Append correction_note + correction_kind to context.
 3. **Entity content** — Read the entity file (or, for SOPs, the
@@ -188,7 +186,7 @@ Output JSON conforms to the contract above. Command handles Tier B/C+ post-loop
 | `PostApplyParseError` | post-apply file has parse error | Auto-revert, skip iter |
 | `PostIterDriftError` | pnpm check failed after apply | Auto-revert via stash pop, continue |
 | `BudgetCapError` | per-task-kind cap hit mid-iter | Exit loop with 'budget_truncated' |
-| `RubricBiasGateError` | playbook Spearman correlation <0.6 (pre-flight) | ABORT before loop start |
+| `RubricBiasGateError` | playbook Spearman correlation \<0.6 (pre-flight) | ABORT before loop start |
 
 Catch-all `rescue Exception` is BANNED.
 
@@ -209,7 +207,7 @@ Total budget per iter: ~500 tokens. Real cost: $0.02/iter at Sonnet input rates.
 
 BEFORE the first iter, call `scripts/eval-evo/playbook-validate.cjs --type=<type>`
 which reads `_HOLDOUT.yaml` and computes Spearman rank correlation between
-founder ratings and rubric scores on hold-out entities. If correlation <0.6,
+founder ratings and rubric scores on hold-out entities. If correlation \<0.6,
 raise `RubricBiasGateError` and refuse to run.
 
 This is the v1.0 hold-out gate. If it fails, /evolve refuses to invoke until
@@ -234,3 +232,4 @@ the playbook is revised. Built-in safety against systematic bias.
   (cost). v1.1 evaluates.
 - Cross-entity pattern transfer NOT in v1.0 — each /evolve invocation is
   scoped to the named entity only.
+

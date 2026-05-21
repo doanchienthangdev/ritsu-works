@@ -1,0 +1,61 @@
+---
+title: 'Skill: eval-evo/score-command'
+description: |
+  Scores a command entity (.claude/commands/<name>.md) on the 10-criterion
+  rubric in playbooks/command.md. Invokes @ceo persona as judge. Returns
+  composite + sub_scores. See score-skill/SKILL.md for canonical template;
+  this skill differs only in playbook + judge persona.
+source_path: 06-ai-ops/skills/eval-evo/score-command/SKILL.md
+source_hash: 6cfa12ee0924e08adda002ed8e7bfb1c57a860566cdb92a7cc07dbb7477aaef9
+generated_at: '2026-05-21T20:44:59.072Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+
+# Skill: eval-evo/score-command
+
+Scores a single command entity. Same loop logic as `score-skill/SKILL.md`;
+this file documents only the per-type differences.
+
+## Type-specific bindings
+
+| Binding | Value |
+|---|---|
+| Entity path pattern | `.claude/commands/<name>.md` |
+| Playbook | `06-ai-ops/skills/eval-evo/playbooks/command.md` |
+| Judge persona | `@ceo` (strategic; commands are founder UX) |
+| Cases dir | `06-ai-ops/skills/eval-evo/cases/command/<name>/` |
+| Allowed paths for proposer | `.claude/commands/<name>.md` (single file) |
+
+## Contract
+
+Same as `score-skill/SKILL.md` §Contract. Only `entity_path`, `playbook_path`,
+`cases_dir` values differ per the bindings above.
+
+## Process
+
+Same as `score-skill/SKILL.md` §Process. The differences:
+- Judge prompt loads `playbooks/command.md` rubric (10 sub-scores focused on
+  commands: invocation clarity, subcommand discoverability, STOP discipline,
+  persistence pattern, HITL tier classification, recovery/resume path, etc.)
+- Judge persona dispatched as `@ceo` (strategic founder-y voice).
+
+## Cost
+
+~$0.10 per invocation. 2 invocations/iter × N iters per /evolve run.
+
+## v1.0 caveats
+
+- Single-judge mode (no 3-judge median).
+- Golden cases run as part of judge prompt (text-level pass/fail).
+- @ceo resolution: v1.0 routes to `general-purpose` subagent with @ceo
+  system prompt. v1.1 may use native subagent_type=ceo.
+
+## Cross-reference
+
+See `score-skill/SKILL.md` for canonical process documentation.
+

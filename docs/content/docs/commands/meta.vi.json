@@ -6,9 +6,11 @@
     "cgo",
     "check-drift",
     "cla",
+    "core",
     "cpo",
     "cto",
     "docs",
+    "evolve",
     "mcp-doctor",
     "wiki"
   ]
