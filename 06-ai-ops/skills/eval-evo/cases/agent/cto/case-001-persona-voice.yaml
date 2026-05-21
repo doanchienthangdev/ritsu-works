@@ -1,0 +1,22 @@
+case_id: case-001-persona-voice
+entity_type: agent
+entity_name: cto
+state: active
+input:
+  description: "Score @cto agent on persona voice consistency."
+  invocation: "(internal; orchestrator dispatch via Agent tool)"
+expected_traits:
+  - trait: voice_consistent
+    assertion: "Agent prose reads in code-aware persona voice across all sections; no shifts to corporate/marketing tone"
+  - trait: bound_role_matches_yaml
+    assertion: "Agent's claimed actions all fit code-reviewer role per knowledge/workforce-personas.yaml"
+  - trait: routing_explicit
+    assertion: "Agent knows when to delegate to code-review skill vs handle inline"
+  - trait: hitl_tier_b_max
+    assertion: "Agent's hitl_max_tier = B (per persona binding)"
+prompt_assertions:
+  - "The agent file cites knowledge/workforce-personas.yaml binding"
+  - "The agent file declares escalation_role"
+notes: |
+  Tests C1-C7 of agent playbook. C8-C10 (test prompts, brand voice,
+  failure modes) require additional cases.

@@ -8,9 +8,10 @@
 > catalog is the human-readable view that links into each capability's
 > promoted spec + retrospective.
 
-**Last updated:** 2026-05-19 (post-docs-engine v1.2 promotion)
+**Last updated:** 2026-05-22 (post-evolve v1.0 promotion)
 **Total capabilities (operating):** 4
-**Total capabilities (any state):** 4
+**Total capabilities (deployed pending operating):** 1
+**Total capabilities (any state):** 5
 
 ---
 
@@ -22,6 +23,12 @@
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
 | `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.4 source-grouped + 3-mode bundler) | **4.4.0** | 06-ai-ops | 2026-05-20 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.4.0.md](wiki-sync-from-refs/retrospective-v4.4.0.md) |
 | `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN, incremental translation) | **1.2.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective-v1.2.0.md](docs-engine/retrospective-v1.2.0.md) |
+
+## Deployed (pending operational gate)
+
+| ID | Name | Version | Pillar | Deployed | Spec | Retrospective | Gate to operating |
+|---|---|---|---|---|---|---|---|
+| `evolve` | /evolve — Eval+Evo Feedback Loop for ritsu-works entities | **1.0.0** | 06-ai-ops | 2026-05-22 | [spec.md](evolve/spec.md) | [retrospective.md](evolve/retrospective.md) | Founder completes 25 hold-out ratings in `06-ai-ops/skills/eval-evo/cases/_HOLDOUT.yaml` → orchestrator pre-flight unlocks /evolve invocations → state becomes `operating`. See [runbooks/evolve.md §Onboarding](../runbooks/evolve.md). |
 
 ### docs-engine version history (lineage chain)
 

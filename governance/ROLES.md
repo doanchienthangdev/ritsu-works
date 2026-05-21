@@ -825,6 +825,72 @@ hitl_max_tier: B
 escalation_role: metrics-curator
 ```
 
+### `eval-evo-orchestrator` (NEW 2026-05-22 — capability `evolve` v1.0)
+
+```yaml
+role: eval-evo-orchestrator
+purpose: Run /evolve iteration loops on ritsu-works leaf entities (skill, command, agent, hook, SOP). Score → propose → apply → re-score → keep-or-revert per Karpathy K4. Goodhart-mitigated via 4-layer stack.
+home_pillar: 06-ai-ops/eval-evo
+permissions:
+  tier1_paths:
+    - "06-ai-ops/skills/<entity-name>/**"        # Tier B leaf-entity edits
+    - ".claude/commands/<entity-name>.md"        # Tier B leaf-entity edits
+    - ".claude/agents/<entity-name>.md"          # Tier B leaf-entity edits
+    - ".archives/eval-evo-runs/**"               # local-only run artifacts
+    # Tier C+ entities (hooks, SOPs, Tier 1) go through PR path; not direct write
+  tier2_schemas_read: [ops.*, metrics.product_dau_snapshot]
+  tier2_schemas_write: [ops.agent_runs, ops.run_summaries, ops.events, ops.corrections]
+  mcp_servers:
+    - supabase-ops      # for ops.* writes
+    # codex CLI subprocess used for outside-voice (Tier C+ only); separate from MCP
+  skills:
+    - eval-evo/orchestrator
+    - eval-evo/score-{skill,command,agent,hook,sop}
+    - eval-evo/propose-improvement
+    - eval-evo/install-improvement
+    - eval-evo/outside-voice
+    - episodic-recall  # cross-iter memory load
+  secrets:
+    - ANTHROPIC_API_KEY
+    - SUPABASE_ACCESS_TOKEN
+    # OPENAI_API_KEY consumed by codex CLI binary (not by this role directly)
+hitl_max_tier: C        # hooks + sops require PR (Tier C). leaf types are Tier B.
+budget:
+  monthly_token_usd: 50  # legacy field
+  monthly_tool_calls: 5000
+economic_budget:
+  monthly_cap_usd: 50
+  alert_at_pct: 0.80
+  escalate_at_pct: 1.00
+  hard_block_at_pct: 1.50
+  per_task_kind_caps:
+    eval-evo-iteration: 0.50      # one full iter: memory + judge + propose + install + drift
+    eval-evo-evaluation: 0.10     # judge persona dispatch
+    eval-evo-outside-voice: 0.30  # codex / subagent independent challenge (Tier C+ only)
+  preferred_models:
+    default: claude-sonnet-4-6    # proposer + orchestrator
+    expensive_tasks: claude-opus-4-7   # not used in v1.0; reserved
+    light_tasks: claude-haiku-4-5      # not used in v1.0; reserved
+context_budget:
+  preamble_tokens: 3000
+  working_tokens: 30000
+  trigger_compact_at: 0.7
+memory_config:
+  memory_tool_enabled: false  # episodic recall via ops.run_summaries
+  episodic_recall_enabled: true
+  recall_window_days: 90
+  recall_max_runs: 3
+  emit_run_summary: true
+  accept_corrections: true   # ops.corrections feeds back as negative signal
+notify_on_completion: false  # in-session command; founder sees output live
+escalation_role: founder
+```
+
+> Per capability `evolve` v1.0 (spec: `wiki/capabilities/evolve/spec.md`).
+> Honest throughput: ~20-25 /evolve runs/month at $50 cap. Falsifiable
+> day-30 efficacy gate at `scripts/eval-evo/calibrate-efficacy.cjs`.
+> Hold-out validation at `scripts/eval-evo/playbook-validate.cjs`.
+
 > **Default permission posture for new roles (per CEO review Finding 6):** read-only across pillar boundaries; explicit write only to own pillar's `ops.*` tables. Cross-pillar writes require explicit grant in role definition above (eg metrics-curator writes to `ops.kpi_snapshots` because that IS the metrics pillar's domain table).
 
 ---

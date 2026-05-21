@@ -3,8 +3,8 @@
 //
 // Source version:  1.0.0
 // Source timezone: Asia/Ho_Chi_Minh
-// Schedule count:  10
-// Generated at:    2026-05-19T03:38:37.800Z
+// Schedule count:  11
+// Generated at:    2026-05-21T19:26:39.060Z
 
 import type { ScheduleEntry } from "./dispatcher.ts";
 
@@ -110,7 +110,19 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
     ],
     "fallback": "no_op",
     "cost_estimate": "$0 per run (deterministic; reads filesystem + writes ops.kpi_snapshots)"
+  },
+  "evolve-day30-calibration": {
+    "id": "evolve-day30-calibration",
+    "cron": "0 9 * * *",
+    "description": "Run /evolve falsifiable efficacy gate; alert founder on PAUSE-RECOMMENDED",
+    "skill": "eval-evo-calibrate-efficacy",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "fallback": "log_only",
+    "cost_estimate": "$0 per run (deterministic; reads ops.agent_runs)"
   }
 };
 
-export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","data-retention-scan","docs-drift-nightly","etl-product-dau-hourly","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;
+export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","data-retention-scan","docs-drift-nightly","etl-product-dau-hourly","evolve-day30-calibration","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;

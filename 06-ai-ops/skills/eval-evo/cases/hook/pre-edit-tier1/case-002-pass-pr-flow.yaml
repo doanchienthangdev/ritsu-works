@@ -1,0 +1,23 @@
+case_id: case-002-pass-pr-flow
+entity_type: hook
+entity_name: pre-edit-tier1
+state: active
+input:
+  description: "Founder edits governance/HITL.md via PR (not direct edit on main)."
+  attempted_action:
+    tool: Edit
+    file_path: governance/HITL.md
+    on_branch: feat/some-feature
+    invoked_by: founder
+expected_traits:
+  - trait: passes_on_branch
+    assertion: "Hook allows edit when on a feature branch (PR flow)"
+  - trait: no_block_when_pr_pending
+    assertion: "Hook recognizes PR-pending state and doesn't block legitimate workflow"
+  - trait: audit_logged
+    assertion: "ops.audit_log still records the edit attempt (audit trail even on pass)"
+prompt_assertions:
+  - "The hook file distinguishes direct-on-main vs PR-flow"
+notes: |
+  Tests the hook's pass path. Together with case-001, covers known-good +
+  known-bad fixtures per playbooks/hook.md C5.

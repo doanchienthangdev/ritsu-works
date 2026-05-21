@@ -109,6 +109,13 @@ const SKILL_REGISTRY: SkillRegistry = {
   // Naming: registry key is flat-hyphenated (L2 validator regex requirement).
   // Sub-skill umbrella in 06-ai-ops/skills/docs-engine/check/ remains `docs-engine/check`.
   "docs-engine-check": makeDeferredStubHandler("docs-engine-check stub: deterministic logic in scripts/validate-docs-coverage.cjs. Worker-side shell-out wiring lands in Sprint 2+. Founder may run manually: `node scripts/validate-docs-coverage.cjs`."),
+  // eval-evo v1.0 day-30 falsifiable efficacy gate (capability `evolve`).
+  // Wraps scripts/eval-evo/calibrate-efficacy.cjs. Cron fires daily; script
+  // short-circuits to INSUFFICIENT_DATA if <10 /evolve runs available. Real
+  // PAUSE-RECOMMENDED path runs at most once (founder retro then resolves).
+  // Real Edge Function wrapper deferred to v1.1 — for v1.0, founder invokes
+  // manually: `node scripts/eval-evo/calibrate-efficacy.cjs`.
+  "eval-evo-calibrate-efficacy": makeDeferredStubHandler("eval-evo-calibrate-efficacy stub: founder runs `node scripts/eval-evo/calibrate-efficacy.cjs` manually for v1.0. Wired to cron via knowledge/schedules.yaml. Real Edge Function wrapper deferred to v1.1."),
   ...(anthropic
     ? {
         "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),
