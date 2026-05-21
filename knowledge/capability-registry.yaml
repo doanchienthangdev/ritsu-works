@@ -375,10 +375,11 @@ capabilities:
       Strategic position: quality engine for entities driving product/
       GTM/first-100-customers — NOT meta-work.
     version: "1.0.0"            # Phase 8 promotion 2026-05-22
-    state: deployed              # transitions to operating after founder completes _HOLDOUT.yaml ratings
+    state: operating             # transitioned 2026-05-22 via _HOLDOUT.yaml AI-proxy v1.0 cold-start (PR #81 fa17b94); founder spot-check pending
     state_since: 2026-05-22
     proposed_at: 2026-05-22
     deployed_at: 2026-05-22
+    operating_since: 2026-05-22  # 23:50 UTC; ~3h post-deploy (single overnight session for v1.0 ship + cold-start unblock)
     pillar_owner: 06-ai-ops
     bài_toán_touched: [1, 2, 4, 5, 7, 11, 13, 14, 15, 20]
     spec_path: wiki/capabilities/evolve/spec.md
