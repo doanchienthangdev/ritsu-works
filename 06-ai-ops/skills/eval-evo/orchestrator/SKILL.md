@@ -70,9 +70,19 @@ sop: 06-ai-ops/sops/SOP-AIOPS-004-evolve/flow.yaml
 1. **Episodic recall** — invoke `episodic-recall` skill with
    `agent_slug='evolve'` + `recall_filter.entity_slug=<entity_name>`
    + `recall_max_runs=3`. Append summaries to context.
-2. **Corrections** — query `ops.corrections WHERE entity_slug=<entity_name>
-   AND ts > NOW() - INTERVAL '90 days' ORDER BY ts DESC LIMIT 10`.
-   Append correction_note + correction_kind to context.
+2. **Corrections** — JOIN-based negative-signal load (ops.corrections doesn't
+   have entity_slug directly; it lives on ops.agent_runs.state_payload):
+   ```sql
+   SELECT c.correction_note, c.correction_kind, c.ts
+   FROM ops.corrections c
+   JOIN ops.agent_runs ar ON ar.id = c.run_id
+   WHERE ar.agent_slug = 'evolve'
+     AND ar.state_payload->>'entity_slug' = <entity_name>
+     AND c.ts > NOW() - INTERVAL '90 days'
+   ORDER BY c.ts DESC LIMIT 10
+   ```
+   Append correction_note + correction_kind to context. Migration 00033
+   adds idx_corrections_run_id_ts to speed up the JOIN filter.
 3. **Entity content** — Read the entity file (or, for SOPs, the
    directory's flow.yaml + README.md).
 4. **Playbook** — Read `playbooks/<type>.md`. Extract:
