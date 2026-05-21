@@ -15,15 +15,21 @@ description: Phase 1 of CLA workflow (Bài #20). Frames a raw capability proposa
 - `capability_id` — slug, set by Phase 0.
 - `raw_proposal` — founder's original problem text.
 - `triggered_by` — `cla_command` (v1.0). Future: `voice_note`, `wiki_entry`.
-- `refs_dir` — optional `.archives/cla/<capability_id>/refs/` if the founder passed `--refs`.
+- `refs_dir` — optional `.archives/cla/<capability_id>/refs/` if the founder passed file-path `--refs`.
+- `wiki_refs_dir` — optional `runtime/cla/refs/<capability_id>/` (v1.1) if the founder passed `--refs=wiki:src=<spec>` or `--refs=wiki:query="<text>"`. Files here are bundles produced by `/wiki get` during Phase 0; carry header annotation indicating which source spec or query they came from. Treat as primary input context — the founder explicitly curated this knowledge.
 
 ## Process
 
 ### Step 1 — Ingest reference docs (optional)
 
-If `.archives/cla/<capability_id>/refs/` exists:
+Two ref folders may exist (v1.1):
+- `.archives/cla/<capability_id>/refs/` — files copied from `--refs <file-path>` args
+- `runtime/cla/refs/<capability_id>/` — wiki bundles produced by `/wiki get` from `--refs=wiki:src=` / `--refs=wiki:query=` args
+
+For each folder:
 - List the files.
 - Read each (cap at 5 files, 50 KB each — beyond that, summarise the rest as filenames only).
+- For files in `runtime/cla/refs/`: header carries `**Query:**` or `**Source spec:**` annotation; surface this as "founder-curated knowledge from wiki" in the context excerpts to signal explicit intent vs ad-hoc file dump.
 - Build a short "context excerpts" section (≤ 800 tokens) that will be embedded into the LLM prompt for steps 2-4.
 - If a ref looks like an existing capability's `problem.md` or `spec.md`, surface that as a duplicate-or-extension hint for step 5.
 

@@ -42,17 +42,26 @@ capabilities:
   # === Meta capability: CLA itself (ALWAYS first, deployed) ===
   - id: capability-lifecycle-architecture
     name: "Capability Lifecycle Architecture (Bài #20)"
-    description: "Standardized workflow để propose, analyze, architect, build new capabilities"
-    version: "1.0.0"
-    state: deployed
+    description: "Standardized workflow để propose, analyze, architect, build new capabilities. v1.1 (2026-05-21) — Phase 0 --refs resolver supports wiki: form (auto-extract from wiki/ via /wiki get into runtime/cla/refs/<slug>/)."
+    version: "1.1.0"
+    state: operating
     state_since: 2026-05-04
     proposed_at: 2026-05-04
     deployed_at: 2026-05-04
+    operating_since: 2026-05-04
     pillar_owner: 06-ai-ops
-    bài_toán_touched: [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19]
+    bài_toán_touched: [1, 2, 4, 5, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20]
     spec_path: knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md
+    retrospective_path: wiki/capabilities/capability-lifecycle-architecture/retrospective-v1.1.0.md
     cost_bucket: ai-ops-meta
-    notes: "Meta-capability. Deploys itself bootstrap-style trong Wave 1."
+    notes: |
+      Meta-capability. Deploys itself bootstrap-style trong Wave 1.
+      v1.1 (2026-05-21): --refs=wiki:<spec> form added to /cla propose.
+      Uses /wiki get (capability wiki-sync-from-refs v4.4) to auto-resolve
+      wiki context into runtime/cla/refs/<slug>/. Eliminates manual copy-
+      paste of wiki content into ad-hoc ref files. Helper script
+      scripts/cla/resolve-refs.cjs handles deterministic refs; orchestrator
+      (Claude session) dispatches wiki:query= via MCP wiki_ask flow.
 
   # === v1.1 extension: update sub-flows ===
   - id: cla-update-mechanism

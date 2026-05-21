@@ -18,7 +18,7 @@
 
 | ID | Name | Version | Pillar | Deployed | Spec | Retrospective |
 |---|---|---|---|---|---|---|
-| `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) | 1.0.0 | 06-ai-ops | 2026-05-04 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | (meta — bootstrap) |
+| `capability-lifecycle-architecture` | Capability Lifecycle Architecture (Bài #20) + `--refs=wiki:` (v1.1) | **1.1.0** | 06-ai-ops | 2026-05-21 | [Bài #20 DRAFT](../../knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md) | [retrospective-v1.1.0.md](capability-lifecycle-architecture/retrospective-v1.1.0.md) |
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
 | `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.4 source-grouped + 3-mode bundler) | **4.4.0** | 06-ai-ops | 2026-05-20 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.4.0.md](wiki-sync-from-refs/retrospective-v4.4.0.md) |
 | `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN, incremental translation) | **1.2.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective-v1.2.0.md](docs-engine/retrospective-v1.2.0.md) |
