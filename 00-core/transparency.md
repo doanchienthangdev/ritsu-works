@@ -1,3 +1,17 @@
+---
+title: Ritsu Transparency Policy
+type: core-doc
+slug: transparency
+layer: identity
+status: canonical
+owner: founder
+last_reviewed: "2026-05-02"
+review_cadence: quarterly
+cited_by:
+  - support-reply-drafting
+  - trust-safety
+auto_load: true
+---
 # Ritsu Transparency Policy
 
 > Public-facing transparency document. Source for the page at `ritsu.ai/transparency`. Updates via PR (Tier C).
