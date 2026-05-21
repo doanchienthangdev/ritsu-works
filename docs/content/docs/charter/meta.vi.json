@@ -2,10 +2,17 @@
   "title": "Charter",
   "description": "Định hướng + tầm nhìn + ranh giới của ritsu-works",
   "pages": [
+    "INDEX",
     "README",
+    "ai-native-philosophy",
     "brand_voice",
     "charter",
+    "icp-summary",
+    "north-star",
+    "positioning",
+    "principles",
     "product",
-    "transparency"
+    "transparency",
+    "values"
   ]
 }

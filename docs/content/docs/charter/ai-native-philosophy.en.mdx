@@ -1,0 +1,175 @@
+---
+title: Ritsu AI-Native Operating Philosophy
+description: ''
+source_path: 00-core/ai-native-philosophy.md
+source_hash: 55e87b2e704dd402b5eeff07924fd9cd0d958a5c1a30868e59ab9e65072fcbbc
+generated_at: '2026-05-21T16:05:13.902Z'
+generated_by: docs-engine v1.2.0
+category: charter
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+---
+title: Ritsu AI-Native Operating Philosophy
+type: core-doc
+slug: ai-native-philosophy
+layer: identity
+status: v0.1-draft
+owner: founder
+last_reviewed: 2026-05-21
+review_cadence: on-trigger
+cited_by: []
+auto_load: false
+revisit_at: 30-paying
+revisit_trigger: "30 days of agent operation data (ops.agent_runs analysis showing what works / doesn't)"
+revisit_owner: founder
+ai_synthesized_v0_1: true
+ai_synthesized_at: 2026-05-21
+ai_synthesized_from: [CLAUDE.md, governance/ROLES.md, governance/HITL.md, .archives/pillars/PLAN.md, knowledge/manifest.yaml]
+ai_synthesis_note: "Consolidated theory from existing operating belief. Founder revises after 30 days of real ops.agent_runs data."
+---
+
+# Ritsu AI-Native Operating Philosophy
+
+> Canonical statement of how Ritsu operates as an AI-Native company. Previously spread across CLAUDE.md + governance/ROLES.md + .archives/pillars/PLAN.md. This file consolidates the operating belief; cited by every new agent role spec + cofounder onboarding + founder-coach.
+>
+> **v0.1 caveat:** This is theory based on the FIRST 30 days of building the workforce. Revise after 30 days of OPERATING data (ops.agent_runs analysis).
+
+## 1. The operating belief
+
+**Humans set direction; AI executes within HITL tiers. Founders are the creative bottleneck; AI workforce is leverage on founder intent.**
+
+Concretely:
+- **Founders are scarce, slow, expensive, and irreplaceable for taste decisions.** Vision, values, brand voice, hiring instinct, customer-relationship trust — these don't scale via AI.
+- **AI is abundant, fast, cheap, and replaceable for execution.** Drafting, auditing, ETL, code review, content production, support replies for FAQ — these scale infinitely (until cost cap) via AI.
+- **The architecture problem is matching the scarce resource (founder time + judgment) to the highest-leverage decisions, and delegating the rest by Tier.**
+
+The HITL tier system (`governance/HITL.md`) is the codification of this belief: Tier A = AI autonomous; Tier B = AI does + AI notifies; Tier C = AI proposes + founder approves; Tier D = AI refuses by default + founder magic-phrase override.
+
+## 2. What "AI-Native" means here
+
+Not just "we use AI." Means specifically: **every operational function (marketing, sales, support, ops, T&S, finance) has an AI worker as the DEFAULT executor; humans are reviewers + edge-case handlers + creative direction.**
+
+Per-pillar AI-Native pattern:
+
+| Pillar | AI default worker | Founder role |
+|---|---|---|
+| 00-core | n/a (reference docs only) | Author (all canonical edits Tier C) |
+| 01-marketing | content-drafter + growth-orchestrator | Voice owner; reviews campaigns Tier C |
+| 02-sales | growth-orchestrator (fallback) | Pricing strategist; pricing experiments Tier C |
+| 03-gtm (stage) | gtm-orchestrator + multiple sub-roles | Channel strategy; PMF gate keeper |
+| 04-product | product-orchestrator + experiment-analyst | Wedge owner; feature priority Tier B |
+| 05-customer | support-agent + cs-coach + retention-watcher + escalation-router + feedback-aggregator | First-30 founder personally onboards (Collison protocol) |
+| 06-ai-ops | aiops-engineer + etl-runner + code-reviewer | Architecture review Tier C; HITL.md owner |
+| 07-trust-safety | trust-safety | All user-affecting decisions Tier C |
+| 08-finance | backoffice-clerk (read-only Stripe) | All money in/out Tier C / D |
+| 09-founder | founder-coach + hitl-router + health-tracker | The founder (and cofounder when joins) |
+| 10-metrics | metrics-curator + alert-router + experiment-analyst | KPI registry owner; alert rules approve Tier C |
+
+**The pattern:** AI works the surface; founder owns the identity. AI executes; founder decides.
+
+## 3. What humans (founder + cofounder) ALWAYS do
+
+The non-delegable. AI never decides these; founder always must.
+
+- **Strategy:** vision (`charter.md`), market thesis, pricing strategy (philosophy + numbers approval), brand positioning (`positioning.md`).
+- **Hiring** (when starts): cofounder identification, first non-AI hires, role definition for new positions.
+- **Money in/out:** Stripe charges ad-hoc, refunds > $200, vendor pay > $500, signing SaaS contracts > $50/mo, capital raises.
+- **Brand identity:** voice owner (`brand_voice.md`), values author (`values.md`), public positioning author (`positioning.md`), design system approve (`design-system.md` when graduates).
+- **Customer relationships at first-30-customer scale** (per Collison install protocol SOP-CUSTOMER-006). Founder personally Zoom-installs Ritsu with first ~30 paying customers. AI takes over from N=31 (SOP-CUSTOMER-009).
+- **Anything Tier D per HITL.md.** All D-Std actions (refund > $200, suspend user > 7 days, add operator). All D-MAX actions (product Supabase access, drop table, force-push, raise capital, sign legal doc, modify HITL.md / SECRETS.md).
+- **Quarterly + monthly + weekly review** (SOP-FOUNDER-013, -014, -015). The review IS strategy; can't be automated.
+- **Public statements:** apology, incident communication, press, regulatory response.
+
+## 4. What AI ALWAYS does
+
+The auto-execute. Founder never personally handles unless escalated.
+
+- **Tier A actions per HITL.md:** drafts to .archives/, audits, ETL jobs, classifications, retrieval queries, internal commenting on own PRs.
+- **Pattern detection** across ops.* tables (drift detection, anomaly surfacing, cost trend analysis, retention cohort math).
+- **Routine analytics + dashboard refresh** (when dashboards exist — metrics-curator role).
+- **Code review on every PR** (code-reviewer / CTO persona). Founder still merges; AI comments + flags risk.
+- **Content drafting** for every channel (blog, social, email — content-drafter). Founder reviews Tier C and merges.
+- **Customer support FAQ-handled categories** (support-agent Tier B). Non-FAQ escalates to founder Tier C.
+- **Scheduled cron jobs** (KPI snapshots, ETL flows, alert evaluation — scheduled-run-dispatcher).
+- **/cla 8-phase capability workflow** orchestration (founder approves Tier C at Phase 5; AI executes Phase 0-4 + 6-8 autonomously where allowed).
+- **/wiki + /docs + /core** read-mostly operations.
+- **Audit logging** across all ops.agent_runs, ops.audit_log, ops.events, ops.run_summaries.
+- **Cost attribution tracking + budget alerts** (per Bài #7 economic architecture).
+
+## 5. Boundaries (what AI NEVER does)
+
+Per `governance/HITL.md` Tier D + `governance/SECRETS.md` isolation:
+
+| Action | Tier | Why never AI |
+|---|---|---|
+| **Write to Product Supabase (`ritsu`) directly** | D-MAX | User data; isolation firewall; only `etl-runner` reads via dedicated key |
+| **Charge customer / issue refund / pay vendor** (any amount autonomously) | D-Std → D-MAX | Money out can't be reversed without legal process |
+| **Claim to be human** to a user | (transparency law) | EU AI Act Art. 50, California SB 1001, our own ethics |
+| **Make public safety/compliance claim** (GDPR/SOC 2/HIPAA certified, secure-by-design, etc.) | D-MAX | Liability + truthfulness; only founder with audit can claim |
+| **Modify `governance/HITL.md` or `governance/SECRETS.md`** | D-MAX | These are the rules of the rules; rule-changes can't be automated by the ruled |
+| **Delete data** (any production environment) | D-Std → D-MAX | Irreversible without backup ceremony |
+| **Drop DB table / column** | D-MAX | Irreversible |
+| **Force-merge / force-push to main** | D-MAX | Bypass review = bypass safety |
+| **Grant new operator access** (Supabase, GitHub, secret manager) | D-Std | New attack surface |
+| **Disable any safety hook** | D-MAX | Defeats the safety system |
+| **Modify DNS / production env / rotate auth secrets** | D-MAX | Operational continuity + security |
+| **Sign legal doc / press release / layoff comms** | D-MAX | External commitment |
+| **Issue refund > $2000** (single transaction) | D-MAX | Money + customer relationship |
+
+**Override mechanism:** founder can authorize ANY of the above via magic phrase per HITL.md ceremony (`override: <reason 5+ words>` in Telegram + cooldown + immutable audit row). D-MAX also requires GitHub `/founder-approved-irreversible` PR comment from founder's account.
+
+## 6. The leverage equation
+
+**1 founder + AI workforce = effective company size of ~10-20 traditional employees pre-PMF; ~50-100 post-PMF; ~500+ at 1M users.**
+
+Capacity scales with **AI investment + role specialization**, not headcount.
+
+**Concrete leverage estimates (founder thesis, revise yearly):**
+
+| Stage | Founders | Active AI roles | Equivalent traditional headcount |
+|---|---|---|---|
+| Pre-PMF (now) | 1-2 humans | 12+ roles defined; ~3-5 actively running daily | 10-15 |
+| Post-PMF (100 paying) | 2 humans | 15+ roles; most active daily | 25-40 |
+| 1000 paying | 2-3 humans | 20+ roles + persona layer mature | 50-80 |
+| 10K paying | 3-5 humans + first non-AI hires | 30+ roles + sub-role specialization | 100-200 |
+| 100K paying | 10-20 humans | 50+ roles + sub-pillar deep build | 300-500 |
+| 1M paying ($1B ARR target) | 30-50 humans | 100+ roles + API platform layer | 1000+ |
+
+**The ratio:** ~10-20× traditional. AI capital (model calls + skill investments) replaces ~10-20× human FTE. Cost: ~5-10× cheaper than equivalent FTE in Vietnam, ~25-50× cheaper than US FTE.
+
+**What's NOT leveraged by AI:**
+- Founder time (constant scarcity)
+- Customer trust (built 1:1 in first 30; brand-systemically after)
+- Regulatory + legal relationships
+- Investor relationships (when raising activates)
+
+## 7. Failure modes + detection
+
+Every AI-Native failure mode has an owner + a detection mechanism.
+
+| Failure mode | Symptom | Detection | Mitigation |
+|---|---|---|---|
+| **AI drift** (different agents invent different "north star" / values / positioning) | Output inconsistency across channels; customer confusion | Cross-tier-consistency engine + /core check (validator) | 00-core ground truth + skills cite via /core compose + drift validator gates pnpm check |
+| **AI overreach** (Tier A action that should have been Tier C) | Founder retroactively sees an action they wouldn't have approved | ops.agent_runs audit + monthly retro | `pre-edit-tier1` hook + pre-tool-publish hook + persona narrowing (workforce-personas Phase 1) + audit_log review |
+| **AI under-leverage** (founder doing work AI could do) | Founder energy exhausted; SOP-FOUNDER-016 weekly energy report shows >50h sustained | founder-coach skill + SOP-FOUNDER-018 burnout signs | SOP scaffolding + skill library expansion + founder-coach role identifies delegation candidates |
+| **AI hallucination on customer-facing output** | Customer complaint about incorrect info; support ticket volume spike | brand_voice + transparency disclosure + customer support replies pre-tool-customer-message hook | Founder Tier B+ review on non-FAQ replies + factual eval suites + customer correction loop feeds ops.corrections |
+| **AI cost overrun** (LLM spend > monthly budget) | pre-llm-call-budget hook blocks call; founder Telegram alert | Per-role economic_budget caps in governance/ROLES.md | 80% alert + 100% escalate + 150% hard-block + monthly economic-health-score + cost-optimization-review skill |
+| **AI security gap** (secret leaks, prompt injection, MCP unauthorized) | secret-redactor hits + security audit findings | docs walker secret-redactor + .mcp.json role allowlist + supabase-ops shim + cross-tier-invariants | 3-layer secret redaction + per-MCP-tool tier_default + RLS on ops.* + audit on every mcp_call |
+| **Persona drift** (CxO persona acts outside bound role) | Action attributed to a persona whose role doesn't have that permission | `post-persona-log` (when hooks runtime ships) + 5 invariants in `validate-personas.cjs` | persona ↔ role binding enforced by validators + workforce-personas Phase 1.5 hardening |
+| **CLA workflow zombie** (capability stuck in `implementing` > 7 days idle) | ops.capability_runs.state_since > 7d + no completed_sprints progress | cla-orchestrator + founder-coach weekly review | `failure_handling.phase_7_session_lost` triggers founder prompt: "resume, abandon, or change plan?" |
+| **Founder bottleneck** (Tier C queue grows > 5 pending) | Telegram unread count + founder responsiveness drops | hitl-router + Telegram backlog metric | Batch Tier C in Friday review (SOP-FOUNDER-010) + escalate priority items + delegate batched Tier C to cofounder when joins |
+| **AI workforce non-bootstrap** (new agent role designed but never activated) | governance/ROLES.md has role with `status: planned` for > 90 days | ROLES.md monthly audit + capability-registry gap analysis | Either ship the role (CLA propose) or remove from ROLES.md (PR Tier C) — no zombie roles |
+
+**Each failure mode has an explicit owner role.** When a failure pattern is detected, the owner role is invoked; founder is alerted only if owner role escalates or fails.
+
+---
+
+## Closing principle
+
+The thesis is testable: if Ritsu can ship $1B ARR with 30-50 humans + 1000+ AI workers, the model proves out. If we need 500+ humans to hit $1B, the AI-Native thesis is wrong (or our execution of it is wrong) — and we should re-author this document with that lesson.
+
+Until then: ship the workforce, listen to ops.agent_runs, refine the philosophy quarterly. The philosophy is a hypothesis. The data will tell us if it's right.
+

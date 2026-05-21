@@ -294,6 +294,46 @@ capabilities:
       One-time migration backfilled `translated_source_hash` on 224 files.
       Translation work is NO LONGER destroyed by walker re-runs.
 
+  - id: core-redesign-and-command
+    name: "Redesign 00-core foundation + /core command"
+    description: |
+      Transform 00-core/ from a 5-doc charter folder (3 filled, 2 templates)
+      into a 19-doc canonical foundation (right-sized C+ scope): 3 existing +
+      6 canonical filled + 3 v0.1-draft (revisit at 30 paying) + 6 stubs with
+      entry_condition + 1 README update. Paired with new /core slash command
+      (Phase 1: 7 verbs — show, list, diff, check, compose, scaffold, fill;
+      Phase 2: 7 deferred verbs). Approach C — Core-Shell + Skill-First.
+      Mode: SELECTIVE EXPANSION. Filesystem-only persistence v1; ops.core_runs
+      deferred to v1.1.
+    version: "1.0.0"
+    state: proposed
+    state_since: 2026-05-21
+    proposed_at: 2026-05-21
+    pillar_owner: 06-ai-ops    # refined in Phase 3 — /core is AI-ops tooling; 00-core itself is the core pillar (cross-pillar work)
+    bài_toán_touched: [9, 14, 20]    # SOP architecture, knowledge graph, capability lifecycle
+    spec_path: wiki/capabilities/core-redesign-and-command/spec.md    # target (post Phase 8 promotion)
+    sprint_plan: ".archives/cla/core-redesign-and-command/sprint-plan.md (local-only working)"
+    cost_bucket: ai-ops-meta
+    estimated_cost_setup_usd: 3.00
+    estimated_cost_recurring_usd: 0
+    estimated_founder_hours: 8        # midpoint of 6-10h range (Phase A think-heavy)
+    estimated_completion: 2026-05-28   # 3-7 working days
+    target_kpis: [core_docs_filled_count, core_command_verbs_phase_1]
+    target_value: 10                   # 10 filled docs (excluding 3 existing) + 7 verbs
+    notes: |
+      Originated from /plan-ceo-review brainstorm 2026-05-21 (session
+      57288-1779367360). 8 brainstorm artifacts persisted at
+      .archives/brainstorming/core/ (~112KB). 6 refs bundled into
+      .archives/cla/core-redesign-and-command/refs/ (~98KB).
+      Spec review loop 2 iterations: 5/10 → 7/10. CEO plan at
+      ~/.gstack/projects/doanchienthangdev-ritsu-works/ceo-plans/2026-05-21-00-core-redesign.md.
+      ops.capability_runs id cd377ba8-d8c6-44ed-b0ad-69981b49d45a.
+      14 founder decisions locked pre-CLA (see 06-decisions-log.md).
+      Reviewer Concerns acknowledged: founder effort pre-PMF think-heavy hard
+      to estimate honestly; /core fill schema design deferred to Phase B
+      implementation; operating bundle v1 = principles only (stubs added on
+      graduation).
+
   # Example placeholder (remove or replace):
   # - id: daily-customer-acquisition
   #   name: "Daily Customer Acquisition Pipeline"
@@ -323,8 +363,8 @@ dependencies:
 # Maps capabilities to Bài #7 cost-buckets cho monthly reporting.
 cost_buckets:
   ai-ops-meta:
-    description: "Meta operations (CLA, infrastructure)"
-    capabilities: [capability-lifecycle-architecture, cla-update-mechanism]
+    description: "Meta operations (CLA, infrastructure, /core)"
+    capabilities: [capability-lifecycle-architecture, cla-update-mechanism, core-redesign-and-command]
 
   ai-ops-knowledge:
     description: "Knowledge engine — wiki sync, RAG queries, ref-ingestion, audit. Activates dormant Bài #14 / #18 infrastructure."
