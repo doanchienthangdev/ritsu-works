@@ -4,7 +4,7 @@
 
 **Status:** v1.0 spec
 **Last updated:** 2026-05-02
-**Related:** `governance/IDENTITY.md`, `governance/SECRETS.md`, `00-charter/brand_voice.md`, `00-charter/transparency.md`, `_build/notes/problem-6-identity-interface.md`
+**Related:** `governance/IDENTITY.md`, `governance/SECRETS.md`, `00-core/brand_voice.md`, `00-core/transparency.md`, `_build/notes/problem-6-identity-interface.md`
 
 ---
 
@@ -47,7 +47,7 @@ No human-style personas (no "Hana," "Linh"). No gendered names. No avatars in pr
 ### What this is NOT
 
 - This is NOT the customer-facing identity. Customers see "Ritsu Assistant" — see sub-domain C.
-- This is NOT a brand voice. Brand voice is in `00-charter/brand_voice.md`.
+- This is NOT a brand voice. Brand voice is in `00-core/brand_voice.md`.
 
 ### Why no human personas
 
@@ -62,9 +62,9 @@ Three reasons:
 If a future version of Ritsu chooses to add personas (e.g., for a customer-facing brand campaign), the addition path is:
 
 1. PR to this file documenting the persona's purpose, scope, and consent (founder approval)
-2. PR to `00-charter/brand_voice.md` with persona voice guidelines
+2. PR to `00-core/brand_voice.md` with persona voice guidelines
 3. PR to `governance/IDENTITY.md` mapping persona to role and to external service accounts
-4. Disclosure update in `00-charter/transparency.md`
+4. Disclosure update in `00-core/transparency.md`
 
 The persona maps to an existing role; never creates a "new" agent without role.
 
@@ -194,7 +194,7 @@ Every customer-facing AI interaction must surface a path to a human:
 
 A unified external persona that:
 - Has no gender, no age, no implied human qualities
-- Is consistently friendly, helpful, brand-aligned per `00-charter/brand_voice.md`
+- Is consistently friendly, helpful, brand-aligned per `00-core/brand_voice.md`
 - Is the public face for support, marketing replies, social interactions
 - Maps internally to whatever specialist agent is handling the actual work (support-agent for tickets, growth-orchestrator for marketing replies, etc.)
 
@@ -220,7 +220,7 @@ Ritsu maintains a public transparency page at `ritsu.ai/transparency` describing
 - How to request data deletion
 - Our data retention and training practices
 
-Source for this page lives in `00-charter/transparency.md`. Updates via PR (Tier C).
+Source for this page lives in `00-core/transparency.md`. Updates via PR (Tier C).
 
 ### Vietnam-specific note
 

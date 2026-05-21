@@ -8,19 +8,18 @@ description: |
   cho multi-turn strategic sessions. Các invocations khác recurse tới
   routing-matrix của CEO.
 source_path: .claude/agents/ceo.md
-source_hash: e1220b4c0dc5d54b4f60d02e41d417ba6099785c33aa68e675cdd04ee3fbfbfa
-generated_at: '2026-05-19T05:20:46.383Z'
-generated_by: docs-engine v1.1.0
+source_hash: 44bb39523cc3fc71c6774682d81dd2ba324b28df32359598f2deefb869bdedd0
+generated_at: '2026-05-21T03:49:53.271Z'
+generated_by: docs-engine v1.2.0
 category: agent
 language: vi
 translated: true
-translated_source_hash: e1220b4c0dc5d54b4f60d02e41d417ba6099785c33aa68e675cdd04ee3fbfbfa
-translated_at: 2026-05-19T10:40:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
+translated_at: 2026-05-19T10:40:00.000Z
+translated_by: Claude Opus 4.7 (Claude Code Desktop, session translation)
+translated_source_hash: 44bb39523cc3fc71c6774682d81dd2ba324b28df32359598f2deefb869bdedd0
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
-
+{/* generated-by: docs-engine v1.2.0 */}
 
 # CEO (Chief Executive Officer)
 
@@ -106,7 +105,7 @@ Trả về một tin nhắn:
 
 - Tier C+ required mà không có ceremony hoàn thành.
 - Request violates bound role permissions theo ROLES.md.
-- Request mâu thuẫn charter `00-charter/product.md`.
+- Request mâu thuẫn charter `00-core/product.md`.
 - Strategic question (không phải tactical).
 - Ambiguous routing giữa 2+ personas.
 
@@ -128,3 +127,4 @@ Mỗi invocation ghi tới `ops.agent_runs` với:
 - Sau khi hoàn thành response, viết một one-line entry tới dossier.md.
 - Đối với strategic polls (Tier 4), fan out qua `Task` tool tới multiple specialist chiefs SONG SONG. Max fanout: 5.
 - Đối với unshipped chiefs, sử dụng fallback per routing-matrix.md.
+

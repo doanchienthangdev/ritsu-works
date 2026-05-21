@@ -21,7 +21,7 @@ Without Bài #19:
 
 ### Axis 1 — Rhythm Registry + Workspace Concept
 **Choice:** Founder profile (extends Bài #6) + knowledge/founder-rhythm.yaml Tier 1 + workspace mapping
-- 00-charter/founder-profile.md với Bài #14 page format
+- 00-core/founder-profile.md với Bài #14 page format
 - Daily rhythm: morning-deep-work, morning-brief, meeting-block, lunch, afternoon-reactive, evening-reflection, sleep
 - Weekly rhythm: Monday strategy / Friday review / weekend lighter
 - Special modes: customer_call_mode, deep_work_mode

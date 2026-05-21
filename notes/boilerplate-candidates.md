@@ -169,7 +169,7 @@ Track project-specific code that won't generalize:
 | Component | Why specific | Recommendation |
 |---|---|---|
 | Ritsu pricing tiers | EdTech pricing model | Keep in `01-growth/` pillar SOPs |
-| Vietnamese-primary brand voice | Locale-specific | `00-charter/brand_voice/brand_voice.vi.md` |
+| Vietnamese-primary brand voice | Locale-specific | `00-core/brand_voice/brand_voice.vi.md` |
 | 4-tier subscription | Ritsu business model | Domain-specific state machine |
 | 17 activities × 7 modes | Product UX | Domain-specific entities |
 

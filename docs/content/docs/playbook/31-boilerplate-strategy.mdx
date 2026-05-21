@@ -2,14 +2,14 @@
 title: "Chương 31 — Agent OS Boilerplate Strategy & Multi-Project Reuse"
 description: "Chương 31 — Agent OS Boilerplate Strategy & Multi-Project Reuse"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/31-boilerplate-strategy.md
-source_hash: be3ea82d94d7eb0e1cce50053a3eaae35e917f001d418e09893efd49512f7252
-generated_at: '2026-05-19T17:13:00.298Z'
+source_hash: 7deee62a6411f886ef26e7861f951ba56150f628be12daa1041c5806a02c49d6
+generated_at: '2026-05-21T03:51:28.578Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: be3ea82d94d7eb0e1cce50053a3eaae35e917f001d418e09893efd49512f7252
-translated_at: '2026-05-19T17:13:00.298Z'
+translated_source_hash: 7deee62a6411f886ef26e7861f951ba56150f628be12daa1041c5806a02c49d6
+translated_at: '2026-05-21T03:51:28.578Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 31
 ---
@@ -146,7 +146,7 @@ ritsu-handoff-bundle-v2.5/
 agent-os-boilerplate/                           ← Layer 1: generic
 ├── core/
 │   ├── playbook-core/                          ← generic 19 bài toán
-│   ├── 00-charter-template/                    ← templates với placeholders
+│   ├── 00-core-template/                    ← templates với placeholders
 │   ├── governance-core/                        ← generic Tier 1 rules
 │   ├── knowledge-core/
 │   │   ├── schemas/                            ← JSON Schemas
@@ -167,7 +167,7 @@ agent-os-boilerplate/                           ← Layer 1: generic
 │
 ritsu-works/                                     ← Layer 2: project-specific
 ├── agent-os.config.yaml                         ← config: which boilerplate version
-├── 00-charter/                                  ← FILLED IN
+├── 00-core/                                  ← FILLED IN
 ├── knowledge/                                   ← FILLED IN từ templates
 ├── 01-growth/, 02-customer/, etc.               ← Ritsu pillar SOPs
 ├── 05-ai-ops/                                   ← extends 05-ai-ops-core
@@ -175,7 +175,7 @@ ritsu-works/                                     ← Layer 2: project-specific
 
 hollywood-channel-works/                         ← another project
 ├── agent-os.config.yaml
-├── 00-charter/                                  ← FILLED IN cho film channel
+├── 00-core/                                  ← FILLED IN cho film channel
 ├── knowledge/
 ├── 01-content-production/, 02-audience/, etc.   ← film channel pillars
 ├── 05-ai-ops/                                   ← extends 05-ai-ops-core
@@ -247,7 +247,7 @@ git cherry-pick <improvement-commit>
 ### Charter changes
 
 ```markdown
-# 00-charter/charter.md (Hollywood project)
+# 00-core/charter.md (Hollywood project)
 
 # Hollywood Movie Channel — Operating System
 
@@ -405,7 +405,7 @@ cp ritsu-works/knowledge/state-machines.yaml \
 # Add placeholders {{PROJECT_NAME}}, {{ENTITY_TYPE}}, etc.
 
 # Move Ritsu-specific examples
-cp -r ritsu-works/{00-charter,01-growth,knowledge} \
+cp -r ritsu-works/{00-core,01-growth,knowledge} \
       agent-os-boilerplate/core/knowledge-core/examples/b2c-edtech/
 ```
 
@@ -449,10 +449,10 @@ find core/knowledge-core/templates -name "*.template.yaml" | while read template
 done
 
 # Copy charter template
-mkdir -p 00-charter
+mkdir -p 00-core
 sed -e "s|{{PROJECT_NAME}}|$PROJECT_NAME|g" \
     -e "s|{{PROJECT_DOMAIN}}|$PROJECT_DOMAIN|g" \
-    core/00-charter-template/charter.template.md > 00-charter/charter.md
+    core/00-core-template/charter.template.md > 00-core/charter.md
 
 # Generate agent-os.config.yaml
 cat > agent-os.config.yaml <<EOF
@@ -468,7 +468,7 @@ project:
 EOF
 
 echo "✅ Project $PROJECT_NAME scaffolded!"
-echo "Next: Customize 00-charter/charter.md, then knowledge/*.yaml files"
+echo "Next: Customize 00-core/charter.md, then knowledge/*.yaml files"
 ```
 
 ### Phase 4 — Examples library (1 week)
@@ -478,13 +478,13 @@ Trong `core/knowledge-core/examples/`:
 ```
 examples/
 ├── b2c-edtech/                  ← Ritsu reference (copy of values)
-│   ├── 00-charter/
+│   ├── 00-core/
 │   ├── knowledge/
 │   ├── pillars/
 │   └── README.md                ← "Reference: Ritsu B2C EdTech"
 │
 ├── content-channel/             ← Hollywood reference
-│   ├── 00-charter/
+│   ├── 00-core/
 │   ├── knowledge/
 │   ├── pillars/
 │   └── README.md                ← "Reference: solo content channel"
@@ -516,7 +516,7 @@ cd my-project-works
 ./.scripts/bootstrap-new-project.sh "My Project" "domain description"
 
 # Customize
-vim 00-charter/charter.md
+vim 00-core/charter.md
 vim knowledge/*.yaml
 \`\`\`
 

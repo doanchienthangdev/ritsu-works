@@ -64,13 +64,13 @@ steps:
     timeout_seconds: 60
     inputs:
       walker_scope: |
-        00-charter/**, governance/**, 0[0-9]-*/{README,CLAUDE}.md,
+        00-core/**, governance/**, 0[0-9]-*/{README,CLAUDE}.md,
         0[0-9]-*/<sub-pillar>/{README,CLAUDE}.md, 0[0-9]-*/sops/*/flow.yaml,
         06-ai-ops/skills/**/SKILL.md, .claude/commands/*.md,
         .claude/agents/*.md, .claude/hooks/*.md, knowledge/*.yaml
       walker_exclude:
         - governance/SECRETS.md
-        - 00-charter/founder-profile.md   # PII; flagged in spec
+        - 00-core/founder-profile.md   # PII; flagged in spec
         - runtime/secrets/**
         - wiki/**
         - .archives/**

@@ -2,10 +2,10 @@
 // knowledge/manifest.yaml. Do not edit by hand.
 // Re-run with: pnpm wave2:bundle-manifest-tables
 //
-// Source version: 0.7.0
+// Source version: 0.8.0
 // ops tables:     30
 // metrics tables: 1
-// Generated at:   2026-05-19T04:25:10.849Z
+// Generated at:   2026-05-21T03:56:18.292Z
 
 export const MANIFEST_OPS_TABLES: readonly string[] = Object.freeze(
 [

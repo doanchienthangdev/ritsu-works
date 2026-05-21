@@ -13,7 +13,7 @@ created_at: "2026-05-18T11:11:54Z"
 
 # Anchor messaging for Ritsu across the six CLOSER elements
 
-Six anchor lines, one per CLOSER element, drafted as starting points for Ritsu's homepage and landing pages. These are NOT canonical copy (the homepage hero "Turn Raw Materials Into True Mastery" still owns the top line per `00-charter/product.md`), but they are starting drafts for the elements below the hero and for objection-specific landing pages:
+Six anchor lines, one per CLOSER element, drafted as starting points for Ritsu's homepage and landing pages. These are NOT canonical copy (the homepage hero "Turn Raw Materials Into True Mastery" still owns the top line per `00-core/product.md`), but they are starting drafts for the elements below the hero and for objection-specific landing pages:
 
 - **Credibility:** "Trusted by 5,000+ students at leading universities. AI-powered interactive learning from real textbooks."
 - **Lure:** "Try free for 14 days. No credit card required. Start with a sample activity in 30 seconds."

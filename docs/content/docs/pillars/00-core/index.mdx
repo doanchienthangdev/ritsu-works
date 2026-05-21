@@ -1,0 +1,73 @@
+---
+title: 00-core — Core Pillar
+description: ''
+source_path: 00-core/README.md
+source_hash: c0c9d26afae6cba5a030f36a075efc3a1165d293d65d4edfed4a57f88a17d403
+generated_at: '2026-05-21T03:53:36.265Z'
+generated_by: docs-engine v1.2.0
+category: pillar
+language: vi
+translated: true
+translated_at: "2026-05-21T04:00:00Z"
+translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
+translated_source_hash: c0c9d26afae6cba5a030f36a075efc3a1165d293d65d4edfed4a57f88a17d403
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+# 00-core — Core Pillar
+
+> Nền tảng: tầm nhìn, giọng thương hiệu, định vị sản phẩm, hồ sơ founder, lập trường minh bạch, đặc tả charter. Câu trả lời "Ritsu là ai" + TẤT CẢ cốt lõi mà mọi pillar khác đều quy chiếu về.
+
+**Layer:** Evergreen
+**Trạng thái stage:** Maintenance (alive)
+**Mã pillar:** CORE
+**Vai trò sở hữu:** founder, cofounder, gps
+**HITL baseline:** C (mọi chỉnh sửa đều chỉ được thực hiện qua PR theo HITL.md)
+**Đổi tên:** 2026-05-21 — trước đây là `00-charter` → `00-core` (tổng quát hơn theo yêu cầu của founder; chứa TẤT CẢ tài liệu cốt lõi của ritsu-works, charter.md hiện chỉ là một trong nhiều tài liệu cốt lõi). Xem ghi chú migration_note v0.8.0 trong `knowledge/manifest.yaml`.
+
+---
+
+## Phạm vi
+
+Pillar này sở hữu câu trả lời chính thức cho:
+- **Ritsu là gì?** → `product.md`
+- **Giọng thương hiệu / phong cách viết là gì?** → `brand_voice.md`
+- **Founder + cofounder là ai?** → `founder-profile.md`
+- **Lập trường của công ty về minh bạch ra sao?** → `transparency.md`
+- **Charter / sứ mệnh / giá trị** → `charter.md`
+
+Pillar này KHÔNG sở hữu:
+- Operating playbooks (chúng nằm trong các pillar chức năng tương ứng)
+- Định nghĩa KPI (chúng nằm trong `10-metrics/kpi-registry/`)
+- Các tính năng sản phẩm cụ thể (sản phẩm nằm trong một repo riêng)
+
+## Sub-pillars
+
+Hiện tại chưa có. Charter mang tính nền tảng và tồn tại dưới dạng các tệp phẳng. Không có sub-pillar nào được lên kế hoạch trừ khi bản thân charter phát triển ra nhiều phần cho mỗi chủ đề (ví dụ `brand-voice/` chứa voice + tone + ví dụ + anti-pattern).
+
+## SOPs
+
+`sops/SOP-CHARTER-NNN-<slug>/` — namespace đã được dành sẵn. Hiện chưa có SOP nào ở giai đoạn này; các thay đổi charter diễn ra trực tiếp qua quy trình review PR, không qua SOP runtime.
+
+## Agents
+
+Không có agent nào thuộc pillar này. `gps` và `founder` là hai vai trò duy nhất chỉnh sửa các tệp charter, cả hai đều thông qua PR theo HITL.md.
+
+## KPIs sở hữu
+
+- Hoàn thành review charter hàng quý (có/không mỗi quý)
+- Số lượng PR được dẫn dắt bởi charter mỗi quý (tín hiệu về độ lệch giữa các agent và charter)
+
+## Phụ thuộc
+
+- **Được kết hợp bởi:** mọi pillar khác (chúng đều trích dẫn charter để lấy giọng thương hiệu, ICP, định vị)
+- **Kết hợp từ:** không có
+
+## HITL baseline
+
+Mọi chỉnh sửa lên bất kỳ tệp nào trong `00-core/` đều là Tier C. Bất kỳ thao tác "viết lại từ đầu" tài liệu charter đều là Tier D-Std. Cả cofounder và founder đều đủ điều kiện làm người phê duyệt theo `governance/ROLES.md` v1.0.1.
+
+## Điều kiện kích hoạt
+
+Không áp dụng (luôn ở trạng thái hoạt động từ ngày đầu tiên).

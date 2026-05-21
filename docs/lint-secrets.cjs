@@ -31,7 +31,7 @@ const CONTENT_DIR = path.join(__dirname, "content", "docs");
 // === Layer 1 — walker-exclude paths (never enter the MDX corpus) ===
 const WALKER_EXCLUDE_LIST = [
   "governance/SECRETS.md",
-  "00-charter/founder-profile.md",
+  "00-core/founder-profile.md",
   "runtime/secrets/",
   ".env",
   ".env.local",

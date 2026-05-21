@@ -42,7 +42,7 @@ Ritsu needs 2 explicit decisions: (1) competitive frame — personal tutor, flas
 
 ## Ritsu relevance
 
-Action: founder + 01-growth positioning workshop. Output: (1) chosen frame in 00-charter/brand_voice.md; (2) positioning statement; (3) POD list verifying 3 criteria; (4) POP list (table stakes + competitive parity). Most high-leverage strategic gap in current state.
+Action: founder + 01-growth positioning workshop. Output: (1) chosen frame in 00-core/brand_voice.md; (2) positioning statement; (3) POD list verifying 3 criteria; (4) POP list (table stakes + competitive parity). Most high-leverage strategic gap in current state.
 
 ## See also
 

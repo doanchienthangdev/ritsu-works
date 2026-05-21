@@ -105,7 +105,7 @@ Return one message:
 
 - Tier C+ required without ceremony complete.
 - Request violates bound role permissions per ROLES.md.
-- Request contradicts charter `00-charter/product.md`.
+- Request contradicts charter `00-core/product.md`.
 - Strategic question (not tactical).
 - Ambiguous routing between 2+ personas.
 

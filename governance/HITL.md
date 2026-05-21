@@ -106,7 +106,7 @@ When in doubt, **escalate one tier up**. The cost of asking when you didn't need
 - Add labels to GitHub issues/PRs
 - Tag a PR for review (assigning a reviewer)
 - Apply auto-formatting / lint fixes via PR
-- Open a non-draft PR for changes outside `00-charter/` and `governance/`
+- Open a non-draft PR for changes outside `00-core/` and `governance/`
 
 *Customer-facing low-stakes:*
 - Reply to a support ticket classified as **FAQ-handled** (categories pre-listed in `03-delivery/SOP-DEL-XXX-faq-categories.md` — TODO)
@@ -162,7 +162,7 @@ When in doubt, **escalate one tier up**. The cost of asking when you didn't need
 - Post in a Slack channel that includes external members
 
 *Tier 1 changes:*
-- Open a non-draft PR that changes `00-charter/`, `governance/`, or any pillar SOP
+- Open a non-draft PR that changes `00-core/`, `governance/`, or any pillar SOP
 - Open a PR that adds a new `skills/` definition
 - Edit `knowledge/manifest.yaml`
 
@@ -360,7 +360,7 @@ Comment on someone else's PR                        B
 Run a pre-approved cron job                         B
 Send transactional email (pre-approved template)    B
 
-Open PR touching 00-charter/, governance/, SOPs     C
+Open PR touching 00-core/, governance/, SOPs     C
 Merge any PR                                        C
 Send email to >1 external recipient                 C
 Post anywhere public (blog, social, Discord)        C

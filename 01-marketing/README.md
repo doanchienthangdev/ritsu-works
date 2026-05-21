@@ -13,7 +13,7 @@
 ## Scope
 
 This pillar owns:
-- **Brand identity** — positioning, taglines, voice (composes from `00-charter/brand_voice.md`)
+- **Brand identity** — positioning, taglines, voice (composes from `00-core/brand_voice.md`)
 - **ICP (Ideal Customer Profile)** — definition + segments + persona templates
 - **Content engine** — blog templates, social formats, email templates (absorbed from former `04-content/`)
 - **SEO foundations** — keyword research, page structure, meta tags
@@ -33,7 +33,7 @@ LITE at this stage. The "modules" (not sub-pillars) below are reusable assets th
 01-marketing/
 ├── modules/
 │   ├── icp/                    # ICP definition + 6 persona templates from product.md
-│   ├── brand-voice-kit/        # Reuses 00-charter/brand_voice.md + voice examples
+│   ├── brand-voice-kit/        # Reuses 00-core/brand_voice.md + voice examples
 │   ├── content-templates/      # Blog, social, email, landing page templates (was 04-content)
 │   └── positioning/            # Competitive positioning vs Anki/Quizlet/Kahoot/ChatGPT/Notion
 ├── sops/                       # Empty at this stage
@@ -66,7 +66,7 @@ LITE at this stage. The "modules" (not sub-pillars) below are reusable assets th
 
 ## Dependencies
 
-- **Composes from:** `00-charter` (brand voice, product positioning)
+- **Composes from:** `00-core` (brand voice, product positioning)
 - **Composed by:** `03-gtm` (consumes ICP, brand-voice-kit, content-templates), `05-customer/feedback-and-research` (uses ICP for interview recruitment)
 
 ## HITL baseline

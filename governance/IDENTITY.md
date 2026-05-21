@@ -225,7 +225,7 @@ Output: quarterly audit report in `.archives/audits/identity-{YYYY-Q}.md`. Faile
 | Which role exists | n/a | `governance/ROLES.md` |
 | Runtime enforcement | n/a | `.claude/hooks/pre-tool-secrets` |
 | Customer-facing identity | mention | `knowledge/identity-architecture.md` sub-domain C |
-| Disclosure compliance | mention | `00-charter/transparency.md` |
+| Disclosure compliance | mention | `00-core/transparency.md` |
 
 ---
 

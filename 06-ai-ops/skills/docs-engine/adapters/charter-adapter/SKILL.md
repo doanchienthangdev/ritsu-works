@@ -1,7 +1,7 @@
 ---
 name: docs-engine/adapters/charter-adapter
 description: |
-  Adapter for `00-charter/*.md`. Pass-through markdown with title-from-H1
+  Adapter for `00-core/*.md`. Pass-through markdown with title-from-H1
   fallback. **EXCLUDES `founder-profile.md` by default** (PII concern flagged
   in Phase 3 system inventory).
 ---
@@ -10,7 +10,7 @@ description: |
 
 ## Input pattern
 
-`00-charter/*.md` MINUS `founder-profile.md`
+`00-core/*.md` MINUS `founder-profile.md`
 
 ## Output pattern
 
@@ -18,7 +18,7 @@ description: |
 
 ## Process
 
-1. Hard-exclude `00-charter/founder-profile.md` (PII allowlist requires explicit override in `docs/excluded-paths.yaml`).
+1. Hard-exclude `00-core/founder-profile.md` (PII allowlist requires explicit override in `docs/excluded-paths.yaml`).
 2. For remaining: title from first H1.
 3. Compute `source_hash`.
 4. Render MDX. Charter files are free-form prose; no special structuring beyond Fumadocs default.

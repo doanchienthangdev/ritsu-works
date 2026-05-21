@@ -26,7 +26,7 @@ Every role has the following attributes:
 ```yaml
 role: <slug>
 purpose: <one-sentence description>
-home_pillar: <00-charter | 01-growth | 02-product | 03-delivery | 04-backoffice | 05-ai-ops | 06-trust-safety | cross-cutting>
+home_pillar: <00-core | 01-growth | 02-product | 03-delivery | 04-backoffice | 05-ai-ops | 06-trust-safety | cross-cutting>
 permissions:
   tier1_paths:           # which paths in this repo it can edit (PR-only)
   tier2_schemas_read:    # which Supabase schemas it can SELECT
@@ -89,7 +89,7 @@ permissions:
   tier1_paths:
     - "wiki/**"        # can write reference notes
     - ".archives/**"   # scratch space
-    # NO write to 00-charter, governance, pillar SOPs, skills, .claude
+    # NO write to 00-core, governance, pillar SOPs, skills, .claude
   tier2_schemas_read:
     - ops.*            # full read of ops state
     - metrics.*        # full read of mirrored product metrics
@@ -135,7 +135,7 @@ notify_on_completion: true
 escalation_role: founder
 ```
 
-> **Why GPS doesn't have direct write to most things:** it's a router, not a worker. If GPS itself starts editing 00-charter or running migrations, the role boundaries blur. GPS proposes; specialists execute (or PR).
+> **Why GPS doesn't have direct write to most things:** it's a router, not a worker. If GPS itself starts editing 00-core or running migrations, the role boundaries blur. GPS proposes; specialists execute (or PR).
 
 ### `growth-orchestrator` — Marketing & Sales lead
 

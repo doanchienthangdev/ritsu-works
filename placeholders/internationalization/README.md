@@ -1,7 +1,7 @@
 # Placeholder: Internationalization
 
 ## Why this pillar exists (eventually)
-Ritsu serves a global audience (per `00-charter/product.md` personas). When non-English usage exceeds 30%, operating without localization infrastructure becomes a tax on every product update and marketing message.
+Ritsu serves a global audience (per `00-core/product.md` personas). When non-English usage exceeds 30%, operating without localization infrastructure becomes a tax on every product update and marketing message.
 
 ## Entry condition
 **Trigger:** 30%+ of WAU (or paying users) are in a non-English locale, tracked via `metrics.product_dau_snapshot.extra->>'primary_locale'`.

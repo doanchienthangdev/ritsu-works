@@ -2,7 +2,7 @@
 title: 'Skill: ai-disclosure-check'
 description: |
   Use to verify an outgoing customer-facing message contains required
-  AI disclosure per `00-charter/transparency.md` and EU AI Act Article
+  AI disclosure per `00-core/transparency.md` and EU AI Act Article
   50. Returns either "compliant" or specific fix recommendations.
 
   Trigger conditions: any skill or agent producing customer-facing
@@ -18,19 +18,18 @@ description: |
   Cost: ~50ms wall-clock. ~200 tokens input + ~100 tokens output.
   Per-invocation cost: < $0.001.
 source_path: 06-ai-ops/skills/ai-disclosure-check/SKILL.md
-source_hash: 8ee7ddf396fb19474841a1b4bb4817f76eadf79b59df2d151391080729ad1ec7
-generated_at: '2026-05-19T05:20:46.328Z'
-generated_by: docs-engine v1.1.0
+source_hash: 36f8a62d599b2055f0c9ca91cafa8e710e4acb61e2bcef8147d0bf36f08c72a4
+generated_at: '2026-05-21T03:49:53.234Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_source_hash: 8ee7ddf396fb19474841a1b4bb4817f76eadf79b59df2d151391080729ad1ec7
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
+translated_at: '2026-05-19T15:00:00Z'
+translated_by: Claude Opus 4.7 (Claude Code Desktop, session translation)
+translated_source_hash: 36f8a62d599b2055f0c9ca91cafa8e710e4acb61e2bcef8147d0bf36f08c72a4
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
-
+{/* generated-by: docs-engine v1.2.0 */}
 
 # AI Disclosure Check
 
@@ -91,7 +90,7 @@ Nếu `compliant: true`, agent có thể tiến hành gửi. Nếu `false`, agen
 
 ### Bước 1 — Đọc các quy tắc disclosure
 
-Đọc `00-charter/transparency.md` và `knowledge/identity-architecture.md` (mục sub-domain C) để biết các pattern bắt buộc hiện hành. Cache cho session.
+Đọc `00-core/transparency.md` và `knowledge/identity-architecture.md` (mục sub-domain C) để biết các pattern bắt buộc hiện hành. Cache cho session.
 
 ### Bước 2 — Chạy các check
 
@@ -103,7 +102,7 @@ Nếu `message_type` kết thúc bằng `_first` (email_first, chat_first):
   - `I'm Ritsu Assistant — an AI system`
   - `I'm Ritsu Assistant, an AI system`
   - `Hi! I'm Ritsu Assistant, an AI helper`
-  - các biến thể đã được phê duyệt khác từ `00-charter/brand_voice.md`
+  - các biến thể đã được phê duyệt khác từ `00-core/brand_voice.md`
 - Đối với tiếng Việt: phải chứa cụm khớp với một trong các cụm sau:
   - `Mình là Ritsu Assistant — một hệ thống AI`
   - `Tôi là Ritsu Assistant, một hệ thống trí tuệ nhân tạo`
@@ -118,7 +117,7 @@ Nếu không có → `missing` (error).
 
 Đối với `email_first` và `email_subsequent`: body phải kết thúc bằng một khối signature khớp với một trong các mẫu sau:
 
-- Mẫu signature tiếng Anh (`00-charter/transparency.md` cho biết dạng chuẩn)
+- Mẫu signature tiếng Anh (`00-core/transparency.md` cho biết dạng chuẩn)
 - Mẫu signature tiếng Việt
 
 Cụ thể, footer phải bao gồm:
@@ -325,7 +324,7 @@ recommended_action: fix_then_send
 ## Failure modes
 
 - **Tin nhắn trước đó của khách hàng không có trong context** — Bỏ qua Check C (on-request response). Ghi log warning. Hook (`pre-tool-customer-message`) có cơ chế phát hiện pattern riêng làm backup.
-- **Charter chưa được cung cấp** — trả về error với con trỏ tới mẫu `00-charter/transparency.md`. Chặn việc gửi cho đến khi quy tắc disclosure tồn tại.
+- **Charter chưa được cung cấp** — trả về error với con trỏ tới mẫu `00-core/transparency.md`. Chặn việc gửi cho đến khi quy tắc disclosure tồn tại.
 - **Locale không xác định** — mặc định sử dụng các check tiếng Anh. Ghi log warning vào `monthly-learning-review` để thêm các locale khác.
 
 ## Ước tính cost
@@ -365,3 +364,4 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 *Tuân thủ disclosure là một yêu cầu pháp lý, không phải một sở thích UX. Skill này làm cho việc xác minh trở nên nhanh chóng và cụ thể để nó không trở thành gánh nặng phát triển — và để chúng ta không gửi đi những tin nhắn vi phạm các cam kết về tính minh bạch.*
+

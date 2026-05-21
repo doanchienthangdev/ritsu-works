@@ -29,7 +29,7 @@ Ritsu distinguishes four categories of memory, each with different storage, gove
 **Examples.** "Ritsu's brand voice is X." "Tier C actions require dry-run preview." "Support replies must cite the source documentation."
 
 **Storage.** Tier 1 — git repository.
-- `00-charter/` — vision, mission, values, glossary, brand_voice, product
+- `00-core/` — vision, mission, values, glossary, brand_voice, product
 - `governance/` — HITL, ROLES, SECRETS, BUDGET
 - `**/SOP-*/` — standard operating procedures per pillar
 - `skills/<name>/SKILL.md` — codified procedural knowledge as content

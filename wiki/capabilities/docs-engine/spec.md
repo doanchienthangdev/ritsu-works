@@ -85,7 +85,7 @@ English/multilingual; product user docs; auth-gating beyond Vercel Password Prot
 | `adapters/agent-adapter` | `.../adapters/agent-adapter/SKILL.md` | Render `.claude/agents/<name>.md` → MDX |
 | `adapters/hook-adapter` | `.../adapters/hook-adapter/SKILL.md` | Render `.claude/hooks/<name>.md` → MDX (full policy spec) |
 | `adapters/command-adapter` | `.../adapters/command-adapter/SKILL.md` | Render `.claude/commands/<name>.md` → MDX (handles frontmatter + frontmatter-less variants) |
-| `adapters/charter-adapter` | `.../adapters/charter-adapter/SKILL.md` | Render `00-charter/*.md` → MDX (allow/deny list for `founder-profile.md`) |
+| `adapters/charter-adapter` | `.../adapters/charter-adapter/SKILL.md` | Render `00-core/*.md` → MDX (allow/deny list for `founder-profile.md`) |
 | `adapters/governance-adapter` | `.../adapters/governance-adapter/SKILL.md` | Render `governance/*.md` → MDX (EXCLUDES `SECRETS.md` hard) |
 | `adapters/pillar-readme-adapter` | `.../adapters/pillar-readme-adapter/SKILL.md` | Render pillar `README.md` + `CLAUDE.md` recursively |
 | `adapters/sop-flow-adapter` | `.../adapters/sop-flow-adapter/SKILL.md` | Render `flow.yaml` → MDX with `<Steps>` component |
@@ -244,7 +244,7 @@ Per `knowledge/founder-rhythm.yaml`:
 - `schedules.yaml`: omit `requires_api: none` (not in schema enum `[anthropic, openai, supabase_product_read]`). Pattern from `morning-brief-assembly` (`schedules.yaml:20-26`).
 - `capability-registry.yaml`: ADD `ai-ops-docs` to `cost_buckets:` aggregation block — else validator flags unreferenced bucket.
 
-**Security — APPROVE with one observation.** 3-layer redactor sufficient for SECRETS-grade items. **PII gap:** the 4 regex patterns catch credentials, NOT arbitrary PII (founder family names, addresses, phone). Walker-exclude is the only defense for `00-charter/founder-profile.md`. **Add to Sprint 1 Layer 3 (CI gate):** assert `founder-profile.md` source_path never appears in any MDX frontmatter. Cheap, catches misconfig.
+**Security — APPROVE with one observation.** 3-layer redactor sufficient for SECRETS-grade items. **PII gap:** the 4 regex patterns catch credentials, NOT arbitrary PII (founder family names, addresses, phone). Walker-exclude is the only defense for `00-core/founder-profile.md`. **Add to Sprint 1 Layer 3 (CI gate):** assert `founder-profile.md` source_path never appears in any MDX frontmatter. Cheap, catches misconfig.
 
 **Sequencing — APPROVE.** `tutorial_last_verified_at` (CPO mod #1) in Sprint 1 is feasible: it's the frontmatter *spec* (key + validator stub), not the content. Sprint 2 authors populate the field per spec.
 
@@ -252,7 +252,7 @@ Per `knowledge/founder-rhythm.yaml`:
 - **Self-referential `pnpm check`:** `scripts/validate-docs-coverage.cjs` is in `pnpm check`, but the validator doesn't exist yet. Sprint 1 order: scaffold → validator stub returning 0 → walker → re-enable validator's logic. Else preflight fails on its own future addition.
 - **Fumadocs Orama 200-page index ceiling:** ~215 pages already exceeds it day 1. **Sprint 3 nav MUST shard the search index per pillar** (or `/docs build` aborts and re-emits a single index up to a higher cap). Don't ship Sprint 3 without this — search box will be broken.
 
-**Cite:** `supabase/migrations/00002_ops_core_tables.sql:45`, `knowledge/cross-tier-invariants.yaml:81-95`, `knowledge/schedules.yaml:20-26`, `00-charter/founder-profile.md`, `06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml:73-78,108-112,137`.
+**Cite:** `supabase/migrations/00002_ops_core_tables.sql:45`, `knowledge/cross-tier-invariants.yaml:81-95`, `knowledge/schedules.yaml:20-26`, `00-core/founder-profile.md`, `06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml:73-78,108-112,137`.
 
 **Verdict: NITS → APPROVE (after applied fixes).**
 

@@ -2,14 +2,14 @@
 title: "Chương 32 — Schema Foundation, Pillars, & Bootstrap Automation"
 description: "Chương 32 — Schema Foundation, Pillars, & Bootstrap Automation"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/32-schema-foundation.md
-source_hash: dad1749b5457097c6b5a56c143a6f47b3f1d62b366567fa2b7eb22030dba5679
-generated_at: '2026-05-19T17:13:00.300Z'
+source_hash: d9b5fcdb4aaa2ece8f0f794a053c7ad6bb17a8e2552f7ac589763dcf22252244
+generated_at: '2026-05-21T03:51:28.579Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: dad1749b5457097c6b5a56c143a6f47b3f1d62b366567fa2b7eb22030dba5679
-translated_at: '2026-05-19T17:13:00.300Z'
+translated_source_hash: d9b5fcdb4aaa2ece8f0f794a053c7ad6bb17a8e2552f7ac589763dcf22252244
+translated_at: '2026-05-21T03:51:28.579Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 32
 ---
@@ -22,13 +22,13 @@ chapter_order: 32
 
 Founder hỏi câu quan trọng sau khi nhận bundle v2.6:
 
-> "Phần Supabase schemas hay migration ở đâu? Tôi chỉ thấy 00-charter và 05-ai-ops; các folder số khác xử lý như nào?"
+> "Phần Supabase schemas hay migration ở đâu? Tôi chỉ thấy 00-core và 05-ai-ops; các folder số khác xử lý như nào?"
 
 Câu hỏi expose 2 gaps trong v2.6:
 
 1. **Gap 1: Concrete Supabase migrations.** Bundle có 12 DRAFTs với schemas described prose-style + SQL fragments, nhưng chưa consolidate thành actionable migration files.
 
-2. **Gap 2: 7 missing pillar folders.** Bundle có `00-charter/` và `05-ai-ops/` nhưng thiếu `01-growth`, `02-customer`, `03-product`, `04-content`, `06-finance`, `07-compliance`, `08-integrations`.
+2. **Gap 2: 7 missing pillar folders.** Bundle có `00-core/` và `05-ai-ops/` nhưng thiếu `01-growth`, `02-customer`, `03-product`, `04-content`, `06-finance`, `07-compliance`, `08-integrations`.
 
 Cả 2 gaps đều block Wave 1 implementation. Founder mỗi session phải re-derive schemas, mỗi pillar phải decide structure ad-hoc.
 
@@ -276,13 +276,13 @@ agent-os-boilerplate/                         <-- generic
 │   │   ├── schemas/                          ← 18 JSON Schemas
 │   │   └── *.template.yaml                   ← 19 Tier 1 templates
 │   ├── pillar-templates/                     ← 7 pillar README templates
-│   ├── 00-charter-template/                  ← 3 identity templates
+│   ├── 00-core-template/                  ← 3 identity templates
 │   └── .scripts-core/
 │       ├── bootstrap-new-project.sh
 │       └── validate-tier1.js
 
 ritsu-works/                                  <-- project (filled in)
-├── 00-charter/                               ← FILLED IN từ templates
+├── 00-core/                               ← FILLED IN từ templates
 ├── 01-growth/, 02-customer/, ..., 08-integrations/  ← 7 pillars (per chương 32)
 ├── 05-ai-ops/                                ← AI workforce
 ├── frontend/, mcp-server/                    ← (Wave 4)

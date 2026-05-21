@@ -4,7 +4,7 @@
 
 **Status:** v1.0 spec
 **Last updated:** 2026-05-02
-**Related:** `00-charter/product.md`, `00-charter/transparency.md`, `knowledge/identity-architecture.md`
+**Related:** `00-core/product.md`, `00-core/transparency.md`, `knowledge/identity-architecture.md`
 
 ---
 

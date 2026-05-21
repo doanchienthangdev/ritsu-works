@@ -45,7 +45,7 @@ agents/
 
 ## Key cross-pillar dependencies
 
-- **00-charter/brand_voice.md** — voice rules
+- **00-core/brand_voice.md** — voice rules
 - **01-growth/** — distributes content
 - **05-ai-ops/surface-adapters/** (Bài #17) — publishing infra
 - **05-ai-ops/format-converters/** — adapt content per surface

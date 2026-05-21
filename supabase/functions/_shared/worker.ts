@@ -409,7 +409,7 @@ export function makeConsistencySweepHandler(
 //   - ONLY handles fix_strategy=regen_bundle (deterministic — no AI yet)
 //   - Backpressure: caps to 5 PRs per tick (per CEO plan E3)
 //   - Governance path exclusion: refuses to fix anything under
-//     00-charter/, governance/, manifest.yaml itself, or .claude/hooks/
+//     00-core/, governance/, manifest.yaml itself, or .claude/hooks/
 //     even if confidence would be 1.0 (forces draft + manual review only)
 //   - Gated on GITHUB_CONSISTENCY_BOT_TOKEN env var; missing token → skill
 //     returns deferred_no_github_token (matches morning-brief pattern).
@@ -443,7 +443,7 @@ export interface DriftFixProposerDeps {
 }
 
 const DEFAULT_BLOCKED_PREFIXES = [
-  "00-charter/",
+  "00-core/",
   "governance/",
   "knowledge/manifest.yaml",
   ".claude/hooks/",
@@ -661,7 +661,7 @@ export function makeDriftFixProposerHandler(
 // v1.2 ships the skill + AI plumbing + response parsing + tests. Activation
 // requires:
 //   - Marker comments added to target .md files (Tier C action when any
-//     target is governance/HITL.md or 00-charter/* per CEO plan E4e).
+//     target is governance/HITL.md or 00-core/* per CEO plan E4e).
 //   - Bundler `wave2-bundle-doc-claims.cjs` (v1.2.1) to extract marker
 //     sections at pre-commit time.
 //   - Schedule entry `verify-doc-claims-nightly` (founder enables when ready).

@@ -112,5 +112,5 @@ How will we measure success?
 
 **Tham khảo:**
 - Architecture: Agent OS Playbook (Phase A + A.2)
-- Brand voice: `00-charter/brand_voice.md`
-- Founder profile: `00-charter/founder-profile.md`
+- Brand voice: `00-core/brand_voice.md`
+- Founder profile: `00-core/founder-profile.md`

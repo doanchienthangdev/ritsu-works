@@ -38,7 +38,7 @@ CGO's job: drive the 03-gtm funnel toward PMF ("100 paying who love"). Below are
 - **Upstream dependency:** verify wedge is validated via `@cpo` first (SOP-PRODUCT-002 N=10 strangers complete).
 - **Default action:**
   1. Read `03-gtm/icp-and-segmentation/` to confirm ICP.
-  2. Pull voice from `00-charter/product.md` + `00-charter/brand_voice.md` (when authored).
+  2. Pull voice from `00-core/product.md` + `00-core/brand_voice.md` (when authored).
   3. Draft messaging.
   4. Surface for founder approval. Never publish in subagent mode.
 
