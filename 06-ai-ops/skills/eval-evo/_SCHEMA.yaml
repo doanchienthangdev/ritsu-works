@@ -1,0 +1,131 @@
+# JSON Schema for ops.agent_runs.state_payload when agent_slug = 'evolve'
+#
+# Validated by scripts/cross-tier/validate-eval-evo-schemas.cjs at pnpm check.
+# Documents the JSONB shape; not enforced by Postgres (PGRST does not
+# auto-validate JSONB).
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "ritsu-works://eval-evo/agent-runs-state-payload"
+title: "ops.agent_runs.state_payload for /evolve invocations"
+
+type: object
+required:
+  - entity_type
+  - entity_slug
+  - run_id
+  - current_iter
+  - max_iters
+  - scores
+
+properties:
+  entity_type:
+    type: string
+    enum: [skill, command, agent, hook, sop]
+    description: "The 5 v1.0 leaf entity types. Folder/pillar deferred to v1.1."
+
+  entity_slug:
+    type: string
+    pattern: "^[a-z0-9][a-z0-9-/]*$"
+    description: "Entity name slug; matches /evolve <type> <name> argv."
+
+  entity_path:
+    type: string
+    description: "Resolved file or directory path on disk."
+
+  run_id:
+    type: string
+    format: uuid
+    description: "Same as ops.agent_runs.id; included for log-grep convenience."
+
+  current_iter:
+    type: integer
+    minimum: 0
+    description: "0 before loop starts; increments per iter. Final = iters_attempted."
+
+  max_iters:
+    type: integer
+    minimum: 1
+    maximum: 10
+    description: "From --loop arg; default 3 at command level."
+
+  stop_cond:
+    oneOf:
+      - type: "null"
+      - type: string
+        pattern: "^(score>=\\d+|no-improvement-for=\\d+)$"
+    description: "From --stop arg; if both --stop and --loop given, FIRST trigger wins."
+
+  scores:
+    type: array
+    items:
+      type: integer
+      minimum: 0
+      maximum: 100
+    description: "Composite scores; index 0 = pre-loop, indices 1+ = per-iter post-scores."
+
+  sub_scores_per_iter:
+    type: array
+    items:
+      type: array
+      items:
+        type: integer
+        minimum: 0
+        maximum: 10
+      minItems: 10
+      maxItems: 10
+    description: "Per-iter sub-score arrays; exactly 10 sub-scores per playbook."
+
+  diffs_applied_iter:
+    type: array
+    items:
+      type: integer
+    description: "Iter indices where diff was kept."
+
+  diffs_reverted_iter:
+    type: array
+    items:
+      type: integer
+    description: "Iter indices where diff was reverted (score regressed)."
+
+  variance_flags:
+    type: array
+    items:
+      type: integer
+    description: "Iter indices where judge variance >5pt on unchanged artifact (R2 mitigation)."
+
+  tier:
+    type: string
+    enum: [A, B, C]
+    description: "Inherited from entity tier classification + --tier-override flag."
+
+  outside_voice_status:
+    type: string
+    enum: ["n/a", "codex_ok", "subagent_ok", "annotate_only"]
+    description: "Tier C+ outside-voice fallback chain result."
+
+  stash_run_label_prefix:
+    type: string
+    description: "Prefix for git stash messages this run; e.g., 'eval-evo <run-id>'."
+
+  worktree_path:
+    type: ["string", "null"]
+    description: "Reserved for v1.1 worktree mode; null in v1.0 (uses git stash in-place)."
+
+  exit_reason:
+    type: string
+    enum: [loop_complete, stop_triggered, budget_truncated, aborted, all_iters_reverted]
+    description: "Set when loop exits."
+
+  total_cost_usd:
+    type: number
+    minimum: 0
+    description: "Sum of ops.cost_attributions for this run."
+
+  wall_clock_seconds:
+    type: number
+    minimum: 0
+    description: "End-to-end wall time."
+
+  summary_text:
+    type: string
+    description: "~150-token one-line why score moved; mirrors ops.run_summaries.summary."

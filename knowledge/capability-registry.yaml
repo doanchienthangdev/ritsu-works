@@ -357,6 +357,48 @@ capabilities:
   #   estimated_founder_hours: 32
   #   estimated_completion: 2026-06-12
 
+  # === eval+evo feedback loop (proposed 2026-05-22) ===
+  - id: evolve
+    name: "/evolve — Eval+Evo Feedback Loop for ritsu-works entities"
+    description: |
+      Iterative evaluate→propose-improvement→install→re-evaluate loop on
+      any ritsu-works leaf entity (skill / command / agent / hook / SOP).
+      v1.0 ships 5 leaf types; folder/pillar deferred to v1.1. Approach:
+      top-level slash command parallel to /cla; BALANCED Karpathy fit
+      (single per-type composite metric, HITL by tier, ~500-tok cross-iter
+      memory, git stash isolation NOT worktrees, falsifiable day-30
+      efficacy gate). E5 outside-voice + E6 golden case battery
+      scaffolding accepted. Per-iter $0.50 / per-run $2.50 / monthly role
+      $50 caps. Goodhart mitigation: 4-layer (proposer-vs-judge persona
+      separation + golden cases + outside-voice on Tier C+ + founder
+      corrections) + Spearman rubric hold-out validation per playbook.
+      Strategic position: quality engine for entities driving product/
+      GTM/first-100-customers — NOT meta-work.
+    version: "0.1.0"            # bumps to 1.0.0 on Phase 8 promotion
+    state: proposed
+    state_since: 2026-05-22
+    proposed_at: 2026-05-22
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [1, 2, 4, 5, 7, 11, 13, 14, 15, 20]
+    spec_path: wiki/capabilities/evolve/spec.md
+    cost_bucket: ai-ops-cla     # /cla orchestration cost; per-run /evolve charges to eval-evo-orchestrator role
+    estimated_cost_setup_usd: 5.00      # /cla 8-phase ceremony
+    estimated_cost_recurring_usd: 50.00  # eval-evo-orchestrator monthly role cap
+    estimated_founder_hours: 25          # ~23-28h CC+gstack range; midpoint
+    target_kpis: [eval_evo_median_gain_to_judge_sigma_ratio]
+    target_value: 1.5            # day-30 efficacy gate: median gain ÷ judge σ must exceed 1.5
+    notes: |
+      ops.capability_runs id: 9c456d98-c172-4f1a-bd14-87d4e4cc43f2
+      (state: proposed, current_phase: 1, proposed_at: 2026-05-21T18:32Z UTC).
+      Spec is LOCKED at /plan-ceo-review + /plan-eng-review on 2026-05-22
+      (~520-line PLAN.md + 11 sections + outside-voice YELLOW absorbed +
+      eng-review pass; spec-review iter-2 PASS 8/10).
+      Working folder: .archives/cla/evolve/
+      Canonical CEO plan: ~/.gstack/projects/doanchienthangdev-ritsu-works/ceo-plans/2026-05-22-evolve-eval-evo.md
+      Context bundle: runtime/eval+evo/context/ (5 files, ~700 lines)
+      v1.0 falsifiable efficacy gate at day-30: if median gain on N≥10
+      evolved entities < 1.5× judge-noise σ, /evolve paused for v1.1 redesign.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:

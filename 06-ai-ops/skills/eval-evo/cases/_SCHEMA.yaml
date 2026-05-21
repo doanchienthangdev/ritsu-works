@@ -1,0 +1,61 @@
+# JSON Schema for eval-evo golden case YAML files
+#
+# Each cases/<type>/<entity-name>/case-NNN-*.yaml must conform.
+# Validated by scripts/cross-tier/validate-eval-evo-schemas.cjs at pnpm check.
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "ritsu-works://eval-evo/case"
+title: "eval-evo golden case file"
+
+type: object
+required:
+  - case_id
+  - entity_type
+  - entity_name
+  - input
+  - expected_traits
+
+properties:
+  case_id:
+    type: string
+    pattern: "^case-\\d{3}-[a-z0-9-]+$"
+    description: "e.g., 'case-001-typical-invocation'"
+
+  entity_type:
+    type: string
+    enum: [skill, command, agent, hook, sop]
+
+  entity_name:
+    type: string
+    pattern: "^[a-z0-9][a-z0-9-/]*$"
+
+  input:
+    type: object
+    description: "Realistic invocation input. Shape varies by entity type."
+
+  expected_traits:
+    type: array
+    items:
+      type: object
+      required: [trait, assertion]
+      properties:
+        trait:
+          type: string
+          maxLength: 60
+          description: "What we're checking; e.g., 'output_has_audit_log_entry'"
+        assertion:
+          type: string
+          maxLength: 200
+          description: "How to verify; e.g., 'ops.agent_runs has new row with agent_slug=evolve'"
+    minItems: 1
+    description: "What MUST be true about the entity's behavior on this input."
+
+  prompt_assertions:
+    type: array
+    items:
+      type: string
+    description: "Optional: text patterns judge should check in output."
+
+  notes:
+    type: string
+    description: "Optional human commentary for case."

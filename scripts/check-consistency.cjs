@@ -217,6 +217,7 @@ async function main() {
     ['validate-schedules-skills.cjs', 'schedules ↔ skill registry'],
     ['validate-personas.cjs', 'workforce personas ↔ ROLES.md ↔ runtime'],
     ['validate-cla-routing-keywords.cjs', 'cla routing ↔ personas ↔ ROLES.md'],
+    ['validate-eval-evo-schemas.cjs', 'eval-evo playbook + cases schemas'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;
