@@ -28,7 +28,7 @@ This command is a **thin orchestrator**. Phase logic lives in the 8 skills under
 | Invocation | Purpose | HITL | Persistence |
 |---|---|---|---|
 | `/cla` | Show menu + active capabilities | A | read-only |
-| `/cla propose "<problem>" [--refs <files>]` | Start new capability at Phase 0 | per phase | INSERT ops.capability_runs |
+| `/cla propose "<problem>" [--refs <ref1>[,<ref2>...]] [--refs ...]` | Start new capability at Phase 0. Each ref is one of: **file path** (existing — copied to `.archives/cla/<slug>/refs/`); **`wiki:src=<spec>`** (v1.1) → calls `/wiki get --src=<spec>`; **`wiki:query="<text>"`** (v1.1) → calls `/wiki get --query=<text>`; **`wiki:query="<text>":src=<source>`** (v1.1) → scoped query. Wiki-resolved files land in `runtime/cla/refs/<slug>/` (local-only). | per phase | INSERT ops.capability_runs |
 | `/cla resume <id>` | Pick up at last incomplete phase | per phase | UPDATE |
 | `/cla status <id>` | Show full state of one capability | A | read-only |
 | `/cla list [--state=<filter>]` | List all capabilities + age | A | read-only |
@@ -76,12 +76,62 @@ Before any LLM-driven phase runs:
 5. **Append placeholder** to `knowledge/capability-registry.yaml` under
    `capabilities:` with `state: proposed`, `proposed_at: <today>`,
    `spec_path: wiki/capabilities/<slug>/spec.md` (target path).
-6. **Optionally**: copy any `--refs` files into
-   `.archives/cla/<slug>/refs/`.
-7. **Confirm to founder** — print summary; auto-advance to Phase 1 unless
-   founder cancels.
+6. **Resolve `--refs` arguments** (v1.1 NEW — `wiki:` form support):
+
+   Each `--refs <args>` value may be a comma-separated list. Each item:
+   - **File path** (existing): `raw/notes.md`, `wiki/competitors/foo.md`, etc.
+   - **Wiki spec** (v1.1 NEW): `wiki:src=<spec>` → calls `/wiki get --src=<spec>`
+   - **Wiki query** (v1.1 NEW): `wiki:query="<text>"` → calls `/wiki get --query="<text>"`
+   - **Wiki spec+query** (v1.1 NEW): `wiki:query="<text>":src=<source-slug>` → calls `/wiki get --query="<text>" --src=<source>`
+
+   For each `wiki:` ref:
+   a. Create `runtime/cla/refs/<slug>/` (gitignored — `runtime/` is local-only per `.gitignore`).
+   b. Compute auto-filename: `<ordinal>-wiki-<slugified-spec-or-query>.md` where slug is max 60 chars.
+      - `wiki:src=marketing-management-kotler/chapter-14` → `01-wiki-marketing-management-kotler-chapter-14.md`
+      - `wiki:query="customer segmentation strategies"` → `02-wiki-query-customer-segmentation-strategies.md`
+   c. Invoke `/wiki get` with appropriate args + `--to=runtime/cla/refs/<slug>/<auto-filename>` (orchestrator uses query mode flow if `:query=` set — see `.claude/commands/wiki.md` §Mode 2).
+   d. Add resolved filepath to refs list.
+
+   **Helper script**: `node scripts/cla/resolve-refs.cjs --slug=<slug> --refs=<csv>`
+   handles deterministic refs (file paths + `wiki:src=`). For `wiki:query=` it
+   returns `kind: "wiki-query-pending"` with intended filepath — the orchestrator
+   (this Claude session) MUST then call MCP wiki_ask → resolve entity list →
+   invoke `node scripts/wiki-sync/get.cjs --entities=<csv> --query-context-header="<text>" --to=<intended_path>`
+   to fulfill the pending wiki-query refs. JSON output of the helper enumerates
+   each ref's kind + status.
+
+   For each file-path ref:
+   - Copy into `.archives/cla/<slug>/refs/` as before (existing behavior).
+
+   For `wiki:` refs:
+   - Files live in `runtime/cla/refs/<slug>/` (NOT `.archives/`). Reason: `.archives/` is committable-shell-only; `runtime/` is fully local-only. Wiki-resolved bundles can be re-generated deterministically from source, so they don't need to persist in archives.
+
+   Multiple `--refs` flags may be passed; values combine.
+
+7. **Confirm to founder** — print summary including:
+   - File refs copied to `.archives/cla/<slug>/refs/` (N files)
+   - Wiki refs resolved to `runtime/cla/refs/<slug>/` (N files, each w/ source spec or query annotation)
+   - Total ref context: ~X KB across N files
+
+   Auto-advance to Phase 1 unless founder cancels.
 
 **HITL:** A (auto-advance unless founder cancels)
+
+**Examples:**
+
+```
+/cla propose "Build email lifecycle engine for Ritsu free→paid"
+  --refs raw/founder-email-thoughts.md
+  --refs wiki:src=marketing-management-kotler/chapter-14
+  --refs wiki:query="email marketing channels"
+
+/cla propose "Customer segmentation overhaul"
+  --refs wiki:query="customer segmentation strategies":src=principles-of-marketing-kotler
+  --refs wiki:src=principles-of-marketing-kotler/chapter-7
+
+/cla propose "Pricing experiment redesign"
+  --refs raw/competitor-pricing-screenshots.md,wiki:src=marketing-management-kotler/chapter-11
+```
 
 ### Phase 1 — Problem Framing
 Skill: `capability-lifecycle/problem-framer`. Invokes the skill, presents
