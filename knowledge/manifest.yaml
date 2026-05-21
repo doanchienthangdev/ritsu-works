@@ -18,10 +18,10 @@
 #      NOT SQL — do not look for table DDL there.)
 #   - Operating AI MUST NOT write to product.supabase. Read-only via ETL.
 
-version: 0.8.0
+version: 0.9.0
 last_updated: 2026-05-21
 owner: founder
-migration_note: "v0.8.0 (2026-05-21): Pillar `charter` renamed to `core` (more general — contains ALL ritsu-works core docs). Folder 00-charter/ → 00-core/ via git mv (preserves file history). pillar_code CHARTER → CORE. composes_from references updated in marketing/product/founder. SOP namespace unchanged (no SOPs under this pillar). docs-engine `charter-adapter` retains name; walks 00-core/*.md transparently. Walker exclude list updated (00-charter/founder-profile.md → 00-core/founder-profile.md). 52 file refs updated batch-sed. Prior: v0.7.0 (2026-05-18): wiki-sync v4.0 source-grouped layout flip — added migration 00032 (composite UNIQUE on derived entity slugs via partial indexes). Wiki layout changes from entity-type-grouped (wiki/concept/, wiki/observation/, …) to source-grouped (wiki/<source-slug>/{source.md, concepts/, observations/, decisions/, ideas/, chapters/}/). Skill input contract: input = wiki/<source-slug>/ is now a coherent package. wiki/_index/ reverse-lookup link-lists added Sprint 2. See wiki/capabilities/wiki-sync-from-refs/spec.md (v4.0 after Phase 8 promotion) + ops.decisions[e558913a-fb5d-444a-ab0b-305f38ce80a0] (slug wiki-sync-v4-source-grouped-layout). Prior: v0.6.0 (2026-05-18): wiki-sync v3.0 distill+extract foundation — added ops.knowledge_extractions table (citation spine) per migration 00031. Reframes wiki-sync from verbatim-projection (v1/v2) to distill+extract (v3.0). See wiki/capabilities/wiki-sync-from-refs/spec.md §0 + ops.decisions[562b2e4e]. Prior: v0.5.0 (2026-05-15): Workforce persona layer v1.0 — added 06-ai-ops/workforce-personas sub-pillar and cross_cutting.workforce_personas registry pointer. Phase 1 personas (CEO, CTO, CGO, CPO) bind to existing technical roles per ADR-003. Schema: knowledge/schemas/workforce-personas.schema.json. Prior: v0.4.0 (2026-05-15): dropped NN- numeric prefix from sub-pillar dirs. v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage)."
+migration_note: "v0.9.0 (2026-05-21): capability `core-redesign-and-command` v1.0.0 — 00-core expanded from 5 → 19 files (10 filled + 6 stubs + 3 existing retrofitted with frontmatter). Sub-files enumeration added under pillars.core.sub_files. /core command shipped (.claude/commands/core.md, 7 Phase-1 verbs). 6 helper scripts under scripts/core/ + scripts/cross-tier/validate-core-pillar.cjs. Skill 06-ai-ops/skills/core-management/core-fill. New workspace_plane.runtime declaration (per CTO Phase 2 mandate — runtime/ now formally declared for runtime/core/{drafts,context}/ + runtime/cla/refs/ + runtime/secrets/). ops.capability_runs id cd377ba8-d8c6-44ed-b0ad-69981b49d45a. PRs #75 (Sprint 1: docs), #76 (Sprint 2: command+scripts), #77 (Sprint 3: integration). Prior: v0.8.0 (2026-05-21): Pillar `charter` renamed to `core` (more general — contains ALL ritsu-works core docs). Folder 00-charter/ → 00-core/ via git mv (preserves file history). pillar_code CHARTER → CORE. composes_from references updated in marketing/product/founder. SOP namespace unchanged (no SOPs under this pillar). docs-engine `charter-adapter` retains name; walks 00-core/*.md transparently. Walker exclude list updated (00-charter/founder-profile.md → 00-core/founder-profile.md). 52 file refs updated batch-sed. Prior: v0.7.0 (2026-05-18): wiki-sync v4.0 source-grouped layout flip — added migration 00032 (composite UNIQUE on derived entity slugs via partial indexes). Wiki layout changes from entity-type-grouped (wiki/concept/, wiki/observation/, …) to source-grouped (wiki/<source-slug>/{source.md, concepts/, observations/, decisions/, ideas/, chapters/}/). Skill input contract: input = wiki/<source-slug>/ is now a coherent package. wiki/_index/ reverse-lookup link-lists added Sprint 2. See wiki/capabilities/wiki-sync-from-refs/spec.md (v4.0 after Phase 8 promotion) + ops.decisions[e558913a-fb5d-444a-ab0b-305f38ce80a0] (slug wiki-sync-v4-source-grouped-layout). Prior: v0.6.0 (2026-05-18): wiki-sync v3.0 distill+extract foundation — added ops.knowledge_extractions table (citation spine) per migration 00031. Reframes wiki-sync from verbatim-projection (v1/v2) to distill+extract (v3.0). See wiki/capabilities/wiki-sync-from-refs/spec.md §0 + ops.decisions[562b2e4e]. Prior: v0.5.0 (2026-05-15): Workforce persona layer v1.0 — added 06-ai-ops/workforce-personas sub-pillar and cross_cutting.workforce_personas registry pointer. Phase 1 personas (CEO, CTO, CGO, CPO) bind to existing technical roles per ADR-003. Schema: knowledge/schemas/workforce-personas.schema.json. Prior: v0.4.0 (2026-05-15): dropped NN- numeric prefix from sub-pillar dirs. v0.3.0 (2026-05-15): pillar architecture v1.0.1 (10 evergreen + 1 stage)."
 
 # ---------------------------------------------------------------------------
 # TIER 1 — Canonical (this repo)
@@ -39,9 +39,38 @@ tier1_canonical:
       layer: evergreen
       stage_status: maintenance
       pillar_code: CORE
-      contents: [vision, mission, values, product, glossary, brand_voice, founder_profile, transparency]
+      contents: [vision, mission, values, product, glossary, brand_voice, founder_profile, transparency, north_star, icp_summary, positioning, principles, ai_native_philosophy, design_system, wedge, pricing_philosophy, operating_cadence, decision_rights_narrative, INDEX]
       change_policy: pr_human_review
       status: alive
+      sub_files:
+        expected:
+          - {file: product.md, status: canonical, layer: identity, auto_load: true}
+          - {file: brand_voice.md, status: canonical, layer: identity, auto_load: true}
+          - {file: transparency.md, status: canonical, layer: identity, auto_load: true}
+          - {file: charter.md, status: canonical, layer: identity, auto_load: false}
+          - {file: founder-profile.md, status: canonical, layer: identity, auto_load: false, walker_excluded: true}
+          - {file: values.md, status: v0.1-draft, layer: identity, auto_load: false, revisit_at: 30-paying}
+          - {file: ai-native-philosophy.md, status: v0.1-draft, layer: identity, auto_load: false, revisit_at: 30-paying}
+          - {file: north-star.md, status: canonical, layer: strategy, auto_load: false}
+          - {file: icp-summary.md, status: canonical, layer: strategy, auto_load: false}
+          - {file: positioning.md, status: canonical, layer: strategy, auto_load: false}
+          - {file: principles.md, status: v0.1-draft, layer: operating, auto_load: false, revisit_at: 30-paying}
+          - {file: glossary.md, status: stub, layer: meta, entry_condition: "first 10 SOPs land"}
+          - {file: design-system.md, status: stub, layer: brand-design, entry_condition: "first marketing visual needed"}
+          - {file: wedge.md, status: stub, layer: strategy, entry_condition: "SOP-PRODUCT-002 N=10 strangers complete"}
+          - {file: pricing-philosophy.md, status: stub, layer: strategy, entry_condition: "first SOP-PRODUCT-010 pricing-pull-test"}
+          - {file: operating-cadence.md, status: stub, layer: operating, entry_condition: "cofounder formal join OR 50 paying users"}
+          - {file: decision-rights-narrative.md, status: stub, layer: operating, entry_condition: "cofounder formal join"}
+          - {file: INDEX.md, status: canonical, layer: meta, auto_load: false}
+          - {file: README.md, status: canonical, layer: meta, auto_load: false}
+        validator: scripts/cross-tier/validate-core-pillar.cjs
+        command: .claude/commands/core.md
+        skill: 06-ai-ops/skills/core-management/core-fill/SKILL.md
+        helpers:
+          - scripts/core/lib/frontmatter.cjs
+          - scripts/core/compose.cjs
+          - scripts/core/reindex.cjs
+          - scripts/core/validate.cjs
       note: |
         Renamed 2026-05-21 from "charter" → "core" (more general — contains
         ALL ritsu-works core docs, not just the charter spec). Folder
@@ -361,6 +390,28 @@ workspace_plane:
     boundary:
       wiki: "notes about the world"
       tier1: "statements about who Ritsu is and how Ritsu operates"
+
+  runtime:
+    path: runtime/
+    sync_policy: local_only
+    sync_mechanism: ".gitignore excludes runtime/* (already covered)"
+    purpose: |
+      Local-only operator workspace for ephemeral state — secrets, caches,
+      tmp, exports, logs, plus per-capability scratch (e.g.,
+      runtime/core/drafts/<slug>.draft.md from /core fill interruption
+      recovery; runtime/core/context/ for per-capability brainstorm
+      context bundles; runtime/cla/refs/ for wiki-resolved CLA refs from
+      /cla propose --refs=wiki:*). Never authoritative; never synced;
+      regenerable from sources.
+    rules:
+      - Read/write freely from any tool
+      - Never reference runtime/ paths from canonical files
+      - Drafts here may be promoted to .archives/ or 00-core/ on user action
+    subpaths_known:
+      - secrets/ (already in use; .env.local symlink target)
+      - core/context/ (per-capability brainstorm context bundles; introduced v0.9.0)
+      - core/drafts/ (/core fill interruption recovery; introduced v0.9.0)
+      - cla/refs/ (wiki-resolved CLA refs from /cla propose --refs=wiki:*)
 
   archives:
     path: .archives/

@@ -21,5 +21,27 @@ kpis:
     threshold_warn: 1
     threshold_critical: 10
 
+  - id: core_docs_filled_count
+    type: operational
+    description: "Count of 00-core/*.md docs with status in (canonical, v0.1-draft). Measured by scripts/core/validate.cjs --json output. Excludes stubs (which graduate on entry_condition fire). Introduced by capability core-redesign-and-command v1.0.0."
+    owner_pillar: 00-core
+    owner_role: founder
+    target: 10
+    threshold_warn: 9
+    threshold_critical: 7
+    cadence: on_demand
+    source: "node scripts/cross-tier/validate-core-pillar.cjs --json"
+
+  - id: core_command_verbs_phase_1
+    type: operational
+    description: "Count of working /core Phase-1 verbs in .claude/commands/core.md (target 7: show, list, diff, check, compose, scaffold, fill). Phase-2 verbs (init/reindex/review/status/<doc>:apply/build/export) tracked separately. Introduced by capability core-redesign-and-command v1.0.0."
+    owner_pillar: 00-core
+    owner_role: founder
+    target: 7
+    threshold_warn: 6
+    threshold_critical: 4
+    cadence: on_demand
+    source: ".claude/commands/core.md subcommand table parse"
+
   # Business KPIs (customize per project)
   # {{ADD_BUSINESS_KPIS}}

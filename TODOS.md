@@ -3,7 +3,74 @@
 Project-level deferred work. Append-only; do not delete completed items —
 move to a `## Done` section instead.
 
+## P2 — 00-core stubs awaiting graduation (capability core-redesign-and-command v1.0.0)
+
+Each stub has explicit `entry_condition` in frontmatter. When triggered, run
+`/core fill <slug>` to graduate stub → v0.1-draft (or canonical). Tracked here
+for founder weekly review (`SOP-FOUNDER-014`).
+
+### 00-core/glossary.md
+- **Status**: stub
+- **Entry condition**: First 10 SOPs land (vocabulary stabilized via real usage)
+- **Trigger**: SOP count in 03-gtm + 04-product + 05-customer ≥ 10 total
+- **Action when fires**: `/core fill glossary` — interactive AskUserQuestion-based fill of 15-30 canonical terms
+- **Why deferred**: pre-PMF vocabulary unstable; codifying now risks contradicting downstream experience
+
+### 00-core/design-system.md
+- **Status**: stub
+- **Entry condition**: First marketing visual needed AND `brand-tokens.yaml` exists
+- **Trigger**: first paid campaign OR blog post requiring branded visual OR landing page redesign
+- **Action when fires**: build `brand-tokens.yaml` first (see below), then `/core fill design-system`
+- **Why deferred**: product UI design system separate (omg/ritsu/.omgkit/design/); company design system earns existence when first multi-channel visual needed
+
+### 00-core/wedge.md
+- **Status**: stub
+- **Entry condition**: SOP-PRODUCT-002 (N=10 strangers observed using product) complete
+- **Trigger**: `ops.sop_runs WHERE sop_slug = 'SOP-PRODUCT-002' AND state = 'completed'`
+- **Action when fires**: `/core fill wedge` — based on N=10 observed usage data
+- **Why deferred**: PG gate enforced — wedge is DISCOVERED not declared; filling pre-N=10 = guessing
+
+### 00-core/pricing-philosophy.md
+- **Status**: stub
+- **Entry condition**: First SOP-PRODUCT-010 (pricing-pull-test) executes
+- **Trigger**: `ops.sop_runs WHERE sop_slug = 'SOP-PRODUCT-010' AND state = 'completed'`
+- **Action when fires**: `/core fill pricing-philosophy` — based on first pricing experiment results
+- **Why deferred**: pricing principles need evidence from first pricing experiments
+
+### 00-core/operating-cadence.md
+- **Status**: stub
+- **Entry condition**: Cofounder formal join OR 50 paying users
+- **Trigger**: cofounder agent definition active OR `ops.kpi_snapshots paying_users ≥ 50`
+- **Action when fires**: `/core fill operating-cadence` — daily/weekly/monthly/quarterly rhythm
+- **Why deferred**: solo founder = cadence in head + 09-founder/weekly-review; codifying matters when 2+ people coordinate
+
+### 00-core/decision-rights-narrative.md
+- **Status**: stub
+- **Entry condition**: Cofounder formal join
+- **Trigger**: cofounder agent definition active
+- **Action when fires**: `/core fill decision-rights-narrative` — narrative layer above HITL.md
+- **Why deferred**: solo founder = founder decides; narrative layer earns existence at 2+ humans
+
 ## P2 — Soon
+
+### knowledge/design-tokens/brand-tokens.yaml (precursor to 00-core/design-system.md)
+
+Lightweight design-system v0 — machine-readable color/font/spacing tokens.
+`/core design-system:build` (Phase 2 verb) consumes this to generate company
+output assets (slide templates, social cards, email signatures, ad layouts).
+
+**Why**: precursor to 00-core/design-system.md graduation. Earns existence at
+first marketing visual need.
+
+**Pros**: machine-readable; can ship before full design-system.md is written.
+**Cons**: deferred per Sprint 1 brainstorm right-size (Reviewer Concern: not
+blocking 30-day push; trigger = first marketing visual).
+**Effort**: S (CC ~30 min)
+**Priority**: P2 — when first marketing visual needed
+**Depends on**: none (can start anytime)
+**Surfaced from**: capability core-redesign-and-command brainstorm 2026-05-21
+
+### Hook runtime implementation (covers all 10 hook specs incl. persona hooks)
 
 ### Hook runtime implementation (covers all 10 hook specs incl. persona hooks)
 
