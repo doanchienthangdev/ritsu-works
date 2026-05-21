@@ -1,3 +1,19 @@
+---
+title: Ritsu — Product Charter
+type: core-doc
+slug: product
+layer: identity
+status: canonical
+owner: founder
+last_reviewed: "2026-05-02"
+review_cadence: quarterly
+cited_by:
+  - blog-post-drafting
+  - social-post-drafting
+  - support-reply-drafting
+  - growth-orchestrator
+auto_load: true
+---
 # Ritsu — Product Charter
 
 > **Canonical source of truth for what Ritsu is.**

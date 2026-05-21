@@ -1,3 +1,19 @@
+---
+title: Ritsu Brand Voice
+type: core-doc
+slug: brand-voice
+layer: identity
+status: canonical
+owner: founder
+last_reviewed: "2026-05-02"
+review_cadence: quarterly
+cited_by:
+  - blog-post-drafting
+  - social-post-drafting
+  - email-drafting
+  - support-reply-drafting
+auto_load: true
+---
 # Ritsu Brand Voice
 
 > How Ritsu sounds — internally to the workforce, externally to customers, and consistently across both.
