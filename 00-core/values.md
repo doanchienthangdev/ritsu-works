@@ -1,0 +1,95 @@
+---
+title: Ritsu Values
+type: core-doc
+slug: values
+layer: identity
+status: v0.1-draft
+owner: founder
+last_reviewed: 2026-05-21
+review_cadence: on-trigger
+cited_by: []
+auto_load: false
+revisit_at: 30-paying
+revisit_trigger: "first 30-paying milestone + first NPS survey (then re-author from observed customer language)"
+revisit_owner: founder
+ai_synthesized_v0_1: true
+ai_synthesized_at: 2026-05-21
+ai_synthesized_from: [transparency.md, governance/HITL.md, CLAUDE.md, brand_voice.md]
+ai_synthesis_note: "HYPOTHESES extracted from existing stated boundaries. Founder rewrites at 30-paying milestone with observed customer-language."
+---
+
+# Ritsu Values
+
+> Operating principles that bias every decision when in doubt. Cited by /cla domain-analyst + decision-aware skills.
+>
+> **v0.1 caveat:** Pre-PMF, these are HYPOTHESES extracted from already-stated boundaries (transparency.md + HITL.md). Revise at 30-paying milestone with actual paying-customer language + retention failure analysis. Don't lock values that come from theory rather than observed behavior.
+
+## 1. What we will NOT do (bright lines)
+
+These are non-negotiable. No agent — no founder pressure — no business opportunity overrides these. Boundary crossings are Tier D-MAX actions per HITL.md.
+
+- **No deceptive marketing.** No manufactured urgency. No fake testimonials. No "as featured in" without verifiable citation. No learning outcome claims without behavioral evidence.
+- **No PII training without explicit consent.** User uploads, conversations, and progress data NEVER train Anthropic's or other providers' models. (Public statement of this lives in `transparency.md`.)
+- **No AI pretending to be human.** First-contact AI disclosure is mandatory across all channels — chat, email, social, support. Per EU AI Act Article 50 + California SB 1001 + our own ethics. No "I'm a real person who loves learning!" — Ritsu Assistant identifies as AI.
+- **No minor-targeted advertising.** Ritsu is open to learners of all ages (we don't gate younger users out), but we never run ad campaigns targeting users we know are under 18.
+- **No engagement dark patterns.** No streak-shaming. No FOMO timers. No "you're 1 day from breaking your 27-day streak" guilt. Engagement = mastery + retention, not session count.
+- **No selling user data.** Period. Even anonymized aggregates require user consent.
+- **No public safety/compliance claims we haven't earned.** No "GDPR certified", "SOC 2 compliant", "HIPAA aligned" copy without the audit. Tier D-MAX per HITL.md.
+- **No direct writes to the Ritsu product Supabase from `ritsu-works`.** Operating AI is firewall-isolated. ETL read-only via `etl-runner` role only.
+
+## 2. What we will ALWAYS do (defaults)
+
+Reflexes — when in doubt, these are the actions:
+
+- **Disclose AI on first contact** (per `transparency.md`). Even when not legally required.
+- **Prefer observed over surveyed.** N=10 strangers actually using the product beats N=100 interviews. PG gate codified in SOP-PRODUCT-002.
+- **Ship-then-listen.** Ship the smallest defensible version; learn from real reaction. Don't optimize before evidence.
+- **Treat user data as user-owned.** User can delete uploads, conversations, history at any time. Delete = actually delete, not flag-as-deleted.
+- **Learn in public when feasible.** Share retrospectives, failure modes, what didn't work. (Bounded by competitive harm — don't publish active experiment details.)
+- **Escalate uncertainty rather than guess.** If an agent doesn't know, ask via HITL. Hallucination on customer-facing surface = brand damage; founder Tier B+ review for non-FAQ replies.
+- **Audit every Tier B+ action.** ops.agent_runs, ops.events, ops.audit_log — immutable trails. Founder can always see what was done and why.
+- **Honor stage discipline.** Pre-PMF is wartime (speed > consensus). Post-PMF will be peacetime (consensus > speed). Don't apply peacetime principles in wartime — that's how startups die slow.
+
+## 3. Operating values (4-5 short statements)
+
+The decision-pattern shortlist. Each ≤ 5 words. Each maps to behavior already exhibited by founder.
+
+1. **"Active beats passive."** Active learning > passive consumption. Production > reading. Practice > theory. The product itself is built on this — and so is how we build the product.
+
+2. **"Specific beats abstract."** "Solution for [named persona] doing [named task]" beats "solution for users." When founder catches themselves abstracting, ask: name the customer, name the task.
+
+3. **"Working beats clever."** Ship the boring solution that works. Cleverness compounds technical debt; working code compounds momentum. Refactor toward elegance only after the third instance, not the first.
+
+4. **"Listen beats argue."** When founder + cofounder + agent disagree, the path is more data, not louder argument. Customer behavior > intuition > theory. Defer to evidence.
+
+5. **"Compounding beats sprinting."** Burnout kills startups slower but more certainly than under-shipping. SOP-FOUNDER-016 (weekly energy tracking) + SOP-FOUNDER-017 (mandatory rest window) are not optional — they're how we win the long game.
+
+## 4. How values resolve conflicts
+
+When two values pull opposite directions, the higher wins. Documented conflict pairs:
+
+| Conflict | Winner | Reason |
+|---|---|---|
+| "Working beats clever" vs "Active beats passive" | Active beats passive | A working but passive (e.g. content storage) product fails the active-learning thesis. Both lose if we ship the lazy version. |
+| "Specific beats abstract" vs "Ship-then-listen" | Specific kills abstract | Shipping a generic feature to "users" is a waste of ship-then-listen cycle. Specify first, then ship. |
+| "Listen beats argue" vs "Wartime founder mode" | Listen beats argue (within wartime cadence) | Founder decisiveness ≠ ignoring data. Wartime means decide fast on the data we have, not decide alone without data. |
+| "Compounding beats sprinting" vs "Ship-then-listen" | Compounding wins on duration; sprinting wins on per-week velocity | Resolve via SOP-FOUNDER-013/014 (Friday review + week-ahead priorities) — don't sprint on what's not on the priority list. |
+| "Disclose AI" vs "User experience friction" | Disclose AI | Trust > UX smoothness. The 1-line disclosure is small UX cost; trust loss from non-disclosure is permanent. |
+
+When a NEW conflict arises that's not in this table — founder logs it via `/cla propose` or a project memory entry, and adds a row here.
+
+## 5. Revisit ceremony (v0.1 → canonical)
+
+At the 30-paying milestone, this file graduates from v0.1-draft to canonical:
+
+1. **Pull customer interview transcripts** (SOP-CUSTOMER-006 Collison install protocol output — founder personally onboards first ~30 paying). 30 voice/video calls of ~30 min each = ~15 hours of customer-spoken language.
+2. **Extract values customers ACTUALLY use** to describe Ritsu — direct quotes, recurring phrases, what they say to friends when referring. ("My textbook quizzes me", "It found my gaps", etc.)
+3. **Compare gap.** This document's values (theoretical) vs customer-spoken values (observed). Promote / demote / replace as needed.
+4. **Founder writes the v1.0 canonical** with citations to interview transcripts (line numbers / timestamps).
+5. **PR Tier C** with explicit before/after diff.
+6. **Update frontmatter:** `status: v0.1-draft → canonical`, clear `revisit_at`.
+
+**Revisit log** (append on each revisit):
+
+- 2026-05-21 — v0.1 AI-synthesized from existing repo material (transparency.md, HITL.md, CLAUDE.md, brand_voice.md). No customer data; theory only.
+- (next entry at 30-paying milestone)

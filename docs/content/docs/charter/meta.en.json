@@ -2,10 +2,17 @@
   "title": "Charter",
   "description": "Vision, mission, boundaries of ritsu-works",
   "pages": [
+    "INDEX",
     "README",
+    "ai-native-philosophy",
     "brand_voice",
     "charter",
+    "icp-summary",
+    "north-star",
+    "positioning",
+    "principles",
     "product",
-    "transparency"
+    "transparency",
+    "values"
   ]
 }

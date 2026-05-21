@@ -1,0 +1,141 @@
+---
+title: Ritsu Positioning
+type: core-doc
+slug: positioning
+layer: strategy
+status: canonical
+owner: founder
+last_reviewed: 2026-05-21
+review_cadence: on-trigger
+cited_by: []
+auto_load: false
+ai_synthesized_v0_1: true
+ai_synthesized_at: 2026-05-21
+ai_synthesized_from: [product.md, brand_voice.md]
+ai_synthesis_note: "Drew from product.md homepage hero + brand_voice.md GOOD examples. Founder confirms or replaces at first marketing campaign launch."
+---
+
+# Ritsu Positioning
+
+> One-liner + elevator + slogan + tagline registry. **Single source** for every marketing touchpoint — homepage, ads, emails, social, slides. Skills cite this directly via Read OR `/core compose strategy`.
+>
+> Brand voice + tone rules live in `brand_voice.md`. This file is the WHAT TO SAY; `brand_voice.md` is the HOW TO SAY IT.
+
+## 1. One-liner (≤ 12 words)
+
+**Turn raw materials into true mastery.**
+
+This is the homepage hero. Locked in product.md and on https://ritsu.ai. Do not vary across surfaces. Use exactly these words for any official channel until a stage-transition rewrite is approved.
+
+**Alternative formulations** (allowed for context-specific surfaces, not as replacement):
+- "Drop your file. Master it." — used for ad headlines / pushes / chat first-message
+- "From source to mastery in 30 seconds." — used when speed is the angle being tested
+
+## 2. One-paragraph elevator (≤ 60 words)
+
+> Ritsu reads your PDFs, slides, videos, and links — then in 30 seconds builds a personalized AI tutor that quizzes you, explains concepts, and tracks your mastery. Replaces Anki, Quizlet, ChatGPT, and Notion for studying. Free to start; pay when you're hooked.
+
+(56 words. Locked.)
+
+## 3. Anti-positioning (what we are NOT)
+
+Per `product.md` "What Ritsu is NOT" — restated here as positioning copy:
+
+| Ritsu is NOT | What we ARE instead |
+|---|---|
+| A general chatbot (like ChatGPT) | A tutor that reads your whole document, persists context across sessions, and structures 17+ learning activity types |
+| A flashcard app (like Anki/Quizlet) | A full learning loop (quiz, flashcard, mindmap, code exercise, diagram, drag-drop) auto-generated from your material in seconds |
+| A course platform (like Coursera) | Personalized learning paths from YOUR material, not pre-made curricula |
+| A note-taking tool (like Notion) | Active learning automation — converts your notes/docs into practice, not just storage |
+| An AI assistant in your editor | A dedicated tutor with persistent memory of your mastery state, accessible across devices |
+
+When founders write copy that drifts toward any of these categories, that's a signal — re-anchor to "active learning automation, source-to-mastery in 30 seconds."
+
+## 4. Slogan registry
+
+Approved short phrases for ads / social / push / one-line copy. Each is locked once chosen — new variants require PR Tier C.
+
+| Slogan | Where used | When introduced |
+|---|---|---|
+| "Drop your file." | Push, in-app onboarding first-line, ad headline | locked 2026-05-21 |
+| "Stop re-reading." | Ad headline (anti-passive-learning angle) | locked 2026-05-21 |
+| "From source to mastery in 30 seconds." | Subhead, email tagline | locked 2026-05-21 |
+| "Your textbook, but it asks you questions back." | Social headline / explanation moment | locked 2026-05-21 |
+| "Active learning, finally automated." | Blog opener, founder bio | locked 2026-05-21 |
+
+**Forbidden slogan patterns** (per `brand_voice.md`):
+- "AI-powered study tool" — too abstract; say WHAT it does
+- "Revolutionary new way to learn" — empty adjective + recycled cliché
+- "Learn 10x faster!" — unverified outcome claim
+- "Best learning app of 2026" — vanity + unsubstantiated
+
+## 5. Comparison frames
+
+Approved comparisons (from `product.md` § "Key differentiators"):
+
+| Competitor | What Ritsu does that they don't |
+|---|---|
+| **ChatGPT** | Reads the entire document; persistent across sessions; structured 17+ activity output; learning-purpose-built (not general chat) |
+| **Anki / Quizlet** | Auto-generates from any source in seconds; not just flashcards but full learning loop |
+| **Notion AI** | Active learning instead of note storage; quiz/exercise generation; mastery tracking |
+| **Kahoot** | Personal not group; auto-generated from your material; depth beyond multiple choice |
+| **Coursera / Udemy** | Personalized from YOUR material; not one-size-fits-all curricula |
+
+**Comparison voice rules** (per `brand_voice.md`):
+- Name competitors directly. "Replaces Anki" beats "Replaces a popular flashcard app."
+- Lead with what Ritsu does, not what competitor lacks. "Ritsu auto-generates" not "Anki forces manual creation."
+- Don't denigrate competitors — they served their job-to-be-done at the time. Ritsu represents a generational tooling shift, not a moral judgment.
+- Always cite specific differentiator (not generic "better").
+
+## 6. Forbidden phrases
+
+Words / claims Ritsu never uses (per `brand_voice.md` § "Anti-patterns to refuse"):
+
+**Empty adjectives:**
+- "revolutionary", "amazing", "powerful", "incredible", "groundbreaking"
+- "the best", "the only", "the most" (unless we can cite verifiable rank)
+- "transformative", "next-generation", "cutting-edge"
+
+**Manufactured urgency:**
+- "limited time"
+- "act now"
+- "don't want to miss out"
+- "today only"
+- "exclusive offer"
+
+**Unverified outcome claims:**
+- "Guaranteed to pass your exam"
+- "Learn 10x faster"
+- "Master anything in [X] days"
+- "Used by top 1% of students" (without verifiable data)
+
+**Generic AI hype:**
+- "AI-powered" alone (say WHAT the AI does)
+- "Smart" anything (smart-cards, smart-tutor — substitute "AI-built" or specific function)
+- "Magic" / "magical" (sets unrealistic expectations + erodes trust on failure)
+
+**Anti-passive-learning fluff that contradicts our actual stance:**
+- "Effortless learning" — learning takes effort by definition; Ritsu makes the SETUP effortless
+- "Learn while you sleep" — pseudoscience; we never claim this
+
+When a draft contains any forbidden phrase, the brand_voice.md `pre-tool-publish` hook should flag. Founder reviews + replaces with specific alternative.
+
+## 7. Tagline registry by channel
+
+Different surfaces, different lengths. All must be CONSISTENT with the one-liner.
+
+| Channel | Max length | Current | Notes |
+|---|---|---|---|
+| **Homepage hero** | 12 words | "Turn raw materials into true mastery." | Locked. Match ritsu.ai. |
+| **Homepage subhead** | 25 words | "Drop a PDF, video, or link. In 30 seconds, get a personalized AI tutor that quizzes you, explains concepts, and tracks your mastery." | Locked. |
+| **Ad headline** | 6-8 words | "Drop your file. Master it." | A/B variant: "Stop re-reading. Start mastering." |
+| **Email subject (acquisition)** | 50 chars | "Your textbook, but it quizzes you back" | Test alt: "From PDF to mastery in 30 seconds" |
+| **Email subject (retention/activation)** | 50 chars | "Your [topic] tutor is ready" | Per-user personalization |
+| **Social bio (TW/LI/IG)** | 160 chars | "Active learning, finally automated. Drop any document → personalized AI tutor in 30 seconds. Built in Vietnam for the world." | Locked. |
+| **Push notification** | 40 chars | "Your tutor finished your chapter ✏️" | Activity-triggered |
+| **App store description (first line)** | 80 chars | "Turn any document into your personal AI tutor in 30 seconds." | Locked. |
+| **Footer / signature** | 1 line | "Ritsu — your AI tutor, built from your materials." | Locked. |
+
+**When adding a new channel:** new row + PR Tier C. Channel-by-channel discipline prevents brand drift.
+
+**Translation discipline:** Vietnamese variants live alongside English where applicable. Voice in Vietnamese follows `brand_voice.md` § "Vietnamese (Tiếng Việt) variant".

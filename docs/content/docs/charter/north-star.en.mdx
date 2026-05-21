@@ -1,0 +1,119 @@
+---
+title: Ritsu North Star
+description: ''
+source_path: 00-core/north-star.md
+source_hash: d9fe5d673b4fa6fdcf82c1a70e8b95993054d0750ea7d311e558f8339ecfc7ab
+generated_at: '2026-05-21T16:05:13.909Z'
+generated_by: docs-engine v1.2.0
+category: charter
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+---
+title: Ritsu North Star
+type: core-doc
+slug: north-star
+layer: strategy
+status: canonical
+owner: founder
+last_reviewed: 2026-05-21
+review_cadence: on-trigger
+cited_by: []
+auto_load: false
+ai_synthesized_v0_1: true
+ai_synthesized_at: 2026-05-21
+ai_synthesized_from: [product.md, .archives/pillars/PLAN.md, .archives/brainstorming/core/]
+ai_synthesis_note: "First-draft content synthesized by Claude Code. Founder ratifies at first stage-transition (100 paying milestone)."
+---
+
+# Ritsu North Star
+
+> The single canonical compressed answer to **"what are we optimizing?"**. Cited by ANY agent making prioritization decisions across 03-gtm / 04-product / 10-metrics. Update on stage transition (current → next stage).
+
+## 1. The metric of the year
+
+**100 paying customers who LOVE Ritsu in 30 days.** Then 1000 in 90 days.
+
+This is the **only** number that matters right now. Not signups (signal but not commit). Not DAU (signal but not commit). Not "people who said they liked it" (anecdote). 100 humans paying real money and using the product enough to retain.
+
+Why this specific number:
+- **100 = Paul Graham's "make something 100 people want"** — the threshold below which you don't have a business; the threshold above which you can extrapolate to 1000 and beyond.
+- **30 days** = a hard timer that forces wartime discipline. Anything taking longer than 30 days to ship for the 100-paying goal is wrong scope.
+- **Love** = NPS ≥ 40 + ≥1 unprompted positive mention. Lukewarm 100 paying is harder to grow than 30 paying who love (loved customers refer; lukewarm don't).
+
+## 2. Definition of done
+
+Operationally precise (no wiggle room):
+
+- **"Paying"** = ≥1 successful subscription charge (via Stripe) AND ≥7 days retention from first charge date.
+- **"Who love"** = at least one of:
+  - NPS ≥ 40 on first in-app survey (SOP-CUSTOMER-018)
+  - ≥1 unprompted positive mention (social post, review, message to founder, organic referral)
+  - Week-4 retention ≥ 30% across the 100 (cohort-level proxy for love when individual NPS is sparse)
+- **"In 30 days"** = rolling 30-day window. Resets on Day 1 of each month; 100 measured at end of window.
+
+Counter-metric guardrails (don't game the north star):
+- CAC payback \< 90 days (don't buy paying customers at a loss to hit 100)
+- \< 5% refund rate within first 30 days (refunds = not really paying)
+- 0 catastrophic incidents (data leak, AI hallucination causing real harm)
+
+## 3. What it replaces
+
+The following are **LEADING INDICATORS** of the north star, not substitutes:
+
+| Vanity metric | Why it's not the north star |
+|---|---|
+| DAU / MAU | Activity ≠ love ≠ pay. Can be 10K DAU with $0 ARR. |
+| Signups | 90% of signups never reach magic moment. Free funnel ≠ revenue funnel. |
+| Page views / traffic | Pre-funnel signal; not commitment. |
+| Ad CTR | Channel-level signal; doesn't predict retention. |
+| "People who like the product" (interviews) | Surveyed != observed. SOP-PRODUCT-002 N=10 stranger rule overrides. |
+| Press mentions | Vanity. Press doesn't pay. |
+| Twitter followers | Cohort-irrelevant for B2C learning. |
+
+Pre-PMF agents (growth-orchestrator, content-drafter, etc.) MAY optimize these as inputs, but the OUTPUT they're ranked on is always the north star. When in doubt, ask: "does this experiment produce a paying loving customer in 30 days?"
+
+## 4. Long-term north star
+
+**1 billion dollar company.** Concretely: $1B ARR.
+
+**Path arithmetic (founder thesis, revise yearly):**
+- $1B ARR = ~16M paid users at $5 ARPU/mo (consumer mass-market path), OR
+- ~500K paid users at $200 ARPU/mo (educator B2B / professional path), OR
+- some combo of B2C wedge ($5-15 ARPU) + educator B2B ($50-200 ARPU) + API platform ($per-use)
+
+**Most likely shape (founder thesis):**
+1. **Years 1-2: B2C wedge.** 0 → 100K paying learners at $7-15 ARPU/mo. ARR $10-20M.
+2. **Years 2-3: educator B2B layer activates.** 1K educators × 50 students each × $5/student/mo = $300K MRR additive. ARR $50-100M.
+3. **Years 3-4: enterprise + Asia expansion.** Indonesia, Philippines, Thailand, India English-second markets. ARR $100M-500M.
+4. **Year 4-5: API platform.** Other learning apps embed Ritsu's mastery engine. Usage-based pricing. Pushes to $1B.
+
+**Why this is the right shape:**
+- Each layer requires the previous to be proven (don't build B2B before B2C wedge works; don't build API before B2B network effect).
+- Pricing power compounds via brand + data moat (learning paths trained on real mastery curves).
+- AI capability curve cuts costs while raising value simultaneously (frontier models keep getting better at the wedge — auto-quiz generation, personalization, multilingual).
+
+## 5. When this changes
+
+**Triggers for north-star evolution:**
+
+| Trigger | New north star |
+|---|---|
+| 100 paying who love (achieved current goal) | "1000 paying retained 30d + NPS ≥ 40 in 90 days" |
+| 1000 paying retained 30d (PMF achieved) | "$1M MRR in 6 months" (distribution stage) |
+| $10M ARR | "$50M ARR + 80% week-4 retention" (scaling stage) |
+| Educator B2B activates (≥10 paying educators) | parallel B2B north star with B2C |
+| Market shift (regulatory, competitive) | re-author from first principles |
+| 6-month default refresh | sanity check even if no trigger fired |
+| Founder energy reset (post-burnout / sabbatical) | re-author with current motivation; never lock-in stale ambition |
+
+**Current stage:** GTM (pre-PMF, 0 paying).
+**Next stage:** PMF-scaling (1000 paying retained 30d).
+**Stage-transition ceremony:** founder writes new north star + cofounder co-approves + PR Tier C + capability `north-star-stage-X` /cla propose. Old north star moves to `## Historical north stars` section below.
+
+## Historical north stars
+
+(none yet — current is v1)
+

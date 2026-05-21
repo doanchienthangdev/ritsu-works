@@ -1,0 +1,121 @@
+---
+title: Ritsu Operating Principles
+type: core-doc
+slug: principles
+layer: operating
+status: v0.1-draft
+owner: founder
+last_reviewed: 2026-05-21
+review_cadence: on-trigger
+cited_by: []
+auto_load: false
+revisit_at: 30-paying
+revisit_trigger: "first founder retro after 30-paying (lessons learned from real customer interaction)"
+revisit_owner: founder
+ai_synthesized_v0_1: true
+ai_synthesized_at: 2026-05-21
+ai_synthesized_from: [CLAUDE.md, governance/HITL.md, .archives/pillars/PLAN.md, brand_voice.md]
+ai_synthesis_note: "Principles drawn from PG/Bezos/Munger/Horowitz/Altman/Chesky — well-tested elsewhere, UNTESTED by Ritsu specifically. Revise at 30-paying with concrete Ritsu examples."
+---
+
+# Ritsu Operating Principles
+
+> Decision-making heuristics. The "if-then" patterns Ritsu uses to act fast under uncertainty. Cited by /cla architect, sprint-planner, founder-coach skills.
+>
+> **v0.1 caveat:** These principles draw from PG, Bezos, Munger, Horowitz, Altman, Chesky, Graham — well-tested by other founders, but UNTESTED by Ritsu's situation specifically. Revise at first founder retro post-30-paying with real Ritsu examples for each.
+
+## 1. Ship-then-listen
+
+**Rule:** Ship the smallest defensible version of an idea, then learn from real reaction. Don't optimize before evidence.
+
+**When it kicks in:** any decision where data could change the answer (which is most decisions pre-PMF). Especially: feature scope, pricing tier boundaries, content angles, channel mix.
+
+**Example from Ritsu:** Sprint plan for `core-redesign-and-command` ships filled + v0.1-draft + stub mix rather than full 19-doc lock-in. The v0.1-draft docs explicitly carry `revisit_at: 30-paying` because we don't have evidence yet — we're shipping the smallest defensible foundation, then we'll listen at 30-paying.
+
+**Anti-example to avoid:** "Let's perfectly design the design-system.md before we have any customers" — this is optimize-before-evidence. We made it a STUB with `entry_condition: first marketing visual needed` per Phase 5 review.
+
+## 2. Observed-not-surveyed
+
+**Rule:** When uncertain about user behavior, observe N=10 strangers using the product over interviewing N=100. Reference SOP-PRODUCT-002 (PG gate).
+
+**When it kicks in:** every feature prioritization, ICP refinement, copy test, wedge confirmation, pricing decision.
+
+**Example from Ritsu:** `wedge.md` is a STUB with `entry_condition: SOP-PRODUCT-002 N=10 complete`. We are LITERALLY not allowed to fill the wedge based on theory — the spec enforces "wedge is discovered, not declared." Founder doesn't get to skip this gate.
+
+**Anti-example to avoid:** A pricing decision based on "what do you think you'd pay?" survey responses. Real signal is "did they actually pay when shown the price?"
+
+## 3. Boil-the-lake (gstack ethos)
+
+**Rule:** When AI compresses marginal cost to near-zero, do the COMPLETE thing not the shortcut. Don't write 4 tests when you can write 10. Don't fill 5 sections when you can fill 9.
+
+**When it kicks in:** any task where Claude Code can compress 10-100× the human-team equivalent (per gstack's effort reference table).
+
+**Example from Ritsu:** This Sprint 1 itself. Founder asked "fill all 9 docs" — Claude Code can do that in one session, vs founder's 6-10h solo block. The marginal cost of completing all 9 vs 5 is ~30 min CC time. Boil the lake.
+
+**Counter-rule:** Boil only LAKES, not OCEANS. Sprint 2 is appropriately scoped (12 files, 8-12h CC) because that's a lake. Building all of Phase 2 verbs (14 verbs total) would be an ocean — defer per right-size.
+
+## 4. Founder mode (Chesky/Graham)
+
+**Rule:** Deep involvement in the details that compound — positioning, product wedge, hiring, brand voice. Delegate everything else.
+
+**When it kicks in:** every decision in pre-PMF + early-growth stage. Will revise at organizational scale (peacetime).
+
+**Example from Ritsu:** Founder personally wrote `brand_voice.md` (10.7KB) and `transparency.md` (6.3KB) and the architecture proposal at `.archives/pillars/PLAN.md`. AI workforce handles execution; founder owns identity + voice + structure.
+
+**Anti-example:** Founder writing every blog post themselves. Voice founder writes once (in brand_voice.md); content-drafter executes per channel. Founder reviews, doesn't author.
+
+## 5. Inversion (Munger)
+
+**Rule:** For every "how do we win?" also ask "what would make us fail?" before deciding. The fail-mode answer is often more actionable than the win-mode answer.
+
+**When it kicks in:** strategic decisions, scope expansion, irreversible moves, architecture commits.
+
+**Example from Ritsu:** Phase 5 architect ceremony explicitly required @cto sanity review = inversion lens. CTO surfaced 2 verified gaps (parser drift + workspace_plane boundary) — these are failure modes that would silently break /cla v1.1 integration. Fixing them in Phase 5 is cheaper than discovering in Phase 7.
+
+**Anti-example to avoid:** Picking a pricing tier boundary based on "what would maximize revenue?" without asking "what tier boundary would make users churn fastest?"
+
+## 6. Two-way doors (Bezos)
+
+**Rule:** Reversible decisions go fast (5-min think then ship). Irreversible decisions go slow (24h cooldown, HITL Tier D). Most decisions are two-way doors; treat them that way.
+
+**When it kicks in:** every decision with non-obvious blast radius.
+
+**Example from Ritsu:** HITL.md Tier C/D ceremony codifies this. Tier C = reversible-ish (PR, git revert). Tier D-MAX = irreversible (1h cooldown, magic phrase, no autonomous override). This is two-way doors built into the system.
+
+**Anti-example to avoid:** Treating a logo redesign or a copy A/B test as a one-way door. These are highly reversible — ship fast, learn, iterate.
+
+## 7. Wartime/peacetime (Horowitz)
+
+**Rule:** Pre-PMF is wartime. Discipline favors speed over consensus. Revisit principles at scale ≠ wartime principles.
+
+**When it kicks in:** stage transitions. Wartime = 0 → 100 paying. Peacetime = post-PMF + organizational depth.
+
+**Example from Ritsu:** Founder solo writing 9 think-heavy docs in 6-10h is wartime cadence. Once cofounder joins + 30 paying customers active, founder must transition some authority to cofounder + role-specialists. Peacetime requires shared decision-making cadence (operating-cadence.md graduates when cofounder joins per stub `entry_condition`).
+
+**Anti-example to avoid:** Running PMF-stage consensus rituals in pre-PMF (e.g., 5-person engineering review for a 50-line code change). Wastes founder time. Compressed Phase 4 + Phase 5 in this very capability honored wartime cadence.
+
+## 8. Specific kills abstract
+
+**Rule:** When an agent (or human) writes "X solution," ask "X solution for [name of customer] doing [name of task]." If they can't name, the scope is wrong.
+
+**When it kicks in:** every PRD, every ICP doc, every campaign brief, every founder-described feature request.
+
+**Example from Ritsu:** ICP-summary.md §1 forces "the 20-year-old bilingual STEM undergraduate, mid-semester, with a textbook to master in 2 weeks." NOT "students." When the persona was "students" in the template, it was useless. The named version is testable.
+
+**Anti-example to avoid:** "Build a learning analytics dashboard" — for WHOM? Doing WHAT? Until we can name the consumer + the task, this is scope creep waiting to happen. Mark as STUB with `entry_condition`.
+
+---
+
+## How these principles compose
+
+In a typical decision flow:
+1. **Inversion** first — what would make this fail? (clarifies the win condition)
+2. **Two-way doors** — is this reversible? (sets the time budget)
+3. **Specific kills abstract** — for which named customer? (sets the scope)
+4. **Observed-not-surveyed** — do we have data, or is this theory? (sets the evidence bar)
+5. **Ship-then-listen** — what's the smallest defensible version? (sets the ship size)
+6. **Boil-the-lake** — within that ship size, do the complete thing (sets the quality bar)
+7. **Founder mode** — am I the right author? (sets the responsibility)
+8. **Wartime/peacetime** — what cadence does this stage demand? (sets the speed)
+
+When in doubt at decision time, walk the list. When the list itself doesn't decide it, escalate via HITL Tier C.
