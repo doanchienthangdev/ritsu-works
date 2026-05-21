@@ -1,0 +1,140 @@
+---
+name: eval-evo/score-skill
+description: |
+  Scores a skill entity (SKILL.md body + supporting files) on the 10-criterion
+  rubric in playbooks/skill.md. Invokes @cto persona as judge. Returns
+  composite + sub_scores. Template skill — score-command / score-agent /
+  score-hook / score-sop differ only in playbook path + judge persona.
+trigger: invoked-by-orchestrator-only
+judge_persona: "@cto"
+playbook: 06-ai-ops/skills/eval-evo/playbooks/skill.md
+cases_path: 06-ai-ops/skills/eval-evo/cases/skill/
+budget_cap_task_kind: eval-evo-evaluation  # $0.10 per invocation
+---
+
+# Skill: eval-evo/score-skill
+
+Scores a single skill entity. Invoked twice per /evolve iteration (pre-score
++ post-score). Returns structured JSON.
+
+## Contract
+
+### Input (from orchestrator)
+```json
+{
+  "entity_path": "06-ai-ops/skills/<name>/SKILL.md",
+  "playbook_path": "06-ai-ops/skills/eval-evo/playbooks/skill.md",
+  "cases_dir": "06-ai-ops/skills/eval-evo/cases/skill/<name>/",
+  "run_id": "<uuid>",
+  "iter": <int>,
+  "phase": "pre" | "post"
+}
+```
+
+### Output
+```json
+{
+  "composite": <int 0..100>,
+  "sub_scores": [<int 0..10>, ...],  // exactly 10 elements
+  "rationale": "<1-2 sentence why>",
+  "cases_run": <int>,
+  "cases_passed": <int>
+}
+```
+
+## Process
+
+### Step 1 — Load playbook + entity
+
+1. Read `playbooks/skill.md` frontmatter:
+   - Extract 10 sub-score definitions (C1..C10)
+   - Extract `judge_persona` (must be `@cto` for skill type)
+   - Extract `allowed_paths_for_proposer`
+2. Read entity file from `entity_path`. Max ~10KB; truncate with note if larger.
+3. List `cases_dir/case-*.yaml`. For each:
+   - Parse YAML (validate via `cases/_SCHEMA.yaml`)
+   - Apply case to entity (currently: pass case input + entity content to judge as part of prompt; v1.1: run case as actual invocation)
+   - Track pass/fail count
+
+### Step 2 — Dispatch judge
+
+Use Anthropic Agent tool with subagent_type=cto persona (`@cto`):
+
+```
+prompt:
+"""
+You are @cto. Score this skill on the 10-criterion rubric below.
+
+Output STRICT JSON ONLY (no prose before or after):
+{
+  "composite": <int 0..100>,
+  "sub_scores": [<exactly 10 ints in 0..10 range>],
+  "rationale": "<1-2 sentence why score is what it is>",
+  "cases_run": <int>,
+  "cases_passed": <int>
+}
+
+Rubric (each scored 0-10):
+<extract 10 sub-scores from playbook frontmatter>
+
+Entity content (skill being evaluated):
+---
+<entity_content>
+---
+
+Golden cases evaluated: <N total>; passed: <N pass>.
+
+Past founder corrections on this entity (negative-signal context):
+<last 10 rows from ops.corrections, formatted "<date>: <correction_note>">
+
+Past run summaries (cross-iter memory):
+<last 3 rows from ops.run_summaries on this entity, ~150 tokens each>
+
+Anti-Goodhart instruction: be honest. Don't reward-hack the rubric.
+Score what's TRULY good about this skill, not what scores well on these
+specific criteria. If a criterion doesn't apply, give it 5 (neutral)
+and explain in rationale.
+
+Return JSON only.
+"""
+
+settings: temp=0, max_tokens=1000
+```
+
+### Step 3 — Validate + return
+
+1. Parse JSON. If parse fails: retry once with strict reminder prepended.
+   On second fail: raise `JudgeParseError`.
+2. Validate schema: composite ∈ [0,100], sub_scores has exactly 10 ints
+   each in [0,10], composite == sum(sub_scores) (or within ±2 of sum if
+   judge did weighted aggregation despite our request).
+   On mismatch: raise `RubricMismatchError`.
+3. Return JSON to orchestrator.
+
+## Cost
+
+Per invocation: ~$0.10 (Sonnet judge call: ~2K tokens input, ~500 tokens
+output via temp=0).
+
+Per /evolve run: 2 calls/iter × N iters = 2N calls. At N=3: 6 calls × $0.10
+= $0.60 of the $2.50 budget.
+
+## v1.0 caveats
+
+- Single-judge mode (not 3-judge median). Variance >5pt on unchanged
+  artifact flagged by orchestrator. R2 mitigation per spec.
+- Golden cases run as PART OF the judge prompt (text-level pass/fail
+  reporting). v1.1 may run cases as actual entity invocations + diff
+  outputs against expected.
+- @cto persona resolution: v1.0 routes to a `cto`-style system prompt
+  via Anthropic Agent tool subagent_type=general-purpose. v1.1 may use
+  native subagent_type=cto if Phase 1.5 cabinet expansion ships.
+
+## Reuse pattern
+
+This is the canonical template. The 4 other per-type skills
+(score-command, score-agent, score-hook, score-sop) are copy-modifications:
+- Different playbook path
+- Different judge persona (@ceo for command/agent; @cto stays for hook/sop)
+- Different cases directory
+- Identical orchestration logic

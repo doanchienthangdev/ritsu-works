@@ -1,0 +1,31 @@
+case_id: case-001-skill-happy-path
+entity_type: command
+entity_name: evolve
+state: active
+input:
+  description: "Founder invokes /evolve on a skill with default loop count."
+  invocation: "/evolve skill .archives/test-fixtures/skill-foo --loop=1 --tier-override"
+  prerequisites:
+    - "Test fixture skill-foo exists at .archives/test-fixtures/skill-foo/SKILL.md"
+    - "ops.agent_runs has no concurrent run for this entity"
+    - "_HOLDOUT.yaml has real founder ratings (not PENDING)"
+expected_traits:
+  - trait: argv_parsed
+    assertion: "Command resolves --loop=1, --tier-override correctly"
+  - trait: drift_pre_check
+    assertion: "pnpm check runs and passes before loop start"
+  - trait: judge_dispatches
+    assertion: "score-skill skill is invoked at least twice (pre + post)"
+  - trait: ops_agent_runs_row_written
+    assertion: "Exactly 1 new row in ops.agent_runs with agent_slug='evolve', state='completed' (or 'pr-open' if Tier C+)"
+  - trait: console_output_structured
+    assertion: "stdout contains pre-iter banner, per-iter trajectory, post-loop summary"
+  - trait: respects_budget
+    assertion: "Total cost on ops.cost_attributions for this run < $2.50"
+prompt_assertions:
+  - "The command file documents all subcommands (status, reject, discard)"
+  - "The command file documents the 4 named flags"
+  - "The command file specifies HITL tier per subcommand"
+notes: |
+  This case is the Sprint 1 acceptance test. If /evolve refactors break
+  this happy path, regression is caught.

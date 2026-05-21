@@ -1,0 +1,22 @@
+case_id: case-002-event-emission
+entity_type: sop
+entity_name: SOP-AIOPS-001-capability-lifecycle
+state: active
+input:
+  description: "Validate SOP emits the expected ritsu.* events per phase."
+  files_inspected:
+    - 06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml
+expected_traits:
+  - trait: events_emitted_field
+    assertion: "flow.yaml has events_emitted block listing per-phase event types"
+  - trait: event_naming_convention
+    assertion: "All events follow ritsu.capability.<phase>_<verb> pattern (e.g., ritsu.capability.phase_1_completed)"
+  - trait: subscribers_documented
+    assertion: "README.md cites which event-dispatcher subscribers may listen to these events"
+  - trait: payload_documented
+    assertion: "Each event_emitted entry has payload field with expected keys"
+prompt_assertions:
+  - "Event-driven architecture per Bài #11 cited"
+notes: |
+  Tests playbooks/sop.md C6 (event emission discipline). If /evolve
+  proposes removing event emission, score should drop.

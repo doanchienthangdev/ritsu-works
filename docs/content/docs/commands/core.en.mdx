@@ -1,0 +1,283 @@
+---
+title: 'Command: /core'
+description: |
+  Project-scoped command for ritsu-works. Front-end for the 00-core foundation
+  pillar. Thin orchestrator — read/compose/validate logic in scripts/core/*.cjs,
+  interactive fill logic in 06-ai-ops/skills/core-management/core-fill/.
+
+  v1 Phase 1: 7 verbs covering 80% of expected usage. State persistence =
+  filesystem + git audit (no ops.core_runs in v1; defer to v1.1 if demand).
+
+  Decisions LOCKED 2026-05-21 brainstorm:
+  - Approach C — Core-Shell + Skill-First
+  - Mode SELECTIVE EXPANSION
+  - State persistence: filesystem-only v1
+  - CLAUDE.md auto-load: 3 critical only (product + brand_voice + transparency)
+
+  Capability: core-redesign-and-command
+  Run ID: cd377ba8-d8c6-44ed-b0ad-69981b49d45a
+source_path: .claude/commands/core.md
+source_hash: 101068d9f580f6181b099fa64a0e781df8e677f4dc872a98cef1535c5083dd5d
+generated_at: '2026-05-21T20:44:59.090Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+
+# /core
+
+Project-scoped command for ritsu-works. Front-end for the **00-core foundation
+pillar** — the canonical ground-truth docs that every AI agent + cofounder +
+future operator references.
+
+00-core docs cover: identity (product, brand_voice, transparency, charter,
+founder-profile, values, ai-native-philosophy), strategy (north-star,
+icp-summary, positioning), operating (principles, etc.), and meta (INDEX,
+glossary). See `00-core/INDEX.md` or `/core list` for the full map.
+
+This command is a **thin orchestrator**. Doc files are filesystem markdown
+with YAML frontmatter (schema in `scripts/core/lib/frontmatter.cjs` +
+`scripts/core/validate.cjs`). Read/compose/validate logic in
+`scripts/core/*.cjs`. Interactive fill logic in
+`06-ai-ops/skills/core-management/core-fill/`.
+
+Per `governance/HITL.md`, any edit to 00-core docs is **Tier C** (PR-only).
+`/core` write actions (`scaffold`, `fill`) produce local file edits that
+founder then PRs.
+
+## Subcommands (Phase 1 — 7 verbs)
+
+| Invocation | Purpose | HITL | Persistence |
+|---|---|---|---|
+| `/core` | Show menu + status summary | A | read-only |
+| `/core show <doc>` | Display doc content + frontmatter | A | read-only |
+| `/core list [--status=<enum>] [--layer=<enum>]` | Table of all 00-core docs | A | read-only |
+| `/core diff [doc]` | Git diff since `last_reviewed` timestamp | A | read-only (git) |
+| `/core check` | Validate all docs against schema | A | read-only (or writes report to `.archives/core-checks/`) |
+| `/core compose <bundle> [--to=<path>] [--summary]` | Assemble context bundle (markdown). Bundles: `identity`, `strategy`, `operating`, `all` | A | read-only (writes file if `--to`) |
+| `/core scaffold <doc-slug> [--layer=<layer>] [--status=stub\|v0.1-draft]` | Create new doc with frontmatter template | B | filesystem write |
+| `/core fill <doc-slug>` | Interactive fill via AskUserQuestion (stub→v0.1 or v0.1→canonical) | C | filesystem write + draft autosave |
+
+## Phase 2 verbs (DEFERRED — trigger: post first 30 paying customers)
+
+| Invocation | Purpose | Defer reason |
+|---|---|---|
+| `/core init` | Bootstrap empty 00-core/ | Not needed in v1 — repo has 00-core/ |
+| `/core reindex` | Regenerate INDEX.md table | Phase 1 `/core check` warns instead |
+| `/core review` | Trigger quarterly review ceremony | Quarterly cycle starts Q3 2026 |
+| `/core status` | Show v0.1-draft revisit-trigger fire status | Phase 1 humans check manually |
+| `/core <doc>:apply <text>` | Rewrite text to conform to doc | Defer until skills demand it |
+| `/core <doc>:build <params>` | Build artifact from doc | Defer until design-system.md filled |
+| `/core <doc>:export <fmt>` | Export doc to format (pdf/html/slides) | Defer until public publishing demand |
+
+## Workflow per verb
+
+### `/core` (no args)
+
+Print status summary:
+
+```bash
+node -e "
+const { list, validate, CORE_SCHEMA } = require('./scripts/core/lib/frontmatter.cjs');
+const docs = list('./00-core').filter(d => !['INDEX.md','README.md'].includes(require('path').basename(d.path)));
+const byStatus = docs.reduce((acc, d) => {
+  const s = (d.frontmatter || {}).status || 'unknown';
+  acc[s] = (acc[s] || 0) + 1;
+  return acc;
+}, {});
+console.log('00-core/ map — ' + docs.length + ' docs');
+Object.entries(byStatus).forEach(([k,v]) => console.log('  ' + k + ': ' + v));
+console.log('');
+console.log('Try: /core list, /core compose identity, /core show <doc>');
+"
+```
+
+### `/core show <doc>`
+
+```bash
+node -e "
+const fs = require('fs');
+const { parse } = require('./scripts/core/lib/frontmatter.cjs');
+const arg = process.argv[1];
+const slug = arg.replace(/\.md$/, '').replace(/^00-core\//, '');
+const fp = './00-core/' + slug + '.md';
+if (!fs.existsSync(fp)) {
+  console.error('doc \"' + slug + '\" not found. /core list to see all.');
+  process.exit(1);
+}
+const c = fs.readFileSync(fp, 'utf-8');
+const { frontmatter, body } = parse(c);
+console.log('# ' + (frontmatter.title || slug));
+console.log('status: ' + (frontmatter.status || '?') + ' | layer: ' + (frontmatter.layer || '?') + ' | last_reviewed: ' + (frontmatter.last_reviewed || '?'));
+console.log('');
+console.log(body);
+" -- <doc>
+```
+
+### `/core list [--status=<enum>] [--layer=<enum>]`
+
+```bash
+node -e "
+const { list } = require('./scripts/core/lib/frontmatter.cjs');
+const docs = list('./00-core');
+const filters = {};
+process.argv.slice(1).forEach(a => {
+  const m = a.match(/^--([a-z]+)=(.+)$/);
+  if (m) filters[m[1]] = m[2];
+});
+const filtered = docs.filter(d => {
+  const fm = d.frontmatter || {};
+  if (filters.status && fm.status !== filters.status) return false;
+  if (filters.layer && fm.layer !== filters.layer) return false;
+  return true;
+});
+console.log('Doc'.padEnd(30) + ' Layer'.padEnd(18) + ' Status'.padEnd(15) + ' Owner');
+console.log('-'.repeat(80));
+filtered.forEach(d => {
+  const fm = d.frontmatter || {};
+  const name = require('path').basename(d.path);
+  console.log(name.padEnd(30) + (fm.layer || '?').padEnd(18) + (fm.status || '?').padEnd(15) + (fm.owner || '?'));
+});
+console.log('');
+console.log('Total: ' + filtered.length + ' docs');
+"
+```
+
+### `/core diff [doc]`
+
+```bash
+node -e "
+const fs = require('fs');
+const { parse } = require('./scripts/core/lib/frontmatter.cjs');
+const { execSync } = require('child_process');
+const docArg = process.argv[1];
+const slugs = docArg ? [docArg.replace(/\.md$/,'').replace(/^00-core\//,'')] : fs.readdirSync('./00-core').filter(f => f.endsWith('.md') && f !== 'README.md').map(f => f.replace(/\.md$/, ''));
+slugs.forEach(slug => {
+  const fp = '00-core/' + slug + '.md';
+  if (!fs.existsSync(fp)) return;
+  const c = fs.readFileSync(fp, 'utf-8');
+  const { frontmatter } = parse(c);
+  const reviewed = frontmatter.last_reviewed;
+  if (!reviewed) { console.log(slug + ': no last_reviewed timestamp — treating as new'); return; }
+  const reviewedStr = reviewed instanceof Date ? reviewed.toISOString().slice(0,10) : String(reviewed);
+  try {
+    const since = execSync('git log -1 --before=\"' + reviewedStr + 'T23:59:59\" --format=%H -- ' + fp, { encoding:'utf-8' }).trim();
+    if (!since) { console.log(slug + ': no git commit before ' + reviewedStr); return; }
+    console.log('--- ' + slug + ' diff since ' + reviewedStr + ' (' + since.slice(0,7) + ') ---');
+    const diff = execSync('git diff ' + since + '..HEAD -- ' + fp, { encoding:'utf-8' });
+    console.log(diff || '(no diff)');
+  } catch (e) { console.log(slug + ': git error ' + e.message); }
+});
+" -- <doc>
+```
+
+### `/core check`
+
+```bash
+node scripts/core/validate.cjs
+```
+
+For structured output: `node scripts/core/validate.cjs --json`
+For report file: `node scripts/core/validate.cjs --report`
+
+### `/core compose <bundle> [--to=<path>] [--summary]`
+
+```bash
+node scripts/core/compose.cjs --bundle=<bundle> [--to=<path>] [--summary]
+```
+
+Bundles (v1 hardcoded):
+- `identity` — product + brand_voice + transparency + charter + founder-profile + values + ai-native-philosophy (7 docs)
+- `strategy` — north-star + icp-summary + positioning (3 docs)
+- `operating` — principles (1 doc; stubs excluded until graduate)
+- `all` — every canonical + v0.1-draft doc
+
+### `/core scaffold <doc-slug> [--layer=<layer>] [--status=stub|v0.1-draft]`
+
+Create new file with frontmatter template. Exits 1 if file exists.
+
+```bash
+node -e "
+const fs = require('fs');
+const path = require('path');
+const { serialize } = require('./scripts/core/lib/frontmatter.cjs');
+const args = {};
+process.argv.slice(1).forEach(a => {
+  const m = a.match(/^--([a-z]+)=(.+)$/);
+  if (m) args[m[1]] = m[2];
+  else if (!args._) args._ = a;
+});
+const slug = args._;
+if (!slug) { console.error('Usage: /core scaffold <doc-slug> --layer=<layer> [--status=stub|v0.1-draft]'); process.exit(1); }
+const layer = args.layer;
+if (!layer) { console.error('--layer required (identity|strategy|brand-design|operating|stage|meta)'); process.exit(1); }
+const status = args.status || 'stub';
+const filepath = './00-core/' + slug + '.md';
+if (fs.existsSync(filepath)) { console.error(slug + '.md exists. Use /core fill or git rm first.'); process.exit(1); }
+const fm = {
+  title: slug.replace(/-/g,' ').replace(/\\b\\w/g, c=>c.toUpperCase()),
+  type: 'core-doc', slug, layer, status,
+  owner: 'founder',
+  last_reviewed: new Date().toISOString().slice(0,10),
+  review_cadence: 'on-trigger',
+  cited_by: [],
+  auto_load: false,
+};
+if (status === 'stub') {
+  fm.entry_condition = 'TODO: define entry condition';
+  fm.triggered_by = 'TODO: define trigger';
+  fm.why_deferred = 'TODO: 1-paragraph why deferred';
+} else if (status === 'v0.1-draft') {
+  fm.revisit_at = '30-paying';
+  fm.revisit_trigger = 'TODO: define revisit trigger';
+  fm.revisit_owner = 'founder';
+}
+const body = '\\n# ' + fm.title + '\\n\\n# Stub — see frontmatter for entry condition\\n';
+fs.writeFileSync(filepath, serialize(fm, body), 'utf-8');
+console.log('Scaffolded: 00-core/' + slug + '.md (status=' + status + ', layer=' + layer + '). Run /core fill ' + slug + ' to populate.');
+" -- <doc>
+```
+
+### `/core fill <doc-slug>`
+
+Invoke the `core-management/core-fill` skill via Skill tool:
+
+```
+Skill({ skill: "06-ai-ops/skills/core-management/core-fill", args: "<doc-slug>" })
+```
+
+The skill handles per-layer schema + AskUserQuestion section iteration + atomic file write.
+
+## Helpers
+
+| Script | Purpose |
+|---|---|
+| `scripts/core/lib/frontmatter.cjs` | parse + serialize + validate + list (shared lib per CTO mandate) |
+| `scripts/core/compose.cjs` | bundle assembler (mirrors `scripts/wiki-sync/get.cjs`) |
+| `scripts/core/reindex.cjs` | INDEX staleness check (`--check` v1; `--write` v2) |
+| `scripts/core/validate.cjs` | schema check per doc |
+| `scripts/core/migrate-existing-frontmatter.cjs` | one-shot retrofit for 3 existing docs (deleted post-merge) |
+| `scripts/cross-tier/validate-core-pillar.cjs` | wrapper for pnpm check integration |
+
+## Failure modes (per Output 2 spec)
+
+16 failure modes mapped + structured errors. See `.archives/cla/core-redesign-and-command/spec.md` §9.
+
+## Persistence (v1 = filesystem-only)
+
+- No `ops.core_runs` table in v1
+- Audit = git commits + PR ceremony
+- Draft saves = `runtime/core/drafts/<slug>.draft.md` (gitignored)
+- Phase 2 may add `ops.core_runs` (mirrors `ops.ingestion_jobs` structure) if demand emerges
+
+## See also
+
+- Capability spec: `.archives/cla/core-redesign-and-command/spec.md`
+- 00-core map: `00-core/INDEX.md`
+- Build precedent: `.claude/commands/wiki.md` (closest sibling)
+- Skill: `06-ai-ops/skills/core-management/core-fill/SKILL.md`
+- Tests: `tests/core/` (Sprint 2 acceptance)
+

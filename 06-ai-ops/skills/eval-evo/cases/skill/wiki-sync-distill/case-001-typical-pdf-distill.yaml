@@ -1,0 +1,26 @@
+case_id: case-001-typical-pdf-distill
+entity_type: skill
+entity_name: wiki-sync/distill
+state: active
+input:
+  description: "Founder runs /wiki sync on a marketing PDF (e.g., Kotler chapter 14)."
+  invocation: "/wiki sync raw/marketing-management-kotler/chapter-14.pdf"
+  source_kind: pdf
+  source_size_kb: 250
+expected_traits:
+  - trait: extracts_named_concepts
+    assertion: "At least 3 concept pages created under wiki/marketing-management-kotler-chapter-14/concepts/"
+  - trait: cites_source_chunks
+    assertion: "Each derived entity has at least 1 ops.knowledge_extractions row linking back to source chunk"
+  - trait: confidence_classification
+    assertion: "Each ops.knowledge_extractions row has confidence in {0.6, 0.8, 0.95} (3-bucket discipline)"
+  - trait: idempotent_re_run
+    assertion: "Re-running on same input produces 0 new rows in ops.knowledge_extractions (dedup by source_chunk hash + entity slug)"
+prompt_assertions:
+  - "The SKILL.md describes 3-bucket confidence levels"
+  - "The SKILL.md cites ops.knowledge_extractions table"
+  - "The SKILL.md respects --verbatim flag (deprecation trigger documented)"
+notes: |
+  This case tests the canonical happy path for wiki-sync/distill (v4.4). If
+  /evolve proposes a change that breaks any of these traits, the judge should
+  reduce the score.

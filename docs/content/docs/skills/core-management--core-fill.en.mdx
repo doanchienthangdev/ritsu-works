@@ -1,0 +1,238 @@
+---
+title: 'Skill: core-fill'
+description: |
+  Interactive fill for 00-core docs. Used by /core fill command. Two modes:
+  stub-to-draft (stub → v0.1-draft) and draft-to-canonical (v0.1-draft →
+  canonical). Uses AskUserQuestion per layer-specific section schema, supports
+  session save/resume to runtime/core/drafts/.
+
+  Capability: core-redesign-and-command (cd377ba8-d8c6-44ed-b0ad-69981b49d45a)
+  Sprint 2 of Phase 7. Per-layer schema designed in this SKILL.md per CTO
+  Reviewer Concern #2.
+source_path: 06-ai-ops/skills/core-management/core-fill/SKILL.md
+source_hash: 32f2b56d0c5964942d7d984b4047c8fec54741834e0c80d2751aa8a1172e5ad1
+generated_at: '2026-05-21T20:44:59.060Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+
+# core-fill skill
+
+## When to use
+
+Invoked by `/core fill <doc-slug>` to graduate a doc:
+- **stub-to-draft**: `status: stub` → `status: v0.1-draft` (fills body sections per layer schema; clears `entry_condition` + `triggered_by` + `why_deferred`; adds `revisit_at` + `revisit_trigger`)
+- **draft-to-canonical**: `status: v0.1-draft` → `status: canonical` (founder confirms hypothesis tested + observed customer data merged; clears `revisit_at`)
+
+Canonical docs cannot be re-filled via this skill — edit directly + bump `last_reviewed` instead.
+
+## Inputs
+
+- `target_doc`: path under `00-core/` (e.g., `00-core/wedge.md`)
+- `mode`: `stub-to-draft` | `draft-to-canonical` (inferred from current status)
+
+## Per-layer section schemas (v1 hardcoded)
+
+The interactive flow uses these section lists per `layer` enum:
+
+### Layer: identity
+
+Used by: `charter.md`, `founder-profile.md`, `values.md`, `ai-native-philosophy.md`.
+
+- `charter` sections: `vision`, `target_market`, `monetization`, `cognitive_style`, `boundaries`, `stakeholders`, `success_metrics` (7)
+- `founder-profile` sections: `identity`, `cognitive_style`, `communication`, `time_zone`, `surfaces`, `focus_blocks`, `boundaries`, `load_distribution` (8)
+- `values` sections: `what_we_will_not_do`, `what_we_will_always_do`, `operating_values`, `conflict_resolution`, `revisit_ceremony` (5)
+- `ai-native-philosophy` sections: `operating_belief`, `ai_native_means`, `humans_always`, `ai_always`, `boundaries`, `leverage_equation`, `failure_modes` (7)
+
+### Layer: strategy
+
+Used by: `north-star.md`, `icp-summary.md`, `positioning.md`, `wedge.md`, `pricing-philosophy.md`.
+
+- `north-star` sections: `metric_of_the_year`, `definition_of_done`, `what_it_replaces`, `long_term`, `when_this_changes` (5)
+- `icp-summary` sections: `primary_persona`, `where_they_hang_out`, `substitution_stack`, `transition_wedge`, `channel_sequence`, `anti_persona`, `pointer` (7)
+- `positioning` sections: `one_liner`, `elevator`, `anti_positioning`, `slogan_registry`, `comparison_frames`, `forbidden_phrases`, `tagline_by_channel` (7)
+- `wedge` sections: `sticky_features`, `why_they_stick`, `composition_around_wedge` (3)
+- `pricing-philosophy` sections: `pricing_principles`, `tier_logic`, `value_vs_activity`, `transition_triggers` (4)
+
+### Layer: operating
+
+Used by: `principles.md`, `operating-cadence.md`, `decision-rights-narrative.md`.
+
+- `principles` sections: 8 named principles (ship-then-listen, observed-not-surveyed, boil-the-lake, founder-mode, inversion, two-way-doors, wartime-peacetime, specific-kills-abstract)
+- `operating-cadence` sections: `daily_rhythm`, `weekly_review`, `monthly_review`, `quarterly_review`, `escalation_rules` (5)
+- `decision-rights-narrative` sections: `founder_authority`, `cofounder_authority`, `conflict_protocol`, `ai_arbitration`, `escalation_to_human` (5)
+
+### Layer: brand-design
+
+Used by: `design-system.md`.
+
+- `design-system` sections: `brand_tokens_reference`, `typography`, `color_palette`, `spacing_grid`, `component_library`, `voice_alignment`, `slide_templates`, `social_templates` (8)
+
+### Layer: meta
+
+Used by: `INDEX.md`, `glossary.md`.
+
+- `glossary` sections: `term_list` (single section with N term entries)
+- `INDEX` sections: `what_this_folder_is`, `when_to_read`, `reading_order`, `edit_protocol` (4)
+
+## Process
+
+### Step 1 — Read target doc
+
+```javascript
+const { parse } = require('scripts/core/lib/frontmatter.cjs');
+const content = fs.readFileSync(target_doc, 'utf-8');
+const { frontmatter, body } = parse(content);
+```
+
+Determine current status, layer, and section list:
+- `current_status = frontmatter.status` (must be `stub` or `v0.1-draft`)
+- `target_status` = `stub` → `v0.1-draft`, `v0.1-draft` → `canonical`
+- `layer = frontmatter.layer`
+- `sections = SECTION_SCHEMAS[layer][slug]` per table above
+
+If status is `canonical` or `deprecated` → ABORT with friendly error.
+
+### Step 2 — Detect existing fills
+
+If `body` already contains `## <Section Name>` headers matching some sections, mark those as "previously filled — confirm or skip"; mark missing sections as "needs new fill".
+
+### Step 3 — Iterate sections via AskUserQuestion
+
+For each section in order:
+
+```javascript
+AskUserQuestion({
+  question: `[${doc_slug} §${section_index}] ${section_human_name} —
+    write the content for this section. Plain English:
+    ${section_prompt}. RECOMMENDATION: ${section_recommendation_or_skip}.`,
+  header: section_short_name,
+  multiSelect: false,
+  options: [
+    { label: 'Write content (next message)', description: '...' },
+    { label: 'Skip — leave as TODO', description: '...' },
+    { label: 'Use my draft (paste in next message)', description: '...' },
+  ]
+});
+```
+
+If founder chooses "Write content", wait for next user message (the content). If "Skip", insert `> TODO: revisit at next fill session.`. If "Use draft", treat next message as content.
+
+**Batch up to 4 questions per AskUserQuestion call** (Anthropic limit).
+
+### Step 4 — Compose new body
+
+Assemble body from section answers:
+
+```markdown
+# {title}
+
+> {1-line description from frontmatter}
+
+{founder's transparency note if v0.1-draft, e.g., "v0.1-draft — first fill; revisit at 30-paying"}
+
+## 1. {Section 1 name}
+
+{Section 1 content}
+
+## 2. {Section 2 name}
+
+{Section 2 content}
+
+...
+```
+
+### Step 5 — Update frontmatter
+
+For `stub → v0.1-draft`:
+```yaml
+status: v0.1-draft  # was: stub
+last_reviewed: <today>
+revisit_at: 30-paying  # default; founder may override
+revisit_trigger: "first 30-paying milestone + first NPS survey"
+revisit_owner: founder
+# Remove: entry_condition, triggered_by, why_deferred
+```
+
+For `v0.1-draft → canonical`:
+```yaml
+status: canonical  # was: v0.1-draft
+last_reviewed: <today>
+# Remove: revisit_at, revisit_trigger, revisit_owner
+```
+
+### Step 6 — Write file atomically
+
+Use `scripts/core/lib/frontmatter.cjs`:
+```javascript
+const { serialize } = require('scripts/core/lib/frontmatter.cjs');
+const newContent = serialize(updated_frontmatter, new_body);
+fs.writeFileSync(target_doc, newContent, 'utf-8');
+```
+
+### Step 7 — Session save/resume
+
+On interrupt (Ctrl-C, AskUserQuestion timeout):
+- Save current state to `runtime/core/drafts/<slug>.draft.md` with:
+  - completed sections
+  - pending sections
+  - `_resume_at` timestamp
+- On next `/core fill <slug>`, detect draft + offer resume vs restart
+
+### Step 8 — Print summary
+
+```
+✓ Filled: 00-core/wedge.md
+  Status: stub → v0.1-draft
+  Sections: 3/3 filled (0 skipped)
+  Revisit at: 30-paying
+Next: Open PR Tier C with title "feat(00-core): fill wedge.md → v0.1-draft"
+```
+
+## Outputs
+
+- Updated `00-core/<slug>.md` (frontmatter status + new body)
+- Optional draft save under `runtime/core/drafts/<slug>.draft.md` on interrupt
+
+## State transition
+
+`stub` → `v0.1-draft` (Phase 7 sprint work; founder approves PR)
+OR `v0.1-draft` → `canonical` (founder confirms hypothesis tested)
+
+## HITL
+
+Tier B per /core fill spec (writes file in working tree, founder PR Tier C to merge).
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| Status not stub or v0.1-draft | Abort: "core-fill only graduates stub or v0.1-draft. Edit canonical docs directly." |
+| Layer not in schema | Abort: "no section schema for layer X. Add to this SKILL.md per-layer table." |
+| Frontmatter parse error | Abort: "fix frontmatter manually first; then re-run." |
+| Founder cancels mid-section | Save draft to runtime/core/drafts/; suggest resume on next invocation |
+| `runtime/core/drafts/` doesn't exist | mkdir -p before write |
+
+## Cost estimate
+
+- Each section AskUserQuestion: ~$0.01-0.03 (founder fills inline)
+- Per doc (5-8 sections): ~$0.05-0.20
+- Per `/core fill` invocation: ~$0.05-0.20
+
+## Test fixtures
+
+- `tests/core/fixtures/fill-stub-glossary.json` — stub→v0.1-draft happy path
+- `tests/core/fixtures/fill-v0.1-to-canonical.json` — v0.1→canonical
+- `tests/core/fixtures/fill-canonical-abort.json` — canonical input → abort
+
+## See also
+
+- `scripts/core/lib/frontmatter.cjs` (parse/serialize)
+- `.claude/commands/core.md` (command spec)
+- `00-core/INDEX.md` (registry of docs)
+- Capability spec: `.archives/cla/core-redesign-and-command/spec.md`
+

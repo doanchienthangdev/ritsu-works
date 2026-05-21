@@ -125,6 +125,25 @@ schedules:
     fallback: no_op
     cost_estimate: "$0 per run (deterministic; reads filesystem + writes ops.kpi_snapshots)"
 
+  # eval-evo day-30 falsifiable efficacy gate (capability `evolve` v1.0).
+  # Per spec §6.6 / PLAN §6.13b: 30 days after capability `evolve` transitions
+  # to state='operating', compute median composite gain ÷ judge σ ratio.
+  # If <1.5×, PAUSE-RECOMMENDED — orchestrator's pre-flight refuses new
+  # /evolve invocations until founder retro decides v1.1 redesign vs continue.
+  #
+  # Cron fires daily but the script short-circuits to INSUFFICIENT_DATA
+  # if <10 evolved entities. The actual gate evaluation runs at most once;
+  # founder retro resolves it.
+  - id: evolve-day30-calibration
+    cron: "0 9 * * *"                 # 09:00 ICT daily; script short-circuits when insufficient
+    description: "Run /evolve falsifiable efficacy gate; alert founder on PAUSE-RECOMMENDED"
+    skill: eval-evo-calibrate-efficacy
+    enabled_when_mode: [hybrid, full_api]
+    fallback: log_only
+    cost_estimate: "$0 per run (deterministic; reads ops.agent_runs)"
+    # Note: requires SUPABASE_ACCESS_TOKEN in minion-worker env (no allowed
+    # enum value in schemas/schedules.schema.json yet — defer to v1.1 schema bump).
+
 # ============================================================================
 # Customization checklist
 # ============================================================================

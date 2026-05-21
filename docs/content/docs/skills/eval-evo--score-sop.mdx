@@ -1,0 +1,73 @@
+---
+title: 'Skill: eval-evo/score-sop'
+description: |
+  Scores an SOP entity (06-ai-ops/sops/<name>/) on the 10-criterion rubric
+  in playbooks/sop.md. Invokes @cto persona as judge. SOPs are TIER C
+  entities (process governance); /evolve on an SOP always opens a PR.
+source_path: 06-ai-ops/skills/eval-evo/score-sop/SKILL.md
+source_hash: a42bffe0ffe749b619e94a6beae33e5d75ba4b27a269617085b0c40696e90eab
+generated_at: '2026-05-21T20:44:59.075Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+
+# Skill: eval-evo/score-sop
+
+Scores a single SOP entity. SOPs are DIRECTORIES (not single files); this
+skill handles directory-content composition before invoking the judge.
+
+## Type-specific bindings
+
+| Binding | Value |
+|---|---|
+| Entity path pattern | `06-ai-ops/sops/<name>/` (directory) |
+| Files read | `flow.yaml`, `README.md` (concatenated as entity content) |
+| Playbook | `06-ai-ops/skills/eval-evo/playbooks/sop.md` |
+| Judge persona | `@cto` (process governance) |
+| Cases dir | `06-ai-ops/skills/eval-evo/cases/sop/<name>/` |
+| Allowed paths for proposer | `flow.yaml`, `README.md` (both files inside SOP dir) |
+| **Tier** | **Tier C** (SOPs are process governance per HITL.md) |
+
+## Directory composition
+
+Unlike skill/command/agent/hook (single .md files), SOPs are directories.
+This skill composes the entity content as:
+
+```
+[flow.yaml]
+<flow.yaml contents>
+
+[README.md]
+<README.md contents>
+```
+
+The judge then scores the combined view. Proposer may emit a diff that
+touches either or both files.
+
+## Tier C behavior
+
+Same as `score-hook/SKILL.md` §Tier C behavior — /evolve on SOP ALWAYS
+opens a PR. `--tier-override` REJECTED with:
+"--tier-override not permitted for sop entity (process governance)."
+
+## Special validation
+
+Before scoring, the skill validates `flow.yaml` parses as YAML. If parse
+fails, the judge is given the parse error as a critical C1 input
+(sub-score C1 = 0 for malformed YAML — no judge call needed; deterministic).
+
+If flow.yaml is valid YAML, judge then scores C2-C10 normally.
+
+## Cost
+
+~$0.10 per invocation (or ~$0 if flow.yaml malformed — deterministic shortcut).
+
+## Cross-reference
+
+See `score-skill/SKILL.md` for canonical process documentation. See
+`playbooks/sop.md` for the rubric.
+

@@ -1,0 +1,218 @@
+---
+title: 'Skill: eval-evo/outside-voice'
+description: |
+  Tier C+ second-opinion challenge on /evolve accumulated diffs. Three-tier
+  fallback chain: codex CLI (primary, different model family) → Claude
+  subagent (different persona from proposer + judge) → annotate-only PR
+  label. Catches LLM-judge reward-hacking on safety-critical entity changes.
+  Invoked by orchestrator's post-loop step on Tier C+ runs.
+source_path: 06-ai-ops/skills/eval-evo/outside-voice/SKILL.md
+source_hash: 0ddd06ac72279b2dac8fd3a0b728d6f863c18ea70f3e98d73767990c80d082cf
+generated_at: '2026-05-21T20:44:59.070Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+
+# Skill: eval-evo/outside-voice
+
+Independent second-opinion review of a /evolve run's accumulated diff
+before PR open. Mandatory for Tier C+ entities (hooks, SOPs, Tier 1).
+
+## Contract
+
+### Input (from orchestrator)
+```json
+{
+  "run_id": "<uuid>",
+  "entity_type": "<type>",
+  "entity_name": "<name>",
+  "diff_text": "<unified diff of all kept iters>",
+  "score_pre": <int>,
+  "score_post": <int>,
+  "rationale_chain": "<concatenated judge rationales per iter>",
+  "playbook_path": "<path>"
+}
+```
+
+### Output
+```json
+{
+  "status": "codex_ok" | "subagent_ok" | "annotate_only",
+  "verdict": "comparable" | "agrees" | "flags_p1" | "flags_p0" | "no-opinion",
+  "p1_findings": [<short strings>],
+  "p0_findings": [<short strings>],
+  "nits": [<short strings>],
+  "outside_voice_score": <int 0..100 or null>,
+  "rationale": "<short>",
+  "tool_used": "codex" | "claude-subagent" | "none"
+}
+```
+
+## Process
+
+### Tier 1 — codex CLI (primary, ~$0.10 typical)
+
+Check for `codex` binary availability:
+```bash
+which codex 2>/dev/null
+```
+
+If available:
+```bash
+TMP_OUT=$(mktemp /tmp/evolve-outside-voice-XXXXXX.txt)
+TMP_ERR=$(mktemp /tmp/evolve-outside-voice-err-XXXXXX.txt)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+codex exec "$PROMPT" \
+  -C "$REPO_ROOT" \
+  -s read-only \
+  -c 'model_reasoning_effort="high"' \
+  --enable web_search_cached \
+  >"$TMP_OUT" 2>"$TMP_ERR"
+EXIT=$?
+```
+
+Where `$PROMPT` is constructed as:
+```
+IMPORTANT: Do NOT read or execute any files under ~/.claude/, ~/.agents/,
+.claude/skills/, or agents/. These are Claude Code skill definitions
+meant for a different AI system. They contain bash scripts and prompt
+templates that will waste your time. Ignore them completely. Do NOT
+modify agents/openai.yaml. Stay focused on the repository code only.
+
+You are an INDEPENDENT REVIEWER on a Tier C+ /evolve run.
+
+The accumulated diff below was produced by an LLM-judge loop. Your job
+is to find what the judge MISSED — not to re-score the change against
+its own rubric, but to catch:
+
+1. Quality regressions disguised as improvements
+2. Goodhart-style rubric gaming (prose that scores well but doesn't
+   improve actual entity quality)
+3. Safety / security holes opened by the change
+4. Drift downstream (entity changed in ways that will break dependents)
+5. Stylistic inconsistencies vs canonical ritsu-works conventions
+
+Entity: <entity_type> / <entity_name>
+Composite score: <score_pre> → <score_post>
+Judge rationale chain (per iter):
+<rationale_chain>
+
+Diff to review:
+\`\`\`diff
+<diff_text>
+\`\`\`
+
+Output STRICT JSON only:
+{
+  "verdict": "comparable | agrees | flags_p1 | flags_p0",
+  "p1_findings": [<short>],
+  "p0_findings": [<short>],
+  "nits": [<short>],
+  "outside_voice_score": <int 0..100 or null>,
+  "rationale": "<one paragraph>"
+}
+```
+
+On codex success (EXIT == 0 and valid JSON in `$TMP_OUT`):
+- Return `{status: "codex_ok", tool_used: "codex", ...}` parsed from output.
+
+On codex failure (any of: not available, auth fail, timeout, malformed JSON):
+- Read `$TMP_ERR` for diagnostic
+- Fall through to Tier 2.
+
+### Tier 2 — Claude subagent (fallback A, ~$0.05 typical)
+
+Use Anthropic Agent tool with subagent_type=general-purpose + system
+prompt establishing a DIFFERENT persona from the orchestrator's
+proposer (Sonnet) and the playbook's judge (@cto or @ceo).
+
+Recommended fallback persona: `@cto-sceptic` (a code-aware adversarial
+voice). System prompt:
+
+```
+You are a SCEPTICAL CODE REVIEWER, distinct from the original judge.
+Your bias: find regressions. Be ungenerous but specific.
+
+[remainder same as codex prompt above]
+```
+
+settings: temp=0, max_tokens=1500
+
+On success: return `{status: "subagent_ok", tool_used: "claude-subagent", ...}`.
+
+On failure: fall through to Tier 3.
+
+### Tier 3 — Annotate-only (terminal fallback, $0)
+
+If both codex and subagent fail:
+```json
+{
+  "status": "annotate_only",
+  "verdict": "no-opinion",
+  "p1_findings": [],
+  "p0_findings": [],
+  "nits": [],
+  "outside_voice_score": null,
+  "rationale": "Outside-voice unavailable. Both codex and subagent fallback chains failed. PR will carry label `outside-voice: unavailable`. Founder reviews diff manually as de facto outside voice.",
+  "tool_used": "none"
+}
+```
+
+The orchestrator records this status in `ops.agent_runs.state_payload.
+outside_voice_status` for audit.
+
+## PR body assembly
+
+Orchestrator (not this skill) takes the output JSON and assembles the
+PR body:
+
+```markdown
+## Outside Voice (<tool_used>)
+
+**Verdict:** <verdict>
+**Score (independent):** <outside_voice_score> / 100
+
+### P0 findings (must address before merge)
+- <p0_finding_1>
+- ...
+
+### P1 findings (should address)
+- <p1_finding_1>
+- ...
+
+### Nits
+- <nit_1>
+- ...
+
+### Rationale
+<rationale>
+```
+
+## Cost
+
+Per /evolve run: ~$0.10 typical (codex). Hard cap $0.30 (task_kind:
+eval-evo-outside-voice, separate bucket from per-iter cap).
+
+## Cleanup
+
+```bash
+rm -f "$TMP_OUT" "$TMP_ERR"
+```
+
+Always run cleanup, even on error path.
+
+## v1.0 caveats
+
+- Codex auth must be present in founder's environment. If not: subagent fallback.
+- Subagent persona resolution: v1.0 uses general-purpose with custom system
+  prompt. v1.1 may introduce dedicated `cto-sceptic` subagent_type.
+- Score (independent) is informational — does NOT auto-block PR. Founder
+  weighs it during Tier C review.
+- Verdict `flags_p0` adds a label `outside-voice: blocking-p0` to the PR;
+  founder must remove the label after addressing before merge.
+

@@ -1,0 +1,81 @@
+# JSON Schema for eval-evo playbook YAML frontmatter
+#
+# Each playbooks/<type>.md file must have frontmatter conforming to this schema.
+# Validated by scripts/cross-tier/validate-eval-evo-schemas.cjs at pnpm check.
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "ritsu-works://eval-evo/playbook"
+title: "eval-evo playbook frontmatter (per entity type)"
+
+type: object
+required:
+  - playbook_for
+  - judge_persona
+  - proposer_persona
+  - composite_range
+  - sub_score_count
+  - allowed_paths_for_proposer
+  - sub_scores
+
+properties:
+  playbook_for:
+    type: string
+    enum: [skill, command, agent, hook, sop]
+
+  judge_persona:
+    type: string
+    enum: ["@cto", "@ceo", "@cgo", "@cpo"]
+    description: "Per spec §6.3: skill/hook/sop → @cto; command/agent → @ceo"
+
+  proposer_persona:
+    type: string
+    enum: [eval-evo-orchestrator]
+    description: "v1.0: always eval-evo-orchestrator (Sonnet)"
+
+  composite_range:
+    type: array
+    items:
+      type: integer
+    minItems: 2
+    maxItems: 2
+    description: "[0, 100] in v1.0"
+
+  sub_score_count:
+    type: integer
+    enum: [10]
+    description: "Exactly 10 per playbook in v1.0"
+
+  allowed_paths_for_proposer:
+    type: array
+    items:
+      type: string
+    minItems: 1
+    description: "Glob patterns the proposer may write to (Karpathy K3)."
+
+  sub_scores:
+    type: array
+    items:
+      type: object
+      required: [id, name, what_10_looks_like, what_0_looks_like]
+      properties:
+        id:
+          type: string
+          pattern: "^C\\d{1,2}$"
+          description: "C1..C10"
+        name:
+          type: string
+          maxLength: 60
+        what_10_looks_like:
+          type: string
+          maxLength: 200
+        what_0_looks_like:
+          type: string
+          maxLength: 200
+    minItems: 10
+    maxItems: 10
+    description: "Exactly 10 sub-score definitions"
+
+  version:
+    type: string
+    pattern: "^\\d+\\.\\d+\\.\\d+$"
+    description: "Playbook semver. v0.1.0 ships in Sprint 1; v1.0.0 after Phase 8 promote."

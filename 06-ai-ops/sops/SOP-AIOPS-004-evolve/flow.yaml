@@ -1,0 +1,178 @@
+# SOP-AIOPS-004 — /evolve Iteration Loop SOP
+#
+# Declarative spec for the /evolve loop. Read by .claude/commands/evolve.md
+# and 06-ai-ops/skills/eval-evo/orchestrator/SKILL.md.
+#
+# NOTE: This SOP is the LOOP SOP, NOT a CLA-style 8-phase ceremony SOP.
+# /evolve invocations run inside this SOP's flow once dispatched by the
+# command.
+
+sop_id: SOP-AIOPS-004
+slug: evolve
+name: "/evolve iteration loop"
+version: "1.0.0"
+state: operating
+owner: 06-ai-ops
+hitl_default: B
+cost_bucket: eval-evo-orchestrator
+
+# ----------------------------------------------------------------------
+# Steps (each /evolve invocation runs once through this sequence)
+# ----------------------------------------------------------------------
+steps:
+  - id: pre_flight
+    name: "Pre-flight gates"
+    actions:
+      - argv_validate
+      - holdout_gate_check  # _HOLDOUT.yaml has real ratings (not PENDING-FOUNDER)
+      - playbook_spearman_check  # ≥0.6 correlation per playbook (R7 mitigation)
+      - pnpm_check_clean
+      - entity_path_resolve
+      - concurrent_run_check
+      - working_tree_clean_check
+      - tier_classify
+    hitl: A
+    failure_handling:
+      holdout_pending: abort_with_completion_instructions
+      spearman_below_threshold: abort_with_playbook_revise_instructions
+      drift: abort_with_validator_output
+      concurrent: error_with_run_id
+      entity_missing: suggest_via_nn_search
+      working_tree_dirty: error_with_actionable_hint
+
+  - id: insert_agent_run
+    name: "Insert ops.agent_runs row"
+    actions:
+      - insert_ops_agent_runs
+    hitl: A
+    state_after: running
+
+  - id: loop_iter
+    name: "Iteration loop (1..N)"
+    skill: eval-evo/orchestrator
+    actions:
+      - budget_check
+      - load_context  # episodic-recall + corrections (~500 tok)
+      - judge_pre_score  # invoke score-{type} skill
+      - variance_flag_check  # R2: >5pt on unchanged artifact
+      - stash_pre_state  # git stash push -- <entity-file>
+      - proposer_draft  # invoke propose-improvement skill
+      - apply_diff  # invoke install-improvement skill
+      - drift_gate_post_apply  # pnpm check
+      - judge_post_score
+      - keep_or_revert  # Karpathy K4
+      - stop_check
+      - persist_iter  # ops.run_summaries + ops.events
+    hitl: A  # within-loop
+    repeats_until: stop_cond_met OR max_iters_reached OR budget_truncated
+
+  - id: tier_b_finalize
+    name: "Tier B install: in-place persists"
+    condition: tier == 'B'
+    actions:
+      - update_agent_run_completed
+      - print_summary
+    hitl: A
+
+  - id: tier_c_outside_voice
+    name: "Tier C+ outside-voice"
+    condition: tier == 'C'
+    skill: eval-evo/outside-voice
+    actions:
+      - codex_primary  # codex CLI subprocess
+      - subagent_fallback  # Claude general-purpose subagent
+      - annotate_only_fallback
+    hitl: A
+    cost_bucket: eval-evo-outside-voice
+
+  - id: tier_c_open_pr
+    name: "Tier C+ PR open"
+    condition: tier == 'C'
+    actions:
+      - assemble_pr_body
+      - gh_pr_create
+      - update_agent_run_pr_open
+      - telegram_notify_founder  # deferred to v1.1 if Telegram bot not wired
+    hitl: A  # the PR is the founder's gate
+    state_after: pr-open
+
+  - id: tier_c_post_merge
+    name: "Tier C+ post-merge verification"
+    condition: tier == 'C' AND pr_merged
+    actions:
+      - pnpm_check_clean
+      - consistency_checks_rerun
+    hitl: A
+    failure_handling:
+      post_merge_drift: alert_router_telegram_revert_option
+
+# ----------------------------------------------------------------------
+# Drift gates
+# ----------------------------------------------------------------------
+drift_gates:
+  - phase: pre_flight
+    command: pnpm check
+    abort_on_fail: true
+  - phase: per_iter_post_apply
+    command: pnpm check
+    revert_on_fail: true
+  - phase: tier_c_post_merge
+    command: pnpm check + ops.consistency_checks rerun
+    alert_on_fail: true
+
+# ----------------------------------------------------------------------
+# Events emitted
+# ----------------------------------------------------------------------
+events_emitted:
+  - type: ritsu.entity.evolved
+    when: per-iter completion (each kept iter)
+    payload:
+      capability_id: evolve
+      entity_type: <type>
+      entity_slug: <slug>
+      run_id: <uuid>
+      iter: <int>
+      score_pre: <int>
+      score_post: <int>
+      delta: <int>
+
+  - type: ritsu.evolve.run_completed
+    when: post-loop (Tier B finalize OR Tier C+ PR open)
+    payload:
+      capability_id: evolve
+      run_id: <uuid>
+      exit_reason: <str>
+      scores: [<ints>]
+      total_cost_usd: <float>
+
+  - type: ritsu.evolve.calibration_pending
+    when: day-30 calibration script PASS but founder hasn't run retro
+    payload:
+      median_gain: <float>
+      judge_sigma: <float>
+      ratio: <float>
+
+  - type: ritsu.evolve.calibration_paused
+    when: day-30 calibration script PAUSE-RECOMMENDED
+    payload:
+      median_gain: <float>
+      judge_sigma: <float>
+      ratio: <float>
+      next_action: "founder runs /cla revise evolve OR confirms continue"
+
+# ----------------------------------------------------------------------
+# State persistence
+# ----------------------------------------------------------------------
+state_persisted_in:
+  - ops.agent_runs (one row per /evolve invocation; state_payload JSONB)
+  - ops.run_summaries (per kept iter; ~150 tokens)
+  - ops.events (per kept iter)
+  - ops.cost_attributions (per LLM call inside the run)
+  - ops.consistency_checks (post-merge for Tier C+)
+  - ops.corrections (from /evolve reject subcommand)
+  - ops.decisions (Tier C+ approval at PR merge — superseded model)
+
+# ----------------------------------------------------------------------
+# Failure mode summary (22 classes per spec.md §10)
+# ----------------------------------------------------------------------
+failure_modes_documented_at: wiki/capabilities/evolve/spec.md#10-error--rescue

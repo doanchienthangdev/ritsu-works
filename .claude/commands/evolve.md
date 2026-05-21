@@ -1,0 +1,242 @@
+---
+name: evolve
+description: |
+  Iterative evaluate→propose-improvement→install→re-evaluate loop on any
+  ritsu-works leaf entity (skill / command / agent / hook / SOP). Foundational
+  self-improvement capability per wiki/capabilities/evolve/spec.md.
+capability: evolve
+version: 1.0.0
+spec: wiki/capabilities/evolve/spec.md
+sop: 06-ai-ops/sops/SOP-AIOPS-004-evolve/flow.yaml
+role: eval-evo-orchestrator
+cost_bucket: eval-evo-orchestrator
+---
+
+# /evolve
+
+Project-scoped command for ritsu-works. Iterative evaluate→improve feedback loop
+for any leaf entity. Capability: `evolve` (see `wiki/capabilities/evolve/spec.md`).
+
+The command is a thin orchestrator. Loop logic lives in
+`06-ai-ops/skills/eval-evo/orchestrator/SKILL.md`. Per-type scoring lives in
+`06-ai-ops/skills/eval-evo/score-<type>/SKILL.md`. The command:
+- Parses argv (entity-type, entity-name, flags),
+- Pre-flights drift + concurrent-run + working-tree-clean + hold-out-ratings,
+- Dispatches to orchestrator skill,
+- Renders console UX,
+- Persists state to ops.* tables,
+- Handles Tier B (in-place) vs Tier C+ (PR) install routing.
+
+## Subcommands
+
+| Invocation | Purpose | HITL |
+|---|---|---|
+| `/evolve <type> <name> [--loop=N] [--stop=cond] [--dry-run] [--tier-override]` | Run eval+evo loop | B for tier-B entities; C for tier-C+ entities (loop in-session, PR after) |
+| `/evolve status <type> <name>` | Read-only history viewer | A |
+| `/evolve reject <run-id> "<reason>"` | Founder negative signal → ops.corrections | A |
+| `/evolve discard <run-id> [--stale]` | Cleanup stash + run state | A |
+
+## Argv schema
+
+| Arg / Flag | Required | Validation |
+|---|---|---|
+| `<entity-type>` | yes | enum: skill, command, agent, hook, sop |
+| `<entity-name>` | yes | slug `^[a-z0-9][a-z0-9-/]*$` (no `..`, no leading `/`, slash allowed for nested) |
+| `--loop=N` | no | 1 ≤ N ≤ 10; default 3 |
+| `--stop=score>=N` or `--stop=no-improvement-for=N` | no | exact regex match |
+| `--dry-run` | no | bool; runs evaluation only, skips install |
+| `--tier-override` | no | bool; Tier C entity → Tier B (founder-only) |
+
+`--stop` + `--loop` precedence: FIRST trigger wins.
+
+## Workflow
+
+### Phase A — Pre-flight
+
+1. Validate argv per schema above. Else: `UsageError` with usage hint.
+2. **Hold-out gate (NEW v1.0):** check `06-ai-ops/skills/eval-evo/cases/_HOLDOUT.yaml`
+   exists AND contains real founder ratings (no `PENDING-FOUNDER` placeholders).
+   If placeholders remain, ABORT with: "/evolve is gated on founder hold-out ratings.
+   Complete `06-ai-ops/skills/eval-evo/cases/_HOLDOUT.yaml` first (5 entities × 5
+   types = 25 1-10 ratings). See wiki/runbooks/evolve.md §Onboarding."
+3. Run `pnpm check`. If non-zero exit, ABORT with validator output.
+4. Resolve entity path:
+   - skill → `06-ai-ops/skills/<name>/SKILL.md` (or `<name>/SKILL.md` if nested)
+   - command → `.claude/commands/<name>.md`
+   - agent → `.claude/agents/<name>.md`
+   - hook → `.claude/hooks/<name>.md`
+   - sop → `06-ai-ops/sops/<name>/`
+5. If entity doesn't exist, search via best-effort glob; suggest closest. Exit.
+6. Concurrent-run check:
+   ```sql
+   SELECT id FROM ops.agent_runs
+   WHERE agent_slug = 'evolve'
+     AND state = 'running'
+     AND state_payload->>'entity_slug' = '<slug>'
+   ```
+   If row exists, `ConcurrentRunError` with run-id + action hint.
+7. Working tree check: `git diff --quiet -- <entity-file>`. If dirty, error.
+8. Classify tier:
+   - hook + sop + Tier 1 entity → Tier C+
+   - skill + command + agent → Tier B
+   - `--tier-override` lowers C+ → B (founder-explicit).
+9. INSERT ops.agent_runs row with agent_slug='evolve', state='running'.
+
+### Phase B — Loop (dispatch to orchestrator skill)
+
+Pass to `eval-evo/orchestrator/SKILL.md` via Skill tool with input:
+```json
+{
+  "entity_type": "<type>",
+  "entity_name": "<name>",
+  "entity_path": "<resolved-path>",
+  "max_iters": <N>,
+  "stop_cond": "<cond or null>",
+  "dry_run": <bool>,
+  "tier": "<B or C>",
+  "run_id": "<uuid>",
+  "playbook_path": "06-ai-ops/skills/eval-evo/playbooks/<type>.md",
+  "cases_dir": "06-ai-ops/skills/eval-evo/cases/<type>/<name>/"
+}
+```
+
+Orchestrator returns final state JSON: scores array, diffs_applied/reverted,
+total_cost, exit_reason. See `06-ai-ops/skills/eval-evo/orchestrator/SKILL.md`
+for contract.
+
+### Phase C — Post-loop
+
+**Tier B:**
+- Working tree contains the kept diff (or no diff if all iters reverted).
+- Print final summary to console (per §UX below).
+- UPDATE ops.agent_runs.state='completed'.
+
+**Tier C+:**
+- Working tree contains accumulated diff (kept iters committed in-place via `git stash drop`).
+- Invoke `eval-evo/outside-voice/SKILL.md` (codex → subagent → annotate fallback).
+- Assemble PR body: spec.md link + score trajectory + outside-voice report + cost summary.
+- `gh pr create --title "evolve(<type>/<name>) <score-pre>→<score-post>" --body "<assembled>"`
+- UPDATE ops.agent_runs.state='pr-open'.
+- Print PR URL.
+- Telegram notification (founder; concise: PR URL + delta) — deferred to v1.1 if Telegram bot not yet wired.
+
+## Console UX
+
+### Pre-iter banner
+```
+Eval+Evo: <type> / <name>
+─────────────────────────────────────
+Past runs (N found in ops.run_summaries):
+  · <date>: score X→Y (+Z) [<summary>]
+  · ...
+
+Negative-signal corrections (M found in ops.corrections):
+  · <date>: "<reason>"
+  · ...
+
+Cost budget: $0.50/iter × <N> iters = $<estimate>; outside-voice $<x or 0> (Tier <B or C+>)
+Tier: <B or C+>  Mode: <in-place or PR-after-loop>
+
+Iter 1 [running]: judge scoring on 10 criteria…
+```
+
+### Per-iter display
+```
+Iter K [running]: judge scoring…
+  Composite: <pre> (was — / <prev> last run)
+  Sub-scores: C1=<n> C2=<n> ... C10=<n>
+Iter K [running]: proposer drafting improvement…
+  Diff: <N lines changed> in <file>
+Iter K [running]: applying diff…
+Iter K [running]: judge re-scoring…
+  Composite: <post> (<delta>)
+  Sub-scores shifted: C<x>=<a>→<b>, ...
+Iter K [<✓ KEEP or ✗ REVERT>]: composite <pre>→<post>; $<cost> spent
+→ ops.run_summaries written: "<one-line why>"
+→ ops.events fired: ritsu.entity.evolved
+```
+
+### Post-loop display
+```
+═══════════════════════════════════════
+Eval+Evo result for <type>/<name>
+═══════════════════════════════════════
+Iters: <K> of <N> (<exit reason>)
+Score trajectory: <S0> → <S1> → <S2> → ... (final <Sn>, +<delta> from start)
+Total cost: $<actual> of $2.50 budget
+Drift: clean (pnpm check ✓)
+Tier B: installed in-place. Run-id: <run-id>.
+
+(For Tier C+ adds:)
+Outside-voice: codex review COMPLETE (score: <comparable|disagrees>; <N> nits)
+PR opened: <URL>
+Awaiting founder Tier C review on PR.
+```
+
+## Subcommand: status
+
+```
+/evolve status <type> <name>
+```
+
+Reads `ops.agent_runs WHERE agent_slug='evolve' AND state_payload->>'entity_slug'=<slug>`
+ORDER BY started_at DESC LIMIT 5. Prints:
+- Run-id, started_at, completed_at, scores array, total_cost, outcome
+- ASCII spark line of composite scores
+- Last 3 ops.corrections rows for this entity
+
+## Subcommand: reject
+
+```
+/evolve reject <run-id> "<reason>"
+```
+
+Validates run-id exists in ops.agent_runs. Founder reason ≥ 5 words.
+INSERT ops.corrections (run_id, corrected_by='founder', correction_kind='reject',
+correction_note='<reason>', ts=now()).
+
+Next /evolve invocation on the same entity loads this row as negative-signal context.
+
+## Subcommand: discard
+
+```
+/evolve discard <run-id> [--stale]
+```
+
+- Without `--stale`: cleans up specific run-id (drops orphan stash entries from
+  that run via `git stash list | grep "<run-id>"` + `git stash drop`).
+- With `--stale`: cleans up ALL eval-evo stashes older than 7 days.
+
+UPDATE ops.agent_runs.state='aborted' for the run-id (if still 'running').
+
+## Errors
+
+All 22 named exception classes (per spec.md §10) caught and reported with
+explicit user-visible messages. Catch-all `rescue Exception` is BANNED.
+
+## Defensive notes
+
+- The command file itself is concise (~250 lines orchestration). Loop logic in
+  orchestrator skill.
+- All git operations explicitly target the entity file (no repo-wide stash).
+- Founder corrections feed back: `/evolve reject` writes to ops.corrections
+  with the reason. Next iteration on same entity loads these as negative signal.
+- Stale-stash sweep: `/evolve discard --stale` cleans up stashes >7 days old.
+- Day-30 efficacy gate (spec §6.6) is enforced by `scripts/eval-evo/calibrate-efficacy.cjs`,
+  scheduled via knowledge/schedules.yaml. /evolve runs continue normally until
+  the gate fires; on PAUSE-RECOMMENDED, this command refuses new invocations
+  until founder reviews.
+
+## Related commands
+
+- `/cla propose` — for proposing a NEW capability. /evolve is the
+  EXISTING-entity-improvement counterpart.
+- `/cla revise <id>` — when /evolve plateaus on a capability's entities, escalate to architectural revision.
+- `/cla tune <id>` — when /evolve evolves KPI thresholds for an operating capability.
+- `/check-drift` / `pnpm check` — drift gate /evolve uses pre + post iter.
+
+## Spec reference
+
+Canonical: `wiki/capabilities/evolve/spec.md` (promoted from
+`.archives/cla/evolve/spec.md` at Phase 8). Always cite the canonical path
+for downstream users.

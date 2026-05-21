@@ -1,0 +1,26 @@
+case_id: case-001-flow-yaml-valid
+entity_type: sop
+entity_name: SOP-AIOPS-001-capability-lifecycle
+state: active
+input:
+  description: "Validate the SOP's flow.yaml structure."
+  files_inspected:
+    - 06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml
+    - 06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/README.md
+expected_traits:
+  - trait: yaml_parses
+    assertion: "flow.yaml parses as valid YAML via js-yaml"
+  - trait: has_8_phases
+    assertion: "flow.yaml.steps has 8 entries (phases 1-8) OR 9 entries (0-8 with Phase 0 drift preflight)"
+  - trait: hitl_tiers_assigned
+    assertion: "Each phase has explicit hitl field; matches HITL.md taxonomy"
+  - trait: failure_handling_per_phase
+    assertion: "Each phase has failure_handling block (per playbooks/sop.md C4)"
+  - trait: cost_bucket_set
+    assertion: "flow.yaml.cost_bucket field is set (per playbooks/sop.md C5)"
+prompt_assertions:
+  - "README.md matches flow.yaml structure"
+  - "Phase names in README mirror flow.yaml step ids"
+notes: |
+  Validates SOP-AIOPS-001 itself (the parent CLA SOP). When /evolve runs
+  on this SOP, this case ensures the proposer doesn't break flow.yaml schema.

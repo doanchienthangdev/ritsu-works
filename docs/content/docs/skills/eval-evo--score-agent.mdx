@@ -1,0 +1,65 @@
+---
+title: 'Skill: eval-evo/score-agent'
+description: |
+  Scores an agent entity (.claude/agents/<name>.md) on the 10-criterion
+  rubric in playbooks/agent.md. Invokes @ceo persona as judge. Returns
+  composite + sub_scores. See score-skill/SKILL.md for canonical template.
+source_path: 06-ai-ops/skills/eval-evo/score-agent/SKILL.md
+source_hash: 6ef4290c5368780c93ef2445f6d8cd85bfd841e51e8fa994c0c9662a7e7fa469
+generated_at: '2026-05-21T20:44:59.072Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+
+# Skill: eval-evo/score-agent
+
+Scores a single agent entity. Same loop logic as `score-skill/SKILL.md`;
+this file documents only the per-type differences.
+
+## Type-specific bindings
+
+| Binding | Value |
+|---|---|
+| Entity path pattern | `.claude/agents/<name>.md` |
+| Playbook | `06-ai-ops/skills/eval-evo/playbooks/agent.md` |
+| Judge persona | `@ceo` (persona consistency + decision-style judgment) |
+| Cases dir | `06-ai-ops/skills/eval-evo/cases/agent/<name>/` |
+| Allowed paths for proposer | `.claude/agents/<name>.md` (single file) |
+
+## Contract
+
+Same as `score-skill/SKILL.md` §Contract.
+
+## Process
+
+Same as `score-skill/SKILL.md` §Process. The judge prompt loads
+`playbooks/agent.md` rubric (10 sub-scores focused on persona voice
+consistency, bound-role permission alignment, routing accuracy, decision
+style fit, etc.). Judge persona `@ceo`.
+
+## Additional v1.0 consideration: persona alignment check
+
+Before scoring, this skill ALSO verifies the agent's claimed bound role
+matches `knowledge/workforce-personas.yaml`:
+
+```sql
+-- Conceptual; orchestrator can pass this as part of context
+SELECT bound_role FROM workforce_personas
+WHERE persona_slug = '<from-entity-frontmatter>'
+```
+
+If misalignment detected, judge is given the discrepancy as context — it
+may lower the C2 score (bound-role permission alignment).
+
+## Cost
+
+~$0.10 per invocation.
+
+## Cross-reference
+
+See `score-skill/SKILL.md` for canonical process documentation.
+

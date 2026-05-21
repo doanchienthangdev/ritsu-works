@@ -1,0 +1,194 @@
+# Hold-out ratings for Spearman validation (eval-evo §6.13c)
+#
+# Founder hand-rates 5 representative entities per type on 1-10 quality scale.
+# Used by scripts/eval-evo/playbook-validate.cjs to compute Spearman rank
+# correlation between founder ratings and rubric composite scores.
+#
+# SHIP GATE: Spearman correlation ≥ 0.6 per playbook before /evolve runs.
+# If <0.6, the playbook is REVISED before invocations proceed.
+#
+# Status: PENDING-FOUNDER (placeholder values below; orchestrator refuses
+# to run /evolve until real ratings replace ALL placeholders).
+#
+# How to complete:
+#   1. Read each entity at its path (entity_path field below)
+#   2. Rate the entity on overall quality 1-10 (your subjective judgment)
+#      - 10 = exemplar; could not be substantially better
+#      - 7-8 = solid; minor improvements possible
+#      - 5-6 = adequate; meaningful improvements available
+#      - 3-4 = poor; needs substantial work
+#      - 1-2 = broken or near-broken
+#   3. Replace `founder_rating: PENDING-FOUNDER` with integer 1-10
+#   4. Run `node scripts/eval-evo/playbook-validate.cjs --type=<type>`
+#   5. If correlation ≥ 0.6 for all 5 playbooks, /evolve unlocks
+#
+# Time estimate: ~5 min per entity × 25 entities = ~2 hours founder time.
+
+version: "1.0.0"
+status: pending_founder
+ratings:
+  # ============ SKILL TYPE (5 entities) ============
+  - entity_type: skill
+    entity_name: wiki-sync/distill
+    entity_path: 06-ai-ops/skills/wiki-sync/distill/SKILL.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: skill
+    entity_name: episodic-recall
+    entity_path: 06-ai-ops/skills/episodic-recall/SKILL.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: skill
+    entity_name: cost-optimization-review
+    entity_path: 06-ai-ops/skills/cost-optimization-review/SKILL.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: skill
+    entity_name: capability-lifecycle/architect
+    entity_path: 06-ai-ops/skills/capability-lifecycle/architect/SKILL.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: skill
+    entity_name: core-management/core-fill
+    entity_path: 06-ai-ops/skills/core-management/core-fill/SKILL.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  # ============ COMMAND TYPE (5 entities) ============
+  - entity_type: command
+    entity_name: cla
+    entity_path: .claude/commands/cla.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: command
+    entity_name: core
+    entity_path: .claude/commands/core.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: command
+    entity_name: wiki
+    entity_path: .claude/commands/wiki.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: command
+    entity_name: docs
+    entity_path: .claude/commands/docs.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: command
+    entity_name: evolve
+    entity_path: .claude/commands/evolve.md
+    founder_rating: PENDING-FOUNDER
+    notes: "self-rating; rate the /evolve command file you're shipping"
+
+  # ============ AGENT TYPE (5 entities) ============
+  - entity_type: agent
+    entity_name: ceo
+    entity_path: .claude/agents/ceo.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: agent
+    entity_name: cto
+    entity_path: .claude/agents/cto.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: agent
+    entity_name: cgo
+    entity_path: .claude/agents/cgo.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: agent
+    entity_name: cpo
+    entity_path: .claude/agents/cpo.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: agent
+    entity_name: cla
+    entity_path: .claude/agents/cla.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  # ============ HOOK TYPE (5 entities) ============
+  - entity_type: hook
+    entity_name: pre-edit-tier1
+    entity_path: .claude/hooks/pre-edit-tier1.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: hook
+    entity_name: pre-llm-call-budget
+    entity_path: .claude/hooks/pre-llm-call-budget.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: hook
+    entity_name: pre-delegate-check
+    entity_path: .claude/hooks/pre-delegate-check.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: hook
+    entity_name: pre-tool-secrets
+    entity_path: .claude/hooks/pre-tool-secrets.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: hook
+    entity_name: pre-bash-dangerous
+    entity_path: .claude/hooks/pre-bash-dangerous.md
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  # ============ SOP TYPE (5 entities) ============
+  - entity_type: sop
+    entity_name: SOP-AIOPS-001-capability-lifecycle
+    entity_path: 06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: sop
+    entity_name: SOP-AIOPS-002-cross-tier-consistency
+    entity_path: 06-ai-ops/sops/SOP-AIOPS-002-cross-tier-consistency/
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: sop
+    entity_name: SOP-AIOPS-003-docs-sync
+    entity_path: 06-ai-ops/sops/SOP-AIOPS-003-docs-sync/
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: sop
+    entity_name: SOP-AIOPS-001-fix
+    entity_path: 06-ai-ops/sops/SOP-AIOPS-001-fix/
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+  - entity_type: sop
+    entity_name: SOP-INGEST-001-wiki-sync
+    entity_path: 06-ai-ops/sops/SOP-INGEST-001-wiki-sync/
+    founder_rating: PENDING-FOUNDER
+    notes: ""
+
+# How _HOLDOUT.yaml is consumed:
+#
+# scripts/eval-evo/playbook-validate.cjs --type=<type> --holdout=_HOLDOUT.yaml
+#   1. Filter ratings to this type (5 entities)
+#   2. For each entity, run score-<type> skill against entity (rubric score 0-100)
+#   3. Compute Spearman rank correlation between [founder_ratings] and [rubric_scores]
+#   4. PASS if correlation ≥ 0.6; FAIL otherwise
+#
+# The orchestrator's pre-flight check calls this script before each /evolve
+# invocation. PASS allows the loop; FAIL blocks with an actionable error.

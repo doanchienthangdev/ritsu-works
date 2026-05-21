@@ -114,3 +114,4 @@ coverage/
 
 # Obsidian vault config (per-machine, not for source control)
 .obsidian/
+scripts/eval-evo/calibration-results/

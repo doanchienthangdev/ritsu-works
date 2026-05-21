@@ -1,0 +1,28 @@
+case_id: case-002-tier-c-pr-open
+entity_type: command
+entity_name: evolve
+state: active
+input:
+  description: "Founder invokes /evolve on a Tier C entity (hook); PR path activates."
+  invocation: "/evolve hook pre-edit-tier1 --loop=2"
+  prerequisites:
+    - "_HOLDOUT.yaml has real founder ratings"
+    - "gh CLI authenticated; founder has merge permission"
+    - "codex CLI available (or subagent fallback ready)"
+expected_traits:
+  - trait: tier_override_rejected
+    assertion: "If founder passes --tier-override on hook entity, command rejects with explicit error"
+  - trait: outside_voice_invoked
+    assertion: "outside-voice skill runs post-loop (codex or subagent fallback)"
+  - trait: pr_opened
+    assertion: "gh CLI opens a PR; URL returned to console"
+  - trait: ops_state_pr_open
+    assertion: "ops.agent_runs.state='pr-open' (not 'completed' until merge)"
+  - trait: pr_body_contains_outside_voice
+    assertion: "PR body markdown includes outside-voice verdict + findings"
+prompt_assertions:
+  - "The command file documents Tier C+ PR-only behavior"
+  - "The command file specifies outside-voice fallback chain"
+notes: |
+  Validates the Tier C+ path. Important because hook + sop entities ALWAYS
+  go this path — no --tier-override permitted for safety/governance entities.

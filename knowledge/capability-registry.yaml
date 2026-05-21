@@ -357,6 +357,66 @@ capabilities:
   #   estimated_founder_hours: 32
   #   estimated_completion: 2026-06-12
 
+  # === eval+evo feedback loop (deployed 2026-05-22) ===
+  - id: evolve
+    name: "/evolve — Eval+Evo Feedback Loop for ritsu-works entities"
+    description: |
+      Iterative evaluate→propose-improvement→install→re-evaluate loop on
+      any ritsu-works leaf entity (skill / command / agent / hook / SOP).
+      v1.0 ships 5 leaf types; folder/pillar deferred to v1.1. Approach:
+      top-level slash command parallel to /cla; BALANCED Karpathy fit
+      (single per-type composite metric, HITL by tier, ~500-tok cross-iter
+      memory, git stash isolation NOT worktrees, falsifiable day-30
+      efficacy gate). E5 outside-voice + E6 golden case battery
+      scaffolding accepted. Per-iter $0.50 / per-run $2.50 / monthly role
+      $50 caps. Goodhart mitigation: 4-layer (proposer-vs-judge persona
+      separation + golden cases + outside-voice on Tier C+ + founder
+      corrections) + Spearman rubric hold-out validation per playbook.
+      Strategic position: quality engine for entities driving product/
+      GTM/first-100-customers — NOT meta-work.
+    version: "1.0.0"            # Phase 8 promotion 2026-05-22
+    state: deployed              # transitions to operating after founder completes _HOLDOUT.yaml ratings
+    state_since: 2026-05-22
+    proposed_at: 2026-05-22
+    deployed_at: 2026-05-22
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [1, 2, 4, 5, 7, 11, 13, 14, 15, 20]
+    spec_path: wiki/capabilities/evolve/spec.md
+    retrospective_path: wiki/capabilities/evolve/retrospective.md
+    cost_bucket: eval-evo-orchestrator
+    estimated_cost_setup_usd: 5.00
+    estimated_cost_recurring_usd: 50.00
+    estimated_founder_hours: 25
+    actual_cost_setup_usd: 5.00   # /cla 8-phase ceremony ~$5 (Phases 0-8 single overnight session)
+    actual_founder_hours: 4        # ~3h founder interactive (Phases 4-6 STOPs) + ~1h hold-out ratings (still pending)
+    target_kpis: [eval_evo_median_gain_to_judge_sigma_ratio]
+    target_value: 1.5            # day-30 efficacy gate: median gain ÷ judge σ must exceed 1.5
+    selected_option: "Approach A (top-level /evolve parallel to /cla)"
+    notes: |
+      ops.capability_runs id: 9c456d98-c172-4f1a-bd14-87d4e4cc43f2
+      Phase 5 architecture approval decision: ops.decisions[5a617fa2-b22e-4887-8a13-52545d9b6a2b]
+      Spec is LOCKED at /plan-ceo-review + /plan-eng-review on 2026-05-22
+      (~520-line PLAN.md + 11 sections + outside-voice YELLOW absorbed +
+      eng-review pass; spec-review iter-2 PASS 8/10).
+
+      Working folder: .archives/cla/evolve/
+      Canonical CEO plan: ~/.gstack/projects/doanchienthangdev-ritsu-works/ceo-plans/2026-05-22-evolve-eval-evo.md
+      Context bundle: runtime/eval+evo/context/ (5 files, ~700 lines)
+
+      Sprint history (single overnight session 2026-05-22):
+        Sprint 1: ed8d893 — Foundation primitive + 3 schemas + validator (16 files, 1906 insertions)
+        Sprint 2: 8e7fcd7 — 4 more score-{type} skills (4 files, 253 insertions)
+        Sprint 3: <commit-sha-pending> — outside-voice + 10 seed cases + SOP + scripts + migration + runbook + governance
+
+      v1.0 falsifiable efficacy gate at day-30: if median gain on N≥10
+      evolved entities < 1.5× judge-noise σ, /evolve paused for v1.1 redesign.
+
+      OPERATIONAL GATE BEFORE FIRST INVOCATION: founder must complete
+      06-ai-ops/skills/eval-evo/cases/_HOLDOUT.yaml (25 entries, ~2h
+      founder time). Until ratings replace PENDING-FOUNDER placeholders,
+      the orchestrator's pre-flight check refuses to run /evolve.
+      See wiki/runbooks/evolve.md §Onboarding.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:

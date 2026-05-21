@@ -173,6 +173,7 @@ tier1_canonical:
         - episodic-memory-architecture
         - cross-tier-consistency
         - workforce-personas                  # v1.0.2 — C-suite façade layer (see knowledge/workforce-personas.yaml)
+        - eval-evo                            # v1.0 (2026-05-22) — /evolve self-improvement loop (capability `evolve`)
       composes_from: []
       status: alive  # skills/ + sops/ exist on disk
 
