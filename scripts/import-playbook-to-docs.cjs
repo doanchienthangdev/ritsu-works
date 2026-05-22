@@ -72,6 +72,7 @@ const CHAPTER_ORDER = [
   "phase-a2/33-capability-lifecycle-architecture.md",
   "phase-a2/34-capability-case-wiki-sync.md",
   "phase-a2/35-capability-case-docs-engine.md",
+  "phase-a2/36-capability-case-core-redesign.md",
   "A1-glossary.md",
   "A2-references.md",
   "A3-pr-templates.md",

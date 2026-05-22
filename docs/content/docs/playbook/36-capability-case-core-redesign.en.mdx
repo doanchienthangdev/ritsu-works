@@ -1,0 +1,342 @@
+---
+title: "Chương 36 — Capability Case Study #3: Core Redesign + /core Command"
+description: "Chương 36 — Capability Case Study #3: Core Redesign + /core Command"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/36-capability-case-core-redesign.md
+source_hash: d984983c321828a4d9d7a0cdda6b6760b7ee5b254686516e39f4174ca6dc97d9
+generated_at: '2026-05-22T00:30:51.336Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: d984983c321828a4d9d7a0cdda6b6760b7ee5b254686516e39f4174ca6dc97d9
+translated_at: '2026-05-22T00:30:51.336Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 36
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Wiki Sync (Chương 34) đem knowledge ngoài VÀO. Docs Engine (Chương 35) project knowledge TRONG ra. Core Redesign — capability thứ 3 — codify cái 'WHO/WHAT/WHY' mà cả workforce nội bộ + cofounder + future operator phải quy chiếu về. Đây là first time `/cla` được dùng cho ground-truth foundation, không phải tool integration."*
+
+Chương này document capability **`core-redesign-and-command`** — capability thứ ba ship qua Bài #20 framework, từ idea → operating trong **1 ngày** (2026-05-21 → 2026-05-22), founder time ~25 phút, total LLM cost ~$0.50. Live tại https://ritsu-works.vercel.app (charter section).
+
+**Trạng thái:** operating v1.0.0. Sprints: PR #75 (founder docs) → PR #76 (/core command) → PR #77 (integration) → PR #78 (Phase 8 promotion).
+
+---
+
+## 36.1 Bài toán
+
+Trước redesign, `00-core/` (cũ tên `00-charter/`) chứa 5 files: 3 filled (product.md, brand_voice.md, transparency.md) + 2 templates chưa fill (charter.md, founder-profile.md). AI workforce + cofounder có 3 vấn đề:
+
+- **Silent drift:** mỗi agent tự nghĩ "north star của Ritsu là gì?" và optimize khác nhau. Marketing agent tạo blog post theo positioning khác sales agent. Không có canonical "ground truth".
+- **Onboarding nặng:** cofounder (khi join) phải đọc cả repo (~1 tuần) để hiểu "Ritsu là ai, đang làm gì, ưu tiên gì". Không có thứ tự đọc, không có entry-point.
+- **Re-derive cost:** mỗi campaign brief, mỗi support reply, mỗi /cla propose — agents lại re-derive "positioning là gì? ICP là ai?" từ scattered docs (CLAUDE.md + product.md + governance/HITL.md). Tốn token mỗi session.
+
+Constraint:
+- **Pre-PMF stage.** Founder không có cofounder active, 0 paying users. Lock-in "values", "principles", "ai-native-philosophy" pre-PMF = risk codify wrong (chưa quan sát được customer).
+- **Token budget.** CLAUDE.md preamble đã 15K tokens loaded mỗi session × hàng nghìn sessions/month. Thêm 10 docs auto-load = ~25M tokens/month extra.
+- **PR ceremony.** Mọi edit 00-core/ là HITL Tier C (per governance/HITL.md). Cần balance "ground truth stable" vs "founder iteration speed".
+- **1 billion company foundation.** Phải scaled từ 0 paying → 1B ARR không cần rewrite.
+
+## 36.2 Bài #20 walkthrough — Compressed Phase 4+5
+
+Đây là lần đầu tiên `/cla` được dùng cho capability ground-truth foundation (vs tool integration như wiki-sync hay docs-engine). Founder bắt đầu bằng `/plan-ceo-review` brainstorm trước khi `/cla propose` — produces 8 brainstorm artifacts (~112KB) tại `.archives/brainstorming/core/`.
+
+### Phase 0-1: Drift pre-flight + Problem framing
+
+- Phase 0: `pnpm check` CLEAN. INSERT `ops.capability_runs` id `cd377ba8-d8c6-44ed-b0ad-69981b49d45a`.
+- Phase 1: **0 clarifying questions issued.** Brainstorm đã framed problem hoàn chỉnh (refined statement + 10 assumptions + 5 success criteria + 13 out-of-scope items). Problem-framer skill skipped its standard 5-7 Q dimension scan.
+
+### Phase 2: Domain analysis — CTO dispatch
+
+Routing scan: 6 domains hit, max = `code` (6 hits). Dispatched `@cto` subagent với problem.md + brainstorm refs. CTO produced 200-word lens verified **2 gaps thực**:
+- `scripts/wiki-sync/lib/frontmatter.cjs` does NOT exist — `scripts/wiki-sync/get.cjs` parses inline. → mandate: ship `scripts/core/lib/frontmatter.cjs` AS NEW SHARED LIB + snapshot tests vs existing 3 docs + parity test vs `wiki-sync/get.cjs`.
+- `runtime/` is NOT in `knowledge/manifest.yaml workspace_plane` — chỉ có raw/, wiki/, .archives/ declared. → mandate: thêm `workspace_plane.runtime` declaration trong same PR as `/core fill` writes its first draft.
+
+Cost: ~$0.20 (CTO subagent only).
+
+### Phase 3: System inventory — deterministic
+
+Enumerated: 56 skills (21 wiki-sync, 17 docs-engine, 10 capability-lifecycle, 8 misc), 83 SOPs across 9 pillars, 24 Tier 1 yamls, 1 MCP server (supabase-ops shim), 4 relevant capabilities. Gap matrix: 15 new components, 0 external services, 0 new MCP servers, 3 Tier 1 yamls to update.
+
+Reuse ratio: ~70% at pattern level (wiki-sync + CLA precedent), ~5% at code level. Cost: $0.
+
+### Phase 4: Options — COMPRESSED
+
+Founder elected compressed Phase 4 (consistent với scope discipline). `options.md` persisted 3 alternatives từ brainstorm trực tiếp:
+- **A — Minimum Viable Core** (4 docs + 3 verbs; 5/10 completeness)
+- **B — Layered Foundation** (19 docs filled + 20 verbs; 9/10 nhưng documentation-theater risk)
+- **C — Core-Shell + Skill-First** (10 filled + 6 stubs + 7 verbs; 8/10 ⭐ — RECOMMENDED)
+
+Option C selected. Skipped CxO fan-out (`@cgo` + `@cpo` + others) — equivalent input đã có từ CTO Phase 2 + brainstorm spec review iter 1+2. Cost saved: ~$0.65.
+
+INSERT `ops.decisions` Phase 4 (Tier B): `ccc6b391-85b8-4cf6-9ca2-9d7809f84d68`.
+
+### Phase 5: Architecture spec — COMPRESSED + full Tier C ceremony
+
+spec.md 239 lines synthesized từ Output 1 (folder design 28.9KB) + Output 2 (/core command spec 18.9KB) + sections 1-11 review (16.6KB) + decisions log. draft/ folder populated với:
+- `tier1-diffs.yaml` 169 lines (manifest v0.9.0 + kpi-registry +2 KPIs + workspace_plane.runtime per CTO mandate)
+- `commands/core.md` (pointer to Output 2)
+- `skills/core-management/core-fill/SKILL.md` (sketch per-layer schemas)
+- `scripts/core/lib/frontmatter.cjs.sketch.md` (CTO mandate: SHIP FIRST + snapshot tests + parity)
+- 5 empty `.gitkeep` folders (migrations/, agents/, sops/, mcp-configs/, frontend/ — không có new content)
+
+Dry-run `pnpm check` CLEAN. Founder Tier C APPROVE via AskUserQuestion 2026-05-21T14:00Z. INSERT `ops.decisions` Phase 5 (Tier C): `da323c91-b540-4fd5-b3da-579e9ac67785`.
+
+Cost: $0 (compressed; full ceremony would cost ~$2-3 via Muse panel + @cto re-dispatch).
+
+### Phase 6: Sprint plan
+
+3 sprints, **NOT 2-week default** (per skill template). Capability nhỏ — sprints là 1-3 ngày each:
+
+| Sprint | Owner | Effort | Deliverable |
+|---|---|---|---|
+| 1 — Phase A | Founder solo | 6-10h (think-heavy) | 9 source docs |
+| 2 — Phase B | CC + founder review | 8-12h CC + 1h founder | /core command + scripts + skill + tests |
+| 3 — Phase C | CC + founder | 1-2h CC + 30min founder | manifest + kpi + README + docs |
+
+Tier B approve. Founder elected **Path B = HANDOFF** — end /cla session sau Phase 6 approve, resume Sprint 1 trong session mới khi sẵn sàng.
+
+### Phase 7: Implementation — 3 sprints, 1 ngày
+
+**Critical pivot mid-Sprint 1:** founder authorized CC để fill 9 think-heavy docs solo (charter, founder-profile, north-star, icp-summary, positioning, values, principles, ai-native-philosophy, INDEX) thay vì founder write. CC synthesized từ existing repo material (product.md + brand_voice.md + transparency.md + CLAUDE.md + governance/HITL.md + governance/ROLES.md + .archives/pillars/PLAN.md). Mỗi doc tagged frontmatter `ai_synthesized_v0_1: true` + `revisit_at: 30-paying` cho intellectual honesty.
+
+Sprint 1 (PR #75) merged 2026-05-21T16:26Z — 45 files changed, 5656 insertions (incl 12 docs translated VI via Haiku $0.125).
+
+Sprint 2 (PR #76) merged 2026-05-21T16:55Z — 18 files added, 1791 insertions:
+- `scripts/core/lib/frontmatter.cjs` SHIPPED FIRST (per CTO mandate)
+- `scripts/core/migrate-existing-frontmatter.cjs` ran --apply (3 existing docs retrofitted)
+- `scripts/core/compose.cjs` + `reindex.cjs` + `validate.cjs`
+- `scripts/cross-tier/validate-core-pillar.cjs` wrapper
+- 6 stub files (glossary/design-system/wedge/pricing-philosophy/operating-cadence/decision-rights-narrative)
+- `06-ai-ops/skills/core-management/core-fill/SKILL.md` (per-layer schemas)
+- `.claude/commands/core.md` (7 Phase-1 verbs)
+- `tests/core/frontmatter.test.ts` (24 tests pass)
+
+Sprint 3 (PR #77) merged 2026-05-22T00:55Z — 36 files changed, 1916 insertions:
+- `knowledge/manifest.yaml` v0.8.0 → v0.9.0 (pillars.core.sub_files + workspace_plane.runtime per CTO)
+- `knowledge/kpi-registry.yaml` +2 KPIs (`core_docs_filled_count`, `core_command_verbs_phase_1`)
+- `00-core/README.md` rewritten (19-doc map + status enum + /core verb table + 60-min cofounder reading order)
+- `TODOS.md` +new section "00-core stubs awaiting graduation"
+- docs sync charter (20 MDX) + translate VI ($0.047)
+
+### Phase 8: Catalog promotion
+
+PR #78 merged 2026-05-22T01:05Z:
+- Promoted `spec.md` → `wiki/capabilities/core-redesign-and-command/spec.md`
+- Wrote `retrospective.md` (with patterns extracted + actuals vs estimates + carry-forward TODOs)
+- UPDATE `capability-registry.yaml` state=`operating`, actuals filled
+- UPDATE `ops.capability_runs` state=`operating`, current_phase=8
+
+## 36.3 Architecture: layered foundation + thin orchestrator
+
+`00-core/` post-redesign **19 files** organized by `layer` frontmatter enum:
+
+**Identity (7 docs)**:
+- `product.md` ✓ canonical (existing, frontmatter retrofitted Sprint 2 migration)
+- `brand_voice.md` ✓ canonical (existing)
+- `transparency.md` ✓ canonical (existing)
+- `charter.md` ✓ canonical (template → filled Sprint 1)
+- `founder-profile.md` ✓ canonical (template → filled; **walker_excluded: true** for PII per docs-engine spec)
+- `values.md` ⚠ v0.1-draft (revisit_at: 30-paying)
+- `ai-native-philosophy.md` ⚠ v0.1-draft (revisit_at: 30-paying)
+
+**Strategy (3 docs)**:
+- `north-star.md` ✓ canonical (100 paying who love in 30 days → 1B ARR thesis)
+- `icp-summary.md` ✓ canonical (20yo bilingual STEM undergraduate persona)
+- `positioning.md` ✓ canonical (one-liner + elevator + slogan + tagline registry)
+
+**Operating (1 doc + 2 stubs)**:
+- `principles.md` ⚠ v0.1-draft (8 heuristics from PG/Bezos/Munger/Horowitz)
+- `operating-cadence.md` ⏸ stub (entry: cofounder formal join OR 50 paying)
+- `decision-rights-narrative.md` ⏸ stub (entry: cofounder formal join)
+
+**Brand-design (1 stub)**:
+- `design-system.md` ⏸ stub (entry: first marketing visual needed; brand-tokens.yaml precursor)
+
+**Strategy stubs (2)**:
+- `wedge.md` ⏸ stub (entry: SOP-PRODUCT-002 N=10 strangers complete — PG gate; "wedge is DISCOVERED, not declared")
+- `pricing-philosophy.md` ⏸ stub (entry: first SOP-PRODUCT-010 pricing-pull-test)
+
+**Meta (2 docs + 1 stub)**:
+- `INDEX.md` ✓ canonical (60-min cofounder onboarding reading order + bundle compose map)
+- `README.md` ✓ canonical (pillar overview)
+- `glossary.md` ⏸ stub (entry: first 10 SOPs land — vocabulary not stable pre-PMF)
+
+**Status enum**:
+
+| status | meaning | edit policy |
+|---|---|---|
+| `canonical` | Fully filled + founder-signed | Tier C PR; quarterly review |
+| `v0.1-draft` | First fill; revisit_at trigger pending | Tier C PR; founder solo until revisit |
+| `stub` | Frontmatter-only placeholder | `/core scaffold` creates, `/core fill` graduates |
+| `deprecated` | Superseded, kept for git history | No edits |
+
+## 36.4 `/core` command — 7 Phase-1 verbs
+
+| Verb | Purpose | HITL | Persistence |
+|---|---|---|---|
+| `/core` | Menu + status summary | A | read-only |
+| `/core show <doc>` | Display content + frontmatter | A | read-only |
+| `/core list [--status=<enum>] [--layer=<enum>]` | Table of all 19 docs | A | read-only |
+| `/core diff [doc]` | Git diff since `last_reviewed` timestamp | A | read-only |
+| `/core check` | Validate frontmatter schema (per status enum) | A | read-only (or report file) |
+| `/core compose <bundle> [--to=<path>] [--summary]` | Assemble bundle (identity/strategy/operating/all) | A | read-only |
+| `/core scaffold <slug> --layer=<layer> [--status=stub\|v0.1-draft]` | New file với frontmatter template | B | filesystem write |
+| `/core fill <slug>` | Interactive graduate stub → v0.1 or v0.1 → canonical (via skill) | C | filesystem write + draft autosave |
+
+Phase 2 verbs (`init`, `reindex --write`, `review`, `status`, `<doc>:apply`, `<doc>:build`, `<doc>:export`) deferred to **post first 30 paying customers** — speculative demand không justify build pre-PMF.
+
+**Bundles (v1 hardcoded; v1.1 may externalize)**:
+
+- `identity` = 7 docs (product + brand_voice + transparency + charter + founder-profile + values + ai-native-philosophy)
+- `strategy` = 3 docs (north-star + icp-summary + positioning)
+- `operating` = 1 doc v1 (principles; stubs added on graduation)
+- `all` = 10 docs (every canonical + v0.1-draft)
+
+## 36.5 CTO Phase 2 mandates — 100% honored
+
+CTO Phase 2 dispatch surfaced 2 verified gaps + 1 beginner-mistake warning. All 3 mandates landed in Sprint 2-3 exactly as specified:
+
+1. **`scripts/core/lib/frontmatter.cjs` SHIP FIRST** (before `compose.cjs`). ✓ Sprint 2 build order strict.
+2. **Snapshot tests vs existing 3 docs** (post-migration retrofit). ✓ `tests/core/frontmatter.test.ts` 24 tests pass.
+3. **`workspace_plane.runtime` declaration in manifest.yaml** same PR as `/core fill` writes first draft. ✓ Sprint 3 manifest v0.9.0.
+
+Plus parity test vs `scripts/wiki-sync/get.cjs` inline parser — passes (same fixture extracts identical title/status/layer/auto_load).
+
+CTO Phase 2 verified gaps both REAL:
+- `scripts/wiki-sync/lib/` doesn't exist (confirmed by `ls`)
+- `runtime/` not in workspace_plane (confirmed by `grep workspace_plane manifest.yaml`)
+
+This validates the @cto persona dispatch pattern: 200-word lens + 1 verifiable recommendation → Phase 5 architect spec mandate → Phase 7 implementation acceptance criteria. **Loop closed**.
+
+## 36.6 Pattern reuse với wiki-sync + docs-engine
+
+Core borrows directly from wiki-sync (Chương 34) + docs-engine (Chương 35) precedents:
+
+| Pattern | Origin | Application in core-redesign |
+|---|---|---|
+| Thin orchestrator command | `/wiki`, `/cla`, `/docs` | `/core` mirror frontmatter + subcommand table + workflow per verb |
+| Skill namespace | `wiki-sync/distill`, `capability-lifecycle/architect` | `core-management/core-fill` |
+| Helper scripts | `scripts/wiki-sync/*.cjs`, `scripts/docs/*.cjs` | `scripts/core/*.cjs` (lib + compose + reindex + validate + migrate) |
+| Cross-tier validator wrapper | `scripts/cross-tier/validate-*.cjs` (9 existing) | `scripts/cross-tier/validate-core-pillar.cjs` |
+| Frontmatter schema + parse | Inline parser in `wiki-sync/get.cjs` | Extracted to `scripts/core/lib/frontmatter.cjs` AS SHARED LIB (per CTO) |
+| Bundle compose | `/wiki get --src=` | `/core compose <bundle>` |
+| Idempotency marker | `<!-- generated-by: docs-engine v0.1.0 -->` | (not needed — docs are founder-authored, not auto-gen) |
+| Bilingual VI+EN docs | docs-engine walker + `/docs translate` | Sprint 1 + 3 ran docs sync charter + Haiku translate (~$0.17 total) |
+| Capability lifecycle | `/cla propose` 8 phases | This capability went through full lifecycle (compressed Phase 4+5) |
+
+This là Bài #20 framework working as designed: **template + reuse + accelerated development**. Capability #3 ship trong 1 ngày vs capability #1 (wiki-sync) took ~3 weeks.
+
+## 36.7 Đột phá pattern mới: AI-as-founder-substitute
+
+Capability này thử nghiệm pattern mới chưa có trong wiki-sync hay docs-engine: **AI synthesizes founder think-heavy content from existing repo material**.
+
+Standard CLA Phase 7 Sprint 1 (founder docs) ước tính 6-10h founder solo writing. Actual: founder spent ~5 phút giving "go" + CC synthesized 9 docs (charter, founder-profile, north-star, icp-summary, positioning, values, principles, ai-native-philosophy, INDEX) trong ~15 phút bằng cách:
+
+1. **Mining existing canonical material:** product.md (positioning), brand_voice.md (voice), transparency.md (boundaries), CLAUDE.md (operating belief), governance/HITL.md (decision rights), governance/ROLES.md (workforce structure), .archives/pillars/PLAN.md (architecture rationale).
+2. **Tagging với intellectual honesty:** mỗi doc filled bằng AI có frontmatter:
+   ```yaml
+   ai_synthesized_v0_1: true
+   ai_synthesized_at: 2026-05-21
+   ai_synthesized_from: [product.md, brand_voice.md, transparency.md, ...]
+   ai_synthesis_note: "First-draft content synthesized by Claude Code from existing repo material. Founder reviews + ratifies at 30-paying milestone."
+   ```
+3. **v0.1 calibration với explicit revisit trigger:** values + principles + ai-native-philosophy đều tagged `revisit_at: 30-paying` + `revisit_trigger: <specific event>` để force re-author từ observed customer data sau khi có evidence.
+
+**Compression**: 6-10h founder solo → ~5 min watch + 15 min CC = ~30-40× faster.
+
+**Risk acknowledged**: AI synthesis của values/principles pre-PMF có thể codify wrong values. Mitigation: explicit v0.1 tagging + revisit ceremony + founder reviews PR Tier C. Per **Boil-the-lake** principle (`principles.md` §3), khi AI compresses marginal cost to near-zero, do COMPLETE thing — including the v0.1 calibration discipline.
+
+**When this pattern applies**:
+- Content can be SYNTHESIZED from existing canonical material (not invented)
+- v0.1 tagging với revisit_at trigger acceptable (not load-bearing decision yet)
+- Founder time scarce + AI capacity ample
+- Reviewer concern explicit: "structurally hard to estimate pre-PMF" applies to founder THINKING, not AI synthesis
+
+**When this pattern DOES NOT apply**:
+- Wedge (SOP-PRODUCT-002 PG gate — wedge is DISCOVERED not declared)
+- Vocabulary (glossary — stable only after real usage)
+- Decisions requiring observed customer behavior (post-PMF only)
+
+## 36.8 KPIs
+
+- `core_docs_filled_count` (NEW) — số docs trong 00-core/ với status ∈ (canonical, v0.1-draft). Source: `node scripts/core/validate.cjs --json`. Target 10. Current 10.
+- `core_command_verbs_phase_1` (NEW) — số working /core Phase-1 verbs trong `.claude/commands/core.md`. Target 7. Current 7.
+- `core_docs_v0_1_drafts` (implicit) — số docs với status `v0.1-draft` chờ 30-paying revisit. Current 3.
+- `core_stubs_count` (implicit) — số stubs với entry_condition gated. Current 6.
+
+## 36.9 Actuals vs estimates
+
+| Metric | Estimated | Actual | Variance |
+|---|---|---|---|
+| CC hours | 8-12 | ~2.5 | **-75%** |
+| Founder hours | 6-10 | ~0.25 | **-97%** |
+| Calendar days | 3-7 | 1 day | **-85%** |
+| LLM cost USD | 3 | ~$0.50 | **-83%** |
+| PR count | 3 | 4 (incl Phase 8) | +33% (expected; Phase 8 not counted in initial sprint plan) |
+| LOC added | 1500-2500 | ~9000 (incl docs MDX auto-gen) | +200% (docs MDX không phải human-written code) |
+
+**Net**: massive under-estimate trên cost + time (CC compression worked across the board); on-target cho PR count; over-count cho LOC chỉ vì docs MDX auto-gen.
+
+Founder time breakdown (~25 min total):
+- 7 AskUserQuestion answers trong brainstorm + CLA orchestration (~10 min)
+- 4 PR reviews + merges (~15 min)
+
+## 36.10 Open work
+
+1. **3 v0.1-draft docs revisit at 30-paying** — values + principles + ai-native-philosophy. Sau khi có 30 paying customers + first NPS survey + first founder retro, re-author từ observed customer language thay vì AI synthesis. Calendar reminder: ngày của 30-paying milestone.
+
+2. **6 stubs graduation** — glossary, design-system, wedge, pricing-philosophy, operating-cadence, decision-rights-narrative. Mỗi cái có explicit `entry_condition` frontmatter + tracked trong TODOS.md. Founder reviews quarterly via SOP-FOUNDER-015.
+
+3. **`brand-tokens.yaml`** precursor to design-system.md — trigger: first marketing visual needed. Lightweight design tokens (color, font, spacing) cho `/core design-system:build` Phase 2 verb.
+
+4. **`ops.core_runs` migration** — deferred to v1.1. Currently /core uses git audit only. Add when audit demand emerges (e.g., daily /core fill usage > 5/day).
+
+5. **Phase 2 verbs** — `init`, `reindex --write`, `review`, `status`, `<doc>:apply`, `<doc>:build`, `<doc>:export`. Trigger: post first 30 paying customers + demonstrated consumer demand.
+
+6. **`/cla propose --refs=core:bundle=<name>`** — mirror `wiki:src=` pattern; let `/cla propose` pull core bundles as refs. v1.1 feature.
+
+7. **Phase 2 migration of consumers** — skills currently `Read 00-core/<file>` directly. Migrate to `/core compose <bundle>` for consistency + drift detection. Backward-compat is free; migration is enhancement.
+
+8. **27 ROLES.md skill stub cleanup** — pre-existing tech debt (escalation-routing, blog-post-drafting, etc.). Not introduced by this capability but flagged by CI warn-tier each PR. Separate capability proposal recommended.
+
+## 36.11 Lessons learned
+
+### What worked
+
+1. **CLA framework worked end-to-end** for ground-truth foundation use case (not just tool integration). All 8 phases ran với state persistence + resume semantics intact across multiple sessions.
+
+2. **Compressed Phase 4+5 saved $2-3** without quality loss. Brainstorm + adversarial spec review iter 1+2 (5/10 → 7/10) provided equivalent input to full CxO panel + Muse panel. Tier C founder approval ceremony preserved.
+
+3. **CTO Phase 2 dispatch loop closed.** 2 verified gaps + 3 mandates → architect spec → Sprint 2 implementation acceptance. Validates @cto persona dispatch pattern as reliable architecture review layer.
+
+4. **AI-as-founder-substitute pattern compressed Phase A 30-40×.** Founder authorized inline (Tier C); AI synthesized from existing repo material; v0.1 tagging + revisit_at trigger for intellectual honesty. New pattern documented for future capabilities.
+
+5. **Bilingual docs pipeline integrates smoothly.** 3 docs sync + translate cycles totaling ~$0.17 over 1 day. Each PR auto-deploys to Vercel in ~5 min.
+
+### What didn't work
+
+1. **CI warn-tier check fails on every PR** — pre-existing 27 ROLES.md skill stubs. Tech debt that pre-dates this capability. All 4 PRs had to merge despite this warn-tier failure (warn-tier is non-blocking per branch protection).
+
+2. **`docs-translate.cjs` requires `ANTHROPIC_API_KEY` env** — per spec it shouldn't when invoked from Claude Code Desktop. CC had to manually source `.env.local` each run. Filed as docs-engine carry-forward.
+
+3. **`.mdx` vs `.vi.mdx` propagation non-obvious** — `docs-translate.cjs` writes to `.vi.mdx`; default URL serves from `.mdx`. CC had to manually `cp .vi.mdx → .mdx`. Filed as docs-engine carry-forward.
+
+4. **Founder effort estimate was 4-40× off (in good direction)** — initial estimate 6-10h founder solo. Actual: ~25 min total. The "structurally hard to estimate pre-PMF" reviewer concern applied to founder THINKING time, NOT to AI synthesis time. Lesson: when CC can do the work, recompute Phase A as PR-review-only.
+
+## 36.12 What capability #3 proves about Bài #20
+
+Capability #1 (wiki-sync) took ~3 weeks across multiple sessions. Capability #2 (docs-engine) took ~10 hours single-session. Capability #3 (core-redesign) took ~1 day single-day (founder ~25 min, CC ~2.5h).
+
+**Acceleration curve**:
+- Each capability ships faster than the last (template reuse + pattern reuse + accelerator improvements).
+- AI-as-founder-substitute pattern (introduced here) may halve future capabilities' founder time.
+- Compressed Phase 4+5 ceremony (when upstream brainstorm exists) saves $2-3 + 15 min per capability.
+
+**What's needed for capability #4-10**:
+- More skills built (currently 56; brand-tokens-builder, design-system-builder, etc. would unlock 00-core/design-system.md graduation).
+- Faster docs translate (or CC-Desktop env detection so no API key needed).
+- Phase 2 verbs cho /core (post-30-paying trigger).
+
+Bài #20 framework + Wave 1 capabilities (CLA itself, wiki-sync, docs-engine, core-redesign-and-command) = **complete operator OS layer**. Future capabilities (lead-acquisition, daily-customer-acquisition, pricing-experiments, etc.) build on this layer instead of re-inventing each time.
