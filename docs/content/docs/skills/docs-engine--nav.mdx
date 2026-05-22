@@ -1,30 +1,23 @@
 ---
 title: 'Skill: docs-engine/nav'
 description: |
-  Trình chỉnh sửa sidebar / navigation. Chỉnh sửa `docs/content/meta.json` theo
-  quy ước Fumadocs (pages, groups, ordering). Prompt tương tác để nhóm pillar.
-  Idempotent: chạy lại với cùng args là no-op.
+  Sidebar / navigation editor. Edits `docs/content/meta.json` per Fumadocs
+  conventions (pages, groups, ordering). Interactive prompts for pillar grouping.
+  Idempotent: re-running with same args is a no-op.
 source_path: 06-ai-ops/skills/docs-engine/nav/SKILL.md
 source_hash: ccb7c3c42d663eeb300a0958fc1baec44c41b2a19c98e3a858e5346b18bb528d
-generated_at: '2026-05-19T05:20:46.355Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.387Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: ccb7c3c42d663eeb300a0958fc1baec44c41b2a19c98e3a858e5346b18bb528d
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When to use
 
-# docs-engine/nav
-
-## Khi nào dùng
-
-- Lệnh `/docs nav` (điều chỉnh sidebar thủ công).
-- Gọi tự động ở cuối `/docs scaffold` để viết meta.json ban đầu.
+- `/docs nav` command (manual sidebar tuning).
+- Auto-invoked at end of `/docs scaffold` to write initial meta.json.
 
 ## Inputs
 
@@ -32,14 +25,14 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Process
 
-1. Đọc `docs/content/meta.json`.
-2. Áp dụng action.
-3. Viết lại. Xác thực so với schema meta.json của Fumadocs.
-4. Hiển thị diff cho founder nếu tương tác.
+1. Read `docs/content/meta.json`.
+2. Apply action.
+3. Write back. Validate against Fumadocs meta.json schema.
+4. Surface diff to founder if interactive.
 
 ## Outputs
 
-- Cập nhật `docs/content/meta.json`.
+- Updated `docs/content/meta.json`.
 
 ## HITL
 
@@ -47,8 +40,9 @@ Tier A.
 
 ## Cost estimate
 
-~$0.05-0.10 mỗi lần gọi. Cap: `docs-nav-edit` ≤ $0.10.
+~$0.05-0.10 per invocation. Cap: `docs-nav-edit` ≤ $0.10.
 
 ## See also
 
-- Tài liệu tham khảo meta.json Fumadocs: https://www.fumadocs.dev/docs/headless/page-tree
+- Fumadocs meta.json reference: https://www.fumadocs.dev/docs/headless/page-tree
+

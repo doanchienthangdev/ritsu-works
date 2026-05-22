@@ -1,54 +1,48 @@
 ---
 title: 'Skill: docs-engine/scaffold'
 description: |
-  Công cụ tạo scaffold idempotent cho dự án con Next.js + Fumadocs `docs/`.
-  Chỉ lần đầu tiên (sau lần đầu, `docs/` tồn tại và chạy lại là no-op).
-  Tạo ứng dụng Next.js có thể triển khai trên Vercel với rootDirectory=docs, cộng với
-  trình redactor bí mật 3 lớp và trình xử lý route MDX thô cho AI runtime ngay từ ngày đầu.
-  (Từ động được đổi tên từ `build` thành `scaffold` để (a) tránh xung đột với
-  mẫu `.gitignore` `build/` toàn repo và (b) khớp với ý định của Kent Beck về tên-reveal-intention —
-  `scaffold` mô tả hành động chính xác hơn `build`.)
+  Idempotent scaffolder for the `docs/` Next.js + Fumadocs subproject.
+  First-time only (after first run, `docs/` exists and re-running is a no-op).
+  Generates Vercel-deployable Next.js app with rootDirectory=docs, plus the
+  3-layer secret redactor and AI-runtime raw-MDX route handler from day 1.
+  (Verb was renamed from `build` to `scaffold` to (a) avoid collision with
+  the repo-wide `build/` gitignore pattern and (b) match Kent Beck's
+  intention-revealing-names principle — `scaffold` describes the action more
+  precisely than `build`.)
 source_path: 06-ai-ops/skills/docs-engine/scaffold/SKILL.md
 source_hash: c57640f3e9b4e400a8ac93bb6ec81d952799e298b908b9e63250e1a45dfd0970
-generated_at: '2026-05-19T05:20:46.355Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.387Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: c57640f3e9b4e400a8ac93bb6ec81d952799e298b908b9e63250e1a45dfd0970
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When to use
 
-# docs-engine/scaffold
-
-## Khi nào dùng
-
-- Cấu hình site docs lần đầu tiên, HOẶC xây dựng lại đầy đủ sau khi `/cla deprecate docs-engine` được đảo ngược.
-- Gọi bằng lệnh `/docs scaffold`.
+- First-time docs site setup, OR full-rebuild after `/cla deprecate docs-engine` reversal.
+- Invoked by `/docs scaffold` command.
 
 ## Inputs
 
-- (Không có — chỉ đọc trạng thái hiện tại của repo để phát hiện đã scaffold hay chưa.)
+- (None — reads only the repo's existing state to detect already-scaffolded.)
 
 ## Process
 
-1. Xác minh `docs/` không tồn tại (hoặc trống). Nếu tồn tại với nội dung → hủy với "Already scaffolded; use `/docs sync` instead".
-2. Chạy `npx create-fumadocs-app docs/ --template next-mdx --lang vi` (hoặc template tương đương).
-3. Viết `docs/source.config.ts` với các nguồn nội dung tùy chỉnh (9 adapter được kết nối).
-4. Viết `docs/lint-secrets.cjs` (trình redactor fail-loud 3 lớp; CTO mod #2).
-5. Viết `docs/app/api/raw/[...slug]/route.ts` (endpoint raw-MDX cho AI runtime).
-6. Viết `docs/.vercelignore` để bỏ qua các thư mục không cần thiết.
-7. Lần sync đầu tiên: dispatch tới `docs-engine/sync --area=all` tự động.
-8. Emit sự kiện `ritsu.docs.built`.
+1. Verify `docs/` does not exist (or is empty). If exists with content → abort with "Already scaffolded; use `/docs sync` instead".
+2. Run `npx create-fumadocs-app docs/ --template next-mdx --lang vi` (or equivalent template).
+3. Write `docs/source.config.ts` with custom content sources (9 adapters wired in).
+4. Write `docs/lint-secrets.cjs` (3-layer fail-loud redactor; CTO mod #2).
+5. Write `docs/app/api/raw/[...slug]/route.ts` (AI-runtime raw-MDX endpoint).
+6. Write `docs/.vercelignore` to skip irrelevant directories.
+7. First sync: dispatch to `docs-engine/sync --area=all` automatically.
+8. Emit `ritsu.docs.built` event.
 
 ## Outputs
 
-- Thư mục `docs/` đã scaffold đầy đủ.
-- Hàng `ops.events` sự kiện `ritsu.docs.built`.
+- `docs/` folder fully scaffolded.
+- `ops.events` row `ritsu.docs.built`.
 
 ## HITL
 
@@ -56,14 +50,15 @@ Tier A.
 
 ## Failure modes
 
-- `npx create-fumadocs-app` thất bại → hiển thị lỗi; hủy bỏ. Đừng để lại scaffold không hoàn chỉnh.
-- Vercel template không bao gồm cấu hình i18n → vá `next.config.ts` thủ công với `defaultLanguage: 'vi'`.
+- `npx create-fumadocs-app` fails → surface error; abort. Don't leave partial scaffold.
+- Vercel template doesn't include i18n config → patch `next.config.ts` manually with `defaultLanguage: 'vi'`.
 
 ## Cost estimate
 
-~$0.50 mỗi lần gọi. Cost-bucket: `ai-ops-docs`. Per-task-kind cap: `docs-scaffold` ≤ $0.50.
+~$0.50 per invocation. Cost-bucket: `ai-ops-docs`. Per-task-kind cap: `docs-scaffold` ≤ $0.50.
 
 ## See also
 
-- Ô che: `docs-engine/SKILL.md`
-- Lệnh: `.claude/commands/docs.md` (`/docs scaffold`)
+- Umbrella: `docs-engine/SKILL.md`
+- Command: `.claude/commands/docs.md` (`/docs scaffold`)
+

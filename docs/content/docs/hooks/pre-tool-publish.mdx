@@ -3,34 +3,27 @@ title: 'Hook: pre-tool-publish'
 description: pre-tool hook
 source_path: .claude/hooks/pre-tool-publish.md
 source_hash: 2978b6d4985fd1c27a45ac3a96fe1bc08b75c17dad4a18ea31114dec335588c1
-generated_at: '2026-05-19T05:20:46.394Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.436Z'
+generated_by: docs-engine v1.2.0
 category: hook
 language: vi
-translated: true
-translated_source_hash: 2978b6d4985fd1c27a45ac3a96fe1bc08b75c17dad4a18ea31114dec335588c1
-translated_at: '2026-05-19T15:00:00Z'
-translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+> Any tool call that publishes externally goes through HITL per `governance/HITL.md`. This hook is the enforcement.
 
-# Hook: pre-tool-publish
+## What it does
 
-> Bất kỳ tool call nào publish ra bên ngoài đều phải đi qua HITL theo `governance/HITL.md`. Hook này chính là cơ chế cưỡng chế.
+For any tool invocation that produces external surface (sends email, posts public content, merges a PR), the hook:
 
-## Hook làm gì
+1. Classifies the action's tier per `governance/HITL.md`
+2. Checks dry-run requirement is met for Tier C/D
+3. Verifies recipient/audience size against thresholds
+4. Initiates HITL approval flow if Tier C/D
+5. Blocks if Tier D-MAX without proper override ceremony
 
-Đối với bất kỳ lời gọi tool nào tạo ra bề mặt bên ngoài (gửi email, đăng nội dung công khai, merge PR), hook sẽ:
-
-1. Phân loại tier của hành động theo `governance/HITL.md`
-2. Kiểm tra yêu cầu dry-run đã được đáp ứng cho Tier C/D
-3. Xác minh kích thước người nhận/khán giả so với các ngưỡng
-4. Khởi động luồng phê duyệt HITL nếu là Tier C/D
-5. Chặn nếu Tier D-MAX mà chưa có nghi thức override phù hợp
-
-## Logic phân loại tier
+## Tier classification logic
 
 ```
 Tool: email_sender / resend_*
@@ -61,30 +54,30 @@ Tool: slack_post (channel with external members)
   Same as social → C minimum
 ```
 
-## Cưỡng chế dry-run
+## Dry-run enforcement
 
-Đối với Tier C trở lên, payload của tool BẮT BUỘC phải chứa output đã render mà agent định gửi. Hook xác minh:
+For Tier C and above, the tool payload MUST include the rendered output the agent intends to send. The hook verifies:
 
-- `dry_run` đã được thực thi trước đó cho cùng payload này (kiểm tra `ops.agent_runs` cho dry-run khớp trong vòng 30 phút gần nhất)
-- Tin nhắn phê duyệt chứa preview của dry-run (luồng phê duyệt của host gắn kèm điều này)
+- `dry_run` was previously executed for this same payload (check `ops.agent_runs` for matching dry-run within last 30 minutes)
+- Approval message contains the dry-run preview (the host's approval flow attaches this)
 
-Nếu không tìm thấy dry-run:
-- Lý do: `dry_run_required: tier {{X}} action without preview`
-- Quyết định: `block` (agent phải chạy dry-run trước)
+If no dry-run found:
+- Reason: `dry_run_required: tier {{X}} action without preview`
+- Decision: `block` (agent must run dry-run first)
 
-## Tích hợp luồng phê duyệt
+## Approval flow integration
 
-Khi hook trả về `escalate`, host sẽ:
+When the hook returns `escalate`, the host:
 
-1. Tạm dừng hành động
-2. Gửi yêu cầu phê duyệt Telegram tới founder (theo định dạng riêng cho từng tier của HITL.md)
-3. Bao gồm preview của dry-run trong tin nhắn
-4. Chờ phản hồi theo chính sách timeout của HITL.md
-5. Nếu `Approve & Execute` → hành động tiếp tục với payload gốc
-6. Nếu `Reject` → trả về cho agent dưới dạng `block`
-7. Nếu timeout → hoãn lại theo HITL.md
+1. Pauses the action
+2. Sends Telegram approval request to founder (per HITL.md tier-specific format)
+3. Includes dry-run preview in the message
+4. Waits for response per HITL.md timeout policy
+5. On `Approve & Execute` → action proceeds with original payload
+6. On `Reject` → returns to agent as `block`
+7. On timeout → defers per HITL.md
 
-Bản thân hook không triển khai Telegram bot — nó trả về `escalate` và host thực hiện việc kết nối. Nhưng hook BẮT BUỘC phải bao gồm đủ context trong `log_extras` để bot có thể render tin nhắn phê duyệt:
+The hook itself doesn't implement the Telegram bot — it returns `escalate` and the host wires it up. But the hook MUST include enough context in `log_extras` for the bot to render the approval message:
 
 ```json
 {
@@ -101,53 +94,53 @@ Bản thân hook không triển khai Telegram bot — nó trả về `escalate` 
 }
 ```
 
-## Đếm số người nhận
+## Recipient counting
 
-Đối với gửi email:
-- `to`, `cc`, `bcc` được cộng dồn
-- Distribution list (ví dụ `subscribers@`) được tính theo kích thước đã giải quyết nếu biết; nếu không biết, coi như > 1000 (tier bi quan nhất)
+For email sends:
+- `to`, `cc`, `bcc` are summed
+- Distribution lists (e.g. `subscribers@`) count as their resolved size if known; if unknown, treat as > 1000 (most pessimistic tier)
 
-Đối với bài đăng mạng xã hội:
-- Khán giả = số người theo dõi + tiềm năng retweet. Dùng ước lượng thận trọng.
-- Nếu không thể ước lượng khán giả, coi như > 1000 để nghiêng về phía an toàn
+For social posts:
+- Audience = follower count + retweet potential. Use a conservative estimate.
+- If audience can't be estimated, treat as > 1000 to err on safety side
 
-## Các trường hợp đặc biệt
+## Special cases
 
-- **Cờ `is_dry_run: true` trong payload:** hành động CHÍNH NÓ là một dry-run. Hook trả về `allow` (dry-run là Tier A). Output của dry-run được lưu trữ để cuộc gọi thật tiếp theo tham chiếu.
-- **Trả lời thread sẵn có:** nếu trả lời một người đã nhắn cho ta trước, Tier giảm một bậc (trả lời ít mang tính xâm nhập hơn). Dùng context của payload để phát hiện.
-- **Auto-reply cho các sự kiện do chính người dùng kích hoạt:** email giao dịch (đặt lại mật khẩu, xác nhận thanh toán) gửi để phản hồi hành động của người dùng là Tier B nếu từ template đã được duyệt trước.
-- **Kênh Slack nội bộ (không có thành viên ngoài):** coi như Tier B nếu độ dài tin nhắn \< 500 ký tự; A nếu ngắn hơn.
+- **`is_dry_run: true` flag in payload:** the action IS a dry-run itself. Hook returns `allow` (dry-runs are Tier A). The dry-run output gets stored for the subsequent real call to reference.
+- **Reply to existing thread:** if replying to someone who messaged us first, Tier reduces by one (a reply is less unsolicited). Use payload context to detect.
+- **Auto-reply to self-triggered events:** transactional emails (password reset, payment confirmation) sent in response to user action are Tier B if from a pre-approved template.
+- **Internal Slack channels (no external members):** treated as Tier B if message length \< 500 chars; A if shorter.
 
-## Các trường hợp test
+## Test cases
 
-| # | Tool / payload | Kỳ vọng |
+| # | Tool / payload | Expected |
 |---|---|---|
-| 1 | `email_sender_transactional` tới 1 người nhận, template `password_reset` | allow (Tier B; template đã duyệt; giao dịch) |
-| 2 | `email_sender_marketing` tới 1 người nhận, nội dung tùy chỉnh | escalate (C) |
-| 3 | `email_sender_marketing` tới 47 người nhận | escalate (C) |
-| 4 | `email_sender_marketing` tới 500 người nhận, không có dry-run | block (bắt buộc dry-run) |
-| 5 | `email_sender_marketing` tới 500 người nhận có dry-run id | escalate (D-Std) |
-| 6 | `email_sender_marketing` tới 5000 người nhận | escalate (D-MAX) cần override+nghi thức |
-| 7 | `twitter_post` (tài khoản Ritsu, 5K người theo dõi) | escalate (C) |
-| 8 | `twitter_post` nhắc đến "@AnkiApp" bằng tên | escalate (D-Std) |
+| 1 | `email_sender_transactional` to 1 recipient, template `password_reset` | allow (Tier B; template approved; transactional) |
+| 2 | `email_sender_marketing` to 1 recipient, custom content | escalate (C) |
+| 3 | `email_sender_marketing` to 47 recipients | escalate (C) |
+| 4 | `email_sender_marketing` to 500 recipients, no dry-run | block (dry-run required) |
+| 5 | `email_sender_marketing` to 500 recipients with dry-run id | escalate (D-Std) |
+| 6 | `email_sender_marketing` to 5000 recipients | escalate (D-MAX) requires override+ceremony |
+| 7 | `twitter_post` (Ritsu account, 5K followers) | escalate (C) |
+| 8 | `twitter_post` mentioning "@AnkiApp" by name | escalate (D-Std) |
 | 9 | `github_pr_merge` PR #42 (non-Tier-1, target=feature) | escalate (C) |
 | 10 | `github_pr_merge` PR #42 (target=main) | escalate (C) |
-| 11 | `github_pr_merge` PR với `--admin` (force) | block + cảnh báo (D-MAX mà không có nghi thức) |
-| 12 | `youtube_upload` video mới | escalate (D-Std) |
-| 13 | `slack_post` tới kênh nội bộ `#dev` | allow (giống Tier B, không có người ngoài) |
-| 14 | `slack_post` tới kênh có thành viên ngoài | escalate (C) |
-| 15 | `email_sender_marketing` với `is_dry_run: true` | allow (đây chính là preview) |
-| 16 | `email_sender_marketing` sau khi đã nhận được phê duyệt Telegram | allow (trạng thái phê duyệt từ host) |
+| 11 | `github_pr_merge` PR with `--admin` (force) | block + alert (D-MAX without ceremony) |
+| 12 | `youtube_upload` new video | escalate (D-Std) |
+| 13 | `slack_post` to internal `#dev` channel | allow (Tier B-like, no external) |
+| 14 | `slack_post` to channel with external members | escalate (C) |
+| 15 | `email_sender_marketing` with `is_dry_run: true` | allow (it's the preview) |
+| 16 | `email_sender_marketing` after Telegram approval received | allow (approval state from host) |
 
-## Các đầu vào cần thiết
+## Inputs needed
 
-- `payload.tool_name` và `payload.tool_payload`
-- Trạng thái override của phiên (cho các trường hợp D-MAX)
-- Các bản ghi dry-run gần đây (cho việc cưỡng chế dry-run)
-- Đối với tool email: phân giải người nhận
-- Đối với tool mạng xã hội: số người theo dõi của tài khoản (được cache; làm mới hàng tuần)
+- `payload.tool_name` and `payload.tool_payload`
+- Override state for session (for D-MAX cases)
+- Recent dry-run records (for dry-run enforcement)
+- For email tools: recipient resolution
+- For social tools: account follower count (cached; refresh weekly)
 
-## Tham chiếu triển khai
+## Implementation reference
 
 ```typescript
 function classifyTier(toolName: string, payload: any): Tier {
@@ -193,5 +186,5 @@ export function decide(payload: HookInput): HookDecision {
 
 ---
 
-*Hook này là nơi quản trị (governance) trở thành vận hành. Phần lớn lỗi của agent có thể gây hại cho danh tiếng của Ritsu đều bị bắt ở đây.*
+*This hook is where governance becomes operational. Most agent mistakes that would damage Ritsu's reputation are caught here.*
 

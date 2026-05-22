@@ -160,7 +160,12 @@ async function main() {
   for (const enFile of enFiles) {
     if (translated >= limit) break;
 
-    const viFile = enFile.replace(/\.en\.mdx$/, ".vi.mdx");
+    // v1.2 layout fix: VI default lives at `<slug>.mdx` (not `<slug>.vi.mdx`).
+    // Per scripts/docs-sync.cjs v1.1 layout: "default lang (vi) uses <slug>.mdx
+    // so no legacy cleanup needed. Note: walker no longer writes <slug>.vi.mdx
+    // — VI content lives in <slug>.mdx".
+    // docs-translate v1.1 wrote `.vi.mdx`; v1.2 fix writes `.mdx` directly.
+    const viFile = enFile.replace(/\.en\.mdx$/, ".mdx");
     const enRaw = fs.readFileSync(enFile, "utf8");
     const enParsed = parseFrontmatter(enRaw);
     if (!enParsed.frontmatter) {

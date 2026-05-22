@@ -1,58 +1,50 @@
 ---
 title: 'Skill: wiki-sync/package'
 description: |
-  v4.0 Sprint 2 — `/wiki package <slug>`. Liệt kê toàn bộ inventory của một
-  wiki source-package: frontmatter của source RECORD + số lượng theo loại
-  thực thể + slug từng thực thể được nhóm theo loại. Đọc thuần hệ thống tệp;
-  không cần gọi LLM. Dùng để lập kế hoạch input cho skill (ví dụ "có thực thể
-  nào trong wiki/growth-playbook/?").
+  v4.0 Sprint 2 — `/wiki package <slug>`. Lists a wiki source-package's full
+  inventory: source RECORD frontmatter + counts by entity type + per-entity
+  slugs grouped by type. Pure file-system read; no LLM call required. Used
+  for skill input planning (e.g. "what entities are in wiki/growth-playbook/?").
 source_path: 06-ai-ops/skills/wiki-sync/package/SKILL.md
 source_hash: dc2d27b16707298dfa9dc3e9add2a8efe6317c292be385a3265cbfe2a18dd3bf
-generated_at: '2026-05-19T05:20:46.382Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.423Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: dc2d27b16707298dfa9dc3e9add2a8efe6317c292be385a3265cbfe2a18dd3bf
-translated_at: 2026-05-19T15:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When to use
 
-# wiki-sync / package (Sprint 2 của v4.0 revise)
+- Founder runs `/wiki package <slug>` → dispatches here.
+- Skill author wants to know if a package has the entities their template requires.
 
-## Khi nào dùng
+## Inputs
 
-- Founder chạy `/wiki package <slug>` → dispatch đến đây.
-- Tác giả skill muốn biết một package có các thực thể mà template của họ cần hay không.
+- `slug` — source package slug (folder name under `wiki/`)
 
-## Đầu vào
+## Process
 
-- `slug` — slug source package (tên thư mục dưới `wiki/`)
+### Step 1 — Validate
 
-## Quy trình
+- Check `wiki/<slug>/` directory exists.
+- Check `wiki/<slug>/source.md` exists. If absent, surface "not a v4.0 package" and offer `/wiki sync` to create it.
 
-### Bước 1 — Validate
+### Step 2 — Read source RECORD
 
-- Kiểm tra thư mục `wiki/<slug>/` tồn tại.
-- Kiểm tra `wiki/<slug>/source.md` tồn tại. Nếu không có, thông báo "not a v4.0 package" và đề nghị `/wiki sync` để tạo nó.
-
-### Bước 2 — Đọc source RECORD
-
-Parse frontmatter của `wiki/<slug>/source.md`:
+Parse `wiki/<slug>/source.md` frontmatter:
 - `type`, `slug`, `title`, `source_ref`, `source_hash`, `license_status`, `source_kind`
 
-### Bước 3 — Liệt kê theo subfolder type
+### Step 3 — Enumerate by type subfolder
 
-Với mỗi subfolder `{concepts, observations, decisions, ideas, chapters}/` của `wiki/<slug>/`:
-- `ls *.md` (chỉ tệp `.md`; bỏ `.gitkeep`, ẩn)
-- Với mỗi tệp thực thể, đọc frontmatter `type`, `slug`, `title`
+For each of `{concepts, observations, decisions, ideas, chapters}/` subfolder of `wiki/<slug>/`:
+- `ls *.md` (only `.md` files; skip `.gitkeep`, hidden)
+- For each entity file, read frontmatter `type`, `slug`, `title`
 
-### Bước 4 — Render inventory
+### Step 4 — Render inventory
 
-Đầu ra (Markdown ra stdout cho slash command; hoặc JSON cho caller):
+Output (Markdown to stdout for slash command; or JSON for callers):
 
 ```
 # Package: <title> (`<slug>`)
@@ -81,11 +73,11 @@ Với mỗi subfolder `{concepts, observations, decisions, ideas, chapters}/` c�
 - ...
 ```
 
-### Bước 5 — Chi phí
+### Step 5 — Cost
 
-Skill này không gọi LLM. Đọc thuần FS. Chi phí: $0 (chỉ I/O tệp).
+This skill makes no LLM call. Pure FS read. Cost: $0 (file I/O only).
 
-## Đầu ra
+## Outputs
 
 ```json
 {
@@ -104,17 +96,18 @@ Skill này không gọi LLM. Đọc thuần FS. Chi phí: $0 (chỉ I/O tệp).
 }
 ```
 
-## Các tình huống lỗi
+## Failure modes
 
-| Triệu chứng | Phản ứng |
+| Symptom | Response |
 |---|---|
-| `wiki/<slug>/` không tồn tại | Bail "not a package" + đề nghị `/wiki list` cho các package có sẵn |
-| `wiki/<slug>/source.md` thiếu | Bail "incomplete package" + đề nghị `/wiki sync` để tạo source RECORD |
-| Lỗi parse frontmatter trên source.md | Bail với file:line + chi tiết lỗi parse |
+| `wiki/<slug>/` does not exist | Bail "not a package" + suggest `/wiki list` for available packages |
+| `wiki/<slug>/source.md` missing | Bail "incomplete package" + suggest `/wiki sync` to create source RECORD |
+| Frontmatter parse error on source.md | Bail with file:line + parse error detail |
 
-## Liên quan
+## Related
 
-- Parent: `06-ai-ops/skills/wiki-sync/SKILL.md` (umbrella v4.0)
+- Parent: `06-ai-ops/skills/wiki-sync/SKILL.md` (v4.0 umbrella)
 - Slash command: `.claude/commands/wiki.md` → `/wiki package <slug>`
-- Đối tác: `mcp__wiki__list_pages` (trả về danh sách phẳng trên tất cả các package; skill này có phạm vi package)
-- Đối tác: `mcp__wiki__source` (trả về link-list derived-entity cho một source RECORD; skill này CŨNG thêm count + frontmatter source RECORD)
+- Counterpart: `mcp__wiki__list_pages` (returns flat list across all packages; this skill is package-scoped)
+- Counterpart: `mcp__wiki__source` (returns derived-entity link-list for one source RECORD; this skill ALSO adds counts + source RECORD frontmatter)
+

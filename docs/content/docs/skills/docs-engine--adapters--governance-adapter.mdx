@@ -1,29 +1,22 @@
 ---
 title: 'Skill: docs-engine/adapters/governance-adapter'
 description: |
-  Adapter cho `governance/*.md`. **LOẠI TRỪ CỨNG `governance/SECRETS.md`** —
-  tệp này liệt kê bí mật theo tên và KHÔNG BAO GIỜ xuất hiện trong tài liệu công khai.
-  Hiển thị HITL.md, ROLES.md, BUDGET.md, IDENTITY.md dưới dạng trang tham chiếu có cấu trúc.
+  Adapter for `governance/*.md`. **HARD EXCLUDES `governance/SECRETS.md`** —
+  this file enumerates secrets by name and MUST NEVER appear in public docs.
+  Renders HITL.md, ROLES.md, BUDGET.md, IDENTITY.md as structured reference pages.
 source_path: 06-ai-ops/skills/docs-engine/adapters/governance-adapter/SKILL.md
 source_hash: acb5c0d070ebb8aeee117c161f5cbdcde51918f135359f578a40fd7ae462d91d
-generated_at: '2026-05-19T05:20:46.352Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.384Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: acb5c0d070ebb8aeee117c161f5cbdcde51918f135359f578a40fd7ae462d91d
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
-
-
-# docs-engine/adapters/governance-adapter
+{/* generated-by: docs-engine v1.2.0 */}
 
 ## Input pattern
 
-`governance/*.md` TRỪ `SECRETS.md`
+`governance/*.md` MINUS `SECRETS.md`
 
 ## Output pattern
 
@@ -31,26 +24,27 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Process
 
-1. **Loại trừ cứng `governance/SECRETS.md`** ở mức walker (layer 1 redaction). Adapter không thấy nó.
-2. Cho mỗi phần còn lại: title từ H1 đầu tiên.
-3. Tính `source_hash`.
-4. Hiển thị MDX. Áp dụng xử lý đặc biệt:
-   - `HITL.md` → phát hiện bảng 4-tier; hiển thị dưới dạng Fumadocs `<Tabs>` mỗi tier.
-   - `ROLES.md` → phát hiện định nghĩa role; hiển thị dưới dạng `<Cards>` grid mỗi role.
-   - `BUDGET.md` → hiển thị cắt economic_budget dưới dạng bảng.
-   - `IDENTITY.md` → pass-through tiêu chuẩn.
-5. **Lớp scrub regex 2** vẫn chạy trên tất cả output (defense-in-depth) — nên redundant sau exclude nhưng bắt buộc per CTO mod #2.
-6. Thêm marker idempotency.
+1. **Hard-exclude `governance/SECRETS.md`** at walker level (layer 1 redaction). Adapter never sees it.
+2. For each remaining: title from first H1.
+3. Compute `source_hash`.
+4. Render MDX. Apply special handling:
+   - `HITL.md` → detect 4-tier table; render as Fumadocs `<Tabs>` per tier.
+   - `ROLES.md` → detect role definitions; render as `<Cards>` grid per role.
+   - `BUDGET.md` → render economic_budget snippets as tables.
+   - `IDENTITY.md` → standard pass-through.
+5. **Regex scrub layer 2** still runs on all output (defense-in-depth) — should be redundant after exclude but mandatory per CTO mod #2.
+6. Add idempotency marker.
 
 ## Edge cases
 
-- HITL.md đề cập magic phrases là EXAMPLES — những cái này khớp với regex và sẽ kích layer 2. Giải pháp: walker emit raw HITL.md cho adapter; adapter thay thế ví dụ magic phrases bằng `<placeholder>` TRƯỚC regex scrub.
+- HITL.md mentions magic phrases as EXAMPLES — these match the regex and would trip layer 2. Solution: walker emits raw HITL.md to adapter; adapter replaces example magic phrases with `<placeholder>` BEFORE regex scrub.
 
 ## HITL / Cost
 
-Tier A. ~$0.03-0.05 mỗi tệp (cao hơn do chuyên biệt hóa per-file).
+Tier A. ~$0.03-0.05 per file (higher due to per-file specialization).
 
 ## See also
 
-- `governance/SECRETS.md` (loại trừ; không bao giờ hiển thị)
-- Mô hình redaction bí mật 3 lớp trong `docs/lint-secrets.cjs`
+- `governance/SECRETS.md` (excluded; never rendered)
+- 3-layer secret redaction model in `docs/lint-secrets.cjs`
+

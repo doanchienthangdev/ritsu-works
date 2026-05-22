@@ -3,51 +3,45 @@ title: Human-in-the-Loop (HITL) Policy
 description: ''
 source_path: governance/HITL.md
 source_hash: 61e536b1f07571ed9d8c91d157e69413bfc303e313101a8126a0a087dfa6de1e
-generated_at: '2026-05-21T03:49:53.302Z'
+generated_at: '2026-05-22T01:09:07.467Z'
 generated_by: docs-engine v1.2.0
 category: governance
 language: vi
-translated: true
-translated_at: '2026-05-19T13:00:00Z'
-translated_by: Claude Opus 4.7 (Claude Code Desktop, session translation)
-translated_source_hash: 61e536b1f07571ed9d8c91d157e69413bfc303e313101a8126a0a087dfa6de1e
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-# Chính sách Human-in-the-Loop (HITL)
+> **The single most important policy in this repo.**
+> Read before any action that touches the world outside `.archives/` or `raw/`.
 
-> **Chính sách quan trọng nhất trong repo này.**
-> Hãy đọc trước khi thực hiện bất kỳ hành động nào ảnh hưởng đến thế giới bên ngoài `.archives/` hoặc `raw/`.
-
-**Chủ sở hữu:** founder
-**Cập nhật lần cuối:** 2026-05-02
-**Chính sách thay đổi:** PR + review từ founder. Không agent nào được sửa file này trực tiếp.
+**Owner:** founder
+**Last updated:** 2026-05-02
+**Change policy:** PR + founder review only. No agent may amend this file directly.
 
 ---
 
-## Tài liệu này làm gì
+## What this document does
 
-Phân loại mọi hành động mà một agent (hoặc con người) có thể thực hiện thành **bốn tiers** dựa trên blast radius — mức độ thiệt hại nếu hành động sai. Mỗi tier có chính sách khác nhau về ai phải phê duyệt, khi nào, cách thế nào, và bằng chứng nào phải được ghi log.
+Classifies every action an agent (or human) can take into **four tiers** based on blast radius — the size of damage if the action goes wrong. Each tier has a different policy for who must approve, when, how, and what evidence must be logged.
 
-Nếu bạn tự hỏi "tôi có cần hỏi trước khi làm việc này không?" — câu trả lời nằm trong file này. Nếu hành động không được liệt kê, hãy mặc định một tier cao hơn so với trường hợp gần nhất.
+If you find yourself wondering "do I need to ask before doing this?" — the answer is in this file. If the action isn't listed, default to **one tier higher** than the closest match.
 
-## Bốn tiers một cách nhanh chóng
+## The four tiers at a glance
 
-| Tier | Tên | Chính sách | Kênh | Kiểm tra |
+| Tier | Name | Policy | Channel | Audit |
 |---|---|---|---|---|
-| **A** | Tự động | Chỉ cần làm | Không | Ghi log vào `ops.agent_runs` |
-| **B** | Thông báo-sau | Làm rồi ping | Telegram | Log + sự kiện Telegram |
-| **C** | Phê duyệt-trước | Dry-run + hỏi, chờ | Nút inline Telegram | Log + xem trước dry-run + ghi record phê duyệt |
-| **D** | Cấm theo mặc định | Cụm từ magic + cooldown | Telegram + GitHub PR | Đầy đủ audit trail; không thay đổi được |
+| **A** | Autonomous | Just do it | None | Log to `ops.agent_runs` |
+| **B** | Notify-after | Do it, then ping | Telegram | Log + Telegram event |
+| **C** | Approve-before | Dry-run + ask, wait | Telegram inline buttons | Log + dry-run preview + approval record |
+| **D** | Forbidden by default | Magic phrase + cooldown | Telegram + GitHub PR | Full audit trail; immutable |
 
-## Ba câu hỏi xác định tier
+## The three questions that determine tier
 
-Với mỗi hành động, trả lời theo thứ tự:
+For every action, answer in order:
 
-1. **Nó có thể đảo ngược được không?** (Tôi có thể `Ctrl+Z` trong vòng 5 phút mà không có tác dụng phụ không?)
-2. **Ai nhìn thấy ảnh hưởng?** (Chỉ nội bộ / external-1-person / external-many)
-3. **Thiệt hại tồi tệ nhất là gì?** (Thấp / trung bình / cao / thảm khốc)
+1. **Is it reversible?** (Can I `Ctrl+Z` within 5 minutes with no side effect?)
+2. **Who sees the effect?** (Internal-only / external-1-person / external-many)
+3. **What's the worst-case damage?** (Low / medium / high / catastrophic)
 
 ```
 Reversible + Internal + Low                                → Tier A
@@ -61,237 +55,236 @@ Irreversible + External-many + High damage                 → Tier D
 Anything involving money out, secrets, user data deletion  → Tier D
 ```
 
-Khi có nghi ngờ, **nâng lên một tier cao hơn**. Chi phí hỏi khi bạn không cần là nhỏ. Chi phí không hỏi khi bạn nên hỏi là vô hạn.
+When in doubt, **escalate one tier up**. The cost of asking when you didn't need to is small. The cost of not asking when you should have is unbounded.
 
 ---
 
-## Tier A — Tự động
+## Tier A — Autonomous
 
-**Chính sách:** Agent làm nó. Không phê duyệt. Ghi log vào `ops.agent_runs`.
+**Policy:** Agent does it. No approval. Logs to `ops.agent_runs`.
 
-**Bắt buộc với mọi hành động Tier A:**
-- Mục log trong `ops.agent_runs`: vai trò agent, tên hành động, input hash, kết quả, chi phí
-- Không thông báo cho con người (founder có thể xem log bất cứ lúc nào)
+**Required for every Tier A action:**
+- Log entry in `ops.agent_runs`: agent role, action name, inputs hash, outcome, cost
+- No human notification (founder can browse logs anytime)
 
-**Ví dụ về hoạt động Ritsu:**
+**Examples for Ritsu operations:**
 
-*Kiến thức & repo nội bộ:*
-- Tạo hoặc chỉnh sửa file trong `wiki/` (được đồng bộ hoặc có tiền tố `_`)
-- Tạo hoặc chỉnh sửa file trong `.archives/` (bất kỳ subfolder nào)
-- Đọc bất kỳ file nào trong repo này
-- Đọc dữ liệu Tier 2 (`ops.*` schema) qua SELECT
-- Đọc `metrics.product_dau_snapshot` (bản sao chỉ đọc dữ liệu sản phẩm)
-- Tạo embeddings cho nội dung mới trong `wiki/` hoặc `tier3` storage
-- Chạy dry-run của bất kỳ tool nào (xem trước mà không execute)
-- Chạy `/wiki sync <path>` để nhập ref vào wiki/ (ghi wiki Markdown + ops.ingestion_jobs row + ops.knowledge_pages row + embeddings) — nâng lên B nếu chi phí ước tính > per-task-kind cap
-- Chạy `/wiki ask "<question>"` (truy xuất chỉ đọc qua wiki + ops.knowledge_embeddings)
-- Chạy `/wiki audit` (quét toàn vẹn chỉ đọc; ghi báo cáo vào `.archives/wiki-audits/`)
-- Gọi `mcp__wiki__ask`, `mcp__wiki__list_pages`, `mcp__wiki__get_page` từ bất kỳ agent nào (bề mặt truy xuất chỉ đọc)
+*Knowledge & internal repo:*
+- Create or edit a file in `wiki/` (synced or `_`-prefixed)
+- Create or edit a file in `.archives/` (any subfolder)
+- Read any file in this repo
+- Read Tier 2 data (`ops.*` schema) via SELECT
+- Read `metrics.product_dau_snapshot` (the read-only mirror of product data)
+- Generate embeddings for new content in `wiki/` or `tier3` storage
+- Run a dry-run of any tool (preview without execute)
+- Run `/wiki sync <path>` to ingest a ref into wiki/ (writes wiki Markdown + ops.ingestion_jobs row + ops.knowledge_pages row + embeddings) — escalates to B if estimated cost > per-task-kind cap
+- Run `/wiki ask "<question>"` (read-only retrieval over wiki + ops.knowledge_embeddings)
+- Run `/wiki audit` (read-only integrity scan; writes report to `.archives/wiki-audits/`)
+- Call `mcp__wiki__ask`, `mcp__wiki__list_pages`, `mcp__wiki__get_page` from any agent (read-only retrieval surface)
 
-*Tìm kiếm & nghiên cứu:*
-- Tìm kiếm web, lấy các URL công khai
-- Truy vấn API bên ngoài ở chế độ chỉ đọc (GitHub repos, public docs)
-- Crawl các trang web cạnh tranh công khai và lưu vào `raw/`
+*Search & research:*
+- Web search, fetch public URLs
+- Query external APIs in read-only mode (GitHub repos, public docs)
+- Crawl public competitor sites and save to `raw/`
 
-*Tự quản lý:*
-- Kéo manifest, charter, SOPs mới nhất trước khi hành động
-- Cập nhật bộ nhớ phiên hoặc ghi chú scratch của agent
-- Mở draft PR (KHÔNG đánh dấu sẵn sàng để review) để con người kiểm tra
+*Self-management:*
+- Pull latest manifest, charter, SOPs before acting
+- Update agent's own session memory or scratch notes
+- Open a draft PR (NOT marked ready for review) for human inspection
 
-*Giao tiếp nội bộ:*
-- Bình luận về issue GitHub bạn đã mở
-- Bình luận trên PR bạn đã mở (tự thảo luận)
-- Cập nhật trạng thái task trong `ops.tasks`
+*Internal communication:*
+- Comment on a GitHub issue you opened
+- Comment on a PR you opened (self-discussion)
+- Update task status in `ops.tasks`
 
-> Quy tắc ngón tay cái cho Tier A: nếu mọi operator khác (và kẻ tấn công có được Telegram 1 phút) nhấn nút này sẽ gây ra ≤ 5 phút dọn dẹp, thì đó là Tier A.
+> Rule of thumb for Tier A: if every other operator (and an attacker who got Telegram for 1 minute) pressing this button would cause ≤ 5 minutes of cleanup, it's Tier A.
 
 ---
 
-## Tier B — Thông báo-sau
+## Tier B — Notify-after
 
-**Chính sách:** Agent làm nó. Ngay sau đó, gửi tin nhắn Telegram: "Xong X. [Hoàn tác] [OK]".
+**Policy:** Agent does it. Immediately after, sends a Telegram message: "Done X. [Undo] [OK]".
 
-**Bắt buộc với mọi hành động Tier B:**
-- Thông báo Telegram với tóm tắt hành động + nút Hoàn tác (nếu có thể)
-- Mục log trong `ops.agent_runs` với `tier: 'B'`
-- Nếu Hoàn tác được nhấn trong vòng 1h, agent cuộn lại và đăng "Đã hoàn tác X."
+**Required for every Tier B action:**
+- Telegram notification with action summary + Undo button (if technically possible)
+- Log entry in `ops.agent_runs` with `tier: 'B'`
+- If Undo is pressed within 1h, agent rolls back and posts "Reverted X."
 
-**Ví dụ:**
+**Examples:**
 
-*Nội bộ nhưng hình dạng bên ngoài:*
-- Bình luận về issue GitHub hoặc PR được mở bởi người khác
-- Thêm labels vào issues/PRs của GitHub
-- Gắn tag PR để review (gán reviewer)
-- Áp dụng auto-formatting / lint fixes qua PR
-- Mở non-draft PR cho các thay đổi bên ngoài `00-core/` và `governance/`
+*Internal-but-external-shaped:*
+- Comment on a GitHub issue or PR opened by someone else
+- Add labels to GitHub issues/PRs
+- Tag a PR for review (assigning a reviewer)
+- Apply auto-formatting / lint fixes via PR
+- Open a non-draft PR for changes outside `00-core/` and `governance/`
 
-*Khách hàng hướng - cược thấp:*
-- Trả lời support ticket được phân loại là **FAQ-handled** (danh mục được liệt kê trước trong `03-delivery/SOP-DEL-XXX-faq-categories.md` — TODO)
-- Gửi email transactional duy nhất được kích hoạt bởi hành động của người dùng (ví dụ như đặt lại mật khẩu, nhưng CHỈ nếu templates được phê duyệt trước)
-- Cập nhật banner trạng thái trong ứng dụng (ví dụ như "Bảo trì hoàn tất")
+*Customer-facing low-stakes:*
+- Reply to a support ticket classified as **FAQ-handled** (categories pre-listed in `03-delivery/SOP-DEL-XXX-faq-categories.md` — TODO)
+- Send a single transactional email triggered by user action (e.g. password reset, but ONLY if pre-approved templates)
+- Update an in-app status banner (e.g. "Maintenance complete")
 
-*Hoạt động:*
-- Kích hoạt cron job đã có trong workflow registry
-- Khởi động lại non-prod worker
-- Tạo feature branch
-- Chạy database migration trên `ritsu-ops` (KHÔNG product) đã được phê duyệt trước bằng cách được merge vào main
+*Operational:*
+- Trigger a cron job that's already in the workflow registry
+- Restart a non-prod worker
+- Create a feature branch
+- Run a database migration on `ritsu-ops` (NOT product) that's been pre-approved by being merged to main
 
 *Single-recipient external:*
-- Gửi Slack DM tới một contact nội bộ duy nhất
-- Gửi email duy nhất cho MỘT người bên ngoài từ template được phê duyệt trước
+- Send a Slack DM to a single internal contact
+- Send a single email to ONE external person from a pre-approved template
 
-> Quy tắc ngón tay cái cho Tier B: bề mặt bên ngoài, nhưng nếu sai, bạn có thể sửa trước khi bất kỳ ai bên ngoài công ty nhận thấy sự cố.
+> Rule of thumb for Tier B: external surface, but if it goes wrong, you can fix it before anyone outside the company notices the mess.
 
 ---
 
-## Tier C — Phê duyệt-trước
+## Tier C — Approve-before
 
-**Chính sách:** Agent chuẩn bị hành động, chạy dry-run, gửi request phê duyệt Telegram với xem trước, **chờ**.
+**Policy:** Agent prepares action, runs dry-run, sends Telegram approval request with preview, **waits**.
 
-**Bắt buộc với mọi hành động Tier C:**
-- **Dry-run là bắt buộc.** Agent phải tạo xem trước chính xác hành động.
-- Tin nhắn Telegram bao gồm:
-  - Tóm tắt hành động
-  - Xem trước dry-run (output được render)
-  - Ước tính chi phí (tokens, tiền, recipients đạt được)
-  - Nút inline: `[Phê duyệt & Thực hiện]` `[Từ chối]` `[Xem chi tiết]`
-- "Xem chi tiết" liên kết đến GitHub PR (cho code/content changes) hoặc URL dashboard (cho ops actions) với đầy đủ diff
-- Chờ phê duyệt. Áp dụng chính sách timeout (xem dưới).
-- Sau khi thực hiện: xác nhận Telegram + mục log với `tier: 'C'`, `approved_by`, `approved_at`
+**Required for every Tier C action:**
+- **Dry-run is mandatory.** Agent must produce a preview of the exact action.
+- Telegram message includes:
+  - Action summary
+  - Dry-run preview (rendered output)
+  - Cost estimate (tokens, money, recipients reached)
+  - Inline buttons: `[Approve & Execute]` `[Reject]` `[View details]`
+- "View details" links to a GitHub PR (for code/content changes) or dashboard URL (for ops actions) with full diff
+- Wait for approval. Apply timeout policy (see below).
+- After execution: Telegram confirmation + log entry with `tier: 'C'`, `approved_by`, `approved_at`
 
-**Chính sách timeout cho Tier C:**
+**Timeout policy for Tier C:**
 ```
-0–1h    Chờ im lặng
-1–4h    Re-ping Telegram (nhẹ nhàng)
-4–8h    Re-ping với "Hoãn đến ngày mai?" option
-8–24h   Tự động hoãn 24h. Agent tiếp tục công việc khác.
->24h    Nâng lên backup operator (khi được cấu hình); nếu không thì tạo
-        GitHub issue được gắn tag "decision-pending" và bỏ task.
+0–1h    Wait silently
+1–4h    Re-ping Telegram (gentle)
+4–8h    Re-ping with "Defer to tomorrow?" option
+8–24h   Auto-defer 24h. Agent moves on to other work.
+>24h    Escalate to backup operator (when configured); else create
+        a GitHub issue tagged "decision-pending" and drop the task.
 ```
 
-**Ví dụ:**
+**Examples:**
 
-*Giao tiếp multi-recipient bên ngoài:*
-- Gửi email tới **>1 recipient** bên ngoài công ty (bất kỳ campaign nào, thậm chí nhỏ)
-- Đăng trên bất kỳ tài khoản Ritsu công khai (X, LinkedIn, Facebook, IG, YouTube)
-- Xuất bản bài viết blog tới ritsu.ai/blog
-- Gửi thông báo Discord tới cộng đồng Ritsu
-- Đăng trong kênh Slack có thành viên bên ngoài
+*External multi-recipient communication:*
+- Send an email to **>1 recipient** outside the company (any campaign, even tiny)
+- Post on any public Ritsu social account (X, LinkedIn, Facebook, IG, YouTube)
+- Publish a blog post to ritsu.ai/blog
+- Send a Discord announcement to the Ritsu community
+- Post in a Slack channel that includes external members
 
-*Thay đổi Tier 1:*
-- Mở non-draft PR thay đổi `00-core/`, `governance/`, hoặc bất kỳ SOP pillar nào
-- Mở PR thêm định nghĩa `skills/` mới
-- Chỉnh sửa `knowledge/manifest.yaml`
+*Tier 1 changes:*
+- Open a non-draft PR that changes `00-core/`, `governance/`, or any pillar SOP
+- Open a PR that adds a new `skills/` definition
+- Edit `knowledge/manifest.yaml`
 
-*Khách hàng hướng - cược trung bình:*
-- Trả lời support ticket KHÔNG trong danh mục FAQ-handled
-- Hoàn tiền lên đến $200 (bất kỳ cái nào nhiều hơn → Tier D)
-- Áp dụng mã giảm giá cho tài khoản người dùng duy nhất
-- Tạm dừng tài khoản người dùng vì vi phạm ToS (tạm dừng tối đa 7 ngày)
+*Customer-facing medium-stakes:*
+- Reply to a support ticket NOT in the FAQ-handled category
+- Issue a refund up to $200 (anything more → Tier D)
+- Apply a discount code to a single user account
+- Suspend a user account for ToS violation (up to a 7-day suspension)
 
 *Code & infra:*
-- Merge PR (bất kỳ PR nào — merge luôn là Tier C tối thiểu)
-- Deploy lên staging
-- Thêm MCP server mới vào `mcp/servers.yaml`
-- Cập nhật biến môi trường production (non-secret)
-- Mở security-related dependency upgrade PR
+- Merge a PR (any PR — merging is always Tier C minimum)
+- Deploy to staging
+- Add a new MCP server to `mcp/servers.yaml`
+- Update production environment variables (non-secret)
+- Open a security-related dependency upgrade PR
 
-*Tiền vào/ra:*
-- Tính phí khách hàng ad-hoc (ngoài billing subscription)
-- Hoàn tiền $50–$200
-- Thanh toán hoá đơn vendor lên đến $500
-- Đăng ký subscription SaaS mới lên đến $50/mo
+*Money in/out:*
+- Charge a customer ad-hoc (outside subscription billing)
+- Issue a refund $50–$200
+- Pay a vendor invoice up to $500
+- Sign up for a new SaaS subscription up to $50/mo
 
-*Lộ trình & chiến lược:*
-- Cập nhật `02-product/` với item lộ trình mới
-- Thay đổi giá trên trang ritsu.ai/pricing công khai
-- Cập nhật changelog công khai
+*Roadmap & strategy:*
+- Update `02-product/` with a new roadmap item
+- Change pricing on the public ritsu.ai/pricing page
+- Update the public changelog
 
-> Quy tắc ngón tay cái cho Tier C: nếu người lạ có thể thấy việc này sai, bạn cần xem trước + phê duyệt. Không bao giờ tin tưởng draft đầu tiên của bạn khi bề mặt bên ngoài liên quan.
-
----
-
-## Tier D — Cấm theo mặc định
-
-**Chính sách:** Agent **từ chối** theo mặc định, ngay cả khi được yêu cầu qua các kênh bình thường. Cách duy nhất để phê duyệt là cơ chế ghi đè của founder (dưới).
-
-**Bắt buộc với mọi hành động Tier D:**
-- **Cụm từ magic từ founder** trong Telegram: `override: <reason in 5+ words>`
-- Bot Telegram trả lời: "Override được ghi đăng ký. Thực hiện trong 30 giây. Trả lời STOP để hủy."
-- Cửa sổ hủy 30 giây
-- Đối với danh mục con D-MAX (xem dưới): cũng yêu cầu GitHub PR với comment rõ ràng `/founder-approved-irreversible` từ tài khoản GitHub của founder, cộng với cooldown 1 giờ
-- Mục log không thay đổi được trong `ops.agent_runs` với `tier: 'D'`, `was_override: true`, `override_reason`, `override_via_channel`, `cooldown_seconds`
-
-### Danh mục Tier D
-
-**D-Standard** (cụm từ magic + xác nhận 30 giây):
-- Gửi email tới >50 recipients trong một batch
-- Gửi bất kỳ giao tiếp bên ngoài nào cho nhà báo, cơ quan quản lý, hoặc tư vấn pháp lý
-- Đăng bất kỳ lời xin lỗi hoặc báo cáo sự cố công khai
-- Hoàn tiền $200–$2,000
-- Tạm dừng tài khoản người dùng >7 ngày
-- Tính phí khách hàng >$500 ad-hoc
-- Thanh toán hoá đơn vendor $500–$5,000
-- Ký SaaS contract hoặc recurring spend >$50/mo
-- Thêm miền mới vào cơ sở hạ tầng gửi email
-- Cấp quyền truy cập cho người dùng khác vào Ops Supabase hoặc repo này
-- Thêm MCP server mới với khả năng **ghi** vào dịch vụ bên thứ ba
-- Đăng ký hoặc thay đổi identity providers (Google Workspace, GitHub org)
-
-**D-MAX** (cụm từ magic + xác nhận 30 giây + GitHub PR + cooldown 1 giờ):
-- **Bất kỳ cái gì chạm vào Product Supabase (`ritsu`).** Thậm chí đọc bên ngoài ETL được phê duyệt trước.
-- Xóa dữ liệu trong bất kỳ môi trường nào (staging hoặc production), bao gồm `ritsu-ops`
-- Thả bảng hoặc cột cơ sở dữ liệu
-- Force-merge PR bỏ qua kiểm tra CI
-- Force-push vào `main` của bất kỳ repo nào
-- Hoàn tiền >$2,000 (giao dịch duy nhất)
-- Thanh toán vendor >$5,000 (giao dịch duy nhất)
-- Ký bất kỳ tài liệu pháp lý nào
-- Đưa ra bất kỳ tuyên bố công khai nào về chứng chỉ an toàn, bảo mật hoặc tuân thủ sản phẩm
-- Phát hành báo cáo báo chí hoặc tuyên bố truyền thông
-- Giao tiếp sa thải/kết thúc (khi có team)
-- Tắt bất kỳ safety hook nào trong `.claude/hooks/`
-- Chỉnh sửa `governance/HITL.md` hoặc `governance/SECRETS.md`
-- Cấp phát server, cluster, hoặc production environment mới
-- Sửa đổi bản ghi DNS trên ritsu.ai
-- Xoay vòng primary auth secrets
-
-> Quy tắc ngón tay cái cho Tier D: nếu đọc mô tả hành động khiến bạn lo lắng, nó ít nhất là D. Nếu nó sẽ làm tiêu đề của nhà báo, nó là D-MAX.
+> Rule of thumb for Tier C: if a stranger could see this go wrong, you need preview + approval. Never trust your own first draft when external surface is involved.
 
 ---
 
-## Agents phải lý do về tier như thế nào
+## Tier D — Forbidden by default
 
-**Thuật toán mỗi agent phải chạy trước bất kỳ hành động bên ngoài/persistent nào:**
+**Policy:** Agent **refuses** by default, even when asked through normal channels. The only way to authorize is the founder override mechanism (below).
 
-1. Lấy file này (`governance/HITL.md`) lúc bắt đầu phiên. Đọc lại nếu phiên > 1 giờ cũ.
-2. Để planned action, tìm ví dụ gần nhất. Nếu khớp chính xác, sử dụng tier đó.
-3. Nếu không khớp chính xác, chạy ba câu hỏi (reversible / who-sees / damage).
-4. **Nếu không chắc giữa hai tier, chọn tier cao hơn.**
-5. Soạn hành động.
-6. Áp dụng chính sách của tier:
-   - Tier A: thực hiện → ghi log
-   - Tier B: thực hiện → ghi log → thông báo Telegram
-   - Tier C: dry-run → approval request → chờ → thực hiện hoặc hủy → ghi log
-   - Tier D: từ chối trừ khi override được đăng ký → nếu được đăng ký, tuân theo lệ thức → ghi log
+**Required for every Tier D action:**
+- **Magic phrase from founder** in Telegram: `override: <reason in 5+ words>`
+- Telegram bot replies: "Override registered. Executing in 30s. Reply STOP to cancel."
+- 30-second cancellation window
+- For sub-category D-MAX (see below): also requires GitHub PR with explicit `/founder-approved-irreversible` comment from founder's GitHub account, plus a 1-hour cooldown
+- Immutable log entry in `ops.agent_runs` with `tier: 'D'`, `was_override: true`, `override_reason`, `override_via_channel`, `cooldown_seconds`
 
-**Không bao giờ bỏ qua bước 1.** Bộ nhớ lỗi thời của HITL là nguyên nhân có khả năng cao nhất gây ra sự cố Tier-misclassification.
+### Tier D categories
 
-## Cơ chế ghi đè của Founder (toàn bộ spec)
+**D-Standard** (magic phrase + 30s confirm):
+- Send email to >50 recipients in one batch
+- Send any external communication to a journalist, regulator, or legal counsel
+- Post any apology or incident statement publicly
+- Refund $200–$2,000
+- Suspend a user account for >7 days
+- Charge a customer >$500 ad-hoc
+- Pay a vendor invoice $500–$5,000
+- Sign a SaaS contract or recurring spend >$50/mo
+- Add a new domain to email-sending infrastructure
+- Grant another user access to the Ops Supabase or this repo
+- Add a new MCP server with **write** capabilities to a third-party service
+- Sign up for or change identity providers (Google Workspace, GitHub org)
 
-### Cụm từ magic
+**D-MAX** (magic phrase + 30s confirm + GitHub PR + 1h cooldown):
+- **Anything touching the Product Supabase (`ritsu`).** Even reads outside the pre-approved ETL.
+- Delete data in any environment (staging or production), including `ritsu-ops`
+- Drop a database table or column
+- Force-merge a PR bypassing CI checks
+- Force-push to `main` of any repo
+- Refund >$2,000 (single transaction)
+- Pay a vendor >$5,000 (single transaction)
+- Sign any legal document
+- Make any public statement claiming product safety, security, or compliance certifications
+- Issue a press release or media statement
+- Layoff/termination communication (when team exists)
+- Disable any safety hook in `.claude/hooks/`
+- Edit `governance/HITL.md` or `governance/SECRETS.md`
+- Provision a new server, cluster, or production environment
+- Modify DNS records on ritsu.ai
+- Rotate primary auth secrets
+
+> Rule of thumb for Tier D: if reading the action description gives you anxiety, it's at least D. If it would make a journalist's headline, it's D-MAX.
+
+---
+
+## How agents must reason about tier
+
+**Algorithm every agent must run before any external/persistent action:**
+
+1. Fetch this file (`governance/HITL.md`) at session start. Re-read if session > 1 hour old.
+2. For your planned action, find the closest example. If exact match, use that tier.
+3. If no exact match, run the three questions (reversible / who-sees / damage).
+4. **If unsure between two tiers, choose the higher one.**
+5. Compose the action.
+6. Apply the tier's policy:
+   - Tier A: execute → log
+   - Tier B: execute → log → Telegram notify
+   - Tier C: dry-run → approval request → wait → execute or abort → log
+   - Tier D: refuse unless override registered → if registered, follow ceremony → log
+
+**Never skip step 1.** A stale memory of HITL is the single most likely cause of a Tier-misclassification incident.
+
+## Founder override mechanism (full spec)
+
+### Magic phrase
 
 ```
 override: <reason 5 words minimum>
 ```
 
-Quy tắc định dạng (được Bot Telegram thực thi):
-- Tiền tố `override:` viết thường literal
-- Theo sau là khoảng trắng và lý do
-- Lý do phải chứa ≥ 5 từ (tokens được phân tách bởi khoảng trắng, ≥ 2 ký tự mỗi từ)
-- Lý do trông giống boilerplate (ví dụ tất cả từ 1 ký tự, từ lặp lại) sẽ bị bot từ chối
+Format rules (enforced by Telegram bot):
+- Literal lowercase `override:` prefix
+- Followed by space and reason
+- Reason must contain ≥ 5 words (whitespace-separated tokens, ≥ 2 chars each)
+- Reasons that look like boilerplate (e.g. all 1-letter words, repeated words) are rejected by the bot
 
-Ví dụ:
-- ✅ `override: [redacted-example]`
-
+Examples:
+- ✅ `override: [redacted-example]
 

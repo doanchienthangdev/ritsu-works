@@ -3,73 +3,144 @@ title: 00-core — Core Pillar
 description: ''
 source_path: 00-core/README.md
 source_hash: 0406726540cbc7b58d359c0132d31a6a06987a355b10f122bd2391cd672a9e77
-generated_at: '2026-05-21T20:44:59.101Z'
+generated_at: '2026-05-22T01:09:07.472Z'
 generated_by: docs-engine v1.2.0
 category: pillar
 language: vi
-translated: true
-translated_at: '2026-05-21T04:00:00Z'
-translated_by: Claude Opus 4.7 (Claude Code Desktop, session translation)
-translated_source_hash: c0c9d26afae6cba5a030f36a075efc3a1165d293d65d4edfed4a57f88a17d403
-needs_retranslation: true
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-# 00-core — Core Pillar
-
-> Nền tảng: tầm nhìn, giọng thương hiệu, định vị sản phẩm, hồ sơ founder, lập trường minh bạch, đặc tả charter. Câu trả lời "Ritsu là ai" + TẤT CẢ cốt lõi mà mọi pillar khác đều quy chiếu về.
+> Foundation: 19 canonical docs (identity, strategy, operating, brand-design, meta) — the "who is Ritsu" + ALL cốt lõi answer that every other pillar refers back to. Managed by `/core` command (`.claude/commands/core.md`).
 
 **Layer:** Evergreen
-**Trạng thái stage:** Maintenance (alive)
-**Mã pillar:** CORE
-**Vai trò sở hữu:** founder, cofounder, gps
-**HITL baseline:** C (mọi chỉnh sửa đều chỉ được thực hiện qua PR theo HITL.md)
-**Đổi tên:** 2026-05-21 — trước đây là `00-charter` → `00-core` (tổng quát hơn theo yêu cầu của founder; chứa TẤT CẢ tài liệu cốt lõi của ritsu-works, charter.md hiện chỉ là một trong nhiều tài liệu cốt lõi). Xem ghi chú migration_note v0.8.0 trong `knowledge/manifest.yaml`.
+**Stage status:** Maintenance (alive)
+**Pillar code:** CORE
+**Owner role(s):** founder, cofounder, gps
+**HITL baseline:** C (any edit is PR-only per HITL.md)
+**Last redesign:** 2026-05-21 — capability `core-redesign-and-command` v1.0.0 expanded from 5 → 19 docs + shipped `/core` command. See `knowledge/manifest.yaml` v0.9.0 migration_note.
 
 ---
 
-## Phạm vi
+## Scope
 
-Pillar này sở hữu câu trả lời chính thức cho:
-- **Ritsu là gì?** → `product.md`
-- **Giọng thương hiệu / phong cách viết là gì?** → `brand_voice.md`
-- **Founder + cofounder là ai?** → `founder-profile.md`
-- **Lập trường của công ty về minh bạch ra sao?** → `transparency.md`
-- **Charter / sứ mệnh / giá trị** → `charter.md`
+This pillar owns the canonical answer to:
 
-Pillar này KHÔNG sở hữu:
-- Operating playbooks (chúng nằm trong các pillar chức năng tương ứng)
-- Định nghĩa KPI (chúng nằm trong `10-metrics/kpi-registry/`)
-- Các tính năng sản phẩm cụ thể (sản phẩm nằm trong một repo riêng)
+**Identity** (who we are):
+- **What is Ritsu?** → `product.md` (canonical)
+- **How does Ritsu sound?** → `brand_voice.md` (canonical)
+- **Public AI stance?** → `transparency.md` (canonical)
+- **Charter / mission / boundaries?** → `charter.md` (canonical)
+- **Founder operational context?** → `founder-profile.md` (canonical, walker-excluded for PII)
+- **What we will/won't do?** → `values.md` (v0.1-draft, revisit at 30-paying)
+- **AI-Native operating belief?** → `ai-native-philosophy.md` (v0.1-draft)
+
+**Strategy** (where we're going):
+- **What we're optimizing right now?** → `north-star.md` (canonical)
+- **Who the first 100 are?** → `icp-summary.md` (canonical)
+- **Single source for marketing copy?** → `positioning.md` (canonical)
+- **Which features make them stay?** → `wedge.md` (stub — entry: SOP-PRODUCT-002 N=10 complete)
+- **Pricing principles?** → `pricing-philosophy.md` (stub — entry: SOP-PRODUCT-010 first run)
+
+**Operating** (how we decide + run):
+- **Decision heuristics?** → `principles.md` (v0.1-draft)
+- **Daily/weekly/monthly rhythm?** → `operating-cadence.md` (stub — entry: cofounder formal join OR 50 paying)
+- **Founder vs cofounder decision rights narrative?** → `decision-rights-narrative.md` (stub — entry: cofounder formal join)
+
+**Brand-design**:
+- **Visual language for company outputs?** → `design-system.md` (stub — entry: first marketing visual needed)
+
+**Meta**:
+- **Reading map?** → `INDEX.md`
+- **Canonical vocabulary?** → `glossary.md` (stub — entry: first 10 SOPs land)
+
+This pillar does NOT own:
+- Operating playbooks (those live in their respective functional pillars)
+- KPI definitions (`knowledge/kpi-registry.yaml`)
+- Specific product features (the product lives in a separate repo)
+
+## Status enum
+
+| status | meaning | edit policy |
+|---|---|---|
+| `canonical` | Fully filled + founder-signed | Tier C PR; quarterly review |
+| `v0.1-draft` | First fill; revisit_at trigger pending | Tier C PR; founder solo until revisit |
+| `stub` | Frontmatter-only placeholder | `/core scaffold` creates, `/core fill` graduates |
+| `deprecated` | Superseded, kept for git history | No edits |
+
+## `/core` command (Phase 1, 7 verbs)
+
+| Verb | Purpose | HITL |
+|---|---|---|
+| `/core show <doc>` | Display doc + frontmatter | A |
+| `/core list [--status=<enum>] [--layer=<enum>]` | Table of all docs | A |
+| `/core diff [doc]` | Git diff since `last_reviewed` | A |
+| `/core check` | Validate schema | A |
+| `/core compose <bundle>` | Bundle: identity/strategy/operating/all | A |
+| `/core scaffold <slug>` | New stub with frontmatter | B |
+| `/core fill <slug>` | Interactive graduate stub → v0.1 or v0.1 → canonical (via core-fill skill) | C |
+
+Phase 2 verbs (`init`, `reindex`, `review`, `status`, `<doc>:apply`, `<doc>:build`, `<doc>:export`) deferred to post 30-paying.
+
+## Reading order
+
+For cofounder / new AI agent onboarding (~30-60 min):
+
+1. **`INDEX.md`** (~3 min) — orientation
+2. **`product.md`** (~10 min) — what Ritsu IS
+3. **`charter.md`** (~5 min) — vision/market/monetization/boundaries
+4. **`north-star.md`** (~3 min) — what we're optimizing
+5. **`brand_voice.md`** (~10 min) — how Ritsu sounds
+6. **`positioning.md`** (~5 min) — what to say at every touchpoint
+7. **`icp-summary.md`** (~5 min) — the first 100 customers
+8. **`values.md`** + **`principles.md`** + **`ai-native-philosophy.md`** (v0.1 each ~5 min)
+9. **`transparency.md`** (~5 min) — public AI stance
+10. **`founder-profile.md`** — founder operational context
+
+Or bundle-style: `/core compose identity` then `/core compose strategy`.
+
+## Compose bundles
+
+| Bundle | Docs |
+|---|---|
+| `identity` | product + brand_voice + transparency + charter + founder-profile + values + ai-native-philosophy (7) |
+| `strategy` | north-star + icp-summary + positioning (3) |
+| `operating` | principles (1 v1; stubs added on graduation) |
+| `all` | every canonical + v0.1-draft doc (10) |
+
+Usage: `node scripts/core/compose.cjs --bundle=identity --to=runtime/core/onboarding-bundle.md`
 
 ## Sub-pillars
 
-Hiện tại chưa có. Charter mang tính nền tảng và tồn tại dưới dạng các tệp phẳng. Không có sub-pillar nào được lên kế hoạch trừ khi bản thân charter phát triển ra nhiều phần cho mỗi chủ đề (ví dụ `brand-voice/` chứa voice + tone + ví dụ + anti-pattern).
+None. Flat structure intentional — each doc has frontmatter `layer` enum (identity / strategy / brand-design / operating / stage / meta) for logical grouping.
 
 ## SOPs
 
-`sops/SOP-CHARTER-NNN-<slug>/` — namespace đã được dành sẵn. Hiện chưa có SOP nào ở giai đoạn này; các thay đổi charter diễn ra trực tiếp qua quy trình review PR, không qua SOP runtime.
+`sops/SOP-CORE-NNN-<slug>/` — namespace reserved but EMPTY. 00-core docs are reference, not workflow.
+
+## SOPs
+
+`sops/SOP-CHARTER-NNN-<slug>/` — namespace reserved. No SOPs at this stage; charter changes happen via direct PR review, not via SOP runtime.
 
 ## Agents
 
-Không có agent nào thuộc pillar này. `gps` và `founder` là hai vai trò duy nhất chỉnh sửa các tệp charter, cả hai đều thông qua PR theo HITL.md.
+No agents are home in this pillar. `gps` and `founder` are the only roles that edit charter files, both via PR per HITL.md.
 
-## KPIs sở hữu
+## KPIs owned
 
-- Hoàn thành review charter hàng quý (có/không mỗi quý)
-- Số lượng PR được dẫn dắt bởi charter mỗi quý (tín hiệu về độ lệch giữa các agent và charter)
+- Quarterly charter review completion (yes/no per quarter)
+- Charter-driven PR count per quarter (signal of drift between agents and charter)
 
-## Phụ thuộc
+## Dependencies
 
-- **Được kết hợp bởi:** mọi pillar khác (chúng đều trích dẫn charter để lấy giọng thương hiệu, ICP, định vị)
-- **Kết hợp từ:** không có
+- **Composed by:** every other pillar (they cite charter for brand voice, ICP, positioning)
+- **Composes from:** none
 
 ## HITL baseline
 
-Mọi chỉnh sửa lên bất kỳ tệp nào trong `00-core/` đều là Tier C. Bất kỳ thao tác "viết lại từ đầu" tài liệu charter đều là Tier D-Std. Cả cofounder và founder đều đủ điều kiện làm người phê duyệt theo `governance/ROLES.md` v1.0.1.
+Every edit to any file in `00-core/` is Tier C. Any "rewrite from scratch" of charter docs is Tier D-Std. Cofounder + founder both qualify as approvers per `governance/ROLES.md` v1.0.1.
 
-## Điều kiện kích hoạt
+## Entry conditions
 
-Không áp dụng (luôn ở trạng thái hoạt động từ ngày đầu tiên).
+Not applicable (always active from day 1).
 

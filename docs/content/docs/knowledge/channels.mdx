@@ -3,30 +3,26 @@ title: 'Tier 1 yaml: channels'
 description: Schema overview for `knowledge/channels.yaml`.
 source_path: knowledge/channels.yaml
 source_hash: 477cfc709c023d8695c9b309101aa849b52c7a3c983b9ab2e58a2bddba038e14
-generated_at: '2026-05-19T05:20:46.469Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.527Z'
+generated_by: docs-engine v1.2.0
 category: tier1-yaml
 language: vi
-translated: true
-translated_source_hash: 477cfc709c023d8695c9b309101aa849b52c7a3c983b9ab2e58a2bddba038e14
-translated_at: 2026-05-19T12:31:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-## Mô tả
+## Description
 
 ============================================================================
-channels.yaml — Các channel Multi-Surface (Bài #17)
+channels.yaml — Multi-Surface channels (Bài #17)
 ============================================================================
-File declarative Tier 1. Định nghĩa các surface mà dự án công bố / nhận dữ liệu.
-Pattern: Triển khai interface SurfaceAdapter trên mỗi channel.
+Tier 1 declarative file. Defines surfaces project publishes to / receives from.
+Pattern: SurfaceAdapter interface implementation per channel.
 
-Mỗi channel:
-- Có type (video, social, email, dashboard, v.v.)
-- Có audience priority (primary, secondary, tertiary)
-- Maps tới triển khai SurfaceAdapter trong 05-ai-ops/surface-adapters/
+Each channel:
+- Has type (video, social, email, dashboard, etc.)
+- Has audience priority (primary, secondary, tertiary)
+- Maps to SurfaceAdapter implementation in 05-ai-ops/surface-adapters/
 ============================================================================
 
 ## Top-level keys
@@ -35,4 +31,4 @@ Mỗi channel:
 - `channels`
 - `compliance_groups`
 
-> Giá trị trực tiếp trong [`knowledge/channels.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/channels.yaml). Page này mô tả schema; không phải dữ liệu.
+> Live values in [`knowledge/channels.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/channels.yaml). This page describes the schema; not the data.

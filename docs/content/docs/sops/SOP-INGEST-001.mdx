@@ -3,24 +3,20 @@ title: 'SOP-INGEST-001: wiki-sync'
 description: ''
 source_path: 06-ai-ops/sops/SOP-INGEST-001-wiki-sync/flow.yaml
 source_hash: f9d9a77485544ea5de686301238651ee4a0afec510b4bd8f5919b3ba2ad770a2
-generated_at: '2026-05-19T05:20:46.456Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.513Z'
+generated_by: docs-engine v1.2.0
 category: sop
 language: vi
-translated: true
-translated_source_hash: f9d9a77485544ea5de686301238651ee4a0afec510b4bd8f5919b3ba2ad770a2
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
 **SOP ID:** `SOP-INGEST-001`
 **Pillar:** 06-ai-ops
 **Cost bucket:** `ai-ops-knowledge`
 **Capability:** `wiki-sync-from-refs`
 
-## Khởi gọi
+## Invocation
 
 ```yaml
 invocation:
@@ -34,51 +30,51 @@ invocation:
     target: B
 ```
 
-## Các bước
+## Steps
 
-### Bước 1_fetch — Lấy nội dung thô
+### Step 1_fetch — Fetch raw content
 
 - **Kind:** minion
 - **Skill:** `wiki-sync/adapters/<adapter>`
 - **Timeout:** 120s
 - **On failure:** mark_state_failed
 
-### Bước 2_dedup_check — Kiểm tra trùng lặp đối chiếu với ingestion_jobs
+### Step 2_dedup_check — Dedup against ingestion_jobs
 
 - **Kind:** minion
 - **Skill:** `inline_sql`
 
-### Bước 3_acquire_lock — Lấy advisory lock trên (entity_type, slug)
+### Step 3_acquire_lock — Acquire advisory lock on (entity_type, slug)
 
 - **Kind:** minion
 - **Skill:** `inline_sql`
 
-### Bước 4_chapter_split_if_needed — Phát hiện và tách các ref quá lớn
+### Step 4_chapter_split_if_needed — Detect and split oversized refs
 
 - **Kind:** subagent
 - **Skill:** `wiki-sync/chapter-splitter`
 
-### Bước 5_extract — Trích xuất thực thể và khái niệm
+### Step 5_extract — Extract entities + concepts
 
 - **Kind:** subagent
 - **Skill:** `wiki-sync/adapters/<adapter>`
 
-### Bước 6_entity_link — Tự động trích tham chiếu chéo (regex trước, LLM dự phòng)
+### Step 6_entity_link — Auto-extract cross-references (regex first, LLM fallback)
 
 - **Kind:** hybrid
 - **Skill:** `wiki-sync/link-extractor`
 
-### Bước 7_embed — Tính embeddings và ghi vào knowledge_embeddings
+### Step 7_embed — Compute embeddings + write to knowledge_embeddings
 
 - **Kind:** minion
 - **Skill:** `inline_embed`
 
-### Bước 8_write_wiki — Ghi Markdown vào wiki/ và chèn dòng knowledge_pages
+### Step 8_write_wiki — Write Markdown to wiki/ + insert knowledge_pages row
 
 - **Kind:** minion
 - **Skill:** `inline_write`
 
-### Bước 9_emit_events — Phát sự kiện hoàn tất và quy chi phí
+### Step 9_emit_events — Emit completion event + cost attribution
 
 - **Kind:** minion
 - **Skill:** `inline_emit`

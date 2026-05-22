@@ -111,6 +111,20 @@ function firstH1(body) {
   return match ? match[1].trim() : null;
 }
 
+// Strip a leading `# Title` line + surrounding blank lines from a body. Used by
+// every body-rendering adapter to prevent duplicate-H1 in Fumadocs (which
+// auto-renders frontmatter.title as the page H1). Symmetric with the
+// scripts/import-playbook-to-docs.cjs fix shipped in PR #70 (c7d46fe).
+//
+// Only strips the FIRST H1 if it's the first non-blank line — any later H1 is
+// kept (it's a section heading, not a page title duplicate).
+function stripLeadingH1(body) {
+  if (!body) return body;
+  // Match optional leading blank lines, then a single `# Title` line, then
+  // optional trailing blank line(s). Replace with nothing.
+  return body.replace(/^\s*#\s+[^\n]+\n+/, "");
+}
+
 function sanitizeSlug(s) {
   return s
     .toLowerCase()
@@ -276,7 +290,7 @@ function adapterSkill(absPath, relPath, raw) {
     targetPath: path.join(DOCS_CONTENT, "skills", `${slug}.mdx`),
     title: `Skill: ${name}`,
     description,
-    body,
+    body: stripLeadingH1(body),
     category: "skill",
   };
 }
@@ -292,7 +306,7 @@ function adapterAgent(absPath, relPath, raw) {
     targetPath: path.join(DOCS_CONTENT, "agents", `${slug}.mdx`),
     title: `Agent: @${name}`,
     description,
-    body,
+    body: stripLeadingH1(body),
     category: "agent",
   };
 }
@@ -307,7 +321,7 @@ function adapterHook(absPath, relPath, raw) {
     targetPath: path.join(DOCS_CONTENT, "hooks", `${slug}.mdx`),
     title: `Hook: ${name}`,
     description: (frontmatter && frontmatter.type) ? `${frontmatter.type} hook` : "",
-    body,
+    body: stripLeadingH1(body),
     category: "hook",
   };
 }
@@ -324,38 +338,46 @@ function adapterCommand(absPath, relPath, raw) {
     targetPath: path.join(DOCS_CONTENT, "commands", `${filename}.mdx`),
     title: `Command: ${title}`,
     description,
-    body,
+    body: stripLeadingH1(body),
     category: "command",
   };
 }
 
 // === Adapter: charter (passthrough markdown) ===
+// PR #83 fix: parse source frontmatter + strip leading H1 to prevent
+// (a) source frontmatter dumping into MDX body, (b) duplicate H1 in Fumadocs.
 function adapterCharter(absPath, relPath, raw) {
+  const { body } = parseFrontmatter(raw);
   const filename = path.basename(relPath, ".md");
-  const title = firstH1(raw) || `Charter: ${filename}`;
+  const title = firstH1(body) || `Charter: ${filename}`;
   return {
     targetPath: path.join(DOCS_CONTENT, "charter", `${filename}.mdx`),
     title,
     description: "",
-    body: raw,
+    body: stripLeadingH1(body),
     category: "charter",
   };
 }
 
 // === Adapter: governance (passthrough; SECRETS.md excluded at walker level) ===
+// PR #83 fix: parse source frontmatter (governance docs occasionally carry one,
+// e.g. ROLES.md inline yaml blocks should NOT be conflated with file frontmatter)
+// + strip leading H1 to prevent duplicate-H1 in Fumadocs.
 function adapterGovernance(absPath, relPath, raw) {
+  const { body } = parseFrontmatter(raw);
   const filename = path.basename(relPath, ".md");
-  const title = firstH1(raw) || `Governance: ${filename}`;
+  const title = firstH1(body) || `Governance: ${filename}`;
   return {
     targetPath: path.join(DOCS_CONTENT, "governance", `${filename}.mdx`),
     title,
     description: "",
-    body: raw,
+    body: stripLeadingH1(body),
     category: "governance",
   };
 }
 
 // === Adapter: pillar-readme (recursive) ===
+// PR #83 fix: parse source frontmatter + strip leading H1 (same rationale as charter/governance).
 function adapterPillarReadme(absPath, relPath, raw) {
   // relPath like "06-ai-ops/README.md" or "06-ai-ops/skills/README.md"
   const segments = relPath.split("/");
@@ -364,12 +386,13 @@ function adapterPillarReadme(absPath, relPath, raw) {
   const baseFile = segments[segments.length - 1]; // README.md or CLAUDE.md
   const fileSlug = baseFile === "CLAUDE.md" ? "_claude" : "index";
   const targetSubPath = subPath ? path.join(subPath, fileSlug) : fileSlug;
-  const title = firstH1(raw) || `Pillar: ${pillarSlug}${subPath ? " / " + subPath : ""}`;
+  const { body } = parseFrontmatter(raw);
+  const title = firstH1(body) || `Pillar: ${pillarSlug}${subPath ? " / " + subPath : ""}`;
   return {
     targetPath: path.join(DOCS_CONTENT, "pillars", pillarSlug, `${targetSubPath}.mdx`),
     title,
     description: "",
-    body: raw,
+    body: stripLeadingH1(body),
     category: "pillar",
   };
 }

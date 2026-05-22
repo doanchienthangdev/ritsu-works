@@ -3,36 +3,34 @@ title: 'Tier 1 yaml: workforce-personas'
 description: Schema overview for `knowledge/workforce-personas.yaml`.
 source_path: knowledge/workforce-personas.yaml
 source_hash: 9782d6c80a6ceda006e7bda9d34ace11819a23634b643ef56e9dfd163ed8e43d
-generated_at: '2026-05-19T05:20:46.480Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.537Z'
+generated_by: docs-engine v1.2.0
 category: tier1-yaml
 language: vi
-translated: true
-translated_source_hash: 9782d6c80a6ceda006e7bda9d34ace11819a23634b643ef56e9dfd163ed8e43d
-translated_at: 2026-05-19T12:33:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-## Mô tả
+## Description
 
-Registry Workforce Persona
+Workforce Persona Registry
 
-Nguồn sự thật cho kết nối C-suite persona → technical role. Persona là FAÇADE — chúng KHÔNG khai báo lại permissions, budgets, secrets, hoặc HITL tiers. Những cái đó nằm trong governance/ROLES.md theo role được bind.
+Source of truth for the C-suite persona → technical role binding. Personas
+are FAÇADE — they do NOT redeclare permissions, budgets, secrets, or HITL
+tiers. Those live in governance/ROLES.md against the bound role.
 
-Quy tắc resolution: khi runtime thấy /\<slug> hoặc @\<slug>:
-  1. Tra cứu persona ở đây → tìm binds_to.primary.
-  2. Áp dụng policy ROLES.md cho role được bind.
-  3. Persona có thể HẠN CHẶP default HITL max của nó bên dưới ceiling của role.
-     Persona KHÔNG BAO GIỜ mở rộng bất kỳ permission nào.
+Resolution rule: when the runtime sees /\<slug> or @\<slug>:
+  1. Look up persona here → find binds_to.primary.
+  2. Apply ROLES.md policy for the bound role.
+  3. Persona may NARROW its default HITL max below the role's ceiling.
+     Persona may NEVER broaden any permission.
 
-Validators (PR 2/4 trong workforce phase 1 stack):
+Validators (PR 2/4 in workforce phase 1 stack):
   - verify-persona-role-binding.cjs (L1)
   - verify-persona-spec-sync.cjs (L1)
   - verify-persona-routing-completeness.cjs (L2)
 
-Xem: .archives/workforces/00-architecture-decisions/ADR-003-mapping-csuite-to-roles.md
+See: .archives/workforces/00-architecture-decisions/ADR-003-mapping-csuite-to-roles.md
      .archives/workforces/01-workforce-roster.md
      .archives/workforces/05-integration-with-existing.md
 
@@ -46,4 +44,4 @@ Xem: .archives/workforces/00-architecture-decisions/ADR-003-mapping-csuite-to-ro
 - `not_in_roster`
 - `naming_policy`
 
-> Giá trị trực tiếp trong [`knowledge/workforce-personas.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/workforce-personas.yaml). Page này mô tả schema; không phải dữ liệu.
+> Live values in [`knowledge/workforce-personas.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/workforce-personas.yaml). This page describes the schema; not the data.

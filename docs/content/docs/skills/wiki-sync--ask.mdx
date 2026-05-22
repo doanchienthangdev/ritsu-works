@@ -12,40 +12,33 @@ description: |
   OpenAI calls (gated on wiki_sync_llm_fallback flag + OPENAI_API_KEY).
 source_path: 06-ai-ops/skills/wiki-sync/ask/SKILL.md
 source_hash: c556c66f810d44d9b238b50f3ff0ccbcb8c6e8705b35053a17e2177ff469c09d
-generated_at: '2026-05-19T05:20:46.370Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.410Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: c556c66f810d44d9b238b50f3ff0ccbcb8c6e8705b35053a17e2177ff469c09d
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When to use
 
-# wiki-sync / ask (nền tảng Sprint 3 PR5 — v2.0.0)
+- Founder runs `/wiki ask "<question>"` → dispatches here.
+- Other agent calls `mcp__wiki__wiki_ask` → also dispatches here (added Sprint 3 PR5).
 
-## Khi nào dùng
+## Inputs
 
-- Founder chạy `/wiki ask "<question>"` → điều phối tới đây.
-- Agent khác gọi `mcp__wiki__wiki_ask` → cũng điều phối tới đây (bổ sung ở Sprint 3 PR5).
+- `question` — natural language string (3..2000 chars)
+- `k` — optional top-K (default 10)
+- `rerank` — optional bool (default false; adds ~$0.05 cost when true)
+- `filter` — optional retrieval scoping:
+  - `page_type?` — filter by entity type (concept/observation/decision/idea)
+  - `source?` — **v4.0:** package-scoped retrieval; source RECORD slug. Returns only entities whose `extracted_from_source_id` points at the source with this slug. E.g. `--source growth-playbook-fixture`.
+  - `packages?` — **v4.0:** union over multiple packages. Array of source RECORD slugs. E.g. `--packages growth-playbook-fixture,sample`.
+- `--source <slug>` / `--packages <slug1,slug2>` flag syntax from `/wiki ask` slash command translates to `filter.source` / `filter.packages` here.
 
-## Đầu vào
+## Process (v0.2 target — full implementation)
 
-- `question` — chuỗi ngôn ngữ tự nhiên (3..2000 ký tự)
-- `k` — top-K tuỳ chọn (mặc định 10)
-- `rerank` — bool tuỳ chọn (mặc định false; thêm ~$0.05 chi phí khi true)
-- `filter` — phạm vi truy hồi tuỳ chọn:
-  - `page_type?` — lọc theo loại thực thể (concept/observation/decision/idea)
-  - `source?` — **v4.0:** truy hồi giới hạn theo package; slug của source RECORD. Chỉ trả về các thực thể có `extracted_from_source_id` trỏ đến source mang slug này. Ví dụ `--source growth-playbook-fixture`.
-  - `packages?` — **v4.0:** hợp nhiều package. Mảng các slug source RECORD. Ví dụ `--packages growth-playbook-fixture,sample`.
-- Cú pháp cờ `--source <slug>` / `--packages <slug1,slug2>` từ slash command `/wiki ask` được dịch sang `filter.source` / `filter.packages` ở đây.
-
-## Quy trình (mục tiêu v0.2 — triển khai đầy đủ)
-
-### Bước 1 — Embed câu hỏi
+### Step 1 — Embed the question
 
 ```
 POST https://api.openai.com/v1/embeddings
@@ -53,15 +46,15 @@ POST https://api.openai.com/v1/embeddings
 → 1536-dim vector
 ```
 
-Chi phí: ~$0.00002 cho mỗi câu hỏi (không đáng kể).
+Cost: ~$0.00002 per question (negligible).
 
-### Bước 2 — Truy hồi hybrid ENTITY-FIRST (v3.0)
+### Step 2 — ENTITY-FIRST hybrid retrieval (v3.0)
 
-**Cập nhật v3.0:** truy hồi ưu tiên các trang THỰC THỂ DẪN XUẤT (đồ thị tri thức đã distilled) hơn là các chunk source RECORD. Trực giác: founder hỏi "tài liệu nói gì về X" — câu trả lời nên xuất hiện trang concept đa-nguồn về X trước, kèm trích dẫn đa-nguồn; các chunk nguồn chỉ là chi tiết thứ cấp.
+**v3.0 update:** retrieval prefers DERIVED ENTITY pages (the distilled knowledge graph) over source RECORD chunks. The intuition: the founder asks "what does the literature say about X" — the answer should surface the cross-source concept page about X first, with multi-source citation; the source chunks themselves are secondary detail.
 
-**Thứ tự truy hồi:**
+**Retrieval order:**
 
-a) **Truy vấn entity-first (v4.0 hỗ trợ giới hạn package-scope):**
+a) **Entity-first query (v4.0 with package-scope support):**
 ```sql
 SELECT kp.id, kp.slug, kp.page_type, kp.title,
        kp.frontmatter->>'summary' AS summary,
@@ -84,20 +77,20 @@ SELECT kp.id, kp.slug, kp.page_type, kp.title,
  LIMIT $k;
 ```
 
-JOIN tới `src` cho ta package_slug + source_title — cả hai đều dùng trong định dạng trích dẫn v4.0 (spec B9). Tham số `$filter_source` / `$filter_packages` đến từ cờ `--source` / `--packages`.
+The JOIN to `src` gives us the package_slug + source_title — both used in the v4.0 citation format (spec B9). The `$filter_source` / `$filter_packages` params come from `--source` / `--packages` flags.
 
-Nếu có ≥ 3 entity hit với sim > 0.7 → ĐƯỜNG DẪN ENTITY-FIRST. Nhảy đến Bước 3a.
-Nếu \< 3 entity hit → CHẢY XUỐNG truy hồi theo source-chunk (b).
+If ≥ 3 entity hits with sim > 0.7 → ENTITY-FIRST PATH. Skip to Step 3a.
+If \< 3 entity hits → FALL THROUGH to source-chunk retrieval (b).
 
-b) **Dự phòng source-chunk (hybrid v2.0):** đường dẫn vector + keyword + backlink gốc (giữ nguyên từ v2.0).
+b) **Source-chunk fallback (v2.0 hybrid):** original vector + keyword + backlink path (unchanged from v2.0).
 
-**Vì sao entity-first:** việc tái định khung v3.0 nêu rằng wiki/ là đồ thị tri thức của các thực thể đã trích xuất, không phải kho phóng-chiếu file. Truy hồi nên phản ánh ngữ nghĩa đó.
+**Why entity-first:** the v3.0 reframe is that wiki/ is a knowledge graph of extracted entities, not a file-projection store. Retrieval should mirror that semantic.
 
-### Bước 2b — Truy hồi hybrid v2.0 ban đầu (đường dẫn dự phòng)
+### Step 2b — Original v2.0 hybrid retrieval (fallback path)
 
-Theo công thức xếp hạng Bài #14, điểm là `vector*0.5 + keyword*0.3 + backlink*0.2`:
+Per Bài #14 ranking, the score is `vector*0.5 + keyword*0.3 + backlink*0.2`:
 
-**Đường dẫn vector:**
+**Vector path:**
 ```sql
 SELECT page_id, chunk_index, chunk_text, embedding <=> $1 AS distance
   FROM ops.knowledge_embeddings
@@ -108,7 +101,7 @@ SELECT page_id, chunk_index, chunk_text, embedding <=> $1 AS distance
  LIMIT $k * 2;  -- over-fetch for dedup
 ```
 
-**Đường dẫn keyword (BM25 qua Postgres full-text):**
+**Keyword path (BM25 via Postgres full-text):**
 ```sql
 SELECT page_id, chunk_index, chunk_text,
        ts_rank_cd(to_tsvector('english', chunk_text), websearch_to_tsquery($question_text)) AS rank
@@ -118,7 +111,7 @@ SELECT page_id, chunk_index, chunk_text,
  LIMIT $k * 2;
 ```
 
-**Đường dẫn backlink** (tăng điểm cho các trang được nhiều trang khác trích dẫn):
+**Backlink path** (boost pages cited by many other pages):
 ```sql
 SELECT target_page_id, count(*) AS backlinks
   FROM ops.knowledge_links
@@ -126,29 +119,29 @@ SELECT target_page_id, count(*) AS backlinks
  GROUP BY target_page_id;
 ```
 
-Kết hợp: chuẩn hoá điểm từng đường dẫn về [0, 1]; tổng hợp theo công thức xếp hạng; khử trùng lặp theo (page_id, chunk_index); lấy top K.
+Combine: normalize each path's score to [0, 1]; compose per ranking formula; dedup by (page_id, chunk_index); take top K.
 
-### Bước 3 — Rerank tuỳ chọn (nếu `rerank=true`)
+### Step 3 — Optional rerank (if `rerank=true`)
 
-Gọi model rerank của OpenAI trên top-K chunk đối với câu hỏi. Sắp lại theo điểm rerank. Chi phí ~$0.05 mỗi lần gọi.
+Call OpenAI rerank model on the top-K chunks against the question. Re-order by rerank score. Cost ~$0.05 per call.
 
-### Bước 4 — Lấy ngữ cảnh đầy đủ của chunk
+### Step 4 — Fetch full chunk context
 
-Với mỗi chunk top-K, lấy frontmatter của trang + các chunk lân cận (chunk_index ± 1) để có ngữ cảnh.
+For each top-K chunk, fetch the page's frontmatter + the chunk's neighboring chunks (chunk_index ± 1) for context.
 
-### Bước 5 — Tổng hợp câu trả lời (định dạng trích dẫn v3.0)
+### Step 5 — Synthesize answer (v3.0 citation format)
 
-Gọi Claude (Sonnet hoặc Opus theo cờ `wiki_sync_llm_fallback`) với system prompt áp đặt kỷ luật trích dẫn v3.0 (Muse M5):
+Call Claude (Sonnet or Opus per `wiki_sync_llm_fallback` flag) with a system prompt that enforces v3.0 citation discipline (Muse M5):
 
-**Định dạng trích dẫn entity-first v3.0:**
+**v3.0 entity-first citation format:**
 ```
 "<extracted_quote_from_entity_summary_or_raw_quote>" — extracted from
 [Source Title](wiki/<source-slug>/source.md#chunk-N), package `<source-slug>`, confidence X.XX
 ```
 
-(Cập nhật v4.0: source RECORDs nằm tại `wiki/<source-slug>/source.md`. Trích dẫn bao gồm hậu tố `package` theo spec v4.0 §0 B9. Ví dụ v3.0 dùng `wiki/<source-type>/<source-slug>.md`.)
+(v4.0 update: source RECORDs live at `wiki/<source-slug>/source.md`. Citation includes `package` suffix per spec v4.0 §0 B9. v3.0 examples used `wiki/<source-type>/<source-slug>.md`.)
 
-Ví dụ:
+Example:
 > "Companies that activate users within their first session retain 4-5x better at 30 days" — extracted from [Growth Playbook Fixture](wiki/growth-playbook-fixture/source.md#chunk-3), package `growth-playbook-fixture`, confidence 0.92
 
 **System prompt:**
@@ -177,17 +170,17 @@ You are answering from a corpus of wiki ENTITIES (distilled knowledge graph)
    for a cited chunk, omit the title (use bare wiki path).
 ```
 
-Đầu vào cho Claude: câu hỏi + top-K thực thể (đường dẫn entity-first) HOẶC + top-K chunk (đường dẫn dự phòng), mỗi mục kèm khối metadata tường minh gồm slug trang, tham chiếu source RECORD, raw_quote từ knowledge_extractions nếu là thực thể, page_type.
+Input to Claude: question + top-K entities (entity-first path) OR + top-K chunks (fallback path), each with explicit metadata block including page slug, source RECORD reference, raw_quote from knowledge_extractions if entity, page_type.
 
-### Bước 6 — Xác thực trích dẫn
+### Step 6 — Validate citations
 
-Xác thực bằng chương trình mọi liên kết `[wiki/...]` trong câu trả lời:
-- Đường dẫn tồn tại (khớp một dòng trong `ops.knowledge_pages.file_path`).
-- Anchor `#chunk-NN` khớp với một chunk_index có thật trên trang đó.
+Programmatically verify every `[wiki/...]` link in the answer:
+- The path exists (matches a row in `ops.knowledge_pages.file_path`).
+- The `#chunk-NN` anchor matches a real chunk_index for that page.
 
-Nếu xác thực thất bại, thử lại một lần với prompt nghiêm khắc hơn; nếu vẫn thất bại, trả về `reason: 'citation_validation_failed'`.
+If validation fails, retry once with stricter prompt; if still fails, return `reason: 'citation_validation_failed'`.
 
-### Bước 7 — Trả về
+### Step 7 — Return
 
 ```jsonc
 {
@@ -202,9 +195,9 @@ Nếu xác thực thất bại, thử lại một lần với prompt nghiêm kh�
 }
 ```
 
-## Hành vi v0.1 STUB (commit NÀY)
+## v0.1 STUB behavior (THIS commit)
 
-Cho đến khi v0.2 nối các cuộc gọi OpenAI + npm dep, SKILL trả về:
+Until v0.2 wires the OpenAI calls + npm dep, the SKILL returns:
 
 ```jsonc
 {
@@ -225,54 +218,54 @@ Cho đến khi v0.2 nối các cuộc gọi OpenAI + npm dep, SKILL trả về:
 }
 ```
 
-Công cụ MCP `mcp__wiki__wiki_ask` phản chiếu hợp đồng này — xem
+The MCP tool `mcp__wiki__wiki_ask` mirrors this contract — see
 `mcp-server/src/tools/wiki-ask.ts`.
 
 ## HITL
 
-- Luôn Tier A (chỉ đọc)
-- Không cần founder phê duyệt — kỷ luật trích dẫn được áp đặt bằng chương trình
+- Tier A always (read-only)
+- No founder approval needed — citation discipline is enforced programmatically
 
-## Chế độ thất bại
+## Failure modes
 
-| Triệu chứng | Phản hồi |
+| Symptom | Response |
 |---|---|
-| Thiếu OPENAI_API_KEY (v0.2) | Dừng với lý do rõ ràng "feature_flag_blocked" |
-| OpenAI rate limit | Backoff theo cấp số nhân (5s → 15s → 30s); sau 3 lần thất bại, trả về reason='rate_limited' |
-| Không có phạm vi wiki | Trả về `reason:'no_coverage'` (TUYỆT ĐỐI không đoán từ dữ liệu huấn luyện) |
-| Xác thực trích dẫn thất bại hai lần | Trả về `reason:'citation_validation_failed'`; đưa lên founder |
-| Thiếu extension `pgvector` | Báo lỗi rõ ràng; founder phải áp migration 00006 |
-| Bảng `knowledge_embeddings` trống | Trả về sớm với `reason:'no_embeddings_yet'` + đề xuất chạy embeddings-backfill |
+| OPENAI_API_KEY missing (v0.2) | Bail with clear "feature_flag_blocked" reason |
+| OpenAI rate limit | Exponential backoff (5s → 15s → 30s); after 3 fails, return reason='rate_limited' |
+| No wiki coverage | Return `reason:'no_coverage'` (NEVER guess from training data) |
+| Citation validation fails twice | Return `reason:'citation_validation_failed'`; surface to founder |
+| `pgvector` extension missing | Fail loudly; founder must apply migration 00006 |
+| `knowledge_embeddings` table empty | Return early with `reason:'no_embeddings_yet'` + suggest running embeddings-backfill |
 
-## Chi phí
+## Cost
 
-| Chế độ | Mỗi lần hỏi |
+| Mode | Per ask |
 |---|---|
-| v0.1 STUB | $0 (chỉ đếm DB) |
-| v0.2 (không rerank) | ~$0.02 (embedding + claude) |
-| v0.2 (có rerank) | ~$0.07 |
+| v0.1 STUB | $0 (DB counts only) |
+| v0.2 (no rerank) | ~$0.02 (embedding + claude) |
+| v0.2 (with rerank) | ~$0.07 |
 
-Trần theo task_kind từ README SOP-INGEST-001: `wiki-ask` = $0.10 / lần gọi.
+Per-task-kind cap from SOP-INGEST-001 README: `wiki-ask` = $0.10 / invocation.
 
-## Phạm vi sprint
+## Sprint scope
 
-Sprint 3 PR5 (v2.0.0) — commit này:
-- Đầy đủ 7 bước đã được mô tả bằng văn xuôi
-- STUB handler trong mcp-server (`mcp__wiki__wiki_ask`) trả về hợp đồng v0.1
-- Báo cáo trạng thái wiki (đếm trang/embedding) để bên gọi biết có nên chuyển sang duyệt thủ công hay không
+Sprint 3 PR5 (v2.0.0) — this commit:
+- All 7 steps documented in prose
+- STUB handler in mcp-server (`mcp__wiki__wiki_ask`) returns v0.1 contract
+- Wiki state reporting (page/embedding counts) so caller knows whether to fall through to manual browsing
 
-v0.2 (PR riêng, khi founder phê duyệt):
-- Thêm npm dep `openai` + nối env `OPENAI_API_KEY`
-- Triển khai thực Bước 1-6
-- Bật cờ `wiki_sync_llm_fallback` thành true
-- Kiểm thử tích hợp với fixture thật
+v0.2 (separate PR, when founder authorises):
+- Add `openai` npm dep + `OPENAI_API_KEY` env wiring
+- Wire actual Step 1-6 implementation
+- Flip `wiki_sync_llm_fallback` flag to true
+- Integration test against real fixture
 
-## Liên quan
+## Related
 
-- Khai báo MCP: `mcp-server/src/tools/wiki-ask.ts` (commit này)
-- Cha: `06-ai-ops/skills/wiki-sync/SKILL.md`
-- Feature flag: `wiki_sync_llm_fallback` trong `knowledge/feature-flags.yaml`
-- Schema: `ops.knowledge_embeddings` (đích top-K vector), `ops.knowledge_pages` (phân giải trích dẫn), `ops.knowledge_links` (boost backlink)
-- Công cụ dự phòng kèm theo v0.1: `wiki_list_pages`, `wiki_get_page`
-- Nguồn công thức xếp hạng Bài #14: `knowledge/phase-a2-extensions/bai-14-knowledge-graph-DRAFT.md`
+- MCP exposure: `mcp-server/src/tools/wiki-ask.ts` (this commit)
+- Parent: `06-ai-ops/skills/wiki-sync/SKILL.md`
+- Feature flag: `wiki_sync_llm_fallback` in `knowledge/feature-flags.yaml`
+- Schema: `ops.knowledge_embeddings` (vector top-K target), `ops.knowledge_pages` (citation resolution), `ops.knowledge_links` (backlink boost)
+- Companion v0.1 fallback tools: `wiki_list_pages`, `wiki_get_page`
+- Bài #14 ranking formula source: `knowledge/phase-a2-extensions/bai-14-knowledge-graph-DRAFT.md`
 

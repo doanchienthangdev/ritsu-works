@@ -19,50 +19,44 @@ description: |
   Per-invocation cost: < $0.001.
 source_path: 06-ai-ops/skills/ai-disclosure-check/SKILL.md
 source_hash: 36f8a62d599b2055f0c9ca91cafa8e710e4acb61e2bcef8147d0bf36f08c72a4
-generated_at: '2026-05-21T03:49:53.234Z'
+generated_at: '2026-05-22T01:09:07.363Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_at: '2026-05-19T15:00:00Z'
-translated_by: Claude Opus 4.7 (Claude Code Desktop, session translation)
-translated_source_hash: 36f8a62d599b2055f0c9ca91cafa8e710e4acb61e2bcef8147d0bf36f08c72a4
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-# AI Disclosure Check
+> The skill that turns "EU AI Act compliance" from "we hope it's there" into "verified before send."
 
-> Skill biến "tuân thủ EU AI Act" từ "hy vọng là có" thành "đã được xác minh trước khi gửi."
+## When to use
 
-## Khi nào sử dụng
+Invoke before any customer-facing message goes out. Specifically:
 
-Gọi trước khi bất kỳ tin nhắn hướng tới khách hàng nào được gửi đi. Cụ thể:
+- Email reply to customer
+- Chat message in Ritsu in-product chat
+- Social media DM reply
+- Public comment on social media (mention, reply)
+- Any message that would be visible to a non-Ritsu-employee
 
-- Email trả lời khách hàng
-- Tin nhắn chat trong Ritsu in-product chat
-- Tin nhắn trả lời DM trên mạng xã hội
-- Bình luận công khai trên mạng xã hội (mention, trả lời)
-- Bất kỳ tin nhắn nào sẽ hiển thị cho người không phải nhân viên Ritsu
+Do NOT use when:
 
-KHÔNG sử dụng khi:
-
-- Tin nhắn Telegram nội bộ (founder ↔ workforce)
-- Bình luận GitHub PR (hướng tới developer)
-- Tin nhắn Slack nội bộ
-- Ghi dữ liệu thuần túy (DB, files)
-- Bản nháp lưu vào `.archives/` (chưa gửi)
+- Internal Telegram message (founder ↔ workforce)
+- GitHub PR comment (developer-facing)
+- Internal Slack message
+- Pure data writes (DB, files)
+- Draft saved to `.archives/` (not yet sent)
 
 ## Inputs
 
-| Input | Kiểu | Bắt buộc | Mô tả |
+| Input | Type | Required | Description |
 |---|---|---|---|
-| `message_body` | string | yes | Toàn bộ nội dung tin nhắn sắp được gửi |
+| `message_body` | string | yes | The full text of the message about to be sent |
 | `message_type` | string | yes | `email_first` / `email_subsequent` / `chat_first` / `chat_subsequent` / `social_reply` / `social_dm` |
-| `message_locale` | string | no | `en` / `vi` (mặc định `en`) |
-| `subject` | string | no | Tiêu đề email (liên quan đến email_first) |
-| `from_address` | string | no | Địa chỉ email gửi đi (ví dụ `support@ritsu.ai`) |
-| `recipient_first_message` | bool | no | Mặc định true; cho biết đây có phải là tin nhắn đầu tiên thuộc bất kỳ loại nào được gửi tới người nhận này hay không |
+| `message_locale` | string | no | `en` / `vi` (default `en`) |
+| `subject` | string | no | Email subject line (relevant for email_first) |
+| `from_address` | string | no | Sending email address (e.g. `support@ritsu.ai`) |
+| `recipient_first_message` | bool | no | Default true; whether this is the very first message of any kind sent to this recipient |
 
 ## Outputs
 
@@ -84,103 +78,103 @@ issues:
 recommended_action: <send | fix_then_send | escalate>
 ```
 
-Nếu `compliant: true`, agent có thể tiến hành gửi. Nếu `false`, agent BẮT BUỘC phải xử lý mọi vấn đề có mức độ `error` trước khi gửi. Hook `pre-tool-customer-message` cũng sẽ chặn việc gửi nếu thiếu disclosure.
+If `compliant: true`, the agent may proceed to send. If `false`, the agent MUST address every `error` severity issue before sending. The `pre-tool-customer-message` hook will also block the send if disclosure is missing.
 
-## Quy trình
+## Procedure
 
-### Bước 1 — Đọc các quy tắc disclosure
+### Step 1 — Read the disclosure rules
 
-Đọc `00-core/transparency.md` và `knowledge/identity-architecture.md` (mục sub-domain C) để biết các pattern bắt buộc hiện hành. Cache cho session.
+Read `00-core/transparency.md` and `knowledge/identity-architecture.md` (sub-domain C section) to know the current required patterns. Cache for the session.
 
-### Bước 2 — Chạy các check
+### Step 2 — Run the checks
 
 #### Check A — First-contact disclosure
 
-Nếu `message_type` kết thúc bằng `_first` (email_first, chat_first):
+If `message_type` ends in `_first` (email_first, chat_first):
 
-- Đối với tiếng Anh: phải chứa cụm khớp với một trong các cụm sau:
+- For English: must contain phrase matching one of:
   - `I'm Ritsu Assistant — an AI system`
   - `I'm Ritsu Assistant, an AI system`
   - `Hi! I'm Ritsu Assistant, an AI helper`
-  - các biến thể đã được phê duyệt khác từ `00-core/brand_voice.md`
-- Đối với tiếng Việt: phải chứa cụm khớp với một trong các cụm sau:
+  - other approved variants from `00-core/brand_voice.md`
+- For Vietnamese: must contain phrase matching one of:
   - `Mình là Ritsu Assistant — một hệ thống AI`
   - `Tôi là Ritsu Assistant, một hệ thống trí tuệ nhân tạo`
 
-Nếu cụm xuất hiện trong 200 ký tự đầu tiên của body → `ok`.
-Nếu xuất hiện ở vị trí sau trong body → `weak` (warning, không phải error).
-Nếu không có → `missing` (error).
+If the phrase appears within the first 200 characters of the body → `ok`.
+If it appears later in the body → `weak` (warning, not error).
+If absent → `missing` (error).
 
-Đối với các loại tin nhắn `_subsequent`: bỏ qua check (`n/a`).
+For `_subsequent` message types: check skipped (`n/a`).
 
-#### Check B — Sự hiện diện của signature (chỉ email)
+#### Check B — Signature presence (email only)
 
-Đối với `email_first` và `email_subsequent`: body phải kết thúc bằng một khối signature khớp với một trong các mẫu sau:
+For `email_first` and `email_subsequent`: body must end with a signature block matching one of:
 
-- Mẫu signature tiếng Anh (`00-core/transparency.md` cho biết dạng chuẩn)
-- Mẫu signature tiếng Việt
+- English signature template (`00-core/transparency.md` shows the canonical form)
+- Vietnamese signature template
 
-Cụ thể, footer phải bao gồm:
-- Định danh "Ritsu Assistant"
-- Mô tả "AI system" hoặc "Hệ thống AI"
-- Đường dẫn escalation (`help@ritsu.ai` hoặc "Reply 'human'")
+Specifically, the footer must include:
+- "Ritsu Assistant" identifier
+- "AI system" or "Hệ thống AI" descriptor
+- Escalation path (`help@ritsu.ai` or "Reply 'human'")
 
-Nếu thiếu signature → `error`.
-Nếu có signature nhưng thiếu đường dẫn escalation → `warning`.
+If signature missing → `error`.
+If signature present but missing escalation path → `warning`.
 
 #### Check C — On-request response pattern
 
-Nếu message_body là PHẢN HỒI cho một câu hỏi của khách hàng, quét tin nhắn trước đó của khách hàng (nếu có sẵn trong context) để tìm các pattern hỏi về danh tính:
+If the message_body is a RESPONSE to a customer query, scan the customer's previous message (if available in context) for identity-questioning patterns:
 
 - "are you AI", "are you a bot", "are you human", "are you a person", "is this real", "is this a real person"
-- Tiếng Việt: "bạn là AI à", "có phải robot không", "bạn là người thật không"
+- Vietnamese: "bạn là AI à", "có phải robot không", "bạn là người thật không"
 
-Nếu phát hiện, phản hồi của agent phải bao gồm xác nhận AI rõ ràng. Ví dụ về các phản hồi có thể chấp nhận:
+If detected, the agent's response must include explicit AI confirmation. Examples of acceptable responses:
 
 - "I'm an AI system — Ritsu Assistant. \{rest of response}"
 - "Yes, I'm AI — Ritsu Assistant. \{rest of response}"
 
-Nếu phát hiện và phản hồi KHÔNG xác nhận → `failed` (error). Đây là vi phạm khó nhất vì có thể trông giống như né tránh.
+If detected and response does NOT confirm → `failed` (error). This is the hardest violation because it can look like deflection.
 
-Nếu không phát hiện câu hỏi về danh tính → `n/a`.
+If no identity question detected → `n/a`.
 
-#### Check D — Sự hiển thị của đường dẫn escalation
+#### Check D — Escalation path visibility
 
-Mọi tin nhắn hướng tới khách hàng đều phải bao gồm một đường dẫn tới con người:
+Every customer-facing message must include a path to a human:
 
-- Email: signature có `help@ritsu.ai` hoặc "Reply 'human'" hoặc tương tự
-- Chat: nút hoặc văn bản đề cập "talk to human" / "speak to a person" / tương tự
+- Email: signature has `help@ritsu.ai` or "Reply 'human'" or similar
+- Chat: button or text mentioning "talk to human" / "speak to a person" / similar
 
-Nếu thiếu đường dẫn escalation → `missing` (error đối với first-contact, warning trong các trường hợp khác).
+If escalation path absent → `missing` (error for first-contact, warning otherwise).
 
-#### Check E — Không mạo danh con người
+#### Check E — No human impersonation
 
-Quét body để tìm các cụm ngụ ý rằng AI là con người:
+Scan body for phrases that imply the AI is a human:
 
-- "I'm Sarah from Ritsu" — bị gắn cờ trừ khi "Sarah" là một persona đã được tài liệu hóa (hiện tại không có)
-- "Speaking as a person who" — bị gắn cờ
-- "I personally feel" — bị gắn cờ (AI không có cảm xúc cá nhân; brand voice cấm điều này)
-- "When I was a student myself" — bị gắn cờ
-- Tiếng Việt: "Mình cũng là sinh viên", "Mình là người Việt Nam" — bị gắn cờ
+- "I'm Sarah from Ritsu" — flagged unless "Sarah" is a documented persona (none currently)
+- "Speaking as a person who" — flagged
+- "I personally feel" — flagged (AI doesn't have personal feelings; brand voice prohibits this)
+- "When I was a student myself" — flagged
+- Vietnamese: "Mình cũng là sinh viên", "Mình là người Việt Nam" — flagged
 
-Nếu có bất kỳ cờ nào → `error`. Đây là mức độ nghiêm trọng cao vì nó chủ động đánh lừa.
+If any flag → `error`. This is high-severity because it actively misleads.
 
-### Bước 3 — Biên dịch output
+### Step 3 — Compile output
 
-Xây dựng output YAML. Xác định `recommended_action`:
+Build the YAML output. Determine `recommended_action`:
 
-- Tất cả các check đều `ok` (hoặc `n/a`) → `send`
-- Chỉ có `warning` → `send` (vấn đề được ghi lại)
-- Có bất kỳ `error` nào → `fix_then_send`
-- Nhiều lỗi mức độ nghiêm trọng cao → `escalate` (có cái gì đó sai về mặt cấu trúc; cảnh báo founder)
+- All checks `ok` (or `n/a`) → `send`
+- Any `warning` only → `send` (issues recorded)
+- Any `error` → `fix_then_send`
+- Multiple high-severity errors → `escalate` (something is structurally wrong; alert founder)
 
-### Bước 4 — Ghi log
+### Step 4 — Log
 
-Ghi log invocation vào `ops.agent_runs` với `action_name: 'ai-disclosure-check'` và kết quả tuân thủ. Điều này điền dữ liệu kiểm toán tuân thủ cho `monthly-learning-review` (Bài #4).
+Log invocation to `ops.agent_runs` with `action_name: 'ai-disclosure-check'` and the compliance result. This populates compliance auditing data for `monthly-learning-review` (Bài #4).
 
-## Ví dụ
+## Examples
 
-### Ví dụ 1 — email đầu tiên tuân thủ
+### Example 1 — compliant first email
 
 **Input:**
 
@@ -219,7 +213,7 @@ issues: []
 recommended_action: send
 ```
 
-### Ví dụ 2 — thiếu disclosure
+### Example 2 — missing disclosure
 
 **Input:**
 
@@ -267,11 +261,11 @@ issues:
 recommended_action: fix_then_send
 ```
 
-### Ví dụ 3 — không trả lời câu hỏi về danh tính
+### Example 3 — failed identity question response
 
-**Tin nhắn trước đó của khách hàng:** "Wait — are you a real person or AI?"
+**Customer's previous message:** "Wait — are you a real person or AI?"
 
-**Bản nháp phản hồi của agent:**
+**Agent's draft response:**
 
 ```yaml
 message_type: email_subsequent
@@ -314,54 +308,50 @@ issues:
 recommended_action: fix_then_send
 ```
 
-## Tiêu chí chất lượng
+## Quality criteria
 
-- Trả về trong vòng 100ms wall-clock
-- Bắt được tất cả các vi phạm mức độ error (không có false negative — sẽ dẫn đến phơi nhiễm quy định)
-- Tỷ lệ false positive (tin nhắn tuân thủ bị gắn cờ) \< 5%
-- Output đủ cụ thể để agent có thể sửa mà không cần đoán
+- Returns within 100ms wall-clock
+- Catches all error-severity violations (no false negatives — would result in regulatory exposure)
+- False positive rate (compliant message flagged) \< 5%
+- Output specific enough that agent can fix without guessing
 
 ## Failure modes
 
-- **Tin nhắn trước đó của khách hàng không có trong context** — Bỏ qua Check C (on-request response). Ghi log warning. Hook (`pre-tool-customer-message`) có cơ chế phát hiện pattern riêng làm backup.
-- **Charter chưa được cung cấp** — trả về error với con trỏ tới mẫu `00-core/transparency.md`. Chặn việc gửi cho đến khi quy tắc disclosure tồn tại.
-- **Locale không xác định** — mặc định sử dụng các check tiếng Anh. Ghi log warning vào `monthly-learning-review` để thêm các locale khác.
+- **Customer's previous message not in context** — Check C (on-request response) skipped. Log warning. Hook (`pre-tool-customer-message`) has its own pattern detection as backup.
+- **Charter not yet provisioned** — return error with pointer to `00-core/transparency.md` template. Block send until disclosure rules exist.
+- **Locale unknown** — default to English checks. Log warning to `monthly-learning-review` for adding more locales.
 
-## Ước tính cost
+## Cost estimate
 
-- ~200 tokens input (tin nhắn + logic check)
-- ~100 tokens output (phản hồi có cấu trúc)
-- Wall-clock \< 100ms (regex + logic đơn giản, không cần gọi LLM cho các trường hợp tuân thủ)
-- Cost mỗi lần gọi: \< $0.001
-- Khối lượng: mỗi lần gửi hướng tới khách hàng → ở quy mô lớn (1000 tin nhắn/ngày), $1/ngày = $30/tháng. Chấp nhận được.
+- ~200 tokens input (message + checks logic)
+- ~100 tokens output (structured response)
+- Wall-clock \< 100ms (regex + simple logic, no LLM call needed for compliant cases)
+- Per-invocation cost: \< $0.001
+- Volume: every customer-facing send → at scale (1000 messages/day), $1/day = $30/month. Acceptable.
 
-Đối với các trường hợp phức tạp hơn (Check A trên các biến thể tiếng Việt, Check E về việc mạo danh tinh vi), có thể cần gọi LLM — tăng cost lên ~$0.005/lần gọi. Vẫn chấp nhận được.
+For more complex cases (Check A on Vietnamese variants, Check E on subtle impersonation), an LLM call may be needed — increases cost to ~$0.005/call. Still acceptable.
 
-## Secrets cần thiết
+## Required secrets
 
-Không. Skill này chỉ hoạt động trên đầu vào văn bản. Không có lệnh gọi API bên ngoài.
+None. This skill operates on text inputs only. No external API calls.
 
-Roles được phép gọi: bất kỳ role nào tạo ra nội dung hướng tới khách hàng. Trong v1.0: `support-agent`, `growth-orchestrator`, `gps`, `trust-safety`, `backoffice-clerk`. Theo `governance/ROLES.md`.
+Roles allowed to invoke: any role producing customer-facing content. In v1.0: `support-agent`, `growth-orchestrator`, `gps`, `trust-safety`, `backoffice-clerk`. Per `governance/ROLES.md`.
 
-## Skill liên quan
+## Related skills
 
-- `support-reply-drafting` (đang lên kế hoạch, Phase H) — gọi skill này trước khi trả về bản nháp
-- `blog-post-drafting` (đang lên kế hoạch, Phase G) — đối với bài đăng công khai, sử dụng tập con của các check (chỉ E)
-- `social-post-drafting` (đang lên kế hoạch, Phase G) — sử dụng Check A + Check D + Check E
+- `support-reply-drafting` (planned, Phase H) — invokes this skill before returning draft
+- `blog-post-drafting` (planned, Phase G) — for public posts, uses subset of checks (E only)
+- `social-post-drafting` (planned, Phase G) — uses Check A + Check D + Check E
 
-## Hook liên quan
+## Related hooks
 
-- `pre-tool-customer-message` — thực thi runtime; chặn việc gửi nếu thiếu disclosure. Skill này là cộng sự chủ động.
+- `pre-tool-customer-message` — runtime enforcement; blocks send if disclosure missing. This skill is the proactive companion.
 
 ## Changelog
 
-- 2026-05-02 — phiên bản đầu tiên (Bài #6 v1.0 spec)
+- 2026-05-02 — initial version (Bài #6 v1.0 spec)
 
-language: vi
-translated: true
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-*Tuân thủ disclosure là một yêu cầu pháp lý, không phải một sở thích UX. Skill này làm cho việc xác minh trở nên nhanh chóng và cụ thể để nó không trở thành gánh nặng phát triển — và để chúng ta không gửi đi những tin nhắn vi phạm các cam kết về tính minh bạch.*
+*Disclosure compliance is a legal requirement, not a UX preference. This skill makes verification fast and specific so it doesn't become a development burden — and so we don't ship messages that violate transparency promises.*
 

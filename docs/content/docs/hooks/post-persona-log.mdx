@@ -3,33 +3,27 @@ title: 'Hook: post-persona-log'
 description: ''
 source_path: .claude/hooks/post-persona-log.md
 source_hash: 83e3d9232c28f41865c0d226b6932cc273aa86e5bb835f6b976cbfd0dc12f43f
-generated_at: '2026-05-19T05:20:46.387Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.429Z'
+generated_by: docs-engine v1.2.0
 category: hook
 language: vi
-translated: true
-translated_source_hash: 83e3d9232c28f41865c0d226b6932cc273aa86e5bb835f6b976cbfd0dc12f43f
-translated_at: '2026-05-19T12:32:00.000Z'
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-# Hook: post-persona-log
+> Writes the final `persona_slug` attribution to `ops.agent_runs` at the end of an invocation, and appends a one-line entry to `06-ai-ops/workforce-personas/<slug>/dossier.md` for non-trivial actions (Tier B+).
 
-> Writes final `persona_slug` attribution vào `ops.agent_runs` ở end của invocation, và appends một one-line entry vào `06-ai-ops/workforce-personas/<slug>/dossier.md` cho non-trivial actions (Tier B+).
+## Why this is a hook, not part of the persona itself
 
-## Tại sao đây là một hook, không phải là một phần của persona itself
+If the persona had to remember to log itself, it would forget. By making the audit write happen at the runtime layer, every invocation is logged regardless of what the persona did or did not do inside the turn.
 
-Nếu persona phải nhớ để log chính nó, nó sẽ quên. Bằng cách làm cho audit write xảy ra ở runtime layer, mỗi invocation đều được logged bất kể persona đã làm gì hay không làm gì bên trong turn.
+This is the same pattern as `pre-llm-call-budget.md` writing to `ops.cost_attributions` after the LLM call. Audit lives at the layer that can guarantee execution.
 
-Đây là same pattern như `pre-llm-call-budget.md` writing vào `ops.cost_attributions` sau LLM call. Audit sống ở layer có thể đảm bảo execution.
+## What it does
 
-## Những gì nó làm
+On every tool call completion (post-tool), if `context.persona_slug` is set:
 
-Trên mỗi tool call completion (post-tool), nếu `context.persona_slug` được set:
-
-1. Append/update `ops.agent_runs` row cho invocation này:
+1. Append/update the `ops.agent_runs` row for this invocation:
    ```sql
    UPDATE ops.agent_runs
       SET persona_slug = $1,            -- e.g. 'ceo'
@@ -38,9 +32,9 @@ Trên mỗi tool call completion (post-tool), nếu `context.persona_slug` đư�
                                   'bound_role', $3)
     WHERE id = $current_run_id;
    ```
-   Note: `agent_slug` bị left untouched — đó là technical role làm công việc (ví dụ `gps`). Một row mang cả hai planes (per `ops.agent_runs` schema bumped trong migration 00024).
+   Note: `agent_slug` is left untouched — it's the technical role doing the work (e.g. `gps`). One row carries both planes (per `ops.agent_runs` schema bumped in migration 00024).
 
-2. Nếu action vừa completed là Tier B+, append một one-line entry vào dossier của persona:
+2. If the action just completed is Tier B+, append a one-line entry to the persona's dossier:
    ```
    06-ai-ops/workforce-personas/<slug>/dossier.md
    ```
@@ -48,57 +42,58 @@ Trên mỗi tool call completion (post-tool), nếu `context.persona_slug` đư�
    ```
    2026-05-15T14:32:01Z | tier=B | summary=<≤90 chars> | run_id=<uuid>
    ```
-   Dossier writes là append-only. Nếu file không tồn tại, tạo nó với một one-line header.
+   Dossier writes are append-only. If the file does not exist, create it with a one-line header.
 
-3. Emit một `run_summary` vào `ops.run_summaries` per `knowledge/memory-architecture.md` (existing pipeline; hook này chỉ set `persona_slug` trên row).
+3. Emit a `run_summary` to `ops.run_summaries` per `knowledge/memory-architecture.md` (existing pipeline; this hook just sets `persona_slug` on the row).
 
-## Những gì nó KHÔNG làm
+## What it does NOT do
 
-- Decide tiers (đó là `pre-delegate-check`).
-- Block bất kỳ cái gì (đó là post-hoc).
-- Write `dossier.md` cho Tier A actions (quá chatty).
-- Touch `governance/HITL.md` hoặc bất kỳ tier ceremony nào.
-- Make new tables. Uses existing `ops.agent_runs` + new `persona_slug` column (migration 00024).
+- Decide tiers (that's `pre-delegate-check`).
+- Block anything (it's post-hoc).
+- Write `dossier.md` for Tier A actions (too chatty).
+- Touch `governance/HITL.md` or any tier ceremony.
+- Make new tables. Uses existing `ops.agent_runs` + the new `persona_slug` column (migration 00024).
 
-## Tương tác với `pre-persona-resolve`
+## Interaction with `pre-persona-resolve`
 
-`pre-persona-resolve` injects `persona_slug` vào context. Hook này đọc nó lại. Nếu `persona_slug` unset (direct-role invocation mà không có persona), hook này trở thành no-op — `ops.agent_runs.persona_slug` stays NULL, đó là intentional design (không phải mỗi run là persona-routed).
+`pre-persona-resolve` injects `persona_slug` into context. This hook reads it back. If `persona_slug` is unset (direct-role invocation without persona), this hook becomes a no-op — `ops.agent_runs.persona_slug` stays NULL, which is the intentional design (not every run is persona-routed).
 
-## Quy ước tập tin dossier
+## Dossier file convention
 
 - Path: `06-ai-ops/workforce-personas/<slug>/dossier.md`
-- Format: một dòng per Tier B+ action.
-- Sort order: chronological append (newest ở bottom).
-- Trim policy: ở 1000 lines, oldest 500 lines move tới `dossier-archive-<YYYY-MM>.md`.
-- Read by: persona ở session start (per command.md "Session memory" section), Friday review aggregation, founder ad-hoc.
+- Format: one line per Tier B+ action.
+- Sort order: chronological append (newest at bottom).
+- Trim policy: at 1000 lines, oldest 500 lines move to `dossier-archive-<YYYY-MM>.md`.
+- Read by: persona at session start (per command.md "Session memory" section), Friday review aggregation, founder ad-hoc.
 
-## Schema cho dossier line
+## Schema for the dossier line
 
 ```
 ISO8601-ts | tier=<A|B|C|D-Std|D-MAX> | summary=<text up to 90 chars, no pipes> | run_id=<uuid>
 ```
 
-Pipes bên trong `summary` được escaped thành `&#124;` để giữ format parseable bằng simple split.
+Pipes inside `summary` are escaped to `&#124;` to keep the format parseable by simple split.
 
-## Failure modes được bao phủ
+## Failure modes covered
 
 | Case | Hook behavior |
 |---|---|
-| `persona_slug` không trong context | No-op. agent_runs row giữ `persona_slug = NULL`. |
-| `ops.agent_runs` row chưa được commit | Hook queues update; runtime flushes sau row commit (avoids race). |
-| Dossier file missing | Create với one-line header, sau đó append. |
-| Dossier file unwritable (filesystem error) | Log vào `ops.audit_log`; do NOT block; surface ở next session's `synthesize-morning-brief`. |
-| Tier escalated mid-action | Use FINAL tier (cái thực sự execute), không phải originally-planned tier. |
+| `persona_slug` not in context | No-op. agent_runs row keeps `persona_slug = NULL`. |
+| `ops.agent_runs` row not yet committed | Hook queues the update; runtime flushes after row commit (avoids race). |
+| Dossier file missing | Create with one-line header, then append. |
+| Dossier file unwritable (filesystem error) | Log to `ops.audit_log`; do NOT block; surface in next session's `synthesize-morning-brief`. |
+| Tier escalated mid-action | Use the FINAL tier (the one that actually executed), not the originally-planned tier. |
 
 ## Migration dependency
 
-Hook này phụ thuộc vào `ops.agent_runs.persona_slug` column từ migration `supabase/migrations/00024_agent_runs_persona_slug.sql` (PR 1). Nếu migration chưa được apply (founder chưa chạy `supabase db push`), hook này trở thành no-op safely: runtime swallows `column does not exist` error và continues. Một khi migration được apply, hook bắt đầu writing.
+This hook depends on `ops.agent_runs.persona_slug` column from migration `supabase/migrations/00024_agent_runs_persona_slug.sql` (PR 1). If the migration is not applied yet (founder hasn't run `supabase db push`), this hook becomes a no-op safely: the runtime swallows the `column does not exist` error and continues. Once the migration is applied, the hook starts writing.
 
-## Được wired bởi
+## Wired by
 
-- `scripts/cross-tier/validate-personas.cjs` checks mà hook file này tồn tại và references correct column name.
+- `scripts/cross-tier/validate-personas.cjs` checks that this hook file exists and references the correct column name.
 - Runtime: Claude Code hook executor per `.claude/hooks/SPEC.md`.
 
 ## Specifies behavior; implementation pending
 
-Same caveat như `pre-persona-resolve.md` — đây là spec/contract. Runtime executor đọc và dispatches.
+Same caveat as `pre-persona-resolve.md` — this is the spec/contract. Runtime executor reads and dispatches.
+

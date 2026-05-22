@@ -3,21 +3,15 @@ title: 03-gtm — Go-to-Market (Stage Pillar)
 description: ''
 source_path: 03-gtm/README.md
 source_hash: dacc842ca1a87aee897061ffb92048c2471bff9ed503de73539ab9e6bf9fa81a
-generated_at: '2026-05-19T05:20:46.417Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.474Z'
+generated_by: docs-engine v1.2.0
 category: pillar
 language: vi
-translated: true
-translated_source_hash: dacc842ca1a87aee897061ffb92048c2471bff9ed503de73539ab9e6bf9fa81a
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-# 03-gtm — Go-to-Market (Stage Pillar)
-
-> Orchestration funnel khách hàng hướng tới "100 paying customers who love Ritsu in 90 days." Composes modules từ Marketing, Sales, Product, Customer, AI-Ops, Metrics. **Đây là một stage pillar — nó giải tán khi đạt được tiêu chí PMF.**
+> Customer funnel orchestration toward "100 paying customers who love Ritsu in 90 days." Composes modules from Marketing, Sales, Product, Customer, AI-Ops, Metrics. **This is a stage pillar — it dissolves when PMF criteria are met.**
 
 **Layer:** Stage (Layer 2 — composition pillar, not evergreen)
 **Stage status:** DEEP
@@ -30,14 +24,14 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Scope
 
-Stage pillar này sở hữu **integrated funnel** từ lần đầu tiên ấn tượng đến retention tháng thứ nhất. Nó KHÔNG sở hữu các modules chức năng của chính nó (những cái đó nằm ở các trụ cột evergreen). Nó sở hữu orchestration, sequencing, funnel-level decisions.
+This stage pillar owns the **integrated funnel** from first impression to first-month retention. It does NOT own the function modules themselves (those live in evergreen pillars). It owns the orchestration, the sequencing, the funnel-level decisions.
 
-Stage pillar này:
-- **Drives** mục tiêu "100 paying who love" (singular composite metric SOP-METRICS-007)
-- **Sequences** end-of-stealth launch và post-launch experiments
+This pillar:
+- **Drives** the "100 paying who love" goal (singular composite metric SOP-METRICS-007)
+- **Sequences** end-of-stealth launch and post-launch experiments
 - **Tests** which messaging + which channels actually convert
-- **Coordinates** Collison-install handoff đến Customer pillar
-- **Dissolves** cleanly khi PMF achieved — sub-pillars relocate per dissolution-target mapping dưới
+- **Coordinates** Collison-install handoff to Customer pillar
+- **Dissolves** cleanly when PMF achieved — sub-pillars relocate per dissolution-target mapping below
 
 ## Sub-pillars (DEEP build now)
 
@@ -70,9 +64,10 @@ Stage pillar này:
 
 ## Sub-pillar order (narrative)
 
-Filesystem order là alphabetical (no NN- prefix). Intended *narrative* reading order cho stage pillar này là:
+Filesystem order is alphabetical (no NN- prefix). The intended *narrative* reading
+order for this pillar is:
 
-1. **icp-and-segmentation** — who we serve trước khi ship bất kỳ cái gì
+1. **icp-and-segmentation** — who we serve before we ship anything
 2. **launch-sequence** — singular stealth-end timing
 3. **distribution-engine** — multi-channel reach AFTER message validated
 4. **funnel-orchestration** — landing → signup → activation → paid mechanics
@@ -81,9 +76,9 @@ Filesystem order là alphabetical (no NN- prefix). Intended *narrative* reading 
 
 ## SOPs
 
-`sops/SOP-GTM-NNN-<slug>/` — 17 SOPs scaffolded (see Phase 4 của migration-checklist). Phase 5 implements:
-- `SOP-GTM-002-stealth-end-pre-launch-checklist` — runs ONCE trước public launch
-- `SOP-GTM-005-message-test-before-amplify` — gate trước bất kỳ AI multi-channel deploy nào
+`sops/SOP-GTM-NNN-<slug>/` — 17 SOPs scaffolded (see Phase 4 of migration-checklist). Phase 5 implements:
+- `SOP-GTM-002-stealth-end-pre-launch-checklist` — runs ONCE before public launch
+- `SOP-GTM-005-message-test-before-amplify` — gate before any AI multi-channel deploy
 
 ## Agents
 
@@ -94,7 +89,7 @@ Filesystem order là alphabetical (no NN- prefix). Intended *narrative* reading 
 
 ## KPIs owned
 
-(Singular composite tile là `SOP-METRICS-007` trong Metrics pillar; stage pillar này OWNS underlying funnel KPIs.)
+(Singular composite tile is `SOP-METRICS-007` in Metrics pillar; this pillar OWNS the underlying funnel KPIs.)
 
 - Weekly signups (by channel)
 - Signup → activation %
@@ -107,24 +102,24 @@ Filesystem order là alphabetical (no NN- prefix). Intended *narrative* reading 
 
 ## Dependencies (composes_from)
 
-Stage pillar này consumes modules từ:
+This pillar consumes modules from:
 - `01-marketing.icp` — who specifically we're targeting
 - `01-marketing.brand-voice-kit` — voice consistency across channels
 - `02-sales.pricing-tiers` — current Free/$29/$59/$119
 - `02-sales.conversion-funnel` — funnel stage definitions
 - `04-product.wedge-discovery` — what features specifically pull users
 - `05-customer.success.activation-metrics` — what counts as "activated"
-- `05-customer.onboarding.collison-install` — script cho first 30 paying
+- `05-customer.onboarding.collison-install` — script for first 30 paying
 - `06-ai-ops.cost-budget-architecture` — every campaign has cost ceiling
-- `10-metrics.pmf-instrumentation` — the numbers mà tell us we're winning
+- `10-metrics.pmf-instrumentation` — the numbers that tell us we're winning
 
 ## Critical PG gate
 
-`SOP-GTM-005-message-test-before-amplify` là một `manual_gate` SOP. **Không AI multi-channel deploy nào có thể chạy mà không có thành công message-test pass.** Điều này ngăn chặn failure mode của spraying untested message across 10 channels in parallel (AI amplifies bad messages as efficiently as good ones).
+`SOP-GTM-005-message-test-before-amplify` is a `manual_gate` SOP. **No AI multi-channel deploy may run without a successful message-test pass.** This prevents the failure mode of spraying an untested message across 10 channels in parallel (AI amplifies bad messages as efficiently as good ones).
 
 ## Dissolution-target mapping
 
-Khi PMF criteria met, sub-pillars relocate per `.archives/pillars/PLAN.md` §4.1:
+When PMF criteria met, sub-pillars relocate per `.archives/pillars/PLAN.md` §4.1:
 
 | GTM sub-pillar | Relocates to on dissolution |
 |---|---|
@@ -135,7 +130,7 @@ Khi PMF criteria met, sub-pillars relocate per `.archives/pillars/PLAN.md` §4.1
 | `pmf-instrumentation` | `10-metrics/pmf-instrumentation/` (graduates; stage-2 composite metric replaces "100-paying" tile) |
 | `collison-install-protocol` | `05-customer/onboarding/` (folds into permanent sub-pillar) |
 
-After dissolution, new stage pillar (eg `Scale-to-1000` hoặc `Internationalize`) có thể được tạo với its own composition tree.
+After dissolution, a new stage pillar (eg `Scale-to-1000` or `Internationalize`) may be created with its own composition tree.
 
 ## HITL baseline
 
@@ -148,4 +143,5 @@ After dissolution, new stage pillar (eg `Scale-to-1000` hoặc `Internationalize
 
 ## Lifetime
 
-Stage pillar này expected to live ~90 days từ end-of-stealth (target dissolve: ~2026-08-15). Nếu PMF không đạt được by then, re-evaluate via `/muse:paul-graham` brainstorm — likely options: extend stage, pivot product, hoặc wind down.
+This stage pillar is expected to live ~90 days from end-of-stealth (target dissolve: ~2026-08-15). If PMF not achieved by then, re-evaluate via `/muse:paul-graham` brainstorm — likely options: extend stage, pivot product, or wind down.
+

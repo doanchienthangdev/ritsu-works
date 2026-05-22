@@ -9,139 +9,132 @@ description: |
   files (anti-pattern: drift + manual labor + broken citation chain).
 source_path: 06-ai-ops/skills/wiki-sync/get/SKILL.md
 source_hash: d5a87d321771d9f2a0dcbbff7d9cf7c69e49329ba72c148275745b34fa92cc4c
-generated_at: '2026-05-20T11:45:58.307Z'
+generated_at: '2026-05-22T01:09:07.418Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_at: "2026-05-20T12:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
-translated_source_hash: d5a87d321771d9f2a0dcbbff7d9cf7c69e49329ba72c148275745b34fa92cc4c
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-# wiki-sync/get
+## When to use
 
-## Khi nào sử dụng
+- `/wiki get --src=<spec>` command (the founder/operator entry point).
+- `/wiki get --query=<text>` for semantic retrieval (v4.4).
+- `/wiki get --entities=<csv>` for explicit slug-list bundle (v4.4).
+- Inside a skill or persona's logic when it needs to load a wiki package
+  as input context for further LLM processing.
+- As the bundling step in a composed pipeline (e.g. `/wiki get | /cla propose`).
 
-- Lệnh `/wiki get --src=<spec>` (entry point cho founder/operator).
-- `/wiki get --query=<text>` cho semantic retrieval (v4.4).
-- `/wiki get --entities=<csv>` cho bundle danh sách slug tường minh (v4.4).
-- Bên trong logic của một skill hoặc persona khi cần tải một wiki package
-  làm context đầu vào để xử lý LLM tiếp theo.
-- Như bước bundling trong một pipeline được tổ hợp (ví dụ: `/wiki get | /cla propose`).
+## Why this skill exists (v4.3 motivation)
 
-## Tại sao skill này tồn tại (động lực v4.3)
+Before v4.3, the only ways to use wiki content as command context were:
+1. Direct file Read on `wiki/<source>/...` paths — required operator to know paths.
+2. `/wiki ask --source <slug>` — narrow Q&A, not exhaustive dump.
+3. Manual `.archives/context-bundle-X.md` files — anti-pattern (drift, copy-paste cost, broken citation linkage).
 
-Trước v4.3, chỉ có những cách sau để dùng nội dung wiki làm context cho lệnh:
-1. Read file trực tiếp trên đường dẫn `wiki/<source>/...` — yêu cầu operator phải biết đường dẫn.
-2. `/wiki ask --source <slug>` — Q&A hẹp, không phải dump toàn diện.
-3. File `.archives/context-bundle-X.md` thủ công — anti-pattern (drift, chi phí copy-paste, đứt gãy liên kết citation).
+`/wiki get` solves #3 by providing a **stateless, deterministic, citation-preserving** bundler. Source spec → bundle string → either stdout (paste into next prompt) or file (`--to=<path>`).
 
-`/wiki get` giải quyết #3 bằng cách cung cấp một bundler **stateless, deterministic, citation-preserving**. Source spec → bundle string → hoặc stdout (paste vào prompt kế tiếp) hoặc file (`--to=<path>`).
+## Inputs
 
-## Đầu vào
-
-- `src` (bắt buộc) — source spec. Ngữ pháp:
+- `src` (required) — source spec. Grammar:
   - `<source-slug>` — full source package
-  - `<source-slug>/chapter-N` — chapter N + các entity được trích dẫn từ nó (composition pattern phổ biến nhất)
-  - `<source-slug>/chapter-NN-<slug>` — chapter file cụ thể
-  - `<source-slug>/<type>` — tất cả entity của type (concepts | observations | decisions | ideas)
-  - `<source-slug>/<type>/<entity-slug>` — một entity
-- `to` (tuỳ chọn) — output file path. Nếu bỏ qua, output đi ra stdout.
-- `summary` (bool tuỳ chọn) — dạng compact: chỉ outline cho chapters; chỉ paragraph đầu tiên cho entities.
-- `include-frontmatter` (bool tuỳ chọn) — bao gồm YAML frontmatter của entity trong body (mặc định: bị strip).
-- `max-entities` (int tuỳ chọn, mặc định 100) — giới hạn số entity trong bundle.
+  - `<source-slug>/chapter-N` — chapter N + entities cited from it (most common composition pattern)
+  - `<source-slug>/chapter-NN-<slug>` — specific chapter file
+  - `<source-slug>/<type>` — all entities of type (concepts | observations | decisions | ideas)
+  - `<source-slug>/<type>/<entity-slug>` — one entity
+- `to` (optional) — output file path. If omitted, output goes to stdout.
+- `summary` (optional bool) — compact form: outline only for chapters; first paragraph only for entities.
+- `include-frontmatter` (optional bool) — include entity YAML frontmatter in body (default: stripped).
+- `max-entities` (optional int, default 100) — cap on entities in bundle.
 
-## Quy trình
+## Process
 
-1. **Parse spec** — split theo `/`. Resolve thư mục `wiki/<source-slug>/`; bail nếu thiếu hoặc `source.md` vắng mặt.
-2. **Xác định scope** — `full` | `chapter` | `chapter-file` | `type` | `entity`.
-3. **Thu thập chapters** — `wiki/<source>/chapters/*.md` được lọc theo scope.
-4. **Thu thập entities** — `wiki/<source>/{concepts,observations,decisions,ideas}/*.md` được lọc theo scope (chapter-N lọc theo frontmatter `source_chapter_index`).
-5. **Áp dụng cap** — slice entities về `--max-entities`; theo dõi số bị drop.
-6. **Lắp ráp bundle** —
+1. **Parse spec** — split by `/`. Resolve `wiki/<source-slug>/` directory; bail if missing or `source.md` absent.
+2. **Determine scope** — `full` | `chapter` | `chapter-file` | `type` | `entity`.
+3. **Collect chapters** — `wiki/<source>/chapters/*.md` filtered per scope.
+4. **Collect entities** — `wiki/<source>/{concepts,observations,decisions,ideas}/*.md` filtered per scope (chapter-N filters by frontmatter `source_chapter_index`).
+5. **Apply cap** — slice entities to `--max-entities`; track dropped count.
+6. **Assemble bundle** —
    - Header: spec arg, source title, slug, license, scope, generated_at
-   - Inventory: số chapter + số entity theo type + số đã drop
-   - Frontmatter source RECORD (block YAML)
-   - Các section per-chapter (full body HOẶC outline nếu `--summary`)
-   - Các section per-entity (full body HOẶC first-paragraph nếu `--summary`)
-   - Footer: provenance + gợi ý tái sử dụng
-7. **Output** — nếu `to`, ghi file (mkdir -p parent). Ngược lại stdout. Dòng tóm tắt ra stderr.
+   - Inventory: chapter count + entity counts per type + dropped
+   - Source RECORD frontmatter (YAML block)
+   - Per-chapter sections (full body OR outline if `--summary`)
+   - Per-entity sections (full body OR first-paragraph if `--summary`)
+   - Footer: provenance + reuse hint
+7. **Output** — if `to`, write file (mkdir -p parent). Else stdout. Summary line to stderr.
 
-## Đầu ra
+## Outputs
 
-- Chuỗi markdown bundle (stdout) HOẶC file tại `--to=<path>`.
-- Tóm tắt stderr: `[wiki-get] ✓ ... — chapters=N entities=M (dropped X) chars=Y`.
-- Dòng `ops.agent_runs` được ghi bởi slash command orchestrator (agent_slug=`wiki-sync/get`, cost-bucket=`ai-ops-knowledge`).
+- Markdown bundle string (stdout) OR file at `--to=<path>`.
+- Stderr summary: `[wiki-get] ✓ ... — chapters=N entities=M (dropped X) chars=Y`.
+- `ops.agent_runs` row written by slash command orchestrator (agent_slug=`wiki-sync/get`, cost-bucket=`ai-ops-knowledge`).
 
 ## HITL
 
-Tier A (chỉ-đọc, không gọi LLM, không ghi DB ngoài log agent_runs).
+Tier A (read-only, no LLM call, no DB write besides agent_runs log).
 
-## Chế độ thất bại
+## Failure modes
 
-| Mode | Nguyên nhân | Khôi phục |
+| Mode | Cause | Recovery |
 |---|---|---|
-| `source not found` | wiki/\<slug>/ bị thiếu | Chạy `/wiki list` để xem các source có sẵn |
-| `source.md missing — not a v4.0 source package` | Layout pre-v4.0 (entity-type-grouped) | Source phải được re-sync dưới layout v4.0 thông qua `/wiki resync` |
-| `chapter file not found` | Sai tên file chapter | Chạy `/wiki package <slug>` để liệt kê chapters |
-| `entity not found` | Sai entity slug | Chạy `/wiki source <slug>` để xem tất cả entities; kiểm tra chính tả |
-| `unknown entity type` | Spec dùng sai từ type | Phải là một trong: concepts, observations, decisions, ideas (dạng số nhiều) |
+| `source not found` | wiki/\<slug>/ missing | Run `/wiki list` to see available sources |
+| `source.md missing — not a v4.0 source package` | Pre-v4.0 layout (entity-type-grouped) | Source must be re-synced under v4.0 layout via `/wiki resync` |
+| `chapter file not found` | Wrong chapter filename | Run `/wiki package <slug>` to list chapters |
+| `entity not found` | Wrong entity slug | Run `/wiki source <slug>` to see all entities; check spelling |
+| `unknown entity type` | Spec used wrong type word | Must be one of: concepts, observations, decisions, ideas (plural form) |
 
-## Chi phí
+## Cost
 
-- $0 mỗi lần gọi (filesystem read thuần).
-- Thời gian founder: ~5 giây để gõ spec + paste output / mở file.
+- $0 per invocation (pure filesystem read).
+- Founder time: ~5 sec to type spec + paste output / open file.
 
-## Liên quan
+## Related
 
 - Backend: `scripts/wiki-sync/get.cjs`
-- Slash command: `.claude/commands/wiki.md` dòng `/wiki get` + section workflow
-- Spec layout source-grouped: `wiki/capabilities/wiki-sync-from-refs/spec.md` v4.0+
-- Citation spine: bảng `ops.knowledge_extractions` (migration 00031)
-- Skill đồng hành: `wiki-sync/source` (liệt kê các derived entity cho một source RECORD)
-- Skill đồng hành: `wiki/package` (liệt kê chỉ metadata inventory của package)
+- Slash command: `.claude/commands/wiki.md` `/wiki get` row + workflow section
+- Source-grouped layout spec: `wiki/capabilities/wiki-sync-from-refs/spec.md` v4.0+
+- Citation spine: `ops.knowledge_extractions` table (migration 00031)
+- Companion skill: `wiki-sync/source` (lists derived entities for a source RECORD)
+- Companion skill: `wiki-sync/package` (lists package inventory metadata only)
 
-## Anti-pattern (KHÔNG được làm)
+## Anti-pattern (DO NOT do)
 
-❌ Copy output bundle vào `.archives/context-X.md` và tham chiếu nó từ nhiều lệnh.
+❌ Copy bundle output into `.archives/context-X.md` and reference it from multiple commands.
 
-Lý do:
-- Source thay đổi → bundle trở nên stale → lệnh chạy với context cũ
-- Chuỗi citation tưởng chừng được bảo toàn trong text bundle nhưng bị ngắt kết nối khỏi `ops.knowledge_extractions`
-- Founder phải nhớ rebuild mỗi khi source được sửa
+Reasons:
+- Source changes → bundle becomes stale → command runs with outdated context
+- Citation chain ostensibly preserved in bundle text but disconnected from `ops.knowledge_extractions`
+- Founder must remember to rebuild on every source edit
 
-✅ Thay vào đó: chạy lại `/wiki get` ở ĐẦU mỗi command session cần context. Bundle luôn fresh by construction.
+✅ Instead: re-run `/wiki get` at the START of every command session that needs the context. The bundle is fresh by construction.
 
-Với các workflow cần context dai dẳng qua NHIỀU session (ví dụ một brainstorm `/cla propose` kéo dài nhiều ngày), dùng `--to=.archives/cla/<id>/<spec-name>-context.md` VÀ coi file đó là ephemeral — chạy lại `/wiki get --src=<same-spec> --to=<same-path>` để refresh bất cứ khi nào cần.
+For workflows that need persistent context across MULTIPLE sessions (e.g. a multi-day `/cla propose` brainstorm), use `--to=.archives/cla/<id>/<spec-name>-context.md` AND treat the file as ephemeral — re-run `/wiki get --src=<same-spec> --to=<same-path>` to refresh whenever needed.
 
-## Bổ sung v4.4 — query mode + entity-list mode
+## v4.4 additions — query mode + entity-list mode
 
 **Query mode** (`--query=<text>`):
-- Slash command orchestrator (session Claude) gọi `mcp__supabase-ops__wiki_ask` với query (và `filter.source=<src>` nếu `--src` được cung cấp).
-- MCP trả về top-K entity slug được xếp hạng theo độ tương đồng.
-- Nếu MCP trả về `no_coverage` (embeddings backfill chưa hoàn tất cho source được yêu cầu), orchestrator fall back về filesystem keyword match: `grep` slug + title theo từ khoá query qua `wiki/<src>/<type>/*.md`.
-- Orchestrator sau đó gọi lại `get.cjs --entities=<resolved-csv> --query-context-header="<query>"`.
-- Gọi CLI trực tiếp `--query=` mà không có orchestrator bail với exit code 3.
+- Slash command orchestrator (Claude session) calls `mcp__supabase-ops__wiki_ask` with the query (and `filter.source=<src>` if `--src` provided).
+- MCP returns top-K entity slugs ranked by similarity.
+- If MCP returns `no_coverage` (embeddings backfill not yet complete for the requested source), orchestrator falls back to filesystem keyword match: `grep` slug + title for query keywords across `wiki/<src>/<type>/*.md`.
+- Orchestrator then re-invokes `get.cjs --entities=<resolved-csv> --query-context-header="<query>"`.
+- Direct CLI invocation of `--query=` without orchestrator bails with exit code 3.
 
 **Entity-list mode** (`--entities=<csv>`):
-- Ba dạng tham chiếu:
+- Three reference forms:
   - Full spec: `<source>/<type>/<slug>`
-  - Type+slug (cần `--src`): `<type>/<slug>`
-  - Bare slug (cần `--src`, auto-search qua tất cả folder type): `<slug>`
-- Hỗ trợ bundle cross-source (entity từ nhiều source package) — header phản ánh scope "multiple sources".
+  - Type+slug (needs `--src`): `<type>/<slug>`
+  - Bare slug (needs `--src`, auto-search all type folders): `<slug>`
+- Supports cross-source bundles (entities from multiple source packages) — header reflects "multiple sources" scope.
 
-**Sửa schema (Bug từ v4.3.1)**:
-- `entityChapterIndex()` giờ xử lý cả hai schema:
+**Schema fix (Bug from v4.3.1)**:
+- `entityChapterIndex()` now handles both schemas:
   - Schema A (Marketing Management): `source_chapter_index: <int>`
-  - Schema B (Principles of Marketing): parse số chapter từ slug `extracted_from_source: ...__chapter-NN-...`
-- Fix bug chapter-N spec trả về 0 entity cho cuốn POM.
+  - Schema B (Principles of Marketing): parses chapter number from `extracted_from_source: ...__chapter-NN-...` slug
+- Fixed chapter-N spec returning 0 entities for POM book.
 
-## Ghi chú phiên bản
+## Version notes
 
-- v1.0 (wiki-sync v4.3, 2026-05-20): release đầu tiên. Năm scope spec được hỗ trợ.
-- v1.1 (wiki-sync v4.4, 2026-05-20): thêm query mode (`--query=`) + entity-list mode (`--entities=`); sửa schema cho định dạng frontmatter POM.
-
+- v1.0 (wiki-sync v4.3, 2026-05-20): first release. Five spec scopes supported.
+- v1.1 (wiki-sync v4.4, 2026-05-20): added query mode (`--query=`) + entity-list mode (`--entities=`); schema fix for POM frontmatter format.
 

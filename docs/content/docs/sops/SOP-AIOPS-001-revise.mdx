@@ -1,29 +1,26 @@
 ---
-title: 'SOP-AIOPS-001-revise: /cla revise — quy trình sửa đổi kiến trúc khả năng'
+title: 'SOP-AIOPS-001-revise: /cla revise — capability architecture revision sub-flow'
 description: >-
-  Quy trình nặng cho sửa đổi kiến trúc. Lễ thức đầy đủ (@cto + Muse panel + Tier C). Nâng cấp phiên bản major. Multi-session.
+  Heavy-weight workflow for architecture revision. Full ceremony (@cto + Muse panel + Tier C). Major
+  version bump. Multi-session.
 source_path: 06-ai-ops/sops/SOP-AIOPS-001-revise/flow.yaml
 source_hash: 728a38dd3342fe7ef4f65ff222c18134a068ed637db487c91c1fafeac8aba376
-generated_at: '2026-05-19T05:20:46.452Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.508Z'
+generated_by: docs-engine v1.2.0
 category: sop
 language: vi
-translated: true
-translated_source_hash: 728a38dd3342fe7ef4f65ff222c18134a068ed637db487c91c1fafeac8aba376
-translated_at: '2026-05-19T12:30:00Z'
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
 **SOP ID:** `SOP-AIOPS-001-revise`
 **Pillar:** 06-ai-ops
 
-## Tổng quan
+## Overview
 
-Quy trình nặng cho sửa đổi kiến trúc. Lễ thức đầy đủ (@cto + Muse panel + Tier C). Nâng cấp phiên bản major. Multi-session.
+Heavy-weight workflow for architecture revision. Full ceremony (@cto + Muse panel + Tier C). Major version bump. Multi-session.
 
-## Các bước
+## Steps
 
 ### Step phase-0-preflight-revise — phase-0-preflight-revise
 
@@ -56,18 +53,18 @@ Quy trình nặng cho sửa đổi kiến trúc. Lễ thức đầy đủ (@cto 
 
 - **Skill:** `capability-lifecycle/catalog-updater`
 
-## Tiêu chí chấp nhận
+## Acceptance criteria
 
-- Tất cả 7 sub-phase hoàn tất (Phase 0, 1, 3, 4, 5, 6, 7, 8)
-- Lễ thức Tier C hoàn tất tại Phase 5 với @cto + Muse + dòng ops.decisions
-- Nâng cấp phiên bản major trong registry
-- spec.md được promot; phiên bản trước được lưu trữ
-- retrospective.md được viết + promot
-- Tất cả sprint PRs được merge
-- Lock được giải phóng, dòng trước được đánh dấu superseded
+- All 7 sub-phases complete (Phase 0, 1, 3, 4, 5, 6, 7, 8)
+- Tier C ceremony completed at Phase 5 with @cto + Muse + ops.decisions row
+- Major version bump in registry
+- spec.md promoted; prior version archived
+- retrospective.md written + promoted
+- All sprint PRs merged
+- Lock released, prior row superseded
 - pnpm check clean post-Phase 8
 
-## Xử lý lỗi
+## Failure handling
 
 ```yaml
 failure_handling:
@@ -89,3 +86,4 @@ failure_handling:
     detection: Phase 8 final check fails
     response: Hold at 'deployed'. Lock stays. Founder fixes drift, re-runs Phase 8.
 ```
+

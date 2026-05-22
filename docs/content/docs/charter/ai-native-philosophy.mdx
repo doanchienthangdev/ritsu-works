@@ -3,177 +3,151 @@ title: Ritsu AI-Native Operating Philosophy
 description: ''
 source_path: 00-core/ai-native-philosophy.md
 source_hash: 55e87b2e704dd402b5eeff07924fd9cd0d958a5c1a30868e59ab9e65072fcbbc
-generated_at: '2026-05-21T16:05:13.902Z'
+generated_at: '2026-05-22T01:09:07.453Z'
 generated_by: docs-engine v1.2.0
 category: charter
 language: vi
-translated: true
-translated_at: '2026-05-21T16:08:22.027Z'
-translated_by: docs-translate v1.1.0
-translation_model: claude-haiku-4-5-20251001
-translated_source_hash: 55e87b2e704dd402b5eeff07924fd9cd0d958a5c1a30868e59ab9e65072fcbbc
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
----
-title: Ritsu AI-Native Operating Philosophy
-type: core-doc
-slug: ai-native-philosophy
-layer: identity
-status: v0.1-draft
-owner: founder
-last_reviewed: 2026-05-21
-review_cadence: on-trigger
-cited_by: []
-auto_load: false
-revisit_at: 30-paying
-revisit_trigger: "30 days of agent operation data (ops.agent_runs analysis showing what works / doesn't)"
-revisit_owner: founder
-ai_synthesized_v0_1: true
-ai_synthesized_at: 2026-05-21
-ai_synthesized_from: [CLAUDE.md, governance/ROLES.md, governance/HITL.md, .archives/pillars/PLAN.md, knowledge/manifest.yaml]
-ai_synthesis_note: "Consolidated theory from existing operating belief. Founder revises after 30 days of real ops.agent_runs data."
----
-
-# Ritsu AI-Native Operating Philosophy
-
-> Tuyên bố chính thức về cách Ritsu hoạt động như một công ty AI-Native. Trước đây nằm rải rác trong CLAUDE.md + governance/ROLES.md + .archives/pillars/PLAN.md. Tệp này hợp nhất niềm tin hoạt động; được trích dẫn bởi mọi bài tập vai trò agent mới + onboarding cofounder + founder-coach.
+> Canonical statement of how Ritsu operates as an AI-Native company. Previously spread across CLAUDE.md + governance/ROLES.md + .archives/pillars/PLAN.md. This file consolidates the operating belief; cited by every new agent role spec + cofounder onboarding + founder-coach.
 >
-> **v0.1 caveat:** Đây là lý thuyết dựa trên 30 NGÀY ĐẦU TIÊN xây dựng lực lượng lao động. Sửa đổi sau 30 ngày DỮ LIỆU HOẠT ĐỘNG (phân tích ops.agent_runs).
+> **v0.1 caveat:** This is theory based on the FIRST 30 days of building the workforce. Revise after 30 days of OPERATING data (ops.agent_runs analysis).
 
-## 1. Niềm tin hoạt động
+## 1. The operating belief
 
-**Người sáng lập đặt hướng; AI thực thi trong các tiers HITL. Người sáng lập là cổ chai sáng tạo; lực lượng lao động AI là đòn bẩy cho ý định người sáng lập.**
+**Humans set direction; AI executes within HITL tiers. Founders are the creative bottleneck; AI workforce is leverage on founder intent.**
 
-Cụ thể:
-- **Người sáng lập hiếm, chậm, đắt tiền và không thể thay thế được để quyết định vấn đề vị trí.** Tầm nhìn, giá trị, giọng điệu thương hiệu, bản năng tuyển dụng, niềm tin quan hệ khách hàng — những thứ này không mở rộng qua AI.
-- **AI phong phú, nhanh, rẻ và có thể thay thế được cho việc thực thi.** Soạn thảo, kiểm tra, ETL, xem xét mã, sản xuất nội dung, trả lời hỗ trợ cho FAQ — những thứ này mở rộng vô hạn (cho đến giới hạn chi phí) qua AI.
-- **Vấn đề kiến trúc là khớp tài nguyên hiếm (thời gian + phán xét người sáng lập) với các quyết định có đòn bẩy cao nhất, và ủy quyền phần còn lại theo Tier.**
+Concretely:
+- **Founders are scarce, slow, expensive, and irreplaceable for taste decisions.** Vision, values, brand voice, hiring instinct, customer-relationship trust — these don't scale via AI.
+- **AI is abundant, fast, cheap, and replaceable for execution.** Drafting, auditing, ETL, code review, content production, support replies for FAQ — these scale infinitely (until cost cap) via AI.
+- **The architecture problem is matching the scarce resource (founder time + judgment) to the highest-leverage decisions, and delegating the rest by Tier.**
 
-Hệ thống HITL tier (`governance/HITL.md`) là mã hóa niềm tin này: Tier A = AI tự chủ; Tier B = AI thực hiện + thông báo AI; Tier C = AI đề xuất + người sáng lập phê duyệt; Tier D = AI từ chối theo mặc định + phép thần kỳ người sáng lập ghi đè.
+The HITL tier system (`governance/HITL.md`) is the codification of this belief: Tier A = AI autonomous; Tier B = AI does + AI notifies; Tier C = AI proposes + founder approves; Tier D = AI refuses by default + founder magic-phrase override.
 
-## 2. "AI-Native" nghĩa là gì ở đây
+## 2. What "AI-Native" means here
 
-Không chỉ "chúng tôi sử dụng AI." Có nghĩa cụ thể là: **mọi chức năng hoạt động (tiếp thị, bán hàng, hỗ trợ, ops, T&S, tài chính) đều có một worker AI làm executor MẶC ĐỊNH; con người là người xem xét + xử lý trường hợp đặc biệt + hướng dẫn sáng tạo.**
+Not just "we use AI." Means specifically: **every operational function (marketing, sales, support, ops, T&S, finance) has an AI worker as the DEFAULT executor; humans are reviewers + edge-case handlers + creative direction.**
 
-Mô hình AI-Native cho mỗi Pillar:
+Per-pillar AI-Native pattern:
 
-| Pillar | AI default worker | Vai trò người sáng lập |
+| Pillar | AI default worker | Founder role |
 |---|---|---|
-| 00-core | n/a (tài liệu tham khảo chỉ) | Tác giả (tất cả các chỉnh sửa chính tắc Tier C) |
-| 01-marketing | content-drafter + growth-orchestrator | Chủ sở hữu giọng điệu; xem xét các chiến dịch Tier C |
-| 02-sales | growth-orchestrator (fallback) | Chiến lược định giá; thử nghiệm định giá Tier C |
-| 03-gtm (stage) | gtm-orchestrator + nhiều vai trò con | Chiến lược kênh; người gác cửa PMF |
-| 04-product | product-orchestrator + experiment-analyst | Chủ sở hữu wedge; ưu tiên tính năng Tier B |
-| 05-customer | support-agent + cs-coach + retention-watcher + escalation-router + feedback-aggregator | Người sáng lập onboards cá nhân lần đầu 30 (Collison protocol) |
-| 06-ai-ops | aiops-engineer + etl-runner + code-reviewer | Xem xét kiến trúc Tier C; chủ sở hữu HITL.md |
-| 07-trust-safety | trust-safety | Tất cả các quyết định ảnh hưởng đến người dùng Tier C |
-| 08-finance | backoffice-clerk (read-only Stripe) | Tất cả tiền vào/ra Tier C / D |
-| 09-founder | founder-coach + hitl-router + health-tracker | Người sáng lập (và cofounder khi tham gia) |
-| 10-metrics | metrics-curator + alert-router + experiment-analyst | Chủ sở hữu registry KPI; phê duyệt quy tắc cảnh báo Tier C |
+| 00-core | n/a (reference docs only) | Author (all canonical edits Tier C) |
+| 01-marketing | content-drafter + growth-orchestrator | Voice owner; reviews campaigns Tier C |
+| 02-sales | growth-orchestrator (fallback) | Pricing strategist; pricing experiments Tier C |
+| 03-gtm (stage) | gtm-orchestrator + multiple sub-roles | Channel strategy; PMF gate keeper |
+| 04-product | product-orchestrator + experiment-analyst | Wedge owner; feature priority Tier B |
+| 05-customer | support-agent + cs-coach + retention-watcher + escalation-router + feedback-aggregator | First-30 founder personally onboards (Collison protocol) |
+| 06-ai-ops | aiops-engineer + etl-runner + code-reviewer | Architecture review Tier C; HITL.md owner |
+| 07-trust-safety | trust-safety | All user-affecting decisions Tier C |
+| 08-finance | backoffice-clerk (read-only Stripe) | All money in/out Tier C / D |
+| 09-founder | founder-coach + hitl-router + health-tracker | The founder (and cofounder when joins) |
+| 10-metrics | metrics-curator + alert-router + experiment-analyst | KPI registry owner; alert rules approve Tier C |
 
-**Mô hình:** AI làm việc trên bề mặt; người sáng lập sở hữu danh tính. AI thực thi; người sáng lập quyết định.
+**The pattern:** AI works the surface; founder owns the identity. AI executes; founder decides.
 
-## 3. Những gì con người (người sáng lập + cofounder) LUÔN làm
+## 3. What humans (founder + cofounder) ALWAYS do
 
-Những việc không thể ủy quyền. AI không bao giờ quyết định những điều này; người sáng lập luôn phải.
+The non-delegable. AI never decides these; founder always must.
 
-- **Chiến lược:** tầm nhìn (`charter.md`), luận văn thị trường, chiến lược định giá (triết lý + phê duyệt số), định vị thương hiệu (`positioning.md`).
-- **Tuyển dụng** (khi bắt đầu): xác định cofounder, những lần tuyển dụng non-AI đầu tiên, định nghĩa vai trò cho các vị trí mới.
-- **Tiền vào/ra:** Stripe tính phí ad-hoc, hoàn lại > $200, thanh toán nhà cung cấp > $500, ký hợp đồng SaaS > $50/tháng, gây vốn.
-- **Danh tính thương hiệu:** chủ sở hữu giọng điệu (`brand_voice.md`), tác giả giá trị (`values.md`), tác giả định vị công khai (`positioning.md`), phê duyệt hệ thống thiết kế (`design-system.md` khi hoàn thành).
-- **Quan hệ khách hàng ở quy mô first-30-customer** (theo SOP protocol Collison install SOP-CUSTOMER-006). Người sáng lập cá nhân Zoom-cài đặt Ritsu với khoảng 30 khách hàng thanh toán đầu tiên. AI tiếp quản từ N=31 (SOP-CUSTOMER-009).
-- **Bất kỳ hành động Tier D nào theo HITL.md.** Tất cả các hành động D-Std (hoàn lại > $200, tạm ngưng người dùng > 7 ngày, thêm operator). Tất cả các hành động D-MAX (truy cập Supabase sản phẩm, bỏ bảng, force-push, gây vốn, ký tài liệu pháp lý, sửa đổi HITL.md / SECRETS.md).
-- **Xem xét hàng quý + hàng tháng + hàng tuần** (SOP-FOUNDER-013, -014, -015). Bài xem xét LÀ chiến lược; không thể tự động hóa.
-- **Tuyên bố công khai:** xin lỗi, liên lạc sự cố, báo chí, phản ứng quy định.
+- **Strategy:** vision (`charter.md`), market thesis, pricing strategy (philosophy + numbers approval), brand positioning (`positioning.md`).
+- **Hiring** (when starts): cofounder identification, first non-AI hires, role definition for new positions.
+- **Money in/out:** Stripe charges ad-hoc, refunds > $200, vendor pay > $500, signing SaaS contracts > $50/mo, capital raises.
+- **Brand identity:** voice owner (`brand_voice.md`), values author (`values.md`), public positioning author (`positioning.md`), design system approve (`design-system.md` when graduates).
+- **Customer relationships at first-30-customer scale** (per Collison install protocol SOP-CUSTOMER-006). Founder personally Zoom-installs Ritsu with first ~30 paying customers. AI takes over from N=31 (SOP-CUSTOMER-009).
+- **Anything Tier D per HITL.md.** All D-Std actions (refund > $200, suspend user > 7 days, add operator). All D-MAX actions (product Supabase access, drop table, force-push, raise capital, sign legal doc, modify HITL.md / SECRETS.md).
+- **Quarterly + monthly + weekly review** (SOP-FOUNDER-013, -014, -015). The review IS strategy; can't be automated.
+- **Public statements:** apology, incident communication, press, regulatory response.
 
-## 4. Những gì AI LUÔN làm
+## 4. What AI ALWAYS does
 
-Việc auto-execute. Người sáng lập không bao giờ xử lý cá nhân trừ khi được escalate.
+The auto-execute. Founder never personally handles unless escalated.
 
-- **Hành động Tier A theo HITL.md:** bản nháp đến .archives/, kiểm tra, công việc ETL, phân loại, truy vấn truy xuất, nhận xét nội bộ trên PR của chính nó.
-- **Phát hiện mô hình** trên các bảng ops.* (phát hiện trôi, phát hiện bất thường, phân tích xu hướng chi phí, toán học cohort giữ chân).
-- **Phân tích và làm mới bảng điều khiển thường quy** (khi bảng điều khiển tồn tại — vai trò metrics-curator).
-- **Xem xét mã trên mọi PR** (persona code-reviewer / CTO). Người sáng lập vẫn hợp nhất; AI nhận xét + đánh dấu rủi ro.
-- **Soạn thảo nội dung** cho mỗi kênh (blog, mạng xã hội, email — content-drafter). Người sáng lập xem xét Tier C và hợp nhất.
-- **Hỗ trợ khách hàng loại FAQ được xử lý** (support-agent Tier B). Non-FAQ escalate cho người sáng lập Tier C.
-- **Công việc cron lên lịch** (ảnh chụp KPI, luồng ETL, đánh giá cảnh báo — scheduled-run-dispatcher).
-- **/cla quy trình khả năng 8 pha** điều phối (người sáng lập phê duyệt Tier C tại Phase 5; AI thực thi Phase 0-4 + 6-8 tự chủ khi được phép).
-- **/wiki + /docs + /core** hoạt động chủ yếu read-mostly.
-- **Ghi nhật ký kiểm tra** trên tất cả ops.agent_runs, ops.audit_log, ops.events, ops.run_summaries.
-- **Chi phí theo dõi + cảnh báo ngân sách** (theo Bài #7 kiến trúc kinh tế).
+- **Tier A actions per HITL.md:** drafts to .archives/, audits, ETL jobs, classifications, retrieval queries, internal commenting on own PRs.
+- **Pattern detection** across ops.* tables (drift detection, anomaly surfacing, cost trend analysis, retention cohort math).
+- **Routine analytics + dashboard refresh** (when dashboards exist — metrics-curator role).
+- **Code review on every PR** (code-reviewer / CTO persona). Founder still merges; AI comments + flags risk.
+- **Content drafting** for every channel (blog, social, email — content-drafter). Founder reviews Tier C and merges.
+- **Customer support FAQ-handled categories** (support-agent Tier B). Non-FAQ escalates to founder Tier C.
+- **Scheduled cron jobs** (KPI snapshots, ETL flows, alert evaluation — scheduled-run-dispatcher).
+- **/cla 8-phase capability workflow** orchestration (founder approves Tier C at Phase 5; AI executes Phase 0-4 + 6-8 autonomously where allowed).
+- **/wiki + /docs + /core** read-mostly operations.
+- **Audit logging** across all ops.agent_runs, ops.audit_log, ops.events, ops.run_summaries.
+- **Cost attribution tracking + budget alerts** (per Bài #7 economic architecture).
 
-## 5. Ranh giới (những gì AI KHÔNG BAO GIỜ làm)
+## 5. Boundaries (what AI NEVER does)
 
-Theo Tier D `governance/HITL.md` + cách ly `governance/SECRETS.md`:
+Per `governance/HITL.md` Tier D + `governance/SECRETS.md` isolation:
 
-| Hành động | Tier | Tại sao không bao giờ AI |
+| Action | Tier | Why never AI |
 |---|---|---|
-| **Ghi vào Supabase Sản phẩm (`ritsu`) trực tiếp** | D-MAX | Dữ liệu người dùng; firewall cô lập; chỉ `etl-runner` đọc qua khóa chuyên dụng |
-| **Tính phí khách hàng / hoàn lại / thanh toán nhà cung cấp** (bất kỳ số tiền tự chủ) | D-Std → D-MAX | Tiền ra không thể hoàn lại mà không có quy trình pháp lý |
-| **Tuyên bố là con người** cho một người dùng | (luật minh bạch) | EU AI Act Art. 50, California SB 1001, đạo đức của chúng tôi |
-| **Đưa ra tuyên bố an toàn/tuân thủ công khai** (GDPR/SOC 2/HIPAA được chứng nhận, bảo mật bằng thiết kế, v.v.) | D-MAX | Trách nhiệm pháp lý + tính xác thực; chỉ người sáng lập có kiểm toán mới có thể tuyên bố |
-| **Sửa đổi `governance/HITL.md` hoặc `governance/SECRETS.md`** | D-MAX | Đây là những quy tắc của các quy tắc; thay đổi quy tắc không thể tự động hóa bởi cái bị quy định |
-| **Xóa dữ liệu** (bất kỳ môi trường sản xuất nào) | D-Std → D-MAX | Không thể hoàn nguyên mà không có lễ sao lưu |
-| **Bỏ bảng/cột DB** | D-MAX | Không thể hoàn nguyên |
-| **Force-merge / force-push đến main** | D-MAX | Bỏ qua xem xét = bỏ qua an toàn |
-| **Cấp quyền operator mới** (Supabase, GitHub, secret manager) | D-Std | Bề mặt tấn công mới |
-| **Vô hiệu hóa bất kỳ hook an toàn nào** | D-MAX | Làm suy yếu hệ thống an toàn |
-| **Sửa đổi DNS / môi trường sản xuất / xoay vòng bí mật xác thực** | D-MAX | Tính liên tục hoạt động + bảo mật |
-| **Ký tài liệu pháp lý / thông cáo báo chí / liên lạc sa thải** | D-MAX | Cam kết bên ngoài |
-| **Hoàn lại > $2000** (giao dịch đơn lẻ) | D-MAX | Tiền + quan hệ khách hàng |
+| **Write to Product Supabase (`ritsu`) directly** | D-MAX | User data; isolation firewall; only `etl-runner` reads via dedicated key |
+| **Charge customer / issue refund / pay vendor** (any amount autonomously) | D-Std → D-MAX | Money out can't be reversed without legal process |
+| **Claim to be human** to a user | (transparency law) | EU AI Act Art. 50, California SB 1001, our own ethics |
+| **Make public safety/compliance claim** (GDPR/SOC 2/HIPAA certified, secure-by-design, etc.) | D-MAX | Liability + truthfulness; only founder with audit can claim |
+| **Modify `governance/HITL.md` or `governance/SECRETS.md`** | D-MAX | These are the rules of the rules; rule-changes can't be automated by the ruled |
+| **Delete data** (any production environment) | D-Std → D-MAX | Irreversible without backup ceremony |
+| **Drop DB table / column** | D-MAX | Irreversible |
+| **Force-merge / force-push to main** | D-MAX | Bypass review = bypass safety |
+| **Grant new operator access** (Supabase, GitHub, secret manager) | D-Std | New attack surface |
+| **Disable any safety hook** | D-MAX | Defeats the safety system |
+| **Modify DNS / production env / rotate auth secrets** | D-MAX | Operational continuity + security |
+| **Sign legal doc / press release / layoff comms** | D-MAX | External commitment |
+| **Issue refund > $2000** (single transaction) | D-MAX | Money + customer relationship |
 
-**Cơ chế ghi đè:** người sáng lập có thể ủy quyền BẤT KỲ cái nào trên đây qua cụm từ thần kỳ theo lễ HITL.md (`override: <reason 5+ words>` trong Telegram + cooldown + hàng audit bất biến). D-MAX cũng yêu cầu bình luận PR GitHub `/founder-approved-irreversible` từ tài khoản người sáng lập.
+**Override mechanism:** founder can authorize ANY of the above via magic phrase per HITL.md ceremony (`override: <reason 5+ words>` in Telegram + cooldown + immutable audit row). D-MAX also requires GitHub `/founder-approved-irreversible` PR comment from founder's account.
 
-## 6. Phương trình đòn bẩy
+## 6. The leverage equation
 
-**1 người sáng lập + lực lượng lao động AI = kích thước công ty hiệu quả khoảng 10-20 nhân viên truyền thống pre-PMF; 50-100 post-PMF; 500+ ở 1M người dùng.**
+**1 founder + AI workforce = effective company size of ~10-20 traditional employees pre-PMF; ~50-100 post-PMF; ~500+ at 1M users.**
 
-Năng lực mở rộng với **đầu tư AI + chuyên môn hóa vai trò**, không phải số lượng nhân viên.
+Capacity scales with **AI investment + role specialization**, not headcount.
 
-**Ước tính đòn bẩy cụ thể (luận văn người sáng lập, sửa đổi hàng năm):**
+**Concrete leverage estimates (founder thesis, revise yearly):**
 
-| Giai đoạn | Người sáng lập | Vai trò AI hoạt động | Quy mô nhân viên truyền thống tương đương |
+| Stage | Founders | Active AI roles | Equivalent traditional headcount |
 |---|---|---|---|
-| Pre-PMF (hiện tại) | 1-2 con người | 12+ vai trò được định nghĩa; ~3-5 chạy hoạt động hàng ngày | 10-15 |
-| Post-PMF (100 thanh toán) | 2 con người | 15+ vai trò; hầu hết hoạt động hàng ngày | 25-40 |
-| 1000 thanh toán | 2-3 con người | 20+ vai trò + lớp persona mature | 50-80 |
-| 10K thanh toán | 3-5 con người + những lần tuyển dụng non-AI đầu tiên | 30+ vai trò + chuyên môn hóa vai trò con | 100-200 |
-| 100K thanh toán | 10-20 con người | 50+ vai trò + xây dựng sâu sub-pillar | 300-500 |
-| 1M thanh toán ($1B ARR mục tiêu) | 30-50 con người | 100+ vai trò + lớp nền tảng API | 1000+ |
+| Pre-PMF (now) | 1-2 humans | 12+ roles defined; ~3-5 actively running daily | 10-15 |
+| Post-PMF (100 paying) | 2 humans | 15+ roles; most active daily | 25-40 |
+| 1000 paying | 2-3 humans | 20+ roles + persona layer mature | 50-80 |
+| 10K paying | 3-5 humans + first non-AI hires | 30+ roles + sub-role specialization | 100-200 |
+| 100K paying | 10-20 humans | 50+ roles + sub-pillar deep build | 300-500 |
+| 1M paying ($1B ARR target) | 30-50 humans | 100+ roles + API platform layer | 1000+ |
 
-**Tỷ lệ:** ~10-20× truyền thống. Vốn AI (gọi mô hình + đầu tư kỹ năng) thay thế ~10-20× FTE con người. Chi phí: ~5-10× rẻ hơn FTE tương đương ở Việt Nam, ~25-50× rẻ hơn FTE ở Mỹ.
+**The ratio:** ~10-20× traditional. AI capital (model calls + skill investments) replaces ~10-20× human FTE. Cost: ~5-10× cheaper than equivalent FTE in Vietnam, ~25-50× cheaper than US FTE.
 
-**Những gì KHÔNG được AI tăng đòn bẩy:**
-- Thời gian người sáng lập (khan hiếm không đổi)
-- Niềm tin khách hàng (xây dựng 1:1 trong 30 đầu; hệ thống thương hiệu sau)
-- Quan hệ pháp lý + quy định
-- Quan hệ với nhà đầu tư (khi gây vốn kích hoạt)
+**What's NOT leveraged by AI:**
+- Founder time (constant scarcity)
+- Customer trust (built 1:1 in first 30; brand-systemically after)
+- Regulatory + legal relationships
+- Investor relationships (when raising activates)
 
-## 7. Chế độ lỗi + phát hiện
+## 7. Failure modes + detection
 
-Mọi chế độ lỗi AI-Native có một chủ sở hữu + cơ chế phát hiện.
+Every AI-Native failure mode has an owner + a detection mechanism.
 
-| Chế độ lỗi | Triệu chứng | Phát hiện | Giảm thiểu |
+| Failure mode | Symptom | Detection | Mitigation |
 |---|---|---|---|
-| **Trôi AI** (các agent khác nhau bịa ra "đặc tính Bắc Sao" / giá trị / định vị khác nhau) | Không nhất quán đầu ra trên các kênh; nhầm lẫn khách hàng | Engine tính nhất quán cross-tier + kiểm tra /core (validator) | /core ground truth + kỹ năng trích dẫn qua /core compose + gates validator trôi pnpm check |
-| **Vượt tầm AI** (hành động Tier A nên là Tier C) | Người sáng lập thấy hậu kỳ một hành động mà họ không phê duyệt | Audit ops.agent_runs + monthly retro | Hook `pre-edit-tier1` + hook pre-tool-publish + thu hẹp persona (workforce-personas Phase 1) + xem xét audit_log |
-| **Khai thác dưới AI** (người sáng lập làm công việc AI có thể làm) | Năng lượng người sáng lập cạn kiệt; báo cáo năng lượng hàng tuần SOP-FOUNDER-016 hiển thị >50h liên tục | Kỹ năng founder-coach + SOP-FOUNDER-018 dấu hiệu kiệt sức | Công lập SOP + mở rộng thư viện kỹ năng + vai trò founder-coach xác định ứng viên ủy quyền |
-| **Ảo tưởng AI trên đầu ra phía khách hàng** | Khiếu nại khách hàng về thông tin không chính xác; tăng dung lượng vé hỗ trợ | brand_voice + công khai minh bạch + hook pre-tool-customer-message trả lời hỗ trợ | Xem xét Tier B+ người sáng lập trên trả lời non-FAQ + bộ đánh giá thực tế + vòng lặp khách hàng sửa chữa nguồn ops.corrections |
-| **Vượt quá ngân sách chi phí AI** (chi tiêu LLM > ngân sách hàng tháng) | Hook pre-llm-call-budget chặn cuộc gọi; cảnh báo Telegram người sáng lập | Cap per-role economic_budget trong governance/ROLES.md | Cảnh báo 80% + escalate 100% + hard-block 150% + economic-health-score hàng tháng + xem xét tối ưu hóa chi phí kỹ năng |
-| **Khoảng trống bảo mật AI** (rò rỉ bí mật, tiêm nhắm prompt, MCP không được phép) | Các hit secret-redactor + phát hiện kiểm toán bảo mật | Walker docs secret-redactor + allowlist vai trò .mcp.json + shim supabase-ops + cross-tier-invariants | Redaction bí mật 3 lớp + tier_default per-MCP-tool + RLS trên ops.* + audit trên mọi mcp_call |
-| **Trôi Persona** (persona CxO hoạt động ngoài vai trò ràng buộc) | Hành động được quy cho persona có vai trò không có quyền đó | `post-persona-log` (khi hooks runtime ships) + 5 bất biến trong `validate-personas.cjs` | Ràng buộc persona ↔ vai trò thực thi bởi validators + workforce-personas Phase 1.5 hardening |
-| **Zombie quy trình CLA** (khả năng bị kẹt trong `implementing` > 7 ngày nhàn rỗi) | ops.capability_runs.state_since > 7d + không có completed_sprints tiến trình | cla-orchestrator + xem xét hàng tuần founder-coach | `failure_handling.phase_7_session_lost` kích hoạt lời nhắc người sáng lập: "tiếp tục, từ bỏ, hoặc thay đổi kế hoạch?" |
-| **Cổ chai người sáng lập** (hàng đợi Tier C lớn > 5 đang chờ xử lý) | Số lượng tin nhắn chưa đọc Telegram + độ phản hồi người sáng lập giảm | hitl-router + số liệu backlog Telegram | Lô Tier C trong xem xét Thứ Sáu (SOP-FOUNDER-010) + escalate mục ưu tiên + ủy quyền lô Tier C cho cofounder khi tham gia |
-| **Không bootstrap lực lượng lao động AI** (vai trò agent mới được thiết kế nhưng không bao giờ được kích hoạt) | governance/ROLES.md có vai trò với `status: planned` cho > 90 ngày | Kiểm toán hàng tháng ROLES.md + phân tích khoảng cách capability-registry | Hoặc ship vai trò (CLA propose) hoặc xóa khỏi ROLES.md (PR Tier C) — không có vai trò zombie |
+| **AI drift** (different agents invent different "north star" / values / positioning) | Output inconsistency across channels; customer confusion | Cross-tier-consistency engine + /core check (validator) | 00-core ground truth + skills cite via /core compose + drift validator gates pnpm check |
+| **AI overreach** (Tier A action that should have been Tier C) | Founder retroactively sees an action they wouldn't have approved | ops.agent_runs audit + monthly retro | `pre-edit-tier1` hook + pre-tool-publish hook + persona narrowing (workforce-personas Phase 1) + audit_log review |
+| **AI under-leverage** (founder doing work AI could do) | Founder energy exhausted; SOP-FOUNDER-016 weekly energy report shows >50h sustained | founder-coach skill + SOP-FOUNDER-018 burnout signs | SOP scaffolding + skill library expansion + founder-coach role identifies delegation candidates |
+| **AI hallucination on customer-facing output** | Customer complaint about incorrect info; support ticket volume spike | brand_voice + transparency disclosure + customer support replies pre-tool-customer-message hook | Founder Tier B+ review on non-FAQ replies + factual eval suites + customer correction loop feeds ops.corrections |
+| **AI cost overrun** (LLM spend > monthly budget) | pre-llm-call-budget hook blocks call; founder Telegram alert | Per-role economic_budget caps in governance/ROLES.md | 80% alert + 100% escalate + 150% hard-block + monthly economic-health-score + cost-optimization-review skill |
+| **AI security gap** (secret leaks, prompt injection, MCP unauthorized) | secret-redactor hits + security audit findings | docs walker secret-redactor + .mcp.json role allowlist + supabase-ops shim + cross-tier-invariants | 3-layer secret redaction + per-MCP-tool tier_default + RLS on ops.* + audit on every mcp_call |
+| **Persona drift** (CxO persona acts outside bound role) | Action attributed to a persona whose role doesn't have that permission | `post-persona-log` (when hooks runtime ships) + 5 invariants in `validate-personas.cjs` | persona ↔ role binding enforced by validators + workforce-personas Phase 1.5 hardening |
+| **CLA workflow zombie** (capability stuck in `implementing` > 7 days idle) | ops.capability_runs.state_since > 7d + no completed_sprints progress | cla-orchestrator + founder-coach weekly review | `failure_handling.phase_7_session_lost` triggers founder prompt: "resume, abandon, or change plan?" |
+| **Founder bottleneck** (Tier C queue grows > 5 pending) | Telegram unread count + founder responsiveness drops | hitl-router + Telegram backlog metric | Batch Tier C in Friday review (SOP-FOUNDER-010) + escalate priority items + delegate batched Tier C to cofounder when joins |
+| **AI workforce non-bootstrap** (new agent role designed but never activated) | governance/ROLES.md has role with `status: planned` for > 90 days | ROLES.md monthly audit + capability-registry gap analysis | Either ship the role (CLA propose) or remove from ROLES.md (PR Tier C) — no zombie roles |
 
-**Mỗi chế độ lỗi có một vai trò chủ sở hữu rõ ràng.** Khi phát hiện mô hình lỗi, vai trò chủ sở hữu được gọi; người sáng lập chỉ được cảnh báo nếu vai trò chủ sở hữu escalate hoặc thất bại.
+**Each failure mode has an explicit owner role.** When a failure pattern is detected, the owner role is invoked; founder is alerted only if owner role escalates or fails.
 
 ---
 
-## Nguyên tắc đóng cửa
+## Closing principle
 
-Luận văn có thể kiểm tra được: nếu Ritsu có thể ship $1B ARR với 30-50 con người + 1000+ worker AI, mô hình chứng minh được. Nếu chúng tôi cần 500+ con người để đạt $1B, luận văn AI-Native là sai (hoặc cách thực thi của chúng tôi là sai) — và chúng tôi nên viết lại tài liệu này với bài học đó.
+The thesis is testable: if Ritsu can ship $1B ARR with 30-50 humans + 1000+ AI workers, the model proves out. If we need 500+ humans to hit $1B, the AI-Native thesis is wrong (or our execution of it is wrong) — and we should re-author this document with that lesson.
 
-Cho đến lúc đó: ship lực lượng lao động, nghe ops.agent_runs, tinh chỉnh triết lý hàng quý. Triết lý là một giả thuyết. Dữ liệu sẽ cho chúng tôi biết nó có đúng không.
+Until then: ship the workforce, listen to ops.agent_runs, refine the philosophy quarterly. The philosophy is a hypothesis. The data will tell us if it's right.
+

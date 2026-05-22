@@ -1,54 +1,50 @@
 ---
 title: 'Tier 1 yaml: cla-routing-keywords'
-description: Tổng quan lược đồ cho `knowledge/cla-routing-keywords.yaml`.
+description: Schema overview for `knowledge/cla-routing-keywords.yaml`.
 source_path: knowledge/cla-routing-keywords.yaml
 source_hash: 6492921776ac34ce9dd36afdccbce2bfc001951847c8f6f9e352e4eafbecb774
-generated_at: '2026-05-19T05:20:46.470Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.527Z'
+generated_by: docs-engine v1.2.0
 category: tier1-yaml
 language: vi
-translated: true
-translated_source_hash: 6492921776ac34ce9dd36afdccbce2bfc001951847c8f6f9e352e4eafbecb774
-translated_at: '2026-05-19T13:00:00Z'
-translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-## Mô tả
+## Description
 
-Từ khóa định tuyến CLA
+CLA Routing Keywords
 
-File Tier 1 ánh xạ từ khóa tuyên bố vấn đề → cấp C-level + vai trò dự phòng.
-Được đọc bởi lệnh /cla Giai đoạn 2 (Đi sâu Miền) để tự động định tuyến vấn đề
-đến chuyên gia trưởng phù hợp.
+Tier 1 file mapping problem-statement keywords → CxO persona + fallback role.
+Read by /cla command Phase 2 (Domain Deep-Dive) to auto-route the problem to
+the right specialist chief.
 
-Quy tắc giải quyết (theo .archives/cla/03-architecture.md §6):
-  1. /cla quét văn bản problem.md so với `routes.*.keywords` (khớp chuỗi con
-     không phân biệt chữ hoa chữ thường).
-  2. Nếu chính xác 1 tuyến khớp → gửi đến `cxo` của tuyến đó.
-     - Nếu persona liên kết là `status: planned` (chưa hoạt động),
-       dự phòng để gửi `fallback_role` của tuyến thay vào.
-  3. Nếu 0 tuyến khớp HOẶC nhiều tuyến khớp → sử dụng `ambiguous_fallback`.
+Resolution rule (per .archives/cla/03-architecture.md §6):
+  1. /cla scans problem.md text against `routes.*.keywords` (case-insensitive
+     substring match).
+  2. If exactly 1 route matches → dispatch to that route's `cxo`.
+     - If the bound persona is `status: planned` (not yet active),
+       fall back to dispatching the route's `fallback_role` instead.
+  3. If 0 routes match OR multiple routes match → use `ambiguous_fallback`.
 
-Quy tắc chỉnh sửa:
-  - Thêm tuyến mới: chọn slug miền duy nhất; chọn CxO nằm trong
-    knowledge/workforce-personas.yaml (bất kỳ trạng thái nào); chọn vai trò
-    dự phòng nằm trong governance/ROLES.md.
-  - Từ khóa KHÔNG ĐƯỢC trùng lặp trên các tuyến (trình xác thực bắt điều này).
-  - Để đổi tên slug miền, cũng cập nhật bất kỳ tham chiếu nào trong
+Editing rules:
+  - Adding a new route: pick a unique domain slug; pick a CxO that is in
+    knowledge/workforce-personas.yaml (any status); pick a fallback_role
+    that is in governance/ROLES.md.
+  - Keywords must NOT overlap across routes (the validator catches this).
+  - To rename a domain slug, also update any references in
     06-ai-ops/skills/capability-lifecycle/domain-analyst/SKILL.md.
 
-Trình xác thực (L1):
+Validators (L1):
   - scripts/cross-tier/validate-cla-routing-keywords.cjs
 
-Xem:
-  - .archives/cla/03-architecture.md §6 (quyết định định tuyến CxO)
+See:
+  - .archives/cla/03-architecture.md §6 (CxO routing decisions)
   - .archives/cla/08-next-steps-checklist.md Sprint 1 §1
-  - knowledge/workforce-personas.yaml (sổ đăng ký persona)
-  - governance/ROLES.md (sổ đăng ký vai trò kỹ thuật)
+  - knowledge/workforce-personas.yaml (persona registry)
+  - governance/ROLES.md (technical role registry)
 
-## Các key cấp 1
+## Top-level keys
 
 - `version`
 - `owner`
@@ -56,4 +52,4 @@ Xem:
 - `routes`
 - `ambiguous_fallback`
 
-> Giá trị trực tiếp trong [`knowledge/cla-routing-keywords.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/cla-routing-keywords.yaml). Trang này mô tả lược đồ; không phải dữ liệu.
+> Live values in [`knowledge/cla-routing-keywords.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/cla-routing-keywords.yaml). This page describes the schema; not the data.

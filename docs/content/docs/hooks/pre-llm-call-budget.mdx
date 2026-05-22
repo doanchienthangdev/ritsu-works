@@ -3,51 +3,45 @@ title: 'Hook: pre-llm-call-budget'
 description: ''
 source_path: .claude/hooks/pre-llm-call-budget.md
 source_hash: fa76d4ef92d62f5d92067f89253f4f1a38faf7f143e54f0fbf8a93d808fc3430
-generated_at: '2026-05-19T05:20:46.390Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.433Z'
+generated_by: docs-engine v1.2.0
 category: hook
 language: vi
-translated: true
-translated_source_hash: fa76d4ef92d62f5d92067f89253f4f1a38faf7f143e54f0fbf8a93d808fc3430
-translated_at: '2026-05-19T12:34:00.000Z'
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-# Hook: pre-llm-call-budget
+> The runtime enforcement of `knowledge/economic-architecture.md` Axis 2. Every LLM call passes through here. Three-tier escalation (alert 80% / escalate 100% / block 150%) protects against silent cost spirals while not blocking legitimate work.
 
-> Runtime enforcement của `knowledge/economic-architecture.md` Axis 2. Mỗi LLM call đi qua đây. Ba-tier escalation (alert 80% / escalate 100% / block 150%) bảo vệ chống silent cost spirals khi không blocking legitimate work.
+## What it does
 
-## Những gì nó làm
+For each LLM call attempted:
 
-Cho mỗi LLM call được attempted:
+1. Compute current month's cost for the calling role
+2. Compare to that role's `economic_budget.monthly_cap_usd`
+3. Decide: allow / alert / escalate / block based on ratio
+4. Also check per-task-kind soft caps (catches single-task overruns)
+5. Write a `cost_attribution` row after the call completes
+6. Log alerts/escalations/blocks to `ops.budget_alerts`
 
-1. Compute current month's cost cho calling role
-2. Compare tới role's `economic_budget.monthly_cap_usd`
-3. Decide: allow / alert / escalate / block dựa trên ratio
-4. Cũng check per-task-kind soft caps (catches single-task overruns)
-5. Write một `cost_attribution` row sau call completes
-6. Log alerts/escalations/blocks vào `ops.budget_alerts`
+This is the **runtime** enforcement layer. The **proactive** companion is the `cost-report` skill (founder asks). Defense in depth: visibility + enforcement.
 
-Đây là **runtime** enforcement layer. **Proactive** companion là `cost-report` skill (founder hỏi). Defense in depth: visibility + enforcement.
+## Why this is critical
 
-## Tại sao điều này là critical
+Per `knowledge/economic-architecture.md` "failure mode #1 — silent cost spiral": a bug in a skill loops, $200 disappears overnight, founder discovers next billing cycle. This hook is the structural prevention.
 
-Per `knowledge/economic-architecture.md` "failure mode #1 — silent cost spiral": một bug trong skill loops, $200 disappears overnight, founder discovers tiếp theo billing cycle. Hook này là structural prevention.
+Without this hook:
+- `cost-report` only shows past damage
+- Per-role budgets in ROLES.md are aspirational
+- The 3-tier escalation is documented but not enforced
 
-Nếu không có hook này:
-- `cost-report` chỉ show past damage
-- Per-role budgets trong ROLES.md là aspirational
-- 3-tier escalation được documented nhưng không enforced
-
-## Logic quyết định
+## Decision logic
 
 ```
 function decide(payload):
   # Identify role + task_kind
   role = payload.agent_role
-  task_kind = extract_task_kind(payload)  # từ current task's state_payload
+  task_kind = extract_task_kind(payload)  # from current task's state_payload
 
   # Skip non-billable
   if role == 'founder':
@@ -129,13 +123,13 @@ function decide(payload):
   return allow(reason=f"healthy: {ratio:.0%} of budget")
 ```
 
-## Sau call: write cost attribution
+## After the call: write cost attribution
 
-Hook fires `pre-tool`, nhưng cũng có `post-tool` companion mà writes actual cost:
+The hook fires `pre-tool`, but also has a `post-tool` companion that writes the actual cost:
 
 ```
 function post_tool(payload):
-  # Extract token counts từ response
+  # Extract token counts from response
   usage = payload.response.usage
   cost = calculate_cost(
     model=payload.request.model,
@@ -161,15 +155,15 @@ function post_tool(payload):
     ts=now()
   )
 
-  # Invalidate cache cho next pre-tool call
+  # Invalidate cache for next pre-tool call
   invalidate_role_cost_cache(payload.agent_role)
 ```
 
-Điều này conceptually là một hook với cả `pre` và `post` halves; framework permitting, implement như paired hooks.
+This is conceptually one hook with both `pre` and `post` halves; framework permitting, implement as paired hooks.
 
-## Bảng định giá
+## Pricing table
 
-Cached locally; refreshed monthly via PR tới `knowledge/pricing/anthropic.yaml`. Table bao gồm:
+Cached locally; refreshed monthly via PR to `knowledge/pricing/anthropic.yaml`. Table includes:
 
 ```yaml
 # Per million tokens, in USD. Updated 2026-05-02.
@@ -195,60 +189,60 @@ service_tier_multipliers:
   priority: 1.5    # placeholder; Priority pricing varies
 ```
 
-Nếu model không tìm trong table → log warning, sử dụng Opus rates như conservative fallback (tốt hơn overestimate hơn under-track).
+If model not found in table → log warning, use Opus rates as conservative fallback (better to overestimate than under-track).
 
-## Ghi chú hiệu năng
+## Performance notes
 
-- Role budget lookup: cached per-process per-role với 30-second TTL
-- Current cost calculation: cached 30 seconds; invalidated bởi post-tool writes
-- Pricing table: cached cho entire session
-- Target: p95 \< 50ms cho pre-tool half
+- Role budget lookup: cached per-process per-role with 30-second TTL
+- Current cost calculation: cached 30 seconds; invalidated by post-tool writes
+- Pricing table: cached for entire session
+- Target: p95 \< 50ms for the pre-tool half
 
-Cho high-volume roles (100+ calls/min), 30-second cache là essential. Cache misses làm single SQL query (`SELECT SUM(cost_usd) FROM ops.cost_attributions WHERE agent_role = X AND ts >= month_start`).
+For high-volume roles (100+ calls/min), the 30-second cache is essential. Cache misses do a single SQL query (`SELECT SUM(cost_usd) FROM ops.cost_attributions WHERE agent_role = X AND ts >= month_start`).
 
-## Các trường hợp kiểm thử
+## Test cases
 
 | # | Scenario | Expected pre-tool decision |
 |---|---|---|
 | 1 | Fresh month, $0 spent, simple call | allow (healthy) |
-| 2 | Role ở 75% của monthly cap | allow (healthy) |
-| 3 | Role ở 80% của cap, first time today | allow + warning_80 alert |
-| 4 | Role ở 85% của cap, second call sau warning | allow (warning already fired this month) |
-| 5 | Role ở 100% của cap | escalate |
-| 6 | Role ở 100%, founder approved last call, this là next | escalate again (each call là own approval) |
-| 7 | Role ở 150% của cap | block |
-| 8 | Role ở 200% somehow | block (treat như 150%) |
-| 9 | Founder calling | allow (no role budget cho founder) |
-| 10 | Role với no economic_budget set | allow (tracking-only mode) |
+| 2 | Role at 75% of monthly cap | allow (healthy) |
+| 3 | Role at 80% of cap, first time today | allow + warning_80 alert |
+| 4 | Role at 85% of cap, second call after warning | allow (warning already fired this month) |
+| 5 | Role at 100% of cap | escalate |
+| 6 | Role at 100%, founder approved last call, this is next | escalate again (each call is its own approval) |
+| 7 | Role at 150% of cap | block |
+| 8 | Role at 200% somehow | block (treat as 150%) |
+| 9 | Founder calling | allow (no role budget for founder) |
+| 10 | Role with no economic_budget set | allow (tracking-only mode) |
 | 11 | Task instance estimated to exceed 2x its task_kind cap | escalate |
-| 12 | Pricing table missing cho new model | allow + warning logged (use fallback rate) |
+| 12 | Pricing table missing for new model | allow + warning logged (use fallback rate) |
 | 13 | Hook itself fails (DB unreachable) | block (fail-closed) |
-| 14 | Calibration period (first 14 days post-launch) | allow với warning ngay cả ở 100% (deferred enforcement) |
+| 14 | Calibration period (first 14 days post-launch) | allow with warning even at 100% (deferred enforcement) |
 
 ## Calibration mode
 
-Cho first 14 days sau v1.0 launch (per `knowledge/economic-architecture.md` "30-day calibration discipline"), hook chạy ở calibration mode:
+For first 14 days after v1.0 launch (per `knowledge/economic-architecture.md` "30-day calibration discipline"), hook runs in calibration mode:
 
-- Tất cả decisions trả về `allow` bất kể ratio
-- Alerts vẫn fire (founder gets visibility)
-- `ops.budget_alerts` rows vẫn inserted (data cho tuning)
+- All decisions return `allow` regardless of ratio
+- Alerts still fire (founder gets visibility)
+- `ops.budget_alerts` rows still inserted (data for tuning)
 
-Calibration mode được set qua global flag trong `knowledge/manifest.yaml` `economic_calibration_mode: true`. Founder PR flips tới `false` sau day 14 để activate full enforcement.
+Calibration mode is set via global flag in `knowledge/manifest.yaml` `economic_calibration_mode: true`. Founder PR flips to `false` after day 14 to activate full enforcement.
 
-## Composition với other hooks
+## Composition with other hooks
 
-Hook này composes với:
+This hook composes with:
 
-- **`pre-tool-secrets`** (Bài #2) — chạy first; nếu API key không allowed, request không bao giờ reach budget check
-- **`pre-delegate-check`** (Bài #5) — informational soft signals; không gate
-- **`pre-tool-customer-message`** (Bài #6) — cho customer-facing sends; hook này composes với nó (both phải pass)
-- **`pre-edit-tier1`** (Bài #2) — orthogonal (file edits, không LLM calls)
+- **`pre-tool-secrets`** (Bài #2) — runs first; if API key not allowed, request never reaches budget check
+- **`pre-delegate-check`** (Bài #5) — informational soft signals; doesn't gate
+- **`pre-tool-customer-message`** (Bài #6) — for customer-facing sends; this hook composes with it (both must pass)
+- **`pre-edit-tier1`** (Bài #2) — orthogonal (file edits, not LLM calls)
 
-Nếu multiple hooks trả về `escalate`, founder gets một consolidated approval prompt.
+If multiple hooks return `escalate`, founder gets one consolidated approval prompt.
 
-## Quan sát
+## Observability
 
-Mỗi escalate/block writes tới `ops.budget_alerts`. Monthly review queries:
+Every escalate/block writes to `ops.budget_alerts`. Monthly review queries:
 
 ```sql
 SELECT alert_kind,
@@ -262,21 +256,21 @@ ORDER BY alert_kind;
 
 Healthy operation:
 - 0-3 `warning_80` alerts/month (some roles approaching budget)
-- 0 `escalate_100` ideally (hoặc rare cho legitimate spikes)
-- 0 `hard_block_150` (bất kỳ cái gì ở đây = investigation)
+- 0 `escalate_100` ideally (or rare for legitimate spikes)
+- 0 `hard_block_150` (anything here = investigation)
 
-Nếu `hard_block_150` fires, đây là SECURITY EVENT — alert founder immediately và don't auto-resolve.
+If `hard_block_150` fires, this is a SECURITY EVENT — alert founder immediately and don't auto-resolve.
 
 ## Compliance audit
 
 Quarterly audit (per `governance/SECRETS.md` cadence):
 
-1. Reconcile `ops.cost_attributions` total vs Anthropic Usage Admin API cho past quarter
+1. Reconcile `ops.cost_attributions` total vs Anthropic Usage Admin API for past quarter
 2. Discrepancy > 5% → investigate (untracked usage, hook bypass, ETL bug)
-3. Verify tất cả roles có `economic_budget.monthly_cap_usd` set trong ROLES.md
-4. Verify pricing table updated trong last 60 days
+3. Verify all roles have `economic_budget.monthly_cap_usd` set in ROLES.md
+4. Verify pricing table updated within last 60 days
 
-## Tham chiếu triển khai
+## Implementation reference
 
 ```python
 import time
@@ -300,7 +294,7 @@ def calculate_cost(model, input_tokens, cache_creation, cache_read,
     pricing = load_pricing()
     rates = pricing['models'].get(model)
     if not rates:
-        # Fallback tới Opus rates (conservative)
+        # Fallback to Opus rates (conservative)
         rates = pricing['models']['claude-opus-4-7']
         log_warning(f"Unknown model {model}, using Opus rates")
 
@@ -333,18 +327,19 @@ def get_role_monthly_cost(role):
 # ... rest per decision logic above
 ```
 
-## Khi hook này changes
+## When this hook changes
 
-Triggers để revisit:
+Triggers to revisit:
 
 - Anthropic releases new pricing structure → update pricing table (PR)
-- New model launches → add tới pricing table
+- New model launches → add to pricing table
 - Calibration data shows defaults wrong → adjust thresholds (D-Std PR per HITL)
-- New role added → economic_budget set trong ROLES.md (covered bởi add-new-role recipe)
+- New role added → economic_budget set in ROLES.md (covered by add-new-role recipe)
 - Currency changes → multi-currency support (post-v1.0)
 
-Hook spec changes là D-Std PR (đây là critical safety infrastructure).
+Hook spec changes are D-Std PR (this is critical safety infrastructure).
 
 ---
 
-*Silent cost spirals là most expensive failure mode của AI workforces. Hook này là structural prevention — mỗi call gates through, mỗi dollar attributed, three thresholds catching three different shapes của overrun.*
+*Silent cost spirals are the most expensive failure mode of AI workforces. This hook is the structural prevention — every call gates through, every dollar attributed, three thresholds catching three different shapes of overrun.*
+

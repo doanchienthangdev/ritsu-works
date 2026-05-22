@@ -1,76 +1,119 @@
 ---
 title: 'Skill: docs-engine'
-description: Umbrella docs engine cho live Fumadocs site
+description: |
+  Umbrella for the docs-engine capability. Drives the live Fumadocs site at
+  `docs/` (deployed on Vercel Hobby). Walks Tier 1 + `.claude/` runtime files
+  via 9 source-kind adapters (skill, agent, hook, command, charter, governance,
+  pillar-readme, sop-flow, tier1-yaml) and generates MDX into `docs/content/`.
+  Vietnamese-first content. Includes `<!-- generated-by: docs-engine vN -->`
+  idempotency marker + 3-way diff on regen (CTO mod), and 3-layer fail-loud
+  secret redactor (CTO mod). 6 verb sub-skills (scaffold, sync, check, publish,
+  nav, update). Invoked by `.claude/commands/docs.md` sub-commands.
+
+  Distinct from `wiki-sync` (which goes external→wiki/); docs-engine goes
+  internal→docs/. Distinct corpora, distinct output substrate, distinct
+  audience (operators + AI runtime, not external research).
 source_path: 06-ai-ops/skills/docs-engine/SKILL.md
 source_hash: 1c9c029d464cddaf04ca542ceaa94efe52415858fd9c50f83de5f1f6c70ec6dc
-generated_at: '2026-05-21T03:49:53.245Z'
+generated_at: '2026-05-22T01:09:07.382Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_at: '2026-05-19T15:00:00Z'
-translated_by: Claude Opus 4.7 (Claude Code Desktop, session translation)
-translated_source_hash: 1c9c029d464cddaf04ca542ceaa94efe52415858fd9c50f83de5f1f6c70ec6dc
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-# Docs Engine (umbrella)
+## When to use
 
-## Khi nào sử dụng
+- Founder runs `/docs scaffold` → dispatches to `docs-engine/scaffold`.
+- Founder runs `/docs sync` → dispatches to `docs-engine/sync`.
+- Founder runs `/docs check` → dispatches to `docs-engine/check`.
+- Founder runs `/docs publish` → dispatches to `docs-engine/publish` (Tier B).
+- Founder runs `/docs nav` → dispatches to `docs-engine/nav`.
+- Founder runs `/docs update <area>` → dispatches to `docs-engine/update`.
+- Scheduled `docs-drift-nightly` cron → dispatches to `docs-engine/check`.
+- Any agent calls `mcp__docs__ask` (v1.1 feature) → dispatches to a future `docs-engine/ask` sub-skill.
 
-- Founder chạy `/docs scaffold`
-- Founder chạy `/docs sync`
-- Founder chạy `/docs check`
-- Founder chạy `/docs publish`
-- Founder chạy `/docs nav`
-- Founder chạy `/docs update <area>`
-- Cron `docs-drift-nightly` theo lịch
-- Agent gọi `mcp__docs__ask` (tính năng v1.1)
+## Inputs
 
-## Định tuyến sub-skill
+- `verb` — one of `scaffold` / `sync` / `check` / `publish` / `nav` / `update`. (Verb `scaffold` was named `build` in early drafts — renamed because `build/` is repo-gitignored.)
+- `args` — verb-specific args (see `.claude/commands/docs.md`).
+
+## Sub-skill routing
 
 | Verb | Dispatches to | HITL |
 |---|---|---|
 | `scaffold` | `docs-engine/scaffold` | A |
-| `sync` | `docs-engine/sync` | A (B nếu cost > cap) |
+| `sync` | `docs-engine/sync` (which fan-outs to `docs-engine/adapters/<kind>-adapter`) | A (B if cost > cap) |
 | `check` | `docs-engine/check` | A |
 | `publish` | `docs-engine/publish` | B |
 | `nav` | `docs-engine/nav` | A |
-| `update` | `docs-engine/update` | A |
+| `update` | `docs-engine/update` (which dispatches to `docs-engine/sync` scoped) | A |
 
-## Định tuyến adapter
+## Adapter routing (within `docs-engine/sync`)
 
-9 adapter cho các loại source:
-- skill, agent, hook, command, charter, governance, pillar-readme, sop-flow, tier1-yaml
+| Source kind | Adapter | Source pattern |
+|---|---|---|
+| skill | `adapters/skill-adapter` | `06-ai-ops/skills/**/SKILL.md` |
+| agent | `adapters/agent-adapter` | `.claude/agents/*.md` (excl. README) |
+| hook | `adapters/hook-adapter` | `.claude/hooks/*.md` (excl. README, SPEC) |
+| command | `adapters/command-adapter` | `.claude/commands/*.md` |
+| charter | `adapters/charter-adapter` | `00-core/*.md` (excl. `founder-profile.md`) |
+| governance | `adapters/governance-adapter` | `governance/*.md` (excl. `SECRETS.md`) |
+| pillar-readme | `adapters/pillar-readme-adapter` | `0[0-9]-*/{README,CLAUDE}.md` + sub-pillars |
+| sop-flow | `adapters/sop-flow-adapter` | `0[0-9]-*/sops/*/flow.yaml` + adjacent README |
+| tier1-yaml | `adapters/tier1-yaml-adapter` | `knowledge/*.yaml` (top-level only) |
 
 ## Outputs
 
-- File MDX dưới `docs/content/`
-- `docs/content/meta.json` được cập nhật
-- Một dòng trong `ops.agent_runs`
-- Một dòng trong `ops.events`
-- Một dòng trong `ops.kpi_snapshots`
+- MDX files under `docs/content/` (per Fumadocs convention).
+- `docs/content/meta.json` updates (via `nav` sub-skill).
+- `ops.agent_runs` row per invocation.
+- `ops.events` row per emitted event.
+- `ops.kpi_snapshots` row for `docs_drift_count`.
 
-## Trạng thái
+## State transition
 
-Stateless về mặt capability.
+`docs-engine` invocations are stateless w.r.t. the capability itself (the capability is `operating`). State lives in:
+- `docs/content/**/*.mdx` (rendered output, in git)
+- `ops.kpi_snapshots WHERE kpi_id = 'docs_drift_count'` (drift over time)
+- Vercel project (last deploy state, externally hosted)
 
 ## HITL
 
-Theo verb. Mặc định Tier A; `publish` Tier B.
+Per verb above. Default Tier A; `publish` always Tier B; `sync` escalates to Tier B if cost > per-task-kind cap OR > 50% pages would change.
 
 ## Failure modes
 
-Trôi dạt trước sync, lộ secret, xung đột chỉnh sửa thủ công, adapter fail.
+| Symptom | Response |
+|---|---|
+| `pnpm check` non-zero before sync | Abort. Fix drift first. |
+| Secret leak detected (any of 3 layers) | Abort loud. Open GitHub issue tagged `secret-leak-suspected`. |
+| Hand-edit conflict on `<!-- generated-by -->` marked page | Write conflict report. Skip the file. Surface to founder. |
+| Adapter partial failure | Continue rest. Aggregate errors. Affected pages count toward `docs_drift_count`. |
+| Vercel deploy failed | Emit `ritsu.docs.published` with `status: failed`. Founder investigates manually. |
 
-## Ước tính cost
+## LLM mode awareness
 
-- Cost-bucket: `ai-ops-docs`
-- Cap theo task-kind: scaffold $0.50, sync $1.00, nav $0.10, check $0, publish thay đổi
-- Hàng tháng: $30
+- **Subscription:** All sub-skill invocations through founder's Claude Code session.
+- **Hybrid / Full API:** Autonomous; `docs-drift-nightly` cron + scheduled syncs viable.
+- **Fallback (no API):** `check` + `nav` + `status` work (deterministic); `sync` falls back to walker-only (no LLM prose enrichment); `scaffold` requires LLM.
 
----
+## Cost estimate
 
-Xem: `.claude/commands/docs.md`, `SOP-AIOPS-003-docs-sync`, pattern `wiki-sync`.
+- Cost-bucket: `ai-ops-docs` (NEW).
+- Per-task-kind caps (in `governance/ROLES.md` `code-reviewer.economic_budget.per_task_kind_caps`):
+  - `docs-scaffold`: $0.50
+  - `docs-sync-full-walk`: $1.00
+  - `docs-nav-edit`: $0.10
+  - `docs-check`: $0 (deterministic)
+  - `phase-7-implementation-pr`: $2.00
+- Monthly cap: $30 (3x headroom on $3-12/mo recurring estimate).
+
+## See also
+
+- Command: `.claude/commands/docs.md`
+- SOP: `06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml`
+- Capability spec: `wiki/capabilities/docs-engine/spec.md` (after Phase 8 promotion)
+- Sibling pattern: `06-ai-ops/skills/wiki-sync/SKILL.md`
 
