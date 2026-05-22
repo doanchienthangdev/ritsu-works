@@ -206,12 +206,58 @@ function emitMdx({ title, sourcePath, sourceHash, body, lang, order }) {
   ].join("\n");
 }
 
+// Group separators that bracket chapter ranges in the sidebar — must match
+// the existing meta.{vi,en}.json shape so we don't fight the file format.
+// Each "segment" lists [labelVi, labelEn, predicate(slug)→boolean].
+const SIDEBAR_SEGMENTS = [
+  ["---Phần I — Nền tảng---", "---Part I — Foundations---", (s) => /^0[1-3]-/.test(s)],
+  ["---Phần II — Operations & Trust---", "---Part II — Operations & Trust---", (s) => /^0[4-5]-/.test(s)],
+  ["---Phần III — Scaling & Intelligence---", "---Part III — Scaling & Intelligence---", (s) => /^(0[6-9]|10)-/.test(s)],
+  ["---Phần IV — Triển khai---", "---Part IV — Implementation---", (s) => /^1[1-3]-/.test(s)],
+  ["---Phần V — Phase A.2---", "---Part V — Phase A.2---", (s) => /^(1[4-9]|2\d|3[0-3])-/.test(s)],
+  ["---Phần VI — Capability Case Studies---", "---Part VI — Capability Case Studies---", (s) => /^3[4-9]-capability-case/.test(s)],
+  ["---Phụ lục---", "---Appendix---", (s) => /^A\d/.test(s)],
+];
+
+function buildSidebar(allSlugs, lang) {
+  const labelIdx = lang === "vi" ? 0 : 1;
+  const pages = [];
+  for (const segment of SIDEBAR_SEGMENTS) {
+    const [labelVi, labelEn, pred] = segment;
+    const label = lang === "vi" ? labelVi : labelEn;
+    const matched = allSlugs.filter(pred);
+    if (matched.length === 0) continue;
+    pages.push(label);
+    for (const slug of matched) pages.push(slug);
+  }
+  return pages;
+}
+
+function updateMetaJson(allSlugs) {
+  for (const lang of ["vi", "en"]) {
+    const metaPath = path.join(DOCS_TARGET, `meta.${lang}.json`);
+    if (!fs.existsSync(metaPath)) {
+      console.warn(`[playbook-import] ⚠ meta.${lang}.json not found at ${metaPath}; skipping sidebar regen`);
+      continue;
+    }
+    const meta = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
+    const newPages = buildSidebar(allSlugs, lang);
+    const oldJson = JSON.stringify(meta.pages);
+    const newJson = JSON.stringify(newPages);
+    if (oldJson === newJson) continue;
+    meta.pages = newPages;
+    fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2) + "\n", "utf-8");
+    console.log(`[playbook-import] updated meta.${lang}.json sidebar (${newPages.length} entries)`);
+  }
+}
+
 function main() {
   if (!fs.existsSync(DOCS_TARGET)) {
     fs.mkdirSync(DOCS_TARGET, { recursive: true });
   }
   let written = 0;
   let skipped = 0;
+  const writtenSlugs = [];
   for (let i = 0; i < CHAPTER_ORDER.length; i++) {
     const chapterPath = CHAPTER_ORDER[i];
     const absPath = path.join(PLAYBOOK_ROOT, chapterPath);
@@ -225,6 +271,7 @@ function main() {
     const title = titleFromBody(raw);
     const order = i + 1;
     const sourceRel = `.archives/ritsu-handoff-bundle/playbook/chapters/${chapterPath}`;
+    writtenSlugs.push(slug);
 
     for (const lang of ["vi", "en"]) {
       const filename = lang === "vi" ? `${slug}.mdx` : `${slug}.en.mdx`;
@@ -250,6 +297,8 @@ function main() {
       written++;
     }
   }
+  // Regenerate sidebar so chapters never silently drop out of the left nav.
+  updateMetaJson(writtenSlugs);
   console.log(
     `[playbook-import] written=${written} skipped=${skipped} (target: ${CHAPTER_ORDER.length * 2} files)`
   );
