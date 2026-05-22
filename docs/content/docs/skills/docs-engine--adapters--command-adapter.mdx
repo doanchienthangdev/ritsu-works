@@ -1,25 +1,18 @@
 ---
 title: 'Skill: docs-engine/adapters/command-adapter'
 description: |
-  Adapter hiển thị `.claude/commands/<name>.md` thành trang MDX. Xử lý kỷ luật
-  KHÔNG NHẤT QUÁN về frontmatter — một số lệnh (ví dụ: /cla) có YAML
-  frontmatter; một số (ví dụ: /wiki) bắt đầu trực tiếp với H1.
+  Adapter that renders `.claude/commands/<name>.md` into MDX page. Handles
+  INCONSISTENT frontmatter discipline — some commands (e.g. /cla) have YAML
+  frontmatter; some (e.g. /wiki) start directly with H1.
 source_path: 06-ai-ops/skills/docs-engine/adapters/command-adapter/SKILL.md
 source_hash: 0fe175e8ee3c9dca79b2b50d6f846ecd9a9fc4d1bbadd8778d5e55e517d8dcc5
-generated_at: '2026-05-19T05:20:46.351Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.384Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: 0fe175e8ee3c9dca79b2b50d6f846ecd9a9fc4d1bbadd8778d5e55e517d8dcc5
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
-
-
-# docs-engine/adapters/command-adapter
+{/* generated-by: docs-engine v1.2.0 */}
 
 ## Input pattern
 
@@ -31,23 +24,24 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Process
 
-1. Cố gắng parse YAML frontmatter.
-2. **Fallback nếu không có frontmatter:** dẫn xuất `title` từ H1 đầu tiên (`# /<name>`); `description` từ đoạn đầu tiên.
-3. Tính `source_hash`.
-4. Hiển thị MDX với các phần: "Synopsis", "Subcommands", "Workflow", "State persistence", "Drift gates", "HITL discipline".
-5. Phát hiện bảng subcommand (bảng markdown có cột đầu tiên là "Invocation") → hiển thị với Fumadocs `<Tabs>` mỗi động từ chính.
-6. Thêm marker idempotency.
+1. Try to parse YAML frontmatter.
+2. **Fallback if no frontmatter:** derive `title` from first H1 (`# /<name>`); `description` from first paragraph.
+3. Compute `source_hash`.
+4. Render MDX with sections: "Synopsis", "Subcommands", "Workflow", "State persistence", "Drift gates", "HITL discipline".
+5. Detect subcommand table (markdown table with first column "Invocation") → render with Fumadocs `<Tabs>` per major verb.
+6. Add idempotency marker.
 
 ## Edge cases
 
-- Lệnh với bảng sub-command: `/wiki`, `/cla`, `/docs` (mới). Parse + cấu trúc.
-- Lệnh không có sub-command: `/cto`, `/cgo`, `/ceo`, `/cpo`. Hiển thị dưới dạng narrative trang đơn.
-- `/check-drift`, `/mcp-doctor`: các lệnh deterministic-tool không có LLM; ngắn gọn.
+- Commands with sub-command tables: `/wiki`, `/cla`, `/docs` (new). Parse + structure.
+- Commands without sub-commands: `/cto`, `/cgo`, `/ceo`, `/cpo`. Render as single-page narrative.
+- `/check-drift`, `/mcp-doctor`: deterministic-tool commands with no LLM; brief.
 
 ## HITL / Cost
 
-Tier A. ~$0.03 mỗi tệp (cao hơn một chút so với skill/agent vì parse bảng).
+Tier A. ~$0.03 per file (slightly higher than skill/agent because of table parsing).
 
 ## See also
 
-- Ví dụ để kiểm tra: `.claude/commands/wiki.md` (không frontmatter), `.claude/commands/cla.md` (có frontmatter)
+- Examples to test against: `.claude/commands/wiki.md` (no frontmatter), `.claude/commands/cla.md` (with frontmatter)
+

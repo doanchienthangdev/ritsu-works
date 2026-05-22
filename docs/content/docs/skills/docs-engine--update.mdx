@@ -1,45 +1,39 @@
 ---
 title: 'Skill: docs-engine/update'
 description: |
-  Bí danh cho `docs-engine/sync --area=<area>`. Từ động tiện lợi để làm mới một
-  vùng nội dung mà không cần duyệt toàn bộ corpus.
+  Alias for `docs-engine/sync --area=<area>`. Convenience verb to refresh one
+  content area without walking the full corpus.
 source_path: 06-ai-ops/skills/docs-engine/update/SKILL.md
 source_hash: f42f4a8c8425d8cbb0dc3d51977b546e2466d394ba8e2ac29f61f1cc203118a9
-generated_at: '2026-05-19T05:20:46.356Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.389Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: f42f4a8c8425d8cbb0dc3d51977b546e2466d394ba8e2ac29f61f1cc203118a9
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When to use
 
-# docs-engine/update
-
-## Khi nào dùng
-
-- Lệnh `/docs update <area>` (founder muốn làm mới chỉ một vùng, ví dụ sau khi chỉnh sửa một SOP).
+- `/docs update <area>` command (founder wants to refresh just one area, e.g. after editing a SOP).
 
 ## Inputs
 
-- `area` — bắt buộc; một trong `commands` | `skills` | `agents` | `hooks` | `charter` | `governance` | `pillars` | `sops` | `tier1`.
+- `area` — required; one of `commands` | `skills` | `agents` | `hooks` | `charter` | `governance` | `pillars` | `sops` | `tier1`.
 
 ## Process
 
-Dispatch tới `docs-engine/sync` với `area=<area>`. Không có logic bổ sung.
+Dispatches to `docs-engine/sync` with `area=<area>`. No additional logic.
 
 ## HITL
 
-Giống như `docs-engine/sync` (Tier A; B nếu chi phí > cap hoặc > 50% trang trong vùng thay đổi).
+Same as `docs-engine/sync` (Tier A; B if cost > cap or > 50% pages changed in area).
 
 ## Cost estimate
 
-Tập con phạm vi của chi phí `docs-engine/sync`. Thường là $0.05-0.30 mỗi vùng.
+Scoped subset of `docs-engine/sync` cost. Typically $0.05-0.30 per area.
 
 ## See also
 
-- `docs-engine/sync/SKILL.md` (công cụ thực tế làm việc)
+- `docs-engine/sync/SKILL.md` (the actual workhorse)
+

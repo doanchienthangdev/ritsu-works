@@ -1,67 +1,61 @@
 ---
 title: 'Skill: problem-framer'
-description: Phase 1 của CLA workflow
+description: Phase 1 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/problem-framer/SKILL.md
 source_hash: ad34c9a667ecc46e2e34772e3efef9a9733aa1ddcd7773b9b2cbeec8e9bad350
-generated_at: '2026-05-21T02:26:27.811Z'
+generated_at: '2026-05-22T01:09:07.374Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_at: "2026-05-21T08:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
-translated_source_hash: ad34c9a667ecc46e2e34772e3efef9a9733aa1ddcd7773b9b2cbeec8e9bad350
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-# Problem Framer (CLA Phase 1)
+## When to use
 
-## Khi nào sử dụng
-
-- Được gọi bởi `.claude/commands/cla.md` sau khi Phase 0 thành công, với capability folder + row `ops.capability_runs` đã được tạo.
+- Invoked by `.claude/commands/cla.md` after Phase 0 succeeds, with the capability folder + `ops.capability_runs` row already created.
 - `ops.capability_runs.current_phase = 1`, `state = 'proposed'`.
 
-## Đầu vào
+## Inputs
 
-- `capability_id` — slug, set bởi Phase 0.
-- `raw_proposal` — văn bản mô tả vấn đề gốc của founder.
-- `triggered_by` — `cla_command` (v1.0). Tương lai: `voice_note`, `wiki_entry`.
-- `refs_dir` — tùy chọn `.archives/cla/<capability_id>/refs/` nếu founder truyền file-path `--refs`.
-- `wiki_refs_dir` — tùy chọn `runtime/cla/refs/<capability_id>/` (v1.1) nếu founder truyền `--refs=wiki:src=<spec>` hoặc `--refs=wiki:query="<text>"`. Files ở đây là các bundle được sinh ra bởi `/wiki get` trong Phase 0; mang header annotation chỉ ra chúng đến từ source spec hoặc query nào. Coi như primary input context — founder đã chủ động curate kiến thức này.
+- `capability_id` — slug, set by Phase 0.
+- `raw_proposal` — founder's original problem text.
+- `triggered_by` — `cla_command` (v1.0). Future: `voice_note`, `wiki_entry`.
+- `refs_dir` — optional `.archives/cla/<capability_id>/refs/` if the founder passed file-path `--refs`.
+- `wiki_refs_dir` — optional `runtime/cla/refs/<capability_id>/` (v1.1) if the founder passed `--refs=wiki:src=<spec>` or `--refs=wiki:query="<text>"`. Files here are bundles produced by `/wiki get` during Phase 0; carry header annotation indicating which source spec or query they came from. Treat as primary input context — the founder explicitly curated this knowledge.
 
-## Quy trình
+## Process
 
-### Bước 1 — Tiếp nhận tài liệu tham chiếu (tùy chọn)
+### Step 1 — Ingest reference docs (optional)
 
-Hai folder ref có thể tồn tại (v1.1):
-- `.archives/cla/<capability_id>/refs/` — files được copy từ args `--refs <file-path>`
-- `runtime/cla/refs/<capability_id>/` — wiki bundles được sinh ra bởi `/wiki get` từ args `--refs=wiki:src=` / `--refs=wiki:query=`
+Two ref folders may exist (v1.1):
+- `.archives/cla/<capability_id>/refs/` — files copied from `--refs <file-path>` args
+- `runtime/cla/refs/<capability_id>/` — wiki bundles produced by `/wiki get` from `--refs=wiki:src=` / `--refs=wiki:query=` args
 
-Cho mỗi folder:
-- Liệt kê files.
-- Đọc từng file (cap ở 5 files, 50 KB mỗi file — vượt quá, tóm tắt phần còn lại chỉ là filenames).
-- Cho các files trong `runtime/cla/refs/`: header mang annotation `**Query:**` hoặc `**Source spec:**`; surface điều này như "founder-curated knowledge from wiki" trong context excerpts để báo hiệu intent rõ ràng vs ad-hoc file dump.
-- Xây dựng một section "context excerpts" ngắn (≤ 800 tokens) sẽ được embed vào LLM prompt cho các bước 2-4.
-- Nếu một ref trông giống như `problem.md` hoặc `spec.md` của một capability đang tồn tại, surface đó như một duplicate-or-extension hint cho bước 5.
+For each folder:
+- List the files.
+- Read each (cap at 5 files, 50 KB each — beyond that, summarise the rest as filenames only).
+- For files in `runtime/cla/refs/`: header carries `**Query:**` or `**Source spec:**` annotation; surface this as "founder-curated knowledge from wiki" in the context excerpts to signal explicit intent vs ad-hoc file dump.
+- Build a short "context excerpts" section (≤ 800 tokens) that will be embedded into the LLM prompt for steps 2-4.
+- If a ref looks like an existing capability's `problem.md` or `spec.md`, surface that as a duplicate-or-extension hint for step 5.
 
-### Bước 2 — Tinh chỉnh phát biểu vấn đề
+### Step 2 — Refine the problem statement
 
-Từ `raw_proposal` (+ refs context tùy chọn), tạo một đoạn văn duy nhất, súc tích theo dạng:
+From `raw_proposal` (+ optional refs context), produce a single tight paragraph in the form:
 
 > \{verb} \{object} \{quantity or quality target} \{time horizon} \{constraint, if any}
 
-Ví dụ:
+Examples:
 - "Acquire 10 new paying customers per day, sustained over a rolling 30-day window, with CAC under $20."
 - "Auto-triage support tickets from Telegram into FAQ-handled vs founder-required within 5 minutes of arrival."
 
-Phát biểu đã tinh chỉnh nên ≤ 50 từ, chứa ít nhất một measurable target, và tránh các từ chung chung ("scale", "improve", "automate stuff").
+The refined statement should be ≤ 50 words, contain at least one measurable target, and avoid generic words ("scale", "improve", "automate stuff").
 
-### Bước 3 — Tạo 5-7 câu hỏi làm rõ
+### Step 3 — Generate 5-7 clarifying questions
 
-Mỗi câu hỏi bao quát một trong các chiều dưới đây; chọn cái nào thực sự còn mơ hồ. Bỏ qua các chiều rõ ràng từ raw proposal.
+Each question covers one of these dimensions; pick whichever are actually ambiguous. Skip dimensions that are clear from the raw proposal.
 
-| # | Chiều | Mẫu câu hỏi |
+| # | Dimension | Question pattern |
 |---|---|---|
 | 1 | Đối tượng | "Who is the target user/customer/persona?" |
 | 2 | Định nghĩa | "When you say '\{key noun}', do you mean \{option A} / \{option B} / \{option C}?" |
@@ -71,7 +65,7 @@ Mỗi câu hỏi bao quát một trong các chiều dưới đây; chọn cái n
 | 6 | Constraints | "Anything off-limits — channels, ethical lines, founder bandwidth, dependencies?" |
 | 7 | Existing fit | "Which pillar does this live in? Is it net-new or an extension of an existing capability?" |
 
-Format mỗi câu hỏi cho `AskUserQuestion`:
+Format each question for `AskUserQuestion`:
 
 ```jsonc
 {
@@ -86,24 +80,24 @@ Format mỗi câu hỏi cho `AskUserQuestion`:
 }
 ```
 
-Gom các câu hỏi vào batches ≤ 4 mỗi `AskUserQuestion` call (Anthropic limit). Orchestrator command sẽ phát hành call(s); skill này tạo question payloads.
+Group the questions into batches of ≤ 4 per `AskUserQuestion` call (Anthropic limit). The orchestrator command will issue the call(s); this skill produces the question payloads.
 
-### Bước 4 — Soạn thảo tiêu chí thành công
+### Step 4 — Draft success criteria
 
-Format mỗi criterion như:
+Format each criterion as:
 
 > \{observation} happens, measured by \{table/path/KPI}, target \{value}, by \{date}
 
-Surface ≥ 2 criteria. Mỗi cái PHẢI đo lường được từ `ops.kpi_snapshots` hoặc `metrics.*` (không phát minh KPIs không tồn tại — nếu cần KPI mới, flag là "NEW: needs registration in Phase 5").
+Surface ≥ 2 criteria. Each MUST be measurable from `ops.kpi_snapshots` or `metrics.*` (do not invent KPIs that don't exist — if a new KPI is needed, flag it as "NEW: needs registration in Phase 5").
 
-### Bước 5 — Nêu rõ các giả định + kiểm tra trùng lặp
+### Step 5 — Surface assumptions + duplicate check
 
-- Liệt kê 3-7 giả định, mỗi cái bắt đầu bằng "ASSUMING ...".
-- Chạy slug-collision check: đọc `knowledge/capability-registry.yaml`; nếu slug hoặc một slug tương tự tồn tại, surface: "Existing capability `<slug>` is in state `<state>`. Extension or independent?"
+- List 3-7 assumptions, each starting with "ASSUMING ...".
+- Run a slug-collision check: read `knowledge/capability-registry.yaml`; if the slug or a similar slug exists, surface: "Existing capability `<slug>` is in state `<state>`. Extension or independent?"
 
-### Bước 6 — Viết `.archives/cla/<capability_id>/problem.md`
+### Step 6 — Write `.archives/cla/<capability_id>/problem.md`
 
-Template orchestrator tại `.archives/cla/_TEMPLATE/problem.md` là điểm bắt đầu. Điền vào mọi section. Shape cuối:
+The orchestrator template at `.archives/cla/_TEMPLATE/problem.md` is the starting point. Fill in every section. Final shape:
 
 ```markdown
 # Problem: {refined-name}
@@ -144,77 +138,78 @@ Template orchestrator tại `.archives/cla/_TEMPLATE/problem.md` là điểm b�
 Phase 2 — Domain Deep-Dive (`domain-analyst` skill)
 ```
 
-### Bước 7 — Lưu trạng thái
+### Step 7 — Persist state
 
 - UPDATE `ops.capability_runs` SET `problem_path = '.archives/cla/<id>/problem.md'`, `phases_completed = phases_completed || 1`, `current_phase = 2`, `state = 'analyzing'`, `state_since = now()` WHERE `capability_id = '<id>'`.
-- INSERT row `ops.capability_phase_events` (`phase = 1`, `event = 'completed'`).
-- INSERT row `ops.events` (`event_type = 'ritsu.capability.problem_framed'`).
-- INSERT row `ops.run_summaries` (~150 tokens tóm tắt framing decision + bao nhiêu câu hỏi làm rõ còn chưa được trả lời).
+- INSERT `ops.capability_phase_events` row (`phase = 1`, `event = 'completed'`).
+- INSERT `ops.events` row (`event_type = 'ritsu.capability.problem_framed'`).
+- INSERT `ops.run_summaries` row (~150 tokens summarising the framing decision + how many clarifying questions remain unanswered).
 
-### Bước 8 — Trả về cho orchestrator
+### Step 8 — Return to orchestrator
 
-Orchestrator (`.claude/commands/cla.md`) tiếp quản:
-- Phát hành các `AskUserQuestion` batches được xây dựng trong Bước 3.
-- Gập câu trả lời của founder trở lại vào `problem.md` dưới mỗi dòng `**Founder answer:**`.
-- Nếu founder trả lời `skip` cho mỗi câu hỏi, danh sách assumptions LÀ tập câu trả lời — note điều đó rõ ràng trong problem.md.
-- Auto-advance tới Phase 2 khi tất cả câu hỏi được giải quyết (hoặc 24h timeout per HITL Tier A).
+The orchestrator (`.claude/commands/cla.md`) takes over:
+- Issues the `AskUserQuestion` batches built in Step 3.
+- Folds founder answers back into `problem.md` under each `**Founder answer:**` line.
+- If founder answers `skip` to every question, the assumptions list IS the answer set — note that explicitly in problem.md.
+- Auto-advances to Phase 2 once all questions resolved (or 24h timeout per HITL Tier A).
 
-## Đầu ra
+## Outputs
 
-- `.archives/cla/<capability_id>/problem.md` (canonical cho Phases 2-7)
-- Row `ops.capability_runs` đã cập nhật
-- 1 row trong `ops.capability_phase_events`, `ops.events`, `ops.run_summaries`
+- `.archives/cla/<capability_id>/problem.md` (canonical for Phases 2-7)
+- Updated `ops.capability_runs` row
+- 1 row in `ops.capability_phase_events`, `ops.events`, `ops.run_summaries`
 
-## Chuyển trạng thái
+## State transition
 
-`proposed → analyzing` (Phase 2 bắt đầu ngay sau câu trả lời clarifying-question cuối cùng của founder hoặc auto-advance timeout).
+`proposed → analyzing` (Phase 2 starts immediately after the founder's last clarifying-question answer or auto-advance timeout).
 
 ## HITL
 
-Tier A. Auto-advance ngoại trừ founder cancels hoặc replies "stop" / "rethink".
+Tier A. Auto-advance unless founder cancels or replies "stop" / "rethink".
 
-## Chế độ thất bại
+## Failure modes
 
-| Triệu chứng | Phản ứng |
+| Symptom | Response |
 |---|---|
-| Raw proposal quá mơ hồ (≥ 60% từ chung chung: "scale", "improve", "automate stuff") | Yêu cầu founder viết lại trước khi làm bất kỳ LLM work nào. |
-| Slug trùng lặp với `state IN ('deployed', 'operating')` | Hỏi founder: extension (`-v2`) hay capability riêng biệt? |
-| Refs chứa material có bản quyền | KHÔNG embed verbatim vào LLM prompt; reference bằng filename + summary only. |
-| Founder đưa `raw_proposal` rỗng | Abort; không insert row ops.capability_runs. |
+| Raw proposal too vague (≥ 60% generic words: "scale", "improve", "automate stuff") | Ask the founder for a rewrite before doing any LLM work. |
+| Slug collision with `state IN ('deployed', 'operating')` | Ask founder: extension (`-v2`) or distinct capability? |
+| Refs contain copyrighted material | Do NOT embed verbatim in the LLM prompt; reference by filename + summary only. |
+| Founder gives empty `raw_proposal` | Abort; do not insert ops.capability_runs row. |
 
 ## LLM mode awareness (per chương 30)
 
-- **Subscription mode:** Founder đã ở trong Claude Code; chỉ tạo câu hỏi inline và viết `problem.md` từ prompt.
-- **Hybrid / Full API:** Cùng flow; chi phí dưới per-task-kind cap.
-- **Fallback (no API):** Bỏ qua auto-question generation; tạo skeleton `problem.md` với 7 chiều trống cho founder điền thủ công.
+- **Subscription mode:** Founder is already in Claude Code; just produce the questions inline and write `problem.md` from the prompt.
+- **Hybrid / Full API:** Same flow; cost is below the per-task-kind cap.
+- **Fallback (no API):** Skip auto-question generation; produce a `problem.md` skeleton with the 7 dimensions empty for the founder to fill manually.
 
-## Ước tính chi phí
+## Cost estimate
 
-- Anthropic API: ~$0.05-0.10 mỗi lần gọi (1-2 LLM calls).
-- Thời gian của founder: 5-10 phút trả lời các câu hỏi làm rõ.
+- Anthropic API: ~$0.05-0.10 per invocation (1-2 LLM calls).
+- Founder time: 5-10 minutes answering the clarifying questions.
 - Cost-bucket: `ai-ops-cla`.
 
-## Test fixtures (cho Sprint 3 unit tests)
+## Test fixtures (for Sprint 3 unit tests)
 
-- `tests/cla/fixtures/problem-framer-input-clear.json` — clean input, kỳ vọng 6 câu hỏi.
-- `tests/cla/fixtures/problem-framer-input-vague.json` — vague input, kỳ vọng abort.
-- `tests/cla/fixtures/problem-framer-slug-collision.json` — slug tồn tại deployed; kỳ vọng extension prompt.
+- `tests/cla/fixtures/problem-framer-input-clear.json` — clean input, 6 questions expected.
+- `tests/cla/fixtures/problem-framer-input-vague.json` — vague input, abort expected.
+- `tests/cla/fixtures/problem-framer-slug-collision.json` — slug exists deployed; extension prompt expected.
 
 ## Mode awareness (v1.1 — `cla-update-mechanism`)
 
-Skill này được gọi bởi `/cla propose` (mode=`create`, the v1.0 path) VÀ bởi tất cả 5 update sub-flows (`/cla fix/extend/revise/tune/deprecate`). Orchestrator truyền `mode` qua `state_payload.update_mode` tại Phase 0; skill này đọc nó và điều chỉnh Process của mình.
+This skill is invoked by `/cla propose` (mode=`create`, the v1.0 path) AND by all 5 update sub-flows (`/cla fix/extend/revise/tune/deprecate`). The orchestrator passes `mode` via `state_payload.update_mode` at Phase 0; this skill reads it and adapts its Process.
 
-| Mode | Hành vi Skill |
+| Mode | Skill behavior |
 |---|---|
-| `create` (default) | Full Process Steps 1-8 ở trên. Tạo 5-7 câu hỏi làm rõ. Output: `.archives/cla/<id>/problem.md` |
-| `fix` | Bỏ qua Steps 1, 3, 5 (no slug gen, no clarifying questions, no assumptions). Đọc existing `wiki/capabilities/<id>/problem.md` + `spec.md`. Tạo focused `fix-description.md` với: what's broken, root cause hypothesis, fix scope. ABORT nếu scope dường như cần spec change. Output: `.archives/cla/<id>-fix-<session_id>/fix-description.md` |
-| `extend` | Bỏ qua Step 5 assumption surfacing (carry from existing). Tạo 3-5 câu hỏi làm rõ CHỈ về extension delta (không phải full re-framing). Output: `.archives/cla/<id>-extend-<session_id>/extension-description.md` |
-| `revise` | Đọc existing problem.md + spec.md. Tạo 5-7 câu hỏi làm rõ specific cho architecture concerns ("what fundamentally changes? what's preserved? minimum viable revision?"). Output: `.archives/cla/<id>-revise-<session_id>/revision-problem.md` |
-| `tune` | Parse founder description vào structured `tune-spec.md`: which KPI(s), old value(s), new value(s), reason. KHÔNG có câu hỏi làm rõ (tune đủ nhỏ để fit trong 1 description). Output: `.archives/cla/<id>-tune-<session_id>/tune-spec.md` |
-| `deprecate` | Capture deprecation rationale: why now, migration path for users, data handling. Single output `deprecation-rationale.md` trở thành phần của retrospective. KHÔNG có câu hỏi làm rõ (rationale ngắn). Output: `.archives/cla/<id>-deprecate-<session_id>/deprecation-rationale.md` |
+| `create` (default) | Full Process Steps 1-8 above. Generates 5-7 clarifying questions. Output: `.archives/cla/<id>/problem.md` |
+| `fix` | Skip Steps 1, 3, 5 (no slug gen, no clarifying questions, no assumptions). Read existing `wiki/capabilities/<id>/problem.md` + `spec.md`. Produce focused `fix-description.md` with: what's broken, root cause hypothesis, fix scope. ABORT if scope appears to require spec change. Output: `.archives/cla/<id>-fix-<session_id>/fix-description.md` |
+| `extend` | Skip Step 5 assumption surfacing (carry from existing). Generate 3-5 clarifying questions ONLY about the extension delta (not full re-framing). Output: `.archives/cla/<id>-extend-<session_id>/extension-description.md` |
+| `revise` | Read existing problem.md + spec.md. Generate 5-7 clarifying questions specific to architecture concerns ("what fundamentally changes? what's preserved? minimum viable revision?"). Output: `.archives/cla/<id>-revise-<session_id>/revision-problem.md` |
+| `tune` | Parse founder description into structured `tune-spec.md`: which KPI(s), old value(s), new value(s), reason. NO clarifying questions (tune small enough to fit in 1 description). Output: `.archives/cla/<id>-tune-<session_id>/tune-spec.md` |
+| `deprecate` | Capture deprecation rationale: why now, migration path for users, data handling. Single output `deprecation-rationale.md` becomes part of retrospective. NO clarifying questions (rationale is short). Output: `.archives/cla/<id>-deprecate-<session_id>/deprecation-rationale.md` |
 
-**Common across modes:** Phase 0 lock acquisition + lineage row INSERT xảy ra TRƯỚC khi skill này chạy (trong orchestrator). Skill này giả định row tồn tại với `state_payload.update_mode` set.
+**Common across modes:** Phase 0 lock acquisition + lineage row INSERT happens BEFORE this skill runs (in the orchestrator). This skill assumes the row exists with `state_payload.update_mode` set.
 
 ---
 
-**Phase tiếp theo invokes:** `domain-analyst` (Phase 2) — chỉ ở mode `create`. Update sub-flows bỏ qua Phase 2 (domain thừa kế từ parent capability).
+**Next phase invokes:** `domain-analyst` (Phase 2) — only in `create` mode. Update sub-flows skip Phase 2 (domain inherited from parent capability).
+

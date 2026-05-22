@@ -3,133 +3,127 @@ title: 09-founder — Founder Operations Pillar
 description: ''
 source_path: 09-founder/README.md
 source_hash: 0ec1332633c6f32ad1e8b35b41601254fd6966d479e6cda717a1ad44f4ae199c
-generated_at: '2026-05-21T03:49:53.316Z'
+generated_at: '2026-05-22T01:09:07.480Z'
 generated_by: docs-engine v1.2.0
 category: pillar
 language: vi
-translated: true
-translated_at: '2026-05-19T15:00:00Z'
-translated_by: Claude Opus 4.7 (Claude Code Desktop, session translation)
-translated_source_hash: 0ec1332633c6f32ad1e8b35b41601254fd6966d479e6cda717a1ad44f4ae199c
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-# 09-founder — Trụ cột Vận hành Founder
-
-> Trụ cột lớn bao trùm vận hành founder. Founder là bottleneck của một công ty AI-Native một người; trụ cột này hệ thống hoá cách founder suy nghĩ, quyết định, quản trị, hồi phục, và học hỏi để AI workforce không chạy trên nền tảng của một con người kiệt sức.
+> Big pillar covering founder operations. Founder is the bottleneck of a 1-person AI-Native company; this pillar codifies how founder thinks, decides, governs, recovers, and learns so the AI workforce doesn't run on top of an exhausted human.
 
 **Layer:** Evergreen
 **Stage status:** DEEP
 **Pillar code:** FOUNDER
-**Vai trò sở hữu:** founder, cofounder, gps, founder-coach, hitl-router, health-tracker
-**HITL baseline:** A (chủ yếu là tự quản lý; một số sub-pillar có escalate)
+**Owner role(s):** founder, cofounder, gps, founder-coach, hitl-router, health-tracker
+**HITL baseline:** A (self-management primarily; some sub-pillars escalate)
 
 ---
 
-## Phạm vi
+## Scope
 
-Trụ cột này sở hữu:
+This pillar owns:
 
-1. **Cognition** — tốc độ ra quyết định, quản lý sự tập trung, top-idea audit (chữ ký PG)
-2. **Charter discipline** — giữ công ty căn chỉnh theo tầm nhìn đã viết
-3. **HITL flow** — bot Telegram, giao thức override, quản lý queue phê duyệt
-4. **Weekly review** — forcing function duy nhất cho founder một mình
-5. **Health** — theo dõi năng lượng, nghỉ ngơi bắt buộc, phòng ngừa burnout (SPOF một người)
-6. **Learning** — tích lũy kỹ năng founder (đọc, tuần deep-research)
+1. **Cognition** — decision velocity, attention management, top-idea audit (PG signature)
+2. **Charter discipline** — keeping the company aligned to its written vision
+3. **HITL flow** — Telegram bot, override protocols, approval queue management
+4. **Weekly review** — single forcing function for solo founder
+5. **Health** — energy tracking, mandatory rest, burnout prevention (1-person SPOF)
+6. **Learning** — founder skill compounding (reading, deep-research weeks)
 
-Trụ cột này KHÔNG sở hữu:
-- Quyết định product → `04-product/`
-- Tương tác hướng khách hàng → `05-customer/`
-- Cơ chế AI workforce → `06-ai-ops/` (trụ cột này sử dụng workforce; không xây dựng nó)
-- CHÍNH SÁCH HITL (đó là `governance/HITL.md`); trụ cột này sở hữu cơ chế THỰC THI
+This pillar does NOT own:
+- Product decisions → `04-product/`
+- Customer-facing interactions → `05-customer/`
+- AI workforce mechanics → `06-ai-ops/` (this pillar uses the workforce; doesn't build it)
+- HITL POLICY (that's `governance/HITL.md`); this pillar owns the EXECUTION mechanism
 
-## Sub-pillars (xây DEEP ngay)
+## Sub-pillars (DEEP build now)
 
 ```
 09-founder/
-├── cognition/                            # Chữ ký PG — top-idea, sự tập trung, tốc độ ra quyết định
-│   ├── sops/SOP-FOUNDER-001-weekly-top-idea-audit/       # Suy nghĩ lúc tắm là gì? (cron thứ Sáu)
-│   ├── sops/SOP-FOUNDER-002-nile-perch-detection/        # Tiền/tranh chấp đang ăn vào slot
-│   ├── sops/SOP-FOUNDER-003-makers-schedule-protection/  # vs lịch trình quản lý bị phân mảnh
-│   ├── sops/SOP-FOUNDER-004-decision-log-discipline/     # Theo Bài #15 ops.decisions
+├── cognition/                            # PG signature — top-idea, attention, decision velocity
+│   ├── sops/SOP-FOUNDER-001-weekly-top-idea-audit/       # What's the shower thought? (Friday cron)
+│   ├── sops/SOP-FOUNDER-002-nile-perch-detection/        # Money/dispute eating the slot
+│   ├── sops/SOP-FOUNDER-003-makers-schedule-protection/  # vs manager-schedule fragmentation
+│   ├── sops/SOP-FOUNDER-004-decision-log-discipline/     # Per Bài #15 ops.decisions
 │   └── sops/SOP-FOUNDER-005-reversible-vs-irreversible-router/
 ├── charter-discipline/
 │   ├── sops/SOP-FOUNDER-006-weekly-charter-reread/
 │   ├── sops/SOP-FOUNDER-007-charter-violation-detection/
 │   └── sops/SOP-FOUNDER-008-charter-evolution-pr-protocol/
-├── hitl-flow/                            # Theo governance/HITL.md
+├── hitl-flow/                            # Per governance/HITL.md
 │   ├── sops/SOP-FOUNDER-009-telegram-hitl-bot-config/
 │   ├── sops/SOP-FOUNDER-010-tier-c-d-batch-and-clear/
 │   ├── sops/SOP-FOUNDER-011-override-magic-phrase-discipline/
 │   └── sops/SOP-FOUNDER-012-d-max-cooldown-protocol/
-├── weekly-review/                        # Forcing function duy nhất cho solo
+├── weekly-review/                        # Single forcing function for solo
 │   ├── sops/SOP-FOUNDER-013-friday-review-template/
-│   ├── sops/SOP-FOUNDER-014-week-ahead-pillar-priorities/  # Đọc từ dashboard metrics
+│   ├── sops/SOP-FOUNDER-014-week-ahead-pillar-priorities/  # Reads from metrics dashboards
 │   └── sops/SOP-FOUNDER-015-monthly-charter-and-budget-reset/
-├── health/                               # Công ty một người = SPOF một người
+├── health/                               # 1-person company = 1-person SPOF
 │   ├── sops/SOP-FOUNDER-016-weekly-energy-tracking/
 │   ├── sops/SOP-FOUNDER-017-mandatory-rest-window/
 │   └── sops/SOP-FOUNDER-018-burnout-early-warning-signs/
-└── learning/                             # Tích lũy kỹ năng founder
+└── learning/                             # Founder skill compounding
     ├── sops/SOP-FOUNDER-019-weekly-reading-budget/
     ├── sops/SOP-FOUNDER-020-monthly-skill-gap-audit/
     └── sops/SOP-FOUNDER-021-quarterly-deep-research-week/
 ```
 
-## Thứ tự sub-pillar (tường thuật)
+## Sub-pillar order (narrative)
 
-1. **cognition** — chữ ký PG: top-idea audit, sự tập trung, tốc độ ra quyết định
-2. **charter-discipline** — giữ công ty căn chỉnh theo tầm nhìn đã viết
-3. **hitl-flow** — bot Telegram, nghi lễ override, queue phê duyệt
-4. **weekly-review** — forcing function duy nhất (thứ Sáu) — nhịp đập của vận hành solo
-5. **health** — theo dõi năng lượng + nghỉ ngơi bắt buộc (công ty một người = SPOF một người)
-6. **learning** — ngân sách đọc + tuần deep-research (tích lũy kỹ năng founder)
+1. **cognition** — PG signature: top-idea audit, attention, decision velocity
+2. **charter-discipline** — keeping company aligned to written vision
+3. **hitl-flow** — Telegram bot, override ceremony, approval queue
+4. **weekly-review** — single forcing function (Friday) — the heartbeat of solo ops
+5. **health** — energy tracking + mandatory rest (1-person company = 1-person SPOF)
+6. **learning** — reading budget + deep-research weeks (founder skill compounding)
 
 ## SOPs
 
-`sops/SOP-FOUNDER-NNN-<slug>/` — 21 SOP được scaffold. Phase 5 triển khai:
-- `SOP-FOUNDER-001-weekly-top-idea-audit` — nghi thức chiều thứ Sáu (trigger cron)
+`sops/SOP-FOUNDER-NNN-<slug>/` — 21 SOPs scaffolded. Phase 5 implements:
+- `SOP-FOUNDER-001-weekly-top-idea-audit` — Friday afternoon ritual (cron trigger)
 
 ## Agents
 
-- `gps` (home, chief of staff) — sở hữu phối hợp cấp pillar, batch các quyết định HITL
-- `founder-coach` (dưới `cognition`) — surface top-idea drift, prompt weekly review
-- `hitl-router` (dưới `hitl-flow`) — logic bot Telegram cho phê duyệt B/C/D
-- `health-tracker` (dưới `health`) — giám sát năng lượng + burnout
+- `gps` (home, chief of staff) — owns pillar-level coordination, batches HITL decisions
+- `founder-coach` (under `cognition`) — surfaces top-idea drift, weekly review prompts
+- `hitl-router` (under `hitl-flow`) — Telegram bot logic for B/C/D approvals
+- `health-tracker` (under `health`) — energy + burnout watch
 
-## KPIs được sở hữu
+## KPIs owned
 
-(Được surface trong `10-metrics/kpi-registry/`.)
+(Surfaced in `10-metrics/kpi-registry/`.)
 
-- Số giờ founder / tuần (mục tiêu ≤ 50)
-- Theo dõi top-idea-in-mind (phân loại hàng tuần)
-- Độ dài queue HITL (trung bình + tối đa)
-- Số quyết định / tuần (tín hiệu của tốc độ ra quyết định)
-- Số Charter-PR / quý (tín hiệu của sự tiến hóa tầm nhìn)
-- Tỷ lệ hoàn thành weekly-review (% số tuần hoàn thành review thứ Sáu)
-- Tần suất tuần deep-research (hàng quý, theo SOP-FOUNDER-021)
+- Founder hours / week (target ≤ 50)
+- Top-idea-in-mind tracking (weekly classification)
+- HITL queue length (avg + max)
+- Decision count / week (signal of decision velocity)
+- Charter-PR count / quarter (signal of vision evolution)
+- Weekly-review completion rate (% of weeks Friday review done)
+- Deep-research-week frequency (quarterly, per SOP-FOUNDER-021)
 
-## Phụ thuộc
+## Dependencies
 
-- **Compose từ:** `00-core` (tầm nhìn được bảo vệ), `06-ai-ops` (hạ tầng HITL, Telegram MCP), `10-metrics` (đầu vào dashboard thứ Hai)
-- **Được compose bởi:** mọi pillar khác (tất cả chúng escalate qua HITL đến founder khi bị chặn)
+- **Composes from:** `00-core` (the vision being protected), `06-ai-ops` (HITL infrastructure, Telegram MCP), `10-metrics` (Monday dashboard inputs)
+- **Composed by:** every other pillar (they all escalate via HITL to founder when blocked)
 
-## Lý do cho trụ cột lớn
+## Rationale for big pillar
 
-AI-Ops là WORKFORCE. Founder là OPERATOR của workforce. Trộn chúng = AI-Ops trở thành god-pillar. Giữ riêng biệt = thừa nhận rõ ràng rằng bottleneck là con người, không phải năng lực AI.
+AI-Ops is the WORKFORCE. Founder is the OPERATOR of the workforce. Mixing them = AI-Ops becomes god-pillar. Keeping separate = explicit acknowledgment that the bottleneck is human, not AI capacity.
 
-Tại sao là trụ cột LỚN (không chỉ cognition): vận hành founder không chỉ là "suy nghĩ tốt hơn" — chúng bao gồm health (bạn không thể out-think kiệt sức), learning (tích lũy kỹ năng), kỷ luật HITL (thực thi quản trị), và weekly review (forcing function). Tất cả thuộc founder, không nên phân tán.
+Why a BIG pillar (not just cognition): founder operations are not just "thinking better" — they include health (you can't out-think exhaustion), learning (compounding skill), HITL discipline (governance enforcement), and weekly review (forcing function). All founder-owned, shouldn't scatter.
 
 ## HITL baseline
 
-- SOP tự quản lý (top-idea audit, theo dõi năng lượng, weekly review): Tier A
-- Quyết định định tuyến HITL: Tier A (router định tuyến; không cấp quyền)
-- Mở Charter PR: Tier C
-- Phát hành override magic phrase: cơ chế Tier D-Std, nhưng cấp quyền cho nó là theo HITL.md (founder/cofounder)
-- Giao thức cooldown D-MAX: Tier D-MAX (trụ cột này không cấp quyền D-MAX, chỉ thực thi giao thức)
+- Self-management SOPs (top-idea audit, energy tracking, weekly review): Tier A
+- HITL routing decisions: Tier A (the router routes; doesn't authorize)
+- Charter PR open: Tier C
+- Override magic phrase issuance: Tier D-Std mechanics, but authorizing it is per HITL.md (founder/cofounder)
+- D-MAX cooldown protocol: Tier D-MAX (this pillar doesn't authorize D-MAX, just enforces the protocol)
 
-## Điều kiện vào
+## Entry conditions
 
-Đã DEEP. Sau PMF, có thể thêm sub-pillar `07-team-management/` nếu lần thuê non-AI đầu tiên xảy ra (nhưng mà chủ yếu kích hoạt `placeholders/people-ops/`).
+Already DEEP. Post-PMF, may add `07-team-management/` sub-pillar if first non-AI hire happens (but that primarily activates `placeholders/people-ops/`).
 

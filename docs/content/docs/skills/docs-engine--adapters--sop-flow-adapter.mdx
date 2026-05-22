@@ -1,69 +1,63 @@
 ---
 title: 'Skill: docs-engine/adapters/sop-flow-adapter'
 description: |
-  Adapter cho tệp SOP `flow.yaml`. Hiển thị YAML có cấu trúc
-  (steps, inputs, outputs, acceptance_criteria, failure_handling, audit) thành
-  MDX Fumadocs với `<Steps>` component cho mảng steps. Adapter được truy cập nhiều nhất
-  (102 SOPs trong repo).
+  Adapter for SOP `flow.yaml` files. Renders the structured YAML
+  (steps, inputs, outputs, acceptance_criteria, failure_handling, audit) into
+  Fumadocs MDX with `<Steps>` component for the steps array. Most-visited
+  adapter (102 SOPs in repo).
 source_path: 06-ai-ops/skills/docs-engine/adapters/sop-flow-adapter/SKILL.md
 source_hash: 110446cf53f8598cecc04a2c4aa48458665352fd97a9b72f267f0b5903947f93
-generated_at: '2026-05-19T05:20:46.353Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.386Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: 110446cf53f8598cecc04a2c4aa48458665352fd97a9b72f267f0b5903947f93
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
-
-
-# docs-engine/adapters/sop-flow-adapter
+{/* generated-by: docs-engine v1.2.0 */}
 
 ## Input pattern
 
-`0[0-9]-*/sops/SOP-*/flow.yaml` + `README.md` liền kề (nếu có)
+`0[0-9]-*/sops/SOP-*/flow.yaml` + adjacent `README.md` (if present)
 
 ## Output pattern
 
 `docs/content/sops/<pillar-slug>/<sop-id>.mdx`
-ví dụ: `docs/content/sops/06-ai-ops/SOP-AIOPS-001-capability-lifecycle.mdx`
+e.g. `docs/content/sops/06-ai-ops/SOP-AIOPS-001-capability-lifecycle.mdx`
 
 ## Process
 
-1. Parse `flow.yaml` (toàn YAML, không có markdown).
-2. Trích xuất `id`, `title`, `description`, `pillar`, `cost_bucket`, `trigger`, `steps`, `acceptance_criteria`, `failure_handling`, `integrates_with`, `audit`.
-3. Tính `source_hash` của tệp yaml.
-4. Hiển thị MDX với các phần:
-   - **Overview** (prose description)
+1. Parse `flow.yaml` (it's all YAML, no markdown).
+2. Extract `id`, `title`, `description`, `pillar`, `cost_bucket`, `trigger`, `steps`, `acceptance_criteria`, `failure_handling`, `integrates_with`, `audit`.
+3. Compute `source_hash` of the yaml file.
+4. Render MDX with sections:
+   - **Overview** (description prose)
    - **Trigger** (kinds + authorized_roles + hitl_tier)
    - **Inputs** (yaml table)
-   - **Steps** — Fumadocs `<Steps>` component, mỗi step hiển thị dưới dạng collapsible với `name`, `kind`, `skill`, `timeout`, `on_failure`, `outputs`
+   - **Steps** — Fumadocs `<Steps>` component, each step rendered as collapsible with `name`, `kind`, `skill`, `timeout`, `on_failure`, `outputs`
    - **Acceptance criteria** (checklist)
    - **Failure modes** (table)
    - **Cross-Bài-toán integration** (table)
    - **Audit** (one-liner)
-5. Thêm Fumadocs frontmatter:
+5. Add Fumadocs frontmatter:
    - `title: <sop-id>: <title>`
    - `description: <description>`
    - `pillar: <pillar-slug>`
    - `cost_bucket: <bucket>`
    - `status: <derived from pillar.stage_status>` (deep / lite / skeleton)
-6. Thêm marker idempotency.
+6. Add idempotency marker.
 
 ## Edge cases
 
-- SOP yaml có thể có multi-line strings (`|` literal blocks) — giữ nguyên định dạng.
-- Một số SOP tham chiếu SOP khác trong `integrates_with` — hiển thị dưới dạng Fumadocs internal links.
-- `README.md` liền kề (nếu có) → thêm vào phía trước dưới dạng phần "Operator Notes" trước spec có cấu trúc.
+- SOP yaml may have multi-line strings (`|` literal blocks) — preserve formatting.
+- Some SOPs reference other SOPs in `integrates_with` — render as Fumadocs internal links.
+- Adjacent `README.md` (if present) → prepend as "Operator Notes" section before the structured spec.
 
 ## HITL / Cost
 
-Tier A. ~$0.30-0.50 tổng cộng cho 102 SOPs (deterministic phần lớn; LLM chỉ cho tóm tắt prose của dòng chảy phức tạp — disabled at v1.0).
+Tier A. ~$0.30-0.50 total for 102 SOPs (deterministic mostly; LLM only for prose summarization of complex flows — disabled at v1.0).
 
 ## See also
 
-- SOPs hiện có để kiểm tra: `06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml` (phức tạp; có 9 steps), `06-ai-ops/sops/SOP-AIOPS-001-fix/flow.yaml` (đơn giản hơn)
+- Existing SOPs to test against: `06-ai-ops/sops/SOP-AIOPS-001-capability-lifecycle/flow.yaml` (complex; has 9 steps), `06-ai-ops/sops/SOP-AIOPS-001-fix/flow.yaml` (simpler)
 - Fumadocs `<Steps>`: https://www.fumadocs.dev/docs/ui/components/steps
+

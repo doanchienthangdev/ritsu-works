@@ -1,32 +1,28 @@
 ---
 title: 'Tier 1 yaml: feature-flags'
-description: Tổng quan lược đồ cho `knowledge/feature-flags.yaml`.
+description: Schema overview for `knowledge/feature-flags.yaml`.
 source_path: knowledge/feature-flags.yaml
 source_hash: f8ff5774b3eda567c6bfd8a9e96a607679b60551855e715bb29f9f97e4234b55
-generated_at: '2026-05-19T05:20:46.472Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.530Z'
+generated_by: docs-engine v1.2.0
 category: tier1-yaml
 language: vi
-translated: true
-translated_source_hash: f8ff5774b3eda567c6bfd8a9e96a607679b60551855e715bb29f9f97e4234b55
-translated_at: '2026-05-19T13:00:00Z'
-translated_by: 'Claude Opus 4.7 (Claude Code Desktop, session translation)'
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-## Mô tả
+## Description
 
 ============================================================================
-feature-flags.yaml — Các chế độ truy cập LLM & Gating tính năng
+feature-flags.yaml — LLM Access Modes & Feature Gating
 ============================================================================
-Khai báo Tier 1: tính năng nào chạy tự động (cần khóa API) so với thủ công
-(dự phòng đến phiên Claude Code). Chỉnh sửa thông qua quản lý PR.
+Tier 1 declarative: which features run autonomously (need API keys) vs
+manually (fallback to Claude Code session). Edit via PR governance.
 
-Xem playbook chương 30 để giải thích đầy đủ về các chế độ.
+See playbook chương 30 for full explanation of modes.
 ============================================================================
 
-## Các key cấp 1
+## Top-level keys
 
 - `version`
 - `mode`
@@ -36,4 +32,4 @@ Xem playbook chương 30 để giải thích đầy đủ về các chế độ.
 - `mode_presets`
 - `migration_triggers`
 
-> Giá trị trực tiếp trong [`knowledge/feature-flags.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/feature-flags.yaml). Trang này mô tả lược đồ; không phải dữ liệu.
+> Live values in [`knowledge/feature-flags.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/feature-flags.yaml). This page describes the schema; not the data.

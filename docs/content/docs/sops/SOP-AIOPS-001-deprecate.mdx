@@ -1,29 +1,26 @@
 ---
-title: 'SOP-AIOPS-001-deprecate: /cla deprecate — quy trình sunset khả năng'
+title: 'SOP-AIOPS-001-deprecate: /cla deprecate — capability sunset sub-flow'
 description: >-
-  Kết thúc khả năng operating. Cleanup scheduled SOPs, di chuyển CATALOG, kiểm tra phụ thuộc. Lễ thức Tier C. Không thể đảo ngược.
+  Deprecate operating capability. Cleanup scheduled SOPs, CATALOG move, dependent check. Tier C
+  ceremony. Irreversible.
 source_path: 06-ai-ops/sops/SOP-AIOPS-001-deprecate/flow.yaml
 source_hash: a82a7eb24f4f6d6343840b7432082485aa237709d9faac16527c50603c7f4140
-generated_at: '2026-05-19T05:20:46.448Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.505Z'
+generated_by: docs-engine v1.2.0
 category: sop
 language: vi
-translated: true
-translated_source_hash: a82a7eb24f4f6d6343840b7432082485aa237709d9faac16527c50603c7f4140
-translated_at: '2026-05-19T12:30:00Z'
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
 **SOP ID:** `SOP-AIOPS-001-deprecate`
 **Pillar:** 06-ai-ops
 
-## Tổng quan
+## Overview
 
-Kết thúc khả năng operating. Cleanup scheduled SOPs, di chuyển CATALOG, kiểm tra phụ thuộc. Lễ thức Tier C. Không thể đảo ngược.
+Deprecate operating capability. Cleanup scheduled SOPs, CATALOG move, dependent check. Tier C ceremony. Irreversible.
 
-## Các bước
+## Steps
 
 ### Step phase-0-preflight-deprecate — phase-0-preflight-deprecate
 
@@ -40,19 +37,19 @@ Kết thúc khả năng operating. Cleanup scheduled SOPs, di chuyển CATALOG, 
 
 - **Skill:** `capability-lifecycle/catalog-updater`
 
-## Tiêu chí chấp nhận
+## Acceptance criteria
 
-- Lock được cấp tại Phase 0, được giải phóng tại Phase 8
-- Quét phụ thuộc Phase 3 hoàn tất
-- Nếu tìm thấy các khả năng phụ thuộc, founder phải xác nhận rõ ràng qua Tier D-Std (nếu không BLOCK)
-- Lễ thức Tier C tại Phase 8 (founder phê duyệt kết thúc)
-- Tất cả các schedules tham chiếu khả năng được vô hiệu hóa
-- CATALOG.md được cập nhật
+- Lock acquired Phase 0, released Phase 8
+- Phase 3 dependency scan completed
+- If dependents found, founder explicit acknowledged via Tier D-Std (else BLOCK)
+- Tier C ceremony at Phase 8 (founder approves deprecation)
+- All schedules referencing the capability are disabled
+- CATALOG.md updated
 - capability-registry.yaml state = 'deprecated'
-- retrospective-deprecation.md được viết + promot
+- retrospective-deprecation.md written + promoted
 - pnpm check clean
 
-## Xử lý lỗi
+## Failure handling
 
 ```yaml
 failure_handling:
@@ -78,3 +75,4 @@ failure_handling:
     detection: Phase 8 final check fails
     response: Hold state. Lock stays. Founder fixes drift, re-runs Phase 8.
 ```
+

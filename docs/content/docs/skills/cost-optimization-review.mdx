@@ -1,89 +1,393 @@
 ---
 title: 'Skill: cost-optimization-review'
-description: Khuyến nghị tối ưu cost hàng tuần
+description: |
+  Use weekly to scan cost data from past 7-30 days, identify
+  optimization opportunities, and generate a PR with specific
+  recommendations. Founder reviews + approves. The "find the savings"
+  skill that completes the loop with `cost-report`.
+
+  Trigger: scheduled weekly (cron job in v1.x; manual `/optimize-cost`
+  command in v1.0). Also invoked ad-hoc when founder suspects waste.
+
+  Skip when: < 14 days of cost data exist (insufficient for trend
+  detection); manual mode and founder hasn't asked.
+
+  Cost: ~5-10 SQL queries, 1 LLM call (Sonnet) for diff drafting,
+  ~3-5K tokens output. Wall-clock ~5s.
 source_path: 06-ai-ops/skills/cost-optimization-review/SKILL.md
 source_hash: 499d5cc3d18ae04211afa8872f796e4230c37dacc99c865332c8c9f88a45f574
-generated_at: '2026-05-19T05:20:46.346Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.380Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: 499d5cc3d18ae04211afa8872f796e4230c37dacc99c865332c8c9f88a45f574
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+> The skill that surfaces "you could save $80/month by switching support-ticket-reply to Sonnet" as a reviewable PR rather than a hand-waved suggestion. Weekly discipline; surface optimization opportunities before they become problems.
 
-# Cost Optimization Review
+## When to use
 
-Skill làm nổi bật "bạn có thể tiết kiệm $80/tháng bằng cách chuyển support-ticket-reply sang Sonnet" như một PR có thể review được.
+Three trigger contexts:
 
-## Khi nào sử dụng
+1. **Scheduled weekly run.** v1.x: cron via n8n or similar. v1.0: founder manual command `/optimize-cost` Sunday evening.
+2. **Ad-hoc investigation.** Founder suspects something off (Health Score dropped, alert fired, anomaly in monthly digest).
+3. **Pre-month-end check.** End of month, before `monthly-learning-review`, ensure all surfaced opportunities are addressed.
 
-Ba context kích hoạt:
-
-1. **Chạy theo lịch hàng tuần.** v1.x: cron. v1.0: founder gọi thủ công `/optimize-cost`.
-2. **Điều tra đột xuất.** Founder nghi ngờ có gì đó không ổn.
-3. **Kiểm tra trước cuối tháng.** Đảm bảo tất cả các cơ hội đều đã được xử lý.
+Do NOT use when:
+- Less than 14 days of cost data exist (use raw `cost-report` instead)
+- Founder is focused on a different priority and would just dismiss the PR
+- Last invocation was within 5 days (signal-to-noise drops)
 
 ## Inputs
 
-| Input | Kiểu | Bắt buộc |
-|---|---|---|
-| `lookback_days` | int | optional |
-| `compare_lookback_days` | int | optional |
-| `min_savings_threshold_usd` | number | optional |
-| `auto_create_pr` | bool | optional |
-| `target_role` | string | optional |
-| `target_task_kind` | string | optional |
-
-## Quá trình
-
-### Bước 1 — Kiểm tra tính hợp lệ của dữ liệu
-
-Xác minh có đủ dữ liệu cost.
-
-### Bước 2 — Lấy review + baseline stats
-
-Theo role, theo task-kind, cache hit, tỉ lệ I/O.
-
-### Bước 3 — Chạy analyzer
-
-Hạ cấp model, prompt caching, batch tier, context bloat, lỗ hổng taxonomy, outlier, budget cap.
-
-### Bước 4 — Lọc + xếp hạng
-
-Lọc dưới ngưỡng, xếp hạng theo mức tiết kiệm.
-
-### Bước 5 — Tạo diff
-
-Soạn diff bằng Sonnet.
-
-### Bước 6 — Ghi log vào ops
-
-INSERT các dòng.
-
-### Bước 7 — Tạo PR
-
-Nếu auto_create_pr=true.
-
-### Bước 8 — Thông báo founder
-
-Tin nhắn Telegram.
+| Input | Type | Required | Description |
+|---|---|---|---|
+| `lookback_days` | int | optional | Default 14 |
+| `compare_lookback_days` | int | optional | Default 14 (compares last N days vs prior N days) |
+| `min_savings_threshold_usd` | number | optional | Default $5/month — recommendations below this filtered out |
+| `auto_create_pr` | bool | optional | Default true; if false, returns recommendations as YAML without PR |
+| `target_role` | string | optional | If set, only analyze that role |
+| `target_task_kind` | string | optional | If set, only analyze that task_kind |
 
 ## Outputs
 
-YAML khuyến nghị hoặc PR.
+```yaml
+review_period:
+  start: 2026-04-18
+  end: 2026-05-02
+  days: 14
 
-## Ước tính cost
+baseline_period:
+  start: 2026-04-04
+  end: 2026-04-18
+  days: 14
 
-- ~5-10 SQL query
-- 1 lần gọi Sonnet
-- Mỗi lần gọi: ~$0.30
-- Hàng tuần: $1.20/tháng
+total_cost_usd_review: 312.40
+total_cost_usd_baseline: 268.10
+delta_pct: +16.5
+trend: increasing
+
+recommendations:
+  - id: rec-001
+    kind: model_downgrade
+    target_role: support-agent
+    target_task_kind: support-ticket-reply
+    current_cost_usd_period: 28.40
+    estimated_savings_usd_month: 78.00
+    risk_level: low
+    confidence: high
+    description: |
+      support-ticket-reply currently uses claude-opus-4-7 by default.
+      96% of past 142 tickets were straightforward (FAQ-style or
+      account-state queries). Sonnet 4.6 would handle these at ~22%
+      of the cost with comparable quality.
+
+      Suggested: set ROLES.md support-agent.economic_budget.preferred_models.default
+      to claude-sonnet-4-6. Keep Opus available via per-task escalation
+      for the 4% complex cases.
+    suggested_diff_path: .archives/cost-reviews/2026-W18/rec-001.patch
+    rollback_plan: revert PR if support quality regresses (track via support CSAT)
+
+  - id: rec-002
+    kind: prompt_caching
+    target_role: content-drafter
+    target_task_kind: blog-post-draft
+    current_cost_usd_period: 14.72
+    estimated_savings_usd_month: 12.00
+    risk_level: low
+    confidence: high
+    description: |
+      blog-post-draft skill loads CLAUDE.md (1.2K) + brand_voice.md
+      (2.6K) + transparency.md (1.6K) on every call. Adding cache_control
+      to these files in the system prompt would cut input cost by ~85%
+      after first call (cache reads are 10% of standard input cost).
+
+      Implementation: modify content-drafter agent system prompt
+      template to mark these as cacheable.
+    suggested_diff_path: .archives/cost-reviews/2026-W18/rec-002.patch
+    rollback_plan: easy — remove cache_control marker
+
+  - id: rec-003
+    kind: batch_tier
+    target_role: etl-runner
+    target_task_kind: etl-sync
+    current_cost_usd_period: 4.20
+    estimated_savings_usd_month: 9.00
+    risk_level: low
+    confidence: medium
+    description: |
+      etl-sync runs hourly and is not time-sensitive (data is never
+      consumed real-time by users). Moving to Anthropic Batch tier
+      would save ~50% on this workload. Note: Batch tier has 24-hour
+      delivery, fits etl-sync's tolerance.
+    suggested_diff_path: .archives/cost-reviews/2026-W18/rec-003.patch
+    rollback_plan: revert tier flag in agent config
+
+# ... more recommendations
+
+aggregate_estimated_savings_usd_month: 187.00
+recommendations_above_threshold: 4
+recommendations_below_threshold: 7   # filtered out by min_savings_threshold
+
+pr_url: https://github.com/ritsu/ritsu-works/pull/89  # if auto_create_pr=true
+status: pr_created
+```
+
+## Procedure
+
+### Step 1 — Sanity check data
+
+```sql
+-- Verify enough data exists
+SELECT MIN(ts), MAX(ts), COUNT(*)
+FROM ops.cost_attributions
+WHERE ts >= now() - interval '30 days';
+```
+
+If `(max - min) < 14 days` OR `COUNT < 100`, return error: "insufficient cost data for review; fall back to manual cost-report".
+
+### Step 2 — Pull review and baseline period stats
+
+For both periods (last 14d and prior 14d), pull:
+
+- Per-role total cost
+- Per-task-kind total cost + invocation count + percentiles
+- Cache hit ratio per role
+- Output/input ratio per role
+- Top 10 most expensive single runs (outliers)
+
+This is the data foundation. ~5 SQL queries.
+
+### Step 3 — Run the analyzers
+
+Each "analyzer" is a heuristic that looks for a specific optimization pattern:
+
+#### Analyzer A — Model downgrade candidates
+
+For each `(role, task_kind)` cohort:
+- Compute current avg cost per invocation
+- Lookup current preferred model from `economic_budget.preferred_models`
+- If model is Opus AND task_kind is in known-Sonnet-capable list (configurable in this skill), AND avg cost > $0.20:
+  - Estimate savings = current_avg * 0.78 (Sonnet is ~22% of Opus cost)
+  - Risk: requires CSAT/quality monitor; mark "low" if task_kind is FAQ-style, "medium" if creative
+
+Known-Sonnet-capable task_kinds (configurable):
+- support-ticket-reply (FAQ-style)
+- code-review (most cases)
+- etl-sync (Haiku even)
+- ad-hoc (short queries)
+
+Known-Opus-required:
+- monthly-learning-review (complex synthesis)
+- competitive-research-brief (deep reasoning)
+- task-decompose (orchestration)
+
+#### Analyzer B — Prompt caching candidates
+
+For each role:
+- Estimate static-content tokens loaded per session (CLAUDE.md + brand_voice + transparency, etc.)
+- If static_tokens > 2000 AND cache_hit_ratio \< 0.5 AND invocation_count > 50/period:
+  - Estimate savings = static_tokens * (calls - 1) * (input_price - cache_read_price)
+  - Risk: low (caching is reversible)
+
+#### Analyzer C — Batch tier candidates
+
+For each `(role, task_kind)`:
+- Check if tasks are time-sensitive (heuristic: avg time_to_first_response_required \< 1h?)
+- If task tolerates 24h delay AND cost > $5/period:
+  - Recommend Batch tier (50% off)
+  - Risk: low if delay tolerance verified
+
+#### Analyzer D — Context bloat candidates
+
+For each role:
+- Compute avg input_tokens per call
+- If avg > 30000 AND not justified by Bài #3 working_tokens budget for that role:
+  - Recommend Bài #3 patterns (lazy load, /compact threshold lower, subagent fork)
+  - Risk: medium (may affect capability)
+
+#### Analyzer E — Task kind taxonomy gaps
+
+If `task_kind = 'ad-hoc'` represents > 10% of volume in period:
+- Recommend reviewing ad-hoc runs to identify new task_kind candidates
+- Adding task_kind enables better tracking + per-instance caps
+- Risk: low (only adds attribution granularity)
+
+#### Analyzer F — Outlier investigations
+
+For top 5 most expensive single runs in period:
+- If cost > 5x median for that task_kind:
+  - Surface as an investigation item (not a code change)
+  - Risk: n/a (just info)
+
+#### Analyzer G — Budget cap rightsizing
+
+For each role:
+- If consistent monthly usage \< 30% of cap → suggest lowering cap (saves "ceiling overhead" attention)
+- If consistent monthly usage > 90% of cap with no enforcement issues → suggest raising cap
+- Risk: low (cap is just a ceiling)
+
+### Step 4 — Filter and rank
+
+- Filter out recommendations below `min_savings_threshold_usd` (default $5/month).
+- Rank by `estimated_savings_usd_month DESC`.
+- Cap output at top 10 recommendations (avoid overwhelming founder).
+
+### Step 5 — Generate diffs
+
+For each recommendation that's a concrete file change (most are):
+
+- Use Sonnet to draft the actual diff (small LLM call, ~$0.03 each)
+- Save patches to `.archives/cost-reviews/{YYYY-WW}/rec-{NNN}.patch`
+- Reference paths in recommendation output
+
+For investigation items (outliers, taxonomy gaps), no diff — just description.
+
+### Step 6 — Log to ops.optimization_recommendations
+
+```sql
+INSERT INTO ops.optimization_recommendations (
+  generated_at, period_start, period_end,
+  recommendation_kind, target_role, target_task_kind,
+  current_cost_usd, estimated_savings_usd, risk_level,
+  description, suggested_diff_path, status
+) VALUES (...) RETURNING id;
+```
+
+### Step 7 — Create PR (if `auto_create_pr=true`)
+
+PR contents:
+
+- Title: "Cost optimization recommendations — week \{W} of \{YYYY}"
+- Body: rendered markdown summary of all recommendations
+- Files changed: the actual diffs (patches applied to relevant files)
+- Labels: `cost-optimization`, `tier-c` (if any rec is structural), `tier-b` (if all are reversible)
+
+Founder reviews PR. Each rec is a checkbox; founder approves individually or wholesale.
+
+If `auto_create_pr=false`, skip PR creation, return recommendations YAML for programmatic use.
+
+### Step 8 — Notify founder
+
+Telegram message:
+
+```
+💡 Cost optimization review for week 18
+
+Found 4 actionable recommendations
+Estimated monthly savings: $187
+
+Top 3:
+1. Switch support-ticket-reply to Sonnet ($78/mo) — low risk
+2. Add prompt caching to blog-post-draft ($12/mo) — low risk
+3. Move etl-sync to Batch tier ($9/mo) — low risk
+
+PR opened: github.com/ritsu/ritsu-works/pull/89
+Review at your convenience.
+```
+
+## Examples
+
+### Example 1 — first weekly run, found 4 recs
+
+(See output spec above)
+
+### Example 2 — quiet week, no recs above threshold
+
+```yaml
+review_period: ...
+recommendations: []
+recommendations_above_threshold: 0
+recommendations_below_threshold: 3   # all minor
+
+status: no_action_needed
+notes: |
+  Cost stable, no opportunities above $5/month threshold.
+  Health Score 89, +2 from last week.
+  3 minor opportunities exist (sub-threshold) — see
+  .archives/cost-reviews/2026-W19/sub-threshold.md
+```
+
+Telegram:
+
+```
+📊 Cost optimization review — week 19
+
+Cost stable, no actionable opportunities this week.
+Health Score: 89 (+2)
+
+Continue current trajectory.
+```
+
+### Example 3 — alarming spike triggered ad-hoc run
+
+Founder runs `/optimize-cost` after seeing $50 spike yesterday.
+
+Output highlights the spike investigation (Analyzer F outliers) prominently:
+
+```
+🔴 Cost optimization — ad-hoc, spike investigation
+
+Yesterday's $50 spike traced to 3 outlier runs:
+- run abc123: blog-post-draft, $18 (typical $1.80)
+- run def456: blog-post-draft, $14
+- run ghi789: blog-post-draft, $12
+
+Pattern: all 3 used Opus, all 3 had context > 80K tokens
+(typical is 12K). Likely cause: bug in content-drafter
+loading too many wiki pages.
+
+Recommended action: investigate content-drafter prompt
+template before more spikes occur. NOT a model downgrade —
+the bug would just be cheaper, not fixed.
+
+PR not created — this needs root cause first.
+```
+
+## Quality criteria
+
+- Returns within 10s wall-clock (acceptable for weekly cron)
+- Recommendations have concrete savings estimates (not "consider this")
+- Diffs are syntactically valid (founder shouldn't have to fix syntax)
+- Risk assessments accurate (low-risk ones really are low-risk)
+- No spammy recommendations (filter threshold respected)
+
+## Failure modes
+
+- **Diff generation fails** — recommendation included as description-only with note "manual implementation needed"
+- **Insufficient data** — return error, don't generate noise
+- **GitHub MCP unavailable** — save recommendations to `.archives/`, founder applies manually
+- **All recommendations rejected by founder repeatedly** — log; if 3 reviews in a row are 100% rejected, alert founder that thresholds/heuristics may need tuning
+
+## Cost estimate
+
+- ~5-10 SQL queries (~50ms each)
+- 1 Sonnet call for diff drafting (~$0.05 per diff × 4-5 diffs = ~$0.25)
+- ~3-5K output tokens
+- Per-invocation cost: ~$0.30
+- Weekly invocation = $1.20/month. Acceptable; the savings outweigh.
+
+## Required secrets
+
+- `SUPABASE_OPS_ANON_KEY` (read cost data)
+- `SUPABASE_OPS_FULL_SERVICE_KEY` (write to ops.optimization_recommendations)
+- `GITHUB_GPS_BOT_TOKEN` (create branch + PR)
+- `ANTHROPIC_GPS_KEY` (the Sonnet diff drafting call)
+
+Roles allowed to invoke: `gps` only. This is a high-trust skill that creates governance PRs.
+
+## Related skills
+
+- `cost-report` (Bài #7) — uses for raw data
+- `monthly-learning-review` (Bài #4) — consumes weekly outputs in monthly Economics section
+- `task-decompose` (Bài #5) — irrelevant unless cost optimization itself becomes complex enough to decompose
+
+## Changelog
+
+- 2026-05-02 — initial version (Bài #7 v1.0 spec)
 
 ---
 
-Liên quan: `cost-report`.
+*Cost optimization that lives in founder's head is forgotten. Cost optimization that lives in scheduled PRs is structural. This skill makes the structural version possible.*
+

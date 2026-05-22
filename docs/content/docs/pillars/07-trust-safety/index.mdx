@@ -1,102 +1,97 @@
 ---
-title: 07-trust-safety — Pillar Trust & Safety
+title: 07-trust-safety — Trust & Safety Pillar
 description: ''
 source_path: 07-trust-safety/README.md
 source_hash: a1ce1b1bf4e802099be1ef8c3ea3a17138e20eb26cf549e83287252cd548e461
-generated_at: '2026-05-19T05:20:46.420Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.479Z'
+generated_by: docs-engine v1.2.0
 category: pillar
 language: vi
-translated: true
-translated_source_hash: a1ce1b1bf4e802099be1ef8c3ea3a17138e20eb26cf549e83287252cd548e461
-translated_at: 2026-05-19T15:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-# 07-trust-safety — Pillar Trust & Safety
-
-> DMCA, kiểm duyệt nội dung, GDPR/PDPA, triage hallucination, xử lý người dùng vị thành niên. Chỉ hoạt động khi có sự cố đầu tiên; ở giai đoạn hiện tại là khung sườn (skeleton).
+> DMCA, content moderation, GDPR/PDPA, hallucination triage, minor-user handling. Active only on first incident; skeleton at current stage.
 
 **Layer:** Evergreen
-**Stage status:** Skeleton (được điều khiển bởi entry-condition)
+**Stage status:** Skeleton (entry-condition driven)
 **Pillar code:** TS
 **Owner role(s):** trust-safety
-**HITL baseline:** C (tất cả quyết định ảnh hưởng đến người dùng đều đi đến founder)
+**HITL baseline:** C (all user-affecting decisions go to founder)
 
 ---
 
-## Phạm vi
+## Scope
 
-Pillar này sở hữu:
-- **DMCA / bản quyền** — xử lý thông báo gỡ bỏ bản quyền (người dùng Ritsu upload tài liệu có bản quyền như sách giáo khoa)
-- **Vi phạm ToS** — phân loại lạm dụng, chính sách tạm ngưng tài khoản
-- **Chính sách GDPR / PDPA** — quyền của chủ thể dữ liệu, quy tắc lưu trữ, tuân thủ EU/Asia
-- **Triage hallucination** — lỗi AI do người dùng báo cáo, phân tích nguyên nhân gốc
-- **Xử lý người dùng vị thành niên** — bảo vệ dưới 18 tuổi (một số persona của Ritsu như Students có cả vị thành niên)
-- **Kiểm duyệt nội dung** — nội dung người dùng upload (Ritsu chấp nhận PDF/video/slides — cần thẩm định ở quy mô lớn)
+This pillar owns:
+- **DMCA / copyright** — copyright takedown notice handling (Ritsu users upload copyrighted material like textbooks)
+- **ToS violations** — abuse classification, account suspension policy
+- **GDPR / PDPA policy** — data subject rights, retention rules, EU/Asia compliance
+- **Hallucination triage** — user-reported AI errors, root cause analysis
+- **Minor user handling** — under-18 protection (some Ritsu personas like Students include minors)
+- **Content moderation** — user-uploaded content (Ritsu accepts PDF/video/slides — needs vetting at scale)
 
-Pillar này KHÔNG sở hữu:
-- Cơ chế xóa tài khoản → `05-customer/customer-data/SOP-CUSTOMER-023-gdpr-account-deletion/` (TS sở hữu POLICY, Customer sở hữu EXECUTION)
-- An toàn cấp code (validation đầu vào, phòng thủ prompt injection) → đó là product team trong repo riêng
-- Tuân thủ tài chính thuế/quy định → `placeholders/compliance-vn/` (mối quan tâm riêng)
+This pillar does NOT own:
+- Account-deletion mechanics → `05-customer/customer-data/SOP-CUSTOMER-023-gdpr-account-deletion/` (TS owns POLICY, Customer owns EXECUTION)
+- Code-level safety (input validation, prompt injection defenses) → that's product team in separate repo
+- Tax/regulatory financial compliance → `placeholders/compliance-vn/` (separate concern)
 
 ## Sub-pillars
 
-Không có sub-pillar ở giai đoạn này. Chỉ skeleton. Xem điều kiện vào bên dưới.
+No sub-pillars at this stage. Skeleton only. See entry conditions below.
 
 ## SOPs
 
-`sops/SOP-TS-NNN-<slug>/` — namespace được bảo lưu. Chỉ một SOP khung sườn ở giai đoạn hiện tại:
-- `SOP-TS-001-incident-response-template` — template chung; được sao chép + chuyên biệt hóa khi sự cố đầu tiên xảy ra
+`sops/SOP-TS-NNN-<slug>/` — namespace reserved. Only one skeleton SOP at current stage:
+- `SOP-TS-001-incident-response-template` — generic template; copied + specialized when first incident hits
 
 ## Agents
 
-- `trust-safety` (home) — được định nghĩa trong ROLES.md. Định tuyến nội dung bị người dùng đánh dấu, áp dụng chính sách. Escalation trực tiếp lên founder theo ROLES.md (T&S KHÔNG định tuyến qua gps).
+- `trust-safety` (home) — defined in ROLES.md. Routes user-flagged content, applies policy. Direct escalation to founder per ROLES.md (T&S does NOT route through gps).
 
-## KPI sở hữu
+## KPIs owned
 
-(Sẽ được hiển thị tại `10-metrics/kpi-registry/` khi active.)
+(Surfaced in `10-metrics/kpi-registry/` once active.)
 
-- Khối lượng thông báo DMCA (mỗi tháng)
-- Thời gian phản hồi DMCA trung bình
-- Số lượng vi phạm ToS + thời gian giải quyết
-- Tỷ lệ sự cố hallucination (trên 10K user-prompt)
-- Thời gian phản hồi yêu cầu dữ liệu GDPR/PDPA
+- DMCA notice volume (per month)
+- Average DMCA response time
+- ToS violation count + resolution time
+- Hallucination incident rate (per 10K user-prompts)
+- GDPR/PDPA data request response time
 
-## Phụ thuộc
+## Dependencies
 
-- **Composes from:** `governance/HITL.md` (tất cả hành động T&S đều tối thiểu Tier C)
-- **Composed by:** `05-customer/customer-data/` (thực thi xóa theo GDPR)
+- **Composes from:** `governance/HITL.md` (all T&S actions are Tier C minimum)
+- **Composed by:** `05-customer/customer-data/` (GDPR deletion execution)
 
 ## HITL baseline
 
-Mọi hành động T&S đều ảnh hưởng đến quyền người dùng hoặc tư thế pháp lý. Tier mặc định:
-- Phản hồi FAQ-handled thường lệ (vd "chúng tôi cần more info"): Tier B
-- Đánh giá DMCA + counter-notice: Tier C
-- Tạm ngưng ToS đến 7 ngày: Tier C
-- Tạm ngưng ToS >7 ngày: Tier D-Std
-- Tuyên bố sự cố công khai: Tier D-MAX
-- Bất kỳ liên hệ pháp lý nào: Tier D-MAX
+Every T&S action affects user rights or legal posture. Default tier:
+- Routine FAQ-handled response (eg "we need more info"): Tier B
+- DMCA evaluation + counter-notice: Tier C
+- ToS suspension up to 7 days: Tier C
+- ToS suspension >7 days: Tier D-Std
+- Public incident statement: Tier D-MAX
+- Any legal correspondence: Tier D-MAX
 
-## Điều kiện vào (khi nào cần đào sâu)
+## Entry conditions (when to deepen)
 
-Pillar này thăng cấp từ skeleton lên các sub-pillar active khi:
+This pillar promotes from skeleton to active sub-pillars when:
 
-| Trigger | Kích hoạt |
+| Trigger | Activates |
 |---|---|
-| **Thông báo DMCA đầu tiên được nhận** | sub-pillar `01-dmca/` với SOP-TS-002-dmca-evaluation, SOP-TS-003-counter-notice-protocol |
-| **Báo cáo ToS đầu tiên** | sub-pillar `02-tos-violations/` với SOP-TS-004-tos-classification, SOP-TS-005-suspension-criteria |
-| **Hallucination đầu tiên do người dùng báo cáo gây hại** | `03-hallucination-triage/` với SOP-TS-006-incident-triage, SOP-TS-007-product-team-handoff |
-| **Ra mắt EU được xác nhận (bất kỳ người dùng EU nào đã trả tiền)** | `04-gdpr-deep/` với tự động hóa DSR (Data Subject Request) đầy đủ |
-| **Mốc 100 người dùng trả tiền** | `05-content-moderation/` để xét duyệt chủ động ở quy mô lớn |
-| **Ra mắt Asia (bất kỳ người dùng PDPA-jurisdiction nào đã trả tiền)** | `06-pdpa-asia/` |
+| **First DMCA notice received** | `01-dmca/` sub-pillar with SOP-TS-002-dmca-evaluation, SOP-TS-003-counter-notice-protocol |
+| **First ToS report** | `02-tos-violations/` sub-pillar with SOP-TS-004-tos-classification, SOP-TS-005-suspension-criteria |
+| **First user-reported hallucination causing harm** | `03-hallucination-triage/` with SOP-TS-006-incident-triage, SOP-TS-007-product-team-handoff |
+| **EU launch confirmed (any EU user paid)** | `04-gdpr-deep/` with full DSR (Data Subject Request) automation |
+| **100 paying users milestone** | `05-content-moderation/` for proactive review at scale |
+| **Asia launch (any PDPA-jurisdiction user paid)** | `06-pdpa-asia/` |
 
-Mỗi trigger PR sub-pillar liên quan vào tồn tại với sự phê duyệt của founder. Cho đến lúc đó, skeleton + SOP template chung là đủ. Founder + general-purpose agent xử lý ad-hoc.
+Each trigger PRs the relevant sub-pillar into existence with founder approval. Until then, skeleton + generic template SOP is sufficient. Founder + general-purpose agent handles ad-hoc.
 
-## Tại sao pillar này tồn tại nếu dormant
+## Why this pillar exists if dormant
 
-Hai lý do:
-1. **Bảo lưu namespace.** Khi (không phải nếu) sự cố đầu tiên xảy ra, phản hồi là "mở sub-pillar `01-dmca/`" chứ không phải "chúng ta nên đặt thứ này ở đâu?"
-2. **Tài liệu hóa cam kết chính sách.** Ritsu.ai đã có các trang DMCA/GDPR/Security/Terms live. Cam kết pháp lý tồn tại; pillar này là nơi sự hậu thuẫn vận hành sống.
+Two reasons:
+1. **Reserves the namespace.** When (not if) first incident hits, the response is "open sub-pillar `01-dmca/`" not "where do we put this?"
+2. **Documents the policy commitment.** Ritsu.ai already has DMCA/GDPR/Security/Terms pages live. The legal commitment exists; this pillar is where the operational backing lives.
+

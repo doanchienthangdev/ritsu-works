@@ -3,44 +3,34 @@ title: 'SOP-PRODUCT-001-cofounder-usage-analysis: SOP'
 description: ''
 source_path: 04-product/wedge-discovery/sops/SOP-PRODUCT-001-cofounder-usage-analysis/flow.yaml
 source_hash: cff652b97e699cb499469261a77c6bd0933dc9a6b058861ea273952e608620e3
-generated_at: '2026-05-19T05:20:46.434Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.493Z'
+generated_by: docs-engine v1.2.0
 category: sop
 language: vi
-translated: true
-translated_source_hash: cff652b97e699cb499469261a77c6bd0933dc9a6b058861ea273952e608620e3
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
 **SOP ID:** `SOP-PRODUCT-001-cofounder-usage-analysis`
 **Pillar:** n/a
 
-## Các bước
+## Steps
 
-### Bước fetch_cofounder_events — Lấy sự kiện sử dụng product của cofounder
+### Step fetch_cofounder_events — fetch_cofounder_events
 
-Thu thập các sự kiện hành vi của cofounder khi tương tác với product Ritsu trong cửa sổ phân tích. Nguồn dữ liệu là `metrics.product_dau_snapshot` được ETL từ Product AI theo lịch hằng giờ. Đây là đường truy cập duy nhất mà Operating AI được phép sử dụng để đọc dữ liệu hành vi của cofounder; mọi truy cập trực tiếp Product Supabase đều bị cấm.
 
-### Bước fetch_session_excerpts — Lấy trích đoạn phiên học
+### Step fetch_session_excerpts — fetch_session_excerpts
 
-Truy xuất các đoạn dữ liệu phiên học liên quan tới cofounder — bao gồm thời lượng phiên, các activity type đã dùng (quiz, flashcard, mindmap, v.v.), điểm số kết quả, và độ sâu của quá trình học chủ động. Các trích đoạn này được lấy qua view `metrics.*` đã được ETL, không lưu PII gốc.
 
-### Bước synthesize_observations — Tổng hợp quan sát
+### Step synthesize_observations — synthesize_observations
 
-Đối chiếu các sự kiện và trích đoạn vừa thu thập với khung wedge-discovery để rút ra các quan sát hành vi cốt lõi: cofounder dùng product để làm gì, ở đâu thì kẹt, modal/mode nào tạo retention, modal nào bị bỏ giữa chừng. Các quan sát phải có trích dẫn về dòng dữ liệu cụ thể trong bảng `metrics.*`.
 
-### Bước grade_hypothesis_if_provided — Chấm điểm giả thuyết (nếu được cung cấp)
+### Step grade_hypothesis_if_provided — grade_hypothesis_if_provided
 
-Nếu lượt chạy SOP có kèm một giả thuyết wedge từ product-orchestrator, chấm điểm 0..1 mức độ ủng hộ giả thuyết đó bằng các quan sát đã tổng hợp. Bước này tuỳ chọn — nếu không có giả thuyết, bỏ qua và đánh dấu kết quả `hypothesis_grade: null`.
 
-### Bước write_analysis_row — Ghi dòng phân tích
+### Step write_analysis_row — write_analysis_row
 
-Ghi một dòng vào `ops.cofounder_usage_analyses` (cùng schema với các phân tích wedge-discovery khác). Trường bao gồm: cửa sổ phân tích, ID cofounder băm, danh sách quan sát, điểm giả thuyết, dấu thời gian, chi phí LLM. Hành động này là Tier A vì chỉ ghi vào schema `ops.*` của Operating AI.
 
-### Bước surface_to_cpo — Đưa kết quả tới CPO
+### Step surface_to_cpo — surface_to_cpo
 
-Phát một sự kiện `cofounder_usage_analysis.completed` vào `ops.events`. Persona CPO (façade lên product-orchestrator) đăng ký sự kiện này và sẽ nhận kết quả trong tóm tắt sản phẩm tuần kế tiếp. Founder cũng nhận một bản tóm tắt Telegram nếu giả thuyết được chấm < 0.4 (tín hiệu kẹt wedge sớm).
 

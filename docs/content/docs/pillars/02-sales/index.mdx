@@ -3,21 +3,15 @@ title: 02-sales — Sales Pillar
 description: ''
 source_path: 02-sales/README.md
 source_hash: 80fa815baa6510cf0542018d487399d14efb7a4d9d6701c25e4a027ab8831d3b
-generated_at: '2026-05-19T05:20:46.416Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.473Z'
+generated_by: docs-engine v1.2.0
 category: pillar
 language: vi
-translated: true
-translated_source_hash: 80fa815baa6510cf0542018d487399d14efb7a4d9d6701c25e4a027ab8831d3b
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-# 02-sales — Sales Pillar
-
-> Pricing experiments, conversion funnel patterns, free→paid mechanics, sales motion design. Cung cấp các module có thể tái sử dụng được tiêu thụ bởi `03-gtm` (stage pillar). Self-serve PLG ở giai đoạn hiện tại; outbound + enterprise deferred.
+> Pricing experiments, conversion funnel patterns, free→paid mechanics, sales motion design. Provides reusable modules consumed by `03-gtm` (stage pillar). Self-serve PLG at current stage; outbound + enterprise deferred.
 
 **Layer:** Evergreen
 **Stage status:** LITE (sub-modules feed GTM; deep build deferred until Enterprise tier triggered)
@@ -29,14 +23,14 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 
 ## Scope
 
-Trụ cột này sở hữu:
+This pillar owns:
 - **Pricing tiers** — current Free/$29/$59/$119 canonical definition
 - **Conversion funnel** — landing → signup → activation → first-aha → paid mechanics
 - **Free→paid triggers** — when to nudge upgrade, what credits/limits force tier transitions
-- **Sales motion design** — PLG self-serve ở giai đoạn hiện tại; outbound motion templates (deferred)
+- **Sales motion design** — PLG self-serve at current stage; outbound motion templates (deferred)
 - **Pricing experiments** — A/B tests on tier boundaries, credit allocations, billing periods
 
-Trụ cột này KHÔNG sở hữu:
+This pillar does NOT own:
 - Marketing content / SEO / brand → `01-marketing/`
 - Customer onboarding (post-paid) → `05-customer/onboarding/`
 - Stripe revenue tracking / runway → `08-finance/`
@@ -44,7 +38,7 @@ Trụ cột này KHÔNG sở hữu:
 
 ## Sub-pillars
 
-LITE ở giai đoạn này. Modules consumed by GTM:
+LITE at this stage. Modules consumed by GTM:
 
 ```
 02-sales/
@@ -64,7 +58,7 @@ LITE ở giai đoạn này. Modules consumed by GTM:
 
 ## SOPs
 
-`sops/SOP-SALES-NNN-<slug>/` — namespace được bảo lưu. First SOP ở giai đoạn này:
+`sops/SOP-SALES-NNN-<slug>/` — namespace reserved. First SOP at this stage:
 - `SOP-SALES-001-pricing-experiment-decision` — protocol for proposing + running + deciding pricing A/B tests
 
 ## Agents
@@ -94,8 +88,9 @@ LITE ở giai đoạn này. Modules consumed by GTM:
 
 ## Entry conditions
 
-Trụ cột này là LITE ở giai đoạn hiện tại. Promote sub-pillars to DEEP khi:
+This pillar is LITE at current stage. Promote sub-pillars to DEEP when:
 - 1 paying deal ≥ $500/mo OR 3 enterprise inbound leads → activate `outbound-motion` + `enterprise-contracts`
 - 100 paying users + 10K MRR → activate `partner-channel-sales` discussion
 
 When sub-pillar activates, also promote pillar `stage_status` from `lite` → `deep` in `manifest.yaml`.
+

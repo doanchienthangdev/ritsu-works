@@ -3,48 +3,42 @@ title: 01-marketing — Marketing Pillar
 description: ''
 source_path: 01-marketing/README.md
 source_hash: 155441a38f0e38a8407da2370b4786de6eda033091ff6ea286acf74a2d1bafde
-generated_at: '2026-05-21T03:49:53.310Z'
+generated_at: '2026-05-22T01:09:07.472Z'
 generated_by: docs-engine v1.2.0
 category: pillar
 language: vi
-translated: true
-translated_at: 2026-05-19T13:00:00.000Z
-translated_by: Claude Opus 4.7 (Claude Code Desktop, session translation)
-translated_source_hash: 155441a38f0e38a8407da2370b4786de6eda033091ff6ea286acf74a2d1bafde
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-# 01-marketing — Marketing Pillar
-
-> Nhận dạng thương hiệu, định vị, công cụ nội dung, định nghĩa ICP, nền tảng SEO, sự hiện diện trên mạng xã hội. Cung cấp các module có thể tái sử dụng được tiêu thụ bởi `03-gtm` (stage pillar) hướng đến mục tiêu "100 paying who love".
+> Brand, positioning, content engine, ICP definition, SEO foundations, social presence. Provides reusable modules consumed by `03-gtm` (stage pillar) toward "100 paying who love" goal.
 
 **Layer:** Evergreen
 **Stage status:** LITE (sub-modules feed GTM; deep build deferred to post-PMF)
 **Pillar code:** MARKETING
 **Owner role(s):** growth-orchestrator
-**HITL baseline:** C (tất cả bài đăng công khai được gate ở Tier C tối thiểu per HITL.md)
+**HITL baseline:** C (all public posts gate at Tier C minimum per HITL.md)
 
 ---
 
 ## Scope
 
-Trụ cột này sở hữu:
-- **Nhận dạng thương hiệu** — định vị, taglines, giọng điệu (composes from `00-core/brand_voice.md`)
-- **ICP (Ideal Customer Profile)** — định nghĩa + segments + persona templates
-- **Công cụ nội dung** — blog templates, social formats, email templates (absorbed from former `04-content/`)
-- **Nền tảng SEO** — keyword research, page structure, meta tags
-- **Sự hiện diện trên mạng xã hội** — channel strategy, posting cadence
+This pillar owns:
+- **Brand identity** — positioning, taglines, voice (composes from `00-core/brand_voice.md`)
+- **ICP (Ideal Customer Profile)** — definition + segments + persona templates
+- **Content engine** — blog templates, social formats, email templates (absorbed from former `04-content/`)
+- **SEO foundations** — keyword research, page structure, meta tags
+- **Social presence** — channel strategy, posting cadence
 
-Trụ cột này KHÔNG sở hữu:
-- Thực hiện chiến dịch giai đoạn hiện tại → `03-gtm/distribution-engine/`
-- Orchestration funnel → `03-gtm/funnel-orchestration/`
+This pillar does NOT own:
+- Current-stage campaign execution → `03-gtm/distribution-engine/`
+- Funnel orchestration → `03-gtm/funnel-orchestration/`
 - Pricing experiments → `02-sales/sub-pillars/pricing-tiers/` (sales owns money mechanics)
 - Customer-facing reply drafting → `05-customer/support/`
 
 ## Sub-pillars
 
-LITE ở giai đoạn này. Các "modules" (không phải sub-pillars) dưới đây là những tài sản có thể tái sử dụng mà GTM tiêu thụ:
+LITE at this stage. The "modules" (not sub-pillars) below are reusable assets that GTM consumes:
 
 ```
 01-marketing/
@@ -65,7 +59,7 @@ LITE ở giai đoạn này. Các "modules" (không phải sub-pillars) dưới �
 
 ## SOPs
 
-`sops/SOP-MARKETING-NNN-<slug>/` — namespace được bảo lưu. First SOP ở giai đoạn này:
+`sops/SOP-MARKETING-NNN-<slug>/` — namespace reserved. First SOP at this stage:
 - `SOP-MARKETING-001-icp-refresh-quarterly` — quarterly ICP definition refresh as user-conversation data arrives
 
 ## Agents
@@ -74,7 +68,7 @@ LITE ở giai đoạn này. Các "modules" (không phải sub-pillars) dưới �
 
 ## KPIs owned
 
-(Những KPI này được hiển thị trong `10-metrics/kpi-registry/` để có khả năng hiển thị cross-pillar.)
+(These KPIs are surfaced in `10-metrics/kpi-registry/` for cross-pillar visibility.)
 
 - ICP definition staleness (days since last refresh)
 - Brand voice consistency score (across published content — manual audit)
@@ -94,7 +88,7 @@ LITE ở giai đoạn này. Các "modules" (không phải sub-pillars) dưới �
 
 ## Entry conditions
 
-Trụ cột này là LITE ở giai đoạn hiện tại. Promote sub-pillars to DEEP khi:
+This pillar is LITE at current stage. Promote sub-pillars to DEEP when:
 - PMF achieved (100 paying retained 30d) → activate `seo-deep-play` + `brand-campaigns`
 - Enterprise tier triggered (1 deal ≥ $500/mo OR 3 enterprise leads) → activate `partnerships`
 - 10K MRR → activate `pr-and-influencer`

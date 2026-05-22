@@ -15,52 +15,45 @@ description: >
   `wiki/<slug>/chapters/`).
 source_path: 06-ai-ops/skills/wiki-sync/adapters/pdf-adapter/SKILL.md
 source_hash: 3215feeb676b5ec0f18e39c1864dc512d113ac6835f04cfe238ffe0e47dde6c5
-generated_at: '2026-05-19T05:20:46.367Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.407Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: 3215feeb676b5ec0f18e39c1864dc512d113ac6835f04cfe238ffe0e47dde6c5
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When to use
 
-# PDF adapter (baseline Sprint 1)
-
-## Khi nào dùng
-
-- Được điều phối bởi `wiki-sync/ingest` khi path kết thúc bằng `.pdf`
+- Dispatched by `wiki-sync/ingest` when path ends in `.pdf`
 - source_kind: `book`
 - entity_type: `book`
-- wiki target: `wiki/<slug>/source.md` (hoặc `wiki/<slug>/chapters/chapter-NN.md` khi được split — layout source-grouped v4.0)
+- wiki target: `wiki/<slug>/source.md` (or `wiki/<slug>/chapters/chapter-NN.md` when split — v4.0 source-grouped layout)
 
 ## Inputs
 
-- `path` — đường dẫn tuyệt đối dưới `raw/books/<filename>.pdf`
+- `path` — absolute path under `raw/books/<filename>.pdf`
 
-## Quy trình
+## Process
 
-### Bước 1 — Validate
+### Step 1 — Validate
 
-- File có tồn tại không? Nếu không, dừng lại.
-- Extension file `.pdf`? Nếu không, ủy thác lại.
-- Kích thước file > 0? Nếu không, dừng lại.
+- File exists? Else bail.
+- File extension `.pdf`? Else delegate back.
+- File size > 0? Else bail.
 
-### Bước 2 — Tính source_hash
+### Step 2 — Compute source_hash
 
 ```bash
 sha256sum "$path"
 ```
 
-Trả về `<sha256>:<filename>`. Đây là `source_hash` cho dedup.
+Returns `<sha256>:<filename>`. This is the `source_hash` for dedup.
 
-### Bước 3 — Trích xuất text qua pymupdf
+### Step 3 — Extract text via pymupdf
 
-Sprint 1: shell out đến script `python3 -c "import pymupdf; ..."`. Sprint 2+ có thể
-áp dụng thư viện PDF Node-native nếu cài đặt pymupdf gặp vấn đề.
+Sprint 1: shell out to `python3 -c "import pymupdf; ..."` script. Sprint 2+ may
+adopt a Node-native PDF library if pymupdf install proves fragile.
 
 Pseudocode:
 ```python
@@ -75,21 +68,21 @@ print(json.dumps({
 }))
 ```
 
-### Bước 4 — Phát hiện trang text trống (tính năng Sprint 2+)
+### Step 4 — Detect text-empty pages (Sprint 2+ feature)
 
-Nếu > 30 % trang trả về text trống → file là PDF scan; cần OCR.
-Sprint 1: cảnh báo nhưng không OCR (hoãn lại). Đánh dấu `state_payload.ocr_needed=true`.
+If > 30 % of pages return empty text → file is scanned PDF; need OCR.
+Sprint 1: warn but don't OCR (defer). Mark `state_payload.ocr_needed=true`.
 
-### Bước 5 — Tổng hợp raw_text
+### Step 5 — Synthesize raw_text
 
-Nối các trang với separator `\n\n---PAGE-BREAK-PP-<N>---\n\n` để chunker downstream
-có thể bảo toàn ranh giới trang khi chunking theo cấu trúc.
+Concatenate pages with `\n\n---PAGE-BREAK-PP-<N>---\n\n` separator so downstream
+chunker can preserve page boundaries when chunking structurally.
 
-### Bước 6 — Tạo slug
+### Step 6 — Slug generation
 
-- Ưu tiên title PDF từ metadata; nếu không thì dùng stem filename.
-- Kebab-case, chữ thường, loại bỏ dấu câu.
-- Giới hạn ở 50 ký tự.
+- Prefer PDF title from metadata; else use filename stem.
+- Kebab-case, lowercase, strip punctuation.
+- Cap at 50 chars.
 
 ## Outputs
 
@@ -112,40 +105,41 @@ có thể bảo toàn ranh giới trang khi chunking theo cấu trúc.
 }
 ```
 
-## Các chế độ thất bại
+## Failure modes
 
-| Triệu chứng | Phản ứng |
+| Symptom | Response |
 |---|---|
-| File không tìm thấy | Dừng lại với đường dẫn tuyệt đối trong lỗi |
-| Không phải PDF (magic bytes sai) | Dừng lại; gợi ý adapter đúng |
-| pymupdf chưa cài | Dừng lại với hướng dẫn `pip install pymupdf` |
-| > 30 % trang text trống | Tiếp tục với cảnh báo; gắn cờ OCR-needed cho Sprint 2 |
-| PDF hỏng (pymupdf raise) | Dừng lại với exception của pymupdf |
+| File not found | Bail with absolute path in error |
+| Not a PDF (magic bytes wrong) | Bail; suggest correct adapter |
+| pymupdf not installed | Bail with `pip install pymupdf` instruction |
+| > 30 % pages empty text | Continue with warning; flag OCR-needed for Sprint 2 |
+| Corrupt PDF (pymupdf raises) | Bail with the pymupdf exception |
 
-## Ước tính chi phí
+## Cost estimate
 
-- Trích xuất (pymupdf): MIỄN PHÍ (tiến trình local)
-- Embedding (downstream): ~$0.004 / sách 50 trang
-- LLM-fallback (downstream, nếu được kích hoạt): ~$0.05 / chunk
+- Extraction (pymupdf): FREE (local process)
+- Embedding (downstream): ~$0.004 / 50-page book
+- LLM-fallback (downstream, if triggered): ~$0.05 / chunk
 
-Tổng cho mỗi cuốn sách thường: $0.40-$0.70 (LLM-fallback gây biến động).
+Total per book typically: $0.40-$0.70 (LLM-fallback drives variance).
 
-## Phạm vi sprint
+## Sprint scope
 
-Sprint 1: chỉ text-layer; không OCR; pymupdf qua Python shell-out.
-Sprint 2 PR2 (v2.0.0): tích hợp chapter-split LIVE — khi `pages_or_size_metric > 100` HOẶC founder truyền `--split`, ingest điều phối đến `wiki-sync/chapter-splitter` theo spec SKILL v2.0 của nó; adapter này trả về output không đổi và splitter tiêu thụ chúng.
-Sprint 4: OCR fallback qua tesseract; trích xuất link LLM-fallback được kết nối qua feature flag.
+Sprint 1: text-layer only; no OCR; pymupdf via Python shell-out.
+Sprint 2 PR2 (v2.0.0): chapter-split integration LIVE — when `pages_or_size_metric > 100` OR founder passes `--split`, ingest dispatches to `wiki-sync/chapter-splitter` per its v2.0 SKILL spec; this adapter returns its outputs unchanged and the splitter consumes them.
+Sprint 4: OCR fallback via tesseract; LLM-fallback link extraction wired via feature flag.
 
-## Hợp đồng Chapter-split (v2.0)
+## Chapter-split contract (v2.0)
 
-Khi `pages_or_size_metric > 100`:
-- Adapter này vẫn trả về output chuẩn (raw_text với separator PAGE-BREAK, `pages_or_size_metric`, `attribution`, v.v.).
-- `wiki-sync/ingest` Bước 5 thấy ngưỡng được kích hoạt + điều phối `wiki-sync/chapter-splitter`.
-- Splitter đọc lại `attribution.title` để dẫn xuất book_slug và `raw_text` để phát hiện ranh giới chapter (chế độ `toc` đọc bookmark PDF qua `doc.get_toc()` — splitter gọi trực tiếp pymupdf, không qua adapter này).
-- Mỗi chapter con có row `ingestion_jobs` riêng với `parent_job_id` trỏ đến cha (lần gọi adapter này).
+When `pages_or_size_metric > 100`:
+- This adapter still returns the standard outputs (raw_text with PAGE-BREAK separators, `pages_or_size_metric`, `attribution`, etc.).
+- `wiki-sync/ingest` Step 5 sees the threshold trip + dispatches `wiki-sync/chapter-splitter`.
+- Splitter reads back `attribution.title` for the book_slug derivation and `raw_text` for chapter boundary detection (`toc` mode reads PDF bookmarks via `doc.get_toc()` — the splitter calls pymupdf directly, not through this adapter).
+- Each chapter child gets its own `ingestion_jobs` row with `parent_job_id` pointing to the parent (this adapter's invocation).
 
-## Liên quan
+## Related
 
-- Cha: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md`
-- Sibling adapter: `06-ai-ops/skills/wiki-sync/adapters/{url,markdown,youtube,meeting}-adapter/`
-- Cấu hình Tier 1: entry `book` của `knowledge/ingestion-sources.yaml`
+- Parent: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md`
+- Sibling adapters: `06-ai-ops/skills/wiki-sync/adapters/{url,markdown,youtube,meeting}-adapter/`
+- Tier 1 config: `knowledge/ingestion-sources.yaml` entry `book`
+

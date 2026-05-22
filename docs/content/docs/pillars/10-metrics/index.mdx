@@ -3,131 +3,126 @@ title: 10-metrics — Metrics Pillar
 description: ''
 source_path: 10-metrics/README.md
 source_hash: e0f4ebb15f29aa0aee7e8bfeb361806fe0f395d5045470ac768c93ecf2623373
-generated_at: '2026-05-19T05:20:46.422Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.481Z'
+generated_by: docs-engine v1.2.0
 category: pillar
 language: vi
-translated: true
-translated_source_hash: e0f4ebb15f29aa0aee7e8bfeb361806fe0f395d5045470ac768c93ecf2623373
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-# 10-metrics — Trụ cột Metrics
-
-> Registry KPI + bản đồ sở hữu, dashboard, quy tắc alerting, instrumentation PMF, đo lường thử nghiệm. Lớp consolidation làm cho việc review cross-pillar trở nên khả thi. Không có nó, KPI của mỗi pillar bị phân tán.
+> KPI registry + ownership map, dashboards, alerting rules, PMF instrumentation, experiment measurement. The consolidation layer that makes cross-pillar review possible. Without this, every pillar's KPIs scatter.
 
 **Layer:** Evergreen
 **Stage status:** DEEP
 **Pillar code:** METRICS
-**Vai trò sở hữu:** metrics-curator, alert-router, experiment-analyst
-**HITL baseline:** B (dashboard định kỳ = B; quy tắc alert mới = C)
+**Owner role(s):** metrics-curator, alert-router, experiment-analyst
+**HITL baseline:** B (routine dashboards = B; new alert rule = C)
 
 ---
 
-## Phạm vi
+## Scope
 
-Trụ cột này sở hữu **lớp đo lường**:
+This pillar owns the **measurement layer**:
 
-- **Registry KPI** — danh sách chuẩn của mọi KPI trong công ty, với công thức, nguồn, người sở hữu, mục tiêu
-- **Instrumentation PMF** — Sean Ellis very-disappointed%, cohort retention, NPS, composite "100-paying-who-love"
-- **Dashboard** — dashboard thứ Hai của founder (5 ô một màn hình), bảng review cross-pillar hàng tuần, rollup sức khỏe theo pillar
-- **Alerting** — định nghĩa quy tắc alert, định tuyến theo mức độ nghiêm trọng (P0 Telegram ngay → P1 digest hàng ngày), audit fatigue
-- **Đo lường thử nghiệm** — phân tích A/B test, tính significance + lift, giao thức stop-and-decide
-- **View doanh thu + chi phí** — xu hướng MRR/ARR/CAC/LTV + chi phí AI-Ops (view chỉ đọc trên Finance + AI-Ops)
+- **KPI registry** — canonical list of every KPI in the company, with formula, source, owner, target
+- **PMF instrumentation** — Sean Ellis very-disappointed%, cohort retention, NPS, "100-paying-who-love" composite
+- **Dashboards** — founder Monday dashboard (5 tiles single screen), cross-pillar weekly review, per-pillar health rollup
+- **Alerting** — alert rule definitions, severity routing (P0 immediate Telegram → P1 daily digest), fatigue audit
+- **Experiment measurement** — A/B test analysis, significance + lift calculation, stop-and-decide protocol
+- **Revenue + cost views** — MRR/ARR/CAC/LTV + AI-Ops cost trends (read-only views over Finance + AI-Ops)
 
-Trụ cột này KHÔNG sở hữu:
-- Hạ tầng LƯU TRỮ (`ops.kpi_snapshots`, `ops.alerts`, `metrics.product_dau_snapshot`) → các bảng này nằm trong hạ tầng AI-Ops (xem `supabase/migrations/`)
-- Ý NGHĨA DOMAIN của metrics (mỗi pillar chức năng sở hữu cách diễn giải kinh doanh của mình)
-- Quyết định DỰA TRÊN metrics (những cái đó xảy ra trong pillar sở hữu)
+This pillar does NOT own:
+- The STORAGE substrate (`ops.kpi_snapshots`, `ops.alerts`, `metrics.product_dau_snapshot`) → those tables live in AI-Ops infrastructure (see `supabase/migrations/`)
+- The DOMAIN MEANING of metrics (each functional pillar owns its business interpretation)
+- Decisions BASED on metrics (those happen in the owning pillar)
 
-Metrics sở hữu: định nghĩa + dashboard + định tuyến alerting. Giống như một đội data nhỏ ngồi giữa lưu trữ AI-Ops và các pillar vận hành.
+Metrics owns: definitions + dashboards + alerting routing. Like a small data team sitting between AI-Ops storage and operational pillars.
 
-## Sub-pillars (xây DEEP ngay)
+## Sub-pillars (DEEP build now)
 
 ```
 10-metrics/
-├── kpi-registry/                         # Danh sách metric chuẩn + ownership
+├── kpi-registry/                         # Canonical metrics list + ownership
 │   ├── sops/SOP-METRICS-001-kpi-definition-template/
 │   ├── sops/SOP-METRICS-002-kpi-ownership-mapping/      # knowledge/kpi-ownership.yaml
 │   └── sops/SOP-METRICS-003-kpi-deprecation-protocol/
-├── pmf-instrumentation/                  # Các con số PMF
+├── pmf-instrumentation/                  # The PMF numbers
 │   ├── sops/SOP-METRICS-004-sean-ellis-very-disappointed-tracking/
 │   ├── sops/SOP-METRICS-005-cohort-retention-week-1-week-4/
 │   ├── sops/SOP-METRICS-006-nps-collection-and-aggregation/
-│   └── sops/SOP-METRICS-007-100-paying-who-love-composite-metric/   # Ô số duy nhất
-├── dashboards/                           # View founder + cross-pillar
-│   ├── sops/SOP-METRICS-008-founder-monday-dashboard/   # Màn hình 5 ô
+│   └── sops/SOP-METRICS-007-100-paying-who-love-composite-metric/   # The singular tile
+├── dashboards/                           # Founder + cross-pillar views
+│   ├── sops/SOP-METRICS-008-founder-monday-dashboard/   # 5-tile screen
 │   ├── sops/SOP-METRICS-009-cross-pillar-weekly-review-board/
-│   └── sops/SOP-METRICS-010-pillar-health-rollup/       # Trạng thái G/Y/R theo pillar
-├── alerting/                             # Định nghĩa quy tắc + định tuyến
-│   ├── sops/SOP-METRICS-011-alert-rule-yaml-format/     # tận dụng knowledge/alert-rules.yaml
-│   ├── sops/SOP-METRICS-012-alert-routing-by-severity/  # P0 → Telegram; P1 → digest hàng ngày
-│   └── sops/SOP-METRICS-013-alert-fatigue-audit/        # Review hàng tháng
-├── experiment-measurement/               # Độ chặt A/B test
+│   └── sops/SOP-METRICS-010-pillar-health-rollup/       # G/Y/R status per pillar
+├── alerting/                             # Rule definitions + routing
+│   ├── sops/SOP-METRICS-011-alert-rule-yaml-format/     # leverages knowledge/alert-rules.yaml
+│   ├── sops/SOP-METRICS-012-alert-routing-by-severity/  # P0 → Telegram; P1 → daily digest
+│   └── sops/SOP-METRICS-013-alert-fatigue-audit/        # Monthly review
+├── experiment-measurement/               # A/B test rigor
 │   ├── sops/SOP-METRICS-014-experiment-design-checklist/
 │   ├── sops/SOP-METRICS-015-significance-and-lift-calculation/
 │   └── sops/SOP-METRICS-016-experiment-stop-and-decide-protocol/  # ↔ 04-product/ab-test-discipline
-└── revenue-and-cost-views/               # View chỉ đọc trên Finance + AI-Ops
+└── revenue-and-cost-views/               # Read-only views over Finance + AI-Ops
     ├── sops/SOP-METRICS-017-mrr-growth-rate-weekly/
     ├── sops/SOP-METRICS-018-blended-cac-ltv-by-channel/  # ↔ 03-gtm/distribution-engine
     ├── sops/SOP-METRICS-019-ai-ops-cost-per-task-trend/  # ↔ 06-ai-ops/cost-budget-architecture
     └── sops/SOP-METRICS-020-runway-projection-monthly/    # ↔ 08-finance
 ```
 
-## Thứ tự sub-pillar (tường thuật)
+## Sub-pillar order (narrative)
 
-1. **kpi-registry** — định nghĩa metric chuẩn + bản đồ sở hữu (nền tảng)
-2. **pmf-instrumentation** — các con số PMF: Sean-Ellis, cohort retention, ô composite "100 paying who love"
-3. **dashboards** — dashboard thứ Hai của founder + bảng review cross-pillar hàng tuần
-4. **alerting** — định nghĩa quy tắc + định tuyến theo mức độ nghiêm trọng (P0 Telegram, P1 digest hàng ngày)
-5. **experiment-measurement** — độ chặt A/B test: thiết kế, significance, stop-and-decide
-6. **revenue-and-cost-views** — view chỉ đọc trên dữ liệu chi phí Finance + AI-Ops
+1. **kpi-registry** — canonical metric definitions + ownership map (foundation)
+2. **pmf-instrumentation** — the PMF numbers: Sean-Ellis, cohort retention, the "100 paying who love" composite tile
+3. **dashboards** — founder Monday dashboard + cross-pillar weekly review board
+4. **alerting** — rule definitions + severity-based routing (P0 Telegram, P1 daily digest)
+5. **experiment-measurement** — A/B test rigor: design, significance, stop-and-decide
+6. **revenue-and-cost-views** — read-only views over Finance + AI-Ops cost data
 
 ## SOPs
 
-`sops/SOP-METRICS-NNN-<slug>/` — 20 SOP được scaffold. Phase 5 triển khai:
-- `SOP-METRICS-007-100-paying-who-love-composite-metric` — ô PMF duy nhất
-- `SOP-METRICS-008-founder-monday-dashboard` — màn hình hiển thị ô composite + 4 ô hỗ trợ
+`sops/SOP-METRICS-NNN-<slug>/` — 20 SOPs scaffolded. Phase 5 implements:
+- `SOP-METRICS-007-100-paying-who-love-composite-metric` — the singular PMF tile
+- `SOP-METRICS-008-founder-monday-dashboard` — the screen displaying the composite tile + 4 supporting tiles
 
 ## Agents
 
-- `metrics-curator` (home) — sở hữu registry KPI, refresh dashboard hàng tuần
-- `alert-router` (dưới `alerting`) — nhận row từ `ops.alerts`, định tuyến theo quy tắc
-- `experiment-analyst` (dưới `experiment-measurement`) — phân tích A/B test theo yêu cầu
+- `metrics-curator` (home) — owns KPI registry, weekly dashboard refresh
+- `alert-router` (under `alerting`) — receives `ops.alerts` rows, routes per rules
+- `experiment-analyst` (under `experiment-measurement`) — A/B test analysis on demand
 
-## KPIs được sở hữu (meta — KPI về KPI)
+## KPIs owned (meta — KPIs about KPIs)
 
-- Độ tươi của KPI (% KPI đã đăng ký được cập nhật hàng tuần)
-- Thời gian tải dashboard
-- Độ trễ Alert P0 → hành động
-- Tỷ lệ alert fatigue (alert bị bỏ qua không hành động / tổng số alert)
-- Thời gian xử lý thử nghiệm (test được khởi chạy → quyết định được đưa ra)
+- KPI freshness (% of registered KPIs updated weekly)
+- Dashboard load time
+- Alert P0 → action latency
+- Alert fatigue ratio (alerts dismissed without action / total alerts)
+- Experiment turnaround time (test launched → decision made)
 
-## Phụ thuộc
+## Dependencies
 
-- **Compose từ:** `06-ai-ops/cost-budget-architecture/` (nguồn cấp xu hướng chi phí), `08-finance/` (dữ liệu MRR + Stripe), các bảng Supabase `ops.kpi_snapshots`, `ops.alerts`, `metrics.product_dau_snapshot`
-- **Được compose bởi:** mọi pillar vận hành đều đọc metrics cho các quyết định; đặc biệt là `03-gtm/pmf-instrumentation/` và `09-founder/weekly-review/`
+- **Composes from:** `06-ai-ops/cost-budget-architecture/` (cost trend feed), `08-finance/` (MRR + Stripe data), Supabase tables `ops.kpi_snapshots`, `ops.alerts`, `metrics.product_dau_snapshot`
+- **Composed by:** every operational pillar reads metrics for decisions; especially `03-gtm/pmf-instrumentation/` and `09-founder/weekly-review/`
 
-## Cổng PG quan trọng
+## Critical PG gate
 
-`SOP-METRICS-007-100-paying-who-love-composite-metric` là **ô số duy nhất** — một con số kết hợp số người trả phí + retention + NPS thành một điểm số tiến độ PMF duy nhất. Được surface trong dashboard thứ Hai của founder (`SOP-METRICS-008`). **Nếu con số này không di chuyển, không có gì khác quan trọng.**
+`SOP-METRICS-007-100-paying-who-love-composite-metric` is the **singular tile** — one number combining paying count + retention + NPS into a single PMF-progress score. Surfaces in the founder Monday dashboard (`SOP-METRICS-008`). **If this number doesn't move, nothing else matters.**
 
-Lấy cảm hứng từ "weekly growth rate is the metric" của PG — cho giai đoạn của Ritsu, "% tiến độ 100-paying-who-love" là tương đương.
+Inspired by PG's "weekly growth rate is the metric" — for Ritsu's stage, "100-paying-who-love progress %" is the equivalent.
 
 ## HITL baseline
 
-- Refresh dashboard định kỳ: Tier A
-- KPI mới được đăng ký: Tier B
-- Quy tắc alert mới (mọi mức độ nghiêm trọng): Tier C
-- Thay đổi định tuyến alert (vd chuyển P0 từ Telegram sang email): Tier C
-- Loại bỏ KPI (xóa khỏi registry): Tier C
-- SOP mới được thêm: Tier C
+- Routine dashboard refresh: Tier A
+- New KPI registered: Tier B
+- New alert rule (any severity): Tier C
+- Alert routing change (eg moving P0 from Telegram to email): Tier C
+- KPI deprecation (removing from registry): Tier C
+- New SOP added: Tier C
 
-## Điều kiện vào
+## Entry conditions
 
-Đã DEEP. Các sub-pillar tương lai (sau 1000-paying):
-- `07-business-intelligence/` — dashboard BI sâu hơn cho báo cáo board
-- `08-data-warehouse/` — nếu Supabase căng thẳng với truy vấn trực tiếp
+Already DEEP. Future sub-pillars (post-1000-paying):
+- `07-business-intelligence/` — deeper BI dashboards for board reporting
+- `08-data-warehouse/` — if Supabase strain on direct queries
+

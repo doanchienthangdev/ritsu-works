@@ -3,20 +3,13 @@ title: 00-core — Core Pillar
 description: ''
 source_path: 00-core/README.md
 source_hash: 0406726540cbc7b58d359c0132d31a6a06987a355b10f122bd2391cd672a9e77
-generated_at: '2026-05-21T16:52:43.027Z'
+generated_at: '2026-05-22T01:09:07.451Z'
 generated_by: docs-engine v1.2.0
 category: charter
 language: vi
-translated: true
-translated_at: '2026-05-21T16:53:17.337Z'
-translated_by: docs-translate v1.1.0
-translation_model: claude-haiku-4-5-20251001
-translated_source_hash: 0406726540cbc7b58d359c0132d31a6a06987a355b10f122bd2391cd672a9e77
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
-
-# 00-core — Core Pillar
 
 > Foundation: 19 canonical docs (identity, strategy, operating, brand-design, meta) — the "who is Ritsu" + ALL cốt lõi answer that every other pillar refers back to. Managed by `/core` command (`.claude/commands/core.md`).
 
@@ -31,40 +24,40 @@ translated_source_hash: 0406726540cbc7b58d359c0132d31a6a06987a355b10f122bd2391cd
 
 ## Scope
 
-Pillar này sở hữu câu trả lời canonical cho:
+This pillar owns the canonical answer to:
 
-**Identity** (chúng ta là ai):
-- **Ritsu là gì?** → `product.md` (canonical)
-- **Ritsu nghe như thế nào?** → `brand_voice.md` (canonical)
-- **Công khai AI stance?** → `transparency.md` (canonical)
+**Identity** (who we are):
+- **What is Ritsu?** → `product.md` (canonical)
+- **How does Ritsu sound?** → `brand_voice.md` (canonical)
+- **Public AI stance?** → `transparency.md` (canonical)
 - **Charter / mission / boundaries?** → `charter.md` (canonical)
 - **Founder operational context?** → `founder-profile.md` (canonical, walker-excluded for PII)
-- **Chúng ta sẽ/sẽ không làm gì?** → `values.md` (v0.1-draft, revisit at 30-paying)
+- **What we will/won't do?** → `values.md` (v0.1-draft, revisit at 30-paying)
 - **AI-Native operating belief?** → `ai-native-philosophy.md` (v0.1-draft)
 
-**Strategy** (chúng ta đi đâu):
-- **Chúng ta đang optimize cái gì bây giờ?** → `north-star.md` (canonical)
-- **Ai là 100 người đầu tiên?** → `icp-summary.md` (canonical)
-- **Single source cho marketing copy?** → `positioning.md` (canonical)
-- **Feature nào làm họ ở lại?** → `wedge.md` (stub — entry: SOP-PRODUCT-002 N=10 complete)
+**Strategy** (where we're going):
+- **What we're optimizing right now?** → `north-star.md` (canonical)
+- **Who the first 100 are?** → `icp-summary.md` (canonical)
+- **Single source for marketing copy?** → `positioning.md` (canonical)
+- **Which features make them stay?** → `wedge.md` (stub — entry: SOP-PRODUCT-002 N=10 complete)
 - **Pricing principles?** → `pricing-philosophy.md` (stub — entry: SOP-PRODUCT-010 first run)
 
-**Operating** (cách chúng ta quyết định + chạy):
+**Operating** (how we decide + run):
 - **Decision heuristics?** → `principles.md` (v0.1-draft)
 - **Daily/weekly/monthly rhythm?** → `operating-cadence.md` (stub — entry: cofounder formal join OR 50 paying)
 - **Founder vs cofounder decision rights narrative?** → `decision-rights-narrative.md` (stub — entry: cofounder formal join)
 
 **Brand-design**:
-- **Visual language cho company outputs?** → `design-system.md` (stub — entry: first marketing visual needed)
+- **Visual language for company outputs?** → `design-system.md` (stub — entry: first marketing visual needed)
 
 **Meta**:
 - **Reading map?** → `INDEX.md`
 - **Canonical vocabulary?** → `glossary.md` (stub — entry: first 10 SOPs land)
 
-Pillar này KHÔNG sở hữu:
-- Operating playbooks (những cái đó sống ở functional pillars)
+This pillar does NOT own:
+- Operating playbooks (those live in their respective functional pillars)
 - KPI definitions (`knowledge/kpi-registry.yaml`)
-- Specific product features (product sống ở separate repo)
+- Specific product features (the product lives in a separate repo)
 
 ## Status enum
 
@@ -91,20 +84,20 @@ Phase 2 verbs (`init`, `reindex`, `review`, `status`, `<doc>:apply`, `<doc>:buil
 
 ## Reading order
 
-Cho cofounder / new AI agent onboarding (~30-60 min):
+For cofounder / new AI agent onboarding (~30-60 min):
 
 1. **`INDEX.md`** (~3 min) — orientation
-2. **`product.md`** (~10 min) — Ritsu IS gì
+2. **`product.md`** (~10 min) — what Ritsu IS
 3. **`charter.md`** (~5 min) — vision/market/monetization/boundaries
-4. **`north-star.md`** (~3 min) — chúng ta đang optimize cái gì
-5. **`brand_voice.md`** (~10 min) — Ritsu nghe như thế nào
+4. **`north-star.md`** (~3 min) — what we're optimizing
+5. **`brand_voice.md`** (~10 min) — how Ritsu sounds
 6. **`positioning.md`** (~5 min) — what to say at every touchpoint
-7. **`icp-summary.md`** (~5 min) — 100 customers đầu tiên
+7. **`icp-summary.md`** (~5 min) — the first 100 customers
 8. **`values.md`** + **`principles.md`** + **`ai-native-philosophy.md`** (v0.1 each ~5 min)
 9. **`transparency.md`** (~5 min) — public AI stance
 10. **`founder-profile.md`** — founder operational context
 
-Hoặc bundle-style: `/core compose identity` then `/core compose strategy`.
+Or bundle-style: `/core compose identity` then `/core compose strategy`.
 
 ## Compose bundles
 
@@ -119,11 +112,11 @@ Usage: `node scripts/core/compose.cjs --bundle=identity --to=runtime/core/onboar
 
 ## Sub-pillars
 
-None. Flat structure intentional — mỗi doc có frontmatter `layer` enum (identity / strategy / brand-design / operating / stage / meta) cho logical grouping.
+None. Flat structure intentional — each doc has frontmatter `layer` enum (identity / strategy / brand-design / operating / stage / meta) for logical grouping.
 
 ## SOPs
 
-`sops/SOP-CORE-NNN-<slug>/` — namespace reserved but EMPTY. 00-core docs là reference, không phải workflow.
+`sops/SOP-CORE-NNN-<slug>/` — namespace reserved but EMPTY. 00-core docs are reference, not workflow.
 
 ## SOPs
 
@@ -131,7 +124,7 @@ None. Flat structure intentional — mỗi doc có frontmatter `layer` enum (ide
 
 ## Agents
 
-No agents are home in this pillar. `gps` và `founder` là only roles that edit charter files, both via PR per HITL.md.
+No agents are home in this pillar. `gps` and `founder` are the only roles that edit charter files, both via PR per HITL.md.
 
 ## KPIs owned
 
@@ -150,3 +143,4 @@ Every edit to any file in `00-core/` is Tier C. Any "rewrite from scratch" of ch
 ## Entry conditions
 
 Not applicable (always active from day 1).
+

@@ -9,46 +9,39 @@ description: |
   aggregation per spec A7. Cost-bucket task_kind wiki-dedup-batch ($0.30 cap).
 source_path: 06-ai-ops/skills/wiki-sync/dedup/SKILL.md
 source_hash: 896a7c83ade98d821222a367d92e640f1b737d1a6242a8535c2bb7ded868bc7f
-generated_at: '2026-05-19T05:20:46.374Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.415Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: 896a7c83ade98d821222a367d92e640f1b737d1a6242a8535c2bb7ded868bc7f
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When this skill runs
 
-# wiki-sync / dedup (v3.0)
+- Invoked by `wiki-sync/ingest` Step 7 after `distill` completes for ONE source.
+- Invoked by `wiki-sync/adapters/folder-adapter` after ALL files in a folder finish individual distill, to aggregate cross-paper concepts.
+- ONLY runs when `feature-flags.yaml::wiki_sync_distill_enabled = true` (in `--verbatim` mode there is nothing to dedup).
 
-## Khi nào skill này chạy
+## Inputs
 
-- Được gọi bởi `wiki-sync/ingest` Bước 7 sau khi `distill` hoàn tất cho MỘT source.
-- Được gọi bởi `wiki-sync/adapters/folder-adapter` sau khi TẤT CẢ file trong một folder hoàn tất distill cá thể, để aggregate các concept liên paper.
-- CHỈ chạy khi `feature-flags.yaml::wiki_sync_distill_enabled = true` (ở chế độ `--verbatim` không có gì để dedup).
+- `derived_entity_ids` (array of uuid) — newly-INSERT'd `ops.knowledge_pages` rows from this source's distill pass
+- `corpus_scope` (text) — `"single_source"` (Step 7 from ingest) OR `"folder_aggregation"` (folder-adapter end-of-batch)
+- `existing_corpus` (optional filter) — by default, dedup against ALL non-deleted entity pages in `ops.knowledge_pages` of matching `page_type`
 
-## Đầu vào
+## Outputs
 
-- `derived_entity_ids` (mảng uuid) — các dòng `ops.knowledge_pages` vừa được INSERT từ pass distill của source này
-- `corpus_scope` (text) — `"single_source"` (Bước 7 từ ingest) HOẶC `"folder_aggregation"` (end-of-batch của folder-adapter)
-- `existing_corpus` (filter tùy chọn) — mặc định, dedup so với TẤT CẢ các trang entity không bị xóa trong `ops.knowledge_pages` có `page_type` khớp
+- For auto-merge matches (sim > 0.92): UPDATE `knowledge_extractions.derived_page_id` rewires from duplicate to canonical; soft-delete duplicate via `knowledge_pages.deleted_at = now()`
+- For queue matches (0.75-0.92): UPDATE duplicate `knowledge_pages.review_state = 'pending_review'` (founder sees in `/wiki review` queue)
+- For distinct (\< 0.75): no change
+- One `ops.agent_runs` row summarizing matches found + actions taken
+- One row in `ops.events` (`event_type='ritsu.wiki.dedup_completed'`)
 
-## Đầu ra
+## Process
 
-- Cho các match auto-merge (sim > 0.92): UPDATE `knowledge_extractions.derived_page_id` rewire từ duplicate sang canonical; soft-delete duplicate qua `knowledge_pages.deleted_at = now()`
-- Cho các match queue (0.75-0.92): UPDATE duplicate `knowledge_pages.review_state = 'pending_review'` (founder thấy trong queue `/wiki review`)
-- Cho distinct (\< 0.75): không thay đổi
-- Một dòng `ops.agent_runs` tổng kết các match tìm được + action đã thực hiện
-- Một dòng trong `ops.events` (`event_type='ritsu.wiki.dedup_completed'`)
+### Step 1 — Slug-equality fast path
 
-## Quy trình
-
-### Bước 1 — Fast path slug-equality
-
-Với mỗi `derived_entity` trong `derived_entity_ids`:
+For each `derived_entity` in `derived_entity_ids`:
 ```sql
 SELECT id FROM ops.knowledge_pages
 WHERE page_type = $derived_entity.page_type
@@ -58,20 +51,20 @@ WHERE page_type = $derived_entity.page_type
   AND legacy_v2_verbatim = false;
 ```
 
-Nếu một dòng match (entity cũ hơn có cùng slug):
-- **MERGE**: đây chắc chắn là duplicate (cùng canonical slug).
+If a row matches (older entity has same slug):
+- **MERGE**: this is a definite duplicate (same canonical slug).
 - Rewire `knowledge_extractions`: `UPDATE ops.knowledge_extractions SET derived_page_id = $existing_id WHERE derived_page_id = $derived_entity.id`
-- Soft-delete duplicate mới: `UPDATE ops.knowledge_pages SET deleted_at = now() WHERE id = $derived_entity.id`
-- Xóa file wiki: `rm wiki/<page_type>/<slug>.md` (bản canonical sống tại file_path của trang hiện có)
-- Log vào audit trail merge (Bước 5)
+- Soft-delete the new duplicate: `UPDATE ops.knowledge_pages SET deleted_at = now() WHERE id = $derived_entity.id`
+- Delete the wiki file: `rm wiki/<page_type>/<slug>.md` (the canonical lives at the existing page's file_path)
+- Log to merge audit trail (Step 5)
 
-Slug-equality rẻ (b-tree lookup); luôn chạy trước.
+Slug-equality is cheap (b-tree lookup); always runs first.
 
-### Bước 2 — Tương đồng vector (cosine_distance qua pgvector)
+### Step 2 — Vector similarity (cosine_distance via pgvector)
 
-Với mỗi `derived_entity` KHÔNG match ở Bước 1:
-- Tính embedding của `(title + 200 ký tự đầu của summary)` nếu chưa có trong `ops.knowledge_embeddings`
-- Truy vấn các neighbor gần nhất:
+For each `derived_entity` NOT matched in Step 1:
+- Compute embedding of `(title + first 200 chars of summary)` if not already in `ops.knowledge_embeddings`
+- Query for nearest neighbors:
 
 ```sql
 WITH new_entity_emb AS (
@@ -92,28 +85,28 @@ ORDER BY cosine_similarity DESC
 LIMIT 5;
 ```
 
-### Bước 3 — Action dựa trên ngưỡng tương đồng
+### Step 3 — Action based on similarity threshold
 
-Với mỗi match trả về ở Bước 2:
+For each match returned in Step 2:
 
 | Similarity | Action |
 |---|---|
-| **> 0.92** | **AUTO-MERGE**: giống Bước 1 merge (rewire extractions, soft-delete duplicate, xóa file wiki). Founder KHÔNG được notify (đủ tự tin auto). |
-| **0.75-0.92** | **QUEUE**: UPDATE `knowledge_pages.review_state = 'pending_review'` trên CẢ entity mới VÀ match hiện có. Insert gợi ý vào `knowledge_pages.frontmatter::jsonb` với `pending_merge_candidate_id = <existing_id>` để `/wiki review` biết surface cặp này. |
-| **\< 0.75** | **DISTINCT**: không action. Entity mới giữ làm trang riêng. |
+| **> 0.92** | **AUTO-MERGE**: same as Step 1 merge (rewire extractions, soft-delete duplicate, delete wiki file). Founder NOT notified (auto-confidence enough). |
+| **0.75-0.92** | **QUEUE**: UPDATE `knowledge_pages.review_state = 'pending_review'` on BOTH the new entity AND the existing match. Insert hint into `knowledge_pages.frontmatter::jsonb` with `pending_merge_candidate_id = <existing_id>` so `/wiki review` knows to surface the pair. |
+| **\< 0.75** | **DISTINCT**: no action. New entity stays as its own page. |
 
-### Bước 4 — Aggregation ở mức folder (corpus_scope = 'folder_aggregation')
+### Step 4 — Folder-level aggregation (corpus_scope = 'folder_aggregation')
 
-Khi folder-adapter gọi skill này ở end-of-batch:
-- Group các derived entity theo `(page_type, slug)` trên TẤT CẢ file trong folder
-- Với mỗi group có size > 1: auto-merge các duplicate trong folder thành MỘT trang canonical; tập `knowledge_extractions` của trang canonical cite tất cả file source trong folder
-- Sau đó chạy Bước 2-3 với corpus `knowledge_pages` toàn cục (để bắt cross-folder duplicate từ các ingest trước)
+When folder-adapter calls this skill at end-of-batch:
+- Group derived entities by `(page_type, slug)` across ALL files in the folder
+- For each group with size > 1: auto-merge the duplicates within the folder into ONE canonical page; the canonical page's `knowledge_extractions` set cites all source files in the folder
+- Then run Steps 2-3 against the global `knowledge_pages` corpus (to catch cross-folder duplicates from prior ingests)
 
-Theo spec A7: extraction observation của từng paper vẫn gắn với paper source của nó; chỉ concept mới auto-aggregate. Discriminator: `page_type = 'concept'` → aggregate; `page_type IN ('observation', 'decision', 'idea')` → giữ per-source.
+Per spec A7: per-paper extractions of observations stay attached to their source paper; only concepts auto-aggregate. Discriminator: `page_type = 'concept'` → aggregate; `page_type IN ('observation', 'decision', 'idea')` → leave per-source.
 
-### Bước 5 — Merge audit trail
+### Step 5 — Merge audit trail
 
-Với mỗi merge action (auto HOẶC queued-then-approved), INSERT vào log audit merge qua `ops.events`:
+For each merge action (auto OR queued-then-approved), INSERT into a merge audit log via `ops.events`:
 
 ```sql
 INSERT INTO ops.events (event_type, source, payload)
@@ -133,46 +126,47 @@ VALUES (
 );
 ```
 
-Trail này giúp `/wiki merge --undo` (skill merge Sprint 4) reverse qua chuỗi `superseded_by_id`.
+This trail enables `/wiki merge --undo` (Sprint 4 merge skill) to reverse via `superseded_by_id` chain.
 
-### Bước 6 — Ghi nhận chi phí
+### Step 6 — Cost attribution
 
-Một dòng `ops.cost_attributions` mỗi lần gọi batch. Chi phí chủ yếu là chi phí embedding OpenAI (text-embedding-3-small ~$0.00002/1K tokens) + CPU Postgres nhỏ. Task_kind: `wiki-dedup-batch` (cap $0.30 theo spec §0).
+One `ops.cost_attributions` row per batch invocation. Cost is mostly OpenAI embedding cost (text-embedding-3-small ~$0.00002/1K tokens) + small Postgres CPU. Task_kind: `wiki-dedup-batch` (cap $0.30 per spec §0).
 
-## Các chế độ lỗi
+## Failure modes
 
-| Triệu chứng | Phản ứng |
+| Symptom | Response |
 |---|---|
-| Embedding chưa được tính cho derived entity | Tính inline (1 OpenAI call); chi phí ghi nợ vào lần gọi dedup này. Nếu `OPENAI_API_KEY` thiếu: defer toàn pass dedup; cron `wiki-embeddings-backfill` trigger lại sau. |
-| Slug-equality match nhưng `extracted_from_source_id` khác nhau | Duplicate chắc chắn — tiến hành merge. Log audit merge sẽ cho thấy CẢ hai citation source được preserve qua `knowledge_extractions` (rewire là về canonical derived_page_id; extraction source KHÔNG bị mất). |
-| Cosine similarity > 0.92 nhưng founder không đồng ý sau đó | `/wiki merge --undo` (Sprint 4) khôi phục trang duplicate qua `deleted_at = NULL` và rewire extractions trở lại. Use case: false-positive merge của các từ đồng âm (ví dụ: "attention" ML vs psychology). |
-| Folder-aggregation tạo MỘT concept "PLG" canonical với 15 source | Hành vi mong đợi; section `## Sources cited` của trang canonical liệt kê tất cả 15 citation. /wiki ask retrieval surface đây như một concept high-confidence. |
+| Embedding not yet computed for derived entity | Compute inline (1 OpenAI call); cost charged to this dedup invocation. If `OPENAI_API_KEY` absent: defer the whole dedup pass; `wiki-embeddings-backfill` cron triggers it later. |
+| Slug-equality match but different `extracted_from_source_id` chains | Definite duplicate — proceed with merge. The merge audit log will show BOTH source citations preserved via `knowledge_extractions` (rewiring is to the canonical derived_page_id; source extractions are NOT lost). |
+| Cosine similarity > 0.92 but founder later disagrees | `/wiki merge --undo` (Sprint 4) restores the duplicate page via `deleted_at = NULL` and rewires extractions back. Use case: false-positive merge of homonyms (e.g., "attention" ML vs psychology). |
+| Folder-aggregation produces ONE canonical "PLG" concept with 15 sources | Expected behavior; the canonical page's `## Sources cited` section lists all 15 citations. /wiki ask retrieval surfaces this as a high-confidence concept. |
 
-## Kỷ luật HITL
+## HITL discipline
 
-- Mặc định Tier A (UPDATE additive + soft-delete; tất cả reversible).
-- Tier B khi:
-  - Queue 0.75-0.92 tạo một entry `pending_review` — digest Telegram hằng ngày tổng kết
-  - Founder chạy `/wiki review` để xử lý queue (mỗi lần một item)
-- Không bao giờ Tier C (không có schema change; không có governance edit).
+- Default Tier A (additive UPDATEs + soft-deletes; all reversible).
+- Tier B when:
+  - 0.75-0.92 queue creates a `pending_review` entry — daily Telegram digest summarizes
+  - Founder runs `/wiki review` to process the queue (one item at a time)
+- Never Tier C (no schema changes; no governance edits).
 
-## Tại sao các ngưỡng này?
+## Why these thresholds?
 
-- **0.92**: match semantic high-confidence. Tỷ lệ false-positive \< 5% trên (title + summary[:200]) cho cohort các entity GTM/growth/marketing đã test. Auto-merging ở ngưỡng này hiếm khi gây bất ngờ cho founder.
-- **0.75**: match semantic low-confidence. Dưới ngưỡng này, các entity thường thực sự distinct (ví dụ: "active learning" concept giáo dục vs "active learning" paradigm training ML). Trên 0.75 xứng đáng được mắt người xem.
-- **Giữa 0.75-0.92**: queue review của founder. Theo kinh nghiệm đây là nơi các từ đồng âm và near-synonym sống. Review 1-2 phút mỗi cặp qua `/wiki review`.
+- **0.92**: high-confidence semantic match. False-positive rate \< 5% on (title + summary[:200]) for cohort of GTM/growth/marketing entities tested against. Auto-merging at this threshold rarely surprises founder.
+- **0.75**: low-confidence semantic match. Below this, entities are usually genuinely distinct (e.g., "active learning" the educational concept vs "active learning" the ML training paradigm). Above 0.75 deserves a human eyeball.
+- **Between 0.75-0.92**: founder review queue. Empirically this is where homonyms and near-synonyms live. 1-2 minute per-pair review via `/wiki review`.
 
-Các ngưỡng này là điểm khởi đầu v3.0.0; founder có thể retune ở v3.0.1 nếu 10 distill đầu tiên cho thấy drift (xem test falsifiability Muse M1).
+These thresholds are v3.0.0 starting points; founder may retune in v3.0.1 if first 10 distills show drift (see Muse M1 falsifiability test).
 
-## Liên quan
+## Related
 
-- Tích hợp pipeline: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` Bước 7
-- Folder aggregation: `06-ai-ops/skills/wiki-sync/adapters/folder-adapter/SKILL.md` (cập nhật v3.0)
-- UX queue review: `06-ai-ops/skills/wiki-sync/review/SKILL.md` (Sprint 4)
-- Override merge thủ công: `06-ai-ops/skills/wiki-sync/merge/SKILL.md` (Sprint 4)
+- Pipeline integration: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` Step 7
+- Folder aggregation: `06-ai-ops/skills/wiki-sync/adapters/folder-adapter/SKILL.md` (v3.0 update)
+- Review queue UX: `06-ai-ops/skills/wiki-sync/review/SKILL.md` (Sprint 4)
+- Manual merge override: `06-ai-ops/skills/wiki-sync/merge/SKILL.md` (Sprint 4)
 - Schema: migration `00031_wiki_distillation.sql` Block B (`review_state`, `deleted_at`)
 - Spec: `wiki/capabilities/wiki-sync-from-refs/spec.md` v3.0 §0 A4 + A7
 
-## Phiên bản
+## Version
 
-- **v0.1** (Sprint 3 của wiki-sync-from-refs v3.0.0, 2026-05-18): match ba tầng (slug + 0.92 auto + 0.75-0.92 queue); aggregation ở mức folder cho concept (observation/decision/idea giữ per-source); merge audit trail qua ops.events.
+- **v0.1** (Sprint 3 of wiki-sync-from-refs v3.0.0, 2026-05-18): three-tier match (slug + 0.92 auto + 0.75-0.92 queue); folder-level aggregation for concepts (observations/decisions/ideas stay per-source); merge audit trail via ops.events.
+

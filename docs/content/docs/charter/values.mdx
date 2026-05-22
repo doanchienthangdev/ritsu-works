@@ -3,111 +3,85 @@ title: Ritsu Values
 description: ''
 source_path: 00-core/values.md
 source_hash: da4d3a28ca9afea1d0627f615e88c478dc41ff479f585fbbe53b0ad07d8fa0e2
-generated_at: '2026-05-21T16:05:13.913Z'
+generated_at: '2026-05-22T01:09:07.463Z'
 generated_by: docs-engine v1.2.0
 category: charter
 language: vi
-translated: true
-translated_at: '2026-05-21T16:15:19.251Z'
-translated_by: docs-translate v1.1.0
-translation_model: claude-haiku-4-5-20251001
-translated_source_hash: da4d3a28ca9afea1d0627f615e88c478dc41ff479f585fbbe53b0ad07d8fa0e2
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
----
-title: Giá trị Ritsu
-type: core-doc
-slug: values
-layer: identity
-status: v0.1-draft
-owner: founder
-last_reviewed: 2026-05-21
-review_cadence: on-trigger
-cited_by: []
-auto_load: false
-revisit_at: 30-paying
-revisit_trigger: "first 30-paying milestone + first NPS survey (then re-author from observed customer language)"
-revisit_owner: founder
-ai_synthesized_v0_1: true
-ai_synthesized_at: 2026-05-21
-ai_synthesized_from: [transparency.md, governance/HITL.md, CLAUDE.md, brand_voice.md]
-ai_synthesis_note: "HYPOTHESES extracted from existing stated boundaries. Founder rewrites at 30-paying milestone with observed customer-language."
----
-
-# Giá trị Ritsu
-
-> Các nguyên tắc hoạt động hướng mọi quyết định khi có nghi ngờ. Được trích dẫn bởi /cla domain-analyst + decision-aware skills.
+> Operating principles that bias every decision when in doubt. Cited by /cla domain-analyst + decision-aware skills.
 >
-> **Lưu ý v0.1:** Pre-PMF, những giá trị này là GIẢ THUYẾT được trích xuất từ các ranh giới đã được nêu rõ (transparency.md + HITL.md). Hãy sửa đổi tại mốc 30-paying với ngôn ngữ khách hàng thực tế + phân tích lỗi retention. Đừng khóa các giá trị xuất phát từ lý thuyết chứ không phải từ hành vi quan sát được.
+> **v0.1 caveat:** Pre-PMF, these are HYPOTHESES extracted from already-stated boundaries (transparency.md + HITL.md). Revise at 30-paying milestone with actual paying-customer language + retention failure analysis. Don't lock values that come from theory rather than observed behavior.
 
-## 1. Những gì chúng tôi KHÔNG làm (ranh giới sáng)
+## 1. What we will NOT do (bright lines)
 
-Những điều này là không thể thương lượng. Không có agent — không có áp lực từ founder — không có cơ hội kinh doanh nào ghi đè được những điều này. Vượt ranh giới là các hành động Tier D-MAX theo HITL.md.
+These are non-negotiable. No agent — no founder pressure — no business opportunity overrides these. Boundary crossings are Tier D-MAX actions per HITL.md.
 
-- **Không tiếp thị lừa dối.** Không tạo tính cấp bách giả tạo. Không testimonial giả. Không "as featured in" mà không có trích dẫn có thể xác minh. Không khiếu nại kết quả học tập mà không có bằng chứng hành vi.
-- **Không training PII mà không có sự đồng ý rõ ràng.** Uploads của người dùng, cuộc hội thoại và dữ liệu tiến độ KHÔNG BAO GIỜ training các model của Anthropic hoặc các nhà cung cấp khác. (Tuyên bố công khai về điều này nằm trong `transparency.md`.)
-- **Không AI giả vờ là con người.** Disclosure AI lần đầu tiên là bắt buộc trên tất cả các channel — chat, email, social, support. Theo EU AI Act Article 50 + California SB 1001 + đạo đức của chúng tôi. Không phải "Tôi là một người thực sự yêu thích học tập!" — Ritsu Assistant xác định mình là AI.
-- **Không quảng cáo nhắm vào trẻ vị thành niên.** Ritsu mở cửa cho các học viên ở mọi lứa tuổi (chúng tôi không đóng cửa người dùng trẻ hơn), nhưng chúng tôi không bao giờ chạy các chiến dịch quảng cáo nhắm vào các người dùng chúng tôi biết dưới 18 tuổi.
-- **Không dark pattern về engagement.** Không streak-shaming. Không FOMO timers. Không "bạn sắp mất streak 27 ngày" guilt. Engagement = mastery + retention, không phải session count.
-- **Không bán dữ liệu người dùng.** Thời kỳ. Ngay cả các tập hợp ẩn danh cũng yêu cầu sự đồng ý của người dùng.
-- **Không công bố public safety/compliance mà chúng tôi chưa kiếm được.** Không "GDPR certified", "SOC 2 compliant", "HIPAA aligned" copy mà không có kiểm toán. Tier D-MAX per HITL.md.
-- **Không ghi trực tiếp vào Ritsu product Supabase từ `ritsu-works`.** Operating AI được cách ly firewall. ETL read-only qua `etl-runner` role chỉ.
+- **No deceptive marketing.** No manufactured urgency. No fake testimonials. No "as featured in" without verifiable citation. No learning outcome claims without behavioral evidence.
+- **No PII training without explicit consent.** User uploads, conversations, and progress data NEVER train Anthropic's or other providers' models. (Public statement of this lives in `transparency.md`.)
+- **No AI pretending to be human.** First-contact AI disclosure is mandatory across all channels — chat, email, social, support. Per EU AI Act Article 50 + California SB 1001 + our own ethics. No "I'm a real person who loves learning!" — Ritsu Assistant identifies as AI.
+- **No minor-targeted advertising.** Ritsu is open to learners of all ages (we don't gate younger users out), but we never run ad campaigns targeting users we know are under 18.
+- **No engagement dark patterns.** No streak-shaming. No FOMO timers. No "you're 1 day from breaking your 27-day streak" guilt. Engagement = mastery + retention, not session count.
+- **No selling user data.** Period. Even anonymized aggregates require user consent.
+- **No public safety/compliance claims we haven't earned.** No "GDPR certified", "SOC 2 compliant", "HIPAA aligned" copy without the audit. Tier D-MAX per HITL.md.
+- **No direct writes to the Ritsu product Supabase from `ritsu-works`.** Operating AI is firewall-isolated. ETL read-only via `etl-runner` role only.
 
-## 2. Những gì chúng tôi sẽ LUÔN làm (defaults)
+## 2. What we will ALWAYS do (defaults)
 
-Phản xạ — khi nghi ngờ, đây là các hành động:
+Reflexes — when in doubt, these are the actions:
 
-- **Disclosure AI lần đầu tiên** (per `transparency.md`). Ngay cả khi không được yêu cầu về mặt pháp lý.
-- **Prefer quan sát hơn survey.** N=10 người lạ thực sự sử dụng sản phẩm beats N=100 interviews. PG gate codified trong SOP-PRODUCT-002.
-- **Ship-then-listen.** Ship phiên bản nhỏ nhất có thể bảo vệ được; học hỏi từ phản ứng thực tế. Đừng optimize trước khi có bằng chứng.
-- **Coi dữ liệu người dùng là sở hữu của người dùng.** Người dùng có thể xóa uploads, cuộc hội thoại, lịch sử bất kỳ lúc nào. Delete = thực sự xóa, không phải flag-as-deleted.
-- **Học tập công khai khi khả thi.** Chia sẻ retrospectives, failure modes, những gì không hoạt động. (Bị ràng buộc bởi tổn thất cạnh tranh — đừng xuất bản chi tiết thử nghiệm hoạt động.)
-- **Escalate sự không chắc chắn chứ không đoán.** Nếu agent không biết, hỏi via HITL. Hallucination trên bề mặt customer-facing = tổn hại thương hiệu; founder Tier B+ review cho các replies không phải FAQ.
-- **Audit mọi hành động Tier B+.** ops.agent_runs, ops.events, ops.audit_log — immutable trails. Founder có thể luôn nhìn thấy những gì đã được thực hiện và tại sao.
-- **Honor stage discipline.** Pre-PMF là wartime (speed > consensus). Post-PMF sẽ là peacetime (consensus > speed). Đừng áp dụng nguyên tắc peacetime trong wartime — đó là cách các startup chết chậm.
+- **Disclose AI on first contact** (per `transparency.md`). Even when not legally required.
+- **Prefer observed over surveyed.** N=10 strangers actually using the product beats N=100 interviews. PG gate codified in SOP-PRODUCT-002.
+- **Ship-then-listen.** Ship the smallest defensible version; learn from real reaction. Don't optimize before evidence.
+- **Treat user data as user-owned.** User can delete uploads, conversations, history at any time. Delete = actually delete, not flag-as-deleted.
+- **Learn in public when feasible.** Share retrospectives, failure modes, what didn't work. (Bounded by competitive harm — don't publish active experiment details.)
+- **Escalate uncertainty rather than guess.** If an agent doesn't know, ask via HITL. Hallucination on customer-facing surface = brand damage; founder Tier B+ review for non-FAQ replies.
+- **Audit every Tier B+ action.** ops.agent_runs, ops.events, ops.audit_log — immutable trails. Founder can always see what was done and why.
+- **Honor stage discipline.** Pre-PMF is wartime (speed > consensus). Post-PMF will be peacetime (consensus > speed). Don't apply peacetime principles in wartime — that's how startups die slow.
 
-## 3. Giá trị hoạt động (4-5 tuyên bố ngắn)
+## 3. Operating values (4-5 short statements)
 
-Danh sách shortlist mô hình quyết định. Mỗi cái ≤ 5 từ. Mỗi cái ánh xạ tới hành vi đã được thể hiện bởi founder.
+The decision-pattern shortlist. Each ≤ 5 words. Each maps to behavior already exhibited by founder.
 
-1. **"Active beats passive."** Active learning > passive consumption. Production > reading. Practice > theory. Chính sản phẩm được xây dựng trên cơ sở này — và cách chúng tôi xây dựng sản phẩm cũng vậy.
+1. **"Active beats passive."** Active learning > passive consumption. Production > reading. Practice > theory. The product itself is built on this — and so is how we build the product.
 
-2. **"Specific beats abstract."** "Solution for [named persona] doing [named task]" beats "solution for users." Khi founder bắt gặp mình abstracting, hỏi: name the customer, name the task.
+2. **"Specific beats abstract."** "Solution for [named persona] doing [named task]" beats "solution for users." When founder catches themselves abstracting, ask: name the customer, name the task.
 
-3. **"Working beats clever."** Ship giải pháp buồn tẻ nhưng hoạt động. Cleverness compounds technical debt; working code compounds momentum. Refactor toward elegance chỉ sau lần thứ ba, không phải lần đầu.
+3. **"Working beats clever."** Ship the boring solution that works. Cleverness compounds technical debt; working code compounds momentum. Refactor toward elegance only after the third instance, not the first.
 
-4. **"Listen beats argue."** Khi founder + cofounder + agent không đồng ý, con đường là more data, không phải louder argument. Customer behavior > intuition > theory. Defer to evidence.
+4. **"Listen beats argue."** When founder + cofounder + agent disagree, the path is more data, not louder argument. Customer behavior > intuition > theory. Defer to evidence.
 
-5. **"Compounding beats sprinting."** Burnout kills startups slower nhưng more certainly hơn under-shipping. SOP-FOUNDER-016 (weekly energy tracking) + SOP-FOUNDER-017 (mandatory rest window) không phải optional — đó là cách chúng tôi thắng thế trò chơi dài.
+5. **"Compounding beats sprinting."** Burnout kills startups slower but more certainly than under-shipping. SOP-FOUNDER-016 (weekly energy tracking) + SOP-FOUNDER-017 (mandatory rest window) are not optional — they're how we win the long game.
 
-## 4. Cách các giá trị giải quyết xung đột
+## 4. How values resolve conflicts
 
-Khi hai giá trị kéo hướng đối lập, giá trị cao hơn chiến thắng. Cặp xung đột được ghi chép:
+When two values pull opposite directions, the higher wins. Documented conflict pairs:
 
-| Xung đột | Người chiến thắng | Lý do |
+| Conflict | Winner | Reason |
 |---|---|---|
-| "Working beats clever" vs "Active beats passive" | Active beats passive | Một sản phẩm working nhưng passive (ví dụ: lưu trữ nội dung) thất bại trong thesis active-learning. Cả hai thua nếu chúng tôi ship phiên bản lười biếng. |
-| "Specific beats abstract" vs "Ship-then-listen" | Specific kills abstract | Shipping một generic feature cho "users" là lãng phí chu kỳ ship-then-listen. Specify trước, sau đó ship. |
-| "Listen beats argue" vs "Wartime founder mode" | Listen beats argue (trong wartime cadence) | Founder decisiveness ≠ ignoring data. Wartime có nghĩa là decide fast trên dữ liệu chúng tôi có, không phải decide alone mà không có data. |
-| "Compounding beats sprinting" vs "Ship-then-listen" | Compounding wins on duration; sprinting wins on per-week velocity | Resolve via SOP-FOUNDER-013/014 (Friday review + week-ahead priorities) — đừng sprint trên những gì không nằm trên danh sách ưu tiên. |
-| "Disclose AI" vs "User experience friction" | Disclose AI | Trust > UX smoothness. Disclosure 1 dòng là UX cost nhỏ; loss of trust từ non-disclosure là permanent. |
+| "Working beats clever" vs "Active beats passive" | Active beats passive | A working but passive (e.g. content storage) product fails the active-learning thesis. Both lose if we ship the lazy version. |
+| "Specific beats abstract" vs "Ship-then-listen" | Specific kills abstract | Shipping a generic feature to "users" is a waste of ship-then-listen cycle. Specify first, then ship. |
+| "Listen beats argue" vs "Wartime founder mode" | Listen beats argue (within wartime cadence) | Founder decisiveness ≠ ignoring data. Wartime means decide fast on the data we have, not decide alone without data. |
+| "Compounding beats sprinting" vs "Ship-then-listen" | Compounding wins on duration; sprinting wins on per-week velocity | Resolve via SOP-FOUNDER-013/014 (Friday review + week-ahead priorities) — don't sprint on what's not on the priority list. |
+| "Disclose AI" vs "User experience friction" | Disclose AI | Trust > UX smoothness. The 1-line disclosure is small UX cost; trust loss from non-disclosure is permanent. |
 
-Khi một XUNG ĐỘT MỚI phát sinh mà không nằm trong bảng này — founder logs it via `/cla propose` hoặc một project memory entry, và add a row ở đây.
+When a NEW conflict arises that's not in this table — founder logs it via `/cla propose` or a project memory entry, and adds a row here.
 
 ## 5. Revisit ceremony (v0.1 → canonical)
 
-Tại mốc 30-paying, file này graduated từ v0.1-draft sang canonical:
+At the 30-paying milestone, this file graduates from v0.1-draft to canonical:
 
-1. **Pull customer interview transcripts** (SOP-CUSTOMER-006 Collison install protocol output — founder personally onboards first ~30 paying). 30 voice/video calls của ~30 min mỗi cái = ~15 hours customer-spoken language.
-2. **Extract values customers THỰC SỰ use** để mô tả Ritsu — direct quotes, recurring phrases, những gì họ nói với bạn bè khi refer. ("My textbook quizzes me", "It found my gaps", etc.)
-3. **Compare gap.** Values của document này (theoretical) vs customer-spoken values (observed). Promote / demote / replace as needed.
-4. **Founder writes the v1.0 canonical** với citations tới interview transcripts (line numbers / timestamps).
-5. **PR Tier C** với explicit before/after diff.
+1. **Pull customer interview transcripts** (SOP-CUSTOMER-006 Collison install protocol output — founder personally onboards first ~30 paying). 30 voice/video calls of ~30 min each = ~15 hours of customer-spoken language.
+2. **Extract values customers ACTUALLY use** to describe Ritsu — direct quotes, recurring phrases, what they say to friends when referring. ("My textbook quizzes me", "It found my gaps", etc.)
+3. **Compare gap.** This document's values (theoretical) vs customer-spoken values (observed). Promote / demote / replace as needed.
+4. **Founder writes the v1.0 canonical** with citations to interview transcripts (line numbers / timestamps).
+5. **PR Tier C** with explicit before/after diff.
 6. **Update frontmatter:** `status: v0.1-draft → canonical`, clear `revisit_at`.
 
-**Revisit log** (append trên mỗi revisit):
+**Revisit log** (append on each revisit):
 
-- 2026-05-21 — v0.1 AI-synthesized từ existing repo material (transparency.md, HITL.md, CLAUDE.md, brand_voice.md). Không có customer data; theory only.
-- (next entry tại 30-paying milestone)
+- 2026-05-21 — v0.1 AI-synthesized from existing repo material (transparency.md, HITL.md, CLAUDE.md, brand_voice.md). No customer data; theory only.
+- (next entry at 30-paying milestone)
+

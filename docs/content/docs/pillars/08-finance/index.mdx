@@ -3,94 +3,89 @@ title: 08-finance — Finance Pillar
 description: ''
 source_path: 08-finance/README.md
 source_hash: eee74e164279b370a7fd1797be8584048cb274d31e030af86687c99799802b45
-generated_at: '2026-05-19T05:20:46.421Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.480Z'
+generated_by: docs-engine v1.2.0
 category: pillar
 language: vi
-translated: true
-translated_source_hash: eee74e164279b370a7fd1797be8584048cb274d31e030af86687c99799802b45
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
-# 08-finance — Trụ cột Tài chính
-
-> Theo dõi doanh thu Stripe, máy tính runway, chuẩn bị hóa đơn, quản lý nhà cung cấp. Skeleton ở giai đoạn hiện tại — các trigger promotion bên dưới.
+> Stripe revenue tracking, runway calculator, invoice preparation, vendor management. Skeleton at current stage — promotion triggers below.
 
 **Layer:** Evergreen
-**Stage status:** Skeleton (kích hoạt theo điều kiện vào)
+**Stage status:** Skeleton (entry-condition driven)
 **Pillar code:** FIN
-**Vai trò sở hữu:** backoffice-clerk
-**HITL baseline:** C (đọc tiền là C; di chuyển tiền là D)
+**Owner role(s):** backoffice-clerk
+**HITL baseline:** C (money read-only is C; money movement is D)
 
 ---
 
-## Phạm vi
+## Scope
 
-Trụ cột này sở hữu:
-- **Theo dõi doanh thu Stripe** — snapshot MRR, số lượng người dùng trả phí, phân tích theo tier (CHỈ ĐỌC)
-- **Máy tính runway** — burn hiện tại so với doanh thu, dự kiến số tháng runway
-- **Chuẩn bị hóa đơn** — tạo hóa đơn cho khách hàng trả phí (chỉ giao nhận; xử lý thanh toán là Stripe)
-- **Phân loại chi phí** — theo dõi chi phí vận hành
-- **Quản lý nhà cung cấp** — audit subscription SaaS, phê duyệt hóa đơn nhà cung cấp (founder phê duyệt)
-- **Bối cảnh thuế đặc thù Việt Nam** — chuyển sang `placeholders/compliance-vn/` cho đến khi pháp nhân VN được thành lập
+This pillar owns:
+- **Stripe revenue tracking** — MRR snapshots, paying user counts, tier breakdown (READ-ONLY)
+- **Runway calculator** — current burn vs revenue, projected runway months
+- **Invoice preparation** — generate invoices for paying customers (delivery only; payment processing is Stripe)
+- **Expense categorization** — operational expense tracking
+- **Vendor management** — SaaS subscription audit, vendor invoice approvals (founder approves)
+- **Vietnam-specific tax context** — defer to `placeholders/compliance-vn/` until VN entity formed
 
-Trụ cột này KHÔNG sở hữu:
-- Quyết định pricing → `02-sales/modules/pricing-tiers/`
-- Vấn đề thanh toán của khách hàng → `05-customer/support/`
-- Thử nghiệm pricing → `04-product/pricing-experiments/`
-- Thực thi nộp thuế VN → `placeholders/compliance-vn/` (trụ cột riêng khi được kích hoạt)
+This pillar does NOT own:
+- Pricing decisions → `02-sales/modules/pricing-tiers/`
+- Customer billing problems → `05-customer/support/`
+- Pricing experiments → `04-product/pricing-experiments/`
+- VN tax filing execution → `placeholders/compliance-vn/` (separate pillar when activated)
 
 ## Sub-pillars
 
-Không có sub-pillar ở giai đoạn này. Skeleton + SOP tối thiểu khả thi.
+No sub-pillars at this stage. Skeleton + minimum-viable SOPs.
 
 ## SOPs
 
-`sops/SOP-FIN-NNN-<slug>/` — namespace được bảo lưu. Skeleton SOPs:
-- `SOP-FIN-001-stripe-revenue-snapshot-weekly` — kéo doanh thu + số người trả phí từ Stripe (CHỈ ĐỌC) vào `ops.kpi_snapshots`
+`sops/SOP-FIN-NNN-<slug>/` — namespace reserved. Skeleton SOPs:
+- `SOP-FIN-001-stripe-revenue-snapshot-weekly` — pulls revenue + paying counts from Stripe (READ-ONLY) into `ops.kpi_snapshots`
 
 ## Agents
 
-- `backoffice-clerk` (home) — được định nghĩa trong ROLES.md. Chỉ quyền truy cập Stripe CHỈ ĐỌC. Hoàn tiền + tính phí yêu cầu nghi lễ Tier C/D của founder theo HITL.md.
+- `backoffice-clerk` (home) — defined in ROLES.md. READ-ONLY Stripe access only. Refunds + charges require founder Tier C/D ceremony per HITL.md.
 
-## KPIs được sở hữu
+## KPIs owned
 
-(Được surface trong `10-metrics/kpi-registry/` khi active.)
+(Surfaced in `10-metrics/kpi-registry/` once active.)
 
-- MRR (doanh thu định kỳ hàng tháng)
-- Dự báo ARR
-- Số người dùng trả phí theo tier
-- Doanh thu trung bình trên mỗi người trả phí (ARPPU)
-- Số tháng runway tại mức burn hiện tại
-- Chi phí AI-Ops dưới dạng % của MRR
+- MRR (monthly recurring revenue)
+- ARR projection
+- Paying users count by tier
+- Average revenue per paying user (ARPPU)
+- Runway months at current burn
+- AI-Ops cost as % of MRR
 
-## Phụ thuộc
+## Dependencies
 
-- **Compose từ:** Stripe (MCP CHỈ ĐỌC), `06-ai-ops/cost-budget-architecture/` (nguồn cấp chi phí AI)
-- **Được compose bởi:** `10-metrics/revenue-and-cost-views/` (sử dụng runway + MRR cho dashboard), `09-founder/weekly-review/` (dashboard thứ Hai của founder đọc runway)
+- **Composes from:** Stripe (READ-ONLY MCP), `06-ai-ops/cost-budget-architecture/` (AI cost feed)
+- **Composed by:** `10-metrics/revenue-and-cost-views/` (consumes runway + MRR for dashboards), `09-founder/weekly-review/` (founder Monday dashboard reads runway)
 
 ## HITL baseline
 
-- Truy vấn Stripe CHỈ ĐỌC: Tier A
-- Tạo + gửi hóa đơn: Tier B (giao dịch một người nhận)
-- Hoàn tiền đến $200: Tier C (theo HITL.md)
-- Hoàn tiền $200-$2000: Tier D-Std
-- Hoàn tiền >$2000: Tier D-MAX
-- Thanh toán nhà cung cấp đến $500: Tier C
-- Thanh toán nhà cung cấp $500-$5000: Tier D-Std
-- Thanh toán nhà cung cấp >$5000: Tier D-MAX
-- Subscription SaaS mới >$50/tháng: Tier D-Std
+- Stripe READ-ONLY queries: Tier A
+- Invoice generation + send: Tier B (single-recipient transactional)
+- Refund up to $200: Tier C (per HITL.md)
+- Refund $200-$2000: Tier D-Std
+- Refund >$2000: Tier D-MAX
+- Vendor payment up to $500: Tier C
+- Vendor payment $500-$5000: Tier D-Std
+- Vendor payment >$5000: Tier D-MAX
+- New SaaS subscription >$50/mo: Tier D-Std
 
-## Điều kiện vào (khi nào đào sâu)
+## Entry conditions (when to deepen)
 
-| Trigger | Kích hoạt sub-pillar | Các SOP đầu tiên |
+| Trigger | Activates sub-pillar | First SOPs |
 |---|---|---|
-| 50 người dùng trả phí | `01-invoicing/` | SOP-FIN-002-invoice-generation, SOP-FIN-003-invoice-delivery |
-| Pháp nhân VN được thành lập | `placeholders/compliance-vn/` (trụ cột riêng) | (trong trụ cột đó) |
-| $10K MRR | `02-accounting-integration/` | SOP-FIN-004-accounting-tool-sync (Xero hoặc Misa) |
-| Founder quyết định gọi vốn | `03-investor-financials/` | SOP-FIN-005-investor-update-monthly, SOP-FIN-006-runway-deck-current |
+| 50 paying users | `01-invoicing/` | SOP-FIN-002-invoice-generation, SOP-FIN-003-invoice-delivery |
+| VN entity formed | `placeholders/compliance-vn/` (separate pillar) | (in that pillar) |
+| $10K MRR | `02-accounting-integration/` | SOP-FIN-004-accounting-tool-sync (Xero or Misa) |
+| Founder decides to raise | `03-investor-financials/` | SOP-FIN-005-investor-update-monthly, SOP-FIN-006-runway-deck-current |
 
-Khi sub-pillar được kích hoạt, đồng thời promote `stage_status` từ `skeleton` → `lite` trong `manifest.yaml`.
+When sub-pillar activates, also promote `stage_status` from `skeleton` → `lite` in `manifest.yaml`.
+

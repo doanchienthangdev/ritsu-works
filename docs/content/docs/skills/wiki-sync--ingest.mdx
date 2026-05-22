@@ -1,165 +1,154 @@
 ---
 title: 'Skill: wiki-sync/ingest'
 description: |
-  Verb ingest của capability wiki-sync. Triển khai pipeline 6 bước của SOP-INGEST-001:
-  fetch (qua adapter) → dedup (chống lại ops.ingestion_jobs) →
-  acquire lock → chapter-split tùy chọn → trích xuất thực thể → entity-link →
-  embed → ghi trang wiki. Hợp đồng single-source-of-truth: ref là nguồn,
-  trang wiki là một phép chiếu có thể tái tạo. Chạy lại với cùng source_hash
-  sẽ short-circuit ở dedup trừ khi có --force.
+  Ingest verb of the wiki-sync capability. Implements SOP-INGEST-001's 6-step
+  pipeline: fetch (via adapter) → dedup (against ops.ingestion_jobs) →
+  acquire lock → optional chapter-split → extract entities → entity-link →
+  embed → write wiki page. Single-source-of-truth contract: the ref is source,
+  the wiki page is a re-derivable projection. Re-runs with same source_hash
+  short-circuit on dedup unless --force.
 source_path: 06-ai-ops/skills/wiki-sync/ingest/SKILL.md
 source_hash: 449e843bff4386aa35675a2b4e12261a832f9ed0c60d47d85d882860d33f8a5e
-generated_at: '2026-05-19T05:20:46.379Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.420Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: 449e843bff4386aa35675a2b4e12261a832f9ed0c60d47d85d882860d33f8a5e
-translated_at: 2026-05-19T15:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When to use
 
-# wiki-sync / ingest (Sprint 1 baseline)
+- Founder runs `/wiki sync <path>` → orchestrator dispatches here.
+- `<path>` is either a local file under `raw/<entity_type>/<file>` or a URL.
 
-## Khi nào dùng
+## Inputs
 
-- Founder chạy `/wiki sync <path>` → orchestrator dispatch đến đây.
-- `<path>` có thể là tệp cục bộ trong `raw/<entity_type>/<file>` hoặc một URL.
+- `path` — file path or URL
+- `split_mode` — null | `toc` | `count=N` | `heading=h2` (defer to chapter-splitter)
+- `force` — bool (default false; bypass dedup)
+- `entity_type_override` — null | one of the 14 page_type enum values
 
-## Đầu vào
+## Process (6-step SOP-INGEST-001)
 
-- `path` — đường dẫn tệp hoặc URL
-- `split_mode` — null | `toc` | `count=N` | `heading=h2` (chuyển cho chapter-splitter)
-- `force` — bool (mặc định false; bỏ qua dedup)
-- `entity_type_override` — null | một trong 14 giá trị enum page_type
+### Step 1 — Pick adapter
 
-## Quy trình (SOP-INGEST-001, 6 bước)
-
-### Bước 1 — Chọn adapter
-
-Đọc `knowledge/ingestion-sources.yaml`. Khớp `<path>` với một trong 6 adapter:
+Read `knowledge/ingestion-sources.yaml`. Match `<path>` to one of the 6 adapters:
 
 | Pattern | Adapter | source_kind |
 |---|---|---|
-| `<path>` là thư mục | `wiki-sync/adapters/folder-adapter` (v2.0 PR3) | `folder_collection` |
+| `<path>` is a directory | `wiki-sync/adapters/folder-adapter` (v2.0 PR3) | `folder_collection` |
 | `*.pdf` | `wiki-sync/adapters/pdf-adapter` | `book` |
 | `http(s)://...` | `wiki-sync/adapters/url-adapter` | `article` |
 | `*.md` / `*.markdown` | `wiki-sync/adapters/markdown-adapter` | `markdown_passthrough` |
 | `youtube.com/* | youtu.be/*` | `wiki-sync/adapters/youtube-adapter` | `youtube_video` |
-| `*.vtt | *.srt | *.txt` (trong `raw/meetings/`) | `wiki-sync/adapters/meeting-adapter` | `meeting_transcript` |
+| `*.vtt | *.srt | *.txt` (in `raw/meetings/`) | `wiki-sync/adapters/meeting-adapter` | `meeting_transcript` |
 
-Nếu không khớp: bail với thông báo lỗi hữu ích liệt kê các pattern được hỗ trợ.
+If no match: bail with helpful error listing supported patterns.
 
-**Folder dispatch (v2.0 PR3):** folder-adapter duyệt các tệp theo thứ tự alphabet và dispatch từng tệp tới adapter anh em phù hợp (markdown / pdf / meeting). Các children dùng slug `<col-slug>__<file-slug>` và kế thừa `page_type` từ frontmatter của từng tệp (KHÔNG có enum `'collection'` mới — đó là ứng viên v2.1). Thư mục con bị từ chối kèm thông báo workaround. Xem `06-ai-ops/skills/wiki-sync/adapters/folder-adapter/SKILL.md` cho pipeline folder 8 bước.
+**Folder dispatch (v2.0 PR3):** the folder-adapter iterates files alphabetically and dispatches each to its matching sibling adapter (markdown / pdf / meeting). Children use slug `<col-slug>__<file-slug>` and inherit `page_type` from each file's frontmatter (NO new `'collection'` enum — that's a v2.1 candidate). Subdirectories refused with workaround message. See `06-ai-ops/skills/wiki-sync/adapters/folder-adapter/SKILL.md` for the 8-step folder pipeline.
 
-**CLI helper (v2.0 PR3):** `scripts/wiki-sync/ingest.cjs` xử lý các phần file-side mang tính xác định của pipeline này cho markdown + folder adapter. Subagent và cron handler NÊN gọi CLI thay vì đọc prose của SKILL. PDF/URL/YouTube/meeting vẫn dùng SKILL này cho tới CLI v0.2.
+**CLI helper (v2.0 PR3):** `scripts/wiki-sync/ingest.cjs` covers the deterministic file-side parts of this pipeline for markdown + folder adapters. Subagents and cron handlers SHOULD invoke the CLI rather than walking SKILL prose. PDF/URL/YouTube/meeting still walk this SKILL until CLI v0.2.
 
-### Bước 2 — Adapter fetch + extract
+### Step 2 — Adapter fetch + extract
 
-Gọi adapter; nhận:
-- `raw_text` — nội dung văn bản đã trích xuất
-- `source_ref` — tham chiếu canonical (URL / abspath)
-- `source_hash` — sha256 của raw bytes (KHÔNG phải của text đã trích — cho ref dạng FILE; với URL dùng ETag-or-body-hash)
+Invoke adapter; receive:
+- `raw_text` — extracted text content
+- `source_ref` — canonical reference (URL / abspath)
+- `source_hash` — sha256 of raw bytes (NOT of extracted text — for FILE refs; for URLs use ETag-or-body-hash)
 - `attribution` — \{ author, publication, published_at, ... } (best-effort)
-- `pages_or_size_metric` — cho ngưỡng kiểm tra chapter-split
+- `pages_or_size_metric` — for chapter-split threshold check
 
-### Bước 3 — Kiểm tra dedup
+### Step 3 — Dedup check
 
 Query `ops.ingestion_jobs WHERE (source_hash = $1 OR content_hash = $2) AND state IN ('queued','fetching','processing','completed')`.
 
-- Nếu có hit completed + `--force` không được set → trả về `resulting_slug` từ row hiện có; set state='duplicate' cho row mới. Không làm gì thêm.
-- Nếu có hit active → bail: "another /wiki sync for this ref is in progress (job_id=...)". UNIQUE partial index từ migration 00027 cũng enforce điều này ở tầng DB.
+- If completed match + `--force` not set → return `resulting_slug` from existing row; set new row state='duplicate'. No further work.
+- If active match → bail: "another /wiki sync for this ref is in progress (job_id=...)". The UNIQUE partial index from migration 00027 also enforces this at DB level.
 
-### Bước 4 — Acquire advisory lock
+### Step 4 — Acquire advisory lock
 
 ```sql
 SELECT ops.wiki_sync_lock(<entity_type>, <slug>);
 ```
 
-Lock có phạm vi transaction. Được release khi COMMIT/rollback. An toàn cross-process.
+Lock is transaction-scoped. Released at COMMIT/rollback. Cross-process safe.
 
-### Bước 5 — Chapter split (nếu áp dụng)
+### Step 5 — Chapter split (if applicable)
 
-Nếu `pages > 100` HOẶC `markdown_size > 25 KB` HOẶC `split_mode` được truyền vào → dispatch đến skill `wiki-sync/chapter-splitter`. Mỗi chapter trở thành một row `ingestion_jobs` riêng với `parent_job_id` trỏ về row này (cột được thêm trong v2.0 migration 00030 Block C). Bước 6-9 chạy độc lập cho từng chapter.
+If `pages > 100` OR `markdown_size > 25 KB` OR `split_mode` was passed → dispatch to `wiki-sync/chapter-splitter` skill. Each chapter becomes its own `ingestion_jobs` row with `parent_job_id` pointing to this row (column added in v2.0 migration 00030 Block C). Steps 6-9 run independently per chapter.
 
-Sprint 2 (v2.0): chapter-splitter là THỰC — triển khai các mode `toc` / `count=N` / `heading=h2` với chuỗi fallback TOC→heading→count. Xem `06-ai-ops/skills/wiki-sync/chapter-splitter/SKILL.md` cho spec splitter 8 bước đầy đủ.
+Sprint 2 (v2.0): chapter-splitter is REAL — implements modes `toc` / `count=N` / `heading=h2` with TOC→heading→count fallback chain. See `06-ai-ops/skills/wiki-sync/chapter-splitter/SKILL.md` for the full 8-step splitter spec.
 
-Khi splitter trả về `{split: true}`, skill ingest này BỎ QUA Bước 6-9 của chính nó cho parent (children xử lý độc lập). Parent nhận một trang `index.md` cấp sách liệt kê các chapter.
+When the splitter returns `{split: true}`, this ingest skill SKIPS its own Steps 6-9 for the parent (children handle it independently). The parent gets a book-level `index.md` page that lists chapters.
 
-Khi splitter trả về `{split: false}` (founder chọn "no split" trong prompt Tier B, HOẶC tệp dưới ngưỡng và `--split` không được truyền), skill ingest này tiếp tục Bước 6-9 như một ingest đơn trang.
+When splitter returns `{split: false}` (founder picked "no split" in the Tier B prompt, OR the file was under threshold and `--split` was not passed), this ingest skill continues Steps 6-9 as a single-page ingest.
 
-### Bước 6 — Distill entities (v3.0 reframe) — HOẶC — verbatim link-extract (v2.0 fallback)
+### Step 6 — Distill entities (v3.0 reframe) — OR — verbatim link-extract (v2.0 fallback)
 
-**MẶC ĐỊNH (v3.0 — `wiki_sync_distill_enabled = true` VÀ cờ `--verbatim` không có):**
-Dispatch đến skill `wiki-sync/distill`. Nó:
-- Ghi trang source RECORD (một trang mỗi nguồn) với `extracted_from_source_id = NULL`
-- Lặp qua các chunk; chọn model theo type (Haiku cho concept+idea; Sonnet cho observation+decision)
-- INSERT các trang derived entity (`page_type` IN `concept`/`observation`/`decision`/`idea`) với `extracted_from_source_id = <source_page_id>`
-- INSERT các row `ops.knowledge_extractions` (citation spine: source_chunk → derived_entity với confidence + raw_quote + llm_model + cost)
-- Confidence ≥ 0.85 → tự động chấp nhận; 0.6-0.85 → `review_state = 'pending_review'`; \< 0.6 → bị reject
+**DEFAULT (v3.0 — `wiki_sync_distill_enabled = true` AND `--verbatim` flag absent):**
+Dispatch to `wiki-sync/distill` skill. It:
+- Writes source RECORD page (single page per source) with `extracted_from_source_id = NULL`
+- Loops over chunks; per-type model picker (Haiku for concept+idea; Sonnet for observation+decision)
+- INSERTs derived entity pages (`page_type` IN `concept`/`observation`/`decision`/`idea`) with `extracted_from_source_id = <source_page_id>`
+- INSERTs `ops.knowledge_extractions` rows (citation spine: source_chunk → derived_entity with confidence + raw_quote + llm_model + cost)
+- Confidence ≥ 0.85 → auto-accept; 0.6-0.85 → `review_state = 'pending_review'`; \< 0.6 → rejected
 - Cost-bucket task_kinds: `wiki-distill-pdf` / `wiki-distill-folder` / `wiki-distill-other`
 
-Cũng gọi `wiki-sync/link-extractor` SONG SONG (pass regex cho các tham chiếu chéo `[[concept/X]]` rõ ràng do tác giả gõ). Distill và link-extractor là HAI PASS RIÊNG BIỆT phục vụ ý định khác nhau:
-- Link-extractor: ý định rõ ràng của tác giả (free-text `knowledge_links.link_type` như `defines`/`see_also`/`related_concept`)
-- Distill: các thực thể được suy luận (strict CHECK enum `extracted_concept`/`extracted_observation`/`extracted_decision`/`extracted_idea`)
+Also calls `wiki-sync/link-extractor` IN PARALLEL (regex pass for explicit `[[concept/X]]` cross-references typed by author). Distill and link-extractor are SEPARATE passes serving different intents:
+- Link-extractor: explicit author intent (free-text `knowledge_links.link_type` like `defines`/`see_also`/`related_concept`)
+- Distill: inferred entities (strict CHECK enum `extracted_concept`/`extracted_observation`/`extracted_decision`/`extracted_idea`)
 
-Cả hai đều ghi vào `ops.knowledge_links`; các giá trị cùng tồn tại.
+Both write to `ops.knowledge_links`; values coexist.
 
-**FALLBACK (đường v2.0 — cờ `--verbatim` được set HOẶC `wiki_sync_distill_enabled = false`):**
-Bỏ qua distill. Chỉ gọi `wiki-sync/link-extractor` (regex + LLM-fallback tùy chọn). Đầu ra giống v2.0:
+**FALLBACK (v2.0 path — `--verbatim` flag set OR `wiki_sync_distill_enabled = false`):**
+Skip distill. Call `wiki-sync/link-extractor` only (regex + optional LLM-fallback). Outputs same as v2.0:
 - `structured_content` — \{ title, summary, sections[], entities[] }
 - `links_created` — int
-- `llm_cost_usd` — numeric (0 nếu chỉ dùng regex)
+- `llm_cost_usd` — numeric (0 if regex-only)
 
-Cost-bucket task_kind: `wiki-ingest-verbatim` (kế nhiệm v3.0 của `wiki-ingest-pdf` / `wiki-ingest-other` đã deprecate).
+Cost-bucket task_kind: `wiki-ingest-verbatim` (v3.0 successor to deprecated `wiki-ingest-pdf` / `wiki-ingest-other`).
 
-Theo trigger auto-deprecation spec §0: nếu cờ `--verbatim` được gọi \< 1 lần trong 30 ngày đầu sau khi promote v3.0, gỡ cờ trong PR đầu tiên của v3.1.
+Per spec §0 auto-deprecation trigger: if `--verbatim` flag invoked \< 1 time in first 30 days post-v3.0 promotion, remove flag in v3.1 first PR.
 
-### Bước 7 — Dedup pass (v3.0 — chỉ chế độ distill)
+### Step 7 — Dedup pass (v3.0 — distill mode only)
 
-Nếu Bước 6 chạy distill (không phải verbatim): dispatch đến skill `wiki-sync/dedup` (Sprint 3). Dedup theo batch mỗi nguồn + tổng hợp cấp folder khi ingest được kích hoạt bởi folder-adapter.
+If Step 6 ran distill (not verbatim): dispatch to `wiki-sync/dedup` skill (Sprint 3). Per-source batch dedup + folder-level aggregation when ingest was triggered by folder-adapter.
 
-Cơ chế dedup:
-- Đường nhanh slug-equality (đã khớp ở Bước 6 Bước 3; đây là lần re-check rõ ràng)
-- Vector similarity > 0.92 trên (title + 200 ký tự đầu của summary) → tự động merge các trang derived entity từ NGUỒN NÀY với các thực thể hiện có trong `ops.knowledge_pages`
-- 0.75-0.92 → queue: derived entity ở riêng nhưng `review_state = 'pending_review'` và digest Telegram đưa candidate merge biên lên cho founder `/wiki review`
-- \< 0.75 → riêng biệt; không merge
+Dedup mechanism:
+- Slug-equality fast path (matched in Step 6 Step 3 already; this is the explicit re-check)
+- Vector similarity > 0.92 on (title + first 200 chars of summary) → auto-merge derived entity pages from THIS source with existing entities in `ops.knowledge_pages`
+- 0.75-0.92 → queue: derived entity stays separate but `review_state = 'pending_review'` and Telegram digest surfaces the borderline merge candidate for founder `/wiki review`
+- \< 0.75 → distinct; no merge
 
 Cost-bucket task_kind: `wiki-dedup-batch`.
 
-Nếu cờ `--verbatim` được set (Bước 6 rơi xuống đường v2.0): BỎ QUA Bước 7. Chế độ verbatim tạo 1 trang mỗi nguồn; không có gì để dedup với entity graph.
+If `--verbatim` flag set (Step 6 fell through to v2.0 path): SKIP Step 7. Verbatim mode produces 1 page per source; nothing to dedup against entity graph.
 
-### Bước 8 — Embed
+### Step 8 — Embed
 
-Chunk theo chiến lược chunking của adapter (đã thực hiện ở Bước 5 nếu chapter-split kích hoạt; ngược lại dùng chunking mặc định của adapter).
+Chunk per adapter's chunking strategy (already in Step 5 if chapter-split fired; else use adapter's default chunking).
 
-Gọi OpenAI `text-embedding-3-small` trên:
-- Chế độ distill v3.0: trang source RECORD + mỗi trang derived entity (1 embedding mỗi trang, nội dung body)
-- Chế độ verbatim v2.0: các chunk của body trang đơn (không đổi so với v2.0)
+Call OpenAI `text-embedding-3-small` on:
+- v3.0 distill mode: source RECORD page + each derived entity page (1 embedding per page, body content)
+- v2.0 verbatim mode: chunks of the single page body (unchanged from v2.0)
 
-INSERT vào `ops.knowledge_embeddings`. Nếu thiếu `OPENAI_API_KEY` → mark `embeddings_deferred = true`; cron `wiki-embeddings-backfill` hàng giờ sẽ pick up (pattern G3 của v2.0 tiếp tục; SKILL backfill được cập nhật trong Sprint 3 để xử lý trang derived entity).
+INSERT into `ops.knowledge_embeddings`. If `OPENAI_API_KEY` absent → mark `embeddings_deferred = true`; hourly `wiki-embeddings-backfill` cron picks up (v2.0 G3 pattern continues; backfill SKILL updated in Sprint 3 to handle derived entity pages too).
 
-Chi phí: ~$0.00002 / 1K token. Theo dõi trong `embedding_cost_usd`.
+Cost: ~$0.00002 / 1K tokens. Track in `embedding_cost_usd`.
 
-### Bước 9 — Ghi (các) trang wiki + (các) row knowledge_pages
+### Step 9 — Write wiki page(s) + knowledge_pages row(s)
 
-**Chế độ distill v3.0: ĐẦU RA NHIỀU TRANG (layout source-grouped v4.0)**
-- Trang source RECORD tại `wiki/<source-slug>/source.md` (1 trang) với `extracted_from_source_id = NULL`. Frontmatter bao gồm `license_status` (founder set trong Bước 1 của distill).
-- N trang derived entity trong cùng package tại `wiki/<source-slug>/concepts/<slug>.md` + `wiki/<source-slug>/observations/<slug>.md` + `wiki/<source-slug>/decisions/<slug>.md` + `wiki/<source-slug>/ideas/<slug>.md` với `extracted_from_source_id = <source_page_id>`. Skill distill đã ghi các trang này trong Bước 5 của nó.
-- Bước 9 này là no-op cho chế độ distill — distill đã ghi mọi thứ trong vòng lặp của nó.
+**v3.0 distill mode: MULTI-PAGE OUTPUT (v4.0 source-grouped layout)**
+- Source RECORD page at `wiki/<source-slug>/source.md` (1 page) with `extracted_from_source_id = NULL`. Frontmatter includes `license_status` (founder set in distill Step 1).
+- N derived entity pages under the same package at `wiki/<source-slug>/concepts/<slug>.md` + `wiki/<source-slug>/observations/<slug>.md` + `wiki/<source-slug>/decisions/<slug>.md` + `wiki/<source-slug>/ideas/<slug>.md` with `extracted_from_source_id = <source_page_id>`. Distill skill wrote these in its Step 5.
+- This Step 9 is a no-op for distill mode — distill already wrote everything during its loop.
 
-**Chế độ verbatim v2.0 (cờ --verbatim): ĐẦU RA MỘT TRANG**
+**v2.0 verbatim mode (--verbatim flag): SINGLE-PAGE OUTPUT**
 
-a) Ghi Markdown vào `wiki/<source-slug>/source.md` (layout source-grouped v4.0 — chế độ verbatim là một source RECORD đơn; không có derived entity, nên không có subfolder `<page_type>s/`) với frontmatter:
+a) Write Markdown to `wiki/<source-slug>/source.md` (v4.0 source-grouped layout — verbatim mode is a single source RECORD; no derived entities, so no `<page_type>s/` subfolders) with frontmatter:
 
 ```yaml
-language: vi
-translated: true
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 type: <entity_type>
 slug: <slug>
@@ -169,10 +158,6 @@ source_hash: <source_hash>
 ingested_at: <timestamp>
 generated_by: wiki-sync v3.0 (verbatim mode)
 legacy_v2_verbatim: false  # this is a v3.0-era verbatim ingest, not a v2.0 leftover
-language: vi
-translated: true
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 <!-- generated-by: wiki-sync v3.0 (verbatim mode) -->
@@ -180,7 +165,7 @@ translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 <structured content as Markdown>
 ```
 
-b) INSERT vào `ops.knowledge_pages` (dùng các cột source_kind/source_ref/source_hash từ migration 00027):
+b) INSERT into `ops.knowledge_pages` (using source_kind/source_ref/source_hash columns from migration 00027):
 
 ```sql
 INSERT INTO ops.knowledge_pages (
@@ -193,9 +178,9 @@ INSERT INTO ops.knowledge_pages (
 VALUES (..., NULL, false, 'auto_accepted', ON CONFLICT (slug) DO UPDATE SET ...);
 ```
 
-c) Nếu trang đã tồn tại (luồng re-sync), cảnh báo nếu marker `<!-- generated-by: wiki-sync vN -->` bị thiếu (founder đã edit thủ công). Hiển thị diff 3 chiều. Bail trừ khi có `--force` hoặc `--merge`.
+c) If page already existed (re-sync flow), warn if `<!-- generated-by: wiki-sync vN -->` marker is missing (founder hand-edited). Show 3-way diff. Bail unless `--force` or `--merge`.
 
-### Bước 10 — Emit events + cost attribution
+### Step 10 — Emit events + cost attribution
 
 ```sql
 INSERT INTO ops.events (event_type, source, payload, state)
@@ -221,9 +206,9 @@ VALUES (
 
 UPDATE `ops.ingestion_jobs` SET state='completed', `total_cost_usd`=sum(steps).
 
-Nếu chế độ distill tạo các thực thể có `review_state = 'pending_review'`: đếm chúng; cron `wiki-review-queue-digest` hàng ngày (Sprint 4) gom thông báo Telegram heads-up.
+If distill mode produced entities with `review_state = 'pending_review'`: count them; daily `wiki-review-queue-digest` cron (Sprint 4) batches Telegram heads-up.
 
-## Trả về
+## Return
 
 ```jsonc
 {
@@ -242,45 +227,45 @@ Nếu chế độ distill tạo các thực thể có `review_state = 'pending_r
 
 ## HITL
 
-- Tier A bình thường
-- Leo lên Tier B nếu chi phí ước tính vượt cap per-task-kind (theo bảng cost spec §0):
-  - `wiki-distill-pdf` $2.00 (Tier B trên $2; auto-confirm dưới)
-  - `wiki-distill-folder` $15.00 (Tier B trên $5 theo Muse M6)
+- Tier A normally
+- Escalates to Tier B if estimated cost exceeds per-task-kind cap (per spec §0 cost table):
+  - `wiki-distill-pdf` $2.00 (Tier B above $2; auto-confirm below)
+  - `wiki-distill-folder` $15.00 (Tier B above $5 per Muse M6)
   - `wiki-distill-other` $0.50
   - `wiki-ingest-verbatim` $0.30
-- Bên trong skill distill: Tier B cho prompt license_status ở lần ingest đầu tiên của một nguồn (founder chọn \{public_domain | creative_commons | fair_use_excerpt | copyrighted_internal_only})
+- Distill skill internal: Tier B for license_status prompt on first ingest of a source (founder picks \{public_domain | creative_commons | fair_use_excerpt | copyrighted_internal_only})
 
-## Các tình huống lỗi
+## Failure modes
 
-| Triệu chứng | Phản ứng |
+| Symptom | Response |
 |---|---|
-| Không có adapter nào khớp path | Liệt kê các pattern được hỗ trợ; bail. |
-| Trích xuất từ adapter trả về rỗng | Mark state='low_quality'; thông báo cho founder. |
-| Dedup hit ở `completed` mà không có `--force` | Trả về slug hiện có; state='duplicate'. |
-| Lock acquire block > 30s | Bail với "another sync in progress". |
-| Conflict UNIQUE `knowledge_pages.slug` (race dù có lock) | Retry một lần; nếu vẫn conflict, thông báo conflict. |
-| Lỗi API embedding | Retry với backoff; nếu persistent, fail run với state='failed'. |
-| Phát hiện trang được edit thủ công (không có marker generated-by) khi re-sync | Hiển thị diff 3 chiều; yêu cầu `--force` để ghi đè. |
+| No adapter matches path | List supported patterns; bail. |
+| Adapter extraction returns empty | Mark state='low_quality'; surface to founder. |
+| Dedup hit on `completed` w/o `--force` | Return existing slug; state='duplicate'. |
+| Lock acquire blocks > 30s | Bail with "another sync in progress". |
+| `knowledge_pages.slug` UNIQUE conflict (race despite lock) | Retry once; if still conflict, surface conflict. |
+| Embedding API error | Retry with backoff; if persistent, fail run with state='failed'. |
+| Hand-edited page detected (no generated-by marker) on re-sync | Show 3-way diff; require `--force` to overwrite. |
 
-## Ước lượng chi phí
+## Cost estimate
 
-| Adapter | Mỗi lần ingest |
+| Adapter | Per ingest |
 |---|---|
-| PDF (sách 50 trang) | ~$0.50 (extract $0.40 + embed $0.005 + LLM-fallback $0.05 trung bình) |
-| Bài viết URL | ~$0.07 |
+| PDF (50pp book) | ~$0.50 (extract $0.40 + embed $0.005 + LLM-fallback $0.05 avg) |
+| URL article | ~$0.07 |
 | Markdown passthrough | ~$0.03 |
-| YouTube (60 phút) | ~$0.20 |
-| Transcript họp (60 phút) | ~$0.15 |
+| YouTube (60min) | ~$0.20 |
+| Meeting transcript (60min) | ~$0.15 |
 
-## Phạm vi Sprint (skill này)
+## Sprint scope (this skill)
 
-Baseline Sprint 1:
-- Toàn bộ 9 bước được triển khai cho các adapter `book` / `article` / `markdown_passthrough`
+Sprint 1 baseline:
+- All 9 steps implemented for `book` / `article` / `markdown_passthrough` adapters
 - Chapter-splitter = STUB (Sprint 2)
 - LLM-fallback = STUB (Sprint 4 — feature-flag off)
-- YouTube + Meeting adapter chưa được nối dây (Sprint 2)
+- YouTube + Meeting adapters not yet wired (Sprint 2)
 
-## Liên quan
+## Related
 
 - Umbrella: `06-ai-ops/skills/wiki-sync/SKILL.md`
 - Adapters: `06-ai-ops/skills/wiki-sync/adapters/{pdf,url,markdown,youtube,meeting}-adapter/`
@@ -289,3 +274,4 @@ Baseline Sprint 1:
 - SOP: `06-ai-ops/sops/SOP-INGEST-001-wiki-sync/`
 - Migration: `supabase/migrations/00027_wiki_sync_extensions.sql`
 - Tier 1: `knowledge/ingestion-sources.yaml`, `knowledge/link-inference-rules.yaml`
+

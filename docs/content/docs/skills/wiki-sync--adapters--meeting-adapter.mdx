@@ -9,59 +9,54 @@ description: |
   `raw/meetings/<filename>.{vtt,srt,txt}` (other extensions delegate back to ingest).
 source_path: 06-ai-ops/skills/wiki-sync/adapters/meeting-adapter/SKILL.md
 source_hash: 98170d72e9a5c88193278606699a9d7408b701d2259093a90f9102d077d64fc7
-generated_at: '2026-05-19T05:20:46.366Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.406Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: 98170d72e9a5c88193278606699a9d7408b701d2259093a90f9102d077d64fc7
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When this adapter runs
 
-# Meeting transcript adapter (baseline Sprint 2 PR4 — v2.0.0)
-
-## Khi nào adapter này chạy
-
-Được điều phối bởi `wiki-sync/ingest` Bước 1 khi `<path>` kết thúc bằng `.vtt`, `.srt`, hoặc `.txt` VÀ nằm dưới `raw/meetings/` (ràng buộc tiền tố đường dẫn giúp phân biệt các file TXT có thể là markdown thuần hoặc nội dung khác).
+Dispatched by `wiki-sync/ingest` Step 1 when `<path>` ends in `.vtt`, `.srt`, or
+`.txt` AND is located under `raw/meetings/` (the path prefix constraint disambiguates
+TXT files that could otherwise be plain markdown or other content).
 
 source_kind: `meeting_transcript`
 entity_type: `meeting`
-wiki target: `wiki/<slug>/source.md` (layout source-grouped v4.0; các thực thể dẫn xuất được đặt dưới `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, v.v.)
+wiki target: `wiki/<slug>/source.md` (v4.0 source-grouped layout; derived entities land under `wiki/<slug>/concepts/`, `wiki/<slug>/observations/`, etc.)
 
 ## Inputs
 
-- `path` — đường dẫn tuyệt đối dưới `raw/meetings/<filename>.{vtt|srt|txt}`
-- `force` — bool; được truyền xuống
+- `path` — absolute path under `raw/meetings/<filename>.{vtt|srt|txt}`
+- `force` — bool; passed through
 
-## Quy trình
+## Process
 
-### Bước 1 — Validate
+### Step 1 — Validate
 
-- File có tồn tại không? Nếu không, dừng lại.
-- Extension `.vtt`, `.srt`, hoặc `.txt`? Nếu không, ủy thác lại cho ingest.
-- Path nằm dưới `raw/meetings/`? Nếu không, dừng lại với "meeting-adapter expects raw/meetings/ prefix; for plain text use markdown-adapter with frontmatter type=meeting".
-- Kích thước file > 0? Nếu không, dừng lại.
-- Kích thước file \< 10 MB? Nếu không, dừng lại (dùng chapter-splitter thủ công trước).
+- File exists? Else bail.
+- Extension `.vtt`, `.srt`, or `.txt`? Else delegate back to ingest.
+- Path under `raw/meetings/`? Else bail with "meeting-adapter expects raw/meetings/ prefix; for plain text use markdown-adapter with frontmatter type=meeting".
+- File size > 0? Else bail.
+- File size \< 10 MB? Else bail (use chapter-splitter manually first).
 
-### Bước 2 — Tính source_hash
+### Step 2 — Compute source_hash
 
 ```bash
 sha256sum "$path"
 ```
 
-### Bước 3 — Parse YAML frontmatter (tùy chọn)
+### Step 3 — Parse YAML frontmatter (optional)
 
-Nếu file TXT bắt đầu bằng block `---\n...\n---\n`, parse qua js-yaml. Các key thường gặp:
-- `title` — tiêu đề cuộc họp (nếu không thì lấy từ filename)
-- `participants` — danh sách tên (dùng để phân biệt người nói)
-- `date` — ngày cuộc họp (nếu không thì lấy từ mtime của file)
-- `slug` — override (nếu không thì lấy từ filename)
+If TXT file starts with `---\n...\n---\n` block, parse via js-yaml. Common keys:
+- `title` — meeting title (else derive from filename)
+- `participants` — list of names (used for speaker disambiguation)
+- `date` — meeting date (else derive from file mtime)
+- `slug` — override (else derive from filename)
 
-### Bước 4 — Phát hiện format + parse
+### Step 4 — Detect format + parse
 
 **VTT (WebVTT):**
 ```
@@ -79,9 +74,9 @@ Thanks Alice. So today's agenda...
 ```
 
 Parser:
-- Mỗi cue block: `{ start_ms, end_ms, text, speaker? }`
-- Speaker được trích xuất từ `NOTE Speaker: <name>` ngay trước cue (quy ước Otter.ai / Riverside) HOẶC từ voice tag `<v Speaker>...</v>` trong text của cue
-- Nếu không biết speaker, gắn nhãn `Unknown` cho cue đó
+- Each cue block: `{ start_ms, end_ms, text, speaker? }`
+- Speaker extracted from `NOTE Speaker: <name>` immediately preceding the cue (Otter.ai / Riverside convention) OR from `<v Speaker>...</v>` voice tag inside cue text
+- If speaker unknown, label as `Unknown` for that cue
 
 **SRT (SubRip):**
 ```
@@ -95,29 +90,25 @@ Bob: Thanks Alice...
 ```
 
 Parser:
-- Mỗi block: số thứ tự, thời gian, text
-- Speaker được trích xuất từ tiền tố `<Name>: ` trong text (quy ước phổ biến)
-- Nếu không thì gắn nhãn `Unknown`
+- Each block: number, time, text
+- Speaker extracted from `<Name>: ` prefix in text (common convention)
+- Else label as `Unknown`
 
 **TXT (plain):**
 
-Không có parse có cấu trúc. Pass through verbatim. Speaker chunk được phát hiện heuristic nếu mỗi đoạn bắt đầu bằng `^[A-Z][a-z]+( [A-Z][a-z]+)?: ` (ví dụ "Alice:" hoặc "Alice Smith:") nếu không thì xử lý mỗi block phân tách bằng dòng trống như một chunk.
+No structured parsing. Pass through verbatim. Speaker chunks heuristically detected if every paragraph starts with `^[A-Z][a-z]+( [A-Z][a-z]+)?: ` (e.g., "Alice:" or "Alice Smith:") otherwise treat each blank-line-separated block as one chunk.
 
-### Bước 5 — Tổng hợp raw_text (Markdown)
+### Step 5 — Synthesize raw_text (Markdown)
 
 ```markdown
 # <meeting_title>
 
 **Date:** <YYYY-MM-DD>
-**Participants:** <tên phân tách bằng dấu phẩy từ frontmatter hoặc phát hiện từ speakers>
-**Duration:** <H:MM:SS (từ timestamp của cue)>
+**Participants:** <comma-separated names from frontmatter or detected from speakers>
+**Duration:** <H:MM:SS (from cue timestamps)>
 **Format:** VTT|SRT|TXT
-**Source file:** <đường dẫn tương đối dưới raw/meetings/>
+**Source file:** <relative path under raw/meetings/>
 
-language: vi
-translated: true
-translated_at: 2026-05-19T13:00:00Z
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
 ## [00:00:01] Alice
@@ -133,16 +124,16 @@ Thanks Alice. So today's agenda...
 Right. First item, the Q3 numbers...
 ```
 
-Mỗi lượt nói của speaker có heading H2 riêng kèm timestamp + tên speaker. Các lượt nói nhiều cue của một speaker (các cue liên tiếp từ cùng một speaker) được gộp thành một block H2.
+Each speaker turn gets its own H2 heading with timestamp + speaker name. Multi-cue speaker turns (consecutive cues from same speaker) merge into one H2 block.
 
-### Bước 6 — Tạo slug
+### Step 6 — Slug generation
 
-- Nếu frontmatter `slug` có mặt, dùng nó.
-- Nếu không: `slug = kebab-case(meeting_title || basename(path, ext))`.
-- Giới hạn ở 50 ký tự.
-- Thêm hậu tố ngày nếu title chung chung: `weekly-sync-2026-05-17`.
+- If frontmatter `slug` present, use it.
+- Else: `slug = kebab-case(meeting_title || basename(path, ext))`.
+- Cap at 50 chars.
+- Append date suffix if title is generic: `weekly-sync-2026-05-17`.
 
-### Bước 7 — Attribution
+### Step 7 — Attribution
 
 ```jsonc
 {
@@ -164,72 +155,73 @@ Mỗi lượt nói của speaker có heading H2 riêng kèm timestamp + tên spe
   "source_ref": "<abspath>",
   "source_hash": "sha256:...",
   "source_kind": "meeting_transcript",
-  "attribution": <xem Bước 7>,
-  "pages_or_size_metric": <cues_count hoặc file_bytes cho TXT>,
+  "attribution": <see Step 7>,
+  "pages_or_size_metric": <cues_count or file_bytes for TXT>,
   "suggested_slug": "<slug-or-with-date-suffix>",
   "suggested_entity_type": "meeting"
 }
 ```
 
-## Chiến lược chunking
+## Chunking strategy
 
-Theo `knowledge/ingestion-sources.yaml`: `structural_per_speaker_turn`. Mỗi block speaker H2 trở thành một chunk để embed. Các đoạn độc thoại dài (> 1500 token trong một lượt nói của speaker) tiếp tục split tại ranh giới đoạn văn.
+Per `knowledge/ingestion-sources.yaml`: `structural_per_speaker_turn`. Each H2 speaker block becomes one chunk for embedding. Long monologues (> 1500 tokens in one speaker turn) split further at paragraph boundaries.
 
 ## HITL
 
-- Tier A bình thường
-- Tier B nếu:
-  - 0 speaker được phát hiện (tất cả là "Unknown") — founder xác nhận transcript có ý nghĩa
-  - File > 5 MB — lo ngại về chi phí; founder xác nhận ingest
-  - Thời lượng > 3 giờ — có thể là file đa cuộc họp; founder xác nhận ranh giới
+- Tier A normally
+- Tier B if:
+  - 0 speakers detected (all "Unknown") — founder confirms transcript is meaningful
+  - File > 5 MB — cost concern; founder confirms ingest
+  - Duration > 3 hours — possibly multi-meeting file; founder confirms boundaries
 
-## Các chế độ thất bại
+## Failure modes
 
-| Triệu chứng | Phản ứng |
+| Symptom | Response |
 |---|---|
-| Path không nằm dưới raw/meetings/ | Dừng lại với chuyển hướng sang markdown-adapter + giải pháp frontmatter |
-| Extension không phải vtt/srt/txt | Ủy thác lại cho ingest |
-| File > 10 MB | Dừng lại; cần chapter-split thủ công |
-| VTT bị lỗi (không có header WEBVTT) | Thử như TXT thuần |
-| SRT bị lỗi (không có mũi tên thời gian) | Dừng lại với lỗi định dạng |
-| Tất cả các cue không có thông tin speaker | Tiếp tục với nhãn "Unknown"; cảnh báo founder |
-| File rỗng sau khi parse | Dừng lại "no transcript content" |
+| Path not under raw/meetings/ | Bail with redirect to markdown-adapter + frontmatter workaround |
+| Extension not vtt/srt/txt | Delegate back to ingest |
+| File > 10 MB | Bail; manual chapter-split required |
+| Malformed VTT (no WEBVTT header) | Try as plain TXT |
+| Malformed SRT (no time arrows) | Bail with format error |
+| All cues no speaker info | Continue with "Unknown" labels; warn founder |
+| Empty file after parse | Bail "no transcript content" |
 
-## Ước tính chi phí
+## Cost estimate
 
-| Format | Mỗi cuộc họp 1 giờ |
+| Format | Per 1 hour meeting |
 |---|---|
-| VTT/SRT (có cấu trúc) | $0 parse + $0.005 embed = **$0.005** |
+| VTT/SRT (structured) | $0 parse + $0.005 embed = **$0.005** |
 | TXT (passthrough) | $0 parse + $0.005 embed = **$0.005** |
-| + Trích xuất link LLM-fallback (cờ Sprint 4) | +$0.05/N speakers thêm vào |
+| + LLM-fallback link extraction (Sprint 4 flag) | +$0.05/N speakers on top |
 
-Cap per-task-kind từ README SOP-INGEST-001: `wiki-ingest-meeting` = $0.30 / lần gọi.
+Per-task-kind cap from SOP-INGEST-001 README: `wiki-ingest-meeting` = $0.30 / invocation.
 
-## Tích hợp Chapter-split (v2.0)
+## Chapter-split integration (v2.0)
 
-Đối với các cuộc họp rất dài (> 200 cue HOẶC file > 1 MB), `wiki-sync/ingest` Bước 5
-điều phối chapter-splitter ở chế độ `heading=h2` (mỗi lượt nói của speaker trở thành
-một đơn vị chapter). Ít phổ biến hơn so với sách/bài viết; thường các cuộc họp dưới
-2 giờ ở trang đơn.
+For very long meetings (> 200 cues OR file > 1 MB), `wiki-sync/ingest` Step 5
+dispatches chapter-splitter in `heading=h2` mode (each speaker turn becomes
+a chapter unit). Less common than for books/articles; usually meetings under
+2 hours stay single-page.
 
-## Phạm vi sprint (skill này)
+## Sprint scope (this skill)
 
 Sprint 2 PR4 (v2.0.0):
-- Parser VTT, SRT, TXT đều được tài liệu hóa
-- Phát hiện speaker (NOTE Speaker:, voice tag, tiền tố `Name:`)
-- Parse frontmatter cho file TXT
-- Quy ước slug + attribution
-- Tất cả 7 bước được tài liệu hóa dưới dạng prose
+- VTT, SRT, TXT parsers all documented
+- Speaker detection (NOTE Speaker:, voice tags, `Name:` prefix)
+- Frontmatter parsing for TXT files
+- Slug + attribution conventions
+- All 7 steps documented in prose
 
-Hoãn lại đến Sprint 3+:
-- Diarization (tự động gắn nhãn speaker khi format không có thông tin speaker) — cần pyannote.audio hoặc tương tự; ngoài phạm vi v2.0
-- Xử lý transcript đa ngôn ngữ
-- Chấm điểm độ tin cậy theo từng cue (một số format VTT phát ra `<c.confidence>`)
+Deferred to Sprint 3+:
+- Diarization (auto speaker labeling when format has no speaker info) — would need pyannote.audio or similar; out of scope v2.0
+- Multi-language transcript handling
+- Per-cue confidence scoring (some VTT formats emit `<c.confidence>`)
 
-## Liên quan
+## Related
 
-- Cha: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` (Bước 1 dispatch)
-- Cấu hình Tier 1: entry `meeting_transcript` của `knowledge/ingestion-sources.yaml`
-- Sibling: `youtube-adapter` (cũng tạo VTT cho nội dung transcript)
-- Tích hợp Chapter-split: SKILL `chapter-splitter`
-- Test fixture (hoãn lại cho PR test-fixtures): `tests/wiki-sync/fixtures/sample.vtt`
+- Parent: `06-ai-ops/skills/wiki-sync/ingest/SKILL.md` (Step 1 dispatch)
+- Tier 1 config: `knowledge/ingestion-sources.yaml` entry `meeting_transcript`
+- Sibling: `youtube-adapter` (also produces VTT for transcript content)
+- Chapter-split integration: `chapter-splitter` SKILL
+- Test fixture (deferred to test-fixtures PR): `tests/wiki-sync/fixtures/sample.vtt`
+

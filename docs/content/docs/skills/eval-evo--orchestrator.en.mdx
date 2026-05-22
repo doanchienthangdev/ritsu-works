@@ -7,17 +7,14 @@ description: |
   or reverts per Karpathy K4, repeats until --loop or --stop met. Returns
   final state for the command to persist. Invoked by .claude/commands/evolve.md.
 source_path: 06-ai-ops/skills/eval-evo/orchestrator/SKILL.md
-source_hash: 5577d74aaf06d309a942bce7727b5c56406768354f145c9a2d6fbb58e65818cb
-generated_at: '2026-05-21T20:44:59.068Z'
+source_hash: aa827461384175e748731adf9df50f350728188ec87308739f8911c6a2d070ef
+generated_at: '2026-05-22T01:09:07.392Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
-
-
-# Skill: eval-evo/orchestrator
 
 > Loop runner for /evolve. Composes existing infrastructure
 > (episodic-recall, workforce-personas, ops.* tables, git stash).
@@ -68,9 +65,19 @@ language: en
 1. **Episodic recall** — invoke `episodic-recall` skill with
    `agent_slug='evolve'` + `recall_filter.entity_slug=<entity_name>`
    + `recall_max_runs=3`. Append summaries to context.
-2. **Corrections** — query `ops.corrections WHERE entity_slug=\<entity_name>
-   AND ts > NOW() - INTERVAL '90 days' ORDER BY ts DESC LIMIT 10`.
-   Append correction_note + correction_kind to context.
+2. **Corrections** — JOIN-based negative-signal load (ops.corrections doesn't
+   have entity_slug directly; it lives on ops.agent_runs.state_payload):
+   ```sql
+   SELECT c.correction_note, c.correction_kind, c.ts
+   FROM ops.corrections c
+   JOIN ops.agent_runs ar ON ar.id = c.run_id
+   WHERE ar.agent_slug = 'evolve'
+     AND ar.state_payload->>'entity_slug' = <entity_name>
+     AND c.ts > NOW() - INTERVAL '90 days'
+   ORDER BY c.ts DESC LIMIT 10
+   ```
+   Append correction_note + correction_kind to context. Migration 00033
+   adds idx_corrections_run_id_ts to speed up the JOIN filter.
 3. **Entity content** — Read the entity file (or, for SOPs, the
    directory's flow.yaml + README.md).
 4. **Playbook** — Read `playbooks/<type>.md`. Extract:

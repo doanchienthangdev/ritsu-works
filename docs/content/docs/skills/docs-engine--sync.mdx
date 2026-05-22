@@ -1,71 +1,81 @@
 ---
 title: 'Skill: docs-engine/sync'
-description: Walker + dispatch adapter + writer MDX
+description: |
+  Walker + adapter dispatch + MDX writer. The workhorse of docs-engine.
+  Walks Tier 1 + `.claude/` runtime per Phase 1 Q3 scope (~215 sources),
+  fans out to 9 adapters, runs 3-layer secret redaction (CTO mod #2),
+  performs 3-way diff on `<!-- generated-by -->` marked pages (CTO mod #1),
+  writes MDX to `docs/content/`, emits events, snapshots KPI.
 source_path: 06-ai-ops/skills/docs-engine/sync/SKILL.md
 source_hash: e446c382c0e11d5dae2f69e7f4db16cd5e0e6edd7d5061bddc9510507ce6821f
-generated_at: '2026-05-19T05:20:46.356Z'
-generated_by: docs-engine v1.1.0
+generated_at: '2026-05-22T01:09:07.388Z'
+generated_by: docs-engine v1.2.0
 category: skill
 language: vi
-translated: true
-translated_source_hash: e446c382c0e11d5dae2f69e7f4db16cd5e0e6edd7d5061bddc9510507ce6821f
-translated_at: "2026-05-19T15:00:00Z"
-translated_by: "Claude Opus 4.7 (Claude Code Desktop, session translation)"
 ---
 
-{/* generated-by: docs-engine v1.1.0 */}
+{/* generated-by: docs-engine v1.2.0 */}
 
+## When to use
 
-# docs-engine/sync
-
-## Khi nào sử dụng
-
-- Lệnh `/docs sync`
-- `/docs update <area>` (biến thể có phạm vi)
-- Cron `docs-drift-nightly` (với cờ `--dry-run`)
+- `/docs sync` command (default verb).
+- `/docs update <area>` (scoped variant).
+- `docs-drift-nightly` cron (with `--dry-run` flag for read-only check).
 
 ## Inputs
 
-- `area` — `commands` | `skills` | `agents` | `hooks` | `charter` | `governance` | `pillars` | `sops` | `tier1` | `all`
-- `dry_run` — bool
-- `force` — bool
+- `area` — `commands` | `skills` | `agents` | `hooks` | `charter` | `governance` | `pillars` | `sops` | `tier1` | `all` (default `all`).
+- `dry_run` — bool, default false.
+- `force` — bool, default false; skips source_hash dedup.
 
-## Quá trình
+## Process
 
-Triển khai các Bước 1-10 của SOP-AIOPS-003:
+Implements SOP-AIOPS-003 steps 1-10 (see `06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml`):
 
-1. Kiểm tra preflight pnpm
-2. Walker đi qua corpus theo area
-3. Lớp 1 của việc loại bỏ secret
-4. Dispatch tới các adapter
-5. Lớp 2 của việc loại bỏ secret
-6. Diff 3 chiều trên các trang đã đánh dấu
-7. Ghi MDX tới docs/content/
-8. Kiểm tra pnpm sau khi xác thực
-9. Phát events
-10. INSERT KPI snapshot
+1. `pnpm check` preflight (abort if drift).
+2. Walk corpus per `area`; build source_inventory.
+3. Secret redaction layer 1 (walker-exclude check).
+4. Dispatch each source to its adapter via `06-ai-ops/skills/docs-engine/adapters/<kind>-adapter`.
+5. Secret redaction layer 2 (MDX regex scrub).
+6. 3-way diff on `<!-- generated-by: docs-engine vN -->` marked pages (CTO mod #1). Abort + write conflict report if hand-edit would be lost.
+7. Write MDX to `docs/content/`.
+8. `pnpm check` post-validation (validate-docs-coverage.cjs).
+9. Emit `ritsu.docs.synced` + maybe `ritsu.docs.drift_detected`.
+10. INSERT ops.kpi_snapshots row for `docs_drift_count`.
 
 ## Outputs
 
-- File MDX dưới `docs/content/`
-- Báo cáo xung đột nếu cần
-- 2-3 dòng `ops.events`
-- 1 dòng `ops.kpi_snapshots`
+- MDX files under `docs/content/` (per Fumadocs convention).
+- Conflict report under `.archives/docs-engine/conflicts/<timestamp>.md` if step 6 detects conflicts.
+- 2-3 `ops.events` rows.
+- 1 `ops.kpi_snapshots` row.
 
 ## HITL
 
-Tier A. Leo thang lên Tier B nếu cost > cap hoặc > 50% trang thay đổi.
+Tier A. Escalates to Tier B if:
+- Estimated cost > `docs-sync-full-walk` cap ($1).
+- > 50% of pages would change (founder confirms scope).
 
 ## Failure modes
 
-Trôi dạt, lộ secret, xung đột chỉnh sửa thủ công, adapter fail, lỗi ghi đĩa.
+| Symptom | Response |
+|---|---|
+| Preflight drift | Abort with drift summary. |
+| Secret leak detected (layer 1 or 2) | Abort loud; open `secret-leak-suspected` GitHub issue. |
+| Hand-edit conflict | Write conflict report; skip file; continue sync. |
+| Adapter partial failure | Continue; aggregate errors; affected pages count toward drift. |
+| Disk write failure | Rollback all writes from this run. |
 
-## Ước tính cost
+## Cost estimate
 
-- Full walk: ~$0.40-1.00
-- Có giới hạn area: $0.05-0.40
-- Cap: `docs-sync-full-walk` ≤ $1.00
+- Full walk: ~$0.40-1.00 (~215 pages × adapter cost ÷ batching).
+- Area-scoped: $0.05-0.40 depending on area.
+- Cost-bucket: `ai-ops-docs`. Cap: `docs-sync-full-walk` ≤ $1.00.
 
----
+## See also
 
-Xem: `docs-engine/SKILL.md`, `SOP-AIOPS-003-docs-sync`, pattern `wiki-sync/ingest`.
+- Umbrella: `docs-engine/SKILL.md`
+- SOP: `06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml`
+- Sibling: `wiki-sync/ingest/SKILL.md` (pattern source for walker scaffolding)
+- Adapters: `docs-engine/adapters/*-adapter/SKILL.md` (9 sub-skills)
+

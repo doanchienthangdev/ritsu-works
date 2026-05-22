@@ -1,37 +1,32 @@
 ---
 title: 'Tier 1 yaml: capability-registry'
-description: Tổng quan lược đồ cho `knowledge/capability-registry.yaml`.
+description: Schema overview for `knowledge/capability-registry.yaml`.
 source_path: knowledge/capability-registry.yaml
-source_hash: df7212660658a8c1630e11e1e77e24f4d132ef89c3b1aee2b7623065dc8811dd
-generated_at: '2026-05-21T20:44:59.130Z'
+source_hash: f8dce0bd05fbfecb2f2621d5402b3a630e69375378f192bcad3370feaa93dda2
+generated_at: '2026-05-22T01:09:07.527Z'
 generated_by: docs-engine v1.2.0
 category: tier1-yaml
 language: vi
-translated: true
-translated_at: '2026-05-19T16:30:00Z'
-translated_by: Claude Opus 4.7 (Claude Code Desktop, /docs translate session)
-translated_source_hash: f1e946701d4c0db9367c9aafebd39432dab44c983f5e50d1d27989b0f864eb63
-needs_retranslation: true
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-## Mô tả
+## Description
 
 ============================================================================
-capability-registry.yaml — Sổ đăng ký khả năng (Bài #20)
+capability-registry.yaml — Capability Registry (Bài #20)
 ============================================================================
-File khai báo Tier 1 (Tier 1 #19). Theo dõi tất cả khả năng được triển khai
-trên Agent OS — được đề xuất, đang tiến hành, được triển khai, không dùng.
+Tier 1 declarative file (Tier 1 #19). Tracks all capabilities deployed on
+Agent OS — proposed, in-progress, deployed, deprecated.
 
-Mỗi khả năng = đơn vị giá trị kinh doanh được đóng gói dưới dạng:
-- 1+ skill, 0-N SOP, 0-N thay đổi Tier 1, 0-N migration,
-- 0-N tích hợp, 0-N trang giao diện, 0-N dịch vụ bên ngoài
+Each capability = unit of business value packaged as:
+- 1+ skills, 0-N SOPs, 0-N Tier 1 changes, 0-N migrations,
+- 0-N integrations, 0-N frontend pages, 0-N external services
 
-Xem playbook chương 33 + DRAFT bai-20-capability-lifecycle.
+See playbook chương 33 + DRAFT bai-20-capability-lifecycle.
 ============================================================================
 
-## Các key cấp 1
+## Top-level keys
 
 - `version`
 - `schema`
@@ -40,6 +35,4 @@ Xem playbook chương 33 + DRAFT bai-20-capability-lifecycle.
 - `dependencies`
 - `cost_buckets`
 
-> Giá trị trực tiếp trong [`knowledge/capability-registry.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/capability-registry.yaml). Trang này mô tả lược đồ; không phải dữ liệu.
-
-
+> Live values in [`knowledge/capability-registry.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/capability-registry.yaml). This page describes the schema; not the data.

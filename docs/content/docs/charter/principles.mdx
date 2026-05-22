@@ -3,137 +3,111 @@ title: Ritsu Operating Principles
 description: ''
 source_path: 00-core/principles.md
 source_hash: 7a615d59b51441f9614a5ca0c1e709e84dbe0016ad91ffe3129e50f90ffeb8a6
-generated_at: '2026-05-21T16:05:13.911Z'
+generated_at: '2026-05-22T01:09:07.460Z'
 generated_by: docs-engine v1.2.0
 category: charter
 language: vi
-translated: true
-translated_at: '2026-05-21T16:13:27.377Z'
-translated_by: docs-translate v1.1.0
-translation_model: claude-haiku-4-5-20251001
-translated_source_hash: 7a615d59b51441f9614a5ca0c1e709e84dbe0016ad91ffe3129e50f90ffeb8a6
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
----
-title: Ritsu Operating Principles
-type: core-doc
-slug: principles
-layer: operating
-status: v0.1-draft
-owner: founder
-last_reviewed: 2026-05-21
-review_cadence: on-trigger
-cited_by: []
-auto_load: false
-revisit_at: 30-paying
-revisit_trigger: "first founder retro after 30-paying (lessons learned from real customer interaction)"
-revisit_owner: founder
-ai_synthesized_v0_1: true
-ai_synthesized_at: 2026-05-21
-ai_synthesized_from: [CLAUDE.md, governance/HITL.md, .archives/pillars/PLAN.md, brand_voice.md]
-ai_synthesis_note: "Principles drawn from PG/Bezos/Munger/Horowitz/Altman/Chesky — well-tested elsewhere, UNTESTED by Ritsu specifically. Revise at 30-paying with concrete Ritsu examples."
----
-
-# Ritsu Operating Principles
-
-> Heuristics ra quyết định. Các mẫu "nếu-thì" mà Ritsu sử dụng để hành động nhanh chóng trong điều kiện không chắc chắn. Được trích dẫn bởi /cla architect, sprint-planner, founder-coach skills.
+> Decision-making heuristics. The "if-then" patterns Ritsu uses to act fast under uncertainty. Cited by /cla architect, sprint-planner, founder-coach skills.
 >
-> **v0.1 caveat:** Các nguyên tắc này được rút ra từ PG, Bezos, Munger, Horowitz, Altman, Chesky, Graham — đã được kiểm chứng tốt bởi các founder khác, nhưng CHƯA ĐƯỢC KIỂM CHỨNG bởi tình huống cụ thể của Ritsu. Sửa đổi tại founder retro đầu tiên sau 30-paying với các ví dụ Ritsu thực tế cho mỗi nguyên tắc.
+> **v0.1 caveat:** These principles draw from PG, Bezos, Munger, Horowitz, Altman, Chesky, Graham — well-tested by other founders, but UNTESTED by Ritsu's situation specifically. Revise at first founder retro post-30-paying with real Ritsu examples for each.
 
 ## 1. Ship-then-listen
 
-**Rule:** Phát hành phiên bản nhỏ nhất có thể bảo vệ của một ý tưởng, sau đó học hỏi từ phản ứng thực tế. Đừng tối ưu hóa trước khi có bằng chứng.
+**Rule:** Ship the smallest defensible version of an idea, then learn from real reaction. Don't optimize before evidence.
 
-**When it kicks in:** bất kỳ quyết định nào mà dữ liệu có thể thay đổi câu trả lời (hầu hết các quyết định trước PMF). Đặc biệt: scope tính năng, ranh giới mức giá, góc nội dung, hỗn hợp kênh.
+**When it kicks in:** any decision where data could change the answer (which is most decisions pre-PMF). Especially: feature scope, pricing tier boundaries, content angles, channel mix.
 
-**Example from Ritsu:** Sprint plan cho `core-redesign-and-command` phát hành phiên bản v0.1-draft + stub mix chứ không phải full 19-doc lock-in. Các v0.1-draft docs rõ ràng mang `revisit_at: 30-paying` vì chúng tôi chưa có bằng chứng — chúng tôi đang phát hành nền tảng nhỏ nhất có thể bảo vệ, sau đó chúng tôi sẽ lắng nghe lúc 30-paying.
+**Example from Ritsu:** Sprint plan for `core-redesign-and-command` ships filled + v0.1-draft + stub mix rather than full 19-doc lock-in. The v0.1-draft docs explicitly carry `revisit_at: 30-paying` because we don't have evidence yet — we're shipping the smallest defensible foundation, then we'll listen at 30-paying.
 
-**Anti-example to avoid:** "Hãy thiết kế hoàn hảo design-system.md trước khi chúng tôi có bất kỳ khách hàng nào" — đây là tối ưu hóa trước bằng chứng. Chúng tôi đã làm cho nó một STUB với `entry_condition: first marketing visual needed` theo Phase 5 review.
+**Anti-example to avoid:** "Let's perfectly design the design-system.md before we have any customers" — this is optimize-before-evidence. We made it a STUB with `entry_condition: first marketing visual needed` per Phase 5 review.
 
 ## 2. Observed-not-surveyed
 
-**Rule:** Khi không chắc chắn về hành vi của người dùng, quan sát N=10 người lạ sử dụng sản phẩm thay vì phỏng vấn N=100. Tham khảo SOP-PRODUCT-002 (PG gate).
+**Rule:** When uncertain about user behavior, observe N=10 strangers using the product over interviewing N=100. Reference SOP-PRODUCT-002 (PG gate).
 
-**When it kicks in:** mọi tính năng ưu tiên, tinh chỉnh ICP, kiểm tra bản sao, xác nhận wedge, quyết định định giá.
+**When it kicks in:** every feature prioritization, ICP refinement, copy test, wedge confirmation, pricing decision.
 
-**Example from Ritsu:** `wedge.md` là một STUB với `entry_condition: SOP-PRODUCT-002 N=10 complete`. Chúng tôi THEO ĐÚNG NGHĨA không được phép điền wedge dựa trên lý thuyết — spec thực thi "wedge được khám phá, không được khai báo." Founder không được bỏ qua gate này.
+**Example from Ritsu:** `wedge.md` is a STUB with `entry_condition: SOP-PRODUCT-002 N=10 complete`. We are LITERALLY not allowed to fill the wedge based on theory — the spec enforces "wedge is discovered, not declared." Founder doesn't get to skip this gate.
 
-**Anti-example to avoid:** Quyết định định giá dựa trên các phản hồi của cuộc khảo sát "bạn nghĩ bạn sẽ trả bao nhiêu?". Tín hiệu thực là "họ có thực sự trả khi được hiển thị giá không?".
+**Anti-example to avoid:** A pricing decision based on "what do you think you'd pay?" survey responses. Real signal is "did they actually pay when shown the price?"
 
 ## 3. Boil-the-lake (gstack ethos)
 
-**Rule:** Khi AI nén chi phí biên về gần bằng không, làm TOÀN BỘ thứ không phải shortcut. Đừng viết 4 tests khi bạn có thể viết 10. Đừng điền 5 phần khi bạn có thể điền 9.
+**Rule:** When AI compresses marginal cost to near-zero, do the COMPLETE thing not the shortcut. Don't write 4 tests when you can write 10. Don't fill 5 sections when you can fill 9.
 
-**When it kicks in:** bất kỳ tác vụ nào mà Claude Code có thể nén lại 10-100× tương đương với nhóm con người (theo bảng tham chiếu effort của gstack).
+**When it kicks in:** any task where Claude Code can compress 10-100× the human-team equivalent (per gstack's effort reference table).
 
-**Example from Ritsu:** Sprint 1 này chính nó. Founder yêu cầu "điền tất cả 9 docs" — Claude Code có thể làm điều đó trong một phiên, so với 6-10h solo block của founder. Chi phí biên của hoàn thành tất cả 9 so với 5 là ~30 phút CC time. Boil the lake.
+**Example from Ritsu:** This Sprint 1 itself. Founder asked "fill all 9 docs" — Claude Code can do that in one session, vs founder's 6-10h solo block. The marginal cost of completing all 9 vs 5 is ~30 min CC time. Boil the lake.
 
-**Counter-rule:** Chỉ boil LAKES, không phải OCEANS. Sprint 2 được scope phù hợp (12 files, 8-12h CC) vì đó là một hồ. Xây dựng tất cả Phase 2 verbs (14 verbs total) sẽ là một đại dương — hoãn lại theo right-size.
+**Counter-rule:** Boil only LAKES, not OCEANS. Sprint 2 is appropriately scoped (12 files, 8-12h CC) because that's a lake. Building all of Phase 2 verbs (14 verbs total) would be an ocean — defer per right-size.
 
 ## 4. Founder mode (Chesky/Graham)
 
-**Rule:** Sự tham gia sâu vào các chi tiết hợp phần — positioning, product wedge, hiring, brand voice. Ủy thác mọi thứ khác.
+**Rule:** Deep involvement in the details that compound — positioning, product wedge, hiring, brand voice. Delegate everything else.
 
-**When it kicks in:** mọi quyết định ở giai đoạn pre-PMF + early-growth. Sẽ sửa đổi ở quy mô tổ chức (peacetime).
+**When it kicks in:** every decision in pre-PMF + early-growth stage. Will revise at organizational scale (peacetime).
 
-**Example from Ritsu:** Founder cá nhân đã viết `brand_voice.md` (10.7KB) và `transparency.md` (6.3KB) và đề xuất kiến trúc tại `.archives/pillars/PLAN.md`. AI workforce xử lý thực thi; founder sở hữu identity + voice + structure.
+**Example from Ritsu:** Founder personally wrote `brand_voice.md` (10.7KB) and `transparency.md` (6.3KB) and the architecture proposal at `.archives/pillars/PLAN.md`. AI workforce handles execution; founder owns identity + voice + structure.
 
-**Anti-example:** Founder viết mọi blog post cho chính họ. Voice founder viết một lần (trong brand_voice.md); content-drafter thực thi theo kênh. Founder xem lại, không viết lại.
+**Anti-example:** Founder writing every blog post themselves. Voice founder writes once (in brand_voice.md); content-drafter executes per channel. Founder reviews, doesn't author.
 
 ## 5. Inversion (Munger)
 
-**Rule:** Với mỗi "làm sao chúng ta thắng?" cũng hỏi "điều gì sẽ khiến chúng ta thất bại?" trước khi quyết định. Câu trả lời chế độ thất bại thường hữu ích hơn câu trả lời chế độ thắng.
+**Rule:** For every "how do we win?" also ask "what would make us fail?" before deciding. The fail-mode answer is often more actionable than the win-mode answer.
 
-**When it kicks in:** quyết định chiến lược, mở rộng scope, những động thái không thể đảo ngược, commits kiến trúc.
+**When it kicks in:** strategic decisions, scope expansion, irreversible moves, architecture commits.
 
-**Example from Ritsu:** Phase 5 architect ceremony rõ ràng yêu cầu @cto sanity review = inversion lens. CTO phát hiện 2 khoảng cách đã xác minh (parser drift + workspace_plane boundary) — đây là failure modes sẽ âm thầm phá vỡ /cla v1.1 integration. Sửa chúng ở Phase 5 rẻ hơn phát hiện ở Phase 7.
+**Example from Ritsu:** Phase 5 architect ceremony explicitly required @cto sanity review = inversion lens. CTO surfaced 2 verified gaps (parser drift + workspace_plane boundary) — these are failure modes that would silently break /cla v1.1 integration. Fixing them in Phase 5 is cheaper than discovering in Phase 7.
 
-**Anti-example to avoid:** Chọn ranh giới mức giá dựa trên "điều gì sẽ tối đa hóa doanh thu?" mà không hỏi "ranh giới mức giá nào sẽ khiến người dùng churn nhanh nhất?".
+**Anti-example to avoid:** Picking a pricing tier boundary based on "what would maximize revenue?" without asking "what tier boundary would make users churn fastest?"
 
 ## 6. Two-way doors (Bezos)
 
-**Rule:** Quyết định có thể đảo ngược diễn ra nhanh (5 phút suy nghĩ rồi ship). Quyết định không thể đảo ngược diễn ra chậm (24h cooldown, HITL Tier D). Hầu hết các quyết định là two-way doors; xử lý chúng theo cách đó.
+**Rule:** Reversible decisions go fast (5-min think then ship). Irreversible decisions go slow (24h cooldown, HITL Tier D). Most decisions are two-way doors; treat them that way.
 
-**When it kicks in:** mọi quyết định có blast radius không rõ ràng.
+**When it kicks in:** every decision with non-obvious blast radius.
 
-**Example from Ritsu:** HITL.md Tier C/D ceremony mã hóa điều này. Tier C = reversible-ish (PR, git revert). Tier D-MAX = không thể đảo ngược (1h cooldown, magic phrase, không có autonomous override). Đây là two-way doors được xây dựng vào hệ thống.
+**Example from Ritsu:** HITL.md Tier C/D ceremony codifies this. Tier C = reversible-ish (PR, git revert). Tier D-MAX = irreversible (1h cooldown, magic phrase, no autonomous override). This is two-way doors built into the system.
 
-**Anti-example to avoid:** Coi thiết kế lại logo hoặc kiểm tra A/B bản sao là one-way door. Đây là highly reversible — ship nhanh, học hỏi, lặp lại.
+**Anti-example to avoid:** Treating a logo redesign or a copy A/B test as a one-way door. These are highly reversible — ship fast, learn, iterate.
 
 ## 7. Wartime/peacetime (Horowitz)
 
-**Rule:** Pre-PMF là wartime. Kỷ luật ưu tiên tốc độ hơn đồng thuận. Sửa đổi các nguyên tắc ở quy mô ≠ wartime principles.
+**Rule:** Pre-PMF is wartime. Discipline favors speed over consensus. Revisit principles at scale ≠ wartime principles.
 
 **When it kicks in:** stage transitions. Wartime = 0 → 100 paying. Peacetime = post-PMF + organizational depth.
 
-**Example from Ritsu:** Founder solo viết 9 think-heavy docs trong 6-10h là wartime cadence. Khi cofounder tham gia + 30 paying customers hoạt động, founder phải chuyển giao một số quyền lực cho cofounder + role-specialists. Peacetime yêu cầu shared decision-making cadence (operating-cadence.md tốt nghiệp khi cofounder tham gia theo stub `entry_condition`).
+**Example from Ritsu:** Founder solo writing 9 think-heavy docs in 6-10h is wartime cadence. Once cofounder joins + 30 paying customers active, founder must transition some authority to cofounder + role-specialists. Peacetime requires shared decision-making cadence (operating-cadence.md graduates when cofounder joins per stub `entry_condition`).
 
-**Anti-example to avoid:** Chạy PMF-stage consensus rituals ở pre-PMF (ví dụ: 5-person engineering review cho 50-line code change). Lãng phí thời gian founder. Compressed Phase 4 + Phase 5 trong chính capability này tôn trọng wartime cadence.
+**Anti-example to avoid:** Running PMF-stage consensus rituals in pre-PMF (e.g., 5-person engineering review for a 50-line code change). Wastes founder time. Compressed Phase 4 + Phase 5 in this very capability honored wartime cadence.
 
 ## 8. Specific kills abstract
 
-**Rule:** Khi một agent (hoặc con người) viết "X solution," hỏi "X solution cho [tên khách hàng] làm [tên tác vụ]." Nếu họ không thể đặt tên, scope là sai.
+**Rule:** When an agent (or human) writes "X solution," ask "X solution for [name of customer] doing [name of task]." If they can't name, the scope is wrong.
 
-**When it kicks in:** mỗi PRD, mỗi ICP doc, mỗi campaign brief, mỗi founder-described feature request.
+**When it kicks in:** every PRD, every ICP doc, every campaign brief, every founder-described feature request.
 
-**Example from Ritsu:** ICP-summary.md §1 buộc "sinh viên STEM lưỡng ngữ 20 tuổi, giữa kỳ, với một cuốn sách giáo khoa để nắm vững trong 2 tuần." KHÔNG PHẢI "sinh viên." Khi persona là "sinh viên" trong mẫu, nó là vô dụng. Phiên bản có tên là có thể kiểm chứng.
+**Example from Ritsu:** ICP-summary.md §1 forces "the 20-year-old bilingual STEM undergraduate, mid-semester, with a textbook to master in 2 weeks." NOT "students." When the persona was "students" in the template, it was useless. The named version is testable.
 
-**Anti-example to avoid:** "Xây dựng một bảng điều khiển phân tích học tập" — cho AI? Làm gì? Cho đến khi chúng ta có thể đặt tên cho người tiêu dùng + tác vụ, đây là scope creep chờ đợi. Đánh dấu là STUB với `entry_condition`.
+**Anti-example to avoid:** "Build a learning analytics dashboard" — for WHOM? Doing WHAT? Until we can name the consumer + the task, this is scope creep waiting to happen. Mark as STUB with `entry_condition`.
 
 ---
 
 ## How these principles compose
 
-Trong một typical decision flow:
-1. **Inversion** đầu tiên — điều gì sẽ khiến điều này thất bại? (làm rõ win condition)
-2. **Two-way doors** — cái này có thể đảo ngược không? (đặt time budget)
-3. **Specific kills abstract** — cho khách hàng nào có tên? (đặt scope)
-4. **Observed-not-surveyed** — chúng ta có dữ liệu không, hay đây là lý thuyết? (đặt evidence bar)
-5. **Ship-then-listen** — phiên bản nhỏ nhất có thể bảo vệ là gì? (đặt ship size)
-6. **Boil-the-lake** — trong ship size đó, làm toàn bộ thứ (đặt quality bar)
-7. **Founder mode** — tôi có phải là tác giả phù hợp không? (đặt responsibility)
-8. **Wartime/peacetime** — cadence nào giai đoạn này yêu cầu? (đặt speed)
+In a typical decision flow:
+1. **Inversion** first — what would make this fail? (clarifies the win condition)
+2. **Two-way doors** — is this reversible? (sets the time budget)
+3. **Specific kills abstract** — for which named customer? (sets the scope)
+4. **Observed-not-surveyed** — do we have data, or is this theory? (sets the evidence bar)
+5. **Ship-then-listen** — what's the smallest defensible version? (sets the ship size)
+6. **Boil-the-lake** — within that ship size, do the complete thing (sets the quality bar)
+7. **Founder mode** — am I the right author? (sets the responsibility)
+8. **Wartime/peacetime** — what cadence does this stage demand? (sets the speed)
 
-Khi có nghi ngờ tại thời điểm quyết định, đi qua danh sách. Khi danh sách không quyết định được, escalate qua HITL Tier C.
+When in doubt at decision time, walk the list. When the list itself doesn't decide it, escalate via HITL Tier C.
+
