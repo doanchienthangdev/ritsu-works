@@ -1,0 +1,538 @@
+---
+title: "Chương 37 — Capability Case Study #4: /evolve (Eval+Evo Feedback Loop)"
+description: "Chương 37 — Capability Case Study #4: /evolve (Eval+Evo Feedback Loop)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/37-capability-case-evolve.md
+source_hash: b02a8f62bc8f4832abb92875a8be45faf7a95574605044398b9eff45448162ce
+generated_at: '2026-05-22T01:26:25.533Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: b02a8f62bc8f4832abb92875a8be45faf7a95574605044398b9eff45448162ce
+translated_at: '2026-05-22T01:26:25.533Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 37
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Wiki Sync (Chương 34) mang knowledge ngoài VÀO. Docs Engine (Chương 35) project knowledge TRONG ra. Core Redesign (Chương 36) codify ground truth. /evolve — capability thứ tư — đóng vòng feedback: đọc operational signal (ops.agent_runs, ops.corrections, drift validators) NGƯỢC vào chính các leaf entity (skills, commands, agents, hooks, SOPs) để chúng tự cải thiện theo thời gian. Đây là first time một capability được build trên triết lý 'self-improvement với falsifiable shutdown criterion' — nếu nó không work, nó tự auto-pause."*
+
+Chương này document capability **`evolve`** v1.0.0 — capability thứ tư ship qua Bài #20 framework, từ idea → operating trong **~1 ngày làm việc** (2026-05-22; planning daytime ~3h + autonomous overnight ~4h), founder time ~3-4h interactive, total LLM cost **~$15** (bao gồm full /plan-ceo-review + /plan-eng-review session ~$5 + /cla 8-phase + 3 sprints + Phase 8 ~$10). Live tại https://ritsu-works.vercel.app/docs/commands/evolve.
+
+**Trạng thái:** operating v1.0.0. PRs: #79 (Sprint 1+2+3+Phase 8 squash) → #80 (migration 00033 schema fix) → #81 (cold-start hold-out ratings) → #82 (deployed → operating).
+
+---
+
+## 37.1 Bài toán
+
+Trước khi có /evolve, ritsu-works đã có operational signal khá đầy đủ — `ops.agent_runs` log mọi LLM call, `ops.corrections` ghi nhận khi founder reject/edit output, `ops.cost_attributions` track per-call cost, `pnpm check` validate drift across 4 tiers. Nhưng **không có cơ chế đọc signal đó NGƯỢC vào quality của entity**:
+
+- **Silent regression:** một skill được edit nhiều lần qua các session khác nhau, mỗi lần "improve" một góc — không ai đo overall quality có đi lên hay đi xuống. Một command bị founder reject 3 lần trong tháng vì wording confusing — nothing close the loop back to revise the wording.
+- **Manual curation không scale:** founder có thể tự sit down và improve 1 skill/tuần. Với ~56 skills + 14 commands + ~10 agents + ~7 hooks + 40+ SOPs (115+ entities), full sweep cần ~115 tuần. Pre-PMF founder time có ~25 min/tuần cho việc này.
+- **Goodhart risk nếu auto-improve:** AI proposer đề xuất "improvement" sẽ optimize theo cái nó dễ measure (longer doc = more comprehensive = "better"?). Without anti-bias discipline, /evolve sẽ degrade quality dưới guise "improvement."
+
+Constraint:
+- **Pre-PMF stage.** 0 paying users → cost discipline cực gắt ($50/mo cap cho role mới).
+- **Self-improvement = unfalsifiable rủi ro.** Một tool "tự cải thiện" có thể chạy mãi mãi mà không có evidence nó work. Cần explicit shutdown criterion.
+- **Karpathy lens.** Karpathy's autoresearch propose discipline cho deterministic numerical training. /evolve operates trên subjective LLM-judged substrate — không thể copy 1-1.
+- **Cold start problem.** Day 0 không có hold-out ratings (founder cần ~2h hand-rate 25 entities); nhưng /evolve không thể invoke nếu chưa có ratings. Self-referential deadlock.
+- **HITL discipline.** Tier B (skills/commands/agents) edit in-place; Tier C+ (hooks/SOPs/Tier 1) phải qua PR ceremony. /evolve không thể bypass tier policy.
+
+## 37.2 Bài #20 walkthrough — front-loaded ceremony (compressed CLA)
+
+/evolve là capability đầu tiên thử nghiệm pattern **front-loaded planning ceremony**: dùng `/plan-ceo-review` + `/plan-eng-review` (gstack tooling) làm PRE-/cla heavy lifting, để khi `/cla propose` bắt đầu, Phase 1-5 chỉ là "re-confirm các decision đã lock."
+
+### Daytime: /plan-ceo-review + /plan-eng-review (~3h interactive, ~$5 LLM)
+
+Founder bắt đầu với "Eval+Evo feedback loop based on Karpathy autoresearch" + một loạt câu hỏi mở (timing? scope? Karpathy fit?). Tooling produces:
+- **522-line PLAN.md** với 11 review sections (CEO strategic + Eng technical + Adversarial outside-voice + Cost + Risk + Acceptance + Cabinet matrix).
+- **STOP 3 strategic reframe** (Mode 2 — strategic intervention): /evolve không phải meta-work, nó là **quality engine cho product/GTM/first-100-customers entities** (Collison protocol, content-drafter, founder-onboarding agent, support-reply-drafter, etc.).
+- **8 locked-in decisions** (xem §37.4 below).
+- **Outside-voice YELLOW verdict** absorbed: codex CLI subprocess caught 2 high-leverage issues — (1) "/cla reuses worktree pattern" là FICTION (/cla không dùng worktree thực sự); (2) v1.0 spec không có falsifiable shutdown criterion → "could ship and run forever as theater."
+- **Spec-review iter-2 PASS 8/10** sau khi absorb outside-voice findings.
+
+Front-loaded ceremony này paid back trong /cla phase 1-5 dưới đây.
+
+### Phase 0-1: Drift pre-flight + Problem framing (~$0.10)
+
+- Phase 0: `pnpm check` CLEAN. INSERT `ops.capability_runs` id `9c456d98-c172-4f1a-bd14-87d4e4cc43f2`.
+- Phase 1: **0 clarifying questions issued.** PLAN.md đã framed problem hoàn chỉnh (8 locked decisions + 8 risks R1-R8 + 5 acceptance criteria S0/S1/S2). Problem-framer skill detected pre-completed framing và short-circuited.
+
+### Phase 2: Domain analysis (~$0.20)
+
+CTO Phase 2 dispatch: 200-word lens + 2 verified gaps:
+- **Worktree fiction confirmed.** `git worktree list` shows /cla doesn't actually use worktrees. Spec downgraded "reuse /cla worktree" → "use git stash + restore" (saved ~2h Sprint 1 effort).
+- **`requires_api` enum gap.** Schedules schema chỉ allow anthropic/openai/supabase_product_read; calibrate-efficacy cần supabase_access_token. Sprint 3 workaround: remove field + document via comment.
+
+### Phase 3: System inventory (~$0)
+
+Enumerated: 56 skills, 14 commands, ~10 agents, ~7 hooks, 40+ SOPs (~115 entities total). Existing infra reusable: `ops.agent_runs` + `ops.run_summaries` (Bài #4 memory), `episodic-recall` skill, `pre-llm-call-budget` hook (Bài #7 cost gate), `pre-edit-tier1` hook (HITL gate), `pnpm check` (Bài #1 drift gate). Net new: 28 files.
+
+### Phase 4: Options — COMPRESSED ($0)
+
+Approach A (top-level `/evolve` command parallel to /cla) đã được CEO review lock pre-/cla. Skipped 3-option fan-out — just persist "Approach A re-confirmed" trong options.md. INSERT `ops.decisions` Phase 4 (Tier B).
+
+### Phase 5: Architecture spec — COMPRESSED + full Tier C ceremony (~$0.50)
+
+spec.md 337 lines synthesized từ PLAN.md (522 lines) + 11 review sections + outside-voice findings + spec-review iter-2. tier1-diffs.yaml + 6 draft scaffolds (orchestrator skill, score-* skills, propose-improvement, install-improvement, outside-voice, playbooks). Founder Tier C APPROVE via AskUserQuestion 2026-05-22 evening. INSERT `ops.decisions[5a617fa2-...]` Phase 5 (Tier C): `awaiting_synthesis` → `decided` post Phase 8.
+
+Cost: $0.50 (compressed; full ceremony với Muse panel + adversarial fan-out sẽ cost ~$2-3 nhưng đã có equivalent input từ daytime session).
+
+### Phase 6: Sprint planner (~$0.10)
+
+3 sprints, **NOT 2-week default** — front-loaded planning means each sprint là 1 đêm coding:
+
+| Sprint | Scope | Owner | Effort |
+|---|---|---|---|
+| 1 — Foundation | 16 files (primitives, schemas, orchestrator stub, validator) | CC autonomous overnight | ~$2 |
+| 2 — Breadth | 4 files (per-type score skills × 5) | CC overnight | ~$0.50 |
+| 3 — Discipline | outside-voice + 10 cases + SOP + migration + runbook + governance | CC overnight | ~$2.50 |
+
+Tier B approve. Founder elected **Path A = AUTONOMOUS OVERNIGHT** — "tự triển khai không cần hỏi lại tôi" (founder Vietnamese instruction; explicit autonomous authorization per /evolve spec).
+
+### Phase 7: Implementation — 3 sprints, autonomous overnight (~$5)
+
+**Sprint 1 (commit ed8d893):** Foundation primitive + schemas + validator + orchestrator skeleton. 16 files, 1906 insertions.
+
+**Sprint 2 (commit 8e7fcd7):** Breadth across 5 entity types — 5 per-type score skills (skill, command, agent, hook, sop), each ~30 lines reusing common scoring contract. 4 files added, 253 insertions.
+
+**Sprint 3 (commit 3d11f22):** Discipline layer + governance + promotion:
+- `outside-voice/SKILL.md` (codex CLI + Claude subagent + annotate-only 3-tier fallback chain)
+- 10 seed golden cases (2 per type × 5 types)
+- `SOP-AIOPS-004-evolve/{flow.yaml, README.md}`
+- `scripts/eval-evo/{calibrate-efficacy.cjs, playbook-validate.cjs}` (Spearman + day-30 gate)
+- `scripts/cross-tier/validate-eval-evo-schemas.cjs` wired vào `pnpm check`
+- `supabase/migrations/00033_corrections_entity_slug_index.sql` (originally on entity_slug — schema fix required PR #80)
+- `wiki/runbooks/evolve.md` (operational guide, 200 lines)
+- `governance/ROLES.md` — `eval-evo-orchestrator` role (~50 lines: $50/mo cap, 3 task_kind caps, hitl_max_tier C)
+- `knowledge/schedules.yaml` — `evolve-day30-calibration` cron entry
+- `knowledge/manifest.yaml` — `eval-evo` sub-pillar added to ai_ops
+- `supabase/functions/minion-worker/index.ts` — deferred stub registered
+
+PR #79 squashed all 3 sprints + Phase 8 promotion + docs sync. Merged 2026-05-22T02:00Z.
+
+### Post-merge fixes (3 PRs)
+
+- **PR #80 (`356f480`):** Migration 00033 schema correction. Original spec assumed `ops.corrections.entity_slug` column exists; reality: `ops.corrections` linked qua `run_id` → `ops.agent_runs.state_payload->>'entity_slug'`. Index rewritten to `(run_id, ts DESC)` + orchestrator SQL updated to JOIN.
+- **PR #81 (`fa17b94`):** Cold-start hold-out ratings via AI proxy (xem §37.7 below).
+- **PR #82 (`19d3a84`):** State transition `deployed → operating` post-cold-start.
+
+### Phase 8: Catalog promotion (merged in #79 squash)
+
+- Promoted spec.md → `wiki/capabilities/evolve/spec.md`
+- Wrote `wiki/capabilities/evolve/retrospective.md` (197 lines)
+- UPDATE `knowledge/capability-registry.yaml`: state `proposed` → `deployed` → `operating` (across 3 PRs)
+- UPDATE `ops.capability_runs[9c456d98]`: state `proposed` → `deployed` → `operating`, current_phase = 8, actual_cost_setup_usd = $12.00, actual_founder_hours = 4.0
+
+## 37.3 Architecture: 4-plane composition
+
+`/evolve` không tạo ra abstraction layer mới — nó **compose** các plane đã có:
+
+```
+USER → /evolve command (.claude/commands/evolve.md)
+       ↓ parses, validates, dispatches
+       SOP (06-ai-ops/sops/SOP-AIOPS-004-evolve/flow.yaml)
+       ↓ declares phase sequence
+       SKILLS (06-ai-ops/skills/eval-evo/)
+        ├── orchestrator/         # loop runner
+        ├── score-{type}/         # per-type judge invocation (5 skills)
+        ├── propose-improvement/  # type-agnostic diff generator
+        ├── install-improvement/  # tier-aware writer (in-place vs PR)
+        ├── outside-voice/        # codex CLI / Claude subagent (Tier C+ only)
+        ├── playbooks/<type>.md   # per-type rubric (10 sub-scores + judge persona)
+        └── cases/<type>/<name>/  # golden case battery (R7 mitigation)
+       ↓ may dispatch
+       PERSONA + INFRA LAYER (existing)
+        ├── @ceo / @cto (judge personas via Agent tool)
+        ├── codex CLI binary (outside-voice primary; OpenAI gpt-5)
+        ├── episodic-recall skill (past run_summaries)
+        ├── pre-llm-call-budget.md hook (cost gate)
+        ├── pre-edit-tier1.md hook (HITL gate)
+        ├── pnpm check (drift gate)
+        └── ops.* tables (agent_runs, run_summaries, corrections, events,
+                          consistency_checks, cost_attributions)
+```
+
+4-plane discipline: USER → COMMAND → SOP → SKILLS → INFRA. Mỗi plane có một trách nhiệm rõ:
+
+- **COMMAND plane (`evolve.md`):** argv parsing + validation + dispatch. Không chứa loop logic.
+- **SOP plane (`flow.yaml`):** declarative phase sequence — preflight, loop, finalize. Reproducible, audit-friendly.
+- **SKILLS plane:** each skill làm ONE thing (orchestrator loop, score, propose, install, outside-voice). Per-type variance isolated trong score-\{type} + playbooks.
+- **INFRA plane:** existing (personas + hooks + ops.*).
+
+Pattern này thừa kế trực tiếp từ `/wiki`, `/docs`, `/core` — đó là **thin orchestrator command + skill namespace + infra reuse**.
+
+## 37.4 Loop mechanics — in-place + git stash isolation
+
+### Pre-flight (per /evolve run)
+
+1. `pnpm check` clean. Else ABORT.
+2. Concurrent-run check: `ops.agent_runs WHERE agent_slug='evolve' AND state='running' AND state_payload->>'entity_slug' = <slug>`. Row exists → ERROR.
+3. Entity exists trên disk.
+4. Working tree clean cho entity file (`git diff --quiet -- <file>`). Dirty → ERROR.
+5. **Hold-out gate:** all 5 playbooks Spearman ≥ 0.6 hoặc status = `ai_proxy_v1_cold_start` (xem §37.7).
+
+### Per-iter loop (in-place with git stash isolation)
+
+```
+for iter in 1..N:
+  1. Load context: entity + last 3 run_summaries (episodic-recall) +
+     last 10 ops.corrections rows (~500 tok total)
+  2. Judge persona scores entity via playbook (10 sub-scores × 0-10 each)
+  3. score_pre = sum(sub-scores)
+  4. git stash push -- <entity-file>  (label: "eval-evo iter-N pre-state <run-id>")
+  5. Proposer drafts diff; install-improvement applies in-place
+  6. pnpm check (post-apply drift) → if fail: git stash pop, log, continue
+  7. Judge persona re-scores entity
+  8. score_post = sum(sub-scores)
+  9. if score_post < score_pre:
+       git stash pop  (revert; preserves pre-state)
+       load failure summary; goto 1 (next iter)
+     else:
+       git stash drop  (commit pre-state stash; change kept)
+  10. if --stop met OR iter==N: exit loop
+  11. write ops.agent_runs + ops.run_summaries + ops.events
+```
+
+**Tại sao git stash, không git worktree?** Outside-voice (codex CLI subprocess) caught early rằng spec ban đầu claim "reuse /cla worktree pattern" — nhưng `git worktree list` confirms /cla **không actually dùng worktree** (chỉ branches). Spec downgrade saved ~2h Sprint 1 effort. Bài học: outside-voice catches load-bearing claims trước khi chúng thành tech debt.
+
+### Per-type judge persona binding
+
+| Entity type | Proposer | Judge | Rationale |
+|---|---|---|---|
+| skill | eval-evo-orchestrator (Sonnet) | @cto | Code-aware persona cho prompt-engineering quality |
+| command | eval-evo-orchestrator | @ceo | UX + founder-interface persona |
+| agent | eval-evo-orchestrator | @ceo | Persona consistency persona |
+| hook | eval-evo-orchestrator | @cto | Safety + security persona |
+| SOP | eval-evo-orchestrator | @cto | Process governance persona |
+
+**Proposer ≠ Judge persona** trong all cases. Đây là Goodhart mitigation layer 1 (xem §37.5).
+
+### Tier-based install gating
+
+| Entity tier | Path pattern | Install mode | HITL |
+|---|---|---|---|
+| Tier B | `06-ai-ops/skills/<n>/`, `.claude/commands/<n>.md`, `.claude/agents/<n>.md` | direct in-place (git stash + restore per iter) | B per run |
+| Tier C+ | `.claude/hooks/<n>.md`, `06-ai-ops/sops/<n>/`, any Tier 1 file | accumulated diff → PR open after loop | C per run |
+
+`--tier-override` flag (founder-only): Tier C → Tier B fast path.
+
+## 37.5 Goodhart-mitigation 4-layer stack
+
+Đây là **decision load-bearing nhất** trong toàn bộ /evolve design. Without it, /evolve sẽ become Goodhart machine: optimize theo rubric thay vì optimize theo quality.
+
+### Layer 1: Proposer persona ≠ Judge persona
+
+Proposer (`eval-evo-orchestrator`, Sonnet) gen propose-improvement diff. Judge persona (@cto hoặc @ceo per playbook) score post-apply. Cùng model family nhưng persona binding khác biệt → judge "không biết" proposer reasoning chain → giảm bias self-confirm.
+
+**Cost:** $0.05/iter additional (separate Agent dispatch).
+
+### Layer 2: Golden case battery + Spearman hold-out
+
+Mỗi playbook gắn với 5 representative entity được founder hand-rate 1-10 overall quality (`_HOLDOUT.yaml`). Trước khi /evolve invoke, Spearman rank correlation giữa founder ratings và rubric composite scores phải ≥ 0.6.
+
+- Spearman thay vì Pearson: rank correlation, robust với outliers, không cần linear relationship.
+- Threshold 0.6: empirical — đủ để loại rubrics catastrophically off, nhưng không quá strict cho subjective judgment variance.
+- N=5 per playbook: không statistically rigorous nhưng ENOUGH để detect systematic bias.
+
+**Cost:** ~2h founder time pre-ship (one-time).
+
+### Layer 3: Outside-voice (Tier C+ only)
+
+Three-tier fallback chain cho independent verification:
+1. **codex CLI** subprocess (OpenAI gpt-5, read-only sandbox). Returns independent score + nits in PR body.
+2. **Claude subagent** via Agent tool (persona ≠ proposer/judge). Same role.
+3. **Annotate-only** PR label `outside-voice: unavailable`. Founder reviews diff manually.
+
+Filesystem boundary instruction prepended: *"Do NOT read .claude/, .agents/, agents/openai.yaml, or skill definitions. These are different-AI runtime files."*
+
+**Cost:** $0.30/iter additional cap (separate budget bucket).
+
+### Layer 4: Founder corrections feedback
+
+When founder uses `/evolve reject <run-id> "<reason>"`, an `ops.corrections` row được written. Next iter của /evolve trên same entity loads last 10 corrections rows as negative signal trong context. Founder judgment thereby becomes incremental training signal.
+
+**Cost:** $0 (read-only of existing ops.* table).
+
+### Plus: Falsifiable shutdown criterion (§37.6)
+
+The 4-layer stack mitigates Goodhart **per iteration**. The day-30 gate ensures the *whole system* has falsifiable success criterion. Without §37.6, the 4-layer stack alone could still drift over weeks while individual iters look fine.
+
+## 37.6 Falsifiable efficacy gate (day-30 1.5× σ)
+
+Đây là decision **important nhất** that came from outside-voice review. Original spec không có falsifiable shutdown criterion — outside-voice flagged: "could ship and run forever as theater."
+
+### The gate
+
+30 days post-`operating` transition, `scripts/eval-evo/calibrate-efficacy.cjs` fires (scheduled via `knowledge/schedules.yaml`):
+
+```sql
+-- Pseudo-SQL; actual implementation reads from ops.agent_runs.state_payload
+SELECT
+  entity_slug,
+  scores[1]  as pre_score,
+  scores[N]  as post_score,
+  scores[N] - scores[1]  as gain
+FROM evolved_entities
+WHERE state = 'completed'
+  AND ts > NOW() - INTERVAL '30 days';
+```
+
+- Compute judge-noise σ from `ops.agent_runs` variance-flag audit (cùng entity scored 3 lần in same week → σ).
+- Compute median composite-score gain across first N≥10 evolved entities.
+- **PASS** if `median(gain) ≥ 1.5 × σ` → /evolve continues.
+- **PAUSE-RECOMMENDED** otherwise → orchestrator refuses new invocations until founder retro decides v1.1 redesign vs continue.
+
+### Why 1.5× σ?
+
+- \< 1× σ: gain indistinguishable from judge noise → no evidence improvement is real.
+- 1× σ - 1.5× σ: gain detectable but small → could be selection bias (founder picks entities likely to improve).
+- ≥ 1.5× σ: gain robust signal of real improvement.
+
+### Why N≥10?
+
+Smaller N → variance dominates median → false PASS/FAIL likely. 10 is empirical floor; v1.1 may raise to 20 if budget allows.
+
+### What happens on PAUSE
+
+`ops.capability_runs[9c456d98]` state transitions `operating → paused`. Orchestrator pre-flight check refuses new invocations với message: *"day-30 efficacy gate failed (median gain X.X \< 1.5× σ Y.Y). See wiki/runbooks/evolve.md §day-30-recovery."*
+
+Founder runs `/cla revise evolve` to redesign v1.1 (or `/cla deprecate evolve` if redesign infeasible). Either way: **falsifiable pre-committed shutdown**, không phải "let's keep iterating until it works."
+
+## 37.7 Cold-start dilemma + AI proxy hold-out (PR #81)
+
+Goodhart layer 2 (§37.5) requires founder hand-rate 25 entities (5 per type × 5 types) before /evolve can invoke. But:
+- Founder time scarce (~25 min/tuần cho /evolve discipline).
+- 25 ratings × ~5 min/rating = ~2h.
+- Cold-start before ratings → /evolve blocked indefinitely → never gets first run → never gets day-30 efficacy signal.
+
+### The fix: AI proxy with explicit caveat
+
+PR #81 introduced `status: ai_proxy_v1_cold_start` trong `_HOLDOUT.yaml`. Claude Opus 4.7 generated 25 ratings as cold-start proxy, with frontmatter clearly documenting:
+
+```yaml
+status: ai_proxy_v1_cold_start
+ai_proxy_generated_at: 2026-05-22
+ai_proxy_generated_by: "claude-opus-4-7 via Claude Code Desktop session"
+ai_proxy_methodology: |
+  For each entity, read the file content (or directory README + flow.yaml
+  for SOPs). Apply the per-type playbook rubric (10 sub-scores 0-10 each).
+  Compute overall judgment on a 1-10 scale...
+
+caveat: |
+  Caveat acknowledged: the Spearman gate is designed as anti-Goodhart layer 2
+  with FOUNDER judgment as ground truth. AI proxy ↔ AI judge correlation
+  is high by construction (both come from similar prior-distribution).
+  This partially circumvents layer 2 but does NOT defeat the other 3
+  anti-Goodhart layers (judge≠proposer persona, outside-voice, founder
+  corrections) NOR the falsifiable day-30 efficacy gate.
+```
+
+### Validator changes
+
+`scripts/eval-evo/playbook-validate.cjs` got an `ai_proxy_v1_cold_start` mode:
+- Spearman threshold lowered từ 0.6 → 0.0 (informational only).
+- Output marked "PASS (cold-start informational)" vs "PASS (founder validated)".
+- /evolve orchestrator still requires "PASS" but accepts both modes.
+
+### Founder obligation
+
+When founder has 2h coffee-break time, override AI proxy ratings:
+- Read 5 entities per type.
+- Replace `founder_rating: <AI value>` với hand judgment.
+- Update `status: ai_proxy_v1_cold_start → founder_rated`.
+- Re-run `playbook-validate.cjs` → Spearman ≥ 0.6 (founder hand vs rubric).
+- If FAIL → revise playbook rubric in `playbooks/<type>.md` + re-validate.
+
+### Why this isn't pure self-defeat
+
+The day-30 efficacy gate (§37.6) doesn't care about hold-out ratings — it measures real improvement signal from evolved entities. Even if cold-start ratings are AI-proxy, the day-30 gate provides falsifiable shutdown. AI proxy buys **time** to collect real data; it doesn't replace ground truth.
+
+**Tradeoff acknowledged:** layer 2 weakened until founder overrides. Layers 1, 3, 4 + day-30 gate still intact. Acceptable risk per cost-benefit (2h founder time saved vs deferred quality signal).
+
+## 37.8 Pattern reuse + new patterns
+
+### Reuse từ Wave 1 capabilities
+
+| Pattern | Origin | Application in /evolve |
+|---|---|---|
+| Thin orchestrator command | /wiki, /cla, /docs, /core | `/evolve` mirror frontmatter + subcommand + workflow per verb |
+| Skill namespace | `wiki-sync/`, `capability-lifecycle/`, `core-management/` | `eval-evo/` (12 skills) |
+| Helper scripts | `scripts/wiki-sync/*.cjs`, `scripts/core/*.cjs` | `scripts/eval-evo/{calibrate-efficacy, playbook-validate}.cjs` |
+| Cross-tier validator | `scripts/cross-tier/validate-{wiki-sync, core-pillar}.cjs` | `scripts/cross-tier/validate-eval-evo-schemas.cjs` (wired vào `pnpm check`) |
+| JSON schema discipline | wiki-sync `_SCHEMA.yaml` | 3 schemas (`_SCHEMA.yaml`, `playbooks/_SCHEMA.yaml`, `cases/_SCHEMA.yaml`) |
+| Capability lifecycle | `/cla propose` 8 phases | This capability went through full lifecycle (compressed Phase 1-4) |
+| Bilingual docs | docs-engine walker + translate | Sprint 3 ran docs sync eval-evo + Haiku translate (~$0.90 for 95 files) |
+| ops.* writes via supabase-ops MCP | wiki-sync v3, core-redesign | INSERT capability_runs + agent_runs + decisions via existing MCP |
+
+### NEW patterns introduced by /evolve
+
+#### Pattern: Front-loaded ceremony (gstack /plan-* before /cla)
+
+`/plan-ceo-review` + `/plan-eng-review` (gstack tooling) make /cla Phase 1-5 short-circuits. Numbers from this case study:
+- /cla Phase 1-4 cost: ~$0.40 (vs estimated $1.50 from scratch).
+- Phase 5 cost: $0.50 (vs estimated $2-3 with full Muse panel).
+- **Total CLA cost: ~$1.50** vs estimated $4-5.
+
+Conditions where front-loaded ceremony applies:
+- Strategic ambiguity high → CEO review resolves.
+- Technical risk concentrated → Eng review resolves.
+- Outside-voice catches load-bearing claims → spec stays honest.
+- All 3 conditions present → /cla phases 1-5 become "re-confirm locked decisions."
+
+When NOT to use:
+- Pure tool integration (no strategic ambiguity) → /cla Phase 1-5 sufficient.
+- Capability scope tiny (\<5 net new files) → planning ceremony overkill.
+
+#### Pattern: Falsifiable shutdown criterion
+
+Pre-committed quantitative gate that auto-pauses capability if it fails. Day-30 1.5× σ for /evolve. Reusable for:
+- Any exploratory v1.0 capability where success could be theater.
+- Self-improvement tools (`/evolve` itself, future cross-entity pattern transfer).
+- Cost-bounded capabilities where ROI is unclear pre-ship.
+
+#### Pattern: Outside-voice via codex CLI subprocess
+
+3-tier fallback (codex → subagent → annotate-only). Read-only sandbox + filesystem boundary instruction. Reusable wherever cross-model adversarial review is valuable but external dependencies are flaky. Critical for self-improvement infrastructure where same-model bias is highest risk.
+
+#### Pattern: Spearman rubric hold-out
+
+Per-rubric anti-bias discipline. N=5 founder ratings + Spearman ≥0.6 threshold. Reusable for any subjective scoring system that needs anti-Goodhart protection. Cost: ~2h founder time per rubric, one-time.
+
+#### Pattern: AI proxy with explicit caveat (cold-start)
+
+When ground truth is expensive to obtain but blocks ship, use AI proxy with:
+- Explicit frontmatter status enum (`ai_proxy_v1_cold_start`).
+- Caveat block in YAML documenting circumvention scope + retained guarantees.
+- Validator mode switch (informational vs hard threshold).
+- Founder override path (`status: ai_proxy_v1_cold_start → founder_rated`).
+- Falsifiable downstream gate that doesn't depend on the proxy.
+
+Reusable wherever "founder ratings" / "human ground truth" is the bottleneck pre-ship.
+
+## 37.9 KPIs
+
+- `evolve_runs_total` (NEW; planned, not yet wired) — count `ops.agent_runs WHERE agent_slug='evolve'` per month. Target: ≥10 by day-30 for efficacy gate N threshold.
+- `evolve_runs_avg_cost_usd` (NEW) — `AVG(cost_usd) WHERE agent_slug='evolve'`. Target: ≤ $2.50/run (per-run cap).
+- `evolve_runs_completed_count` (NEW) — count runs `state='completed'` (vs aborted/rejected). Target: ≥80% completion rate.
+- `evolve_holdout_spearman_min` (NEW) — `MIN(spearman_rho) across 5 playbooks`. Target: ≥0.6 post-founder-override. Current: cold-start informational.
+- `evolve_day30_median_gain` (NEW; fires day-30) — median composite gain across N≥10 evolved entities. Target: ≥1.5× σ for PASS verdict.
+- `eval_evo_role_budget_pct_used` (NEW) — `eval-evo-orchestrator` role $ used as % of $50/mo cap. Target: \<80% (alert threshold).
+
+## 37.10 Actuals vs estimates
+
+| Metric | Estimated | Actual | Variance |
+|---|---|---|---|
+| /plan-* + /cla CC hours | 25-30 | ~7 (daytime ~3 + overnight ~4) | **-75%** |
+| Founder hours | 6-10 | ~3-4 | **-60%** |
+| Calendar days | 5-10 | 1 day | **-90%** |
+| LLM cost USD | 30-50 (estimated full ceremony) | ~$15 (incl front-loaded daytime $5) | **-65%** |
+| PR count | 2 | 4 (Sprint squash + 2 fix + 1 state transition) | +100% (expected; 2 post-merge fixes from real-world testing) |
+| LOC added | 2500-4000 | ~5500 (incl docs MDX auto-gen) | +40% (docs MDX không phải human-written code) |
+
+**Net**: massive under-estimate trên cost + time (front-loaded ceremony + overnight autonomous worked across the board); higher PR count vì real-world testing surfaced 2 schema/data issues post-merge that couldn't be predicted from spec alone.
+
+Founder time breakdown (~3-4h total):
+- `/plan-ceo-review` + `/plan-eng-review` interactive ~3h (daytime)
+- /cla Phase 0-6 HITL approvals ~30 min (daytime)
+- Phase 8 PR reviews + merges ~30 min (next morning)
+- 25 AI-proxy hold-out ratings spot-check (deferred to founder coffee-break post-ship)
+
+## 37.11 Open work
+
+1. **Founder override of AI-proxy hold-out ratings.** 25 entries trong `_HOLDOUT.yaml` cần spot-check + hand override. Calendar reminder: when founder has 2h coffee-break time. After override, `status: ai_proxy_v1_cold_start → founder_rated`. Spearman threshold restored 0.0 → 0.6.
+
+2. **First real /evolve invocation.** Pick revenue-adjacent entity per CEO strategic reframe:
+   ```bash
+   /evolve skill wiki-sync/distill --loop=1
+   /evolve skill content-drafter --loop=1
+   /evolve agent ceo --loop=1
+   ```
+   Discipline: 1 invocation/week minimum to accumulate day-30 N≥10 sample.
+
+3. **Day-30 calibration fires automatically.** Around 2026-06-21 (30 days post-operating transition). Founder reviews verdict. PASS → continue. FAIL → `/cla revise evolve` for v1.1 redesign.
+
+4. **`ops.eval_evo_runs` dedicated table.** Deferred to v1.1 per /plan-ceo-review STOP 2 cherry-pick decisions. YAGNI until /evolve invocation count >50 → query patterns become bottleneck on `ops.agent_runs.state_payload`.
+
+5. **Composite entity types (E7).** Folder + pillar composite scoring. Deferred — composite scoring needs leaf types stable for 30 days first.
+
+6. **Cross-entity pattern transfer recommender.** When /evolve improves skill A, system suggests "this same improvement pattern likely applies to skill B." Deferred to v1.2.
+
+7. **Shadow-mode A/B install for high-volume skills.** Run new + old skill in parallel for N invocations; promote winner. Deferred — premature optimization until top-10 invocation skills identified.
+
+8. **Meta-evolution CI test.** `/evolve` on `/evolve` itself must not regress (CI gate). Deferred — needs day-30 efficacy gate to validate before enabling self-meta.
+
+9. **3-judge median for judge stability.** R2 mitigation upgrade (judge variance ≥5pts on same entity). Currently single-judge with temp=0 + variance flag. v1.1 explores 3-judge median.
+
+10. **Native `cto-sceptic` subagent_type** for outside-voice fallback B. Currently uses generic Agent tool with @cto persona instruction. Native subagent_type would standardize behavior + reduce per-invocation cost.
+
+## 37.12 Lessons learned
+
+### What worked
+
+1. **Front-loaded planning ceremony saved $30-40 + 20h.** /plan-ceo-review + /plan-eng-review locked spec hard enough that /cla phases 1-5 became mechanical confirmation. Outside-voice (codex CLI) caught 2 high-leverage issues that would have shipped without it: worktree fiction + missing falsifiable shutdown.
+
+2. **Autonomous overnight execution worked end-to-end.** Founder gave explicit "tự triển khai không cần hỏi lại tôi" directive after Phase 6 approval. CC autonomous ran 3 sprints + Phase 8 + docs translation + Vercel deploy in ~4h overnight. Founder woke up to completed deploy.
+
+3. **Goodhart-aware design from day 0.** 4-layer mitigation stack + day-30 falsifiable gate means /evolve cannot silently fail. This is critical for self-improvement tools — without these, a "tự cải thiện" tool becomes theater immediately.
+
+4. **Validator + schema discipline caught real issues.** Three JSON schemas + `validate-eval-evo-schemas.cjs` wired vào `pnpm check` flagged `requires_api` enum mismatch + missing SKILL_REGISTRY entry during Sprint 3. Cross-tier consistency engine working as designed (Bài #1 + L1/L2 validators).
+
+5. **Outside-voice (codex CLI) is worth $0.10/iter.** Cross-model adversarial review = single best investment in self-improvement infrastructure. Catches load-bearing claims early.
+
+### What didn't work / what surprised
+
+1. **Migration 00033 schema assumption was wrong.** Original spec assumed `ops.corrections.entity_slug` column exists. Reality: only `run_id` link via `ops.agent_runs.state_payload->>'entity_slug'`. PR #80 fix required (index on `(run_id, ts DESC)` + JOIN). Lesson: Phase 3 system inventory must check actual schemas, not assumed schemas.
+
+2. **`requires_api` schedules enum incomplete.** Schedules schema chỉ allow anthropic/openai/supabase_product_read; supabase_access_token (calibrate-efficacy actual need) missing. Sprint 3 workaround removed the field + documented via comment. v1.1 schema bump TODO.
+
+3. **Cold-start hold-out dilemma.** Spec gates /evolve on 25 founder ratings. Without ratings → /evolve blocked → no day-30 data → spec defeats itself. Resolved via AI proxy + explicit caveat + validator mode switch (PR #81). New pattern documented (§37.8).
+
+4. **docs-engine `.vi.mdx` vs `.mdx` propagation gap.** docs-translate.cjs wrote to `.vi.mdx`; default URL serves `.mdx`. CC had to manually clean up 18 orphan files + fix script to write `.mdx` directly. Filed and fixed in PR #84 (separate from /evolve PRs).
+
+5. **`pre-existing L2 governance/ROLES ↔ skills warn-tier failure`** flagged 27 stub references. Not introduced by /evolve, but every PR had to merge despite this warn-tier failure. Tech debt cleanup deferred to separate capability.
+
+## 37.13 What capability #4 proves về Bài #20
+
+| Capability | Idea → operating | Founder hours | CC hours | LLM cost |
+|---|---|---|---|---|
+| #1 wiki-sync (Ch 34) | ~3 weeks, multiple sessions | ~15-20 | ~80-100 | ~$25-30 |
+| #2 docs-engine (Ch 35) | ~10 hours, single session | ~3-4 | ~10-12 | ~$10 |
+| #3 core-redesign (Ch 36) | ~1 day, single day | ~0.25 | ~2.5 | ~$0.50 |
+| **#4 evolve (this Ch)** | **~1 day** | **~3-4** | **~7** | **~$15** |
+
+**Acceleration curve diverges:** Cap #3 (core-redesign) là special case — AI-as-founder-substitute pattern (synthesize từ existing material) compressed founder time to ~25 min. /evolve không apply pattern đó được — strategic decisions (Karpathy fit, anti-Goodhart layers, falsifiable gate) cần founder thinking. Compensated bằng front-loaded ceremony (/plan-* before /cla) → 3-4h founder time tập trung daytime, 4h CC overnight autonomous.
+
+**Bài #20 framework matures:** Wave 1 capabilities (CLA itself, wiki-sync, docs-engine, core-redesign, evolve) đã established:
+- Thin orchestrator command + skill namespace pattern (5/5 capabilities use it)
+- Cross-tier validator + `pnpm check` integration (5/5)
+- Capability lifecycle with state machine + ops.capability_runs (5/5)
+- Bilingual docs (4/5; /evolve has 95-file translation completed)
+- Compressed Phase 4+5 ceremony (3/5; reduces $2-3 per capability)
+- Front-loaded planning ceremony (NEW with /evolve; reusable Wave 2)
+- Falsifiable shutdown criterion (NEW with /evolve; required for any self-improvement tool)
+- Outside-voice cross-model review (NEW with /evolve; codex CLI)
+
+**Wave 2 capabilities (post-PMF; entries on capability-registry roadmap):**
+- `/evolve` improvements on existing entities (continuous quality engine)
+- `/lead-acquisition` (Customer pillar)
+- `/daily-customer-acquisition` (GTM stage pillar)
+- `/pricing-experiments` (Product pillar)
+- `/cancel-flow-synthesis` (Customer pillar)
+- `/founder-onboarding-script` (Customer success pillar)
+
+Mỗi capability Wave 2 sẽ:
+- Build on Wave 1 patterns (thin orchestrator + skill namespace + cross-tier validator).
+- Borrow /evolve patterns (falsifiable gate cho exploratory features; front-loaded ceremony cho strategic ambiguity).
+- Take **1-3 days** ship time vs Wave 1's 1-10+ days.
+
+The complete operator OS layer (Wave 1) is now ready for the revenue-adjacent capabilities (Wave 2) that drive the 100-paying-who-love PMF goal.
+
+---
+
+*Closing cross-reference:* This is the final case study in v3.3 of the playbook. Wave 2 capabilities will be documented as Chương 38+ when they ship. For canonical reference, see:
+- Spec: `wiki/capabilities/evolve/spec.md` (337 lines)
+- Retrospective: `wiki/capabilities/evolve/retrospective.md` (197 lines)
+- Runbook: `wiki/runbooks/evolve.md` (200 lines)
+- Morning summary: `.archives/cla/evolve/MORNING-SUMMARY.md` (founder overnight delivery doc)
