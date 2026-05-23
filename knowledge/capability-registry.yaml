@@ -418,6 +418,79 @@ capabilities:
       the orchestrator's pre-flight check refuses to run /evolve.
       See wiki/runbooks/evolve.md §Onboarding.
 
+  - id: resolver
+    name: "/resolver — Lookup PLATFORM for trigger → AI workforce recipient routing"
+    description: |
+      Foundational lookup platform across ritsu-works. Maps natural-language
+      triggers to recipients across 8 kinds (skill, command, agent, mcp, wiki,
+      sop, capability, persona) with 6 invocation mechanisms. Consumed primarily
+      at BACKGROUND-LAYER (skills/agents/workflows reference transparently via
+      resolver-query SKILL or mcp__resolver__query MCP); /resolver subcommands
+      (query/list/validate/sync/explain) serve build/manage/introspection.
+
+      Element schema (founder-stated, flat + generic): (trigger,
+      activated_entity, path_or_method_to_get). Engine logic lives in
+      scripts/resolver/; element shape stays flat.
+
+      v1.0 = platform layer + auto-derived routes from recipient frontmatter
+      (with hand overrides separate) + 3 read-only adapters seeding from
+      legacy YAMLs + whole-word/phrase matching + NFC Unicode + computed
+      confidence + composition.plan[] (CP-2 founder requirement) +
+      multi-resolver chain config (CP-5) + dedicated ops.resolver_decisions
+      audit table + /cla Phase-8 emission hook + 4 cross-tier validators
+      auto-picked-up by pnpm check.
+
+      Prior work: full brainstorm at .archives/brainstorming/resolver/ (24
+      files via /plan-ceo-review + /plan-eng-review + architect outside-voice
+      challenge). Path 0 (platform-first) selected after architect T-16
+      (spike-first) REJECTED with founder strategic rationale. 13 of 16
+      architect findings INCORPORATED as scope refinements; 3 rejected
+      (composition CP-2 + multi-resolver CP-5 kept per founder explicit
+      requirement; T-16 spike rejected per strategic intent).
+
+      Deferred v1.1+: semantic fallback, CP-1 active learning,
+      diacritic-insensitive matching, placeholder pillar shadowing,
+      HITL dry-run preview. Dropped: CP-7 cross-runtime portability,
+      /resolver add wizard, runtime injection into Claude Code.
+    version: "1.0.0"
+    state: proposed
+    state_since: 2026-05-23
+    proposed_at: 2026-05-23
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [5, 11, 12, 14, 15, 20]
+    spec_path: wiki/capabilities/resolver/spec.md
+    retrospective_path: wiki/capabilities/resolver/retrospective.md
+    cost_bucket: resolver
+    estimated_cost_setup_usd: 5.50         # /cla ~$5 ceremony + $0.50 misc
+    estimated_cost_recurring_usd: 0.50     # negligible — no LLM in hot path
+    estimated_founder_hours: 9             # /cla ~1-2h Session 1 + ~6-7h spread sprint reviews
+    target_kpis: [resolver_silent_dispatch_rate, resolver_p95_latency_ms]
+    target_value: 0.85                     # primary KPI: silent dispatch rate ≥85%
+    notes: |
+      ops.capability_runs id: 40324249-1604-415e-b8cb-2f012456ea84
+      Spec is LOCKED at /plan-ceo-review + /plan-eng-review on 2026-05-23 with
+      architect outside-voice challenge. CEO plan at
+      ~/.gstack/projects/doanchienthangdev-ritsu-works/ceo-plans/2026-05-23-resolver.md
+      Context bundle: runtime/resolvers/context/00-resolver.context.md (~30 KB)
+      Brainstorm: .archives/brainstorming/resolver/ (24 files, ~400 KB)
+
+      4 STOP gates expected at Phase 5 (architecture spec review):
+        D-1: Migration scope for legacy YAMLs (retirement window v1.3?)
+        D-2: Default sync mode (warn-only vs auto-stub)
+        D-3: Vietnamese diacritic strategy confirmation
+        D-4: composition.plan strict-no-execution commitment wording
+
+      Sprint structure (per CLA-PROPOSE-PROMPT §D, ~17-22h CC across 4 sprints):
+        Sprint 1: Foundations + Audit table (registry.yaml, 4 validators, engine,
+                  ops.resolver_decisions migration)
+        Sprint 2: Routes + Adapters + Sync (sync.cjs auto-derive, 3 adapters,
+                  initial sync populates routes/, founder seeds overrides)
+        Sprint 3: Command surface + Consumer contracts (.claude/commands/resolver.md,
+                  resolver skill tree, resolver-query SKILL, mcp__resolver__query)
+        Sprint 4: Polish + Integrations + Docs (composition helpers, multi-resolver
+                  chain, /check-drift --resolver-sync, /cla Phase-8 hook, 6 runbooks,
+                  Monday digest line, bench + CI gate)
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:
