@@ -122,35 +122,22 @@ const STOP_WORDS = new Set([
 ]);
 
 function deriveKeywords(slug, frontmatter) {
-  const keywords = new Set();
+  // v1.0 stub mode: use SLUG ONLY as trigger keyword (guaranteed unique).
+  // Generic words from descriptions cause collisions across many sub-skills
+  // (e.g. "wiki", "markdown") — defer richer keyword sets to overrides/.
+  // Founder hand-curates expressive triggers via knowledge/resolvers/overrides/.
+  //
+  // Explicit frontmatter override (resolver_keywords:) takes precedence.
 
-  // 1. Explicit override in frontmatter
   if (frontmatter.resolver_keywords && Array.isArray(frontmatter.resolver_keywords)) {
-    frontmatter.resolver_keywords.forEach(k => keywords.add(String(k).toLowerCase().trim()));
-    return Array.from(keywords);
+    return frontmatter.resolver_keywords
+      .map(k => String(k).toLowerCase().trim())
+      .filter(k => k.length > 0);
   }
 
-  // 2. Name + slug tokens
-  if (frontmatter.name) {
-    String(frontmatter.name).split(/[\/\-_:\s]+/).forEach(w => {
-      const lw = w.toLowerCase().trim();
-      if (lw.length >= 3 && !STOP_WORDS.has(lw)) keywords.add(lw);
-    });
-  }
-  String(slug).split(/[\/\-_:]+/).forEach(w => {
-    const lw = w.toLowerCase().trim();
-    if (lw.length >= 3 && !STOP_WORDS.has(lw)) keywords.add(lw);
-  });
-
-  // 3. First-sentence description significant words
-  if (frontmatter.description) {
-    const desc = String(frontmatter.description).split(/[.!?\n]/)[0];
-    desc.toLowerCase().split(/\W+/).forEach(w => {
-      if (w.length >= 5 && !STOP_WORDS.has(w)) keywords.add(w);
-    });
-  }
-
-  return Array.from(keywords).slice(0, 8); // cap at 8 derived keywords
+  // Default: full slug as one phrase keyword (lowercased, segments joined w/ space)
+  const phrase = String(slug).toLowerCase().replace(/[\/_:]+/g, ' ').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+  return [phrase];
 }
 
 // === Route stub generator ===
