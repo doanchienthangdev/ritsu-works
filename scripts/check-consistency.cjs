@@ -218,6 +218,9 @@ async function main() {
     ['validate-personas.cjs', 'workforce personas ↔ ROLES.md ↔ runtime'],
     ['validate-cla-routing-keywords.cjs', 'cla routing ↔ personas ↔ ROLES.md'],
     ['validate-eval-evo-schemas.cjs', 'eval-evo playbook + cases schemas'],
+    ['validate-resolver-schema.cjs', 'resolver routes ↔ JSON schema'],
+    ['validate-resolver-routes.cjs', 'resolver routes ↔ filesystem + Tier 1'],
+    ['validate-resolver-trigger-uniqueness.cjs', 'resolver trigger uniqueness (intra-file)'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;
@@ -230,6 +233,7 @@ async function main() {
       ['validate-governance-roles.cjs', 'governance/ROLES ↔ skills'],
       ['validate-hitl-hooks.cjs', 'HITL.md Tier-D ↔ hooks'],
       ['validate-wiki-integrity.cjs', 'wiki-integrity (file/frontmatter)'],
+      ['validate-resolver-coverage.cjs', 'resolver recipient coverage (warn-only per D-2)'],
     ]) {
       const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]), 'warn');
       if (!r.passed) warnFailures += 1;

@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resolver-route.schema.json",
+  "title": "Resolver Route (capability `resolver` v1.0)",
+  "description": "Schema for a single routing entry in knowledge/resolvers/{routes,overrides}/<kind>.yaml. Element shape: (trigger, activated_entity, path_or_method_to_get).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "triggers", "recipient", "invocation"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(skill|command|agent|mcp|wiki|sop|capability|persona|personal)/[a-z0-9][a-z0-9:_/-]*$",
+      "description": "Globally unique kind/slug. e.g. skill/eval-evo:orchestrator, command/cla, mcp/supabase-ops:query."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "stub", "deprecated"],
+      "default": "active"
+    },
+    "triggers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["keywords"],
+      "properties": {
+        "keywords": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "regex": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Regex pattern with Unicode flag implied. Power-user; use sparingly."
+          }
+        },
+        "semantic_seed": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Used by v1.1 semantic fallback for embedding. Optional."
+        },
+        "negative_seed": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "v1.1 — do NOT match if input embeds close to this."
+        }
+      }
+    },
+    "recipient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "slug"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["skill", "command", "agent", "mcp", "wiki", "sop", "capability", "persona"]
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9:_/-]*$",
+          "description": "Recipient identifier; format depends on kind."
+        },
+        "path": {
+          "type": "string",
+          "description": "Filesystem path (for kinds: skill, command, agent, sop, wiki). Optional for kinds without files."
+        }
+      }
+    },
+    "invocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mechanism"],
+      "properties": {
+        "mechanism": {
+          "type": "string",
+          "enum": ["skill_tool", "slash", "subagent", "mcp_call", "wiki_query", "shell"]
+        },
+        "args": {
+          "type": "object",
+          "description": "Mechanism-specific arguments. Schema not enforced here; caller responsibility."
+        }
+      }
+    },
+    "role_scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "description": "Role slug from governance/ROLES.md OR '*' for any role."
+      },
+      "default": ["*"]
+    },
+    "hitl_tier_default": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D-Std", "D-MAX"],
+      "default": "A"
+    },
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "on_no_match": {
+          "type": ["string", "null"],
+          "description": "Route ID to fall back to if this route's recipient unavailable. Null = error."
+        },
+        "on_role_denied": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "composition": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "CP-2 multi-hop plan. Resolver returns plans; never executes (per spec §2.A invariant 1).",
+      "properties": {
+        "plan": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["step", "recipient"],
+            "properties": {
+              "step": {"type": "string"},
+              "recipient": {
+                "type": "object",
+                "required": ["kind"],
+                "properties": {
+                  "kind": {"type": "string"},
+                  "slug": {"type": "string"},
+                  "id": {"type": "string"}
+                }
+              },
+              "args_template": {"type": "object"}
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "pillar": {
+          "type": "string",
+          "pattern": "^0[0-9]-[a-z-]+$"
+        },
+        "cost_bucket": {"type": "string"},
+        "introduced_in": {"type": "string"},
+        "last_validated_at": {"type": "string", "format": "date"},
+        "author": {"type": "string"},
+        "derived": {
+          "type": "boolean",
+          "description": "True if auto-generated from recipient frontmatter by /resolver sync."
+        },
+        "disambiguator": {
+          "type": "string",
+          "description": "Free-text reason when triggers might overlap with another route."
+        },
+        "related_routes": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Forward-compatibility opening. Unrecognized fields land here."
+    }
+  }
+}

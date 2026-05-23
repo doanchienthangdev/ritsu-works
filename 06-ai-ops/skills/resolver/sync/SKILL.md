@@ -1,0 +1,44 @@
+---
+name: resolver/sync
+description: Implementation of `/resolver sync` verb — scans filesystem for skill/command/agent recipients without routes, generates stubs from frontmatter, writes routes/*.yaml. Default --dry-run per D-2 founder decision. --apply writes; --auto-pr writes + branch + commit + push + opens PR (Tier C).
+---
+
+# resolver/sync SKILL
+
+## When to use
+
+Invoked by `resolver/orchestrator` when subcommand is `sync`.
+
+## Process
+
+1. Parse flags: --dry-run (default) | --apply | --auto-pr | --kind=<k>
+2. Invoke `scripts/resolver/sync.cjs` with parsed args
+3. Render output per mode:
+   - --dry-run: print proposed diff (no writes)
+   - --apply: confirm + write atomically; report new stub count
+   - --auto-pr: + git ops + gh pr create; print PR URL
+
+## D-2 founder decision
+
+Default mode is `--dry-run` (warn-only). Founder explicitly enables
+`--apply` or `--auto-pr` to commit changes.
+
+## Architect T-7 constraints
+
+- Auto-PR ROUTE stubs only, NEVER RECIPIENT stubs
+- Rate-limited 1 PR per 6h per branch (lock file:
+  `.archives/resolver-sync.lock`)
+- Working tree must be clean (no unrelated changes) for --auto-pr
+
+## Error handling
+
+- `WorkingTreeDirty` → refuse with suggestion to stash
+- `SyncLocked` → show lock age; suggest wait or manual unlock
+- `GHCLIMissing` → install hint
+- `GHAuthExpired` → `gh auth login` hint
+
+## See also
+
+- Engine: `scripts/resolver/sync.cjs`
+- Architect T-7 + D-2: `.archives/brainstorming/resolver/17-outside-voice.md`
+- Spec: `wiki/capabilities/resolver/spec.md` §11.6
