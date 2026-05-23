@@ -1,0 +1,36 @@
+# Adapter: knowledge/cla-routing-keywords.yaml → resolver routes (persona kind)
+#
+# READ-ONLY translator. Projects 9 narrow CLA routing domains as persona/<cxo>
+# routes at load time. Source YAML remains authoritative for /cla Phase 2
+# direct consumers. Adapter feeds resolver query path during legacy
+# coexistence window (v1.0 through v1.2; retire v1.3 per D-1).
+#
+# Per architect T-1 fix: routes/ + overrides/ AUTHORITATIVE at runtime;
+# adapter is one of multiple SOURCES.
+
+source: knowledge/cla-routing-keywords.yaml
+iterate_over: routes                  # source.routes.<domain> → one route per domain
+projected_recipient_kind: persona
+
+projected_route_template:
+  id: "persona/{cxo}-cla-{key}"       # disambiguator: cxo + domain key (workforce-personas-adapter owns persona/<cxo>)
+  status: active
+  triggers:
+    keywords: "{keywords}"            # source.routes.<domain>.keywords (list)
+  recipient:
+    kind: persona
+    slug: "{cxo}"
+  invocation:
+    mechanism: subagent
+    args:
+      subagent_type: "{cxo}"
+  role_scope: [founder, gps]
+  hitl_tier_default: B
+  metadata:
+    pillar: 06-ai-ops
+    cost_bucket: ai-ops-cla
+    introduced_in: "auto-adapter-cla-routing"
+    derived: true
+    adapter: cla-routing-adapter.yaml
+    legacy_source: knowledge/cla-routing-keywords.yaml
+    disambiguator: "legacy CLA Phase 2 keyword dispatch"

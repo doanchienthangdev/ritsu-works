@@ -91,12 +91,25 @@ function walkAndSubstitute(obj, sourceKey, sourceValue) {
 
 function substituteOne(v, sourceKey, sourceValue) {
   if (typeof v === 'string') {
-    return v.replace(/\{([\w.]+)\}/g, (_, field) => {
+    // Single-placeholder pattern: preserve raw value type (array, object, number)
+    // e.g. "{keywords}" → actual array, not stringified
+    const m = v.match(/^\{([\w.]+)\}$/);
+    if (m) {
+      const field = m[1];
       if (field === 'key') return sourceKey;
       if (sourceValue && typeof sourceValue === 'object' && field in sourceValue) {
-        return typeof sourceValue[field] === 'string' ? sourceValue[field] : JSON.stringify(sourceValue[field]);
+        return sourceValue[field];
       }
-      return v; // leave as-is if unresolved (validator catches)
+      return v;
+    }
+    // Multi-placeholder or mixed-with-text: string substitution
+    return v.replace(/\{([\w.]+)\}/g, (whole, field) => {
+      if (field === 'key') return sourceKey;
+      if (sourceValue && typeof sourceValue === 'object' && field in sourceValue) {
+        const sv = sourceValue[field];
+        return typeof sv === 'string' ? sv : (sv == null ? '' : String(sv));
+      }
+      return whole; // leave placeholder as-is if unresolved
     });
   } else if (Array.isArray(v) || (v && typeof v === 'object')) {
     walkAndSubstitute(v, sourceKey, sourceValue);

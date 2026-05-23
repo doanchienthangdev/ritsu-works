@@ -69,6 +69,11 @@ files:
       status: active
       derived: true
       adapter: adapters/workforce-personas-adapter.yaml
+    - path: routes/personas-from-cla-routing.yaml
+      recipient_kind: persona
+      status: active
+      derived: true
+      adapter: adapters/cla-routing-adapter.yaml
     - path: routes/mcp.yaml
       recipient_kind: mcp
       status: active
