@@ -1,0 +1,161 @@
+# ============================================================================
+# knowledge/resolvers/registry.yaml — Resolver top-level index
+# ============================================================================
+# Capability: resolver v1.0 (see wiki/capabilities/resolver/spec.md after
+# Phase 8 promotion; pre-promotion at .archives/cla/resolver/spec.md).
+#
+# Read by:
+#   - scripts/resolver/load-index.cjs (engine load)
+#   - scripts/cross-tier/validate-resolver-*.cjs (4 validators)
+#   - /resolver command (operator-facing)
+#
+# Editing policy: Tier C (PR + founder review) per HITL.md.
+# ============================================================================
+
+schema_version: "1.0.0"
+last_updated: "2026-05-23"
+owner: founder
+
+# ============================================================================
+# Resolver-side configuration
+# ============================================================================
+config:
+  default_confidence_threshold:
+    dispatch_silently: 0.85       # ≥ this: agent auto-uses top match
+    surface_candidates: 0.60      # 0.60-0.85: list top-N to caller
+    no_match: 0.60                # < this: treat as no-match
+  performance_budget_ms:
+    structured_p95: 50
+    semantic_p95: 3000            # v1.1 only
+  semantic_fallback:
+    enabled: false                # DEFERRED to v1.1 (architect T-6)
+    opt_in_only: true
+    provider: openai
+    model: text-embedding-3-small
+    pgvector_namespace: resolver_route
+    confidence_floor: 0.55
+  multi_resolver_chain:           # CP-5 — config-knob; default off
+    enabled: false
+    order:
+      - knowledge/resolvers/
+      - knowledge/cla-routing-keywords.yaml
+      - knowledge/mcp-tools.yaml
+      - knowledge/workforce-personas.yaml
+  composition_plan:               # CP-2 — founder requirement
+    enabled: true
+  vietnamese:
+    nfc_normalize: true           # v1.0
+    diacritic_insensitive: false  # v1.1 (D-3)
+
+# ============================================================================
+# Files in this resolver
+# ============================================================================
+files:
+  routes:
+    - path: routes/skills.yaml
+      recipient_kind: skill
+      status: active
+      derived: true
+    - path: routes/commands.yaml
+      recipient_kind: command
+      status: active
+      derived: true
+    - path: routes/agents.yaml
+      recipient_kind: agent
+      status: active
+      derived: true
+    - path: routes/personas.yaml
+      recipient_kind: persona
+      status: active
+      derived: true
+      adapter: adapters/workforce-personas-adapter.yaml
+    - path: routes/mcp.yaml
+      recipient_kind: mcp
+      status: active
+      derived: true
+      adapter: adapters/mcp-tools-adapter.yaml
+    - path: routes/wiki.yaml
+      recipient_kind: wiki
+      status: active
+      fallback_to_rag: true       # wiki_ask MCP for no-match
+    - path: routes/sops.yaml
+      recipient_kind: sop
+      status: active
+      derived: true
+    - path: routes/capabilities.yaml
+      recipient_kind: capability
+      status: active
+      derived: true
+    - path: routes/personal.yaml
+      recipient_kind: any
+      status: active
+      derived: false
+      priority: 1000              # personal overrides everything
+
+  overrides:
+    - path: overrides/skills.yaml
+      recipient_kind: skill
+      priority: 100
+    - path: overrides/commands.yaml
+      recipient_kind: command
+      priority: 100
+    - path: overrides/agents.yaml
+      recipient_kind: agent
+      priority: 100
+    - path: overrides/mcp.yaml
+      recipient_kind: mcp
+      priority: 100
+    - path: overrides/wiki.yaml
+      recipient_kind: wiki
+      priority: 100
+    - path: overrides/sops.yaml
+      recipient_kind: sop
+      priority: 100
+    - path: overrides/capabilities.yaml
+      recipient_kind: capability
+      priority: 100
+    - path: overrides/personas.yaml
+      recipient_kind: persona
+      priority: 100
+
+# ============================================================================
+# Fallbacks (when zero or ambiguous match)
+# ============================================================================
+fallbacks:
+  on_zero_match:
+    action: prompt_caller
+    suggested_next:
+      - "/resolver list"
+      - "/resolver query \"...\" --semantic"  # v1.1
+  on_ambiguous_match:             # 0.60 ≤ confidence < 0.85
+    action: return_top_n
+    n: 3
+  on_role_denied:
+    action: return_with_warning
+    message_template: "Best match would dispatch to {recipient} but caller role {role} denied."
+
+# ============================================================================
+# /check-drift integration
+# ============================================================================
+drift_integration:
+  validators:
+    - scripts/cross-tier/validate-resolver-schema.cjs
+    - scripts/cross-tier/validate-resolver-routes.cjs
+    - scripts/cross-tier/validate-resolver-trigger-uniqueness.cjs
+    - scripts/cross-tier/validate-resolver-coverage.cjs
+  sync_default_mode: warn-only    # D-2 founder decision
+  sync_command: node scripts/resolver/sync.cjs
+
+# ============================================================================
+# Observability
+# ============================================================================
+observability:
+  audit_table: ops.resolver_decisions          # v1.0 dedicated (architect T-11)
+  kpis:
+    - resolver_silent_dispatch_rate
+    - resolver_p95_latency_ms
+    - resolver_coverage_pct
+    - resolver_monthly_cost_usd
+    - resolver_no_match_rate
+  alerts_source: knowledge/alert-rules.yaml    # 6 resolver alerts registered there
+  digest_template: 10-metrics/dashboards/resolver-weekly-digest.md
