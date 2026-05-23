@@ -1,0 +1,45 @@
+---
+title: 'Skill: resolver/orchestrator'
+description: >-
+  Top-level orchestrator for /resolver command — parses argv, dispatches to verb sub-skills
+  (query/sync/explain), renders output (human-readable default; --json machine-readable). Per
+  capability `resolver` v1.0 spec §6.
+source_path: 06-ai-ops/skills/resolver/orchestrator/SKILL.md
+source_hash: 08eb4ebc0b75744b9ed6621b4a1b5b72999265dde48d68150de5a75964b64292
+generated_at: '2026-05-23T08:45:47.928Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## When to use
+
+Invoked by `.claude/commands/resolver.md` as the top-level dispatcher. Routes
+to the right verb sub-skill based on parsed argv.
+
+## Process
+
+1. Parse argv: first positional is subcommand; rest are positional args + flags
+2. Validate subcommand against enum: `query | list | validate | sync | explain`
+3. Dispatch to corresponding sub-skill:
+   - `query` → `resolver/query`
+   - `list` → render via load-index directly (no dedicated sub-skill)
+   - `validate` → spawn `scripts/cross-tier/validate-resolver-*.cjs`
+   - `sync` → `resolver/sync`
+   - `explain` → `resolver/explain`
+4. Capture sub-skill output; render per `--json` flag
+
+## Error handling
+
+- Unknown subcommand → print usage + valid list, exit 1
+- Missing required positional → print usage for that verb
+- All sub-skill errors propagated to caller
+
+## See also
+
+- Command file: `.claude/commands/resolver.md`
+- Sub-skills: `resolver/query`, `resolver/sync`, `resolver/explain`
+- Engine: `scripts/resolver/*.cjs`
+

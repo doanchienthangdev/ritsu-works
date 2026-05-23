@@ -12,6 +12,7 @@
     "docs",
     "evolve",
     "mcp-doctor",
+    "resolver",
     "wiki"
   ]
 }
