@@ -2,14 +2,14 @@
 title: "Chương 18 — GBrain Analysis: Trích Lọc & Upgrade Hệ Thống"
 description: "Chương 18 — GBrain Analysis: Trích Lọc & Upgrade Hệ Thống"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/18-gbrain-analysis.md
-source_hash: 32835bf24ab75f0eafa92f8bfdc4a36d91d95d2c67b269c6f2f39caff1d9e67d
-generated_at: '2026-05-21T03:51:28.566Z'
+source_hash: fc2cb1c239387660b0b8381b7e895e70266ff25ff80f6265426e085af1504960
+generated_at: '2026-05-23T10:19:04.979Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: 32835bf24ab75f0eafa92f8bfdc4a36d91d95d2c67b269c6f2f39caff1d9e67d
-translated_at: '2026-05-21T03:51:28.566Z'
+translated_source_hash: fc2cb1c239387660b0b8381b7e895e70266ff25ff80f6265426e085af1504960
+translated_at: '2026-05-23T10:19:04.979Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 18
 ---
@@ -37,16 +37,18 @@ GBrain là production AI agent brain của Garry Tan (President & CEO Y Combinat
 
 GBrain demonstrates **6 architectural pillars** mà mọi production AI agent system cần:
 
-| Pillar | Description | Ritsu Phase A status |
-|---|---|---|
-| 1. Memory | Long-term, compiled-truth + timeline format | ✅ Bài #4 (4 memory types) |
-| 2. Knowledge Graph | Auto-link, typed edges, zero LLM | ❌ **MISSING** |
-| 3. Hybrid Search | Vector + keyword + graph + RRF | ⚠️ Partial (no graph) |
-| 4. Skills | Markdown workflow docs, distributable | ✅ Phase A + Bài #9 SOP |
-| 5. MCP | Multi-client, stdio/HTTP/OAuth | ⚠️ Manifest slot only |
-| 6. Governance | Perms, log, OAuth, R/W/admin | ✅ Bài #2 |
+| Pillar | Description | Ritsu Phase A status (2026-05-21) | Sau install ritsu-brain (2026-05-23) † |
+|---|---|---|---|
+| 1. Memory | Long-term, compiled-truth + timeline format | ✅ Bài #4 (4 memory types) | ✅ Strategy E + Type 4 via gbrain |
+| 2. Knowledge Graph | Auto-link, typed edges, zero LLM | ❌ **MISSING** | ✅ ritsu-brain `links` table, 90 typed edges từ 17 sample pages |
+| 3. Hybrid Search | Vector + keyword + graph + RRF | ⚠️ Partial (no graph) | ✅ gbrain hybrid search operational (tokenmax mode) |
+| 4. Skills | Markdown workflow docs, distributable | ✅ Phase A + Bài #9 SOP | ✅ KHÔNG scaffold gbrain skills (founder choice — giữ 13 ritsu skills sạch) |
+| 5. MCP | Multi-client, stdio/HTTP/OAuth | ⚠️ Manifest slot only | ✅ `gbrain` stdio MCP wired vào `.mcp.json` (founder-scoped, Phase 2 wider access via CLA) |
+| 6. Governance | Perms, log, OAuth, R/W/admin | ✅ Bài #2 | ✅ Founder-only writes hiện tại; HITL gates cho AI workforce writes deferred to Phase 2 (`/cla propose`) |
 
-**Gap quan trọng nhất: Knowledge Graph.** BrainBench shows graph + extract quality = 2-3x precision improvement. Without it: search caps at ~17-22% P@5. With it: 49.1%.
+† Xem section **18.9 Post-Install Retrospective** cho chi tiết.
+
+**Gap quan trọng nhất (2026-05-21 analysis): Knowledge Graph.** BrainBench shows graph + extract quality = 2-3x precision improvement. Without it: search caps at ~17-22% P@5. With it: 49.1%. **Gap này ĐÃ ĐÓNG sau install ritsu-brain** — gbrain native cung cấp typed-edge graph qua auto-link mechanism, validation: 90 links từ 17 sample pages = ~5.3 edges/page density.
 
 ## 18.3 12 Patterns trích lọc
 
@@ -264,6 +266,103 @@ ritsu-cli sop routing-eval --llm
 
 Sang chương sau — walkthrough G2 Event-Driven Triggers, walkthrough đầu tiên áp dụng GBrain learnings (Minions pattern cho event dispatcher).
 
+## 18.9 Post-Install Retrospective (2026-05-23) †
+
+> *"Anh phải biết khi nào nên đi từ phân tích sang thử nghiệm. Phân tích 5 upgrade trên giấy là một câu chuyện; cài binary và thấy schema isolation thực sự fail vì IPv6 là câu chuyện khác." — Founder, sau install 2026-05-23*
+
+**Nội dung mục này:** ghi lại trạng thái sau khi cài đặt thực sự gbrain vào ritsu-works ngày 2026-05-23. Section này KHÔNG thay thế analysis 18.1-18.8 ở trên — analysis vẫn là historical record của tư duy pre-install (đúng theo Karpickian timeline discipline: append-only evidence). Section này ghi delta thực tế.
+
+### 18.9.1 Cái gì thực sự được cài
+
+**Cách 1-NEW** (xem `.archives/brainstorming/gbrain-integration-2026-05-23/01-research-and-fit-analysis.md` cho 4 cách evaluated):
+- **Supabase project riêng:** `ritsu-brain` ref `qqlggvkcynhjiwgomgma`, region ap-southeast-2 (Sydney), workspace Free tier (project thứ 2 trong 2 slots)
+- **Engine:** PostgresEngine + pgvector + tsvector, Postgres 17.0.6, schema version 89
+- **Embeddings:** OpenAI `text-embedding-3-small` (1536d, $0.02/1M tokens — 6.5× cheaper than text-3-large)
+- **Brain repo:** `runtime/brain/` (local-only per workspace_plane.runtime declaration trong manifest v0.9.0), 8 MECE dirs (people, companies, meetings, ideas, concepts, inbox, sources, archive)
+- **MCP wiring:** `gbrain` stdio MCP entry trong `.mcp.json` (founder-scoped Phase 1)
+- **Sample data:** 17 pages realistic về Ritsu (B2C EdTech VN context) — 4 people, 4 companies, 3 meetings, 3 ideas, 3 concepts — all cross-linked, 90 typed edges, 55/55 chunks embedded
+
+**Cost actual Phase 1:** $0/mo (Free Supabase + minimal OpenAI embeddings \<$0.01)
+
+### 18.9.2 Status sau install: 5 trong 6 pillars CHECKED
+
+Updated từ table 18.2:
+
+| Pillar | Phase A status (pre-install) | Post-install state (2026-05-23) |
+|---|---|---|
+| 1. Memory | ✅ Strategy E (episodic-first) | ✅ Strategy E + Type 4 Semantic via gbrain (markdown brain + DB mirror) |
+| 2. Knowledge Graph | ❌ MISSING — biggest gap | ✅ **GAP CLOSED** — typed edges via gbrain auto-link zero-LLM |
+| 3. Hybrid Search | ⚠️ Partial (no graph) | ✅ gbrain hybrid (RRF + intent-aware expansion + tokenmax mode) |
+| 4. Skills | ✅ 13 ritsu skills | ✅ KHÔNG scaffold gbrain 43 skills (founder choice — tránh confusion + governance bypass) |
+| 5. MCP | ⚠️ Manifest slot only | ✅ stdio MCP `mcp__gbrain__*` (founder-scoped; broader access deferred Phase 2) |
+| 6. Governance | ✅ Bài #2 | ✅ Founder-only Phase 1; Tier classification (A/B/C) for agent writes designed cho Phase 2 |
+
+**Pillar duy nhất NOT-YET-FULL: Skills (intentional).** 43 gbrain skills không scaffold vào `06-ai-ops/skills/` — gbrain skills chạy external trong `~/.bun/install/global/node_modules/gbrain/skills/`. Ritsu skill set giữ sạch.
+
+### 18.9.3 5 Lessons học được (không có trong pre-install analysis)
+
+**Lesson 1 — Supabase Direct host IPv6-only.** GBrain Connection Manager dùng dual-pool: read pool (pooler 6543, transaction mode) + DDL pool (`db.PROJECT.supabase.co:5432` auto-derived). Trên Mac local không có IPv6 routing → DDL pool fail. Mitigation: env var `GBRAIN_DIRECT_DATABASE_URL` override → trỏ Session pooler (port 5432 cùng pooler host). Documented memory entry: `reference_gbrain_dual_pool_architecture.md`.
+
+**Lesson 2 — `aws-N-` region prefix is project-specific.** Cannot guess. Verify qua Supabase Management API `/v1/projects/<ref>/config/database/pooler`. Wrong prefix → "tenant/user not found". Documented: `reference_supabase_pooler_url_construction.md`.
+
+**Lesson 3 — GBrain hard-code `public` schema.** Original plan ("Cách 1 cũ") = trỏ gbrain vào ritsu-ops Supabase shared. Phát hiện kịp thời: gbrain tạo `public.pages/sources/chunks/links/...` collide với ritsu-ops `public.customers/persons/companies`. Auto-RLS event trigger sẽ fire trên TẤT CẢ future public.* migrations → break ritsu-ops production. Mitigation: Supabase project hoàn toàn riêng (`ritsu-brain`).
+
+**Lesson 4 — Bash secret-check anti-pattern.** Script `${VAR:-MISSING}` returns VAR's VALUE when set, leaking OpenAI + Anthropic API keys vào session output. Both keys rotated. Documented: `feedback_never_leak_env_values_in_bash_checks.md`. Use `[ -n "$VAR" ] && echo SET || echo MISSING` ternary.
+
+**Lesson 5 — Brain repo IS system of record, DB là mirror.** Đọc operations đều từ DB (vector + tsvector). Write qua `gbrain capture/put` = write-through (filesystem + DB atomic). Edit markdown qua editor → cần `gbrain sync --repo .` để mirror sang DB. Implication: backup = `git push` brain repo (markdown portable, DB rebuildable).
+
+### 18.9.4 5 Upgrades từ analysis 18.6 — trạng thái cập nhật
+
+| Upgrade | Pre-install plan | Post-install state |
+|---|---|---|
+| #1 New G15 Knowledge Graph walkthrough | Add walkthrough slot, new Bài #15 | ✅ **DELIVERED** qua gbrain native (không cần ritsu reimplement) — Bài #15 capability spec vẫn relevant cho native ritsu version sau này |
+| #2 Bài #5 Minions routing | Schema `ops.minion_jobs` + dispatcher | ✅ Schema deployed; runtime chưa wire qua gbrain (vẫn external concept reuse) |
+| #3 Bài #4 Compiled-Truth + Auto-Link | Page format + `ops.knowledge_links` table | ✅ Adopted qua gbrain (markdown format + `links` table trong ritsu-brain) |
+| #4 Bài #6 USER.md + HEARTBEAT.md | `00-core/founder-profile.md` + `governance/HEARTBEAT.md` | ⏸ Pending — Phase 2 task khi có cycle resources |
+| #5 Bài #9 Skillify 10-step audit | `sop-author` skill | ⏸ Pending — gbrain skill `skillify` không adopt; ritsu native vẫn TODO |
+
+**Tỷ lệ delivered từ pre-install plan: 3/5 = 60%.** Cao hơn dự đoán vì gbrain native solve được #1 + #3 mà ritsu không cần reimplement.
+
+### 18.9.5 Cái KHÔNG adopt (intentional, vẫn giữ stance 18.5)
+
+Tất cả "What NOT to Adopt" của 18.5 vẫn HOLD:
+- ✅ PGLite default → KHÔNG dùng (Supabase ritsu-brain từ đầu)
+- ✅ Voice-to-Brain Twilio → KHÔNG (scope creep cho Phase 1)
+- ✅ Personal entity types Garry's → KHÔNG (Ritsu schema = customer + competitor + advisor + partner)
+- ✅ OpenClaw/Hermes hosts → KHÔNG (Claude Code primary)
+- ✅ smoke-tests.d/*.sh → KHÔNG (over-engineering)
+- ✅ Ngrok tunnels → KHÔNG (Vercel + Supabase production URLs đủ)
+
+**Thêm 1 stance NEW (post-install):**
+- ✅ Skillpack scaffold 43 gbrain skills → KHÔNG (giữ ritsu skills clean, tránh governance bypass)
+
+### 18.9.6 Phase 2 path — formal CLA capability
+
+Phase 1 = founder personal use, 4-6 tuần validation gate. Decision gate 2026-06-20:
+
+**Nếu Phase 1 fit:** Mở `/cla propose "Integrate GBrain as Type 4 Semantic Memory engine for ritsu-works AI workforce — operational brain layer for people, companies, meetings, ideas, concepts."`
+
+CLA 8-phase ceremony sẽ deliver:
+- Amend `knowledge/memory-architecture.md` Strategy E → Strategy E v1.1 (gbrain governed extension)
+- Update `governance/ROLES.md` với gbrain MCP grants per role
+- Update `governance/HITL.md` với gbrain Tier classification (READ=A, CAPTURE=B, DELETE/BULK=C)
+- 3 new skills: `brain-first-lookup`, `brain-write-discipline`, `brain-promotion`
+- Capability registry entry: `wiki/capabilities/gbrain-operational-brain/`
+
+Draft đầy đủ: `.archives/brainstorming/gbrain-integration-2026-05-23/04-cla-propose-draft.md` (paste-ready).
+
+**Nếu Phase 1 không fit:** uninstall, viết retro, gbrain section này remains historical record.
+
+### 18.9.7 Honest meta-lesson
+
+Pre-install analysis (18.1-18.8) thực sự VALUABLE. Nhờ có nó:
+- Founder hiểu 12 patterns trước khi nhìn thấy implementation
+- Trade-offs (5 NOT-adopt) đã được thinking-through, không phải decision dưới áp lực install
+- Architecture decision "Cách 1 cũ" (gbrain → ritsu-ops shared) được REJECTED CHỦ ĐỘNG khi research phát hiện public schema collision, không phải react sau khi đã commit
+- Cost projection từ analysis ($0-30/mo) match thực tế Phase 1 ($0/mo)
+
+**Pattern bài học:** Architecture review TRƯỚC install — không phải optional. Pre-install paper analysis cứu một D-MAX rủi ro (touching ritsu-ops production schema).
+
 ---
 
 **Tham khảo:**
@@ -271,4 +370,13 @@ Sang chương sau — walkthrough G2 Event-Driven Triggers, walkthrough đầu t
 - BrainBench evals: https://github.com/garrytan/gbrain-evals
 - "Skill files are code" thread: https://x.com/garrytan/status/2042925773300908103
 - Thin Harness, Fat Skills: https://github.com/garrytan/gbrain/blob/master/docs/ethos/THIN_HARNESS_FAT_SKILLS.md
-- Full analysis: `_build/notes/phase-a2/GBRAIN_ANALYSIS.md`
+- Full pre-install analysis (2026-05-21): `_build/notes/phase-a2/GBRAIN_ANALYSIS.md`
+- **Post-install research + install record (2026-05-23):** `.archives/brainstorming/gbrain-integration-2026-05-23/`
+  - `01-research-and-fit-analysis.md` — research + 4 integration options
+  - `02-install-record.md` — actual install steps + issues + fixes
+  - `03-feasibility-and-deep-integration-vision.md` — deep integration vision + 5 must-dos + 4 risks
+  - `04-cla-propose-draft.md` — ready-to-paste /cla propose for Phase 2
+- **Memory entries (2026-05-23):**
+  - `reference_supabase_pooler_url_construction.md`
+  - `reference_gbrain_dual_pool_architecture.md`
+  - `feedback_never_leak_env_values_in_bash_checks.md`
