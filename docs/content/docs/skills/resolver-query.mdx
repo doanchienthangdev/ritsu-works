@@ -1,0 +1,167 @@
+---
+title: 'Skill: resolver-query'
+description: >-
+  Consumer contract for capability `resolver` v1.0 — any other skill MAY invoke this to look up the
+  best AI workforce recipient for a natural-language trigger across 8 kinds (skill, command, agent,
+  mcp, wiki, sop, capability, persona). Returns routing decision + alternatives + invocation spec.
+  Zero LLM in hot path; structured matching only (semantic deferred to v1.1). Per-call latency <50ms
+  p95 warm. Background-layer consumer pattern — skills/agents/workflows invoke transparently instead
+  of grep'ing filesystem.
+source_path: 06-ai-ops/skills/resolver-query/SKILL.md
+source_hash: 03311036e8acd0a14ec929366b8179a48cb9f7252c365955cb3b8ea22773c692
+generated_at: '2026-05-23T08:45:47.930Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## When to use
+
+Invoke from another skill when you need to find the right AI workforce
+recipient for a task you've been given. Returns metadata + invocation
+spec; YOU execute the resulting invocation.
+
+Examples:
+- A skill processing user input: "user wants to find brand voice guide" →
+  resolver-query returns `\{ matched: \{ route: \{recipient: \{kind: 'wiki',
+  slug: 'brand-voice'}}, ... } }`
+- An agent doing a multi-step task: needs to dispatch a sub-skill for
+  step 2 — uses resolver-query to find the right skill instead of
+  hardcoding a name
+- A scheduled job: receives a generic "do this customer thing" trigger
+  → resolver-query routes to the right customer-pillar skill
+
+## Inputs
+
+```typescript
+{
+  trigger: string,             // required; natural-language trigger
+  flags?: {
+    semantic?: boolean,         // opt-in semantic fallback (v1.1; v1.0 ignored)
+    plan?: boolean,             // return composition.plan if route has one (CP-2)
+    json?: boolean,             // affects /resolver query output only; ignored here
+  },
+  callerRole?: string,         // override $MCP_CALLER_ROLE
+  kind?: string,               // restrict to specific recipient kind
+}
+```
+
+## Outputs
+
+```typescript
+{
+  trigger: string,
+  trigger_normalized: string,   // NFC + lowercase + whitespace-collapsed
+  caller_role: string | null,
+  decision: 'dispatch_silently' | 'surface_candidates' | 'no_match' | 'role_denied',
+  matched: {
+    route: { id, recipient: {kind, slug, path?}, invocation: {mechanism, args}, ... },
+    confidence: number,         // 0.0-1.0; computed from match quality
+    matchedKeyword: string,
+  } | null,
+  alternatives: Array<{ route, confidence, matchedKeyword }>,
+  semantic_used: boolean,        // false at v1.0
+  latency_ms: number,            // total including load + match + decide
+  perf: { load_ms, match_count, filtered_count },
+  flags: {...},
+  config_thresholds: { dispatch_silently: 0.85, surface_candidates: 0.60 },
+}
+```
+
+## How to invoke (programmatic — Node.js consumer)
+
+```javascript
+const { query } = require('scripts/resolver/query.cjs');
+const result = query({ trigger: 'investigate customer churn' });
+
+switch (result.decision) {
+  case 'dispatch_silently':
+    // Confidence ≥0.85; auto-use top match
+    const { recipient, invocation } = result.matched.route;
+    // Execute invocation.args via the right mechanism
+    break;
+  case 'surface_candidates':
+    // 0.60 ≤ confidence < 0.85; present alternatives to user or rank further
+    console.log('Top candidates:', result.alternatives.slice(0, 3));
+    break;
+  case 'no_match':
+    // < 0.60; consider --semantic flag (v1.1) OR ambiguous_fallback
+    break;
+  case 'role_denied':
+    // Caller role doesn't match route.role_scope
+    break;
+}
+```
+
+## How to invoke (skill-to-skill via Skill tool)
+
+```typescript
+// Inside another SKILL.md or agent action
+const result = await Skill({
+  skill: 'resolver-query',
+  trigger: 'investigate customer churn'
+});
+```
+
+When invoked via Skill tool, this skill reads the trigger from caller
+context, runs query, returns result.
+
+## How to invoke (MCP-aware agent runtime)
+
+```typescript
+const result = await mcp__supabase-ops__resolver_query({
+  trigger: 'investigate customer churn',
+  caller_role: 'founder',  // optional; defaults from env
+  flags: { semantic: false, plan: false }
+});
+```
+
+(MCP tool registered in `knowledge/mcp-tools.yaml` — Sprint 3 ships with
+`status: planned`; full handler in `mcp-server/src/tools/resolver-query.ts`
+follows in v1.0.1 once Sprint 4 stabilizes.)
+
+## Decision thresholds (v1.0 defaults from registry.yaml)
+
+- **≥0.85** — `dispatch_silently` → use top match without prompting caller
+- **0.60-0.85** — `surface_candidates` → return top-3 candidates for caller to pick
+- **\<0.60** — `no_match` → fall through to ambiguous_fallback (or --semantic in v1.1)
+
+Tunable per `knowledge/resolvers/registry.yaml` `config.default_confidence_threshold`.
+
+## Performance
+
+- p95 warm cache: \<50ms (target per spec §11)
+- p99 warm cache: \<100ms
+- Cold start (process boot + first load): \<200ms
+
+## Failure modes
+
+- `InvalidTrigger` — nil/empty/wrong-type trigger; throws
+- `ResolverDown` — `knowledge/resolvers/` missing entirely; throws
+- `TriggerTooLong` — trigger >1000 chars; truncated + warned, proceeds
+- All other errors logged + degrade gracefully
+
+## Audit
+
+Every invocation writes one row to `ops.resolver_decisions` (best-effort;
+defers to local fallback on DB unreachable). Used by Monday digest + v1.1
+active-learning loop.
+
+## INVARIANT (D-4)
+
+**This skill MUST NOT execute the recipient.** It returns metadata +
+invocation spec. Caller (you) is responsible for executing the invocation.
+
+This is enforced by:
+- Engine has no exec primitives (no Skill/Agent/Bash tool calls)
+- Property test in `tests/resolver/engine.test.ts` validates module imports
+
+## Related
+
+- Spec: `wiki/capabilities/resolver/spec.md` (or `.archives/cla/resolver/spec.md` pre-promotion)
+- Command file: `.claude/commands/resolver.md`
+- Engine: `scripts/resolver/query.cjs`
+- Other 4 resolver sub-skills: `06-ai-ops/skills/resolver/{orchestrator,query,sync,explain}/SKILL.md`
+
