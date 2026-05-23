@@ -3,9 +3,9 @@
 // Re-run with: pnpm wave2:bundle-manifest-tables
 //
 // Source version: 0.9.0
-// ops tables:     30
+// ops tables:     31
 // metrics tables: 1
-// Generated at:   2026-05-21T19:26:39.131Z
+// Generated at:   2026-05-23T08:02:36.664Z
 
 export const MANIFEST_OPS_TABLES: readonly string[] = Object.freeze(
 [
@@ -32,6 +32,7 @@ export const MANIFEST_OPS_TABLES: readonly string[] = Object.freeze(
   "mcp_calls",
   "minion_jobs",
   "optimization_recommendations",
+  "resolver_decisions",
   "run_summaries",
   "scheduled_runs",
   "settings",

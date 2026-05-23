@@ -718,6 +718,23 @@ tier2_operational:
             passed | failed | fix_proposed | fix_merged | fix_reverted |
             wont_fix. Owned by SOP-AIOPS-002. Powers founder dashboard +
             alerts + drift-weekly-retro (deferred).
+        # ====================================================================
+        # Resolver capability v1.0 (architect T-11 dedicated audit table)
+        # ====================================================================
+        - name: resolver_decisions
+          migration_file: supabase/migrations/00034_resolver_decisions.sql
+          status: live
+          purpose: |
+            Per-query audit log for capability `resolver` v1.0. One row per
+            /resolver query (or resolver-query SKILL invocation or
+            mcp__resolver__query call or programmatic Node.js use).
+            Columns: run_id (UUID PK), ts, trigger, trigger_normalized,
+            matched_route_id, confidence numeric(3,2), alternatives JSONB,
+            semantic_used bool, caller_role, latency_ms, decision (enum
+            dispatch_silently|surface_candidates|no_match|role_denied),
+            metadata JSONB. Indexed on (ts), (matched_route_id), (decision),
+            (caller_role) for v1.1 active-learning (CP-1) aggregation.
+            RLS: founder + etl-runner full; other roles read own caller_role.
     metrics:
       description: ETL'd snapshots of Product metrics (read-only mirror)
       tables:
