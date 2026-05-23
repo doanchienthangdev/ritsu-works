@@ -9,6 +9,20 @@ For canonical product description, full governance, and detailed structure, see 
 @governance/ROLES.md
 @knowledge/manifest.yaml
 
+## Recipient catalog (resolver v2 — Mode A ambient)
+
+The recipient catalog below is loaded into ambient context for every session.
+Use it for natural-language recipient lookup (find the right skill/command/
+agent/persona/mcp for a task) without grep'ing or invoking /resolver.
+
+See `.archives/cla/resolver-v2/spec.md` §4 for Mode A pattern.
+
+@knowledge/recipients/skills.md
+@knowledge/recipients/commands.md
+@knowledge/recipients/agents.md
+@knowledge/recipients/personas.md
+@knowledge/recipients/mcps.md
+
 ## What this repo is and is not
 
 `ritsu-works` is **not** the Ritsu product codebase. The product (the tutor users use) lives in a separate repo backed by Product Supabase project `ritsu`. This repo is the **AI workforce that operates the company around the product**: marketing, sales, GTM, product-ops, customer, AI-ops, trust-safety, finance, founder-ops, metrics.

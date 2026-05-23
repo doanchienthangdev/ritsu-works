@@ -1,6 +1,0 @@
-# Placeholder file for cla-routing-adapter.yaml
-# Routes populated at load time by the adapter from
-# knowledge/cla-routing-keywords.yaml. This file intentionally empty.
-_generated: true
-adapter_source: adapters/cla-routing-adapter.yaml
-routes: []

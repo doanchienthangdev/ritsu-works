@@ -418,6 +418,91 @@ capabilities:
       the orchestrator's pre-flight check refuses to run /evolve.
       See wiki/runbooks/evolve.md §Onboarding.
 
+  - id: resolver-v2
+    name: "/resolver v2 — LLM-Native Catalog (supersedes resolver v1)"
+    description: |
+      Resolver redesigned per founder critique: replaced keyword-matching engine
+      with LLM-native catalog leveraging Claude Code's ambient context. Catalog
+      lives in knowledge/recipients/*.md (5 files, ~16K tokens). Auto-loaded via
+      @knowledge/recipients/*.md imports in .claude/CLAUDE.md.
+
+      THREE CONSUMER MODES:
+        Mode A (preferred, 90%+ usage): in-session ambient catalog — caller
+          reasons naturally about trigger→recipient; zero extra LLM call;
+          0ms latency; $0 cost.
+        Mode B (operator-facing, audit/debug): /resolver query "<trigger>"
+          loads catalog as structured prompt, current-session LLM produces JSON
+          decision (validated against catalog IDs to reject hallucinations),
+          audit row written. ~5-500ms; $0 in-session.
+        Mode C (CRON/edge fn): scripts/resolver-v2/keyword-fallback.cjs reads
+          SAME catalog, applies simple whole-word matching. ~30% recall
+          (acknowledged degradation); deterministic for non-LLM consumers.
+
+      v1 → v2 KEY CHANGES:
+        - 1832 LOC → 600 LOC (-67%)
+        - Recall 30% → 80%+ (Mode A)
+        - Composition: none → native (LLM returns primary + supporting)
+        - Single source of truth: routes/+overrides/+adapters/ → recipients/*.md
+        - Auto-derive from frontmatter (same as v1 sync.cjs)
+        - Audit table extended: + llm_reasoning, + mode, + composition_supporting,
+          + catalog_files_loaded (migration 00035, additive)
+
+      Founder critique that triggered v2 (this conversation):
+        1. "Keyword search yếu cho trigger matching"
+        2. "Big table flat đủ nhỏ load context, dùng chính Claude Code phân tích"
+        3. "Trigger matching nên dùng LLM chứ không search keyword"
+
+      Strategic decisions:
+        Option A: in-session LLM call (founder confirmed)
+        Option 2C: minimal Mode C fallback reading from same catalog
+        Option 3A: clean rewrite (zero real v1 consumers; green-field)
+
+      Spec: .archives/cla/resolver-v2/spec.md (compressed Phases 1-5; jump to
+      Phase 6-8 execution).
+    version: "2.0.0"
+    state: operating                         # Phase 8 promotion 2026-05-23
+    state_since: 2026-05-23
+    proposed_at: 2026-05-23
+    deployed_at: 2026-05-23
+    operating_since: 2026-05-23
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [5, 11, 12, 14, 15, 20]
+    spec_path: .archives/cla/resolver-v2/spec.md
+    cost_bucket: ai-ops-meta
+    estimated_cost_setup_usd: 25            # /cla compressed + build + test ~$25
+    estimated_cost_recurring_usd: 5         # mostly free (Mode A); Mode B prompt-cached
+    estimated_founder_hours: 1              # compressed ceremony + autonomous build
+    target_kpis: [recall_nl_queries, mode_a_adoption, composition_output_rate]
+    target_value: 0.80                      # primary KPI: recall on NL queries ≥80%
+    supersedes: resolver
+    notes: |
+      ops.capability_runs id: 342d05a8-2b77-4ed1-bd0c-2ce800c1462e
+      Migration 00035 (additive ADD COLUMN) applied for ops.resolver_decisions.
+
+      v1 entirely deleted (Option 3A clean rewrite):
+        - scripts/resolver/{query,load-index,sync,bench,audit,errors}.cjs (1832 LOC)
+        - knowledge/resolvers/ (routes/, overrides/, adapters/, registry.yaml)
+        - 06-ai-ops/skills/resolver/ subdirectory (orchestrator, query, sync, explain)
+        - 4 v1 cross-tier validators
+
+      v2 files:
+        - knowledge/recipients/{skills,commands,agents,personas,mcps}.md (5 × ~16K tokens)
+        - scripts/resolver-v2/{catalog-loader,keyword-fallback,sync,audit,errors,catalog-generator}.cjs (~600 LOC)
+        - 4 NEW cross-tier validators (validate-resolver-v2-{schema,uniqueness,coverage,link-integrity}.cjs)
+        - 06-ai-ops/skills/resolver-query/SKILL.md (rewritten for Mode A/B/C)
+        - .claude/commands/resolver.md (v2 syntax)
+        - tests/resolver-v2/ (8 test files, 215 tests, 100% pass)
+
+      215 tests covering:
+        - errors.cjs (18 tests)
+        - catalog-loader.cjs (29 tests: parse, cache, validation)
+        - keyword-fallback.cjs (37 tests: normalize, validateTrigger, match, filterByRole)
+        - audit.cjs (31 tests: buildRecord, writeRecord, validateRecord, clamp)
+        - catalog-generator.cjs (16 tests)
+        - integration.test.ts (17 end-to-end + invariants)
+        - edge-cases.test.ts (38 unicode, control chars, large inputs, performance)
+        - security.test.ts (29 SQL/XSS/path/CRLF/command injection + DoS)
+
   - id: resolver
     name: "/resolver — Lookup PLATFORM for trigger → AI workforce recipient routing"
     description: |
@@ -453,11 +538,12 @@ capabilities:
       HITL dry-run preview. Dropped: CP-7 cross-runtime portability,
       /resolver add wizard, runtime injection into Claude Code.
     version: "1.0.0"
-    state: operating                         # Phase 8 promotion 2026-05-23
+    state: superseded                        # by resolver-v2 (2026-05-23 same day)
     state_since: 2026-05-23
     proposed_at: 2026-05-23
     deployed_at: 2026-05-23
-    operating_since: 2026-05-23              # single overnight session Phase 0-8
+    operating_since: 2026-05-23              # operated ~6h before superseded
+    deprecated_at: 2026-05-23                # deleted entirely per Option 3A
     pillar_owner: 06-ai-ops
     bài_toán_touched: [5, 11, 12, 14, 15, 20]
     spec_path: wiki/capabilities/resolver/spec.md

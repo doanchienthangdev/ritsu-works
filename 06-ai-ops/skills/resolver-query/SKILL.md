@@ -1,154 +1,140 @@
 ---
 name: resolver-query
-description: Consumer contract for capability `resolver` v1.0 — any other skill MAY invoke this to look up the best AI workforce recipient for a natural-language trigger across 8 kinds (skill, command, agent, mcp, wiki, sop, capability, persona). Returns routing decision + alternatives + invocation spec. Zero LLM in hot path; structured matching only (semantic deferred to v1.1). Per-call latency <50ms p95 warm. Background-layer consumer pattern — skills/agents/workflows invoke transparently instead of grep'ing filesystem.
+description: |
+  CONSUMER CONTRACT for resolver v2 LLM-native catalog. Any skill or agent MAY
+  invoke this to find AI workforce recipients for a trigger across kinds (skill,
+  command, agent, mcp, persona). v2 uses Mode A (in-session ambient catalog —
+  preferred), Mode B (explicit LLM-mediated query — debugging/audit), and Mode C
+  (keyword fallback for non-LLM consumers).
+  Returns: primary recipient + supporting composition + invocation spec.
+  Caller executes the invocation (D-4 INVARIANT).
+status: active
+version: 2.0.0
+hitl_max_tier: A
+role_scope: ['*']
+home_pillar: 06-ai-ops
+spec: .archives/cla/resolver-v2/spec.md
+supersedes: resolver-query@1.0.0
 ---
 
-# resolver-query SKILL (Consumer Contract)
+# Skill: resolver-query (v2)
 
-## When to use
+## When to use this skill
 
-Invoke from another skill when you need to find the right AI workforce
-recipient for a task you've been given. Returns metadata + invocation
-spec; YOU execute the resulting invocation.
+Invoke from another skill, agent, or workflow when you need to find the right
+AI workforce recipient for a natural-language task — without grep'ing
+filesystem or hardcoding lookups.
 
-Examples:
-- A skill processing user input: "user wants to find brand voice guide" →
-  resolver-query returns `{ matched: { route: {recipient: {kind: 'wiki',
-  slug: 'brand-voice'}}, ... } }`
-- An agent doing a multi-step task: needs to dispatch a sub-skill for
-  step 2 — uses resolver-query to find the right skill instead of
-  hardcoding a name
-- A scheduled job: receives a generic "do this customer thing" trigger
-  → resolver-query routes to the right customer-pillar skill
+**Three consumer modes — choose by context:**
 
-## Inputs
+### Mode A (PREFERRED — in-session ambient catalog)
+
+You are operating inside a Claude Code session. The catalog
+`knowledge/recipients/{skills,commands,agents,personas,mcps}.md` is **already
+loaded** in your ambient context via `.claude/CLAUDE.md` imports.
+
+→ **You don't actually invoke this skill.** You just reason about the trigger
+naturally and identify the primary + supporting recipients from ambient context.
+Then invoke the recipient directly (`Skill({...})`, `Agent({...})`, etc.).
+
+Optionally write an audit row via `audit.cjs` if the decision is significant
+(e.g., orchestration delegation).
+
+**Latency:** 0ms additional. **Cost:** $0 (no extra LLM call).
+
+### Mode B (Explicit — operator-facing, audit/debug)
+
+User invoked `/resolver query "<trigger>"` or programmatic skill call.
+
+Steps:
+1. Load catalog (`scripts/resolver-v2/catalog-loader.cjs#loadCatalog()`)
+2. Format structured prompt:
+   ```
+   System: <catalog as text — all 5 files concatenated, or kind-filtered if --kind given>
+   User: For trigger "<trigger>", return JSON:
+     { primary: <recipient-id>, supporting: [<id>...], rationale: "...", alternatives: [<id>...] }
+   ```
+3. Current session LLM (you, Claude) reasons → emits JSON
+4. Validate IDs exist in catalog (`byId.has()`); reject hallucinations
+5. Build audit record via `audit.cjs#buildRecord` with `mode='B', llm_reasoning=<rationale>, composition_supporting=[<supporting>]`
+6. Write audit via `mcp__supabase-ops__insert` to `ops.resolver_decisions`
+7. Return human-readable output
+
+**Latency:** ~5-500ms (catalog load + LLM reasoning). **Cost:** $0 in-session
+(no separate API call); cached system prompt if invoked multiple times.
+
+### Mode C (Keyword fallback — non-LLM consumers only)
+
+CRON jobs, Edge Functions, pre-commit hooks. No LLM in loop.
+
+Invoke `scripts/resolver-v2/keyword-fallback.cjs#match({trigger})` directly.
+Single-recipient response. ~30% recall (acknowledged degradation vs Mode A).
+
+Use this **only** if you cannot reach an LLM context. Encourage migration to
+Mode A.
+
+**Latency:** <5ms. **Cost:** $0.
+
+## Output schema (Mode A/B)
 
 ```typescript
 {
-  trigger: string,             // required; natural-language trigger
-  flags?: {
-    semantic?: boolean,         // opt-in semantic fallback (v1.1; v1.0 ignored)
-    plan?: boolean,             // return composition.plan if route has one (CP-2)
-    json?: boolean,             // affects /resolver query output only; ignored here
+  primary: {
+    id: string,           // e.g. "skill/customer-onboarding"
+    kind: string,
+    invoke: string,       // exact invocation snippet
+    when_to_use: string,
+    status: string,
   },
-  callerRole?: string,         // override $MCP_CALLER_ROLE
-  kind?: string,               // restrict to specific recipient kind
+  supporting: Array<{     // composition — recipients to use alongside
+    id: string,
+    kind: string,
+    invoke: string,
+    why: string,          // why this supports the primary
+  }>,
+  alternatives: Array<{   // other valid primary choices the caller might prefer
+    id: string,
+    kind: string,
+    confidence: number,   // LLM-judged 0-1
+  }>,
+  rationale: string,       // LLM's natural-language reasoning
+  catalog_files_loaded: string[],
+  mode: 'A' | 'B' | 'C',
+  audit_run_id?: string,   // if audit written
 }
 ```
 
-## Outputs
+## INVARIANTS
 
-```typescript
-{
-  trigger: string,
-  trigger_normalized: string,   // NFC + lowercase + whitespace-collapsed
-  caller_role: string | null,
-  decision: 'dispatch_silently' | 'surface_candidates' | 'no_match' | 'role_denied',
-  matched: {
-    route: { id, recipient: {kind, slug, path?}, invocation: {mechanism, args}, ... },
-    confidence: number,         // 0.0-1.0; computed from match quality
-    matchedKeyword: string,
-  } | null,
-  alternatives: Array<{ route, confidence, matchedKeyword }>,
-  semantic_used: boolean,        // false at v1.0
-  latency_ms: number,            // total including load + match + decide
-  perf: { load_ms, match_count, filtered_count },
-  flags: {...},
-  config_thresholds: { dispatch_silently: 0.85, surface_candidates: 0.60 },
-}
-```
+**INV-1:** Zero false-positive matches. LLM hallucinations rejected.
 
-## How to invoke (programmatic — Node.js consumer)
+**INV-2:** Single source of truth — only `knowledge/recipients/*.md`. No
+parallel YAML route file.
 
-```javascript
-const { query } = require('scripts/resolver/query.cjs');
-const result = query({ trigger: 'investigate customer churn' });
+**INV-3 (D-4 carryover from v1):** This skill does NOT execute the recipient.
+It returns metadata + invocation spec. Caller (you) executes.
 
-switch (result.decision) {
-  case 'dispatch_silently':
-    // Confidence ≥0.85; auto-use top match
-    const { recipient, invocation } = result.matched.route;
-    // Execute invocation.args via the right mechanism
-    break;
-  case 'surface_candidates':
-    // 0.60 ≤ confidence < 0.85; present alternatives to user or rank further
-    console.log('Top candidates:', result.alternatives.slice(0, 3));
-    break;
-  case 'no_match':
-    // < 0.60; consider --semantic flag (v1.1) OR ambiguous_fallback
-    break;
-  case 'role_denied':
-    // Caller role doesn't match route.role_scope
-    break;
-}
-```
-
-## How to invoke (skill-to-skill via Skill tool)
-
-```typescript
-// Inside another SKILL.md or agent action
-const result = await Skill({
-  skill: 'resolver-query',
-  trigger: 'investigate customer churn'
-});
-```
-
-When invoked via Skill tool, this skill reads the trigger from caller
-context, runs query, returns result.
-
-## How to invoke (MCP-aware agent runtime)
-
-```typescript
-const result = await mcp__supabase-ops__resolver_query({
-  trigger: 'investigate customer churn',
-  caller_role: 'founder',  // optional; defaults from env
-  flags: { semantic: false, plan: false }
-});
-```
-
-(MCP tool registered in `knowledge/mcp-tools.yaml` — Sprint 3 ships with
-`status: planned`; full handler in `mcp-server/src/tools/resolver-query.ts`
-follows in v1.0.1 once Sprint 4 stabilizes.)
-
-## Decision thresholds (v1.0 defaults from registry.yaml)
-
-- **≥0.85** — `dispatch_silently` → use top match without prompting caller
-- **0.60-0.85** — `surface_candidates` → return top-3 candidates for caller to pick
-- **<0.60** — `no_match` → fall through to ambiguous_fallback (or --semantic in v1.1)
-
-Tunable per `knowledge/resolvers/registry.yaml` `config.default_confidence_threshold`.
-
-## Performance
-
-- p95 warm cache: <50ms (target per spec §11)
-- p99 warm cache: <100ms
-- Cold start (process boot + first load): <200ms
+**INV-4:** Catalog auto-sync is frontmatter→catalog (one-way). Founder
+overrides via direct edit + `<!-- override-start -->` markers detected on next
+sync.
 
 ## Failure modes
 
-- `InvalidTrigger` — nil/empty/wrong-type trigger; throws
-- `ResolverDown` — `knowledge/resolvers/` missing entirely; throws
-- `TriggerTooLong` — trigger >1000 chars; truncated + warned, proceeds
-- All other errors logged + degrade gracefully
+| Code | Cause | Handling |
+|---|---|---|
+| `INVALID_TRIGGER` | nil/empty trigger | Throw; caller must provide |
+| `CATALOG_DOWN` | recipients/ missing | Throw; fix install |
+| `CATALOG_PARSE_ERROR` | malformed markdown | Throw with file+line |
+| `DUPLICATE_RECIPIENT_ID` | same id in 2 files | Throw; manual fix |
+| `MISSING_REQUIRED_FIELD` | catalog entry incomplete | Throw with entry ID |
+| `HALLUCINATED_RECIPIENT` | LLM returned unknown ID | Mode B retries once with stricter prompt |
+| `AUDIT_WRITE_FAILED` | DB unavailable | Best-effort; warn but don't throw |
 
-## Audit
+## See also
 
-Every invocation writes one row to `ops.resolver_decisions` (best-effort;
-defers to local fallback on DB unreachable). Used by Monday digest + v1.1
-active-learning loop.
-
-## INVARIANT (D-4)
-
-**This skill MUST NOT execute the recipient.** It returns metadata +
-invocation spec. Caller (you) is responsible for executing the invocation.
-
-This is enforced by:
-- Engine has no exec primitives (no Skill/Agent/Bash tool calls)
-- Property test in `tests/resolver/engine.test.ts` validates module imports
-
-## Related
-
-- Spec: `wiki/capabilities/resolver/spec.md` (or `.archives/cla/resolver/spec.md` pre-promotion)
-- Command file: `.claude/commands/resolver.md`
-- Engine: `scripts/resolver/query.cjs`
-- Other 4 resolver sub-skills: `06-ai-ops/skills/resolver/{orchestrator,query,sync,explain}/SKILL.md`
+- Spec: `.archives/cla/resolver-v2/spec.md`
+- Catalog files: `knowledge/recipients/*.md`
+- Engine: `scripts/resolver-v2/`
+- Mode C fallback: `scripts/resolver-v2/keyword-fallback.cjs`
+- Audit table: `ops.resolver_decisions` (+ migration 00035)
+- v1 retrospective: `wiki/capabilities/resolver/retrospective.md`
