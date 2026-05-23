@@ -7,7 +7,7 @@
  * Per founder request: keep Vietnamese as-is for BOTH .mdx (VI default)
  * AND .en.mdx (English route) — no translation back to English.
  *
- * Writes 36 chapters × 2 lang = 72 MDX files.
+ * Writes 37 chapters × 2 lang = 74 MDX files.
  *
  * Idempotent: if target exists with matching source_hash, skip.
  *
@@ -74,6 +74,7 @@ const CHAPTER_ORDER = [
   "phase-a2/35-capability-case-docs-engine.md",
   "phase-a2/36-capability-case-core-redesign.md",
   "phase-a2/37-capability-case-evolve.md",
+  "phase-a2/38-capability-case-resolver.md",
   "A1-glossary.md",
   "A2-references.md",
   "A3-pr-templates.md",
