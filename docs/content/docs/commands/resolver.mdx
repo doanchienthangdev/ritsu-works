@@ -11,78 +11,83 @@ generated_at: '2026-05-23T08:45:47.960Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
+translated: true
+translated_at: '2026-05-23T09:00:00.000Z'
+translated_by: docs-translate-inline v1.0 (claude-code session)
+translation_model: claude-opus-4-7
+translated_source_hash: b1d3f462ca70ed3719dcd1d06e0bd5514749a02bfd433cb00b105dee486ab348
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-Project-scoped command for ritsu-works. Front-end for capability `resolver` v1.0
-(`knowledge/resolvers/`). This command is a thin orchestrator — engine logic
-lives in `scripts/resolver/*.cjs` (CommonJS, no third-party deps).
+Lệnh phạm vi project cho ritsu-works. Front-end cho capability `resolver` v1.0
+(`knowledge/resolvers/`). Lệnh này là một orchestrator mỏng — logic engine
+nằm trong `scripts/resolver/*.cjs` (CommonJS, không có dependency bên thứ ba).
 
-The command:
-- Parses argv (subcommand + flags),
-- Dispatches to the corresponding skill or directly invokes
+Lệnh này:
+- Parse argv (subcommand + flags),
+- Dispatch tới skill tương ứng hoặc gọi trực tiếp
   `scripts/resolver/*.cjs`,
-- Renders output (human-readable default; `--json` machine-readable).
+- Render output (mặc định human-readable; `--json` cho machine-readable).
 
 ## Subcommands (5 verbs)
 
-| Invocation | Purpose | HITL |
+| Invocation | Mục đích | HITL |
 |---|---|---|
-| `/resolver query "<trigger>" [--semantic] [--plan] [--json] [--role=<r>] [--kind=<k>]` | Look up best match for trigger | A |
-| `/resolver list [--kind=<k>] [--pillar=<p>] [--role=<r>] [--status=<s>] [--json]` | Enumerate routes (filtered) | A |
-| `/resolver validate [<file>]` | Run 4 validators (schema, routes, trigger-uniqueness, coverage) | A |
-| `/resolver sync [--dry-run] [--apply] [--auto-pr] [--kind=<k>]` | Auto-derive routes from recipient frontmatter | A/B/C |
+| `/resolver query "<trigger>" [--semantic] [--plan] [--json] [--role=<r>] [--kind=<k>]` | Tìm match phù hợp nhất cho trigger | A |
+| `/resolver list [--kind=<k>] [--pillar=<p>] [--role=<r>] [--status=<s>] [--json]` | Liệt kê routes (có filter) | A |
+| `/resolver validate [<file>]` | Chạy 4 validators (schema, routes, trigger-uniqueness, coverage) | A |
+| `/resolver sync [--dry-run] [--apply] [--auto-pr] [--kind=<k>]` | Tự động derive routes từ recipient frontmatter | A/B/C |
 | `/resolver explain "<trigger>" [--semantic]` | Verbose match trace (debugging) | A |
 
-DROPPED per architect simplification (per spec §6.1):
-- `/resolver add` wizard → founder edits `knowledge/resolvers/overrides/*.yaml` directly
-- `/resolver test` → folded into `/resolver explain`
+ĐÃ BỎ theo simplification của architect (theo spec §6.1):
+- `/resolver add` wizard → founder edit trực tiếp `knowledge/resolvers/overrides/*.yaml`
+- `/resolver test` → gộp vào `/resolver explain`
 
-## Argv schema (per verb)
+## Argv schema (mỗi verb)
 
 ```
 /resolver query "<trigger>" [flags]
   positional:
-    <trigger>            required; trigger string to match
+    <trigger>            bắt buộc; trigger string để match
   flags:
-    --semantic           opt-in semantic fallback (v1.1; v1.0 returns SemanticUnavailable)
-    --plan               return composition.plan if route has one (CP-2)
-    --json               machine-readable output
-    --role=<r>           override caller role (default: $MCP_CALLER_ROLE)
-    --kind=<k>           restrict to specific recipient kind
+    --semantic           bật semantic fallback (v1.1; v1.0 trả về SemanticUnavailable)
+    --plan               trả về composition.plan nếu route có (CP-2)
+    --json               output machine-readable
+    --role=<r>           override caller role (mặc định: $MCP_CALLER_ROLE)
+    --kind=<k>           giới hạn theo recipient kind cụ thể
 
 /resolver list [flags]
   flags:
     --kind=<k>           skill | command | agent | mcp | wiki | sop | capability | persona
-    --pillar=<p>         0X-pillar name
-    --role=<r>           filter by role_scope
+    --pillar=<p>         tên 0X-pillar
+    --role=<r>           filter theo role_scope
     --status=<s>         active | stub | deprecated
     --json               machine-readable
 
 /resolver validate [<file>]
   positional:
-    <file>               optional; specific routes file. Omit for all.
+    <file>               tùy chọn; routes file cụ thể. Bỏ trống để chạy tất cả.
   flags:
-    --verbose            full output (default: terse pass/fail)
+    --verbose            output đầy đủ (mặc định: terse pass/fail)
 
 /resolver sync [flags]
   flags:
-    --dry-run            (default per D-2) print proposed diff; write nothing
-    --apply              write changes to local working tree
-    --auto-pr            apply + commit to branch + open PR (Tier C)
-    --kind=<k>           limit to specific recipient kind (skill | command | agent)
+    --dry-run            (mặc định theo D-2) in diff đề xuất; không ghi gì
+    --apply              ghi thay đổi vào working tree local
+    --auto-pr            apply + commit lên branch + mở PR (Tier C)
+    --kind=<k>           giới hạn theo recipient kind cụ thể (skill | command | agent)
 
 /resolver explain "<trigger>" [flags]
-  Always verbose. Shows: tokenization, keyword hits per route, semantic
-  scores (if --semantic), role filter outcome, final decision.
+  Luôn verbose. Hiển thị: tokenization, keyword hits theo từng route, semantic
+  scores (nếu --semantic), kết quả role filter, quyết định cuối.
   flags:
     --semantic           include semantic match attempt (v1.1)
 ```
 
-## How to invoke
+## Cách invoke
 
-Run the underlying Node scripts in the project root:
+Chạy các Node script ở project root:
 
 ```bash
 # query
@@ -91,10 +96,10 @@ node -e "const q = require('./scripts/resolver/query.cjs'); console.log(JSON.str
 # explain
 node -e "const q = require('./scripts/resolver/query.cjs'); console.log(JSON.stringify(q.explain({trigger: 'evolve'}), null, 2))"
 
-# list — read knowledge/resolvers/routes/<kind>.yaml directly OR via loader
+# list — đọc knowledge/resolvers/routes/<kind>.yaml trực tiếp HOẶC qua loader
 node -e "const l = require('./scripts/resolver/load-index.cjs'); const idx = l.loadIndex(); console.log(idx.routes.map(r => r.id).join('\\n'))"
 
-# validate — run the 4 cross-tier validators directly
+# validate — chạy 4 cross-tier validators trực tiếp
 node scripts/cross-tier/validate-resolver-schema.cjs
 node scripts/cross-tier/validate-resolver-routes.cjs
 node scripts/cross-tier/validate-resolver-trigger-uniqueness.cjs
@@ -106,16 +111,16 @@ node scripts/resolver/sync.cjs --apply
 node scripts/resolver/sync.cjs --auto-pr
 ```
 
-Convenience shortcuts in `package.json` (added Sprint 4):
+Các shortcut convenience trong `package.json` (thêm ở Sprint 4):
 - `pnpm resolver:query "<trigger>"`
 - `pnpm resolver:list`
 - `pnpm resolver:validate`
-- `pnpm resolver:sync` (dry-run by default)
+- `pnpm resolver:sync` (mặc định dry-run)
 - `pnpm resolver:explain "<trigger>"`
 
 ## Output
 
-### Default (human-readable)
+### Mặc định (human-readable)
 
 ```
 $ /resolver query "evolve a skill"
@@ -141,38 +146,37 @@ $ /resolver query "evolve a skill"
 }
 ```
 
-## When to invoke explicitly
+## Khi nào invoke explicit
 
-This command's verbs are operator-facing (build/manage/introspect). The
-PRIMARY consumption mode for resolver is BACKGROUND-LAYER (skills/agents
-invoke `resolver-query` SKILL or `mcp__supabase-ops__resolver_query` MCP
-tool transparently).
+Các verb của lệnh này hướng tới operator (build/manage/introspect). Mode
+TIÊU THỤ CHÍNH của resolver là BACKGROUND-LAYER (skills/agents invoke
+`resolver-query` SKILL hoặc `mcp__supabase-ops__resolver_query` MCP tool
+một cách trong suốt).
 
-Use explicit `/resolver query` when:
-- You want to see what would be dispatched without actually dispatching
-- You're curating overrides and need to test a trigger
-- You're debugging why an agent's lookup picked a particular recipient
-- Onboarding (e.g. `/resolver list` to see all routes)
+Dùng `/resolver query` explicit khi:
+- Bạn muốn xem cái gì sẽ được dispatch mà không thực sự dispatch
+- Bạn đang curate overrides và cần test một trigger
+- Bạn đang debug tại sao lookup của agent chọn một recipient cụ thể
+- Onboarding (ví dụ `/resolver list` để xem tất cả routes)
 
 ## Defensive notes
 
-- `/resolver sync --auto-pr` opens a PR via `gh` CLI; requires `gh auth login` first
-- Working tree must be clean (no unrelated changes) for `--auto-pr`
-- Concurrent `/resolver sync --apply` blocked by lock file (.archives/resolver-sync.lock; 10min staleness)
-- `/resolver query` is read-only; safe for any role
-- `/resolver validate` runs the 4 validators as standalone scripts; same as `pnpm check`'s resolver section
+- `/resolver sync --auto-pr` mở PR qua `gh` CLI; cần `gh auth login` trước
+- Working tree phải clean (không có thay đổi không liên quan) cho `--auto-pr`
+- Concurrent `/resolver sync --apply` bị block bởi lock file (.archives/resolver-sync.lock; staleness 10 phút)
+- `/resolver query` là read-only; an toàn cho mọi role
+- `/resolver validate` chạy 4 validators như standalone scripts; tương đương resolver section của `pnpm check`
 
-## Pre-flight (run before any subcommand)
+## Pre-flight (chạy trước mỗi subcommand)
 
-- Resolver capability state: `proposed` → `operating` after Phase 8 (currently `proposed` v1.0 in deployment)
-- Drift: `pnpm check` should pass
+- State của capability resolver: `proposed` → `operating` sau Phase 8 (hiện tại đã `operating` v1.0 trong deployment)
+- Drift: `pnpm check` phải pass
 
-## See also
+## Xem thêm
 
-- Spec: `wiki/capabilities/resolver/spec.md` (after Phase 8 promotion; pre-promotion at `.archives/cla/resolver/spec.md`)
+- Spec: `wiki/capabilities/resolver/spec.md` (sau Phase 8 promotion; trước khi promote ở `.archives/cla/resolver/spec.md`)
 - Routes: `knowledge/resolvers/`
 - Engine: `scripts/resolver/`
 - Validators: `scripts/cross-tier/validate-resolver-*.cjs`
-- Audit: `ops.resolver_decisions` table
+- Audit: bảng `ops.resolver_decisions`
 - Architect findings: `.archives/brainstorming/resolver/17-outside-voice.md`
-

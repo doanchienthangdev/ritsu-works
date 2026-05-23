@@ -10,36 +10,40 @@ generated_at: '2026-05-23T08:45:47.928Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
+translated: true
+translated_at: '2026-05-23T09:00:00.000Z'
+translated_by: docs-translate-inline v1.0 (claude-code session)
+translation_model: claude-opus-4-7
+translated_source_hash: 08eb4ebc0b75744b9ed6621b4a1b5b72999265dde48d68150de5a75964b64292
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-## When to use
+## Khi nào dùng
 
-Invoked by `.claude/commands/resolver.md` as the top-level dispatcher. Routes
-to the right verb sub-skill based on parsed argv.
+Được invoke bởi `.claude/commands/resolver.md` như top-level dispatcher. Route
+tới verb sub-skill phù hợp dựa trên argv đã parse.
 
 ## Process
 
-1. Parse argv: first positional is subcommand; rest are positional args + flags
-2. Validate subcommand against enum: `query | list | validate | sync | explain`
-3. Dispatch to corresponding sub-skill:
+1. Parse argv: positional đầu tiên là subcommand; còn lại là positional args + flags
+2. Validate subcommand theo enum: `query | list | validate | sync | explain`
+3. Dispatch tới sub-skill tương ứng:
    - `query` → `resolver/query`
-   - `list` → render via load-index directly (no dedicated sub-skill)
+   - `list` → render qua load-index trực tiếp (không có sub-skill riêng)
    - `validate` → spawn `scripts/cross-tier/validate-resolver-*.cjs`
    - `sync` → `resolver/sync`
    - `explain` → `resolver/explain`
-4. Capture sub-skill output; render per `--json` flag
+4. Capture output của sub-skill; render theo flag `--json`
 
 ## Error handling
 
-- Unknown subcommand → print usage + valid list, exit 1
-- Missing required positional → print usage for that verb
-- All sub-skill errors propagated to caller
+- Unknown subcommand → in usage + danh sách valid, exit 1
+- Thiếu positional bắt buộc → in usage cho verb đó
+- Mọi lỗi của sub-skill propagated lên caller
 
-## See also
+## Xem thêm
 
 - Command file: `.claude/commands/resolver.md`
 - Sub-skills: `resolver/query`, `resolver/sync`, `resolver/explain`
 - Engine: `scripts/resolver/*.cjs`
-

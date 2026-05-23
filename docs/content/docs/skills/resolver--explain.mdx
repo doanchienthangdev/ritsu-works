@@ -10,26 +10,31 @@ generated_at: '2026-05-23T08:45:47.927Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
+translated: true
+translated_at: '2026-05-23T09:00:00.000Z'
+translated_by: docs-translate-inline v1.0 (claude-code session)
+translation_model: claude-opus-4-7
+translated_source_hash: c7f5a32d1478961b791d972abac0360c5116f63f84147914a0c71f50b6d1912d
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-## When to use
+## Khi nào dùng
 
-Invoked by `resolver/orchestrator` when subcommand is `explain`. Folded
-in `/resolver test` (architect simplification — same verb, more verbose).
+Được invoke bởi `resolver/orchestrator` khi subcommand là `explain`. Gộp
+`/resolver test` vào (architect simplification — cùng một verb, verbose hơn).
 
 ## Process
 
-1. Parse trigger string (required) + flags (--semantic optional)
-2. Call `require('scripts/resolver/query.cjs').explain({...})`
+1. Parse trigger string (bắt buộc) + flags (--semantic tùy chọn)
+2. Gọi `require('scripts/resolver/query.cjs').explain({...})`
 3. Render verbose trace:
-   - **NORMALIZED:** show normalized trigger
-   - **KEYWORD HITS:** per route, which keywords fired + confidence
-   - **SEMANTIC** (if --semantic): which embedding namespace queried,
-     top-N hits with cosine scores
-   - **RANKING:** sorted candidates (DESC by confidence)
-   - **ROLE FILTER:** caller role + which routes filtered out
+   - **NORMALIZED:** hiển thị trigger đã normalize
+   - **KEYWORD HITS:** mỗi route, keyword nào trigger + confidence
+   - **SEMANTIC** (nếu --semantic): embedding namespace nào được query,
+     top-N hits với cosine scores
+   - **RANKING:** candidates đã sort (DESC theo confidence)
+   - **ROLE FILTER:** caller role + routes nào bị filter ra
    - **DECISION:** silent/surface/no_match + threshold context
    - **PERFORMANCE:** load_ms, match_count, filtered_count, total latency
 
@@ -62,9 +67,8 @@ PERFORMANCE:
   total: Xms
 ```
 
-## See also
+## Xem thêm
 
-- Engine: `scripts/resolver/query.cjs` `explain()` function
+- Engine: hàm `explain()` trong `scripts/resolver/query.cjs`
 - Spec: `wiki/capabilities/resolver/spec.md` §13.F (debug surface)
 - Brainstorm: `.archives/brainstorming/resolver/13-observability.md` §F
-

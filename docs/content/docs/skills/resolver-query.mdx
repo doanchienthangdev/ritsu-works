@@ -13,38 +13,43 @@ generated_at: '2026-05-23T08:45:47.930Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
+translated: true
+translated_at: '2026-05-23T09:00:00.000Z'
+translated_by: docs-translate-inline v1.0 (claude-code session)
+translation_model: claude-opus-4-7
+translated_source_hash: 03311036e8acd0a14ec929366b8179a48cb9f7252c365955cb3b8ea22773c692
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-## When to use
+## Khi nào dùng
 
-Invoke from another skill when you need to find the right AI workforce
-recipient for a task you've been given. Returns metadata + invocation
-spec; YOU execute the resulting invocation.
+Invoke từ một skill khác khi bạn cần tìm recipient AI workforce phù hợp
+cho task được giao. Trả về metadata + invocation spec; BẠN execute
+invocation đó.
 
-Examples:
-- A skill processing user input: "user wants to find brand voice guide" →
-  resolver-query returns `\{ matched: \{ route: \{recipient: \{kind: 'wiki',
+Ví dụ:
+- Một skill đang xử lý user input: "user muốn tìm brand voice guide" →
+  resolver-query trả về `\{ matched: \{ route: \{recipient: \{kind: 'wiki',
   slug: 'brand-voice'}}, ... } }`
-- An agent doing a multi-step task: needs to dispatch a sub-skill for
-  step 2 — uses resolver-query to find the right skill instead of
-  hardcoding a name
-- A scheduled job: receives a generic "do this customer thing" trigger
-  → resolver-query routes to the right customer-pillar skill
+- Một agent đang làm multi-step task: cần dispatch sub-skill cho
+  step 2 — dùng resolver-query để tìm skill phù hợp thay vì
+  hardcode tên
+- Một scheduled job: nhận trigger generic "do this customer thing"
+  → resolver-query route tới skill customer-pillar phù hợp
 
 ## Inputs
 
 ```typescript
 {
-  trigger: string,             // required; natural-language trigger
+  trigger: string,             // bắt buộc; trigger natural-language
   flags?: {
-    semantic?: boolean,         // opt-in semantic fallback (v1.1; v1.0 ignored)
-    plan?: boolean,             // return composition.plan if route has one (CP-2)
-    json?: boolean,             // affects /resolver query output only; ignored here
+    semantic?: boolean,         // opt-in semantic fallback (v1.1; v1.0 bỏ qua)
+    plan?: boolean,             // trả về composition.plan nếu route có (CP-2)
+    json?: boolean,             // chỉ ảnh hưởng tới output /resolver query; bỏ qua ở đây
   },
   callerRole?: string,         // override $MCP_CALLER_ROLE
-  kind?: string,               // restrict to specific recipient kind
+  kind?: string,               // giới hạn theo recipient kind cụ thể
 }
 ```
 
@@ -58,19 +63,19 @@ Examples:
   decision: 'dispatch_silently' | 'surface_candidates' | 'no_match' | 'role_denied',
   matched: {
     route: { id, recipient: {kind, slug, path?}, invocation: {mechanism, args}, ... },
-    confidence: number,         // 0.0-1.0; computed from match quality
+    confidence: number,         // 0.0-1.0; computed từ match quality
     matchedKeyword: string,
   } | null,
   alternatives: Array<{ route, confidence, matchedKeyword }>,
-  semantic_used: boolean,        // false at v1.0
-  latency_ms: number,            // total including load + match + decide
+  semantic_used: boolean,        // false ở v1.0
+  latency_ms: number,            // total bao gồm load + match + decide
   perf: { load_ms, match_count, filtered_count },
   flags: {...},
   config_thresholds: { dispatch_silently: 0.85, surface_candidates: 0.60 },
 }
 ```
 
-## How to invoke (programmatic — Node.js consumer)
+## Cách invoke (programmatic — Node.js consumer)
 
 ```javascript
 const { query } = require('scripts/resolver/query.cjs');
@@ -78,90 +83,89 @@ const result = query({ trigger: 'investigate customer churn' });
 
 switch (result.decision) {
   case 'dispatch_silently':
-    // Confidence ≥0.85; auto-use top match
+    // Confidence ≥0.85; auto dùng top match
     const { recipient, invocation } = result.matched.route;
-    // Execute invocation.args via the right mechanism
+    // Execute invocation.args qua mechanism phù hợp
     break;
   case 'surface_candidates':
-    // 0.60 ≤ confidence < 0.85; present alternatives to user or rank further
+    // 0.60 ≤ confidence < 0.85; trình bày alternatives cho user hoặc rank thêm
     console.log('Top candidates:', result.alternatives.slice(0, 3));
     break;
   case 'no_match':
-    // < 0.60; consider --semantic flag (v1.1) OR ambiguous_fallback
+    // < 0.60; cân nhắc flag --semantic (v1.1) HOẶC ambiguous_fallback
     break;
   case 'role_denied':
-    // Caller role doesn't match route.role_scope
+    // Caller role không match route.role_scope
     break;
 }
 ```
 
-## How to invoke (skill-to-skill via Skill tool)
+## Cách invoke (skill-to-skill qua Skill tool)
 
 ```typescript
-// Inside another SKILL.md or agent action
+// Bên trong một SKILL.md hoặc agent action khác
 const result = await Skill({
   skill: 'resolver-query',
   trigger: 'investigate customer churn'
 });
 ```
 
-When invoked via Skill tool, this skill reads the trigger from caller
-context, runs query, returns result.
+Khi invoke qua Skill tool, skill này đọc trigger từ caller context,
+chạy query, trả về kết quả.
 
-## How to invoke (MCP-aware agent runtime)
+## Cách invoke (MCP-aware agent runtime)
 
 ```typescript
 const result = await mcp__supabase-ops__resolver_query({
   trigger: 'investigate customer churn',
-  caller_role: 'founder',  // optional; defaults from env
+  caller_role: 'founder',  // tùy chọn; mặc định lấy từ env
   flags: { semantic: false, plan: false }
 });
 ```
 
-(MCP tool registered in `knowledge/mcp-tools.yaml` — Sprint 3 ships with
-`status: planned`; full handler in `mcp-server/src/tools/resolver-query.ts`
-follows in v1.0.1 once Sprint 4 stabilizes.)
+(MCP tool registered trong `knowledge/mcp-tools.yaml` — Sprint 3 ship với
+`status: planned`; handler đầy đủ trong `mcp-server/src/tools/resolver-query.ts`
+sẽ follow ở v1.0.1 sau khi Sprint 4 stabilize.)
 
-## Decision thresholds (v1.0 defaults from registry.yaml)
+## Decision thresholds (mặc định v1.0 từ registry.yaml)
 
-- **≥0.85** — `dispatch_silently` → use top match without prompting caller
-- **0.60-0.85** — `surface_candidates` → return top-3 candidates for caller to pick
-- **\<0.60** — `no_match` → fall through to ambiguous_fallback (or --semantic in v1.1)
+- **≥0.85** — `dispatch_silently` → dùng top match không cần prompt caller
+- **0.60-0.85** — `surface_candidates` → trả về top-3 candidates cho caller chọn
+- **\<0.60** — `no_match` → fall through tới ambiguous_fallback (hoặc --semantic ở v1.1)
 
-Tunable per `knowledge/resolvers/registry.yaml` `config.default_confidence_threshold`.
+Tunable theo `config.default_confidence_threshold` trong `knowledge/resolvers/registry.yaml`.
 
 ## Performance
 
-- p95 warm cache: \<50ms (target per spec §11)
+- p95 warm cache: \<50ms (target theo spec §11)
 - p99 warm cache: \<100ms
 - Cold start (process boot + first load): \<200ms
 
 ## Failure modes
 
-- `InvalidTrigger` — nil/empty/wrong-type trigger; throws
-- `ResolverDown` — `knowledge/resolvers/` missing entirely; throws
-- `TriggerTooLong` — trigger >1000 chars; truncated + warned, proceeds
-- All other errors logged + degrade gracefully
+- `InvalidTrigger` — trigger nil/empty/wrong-type; throws
+- `ResolverDown` — `knowledge/resolvers/` thiếu hoàn toàn; throws
+- `TriggerTooLong` — trigger >1000 chars; truncate + warn, proceed
+- Tất cả các lỗi khác logged + degrade gracefully
 
 ## Audit
 
-Every invocation writes one row to `ops.resolver_decisions` (best-effort;
-defers to local fallback on DB unreachable). Used by Monday digest + v1.1
-active-learning loop.
+Mỗi invocation ghi một row vào `ops.resolver_decisions` (best-effort;
+defer tới local fallback nếu DB unreachable). Dùng bởi Monday digest +
+loop active-learning v1.1.
 
 ## INVARIANT (D-4)
 
-**This skill MUST NOT execute the recipient.** It returns metadata +
-invocation spec. Caller (you) is responsible for executing the invocation.
+**Skill này KHÔNG ĐƯỢC execute recipient.** Nó trả về metadata +
+invocation spec. Caller (bạn) chịu trách nhiệm execute invocation.
 
-This is enforced by:
-- Engine has no exec primitives (no Skill/Agent/Bash tool calls)
-- Property test in `tests/resolver/engine.test.ts` validates module imports
+Điều này được enforce bởi:
+- Engine không có exec primitives (không có call Skill/Agent/Bash tool)
+- Property test trong `tests/resolver/engine.test.ts` validate module imports
 
-## Related
+## Liên quan
 
-- Spec: `wiki/capabilities/resolver/spec.md` (or `.archives/cla/resolver/spec.md` pre-promotion)
+- Spec: `wiki/capabilities/resolver/spec.md` (hoặc `.archives/cla/resolver/spec.md` trước promotion)
 - Command file: `.claude/commands/resolver.md`
 - Engine: `scripts/resolver/query.cjs`
-- Other 4 resolver sub-skills: `06-ai-ops/skills/resolver/{orchestrator,query,sync,explain}/SKILL.md`
-
+- 4 sub-skills resolver khác: `06-ai-ops/skills/resolver/{orchestrator,query,sync,explain}/SKILL.md`
