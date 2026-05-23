@@ -9,40 +9,44 @@ generated_at: '2026-05-23T08:45:47.928Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
+translated: true
+translated_at: '2026-05-23T09:00:00.000Z'
+translated_by: docs-translate-inline v1.0 (claude-code session)
+translation_model: claude-opus-4-7
+translated_source_hash: ae91d2cac0b98172e0726877c9ce10c5d976d5acbd5e51061ea5ca8b570c84af
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-## When to use
+## Khi nào dùng
 
-Invoked by `resolver/orchestrator` when subcommand is `query`.
+Được invoke bởi `resolver/orchestrator` khi subcommand là `query`.
 
-Operator-facing wrapper around `scripts/resolver/query.cjs`.
+Wrapper hướng tới operator quanh `scripts/resolver/query.cjs`.
 
-For **agent-to-agent** consumer use, invoke `resolver-query` (the consumer-
-contract skill) instead; this skill is for operator-facing `/resolver
-query "\<trigger>"` invocations.
+Cho consumer **agent-to-agent**, invoke `resolver-query` (skill consumer-
+contract) thay vì skill này; skill này dành cho invocation `/resolver
+query "\<trigger>"` hướng operator.
 
 ## Process
 
-1. Receive parsed args (trigger string + flags: --semantic, --plan, --json,
+1. Nhận args đã parse (trigger string + flags: --semantic, --plan, --json,
    --role, --kind)
-2. Call `require('scripts/resolver/query.cjs').query({...})`
+2. Gọi `require('scripts/resolver/query.cjs').query({...})`
 3. Render output:
-   - Default (human): `[decision] <matched-id> conf=N latency=Nms\n  alternatives:\n  invocation: ...`
+   - Mặc định (human): `[decision] <matched-id> conf=N latency=Nms\n  alternatives:\n  invocation: ...`
    - `--json`: pretty-print JSON
-4. Write audit (via audit.cjs) — best-effort; defer on DB unreachable
+4. Ghi audit (qua audit.cjs) — best-effort; defer nếu DB unreachable
 
 ## Error handling
 
-Per `scripts/resolver/errors.cjs`:
-- `InvalidTrigger` → print "Trigger required" usage
-- `ResolverDown` → print "Resolver not initialized" + remediation
-- All others → print error.code + message + suggested action
+Theo `scripts/resolver/errors.cjs`:
+- `InvalidTrigger` → in usage "Trigger required"
+- `ResolverDown` → in "Resolver not initialized" + remediation
+- Tất cả các lỗi khác → in error.code + message + suggested action
 
-## See also
+## Xem thêm
 
-- Consumer-contract skill: `resolver-query` (separate top-level skill)
+- Skill consumer-contract: `resolver-query` (skill top-level riêng)
 - Engine: `scripts/resolver/query.cjs`
 - Spec: `wiki/capabilities/resolver/spec.md` §11
-
