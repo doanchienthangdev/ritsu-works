@@ -28,7 +28,7 @@ const yaml = require('js-yaml');
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const RECIPIENTS_DIR = path.join(REPO_ROOT, 'knowledge', 'recipients');
 
-const KINDS = ['skill', 'command', 'agent', 'persona', 'mcp'];
+const KINDS = ['skill', 'command', 'agent', 'persona', 'mcp', 'wiki', 'sop', 'capability', 'workflow', 'schedule', 'hook'];
 
 const CONFIG = {
   skill: {
@@ -61,6 +61,43 @@ const CONFIG = {
     sourceFile: 'knowledge/mcp-tools.yaml',
     invokeTemplate: (slug) => `\`mcp__supabase-ops__${slug}\` (or per server)`,
     file: 'mcps.md',
+  },
+  // v2.1 NEW kinds — composition expansion
+  wiki: {
+    sourceDir: 'wiki',
+    // Pattern: wiki/<source-slug>/source.md (v4.0 source-grouped layout)
+    // Skip _prefix, README, ENTITY_TYPES, _index/, capabilities/ (handled by capability kind)
+    invokeTemplate: (slug) => `\`Read("wiki/${slug}/source.md")\` or \`mcp__supabase_ops__wiki_get_page({slug: "${slug}"})\``,
+    file: 'wikis.md',
+  },
+  sop: {
+    sourceDir: '.',
+    // Pattern: **/sops/SOP-{PILLAR}-XXX-{name}/flow.yaml (with README.md fallback)
+    invokeTemplate: (slug) => `Triggered by event subscriptions, or \`Read("<path>/${slug}/flow.yaml")\``,
+    file: 'sops.md',
+  },
+  capability: {
+    sourceFile: 'knowledge/capability-registry.yaml',
+    invokeTemplate: (slug) => `\`Read("wiki/capabilities/${slug}/spec.md")\` or \`/cla update ${slug}\``,
+    file: 'capabilities.md',
+  },
+  workflow: {
+    sourceDir: 'workflows',
+    pattern: /\.(yaml|yml)$/,
+    invokeTemplate: (slug) => `\`Read("workflows/${slug}.yaml")\``,
+    file: 'workflows.md',
+  },
+  schedule: {
+    sourceFile: 'knowledge/schedules.yaml',
+    invokeTemplate: (slug) => `Auto-triggered by pg_cron + dispatcher (no manual invoke)`,
+    file: 'schedules.md',
+  },
+  hook: {
+    sourceDir: '.claude/hooks',
+    pattern: /\.md$/,
+    excludePattern: /(README|CLAUDE|SPEC)\.md$/i,
+    invokeTemplate: (slug) => `Auto-triggered (PreToolUse/PostToolUse) per hook frontmatter`,
+    file: 'hooks.md',
   },
 };
 
@@ -367,6 +404,255 @@ function generateMcps() {
   return entries;
 }
 
+// ===========================================================================
+// v2.1 NEW GENERATORS — wiki, sop, capability, workflow, schedule, hook
+// ===========================================================================
+
+function generateWikis() {
+  const cfg = CONFIG.wiki;
+  const wikiRoot = path.join(REPO_ROOT, cfg.sourceDir);
+  if (!fs.existsSync(wikiRoot)) return [];
+  const entries = [];
+  // v4.0 source-grouped layout: each wiki/<source-slug>/source.md is one entry
+  for (const ent of fs.readdirSync(wikiRoot, { withFileTypes: true })) {
+    if (!ent.isDirectory()) continue;
+    const slug = ent.name;
+    if (slug.startsWith('_') || slug === 'capabilities' || slug === 'runbooks') continue;
+    const sourceMd = path.join(wikiRoot, slug, 'source.md');
+    if (!fs.existsSync(sourceMd)) continue;
+    const content = fs.readFileSync(sourceMd, 'utf-8');
+    const { frontmatter, body } = parseFrontmatter(content);
+    const fallbackDesc = extractFirstParagraph(body) || `Wiki source: ${slug}`;
+    let desc = descFromFrontmatter(frontmatter, fallbackDesc);
+    if (desc.length > 400) desc = desc.slice(0, 400) + '...';
+    entries.push({
+      id: `wiki/${slug}`,
+      kind: 'wiki',
+      when_to_use: desc,
+      invoke: cfg.invokeTemplate(slug),
+      composes_with: [],
+      role_scope: ['*'],
+      status: frontmatter.status || 'active',
+      pillar: frontmatter.pillar || null,
+    });
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
+function generateSops() {
+  const cfg = CONFIG.sop;
+  const entries = [];
+  // Walk all */sops/SOP-*/ directories across the repo
+  function findSopDirs(dir, depth = 0, maxDepth = 6) {
+    if (depth > maxDepth) return [];
+    if (!fs.existsSync(dir)) return [];
+    const out = [];
+    let dirEntries;
+    try {
+      dirEntries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (_e) {
+      return out;
+    }
+    for (const ent of dirEntries) {
+      if (!ent.isDirectory()) continue;
+      if (ent.name === 'node_modules' || ent.name.startsWith('.git') ||
+          ent.name === 'docs' || ent.name === 'tests' || ent.name === '.archives' ||
+          ent.name === 'build' || ent.name === '.next' || ent.name === 'raw' ||
+          ent.name === 'runtime' || ent.name === 'wiki' ||
+          ent.name === '_templates' || ent.name === '.claude') continue;
+      const sub = path.join(dir, ent.name);
+      if (ent.name.startsWith('SOP-')) {
+        out.push(sub);
+      } else {
+        out.push(...findSopDirs(sub, depth + 1, maxDepth));
+      }
+    }
+    return out;
+  }
+  const sopDirs = findSopDirs(REPO_ROOT);
+  const seenSlugs = new Set();
+  for (const sopDir of sopDirs) {
+    const slug = path.basename(sopDir);
+    if (seenSlugs.has(slug)) continue;
+    seenSlugs.add(slug);
+
+    // Try flow.yaml first
+    const flowYaml = path.join(sopDir, 'flow.yaml');
+    const readmeMd = path.join(sopDir, 'README.md');
+    let desc = `Standard Operating Procedure ${slug}`;
+    let status = 'active';
+    let roleScope = ['*'];
+
+    if (fs.existsSync(flowYaml)) {
+      try {
+        const flow = yaml.load(fs.readFileSync(flowYaml, 'utf-8'));
+        if (flow) {
+          if (typeof flow.purpose === 'string') desc = flow.purpose.trim().replace(/\s+/g, ' ');
+          else if (typeof flow.description === 'string') desc = flow.description.trim().replace(/\s+/g, ' ');
+          if (typeof flow.status === 'string') status = flow.status;
+          if (Array.isArray(flow.roles_required)) roleScope = flow.roles_required;
+          else if (Array.isArray(flow.role_scope)) roleScope = flow.role_scope;
+        }
+      } catch (_e) { /* ignore parse errors */ }
+    }
+    if (desc === `Standard Operating Procedure ${slug}` && fs.existsSync(readmeMd)) {
+      const content = fs.readFileSync(readmeMd, 'utf-8');
+      const { frontmatter, body } = parseFrontmatter(content);
+      const fallbackDesc = extractFirstParagraph(body) || desc;
+      desc = descFromFrontmatter(frontmatter, fallbackDesc);
+    }
+    if (desc.length > 400) desc = desc.slice(0, 400) + '...';
+    const relPath = path.relative(REPO_ROOT, sopDir);
+
+    entries.push({
+      id: `sop/${slug}`,
+      kind: 'sop',
+      when_to_use: desc,
+      invoke: `Triggered by event subscriptions, or \`Read("${relPath}/flow.yaml")\``,
+      composes_with: [],
+      role_scope: roleScope,
+      status,
+      pillar: pillarFromPath(sopDir),
+    });
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
+function generateCapabilities() {
+  const cfg = CONFIG.capability;
+  const fp = path.join(REPO_ROOT, cfg.sourceFile);
+  if (!fs.existsSync(fp)) return [];
+  let doc;
+  try {
+    doc = yaml.load(fs.readFileSync(fp, 'utf-8'));
+  } catch (_e) {
+    return [];
+  }
+  if (!doc || !Array.isArray(doc.capabilities)) return [];
+  const entries = [];
+  for (const cap of doc.capabilities) {
+    if (!cap.id) continue;
+    // Skip superseded capabilities (avoid surfacing old versions)
+    if (cap.state === 'superseded' || cap.state === 'deprecated') continue;
+    const name = cap.name || cap.id;
+    let descRaw = (cap.description || '').toString().trim().split('\n')[0] || '';
+    descRaw = descRaw.replace(/\s+/g, ' ');
+    const desc = `${name}. ${descRaw}`.slice(0, 400);
+    const version = cap.version ? ` v${cap.version}` : '';
+
+    entries.push({
+      id: `capability/${cap.id}`,
+      kind: 'capability',
+      when_to_use: `${desc}${version}`,
+      invoke: cfg.invokeTemplate(cap.id),
+      composes_with: [],
+      role_scope: ['*'],
+      status: cap.state || 'unknown',
+      pillar: cap.pillar_owner || null,
+    });
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
+function generateWorkflows() {
+  const cfg = CONFIG.workflow;
+  const dir = path.join(REPO_ROOT, cfg.sourceDir);
+  if (!fs.existsSync(dir)) return [];
+  const files = walkDir(dir, cfg.pattern);
+  const entries = [];
+  for (const fp of files) {
+    const slug = path.basename(fp).replace(/\.(yaml|yml)$/, '');
+    let desc = `Workflow ${slug}`;
+    try {
+      const content = fs.readFileSync(fp, 'utf-8');
+      const wf = yaml.load(content);
+      if (wf && (wf.description || wf.purpose)) {
+        desc = (wf.description || wf.purpose).trim().replace(/\s+/g, ' ').slice(0, 400);
+      }
+    } catch (_e) { /* ignore */ }
+    entries.push({
+      id: `workflow/${slug}`,
+      kind: 'workflow',
+      when_to_use: desc,
+      invoke: cfg.invokeTemplate(slug),
+      composes_with: [],
+      role_scope: ['*'],
+      status: 'active',
+      pillar: '06-ai-ops',
+    });
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
+function generateSchedules() {
+  const cfg = CONFIG.schedule;
+  const fp = path.join(REPO_ROOT, cfg.sourceFile);
+  if (!fs.existsSync(fp)) return [];
+  let doc;
+  try {
+    doc = yaml.load(fs.readFileSync(fp, 'utf-8'));
+  } catch (_e) {
+    return [];
+  }
+  if (!doc || !Array.isArray(doc.schedules)) return [];
+  const entries = [];
+  for (const sch of doc.schedules) {
+    if (!sch.id) continue;
+    const cron = sch.cron || '?';
+    const handler = sch.handler || sch.skill || '?';
+    const descRaw = (sch.description || sch.purpose || `Scheduled job: ${sch.id}`).toString().trim().replace(/\s+/g, ' ');
+    const desc = `Cron ${cron}: ${descRaw}`.slice(0, 400);
+
+    entries.push({
+      id: `schedule/${sch.id}`,
+      kind: 'schedule',
+      when_to_use: desc,
+      invoke: `Auto-triggered by pg_cron + dispatcher. Handler: \`${handler}\``,
+      composes_with: [],
+      role_scope: ['founder', 'etl-runner'],
+      status: sch.status || (sch.disabled ? 'disabled' : 'active'),
+      pillar: '06-ai-ops',
+    });
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
+function generateHooks() {
+  const cfg = CONFIG.hook;
+  const dir = path.join(REPO_ROOT, cfg.sourceDir);
+  if (!fs.existsSync(dir)) return [];
+  const files = walkDir(dir, cfg.pattern, cfg.excludePattern);
+  const entries = [];
+  for (const fp of files) {
+    const slug = path.basename(fp, '.md');
+    if (slug.startsWith('_')) continue;
+    const content = fs.readFileSync(fp, 'utf-8');
+    const { frontmatter, body } = parseFrontmatter(content);
+    const fallbackDesc = extractFirstParagraph(body) || `Claude Code hook: ${slug}`;
+    const desc = descFromFrontmatter(frontmatter, fallbackDesc);
+    const type = frontmatter.type || frontmatter.event || 'PreToolUse';
+    const tools = Array.isArray(frontmatter.tools) ? frontmatter.tools.join(',') : (frontmatter.tools || '*');
+
+    entries.push({
+      id: `hook/${slug}`,
+      kind: 'hook',
+      when_to_use: desc.slice(0, 400),
+      invoke: `Auto-triggered (${type}) for tools matching: \`${tools}\``,
+      composes_with: [],
+      role_scope: ['*'],
+      status: frontmatter.status || 'active',
+      pillar: '06-ai-ops',
+    });
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
 function writeCatalog(kind, entries, options = {}) {
   const cfg = CONFIG[kind];
   const fp = path.join(RECIPIENTS_DIR, cfg.file);
@@ -410,6 +696,12 @@ function main() {
     agent: generateAgents,
     persona: generatePersonas,
     mcp: generateMcps,
+    wiki: generateWikis,
+    sop: generateSops,
+    capability: generateCapabilities,
+    workflow: generateWorkflows,
+    schedule: generateSchedules,
+    hook: generateHooks,
   };
 
   const kinds = targetKind ? [targetKind] : KINDS;
@@ -425,4 +717,8 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { generateSkills, generateCommands, generateAgents, generatePersonas, generateMcps, parseFrontmatter, emitEntry };
+module.exports = {
+  generateSkills, generateCommands, generateAgents, generatePersonas, generateMcps,
+  generateWikis, generateSops, generateCapabilities, generateWorkflows, generateSchedules, generateHooks,
+  parseFrontmatter, emitEntry,
+};

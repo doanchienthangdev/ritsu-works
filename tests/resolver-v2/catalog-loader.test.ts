@@ -409,9 +409,10 @@ Some header text.
   });
 
   describe("constants", () => {
-    it("CATALOG_FILES lists all 5 kinds", () => {
+    it("CATALOG_FILES lists all 11 kinds (v2.1)", () => {
       expect(loader.CATALOG_FILES).toEqual([
         "skills.md", "commands.md", "agents.md", "personas.md", "mcps.md",
+        "wikis.md", "sops.md", "capabilities.md", "workflows.md", "schedules.md", "hooks.md",
       ]);
     });
 
