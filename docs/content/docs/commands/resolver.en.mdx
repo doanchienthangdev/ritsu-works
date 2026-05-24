@@ -1,13 +1,13 @@
 ---
-title: 'Command: /resolver'
+title: 'Command: /resolver (v2)'
 description: >-
-  Lookup PLATFORM that maps natural-language triggers to AI workforce recipients (skills, commands,
-  agents, MCP tools, knowledge, SOPs, capabilities, personas). Background-layer consumption primary;
-  this command surfaces build/manage/introspect verbs. 5 subcommands. See
-  wiki/capabilities/resolver/spec.md.
+  Lookup PLATFORM v2 (LLM-Native Catalog) — find AI workforce recipients for natural-language
+  triggers. v2 uses in-session ambient catalog (Mode A, preferred), explicit LLM query (Mode B,
+  audit), or keyword fallback (Mode C, CRON only). Catalog auto-loaded via
+  @knowledge/recipients/*.md.
 source_path: .claude/commands/resolver.md
-source_hash: b1d3f462ca70ed3719dcd1d06e0bd5514749a02bfd433cb00b105dee486ab348
-generated_at: '2026-05-23T08:45:47.959Z'
+source_hash: 75688f00bc2082389c4c4fc31c4c466ea0478f4b709eeae551f0c1bc2572c3a1
+generated_at: '2026-05-24T02:09:52.642Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: en
@@ -15,164 +15,135 @@ language: en
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-Project-scoped command for ritsu-works. Front-end for capability `resolver` v1.0
-(`knowledge/resolvers/`). This command is a thin orchestrator — engine logic
-lives in `scripts/resolver/*.cjs` (CommonJS, no third-party deps).
+Project-scoped command for ritsu-works. Front-end for capability `resolver-v2`
+(`knowledge/recipients/`). This command is a thin orchestrator — engine logic
+lives in `scripts/resolver-v2/*.cjs`.
 
-The command:
-- Parses argv (subcommand + flags),
-- Dispatches to the corresponding skill or directly invokes
-  `scripts/resolver/*.cjs`,
-- Renders output (human-readable default; `--json` machine-readable).
+**v2 key change vs v1:** Replaced keyword-matching engine with **LLM-native
+catalog**. The ambient catalog (loaded via `@knowledge/recipients/*.md`
+imports in `.claude/CLAUDE.md`) is the substrate; you reason naturally about
+trigger→recipient instead of running search algorithms.
 
-## Subcommands (5 verbs)
+## Three modes
+
+| Mode | When | Latency | Cost |
+|---|---|---|---|
+| **A — ambient** (preferred) | You're in Claude Code session; just reason naturally about catalog | 0ms | $0 |
+| **B — explicit** (`/resolver query`) | Debug, audit, operator-facing | ~5-500ms | $0 in-session |
+| **C — keyword fallback** | CRON/edge function (no LLM in loop) | \<5ms | $0 |
+
+## Subcommands
 
 | Invocation | Purpose | HITL |
 |---|---|---|
-| `/resolver query "<trigger>" [--semantic] [--plan] [--json] [--role=<r>] [--kind=<k>]` | Look up best match for trigger | A |
-| `/resolver list [--kind=<k>] [--pillar=<p>] [--role=<r>] [--status=<s>] [--json]` | Enumerate routes (filtered) | A |
-| `/resolver validate [<file>]` | Run 4 validators (schema, routes, trigger-uniqueness, coverage) | A |
-| `/resolver sync [--dry-run] [--apply] [--auto-pr] [--kind=<k>]` | Auto-derive routes from recipient frontmatter | A/B/C |
-| `/resolver explain "<trigger>" [--semantic]` | Verbose match trace (debugging) | A |
+| `/resolver query "<trigger>" [--kind=<k>] [--json] [--mode=A\|B\|C]` | Find recipient + composition | A |
+| `/resolver list [--kind=<k>] [--status=<s>] [--json]` | Enumerate catalog entries | A |
+| `/resolver validate` | Run 4 v2 validators (schema, uniqueness, coverage, link-integrity) | A |
+| `/resolver sync [--dry-run\|--apply\|--auto-pr] [--kind=<k>]` | Rebuild catalog from source frontmatter | A/B/C |
+| `/resolver explain "<trigger>"` | Verbose match trace (which catalog files contributed, which IDs considered) | A |
 
-DROPPED per architect simplification (per spec §6.1):
-- `/resolver add` wizard → founder edits `knowledge/resolvers/overrides/*.yaml` directly
-- `/resolver test` → folded into `/resolver explain`
-
-## Argv schema (per verb)
-
-```
-/resolver query "<trigger>" [flags]
-  positional:
-    <trigger>            required; trigger string to match
-  flags:
-    --semantic           opt-in semantic fallback (v1.1; v1.0 returns SemanticUnavailable)
-    --plan               return composition.plan if route has one (CP-2)
-    --json               machine-readable output
-    --role=<r>           override caller role (default: $MCP_CALLER_ROLE)
-    --kind=<k>           restrict to specific recipient kind
-
-/resolver list [flags]
-  flags:
-    --kind=<k>           skill | command | agent | mcp | wiki | sop | capability | persona
-    --pillar=<p>         0X-pillar name
-    --role=<r>           filter by role_scope
-    --status=<s>         active | stub | deprecated
-    --json               machine-readable
-
-/resolver validate [<file>]
-  positional:
-    <file>               optional; specific routes file. Omit for all.
-  flags:
-    --verbose            full output (default: terse pass/fail)
-
-/resolver sync [flags]
-  flags:
-    --dry-run            (default per D-2) print proposed diff; write nothing
-    --apply              write changes to local working tree
-    --auto-pr            apply + commit to branch + open PR (Tier C)
-    --kind=<k>           limit to specific recipient kind (skill | command | agent)
-
-/resolver explain "<trigger>" [flags]
-  Always verbose. Shows: tokenization, keyword hits per route, semantic
-  scores (if --semantic), role filter outcome, final decision.
-  flags:
-    --semantic           include semantic match attempt (v1.1)
-```
-
-## How to invoke
-
-Run the underlying Node scripts in the project root:
+## How to invoke (CLI direct)
 
 ```bash
-# query
-node -e "const q = require('./scripts/resolver/query.cjs'); console.log(JSON.stringify(q.query({trigger: 'evolve a skill'}), null, 2))"
+# Mode B query — explicit LLM-mediated
+node -e "const { loadCatalog } = require('./scripts/resolver-v2/catalog-loader.cjs'); console.log(loadCatalog().totalCount + ' recipients loaded')"
 
-# explain
-node -e "const q = require('./scripts/resolver/query.cjs'); console.log(JSON.stringify(q.explain({trigger: 'evolve'}), null, 2))"
+# Mode C fallback — keyword only
+node -e "const { match } = require('./scripts/resolver-v2/keyword-fallback.cjs'); console.log(JSON.stringify(match({trigger: 'evolve a skill'}), null, 2))"
 
-# list — read knowledge/resolvers/routes/<kind>.yaml directly OR via loader
-node -e "const l = require('./scripts/resolver/load-index.cjs'); const idx = l.loadIndex(); console.log(idx.routes.map(r => r.id).join('\\n'))"
+# Sync — rebuild catalog from frontmatter
+node scripts/resolver-v2/sync.cjs --dry-run
+node scripts/resolver-v2/sync.cjs --apply
 
-# validate — run the 4 cross-tier validators directly
-node scripts/cross-tier/validate-resolver-schema.cjs
-node scripts/cross-tier/validate-resolver-routes.cjs
-node scripts/cross-tier/validate-resolver-trigger-uniqueness.cjs
-node scripts/cross-tier/validate-resolver-coverage.cjs
-
-# sync
-node scripts/resolver/sync.cjs --dry-run
-node scripts/resolver/sync.cjs --apply
-node scripts/resolver/sync.cjs --auto-pr
+# Validate (run all 4)
+node scripts/cross-tier/validate-resolver-v2-schema.cjs
+node scripts/cross-tier/validate-resolver-v2-uniqueness.cjs
+node scripts/cross-tier/validate-resolver-v2-coverage.cjs
+node scripts/cross-tier/validate-resolver-v2-link-integrity.cjs
 ```
 
-Convenience shortcuts in `package.json` (added Sprint 4):
-- `pnpm resolver:query "<trigger>"`
-- `pnpm resolver:list`
-- `pnpm resolver:validate`
-- `pnpm resolver:sync` (dry-run by default)
-- `pnpm resolver:explain "<trigger>"`
+## Mode A workflow (the common case)
 
-## Output
+You don't need to invoke this command. Just read the catalog naturally:
 
-### Default (human-readable)
+1. User asks: "Need to onboard the first 30 paying customers"
+2. You scan ambient catalog (`@knowledge/recipients/skills.md`, etc.)
+3. You identify:
+   - **Primary:** `skill/customer-onboarding`
+   - **Supporting:** `persona/cgo`, `mcp/supabase-ops__query`
+4. You invoke directly: `Skill({skill: "customer-onboarding"})`
+5. Optionally write audit row via `audit.cjs#buildRecord({mode: 'A', ...})`
+
+## Mode B workflow (operator-facing)
 
 ```
-$ /resolver query "evolve a skill"
-[dispatch_silently] skill/evolve  conf=0.9  latency=2ms
-  alternatives:
-    skill/eval-evo/orchestrator  conf=0.9
-    skill/eval-evo/score-skill   conf=0.9
-  invocation: skill_tool(skill="evolve")
+$ /resolver query "onboard first 30 customers"
+
+[Mode B — LLM-mediated]
+Primary: skill/customer-onboarding
+  Invoke: Skill({ skill: "customer-onboarding" })
+  When: Onboarding a new paying customer (especially the first 30 high-touch
+        Zoom onboardings)...
+
+Supporting (composition):
+  persona/cgo                  — Founder routing to GTM/customer ops
+  mcp/supabase-ops__query      — Read customer profile state
+
+Alternatives:
+  skill/wedge-validation       — If still validating before onboarding
+  command/cgo                  — If founder wants weekly customer session
+
+Rationale: Customer onboarding is the primary action; CGO persona owns
+GTM funnel orchestration; supabase-ops query needed for customer state.
+
+Audit: run_id=<uuid> written to ops.resolver_decisions (mode='B')
 ```
 
-### --json
+## Mode C workflow (non-LLM consumer)
 
-```json
-{
-  "trigger": "evolve a skill",
-  "trigger_normalized": "evolve a skill",
-  "decision": "dispatch_silently",
-  "matched": {"route": {"id": "skill/evolve", ...}, "confidence": 0.9, ...},
-  "alternatives": [...],
-  "latency_ms": 2,
-  "perf": {"load_ms": 1, "match_count": 3, "filtered_count": 3},
-  ...
-}
+```bash
+# Edge function / CRON job
+node -e "
+const { match } = require('./scripts/resolver-v2/keyword-fallback.cjs');
+const r = match({ trigger: 'sync wiki' });
+console.log(r.matched?.recipient.id || 'no match');
+"
+# → command/wiki
 ```
 
-## When to invoke explicitly
+Recall acknowledged ~30% (keyword-only); use Mode A whenever possible.
 
-This command's verbs are operator-facing (build/manage/introspect). The
-PRIMARY consumption mode for resolver is BACKGROUND-LAYER (skills/agents
-invoke `resolver-query` SKILL or `mcp__supabase-ops__resolver_query` MCP
-tool transparently).
+## v1 → v2 migration
 
-Use explicit `/resolver query` when:
-- You want to see what would be dispatched without actually dispatching
-- You're curating overrides and need to test a trigger
-- You're debugging why an agent's lookup picked a particular recipient
-- Onboarding (e.g. `/resolver list` to see all routes)
+| v1 | v2 |
+|---|---|
+| `knowledge/resolvers/routes/*.yaml` | `knowledge/recipients/*.md` |
+| `scripts/resolver/query.cjs` | DELETED (Mode A replaces) |
+| `scripts/resolver/load-index.cjs` | DELETED |
+| Keyword whole-word matching | LLM ambient context |
+| 1832 LOC | ~600 LOC |
+| Recall 30% | Recall ~80% (Mode A) |
 
 ## Defensive notes
 
-- `/resolver sync --auto-pr` opens a PR via `gh` CLI; requires `gh auth login` first
-- Working tree must be clean (no unrelated changes) for `--auto-pr`
-- Concurrent `/resolver sync --apply` blocked by lock file (.archives/resolver-sync.lock; 10min staleness)
-- `/resolver query` is read-only; safe for any role
-- `/resolver validate` runs the 4 validators as standalone scripts; same as `pnpm check`'s resolver section
+- `/resolver sync --auto-pr` opens a PR via `gh` CLI; requires `gh auth login`
+- Working tree must be clean for `--auto-pr`
+- Concurrent `--apply` blocked by `.archives/resolver-v2-sync.lock` (10-min staleness)
+- `/resolver query` Mode B writes audit row best-effort (failure non-blocking)
+- Mode C is fallback; encourage migration to Mode A
 
-## Pre-flight (run before any subcommand)
+## Pre-flight
 
-- Resolver capability state: `proposed` → `operating` after Phase 8 (currently `proposed` v1.0 in deployment)
-- Drift: `pnpm check` should pass
+- Capability state: `operating` v2.0.0 (Phase 8 promotion 2026-05-23)
+- Drift: `pnpm check` should pass including 4 v2 resolver validators
 
 ## See also
 
-- Spec: `wiki/capabilities/resolver/spec.md` (after Phase 8 promotion; pre-promotion at `.archives/cla/resolver/spec.md`)
-- Routes: `knowledge/resolvers/`
-- Engine: `scripts/resolver/`
-- Validators: `scripts/cross-tier/validate-resolver-*.cjs`
-- Audit: `ops.resolver_decisions` table
-- Architect findings: `.archives/brainstorming/resolver/17-outside-voice.md`
+- Spec: `.archives/cla/resolver-v2/spec.md`
+- Catalog: `knowledge/recipients/*.md`
+- Engine: `scripts/resolver-v2/`
+- Validators: `scripts/cross-tier/validate-resolver-v2-*.cjs`
+- Audit table: `ops.resolver_decisions` (+ migration 00035)
+- v1 retrospective: `wiki/capabilities/resolver/retrospective.md`
+- Consumer SKILL: `06-ai-ops/skills/resolver-query/SKILL.md`
 

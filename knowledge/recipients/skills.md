@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 71
+**Total entries:** 67
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -636,53 +636,15 @@ Founder approval converts a candidate into a PR.
 ## skill/resolver-query
 
 **Kind:** skill
-**When to use:** Consumer contract for capability `resolver` v1.0 — any other skill MAY invoke this to look up the best AI workforce recipient for a natural-language trigger across 8 kinds (skill, command, agent, mcp, wiki, sop, capability, persona). Returns routing decision + alternatives + invocation spec. Zero LLM in hot path; structured matching only (semantic deferred to v1.1). Per-call latency <50ms p95 warm. Background-layer consumer pattern — skills/agents/workflows invoke transparently instead of grep'ing filesystem.
+**When to use:** CONSUMER CONTRACT for resolver v2 LLM-native catalog. Any skill or agent MAY
+invoke this to find AI workforce recipients for a trigger across kinds (skill,
+command, agent, mcp, persona). v2 uses Mode A (in-session ambient catalog —
+preferred), Mode B (explicit LLM-mediated query — debugging/audit), and Mode C
+(keyword fallback for non-LLM consumers).
+Returns: primary recipient + supporting composition + invocation spec.
+Caller executes the invocation (D-4 INVARIANT).
 
 **Invoke:** `Skill({ skill: "resolver-query" })`
-
-**Role scope:** *
-**Status:** active
-**Pillar:** 06-ai-ops
-
-## skill/resolver/explain
-
-**Kind:** skill
-**When to use:** Implementation of `/resolver explain` verb — verbose match trace showing tokenization, per-route keyword hits, confidence scores, role filter outcome, decision reasoning. Debugging surface for "why did the resolver pick X for trigger Y?"
-
-**Invoke:** `Skill({ skill: "resolver/explain" })`
-
-**Role scope:** *
-**Status:** active
-**Pillar:** 06-ai-ops
-
-## skill/resolver/orchestrator
-
-**Kind:** skill
-**When to use:** Top-level orchestrator for /resolver command — parses argv, dispatches to verb sub-skills (query/sync/explain), renders output (human-readable default; --json machine-readable). Per capability `resolver` v1.0 spec §6.
-
-**Invoke:** `Skill({ skill: "resolver/orchestrator" })`
-
-**Role scope:** *
-**Status:** active
-**Pillar:** 06-ai-ops
-
-## skill/resolver/query
-
-**Kind:** skill
-**When to use:** Implementation of `/resolver query` verb — invokes scripts/resolver/query.cjs with parsed trigger + flags, renders top match + alternatives.
-
-**Invoke:** `Skill({ skill: "resolver/query" })`
-
-**Role scope:** *
-**Status:** active
-**Pillar:** 06-ai-ops
-
-## skill/resolver/sync
-
-**Kind:** skill
-**When to use:** Implementation of `/resolver sync` verb — scans filesystem for skill/command/agent recipients without routes, generates stubs from frontmatter, writes routes/*.yaml. Default --dry-run per D-2 founder decision. --apply writes; --auto-pr writes + branch + commit + push + opens PR (Tier C).
-
-**Invoke:** `Skill({ skill: "resolver/sync" })`
 
 **Role scope:** *
 **Status:** active

@@ -1,171 +1,143 @@
 ---
 title: 'Skill: resolver-query'
-description: >-
-  Consumer contract for capability `resolver` v1.0 — any other skill MAY invoke this to look up the
-  best AI workforce recipient for a natural-language trigger across 8 kinds (skill, command, agent,
-  mcp, wiki, sop, capability, persona). Returns routing decision + alternatives + invocation spec.
-  Zero LLM in hot path; structured matching only (semantic deferred to v1.1). Per-call latency <50ms
-  p95 warm. Background-layer consumer pattern — skills/agents/workflows invoke transparently instead
-  of grep'ing filesystem.
+description: |
+  CONSUMER CONTRACT cho resolver v2 LLM-Native Catalog. Bất kỳ skill hoặc agent
+  nào CÓ THỂ invoke skill này để tìm AI workforce recipients cho một trigger
+  qua các kinds (skill, command, agent, mcp, persona). v2 dùng Mode A (in-session
+  ambient catalog — preferred), Mode B (explicit LLM-mediated query — debug/audit),
+  và Mode C (keyword fallback cho non-LLM consumers).
+  Trả về: primary recipient + supporting composition + invocation spec.
+  Caller chịu trách nhiệm execute invocation (D-4 INVARIANT).
 source_path: 06-ai-ops/skills/resolver-query/SKILL.md
-source_hash: 03311036e8acd0a14ec929366b8179a48cb9f7252c365955cb3b8ea22773c692
-generated_at: '2026-05-23T08:45:47.930Z'
+source_hash: a8bb868741ad51128d2e15495388d078e5e64e65a310c714d293f84fdd9636b5
+generated_at: '2026-05-24T02:09:52.565Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_at: '2026-05-23T09:00:00.000Z'
-translated_by: docs-translate-inline v1.0 (claude-code session)
-translation_model: claude-opus-4-7
-translated_source_hash: 03311036e8acd0a14ec929366b8179a48cb9f7252c365955cb3b8ea22773c692
+translated_at: '2026-05-24T09:10:00.000Z'
+translated_by: docs-translate-inline v1.0 (claude-code session, v2 rewrite)
+translated_source_hash: a8bb868741ad51128d2e15495388d078e5e64e65a310c714d293f84fdd9636b5
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-## Khi nào dùng
+## Khi nào dùng skill này
 
-Invoke từ một skill khác khi bạn cần tìm recipient AI workforce phù hợp
-cho task được giao. Trả về metadata + invocation spec; BẠN execute
-invocation đó.
+Invoke từ một skill, agent, hoặc workflow khác khi bạn cần tìm đúng AI workforce
+recipient cho một natural-language task — không cần grep filesystem hay hardcode
+lookups.
 
-Ví dụ:
-- Một skill đang xử lý user input: "user muốn tìm brand voice guide" →
-  resolver-query trả về `\{ matched: \{ route: \{recipient: \{kind: 'wiki',
-  slug: 'brand-voice'}}, ... } }`
-- Một agent đang làm multi-step task: cần dispatch sub-skill cho
-  step 2 — dùng resolver-query để tìm skill phù hợp thay vì
-  hardcode tên
-- Một scheduled job: nhận trigger generic "do this customer thing"
-  → resolver-query route tới skill customer-pillar phù hợp
+**Ba consumer modes — chọn theo context:**
 
-## Inputs
+### Mode A (PREFERRED — in-session ambient catalog)
+
+Bạn đang vận hành bên trong một Claude Code session. Catalog
+`knowledge/recipients/{skills,commands,agents,personas,mcps}.md` **đã được load**
+trong ambient context qua `.claude/CLAUDE.md` imports.
+
+→ **Bạn KHÔNG cần invoke skill này.** Bạn chỉ cần reason về trigger một cách
+tự nhiên và identify primary + supporting recipients từ ambient context. Sau đó
+invoke recipient trực tiếp (`Skill({...})`, `Agent({...})`, vv.).
+
+Tùy chọn ghi audit row qua `audit.cjs` nếu quyết định quan trọng (ví dụ:
+orchestration delegation).
+
+**Latency:** 0ms additional. **Cost:** $0 (không có LLM call thêm).
+
+### Mode B (Explicit — operator-facing, audit/debug)
+
+User invoked `/resolver query "<trigger>"` hoặc programmatic skill call.
+
+Steps:
+1. Load catalog (`scripts/resolver-v2/catalog-loader.cjs#loadCatalog()`)
+2. Format structured prompt:
+   ```
+   System: \<catalog as text — all 5 files concatenated, hoặc kind-filtered nếu --kind cho>
+   User: Cho trigger "\<trigger>", return JSON:
+     \{ primary: \<recipient-id>, supporting: [\<id>...], rationale: "...", alternatives: [\<id>...] }
+   ```
+3. Current session LLM (bạn, Claude) reasons → emits JSON
+4. Validate IDs tồn tại trong catalog (`byId.has()`); reject hallucinations
+5. Build audit record qua `audit.cjs#buildRecord` với `mode='B', llm_reasoning=\<rationale>, composition_supporting=[\<supporting>]`
+6. Write audit qua `mcp__supabase-ops__insert` to `ops.resolver_decisions`
+7. Return human-readable output
+
+**Latency:** ~5-500ms (catalog load + LLM reasoning). **Cost:** $0 in-session
+(no separate API call); cached system prompt nếu invoked multiple times.
+
+### Mode C (Keyword fallback — non-LLM consumers only)
+
+CRON jobs, Edge Functions, pre-commit hooks. Không có LLM trong loop.
+
+Invoke `scripts/resolver-v2/keyword-fallback.cjs#match(\{trigger})` trực tiếp.
+Single-recipient response. ~30% recall (acknowledged degradation vs Mode A).
+
+Dùng cái này **CHỈ KHI** bạn không thể reach LLM context. Encourage migration
+sang Mode A.
+
+**Latency:** \<5ms. **Cost:** $0.
+
+## Output schema (Mode A/B)
 
 ```typescript
 {
-  trigger: string,             // bắt buộc; trigger natural-language
-  flags?: {
-    semantic?: boolean,         // opt-in semantic fallback (v1.1; v1.0 bỏ qua)
-    plan?: boolean,             // trả về composition.plan nếu route có (CP-2)
-    json?: boolean,             // chỉ ảnh hưởng tới output /resolver query; bỏ qua ở đây
+  primary: {
+    id: string,           // e.g. "skill/customer-onboarding"
+    kind: string,
+    invoke: string,       // exact invocation snippet
+    when_to_use: string,
+    status: string,
   },
-  callerRole?: string,         // override $MCP_CALLER_ROLE
-  kind?: string,               // giới hạn theo recipient kind cụ thể
+  supporting: Array<{     // composition — recipients để dùng alongside
+    id: string,
+    kind: string,
+    invoke: string,
+    why: string,          // why this supports the primary
+  }>,
+  alternatives: Array<{   // other valid primary choices caller có thể prefer
+    id: string,
+    kind: string,
+    confidence: number,   // LLM-judged 0-1
+  }>,
+  rationale: string,       // LLM's natural-language reasoning
+  catalog_files_loaded: string[],
+  mode: 'A' | 'B' | 'C',
+  audit_run_id?: string,   // nếu audit written
 }
 ```
 
-## Outputs
+## INVARIANTS
 
-```typescript
-{
-  trigger: string,
-  trigger_normalized: string,   // NFC + lowercase + whitespace-collapsed
-  caller_role: string | null,
-  decision: 'dispatch_silently' | 'surface_candidates' | 'no_match' | 'role_denied',
-  matched: {
-    route: { id, recipient: {kind, slug, path?}, invocation: {mechanism, args}, ... },
-    confidence: number,         // 0.0-1.0; computed từ match quality
-    matchedKeyword: string,
-  } | null,
-  alternatives: Array<{ route, confidence, matchedKeyword }>,
-  semantic_used: boolean,        // false ở v1.0
-  latency_ms: number,            // total bao gồm load + match + decide
-  perf: { load_ms, match_count, filtered_count },
-  flags: {...},
-  config_thresholds: { dispatch_silently: 0.85, surface_candidates: 0.60 },
-}
-```
+**INV-1:** Zero false-positive matches. LLM hallucinations rejected.
 
-## Cách invoke (programmatic — Node.js consumer)
+**INV-2:** Single source of truth — chỉ `knowledge/recipients/*.md`. KHÔNG có
+parallel YAML route file.
 
-```javascript
-const { query } = require('scripts/resolver/query.cjs');
-const result = query({ trigger: 'investigate customer churn' });
+**INV-3 (D-4 carryover từ v1):** Skill này KHÔNG execute recipient.
+Nó trả về metadata + invocation spec. Caller (bạn) execute.
 
-switch (result.decision) {
-  case 'dispatch_silently':
-    // Confidence ≥0.85; auto dùng top match
-    const { recipient, invocation } = result.matched.route;
-    // Execute invocation.args qua mechanism phù hợp
-    break;
-  case 'surface_candidates':
-    // 0.60 ≤ confidence < 0.85; trình bày alternatives cho user hoặc rank thêm
-    console.log('Top candidates:', result.alternatives.slice(0, 3));
-    break;
-  case 'no_match':
-    // < 0.60; cân nhắc flag --semantic (v1.1) HOẶC ambiguous_fallback
-    break;
-  case 'role_denied':
-    // Caller role không match route.role_scope
-    break;
-}
-```
-
-## Cách invoke (skill-to-skill qua Skill tool)
-
-```typescript
-// Bên trong một SKILL.md hoặc agent action khác
-const result = await Skill({
-  skill: 'resolver-query',
-  trigger: 'investigate customer churn'
-});
-```
-
-Khi invoke qua Skill tool, skill này đọc trigger từ caller context,
-chạy query, trả về kết quả.
-
-## Cách invoke (MCP-aware agent runtime)
-
-```typescript
-const result = await mcp__supabase-ops__resolver_query({
-  trigger: 'investigate customer churn',
-  caller_role: 'founder',  // tùy chọn; mặc định lấy từ env
-  flags: { semantic: false, plan: false }
-});
-```
-
-(MCP tool registered trong `knowledge/mcp-tools.yaml` — Sprint 3 ship với
-`status: planned`; handler đầy đủ trong `mcp-server/src/tools/resolver-query.ts`
-sẽ follow ở v1.0.1 sau khi Sprint 4 stabilize.)
-
-## Decision thresholds (mặc định v1.0 từ registry.yaml)
-
-- **≥0.85** — `dispatch_silently` → dùng top match không cần prompt caller
-- **0.60-0.85** — `surface_candidates` → trả về top-3 candidates cho caller chọn
-- **\<0.60** — `no_match` → fall through tới ambiguous_fallback (hoặc --semantic ở v1.1)
-
-Tunable theo `config.default_confidence_threshold` trong `knowledge/resolvers/registry.yaml`.
-
-## Performance
-
-- p95 warm cache: \<50ms (target theo spec §11)
-- p99 warm cache: \<100ms
-- Cold start (process boot + first load): \<200ms
+**INV-4:** Catalog auto-sync là frontmatter→catalog (one-way). Founder
+overrides qua direct edit + `<!-- override-start -->` markers được detect ở
+next sync.
 
 ## Failure modes
 
-- `InvalidTrigger` — trigger nil/empty/wrong-type; throws
-- `ResolverDown` — `knowledge/resolvers/` thiếu hoàn toàn; throws
-- `TriggerTooLong` — trigger >1000 chars; truncate + warn, proceed
-- Tất cả các lỗi khác logged + degrade gracefully
+| Code | Cause | Handling |
+|---|---|---|
+| `INVALID_TRIGGER` | nil/empty trigger | Throw; caller phải provide |
+| `CATALOG_DOWN` | recipients/ missing | Throw; fix install |
+| `CATALOG_PARSE_ERROR` | malformed markdown | Throw với file+line |
+| `DUPLICATE_RECIPIENT_ID` | same id trong 2 files | Throw; manual fix |
+| `MISSING_REQUIRED_FIELD` | catalog entry incomplete | Throw với entry ID |
+| `HALLUCINATED_RECIPIENT` | LLM trả về unknown ID | Mode B retries 1 lần với stricter prompt |
+| `AUDIT_WRITE_FAILED` | DB unavailable | Best-effort; warn nhưng không throw |
 
-## Audit
+## Xem thêm
 
-Mỗi invocation ghi một row vào `ops.resolver_decisions` (best-effort;
-defer tới local fallback nếu DB unreachable). Dùng bởi Monday digest +
-loop active-learning v1.1.
-
-## INVARIANT (D-4)
-
-**Skill này KHÔNG ĐƯỢC execute recipient.** Nó trả về metadata +
-invocation spec. Caller (bạn) chịu trách nhiệm execute invocation.
-
-Điều này được enforce bởi:
-- Engine không có exec primitives (không có call Skill/Agent/Bash tool)
-- Property test trong `tests/resolver/engine.test.ts` validate module imports
-
-## Liên quan
-
-- Spec: `wiki/capabilities/resolver/spec.md` (hoặc `.archives/cla/resolver/spec.md` trước promotion)
-- Command file: `.claude/commands/resolver.md`
-- Engine: `scripts/resolver/query.cjs`
-- 4 sub-skills resolver khác: `06-ai-ops/skills/resolver/{orchestrator,query,sync,explain}/SKILL.md`
+- Spec: `.archives/cla/resolver-v2/spec.md`
+- Catalog files: `knowledge/recipients/*.md`
+- Engine: `scripts/resolver-v2/`
+- Mode C fallback: `scripts/resolver-v2/keyword-fallback.cjs`
+- Audit table: `ops.resolver_decisions` (+ migration 00035)
+- v1 retrospective: `wiki/capabilities/resolver/retrospective.md`

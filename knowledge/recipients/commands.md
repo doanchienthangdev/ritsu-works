@@ -149,7 +149,7 @@ table.
 ## command/resolver
 
 **Kind:** command
-**When to use:** Lookup PLATFORM that maps natural-language triggers to AI workforce recipients (skills, commands, agents, MCP tools, knowledge, SOPs, capabilities, personas). Background-layer consumption primary; this command surfaces build/manage/introspect verbs. 5 subcommands. See wiki/capabilities/resolver/spec.md.
+**When to use:** Lookup PLATFORM v2 (LLM-Native Catalog) — find AI workforce recipients for natural-language triggers. v2 uses in-session ambient catalog (Mode A, preferred), explicit LLM query (Mode B, audit), or keyword fallback (Mode C, CRON only). Catalog auto-loaded via @knowledge/recipients/*.md.
 
 **Invoke:** `/resolver`
 
