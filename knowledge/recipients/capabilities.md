@@ -67,12 +67,12 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **Status:** operating
 **Pillar:** 06-ai-ops
 
-## capability/resolver-v2
+## capability/resolver-v2.2-context-sources
 
 **Kind:** capability
-**When to use:** /resolver v2 — LLM-Native Catalog (supersedes resolver v1). Resolver redesigned per founder critique: replaced keyword-matching engine v2.0.0
+**When to use:** /resolver v2.2 — Context Sources (5 new recipient kinds + adapter skeleton). Incremental on resolver-v2.1 (catalog architecture unchanged). Adds 5 new v2.2.0
 
-**Invoke:** `Read("wiki/capabilities/resolver-v2/spec.md")` or `/cla update resolver-v2`
+**Invoke:** `Read("wiki/capabilities/resolver-v2.2-context-sources/spec.md")` or `/cla update resolver-v2.2-context-sources`
 
 **Role scope:** *
 **Status:** operating

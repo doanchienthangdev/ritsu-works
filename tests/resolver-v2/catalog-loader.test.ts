@@ -409,10 +409,13 @@ Some header text.
   });
 
   describe("constants", () => {
-    it("CATALOG_FILES lists all 11 kinds (v2.1)", () => {
+    it("CATALOG_FILES lists all 16 kinds (v2.2)", () => {
       expect(loader.CATALOG_FILES).toEqual([
         "skills.md", "commands.md", "agents.md", "personas.md", "mcps.md",
+        // v2.1 composition expansion
         "wikis.md", "sops.md", "capabilities.md", "workflows.md", "schedules.md", "hooks.md",
+        // v2.2 context sources
+        "pages.md", "views.md", "metrics.md", "runbooks.md", "external-sources.md",
       ]);
     });
 

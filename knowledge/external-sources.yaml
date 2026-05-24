@@ -1,0 +1,158 @@
+# External Sources Registry — resolver v2.2 (Context Sources capability)
+#
+# Single declarative file listing every 3rd-party / external integration
+# the AI workforce uses to reach the world outside ritsu-works.
+#
+# Read by scripts/resolver-v2/catalog-generator.cjs generateExternalSources()
+# and projected into knowledge/recipients/external-sources.md as recipients
+# with kind=external-source + source_type discriminator (resolver v2.2 spec).
+#
+# Adding new external sources: open PR to this file. v2.4+ will auto-discover
+# via scripts/resolver-v2/adapters/*.adapter.cjs (skeleton landed in v2.2;
+# runtime not active yet).
+#
+# Fields per source:
+#   id            stable slug (kebab-case)
+#   source_type   discriminator — see knowledge/recipients/external-sources.md
+#                 categories: db-readonly, api, llm-api, messaging, deployment,
+#                 payments-api, knowledge-graph-mcp
+#   description   human-readable purpose
+#   auth_env      env-var name holding the credential (NEVER the value)
+#   role_scope    list of role slugs allowed to invoke (defaults to ['*'])
+#   invoke_pattern   how callers reach this integration
+#   install_path  (optional) local install location for self-hosted MCPs
+#   availability  (optional) condition under which this is reachable
+#   status        active | planned | deferred | deprecated
+#
+# Owner: founder
+# Change policy: PR + founder review (Tier C — affects what the workforce can reach)
+
+version: 1.0.0
+last_updated: 2026-05-24
+owner: founder
+
+sources:
+  # -------------------------------------------------------------------------
+  # DATA — Supabase Product project (READ-ONLY firewall; etl-runner only)
+  # -------------------------------------------------------------------------
+  - id: supabase-product-readonly
+    source_type: db-readonly
+    description: |
+      Product Supabase project (read-only via etl-runner). The single most
+      important access boundary in the company per governance/HITL.md
+      D-MAX rules. Operating AI never writes here; reads happen exclusively
+      through metrics.* mirror populated by the etl_flows.product_metrics_to_ops
+      pipeline in knowledge/manifest.yaml.
+    auth_env: SUPABASE_PRODUCT_READ_KEY
+    role_scope: [etl-runner]
+    invoke_pattern: "etl-runner only — invoked via supabase/functions/_shared/worker.ts makeEtlProductDauSnapshotHandler. See knowledge/manifest.yaml etl_flows.product_metrics_to_ops."
+    status: active
+
+  # -------------------------------------------------------------------------
+  # CODE/REPO — GitHub
+  # -------------------------------------------------------------------------
+  - id: github-repo
+    source_type: api
+    description: |
+      GitHub doanchienthangdev/ritsu-works repo. Used for repo metadata,
+      PR listing/review, issue tracking, GitHub Actions workflow status.
+      Merge permission gated to founder-only PAT per governance/SECRETS.md.
+    auth_env: GITHUB_TOKEN
+    role_scope: ['*']
+    invoke_pattern: "gh CLI via Bash tool (e.g. `gh pr list`, `gh issue view`, `gh api repos/...`). MCP variant `mcp__github__*` if/when an MCP server is added."
+    status: active
+
+  # -------------------------------------------------------------------------
+  # LLM PROVIDERS — Anthropic + OpenAI
+  # -------------------------------------------------------------------------
+  - id: anthropic-api
+    source_type: llm-api
+    description: |
+      Anthropic Claude Messages API. Used for non-session LLM calls —
+      out-of-band agents, CRON eval handlers (eval-evo-calibrate-efficacy,
+      synthesize-morning-brief), Edge Functions in supabase/functions/.
+      In-session Claude Code calls do NOT need this — they use the host
+      session's billing.
+    auth_env: ANTHROPIC_API_KEY
+    role_scope: ['*']
+    invoke_pattern: "`@anthropic-ai/sdk` in Node/Edge functions, e.g. `new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }).messages.create({...})`."
+    status: active
+
+  - id: openai-api
+    source_type: llm-api
+    description: |
+      OpenAI API. Primary use: text-embedding-3-small for wiki-sync
+      embeddings (1536 dim, written to ops.knowledge_embeddings). Also
+      used by wiki-sync/ask LLM-fallback retrieval (feature-flag gated).
+    auth_env: OPENAI_API_KEY
+    role_scope: [etl-runner, founder]
+    invoke_pattern: "`openai` SDK in scripts/sync/* and 06-ai-ops/skills/wiki-sync/*. Example: `new OpenAI({apiKey: process.env.OPENAI_API_KEY}).embeddings.create({model: 'text-embedding-3-small', input})`."
+    status: active
+
+  # -------------------------------------------------------------------------
+  # MESSAGING — Telegram (HITL routing)
+  # -------------------------------------------------------------------------
+  - id: telegram-bot
+    source_type: messaging
+    description: |
+      Telegram bot for HITL routing (Tier B/C/D approval flows). Receives
+      "override: <reason>" magic phrase from founder per governance/HITL.md.
+      Posts dry-run previews + inline approve/reject buttons. Currently
+      stub — bot setup scheduled with SOP-FOUNDER-009-telegram-hitl-bot-config.
+    auth_env: TELEGRAM_BOT_TOKEN
+    role_scope: [founder, hitl-router]
+    invoke_pattern: "Telegram Bot API via Edge Function. MCP variant `mcp__telegram__*` if/when added (planned)."
+    status: active
+
+  # -------------------------------------------------------------------------
+  # HOSTING — Vercel (docs site)
+  # -------------------------------------------------------------------------
+  - id: vercel
+    source_type: deployment
+    description: |
+      Vercel Hobby plan hosting for `docs/` Fumadocs subproject. Deployed
+      at https://ritsu-works.vercel.app. Auto-deploys on push to main
+      via rootDirectory=docs. Operator + AI runtime context bundle per
+      capability docs-engine.
+    auth_env: VERCEL_TOKEN
+    role_scope: [founder]
+    invoke_pattern: "`vercel` CLI for triggers + status; Vercel REST API for programmatic deploy/list. Optional webhook trigger from CI."
+    status: active
+
+  # -------------------------------------------------------------------------
+  # PAYMENTS — Stripe (planned)
+  # -------------------------------------------------------------------------
+  - id: stripe-readonly
+    source_type: payments-api
+    description: |
+      Stripe — payments + subscriptions read-only. Used by backoffice-clerk
+      role for transaction categorization, invoice prep, MRR snapshots.
+      Charging + refunds require founder Tier C/D ceremony per HITL.md —
+      no agent role holds a write Stripe key.
+    auth_env: STRIPE_READ_KEY
+    role_scope: [backoffice-clerk, founder]
+    invoke_pattern: "`stripe` SDK read-only methods (charges.list, subscriptions.list, customers.list, invoices.list). MCP variant `mcp__stripe__*` if added later."
+    status: planned
+
+  # -------------------------------------------------------------------------
+  # KNOWLEDGE GRAPH — gbrain (local MCP, installed 2026-05-23)
+  # -------------------------------------------------------------------------
+  - id: gbrain-mcp
+    source_type: knowledge-graph-mcp
+    description: |
+      GBrain local MCP — separate knowledge graph (74 MCP tools when
+      active). Provides search, recall, query, get_page, list_pages,
+      put_page, get_chunks, traverse_graph, get_links/backlinks, think,
+      find_anomalies, find_contradictions, find_experts, find_trajectory,
+      code_callees/callers/def/refs/blast/flow, file_upload/list/url,
+      submit_job, list_jobs, retry_job, pause_job, whoami, get_health,
+      get_brain_identity. Installed at runtime/brain/ per ritsu-brain
+      install pattern 2026-05-23. Individual gbrain pages are NOT
+      pre-indexed in this catalog (614+ pages would blow ambient budget);
+      use the search/recall/query tools as dynamic queries instead.
+    auth_env: GBRAIN_DIRECT_DATABASE_URL
+    role_scope: [founder]
+    install_path: runtime/brain/
+    invoke_pattern: "`mcp__gbrain__{search,recall,query,get_page,list_pages,put_page,traverse_graph,think,find_anomalies,find_experts,code_callees,...}` — 74 MCP tools auto-loaded when the gbrain MCP server is running."
+    availability: "when the gbrain MCP server is running (started via runtime/brain/ install scripts)"
+    status: active

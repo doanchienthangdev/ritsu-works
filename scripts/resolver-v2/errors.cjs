@@ -125,7 +125,13 @@ class WorkingTreeDirty extends ResolverError {
 // Constants
 // ==========================================================================
 
-const VALID_KINDS = ['skill', 'command', 'agent', 'persona', 'mcp', 'wiki', 'sop', 'capability', 'workflow', 'schedule', 'hook'];
+const VALID_KINDS = [
+  'skill', 'command', 'agent', 'persona', 'mcp',
+  // v2.1 composition expansion
+  'wiki', 'sop', 'capability', 'workflow', 'schedule', 'hook',
+  // v2.2 context sources
+  'page', 'view', 'metric', 'runbook', 'external-source',
+];
 const VALID_MODES = ['A', 'B', 'C'];
 const VALID_DECISIONS = ['dispatch_silently', 'surface_candidates', 'no_match', 'role_denied'];
 

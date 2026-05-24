@@ -28,7 +28,7 @@ const yaml = require('js-yaml');
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const RECIPIENTS_DIR = path.join(REPO_ROOT, 'knowledge', 'recipients');
 
-const KINDS = ['skill', 'command', 'agent', 'persona', 'mcp', 'wiki', 'sop', 'capability', 'workflow', 'schedule', 'hook'];
+const KINDS = ['skill', 'command', 'agent', 'persona', 'mcp', 'wiki', 'sop', 'capability', 'workflow', 'schedule', 'hook', 'page', 'view', 'metric', 'runbook', 'external-source'];
 
 const CONFIG = {
   skill: {
@@ -98,6 +98,35 @@ const CONFIG = {
     excludePattern: /(README|CLAUDE|SPEC)\.md$/i,
     invokeTemplate: (slug) => `Auto-triggered (PreToolUse/PostToolUse) per hook frontmatter`,
     file: 'hooks.md',
+  },
+  // v2.2 NEW kinds — context sources (Tier 1 pages, SQL views, KPIs, runbooks)
+  page: {
+    // Multi-source: 00-core/*.md + governance/*.md + knowledge/*.yaml (top-level)
+    // Source dirs encoded directly in generatePages() — no single sourceDir.
+    invokeTemplate: (relPath) => `\`Read("${relPath}")\``,
+    file: 'pages.md',
+  },
+  view: {
+    sourceDir: 'supabase/migrations',
+    pattern: /\.sql$/,
+    invokeTemplate: (qualifiedView) => `\`mcp__supabase_ops__query({sql: "SELECT * FROM ${qualifiedView} LIMIT 10"})\``,
+    file: 'views.md',
+  },
+  metric: {
+    sourceFile: 'knowledge/kpi-ownership.yaml',
+    invokeTemplate: (kpiId) => `\`mcp__supabase_ops__query\` against the source listed in the entry, or read the KPI definition at \`knowledge/kpi-ownership.yaml#${kpiId}\``,
+    file: 'metrics.md',
+  },
+  runbook: {
+    sourceDir: 'wiki/runbooks',
+    pattern: /\.md$/,
+    invokeTemplate: (slug) => `\`Read("wiki/runbooks/${slug}.md")\``,
+    file: 'runbooks.md',
+  },
+  'external-source': {
+    sourceFile: 'knowledge/external-sources.yaml',
+    invokeTemplate: (invokePattern) => invokePattern,
+    file: 'external-sources.md',
   },
 };
 
@@ -653,6 +682,276 @@ function generateHooks() {
   return entries;
 }
 
+// ===========================================================================
+// v2.2 NEW GENERATORS — page, view, metric, runbook, external-source
+// ===========================================================================
+
+// Files within page categories that MUST be excluded from the catalog.
+// - SECRETS.md: security alignment with docs-engine (lists secret names by role).
+// - founder-profile.md: PII (per docs-engine charter-adapter).
+// - README.md / INDEX.md: meta navigation, no operational content.
+const PAGE_EXCLUDE = new Set([
+  'SECRETS.md',
+  'founder-profile.md',
+  'README.md',
+  'INDEX.md',
+  'CLAUDE.md',
+]);
+
+function generatePages() {
+  const cfg = CONFIG.page;
+  const entries = [];
+
+  // Three source roots: 00-core/*.md, governance/*.md, knowledge/*.yaml (top-level only)
+  const sources = [
+    { dir: '00-core', category: 'core', pattern: /\.md$/ },
+    { dir: 'governance', category: 'governance', pattern: /\.md$/ },
+    { dir: 'knowledge', category: 'knowledge', pattern: /\.yaml$/, topLevelOnly: true },
+  ];
+
+  for (const src of sources) {
+    const dir = path.join(REPO_ROOT, src.dir);
+    if (!fs.existsSync(dir)) continue;
+    const dirEntries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const ent of dirEntries) {
+      if (!ent.isFile()) continue;
+      if (!src.pattern.test(ent.name)) continue;
+      if (PAGE_EXCLUDE.has(ent.name)) continue;
+      const fp = path.join(dir, ent.name);
+      const relPath = path.relative(REPO_ROOT, fp);
+      const baseName = ent.name.replace(/\.(md|yaml|yml)$/, '');
+      const slug = `${src.category}-${baseName}`;
+      const content = fs.readFileSync(fp, 'utf-8');
+
+      let desc;
+      let pillar = null;
+      if (ent.name.endsWith('.md')) {
+        const { frontmatter, body } = parseFrontmatter(content);
+        const fallbackDesc = extractFirstParagraph(body) || `Tier 1 ${src.category} doc: ${baseName}`;
+        desc = descFromFrontmatter(frontmatter, fallbackDesc);
+        if (frontmatter.pillar) pillar = frontmatter.pillar;
+      } else {
+        // YAML: extract leading comment block as description; else top of file
+        const yamlDesc = extractYamlPurpose(content) || `Tier 1 ${src.category} registry: ${baseName}`;
+        desc = yamlDesc;
+      }
+      if (desc.length > 400) desc = desc.slice(0, 400) + '...';
+
+      entries.push({
+        id: `page/${slug}`,
+        kind: 'page',
+        when_to_use: desc,
+        invoke: cfg.invokeTemplate(relPath),
+        composes_with: [],
+        role_scope: ['*'],
+        status: 'active',
+        pillar,
+      });
+    }
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
+// Helper: extract a description from a YAML file's leading comment block.
+// Returns first non-shebang comment lines collapsed into one paragraph.
+function extractYamlPurpose(content) {
+  const lines = content.split('\n');
+  const buf = [];
+  for (const line of lines) {
+    const stripped = line.trim();
+    if (!stripped) {
+      if (buf.length > 0) break;
+      continue;
+    }
+    if (stripped.startsWith('#')) {
+      const text = stripped.replace(/^#+\s*/, '').trim();
+      if (text) buf.push(text);
+    } else {
+      break;
+    }
+  }
+  return buf.join(' ').replace(/\s+/g, ' ').trim() || null;
+}
+
+function generateViews() {
+  const cfg = CONFIG.view;
+  const dir = path.join(REPO_ROOT, cfg.sourceDir);
+  if (!fs.existsSync(dir)) return [];
+  const files = walkDir(dir, cfg.pattern);
+  const entries = [];
+  const seenSlugs = new Set();
+  // Match: CREATE [OR REPLACE] [MATERIALIZED] VIEW [IF NOT EXISTS] [schema.]view_name
+  const viewRe = /CREATE\s+(?:OR\s+REPLACE\s+)?(MATERIALIZED\s+)?VIEW\s+(?:IF\s+NOT\s+EXISTS\s+)?([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)/gi;
+
+  for (const fp of files) {
+    const content = fs.readFileSync(fp, 'utf-8');
+    let m;
+    viewRe.lastIndex = 0;
+    while ((m = viewRe.exec(content)) !== null) {
+      const isMat = !!m[1];
+      const qualified = m[2];
+      const hasSchema = qualified.includes('.');
+      const [schema, viewName] = hasSchema ? qualified.split('.') : ['public', qualified];
+      const slug = `${schema}-${viewName}`;
+      if (seenSlugs.has(slug)) continue;
+      seenSlugs.add(slug);
+      // Extract the preceding comment block as description, if any.
+      const upToMatch = content.slice(0, m.index);
+      const tail = upToMatch.split('\n').slice(-6); // last 6 lines before CREATE
+      const commentLines = [];
+      for (const line of tail) {
+        const t = line.trim();
+        if (t.startsWith('--')) commentLines.push(t.replace(/^--\s*/, ''));
+        else if (t === '') continue;
+        else commentLines.length = 0; // reset if a non-comment non-blank line shows up
+      }
+      const descPrefix = commentLines.length > 0 ? commentLines.join(' ').replace(/\s+/g, ' ').trim() : '';
+      const kindLabel = isMat ? 'Materialized view' : 'View';
+      const migrationName = path.basename(fp);
+      const desc = descPrefix
+        ? `${kindLabel} \`${schema}.${viewName}\` — ${descPrefix} (defined in ${migrationName}).`
+        : `${kindLabel} \`${schema}.${viewName}\` defined in ${migrationName}. Query for current snapshot of the modeled data.`;
+      entries.push({
+        id: `view/${slug}`,
+        kind: 'view',
+        when_to_use: desc.length > 400 ? desc.slice(0, 400) + '...' : desc,
+        invoke: cfg.invokeTemplate(`${schema}.${viewName}`),
+        composes_with: [],
+        role_scope: ['*'],
+        status: 'active',
+        pillar: '06-ai-ops',
+      });
+    }
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
+// Keys at the top of kpi-ownership.yaml that are NOT KPIs (metadata fields).
+const KPI_META_KEYS = new Set(['version', 'generated_at', 'generated_from']);
+
+function generateMetrics() {
+  const cfg = CONFIG.metric;
+  const fp = path.join(REPO_ROOT, cfg.sourceFile);
+  if (!fs.existsSync(fp)) return [];
+  let doc;
+  try {
+    doc = yaml.load(fs.readFileSync(fp, 'utf-8'));
+  } catch (_e) {
+    return [];
+  }
+  if (!doc || typeof doc !== 'object') return [];
+  const entries = [];
+  for (const [kpiId, kpi] of Object.entries(doc)) {
+    if (KPI_META_KEYS.has(kpiId)) continue;
+    if (!kpi || typeof kpi !== 'object') continue;
+    const ownerPillar = kpi.owner_pillar || 'unknown';
+    const ownerRole = kpi.owner_role || 'unknown';
+    const subPillar = kpi.sub_pillar ? ` (sub-pillar ${kpi.sub_pillar})` : '';
+    const formula = kpi.formula ? ` Formula: ${String(kpi.formula).trim().replace(/\s+/g, ' ')}.` : '';
+    const source = kpi.source ? ` Source: ${kpi.source}.` : '';
+    const target = kpi.target ? ` Target: ${kpi.target}.` : '';
+    const dashboard = kpi.dashboard_tile ? ` Dashboard: ${kpi.dashboard_tile}.` : '';
+    const notesRaw = kpi.notes ? ` Notes: ${String(kpi.notes).trim().replace(/\s+/g, ' ')}.` : '';
+    let desc = `KPI owned by ${ownerPillar} pillar (${ownerRole})${subPillar}.${formula}${source}${target}${dashboard}${notesRaw}`.trim();
+    if (desc.length > 400) desc = desc.slice(0, 400) + '...';
+
+    // Normalize status: kpi-ownership has values like 'post-PMF placeholder',
+    // 'inactive_until_first_incident', 'inactive_until_eu_launch'. Catalog
+    // schema VALID_STATUSES only knows the standard set, so map ad-hoc values
+    // to 'planned' for now.
+    const rawStatus = kpi.status;
+    let status = 'active';
+    if (rawStatus && typeof rawStatus === 'string') {
+      const known = ['active', 'planned', 'deprecated', 'deferred', 'disabled'];
+      status = known.includes(rawStatus) ? rawStatus : 'planned';
+    }
+
+    // Per-persona KPIs use dot-notation (persona.ceo.foo) — keep as-is in slug.
+    entries.push({
+      id: `metric/${kpiId}`,
+      kind: 'metric',
+      when_to_use: desc,
+      invoke: cfg.invokeTemplate(kpiId),
+      composes_with: [],
+      role_scope: [ownerRole],
+      status,
+      pillar: ownerPillar,
+    });
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
+function generateRunbooks() {
+  const cfg = CONFIG.runbook;
+  const dir = path.join(REPO_ROOT, cfg.sourceDir);
+  if (!fs.existsSync(dir)) return [];
+  const files = walkDir(dir, cfg.pattern);
+  const entries = [];
+  for (const fp of files) {
+    const name = path.basename(fp, '.md');
+    if (name.startsWith('_') || PAGE_EXCLUDE.has(path.basename(fp))) continue;
+    const content = fs.readFileSync(fp, 'utf-8');
+    const { frontmatter, body } = parseFrontmatter(content);
+    const fallbackDesc = extractFirstParagraph(body) || `Runbook: ${name}`;
+    let desc = descFromFrontmatter(frontmatter, fallbackDesc);
+    if (desc.length > 400) desc = desc.slice(0, 400) + '...';
+    entries.push({
+      id: `runbook/${name}`,
+      kind: 'runbook',
+      when_to_use: desc,
+      invoke: cfg.invokeTemplate(name),
+      composes_with: [],
+      role_scope: roleScopeFromFrontmatter(frontmatter),
+      status: statusFromFrontmatter(frontmatter),
+      pillar: frontmatter.pillar || null,
+    });
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
+function generateExternalSources() {
+  const cfg = CONFIG['external-source'];
+  const fp = path.join(REPO_ROOT, cfg.sourceFile);
+  if (!fs.existsSync(fp)) return [];
+  let doc;
+  try {
+    doc = yaml.load(fs.readFileSync(fp, 'utf-8'));
+  } catch (_e) {
+    return [];
+  }
+  if (!doc || !Array.isArray(doc.sources)) return [];
+  const entries = [];
+  for (const src of doc.sources) {
+    if (!src.id || !src.source_type) continue;
+    const description = (src.description || `External integration: ${src.id}`).toString().trim().replace(/\s+/g, ' ');
+    const authNote = src.auth_env ? ` Auth env: \`${src.auth_env}\`.` : '';
+    const availability = src.availability ? ` Availability: ${src.availability}.` : '';
+    const installPath = src.install_path ? ` Install: \`${src.install_path}\`.` : '';
+    let desc = `${description}${authNote}${availability}${installPath}`.trim();
+    if (desc.length > 400) desc = desc.slice(0, 400) + '...';
+    const invokePattern = src.invoke_pattern || `See ${cfg.sourceFile}`;
+    const known = ['active', 'planned', 'deprecated', 'deferred', 'disabled'];
+    const status = known.includes(src.status) ? src.status : (src.status ? 'planned' : 'active');
+    entries.push({
+      id: `external-source/${src.id}`,
+      kind: 'external-source',
+      when_to_use: desc,
+      invoke: cfg.invokeTemplate(invokePattern),
+      composes_with: [],
+      role_scope: Array.isArray(src.role_scope) ? src.role_scope : ['*'],
+      status,
+      pillar: '06-ai-ops',
+      disambiguator: `source_type: ${src.source_type}`,
+    });
+  }
+  entries.sort((a, b) => a.id.localeCompare(b.id));
+  return entries;
+}
+
 function writeCatalog(kind, entries, options = {}) {
   const cfg = CONFIG[kind];
   const fp = path.join(RECIPIENTS_DIR, cfg.file);
@@ -702,6 +1001,12 @@ function main() {
     workflow: generateWorkflows,
     schedule: generateSchedules,
     hook: generateHooks,
+    // v2.2 NEW kinds
+    page: generatePages,
+    view: generateViews,
+    metric: generateMetrics,
+    runbook: generateRunbooks,
+    'external-source': generateExternalSources,
   };
 
   const kinds = targetKind ? [targetKind] : KINDS;
@@ -720,5 +1025,8 @@ if (require.main === module) main();
 module.exports = {
   generateSkills, generateCommands, generateAgents, generatePersonas, generateMcps,
   generateWikis, generateSops, generateCapabilities, generateWorkflows, generateSchedules, generateHooks,
+  // v2.2 NEW
+  generatePages, generateViews, generateMetrics, generateRunbooks, generateExternalSources,
+  extractYamlPurpose,
   parseFrontmatter, emitEntry,
 };

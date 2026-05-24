@@ -28,6 +28,11 @@ See `.archives/cla/resolver-v2/spec.md` §4 for Mode A pattern.
 @knowledge/recipients/workflows.md
 @knowledge/recipients/schedules.md
 @knowledge/recipients/hooks.md
+@knowledge/recipients/pages.md
+@knowledge/recipients/views.md
+@knowledge/recipients/metrics.md
+@knowledge/recipients/runbooks.md
+@knowledge/recipients/external-sources.md
 
 ## What this repo is and is not
 

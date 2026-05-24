@@ -418,6 +418,110 @@ capabilities:
       the orchestrator's pre-flight check refuses to run /evolve.
       See wiki/runbooks/evolve.md §Onboarding.
 
+  - id: resolver-v2.2-context-sources
+    name: "/resolver v2.2 — Context Sources (5 new recipient kinds + adapter skeleton)"
+    description: |
+      Incremental on resolver-v2.1 (catalog architecture unchanged). Adds 5 new
+      recipient kinds covering Tier 1 docs, SQL views, KPIs, runbooks, and an
+      extensible meta-kind for external integrations. Plus an adapter-plugin
+      contract skeleton seeding v2.4+ federation.
+
+      - **page** — Tier 1 docs (00-core/*.md + governance/*.md +
+        knowledge/*.yaml top-level). 45 entries (excludes SECRETS.md
+        security, founder-profile.md PII, README/INDEX/CLAUDE meta).
+      - **view** — SQL VIEW + MATERIALIZED VIEW definitions from
+        supabase/migrations/*.sql. 3 entries today (v_capability_pipeline,
+        v_capability_lineage, mv_customer_360); grows with future migrations.
+      - **metric** — KPIs from knowledge/kpi-ownership.yaml. 83 entries
+        (per-pillar baseline + per-persona workforce KPIs). Each carries
+        owner_pillar + owner_role + formula + source + dashboard_tile.
+      - **runbook** — Operational scripts under wiki/runbooks/. 1 entry
+        (evolve.md); will grow as more runbooks land.
+      - **external-source** — Meta-kind for 3rd-party integrations. Reads
+        knowledge/external-sources.yaml (NEW single-file registry); 8
+        entries today (supabase-product-readonly, github-repo, anthropic-
+        api, openai-api, telegram-bot, vercel, stripe-readonly planned,
+        gbrain-mcp). source_type discriminator surfaces in disambiguator
+        field.
+
+      Adapter plugin contract: scripts/resolver-v2/adapters/README.md
+      documents the module shape (kind + namespace + source + generate)
+      for v2.4+ runtime auto-discovery. v2.2 itself does NOT activate
+      the runtime — concrete external sources stay in the YAML.
+
+      Triggered by founder request 2026-05-24:
+      > "Hãy đề xuất cho tôi triển khai context sources nhưng vẫn tính đến
+      >  yếu tố tính mở. Bản thân sau này có những nguồn context khác cho
+      >  doanh nghiệp ritsu-works như third party, apis... thì cũng có thể
+      >  build được cho các yêu cầu. Hiện tại hãy đưa tất cả các context
+      >  đang có vào trước (có cả gbrain vì đã được tích hợp)."
+
+      v2.1 indexed 11 kinds (252 entries); v2.2 indexes 16 kinds (392
+      entries). Catalog grows ~30K → ~48K tokens (~24% of 200K context
+      window). Still well within budget; per-persona KPIs and full Tier 1
+      page coverage are highest-volume additions.
+
+      All v2.1 architecture preserved: 3 consumer modes (A/B/C), single
+      source of truth (recipients/*.md), engine modules (catalog-loader,
+      keyword-fallback, sync, audit, errors), 4 cross-tier validators.
+      Wire format unchanged — context_recipe field is an OPTIONAL
+      extension consumers may ignore.
+
+      Composition output evolution: spec'd OPTIONAL `context_recipe` field
+      in resolver-query SKILL output for context-assembly tasks. Schema:
+        primary_lens: [persona/<id>]
+        static_priors: [capability/<id>, sop/<id>, page/<id>]
+        dynamic_queries: [{tool: mcp/<id>, purpose, hint}]
+        governance_constraints: [page/governance-HITL, metric/<id>]
+        goal_metrics: [metric/<id>]
+      Backward-compat: consumers that don't understand the field ignore it.
+
+      OUT OF SCOPE (deferred):
+        - record kind (614 wiki derived entities) → v2.3 lazy-load pattern
+        - adapter plugin runtime → v2.4 first 3rd-party adapter
+        - federation across catalogs → v3.0 multi-team requirement
+
+      294 tests pass (was 245; +49 v2.2 tests in tests/resolver-v2/
+      v22-context-sources.test.ts).
+    version: "2.2.0"
+    state: operating
+    state_since: 2026-05-24
+    proposed_at: 2026-05-24
+    deployed_at: 2026-05-24
+    operating_since: 2026-05-24
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [14, 18, 20]
+    spec_path: .archives/cla/resolver-v2.2-context-sources/spec.md
+    cost_bucket: ai-ops-meta
+    estimated_cost_setup_usd: 10
+    estimated_cost_recurring_usd: 2
+    estimated_founder_hours: 0.5
+    target_kpis: [context_assembly_completeness, kinds_coverage]
+    target_value: 16
+    supersedes: resolver-v2.1
+    notes: |
+      ops.capability_runs id: 1846a978-2cf6-439a-9f7a-72ddd069fbb6
+      Same-day incremental on resolver-v2.1 (46df2e43-...). Extends 11
+      kinds → 16. Non-breaking — v2.1 wire format preserved.
+
+      v2.2 catalog volume by kind:
+        - skill: 67, command: 12, agent: 5, persona: 21, mcp: 9 (v2.0 carryover)
+        - wiki: 4, sop: 106, capability: 7, workflow: 0, schedule: 11, hook: 10 (v2.1)
+        - page: 45, view: 3, metric: 83, runbook: 1, external-source: 8 (v2.2 NEW)
+        - Total: 392 entries / ~48K tokens
+
+      Test additions in tests/resolver-v2/v22-context-sources.test.ts:
+        - 5 generator suites (one per new kind)
+        - 2 schema-constants suites (VALID_KINDS + CATALOG_FILES)
+        - 1 CLAUDE.md auto-imports suite
+        - 1 catalog-loader integration suite
+        - 1 adapter skeleton suite
+        - 1 external-sources.yaml registry-integrity suite
+        - 49 individual assertions
+
+      Resolver iteration chain at v2.2 promotion:
+        v1 (Chương 38) → v2 (Chương 39) → v2.1 (Chương 40) → v2.2 (this)
+
   - id: resolver-v2.1
     name: "/resolver v2.1 — Composition Expansion (6 new recipient kinds)"
     description: |
@@ -451,11 +555,12 @@ capabilities:
 
       245 tests pass (was 215; +30 v2.1 tests for new generators).
     version: "2.1.0"
-    state: operating
+    state: superseded                        # by resolver-v2.2-context-sources (2026-05-24, same-day incremental)
     state_since: 2026-05-24
     proposed_at: 2026-05-24
     deployed_at: 2026-05-24
     operating_since: 2026-05-24
+    superseded_at: 2026-05-24
     pillar_owner: 06-ai-ops
     bài_toán_touched: [14, 18, 20]
     spec_path: .archives/cla/resolver-v2.1/spec.md
@@ -466,6 +571,7 @@ capabilities:
     target_kpis: [composition_recall, kinds_coverage]
     target_value: 11
     supersedes: resolver-v2
+    superseded_by: resolver-v2.2-context-sources
     notes: |
       ops.capability_runs id: 46df2e43-1d25-4792-bff3-8ca5495d1b18
       Same-day incremental on resolver-v2 (342d05a8-...). Extends 5 kinds → 11.

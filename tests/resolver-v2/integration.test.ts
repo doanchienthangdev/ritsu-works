@@ -135,8 +135,9 @@ describe("integration — catalog completeness", () => {
 
   it("every recipient ID has format <kind>/<slug>", () => {
     const cat = loader.loadCatalog();
+    // v2.2: kind segment may contain hyphens (e.g. external-source/anthropic-api)
     for (const r of cat.recipients) {
-      expect(r.id).toMatch(/^[a-z]+\/[a-z0-9\-_/.]+$/i);
+      expect(r.id).toMatch(/^[a-z][a-z-]*\/[a-z0-9\-_/.]+$/i);
     }
   });
 
