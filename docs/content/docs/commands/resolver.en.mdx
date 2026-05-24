@@ -1,13 +1,13 @@
 ---
-title: 'Command: /resolver (v2)'
+title: 'Command: /resolver (v2.2)'
 description: >-
   Lookup PLATFORM v2 (LLM-Native Catalog) — find AI workforce recipients for natural-language
   triggers. v2 uses in-session ambient catalog (Mode A, preferred), explicit LLM query (Mode B,
   audit), or keyword fallback (Mode C, CRON only). Catalog auto-loaded via
   @knowledge/recipients/*.md.
 source_path: .claude/commands/resolver.md
-source_hash: 75688f00bc2082389c4c4fc31c4c466ea0478f4b709eeae551f0c1bc2572c3a1
-generated_at: '2026-05-24T02:09:52.642Z'
+source_hash: 3cd6bab71f0f1d6f02bac966a616b44263005b36477fdb81d0e5c61f7cb47ca8
+generated_at: '2026-05-24T13:05:13.758Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: en
@@ -15,14 +15,44 @@ language: en
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-Project-scoped command for ritsu-works. Front-end for capability `resolver-v2`
-(`knowledge/recipients/`). This command is a thin orchestrator — engine logic
-lives in `scripts/resolver-v2/*.cjs`.
+Project-scoped command for ritsu-works. Front-end for capability
+`resolver-v2.2-context-sources` (`knowledge/recipients/`). This command is
+a thin orchestrator — engine logic lives in `scripts/resolver-v2/*.cjs`.
 
 **v2 key change vs v1:** Replaced keyword-matching engine with **LLM-native
 catalog**. The ambient catalog (loaded via `@knowledge/recipients/*.md`
-imports in `.claude/CLAUDE.md`) is the substrate; you reason naturally about
+imports in `CLAUDE.md`) is the substrate; you reason naturally about
 trigger→recipient instead of running search algorithms.
+
+**v2.2 increment vs v2.1:** added 5 new recipient kinds for context-assembly
+tasks — `page` (Tier 1 docs), `view` (SQL views), `metric` (KPIs from
+`knowledge/kpi-ownership.yaml`), `runbook` (operational scripts under
+`wiki/runbooks/`), and `external-source` (meta-kind for 3rd-party
+integrations, source-type discriminator). Adapter plugin contract for
+future federation lives in `scripts/resolver-v2/adapters/README.md`
+(skeleton only — runtime activates in v2.4 when first 3rd-party
+adapter ships).
+
+## Recipient kinds (16 in v2.2)
+
+| Kind | Source | Catalog file |
+|---|---|---|
+| `skill` | `06-ai-ops/skills/**/SKILL.md` | `skills.md` |
+| `command` | `.claude/commands/*.md` | `commands.md` |
+| `agent` | `.claude/agents/*.md` | `agents.md` |
+| `persona` | `06-ai-ops/workforce-personas/*/PERSONA.md` + `knowledge/workforce-personas.yaml` + `knowledge/cla-routing-keywords.yaml` | `personas.md` |
+| `mcp` | `knowledge/mcp-tools.yaml` | `mcps.md` |
+| `wiki` | `wiki/<source-slug>/source.md` | `wikis.md` |
+| `sop` | `**/sops/SOP-*/flow.yaml` | `sops.md` |
+| `capability` | `knowledge/capability-registry.yaml` | `capabilities.md` |
+| `workflow` | `workflows/*.yaml` | `workflows.md` |
+| `schedule` | `knowledge/schedules.yaml` | `schedules.md` |
+| `hook` | `.claude/hooks/*.md` | `hooks.md` |
+| **`page`** *(v2.2)* | `00-core/*.md` + `governance/*.md` + `knowledge/*.yaml` (top-level; excludes SECRETS.md, founder-profile.md, README/INDEX/CLAUDE.md) | `pages.md` |
+| **`view`** *(v2.2)* | `CREATE (MATERIALIZED) VIEW` matches in `supabase/migrations/*.sql` | `views.md` |
+| **`metric`** *(v2.2)* | `knowledge/kpi-ownership.yaml` (per KPI) | `metrics.md` |
+| **`runbook`** *(v2.2)* | `wiki/runbooks/*.md` | `runbooks.md` |
+| **`external-source`** *(v2.2)* | `knowledge/external-sources.yaml` (per source; `source_type` discriminator) | `external-sources.md` |
 
 ## Three modes
 
@@ -134,14 +164,47 @@ Recall acknowledged ~30% (keyword-only); use Mode A whenever possible.
 
 ## Pre-flight
 
-- Capability state: `operating` v2.0.0 (Phase 8 promotion 2026-05-23)
+- Capability state: `operating` v2.2.0 (Phase 8 promotion 2026-05-24)
+- v2.1 superseded by v2.2 (non-breaking incremental — wire format preserved)
 - Drift: `pnpm check` should pass including 4 v2 resolver validators
+- Catalog size after v2.2: ~390 entries across 16 kinds (~48K tokens in ambient context)
+
+## Composition output — v2.2 adds optional `context_recipe`
+
+Backward-compat: callers that don't understand `context_recipe` ignore the
+field. Callers that want context-assembly recipes can request:
+
+```yaml
+primary: <recipient-id>
+supporting: [<recipient-id>, ...]
+rationale: "..."
+context_recipe:               # OPTIONAL — v2.2
+  primary_lens: [persona/<id>]
+  static_priors:              # indexed, ambient (zero cost)
+    - capability/<id>
+    - sop/<id>
+    - page/<id>               # v2.2 NEW
+  dynamic_queries:            # on-demand
+    - tool: mcp/<id>
+      purpose: "..."
+      hint: "<query template>"
+  governance_constraints:     # v2.2 NEW
+    - page/governance-HITL
+    - page/governance-ROLES
+    - metric/<id>
+  goal_metrics:               # v2.2 NEW
+    - metric/<id>
+```
 
 ## See also
 
-- Spec: `.archives/cla/resolver-v2/spec.md`
+- Spec: `.archives/cla/resolver-v2.2-context-sources/spec.md`
+- v2.1 spec (architecture inherited): `.archives/cla/resolver-v2.1/spec.md`
+- v2.0 spec (origin): `.archives/cla/resolver-v2/spec.md`
 - Catalog: `knowledge/recipients/*.md`
 - Engine: `scripts/resolver-v2/`
+- Adapter contract (v2.4+ federation seed): `scripts/resolver-v2/adapters/README.md`
+- External-source registry: `knowledge/external-sources.yaml`
 - Validators: `scripts/cross-tier/validate-resolver-v2-*.cjs`
 - Audit table: `ops.resolver_decisions` (+ migration 00035)
 - v1 retrospective: `wiki/capabilities/resolver/retrospective.md`

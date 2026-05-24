@@ -10,6 +10,7 @@
     "data-retention",
     "event-aggregation",
     "event-subscriptions",
+    "external-sources",
     "feature-flags",
     "founder-rhythm",
     "ingestion-routing",

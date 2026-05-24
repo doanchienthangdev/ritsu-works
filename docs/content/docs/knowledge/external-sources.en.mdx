@@ -1,0 +1,52 @@
+---
+title: 'Tier 1 yaml: external-sources'
+description: Schema overview for `knowledge/external-sources.yaml`.
+source_path: knowledge/external-sources.yaml
+source_hash: 0b967bd20c91f54e7dbbf7f1c323a5464e6b21c3577743b7b274c2a9b729e80a
+generated_at: '2026-05-24T13:05:13.841Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+External Sources Registry — resolver v2.2 (Context Sources capability)
+
+Single declarative file listing every 3rd-party / external integration
+the AI workforce uses to reach the world outside ritsu-works.
+
+Read by scripts/resolver-v2/catalog-generator.cjs generateExternalSources()
+and projected into knowledge/recipients/external-sources.md as recipients
+with kind=external-source + source_type discriminator (resolver v2.2 spec).
+
+Adding new external sources: open PR to this file. v2.4+ will auto-discover
+via scripts/resolver-v2/adapters/*.adapter.cjs (skeleton landed in v2.2;
+runtime not active yet).
+
+Fields per source:
+  id            stable slug (kebab-case)
+  source_type   discriminator — see knowledge/recipients/external-sources.md
+                categories: db-readonly, api, llm-api, messaging, deployment,
+                payments-api, knowledge-graph-mcp
+  description   human-readable purpose
+  auth_env      env-var name holding the credential (NEVER the value)
+  role_scope    list of role slugs allowed to invoke (defaults to ['*'])
+  invoke_pattern   how callers reach this integration
+  install_path  (optional) local install location for self-hosted MCPs
+  availability  (optional) condition under which this is reachable
+  status        active | planned | deferred | deprecated
+
+Owner: founder
+Change policy: PR + founder review (Tier C — affects what the workforce can reach)
+
+## Top-level keys
+
+- `version`
+- `last_updated`
+- `owner`
+- `sources`
+
+> Live values in [`knowledge/external-sources.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/external-sources.yaml). This page describes the schema; not the data.

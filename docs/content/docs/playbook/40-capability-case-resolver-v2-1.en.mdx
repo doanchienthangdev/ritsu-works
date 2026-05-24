@@ -2,14 +2,14 @@
 title: "Chương 40 — Capability Case Study #7: /resolver v2.1 (Composition Expansion)"
 description: "Chương 40 — Capability Case Study #7: /resolver v2.1 (Composition Expansion)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/40-capability-case-resolver-v2-1.md
-source_hash: 1e76d3105b9bf7ed6353ba7adecb9246e65a245b6e67d3484a437bc7907a201d
-generated_at: '2026-05-24T02:57:29.639Z'
+source_hash: 51d7893a7f062b84ad577244cb8da8ce248bbc8ce5fb3b48de7b220906265d52
+generated_at: '2026-05-24T13:03:46.161Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: 1e76d3105b9bf7ed6353ba7adecb9246e65a245b6e67d3484a437bc7907a201d
-translated_at: '2026-05-24T02:57:29.639Z'
+translated_source_hash: 51d7893a7f062b84ad577244cb8da8ce248bbc8ce5fb3b48de7b220906265d52
+translated_at: '2026-05-24T13:03:46.161Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 40
 ---
@@ -300,3 +300,269 @@ Wave 1 = "operator OS layer". Resolver v2.1 with 11-kind composition is the last
 *Closing reflection:* Resolver v2.1 không thêm architectural novelty — chỉ thêm content. Đó là **success mode** sau v2's paradigm correctness. Wave 1's true completion isn't when last capability ships, it's when **content depth matches paradigm correctness**. v2.1 = that match. From here, the catalog grows organically (every new SOP, wiki source, capability auto-indexes). Wave 2 capabilities can rely on composition output knowing all 11 kinds are queryable.
 
 Wave 1 closed. The operator OS layer is ready for the revenue-adjacent layer to build on top.
+
+---
+
+## 40.9 Postscript — v2.2 Context Sources (cùng ngày, 2026-05-24)
+
+> *"v2.1 đóng Wave 1 lúc trưa. Cùng buổi chiều, founder hỏi: 'Hãy đề xuất cho tôi triển khai context sources nhưng vẫn tính đến yếu tố tính mở. Bản thân sau này có những nguồn context khác cho doanh nghiệp ritsu-works như third party, apis... thì cũng có thể build được cho các yêu cầu.' v2.2 là iteration thứ tư trong vòng 2 ngày — không phải Wave 2, mà là **proof** rằng v2.1's incremental pattern thực sự cho phép catalog mở rộng mà không cần thêm chương mới. Một post-Wave 1 confirmation, ghi luôn vào chương cũ thay vì mở Chương 41."*
+
+Section này document **resolver v2.2** v2.2.0 — capability thứ 8 ship qua Bài #20, **incremental thứ hai** của v2 (sau v2.1 buổi sáng). Total elapsed time idea → operating: **~4 hours** (compressed CLA + autonomous build + 294 tests). ops.capability_runs id `1846a978-2cf6-439a-9f7a-72ddd069fbb6`. PR #98. Supersedes resolver v2.1 same-day. **Manifest version bump v0.11.0 → v0.12.0.**
+
+### 40.9.1 Cú dogfood thứ ba — context sources gap
+
+Sau khi v2.1 ship buổi trưa (Wave 1 closing), founder dùng catalog vài giờ và nhận ra: hệ thống catalog v2.1 phủ 11 kinds AI workforce artifacts (skill/command/agent/persona/mcp/wiki/sop/capability/workflow/schedule/hook) nhưng **không phủ context sources** — nơi mà các artifacts đó cần truy vấn để hoàn thành task:
+
+- **Tier 1 docs** (00-core/, governance/, knowledge/*.yaml) — operator hỏi "HITL Tier C định nghĩa ở đâu?" → vẫn phải grep
+- **SQL views** (ops.v_capability_pipeline, mv_customer_360, …) — agent muốn truy vấn snapshot pipeline → phải đọc migrations
+- **KPIs** (knowledge/kpi-ownership.yaml — 70+ KPIs với owner_pillar + formula + dashboard) — vẫn phải mở file YAML
+- **Runbooks** (wiki/runbooks/*.md) — operational procedures không index
+- **External integrations** (gbrain MCP vừa install, Stripe planned, Telegram bot, Vercel, GitHub, …) — không có chỗ structured để declare
+
+Đồng thời founder explicitly nhắc đến **tính mở**: tương lai có 3rd party APIs / federated catalogs / custom MCPs — cần plant seed cho extensibility ngay, không đợi đến khi đau.
+
+**Diagnostic:** v2.1 indexed AI workforce **components** đầy đủ. v2.2 phải indexed **context** mà components hoạt động trên đó.
+
+### 40.9.2 Decision — hybrid pattern: 4 distinct + 1 meta-kind + skeleton
+
+3 options brainstorm:
+
+| Option | Pro | Con | Verdict |
+|---|---|---|---|
+| A — Many distinct kinds (page, view, metric, runbook, mcp-server, external-api, gbrain-page, stripe-account, …) | Type-safe, discoverable, LLM filter rõ ràng | Proliferation; mỗi 3rd party = code change | ✗ |
+| B — Single `context-source` meta-kind với `source_type` discriminator | Pure extensibility; chỉ thêm source_type values | Mất semantic clarity; LLM hard to filter | ✗ |
+| **C — HYBRID (chosen)** — 4 distinct kinds cho category đã thấy + 1 meta-kind cho external | Discoverability + extensibility ngang nhau | Cần convention rõ về khi nào tách kind mới | ✓ |
+
+**Chosen breakdown:**
+- 4 distinct internal kinds: `page`, `view`, `metric`, `runbook` — concrete, có pattern rõ, populate ngay
+- 1 meta-kind: `external-source` với `source_type` discriminator (db-readonly / api / llm-api / messaging / deployment / payments-api / knowledge-graph-mcp / `<custom>`)
+- Skeleton folder `scripts/resolver-v2/adapters/` với `README.md` document contract — **v2.4+ runtime auto-discovery seed**; v2.2 chưa wire runtime
+
+Đây là pattern Wave 1 chứng minh: paradigm correct → content expansion → **mở thêm extension point cho tương lai**.
+
+### 40.9.3 5 generators mới — chi tiết
+
+| Kind | Source | Slug pattern | Đếm hôm nay |
+|---|---|---|---|
+| `page` | `00-core/*.md` + `governance/*.md` + `knowledge/*.yaml` (top-level) | `<category>-<basename>` (e.g. `core-product`, `governance-HITL`, `knowledge-manifest`) | **45** |
+| `view` | Regex `CREATE [OR REPLACE] [MATERIALIZED] VIEW` trong `supabase/migrations/*.sql` | `<schema>-<viewname>` | **3** (sẽ tăng) |
+| `metric` | Mọi top-level key trong `knowledge/kpi-ownership.yaml` (skip meta `version`, `generated_at`, `generated_from`) | KPI id verbatim | **83** (per-pillar + per-persona workforce KPIs) |
+| `runbook` | `wiki/runbooks/*.md` | filename không `.md` | **1** (evolve.md; sẽ tăng) |
+| `external-source` | `knowledge/external-sources.yaml` (NEW file) | `<source-id>` | **8** |
+
+**Tổng v2.2 thêm: 140 entries (252 → 392 entries; 11 → 16 kinds).**
+
+**Hard exclusions trong `generatePages()` — security + PII alignment với docs-engine charter-adapter:**
+
+- `governance/SECRETS.md` — security (enumerate secret names by role)
+- `00-core/founder-profile.md` — PII (founder personal info)
+- `README.md` / `INDEX.md` / `CLAUDE.md` — meta navigation, no operational content
+
+Catalog test enforce những exclusion này — tránh regression khi thêm Tier 1 doc mới.
+
+### 40.9.4 external-source meta-kind — 8 sources today
+
+`knowledge/external-sources.yaml` declare từng external integration với schema:
+
+```yaml
+- id: <kebab-case-slug>
+  source_type: db-readonly | api | llm-api | messaging | deployment | payments-api | knowledge-graph-mcp
+  description: |
+    Human-readable purpose
+  auth_env: NAME_OF_ENV_VAR              # NEVER the value
+  role_scope: [<role>, ...]              # default ['*']
+  invoke_pattern: "<how callers reach this integration>"
+  install_path: <optional>               # cho self-hosted MCP
+  availability: <optional condition>
+  status: active | planned | deferred | deprecated
+```
+
+**8 sources today:**
+
+| Source | source_type | Status | Note |
+|---|---|---|---|
+| supabase-product-readonly | db-readonly | active | etl-runner ONLY (firewall per HITL.md) |
+| github-repo | api | active | Universal access via gh CLI |
+| anthropic-api | llm-api | active | Out-of-band LLM calls (CRON, Edge fn) |
+| openai-api | llm-api | active | text-embedding-3-small cho wiki-sync |
+| telegram-bot | messaging | active | HITL routing (Tier B/C/D approvals) |
+| vercel | deployment | active | docs site hosting |
+| stripe-readonly | payments-api | **planned** | Charging requires founder Tier D |
+| **gbrain-mcp** | knowledge-graph-mcp | active | 74 MCP tools when running; install runtime/brain/ |
+
+**Catalog test enforce: auth_env field chỉ chứa env var NAME (regex `^[A-Z][A-Z0-9_]*$`), không chứa giá trị.** Đây là defense-in-depth — nếu ai accidentally paste secret value vào yaml, test fail before merge.
+
+### 40.9.5 Adapter pattern skeleton — seed cho v2.4+ federation
+
+`scripts/resolver-v2/adapters/README.md` document contract (skeleton; chưa wire runtime):
+
+```javascript
+module.exports = {
+  kind: 'external-source',
+  namespace: '<source-id>',
+  source: {
+    type: 'api' | 'db-readonly' | 'llm-api' | ...,
+    auth_env: 'NAME_OF_ENV_VAR',   // never the value
+    endpoint: 'https://...',
+    ttl_seconds: 3600,
+  },
+  generate: async function ({ secrets }) {
+    // Side-effect-free; returns Recipient[]
+  },
+};
+```
+
+**Tại sao chỉ skeleton trong v2.2 mà không build luôn runtime?**
+
+- Không có consumer thật → không biết shape đúng. YAGNI.
+- Sample size = 0 → design dễ over-fit
+- v2.4 ship khi 3rd party adapter đầu tiên xuất hiện → contract sẽ tốt hơn vì có concrete use case
+
+**Skeleton vẫn có giá trị:** nó signal "chúng tôi biết extension point sẽ ở đây" — operator + AI agent không cần guess. Cost ~50 LOC README; benefit avoid future architectural re-think.
+
+### 40.9.6 Composition output evolution — optional `context_recipe`
+
+v2.1 output schema: `{primary, supporting[], rationale}`. Giữ nguyên.
+
+v2.2 thêm **OPTIONAL** field `context_recipe` cho context-assembly tasks:
+
+```yaml
+primary: <recipient-id>
+supporting: [<recipient-id>, ...]
+rationale: "..."
+context_recipe:                       # OPTIONAL — v2.2 extension
+  primary_lens: [persona/<id>]         # Strategic perspective
+  static_priors:                       # Indexed, ambient (zero cost)
+    - capability/<id>
+    - sop/<id>
+    - page/<id>                        # v2.2 NEW
+  dynamic_queries:                     # On-demand
+    - tool: mcp/<id>
+      purpose: "..."
+      hint: "<query template>"
+  governance_constraints:              # v2.2 NEW
+    - page/governance-HITL
+    - page/governance-ROLES
+    - metric/<id>
+  goal_metrics:                        # v2.2 NEW
+    - metric/<id>
+```
+
+**Backward-compat — consumers chưa hiểu field này ignore hoàn toàn.** Wire format v2.1 không break. Đây là pattern "additive extension via optional field" — sau này nếu cần thêm field nữa cứ thêm tiếp.
+
+### 40.9.7 Numerical outcomes — v2.1 vs v2.2
+
+| Metric | v2.1 | v2.2 | Δ |
+|---|---|---|---|
+| Recipient kinds | 11 | **16** | +5 |
+| Total entries | 252 | **392** | +140 (+55%) |
+| Catalog token cost | ~30K | **~48K** | +18K (+60%) |
+| % of 200K context window | 15% | **24%** | +9pp |
+| Test count | 245 | **294** | +49 (+20%) |
+| Code volume (engine) | 920 LOC | ~1240 LOC | +320 (+35%) |
+| Wire format breaking changes | n/a | **0** | non-breaking |
+| Manifest version | v0.11.0 | **v0.12.0** | minor++ |
+
+### 40.9.8 Test breakdown (49 new)
+
+| Suite | Count | What's covered |
+|---|---|---|
+| `generatePages` | 9 | Count ≥40, ID format, invoke validity (Read+path exists), SECRETS/PII/META exclusion, sorting, canonical entries (governance-HITL, knowledge-manifest) |
+| `generateViews` | 5 | Count ≥1, ID format `view/<schema>-<name>`, SELECT in invoke, MATERIALIZED detection, v_capability_pipeline present |
+| `generateMetrics` | 8 | Count ≥20, ID format, meta-key skip, pillar/role_scope correctness, PMF composite present, per-persona surfaced, invoke validity |
+| `generateRunbooks` | 4 | Count, ID format, Read() invoke, evolve.md present |
+| `generateExternalSources` | 7 | Count ≥7, ID format, disambiguator carries source_type, gbrain-mcp present + active, supabase-product firewall scope, stripe planned, no secret-value leaks |
+| VALID_KINDS extension | 2 | 5 new kinds present; total 16 |
+| CATALOG_FILES extension | 2 | 5 new files present; total 16 |
+| CLAUDE.md auto-imports | 1 | All 5 new imports wired |
+| catalog-loader integration | 4 | All ≥15 kinds load; totalCount > 252 + \< 600; no duplicate IDs |
+| adapter skeleton | 3 | README documents contract; .gitkeep present; no .adapter.cjs files (skeleton confirmed) |
+| external-sources.yaml registry | 3 | Parses; required fields; auth_env contains NAMES only |
+
+**294 tests / 100% pass.** 3 pre-existing tests updated cho v2.2 schema:
+- `errors.test.ts` — VALID_KINDS array assertion (11 → 16)
+- `catalog-loader.test.ts` — CATALOG_FILES array assertion (11 → 16)
+- `integration.test.ts` — recipient ID regex cho phép hyphen trong kind segment (cho `external-source/...`)
+
+### 40.9.9 What worked / lessons v2.2
+
+#### ✓ Worked
+
+1. **Hybrid pattern (Option C) đúng** — distinct kinds cho internal categories đã thấy, meta-kind cho external. LLM filter dễ (only `metric` kinds when looking for KPIs); 3rd party expansion không cần thêm code (chỉ YAML entry).
+
+2. **Skeleton-only adapter** — đủ để operator hiểu extension point sẽ ở đâu; không over-engineer runtime trước khi có consumer.
+
+3. **Same-day compressed flow #2** — Phase 1-5 skipped vì architecture v2.1 đã sound. Phase 6-7-8 chạy thẳng trong 1 session. Wave 1 maturity proves out lần thứ hai.
+
+4. **Per-persona workforce KPIs surface** — 23 KPIs phụ persona.ceo/cto/cgo/cpo originally chỉ visible trong YAML file. Sau v2.2 ambient catalog → @ceo / @cto session tự thấy KPI mình bị đánh giá.
+
+5. **Secret defense-in-depth** — pages.md test enforces SECRETS.md / founder-profile.md exclusion; external-sources.yaml test enforces auth_env = env var NAME only. Cả hai catch regression nếu Tier 1 file structure đổi.
+
+#### ✗ Didn't work / lessons
+
+1. **Estimated 20 metrics, actual 83** — per-persona workforce KPIs (persona.ceo.routing_accuracy_first_try, etc.) đã được add trong PR 3/4 stack mà brainstorm không know about. **Lesson:** Khi count entries trong yaml registry, đọc actual file before estimating — đặc biệt khi registry chứa multi-tier data (baseline KPIs + workforce KPIs).
+
+2. **Token cost +18K (+60%) cao hơn estimate (+13K)** — metrics size bị undercount. Still well within budget (~24% of 200K) nhưng signal: catalog growth cần track per-kind tokens trong test, không chỉ entry count.
+
+3. **3 pre-existing tests updated reluctantly** — `errors.test.ts`, `catalog-loader.test.ts`, `integration.test.ts` hardcoded "11 kinds" / specific regex. Mỗi lần expand kinds phải edit 3 chỗ. **Lesson:** Test arrays nên import từ source-of-truth constants thay vì hardcode duplicate; integration regex nên test pattern abstractly.
+
+4. **CI warn validator `governance/ROLES ↔ skills` vẫn fail (27 issues)** — pre-existing từ trước v2.2; ROLES.md reference 27 skills chưa implement (planned roles). Không phải v2.2 regression. **Lesson:** Warn-tier validator failures cần explicit `ack: <reason>` comment trong test output để distinguish "known pre-existing" vs "new regression".
+
+### 40.9.10 Resolver iteration chain — 4 versions trong 2 ngày
+
+| Ch | Version | Trigger | Ship time | Lesson |
+|---|---|---|---|---|
+| 38 | v1.0.0 | Initial concept (keyword engine) | ~1 ngày | Foundation |
+| 39 | v2.0.0 | Founder critique → paradigm shift (LLM-native) | ~2 hours | Architecture iteration on Wave 1 capability |
+| **40 (main)** | **v2.1.0** | Founder gap detection → 6 new kinds (composition) | **~2 hours** | Content expansion on sound architecture |
+| **40.9 (this)** | **v2.2.0** | Founder context sources request → 5 new kinds + adapter skeleton | **~4 hours** | Same-architecture expansion + future-extension seed |
+
+**4 iterations within 2 days = velocity ceiling pattern.** Mỗi iteration response một dogfood signal khác:
+- v1: Foundation
+- v2: Paradigm correctness
+- v2.1: Content coverage (workforce artifacts)
+- v2.2: Content coverage (context sources) + extension point (adapter)
+
+Sau v2.2, **mature catalog substrate** đã đủ cho Wave 2 capabilities (revenue-adjacent: customer onboarding, support automation, GTM funnel) — không phải vì có thêm features, mà vì:
+- Wave 2 agents cần read Tier 1 governance (page/governance-HITL khi action có blast radius)
+- Wave 2 agents cần KPI targets (metric/100-paying-who-love-composite cho founder Monday tile)
+- Wave 2 agents cần SQL view snapshots (view/mv_customer_360 khi assemble customer context)
+- Wave 2 agents cần runbooks (runbook/evolve khi auto-improve own skill)
+- Wave 2 agents cần external integrations (external-source/stripe-readonly khi check subscription status; external-source/telegram-bot khi route HITL)
+
+### 40.9.11 Why this isn't a new chapter
+
+Founder explicit request: *"Update bổ sung playbook và docs vào phần tiếp theo của Chapter 40 cho đỡ phải thêm chapter mới."*
+
+Justification:
+- **Architectural continuity** — v2.2 tiếp tục pattern "non-breaking incremental on sound architecture" mà v2.1 đã ship trong Chương 40 chính. Không có novel paradigm.
+- **Same case study, same capability family** — `resolver-v2.x` family share spec, share engine, share audit table. Một chương = một capability case study.
+- **Postscript pattern** — sau khi case study chính đóng (40.7 Wave 1 closing reflection), v2.2 demonstrates pattern integrity bằng cách incremental thêm lần nữa. Đó chính là evidence the pattern works.
+- **Chương mới = thêm walkthrough cost** — operator phải scan thêm 1 entry sidebar, ToC dài thêm, PDF nặng thêm. Nếu content thực sự incremental → postscript section đủ.
+
+**Rule of thumb (mới phát hiện qua v2.2):** Capability case study chỉ nên thêm chương mới khi (a) capability hoàn toàn mới (không phải iteration), HOẶC (b) iteration thay đổi architecture (paradigm shift như v1→v2). Same-architecture content expansion → postscript section.
+
+Chương 40 vì thế trở thành **multi-version capability case study** — main chapter cho v2.1 (Wave 1 closing); postscript cho v2.2 (Wave 1 post-closing confirmation). Tương lai nếu v2.3 (lazy `record` kind) hay v2.4 (adapter runtime) cũng same-architecture → có thể tiếp tục append section 40.10, 40.11, etc.
+
+### 40.9.12 Cross-references v2.2
+
+**Spec + source code:**
+- v2.2 spec: `.archives/cla/resolver-v2.2-context-sources/spec.md`
+- v2.2 brainstorm: `.archives/cla/resolver-v2.2-context-sources/00-scoping-brainstorm.md`
+- v2.1 spec (predecessor): `.archives/cla/resolver-v2.1/spec.md`
+- External-source registry: `knowledge/external-sources.yaml` (NEW; 8 sources)
+- Adapter contract skeleton: `scripts/resolver-v2/adapters/README.md`
+- 5 NEW catalog files: `knowledge/recipients/{pages,views,metrics,runbooks,external-sources}.md`
+- Engine: `scripts/resolver-v2/catalog-generator.cjs` (+5 generators + extractYamlPurpose helper); `scripts/resolver-v2/catalog-loader.cjs` (CATALOG_FILES 11→16); `scripts/resolver-v2/errors.cjs` (VALID_KINDS 11→16)
+- Tests: `tests/resolver-v2/v22-context-sources.test.ts` (49 assertions)
+
+**Governance:**
+- ops.capability_runs id (v2.2): `1846a978-2cf6-439a-9f7a-72ddd069fbb6`
+- ops.capability_runs v2.1 (superseded): `46df2e43-1d25-4792-bff3-8ca5495d1b18`
+- Capability registry: `knowledge/capability-registry.yaml` (v2.2 operating + v2.1 superseded + v2 superseded + v1 superseded)
+- Manifest: `knowledge/manifest.yaml` v0.12.0
+- PR: #98 (squash-merged 2026-05-24 12:46 UTC)
+
+---
+
+*Closing reflection v2.2:* Resolver có thể đã đứng yên ở v2.1 — Wave 1 đã "đóng" về mặt formal. Nhưng founder hỏi tiếp về context sources + extensibility chỉ vài giờ sau, và v2.2 demonstrate điều quan trọng hơn cả việc add 5 kinds: **một architecture đúng có thể absorb iteration request mà không trigger chapter mới, không trigger architectural debate, không trigger consumer migration.** v2.2 ship trong 4 tiếng, append vào chương cũ, deploy luôn. Đây là **proof của "Wave 1 closed"** — không phải "ngừng iterate", mà là "iterate without churning". Sau bài này, Wave 2 thực sự bắt đầu — và resolver sẽ tiếp tục lớn lên cùng nó (v2.3 lazy record kind cho 614 wiki entities; v2.4 adapter runtime cho 3rd party live data; v3.0 federation cho multi-team), nhưng có lẽ những iteration đó sẽ tiếp tục là sections 40.10, 40.11... thay vì chapters 41, 42...
