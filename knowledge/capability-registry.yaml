@@ -418,6 +418,73 @@ capabilities:
       the orchestrator's pre-flight check refuses to run /evolve.
       See wiki/runbooks/evolve.md §Onboarding.
 
+  - id: resolver-v2.1
+    name: "/resolver v2.1 — Composition Expansion (6 new recipient kinds)"
+    description: |
+      Incremental on resolver-v2 (catalog architecture unchanged). Adds 6 new
+      recipient kinds for full composition use cases:
+
+      - **wiki** — Curated knowledge pages (`wiki/<source-slug>/source.md`).
+        Currently 4 sources; will grow as `/wiki sync` runs.
+      - **sop** — Standard Operating Procedures (`**/sops/SOP-XXX-*/`).
+        106 SOPs indexed.
+      - **capability** — Operating capabilities (knowledge/capability-registry).
+        7 capabilities (excludes superseded resolver v1).
+      - **workflow** — Multi-step workflows (workflows/). Placeholder (0
+        entries); activates when folder populated.
+      - **schedule** — pg_cron jobs (knowledge/schedules.yaml). 11 schedules.
+      - **hook** — Claude Code hooks (.claude/hooks/). 10 hooks.
+
+      Triggered by founder critique:
+      > "Tôi thấy hệ thống resolver còn thiếu những thành phần recipients như
+      > context-sources, sop, workflow, wiki... Ví dụ nếu 1 agent cần tập hợp
+      > các context liên quan cho 1 tác vụ thì nó phải truy vấn ở những nguồn
+      > nào rồi mới assemble lại?"
+
+      v2.0 indexed 5 kinds (118 entries); v2.1 indexes 11 kinds (254 entries).
+      Catalog grows ~16K → ~30K tokens (~15% of 200K context window).
+
+      All v2.0 architecture preserved: 3 consumer modes (A/B/C), single source
+      of truth (recipients/*.md), engine modules (catalog-loader, keyword-
+      fallback, sync, audit, errors), 4 cross-tier validators. Only the
+      generator and CATALOG_FILES extended.
+
+      245 tests pass (was 215; +30 v2.1 tests for new generators).
+    version: "2.1.0"
+    state: operating
+    state_since: 2026-05-24
+    proposed_at: 2026-05-24
+    deployed_at: 2026-05-24
+    operating_since: 2026-05-24
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [14, 18, 20]
+    spec_path: .archives/cla/resolver-v2.1/spec.md
+    cost_bucket: ai-ops-meta
+    estimated_cost_setup_usd: 10
+    estimated_cost_recurring_usd: 2
+    estimated_founder_hours: 0.5
+    target_kpis: [composition_recall, kinds_coverage]
+    target_value: 11
+    supersedes: resolver-v2
+    notes: |
+      ops.capability_runs id: 46df2e43-1d25-4792-bff3-8ca5495d1b18
+      Same-day incremental on resolver-v2 (342d05a8-...). Extends 5 kinds → 11.
+      v2.0 architecture preserved entirely (no breaking change). Only added
+      generators + extended CATALOG_FILES + CLAUDE.md auto-imports.
+
+      v2.1 catalog volume by kind:
+        - skill: 67, command: 12, agent: 5, persona: 21, mcp: 9 (v2.0 carryover)
+        - wiki: 4, sop: 106, capability: 7, workflow: 0, schedule: 11, hook: 10 (v2.1 NEW)
+        - Total: 252 entries / ~30K tokens
+
+      Test additions in tests/resolver-v2/v21-new-kinds.test.ts:
+        - 6 generator suites (one per new kind)
+        - 4 catalog-loader integration tests
+        - 4 composition use case tests
+
+      Wave 1 closing: resolver v1 (Chương 38) → resolver v2 (Chương 39) →
+      resolver v2.1 (Chương 40). Three iterations within ~2 days.
+
   - id: resolver-v2
     name: "/resolver v2 — LLM-Native Catalog (supersedes resolver v1)"
     description: |
@@ -460,11 +527,12 @@ capabilities:
       Spec: .archives/cla/resolver-v2/spec.md (compressed Phases 1-5; jump to
       Phase 6-8 execution).
     version: "2.0.0"
-    state: operating                         # Phase 8 promotion 2026-05-23
-    state_since: 2026-05-23
+    state: superseded                        # by resolver-v2.1 (2026-05-24, same-day incremental)
+    state_since: 2026-05-24
     proposed_at: 2026-05-23
     deployed_at: 2026-05-23
     operating_since: 2026-05-23
+    deprecated_at: 2026-05-24                # superseded by v2.1 (non-breaking; just expanded kinds)
     pillar_owner: 06-ai-ops
     bài_toán_touched: [5, 11, 12, 14, 15, 20]
     spec_path: .archives/cla/resolver-v2/spec.md

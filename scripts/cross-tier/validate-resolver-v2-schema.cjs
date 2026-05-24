@@ -19,7 +19,7 @@ const { loadCatalog, parseFile } = require(path.join(REPO_ROOT, 'scripts/resolve
 const E = require(path.join(REPO_ROOT, 'scripts/resolver-v2/errors.cjs'));
 
 const VALID_KINDS = E.VALID_KINDS;
-const VALID_STATUSES = ['active', 'stub', 'deprecated', 'planned', 'deferred'];
+const VALID_STATUSES = ['active', 'stub', 'deprecated', 'planned', 'deferred', 'operating', 'implementing', 'proposed', 'analyzing', 'architecting', 'disabled', 'draft'];
 
 function main() {
   if (!fs.existsSync(RECIPIENTS_DIR)) {

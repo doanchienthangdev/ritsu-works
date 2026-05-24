@@ -22,6 +22,12 @@ See `.archives/cla/resolver-v2/spec.md` §4 for Mode A pattern.
 @knowledge/recipients/agents.md
 @knowledge/recipients/personas.md
 @knowledge/recipients/mcps.md
+@knowledge/recipients/wikis.md
+@knowledge/recipients/sops.md
+@knowledge/recipients/capabilities.md
+@knowledge/recipients/workflows.md
+@knowledge/recipients/schedules.md
+@knowledge/recipients/hooks.md
 
 ## What this repo is and is not
 

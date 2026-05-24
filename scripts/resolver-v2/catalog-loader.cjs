@@ -30,7 +30,11 @@ const E = require('./errors.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const DEFAULT_RECIPIENTS_DIR = path.join(REPO_ROOT, 'knowledge', 'recipients');
-const CATALOG_FILES = ['skills.md', 'commands.md', 'agents.md', 'personas.md', 'mcps.md'];
+const CATALOG_FILES = [
+  'skills.md', 'commands.md', 'agents.md', 'personas.md', 'mcps.md',
+  // v2.1 NEW kinds — composition expansion
+  'wikis.md', 'sops.md', 'capabilities.md', 'workflows.md', 'schedules.md', 'hooks.md',
+];
 
 const REQUIRED_FIELDS = ['Kind', 'When to use', 'Invoke', 'Status'];
 const OPTIONAL_LIST_FIELDS = ['Composes with', 'Aliases'];
