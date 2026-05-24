@@ -218,7 +218,8 @@ const SIDEBAR_SEGMENTS = [
   ["---Phần III — Scaling & Intelligence---", "---Part III — Scaling & Intelligence---", (s) => /^(0[6-9]|10)-/.test(s)],
   ["---Phần IV — Triển khai---", "---Part IV — Implementation---", (s) => /^1[1-3]-/.test(s)],
   ["---Phần V — Phase A.2---", "---Part V — Phase A.2---", (s) => /^(1[4-9]|2\d|3[0-3])-/.test(s)],
-  ["---Phần VI — Capability Case Studies---", "---Part VI — Capability Case Studies---", (s) => /^3[4-9]-capability-case/.test(s)],
+  // Match any 2-digit chapter number followed by "-capability-case" (was /^3[4-9]/ which only covered ch34-39 → missed ch40+)
+  ["---Phần VI — Capability Case Studies---", "---Part VI — Capability Case Studies---", (s) => /^\d{2}-capability-case/.test(s)],
   ["---Phụ lục---", "---Appendix---", (s) => /^A\d/.test(s)],
 ];
 
