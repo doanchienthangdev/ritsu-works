@@ -270,6 +270,56 @@ Strategy E is a v1.0 decision. Triggers to revisit:
 
 Any architecture change is a PR to this file plus updates to `governance/ROLES.md` and `_build/notes/problem-4-*.md` (append, don't overwrite). Treat this document as the contract.
 
+### v1.1 (2026-05-25) — Type 4 governed extension via gbrain
+
+**Strategy E v1.0 → v1.1.** Capability `gbrain-operational-brain` v1.0 (Tier C decision `5014456d-7526-4ba2-9c58-005166193864`) extends Type 4 (semantic memory) with a SECOND substrate.
+
+**Before (v1.0):** Type 4 had ONE substrate — `wiki/` + `raw/` — with loose governance (source-attributed wiki-sync extraction; anyone can write; promotion to Type 1 via PR per `_build/recipes/promote-wiki-to-tier1.md`).
+
+**After (v1.1):** Type 4 has TWO substrates:
+
+| Substrate | Path | Governance | Trust | Population |
+|---|---|---|---|---|
+| **wiki/** + raw/ (v1.0 path; unchanged) | `wiki/`, `raw/` | Loose; source-attributed | Variable (cite raw) | wiki-sync from external refs |
+| **gbrain/** (v1.1 NEW path) | `runtime/brain/` via gbrain MCP server | Mid; per-role allowlist + Tier B notify-first-then-batch + nightly dream cycle | Higher (founder + 6 WRITE-enabled roles curate) | Founder + AI workforce direct via MCP `put_page` |
+
+**Why two substrates:** External research notes (wiki/) have different curation needs than operational truth (people, companies, meetings, ideas, concepts, decisions). The brain extends Type 4 *not* by replacing wiki/ but by adding a higher-governance, lower-friction operational layer. The wiki/ stays canonical for external knowledge; gbrain holds what the company knows about itself.
+
+**Governance differential summary:**
+
+```
+Type 1 — DECLARATIVE   → Tier 1 (git)        PR-only           HIGHEST GOVERNANCE
+Type 2 — EPISODIC      → Tier 2 (Supabase)   append-only       MEDIUM
+Type 3 — PROCEDURAL    → Tier 1 (skills/)    PR-only           HIGHEST
+Type 4 — SEMANTIC:
+  ├─ wiki/             → wiki/, raw/         loose             LOOSE  (v1.0)
+  └─ gbrain/           → runtime/brain/      mid (Tier B)      MID    (v1.1 NEW)
+```
+
+**Per-role brain access (Phase 2 v1.0 capability):** `governance/ROLES.md` carries a NEW `brain_affinity: high|medium|low|none` field on each role. 6 WRITE-enabled roles (`customer-lead`, `feedback-aggregator`, `gtm-orchestrator`, `cs-coach`, `product-orchestrator`, `eval-evo-orchestrator`) get `mcp_servers: [gbrain]` grant; other 17 READ-capable roles have READ-only via MCP read tools; `etl-runner` has `brain_affinity: none`.
+
+**Promotion path (gbrain → wiki/ → 00-core/):**
+- **Weekly cadence:** founder reviews gbrain mature pages for promotion to `wiki/` (Tier C PR, per `_build/recipes/promote-wiki-to-tier1.md` extended).
+- **Quarterly cadence:** founder + cofounder review `wiki/` pages for `00-core/` amendment (Tier C PR with TWO signatures — founder + cofounder).
+- Promotion never goes the reverse direction.
+
+**Lifecycle rule:** Brain pages NEVER hard-delete, except:
+- archive → purge after 90 days in archive state (Tier C);
+- GDPR DSR exception (Tier D-Std, founder magic phrase per `SOP-CUSTOMER-023`).
+
+**Cost discipline:** `$100/mo` HARD cap on gbrain.* cost_bucket sum (rolling 30 days). Enforced by `.mcp.json` wrapper invoking `scripts/pre-budget-check.sh`. Hard-cap behavior Option B (graceful degrade): at 100%, MCP load succeeds, READS continue, WRITES + dream cycle disabled; Tier C escalation alert. See `knowledge/economic-architecture.md` Axis 2.
+
+**Cross-system integration:** Brain integrates with CLA (`capability-lifecycle-architecture v1.1.0`) — 7 CLA sub-skills get `## Brain context` section per Q7 deep-dive; per-phase narrative pages auto-created Tier B. Brain integrates with `SOP-AIOPS-002-cross-tier-consistency` — 5-8 gbrain L1/L2/L3 invariants registered in `knowledge/cross-tier-invariants.yaml` (NO schema migration needed; existing `ops.consistency_checks.check_kind` constraint supports L1/L2/L3).
+
+**Scope NOT in v1.1:** Centralized pre-write hook for ID resolution (Q4 OQ4.3) — Phase 3 future capability. Post-task evaluator for missed-brain detection (Q3 OQ3.C) — Phase 3. `/promote` command — Phase 3. Voice/email/calendar gbrain integrations — Phase 4. Cross-MCP federation queries — Phase 4. Multi-brain federation — Phase 5.
+
+**Trigger to revisit v1.1 → v1.2:** the 6 WRITE-enabled roles' usage patterns prove the boundary is wrong; OR the $100/mo cap proves systematically off; OR a new operational domain emerges (e.g., investor relations) that needs brain WRITE access.
+
+References:
+- Capability spec: `wiki/capabilities/gbrain-operational-brain/spec.md` (after Phase 8 promotion; currently `.archives/cla/gbrain-operational-brain/spec.md`)
+- 10-Q brainstorm: `.archives/brainstorming/gbrain-deep-integration-2026-05-23/`
+- Install record: `.archives/brainstorming/gbrain-integration-2026-05-23/02-install-record.md`
+
 ---
 
 *Memory in Ritsu is intentionally constrained. The constraint is the feature: a workforce that learns through governed, audited, structured channels — not through ad-hoc files that drift outside review.*

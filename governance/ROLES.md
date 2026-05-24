@@ -895,6 +895,113 @@ escalation_role: founder
 
 ---
 
+## v1.1 gbrain integration (added 2026-05-25 — capability `gbrain-operational-brain` v1.0)
+
+> Tier C decision id `5014456d-7526-4ba2-9c58-005166193864`. Adds 1 NEW role (`gbrain-maintainer`) and a `brain_affinity` matrix mapping all 24 existing roles to gbrain access levels, plus `mcp_servers: [gbrain]` grants for 6 WRITE-enabled roles. Per-role definitions above remain authoritative for everything else; this section is the v1.1 ADDITIVE delta for gbrain access only. Pillar spec: `wiki/capabilities/gbrain-operational-brain/spec.md` (after Phase 8 promotion; currently `.archives/cla/gbrain-operational-brain/spec.md`).
+
+### NEW role: `gbrain-maintainer`
+
+```yaml
+role: gbrain-maintainer
+purpose: Nightly gbrain dream cycle (dedup, citation fix, contradiction detection, synthesis). Maintain brain health autonomously.
+home_pillar: 06-ai-ops/gbrain
+personas_bound: []      # autonomous worker; no C-suite persona binding
+permissions:
+  tier1_paths: []
+  tier2_schemas_read:
+    - ops.cost_attributions (own writes)
+    - ops.agent_runs (own writes only)
+  tier2_schemas_write:
+    - ops.agent_runs (own log)
+    - ops.cost_attributions (cost_bucket: gbrain.gbrain-maintainer.*)
+  tier3_buckets: []
+  tier4_namespaces:
+    - gbrain (full read+write via MCP)
+  mcp_servers:
+    - gbrain (full)
+  skills:
+    - brain-write-discipline
+    - brain-promotion (read-only consumer of promotion candidates)
+  secrets:
+    - ANTHROPIC_API_KEY         # for synthesize phase
+    - OPENAI_API_KEY            # for text-embedding-3-small regenerate
+hitl_max_tier: A                # autonomous (nightly cron only)
+budget:
+  monthly_token_usd: 30
+  monthly_tool_calls: 200
+economic_budget:
+  monthly_cap_usd: 30
+  alert_at_pct: 0.80
+  escalate_at_pct: 1.00
+  hard_block_at_pct: 1.50
+  per_task_kind_caps:
+    dream-cycle-dedup: 0.20
+    dream-cycle-citation-fix: 0.15
+    dream-cycle-contradiction-detection: 0.30
+    dream-cycle-synthesis: 0.50
+context_budget:
+  preamble_tokens: 2000
+  working_tokens: 15000
+  trigger_compact_at: 0.80
+memory_config:
+  memory_tool_enabled: false
+  episodic_recall_enabled: false  # dream cycle is per-night, no cross-night learning needed v1.0
+  recall_window_days: 0
+  recall_max_runs: 0
+  emit_run_summary: true
+  accept_corrections: false       # no founder corrections expected; pure mechanical brain ops
+notify_on_completion: false       # silent nightly; only failure → Tier B alert via cron handler
+escalation_role: founder
+```
+
+### `brain_affinity` matrix (24 existing roles + new role = 25 total)
+
+Field semantics:
+- `high` — role REGULARLY reads + writes brain
+- `medium` — role occasionally reads brain; may write in narrow circumstances
+- `low` — role rarely reads brain; never writes
+- `none` — role does not access brain (etl-runner case)
+
+| Role | brain_affinity | mcp_servers gbrain grant | Per-role gbrain monthly cap |
+|---|---|:---:|---|
+| `founder` | high | ✅ (subject to global $100 cap) | unlimited |
+| `cofounder` | high | ✅ (subject to global $100 cap) | unlimited |
+| `gbrain-maintainer` (NEW) | high | ✅ | $30 |
+| `customer-lead` | high | ✅ | $10 |
+| `feedback-aggregator` | high | ✅ | $15 |
+| `gtm-orchestrator` | high | ✅ | $10 |
+| `cs-coach` | high | ✅ | $10 |
+| `product-orchestrator` | high | ✅ | $15 |
+| `eval-evo-orchestrator` | medium | ✅ | $5 |
+| `founder-coach` | high | ❌ (READ-only via MCP read tools) | $3 |
+| `gps` | medium | ❌ | $3 |
+| `support-agent` | medium | ❌ | $3 |
+| `content-drafter` | low | ❌ | $3 |
+| `trust-safety` | low | ❌ | $3 |
+| `backoffice-clerk` | low | ❌ | $3 |
+| `code-reviewer` (@cto) | low | ❌ | $3 |
+| `growth-orchestrator` | medium | ❌ | $3 |
+| `hitl-router` | low | ❌ | $3 |
+| `health-tracker` | low | ❌ | $3 |
+| `retention-watcher` | medium | ❌ | $3 |
+| `escalation-router` | low | ❌ | $3 |
+| `metrics-curator` | medium | ❌ | $3 |
+| `alert-router` | low | ❌ | $3 |
+| `experiment-analyst` | low | ❌ | $3 |
+| `etl-runner` | **none** | ❌ | $0 |
+
+**Total advisory caps:** ~$146/mo (sum). **HARD global cap:** $100/mo enforced by `.mcp.json` wrapper `scripts/pre-budget-check.sh` per Hard-cap Option B graceful degrade. See `knowledge/economic-architecture.md` v1.1 addendum.
+
+### `mcp_servers: [gbrain]` grant expansion
+
+The 8 roles with `mcp_servers: [gbrain]` grant (gbrain-maintainer + founder + cofounder + 5 customer-facing WRITE-enabled + product-orchestrator + eval-evo-orchestrator) gain full MCP tool access subject to per-tool HITL tier (see `governance/HITL.md` Appendix A). The 17 READ-only roles can invoke gbrain READ tools (Tier A: search, get_page, list_pages, traverse_graph, find_*, code_*, etc.) without an explicit `mcp_servers` grant — READ tools have permissive default allowlists per `knowledge/mcp-tools.yaml`. WRITE tools (Tier B/C/D-Std) require the explicit role allowlist match.
+
+### Activation
+
+These role configurations are CONTRACT-level (this file is policy). The runtime `.claude/agents/<role>.md` config files are updated in Sprint 2 PR to mirror this contract. Until Sprint 2 lands, the contract is canonical and the runtime is being aligned. L2 validator `gbrain-l2-role-allowlist-consistency` (registered in `knowledge/cross-tier-invariants.yaml`) catches drift between this contract and `knowledge/mcp-roles.yaml`.
+
+---
+
 ## What this file is NOT
 
 - Not the runtime config — that's `.claude/agents/<role>.md`

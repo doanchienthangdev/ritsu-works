@@ -13,5 +13,16 @@ roles:
   - id: customer
     description: "Customer-facing, read-only own data"
     tool_pattern: "ritsu\\.customer\\.read_self\\..*"
-  
+
+  # ==========================================================================
+  # gbrain integration (capability gbrain-operational-brain v1.0, 2026-05-25)
+  # ==========================================================================
+  - id: gbrain-maintainer
+    description: "Nightly gbrain dream cycle (dedup, citation fix, contradiction detection, synthesis). Autonomous; HITL Tier A; $30/mo cap."
+    tool_pattern: "mcp__gbrain__.*"
+    notes: |
+      Pairs with governance/ROLES.md `gbrain-maintainer` role definition.
+      Cost-bucket: gbrain.gbrain-maintainer.* enforced by .mcp.json wrapper
+      (scripts/pre-budget-check.sh).
+
   # {{ADD_PROJECT_ROLES}}

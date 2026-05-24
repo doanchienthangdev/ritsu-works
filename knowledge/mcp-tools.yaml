@@ -272,6 +272,438 @@ tools:
       - experiment-analyst
 
   # ===========================================================================
+  # gbrain MCP server — capability gbrain-operational-brain v1.0 (2026-05-25)
+  # ===========================================================================
+  # External stdio MCP server: ~/.bun/bin/gbrain serve (cd runtime/brain/).
+  # Backed by Supabase Free project ritsu-brain (ap-southeast-2) — SEPARATE
+  # from ritsu-ops. ~70 tools total; HITL tier classification per
+  # governance/HITL.md Appendix A. Sprint 1 v1.0 registers a representative
+  # subset (~30 tools across all 4 tiers); Sprint 2+ expands per usage signal.
+  # Tools NOT enumerated below follow the naming pattern:
+  #   read-only / introspection (search/get/list/find/traverse/code_*/whoami/...)
+  #     → tier_default: A
+  #   single-page mutations (put/update/archive/file_upload/add_link/...)
+  #     → tier_default: B
+  #   multi-page batch ops (mass_/bulk_/schema_migrate/regenerate_all/dream_cycle_manual)
+  #     → tier_default: C
+  #   destructive (mass_purge/drop_all_links/reset_brain)
+  #     → tier_default: D-Std
+  #
+  # Per-tool registration here is REQUIRED for the .mcp.json wrapper allowlist
+  # enforcement. Tools not listed default-deny.
+
+  # ----- Tier A (READ-only / introspection) -----
+
+  - id: gbrain__search
+    server: gbrain
+    status: planned                # activates Sprint 5 when .mcp.json gbrain entry lands
+    description: |
+      Semantic search across all gbrain pages. pgvector HNSW + tsvector hybrid.
+      Founder + AI workforce primary read path.
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    rate_limit: "60/min per role"
+    role_scope:
+      - founder
+      - cofounder
+      - gps
+      - growth-orchestrator
+      - support-agent
+      - content-drafter
+      - code-reviewer
+      - trust-safety
+      - backoffice-clerk
+      - gtm-orchestrator
+      - product-orchestrator
+      - customer-lead
+      - cs-coach
+      - retention-watcher
+      - escalation-router
+      - feedback-aggregator
+      - founder-coach
+      - hitl-router
+      - health-tracker
+      - metrics-curator
+      - alert-router
+      - experiment-analyst
+      - gbrain-maintainer
+      # etl-runner omitted — brain_affinity: none
+
+  - id: gbrain__get_page
+    server: gbrain
+    status: planned
+    description: "Fetch a single gbrain page by slug or id. Returns frontmatter + content."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: &gbrain_read_roles
+      - founder
+      - cofounder
+      - gps
+      - growth-orchestrator
+      - support-agent
+      - content-drafter
+      - code-reviewer
+      - trust-safety
+      - backoffice-clerk
+      - gtm-orchestrator
+      - product-orchestrator
+      - customer-lead
+      - cs-coach
+      - retention-watcher
+      - escalation-router
+      - feedback-aggregator
+      - founder-coach
+      - hitl-router
+      - health-tracker
+      - metrics-curator
+      - alert-router
+      - experiment-analyst
+      - gbrain-maintainer
+
+  - id: gbrain__list_pages
+    server: gbrain
+    status: planned
+    description: "Paginated list of gbrain pages; filter by page_type, state, etc."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__get_chunks
+    server: gbrain
+    status: planned
+    description: "Get chunks for a given page (chunked storage for long pages)."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__traverse_graph
+    server: gbrain
+    status: planned
+    description: "Graph traversal from a start node along link types; configurable depth."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__get_links
+    server: gbrain
+    status: planned
+    description: "List forward links from a page."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__get_backlinks
+    server: gbrain
+    status: planned
+    description: "List backlinks to a page."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__find_experts
+    server: gbrain
+    status: planned
+    description: "People pages with most expertise on a topic (heuristic over links + page tags)."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__find_anomalies
+    server: gbrain
+    status: planned
+    description: "Statistical pattern detection across pages (dead links, isolated nodes, etc.)."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__find_contradictions
+    server: gbrain
+    status: planned
+    description: "LLM-based contradiction detection across pages on related topics."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    rate_limit: "10/min per role"   # LLM-heavy
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__find_trajectory
+    server: gbrain
+    status: planned
+    description: "Entity evolution over time (page history + state transitions)."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__think
+    server: gbrain
+    status: planned
+    description: "LLM-based brain-wide reflection on a topic. Higher cost per call."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    rate_limit: "5/min per role"
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__code_callees
+    server: gbrain
+    status: planned
+    description: "Code graph: who does X call? (per recipients/external-sources gbrain-mcp entry)"
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__code_callers
+    server: gbrain
+    status: planned
+    description: "Code graph: who calls X?"
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__code_def
+    server: gbrain
+    status: planned
+    description: "Code graph: where is X defined?"
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__code_refs
+    server: gbrain
+    status: planned
+    description: "Code graph: references to X."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__code_blast
+    server: gbrain
+    status: planned
+    description: "Code graph: impact analysis (blast radius of changing X)."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__file_url
+    server: gbrain
+    status: planned
+    description: "Signed URL for a file blob attached to a page."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__list_jobs
+    server: gbrain
+    status: planned
+    description: "List background jobs (dream cycle, ingestion, retries)."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__whoami
+    server: gbrain
+    status: planned
+    description: "Return calling role identity + per-tool grants. Diagnostic."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__get_brain_info
+    server: gbrain
+    status: planned
+    description: "Brain DB stats (page count, embedding count, schema version, health score)."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  - id: gbrain__get_health
+    server: gbrain
+    status: planned
+    description: "Health check (connection + RLS + extensions). Same as `gbrain doctor` CLI."
+    tier_default: A
+    cost_bucket: gbrain.shared.search
+    role_scope: *gbrain_read_roles
+
+  # ----- Tier B (single-page WRITES) -----
+
+  - id: gbrain__put_page
+    server: gbrain
+    status: planned
+    description: |
+      Create OR update a single gbrain page. Founder + 6 WRITE-enabled roles +
+      gbrain-maintainer only. Tier B notify-first-then-batch per
+      SOP-AIOPS-GBRAIN-001-write-discipline.
+    tier_default: B
+    cost_bucket: gbrain.write
+    rate_limit: "10/min per role"
+    role_scope: &gbrain_write_roles
+      - founder
+      - cofounder
+      - gbrain-maintainer
+      - customer-lead
+      - feedback-aggregator
+      - gtm-orchestrator
+      - cs-coach
+      - product-orchestrator
+      - eval-evo-orchestrator
+
+  - id: gbrain__update_page
+    server: gbrain
+    status: planned
+    description: "In-place page edit. Tier B."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  - id: gbrain__add_link
+    server: gbrain
+    status: planned
+    description: "Add a single link between two pages. Tier B."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  - id: gbrain__remove_link
+    server: gbrain
+    status: planned
+    description: "Remove a single link between two pages. Tier B."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  - id: gbrain__archive_page
+    server: gbrain
+    status: planned
+    description: "Transition page state published → archived (soft delete). Tier B."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  - id: gbrain__file_upload
+    server: gbrain
+    status: planned
+    description: "Upload a file blob attached to a page. Tier B."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  - id: gbrain__submit_job
+    server: gbrain
+    status: planned
+    description: "Enqueue a background job (e.g., bulk embed, custom recipe). Tier B."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  - id: gbrain__retry_job
+    server: gbrain
+    status: planned
+    description: "Retry a failed background job. Tier B."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  - id: gbrain__pause_job
+    server: gbrain
+    status: planned
+    description: "Pause a running background job. Tier B."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  - id: gbrain__bulk_link
+    server: gbrain
+    status: planned
+    description: "Bulk add links ≤ 10 at once. Escalates to C if > 10."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  - id: gbrain__bulk_unlink
+    server: gbrain
+    status: planned
+    description: "Bulk remove links ≤ 10 at once. Escalates to C if > 10."
+    tier_default: B
+    cost_bucket: gbrain.write
+    role_scope: *gbrain_write_roles
+
+  # ----- Tier C (multi-page mutations, semantic regen) -----
+
+  - id: gbrain__mass_update_pages
+    server: gbrain
+    status: planned
+    description: |
+      Update many pages in one operation (>10). Tier C — dry-run preview +
+      founder approval. Mass-purge threshold rule: >100 pages escalates to D-Std
+      regardless of starting tier.
+    tier_default: C
+    cost_bucket: gbrain.write
+    role_scope: [founder, cofounder, gbrain-maintainer]
+
+  - id: gbrain__schema_migrate
+    server: gbrain
+    status: planned
+    description: "Apply a gbrain DB schema migration. Tier C."
+    tier_default: C
+    cost_bucket: gbrain.write
+    role_scope: [founder, cofounder]
+
+  - id: gbrain__embedding_regenerate_all
+    server: gbrain
+    status: planned
+    description: "Re-embed ALL pages. Cost-heavy. Tier C."
+    tier_default: C
+    cost_bucket: gbrain.shared.embedding
+    role_scope: [founder, cofounder, gbrain-maintainer]
+
+  - id: gbrain__dream_cycle_manual
+    server: gbrain
+    status: planned
+    description: |
+      Manually trigger dream cycle outside nightly cron. Founder + gbrain-maintainer.
+      Tier C — cost variable (~$0.20-2.00 per run depending on brain size).
+    tier_default: C
+    cost_bucket: gbrain.gbrain-maintainer.dream_cycle
+    role_scope: [founder, cofounder, gbrain-maintainer]
+
+  - id: gbrain__archive_purge_now
+    server: gbrain
+    status: planned
+    description: |
+      Move all archived pages older than 90d to purged. Normally runs autonomously
+      via nightly cron; this manual variant is Tier C. >100 pages → D-Std.
+    tier_default: C
+    cost_bucket: gbrain.write
+    role_scope: [founder, cofounder, gbrain-maintainer]
+
+  # ----- Tier D-Std (destructive ops) -----
+
+  - id: gbrain__mass_purge
+    server: gbrain
+    status: planned
+    description: |
+      Hard-delete >100 pages in one operation. ONE-WAY. Magic phrase + 30s cooldown.
+      GDPR DSR exception: SOP-CUSTOMER-023 (Tier D-Std + founder GitHub
+      /founder-approved-irreversible) may invoke for people/<email-slug> deletion.
+    tier_default: D-Std
+    cost_bucket: gbrain.write
+    role_scope: [founder, cofounder]
+
+  - id: gbrain__drop_all_links
+    server: gbrain
+    status: planned
+    description: "Clear all link edges. Semi-destructive (re-derivable from links_extracted)."
+    tier_default: D-Std
+    cost_bucket: gbrain.write
+    role_scope: [founder, cofounder]
+
+  - id: gbrain__reset_brain
+    server: gbrain
+    status: planned
+    description: "Full brain DB reset. Equivalent to re-install. Magic phrase + cooldown."
+    tier_default: D-Std
+    cost_bucket: gbrain.write
+    role_scope: [founder]
+
+  # ===========================================================================
   # Phase 2 — Bài #12 semantic tools (PLANNED, not yet implemented)
   # ===========================================================================
   # These stay PLANNED until the Phase 2 work in
