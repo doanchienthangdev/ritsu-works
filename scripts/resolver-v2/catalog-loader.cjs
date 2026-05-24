@@ -34,6 +34,8 @@ const CATALOG_FILES = [
   'skills.md', 'commands.md', 'agents.md', 'personas.md', 'mcps.md',
   // v2.1 NEW kinds — composition expansion
   'wikis.md', 'sops.md', 'capabilities.md', 'workflows.md', 'schedules.md', 'hooks.md',
+  // v2.2 NEW kinds — context sources
+  'pages.md', 'views.md', 'metrics.md', 'runbooks.md', 'external-sources.md',
 ];
 
 const REQUIRED_FIELDS = ['Kind', 'When to use', 'Invoke', 'Status'];

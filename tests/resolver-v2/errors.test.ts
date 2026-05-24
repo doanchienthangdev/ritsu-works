@@ -29,7 +29,12 @@ describe("errors.cjs", () => {
 
     it("exports VALID_KINDS, VALID_MODES, VALID_DECISIONS constants", () => {
       // v2.1: added workflow, schedule, hook (6→11 kinds)
-      expect(E.VALID_KINDS).toEqual(["skill", "command", "agent", "persona", "mcp", "wiki", "sop", "capability", "workflow", "schedule", "hook"]);
+      // v2.2: added page, view, metric, runbook, external-source (11→16 kinds)
+      expect(E.VALID_KINDS).toEqual([
+        "skill", "command", "agent", "persona", "mcp",
+        "wiki", "sop", "capability", "workflow", "schedule", "hook",
+        "page", "view", "metric", "runbook", "external-source",
+      ]);
       expect(E.VALID_MODES).toEqual(["A", "B", "C"]);
       expect(E.VALID_DECISIONS).toEqual(["dispatch_silently", "surface_candidates", "no_match", "role_denied"]);
     });
