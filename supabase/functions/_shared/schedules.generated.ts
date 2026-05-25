@@ -3,8 +3,8 @@
 //
 // Source version:  1.0.0
 // Source timezone: Asia/Ho_Chi_Minh
-// Schedule count:  11
-// Generated at:    2026-05-21T19:26:39.060Z
+// Schedule count:  14
+// Generated at:    2026-05-25T03:25:06.215Z
 
 import type { ScheduleEntry } from "./dispatcher.ts";
 
@@ -122,7 +122,43 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
     ],
     "fallback": "log_only",
     "cost_estimate": "$0 per run (deterministic; reads ops.agent_runs)"
+  },
+  "crm-to-gbrain-mirror": {
+    "id": "crm-to-gbrain-mirror",
+    "cron": "0 2 * * *",
+    "description": "Nightly CRM → gbrain mirror (ETL public.companies billing fields → gbrain companies/ frontmatter)",
+    "skill": "crm-to-gbrain-mirror",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "fallback": "queue_for_founder_review",
+    "cost_estimate": "$0.05 per run"
+  },
+  "gbrain-consistency-nightly": {
+    "id": "gbrain-consistency-nightly",
+    "cron": "0 3 * * *",
+    "description": "Nightly L1+L2+L3 gbrain invariant sweep → ops.consistency_checks",
+    "skill": "gbrain-consistency-nightly",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "fallback": "log_only",
+    "cost_estimate": "$0.02 per run"
+  },
+  "gbrain-dream-cycle": {
+    "id": "gbrain-dream-cycle",
+    "cron": "0 4 * * *",
+    "description": "Nightly gbrain dream cycle (dedup + citation fix + contradiction detection + synthesis), run by gbrain-maintainer role",
+    "skill": "gbrain-dream-cycle",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "fallback": "log_only",
+    "cost_estimate": "$1.00 per run (~$30/mo cap)"
   }
 };
 
-export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","data-retention-scan","docs-drift-nightly","etl-product-dau-hourly","evolve-day30-calibration","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;
+export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","crm-to-gbrain-mirror","data-retention-scan","docs-drift-nightly","etl-product-dau-hourly","evolve-day30-calibration","gbrain-consistency-nightly","gbrain-dream-cycle","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;

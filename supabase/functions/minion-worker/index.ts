@@ -116,6 +116,15 @@ const SKILL_REGISTRY: SkillRegistry = {
   // Real Edge Function wrapper deferred to v1.1 — for v1.0, founder invokes
   // manually: `node scripts/eval-evo/calibrate-efficacy.cjs`.
   "eval-evo-calibrate-efficacy": makeDeferredStubHandler("eval-evo-calibrate-efficacy stub: founder runs `node scripts/eval-evo/calibrate-efficacy.cjs` manually for v1.0. Wired to cron via knowledge/schedules.yaml. Real Edge Function wrapper deferred to v1.1."),
+  // ==========================================================================
+  // gbrain integration cron handlers (capability gbrain-operational-brain
+  // v1.0 Sprint 4). All deferred-stub until Sprint 5 wires .mcp.json gbrain
+  // entry + Sprint 6 lands the runbook for handler infra. Founder may run
+  // gbrain CLI manually in the meantime.
+  // ==========================================================================
+  "crm-to-gbrain-mirror": makeDeferredStubHandler("crm-to-gbrain-mirror stub (capability gbrain-operational-brain v1.0): nightly ETL of public.companies billing fields → gbrain companies/<slug> frontmatter via mcp__gbrain__put_page. Needs gbrain MCP available — lands Sprint 5 (.mcp.json wrapper). Founder may run `gbrain serve` + manual sync in the meantime."),
+  "gbrain-consistency-nightly": makeDeferredStubHandler("gbrain-consistency-nightly stub (capability gbrain-operational-brain v1.0): nightly L1+L2+L3 invariant sweep on gbrain pages → inserts ops.consistency_checks rows + emits ritsu.gbrain.consistency_drift event on fail. Needs gbrain MCP + invariant handlers (Sprint 6) — for v1.0 deferred."),
+  "gbrain-dream-cycle": makeDeferredStubHandler("gbrain-dream-cycle stub (capability gbrain-operational-brain v1.0): nightly dedup + citation fix + contradiction detection + synthesis run by gbrain-maintainer role ($30/mo cap; Hard-cap Option B graceful degrade at $100 global). Needs gbrain MCP + persona_slug='gbrain-maintainer' invocation infra — lands Sprint 5+6. Founder may invoke manually via `gbrain dream-cycle` CLI in the meantime."),
   ...(anthropic
     ? {
         "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),
