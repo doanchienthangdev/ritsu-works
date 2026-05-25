@@ -18,8 +18,33 @@ steps:
     description: TODO — replace this placeholder with real steps
     cost_estimate: 0
 
+  # ==========================================================================
+  # gbrain extension (capability gbrain-operational-brain v1.0 Sprint 6)
+  # ==========================================================================
+  - id: gbrain_pii_hard_delete
+    type: subprocess
+    description: |
+      For GDPR Article 17 DSR requests on EU citizens, hard-delete matching
+      gbrain people/<email-slug> pages. EXPLICIT EXCEPTION to gbrain
+      "never hard-delete except archive→purge 90d" rule (per
+      knowledge/memory-architecture.md v1.1 + governance/HITL.md Appendix A
+      "Orthogonal rules: GDPR DSR exception").
+
+      Sequence:
+        1. Founder magic phrase ("override: <reason 5+ words>") per HITL.md
+           D-Std ceremony, adapted for GDPR DSR context
+        2. Founder GitHub PR comment /founder-approved-irreversible
+        3. Invoke mcp__gbrain__mass_purge people/<email-slug> (Tier D-Std)
+           OR mcp__gbrain__archive_purge_now if archived already
+        4. Verify hard-delete: mcp__gbrain__get_page people/<email-slug>
+           returns 404
+        5. Log to ops.audit_log with action='gdpr_dsr_gbrain_purge' +
+           target_kind='gbrain_page' + payload includes pr_url + magic_phrase
+    cost_estimate: 0.02   # mcp__gbrain__mass_purge call
+    hitl_tier: D-Std
+
 hitl_tier: D-Std
 cost_estimate: 0    # TODO: estimate per run
 idempotent: true    # TODO: verify when implemented
 partial_idempotent: true
-rollback: none      # TODO: define if any
+rollback: none      # GDPR DSR is intentionally irreversible per Article 17

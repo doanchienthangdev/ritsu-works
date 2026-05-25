@@ -1,0 +1,78 @@
+# ============================================================================
+# SOP-AIOPS-GBRAIN-001: gbrain Write Discipline
+# ============================================================================
+# Capability: gbrain-operational-brain v1.0 (Sprint 6)
+# Pillar: 06-ai-ops/gbrain
+# ============================================================================
+
+id: SOP-AIOPS-GBRAIN-001-write-discipline
+version: 1.0.0
+title: "gbrain Write Discipline (notify-first-then-batch)"
+description: |
+  Governs every gbrain MCP write tool invocation (put_page, add_link,
+  update_page, archive_page). Tier B notify-first-then-batch per founder
+  Phase 4 selection. Daily Telegram digest batches multiple writes for
+  one founder review session. Founder one-click [Undo] within 1h reverts
+  via mcp__gbrain__archive_page on the new page or revert the diff on update.
+pillar: 06-ai-ops/gbrain
+
+# === Triggers ===
+trigger:
+  kinds:
+    - event:ritsu.gbrain.write_committed         # emitted by any gbrain write tool
+
+# === Initial state ===
+initial_state: pending
+
+# === Cost projection ===
+cost_estimate:
+  llm_cost_per_run_usd: 0.00                     # batching is structural, no LLM
+  founder_time_minutes_per_run: 2                # per-daily-digest review window
+
+# === Phases ===
+phases:
+  - id: 1
+    name: capture
+    description: "Write event payload (slug, page_type, author_role, cost_bucket) into hitl-router queue."
+    artifact: ops.events row (event_type='ritsu.gbrain.write_committed')
+    status: live_v1_0
+  - id: 2
+    name: batch
+    description: "Daily 18:00 ICT, hitl-router aggregates pending writes into Telegram digest per author_role."
+    artifact: Telegram message with batched writes + per-write [Undo] inline buttons
+    status: live_v1_0
+  - id: 3
+    name: founder_decision
+    description: "Founder reviews digest. Default action: no-op (writes stand). [Undo] within 1h triggers revert."
+    status: live_v1_0
+  - id: 4
+    name: undo_if_invoked
+    description: "Undo: mcp__gbrain__archive_page on NEW pages; for update_page, write a reverting update_page restoring prior content."
+    status: live_v1_0
+
+# === Acceptance ===
+acceptance_criteria:
+  - "Every gbrain write logged to ops.agent_runs with cost_bucket=gbrain.<role>.<op>"
+  - "Daily Telegram digest reaches founder by 18:15 ICT"
+  - "[Undo] within 1h actually reverts (verified by smoke test post-promotion)"
+  - "Skip if author_role.brain_affinity = none (e.g. etl-runner)"
+
+# === Failure handling ===
+failure_handling:
+  - failure: hitl-router queue full
+    detection: ops.tasks (hitl-router) length > 1000
+    handling: Pause writes; alert founder Tier B; trigger queue drain skill
+  - failure: Telegram digest fails to send
+    detection: hitl-router error log
+    handling: Email fallback (founder notification email); retry next 18:00 ICT
+  - failure: founder undo can't revert (page already archived externally)
+    detection: archive_page returns 404
+    handling: Log to ops.events; no-op; surface in next digest as "undo failed"
+
+# === References ===
+references:
+  - "wiki/capabilities/gbrain-operational-brain/spec.md §4.9"
+  - "06-ai-ops/skills/brain-write-discipline/SKILL.md (template)"
+  - "knowledge/event-subscriptions.yaml (ritsu.gbrain.write_committed subscription)"
+  - "governance/HITL.md Appendix A (Tier B classification)"
+  - "knowledge/state-machines.yaml (gbrain_page lifecycle)"

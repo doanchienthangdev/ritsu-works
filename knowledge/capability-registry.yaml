@@ -753,7 +753,7 @@ capabilities:
                   chain, /check-drift --resolver-sync, /cla Phase-8 hook, 6 runbooks,
                   Monday digest line, bench + CI gate)
 
-  # === Proposed via /cla propose 2026-05-24 (Phase 0 — pre-architecture) ===
+  # === Operating since 2026-05-25 (promoted Phase 8 Sprint 6 — capability complete) ===
   - id: gbrain-operational-brain
     name: "GBrain Operational Brain (Type 4 Semantic Memory Integration)"
     description: |
@@ -798,35 +798,43 @@ capabilities:
       ~150 KB). Authoritative plan: 11-PLAN-consolidated.md.
       Older preliminary brainstorm:
       .archives/brainstorming/gbrain-integration-2026-05-23/ (4 files).
-    version: "0.1.0"                          # pre-Phase-5 placeholder (Phase 8 promotes to 1.0.0)
-    state: proposed
-    state_since: 2026-05-24
+    version: "1.0.0"                          # Phase 8 promotion 2026-05-25 (Sprint 6)
+    state: operating
+    state_since: 2026-05-25
     proposed_at: 2026-05-24
+    deployed_at: 2026-05-25                    # Sprint 5 PR #104 .mcp.json activation
+    operating_since: 2026-05-25                # Sprint 6 promotion
     pillar_owner: 06-ai-ops
-    spec_path: wiki/capabilities/gbrain-operational-brain/spec.md  # Phase 8 promotion target
-    cost_bucket: ai-ops-knowledge             # provisional; Phase 5 may move to NEW ai-ops-brain bucket
-    estimated_cost_setup_usd: null            # set at Phase 5
-    estimated_cost_recurring_usd: 100.00      # founder-stated hard cap; Phase 5 confirms breakdown
-    estimated_founder_hours: null             # set at Phase 5
+    spec_path: wiki/capabilities/gbrain-operational-brain/spec.md
+    retrospective_path: wiki/capabilities/gbrain-operational-brain/retrospective-v1.0.0.md
+    cost_bucket: ai-ops-knowledge
+    estimated_cost_setup_usd: 12.00            # Phase 5 estimate
+    estimated_cost_recurring_usd: 100.00       # HARD cap
+    estimated_founder_hours: 18                # Phase 5 estimate
+    actual_cost_setup_usd: ~10.00              # ~$10 across 6 sprint PR drafts (Sprints 1-6)
+    actual_cost_recurring_usd: 0               # 0 spend so far (gbrain MCP activated 2026-05-25; first month rolls 2026-06-25)
+    actual_founder_hours: ~3                   # founder time = "tiếp tục" instructions + Tier C merges (most work AI-executed in worktree)
     notes: |
       ops.capability_runs id: 7b991380-ae11-4b80-be56-6bc3ca6bbdf1
-      Phase 0 working folder: .archives/cla/gbrain-operational-brain/
-      Refs resolved (Phase 0):
-        - 9 file refs copied to .archives/cla/gbrain-operational-brain/refs/
-          (01-PLAN-consolidated, 02-Q7-cla-integration-deep-dive,
-           03-component-audit, 04-recommended-seed-batch,
-           05-install-record, 06-memory-architecture,
-           07-governance-ROLES, 08-governance-HITL, 09-economic-architecture)
-        - 1 wiki-query ref returned no_coverage (memory-architecture.md is
-          Tier 1, not ingested); placeholder at
-          runtime/cla/refs/gbrain-operational-brain/
-          01-wiki-query-memory-architecture-strategy-e-type-4.md
-      Phase 1 begins immediately (auto-advance, Tier A).
-      Founder target completion: 2026-09-30 (~18 weeks).
-      Expected slug-bound capability set after Phase 8 (preliminary, may grow):
-        - This capability (gbrain-operational-brain v1.0)
-        - Possible secondary: gbrain-cla-integration if Q7 splits out
-        - Possible secondary: gbrain-promotion-pipeline if cadence splits out
+      Tier C decision id: 5014456d-7526-4ba2-9c58-005166193864 (approved 2026-05-25)
+      Brainstorm: .archives/brainstorming/gbrain-deep-integration-2026-05-23/ (14 files)
+      Working folder: .archives/cla/gbrain-operational-brain/
+      Sprint PR chain (all merged to main):
+        - PR #100 (Sprint 1 governance) → squash f253c8c (2026-05-25)
+        - PR #101 (Sprint 2 skills + KPIs) → squash 8dc7720 (2026-05-25)
+        - PR #102 (Sprint 3 Tier 2 migrations 00036+00037) → squash 1ffb1c88 (2026-05-25)
+        - PR #103 (Sprint 4 hooks+cron+events+state machine) → squash 43d9ce59 (2026-05-25)
+        - PR #104 (Sprint 5 .mcp.json+pre-budget-check.sh) → squash 09b2d022 (2026-05-25)
+        - PR #105 (Sprint 6 sub-pillar+SOPs+validators+promotion) → squash TBD
+      Compressed timeline: 6 sprints shipped 2026-05-24 → 2026-05-25 (vs sprint-plan
+      estimate of 14-18 weeks; AI-executed in worktree branches with founder Tier C
+      merge ceremonies).
+      Open follow-ups for v1.1:
+        - Real cron handler implementations (Sprint 4 shipped deferred-stubs only)
+        - Stripe + GitHub webhook infrastructure (Sprint 4 shipped hook specs only)
+        - Live @cto + Muse panel re-runs (Phase 5 used synthesis-from-brainstorm)
+        - Sprint 1 brain-write-discipline skill folder now exists (Sprint 2 created it)
+          — pre-existing ROLES.md ↔ skills warn no longer applies to this skill
 
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.

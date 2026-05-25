@@ -1,0 +1,84 @@
+# ============================================================================
+# SOP-AIOPS-GBRAIN-002: gbrain Promotion Workflow
+# ============================================================================
+# Capability: gbrain-operational-brain v1.0 (Sprint 6)
+# Pillar: 06-ai-ops/gbrain
+# ============================================================================
+
+id: SOP-AIOPS-GBRAIN-002-promotion-workflow
+version: 1.0.0
+title: "gbrain → wiki/ → 00-core/ Promotion Workflow"
+description: |
+  Governs the promotion path defined in knowledge/memory-architecture.md
+  v1.1. Brain pages mature → wiki/ research → 00-core/ canonical. Each step
+  is Tier C PR; quarterly 00-core step requires founder + cofounder
+  signatures.
+pillar: 06-ai-ops/gbrain
+
+# === Triggers ===
+trigger:
+  kinds:
+    - event:ritsu.gbrain.promotion_pending       # emitted by gbrain-consistency-nightly
+    - scheduled_run                              # weekly review window (TODO: add schedule entry)
+
+# === Initial state ===
+initial_state: pending
+
+# === Cost projection ===
+cost_estimate:
+  llm_cost_per_run_usd: 0.05                     # brain-promotion skill drafts wiki/ file
+  founder_time_minutes_per_run: 15               # Tier C PR review per page
+
+# === Phases ===
+phases:
+  - id: 1
+    name: detect_mature
+    description: "gbrain-consistency-nightly L3 invariant fires for pages mature >30 days; emits ritsu.gbrain.promotion_pending event."
+    artifact: ops.events row
+    status: live_v1_0
+  - id: 2
+    name: weekly_review
+    description: "Founder reviews promotion candidates weekly (Sunday). For each: keep in brain / promote to wiki / archive."
+    status: live_v1_0
+  - id: 3
+    name: draft_wiki_pr
+    description: "For 'promote' selections, invoke 06-ai-ops/skills/brain-promotion/SKILL.md to draft wiki/ destination + open Tier C PR."
+    artifact: GitHub PR with wiki/<topic>/source.md draft
+    status: live_v1_0
+  - id: 4
+    name: founder_merge
+    description: "Founder reviews PR + merges (Tier C ceremony per HITL.md)."
+    status: live_v1_0
+  - id: 5
+    name: update_brain_state
+    description: "Post-merge, brain-promotion skill updates gbrain page state='published_to_wiki' + adds promoted_to frontmatter."
+    artifact: gbrain page state transition
+    status: live_v1_0
+  - id: 6
+    name: quarterly_wiki_to_core_review
+    description: "Quarterly (end of Q1/Q2/Q3/Q4): founder + cofounder review wiki/ pages for 00-core/ amendment. Tier C PR with TWO signatures (founder + cofounder /founder-approved-irreversible)."
+    status: live_v1_0
+
+# === Acceptance ===
+acceptance_criteria:
+  - "Weekly review cadence sustained (no week skipped for >2 consecutive weeks)"
+  - "Quarterly review happens within 14d of Q end"
+  - "Every promoted gbrain page has wiki/ counterpart + bidirectional link"
+  - "Promotion never reverses (no wiki/ → gbrain demotion)"
+
+# === Failure handling ===
+failure_handling:
+  - failure: weekly review skipped >2 consecutive weeks
+    detection: L3 invariant gbrain-l3-promotion-staleness
+    handling: Tier B alert founder + founder-coach; surface in monthly health-tracker review
+  - failure: PR conflicts with concurrent wiki edit
+    detection: gh pr merge fails
+    handling: Founder resolves conflict manually; brain-promotion skill retries draft
+
+# === References ===
+references:
+  - "wiki/capabilities/gbrain-operational-brain/spec.md §4.5"
+  - "06-ai-ops/skills/brain-promotion/SKILL.md"
+  - "knowledge/memory-architecture.md v1.1 (promotion path)"
+  - "knowledge/cross-tier-invariants.yaml (gbrain-l3-promotion-staleness)"
+  - "_build/recipes/promote-wiki-to-tier1.md (downstream wiki/ → 00-core/ recipe)"
