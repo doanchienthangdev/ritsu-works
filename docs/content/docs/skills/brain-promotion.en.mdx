@@ -1,0 +1,136 @@
+---
+title: 'Skill: brain-promotion'
+description: |
+  Helper for gbrain → wiki/ promotion flow. v1.0 = MANUAL AID (drafts the
+  wiki/ source.md from a gbrain page; presents founder Tier C PR). Phase 3
+  capability will add a `/promote <source> <target>` command and autonomous
+  cron auto-flag of mature concepts.
+
+  Use when: founder wants to promote a mature gbrain concept (state=mature
+  for >30 days, per gbrain-l3-promotion-staleness invariant) to wiki/ for
+  consolidated research; OR weekly promotion review per SOP-AIOPS-GBRAIN-002.
+
+  Skip when: gbrain page state != 'mature'; OR brain_affinity: none caller;
+  OR concept domain is brain-only (no wiki/ counterpart).
+source_path: 06-ai-ops/skills/brain-promotion/SKILL.md
+source_hash: e7b494ce5f8943e9719755936da615e4278b9001ee732aed251fdf646bf95f92
+generated_at: '2026-05-25T05:38:44.887Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Manual-aid helper to draft a wiki/ promotion PR from a mature gbrain page.
+
+This skill is the v1.0 (Phase 2) implementation of the gbrain → wiki/ promotion path defined in `knowledge/memory-architecture.md` v1.1. It drafts the wiki/ destination file, presents the founder with a Tier C PR, and (after merge) updates the source gbrain page's state to `published-to-wiki`.
+
+Phase 3 future capability extends this with `/promote` command + cron auto-flagging.
+
+## When to use
+
+Invoke at:
+
+- **Weekly cadence** — per SOP-AIOPS-GBRAIN-002 promotion-workflow. Founder reviews list of mature pages (gbrain pages with `state=mature` for >30 days).
+- **Ad-hoc** — founder explicitly says "promote this brain concept to wiki" pointing at a slug.
+
+Do NOT use for:
+
+- gbrain → 00-core/ promotion (that's quarterly cadence, founder + cofounder PR — out of scope for v1.0)
+- Pages in `draft` or `published` state (must be `mature` first)
+- People/companies pages (those stay in brain; they're operational truth, not consolidated research)
+
+## Inputs
+
+| Input | Type | Required | Description |
+|---|---|---|---|
+| `brain_slug` | text | yes | gbrain page slug to promote (e.g., `concepts/onboarding-friction-2026-q2`) |
+| `wiki_target_path` | text | yes | wiki/ destination (typically `wiki/<topic-area>/concepts/<slug>.md`) |
+| `linking_context` | text | optional | Why this promotion matters; included in PR description |
+
+## Process
+
+### Step 1 — Validate source page
+
+```
+mcp__gbrain__get_page brain_slug
+```
+
+Check: `state == 'mature'`, `page_type IN ('concept', 'idea', 'decision')`, has at least 1 source reference in frontmatter.
+
+ABORT if state != 'mature' (return: "Page must be mature for promotion. Current state: \<state>.")
+
+### Step 2 — Draft wiki/ destination
+
+Read the brain page Markdown + frontmatter. Transform:
+
+- Body: keep as-is OR clean up brain-specific cross-link syntax (e.g., `[[brain:slug]]` → `[wiki/path](wiki/path)`)
+- Frontmatter: drop brain-only fields (source_skill, source_run_id), add wiki-required fields per wiki-sync v4.0 source-grouped layout:
+  - `type: concept|idea|decision`
+  - `promoted_from: brain:concepts/<slug>`
+  - `promoted_at: <today>`
+  - `promoted_by: founder`
+  - `mature_since: <brain.state_since>`
+
+Write the draft to `wiki/<target>/source.md` (or `.draft.md` if founder wants a preview round).
+
+### Step 3 — Open promotion PR
+
+Use `gh pr create` with:
+
+- Title: `feat(wiki/promotion): promote brain:<slug> → <wiki-path>`
+- Body: includes brain page summary, key insights, source references, and the linking_context
+- Labels: `gbrain-promotion`, `tier-c-review`
+
+PR Tier C ceremony per HITL.md (Tier 1 wiki/ addition = governance C).
+
+### Step 4 — Update source gbrain page state (post-merge)
+
+After founder merges the wiki/ PR:
+
+```
+mcp__gbrain__update_page brain_slug {
+  state: 'published-to-wiki'
+  frontmatter: {
+    ...,
+    promoted_to: 'wiki/<path>',
+    promoted_at: <merge_ts>,
+    wiki_pr_url: <PR URL>
+  }
+}
+```
+
+Emit `ritsu.gbrain.promotion_completed` event.
+
+## Cost-bucket
+
+`gbrain.brain-promotion.put_page` (the post-merge update_page call). Per-invocation: ~$0.02.
+
+Drafting the wiki/ file is free (Write tool; no LLM call after page content is in hand).
+
+## Output
+
+| Output | Type | Description |
+|---|---|---|
+| `wiki_pr_url` | text | GitHub PR URL for founder review |
+| `wiki_draft_path` | text | Local path to wiki/ draft (in case founder wants to inspect before PR) |
+| `source_brain_slug` | text | Echo of input |
+
+## Failure modes
+
+| Failure | Detection | Handling |
+|---|---|---|
+| Source page not mature | Step 1 state check | ABORT; return state |
+| wiki/ destination already exists | Pre-write check | Surface to founder: rename, overwrite (Tier C), or cancel? |
+| Brain MCP unreachable | MCP timeout | Defer; queue for next session retry |
+| PR creation fails (gh permission) | gh CLI exit code | Surface error; founder may need to create PR manually with the draft |
+
+## References
+
+- `knowledge/memory-architecture.md` v1.1 — promotion path definition
+- `wiki/capabilities/gbrain-operational-brain/spec.md` §4 — full capability spec
+- `06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-002-promotion-workflow/flow.yaml` (Sprint 6)
+- `knowledge/cross-tier-invariants.yaml` `gbrain-l3-promotion-staleness` invariant
+- `_build/recipes/promote-wiki-to-tier1.md` — wiki/ → 00-core/ quarterly promotion (downstream, not this skill)
+

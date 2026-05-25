@@ -2,8 +2,8 @@
 title: 'Skill: architect'
 description: Phase 5 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/architect/SKILL.md
-source_hash: 401d998b1d64bc5b7b80d12ca9f876701b219176d2801ff5ba948b8826fb406e
-generated_at: '2026-05-22T01:09:07.365Z'
+source_hash: 0cc59a382591c76f11b83225b7b3f8a9d124387bb748b473c2ee61272f8fc839
+generated_at: '2026-05-25T05:38:44.892Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -214,4 +214,16 @@ diff -u wiki/capabilities/<id>/spec.md /tmp/proposed-spec.md > .archives/cla/<id
 ---
 
 **Next phase invokes:** `sprint-planner` (Phase 6) in `create`, `extend`, `revise` modes.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (heavy traverse, before per-Bài-toán analysis):** `mcp__gbrain__search "<domain> architecture decisions"` + `mcp__gbrain__traverse_graph` from related decisions + `mcp__gbrain__find_contradictions` to surface unresolved past conflicts. ~10-15 calls per Phase 5 invocation (highest-density read among all CLA phases). Cost: ~$0.20 (`gbrain.shared.search`).
+
+**WRITE (after spec.md draft + draft/ population):** `mcp__gbrain__put_page concepts/<capability_id>-architecture` with the per-Bài-toán impact map + reversibility rating + key callouts. Add `mcp__gbrain__add_link` to each ops.decisions row touched. Tier B notify. The wiki/ spec.md promotion at Phase 8 is a SEPARATE Tier C PR — this brain write does NOT replace it. Cost: ~$0.05.
+
+**Cross-link** the wiki spec.md path back to brain via spec.md frontmatter `gbrain_concept_slug: concepts/<capability_id>-architecture`. The `ops.decisions.gbrain_concept_slug` column (Sprint 3 migration) carries the bidirectional reference.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade. If brain WRITE blocked at cap, defer to queue (per failure mode F1 in spec.md).
 

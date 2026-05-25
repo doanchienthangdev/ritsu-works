@@ -1,0 +1,88 @@
+---
+title: 'Hook: post-tier1-rename'
+description: post-event hook
+source_path: .claude/hooks/post-tier1-rename.md
+source_hash: 0518235dd2b504c7361fe6d44f6d22410bce3f725275bdb4319085854f290ec7
+generated_at: '2026-05-25T05:38:44.952Z'
+generated_by: docs-engine v1.2.0
+category: hook
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> When a merged PR to `main` includes a file rename in Tier 1 governance paths, scan gbrain for stale path references + Tier B notify founder with diff.
+
+Capability: `gbrain-operational-brain` v1.0 (Sprint 4).
+
+## What it does
+
+On `github.pull_request.merged` event (post-PR-merge to main), if the diff includes any path rename in the Tier 1 protected set:
+
+```
+00-core/**
+governance/**
+knowledge/**.yaml
+.claude/agents/**
+.claude/hooks/**
+06-ai-ops/skills/**
+**/sops/SOP-*/**
+supabase/migrations/**
+```
+
+1. **Extract renames** from the merge commit via `git log --diff-filter=R --name-status`. Pairs of `(old_path, new_path)`.
+
+2. **For each rename pair**, search gbrain for stale references:
+   ```
+   mcp__gbrain__search "<old_path>" → top 10 results
+   ```
+   Filter results that contain `<old_path>` in body OR frontmatter cross-link fields.
+
+3. **If matches found**, emit `ritsu.gbrain.consistency_drift` event with payload:
+   ```jsonc
+   {
+     "drift_kind": "tier1_rename_stale_reference",
+     "renamed_paths": [{old, new}, ...],
+     "stale_brain_pages": [{slug, line, snippet}, ...],
+     "merge_commit_sha": "<sha>",
+     "pr_url": "<url>"
+   }
+   ```
+
+4. **`hitl-router`** routes the event Tier B to founder. Telegram payload includes:
+   - PR + commit context
+   - Diff between current page content + the stale reference
+   - Suggested fix: `mcp__gbrain__update_page <slug>` with sed-replace pattern
+
+## Why not auto-fix
+
+Tier B notify-only (not auto-rewrite) because:
+- Path renames sometimes change semantics (e.g., `00-charter/` → `00-core/` was a pillar rename with broader implications)
+- Founder may want to use the rename as a prompt to review the related brain content
+- Auto-rewrite without diff context creates silent drift
+
+If founder wants auto-fix in future, Sprint 6 NEW L2 validator + a `/gbrain rewrite-refs` slash command can land in v1.1.
+
+## Failure modes
+
+| Failure | Detection | Handling |
+|---|---|---|
+| Merge commit not yet on origin/main | Step 1 git check | Defer 30s; retry. Idempotent. |
+| gbrain MCP unreachable | MCP timeout | Queue for retry on next cron pass. |
+| > 50 stale references found | Step 3 result count | Cap at top 10 in Telegram; full list in event payload for founder to pull via `/cla history` style query |
+
+## Cost
+
+~$0.03 per merged PR with Tier 1 renames (rare event; mostly $0/mo).
+
+## Status
+
+Spec-only Sprint 4. Real handler (GitHub webhook receiver + Edge Function dispatch) lands when GitHub webhook infrastructure ships — likely v1.1 follow-up. For Sprint 4 v1.0, the spec.md + manifest entry satisfy governance traceability; actual invocation deferred.
+
+## References
+
+- `wiki/capabilities/gbrain-operational-brain/spec.md` §4.9 — Sprint 4 hook spec
+- `knowledge/cross-tier-invariants.yaml` — `gbrain-l3-pii-email-placeholder-confirmed-7d` companion (different drift class)
+- `governance/HITL.md` Tier B — notify-after policy
+- `06-ai-ops/skills/brain-write-discipline/SKILL.md` — write-discipline contract
+

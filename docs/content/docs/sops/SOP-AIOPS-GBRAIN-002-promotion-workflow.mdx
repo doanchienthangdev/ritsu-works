@@ -1,0 +1,49 @@
+---
+title: 'SOP-AIOPS-GBRAIN-002-promotion-workflow: gbrain → wiki/ → 00-core/ Promotion Workflow'
+description: |
+  Governs the promotion path defined in knowledge/memory-architecture.md
+  v1.1. Brain pages mature → wiki/ research → 00-core/ canonical. Each step
+  is Tier C PR; quarterly 00-core step requires founder + cofounder
+  signatures.
+source_path: 06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-002-promotion-workflow/flow.yaml
+source_hash: f4274b4cfef64adb809621ff110db2611ec1a19d3137d63cf42ad97dd7351420
+generated_at: '2026-05-25T05:38:45.030Z'
+generated_by: docs-engine v1.2.0
+category: sop
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+**SOP ID:** `SOP-AIOPS-GBRAIN-002-promotion-workflow`
+**Pillar:** 06-ai-ops/gbrain
+
+## Overview
+
+Governs the promotion path defined in knowledge/memory-architecture.md
+v1.1. Brain pages mature → wiki/ research → 00-core/ canonical. Each step
+is Tier C PR; quarterly 00-core step requires founder + cofounder
+signatures.
+
+
+## Acceptance criteria
+
+- Weekly review cadence sustained (no week skipped for >2 consecutive weeks)
+- Quarterly review happens within 14d of Q end
+- Every promoted gbrain page has wiki/ counterpart + bidirectional link
+- Promotion never reverses (no wiki/ → gbrain demotion)
+
+## Failure handling
+
+```yaml
+failure_handling:
+  - failure: weekly review skipped >2 consecutive weeks
+    detection: L3 invariant gbrain-l3-promotion-staleness
+    handling: >-
+      Tier B alert founder + founder-coach; surface in monthly health-tracker
+      review
+  - failure: PR conflicts with concurrent wiki edit
+    detection: gh pr merge fails
+    handling: Founder resolves conflict manually; brain-promotion skill retries draft
+```
+

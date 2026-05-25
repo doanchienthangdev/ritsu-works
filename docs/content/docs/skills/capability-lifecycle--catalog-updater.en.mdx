@@ -2,8 +2,8 @@
 title: 'Skill: catalog-updater'
 description: Phase 8 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/catalog-updater/SKILL.md
-source_hash: a821475edd9a6333a4f241bfd92e946cf482cb2f0d74c208ceed10915543d2c1
-generated_at: '2026-05-22T01:09:07.366Z'
+source_hash: 08aff1f78049d545342ff1ac96c7eda1c98b38267c76530325b1b7885cf91ef0
+generated_at: '2026-05-25T05:38:44.895Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -359,4 +359,16 @@ Rollback if final pnpm check fails: re-acquire lock + revert state to 'deployed'
 ---
 
 **End of CLA workflow.** Capability is now `operating` (or `deprecated` for deprecate mode). Future enhancements go through their own CLA cycle: `/cla fix/extend/revise/tune` for evolution OR `/cla propose <id>-v2` for radical extensions.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (full history aggregation):** `mcp__gbrain__list_pages` filtered by `frontmatter.capability_id = <slug>` → enumerates every brain page authored across Phase 1-7 (proposal + domain-analysis + options + architecture + sprint-plan + 6× sprint-review). Cost: ~$0.03.
+
+**WRITE (retrospective + cross-link to wiki/):** `mcp__gbrain__put_page concepts/<capability_id>-retro-v<version>` with the canonical retrospective (lessons learned, deviation from estimates, recommendations for similar future caps). After the wiki/ retrospective PR merges, `mcp__gbrain__update_page` adds bidirectional link to the wiki/ promoted retrospective. Tier B notify. Cost: ~$0.05.
+
+**Promotion candidate flag:** if the retrospective contains generalizable patterns (boilerplate-extractable, per `notes/boilerplate-candidates.md`), set page state to `mature` immediately so `brain-promotion` skill surfaces it in next weekly review.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none`. Do NOT skip on cost-cap (catalog-updater retrospective is the highest-value brain write per capability — defer the dream cycle, not this).
 

@@ -17,8 +17,8 @@ description: |
 
   Cost: 1-3 SQL queries, ~200-500 tokens output. Wall-clock ~100ms.
 source_path: 06-ai-ops/skills/task-status/SKILL.md
-source_hash: 1a2d5e0942d112c5dbf231e4fe9831513e73ac241d610a58092d7ff7b59aa9fe
-generated_at: '2026-05-22T01:09:07.401Z'
+source_hash: bbef244b608d6ad41bd03bdb4024d5f5e3dbbd2f68e088597a1fcfe03c408581
+generated_at: '2026-05-25T05:38:44.930Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -304,4 +304,14 @@ Roles allowed to invoke: all roles with `tier2_schemas_read: ops.*` per ROLES.md
 ---
 
 *Observability is what turns "GPS spawned 5 subagents and disappeared" into "Q4 campaign is on track, ETA May 9, here's what's blocking." Database-backed orchestration only works when status queries are fast and clear.*
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (per status query):** Alongside ops.tasks + ops.task_state_transitions, invoke `mcp__gbrain__search "<task-subject keywords>"` to surface brain-side pending threads related to the task entity (e.g., "open question about this customer pending founder input"). Add to status report under "Brain-side context" subsection if any matches. Cost: ~$0.005/query.
+
+**WRITE:** None — task status is read-only by definition.
+
+**Skip the brain read** when `--no-brain` OR cost-cap graceful-degrade. Status reports continue with ritsu-ops-only signals.
 

@@ -2,8 +2,8 @@
 title: 'Skill: sprint-planner'
 description: Phase 6 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/sprint-planner/SKILL.md
-source_hash: 0fa2f66c637a9a58b00e7b1df1669bdd582c1a3dafd62fc0fdf1fbf239530910
-generated_at: '2026-05-22T01:09:07.375Z'
+source_hash: 2a9d0bad7494596e8faa498941dd68ca0821a99390927f71c849d05248826d54
+generated_at: '2026-05-25T05:38:44.905Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
@@ -232,4 +232,14 @@ Template:
 ---
 
 **Next phase invokes:** `implementation-coordinator` (Phase 7) in `create`, `extend`, `revise` modes.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (before sprint sequencing):** `mcp__gbrain__search "past sprint plans <similar capability>"` + `mcp__gbrain__find_experts "<domain> sprint sequencing"` to surface velocity patterns + risk patterns from prior capabilities (e.g., "wiki-sync took 4 sprints; expect similar"). Cost: ~$0.03.
+
+**WRITE (after sprint plan drafted):** `mcp__gbrain__put_page concepts/<capability_id>-sprint-plan` with the 6-sprint breakdown + acceptance criteria + risk register. Tier B notify. Cost: ~$0.02.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade.
 

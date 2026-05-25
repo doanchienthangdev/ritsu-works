@@ -2,10 +2,12 @@
   "title": "Agents",
   "description": "AI agent personas (CEO/CTO/CGO/CPO + CLA subagent)",
   "pages": [
+    "brain",
     "ceo",
     "cgo",
     "cla",
     "cpo",
-    "cto"
+    "cto",
+    "gbrain-maintainer"
   ]
 }

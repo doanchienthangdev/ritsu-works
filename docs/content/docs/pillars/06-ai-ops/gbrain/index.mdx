@@ -1,0 +1,93 @@
+---
+title: 06-ai-ops/gbrain — Sub-pillar overview
+description: ''
+source_path: 06-ai-ops/gbrain/README.md
+source_hash: 020d22cd85137979dbc1668aa28ebdf89bd9f79697fd0c312b37b3d54dd5f36a
+generated_at: '2026-05-25T05:38:44.991Z'
+generated_by: docs-engine v1.2.0
+category: pillar
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Type 4 Semantic Memory governed extension for the ritsu-works AI workforce. Capability `gbrain-operational-brain` v1.0 (operating since 2026-05-25).
+
+## What lives here
+
+This sub-pillar holds gbrain-specific governance: SOPs that the 6 WRITE-enabled roles + `gbrain-maintainer` follow when interacting with the brain, plus operational runbooks for when gbrain breaks.
+
+```
+06-ai-ops/gbrain/
+├── README.md                           ← this file (sub-pillar overview)
+├── sops/
+│   ├── SOP-AIOPS-GBRAIN-001-write-discipline/flow.yaml      ← when/how to write
+│   ├── SOP-AIOPS-GBRAIN-002-promotion-workflow/flow.yaml    ← gbrain → wiki/ → 00-core/
+│   └── SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring/flow.yaml ← gbrain-maintainer alerting
+└── runbooks/
+    └── runbook-gbrain-doctor-failure.md ← operational ref for connection/dual-pool/budget failures
+```
+
+## How gbrain fits the 4-tier model
+
+Per `knowledge/memory-architecture.md` v1.1, gbrain extends Type 4 (semantic memory) with a SECOND substrate:
+
+| Type | Substrate (v1.0) | Substrate (v1.1 NEW) | Governance |
+|---|---|---|---|
+| 1 — Declarative | Tier 1 git | (unchanged) | PR-only |
+| 2 — Episodic | `ops.agent_runs` | (unchanged) | append-only |
+| 3 — Procedural | Tier 1 `06-ai-ops/skills/` | (unchanged) | PR-only |
+| 4 — Semantic | `wiki/` + `raw/` (loose) | + `runtime/brain/` via gbrain MCP (mid-governance) | wiki = loose / gbrain = Tier B notify + dream cycle + promotion |
+
+## How brain integrates with other pillars
+
+- **CLA workflow** (`capability-lifecycle-architecture`): 7 CLA sub-skills get `## Brain context` per Q7 deep-dive; per-phase brain narrative pages auto-created Tier B
+- **Customer 360** (`SOP-CUSTOMER-022`): `customer-lead` role writes `companies/<slug>` enrichment beyond Stripe-derived `mv_customer_360`
+- **Feedback pipeline** (`feedback-aggregator`): writes `concepts/` patterns across NPS + cancel-flow + interviews
+- **Cost discipline** (`knowledge/economic-architecture.md` v1.1): every gbrain MCP call attributed to `gbrain.<role>.<op>` cost-bucket; $100/mo HARD cap enforced by `.mcp.json` wrapper `scripts/pre-budget-check.sh` (Hard-cap Option B graceful degrade)
+- **Cross-tier consistency** (`SOP-AIOPS-002`): 6 NEW gbrain L1/L2/L3 invariants registered in `cross-tier-invariants.yaml`
+
+## Role access summary
+
+Per `governance/ROLES.md` v1.1:
+
+| brain_affinity | Count | Roles | Access |
+|---|---|---|---|
+| `high` | 7 | founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, founder-coach | READ + (8 of these) WRITE via `mcp_servers: [gbrain]` |
+| `medium` | ~6 | gps, support-agent, growth-orchestrator, retention-watcher, metrics-curator, eval-evo-orchestrator | READ-only |
+| `low` | ~10 | content-drafter, trust-safety, backoffice-clerk, code-reviewer, hitl-router, health-tracker, escalation-router, alert-router, experiment-analyst | READ-only |
+| `none` | 1 | etl-runner | no access |
+
+## Cost discipline (Hard-cap Option B graceful degrade)
+
+| Spend (rolling 30d) | Behavior |
+|---|---|
+| \< $80 | Normal |
+| $80-100 | Tier B alert (cron emits `ritsu.gbrain.budget_breach`) |
+| $100-150 | **WRITES + dream cycle BLOCKED. READS continue.** Tier C escalation. |
+| ≥ $150 | MCP load FAILS. Founder PR to raise cap OR wait month rollover. |
+
+Enforced at MCP-load time by `scripts/pre-budget-check.sh` (Sprint 5 PR #104).
+
+## Promotion path
+
+- **Weekly:** founder reviews mature gbrain concepts (`state=mature` >30d) for promotion to `wiki/`. Tier C PR. Helper: `06-ai-ops/skills/brain-promotion/SKILL.md`.
+- **Quarterly:** founder + cofounder review wiki/ pages for `00-core/` amendment. Tier C PR with TWO signatures.
+- Promotion never goes the reverse direction.
+
+## Lifecycle (never hard-delete)
+
+State machine `gbrain_page` (`knowledge/state-machines.yaml`): `draft → published → mature → published_to_wiki | archived → purged`.
+
+- `archived → purged` after 90d (Tier C founder action OR Sprint 6 auto-archive cron)
+- `published → purged` NEVER except GDPR DSR (Tier D-Std per `SOP-CUSTOMER-023` extension)
+
+## Brainstorm + spec references
+
+- 10-Q deep-dive: `.archives/brainstorming/gbrain-deep-integration-2026-05-23/11-PLAN-consolidated.md`
+- Install record: `.archives/brainstorming/gbrain-integration-2026-05-23/02-install-record.md`
+- Canonical spec: `wiki/capabilities/gbrain-operational-brain/spec.md` (promoted Phase 8)
+- Retrospective v1.0.0: `wiki/capabilities/gbrain-operational-brain/retrospective-v1.0.0.md`
+- Tier C decision: `ops.decisions[5014456d-7526-4ba2-9c58-005166193864]`
+- Capability run: `ops.capability_runs[7b991380-ae11-4b80-be56-6bc3ca6bbdf1]`
+

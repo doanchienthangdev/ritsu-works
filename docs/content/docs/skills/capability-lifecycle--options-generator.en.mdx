@@ -2,8 +2,8 @@
 title: 'Skill: options-generator'
 description: Phase 4 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/options-generator/SKILL.md
-source_hash: 777b72307f09f9517539f143b613a563eca91a2751246add3ffbf0b0e2d80a0a
-generated_at: '2026-05-22T01:09:07.372Z'
+source_hash: a09206852972178c35bfbd65680f020a205d9e864c2b9e3b28bf5501a631ad4d
+generated_at: '2026-05-25T05:38:44.901Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -211,4 +211,14 @@ If founder picks "Iterate", repeat Steps 1-4 with the founder's hint, max 1 iter
 ---
 
 **Next phase invokes:** `architect` (Phase 5) in `create` and `revise` modes.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (before option generation):** `mcp__gbrain__search "<topic> options patterns"` + `mcp__gbrain__find_experts "<domain>"` to surface prior pattern decisions across the workforce. Look for "we tried X, didn't work because Y" notes. Cost: ~$0.04 (`gbrain.shared.search`).
+
+**WRITE (after options drafted, before founder Tier B pick):** `mcp__gbrain__put_page concepts/<capability_id>-options` with the 3-5 options + cabinet review synthesis + recommendation strength. Tier B notify. Cost: ~$0.03.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade.
 
