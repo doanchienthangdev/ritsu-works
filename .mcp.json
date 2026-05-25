@@ -12,6 +12,20 @@
         "MCP_CALLER_SESSION_ID": "${MCP_CALLER_SESSION_ID:-}",
         "RITSU_REPO_ROOT": "${PWD:-/Users/doanchienthang/ritsu-works}"
       }
+    },
+    "gbrain": {
+      "command": "/bin/sh",
+      "args": [
+        "-c",
+        "set -a; [ -f /Users/doanchienthang/ritsu-works/runtime/secrets/.env.local ] && . /Users/doanchienthang/ritsu-works/runtime/secrets/.env.local; set +a; /Users/doanchienthang/ritsu-works/scripts/pre-budget-check.sh && cd /Users/doanchienthang/ritsu-works/runtime/brain && exec gbrain serve"
+      ],
+      "env": {
+        "MCP_CALLER_ROLE": "${MCP_CALLER_ROLE:-gps}",
+        "GBRAIN_COST_BUCKET": "gbrain.${MCP_CALLER_ROLE:-gps}",
+        "GBRAIN_BUDGET_CAP": "${GBRAIN_BUDGET_CAP:-100}",
+        "GBRAIN_BUDGET_ALERT_THRESHOLD": "${GBRAIN_BUDGET_ALERT_THRESHOLD:-80}",
+        "GBRAIN_BUDGET_HARD_BLOCK_THRESHOLD": "${GBRAIN_BUDGET_HARD_BLOCK_THRESHOLD:-150}"
+      }
     }
   }
 }
