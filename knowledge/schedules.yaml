@@ -144,6 +144,48 @@ schedules:
     # Note: requires SUPABASE_ACCESS_TOKEN in minion-worker env (no allowed
     # enum value in schemas/schedules.schema.json yet — defer to v1.1 schema bump).
 
+  # ==========================================================================
+  # gbrain integration (capability gbrain-operational-brain v1.0 Sprint 4)
+  # 3 NEW cron handlers; all wired as deferred stubs in minion-worker/index.ts
+  # until Sprint 5 (.mcp.json wrapper enables gbrain MCP) lands. Founder may
+  # run manually via gbrain CLI in the meantime.
+  # ==========================================================================
+
+  # Nightly CRM → gbrain mirror. ETL public.companies billing fields into
+  # gbrain companies/<slug> frontmatter. Idempotent. Read-only on ritsu-ops
+  # (no UPDATE), write-only on gbrain (put_page with state preserve).
+  - id: crm-to-gbrain-mirror
+    cron: "0 2 * * *"                 # 02:00 ICT daily
+    description: "Nightly CRM → gbrain mirror (ETL public.companies billing fields → gbrain companies/ frontmatter)"
+    skill: crm-to-gbrain-mirror
+    enabled_when_mode: [hybrid, full_api]
+    fallback: queue_for_founder_review
+    cost_estimate: $0.05 per run
+
+  # Nightly L1/L2/L3 invariant check on gbrain. Inserts pending
+  # consistency_checks rows for each gbrain invariant (registered
+  # cross-tier-invariants.yaml Sprint 1 PR #100). Parallels existing
+  # consistency-sweep-nightly schedule.
+  - id: gbrain-consistency-nightly
+    cron: "0 3 * * *"                 # 03:00 ICT daily
+    description: "Nightly L1+L2+L3 gbrain invariant sweep → ops.consistency_checks"
+    skill: gbrain-consistency-nightly
+    enabled_when_mode: [hybrid, full_api]
+    fallback: log_only
+    cost_estimate: $0.02 per run
+
+  # Nightly gbrain dream cycle: dedup, citation fix, contradiction detection,
+  # synthesis. Run by gbrain-maintainer role per HITL Tier A. Hard-capped at
+  # $30/mo via gbrain-maintainer.economic_budget.monthly_cap_usd. Skip if
+  # global gbrain.* aggregate >= $100/mo (Hard-cap Option B graceful degrade).
+  - id: gbrain-dream-cycle
+    cron: "0 4 * * *"                 # 04:00 ICT daily
+    description: "Nightly gbrain dream cycle (dedup + citation fix + contradiction detection + synthesis), run by gbrain-maintainer role"
+    skill: gbrain-dream-cycle
+    enabled_when_mode: [hybrid, full_api]
+    fallback: log_only
+    cost_estimate: $1.00 per run (~$30/mo cap)
+
 # ============================================================================
 # Customization checklist
 # ============================================================================

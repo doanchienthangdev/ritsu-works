@@ -60,6 +60,20 @@ state_machines:
     notes:
       - "Ingestion pipeline (Bài #18)"
 
+  # === gbrain page lifecycle (capability gbrain-operational-brain v1.0 Sprint 4) ===
+  - entity: gbrain_page
+    states: [draft, published, mature, published_to_wiki, archived, purged]
+    initial_state: draft
+    notes:
+      - "gbrain page lifecycle (capability gbrain-operational-brain v1.0)"
+      - "draft → published: after Tier B confirmation (founder press [Confirm] in daily batch digest)"
+      - "published → mature: after dream cycle promotes (state_since > 30d AND no edits in last 7d)"
+      - "mature → published_to_wiki: after weekly promotion review (SOP-AIOPS-GBRAIN-002) merges wiki/ PR"
+      - "mature → archived: Tier C founder action OR auto after 365d inactivity (Sprint 6 cron)"
+      - "published → archived: Tier B (soft delete; founder one-click [Undo] within 1h)"
+      - "archived → purged: Tier C founder action OR auto after 90d in archive (Sprint 6 cron)"
+      - "published → purged: NEVER except GDPR DSR (Tier D-Std per SOP-CUSTOMER-023 extension Sprint 6)"
+
 # ============================================================================
 # Customization checklist
 # ============================================================================

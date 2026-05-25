@@ -29,3 +29,37 @@ subscriptions:
   - event: consistency.drift_batch_pending
     trigger: SOP-AIOPS-002-cross-tier-consistency
     tier: tier_b
+
+  # ==========================================================================
+  # gbrain integration events (capability gbrain-operational-brain v1.0 Sprint 4)
+  # 4 NEW event types emitted by Sprint 4 hooks + cron handlers.
+  # Triggers route to SOP-AIOPS-GBRAIN-* SOPs landing Sprint 6 (until then,
+  # SOP-AIOPS-002 catches via consistency-drift path).
+  # ==========================================================================
+
+  # Emitted by any gbrain MCP write tool (put_page, add_link, update_page).
+  # Routes to hitl-router for Tier B notify-first-then-batch (daily digest
+  # batches multiple writes into one founder review).
+  - event: ritsu.gbrain.write_committed
+    trigger: SOP-AIOPS-GBRAIN-001-write-discipline
+    tier: tier_b
+
+  # Emitted by gbrain-consistency-nightly cron handler when a brain page
+  # has been state=mature for >30 days. Routes to weekly promotion review
+  # (SOP-AIOPS-GBRAIN-002, Sprint 6). Tier A — informational signal.
+  - event: ritsu.gbrain.promotion_pending
+    trigger: SOP-AIOPS-GBRAIN-002-promotion-workflow
+    tier: tier_a
+
+  # Emitted by gbrain-consistency-nightly when L1/L2/L3 invariants fail.
+  # Routes to gbrain-maintainer + founder for Tier B alert.
+  - event: ritsu.gbrain.consistency_drift
+    trigger: SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring
+    tier: tier_b
+
+  # Emitted by .mcp.json wrapper scripts/pre-budget-check.sh when monthly
+  # gbrain.* cost aggregate crosses 80% / 100% / 150% thresholds. Routes to
+  # founder for Tier C escalation.
+  - event: ritsu.gbrain.budget_breach
+    trigger: SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring
+    tier: tier_c
