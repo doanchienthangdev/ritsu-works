@@ -2,12 +2,12 @@
 <!-- Per-entry overrides MUST be inside <!-- override-start --> ... <!-- override-end --> markers -->
 <!-- DO NOT manually edit outside override markers; changes will be lost on next sync -->
 
-# Recipient Catalog: capabilitys
+# Recipient Catalog: capabilities
 
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 7
+**Total entries:** 8
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -15,7 +15,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/capability-lifecycle-architecture
 
 **Kind:** capability
-**When to use:** Capability Lifecycle Architecture (Bài #20). Standardized workflow để propose, analyze, architect, build new capabilities. v1.1 (2026-05-21) — Phase 0 --refs resolver supports wiki: form (auto-extract from wiki/ via /wiki get into runtime/cla/refs/<slug>/). v1.1.0
+**When to use:** Capability Lifecycle Architecture (Bài #20). Standardized workflow để propose, analyze, architect, build new capabilities. v1.2 (2026-05-25) — Phase 5 architect adds Step 2.5 (brain-integration decision: 3-question rubric → NONE|READ-only|READ+WRITE|WRITE-only|COST-managed). Phase 8 catalog-updater adds Step 6.5 (auto-regenerate resolver v2 catalog via sync.cjs --apply, all 16 recipient kinds). Cl v1.2.0
 
 **Invoke:** `Read("wiki/capabilities/capability-lifecycle-architecture/spec.md")` or `/cla update capability-lifecycle-architecture`
 
@@ -62,6 +62,17 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **When to use:** /evolve — Eval+Evo Feedback Loop for ritsu-works entities. Iterative evaluate→propose-improvement→install→re-evaluate loop on v1.0.0
 
 **Invoke:** `Read("wiki/capabilities/evolve/spec.md")` or `/cla update evolve`
+
+**Role scope:** *
+**Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/gbrain-operational-brain
+
+**Kind:** capability
+**When to use:** GBrain Operational Brain (Type 4 Semantic Memory Integration). Integrate GBrain (installed 2026-05-23 as ritsu-brain Supabase Free v1.0.0
+
+**Invoke:** `Read("wiki/capabilities/gbrain-operational-brain/spec.md")` or `/cla update gbrain-operational-brain`
 
 **Role scope:** *
 **Status:** operating

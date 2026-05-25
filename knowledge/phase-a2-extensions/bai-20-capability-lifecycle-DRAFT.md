@@ -619,3 +619,67 @@ auto-detect) remain open per current scope.
 See `.archives/cla/cla-update-mechanism/spec.md` (local-only) for the
 full v1.1 spec and PR series #26 / #27 / #28 that shipped it.
 
+## v1.2.0 — Brain + Resolver mechanism (2026-05-25)
+
+Direct hand-applied extension (not via `/cla extend` ceremony — founder
+request to fix mechanism gap surfaced same day as `gbrain-operational-brain`
+v1.0 promoted to operating). Retroactive `/cla extend` trail in commit
+message + this changelog entry.
+
+### Problems closed
+
+**Gap 1 — Brain decision was implicit.** Phase 5 architect generated specs
+without a structured brain-integration decision. Brain READ/WRITE for the
+*built capability* depended on architect's memory + judgment, not a forced
+checkpoint. Risk: capabilities that would benefit from brain READ silently
+skipped it; capabilities that produced valuable knowledge artifacts never
+wrote them to brain.
+
+**Gap 2 — Resolver catalog drift required manual sync.** Phase 8 catalog-
+updater updated `wiki/capabilities/CATALOG.md` + `knowledge/capability-
+registry.yaml` but did NOT regenerate `knowledge/recipients/*.md`. New
+skills/commands/agents/SOPs/schedules/hooks from a fresh capability did
+not appear in the Mode A ambient catalog until founder ran `node scripts/
+resolver-v2/sync.cjs --apply` by hand. `pnpm check` flagged the drift but
+didn't auto-fix.
+
+**Gap 3 (latent) — `sync.cjs` only wired 5 of 16 recipient kinds.**
+`catalog-generator.cjs` had generator functions for all 16 kinds (added
+in resolver v2.1 + v2.2) but `sync.cjs` main()'s default `targetKinds`
+list and inline `generators` tables in `diffCatalog` / `runApply` only
+referenced the original 5 (skill, command, agent, persona, mcp). Test:
+`node scripts/resolver-v2/sync.cjs --kind=sop --dry-run` crashed.
+
+### Changes
+
+| Surface | Change | Tier |
+|---|---|---|
+| `scripts/resolver-v2/sync.cjs` | Wire all 16 kinds via shared `ALL_GENERATORS` constant + import `CONFIG` from `catalog-generator.cjs` for filename mapping (handles irregular plurals: `capability`→`capabilities.md`, `external-source`→`external-sources.md`). Default `targetKinds` = 16. | B (bug fix) |
+| `scripts/resolver-v2/catalog-generator.cjs` | Export `KINDS` + `CONFIG` for sync.cjs consumption. | B |
+| `06-ai-ops/skills/capability-lifecycle/architect/SKILL.md` | Insert Step 2.5 (brain-integration decision, REQUIRED) between Step 2 (per-Bài-toán impact) and Step 3 (generate spec.md). 3-question rubric → 5 possible outputs. New row in per-Bài-toán table: `20.1 / Brain integration / none\|read\|read+write\|write`. | B |
+| `06-ai-ops/skills/capability-lifecycle/catalog-updater/SKILL.md` | Insert Step 6.5 (regenerate resolver v2 catalog, REQUIRED) between Step 6 (boilerplate patterns) and Step 7 (final `pnpm check`). Calls `node scripts/resolver-v2/sync.cjs --apply`. Idempotent. Failure handling: lock → retry once + abort; generator error → abort + log. | B |
+| `knowledge/capability-registry.yaml` | Version 1.1.0 → 1.2.0. Description updated. | B |
+
+### Downstream effects
+
+- Any new capability launched after v1.2.0 will receive a forced brain
+  decision (Step 2.5) — captured in spec.md § 5.X.
+- Phase 8 will regenerate all 16 recipient catalogs idempotently before
+  the final drift gate, closing the resolver-v2-coverage validator gap.
+- `--kind=<any of 16>` now works in `sync.cjs` for ad-hoc operator use.
+
+### Skipped vs full /cla extend ceremony
+
+Direct hand-application chosen because:
+- Total surface = 5 files; pure additive (no removals, no schema changes).
+- Step 2.5 + Step 6.5 are docs-level mechanism additions, not new code.
+- `sync.cjs` patch fixes a pre-existing bug (was always intended to cover
+  all kinds — see catalog-generator.cjs KINDS array).
+- All Tier B per `governance/HITL.md`; founder reviews via PR.
+
+Audit trail: commit message references this changelog. No `ops.decisions`
+row written (Tier B doesn't require). No `ops.capability_runs` row written
+(no formal `/cla extend` session). If full discipline retroactively desired,
+a separate `/cla fix capability-lifecycle-architecture` session can record
+the run; for now this changelog block IS the trail.
+

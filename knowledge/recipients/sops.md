@@ -7,7 +7,7 @@
 This file is THE source of truth for sop recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 
-**Total entries:** 106
+**Total entries:** 109
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -128,6 +128,39 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 **When to use:** > Runs SOP-AIOPS-003/validator/validate.sh across every flow.yaml in repo. Fails CI if any flow.yaml violates the runtime contract schema.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sop-engine/SOP-AIOPS-004-flow-yaml-smoke-test/flow.yaml")`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## sop/SOP-AIOPS-GBRAIN-001-write-discipline
+
+**Kind:** sop
+**When to use:** Governs every gbrain MCP write tool invocation (put_page, add_link, update_page, archive_page). Tier B notify-first-then-batch per founder Phase 4 selection. Daily Telegram digest batches multiple writes for one founder review session. Founder one-click [Undo] within 1h reverts via mcp__gbrain__archive_page on the new page or revert the diff on update.
+
+**Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-001-write-discipline/flow.yaml")`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## sop/SOP-AIOPS-GBRAIN-002-promotion-workflow
+
+**Kind:** sop
+**When to use:** Governs the promotion path defined in knowledge/memory-architecture.md v1.1. Brain pages mature → wiki/ research → 00-core/ canonical. Each step is Tier C PR; quarterly 00-core step requires founder + cofounder signatures.
+
+**Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-002-promotion-workflow/flow.yaml")`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## sop/SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring
+
+**Kind:** sop
+**When to use:** Governs the nightly gbrain-dream-cycle (04:00 ICT). Routes both ritsu.gbrain.consistency_drift events (Tier B, from nightly L1/L2/L3 sweep) and ritsu.gbrain.budget_breach events (Tier C, from pre-budget- check.sh threshold crossings) to founder via appropriate channels. Tracks dream cycle success rate via brain.dream_cycle_success_rate_7d KPI.
+
+**Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring/flow.yaml")`
 
 **Role scope:** *
 **Status:** active

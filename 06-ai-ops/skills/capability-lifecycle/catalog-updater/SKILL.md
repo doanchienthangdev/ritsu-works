@@ -147,11 +147,38 @@ If the retrospective identified generic patterns (Section "Generic patterns obse
 
 Per chương 31 discipline: do NOT extract to a shared library at Maturity Level 0-1 — just note for later.
 
+### Step 6.5 — Regenerate resolver v2 catalog (REQUIRED, v1.2.0)
+
+Run from repo root:
+```bash
+node scripts/resolver-v2/sync.cjs --apply
+```
+
+**Why this step exists:** every CLA-built capability typically adds 1+ skill, possibly 1 command, 0-2 agents, 0-N SOPs, 0-N schedules, 0-N hooks, sometimes new MCP tools / wiki pages / pages / views / metrics / runbooks / external-sources. Without this regen step, `knowledge/recipients/*.md` drifts from filesystem source-of-truth and:
+- The Mode A in-session ambient catalog (loaded via `CLAUDE.md` `@knowledge/recipients/*.md` imports) becomes stale — `/resolver` lookups + `/ceo` routing miss the new capability.
+- Step 7 (final `pnpm check`) fails the `validate-resolver-v2-coverage` validator.
+
+**Behavior:**
+- Idempotent — if no source changes, no files written, exits 0 in ~150ms.
+- Covers all **16 recipient kinds**: skill, command, agent, persona, mcp, wiki, sop, capability, workflow, schedule, hook, page, view, metric, runbook, external-source (per resolver-v2.2 spec + sync.cjs v1.2.0 fix).
+- Atomic write per file (temp → rename).
+
+**Failure handling:**
+- If `sync.cjs` exits 2 (lock held by another session): wait 60s + retry once. If still locked, ABORT phase — surface to founder: "resolver-v2 sync lock held — investigate `.archives/resolver-v2-sync.lock`".
+- If `sync.cjs` exits 1 (generator error): ABORT — do NOT advance state. Log the error to `.archives/cla/<id>/phase-8-sync-error.log` and surface to founder.
+- If `sync.cjs` exits 0 but writes 0 files (already in sync from a prior manual run): proceed to Step 7 normally.
+
+**Cost-bucket:** `ai-ops-cla` (deterministic — no LLM call; pure file I/O).
+
+**Note on the OTHER catalog files:** Phase 8 has already updated `wiki/capabilities/CATALOG.md` (Step 4) and `knowledge/capability-registry.yaml` (Step 5). Step 6.5 is specifically about regenerating the resolver v2 ambient catalog (`knowledge/recipients/*.md`) — a different surface, consumed by LLM in-session routing.
+
 ### Step 7 — Final `pnpm check` gate
 
 Run `pnpm check`. If non-zero, ABORT — do NOT advance state to `operating`. Surface the validator output: "Final drift check failed; capability stays at `deployed`. Fix drift, re-run Phase 8."
 
 This is the second mandatory drift gate (the first is Phase 0). It catches any inconsistency introduced by the registry update OR the wiki/CATALOG.md update.
+
+After Step 6.5 regenerated recipients/*.md, the `validate-resolver-v2-*` validators in `pnpm check` should now pass cleanly — Step 6.5 closes the gap where the new capability's components weren't yet visible in the catalog.
 
 ### Step 8 — Persist state
 
@@ -194,6 +221,7 @@ Boilerplate-candidate noted: {if any}
 - **Promoted:** `wiki/capabilities/<capability_id>/spec.md`, `wiki/capabilities/<capability_id>/retrospective.md`
 - Updated `wiki/capabilities/CATALOG.md`
 - Updated `knowledge/capability-registry.yaml`
+- Updated `knowledge/recipients/*.md` (16 files; only changed ones touched; v1.2.0 Step 6.5)
 - Appended `notes/boilerplate-candidates.md` (if any patterns)
 - ops.events: `ritsu.capability.cataloged`, `ritsu.capability.operating`
 - ops.run_summaries entry
@@ -216,6 +244,8 @@ Tier A. Auto-advance unless drift gate fails or wiki destination collision.
 | Final `pnpm check` fails | Hold state at `deployed`; surface validator output. |
 | Registry yaml invalid after edit | Roll back the registry diff; surface to founder. |
 | `ops.cost_attributions` empty for this capability | Use estimates as actuals; flag "actuals unavailable" in retrospective. |
+| `resolver-v2 sync.cjs` lock held (exit 2) | Wait 60s + retry once; if still locked, ABORT with `resolver-v2-sync.lock` investigation prompt. |
+| `resolver-v2 sync.cjs` generator error (exit 1) | ABORT — write `.archives/cla/<id>/phase-8-sync-error.log`; surface to founder. |
 
 ## LLM mode awareness
 

@@ -42,8 +42,8 @@ capabilities:
   # === Meta capability: CLA itself (ALWAYS first, deployed) ===
   - id: capability-lifecycle-architecture
     name: "Capability Lifecycle Architecture (Bài #20)"
-    description: "Standardized workflow để propose, analyze, architect, build new capabilities. v1.1 (2026-05-21) — Phase 0 --refs resolver supports wiki: form (auto-extract from wiki/ via /wiki get into runtime/cla/refs/<slug>/)."
-    version: "1.1.0"
+    description: "Standardized workflow để propose, analyze, architect, build new capabilities. v1.2 (2026-05-25) — Phase 5 architect adds Step 2.5 (brain-integration decision: 3-question rubric → NONE|READ-only|READ+WRITE|WRITE-only|COST-managed). Phase 8 catalog-updater adds Step 6.5 (auto-regenerate resolver v2 catalog via sync.cjs --apply, all 16 recipient kinds). Closes 2 mechanism gaps: brain decision was implicit; resolver catalog drift required manual sync. Also fixes pre-existing bug in scripts/resolver-v2/sync.cjs where only 5/16 kinds were wired. v1.1 (2026-05-21) — Phase 0 --refs resolver supports wiki: form (auto-extract from wiki/ via /wiki get into runtime/cla/refs/<slug>/)."
+    version: "1.2.0"
     state: operating
     state_since: 2026-05-04
     proposed_at: 2026-05-04

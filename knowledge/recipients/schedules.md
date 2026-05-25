@@ -7,7 +7,7 @@
 This file is THE source of truth for schedule recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 
-**Total entries:** 11
+**Total entries:** 14
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -18,6 +18,17 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 **When to use:** Cron 0 3 * * *: Nightly L3 sweep: insert pending consistency_checks rows for each L3 invariant
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `consistency-sweep`
+
+**Role scope:** founder, etl-runner
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## schedule/crm-to-gbrain-mirror
+
+**Kind:** schedule
+**When to use:** Cron 0 2 * * *: Nightly CRM → gbrain mirror (ETL public.companies billing fields → gbrain companies/ frontmatter)
+
+**Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `crm-to-gbrain-mirror`
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -62,6 +73,28 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 **When to use:** Cron 0 9 * * *: Run /evolve falsifiable efficacy gate; alert founder on PAUSE-RECOMMENDED
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `eval-evo-calibrate-efficacy`
+
+**Role scope:** founder, etl-runner
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## schedule/gbrain-consistency-nightly
+
+**Kind:** schedule
+**When to use:** Cron 0 3 * * *: Nightly L1+L2+L3 gbrain invariant sweep → ops.consistency_checks
+
+**Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `gbrain-consistency-nightly`
+
+**Role scope:** founder, etl-runner
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## schedule/gbrain-dream-cycle
+
+**Kind:** schedule
+**When to use:** Cron 0 4 * * *: Nightly gbrain dream cycle (dedup + citation fix + contradiction detection + synthesis), run by gbrain-maintainer role
+
+**Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `gbrain-dream-cycle`
 
 **Role scope:** founder, etl-runner
 **Status:** active
