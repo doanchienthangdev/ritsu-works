@@ -7,10 +7,28 @@
 This file is THE source of truth for agent recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/agents.md` import.
 
-**Total entries:** 5
+**Total entries:** 7
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
+
+## agent/brain
+
+**Kind:** agent
+**When to use:** Delegated brain reasoning subagent for the gbrain operational brain
+(Type 4 Semantic Memory). Use `@brain` when you want a synthesized
+answer from across multiple brain pages without leaving the current
+session. Parallels @cto, @cgo etc.
+
+Capability: gbrain-operational-brain v1.0.2 (verified against live
+gbrain v0.40.2.0 schema). Bound to caller role per MCP_CALLER_ROLE env;
+defaults to founder. HITL max tier: B (writes notify-first-then-batch;
+no D-tier ops).
+
+**Invoke:** `Agent({ subagent_type: "brain", ... })`
+
+**Role scope:** *
+**Status:** active
 
 ## agent/ceo
 
@@ -81,6 +99,27 @@ HITL max tier: B. Never merges; founder merges. Use @cto for bounded
 one-shot review; /cto for an interactive review session.
 
 **Invoke:** `Agent({ subagent_type: "cto", ... })`
+
+**Role scope:** *
+**Status:** active
+
+## agent/gbrain-maintainer
+
+**Kind:** agent
+**When to use:** Autonomous nightly maintainer for gbrain (Type 4 Semantic Memory engine).
+Runs the dream cycle: dedup, citation fix, contradiction detection,
+synthesis. NOT invoked interactively; fired by `gbrain-dream-cycle` cron
+at 04:00 UTC daily. Bound to technical role `gbrain-maintainer` per
+governance/ROLES.md. HITL max tier: A. Hard cap: $30/mo.
+
+Use when: cron-driven only. Founder MAY manually invoke for off-schedule
+dream cycle, but that's Tier C (mcp__gbrain__dream_cycle_manual per
+governance/HITL.md Appendix A).
+
+Skip when: gbrain cost-bucket monthly aggregate ≥ $100 (Hard-cap Option B
+graceful degrade — dream cycle disabled until founder PR raises cap).
+
+**Invoke:** `Agent({ subagent_type: "gbrain-maintainer", ... })`
 
 **Role scope:** *
 **Status:** active

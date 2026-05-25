@@ -7,10 +7,21 @@
 This file is THE source of truth for view recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 
-**Total entries:** 3
+**Total entries:** 4
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
+
+## view/metrics-gbrain_cost_daily
+
+**Kind:** view
+**When to use:** View `metrics.gbrain_cost_daily` defined in 00037_metrics_gbrain_cost_daily_view.sql. Query for current snapshot of the modeled data.
+
+**Invoke:** `mcp__supabase_ops__query({sql: "SELECT * FROM metrics.gbrain_cost_daily LIMIT 10"})`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
 
 ## view/ops-v_capability_lineage
 

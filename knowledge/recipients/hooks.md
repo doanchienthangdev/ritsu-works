@@ -7,7 +7,7 @@
 This file is THE source of truth for hook recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 
-**Total entries:** 10
+**Total entries:** 12
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -18,6 +18,28 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 **When to use:** > Writes the final personaslug attribution to ops.agentruns at the end of an invocation, and appends a one-line entry to 06-ai-ops/workforce-personas/<slug>/dossier.md for non-trivial actions (Tier B+).
 
 **Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## hook/post-stripe-customer-created
+
+**Kind:** hook
+**When to use:** > When Stripe webhook reports customer.created, write a draft gbrain companies/<slug> page with PII placeholder + emit Tier B notify to customer-lead for confirmation.
+
+**Invoke:** Auto-triggered (post-event) for tools matching: `mcp__gbrain__put_page,mcp__supabase-ops__insert`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## hook/post-tier1-rename
+
+**Kind:** hook
+**When to use:** > When a merged PR to main includes a file rename in Tier 1 governance paths, scan gbrain for stale path references + Tier B notify founder with diff.
+
+**Invoke:** Auto-triggered (post-event) for tools matching: `mcp__gbrain__search,mcp__supabase-ops__insert`
 
 **Role scope:** *
 **Status:** active

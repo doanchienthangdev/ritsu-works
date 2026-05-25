@@ -7,10 +7,31 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 12
+**Total entries:** 13
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
+
+## command/brain
+
+**Kind:** command
+**When to use:** Founder-facing surface for gbrain operational brain (Type 4 Semantic
+Memory). Thin orchestrator over `mcp__gbrain__*` MCP tools. ~30 subcommands
+covering search/recall/think/write/lifecycle/tags/timeline/facts/versions/
+sources/takes/files/diagnostics — full coverage of gbrain v0.40 surface.
+
+Capability: gbrain-operational-brain v1.0.2 (verified against live gbrain
+schema; supersedes v1.0.1 which had 4 naming errors based on brainstorm
+guesses).
+
+Use when you want explicit founder ops on gbrain. For delegated multi-step
+reasoning, use @brain subagent. For automatic brain context in skills,
+rely on the 12 skills with `## Brain context` sections (Sprint 2).
+
+**Invoke:** `/brain`
+
+**Role scope:** *
+**Status:** active
 
 ## command/ceo
 

@@ -7,7 +7,7 @@
 This file is THE source of truth for metric recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 
-**Total entries:** 83
+**Total entries:** 88
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -110,6 +110,61 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Role scope:** gtm-orchestrator
 **Status:** active
 **Pillar:** gtm
+
+## metric/brain.cost_usd_monthly_rolling30d
+
+**Kind:** metric
+**When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 06-revenue-and-cost-views). Formula: SUM(usd) WHERE cost_bucket LIKE 'gbrain.%' AND ts > now() - interval '30 days'. Source: ops.cost_attributions. Target: 100 HARD cap. Notes: Capability gbrain-operational-brain v1.0 success criterion #4. HARD cap enforced by .mcp.json wrapper Sprint 5..
+
+**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.cost_usd_monthly_rolling30d`
+
+**Role scope:** metrics-curator
+**Status:** active
+**Pillar:** 10-metrics
+
+## metric/brain.dream_cycle_success_rate_7d
+
+**Kind:** metric
+**When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 01-kpi-registry). Formula: COUNT(* FILTER state='completed')::float / NULLIF(COUNT(*),0) WHERE persona_slug='gbrain-maintainer' AND started_at > now() - 7d. Source: ops.agent_runs. Target: >= 0.95 rolling 7d. Notes: Capability gbrain-operational-brain v1.0 success criterion #5. gbrain-maintainer autonomous dream cycle reliability..
+
+**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.dream_cycle_success_rate_7d`
+
+**Role scope:** metrics-curator
+**Status:** active
+**Pillar:** 10-metrics
+
+## metric/brain.operational_pages_total
+
+**Kind:** metric
+**When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 01-kpi-registry). Formula: SELECT count(*) FROM gbrain.pages WHERE page_type != 'system'. Source: gbrain DB direct (mirrored to ops.kpi_snapshots daily via Sprint 4 cron). Target: 500 by 2026-09-30. Notes: Capability gbrain-operational-brain v1.0 success criterion #3.
+
+**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.operational_pages_total`
+
+**Role scope:** metrics-curator
+**Status:** active
+**Pillar:** 10-metrics
+
+## metric/brain.read_roles_active_30d
+
+**Kind:** metric
+**When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 01-kpi-registry). Formula: COUNT(DISTINCT caller_role WHERE invoked gbrain READ tool in last 30d). Source: ops.agent_runs (tool_name LIKE 'mcp__gbrain__%' AND NOT WRITE tools). Target: 20 by 2026-09-30. Notes: Capability gbrain-operational-brain v1.0 success criterion #2.
+
+**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.read_roles_active_30d`
+
+**Role scope:** metrics-curator
+**Status:** active
+**Pillar:** 10-metrics
+
+## metric/brain.write_roles_operational
+
+**Kind:** metric
+**When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 01-kpi-registry). Formula: COUNT(DISTINCT roles WHERE has mcp_servers:[gbrain] AND wrote in last 30d). Source: ops.cost_attributions (filtered to gbrain.<role>.<op> excluding gbrain.shared.*). Target: 6 by 2026-09-30. Notes: Capability gbrain-operational-brain v1.0 success criterion #1.
+
+**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.write_roles_operational`
+
+**Role scope:** metrics-curator
+**Status:** active
+**Pillar:** 10-metrics
 
 ## metric/brand_voice_consistency_score
 

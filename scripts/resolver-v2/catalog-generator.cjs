@@ -1029,4 +1029,6 @@ module.exports = {
   generatePages, generateViews, generateMetrics, generateRunbooks, generateExternalSources,
   extractYamlPurpose,
   parseFrontmatter, emitEntry,
+  // v1.2.0 (capability-lifecycle-architecture extend) — exported so sync.cjs can iterate all kinds
+  KINDS, CONFIG,
 };

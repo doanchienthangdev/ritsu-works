@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 67
+**Total entries:** 69
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -33,6 +33,54 @@ Cost: ~50ms wall-clock. ~200 tokens input + ~100 tokens output.
 Per-invocation cost: < $0.001.
 
 **Invoke:** `Skill({ skill: "ai-disclosure-check" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/brain-promotion
+
+**Kind:** skill
+**When to use:** Helper for gbrain → wiki/ promotion flow. v1.0 = MANUAL AID (drafts the
+wiki/ source.md from a gbrain page; presents founder Tier C PR). Phase 3
+capability will add a `/promote <source> <target>` command and autonomous
+cron auto-flag of mature concepts.
+
+Use when: founder wants to promote a mature gbrain concept (state=mature
+for >30 days, per gbrain-l3-promotion-staleness invariant) to wiki/ for
+consolidated research; OR weekly promotion review per SOP-AIOPS-GBRAIN-002.
+
+Skip when: gbrain page state != 'mature'; OR brain_affinity: none caller;
+OR concept domain is brain-only (no wiki/ counterpart).
+
+**Invoke:** `Skill({ skill: "brain-promotion" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/brain-write-discipline
+
+**Kind:** skill
+**When to use:** Canonical template + guidance for `## Brain context` sections in any skill
+that interacts with gbrain (Type 4 Semantic Memory). Standardizes WHEN to
+read brain, WHEN to write brain, format of HITL Tier B notify-first-then-
+batch, cost-bucket attribution, and PII placeholder discipline.
+
+This skill is invoked TRANSPARENTLY by other skills via cross-reference —
+callers do not invoke this skill directly. Instead, they author a
+`## Brain context` section in their own SKILL.md following the template
+defined here.
+
+Use when: authoring a new skill that may touch gbrain (per
+refs/03-component-audit.md Zone 3); reviewing an existing skill for brain
+integration; standardizing brain READ/WRITE patterns across the workforce.
+
+Skip when: skill is in the 8-skill SKIP list (cost-optimization-review,
+cost-report, ai-disclosure-check, docs-engine, eval-evo, wiki-sync,
+resolver-query, core-management). These domains are brain-agnostic.
+
+**Invoke:** `Skill({ skill: "brain-write-discipline" })`
 
 **Role scope:** *
 **Status:** active
