@@ -53,16 +53,19 @@ if [ -z "$RITSU_OPS_URL" ] || [ -z "$RITSU_OPS_SERVICE_KEY" ]; then
   exit 0
 fi
 
-# --- Query rolling 30d gbrain spend via metrics.gbrain_cost_daily view ---
-# View was created by supabase/migrations/00037_metrics_gbrain_cost_daily_view.sql
-# (Sprint 3 PR #102, merged 2026-05-25 commit 1ffb1c88).
+# --- Query rolling 30d gbrain spend via metrics.sum_gbrain_cost_rolling RPC ---
+# RPC + underlying view created by supabase/migrations/00037_metrics_gbrain_cost_daily_view.sql
+# (Sprint 3 PR #102; hotfixed in v1.0.1 patch for actual column names —
+# ops.cost_attributions uses task_kind LIKE 'gbrain.%' convention, not cost_bucket).
 SPEND_RESPONSE="$(curl -fsS \
   -X POST \
   -H "apikey: ${RITSU_OPS_SERVICE_KEY}" \
   -H "Authorization: Bearer ${RITSU_OPS_SERVICE_KEY}" \
   -H "Content-Type: application/json" \
   -H "Prefer: return=representation" \
-  "${RITSU_OPS_URL}/rest/v1/rpc/sum_gbrain_cost_30d" \
+  -H "Content-Profile: metrics" \
+  -d '{"days_back": 30}' \
+  "${RITSU_OPS_URL}/rest/v1/rpc/sum_gbrain_cost_rolling" \
   2>/dev/null || echo "")"
 
 # Extract spend; fail-open on parse error
