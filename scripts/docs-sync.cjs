@@ -68,6 +68,7 @@ const WALKER_EXCLUDE = [
   "governance/SECRETS.md",
   "00-core/founder-profile.md",
   "runtime/secrets/",
+  "runtime/brain/",           // capability gbrain-operational-brain v1.0 — PII (people/companies pages)
   "wiki/",
   ".archives/",
   "raw/",

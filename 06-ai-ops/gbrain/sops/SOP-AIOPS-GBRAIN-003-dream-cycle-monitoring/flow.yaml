@@ -1,0 +1,84 @@
+# ============================================================================
+# SOP-AIOPS-GBRAIN-003: gbrain-maintainer Dream Cycle Monitoring
+# ============================================================================
+# Capability: gbrain-operational-brain v1.0 (Sprint 6)
+# Pillar: 06-ai-ops/gbrain
+# ============================================================================
+
+id: SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring
+version: 1.0.0
+title: "gbrain-maintainer Dream Cycle Monitoring + Alert Routing"
+description: |
+  Governs the nightly gbrain-dream-cycle (04:00 ICT). Routes both
+  ritsu.gbrain.consistency_drift events (Tier B, from nightly L1/L2/L3
+  sweep) and ritsu.gbrain.budget_breach events (Tier C, from pre-budget-
+  check.sh threshold crossings) to founder via appropriate channels.
+  Tracks dream cycle success rate via brain.dream_cycle_success_rate_7d KPI.
+pillar: 06-ai-ops/gbrain
+
+# === Triggers ===
+trigger:
+  kinds:
+    - event:ritsu.gbrain.consistency_drift       # L1/L2/L3 invariants fail
+    - event:ritsu.gbrain.budget_breach           # $80 / $100 / $150 thresholds
+    - scheduled_run                              # nightly post-dream-cycle health check
+
+# === Initial state ===
+initial_state: pending
+
+# === Cost projection ===
+cost_estimate:
+  llm_cost_per_run_usd: 0.00                     # routing is structural
+  founder_time_minutes_per_run: 1                # Telegram alert glance
+
+# === Phases ===
+phases:
+  - id: 1
+    name: classify_event
+    description: "Determine event severity + HITL tier from payload + cross-tier-invariants.yaml lookup."
+    status: live_v1_0
+  - id: 2
+    name: route
+    description: |
+      Tier A (info) → log only
+      Tier B (warn) → Telegram daily digest (batch with other Tier B)
+      Tier C (escalate) → Telegram immediate (no batch)
+      Tier D (block) → PagerDuty-equivalent (out of v1.0 scope; falls through to Tier C)
+    artifact: ops.hitl_runs row + Telegram message
+    status: live_v1_0
+  - id: 3
+    name: track_dream_cycle_health
+    description: "Update brain.dream_cycle_success_rate_7d KPI snapshot from last 7d of ops.agent_runs (persona_slug='gbrain-maintainer')."
+    artifact: ops.kpi_snapshots row
+    status: live_v1_0
+  - id: 4
+    name: surface_in_weekly_digest
+    description: "Weekly metrics-curator review aggregates gbrain health into Monday digest."
+    status: live_v1_0
+
+# === Acceptance ===
+acceptance_criteria:
+  - "Tier C events reach founder within 5 min of emission"
+  - "Tier B events batched into daily 18:00 ICT digest"
+  - "brain.dream_cycle_success_rate_7d KPI ≥ 0.95 sustained"
+  - "Zero unrouted gbrain.* events in ops.events (all classified within 1h)"
+
+# === Failure handling ===
+failure_handling:
+  - failure: dream cycle fails 2 consecutive nights
+    detection: brain.dream_cycle_success_rate_7d drops below 0.85
+    handling: Tier C escalation to founder + gbrain-maintainer log analysis
+  - failure: budget breach but pre-budget-check.sh permitted MCP load
+    detection: mid-session write returns error from gbrain MCP runtime check
+    handling: Verify .mcp.json wrapper script invoked correctly; check env var propagation; founder runbook reference
+  - failure: dream cycle exceeds $30/mo cap
+    detection: ops.cost_attributions sum WHERE cost_bucket LIKE 'gbrain.gbrain-maintainer.%' AND month=current
+    handling: Tier C escalation; founder reviews dream cycle phase costs; may temporarily disable specific phases (dedup/synthesis are highest-cost) via env var
+
+# === References ===
+references:
+  - "wiki/capabilities/gbrain-operational-brain/spec.md §4.10"
+  - ".claude/agents/gbrain-maintainer.md"
+  - "scripts/pre-budget-check.sh (Sprint 5 wrapper)"
+  - "06-ai-ops/gbrain/runbooks/runbook-gbrain-doctor-failure.md"
+  - "knowledge/kpi-registry.yaml (brain.dream_cycle_success_rate_7d)"
