@@ -25,7 +25,8 @@ description: |
 
 | Subcommand | Maps to | Notes |
 |---|---|---|
-| `/brain` | (help menu) | Lists all groups + current spend/cap status |
+| `/brain` / `/brain help` / `/brain ?` | (help menu) | All three render the help menu with LIVE brain status (page count, breakdown, spend, cap headroom). v1.0.3 formalizes `help` + `?` as aliases. |
+| `/brain <unknown-subcommand>` | (suggest + help) | Surface closest match (e.g. `/brain serch` → "Did you mean `search`?") then render help menu. |
 | `/brain search "<query>"` | `mcp__gbrain__search` | Default semantic search top 5 |
 | `/brain query "<query>" [--detail=low\|medium\|high] [--lang=X] [--symbol=Y] [--since=7d]` | `mcp__gbrain__query` | **More powerful than search** — hybrid vector + keyword + multi-query expansion + cross-modal + recency/salience tuning |
 | `/brain recall [--entity=<slug>] [--session=X] [--since=8h] [--grep=Y] [--include-expired] [--include-pending]` | `mcp__gbrain__recall` | **Different from search** — per-source HOT MEMORY facts table (v0.31 personal-knowledge layer) |
@@ -126,10 +127,15 @@ description: |
 | `/brain jobs` | `mcp__gbrain__list_jobs` | List background jobs |
 | `/brain job <id> [--progress]` | `mcp__gbrain__get_job` / `get_job_progress` | Job detail OR progress stream |
 
-## Help menu (`/brain` no args)
+## Help menu (`/brain` / `/brain help` / `/brain ?`)
+
+> All three triggers render the same menu below with LIVE status pulled from
+> `get_brain_identity` + `get_stats` + `metrics.sum_gbrain_cost_rolling(30)`.
+> Subcommand-specific help: type `/brain <subcommand>` without args to see
+> usage for just that subcommand (e.g. `/brain think` → think-only usage).
 
 ```
-🧠 /brain — Operational Brain Interface (v1.0.2)
+🧠 /brain — Operational Brain Interface (v1.0.3)
 
 CAPABILITY:    gbrain-operational-brain v1.0 (operating since 2026-05-25)
 ENGINE:        gbrain v0.40.2.0 (postgres)
@@ -319,6 +325,14 @@ When write blocked: "Cap reached. Use `/cla extend gbrain-operational-brain` to 
 | `/brain <verb> <args>` | Explicit founder-typed single op |
 | `@brain <prompt>` | Delegated reasoning; composes 3-7 brain calls + returns synthesis |
 | Skill auto-fire (12 brain-aware skills, Sprint 2) | Transparent during normal skill execution |
+
+## v1.0.3 changes vs v1.0.2
+
+**Formalized help aliases** (no behavior change; previously handled via model interpretation):
+- `/brain help` and `/brain ?` now officially documented as triggers for the help menu
+- `/brain <unknown-subcommand>` documented as suggest-closest-match + show help
+
+Small UX polish caught by founder feedback.
 
 ## v1.0.2 changes vs v1.0.1
 
