@@ -1,0 +1,143 @@
+---
+title: 'Skill: brain-write-discipline'
+description: |
+  Canonical template + guidance for `## Brain context` sections in any skill
+  that interacts with gbrain (Type 4 Semantic Memory). Standardizes WHEN to
+  read brain, WHEN to write brain, format of HITL Tier B notify-first-then-
+  batch, cost-bucket attribution, and PII placeholder discipline.
+
+  This skill is invoked TRANSPARENTLY by other skills via cross-reference —
+  callers do not invoke this skill directly. Instead, they author a
+  `## Brain context` section in their own SKILL.md following the template
+  defined here.
+
+  Use when: authoring a new skill that may touch gbrain (per
+  refs/03-component-audit.md Zone 3); reviewing an existing skill for brain
+  integration; standardizing brain READ/WRITE patterns across the workforce.
+
+  Skip when: skill is in the 8-skill SKIP list (cost-optimization-review,
+  cost-report, ai-disclosure-check, docs-engine, eval-evo, wiki-sync,
+  resolver-query, core-management). These domains are brain-agnostic.
+source_path: 06-ai-ops/skills/brain-write-discipline/SKILL.md
+source_hash: 197dba4bf1fe6b122480b7febee180664470fcced15c317e07f93595d44635ce
+generated_at: '2026-05-25T05:38:44.890Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> The template that every brain-aware skill follows for `## Brain context` sections.
+
+This skill is the canonical source for HOW skills should interact with gbrain. Skills do not invoke this skill at runtime; they author a `## Brain context` section in their own SKILL.md by following the template below. Capability `gbrain-operational-brain` v1.0 (Phase 7 Sprint 2) extends 13 brain-relevant skills with this exact section pattern.
+
+## When a skill needs a `## Brain context` section
+
+Per the brain-relevance audit (`refs/03-component-audit.md` Zone 3), a skill needs this section if it meets one of:
+
+- **Operational entity adjacency** — skill reads/writes about people, companies, meetings, ideas, concepts, decisions (the 6 gbrain page types)
+- **Cross-session memory** — skill benefits from prior-task context that lives in brain pages
+- **Pipeline coupling** — skill is part of a flow (e.g., CLA Phase 1-8) where each phase auto-creates a brain narrative page
+
+Skills that are domain-irrelevant (pure cost analytics, compliance checks, external→internal pipelines) DO NOT need this section. Maintain the explicit SKIP list:
+
+`cost-optimization-review`, `cost-report`, `ai-disclosure-check`, `docs-engine`, `eval-evo`, `wiki-sync`, `resolver-query`, `core-management`
+
+## The canonical `## Brain context` section template
+
+Insert AFTER the skill's `## When to use` section, BEFORE `## Inputs`:
+
+```markdown
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 (Phase 7 Sprint 2). Skill is brain-aware: reads relevant brain pages at start; writes a narrative page at end (when applicable). Per `06-ai-ops/skills/brain-write-discipline/SKILL.md` template.
+
+### READ (before reasoning)
+
+Invoke at start of skill execution:
+
+```
+mcp__gbrain__search "\<topic keywords from task>" → top 5 results
+```
+
+Read top 1-3 results that are obviously relevant. Cost: ~$0.005/skill-invocation (cost_bucket `gbrain.shared.search`).
+
+**Skip the read when:**
+- Skill's caller role has `brain_affinity: none` (per `governance/ROLES.md`)
+- Task has no operational entity context (e.g., pure compute)
+- Founder-set session flag `--no-brain` is active
+
+### WRITE (after producing artifact, if applicable)
+
+If this skill produces an output worth remembering as operational truth:
+
+```
+mcp__gbrain__put_page \{
+  page_type: \<ideas|concepts|meetings|companies|people>
+  slug: \<auto-derived from skill output context>
+  title: \<descriptive title>
+  body: \<narrative summary, max ~1500 tokens>
+  frontmatter: \{
+    source_skill: \<this skill name>
+    source_run_id: \<ops.agent_runs.id>
+    capability_id: \<ops.capability_runs.id if CLA-coupled>
+  }
+}
+```
+
+HITL Tier B (notify-first-then-batch):
+- Write happens immediately (no blocking)
+- Emit `ritsu.gbrain.write_committed` event
+- `hitl-router` batches notify into daily Telegram summary
+- Founder presses [Undo] within 1h to revert (calls `mcp__gbrain__archive_page`)
+
+Cost: ~$0.02/page write (cost_bucket `gbrain.<role>.put_page`).
+
+**Skip the write when:**
+- Skill output is purely diagnostic (no operational value)
+- Caller role lacks `mcp_servers: [gbrain]` grant per `governance/ROLES.md`
+- Founder-set session flag `--no-brain` is active
+- gbrain MCP wrapper returns "degraded" (cost cap reached; see `knowledge/economic-architecture.md` v1.1 addendum)
+
+### Cross-link to formal artifacts
+
+When this skill is part of a tracked workflow (e.g., CLA phase, customer-360 refresh), set the appropriate FK column in the formal artifact:
+
+- `ops.capability_runs.gbrain_proposal_slug` ← Phase 1 problem-framer brain page
+- `ops.capability_phase_events.gbrain_meeting_slug` ← Phase 7 per-sprint review pages
+- `ops.decisions.gbrain_concept_slug` ← Phase 5 architect brain page
+
+This bidirectional linkage is enforced by L2 invariant `gbrain-l2-cross-link-integrity` (`knowledge/cross-tier-invariants.yaml`).
+```
+
+End of template.
+
+## Why this pattern (not centralized router)
+
+The Q3 v2 brainstorm decision rejected a centralized brain-first-lookup router skill in favor of **decentralized model-led** access. Reasoning:
+
+- Claude Code's native pattern: model decides when to use available tools based on `## Brain context` documentation in the skill
+- Centralized router adds latency + token cost + failure mode (router down = nothing works)
+- Decentralized respects per-skill judgment about brain relevance
+
+The trade-off: 13 SKILL.md files must each maintain a consistent `## Brain context` section. The `brain-write-discipline` skill is the contract that keeps them consistent.
+
+## Maintenance
+
+When the `## Brain context` template changes (e.g., new MCP tool, new cost bucket convention):
+
+1. Update this skill's template above
+2. Open a PR updating all 13 brain-aware skills with the new template
+3. Add a NEW L2 validator to ensure all 13 skills carry the same template version (Sprint 6 deliverable)
+4. Bump capability `gbrain-operational-brain` version per /cla extend sub-flow
+
+## References
+
+- `wiki/capabilities/gbrain-operational-brain/spec.md` §4.2 — list of 13 brain-aware skills
+- `governance/ROLES.md` v1.1 — `brain_affinity` field + `mcp_servers: [gbrain]` grants
+- `governance/HITL.md` Appendix A — 70-tool tier classification
+- `knowledge/economic-architecture.md` v1.1 — gbrain cost-bucket convention + Hard-cap Option B
+- `knowledge/cross-tier-invariants.yaml` — gbrain L1/L2/L3 invariants
+- `.archives/cla/gbrain-operational-brain/refs/03-component-audit.md` — Zone 3 13-skill list (brain-relevant) + 8-skill SKIP list
+

@@ -2,8 +2,8 @@
 title: 'Skill: domain-analyst'
 description: Phase 2 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/domain-analyst/SKILL.md
-source_hash: a30605f6937bc14cc9e901a6671c5a744548d5bbc70094121e5eecfb8d7ce92f
-generated_at: '2026-05-22T01:09:07.370Z'
+source_hash: e82da4d112d0467e4a0dd8327de5187a8e00c2a13ed51ddc9617aad1ae3297e6
+generated_at: '2026-05-25T05:38:44.897Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -167,4 +167,14 @@ If founder believes a revision actually changes the domain (e.g., pivoting `lead
 ---
 
 **Next phase invokes:** `system-inventory-scanner` (Phase 3) in `create` mode. Update sub-flows skip to Phase 3 directly.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (per persona, before synthesizing each CxO lens):** `mcp__gbrain__search "<persona> <keywords from problem.md>"` → top 5 + `mcp__gbrain__traverse_graph` from related concepts to discover prior cross-CxO thinking. ~6-10 calls total per Phase 2 invocation. Cost: ~$0.05 (`gbrain.shared.search`).
+
+**WRITE (after synthesis, only `create` mode):** `mcp__gbrain__put_page concepts/<capability_id>-domain-analysis` with the cross-domain synthesis + CxO lenses + open questions. Add links to per-persona prior thinking via `mcp__gbrain__add_link`. Tier B notify. Cost: ~$0.04.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade.
 

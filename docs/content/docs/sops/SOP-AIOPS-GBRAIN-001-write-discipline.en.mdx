@@ -1,0 +1,52 @@
+---
+title: 'SOP-AIOPS-GBRAIN-001-write-discipline: gbrain Write Discipline (notify-first-then-batch)'
+description: |
+  Governs every gbrain MCP write tool invocation (put_page, add_link,
+  update_page, archive_page). Tier B notify-first-then-batch per founder
+  Phase 4 selection. Daily Telegram digest batches multiple writes for
+  one founder review session. Founder one-click [Undo] within 1h reverts
+  via mcp__gbrain__archive_page on the new page or revert the diff on update.
+source_path: 06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-001-write-discipline/flow.yaml
+source_hash: 1ed89726e764c6c884619bcfa6ff371d1324361579d5cdf1d07c9050daa045a5
+generated_at: '2026-05-25T05:38:45.029Z'
+generated_by: docs-engine v1.2.0
+category: sop
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+**SOP ID:** `SOP-AIOPS-GBRAIN-001-write-discipline`
+**Pillar:** 06-ai-ops/gbrain
+
+## Overview
+
+Governs every gbrain MCP write tool invocation (put_page, add_link,
+update_page, archive_page). Tier B notify-first-then-batch per founder
+Phase 4 selection. Daily Telegram digest batches multiple writes for
+one founder review session. Founder one-click [Undo] within 1h reverts
+via mcp__gbrain__archive_page on the new page or revert the diff on update.
+
+
+## Acceptance criteria
+
+- Every gbrain write logged to ops.agent_runs with cost_bucket=gbrain.\<role>.\<op>
+- Daily Telegram digest reaches founder by 18:15 ICT
+- [Undo] within 1h actually reverts (verified by smoke test post-promotion)
+- Skip if author_role.brain_affinity = none (e.g. etl-runner)
+
+## Failure handling
+
+```yaml
+failure_handling:
+  - failure: hitl-router queue full
+    detection: ops.tasks (hitl-router) length > 1000
+    handling: Pause writes; alert founder Tier B; trigger queue drain skill
+  - failure: Telegram digest fails to send
+    detection: hitl-router error log
+    handling: Email fallback (founder notification email); retry next 18:00 ICT
+  - failure: founder undo can't revert (page already archived externally)
+    detection: archive_page returns 404
+    handling: Log to ops.events; no-op; surface in next digest as "undo failed"
+```
+

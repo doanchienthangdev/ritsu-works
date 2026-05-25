@@ -15,8 +15,8 @@ description: |
   This skill does NOT make Tier 1 changes itself. It only proposes.
   Founder approval converts a candidate into a PR.
 source_path: 06-ai-ops/skills/monthly-learning-review/SKILL.md
-source_hash: f501c7aec7f5d317eb799d0ce9db978cb7d83043f1a4e6a0150988af311501ae
-generated_at: '2026-05-22T01:09:07.398Z'
+source_hash: 6eaff3b8d4bcbf6811228bda8c1f99fe3be7eef24411af6f5502ff269f8094c7
+generated_at: '2026-05-25T05:38:44.925Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
@@ -333,4 +333,14 @@ Roles allowed to invoke: `gps`, `founder`. Per `governance/ROLES.md`.
 ---
 
 *Episodic recall closes the loop within a session. This skill closes the loop across the month. Together they make Ritsu's workforce compound.*
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (cross-system pattern detection):** Alongside ops.corrections + ops.agent_runs scan, invoke `mcp__gbrain__search "monthly themes"` + `mcp__gbrain__find_anomalies` + `mcp__gbrain__find_contradictions` to surface brain-side patterns that correlate with the month's correction signals. Cost: ~$0.05/month.
+
+**WRITE (after candidate list draft):** `mcp__gbrain__put_page concepts/monthly-review-<YYYY-MM>` with the consolidated cross-system review (correction themes, brain patterns, promotion candidates, recommendations for founder). Tier B notify (will be batched into founder's monthly review digest anyway). Cost: ~$0.05/month.
+
+**Skip** when `--no-brain` OR cost-cap graceful-degrade (monthly review can still produce the .archives/learning-reviews/\<month>.md report without brain write).
 

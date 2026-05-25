@@ -2,14 +2,14 @@
 title: "Chương 18 — GBrain Analysis: Trích Lọc & Upgrade Hệ Thống"
 description: "Chương 18 — GBrain Analysis: Trích Lọc & Upgrade Hệ Thống"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/18-gbrain-analysis.md
-source_hash: fc2cb1c239387660b0b8381b7e895e70266ff25ff80f6265426e085af1504960
-generated_at: '2026-05-23T10:19:04.979Z'
+source_hash: 4a97a1b9ab48ce3849bd92520c9311657f9cb350e1b56ca0e6e9ee2b4b3c65fa
+generated_at: '2026-05-25T05:38:12.607Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: fc2cb1c239387660b0b8381b7e895e70266ff25ff80f6265426e085af1504960
-translated_at: '2026-05-23T10:19:04.979Z'
+translated_source_hash: 4a97a1b9ab48ce3849bd92520c9311657f9cb350e1b56ca0e6e9ee2b4b3c65fa
+translated_at: '2026-05-25T05:38:12.607Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 18
 ---
@@ -365,6 +365,227 @@ Pre-install analysis (18.1-18.8) thực sự VALUABLE. Nhờ có nó:
 
 ---
 
+## 18.10 Phase 2 — Từ brainstorm 10-Q tới `/cla propose` (2026-05-25) †
+
+> *"Phase 1 install xong rồi. Bây giờ tôi muốn brain trở thành cơ hữu của AI workforce, không chỉ founder personal tool." — Founder, 2026-05-24*
+
+**Nội dung mục này:** ghi lại Phase 2 — từ brainstorm 10-Q deep-dive 2026-05-23 tới capability `gbrain-operational-brain` v1.0 operating 2026-05-25 (1 ngày sau Tier C approval). Append-only delta to 18.9.
+
+### 18.10.1 Brainstorm 10-Q (2026-05-23) — 14 files, ~150KB
+
+Founder + AI co-brainstorm 10 architectural questions (Q1-Q10) trong `.archives/brainstorming/gbrain-deep-integration-2026-05-23/`. Output: 11-PLAN-consolidated.md với 10 founder-approved decisions:
+
+| Q | Topic | Decision |
+|---|---|---|
+| Q1 | Data sovereignty | 5 Rules + Matrix; mỗi entity ĐÚNG 1 PRIMARY zone |
+| Q2 | Write trigger map | 6 WRITE-enabled roles + notify-first-then-batch Tier B |
+| Q3 v2 | Read discipline | Decentralized model-led — Claude Code pattern (NO centralized router) |
+| Q4 | Lifecycle rules | Default thoáng thresholds, NEVER hard-delete except purge 90d |
+| Q5 | Cross-store consistency | Nightly mirror; extend ops.consistency_checks L1/L2/L3 |
+| Q6 | Component patterns | Per-skill check Phase 2; SOP YAML explicit; hooks WRITE only |
+| Q7 | CLA integration | Auto-create narrative per phase Tier B; drift threshold 0.8 |
+| Q8 | HITL tier matrix | 35A + 14B + 6C + 3D over 70 gbrain MCP tools |
+| Q9 | Promotion path | Weekly gbrain→wiki + Quarterly wiki→00-core; L3 invariant |
+| Q10 | Cost model | NEW `gbrain-maintainer` role $30/mo + .mcp.json wrapper Hard-cap Option B |
+
+Brainstorm = foundation; CLA workflow là implementation engine. Quan trọng: BRAINSTORM-FIRST → /cla propose lazy-synthesize. Phase 5 không re-derive Q1-Q10; chỉ verify + lock.
+
+### 18.10.2 `/cla propose` invocation
+
+```
+/cla propose --refs=wiki:query="memory architecture strategy E type 4" \
+  --refs=.archives/brainstorming/gbrain-deep-integration-2026-05-23/11-PLAN-consolidated.md \
+  --refs=.archives/brainstorming/gbrain-deep-integration-2026-05-23/07b-Q7-cla-integration-deep-dive.md \
+  --refs=.archives/brainstorming/gbrain-deep-integration-2026-05-23/13-component-audit.md \
+  --refs=.archives/brainstorming/gbrain-deep-integration-2026-05-23/14-recommended-seed-batch.md \
+  --refs=.archives/brainstorming/gbrain-integration-2026-05-23/02-install-record.md \
+  --refs=knowledge/memory-architecture.md --refs=governance/ROLES.md \
+  --refs=governance/HITL.md --refs=knowledge/economic-architecture.md \
+  "Integrate GBrain ... operational brain layer for the AI workforce ..."
+```
+
+9 file refs + 1 wiki:query (returned `no_coverage` vì memory-architecture là Tier 1, không ingested wiki — expected). Phase 0-3 (drift, problem framing, domain analysis, gap analysis) auto-advance Tier A trong \< 30 min.
+
+### 18.10.3 Phase 4 founder gate — 2 binary decisions
+
+Phase 4 produces 4 sprint-sequencing options + 1 orthogonal hard-cap behavior. Founder picks via `AskUserQuestion`:
+
+- **Option A — Brainstorm As-Is (Recommended)** vs B aggressive MVP / C split 3 caps / D parallel tracks
+- **Hard-cap Option B — Graceful degrade (Recommended)** vs Option A full circuit-breaker
+
+Founder reply: *"Yes. Hãy tiếp tục implement đến khi hoàn thành. tôi theo recommend của bạn"* — đồng thời approve Phase 5 Tier C decision (`ops.decisions[5014456d]`).
+
+### 18.10.4 Phase 5 spec — synthesis-from-brainstorm (NOT fresh CxO + Muse)
+
+Architect skill thường invoke @cto + `high-stakes-decision-panel` Muse. Brainstorm 14-file corpus đã contain cross-CxO thinking + per-component audit — synthesize-not-re-invoke approach saves $3-5 cost + 2-3h. Risk: spec chưa được independent review. Mitigation: `/cla extend` có thể request retroactive @cto/Muse later.
+
+@cto callout `CTO-1` caught brainstorm error: spec said "extend `ops.consistency_checks` schema với gbrain L1/L2/L3 enum" → real schema đã support L1/L2/L3 via existing `check_kind` constraint. NO migration needed; chỉ add invariant rows vào `knowledge/cross-tier-invariants.yaml`. Saved 1 migration (Sprint 3 ended với 2 migrations vs brainstorm's 4).
+
+## 18.11 6-Sprint Execution Compressed (PRs #100-105) †
+
+### 18.11.1 Estimated 14-18 weeks → actual ~30 hours (47× compression)
+
+Sprint-plan.md projected 6 sprints × 2-3 weeks each = ~14-18 weeks calendar (founder Tier C review cycles). Actual: 2026-05-24 evening → 2026-05-25 evening. Mechanism: founder co-pilot real-time + authorize `gh pr merge` per sprint thay vì multi-day review windows.
+
+### 18.11.2 PR chain — all squash-merged trong 24h
+
+| Sprint | PR | Commit | Scope |
+|---|---|---|---|
+| 1 | [#100](https://github.com/doanchienthangdev/ritsu-works/pull/100) | `f253c8c` | 8 Tier 1 governance files (memory-arch v1.1, ROLES + brain_affinity matrix, HITL App A 70-tool matrix, economic-arch cost bucket, manifest v0.13, mcp-roles, mcp-tools 33 entries, cross-tier-invariants 6 entries) + capability-registry placeholder |
+| 2 | [#101](https://github.com/doanchienthangdev/ritsu-works/pull/101) | `8dc7720` | 2 NEW skills (brain-write-discipline, brain-promotion) + 12 skill `## Brain context` extensions + .claude/agents/gbrain-maintainer.md + 5 KPIs (registry + ownership) |
+| 3 | [#102](https://github.com/doanchienthangdev/ritsu-works/pull/102) | `1ffb1c88` | Migration 00036 (3 cross-link columns + 3 partial indexes) + Migration 00037 (metrics.gbrain_cost_daily view) + manifest tier2 entries |
+| 4 | [#103](https://github.com/doanchienthangdev/ritsu-works/pull/103) | `43d9ce59` | 2 hooks (post-stripe-customer-created, post-tier1-rename) + 3 cron handlers (crm-mirror, consistency-nightly, dream-cycle) + 4 events + gbrain_page state machine |
+| 5 | [#104](https://github.com/doanchienthangdev/ritsu-works/pull/104) | `09b2d022` | `.mcp.json` gbrain entry + `scripts/pre-budget-check.sh` (Hard-cap Option B graceful degrade $80 alert / $100 read-only / $150 hard-block) |
+| 6 | [#105](https://github.com/doanchienthangdev/ritsu-works/pull/105) | `c277687c` | 06-ai-ops/gbrain/ sub-pillar (README + 3 SOPs + runbook) + 2 NEW L2 validators + SOP-CUSTOMER-023 GDPR extension + docs-engine walker exclude + Phase 8 promotion |
+
+Total: ~3454 LOC across 11+ files per PR. pnpm check clean on every PR.
+
+### 18.11.3 Pattern: ONE bundled PR per sprint
+
+Per /cla protocol "one PR per sprint, multi-session". Compressed multi-session → 6 single-PR cycles. Each cycle:
+
+1. `git checkout -b claude/gbrain-operational-brain-sprint-N origin/main`
+2. Apply N changes (atomic — all schema/skills/hooks of sprint in 1 commit)
+3. `pnpm check` clean
+4. `gh pr create` + founder review (real-time)
+5. `gh pr merge --squash --delete-branch` per founder auth
+6. `git -C /Users/doanchienthang/ritsu-works pull origin main` (main repo separate from worktree — manual sync needed)
+
+Friction: each `gh pr merge` errored locally với *"fatal: 'main' is already checked out at..."* (worktree conflict). GitHub merge succeeded; only local cleanup failed. Workaround: pull from main repo path. Documented for v1.1 follow-up automation.
+
+## 18.12 4 Errors caught at apply time — brainstorm assumes, live verifies †
+
+### 18.12.1 Migration 00037 `cost_bucket` column doesn't exist
+
+Sprint 3 PR #102 merged clean (drift gate passed: validators check yaml structure, not actual DB schema). Founder ran `supabase db push --linked` — Migration 00036 succeeded; Migration 00037 erred:
+
+```
+ERROR: column "cost_bucket" does not exist (SQLSTATE 42703)
+At statement: 1
+CREATE OR REPLACE VIEW metrics.gbrain_cost_daily AS
+SELECT split_part(cost_bucket, '.', 2) AS role, ...
+```
+
+Root cause: Sprint 1-6 spec docs reference `cost_bucket text` column convention từ brainstorm `knowledge/economic-architecture.md` v1.1 addendum. Real schema (migration 00017): `agent_role text + task_kind text + cost_usd numeric`. No `cost_bucket`.
+
+Fix (v1.0.1 hotfix PR #106 `6100bce9`): rewrite migration 00037 view to use real columns:
+- `cost_bucket LIKE 'gbrain.%'` → `task_kind LIKE 'gbrain.%'`
+- `split_part(cost_bucket, '.', 2)` → `agent_role`
+- `split_part(cost_bucket, '.', 3)` → `REPLACE(task_kind, 'gbrain.', '')`
+- NEW companion RPC `metrics.sum_gbrain_cost_rolling(days_back)` for wrapper script
+- `scripts/pre-budget-check.sh` updated to call `/rpc/sum_gbrain_cost_rolling`
+
+Re-applied successfully. View + RPC live. Rolling 30d spend query returns 0 (no gbrain.* cost yet).
+
+### 18.12.2 /brain v1.0.1 had 4 naming errors
+
+Sprint 7 follow-up (PR #107) shipped `/brain` slash command + `@brain` subagent based on brainstorm-implied tool names. After `.mcp.json` Sprint 5 activated, real gbrain MCP schema loaded — 4 names didn't match:
+
+| ❌ v1.0.1 assumption | ✓ Live gbrain v0.40.2.0 |
+|---|---|
+| `mcp__gbrain__update_page` | tool doesn't exist — `put_page` IS idempotent (handles create + update) |
+| `mcp__gbrain__archive_page` + 90d window | tool doesn't exist — `delete_page` (soft) + `restore_page` (72h undo) + `purge_deleted_pages` |
+| `mcp__gbrain__get_brain_info` | wrong name — `get_brain_identity` + `get_stats` |
+| `mcp__gbrain__dream_cycle_manual` | tool doesn't exist — no manual dream trigger; use `sync_brain` (git) or `submit_agent` (LLM job) |
+
+Fix (v1.0.2 PR #109 `83110dca`): rewrote `/brain` + `@brain` against live schema, expanded từ 18 → 30 subcommands, added "Lifecycle facts you must know" section in agent.md so future sessions don't repeat.
+
+### 18.12.3 The deeper pattern — verify against running, not against drafts
+
+Brainstorm-to-implementation pipeline has THREE drift points:
+1. **Brainstorm → spec.md** (architect synthesizes; may assume schemas/tool names that don't exist)
+2. **Spec.md → migration/code** (developer faithfully implements wrong assumption)
+3. **Migration/code → live system** (only fails at `supabase db push` OR first MCP call)
+
+Drift gate (pnpm check) catches structural inconsistencies in Tier 1 yaml. Does NOT catch:
+- Yaml entries referencing non-existent DB columns
+- MCP tool names that don't exist in live MCP server schema
+- Cost bucket conventions vs real attribution column names
+
+**Lesson v1.0.2**: ALWAYS run `mcp__gbrain__get_brain_identity` + `get_stats` + `run_doctor` BEFORE writing /brain spec. ALWAYS run `supabase db push --dry-run` BEFORE Sprint 3 commit. Live system is single source of truth; brainstorm is hypothesis.
+
+## 18.13 /brain UX layer evolution (v1.0.1 → v1.0.3) †
+
+Founder feedback post-v1.0 ship: *"không, tôi nói về surface/interface sử dụng. Việc gọi trực tiếp bằng mcp call hay vào terminal làm việc thì đều không thuận tiện nếu tôi làm trong môi trường Claude Code/Cowork hay Codex"*
+
+Gap: v1.0 shipped infrastructure (governance + skills + agent + migrations + hooks + cron + .mcp.json + sub-pillar + SOPs) NHƯNG không có founder-facing surface parallel to `/wiki`, `/cla`, `/core`, `/evolve`, `/resolver`. Direct `mcp__gbrain__*` clunky; terminal CLI breaks flow.
+
+### 18.13.1 v1.0.1 (PR #107 `7fcef891`) — first slash command
+
+`.claude/commands/brain.md` (215 LOC) + `.claude/agents/brain.md` (165 LOC). 10 subcommands across 3 tiers (read/write/workflow). Mistake: based on brainstorm-implied tool names → 4 naming errors (see 18.12.2).
+
+### 18.13.2 v1.0.2 (PR #109 `83110dca`) — verified + perfect coverage
+
+Re-built against live gbrain schema. 30 subcommands across 10 groups. Coverage 18→30 = +67%. Added `think` (multi-hop synthesis) + `recall` (per-source hot memory) + `agent` (autonomous LLM job) + entire `sources` + `takes` + `files` subsystems. @brain expanded 23→35 tools.
+
+Key insight from gbrain docs read carefully: per `query` description, semantic search MISSES recent activity bursts. For personal/emotional questions ("what's notable on my mind"), use `get_recent_salience` + `find_anomalies`. Don't force positive framing — words like "crazy", "notable", "big" often mean difficult.
+
+### 18.13.3 v1.0.3 (PR #111 `6ba7fe47`) — help aliases formalized
+
+Founder UX feedback: how to display help? Locked `/brain help` and `/brain ?` as official aliases (previously worked via model interpretation). Plus `/brain <unknown>` → suggest-closest-match.
+
+## 18.14 Final state — gbrain operating trong ritsu-works (2026-05-25) †
+
+### 18.14.1 Snapshot
+
+| Metric | Value |
+|---|---|
+| Capability state | `operating v1.0.0` (registry: `gbrain-operational-brain`) |
+| Capability run id | `ops.capability_runs[7b991380-ae11-4b80-be56-6bc3ca6bbdf1]` |
+| Tier C decision | `ops.decisions[5014456d]` approved 2026-05-25 |
+| gbrain engine | v0.40.2.0 (postgres) |
+| Pages | 29 (9 note, 5 person, 5 company, 4 meeting, 3 idea, 3 concept) |
+| Chunks / Embeddings | 55 / 55 (100% coverage) |
+| Links / Tags / Timeline entries | 90 / 56 / 21 |
+| Health / Brain score | 95/100 / 86/100 (1 warn: 17 unacked sync failures) |
+| Cost rolling 30d | $0.00 / $100 HARD cap |
+| /brain subcommands | 30 (~95% founder-facing coverage) |
+| @brain subagent tools | 35 |
+| 12 brain-aware skills auto-fire | shipped (Sprint 2) |
+| Cron jobs | 3 deferred-stub (Sprint 4); real handlers v1.1 |
+| Hooks | 2 spec-only (Sprint 4); real webhooks v1.1 |
+| L2 validators | 2 NEW (Sprint 6): mcp-json↔tools, gbrain-invariant-handlers |
+| Cap enforcement | scripts/pre-budget-check.sh fail-open (env var name mismatch — v1.1 hotfix nhỏ) |
+| GDPR DSR exception | SOP-CUSTOMER-023 extended (Tier D-Std hard-delete path) |
+| Sub-pillar | `06-ai-ops/gbrain/` (README + 3 SOPs + runbook) |
+
+### 18.14.2 v1.1 backlog (10 items captured trong retrospective)
+
+1. Real cron handler implementations (crm-to-gbrain-mirror, gbrain-consistency-nightly, gbrain-dream-cycle)
+2. Stripe + GitHub webhook infrastructure (kích hoạt 2 hooks)
+3. Live `@cto` + Muse panel re-runs (v1.0 dùng synthesis)
+4. Per-role `brain_affinity` field on each role block (vs ROLES.md addendum-only)
+5. Fill remaining ~37 gbrain MCP tools trong knowledge/mcp-tools.yaml
+6. Add `gbrain_mcp` to schedules.schema.json enum
+7. `/promote` slash command + cron auto-flag (currently manual-aid only)
+8. Centralized pre-write hook for ID resolution (Q4 OQ4.3)
+9. Post-task evaluator for missed-brain detection (Q3 OQ3.C)
+10. v1.1 retrospective after first month of real operations (cost actuals + KPI traces)
+
+### 18.14.3 Boilerplate-extractable patterns (cho future capabilities)
+
+1. **`## Brain context` section template** — any future memory-aware skill follows
+2. **Hard-cap Option B graceful-degrade wrapper** — any MCP server with cost concerns can adapt
+3. **Per-PR-per-sprint with auto-merge** — fast-mode CLA when founder co-pilots real-time
+4. **Brainstorm-first → synthesize-in-CLA** — when brainstorm rich, skip live CxO panels
+5. **Deferred-stub registration pattern** — register schedule + handler stub now; implement when infra ships
+6. **Verify-against-live-schema** — drift gate doesn't catch DB column / MCP tool name assumptions; explicit smoke calls required
+
+### 18.14.4 Bài học tổng — Operating brain in 30 hours không phải magic
+
+CLA workflow (`capability-lifecycle-architecture` v1.1) là vehicle, không phải miracle. Compression 47× chỉ work khi:
+- Brainstorm corpus đầy đủ (Phase 5 lazy-synthesize)
+- Founder co-pilot real-time (no review windows)
+- AI executes worktree commits (no manual coding)
+- Tier C ceremonies = 30s founder approve (not week-long review)
+- ONE PR per sprint = atomic review unit
+
+**Còn lại tốc độ default** = 14-18 weeks per protocol. v1.0 acceptance criteria (3 of 5 "pending real usage") cần ~30 days organic operations để validate.
+
+> *"Build trong 30 giờ là technical possible. Operate ổn định 30 ngày mới là thực sự shipped." — founder retrospective synthesis*
+
+---
+
 **Tham khảo:**
 - GBrain repo: https://github.com/garrytan/gbrain
 - BrainBench evals: https://github.com/garrytan/gbrain-evals
@@ -380,3 +601,20 @@ Pre-install analysis (18.1-18.8) thực sự VALUABLE. Nhờ có nó:
   - `reference_supabase_pooler_url_construction.md`
   - `reference_gbrain_dual_pool_architecture.md`
   - `feedback_never_leak_env_values_in_bash_checks.md`
+- **Phase 2 capability artifacts (2026-05-25):**
+  - Brainstorm 10-Q deep-dive: `.archives/brainstorming/gbrain-deep-integration-2026-05-23/` (14 files, ~150KB)
+  - CLA working folder: `.archives/cla/gbrain-operational-brain/` (problem, domain-analysis, gap-analysis, options, spec, sprint-plan, draft/tier1-diffs)
+  - Capability spec promoted: `wiki/capabilities/gbrain-operational-brain/spec.md`
+  - Retrospective v1.0.0: `wiki/capabilities/gbrain-operational-brain/retrospective-v1.0.0.md`
+  - Sub-pillar home: `06-ai-ops/gbrain/` (README + 3 SOPs + runbook)
+- **PR chain (all squash-merged 2026-05-25):**
+  - Sprint 1 governance: [#100](https://github.com/doanchienthangdev/ritsu-works/pull/100) `f253c8c`
+  - Sprint 2 skills + KPIs: [#101](https://github.com/doanchienthangdev/ritsu-works/pull/101) `8dc7720`
+  - Sprint 3 migrations: [#102](https://github.com/doanchienthangdev/ritsu-works/pull/102) `1ffb1c88`
+  - Sprint 4 hooks + cron + events + state: [#103](https://github.com/doanchienthangdev/ritsu-works/pull/103) `43d9ce59`
+  - Sprint 5 .mcp.json wrapper: [#104](https://github.com/doanchienthangdev/ritsu-works/pull/104) `09b2d022`
+  - Sprint 6 final + promotion: [#105](https://github.com/doanchienthangdev/ritsu-works/pull/105) `c277687c`
+  - v1.0.1 migration 00037 hotfix: [#106](https://github.com/doanchienthangdev/ritsu-works/pull/106) `6100bce9`
+  - /brain UX layer v1.0.1: [#107](https://github.com/doanchienthangdev/ritsu-works/pull/107) `7fcef891`
+  - /brain v1.0.2 verified-against-live: [#109](https://github.com/doanchienthangdev/ritsu-works/pull/109) `83110dca`
+  - /brain v1.0.3 help aliases: [#111](https://github.com/doanchienthangdev/ritsu-works/pull/111) `6ba7fe47`

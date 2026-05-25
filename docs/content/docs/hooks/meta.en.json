@@ -3,6 +3,8 @@
   "description": "Pre-tool + post-tool hooks protecting Tier 1 + secrets + budget",
   "pages": [
     "post-persona-log",
+    "post-stripe-customer-created",
+    "post-tier1-rename",
     "pre-bash-dangerous",
     "pre-delegate-check",
     "pre-edit-tier1",

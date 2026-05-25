@@ -3,6 +3,8 @@
   "description": "AI skills (capability-lifecycle, wiki-sync, docs-engine, …)",
   "pages": [
     "ai-disclosure-check",
+    "brain-promotion",
+    "brain-write-discipline",
     "capability-lifecycle--architect",
     "capability-lifecycle--catalog-updater",
     "capability-lifecycle--dependency-scanner",

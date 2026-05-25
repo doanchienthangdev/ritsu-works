@@ -2,6 +2,7 @@
   "title": "Commands",
   "description": "Slash commands trong Claude Code (/cla, /wiki, /docs, …)",
   "pages": [
+    "brain",
     "ceo",
     "cgo",
     "check-drift",

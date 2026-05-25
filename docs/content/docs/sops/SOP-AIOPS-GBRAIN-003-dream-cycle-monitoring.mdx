@@ -1,0 +1,61 @@
+---
+title: >-
+  SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring: gbrain-maintainer Dream Cycle Monitoring + Alert
+  Routing
+description: |
+  Governs the nightly gbrain-dream-cycle (04:00 ICT). Routes both
+  ritsu.gbrain.consistency_drift events (Tier B, from nightly L1/L2/L3
+  sweep) and ritsu.gbrain.budget_breach events (Tier C, from pre-budget-
+  check.sh threshold crossings) to founder via appropriate channels.
+  Tracks dream cycle success rate via brain.dream_cycle_success_rate_7d KPI.
+source_path: 06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring/flow.yaml
+source_hash: ab3589e427e0a5092d430ee4095e300f98793daf812e738d9dd75c6d74471d88
+generated_at: '2026-05-25T05:38:45.031Z'
+generated_by: docs-engine v1.2.0
+category: sop
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+**SOP ID:** `SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring`
+**Pillar:** 06-ai-ops/gbrain
+
+## Overview
+
+Governs the nightly gbrain-dream-cycle (04:00 ICT). Routes both
+ritsu.gbrain.consistency_drift events (Tier B, from nightly L1/L2/L3
+sweep) and ritsu.gbrain.budget_breach events (Tier C, from pre-budget-
+check.sh threshold crossings) to founder via appropriate channels.
+Tracks dream cycle success rate via brain.dream_cycle_success_rate_7d KPI.
+
+
+## Acceptance criteria
+
+- Tier C events reach founder within 5 min of emission
+- Tier B events batched into daily 18:00 ICT digest
+- brain.dream_cycle_success_rate_7d KPI ≥ 0.95 sustained
+- Zero unrouted gbrain.* events in ops.events (all classified within 1h)
+
+## Failure handling
+
+```yaml
+failure_handling:
+  - failure: dream cycle fails 2 consecutive nights
+    detection: brain.dream_cycle_success_rate_7d drops below 0.85
+    handling: Tier C escalation to founder + gbrain-maintainer log analysis
+  - failure: budget breach but pre-budget-check.sh permitted MCP load
+    detection: mid-session write returns error from gbrain MCP runtime check
+    handling: >-
+      Verify .mcp.json wrapper script invoked correctly; check env var
+      propagation; founder runbook reference
+  - failure: dream cycle exceeds $30/mo cap
+    detection: >-
+      ops.cost_attributions sum WHERE cost_bucket LIKE
+      'gbrain.gbrain-maintainer.%' AND month=current
+    handling: >-
+      Tier C escalation; founder reviews dream cycle phase costs; may
+      temporarily disable specific phases (dedup/synthesis are highest-cost) via
+      env var
+```
+
