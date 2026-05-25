@@ -403,4 +403,101 @@ This document protects you from your own future bad decisions as much as from ag
 
 ---
 
+## Appendix A — Gbrain operation tier classification
+
+> Added 2026-05-25 via capability `gbrain-operational-brain` v1.0 (Tier C decision `5014456d-7526-4ba2-9c58-005166193864`). Classifies all ~70 `mcp__gbrain__*` MCP tools per the 4-tier policy above. Mass-purge threshold rule applies orthogonally.
+
+### Tier A — Autonomous (gbrain READ + low-stakes inspection, ~35 tools)
+
+These are reads against the brain DB; no state changes, no external surface. Log to `ops.agent_runs` with cost-bucket `gbrain.<role>.<op>`.
+
+```
+mcp__gbrain__search                  (semantic search across pages)
+mcp__gbrain__recall                  (recall pages by criteria)
+mcp__gbrain__query                   (SQL-style query)
+mcp__gbrain__get_page                (single page by slug/id)
+mcp__gbrain__list_pages              (paginated page list)
+mcp__gbrain__get_chunks              (chunks for a page)
+mcp__gbrain__traverse_graph          (graph traversal)
+mcp__gbrain__get_links               (forward links from a page)
+mcp__gbrain__get_backlinks           (backlinks to a page)
+mcp__gbrain__think                   (LLM-based brain reflection)
+mcp__gbrain__find_anomalies          (statistical pattern detection)
+mcp__gbrain__find_contradictions     (logical inconsistency detection)
+mcp__gbrain__find_experts            (people pages with most expertise on topic)
+mcp__gbrain__find_trajectory         (entity evolution over time)
+mcp__gbrain__code_callees            (code graph: who does X call?)
+mcp__gbrain__code_callers            (code graph: who calls X?)
+mcp__gbrain__code_def                (code graph: where is X defined?)
+mcp__gbrain__code_refs               (code graph: references to X)
+mcp__gbrain__code_blast              (code graph: impact analysis)
+mcp__gbrain__code_flow               (code graph: data/control flow)
+mcp__gbrain__file_url                (signed URL for a file blob)
+mcp__gbrain__list_jobs               (background job list)
+mcp__gbrain__get_brain_info          (brain DB stats)
+mcp__gbrain__whoami                  (current role + grants)
+mcp__gbrain__get_health              (health check)
+(... ~10 more read-only / introspection tools — see knowledge/mcp-tools.yaml for the canonical list)
+```
+
+### Tier B — Notify-after (gbrain WRITES + low-stakes mutations, ~14 tools)
+
+Writes to brain DB. Notify-first-then-batch per `06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-001-write-discipline/flow.yaml` — agent drafts the write; Telegram daily batch shows founder Tier B summary; founder presses [Undo] within 1h to revert. Log to `ops.agent_runs` + emit `ritsu.gbrain.write_committed` event.
+
+```
+mcp__gbrain__put_page                (create OR update page)
+mcp__gbrain__update_page             (in-place page edit)
+mcp__gbrain__add_link                (link between two pages)
+mcp__gbrain__remove_link             (remove a single link)
+mcp__gbrain__archive_page            (state: published → archived; soft delete)
+mcp__gbrain__file_upload             (upload a file blob attached to a page)
+mcp__gbrain__file_list               (list blobs for a page; read but page-mutating side effect of view tracking)
+mcp__gbrain__submit_job              (enqueue a background job)
+mcp__gbrain__retry_job               (retry a failed job)
+mcp__gbrain__pause_job               (pause a running job)
+mcp__gbrain__upload_image            (attach image to a page)
+mcp__gbrain__put_page_with_chunks    (chunked page write)
+mcp__gbrain__bulk_link               (≤ 10 links at once; >10 escalates to C)
+mcp__gbrain__bulk_unlink             (≤ 10 unlinks at once; >10 escalates to C)
+```
+
+### Tier C — Approve-before (gbrain mutations affecting many pages OR semantic regen, ~6 tools)
+
+Dry-run preview + founder approval via Telegram inline buttons. Log to `ops.agent_runs` with `was_override` field if applicable.
+
+```
+mcp__gbrain__mass_update_pages       (>10 pages updated in one operation)
+mcp__gbrain__bulk_link               (>10 links — escalates from B)
+mcp__gbrain__schema_migrate          (gbrain DB schema migration)
+mcp__gbrain__embedding_regenerate_all (re-embed ALL pages; cost-heavy)
+mcp__gbrain__dream_cycle_manual      (manually trigger dream cycle outside nightly cron)
+mcp__gbrain__archive_purge_now       (move all archived pages older than 90d to purged; >100 pages escalates to D-Std)
+```
+
+### Tier D-Std — Forbidden by default (gbrain destructive operations, ~3 tools)
+
+Magic phrase + 30s cooldown. Repair via founder PR if cap exceeded.
+
+```
+mcp__gbrain__mass_purge              (>100 pages purged in one operation; one-way)
+mcp__gbrain__drop_all_links          (clear all link edges; semi-destructive)
+mcp__gbrain__reset_brain             (full brain DB reset; effectively a re-install)
+```
+
+### Orthogonal rules
+
+- **Mass-purge threshold:** any operation affecting >100 pages is automatically elevated to Tier D-Std regardless of starting tier. Example: `bulk_unlink` of 150 links → D-Std.
+- **GDPR DSR exception:** the "never hard-delete except archive → purge 90d" rule has an EXPLICIT exception. `SOP-CUSTOMER-023-gdpr-account-deletion` (Tier D-Std) may invoke `mcp__gbrain__archive_purge_now` or `mcp__gbrain__mass_purge` on `people/<email-slug>` pages without the 90-day archive window. Required: founder magic phrase + GitHub PR with `/founder-approved-irreversible` per Tier D-MAX ceremony adapted for the specific GDPR case.
+- **PII-bearing tools:** `put_page` and `update_page` that touch `people/` or `companies/` pages carry an extra discipline — the `post-stripe-customer-created` hook writes a PLACEHOLDER email field; founder must Tier B confirm to replace with real email. The `gbrain.l3.pii-no-email-in-companies-pages-unconfirmed` invariant (in `knowledge/cross-tier-invariants.yaml`) catches placeholders sitting >7d unconfirmed.
+
+### Cost-bucket integration
+
+Every gbrain MCP call logs to `ops.cost_attributions` with `cost_bucket = gbrain.<role>.<op>`. The `.mcp.json` gbrain entry's wrapper script (`scripts/pre-budget-check.sh`) enforces the $100/mo HARD cap per Hard-cap Option B (graceful degrade: WRITES + dream cycle disabled at cap; READS continue). See `knowledge/economic-architecture.md` v1.1 addendum.
+
+### Per-role allowlist
+
+Per `knowledge/mcp-tools.yaml`, each tool entry lists `allowed_roles`. Roles not in the allowlist receive `403 Forbidden` at MCP call time. The 6 WRITE-enabled roles (`customer-lead`, `feedback-aggregator`, `gtm-orchestrator`, `cs-coach`, `product-orchestrator`, `eval-evo-orchestrator`) plus `gbrain-maintainer` are the only roles in Tier B/C/D-Std allowlists. All other roles have READ-only access (Tier A tools only).
+
+---
+
 *This file is sacred. The hooks in `.claude/hooks/` will eventually enforce it in code. Until then, every agent reading this file is on the honor system. Treat it accordingly.*

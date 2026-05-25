@@ -3,9 +3,9 @@
 // Re-run with: pnpm wave2:bundle-invariants
 //
 // Source version: 1.0.0
-// Invariant count: 16
-// By layer: L1=4 L2=8 L3=4
-// Generated at: 2026-05-19T01:33:08.531Z
+// Invariant count: 22
+// By layer: L1=6 L2=10 L3=6
+// Generated at: 2026-05-24T18:33:02.265Z
 
 import type { Invariant } from "./invariants.ts";
 
@@ -327,6 +327,132 @@ export const ALL_INVARIANTS: Invariant[] = [
     "hitl_tier": "A",
     "fix_strategy": "open_pr",
     "notes": "docs-engine v1.0 capability. Activates with Sprint 1. Reports into\ndocs_drift_count KPI. Currently deferred until the walker validator\nlands; once active, this invariant is the source of truth for\nwhether docs are in sync with the codebase. Auto-fix flow: /docs sync\ngenerates the missing MDX and opens a PR (per `open_pr` strategy).\n"
+  },
+  {
+    "id": "gbrain-l1-page-embeddings-fresh",
+    "description": "Every gbrain page has an up-to-date embedding (re-embed when page content sha differs from embedded sha)",
+    "kind": "equal",
+    "layer": "L1",
+    "status": "deferred",
+    "source": {
+      "tier": 4,
+      "ref": "gbrain DB pages.content_sha",
+      "query": "SELECT page_id, content_sha FROM pages"
+    },
+    "target": {
+      "tier": 4,
+      "ref": "gbrain DB embeddings.embedded_sha",
+      "query": "SELECT page_id, embedded_sha FROM embeddings"
+    },
+    "severity": "warn",
+    "hitl_tier": "B",
+    "fix_strategy": "regen_bundle",
+    "notes": "gbrain-operational-brain v1.0. Activates Sprint 6 when validator handler\nlands in scripts/cross-tier/. Auto-fix: gbrain-maintainer dream cycle\nre-embeds stale pages nightly.\n"
+  },
+  {
+    "id": "gbrain-l2-cross-link-integrity",
+    "description": "Every ops.capability_runs.gbrain_proposal_slug exists as a gbrain page. Same for capability_phase_events and decisions.",
+    "kind": "subset",
+    "layer": "L2",
+    "status": "deferred",
+    "source": {
+      "tier": 2,
+      "ref": "ops.capability_runs.gbrain_proposal_slug + capability_phase_events.gbrain_meeting_slug + decisions.gbrain_concept_slug",
+      "query": "SELECT gbrain_proposal_slug FROM ops.capability_runs WHERE gbrain_proposal_slug IS NOT NULL"
+    },
+    "target": {
+      "tier": 4,
+      "ref": "gbrain DB pages.slug",
+      "query": "SELECT slug FROM pages"
+    },
+    "severity": "warn",
+    "hitl_tier": "B",
+    "fix_strategy": "open_pr",
+    "notes": "gbrain-operational-brain v1.0 Sprint 3 migration adds the 3 cross-link\ncolumns. This invariant activates Sprint 6. Surfaces when a CLA run is\ndeleted but its gbrain narrative pages remain, or vice versa.\n"
+  },
+  {
+    "id": "gbrain-l3-promotion-staleness",
+    "description": "Brain pages with state=mature for >30 days imply ritsu.gbrain.promotion_pending event fires for weekly review",
+    "kind": "implies",
+    "layer": "L3",
+    "status": "deferred",
+    "source": {
+      "tier": 4,
+      "ref": "gbrain DB pages.state",
+      "query": "SELECT slug FROM pages WHERE state = 'mature' AND state_since < now() - interval '30 days'"
+    },
+    "target": {
+      "tier": 2,
+      "ref": "ops.events",
+      "query": "SELECT * FROM ops.events WHERE event_type = 'ritsu.gbrain.promotion_pending' AND payload->>'slug' = $1 AND created_at > now() - interval '7 days'"
+    },
+    "severity": "info",
+    "hitl_tier": "A",
+    "fix_strategy": "manual_only",
+    "notes": "gbrain-operational-brain v1.0 Sprint 4 emits ritsu.gbrain.promotion_pending\nevent from the nightly cron. This invariant ensures the event keeps firing\nuntil founder acts (weekly promotion review per SOP-AIOPS-GBRAIN-002).\n"
+  },
+  {
+    "id": "gbrain-l1-mcp-json-consistency",
+    "description": ".mcp.json gbrain entry exists when knowledge/mcp-tools.yaml lists gbrain server tools",
+    "kind": "exists",
+    "layer": "L1",
+    "status": "deferred",
+    "source": {
+      "tier": 1,
+      "ref": "knowledge/mcp-tools.yaml",
+      "query": "$.mcp_tools[?(@.server == 'gbrain')]"
+    },
+    "target": {
+      "tier": 1,
+      "ref": ".mcp.json",
+      "query": "$.mcpServers.gbrain"
+    },
+    "severity": "critical",
+    "hitl_tier": "C",
+    "fix_strategy": "patch_yaml",
+    "notes": "gbrain-operational-brain v1.0 Sprint 5 lands .mcp.json gbrain entry.\nThis invariant catches future drift between the entry and the tool\ncatalog. Companion to NEW L2 validator\nscripts/cross-tier/validate-mcp-json-tools-consistency.cjs (Sprint 6).\n"
+  },
+  {
+    "id": "gbrain-l2-role-allowlist-consistency",
+    "description": "governance/ROLES.md mcp_servers grants for gbrain MUST be subset of knowledge/mcp-roles.yaml entries",
+    "kind": "subset",
+    "layer": "L2",
+    "status": "deferred",
+    "source": {
+      "tier": 1,
+      "ref": "governance/ROLES.md",
+      "query": "extract role blocks with mcp_servers containing 'gbrain'"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "knowledge/mcp-roles.yaml",
+      "query": "$.roles[*].id"
+    },
+    "severity": "critical",
+    "hitl_tier": "C",
+    "fix_strategy": "patch_yaml",
+    "notes": "gbrain-operational-brain v1.0 Sprint 1 establishes the grants. This\ninvariant ensures ROLES.md grants don't drift past mcp-roles.yaml. Same\npattern as existing L2 'workforce personas ↔ ROLES.md ↔ runtime' validator.\n"
+  },
+  {
+    "id": "gbrain-l3-pii-email-placeholder-confirmed-7d",
+    "description": "Companies pages with EMAIL_PLACEHOLDER must imply pii_placeholder_replaced event within 7 days",
+    "kind": "implies",
+    "layer": "L3",
+    "status": "deferred",
+    "source": {
+      "tier": 4,
+      "ref": "gbrain DB pages",
+      "query": "SELECT slug FROM pages WHERE page_type = 'company' AND content LIKE '%<<EMAIL_PLACEHOLDER>>%' AND state = 'draft' AND created_at < now() - interval '7 days'"
+    },
+    "target": {
+      "tier": 2,
+      "ref": "ops.events",
+      "query": "SELECT * FROM ops.events WHERE event_type = 'ritsu.gbrain.write_committed' AND payload->>'slug' = $1 AND payload->>'pii_placeholder_replaced' = 'true'"
+    },
+    "severity": "warn",
+    "hitl_tier": "B",
+    "fix_strategy": "manual_only",
+    "notes": "gbrain-operational-brain v1.0 Sprint 4 ships post-stripe-customer-created\nhook with PII placeholder pattern. This invariant catches placeholder pages\nsitting unconfirmed >7d (founder forgot to fill in email after Tier B\nnotify). Auto-fix: re-notify customer-lead role.\n"
   }
 ] as unknown as Invariant[];
 

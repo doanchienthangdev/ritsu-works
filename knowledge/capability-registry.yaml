@@ -753,6 +753,81 @@ capabilities:
                   chain, /check-drift --resolver-sync, /cla Phase-8 hook, 6 runbooks,
                   Monday digest line, bench + CI gate)
 
+  # === Proposed via /cla propose 2026-05-24 (Phase 0 — pre-architecture) ===
+  - id: gbrain-operational-brain
+    name: "GBrain Operational Brain (Type 4 Semantic Memory Integration)"
+    description: |
+      Integrate GBrain (installed 2026-05-23 as ritsu-brain Supabase Free
+      project) as first-class Type 4 Semantic Memory engine for the
+      ritsu-works AI workforce. Operational brain layer for people, companies,
+      meetings, ideas, concepts, decisions. PHASE-0 PLACEHOLDER pending the
+      8-phase CLA workflow — full spec lands at Phase 8 promotion.
+
+      Goal (per founder problem statement, 2026-05-24):
+      - By 2026-09-30, all 6 customer-facing roles (customer-lead,
+        feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator,
+        eval-evo-orchestrator) WRITE to brain via MCP under Tier B HITL gate.
+      - All 20 READ-capable roles consult brain via decentralized Claude Code
+        pattern (per-skill `## Brain context` sections + per-role
+        `brain_affinity` field).
+      - Brain holds ≥500 pages operational truth (people/companies/meetings/
+        ideas/concepts/decisions).
+      - Cost stays under $100/mo HARD cap (gbrain MCP usage + dream cycle).
+
+      Constraints (founder-stated, Phase 5 will lock):
+      - Amend knowledge/memory-architecture.md Strategy E → v1.1 permitting
+        gbrain governed extension (Type 4 ONLY — Type 1-3 unchanged).
+      - Add NEW `gbrain-maintainer` role to governance/ROLES.md for dream-
+        cycle autonomy ($30/mo budget within $100 total cap).
+      - Extend ops.consistency_checks (Cross-Tier Engine, SOP-AIOPS-002) with
+        gbrain L1/L2/L3 invariants (slug freshness, citation integrity,
+        promotion staleness).
+      - Integrate gbrain cost into ops.cost_attributions via .mcp.json wrapper
+        pre-budget hook (same pattern as anthropic / openai).
+      - Integrate gbrain narrative into CLA Phase 1-8 with auto-create pages
+        per phase (Tier B notify).
+      - NEVER bypass Tier 1 PR governance: gbrain→wiki/ promotion requires
+        founder PR; wiki/→00-core/ promotion requires founder+cofounder PR.
+      - Promotion cadence: weekly gbrain→wiki + quarterly wiki→00-core.
+      - Never hard-delete; only archive→purge after 90d.
+      - HITL tier matrix for 70 gbrain MCP tools: 35A / 14B / 6C / 3D.
+      - Mass-purge >100 pages = Tier D-Std.
+
+      Brainstorm corpus (10-Q deep-dive, 2026-05-23):
+      .archives/brainstorming/gbrain-deep-integration-2026-05-23/ (14 files,
+      ~150 KB). Authoritative plan: 11-PLAN-consolidated.md.
+      Older preliminary brainstorm:
+      .archives/brainstorming/gbrain-integration-2026-05-23/ (4 files).
+    version: "0.1.0"                          # pre-Phase-5 placeholder (Phase 8 promotes to 1.0.0)
+    state: proposed
+    state_since: 2026-05-24
+    proposed_at: 2026-05-24
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/gbrain-operational-brain/spec.md  # Phase 8 promotion target
+    cost_bucket: ai-ops-knowledge             # provisional; Phase 5 may move to NEW ai-ops-brain bucket
+    estimated_cost_setup_usd: null            # set at Phase 5
+    estimated_cost_recurring_usd: 100.00      # founder-stated hard cap; Phase 5 confirms breakdown
+    estimated_founder_hours: null             # set at Phase 5
+    notes: |
+      ops.capability_runs id: 7b991380-ae11-4b80-be56-6bc3ca6bbdf1
+      Phase 0 working folder: .archives/cla/gbrain-operational-brain/
+      Refs resolved (Phase 0):
+        - 9 file refs copied to .archives/cla/gbrain-operational-brain/refs/
+          (01-PLAN-consolidated, 02-Q7-cla-integration-deep-dive,
+           03-component-audit, 04-recommended-seed-batch,
+           05-install-record, 06-memory-architecture,
+           07-governance-ROLES, 08-governance-HITL, 09-economic-architecture)
+        - 1 wiki-query ref returned no_coverage (memory-architecture.md is
+          Tier 1, not ingested); placeholder at
+          runtime/cla/refs/gbrain-operational-brain/
+          01-wiki-query-memory-architecture-strategy-e-type-4.md
+      Phase 1 begins immediately (auto-advance, Tier A).
+      Founder target completion: 2026-09-30 (~18 weeks).
+      Expected slug-bound capability set after Phase 8 (preliminary, may grow):
+        - This capability (gbrain-operational-brain v1.0)
+        - Possible secondary: gbrain-cla-integration if Q7 splits out
+        - Possible secondary: gbrain-promotion-pipeline if cadence splits out
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:

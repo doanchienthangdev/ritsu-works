@@ -435,6 +435,120 @@ Triggers to revisit:
 
 Each change is PR to this file plus relevant satellite files.
 
+## v1.1 (2026-05-25) — gbrain cost discipline addendum
+
+Capability `gbrain-operational-brain` v1.0 (Tier C decision `5014456d-7526-4ba2-9c58-005166193864`) extends Axis 1, 2, and 3 with gbrain-specific conventions. Existing 4-axis framework UNCHANGED; this section adds gbrain-only cost-bucket naming + hard-cap behavior + new role budget.
+
+### Axis 1 extension — gbrain cost-bucket naming convention
+
+`ops.cost_attributions.cost_bucket` is a free-form `text` field. The gbrain integration uses a **standardized 3-segment naming convention** to enable per-role + per-op + cross-role aggregation:
+
+```
+gbrain.<role>.<op>          # per-role per-op bucket
+                            # Examples:
+                            #   gbrain.customer-lead.put_page
+                            #   gbrain.gbrain-maintainer.dream_cycle
+                            #   gbrain.product-orchestrator.search
+                            #   gbrain.founder.add_link
+gbrain.shared.<op>          # shared/cross-role buckets
+                            # Examples:
+                            #   gbrain.shared.search    (cross-role search reads)
+                            #   gbrain.shared.embedding (text-embedding-3-small calls)
+```
+
+Aggregation queries leveraged by `cost-report` skill + `metrics.gbrain_cost_daily` view:
+
+```sql
+-- Total gbrain spend, rolling 30 days
+SELECT SUM(usd) FROM ops.cost_attributions
+WHERE cost_bucket LIKE 'gbrain.%' AND ts > now() - interval '30 days';
+
+-- Per-role gbrain spend, current month
+SELECT split_part(cost_bucket, '.', 2) AS role, SUM(usd) AS spend
+FROM ops.cost_attributions
+WHERE cost_bucket LIKE 'gbrain.%'
+  AND date_trunc('month', ts) = date_trunc('month', now())
+GROUP BY 1 ORDER BY 2 DESC;
+```
+
+The `.mcp.json` gbrain wrapper sets `GBRAIN_COST_BUCKET=gbrain.${MCP_CALLER_ROLE}` env var; the gbrain MCP server appends `.<op>` per tool invocation.
+
+### Axis 2 extension — gbrain $100/mo HARD cap with graceful degrade
+
+The gbrain.* aggregate has a **HARD monthly cap of $100/mo** enforced by a NEW pre-MCP-load wrapper script (`scripts/pre-budget-check.sh`) invoked from `.mcp.json` BEFORE `gbrain serve` runs.
+
+**Cap behavior (Hard-cap Option B — graceful degrade, per Tier C founder decision 2026-05-25):**
+
+| Cumulative monthly gbrain.* spend | Wrapper script action | Per-tool runtime check |
+|---|---|---|
+| < $80 (under alert threshold) | exit 0; load MCP normally | all tools allowed |
+| $80 - $100 (alert tier) | exit 0; load MCP; emit Tier B alert "Approaching gbrain cap" | all tools allowed |
+| $100 - $150 (escalate tier — past hard cap) | exit 0; load MCP; emit Tier C escalation | **WRITES + dream cycle BLOCKED; READS allowed.** Per-tool runtime check returns error for `put_page`, `add_link`, `update_page`, `mass_*`, `dream_cycle_manual`. Returns success for `search`, `get_page`, `list_pages`, `traverse_graph`, all `find_*` and `code_*`. |
+| > $150 (hard-block tier) | exit 1; MCP load FAILS | gbrain entirely unavailable until founder PR raises cap or 1st of next month |
+
+This is INTENTIONALLY MORE PERMISSIVE than the generic 3-tier escalation (which would block at 150% globally). Rationale: gbrain READS have near-zero marginal cost (embedding already paid; vector search is cheap); blocking reads breaks in-flight CLA runs (Phase 0 drift check depends on gbrain READ). WRITES + dream cycle ARE the cost drivers — block those at the cap, founder repairs at next Tier C window.
+
+**Override:** founder PR to `governance/ROLES.md` raising `gbrain-maintainer.economic_budget.monthly_cap_usd` OR adding a temporary cap-extension entry to `economic-architecture.md`. No magic-phrase override path; cap breaches go through governance PR.
+
+### Axis 1 extension — per-role gbrain budget allocations
+
+Per-role gbrain budgets are SOFT (advisory); the $100/mo HARD cap is global. Per-role allocations sum to ~$146 nominal (founder explicitly accepted at Tier C 2026-05-25 — actual spend throttles individual roles via shared budget pressure).
+
+| Role | gbrain monthly cap (advisory) | Why |
+|---|---|---|
+| founder | unlimited (subject to global $100 cap) | Founder is the primary brain user; cap is global, not per-founder |
+| `gbrain-maintainer` (NEW) | $30 | Nightly dream cycle (dedup, citation fix, contradiction detection, synthesis) |
+| `customer-lead` | $10 | companies/, people/ writes |
+| `feedback-aggregator` | $15 | concepts/ patterns + timeline (highest write-volume per Q3 v2) |
+| `gtm-orchestrator` | $10 | meetings/, companies/ |
+| `cs-coach` | $10 | meetings/, people/ |
+| `product-orchestrator` | $15 | ideas/, concepts/ (active product thinking) |
+| `eval-evo-orchestrator` | $5 | concepts/ eval (low write volume) |
+| `gps`, `founder-coach`, `support-agent`, `content-drafter`, `trust-safety`, `backoffice-clerk`, `code-reviewer` | $3 each | READ-only via MCP search; small budget for reads |
+| 9 other READ-only roles (growth-orchestrator, hitl-router, health-tracker, retention-watcher, escalation-router, metrics-curator, alert-router, experiment-analyst, cofounder) | $3 each | Same — READ-only |
+| `etl-runner` | $0 | `brain_affinity: none` — ETL doesn't need brain access |
+
+**Total nominal: ~$146/mo.** Hard-cap $100/mo enforced globally. Per-role caps are advisory only (used by `cost-report` to surface "role X exceeded their advisory cap" warnings).
+
+### Axis 3 extension — gbrain cost monitoring
+
+`metrics.gbrain_cost_daily` view (NEW Sprint 3 migration) provides daily rollup:
+
+```sql
+-- Pseudo-DDL; actual migration at supabase/migrations/0XXXX_metrics_gbrain_cost_daily_view.sql
+CREATE VIEW metrics.gbrain_cost_daily AS
+SELECT
+  date_trunc('day', ts)                                AS day,
+  split_part(cost_bucket, '.', 2)                      AS role,
+  split_part(cost_bucket, '.', 3)                      AS op,
+  SUM(usd)                                              AS spend_usd,
+  COUNT(*)                                              AS call_count
+FROM ops.cost_attributions
+WHERE cost_bucket LIKE 'gbrain.%'
+GROUP BY 1, 2, 3
+ORDER BY 1 DESC, 4 DESC;
+```
+
+Founder's daily morning brief (`synthesize-morning-brief` skill) surfaces:
+- Current month gbrain.* spend (rolling 30d AND month-to-date)
+- % of $100 cap consumed
+- Top 3 roles by spend
+- Top 3 ops by spend
+
+NEW KPI `brain.cost_usd_monthly_rolling30d` (target: $100 hard cap) registered in `knowledge/kpi-registry.yaml`.
+
+### Activation — graceful escalation matrix vs gbrain extension matrix
+
+The two escalation matrices coexist:
+
+| Tier | Generic per-role (Axis 2) | gbrain extension |
+|---|---|---|
+| 80% | Telegram heads-up | Tier B alert "approaching gbrain cap" |
+| 100% | Hold + founder approval per LLM call | Tier C escalate; WRITES + dream cycle blocked; READS continue |
+| 150% | Hard ceiling; PR required | Hard-block MCP load entirely |
+
+Per-role generic caps in ROLES.md apply IN ADDITION to the gbrain global cap. Example: if `customer-lead` has `monthly_cap_usd: 300` (their general budget) AND a $10 gbrain advisory cap, BOTH constraints apply. customer-lead's gbrain `put_page` cost contributes to BOTH `gbrain.customer-lead.put_page` (gbrain bucket) AND the role's total spend (against `monthly_cap_usd: 300`).
+
 ---
 
 *Economic instrumentation is not optional — it is the difference between operating in light and operating in darkness. This architecture lights the path: every dollar attributed to a role and a task_kind, every overage caught at three thresholds, every optimization opportunity surfaced as a reviewable PR. The numbers are calibrated, not guessed; the discipline is structural, not heroic.*
