@@ -637,9 +637,16 @@ tier2_operational:
         # ====================================================================
         - name: decisions
           migration_file: supabase/migrations/00007_decisions_ingestion_attention.sql
+          extended_by: supabase/migrations/00036_gbrain_cla_cross_links.sql
           status: live
           bai_ref: 15
-          purpose: Decision log (Decision Architecture).
+          purpose: |
+            Decision log (Decision Architecture). v1.1 (2026-05-25, capability
+            gbrain-operational-brain v1.0 Sprint 3 migration 00036): +column
+            `gbrain_concept_slug text NULL` for bidirectional link to gbrain
+            concepts/<slug> companion page authored by capability-lifecycle/
+            architect at Phase 5 OR ad-hoc Muse-panel decisions. Partial index
+            on non-null rows.
         - name: ingestion_jobs
           migration_file: supabase/migrations/00007_decisions_ingestion_attention.sql
           status: live
@@ -685,14 +692,30 @@ tier2_operational:
         # ====================================================================
         - name: capability_runs
           migration_file: supabase/migrations/00011_capability_lifecycle.sql
+          extended_by: |
+            supabase/migrations/00025_capability_update_lock.sql,
+            supabase/migrations/00029_capability_runs_root_only_unique.sql,
+            supabase/migrations/00036_gbrain_cla_cross_links.sql
           status: live
           bai_ref: 20
-          purpose: Capability lifecycle tracking — multi-session resilient, can span weeks.
+          purpose: |
+            Capability lifecycle tracking — multi-session resilient, can span
+            weeks. v1.1 (2026-05-25, capability gbrain-operational-brain v1.0
+            Sprint 3 migration 00036): +column `gbrain_proposal_slug text NULL`
+            for cross-link to ideas/<capability_id>-proposal gbrain page
+            (Phase 1 problem-framer output). Partial index on non-null rows.
         - name: capability_phase_events
           migration_file: supabase/migrations/00011_capability_lifecycle.sql
+          extended_by: supabase/migrations/00036_gbrain_cla_cross_links.sql
           status: live
           bai_ref: 20
-          purpose: Phase change events for capability_runs.
+          purpose: |
+            Phase change events for capability_runs. v1.1 (2026-05-25, capability
+            gbrain-operational-brain v1.0 Sprint 3 migration 00036): +column
+            `gbrain_meeting_slug text NULL` for cross-link to
+            meetings/<merge-date>-<capability_id>-sprint-<N>-review gbrain
+            page (per Phase 7 sprint completion event). Partial index on
+            non-null rows.
         - name: v_capability_pipeline
           migration_file: supabase/migrations/00011_capability_lifecycle.sql
           kind: view
@@ -758,7 +781,7 @@ tier2_operational:
             (mode, ts). Partial index on rows with composition_supporting.
             RLS: founder + etl-runner full; other roles read own caller_role.
     metrics:
-      description: ETL'd snapshots of Product metrics (read-only mirror)
+      description: ETL'd snapshots of Product metrics (read-only mirror) + derived rollup views
       tables:
         - name: product_dau_snapshot
           migration_file: supabase/migrations/00019_metrics_schema_product_mirror.sql
@@ -768,6 +791,19 @@ tier2_operational:
           note: |
             Table exists as structural placeholder. ETL flow
             etl_flows.product_metrics_to_ops is still `planned` — no rows yet.
+        - name: gbrain_cost_daily
+          migration_file: supabase/migrations/00037_metrics_gbrain_cost_daily_view.sql
+          kind: view
+          status: live
+          source: ops.cost_attributions (filtered to cost_bucket LIKE 'gbrain.%')
+          refresh: real_time
+          note: |
+            v1.0 (2026-05-25, capability gbrain-operational-brain v1.0 Sprint 3
+            migration 00037). Daily rollup view of gbrain.* cost-bucket entries,
+            split by role + op. Consumed by synthesize-morning-brief, cost-report,
+            brain.cost_usd_monthly_rolling30d KPI, and Sprint 5 .mcp.json wrapper
+            scripts/pre-budget-check.sh for $100/mo HARD cap enforcement
+            (Hard-cap Option B graceful degrade).
   public_schema:
     description: |
       Schema `public` holds customer-entity tables (00005_customer_entity.sql):
