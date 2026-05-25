@@ -8,14 +8,14 @@ description: |
 
   Capability: gbrain-operational-brain v1.0.2 (verified against live gbrain
   schema; supersedes v1.0.1 which had 4 naming errors based on brainstorm
-  guesses).
+  guesses). v1.0.4 adds `/brain integrations` — codebase integration map.
 
   Use when you want explicit founder ops on gbrain. For delegated multi-step
   reasoning, use @brain subagent. For automatic brain context in skills,
   rely on the 12 skills with `## Brain context` sections (Sprint 2).
 ---
 
-# /brain — Operational Brain Interface (v1.0.2 — perfect coverage)
+# /brain — Operational Brain Interface (v1.0.4)
 
 > Project-scoped command for ritsu-works. Front-end for gbrain (capability `gbrain-operational-brain` v1.0). Thin orchestrator — every subcommand maps directly to one or more `mcp__gbrain__*` MCP tools verified against live gbrain v0.40.2.0 schema. Founder-friendly syntax + defaults + Tier B HITL discipline per `SOP-AIOPS-GBRAIN-001-write-discipline`.
 
@@ -122,6 +122,7 @@ description: |
 |---|---|---|
 | `/brain promote <slug>` | invokes `06-ai-ops/skills/brain-promotion/SKILL.md` | gbrain → wiki/ promotion (Tier C PR) |
 | `/brain review` | composes `list_pages WHERE state=mature AND state_since > 30d` + AskUserQuestion per candidate | Weekly promotion review window |
+| `/brain integrations [--category=<cat>]` | Bash `grep -rn "gbrain"` + categorized render | **Codebase integration map** — all files/dirs with gbrain integration, categorized by type. Optional `--category` filter (tier1-yaml\|governance\|agent\|skill\|sop\|migration\|script\|wiki\|other). No MCP call needed. |
 | `/brain agent "<prompt>" [--model=X] [--max-turns=20] [--allowed-tools=A,B] [--queue=default]` | `mcp__gbrain__submit_agent` | **⭐ Submit autonomous LLM agent job** — gateway-native tool loop with bound tools/sources/slug-prefixes/budget. Requires `agent` OAuth scope |
 | `/brain sync [--dry-run] [--full] [--no-embed] [--no-pull] [--repo=X]` | `mcp__gbrain__sync_brain` | Git repo → brain incremental sync (different from "dream cycle" — gbrain has no manual dream trigger; cycle runs autopilot) |
 | `/brain jobs` | `mcp__gbrain__list_jobs` | List background jobs |
@@ -135,7 +136,7 @@ description: |
 > usage for just that subcommand (e.g. `/brain think` → think-only usage).
 
 ```
-🧠 /brain — Operational Brain Interface (v1.0.3)
+🧠 /brain — Operational Brain Interface (v1.0.4)
 
 CAPABILITY:    gbrain-operational-brain v1.0 (operating since 2026-05-25)
 ENGINE:        gbrain v0.40.2.0 (postgres)
@@ -212,6 +213,7 @@ CAP STATUS:    $X.XX / $100 monthly (rolling 30d)
 🔄 WORKFLOW + ADMIN
   /brain promote <slug>           — gbrain → wiki/ (Tier C PR)
   /brain review                   — weekly promotion candidates
+  /brain integrations             — codebase integration map (all gbrain touch-points)
   /brain agent "<prompt>"         — ⭐ submit autonomous LLM agent job
   /brain sync [--dry-run] [--full] — git repo → brain incremental sync
   /brain jobs                     — list background jobs
@@ -325,6 +327,56 @@ When write blocked: "Cap reached. Use `/cla extend gbrain-operational-brain` to 
 | `/brain <verb> <args>` | Explicit founder-typed single op |
 | `@brain <prompt>` | Delegated reasoning; composes 3-7 brain calls + returns synthesis |
 | Skill auto-fire (12 brain-aware skills, Sprint 2) | Transparent during normal skill execution |
+
+### `/brain integrations [--category=<cat>]`
+
+Lists every file and directory in the ritsu-works repo that has gbrain integration — the complete codebase integration map.
+
+**Implementation** (pure Bash, no MCP call needed):
+
+```bash
+grep -rn "gbrain" /path/to/ritsu-works \
+  --include="*.md" --include="*.yaml" \
+  --include="*.json" --include="*.sh" --include="*.cjs" \
+  -l | sort
+```
+
+Results are categorized and displayed as a table:
+
+| Category | What's here |
+|---|---|
+| `tier1-yaml` | `knowledge/*.yaml` files declaring gbrain integration (manifest, mcp-tools, mcp-roles, kpi-registry, kpi-ownership, capability-registry, cross-tier-invariants, event-subscriptions, state-machines, schedules, external-sources, feature-flags) |
+| `governance` | `governance/ROLES.md` (brain_affinity matrix, gbrain-maintainer role), `governance/HITL.md` (Appendix A tier classification) |
+| `architecture` | `knowledge/memory-architecture.md`, `knowledge/economic-architecture.md`, `notes/bai-*.md` (design notes) |
+| `agent` | `.claude/agents/brain.md`, `.claude/agents/gbrain-maintainer.md` |
+| `command` | `.claude/commands/brain.md` (this file) |
+| `hook` | `.claude/hooks/post-stripe-customer-created.md`, `.claude/hooks/post-tier1-rename.md` |
+| `skill` | `06-ai-ops/gbrain/` sub-pillar (README + 3 SOPs + runbook + 2 new skills), 12 brain-aware skills with `## Brain context` section |
+| `migration` | `supabase/migrations/00036_gbrain_cla_cross_links.sql`, `supabase/migrations/00037_metrics_gbrain_cost_daily_view.sql` |
+| `script` | `scripts/pre-budget-check.sh`, `scripts/cross-tier/validate-gbrain-invariant-handlers.cjs`, `scripts/cross-tier/validate-mcp-json-tools-consistency.cjs` |
+| `wiki` | `wiki/capabilities/gbrain-operational-brain/spec.md`, `wiki/capabilities/gbrain-operational-brain/retrospective-v1.0.0.md`, `knowledge/recipients/external-sources.md` (gbrain-mcp entry) |
+| `.mcp.json` | Root `.mcp.json` gbrain stdio entry with pre-budget-check.sh wrapper |
+
+**Optional `--category` filter** (returns only that category's files):
+```
+/brain integrations --category=migration   → just the 2 migration files
+/brain integrations --category=skill       → all brain-aware skill files
+/brain integrations --category=tier1-yaml  → all knowledge/*.yaml with gbrain
+```
+
+**Use case**: When you want to audit what gbrain touches before a `/cla extend` or `/cla revise`, or before upgrading gbrain itself.
+
+---
+
+## v1.0.4 changes vs v1.0.3
+
+**Added `/brain integrations` subcommand** — codebase integration map.
+
+Ships as a pure-grep operation (no MCP call): scans the ritsu-works repo for all `gbrain` references across `.md`, `.yaml`, `.json`, `.sh`, `.cjs` files and renders a categorized integration map. Optional `--category` filter for targeted auditing.
+
+Motivation: as gbrain integration grows across 60+ files in 9 categories, there was no single command to answer "where does gbrain touch the codebase?" — now there is.
+
+---
 
 ## v1.0.3 changes vs v1.0.2
 
