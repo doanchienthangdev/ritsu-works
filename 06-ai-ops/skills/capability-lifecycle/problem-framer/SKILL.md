@@ -206,3 +206,13 @@ This skill is invoked by `/cla propose` (mode=`create`, the v1.0 path) AND by al
 ---
 
 **Next phase invokes:** `domain-analyst` (Phase 2) — only in `create` mode. Update sub-flows skip Phase 2 (domain inherited from parent capability).
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (before refinement):** `mcp__gbrain__search "<keywords from raw_proposal>"` → top 5 ideas/concepts. Surface prior framings if present. Cost: ~$0.005 (`gbrain.shared.search`).
+
+**WRITE (after refinement, only `create` mode):** `mcp__gbrain__put_page ideas/<capability_id>-proposal` with refined problem statement + success criteria + assumptions. Tier B notify-first-then-batch via `hitl-router`. Cross-link: `ops.capability_runs.gbrain_proposal_slug = <slug>`. Cost: ~$0.02 (`gbrain.<role>.put_page`).
+
+**Skip both** when `--no-brain` flag set OR caller role `brain_affinity: none` OR gbrain cost-cap reached (graceful-degrade: write disabled, read continues per Hard-cap Option B).

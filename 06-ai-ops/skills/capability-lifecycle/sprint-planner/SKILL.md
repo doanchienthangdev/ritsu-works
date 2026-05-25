@@ -226,3 +226,13 @@ Template:
 ---
 
 **Next phase invokes:** `implementation-coordinator` (Phase 7) in `create`, `extend`, `revise` modes.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (before sprint sequencing):** `mcp__gbrain__search "past sprint plans <similar capability>"` + `mcp__gbrain__find_experts "<domain> sprint sequencing"` to surface velocity patterns + risk patterns from prior capabilities (e.g., "wiki-sync took 4 sprints; expect similar"). Cost: ~$0.03.
+
+**WRITE (after sprint plan drafted):** `mcp__gbrain__put_page concepts/<capability_id>-sprint-plan` with the 6-sprint breakdown + acceptance criteria + risk register. Tier B notify. Cost: ~$0.02.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade.

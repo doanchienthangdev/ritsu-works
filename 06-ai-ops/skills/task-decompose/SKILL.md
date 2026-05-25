@@ -329,3 +329,13 @@ Roles allowed to invoke: `gps` and pillar orchestrators (growth-orchestrator, su
 ---
 
 *Decomposition is the moment a coarse intent becomes a concrete plan. Get it wrong and the rest of orchestration compounds the error. This skill makes the moment deliberate.*
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (before decomposition):** If the parent task mentions named entities (capabilities, people, companies, customers), invoke `mcp__gbrain__search "<entities>"` + `mcp__gbrain__get_page` for the top match to surface brain-side context that may affect subtask shape (e.g., "this customer has a known sensitivity to X" affects how a Sprint outreach subtask is framed). Cost: ~$0.005.
+
+**WRITE:** None — task decomposition is a planning skill; brain writes happen via the spawned subtasks' own skills.
+
+**Skip the brain read** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade.
