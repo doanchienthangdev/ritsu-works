@@ -2,14 +2,14 @@
 title: "Chương 33 — Capability Lifecycle Architecture (Bài #20)"
 description: "Chương 33 — Capability Lifecycle Architecture (Bài #20)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/33-capability-lifecycle-architecture.md
-source_hash: 410a45bbe36d5555b9d0134ec35480397bae95648d8d1639d248733792d90638
-generated_at: '2026-05-21T03:51:28.581Z'
+source_hash: a88f0d18bbd317a894e94058df2ab31ab7540de8b42c45436055a8d769afd45f
+generated_at: '2026-05-25T08:45:06.020Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: 410a45bbe36d5555b9d0134ec35480397bae95648d8d1639d248733792d90638
-translated_at: '2026-05-21T03:51:28.581Z'
+translated_source_hash: a88f0d18bbd317a894e94058df2ab31ab7540de8b42c45436055a8d769afd45f
+translated_at: '2026-05-25T08:45:06.020Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 33
 ---
@@ -667,3 +667,160 @@ Bài #20 CLA = **OS-level pattern cho deploying business capabilities trên Agen
 - Tier 1: `knowledge/capability-registry.yaml`
 - Phase A.2 final architecture: chương 28
 - Boilerplate strategy: chương 31
+
+---
+
+## 33.23 Mechanism Layer Hardening — v1.2.0 (2026-05-25, post §33.22)
+
+> **Status sau Wave 1 closing (Chương 40):** CLA đã ship v1.0 (8-phase original) + v1.1 (cla-update-mechanism sub-flows: fix/extend/revise/tune/deprecate). Sau khi `gbrain-operational-brain` v1.0 promote `operating` cùng ngày 2026-05-25 và `resolver-v2.2-context-sources` v2.2.0 ship 1 ngày trước đó (2026-05-24), founder kích hoạt CLA self-dogfood lần đầu — đặt câu hỏi: *"cla đã tích hợp resolver và brain trong workflow chưa?"* Phát hiện: brain integration có (7/8 phase), nhưng resolver auto-sync **chưa**, brain decision **implicit**. v1.2.0 đóng 2 mechanism gap đó + fix 1 latent bug.
+
+### 33.23.1 Câu hỏi dogfood + 3 gap phát hiện
+
+Founder dùng CLA cho gbrain integration (Sprint 1-6, PRs #100-105) → trải nghiệm trực tiếp Phase 5 architect + Phase 8 catalog-updater. Sau ngày ship cuối cùng (PR #106 hotfix), founder hỏi tiếp:
+
+> *"tức là dùng cla nếu bài toán nào cần thiết phải dùng brain thì sẽ đưa vào tích hợp và sẽ đưa vào resolver tự động?"*
+
+Câu trả lời thật lúc đó: **không tự động cả 2.** Audit 3 gap:
+
+**Gap 1 — Brain decision implicit.** Phase 5 architect generate spec mà KHÔNG có structured brain-integration decision. Brain READ/WRITE cho **capability đang build** phụ thuộc memory + judgment của architect, không phải checkpoint bắt buộc. Risk: capabilities should-READ silently skip; capabilities producing valuable artifacts không bao giờ WRITE. Per-Bài-toán impact table (Step 2) không có row "Brain" dù brain đã là Tier 2 dependency thật (separate Supabase project, 74 MCP tools, $100/mo HARD cap).
+
+**Gap 2 — Resolver catalog drift required manual sync.** Phase 8 catalog-updater update `wiki/capabilities/CATALOG.md` + `knowledge/capability-registry.yaml` nhưng KHÔNG regenerate `knowledge/recipients/*.md`. Skill/SOP/schedule/hook mới từ capability vừa ship không xuất hiện trong Mode A ambient catalog (loaded qua `@knowledge/recipients/*.md` import) cho đến khi founder chạy `node scripts/resolver-v2/sync.cjs --apply` thủ công. `pnpm check` warn drift nhưng không auto-fix.
+
+**Gap 3 (latent bug) — `sync.cjs` chỉ wire 5/16 kinds.** `catalog-generator.cjs` đã có 16 generator functions (resolver v2.1 + v2.2 added kinds: wiki, sop, capability, workflow, schedule, hook, page, view, metric, runbook, external-source) nhưng `sync.cjs` main()'s `targetKinds` default + 2 inline `generators` tables (diffCatalog + runApply) chỉ reference 5 kinds gốc. Test crash: `node scripts/resolver-v2/sync.cjs --kind=sop --dry-run` exits với "Unknown kind". Bug đã sit silent qua 3 ngày + 4 PR.
+
+### 33.23.2 Fix scope — Tier B leaf edits
+
+5 file mechanism + 10 file regenerated catalog. Total ~30 phút work.
+
+| Surface | Change | Tier |
+|---|---|---|
+| `scripts/resolver-v2/sync.cjs` | Hoist `ALL_GENERATORS` constant covering 16 kinds. `filenameFor(kind)` reads `CONFIG[kind].file` từ generator (handle irregular plurals: `capability→capabilities.md`, `external-source→external-sources.md`). Default `targetKinds = ALL_KINDS`. | B (bug fix) |
+| `scripts/resolver-v2/catalog-generator.cjs` | Export `KINDS` + `CONFIG` từ module.exports. | B |
+| `06-ai-ops/skills/capability-lifecycle/architect/SKILL.md` | **Step 2.5 REQUIRED** — 3-question rubric (READ / WRITE / COST) → 5 outputs: `NONE \| READ-only \| READ+WRITE \| WRITE-only \| COST-managed`. New row trong per-Bài-toán table: `20.1 / Brain integration`. Cross-ref `brain-write-discipline` template. Downstream gate: nếu `READ+WRITE` chosen, Phase 6 sprint-planner verify "brain wire-up" acceptance criterion. | B |
+| `06-ai-ops/skills/capability-lifecycle/catalog-updater/SKILL.md` | **Step 6.5 REQUIRED** — `node scripts/resolver-v2/sync.cjs --apply` giữa Step 6 (boilerplate patterns) và Step 7 (final pnpm check). Idempotent ~150ms. Failure handling: lock held → retry once + abort với investigation prompt; generator error → abort + log to `.archives/cla/<id>/phase-8-sync-error.log`. | B |
+| `knowledge/capability-registry.yaml` | Version 1.1.0 → 1.2.0. Description updated. | B |
+| `knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md` | Append v1.2.0 changelog block (problems-closed + changes table + skipped-ceremony rationale). | B |
+
+### 33.23.3 Step 2.5 — Brain-integration decision rubric (chi tiết)
+
+```
+Q1 — READ: Capability quality có improve khi surface PRIOR brain content
+     at runtime (decisions, retros, expert pages, contradictions)?
+     YES → spec.md MUST list READ patterns (which MCP tools, trigger points,
+            cost-bucket, $/invocation).
+
+Q2 — WRITE: Capability produce knowledge artifacts mà future capabilities
+     sẽ benefit khi search (decisions, observations, retros, ideas, meetings,
+     people, companies entities)?
+     YES → spec.md MUST list WRITE patterns (which MCP tools, page namespace,
+            HITL tier, cost-bucket) + identify roles cần mcp_servers:[gbrain]
+            grant. Nếu tạo role mới: declare brain_affinity (high/medium/low/none).
+
+Q3 — COST: Expected monthly cost (Q1+Q2 per-invocation × frequency) > $1/mo?
+     YES → spec.md MUST add per_task_kind_caps entry trong role economic_budget
+            + verify global $100/mo HARD cap không bị exceeded.
+```
+
+5 possible outputs cho spec.md § "5.X Brain integration":
+
+| Decision | Trigger | Content |
+|---|---|---|
+| `NONE` | All 3 = no | 1 paragraph rationale (≤ 2 sentences) |
+| `READ-only` | Q1=yes, Q2=no | READ block per `brain-write-discipline` template |
+| `READ+WRITE` | Q1=yes AND Q2=yes | Full READ+WRITE block + cross-link contract (which ops.* columns carry brain slug) |
+| `WRITE-only` | Q1=no, Q2=yes | Rare nhưng valid — capabilities producing pure-output artifacts (event recorders, etc.) |
+| `COST-managed` | Q3=yes | Per-task-kind cap; combine với any of the above |
+
+Đồng thời thêm row vào per-Bài-toán impact table:
+
+| Bài | Topic | Common change |
+|---|---|---|
+| 20.1 | Brain integration | Per Step 2.5 decision: `none` \| `read` \| `read+write` \| `write` |
+
+### 33.23.4 Step 6.5 — Resolver auto-sync (chi tiết)
+
+```bash
+node scripts/resolver-v2/sync.cjs --apply
+```
+
+**Why this step exists:** every CLA-built capability thường add 1+ skill, possibly 1 command, 0-2 agents, 0-N SOPs / schedules / hooks, sometimes new MCP tools / wiki pages / pages / views / metrics / runbooks / external-sources. Without regen:
+- Mode A in-session ambient catalog (loaded qua `CLAUDE.md` `@knowledge/recipients/*.md` imports) becomes stale — `/resolver` lookups + `/ceo` routing miss capability mới.
+- Step 7 (final `pnpm check`) fails `validate-resolver-v2-coverage`.
+
+**Behavior:**
+- Idempotent — no source changes → 0 files written, exit 0 in ~150ms.
+- Covers full **16 recipient kinds**: skill, command, agent, persona, mcp, wiki, sop, capability, workflow, schedule, hook, page, view, metric, runbook, external-source.
+- Atomic write per file (temp → rename).
+
+**Failure handling:**
+- `sync.cjs` exit 2 (lock held): wait 60s + retry once. Still locked → ABORT phase, surface `resolver-v2-sync.lock` investigation prompt.
+- `sync.cjs` exit 1 (generator error): ABORT — write `.archives/cla/<id>/phase-8-sync-error.log`, surface to founder.
+- Exit 0 + writes 0 files (already in sync): proceed to Step 7 normally.
+
+### 33.23.5 sync.cjs bug fix as side benefit
+
+Trước v1.2.0: `node scripts/resolver-v2/sync.cjs --kind=sop --dry-run` crash với `Unknown kind: sop`. Phase 8 không thể chạy sync ngay cả khi muốn — sub-task không tồn tại trên 11/16 kinds.
+
+Fix là pure additive: hoist generator table thành module-level constant; default targetKinds = ALL_KINDS; filename derivation từ `CONFIG[kind].file` (đã ở catalog-generator nhưng chưa exported).
+
+Verification sau fix:
+```
+$ node scripts/resolver-v2/sync.cjs --dry-run        # 16/16 kinds, idempotent, 180ms
+$ node scripts/resolver-v2/sync.cjs --kind=sop --dry-run         # works
+$ node scripts/resolver-v2/sync.cjs --kind=external-source --dry-run   # hyphenated works
+$ pnpm check                                          # ALL CLEAN 1.2s
+```
+
+### 33.23.6 Why this isn't a new chapter
+
+Founder explicit request: *"Update bổ sung playbook và docs vào phần tiếp theo của Chapter 33 cho đỡ phải thêm chapter mới."*
+
+Justification (cùng pattern §40.9.11 đã thiết lập):
+- **Mechanism refinement, không phải capability mới** — v1.2.0 close 2 gap trong workflow của CLA itself, không phải build capability mới. Architecture không thay đổi (vẫn 8 phase, vẫn 1.1 sub-flows).
+- **Same capability, same case study** — Chương 33 covers Bài #20 CLA. v1.0 → v1.1 → v1.2 đều cùng capability lineage. Một chương = một capability case study (consistent với §40.9.11 rule).
+- **Architectural continuity** — v1.2.0 tiếp tục pattern "incremental on sound architecture". Step 2.5 và 6.5 đều ADD checkpoints; không remove gì; không break compat.
+- **Postscript pattern** — đã thiết lập trong §40.9. Repeat pattern = evidence pattern works.
+
+**Rule of thumb (consistent với §40.9.11):** Capability case study chỉ nên thêm chương mới khi (a) capability hoàn toàn mới, HOẶC (b) iteration thay đổi architecture (paradigm shift). Same-architecture mechanism refinement → postscript section. v1.2.0 fits (b)-no qualifier, only refinement.
+
+### 33.23.7 Skipped vs full `/cla extend` ceremony
+
+v1.2.0 ship qua **direct hand-application** thay vì `/cla extend capability-lifecycle-architecture` ceremony. Rationale:
+
+- Total surface = 5 file edits + 10 regenerated catalog files; pure additive (no removals, no schema changes).
+- Step 2.5 + Step 6.5 là docs-level mechanism additions vào existing skill SKILL.md, không phải new code.
+- `sync.cjs` patch fixes pre-existing bug (intent was always to cover all kinds — see `catalog-generator.cjs` KINDS array).
+- Tất cả Tier B per `governance/HITL.md`; founder review qua PR.
+
+**Audit trail tripartite:**
+1. **Git/PR trail** — PR #110 + commit `549d4fb`
+2. **Prose trail** — changelog block trong `bai-20-capability-lifecycle-DRAFT.md` § v1.2.0
+3. **DB trail** — `ops.capability_runs` row `3dde42a6-b1a0-4cde-9f49-02b93078a036` với full `state_payload` metadata (sub_flow=extend, retroactive=true, related_pr=110, audit_method=direct_insert_retroactive, changes_summary[])
+
+Founder approved retroactive INSERT vào `ops.capability_runs` post-merge (Tier B) — đây là first audit-trail row cho capability-lifecycle-architecture (v1.0.0 + v1.1.0 cùng bootstrap pre-database, không có row).
+
+### 33.23.8 Cross-references v1.2.0
+
+**Mechanism files:**
+- `scripts/resolver-v2/sync.cjs` (+87 LOC delta) — `ALL_GENERATORS` const, `filenameFor()` helper, default 16 kinds
+- `scripts/resolver-v2/catalog-generator.cjs` — export `KINDS` + `CONFIG`
+- `06-ai-ops/skills/capability-lifecycle/architect/SKILL.md` — Step 2.5 brain rubric
+- `06-ai-ops/skills/capability-lifecycle/catalog-updater/SKILL.md` — Step 6.5 sync + failure modes table
+
+**Spec + registry:**
+- `knowledge/phase-a2-extensions/bai-20-capability-lifecycle-DRAFT.md` — v1.2.0 changelog block
+- `knowledge/capability-registry.yaml` — version "1.2.0", description updated
+
+**Regenerated catalog (10):**
+- `knowledge/recipients/{agents,capabilities,commands,hooks,mcps,metrics,schedules,skills,sops,views}.md`
+- (Picked up gbrain MCP tools từ PR #109, `/brain` command + `@brain` agent từ PR #107, plus backlog drift)
+- Cosmetic: `capabilities.md` heading typo "capabilitys" → "capabilities"
+
+**Governance:**
+- ops.capability_runs id (v1.2.0 retroactive): `3dde42a6-b1a0-4cde-9f49-02b93078a036`
+- PR: #110 (open at chapter author time; merged via founder workflow)
+- Manifest: `knowledge/manifest.yaml` unchanged (v0.13.0 already covers gbrain Sprint 1+)
+
+---
+
+*Closing reflection v1.2.0:* CLA self-dogfood lần đầu xảy ra khi founder hỏi 1 câu prompt-engineered (intuitive về cấu trúc, không cần technical preamble). Trong 1 session (~30 phút work + PR + retroactive audit row), 3 mechanism gap đóng đồng thời — và 2 trong số đó (brain decision implicit + resolver drift) sẽ tự động lan vào **mọi capability tương lai** vì chúng nằm ở Phase 5 + Phase 8 architecture của workflow. CLA mechanism layer giờ tự enforces brain awareness + resolver coherence — không cần architect nhớ, không cần catalog-updater hỏi founder, không cần manual sync. Đây là **Wave 2 capability building substrate hoàn chỉnh**: founder propose problem → CLA workflow tự auto-wire brain (where appropriate) + auto-register recipients → ambient catalog tự cập nhật ngay trong session sau. Chương 33 sau v1.2.0 không còn là static lifecycle architecture mà là **self-refining lifecycle architecture** — pattern đầu tiên trong codebase mà ops mechanism itself sẽ phát hiện ra own-gaps khi dogfooded.
