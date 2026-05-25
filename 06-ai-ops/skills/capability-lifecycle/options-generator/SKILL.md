@@ -205,3 +205,13 @@ If founder picks "Iterate", repeat Steps 1-4 with the founder's hint, max 1 iter
 ---
 
 **Next phase invokes:** `architect` (Phase 5) in `create` and `revise` modes.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (before option generation):** `mcp__gbrain__search "<topic> options patterns"` + `mcp__gbrain__find_experts "<domain>"` to surface prior pattern decisions across the workforce. Look for "we tried X, didn't work because Y" notes. Cost: ~$0.04 (`gbrain.shared.search`).
+
+**WRITE (after options drafted, before founder Tier B pick):** `mcp__gbrain__put_page concepts/<capability_id>-options` with the 3-5 options + cabinet review synthesis + recommendation strength. Tier B notify. Cost: ~$0.03.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade.

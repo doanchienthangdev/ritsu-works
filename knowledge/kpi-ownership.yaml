@@ -593,7 +593,57 @@ persona.cpo.cpo_cgo_boundary_conflicts:
   target: "≤ 1/week sustained"
 
 # ===========================================================================
+# gbrain integration KPIs (capability gbrain-operational-brain v1.0 Sprint 2)
+# 5 NEW KPIs — all owned by metrics-curator under 10-metrics pillar.
+# ===========================================================================
+
+brain.write_roles_operational:
+  owner_pillar: 10-metrics
+  owner_role: metrics-curator
+  sub_pillar: 01-kpi-registry
+  formula: "COUNT(DISTINCT roles WHERE has mcp_servers:[gbrain] AND wrote in last 30d)"
+  source: ops.cost_attributions (filtered to gbrain.<role>.<op> excluding gbrain.shared.*)
+  target: "6 by 2026-09-30"
+  notes: "Capability gbrain-operational-brain v1.0 success criterion #1"
+
+brain.read_roles_active_30d:
+  owner_pillar: 10-metrics
+  owner_role: metrics-curator
+  sub_pillar: 01-kpi-registry
+  formula: "COUNT(DISTINCT caller_role WHERE invoked gbrain READ tool in last 30d)"
+  source: ops.agent_runs (tool_name LIKE 'mcp__gbrain__%' AND NOT WRITE tools)
+  target: "20 by 2026-09-30"
+  notes: "Capability gbrain-operational-brain v1.0 success criterion #2"
+
+brain.operational_pages_total:
+  owner_pillar: 10-metrics
+  owner_role: metrics-curator
+  sub_pillar: 01-kpi-registry
+  formula: "SELECT count(*) FROM gbrain.pages WHERE page_type != 'system'"
+  source: gbrain DB direct (mirrored to ops.kpi_snapshots daily via Sprint 4 cron)
+  target: "500 by 2026-09-30"
+  notes: "Capability gbrain-operational-brain v1.0 success criterion #3"
+
+brain.cost_usd_monthly_rolling30d:
+  owner_pillar: 10-metrics
+  owner_role: metrics-curator
+  sub_pillar: 06-revenue-and-cost-views
+  formula: "SUM(usd) WHERE cost_bucket LIKE 'gbrain.%' AND ts > now() - interval '30 days'"
+  source: ops.cost_attributions
+  target: "100 HARD cap"
+  notes: "Capability gbrain-operational-brain v1.0 success criterion #4. HARD cap enforced by .mcp.json wrapper Sprint 5."
+
+brain.dream_cycle_success_rate_7d:
+  owner_pillar: 10-metrics
+  owner_role: metrics-curator
+  sub_pillar: 01-kpi-registry
+  formula: "COUNT(* FILTER state='completed')::float / NULLIF(COUNT(*),0) WHERE persona_slug='gbrain-maintainer' AND started_at > now() - 7d"
+  source: ops.agent_runs
+  target: ">= 0.95 rolling 7d"
+  notes: "Capability gbrain-operational-brain v1.0 success criterion #5. gbrain-maintainer autonomous dream cycle reliability."
+
+# ===========================================================================
 # Anti-orphan check (any KPI not listed here should NOT exist in any pillar README)
 # ===========================================================================
-# Total KPIs registered: 70 (47 baseline + 7 CEO + 5 CTO + 5 CGO + 6 CPO from PR 3/4 stack)
+# Total KPIs registered: 75 (47 baseline + 7 CEO + 5 CTO + 5 CGO + 6 CPO + 5 gbrain from gbrain-operational-brain v1.0 Sprint 2)
 # Status: All accounted for (1.7 cross-check passes)

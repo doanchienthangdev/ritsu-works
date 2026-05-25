@@ -208,3 +208,15 @@ diff -u wiki/capabilities/<id>/spec.md /tmp/proposed-spec.md > .archives/cla/<id
 ---
 
 **Next phase invokes:** `sprint-planner` (Phase 6) in `create`, `extend`, `revise` modes.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (heavy traverse, before per-Bài-toán analysis):** `mcp__gbrain__search "<domain> architecture decisions"` + `mcp__gbrain__traverse_graph` from related decisions + `mcp__gbrain__find_contradictions` to surface unresolved past conflicts. ~10-15 calls per Phase 5 invocation (highest-density read among all CLA phases). Cost: ~$0.20 (`gbrain.shared.search`).
+
+**WRITE (after spec.md draft + draft/ population):** `mcp__gbrain__put_page concepts/<capability_id>-architecture` with the per-Bài-toán impact map + reversibility rating + key callouts. Add `mcp__gbrain__add_link` to each ops.decisions row touched. Tier B notify. The wiki/ spec.md promotion at Phase 8 is a SEPARATE Tier C PR — this brain write does NOT replace it. Cost: ~$0.05.
+
+**Cross-link** the wiki spec.md path back to brain via spec.md frontmatter `gbrain_concept_slug: concepts/<capability_id>-architecture`. The `ops.decisions.gbrain_concept_slug` column (Sprint 3 migration) carries the bidirectional reference.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade. If brain WRITE blocked at cap, defer to queue (per failure mode F1 in spec.md).

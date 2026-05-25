@@ -161,3 +161,13 @@ If founder believes a revision actually changes the domain (e.g., pivoting `lead
 ---
 
 **Next phase invokes:** `system-inventory-scanner` (Phase 3) in `create` mode. Update sub-flows skip to Phase 3 directly.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (per persona, before synthesizing each CxO lens):** `mcp__gbrain__search "<persona> <keywords from problem.md>"` → top 5 + `mcp__gbrain__traverse_graph` from related concepts to discover prior cross-CxO thinking. ~6-10 calls total per Phase 2 invocation. Cost: ~$0.05 (`gbrain.shared.search`).
+
+**WRITE (after synthesis, only `create` mode):** `mcp__gbrain__put_page concepts/<capability_id>-domain-analysis` with the cross-domain synthesis + CxO lenses + open questions. Add links to per-persona prior thinking via `mcp__gbrain__add_link`. Tier B notify. Cost: ~$0.04.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade.

@@ -43,5 +43,66 @@ kpis:
     cadence: on_demand
     source: ".claude/commands/core.md subcommand table parse"
 
+  # ==========================================================================
+  # gbrain integration KPIs (capability gbrain-operational-brain v1.0)
+  # 5 NEW KPIs registered Sprint 2; activate Sprint 4-5 when source systems
+  # land. All owned by metrics-curator per knowledge/kpi-ownership.yaml.
+  # ==========================================================================
+
+  - id: brain.write_roles_operational
+    type: operational
+    description: "Count of distinct roles that have written to gbrain in last 30 days (via mcp__gbrain__put_page / add_link / update_page). Target 6 by 2026-09-30 (customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator)."
+    owner_pillar: 10-metrics
+    owner_role: metrics-curator
+    target: 6
+    threshold_warn: 4
+    threshold_critical: 2
+    cadence: weekly
+    source: "SELECT COUNT(DISTINCT split_part(cost_bucket, '.', 2)) FROM ops.cost_attributions WHERE cost_bucket LIKE 'gbrain.%' AND ts > now() - interval '30 days' AND cost_bucket NOT LIKE 'gbrain.shared.%'"
+
+  - id: brain.read_roles_active_30d
+    type: operational
+    description: "Count of distinct caller_roles that invoked any gbrain READ tool (search/get_page/list_pages/traverse_graph/find_*/code_*) in last 30 days. Target 20 by 2026-09-30 (all non-etl-runner roles)."
+    owner_pillar: 10-metrics
+    owner_role: metrics-curator
+    target: 20
+    threshold_warn: 15
+    threshold_critical: 8
+    cadence: weekly
+    source: "SELECT COUNT(DISTINCT caller_role) FROM ops.agent_runs WHERE tool_name LIKE 'mcp__gbrain__%' AND tool_name NOT IN ('mcp__gbrain__put_page','mcp__gbrain__update_page','mcp__gbrain__add_link','mcp__gbrain__remove_link','mcp__gbrain__archive_page') AND started_at > now() - interval '30 days'"
+
+  - id: brain.operational_pages_total
+    type: operational
+    description: "Total gbrain pages excluding system templates. Mirrored to ops.kpi_snapshots daily via gbrain-dream-cycle handler push. Target 500 by 2026-09-30 (40-60 seed batch + 440-460 organic from CLA + customer + product workflow)."
+    owner_pillar: 10-metrics
+    owner_role: metrics-curator
+    target: 500
+    threshold_warn: 300
+    threshold_critical: 100
+    cadence: daily
+    source: "SELECT count(*) FROM gbrain.pages WHERE page_type != 'system' — mirrored to ops.kpi_snapshots via Sprint 4 cron handler"
+
+  - id: brain.cost_usd_monthly_rolling30d
+    type: business
+    description: "Aggregate USD cost of all gbrain.* cost_bucket entries over rolling 30 days. HARD cap $100/mo enforced by .mcp.json wrapper scripts/pre-budget-check.sh (Hard-cap Option B graceful degrade — WRITES + dream cycle blocked at cap; READS continue). (Type 'business' chosen — closest semantic; existing schema has only operational/business/founder enum.)"
+    owner_pillar: 10-metrics
+    owner_role: metrics-curator
+    target: 100
+    threshold_warn: 80
+    threshold_critical: 150
+    cadence: daily
+    source: "SELECT SUM(usd) FROM ops.cost_attributions WHERE cost_bucket LIKE 'gbrain.%' AND ts > now() - interval '30 days'"
+
+  - id: brain.dream_cycle_success_rate_7d
+    type: operational
+    description: "Pct of gbrain-maintainer nightly dream cycle runs completed successfully in last 7 days. Target ≥ 0.95 (≥ 6.65 of 7 nights). Failures emit ritsu.gbrain.dream_cycle_failed event → hitl-router Tier B alert."
+    owner_pillar: 10-metrics
+    owner_role: metrics-curator
+    target: 0.95
+    threshold_warn: 0.85
+    threshold_critical: 0.70
+    cadence: daily
+    source: "SELECT count(*) FILTER (WHERE state = 'completed')::float / NULLIF(count(*), 0) FROM ops.agent_runs WHERE persona_slug = 'gbrain-maintainer' AND started_at > now() - interval '7 days'"
+
   # Business KPIs (customize per project)
   # {{ADD_BUSINESS_KPIS}}

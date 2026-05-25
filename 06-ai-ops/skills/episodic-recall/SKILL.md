@@ -251,3 +251,15 @@ Roles allowed to invoke: any role with `episodic_recall_enabled: true` per `gove
 ---
 
 *The session ends, but the database persists. This skill is how that persistence becomes useful — by giving the next session a structured glimpse of what came before.*
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**Dual-recall pattern.** Episodic recall (Type 2 ops.agent_runs) answers "what did this role do recently?" Gbrain (Type 4 operational truth) answers "what does the workforce know about this entity?" The two combine for richer context.
+
+**READ (alongside ops.agent_runs query):** If the task references named entities (people, companies, capabilities, concepts), also invoke `mcp__gbrain__search "<entity-names>"` → top 3-5 brain pages. Surface both episodic runs AND brain context in the recall payload. Cost: ~$0.005 (`gbrain.shared.search`).
+
+**WRITE:** None — this is a READ-only skill. The post-task `emit_run_summary` to `ops.run_summaries` is the Type 2 write path; brain WRITES happen via task-specific skills, not via episodic-recall.
+
+**Skip the brain read** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade. Ops.agent_runs recall continues regardless (Type 2 has no cost cap).

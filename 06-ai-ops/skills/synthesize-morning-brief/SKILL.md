@@ -160,3 +160,13 @@ Skill invocation writes `ops.agent_runs` row (via the standard skill invocation 
 ## Status
 
 **Skill folder added 2026-05-15 (workforce phase 1.5 hardening).** The server-side handler shipped in commit `685b16f` (2026-05-05). This SKILL.md closes the documentation gap — CEO files referenced the skill name but the local-skill folder didn't exist, making `pnpm check` and human readers think the skill was a phantom reference. The cron + handler had been operational all along.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (during brief assembly, server-side handler):** `mcp__gbrain__search "<today's calendar events>"` + `mcp__gbrain__list_pages page_type=meeting where date >= today` + `mcp__gbrain__get_page people/<key-contacts>` to enrich the morning brief with brain context for today's people + meetings + active threads. Cost: ~$0.005/morning (`gbrain.shared.search`).
+
+**WRITE:** None — this is a READ-only skill. The handler writes the assembled brief to `ops.agent_runs` (Type 2); brain stays untouched.
+
+**Skip the brain read** when `--no-brain` flag in the handler env OR cost-cap graceful-degrade. Morning brief continues with ritsu-ops-only signals if brain unavailable.

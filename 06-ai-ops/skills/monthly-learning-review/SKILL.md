@@ -333,3 +333,13 @@ Roles allowed to invoke: `gps`, `founder`. Per `governance/ROLES.md`.
 ---
 
 *Episodic recall closes the loop within a session. This skill closes the loop across the month. Together they make Ritsu's workforce compound.*
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (cross-system pattern detection):** Alongside ops.corrections + ops.agent_runs scan, invoke `mcp__gbrain__search "monthly themes"` + `mcp__gbrain__find_anomalies` + `mcp__gbrain__find_contradictions` to surface brain-side patterns that correlate with the month's correction signals. Cost: ~$0.05/month.
+
+**WRITE (after candidate list draft):** `mcp__gbrain__put_page concepts/monthly-review-<YYYY-MM>` with the consolidated cross-system review (correction themes, brain patterns, promotion candidates, recommendations for founder). Tier B notify (will be batched into founder's monthly review digest anyway). Cost: ~$0.05/month.
+
+**Skip** when `--no-brain` OR cost-cap graceful-degrade (monthly review can still produce the .archives/learning-reviews/<month>.md report without brain write).

@@ -172,3 +172,15 @@ If `main` has moved significantly since the architect's drafts were written (e.g
 ---
 
 **Next phase invokes:** `catalog-updater` (Phase 8) in all modes after Phase 7 completes — except `tune`/`deprecate` which skip Phase 7.
+
+## Brain context
+
+> Per capability `gbrain-operational-brain` v1.0 Sprint 2. Template at `06-ai-ops/skills/brain-write-discipline/SKILL.md`.
+
+**READ (per-sprint context, at start of each sprint):** `mcp__gbrain__search "<capability_id> Sprint <N-1>"` to surface prior sprint review pages + outstanding TODOs from previous sprint retrospective. Cost: ~$0.02 per sprint.
+
+**WRITE (per-sprint review, after each PR merge):** `mcp__gbrain__put_page meetings/<merge-date>-<capability_id>-sprint-<N>-review` with the sprint deliverables + acceptance verification + any deviation from plan + decisions made. Tier B notify-first-then-batch (daily digest batches multiple sprints if shipped same day). Cost: ~$0.05 per sprint × 6 sprints = ~$0.30 total per capability.
+
+**Cross-link:** populate `ops.capability_phase_events.gbrain_meeting_slug` for each phase=7 sprint-completed event with the brain meeting slug. Bidirectional with brain page frontmatter `phase_event_id: <uuid>`.
+
+**Skip** when `--no-brain` OR caller `brain_affinity: none` OR cost-cap graceful-degrade. If brain WRITE blocked mid-sprint, defer to queue; sprint can complete formally without brain narrative (lossless to formal flow per failure mode F1).
