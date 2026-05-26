@@ -155,7 +155,90 @@ Real /evolve will re-score with separate @ceo judge persona + propose independen
 
 
 
-# Retrospective — resolver-v3-jit-loading v3.0.0
+## v3.0.4 patch — per-role propagation + CLA Phase 8 INDEX regen (2026-05-26)
+
+Founder asked a sharp delegation question: "khi tôi giao cho @ceo 1 task, thì ceo phải có resolver để biết được những công cụ của mình cần làm và thực hiện task đó có phải không?" — surfacing two architectural gaps and one clarification need.
+
+### Gap 1 — per-role filter doesn't propagate to subagents
+
+**Discovery**: `MCP_CALLER_ROLE` env is set once at MCP subprocess boot (default `gps`, override via founder's `.env.local`). When founder spawns `@cgo` / `@cto` / `@cpo`, the subagent shares the same MCP subprocess → same env. Without subagent explicitly passing `role` parameter, every Path B call returns a slice filtered for the PARENT role (gps/founder), not the SUBAGENT's bound role (gtm-orchestrator / code-reviewer / product-orchestrator).
+
+**Symptom**: A `@cto` subagent calling `resolver_find({intent: "find schema validator"})` would get back recipients from the gps slice — which is the founder's wide view, not the narrower code-reviewer scope. Could surface marketing skills, content drafters, etc. — irrelevant noise.
+
+**Fix**: Added `## Resolver discipline (per-role propagation)` section to 4 Phase 1 persona agent files:
+
+| File | Bound role | Section adds |
+|---|---|---|
+| `.claude/agents/ceo.md` | `gps` | Explicit instruction + code example with `role: "gps"` |
+| `.claude/agents/cgo.md` | `gtm-orchestrator` | Same pattern + scope note (GTM funnel skills) |
+| `.claude/agents/cto.md` | `code-reviewer` | Same pattern + scope note (review skills, EXCLUDES marketing) |
+| `.claude/agents/cpo.md` | `product-orchestrator` | Same pattern + scope note (wedge/build-loop/feedback skills) |
+
+Each section explains: (a) Path A vs Path B convention; (b) why `MCP_CALLER_ROLE` env is insufficient for subagent scoping; (c) exact code snippet showing `role: "<bound-role>"` to copy.
+
+**Why this is documentation not code**: the resolver_find tool already ACCEPTS `role` parameter (declared in `resolver-find.ts` input schema). The gap was purely instructional — subagents didn't know to use it. Fixing in agent definitions = correct layer (per CLAUDE.md "agent definitions = runtime instantiation; this file = policy").
+
+### Gap 2 — CLA Phase 8 doesn't explicitly regen INDEX.md
+
+**Discovery**: `06-ai-ops/skills/capability-lifecycle/catalog-updater/SKILL.md` Step 6.5 runs `scripts/resolver-v2/sync.cjs --apply` to regen `knowledge/recipients/*.md` (16 source files). But INDEX.md (resolver v3 ambient surface, ~11K tokens compressed projection of those 16 files) only gets regenerated via **husky pre-commit hook** when the commit fires. Inside the same Phase 8 session, between Step 6.5 and the commit, INDEX.md is stale.
+
+**Practical impact**: For a typical /cla flow this is fine (Phase 8 completes → commit → husky regens). But for edge cases (long-running session, paused Phase 8, model re-reads INDEX mid-flow), it surfaces stale catalog.
+
+**Fix**: Added Step 6.6 to catalog-updater SKILL:
+
+```markdown
+### Step 6.6 — Regenerate resolver v3 INDEX.md (REQUIRED, v1.2.1)
+
+Run from repo root:
+\`\`\`bash
+pnpm resolver:index
+\`\`\`
+
+Order matters: Step 6.5 MUST run before Step 6.6.
+```
+
+Plus failure-handling table entry, Outputs section update, and Step 7 description tweak to reference both v2 and v3 validators.
+
+**Cost**: ~50ms additional Phase 8 latency (deterministic, no LLM).
+
+### Clarification — brain integration into resolver
+
+Founder also asked: "Đã tích hợp brain vào resolver chưa (cần khi tìm kiếm thông tin, context...)?"
+
+**Answer (documented in spec change log)**: TWO things being asked, distinct outcomes.
+
+| Question framing | Status | Why |
+|---|---|---|
+| Brain as **discoverable recipient** in resolver? | ✅ YES | 13 entries in INDEX: `agent/brain`, `agent/gbrain-maintainer`, `command/brain`, `skill/brain-promotion`, `skill/brain-write-discipline`, 3 SOPs (SOP-AIOPS-GBRAIN-001/002/003), 2 schedules (gbrain-dream-cycle, gbrain-consistency-nightly, crm-to-gbrain-mirror), plus 50 `mcp/gbrain__*` tool entries surfacing through Path A. Model sees brain tools naturally. |
+| Brain as **search backend** for resolver? | ❌ NO (intentional) | Founder previously affirmed: "Resolver chỉ cần làm đúng chức năng là chỉ rõ biết cần làm gì, còn việc làm để cho những phần khác." Integrating gbrain as resolver's search backend would violate single-responsibility — resolver would become both discovery AND search. Current design: resolver discovers brain tools; model invokes them when context-search needed. Cleaner. |
+
+**No code change for this point.** Documented in spec change log + here so the decision survives session.
+
+### File impact summary
+
+| File | Change | Lines |
+|---|---|---|
+| `.claude/agents/ceo.md` | +Resolver discipline section | +20 |
+| `.claude/agents/cgo.md` | +Resolver discipline section | +20 |
+| `.claude/agents/cto.md` | +Resolver discipline section | +22 |
+| `.claude/agents/cpo.md` | +Resolver discipline section | +22 |
+| `06-ai-ops/skills/capability-lifecycle/catalog-updater/SKILL.md` | +Step 6.6 + failure entry + Outputs entry + Step 7 wording | +28 |
+| `wiki/capabilities/resolver-v3-jit-loading/spec.md` | +v3.0.3 + v3.0.4 change log entries | +2 |
+| `wiki/capabilities/resolver-v3-jit-loading/retrospective.md` | +this section | +100 |
+| `wiki/capabilities/CATALOG.md` | version bump v3.0.2 → v3.0.4 | ±2 |
+| `knowledge/capability-registry.yaml` | version + last_modified bump | ±3 |
+
+**Total: 8 files, ~219 line delta.**
+
+Tests: unchanged scope (resolver runtime + INDEX generator already covered; agent/SKILL .md files are docs not runtime). 65/65 still pass.
+
+### Lessons
+
+- **Subagent context inheritance is partial, not full**: Claude Code project-level CLAUDE.md DOES inherit to subagents (so ambient INDEX is visible). BUT process-level env vars set at MCP subprocess boot DO NOT change per-subagent. Per-call params (like `role`) are the right propagation mechanism, not env.
+- **Single-responsibility scopes the answer space**: founder's "resolver chỉ cần biết cần làm gì" was a generative constraint. Without it, this PR would have ballooned into "let's make resolver auto-assemble context from gbrain". With it, the answer was 1-line instructions in 4 agent files. Constraints reduce work.
+- **CLA Phase 8 gap was invisible until v3 introduced INDEX**: before resolver v3, recipients/*.md WERE the ambient surface. Adding INDEX.md as a compressed projection layer created a 2-level catalog with potential drift between levels. Step 6.6 closes it. Lesson: any compressed projection layer needs a regen step in the producer's workflow.
+
+
 
 **Same-session lifecycle**: proposed via `/cla propose` and shipped through Phases 0-8 in a single Claude Code session (~2h end-to-end). Pre-built spec from upstream `/plan-ceo-review` + `/plan-eng-review` chain (also same-day) made this possible.
 

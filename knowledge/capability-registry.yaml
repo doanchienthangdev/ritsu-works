@@ -586,7 +586,7 @@ capabilities:
       Plan: 4 sprints with feature flag RESOLVER_JIT_ENABLED + 5-min
       rollback via CLAUDE.md revert. Tier C founder approval at cutover.
       5/5 reversibility.
-    version: "3.0.2"      # patch bump via manual /evolve simulation on /resolver command (2026-05-26)
+    version: "3.0.4"      # v3.0.3 Tier C cutover (PR #115) + v3.0.4 per-role propagation + Phase 8 INDEX regen step (2026-05-26)
     state_since: 2026-05-26
     proposed_at: 2026-05-25
     pillar_owner: 06-ai-ops

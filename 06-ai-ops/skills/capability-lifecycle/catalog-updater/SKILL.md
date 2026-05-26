@@ -172,13 +172,39 @@ node scripts/resolver-v2/sync.cjs --apply
 
 **Note on the OTHER catalog files:** Phase 8 has already updated `wiki/capabilities/CATALOG.md` (Step 4) and `knowledge/capability-registry.yaml` (Step 5). Step 6.5 is specifically about regenerating the resolver v2 ambient catalog (`knowledge/recipients/*.md`) — a different surface, consumed by LLM in-session routing.
 
+### Step 6.6 — Regenerate resolver v3 INDEX.md (REQUIRED, v1.2.1)
+
+Run from repo root:
+```bash
+pnpm resolver:index
+# equivalent: node scripts/resolver-v3/index-generator.cjs
+```
+
+**Why this step exists:** Step 6.5 regenerated the 16 `knowledge/recipients/*.md` source files (resolver v2 catalog). The resolver v3 ambient surface is `knowledge/recipients/INDEX.md` — a compressed (~11K tokens) projection of those 16 files, loaded into every Claude Code session via `CLAUDE.md @import`. Without this regen, INDEX.md drifts from the source files and:
+- The session ambient INDEX is stale — model sees old summary lines, misses the new capability's recipients.
+- `validate-resolver-v3-index-consistency.cjs` (L1 validator in `pnpm check` Step 7) FAILS.
+- Husky pre-commit will auto-regen at commit time, but THIS session (mid-Phase 8) would still operate against stale INDEX between Step 6.5 and the eventual commit. Explicit regen here closes that window.
+
+**Behavior:**
+- Idempotent — if no source changes since last regen, no file written, exits 0 in ~50ms.
+- Reads all 16 `recipients/*.md` files; emits compressed INDEX.md (1-line per active recipient, stubs/deprecated/planned hidden).
+- Atomic write (temp → rename); preserves header `<!-- AUTO-GENERATED -->` markers.
+
+**Failure handling:**
+- If exit ≠ 0: ABORT — log error to `.archives/cla/<id>/phase-8-index-regen-error.log` and surface to founder.
+- If exit 0 but writes 0 files (already in sync): proceed to Step 7 normally.
+
+**Cost-bucket:** `ai-ops-cla` (deterministic — no LLM call).
+
+**Order matters:** Step 6.5 MUST run before Step 6.6. Step 6.6 reads `recipients/*.md` written by Step 6.5.
+
 ### Step 7 — Final `pnpm check` gate
 
 Run `pnpm check`. If non-zero, ABORT — do NOT advance state to `operating`. Surface the validator output: "Final drift check failed; capability stays at `deployed`. Fix drift, re-run Phase 8."
 
 This is the second mandatory drift gate (the first is Phase 0). It catches any inconsistency introduced by the registry update OR the wiki/CATALOG.md update.
 
-After Step 6.5 regenerated recipients/*.md, the `validate-resolver-v2-*` validators in `pnpm check` should now pass cleanly — Step 6.5 closes the gap where the new capability's components weren't yet visible in the catalog.
+After Step 6.5 regenerated recipients/*.md AND Step 6.6 regenerated INDEX.md, the `validate-resolver-v2-*` AND `validate-resolver-v3-index-consistency` validators in `pnpm check` should now pass cleanly — Steps 6.5 + 6.6 close the gap where the new capability's components weren't yet visible in either catalog surface (recipients/*.md = source-of-truth; INDEX.md = compressed ambient).
 
 ### Step 8 — Persist state
 
@@ -222,6 +248,7 @@ Boilerplate-candidate noted: {if any}
 - Updated `wiki/capabilities/CATALOG.md`
 - Updated `knowledge/capability-registry.yaml`
 - Updated `knowledge/recipients/*.md` (16 files; only changed ones touched; v1.2.0 Step 6.5)
+- Updated `knowledge/recipients/INDEX.md` (resolver v3 compressed ambient surface; v1.2.1 Step 6.6)
 - Appended `notes/boilerplate-candidates.md` (if any patterns)
 - ops.events: `ritsu.capability.cataloged`, `ritsu.capability.operating`
 - ops.run_summaries entry
@@ -246,6 +273,7 @@ Tier A. Auto-advance unless drift gate fails or wiki destination collision.
 | `ops.cost_attributions` empty for this capability | Use estimates as actuals; flag "actuals unavailable" in retrospective. |
 | `resolver-v2 sync.cjs` lock held (exit 2) | Wait 60s + retry once; if still locked, ABORT with `resolver-v2-sync.lock` investigation prompt. |
 | `resolver-v2 sync.cjs` generator error (exit 1) | ABORT — write `.archives/cla/<id>/phase-8-sync-error.log`; surface to founder. |
+| `resolver-v3 index-generator.cjs` error (exit ≠ 0) | ABORT — write `.archives/cla/<id>/phase-8-index-regen-error.log`; surface to founder. |
 
 ## LLM mode awareness
 

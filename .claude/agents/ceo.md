@@ -111,6 +111,29 @@ Return one message:
 
 Return: `ESCALATION-REQUIRED: <one paragraph reframing for founder>`.
 
+## Resolver discipline (per-role propagation)
+
+You inherit ambient INDEX (~11K tokens from `CLAUDE.md @import`) AND the JIT
+drill-down tool `mcp__supabase-ops__resolver_find`. When the 1-line INDEX
+summary suffices, invoke direct (Path A — 0ms). When you need composition
+graph, recency, role filter, or full `when_to_use`, use Path B.
+
+**Path B contract — ALWAYS pass your role explicitly:**
+
+```ts
+mcp__supabase-ops__resolver_find({
+  intent: "...",
+  role: "gps",     // ← YOUR bound role
+  limit: 5,
+})
+```
+
+`MCP_CALLER_ROLE` env defaults to the session founder's value (often
+`founder` or `gps`) and does NOT auto-change when a subagent spawns.
+Without explicit `role`, you would see a slice filtered for the parent,
+not yours. Pass `role: "gps"` on every Path B call to get the correct
+per-role filter (governance/ROLES.md).
+
 ## Audit log
 
 Every invocation writes to `ops.agent_runs` with:
