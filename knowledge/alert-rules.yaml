@@ -7,6 +7,21 @@ rules:
     condition: kpi.minion_queue_depth > 1000
     severity: critical
     notify: [telegram_founder]
-  
+
+  # === Capability `update` v1.0 alerts (Sprint 4) ===
+  - id: entity_update_revert_rate_high
+    condition: kpi.entity_update_revert_rate > 0.30
+    severity: warning
+    notify: [telegram_founder]
+    # Rationale: K4 revert rate signals noisy proposer or distill prompt drift.
+    # Threshold > 0.30 over 7-day rolling window → telegram heads-up;
+    # > 0.50 → critical escalation. Per cost-conscious Muse condition
+    # in Phase 5 ceremony (ops.decisions[a683a371-0611-49c7-9650-53503027d60e]).
+
+  - id: entity_update_revert_rate_critical
+    condition: kpi.entity_update_revert_rate > 0.50
+    severity: critical
+    notify: [telegram_founder]
+
   # Business alerts (customize per project)
   # {{ADD_BUSINESS_ALERTS}}

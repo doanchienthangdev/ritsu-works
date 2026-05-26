@@ -7,7 +7,7 @@
 This file is THE source of truth for view recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 
-**Total entries:** 4
+**Total entries:** 5
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -40,6 +40,17 @@ Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 **When to use:** View `ops.v_capability_pipeline` — ---------------------------------------------------------------------------- View: active capability pipeline ---------------------------------------------------------------------------- (defined in 00011_capability_lifecycle.sql).
 
 **Invoke:** `mcp__supabase_ops__query({sql: "SELECT * FROM ops.v_capability_pipeline LIMIT 10"})`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## view/ops-v_entity_update_lineage
+
+**Kind:** view
+**When to use:** View `ops.v_entity_update_lineage` — founder ad-hoc audits Capability: update v1.0 (capability_run_id: 16720cb5-f2fe-47f0-9d47-beaeca5f05e1) Sprint: 4 (final sprint before Phase 8 promote) (defined in 00041_v_entity_update_lineage.sql).
+
+**Invoke:** `mcp__supabase_ops__query({sql: "SELECT * FROM ops.v_entity_update_lineage LIMIT 10"})`
 
 **Role scope:** *
 **Status:** active

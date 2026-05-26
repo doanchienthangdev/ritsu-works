@@ -104,5 +104,39 @@ kpis:
     cadence: daily
     source: "SELECT count(*) FILTER (WHERE state = 'completed')::float / NULLIF(count(*), 0) FROM ops.agent_runs WHERE persona_slug = 'gbrain-maintainer' AND started_at > now() - interval '7 days'"
 
+  # === Capability `update` v1.0 KPIs (Sprint 4) ===
+  - id: entity_update_run_count_monthly
+    type: operational
+    description: "Total completed /update runs per calendar month. Measures founder adoption of the third foundational write-loop. Target ≥ 10/month by day 30 post-ship (per SC1)."
+    owner_pillar: 06-ai-ops
+    owner_role: entity-update-orchestrator
+    target: 10
+    threshold_warn: 5
+    threshold_critical: 1
+    cadence: monthly
+    source: "SELECT count(*) FROM ops.agent_runs WHERE agent_slug = 'update' AND state = 'completed' AND date_trunc('month', started_at) = date_trunc('month', now())"
+
+  - id: entity_update_extractions_reviewed_count
+    type: operational
+    description: "Pending_review extractions reviewed by founder per month (transitions from pending_review → founder_{accepted|rejected|edited}). Measures verify gate exercise. Target ≥ 5/month by day 30 (per SC3) — proves the citation discipline gate is engaging."
+    owner_pillar: 06-ai-ops
+    owner_role: entity-update-orchestrator
+    target: 5
+    threshold_warn: 1
+    threshold_critical: 0
+    cadence: monthly
+    source: "SELECT count(*) FROM ops.evolve_extractions WHERE review_state IN ('founder_accepted', 'founder_rejected', 'founder_edited') AND date_trunc('month', founder_decision_at) = date_trunc('month', now())"
+
+  - id: entity_update_revert_rate
+    type: operational
+    description: "K4 revert rate over 30-day rolling window: reverted_quality_regression outcomes / total terminal outcomes. Target ≤ 0.20 (≤ 20%). Warn at > 0.30 (noisy proposer or distill prompt drift). Critical at > 0.50 (K4 broken or refs corrupted). Per spec §4 SC2/SC4."
+    owner_pillar: 06-ai-ops
+    owner_role: entity-update-orchestrator
+    target: 0.20
+    threshold_warn: 0.30
+    threshold_critical: 0.50
+    cadence: weekly
+    source: "WITH terminal AS (SELECT outcome FROM ops.agent_runs WHERE agent_slug = 'update' AND state IN ('completed', 'failed') AND ended_at > now() - interval '30 days') SELECT count(*) FILTER (WHERE outcome = 'reverted_quality_regression')::float / NULLIF(count(*), 0) FROM terminal"
+
   # Business KPIs (customize per project)
   # {{ADD_BUSINESS_KPIS}}

@@ -108,7 +108,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **Invoke:** `Read("wiki/capabilities/update/spec.md")` or `/cla update update`
 
 **Role scope:** *
-**Status:** proposed
+**Status:** operating
 **Pillar:** 06-ai-ops
 
 ## capability/wiki-sync-from-refs
