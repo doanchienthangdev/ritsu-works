@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 13
+**Total entries:** 14
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -173,6 +173,23 @@ table.
 **When to use:** Lookup PLATFORM v3 (JIT Loading). Founder/operator surface for resolver. Mode A2 delegates to mcp__resolver__find for ~10K INDEX + drill-down via MCP. Mode C keyword fallback retained for CRON/edge. v2.2 ambient (55K catalog) deprecated post-cutover.
 
 **Invoke:** `/resolver`
+
+**Role scope:** *
+**Status:** active
+
+## command/update
+
+**Kind:** command
+**When to use:** Refresh any ritsu-works leaf entity (skill | command | agent | sop) from
+verified external information via citation-disciplined distill + K4
+quality ratchet. Third foundational write-loop alongside /cla (create)
+and /evolve (self-improve). Reads refs (files or wiki: refs), distills
+into structured proposed changes, founder reviews 0.6-0.85 bucket,
+applies via universal lock, generates tests, scores pre+post, auto-reverts
+on quality regression. See wiki/capabilities/update/spec.md (after Phase
+8 promotion) or draft .archives/cla/update/spec.md.
+
+**Invoke:** `/update`
 
 **Role scope:** *
 **Status:** active
