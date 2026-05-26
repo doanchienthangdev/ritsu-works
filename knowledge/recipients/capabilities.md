@@ -103,7 +103,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/update
 
 **Kind:** capability
-**When to use:** Update — Bayesian-update verb for ritsu-works entities (refs-driven). NEW slash command /update <type> <name> --refs=<refs> for refs-driven v1.0.0
+**When to use:** Update — Bayesian-update verb for ritsu-works entities (refs-driven). NEW slash command /update <type> <name> --refs=<refs> for refs-driven v1.1.0
 
 **Invoke:** `Read("wiki/capabilities/update/spec.md")` or `/cla update update`
 

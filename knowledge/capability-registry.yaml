@@ -956,7 +956,7 @@ capabilities:
 
       Third foundational write-loop alongside /cla (create) and /evolve
       (self-improve). Fills the "ingest external truth" gap in ritsu-works.
-    version: "1.0.0"
+    version: "1.1.0"
     state: operating
     state_since: 2026-05-26
     proposed_at: 2026-05-26
@@ -966,9 +966,9 @@ capabilities:
     bài_toán_touched: [5, 11, 14, 20]
     spec_path: wiki/capabilities/update/spec.md
     retrospective_path: wiki/capabilities/update/retrospective.md
-    sprint_plan: ".archives/cla/update/sprint-plan.md (local-only working)"
+    sprint_plan: ".archives/cla/update/sprint-plan.md (local-only working) + .archives/cla/update/v1.1-brainstorming/ (v1.1 extend)"
     cost_bucket: ai-ops-entity-update
-    estimated_cost_setup_usd: 12
+    estimated_cost_setup_usd: 17  # 12 (v1.0) + 5 (v1.1 extend)
     estimated_cost_recurring_usd: 21  # ~30 runs/mo × $0.70 median
     estimated_founder_hours: 10
     notes: |

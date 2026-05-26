@@ -57,13 +57,51 @@ The command:
 
 | Arg / Flag | Required | Validation |
 |---|---|---|
-| `<entity-type>` | yes | enum: skill, command, agent, sop. (hook/pillar/workflow defer to v1.1+) |
-| `<entity-name>` | yes | slug `^[a-z0-9][a-z0-9-/]*$` (nested slash allowed; no `..`, no leading `/`) |
+| `<entity-type>` | yes | enum: skill, command, agent, sop **(v1.0)** + hook, pillar **(v1.1 Sprint 1)** + file **(v1.1 Sprint 2)** + folder, workflow **(v1.1 Sprint 3)** |
+| `<entity-name>` | yes | slug `^[a-z0-9][a-z0-9-/]*$` (nested slash allowed; no `..`, no leading `/`). For `file` type: a path relative to repo root. |
 | `--refs=<csv>` | yes | comma-separated ref list; may repeat flag; supports `wiki:` forms |
 | `--force-pr` | no | Promote trivial/medium to PR-after-loop (Tier C audit override) |
 | `--skip-drift-check` | no | Skip Phase 0 pnpm check (Tier C audit override) |
-| `--allow-untrusted-refs` | no | (agent type only) Allow refs outside trusted prefixes (Tier C audit override) |
+| `--allow-untrusted-refs` | no | (agent + hook types) Allow refs outside trusted prefixes (Tier C audit override) |
+| `--force-tier=<B\|C>` | no | (file type only) Override path-classified tier; CANNOT downgrade C→B (refused); B→C upgrade allowed + audit |
 | `--dry-run` | no | Run distill + propose; do NOT install |
+
+### v1.1 per-type ceremony (NEW)
+
+**`hook` type** (v1.1 Sprint 1) — D-Std magic-phrase ceremony required PER INVOCATION:
+
+```
+1. /update hook <name> --refs=<csv>
+2. Command prints:
+   /update hook <name> requires D-Std authorization per governance/HITL.md.
+   Reply with: override: <reason 5+ words> to proceed.
+   Reply STOP to cancel.
+3. Founder types: override: tighten pre-bash-dangerous block list for curl variants
+4. Bot validates ≥ 5 words + lowercase 'override:'. Re-prompt on invalid.
+5. Bot prints "Override registered. Executing in 30s. Reply STOP to cancel."
+6. 30s timer. If STOP → abort. Else proceed with `was_override=true` in ops.agent_runs.
+```
+
+**`pillar` type** (v1.1 Sprint 1) — Tier C minimum (PR always). No magic-phrase. Resolver expands aliases:
+- `marketing` → `01-marketing`
+- `sales` → `02-sales`
+- `gtm` → `03-gtm`
+- `product` → `04-product`
+- `customer` → `05-customer`
+- `ai-ops` → `06-ai-ops`
+- `trust-safety` → `07-trust-safety`
+- `finance` → `08-finance`
+- `founder` → `09-founder`
+- `metrics` → `10-metrics`
+- `core` → `00-core`
+- Or pass the numeric form directly (e.g., `04-product`).
+Sub-pillar paths (e.g., `05-customer/success`) REFUSED in v1.1 — use `/update file <path>/README.md` instead.
+
+**`file` type** (v1.1 Sprint 2) — see §"v1.1 file mode" below.
+
+**`folder` type** (v1.1 Sprint 3) — classifier dispatcher only; see §"v1.1 folder mode".
+
+**`workflow` type** (v1.1 Sprint 3) — REFUSES at runtime until `workflows/` folder ships per `knowledge/manifest.yaml`.
 
 ## Ref grammar (same as /cla propose v1.1)
 
@@ -301,17 +339,62 @@ Run-id: <uuid>
 | `/cla extend` | Structural change (>100 LOC; new components) | $1.50-3 | Full ceremony |
 | `/evolve` | Self-improvement (no refs) | ~$0.50/run | K4 strict (no ±5pt slack) |
 
-## v1.0 scope + deferred
+## v1.0 scope + v1.1 additions
 
-**In scope:** skill, command, agent, sop.
-**Deferred to v1.1+:**
-- hook (D-Std safety; magic-phrase ceremony needed)
-- pillar / folder / workflow (semantic gaps)
+**v1.0 (operating since 2026-05-26):** skill, command, agent, sop.
+
+**v1.1 (operating since 2026-05-26 — same day extend):** hook, pillar, folder, workflow, file.
+- `hook` — D-Std magic-phrase ceremony per invocation; ALL Tier C minimum (PR always); structural detector for `hitl_tier:`/`block:`/`denied_patterns:`/`requires:`/`tier_override_authority:` changes
+- `pillar` — Tier C minimum; allowed paths = `<pillar>/README.md` + `<pillar>/CLAUDE.md` ONLY; sub-pillars refused
+- `file` — path-tier classifier (see `knowledge/update-file-paths.yaml`); REFUSE for Tier 1 paths; founder AskUserQuestion at install for Tier B
+- `folder` — classifier-dispatcher (routes to /update pillar / /update skill / /update sop / /update file / /wiki sync)
+- `workflow` — REFUSED at runtime until workflows/ folder ships
+
+**Still deferred to v1.2+:**
 - mass-update (`/update bulk --type=skill --filter=...`)
 - cross-entity transactional
+- sub-pillar deep handler
 - webhook/cron-driven auto-fire
 - auto-call outside-voice
 - founder-trust learning (auto-approve buckets per entity-type)
+
+## v1.1 file mode
+
+```
+/update file <path> --refs=<csv>
+  [--force-tier=<B|C>]
+  [--allow-untrusted-refs]
+  [--skip-drift-check]
+  [--dry-run]
+```
+
+Path is classified via `knowledge/update-file-paths.yaml`:
+- **REFUSE** for Tier 1 paths (00-core/, governance/, supabase/migrations/, .mcp.json, knowledge/manifest.yaml, etc.) → forward to `/cla extend` or PR
+- **Tier C** for pillar docs, wiki/, knowledge/*.yaml — opens PR
+- **Tier B** for tests/, scripts/, docs/, .claude/agents,commands/ — in-place with founder confirmation
+
+No K4 ratchet for file mode (no playbook → no scoring rubric). Replaced with:
+- Per-extraction founder review (existing review-extractions skill)
+- Per-diff founder AskUserQuestion at install time (Tier B) OR PR review (Tier C)
+
+`--force-tier=C` upgrade allowed (audit-logged). `--force-tier=B` downgrade REFUSED.
+
+## v1.1 folder mode
+
+```
+/update folder <path>
+```
+
+Classifies `<path>` and dispatches:
+- Pillar (depth 1, `^[0-9]{2}-[a-z][a-z-]*$`) → `/update pillar <name>`
+- Skill folder (`06-ai-ops/skills/<name>/`) → `/update skill <name>`
+- SOP folder (`*/sops/SOP-XXX-NNN-<name>/`) → `/update sop <full-sop-id>`
+- Wiki collection (`wiki/<slug>/`) → REFUSED with "Run: /wiki sync wiki/<slug>/"
+- Single-README folder → `/update file <path>/README.md`
+- Sub-pillar (depth 2) → REFUSED (use `/update file <path>/README.md`)
+- Other multi-file folder → REFUSED with explicit forward
+- `raw/`, `runtime/`, `.archives/`, `node_modules/` → REFUSED
+- Path traversal (`../X`) → REFUSED
 
 ## Capability run ID
 

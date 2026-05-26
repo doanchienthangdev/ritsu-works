@@ -214,6 +214,90 @@ function classifySopChange(beforeContent, afterContent, fileDiff) {
 }
 
 /**
+ * Hook structural matrix (v1.1).
+ *
+ * Hooks gate tool access and HITL tier. Changes to hitl_tier, block:,
+ * denied_patterns, requires:, tier_override_authority: are STRUCTURAL —
+ * they alter the safety contract. Routes to /cla extend.
+ *
+ * Operates on diff lines (no full file comparison needed; hook md files
+ * are markdown not yaml, so we use line-level regex).
+ */
+function classifyHookChange(fileDiff) {
+  const rulesHit = [];
+  const additions = fileDiff.additions.join("\n");
+  const deletions = fileDiff.deletions.join("\n");
+
+  // hitl_tier: change (any direction)
+  if (/hitl_tier\s*:\s*[A-Z][A-Za-z-]*/.test(deletions) ||
+      /hitl_tier\s*:\s*[A-Z][A-Za-z-]*/.test(additions)) {
+    const before = deletions.match(/hitl_tier\s*:\s*([A-Z][A-Za-z-]*)/);
+    const after = additions.match(/hitl_tier\s*:\s*([A-Z][A-Za-z-]*)/);
+    if (before && after && before[1] !== after[1]) {
+      rulesHit.push(`hook_hitl_tier_change_${before[1]}_to_${after[1]}`);
+    } else if ((before || after) && !(before && after)) {
+      rulesHit.push("hook_hitl_tier_added_or_removed");
+    }
+  }
+
+  // block: directive add/remove
+  if (/^\s*block\s*:/m.test(deletions) || /^\s*block\s*:/m.test(additions)) {
+    rulesHit.push("hook_block_directive_modified");
+  }
+
+  // denied_patterns: list add/remove
+  if (/denied_patterns\s*:/.test(deletions) || /denied_patterns\s*:/.test(additions)) {
+    rulesHit.push("hook_denied_patterns_modified");
+  }
+
+  // requires: clauses change
+  if (/^\s*requires\s*:/m.test(deletions) || /^\s*requires\s*:/m.test(additions)) {
+    rulesHit.push("hook_requires_modified");
+  }
+
+  // tier_override_authority: change
+  if (/tier_override_authority\s*:/.test(deletions) || /tier_override_authority\s*:/.test(additions)) {
+    rulesHit.push("hook_tier_override_authority_modified");
+  }
+
+  return rulesHit;
+}
+
+/**
+ * Pillar structural matrix (v1.1).
+ *
+ * Pillar README.md / CLAUDE.md identity changes: pillar_code, status,
+ * composes_from, sops_namespace, pillar_owner, entry_conditions →
+ * STRUCTURAL.
+ */
+function classifyPillarChange(fileDiff) {
+  const rulesHit = [];
+  const additions = fileDiff.additions.join("\n");
+  const deletions = fileDiff.deletions.join("\n");
+  const combined = additions + "\n" + deletions;
+
+  const STRUCTURAL_FIELDS = [
+    "pillar_code",
+    "status",
+    "composes_from",
+    "sops_namespace",
+    "pillar_owner",
+    "entry_conditions",
+    "home_pillar",  // changing which pillar owns something is structural
+    "personas_bound",  // adding/removing C-suite persona binding
+  ];
+
+  for (const field of STRUCTURAL_FIELDS) {
+    const re = new RegExp(`^\\s*${field}\\s*:`, "m");
+    if (re.test(additions) || re.test(deletions)) {
+      rulesHit.push(`pillar_${field}_modified`);
+    }
+  }
+
+  return rulesHit;
+}
+
+/**
  * Classify a parsed diff. Top-level dispatcher.
  *
  * @param {object[]} files - output of parseUnifiedDiff
@@ -240,6 +324,31 @@ function classifyDiff(files, entityType, extra = {}) {
       structuralRulesHit.push(...sopRules);
       if (sopRules.length > 0) {
         reasons.push(`sop structural: ${sopRules.join("; ")}`);
+      }
+    }
+  }
+
+  // Rule 2b: Hook-specific structural matrix (v1.1)
+  // Per .archives/cla/update/v1.1-brainstorming/01-hook.md §"Structural detection"
+  if (entityType === "hook") {
+    const hookFile = files.find((f) => f.path.startsWith(".claude/hooks/"));
+    if (hookFile) {
+      const hookRules = classifyHookChange(hookFile);
+      structuralRulesHit.push(...hookRules);
+      if (hookRules.length > 0) {
+        reasons.push(`hook structural: ${hookRules.join("; ")}`);
+      }
+    }
+  }
+
+  // Rule 2c: Pillar-specific structural matrix (v1.1)
+  // Per .archives/cla/update/v1.1-brainstorming/02-pillar.md §"Structural detector"
+  if (entityType === "pillar") {
+    for (const f of files) {
+      const pillarRules = classifyPillarChange(f);
+      structuralRulesHit.push(...pillarRules);
+      if (pillarRules.length > 0) {
+        reasons.push(`pillar structural: ${pillarRules.join("; ")}`);
       }
     }
   }
@@ -315,6 +424,8 @@ module.exports = {
   parseUnifiedDiff,
   classifyDiff,
   classifySopChange,
+  classifyHookChange,    // v1.1
+  classifyPillarChange,  // v1.1
   isHitlTightening,
   hitlOrderIndex,
   HITL_ORDER,

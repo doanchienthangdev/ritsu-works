@@ -20,7 +20,10 @@ required:
 properties:
   playbook_for:
     type: string
-    enum: [skill, command, agent, hook, sop]
+    enum: [skill, command, agent, hook, sop, pillar, workflow]
+    # v1.1 (2026-05-26 — capability `update` v1.1 Sprint 1): added pillar + workflow
+    # for /update pillar and /update workflow (the latter stubbed until workflows/
+    # folder ships per knowledge/manifest.yaml workflows.status: planned).
 
   judge_persona:
     type: string
