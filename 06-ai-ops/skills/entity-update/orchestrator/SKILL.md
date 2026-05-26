@@ -93,9 +93,9 @@ THIN dispatcher. Phase logic lives in shared eval-evo skills. This file:
 
 ## Phase chain
 
-### Phase -1 — D-Std ceremony (hook type only; v1.1 Sprint 1)
+### Phase -1 — D-Std ceremony (hook + tier1-file types; v1.1 + v1.1.1)
 
-For `entity_type='hook'`:
+For `entity_type='hook'` (v1.1 Sprint 1) AND `entity_type='tier1-file'` (v1.1.1):
 - Command surface (NOT orchestrator) emits the magic-phrase prompt:
   ```
   /update hook <name> requires D-Std authorization per governance/HITL.md.
@@ -110,8 +110,36 @@ For `entity_type='hook'`:
 - Orchestrator records `was_override=true` + `override_reason` in `ops.agent_runs` row
   per HITL.md Tier D-Std audit requirements.
 
-If `entity_type='hook'` AND `magic_phrase_override_reason` is null/missing → orchestrator
-ABORTs with `exit_reason='aborted_d_std_required'`. Founder must re-run via command surface.
+If `entity_type` IN ('hook', 'tier1-file') AND `magic_phrase_override_reason` is
+null/missing → orchestrator ABORTs with `exit_reason='aborted_d_std_required'`.
+Founder must re-run via command surface.
+
+### Phase 0d — Tier 1 allowlist check (tier1-file type only; v1.1.1)
+
+For `entity_type='tier1-file'`:
+- Invoke `node scripts/update/tier1-allowlist.cjs --path=<entity_path>`.
+- Deterministic; no LLM call.
+- The script hardcodes:
+  - **ALLOWED**: `00-core/**`, `governance/{HITL,ROLES,IDENTITY,BUDGET}.md`,
+    `knowledge/manifest.yaml`, `knowledge/cross-tier-invariants.yaml`
+  - **REFUSED** (stricter ceremony required): `governance/SECRETS.md` (D-MAX),
+    `supabase/migrations/**`, `.mcp.json` (D-MAX)
+  - Anything else REFUSED with "use /update file or typed entity" forward.
+- If `allowed=false` → ABORT with `exit_reason='aborted_tier1_path_not_allowed'`,
+  surface `reason` + `forward_to` to command.
+
+### Phase 0e — tier1-file phase skips (v1.1.1)
+
+For `entity_type='tier1-file'`:
+- SKIP Phase 0a (path-classify yaml) — already done in Phase 0d
+- SKIP `--skip-drift-check` override — not allowed (drift gate mandatory for Tier 1)
+- SKIP Phase 2 (score pre) — no playbook for tier1-file
+- SKIP Phase 5 (classify-diff) — tier1-file ALWAYS Tier C; no in-place path
+- SKIP Phase 6.5 (founder approval AskUserQuestion) — PR review IS the approval
+- SKIP Phase 7 (test-gen) — Tier 1 files are prose/yaml; no testable surface
+- SKIP Phase 8 (score post + K4) — no playbook
+- Use generic file mode distill prompt (Step 2.5 of distill-from-refs/SKILL.md)
+- Per-task-kind cap: `entity-update-distill-tier1-file: $0.30`
 
 ### Phase 0b — Workflow REFUSE (workflow type only; v1.1 Sprint 3)
 

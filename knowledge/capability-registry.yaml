@@ -956,7 +956,7 @@ capabilities:
 
       Third foundational write-loop alongside /cla (create) and /evolve
       (self-improve). Fills the "ingest external truth" gap in ritsu-works.
-    version: "1.1.0"
+    version: "1.1.1"
     state: operating
     state_since: 2026-05-26
     proposed_at: 2026-05-26

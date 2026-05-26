@@ -907,6 +907,18 @@ permissions:
     - ".claude/hooks/<entity-name>.md"      # v1.1 hook edits (Tier C minimum + D-Std magic-phrase ceremony)
     - "<pillar>/README.md"                  # v1.1 pillar README only
     - "<pillar>/CLAUDE.md"                  # v1.1 pillar CLAUDE.md only
+    # v1.1.1 additions — Tier 1 content fixes via D-Std ceremony:
+    - "00-core/**"                          # v1.1.1 tier1-file (D-Std; PR-only)
+    - "governance/HITL.md"                  # v1.1.1 tier1-file (HITL refinements; D-Std)
+    - "governance/ROLES.md"                 # v1.1.1 tier1-file
+    - "governance/IDENTITY.md"              # v1.1.1 tier1-file
+    - "governance/BUDGET.md"                # v1.1.1 tier1-file
+    - "knowledge/manifest.yaml"             # v1.1.1 tier1-file (content fixes only; schema changes still /cla extend)
+    - "knowledge/cross-tier-invariants.yaml"  # v1.1.1 tier1-file
+    # STILL REFUSED even under D-Std (require D-MAX or separate discipline):
+    #   governance/SECRETS.md                — D-MAX always
+    #   supabase/migrations/**               — schema discipline (/cla propose)
+    #   .mcp.json                            — D-MAX (security-critical)
     # File mode (v1.1 Sprint 2): path-tier classified via knowledge/update-file-paths.yaml.
     # Concrete glob list lives there (Tier 1 paths refused; pillar docs Tier C; tests/scripts Tier B).
     - ".archives/update-runs/**"            # local-only run artifacts
@@ -957,6 +969,7 @@ economic_budget:
     entity-update-distill-pillar: 0.30    # v1.1 — pillar README/CLAUDE can be dense
     entity-update-distill-file: 0.30      # v1.1 — generic file mode; Sonnet
     entity-update-distill-workflow: 0.25  # v1.1 stub (REFUSED at runtime until workflows/ ships)
+    entity-update-distill-tier1-file: 0.30  # v1.1.1 — 00-core/, governance/, knowledge/manifest+invariants under D-Std ceremony
     # Score / propose / test-gen are entity-type-agnostic (single cap each).
     entity-update-score-any: 0.15
     entity-update-propose-any: 0.25
