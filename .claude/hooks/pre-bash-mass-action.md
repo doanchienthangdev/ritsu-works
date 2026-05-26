@@ -1,0 +1,114 @@
+---
+name: pre-bash-mass-action
+version: 0.1.0
+type: pre-tool
+tools: [Bash]
+default_decision: allow
+fail_mode: open
+---
+
+# Hook: pre-bash-mass-action
+
+> **Observability-only — never blocks.** Detects when model uses Bash for actions
+> that have a registered workforce recipient (skill, command, SOP, etc.) and
+> logs `ops.events.resolver.bypass_detected` for A1 efficacy measurement.
+
+## What it does
+
+Per **resolver-v3-jit-loading** cherry-pick #13: closes the "instrument before
+build" loop. Without bypass-rate telemetry, we cannot know if A1 (compressed
+INDEX + JIT MCP find) actually fixed the cognitive trigger gap or just shifted
+the failure mode.
+
+For each Bash invocation:
+
+1. Extract candidate intent from command args using regex patterns
+   (e.g. `git \w+ origin` → maybe SOP-* git workflow; `psql.*UPDATE` → maybe
+   `mcp__supabase_ops__insert`).
+2. If extracted intent matches a workforce recipient via deterministic keyword
+   pre-filter (uses `scripts/resolver-v2/keyword-fallback.cjs`):
+   - Log `ops.events` row: `event_type='resolver.bypass_detected'`,
+     `metadata.tool_invoked='Bash'`, `extracted_intent=<text>`,
+     `would_have_matched=[recipient_id, ...]`.
+3. Hook returns `allow` always — never blocks the actual Bash call.
+
+## Why this is critical
+
+Per spec §9 acceptance criterion #4: bypass miss-rate < 20% in 30 days
+post-cutover. Without this hook, the measurement is impossible — we can only
+infer indirectly from find() invocation rate.
+
+## Decision logic
+
+```
+function decide(payload):
+  if payload.tool_name != 'Bash':
+    return allow  # only fires for Bash
+
+  cmd = payload.tool_args.command
+  if not cmd or len(cmd) < 20:
+    return allow  # tiny commands aren't bypass candidates
+
+  intent = extract_intent_from_bash(cmd)
+  if not intent:
+    return allow  # couldn't extract anything matchable
+
+  candidates = keyword_fallback.match({ trigger: intent, callerRole: payload.role })
+  if candidates.matched or len(candidates.alternatives) > 0:
+    # Bypass: model used Bash where a recipient would match
+    insert into ops.events {
+      event_type: 'resolver.bypass_detected',
+      ts: now(),
+      metadata: {
+        hook: 'pre-bash-mass-action',
+        tool_invoked: 'Bash',
+        bash_cmd_truncated: cmd[:200],
+        extracted_intent: intent,
+        would_have_matched: [c.recipient.id for c in candidates.alternatives[:3]],
+        caller_role: payload.role,
+        caller_session: payload.session_id_hash
+      }
+    }
+
+  return allow  # always — observability-only
+```
+
+## Configuration
+
+Activated via `.claude/settings.json` (when founder approves Tier C cutover):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": "node .claude/hooks/runtime/pre-bash-mass-action.cjs"}]}
+    ]
+  }
+}
+```
+
+The hook script implementation (separate from this `.md` spec) lives at
+`.claude/hooks/runtime/pre-bash-mass-action.cjs` — TBD in Sprint 4 follow-up
+once founder approves activation.
+
+## HITL tier per HITL.md Appendix A
+
+**Tier C** — new hook addition per HITL.md "Add new hook (any)" classification.
+Founder approval required for activation (commit to `.claude/settings.json` is
+the activation gate, not this `.md` file existence).
+
+## Test plan
+
+- Unit: regex intent extraction (covers git, psql, rm, find, gh patterns)
+- Unit: keyword-fallback integration (mocked)
+- Integration: real Bash call → ops.events row appears
+- Edge cases: empty command, very long command (truncate to 200 chars), command
+  with secrets (redacted via existing pre-bash-dangerous hook chain)
+
+## Capability lineage
+
+- Proposed: capability `resolver-v3-jit-loading` v3.0.0 (cherry-pick #13)
+- ops.capability_runs id: 1fa9208d-2fda-45de-ac72-728998b1d33f
+- ops.decisions id: 3f71c5d8-a54d-4116-9a14-ff6216b46339
+- Sprint: 4 (hooks + cutover, observation-only baseline phase 7 days before
+  CLAUDE.md cutover for canary signal denominator)

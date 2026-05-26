@@ -3,8 +3,8 @@
 //
 // Source version:  1.0.0
 // Source timezone: Asia/Ho_Chi_Minh
-// Schedule count:  14
-// Generated at:    2026-05-25T03:25:06.215Z
+// Schedule count:  15
+// Generated at:    2026-05-26T02:50:41.701Z
 
 import type { ScheduleEntry } from "./dispatcher.ts";
 
@@ -158,7 +158,20 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
     ],
     "fallback": "log_only",
     "cost_estimate": "$1.00 per run (~$30/mo cap)"
+  },
+  "resolver-v3-health-check": {
+    "id": "resolver-v3-health-check",
+    "cron": "0 * * * *",
+    "description": "Canary mcp__resolver__find call; alert founder on 3 consecutive failures",
+    "skill": "resolver-v3-health-check",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "fallback": "log_only",
+    "cost_estimate": "$0 per run (no LLM call; MCP read-only + audit insert)",
+    "notes": "Stub handler — wired into supabase/functions/_shared/worker.ts in Sprint 4\nfollow-up PR. Active only post-CLAUDE.md-cutover Tier C ceremony.\n"
   }
 };
 
-export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","crm-to-gbrain-mirror","data-retention-scan","docs-drift-nightly","etl-product-dau-hourly","evolve-day30-calibration","gbrain-consistency-nightly","gbrain-dream-cycle","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;
+export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","crm-to-gbrain-mirror","data-retention-scan","docs-drift-nightly","etl-product-dau-hourly","evolve-day30-calibration","gbrain-consistency-nightly","gbrain-dream-cycle","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","resolver-v3-health-check","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;

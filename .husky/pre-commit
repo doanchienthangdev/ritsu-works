@@ -83,6 +83,15 @@ if git diff --cached --name-only | grep -q '^knowledge/manifest\.yaml$'; then
   fi
 fi
 
+# resolver-v3 Sprint 1: If any recipients/*.md staged (except INDEX.md itself),
+# regenerate INDEX.md and stage. Prevents INDEX drift from catalog source.
+if git diff --cached --name-only | grep -E '^knowledge/recipients/.+\.md$' | grep -v '^knowledge/recipients/INDEX\.md$' >/dev/null 2>&1; then
+  if [ -f scripts/resolver-v3/index-generator.cjs ]; then
+    node scripts/resolver-v3/index-generator.cjs >/dev/null
+    git add knowledge/recipients/INDEX.md
+  fi
+fi
+
 # Tier 1 YAML schema validation (~1s)
 if [ -f scripts/validate-tier1.cjs ]; then
   if ! node scripts/validate-tier1.cjs >/dev/null 2>&1; then

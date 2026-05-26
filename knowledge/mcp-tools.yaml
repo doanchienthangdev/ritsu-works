@@ -272,6 +272,71 @@ tools:
       - experiment-analyst
 
   # ===========================================================================
+  # resolver-v3 JIT MCP tool — capability resolver-v3-jit-loading v3.0.0 (2026-05-25)
+  # ===========================================================================
+  # Sprint 2 of resolver-v3-jit-loading. ops.capability_runs id:
+  # 1fa9208d-2fda-45de-ac72-728998b1d33f. Mode A2 (JIT MCP find).
+  # NO LLM call in subprocess (iter4 policy enforcement per external-source/anthropic-api).
+  # Session model does final ranking on returned top-20 enriched candidates.
+
+  - id: resolver_find
+    server: supabase-ops
+    description: |
+      JIT resolver — find top-N workforce recipients matching natural-language
+      intent. Returns top-20 keyword-pre-filtered candidates with FULL when_to_use
+      + composes_with + role_scope + recency (batched ops.agent_runs join).
+      Session model picks primary by reading the candidates — no API key, no
+      MCP-subprocess LLM call (iter4 policy alignment).
+
+      Per-session circuit breaker: 20 finds/session/4h hard cap; warning at 15.
+      Per-role filter: caller MCP_CALLER_ROLE matched against recipient role_scope.
+      Catalog corrupt → degraded mode (returns INDEX-only data with degraded=true).
+
+      Wire format: spec.md §4 (resolver-v3-jit-loading spec, iter4).
+    input_schema_ref: mcp-server/src/tools/resolver-find.ts#resolverFindInputSchema
+    output_schema:
+      intent: string
+      caller_role: string
+      mode: string          # always 'A2'
+      matches: array
+      audit_run_id: string
+      total_candidates_considered: integer
+      ranking_method: string  # always 'keyword' (session does final rank)
+      latency_ms: integer
+      session_finds_count: integer
+      degraded: boolean       # optional, true if catalog corrupt
+      no_match_reason: string # optional, populated when matches=[]
+    tier_default: A           # discovery is universal; A2 sub-mode in audit
+    cost_bucket: ai-ops-meta  # no API call; minimal DB + audit insert
+    rate_limit: "20/4h per session"  # enforced in-tool via circuit breaker
+    role_scope:
+      - founder
+      - cofounder
+      - gps
+      - growth-orchestrator
+      - support-agent
+      - content-drafter
+      - code-reviewer
+      - etl-runner
+      - trust-safety
+      - backoffice-clerk
+      - gtm-orchestrator
+      - product-orchestrator
+      - customer-lead
+      - cs-coach
+      - retention-watcher
+      - escalation-router
+      - feedback-aggregator
+      - founder-coach
+      - hitl-router
+      - health-tracker
+      - metrics-curator
+      - alert-router
+      - experiment-analyst
+      - eval-evo-orchestrator
+      - gbrain-maintainer
+
+  # ===========================================================================
   # gbrain MCP server — capability gbrain-operational-brain v1.0 (2026-05-25)
   # ===========================================================================
   # External stdio MCP server: ~/.bun/bin/gbrain serve (cd runtime/brain/).

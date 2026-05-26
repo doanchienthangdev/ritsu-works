@@ -30,6 +30,11 @@ import {
   wikiSourceInputSchema,
   wikiSourceDescription,
 } from "./wiki-source.ts";
+import {
+  handleResolverFind,
+  resolverFindInputSchema,
+  resolverFindDescription,
+} from "./resolver-find.ts";
 
 export interface ToolDef {
   /** MCP tool name as the client sees it (without the server prefix) */
@@ -84,6 +89,13 @@ export const TOOLS: ToolDef[] = [
     description: wikiSourceDescription,
     inputSchema: wikiSourceInputSchema,
     handler: handleWikiSource,
+  },
+  // === resolver-v3 JIT MCP tool (Sprint 2 of resolver-v3-jit-loading v3.0.0) ===
+  {
+    name: "resolver_find",
+    description: resolverFindDescription,
+    inputSchema: resolverFindInputSchema,
+    handler: handleResolverFind,
   },
 ];
 
