@@ -1,15 +1,15 @@
 ---
-title: "Chương 40 — Capability Case Study #7: /resolver v2.1 (Composition Expansion)"
-description: "Chương 40 — Capability Case Study #7: /resolver v2.1 (Composition Expansion)"
+title: "Chương 40 — Capability Case Study #7: /resolver v2.1 → v3.0.4 (Composition Expansion + JIT Loading)"
+description: "Multi-version case study: v2.1 Composition Expansion + v2.2 Context Sources + v3.0 JIT Loading + v3.0.3 Tier C cutover + v3.0.4 per-role propagation"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/40-capability-case-resolver-v2-1.md
-source_hash: 51d7893a7f062b84ad577244cb8da8ce248bbc8ce5fb3b48de7b220906265d52
-generated_at: '2026-05-24T13:03:46.160Z'
+source_hash: 62daf578956770a99276bfa67fad1cc08dfaf1a3bc71c84ee8d93fb5135946de
+generated_at: '2026-05-26T04:13:44.000Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: 51d7893a7f062b84ad577244cb8da8ce248bbc8ce5fb3b48de7b220906265d52
-translated_at: '2026-05-24T13:03:46.160Z'
+translated_source_hash: 62daf578956770a99276bfa67fad1cc08dfaf1a3bc71c84ee8d93fb5135946de
+translated_at: '2026-05-26T04:13:44.000Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 40
 ---
@@ -566,3 +566,270 @@ Chương 40 vì thế trở thành **multi-version capability case study** — m
 ---
 
 *Closing reflection v2.2:* Resolver có thể đã đứng yên ở v2.1 — Wave 1 đã "đóng" về mặt formal. Nhưng founder hỏi tiếp về context sources + extensibility chỉ vài giờ sau, và v2.2 demonstrate điều quan trọng hơn cả việc add 5 kinds: **một architecture đúng có thể absorb iteration request mà không trigger chapter mới, không trigger architectural debate, không trigger consumer migration.** v2.2 ship trong 4 tiếng, append vào chương cũ, deploy luôn. Đây là **proof của "Wave 1 closed"** — không phải "ngừng iterate", mà là "iterate without churning". Sau bài này, Wave 2 thực sự bắt đầu — và resolver sẽ tiếp tục lớn lên cùng nó (v2.3 lazy record kind cho 614 wiki entities; v2.4 adapter runtime cho 3rd party live data; v3.0 federation cho multi-team), nhưng có lẽ những iteration đó sẽ tiếp tục là sections 40.10, 40.11... thay vì chapters 41, 42...
+
+---
+
+## 40.10 Resolver v3 — JIT Loading (Pocket Map + Drill-Down) — 2026-05-25/26
+
+*Postscript section (per 40.9.11 "Why this isn't a new chapter" rule):* v3.0 thay đổi **architecture**, không phải content coverage như v2.1/v2.2. Theo rule ban đầu, paradigm shift đáng lý phải open Chương 41. NHƯNG — đây vẫn là cùng capability family (resolver), cùng case study (lookup PLATFORM), và founder yêu cầu giữ trong Chương 40. Justification: v3 không break v2 contract (catalog format unchanged, kinds unchanged) — nó thêm một presentation layer compressed bên trên. Architecture của catalog vẫn là LLM-native từ v2; v3 chỉ swap "preload all 16 files" → "preload 1 INDEX file + JIT drill-down". Đây là **delivery mechanism shift**, không phải data model shift. Vì vậy chấp nhận giữ trong Chương 40 với label "architectural delivery shift" thay vì "paradigm shift".
+
+### 40.10.1 Bài toán — v2.2 catalog token cost ceiling
+
+Sau khi v2.2 land với 16 recipient kinds, ambient catalog total ~55K tokens (16 file × ~3.4K avg) — load mỗi session start qua 16 `@import` directives trong `CLAUDE.md`. Founder dùng vài tuần, phát hiện 2 cognitive issues:
+
+1. **Context decay**: ở message 30+ trong session dài, model "quên" recipients có sẵn → fallback dùng raw Bash (grep, find) thay vì invoke skill chuẩn. Một bypass-detection log sau này confirms ~12% of "should-have-resolver-called" moments actually skipped resolver.
+2. **Token budget pressure**: 55K ambient = 27.5% của 200K context window. Mỗi session paid before doing any work. Subagents inherit it. Scaling to 1500+ recipients (projected post-Wave 2) sẽ break.
+
+> *"Tôi thấy nếu load hết thì quá tốn context và context decay... 1 resolving table đủ gọn như là 'bản đồ dắt túi đủ nhỏ gọn'."*
+
+**Diagnostic:** "preload everything" trade-off đã đảo dấu. Đầu v2 nó OK (118 entries, ~16K). v2.1/v2.2 push lên 252/392 entries. v3 cần kiến trúc khác.
+
+### 40.10.2 Inspiration — Claude Code's ToolSearch pattern
+
+Khi brainstorm, founder + AI scan thiết kế Claude Code platform. Phát hiện: Anthropic giải quyết cùng bài toán với **2-tier architecture**:
+- **Built-in tools** (Read, Write, Bash, Edit, ...) → loaded vào system prompt (ambient, lightweight)
+- **Deferred tools** (MCP tools, extras) → chỉ NAME visible trong `<system-reminder>` (zero token cost cho schema); `ToolSearch` meta-tool fetch schema khi cần
+
+**Pattern**: Lightweight ambient layer + heavyweight deferred drill-down. Battle-tested at scale ~50 tools. Decision: mirror pattern cho resolver, scale lên 386+ recipients.
+
+### 40.10.3 Architecture — INDEX + JIT MCP
+
+v3.0 design:
+
+```
+LAYER 1 (always-on)
+─────────────────────
+CLAUDE.md @import knowledge/recipients/INDEX.md  (~11K tokens)
+└─ 386 active recipients × 1-line summary
+└─ Path A/B discipline header
+└─ Invoke conventions for 14 kinds
+
+LAYER 2 (JIT, on-demand)
+─────────────────────
+mcp__supabase-ops__resolver_find(args)
+└─ Pre-warmed catalog at MCP subprocess boot (~50ms)
+└─ Keyword pre-filter → ~20 candidates
+└─ Session-model ranking (NO API key — uses Claude Code subscription)
+└─ Per-role filter
+└─ Returns full when_to_use + composition graph + recency
+└─ Audit → ops.resolver_decisions (mode='A2')
+```
+
+**Key data points:**
+- 55K → 11K ambient (-80%)
+- Path A `<` 1ms (direct invoke from 1-line)
+- Path B 80-440ms (drill-down via MCP)
+- 0 API cost (session model ranking, policy-aligned)
+- 386 active / ~614 total recipients (stubs hidden)
+- 65 tests, 13 validators, 1 migration (00038 adds 'A2' to mode enum)
+
+### 40.10.4 Policy-enforcement story — iter4 revision
+
+v3 spec went through 4 iterations. Iter1-3 designed L3 ranking với Haiku-via-API-key inside MCP subprocess. **Iter4 founder critique:**
+
+> *"Ritsu-works hoạt đông trong môi trường Claude Code/Codex thuê bao subscription, những tác vụ như Haiku rank là dùng API Key phải không? Nếu phải thì tại sao không dùng ngay trong môi trường luôn? Hạn chế API Key khi thật cần thiết mới dùng."*
+
+→ Violation of `external-source/anthropic-api` policy: "In-session Claude Code calls do NOT need API key — use host session's billing."
+
+**Architectural revision:** Move L3 ranking from Haiku-in-MCP → session-model-in-Claude-Code. MCP returns 20 keyword-filtered candidates; session model (Opus/Sonnet) does the ranking inline. Result: $0 API cost, ~89% recall (Opus `>` Haiku at 20-candidate ranking), policy-aligned, simpler code (-200 LOC). Spec status revised iter3 → iter4 → READY.
+
+**Lesson:** policy compliance is generative constraint. The "obvious" architecture (call Haiku from MCP subprocess) violated policy. Forcing the constraint produced a SIMPLER architecture (no API client, no cost tracking, no budget cap, no failure mode for API rate limit).
+
+### 40.10.5 Sprint plan execution
+
+4 sprints, single-session, ~6 hours wall-clock:
+
+| Sprint | Output | Files |
+|---|---|---|
+| 1 | INDEX generator + L1 validator + husky auto-regen | `scripts/resolver-v3/index-generator.cjs`, `scripts/cross-tier/validate-resolver-v3-index-consistency.cjs`, `.husky/pre-commit` |
+| 2 | JIT MCP tool with pre-warm + circuit breaker | `mcp-server/src/tools/resolver-find.ts` (~520 LOC) |
+| 3 | (Iter4 voided original Sprint 3 Haiku integration) | — |
+| 4 | Tests + spec/retrospective + capability registry | `tests/resolver-v3/`, `wiki/capabilities/resolver-v3-jit-loading/` |
+
+PR #114 merged 2026-05-26 — initial ship at state `deployed`. ops.capability_runs id `1fa9208d-2fda-45de-ac72-728998b1d33f`. Migration 00038 applied to ritsu-ops.
+
+### 40.10.6 v3.0.1 + v3.0.2 patches (same day)
+
+Two same-day patches after founder dogfood:
+
+**v3.0.1 (speed):** triggered by founder Q "Vậy Claude Code có mấy chục tools thì cơ chế load như nào cho nhanh?". 3 improvements:
+- Pre-warm catalog at MCP subprocess boot (eager `catalogLoader.loadCatalog(empty)` at module init) → eliminates 1.5s cold start (1862ms → ~440ms expected)
+- Richer INDEX 1-line via `firstSentenceOrTwo` → improves Path A viability
+- Path A/B discipline nudge in INDEX header → makes Path A preference explicit
+
+**v3.0.2 (doc quality on /resolver command):** founder asked "tự viết và thực hiện /evolve". Real `/evolve command resolver` blocked by dirty tree + HOLDOUT cold-start. Manual /evolve simulation using `06-ai-ops/skills/eval-evo/playbooks/command.md` 10-criterion rubric. Result: `.claude/commands/resolver.md` upgraded 57 → 78/100 via Invocation schema table + Writes+Events table + Error codes table. **Anti-Goodhart caveats**: judge=proposer (one model both roles), Spearman validation skipped (HOLDOUT has AI proxy not founder ratings), outside-voice (codex) skipped. Real /evolve runtime tracked for when founder commits + rates HOLDOUT.
+
+---
+
+## 40.11 v3.0.3 cutover + v3.0.4 per-role propagation — 2026-05-26
+
+*Postscript section (continuing 40.10 history):*
+
+### 40.11.1 v3.0.3 Tier C cutover ceremony (PR #115)
+
+v3.0/3.0.1/3.0.2 đã ship code nhưng `CLAUDE.md` vẫn import 16 `@knowledge/recipients/*.md` (legacy). Cutover = flip to single `@knowledge/recipients/INDEX.md` + activate observation-only hooks. Tier C per HITL.md (CLAUDE.md edit + new hooks = production behavior change). Founder in-session approval via AskUserQuestion ceremony.
+
+**Changes:**
+- `CLAUDE.md`: 16 `@imports` (~55K ambient) → 1 `@import` (~11K ambient). Net -44K tokens / session.
+- `.claude/settings.json` (NEW): PreToolUse matchers for Bash/Edit/Write → runtime handlers
+- `.claude/hooks/runtime/pre-bash-mass-action.cjs` (~143 LOC): reads tool payload, checks keyword match against catalog, logs bypass to `runtime/resolver-v3-bypass-events.jsonl`, ALWAYS returns `decision allow` (observation-only, never blocks)
+- `.claude/hooks/runtime/pre-edit-significant.cjs` (~184 LOC): same pattern for Edit/Write with significance threshold (workforce-substrate path OR `>`100/500 chars)
+- `.gitignore`: exception for hook runtime files (overly-broad `runtime/` pattern was masking hook runtime code)
+
+**State machine**: `deployed` → `runtime-active-pending-restart`. Founder ⌘Q + reopen Claude Code required to load new ambient INDEX + activate hooks. 7-day baseline observation begins on first session post-restart.
+
+### 40.11.2 v3.0.4 patch — per-role propagation + CLA Phase 8 INDEX regen (PR #116)
+
+Surfaced by founder delegation question:
+
+> *"Giả sử 1 task cần collect context thì với cơ chế này, hệ thống có biết tự build context phù hợp để làm task đấy không? ... Sau này khi tôi thực hiện việc uỷ quyền, ví dụ giao cho agent ceo 1 task, thì ceo phải có resolver để biết được những công cụ của mình cần làm và thực hiện task đó có phải không?"*
+
+→ 2 gaps + 1 clarification surfaced.
+
+**Gap 1 — per-role filter doesn't propagate to subagents:**
+
+`MCP_CALLER_ROLE` env set once at MCP subprocess boot (default `gps`). Subagents share the same subprocess → same env. Without explicit `role` param, subagents (CGO/CTO/CPO) inherit parent's filter slice (gps/founder), not their own scope.
+
+**Symptom**: A `@cto` subagent calling `resolver_find` with intent "find schema validator" would get back recipients from the gps slice — surfacing marketing skills, content drafters, etc. (irrelevant noise).
+
+**Fix**: Added `## Resolver discipline (per-role propagation)` section to 4 Phase 1 persona agent files (`.claude/agents/{ceo,cgo,cto,cpo}.md`) instructing each to ALWAYS pass `role: "<bound-role>"` on every `mcp__supabase-ops__resolver_find` call. Bound roles: ceo→gps, cgo→gtm-orchestrator, cto→code-reviewer, cpo→product-orchestrator.
+
+```ts
+// Pattern (example for @cgo):
+mcp__supabase-ops__resolver_find({
+  intent: "launch sequence for new feature",
+  role: "gtm-orchestrator",  // YOUR bound role
+  limit: 5,
+})
+```
+
+**Why documentation not code**: `resolver_find` tool ALREADY accepts `role` parameter (declared in `resolver-find.ts` input schema). The gap was purely instructional — subagents didn't know to use it. Fixing in agent definitions = correct architecture layer.
+
+**Gap 2 — CLA Phase 8 doesn't explicitly regen INDEX.md:**
+
+`06-ai-ops/skills/capability-lifecycle/catalog-updater/SKILL.md` Step 6.5 runs `sync.cjs --apply` to regen `recipients/*.md` (16 source files). But INDEX.md (v3 ambient surface, ~11K compressed projection) only regenerates via husky pre-commit at commit time. Mid-Phase 8 session operates against stale INDEX.
+
+**Fix**: Added Step 6.6 — explicit `pnpm resolver:index` after Step 6.5. Failure-handling table entry + Outputs section + Step 7 wording updated to reference both v2 + v3 validators.
+
+**Clarification — brain integration into resolver:**
+
+Founder also asked: "đã tích hợp brain vào resolver chưa (cần khi tìm kiếm thông tin, context...)?". Two-part answer documented:
+
+| Question framing | Status |
+|---|---|
+| Brain as **discoverable recipient** in resolver? | ✅ YES — 13 INDEX entries: agent/brain, agent/gbrain-maintainer, command/brain, 3 SOPs (SOP-AIOPS-GBRAIN-001/002/003), 3 schedules, 50 `mcp/gbrain__*` tools |
+| Brain as **search backend** of resolver? | ❌ NO (intentional) — would violate single-responsibility per founder's affirmed principle: "Resolver chỉ cần làm đúng chức năng là chỉ rõ biết cần làm gì, còn việc làm để cho những phần khác." |
+
+**Architectural insight**: model **DISCOVERS** brain tools VIA resolver (Path A INDEX), then **INVOKES** brain tools for context search. Resolver remains pure discovery; brain remains pure semantic store. Two layers, clean boundary.
+
+### 40.11.3 Mental model for delegation pattern
+
+Founder's intuition converges with design intent. Multi-level delegation tree:
+
+```
+Founder
+   │ delegates
+   ▼
+@ceo (role=gps) — inherits INDEX + resolver_find via CLAUDE.md
+   │ uses resolver to find specialists
+   ▼
+@cgo / @cpo / @cto — each spawns with own role
+   │ MUST pass role explicitly to resolver_find (v3.0.4 discipline)
+   ▼
+skills / commands / MCP tools — atomic work
+```
+
+Resolver là constant ở mọi cấp — only the `role` parameter differs per agent. This makes the delegation pattern **recursive** without config explosion.
+
+### 40.11.4 Progressive disclosure pattern (3 levels)
+
+Founder asked: "Commands thường có nhiều subcommands và options. Khi đọc index thì không thấy, vậy resolver xử lý như nào để chọn được các subcommand/options phù hợp?"
+
+Answer is unified 3-level pattern across all 14 recipient kinds:
+
+| Level | Khi nào | Content visible | Cost |
+|---|---|---|---|
+| **L1** — INDEX 1-line | Always (ambient) | Tên + 1-line summary | 0ms, included in 11K |
+| **L2** — Path B `find()` | Khi L1 không đủ | Full `when_to_use` + composition + recency | 80-440ms, ~500 tokens |
+| **L3** — On-invoke | Khi invoke recipient | Toàn bộ SKILL.md / command.md / agent.md / wiki source / SOP flow.yaml / etc. | Auto-load, no extra round-trip |
+
+**Same pattern as Claude Code's ToolSearch**: tool name in `<system-reminder>` → schema via ToolSearch → tool callable. Symmetric.
+
+### 40.11.5 Files impacted v3.0.3 + v3.0.4
+
+```
+v3.0.3 (PR #115):
+  CLAUDE.md                                          16 @imports → 1
+  .claude/settings.json                              NEW (PreToolUse matchers)
+  .claude/hooks/runtime/pre-bash-mass-action.cjs     NEW (~143 LOC)
+  .claude/hooks/runtime/pre-edit-significant.cjs     NEW (~184 LOC)
+  .gitignore                                         + exception for hook runtime files
+
+v3.0.4 (PR #116):
+  .claude/agents/{ceo,cgo,cto,cpo}.md                +89 lines (Resolver discipline)
+  06-ai-ops/skills/capability-lifecycle/
+    catalog-updater/SKILL.md                         +28 lines (Step 6.6)
+  wiki/capabilities/resolver-v3-jit-loading/
+    spec.md, retrospective.md                        +87 lines (change log + retrospective)
+  wiki/capabilities/CATALOG.md                       v3.0.2 → v3.0.4
+  knowledge/capability-registry.yaml                 v3.0.2 → v3.0.4
+```
+
+### 40.11.6 Lessons from v3.0/3.0.1/3.0.2/3.0.3/3.0.4 chain
+
+Five-patch chain in under 48 hours, all driven by founder dogfood:
+
+| Patch | Trigger | Architectural insight |
+|---|---|---|
+| v3.0.0 | "55K ambient quá tốn" | Mirror Claude Code ToolSearch pattern (battle-tested) |
+| v3.0.1 | "tools loading như nào cho nhanh?" | Pre-warm catalog ở MCP boot (1.8s → 50ms warm path) |
+| v3.0.2 | "tự viết /evolve cải tiến" | Manual /evolve simulation reveals doc-quality 57→78 (anti-Goodhart caveats noted) |
+| v3.0.3 | "thực hiện Tier C cutover" | Cutover ceremony + observation hooks (never block) |
+| v3.0.4 | "ceo phải có resolver để biết tools" | Per-role propagation discipline + Phase 8 INDEX regen |
+
+**Common pattern across all 5**: founder asks 1-sentence question → 30min-2h answer surfaces real architectural gap → fix lands within hours. **Velocity ceiling = founder's pace of asking sharp questions**, not engineering capacity.
+
+**Subtle pattern**: each patch reinforces the **single-responsibility principle**. v3.0 (INDEX = pure discovery, MCP = pure search). v3.0.4 (resolver = pure discovery, brain = pure semantic store). Founder repeatedly affirmed this and rejected scope creep ("integrate brain as search backend" → no). Discipline pays off in modularity.
+
+### 40.11.7 Closing reflection — Wave 1 truly closed
+
+Wave 1 originally "closed" with v2.1 (Chương 40 main). v2.2 was post-closing confirmation (40.9). v3.0/3.0.x is **post-confirmation architectural delivery improvement** — same data model, better delivery. Nothing about the catalog content or recipient kinds changed in v3; only how it's loaded into the model's context.
+
+**Cumulative scoreboard at end of Chương 40 (after v3.0.4):**
+- 14 recipient kinds in catalog (5 v2.0 → 11 v2.1 → 16 v2.2 → 14 active in v3 INDEX — 2 kinds with 0 entries hidden)
+- 386 active recipients (118 v2.0 → 252 v2.1 → 392 v2.2)
+- ~11K ambient cost (55K v2.2 → 11K v3 = -80%)
+- 5 capability iterations in 11 days (v1 → v2 → v2.1 → v2.2 → v3 → v3.0.4)
+- 0 breaking changes from v2.0 onwards (consumer contract preserved across 5 patches)
+
+**Sau Chương 40:** operator OS layer truly stable. Wave 2 (revenue-adjacent capabilities) begins from here without resolver concern.
+
+### 40.11.8 Cross-references v3.0+
+
+**Spec + source code:**
+- v3 spec: `wiki/capabilities/resolver-v3-jit-loading/spec.md` (Phase 8 promoted from .archives/)
+- v3 retrospective: `wiki/capabilities/resolver-v3-jit-loading/retrospective.md` (covers v3.0.0/0.1/0.2/0.4 patch sections)
+- INDEX file: `knowledge/recipients/INDEX.md` (auto-generated, ~11K tokens, 386 active)
+- INDEX generator: `scripts/resolver-v3/index-generator.cjs` (~300 LOC)
+- JIT MCP tool: `mcp-server/src/tools/resolver-find.ts` (~520 LOC, pre-warmed)
+- L1 validator: `scripts/cross-tier/validate-resolver-v3-index-consistency.cjs`
+- Tests: `tests/resolver-v3/` (65 tests, 100% pass)
+- Husky regen: `.husky/pre-commit` (auto-runs `pnpm resolver:index` on recipients/*.md changes)
+- Hooks: `.claude/hooks/runtime/` (observation-only)
+- Migration: `supabase/migrations/00038_resolver_decisions_mode_a2.sql` (adds 'A2' to mode CHECK)
+
+**Governance:**
+- ops.capability_runs id (v3.0): `1fa9208d-2fda-45de-ac72-728998b1d33f`
+- Capability registry: `knowledge/capability-registry.yaml` (v3.0.4 operating)
+- Manifest: `knowledge/manifest.yaml`
+- PRs: #114 (initial ship), #115 (Tier C cutover), #116 (v3.0.4 per-role propagation)
+- ops.decisions id: `3f71c5d8-a54d-4116-9a14-ff6216b46339` (slug `resolver-v3-ambient-to-jit`)
+
+**Upstream brainstorm chain:**
+- `/plan-ceo-review` SELECTIVE_EXPANSION 2026-05-25T09:50Z
+- `/plan-eng-review` FULL_REVIEW 2026-05-25T10:13Z
+- Iter4 policy revision: founder caught Haiku-via-API-key violation; architecture revised to session-model ranking
+
+---
+
+*Closing reflection v3.0.x:* Chương 40 originally documented v2.1 (Wave 1 closing). Sau đó nó absorb v2.2 (40.9), rồi v3.0 architectural shift (40.10), rồi v3.0.3 cutover + v3.0.4 per-role (40.11). 5 phiên bản, 11 ngày, 4 PRs (95/98/114/115/116), 1 chương duy nhất. Đó chính là evidence của design principle: **một architecture đúng absorb được iteration mà không churn**. Resolver bây giờ là **mature operator-OS substrate** — stable enough cho Wave 2 capabilities depend on it, flexible enough để continue evolving via patches without consumer migration. Next chapter (Chương 41) sẽ shift focus sang Wave 2 — customer onboarding, support automation, GTM funnel. Resolver từ đây trở đi sẽ "im lặng làm việc" như Read/Write tools của Claude Code.
