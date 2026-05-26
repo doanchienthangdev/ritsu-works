@@ -3,9 +3,9 @@
 // Re-run with: pnpm wave2:bundle-invariants
 //
 // Source version: 1.0.0
-// Invariant count: 22
-// By layer: L1=6 L2=10 L3=6
-// Generated at: 2026-05-25T11:46:22.748Z
+// Invariant count: 25
+// By layer: L1=7 L2=12 L3=6
+// Generated at: 2026-05-26T11:13:57.835Z
 
 import type { Invariant } from "./invariants.ts";
 
@@ -453,6 +453,69 @@ export const ALL_INVARIANTS: Invariant[] = [
     "hitl_tier": "B",
     "fix_strategy": "manual_only",
     "notes": "gbrain-operational-brain v1.0 Sprint 4 ships post-stripe-customer-created\nhook with PII placeholder pattern. This invariant catches placeholder pages\nsitting unconfirmed >7d (founder forgot to fill in email after Tier B\nnotify). Auto-fix: re-notify customer-lead role.\n"
+  },
+  {
+    "id": "entity-edit-locks-holder-run-references-valid",
+    "description": "Every ops.entity_edit_locks.holder_run_id MUST exist in ops.agent_runs.id (for update/evolve writers) OR ops.capability_runs.id (for cla_* writers)",
+    "kind": "subset",
+    "layer": "L2",
+    "status": "live",
+    "source": {
+      "tier": 2,
+      "ref": "ops.entity_edit_locks",
+      "query": "SELECT holder_run_id, holder_kind FROM ops.entity_edit_locks WHERE holder_run_id IS NOT NULL"
+    },
+    "target": {
+      "tier": 2,
+      "ref": "ops.agent_runs ∪ ops.capability_runs",
+      "query": "SELECT id FROM ops.agent_runs UNION ALL SELECT id FROM ops.capability_runs"
+    },
+    "severity": "critical",
+    "hitl_tier": "B",
+    "fix_strategy": "manual_only",
+    "notes": "Lock rows must reference a real run. Orphan lock rows indicate a writer\ncrashed mid-acquire OR a foreign-key constraint violation. Validator\nshould branch by holder_kind: update/evolve → ops.agent_runs;\ncla_propose/cla_extend/cla_revise/cla_fix/cla_tune/cla_deprecate →\nops.capability_runs. manual_edit → no run reference required.\nSpec: wiki/capabilities/update/spec.md §4 (post-Phase-8); draft\n.archives/cla/update/spec.md.\n"
+  },
+  {
+    "id": "evolve-extractions-review-state-machine-valid",
+    "description": "ops.evolve_extractions.review_state transitions follow legal moves only (pending_review → founder_{accepted|rejected|edited}; auto_accepted terminal-on-insert; rejected_low_confidence terminal-on-insert)",
+    "kind": "implies",
+    "layer": "L1",
+    "status": "deferred",
+    "source": {
+      "tier": 2,
+      "ref": "ops.evolve_extractions",
+      "query": "SELECT id, review_state FROM ops.evolve_extractions"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "knowledge/state-machines.yaml",
+      "query": "$.entity_update_extraction_review.transitions"
+    },
+    "severity": "critical",
+    "hitl_tier": "B",
+    "fix_strategy": "add_migration",
+    "notes": "Activates when migration 00040_evolve_extractions.sql lands (Sprint 2 of\ncapability `update` v1.0; renumbered from draft 00039). Until then,\nstatus: deferred. Legal transitions:\n  pending_review → founder_accepted (founder reviewed + accepted)\n  pending_review → founder_rejected (founder reviewed + rejected)\n  pending_review → founder_edited (founder reviewed + provided edited text)\n  auto_accepted (terminal — set at insert when confidence >= 0.85)\n  rejected_low_confidence (terminal — set at insert when confidence < 0.6)\n"
+  },
+  {
+    "id": "entity-update-runs-role-attribution-correct",
+    "description": "Every ops.agent_runs WHERE agent_slug='update' MUST be triggered by role='entity-update-orchestrator'",
+    "kind": "implies",
+    "layer": "L2",
+    "status": "live",
+    "source": {
+      "tier": 2,
+      "ref": "ops.agent_runs",
+      "query": "SELECT id, triggered_by_kind, triggered_by_id, state_payload->>'role' AS role FROM ops.agent_runs WHERE agent_slug = 'update'"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "governance/ROLES.md",
+      "query": "regex:^- role: entity-update-orchestrator$"
+    },
+    "severity": "warn",
+    "hitl_tier": "B",
+    "fix_strategy": "manual_only",
+    "notes": "Catches drift if /update runs are mis-attributed to a different role\n(e.g., gps or founder direct) — undermines cost-bucket attribution\n($30/mo cap on ai-ops-entity-update) and per-task-kind cap enforcement.\nVacuously true until first /update run lands; first row will exercise\nthe check. Validator extracts role from state_payload->>'role' since\nops.agent_runs has no dedicated triggered_by_role column.\n"
   }
 ] as unknown as Invariant[];
 

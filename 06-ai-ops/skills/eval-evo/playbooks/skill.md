@@ -7,6 +7,8 @@ sub_score_count: 10
 allowed_paths_for_proposer:
   - "<entity-dir>/SKILL.md"
   - "<entity-dir>/README.md"
+  - "<entity-dir>/cases/**"
+  - "<entity-dir>/tests/**"
 sub_scores:
   - id: C1
     name: "Description quality"
@@ -99,11 +101,15 @@ Per Karpathy K3 (ONE editable artifact):
 allowed_paths_for_proposer:
   - "<entity-dir>/SKILL.md"
   - "<entity-dir>/README.md"
+  - "<entity-dir>/cases/**"   # added v1.1 — capability `update` Sprint 1
+  - "<entity-dir>/tests/**"   # added v1.1 — capability `update` Sprint 1
 ```
 
 `<entity-dir>` resolves to the skill's own folder. Proposer must NOT
 write outside this folder (no edits to sibling skills, no edits to
-upstream callers).
+upstream callers). `cases/` + `tests/` are within-folder by design so
+/update's test-gen skill can add regression tests under each entity's
+own footprint (no central tests/ tree to drift).
 
 ## Tier classification (per HITL.md)
 

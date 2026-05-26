@@ -6,6 +6,8 @@ composite_range: [0, 100]
 sub_score_count: 10
 allowed_paths_for_proposer:
   - ".claude/agents/<name>.md"
+  - ".claude/agents/cases/<name>/**"
+  - ".claude/agents/tests/<name>/**"
 sub_scores:
   - id: C1
     name: "Persona voice consistency"

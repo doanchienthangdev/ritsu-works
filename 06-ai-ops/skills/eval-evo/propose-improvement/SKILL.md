@@ -29,10 +29,25 @@ returns unified diff.
   "rationale_pre": "<judge's pre-score rationale>",
   "weakest_sub_scores": [<indices of 3 lowest>],  // hint for proposer focus
   "memory_context": "<combined: past run_summaries + ops.corrections + this run's failure summaries>",
+  "extractions_context": [               // OPTIONAL — null when invoked by /evolve; populated by /update
+    {
+      "raw_quote": "<verbatim text from ref chunk>",
+      "proposed_change": "<structured: what to change in entity>",
+      "confidence": 0.92,
+      "section_target": "<frontmatter | body | step-N>",
+      "ref_path": ".archives/cla/update/refs/<file>",
+      "extraction_id": "<uuid from ops.evolve_extractions>"
+    }
+  ],
   "run_id": "<uuid>",
   "iter": <int>
 }
 ```
+
+**`extractions_context` semantics:**
+- `null` (default for /evolve invocation): proposer operates in pure self-improvement mode — generates diffs based on judge rationale + memory context only.
+- non-empty array (/update invocation): each entry is a founder-accepted or auto-accepted extraction from `ops.evolve_extractions` (review_state IN ('auto_accepted', 'founder_accepted', 'founder_edited')) for this run_id. Proposer treats these as authoritative SIGNALS — the diff SHOULD incorporate them, citing the extraction_id in `rationale`.
+- The /evolve test suite passes `null` and observes unchanged behavior (R2 regression guarantee).
 
 ### Output
 ```json
@@ -95,10 +110,17 @@ Entity content (target of the diff):
 Past run summaries (what's been tried before):
 <memory_context>
 
+<IF extractions_context IS NOT NULL AND NOT EMPTY>
+Founder-verified extractions from refs (these are AUTHORITATIVE signals for
+this run; cite extraction_id in your rationale; prefer applying them):
+<extractions_context formatted as a numbered list of
+ {extraction_id, ref_path, section_target, raw_quote, proposed_change, confidence}>
+</IF>
+
 Output JSON only:
 {
   "diff": "<unified diff text or empty string>",
-  "rationale": "<one sentence why>",
+  "rationale": "<one sentence why; cite extraction_id(s) if extractions were applied>",
   "targeted_sub_scores": [<C-IDs you're targeting>]
 }
 """
@@ -143,3 +165,16 @@ This skill is type-agnostic. The PROMPT adapts via:
 - `<entity_content>` is the entity file body — works for any text file type
 
 No per-type skill needed for proposer (unlike scoring which is per-type).
+
+## Reuse across capabilities (added v1.1 — capability `update` Sprint 1)
+
+The same skill serves both /evolve (memory-driven) and /update (refs-driven)
+via the OPTIONAL `extractions_context` input:
+
+- /evolve passes `extractions_context: null`. Behavior unchanged from v1.0.
+- /update passes the resolved founder-accepted + auto-accepted extractions
+  from `ops.evolve_extractions` for the run. Proposer's diff SHOULD apply
+  them and cite extraction_id in rationale.
+
+Contract: any caller MAY omit `extractions_context` or pass `null`. The skill
+MUST NOT regress when `extractions_context` is absent.

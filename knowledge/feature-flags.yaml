@@ -273,6 +273,27 @@ features:
     description: "Auto-detect stale decisions needing review (Bài #15)"
     cost_estimate: "$0.10 per weekly run"
 
+  # === Capability `update` v1.0 flags (Sprint 1) ===
+  evolve_uses_universal_lock:
+    enabled: false                        # @cto NIT 4: default off for first 48h post-deploy; flip true after 5 successful /evolve runs (staged migration)
+    requires_api: []
+    fallback: legacy_agent_runs_query     # /evolve falls back to WHERE agent_slug='evolve' against ops.agent_runs
+    description: |
+      When true, /evolve's concurrent-run check uses
+      ops.acquire_entity_edit_lock(...) (universal lock) instead of the legacy
+      WHERE agent_slug='evolve' query against ops.agent_runs. Per @cto NIT 4
+      staged migration: keep false for first 48h post-deploy as a safety net;
+      flip true after observing 5 successful /evolve runs end-to-end with no
+      lock-related regressions. Rollback strategy: flip back to false; no data
+      migration required (lock rows are ephemeral).
+    cost_estimate: "$0 — DB toggle only"
+    staged_migration:
+      step_1: "Migration 00039 lands lock table + acquire/release functions"
+      step_2: "Sprint 1 eval-evo/orchestrator refactor honors this flag"
+      step_3: "Flag stays false for 48h; founder verifies /evolve health"
+      step_4: "Flip to true after 5 clean /evolve runs"
+      step_5: "Remove legacy WHERE agent_slug='evolve' path after 30 days clean (Sprint 5 cleanup or v1.1)"
+
 # === Mode preset shortcuts ===
 # When `mode` is set above, these presets apply unless overridden by feature flag.
 

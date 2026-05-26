@@ -3,9 +3,9 @@
 // Re-run with: pnpm wave2:bundle-manifest-tables
 //
 // Source version: 0.13.0
-// ops tables:     31
+// ops tables:     32
 // metrics tables: 1
-// Generated at:   2026-05-25T11:46:22.872Z
+// Generated at:   2026-05-26T11:13:57.903Z
 
 export const MANIFEST_OPS_TABLES: readonly string[] = Object.freeze(
 [
@@ -21,6 +21,7 @@ export const MANIFEST_OPS_TABLES: readonly string[] = Object.freeze(
   "corrections",
   "cost_attributions",
   "decisions",
+  "entity_edit_locks",
   "events",
   "hitl_runs",
   "ingestion_jobs",

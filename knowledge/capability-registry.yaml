@@ -930,6 +930,58 @@ capabilities:
         - Sprint 1 brain-write-discipline skill folder now exists (Sprint 2 created it)
           — pre-existing ROLES.md ↔ skills warn no longer applies to this skill
 
+  # === Foundational: Bayesian update verb (proposed 2026-05-26) ===
+  - id: update
+    name: "Update — Bayesian-update verb for ritsu-works entities (refs-driven)"
+    description: |
+      NEW slash command /update <type> <name> --refs=<refs> for refs-driven
+      entity refresh. Distinct from /evolve (memory-driven self-improvement).
+      Both commands SHARE 100% of underlying infrastructure (eval-evo skill
+      suite, universal entity-edit lock, audit tables) but expose distinct
+      command surfaces for distinct intents (separate-commands + shared-
+      infrastructure architecture v3.0, approved 2026-05-26 after
+      /plan-ceo-review + /plan-eng-review + outside-voice review).
+
+      Phases: PRE-FLIGHT → DISTILL (per-chunk LLM, 3-bucket confidence) →
+      REVIEW (founder queue for 0.6-0.85 bucket) → SCORE PRE → PROPOSE
+      (extractions_context input) → CLASSIFY (trivial/medium/structural;
+      structural ABORTs with /cla extend forward) → INSTALL (git stash +
+      marker + 3-way diff guard) → TESTS (eval-evo/test-gen with
+      All-Edge-Cases-Test 5-phase rule COMMITTED verbatim) → SCORE POST
+      + K4 ratchet (±5pt slack for /update; strict for /evolve) → FINALIZE
+      (pnpm resolver:index, ops.events, release lock).
+
+      Scope v1.0: skill, command, agent, sop. Defer hook (D-Std safety),
+      pillar/folder/workflow (semantic gaps) to v1.1+.
+
+      Third foundational write-loop alongside /cla (create) and /evolve
+      (self-improve). Fills the "ingest external truth" gap in ritsu-works.
+    version: "1.0.0"
+    state: proposed
+    state_since: 2026-05-26
+    proposed_at: 2026-05-26
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [5, 11, 14, 20]
+    spec_path: wiki/capabilities/update/spec.md
+    sprint_plan: ".archives/cla/update/sprint-plan.md (local-only working)"
+    cost_bucket: ai-ops-meta
+    estimated_cost_setup_usd: 12
+    estimated_cost_recurring_usd: 21  # ~30 runs/mo × $0.70 median
+    estimated_founder_hours: 10
+    notes: |
+      Established design decisions (do not re-litigate in Phase 4 options):
+        - One verb + auto-severity classification
+        - Hybrid verify (distill 3-bucket confidence + Karpathy K4 ratchet)
+        - Mode-aware K4: ±5pt slack when refs present
+        - UNIVERSAL entity-edit lock (also used by /evolve, /cla extend)
+        - Distill is NEW skill (eval-evo/distill-from-refs) — NOT wiki-sync/distill wrapper
+      8 refs in this proposal: full brainstorm trajectory (v1.0 standalone →
+      v2.0 merge → v3.0 final separate-shared). Capability run id:
+      16720cb5-f2fe-47f0-9d47-beaeca5f05e1.
+      Prior brainstorm artifacts: .archives/brainstorming/update/{00..07}*.md
+      Eng review (codex-fallback Claude subagent) found 10 substantive gaps
+      — all resolved in v3.0 spec before /cla propose triggered.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:

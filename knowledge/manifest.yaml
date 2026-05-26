@@ -780,6 +780,32 @@ tier2_operational:
             Indexed on (ts), (matched_route_id), (decision), (caller_role),
             (mode, ts). Partial index on rows with composition_supporting.
             RLS: founder + etl-runner full; other roles read own caller_role.
+        # ====================================================================
+        # Capability `update` v1.0 — universal entity-edit lock (Sprint 1)
+        # ====================================================================
+        - name: entity_edit_locks
+          migration_file: supabase/migrations/00039_universal_entity_edit_lock.sql
+          status: live
+          purpose: |
+            Universal lock for entity-level edit serialization across /update,
+            /evolve, /cla extend, and future writers. Keyed on
+            (entity_type, entity_name). First-acquirer wins; stale takeover
+            after 24h with explicit REFUSE if prior holder was in
+            awaiting_review/reviewing phase.
+
+            Companion functions:
+              ops.acquire_entity_edit_lock(p_entity_type, p_entity_name,
+                p_holder_kind, p_holder_run_id, p_session_id) -> JSONB
+              ops.release_entity_edit_lock(p_entity_type, p_entity_name,
+                p_holder_run_id) -> BOOLEAN
+
+            Replaces /evolve's pre-v1.0 `WHERE agent_slug='evolve'` against
+            ops.agent_runs (Sprint 1 refactor; behind feature flag
+            evolve_uses_universal_lock per @cto NIT 4 staged migration).
+
+            Tier C decision: ops.decisions[a683a371-0611-49c7-9650-53503027d60e].
+            Spec: wiki/capabilities/update/spec.md §4 (after Phase 8 promotion);
+            draft .archives/cla/update/spec.md.
     metrics:
       description: ETL'd snapshots of Product metrics (read-only mirror) + derived rollup views
       tables:
