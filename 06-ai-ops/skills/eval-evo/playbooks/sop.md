@@ -7,6 +7,8 @@ sub_score_count: 10
 allowed_paths_for_proposer:
   - "06-ai-ops/sops/<name>/flow.yaml"
   - "06-ai-ops/sops/<name>/README.md"
+  - "06-ai-ops/sops/<name>/cases/**"
+  - "06-ai-ops/sops/<name>/tests/**"
 sub_scores:
   - id: C1
     name: "flow.yaml schema validity"
