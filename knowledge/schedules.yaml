@@ -186,6 +186,30 @@ schedules:
     fallback: log_only
     cost_estimate: $1.00 per run (~$30/mo cap)
 
+  # ==========================================================================
+  # resolver-v3 health-check (capability resolver-v3-jit-loading v3.0.0 Sprint 4)
+  # ==========================================================================
+  # Hourly canary find() against mcp__resolver__find. Detects silent MCP server
+  # start failures after CLAUDE.md cutover. Per spec §7.4 (eng review Finding 4).
+  #
+  # Behavior:
+  #   - Invokes mcp__resolver__find({intent: "canary test query", limit: 1})
+  #   - Logs result to ops.events event_type='resolver.health_check'
+  #   - After 3 consecutive failures: emits ops.events 'resolver.health_degraded'
+  #     → Tier B Telegram alert to founder (catch silent MCP boot failures)
+  #
+  # No API key needed (per resolver-v3 iter4 policy alignment).
+  - id: resolver-v3-health-check
+    cron: "0 * * * *"                 # hourly
+    description: "Canary mcp__resolver__find call; alert founder on 3 consecutive failures"
+    skill: resolver-v3-health-check
+    enabled_when_mode: [hybrid, full_api]
+    fallback: log_only
+    cost_estimate: "$0 per run (no LLM call; MCP read-only + audit insert)"
+    notes: |
+      Stub handler — wired into supabase/functions/_shared/worker.ts in Sprint 4
+      follow-up PR. Active only post-CLAUDE.md-cutover Tier C ceremony.
+
 # ============================================================================
 # Customization checklist
 # ============================================================================

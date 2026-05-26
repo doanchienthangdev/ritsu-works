@@ -522,6 +522,100 @@ capabilities:
       Resolver iteration chain at v2.2 promotion:
         v1 (Chương 38) → v2 (Chương 39) → v2.1 (Chương 40) → v2.2 (this)
 
+  - id: resolver-v3-jit-loading
+    name: "/resolver v3 — JIT Loading (Pocket Map + Drill-Down)"
+    state: deployed       # Sprint 1-4 partial complete; pending Tier C cutover for operating
+    deployed_at: 2026-05-25
+    description: |
+      Replaces v2.2's 55K-token ambient catalog (preloaded every session via
+      knowledge/recipients/*.md @import; grew 30K→55K in 2 sprints; projected
+      80-100K next year) with ~11K compressed INDEX.md (all 373 active entries)
+      + mcp__resolver__find MCP tool returning top-20 keyword-pre-filtered
+      enriched candidates for SESSION-MODEL ranking.
+
+      Architectural shift: ambient catalog (documentation) → JIT MCP tool
+      (first-class affordance). Matches Anthropic's own ToolSearch pattern
+      for the same problem (deferred tools at scale).
+
+      Cherry-picks accepted (4):
+      - **#11 Session-model ranking** (iter4 REVISION from Haiku-via-API) —
+        MCP returns 20 enriched candidates; session model picks. Zero API
+        key per external-source/anthropic-api policy (in-session calls use
+        subscription billing). Recall ~89% (Opus/Sonnet > Haiku at small-set).
+      - **#12 Per-role filtering** at tool level (MCP_CALLER_ROLE → role_scope).
+      - **#13 Bypass-detection hooks** (pre-bash-mass-action +
+        pre-edit-significant) → ops.events resolver.bypass_detected.
+        2 NEW hooks = Tier C scope expansion acknowledged.
+      - **#14 Recent invocation surface** via batched recency join
+        (single SQL IN(...) for top-20 per Finding 1).
+
+      Eng review additions (3 inline fixes):
+      - Catalog corruption → degraded fallback (INDEX.md as flat source)
+      - resolver-v3-health-check cron (hourly canary find()) for
+        silent-failure detection post-cutover
+      - INDEX self-sufficiency claim refined (basic invocation only)
+
+      Architecture decisions (founder via /plan-eng-review):
+      - Batched IN(...) query for recency (avoids N+1 = 1000ms latency)
+      - In-MCP-process circuit breaker: 20 finds/session/4h hard cap
+      - Node interop for keyword-fallback.cjs (no TS port — single source)
+
+      Temporal Q resolutions (founder via /plan-eng-review):
+      - Q1.1 INDEX truncation: first-sentence extraction (deterministic)
+      - Q2.1 Haiku prompt: VOIDED iter4 (no Haiku call exists)
+      - Q3.4 /resolver compat: keep slash + delegate to MCP internally
+      - Q4.1 Canary metric: combined adoption (find>20/day) + quality
+        (recall>17/20 nightly test)
+
+      iter4 policy correction: original spec (iter1-iter3) proposed Haiku
+      via API for L3 ranking. Founder caught violation of
+      external-source/anthropic-api policy ("In-session Claude Code calls
+      do NOT need API key — use host session's billing"). Switched L3 to
+      session-model ranking. Result: $0 API cost (was projected $5/mo),
+      +9% recall (Opus/Sonnet > Haiku at small-set ranking), eliminated
+      MCP subprocess cost-tracking complexity entirely.
+
+      OUT OF SCOPE (deferred):
+        - Hot-tier adaptive ambient (Approach C) → revisit at 30d data
+        - Auto-invoke find() on TaskCreate → separate capability
+          workforce-affordance-trigger (Option A2)
+        - Skill author "consult resolver" prefix discipline → if A1+telem
+          shows skill-internal blindness
+        - Embedding-based semantic search → revisit at 1000+ recipients
+
+      Plan: 4 sprints with feature flag RESOLVER_JIT_ENABLED + 5-min
+      rollback via CLAUDE.md revert. Tier C founder approval at cutover.
+      5/5 reversibility.
+    version: "3.0.2"      # patch bump via manual /evolve simulation on /resolver command (2026-05-26)
+    state_since: 2026-05-26
+    proposed_at: 2026-05-25
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [12, 14, 20]
+    spec_path: wiki/capabilities/resolver-v3-jit-loading/spec.md  # promoted Phase 8
+    brainstorm_path: .archives/cla/resolver-v3-jit-loading/
+    cost_bucket: ai-ops-meta
+    estimated_cost_setup_usd: 5
+    estimated_cost_recurring_usd: 0  # iter4: $0 API (session billing per policy)
+    estimated_founder_hours: 12
+    target_kpis: [resolver_ambient_token_cost, resolver_recall, resolver_bypass_miss_rate]
+    target_value: 11000  # target ambient INDEX token count (was 55K)
+    supersedes: resolver-v2.2-context-sources
+    notes: |
+      ops.capability_runs id: 1fa9208d-2fda-45de-ac72-728998b1d33f
+      Proposed via /cla propose 2026-05-25 after /plan-ceo-review SELECTIVE_EXPANSION
+      + /plan-eng-review FULL_REVIEW chain. Spec.md iter4 already drafted —
+      Phases 1-6 will populate template files retroactively from pre-built
+      artifacts; Phase 7 = first real implementation work (Sprint 1).
+
+      Pre-built artifacts (post-CEO+Eng review):
+        .archives/cla/resolver-v3-jit-loading/spec.md (iter4, 764 lines)
+        .archives/cla/resolver-v3-jit-loading/00-scoping-brainstorm.md (190 lines)
+        .archives/cla/resolver-v3-jit-loading/02-temporal-questions.md (261 lines)
+
+      Resolver iteration chain at v3 proposal:
+        v1 → v2 → v2.1 → v2.2 → v3 (this — first architectural shift,
+        not incremental kind addition)
+
   - id: resolver-v2.1
     name: "/resolver v2.1 — Composition Expansion (6 new recipient kinds)"
     description: |

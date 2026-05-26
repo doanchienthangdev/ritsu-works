@@ -125,6 +125,12 @@ const SKILL_REGISTRY: SkillRegistry = {
   "crm-to-gbrain-mirror": makeDeferredStubHandler("crm-to-gbrain-mirror stub (capability gbrain-operational-brain v1.0): nightly ETL of public.companies billing fields → gbrain companies/<slug> frontmatter via mcp__gbrain__put_page. Needs gbrain MCP available — lands Sprint 5 (.mcp.json wrapper). Founder may run `gbrain serve` + manual sync in the meantime."),
   "gbrain-consistency-nightly": makeDeferredStubHandler("gbrain-consistency-nightly stub (capability gbrain-operational-brain v1.0): nightly L1+L2+L3 invariant sweep on gbrain pages → inserts ops.consistency_checks rows + emits ritsu.gbrain.consistency_drift event on fail. Needs gbrain MCP + invariant handlers (Sprint 6) — for v1.0 deferred."),
   "gbrain-dream-cycle": makeDeferredStubHandler("gbrain-dream-cycle stub (capability gbrain-operational-brain v1.0): nightly dedup + citation fix + contradiction detection + synthesis run by gbrain-maintainer role ($30/mo cap; Hard-cap Option B graceful degrade at $100 global). Needs gbrain MCP + persona_slug='gbrain-maintainer' invocation infra — lands Sprint 5+6. Founder may invoke manually via `gbrain dream-cycle` CLI in the meantime."),
+  // resolver-v3 hourly health-check (capability resolver-v3-jit-loading v3.0.0 Sprint 4).
+  // Hourly canary invokes mcp__resolver__find({intent:"canary test query", limit:1}).
+  // Logs ops.events resolver.health_check. After 3 consecutive failures: emits
+  // resolver.health_degraded → Tier B Telegram alert (catches silent MCP boot failure
+  // post-CLAUDE.md-cutover). Active only post-cutover (RESOLVER_JIT_ENABLED gate).
+  "resolver-v3-health-check": makeDeferredStubHandler("resolver-v3-health-check stub (capability resolver-v3-jit-loading v3.0.0): hourly mcp__resolver__find canary call. Real handler shells out to MCP server. Active only after CLAUDE.md Tier C cutover ceremony lands. Founder may invoke MCP tool manually for diagnostic in meantime: `echo '{intent:\"canary\"}' | claude mcp call resolver_find`."),
   ...(anthropic
     ? {
         "synthesize-morning-brief": makeSynthesizeMorningBriefHandler({ anthropic }),

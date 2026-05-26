@@ -224,6 +224,8 @@ async function main() {
     // capability gbrain-operational-brain v1.0 Sprint 6 — 2 NEW L2 validators
     ['validate-mcp-json-tools-consistency.cjs', '.mcp.json ↔ knowledge/mcp-tools.yaml'],
     ['validate-gbrain-invariant-handlers.cjs', 'gbrain L1/L2/L3 invariant handlers'],
+    // capability resolver-v3-jit-loading Sprint 1 — INDEX.md consistency
+    ['validate-resolver-v3-index-consistency.cjs', 'resolver-v3 INDEX.md ↔ catalog'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;

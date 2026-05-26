@@ -5,7 +5,7 @@
 // Source version: 1.0.0
 // Invariant count: 22
 // By layer: L1=6 L2=10 L3=6
-// Generated at: 2026-05-24T18:33:02.265Z
+// Generated at: 2026-05-25T11:46:22.748Z
 
 import type { Invariant } from "./invariants.ts";
 
