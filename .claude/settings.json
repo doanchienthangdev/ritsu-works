@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/settings.schema.json",
+  "_comment": "Activated 2026-05-26 as part of resolver-v3-jit-loading Tier C cutover ceremony. Cherry-pick #13 bypass detection hooks (observation-only — never block). Hook specs: .claude/hooks/pre-bash-mass-action.md + pre-edit-significant.md. Runtime impl: .claude/hooks/runtime/*.cjs. Logs to runtime/resolver-v3-bypass-events.jsonl (gitignored). Separate cron will batch-sync to ops.events.resolver.bypass_detected post-7-day-baseline.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/runtime/pre-bash-mass-action.cjs"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/runtime/pre-edit-significant.cjs"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/runtime/pre-edit-significant.cjs"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -9,30 +9,30 @@ For canonical product description, full governance, and detailed structure, see 
 @governance/ROLES.md
 @knowledge/manifest.yaml
 
-## Recipient catalog (resolver v2 — Mode A ambient)
+## Recipient catalog (resolver v3 — JIT loading, post-cutover 2026-05-26)
 
-The recipient catalog below is loaded into ambient context for every session.
-Use it for natural-language recipient lookup (find the right skill/command/
-agent/persona/mcp for a task) without grep'ing or invoking /resolver.
+Compressed INDEX loaded into ambient context for every session (~11K tokens
+covering all 386 active recipients across 16 kinds). For full details on
+any recipient, invoke `mcp__resolver__find({intent:"...", limit:5})` —
+session model ranks 20 keyword-pre-filtered enriched candidates (no API
+key per `external-source/anthropic-api` policy; subscription billing).
 
-See `.archives/cla/resolver-v2/spec.md` §4 for Mode A pattern.
+**Path A (default, 0ms)**: If the 1-line summary in INDEX + invoke
+convention (e.g. `Skill({skill:"<id>"})`) is sufficient, invoke the
+recipient directly. NO drill-down call needed.
 
-@knowledge/recipients/skills.md
-@knowledge/recipients/commands.md
-@knowledge/recipients/agents.md
-@knowledge/recipients/personas.md
-@knowledge/recipients/mcps.md
-@knowledge/recipients/wikis.md
-@knowledge/recipients/sops.md
-@knowledge/recipients/capabilities.md
-@knowledge/recipients/workflows.md
-@knowledge/recipients/schedules.md
-@knowledge/recipients/hooks.md
-@knowledge/recipients/pages.md
-@knowledge/recipients/views.md
-@knowledge/recipients/metrics.md
-@knowledge/recipients/runbooks.md
-@knowledge/recipients/external-sources.md
+**Path B (~80-440ms, only when needed)**: Call `mcp__resolver__find` when
+you need composition graph / recency signal / per-role filter /
+disambiguation between similar candidates / full when_to_use text.
+
+`/resolver query "..."` delegates to the same MCP tool.
+
+See `wiki/capabilities/resolver-v3-jit-loading/spec.md` for full
+architecture. Cutover from v2.2 ambient (55K tokens, 16 @imports) → v3
+INDEX (11K, 1 @import) committed 2026-05-26 (PR #114, merge `f2524e8`).
+Reversible in 5 min via `git revert` if regression observed.
+
+@knowledge/recipients/INDEX.md
 
 ## What this repo is and is not
 
