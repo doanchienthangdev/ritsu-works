@@ -891,6 +891,92 @@ escalation_role: founder
 > day-30 efficacy gate at `scripts/eval-evo/calibrate-efficacy.cjs`.
 > Hold-out validation at `scripts/eval-evo/playbook-validate.cjs`.
 
+### `entity-update-orchestrator` (NEW 2026-05-26 — capability `update` v1.0)
+
+```yaml
+role: entity-update-orchestrator
+purpose: Run /update <type> <name> --refs=<refs> refs-driven entity refresh loops on ritsu-works leaf entities (skill | command | agent | sop). Companion to eval-evo-orchestrator: /update ingests external truth via refs; /evolve self-improves via memory. Both share 100% infrastructure (universal lock, ops.evolve_extractions citation spine, eval-evo skill suite).
+home_pillar: 06-ai-ops/skill-library
+permissions:
+  tier1_paths:
+    - "06-ai-ops/skills/<entity-name>/**"   # leaf skill edits (Tier B per playbook allowed_paths)
+    - ".claude/commands/<entity-name>.md"   # leaf command edits (Tier B)
+    - ".claude/agents/<entity-name>.md"     # leaf agent edits (Tier B)
+    - "06-ai-ops/sops/<entity-name>/**"     # leaf SOP edits (Tier C — sops are higher stakes)
+    - ".archives/update-runs/**"            # local-only run artifacts
+    # Tier C entities (hooks, governance/, 00-core/) go through /cla extend path; not direct write here
+  tier2_schemas_read: [ops.*, metrics.product_dau_snapshot]
+  tier2_schemas_write:
+    - ops.agent_runs       # own log (agent_slug='update')
+    - ops.run_summaries
+    - ops.events
+    - ops.corrections      # founder rejection feedback loop
+    - ops.evolve_extractions  # citation spine writes (distill phase)
+    - ops.entity_edit_locks   # acquire/release via the universal lock functions
+    - ops.audit_log        # Tier C audit override events (--force-pr, --skip-drift-check, --allow-untrusted-refs)
+  mcp_servers:
+    - supabase-ops         # for ops.* writes
+    - gbrain               # READ-only (mcp__gbrain__search for prior framings; ~$0.005/run); NO writes v1.0
+  skills:
+    - entity-update/orchestrator
+    - eval-evo/distill-from-refs    # /update Phase 0.5 (Sprint 2)
+    - eval-evo/review-extractions   # /update review verb (Sprint 2)
+    - eval-evo/test-gen             # /update Phase 6 (Sprint 3; All-Edge-Cases-Test verbatim)
+    - eval-evo/propose-improvement  # /update Phase 3 (Sprint 1 extension: extractions_context)
+    - eval-evo/install-improvement  # /update Phase 4
+    - eval-evo/score-{skill,command,agent,sop}   # Phase 2 + 5 (pre + post scoring; K4 ratchet)
+    - episodic-recall
+  secrets:
+    - ANTHROPIC_API_KEY
+    - SUPABASE_ACCESS_TOKEN
+    # OPENAI_API_KEY NOT used (distill uses Anthropic Haiku/Sonnet only)
+hitl_max_tier: C        # sops + agent type structural diffs require Tier C; trivial/medium skill/command apply in-place
+budget:
+  monthly_token_usd: 30  # legacy field
+  monthly_tool_calls: 3000
+economic_budget:
+  monthly_cap_usd: 30
+  alert_at_pct: 0.80
+  escalate_at_pct: 1.00
+  hard_block_at_pct: 1.50
+  per_task_kind_caps:
+    # Distill phase (per spec §8). 4 task_kinds matching the 4 entity types.
+    entity-update-distill-skill: 0.20
+    entity-update-distill-command: 0.15
+    entity-update-distill-agent: 0.20
+    entity-update-distill-sop: 0.30
+    # Score / propose / test-gen are entity-type-agnostic (single cap each).
+    entity-update-score-any: 0.15
+    entity-update-propose-any: 0.25
+    entity-update-test-gen-any: 0.25
+    # Hard total cap per /update run (sum of all phases).
+    entity-update-iteration: 1.50
+  preferred_models:
+    default: claude-sonnet-4-6        # distill (skill/agent/sop), score, propose
+    light_tasks: claude-haiku-4-5     # distill (command), classify-diff prompts (none in v1.0)
+context_budget:
+  preamble_tokens: 3000
+  working_tokens: 30000
+  trigger_compact_at: 0.7
+memory_config:
+  memory_tool_enabled: false  # episodic recall via ops.run_summaries (Strategy E)
+  episodic_recall_enabled: true
+  recall_window_days: 90
+  recall_max_runs: 3
+  emit_run_summary: true
+  accept_corrections: true   # ops.corrections from /update reject feeds back as negative signal
+notify_on_completion: false  # in-session command; founder sees output live
+escalation_role: founder
+```
+
+> Per capability `update` v1.0 (spec: `wiki/capabilities/update/spec.md`
+> after Phase 8 promotion; draft `.archives/cla/update/spec.md`).
+> Tier C decision: `ops.decisions[a683a371-0611-49c7-9650-53503027d60e]`.
+> Projected throughput: 15-30 /update runs/month at $30 cap. Honest median
+> per-run cost: ~$0.70 (distill $0.10-0.20 + score + propose + test-gen).
+> v1.0 scope: 4 entity types (skill/command/agent/sop). Deferred to v1.1+:
+> hook (D-Std safety), pillar/folder/workflow (semantic gaps).
+
 > **Default permission posture for new roles (per CEO review Finding 6):** read-only across pillar boundaries; explicit write only to own pillar's `ops.*` tables. Cross-pillar writes require explicit grant in role definition above (eg metrics-curator writes to `ops.kpi_snapshots` because that IS the metrics pillar's domain table).
 
 ---

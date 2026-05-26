@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 71
+**Total entries:** 73
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -506,6 +506,21 @@ content area without walking the full corpus.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/entity-update/orchestrator
+
+**Kind:** skill
+**When to use:** Runs the /update <type> <name> --refs=<refs> phase chain for a single
+entity refresh. Composes shared eval-evo skills (distill-from-refs,
+review-extractions, propose-improvement, install-improvement, score-{type},
+test-gen). Replaces ad-hoc refresh hand-edits with citation-discipline +
+K4 quality ratchet + auto-revert. Invoked by .claude/commands/update.md.
+
+**Invoke:** `Skill({ skill: "entity-update/orchestrator" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/episodic-recall
 
 **Kind:** skill
@@ -683,6 +698,21 @@ in playbooks/sop.md. Invokes @cto persona as judge. SOPs are TIER C
 entities (process governance); /evolve on an SOP always opens a PR.
 
 **Invoke:** `Skill({ skill: "eval-evo/score-sop" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/eval-evo/test-gen
+
+**Kind:** skill
+**When to use:** Generates regression tests for an entity being modified by /update or
+/evolve. Embeds the All-Edge-Cases-Test 5-phase methodology VERBATIM
+(committed per @cto NIT T7 to avoid drift from ~/.claude/CLAUDE.md
+source). Per-type test conventions; co-located under <entity-dir>/tests/.
+Invoked by orchestrators in Phase 7.
+
+**Invoke:** `Skill({ skill: "eval-evo/test-gen" })`
 
 **Role scope:** *
 **Status:** active
