@@ -809,6 +809,26 @@ tier2_operational:
         # ====================================================================
         # Capability `update` v1.0 — citation spine (Sprint 2)
         # ====================================================================
+        - name: v_entity_update_lineage
+          migration_file: supabase/migrations/00041_v_entity_update_lineage.sql
+          kind: view
+          status: live
+          purpose: |
+            Chronological lineage of /update runs per entity. One row per
+            agent_run with agent_slug='update'; LEFT JOINs evolve_extractions
+            bucket counts (auto_accepted, pending_review, rejected_low_confidence,
+            founder_accepted, founder_rejected, founder_edited).
+
+            lineage_depth column: 0 = most recent run for the (entity_type,
+            entity_slug) pair; 1 = next prior; etc. Lets /update history
+            filter to the most-recent or walk the chain.
+
+            Consumed by:
+              /update history <type> <name> (command subcommand)
+              KPI entity_update_run_count_monthly (aggregates this view)
+              founder ad-hoc audits
+
+            Sprint 4 of capability `update` v1.0.
         - name: evolve_extractions
           migration_file: supabase/migrations/00040_evolve_extractions.sql
           status: live
