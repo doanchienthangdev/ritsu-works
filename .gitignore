@@ -80,6 +80,11 @@ secrets.json
 # See runtime/README.md for details.
 runtime/
 !runtime/README.md
+# EXCEPTION: .claude/hooks/runtime/ is TRACKED code (hook runtime handlers
+# referenced by .claude/settings.json) — not per-machine local data.
+# Added 2026-05-26 for resolver-v3-jit-loading v3.0.3 Tier C cutover.
+!.claude/hooks/runtime/
+!.claude/hooks/runtime/**
 
 # --- _build/ — build outputs ----------------------------------------------
 _build/
