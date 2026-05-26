@@ -22,7 +22,7 @@ sources/takes/files/diagnostics — full coverage of gbrain v0.40 surface.
 
 Capability: gbrain-operational-brain v1.0.2 (verified against live gbrain
 schema; supersedes v1.0.1 which had 4 naming errors based on brainstorm
-guesses).
+guesses). v1.0.4 adds `/brain integrations` — codebase integration map.
 
 Use when you want explicit founder ops on gbrain. For delegated multi-step
 reasoning, use @brain subagent. For automatic brain context in skills,
@@ -170,7 +170,7 @@ table.
 ## command/resolver
 
 **Kind:** command
-**When to use:** Lookup PLATFORM v2 (LLM-Native Catalog) — find AI workforce recipients for natural-language triggers. v2 uses in-session ambient catalog (Mode A, preferred), explicit LLM query (Mode B, audit), or keyword fallback (Mode C, CRON only). Catalog auto-loaded via @knowledge/recipients/*.md.
+**When to use:** Lookup PLATFORM v3 (JIT Loading). Founder/operator surface for resolver. Mode A2 delegates to mcp__resolver__find for ~10K INDEX + drill-down via MCP. Mode C keyword fallback retained for CRON/edge. v2.2 ambient (55K catalog) deprecated post-cutover.
 
 **Invoke:** `/resolver`
 

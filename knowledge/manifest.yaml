@@ -806,6 +806,37 @@ tier2_operational:
             Tier C decision: ops.decisions[a683a371-0611-49c7-9650-53503027d60e].
             Spec: wiki/capabilities/update/spec.md §4 (after Phase 8 promotion);
             draft .archives/cla/update/spec.md.
+        # ====================================================================
+        # Capability `update` v1.0 — citation spine (Sprint 2)
+        # ====================================================================
+        - name: evolve_extractions
+          migration_file: supabase/migrations/00040_evolve_extractions.sql
+          status: live
+          purpose: |
+            Citation spine for /update distill outputs (and future /evolve
+            --refs). Every proposed entity change traces to a ref chunk
+            (ref_path + ref_chunk_index) with raw_quote + proposed_change +
+            confidence + review_state.
+
+            3-bucket confidence convention (per wiki-sync/distill calibration):
+              confidence >= 0.85 → auto_accepted (terminal-on-insert)
+              0.6 <= confidence < 0.85 → pending_review (founder reviews)
+              confidence < 0.6 → rejected_low_confidence (terminal-on-insert)
+
+            Review state machine (enforced by trigger):
+              pending_review → founder_accepted | founder_rejected | founder_edited
+              auto_accepted, rejected_low_confidence: terminal-on-insert
+              founder_* states: terminal once set
+            Activates the L1 invariant `evolve-extractions-review-state-machine-valid`
+            (was `status: deferred` post-Sprint 1; flipped to `live` Sprint 2).
+
+            Naming uses `evolve_` prefix because the table lives in the shared
+            eval-evo skill folder convention. /update is the v1.0 writer;
+            future /evolve --refs (if approved v1.1) could also write here.
+
+            Tier C decision: ops.decisions[a683a371-0611-49c7-9650-53503027d60e].
+            Spec: wiki/capabilities/update/spec.md §4 (after Phase 8 promotion);
+            draft .archives/cla/update/spec.md.
     metrics:
       description: ETL'd snapshots of Product metrics (read-only mirror) + derived rollup views
       tables:

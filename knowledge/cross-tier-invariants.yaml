@@ -510,27 +510,28 @@ invariants:
     description: "ops.evolve_extractions.review_state transitions follow legal moves only (pending_review → founder_{accepted|rejected|edited}; auto_accepted terminal-on-insert; rejected_low_confidence terminal-on-insert)"
     kind: implies
     layer: L1
-    status: deferred
+    status: live
     source:
       tier: 2
       ref: "ops.evolve_extractions"
       query: "SELECT id, review_state FROM ops.evolve_extractions"
     target:
-      tier: 1
-      ref: "knowledge/state-machines.yaml"
-      query: "$.entity_update_extraction_review.transitions"
+      tier: 2
+      ref: "ops.evolve_extractions_check_review_transition (trigger)"
+      query: "DB trigger trg_evolve_extractions_review_transition enforces state machine"
     severity: critical
     hitl_tier: B
     fix_strategy: add_migration
     notes: |
-      Activates when migration 00040_evolve_extractions.sql lands (Sprint 2 of
-      capability `update` v1.0; renumbered from draft 00039). Until then,
-      status: deferred. Legal transitions:
+      Activated 2026-05-26 Sprint 2 (migration 00040). DB trigger
+      ops.evolve_extractions_check_review_transition enforces all transitions
+      at the row level — illegal transitions raise check_violation. Legal:
         pending_review → founder_accepted (founder reviewed + accepted)
         pending_review → founder_rejected (founder reviewed + rejected)
         pending_review → founder_edited (founder reviewed + provided edited text)
         auto_accepted (terminal — set at insert when confidence >= 0.85)
         rejected_low_confidence (terminal — set at insert when confidence < 0.6)
+        founder_* states: terminal once set
 
   - id: entity-update-runs-role-attribution-correct
     description: "Every ops.agent_runs WHERE agent_slug='update' MUST be triggered by role='entity-update-orchestrator'"

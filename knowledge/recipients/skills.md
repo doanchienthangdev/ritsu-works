@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 69
+**Total entries:** 71
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -532,6 +532,21 @@ the SQL query.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/eval-evo/distill-from-refs
+
+**Kind:** skill
+**When to use:** Per-entity-type LLM extraction of structured proposed changes from raw refs
+(founder-supplied files, wiki bundles, web URLs). Emits 3-bucket confidence
+signals and INSERTs to ops.evolve_extractions as the citation spine. Invoked
+by /update orchestrator immediately after refs resolution. Bridges raw
+knowledge to entity-actionable diffs without bypassing the verify gate.
+
+**Invoke:** `Skill({ skill: "eval-evo/distill-from-refs" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/eval-evo/install-improvement
 
 **Kind:** skill
@@ -585,6 +600,21 @@ only paths in playbook.allowed_paths_for_proposer. Reverse-Goodhart prompt
 discipline. Invoked by orchestrator each iter.
 
 **Invoke:** `Skill({ skill: "eval-evo/propose-improvement" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/eval-evo/review-extractions
+
+**Kind:** skill
+**When to use:** Founder-facing review queue UX for ops.evolve_extractions in pending_review
+state (confidence 0.6-0.85 bucket). Mirrors /wiki review pattern. Surfaces
+one extraction at a time with raw_quote + proposed_change + section_target;
+founder picks Accept / Edit / Reject. Multi-session resumable via the
+agent_run_id key.
+
+**Invoke:** `Skill({ skill: "eval-evo/review-extractions" })`
 
 **Role scope:** *
 **Status:** active

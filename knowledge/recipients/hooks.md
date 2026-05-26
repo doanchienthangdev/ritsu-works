@@ -7,7 +7,7 @@
 This file is THE source of truth for hook recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 
-**Total entries:** 12
+**Total entries:** 14
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -56,12 +56,34 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## hook/pre-bash-mass-action
+
+**Kind:** hook
+**When to use:** > Observability-only — never blocks. Detects when model uses Bash for actions > that have a registered workforce recipient (skill, command, SOP, etc.) and > logs ops.events.resolver.bypassdetected for A1 efficacy measurement.
+
+**Invoke:** Auto-triggered (pre-tool) for tools matching: `Bash`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## hook/pre-delegate-check
 
 **Kind:** hook
 **When to use:** > Watches session metrics (tool count, context size, intermediate output volume) and emits warnings when an agent should consider delegating to a subagent. This hook never blocks — it only flags.
 
 **Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## hook/pre-edit-significant
+
+**Kind:** hook
+**When to use:** > Observability-only — never blocks. Companion to pre-bash-mass-action > for Edit/Write tools. Detects when model edits files that have a registered > workforce recipient (skill, SOP, capability spec) and logs > ops.events.resolver.bypassdetected if a recipient would match.
+
+**Invoke:** Auto-triggered (pre-tool) for tools matching: `Edit,Write`
 
 **Role scope:** *
 **Status:** active

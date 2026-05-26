@@ -7,7 +7,7 @@
 This file is THE source of truth for schedule recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 
-**Total entries:** 14
+**Total entries:** 15
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -128,6 +128,17 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 **When to use:** Cron 45 5 * * *: Assemble morning brief 15 min before founder block
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `synthesize-morning-brief`
+
+**Role scope:** founder, etl-runner
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## schedule/resolver-v3-health-check
+
+**Kind:** schedule
+**When to use:** Cron 0 * * * *: Canary mcp__resolver__find call; alert founder on 3 consecutive failures
+
+**Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `resolver-v3-health-check`
 
 **Role scope:** founder, etl-runner
 **Status:** active
