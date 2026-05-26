@@ -785,6 +785,7 @@ tier2_operational:
         # ====================================================================
         - name: entity_edit_locks
           migration_file: supabase/migrations/00039_universal_entity_edit_lock.sql
+          extended_by: supabase/migrations/00042_v1_1_entity_edit_locks_extend.sql
           status: live
           purpose: |
             Universal lock for entity-level edit serialization across /update,

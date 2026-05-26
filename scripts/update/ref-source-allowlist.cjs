@@ -94,10 +94,17 @@ function startsWithAny(ref, prefixes) {
 /**
  * Classify a single ref against the allowlist policy for the given entity type.
  * Returns { allowed: bool, reason: string|null }.
+ *
+ * v1.1 (2026-05-26): hook type joins agent under the strict allowlist policy.
+ * Both are safety-critical surfaces vulnerable to prompt-injection
+ * self-elevation.
  */
+const STRICT_TYPES = new Set(["agent", "hook"]);
+
 function classifyRef(ref, entityType) {
-  // Non-agent: looser policy (allowed)
-  if (entityType !== "agent") {
+  // Non-strict types (skill, command, sop, pillar, file, folder, workflow):
+  // looser policy (allowed).
+  if (!STRICT_TYPES.has(entityType)) {
     return { allowed: true, reason: null };
   }
 
@@ -196,4 +203,5 @@ module.exports = {
   startsWithAny,
   TRUSTED_PREFIXES,
   REFUSED_PREFIXES,
+  STRICT_TYPES,  // v1.1: agent + hook strict policy
 };

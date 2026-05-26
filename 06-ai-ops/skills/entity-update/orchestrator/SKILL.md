@@ -39,8 +39,8 @@ THIN dispatcher. Phase logic lives in shared eval-evo skills. This file:
 ### Input (from `.claude/commands/update.md`)
 ```json
 {
-  "entity_type": "skill | command | agent | sop",
-  "entity_name": "<slug>",
+  "entity_type": "skill | command | agent | sop | hook | pillar | file | folder | workflow",
+  "entity_name": "<slug or path>",
   "entity_path": "<resolved-file-or-dir-path>",
   "refs": ["<ref1>", "<ref2>", ...],
   "run_id": "<uuid>",
@@ -49,9 +49,22 @@ THIN dispatcher. Phase logic lives in shared eval-evo skills. This file:
   "force_pr": <bool>,
   "skip_drift_check": <bool>,
   "allow_untrusted_refs": <bool>,
+  "force_tier": "B" | "C" | null,    // v1.1 file mode only
+  "magic_phrase_override_reason": "<string|null>",   // v1.1 hook ceremony record
   "dry_run": <bool>
 }
 ```
+
+### v1.1 type extensions
+
+- `hook` (Sprint 1): requires D-Std magic-phrase ceremony BEFORE Phase 0. Refused without
+  `magic_phrase_override_reason` populated (≥ 5 words). All hook runs always Tier C minimum.
+- `pillar` (Sprint 1): resolves pillar name (alias or numeric); refuses sub-pillar paths;
+  allowed_paths from playbook = README.md + CLAUDE.md only.
+- `file` (Sprint 2): NO playbook, NO score/K4 ratchet. Path-tier classification via
+  `knowledge/update-file-paths.yaml` + `scripts/update/path-classify.cjs`. Tier-C floor enforced.
+- `folder` (Sprint 3): classifier-dispatcher; recurses into the dispatched-to /update <type>.
+- `workflow` (Sprint 3): REFUSES at runtime until workflows/ folder ships.
 
 ### Output (JSON return to command)
 ```json
@@ -80,6 +93,26 @@ THIN dispatcher. Phase logic lives in shared eval-evo skills. This file:
 
 ## Phase chain
 
+### Phase -1 — D-Std ceremony (hook type only; v1.1 Sprint 1)
+
+For `entity_type='hook'`:
+- Command surface (NOT orchestrator) emits the magic-phrase prompt:
+  ```
+  /update hook <name> requires D-Std authorization per governance/HITL.md.
+  Reply with: override: <reason 5+ words> to proceed.
+  Reply STOP to cancel.
+  ```
+- Founder issues `override: <reason 5+ words>`. Validates ≥ 5 whitespace-separated
+  words + lowercase `override:` prefix. Re-prompts on invalid (max 3 attempts).
+- On valid: command emits "Override registered. Executing in 30s. Reply STOP to cancel."
+- 30s timer. If STOP within window → ABORT with `exit_reason='aborted_d_std_cancelled'`.
+- On timer expire: command invokes orchestrator with `magic_phrase_override_reason` populated.
+- Orchestrator records `was_override=true` + `override_reason` in `ops.agent_runs` row
+  per HITL.md Tier D-Std audit requirements.
+
+If `entity_type='hook'` AND `magic_phrase_override_reason` is null/missing → orchestrator
+ABORTs with `exit_reason='aborted_d_std_required'`. Founder must re-run via command surface.
+
 ### Phase 0 — Pre-flight (orchestrator does itself; no LLM)
 
 1. **Drift gate** — invoke `pnpm check` unless `skip_drift_check` is true.
@@ -88,8 +121,8 @@ THIN dispatcher. Phase logic lives in shared eval-evo skills. This file:
      `tier='C'`. Founder authorized override.
    - On drift failure → ABORT with `exit_reason='aborted_drift'`.
 2. **Working-tree check** — `git diff --quiet -- <entity-path>`. If dirty, abort.
-3. **Ref-source allowlist** (agent type only) — invoke
-   `scripts/update/ref-source-allowlist.cjs --entity-type=agent --refs=...
+3. **Ref-source allowlist** (agent + hook types; v1.1 STRICT_TYPES) — invoke
+   `scripts/update/ref-source-allowlist.cjs --entity-type=<agent|hook> --refs=...
    [--allow-untrusted-refs]`. If refused, ABORT unless override.
 4. **Refs resolution** — invoke `scripts/update/refs-resolver.cjs --run-id=<run_id> --refs=...`.
    For `wiki-query-pending` refs: orchestrator (this skill running in Claude
@@ -154,6 +187,22 @@ Results:
 - `trivial` → proceed with in-place apply (Tier B-light).
 
 If `force_pr=true`, promote to medium (audit-logged Tier C override).
+
+**v1.1 per-type tier floors:**
+- `hook` → ALWAYS Tier C minimum (PR always). trivial → promoted to medium with
+  audit event `hook_tier_floor_enforced`.
+- `pillar` → ALWAYS Tier C minimum (PR always). trivial → promoted to medium with
+  audit event `pillar_tier_floor_enforced`.
+- `file` (Sprint 2) → tier from path-classify Phase 0a output; orchestrator does NOT
+  run classify-diff for file type (no entity-type structural matrix; path-tier IS the tier).
+- `folder` (Sprint 3) → no classify-diff (dispatcher; recurses into dispatched type).
+- `workflow` (Sprint 3) → REFUSEs before reaching Phase 5.
+
+**v1.1 hook + pillar structural matrices added to classify-diff.cjs:**
+- Hook: hitl_tier change, block: directive add/remove, denied_patterns: change,
+  requires: change, tier_override_authority: change.
+- Pillar: pillar_code, status, composes_from, sops_namespace, pillar_owner,
+  entry_conditions, home_pillar, personas_bound field changes.
 
 ### Phase 6 — Install (in-place or PR) + 3-way diff check
 

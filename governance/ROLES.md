@@ -903,8 +903,15 @@ permissions:
     - ".claude/commands/<entity-name>.md"   # leaf command edits (Tier B)
     - ".claude/agents/<entity-name>.md"     # leaf agent edits (Tier B)
     - "06-ai-ops/sops/<entity-name>/**"     # leaf SOP edits (Tier C — sops are higher stakes)
+    # v1.1 (Sprint 1 + Sprint 2) additions:
+    - ".claude/hooks/<entity-name>.md"      # v1.1 hook edits (Tier C minimum + D-Std magic-phrase ceremony)
+    - "<pillar>/README.md"                  # v1.1 pillar README only
+    - "<pillar>/CLAUDE.md"                  # v1.1 pillar CLAUDE.md only
+    # File mode (v1.1 Sprint 2): path-tier classified via knowledge/update-file-paths.yaml.
+    # Concrete glob list lives there (Tier 1 paths refused; pillar docs Tier C; tests/scripts Tier B).
     - ".archives/update-runs/**"            # local-only run artifacts
-    # Tier C entities (hooks, governance/, 00-core/) go through /cla extend path; not direct write here
+    # Tier 1 entities (00-core/, governance/, supabase/migrations/, .mcp.json) STILL refused;
+    # founder must use /cla extend or direct PR per HITL.md.
   tier2_schemas_read: [ops.*, metrics.product_dau_snapshot]
   tier2_schemas_write:
     - ops.agent_runs       # own log (agent_slug='update')
@@ -945,10 +952,17 @@ economic_budget:
     entity-update-distill-command: 0.15
     entity-update-distill-agent: 0.20
     entity-update-distill-sop: 0.30
+    # v1.1 distill caps (Sprint 1 + Sprint 2 + Sprint 3)
+    entity-update-distill-hook: 0.20      # v1.1 — hook markdown ≈ skill density
+    entity-update-distill-pillar: 0.30    # v1.1 — pillar README/CLAUDE can be dense
+    entity-update-distill-file: 0.30      # v1.1 — generic file mode; Sonnet
+    entity-update-distill-workflow: 0.25  # v1.1 stub (REFUSED at runtime until workflows/ ships)
     # Score / propose / test-gen are entity-type-agnostic (single cap each).
     entity-update-score-any: 0.15
     entity-update-propose-any: 0.25
     entity-update-test-gen-any: 0.25
+    # Path classify is deterministic (no LLM call).
+    entity-update-path-classify: 0.00     # v1.1 — Sprint 2 (file + folder)
     # Hard total cap per /update run (sum of all phases).
     entity-update-iteration: 1.50
   preferred_models:
