@@ -57,7 +57,7 @@ The command:
 
 | Arg / Flag | Required | Validation |
 |---|---|---|
-| `<entity-type>` | yes | enum: skill, command, agent, sop **(v1.0)** + hook, pillar **(v1.1 Sprint 1)** + file **(v1.1 Sprint 2)** + folder, workflow **(v1.1 Sprint 3)** |
+| `<entity-type>` | yes | enum: skill, command, agent, sop **(v1.0)** + hook, pillar **(v1.1 Sprint 1)** + file **(v1.1 Sprint 2)** + folder, workflow **(v1.1 Sprint 3)** + tier1-file **(v1.1.1)** |
 | `<entity-name>` | yes | slug `^[a-z0-9][a-z0-9-/]*$` (nested slash allowed; no `..`, no leading `/`). For `file` type: a path relative to repo root. |
 | `--refs=<csv>` | yes | comma-separated ref list; may repeat flag; supports `wiki:` forms |
 | `--force-pr` | no | Promote trivial/medium to PR-after-loop (Tier C audit override) |
@@ -102,6 +102,26 @@ Sub-pillar paths (e.g., `05-customer/success`) REFUSED in v1.1 — use `/update 
 **`folder` type** (v1.1 Sprint 3) — classifier dispatcher only; see §"v1.1 folder mode".
 
 **`workflow` type** (v1.1 Sprint 3) — REFUSES at runtime until `workflows/` folder ships per `knowledge/manifest.yaml`.
+
+**`tier1-file` type** (v1.1.1) — D-Std magic-phrase ceremony like hook. ALWAYS Tier C (PR; no in-place). Hardcoded allowlist:
+
+```
+ALLOWED with D-Std ceremony:
+  00-core/**                              — identity docs (charter, brand voice, etc.)
+  governance/HITL.md                      — HITL policy refinements
+  governance/ROLES.md                     — role definitions
+  governance/IDENTITY.md                  — identity doc
+  governance/BUDGET.md                    — budget doc
+  knowledge/manifest.yaml                 — content fixes (structural changes still /cla extend)
+  knowledge/cross-tier-invariants.yaml    — invariant tweaks
+
+REFUSED (require stricter ceremony):
+  governance/SECRETS.md                   — D-MAX (hand-edit + PR)
+  supabase/migrations/**                  — schema discipline (/cla propose)
+  .mcp.json                               — D-MAX (hand-edit + PR)
+```
+
+Use case: founder has insight from /muse session and wants to refine 00-core/product.md or governance/HITL.md without going through full /cla extend ceremony, while still getting citation discipline + 3-way diff + audit trail.
 
 ## Ref grammar (same as /cla propose v1.1)
 
