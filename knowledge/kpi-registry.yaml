@@ -127,6 +127,18 @@ kpis:
     cadence: monthly
     source: "SELECT count(*) FROM ops.evolve_extractions WHERE review_state IN ('founder_accepted', 'founder_rejected', 'founder_edited') AND date_trunc('month', founder_decision_at) = date_trunc('month', now())"
 
+  # v1.1 Sprint 2 KPI (file mode adoption)
+  - id: entity_update_file_mode_run_count_monthly
+    type: operational
+    description: "Total /update file <path> runs per month (subset of entity_update_run_count_monthly). Measures arbitrary-file mode adoption. File mode is the fallback when no typed entity fits — expect lower volume than typed types."
+    owner_pillar: 06-ai-ops
+    owner_role: entity-update-orchestrator
+    target: 3
+    threshold_warn: 0
+    threshold_critical: 0
+    cadence: monthly
+    source: "SELECT count(*) FROM ops.agent_runs WHERE agent_slug = 'update' AND input_payload->>'entity_type' = 'file' AND state = 'completed' AND date_trunc('month', started_at) = date_trunc('month', now())"
+
   - id: entity_update_revert_rate
     type: operational
     description: "K4 revert rate over 30-day rolling window: reverted_quality_regression outcomes / total terminal outcomes. Target ≤ 0.20 (≤ 20%). Warn at > 0.30 (noisy proposer or distill prompt drift). Critical at > 0.50 (K4 broken or refs corrupted). Per spec §4 SC2/SC4."

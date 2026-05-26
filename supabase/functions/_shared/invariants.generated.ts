@@ -3,9 +3,9 @@
 // Re-run with: pnpm wave2:bundle-invariants
 //
 // Source version: 1.0.0
-// Invariant count: 25
-// By layer: L1=7 L2=12 L3=6
-// Generated at: 2026-05-26T14:07:16.965Z
+// Invariant count: 28
+// By layer: L1=8 L2=14 L3=6
+// Generated at: 2026-05-26T15:13:16.696Z
 
 import type { Invariant } from "./invariants.ts";
 
@@ -495,6 +495,67 @@ export const ALL_INVARIANTS: Invariant[] = [
     "hitl_tier": "B",
     "fix_strategy": "add_migration",
     "notes": "Activated 2026-05-26 Sprint 2 (migration 00040). DB trigger\nops.evolve_extractions_check_review_transition enforces all transitions\nat the row level — illegal transitions raise check_violation. Legal:\n  pending_review → founder_accepted (founder reviewed + accepted)\n  pending_review → founder_rejected (founder reviewed + rejected)\n  pending_review → founder_edited (founder reviewed + provided edited text)\n  auto_accepted (terminal — set at insert when confidence >= 0.85)\n  rejected_low_confidence (terminal — set at insert when confidence < 0.6)\n  founder_* states: terminal once set\n"
+  },
+  {
+    "id": "update-file-path-tier-recorded",
+    "description": "Every /update file run records input_payload.path_tier (B | C | refuse) from path-classify Phase 0a output",
+    "kind": "implies",
+    "layer": "L2",
+    "status": "live",
+    "source": {
+      "tier": 2,
+      "ref": "ops.agent_runs",
+      "query": "SELECT id, input_payload FROM ops.agent_runs WHERE agent_slug = 'update' AND input_payload->>'entity_type' = 'file'"
+    },
+    "target": {
+      "tier": 2,
+      "ref": "ops.agent_runs.input_payload.path_tier",
+      "query": "input_payload->>'path_tier' IS NOT NULL"
+    },
+    "severity": "critical",
+    "hitl_tier": "B",
+    "fix_strategy": "manual_only",
+    "notes": "Activated v1.1 Sprint 2. Every /update file run MUST persist its\npath-classify outcome in input_payload.path_tier; this is the audit\nbreadcrumb proving the path-tier classifier ran + was respected.\n"
+  },
+  {
+    "id": "update-file-refuse-tier-not-installed",
+    "description": "No /update file run with input_payload.path_tier='refuse' may have state='completed' AND output_payload.diff_applied != 'none'",
+    "kind": "implies",
+    "layer": "L2",
+    "status": "live",
+    "source": {
+      "tier": 2,
+      "ref": "ops.agent_runs",
+      "query": "SELECT id FROM ops.agent_runs WHERE agent_slug = 'update' AND input_payload->>'entity_type' = 'file' AND input_payload->>'path_tier' = 'refuse' AND state = 'completed'"
+    },
+    "target": {
+      "tier": 2,
+      "ref": "ops.agent_runs (same row)",
+      "query": "output_payload->>'diff_applied' = 'none' OR output_payload->>'diff_applied' IS NULL"
+    },
+    "severity": "critical",
+    "hitl_tier": "B",
+    "fix_strategy": "manual_only",
+    "notes": "A refused-tier path-classify result MUST result in ABORT before install.\nIf any run lands with path_tier=refuse + diff_applied != 'none', that's\na SAFETY BREACH — file landed at a Tier 1 location that should have\nbeen refused. Manual review + revert required.\n"
+  },
+  {
+    "id": "update-file-paths-yaml-must-validate",
+    "description": "knowledge/update-file-paths.yaml MUST validate against knowledge/schemas/update-file-paths.schema.json",
+    "kind": "exists",
+    "layer": "L1",
+    "status": "live",
+    "source": {
+      "tier": 1,
+      "ref": "knowledge/update-file-paths.yaml"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "knowledge/schemas/update-file-paths.schema.json"
+    },
+    "severity": "critical",
+    "hitl_tier": "A",
+    "fix_strategy": "patch_yaml",
+    "notes": "Validated by scripts/validate-tier1.cjs at every pnpm check. v1.1\nSprint 2 deliverable. Catches drift in path-tier table schema.\n"
   },
   {
     "id": "entity-update-runs-role-attribution-correct",
