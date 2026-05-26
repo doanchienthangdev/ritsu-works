@@ -113,6 +113,34 @@ For `entity_type='hook'`:
 If `entity_type='hook'` AND `magic_phrase_override_reason` is null/missing → orchestrator
 ABORTs with `exit_reason='aborted_d_std_required'`. Founder must re-run via command surface.
 
+### Phase 0a — Path classify (file type only; v1.1 Sprint 2)
+
+For `entity_type='file'`:
+- BEFORE Phase 0 drift gate. Deterministic; no LLM call.
+- Invoke `node scripts/update/path-classify.cjs --path=<entity_path>`.
+- Reads `knowledge/update-file-paths.yaml`. First-match-wins.
+- Three outcomes:
+  - `tier='refuse'` → orchestrator ABORTs with `exit_reason='aborted_path_classification_refused'`,
+    surfaces `reason` + `forward_to` to command. No LLM cost.
+  - `tier='C'` → tier_floor=C set. `force_tier=B` would attempt downgrade — ORCHESTRATOR REFUSES
+    the downgrade with `exit_reason='aborted_force_tier_downgrade_refused'`. `force_tier=C` is a
+    no-op (already C).
+  - `tier='B'` → tier_floor=B. `force_tier=C` upgrade allowed + audit event
+    `update_file_force_tier_upgrade` logged.
+- Tier-floor recorded in `ops.agent_runs.input_payload.path_tier` for invariant
+  `update-file-path-classification-deterministic`.
+
+Path safety pre-check (also done by path-classify.cjs):
+- Absolute paths (`/...`) → REFUSED
+- `..` components → REFUSED (path traversal)
+- Paths resolving outside repo root via realpath → REFUSED
+
+File-size safety (orchestrator post path-classify):
+- If `fs.statSync(entity_path).size > 200 * 1024` (200 KB) → ABORT with
+  `exit_reason='aborted_file_too_large_for_distill'`.
+- If file content is not valid UTF-8 (binary detection via sample bytes) →
+  ABORT with `exit_reason='aborted_binary_file_refused'`.
+
 ### Phase 0 — Pre-flight (orchestrator does itself; no LLM)
 
 1. **Drift gate** — invoke `pnpm check` unless `skip_drift_check` is true.
@@ -193,8 +221,11 @@ If `force_pr=true`, promote to medium (audit-logged Tier C override).
   audit event `hook_tier_floor_enforced`.
 - `pillar` → ALWAYS Tier C minimum (PR always). trivial → promoted to medium with
   audit event `pillar_tier_floor_enforced`.
-- `file` (Sprint 2) → tier from path-classify Phase 0a output; orchestrator does NOT
-  run classify-diff for file type (no entity-type structural matrix; path-tier IS the tier).
+- `file` (v1.1 Sprint 2): tier from path-classify Phase 0a output. Orchestrator
+  SKIPS classify-diff for file type (no entity-type structural matrix; path-tier
+  IS the tier). Score Phase 2 + Phase 8 ratchet ALSO SKIPPED (no playbook → no
+  scoring rubric). Mandatory Phase 6.5 founder-approval AskUserQuestion replaces
+  K4 ratchet for safety.
 - `folder` (Sprint 3) → no classify-diff (dispatcher; recurses into dispatched type).
 - `workflow` (Sprint 3) → REFUSEs before reaching Phase 5.
 
@@ -229,6 +260,18 @@ co-located convention).
 If test-gen returns no tests (entity has no testable surface) OR generated
 tests don't apply (skip-tagged), log Tier-B `.skip` Telegram notify event
 (Sprint 4 wires this).
+
+### Phase 6.5 — Founder approval at install (file type only; v1.1 Sprint 2)
+
+For `entity_type='file'`, BEFORE Phase 6 install commits the diff:
+- Tier B (in-place): orchestrator presents the unified diff via AskUserQuestion
+  ("Apply this diff to <path>?") with 4 options: Apply / Edit / Reject / Promote to PR (Tier C).
+  Reject → ABORT with `exit_reason='aborted_founder_rejected_diff'`.
+  Promote → re-classify as Tier C (PR path).
+- Tier C (PR): no in-session approval — PR review on GitHub IS the approval.
+
+This is the **K4 substitute** for file mode. Without a playbook → no score → no K4 ratchet.
+Founder agency stays in the loop on every arbitrary-file change.
 
 ### Phase 8 — Score post + K4 ratchet
 

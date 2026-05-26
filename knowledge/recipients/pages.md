@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 45
+**Total entries:** 46
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -448,6 +448,16 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **When to use:** surface-compliance.yaml — Per-surface compliance (Bài #17)
 
 **Invoke:** `Read("knowledge/surface-compliance.yaml")`
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-update-file-paths
+
+**Kind:** page
+**When to use:** ============================================================================ update-file-paths.yaml — Path-tier classifier for /update file <path> mode ============================================================================ Tier 1 declarative — consumed by scripts/update/path-classify.cjs at /update file time. Globs evaluated in DECLARED ORDER; first match wins. Tier values: refuse — REFUSED ...
+
+**Invoke:** `Read("knowledge/update-file-paths.yaml")`
 
 **Role scope:** *
 **Status:** active

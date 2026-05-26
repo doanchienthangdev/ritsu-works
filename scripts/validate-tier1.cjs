@@ -53,6 +53,7 @@ const FILE_TO_SCHEMA = {
   'cross-tier-invariants.yaml': 'cross-tier-invariants.schema.json',
   'workforce-personas.yaml': 'workforce-personas.schema.json',
   'cla-routing-keywords.yaml': 'cla-routing-keywords.schema.json',
+  'update-file-paths.yaml': 'update-file-paths.schema.json',
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });

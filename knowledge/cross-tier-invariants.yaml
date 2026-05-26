@@ -533,6 +533,70 @@ invariants:
         rejected_low_confidence (terminal — set at insert when confidence < 0.6)
         founder_* states: terminal once set
 
+  # ─────────────────────────────────────────────────────────────────
+  # Capability `update` v1.1 — file mode safety invariants (Sprint 2)
+  # ─────────────────────────────────────────────────────────────────
+  - id: update-file-path-tier-recorded
+    description: "Every /update file run records input_payload.path_tier (B | C | refuse) from path-classify Phase 0a output"
+    kind: implies
+    layer: L2
+    status: live
+    source:
+      tier: 2
+      ref: "ops.agent_runs"
+      query: "SELECT id, input_payload FROM ops.agent_runs WHERE agent_slug = 'update' AND input_payload->>'entity_type' = 'file'"
+    target:
+      tier: 2
+      ref: "ops.agent_runs.input_payload.path_tier"
+      query: "input_payload->>'path_tier' IS NOT NULL"
+    severity: critical
+    hitl_tier: B
+    fix_strategy: manual_only
+    notes: |
+      Activated v1.1 Sprint 2. Every /update file run MUST persist its
+      path-classify outcome in input_payload.path_tier; this is the audit
+      breadcrumb proving the path-tier classifier ran + was respected.
+
+  - id: update-file-refuse-tier-not-installed
+    description: "No /update file run with input_payload.path_tier='refuse' may have state='completed' AND output_payload.diff_applied != 'none'"
+    kind: implies
+    layer: L2
+    status: live
+    source:
+      tier: 2
+      ref: "ops.agent_runs"
+      query: "SELECT id FROM ops.agent_runs WHERE agent_slug = 'update' AND input_payload->>'entity_type' = 'file' AND input_payload->>'path_tier' = 'refuse' AND state = 'completed'"
+    target:
+      tier: 2
+      ref: "ops.agent_runs (same row)"
+      query: "output_payload->>'diff_applied' = 'none' OR output_payload->>'diff_applied' IS NULL"
+    severity: critical
+    hitl_tier: B
+    fix_strategy: manual_only
+    notes: |
+      A refused-tier path-classify result MUST result in ABORT before install.
+      If any run lands with path_tier=refuse + diff_applied != 'none', that's
+      a SAFETY BREACH — file landed at a Tier 1 location that should have
+      been refused. Manual review + revert required.
+
+  - id: update-file-paths-yaml-must-validate
+    description: "knowledge/update-file-paths.yaml MUST validate against knowledge/schemas/update-file-paths.schema.json"
+    kind: exists
+    layer: L1
+    status: live
+    source:
+      tier: 1
+      ref: "knowledge/update-file-paths.yaml"
+    target:
+      tier: 1
+      ref: "knowledge/schemas/update-file-paths.schema.json"
+    severity: critical
+    hitl_tier: A
+    fix_strategy: patch_yaml
+    notes: |
+      Validated by scripts/validate-tier1.cjs at every pnpm check. v1.1
+      Sprint 2 deliverable. Catches drift in path-tier table schema.
+
   - id: entity-update-runs-role-attribution-correct
     description: "Every ops.agent_runs WHERE agent_slug='update' MUST be triggered by role='entity-update-orchestrator'"
     kind: implies

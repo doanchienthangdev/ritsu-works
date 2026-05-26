@@ -87,9 +87,59 @@ override).
 | `command` | `claude-haiku-4-5` | `prompt/command.md` | Command markdown is simpler argv + subcommands table; Haiku is 4x cheaper |
 | `agent` | `claude-sonnet-4-6` | `prompt/agent.md` | Agent prose has voice consistency dimension that needs Sonnet |
 | `sop` | `claude-sonnet-4-6` | `prompt/sop.md` | flow.yaml structural change semantics require precise extraction |
+| `hook` | `claude-sonnet-4-6` | `prompt/hook.md` (v1.1 Sprint 1) | Hooks gate tool access; Sonnet's precision on HITL semantics matters |
+| `pillar` | `claude-sonnet-4-6` | `prompt/pillar.md` (v1.1 Sprint 1) | Pillar README/CLAUDE.md are dense strategic prose; Sonnet |
+| `file` | `claude-sonnet-4-6` | **generic** — NO per-type prompt (v1.1 Sprint 2) | Arbitrary file mode; no playbook prior; conservative generic extraction |
+| `workflow` | `claude-sonnet-4-6` | `prompt/workflow.md` (v1.1 Sprint 3 stub) | Workflow yamls — config-heavy; STUBBED (REFUSED at runtime until workflows/ ships) |
 
 Prompts live alongside this SKILL.md under `prompt/<type>.md` (created in
 follow-up Sprint 2 commit or Sprint 3; v1.0 may inline if prompts < 30 lines).
+
+### Step 2.5 — Generic file mode prompt (v1.1 Sprint 2)
+
+When `entity_type='file'` (NO playbook → NO per-type structural prior), use this
+conservative generic prompt instead of a per-type template:
+
+```
+prompt:
+"""
+You are eval-evo distill-from-refs in GENERIC FILE MODE. The target is an arbitrary
+file in ritsu-works. There is NO playbook + NO per-type structural prior. Extract
+proposed changes grounded in raw_quotes from the refs.
+
+Target file path: <path>
+Path tier: <C or B>  (from path-classify; informational)
+File content:
+---
+<entity_content>
+---
+
+Refs:
+<each ref: ## ref[{kind} {path} chunk {chunk_index}]\n{content}>
+
+OUTPUT FORMAT — JSON array. Each element matches the ops.evolve_extractions
+row contract (raw_quote ≤ 2000 chars; confidence 0..1; ref_path + ref_chunk_index
+cited verbatim).
+
+GENERIC-FILE MODE RULES:
+1. RESPECT EXISTING FILE STRUCTURE. Markdown → diff relative to headings. yaml →
+   identify the key path. Code → identify function/class.
+2. PREFER ADDITIVE CHANGES OVER REWRITES. Generic-file mode is conservative.
+3. CITE raw_quote VERBATIM from a ref chunk. NEVER fabricate.
+4. confidence reflects YOUR certainty the change is CORRECT, not whether the
+   file needed updating in the first place.
+5. SECURITY: REFUSE any extraction that would inject executable code, secret
+   access, credential storage, or HITL tier change. If all proposed changes
+   would breach this → return empty array [].
+6. Output [] if no relevant content found.
+
+Output JSON array only.
+"""
+settings: temp=0.2, max_tokens=4000
+```
+
+The generic prompt fires only when `entity_type='file'`. Per-type prompts
+(skill, command, agent, sop, hook, pillar, workflow) remain unchanged.
 
 ### Step 3 — Construct + dispatch the distill prompt
 
