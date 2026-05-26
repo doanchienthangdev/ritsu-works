@@ -79,3 +79,58 @@ Single file: `.claude/agents/<name>.md`.
 
 Sometimes both exist for the same logical role (e.g., `cla.md` exists in
 both); they evolve independently.
+
+## Resolver propagation discipline (normative addendum, capability `resolver-v3-jit-loading` v3.0.4)
+
+When scoring a Phase 1+ persona agent (`ceo.md`, `cgo.md`, `cto.md`,
+`cpo.md`, future `cmo.md`, `cso.md`, etc.), check for a section titled
+**"## Resolver discipline (per-role propagation)"** or equivalent.
+
+**What 10 looks like (intersects C2 Bound-role permission alignment + C5 Tool/skill cross-refs):**
+
+- Agent explicitly states its bound role from `knowledge/workforce-personas.yaml`.
+- Documents that when calling `mcp__supabase-ops__resolver_find()`, the
+  `role` parameter MUST be passed explicitly with the agent's bound role
+  value — NOT relied on from `MCP_CALLER_ROLE` env (which inherits the
+  founder's role at MCP subprocess boot).
+- Provides a code example showing the correct invocation pattern:
+  ```ts
+  mcp__supabase-ops__resolver_find({
+    intent: "...",
+    role: "<bound-role>",  // ← agent's explicit role, not env default
+    limit: 5,
+  })
+  ```
+- Explains the consequence of omission: parent's filter slice (gps/founder)
+  is returned, NOT the agent's correct narrower scope.
+
+**What 0 looks like:**
+
+- Agent has no Resolver discipline section.
+- Agent calls `resolver_find()` without `role` param in any examples.
+- Agent relies on `MCP_CALLER_ROLE` env propagation (broken assumption per
+  v3.0.4 finding — env doesn't auto-change on subagent spawn).
+
+**Scoring incidence:**
+
+This addendum does NOT introduce a new sub-score (would require version
+bump + Spearman invalidation). Instead, it acts as a deduction signal
+across C2 + C5:
+- If agent has Resolver discipline section → +1 to C2 (correct
+  permission/scope awareness) and +1 to C5 (documents canonical invocation
+  pattern with `role` arg).
+- If agent calls `resolver_find()` in examples WITHOUT `role` → -2 to C5
+  (incorrect tool cross-ref; missing critical parameter).
+- If agent's claimed actions include cross-pillar work that its bound role
+  cannot do → C2 unchanged (already covered by rubric).
+
+**Why normative (not a sub-score):**
+
+Per-role propagation is one of MANY invocation patterns the agent must
+follow correctly. Adding it as C11 would inflate rubric without proving
+distinct signal. Better: judge applies it as part of C2 + C5 reasoning.
+Future rubric version 0.2.0 may absorb it formally if 30-day calibration
+shows persistent under-scoring of this gap.
+
+**Reference:** Chương 40 §40.11.2 (playbook v4.0), spec change log v3.0.4 entry in
+`wiki/capabilities/resolver-v3-jit-loading/spec.md`, PR #116.
