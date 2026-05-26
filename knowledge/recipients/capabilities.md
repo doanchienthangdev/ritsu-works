@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 8
+**Total entries:** 10
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -87,6 +87,28 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Role scope:** *
 **Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/resolver-v3-jit-loading
+
+**Kind:** capability
+**When to use:** /resolver v3 — JIT Loading (Pocket Map + Drill-Down). Replaces v2.2's 55K-token ambient catalog (preloaded every session via v3.0.4
+
+**Invoke:** `Read("wiki/capabilities/resolver-v3-jit-loading/spec.md")` or `/cla update resolver-v3-jit-loading`
+
+**Role scope:** *
+**Status:** deployed
+**Pillar:** 06-ai-ops
+
+## capability/update
+
+**Kind:** capability
+**When to use:** Update — Bayesian-update verb for ritsu-works entities (refs-driven). NEW slash command /update <type> <name> --refs=<refs> for refs-driven v1.0.0
+
+**Invoke:** `Read("wiki/capabilities/update/spec.md")` or `/cla update update`
+
+**Role scope:** *
+**Status:** proposed
 **Pillar:** 06-ai-ops
 
 ## capability/wiki-sync-from-refs

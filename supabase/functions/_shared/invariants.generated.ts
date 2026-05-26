@@ -5,7 +5,7 @@
 // Source version: 1.0.0
 // Invariant count: 25
 // By layer: L1=7 L2=12 L3=6
-// Generated at: 2026-05-26T11:13:57.835Z
+// Generated at: 2026-05-26T14:07:16.965Z
 
 import type { Invariant } from "./invariants.ts";
 
@@ -480,21 +480,21 @@ export const ALL_INVARIANTS: Invariant[] = [
     "description": "ops.evolve_extractions.review_state transitions follow legal moves only (pending_review → founder_{accepted|rejected|edited}; auto_accepted terminal-on-insert; rejected_low_confidence terminal-on-insert)",
     "kind": "implies",
     "layer": "L1",
-    "status": "deferred",
+    "status": "live",
     "source": {
       "tier": 2,
       "ref": "ops.evolve_extractions",
       "query": "SELECT id, review_state FROM ops.evolve_extractions"
     },
     "target": {
-      "tier": 1,
-      "ref": "knowledge/state-machines.yaml",
-      "query": "$.entity_update_extraction_review.transitions"
+      "tier": 2,
+      "ref": "ops.evolve_extractions_check_review_transition (trigger)",
+      "query": "DB trigger trg_evolve_extractions_review_transition enforces state machine"
     },
     "severity": "critical",
     "hitl_tier": "B",
     "fix_strategy": "add_migration",
-    "notes": "Activates when migration 00040_evolve_extractions.sql lands (Sprint 2 of\ncapability `update` v1.0; renumbered from draft 00039). Until then,\nstatus: deferred. Legal transitions:\n  pending_review → founder_accepted (founder reviewed + accepted)\n  pending_review → founder_rejected (founder reviewed + rejected)\n  pending_review → founder_edited (founder reviewed + provided edited text)\n  auto_accepted (terminal — set at insert when confidence >= 0.85)\n  rejected_low_confidence (terminal — set at insert when confidence < 0.6)\n"
+    "notes": "Activated 2026-05-26 Sprint 2 (migration 00040). DB trigger\nops.evolve_extractions_check_review_transition enforces all transitions\nat the row level — illegal transitions raise check_violation. Legal:\n  pending_review → founder_accepted (founder reviewed + accepted)\n  pending_review → founder_rejected (founder reviewed + rejected)\n  pending_review → founder_edited (founder reviewed + provided edited text)\n  auto_accepted (terminal — set at insert when confidence >= 0.85)\n  rejected_low_confidence (terminal — set at insert when confidence < 0.6)\n  founder_* states: terminal once set\n"
   },
   {
     "id": "entity-update-runs-role-attribution-correct",

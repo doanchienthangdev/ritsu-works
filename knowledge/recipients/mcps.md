@@ -7,7 +7,7 @@
 This file is THE source of truth for mcp recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 
-**Total entries:** 50
+**Total entries:** 51
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -482,6 +482,17 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 **Invoke:** `mcp__supabase_ops__query`
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, etl-runner, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/supabase-ops__resolver_find
+
+**Kind:** mcp
+**When to use:** JIT resolver — find top-N workforce recipients matching natural-language intent. Returns top-20 keyword-pre-filtered candidates with FULL when_to_use + composes_with + role_scope + recency (batched ops.agent_runs join). Session model picks primary by reading the candidates — no API key, no MCP-subprocess LLM call (iter4 policy alignment). Per-session circuit breaker: 20 finds/session/4h hard cap; warning at 15. Per-role filter: caller MCP_CALLER_ROLE matched against recipient role_scope. Catalog corrupt → degraded mode (returns INDEX-only data with degraded=true). Wire format: spec.md §4 (resolver-v3-jit-loading spec, iter4).
+
+**Invoke:** `mcp__supabase_ops__resolver_find`
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, etl-runner, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, eval-evo-orchestrator, gbrain-maintainer
 **Status:** active
 **Pillar:** 06-ai-ops
 

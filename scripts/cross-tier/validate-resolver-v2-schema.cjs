@@ -19,7 +19,12 @@ const { loadCatalog, parseFile } = require(path.join(REPO_ROOT, 'scripts/resolve
 const E = require(path.join(REPO_ROOT, 'scripts/resolver-v2/errors.cjs'));
 
 const VALID_KINDS = E.VALID_KINDS;
-const VALID_STATUSES = ['active', 'stub', 'deprecated', 'planned', 'deferred', 'operating', 'implementing', 'proposed', 'analyzing', 'architecting', 'disabled', 'draft'];
+// Per Bài #20 capability lifecycle: proposed → analyzing → architecting →
+// planning → implementing → deployed → operating. The 'deployed' value is
+// emitted by scripts/resolver-v2/catalog-generator.cjs generateCapabilities()
+// (line ~581) from knowledge/capability-registry.yaml `state` field. Added
+// 2026-05-26 by capability `update` v1.0 Sprint 2 catalog sync.
+const VALID_STATUSES = ['active', 'stub', 'deprecated', 'planned', 'deferred', 'operating', 'implementing', 'deployed', 'proposed', 'analyzing', 'architecting', 'disabled', 'draft'];
 
 function main() {
   if (!fs.existsSync(RECIPIENTS_DIR)) {
