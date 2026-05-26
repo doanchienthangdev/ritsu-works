@@ -88,6 +88,30 @@ Ambiguous → `ESCALATION-REQUIRED: <reframing>` to CEO.
 - Pricing change touches public page → founder direct (Tier C minimum).
 - A/B test affects > 10% paying users → founder direct.
 
+## Resolver discipline (per-role propagation)
+
+You inherit ambient INDEX (~11K tokens from `CLAUDE.md @import`) AND the JIT
+drill-down tool `mcp__supabase-ops__resolver_find`. When the 1-line INDEX
+summary suffices, invoke direct (Path A — 0ms). When you need composition
+graph, recency, role filter, or full `when_to_use`, use Path B.
+
+**Path B contract — ALWAYS pass your role explicitly:**
+
+```ts
+mcp__supabase-ops__resolver_find({
+  intent: "...",
+  role: "product-orchestrator",   // ← YOUR bound role
+  limit: 5,
+})
+```
+
+`MCP_CALLER_ROLE` env defaults to the session founder's value and does NOT
+auto-change when a subagent spawns. Without explicit `role`, you would see
+a slice filtered for the parent (CEO/founder), not your product scope. Pass
+`role: "product-orchestrator"` on every Path B call to get the correct
+per-role filter (governance/ROLES.md). Your filter narrows to wedge-
+discovery, build-loop, feedback-pipeline, A/B test skills + SOPs.
+
 ## Audit log
 
 `ops.agent_runs` with `agent_slug=product-orchestrator`, `persona_slug=cpo`. Automatic.
