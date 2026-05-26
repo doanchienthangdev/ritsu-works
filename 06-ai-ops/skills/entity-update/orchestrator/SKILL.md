@@ -113,6 +113,48 @@ For `entity_type='hook'`:
 If `entity_type='hook'` AND `magic_phrase_override_reason` is null/missing → orchestrator
 ABORTs with `exit_reason='aborted_d_std_required'`. Founder must re-run via command surface.
 
+### Phase 0b — Workflow REFUSE (workflow type only; v1.1 Sprint 3)
+
+For `entity_type='workflow'`:
+- Check `fs.existsSync('workflows/')` AND `fs.existsSync('workflows/<name>.yaml')`.
+- If EITHER missing → ABORT with `exit_reason='aborted_workflow_blocked_folder_not_shipped'`.
+  Surface forward message:
+  ```
+  /update workflow blocked until workflows/ folder ships.
+  knowledge/manifest.yaml workflows.status: planned
+  Track progress: /cla list --state=implementing | grep workflow
+  ```
+- If both exist → fall through to standard pipeline (Phase 0 onward; uses the
+  workflow playbook stub for scoring; sub_scores may need refinement post-real-data
+  via /cla tune workflow-playbook).
+
+The REFUSE branch exists BEFORE Phase 0 drift check; no LLM cost on impossible runs.
+
+### Phase 0c — Folder classify-dispatch (folder type only; v1.1 Sprint 3)
+
+For `entity_type='folder'`:
+- Invoke `node scripts/update/folder-classify.cjs --path=<entity_path>`.
+- Deterministic; no LLM call.
+- Outcomes:
+  - `classification='pillar'` → orchestrator INVOKES the dispatch_to command
+    (e.g., `/update pillar 01-marketing`) recursively in-session. Parent /update
+    folder run logs `state_payload.dispatch_to` for audit; child run accumulates
+    cost normally.
+  - `classification='skill'` → recursively `/update skill <name>`.
+  - `classification='sop'` → recursively `/update sop <full-sop-id>`.
+  - `classification='single-readme'` → recursively `/update file <path>/README.md`.
+  - `classification='wiki-collection'` → ABORT with forward message
+    `Run: /wiki sync wiki/<slug>/`. exit_reason='aborted_folder_wiki_use_wiki_sync'.
+  - `classification='sub-pillar'` → ABORT; forward suggests file mode on README.
+    exit_reason='aborted_sub_pillar_deferred_to_v1_2'.
+  - `classification='refuse'` → ABORT; surface reason.
+
+After dispatch (any positive classification), parent /update folder run state =
+`completed` with `output_payload.dispatched_to` recorded. Folder run does NOT
+double-count in KPI entity_update_run_count_monthly — the inner /update <type>
+run counts; the wrapper logs as `agent_slug='update', input_payload.entity_type='folder'`
+with `output_payload.dispatcher_only=true`.
+
 ### Phase 0a — Path classify (file type only; v1.1 Sprint 2)
 
 For `entity_type='file'`:

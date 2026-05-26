@@ -579,6 +579,28 @@ invariants:
       a SAFETY BREACH — file landed at a Tier 1 location that should have
       been refused. Manual review + revert required.
 
+  - id: update-workflow-requires-workflows-folder
+    description: "If /update workflow <name> ran successfully (state=completed), workflows/<name>.yaml MUST exist post-run"
+    kind: implies
+    layer: L2
+    status: deferred
+    source:
+      tier: 2
+      ref: "ops.agent_runs"
+      query: "SELECT input_payload->>'entity_slug' AS name FROM ops.agent_runs WHERE agent_slug = 'update' AND input_payload->>'entity_type' = 'workflow' AND state = 'completed'"
+    target:
+      tier: 1
+      ref: "workflows/"
+      query: "ls workflows/<name>.yaml"
+    severity: critical
+    hitl_tier: B
+    fix_strategy: manual_only
+    notes: |
+      Activates when workflows/ folder ships. Until then, /update workflow
+      always REFUSEs at runtime (Phase 0b in orchestrator), so this invariant
+      is vacuously true. Once workflows ship, flip status: deferred → live
+      via /cla tune update.
+
   - id: update-file-paths-yaml-must-validate
     description: "knowledge/update-file-paths.yaml MUST validate against knowledge/schemas/update-file-paths.schema.json"
     kind: exists

@@ -3,9 +3,9 @@
 // Re-run with: pnpm wave2:bundle-invariants
 //
 // Source version: 1.0.0
-// Invariant count: 28
-// By layer: L1=8 L2=14 L3=6
-// Generated at: 2026-05-26T15:13:16.696Z
+// Invariant count: 29
+// By layer: L1=8 L2=15 L3=6
+// Generated at: 2026-05-26T15:17:52.900Z
 
 import type { Invariant } from "./invariants.ts";
 
@@ -537,6 +537,27 @@ export const ALL_INVARIANTS: Invariant[] = [
     "hitl_tier": "B",
     "fix_strategy": "manual_only",
     "notes": "A refused-tier path-classify result MUST result in ABORT before install.\nIf any run lands with path_tier=refuse + diff_applied != 'none', that's\na SAFETY BREACH — file landed at a Tier 1 location that should have\nbeen refused. Manual review + revert required.\n"
+  },
+  {
+    "id": "update-workflow-requires-workflows-folder",
+    "description": "If /update workflow <name> ran successfully (state=completed), workflows/<name>.yaml MUST exist post-run",
+    "kind": "implies",
+    "layer": "L2",
+    "status": "deferred",
+    "source": {
+      "tier": 2,
+      "ref": "ops.agent_runs",
+      "query": "SELECT input_payload->>'entity_slug' AS name FROM ops.agent_runs WHERE agent_slug = 'update' AND input_payload->>'entity_type' = 'workflow' AND state = 'completed'"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "workflows/",
+      "query": "ls workflows/<name>.yaml"
+    },
+    "severity": "critical",
+    "hitl_tier": "B",
+    "fix_strategy": "manual_only",
+    "notes": "Activates when workflows/ folder ships. Until then, /update workflow\nalways REFUSEs at runtime (Phase 0b in orchestrator), so this invariant\nis vacuously true. Once workflows ship, flip status: deferred → live\nvia /cla tune update.\n"
   },
   {
     "id": "update-file-paths-yaml-must-validate",
