@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 75
+**Total entries:** 76
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -707,13 +707,15 @@ entities (process governance); /evolve on an SOP always opens a PR.
 
 **Kind:** skill
 **When to use:** Phase B of /evolve skillopt. Generates synthetic (task, expected_behavior, rubric)
-tuples from a target SKILL.md by blending up to 5 grounding pillars:
-founder gold examples, ops.run_summaries silver-gold, wiki RAG silver,
-gbrain opt-in silver, and 00-core anchor context. Writes every produced
-task as a citation-spine row in ops.evolve_extractions with confidence
-rounded to {0.95 auto-accept, 0.85 pending-review, 0.6 pending-review}.
-Surfaces 5 randomly-sampled tasks to the founder for accept/reject/regen
-decision before bulk generation proceeds. Output dataset cached under
+tuples from a target SKILL.md by blending up to 3 active grounding pillars
+in v1.1: P1 founder gold examples, P3 wiki RAG silver, P5 00-core anchor
+context (context-only, not task-emitting). Pillars 2 (ops.run_summaries)
+and 4 (gbrain) are DEFERRED to v1.2 — they require an enum extension to
+ops.evolve_extractions.ref_source_kind that isn't worth a Sprint 2
+migration. Writes every produced task as a citation-spine row in
+ops.evolve_extractions linked by agent_run_id FK. Surfaces 5 randomly-
+sampled tasks to the founder for accept/reject/regen decision before
+bulk generation proceeds. Output dataset cached under
 runtime/skillopt/<entity>/data/v<ts>/.
 
 **Invoke:** `Skill({ skill: "eval-evo/skillopt-gen-data" })`
@@ -732,6 +734,26 @@ backend (kind: "judge"), but ALSO directly invocable in isolation for testing.
 Stateless — no DB writes, no caching, no Task() fanout.
 
 **Invoke:** `Skill({ skill: "eval-evo/skillopt-judge" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/eval-evo/skillopt-runner
+
+**Kind:** skill
+**When to use:** Orchestrator for /evolve skillopt <skill>. Runs the 7-phase pipeline (A pre-flight →
+B gen-data → C train loop → D outer K4 → E install → F founder review → G cleanup)
+per spec §19.6/§19.7. Drives the SkillOpt Python subprocess + session-bridge.cjs
+via this Claude session's Task() dispatches (subagents: skillopt-target-rollout
+for kind=target, skillopt-optimizer-reflect for kind=optimizer). Persists
+cross-phase state to runtime/skillopt/<entity>/runs/<rid>/runner-state.json so
+/evolve skillopt --resume=<run-id> picks up at next_action. Handles R12 (rate-
+limit pause + Tier B founder choice), R18 (orphaned-tmp cleanup at bridge init).
+Subscription invariant: zero direct HTTP calls; Python runs with empty
+ANTHROPIC_API_KEY; every LLM call flows file-queue → bridge → Task() subagent.
+
+**Invoke:** `Skill({ skill: "eval-evo/skillopt-runner" })`
 
 **Role scope:** *
 **Status:** active

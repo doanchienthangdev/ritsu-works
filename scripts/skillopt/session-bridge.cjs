@@ -109,6 +109,31 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+// R18 — orphaned .tmp file sweep. Used by `init` to handle leftovers from
+// crashed prior runs. Returns count of files unlinked. Idempotent + safe to
+// call on empty dirs.
+function sweepOrphanedTmpFiles() {
+  const cutoffMs = Date.now() - 5 * 60 * 1000;   // 5 minutes ago
+  let swept = 0;
+  for (const dir of [REQ_DIR, RESP_DIR]) {
+    if (!fs.existsSync(dir)) continue;
+    for (const fname of fs.readdirSync(dir)) {
+      if (!fname.endsWith('.json.tmp')) continue;
+      const full = path.join(dir, fname);
+      try {
+        const stat = fs.statSync(full);
+        if (stat.mtimeMs < cutoffMs) {
+          fs.unlinkSync(full);
+          swept += 1;
+        }
+      } catch {
+        // file vanished between readdir and stat — fine
+      }
+    }
+  }
+  return swept;
+}
+
 function isProcessAlive(pid) {
   if (!pid || !Number.isFinite(pid)) return false;
   try {
@@ -146,6 +171,12 @@ async function verbInit() {
   if (fs.existsSync(STATE_PATH)) {
     die(3, `session-bridge init: state.json already exists; cleanup first if reinitializing`);
   }
+  // R18 — orphaned .tmp sweep (Sprint 3 addition). Any req-*.json.tmp or
+  // resp-*.json.tmp older than 5 minutes is leftover from a prior crashed
+  // run where a write started but never rename'd. The 5-minute threshold is
+  // conservative — a healthy bridge write completes in milliseconds. Per
+  // spec §19.6 R18, the runner-spec/sprint-plan §3.5.
+  const orphans = sweepOrphanedTmpFiles();
   const state = {
     run_id: path.basename(QUEUE_DIR),
     started_at: nowIso(),
@@ -155,9 +186,13 @@ async function verbInit() {
     completed_uuids: [],
     rate_limit_resume_after: null,
     totals: { requests_dispatched: 0, responses_written: 0, errors: 0 },
+    orphans_swept_at_init: orphans,
   };
   writeStateAtomic(state);
   process.stdout.write(`${STATE_PATH}\n`);
+  if (orphans > 0) {
+    process.stderr.write(`[session-bridge] init swept ${orphans} orphaned .tmp file(s) >5min old\n`);
+  }
 }
 
 function verbScan() {
