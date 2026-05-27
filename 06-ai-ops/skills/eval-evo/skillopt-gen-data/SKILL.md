@@ -113,8 +113,36 @@ If `gen_sources == "auto"`:
   - Pillar 3: 20-40% (always for skills attached to a wiki capability)
   - Pillar 5: context-only (anchor in prompts, never emits tasks)
 - If `entity_content` has no `<example>` blocks (Pillar 1 unavailable),
-  the run aborts with a clear error: "skill needs ≥1 `<example>` block to
-  bootstrap synth data; add one before /evolve skillopt".
+  behavior depends on `gen_sources` (parsed-object form):
+  - `gen_sources == "auto"` OR `gen_sources.pillars` includes `1` → abort with:
+    "skill needs ≥1 `<example>` block to bootstrap synth data. Auto-generate
+    via `/evolve skillopt <skill>` (Phase A.1a invokes `eval-evo/gen-skill-examples`).
+    Or manually add to SKILL.md."
+  - `gen_sources.pillars` array EXCLUDES `1` (e.g., `{pillars: [3, 5]}`)
+    → v1.1.2 graceful-degrade path: proceed with Pillar 3 only. Synth signal
+    weaker (all rows pending_review, confidence 0.6) but founder explicitly
+    opted in. Rebalance + sparse-RAG fallback below.
+
+**v1.1.2 P3-only sparse-wiki-RAG handling (per @cto MUST-FIX #2):**
+- Pillar 3 produces up to `wiki_ask(limit=20)` chunks. If `chunks_returned <
+  gen_count` (e.g. founder requested 25 but wiki RAG only surfaces 8), do
+  NOT silently undershoot:
+  1. If `chunks_returned == 0` → abort with `reason: 'no_wiki_coverage'`
+     + hint: "Wiki RAG returned 0 chunks for `<skill_name>` title queries.
+     Either populate wiki/ for this skill OR pick Auto-generate at
+     /evolve's Phase A.1a gate."
+  2. If `0 < chunks_returned < gen_count` → `AskUserQuestion` Tier B:
+     ```
+     > "Pillar 3 wiki RAG returned only N of <gen_count> requested tasks
+     >  for <skill_name>. Proceed with smaller dataset (lower statistical
+     >  power)? [Yes — use N tasks / Lower gen_count to N / Auto-generate
+     >  examples instead / Abort]"
+     ```
+     - **Yes / Lower** → proceed with smaller dataset; record actual count
+       in `source-manifest.json` `task_count_actual`.
+     - **Auto-generate** → /evolve re-enters Phase A.1a gate, founder
+       picks Auto-generate path.
+     - **Abort** → /evolve exits, `exit_reason: 'sparse_wiki_rag'`.
 
 If `gen_sources == { "pillars": [...] }` includes 2 or 4, raise a runtime
 error: "Pillars 2 (ops.run_summaries) and 4 (gbrain) are deferred to v1.2;

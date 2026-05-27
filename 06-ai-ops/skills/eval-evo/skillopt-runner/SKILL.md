@@ -69,6 +69,14 @@ v1.1 entity_type is always `skill` (spec §19.2 explicit). `gen_sources`
 v1.1 active subset: pillars `[1, 3, 5]` (Pillars 2 & 4 deferred to v1.2 —
 see `skillopt-gen-data` SKILL.md TODO section).
 
+**v1.1.2 default behavior:** the `/evolve skillopt <skill>` command
+auto-derives `entity_path = $(pwd)/runtime/sandboxes/<flattened>/SKILL.md`
+when no `--apply` or explicit `--entity-path` is passed. The command also
+auto-invokes `eval-evo/gen-skill-examples` if the sandbox SKILL.md has no
+`<example>` blocks (founder reviews + accepts via Tier B gate). This skill
+(runner) receives `entity_path` already resolved — it does NOT do path
+resolution itself.
+
 **v1.1.1 sandbox flow (`entity_path != null`):**
 - All reads of SKILL.md content come from `entity_path` (not 06-ai-ops/).
 - Phase E install writes `best-skill.md` back to `entity_path` location.

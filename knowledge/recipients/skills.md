@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 76
+**Total entries:** 78
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -562,6 +562,25 @@ knowledge to entity-actionable diffs without bypassing the verify gate.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/eval-evo/gen-skill-examples
+
+**Kind:** skill
+**When to use:** LLM-driven generator for `<example>` blocks in a SKILL.md. Reads the skill's
+spec (description, process, inputs, outputs, failure modes) via Sonnet 4.6
+and produces 5 authentic INPUT/OUTPUT/RUBRIC tuples that demonstrate the
+skill's intended behavior. Used by /evolve skillopt when the target SKILL.md
+has no `<example>` blocks — unblocks Pillar 1 (gold) extraction in
+skillopt-gen-data without forcing the founder to author examples manually.
+Founder reviews + accepts/edits/regenerates via Tier B AskUserQuestion gate
+before examples are written. Output goes to a sandbox SKILL.md (NEVER
+production) under runtime/sandboxes/.
+
+**Invoke:** `Skill({ skill: "eval-evo/gen-skill-examples" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/eval-evo/install-improvement
 
 **Kind:** skill
@@ -754,6 +773,22 @@ Subscription invariant: zero direct HTTP calls; Python runs with empty
 ANTHROPIC_API_KEY; every LLM call flows file-queue → bridge → Task() subagent.
 
 **Invoke:** `Skill({ skill: "eval-evo/skillopt-runner" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/eval-evo/test-fixtures/skill-foo
+
+**Kind:** skill
+**When to use:** Test fixture skill for /evolve skillopt S1 acceptance gate. Summarizes a
+paragraph (max ~200 words) into a single sentence (≤30 words) preserving
+the central claim. NOT for production use — exists purely so the
+skillopt-runner has a real SKILL.md with `<example>` blocks for Pillar 1
+extraction during gen-data, and a rubric the judge can score against.
+Path: 06-ai-ops/skills/eval-evo/test-fixtures/skill-foo/SKILL.md.
+
+**Invoke:** `Skill({ skill: "eval-evo/test-fixtures/skill-foo" })`
 
 **Role scope:** *
 **Status:** active
