@@ -47,6 +47,13 @@ parsing + cost-estimator pre-flight + tier classification before dispatching her
                                           // Used at Phase G to release the lock.
   "entity_type":          "skill",
   "entity_name":          "<slug>",
+  "entity_path":          null,            // v1.1.1: absolute path to SKILL.md source-of-truth.
+                                            // null → resolves to 06-ai-ops/skills/<entity_name>/SKILL.md
+                                            //         (production path; Phase E install writes here).
+                                            // <abs-path> → sandbox mode. Reads SKILL.md from this path;
+                                            //         Phase E install writes back to THIS path, not
+                                            //         06-ai-ops/. Original production SKILL.md untouched.
+                                            //         Used by `/evolve skillopt --entity-path=$(pwd)/runtime/sandboxes/<name>/SKILL.md`.
   "max_messages":         500,
   "max_cost_usd":         null,
   "dry_run":              true,
@@ -61,6 +68,18 @@ parsing + cost-estimator pre-flight + tier classification before dispatching her
 v1.1 entity_type is always `skill` (spec §19.2 explicit). `gen_sources`
 v1.1 active subset: pillars `[1, 3, 5]` (Pillars 2 & 4 deferred to v1.2 —
 see `skillopt-gen-data` SKILL.md TODO section).
+
+**v1.1.1 sandbox flow (`entity_path != null`):**
+- All reads of SKILL.md content come from `entity_path` (not 06-ai-ops/).
+- Phase E install writes `best-skill.md` back to `entity_path` location.
+- K4 baseline comparison: held-out judge scores candidate vs CURRENT content
+  at `entity_path` (the sandbox baseline IS the baseline, not production).
+- Production `06-ai-ops/skills/<entity_name>/SKILL.md` is NEVER touched.
+- `entity_name` retained for ops.* logging + runtime/skillopt/<entity>/runs/
+  directory naming (lineage). Slashes in entity_name are flattened to `-`
+  for the runtime dir (e.g., `wiki-sync/ask` → `runtime/skillopt/wiki-sync-ask/`).
+- Founder merges sandbox → production manually after reviewing the result:
+  `cp <entity_path> 06-ai-ops/skills/<entity_name>/SKILL.md && git diff` then commit.
 
 ## Output
 
@@ -97,8 +116,11 @@ Strict JSON to stdout for the `/evolve` command to render:
 
 ### Phase A — Pre-flight (gates that abort cheaply)
 
-1. **Validate entity exists.** `06-ai-ops/skills/<entity_name>/SKILL.md` must
-   exist. If missing → abort with NN-search hint.
+1. **Validate entity exists.** Path resolution per `entity_path` input:
+   - If `entity_path != null`: validate it's absolute + exists. Read content
+     from there. This is the v1.1.1 sandbox flow.
+   - If `entity_path == null`: validate `06-ai-ops/skills/<entity_name>/SKILL.md`
+     exists. If missing → abort with NN-search hint. Production flow.
 2. **Cost pre-check.** Run `node scripts/skillopt/cost-estimator.cjs
    --skill=<entity_name> --max-messages=<max_messages>`. Exit 2 (cap exceeded)
    → abort with widen-cap hint. Exit 0 → record `estimated_messages` in state.
