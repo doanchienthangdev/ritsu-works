@@ -119,7 +119,29 @@ function iterationsForComplexity(complexity) {
 
 // ── Skill path resolution ────────────────────────────────────────────────────
 
-function resolveSkillPath(repoRoot, skillName) {
+function resolveSkillPath(repoRoot, skillName, entityPathOverride) {
+  // v1.1.1 (2026-05-27) — sandbox flow: explicit --entity-path bypasses
+  // the 06-ai-ops/ candidates lookup. Caller (e.g. /evolve skillopt with
+  // --entity-path=runtime/sandboxes/<name>/SKILL.md) supplies an absolute
+  // path; we honor it as the source of truth. The entity_name argument
+  // is still used for ops.* logging (lineage, dataset paths) but content
+  // comes from the explicit path. See README for the sandbox workflow.
+  if (entityPathOverride) {
+    if (!path.isAbsolute(entityPathOverride)) {
+      throw new Error(
+        `--entity-path must be an absolute path (got: ${entityPathOverride}). ` +
+        `Tip: use $(pwd)/runtime/sandboxes/<name>/SKILL.md for sandbox flow.`,
+      );
+    }
+    if (!fs.existsSync(entityPathOverride)) {
+      throw new Error(
+        `--entity-path file does not exist: ${entityPathOverride}. ` +
+        `Hint: run scripts/skillopt/init-sandbox.sh ${skillName} first to scaffold the sandbox.`,
+      );
+    }
+    return entityPathOverride;
+  }
+
   const candidates = [
     path.join(repoRoot, '06-ai-ops', 'skills', skillName, 'SKILL.md'),
     path.join(repoRoot, '06-ai-ops', 'skills', 'eval-evo', skillName, 'SKILL.md'),
@@ -138,10 +160,13 @@ function resolveSkillPath(repoRoot, skillName) {
 // ── Argument parsing ────────────────────────────────────────────────────────
 
 function parseArgs(argv) {
-  const args = { skill: null, maxMessages: DEFAULT_MAX_MESSAGES, iterations: null };
+  const args = { skill: null, maxMessages: DEFAULT_MAX_MESSAGES, iterations: null, entityPath: null };
   for (const a of argv) {
     if (a.startsWith('--skill=')) args.skill = a.slice('--skill='.length);
-    else if (a.startsWith('--max-messages=')) {
+    else if (a.startsWith('--entity-path=')) {
+      // v1.1.1 sandbox flow override
+      args.entityPath = a.slice('--entity-path='.length);
+    } else if (a.startsWith('--max-messages=')) {
       const n = parseInt(a.slice('--max-messages='.length), 10);
       if (!Number.isFinite(n) || n <= 0) {
         process.stderr.write(`error: --max-messages must be a positive integer (got ${a})\n`);
@@ -167,13 +192,20 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
 
   if (!args.skill) {
-    process.stderr.write('usage: cost-estimator.cjs --skill=<name> [--max-messages=N] [--iterations=N]\n');
+    process.stderr.write('usage: cost-estimator.cjs --skill=<name> [--max-messages=N] [--iterations=N] [--entity-path=<abs>]\n');
     process.exit(1);
   }
 
-  const skillPath = resolveSkillPath(repoRoot, args.skill);
+  let skillPath;
+  try {
+    skillPath = resolveSkillPath(repoRoot, args.skill, args.entityPath);
+  } catch (e) {
+    process.stderr.write(`error: ${e.message}\n`);
+    process.exit(1);
+  }
   if (!skillPath) {
-    process.stderr.write(`error: skill '${args.skill}' not found under 06-ai-ops/skills/ or .archives/test-fixtures/\n`);
+    process.stderr.write(`error: skill '${args.skill}' not found under 06-ai-ops/skills/ or .archives/test-fixtures/.\n`);
+    process.stderr.write(`       Use --entity-path=<abs> for sandbox runs.\n`);
     process.exit(1);
   }
 
@@ -187,6 +219,7 @@ function main() {
   const result = {
     skill_name: args.skill,
     skill_path: path.relative(repoRoot, skillPath),
+    sandbox_mode: args.entityPath != null,    // v1.1.1: signals downstream that install writes back to entityPath, not 06-ai-ops/
     complexity,
     iterations,
     per_iter_breakdown: PER_ITER_BUDGET,

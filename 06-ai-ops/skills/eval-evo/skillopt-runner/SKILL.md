@@ -47,6 +47,13 @@ parsing + cost-estimator pre-flight + tier classification before dispatching her
                                           // Used at Phase G to release the lock.
   "entity_type":          "skill",
   "entity_name":          "<slug>",
+  "entity_path":          null,            // v1.1.1: absolute path to SKILL.md source-of-truth.
+                                            // null → resolves to 06-ai-ops/skills/<entity_name>/SKILL.md
+                                            //         (production path; Phase E install writes here).
+                                            // <abs-path> → sandbox mode. Reads SKILL.md from this path;
+                                            //         Phase E install writes back to THIS path, not
+                                            //         06-ai-ops/. Original production SKILL.md untouched.
+                                            //         Used by `/evolve skillopt --entity-path=$(pwd)/runtime/sandboxes/<name>/SKILL.md`.
   "max_messages":         500,
   "max_cost_usd":         null,
   "dry_run":              true,
@@ -61,6 +68,18 @@ parsing + cost-estimator pre-flight + tier classification before dispatching her
 v1.1 entity_type is always `skill` (spec §19.2 explicit). `gen_sources`
 v1.1 active subset: pillars `[1, 3, 5]` (Pillars 2 & 4 deferred to v1.2 —
 see `skillopt-gen-data` SKILL.md TODO section).
+
+**v1.1.1 sandbox flow (`entity_path != null`):**
+- All reads of SKILL.md content come from `entity_path` (not 06-ai-ops/).
+- Phase E install writes `best-skill.md` back to `entity_path` location.
+- K4 baseline comparison: held-out judge scores candidate vs CURRENT content
+  at `entity_path` (the sandbox baseline IS the baseline, not production).
+- Production `06-ai-ops/skills/<entity_name>/SKILL.md` is NEVER touched.
+- `entity_name` retained for ops.* logging + runtime/skillopt/<entity>/runs/
+  directory naming (lineage). Slashes in entity_name are flattened to `-`
+  for the runtime dir (e.g., `wiki-sync/ask` → `runtime/skillopt/wiki-sync-ask/`).
+- Founder merges sandbox → production manually after reviewing the result:
+  `cp <entity_path> 06-ai-ops/skills/<entity_name>/SKILL.md && git diff` then commit.
 
 ## Output
 
@@ -97,8 +116,19 @@ Strict JSON to stdout for the `/evolve` command to render:
 
 ### Phase A — Pre-flight (gates that abort cheaply)
 
-1. **Validate entity exists.** `06-ai-ops/skills/<entity_name>/SKILL.md` must
-   exist. If missing → abort with NN-search hint.
+1. **Validate entity exists + snapshot baseline.** Path resolution per `entity_path` input:
+   - If `entity_path != null`: validate it's absolute + exists. This is the
+     v1.1.1 sandbox flow. Define `effective_entity_path = entity_path`.
+   - If `entity_path == null`: validate `06-ai-ops/skills/<entity_name>/SKILL.md`
+     exists. If missing → abort with NN-search hint. Production flow. Define
+     `effective_entity_path = 06-ai-ops/skills/<entity_name>/SKILL.md`.
+   - **Snapshot baseline (critical for Phase D K4):** immediately copy
+     `effective_entity_path` content to `runtime/skillopt/<entity>/runs/<rid>/baseline-skill.md`
+     BEFORE any downstream phase mutates anything. Phase D step 3 reads from
+     this snapshot, not the live file (the live file may be the about-to-be-
+     overwritten target in production flow OR the about-to-be-overwritten
+     sandbox in sandbox flow). The snapshot guarantees baseline ≠ candidate
+     even if Phase E mutates the live path.
 2. **Cost pre-check.** Run `node scripts/skillopt/cost-estimator.cjs
    --skill=<entity_name> --max-messages=<max_messages>`. Exit 2 (cap exceeded)
    → abort with widen-cap hint. Exit 0 → record `estimated_messages` in state.
@@ -131,18 +161,24 @@ summary, exit non-zero. No subprocess launched → no cleanup beyond lock.
 
 ### Phase B — Synthetic data generation
 
-1. Invoke `eval-evo/skillopt-gen-data` skill via the Skill tool with:
+1. **Read SKILL.md content from effective_entity_path** (computed in Phase A.1):
+   `entity_content = fs.readFileSync(effective_entity_path, 'utf8')`.
+2. Invoke `eval-evo/skillopt-gen-data` skill via the Skill tool with:
    ```json
    { "run_id": "<runner-agent-run-id>", "entity_type": "skill",
-     "entity_path": "06-ai-ops/skills/<entity>/SKILL.md",
-     "entity_content": "<...>", "gen_count": 25, "gen_sources": "<arg>",
+     "entity_path": "<effective_entity_path>",
+     "entity_content": "<read in step 1 above>",
+     "gen_count": 25, "gen_sources": "<arg>",
      "regen_data": <arg>, "dry_run": <arg>,
      "max_messages_cap": <max_messages> }
    ```
-2. Read stdout JSON. Capture `dataset_path` + `agent_run_id`.
-3. If gen-data returned `founder_gate: 'aborted'` → abort the runner
+   In sandbox flow, `entity_path` = the runtime/sandboxes/ path (NOT production).
+   In production flow, `entity_path` = 06-ai-ops/skills/<entity_name>/SKILL.md.
+   Either way, gen-data sees the source of truth caller declared.
+3. Read stdout JSON. Capture `dataset_path` + `agent_run_id`.
+4. If gen-data returned `founder_gate: 'aborted'` → abort the runner
    (Phase A cleanup + DELETE extraction rows authored by this gen-data run).
-4. Write `runner-state.json` with `phase: 'gen-data'` + `dataset_path`.
+5. Write `runner-state.json` with `phase: 'gen-data'` + `dataset_path`.
 
 **Subscription discipline:** gen-data may invoke Haiku/Sonnet for Pillar 1/3
 extraction. All in-session → subscription billing. No Python yet.
@@ -227,8 +263,12 @@ extraction. All in-session → subscription billing. No Python yet.
       subagent (in-session Task() call).
    b. Score via `skillopt-judge` skill → score ∈ [0, 1].
    c. Accumulate `held_out_post_scores[]`.
-3. **Baseline.** Repeat 2a-2c on ORIGINAL `SKILL.md` (pre-iteration) to get
-   `held_out_pre_scores[]`. Skip if `--resume` and baseline persisted.
+3. **Baseline.** Repeat 2a-2c on `runtime/skillopt/<entity>/runs/<rid>/baseline-skill.md`
+   (the Phase A.1 snapshot of the pre-iteration `effective_entity_path` content)
+   to get `held_out_pre_scores[]`. Sourcing from the snapshot (not the live
+   file) is critical because the live file may have been mutated by Phase E
+   in a prior `--resume`-able run. Skip this step if `--resume` and
+   `held_out_pre_scores[]` already persisted in `runner-state.json`.
 4. **Composite delta.** Compute `mean(post) - mean(pre)` per
    `playbooks/skill-skillopt.md` §"Composite formula" (10-criterion sum).
 5. **K4 decision** (spec §19 + playbook C10):
@@ -241,24 +281,54 @@ extraction. All in-session → subscription billing. No Python yet.
 
 ### Phase E — Install (skipped if dry_run OR judge_regressed)
 
-1. Invoke `eval-evo/install-improvement` skill with
-   `(entity_path, candidate=best-skill.md)`. Performs git stash + apply
-   (mirrors v1.0 install flow).
-2. Run `pnpm check` post-apply. Failure → revert via git stash pop, abort.
-3. Write `runner-state.json` with `phase: 'install'`.
+Branch on `sandbox_mode` (true iff `entity_path != null`):
+
+**Production flow** (`sandbox_mode = false`, target = `06-ai-ops/skills/<entity>/SKILL.md`):
+1. Invoke `eval-evo/install-improvement` skill with input
+   `{"entity_path": "<effective_entity_path>", "candidate_path":
+   "runtime/skillopt/<entity>/runs/<rid>/best-skill.md"}`. Performs git
+   stash + cp + pnpm check (mirrors v1.0 install flow). The path is a
+   tracked file, so git stash is meaningful + revert path works.
+2. On pnpm check failure → git stash pop reverts the file → abort with
+   `exit_reason: 'install_drift_detected'`.
+3. Write `runner-state.json` with `phase: 'install'`,
+   `install_method: 'git-stash-cp'`.
+
+**Sandbox flow** (`sandbox_mode = true`, target = `runtime/sandboxes/<flat>/SKILL.md`):
+1. `runtime/sandboxes/` is gitignored → `git stash` is a no-op on an
+   untracked file. Use plain copy + pnpm check instead:
+   - `cp <effective_entity_path> <effective_entity_path>.pre-install.bak`
+     (manual backup, since git can't be used).
+   - `cp runtime/skillopt/<entity>/runs/<rid>/best-skill.md <effective_entity_path>`
+   - Run `pnpm check`. On failure → restore via
+     `mv <effective_entity_path>.pre-install.bak <effective_entity_path>` →
+     abort with `exit_reason: 'install_drift_detected'`. On success → keep
+     the `.pre-install.bak` for Phase F revert path.
+2. Write `runner-state.json` with `phase: 'install'`,
+   `install_method: 'cp-backup'`, `backup_path:
+   "<effective_entity_path>.pre-install.bak"`.
 
 ### Phase F — Founder review
 
-1. AskUserQuestion Tier B:
+1. AskUserQuestion Tier B (text parameterized on `effective_entity_path`
+   so the founder sees the actual install target, not a hard-coded path):
    > "/evolve skillopt <skill> complete. Baseline N, post N+M. Held-out
-   > Δ = +X.XX. Install applied at 06-ai-ops/skills/<entity>/SKILL.md.
+   > Δ = +X.XX. Install applied at `<effective_entity_path>`.
    > Verify? [Yes — keep installed / No — revert / Show diff / Reject + ops.corrections]"
 2. **Yes** → Phase G with `exit_reason: 'all_phases_done'`.
-3. **No — revert** → `git checkout HEAD -- 06-ai-ops/skills/<entity>/SKILL.md`,
-   `exit_reason: 'founder_revert'`.
-4. **Show diff** → dump diff, re-prompt.
-5. **Reject** → revert + INSERT `ops.corrections` row (negative signal for
-   future episodic recall).
+3. **No — revert** — branches on `install_method` (set in Phase E):
+   - `install_method == 'git-stash-cp'` (production flow): run
+     `git checkout HEAD -- <effective_entity_path>` to restore the
+     pre-install tracked content.
+   - `install_method == 'cp-backup'` (sandbox flow): run
+     `mv <backup_path> <effective_entity_path>` to restore from the
+     `.pre-install.bak` snapshot. The sandbox file is gitignored so
+     git checkout can't help.
+   Either way, set `exit_reason: 'founder_revert'`.
+4. **Show diff** — production flow: `git diff HEAD -- <effective_entity_path>`.
+   Sandbox flow: `diff <backup_path> <effective_entity_path>`. Re-prompt.
+5. **Reject** → revert (per #3 above) + INSERT `ops.corrections` row
+   (negative signal for future episodic recall).
 
 ### Phase G — Cleanup + persist
 

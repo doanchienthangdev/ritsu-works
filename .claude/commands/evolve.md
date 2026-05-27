@@ -80,14 +80,18 @@ v1.0 path alone lacked (spec §19.1).
 | `--gen-sources=auto` | no | default. Resolves to active pillars `[1, 3, 5]` |
 | `--gen-sources=pillars=1,3,5` | no | explicit subset. Pillars 2 & 4 are v1.2-deferred (error if requested) |
 | `--bridge-poll-ms=N` | no | 250 ≤ N ≤ 2000; default 1000 |
+| `--entity-path=<abs>` | no | **v1.1.1 NEW** — absolute path to SKILL.md source-of-truth. Switches /evolve to SANDBOX FLOW: reads SKILL.md from this path; Phase E install writes back to THIS path; production `06-ai-ops/skills/<name>/SKILL.md` is NEVER touched. Use `scripts/skillopt/init-sandbox.sh <skill-name>` to scaffold the sandbox file. |
 | `--tier-override` | no | bool; Tier C entity → Tier B (founder-only) |
 
 ### Workflow
 
-1. **Argv validate** (above schema).
+1. **Argv validate** (above schema). If `--entity-path` present: validate
+   it's absolute + file exists. Else: skill-name resolves to
+   `06-ai-ops/skills/<skill-name>/SKILL.md` (production).
 2. **Pre-flight via cost-estimator** — run
-   `node scripts/skillopt/cost-estimator.cjs --skill=<skill-name> --max-messages=<N>`.
-   Exit 2 (cap exceeded) → abort with widen-cap hint.
+   `node scripts/skillopt/cost-estimator.cjs --skill=<skill-name> --max-messages=<N> [--entity-path=<abs>]`.
+   Exit 2 (cap exceeded) → abort with widen-cap hint. Sandbox runs are
+   signalled by `sandbox_mode: true` in cost-estimator output.
 3. **Drift gate** — `pnpm check` clean.
 4. **Hold-out gate** — same as v1.0 path (`_HOLDOUT.yaml` complete).
 5. **Universal lock acquire** — via `ops.acquire_entity_edit_lock`, same path
@@ -100,6 +104,8 @@ v1.0 path alone lacked (spec §19.1).
    for Phase G lock release (the runner does NOT re-acquire the lock; the
    command holds it, the runner releases it). The runner handles Phases A-G
    (pre-flight → gen-data → train loop → outer K4 → install → review → cleanup).
+   **v1.1.1:** pass `entity_path` = absolute path if `--entity-path` flag used,
+   else null. Sandbox runs leave production `06-ai-ops/` untouched throughout.
 8. **Render runner output** to console: scores, totals, exit_reason, artifact paths.
 9. **UPDATE ops.agent_runs** with runner's final state.
 
