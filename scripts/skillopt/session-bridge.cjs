@@ -109,6 +109,31 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+// R18 — orphaned .tmp file sweep. Used by `init` to handle leftovers from
+// crashed prior runs. Returns count of files unlinked. Idempotent + safe to
+// call on empty dirs.
+function sweepOrphanedTmpFiles() {
+  const cutoffMs = Date.now() - 5 * 60 * 1000;   // 5 minutes ago
+  let swept = 0;
+  for (const dir of [REQ_DIR, RESP_DIR]) {
+    if (!fs.existsSync(dir)) continue;
+    for (const fname of fs.readdirSync(dir)) {
+      if (!fname.endsWith('.json.tmp')) continue;
+      const full = path.join(dir, fname);
+      try {
+        const stat = fs.statSync(full);
+        if (stat.mtimeMs < cutoffMs) {
+          fs.unlinkSync(full);
+          swept += 1;
+        }
+      } catch {
+        // file vanished between readdir and stat — fine
+      }
+    }
+  }
+  return swept;
+}
+
 function isProcessAlive(pid) {
   if (!pid || !Number.isFinite(pid)) return false;
   try {
@@ -146,6 +171,14 @@ async function verbInit() {
   if (fs.existsSync(STATE_PATH)) {
     die(3, `session-bridge init: state.json already exists; cleanup first if reinitializing`);
   }
+  // R18 — orphaned .tmp sweep (Sprint 3 addition). On a fresh `init`, the
+  // queue dir was just ensured (empty), so this sweep finds nothing —
+  // defensive against the rare case where someone manually deleted
+  // state.json without cleaning the tmp files. The real R18 work happens
+  // on every `scan` call below (catches within-run mid-poll write crashes)
+  // and via the L1 invariant `skillopt-runtime-staleness` (cross-run sweep
+  // of any `runs/*` older than 60 days; knowledge/cross-tier-invariants.yaml).
+  const orphans = sweepOrphanedTmpFiles();
   const state = {
     run_id: path.basename(QUEUE_DIR),
     started_at: nowIso(),
@@ -155,13 +188,23 @@ async function verbInit() {
     completed_uuids: [],
     rate_limit_resume_after: null,
     totals: { requests_dispatched: 0, responses_written: 0, errors: 0 },
+    orphans_swept_at_init: orphans,
   };
   writeStateAtomic(state);
   process.stdout.write(`${STATE_PATH}\n`);
+  if (orphans > 0) {
+    process.stderr.write(`[session-bridge] init swept ${orphans} orphaned .tmp file(s) >5min old\n`);
+  }
 }
 
 function verbScan() {
   if (!fs.existsSync(REQ_DIR)) return;
+  // R18 sweep on every scan — catches within-run mid-poll orphans where a
+  // write (req or resp) started but never rename'd before a crash. Cheap
+  // O(N) on the queue dir; runs every poll iteration (~1s) so any orphan
+  // is gone within one poll cycle. Cross-run orphans (in OTHER runs' dirs)
+  // are handled by L1 `skillopt-runtime-staleness` invariant, not here.
+  sweepOrphanedTmpFiles();
   const state = fs.existsSync(STATE_PATH) ? readState() : null;
   const completed = new Set(state ? state.completed_uuids : []);
   const batched = new Set(state ? state.batch_uuids : []);

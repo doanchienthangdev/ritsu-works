@@ -10,7 +10,7 @@
 sop_id: SOP-AIOPS-004
 slug: evolve
 name: "/evolve iteration loop"
-version: "1.0.0"
+version: "1.1.0"   # v1.1 (2026-05-27, capability evolve v1.1 Sprint 3): added skillopt subcommand phase chain (Phase A-G per spec §19)
 state: operating
 owner: 06-ai-ops
 hitl_default: B
@@ -171,6 +171,150 @@ state_persisted_in:
   - ops.consistency_checks (post-merge for Tier C+)
   - ops.corrections (from /evolve reject subcommand)
   - ops.decisions (Tier C+ approval at PR merge — superseded model)
+
+# ----------------------------------------------------------------------
+# v1.1 NEW — skillopt subcommand (Phase A-G per spec §19.6/§19.7)
+# ----------------------------------------------------------------------
+# Distinct from the default /evolve loop above. Dispatched when the
+# command parses `/evolve skillopt <skill> ...`. Drives the SkillOpt
+# Python subprocess + session-bridge.cjs from this Claude session.
+# Subscription invariant: Python runs with ANTHROPIC_API_KEY=empty;
+# every LLM call flows file-queue → bridge → Task() subagent.
+
+skillopt_subcommand:
+  entry_skill: eval-evo/skillopt-runner
+  hitl_default: B          # entire flow Tier B; Tier C entities refused unless --tier-override
+  cost_bucket: eval-evo-orchestrator
+  budget_cap_task_kind: eval-evo-skillopt-iteration-total   # 500-msg hard ceiling per run
+
+  phases:
+    - id: phase_A_preflight
+      name: "Phase A — Pre-flight"
+      actions:
+        - argv_validate
+        - entity_exists_check
+        - cost_estimator_pre_check     # node scripts/skillopt/cost-estimator.cjs
+        - pnpm_check_clean
+        - working_tree_clean
+        - vendor_smoke                  # bash scripts/skillopt/install-vendor.sh
+        - python_deps_check             # openai + pyyaml + numpy
+        - acquire_entity_edit_lock      # universal lock per /update v1.0
+        - tier_classify
+        - resume_branch                  # --resume reads runner-state.json
+      hitl: A
+      failure_handling:
+        cost_exceeded: abort_with_widen_cap_hint
+        drift: abort_with_validator_output
+        vendor_smoke_fail: abort_with_install_vendor_hint
+        python_deps_missing: abort_with_pip_install_hint
+        lock_held: abort_lockheld
+        resume_aborted_state: refuse_terminal
+        resume_too_stale: refuse_over_7_days
+
+    - id: phase_B_gen_data
+      name: "Phase B — Synthetic data generation"
+      skill: eval-evo/skillopt-gen-data
+      actions:
+        - invoke_gen_data_skill
+        - capture_dataset_path
+        - founder_review_gate            # AskUserQuestion Tier B inside gen-data
+      hitl: B
+      failure_handling:
+        founder_abort: abort_with_cleanup
+        gate_rejected_x3: abort_with_regenerate_or_abort_prompt
+
+    - id: phase_C_train_loop
+      name: "Phase C — SkillOpt train loop"
+      actions:
+        - write_cfg_json
+        - launch_python_subprocess       # env -i ANTHROPIC_API_KEY= python3 train.py
+        - bridge_init                     # session-bridge.cjs init (sweeps orphan .tmp per R18)
+        - poll_loop_dispatch              # parallel Task() fanout per batch
+        - poll_loop_write_response        # atomic-rename per UPSTREAM-DEVIATION contract
+        - poll_loop_subprocess_alive_check
+        - budget_per_batch_check
+      hitl: A                              # within-loop; R12 escalates to B
+      failure_handling:
+        rate_limit: r12_pause_resume_or_abort   # AskUserQuestion Tier B
+        transient_error: retry_with_backoff      # up to 3 attempts
+        other_error: write_error_response_continue
+        budget_exceeded: kill_subprocess_break_loop
+        subprocess_crash: capture_exit_code_break
+
+    - id: phase_D_outer_k4
+      name: "Phase D — Outer K4 (keep-or-revert)"
+      actions:
+        - validate_best_skill_md_exists
+        - held_out_judge_pass_post        # skillopt-judge on post-iter skill
+        - held_out_judge_pass_baseline    # skillopt-judge on pre-iter skill (skipped on resume)
+        - compute_composite_delta         # playbooks/skill-skillopt.md formula
+        - k4_decision                      # keep | borderline (Tier B prompt) | revert
+      hitl: A_or_B                         # B only on borderline (0 ≤ delta < +0.10)
+      failure_handling:
+        subprocess_crash: exit_reason_subprocess_crash
+        judge_regressed: skip_install_retain_best_skill_md
+
+    - id: phase_E_install
+      name: "Phase E — Install (skipped on dry_run or judge_regressed)"
+      skill: eval-evo/install-improvement   # REUSED from v1.0
+      actions:
+        - install_via_git_stash_apply
+        - pnpm_check_post_apply
+      hitl: A
+      failure_handling:
+        drift_post_apply: revert_via_stash_pop
+
+    - id: phase_F_founder_review
+      name: "Phase F — Founder review"
+      actions:
+        - ask_keep_revert_show_diff_reject
+      hitl: B
+      failure_handling:
+        founder_revert: git_checkout_head_skill_md
+        founder_reject: revert_plus_insert_ops_corrections
+
+    - id: phase_G_cleanup
+      name: "Phase G — Cleanup + persist"
+      actions:
+        - release_entity_edit_lock
+        - update_agent_run_completed
+        - write_run_summaries             # Strategy E: ~150 tokens
+        - emit_skillopt_run_completed_event
+        - write_final_runner_state
+      hitl: A
+
+  state_files:
+    runner_state:                          # owned by skillopt-runner; cross-phase resume
+      path: "runtime/skillopt/<entity>/runs/<rid>/runner-state.json"
+      schema_version: "1.0"
+      written_at: ["phase_boundary", "phase_C_per_batch"]
+    bridge_state:                          # owned by session-bridge.cjs; per-batch IPC
+      path: "runtime/skillopt/<entity>/runs/<rid>/state.json"
+      schema_doc: "scripts/skillopt/queue-protocol.md"
+
+  events_emitted:
+    - type: ritsu.evolve.skillopt-run-completed
+      when: phase_G complete
+      payload:
+        capability_id: evolve
+        run_id: <uuid>
+        exit_reason: <str>           # all_phases_done | founder_abort | rate_limit_pause | budget_exceeded | judge_regressed | subprocess_crash
+        scores: { baseline, post_iter, held_out_delta }
+        totals: { messages_dispatched, messages_completed, judge_calls, iterations_completed }
+    - type: ritsu.evolve.skillopt-rate-limit-paused
+      when: phase_C R12 binds
+      payload:
+        run_id: <uuid>
+        messages_completed_before_pause: <int>
+        resume_after: <iso>
+
+  drift_gates:
+    - phase: phase_A_preflight
+      command: pnpm check
+      abort_on_fail: true
+    - phase: phase_E_install
+      command: pnpm check
+      revert_on_fail: true
 
 # ----------------------------------------------------------------------
 # Failure mode summary (22 classes per spec.md §10)

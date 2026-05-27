@@ -31,7 +31,8 @@ The command is a thin orchestrator. Loop logic lives in
 
 | Invocation | Purpose | HITL |
 |---|---|---|
-| `/evolve <type> <name> [--loop=N] [--stop=cond] [--dry-run] [--tier-override]` | Run eval+evo loop | B for tier-B entities; C for tier-C+ entities (loop in-session, PR after) |
+| `/evolve <type> <name> [--loop=N] [--stop=cond] [--dry-run] [--tier-override]` | Run eval+evo loop (v1.0 judge-persona rubric path) | B for tier-B entities; C for tier-C+ entities (loop in-session, PR after) |
+| `/evolve skillopt <skill-name> [--max-messages=N] [--dry-run] [--regen-data] [--resume=<run-id>] [--gen-sources=auto|pillars=1,3,5] [--bridge-poll-ms=N] [--tier-override]` | **v1.1 NEW.** Run SkillOpt held-out task-completion path via vendor subprocess + session bridge. Dispatches to `eval-evo/skillopt-runner` skill. See spec §19. | B (Tier C entities refused unless `--tier-override`) |
 | `/evolve status <type> <name>` | Read-only history viewer | A |
 | `/evolve reject <run-id> "<reason>"` | Founder negative signal → ops.corrections | A |
 | `/evolve discard <run-id> [--stale]` | Cleanup stash + run state | A |
@@ -48,6 +49,85 @@ The command is a thin orchestrator. Loop logic lives in
 | `--tier-override` | no | bool; Tier C entity → Tier B (founder-only) |
 
 `--stop` + `--loop` precedence: FIRST trigger wins.
+
+## `skillopt` subcommand (v1.1 NEW)
+
+The `skillopt` subcommand dispatches to the SkillOpt held-out task-completion
+path per spec §19. It is an alternative to the v1.0 `/evolve skill <name>`
+judge-persona path — both share the same lock + agent_runs infrastructure but
+use different scoring rubrics:
+
+- **v1.0 path** scores SKILL.md authoring quality via `playbooks/skill.md`
+  (text-quality rubric: description, process clarity, output specificity, etc.).
+- **v1.1 path** scores skill EXECUTION on a held-out test split via
+  `playbooks/skill-skillopt.md` (task-completion rubric: task input
+  comprehension, rubric coverage, edge cases, etc.).
+
+Both signals are valid; convergence between them is the falsifiable test the
+v1.0 path alone lacked (spec §19.1).
+
+### Argv (skillopt-specific)
+
+| Arg / Flag | Required | Validation |
+|---|---|---|
+| `skillopt` literal | yes | first positional after `/evolve` |
+| `<skill-name>` | yes | slug `^[a-z0-9][a-z0-9-/]*$`. v1.1 entity_type is always `skill` (spec §19.2) |
+| `--max-messages=N` | no | 1 ≤ N ≤ 500; default 500 (matches `eval-evo-skillopt-iteration-total` cap in ROLES.md) |
+| `--max-cost-usd=N` | no | belt-and-suspenders; default null |
+| `--dry-run` | no | bool; skips Phase E install + Phase F founder review |
+| `--regen-data` | no | bool; forces fresh `skillopt-gen-data` (bypasses cache hit) |
+| `--resume=<run-id>` | no | uuid; resume a paused/crashed run from `runner-state.json` |
+| `--gen-sources=auto` | no | default. Resolves to active pillars `[1, 3, 5]` |
+| `--gen-sources=pillars=1,3,5` | no | explicit subset. Pillars 2 & 4 are v1.2-deferred (error if requested) |
+| `--bridge-poll-ms=N` | no | 250 ≤ N ≤ 2000; default 1000 |
+| `--tier-override` | no | bool; Tier C entity → Tier B (founder-only) |
+
+### Workflow
+
+1. **Argv validate** (above schema).
+2. **Pre-flight via cost-estimator** — run
+   `node scripts/skillopt/cost-estimator.cjs --skill=<skill-name> --max-messages=<N>`.
+   Exit 2 (cap exceeded) → abort with widen-cap hint.
+3. **Drift gate** — `pnpm check` clean.
+4. **Hold-out gate** — same as v1.0 path (`_HOLDOUT.yaml` complete).
+5. **Universal lock acquire** — via `ops.acquire_entity_edit_lock`, same path
+   as v1.0 `/evolve` with `evolve_uses_universal_lock=true`.
+6. **INSERT ops.agent_runs** with `agent_slug = 'evolve'`,
+   `state_payload->>'mode' = 'skillopt'`, `state = 'running'`.
+7. **Dispatch to `eval-evo/skillopt-runner` skill** via Skill tool with input
+   matching the runner's §Inputs schema. Critically: pass `command_agent_run_id`
+   = the ops.agent_runs row id created at step 6 above. The runner uses this
+   for Phase G lock release (the runner does NOT re-acquire the lock; the
+   command holds it, the runner releases it). The runner handles Phases A-G
+   (pre-flight → gen-data → train loop → outer K4 → install → review → cleanup).
+8. **Render runner output** to console: scores, totals, exit_reason, artifact paths.
+9. **UPDATE ops.agent_runs** with runner's final state.
+
+### Output
+
+The skillopt subcommand emits the runner's stdout JSON verbatim. Console UX
+adds a human-readable summary line:
+
+```
+/evolve skillopt <skill> — exit:<reason> baseline:<N> post:<N+M> Δ=<+X.XX>
+                          msgs:<dispatched>/<max> iters:<N> dataset:<path>
+```
+
+For `--resume=<run-id>` invocations, the output identifies which phase was
+resumed and any state divergence (e.g., dataset path changed mid-flight).
+
+### Comparison to v1.0 path
+
+| Aspect | v1.0 `/evolve skill <name>` | v1.1 `/evolve skillopt <name>` |
+|---|---|---|
+| Rubric | `playbooks/skill.md` text-quality C1-C10 | `playbooks/skill-skillopt.md` task-completion C1-C10 |
+| Loop driver | `eval-evo/orchestrator` skill | `eval-evo/skillopt-runner` skill |
+| Sub-processes | none (in-session only) | Python `train.py` via `vendor/skillopt/` |
+| Session messages | ~3-5 per iteration | 91 per iteration (25 rollout × 25 judge × 4 reflect × 10 meta + 2 gen-data overhead) |
+| Wall-clock | minutes | tens of minutes per iteration (bridge polling) |
+| Held-out signal | None (judge measures same dataset that produces gains) | 30% held-out split scored separately (spec §19.5/§19.7) |
+| Required deps | None | `pip install -r vendor/skillopt/requirements.txt` |
+| Resume support | None | `--resume=<run-id>` reads `runner-state.json` |
 
 ## Workflow
 
