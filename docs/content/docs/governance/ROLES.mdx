@@ -2,8 +2,8 @@
 title: Agent Roles & Permissions
 description: ''
 source_path: governance/ROLES.md
-source_hash: 2f28c81368415c790315f8851596a7427c457a6e12c737e5e4437f4a1e3865b6
-generated_at: '2026-05-27T01:49:03.083Z'
+source_hash: 7e2ed027cd26bc3595f319170dac145378a57ab79b725c90b3a1be5983cda80d
+generated_at: '2026-05-27T18:29:11.510Z'
 generated_by: docs-engine v1.2.0
 category: governance
 language: vi
@@ -57,7 +57,11 @@ economic_budget:
   escalate_at_pct: 1.00            # default — founder approval at 100%
   hard_block_at_pct: 1.50          # default — block until ROLES.md PR raises cap
   per_task_kind_caps:              # optional; per-instance soft caps for this role's task_kinds
-    <task_kind>: <usd_per_instance>
+    # v1.1 tagged form (preferred — capability evolve v1.1, 2026-05-27):
+    <task_kind_usd>:      {unit: usd, cap: <number>}       # USD cap; pre-llm-call-budget hook compares against current_task_cost + estimated_call
+    <task_kind_messages>: {unit: messages, cap: <number>}  # session-message count cap for this task_kind (subagent dispatches via Task)
+    # Bare-number legacy is still accepted (auto-treated as {unit: usd, cap: N}; logs ritsu.budget.legacy_cap_format once per role/task_kind/month):
+    <task_kind_legacy>:   <usd_per_instance>
   preferred_models:                # optional; recommended model for this role's tasks
     default: <model_id>
     expensive_tasks: <model_id>    # for blog drafts, deep research
@@ -136,8 +140,9 @@ economic_budget:
   escalate_at_pct: 1.00
   hard_block_at_pct: 1.50
   per_task_kind_caps:
-    parent-orchestration: 0.50    # GPS itself shouldn't cost much per orchestration; subagents do the work
-    cost-report-query: 0.05
+    # v1.1 tagged form (capability evolve v1.1, 2026-05-27). USD caps.
+    parent-orchestration: {unit: usd, cap: 0.50}    # GPS itself shouldn't cost much per orchestration; subagents do the work
+    cost-report-query:    {unit: usd, cap: 0.05}
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition
@@ -325,11 +330,12 @@ economic_budget:
   hard_block_at_pct: 1.50
   per_task_kind_caps:
     # docs-engine capability (Sprint 1 PR-3) — per spec.md §5 cost projection.
-    docs-scaffold: 0.50         # one-time Next.js + Fumadocs scaffold
-    docs-sync-full-walk: 1.00   # full corpus walk (~215 sources)
-    docs-nav-edit: 0.10         # meta.json edit
+    # v1.1 tagged form (capability evolve v1.1, 2026-05-27). USD caps.
+    docs-scaffold:               {unit: usd, cap: 0.50}    # one-time Next.js + Fumadocs scaffold
+    docs-sync-full-walk:         {unit: usd, cap: 1.00}    # full corpus walk (~215 sources)
+    docs-nav-edit:               {unit: usd, cap: 0.10}    # meta.json edit
     # docs-check: $0 (deterministic; no LLM)
-    phase-7-implementation-pr: 2.00
+    phase-7-implementation-pr:   {unit: usd, cap: 2.00}
 notify_on_completion: false
 escalation_role: gps
 ```
@@ -875,9 +881,18 @@ economic_budget:
   escalate_at_pct: 1.00
   hard_block_at_pct: 1.50
   per_task_kind_caps:
-    eval-evo-iteration: 0.50      # one full iter: memory + judge + propose + install + drift
-    eval-evo-evaluation: 0.10     # judge persona dispatch
-    eval-evo-outside-voice: 0.30  # codex / subagent independent challenge (Tier C+ only)
+    # v1.0 task kinds (capability evolve v1.0) — migrated to tagged form in v1.1.
+    eval-evo-iteration:                  {unit: usd, cap: 0.50}    # one full iter: memory + judge + propose + install + drift
+    eval-evo-evaluation:                 {unit: usd, cap: 0.10}    # judge persona dispatch
+    eval-evo-outside-voice:              {unit: usd, cap: 0.30}    # codex / subagent independent challenge (Tier C+ only)
+    # v1.1 task kinds (capability evolve v1.1 SkillOpt integration, 2026-05-27).
+    # Unit: session-message counts (subagent dispatches tagged with this task_kind).
+    # See wiki/capabilities/evolve/spec.md §19.9 for derivation.
+    eval-evo-skillopt-rollout-batch:     {unit: messages, cap: 25}     # per-iteration parallel rollouts via skillopt-target-rollout
+    eval-evo-skillopt-reflect-batch:     {unit: messages, cap: 4}      # per-iteration reflect dispatches via skillopt-optimizer-reflect
+    eval-evo-skillopt-val-gate-batch:    {unit: messages, cap: 25}     # validation gate rollouts on held-out split
+    eval-evo-skillopt-meta:              {unit: messages, cap: 10}     # meta-skill updates (optimizer-side accumulated lessons)
+    eval-evo-skillopt-iteration-total:   {unit: messages, cap: 500}    # hard ceiling per /evolve skillopt run
   preferred_models:
     default: claude-sonnet-4-6    # proposer + orchestrator
     expensive_tasks: claude-opus-4-7   # not used in v1.0; reserved
@@ -970,25 +985,27 @@ economic_budget:
   escalate_at_pct: 1.00
   hard_block_at_pct: 1.50
   per_task_kind_caps:
+    # v1.1 tagged form (capability evolve v1.1, 2026-05-27). All USD caps; no
+    # message-count units in entity-update flow.
     # Distill phase (per spec §8). 4 task_kinds matching the 4 entity types.
-    entity-update-distill-skill: 0.20
-    entity-update-distill-command: 0.15
-    entity-update-distill-agent: 0.20
-    entity-update-distill-sop: 0.30
+    entity-update-distill-skill:        {unit: usd, cap: 0.20}
+    entity-update-distill-command:      {unit: usd, cap: 0.15}
+    entity-update-distill-agent:        {unit: usd, cap: 0.20}
+    entity-update-distill-sop:          {unit: usd, cap: 0.30}
     # v1.1 distill caps (Sprint 1 + Sprint 2 + Sprint 3)
-    entity-update-distill-hook: 0.20      # v1.1 — hook markdown ≈ skill density
-    entity-update-distill-pillar: 0.30    # v1.1 — pillar README/CLAUDE can be dense
-    entity-update-distill-file: 0.30      # v1.1 — generic file mode; Sonnet
-    entity-update-distill-workflow: 0.25  # v1.1 stub (REFUSED at runtime until workflows/ ships)
-    entity-update-distill-tier1-file: 0.30  # v1.1.1 — 00-core/, governance/, knowledge/manifest+invariants under D-Std ceremony
+    entity-update-distill-hook:         {unit: usd, cap: 0.20}    # v1.1 — hook markdown ≈ skill density
+    entity-update-distill-pillar:       {unit: usd, cap: 0.30}    # v1.1 — pillar README/CLAUDE can be dense
+    entity-update-distill-file:         {unit: usd, cap: 0.30}    # v1.1 — generic file mode; Sonnet
+    entity-update-distill-workflow:     {unit: usd, cap: 0.25}    # v1.1 stub (REFUSED at runtime until workflows/ ships)
+    entity-update-distill-tier1-file:   {unit: usd, cap: 0.30}    # v1.1.1 — 00-core/, governance/, knowledge/manifest+invariants under D-Std ceremony
     # Score / propose / test-gen are entity-type-agnostic (single cap each).
-    entity-update-score-any: 0.15
-    entity-update-propose-any: 0.25
-    entity-update-test-gen-any: 0.25
+    entity-update-score-any:            {unit: usd, cap: 0.15}
+    entity-update-propose-any:          {unit: usd, cap: 0.25}
+    entity-update-test-gen-any:         {unit: usd, cap: 0.25}
     # Path classify is deterministic (no LLM call).
-    entity-update-path-classify: 0.00     # v1.1 — Sprint 2 (file + folder)
+    entity-update-path-classify:        {unit: usd, cap: 0.00}    # v1.1 — Sprint 2 (file + folder)
     # Hard total cap per /update run (sum of all phases).
-    entity-update-iteration: 1.50
+    entity-update-iteration:            {unit: usd, cap: 1.50}
   preferred_models:
     default: claude-sonnet-4-6        # distill (skill/agent/sop), score, propose
     light_tasks: claude-haiku-4-5     # distill (command), classify-diff prompts (none in v1.0)
@@ -1059,10 +1076,11 @@ economic_budget:
   escalate_at_pct: 1.00
   hard_block_at_pct: 1.50
   per_task_kind_caps:
-    dream-cycle-dedup: 0.20
-    dream-cycle-citation-fix: 0.15
-    dream-cycle-contradiction-detection: 0.30
-    dream-cycle-synthesis: 0.50
+    # v1.1 tagged form (capability evolve v1.1, 2026-05-27). USD caps.
+    dream-cycle-dedup:                   {unit: usd, cap: 0.20}
+    dream-cycle-citation-fix:            {unit: usd, cap: 0.15}
+    dream-cycle-contradiction-detection: {unit: usd, cap: 0.30}
+    dream-cycle-synthesis:               {unit: usd, cap: 0.50}
 context_budget:
   preamble_tokens: 2000
   working_tokens: 15000

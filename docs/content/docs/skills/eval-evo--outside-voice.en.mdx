@@ -7,8 +7,8 @@ description: |
   label. Catches LLM-judge reward-hacking on safety-critical entity changes.
   Invoked by orchestrator's post-loop step on Tier C+ runs.
 source_path: 06-ai-ops/skills/eval-evo/outside-voice/SKILL.md
-source_hash: 0ddd06ac72279b2dac8fd3a0b728d6f863c18ea70f3e98d73767990c80d082cf
-generated_at: '2026-05-22T01:09:07.393Z'
+source_hash: af70d3a7637a950b0c2efd1c8e650f64939c1b4bb0046b61acecf4b8a98de60e
+generated_at: '2026-05-27T18:29:11.442Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -160,7 +160,7 @@ If both codex and subagent fail:
 }
 ```
 
-The orchestrator records this status in `ops.agent_runs.state_payload.
+The orchestrator records this status in `ops.agent_runs.input_payload.
 outside_voice_status` for audit.
 
 ## PR body assembly

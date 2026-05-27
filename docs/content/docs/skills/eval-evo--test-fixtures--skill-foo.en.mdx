@@ -1,0 +1,130 @@
+---
+title: 'Skill: eval-evo/test-fixtures/skill-foo'
+description: |
+  Test fixture skill for /evolve skillopt S1 acceptance gate. Summarizes a
+  paragraph (max ~200 words) into a single sentence (≤30 words) preserving
+  the central claim. NOT for production use — exists purely so the
+  skillopt-runner has a real SKILL.md with `<example>` blocks for Pillar 1
+  extraction during gen-data, and a rubric the judge can score against.
+  Path: 06-ai-ops/skills/eval-evo/test-fixtures/skill-foo/SKILL.md.
+source_path: 06-ai-ops/skills/eval-evo/test-fixtures/skill-foo/SKILL.md
+source_hash: 8e3d2bc34168c1c8c495f1fb3fe5cce8189afc5bc4cc07f8b63190a07a016066
+generated_at: '2026-05-27T18:29:11.451Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Summarize a paragraph into a single sentence. The fixture exists to exercise
+the `/evolve skillopt` end-to-end pipeline without committing real production
+skills as guinea pigs.
+
+## Inputs
+
+A single paragraph of prose, 50-200 words. May contain quotes, numbers, named
+entities. Domain-agnostic.
+
+## Output
+
+A single sentence:
+- ≤ 30 words
+- Preserves the paragraph's central claim
+- Uses the same factual entities (names, dates, numbers) as the input
+- No editorial framing ("The author argues..."); just state the claim
+
+## Process
+
+1. Identify the paragraph's central claim (the sentence the rest supports).
+2. Extract the load-bearing entities + the relation between them.
+3. Rephrase as a single declarative sentence under 30 words.
+4. Output the sentence only — no preamble, no quotation marks.
+
+## Examples
+
+\<example>
+INPUT:
+The CRISPR-Cas9 gene editing system, first described by Jennifer Doudna and
+Emmanuelle Charpentier in 2012, allows researchers to make precise cuts in
+DNA at specified locations. This precision has enabled new approaches to
+treating genetic diseases. In 2020, both scientists shared the Nobel Prize
+in Chemistry for their work, marking a major moment in the field.
+
+OUTPUT:
+Doudna and Charpentier won the 2020 Nobel Prize in Chemistry for the 2012
+CRISPR-Cas9 gene editing system, which enables precise DNA cuts at specified locations.
+\</example>
+
+\<example>
+INPUT:
+Vietnam's GDP growth in 2024 reached 7.1 percent, exceeding the government's
+target of 6.5-7.0 percent. The strongest contributors were manufacturing
+exports (especially electronics and textiles to the United States and
+European Union) and services (driven by a 27 percent surge in international
+tourist arrivals).
+
+OUTPUT:
+Vietnam's 2024 GDP grew 7.1 percent (above the 6.5-7.0 target), driven by manufacturing
+exports and a 27 percent tourism surge.
+\</example>
+
+\<example>
+INPUT:
+The James Webb Space Telescope, launched on Christmas Day 2021, has
+revolutionized infrared astronomy. Operating from the Earth-Sun L2
+Lagrange point about 1.5 million kilometers from Earth, JWST has imaged
+some of the earliest galaxies in the universe, with one observation
+showing star formation just 290 million years after the Big Bang.
+
+OUTPUT:
+JWST, launched Christmas 2021, has imaged galaxies forming 290 million years
+after the Big Bang from its L2 Lagrange-point orbit 1.5 million km from Earth.
+\</example>
+
+\<example>
+INPUT:
+Anthropic released Claude 3.5 Sonnet in June 2024 as a successor to Claude
+3 Opus. Despite being a smaller model, 3.5 Sonnet outperformed Opus on most
+benchmarks while running at roughly twice the speed. The release marked a
+shift in the industry toward capability-per-dollar competition rather than
+pure parameter scaling.
+
+OUTPUT:
+Claude 3.5 Sonnet, released June 2024 by Anthropic, surpassed the larger Claude 3 Opus
+on most benchmarks at twice the speed, signaling a capability-per-dollar industry shift.
+\</example>
+
+\<example>
+INPUT:
+The 2026 European heat wave broke records across the Mediterranean basin,
+with temperatures reaching 47.4 degrees Celsius in Sicily on July 22. Power
+grids in Italy and Greece operated at peak capacity for six consecutive days,
+and emergency services reported a 32 percent year-over-year increase in
+heat-related hospital admissions.
+
+OUTPUT:
+The 2026 European heat wave hit 47.4°C in Sicily on July 22, drove six days of
+peak grid load in Italy and Greece, and raised heat-related hospital admissions 32 percent year-over-year.
+\</example>
+
+## Rubric
+
+The judge scores each output against these binary criteria:
+
+1. **Word count ≤ 30 words** (PASS = 1; FAIL = 0).
+2. **Single sentence** (no semicolons, no internal periods other than abbreviations).
+3. **Names of all explicitly-named entities preserved** (no "the team", "researchers", etc. when input named them).
+4. **Numeric claims preserved verbatim** (dates, percentages, distances).
+5. **No editorial framing** ("argues", "claims", "according to" disallowed unless in the input).
+
+A passing summary scores 5/5. The judge's composite score = pass_count / 5.
+
+## Reference
+
+This fixture is **not promoted to wiki/capabilities/**. It lives at
+`06-ai-ops/skills/eval-evo/test-fixtures/skill-foo/` for the E2E pipeline
+to discover via `cost-estimator.cjs`'s third lookup path. It's invoked
+via `/evolve skillopt skill-foo --max-messages=50 --dry-run` per the
+spec §15.S1 acceptance gate.
+
