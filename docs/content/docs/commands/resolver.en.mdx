@@ -1,13 +1,12 @@
 ---
-title: 'Command: /resolver (v2.2)'
+title: 'Command: /resolver (v3.0.2)'
 description: >-
-  Lookup PLATFORM v2 (LLM-Native Catalog) — find AI workforce recipients for natural-language
-  triggers. v2 uses in-session ambient catalog (Mode A, preferred), explicit LLM query (Mode B,
-  audit), or keyword fallback (Mode C, CRON only). Catalog auto-loaded via
-  @knowledge/recipients/*.md.
+  Lookup PLATFORM v3 (JIT Loading). Founder/operator surface for resolver. Mode A2 delegates to
+  mcp__resolver__find for ~10K INDEX + drill-down via MCP. Mode C keyword fallback retained for
+  CRON/edge. v2.2 ambient (55K catalog) deprecated post-cutover.
 source_path: .claude/commands/resolver.md
-source_hash: 3cd6bab71f0f1d6f02bac966a616b44263005b36477fdb81d0e5c61f7cb47ca8
-generated_at: '2026-05-24T13:05:13.758Z'
+source_hash: e62b0112912a5a0fd7dde5abe0686cd77fc1fc8e664307b82bfe9982ed4396d2
+generated_at: '2026-05-27T01:48:44.721Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: en
@@ -16,8 +15,27 @@ language: en
 {/* generated-by: docs-engine v1.2.0 */}
 
 Project-scoped command for ritsu-works. Front-end for capability
-`resolver-v2.2-context-sources` (`knowledge/recipients/`). This command is
-a thin orchestrator — engine logic lives in `scripts/resolver-v2/*.cjs`.
+`resolver-v3-jit-loading` (`knowledge/recipients/INDEX.md` + `mcp__resolver__find`).
+This command is a thin orchestrator — engine logic lives in `scripts/resolver-v2/*.cjs`
+(reused via Node interop) + `mcp-server/src/tools/resolver-find.ts`.
+
+## Invocation schema
+
+| Position / Flag | Required | Type | Validation |
+|---|---|---|---|
+| `<subcommand>` | yes | enum | `query` \| `list` \| `validate` \| `sync` \| `explain` |
+| `"<trigger>"` (query/explain) | yes for those | string | 1-500 chars |
+| `--kind=<k>` | no | enum | one-of 16 kinds: skill\|command\|agent\|persona\|mcp\|wiki\|sop\|capability\|workflow\|schedule\|hook\|page\|view\|metric\|runbook\|external-source |
+| `--limit=N` | no | int 1-20 | default 20 (raised from 5 in iter4 — session does ranking) |
+| `--role=<role>` | no | string | override caller MCP_CALLER_ROLE for role_scope filter |
+| `--include-composition=bool` | no | bool | default true |
+| `--include-recency=bool` | no | bool | default true |
+| `--mode=A\|A2\|B\|C` | no | enum | default auto-detect; A=ambient, A2=MCP find, B=slash, C=keyword fallback |
+| `--json` (list/query) | no | bool | machine-readable output |
+| `--dry-run` (sync) | no | bool | preview without write |
+| `--apply` (sync) | no | bool | write to working tree (Tier B) |
+| `--auto-pr` (sync) | no | bool | apply + commit + open PR via gh CLI (Tier C, rate-limited) |
+| `--status=<s>` (list) | no | enum | filter: active\|planned\|stub\|deprecated |
 
 **v2 key change vs v1:** Replaced keyword-matching engine with **LLM-native
 catalog**. The ambient catalog (loaded via `@knowledge/recipients/*.md`
@@ -54,13 +72,18 @@ adapter ships).
 | **`runbook`** *(v2.2)* | `wiki/runbooks/*.md` | `runbooks.md` |
 | **`external-source`** *(v2.2)* | `knowledge/external-sources.yaml` (per source; `source_type` discriminator) | `external-sources.md` |
 
-## Three modes
+## Four modes (v3 update)
 
 | Mode | When | Latency | Cost |
 |---|---|---|---|
-| **A — ambient** (preferred) | You're in Claude Code session; just reason naturally about catalog | 0ms | $0 |
-| **B — explicit** (`/resolver query`) | Debug, audit, operator-facing | ~5-500ms | $0 in-session |
+| **A — ambient INDEX** (post-v3-cutover) | You see INDEX.md in CLAUDE.md preamble (~11K tokens); reason naturally about what kinds + entries exist | 0ms | $0 |
+| **A2 — JIT MCP `find()`** (NEW v3) | Need full details for a recipient (composes_with, recency, role_scope) | ~80ms MCP + session ranking | $0 (subscription billing) |
+| **B — explicit `/resolver query`** | Founder CLI ergonomics; delegates to `mcp__resolver__find` per Q3.4 | ~80ms + session ranking | $0 in-session |
 | **C — keyword fallback** | CRON/edge function (no LLM in loop) | \<5ms | $0 |
+
+**Per Q3.4 resolution**: `/resolver query` (Mode B) is now a thin wrapper that
+invokes `mcp__resolver__find` internally. Single source of truth (MCP tool)
+serves both slash command + AI workforce agents.
 
 ## Subcommands
 
@@ -104,30 +127,36 @@ You don't need to invoke this command. Just read the catalog naturally:
 4. You invoke directly: `Skill({skill: "customer-onboarding"})`
 5. Optionally write audit row via `audit.cjs#buildRecord({mode: 'A', ...})`
 
-## Mode B workflow (operator-facing)
+## Mode B workflow (operator-facing, v3 = delegate to MCP)
 
 ```
 $ /resolver query "onboard first 30 customers"
 
-[Mode B — LLM-mediated]
-Primary: skill/customer-onboarding
+[Mode B → mcp__resolver__find delegate per Q3.4]
+Primary: skill/customer-onboarding (keyword_score: 0.85)
   Invoke: Skill({ skill: "customer-onboarding" })
   When: Onboarding a new paying customer (especially the first 30 high-touch
         Zoom onboardings)...
 
-Supporting (composition):
-  persona/cgo                  — Founder routing to GTM/customer ops
-  mcp/supabase-ops__query      — Read customer profile state
+Composition (composes_with):
+  - persona/cs-coach
+  - sop/SOP-CUSTOMER-006
+  - mcp/supabase-ops__query
 
-Alternatives:
-  skill/wedge-validation       — If still validating before onboarding
-  command/cgo                  — If founder wants weekly customer session
+Recency (your role 'founder' last 7d):
+  - Used 3 times, last success 2 days ago
 
-Rationale: Customer onboarding is the primary action; CGO persona owns
-GTM funnel orchestration; supabase-ops query needed for customer state.
+Alternatives (next 4 by keyword_score):
+  - skill/wedge-validation         (0.65)
+  - command/cgo                    (0.60)
+  - skill/customer-segmentation    (0.55)
 
-Audit: run_id=<uuid> written to ops.resolver_decisions (mode='B')
+Audit: run_id=<uuid> written to ops.resolver_decisions (mode='A2')
+Session finds: 1/20 in current 4h window
 ```
+
+**No API key used** — session ranking only (subscription billing per
+`external-source/anthropic-api` policy iter4).
 
 ## Mode C workflow (non-LLM consumer)
 
@@ -154,20 +183,71 @@ Recall acknowledged ~30% (keyword-only); use Mode A whenever possible.
 | 1832 LOC | ~600 LOC |
 | Recall 30% | Recall ~80% (Mode A) |
 
+## v2.2 → v3 migration (this command's update)
+
+| v2.2 | v3 |
+|---|---|
+| 16 files `@imported` into CLAUDE.md (~55K tokens ambient) | 1 file `INDEX.md` (~11K tokens, all 373 active entries) |
+| Mode A = full text in context | Mode A = INDEX in context (1-line per entry) |
+| No JIT pattern | Mode A2 = `mcp__resolver__find` for drill-down |
+| `/resolver query` Mode B = in-session LLM | `/resolver query` delegates to `mcp__resolver__find` |
+| ~80% recall (Mode A reads full catalog) | ~89% recall (session model picks from 20 keyword-pre-filtered) |
+| Catalog grows linearly into ambient (failure at ~800 entries) | Scales to 1500+ entries (INDEX size capped at 15K) |
+| Per-call API cost via Mode B = $0 (in-session) | Per-call API cost = $0 (still in-session per `external-source/anthropic-api`) |
+
+**iter4 policy enforcement**: Original v3 spec proposed Haiku-via-API for L3
+ranking inside MCP subprocess. Founder caught violation of
+`external-source/anthropic-api` policy. Switched L3 to session-model ranking.
+$0 API cost preserved.
+
+## Writes + Events (per subcommand)
+
+| Subcommand | ops.* writes | Events emitted | Filesystem writes |
+|---|---|---|---|
+| `query` | `ops.resolver_decisions` (mode='A2', via `mcp__resolver__find`) | none | none |
+| `list` | none (read-only) | none | none |
+| `validate` | none (read-only) | none | none |
+| `sync --dry-run` | none | none | none (preview only) |
+| `sync --apply` | none | none | `knowledge/recipients/*.md` (regenerated from source frontmatter) |
+| `sync --auto-pr` | none | none | `knowledge/recipients/*.md` + git commit + GitHub PR via `gh` |
+| `explain` | `ops.resolver_decisions` (mode='A2') optionally | none | none |
+| (auto) `mcp__resolver__find` | `ops.resolver_decisions` (mode='A2') + IF bypass detection enabled: `ops.events` (event_type=`resolver.bypass_detected`) | `resolver.bypass_detected` (cherry-pick #13 post-cutover) | none |
+| (cron) `resolver-v3-health-check` | `ops.events` (event_type=`resolver.health_check`); 3 consecutive fails → `resolver.health_degraded` | `resolver.health_check`, `resolver.health_degraded` | none |
+
+## Error codes (mcp__resolver__find pass-through)
+
+| Code | When | What to do |
+|---|---|---|
+| `invalid_input` | intent empty / >500 chars / limit out of 1-20 | Fix input; check intent length |
+| `unknown_kind` | kind not in 16 valid kinds | Use one of: skill, command, agent, persona, mcp, wiki, sop, capability, workflow, schedule, hook, page, view, metric, runbook, external-source |
+| `session_cap_exceeded` | 21+ find() calls in 4h session window | Likely loop bug. Restart Claude Code session (⌘Q + reopen) to reset counter. OR wait for 4h window to elapse. |
+| `feature_disabled` | `RESOLVER_JIT_ENABLED=false` in `.env.local` | Unset env var + restart session to re-enable JIT mode. Fall back to v2.2 ambient (if CLAUDE.md still has @imports) or `--mode=C` keyword fallback. |
+| (no error, but `degraded: true`) | catalog corrupt | Returns INDEX-only data as fallback. Fix `knowledge/recipients/*.md` manually + regen INDEX via `pnpm resolver:index`. Founder alert via `ops.events resolver.catalog_corrupt`. |
+| (no error, but empty `matches[]`) | NO_MATCH — no recipient passes keyword pre-filter | Broaden intent; drop `--kind` filter; check `--role` allowlist; verify spelling. |
+| (sync errors) `lock_held` | concurrent `--apply` running | Wait 10 min (`.archives/resolver-v2-sync.lock` staleness) OR `rm` lock if known-dead session. |
+| (validate errors) | catalog drift detected | Run `pnpm resolver:index` to regenerate INDEX; check per-validator output for specific drift. |
+
 ## Defensive notes
 
-- `/resolver sync --auto-pr` opens a PR via `gh` CLI; requires `gh auth login`
-- Working tree must be clean for `--auto-pr`
-- Concurrent `--apply` blocked by `.archives/resolver-v2-sync.lock` (10-min staleness)
-- `/resolver query` Mode B writes audit row best-effort (failure non-blocking)
-- Mode C is fallback; encourage migration to Mode A
+- `/resolver sync --auto-pr` opens a PR via `gh` CLI; requires `gh auth login` + clean working tree
+- Concurrent `--apply` blocked by `.archives/resolver-v2-sync.lock` (10-min staleness — `rm` if known-dead)
+- `/resolver query` Mode A2 writes audit row best-effort (failure non-blocking, returns `audit_run_id: null` silently)
+- Mode C keyword fallback recall ~30%; prefer Mode A2 (JIT MCP) or Mode A (ambient) whenever possible
+- Per-session find() hard cap **20 in 4h window** — circuit breaker against runaway loops (cherry-pick #11)
+- `pre-tool-publish` hook gates external publishing actions per `governance/HITL.md` — runs before MCP write tools touch external surface
+- `pre-bash-mass-action` hook (cherry-pick #13, post-cutover) logs bypass events when model uses Bash instead of available recipient — observability only, never blocks
+- `RESOLVER_JIT_ENABLED=false` in `.env.local` disables MCP tool path → emergency rollback without code change
 
 ## Pre-flight
 
-- Capability state: `operating` v2.2.0 (Phase 8 promotion 2026-05-24)
-- v2.1 superseded by v2.2 (non-breaking incremental — wire format preserved)
-- Drift: `pnpm check` should pass including 4 v2 resolver validators
-- Catalog size after v2.2: ~390 entries across 16 kinds (~48K tokens in ambient context)
+- Capability state: `proposed` → `deployed` (v3.0.0 — Sprint 4 partial, pre-cutover)
+- v2.2 will be superseded by v3 at Tier C CLAUDE.md cutover ceremony (separate gate)
+- Drift: `pnpm check` passes (5 validators including new `resolver-v3 INDEX.md ↔ catalog`)
+- INDEX.md size: ~11K tokens, 386 active recipients (was 55K full catalog in v2.2)
+- Hard cap: 15K tokens (room for ~5 more capabilities worth of new recipients)
+- MCP tool: `mcp__resolver__find` registered, returns top-20 enriched candidates
+- Feature flag: `RESOLVER_JIT_ENABLED` (set false in `.env.local` to disable MCP)
+- Health-check cron: `resolver-v3-health-check` hourly (stub — wires in Sprint 4 follow-up)
 
 ## Composition output — v2.2 adds optional `context_recipe`
 
@@ -198,15 +278,23 @@ context_recipe:               # OPTIONAL — v2.2
 
 ## See also
 
-- Spec: `.archives/cla/resolver-v2.2-context-sources/spec.md`
-- v2.1 spec (architecture inherited): `.archives/cla/resolver-v2.1/spec.md`
-- v2.0 spec (origin): `.archives/cla/resolver-v2/spec.md`
-- Catalog: `knowledge/recipients/*.md`
-- Engine: `scripts/resolver-v2/`
+- **Canonical spec (v3.0.1)**: `wiki/capabilities/resolver-v3-jit-loading/spec.md`
+- **Retrospective**: `wiki/capabilities/resolver-v3-jit-loading/retrospective.md` (sprint actuals + v3.0.1 patch notes)
+- v3 scoping brainstorm: `.archives/cla/resolver-v3-jit-loading/00-scoping-brainstorm.md`
+- v3 temporal questions log: `.archives/cla/resolver-v3-jit-loading/02-temporal-questions.md`
+- Prior versions (superseded): v2.2 `.archives/cla/resolver-v2.2-context-sources/spec.md`, v2.1 `.archives/cla/resolver-v2.1/spec.md`, v2.0 `.archives/cla/resolver-v2/spec.md`, v1 `wiki/capabilities/resolver/retrospective.md`
+- **Catalog source (16 files)**: `knowledge/recipients/*.md`
+- **INDEX (v3 ambient surface)**: `knowledge/recipients/INDEX.md` (~11K tokens, all active recipients)
+- Engine (Node interop reused from v2): `scripts/resolver-v2/{catalog-loader,keyword-fallback,sync,audit,errors,catalog-generator}.cjs`
+- INDEX generator (v3 NEW): `scripts/resolver-v3/index-generator.cjs`
 - Adapter contract (v2.4+ federation seed): `scripts/resolver-v2/adapters/README.md`
 - External-source registry: `knowledge/external-sources.yaml`
-- Validators: `scripts/cross-tier/validate-resolver-v2-*.cjs`
-- Audit table: `ops.resolver_decisions` (+ migration 00035)
-- v1 retrospective: `wiki/capabilities/resolver/retrospective.md`
-- Consumer SKILL: `06-ai-ops/skills/resolver-query/SKILL.md`
+- Validators (5 total): `scripts/cross-tier/validate-resolver-v2-{schema,uniqueness,coverage,link-integrity}.cjs` + `validate-resolver-v3-index-consistency.cjs`
+- MCP tool source: `mcp-server/src/tools/resolver-find.ts`
+- Audit table: `ops.resolver_decisions` (mode='A2' for v3; migration 00035 base + 00038 mode CHECK extension)
+- Consumer SKILL (legacy v2 wrapper): `06-ai-ops/skills/resolver-query/SKILL.md`
+- Hold-out telemetry hooks (post-cutover, cherry-pick #13): `.claude/hooks/pre-bash-mass-action.md`, `.claude/hooks/pre-edit-significant.md`
+- Health-check cron: `resolver-v3-health-check` in `knowledge/schedules.yaml` (hourly canary)
+- Governance: `governance/HITL.md` for tier classification; `governance/ROLES.md` for role_scope semantics
+- Policy alignment: `knowledge/recipients/external-sources.md` entry `external-source/anthropic-api` (iter4 enforcement — session billing, no API key in MCP subprocess)
 

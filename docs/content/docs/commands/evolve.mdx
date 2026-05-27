@@ -5,8 +5,8 @@ description: |
   ritsu-works leaf entity (skill / command / agent / hook / SOP). Foundational
   self-improvement capability per wiki/capabilities/evolve/spec.md.
 source_path: .claude/commands/evolve.md
-source_hash: 25350e600e78e83c79938970faa507ef80c54a647f3871830bc799b5fb450dec
-generated_at: '2026-05-22T01:09:07.447Z'
+source_hash: 7698454e659766210c20297da91b83e971c7c0d1c42c804023a419b4ce53ab07
+generated_at: '2026-05-27T01:48:44.718Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
@@ -67,7 +67,28 @@ The command is a thin orchestrator. Loop logic lives in
    - hook → `.claude/hooks/<name>.md`
    - sop → `06-ai-ops/sops/<name>/`
 5. If entity doesn't exist, search via best-effort glob; suggest closest. Exit.
-6. Concurrent-run check:
+6. Concurrent-run check — branch by feature flag
+   `evolve_uses_universal_lock` from `knowledge/feature-flags.yaml`:
+
+   **If `evolve_uses_universal_lock=true`** (universal lock path —
+   added Sprint 1 of capability `update` v1.0):
+   ```sql
+   SELECT ops.acquire_entity_edit_lock(
+     '<type>',         -- entity_type
+     '<name>',         -- entity_name
+     'evolve',         -- holder_kind
+     '<run_id>'::uuid, -- holder_run_id (matches the agent_runs row created at step 9)
+     '<session_id>'    -- session_id (Claude Code session id, or pid)
+   ) AS result;
+   ```
+   If `result.acquired=false`, raise `ConcurrentRunError` with `result.holder`
+   contents (entity_type, entity_name, holder_kind, holder_run_id, session_id,
+   acquired_at). Hint: `result.hint` if present (e.g., "Use /update cancel
+   or /update review on prior run before re-acquiring").
+
+   **If `evolve_uses_universal_lock=false`** (legacy path — default for first
+   48h after deploy per @cto NIT 4 staged migration; remove path after 30 days
+   clean):
    ```sql
    SELECT id FROM ops.agent_runs
    WHERE agent_slug = 'evolve'
@@ -75,6 +96,11 @@ The command is a thin orchestrator. Loop logic lives in
      AND state_payload->>'entity_slug' = '<slug>'
    ```
    If row exists, `ConcurrentRunError` with run-id + action hint.
+
+   The orchestrator MUST `ops.release_entity_edit_lock('\<type>', '\<name>',
+   '\<run_id>'::uuid)` at Phase C completion when the universal-lock path was
+   used. Legacy path needs no explicit release (presence inferred from
+   `state IN ('completed','failed','cancelled')`).
 7. Working tree check: `git diff --quiet -- <entity-file>`. If dirty, error.
 8. Classify tier:
    - hook + sop + Tier 1 entity → Tier C+
@@ -110,6 +136,12 @@ for contract.
 - Working tree contains the kept diff (or no diff if all iters reverted).
 - Print final summary to console (per §UX below).
 - UPDATE ops.agent_runs.state='completed'.
+- **Lock release (if universal-lock path was used at step 6):**
+  ```sql
+  SELECT ops.release_entity_edit_lock('<type>', '<name>', '<run_id>'::uuid);
+  ```
+  Idempotent — returns false if lock was already gone (e.g., stale takeover by
+  another writer); log but don't fail.
 
 **Tier C+:**
 - Working tree contains accumulated diff (kept iters committed in-place via `git stash drop`).
@@ -117,8 +149,15 @@ for contract.
 - Assemble PR body: spec.md link + score trajectory + outside-voice report + cost summary.
 - `gh pr create --title "evolve(<type>/<name>) <score-pre>→<score-post>" --body "<assembled>"`
 - UPDATE ops.agent_runs.state='pr-open'.
+- **Lock release** (same call as Tier B above; idempotent).
 - Print PR URL.
 - Telegram notification (founder; concise: PR URL + delta) — deferred to v1.1 if Telegram bot not yet wired.
+
+**On error/abort path** (any phase): release the lock with the same
+`ops.release_entity_edit_lock(...)` call. If the orchestrator never acquired
+the lock (legacy path), no-op. Lock auto-expires after 24h via the
+acquire function's stale-takeover semantics, so dropping the release on a
+crashed session is recoverable.
 
 ## Console UX
 

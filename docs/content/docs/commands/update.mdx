@@ -1,0 +1,80 @@
+---
+title: 'Command: /update'
+description: |
+  Refresh any ritsu-works leaf entity (skill | command | agent | sop) from
+  verified external information via citation-disciplined distill + K4
+  quality ratchet. Third foundational write-loop alongside /cla (create)
+  and /evolve (self-improve). Reads refs (files or wiki: refs), distills
+  into structured proposed changes, founder reviews 0.6-0.85 bucket,
+  applies via universal lock, generates tests, scores pre+post, auto-reverts
+  on quality regression. See wiki/capabilities/update/spec.md (after Phase
+  8 promotion) or draft .archives/cla/update/spec.md.
+source_path: .claude/commands/update.md
+source_hash: 0efb1d71e5585c40f99208c87e91ef3acbb2c2716711a5d6b254ec0f275b47ad
+generated_at: '2026-05-27T01:48:44.723Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Project-scoped command for ritsu-works. Refs-driven entity refresh.
+Capability: `update` (spec: `wiki/capabilities/update/spec.md` after Phase
+8 promotion; draft `.archives/cla/update/spec.md`).
+
+The command is a thin orchestrator façade. Phase logic lives in
+`06-ai-ops/skills/entity-update/orchestrator/SKILL.md` which dispatches to
+shared `eval-evo/` skills (distill-from-refs, review-extractions,
+propose-improvement, install-improvement, score-\{type}, test-gen).
+
+The command:
+- Parses argv (entity-type, entity-name, --refs, flags)
+- Pre-flights drift + ref-source allowlist (agent type) + working-tree-clean
+- Resolves refs (file paths + `wiki:` forms via scripts/update/refs-resolver.cjs)
+- Dispatches to orchestrator skill
+- Renders console UX
+- Persists state to ops.* tables
+- Handles Tier B (in-place) vs Tier C+ (PR) install routing
+- Releases the universal entity-edit lock on completion/abort
+
+## Subcommands
+
+| Invocation | Purpose | HITL |
+|---|---|---|
+| `/update <type> <name> --refs=<csv>` | Refs-driven entity refresh | B for trivial; C for medium/--force-pr |
+| `/update review [<run-id>]` | Founder review queue for pending_review extractions | B (per-extraction) |
+| `/update status <run-id>` | Read-only run history viewer | A |
+| `/update history <type> <name>` | Lineage chain across /update runs on an entity | A |
+| `/update resume <run-id>` | Resume a paused run (awaiting_review or partial) | per phase |
+| `/update reject <run-id> "<reason>"` | Founder negative signal → ops.corrections | A |
+| `/update discard <run-id>` | Cleanup stash + run state | A |
+| `/update list [--type=<t>] [--state=<s>]` | Browse /update runs | A |
+| `/update cancel <run-id>` | Cancel an in-flight run (release lock; mark cancelled) | B |
+| `/update force-unlock <type> <name>` | Break stuck universal lock | **D-Std** (magic-phrase) |
+
+## Argv schema (primary form)
+
+| Arg / Flag | Required | Validation |
+|---|---|---|
+| `<entity-type>` | yes | enum: skill, command, agent, sop **(v1.0)** + hook, pillar **(v1.1 Sprint 1)** + file **(v1.1 Sprint 2)** + folder, workflow **(v1.1 Sprint 3)** + tier1-file **(v1.1.1)** |
+| `<entity-name>` | yes | slug `^[a-z0-9][a-z0-9-/]*$` (nested slash allowed; no `..`, no leading `/`). For `file` type: a path relative to repo root. |
+| `--refs=<csv>` | yes | comma-separated ref list; may repeat flag; supports `wiki:` forms |
+| `--force-pr` | no | Promote trivial/medium to PR-after-loop (Tier C audit override) |
+| `--skip-drift-check` | no | Skip Phase 0 pnpm check (Tier C audit override) |
+| `--allow-untrusted-refs` | no | (agent + hook types) Allow refs outside trusted prefixes (Tier C audit override) |
+| `--force-tier=<B\|C>` | no | (file type only) Override path-classified tier; CANNOT downgrade C→B (refused); B→C upgrade allowed + audit |
+| `--dry-run` | no | Run distill + propose; do NOT install |
+
+### v1.1 per-type ceremony (NEW)
+
+**`hook` type** (v1.1 Sprint 1) — D-Std magic-phrase ceremony required PER INVOCATION:
+
+```
+1. /update hook <name> --refs=<csv>
+2. Command prints:
+   /update hook <name> requires D-Std authorization per governance/HITL.md.
+   Reply with: override: <reason 5+ words> to proceed.
+   Reply STOP to cancel.
+3. Founder types: override: [redacted-example]
+

@@ -2,8 +2,8 @@
 title: 'Skill: architect'
 description: Phase 5 of CLA workflow (Bài
 source_path: 06-ai-ops/skills/capability-lifecycle/architect/SKILL.md
-source_hash: 0cc59a382591c76f11b83225b7b3f8a9d124387bb748b473c2ee61272f8fc839
-generated_at: '2026-05-25T05:38:44.893Z'
+source_hash: a52bd644135ab910998a819643a39183a896a7632e91271a1e926bd374f594c3
+generated_at: '2026-05-27T01:49:02.772Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
@@ -54,6 +54,45 @@ Categories:
 | 18 | Ingestion | New source/route |
 | 19 | Founder capacity | Hours/week impact |
 | 20 | CLA | This capability is itself a CLA-produced unit |
+
+### Step 2.5 — Brain-integration decision (REQUIRED, v1.2.0)
+
+Brain is a first-class operational dependency now (separate Supabase project `ritsu-brain`, 74 MCP tools, $100/mo HARD cap). Every CLA capability MUST make an explicit brain decision; the per-Bài-toán table alone is too generic to surface it. This step forces a structured choice.
+
+Apply 3 yes/no questions:
+
+**Q1 — READ:** Would this capability's quality improve by surfacing PRIOR brain content at runtime (decisions, retros, expert pages, contradictions)?
+- YES → spec.md MUST include "Brain READ" patterns in § 5.X with: which MCP tools (`search`, `traverse_graph`, `find_experts`, `find_contradictions`, `get_page`), trigger points, cost-bucket `gbrain.<role>.<op>`, estimated $/invocation.
+
+**Q2 — WRITE:** Does this capability produce knowledge artifacts that future capabilities would benefit from finding via search (decisions, observations, retros, ideas, meeting notes, person/company entities)?
+- YES → spec.md MUST include "Brain WRITE" patterns in § 5.X with: which MCP tools (`put_page`, `add_link`, `add_tag`, `update_page`), page namespace (ideas/concepts/meetings/decisions/people/companies), HITL tier per `governance/HITL.md` Appendix A (Tier B notify-first-then-batch typical), cost-bucket, and identify which existing roles need `mcp_servers: [gbrain]` grant elevation. If creating a new role: declare its `brain_affinity` (high|medium|low|none) per `governance/ROLES.md` v1.1 matrix.
+
+**Q3 — COST:** Is the expected monthly cost (sum of Q1 + Q2 per-invocation × expected frequency) > $1/mo?
+- YES → spec.md MUST add `per_task_kind_caps` entry in the role's `economic_budget` block (`governance/ROLES.md`), AND verify the global $100/mo HARD cap budget is not exceeded by this addition (read current 30d rolling spend via `metrics.gbrain_cost_daily` view).
+
+Output: spec.md § "5.X Brain integration" with one of:
+
+| Decision | Trigger | Spec.md content |
+|---|---|---|
+| `NONE` | All 3 = no | One paragraph: "Capability has no brain touchpoints. Rationale: \<2 sentences\>." |
+| `READ-only` | Q1=yes, Q2=no | READ block per `06-ai-ops/skills/brain-write-discipline/SKILL.md` template, READ section only. |
+| `READ+WRITE` | Q1=yes AND Q2=yes | Full READ+WRITE block per `brain-write-discipline` template + cross-link contract (which `ops.*` columns carry the brain slug). |
+| `WRITE-only` | Q1=no, Q2=yes | Rare but valid — capabilities producing pure-output artifacts (e.g. event recorders). Same template, WRITE section only. |
+| `COST-managed` | Q3=yes regardless | Adds per-task-kind cap. May combine with any of the above. |
+
+Add a new row to the per-Bài-toán impact table from Step 2:
+
+| Bài | Topic | Common change |
+|---|---|---|
+| 20.1 | Brain integration | Per Step 2.5 decision: `none` \| `read` \| `read+write` \| `write` |
+
+**Downstream gates this step creates:**
+- If `READ+WRITE` chosen, Phase 6 sprint plan MUST include a "brain wire-up" acceptance criterion in at least one sprint (sprint-planner verifies via spec.md § 5.X presence).
+- If `COST-managed`, Phase 7 PR template MUST include cost-bucket registration verification.
+
+**Skip conditions** (rare):
+- Capability is pure deterministic infrastructure (e.g., a migration script with no LLM call) AND has no role-elevation impact. Document the skip rationale in spec.md.
+- Caller invokes `/cla propose --no-brain` (explicit founder override; logged to `ops.decisions.payload.brain_decision_override`).
 
 ### Step 3 — Generate canonical `spec.md`
 

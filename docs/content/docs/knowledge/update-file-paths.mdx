@@ -1,0 +1,40 @@
+---
+title: 'Tier 1 yaml: update-file-paths'
+description: Schema overview for `knowledge/update-file-paths.yaml`.
+source_path: knowledge/update-file-paths.yaml
+source_hash: 0510c04c1434edd12a7ef64c6fd26f5fdf1f155c8a3534fa805e3a682be5bb41
+generated_at: '2026-05-27T01:49:03.021Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+update-file-paths.yaml — Path-tier classifier for /update file \<path> mode
+============================================================================
+Tier 1 declarative — consumed by scripts/update/path-classify.cjs at /update
+file time. Globs evaluated in DECLARED ORDER; first match wins.
+
+Tier values:
+  refuse — REFUSED (route to /cla extend, PR, or explicit forward command)
+  C      — Tier C (opens PR for founder review + merge)
+  B      — Tier B (in-place apply + founder AskUserQuestion confirmation)
+
+Schema: knowledge/schemas/update-file-paths.schema.json
+Spec:   wiki/capabilities/update/spec.md §15 (v1.1 extension; promoted Sprint 3)
+Brainstorm: .archives/cla/update/v1.1-brainstorming/05-file-arbitrary.md
+Capability: update v1.1 (extend of v1.0 — same capability_run_id)
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `default`
+- `rules`
+- `catch_all`
+
+> Live values in [`knowledge/update-file-paths.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/update-file-paths.yaml). This page describes the schema; not the data.

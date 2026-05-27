@@ -7,8 +7,8 @@ description: |
   HITL max tier: B. Never merges; founder merges. Use @cto for bounded
   one-shot review; /cto for an interactive review session.
 source_path: .claude/agents/cto.md
-source_hash: 5b880a750c958aa269dcf6f799a871d1a6b7dcf8c369932944a0cf04e1be07c2
-generated_at: '2026-05-22T01:09:07.427Z'
+source_hash: c571ea75ab3afd1eb2ad69ead9e656f0c9d3ca9b53ab54a58968ae8b21db1dd8
+generated_at: '2026-05-27T01:49:02.949Z'
 generated_by: docs-engine v1.2.0
 category: agent
 language: vi
@@ -72,6 +72,30 @@ If the prompt is unparseable, return `CLARIFICATION-NEEDED: <one-line>`.
 - Hook change weakens HITL → escalate to CEO (Tier C+).
 - New secret needed → escalate to founder direct (Tier D-Std).
 - Architecture call is strategic → escalate to CEO.
+
+## Resolver discipline (per-role propagation)
+
+You inherit ambient INDEX (~11K tokens from `CLAUDE.md @import`) AND the JIT
+drill-down tool `mcp__supabase-ops__resolver_find`. When the 1-line INDEX
+summary suffices, invoke direct (Path A — 0ms). When you need composition
+graph, recency, role filter, or full `when_to_use`, use Path B.
+
+**Path B contract — ALWAYS pass your role explicitly:**
+
+```ts
+mcp__supabase-ops__resolver_find({
+  intent: "...",
+  role: "code-reviewer",   // ← YOUR bound role
+  limit: 5,
+})
+```
+
+`MCP_CALLER_ROLE` env defaults to the session founder's value and does NOT
+auto-change when a subagent spawns. Without explicit `role`, you would see
+a slice filtered for the parent (CEO/founder), not your review scope. Pass
+`role: "code-reviewer"` on every Path B call to get the correct per-role
+filter (governance/ROLES.md). Your filter narrows to code-review skills,
+schema validators, drift diagnostics — and EXCLUDES marketing/content.
 
 ## Audit log
 

@@ -1,0 +1,185 @@
+---
+title: 'Skill: eval-evo/review-extractions'
+description: |
+  Founder-facing review queue UX for ops.evolve_extractions in pending_review
+  state (confidence 0.6-0.85 bucket). Mirrors /wiki review pattern. Surfaces
+  one extraction at a time with raw_quote + proposed_change + section_target;
+  founder picks Accept / Edit / Reject. Multi-session resumable via the
+  agent_run_id key.
+source_path: 06-ai-ops/skills/eval-evo/review-extractions/SKILL.md
+source_hash: dbca0b8b460584b3a4861cb8611160710b7f1c3bfb2242cca9361fe1c62548ff
+generated_at: '2026-05-27T01:49:02.796Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+The verify gate. Without founder hand-review of the 0.6-0.85 confidence
+bucket, /update would silently apply mediocre extractions. This skill is
+where founder agency hands back the wheel.
+
+## Contract
+
+### Input
+```json
+{
+  "agent_run_id": "<uuid>",        // scope review to one /update run
+  "max_to_review": <int|null>      // default: all pending; cap at 25 to avoid fatigue
+}
+```
+
+### Output
+```json
+{
+  "reviewed_count": <int>,
+  "buckets": {
+    "founder_accepted": <int>,
+    "founder_rejected": <int>,
+    "founder_edited": <int>
+  },
+  "remaining_pending": <int>,      // if founder aborted mid-queue
+  "next_step": "ready_for_propose" | "review_partial" | "no_extractions"
+}
+```
+
+## Process
+
+### Step 1 — Load pending queue
+
+```sql
+SELECT id, ref_path, ref_chunk_index, raw_quote, proposed_change,
+       section_target, confidence, llm_model
+FROM ops.evolve_extractions
+WHERE agent_run_id = $1
+  AND review_state = 'pending_review'
+ORDER BY confidence DESC, created_at ASC
+LIMIT COALESCE($2, 25)
+```
+
+Higher-confidence extractions first — founder builds momentum on easier
+calls before harder ones. If the queue is empty, return immediately with
+`next_step = 'no_extractions'`.
+
+### Step 2 — Per-extraction founder UI
+
+For each row in the queue, render via `AskUserQuestion`:
+
+```
+question: "Review extraction <i>/<N> for /update <agent_run_id>:"
+header: "Extract <i>/<N>"
+options:
+  - label: "Accept (Recommended)"
+    description: |
+      raw_quote (from <ref_path>:<chunk_index>):
+        "<raw_quote, truncated to 400 chars>"
+
+      proposed_change (target: <section_target>):
+        "<proposed_change>"
+
+      confidence: <confidence>  model: <llm_model>
+
+      Applies this change in the propose-improvement phase.
+  - label: "Edit"
+    description: |
+      Same content; you provide an edited proposed_change in next turn.
+      Founder-edited version is what propose-improvement consumes.
+  - label: "Reject"
+    description: |
+      Discard this extraction. Logged as founder_rejected for audit trail.
+      Future /update runs on the same entity will see this as negative signal
+      via ops.corrections (Sprint 3+).
+  - label: "Skip + finish later"
+    description: |
+      Stop the queue here. Run /update review <agent_run_id> later to resume.
+      Already-reviewed extractions persist; unreviewed stay pending_review.
+```
+
+`AskUserQuestion` enforces single-select. Founder picks per extraction.
+
+### Step 3 — Persist founder decision
+
+For each decision, UPDATE the row (the trigger
+`trg_evolve_extractions_review_transition` enforces legal transitions):
+
+```sql
+-- Accept
+UPDATE ops.evolve_extractions
+SET review_state = 'founder_accepted',
+    founder_decision_at = now(),
+    founder_decision_note = $note  -- optional founder text
+WHERE id = $id;
+
+-- Reject
+UPDATE ops.evolve_extractions
+SET review_state = 'founder_rejected',
+    founder_decision_at = now(),
+    founder_decision_note = $note  -- founder reason; ≥ 5 words recommended
+WHERE id = $id;
+
+-- Edit
+UPDATE ops.evolve_extractions
+SET review_state = 'founder_edited',
+    founder_decision_at = now(),
+    founder_edited_change = $edited_text,
+    founder_decision_note = $note
+WHERE id = $id;
+```
+
+Skip: do not UPDATE; row stays at `pending_review` for next session.
+
+### Step 4 — Emit run_summary + return
+
+Write to `ops.run_summaries` for the skill's own agent_runs row (NOT the
+parent /update agent_run_id):
+
+> "review-extractions: reviewed N/M pending; \<accept>/\<reject>/\<edit> buckets;
+> \<skipped> remain for next session"
+
+Return JSON per output contract. The orchestrator decides next phase:
+- If `remaining_pending = 0` AND `accepted + edited > 0` → propose-improvement
+- If `remaining_pending = 0` AND `accepted + edited = 0` → no diff to propose; finish
+- If `remaining_pending > 0` → /update pauses; founder runs `/update resume <id>`
+
+## Multi-session resumability
+
+The skill's resumability comes for free from the DB:
+- `review_state = 'pending_review'` rows persist across sessions
+- `/update review <agent_run_id>` re-invokes the skill; it picks up where
+  the prior session left off (same WHERE clause)
+- The orchestrator does NOT need to pass any "resume point" parameter
+
+## UX guidance for founder
+
+- **Accept** is the most common action. Default to it unless something is wrong.
+- **Edit** preserves the citation (raw_quote) but lets founder rewrite
+  `proposed_change`. Useful when the LLM grasped the right ref chunk but
+  proposed the wrong target section or implementation detail.
+- **Reject** is for noise — extraction doesn't actually apply, or the
+  raw_quote was misinterpreted. Provide a 5-word reason so future
+  `propose-improvement` runs see the negative signal via ops.corrections.
+- **Skip + finish later** is fine. Don't let queue fatigue push poor decisions.
+  25-item soft cap exists for this reason.
+
+## Cost
+
+- $0 LLM cost (skill is pure DB + AskUserQuestion).
+- Founder time: ~30 sec / extraction × queue size. 5-25 extractions per run
+  median (per spec §11 founder time budget).
+
+## Failure modes
+
+| Failure | Recovery |
+|---|---|
+| AskUserQuestion declined / aborted | Treat as "Skip + finish later"; queue persists |
+| UPDATE blocked by trigger (illegal transition) | Means row was modified by another session concurrently; re-fetch + retry once |
+| Founder edits introduce empty `founder_edited_change` | Refuse — require non-empty text; re-prompt |
+| Queue grew during session (new pending rows from concurrent distill) | Skill loads queue at Step 1 once; new arrivals show up on next /update review invocation |
+
+## Reuse outside /update
+
+This skill is invokable directly via `/update review [<agent_run_id>]` even
+when /update is not in an active loop. Founder can clear backlog of pending
+reviews at lunch break or after any /update run that paused mid-review.
+
