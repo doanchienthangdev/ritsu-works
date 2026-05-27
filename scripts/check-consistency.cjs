@@ -228,6 +228,8 @@ async function main() {
     ['validate-resolver-v3-index-consistency.cjs', 'resolver-v3 INDEX.md ↔ catalog'],
     // capability evolve v1.1 Sprint 1 sub-PR A — SkillOpt vendor submodule SHA pin
     ['validate-skillopt-vendor.cjs', 'skillopt-vendor SHA pin ↔ submodule + patches'],
+    // capability evolve v1.1 Sprint 1 sub-PR C — per_task_kind_caps unit expectations
+    ['validate-roles-task-kind-caps-units.cjs', 'ROLES.md per_task_kind_caps ↔ spec unit expectations'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;

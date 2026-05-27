@@ -50,10 +50,11 @@ the patch may fail to apply cleanly (`install-vendor.sh` will exit 1 with a re-p
 ## Bridge write contract (for sub-PR C author)
 
 The `ritsu_file_queue.py` backend reads response files with a defensive
-`try/except json.JSONDecodeError` loop (line ~88), but the contract is that
-the bridge (`scripts/skillopt/session-bridge.cjs`, sub-PR C) MUST write
-response files **atomically**. Two-step pattern, matching the request side
-(`_enqueue_request` line ~75):
+`try/except json.JSONDecodeError` loop (in `_await_response`, around line
+~116 of `ritsu_file_queue.py`), but the contract is that the bridge
+(`scripts/skillopt/session-bridge.cjs`) MUST write response files
+**atomically**. Two-step pattern, matching the request side
+(`_enqueue_request`, around line ~89 of the same file):
 
 ```javascript
 // Inside session-bridge.cjs response writer
