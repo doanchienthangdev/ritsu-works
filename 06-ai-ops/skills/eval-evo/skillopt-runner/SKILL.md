@@ -275,8 +275,12 @@ extraction. All in-session → subscription billing. No Python yet.
      split_ratio: "7:1:2"              # train / val / test (test = held-out partition)
      split_seed: 42
      workers: 4
-     judge_timeout: 120
-     exec_timeout: 120
+     # 2026-05-28: bumped from 120 → 1800 (30 min). In-session orchestrator
+     # latency (5-15s/Task() × parallel batches) exceeds 120s window;
+     # trainer was retrying with NEW UUIDs before responses landed →
+     # orphaned. See `project_evolve_skillopt_vendor_retry_gap`.
+     judge_timeout: 1800
+     exec_timeout: 1800
      limit: 0
 
    evaluation:
@@ -300,11 +304,17 @@ extraction. All in-session → subscription billing. No Python yet.
    PYTHON=$(bash scripts/skillopt/find-python.sh) || exit 2
    env -i ANTHROPIC_API_KEY= HOME=$HOME PATH=$PATH PYTHONPATH=vendor/skillopt \
      SKILLOPT_FILE_QUEUE_DIR=$(pwd)/runtime/skillopt/<entity>/runs/<rid> \
+     SKILLOPT_FILE_QUEUE_TIMEOUT_S=1800 \
      "$PYTHON" vendor/skillopt/scripts/train.py \
        --config runtime/skillopt/<entity>/runs/<rid>/cfg.yaml \
        --env ritsu_skill \
        --backend ritsu_file_queue
    ```
+   `SKILLOPT_FILE_QUEUE_TIMEOUT_S=1800` ensures `_timeout_s()` in
+   ritsu_file_queue.py returns 1800s for ANY caller that doesn't pass an
+   explicit `timeout` (e.g., the gradient/optimizer code paths in vendor
+   that call `chat_optimizer(...)` without timeout kwarg). Belt-and-suspenders
+   with the cfg.yaml + env-adapter `timeout=` overrides.
    The `--env ritsu_skill` flag is REQUIRED — without it, train.py reads
    `env.name` from cfg.yaml but the legacy flat-CLI `--env` flag provides
    a load-time check (the cfg-derived path resolves the same env at

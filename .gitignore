@@ -120,3 +120,7 @@ coverage/
 # Obsidian vault config (per-machine, not for source control)
 .obsidian/
 scripts/eval-evo/calibration-results/
+
+# Vendor `train.py` writes per-run artifact dirs here (out_root in cfg).
+# Regenerable from runtime/skillopt/<entity>/runs/<rid>/ — local-only.
+outputs/

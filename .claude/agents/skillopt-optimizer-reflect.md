@@ -57,21 +57,44 @@ META_SKILL:
 <optimizer-side accumulated lessons from prior epochs (may be empty on epoch 0)>
 ```
 
-You produce a single message with strict JSON only:
+You produce a single message with strict JSON only. The schema is **FLAT
+top-level `edits`** — env adapter at `vendor/skillopt/skillopt/envs/ritsu_skill/
+adapter.py:415-429` validates `parsed.get("edits")` is a list, then internally
+wraps to `{"patch": {"edits": ...}, "source_type": kind}` before passing to
+vendor reflect.py. You do NOT emit the nested wrapper — env adapter does that.
 
 ```json
 {
   "edits": [
     {
-      "op": "add" | "delete" | "replace",
-      "target": "<line range or section anchor — e.g., '## Output contract' or 'L42-L48'>",
-      "new_text": "<for add/replace; omit for delete>",
+      "op": "append" | "insert_after" | "replace" | "delete",
+      "target": "<exact verbatim substring in current SKILL.md (REQUIRED for insert_after/replace/delete; empty string for append)>",
+      "content": "<new text — REQUIRED for append/insert_after/replace; omit for delete>",
       "rationale": "<one-sentence why this addresses a specific failure pattern>"
     }
   ],
   "meta_skill_update": "<optional one-paragraph addition to META_SKILL — accumulated lessons that don't belong in the skill itself>"
 }
 ```
+
+**Schema gotchas (2026-05-28 forensic from /evolve dry-runs d265be16 +
+49d92cf8 + a94fa1b8 + 9fc241e7):**
+
+- **NEVER use `op: "add"`** — vendor `_apply_edit_with_report` in
+  `vendor/skillopt/skillopt/optimizer/skill.py:107` returns
+  `status="skipped_unknown_op"` for any op outside `{append, insert_after,
+  replace, delete}`. Use `"append"` to add new section at end, `"insert_after"`
+  to insert after a `target` substring.
+- **NEVER use `new_text`** — vendor reads `content` (skill.py:42 `_edit_fields`).
+  Wrong field name → empty content → silently skipped edit.
+- **`target` is Python SUBSTRING-matched** (`target in skill`), not regex,
+  not section-anchor lookup. Pass exact verbatim bytes. For `op: append`,
+  `target` can be empty (ignored).
+- **DO NOT wrap in `{"patch": {"edits": ...}}`** — emit FLAT
+  `{"edits": [...]}`. Env adapter wraps it for you. Wrapping yourself fails
+  the `parsed.get("edits")` list check → "unparseable response" in trainer log.
+- **DO NOT emit `source_type`** — env adapter sets it based on which
+  minibatch (failure or success) called you.
 
 ## Rules
 
@@ -89,16 +112,20 @@ You produce a single message with strict JSON only:
   Bad: "make the skill clearer". Good: "3/4 failures missed the
   null-input guard described nowhere in current SKILL; add explicit
   pre-condition check".
-- **Edit ops semantics:**
-  - `add` — insert `new_text` at `target` (e.g., end of a section). Use
-    when SKILL is silent on a behavior the failures show is needed.
-  - `delete` — remove the lines/section at `target`. Use sparingly — only
-    when current text actively misleads (success rate higher without it).
-  - `replace` — substitute `target` with `new_text`. Use for clarification
-    or correction.
-- **`target` precision.** Either a line range (`L42-L48`) or a unique
-  section anchor (`## Output contract`). The install-improvement skill
-  needs to locate exactly one match.
+- **Edit ops semantics** (vendor `_apply_edit_with_report`):
+  - `append` — append `content` at end of SKILL (before slow-update region
+    if present). `target` empty / ignored. Use when adding new section.
+  - `insert_after` — find `target` substring; insert `content` after the
+    line containing it. Falls back to append if `target` not found.
+  - `replace` — find `target` substring; replace with `content` (first
+    occurrence only). Skipped silently if `target` not in skill.
+  - `delete` — find `target` substring; remove (first occurrence). Skipped
+    silently if `target` not in skill.
+- **`target` precision.** Vendor uses `target in skill` (Python substring
+  match) → MUST be an exact verbatim substring of current SKILL.md.
+  Line ranges (`L42-L48`) are NOT supported; section anchors must be
+  copy-pasted exactly from skill text. For multi-line targets, include
+  the trailing characters needed for uniqueness.
 - **No tool calls.** No Read, no Bash, no Task. The prompt is your full
   context.
 - **Output strict JSON only.** No prose before or after.
