@@ -1,0 +1,38 @@
+--- a/skillopt/model/router.py
++++ b/skillopt/model/router.py
+@@ -4,7 +4,8 @@
+ import os
+ from typing import Any
+
+-from . import azure_openai, claude_backend, codex_backend
++# ritsu-works:ritsu_file_queue:v1 — patched by scripts/skillopt/install-vendor.sh
++from . import azure_openai, claude_backend, codex_backend, ritsu_file_queue
+ from .common import normalize_backend_name
+
+
+@@ -19,11 +20,13 @@ def _backend_module(name: str):
+         return codex_backend
+     if name == "claude":
+         return claude_backend
++    if name == "ritsu_file_queue":
++        return ritsu_file_queue
+     raise ValueError(f"Unknown backend: {name!r}")
+
+
+ def _all_backend_modules() -> list[Any]:
+-    return [azure_openai, codex_backend, claude_backend]
++    return [azure_openai, codex_backend, claude_backend, ritsu_file_queue]
+
+
+ def set_backend(name: str | None) -> str:
+@@ -31,8 +34,8 @@ def set_backend(name: str | None) -> str:
+     """Select the active model backend for subsequent calls."""
+     global _ACTIVE_BACKEND
+     normalized = normalize_backend_name(name)
+-    if normalized not in {"azure_openai", "codex", "claude"}:
+-        valid = ", ".join(sorted({"azure_openai", "codex", "claude"}))
++    if normalized not in {"azure_openai", "codex", "claude", "ritsu_file_queue"}:
++        valid = ", ".join(sorted({"azure_openai", "codex", "claude", "ritsu_file_queue"}))
+         raise ValueError(f"Unknown backend {name!r}. Expected one of: {valid}")
+     _ACTIVE_BACKEND = normalized
+     os.environ["REFLACT_MODEL_BACKEND"] = normalized

@@ -1,0 +1,10 @@
+# vendor/skillopt.pin — submodule SHA pin (managed by L1 invariant skillopt-vendor-sha-pinned)
+#
+# Updated only via explicit founder Tier B action:
+#   git submodule update --remote vendor/skillopt
+#   echo "vendor/skillopt: $(git -C vendor/skillopt rev-parse HEAD)" > vendor/skillopt.pin
+#   git add vendor/skillopt vendor/skillopt.pin && pnpm check
+#
+# Format: a single line `vendor/skillopt: <40-char-lowercase-hex>` (other
+# comment lines starting with `#` are ignored by the validator).
+vendor/skillopt: 99212e3956c963d648219fad56a23f9e13c81b54

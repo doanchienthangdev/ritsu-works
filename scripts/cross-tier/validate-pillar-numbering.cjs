@@ -43,6 +43,11 @@ const NON_PILLAR_TOPLEVEL = new Set([
   // subproject (not a pillar). Distinct from wiki/ (RAG-only) — see
   // knowledge/manifest.yaml tier1_canonical.cross_cutting.docs_engine.
   'docs',
+  // evolve v1.1 Sprint 1 sub-PR A: vendor/ holds git submodules
+  // (vendor/skillopt → microsoft/SkillOpt). Not a pillar. See
+  // wiki/capabilities/evolve/spec.md §19 (after Phase 8 promotion) and
+  // scripts/skillopt/UPSTREAM-DEVIATION.md.
+  'vendor',
 ]);
 
 // Conventional directory names that appear inside pillars but are NOT sub-pillars.

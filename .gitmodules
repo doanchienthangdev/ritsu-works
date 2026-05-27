@@ -1,0 +1,3 @@
+[submodule "vendor/skillopt"]
+	path = vendor/skillopt
+	url = https://github.com/microsoft/SkillOpt

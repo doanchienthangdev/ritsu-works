@@ -226,6 +226,8 @@ async function main() {
     ['validate-gbrain-invariant-handlers.cjs', 'gbrain L1/L2/L3 invariant handlers'],
     // capability resolver-v3-jit-loading Sprint 1 — INDEX.md consistency
     ['validate-resolver-v3-index-consistency.cjs', 'resolver-v3 INDEX.md ↔ catalog'],
+    // capability evolve v1.1 Sprint 1 sub-PR A — SkillOpt vendor submodule SHA pin
+    ['validate-skillopt-vendor.cjs', 'skillopt-vendor SHA pin ↔ submodule + patches'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;
