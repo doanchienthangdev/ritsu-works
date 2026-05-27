@@ -73,6 +73,39 @@ fi
 cp "${PATCHES_DIR}/${BACKEND_BASENAME}" "${VENDOR_DIR}/${BACKEND_DEST_REL}"
 echo "[install-vendor] copied ${BACKEND_BASENAME} → ${VENDOR_DIR}/${BACKEND_DEST_REL}"
 
+# 3b. Copy ritsu_skill env adapter files (Sprint 3.5).
+#     Source: scripts/skillopt/upstream-patches/ritsu_skill/{__init__,adapter,loader}.py
+#     Dest:   vendor/skillopt/skillopt/envs/ritsu_skill/
+#     The dest dir is created idempotently. Overwrites on every install
+#     (cheap, ensures source-of-truth in our repo wins).
+RITSU_SKILL_SRC="${PATCHES_DIR}/ritsu_skill"
+RITSU_SKILL_DEST="${VENDOR_DIR}/skillopt/envs/ritsu_skill"
+RITSU_SKILL_FILES=(__init__.py adapter.py loader.py)
+for fname in "${RITSU_SKILL_FILES[@]}"; do
+  if [[ ! -f "${RITSU_SKILL_SRC}/${fname}" ]]; then
+    echo "[install-vendor] FATAL: ${RITSU_SKILL_SRC}/${fname} missing." >&2
+    exit 1
+  fi
+done
+mkdir -p "${RITSU_SKILL_DEST}"
+for fname in "${RITSU_SKILL_FILES[@]}"; do
+  cp "${RITSU_SKILL_SRC}/${fname}" "${RITSU_SKILL_DEST}/${fname}"
+done
+echo "[install-vendor] copied ritsu_skill/ adapter files → ${RITSU_SKILL_DEST}/"
+
+# 3c. Copy default config yaml for ritsu_skill (Sprint 3.5).
+#     Source: scripts/skillopt/upstream-patches/configs-ritsu_skill-default.yaml
+#     Dest:   vendor/skillopt/configs/ritsu_skill/default.yaml
+RITSU_SKILL_CFG_SRC="${PATCHES_DIR}/configs-ritsu_skill-default.yaml"
+RITSU_SKILL_CFG_DEST="${VENDOR_DIR}/configs/ritsu_skill/default.yaml"
+if [[ ! -f "${RITSU_SKILL_CFG_SRC}" ]]; then
+  echo "[install-vendor] FATAL: ${RITSU_SKILL_CFG_SRC} missing." >&2
+  exit 1
+fi
+mkdir -p "$(dirname "${RITSU_SKILL_CFG_DEST}")"
+cp "${RITSU_SKILL_CFG_SRC}" "${RITSU_SKILL_CFG_DEST}"
+echo "[install-vendor] copied default config → ${RITSU_SKILL_CFG_DEST}"
+
 # 4. Apply router patch if signature not present.
 #    @cto sub-PR A SHOULD-FIX (folded into sub-PR B): two-signal check.
 #    A single `grep -q` for the signature comment could miss the case where
@@ -103,15 +136,20 @@ else
   echo "[install-vendor] router.patch applied."
 fi
 
-# 4b. Apply train.py patch — adds ritsu_file_queue to argparse --backend choices.
-#     Without this, `train.py --backend ritsu_file_queue` is rejected at CLI
-#     parse time BEFORE router.py is consulted. Two-signal check matches the
-#     router.patch pattern.
+# 4b. Apply train.py patch — adds two hunks:
+#     (1) argparse --backend choices include ritsu_file_queue (original Sprint 1)
+#     (2) _register_builtins() registers ritsu_skill env (Sprint 3.5)
+#     Without (1), `train.py --backend ritsu_file_queue` is rejected at CLI
+#     parse time BEFORE router.py is consulted.
+#     Without (2), `train.py --env ritsu_skill` raises "Unknown environment".
+#     Three-signal check: BOTH signature lines AND the registry string.
 TRAIN_REL="scripts/train.py"
 TRAIN_PATH="${VENDOR_DIR}/${TRAIN_REL}"
 TRAIN_ALREADY_PATCHED=0
 if grep -qE "^    # ritsu-works:ritsu_file_queue:v1" "${TRAIN_PATH}" \
-   && grep -q '"ritsu_file_queue"' "${TRAIN_PATH}"; then
+   && grep -qE "^    # ritsu-works:ritsu_skill:v1" "${TRAIN_PATH}" \
+   && grep -q '"ritsu_file_queue"' "${TRAIN_PATH}" \
+   && grep -q '_ENV_REGISTRY\["ritsu_skill"\]' "${TRAIN_PATH}"; then
   TRAIN_ALREADY_PATCHED=1
 fi
 if [[ "${TRAIN_ALREADY_PATCHED}" == "1" ]]; then
@@ -167,4 +205,28 @@ if ! env -i ANTHROPIC_API_KEY= HOME="${HOME}" PATH="${PATH}" PYTHONPATH="${VENDO
   exit 1
 fi
 
-echo "[install-vendor] vendor smoke ok (SHA ${PINNED_SHA}, backend ritsu_file_queue registered, python: ${PYTHON})."
+# 5b. ritsu_skill env adapter import smoke (Sprint 3.5).
+#     Verifies the adapter files copied in step 3b are importable without
+#     side-effects. Runs under env-cleared interpreter to ensure no API
+#     keys leak in. The import resolves transitively (loader → base);
+#     a syntax error or missing dependency would surface here.
+if ! env -i ANTHROPIC_API_KEY= HOME="${HOME}" PATH="${PATH}" PYTHONPATH="${VENDOR_DIR}" \
+  "${PYTHON}" -c "from skillopt.envs.ritsu_skill import RitsuSkillAdapter; print(RitsuSkillAdapter.__name__)" \
+  >"${SMOKE_OUT}" 2>&1; then
+  echo "[install-vendor] FATAL: ritsu_skill adapter import failed (python: ${PYTHON})." >&2
+  tail -30 "${SMOKE_OUT}" >&2
+  exit 1
+fi
+
+# 5c. ritsu_skill env recognized by train.py argparse.
+#     The bare `--env ritsu_skill --help` exits 0 if argparse + _register_builtins
+#     both recognize the env at parse time (no config loading yet).
+if ! env -i ANTHROPIC_API_KEY= HOME="${HOME}" PATH="${PATH}" PYTHONPATH="${VENDOR_DIR}" \
+  "${PYTHON}" "${VENDOR_DIR}/scripts/train.py" --env ritsu_skill --backend ritsu_file_queue --help \
+  >"${SMOKE_OUT}" 2>&1; then
+  echo "[install-vendor] FATAL: train.py --env ritsu_skill --help failed (python: ${PYTHON})." >&2
+  tail -30 "${SMOKE_OUT}" >&2
+  exit 1
+fi
+
+echo "[install-vendor] vendor smoke ok (SHA ${PINNED_SHA}, ritsu_file_queue + ritsu_skill registered, python: ${PYTHON})."

@@ -242,24 +242,73 @@ extraction. All in-session → subscription billing. No Python yet.
 
 ### Phase C — Train loop (the heavy work)
 
-1. **Write cfg.json** at `runtime/skillopt/<entity>/runs/<rid>/cfg.json`:
-   ```json
-   { "dataset": "<dataset_path>", "max_iterations": 3,
-     "max_messages": <remaining_budget>,
-     "rollout_batch_size": 25, "reflect_batch_size": 4 }
+1. **Write cfg.yaml** at `runtime/skillopt/<entity>/runs/<rid>/cfg.yaml`
+   (the vendor `train.py` consumes structured YAML, not the v1.0-drafted
+   terse JSON; updated 2026-05-27 in Sprint 3.5 to match the actual
+   contract — see spec.md §19.4.5 + `scripts/skillopt/upstream-patches/
+   configs-ritsu_skill-default.yaml`).
+
+   Use `_base_:` inheritance from `vendor/skillopt/configs/ritsu_skill/default.yaml`
+   (copied in by install-vendor.sh) and override only the run-specific knobs:
+
+   ```yaml
+   # runtime/skillopt/<entity>/runs/<rid>/cfg.yaml
+   _base_: ../../../../../vendor/skillopt/configs/ritsu_skill/default.yaml
+
+   train:
+     num_epochs: 3                     # per-run iteration budget
+     batch_size: 8                     # rollout fan-out batch size
+
+   gradient:
+     minibatch_size: 4                 # analyst minibatch size for reflect
+     analyst_workers: 2                # parallel reflect workers
+     failure_only: false
+
+   optimizer:
+     learning_rate: 4                  # max edits per step (edit_budget)
+
+   env:
+     name: ritsu_skill                 # MUST be ritsu_skill — matches _ENV_REGISTRY
+     data_path: <absolute path to dataset.jsonl from Phase B>
+     skill_init: <absolute path to effective_entity_path (the SKILL.md being evolved)>
+     split_mode: ratio
+     split_ratio: "7:1:2"              # train / val / test (test = held-out partition)
+     split_seed: 42
+     workers: 4
+     judge_timeout: 120
+     exec_timeout: 120
+     limit: 0
+
+   evaluation:
+     use_gate: true
+     test_env_num: 0                   # 0 = use full test split for trainer's eval
+     eval_test: true                   # runner Phase D ALSO judges separately for K4 delta
    ```
+
+   The cfg.yaml is written verbatim (no JSON-encoded variant). The trainer
+   reads it via vendor's `skillopt.config.load_config(path)` which honors
+   `_base_:` inheritance + `--cfg-options key.path=value` CLI overrides.
+   Budget enforcement (`max_messages`, R12 R18) is owned by THIS runner
+   skill via the bridge state — NOT by the trainer (the trainer is
+   subscription-billing-agnostic).
 2. **Launch Python subprocess** via Bash `run_in_background: true`. The
    interpreter MUST satisfy Python ≥ 3.10 (vendor uses
    `@dataclass(slots=True)`). Resolve via `scripts/skillopt/find-python.sh`
-   instead of bare `python3` (macOS /usr/bin/python3 is 3.9):
+   instead of bare `python3` (macOS /usr/bin/python3 is 3.9). Use
+   `--env ritsu_skill` to select the Sprint 3.5 env adapter:
    ```bash
    PYTHON=$(bash scripts/skillopt/find-python.sh) || exit 2
    env -i ANTHROPIC_API_KEY= HOME=$HOME PATH=$PATH PYTHONPATH=vendor/skillopt \
      SKILLOPT_FILE_QUEUE_DIR=$(pwd)/runtime/skillopt/<entity>/runs/<rid> \
      "$PYTHON" vendor/skillopt/scripts/train.py \
-       --config runtime/skillopt/<entity>/runs/<rid>/cfg.json \
+       --config runtime/skillopt/<entity>/runs/<rid>/cfg.yaml \
+       --env ritsu_skill \
        --backend ritsu_file_queue
    ```
+   The `--env ritsu_skill` flag is REQUIRED — without it, train.py reads
+   `env.name` from cfg.yaml but the legacy flat-CLI `--env` flag provides
+   a load-time check (the cfg-derived path resolves the same env at
+   build_adapter time).
    The operator may pin a specific interpreter via the `SKILLOPT_PYTHON`
    env var (read by find-python.sh as highest-priority override).
    Capture `subprocess_pid` from the Bash background-task announcement.

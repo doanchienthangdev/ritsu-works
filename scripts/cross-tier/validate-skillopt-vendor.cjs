@@ -113,6 +113,11 @@ const requiredPatchFiles = [
   path.join(PATCHES_DIR, BACKEND_BASENAME),
   path.join(PATCHES_DIR, 'router.patch'),
   path.join(PATCHES_DIR, 'train.patch'),
+  // Sprint 3.5: ritsu_skill env adapter package (3 Python files + config yaml).
+  path.join(PATCHES_DIR, 'ritsu_skill', '__init__.py'),
+  path.join(PATCHES_DIR, 'ritsu_skill', 'adapter.py'),
+  path.join(PATCHES_DIR, 'ritsu_skill', 'loader.py'),
+  path.join(PATCHES_DIR, 'configs-ritsu_skill-default.yaml'),
 ];
 for (const p of requiredPatchFiles) {
   if (!fs.existsSync(p)) {
@@ -151,6 +156,7 @@ if (vendorHydrated) {
     );
   }
   // train.py argparse choices must include ritsu_file_queue (train.patch applied).
+  // Sprint 3.5: ALSO check that _ENV_REGISTRY["ritsu_skill"] block landed.
   const trainPath = path.join(VENDOR_DIR, 'scripts', 'train.py');
   if (fs.existsSync(trainPath)) {
     const train = fs.readFileSync(trainPath, 'utf8');
@@ -160,6 +166,41 @@ if (vendorHydrated) {
           `Run: bash scripts/skillopt/install-vendor.sh`,
       );
     }
+    if (!train.includes('_ENV_REGISTRY["ritsu_skill"]')) {
+      fail(
+        `vendor/skillopt/scripts/train.py _register_builtins() lacks ritsu_skill registration — Sprint 3.5 train.patch not applied. ` +
+          `Run: bash scripts/skillopt/install-vendor.sh`,
+      );
+    }
+  }
+  // Sprint 3.5: adapter package files must exist post-install at the env path.
+  const ritsuSkillEnvDir = path.join(
+    VENDOR_DIR,
+    'skillopt',
+    'envs',
+    'ritsu_skill',
+  );
+  for (const fname of ['__init__.py', 'adapter.py', 'loader.py']) {
+    const dest = path.join(ritsuSkillEnvDir, fname);
+    if (!fs.existsSync(dest)) {
+      fail(
+        `${path.relative(REPO_ROOT, dest)} missing post-install — Sprint 3.5 adapter copy step skipped. ` +
+          `Run: bash scripts/skillopt/install-vendor.sh`,
+      );
+    }
+  }
+  // Sprint 3.5: default config yaml must exist at the configs path.
+  const ritsuSkillCfgDest = path.join(
+    VENDOR_DIR,
+    'configs',
+    'ritsu_skill',
+    'default.yaml',
+  );
+  if (!fs.existsSync(ritsuSkillCfgDest)) {
+    fail(
+      `${path.relative(REPO_ROOT, ritsuSkillCfgDest)} missing post-install — Sprint 3.5 config copy step skipped. ` +
+        `Run: bash scripts/skillopt/install-vendor.sh`,
+    );
   }
 }
 

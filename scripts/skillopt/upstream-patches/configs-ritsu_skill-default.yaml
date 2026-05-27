@@ -1,0 +1,86 @@
+# Default SkillOpt config for the ritsu_skill env (Sprint 3.5).
+#
+# Inherits from configs/_base_/default.yaml. Override knobs below are tuned
+# for ritsu-works /evolve skillopt synth-data datasets (~25-50 tasks total,
+# 7:1:2 train/val/test ratio; per spec §19.4.5).
+#
+# The runner skill (eval-evo/skillopt-runner) writes a small cfg.json per
+# run that overrides `env.data_path` and `env.skill_init` based on the
+# entity being evolved + the gen-data Phase B output. This default yaml is
+# what `--config` points at by default; cfg overrides via `--cfg-options
+# env.data_path=...` come at the top.
+#
+# Pinned to use --backend ritsu_file_queue (subscription routing per
+# spec §19.6 / file-queue protocol). NEVER set this to azure_openai/
+# claude/qwen in this repo's runs — those route through openai_chat path
+# which violates the subscription invariant.
+
+_base_: ../_base_/default.yaml
+
+model:
+  # ritsu_file_queue routes via session bridge → Task() subagents.
+  # NB: backend_config.set_target_backend rejects "ritsu_file_queue" today
+  # (Sprint 1 design issue tracked separately). The adapter imports
+  # chat_target / chat_optimizer directly from ritsu_file_queue,
+  # bypassing the re-export router; these next two lines are placeholders
+  # so the trainer's `set_*_backend(...)` calls don't crash. The adapter
+  # never actually consults backend_config.* at runtime.
+  backend: ritsu_file_queue
+  optimizer_backend: openai_chat
+  target_backend: openai_chat
+  optimizer: claude-sonnet-4-6
+  target: claude-haiku-4-5
+  reasoning_effort: medium
+
+train:
+  num_epochs: 1
+  train_size: 0
+  batch_size: 8
+  accumulation: 1
+  seed: 42
+
+gradient:
+  minibatch_size: 4
+  merge_batch_size: 4
+  analyst_workers: 2
+  max_analyst_rounds: 1
+  failure_only: false
+
+optimizer:
+  learning_rate: 4
+  min_learning_rate: 2
+  lr_scheduler: constant
+  lr_control_mode: fixed
+  skill_update_mode: patch
+  use_slow_update: false
+  use_meta_skill: false
+
+evaluation:
+  use_gate: true
+  sel_env_num: 0
+  test_env_num: 0      # 0 = use whole test split; runner Phase D handles separately
+  eval_test: true
+
+env:
+  name: ritsu_skill
+  # Overridden by runner cfg.json — points at runtime/skillopt/<entity>/data/v<ts>/dataset.jsonl.
+  data_path: ""
+  # Overridden by runner cfg.json — points at the SKILL.md the runner is evolving.
+  skill_init: ""
+  # SplitDataLoader ratio mode: gen-data produces a single dataset.jsonl;
+  # the loader partitions deterministically by split_seed.
+  split_mode: ratio
+  split_ratio: "7:1:2"
+  split_seed: 42
+  # Held-out test partition is what the runner's Phase D K4 gate scores
+  # against the baseline. v1.1 contract: train+val drive iteration; test is
+  # never seen by the optimizer; the runner separately judges candidates
+  # on test_items to compute held_out_delta.
+  split_dir: ""
+  split_output_dir: ""
+  # Adapter-specific knobs (forwarded via inspect-introspection in train.py).
+  workers: 4
+  judge_timeout: 120
+  exec_timeout: 120
+  max_turns: 1
+  limit: 0
