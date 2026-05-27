@@ -252,7 +252,170 @@ pre-flight check now refuses new /evolve invocations. Action:
 - **HITL policy:** `governance/HITL.md`
 - **Cost architecture:** `knowledge/economic-architecture.md`
 
+## v1.1 — Running `/evolve skillopt <skill>` (SkillOpt held-out path)
+
+> v1.1 adds the `skillopt` subcommand: an OUT-OF-BAND task-completion
+> measurement complementary to the v1.0 judge-persona text-quality path.
+> Spec: `wiki/capabilities/evolve/spec.md` §19 (after Phase 8 promotion;
+> current draft `.archives/cla/evolve-extend-skillopt/spec.md`).
+
+### When to use which path
+
+| You want to measure… | Use |
+|---|---|
+| SKILL.md authoring quality (description, process clarity, output specificity) | `/evolve skill <name>` (v1.0) |
+| Skill execution quality on a held-out task split (does it actually accomplish tasks?) | `/evolve skillopt <name>` (v1.1) |
+| **Both** — falsifiable signal via convergence | Run both sequentially; compare judge-persona composite vs held-out delta |
+
+### Prerequisites
+
+Before first `/evolve skillopt` run:
+
+1. **Python deps installed.** From repo root:
+   ```bash
+   python3 -m pip install -r vendor/skillopt/requirements.txt
+   ```
+   Required: openai, pyyaml, numpy, openpyxl, azure-identity, azure-core, httpx.
+
+2. **Vendor patched.** Run `bash scripts/skillopt/install-vendor.sh` (idempotent).
+   On a fresh `pnpm install`, the `postinstall` hook runs this automatically with
+   `|| true` (soft-fail so unrelated dev isn't blocked).
+
+3. **Drift gate clean.** `pnpm check` must pass (same as v1.0 path).
+
+4. **Hold-out ratings complete.** Same gate as v1.0 — `_HOLDOUT.yaml` must
+   have real founder ratings, not `PENDING-FOUNDER` placeholders.
+
+5. **Cost pre-check.** `node scripts/skillopt/cost-estimator.cjs --skill=<name> --max-messages=500`
+   should return a sane integer below the cap.
+
+### Quickstart — S1 acceptance smoke (Sprint 4 deliverable)
+
+The Sprint 4 fixture skill `skill-foo` lives at
+`06-ai-ops/skills/eval-evo/test-fixtures/skill-foo/SKILL.md`. The S1 acceptance
+gate per spec §15.S1:
+
+```bash
+/evolve skillopt skill-foo --max-messages=50 --dry-run
+```
+
+This MUST exit 0 and produce:
+
+- `runtime/skillopt/skill-foo/runs/<rid>/best-skill.md` (non-empty)
+- `runtime/skillopt/skill-foo/runs/<rid>/runner-state.json` with
+  `phase: 'completed'` (or `'completed_no_improvement'` if K4 chose revert)
+- `ops.agent_runs` row with `agent_slug='evolve'`, `state_payload->>'mode'='skillopt'`
+- `ops.run_summaries` row (~150 tokens summary)
+
+If any of those is missing, file a bug under capability `evolve` v1.1
+follow-up.
+
+### Argv reference (v1.1)
+
+| Flag | Default | Notes |
+|---|---|---|
+| `--max-messages=N` | 500 | hard ceiling per `eval-evo-skillopt-iteration-total` cap in ROLES.md |
+| `--dry-run` | off | skips Phase E install + Phase F founder review |
+| `--regen-data` | off | forces fresh synth-data; bypasses skill-hash cache hit |
+| `--resume=<run-id>` | none | resume a paused/crashed run from `runner-state.json` |
+| `--gen-sources=auto` | auto | active pillars `[1, 3, 5]`; Pillars 2 + 4 deferred to v1.2 |
+| `--gen-sources=pillars=1,3,5` | — | explicit subset; requesting 2 or 4 errors with deferral hint |
+| `--bridge-poll-ms=N` | 1000 | bridge polling cadence (250-2000) |
+| `--tier-override` | off | founder-only; Tier C entity → run in-session |
+
+### Resume after rate-limit (R12)
+
+When the bridge detects a rate-limit error (HTTP 429/529, Anthropic
+`rate_limit_error` / `overloaded_error`, or message-pattern match), the
+runner:
+
+1. Snapshots `runner-state.json` with `phase: 'rate_limit_paused'`,
+   `rate_limit_resume_after: <ISO timestamp ~1h ahead>`.
+2. Sends SIGSTOP to the Python subprocess (it doesn't time out — paused
+   at the file-queue blocker).
+3. Surfaces `AskUserQuestion` Tier B:
+   - **Resume in 1h** → `ScheduleWakeup(delaySeconds=3600, ...)`. Runner
+     exits cleanly. The wake-up auto-resumes via the command's `--resume`.
+   - **Switch to vendor subprocess** → NOT implemented v1.1; deferral hint.
+   - **Abort** → SIGKILL subprocess; release lock; final state.
+
+To manually resume a paused run:
+
+```bash
+/evolve skillopt <skill> --resume=<run-id>
+```
+
+The run-id is the uuid in `runtime/skillopt/<entity>/runs/<run-id>/`.
+
+### Vendor rescue (microsoft/SkillOpt upstream archived / deleted)
+
+If `git submodule update` starts failing because microsoft/SkillOpt is
+removed from GitHub, switch the submodule to the rescue mirror:
+
+```bash
+# Founder action — create the mirror fork once (Sprint 1 task 1.15;
+# still pending as of v1.1 ship):
+gh repo create doanchienthangdev/skillopt-vendor-mirror \
+  --public --source=microsoft/SkillOpt
+
+# Per-developer override:
+git config submodule.vendor/skillopt.url \
+  https://github.com/doanchienthangdev/skillopt-vendor-mirror.git
+git submodule sync vendor/skillopt
+git submodule update vendor/skillopt
+```
+
+Documented at `scripts/skillopt/UPSTREAM-DEVIATION.md` §"Refresh procedure".
+
+### Cleanup
+
+Runs accumulate at `runtime/skillopt/<entity>/runs/<rid>/`. The L1 invariant
+`skillopt-runtime-staleness` warns (does NOT fail CI) on directories older
+than 60 days. Cleanup hint:
+
+```bash
+# Retain forensic copies first:
+tar czf runtime-skillopt-archive-$(date +%Y%m%d).tar.gz runtime/skillopt
+# Then delete old runs:
+find runtime/skillopt -type d -name runs -exec find {} -mindepth 1 -maxdepth 1 -type d -mtime +60 -exec rm -rf {} \; \;
+```
+
+### Observability
+
+- **KPI `skillopt_runs_monthly`:** count of /evolve skillopt runs each month
+  (adoption signal).
+- **KPI `skillopt_synth_to_prod_correlation`:** Spearman rolling-30d.
+  Computed monthly by `skillopt-synth-prod-correlation-monthly` cron.
+  Insufficient-data months (< 5 entities) → value=null.
+- **KPI `skillopt_post_install_correction_rate_delta`:** ratio of post-install
+  to pre-install correction rate. Warn at 2×, critical at 5×.
+
+### Debug tooling (v1.1 additions)
+
+| Need | Command |
+|---|---|
+| See current runner phase | `cat runtime/skillopt/<entity>/runs/<rid>/runner-state.json \| jq .phase` |
+| See bridge state | `cat runtime/skillopt/<entity>/runs/<rid>/state.json \| jq` |
+| See pending request queue | `ls runtime/skillopt/<entity>/runs/<rid>/llm-requests/` |
+| Force-cleanup a stuck run | `node scripts/skillopt/session-bridge.cjs cleanup --queue-dir=runtime/skillopt/<entity>/runs/<rid>` |
+| Cost estimate on a fixture | `node scripts/skillopt/cost-estimator.cjs --skill=<name>` |
+| Rate-limit detector dry-run | `echo '{"status": 429}' \| node scripts/skillopt/rate-limit-detector.cjs` |
+
+### Cross-references (v1.1)
+
+- **Spec §19:** `wiki/capabilities/evolve/spec.md` (after Sprint 5 promotion)
+- **Protocol:** `scripts/skillopt/queue-protocol.md`
+- **Patch contract:** `scripts/skillopt/UPSTREAM-DEVIATION.md`
+- **Runner skill:** `06-ai-ops/skills/eval-evo/skillopt-runner/SKILL.md`
+- **Gen-data skill:** `06-ai-ops/skills/eval-evo/skillopt-gen-data/SKILL.md`
+- **Judge skill:** `06-ai-ops/skills/eval-evo/skillopt-judge/SKILL.md`
+- **Playbook:** `06-ai-ops/skills/eval-evo/playbooks/skill-skillopt.md`
+- **Fixture:** `06-ai-ops/skills/eval-evo/test-fixtures/skill-foo/SKILL.md`
+- **Bridge:** `scripts/skillopt/session-bridge.cjs`
+- **Helpers:** `scripts/skillopt/{rate-limit-detector,cost-estimator}.cjs`
+
 ## Versioning
 
-This runbook is for /evolve v1.0. When v1.1 ships (E7 folder+pillar types,
-weekly auto-pass, cross-entity transfer), this file gets updated.
+This runbook covers /evolve v1.0 (sections above) + v1.1 (this section).
+v1.2 will re-enable Pillars 2 + 4 (gen-data) via migration
+`00045_evolve_extractions_extend_ref_source_kind`.

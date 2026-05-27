@@ -243,6 +243,8 @@ async function main() {
       ['validate-hitl-hooks.cjs', 'HITL.md Tier-D ↔ hooks'],
       ['validate-wiki-integrity.cjs', 'wiki-integrity (file/frontmatter)'],
       ['validate-resolver-v2-coverage.cjs', 'resolver-v2 catalog coverage (warn-only)'],
+      // capability evolve v1.1 Sprint 4 — runtime cleanup advisory
+      ['validate-skillopt-runtime-staleness.cjs', 'skillopt-runtime-staleness (>60d runs)'],
     ]) {
       const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]), 'warn');
       if (!r.passed) warnFailures += 1;

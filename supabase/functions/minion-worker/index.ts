@@ -116,6 +116,12 @@ const SKILL_REGISTRY: SkillRegistry = {
   // Real Edge Function wrapper deferred to v1.1 — for v1.0, founder invokes
   // manually: `node scripts/eval-evo/calibrate-efficacy.cjs`.
   "eval-evo-calibrate-efficacy": makeDeferredStubHandler("eval-evo-calibrate-efficacy stub: founder runs `node scripts/eval-evo/calibrate-efficacy.cjs` manually for v1.0. Wired to cron via knowledge/schedules.yaml. Real Edge Function wrapper deferred to v1.1."),
+  // capability evolve v1.1 (SkillOpt integration) Sprint 4 — monthly
+  // Spearman correlation cron. Wraps scripts/eval-evo/skillopt-synth-prod-correlation.cjs.
+  // Real Edge Function dispatch deferred to Sprint 5 (when first /evolve
+  // skillopt run produces held-out + post-install data). Until then,
+  // founder runs handler manually: `node scripts/eval-evo/skillopt-synth-prod-correlation.cjs`.
+  "skillopt-synth-prod-correlation": makeDeferredStubHandler("skillopt-synth-prod-correlation stub: founder runs `node scripts/eval-evo/skillopt-synth-prod-correlation.cjs` manually for v1.1. Wired to cron via knowledge/schedules.yaml (monthly). Real Edge Function dispatch deferred to Sprint 5+."),
   // ==========================================================================
   // gbrain integration cron handlers (capability gbrain-operational-brain
   // v1.0 Sprint 4). All deferred-stub until Sprint 5 wires .mcp.json gbrain

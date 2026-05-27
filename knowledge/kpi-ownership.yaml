@@ -643,7 +643,38 @@ brain.dream_cycle_success_rate_7d:
   notes: "Capability gbrain-operational-brain v1.0 success criterion #5. gbrain-maintainer autonomous dream cycle reliability."
 
 # ===========================================================================
+# Capability evolve v1.1 (SkillOpt integration) — Sprint 4
+# ===========================================================================
+
+skillopt_runs_monthly:
+  owner_pillar: 06-ai-ops
+  owner_role: eval-evo-orchestrator
+  sub_pillar: eval-evo
+  formula: "COUNT(*) WHERE agent_slug='evolve' AND state_payload->>'mode'='skillopt' AND state IN ('completed','failed') AND date_trunc('month',started_at)=date_trunc('month',now())"
+  source: ops.agent_runs
+  target: ">= 5 / month after first 3 months of operating"
+  notes: "Adoption metric for /evolve skillopt path. Capability evolve v1.1 Sprint 4."
+
+skillopt_synth_to_prod_correlation:
+  owner_pillar: 06-ai-ops
+  owner_role: eval-evo-orchestrator
+  sub_pillar: eval-evo
+  formula: "Spearman correlation (rolling 30-day) between held-out judge composite + post-install prod correction rate"
+  source: "ops.kpi_snapshots (computed by skillopt-synth-prod-correlation-monthly cron)"
+  target: ">= 0.5 (above 0.3 critical threshold)"
+  notes: "Falsifiable signal that synth predicts prod. < 0.3 → playbook revision needed. Per spec §19.10."
+
+skillopt_post_install_correction_rate_delta:
+  owner_pillar: 06-ai-ops
+  owner_role: eval-evo-orchestrator
+  sub_pillar: eval-evo
+  formula: "Mean ratio (post-install 30d correction rate) / (pre-install 30d baseline correction rate) across all skills with ≥30 days of post-install data"
+  source: "ops.kpi_snapshots (same cron as correlation)"
+  target: "<= 1.0 (no regression). > 2.0 warn. > 5.0 critical."
+  notes: "Detects whether skillopt-evolved skills regress in production. Per spec §19.10."
+
+# ===========================================================================
 # Anti-orphan check (any KPI not listed here should NOT exist in any pillar README)
 # ===========================================================================
-# Total KPIs registered: 75 (47 baseline + 7 CEO + 5 CTO + 5 CGO + 6 CPO + 5 gbrain from gbrain-operational-brain v1.0 Sprint 2)
+# Total KPIs registered: 78 (47 baseline + 7 CEO + 5 CTO + 5 CGO + 6 CPO + 5 gbrain + 3 skillopt from evolve v1.1 Sprint 4)
 # Status: All accounted for (1.7 cross-check passes)
