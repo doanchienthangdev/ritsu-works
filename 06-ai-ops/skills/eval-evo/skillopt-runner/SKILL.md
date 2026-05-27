@@ -150,13 +150,32 @@ Strict JSON to stdout for the `/evolve` command to render:
    Excluding the known-benign path is cleaner than either committing the
    patched submodule pointer (breaks `install-vendor.sh` idempotency) or
    stashing before every run (wraps every invocation in 2 extra steps).
-5. **Vendor smoke.** `bash scripts/skillopt/install-vendor.sh` exits 0 (idempotent).
-6. **Python deps check.** Resolve `PYTHON=$(bash scripts/skillopt/find-python.sh)`
-   first (vendor requires ≥ 3.10). Then `"$PYTHON" -c 'import openai, yaml, numpy'`
-   must succeed. Failure → abort with hint to run
-   `bash scripts/skillopt/install-python-deps.sh` (guided helper, idempotent;
-   detects already-satisfied + prompts before install). The helper internally
-   calls find-python.sh and installs into the resolved interpreter.
+5. **Vendor auto-bootstrap.** `bash scripts/skillopt/install-vendor.sh` (idempotent
+   — exits 0 fast if 3 patches already applied; applies otherwise). Non-zero
+   exit → abort with the stderr output (likely pin mismatch or patch conflict;
+   see UPSTREAM-DEVIATION.md refresh procedure). This phase runs every time so
+   the founder NEVER has to remember to bootstrap manually.
+6. **Python deps auto-bootstrap.** `bash scripts/skillopt/install-python-deps.sh
+   --yes` (idempotent — exits 0 immediately if openai/yaml/numpy import inside
+   the project venv at `runtime/skillopt/.venv/`; otherwise creates venv +
+   pip installs ~50MB on first run, ~30-60s). The `--yes` flag skips the
+   interactive prompt; the runner runs unattended. Non-zero exit → abort
+   with the stderr output (likely no python3 ≥ 3.10 found; founder must
+   `brew install python@3.13` then re-invoke).
+
+   After the helper returns 0, resolve `PYTHON=$(bash scripts/skillopt/find-python.sh)`
+   (now returns the venv path) and sanity-verify
+   `"$PYTHON" -c 'import openai, yaml, numpy'`. If verify fails despite
+   helper-exit-0 → abort with `subscription_python_setup_corrupted`
+   (rare; usually --recreate fixes).
+
+   **Why auto-bootstrap (not just check + hint):** /evolve skillopt is a
+   single-command UX per spec §19.1. Forcing the founder to remember 2
+   setup commands (`install-vendor.sh` + `install-python-deps.sh`) before
+   each fresh-environment invocation defeats that goal. Both helpers are
+   idempotent and cheap when already-satisfied (~100ms each), so running
+   them every time costs negligibly while guaranteeing the gate cannot fail
+   for "forgot to install" reasons.
 7. **Lock verification (NOT re-acquire).** Branch on
    `evolve_uses_universal_lock` feature flag in `knowledge/feature-flags.yaml`,
    same as the `/evolve` command's Phase A step 6:
