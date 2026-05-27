@@ -151,7 +151,9 @@ Write to `ops.agent_runs`:
 - `agent_slug = eval-evo/skillopt-judge`
 - `state = 'completed'`
 - `output_payload` = the strict JSON above
-- `cost_bucket = ai-ops-eval-evo-skillopt-judge`
+- `cost_bucket` shares the rollout cap: `eval-evo-skillopt-rollout-batch`
+  (per `governance/ROLES.md:874-878`). One judge call = one message; the
+  rollout's 25-message cap includes its companion judge grade.
 
 Emit `run_summary` (~150 tokens) per Strategy E memory architecture.
 
