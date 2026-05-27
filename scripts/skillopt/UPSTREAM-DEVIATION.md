@@ -28,7 +28,7 @@ Per `/cla resume evolve` 2026-05-27 decision (founder Tier B approval in-session
 
 ## What gets patched in, exactly
 
-After `git submodule update --init vendor/skillopt`, `install-vendor.sh` makes two mutations to the submodule working tree:
+After `git submodule update --init vendor/skillopt`, `install-vendor.sh` makes three mutations to the submodule working tree:
 
 1. **`vendor/skillopt/skillopt/model/ritsu_file_queue.py`** — copied verbatim from `scripts/skillopt/upstream-patches/ritsu_file_queue.py`. Implements the SkillOpt backend interface (chat_optimizer, chat_target, chat_with_deployment, chat_*_messages, get_token_summary, reset_token_tracker, set_reasoning_effort, set_target_deployment, set_optimizer_deployment) on top of a JSON file-queue. Makes zero HTTP calls; relies on the session bridge (Sprint 1 sub-PR C) to dispatch via subagent + subscription billing.
 2. **`vendor/skillopt/skillopt/model/router.py`** — patched via `scripts/skillopt/upstream-patches/router.patch`. Adds:
@@ -36,8 +36,27 @@ After `git submodule update --init vendor/skillopt`, `install-vendor.sh` makes t
    - `ritsu_file_queue` to the import line (`from . import …, ritsu_file_queue`).
    - One `if name == "ritsu_file_queue": return ritsu_file_queue` branch to `_backend_module`.
    - `ritsu_file_queue` to the `_all_backend_modules()` list and the `set_backend()` valid-name set.
+3. **`vendor/skillopt/scripts/train.py`** — patched via `scripts/skillopt/upstream-patches/train.patch` (added 2026-05-27 during /evolve skillopt dry-run cleanup; **extended Sprint 3.5** same day to register the `ritsu_skill` env). Adds TWO hunks:
+   - **Hunk 1 — argparse choices** (Sprint 1 original):
+     - One signature comment line (`    # ritsu-works:ritsu_file_queue:v1`) above the `--backend` argparse declaration.
+     - `"ritsu_file_queue"` to the `choices=[...]` list on `p.add_argument("--backend", ...)`.
+     - Without this, `train.py --backend ritsu_file_queue` is rejected at argparse parse time (BEFORE router.py dispatch) with `invalid choice` error.
+   - **Hunk 2 — env registration** (Sprint 3.5 addition):
+     - One signature comment line (`    # ritsu-works:ritsu_skill:v1 — patched by scripts/skillopt/install-vendor.sh (Sprint 3.5)`) inside `_register_builtins()` after the `swebench` registration block.
+     - A 4-line `try: from skillopt.envs.ritsu_skill.adapter import RitsuSkillAdapter; _ENV_REGISTRY["ritsu_skill"] = RitsuSkillAdapter; except ImportError: pass` block.
+     - Without this, `train.py --env ritsu_skill` raises `ValueError("Unknown environment 'ritsu_skill'. Available: alfworld, searchqa, …")`.
+4. **`vendor/skillopt/skillopt/envs/ritsu_skill/`** — NEW directory (Sprint 3.5). Three Python files copied verbatim from `scripts/skillopt/upstream-patches/ritsu_skill/`:
+   - `__init__.py` — exports `RitsuSkillAdapter`.
+   - `adapter.py` — the `EnvAdapter` subclass implementing `build_train_env / build_eval_env / rollout / reflect / get_task_types`. ~400 LOC.
+   - `loader.py` — the `SplitDataLoader` subclass that reads `dataset.jsonl` and partitions by ratio. ~140 LOC.
+   These files are NOT patched into existing vendor files — they're added in a NEW vendor subdir. Sprint 3.5 chose copy-by-install (not a submodule add) for consistency with the existing `ritsu_file_queue.py` pattern. After install, `git -C vendor/skillopt status` shows `skillopt/envs/ritsu_skill/` as untracked.
+5. **`vendor/skillopt/configs/ritsu_skill/default.yaml`** — NEW config file (Sprint 3.5). Copied from `scripts/skillopt/upstream-patches/configs-ritsu_skill-default.yaml`. Provides the trainer's default knobs for the ritsu_skill env (inherits from `configs/_base_/default.yaml` with adapter-specific overrides).
 
-No other file under `vendor/skillopt/` is touched. After install, `git -C vendor/skillopt status` will show `router.py` modified + `ritsu_file_queue.py` untracked. That is the intentional signal that patches were applied.
+After install, `git -C vendor/skillopt status` will show:
+  - **modified:** `router.py`, `scripts/train.py`
+  - **untracked:** `skillopt/model/ritsu_file_queue.py`, `skillopt/envs/ritsu_skill/`, `configs/ritsu_skill/`
+
+That is the intentional signal that all 5 patches were applied.
 
 ## Upstream interface assumptions
 
@@ -121,4 +140,6 @@ Until upstream PR merges, this contract stays in force.
 
 ## Changelog
 
+- **2026-05-27** — Sprint 3.5 env adapter (4th + 5th patches). Adds `ritsu_skill/` env package (`__init__.py`, `adapter.py`, `loader.py`) under `vendor/skillopt/skillopt/envs/` + `configs/ritsu_skill/default.yaml`. Extends `train.patch` with a second hunk registering `RitsuSkillAdapter` in `_register_builtins()`. Closes the Phase 5 design gap surfaced by `/evolve skillopt wiki-sync/ask --dry-run` (run `971a138a-46b9-47f5-a237-b3ef64131adb`): vendor's built-in envs (alfworld/searchqa/etc.) don't match our gen-data `(input, expected_behavior, rubric)` JSONL format. L1 validator extended to verify post-install adapter files + config yaml + `_ENV_REGISTRY["ritsu_skill"]` registration.
+- **2026-05-27** — added `train.patch` (3rd patch). Adds `ritsu_file_queue` to `train.py` argparse `--backend` choices. Without this, `train.py --backend ritsu_file_queue --help` is rejected at parse time and install-vendor.sh smoke test fails. Surfaced by `/evolve skillopt wiki-sync/ask --dry-run`.
 - **2026-05-27** — initial patch contract. Pin: `99212e3956c963d648219fad56a23f9e13c81b54`. Patches: backend + 4-segment router diff.

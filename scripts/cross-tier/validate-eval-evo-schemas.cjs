@@ -5,8 +5,10 @@
 // Wired into pnpm check via scripts/check-consistency.cjs (L1 layer).
 //
 // Schemas validated:
-//   1. 06-ai-ops/skills/eval-evo/_SCHEMA.yaml — ops.agent_runs.state_payload shape
-//      (informational, not enforced at insert; documented contract)
+//   1. 06-ai-ops/skills/eval-evo/_SCHEMA.yaml — ops.agent_runs.input_payload shape
+//      (informational, not enforced at insert; documented contract).
+//      NOTE: schema renamed 2026-05-27 — ops.agent_runs has input_payload, NOT
+//      state_payload (state_payload exists only on ops.tasks per migration 00002).
 //   2. 06-ai-ops/skills/eval-evo/playbooks/_SCHEMA.yaml — playbook frontmatter shape
 //      → ALL 5 playbooks must conform
 //   3. 06-ai-ops/skills/eval-evo/cases/_SCHEMA.yaml — golden case file shape
@@ -60,7 +62,7 @@ const stateSchemaPath = path.join(EVAL_EVO_DIR, '_SCHEMA.yaml');
 const playbookSchemaPath = path.join(EVAL_EVO_DIR, 'playbooks/_SCHEMA.yaml');
 const caseSchemaPath = path.join(EVAL_EVO_DIR, 'cases/_SCHEMA.yaml');
 
-loadYaml(stateSchemaPath);  // existence check only for state_payload schema
+loadYaml(stateSchemaPath);  // existence check only for input_payload schema
 loadYaml(playbookSchemaPath);
 loadYaml(caseSchemaPath);
 

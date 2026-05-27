@@ -1,0 +1,28 @@
+diff --git a/scripts/train.py b/scripts/train.py
+index 4d9473f..e9e911a 100644
+--- a/scripts/train.py
++++ b/scripts/train.py
+@@ -93,6 +93,12 @@ def _register_builtins() -> None:
+         _ENV_REGISTRY["swebench"] = SWEBenchAdapter
+     except ImportError:
+         pass
++    # ritsu-works:ritsu_skill:v1 — patched by scripts/skillopt/install-vendor.sh (Sprint 3.5)
++    try:
++        from skillopt.envs.ritsu_skill.adapter import RitsuSkillAdapter
++        _ENV_REGISTRY["ritsu_skill"] = RitsuSkillAdapter
++    except ImportError:
++        pass
+ 
+ 
+ def get_adapter(cfg: dict):
+@@ -136,8 +142,9 @@ def parse_args() -> argparse.Namespace:
+ 
+     # Legacy flat CLI overrides (still work, prefer --cfg-options for new usage)
+     p.add_argument("--env", type=str)
++    # ritsu-works:ritsu_file_queue:v1 — patched by scripts/skillopt/install-vendor.sh
+     p.add_argument("--backend", type=str,
+-                   choices=["azure_openai", "codex", "codex_exec", "claude", "claude_chat", "claude_code_exec", "qwen", "qwen_chat"])
++                   choices=["azure_openai", "codex", "codex_exec", "claude", "claude_chat", "claude_code_exec", "qwen", "qwen_chat", "ritsu_file_queue"])
+     p.add_argument("--optimizer_model", type=str)
+     p.add_argument("--target_model", type=str)
+     p.add_argument("--optimizer_backend", type=str)

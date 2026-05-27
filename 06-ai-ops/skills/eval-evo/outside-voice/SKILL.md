@@ -157,7 +157,7 @@ If both codex and subagent fail:
 }
 ```
 
-The orchestrator records this status in `ops.agent_runs.state_payload.
+The orchestrator records this status in `ops.agent_runs.input_payload.
 outside_voice_status` for audit.
 
 ## PR body assembly

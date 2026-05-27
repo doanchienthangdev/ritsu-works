@@ -141,21 +141,70 @@ Strict JSON to stdout for the `/evolve` command to render:
    --skill=<entity_name> --max-messages=<max_messages>`. Exit 2 (cap exceeded)
    → abort with widen-cap hint. Exit 0 → record `estimated_messages` in state.
 3. **Drift gate.** `pnpm check` must be clean.
-4. **Working tree clean check.** `git status --porcelain` empty.
-5. **Vendor smoke.** `bash scripts/skillopt/install-vendor.sh` exits 0 (idempotent).
-6. **Python deps check.** `python3 -c 'import openai, yaml, numpy'` succeeds.
-   Else abort with `pip install -r vendor/skillopt/requirements.txt` hint.
-7. **Lock verification (NOT re-acquire).** The /evolve command (step 5/6 of
-   `.claude/commands/evolve.md`) acquires the universal lock for
-   (`entity_type='skill'`, `entity_name=<entity_name>`) with
-   `holder_kind='evolve'`, `holder_run_id=<command's agent_run_id>` BEFORE
-   dispatching to this skill. The runner does NOT re-acquire (a second
-   `acquire_entity_edit_lock` call with a different `holder_run_id` would
-   return `acquired=false` and incorrectly abort). Instead, the runner
-   verifies a lock is held by reading `ops.entity_edit_locks` for the
-   `(entity_type, entity_name)` row and confirming `holder_run_id =
+4. **Working tree clean check.** Working tree must be clean EXCEPT for
+   `vendor/skillopt` (the submodule's patches re-apply each `install-vendor.sh`
+   run — intentional per `scripts/skillopt/UPSTREAM-DEVIATION.md`; SHA pin +
+   patch-integrity verified by L1 invariant `skillopt-vendor-sha-pinned` in
+   `scripts/cross-tier/validate-skillopt-vendor.cjs`). Concretely:
+   `[ -z "$(git status --porcelain | grep -v 'vendor/skillopt$')" ]`.
+   Excluding the known-benign path is cleaner than either committing the
+   patched submodule pointer (breaks `install-vendor.sh` idempotency) or
+   stashing before every run (wraps every invocation in 2 extra steps).
+5. **Vendor auto-bootstrap.** `bash scripts/skillopt/install-vendor.sh` (idempotent
+   — exits 0 fast if 3 patches already applied; applies otherwise). Non-zero
+   exit → abort with the stderr output (likely pin mismatch or patch conflict;
+   see UPSTREAM-DEVIATION.md refresh procedure). This phase runs every time so
+   the founder NEVER has to remember to bootstrap manually.
+6. **Python deps auto-bootstrap.** `bash scripts/skillopt/install-python-deps.sh
+   --yes` (idempotent — exits 0 immediately if openai/yaml/numpy import inside
+   the project venv at `runtime/skillopt/.venv/`; otherwise creates venv +
+   pip installs ~50MB on first run, ~30-60s). The `--yes` flag skips the
+   interactive prompt; the runner runs unattended. Non-zero exit → abort
+   with the stderr output (likely no python3 ≥ 3.10 found; founder must
+   `brew install python@3.13` then re-invoke).
+
+   After the helper returns 0, resolve `PYTHON=$(bash scripts/skillopt/find-python.sh)`
+   (now returns the venv path) and sanity-verify
+   `"$PYTHON" -c 'import openai, yaml, numpy'`. If verify fails despite
+   helper-exit-0 → abort with `subscription_python_setup_corrupted`
+   (rare; usually --recreate fixes).
+
+   **Why auto-bootstrap (not just check + hint):** /evolve skillopt is a
+   single-command UX per spec §19.1. Forcing the founder to remember 2
+   setup commands (`install-vendor.sh` + `install-python-deps.sh`) before
+   each fresh-environment invocation defeats that goal. Both helpers are
+   idempotent and cheap when already-satisfied (~100ms each), so running
+   them every time costs negligibly while guaranteeing the gate cannot fail
+   for "forgot to install" reasons.
+7. **Lock verification (NOT re-acquire).** Branch on
+   `evolve_uses_universal_lock` feature flag in `knowledge/feature-flags.yaml`,
+   same as the `/evolve` command's Phase A step 6:
+
+   **If `evolve_uses_universal_lock=true`:** The /evolve command acquires
+   the universal lock for (`entity_type='skill'`, `entity_name=<entity_name>`)
+   with `holder_kind='evolve'`, `holder_run_id=<command's agent_run_id>`
+   BEFORE dispatching to this skill. The runner does NOT re-acquire (a
+   second `acquire_entity_edit_lock` call with a different `holder_run_id`
+   would return `acquired=false` and incorrectly abort). Instead, the
+   runner verifies a lock is held by reading `ops.entity_edit_locks` for
+   the `(entity_type, entity_name)` row and confirming `holder_run_id =
    <command_agent_run_id>` (passed in via inputs). The lock is released
    in Phase G using the command's `agent_run_id`, NOT the runner's.
+
+   **If `evolve_uses_universal_lock=false`** (legacy path — default for
+   first 48h post-deploy per @cto NIT 4 staged migration; flag toggle
+   after 5 successful /evolve runs): no `ops.entity_edit_locks` row exists.
+   The "lock" is implicit in the command's INSERT of `ops.agent_runs`
+   with `agent_slug='evolve'`, `state='running'`, and
+   `input_payload->>'entity_slug' = '<entity_name>'`. The runner verifies
+   by re-issuing the legacy concurrent-run check (same SELECT as command
+   Phase A.6 legacy branch) and confirming the ONLY matching row has
+   `id = command_agent_run_id`. Multiple matches → abort with
+   `ConcurrentRunError`. Zero matches → abort with `LockLostError`
+   (the command's row must have moved to a terminal state mid-dispatch).
+   Phase G "release" under the legacy path is the UPDATE of the command's
+   row to `state IN ('completed','failed','cancelled')` (see Phase G
+   step 2).
 8. **Tier classify.** v1.1 explicitly Tier B; `--tier-override` allowed
    founder-only.
 9. **Resume branch.** If `--resume=<run-id>`: read
@@ -193,20 +242,75 @@ extraction. All in-session → subscription billing. No Python yet.
 
 ### Phase C — Train loop (the heavy work)
 
-1. **Write cfg.json** at `runtime/skillopt/<entity>/runs/<rid>/cfg.json`:
-   ```json
-   { "dataset": "<dataset_path>", "max_iterations": 3,
-     "max_messages": <remaining_budget>,
-     "rollout_batch_size": 25, "reflect_batch_size": 4 }
+1. **Write cfg.yaml** at `runtime/skillopt/<entity>/runs/<rid>/cfg.yaml`
+   (the vendor `train.py` consumes structured YAML, not the v1.0-drafted
+   terse JSON; updated 2026-05-27 in Sprint 3.5 to match the actual
+   contract — see spec.md §19.4.5 + `scripts/skillopt/upstream-patches/
+   configs-ritsu_skill-default.yaml`).
+
+   Use `_base_:` inheritance from `vendor/skillopt/configs/ritsu_skill/default.yaml`
+   (copied in by install-vendor.sh) and override only the run-specific knobs:
+
+   ```yaml
+   # runtime/skillopt/<entity>/runs/<rid>/cfg.yaml
+   _base_: ../../../../../vendor/skillopt/configs/ritsu_skill/default.yaml
+
+   train:
+     num_epochs: 3                     # per-run iteration budget
+     batch_size: 8                     # rollout fan-out batch size
+
+   gradient:
+     minibatch_size: 4                 # analyst minibatch size for reflect
+     analyst_workers: 2                # parallel reflect workers
+     failure_only: false
+
+   optimizer:
+     learning_rate: 4                  # max edits per step (edit_budget)
+
+   env:
+     name: ritsu_skill                 # MUST be ritsu_skill — matches _ENV_REGISTRY
+     data_path: <absolute path to dataset.jsonl from Phase B>
+     skill_init: <absolute path to effective_entity_path (the SKILL.md being evolved)>
+     split_mode: ratio
+     split_ratio: "7:1:2"              # train / val / test (test = held-out partition)
+     split_seed: 42
+     workers: 4
+     judge_timeout: 120
+     exec_timeout: 120
+     limit: 0
+
+   evaluation:
+     use_gate: true
+     test_env_num: 0                   # 0 = use full test split for trainer's eval
+     eval_test: true                   # runner Phase D ALSO judges separately for K4 delta
    ```
-2. **Launch Python subprocess** via Bash `run_in_background: true`:
+
+   The cfg.yaml is written verbatim (no JSON-encoded variant). The trainer
+   reads it via vendor's `skillopt.config.load_config(path)` which honors
+   `_base_:` inheritance + `--cfg-options key.path=value` CLI overrides.
+   Budget enforcement (`max_messages`, R12 R18) is owned by THIS runner
+   skill via the bridge state — NOT by the trainer (the trainer is
+   subscription-billing-agnostic).
+2. **Launch Python subprocess** via Bash `run_in_background: true`. The
+   interpreter MUST satisfy Python ≥ 3.10 (vendor uses
+   `@dataclass(slots=True)`). Resolve via `scripts/skillopt/find-python.sh`
+   instead of bare `python3` (macOS /usr/bin/python3 is 3.9). Use
+   `--env ritsu_skill` to select the Sprint 3.5 env adapter:
    ```bash
+   PYTHON=$(bash scripts/skillopt/find-python.sh) || exit 2
    env -i ANTHROPIC_API_KEY= HOME=$HOME PATH=$PATH PYTHONPATH=vendor/skillopt \
      SKILLOPT_FILE_QUEUE_DIR=$(pwd)/runtime/skillopt/<entity>/runs/<rid> \
-     python3 vendor/skillopt/scripts/train.py \
-       --config runtime/skillopt/<entity>/runs/<rid>/cfg.json \
+     "$PYTHON" vendor/skillopt/scripts/train.py \
+       --config runtime/skillopt/<entity>/runs/<rid>/cfg.yaml \
+       --env ritsu_skill \
        --backend ritsu_file_queue
    ```
+   The `--env ritsu_skill` flag is REQUIRED — without it, train.py reads
+   `env.name` from cfg.yaml but the legacy flat-CLI `--env` flag provides
+   a load-time check (the cfg-derived path resolves the same env at
+   build_adapter time).
+   The operator may pin a specific interpreter via the `SKILLOPT_PYTHON`
+   env var (read by find-python.sh as highest-priority override).
    Capture `subprocess_pid` from the Bash background-task announcement.
 3. **Init bridge state.** Call `node scripts/skillopt/session-bridge.cjs init
    --queue-dir=runtime/skillopt/<entity>/runs/<rid> --pid=<subprocess_pid>`.
@@ -340,12 +444,42 @@ Branch on `sandbox_mode` (true iff `entity_path != null`):
 
 ### Phase G — Cleanup + persist
 
-1. Release universal lock: `ops.release_entity_edit_lock('skill', '<entity>',
-   <command_agent_run_id>)`. Uses the COMMAND's agent_run_id (passed in
-   via inputs) — the runner doesn't hold the lock; the command does.
-2. UPDATE `ops.agent_runs` (this orchestration's row) with final state.
-3. Write `ops.run_summaries` (~150 tokens per Strategy E).
-4. Emit `ops.events`: `ritsu.evolve.skillopt-run-completed` with stdout payload.
+1. Release lock — branch on `evolve_uses_universal_lock` (same as Phase A.7):
+   - **flag=true (universal lock):** `ops.release_entity_edit_lock('skill',
+     '<entity>', <command_agent_run_id>)`. Uses the COMMAND's agent_run_id
+     (passed in via inputs) — the runner doesn't hold the lock; the
+     command does. Invoked via `supabase db query --linked "SELECT
+     ops.release_entity_edit_lock(...)"` because the MCP supabase-ops
+     shim is INSERT-only and cannot call mutating RPCs.
+   - **flag=false (legacy):** no separate release. The UPDATE in step 2
+     transitions the command's `ops.agent_runs` row to a terminal state,
+     which IS the legacy lock release (concurrent-run check matches on
+     `state='running'` only).
+2. UPDATE `ops.agent_runs` (this orchestration's row) with final state
+   (`state='completed'` | `'failed'` | `'cancelled'`, `ended_at=now()`,
+   `outcome`, `output_payload` JSONB with scores + artifacts).
+   **MCP supabase-ops is INSERT-only** (per `knowledge/manifest.yaml`
+   tool_plane registered_servers `supabase-ops` purpose: "INSERT-only for
+   writes (no UPDATE in Phase 1.5)"). The UPDATE MUST flow through the
+   Supabase CLI fallback:
+   ```bash
+   source runtime/secrets/.env.local
+   supabase db query --linked "UPDATE ops.agent_runs
+     SET state='completed', ended_at=now(), outcome='success',
+         output_payload='<jsonb>'::jsonb
+     WHERE id='<command_agent_run_id>'
+     RETURNING id, state, outcome"
+   ```
+   `SUPABASE_ACCESS_TOKEN` lives in `runtime/secrets/.env.local`. The CLI
+   query is non-SUPERUSER so works under `db query --linked` (per founder
+   memory `reference_supabase_admin_constraints`). If the CLI is
+   unavailable (e.g., Edge Function execution context), fall back to
+   `mcp__supabase-ops__insert` of a `correcting_run_id`-linked row per the
+   `ops.audit_log` immutability convention.
+3. Write `ops.run_summaries` (~150 tokens per Strategy E). INSERT via
+   `mcp__supabase-ops__insert` (writes are allowed; only UPDATE blocked).
+4. Emit `ops.events`: `ritsu.evolve.skillopt-run-completed` with stdout
+   payload. INSERT via `mcp__supabase-ops__insert`.
 5. **Cleanup decision** (NOT auto-delete the run dir):
    - dry_run runs: keep for inspection.
    - Successful installs: keep; L1 invariant `skillopt-runtime-staleness`

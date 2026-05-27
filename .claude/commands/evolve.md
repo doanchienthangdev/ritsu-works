@@ -137,7 +137,7 @@ v1.0 path alone lacked (spec §19.1).
 5. **Universal lock acquire** — via `ops.acquire_entity_edit_lock`, same path
    as v1.0 `/evolve` with `evolve_uses_universal_lock=true`.
 6. **INSERT ops.agent_runs** with `agent_slug = 'evolve'`,
-   `state_payload->>'mode' = 'skillopt'`, `state = 'running'`.
+   `input_payload->>'mode' = 'skillopt'`, `state = 'running'`.
 7. **Dispatch to `eval-evo/skillopt-runner` skill** via Skill tool with input
    matching the runner's §Inputs schema. Critically: pass `command_agent_run_id`
    = the ops.agent_runs row id created at step 6 above. The runner uses this
@@ -219,7 +219,7 @@ resumed and any state divergence (e.g., dataset path changed mid-flight).
    SELECT id FROM ops.agent_runs
    WHERE agent_slug = 'evolve'
      AND state = 'running'
-     AND state_payload->>'entity_slug' = '<slug>'
+     AND input_payload->>'entity_slug' = '<slug>'
    ```
    If row exists, `ConcurrentRunError` with run-id + action hint.
 
@@ -344,7 +344,7 @@ Awaiting founder Tier C review on PR.
 /evolve status <type> <name>
 ```
 
-Reads `ops.agent_runs WHERE agent_slug='evolve' AND state_payload->>'entity_slug'=<slug>`
+Reads `ops.agent_runs WHERE agent_slug='evolve' AND input_payload->>'entity_slug'=<slug>`
 ORDER BY started_at DESC LIMIT 5. Prints:
 - Run-id, started_at, completed_at, scores array, total_cost, outcome
 - ASCII spark line of composite scores
