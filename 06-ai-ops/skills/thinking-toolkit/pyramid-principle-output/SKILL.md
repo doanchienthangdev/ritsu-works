@@ -1,0 +1,197 @@
+---
+name: thinking-toolkit/pyramid-principle-output
+description: |
+  Use to structure any non-trivial output (persona response, recommendation,
+  analysis report, decision memo) so the reader can stop at any level and
+  still act. Top-line conclusion FIRST, then 3-5 supporting points (MECE),
+  then evidence below each point. Eat the dessert before the vegetables.
+
+  Trigger conditions: any agent output to founder ≥ 3 sentences; any
+  recommendation; any analysis with conclusion + supporting points; any
+  C-suite persona response (mandatory per persona output contract); any
+  morning brief or weekly review; any decision memo or capability spec.
+
+  Skip when: single-line factual answers ("status: green"); pure
+  tool-output dumps; conversational acknowledgments; brainstorming output
+  where order is intentionally exploratory.
+
+  Cost: zero LLM (guidance document). Reader-time savings compound across
+  every invocation — ~30-60s saved per founder reading.
+allowed-tools: []
+disable-model-invocation: false
+---
+
+# Pyramid Principle Output (top-line first)
+
+> Reader can stop at any level and still act. Top-line FIRST. Then supporting points. Then evidence.
+
+This skill is the **output discipline** every C-suite persona and any non-trivial agent response should apply. Originated at McKinsey by Barbara Minto (1960s, *The Minto Pyramid Principle*, 1987). The single most-cited communication framework in consulting.
+
+The founder is busy. The founder reads many agent outputs daily. The founder needs to act fast. Burying the conclusion forces the founder to read everything to find what to do. Leading with the conclusion lets the founder act on Line 1 and drill down only when needed.
+
+## When to use
+
+Apply to any output where the reader needs to:
+- Act (recommendation, decision memo, status update)
+- Decide (option comparison, risk assessment, prioritization)
+- Synthesize (multi-source analysis, retrospective, planning doc)
+
+**Mandatory for:**
+- All C-suite persona output (@ceo/@cto/@cgo/@cpo) per their output contract
+- Morning brief assembly
+- Weekly review
+- /cla phase outputs (problem framing, options, spec)
+- Cost reports, KPI alerts, drift reports
+- Any agent response to founder ≥ 3 sentences
+
+**Recommended for:**
+- Code review summaries
+- Capability spec promotion notes
+- PR descriptions on substantial changes
+- Retrospectives
+
+## When NOT to use
+
+**Skip for:**
+- Single-line factual answers ("MRR = $0", "drift check: clean", "status: green")
+- Pure tool-output dumps where the data IS the message
+- Conversational acknowledgments ("ok", "noted", "will do")
+- Brainstorming output where exploratory order is the point (e.g., `/muse:socrates` elenchus chain)
+- Code/data — code structure follows its own conventions, not narrative pyramid
+
+**Anti-pattern: applying pyramid to 1-line answers.** "MRR is $0. Three supporting points: ... " adds noise. The single fact IS the answer.
+
+## How to apply
+
+### Step 1 — Identify the answer
+
+Before writing anything, answer in ONE sentence: **what should the reader do or believe after reading?**
+
+If you can't write the answer in one sentence, you don't have an answer yet — keep thinking before writing.
+
+### Step 2 — Write the top line
+
+The top line is the answer. It must be:
+- One sentence (max ~25 words)
+- Action-oriented when possible ("Approve X" beats "X looks good")
+- Bold or otherwise visually-distinct (`**Top line:**`)
+
+### Step 3 — Write 3-5 supporting points
+
+Each supporting point must:
+- Be MECE relative to siblings (mutually exclusive, collectively exhaustive — see `mece-decomposition-check`)
+- Be a complete thought (one sentence, not a fragment)
+- Lead with the point itself, not the evidence
+
+**Sweet spot: 3 points.** 2 is sparse. 5 is the upper limit before reader fatigue. >5 means re-group into a sub-pyramid.
+
+### Step 4 — Add evidence under each point
+
+Drill-down content lives below the point. Keep it tight:
+- Numbers > adjectives
+- Citations > assertions
+- One paragraph max per point
+
+### Step 5 (optional) — SCQA opener
+
+For longer documents (>1 page), open with **SCQA** before the top line:
+- **Situation** — what is currently true (shared context)
+- **Complication** — what changed or is at stake
+- **Question** — the question the document answers
+- **Answer** — the top line (then continues with supporting points)
+
+Skip SCQA for short responses (<1 page). The top line IS the answer in that case.
+
+### Step 6 — Self-check
+
+Before sending, run two tests:
+1. **Stop-anywhere test:** Can a reader who stops at Line 1 act? At Line 5 (top + 3 points)? If no — restructure.
+2. **So-what test:** For each point, ask "so what?" twice (see `so-what-test`). If second "so what?" has no answer, the point is trivia.
+
+## Worked examples
+
+### Example 1 — GOOD (agent reporting on SkillOpt fit assessment)
+
+```
+**Top line: Limit SkillOpt to 2-3 specific skills (wiki-sync/distill, eval-evo/test-gen). Use /update + /evolve basic for the rest.**
+
+Three mismatches between SkillOpt's design and ritsu-works skills:
+
+1. **Eval mismatch** — SkillOpt assumes crisp 0/1 scoring; most ritsu skills have fuzzy quality criteria → judge bias compounds Goodhart.
+
+2. **Cost mismatch** — one SkillOpt run ~$100 (25 train + 25 val × 4 epochs × $0.50/rollout) = entire monthly eval-evo cap on 1 skill.
+
+3. **Sample mismatch** — SkillOpt needs hundreds of training items; ritsu skills run 5-50 invocations/month, insufficient signal density.
+
+Action: keep SkillOpt installed (already vendored); restrict invocation to the named 2-3 skills; route others through /update for ground-truth refresh.
+```
+
+**Why this is good:** Reader sees the recommendation in line 1. Three MECE supporting points. Each point has evidence (numbers). Final line tells founder exactly what to do.
+
+### Example 2 — ANTI-PATTERN (same content, no pyramid)
+
+```
+SkillOpt was developed by Microsoft for benchmark tasks like SearchQA,
+ALFWorld, DocVQA, math, and spreadsheet generation. These benchmarks
+share four properties: crisp 0/1 evaluation, hundreds of training items,
+cheap rollouts (~$0.10 per item), and synthetic data is acceptable.
+
+Now consider ritsu-works skills. Skills like `capability-lifecycle/architect`
+or `cost-report` have fuzzy quality criteria — "good" depends on context.
+Most skills run 5-50 times per month, far below hundreds. Each rollout
+costs $0.10-1.00 because it's a real LLM invocation, not a benchmark item.
+And we can't manufacture synthetic invocations while preserving meaning.
+
+So a SkillOpt run with 25 train + 25 val items × 4 epochs would cost
+about $100, which is twice the monthly eval-evo cap of $50. That's
+spending the entire budget on one skill.
+
+Therefore SkillOpt may fit a small subset of ritsu skills — specifically
+wiki-sync/distill (volume high, citation conformance as judge) and
+eval-evo/test-gen (deterministic eval). For other skills, /update with
+external references or /evolve basic with internal memory is better.
+
+So limit SkillOpt to 2-3 named skills.
+```
+
+**Why this is anti-pattern:** Reader has to consume 5 paragraphs to reach the conclusion. By the time the recommendation appears at the end, the founder has spent ~90 seconds. Same content, ~30x longer to act on. The conclusion is buried under throat-clearing.
+
+### Example 3 — EDGE CASE (status update with no real "supporting points")
+
+```
+**Top line: Drift check clean (15/15 validators); ready to commit.**
+
+No supporting points needed — status is binary. No evidence below.
+```
+
+**Why this is the right call:** Pyramid principle is about structure, not length. When the answer is genuinely 1-line, the pyramid is just the top line. Don't manufacture supporting points to fill space. Skip SCQA. Send.
+
+## Composition notes
+
+### With `so-what-test`
+Mandatory pair. After writing the top line and supporting points, run so-what-test on each. If a point fails (no actionable consequence), drop or rework it. Pyramid + so-what together = output that's actionable AND well-structured.
+
+### With `mece-decomposition-check`
+Mandatory pair when you have 3+ supporting points. Apply mece-decomposition-check to the supporting points: do any overlap? Are any cases missing? If yes, restructure before sending.
+
+### With `tosca-problem-framing`
+Compose for problem-statement docs. TOSCA frames the problem; pyramid structures the recommendation. Order: TOSCA first (Phase 1 of analysis), pyramid second (output).
+
+### With `2x2-synthesis-matrix`
+When the recommendation comes from synthesizing many options, the 2x2 matrix is the supporting visual. Top line states the recommendation; 2x2 matrix shows why (which quadrant won).
+
+### With `driver-tree-decomposition`
+For metric-driven recommendations. Top line states the metric outcome ("MRR projection misses target by 15%"); driver tree shows which upstream drivers caused it. Pyramid + driver tree = top-down explanation of a metric problem.
+
+## References
+
+- Minto, Barbara. *The Pyramid Principle: Logic in Writing and Thinking* (1987, 3rd ed. 2009). The canonical source.
+- McKinsey internal communication training (1960s-present). Pyramid Principle is the McKinsey output standard for client-facing documents.
+- HBR — "Pyramid Principle" (2017 reprint of Minto's core argument).
+
+## Anti-claims (what this skill explicitly does NOT claim)
+
+- This is NOT the entirety of communication discipline. Voice, tone, audience-specific framing — all separate concerns.
+- This is NOT a substitute for thinking quality. A well-structured wrong recommendation is still wrong.
+- This is NOT "always use 3 points". 3 is the sweet spot; the right number is dictated by MECE, not pyramid.
+- This is NOT corporate-deck convention. We're applying the cognitive principle (top-down structure), not the deck format.

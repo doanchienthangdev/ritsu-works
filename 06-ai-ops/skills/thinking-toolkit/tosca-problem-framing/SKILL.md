@@ -1,0 +1,252 @@
+---
+name: thinking-toolkit/tosca-problem-framing
+description: |
+  Use to frame any ambiguous business or technical problem before
+  proposing solutions. Forces structured definition across 5 dimensions:
+  Trouble (the situation), Owner (who cares), Success criteria (measurable),
+  Constraints (what's fixed), Actors (who's involved). Output is a 1-page
+  problem statement that downstream analysis can build on without
+  re-defining scope.
+
+  Trigger conditions: /cla problem-framer Phase 1 (mandatory); start of any
+  capability proposal; /office-hours startup mode; weekly review when
+  surfacing new issues; any "we have a problem with X" framing; debugging
+  ambiguous incidents.
+
+  Skip when: problem is already crisp and well-scoped (e.g., "fix typo in
+  README"); pure technical bug with clear repro steps; routine operational
+  questions ("what's our MRR?").
+
+  Cost: zero LLM (template). Forces ~5-15 min upfront thinking that saves
+  hours of downstream re-scoping.
+allowed-tools: []
+disable-model-invocation: false
+---
+
+# TOSCA Problem Framing (Trouble / Owner / Success / Constraints / Actors)
+
+> Before solving a problem, define it. Five dimensions, one page, no ambiguity.
+
+TOSCA is McKinsey's problem-definition standard for the first 30 minutes of any engagement. The premise: most consulting work fails not because the analysis is wrong but because the problem was defined wrong. Force structured definition before any solution thinking.
+
+Ritsu-works adopts TOSCA as the mandatory front-end to `/cla problem-framer` (Phase 1 of capability proposals) and any debug/analysis that doesn't start with a crisp problem.
+
+## When to use
+
+**Mandatory:**
+- /cla propose Phase 1 (problem-framer skill invokes TOSCA implicitly)
+- Start of any capability proposal — write TOSCA before any options thinking
+- Any debug session where root cause is unclear
+- /office-hours when user says "I have a problem with..."
+
+**Recommended:**
+- Weekly review when triaging new issues
+- Founder asks "should we build X?" — TOSCA the underlying problem before answering "build X" yes/no
+- When two team members have different ideas about the same "problem" (often they're solving different problems)
+
+## When NOT to use
+
+- Problem is already crisp ("fix this specific bug at line 42"); skip to action
+- Pure operational lookups ("what's our MRR?", "show me cost report"); TOSCA is for definition, not retrieval
+- Trivial decisions (color of button); overhead exceeds benefit
+
+**Anti-pattern: TOSCA-ing every question.** TOSCA is a heavyweight tool. Use for problems that genuinely need scoping discipline (5+ minutes of ambiguity to resolve). For clear questions, skip and act.
+
+## How to apply
+
+Fill the 5 dimensions in order. ~1-2 sentences per dimension. Total length: ~1 page max.
+
+### T — Trouble
+**What is currently happening that shouldn't be?** OR **what is not happening that should be?**
+
+State the situation neutrally. Avoid solution language. Avoid blame. Focus on the gap between current and desired state.
+
+Bad: "We need a better customer onboarding flow."
+Good: "Free-to-paid conversion drops 60% between signup and first weekly login. Users who don't return within 7 days never convert."
+
+### O — Owner
+**Who feels the pain when this trouble persists? Who has authority to act?**
+
+Sometimes the pain-bearer and the authority differ. Name both.
+
+Bad: "Everyone cares."
+Good: "Pain: prospective paying users who churn silently. Authority: founder + customer-lead. KPI ownership: gtm-orchestrator (signup_to_activation_pct, free_to_paid_conversion)."
+
+### S — Success criteria
+**How will we know the trouble has been resolved? Measurable, time-bound.**
+
+Each criterion follows: "X happens, measured by Y, target Z, by date D."
+
+Bad: "More users convert."
+Good: "Free-to-paid conversion rate from 8% to 15%, measured by metrics.product_dau_snapshot.free_to_paid_conversion, target 15% rolling-30-day, by 2026-08-01."
+
+Multiple criteria are fine (2-4 typical). Each must be falsifiable.
+
+### C — Constraints
+**What can we NOT change? What's fixed by external reality?**
+
+Constraints prevent magical thinking solutions. Name them explicitly.
+
+Bad: "Resource constraints."
+Good:
+- "Cannot increase founder time (already at 50h/week cap per founder_hours_per_week KPI)."
+- "Cannot raise prices (locked by GTM pillar pricing-philosophy until SOP-PRODUCT-010 pull-test)."
+- "Cannot add team member (1-person company until cofounder formal join, target Q3)."
+- "Cannot touch product-supabase (HITL D-MAX boundary)."
+
+### A — Actors
+**Who's involved in the problem and solution? Customers, internal roles, external parties?**
+
+List by role/persona, not individual:
+
+Bad: "Marketing team."
+Good:
+- "Users: prospective paying customers (signed up free, haven't converted)"
+- "Internal: customer-lead (owns customer journey), gtm-orchestrator (owns conversion funnel), product-orchestrator (owns wedge + activation events)"
+- "External: Stripe (payment), email provider (transactional)"
+- "Tools: ops.attention_log, metrics.product_dau_snapshot, customer-success runbooks"
+
+## Output format
+
+Write the 5 sections as headers in a markdown doc. Total ~1 page.
+
+```markdown
+# Problem: <one-line summary>
+
+**TOSCA framing — produced 2026-XX-XX by <role>**
+
+## Trouble
+<1-2 sentences neutral statement of current vs desired state>
+
+## Owner
+<pain-bearer> | <authority to act> | <KPI owner>
+
+## Success criteria
+- [ ] <criterion 1: X happens, measured by Y, target Z, by D>
+- [ ] <criterion 2: ...>
+
+## Constraints
+- <constraint 1>
+- <constraint 2>
+- <constraint 3>
+
+## Actors
+- **Users:** <list>
+- **Internal:** <roles>
+- **External:** <parties>
+- **Tools/data:** <list>
+
+---
+
+## Next: <handoff — typically gap-analysis or options-generator>
+```
+
+## Worked examples
+
+### Example 1 — GOOD (capability proposal trigger)
+
+```markdown
+# Problem: Agents lack output discipline
+
+**TOSCA framing — produced 2026-05-28 by @cpo internal review**
+
+## Trouble
+C-suite persona outputs (@ceo/@cto/@cgo/@cpo) vary in structure. Some lead with conclusion, some bury it. Founder spends ~30-60s per output finding "what should I do?". Decompositions overlap or miss cases. Output quality compounds across thousands of invocations.
+
+## Owner
+Pain: founder (reads all C-suite outputs daily). Authority: aiops-orchestrator (skill library + persona refs). KPI: no current KPI — propose `persona.output.actionability_score` as new metric in v1.1.
+
+## Success criteria
+- [ ] 100% of C-suite persona output starts with top-line conclusion (measured by parser regex on `.claude/agents/*.md` output contract section, target 2026-06-01)
+- [ ] Founder reading time per persona output drops 30%+ (measured by self-report after 14 days of usage)
+
+## Constraints
+- Cannot add LLM cost per invocation (skills must be guidance documents, not LLM-calling skills)
+- Cannot restructure existing persona files heavily (must be 1-line non-invasive reference)
+- Cannot touch HITL boundaries (skills are Tier A; no escalation)
+
+## Actors
+- **Users:** founder (primary reader), other personas (when they read each other's output)
+- **Internal:** @ceo, @cto, @cgo, @cpo (apply skill), aiops-orchestrator (catalog), skill-library maintainer
+- **External:** Barbara Minto's *Pyramid Principle* (reference framework)
+- **Tools/data:** `06-ai-ops/skills/thinking-toolkit/`, `.claude/agents/`, docs-engine
+
+---
+
+## Next: gap-analysis (Phase 3 of /cla propose thinking-toolkit)
+```
+
+**Why this is good:** Each section answers its dimension specifically. No solutioning. Measurable criteria. Real constraints with rationale. Specific actors not "stakeholders".
+
+### Example 2 — ANTI-PATTERN (vague problem, fake TOSCA)
+
+```markdown
+# Problem: We should improve marketing
+
+## Trouble
+Marketing could be better.
+
+## Owner
+The whole team.
+
+## Success criteria
+- Marketing improves
+
+## Constraints
+- Resources
+
+## Actors
+- Everyone
+```
+
+**Why this is anti-pattern:** Every dimension is generic. "Could be better" is unmeasurable. "Whole team" has no authority. "Resources" is not a real constraint. "Everyone" is not actors. This framing leads to scope-creep solutions because the problem isn't actually defined.
+
+**Fix:** Rewrite Trouble as gap (current X vs desired Y), Owner as specific role+KPI, Success as measurable+time-bound, Constraints as named externalities, Actors as concrete roles.
+
+### Example 3 — EDGE CASE (problem morphs during TOSCA)
+
+Sometimes filling TOSCA reveals the problem is actually a DIFFERENT problem.
+
+Initial framing:
+> "Problem: too many support tickets."
+
+After T-O-S-C-A:
+- T: Support ticket volume up 40% MoM
+- O: Pain = support-agent (overloaded); Authority = customer-lead; KPI = support_ticket_volume_by_category
+- S: ?
+- C: Cannot hire (1-person co)
+- A: Users (creating tickets), support-agent, customer-lead, ...
+
+While filling S, you realize: 90% of new tickets are about ONE feature regression that shipped last week. The real problem isn't "too many tickets" — it's "feature X regression causing ticket spike".
+
+**Reframe:** The original Trouble was a symptom. Drop the original TOSCA, restart with: "Feature X regression caused N% of users to hit error Y; tickets are the symptom."
+
+**Lesson:** TOSCA is iterative. If filling one dimension reveals the problem is something else, restart. Don't force-fit.
+
+## Composition notes
+
+### With `pyramid-principle-output`
+TOSCA is INPUT discipline (frame the problem); pyramid is OUTPUT discipline (structure the recommendation). Order: TOSCA first, then analysis, then pyramid-structured recommendation.
+
+### With `gap-analysis` (existing /cla phase 3 skill)
+TOSCA Trouble + Constraints feed directly into gap-analysis. The "what's missing to solve this?" question of gap-analysis only makes sense after TOSCA defines what "this" is.
+
+### With `so-what-test`
+Run so-what on the Success criteria. Each criterion must survive both so-what passes — otherwise it's "improvement" decoration, not a real goal.
+
+### With `mece-decomposition-check`
+Apply to the Actors list. Are actors overlapping (e.g., "founder" and "@ceo" — same entity)? Missing (forgot the user)? MECE check tightens the framing.
+
+## References
+
+- McKinsey internal training: TOSCA is taught in the first week of consultant onboarding.
+- *The McKinsey Way* (Rasiel, 1999) — popular-press treatment.
+- *Cracked it!* (Garrette/Phelps/Sibony, 2018) — McKinsey-derived problem-solving textbook.
+- Minto Pyramid Principle (1987) — pyramid-output complement to TOSCA-input.
+
+## Anti-claims
+
+- TOSCA does NOT solve the problem. It defines it. Solutions come from downstream skills.
+- TOSCA is NOT a 5-section checklist. Each dimension demands real thinking; bullet-filling defeats the purpose.
+- TOSCA is NOT for every question. Crisp questions skip TOSCA entirely.
+- TOSCA does NOT replace stakeholder interviews. For high-stakes problems, validate the framing with the actual Owner before proceeding.

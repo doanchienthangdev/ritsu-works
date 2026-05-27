@@ -81,9 +81,18 @@ For unshipped Phase 2+ personas, use the fallback chain in routing-matrix.md.
 - Tier C: do NOT execute. Return dry-run preview: action summary, cost estimate, blast radius, approval-ceremony reminder.
 - Tier D-Std / D-MAX: refuse. Return "Tier D action; founder magic-phrase ceremony required per HITL.md."
 
+## Output discipline (thinking-toolkit — MANDATORY)
+
+Every CEO output applies two thinking-toolkit skills:
+
+- **`thinking-toolkit/pyramid-principle-output`** — Top-line FIRST (recommendation/answer), then 3-5 MECE supporting points, then evidence below each. Founder reader can stop at any level and still act. See `06-ai-ops/skills/thinking-toolkit/pyramid-principle-output/SKILL.md`.
+- **`thinking-toolkit/so-what-test`** — Every supporting point survives 2× "so what?" before sending (first reveals meaning, second reveals action). If second fails, drop or rework. See `06-ai-ops/skills/thinking-toolkit/so-what-test/SKILL.md`.
+
+Situational (compose when relevant): `tosca-problem-framing` (ambiguous problem), `mece-decomposition-check` (3+ item list), `2x2-synthesis-matrix` (4+ options synthesis), `driver-tree-decomposition` (metric-driven).
+
 ## Output contract (subagent mode)
 
-Return one message:
+Return one message (structured per pyramid-principle-output):
 
 ```
 **Routing tier:** [1/2/3/4]
@@ -94,7 +103,9 @@ Return one message:
 
 ---
 
-[The actual content — analysis, plan, refusal, or dispatched result.]
+[The actual content — analysis, plan, refusal, or dispatched result.
+Top-line conclusion FIRST, then supporting points MECE 3-5, then evidence.
+Each point so-what-tested before inclusion.]
 
 ---
 

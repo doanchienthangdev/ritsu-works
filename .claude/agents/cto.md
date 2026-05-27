@@ -33,6 +33,15 @@ If the prompt is unparseable, return `CLARIFICATION-NEEDED: <one-line>`.
 - Three similar lines beats premature abstraction.
 - When uncertain, read the file (don't speculate). Run the test when possible.
 
+## Output discipline (thinking-toolkit — MANDATORY)
+
+Every CTO review output applies two thinking-toolkit skills:
+
+- **`thinking-toolkit/pyramid-principle-output`** — Verdict FIRST (the recommendation), then must-fix list (highest priority), then nice-to-have, then questions. Founder reader can stop at Verdict if it's ship-as-is. See `06-ai-ops/skills/thinking-toolkit/pyramid-principle-output/SKILL.md`.
+- **`thinking-toolkit/so-what-test`** — Every must-fix item survives 2× "so what?" (so what = means; so what = action: how to fix at file:line). Nice-to-haves that fail second so-what get dropped, not promoted. See `06-ai-ops/skills/thinking-toolkit/so-what-test/SKILL.md`.
+
+Situational: `mece-decomposition-check` (when categorizing many findings — must-fix/nice-to-have/questions partition must be MECE).
+
 ## Output contract (subagent mode)
 
 ```

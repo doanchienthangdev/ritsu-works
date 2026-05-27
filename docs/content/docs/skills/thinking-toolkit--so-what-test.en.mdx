@@ -1,0 +1,166 @@
+---
+title: 'Skill: thinking-toolkit/so-what-test'
+description: |
+  Use as a quality gate on every conclusion or top-line statement in
+  agent output. Ask "So what?" twice. First "so what?" surfaces meaning;
+  second "so what?" surfaces action. If the second has no answer, the
+  conclusion is trivia — drop or rework it before sending.
+
+  Trigger conditions: paired with pyramid-principle-output (mandatory
+  on every supporting point); morning brief assembly; cost reports;
+  KPI alerts; status updates; any line that begins with "MRR is X" or
+  "users grew by Y%" or similar metric-statement; final-stage check
+  before sending any C-suite persona output.
+
+  Skip when: pure factual lookups ("what is X's email?"); raw tool
+  output passed through without interpretation.
+
+  Cost: zero LLM (guidance document). Eliminates ~20-30% of noise
+  in agent outputs by forcing actionable framing.
+source_path: 06-ai-ops/skills/thinking-toolkit/so-what-test/SKILL.md
+source_hash: ef37c0c6289d22fb5e93bcfc2e8ec72d5919635a9867a81f903b3e0f6ebcf5d0
+generated_at: '2026-05-27T18:25:03.837Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Every conclusion must survive two "so what?" questions. First reveals meaning. Second reveals action. Fail either, drop it.
+
+The McKinsey "So What?" test is a forcing function against noise — observations that look insightful but don't tell the reader what to do. Born from McKinsey's recognition that smart-sounding analyses often hide a lack of recommendation. Used to filter every supporting point, every conclusion, every metric statement before it goes to the partner (or, here, the founder).
+
+## When to use
+
+**Mandatory:**
+- Every supporting point in a pyramid-principle-output structure
+- Every conclusion in an analysis (capability spec, options memo, retrospective)
+- Every metric statement in a report ("MRR is $X" — so what?)
+- Final-stage check on any C-suite persona output before sending
+
+**Recommended:**
+- Mid-draft, on every paragraph that doesn't yet have an action
+- During /cla phase 4 options-generator to filter weak options
+- Cost-report summaries — does each cost insight have a "so therefore..." action?
+
+## When NOT to use
+
+- Pure factual lookups where the fact IS the answer ("what's Stripe's API rate limit?" → the rate limit. No so-what.)
+- Raw tool output passed through without agent interpretation
+- Conversational acknowledgments
+- Exploratory brainstorm output where the goal is breadth, not depth
+
+**Anti-pattern: applying so-what to questions.** "What's our MRR?" is not a conclusion to test — it's a question. So-what tests answers, not questions.
+
+## How to apply
+
+### Step 1 — Pick the statement
+
+Pick the line you want to test. It must be a statement (assertion, observation, conclusion). Not a question. Not a fact-only sentence.
+
+Examples of testable statements:
+- "Conversion dropped 12% last week."
+- "Customer A has not logged in for 30 days."
+- "The cost-per-agent-run is trending up."
+- "Three competitors launched similar features this quarter."
+
+### Step 2 — First "So what?"
+
+Ask: **what does this mean?** What inference follows from the statement?
+
+- "Conversion dropped 12%" → so what? → **Means signup-to-paid funnel is leaking somewhere new this week.**
+- "Customer A hasn't logged in for 30 days" → so what? → **Means they're at high risk of churn (per retention curves).**
+- "Cost-per-agent-run is trending up" → so what? → **Means cost discipline is degrading; might miss monthly cap.**
+- "Three competitors launched similar features" → so what? → **Means our positioning differentiation is shrinking.**
+
+If you can't answer the first "so what?", the statement is decoration. Drop it.
+
+### Step 3 — Second "So what?"
+
+Ask: **what should I do about it?** What action follows from the meaning?
+
+- "Funnel leaking new this week" → so what? → **Investigate which step lost users; run funnel analysis on this week's signups vs last 4 weeks.**
+- "Customer A high churn risk" → so what? → **Trigger reactivation outreach today; if no response in 7 days, mark as churned.**
+- "Cost discipline degrading" → so what? → **Run cost-optimization-review skill; identify which cost-bucket is the culprit.**
+- "Differentiation shrinking" → so what? → **Re-read positioning.md; consider wedge-discovery sprint to find next moat.**
+
+If you can't answer the second "so what?", the meaning is interesting-but-trivial. Drop it OR rework until the action becomes clear.
+
+### Step 4 — Promote action to top line
+
+After both "so what?" pass, the ACTION should be in or adjacent to the top line — not buried below evidence.
+
+Bad: "MRR is $50K, growing 8% MoM, with churn at 5%. So we should consider raising prices."
+
+Good: "**Raise prices to capture growth headroom.** MRR is $50K growing 8% MoM with churn at only 5% — pricing is leaving money on the table."
+
+## Worked examples
+
+### Example 1 — GOOD (full so-what cycle)
+
+**Statement:** "Wedge.md is still v0.1 draft after 4 weeks."
+
+**First so-what?** → "Means the GTM pillar is building on unstable foundation; marketing/sales SOPs will inherit the vague positioning."
+
+**Second so-what?** → "Must either (a) run SOP-PRODUCT-002 N=10 strangers to harden wedge, OR (b) ship v1.0 provisional wedge with falsifiable claims this week. Cannot keep deferring."
+
+**Final output:**
+> **Action: Pick wedge.md path THIS week — either run SOP-PRODUCT-002 (2-4w timeline) or ship v1.0 provisional with 3 falsifiable claims.** Wedge has been v0.1 for 4 weeks; GTM pillar build cannot continue without a stable foundation.
+
+### Example 2 — ANTI-PATTERN (fails second so-what)
+
+**Statement:** "Most agent invocations cost \<$0.10."
+
+**First so-what?** → "Means cost discipline is healthy at the per-call level."
+
+**Second so-what?** → ... (silence) ... "I guess... we're doing well?"
+
+**Verdict:** Second so-what fails. There's no action. This is decoration. Drop the line, OR rework:
+
+**Reworked statement:** "Most invocations cost \<$0.10, but 3 specific skills (wiki-sync/distill, /evolve skillopt, capability-lifecycle/architect) account for 70% of monthly spend."
+
+**Reworked first so-what?** → "Means cost-optimization attention should focus on those 3 skills, not on across-the-board reductions."
+
+**Reworked second so-what?** → "Run cost-optimization-review with focus filter on those 3 skill_slugs; identify highest-ROI cuts."
+
+Now both pass. The original line was trivia; the reworked line drives action.
+
+### Example 3 — EDGE CASE (fact-only, correctly skipped)
+
+**Statement:** "Stripe webhook signing secret is rotated every 90 days."
+
+**First so-what?** → "It's a fact about our payment infra."
+**Second so-what?** → "We should... know this when debugging webhook issues?"
+
+**Verdict:** This is a reference fact, not a conclusion. So-what is the wrong test here. The right test is: does this fact have a home in our reference docs? Yes → it lives in knowledge/secrets-rotation.md, not in a recommendation memo. Move it out of the report.
+
+So-what test correctly identifies: this line doesn't belong in this output. The action isn't "do something about Stripe" — it's "this belongs in reference docs, not in this report."
+
+## Composition notes
+
+### With `pyramid-principle-output`
+**Mandatory pair.** After structuring output with pyramid, run so-what on each supporting point. Points that fail get dropped or reworked. Pyramid sets structure; so-what filters content.
+
+### With `mece-decomposition-check`
+After MECE-checking a decomposition, run so-what on each branch. A branch that passes MECE but fails so-what is well-categorized trivia — still drop it.
+
+### With `driver-tree-decomposition`
+For each driver in the tree, ask "so what?" twice. A driver that doesn't lead to an action isn't actually a driver — it's a label. Real drivers have intervention points.
+
+### Used standalone
+For mid-draft self-review. Read your own draft sentence-by-sentence, asking so-what on each statement. Anything that fails twice gets cut. Brutal but effective.
+
+## References
+
+- McKinsey internal training (1980s-present). The "So What?" test is McKinsey's most-cited output discipline tool.
+- Bain & BCG also use variants ("Now what?", "Therefore?"). Same forcing function, different surface.
+- Reframed in *The Pyramid Principle* (Minto, 1987) as the test for valid supporting points.
+
+## Anti-claims
+
+- This is NOT a content-quality test. A line can pass so-what and still be wrong on facts. Verify facts separately.
+- This is NOT a length test. Short statements pass or fail just like long ones.
+- This is NOT a stylistic check. It's a substance check — does this matter?
+- "Asking so-what twice" is the discipline; in practice, sometimes one "so what?" is enough for clearly-actionable statements. Two is the upper bound, not the floor.
+

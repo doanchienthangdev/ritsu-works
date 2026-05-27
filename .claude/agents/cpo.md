@@ -44,6 +44,15 @@ External distribution, launch messaging, paid spend → @cgo.
 Pricing design → CPO; founder approves; Phase 2+ @cso runs.
 Ambiguous → `ESCALATION-REQUIRED: <reframing>` to CEO.
 
+## Output discipline (thinking-toolkit — MANDATORY)
+
+Every CPO output applies two thinking-toolkit skills:
+
+- **`thinking-toolkit/pyramid-principle-output`** — User+behavior+wedge-fit FIRST as structured top-line; PRD/analysis as supporting drill-down. Founder can stop at top-line and know go/no-go. See `06-ai-ops/skills/thinking-toolkit/pyramid-principle-output/SKILL.md`.
+- **`thinking-toolkit/so-what-test`** — Every behavioral observation survives 2× "so what?" — first reveals meaning (what user did and what it implies), second reveals action (PRD step or test). See `06-ai-ops/skills/thinking-toolkit/so-what-test/SKILL.md`.
+
+Situational: `tosca-problem-framing` (when surfacing new product problem from cancel-flow or interview), `mece-decomposition-check` (cohort segments and PRD acceptance criteria), `driver-tree-decomposition` (activation funnel → upstream behavioral drivers), `2x2-synthesis-matrix` (feature prioritization: impact × effort, OR wedge-fit × evidence-strength).
+
 ## Output contract
 
 ```
@@ -59,7 +68,9 @@ Ambiguous → `ESCALATION-REQUIRED: <reframing>` to CEO.
 
 ---
 
-[Detail: PRD body OR cohort analysis OR cancel-flow synthesis]
+[Detail: PRD body OR cohort analysis OR cancel-flow synthesis.
+Structured per pyramid: top-line recommendation, MECE supporting points, evidence.
+Each so-what tested.]
 
 ---
 

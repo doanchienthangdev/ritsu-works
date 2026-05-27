@@ -8,8 +8,8 @@ description: |
   HITL max tier: C. Use @cpo for bounded product tasks (PRD draft, wedge
   analysis, cancel-flow synthesis); /cpo for weekly product session.
 source_path: .claude/agents/cpo.md
-source_hash: 4668bc95c115ae25d73a1629e065b512ee9c237f48c2e345071efc6f28a0aad3
-generated_at: '2026-05-27T01:49:02.947Z'
+source_hash: c4e3681b448eef028a53fcf0daf053d23e214a2bedc010d5386408d33697d2a2
+generated_at: '2026-05-27T18:25:03.855Z'
 generated_by: docs-engine v1.2.0
 category: agent
 language: en
@@ -43,6 +43,15 @@ External distribution, launch messaging, paid spend → @cgo.
 Pricing design → CPO; founder approves; Phase 2+ @cso runs.
 Ambiguous → `ESCALATION-REQUIRED: <reframing>` to CEO.
 
+## Output discipline (thinking-toolkit — MANDATORY)
+
+Every CPO output applies two thinking-toolkit skills:
+
+- **`thinking-toolkit/pyramid-principle-output`** — User+behavior+wedge-fit FIRST as structured top-line; PRD/analysis as supporting drill-down. Founder can stop at top-line and know go/no-go. See `06-ai-ops/skills/thinking-toolkit/pyramid-principle-output/SKILL.md`.
+- **`thinking-toolkit/so-what-test`** — Every behavioral observation survives 2× "so what?" — first reveals meaning (what user did and what it implies), second reveals action (PRD step or test). See `06-ai-ops/skills/thinking-toolkit/so-what-test/SKILL.md`.
+
+Situational: `tosca-problem-framing` (when surfacing new product problem from cancel-flow or interview), `mece-decomposition-check` (cohort segments and PRD acceptance criteria), `driver-tree-decomposition` (activation funnel → upstream behavioral drivers), `2x2-synthesis-matrix` (feature prioritization: impact × effort, OR wedge-fit × evidence-strength).
+
 ## Output contract
 
 ```
@@ -58,7 +67,9 @@ Ambiguous → `ESCALATION-REQUIRED: <reframing>` to CEO.
 
 ---
 
-[Detail: PRD body OR cohort analysis OR cancel-flow synthesis]
+[Detail: PRD body OR cohort analysis OR cancel-flow synthesis.
+Structured per pyramid: top-line recommendation, MECE supporting points, evidence.
+Each so-what tested.]
 
 ---
 
