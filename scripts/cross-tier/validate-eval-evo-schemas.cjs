@@ -26,6 +26,13 @@ const REPO_ROOT = path.resolve(__dirname, '../..');
 const EVAL_EVO_DIR = path.join(REPO_ROOT, '06-ai-ops/skills/eval-evo');
 
 const ENTITY_TYPES = ['skill', 'command', 'agent', 'hook', 'sop'];
+// Extended playbooks: not entity types per se, but additional rubric playbooks
+// that apply to a specific entity type with a different measurement axis.
+// Validated for schema conformance like ENTITY_TYPES playbooks but their
+// `cases/<type>/` directory is OPTIONAL (walkCases returns when missing).
+// v1.2 (2026-05-27 — capability `evolve` v1.1 Sprint 2): skill-skillopt added
+// for SkillOpt held-out task-completion rubric on skill-type entities.
+const EXTENDED_PLAYBOOK_TYPES = ['skill-skillopt'];
 
 const violations = [];
 
@@ -73,7 +80,7 @@ function parseFrontmatter(mdPath) {
   }
 }
 
-for (const type of ENTITY_TYPES) {
+for (const type of [...ENTITY_TYPES, ...EXTENDED_PLAYBOOK_TYPES]) {
   const pbPath = path.join(EVAL_EVO_DIR, `playbooks/${type}.md`);
   const fm = parseFrontmatter(pbPath);
   if (!fm) {

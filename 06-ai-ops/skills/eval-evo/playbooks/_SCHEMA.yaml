@@ -20,10 +20,15 @@ required:
 properties:
   playbook_for:
     type: string
-    enum: [skill, command, agent, hook, sop, pillar, workflow]
+    enum: [skill, command, agent, hook, sop, pillar, workflow, skill-skillopt]
     # v1.1 (2026-05-26 — capability `update` v1.1 Sprint 1): added pillar + workflow
     # for /update pillar and /update workflow (the latter stubbed until workflows/
     # folder ships per knowledge/manifest.yaml workflows.status: planned).
+    # v1.2 (2026-05-27 — capability `evolve` v1.1 Sprint 2): added skill-skillopt
+    # for the SkillOpt held-out task-completion rubric, complementary to skill.md
+    # (text-quality rubric). The playbook applies to skill-type entities but uses
+    # a DIFFERENT 10-criterion set tuned for held-out task-completion measurement
+    # rather than SKILL.md text quality. See spec §19.5/§19.7.
 
   judge_persona:
     type: string
