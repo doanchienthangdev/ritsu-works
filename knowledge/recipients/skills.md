@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 73
+**Total entries:** 75
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -698,6 +698,40 @@ in playbooks/sop.md. Invokes @cto persona as judge. SOPs are TIER C
 entities (process governance); /evolve on an SOP always opens a PR.
 
 **Invoke:** `Skill({ skill: "eval-evo/score-sop" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/eval-evo/skillopt-gen-data
+
+**Kind:** skill
+**When to use:** Phase B of /evolve skillopt. Generates synthetic (task, expected_behavior, rubric)
+tuples from a target SKILL.md by blending up to 5 grounding pillars:
+founder gold examples, ops.run_summaries silver-gold, wiki RAG silver,
+gbrain opt-in silver, and 00-core anchor context. Writes every produced
+task as a citation-spine row in ops.evolve_extractions with confidence
+rounded to {0.95 auto-accept, 0.85 pending-review, 0.6 pending-review}.
+Surfaces 5 randomly-sampled tasks to the founder for accept/reject/regen
+decision before bulk generation proceeds. Output dataset cached under
+runtime/skillopt/<entity>/data/v<ts>/.
+
+**Invoke:** `Skill({ skill: "eval-evo/skillopt-gen-data" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/eval-evo/skillopt-judge
+
+**Kind:** skill
+**When to use:** Per-task LLM-as-judge for /evolve skillopt. Given a (task, target_output) pair,
+scores the target's output against the task's rubric and returns a normalized
+pass-rate in [0, 1]. Invoked by the SkillOpt Python train.py via the file-queue
+backend (kind: "judge"), but ALSO directly invocable in isolation for testing.
+Stateless — no DB writes, no caching, no Task() fanout.
+
+**Invoke:** `Skill({ skill: "eval-evo/skillopt-judge" })`
 
 **Role scope:** *
 **Status:** active
