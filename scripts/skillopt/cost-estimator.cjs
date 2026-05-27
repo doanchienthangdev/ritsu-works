@@ -123,6 +123,10 @@ function resolveSkillPath(repoRoot, skillName) {
   const candidates = [
     path.join(repoRoot, '06-ai-ops', 'skills', skillName, 'SKILL.md'),
     path.join(repoRoot, '06-ai-ops', 'skills', 'eval-evo', skillName, 'SKILL.md'),
+    // Sprint 4 — test fixtures live in a committable path so CI can resolve
+    // them. .archives/ retains its local-only convention; fixtures moved
+    // here from the original spec'd `.archives/test-fixtures/` location.
+    path.join(repoRoot, '06-ai-ops', 'skills', 'eval-evo', 'test-fixtures', skillName, 'SKILL.md'),
     path.join(repoRoot, '.archives', 'test-fixtures', skillName, 'SKILL.md'),
   ];
   for (const c of candidates) {

@@ -210,6 +210,29 @@ schedules:
       Stub handler — wired into supabase/functions/_shared/worker.ts in Sprint 4
       follow-up PR. Active only post-CLAUDE.md-cutover Tier C ceremony.
 
+  # === Capability evolve v1.1 (SkillOpt integration) Sprint 4 ===
+  # Monthly Spearman correlation between held-out judge scores (synth signal)
+  # and post-install production correction-rate (prod signal). When < 0.5, the
+  # synth signal poorly predicts real-world success → playbook revision needed.
+  # Per spec §19.10.
+  - id: skillopt-synth-prod-correlation-monthly
+    cron: "0 9 1 * *"                 # 1st of month, 09:00 in Asia/Ho_Chi_Minh
+    description: "Monthly Spearman correlation between SkillOpt held-out scores and prod correction rates"
+    skill: skillopt-synth-prod-correlation     # registered as makeDeferredStubHandler in minion-worker/index.ts until Sprint 5 wires the Edge Function dispatch
+    handler: scripts/eval-evo/skillopt-synth-prod-correlation.cjs
+    enabled_when_mode: [hybrid, full_api]
+    fallback: log_only
+    cost_estimate: "$0 per run (read-only SQL + pure-JS Spearman computation)"
+    notes: |
+      Inserts to ops.kpi_snapshots(kpi_id='skillopt_synth_to_prod_correlation').
+      Emits insufficient_data envelope (value=null) when <5 entities in 30-day
+      window. Alert rules `skillopt-synth-to-prod-correlation` (critical < 0.3)
+      include non-null guard so insufficient-data months don't trip critical.
+      The cron dispatcher reads `handler:` when `skill:` is absent — the
+      handler is a CJS script invoked directly. Wiring through the dispatcher
+      is a Sprint 5 follow-up (first real /evolve skillopt run produces data
+      to validate against).
+
 # ============================================================================
 # Customization checklist
 # ============================================================================

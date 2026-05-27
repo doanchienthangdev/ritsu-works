@@ -374,7 +374,20 @@ capabilities:
       corrections) + Spearman rubric hold-out validation per playbook.
       Strategic position: quality engine for entities driving product/
       GTM/first-100-customers — NOT meta-work.
-    version: "1.0.0"            # Phase 8 promotion 2026-05-22
+
+      v1.1 NEW (2026-05-27, in-flight extend via ops.capability_runs
+      20595190-adff-40ba-bdc6-b67a60651f04): /evolve skillopt <skill>
+      subcommand adds SkillOpt held-out task-completion measurement
+      (out-of-band signal complementary to v1.0 judge-persona rubric).
+      Architecture A': vendor microsoft/SkillOpt as git submodule +
+      Ritsu file-queue backend (subscription billing, zero direct HTTP
+      from Python) + session bridge dispatching skillopt-target-rollout
+      / skillopt-optimizer-reflect subagents (both tools=[] for
+      prompt-injection defense). Sprint 1-3 shipped; v1.1 state →
+      'operating' on Sprint 5 Phase 8 promotion. Pillars 2 (run_summaries)
+      and 4 (gbrain) deferred to v1.2 pending ref_source_kind enum
+      extension. See spec §19.
+    version: "1.1.0"            # Sprint 4 — registry version bump (state stays 'operating' from v1.0; Sprint 5 advances v1.1 in capability_runs)
     state: operating             # transitioned 2026-05-22 via _HOLDOUT.yaml AI-proxy v1.0 cold-start (PR #81 fa17b94); founder spot-check pending
     state_since: 2026-05-22
     proposed_at: 2026-05-22
@@ -390,7 +403,10 @@ capabilities:
     estimated_founder_hours: 25
     actual_cost_setup_usd: 5.00   # /cla 8-phase ceremony ~$5 (Phases 0-8 single overnight session)
     actual_founder_hours: 4        # ~3h founder interactive (Phases 4-6 STOPs) + ~1h hold-out ratings (still pending)
-    target_kpis: [eval_evo_median_gain_to_judge_sigma_ratio]
+    target_kpis: [eval_evo_median_gain_to_judge_sigma_ratio,
+                  skillopt_runs_monthly,
+                  skillopt_synth_to_prod_correlation,
+                  skillopt_post_install_correction_rate_delta]   # v1.1 Sprint 4 — 3 new SkillOpt KPIs added
     target_value: 1.5            # day-30 efficacy gate: median gain ÷ judge σ must exceed 1.5
     selected_option: "Approach A (top-level /evolve parallel to /cla)"
     notes: |

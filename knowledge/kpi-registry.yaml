@@ -150,5 +150,44 @@ kpis:
     cadence: weekly
     source: "WITH terminal AS (SELECT outcome FROM ops.agent_runs WHERE agent_slug = 'update' AND state IN ('completed', 'failed') AND ended_at > now() - interval '30 days') SELECT count(*) FILTER (WHERE outcome = 'reverted_quality_regression')::float / NULLIF(count(*), 0) FROM terminal"
 
+  # === Capability evolve v1.1 (SkillOpt integration) Sprint 4 ===
+
+  - id: skillopt_runs_monthly
+    type: operational
+    description: "Monthly count of completed /evolve skillopt runs (any outcome — all_phases_done, founder_abort, judge_regressed, etc.). Tracks adoption + execution volume of the SkillOpt path. Informational metric — no automated alert (low-=-bad direction not modeled by the kpi-registry threshold convention which assumes higher-=-worse). Adoption check is a manual founder review of the dashboard."
+    owner_pillar: 06-ai-ops
+    owner_role: eval-evo-orchestrator
+    target: 5
+    # Intentionally NO threshold_warn / threshold_critical — adoption metric
+    # uses "low = bad" direction which the current kpi-registry threshold
+    # convention (low = good, alert when high) doesn't support. Founder
+    # reviews the dashboard tile manually. Alert wiring deferred until a
+    # `direction` field lands in the schema (separate Sprint).
+    cadence: monthly
+    source: "SELECT count(*) FROM ops.agent_runs WHERE agent_slug = 'evolve' AND state_payload->>'mode' = 'skillopt' AND state IN ('completed', 'failed') AND date_trunc('month', started_at) = date_trunc('month', now())"
+
+  - id: skillopt_synth_to_prod_correlation
+    type: operational
+    description: "Spearman correlation (rolling 30-day) between held-out judge composite scores from /evolve skillopt runs (synth signal) and post-install production correction-rate (prod signal). When < 0.5, the synth signal poorly predicts real-world success → playbook revision needed. Per spec §19.10."
+    owner_pillar: 06-ai-ops
+    owner_role: eval-evo-orchestrator
+    target: 0.5
+    threshold_warn: 0.5
+    threshold_critical: 0.3
+    cadence: monthly
+    source: "Computed by scripts/eval-evo/skillopt-synth-prod-correlation.cjs (cron skillopt-synth-prod-correlation-monthly). Inserted to ops.kpi_snapshots."
+    notes: "Insufficient-data months (n_entities < 5 in window) → value=null, not 0. Alert rule includes non-null guard."
+
+  - id: skillopt_post_install_correction_rate_delta
+    type: operational
+    description: "Ratio of post-install correction rate to pre-install baseline per skill (averaged across all skills with both a /evolve skillopt run AND ≥30 days of post-install production data). >2× means skillopt may be regressing entities. Per spec §19.10."
+    owner_pillar: 06-ai-ops
+    owner_role: eval-evo-orchestrator
+    target: 1.0
+    threshold_warn: 2.0
+    threshold_critical: 5.0
+    cadence: monthly
+    source: "Computed alongside skillopt_synth_to_prod_correlation by the same cron handler. Pre-install baseline = correction rate in the 30 days BEFORE the /evolve skillopt run's install commit; post-install = correction rate in the 30 days AFTER."
+
   # Business KPIs (customize per project)
   # {{ADD_BUSINESS_KPIS}}

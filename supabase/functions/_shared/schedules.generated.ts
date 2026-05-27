@@ -3,8 +3,8 @@
 //
 // Source version:  1.0.0
 // Source timezone: Asia/Ho_Chi_Minh
-// Schedule count:  15
-// Generated at:    2026-05-26T02:50:41.701Z
+// Schedule count:  16
+// Generated at:    2026-05-27T09:36:12.614Z
 
 import type { ScheduleEntry } from "./dispatcher.ts";
 
@@ -171,7 +171,21 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
     "fallback": "log_only",
     "cost_estimate": "$0 per run (no LLM call; MCP read-only + audit insert)",
     "notes": "Stub handler — wired into supabase/functions/_shared/worker.ts in Sprint 4\nfollow-up PR. Active only post-CLAUDE.md-cutover Tier C ceremony.\n"
+  },
+  "skillopt-synth-prod-correlation-monthly": {
+    "id": "skillopt-synth-prod-correlation-monthly",
+    "cron": "0 9 1 * *",
+    "description": "Monthly Spearman correlation between SkillOpt held-out scores and prod correction rates",
+    "skill": "skillopt-synth-prod-correlation",
+    "handler": "scripts/eval-evo/skillopt-synth-prod-correlation.cjs",
+    "enabled_when_mode": [
+      "hybrid",
+      "full_api"
+    ],
+    "fallback": "log_only",
+    "cost_estimate": "$0 per run (read-only SQL + pure-JS Spearman computation)",
+    "notes": "Inserts to ops.kpi_snapshots(kpi_id='skillopt_synth_to_prod_correlation').\nEmits insufficient_data envelope (value=null) when <5 entities in 30-day\nwindow. Alert rules `skillopt-synth-to-prod-correlation` (critical < 0.3)\ninclude non-null guard so insufficient-data months don't trip critical.\nThe cron dispatcher reads `handler:` when `skill:` is absent — the\nhandler is a CJS script invoked directly. Wiring through the dispatcher\nis a Sprint 5 follow-up (first real /evolve skillopt run produces data\nto validate against).\n"
   }
 };
 
-export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","crm-to-gbrain-mirror","data-retention-scan","docs-drift-nightly","etl-product-dau-hourly","evolve-day30-calibration","gbrain-consistency-nightly","gbrain-dream-cycle","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","resolver-v3-health-check","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;
+export const SCHEDULE_IDS: readonly string[] = ["consistency-sweep-nightly","crm-to-gbrain-mirror","data-retention-scan","docs-drift-nightly","etl-product-dau-hourly","evolve-day30-calibration","gbrain-consistency-nightly","gbrain-dream-cycle","ingestion-source-poll","minion-queue-cleanup","morning-brief-assembly","resolver-v3-health-check","skillopt-synth-prod-correlation-monthly","stale-decision-check","wiki-embeddings-backfill","wiki-review-queue-digest"] as const;

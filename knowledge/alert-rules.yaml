@@ -23,5 +23,30 @@ rules:
     severity: critical
     notify: [telegram_founder]
 
+  # === Capability evolve v1.1 (SkillOpt integration) Sprint 4 ===
+  # Conditions use simple `kpi.X <op> N` form (matches existing parser
+  # convention in this file). When the cron handler emits value=null
+  # (insufficient-data months, <5 entities in window), `kpi.X < N`
+  # evaluates to false in standard SQL three-valued logic — so insufficient-
+  # data months don't trip critical even without an explicit NULL guard.
+  # If the alert-router parser doesn't follow SQL NULL semantics, see the
+  # Sprint 5 follow-up TODO in scripts/eval-evo/skillopt-synth-prod-correlation.cjs.
+
+  - id: skillopt-synth-to-prod-correlation-critical
+    condition: kpi.skillopt_synth_to_prod_correlation < 0.3
+    severity: critical
+    notify: [telegram_founder]
+    # Rationale: held-out judge scores diverging from prod correction-rate
+    # signal indicates the judge prompt drifted, the playbook needs revision,
+    # or the pillar mix doesn't reflect real production traffic. Per spec §19.10.
+
+  - id: skillopt-post-install-correction-delta-warn
+    condition: kpi.skillopt_post_install_correction_rate_delta > 2.0
+    severity: warning
+    notify: [telegram_founder]
+    # Rationale: post-install correction rate exceeds 2× baseline → SkillOpt-
+    # evolved skills introducing more bugs than they fix. Warn at 2×; ROLES.md
+    # + spec §19.10 escalate to critical at 5×.
+
   # Business alerts (customize per project)
   # {{ADD_BUSINESS_ALERTS}}
