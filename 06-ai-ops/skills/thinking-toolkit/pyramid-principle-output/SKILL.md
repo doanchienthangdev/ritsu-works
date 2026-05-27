@@ -25,9 +25,33 @@ disable-model-invocation: false
 
 > Reader can stop at any level and still act. Top-line FIRST. Then supporting points. Then evidence.
 
-This skill is the **output discipline** every C-suite persona and any non-trivial agent response should apply. Originated at McKinsey by Barbara Minto (1960s, *The Minto Pyramid Principle*, 1987). The single most-cited communication framework in consulting.
+This skill is the **output discipline** every C-suite persona and any non-trivial agent response should apply. Created by **Barbara Minto** while at McKinsey in the 1960s and codified in *The Minto Pyramid Principle* (1987). It is the single most-cited communication framework in management consulting.
 
 The founder is busy. The founder reads many agent outputs daily. The founder needs to act fast. Burying the conclusion forces the founder to read everything to find what to do. Leading with the conclusion lets the founder act on Line 1 and drill down only when needed.
+
+## Authentic sources
+
+This skill is anchored in two McKinsey-derived textbooks (both in `raw/mckinsey/`):
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (Palgrave Macmillan, 2018) — **Chapter 10: "Sell the Solution: Core Message and Storyline"** (pp. 197-220). The most accessible modern treatment of Minto's framework. Explicit pyramid diagram (Fig 10.1, p. 201): **Core Message → Key Line (Why? / How?) → Support**. The Mustang Airlines memo case study (pp. 198-203) demonstrates before-and-after pyramid revision. Introduces **Grouping vs Argument storyline patterns** (Fig 10.3, p. 217) — Grouping when audience receptive; SCR/SCQA-style Argument when audience skeptical. Direct attribution: *"Barbara Minto is a former McKinsey consultant and the creator of the 'pyramid principle.'"* (p. 200)
+
+- **Conn & McLean, *Bulletproof Problem Solving*** (Wiley, 2018) — **Chapter 7: "Synthesize Results and Tell a Great Story"** (pp. 179-194). Treats the pyramid as the natural shape of a synthesized story arc.
+
+## Core principle (Cracked it! Ch 10)
+
+> *"People can better understand and remember a set of ideas if they can mentally organize these ideas around a coherent pattern or logical structure... For business recommendations, Minto argues that the most efficient communication structure is a top-down pyramid that starts with communicating the core message—the 'governing thought'—head-on, and then turns to a 'key line' of arguments that support it."* — Garrette, Phelps, Sibony (Cracked it!, pp. 200-201)
+
+**The "Mustang Airlines" before/after** (Cracked it! pp. 198, 203) is the canonical bad-vs-good illustration. The bad memo buries its recommendation in the second-to-last paragraph after paragraphs of equivocal "on one hand / on the other hand" reasoning. The good rewrite leads with: *"As you requested, I reviewed the plan to buy five new Airbus A320neo airliners... I recommend that Mustang pass on this project and pursue instead its current policy of buying Boeing 737s one at a time."* — answer first, support second.
+
+## Grouping vs Argument — two storyline patterns (Cracked it! pp. 213-218)
+
+After identifying the Core Message + Key Line, choose how to ARRANGE the key-line points:
+
+- **Grouping**: points in the key line are independent supporting reasons, each one collectively justifying the Core Message. Best for: simple messages, "easy-to-sell" recommendations with receptive audiences. Pros: easy to follow + remember; audience doesn't need to agree with every point. Cons: too blunt for skeptical audiences.
+
+- **Argument** (SCR = Situation-Complication-Resolution, also called SCQA): linear chain of reasoning. *Situation* → *Complication* → (*Question*) → *Resolution*. Each step logically connects to the next. Best for: complex messages, skeptical audiences. Pros: appears more elegant/tactful; makes solution seem logical even when superiority can't be demonstrated. Cons: harder to follow; audience must agree at each step.
+
+**The two patterns are not exclusive.** A grouping at top can have arguments inside each pillar, and vice versa. Choose deliberately based on audience receptivity.
 
 ## When to use
 
@@ -185,9 +209,14 @@ For metric-driven recommendations. Top line states the metric outcome ("MRR proj
 
 ## References
 
-- Minto, Barbara. *The Pyramid Principle: Logic in Writing and Thinking* (1987, 3rd ed. 2009). The canonical source.
+Primary (in `raw/mckinsey/`):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 10** (pp. 197-220). Fig 10.1 (p. 201) the pyramid principle diagram. Fig 10.2 (p. 207) storyline on Librinova case. Fig 10.3 (p. 217) Grouping vs Argument patterns. Mustang Airlines memo case (pp. 198, 203). Summit Water case introduces SCR/argument pattern (pp. 210-215).
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 7: "Synthesize Results and Tell a Great Story"** (pp. 179-194).
+
+Supporting:
+- **Minto, Barbara. *The Pyramid Principle: Logic in Writing and Thinking* (1987, 3rd ed. 2009).** The canonical original source.
+- Heath, C. & Heath, D. (2007). *Made to Stick: Why Some Ideas Survive and Others Die.* Random House — referenced in Cracked it! Ch 3 (note 11).
 - McKinsey internal communication training (1960s-present). Pyramid Principle is the McKinsey output standard for client-facing documents.
-- HBR — "Pyramid Principle" (2017 reprint of Minto's core argument).
 
 ## Anti-claims (what this skill explicitly does NOT claim)
 

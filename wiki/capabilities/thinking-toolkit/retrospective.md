@@ -1,4 +1,8 @@
-# Retrospective: capability `thinking-toolkit` v1.0
+# Retrospective: capability `thinking-toolkit` v1.0 (+ v1.1 authentic refs)
+
+> **v1.1 update 2026-05-28**: Founder provided 2 McKinsey-derived textbooks in `raw/mckinsey/` (Cracked it! by Garrette/Phelps/Sibony 2018; Bulletproof Problem Solving by Conn/McLean 2018). All 6 SKILL.md files refreshed with "Authentic sources" sections + specific page citations + canonical reference updates. Quality bar lifted: every authoritative claim now traceable to specific book + page. Founder's framing: *"Tôi muốn các skills sẽ thật tốt, tham khảo những tài liệu authentic."* The 4S method (State/Structure/Solve/Sell) from Cracked it! emerged as the textbook spine that maps cleanly to all 6 skills.
+
+---
 
 **Capability ID:** thinking-toolkit
 **Capability run ID:** TBD (insert at Phase 8 finalize)

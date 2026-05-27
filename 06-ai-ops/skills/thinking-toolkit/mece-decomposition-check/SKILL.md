@@ -27,9 +27,29 @@ disable-model-invocation: false
 
 > Lists fail in two ways: items overlap, or cases are missing. Test both before sending.
 
-MECE — **M**utually **E**xclusive, **C**ollectively **E**xhaustive — is McKinsey's mandatory check on any decomposition. The premise: if you split a problem into pieces, the pieces should (a) not overlap (mutual exclusion) and (b) cover the whole problem (collective exhaustion). Failing either creates double-counting or blind spots.
+MECE — **M**utually **E**xclusive, **C**ollectively **E**xhaustive (pronounced "mee-see") — is McKinsey's mandatory check on any decomposition. The premise: if you split a problem into pieces, the pieces should (a) not overlap (mutual exclusion) and (b) cover the whole problem (collective exhaustion). Failing either creates double-counting or blind spots.
 
 Most business lists fail this check. "Our customer segments are: students, professionals, and people who want to learn." → Professionals can be students. Students who want to learn — overlap with "people who want to learn". This list is not MECE.
+
+## Authentic sources
+
+This skill is anchored in two McKinsey-derived textbooks (both in `raw/mckinsey/`):
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (2018) — **Chapter 5: "Structure the Problem: Pyramids and Trees"** (pp. 69-92). Section "**The Rule of MECE**" (pp. 75-78) is the authoritative working definition. Both hypothesis pyramids and issue trees REQUIRE MECE at every level. Section "**The Cartesian Rules: MECE Strikes Again**" (pp. 84-85) traces MECE's intellectual heritage to **René Descartes' *Discourse on the Method*** (1637): *(1) Accept nothing as true without questioning. (2) Divide each issue into parts until each elementary part is searchable. (3) Conduct analyses from simplest to complex. (4) Make sure nothing is omitted.* Rules 2 and 4 are MECE in 17th-century French.
+
+- **Conn & McLean, *Bulletproof Problem Solving*** (2018) — **Chapter 3: "Problem Disaggregation and Prioritization"** (pp. 49-86). Logic-tree types (Exhibit 3.2, p. 52) all share the MECE requirement. *"Better trees have a clearer and more complete logic of relationships linking the parts to each other, are more comprehensive, and have no overlaps—but we'll get to all that."* (p. 51)
+
+## Core principle (Cracked it! Ch 5)
+
+> *"MECE is a fundamental notion and a pillar of good problem solving and solution selling... A MECE list is like a solved jigsaw puzzle: the pieces fit with no overlap, and their combination covers the whole picture."* — Garrette, Phelps, Sibony (Cracked it!, p. 76)
+
+Operational tests (Cracked it! pp. 75-77):
+
+- **Collectively exhaustive test**: ask whether an "**others**" category would be EMPTY. If categorizing car bodies as `{sedan, station wagon, convertible, coupe, minivan}`, would `{others}` be empty? If not, the list isn't collectively exhaustive — add the missing categories OR add explicit "Other (X% of cases)" bucket.
+
+- **Mutually exclusive test**: can any single instance belong to two categories simultaneously? *"If the car body categories are mutually exclusive, then a car cannot be assigned to more than one category."* Apply pair-by-pair check.
+
+- **Argue-against test** (Cracked it! p. 76): assume your list is complete, then try to argue AGAINST the leading hypothesis. What objections can you find? Genuine objections point to missing cases.
 
 ## When to use
 
@@ -194,7 +214,13 @@ At each level of the driver tree, siblings must be MECE. "MRR drivers = users ×
 
 ## References
 
-- Minto, Barbara. *The Pyramid Principle* (1987) — first published codification.
+Primary (in `raw/mckinsey/`):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 5: "Structure the Problem: Pyramids and Trees"** (pp. 69-92). "The Rule of MECE" (pp. 75-78). "The Cartesian Rules: MECE Strikes Again" (pp. 84-85). Fig 5.3 (p. 77) hypothesis pyramid for Librinova case. Fig 5.4 (p. 85) issue tree structure.
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 3: "Problem Disaggregation and Prioritization"** (pp. 49-86). Exhibit 3.2 (p. 52) Types of Logic Trees.
+
+Supporting:
+- **Descartes, R. (1637). *Discourse on the Method*.** Original source of the 4 rules (Cartesian rules) underlying MECE.
+- **Minto, Barbara. *The Pyramid Principle* (1987)** — first business codification.
 - McKinsey internal training (1960s-present). MECE is taught alongside Pyramid in the first week of consultant onboarding.
 - Ethan Rasiel, *The McKinsey Way* (1999) — popular-press treatment.
 

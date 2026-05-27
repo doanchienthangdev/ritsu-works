@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 82
+**Total entries:** 84
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -931,6 +931,58 @@ are complete via this skill.
 Cost: 1-3 SQL queries, ~200-500 tokens output. Wall-clock ~100ms.
 
 **Invoke:** `Skill({ skill: "task-status" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/2x2-synthesis-matrix
+
+**Kind:** skill
+**When to use:** Use when you have 4+ options, items, or candidates and need to synthesize
+them into a decision. Pick 2 orthogonal axes (the most discriminating
+dimensions), classify each item into one of 4 quadrants, then read the
+quadrant pattern to surface insight that flat lists hide.
+
+Trigger conditions: /cla options-generator with 4+ candidates; product
+feature prioritization (impact × effort); channel attribution (volume ×
+cost); customer segments (value × risk); skill candidates (frequency × cost);
+competitive positioning.
+
+Skip when: 2-3 options (compare directly); single-dimensional ordering
+(rank, sort); axes are not orthogonal (correlated dimensions).
+
+Cost: zero LLM. Forces ~5-10 min synthesis that reveals quadrant
+insights typically missed in flat lists.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/2x2-synthesis-matrix" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/driver-tree-decomposition
+
+**Kind:** skill
+**When to use:** Use to decompose any target metric (KPI, business outcome, cost driver)
+into a tree of upstream actionable drivers. Each leaf is a driver you
+can directly influence; each internal node is a composition of children.
+Reveals "where is the actual lever?" for any metric drift, growth goal,
+or cost optimization.
+
+Trigger conditions: 10-metrics pillar (KPI registry decomposition);
+/cgo funnel analysis; cost-optimization-review weekly skill; root-cause
+analysis on KPI drift; growth target planning ("how do we get to X
+MRR?"); /update phase analyzing entity-level drivers of skill quality.
+
+Skip when: single-driver metrics (count of X = directly observable);
+qualitative outcomes without measurable upstream factors; metrics whose
+drivers are opaque (3rd-party platform metrics).
+
+Cost: zero LLM (rules + arithmetic). ~10-15 min per metric. Catches
+intervention points typically missed when staring at the top-line KPI.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/driver-tree-decomposition" })`
 
 **Role scope:** *
 **Status:** active

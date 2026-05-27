@@ -54,16 +54,29 @@ Not every workflow uses every skill. Compose as needed.
 
 The 4 C-suite personas (`@ceo`, `@cto`, `@cgo`, `@cpo`) reference `pyramid-principle-output` + `so-what-test` as MANDATORY in their output contract. The other 4 skills are invoked situationally.
 
-## Origin
+## Origin (authentic sources)
 
-Extracted from:
-- Barbara Minto, *The Pyramid Principle* (1987) — pyramid + so-what + MECE
-- McKinsey internal training — TOSCA, driver-tree
-- BCG Growth-Share matrix (1970) — 2x2 synthesis
+Distilled from two McKinsey-derived primary textbooks (both in `raw/mckinsey/`):
+
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it! How to solve big problems and sell solutions like top strategy consultants*.** Palgrave Macmillan. The 4S method (State / Structure / Solve / Sell) is the textbook spine. Chapter map:
+  - Ch 4 (pp. 53-67) → `tosca-problem-framing`
+  - Ch 5 (pp. 69-92) → `mece-decomposition-check` + `driver-tree-decomposition`
+  - Ch 6 (pp. 95-115) → `2x2-synthesis-matrix`
+  - Ch 10 (pp. 197-220) → `pyramid-principle-output` + `so-what-test`
+
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving: The One Skill That Changes Everything*.** Wiley. McKinsey alumni Charles Conn (Rhodes Trust) + Rob McLean (McKinsey Director Emeritus). Chapter map:
+  - Ch 2 (pp. 31-47) → `tosca-problem-framing` (Pacific Salmon case)
+  - Ch 3 (pp. 49-86) → `driver-tree-decomposition` (5 logic-tree types) + `mece-decomposition-check`
+  - Ch 7 (pp. 179-194) → `pyramid-principle-output` + `so-what-test`
+
+Plus canonical originals:
+- **Minto, Barbara. *The Pyramid Principle* (1987)** — pyramid + so-what + MECE roots.
+- **Descartes, René (1637). *Discourse on the Method*** — 4 rules underlying MECE (Cracked it! Ch 5 traces explicitly).
+- **BCG Growth-Share matrix (1970)** — 2x2 synthesis pattern.
 
 Filtered for ritsu-works fit (B2C self-serve EdTech, PLG, 1-founder):
-- ✅ Kept: high-leverage daily-use skills
-- ❌ Rejected: Issue Tree (overlap with /muse + MECE), Ghost Deck (corporate-only), 5 Whys (overlap with /muse:socrates), 80/20 (overlap with /muse:paul-graham), 7S (1-person org N/A), PEST/Porter (overlap with /muse:kotler)
+- ✅ Kept: 6 high-leverage daily-use skills
+- ❌ Rejected: Issue Tree (Cracked it! Ch 5 treats as twin to hypothesis pyramid — we picked the higher-leverage one), Ghost Deck (corporate-only), 5 Whys (Cracked it! p. 58 explicitly rejects: *"asking why isn't always specific enough"*), 80/20 Pareto (overlap with /muse:paul-graham), 7S (1-person org N/A), PEST/Porter (overlap with /muse:kotler)
 
 ## Capability lifecycle
 

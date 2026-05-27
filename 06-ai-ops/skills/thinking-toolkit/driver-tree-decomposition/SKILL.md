@@ -30,6 +30,30 @@ The driver tree (also called value tree, KPI tree, or formula tree) is McKinsey'
 
 Ritsu-works needs this discipline because the KPI registry has 80+ KPIs but driver chains are implicit. When a KPI drifts, there's no formal trace from the symptom (top-line) to the cause (actionable upstream driver). Driver tree fixes that.
 
+## Authentic sources
+
+This skill is anchored in two McKinsey-derived textbooks (both in `raw/mckinsey/`):
+
+- **Conn & McLean, *Bulletproof Problem Solving*** (Wiley, 2018) — **Chapter 3: "Problem Disaggregation and Prioritization"** (pp. 49-86). The most thorough working treatment. Introduces **5 types of logic trees** in Exhibit 3.2 (p. 52) — each suited to a different stage of problem understanding. The Pacific Salmon case (Exhibit 3.3, p. 54) shows a first-cut "factor/lever/component" tree before insights crystalize.
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (Palgrave Macmillan, 2018) — **Chapter 6: "Structure the Problem: Analytical Frameworks"** (pp. 95-115). Defines **Value Drivers** as one of three industry framework types. Also Ch 5 hypothesis pyramids (which ARE driver trees expressed as hypotheses).
+
+## 5 types of logic trees (Bulletproof, Exhibit 3.2)
+
+Pick the tree shape that matches what you currently know about the problem:
+
+| Tree type | Shape | When to use |
+|---|---|---|
+| **Factor / Lever / Component** | Problem → Lever 1, Lever 2, Lever 3 → sub-levers | Early. You don't yet know the underlying structure or can't form a hypothesis. |
+| **Inductive logic tree** | Components → Problem Statement (specific → general) | Early. You know "end points" but not relationships between parts. |
+| **Deductive logic tree** | Problem → Relationship → Factors A + B − C (general → specific) | When you have a clear coherent structure (e.g., "ROIC = NOPLAT / Invested Capital"). |
+| **Hypothesis tree** | Problem → Hypothesis 1 OR Hypothesis 2 OR Hypothesis 3 → sub-facts | When you know enough to make clear hypotheses to test with data. |
+| **Decision tree** | Problem if Q1 yes/no → if Q2 yes/no → outcome | When you have a fair amount of problem structure + cascading if-then junctures. |
+
+**Critical movement principle (Bulletproof p. 53):** *"The only rule here is to move when you can from trees with general problem elements to trees that state clear hypotheses to test; vague labels do not drive analysis or action—which is the whole point."*
+
+In Ritsu-works, the **driver tree for a KPI is typically a Deductive tree** (MRR = users × ARPPU is mathematical) at the top + **Factor tree branches** below (signups = SEO + paid + referral). When a KPI drifts, you switch to **Hypothesis tree** to test why ("hypothesis: drift caused by signup-channel-X regression").
+
 ## When to use
 
 **Mandatory:**
@@ -270,6 +294,11 @@ TOSCA defines the gap (Trouble) and the measurable goal (Success criteria). Driv
 
 ## References
 
+Primary (in `raw/mckinsey/`):
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 3** (pp. 49-86). Exhibit 3.2 (p. 52) the 5 types of logic trees. Exhibit 3.3 (p. 54) Pacific Salmon component tree. *"The magic comes in seeing which type of logic tree makes an elegant solution more obvious."* (p. 50)
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 6** (pp. 95-115) "Industry Frameworks: Value Drivers" + Ch 5 hypothesis pyramids.
+
+Supporting:
 - McKinsey Value Driver Tree — standard tool in strategy practice since 1990s.
 - *Valuation* (Koller/Goedhart/Wessels, McKinsey, 2020) — driver trees for financial metrics.
 - *The Lean Startup* (Ries, 2011) — funnel decomposition variant (AARRR).

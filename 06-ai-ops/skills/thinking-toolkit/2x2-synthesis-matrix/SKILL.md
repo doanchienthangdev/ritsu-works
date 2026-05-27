@@ -28,6 +28,20 @@ The 2x2 matrix is the synthesis tool when flat lists fail. Born from BCG (Growth
 
 For 4+ items, a 2x2 reveals patterns (cluster in one quadrant? empty diagonal?) that a sorted list buries.
 
+## Authentic sources
+
+The 2x2 matrix is a foundational strategy tool but is treated less prominently in the two McKinsey-derived textbooks than TOSCA/MECE/Pyramid — it appears as ONE of many "analytical frameworks" rather than getting its own chapter. Relevant content:
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (2018) — **Chapter 6: "Structure the Problem: Analytical Frameworks"** (pp. 95-115). Discusses **frameworks as mental models** with both the power to clarify and the danger to constrain. The chapter explicitly warns: *"The Danger of Frameworks: Frameworks as Mental Models"* (p. 99) — frameworks are tools, not truth. A 2x2 axis choice is a framework choice.
+
+- **Conn & McLean, *Bulletproof Problem Solving*** (2018) — **Chapter 5: "Conduct Analyses"** (pp. 111-134) treats simple structures (including 2x2 grids) as early heuristic disaggregations. **Chapter 6: "Big Guns of Analysis"** (pp. 135+) for when 2x2 isn't enough.
+
+- **BCG (1970). Growth-Share Matrix** (cash cow / star / question mark / dog) — the original 2x2 in business strategy. Henderson, Bruce. *Perspectives* essays.
+
+- **McKinsey (1970s). GE/McKinsey Matrix** — 3x3 industry attractiveness × competitive position.
+
+The two textbooks' position on 2x2 is consistent: it's a useful pattern-revealing tool but is **one mental model among many** — you must choose the axes that actually discriminate the cases you have. Without good axis selection, the 2x2 collapses to a diagonal and reveals nothing.
+
 ## When to use
 
 **Mandatory:**
@@ -201,9 +215,14 @@ After identifying the recommended quadrant, run so-what on it. "Q I items should
 
 ## References
 
-- BCG Growth-Share matrix (1970) — the original 2x2 in business strategy.
+Primary (in `raw/mckinsey/`):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 6: "Structure the Problem: Analytical Frameworks"** (pp. 95-115). Frameworks-as-mental-models cautionary discussion (p. 99).
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 5** (pp. 111-134) simple structures + **Chapter 6 "Big Guns of Analysis"** (pp. 135+).
+
+Supporting:
+- **Henderson, Bruce (1970). BCG Growth-Share matrix** — the original 2x2 in business strategy.
 - Bain "Strategic Position" matrix (1980s).
-- McKinsey GE/McKinsey matrix (1970s, 3x3 version).
+- **McKinsey (1970s). GE/McKinsey matrix** — 3x3 industry attractiveness × competitive position.
 - *The Boston Consulting Group on Strategy* (Stern/Stalk, 2006) — collected 2x2 case studies.
 
 ## Anti-claims

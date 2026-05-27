@@ -27,6 +27,21 @@ disable-model-invocation: false
 
 The McKinsey "So What?" test is a forcing function against noise — observations that look insightful but don't tell the reader what to do. Born from McKinsey's recognition that smart-sounding analyses often hide a lack of recommendation. Used to filter every supporting point, every conclusion, every metric statement before it goes to the partner (or, here, the founder).
 
+## Authentic sources
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (2018) — **Chapter 10**, particularly the **Summit Water case** (pp. 210-213). A team has just collected 10 findings about a portable-toilet sanitation deal but can't yet write a recommendation. Lead author transcribes the team's actual dialogue:
+  > *"So what do we do? It sounds like we're heading for a wishy-washy recommendation. 'Go for it—you'll look nice' but, 'not too much—you don't want to waste credibility and money.' That's not very useful. We have to deliver a compelling, action-oriented message!"*
+  > *"What if Summit gave up on the idea?"*
+  > *"Well, nothing serious would happen…"*
+  > **"So what? Should we go for it? If we do, how should Summit Water implement this deal?"**
+  > *"Correct. But now that you mention it… based on findings two and seven, the economic incentive for Summit would be to grow the septic-tank service as quickly as possible…"*
+  > **"So what?"**
+  > *"Uh, well, provided we get the green light from authorities on the billing system, we could launch the portable toilet service on a small scale, in a specific community for example…"*
+
+  That dialogue IS the so-what cycle. Iterated until the team produced a synthesizable Core Message. Direct quote (p. 213): *"summarizing isn't enough. You must synthesize findings and overcome contradictions by constantly asking the 'So what?' question."*
+
+- **Conn & McLean, *Bulletproof Problem Solving*** (2018) — **Chapter 7** (pp. 179-194). Treats "So what?" as the bridge from analytical findings to recommendation. Without it, you have a research report, not a recommendation.
+
 ## When to use
 
 **Mandatory:**
@@ -149,9 +164,14 @@ For mid-draft self-review. Read your own draft sentence-by-sentence, asking so-w
 
 ## References
 
+Primary (in `raw/mckinsey/`):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 10** (pp. 197-220). Summit Water "So what?" dialogue (pp. 210-213). Direct quote (p. 213): *"You must synthesize findings and overcome contradictions by constantly asking the 'So what?' question."*
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 7** (pp. 179-194).
+
+Supporting:
 - McKinsey internal training (1980s-present). The "So What?" test is McKinsey's most-cited output discipline tool.
 - Bain & BCG also use variants ("Now what?", "Therefore?"). Same forcing function, different surface.
-- Reframed in *The Pyramid Principle* (Minto, 1987) as the test for valid supporting points.
+- Reframed in **Minto, B. (1987). *The Pyramid Principle*** as the test for valid supporting points.
 
 ## Anti-claims
 

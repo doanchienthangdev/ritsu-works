@@ -170,10 +170,25 @@ To be inserted to `ops.decisions` at Phase 8 promotion (post-merge).
 
 ## 12. References
 
-- Minto, Barbara. *The Pyramid Principle: Logic in Writing and Thinking* (1987)
-- McKinsey internal training: TOSCA + driver-tree + So-What forcing function
-- BCG Growth-Share matrix (1970) — 2x2 synthesis pattern
-- *Cracked it!* (Garrette/Phelps/Sibony, 2018) — McKinsey-derived problem-solving textbook
+Primary (in `raw/mckinsey/`, ingested in v1.1 distill 2026-05-28):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it! How to solve big problems and sell solutions like top strategy consultants*.** Palgrave Macmillan. ISBN 978-3-319-89374-7. The McKinsey 4S method (State/Structure/Solve/Sell). Co-author Olivier Sibony — 25 years at McKinsey. Chapter map per skill:
+  - Ch 4 (pp. 53-67) → tosca-problem-framing
+  - Ch 5 (pp. 69-92) → mece-decomposition-check + driver-tree-decomposition
+  - Ch 6 (pp. 95-115) → 2x2-synthesis-matrix
+  - Ch 10 (pp. 197-220) → pyramid-principle-output + so-what-test
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving: The One Skill That Changes Everything*.** Wiley. ISBN 9781119553021. McKinsey alumni Charles Conn (Rhodes Trust) + Rob McLean (McKinsey Director Emeritus). 7-step method. Chapter map per skill:
+  - Ch 2 (pp. 31-47) → tosca-problem-framing
+  - Ch 3 (pp. 49-86) → driver-tree-decomposition + mece-decomposition-check
+  - Ch 7 (pp. 179-194) → pyramid-principle-output + so-what-test
+
+Canonical originals:
+- **Minto, Barbara. *The Pyramid Principle: Logic in Writing and Thinking* (1987, 3rd ed. 2009).** McKinsey alumna who codified the framework.
+- **Descartes, René (1637). *Discourse on the Method***. 4 rules underlying MECE (Cracked it! Ch 5 traces).
+- **BCG Growth-Share matrix (1970)** — 2x2 synthesis pattern.
+
+Supporting:
+- McKinsey internal training: TOSCA + driver-tree + So-What forcing function (1960s-present).
+- Rasiel, Ethan. *The McKinsey Way* (1999) — popular-press treatment.
 
 ## 13. Anti-claims (what this capability explicitly does NOT claim)
 
