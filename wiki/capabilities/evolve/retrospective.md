@@ -195,3 +195,136 @@ the conceptual scaffolding (one metric, fixed budget, keep-or-discard).
 Outside-voice via codex CLI (OpenAI gpt-5) caught the two highest-leverage
 issues (worktree fiction; unfalsifiable success). Cross-model adversarial
 review is the single best investment in self-improvement infrastructure.
+
+---
+
+# v1.1 retrospective — SkillOpt integration (Sprint 1-5)
+
+**Promoted to operating:** 2026-05-27 via Sprint 5 Phase 8 (this PR).
+**Capability run:** ops.capability_runs[20595190-adff-40ba-bdc6-b67a60651f04]
+(supersedes 9c456d98 v1.0.0).
+**Tier C decision:** ops.decisions[748044a7-d213-475f-be63-323549cb94e9].
+
+## What we built
+
+`/evolve skillopt <skill>` — an OUT-OF-BAND task-completion measurement path
+complementary to v1.0's in-session judge-persona rubric. Architecture A':
+vendor microsoft/SkillOpt as git submodule + Ritsu file-queue backend
+(subscription billing, zero direct HTTP from Python) + session bridge
+dispatching `skillopt-target-rollout` / `skillopt-optimizer-reflect`
+subagents (both `tools: []` for prompt-injection defense).
+
+Shipped across 6 PRs over Sprints 1-5:
+
+| PR | Sprint | Commit | Scope |
+|---|---|---|---|
+| #128 | 1A | `294f6b0` | vendor + Python backend + L1 SHA validator + install-vendor.sh |
+| #129 | 1B | `a19ffe0` | 2 SkillOpt agents + hook unit dispatch + ROLES.md migration |
+| #130 | 1C | `f6126bb` | queue protocol + session bridge + postinstall + L1 unit validator |
+| #131 | 2 | `70f4f46` | gen-data + judge skills + skill-skillopt playbook + helper scripts |
+| #132 | 3 | `ca62f58` | skillopt-runner orchestrator + /evolve skillopt cmd + SOP + R18 |
+| #133 | 4 | `3939b86` | fixture + L1 staleness + correlation cron + 3 KPIs + 2 alerts + runbook |
+| (this) | 5 | TBD | Phase 8 promotion: spec → wiki, retrospective, capability_runs state |
+
+**Aggregate:** ~62 files, ~+4,500 LOC. Tier C ceremony fired once at Sprint 1
+sub-PR A; remaining sprints were Tier B (pre-approved at Phase 5).
+
+## What went well
+
+1. **Architecture A' was the right answer (4 brainstorm revisions paid off).**
+   Subscription-billed via session bridge means zero per-call API costs.
+   Founder hit the constraint hard ("no API key") and the synthesis landed
+   in revision 4 (file 09) after a sequence that surfaced and discarded
+   3 simpler-looking-but-wrong options. The session-message-count caps
+   (`{unit: messages}` tagged form in ROLES.md) are the right abstraction
+   for measuring this cost.
+
+2. **Sub-PR chunking of Sprint 1 (A/B/C).** Splitting the ~13-15h Tier C
+   sprint into three smaller PRs with natural seams kept review surface
+   manageable. @cto caught real bugs in each pass (3 MUST-FIX across the
+   3 sub-PRs); each was fixed in-PR before merge.
+
+3. **Patch-on-install vs vendor-mirror.** Per Sprint 1 sub-PR A's @cto
+   review, we discovered the spec's "ONLY ADDITION inside submodule" claim
+   was structurally impossible (git submodules don't allow parent-repo
+   tracking of files inside). Patch-on-install (backend + router.patch in
+   our repo; install-vendor.sh applies them) avoided a founder-action
+   prereq while preserving the architectural intent.
+
+4. **Folding @cto SHOULD-FIX items in subsequent sprints.** Sub-PR B
+   absorbed sub-PR A's SHOULD-FIX list before sub-PR C bridge writes
+   started hitting real traffic. This created a cumulative quality
+   ratchet without blocking any single PR's merge.
+
+## What surprised us
+
+1. **Upstream SkillOpt structure didn't match spec assumptions.** Sprint
+   1 sub-PR A discovered the spec assumed `model/backends/` subdir +
+   class-based interface; actuality is flat `<name>_backend.py` files +
+   module-level functions. Spec §19 will get a corrective amendment
+   (deferred to v1.2 — not blocking v1.1 promotion).
+
+2. **Pillars 2 + 4 needed deferral.** Sprint 2 @cto review surfaced that
+   `ops.evolve_extractions.ref_source_kind` enum doesn't include
+   `'run-summary'` (Pillar 2) or `'gbrain'` (Pillar 4). Adding migration
+   00045 inside Sprint 2 would have escalated to Tier C and blown scope.
+   Deferred cleanly to v1.2 with active set `[1, 3, 5]` per spec §19.5.
+
+3. **Documentation drift was the dominant bug class.** Across 4 @cto
+   reviews (Sprints 1A, 1B, 1C, 2, 3, 4), every MUST-FIX was a
+   doc-vs-reality discrepancy (kind enum, schema-vs-spec, response field
+   precedence, line-number citations, lock duplication, R18 inert,
+   alert-rules unstaged, KPI threshold semantics). The actual code was
+   sound on first attempt; the prose around it lagged. Lesson for v1.2:
+   author docs LAST after running the code at least once.
+
+## Day-30 efficacy gate (the falsifiable test)
+
+v1.1 promises a complementary held-out signal. The gate per spec §15.S2:
+- 3 real skills evaluated within 30 days
+- ≥2 produce held-out test-split delta > 0
+- Production correction-rate delta < 1.5× baseline
+- KPI `skillopt_synth_to_prod_correlation` ≥ 0.5 measured monthly
+
+If 0/3 produce positive delta OR correlation < 0.3 critical fires twice,
+mandatory founder retro on whether the bridge IPC or synth-data quality
+is at fault — and v1.1 PAUSES pending revision.
+
+## Pending follow-ups (deferred from v1.1)
+
+| Item | Why deferred | Sprint to address |
+|---|---|---|
+| Pillars 2 (run_summaries) + 4 (gbrain) | enum extension migration | v1.2 (post-PMF) |
+| Vendor rescue mirror fork | founder gh CLI action | Sprint 1 task 1.15 (still pending) |
+| S1 E2E acceptance smoke run | requires `pip install -r vendor/skillopt/requirements.txt` | Founder runs after pip install |
+| Cross-run R18 sweep daemon | within-run sweep on `scan` is the v1.1 mechanism | v1.2 if needed |
+| Edge Function dispatch for cron handler | deferred-stub in v1.1 | Sprint 5+ when first real /evolve skillopt run produces data |
+| `direction` field for low-=-bad KPIs | schema extension | separate Sprint |
+
+## What to do differently for v1.2
+
+1. **Author the runtime FIRST, docs SECOND.** Every doc-vs-reality MUST-FIX
+   would have been caught by writing the code path first then describing it.
+
+2. **Schema-validate spec drafts.** The spec.md frontmatter went through
+   4 sprints with `state: architecting, phase: 5` stale. A pre-commit
+   lint on spec frontmatter (`state` ∈ `{architecting | planning | implementing | operating}`,
+   `phase` ≤ 8) would have caught it Sprint 2.
+
+3. **Audit the cap convention.** `kpi-registry.yaml` thresholds assume
+   "high = worse", but the same file holds adoption metrics where
+   "low = bad". Add a `direction` field OR keep two registries.
+
+## Acknowledgments (v1.1)
+
+- **Founder** (4 brainstorm revisions on the SkillOpt synthesis; the
+  "Hold all constraints; synthesize don't oscillate" rule was the
+  forcing function that produced Architecture A').
+- **@cto subagent** (6 PR reviews; ~$2.50 cumulative review cost vs
+  prevented bugs — likely 10× ROI given the schema MUST-FIX catches
+  would have caused first-INSERT runtime failures).
+- **Microsoft SkillOpt team** (MIT-licensed upstream; the Liu et al.
+  2025 paper at arXiv:2605.23904 supplied the rollout/optimizer agent
+  pattern verbatim).
+- **Karpathy autoresearch** (still the conceptual anchor for "one
+  composite metric, fixed budget, K4 keep-or-revert").
