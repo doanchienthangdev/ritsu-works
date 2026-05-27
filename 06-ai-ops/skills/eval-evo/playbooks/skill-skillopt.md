@@ -13,6 +13,19 @@ allowed_paths_for_proposer_notes: |
   (or its cases) based on minibatch reflection, not the rollout subagent
   itself. SkillOpt's rollout/optimizer agents (.claude/agents/skillopt-*)
   are sealed: tools=[] for structural defense per @cto Phase 5 MUST-FIX 3.
+
+  Patch schema discipline (added 2026-05-28 after PR #138 forensic): when
+  the proposer's response JSON drives downstream parsing (env adapter
+  vendor/skillopt/skillopt/envs/ritsu_skill/adapter.py:415-429 expects FLAT
+  top-level `{"edits": [...]}` then internally wraps to `{"patch": {"edits":
+  ...}}` for vendor reflect.py), proposed edits MUST conform exactly:
+    - `op` ∈ {`append`, `insert_after`, `replace`, `delete`} — NOT `add`
+    - field is `content` — NOT `new_text`
+    - `target` is Python substring match — NOT regex/section-anchor
+  Wrong schema = silent drop ("unparseable response" or
+  "skipped_unknown_op"). The agent file `.claude/agents/skillopt-optimizer-
+  reflect.md` documents this; proposer SHOULD NOT propose changes that
+  contradict that file's gotchas section.
 sub_scores:
   - id: C1
     name: "Task input comprehension"

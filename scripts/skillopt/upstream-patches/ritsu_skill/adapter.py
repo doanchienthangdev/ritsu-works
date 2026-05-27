@@ -211,7 +211,12 @@ def _process_one(
             system=system,
             user=user,
             max_completion_tokens=2048,
-            retries=3,
+            # 2026-05-28: bumped from 3 → 10. In-session orchestrator can
+            # take >120s on a single batch turn (multiple parallel Task()
+            # dispatches + bash overhead); with retries=3 a slow turn
+            # exhausts the budget before the response lands. See
+            # `project_evolve_skillopt_vendor_retry_gap` memory.
+            retries=10,
             stage="target",
             timeout=exec_timeout,
         )
@@ -259,7 +264,8 @@ def _process_one(
             ),
             user=judge_user,
             max_completion_tokens=1024,
-            retries=3,
+            # 2026-05-28: bumped from 3 → 10 (same rationale as target above).
+            retries=10,
             stage="judge",
             timeout=judge_timeout,
         )
@@ -388,9 +394,15 @@ def _run_minibatch_reflect_queued(
                 system=system,
                 user=user,
                 max_completion_tokens=4096,
-                retries=3,
+                # 2026-05-28: bumped retries 3 → 10 AND timeout 180 → 1800
+                # (30 min). Optimizer reflect prompts are ~20-25KB user
+                # context (full skill + minibatch + meta-skill), so Sonnet
+                # subagent dispatch + JSON parsing takes longer than 180s
+                # under in-session orchestration. See
+                # `project_evolve_skillopt_vendor_retry_gap` memory.
+                retries=10,
                 stage="optimizer",
-                timeout=180,
+                timeout=1800,
             )
         except Exception as exc:  # noqa: BLE001
             print(

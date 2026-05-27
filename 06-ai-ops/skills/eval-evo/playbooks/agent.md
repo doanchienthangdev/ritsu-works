@@ -26,9 +26,9 @@ sub_scores:
     what_10_looks_like: "Decision-making style (deliberative / fast / cautious) matches the persona's stated character."
     what_0_looks_like: "Generic decision-making; could be any agent."
   - id: C5
-    name: "Tool / skill cross-refs"
-    what_10_looks_like: "Lists which skills the agent invokes most often; documents the canonical invocation pattern."
-    what_0_looks_like: "No tool/skill references."
+    name: "Tool / skill cross-refs + output schema discipline"
+    what_10_looks_like: "Lists which skills the agent invokes most often; documents the canonical invocation pattern. If the agent's output is parsed by downstream code (e.g., subagents whose response is consumed by a Python adapter or another orchestrator), the agent file cites the exact downstream parser file:line + describes the schema fields, valid enum values, and nesting structure expected. Per PR #138 patch-schema forensic — wrong schema = silent drop downstream."
+    what_0_looks_like: "No tool/skill references. OR agent output drives downstream parsing but has no schema docs / no parser citations — invites silent failures when wrong field names or wrong enums emitted (skillopt-optimizer-reflect 2026-05-27 example: `op:add` vs `op:append` cost 3 epochs of skips before discovery)."
   - id: C6
     name: "HITL discipline"
     what_10_looks_like: "Knows its hitl_max_tier; refuses actions above tier without explicit override."

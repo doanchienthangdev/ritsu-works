@@ -8,6 +8,8 @@
     "cla",
     "cpo",
     "cto",
-    "gbrain-maintainer"
+    "gbrain-maintainer",
+    "skillopt-optimizer-reflect",
+    "skillopt-target-rollout"
   ]
 }

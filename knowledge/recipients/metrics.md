@@ -7,7 +7,7 @@
 This file is THE source of truth for metric recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 
-**Total entries:** 88
+**Total entries:** 91
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -869,6 +869,39 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Role scope:** gtm-orchestrator
 **Status:** active
 **Pillar:** gtm
+
+## metric/skillopt_post_install_correction_rate_delta
+
+**Kind:** metric
+**When to use:** KPI owned by 06-ai-ops pillar (eval-evo-orchestrator) (sub-pillar eval-evo). Formula: Mean ratio (post-install 30d correction rate) / (pre-install 30d baseline correction rate) across all skills with ≥30 days of post-install data. Source: ops.kpi_snapshots (same cron as correlation). Target: <= 1.0 (no regression). > 2.0 warn. > 5.0 critical.. Notes: Detects whether skillopt-evolved skills regress...
+
+**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#skillopt_post_install_correction_rate_delta`
+
+**Role scope:** eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## metric/skillopt_runs_monthly
+
+**Kind:** metric
+**When to use:** KPI owned by 06-ai-ops pillar (eval-evo-orchestrator) (sub-pillar eval-evo). Formula: COUNT(*) WHERE agent_slug='evolve' AND state_payload->>'mode'='skillopt' AND state IN ('completed','failed') AND date_trunc('month',started_at)=date_trunc('month',now()). Source: ops.agent_runs. Target: >= 5 / month after first 3 months of operating. Notes: Adoption metric for /evolve skillopt path. Capability ev...
+
+**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#skillopt_runs_monthly`
+
+**Role scope:** eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## metric/skillopt_synth_to_prod_correlation
+
+**Kind:** metric
+**When to use:** KPI owned by 06-ai-ops pillar (eval-evo-orchestrator) (sub-pillar eval-evo). Formula: Spearman correlation (rolling 30-day) between held-out judge composite + post-install prod correction rate. Source: ops.kpi_snapshots (computed by skillopt-synth-prod-correlation-monthly cron). Target: >= 0.5 (above 0.3 critical threshold). Notes: Falsifiable signal that synth predicts prod. < 0.3 → playbook revi...
+
+**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#skillopt_synth_to_prod_correlation`
+
+**Role scope:** eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
 
 ## metric/sop_success_rate
 

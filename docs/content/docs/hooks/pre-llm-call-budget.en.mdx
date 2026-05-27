@@ -2,8 +2,8 @@
 title: 'Hook: pre-llm-call-budget'
 description: ''
 source_path: .claude/hooks/pre-llm-call-budget.md
-source_hash: fa76d4ef92d62f5d92067f89253f4f1a38faf7f143e54f0fbf8a93d808fc3430
-generated_at: '2026-05-22T01:09:07.433Z'
+source_hash: 0388d06992e7d594a3acc2c49923dc5fca4b2f3155d5030a73b3cc0627378746
+generated_at: '2026-05-27T18:25:03.867Z'
 generated_by: docs-engine v1.2.0
 category: hook
 language: en
@@ -90,23 +90,60 @@ function decide(payload):
       }
     )
 
-  # Check per-task-kind soft cap (independent of monthly)
+  # Check per-task-kind soft cap (independent of monthly).
+  # v1.1 (capability evolve v1.1): caps may be tagged {unit, cap} or bare-number legacy.
   if task_kind:
     tk_caps = econ.get('per_task_kind_caps', {})
-    tk_cap = tk_caps.get(task_kind)
-    if tk_cap:
-      current_task_cost = get_current_task_cost(payload.task_id)
-      estimated_call = estimate_call_cost(payload)
-      if (current_task_cost + estimated_call) > tk_cap * 2:  # 2x cap = hard escalate
-        return escalate(
-          reason=f"task instance projected to exceed 2x soft cap for {task_kind}",
-          log_extras={
-            "task_kind_cap_usd": tk_cap,
-            "current_task_cost_usd": current_task_cost,
-            "estimated_next_call_usd": estimated_call,
-            "projected_total_usd": current_task_cost + estimated_call,
-          }
+    tk_entry = tk_caps.get(task_kind)
+    if tk_entry is not None:
+      tk_unit, tk_cap = parse_tk_entry(role, task_kind, tk_entry)
+      # parse_tk_entry handles three shapes:
+      #   bare number    → ('usd', float) + logs ritsu.budget.legacy_cap_format event (one-time per role/task-kind/month)
+      #   {unit, cap}    → (unit, cap)
+      #   anything else  → (None, None) + logs ritsu.budget.malformed_cap_entry, allow-with-audit
+
+      if tk_unit == 'usd':
+        current_task_cost = get_current_task_cost(payload.task_id)
+        estimated_call = estimate_call_cost(payload)
+        if (current_task_cost + estimated_call) > tk_cap * 2:  # 2x cap = hard escalate
+          return escalate(
+            reason=f"task instance projected to exceed 2x soft cap for {task_kind}",
+            log_extras={
+              "task_kind_cap_unit": "usd",
+              "task_kind_cap_value": tk_cap,
+              "current_task_cost_usd": current_task_cost,
+              "estimated_next_call_usd": estimated_call,
+              "projected_total_usd": current_task_cost + estimated_call,
+            }
+          )
+      elif tk_unit == 'messages':
+        session_msg_count = get_session_message_count_for_task_kind(
+          payload.session_id, task_kind
         )
+        if (session_msg_count + 1) > tk_cap:  # strict: next call would breach
+          return escalate(
+            reason=f"task instance projected to exceed message-count cap for {task_kind}",
+            log_extras={
+              "task_kind_cap_unit": "messages",
+              "task_kind_cap_value": tk_cap,
+              "session_message_count": session_msg_count,
+              "next_call_would_make": session_msg_count + 1,
+            }
+          )
+      elif tk_unit is None:
+        # parse_tk_entry already logged the malformed shape; fall through (no enforcement)
+        pass
+      else:
+        # Unknown unit: fail-open with audit per spec §19.9. Safer than fail-closed
+        # for unknown task kinds — operator may have added a new unit and forgotten
+        # to update this hook; we want visibility, not breakage.
+        write_event('ritsu.budget.unknown_unit', {
+          'role': role,
+          'task_kind': task_kind,
+          'unit': tk_unit,
+          'cap': tk_cap,
+          'decision': 'allow (fail-open with audit)',
+        })
 
   if ratio >= alert_pct:
     write_alert_if_first('warning_80', role, current_cost, monthly_cap, ratio)
@@ -161,6 +198,53 @@ function post_tool(payload):
 
 This is conceptually one hook with both `pre` and `post` halves; framework permitting, implement as paired hooks.
 
+## Per-task-kind cap schema (v0.2.0 — tagged units)
+
+Capability `evolve` v1.1 introduced session-message-count caps alongside the
+existing USD caps. To prevent silent unit collisions (the hook treating a
+`{cap: 25}` message-count as `$25` and never firing), `per_task_kind_caps`
+entries now MAY be tagged with their unit. Three accepted shapes:
+
+```yaml
+per_task_kind_caps:
+  # Tagged form (v1.1+, preferred)
+  eval-evo-iteration:                {unit: usd, cap: 0.50}
+  eval-evo-skillopt-rollout-batch:   {unit: messages, cap: 25}
+
+  # Bare-number legacy (v1.0; auto-treated as {unit: usd, cap: N}
+  # and logged once per role/task_kind/month to ritsu.budget.legacy_cap_format)
+  some-legacy-task: 0.10
+```
+
+**Dispatch rules** (per `parse_tk_entry` in the decision logic above):
+
+| Cap shape | Enforcement | Comparison |
+|---|---|---|
+| bare number `N` | `unit: usd` | `current_task_cost + estimated_call > 2 × N` → escalate |
+| `{unit: usd, cap: N}` | USD | same as above |
+| `{unit: messages, cap: N}` | session messages for this task_kind | `session_msg_count + 1 > N` → escalate |
+| `{unit: <other>, cap: N}` | none (fail-open) | logs `ritsu.budget.unknown_unit`, allows the call |
+| malformed (missing `cap`, etc.) | none (fail-open) | logs `ritsu.budget.malformed_cap_entry`, allows |
+
+**Why fail-open on unknown unit:** an operator added a new cap shape to
+`governance/ROLES.md` for a task_kind this hook doesn't yet understand. Failing
+closed would block legitimate work for every task of that kind. Failing open
+with an audit trail (`ops.events`) gets the operator visibility on the next
+weekly cost review without surface-area disruption.
+
+**Migration discipline:** mixed-shape `per_task_kind_caps` blocks are
+intentionally supported during the v1.0 → v1.1 transition window. The L2
+validator `governance/ROLES.md ↔ skills` does NOT enforce tagged form. A
+follow-up `pnpm migrate:roles-caps` (not in this Sprint) will offer to
+batch-convert remaining bare numbers when the workforce has stabilized on
+the tagged form.
+
+**`session_message_count` definition:** counts subagent dispatches (via Task)
+within the current session that carry the same `task_kind` metadata. Tracked
+per-process; resets on session start. The session bridge (sub-PR C) is
+responsible for tagging each `Task()` invocation with the correct task_kind
+so the counter increments.
+
 ## Pricing table
 
 Cached locally; refreshed monthly via PR to `knowledge/pricing/anthropic.yaml`. Table includes:
@@ -214,10 +298,16 @@ For high-volume roles (100+ calls/min), the 30-second cache is essential. Cache 
 | 8 | Role at 200% somehow | block (treat as 150%) |
 | 9 | Founder calling | allow (no role budget for founder) |
 | 10 | Role with no economic_budget set | allow (tracking-only mode) |
-| 11 | Task instance estimated to exceed 2x its task_kind cap | escalate |
+| 11 | Task instance estimated to exceed 2x its task_kind cap (usd) | escalate |
 | 12 | Pricing table missing for new model | allow + warning logged (use fallback rate) |
 | 13 | Hook itself fails (DB unreachable) | block (fail-closed) |
 | 14 | Calibration period (first 14 days post-launch) | allow with warning even at 100% (deferred enforcement) |
+| 15 | `per_task_kind_caps[X] = 0.50` (bare number) for task_kind X, call would project to $1.20 | escalate + log `ritsu.budget.legacy_cap_format` (once per role/task_kind/month) |
+| 16 | `per_task_kind_caps[X] = {unit: messages, cap: 25}`, session has dispatched 24 same-task_kind subagents, next call is 25th | allow (25 ≤ 25) |
+| 17 | same as #16 but next call is 26th | escalate |
+| 18 | `per_task_kind_caps[X] = {unit: messages, cap: 25}`, no session_message_count exists yet | allow (treats as 0) |
+| 19 | `per_task_kind_caps[X] = {unit: gpu_hours, cap: 5}` (unknown unit) | allow + log `ritsu.budget.unknown_unit` |
+| 20 | `per_task_kind_caps[X] = {cap: 10}` (missing unit field) | allow + log `ritsu.budget.malformed_cap_entry` |
 
 ## Calibration mode
 

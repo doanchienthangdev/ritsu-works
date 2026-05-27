@@ -1,0 +1,225 @@
+---
+title: 'Skill: eval-evo/gen-skill-examples'
+description: |
+  LLM-driven generator for `<example>` blocks in a SKILL.md. Reads the skill's
+  spec (description, process, inputs, outputs, failure modes) via Sonnet 4.6
+  and produces 5 authentic INPUT/OUTPUT/RUBRIC tuples that demonstrate the
+  skill's intended behavior. Used by /evolve skillopt when the target SKILL.md
+  has no `<example>` blocks — unblocks Pillar 1 (gold) extraction in
+  skillopt-gen-data without forcing the founder to author examples manually.
+  Founder reviews + accepts/edits/regenerates via Tier B AskUserQuestion gate
+  before examples are written. Output goes to a sandbox SKILL.md (NEVER
+  production) under runtime/sandboxes/.
+source_path: 06-ai-ops/skills/eval-evo/gen-skill-examples/SKILL.md
+source_hash: e098158896b71c5b26a24740a9695da8c0963cffd133da5e0c9657b0840b90b7
+generated_at: '2026-05-27T18:29:11.436Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Generates 5 example blocks for a SKILL.md that lacks them, so /evolve skillopt
+can extract Pillar 1 (gold, confidence 0.95) tasks during gen-data. Examples
+are AI-generated from the skill's own spec — authentic enough to seed
+training, founder-reviewed before commit.
+
+## When to invoke
+
+Exclusively from `/evolve skillopt <skill>` Phase A pre-flight when:
+1. Target SKILL.md has 0 `<example>` blocks AND
+2. Founder picked "Auto-generate via Sonnet" at the AskUserQuestion gate
+   that surfaces this situation.
+
+Do NOT invoke for:
+- SKILL.md that already has `<example>` blocks (would dilute Pillar 1 signal
+  with AI-derived noise).
+- Production paths (06-ai-ops/skills/\<entity>/SKILL.md) — runs on sandbox
+  paths only (`runtime/sandboxes/<flat>/SKILL.md`).
+- Skills with no clear input/output contract (refuse with `reason: spec_too_vague`).
+
+## Inputs
+
+```json
+{
+  "sandbox_path":        "<absolute path to runtime/sandboxes/<flat>/SKILL.md>",
+  "skill_name":          "<original slug, e.g. wiki-sync/ask>",
+  "count":               5,
+  "regenerate":          false,
+  "founder_corrections": []
+}
+```
+
+`regenerate=true` triggers a fresh batch when founder rejected a prior run.
+`founder_corrections` is an array of `{example_index, reason}` from prior
+rejections — fed into the prompt as anti-signal ("avoid the pattern that
+made example N fail per: \<reason>").
+
+## Outputs
+
+```jsonc
+{
+  "sandbox_path":     "<echo>",
+  "examples_added":   5,
+  "preview":          "<the 5 generated <example> blocks as one markdown string>",
+  "cost_usd":         0.05,
+  "model_used":       "claude-sonnet-4-6",
+  "reason":           "generated" | "spec_too_vague" | "founder_aborted" | "regen_max_attempts_reached",
+  "next_action":      "preview_then_apply" | "abort"
+}
+```
+
+The skill does NOT yet write to the sandbox file. After founder review at
+the preview gate, the caller (skillopt-runner Phase A) appends `preview`
+to the sandbox SKILL.md OR discards on rejection.
+
+## Process
+
+### Step 1 — Read + parse skill spec
+
+`sandbox_content = fs.readFileSync(sandbox_path)`.
+
+Parse from `sandbox_content`:
+- `frontmatter.description` (the skill's purpose blurb)
+- `## Inputs` section (input fields + types)
+- `## Outputs` or `## Process` section (output contract)
+- `## Failure modes` section (edge cases)
+- `## When to use` / `## When to invoke` (positive/negative triggers)
+
+If any of the 4 sections missing → `reason: 'spec_too_vague'`, return early.
+Threshold for "vague": \< 200 chars total signal across required sections.
+
+### Step 2 — Compose generation prompt
+
+System prompt (~600 tokens, tuned for example-block authoring):
+
+```
+You are generating <example>...</example> blocks for a SKILL.md to seed
+Pillar 1 (gold) tasks in /evolve skillopt training. Each example shows the
+skill's intended behavior on one realistic input.
+
+Output format per block (verbatim):
+
+<example>
+INPUT:
+<serialized input matching the Inputs section's shape>
+
+EXPECTED OUTPUT:
+<what success looks like, matching Outputs section's contract>
+
+RUBRIC:
+- <criterion 1, binary 0/1 scoreable>
+- <criterion 2, binary 0/1 scoreable>
+- <criterion 3+, optional>
+</example>
+
+Rules:
+- Generate EXACTLY <count> blocks.
+- Each block tests a DIFFERENT axis: happy-path, edge case, degenerate
+  input, multi-source / boundary, failure path.
+- INPUT must match the Inputs section's structure verbatim (JSON keys,
+  arg flags, etc.).
+- EXPECTED OUTPUT must match the Outputs section's contract.
+- RUBRIC criteria are BINARY (PASS=1, FAIL=0). Never "good", "well-formed";
+  prefer "criterion X is verifiable by parsing/grep".
+- DO NOT invent ops.* table names, file paths, or schema not in the SKILL.md.
+- DO NOT fabricate Anthropic / OpenAI API responses; use placeholders like
+  "<assistant response>".
+- If skill has FAILURE MODES section, ≥1 example must test one of those.
+
+If <founder_corrections> array is non-empty: avoid the patterns named in
+each correction's `reason` field.
+
+Output strict markdown — only the <example>...</example> blocks back-to-back,
+no preamble, no postamble.
+```
+
+User prompt: serialized inputs (sandbox_content excerpt + count + corrections).
+
+### Step 3 — LLM call (Sonnet 4.6)
+
+Model: `claude-sonnet-4-6`. Why Sonnet not Haiku: example authoring needs
+reasoning about a skill's contract + producing varied scenarios. Haiku tends
+to produce monotone "happy-path × 5" outputs that defeat the purpose.
+
+Cost: ~$0.05 per invocation (~3K input tokens, ~1.5K output).
+
+Logged to `ops.cost_attributions` under `eval-evo-orchestrator` role,
+task_kind `eval-evo-skillopt-meta`.
+
+### Step 4 — Parse + validate
+
+- Count `<example>` blocks in response; must equal `count` (default 5).
+  Mismatch → 1 retry with a sharpened prompt; on second mismatch return
+  `reason: 'regen_max_attempts_reached'`.
+- Each block has `INPUT:`, `EXPECTED OUTPUT:`, `RUBRIC:` headers (case
+  sensitive, in order). Missing → retry.
+- RUBRIC has ≥2 bullet criteria. \< 2 → retry.
+- No `<example>` block exceeds 1500 chars (limits gen-data input size).
+  Over → retry with size hint.
+
+### Step 5 — Return preview
+
+Emit STDOUT JSON with `preview` = the 5 blocks joined with `\n\n` (no
+surrounding `## Examples` header — caller decides placement).
+
+The caller (skillopt-runner Phase A) does the founder preview gate:
+
+```
+AskUserQuestion Tier B:
+> "Generated 5 example blocks for <skill_name>. Preview below.
+>   [Sample preview text, truncated to 2 KB]
+> Apply to sandbox? [Yes / Edit / Regenerate (count {prev_attempts}/3) / Show full / Abort]"
+```
+
+Founder picks:
+- **Yes** → caller appends `\n\n## Examples\n\n<preview>` to sandbox SKILL.md;
+  /evolve proceeds to Phase B.
+- **Edit** → caller opens `runtime/sandboxes/<flat>/SKILL.md.gen-examples.preview`
+  in $EDITOR (best-effort; surfaces path if no $EDITOR), then re-prompts.
+- **Regenerate** → caller re-invokes this skill with `regenerate=true`. Max 3
+  attempts before forced "Abort or Use as-is".
+- **Show full** → dump preview to stdout, re-prompt.
+- **Abort** → /evolve exits before Phase B, `exit_reason: 'founder_aborted_examples'`.
+
+## Compose with
+
+- `/evolve skillopt <skill>` (the caller; orchestrates auto-scaffold + this skill)
+- `eval-evo/skillopt-gen-data` (downstream consumer; reads the appended
+  `<example>` blocks as Pillar 1 source)
+
+## Cost model
+
+- Per invocation: ~$0.05 (Sonnet 4.6 ~3K in / 1.5K out)
+- Up to 3 regenerations per run (founder budget bound): max ~$0.15 total
+- Logged under `eval-evo-skillopt-meta` task_kind (shares the 10-message cap)
+
+## Why Sonnet, not Haiku
+
+Haiku 4.5 (used elsewhere in /evolve skillopt for rollout + judge) tends
+to produce repetitive examples — 5 variations of the same happy-path with
+trivial input changes. The Pillar 1 signal we want IS variety (edge cases,
+degenerate inputs, failure modes). Sonnet 4.6's stronger reasoning produces
+genuinely different axes per block, even on the same skill spec. The
+~10× cost differential ($0.05 vs $0.005) is justified by the one-time
+nature (per skill, not per run).
+
+## Failure modes
+
+| Symptom | Response |
+|---|---|
+| Spec too vague (\< 200 chars across required sections) | Return `reason: 'spec_too_vague'`. Founder must author manually. |
+| LLM produces wrong block count | 1 retry with explicit count reminder; then `reason: 'regen_max_attempts_reached'` |
+| LLM hallucinates ops.* or fabricates paths | Caught at validation Step 4 (path regex). Retry. |
+| Founder rejects 3 generations | Caller forces choice: Use as-is / Abort. No infinite regen. |
+| Sandbox path under 06-ai-ops/ (not runtime/) | Refuse: returns `reason: 'sandbox_path_invalid'`. Production safety. |
+
+## Reference
+
+- Spec: `wiki/capabilities/evolve/spec.md` §19 (v1.1.2 unified UX)
+- Companion: `scripts/skillopt/init-sandbox.sh` (scaffolds the sandbox file
+  this skill writes examples into)
+- Downstream: `eval-evo/skillopt-gen-data` (consumes the generated examples
+  as Pillar 1 gold confidence 0.95)
+

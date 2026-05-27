@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 10
+**Total entries:** 11
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -59,7 +59,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/evolve
 
 **Kind:** capability
-**When to use:** /evolve — Eval+Evo Feedback Loop for ritsu-works entities. Iterative evaluate→propose-improvement→install→re-evaluate loop on v1.0.0
+**When to use:** /evolve — Eval+Evo Feedback Loop for ritsu-works entities. Iterative evaluate→propose-improvement→install→re-evaluate loop on v1.1.0
 
 **Invoke:** `Read("wiki/capabilities/evolve/spec.md")` or `/cla update evolve`
 
@@ -98,6 +98,17 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Role scope:** *
 **Status:** deployed
+**Pillar:** 06-ai-ops
+
+## capability/thinking-toolkit
+
+**Kind:** capability
+**When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 6 standalone composable skills extracted from McKinsey/Minto thinking v1.0.0
+
+**Invoke:** `Read("wiki/capabilities/thinking-toolkit/spec.md")` or `/cla update thinking-toolkit`
+
+**Role scope:** *
+**Status:** operating
 **Pillar:** 06-ai-ops
 
 ## capability/update

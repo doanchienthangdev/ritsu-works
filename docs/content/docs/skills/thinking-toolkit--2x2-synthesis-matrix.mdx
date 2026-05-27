@@ -1,0 +1,238 @@
+---
+title: 'Skill: thinking-toolkit/2x2-synthesis-matrix'
+description: |
+  Use when you have 4+ options, items, or candidates and need to synthesize
+  them into a decision. Pick 2 orthogonal axes (the most discriminating
+  dimensions), classify each item into one of 4 quadrants, then read the
+  quadrant pattern to surface insight that flat lists hide.
+
+  Trigger conditions: /cla options-generator with 4+ candidates; product
+  feature prioritization (impact × effort); channel attribution (volume ×
+  cost); customer segments (value × risk); skill candidates (frequency × cost);
+  competitive positioning.
+
+  Skip when: 2-3 options (compare directly); single-dimensional ordering
+  (rank, sort); axes are not orthogonal (correlated dimensions).
+
+  Cost: zero LLM. Forces ~5-10 min synthesis that reveals quadrant
+  insights typically missed in flat lists.
+source_path: 06-ai-ops/skills/thinking-toolkit/2x2-synthesis-matrix/SKILL.md
+source_hash: c7a3e204e176c2c3d1b451d0440a5f7b345394614769b4fd9d2dcdf42a801df5
+generated_at: '2026-05-27T18:51:27.973Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> When you have many options, two axes reveal the pattern. Pick the right axes; the recommendation falls out of the quadrant.
+
+The 2x2 matrix is the synthesis tool when flat lists fail. Born from BCG (Growth-Share matrix, 1970), generalized by McKinsey/Bain for any multi-option synthesis. Power: forces you to name the TWO most discriminating dimensions, which itself surfaces what really matters.
+
+For 4+ items, a 2x2 reveals patterns (cluster in one quadrant? empty diagonal?) that a sorted list buries.
+
+## Authentic sources
+
+The 2x2 matrix is a foundational strategy tool but is treated less prominently in the two McKinsey-derived textbooks than TOSCA/MECE/Pyramid — it appears as ONE of many "analytical frameworks" rather than getting its own chapter. Relevant content:
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (2018) — **Chapter 6: "Structure the Problem: Analytical Frameworks"** (pp. 95-115). Discusses **frameworks as mental models** with both the power to clarify and the danger to constrain. The chapter explicitly warns: *"The Danger of Frameworks: Frameworks as Mental Models"* (p. 99) — frameworks are tools, not truth. A 2x2 axis choice is a framework choice.
+
+- **Conn & McLean, *Bulletproof Problem Solving*** (2018) — **Chapter 5: "Conduct Analyses"** (pp. 111-134) treats simple structures (including 2x2 grids) as early heuristic disaggregations. **Chapter 6: "Big Guns of Analysis"** (pp. 135+) for when 2x2 isn't enough.
+
+- **BCG (1970). Growth-Share Matrix** (cash cow / star / question mark / dog) — the original 2x2 in business strategy. Henderson, Bruce. *Perspectives* essays.
+
+- **McKinsey (1970s). GE/McKinsey Matrix** — 3x3 industry attractiveness × competitive position.
+
+The two textbooks' position on 2x2 is consistent: it's a useful pattern-revealing tool but is **one mental model among many** — you must choose the axes that actually discriminate the cases you have. Without good axis selection, the 2x2 collapses to a diagonal and reveals nothing.
+
+## When to use
+
+**Mandatory:**
+- /cla options-generator with 4+ candidate options
+- Feature prioritization with 5+ candidates (impact × effort is the canonical 2x2)
+- Channel/segment synthesis with multiple options
+
+**Recommended:**
+- Skill-candidate evaluation (frequency-of-use × cost)
+- Risk synthesis (probability × severity)
+- Competitive positioning (price-tier × feature-depth)
+- Customer-segment value (ARPU × churn-risk)
+- Capability-prioritization (strategic-fit × technical-feasibility)
+
+## When NOT to use
+
+**Skip for:**
+- 2-3 items (compare in a small table; 2x2 is overkill)
+- Single dimension matters (just sort and decide)
+- Axes are correlated (impact and reach are usually correlated → 2x2 collapses to diagonal, no insight)
+- The wrong axes (most common failure — see below)
+
+**Anti-pattern: using 2x2 with the wrong axes.** The discipline of 2x2 is in picking THE TWO most discriminating dimensions. Picking convenient but non-discriminating axes (e.g., "popular vs unpopular" × "easy vs hard") gives no insight. If your 2x2 doesn't surprise you with the cluster pattern, you picked wrong axes.
+
+## How to apply
+
+### Step 1 — List the items
+
+Have your 4+ items in front of you. Each must be a distinct option/candidate (apply MECE-check if unsure).
+
+### Step 2 — Pick 2 orthogonal axes
+
+The hard part. Ask: **what two dimensions, if known for each item, would determine my decision?**
+
+Axes must be:
+- **Orthogonal** — knowing one doesn't predict the other (rules out correlated dims)
+- **Discriminating** — items should spread across the 2x2, not cluster in one corner
+- **Actionable** — each quadrant should imply a different action
+
+Common axis pairs by use-case:
+
+| Use case | Axis X | Axis Y |
+|---|---|---|
+| Feature prioritization | Impact (H/L) | Effort (H/L) |
+| Risk inventory | Probability (H/L) | Severity (H/L) |
+| Customer segmentation | Value (H/L) | Churn risk (H/L) |
+| Channel ROI | Volume (H/L) | CAC (H/L) |
+| Skill optimization | Frequency (H/L) | Cost-per-invocation (H/L) |
+| Competitive position | Price tier (premium/budget) | Feature depth (rich/lean) |
+| Capability fit | Strategic (core/peripheral) | Technical feasibility (H/L) |
+
+### Step 3 — Classify each item
+
+For each item, decide its position on each axis (H/L or specific). Place in the appropriate quadrant.
+
+Use a simple notation:
+
+```
+              HIGH Y
+   ┌─────────────────┬─────────────────┐
+   │   QUADRANT II   │   QUADRANT I    │
+   │                 │                 │
+   │ - Item A        │ - Item B        │
+   │ - Item C        │ - Item D        │
+   │                 │ - Item E        │
+   ├─────────────────┼─────────────────┤
+   │   QUADRANT III  │   QUADRANT IV   │
+   │                 │                 │
+   │ - Item F        │ - Item G        │
+   │                 │                 │
+   │                 │                 │
+   └─────────────────┴─────────────────┘
+              LOW Y
+   LOW X                            HIGH X
+```
+
+### Step 4 — Read the quadrant pattern
+
+Look at where items cluster. Three signals:
+
+- **Cluster in one quadrant** — the axes aren't discriminating; pick different axes
+- **Spread across diagonals only** — axes are correlated; pick truly orthogonal dims
+- **Spread across all 4 quadrants** — good axes! Read quadrant meanings.
+
+For each quadrant, name its action:
+
+| Use case | Q I (H, H) | Q II (L, H) | Q III (L, L) | Q IV (H, L) |
+|---|---|---|---|---|
+| Impact × Effort | **Strategic projects** (worth the cost) | **Quick wins** (low effort, high impact) | **Avoid** | **Time sinks** (high effort, low impact) |
+| Probability × Severity | **Crisis** (mitigate now) | **Edge cases** (monitor) | **Ignore** | **Long-tail** (transfer risk) |
+| Value × Churn risk | **Save** (high value at risk) | **Watch** (low value at risk) | **Let go** | **Grow** (high value, stable) |
+
+### Step 5 — Recommendation falls out
+
+The recommendation is: act on items in the quadrant whose action is most urgent right now. Often that's "quick wins" (Q II for impact×effort) or "crisis" (Q I for probability×severity).
+
+Top-line: **"Of the N options, start with these M in quadrant \<X>."** Then drill into the quadrant.
+
+## Worked examples
+
+### Example 1 — GOOD (skill prioritization for /evolve targets)
+
+**Parent question:** Of 12 candidate skills to /evolve next, which should we run first?
+
+**Axes:** Frequency of invocation (high = invoked daily; low = monthly) × Cost per invocation ($ in cost-bucket)
+
+```
+                       HIGH COST
+   ┌──────────────────────────┬──────────────────────────┐
+   │  Q II: Refactor target    │  Q I: Optimize critical  │
+   │                           │                          │
+   │ - capability-lifecycle/   │ - wiki-sync/distill ⭐   │
+   │   architect               │ - eval-evo/skillopt-judge│
+   │ - cla/system-inventory    │                          │
+   ├──────────────────────────┼──────────────────────────┤
+   │  Q III: Ignore (low ROI)  │  Q IV: Reduce frequency  │
+   │                           │                          │
+   │ - resolver-query (rare)   │ - episodic-recall        │
+   │ - cost-report             │ - task-decompose         │
+   │                           │ - task-status            │
+   │                           │ - synthesize-morning-brief│
+   │                           │ - core-management/core-fill│
+   └──────────────────────────┴──────────────────────────┘
+                       LOW COST
+   LOW FREQUENCY                            HIGH FREQUENCY
+```
+
+**Insight:** wiki-sync/distill is the obvious first target (Q I — daily, expensive). Optimizing it by 20% saves more than optimizing all of Q IV combined. SkillOpt judge is second target.
+
+**Action:** Run /evolve on wiki-sync/distill first; defer Q II and Q IV; ignore Q III.
+
+**Why this is good:** Axes are truly orthogonal (frequency doesn't predict cost). Items spread across quadrants. The recommendation is sharp and actionable.
+
+### Example 2 — ANTI-PATTERN (correlated axes)
+
+**Parent:** Of 8 marketing campaigns, which to double down on?
+
+**Axes:** Reach (H/L) × Engagement (H/L)
+
+Result: All campaigns cluster on the diagonal (high reach → low engagement; low reach → high engagement). The axes are anti-correlated; the matrix collapses to a line. No quadrant insight.
+
+**Why this fails:** Reach and engagement are inversely correlated in social marketing. Truly orthogonal axes would be: **strategic fit** (core ICP vs aspirational ICP) × **conversion rate** (signups per dollar). Re-do the 2x2 with those.
+
+### Example 3 — EDGE CASE (3 items only)
+
+Trying to 2x2 only 3 items:
+- A in Q I
+- B in Q III
+- C in Q IV
+
+Quadrant II is empty.
+
+**Verdict:** 2x2 overkill for 3 items. Just use a small comparison table. 2x2 needs 4+ items to provide pattern-visibility benefit.
+
+## Composition notes
+
+### With `pyramid-principle-output`
+The 2x2 matrix is often the supporting visual for a top-line recommendation. Top line: "Start with Q-I items (high X, high Y)". 2x2 matrix is the evidence below the top line.
+
+### With `mece-decomposition-check`
+Apply MECE check to the items going INTO the matrix. Each item must be a distinct option; overlapping items break the matrix.
+
+### With `tosca-problem-framing`
+TOSCA's Constraints often inform the axis choice. If "cost" is a constraint, cost likely belongs on one axis. If "founder time" is constraint, founder-time-required is the axis.
+
+### With `so-what-test`
+After identifying the recommended quadrant, run so-what on it. "Q I items should be done first" — so what? → "Start with X today; defer Y to next sprint; never do Z." Action falls out.
+
+### With `driver-tree-decomposition`
+2x2 synthesizes options; driver-tree decomposes metrics. Different purposes. Use 2x2 when comparing options; use driver-tree when investigating a metric.
+
+## References
+
+Primary (in `raw/mckinsey/`):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 6: "Structure the Problem: Analytical Frameworks"** (pp. 95-115). Frameworks-as-mental-models cautionary discussion (p. 99).
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 5** (pp. 111-134) simple structures + **Chapter 6 "Big Guns of Analysis"** (pp. 135+).
+
+Supporting:
+- **Henderson, Bruce (1970). BCG Growth-Share matrix** — the original 2x2 in business strategy.
+- Bain "Strategic Position" matrix (1980s).
+- **McKinsey (1970s). GE/McKinsey matrix** — 3x3 industry attractiveness × competitive position.
+- *The Boston Consulting Group on Strategy* (Stern/Stalk, 2006) — collected 2x2 case studies.
+
+## Anti-claims
+
+- 2x2 is NOT a decision-maker. It surfaces patterns; humans decide.
+- 2x2 is NOT for every multi-option problem. Sometimes the right tool is a simple sorted list (1D ordering).
+- 2x2 is NOT always 4 quadrants of equal weight. Sometimes Q I has 8 items and Q III has 0 — the cluster IS the insight.
+- 2x2 quadrants are NOT independent — the recommendation often involves multiple quadrants (e.g., "Q II quick wins NOW + Q I strategic next quarter").
+

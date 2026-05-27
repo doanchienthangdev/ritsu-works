@@ -1001,6 +1001,62 @@ capabilities:
       Eng review (codex-fallback Claude subagent) found 10 substantive gaps
       — all resolved in v3.0 spec before /cla propose triggered.
 
+  - id: thinking-toolkit
+    name: "Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills)"
+    description: |
+      6 standalone composable skills extracted from McKinsey/Minto thinking
+      discipline, deployed as a parent-namespaced skill folder at
+      06-ai-ops/skills/thinking-toolkit/. Skills are guidance documents (zero
+      LLM cost at invocation); they structure the THINKING and OUTPUT of the
+      invoking agent. The 4 C-suite personas (@ceo/@cto/@cgo/@cpo) import
+      `pyramid-principle-output` + `so-what-test` as MANDATORY in their
+      output contracts; other 4 skills (TOSCA, MECE, 2x2, driver-tree) are
+      invoked situationally by personas, /cla phases, /cgo funnel work,
+      10-metrics pillar KPI decomposition, and /update entity analysis.
+
+      Inventory:
+        - thinking-toolkit/tosca-problem-framing (problem-definition discipline)
+        - thinking-toolkit/mece-decomposition-check (overlap + exhaustive list quality)
+        - thinking-toolkit/pyramid-principle-output (top-line-first output structure)
+        - thinking-toolkit/so-what-test (output quality forcing function)
+        - thinking-toolkit/2x2-synthesis-matrix (multi-option synthesis)
+        - thinking-toolkit/driver-tree-decomposition (metric → actionable drivers)
+
+      Origin: Barbara Minto's *Pyramid Principle* (1987), McKinsey internal
+      training (TOSCA, driver-tree, So-What), BCG Growth-Share matrix (2x2).
+      Filtered for ritsu-works fit (B2C self-serve EdTech PLG 1-founder):
+      kept 6 high-leverage, rejected 6 redundant-with-/muse-or-not-fit (Issue
+      Tree, Ghost Deck, 5 Whys, 80/20, 7S, PEST/Porter).
+    version: "1.0.0"
+    state: operating
+    state_since: 2026-05-28
+    proposed_at: 2026-05-28
+    deployed_at: 2026-05-28
+    operating_since: 2026-05-28
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [4, 5, 9, 14, 19, 20]  # Memory, Multi-Agent, SOP-discipline (output), Knowledge graph (skills as Tier 1 markdown), Founder capacity (saved reading time), CLA produced this
+    spec_path: wiki/capabilities/thinking-toolkit/spec.md
+    retrospective_path: wiki/capabilities/thinking-toolkit/retrospective.md
+    sprint_plan: ".archives/cla/thinking-toolkit/sprint-plan.md (local-only)"
+    cost_bucket: ai-ops-skill-library
+    estimated_cost_setup_usd: 12  # one-night authoring + docs MDX gen
+    estimated_cost_recurring_usd: 0  # zero — skills are guidance docs, no per-invocation LLM cost
+    estimated_founder_hours: 0  # autonomous overnight ship per founder pre-authorization 2026-05-28
+    notes: |
+      Single-session ship 2026-05-28. /cla propose 8-phase compressed into
+      one autonomous session per founder standing-authorization.
+
+      Established design decisions (do not re-litigate):
+        - Skills are LEAF (one SKILL.md per file under thinking-toolkit/<name>/)
+        - Parent-namespaced folder enables future framework extracts
+        - Persona integration is NON-INVASIVE (1 added section "Output discipline")
+        - No new command — composed by existing personas via Skill tool
+        - No new cost-bucket — reuses ai-ops-skill-library per caller's role
+        - No new DB tables — uses existing capability_runs + decisions
+
+      Capability run id: TBD-at-implementation-time (INSERT during Phase 7).
+      Brainstorm artifacts: in-session 2026-05-28 (this file's chat log).
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:
@@ -1022,6 +1078,10 @@ cost_buckets:
   ai-ops-docs:
     description: "Live docs site — Fumadocs scaffolder, walker + 9 adapters, drift detector, secret redactor, Vercel deploy. docs-engine capability."
     capabilities: [docs-engine]
+
+  ai-ops-skill-library:
+    description: "Skill-library capabilities — guidance documents that structure thinking and output of invoking agents. Zero per-invocation LLM cost; one-time authoring cost only."
+    capabilities: [thinking-toolkit]
 
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
