@@ -103,31 +103,68 @@ else
   echo "[install-vendor] router.patch applied."
 fi
 
+# 4b. Apply train.py patch — adds ritsu_file_queue to argparse --backend choices.
+#     Without this, `train.py --backend ritsu_file_queue` is rejected at CLI
+#     parse time BEFORE router.py is consulted. Two-signal check matches the
+#     router.patch pattern.
+TRAIN_REL="scripts/train.py"
+TRAIN_PATH="${VENDOR_DIR}/${TRAIN_REL}"
+TRAIN_ALREADY_PATCHED=0
+if grep -qE "^    # ritsu-works:ritsu_file_queue:v1" "${TRAIN_PATH}" \
+   && grep -q '"ritsu_file_queue"' "${TRAIN_PATH}"; then
+  TRAIN_ALREADY_PATCHED=1
+fi
+if [[ "${TRAIN_ALREADY_PATCHED}" == "1" ]]; then
+  echo "[install-vendor] train.py already patched (signature + choice present); skipping."
+else
+  if [[ ! -f "${PATCHES_DIR}/train.patch" ]]; then
+    echo "[install-vendor] FATAL: ${PATCHES_DIR}/train.patch missing." >&2
+    exit 1
+  fi
+  echo "[install-vendor] applying train.patch..."
+  ( cd "${VENDOR_DIR}" && git apply --check "${REPO_ROOT}/${PATCHES_DIR}/train.patch" 2>&1 ) || {
+    echo "[install-vendor] FATAL: train.patch does not apply cleanly. Possible upstream change at the pinned SHA. See scripts/skillopt/UPSTREAM-DEVIATION.md for refresh procedure." >&2
+    exit 1
+  }
+  ( cd "${VENDOR_DIR}" && git apply "${REPO_ROOT}/${PATCHES_DIR}/train.patch" )
+  echo "[install-vendor] train.patch applied."
+fi
+
 # 5. Smoke test — env-cleared per @cto NIT 4.
 #    Conditional on vendor's Python deps being installed (openai, pyyaml, etc.
 #    — see vendor/skillopt/requirements.txt). Local dev without these deps
 #    gets a friendly skip-with-hint; CI must `pip install -r vendor/skillopt/
 #    requirements.txt` before this runs to get the full smoke coverage.
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "[install-vendor] WARN: python3 not on PATH; skipping smoke test."
-  echo "[install-vendor] patches applied. Install python3 + vendor deps to run smoke:"
-  echo "    python3 -m pip install -r vendor/skillopt/requirements.txt"
+#    Vendor requires Python ≥ 3.10 (uses @dataclass(slots=True)). macOS ships
+#    /usr/bin/python3 = 3.9 which fails. Use find-python.sh to locate a
+#    suitable interpreter (prefers SKILLOPT_PYTHON env, then python3.14/13/12/
+#    11/10, then Homebrew paths).
+PYTHON=""
+if [[ -x "${REPO_ROOT}/scripts/skillopt/find-python.sh" ]]; then
+  PYTHON="$(bash "${REPO_ROOT}/scripts/skillopt/find-python.sh" 2>/dev/null)" || PYTHON=""
+fi
+if [[ -z "${PYTHON}" ]]; then
+  echo "[install-vendor] WARN: no python3 >= 3.10 found; skipping smoke test."
+  echo "[install-vendor] patches applied. Install Python 3.10+ then re-run."
+  echo "    brew install python@3.13   # or python@3.11 / @3.14"
+  echo "    bash scripts/skillopt/install-python-deps.sh   # then install deps"
   exit 0
 fi
-if ! python3 -c 'import openai, yaml, numpy' >/dev/null 2>&1; then
-  echo "[install-vendor] WARN: vendor Python deps not installed (need openai, pyyaml, numpy). Skipping smoke test."
-  echo "[install-vendor] patches applied. To enable smoke:"
-  echo "    python3 -m pip install -r vendor/skillopt/requirements.txt"
+if ! "${PYTHON}" -c 'import openai, yaml, numpy' >/dev/null 2>&1; then
+  echo "[install-vendor] WARN: vendor Python deps not installed for ${PYTHON}. Skipping smoke test."
+  echo "[install-vendor] patches applied. To enable smoke, install deps via either:"
+  echo "    bash scripts/skillopt/install-python-deps.sh              # guided helper (prompts + verifies)"
+  echo "    ${PYTHON} -m pip install -r vendor/skillopt/requirements.txt # direct"
   exit 0
 fi
 SMOKE_OUT="$(mktemp)"
 trap 'rm -f "${SMOKE_OUT}"' EXIT
 if ! env -i ANTHROPIC_API_KEY= HOME="${HOME}" PATH="${PATH}" PYTHONPATH="${VENDOR_DIR}" \
-  python3 "${VENDOR_DIR}/scripts/train.py" --backend ritsu_file_queue --help \
+  "${PYTHON}" "${VENDOR_DIR}/scripts/train.py" --backend ritsu_file_queue --help \
   >"${SMOKE_OUT}" 2>&1; then
-  echo "[install-vendor] FATAL: train.py --help failed for --backend ritsu_file_queue." >&2
+  echo "[install-vendor] FATAL: train.py --help failed for --backend ritsu_file_queue (python: ${PYTHON})." >&2
   tail -30 "${SMOKE_OUT}" >&2
   exit 1
 fi
 
-echo "[install-vendor] vendor smoke ok (SHA ${PINNED_SHA}, backend ritsu_file_queue registered)."
+echo "[install-vendor] vendor smoke ok (SHA ${PINNED_SHA}, backend ritsu_file_queue registered, python: ${PYTHON})."

@@ -1,0 +1,13 @@
+--- a/scripts/train.py
++++ b/scripts/train.py
+@@ -136,8 +136,9 @@
+
+     # Legacy flat CLI overrides (still work, prefer --cfg-options for new usage)
+     p.add_argument("--env", type=str)
++    # ritsu-works:ritsu_file_queue:v1 — patched by scripts/skillopt/install-vendor.sh
+     p.add_argument("--backend", type=str,
+-                   choices=["azure_openai", "codex", "codex_exec", "claude", "claude_chat", "claude_code_exec", "qwen", "qwen_chat"])
++                   choices=["azure_openai", "codex", "codex_exec", "claude", "claude_chat", "claude_code_exec", "qwen", "qwen_chat", "ritsu_file_queue"])
+     p.add_argument("--optimizer_model", type=str)
+     p.add_argument("--target_model", type=str)
+     p.add_argument("--optimizer_backend", type=str)

@@ -112,6 +112,7 @@ if (pinnedSha !== actualSha) {
 const requiredPatchFiles = [
   path.join(PATCHES_DIR, BACKEND_BASENAME),
   path.join(PATCHES_DIR, 'router.patch'),
+  path.join(PATCHES_DIR, 'train.patch'),
 ];
 for (const p of requiredPatchFiles) {
   if (!fs.existsSync(p)) {
@@ -148,6 +149,17 @@ if (vendorHydrated) {
       `${path.relative(REPO_ROOT, backendDest)} missing post-install. ` +
         `Run: bash scripts/skillopt/install-vendor.sh`,
     );
+  }
+  // train.py argparse choices must include ritsu_file_queue (train.patch applied).
+  const trainPath = path.join(VENDOR_DIR, 'scripts', 'train.py');
+  if (fs.existsSync(trainPath)) {
+    const train = fs.readFileSync(trainPath, 'utf8');
+    if (!train.includes('"ritsu_file_queue"')) {
+      fail(
+        `vendor/skillopt/scripts/train.py argparse --backend choices lack "ritsu_file_queue" — train.patch not applied. ` +
+          `Run: bash scripts/skillopt/install-vendor.sh`,
+      );
+    }
   }
 }
 

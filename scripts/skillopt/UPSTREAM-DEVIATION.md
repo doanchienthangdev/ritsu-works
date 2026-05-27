@@ -28,7 +28,7 @@ Per `/cla resume evolve` 2026-05-27 decision (founder Tier B approval in-session
 
 ## What gets patched in, exactly
 
-After `git submodule update --init vendor/skillopt`, `install-vendor.sh` makes two mutations to the submodule working tree:
+After `git submodule update --init vendor/skillopt`, `install-vendor.sh` makes three mutations to the submodule working tree:
 
 1. **`vendor/skillopt/skillopt/model/ritsu_file_queue.py`** — copied verbatim from `scripts/skillopt/upstream-patches/ritsu_file_queue.py`. Implements the SkillOpt backend interface (chat_optimizer, chat_target, chat_with_deployment, chat_*_messages, get_token_summary, reset_token_tracker, set_reasoning_effort, set_target_deployment, set_optimizer_deployment) on top of a JSON file-queue. Makes zero HTTP calls; relies on the session bridge (Sprint 1 sub-PR C) to dispatch via subagent + subscription billing.
 2. **`vendor/skillopt/skillopt/model/router.py`** — patched via `scripts/skillopt/upstream-patches/router.patch`. Adds:
@@ -36,8 +36,12 @@ After `git submodule update --init vendor/skillopt`, `install-vendor.sh` makes t
    - `ritsu_file_queue` to the import line (`from . import …, ritsu_file_queue`).
    - One `if name == "ritsu_file_queue": return ritsu_file_queue` branch to `_backend_module`.
    - `ritsu_file_queue` to the `_all_backend_modules()` list and the `set_backend()` valid-name set.
+3. **`vendor/skillopt/scripts/train.py`** — patched via `scripts/skillopt/upstream-patches/train.patch` (added 2026-05-27 during /evolve skillopt dry-run cleanup). Adds:
+   - One signature comment line (`    # ritsu-works:ritsu_file_queue:v1`) above the `--backend` argparse declaration.
+   - `"ritsu_file_queue"` to the `choices=[...]` list on `p.add_argument("--backend", ...)`.
+   - Without this, `train.py --backend ritsu_file_queue` is rejected at argparse parse time (BEFORE router.py dispatch) with `invalid choice` error. The smoke test in `install-vendor.sh` and the runner Phase C subprocess launch both pass this exact argv.
 
-No other file under `vendor/skillopt/` is touched. After install, `git -C vendor/skillopt status` will show `router.py` modified + `ritsu_file_queue.py` untracked. That is the intentional signal that patches were applied.
+No other file under `vendor/skillopt/` is touched. After install, `git -C vendor/skillopt status` will show `router.py` + `scripts/train.py` modified + `ritsu_file_queue.py` untracked. That is the intentional signal that patches were applied.
 
 ## Upstream interface assumptions
 
@@ -121,4 +125,5 @@ Until upstream PR merges, this contract stays in force.
 
 ## Changelog
 
+- **2026-05-27** — added `train.patch` (3rd patch). Adds `ritsu_file_queue` to `train.py` argparse `--backend` choices. Without this, `train.py --backend ritsu_file_queue --help` is rejected at parse time and install-vendor.sh smoke test fails. Surfaced by `/evolve skillopt wiki-sync/ask --dry-run`.
 - **2026-05-27** — initial patch contract. Pin: `99212e3956c963d648219fad56a23f9e13c81b54`. Patches: backend + 4-segment router diff.
