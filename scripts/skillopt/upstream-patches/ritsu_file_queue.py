@@ -40,14 +40,33 @@ DEFAULT_POLL_S = 0.5
 
 
 def _queue_dir() -> Path:
+    # @cto sub-PR A SHOULD-FIX (folded into sub-PR B): guard against
+    # accidentally-misconfigured queue dirs. The env var is operator-set, not
+    # network-controlled, so this isn't a security-critical check — but a
+    # relative path or `/` would cause `mkdir(parents=True)` to silently
+    # create directories in surprising places. Reject early.
     path = os.environ.get(QUEUE_DIR_ENV, "")
     if not path:
         raise RuntimeError(
             f"ritsu_file_queue backend requires {QUEUE_DIR_ENV} env var "
-            f"pointing to a directory under which llm-requests/ and "
-            f"llm-responses/ live."
+            f"pointing to an absolute directory path under which "
+            f"llm-requests/ and llm-responses/ live."
         )
     base = Path(path)
+    if not base.is_absolute():
+        raise RuntimeError(
+            f"ritsu_file_queue: {QUEUE_DIR_ENV} must be an absolute path "
+            f"(got: {path!r}). Resolve relative to the orchestrator's "
+            f"working directory before exporting."
+        )
+    # Refuse obvious filesystem roots so a misconfig can't carpet-create
+    # `llm-requests/` and `llm-responses/` at `/` or `$HOME`. The orchestrator
+    # always sets this to `runtime/skillopt/<entity>/runs/<rid>/` (resolved).
+    if str(base) in {"/", os.path.expanduser("~")}:
+        raise RuntimeError(
+            f"ritsu_file_queue: {QUEUE_DIR_ENV}={path!r} is a filesystem "
+            f"root. The orchestrator should point this at a per-run dir."
+        )
     (base / "llm-requests").mkdir(parents=True, exist_ok=True)
     (base / "llm-responses").mkdir(parents=True, exist_ok=True)
     return base
@@ -80,13 +99,23 @@ def _enqueue_request(payload: dict[str, Any]) -> str:
 
 
 def _await_response(req_id: str, *, timeout_s: float | None = None) -> dict[str, Any]:
+    # @cto sub-PR A SHOULD-FIX (folded into sub-PR B): defensive read.
+    # The bridge SHOULD write responses atomically via tmp + rename (see
+    # scripts/skillopt/UPSTREAM-DEVIATION.md §"Bridge write contract" — sub-PR C
+    # author MUST honor this), but belt-and-suspenders: if we hit a partial
+    # write (file exists but JSON is incomplete) we treat it as not-yet-ready
+    # and keep polling.
     base = _queue_dir()
     deadline = time.time() + (timeout_s if timeout_s is not None else _timeout_s())
     resp_path = base / "llm-responses" / f"resp-{req_id}.json"
     poll = _poll_s()
     while time.time() < deadline:
         if resp_path.exists():
-            return json.loads(resp_path.read_text())
+            try:
+                return json.loads(resp_path.read_text())
+            except json.JSONDecodeError:
+                # Partial write or transient race; keep polling.
+                pass
         time.sleep(poll)
     raise TimeoutError(
         f"ritsu_file_queue: no response for req {req_id} after "

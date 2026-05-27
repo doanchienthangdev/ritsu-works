@@ -73,10 +73,22 @@ fi
 cp "${PATCHES_DIR}/${BACKEND_BASENAME}" "${VENDOR_DIR}/${BACKEND_DEST_REL}"
 echo "[install-vendor] copied ${BACKEND_BASENAME} → ${VENDOR_DIR}/${BACKEND_DEST_REL}"
 
-# 4. Apply router patch if signature not present
+# 4. Apply router patch if signature not present.
+#    @cto sub-PR A SHOULD-FIX (folded into sub-PR B): two-signal check.
+#    A single `grep -q` for the signature comment could miss the case where
+#    upstream lands our PR with a slightly different shape (signature line
+#    survives but the dispatch branch doesn't), causing the patch to be
+#    silently skipped while the import fails at runtime. We now require BOTH
+#    the anchored signature comment AND the `_backend_module` dispatch
+#    branch to be present before considering the file already patched.
 ROUTER_PATH="${VENDOR_DIR}/${ROUTER_REL}"
-if grep -q "${SIGNATURE}" "${ROUTER_PATH}"; then
-  echo "[install-vendor] router.py already patched (signature present); skipping."
+ALREADY_PATCHED=0
+if grep -qE "^# ritsu-works:ritsu_file_queue:v1" "${ROUTER_PATH}" \
+   && grep -q 'if name == "ritsu_file_queue"' "${ROUTER_PATH}"; then
+  ALREADY_PATCHED=1
+fi
+if [[ "${ALREADY_PATCHED}" == "1" ]]; then
+  echo "[install-vendor] router.py already patched (signature + dispatch branch present); skipping."
 else
   if [[ ! -f "${PATCHES_DIR}/router.patch" ]]; then
     echo "[install-vendor] FATAL: ${PATCHES_DIR}/router.patch missing." >&2
