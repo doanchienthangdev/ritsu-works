@@ -2,7 +2,7 @@
 <!-- Per-entry overrides MUST be inside <!-- override-start --> ... <!-- override-end --> markers -->
 <!-- DO NOT manually edit outside override markers; changes will be lost on next sync -->
 
-# Recipient Catalog: capabilities
+# Recipient Catalog: capabilitys
 
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
@@ -59,7 +59,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/evolve
 
 **Kind:** capability
-**When to use:** /evolve — Eval+Evo Feedback Loop for ritsu-works entities. Iterative evaluate→propose-improvement→install→re-evaluate loop on v1.0.0
+**When to use:** /evolve — Eval+Evo Feedback Loop for ritsu-works entities. Iterative evaluate→propose-improvement→install→re-evaluate loop on v1.1.0
 
 **Invoke:** `Read("wiki/capabilities/evolve/spec.md")` or `/cla update evolve`
 

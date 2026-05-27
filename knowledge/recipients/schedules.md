@@ -7,7 +7,7 @@
 This file is THE source of truth for schedule recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 
-**Total entries:** 15
+**Total entries:** 16
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -139,6 +139,17 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 **When to use:** Cron 0 * * * *: Canary mcp__resolver__find call; alert founder on 3 consecutive failures
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `resolver-v3-health-check`
+
+**Role scope:** founder, etl-runner
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## schedule/skillopt-synth-prod-correlation-monthly
+
+**Kind:** schedule
+**When to use:** Cron 0 9 1 * *: Monthly Spearman correlation between SkillOpt held-out scores and prod correction rates
+
+**Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `scripts/eval-evo/skillopt-synth-prod-correlation.cjs`
 
 **Role scope:** founder, etl-runner
 **Status:** active
