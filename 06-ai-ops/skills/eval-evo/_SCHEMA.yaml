@@ -1,12 +1,17 @@
-# JSON Schema for ops.agent_runs.state_payload when agent_slug = 'evolve'
+# JSON Schema for ops.agent_runs.input_payload when agent_slug = 'evolve'
 #
 # Validated by scripts/cross-tier/validate-eval-evo-schemas.cjs at pnpm check.
 # Documents the JSONB shape; not enforced by Postgres (PGRST does not
 # auto-validate JSONB).
+#
+# Historical note: pre-2026-05-27 this schema described `state_payload`. The
+# actual ops.agent_runs table only has input_payload + output_payload (per
+# migration 00002 line 183-184); state_payload exists on ops.tasks only.
+# Schema renamed to match reality during /evolve skillopt dry-run cleanup.
 
 $schema: "http://json-schema.org/draft-07/schema#"
-$id: "ritsu-works://eval-evo/agent-runs-state-payload"
-title: "ops.agent_runs.state_payload for /evolve invocations"
+$id: "ritsu-works://eval-evo/agent-runs-input-payload"
+title: "ops.agent_runs.input_payload for /evolve invocations"
 
 type: object
 required:

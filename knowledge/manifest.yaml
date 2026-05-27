@@ -483,8 +483,11 @@ tier2_operational:
             Audit log — one row per agent invocation.
             Base columns (00002): id, started_at, ended_at, agent_slug,
               agent_version, triggered_by_kind/id, task_id, parent_run_id,
-              state ('running'|'completed'|'failed'|'cancelled'), state_payload,
+              state ('running'|'completed'|'failed'|'cancelled'), state_since,
               input_payload, output_payload, llm_provider, llm_model,
+              (NOTE: state_payload exists on ops.tasks NOT ops.agent_runs;
+              corrected 2026-05-27 to match live schema. See migration 00002
+              line 183-184 for actual agent_runs columns.)
               tokens_input, tokens_output, cost_usd, cost_bucket, error,
               error_at_step.
             HITL audit extension (00015, per governance/HITL.md):

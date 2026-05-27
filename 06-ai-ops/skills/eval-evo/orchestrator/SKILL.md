@@ -71,13 +71,13 @@ sop: 06-ai-ops/sops/SOP-AIOPS-004-evolve/flow.yaml
    `agent_slug='evolve'` + `recall_filter.entity_slug=<entity_name>`
    + `recall_max_runs=3`. Append summaries to context.
 2. **Corrections** — JOIN-based negative-signal load (ops.corrections doesn't
-   have entity_slug directly; it lives on ops.agent_runs.state_payload):
+   have entity_slug directly; it lives on ops.agent_runs.input_payload):
    ```sql
    SELECT c.correction_note, c.correction_kind, c.ts
    FROM ops.corrections c
    JOIN ops.agent_runs ar ON ar.id = c.run_id
    WHERE ar.agent_slug = 'evolve'
-     AND ar.state_payload->>'entity_slug' = <entity_name>
+     AND ar.input_payload->>'entity_slug' = <entity_name>
      AND c.ts > NOW() - INTERVAL '90 days'
    ORDER BY c.ts DESC LIMIT 10
    ```
@@ -232,7 +232,7 @@ the playbook is revised. Built-in safety against systematic bias.
   (tier-aware writer), `eval-evo/outside-voice` (Tier C+ second opinion).
 - **Reads**: `ops.run_summaries`, `ops.corrections`, `ops.cost_attributions`,
   `ops.agent_runs`.
-- **Writes**: `ops.agent_runs` (state_payload UPDATE), `ops.run_summaries`
+- **Writes**: `ops.agent_runs` (input_payload UPDATE), `ops.run_summaries`
   (per iter), `ops.events` (per kept iter).
 - **Uses**: `git stash`, `git apply`, `pnpm check`.
 
