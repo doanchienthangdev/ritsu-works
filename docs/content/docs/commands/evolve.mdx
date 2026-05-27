@@ -5,8 +5,8 @@ description: |
   ritsu-works leaf entity (skill / command / agent / hook / SOP). Foundational
   self-improvement capability per wiki/capabilities/evolve/spec.md.
 source_path: .claude/commands/evolve.md
-source_hash: 1476c79e5635d099a6d933d018c3b1401805757aa9e31069314ef4031900ce3e
-generated_at: '2026-05-27T18:25:03.881Z'
+source_hash: 2d92afe590904d43c5b97ca0c4c8c52edcd981d2cba40cb69fdfc978d4e87fce
+generated_at: '2026-05-27T19:02:10.120Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
@@ -32,17 +32,17 @@ The command is a thin orchestrator. Loop logic lives in
 | Invocation | Purpose | HITL |
 |---|---|---|
 | `/evolve <type> <name> [--loop=N] [--stop=cond] [--dry-run] [--tier-override]` | Run eval+evo loop (v1.0 judge-persona rubric path) | B for tier-B entities; C for tier-C+ entities (loop in-session, PR after) |
-| `/evolve skillopt <skill-name> [--max-messages=N] [--dry-run] [--regen-data] [--resume=<run-id>] [--gen-sources=auto|pillars=1,3,5] [--bridge-poll-ms=N] [--tier-override]` | **v1.1 NEW.** Run SkillOpt held-out task-completion path via vendor subprocess + session bridge. Dispatches to `eval-evo/skillopt-runner` skill. See spec §19. | B (Tier C entities refused unless `--tier-override`) |
+| `/evolve skillopt &lt;skill-name&gt; [--max-messages=N] [--dry-run] [--regen-data] [--resume=&lt;run-id&gt;] [--gen-sources=auto|pillars=1,3,5] [--bridge-poll-ms=N] [--tier-override]` | **v1.1 NEW.** Run SkillOpt held-out task-completion path via vendor subprocess + session bridge. Dispatches to `eval-evo/skillopt-runner` skill. See spec §19. | B (Tier C entities refused unless `--tier-override`) |
 | `/evolve status <type> <name>` | Read-only history viewer | A |
-| `/evolve reject <run-id> "<reason>"` | Founder negative signal → ops.corrections | A |
-| `/evolve discard <run-id> [--stale]` | Cleanup stash + run state | A |
+| `/evolve reject &lt;run-id&gt; "<reason>"` | Founder negative signal → ops.corrections | A |
+| `/evolve discard &lt;run-id&gt; [--stale]` | Cleanup stash + run state | A |
 
 ## Argv schema
 
 | Arg / Flag | Required | Validation |
 |---|---|---|
-| `<entity-type>` | yes | enum: skill, command, agent, hook, sop |
-| `<entity-name>` | yes | slug `^[a-z0-9][a-z0-9-/]*$` (no `..`, no leading `/`, slash allowed for nested) |
+| `&lt;entity-type&gt;` | yes | enum: skill, command, agent, hook, sop |
+| `&lt;entity-name&gt;` | yes | slug `^[a-z0-9][a-z0-9-/]*$` (no `..`, no leading `/`, slash allowed for nested) |
 | `--loop=N` | no | 1 ≤ N ≤ 10; default 3 |
 | `--stop=score>=N` or `--stop=no-improvement-for=N` | no | exact regex match |
 | `--dry-run` | no | bool; runs evaluation only, skips install |
@@ -71,12 +71,12 @@ v1.0 path alone lacked (spec §19.1).
 | Arg / Flag | Required | Validation |
 |---|---|---|
 | `skillopt` literal | yes | first positional after `/evolve` |
-| `<skill-name>` | yes | slug `^[a-z0-9][a-z0-9-/]*$`. v1.1 entity_type is always `skill` (spec §19.2) |
+| `&lt;skill-name&gt;` | yes | slug `^[a-z0-9][a-z0-9-/]*$`. v1.1 entity_type is always `skill` (spec §19.2) |
 | `--max-messages=N` | no | 1 ≤ N ≤ 500; default 500 (matches `eval-evo-skillopt-iteration-total` cap in ROLES.md) |
 | `--max-cost-usd=N` | no | belt-and-suspenders; default null |
 | `--dry-run` | no | bool; skips Phase E install + Phase F founder review |
 | `--regen-data` | no | bool; forces fresh `skillopt-gen-data` (bypasses cache hit) |
-| `--resume=<run-id>` | no | uuid; resume a paused/crashed run from `runner-state.json` |
+| `--resume=&lt;run-id&gt;` | no | uuid; resume a paused/crashed run from `runner-state.json` |
 | `--gen-sources=auto` | no | default. Resolves to active pillars `[1, 3, 5]` |
 | `--gen-sources=pillars=1,3,5` | no | explicit subset. Pillars 2 & 4 are v1.2-deferred (error if requested) |
 | `--bridge-poll-ms=N` | no | 250 ≤ N ≤ 2000; default 1000 |
@@ -94,14 +94,14 @@ v1.0 path alone lacked (spec §19.1).
    - `--apply` + `--dry-run` both present → OK (production path resolution
      + skip Phase E install per v1.0 dry-run semantics).
    Then path resolution per v1.1.2 default sandbox flow:
-   - If `--apply` present: target = `06-ai-ops/skills/<skill-name>/SKILL.md`
+   - If `--apply` present: target = `06-ai-ops/skills/&lt;skill-name&gt;/SKILL.md`
      (production-edit flow; uses git stash + revert safety net).
    - If `--entity-path=<abs>` present: target = the explicit path (advanced
      non-standard sandbox location).
    - **Default (no flags):** auto-derive sandbox path at
-     `$(pwd)/runtime/sandboxes/<flattened-skill-name>/SKILL.md`. If file
+     `$(pwd)/runtime/sandboxes/&lt;flattened-skill-name&gt;/SKILL.md`. If file
      missing, auto-scaffold via `bash scripts/skillopt/init-sandbox.sh
-     \<skill-name>` (cp from production). Production NEVER touched.
+     &lt;skill-name&gt;` (cp from production). Production NEVER touched.
 1.a. **Auto-examples gate (v1.1.2 NEW, default sandbox flow only):**
    After path resolution, read the target SKILL.md and count `<example>`
    blocks. If count == 0:
@@ -129,7 +129,7 @@ v1.0 path alone lacked (spec §19.1).
      skips automatically).
    - **Abort** → /evolve exits with `exit_reason: 'founder_aborted_examples'`.
 2. **Pre-flight via cost-estimator** — run
-   `node scripts/skillopt/cost-estimator.cjs --skill=<skill-name> --max-messages=<N> --entity-path=<resolved-path>`.
+   `node scripts/skillopt/cost-estimator.cjs --skill=&lt;skill-name&gt; --max-messages=<N> --entity-path=&lt;resolved-path&gt;`.
    Exit 2 (cap exceeded) → abort with widen-cap hint. Sandbox runs (default)
    are signalled by `sandbox_mode: true` in cost-estimator output.
 3. **Drift gate** — `pnpm check` clean.
@@ -159,7 +159,7 @@ adds a human-readable summary line:
                           msgs:<dispatched>/<max> iters:<N> dataset:<path>
 ```
 
-For `--resume=<run-id>` invocations, the output identifies which phase was
+For `--resume=&lt;run-id&gt;` invocations, the output identifies which phase was
 resumed and any state divergence (e.g., dataset path changed mid-flight).
 
 ### Comparison to v1.0 path
@@ -173,7 +173,7 @@ resumed and any state divergence (e.g., dataset path changed mid-flight).
 | Wall-clock | minutes | tens of minutes per iteration (bridge polling) |
 | Held-out signal | None (judge measures same dataset that produces gains) | 30% held-out split scored separately (spec §19.5/§19.7) |
 | Required deps | None | `pip install -r vendor/skillopt/requirements.txt` |
-| Resume support | None | `--resume=<run-id>` reads `runner-state.json` |
+| Resume support | None | `--resume=&lt;run-id&gt;` reads `runner-state.json` |
 
 ## Workflow
 
@@ -227,7 +227,7 @@ resumed and any state divergence (e.g., dataset path changed mid-flight).
    '\<run_id>'::uuid)` at Phase C completion when the universal-lock path was
    used. Legacy path needs no explicit release (presence inferred from
    `state IN ('completed','failed','cancelled')`).
-7. Working tree check: `git diff --quiet -- <entity-file>`. If dirty, error.
+7. Working tree check: `git diff --quiet -- &lt;entity-file&gt;`. If dirty, error.
 8. Classify tier:
    - hook + sop + Tier 1 entity → Tier C+
    - skill + command + agent → Tier B
@@ -241,7 +241,7 @@ Pass to `eval-evo/orchestrator/SKILL.md` via Skill tool with input:
 {
   "entity_type": "<type>",
   "entity_name": "<name>",
-  "entity_path": "<resolved-path>",
+  "entity_path": "&lt;resolved-path&gt;",
   "max_iters": <N>,
   "stop_cond": "<cond or null>",
   "dry_run": <bool>,
@@ -273,7 +273,7 @@ for contract.
 - Working tree contains accumulated diff (kept iters committed in-place via `git stash drop`).
 - Invoke `eval-evo/outside-voice/SKILL.md` (codex → subagent → annotate fallback).
 - Assemble PR body: spec.md link + score trajectory + outside-voice report + cost summary.
-- `gh pr create --title "evolve(<type>/<name>) <score-pre>→<score-post>" --body "<assembled>"`
+- `gh pr create --title "evolve(<type>/<name>) &lt;score-pre&gt;→&lt;score-post&gt;" --body "<assembled>"`
 - UPDATE ops.agent_runs.state='pr-open'.
 - **Lock release** (same call as Tier B above; idempotent).
 - Print PR URL.
@@ -330,7 +330,7 @@ Iters: <K> of <N> (<exit reason>)
 Score trajectory: <S0> → <S1> → <S2> → ... (final <Sn>, +<delta> from start)
 Total cost: $<actual> of $2.50 budget
 Drift: clean (pnpm check ✓)
-Tier B: installed in-place. Run-id: <run-id>.
+Tier B: installed in-place. Run-id: &lt;run-id&gt;.
 
 (For Tier C+ adds:)
 Outside-voice: codex review COMPLETE (score: <comparable|disagrees>; <N> nits)
@@ -353,7 +353,7 @@ ORDER BY started_at DESC LIMIT 5. Prints:
 ## Subcommand: reject
 
 ```
-/evolve reject <run-id> "<reason>"
+/evolve reject &lt;run-id&gt; "<reason>"
 ```
 
 Validates run-id exists in ops.agent_runs. Founder reason ≥ 5 words.
@@ -365,11 +365,11 @@ Next /evolve invocation on the same entity loads this row as negative-signal con
 ## Subcommand: discard
 
 ```
-/evolve discard <run-id> [--stale]
+/evolve discard &lt;run-id&gt; [--stale]
 ```
 
 - Without `--stale`: cleans up specific run-id (drops orphan stash entries from
-  that run via `git stash list | grep "<run-id>"` + `git stash drop`).
+  that run via `git stash list | grep "&lt;run-id&gt;"` + `git stash drop`).
 - With `--stale`: cleans up ALL eval-evo stashes older than 7 days.
 
 UPDATE ops.agent_runs.state='aborted' for the run-id (if still 'running').
