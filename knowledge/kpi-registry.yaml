@@ -154,12 +154,15 @@ kpis:
 
   - id: skillopt_runs_monthly
     type: operational
-    description: "Monthly count of completed /evolve skillopt runs (any outcome — all_phases_done, founder_abort, judge_regressed, etc.). Tracks adoption + execution volume of the SkillOpt path."
+    description: "Monthly count of completed /evolve skillopt runs (any outcome — all_phases_done, founder_abort, judge_regressed, etc.). Tracks adoption + execution volume of the SkillOpt path. Informational metric — no automated alert (low-=-bad direction not modeled by the kpi-registry threshold convention which assumes higher-=-worse). Adoption check is a manual founder review of the dashboard."
     owner_pillar: 06-ai-ops
     owner_role: eval-evo-orchestrator
     target: 5
-    threshold_warn: 0
-    threshold_critical: 0
+    # Intentionally NO threshold_warn / threshold_critical — adoption metric
+    # uses "low = bad" direction which the current kpi-registry threshold
+    # convention (low = good, alert when high) doesn't support. Founder
+    # reviews the dashboard tile manually. Alert wiring deferred until a
+    # `direction` field lands in the schema (separate Sprint).
     cadence: monthly
     source: "SELECT count(*) FROM ops.agent_runs WHERE agent_slug = 'evolve' AND state_payload->>'mode' = 'skillopt' AND state IN ('completed', 'failed') AND date_trunc('month', started_at) = date_trunc('month', now())"
 

@@ -59,11 +59,23 @@ try {
 
 for (const entity of entities) {
   const entityDir = path.join(RUNTIME_SKILLOPT_DIR, entity);
-  if (entity.startsWith('.') || !fs.statSync(entityDir).isDirectory()) continue;
+  if (entity.startsWith('.')) continue;
+  // Race-safe stats — directory could vanish between readdir and stat if
+  // a concurrent /evolve skillopt session is cleaning up. Per @cto SHOULD-FIX
+  // on PR #133 (Sprint 4 review): match the inner-stat try/catch pattern.
+  try {
+    if (!fs.statSync(entityDir).isDirectory()) continue;
+  } catch {
+    continue;
+  }
 
   const runsDir = path.join(entityDir, 'runs');
   if (!fs.existsSync(runsDir)) continue;
-  if (!fs.statSync(runsDir).isDirectory()) continue;
+  try {
+    if (!fs.statSync(runsDir).isDirectory()) continue;
+  } catch {
+    continue;
+  }
 
   let runs;
   try {
