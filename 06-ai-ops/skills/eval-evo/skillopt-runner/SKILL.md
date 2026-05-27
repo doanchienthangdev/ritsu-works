@@ -141,7 +141,15 @@ Strict JSON to stdout for the `/evolve` command to render:
    --skill=<entity_name> --max-messages=<max_messages>`. Exit 2 (cap exceeded)
    → abort with widen-cap hint. Exit 0 → record `estimated_messages` in state.
 3. **Drift gate.** `pnpm check` must be clean.
-4. **Working tree clean check.** `git status --porcelain` empty.
+4. **Working tree clean check.** Working tree must be clean EXCEPT for
+   `vendor/skillopt` (the submodule's patches re-apply each `install-vendor.sh`
+   run — intentional per `scripts/skillopt/UPSTREAM-DEVIATION.md`; SHA pin +
+   patch-integrity verified by L1 invariant `skillopt-vendor-sha-pinned` in
+   `scripts/cross-tier/validate-skillopt-vendor.cjs`). Concretely:
+   `[ -z "$(git status --porcelain | grep -v 'vendor/skillopt$')" ]`.
+   Excluding the known-benign path is cleaner than either committing the
+   patched submodule pointer (breaks `install-vendor.sh` idempotency) or
+   stashing before every run (wraps every invocation in 2 extra steps).
 5. **Vendor smoke.** `bash scripts/skillopt/install-vendor.sh` exits 0 (idempotent).
 6. **Python deps check.** `python3 -c 'import openai, yaml, numpy'` succeeds.
    Else abort with `pip install -r vendor/skillopt/requirements.txt` hint.
