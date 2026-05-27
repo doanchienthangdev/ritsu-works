@@ -1,0 +1,437 @@
+---
+title: "Chương 41 — Capability Case Study #8: /update — Bayesian-Update Verb cho Leaf Entities"
+description: "Chương 41 — Capability Case Study #8: /update — Bayesian-Update Verb cho Leaf Entities"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/41-capability-case-update.md
+source_hash: 24f770baf31bcce6f7550269bab0918529b461b96742e091a3da800b9291a91c
+generated_at: '2026-05-27T02:09:43.234Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 24f770baf31bcce6f7550269bab0918529b461b96742e091a3da800b9291a91c
+translated_at: '2026-05-27T02:09:43.234Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 41
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Founder cần fix product.md sau 1 muse session — 1 paragraph thôi. Lựa chọn hiện tại: hand-edit + PR (mất citation discipline + 3-way diff + audit trail), HOẶC /cla extend (ceremony 30 phút cho 1 typo). Cả hai đều tệ. /update lấp khoảng giữa: 1 verb refresh-from-refs cho 4 loại entity v1.0 → 5 thêm v1.1 → 1 D-Std mode cho Tier 1 ở v1.1.1, tất cả ship trong cùng 1 session. Lesson: 'third foundational write-loop' không phải vain phrase — /cla create, /evolve self-improve, /update ingest external truth = trinity đầy đủ cho AI-native write operations."*
+
+Chương này document **`/update`** — capability thứ 8 ship qua Bài #20 (CLA), và là **single-session-end-to-end** record: v1.0.0 (Phase 0-8 trong 1 ngày) → v1.1.0 (3 sprints) → v1.1.1 (1 patch sprint) cùng ngày `2026-05-26`. Total elapsed: **~10 giờ founder time + ~8 PRs + ~189 tests** trên 1 phiên.
+
+**Trạng thái:** operating v1.1.1. PRs #118 (v1.0 Sprint 1), #119 (Sprint 2), #120 (Sprint 3), #121 (Sprint 4 + Phase 8), #122 (v1.1 Sprint 1), #123 (Sprint 2), #124 (Sprint 3), #125 (v1.1.1), #126 (post-docs-sync). ops.capability_runs id `16720cb5-f2fe-47f0-9d47-beaeca5f05e1`. Tier C decision id `a683a371-0611-49c7-9650-53503027d60e`. Spec promoted `.archives/cla/update/spec.md` → `wiki/capabilities/update/spec.md` tại Phase 8.
+
+---
+
+## 41.1 Bài toán — third leg of the write-loop trinity
+
+Trước /update, ritsu-works có 2 verbs để **viết vào codebase**:
+
+- **`/cla propose`** (Bài #20) → tạo mới capability từ ý tưởng. Heavy ceremony. 8 phases. Cost ~$5-12 build.
+- **`/evolve <type> <name>`** (Chương 37) → self-improve một leaf entity bằng eval+propose-install loop dựa trên memory + corrections. Cost ~$0.50/run.
+
+Cả hai thiếu một mode: **refresh từ EXTERNAL truth** (refs — file, wiki page, web URL). Use case cụ thể founder gặp liên tục:
+
+> *"Tôi vừa đọc xong chương 14 Kotler về email marketing, có 3 ý hay muốn update vào skill `growth-orchestrator/email-cadence`. Không phải self-improvement (đó là /evolve job), không phải capability mới (đó là /cla)— chỉ là refresh leaf entity từ kiến thức mới. Phải làm thủ công: copy chương Kotler ra, đọc skill cũ, viết diff, mở PR. Mỗi lần ~30 phút. Một tuần làm 5-10 lần là 2.5-5 giờ founder time cho công việc lặp đi lặp lại."*
+
+**Diagnostic** (Chương 41.1.1):
+
+- `/cla extend` heavy quá cho task này: full 8 phases, $1.50-3 cost, ~2 giờ
+- `/evolve` không có path nhận refs: thiết kế cho memory-driven self-improvement
+- Hand-edit + PR thiếu **citation discipline** (refs cited explicitly), **3-way diff** (catch prior /update modifications), **K4 quality ratchet** (auto-revert nếu score regression)
+
+**Decision tree founder cần** (post-/update):
+
+| Task | Verb | Cost | Discipline |
+|------|------|------|------------|
+| Sub-10 LOC tweak (typo, link fix) | hand-edit | $0 | None |
+| Refresh leaf entity từ refs | **/update** | $0.70/run | Citation + K4 + audit |
+| Structural change (>100 LOC, new components) | /cla extend | $1.50-3 | Full ceremony |
+| Self-improvement (no refs) | /evolve | $0.50/run | K4 strict |
+| New capability | /cla propose | $5-12 | 8-phase ceremony |
+
+`/update` shipped để fill the gap. **One verb, citation-first.**
+
+## 41.2 Decisions trong /cla propose phase
+
+CLA workflow (chương 33) ran end-to-end. Quyết định critical:
+
+### 41.2.1 Separate-commands vs merge-into-/evolve
+
+**Options considered** (Phase 4):
+
+**Option A — v3.0 separate-commands + shared-infrastructure** (CHOSEN)
+- Hai commands phân biệt: `/update <type> <name> --refs=<csv>` và `/evolve <type> <name>` (no refs)
+- Shared infrastructure: universal entity-edit lock, eval-evo skill suite, audit tables
+- Pros: founder mental model rõ (update = ingest external, evolve = improve internal); convention fit (1 verb / 1 intent); future divergence supported (webhook /update v2.0, mass /update v1.2)
+- Cons: ~$3-5 extra build vs merge; 2x command surface (mitigated bằng thin orchestrator facades)
+
+**Option B — v2.0 merge into /evolve với --refs flag**
+- `/evolve <type> <name> [--refs=<csv>]` — refs là optional flag
+- Pros: $4-7 build, single command surface, simpler routing
+- Cons: hidden flag behavior (founder phải nhớ --refs là different code path); "evolve" verb connote self-improvement (gây nhầm); /evolve hook awkwardness; future flag-overload anti-pattern
+
+**Option C — v1.0 standalone (duplicate infrastructure)**
+- /update có own orchestrator + own lock + own audit
+- Pros: zero shared dependency = zero cross-flow regression
+- Cons: duplicates ~80% eval-evo logic; 2x maintenance burden; encourages divergence over time
+
+**Decision rationale (auto-resolved Phase 4):** Founder pre-committed Option A trong `/plan-ceo-review` morning session + `/plan-eng-review` afternoon session. CxO (@cto) concurred. Phase 4 honored "do not re-litigate" instruction trong /cla propose prompt body.
+
+### 41.2.2 K4 ratchet mode
+
+**Karpathy K4** (chương 37 §37.4) = score post-iter must ≥ score pre-iter (else auto-revert). /evolve uses strict K4.
+
+**/update problem:** refs-driven changes có inherent variance. Founder paste 3 đoạn Kotler vào skill — diff lớn 50 dòng — score variance ±3-5 pts là noise, không phải regression.
+
+**Decision:** Mode-aware K4 — `/update` allows `score_post >= score_pre - 5` (5pt slack). `/evolve` keeps strict (no slack). Slack documented + audit-logged để monitor false-positive revert rate.
+
+### 41.2.3 Citation spine
+
+Per founder Q1 (Phase 1): mỗi proposed_change phải trace về **raw_quote** từ ref chunk cụ thể. Không cho phép LLM fabricate.
+
+**Implementation:** NEW table `ops.evolve_extractions` (Sprint 2 migration 00040):
+
+```
+ops.evolve_extractions:
+  id uuid PRIMARY KEY
+  agent_run_id uuid REFERENCES ops.agent_runs(id) CASCADE
+  ref_path text NOT NULL           -- citation source
+  ref_chunk_index integer NOT NULL
+  raw_quote text NOT NULL (≤ 2000) -- verbatim text from ref
+  proposed_change text NOT NULL    -- structured change
+  confidence numeric(3,2) (0..1)
+  review_state CHECK IN (auto_accepted | pending_review |
+                         rejected_low_confidence |
+                         founder_accepted | founder_rejected | founder_edited)
+```
+
+**3-bucket confidence rounding:**
+- `>= 0.85` → `auto_accepted` (terminal-on-insert; goes to propose phase)
+- `0.6-0.85` → `pending_review` (founder reviews via `/update review`)
+- `< 0.6` → `rejected_low_confidence` (terminal-on-insert; logged but skipped)
+
+**State machine trigger** (migration 00040): `ops.evolve_extractions_check_review_transition` enforces legal transitions:
+- pending_review → founder_\{accepted|rejected|edited} (founder review)
+- auto_accepted, rejected_low_confidence: terminal-on-insert (UPDATE blocked)
+- founder_* states: terminal once set
+
+DB trigger = single source of truth cho review state machine. Validator invariant `evolve-extractions-review-state-machine-valid` flipped `deferred → live` khi migration 00040 landed.
+
+### 41.2.4 Universal entity-edit lock
+
+Trước /update, /evolve dùng `WHERE agent_slug='evolve'` SELECT chống concurrent runs trên cùng entity. /cla extend dùng `ops.capability_update_lock` cho capability scope. /update + /evolve + /cla extend cần lock chung trên (entity_type, entity_name) — nếu /update đang run trên skill X, /evolve không được run cùng lúc, vice versa.
+
+**Decision:** Universal lock — migration 00039 `ops.entity_edit_locks` keyed on `(entity_type, entity_name)`. Functions:
+- `ops.acquire_entity_edit_lock(p_entity_type, p_entity_name, p_holder_kind, p_holder_run_id, p_session_id) → JSONB`
+- `ops.release_entity_edit_lock(p_entity_type, p_entity_name, p_holder_run_id) → BOOLEAN`
+
+Stale takeover policy: nếu prior lock > 24h cũ AND prior holder_kind IN ('update', 'evolve') AND prior phase IN ('reviewing', 'awaiting_review') → **REFUSE takeover** (founder phải `/update cancel` hoặc `/update review` prior run). Else takeover OK.
+
+@cto NIT 2: `COALESCE(ar.state_payload->>'phase', 'unknown')` để defensive default khi state_payload missing — prevents NULL-eval-as-false-positive trong refuse decision.
+
+@cto NIT 4: Staged migration — feature flag `evolve_uses_universal_lock` default false 48h sau deploy, flip true sau ≥5 /evolve runs sạch. Rollback = flip flag back. Cleanup legacy SELECT path sau 30 ngày clean.
+
+### 41.2.5 Mode-aware tier classification
+
+Per founder Q (Phase 5): không phải mọi /update đều safe trong-place. Classify dựa trên diff signature:
+
+- **trivial** (≤5 lines, single file, no structural fields) → in-place Tier B
+- **medium** (multi-line, single section, may touch tests) → draft PR Tier C
+- **structural** (schema change, hook block directive, SOP step removal/reorder, HITL tier change, drift_check toggle) → **ABORT với /cla extend forward message**
+
+`scripts/update/classify-diff.cjs` implements per-type structural matrix (Sprint 2 + v1.1 Sprint 1 extensions for hook + pillar). SOP YAML diffs use shape-level comparison via js-yaml. Hook diffs use line-level regex (hooks là markdown not yaml).
+
+## 41.3 Architecture — 10-phase chain với composition
+
+```
+Layer 1 — User-facing slash command
+  .claude/commands/update.md (~360 LOC)
+    Argv: <entity-type> <entity-name> --refs=<csv> [--force-pr] [--skip-drift-check]
+          [--allow-untrusted-refs] [--force-tier=<B|C>] [--dry-run]
+    11 entity types: skill | command | agent | sop | hook | pillar | folder |
+                     workflow | file | tier1-file | capability(internal)
+    9 lifecycle subcommands: review | status | history | resume | reject |
+                              discard | list | cancel | force-unlock(D-Std)
+
+Layer 2 — Thin orchestrator dispatcher
+  06-ai-ops/skills/entity-update/orchestrator/SKILL.md (~330 LOC)
+    NEVER calls Anthropic API directly. Composes 5 shared eval-evo skills.
+
+Layer 3 — Shared eval-evo skills (Sprint 1-3 additions)
+  06-ai-ops/skills/eval-evo/
+    ├── distill-from-refs/SKILL.md  ← Sprint 2 — per-type LLM extraction → citation spine
+    ├── review-extractions/SKILL.md ← Sprint 2 — founder review queue UX (0.6-0.85 bucket)
+    ├── test-gen/SKILL.md           ← Sprint 3 — All-Edge-Cases-Test 5-phase rule VERBATIM
+    ├── propose-improvement/SKILL.md ← Sprint 1 extension — extractions_context input
+    ├── install-improvement/SKILL.md ← reused from /evolve
+    └── score-{skill,command,agent,sop}/SKILL.md ← reused from /evolve
+
+Layer 4 — Helper scripts (deterministic)
+  scripts/update/
+    ├── refs-resolver.cjs           ← wraps cla/resolve-refs.cjs; surfaces wiki-query-pending
+    ├── size-estimator.cjs          ← predicts diff_loc + cost; Big-ref ABORT (R7)
+    ├── classify-diff.cjs           ← per-type structural matrix (skill/command/agent/sop/hook/pillar)
+    ├── three-way-diff.cjs          ← marker-based conflict detection (R5)
+    ├── ref-source-allowlist.cjs    ← T9 prompt-injection guard (agent + hook strict)
+    ├── path-classify.cjs           ← v1.1 Sprint 2 — file mode path-tier classifier
+    ├── folder-classify.cjs         ← v1.1 Sprint 3 — folder type classify-dispatcher
+    └── tier1-allowlist.cjs         ← v1.1.1 — D-Std allowlist (00-core, governance, manifest)
+
+Layer 5 — Tier 1 declarative state
+  knowledge/
+    ├── manifest.yaml                       (ops.entity_edit_locks + evolve_extractions + v_entity_update_lineage)
+    ├── feature-flags.yaml                  (evolve_uses_universal_lock)
+    ├── cross-tier-invariants.yaml          (6 invariants: lock-holder-valid, review-state-machine,
+                                            role-attribution, file-path-tier-recorded, refuse-not-installed,
+                                            paths-yaml-validates, workflow-requires-folder-deferred)
+    ├── kpi-registry.yaml                   (4 KPIs: run_count, extractions_reviewed, revert_rate, file_mode)
+    ├── alert-rules.yaml                    (2 alerts: revert_rate_high/critical)
+    ├── update-file-paths.yaml             (v1.1 Sprint 2 — 38 path glob rules)
+    └── capability-registry.yaml            (update: state=operating v1.1.1)
+
+Layer 6 — Postgres (live in ritsu-ops)
+  ops.entity_edit_locks                 (migration 00039 + 00042 v1.1 + 00043 v1.1.1)
+  ops.evolve_extractions                (migration 00040 — citation spine)
+  ops.v_entity_update_lineage           (migration 00041 — view for /update history)
+
+Layer 7 — CI validators
+  scripts/cross-tier/
+    ├── validate-test-gen-methodology-drift.cjs  (Sprint 4 — warn-only hash drift)
+    └── validate-resolver-v2-schema.cjs          (extended VALID_STATUSES with 'deployed')
+
+Layer 8 — Governance role
+  governance/ROLES.md
+    entity-update-orchestrator        (Tier C max; $30/mo cap; 9 per-task-kind caps)
+```
+
+**10 phases trong orchestrator** (Phase -1 + 0..9):
+
+```
+Phase -1: D-Std ceremony (hook + tier1-file types only)
+          → magic-phrase "override: <reason 5+ words>" + 30s cooldown
+Phase 0a: Path classify (file type only) — refuse if Tier 1 path
+Phase 0b: Workflow REFUSE (until workflows/ folder ships)
+Phase 0c: Folder classify-dispatch (route to /update <type> recursively)
+Phase 0d: Tier 1 allowlist check (tier1-file only — hardcoded 00-core/governance/manifest)
+Phase 0e: tier1-file skips (no score/K4/test-gen — Tier C floor + PR-only)
+Phase  0: Pre-flight — drift gate + lock acquire + size estimate + INSERT agent_runs
+Phase  1: Distill — per-type LLM extraction → ops.evolve_extractions
+Phase  2: Score pre — judge persona @cto/@ceo, 10 sub_scores
+Phase  3: Review — founder reviews pending_review bucket (AskUserQuestion per extraction)
+Phase  4: Propose — diff via propose-improvement with extractions_context input
+Phase  5: Classify — trivial/medium/structural (structural ABORTs)
+Phase 6.5: Founder approval at install (file type only — K4 substitute since no playbook)
+Phase  6: Install — 3-way diff + marker + git stash apply (in-place B) OR gh pr create (C)
+Phase  7: Test-gen — All-Edge-Cases-Test 5-phase via test-gen skill (skip for prose files)
+Phase  8: Score post + K4 ratchet — ±5pt slack for /update mode; auto-revert if regression
+Phase  9: Finalize — UPDATE agent_runs.state=completed; release lock; INSERT events; pnpm resolver:index
+```
+
+## 41.4 Sprint trajectory (1 session, 8 PRs)
+
+### v1.0 — Foundation (Sprint 1-4 + Phase 8)
+
+| Sprint | PR | Scope |
+|--------|----|----|
+| **Sprint 1** | #118 `7e794cc` | Universal lock (mig 00039) + propose-improvement extractions_context + 4 playbook allowed_paths extensions + 3 invariants + feature flag + 45 tests |
+| **Sprint 2** | #119 `64ddd38` | Citation spine (mig 00040) + 2 new skills (distill-from-refs, review-extractions) + 4 helpers (refs-resolver, size-estimator, classify-diff, three-way-diff) + 61 tests |
+| **Sprint 3** | #120 `3773fd0` | `/update` command spec + entity-update/orchestrator skill + test-gen skill (All-Edge-Cases-Test verbatim per @cto T7) + ref-source-allowlist + NEW role entity-update-orchestrator + 43 tests |
+| **Sprint 4** | #121 `7e2418a` | Lineage view (mig 00041) + 3 KPIs + 2 alerts + CI hash-drift validator (T7 sprint 4 deliverable) + Phase 8 promote spec.md → wiki/capabilities/update/ + retrospective + 34 tests |
+
+**v1.0 outcomes:**
+- 4 entity types operational: skill | command | agent | sop
+- Capability state: `proposed → operating`
+- 183 tests pass (45 + 61 + 43 + 34)
+- Build cost ~$8-13 LLM (session quota)
+- Founder time ~2 hours session
+
+### v1.1 — Scope expansion (Sprint 1-3)
+
+Same-day extend ngay sau v1.0 ship. Brainstorm trước:
+
+```
+.archives/cla/update/v1.1-brainstorming/
+  ├── 00-scope.md                  — 5 new types + risk matrix
+  ├── 01-hook.md                   — D-Std ceremony design
+  ├── 02-pillar.md                 — @ceo judge + sub-pillar deferral
+  ├── 03-folder.md                 — classifier rules (8 outcomes)
+  ├── 04-workflow.md               — stub strategy (REFUSE until workflows/ ships)
+  ├── 05-file-arbitrary.md         — THE BIG ONE — path-tier + generic distill + Phase 6.5
+  └── 06-architecture-impact.md    — per-Bài-toán impact + file inventory
+```
+
+| Sprint | PR | Scope |
+|--------|----|----|
+| **v1.1 Sprint 1** | #122 `3c37ab3` | hook (D-Std magic-phrase + Tier C floor + structural matrix) + pillar (NEW playbook @ceo judge + alias resolver + sub-pillar refused) + mig 00042 + 38 tests |
+| **v1.1 Sprint 2** | #123 `82edfad` | file mode — `knowledge/update-file-paths.yaml` (38 path rules) + path-classify.cjs + Phase 0a + 0e + Phase 6.5 founder approval + generic distill prompt + 3 invariants + 1 KPI + 53 tests |
+| **v1.1 Sprint 3** | #124 `37e2bf0` | folder classifier-dispatcher (8 outcomes) + workflow stub playbook + Phase 0b + 0c + deferred invariant + 31 tests |
+
+**v1.1 outcomes:**
+- 5 new types: hook | pillar | file | folder | workflow (stub)
+- 122 new tests
+- Build cost ~$3-5 LLM
+- All 5 types non-breaking incremental on v1.0 (v1.0 surface unchanged)
+
+### v1.1.1 — Tier 1 patch (1 sprint)
+
+Founder dogfood ngày 2026-05-26 hỏi: *"Tôi muốn update 1 file trong 00-core"*. v1.1 path-classify table REFUSED `00-core/**` với forward "use /cla extend or PR". Founder pushed back: overkill cho content fix sau /muse session.
+
+**Brainstorm doc:** `.archives/cla/update/v1.1.1-brainstorming/00-tier1-file.md`
+
+**Decision:** Add `/update tier1-file <path>` — symmetric với `/update hook` (D-Std magic-phrase ceremony per invocation). Hardcoded allowlist (không YAML-driven để giảm sprawl):
+
+```
+ALLOWED with D-Std:
+  00-core/**                              — identity docs
+  governance/{HITL,ROLES,IDENTITY,BUDGET}.md — refinement OK
+  knowledge/manifest.yaml                 — content fixes
+  knowledge/cross-tier-invariants.yaml    — invariant tweaks
+
+REFUSED (stricter ceremony required):
+  governance/SECRETS.md                   → D-MAX (hand-edit + PR)
+  supabase/migrations/**                  → /cla propose dedicated cap
+  .mcp.json                               → D-MAX security-critical
+```
+
+| Sprint | PR | Scope |
+|--------|----|----|
+| **v1.1.1** | #125 `6516115` | Mig 00043 (entity_type CHECK +tier1_file) + tier1-allowlist.cjs + Phase -1 ceremony covers hook+tier1-file + Phase 0d + 0e + 35 tests + version bump 1.1.0 → 1.1.1 |
+
+### Post-ship — Docs sync
+
+| Sprint | PR | Scope |
+|--------|----|----|
+| **Post-v1.1.1** | #126 `bb5d20f` | `/docs sync` regenerates 54 MDX (commands, skills, hooks, agents, tier1, governance) including update.mdx + update.en.mdx; 16 new files; meta TOC updated; hook playbook +cases/tests symmetry fix |
+
+**Total v1.0 + v1.1 + v1.1.1 + docs sync:** 9 PRs, 1 session founder time, capability state retained `operating` across all 3 versions.
+
+## 41.5 Design lessons trích từ session này
+
+### Lesson 1 — Brainstorm-then-execute pattern reduces /cla overhead
+
+v1.1 + v1.1.1 ship qua `/cla extend update` (sub-flow) thay vì /cla propose (full ceremony). Pre-existing brainstorm artifacts trong `.archives/cla/update/v1.1-brainstorming/` đóng vai trò "design spec" — `/cla extend` workflow phase 1-5 collapsed thành "read brainstorm + go".
+
+**Generalizable rule:** Khi founder có muse-session-output hoặc explicit design doc → `/cla extend` thay vì re-running architect ceremony.
+
+### Lesson 2 — Single-session full-stack ship is feasible với compressed phases
+
+v1.0 từ Phase 0 → Phase 8 trong 1 session founder time ~2 giờ. Sprint plan estimated 12 calendar days. Compression factor: ~80x.
+
+**Why feasible:**
+- Auto-approval at Tier C gates (founder bias toward "approve + execute" via AskUserQuestion option 1)
+- Composition-heavy architecture (Sprint 3 orchestrator chỉ ~330 LOC vì delegates to shared eval-evo skills)
+- Test-first approach (each Sprint commits 30-60 tests immediately)
+- pnpm check + CI hash-drift validator catches mistakes within seconds
+
+**Why NOT generalizable to all caps:** /update reused 80%+ infrastructure từ /evolve (Chương 37). Greenfield caps (gbrain Chương 18, resolver Chương 38) needed longer cycles vì building primitives mới.
+
+### Lesson 3 — Auto-classifier blocks save the founder
+
+Sprint 1 PR #118 commit `992236c` initially landed on **`main` branch** không phải feature branch — vì Bash command chuỗi `cd /Users/doanchienthang/ritsu-works && git ...` đã `cd` vào root repo (where main checked out) thay vì worktree. Recovery via fast-forward worktree's branch + reset main back. Auto-classifier blocked `git reset --hard` requiring founder authorization — correctly per Tier C in HITL.md.
+
+**Memory saved:** `feedback_worktree_git_commands_stay_in_worktree.md` ghi nhận quirk. Future Claude sessions trong worktree không lặp lại lỗi.
+
+### Lesson 4 — Honest gap reporting unlocks v1.1.1
+
+Founder asked: *"giả sử tôi muốn update 1 file trong 00-core thì phải dùng lệnh gì?"* (referring to v1.1's REFUSE on Tier 1 paths). Claude's first response: honest enumeration của 2 lựa chọn xấu (hand-edit + PR; /cla extend) + proposed v1.1.1 fix với D-Std ceremony as Option 1.
+
+Founder picked option 1. /update tier1-file ship trong cùng session ~30 phút.
+
+**Pattern:** Surface gaps + propose minimum-viable fix + AskUserQuestion → founder decides → execute. Don't pretend gap doesn't exist.
+
+### Lesson 5 — CI infra failures distinct from code failures
+
+PR #118 CI initially returned `403 Your account is suspended` trên GitHub Actions runner. Memory saved (`reference_github_actions_transient_suspended.md`): transient infra issue, not real suspension. Verified via web access + `gh auth status` + re-run. Both passes on second try.
+
+**Diagnostic checklist** (Memory): web access OK + `gh auth status` active + `gh api repos/<owner>/<repo>` returns + `gh api repos/.../actions/permissions` shows enabled + re-run passes → transient.
+
+### Lesson 6 — Path-tier classifier is the safety primitive cho generic file mode
+
+v1.1 Sprint 2 file mode — NO playbook (no scoring rubric for arbitrary files) → K4 ratchet inapplicable. Replacement safety:
+
+1. **Path-tier classifier** (`knowledge/update-file-paths.yaml`, 38 globs) — Tier 1 paths REFUSED with forward; others Tier B/C
+2. **Phase 0a** runs BEFORE distill — deterministic, no LLM cost on refused paths
+3. **Phase 6.5 founder approval** — mandatory AskUserQuestion at install time (Apply/Edit/Reject/Promote-to-PR) — replaces K4
+4. **File-size + binary safety** — > 200 KB refused; non-UTF-8 refused
+5. **Generic distill prompt RULE 5 SECURITY** — refuses extractions injecting code/secrets/HITL changes
+
+**Generalizable:** Whenever a system bypasses a quality ratchet (because rubric doesn't apply), substitute multiple human-in-loop checkpoints upfront. Founder agency at every decision point.
+
+### Lesson 7 — Symmetric ceremony pattern (D-Std for safety-critical types)
+
+`/update hook` (v1.1 Sprint 1) shipped D-Std magic-phrase ceremony per invocation. v1.1.1 reused same pattern for `/update tier1-file`. Both call same Phase -1 orchestrator code path with `entity_type IN ('hook', 'tier1-file')` check.
+
+**Generalizable:** Když implementing safety-critical entity type, look for existing ceremony pattern + extend (don't reinvent). Single Phase -1 cover multiple types via input enum.
+
+## 41.6 KPIs để monitor post-ship
+
+Per spec §4 / Sprint 4 deliverable, 4 KPIs registered:
+
+| KPI | Target | Threshold warn | Threshold critical | Source |
+|-----|--------|----------------|---------------------|--------|
+| `entity_update_run_count_monthly` | ≥ 10 | \< 5 | \< 1 | `ops.agent_runs WHERE agent_slug='update' AND state='completed'` group by month |
+| `entity_update_extractions_reviewed_count` | ≥ 5 | \< 1 | n/a | `ops.evolve_extractions WHERE review_state IN founder_*` per month |
+| `entity_update_revert_rate` | ≤ 0.20 | > 0.30 | > 0.50 | reverted_quality_regression / total terminal outcomes (30d rolling) |
+| `entity_update_file_mode_run_count_monthly` | ≥ 3 | 0 | 0 | subset filtering entity_type='file' |
+
+Alerts:
+- `entity_update_revert_rate_high` (warning at > 0.30)
+- `entity_update_revert_rate_critical` (critical at > 0.50)
+
+Both route to telegram_founder.
+
+## 41.7 Triggers cho v1.2+
+
+Per spec §12.5 + retrospective.md §7:
+
+| Trigger | v1.2+ work |
+|---------|------------|
+| 30+ runs/mo for 3 months | `/update bulk --type=skill --filter=...` mass-update |
+| ritsu.ai product copy changes 3+ times/month | webhook-driven auto-fire (v2.0) |
+| Founder review queue genuinely a bottleneck | `--auto-approve-buckets` per-entity-type founder-trust learning |
+| Sub-pillar updates needed (e.g., 05-customer/success/*) | sub-pillar handler in `/update folder` |
+| `workflows/` folder ships | flip `/update workflow` REFUSE → operational; refine workflow.md playbook sub_scores |
+| Cost overrun ($>30/mo) | tighten per-task-kind caps; investigate distill verbosity |
+| KPI drift (run_count \< 5 for 2 consecutive months) | re-evaluate UX; possibly merge into /evolve |
+
+## 41.8 Reflection — `/update` là gì? Cái gì /update KHÔNG là?
+
+`/update` **không phải**:
+- General-purpose file editor (use hand-edit cho ≤ 5 LOC)
+- AI-pair-programming (use /evolve cho self-improvement không refs)
+- Capability creation (use /cla propose)
+- Mass refactoring (deferred to v1.2)
+- Webhook-driven auto-runner (deferred to v2.0)
+- D-MAX path mutator (refuses governance/SECRETS.md, .mcp.json, supabase/migrations/)
+
+`/update` **là**:
+- Refresh-from-refs verb cho 4 v1.0 + 5 v1.1 + 1 v1.1.1 = 10 entity types
+- Citation-disciplined (ops.evolve_extractions trace mỗi change về raw_quote)
+- Tier-classified (trivial/medium in-place B; structural ABORT; tier1 always C)
+- Cost-bounded ($30/mo cap, $1.50/run hard cap)
+- Audit-trailed (ops.agent_runs, ops.entity_edit_locks, ops.audit_log Tier C overrides)
+- Composable (orchestrator never calls Anthropic API; delegates to 5 shared eval-evo skills)
+
+**Trinity completed:**
+- `/cla create` → tạo capability mới (ý tưởng → architecture → ship)
+- `/evolve self-improve` → eval+propose+score loop (memory-driven; no refs)
+- `/update ingest external truth` → distill từ refs + apply (citation discipline; mode-aware K4)
+
+Ba verbs này collectively là **write-loop layer** của ritsu-works AI-native operations. Không có /update thì refresh là manual; không có /cla thì capability creation là ad-hoc; không có /evolve thì self-improvement không repeatable. Một verb thiếu = ecosystem-level gap.
+
+---
+
+**End Chương 41.**
+
+**References:**
+- Bài #20 (Chương 33): Capability Lifecycle Architecture — methodology driving v1.0 Phase 0-8
+- Chương 37: /evolve — shared infrastructure foundation cho /update
+- Chương 38-40: /resolver v1 → v3 — same-day iterate pattern referenced trong Lesson 2
+- Spec canonical: `wiki/capabilities/update/spec.md` (Phase 8 promoted 2026-05-26)
+- Retrospective: `wiki/capabilities/update/retrospective.md` (Phase 8 lessons learned)
+- Brainstorm artifacts (local-only): `.archives/cla/update/v1.1-brainstorming/` (6 docs) + `v1.1.1-brainstorming/` (1 doc)
+- PRs in order: #118, #119, #120, #121, #122, #123, #124, #125, #126
+- Tier C decision: `ops.decisions[a683a371-0611-49c7-9650-53503027d60e]`
+- Audit trail starting point: `ops.audit_log[408c018f-d859-4bef-b9a4-f40f27e9f9d6]` (Tier C approval Phase 5)
