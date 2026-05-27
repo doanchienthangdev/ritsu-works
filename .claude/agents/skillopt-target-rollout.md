@@ -4,7 +4,7 @@ description: |
   Frozen-agent simulator for SkillOpt rollouts. Receives (current_skill, task)
   and produces (trajectory, self_grade). Stateless, single-pass. Never spawns
   subagents. Dispatched by the session bridge (`scripts/skillopt/session-bridge.cjs`)
-  when a request file with `kind: "rollout"` lands in `runtime/skillopt/<entity>/
+  when a request file with `kind: "target"` lands in `runtime/skillopt/<entity>/
   runs/<rid>/llm-requests/`. Used by `/evolve skillopt` subcommand (capability
   evolve v1.1).
 tools: []

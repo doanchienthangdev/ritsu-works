@@ -31,10 +31,15 @@ This file documents the on-disk JSON message format that lets the SkillOpt Pytho
   "id":      "0a1b2c3d4e5f6789...",  // 32-hex UUID; matches filename
   "ts":      1685347200.123,         // unix timestamp (seconds, float) — when Python wrote the request
   "kind":    "optimizer" | "target" | "custom",
-                                     // dispatch hint for the bridge:
+                                     // dispatch hint for the bridge. Values are the ONLY ones the
+                                     // Python backend emits (see ritsu_file_queue.py — kw values
+                                     // passed to _chat_text/_chat_messages):
                                      //   "optimizer" → skillopt-optimizer-reflect subagent
                                      //   "target"    → skillopt-target-rollout subagent
-                                     //   "custom"    → bridge MUST select via deployment field
+                                     //   "custom"    → bridge selects via deployment field;
+                                     //                  if deployment is null this is an upstream
+                                     //                  contract violation, NOT normal operation
+                                     //                  (bridge logs warning + defaults to target).
   "stage":   "optimizer" | "target" | "<custom-string>",
                                      // cost-bucket / tracker key; usually matches kind
 
@@ -79,15 +84,17 @@ This file documents the on-disk JSON message format that lets the SkillOpt Pytho
 
 ```jsonc
 {
-  // ── envelope (required) ─────────────────────────────────────────────
-  "id":      "0a1b2c3d4e5f6789...",  // same UUID as the request
+  // ── envelope ────────────────────────────────────────────────────────
+  "id":      "0a1b2c3d4e5f6789...",  // REQUIRED. Same UUID as the request.
+
+  // ── server-side fields (injected by bridge if absent — caller may omit) ──
   "ts":      1685347205.456,         // unix timestamp when bridge finished writing
-  "kind":    "<echo>"                // echo of request.kind for logging
+  "kind":    "<echo>",               // echo of request.kind, for logging
 
   // ── success path ────────────────────────────────────────────────────
   "text":    "<assistant response>",
   "usage":   {
-    // bridge MUST include token accounting in ONE of these two schemas;
+    // Bridge MUST include token accounting in ONE of these two schemas;
     // backend defensively reads both (input_tokens|prompt_tokens, output_tokens|completion_tokens).
     "input_tokens":  1234,
     "output_tokens": 567
@@ -95,15 +102,21 @@ This file documents the on-disk JSON message format that lets the SkillOpt Pytho
     // "prompt_tokens": 1234,
     // "completion_tokens": 567
   },
-  "message": {...}        // OPTIONAL; required only if request.return_message == true
+  "message": {...},       // OPTIONAL; required only if request.return_message == true
 
-  // ── error path (mutually exclusive with success) ────────────────────
-  "error":   "<one-line description>"   // when present, Python raises RuntimeError;
-                                        // text/usage/message are ignored.
+  // ── error path ──────────────────────────────────────────────────────
+  "error":   "<one-line description>"
+  // Precedence: if `error` is present and non-empty, the Python consumer
+  // raises RuntimeError and discards text/usage/message regardless of what
+  // else is in the response (see _round_trip in ritsu_file_queue.py). A
+  // bridge MAY include both `error` and `text` (e.g., partial output + failure
+  // note); the error wins.
 }
 ```
 
-**Either `text` (success) OR `error` (failure) must be present.** A response missing both is treated as an error by the Python backend on next read.
+**At least one of `text` or `error` MUST be present.** A response missing both is treated as an error by the Python backend (it returns `text = ""`, which the caller's `chat_*` wrapper detects as a degenerate response on the next layer). The bridge enforces this on write (`session-bridge.cjs` `write-response` verb).
+
+**Bridge-injected fields:** the bridge auto-injects `ts` (write timestamp) and echoes `kind` from the matching request if the caller's response object omits them. Callers MAY pre-populate these for deterministic timestamps; otherwise the bridge writes the current time.
 
 ## State.json schema (bridge-local; not part of the request/response stream)
 

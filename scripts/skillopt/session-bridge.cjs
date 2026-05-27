@@ -224,8 +224,20 @@ async function verbWriteResponse() {
   if (parsed.text === undefined && parsed.error === undefined) {
     die(3, `session-bridge write-response: response must have either 'text' or 'error'`);
   }
+  // Inject server-side fields (ts always; kind echoed from request if missing).
+  // Per queue-protocol.md §"Response schema" — bridge owns these.
+  if (parsed.ts === undefined) parsed.ts = Date.now() / 1000;
+  if (parsed.kind === undefined) {
+    const reqPath = path.join(REQ_DIR, `req-${uuid}.json`);
+    if (fs.existsSync(reqPath)) {
+      try {
+        const req = JSON.parse(fs.readFileSync(reqPath, 'utf8'));
+        if (typeof req.kind === 'string') parsed.kind = req.kind;
+      } catch { /* leave kind absent if request unreadable */ }
+    }
+  }
   ensureDirs();
-  atomicWrite(path.join(RESP_DIR, `resp-${uuid}.json`), respJson);
+  atomicWrite(path.join(RESP_DIR, `resp-${uuid}.json`), JSON.stringify(parsed));
   const state = readState();
   state.totals.responses_written += 1;
   if (parsed.error) state.totals.errors += 1;
@@ -268,6 +280,10 @@ function verbPauseRateLimit() {
 }
 
 function verbResumeCheck() {
+  // `aborted` is set by the Sprint 2 skillopt-runner skill when founder picks
+  // "Abort" on the rate-limit AskUserQuestion prompt (see spec §19.6 R12).
+  // It's a terminal phase; resume-check exits 3 so callers (the runner skill
+  // re-entering on /evolve --resume=<run-id>) treat it as a hard stop.
   const state = readState();
   process.stdout.write(`${state.phase}\n`);
   if (state.phase === 'aborted') process.exit(3);
