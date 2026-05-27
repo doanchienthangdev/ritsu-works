@@ -47,6 +47,40 @@ Patches assume the SkillOpt backend interface as it existed at the pinned SHA �
 
 the patch may fail to apply cleanly (`install-vendor.sh` will exit 1 with a re-pin hint) OR the backend may import but fail at runtime. The L1 validator catches the first; runtime smoke (`pnpm setup:skillopt` or CI postinstall) catches the second.
 
+## Bridge write contract (for sub-PR C author)
+
+The `ritsu_file_queue.py` backend reads response files with a defensive
+`try/except json.JSONDecodeError` loop (line ~88), but the contract is that
+the bridge (`scripts/skillopt/session-bridge.cjs`, sub-PR C) MUST write
+response files **atomically**. Two-step pattern, matching the request side
+(`_enqueue_request` line ~75):
+
+```javascript
+// Inside session-bridge.cjs response writer
+const tmpPath = `${respDir}/resp-${reqId}.json.tmp`;
+const finalPath = `${respDir}/resp-${reqId}.json`;
+fs.writeFileSync(tmpPath, JSON.stringify(responseObj));
+fs.renameSync(tmpPath, finalPath);   // atomic on POSIX
+```
+
+Direct `fs.writeFileSync(finalPath, ...)` is forbidden — a `read_text()` on
+the Python side could observe a partial write and crash on `json.loads`.
+The defensive catch in `_await_response` is belt-and-suspenders, not a
+license to skip atomic write on the bridge side.
+
+**L1 check:** the L1 invariant `skillopt-vendor-sha-pinned` does NOT (yet)
+verify the bridge follows this contract — that's a contract assertion, not
+a static check. Sub-PR C should add a unit test for `session-bridge.cjs`
+that exercises the atomic-rename path.
+
+**Why this matters:** the `_await_response` poll loop runs ~2x/second per
+in-flight request. Across a 25-message rollout batch, that's 50 reads/second
+peaking. A non-atomic write window of even 10ms gives a >40% probability
+of catching a partial file per batch. The `JSONDecodeError` catch keeps
+behavior correct, but adds a wasted poll interval per occurrence — adding
+~500ms latency per batch when the bridge is sloppy. Atomic-rename eliminates
+this entirely.
+
 ## Refresh procedure (founder Tier B)
 
 When updating the pinned SHA:

@@ -7,7 +7,7 @@
 This file is THE source of truth for agent recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/agents.md` import.
 
-**Total entries:** 7
+**Total entries:** 9
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -120,6 +120,37 @@ Skip when: gbrain cost-bucket monthly aggregate ≥ $100 (Hard-cap Option B
 graceful degrade — dream cycle disabled until founder PR raises cap).
 
 **Invoke:** `Agent({ subagent_type: "gbrain-maintainer", ... })`
+
+**Role scope:** *
+**Status:** active
+
+## agent/skillopt-optimizer-reflect
+
+**Kind:** agent
+**When to use:** SkillOpt optimizer that reflects on a minibatch of (success | failure)
+trajectories and proposes add/delete/replace edits to skill markdown.
+Stateless, single-pass. Never spawns subagents. Dispatched by the session
+bridge (`scripts/skillopt/session-bridge.cjs`) when a request file with
+`kind: "reflect"` lands in `runtime/skillopt/<entity>/runs/<rid>/llm-requests/`.
+Used by `/evolve skillopt` subcommand (capability evolve v1.1) during the
+reflection phase of each SkillOpt iteration.
+
+**Invoke:** `Agent({ subagent_type: "skillopt-optimizer-reflect", ... })`
+
+**Role scope:** *
+**Status:** active
+
+## agent/skillopt-target-rollout
+
+**Kind:** agent
+**When to use:** Frozen-agent simulator for SkillOpt rollouts. Receives (current_skill, task)
+and produces (trajectory, self_grade). Stateless, single-pass. Never spawns
+subagents. Dispatched by the session bridge (`scripts/skillopt/session-bridge.cjs`)
+when a request file with `kind: "rollout"` lands in `runtime/skillopt/<entity>/
+runs/<rid>/llm-requests/`. Used by `/evolve skillopt` subcommand (capability
+evolve v1.1).
+
+**Invoke:** `Agent({ subagent_type: "skillopt-target-rollout", ... })`
 
 **Role scope:** *
 **Status:** active
