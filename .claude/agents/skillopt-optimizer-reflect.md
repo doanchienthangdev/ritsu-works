@@ -5,7 +5,7 @@ description: |
   trajectories and proposes add/delete/replace edits to skill markdown.
   Stateless, single-pass. Never spawns subagents. Dispatched by the session
   bridge (`scripts/skillopt/session-bridge.cjs`) when a request file with
-  `kind: "reflect"` lands in `runtime/skillopt/<entity>/runs/<rid>/llm-requests/`.
+  `kind: "optimizer"` lands in `runtime/skillopt/<entity>/runs/<rid>/llm-requests/`.
   Used by `/evolve skillopt` subcommand (capability evolve v1.1) during the
   reflection phase of each SkillOpt iteration.
 tools: []

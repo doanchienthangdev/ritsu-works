@@ -47,10 +47,10 @@ economic_budget:
   hard_block_at_pct: 1.50          # default — block until ROLES.md PR raises cap
   per_task_kind_caps:              # optional; per-instance soft caps for this role's task_kinds
     # v1.1 tagged form (preferred — capability evolve v1.1, 2026-05-27):
-    <task_kind>: {unit: usd, cap: <number>}        # USD cap; pre-llm-call-budget hook compares against current_task_cost + estimated_call
-    <task_kind>: {unit: messages, cap: <number>}   # session-message count cap for this task_kind (subagent dispatches via Task)
+    <task_kind_usd>:      {unit: usd, cap: <number>}       # USD cap; pre-llm-call-budget hook compares against current_task_cost + estimated_call
+    <task_kind_messages>: {unit: messages, cap: <number>}  # session-message count cap for this task_kind (subagent dispatches via Task)
     # Bare-number legacy is still accepted (auto-treated as {unit: usd, cap: N}; logs ritsu.budget.legacy_cap_format once per role/task_kind/month):
-    <task_kind>: <usd_per_instance>
+    <task_kind_legacy>:   <usd_per_instance>
   preferred_models:                # optional; recommended model for this role's tasks
     default: <model_id>
     expensive_tasks: <model_id>    # for blog drafts, deep research
