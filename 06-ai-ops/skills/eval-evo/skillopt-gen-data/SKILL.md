@@ -113,8 +113,16 @@ If `gen_sources == "auto"`:
   - Pillar 3: 20-40% (always for skills attached to a wiki capability)
   - Pillar 5: context-only (anchor in prompts, never emits tasks)
 - If `entity_content` has no `<example>` blocks (Pillar 1 unavailable),
-  the run aborts with a clear error: "skill needs ≥1 `<example>` block to
-  bootstrap synth data; add one before /evolve skillopt".
+  behavior depends on `gen_sources`:
+  - `gen_sources == "auto"` OR includes `1` → abort with: "skill needs ≥1
+    `<example>` block to bootstrap synth data. Auto-generate via
+    `/evolve skillopt <skill>` (Phase A.1a invokes `eval-evo/gen-skill-examples`).
+    Or manually add to SKILL.md."
+  - `gen_sources == "pillars=3,5"` or similar (Pillar 1 explicitly excluded)
+    → v1.1.2 graceful-degrade path: proceed with Pillar 3 only. Synth
+    signal weaker (all rows pending_review, confidence 0.6) but founder
+    explicitly opted in. Rebalance: P3 fills 80-100% of dataset; P5
+    context only.
 
 If `gen_sources == { "pillars": [...] }` includes 2 or 4, raise a runtime
 error: "Pillars 2 (ops.run_summaries) and 4 (gbrain) are deferred to v1.2;
