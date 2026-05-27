@@ -41,17 +41,20 @@ parsing + cost-estimator pre-flight + tier classification before dispatching her
 
 ```json
 {
-  "run_id":         "<uuid>",
-  "entity_type":    "skill",
-  "entity_name":    "<slug>",
-  "max_messages":   500,
-  "max_cost_usd":   null,
-  "dry_run":        true,
-  "regen_data":     false,
-  "resume":         null,
-  "gen_sources":    "auto",
-  "bridge_poll_ms": 1000,
-  "tier_override":  false
+  "run_id":               "<uuid>",
+  "command_agent_run_id": "<uuid>",       // ops.agent_runs.id of the /evolve command invocation that
+                                          // holds the entity_edit_lock and dispatched this runner.
+                                          // Used at Phase G to release the lock.
+  "entity_type":          "skill",
+  "entity_name":          "<slug>",
+  "max_messages":         500,
+  "max_cost_usd":         null,
+  "dry_run":              true,
+  "regen_data":           false,
+  "resume":               null,
+  "gen_sources":          "auto",
+  "bridge_poll_ms":       1000,
+  "tier_override":        false
 }
 ```
 
@@ -104,9 +107,17 @@ Strict JSON to stdout for the `/evolve` command to render:
 5. **Vendor smoke.** `bash scripts/skillopt/install-vendor.sh` exits 0 (idempotent).
 6. **Python deps check.** `python3 -c 'import openai, yaml, numpy'` succeeds.
    Else abort with `pip install -r vendor/skillopt/requirements.txt` hint.
-7. **Lock acquire.** Call `ops.acquire_entity_edit_lock('skill', '<entity_name>',
-   'skillopt-runner', <agent_run_id>, '<session-id>')`. NULL return →
-   `LockHeld` error advising `/cla force-unlock` (D-Std) or waiting.
+7. **Lock verification (NOT re-acquire).** The /evolve command (step 5/6 of
+   `.claude/commands/evolve.md`) acquires the universal lock for
+   (`entity_type='skill'`, `entity_name=<entity_name>`) with
+   `holder_kind='evolve'`, `holder_run_id=<command's agent_run_id>` BEFORE
+   dispatching to this skill. The runner does NOT re-acquire (a second
+   `acquire_entity_edit_lock` call with a different `holder_run_id` would
+   return `acquired=false` and incorrectly abort). Instead, the runner
+   verifies a lock is held by reading `ops.entity_edit_locks` for the
+   `(entity_type, entity_name)` row and confirming `holder_run_id =
+   <command_agent_run_id>` (passed in via inputs). The lock is released
+   in Phase G using the command's `agent_run_id`, NOT the runner's.
 8. **Tier classify.** v1.1 explicitly Tier B; `--tier-override` allowed
    founder-only.
 9. **Resume branch.** If `--resume=<run-id>`: read
@@ -234,7 +245,7 @@ extraction. All in-session → subscription billing. No Python yet.
    `(entity_path, candidate=best-skill.md)`. Performs git stash + apply
    (mirrors v1.0 install flow).
 2. Run `pnpm check` post-apply. Failure → revert via git stash pop, abort.
-3. Write `runner-state.json` with `phase: 'install-done'`.
+3. Write `runner-state.json` with `phase: 'install'`.
 
 ### Phase F — Founder review
 
@@ -252,7 +263,8 @@ extraction. All in-session → subscription billing. No Python yet.
 ### Phase G — Cleanup + persist
 
 1. Release universal lock: `ops.release_entity_edit_lock('skill', '<entity>',
-   <agent_run_id>)`.
+   <command_agent_run_id>)`. Uses the COMMAND's agent_run_id (passed in
+   via inputs) — the runner doesn't hold the lock; the command does.
 2. UPDATE `ops.agent_runs` (this orchestration's row) with final state.
 3. Write `ops.run_summaries` (~150 tokens per Strategy E).
 4. Emit `ops.events`: `ritsu.evolve.skillopt-run-completed` with stdout payload.

@@ -95,7 +95,10 @@ v1.0 path alone lacked (spec §19.1).
 6. **INSERT ops.agent_runs** with `agent_slug = 'evolve'`,
    `state_payload->>'mode' = 'skillopt'`, `state = 'running'`.
 7. **Dispatch to `eval-evo/skillopt-runner` skill** via Skill tool with input
-   matching the runner's §Inputs schema. The runner handles Phases A-G
+   matching the runner's §Inputs schema. Critically: pass `command_agent_run_id`
+   = the ops.agent_runs row id created at step 6 above. The runner uses this
+   for Phase G lock release (the runner does NOT re-acquire the lock; the
+   command holds it, the runner releases it). The runner handles Phases A-G
    (pre-flight → gen-data → train loop → outer K4 → install → review → cleanup).
 8. **Render runner output** to console: scores, totals, exit_reason, artifact paths.
 9. **UPDATE ops.agent_runs** with runner's final state.

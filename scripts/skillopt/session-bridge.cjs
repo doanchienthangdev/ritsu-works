@@ -171,11 +171,13 @@ async function verbInit() {
   if (fs.existsSync(STATE_PATH)) {
     die(3, `session-bridge init: state.json already exists; cleanup first if reinitializing`);
   }
-  // R18 — orphaned .tmp sweep (Sprint 3 addition). Any req-*.json.tmp or
-  // resp-*.json.tmp older than 5 minutes is leftover from a prior crashed
-  // run where a write started but never rename'd. The 5-minute threshold is
-  // conservative — a healthy bridge write completes in milliseconds. Per
-  // spec §19.6 R18, the runner-spec/sprint-plan §3.5.
+  // R18 — orphaned .tmp sweep (Sprint 3 addition). On a fresh `init`, the
+  // queue dir was just ensured (empty), so this sweep finds nothing —
+  // defensive against the rare case where someone manually deleted
+  // state.json without cleaning the tmp files. The real R18 work happens
+  // on every `scan` call below (catches within-run mid-poll write crashes)
+  // and via the L1 invariant `skillopt-runtime-staleness` (cross-run sweep
+  // of any `runs/*` older than 60 days; knowledge/cross-tier-invariants.yaml).
   const orphans = sweepOrphanedTmpFiles();
   const state = {
     run_id: path.basename(QUEUE_DIR),
@@ -197,6 +199,12 @@ async function verbInit() {
 
 function verbScan() {
   if (!fs.existsSync(REQ_DIR)) return;
+  // R18 sweep on every scan — catches within-run mid-poll orphans where a
+  // write (req or resp) started but never rename'd before a crash. Cheap
+  // O(N) on the queue dir; runs every poll iteration (~1s) so any orphan
+  // is gone within one poll cycle. Cross-run orphans (in OTHER runs' dirs)
+  // are handled by L1 `skillopt-runtime-staleness` invariant, not here.
+  sweepOrphanedTmpFiles();
   const state = fs.existsSync(STATE_PATH) ? readState() : null;
   const completed = new Set(state ? state.completed_uuids : []);
   const batched = new Set(state ? state.batch_uuids : []);
