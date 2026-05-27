@@ -81,16 +81,21 @@ v1.0 path alone lacked (spec §19.1).
 | `--gen-sources=pillars=1,3,5` | no | explicit subset. Pillars 2 & 4 are v1.2-deferred (error if requested) |
 | `--bridge-poll-ms=N` | no | 250 ≤ N ≤ 2000; default 1000 |
 | `--entity-path=<abs>` | no | **v1.1.1** — explicit absolute path to SKILL.md (override auto-derived sandbox). Use when you want a non-standard sandbox location. |
-| `--apply` | no | **v1.1.2 NEW** — opt INTO production-edit flow. Default is sandbox-only (auto-derived at `runtime/sandboxes/<flat>/SKILL.md`); `--apply` switches to editing `06-ai-ops/skills/<name>/SKILL.md` directly (uses git stash safety net). Mutually exclusive with `--entity-path`. |
+| `--apply` | no | **v1.1.2 NEW** — opt INTO production-edit flow. Default is sandbox-only (auto-derived at `runtime/sandboxes/<flat>/SKILL.md`); `--apply` switches to editing `06-ai-ops/skills/<name>/SKILL.md` directly (uses git stash safety net). Mutually exclusive with `--entity-path` (UsageError on conflict). Mutually exclusive with `--dry-run` is FALSE — `--apply --dry-run` is allowed and means "use production path resolution but skip Phase E install" (same as v1.0 dry-run semantics extended to v1.1.2). |
 | `--tier-override` | no | bool; Tier C entity → Tier B (founder-only) |
 
 ### Workflow
 
-1. **Argv validate** (above schema). Path resolution per v1.1.2 default
-   sandbox flow:
+1. **Argv validate** (above schema). Mutex checks BEFORE path resolution:
+   - `--apply` + `--entity-path` both present → raise `UsageError(
+     "--apply and --entity-path are mutually exclusive. --apply edits
+     06-ai-ops/ via git stash safety net; --entity-path uses an explicit
+     custom sandbox. Pick one.")`.
+   - `--apply` + `--dry-run` both present → OK (production path resolution
+     + skip Phase E install per v1.0 dry-run semantics).
+   Then path resolution per v1.1.2 default sandbox flow:
    - If `--apply` present: target = `06-ai-ops/skills/<skill-name>/SKILL.md`
-     (production-edit flow; uses git stash + revert safety net). Refuse if
-     `--entity-path` also present (mutually exclusive).
+     (production-edit flow; uses git stash + revert safety net).
    - If `--entity-path=<abs>` present: target = the explicit path (advanced
      non-standard sandbox location).
    - **Default (no flags):** auto-derive sandbox path at
@@ -113,8 +118,12 @@ v1.0 path alone lacked (spec §19.1).
    - **Auto-generate** → invoke `eval-evo/gen-skill-examples` skill with
      `sandbox_path`. Founder previews + accepts via that skill's gate.
      On accept, examples appended to sandbox file. Proceed to step 2.
-   - **Skip** → set `gen_sources = "pillars=3,5"` (no Pillar 1 → no abort).
-     Proceed to step 2 with degraded signal.
+   - **Skip** → set `gen_sources = { "pillars": [3, 5] }` (parsed object
+     form per the gen-data Inputs schema; NOT the CLI string `"pillars=3,5"`).
+     This signals gen-data's Step 1 graceful-degrade branch. The
+     `includes 2 or 4` v1.2-defer check at gen-data Step 1 still fires
+     correctly because we pass the parsed array. Proceed to step 2 with
+     degraded signal.
    - **Edit manually** → /evolve exits cleanly; founder edits sandbox then
      re-runs `/evolve skillopt <skill>` (this time examples present, gate
      skips automatically).
