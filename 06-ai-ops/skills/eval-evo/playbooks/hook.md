@@ -6,6 +6,8 @@ composite_range: [0, 100]
 sub_score_count: 10
 allowed_paths_for_proposer:
   - ".claude/hooks/<name>.md"
+  - ".claude/hooks/<name>-tests/**"   # added v1.1 — co-located hook tests (e.g., from /update hook test-gen)
+  - ".claude/hooks/cases/<name>/**"   # added v1.1 — known-good/known-bad fixtures
 sub_scores:
   - id: C1
     name: "Trigger correctness"

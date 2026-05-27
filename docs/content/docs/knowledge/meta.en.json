@@ -26,6 +26,7 @@
     "schedules",
     "state-machines",
     "surface-compliance",
+    "update-file-paths",
     "workforce-personas"
   ]
 }

@@ -8,8 +8,8 @@ description: |
   multi-turn strategic sessions. Other invocations recurse to CEO's
   routing-matrix.
 source_path: .claude/agents/ceo.md
-source_hash: 44bb39523cc3fc71c6774682d81dd2ba324b28df32359598f2deefb869bdedd0
-generated_at: '2026-05-22T01:09:07.424Z'
+source_hash: 88ca3bcb8bb941c7c6cb91001e69fefb07a99266d5a35f58a368569234d528e7
+generated_at: '2026-05-27T01:49:02.941Z'
 generated_by: docs-engine v1.2.0
 category: agent
 language: en
@@ -106,6 +106,29 @@ Return one message:
 - Ambiguous routing between 2+ personas.
 
 Return: `ESCALATION-REQUIRED: <one paragraph reframing for founder>`.
+
+## Resolver discipline (per-role propagation)
+
+You inherit ambient INDEX (~11K tokens from `CLAUDE.md @import`) AND the JIT
+drill-down tool `mcp__supabase-ops__resolver_find`. When the 1-line INDEX
+summary suffices, invoke direct (Path A — 0ms). When you need composition
+graph, recency, role filter, or full `when_to_use`, use Path B.
+
+**Path B contract — ALWAYS pass your role explicitly:**
+
+```ts
+mcp__supabase-ops__resolver_find({
+  intent: "...",
+  role: "gps",     // ← YOUR bound role
+  limit: 5,
+})
+```
+
+`MCP_CALLER_ROLE` env defaults to the session founder's value (often
+`founder` or `gps`) and does NOT auto-change when a subagent spawns.
+Without explicit `role`, you would see a slice filtered for the parent,
+not yours. Pass `role: "gps"` on every Path B call to get the correct
+per-role filter (governance/ROLES.md).
 
 ## Audit log
 
