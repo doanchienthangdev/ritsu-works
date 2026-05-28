@@ -2,7 +2,7 @@
 <!-- Per-entry overrides MUST be inside <!-- override-start --> ... <!-- override-end --> markers -->
 <!-- DO NOT manually edit outside override markers; changes will be lost on next sync -->
 
-# Recipient Catalog: capabilitys
+# Recipient Catalog: capabilities
 
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
@@ -81,12 +81,12 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/playbook-builder
 
 **Kind:** capability
-**When to use:** Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration. Automation layer for the AI-Native Company Playbook PDF v0.1.0
+**When to use:** Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration. Automation layer for the AI-Native Company Playbook PDF v1.0.0
 
 **Invoke:** `Read("wiki/capabilities/playbook-builder/spec.md")` or `/cla update playbook-builder`
 
 **Role scope:** *
-**Status:** proposed
+**Status:** operating
 **Pillar:** 06-ai-ops
 
 ## capability/resolver-v2.2-context-sources
@@ -114,7 +114,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/thinking-toolkit
 
 **Kind:** capability
-**When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 6 standalone composable skills extracted from McKinsey/Minto thinking v1.0.0
+**When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 6 standalone composable skills extracted from McKinsey/Minto thinking v1.1.0
 
 **Invoke:** `Read("wiki/capabilities/thinking-toolkit/spec.md")` or `/cla update thinking-toolkit`
 

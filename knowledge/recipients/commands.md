@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 15
+**Total entries:** 16
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -183,6 +183,31 @@ table.
 **When to use:** Lookup PLATFORM v3 (JIT Loading). Founder/operator surface for resolver. Mode A2 delegates to mcp__resolver__find for ~10K INDEX + drill-down via MCP. Mode C keyword fallback retained for CRON/edge. v2.2 ambient (55K catalog) deprecated post-cutover.
 
 **Invoke:** `/resolver`
+
+**Role scope:** *
+**Status:** active
+
+## command/think
+
+**Kind:** command
+**When to use:** Project-scoped command for ritsu-works. Front-end for the
+**thinking-toolkit** capability (v1.1.0). Routes to 6 McKinsey/Minto-derived
+thinking-discipline skills under `06-ai-ops/skills/thinking-toolkit/`.
+
+Use when you want to apply a specific thinking framework to the current
+problem, output, or decision — without having to remember each skill's
+exact name. Subcommands map 1:1 to skills; `list` enumerates available
+frameworks; `flow` recommends a multi-skill sequence for ambiguous
+starting points.
+
+Extensible by design: new thinking frameworks (Cynefin, OODA, Wardley
+Mapping, etc.) are added by dropping a SKILL.md under
+`06-ai-ops/skills/thinking-toolkit/<slug>/` and adding one row to the
+subcommand table below — no command-side code changes.
+
+Tier A (guidance only — no external action, no money, no user impact).
+
+**Invoke:** `/think`
 
 **Role scope:** *
 **Status:** active

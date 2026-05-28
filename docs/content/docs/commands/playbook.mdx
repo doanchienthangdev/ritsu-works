@@ -1,0 +1,140 @@
+---
+title: 'Command: /playbook'
+description: ''
+source_path: .claude/commands/playbook.md
+source_hash: cf6c4cdb6384dd37d1480ea11c06e3aa4964abe931c8544cdad0b05c2fdebfb6
+generated_at: '2026-05-28T05:02:04.446Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Project-scoped command for ritsu-works. Front-end for the **playbook-builder**
+capability (v1.0.0). Capability spec at `wiki/capabilities/playbook-builder/
+spec.md` (after Phase 8 promotion; current draft `.archives/cla/playbook-builder/
+spec.md`).
+
+This command is a **thin orchestrator**. Logic lives in skills under
+`06-ai-ops/skills/playbook-builder/`. The command:
+- Parses argv
+- Routes to the right skill
+- Persists state to `ops.agent_runs`
+- Emits events for downstream composition (e.g., docs-engine post-sync trigger)
+
+## Subcommands
+
+| Invocation | Purpose | HITL | Cost |
+|---|---|---|---|
+| `/playbook build` | Detect chapter changes, bump version, sync TOC + CHAPTER_ORDER, build PDF, publish to playbook root | A (B if major bump) | $0 (deterministic) |
+| `/playbook build --version=X.Y.Z` | Explicit version override (skip auto-bump) | A | $0 |
+| `/playbook build --add-chapter=phase-a2/NN-foo.md` | Convenience: assumes chapter file already exists at that path; sync + build | A | $0 |
+| `/playbook build --force` | Rebuild even if no chapter mtime newer than latest PDF | A | $0 |
+| `/playbook build --dry-run` | Validate + show what would happen; no rebuild, no publish | A | $0 |
+| `/playbook check` | Drift gate only (validator) — no rebuild | A | $0 |
+| `/playbook check --fix` | Run validator + invoke `playbook-builder/sync-meta` to repair drift (no PDF rebuild) | A | $0 |
+| `/playbook history` | List published `*.pdf` versions with mtime + delta against prior version | A | $0 |
+
+## Workflow
+
+### `/playbook build`
+
+1. **Drift gate** — run validator. WARN → AskUserQuestion (proceed/abort). FAIL → abort.
+2. **Change detection** — compare chapter mtimes vs latest published PDF mtime. If no changes AND no `--force` AND no `--add-chapter` → exit with "no changes, skipping" (≠ error).
+3. **Auto bump** — semver patch/minor/major (see skill spec). If MAJOR detected → AskUserQuestion Tier B.
+4. **Add chapter** (if `--add-chapter`) — verify file exists at path; skip if not provided.
+5. **Sync meta** — invoke `playbook-builder/sync-meta` skill: rewrite 4 fields in 00-toc.md + 3 fields in build_pdf.py.
+6. **Build** — `bash scripts/playbook/build.sh` (env preset + build_pdf.py).
+7. **Publish** — `cp build/playbook-vX.Y.pdf .archives/ritsu-handoff-bundle/playbook/`.
+8. **Persist** — INSERT `ops.agent_runs`; emit `ritsu.playbook.built` event.
+9. **Output** — strict JSON to stdout (version_built, pdf_path, pdf_size_bytes, wall_clock_s, changes_detected).
+
+### `/playbook check`
+
+1. Run `node scripts/cross-tier/validate-playbook-coherence.cjs`.
+2. Report 5 invariants:
+   - Every chapter file in CHAPTER_ORDER
+   - Every CHAPTER_ORDER entry has a file
+   - TOC version == build_pdf.py pdf_path version
+   - TOC version == build_pdf.py cover-meta version
+   - TOC date ≥ youngest chapter file mtime
+3. Exit 0 if clean, exit 1 if any FAIL (warn-tier doesn't block).
+
+`--fix` flag also invokes `playbook-builder/sync-meta` to repair detected drift.
+
+### `/playbook history`
+
+```
+$ /playbook history
+v2.8  2026-05-04  1.13 MB  (baseline)
+v2.9  2026-05-16  2.65 MB  (+14 chapters)
+v3.0  2026-05-19  2.77 MB  (+0.12 MB)
+v3.1  2026-05-21  2.77 MB  (—)
+v3.8  2026-05-25  3.26 MB  (+0.49 MB)
+v4.0  2026-05-27  3.40 MB  (+0.14 MB)
+v4.2  2026-05-28  3.69 MB  (+0.29 MB)    ← latest
+```
+
+Pure deterministic — `ls *.pdf | parse version | stat | format`.
+
+## Composition
+
+### `/docs sync` post-hook
+
+When `/docs sync` writes MDX from a source listed in
+`knowledge/playbook-chapter-source-map.yaml`, post-sync invokes `/playbook
+build` automatically. See `06-ai-ops/skills/docs-engine/sync/SKILL.md` §"Post-sync
+composition: playbook-builder" for the integration point.
+
+This makes "update docs → auto-sync playbook" enforceable without
+founder reminding.
+
+## State persistence
+
+Single command invocation = single `ops.agent_runs` row per Skill dispatched.
+Composition (build invokes sync-meta) = 2 agent_runs rows linked via
+`parent_run_id`.
+
+Event `ritsu.playbook.built` emitted on success — consumed by future cron
+(v1.1 if Day-30 ratchet triggers upgrade).
+
+## Drift gates
+
+- `pnpm check` includes `validate-playbook-coherence.cjs` (L1 warn-tier — `.archives/` is gitignored, fail doesn't block CI).
+- Local-only enforcement. CI/clean clones skip cleanly (validator exits 0 if `.archives/` absent).
+
+## HITL discipline
+
+- All operations Tier A by default.
+- MAJOR version bump → Tier B AskUserQuestion ("Major restructure detected — confirm version 5.0.0?").
+- No Tier C in this command (no external surface, no money, no user impact).
+
+## Errors
+
+Specific named errors:
+- `PythonNotFoundError` — `/opt/anaconda3/bin/python3` missing (install hint)
+- `WeasyPrintImportError` — WeasyPrint not importable (install hint)
+- `BrewLibsMissingError` — `/opt/homebrew/lib` missing (brew install hint)
+- `PlaybookNotPresentError` — `.archives/ritsu-handoff-bundle/playbook/` absent (gitignored, fresh clone case)
+- `BuildPdfError` — build_pdf.py crashed (passes through stderr)
+- `DriftError` — validator FAIL-tier (rare; warn-tier doesn't block)
+
+## Defensive notes
+
+- `.archives/` is gitignored — PDF artifacts never committed. Capability runs LOCALLY only.
+- Founder may be on multiple machines (Mac main, future Linux). Cross-machine PDF sync is OUT of scope v1.0.
+- `build_pdf.py` is the underlying renderer — DO NOT bypass with `python build_pdf.py` directly. Always use `bash scripts/playbook/build.sh` for env safety.
+
+## Related commands
+
+- `/docs sync` — Fumadocs MDX walker. Composes with this command via source-map.
+- `/wiki sync` — wiki/ corpus updater. No direct compose (yet).
+- `/cla propose` — original capability proposal flow (this command's parent).
+
+## Spec reference
+
+Canonical (after Phase 8 promotion): `wiki/capabilities/playbook-builder/spec.md`.
+Current draft: `.archives/cla/playbook-builder/spec.md`.
+CLA capability run id: `39294f02-8552-4de3-83bc-430bf019e441`.
+
