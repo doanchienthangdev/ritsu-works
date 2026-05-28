@@ -1027,7 +1027,7 @@ capabilities:
       Filtered for ritsu-works fit (B2C self-serve EdTech PLG 1-founder):
       kept 6 high-leverage, rejected 6 redundant-with-/muse-or-not-fit (Issue
       Tree, Ghost Deck, 5 Whys, 80/20, 7S, PEST/Porter).
-    version: "1.0.0"
+    version: "1.1.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28
@@ -1039,20 +1039,31 @@ capabilities:
     retrospective_path: wiki/capabilities/thinking-toolkit/retrospective.md
     sprint_plan: ".archives/cla/thinking-toolkit/sprint-plan.md (local-only)"
     cost_bucket: ai-ops-skill-library
-    estimated_cost_setup_usd: 12  # one-night authoring + docs MDX gen
+    estimated_cost_setup_usd: 12  # one-night authoring + docs MDX gen (v1.0); +$0.50 v1.1 extend (single-session)
     estimated_cost_recurring_usd: 0  # zero — skills are guidance docs, no per-invocation LLM cost
     estimated_founder_hours: 0  # autonomous overnight ship per founder pre-authorization 2026-05-28
     notes: |
-      Single-session ship 2026-05-28. /cla propose 8-phase compressed into
-      one autonomous session per founder standing-authorization.
+      v1.0 (2026-05-28): Single-session ship. /cla propose 8-phase compressed
+      into one autonomous session per founder standing-authorization.
 
       Established design decisions (do not re-litigate):
         - Skills are LEAF (one SKILL.md per file under thinking-toolkit/<name>/)
         - Parent-namespaced folder enables future framework extracts
         - Persona integration is NON-INVASIVE (1 added section "Output discipline")
-        - No new command — composed by existing personas via Skill tool
         - No new cost-bucket — reuses ai-ops-skill-library per caller's role
         - No new DB tables — uses existing capability_runs + decisions
+
+      v1.1 (2026-05-28, same day): /cla extend — added `/think` slash command
+      surface (`.claude/commands/think.md`). Thin orchestrator over the 6
+      existing skills, plus `list` + `flow` meta-verbs. Zero changes to the
+      6 SKILL.md files. Extensibility convention documented in command file:
+      future thinking frameworks (Cynefin, OODA, Wardley) add by dropping a
+      SKILL.md + one row in /think table — no command-side code changes.
+
+      Decision reversed from v1.0: original "No new command" stance was
+      replaced when founder surfaced the discoverability gap. Skills had no
+      direct invocation surface for ad-hoc thinking discipline (only via
+      persona output contracts).
 
       Capability run id: TBD-at-implementation-time (INSERT during Phase 7).
       Brainstorm artifacts: in-session 2026-05-28 (this file's chat log).
