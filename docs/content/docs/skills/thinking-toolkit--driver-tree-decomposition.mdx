@@ -24,76 +24,78 @@ generated_at: '2026-05-27T18:51:27.975Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
+translated_at: '2026-05-28'
+translated_source_hash: 3261f773dd64ad0528b71fabd5a19295cc6c1bcb0d12af7baba13077f3045c1f
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-> A metric is the wrong place to intervene. The drivers are. A driver tree shows where the lever is.
+> Số liệu không phải là nơi để can thiệp. Các trình điều khiển mới là. Một cây trình điều khiển cho thấy nơi mà cần gây ảnh hưởng.
 
-The driver tree (also called value tree, KPI tree, or formula tree) is McKinsey's standard for decomposing any business metric into its upstream constituent drivers. The premise: you can't move MRR by "trying to move MRR". You move users-acquired, conversion-rate, ARPPU, churn-rate — and they compose to MRR via known math.
+Cây trình điều khiển (hay còn gọi là cây giá trị, cây KPI, hay cây công thức) là tiêu chuẩn của McKinsey để phân tách bất kỳ chỉ số kinh doanh nào thành các trình điều khiển thành phần phía trên của nó. Tiền đề: bạn không thể di chuyển MRR bằng cách "cố gắng di chuyển MRR". Bạn di chuyển users-acquired, conversion-rate, ARPPU, churn-rate — và chúng kết hợp thành MRR thông qua toán học đã biết.
 
-Ritsu-works needs this discipline because the KPI registry has 80+ KPIs but driver chains are implicit. When a KPI drifts, there's no formal trace from the symptom (top-line) to the cause (actionable upstream driver). Driver tree fixes that.
+Ritsu-works cần kỷ luật này vì bản đăng ký KPI có hơn 80 KPI nhưng chuỗi trình điều khiển vẫn ẩn. Khi một KPI thay đổi, không có dấu vết chính thức từ triệu chứng (cấp cao nhất) đến nguyên nhân (trình điều khiển phía trên có thể thao tác trực tiếp). Cây trình điều khiển giải quyết điều đó.
 
-## Authentic sources
+## Các nguồn xác thực
 
-This skill is anchored in two McKinsey-derived textbooks (both in `raw/mckinsey/`):
+Kỹ năng này được neo vào hai sách giáo khoa có nguồn gốc từ McKinsey (cả hai trong `raw/mckinsey/`):
 
-- **Conn & McLean, *Bulletproof Problem Solving*** (Wiley, 2018) — **Chapter 3: "Problem Disaggregation and Prioritization"** (pp. 49-86). The most thorough working treatment. Introduces **5 types of logic trees** in Exhibit 3.2 (p. 52) — each suited to a different stage of problem understanding. The Pacific Salmon case (Exhibit 3.3, p. 54) shows a first-cut "factor/lever/component" tree before insights crystalize.
+- **Conn & McLean, *Bulletproof Problem Solving*** (Wiley, 2018) — **Chương 3: "Problem Disaggregation and Prioritization"** (tr. 49-86). Cách xử lý công việc kỹ lưỡng nhất. Giới thiệu **5 loại cây logic** trong Exhibit 3.2 (tr. 52) — mỗi loại phù hợp với một giai đoạn khác nhau của việc hiểu vấn đề. Trường hợp "Pacific Salmon" (Exhibit 3.3, tr. 54) cho thấy một cây "factor/lever/component" (nhân tố/đòn bẩy/thành phần) lần đầu tiên trước khi những hiểu biết kết tinh.
 
-- **Garrette, Phelps & Sibony, *Cracked it!*** (Palgrave Macmillan, 2018) — **Chapter 6: "Structure the Problem: Analytical Frameworks"** (pp. 95-115). Defines **Value Drivers** as one of three industry framework types. Also Ch 5 hypothesis pyramids (which ARE driver trees expressed as hypotheses).
+- **Garrette, Phelps & Sibony, *Cracked it!*** (Palgrave Macmillan, 2018) — **Chương 6: "Structure the Problem: Analytical Frameworks"** (tr. 95-115). Định nghĩa **Value Drivers** (Trình điều khiển giá trị) là một trong ba loại khung công nghiệp. Cũng có Ch 5 piramid giả thuyết (là các cây trình điều khiển được biểu hiện dưới dạng giả thuyết).
 
-## 5 types of logic trees (Bulletproof, Exhibit 3.2)
+## 5 loại cây logic (Bulletproof, Exhibit 3.2)
 
-Pick the tree shape that matches what you currently know about the problem:
+Chọn hình dạng cây phù hợp với những gì bạn hiện biết về vấn đề:
 
-| Tree type | Shape | When to use |
+| Loại cây | Hình dạng | Khi nào sử dụng |
 |---|---|---|
-| **Factor / Lever / Component** | Problem → Lever 1, Lever 2, Lever 3 → sub-levers | Early. You don't yet know the underlying structure or can't form a hypothesis. |
-| **Inductive logic tree** | Components → Problem Statement (specific → general) | Early. You know "end points" but not relationships between parts. |
-| **Deductive logic tree** | Problem → Relationship → Factors A + B − C (general → specific) | When you have a clear coherent structure (e.g., "ROIC = NOPLAT / Invested Capital"). |
-| **Hypothesis tree** | Problem → Hypothesis 1 OR Hypothesis 2 OR Hypothesis 3 → sub-facts | When you know enough to make clear hypotheses to test with data. |
-| **Decision tree** | Problem if Q1 yes/no → if Q2 yes/no → outcome | When you have a fair amount of problem structure + cascading if-then junctures. |
+| **Factor / Lever / Component** (Nhân tố / Đòn bẩy / Thành phần) | Problem → Lever 1, Lever 2, Lever 3 → sub-levers | Giai đoạn đầu. Bạn chưa biết cấu trúc cơ bản hoặc không thể hình thành giả thuyết. |
+| **Inductive logic tree** (Cây logic quy nạp) | Components → Problem Statement (cụ thể → chung) | Giai đoạn đầu. Bạn biết "điểm cuối" nhưng không biết mối quan hệ giữa các phần. |
+| **Deductive logic tree** (Cây logic suy diễn) | Problem → Relationship → Factors A + B − C (chung → cụ thể) | Khi bạn có cấu trúc rõ ràng, mạch lạc (ví dụ: "ROIC = NOPLAT / Invested Capital"). |
+| **Hypothesis tree** (Cây giả thuyết) | Problem → Hypothesis 1 OR Hypothesis 2 OR Hypothesis 3 → sub-facts | Khi bạn biết đủ để đặt ra những giả thuyết rõ ràng để kiểm tra với dữ liệu. |
+| **Decision tree** (Cây quyết định) | Problem if Q1 yes/no → if Q2 yes/no → outcome | Khi bạn có lượng cấu trúc vấn đề khá lớn + các nút if-then liên tiếp. |
 
-**Critical movement principle (Bulletproof p. 53):** *"The only rule here is to move when you can from trees with general problem elements to trees that state clear hypotheses to test; vague labels do not drive analysis or action—which is the whole point."*
+**Nguyên tắc chuyển động quan trọng (Bulletproof tr. 53):** *"Quy tắc duy nhất ở đây là di chuyển khi bạn có thể từ các cây với các yếu tố vấn đề chung tới các cây nêu rõ những giả thuyết để kiểm tra; các nhãn mơ hồ không thúc đẩy phân tích hoặc hành động — đó là toàn bộ điểm."*
 
-In Ritsu-works, the **driver tree for a KPI is typically a Deductive tree** (MRR = users × ARPPU is mathematical) at the top + **Factor tree branches** below (signups = SEO + paid + referral). When a KPI drifts, you switch to **Hypothesis tree** to test why ("hypothesis: drift caused by signup-channel-X regression").
+Trong Ritsu-works, **cây trình điều khiển cho một KPI thường là cây Suy diễn** (MRR = users × ARPPU là toán học) ở đầu + **các nhánh cây nhân tố** bên dưới (signups = SEO + paid + referral). Khi một KPI thay đổi, bạn chuyển sang **cây giả thuyết** để kiểm tra tại sao ("giả thuyết: sự thay đổi được gây ra bởi sự suy giảm signup-channel-X").
 
-## When to use
+## Khi nào sử dụng
 
-**Mandatory:**
-- 10-metrics pillar work — every top-level KPI should have a driver tree before alerts fire
-- Cost-optimization-review weekly skill — decompose total cost into per-bucket per-task-kind drivers
-- Root-cause analysis on KPI drift — driver tree is the systematic search
+**Bắt buộc:**
+- Công việc của pillar 10-metrics — mỗi KPI cấp cao nhất nên có cây trình điều khiển trước khi cảnh báo phát hành
+- Kỹ năng cost-optimization-review hàng tuần — phân tách tổng chi phí thành các trình điều khiển cho mỗi bộ, mỗi loại tác vụ
+- Phân tích nguyên nhân gốc của sự thay đổi KPI — cây trình điều khiển là phương pháp tìm kiếm có hệ thống
 
-**Recommended:**
-- Growth planning ("How do we get to 100 paying users?")
-- /cgo funnel analysis (each funnel stage = a driver of the next)
-- /update phase analyzing why a skill is degrading (skill-quality has driver chains)
-- Capacity planning (founder hours / agent costs / cron schedule density)
+**Được đề xuất:**
+- Lập kế hoạch tăng trưởng ("Làm thế nào để chúng ta đạt được 100 người dùng trả tiền?")
+- Phân tích /cgo funnel (mỗi giai đoạn funnel = một trình điều khiển của giai đoạn tiếp theo)
+- /update phase phân tích lý do tại sao một kỹ năng đang suy giảm (skill-quality có chuỗi trình điều khiển)
+- Lập kế hoạch công suất (giờ của founder / chi phí agent / mật độ lịch cron)
 
-## When NOT to use
+## Khi KHÔNG sử dụng
 
-**Skip for:**
-- Single-driver metrics (e.g., "count of active capabilities" — directly counted, no decomposition)
-- Qualitative outcomes (e.g., "user happiness" — driver tree needs measurable nodes)
-- Metrics where upstream drivers are opaque (e.g., third-party platform metrics where you can't see internals)
-- Trivia metrics (effort > value)
+**Bỏ qua cho:**
+- Số liệu trình điều khiển đơn lẻ (ví dụ: "count of active capabilities" — được đếm trực tiếp, không phân tách)
+- Kết quả định tính (ví dụ: "sự hài lòng của người dùng" — cây trình điều khiển cần các nút có thể đo lường)
+- Số liệu trong đó các trình điều khiển phía trên không rõ (ví dụ: số liệu nền tảng bên thứ ba trong đó bạn không thể nhìn thấy nội bộ)
+- Số liệu tầm thường (nỗ lực > giá trị)
 
-**Anti-pattern: building a driver tree for a metric you can't change.** Some metrics are observation-only (e.g., "share of voice in industry conversations"). Driver tree for these = decoration. Use for metrics where you control or influence drivers.
+**Anti-pattern: xây dựng cây trình điều khiển cho một số liệu bạn không thể thay đổi.** Một số số liệu chỉ dùng để quan sát (ví dụ: "share of voice in industry conversations"). Cây trình điều khiển cho những cái này = trang trí. Sử dụng cho số liệu mà bạn kiểm soát hoặc ảnh hưởng đến các trình điều khiển.
 
-## How to apply
+## Cách áp dụng
 
-### Step 1 — Identify the target metric
+### Bước 1 — Xác định số liệu mục tiêu
 
-State the metric, its current value, and target (if drift-driven, the gap).
+Nêu rõ số liệu, giá trị hiện tại của nó và mục tiêu (nếu được thúc đẩy bởi sự thay đổi, khoảng cách).
 
-Example: "MRR is $12K; target is $50K by 2026-12-31; gap is $38K."
+Ví dụ: "MRR là $12K; mục tiêu là $50K vào 2026-12-31; khoảng cách là $38K."
 
-### Step 2 — Find the top-level decomposition
+### Bước 2 — Tìm phân tách cấp cao nhất
 
-Most business metrics have a canonical top-level decomposition. Common patterns:
+Hầu hết các số liệu kinh doanh có phân tách cấp cao nhất theo quy tắc. Các mẫu phổ biến:
 
-| Metric | Top-level decomposition |
+| Số liệu | Phân tách cấp cao nhất |
 |---|---|
 | MRR | paying_users × ARPPU |
 | Revenue | users × conversion_rate × ARPPU |
@@ -105,23 +107,23 @@ Most business metrics have a canonical top-level decomposition. Common patterns:
 | NPS | promoters_pct − detractors_pct |
 | Cost per agent run | tokens × $/token + tool_invocations × $/tool_call |
 
-If your metric isn't standard, decompose by either:
-- **Multiplicative** (X = A × B × C — common for rates, ratios)
-- **Additive** (X = A + B + C — common for sums, totals)
-- **Sequential** (X = A → B → C — common for funnels, where each step "filters" the previous)
+Nếu số liệu của bạn không tiêu chuẩn, hãy phân tách bằng:
+- **Multiplicative** (Nhân) (X = A × B × C — phổ biến cho tỷ lệ, tỷ số)
+- **Additive** (Cộng) (X = A + B + C — phổ biến cho tổng, toàn bộ)
+- **Sequential** (Tuần tự) (X = A → B → C — phổ biến cho funnels, nơi mỗi bước "lọc" bước trước)
 
-### Step 3 — Recursively decompose each driver
+### Bước 3 — Đệ quy phân tách từng trình điều khiển
 
-For each child driver, repeat Step 2 until you reach **actionable leaves**.
+Đối với mỗi trình điều khiển con, lặp lại Bước 2 cho đến khi bạn đạt **actionable leaves** (lá có thể thao tác).
 
-A leaf is actionable when:
-- You can directly influence it (run an experiment, change a config, ship a feature)
-- It's measurable (you have an instrument)
-- It's the right level of abstraction (not too granular)
+Một lá có thể thao tác khi:
+- Bạn có thể ảnh hưởng trực tiếp đến nó (chạy một thử nghiệm, thay đổi một cấu hình, ship một tính năng)
+- Nó có thể đo lường được (bạn có một công cụ)
+- Nó ở mức độ trừu tượng đúng (không quá chi tiết)
 
-Stop decomposing when the leaves are actionable. Going deeper = useless complexity.
+Dừng phân tách khi các lá có thể thao tác. Đi sâu hơn = phức tạp vô ích.
 
-Example for MRR:
+Ví dụ cho MRR:
 
 ```
 MRR
@@ -151,40 +153,40 @@ MRR
         └── discount_rate
 ```
 
-### Step 4 — Mark MECE at each level
+### Bước 4 — Đánh dấu MECE ở mỗi cấp
 
-At each level of decomposition, the children must be MECE relative to the parent. Apply `mece-decomposition-check`:
+Ở mỗi cấp phân tách, các con phải MECE so với cha mẹ. Áp dụng `mece-decomposition-check`:
 
-- Are children orthogonal? (M)
-- Do children collectively cover the parent? (C)
+- Các con có trực giao không? (M)
+- Các con có bao gồm hoàn toàn cha mẹ không? (C)
 
-For MRR = paying_users × ARPPU: M ✓ (they're orthogonal multiplicands), C ✓ (definitional — MRR has only these two dimensions).
+Cho MRR = paying_users × ARPPU: M ✓ (chúng là các toán hạng trực giao), C ✓ (theo định nghĩa — MRR chỉ có hai chiều này).
 
-For new_paying_users = signups × free_to_paid_conversion: M ✓ (orthogonal), C ✓ (definitional flow).
+Cho new_paying_users = signups × free_to_paid_conversion: M ✓ (trực giao), C ✓ (luồng định nghĩa).
 
-### Step 5 — Identify intervention points
+### Bước 5 — Xác định các điểm can thiệp
 
-A driver tree's value is in surfacing where YOU CAN ACT. Mark each leaf as:
+Giá trị của cây trình điều khiển là trong việc tiết lộ nơi BẠN CÓ THỂ HÀNH ĐỘNG. Đánh dấu mỗi lá như:
 
-- 🔴 **Hard to influence** (e.g., "macro economic conditions affecting purchase intent")
-- 🟡 **Indirect influence** (e.g., "brand awareness — influenced by months of content")
-- 🟢 **Direct influence** (e.g., "free-tier daily quota — change config, ships tomorrow")
+- 🔴 **Khó ảnh hưởng** (ví dụ: "các điều kiện kinh tế vĩ mô ảnh hưởng đến ý định mua")
+- 🟡 **Ảnh hưởng gián tiếp** (ví dụ: "brand awareness — bị ảnh hưởng bởi nhiều tháng nội dung")
+- 🟢 **Ảnh hưởng trực tiếp** (ví dụ: "free-tier daily quota — thay đổi cấu hình, ship ngày mai")
 
-The intervention points are 🟢 leaves. Rank by leverage (which lever, if pulled, moves the most upstream value?).
+Các điểm can thiệp là những lá 🟢. Xếp hạng theo đòn bẩy (đòn bẩy nào, nếu kéo, sẽ di chuyển giá trị phía trên nhiều nhất?).
 
-### Step 6 — Recommendation falls out
+### Bước 6 — Khuyến nghị sẽ rơi ra
 
-Top-line: "To close the $X gap on MRR, focus on these N drivers (ranked by leverage)..."
+Top-line: "Để đóng khoảng cách $X trên MRR, hãy tập trung vào những trình điều khiển N này (xếp hạng theo đòn bẩy)..."
 
-Each recommended driver gets a 🟢 mark. Use `pyramid-principle-output` to structure.
+Mỗi trình điều khiển được đề xuất nhận được một đánh dấu 🟢. Sử dụng `pyramid-principle-output` để cấu trúc.
 
-## Worked examples
+## Ví dụ đã làm việc
 
-### Example 1 — GOOD (cost-optimization driver tree)
+### Ví dụ 1 — GOOD (cây trình điều khiển tối ưu hóa chi phí)
 
-**Target metric:** Monthly LLM cost. Current: $180/mo. Target: $120/mo (gap: $60/mo).
+**Số liệu mục tiêu:** Chi phí LLM hàng tháng. Hiện tại: $180/tháng. Mục tiêu: $120/tháng (khoảng cách: $60/tháng).
 
-**Driver tree:**
+**Cây trình điều khiển:**
 
 ```
 Monthly LLM cost ($180)
@@ -204,22 +206,22 @@ Monthly LLM cost ($180)
 │   ├── all other skills ($35/mo) 🟢 — long tail; optimize top 3 only
 ```
 
-**Intervention ranking (highest leverage first):**
+**Xếp hạng can thiệp (đòn bẩy cao nhất trước tiên):**
 
-1. **wiki-sync/distill output token reduction** (save ~$15/mo by tightening prompt) — 🟢
-2. **wiki-sync/distill chunk-size optimization** (save ~$10/mo) — 🟢
-3. **/evolve early-stop ratchet** (save ~$10/mo by skipping iterations after plateau) — 🟢
-4. **morning-brief caching** (save ~$10/mo) — 🟢
+1. **wiki-sync/distill output token reduction** (tiết kiệm ~$15/tháng bằng cách siết chặt prompt) — 🟢
+2. **wiki-sync/distill chunk-size optimization** (tiết kiệm ~$10/tháng) — 🟢
+3. **/evolve early-stop ratchet** (tiết kiệm ~$10/tháng bằng cách bỏ qua các lần lặp sau khi cao nguyên) — 🟢
+4. **morning-brief caching** (tiết kiệm ~$10/tháng) — 🟢
 
-Total addressable: ~$45/mo. Closes 75% of the gap. Remaining $15 via long-tail optimization or accepted as variance.
+Tổng có thể giải quyết: ~$45/tháng. Đóng 75% khoảng cách. Còn lại $15 qua tối ưu hóa long-tail hoặc chấp nhận là phương sai.
 
-**Top-line:** "Hit $60/mo cost reduction by focusing on 4 drivers in 2 skills. wiki-sync/distill is 60% of total leverage."
+**Top-line:** "Đạt mục tiêu giảm chi phí $60/tháng bằng cách tập trung vào 4 trình điều khiển trong 2 kỹ năng. wiki-sync/distill là 60% của tổng đòn bẩy."
 
-### Example 2 — ANTI-PATTERN (decomposition that doesn't reach actionable leaves)
+### Ví dụ 2 — ANTI-PATTERN (phân tách không đạt đến lá có thể thao tác)
 
-**Target metric:** User satisfaction.
+**Số liệu mục tiêu:** Sự hài lòng của người dùng.
 
-**Driver tree:**
+**Cây trình điều khiển:**
 ```
 User satisfaction
 ├── Product quality
@@ -230,15 +232,15 @@ User satisfaction
     └── Helpfulness
 ```
 
-**Why this fails:**
-- "Product quality" — not measurable as-is
-- "Features" — not actionable (which feature?)
-- "Helpfulness" — qualitative, no instrument
-- No 🟢/🟡/🔴 marks possible
+**Tại sao điều này không hiệu quả:**
+- "Product quality" — không có thể đo lường như vậy
+- "Features" — không có thể thao tác (tính năng nào?)
+- "Helpfulness" — định tính, không có công cụ
+- Không thể đánh dấu 🟢/🟡/🔴
 
-The tree decomposed terms, but didn't reach actionable measurable leaves. Either go deeper until leaves are actionable, OR abandon driver tree (the metric "user satisfaction" doesn't admit driver-tree treatment — use NPS components or specific behaviors instead).
+Cây phân tách các thuật ngữ, nhưng không đạt được những lá có thể thao tác. Hoặc đi sâu hơn cho đến khi các lá có thể thao tác, HOẶC bỏ dỏ cây trình điều khiển (số liệu "user satisfaction" không thừa nhận xử lý cây trình điều khiển — sử dụng các thành phần NPS hoặc hành vi cụ thể thay thế).
 
-**Fix:** Replace target with NPS:
+**Sửa:** Thay thế mục tiêu bằng NPS:
 
 ```
 NPS
@@ -254,13 +256,13 @@ NPS
     └── churn_intent_signals 🟢
 ```
 
-Now leaves are measurable and actionable.
+Bây giờ các lá có thể đo lường và thao tác được.
 
-### Example 3 — EDGE CASE (sequential funnel decomposition)
+### Ví dụ 3 — EDGE CASE (phân tách funnel tuần tự)
 
-**Target metric:** Free-to-paid conversion rate. Current: 8%. Target: 15%.
+**Số liệu mục tiêu:** Tỷ lệ chuyển đổi từ miễn phí sang trả tiền. Hiện tại: 8%. Mục tiêu: 15%.
 
-**Driver tree (funnel-style):**
+**Cây trình điều khiển (kiểu funnel):**
 
 ```
 Free-to-paid conversion (8%)
@@ -273,45 +275,44 @@ Free-to-paid conversion (8%)
     └── Step 6: accepted upgrade (8%) — 10% drop 🟢
 ```
 
-**Insight:** Biggest drops are Step 1→2 (onboarding) and Step 3→4 (early retention). Step 5→6 (offer accept) is third-biggest.
+**Insight:** Những sự sụt giảm lớn nhất là Step 1→2 (onboarding) và Step 3→4 (early retention). Step 5→6 (offer accept) là lớn thứ ba.
 
-**Action:** Three sprints — improve onboarding (Step 1→2), improve early retention scaffolding (Step 3→4), then iterate on offer copy (Step 5→6).
+**Hành động:** Ba sprints — cải thiện onboarding (Step 1→2), cải thiện early retention scaffolding (Step 3→4), sau đó lặp lại trên offer copy (Step 5→6).
 
-**Why this is good:** Funnel structure makes drop-points visible. Each leaf is a known intervention. Pyramid-output structures the recommendation.
+**Tại sao điều này tốt:** Cấu trúc funnel làm cho các điểm sụt giảm hiển thị. Mỗi lá là một can thiệp được biết. Pyramid-output cấu trúc hóa khuyến nghị.
 
-## Composition notes
+## Ghi chú soạn thảo
 
-### With `pyramid-principle-output`
-Driver tree is evidence; top-line states the intervention recommendation. Order: top-line first ("Focus on drivers X, Y, Z"), then driver tree as supporting visual.
+### Với `pyramid-principle-output`
+Cây trình điều khiển là bằng chứng; top-line nêu rõ khuyến nghị can thiệp. Thứ tự: top-line trước ("Focus on drivers X, Y, Z"), sau đó cây trình điều khiển như hỗ trợ trực quan.
 
-### With `mece-decomposition-check`
-Mandatory at every level of the tree. Children of each node must be MECE. Otherwise the "math" doesn't add up (overlap = double-counting; gaps = unattributed variance).
+### Với `mece-decomposition-check`
+Bắt buộc ở mỗi cấp của cây. Các con của mỗi nút phải MECE. Nếu không, "toán học" không cộng lại (chồng chéo = double-counting; khoảng cách = phương sai chưa được phân bổ).
 
-### With `so-what-test`
-For each 🟢 leaf, ask so-what. "Tighten wiki-sync/distill prompt" — so what? → "Saves ~$15/mo." So what (action)? → "Run /update on distill SKILL.md with shorter prompt next week." If a leaf fails so-what, it's not actually actionable.
+### Với `so-what-test`
+Đối với mỗi lá 🟢, hỏi so-what. "Tighten wiki-sync/distill prompt" — so what? → "Saves ~$15/mo." So what (action)? → "Run /update on distill SKILL.md with shorter prompt next week." Nếu một lá không vượt qua so-what, nó thực sự không thể thao tác.
 
-### With `2x2-synthesis-matrix`
-After driver tree identifies multiple intervention points, 2x2 prioritizes them. Axes: leverage (impact on target metric) × effort (founder hours). Quadrant II (high-leverage, low-effort) = ship first.
+### Với `2x2-synthesis-matrix`
+Sau khi cây trình điều khiển xác định nhiều điểm can thiệp, 2x2 ưu tiên chúng. Trục: đòn bẩy (tác động đến số liệu mục tiêu) × nỗ lực (giờ founder). Quadrant II (đòn bẩy cao, nỗ lực thấp) = ship trước tiên.
 
-### With `tosca-problem-framing`
-TOSCA defines the gap (Trouble) and the measurable goal (Success criteria). Driver tree then operates on the goal metric. Use TOSCA before driver tree, not after.
+### Với `tosca-problem-framing`
+TOSCA định nghĩa khoảng cách (Trouble) và mục tiêu có thể đo lường (Success criteria). Cây trình điều khiển sau đó hoạt động trên số liệu mục tiêu. Sử dụng TOSCA trước cây trình điều khiển, không phải sau.
 
-## References
+## Tài liệu tham khảo
 
-Primary (in `raw/mckinsey/`):
-- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 3** (pp. 49-86). Exhibit 3.2 (p. 52) the 5 types of logic trees. Exhibit 3.3 (p. 54) Pacific Salmon component tree. *"The magic comes in seeing which type of logic tree makes an elegant solution more obvious."* (p. 50)
-- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 6** (pp. 95-115) "Industry Frameworks: Value Drivers" + Ch 5 hypothesis pyramids.
+Chính (trong `raw/mckinsey/`):
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chương 3** (tr. 49-86). Exhibit 3.2 (tr. 52) 5 loại cây logic. Exhibit 3.3 (tr. 54) cây thành phần Pacific Salmon. *"Phép thuật nằm ở việc nhìn thấy loại cây logic nào làm cho giải pháp thanh lịch rõ ràng hơn."* (tr. 50)
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chương 6** (tr. 95-115) "Industry Frameworks: Value Drivers" + Ch 5 piramid giả thuyết.
 
-Supporting:
-- McKinsey Value Driver Tree — standard tool in strategy practice since 1990s.
-- *Valuation* (Koller/Goedhart/Wessels, McKinsey, 2020) — driver trees for financial metrics.
-- *The Lean Startup* (Ries, 2011) — funnel decomposition variant (AARRR).
-- Bain Net-Promoter framework (Reichheld, 2003) — driver-tree decomposition of customer loyalty.
+Hỗ trợ:
+- McKinsey Value Driver Tree — công cụ tiêu chuẩn trong thực hành chiến lược kể từ những năm 1990.
+- *Valuation* (Koller/Goedhart/Wessels, McKinsey, 2020) — cây trình điều khiển cho số liệu tài chính.
+- *The Lean Startup* (Ries, 2011) — biến thể phân tách funnel (AARRR).
+- Bain Net-Promoter framework (Reichheld, 2003) — phân tách cây trình điều khiển của lòng trung thành khách hàng.
 
 ## Anti-claims
 
-- Driver tree is NOT a forecast model. It identifies levers; it doesn't predict outcomes.
-- Driver tree is NOT always quantitative. Sometimes the tree shows structural relationships even when measurements are partial. But qualitative-only trees risk being decorative.
-- Driver tree is NOT a substitute for causal experimentation. Trees show MATHEMATICAL composition; A/B tests show CAUSAL effect.
-- Not every metric admits a useful driver tree. Some are intrinsically observation-only (e.g., macro factors). Recognize and skip.
-
+- Cây trình điều khiển KHÔNG phải là mô hình dự báo. Nó xác định đòn bẩy; nó không dự đoán kết quả.
+- Cây trình điều khiển KHÔNG luôn định lượng. Đôi khi cây hiển thị mối quan hệ cấu trúc ngay cả khi các phép đo không hoàn toàn. Nhưng các cây chỉ định tính có nguy hiểm trở thành trang trí.
+- Cây trình điều khiển KHÔNG thay thế cho thử nghiệm nhân quả. Các cây hiển thị thành phần TOÁN HỌC; các bài kiểm tra A/B hiển thị hiệu ứng NHÂN QUẢ.
+- Không phải mỗi số liệu đều thừa nhận cây trình điều khiển hữu ích. Một số về mặt nội tại chỉ dùng để quan sát (ví dụ: các yếu tố vĩ mô). Công nhân và bỏ qua.
