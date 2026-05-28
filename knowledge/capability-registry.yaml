@@ -1057,6 +1057,53 @@ capabilities:
       Capability run id: TBD-at-implementation-time (INSERT during Phase 7).
       Brainstorm artifacts: in-session 2026-05-28 (this file's chat log).
 
+  - id: playbook-builder
+    name: "Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration"
+    description: |
+      Automation layer for the AI-Native Company Playbook PDF
+      (`.archives/ritsu-handoff-bundle/playbook/`). Founder updates chapter
+      content frequently (7 versions in 24 days, v2.8 → v4.2). Manual rebuild
+      cycle today: edit chapter → 4-field TOC version bump (Phiên bản, Ngày,
+      chapter entry, prose section) → update build_pdf.py CHAPTER_ORDER +
+      pdf_path + cover-meta → setup Python (anaconda3, NOT venv) +
+      DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib → run build_pdf.py → cp
+      build/playbook-vX.Y.pdf to playbook root. ~5-15 min orchestration per
+      update + ~10 min one-time env discovery cost per machine.
+
+      Playbook-builder target capability: single command `/playbook build`
+      that detects chapter changes, auto-bumps version (semver: patch/minor/
+      major), syncs TOC entries from chapter H1s, syncs CHAPTER_ORDER from
+      directory listing, builds PDF in the captured-once environment,
+      publishes to root. Drift validator catches missing CHAPTER_ORDER entries
+      or version-mismatch across 4 sync points. Integration with /docs sync:
+      when Tier 1 source changes have corresponding playbook chapters (mapping
+      captured in capability config), proactively trigger playbook rebuild.
+
+      Zero per-invocation LLM cost — pure deterministic build orchestration.
+      HITL: Tier A autonomous build; Tier B only for MAJOR version bumps
+      (architectural restructure of playbook itself).
+    version: "0.1.0"
+    state: proposed
+    state_since: 2026-05-28
+    proposed_at: 2026-05-28
+    pillar_owner: 06-ai-ops
+    bài_toán_touched: [4, 5, 11, 14, 19, 20]  # Memory (build env preset), Multi-Agent (auto-sync rule), Repo structure, Knowledge graph (chapters as Tier 1 source), Founder capacity (15 min/update saved × frequent rebuilds), CLA produced this
+    spec_path: wiki/capabilities/playbook-builder/spec.md  # target after Phase 8 promotion; draft at .archives/cla/playbook-builder/spec.md
+    sprint_plan: ".archives/cla/playbook-builder/sprint-plan.md (local-only working)"
+    cost_bucket: ai-ops-skill-library
+    estimated_cost_setup_usd: 4  # CLA Phase 0-8 LLM cost (similar to thinking-toolkit, smaller scope)
+    estimated_cost_recurring_usd: 0  # zero — deterministic build orchestration
+    estimated_founder_hours: 1  # CLA decision gates only; implementation autonomous
+    notes: |
+      Triggered by founder feedback 2026-05-28 after manual playbook v4.2
+      rebuild surfaced: discovery cost (anaconda3 vs venv + DYLD env) +
+      4-field version sync drift risk + no /docs sync integration.
+
+      Capability run id: 39294f02-8552-4de3-83bc-430bf019e441 (Phase 0 INSERT).
+      Brainstorm artifacts: in-session 2026-05-28 (this chat log).
+      Interim memory: feedback_docs_sync_autosync_playbook.md captures
+      proactive auto-sync rule UNTIL this capability lands.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:

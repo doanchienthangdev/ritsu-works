@@ -66,6 +66,30 @@ Tier A. Escalates to Tier B if:
 - Area-scoped: $0.05-0.40 depending on area.
 - Cost-bucket: `ai-ops-docs`. Cap: `docs-sync-full-walk` ≤ $1.00.
 
+## Post-sync composition: playbook-builder
+
+After sync writes MDX, check `knowledge/playbook-chapter-source-map.yaml`
+(if present — capability `playbook-builder` may not be deployed). For each
+mapping entry where any `sources:` glob/path matches a file in this sync's
+write set:
+
+1. Collect the affected chapter file paths (dedup across mappings)
+2. Invoke `/playbook build` (or `Skill: playbook-builder/build` directly)
+3. The build skill detects which chapters need rebuild via its own change detection — single invocation handles all affected chapters
+
+Skip gracefully if:
+- `knowledge/playbook-chapter-source-map.yaml` missing (capability not deployed)
+- `.archives/ritsu-handoff-bundle/playbook/` missing (clean clones / CI environment)
+- No mapping entry matches this sync's write set
+
+This integration makes "update Tier 1 docs → auto-sync playbook" enforceable
+without founder reminding. Per playbook-builder v1.0.0 spec §3.6.
+
+Compose contract:
+- /docs sync owns the trigger condition (its write set)
+- /playbook build owns the actual rebuild logic (idempotent, no-op if up-to-date)
+- No coupling: docs-engine reads source-map config only; doesn't know playbook internals
+
 ## See also
 
 - Umbrella: `docs-engine/SKILL.md`

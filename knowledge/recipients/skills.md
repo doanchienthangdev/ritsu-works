@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 84
+**Total entries:** 86
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -827,6 +827,39 @@ This skill does NOT make Tier 1 changes itself. It only proposes.
 Founder approval converts a candidate into a PR.
 
 **Invoke:** `Skill({ skill: "monthly-learning-review" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/playbook-builder/build
+
+**Kind:** skill
+**When to use:** Rebuild + version-bump + publish the AI-Native Company Playbook PDF
+(.archives/ritsu-handoff-bundle/playbook/). Detects chapter changes,
+auto-bumps version (semver: patch for content tweak, minor for new chapter,
+major requires founder confirm Tier B), syncs TOC + CHAPTER_ORDER via
+playbook-builder/sync-meta, invokes scripts/playbook/build.sh which runs
+build_pdf.py under /opt/anaconda3 Python with WeasyPrint native libs from
+/opt/homebrew/lib. Publishes vX.Y.pdf to playbook root alongside published
+versions.
+
+**Invoke:** `Skill({ skill: "playbook-builder/build" })`
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/playbook-builder/sync-meta
+
+**Kind:** skill
+**When to use:** Sync TOC and build_pdf.py metadata from chapter source files. Reads
+.archives/ritsu-handoff-bundle/playbook/chapters/, derives chapter list +
+H1 titles, writes 4 version fields in 00-toc.md + 3 fields in build_pdf.py.
+Deterministic transform — no LLM. Invoked by playbook-builder/build at
+Step 5 OR by founder for manual `/playbook check --fix` workflow.
+
+**Invoke:** `Skill({ skill: "playbook-builder/sync-meta" })`
 
 **Role scope:** *
 **Status:** active

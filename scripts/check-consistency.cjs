@@ -230,6 +230,8 @@ async function main() {
     ['validate-skillopt-vendor.cjs', 'skillopt-vendor SHA pin ↔ submodule + patches'],
     // capability evolve v1.1 Sprint 1 sub-PR C — per_task_kind_caps unit expectations
     ['validate-roles-task-kind-caps-units.cjs', 'ROLES.md per_task_kind_caps ↔ spec unit expectations'],
+    // capability playbook-builder v1.0 — TOC ↔ CHAPTER_ORDER ↔ pdf_path ↔ cover-meta coherence
+    ['validate-playbook-coherence.cjs', 'playbook bundle coherence (TOC ↔ build_pdf.py)'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;

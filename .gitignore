@@ -64,6 +64,8 @@ node_modules/
 .next/
 dist/
 build/
+# exception: 06-ai-ops/skills/playbook-builder/build/SKILL.md (skill folder semantically named "build")
+!06-ai-ops/skills/playbook-builder/build/
 
 # Secrets — never commit anything that looks like a credential
 *.pem
