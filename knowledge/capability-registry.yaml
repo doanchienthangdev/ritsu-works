@@ -1082,18 +1082,24 @@ capabilities:
       Zero per-invocation LLM cost — pure deterministic build orchestration.
       HITL: Tier A autonomous build; Tier B only for MAJOR version bumps
       (architectural restructure of playbook itself).
-    version: "0.1.0"
-    state: proposed
+    version: "1.0.0"
+    state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28
+    deployed_at: 2026-05-28
+    operating_since: 2026-05-28
     pillar_owner: 06-ai-ops
-    bài_toán_touched: [4, 5, 11, 14, 19, 20]  # Memory (build env preset), Multi-Agent (auto-sync rule), Repo structure, Knowledge graph (chapters as Tier 1 source), Founder capacity (15 min/update saved × frequent rebuilds), CLA produced this
-    spec_path: wiki/capabilities/playbook-builder/spec.md  # target after Phase 8 promotion; draft at .archives/cla/playbook-builder/spec.md
+    bài_toán_touched: [4, 5, 11, 14, 19, 20]  # Memory (build env preset), Multi-Agent (auto-sync compose), Repo structure, Knowledge graph (chapters as Tier 1 source), Founder capacity (15 min/update saved × frequent rebuilds), CLA produced this
+    spec_path: wiki/capabilities/playbook-builder/spec.md
+    retrospective_path: wiki/capabilities/playbook-builder/retrospective.md
     sprint_plan: ".archives/cla/playbook-builder/sprint-plan.md (local-only working)"
     cost_bucket: ai-ops-skill-library
-    estimated_cost_setup_usd: 4  # CLA Phase 0-8 LLM cost (similar to thinking-toolkit, smaller scope)
+    estimated_cost_setup_usd: 4  # CLA Phase 0-8 LLM cost
+    actual_cost_setup_usd: 3.55  # per retrospective.md cost analysis
     estimated_cost_recurring_usd: 0  # zero — deterministic build orchestration
-    estimated_founder_hours: 1  # CLA decision gates only; implementation autonomous
+    actual_cost_recurring_usd: 0
+    estimated_founder_hours: 1
+    actual_founder_hours: 0.8
     notes: |
       Triggered by founder feedback 2026-05-28 after manual playbook v4.2
       rebuild surfaced: discovery cost (anaconda3 vs venv + DYLD env) +
