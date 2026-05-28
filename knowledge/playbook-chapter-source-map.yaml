@@ -1,0 +1,114 @@
+# ===========================================================================
+# Playbook Chapter ↔ Tier 1 Source Map
+# ===========================================================================
+#
+# Maps AI-Native Company Playbook chapters (.archives/ritsu-handoff-bundle/
+# playbook/chapters/) to their Tier 1 source files. Consumed by
+# `/docs sync` (via docs-engine/sync skill post-hook) to detect when a
+# Tier 1 change should trigger /playbook build automatically.
+#
+# Format:
+#   mappings:
+#     - chapter: <relative path from chapters/>
+#       sources:
+#         - <Tier 1 source path or glob>
+#         - ...
+#       note: <optional rationale>
+#
+# Composition flow:
+#   1. /docs sync writes MDX
+#   2. For each modified MDX source, check this file
+#   3. If source matches a mapping → enqueue /playbook build for the affected chapter
+#   4. After all docs writes, run /playbook build (deduplicates across chapters)
+#
+# Maintenance:
+#   - Add entry when authoring a new chapter that derives content from Tier 1
+#   - Validator (`validate-playbook-coherence.cjs` v1.1+) will catch
+#     entries pointing to non-existent chapter files
+#   - Globs use shell-style (`**` matches any depth; `*` matches one segment)
+#
+# Not all chapters need mappings — chapters that are pure synthesis of
+# brainstorming sessions (e.g., 1-13, 14-30) have no direct Tier 1 source
+# and aren't listed here. Only post-Wave capability case studies + similar
+# Tier 1-anchored chapters need mappings.
+# ===========================================================================
+
+version: "1.0.0"
+owner: founder
+last_updated: "2026-05-28"
+generated_by: "playbook-builder v1.0.0"
+
+mappings:
+  # ── Wave 1 capability case studies ─────────────────────────────────────────
+
+  - chapter: phase-a2/34-capability-case-wiki-sync.md
+    sources:
+      - wiki/capabilities/wiki-sync-from-refs/spec.md
+      - .claude/commands/wiki.md
+      - 06-ai-ops/skills/wiki-sync/**/SKILL.md
+    note: "Wiki-sync capability v4.0 — chapter derived from spec + command + skill files"
+
+  - chapter: phase-a2/35-capability-case-docs-engine.md
+    sources:
+      - wiki/capabilities/docs-engine/spec.md
+      - .claude/commands/docs.md
+      - 06-ai-ops/skills/docs-engine/**/SKILL.md
+    note: "Docs-engine capability v1.2 — Fumadocs walker + adapters"
+
+  - chapter: phase-a2/36-capability-case-core-redesign.md
+    sources:
+      - .claude/commands/core.md
+      - 00-core/**/*.md
+    note: "Core-redesign + /core command — 7 verb subcommands"
+
+  - chapter: phase-a2/37-capability-case-evolve.md
+    sources:
+      - .claude/commands/evolve.md
+      - wiki/capabilities/evolve/spec.md
+      - 06-ai-ops/skills/eval-evo/**/SKILL.md
+    note: "Evolve v1.0 — eval+evo feedback loop"
+
+  - chapter: phase-a2/38-capability-case-resolver.md
+    sources:
+      - wiki/capabilities/resolver/spec.md
+      - knowledge/recipients/INDEX.md
+    note: "Resolver v1 (deprecated same-day)"
+
+  - chapter: phase-a2/39-capability-case-resolver-v2.md
+    sources:
+      - wiki/capabilities/resolver-v2.2-context-sources/spec.md
+      - scripts/resolver-v2/**/*.cjs
+    note: "Resolver v2 — LLM-native catalog rewrite"
+
+  - chapter: phase-a2/40-capability-case-resolver-v2-1.md
+    sources:
+      - wiki/capabilities/resolver-v3-jit-loading/spec.md
+      - scripts/resolver-v3/**/*.cjs
+      - knowledge/recipients/INDEX.md
+    note: "Resolver v2.1 → v3.0.4 multi-version case study"
+
+  # ── Wave 2 post-Wave-1 case studies ────────────────────────────────────────
+
+  - chapter: phase-a2/41-capability-case-update.md
+    sources:
+      - wiki/capabilities/update/spec.md
+      - .claude/commands/update.md
+    note: "/update capability — Bayesian update verb for leaf entities"
+
+  - chapter: phase-a2/42-capability-case-evolve-v1-1-skillopt-forensic.md
+    sources:
+      - .claude/agents/skillopt-optimizer-reflect.md
+      - .claude/agents/skillopt-target-rollout.md
+      - scripts/skillopt/upstream-patches/configs-ritsu_skill-default.yaml
+      - scripts/skillopt/upstream-patches/ritsu_skill/adapter.py
+      - 06-ai-ops/skills/eval-evo/skillopt-runner/SKILL.md
+    note: "Evolve v1.1 SkillOpt forensic — 4-layer silent-drop anti-pattern; PR #138 + #140"
+
+  - chapter: phase-a2/43-thinking-toolkit.md
+    sources:
+      - 06-ai-ops/skills/thinking-toolkit/**/SKILL.md
+      - .claude/agents/ceo.md
+      - .claude/agents/cto.md
+      - .claude/agents/cgo.md
+      - .claude/agents/cpo.md
+    note: "Thinking-toolkit v1.0 — McKinsey/Minto skills + C-suite persona import"

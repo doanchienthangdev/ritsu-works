@@ -2,12 +2,12 @@
 <!-- Per-entry overrides MUST be inside <!-- override-start --> ... <!-- override-end --> markers -->
 <!-- DO NOT manually edit outside override markers; changes will be lost on next sync -->
 
-# Recipient Catalog: capabilities
+# Recipient Catalog: capabilitys
 
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 11
+**Total entries:** 12
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -76,6 +76,17 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Role scope:** *
 **Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/playbook-builder
+
+**Kind:** capability
+**When to use:** Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration. Automation layer for the AI-Native Company Playbook PDF v0.1.0
+
+**Invoke:** `Read("wiki/capabilities/playbook-builder/spec.md")` or `/cla update playbook-builder`
+
+**Role scope:** *
+**Status:** proposed
 **Pillar:** 06-ai-ops
 
 ## capability/resolver-v2.2-context-sources

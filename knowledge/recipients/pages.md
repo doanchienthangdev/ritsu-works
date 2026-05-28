@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 46
+**Total entries:** 47
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -418,6 +418,16 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **When to use:** ============================================================================ muse-personas.yaml — Decision Architecture personas (Bài #15) ============================================================================ Tier 1 declarative file. Defines personas for Muse panel decision-making. Each persona = expertise lens + use cases + activation patterns. 29 personas typical (founder, team, customer,...
 
 **Invoke:** `Read("knowledge/muse-personas.yaml")`
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-playbook-chapter-source-map
+
+**Kind:** page
+**When to use:** =========================================================================== Playbook Chapter ↔ Tier 1 Source Map =========================================================================== Maps AI-Native Company Playbook chapters (.archives/ritsu-handoff-bundle/ playbook/chapters/) to their Tier 1 source files. Consumed by `/docs sync` (via docs-engine/sync skill post-hook) to detect when a Tier 1...
+
+**Invoke:** `Read("knowledge/playbook-chapter-source-map.yaml")`
 
 **Role scope:** *
 **Status:** active

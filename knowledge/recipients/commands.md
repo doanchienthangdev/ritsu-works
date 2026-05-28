@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 14
+**Total entries:** 15
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -163,6 +163,16 @@ row count. Output: HEALTHY | DEGRADED | UNHEALTHY plus a per-check
 table.
 
 **Invoke:** `/mcp-doctor`
+
+**Role scope:** *
+**Status:** active
+
+## command/playbook
+
+**Kind:** command
+**When to use:** Project-scoped command for ritsu-works. Front-end for the playbook-builder capability (v1.0.0). Capability spec at wiki/capabilities/playbook-builder/ spec.md (after Phase 8 promotion; current draft .archives/cla/playbook-builder/ spec.md).
+
+**Invoke:** `/playbook`
 
 **Role scope:** *
 **Status:** active
