@@ -32,7 +32,7 @@ The command is a thin orchestrator. Loop logic lives in
 | Invocation | Purpose | HITL |
 |---|---|---|
 | `/evolve <type> <name> [--loop=N] [--stop=cond] [--dry-run] [--tier-override]` | Run eval+evo loop (v1.0 judge-persona rubric path) | B for tier-B entities; C for tier-C+ entities (loop in-session, PR after) |
-| `/evolve skillopt &lt;skill-name&gt; [--max-messages=N] [--dry-run] [--regen-data] [--resume=&lt;run-id&gt;] [--gen-sources=auto|pillars=1,3,5] [--bridge-poll-ms=N] [--tier-override]` | **v1.1 NEW.** Run SkillOpt held-out task-completion path via vendor subprocess + session bridge. Dispatches to `eval-evo/skillopt-runner` skill. See spec §19. | B (Tier C entities refused unless `--tier-override`) |
+| `/evolve skillopt &lt;skill-name&gt; [--max-messages=N] [--dry-run] [--regen-data] [--resume=&lt;run-id&gt;] [--gen-sources=auto\|pillars=1,3,5] [--bridge-poll-ms=N] [--tier-override]` | **v1.1 NEW.** Run SkillOpt held-out task-completion path via vendor subprocess + session bridge. Dispatches to `eval-evo/skillopt-runner` skill. See spec §19. | B (Tier C entities refused unless `--tier-override`) |
 | `/evolve status <type> <name>` | Read-only history viewer | A |
 | `/evolve reject &lt;run-id&gt; "<reason>"` | Founder negative signal → ops.corrections | A |
 | `/evolve discard &lt;run-id&gt; [--stale]` | Cleanup stash + run state | A |
