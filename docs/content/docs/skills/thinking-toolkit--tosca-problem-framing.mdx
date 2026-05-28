@@ -25,156 +25,158 @@ generated_at: '2026-05-27T18:51:27.982Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
+translated_at: 2026-05-28
+translated_source_hash: f4be1f64b878916be81cb5abd02be5e1e1c53e0d0ab4637ab0005821f34e28dc
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-> Before solving a problem, define it. Five dimensions, one page, no ambiguity.
+> Trước khi giải quyết một vấn đề, hãy định nghĩa nó. Năm chiều kích, một trang, không có sự mơ hồ.
 
-TOSCA is the problem-definition standard at the front of the McKinsey 4S method (State / Structure / Solve / Sell). The premise: most consulting work fails not because the analysis is wrong but because the problem was defined wrong. Force structured definition before any solution thinking.
+TOSCA là tiêu chuẩn định nghĩa vấn đề ở đầu của phương pháp 4S của McKinsey (State / Structure / Solve / Sell). Tiền đề: hầu hết công việc tư vấn thất bại không phải vì phân tích sai mà vì vấn đề được định nghĩa sai. Buộc phải định nghĩa theo cấu trúc trước khi có bất kỳ tư duy giải quyết nào.
 
-Ritsu-works adopts TOSCA as the mandatory front-end to `/cla problem-framer` (Phase 1 of capability proposals) and any debug/analysis that doesn't start with a crisp problem.
+Ritsu-works áp dụng TOSCA là bước đầu bắt buộc cho `/cla problem-framer` (Giai đoạn 1 của các đề xuất khả năng) và bất kỳ debug/phân tích nào không bắt đầu với một vấn đề rõ ràng.
 
-## Authentic sources
+## Các nguồn xác thực
 
-This skill is anchored in two McKinsey-derived textbooks (both in `raw/mckinsey/`):
+Kỹ năng này được neo đậu trong hai sách giáo khoa dựa trên McKinsey (cả hai trong `raw/mckinsey/`):
 
-- **Garrette, Phelps & Sibony, *Cracked it! How to solve big problems and sell solutions like top strategy consultants*** (Palgrave Macmillan, 2018) — **Chapter 4: "State the Problem: The TOSCA Framework"** (pp. 53-67). Co-author Olivier Sibony spent 25 years at McKinsey. The chapter opens with the namesake metaphor: **TOSCA** is also the heroine of Puccini's opera, whose crystal-clear life problem ("How do I get Mario out of jail alive, without yielding to Scarpia?") models what a well-stated problem feels like. Most business problems aren't this neatly defined — but they should be.
+- **Garrette, Phelps & Sibony, *Cracked it! How to solve big problems and sell solutions like top strategy consultants*** (Palgrave Macmillan, 2018) — **Chương 4: "State the Problem: The TOSCA Framework"** (trang 53-67). Đồng tác giả Olivier Sibony dành 25 năm tại McKinsey. Chương mở đầu bằng phép ẩn dụ mang tên cùng: **TOSCA** cũng là nữ chính của vở opera Puccini, người có vấn đề cuộc sống rõ ràng ("Làm cách nào tôi có thể giúp Mario thoát khỏi nhà tù sống, mà không nhượng bộ Scarpia?") làm mô hình cho cảm giác của một vấn đề được phát biểu tốt. Hầu hết các vấn đề kinh doanh không được định nghĩa gọn gàng như vậy — nhưng chúng nên được.
 
-- **Conn & McLean, *Bulletproof Problem Solving: The One Skill That Changes Everything*** (Wiley, 2018) — **Chapter 2: "Define the Problem"** (pp. 31-47). McKinsey alumni Charles Conn (Rhodes Trust) and Rob McLean (McKinsey Director Emeritus). Pacific Salmon case shows problem-statement evolution across three cuts (Exhibit 2.3, p. 38) — a master class in iterating from "increase wild Pacific salmon" → "maintain a well-functioning salmon ecosystem at the scale of the North Pacific by preserving carrying capacity." Documents the McKinsey **problem worksheet** (Exhibit 2.2, p. 36): Decision makers / Criteria for success / Key forces on decision makers / Time frame / Boundaries / Accuracy needed.
+- **Conn & McLean, *Bulletproof Problem Solving: The One Skill That Changes Everything*** (Wiley, 2018) — **Chương 2: "Define the Problem"** (trang 31-47). Cựu nhân viên McKinsey Charles Conn (Rhodes Trust) và Rob McLean (McKinsey Director Emeritus). Trường hợp Pacific Salmon cho thấy sự phát triển của câu lệnh vấn đề qua ba lần cắt (Exhibit 2.3, trang 38) — một bài học chính khoá về việc lặp lại từ "tăng cá hồi hoang dã Thái Bình Dương" → "duy trì hệ sinh thái cá hồi hoạt động tốt ở quy mô Bắc Thái Bình Dương bằng cách bảo tồn năng lực chứa đựng." Ghi chép **bảng tính vấn đề** McKinsey (Exhibit 2.2, trang 36): Những người quyết định / Tiêu chí thành công / Các lực lượng chính ảnh hưởng đến những người quyết định / Khung thời gian / Ranh giới / Độ chính xác cần thiết.
 
-The two books converge on the same core idea (5-dimension problem-statement worksheet, iterative refinement), differing in vocabulary. This skill uses TOSCA (Cracked it!) because the acronym is mnemonic; the Bulletproof framing is included where it adds specificity.
+Hai cuốn sách hội tụ vào cùng một ý tưởng cốt lõi (bảng tính phát biểu vấn đề năm chiều kích, tinh chỉnh lặp lại), khác nhau về thuật ngữ. Kỹ năng này sử dụng TOSCA (Cracked it!) bởi vì từ viết tắt dễ nhớ; keying Bulletproof được đưa vào nơi nó thêm tính cụ thể.
 
-## Core principle (Cracked it! Ch 4)
+## Nguyên tắc cốt lõi (Cracked it! Ch 4)
 
-> *"There is no 'right' problem definition, although there are many wrong ones."* — Garrette, Phelps, Sibony (Cracked it!, p. 66)
+> *"Không có 'định nghĩa vấn đề đúng', mặc dù có rất nhiều định nghĩa sai."* — Garrette, Phelps, Sibony (Cracked it!, trang 66)
 
-Multiple coherent problem statements can coexist; the goal isn't to find the One True Problem but to formulate one that survives 5 quality checks (see Step 6 below). Crafting a problem statement is iterative and collaborative — "Singing TOSCA as a Choir" (Cracked it! pp. 65-67).
+Nhiều câu lệnh vấn đề có tính kết hợp có thể cùng tồn tại; mục tiêu không phải tìm Vấn đề Duy nhất Đúng mà phát biểu một cái sống sót 5 kiểm tra chất lượng (xem Bước 6 bên dưới). Tạo ra một câu lệnh vấn đề là lặp lại và hợp tác — "Hát TOSCA như một Hợp xướng" (Cracked it! trang 65-67).
 
-## When to use
+## Khi nào sử dụng
 
-**Mandatory:**
-- /cla propose Phase 1 (problem-framer skill invokes TOSCA implicitly)
-- Start of any capability proposal — write TOSCA before any options thinking
-- Any debug session where root cause is unclear
-- /office-hours when user says "I have a problem with..."
+**Bắt buộc:**
+- /cla propose Giai đoạn 1 (kỹ năng problem-framer gọi TOSCA ngầm định)
+- Bắt đầu bất kỳ đề xuất khả năng nào — viết TOSCA trước khi có bất kỳ tư duy lựa chọn nào
+- Bất kỳ phiên debug nào mà nguyên nhân gốc không rõ ràng
+- /office-hours khi người dùng nói "Tôi có vấn đề với..."
 
-**Recommended:**
-- Weekly review when triaging new issues
-- Founder asks "should we build X?" — TOSCA the underlying problem before answering "build X" yes/no
-- When two team members have different ideas about the same "problem" (often they're solving different problems)
+**Được khuyến cáo:**
+- Xem xét hàng tuần khi phân loại các vấn đề mới
+- Người sáng lập hỏi "chúng ta có nên xây dựng X không?" — TOSCA vấn đề cơ bản trước khi trả lời "xây dựng X" có/không
+- Khi hai thành viên nhóm có ý tưởng khác nhau về cùng một "vấn đề" (thường họ đang giải quyết các vấn đề khác nhau)
 
-## When NOT to use
+## Khi KHÔNG nên sử dụng
 
-- Problem is already crisp ("fix this specific bug at line 42"); skip to action
-- Pure operational lookups ("what's our MRR?", "show me cost report"); TOSCA is for definition, not retrieval
-- Trivial decisions (color of button); overhead exceeds benefit
+- Vấn đề đã rõ ràng ("sửa bug cụ thể này ở dòng 42"); bỏ qua hành động
+- Các truy vấn hoạt động thuần túy ("MRR của chúng tôi là gì?", "hiển thị báo cáo chi phí"); TOSCA là để định nghĩa, không phải truy xuất
+- Quyết định tầm thường (màu sắc của nút); chi phí vượt quá lợi ích
 
-**Anti-pattern: TOSCA-ing every question.** TOSCA is a heavyweight tool. Use for problems that genuinely need scoping discipline (5+ minutes of ambiguity to resolve). For clear questions, skip and act.
+**Chống mẫu: TOSCA-ing mọi câu hỏi.** TOSCA là một công cụ nặng. Sử dụng cho các vấn đề thực sự cần kỷ luật xác định phạm vi (5+ phút mơ hồ để giải quyết). Đối với câu hỏi rõ ràng, bỏ qua và hành động.
 
-## How to apply
+## Cách áp dụng
 
-Fill the 5 dimensions in order. ~1-2 sentences per dimension. Total length: ~1 page max.
+Điền năm chiều kích theo thứ tự. ~1-2 câu trên mỗi chiều. Tổng độ dài: ~1 trang tối đa.
 
-### T — Trouble
-**What is currently happening that shouldn't be?** OR **what is not happening that should be?**
+### T — Trouble (Vấn đề)
+**Điều gì hiện đang xảy ra không nên xảy ra?** HOẶC **điều gì không xảy ra nhưng nên xảy ra?**
 
-State the situation neutrally. Avoid solution language. Avoid blame. Focus on the gap between current and desired state. Per Cracked it! (p. 54): *"The basic definition of 'trouble' is a gap between an observation and an aspiration."*
+Nêu tình huống trung lập. Tránh ngôn ngữ giải pháp. Tránh đổ lỗi. Tập trung vào khoảng cách giữa trạng thái hiện tại và mong muốn. Theo Cracked it! (trang 54): *"Định nghĩa cơ bản của 'trouble' là khoảng cách giữa một quan sát và một khát vọng."*
 
-Three tests for a good Trouble statement (Cracked it! pp. 54-55):
+Ba bài kiểm tra cho một câu lệnh Trouble tốt (Cracked it! trang 54-55):
 
-1. **Be specific.** Don't accept "fake problems" — vague gripes you can't possibly solve. *"We must create a results-oriented culture" isn't trouble.* "Twenty percent of customer calls remain unanswered" IS trouble.
-2. **Don't let interpretation (or solution ideas) creep into your definition.** "Our product has lost consumer appeal" is an interpretation. "Our product has lost five points of market share over the past year" is the symptom.
-3. **Ask "Why now?"** If the gap is generic and eternal ("We would like to increase revenues"), it's unlikely to provide a good basis. The "why now?" question often reveals valuable insights.
+1. **Hãy cụ thể.** Đừng chấp nhận "các vấn đề giả tạo" — những than phiền mơ hồ mà bạn không thể giải quyết. *"Chúng ta phải tạo ra một văn hóa hướng đến kết quả" không phải là vấn đề.* "Hai mươi phần trăm các cuộc gọi của khách hàng vẫn chưa được trả lời" LÀ vấn đề.
+2. **Đừng để giải thích (hay ý tưởng giải pháp) len lỏi vào định nghĩa của bạn.** "Sản phẩm của chúng tôi đã mất sự hấp dẫn của người tiêu dùng" là một giải thích. "Sản phẩm của chúng tôi đã mất năm điểm thị phần trong năm qua" là triệu chứng.
+3. **Hỏi "Tại sao bây giờ?"** Nếu khoảng cách là chung chung và vĩnh viễn ("Chúng tôi muốn tăng doanh thu"), nó không có khả năng cung cấp một cơ sở tốt. Câu hỏi "tại sao bây giờ?" thường tiết lộ những hiểu biết có giá trị.
 
-**Canonical example (Cracked it! Ch 2 + Ch 4):** The music industry circa 1999 misframed its trouble as "piracy" (interpretation/diagnosis) when the real trouble was "future revenue decline." Defining it as piracy locked in the wrong solution space (litigation + DRM); defining it as revenue decline opened the iTunes/streaming solution space.
+**Ví dụ quy chuẩn (Cracked it! Ch 2 + Ch 4):** Ngành công nghiệp âm nhạc khoảng năm 1999 sai lầm trong việc xác định vấn đề của nó là "vi phạm bản quyền" (giải thích/chẩn đoán) khi vấn đề thực tế là "giảm doanh thu trong tương lai." Định nghĩa nó là vi phạm bản quyền khóa trong không gian giải pháp sai (kiện tụng + DRM); định nghĩa nó là giảm doanh thu mở không gian giải pháp iTunes/streaming.
 
-Bad: "We need a better customer onboarding flow." (Solution language)
-Good: "Free-to-paid conversion drops 60% between signup and first weekly login. Users who don't return within 7 days never convert." (Specific, symptom-not-interpretation, recent change implied by "drops")
+Xấu: "Chúng tôi cần một luồng onboarding khách hàng tốt hơn." (Ngôn ngữ giải pháp)
+Tốt: "Chuyển đổi miễn phí thành trả phí giảm 60% giữa đăng ký và đăng nhập hàng tuần đầu tiên. Người dùng không quay lại trong 7 ngày không bao giờ chuyển đổi." (Cụ thể, triệu chứng-không-giải thích, thay đổi gần đây được hàm ý bởi "giảm")
 
-### O — Owner
-**Who feels the pain when this trouble persists? Who has authority to act?**
+### O — Owner (Chủ sở hữu)
+**Ai cảm thấy đau khi vấn đề này tiếp tục? Ai có quyền hành động?**
 
-Sometimes the pain-bearer and the authority differ. Name both.
+Đôi khi người chịu đau và người có quyền hành động khác nhau. Đặt tên cả hai.
 
-Bad: "Everyone cares."
-Good: "Pain: prospective paying users who churn silently. Authority: founder + customer-lead. KPI ownership: gtm-orchestrator (signup_to_activation_pct, free_to_paid_conversion)."
+Xấu: "Mọi người quan tâm."
+Tốt: "Đau: những người dùng tiềm năng có khả năng thanh toán churn im lặng. Quyền hành động: người sáng lập + khách hàng-lãnh đạo. Quyền sở hữu KPI: gtm-orchestrator (signup_to_activation_pct, free_to_paid_conversion)."
 
-### S — Success criteria
-**How will we know the trouble has been resolved? Measurable, time-bound.**
+### S — Success criteria (Tiêu chí thành công)
+**Làm cách nào chúng ta biết vấn đề đã được giải quyết? Có thể đo lường, có ràng buộc thời gian.**
 
-Per Cracked it! (pp. 58-60): **don't ask "why?" (5 whys) — it leads to dead ends.** Instead, use the **future-state question**:
+Theo Cracked it! (trang 58-60): **đừng hỏi "tại sao?" (5 lần tại sao) — nó dẫn đến những điểm chết.** Thay vào đó, hãy sử dụng **câu hỏi trạng thái tương lai**:
 
-> *"We are in the future and this problem-solving effort has been a great success. What is the date, and what do we see?"* (Cracked it!, p. 59)
+> *"Chúng ta ở tương lai và nỗ lực giải quyết vấn đề này đã là một thành công lớn. Ngày nào, và chúng ta thấy gì?"* (Cracked it!, trang 59)
 
-This generates open-ended discussion about what success actually looks like, rather than restating the trouble. The book illustrates with a music-industry dialogue:
-- "What's the date?" → "Three years from now."
-- "How do we know we've succeeded?" → "Revenues are growing again. We've restored the growth trajectory."
+Điều này tạo ra thảo luận mở rộng về cách thành công thực sự trông như thế nào, thay vì nêu lại vấn đề. Cuốn sách minh họa bằng một đối thoại ngành công nghiệp âm nhạc:
+- "Ngày nào?" → "Ba năm từ bây giờ."
+- "Làm cách nào để chúng tôi biết rằng chúng tôi đã thành công?" → "Doanh thu lại tăng. Chúng tôi đã khôi phục quỹ đạo tăng trưởng."
 
-→ Critical insight: **revenue growth, not piracy reduction, was the success metric.** Asking "why?" would have stayed stuck on piracy.
+→ Hiểu biết quan trọng: **tăng trưởng doanh thu, không phải giảm vi phạm bản quyền, là chỉ số thành công.** Hỏi "tại sao?" sẽ bị mắc kẹt vào vi phạm bản quyền.
 
-Each criterion follows: "X happens, measured by Y, target Z, by date D."
+Mỗi tiêu chí sau: "X xảy ra, được đo bằng Y, mục tiêu Z, theo ngày D."
 
-Quantification debate (Cracked it!, p. 60): two schools of thought.
-- Open targets ("maximize revenues while maintaining ROS") — acknowledges uncertainty.
-- Quantified targets — focuses the mind, justifies resources. Picking an aspirational number, *even if arbitrary*, has real benefits — provided you're prepared to revise it.
+Tranh luận định lượng (Cracked it!, trang 60): hai trường tư tưởng.
+- Mục tiêu mở ("tối đa hóa doanh thu trong khi duy trì ROS") — thừa nhận sự không chắc chắn.
+- Mục tiêu định lượng — tập trung tâm trí, biện minh cho các tài nguyên. Chọn một con số khao khát, *ngay cả khi tùy ý*, có lợi ích thực — miễn là bạn chuẩn bị sửa đổi nó.
 
-Bad: "More users convert." (Not measurable)
-Good: "Free-to-paid conversion rate from 8% to 15%, measured by metrics.product_dau_snapshot.free_to_paid_conversion, target 15% rolling-30-day, by 2026-08-01." (Specific, measurable, time-bound, prepared to revise)
+Xấu: "Nhiều người dùng chuyển đổi hơn." (Không thể đo lường)
+Tốt: "Tỷ lệ chuyển đổi miễn phí thành trả phí từ 8% đến 15%, được đo bằng metrics.product_dau_snapshot.free_to_paid_conversion, mục tiêu 15% cuộn 30 ngày, theo 2026-08-01." (Cụ thể, có thể đo lường, ràng buộc thời gian, chuẩn bị sửa đổi)
 
-Multiple criteria are fine (2-4 typical). Each must be falsifiable.
+Nhiều tiêu chí là tốt (2-4 điển hình). Mỗi cái phải có thể kiểm chứng được.
 
-### C — Constraints
-**What can we NOT change? What's fixed by external reality?**
+### C — Constraints (Ràng buộc)
+**Điều gì chúng ta KHÔNG thể thay đổi? Điều gì được xác định bởi thực tế bên ngoài?**
 
-Per Cracked it! (pp. 60-61), constraints come in **three types**, all worth listing explicitly:
+Theo Cracked it! (trang 60-61), ràng buộc có **ba loại**, tất cả đáng được liệt kê rõ ràng:
 
-1. **Constraints on the success criteria** — prior commitments + conflicting objectives (e.g., "revenue growth, but must maintain ROS ≥ 5%"). Success criteria almost never live alone; trade-offs exist.
-2. **Constraints on the solution** — resources, capabilities, available paths (e.g., "no in-house digital skills to build streaming service").
-3. **Constraints on the problem-solving process** — time, budget, confidentiality limits (e.g., "no panicky 'emergency task force' optics that themselves worsen the problem").
+1. **Ràng buộc về tiêu chí thành công** — cam kết trước + mục tiêu xung đột (ví dụ: "tăng trưởng doanh thu, nhưng phải duy trì ROS ≥ 5%"). Tiêu chí thành công hầu như không bao giờ tồn tại một mình; sự đánh đổi tồn tại.
+2. **Ràng buộc về giải pháp** — tài nguyên, khả năng, con đường có sẵn (ví dụ: "không có kỹ năng kỹ thuật số trong nhà để xây dựng dịch vụ truyền phát").
+3. **Ràng buộc về quy trình giải quyết vấn đề** — thời gian, ngân sách, giới hạn bảo mật (ví dụ: "không có quang học 'lực lượng tác vụ khẩn cấp hoảng loạn' có thể làm trầm trọng thêm vấn đề").
 
-Caveat (Cracked it! p. 61): *"If you identify too many constraints, you may end up defining the problem as 'just making the trouble disappear without changing anything else.' That's usually mission impossible."* Revisit constraints periodically; relaxing some is often the unlock.
+Cảnh báo (Cracked it! trang 61): *"Nếu bạn xác định quá nhiều ràng buộc, bạn có thể kết thúc việc định nghĩa vấn đề là 'chỉ làm cho vấn đề biến mất mà không thay đổi bất cứ điều gì khác.' Đó thường là nhiệm vụ không thể."* Xem lại ràng buộc định kỳ; nới lỏng một số thường là chìa khóa.
 
-Bad: "Resource constraints." (Unfalsifiable)
-Good:
-- **On success criteria**: "Cannot sacrifice activation rate to grow signups (locked by SOP-CUSTOMER-002 aha-moment KPI)."
-- **On solution**: "Cannot raise prices (locked by GTM pillar pricing-philosophy until SOP-PRODUCT-010 pull-test)." | "Cannot add team member (1-person company until cofounder formal join, target Q3)."
-- **On process**: "Cannot touch Product Supabase (HITL D-MAX boundary)." | "Cannot increase founder time (already at 50h/week cap)."
+Xấu: "Ràng buộc tài nguyên." (Không thể kiểm chứng)
+Tốt:
+- **Về tiêu chí thành công**: "Không thể hy sinh tỷ lệ kích hoạt để tăng trưởng đăng ký (bị khóa bởi SOP-CUSTOMER-002 kpi khoảnh khắc aha)."
+- **Về giải pháp**: "Không thể tăng giá (khóa bởi GTM pillar pricing-philosophy cho đến khi SOP-PRODUCT-010 pull-test)." | "Không thể thêm thành viên nhóm (công ty 1 người cho đến khi đồng sáng lập chính thức tham gia, mục tiêu Q3)."
+- **Về quá trình**: "Không thể chạm vào Product Supabase (ranh giới HITL D-MAX)." | "Không thể tăng thời gian của người sáng lập (đã ở ngưỡng 50h/tuần)."
 
-### A — Actors
-**Who's involved in the problem and solution? Customers, internal roles, external parties?**
+### A — Actors (Bên liên quan)
+**Ai liên quan đến vấn đề và giải pháp? Khách hàng, vai trò nội bộ, bên ngoài?**
 
-List by role/persona, not individual:
+Liệt kê theo vai trò/nhân vật, không phải cá nhân:
 
-Bad: "Marketing team."
-Good:
-- "Users: prospective paying customers (signed up free, haven't converted)"
-- "Internal: customer-lead (owns customer journey), gtm-orchestrator (owns conversion funnel), product-orchestrator (owns wedge + activation events)"
-- "External: Stripe (payment), email provider (transactional)"
-- "Tools: ops.attention_log, metrics.product_dau_snapshot, customer-success runbooks"
+Xấu: "Nhóm tiếp thị."
+Tốt:
+- "Người dùng: những khách hàng tiềm năng có khả năng thanh toán (đã đăng ký miễn phí, chưa chuyển đổi)"
+- "Nội bộ: khách hàng-lãnh đạo (sở hữu hành trình khách hàng), gtm-orchestrator (sở hữu ph漏động chuyển đổi), product-orchestrator (sở hữu wedge + sự kiện kích hoạt)"
+- "Bên ngoài: Stripe (thanh toán), nhà cung cấp email (giao dịch)"
+- "Công cụ: ops.attention_log, metrics.product_dau_snapshot, customer-success runbooks"
 
-### Step 6 — Write the Core Question + run 5-check (Cracked it! pp. 62-64)
+### Bước 6 — Viết Câu hỏi Cốt lõi + chạy kiểm tra 5 (Cracked it! trang 62-64)
 
-After filling T-O-S-C-A, you have enough material to write the **Core Question** — the single question your problem-solving effort will answer. Critical rules (Cracked it! p. 62):
+Sau khi điền T-O-S-C-A, bạn có đủ tài liệu để viết **Câu hỏi Cốt lõi** — câu hỏi duy nhất mà nỗ lực giải quyết vấn đề của bạn sẽ trả lời. Các quy tắc quan trọng (Cracked it! trang 62):
 
-- **Must be a question, not a statement.** "We must stop piracy" isn't a problem statement; it's a solution-disguised-as-mandate.
-- **Choose question scope deliberately.** Open ("How can we restore growth?") vs closed ("Should we acquire Company X?"). Harder problems usually benefit from broader scope.
+- **Phải là một câu hỏi, không phải một phát biểu.** "Chúng ta phải ngừng vi phạm bản quyền" không phải là một câu lệnh vấn đề; đó là một giải pháp-ngụy trang-như-lệnh.
+- **Chọn phạm vi câu hỏi cố ý.** Mở ("Làm cách nào để khôi phục tăng trưởng?") so với đóng ("Chúng ta có nên mua Công ty X không?"). Các vấn đề khó khăn hơn thường hưởng lợi từ phạm vi rộng hơn.
 
-**The 5-check** (apply to your Core Question — Cracked it! p. 63):
-1. Does the question address the **trouble**?
-2. Is the question phrased from the **owner**'s perspective?
-3. Would answering it meet the **success criteria**?
-4. Does the question recognize the **constraints**?
-5. Does the question consider relevant **actors**?
+**Kiểm tra 5** (áp dụng cho Câu hỏi Cốt lõi của bạn — Cracked it! trang 63):
+1. Câu hỏi có giải quyết **vấn đề** không?
+2. Câu hỏi có được diễn đạt từ góc nhìn **chủ sở hữu** không?
+3. Trả lời nó có đáp ứng **tiêu chí thành công** không?
+4. Câu hỏi có công nhận **ràng buộc** không?
+5. Câu hỏi có cân nhắc **bên liên quan** có liên quan không?
 
-A Core Question that passes all 5 looks like (Cracked it! example, p. 63):
-> *"In a context where young consumers are increasingly downloading pirated music files, and knowing that enablers of that behavior—broadband access and digital playback devices—are bound to become more accessible, what actions can we take that would result in restoring an X-percent revenue growth rate, with a minimum return on sales of Y percent, in three years' time?"*
+Một Câu hỏi Cốt lõi vượt qua tất cả 5 trông giống (ví dụ Cracked it!, trang 63):
+> *"Trong bối cảnh những người tiêu dùng trẻ ngày càng tải xuống các tập tin nhạc lậu, và biết rằng những người bổ trợ hành vi đó — truy cập broadband và thiết bị phát lại kỹ thuật số — sắp trở nên dễ tiếp cận hơn, những hành động nào chúng ta có thể thực hiện sẽ dẫn đến việc khôi phục tỷ lệ tăng trưởng doanh thu X phần trăm, với lợi nhuận tối thiểu trên bán hàng Y phần trăm, trong ba năm tới?"*
 
-Note how all five TOSCA dimensions are explicit in the question.
+Lưu ý cách tất cả năm chiều kích TOSCA được tường minh trong câu hỏi.
 
-## Output format
+## Định dạng đầu ra
 
-Write the 5 sections as headers in a markdown doc, ending with the Core Question. Total ~1 page.
+Viết 5 phần như các tiêu đề trong một tài liệu markdown, kết thúc bằng Câu hỏi Cốt lõi. Tổng cộng ~1 trang.
 
 ```markdown
 # Problem: <one-line summary>
@@ -207,9 +209,9 @@ Write the 5 sections as headers in a markdown doc, ending with the Core Question
 ## Next: <handoff — typically gap-analysis or options-generator>
 ```
 
-## Worked examples
+## Các ví dụ về công việc
 
-### Example 1 — GOOD (capability proposal trigger)
+### Ví dụ 1 — TỐT (kích hoạt đề xuất khả năng)
 
 ```markdown
 # Problem: Agents lack output discipline
@@ -242,9 +244,9 @@ Pain: founder (reads all C-suite outputs daily). Authority: aiops-orchestrator (
 ## Next: gap-analysis (Phase 3 of /cla propose thinking-toolkit)
 ```
 
-**Why this is good:** Each section answers its dimension specifically. No solutioning. Measurable criteria. Real constraints with rationale. Specific actors not "stakeholders".
+**Tại sao điều này là tốt:** Mỗi phần trả lời chiều kích của nó một cách cụ thể. Không có solutioning. Tiêu chí có thể đo lường. Ràng buộc thực tế với cơ sở hạ tầng. Các bên liên quan cụ thể không phải "người liên quan".
 
-### Example 2 — ANTI-PATTERN (vague problem, fake TOSCA)
+### Ví dụ 2 — CHỐNG MẪU (vấn đề mơ hồ, TOSCA giả tạo)
 
 ```markdown
 # Problem: We should improve marketing
@@ -265,60 +267,59 @@ The whole team.
 - Everyone
 ```
 
-**Why this is anti-pattern:** Every dimension is generic. "Could be better" is unmeasurable. "Whole team" has no authority. "Resources" is not a real constraint. "Everyone" is not actors. This framing leads to scope-creep solutions because the problem isn't actually defined.
+**Tại sao điều này là chống mẫu:** Mỗi chiều kích là chung chung. "Có thể tốt hơn" là không thể đo lường. "Toàn bộ nhóm" không có quyền hành động. "Tài nguyên" không phải là ràng buộc thực tế. "Mọi người" không phải là các bên liên quan. Khung này dẫn đến các giải pháp phạm vi-creep vì vấn đề thực sự chưa được định nghĩa.
 
-**Fix:** Rewrite Trouble as gap (current X vs desired Y), Owner as specific role+KPI, Success as measurable+time-bound, Constraints as named externalities, Actors as concrete roles.
+**Sửa chữa:** Viết lại Trouble như khoảng cách (X hiện tại so với Y mong muốn), Owner như vai trò + KPI cụ thể, Thành công như có thể đo lường + ràng buộc thời gian, Ràng buộc như các nhân vật bên ngoài được đặt tên, Bên liên quan như các vai trò cụ thể.
 
-### Example 3 — EDGE CASE (problem morphs during TOSCA)
+### Ví dụ 3 — TRƯỜNG HỢP BIÊN (vấn đề biến hình trong TOSCA)
 
-Sometimes filling TOSCA reveals the problem is actually a DIFFERENT problem.
+Đôi khi điền TOSCA tiết lộ vấn đề thực sự là một VẤN ĐỀ KHÁC.
 
-Initial framing:
+Khung ban đầu:
 > "Problem: too many support tickets."
 
-After T-O-S-C-A:
-- T: Support ticket volume up 40% MoM
-- O: Pain = support-agent (overloaded); Authority = customer-lead; KPI = support_ticket_volume_by_category
+Sau T-O-S-C-A:
+- T: Volume vé hỗ trợ tăng 40% MoM
+- O: Đau = support-agent (quá tải); Quyền hành động = customer-lead; KPI = support_ticket_volume_by_category
 - S: ?
-- C: Cannot hire (1-person co)
-- A: Users (creating tickets), support-agent, customer-lead, ...
+- C: Không thể thuê (1-người công ty)
+- A: Người dùng (tạo vé), support-agent, customer-lead, ...
 
-While filling S, you realize: 90% of new tickets are about ONE feature regression that shipped last week. The real problem isn't "too many tickets" — it's "feature X regression causing ticket spike".
+Khi điền S, bạn nhận ra: 90% vé mới là về MỘT hồi quy tính năng đã được gửi vào tuần trước. Vấn đề thực sự không phải "quá nhiều vé" — đó là "hồi quy tính năng X gây ra loạt vé".
 
-**Reframe:** The original Trouble was a symptom. Drop the original TOSCA, restart with: "Feature X regression caused N% of users to hit error Y; tickets are the symptom."
+**Khung lại:** Trouble ban đầu là một triệu chứng. Thả TOSCA ban đầu, khởi động lại với: "Hồi quy tính năng X gây ra N% người dùng bị lỗi Y; các vé là triệu chứng."
 
-**Lesson:** TOSCA is iterative. If filling one dimension reveals the problem is something else, restart. Don't force-fit.
+**Bài học:** TOSCA là lặp lại. Nếu điền một chiều kích tiết lộ vấn đề là cái khác, khởi động lại. Đừng cưỡng chế phù hợp.
 
-## Composition notes
+## Ghi chú về thành phần
 
-### With `pyramid-principle-output`
-TOSCA is INPUT discipline (frame the problem); pyramid is OUTPUT discipline (structure the recommendation). Order: TOSCA first, then analysis, then pyramid-structured recommendation.
+### Với `pyramid-principle-output`
+TOSCA là kỷ luật INPUT (khung vấn đề); pyramid là kỷ luật OUTPUT (cấu trúc khuyến nghị). Đơn đặt hàng: TOSCA trước, sau đó phân tích, sau đó khuyến nghị được cấu trúc pyramid.
 
-### With `gap-analysis` (existing /cla phase 3 skill)
-TOSCA Trouble + Constraints feed directly into gap-analysis. The "what's missing to solve this?" question of gap-analysis only makes sense after TOSCA defines what "this" is.
+### Với `gap-analysis` (kỹ năng giai đoạn /cla hiện tại 3)
+TOSCA Trouble + Constraints đã cho trực tiếp vào gap-analysis. Câu hỏi "điều gì bị thiếu để giải quyết cái này?" của gap-analysis chỉ có ý nghĩa sau khi TOSCA định nghĩa "cái này" là gì.
 
-### With `so-what-test`
-Run so-what on the Success criteria. Each criterion must survive both so-what passes — otherwise it's "improvement" decoration, not a real goal.
+### Với `so-what-test`
+Chạy so-what trên Tiêu chí Thành công. Mỗi tiêu chí phải sống sót cả hai lượt so-what — nếu không, nó là "cải thiện" trang trí, không phải một mục tiêu thực tế.
 
-### With `mece-decomposition-check`
-Apply to the Actors list. Are actors overlapping (e.g., "founder" and "@ceo" — same entity)? Missing (forgot the user)? MECE check tightens the framing.
+### Với `mece-decomposition-check`
+Áp dụng cho danh sách Bên liên quan. Các bên liên quan có chồng chéo không (ví dụ: "người sáng lập" và "@ceo" — cùng một thực thể)? Bị thiếu (quên người dùng)? Kiểm tra MECE siết chặt khung.
 
-## References
+## Tài liệu tham khảo
 
-Primary (in `raw/mckinsey/`):
-- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it! How to solve big problems and sell solutions like top strategy consultants*.** Palgrave Macmillan. — **Chapter 4: "State the Problem: The TOSCA Framework"** (pp. 53-67). Working source of the TOSCA acronym + 5-check + iterative collaborative framing. Fig 4.1 (p. 64): TOSCA problem statement worksheet.
-- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving: The One Skill That Changes Everything*.** Wiley. — **Chapter 2: "Define the Problem"** (pp. 31-47). McKinsey problem worksheet (Exhibit 2.2, p. 36). Pacific Salmon problem-statement evolution (Exhibit 2.3, p. 38). "Porpoising" to iterate problem statement (pp. 41-43).
+Chính (trong `raw/mckinsey/`):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it! How to solve big problems and sell solutions like top strategy consultants*.** Palgrave Macmillan. — **Chương 4: "State the Problem: The TOSCA Framework"** (trang 53-67). Nguồn công việc của từ viết tắt TOSCA + kiểm tra 5 + khung hợp tác lặp lại. Hình 4.1 (trang 64): bảng tính phát biểu vấn đề TOSCA.
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving: The One Skill That Changes Everything*.** Wiley. — **Chương 2: "Define the Problem"** (trang 31-47). Bảng tính vấn đề McKinsey (Exhibit 2.2, trang 36). Sự phát triển phát biểu vấn đề Pacific Salmon (Exhibit 2.3, trang 38). "Porpoising" để lặp lại phát biểu vấn đề (trang 41-43).
 
-Supporting:
-- McKinsey internal training: TOSCA is taught in the first week of consultant onboarding.
-- *The McKinsey Way* (Rasiel, 1999) — popular-press treatment.
-- Rittel, H.W.J., & Webber, M.M. (1973). Dilemmas in a General Theory of Planning. *Policy Sciences*, 4(2), 155-169 — "wicked problems" exception case (Cracked it! Ch 4 note 1).
-- Minto, B. (1987). *The Pyramid Principle* — pyramid-output complement to TOSCA-input.
+Hỗ trợ:
+- Đào tạo nội bộ McKinsey: TOSCA được dạy trong tuần đầu tiên của onboarding nhân viên tư vấn.
+- *The McKinsey Way* (Rasiel, 1999) — phương pháp phổ biến-báo chí.
+- Rittel, H.W.J., & Webber, M.M. (1973). Dilemmas in a General Theory of Planning. *Policy Sciences*, 4(2), 155-169 — trường hợp ngoại lệ "vấn đề khó khăn" (Cracked it! Ch 4 ghi chú 1).
+- Minto, B. (1987). *The Pyramid Principle* — bổ sung pyramid-output cho TOSCA-input.
 
-## Anti-claims
+## Các yêu cầu phản bác
 
-- TOSCA does NOT solve the problem. It defines it. Solutions come from downstream skills.
-- TOSCA is NOT a 5-section checklist. Each dimension demands real thinking; bullet-filling defeats the purpose.
-- TOSCA is NOT for every question. Crisp questions skip TOSCA entirely.
-- TOSCA does NOT replace stakeholder interviews. For high-stakes problems, validate the framing with the actual Owner before proceeding.
-
+- TOSCA KHÔNG giải quyết vấn đề. Nó định nghĩa nó. Các giải pháp đến từ kỹ năng hạ lưu.
+- TOSCA KHÔNG phải là danh sách kiểm tra 5 phần. Mỗi chiều kích đòi hỏi tư duy thực; điền dấu đầu dòng làm sai mục đích.
+- TOSCA KHÔNG phải cho mọi câu hỏi. Những câu hỏi rõ ràng bỏ qua TOSCA hoàn toàn.
+- TOSCA KHÔNG thay thế phỏng vấn bên liên quan. Đối với các vấn đề có cổ phiếu cao, xác thực khung với Chủ sở hữu thực tế trước khi tiếp tục.
