@@ -2,170 +2,316 @@
 title: Ritsu — Product Charter
 description: ''
 source_path: 00-core/product.md
-source_hash: ffc03af72d0b7c781c1e1d5be17fa2dffd6229db447d399860a2419c855d7f7a
-generated_at: '2026-05-22T01:09:07.461Z'
+source_hash: fab465492e41d65ee7e0ccf27e45ef2ed7c52364b1a91bc9564c8bdefed2c34b
+generated_at: '2026-05-29T17:31:50.185Z'
 generated_by: docs-engine v1.2.0
 category: charter
 language: vi
+translated: true
+translated_at: '2026-05-29T17:36:47Z'
+translated_by: docs-translate v1.2.0 (subagent)
+translation_model: claude-haiku-4-5
+translated_source_hash: fab465492e41d65ee7e0ccf27e45ef2ed7c52364b1a91bc9564c8bdefed2c34b
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-> **Canonical source of truth for what Ritsu is.**
-> Every agent must align with this document before producing marketing, sales, support, or product-ops output. If reality drifts from this document, update the document via PR — do not let two truths exist.
 
-**Last verified against the live site:** 2026-05-02 (https://ritsu.ai)
-**Owner:** founder
-**Change policy:** PR + human review
+\<!-- updated-by: /update tier1-file v1.1.1 run=6fb167a2-7e2c-4bdb-aae8-f82075e32eb6 @ 2026-05-29 (D-Std override: realign product.md to US-led A+ with three-level product structure + SERVQUAL). FRAMING + COHERENCE + THEORY refresh only — all product FACTS unchanged + still live-verified 2026-05-28. -->
+
+# Ritsu — Product Charter
+
+> **Nguồn sự thật quy chuẩn cho cái là Ritsu.**
+> Mỗi agent phải sắp xếp với tài liệu này trước khi tạo ra output về marketing, sales, support hoặc product-ops. Nếu hiện thực lệch khỏi tài liệu này, cập nhật tài liệu qua PR — đừng để tồn tại hai sự thật.
+
+**Xác minh lần cuối với trang web thực tế:** 2026-05-28 (https://ritsu.ai)
+**Chủ sở hữu:** founder
+**Chính sách thay đổi:** PR + đánh giá của con người (Tier C theo `governance/HITL.md`)
+
+> **Ghi chú v1.2 (2026-05-29):** định vị lại theo hướng **US-led** + cấu trúc theo lý thuyết sản phẩm của Kotler (3 cấp độ sản phẩm, SERVQUAL, PLG). **Các thông tin thực tế về sản phẩm không thay đổi** và vẫn được xác minh trực tiếp vào 2026-05-28; lần làm mới này thay đổi *cách định khung sản phẩm*, không phải *bản chất của nó*. Định vị quy chuẩn (belief, frame, PODs) nằm trong `00-core/positioning.md`; ICP mục tiêu nằm trong `00-core/icp-summary.md`.
 
 ---
 
-## One-line
+## 1. Mô tả một dòng
 
-Ritsu turns any document into your personal AI tutor.
+Ritsu biến bất kỳ tài liệu nào thành gia sư AI cá nhân của bạn.
 
-## Tagline (homepage hero)
+## 2. Tagline (hero trang chủ)
 
 **Turn Raw Materials Into True Mastery.**
 
-## Positioning
+(Hero trang chủ đang hoạt động. Sự tiến hóa ở cấp độ belief — "active mastery là thứ duy nhất thực sự ghi nhớ" — triển khai qua kế hoạch trang chủ 3 giai đoạn theo `positioning.md` §1/§3; dòng này giữ nguyên là hero chuyển tiếp cho đến lúc đó.)
 
-> Personalized AI Tutor. Upload PDF, video, slides, or any source. In 30 seconds, get an AI tutor that quizzes you, explains concepts, and helps you truly understand.
+Để xem danh sách slogan theo từng kênh (tiêu đề quảng cáo, push, email, mạng xã hội) và danh sách cụm từ bị cấm, xem `00-core/positioning.md`.
 
-Ritsu replaces the user's entire study stack: Anki, Quizlet, Kahoot, ChatGPT, Notion. From one upload.
+## 3. Định vị
 
-## What Ritsu is, in plain terms
+> Gia sư AI cá nhân hóa. Tải lên PDF, video, slide hoặc bất kỳ nguồn nào. Trong 30 giây, nhận được một gia sư AI đặt câu hỏi kiểm tra bạn, giải thích các khái niệm và giúp bạn thực sự hiểu.
 
-A learning platform built on the principle that **active learning beats passive learning**. Reading, highlighting, and rewatching are passive. Quizzing yourself, explaining concepts back, and solving problems are active. Ritsu automates the painful part of active learning (creating the materials) so the user can spend their time on the productive part (doing the work).
+Ritsu thay thế toàn bộ bộ công cụ học tập của người dùng: Anki, Quizlet, Kahoot, ChatGPT, Notion. Chỉ từ một lần tải lên.
 
-## What Ritsu is NOT
+> Phần này là tóm tắt bề mặt sản phẩm. **Định vị quy chuẩn** — khung cạnh tranh ("AI mastery có nền tảng khoa học học tập"), cấp độ belief, points-of-difference, và phân khúc US-led — nằm trong `00-core/positioning.md`.
 
-- Not a general chatbot. ChatGPT is a chatbot you paste into. Ritsu reads the user's full document, builds a structured plan, and persists across sessions.
-- Not a flashcard app. Ritsu generates flashcards as one of 17+ activity types, but the product is the full learning loop, not the cards.
-- Not a course platform. Ritsu generates personalized learning paths from the user's own material; it does not host pre-made courses (though educators can use it to create courses for their students).
-- Not a note-taking tool. Notion-style note-taking is explicitly something Ritsu replaces, not competes with on its own terms.
+## 4. Ritsu là gì, theo ngôn ngữ thông thường
 
----
+Một nền tảng học tập có **core value là mastery — hiểu thực sự, không phải chỉ tiếp nhận nội dung**. (Theo thuật ngữ sản phẩm của Kotler: "người mua thực sự đang mua gì?" Không phải "một gia sư AI" — họ đang mua *"Cuối cùng tôi đã hiểu rồi."*)
 
-## Core capabilities (as live on the site)
+Xây dựng trên nguyên tắc rằng **active learning vượt trội hơn passive learning**. Đọc, đánh dấu và xem lại là thụ động. Tự kiểm tra bản thân, giải thích lại các khái niệm và giải quyết vấn đề là chủ động. Theo phân loại sản phẩm của Kotler, các ứng dụng học tập thụ động là **"pleasing products"** (mức độ thoải mái tức thời cao, lợi ích lâu dài thấp); **Ritsu là một "desirable product"** — hấp dẫn *và* bền vững, bởi vì active mastery là thứ thực sự ghi lại. Ritsu tự động hóa phần khó chịu của active learning (tạo tài liệu) để người dùng có thể dành thời gian cho phần có năng suất (thực hành).
 
-### Universal input — works with whatever you're studying
+## 5. Ritsu KHÔNG phải là gì
 
-Supported formats: **PDF, PPTX, DOCX, YouTube, web URL, Markdown, code, images.** "Drop it in — Ritsu handles the rest."
-
-### Interactive learning — 17+ activity types from one upload
-
-Quiz, Flashcard, Mindmap, Timeline, Crossword, Drag-and-drop, Diagram, Code exercise, Match. All auto-generated from the user's material — not templates.
-
-Slash commands surface these:
-`/quiz`, `/flashcard`, `/mindmap`, `/timeline`, `/crossword`, `/diagram`, `/code`, `/match`.
-
-### Tutoring modes — 7 modes for different kinds of understanding
-
-`/askme`, `/exercise`, `/solve`, `/upthink`, `/adaptive`, plus others.
-
-- **Ask Me** challenges the user to explain concepts back.
-- **Exercise** gives problems to solve step by step.
-- **Solve** poses real-world scenarios.
-
-### Mastery engine — built for understanding, not memorization
-
-Concept maps connecting ideas across chapters. Deep explanations using analogies from the user's experience. Compare, Analogies, Deep Explain, Feynman-style breakdowns.
-
-### Emotional AI — 10 personality styles
-
-Funny, Supportive, Nerdy, Chill, Energetic, Sarcastic, and more. Animated stickers and emotional messages at milestones. The pitch: "learning should feel as good as getting it right."
+- **Không phải chatbot đa năng.** ChatGPT là chatbot bạn dán nội dung vào. Ritsu đọc toàn bộ tài liệu của người dùng, xây dựng kế hoạch có cấu trúc và duy trì liên tục qua các phiên.
+- **Không phải ứng dụng flashcard.** Ritsu tạo flashcard như một trong 17+ loại hoạt động, nhưng sản phẩm là vòng lặp học tập đầy đủ, không chỉ là thẻ.
+- **Không phải nền tảng khóa học.** Coursera và Udemy cung cấp chương trình giảng dạy có sẵn; Ritsu tạo lộ trình học cá nhân hóa từ tài liệu của chính người dùng (dù các nhà giáo dục có thể dùng để tạo khóa học cho học sinh của họ).
+- **Không phải công cụ ghi chú.** Lưu trữ ghi chú kiểu Notion là thứ Ritsu thay thế một cách rõ ràng, không phải cạnh tranh theo điều kiện của nó.
+- **Không phải trò chơi câu hỏi nhóm.** Kahoot là trò chơi nhóm vui vẻ; Ritsu là mastery cá nhân, được tạo tự động, với chiều sâu vượt xa trắc nghiệm thông thường.
+- **Không phải công cụ "AI làm thay bạn".** AI là *đòn bẩy*, không phải sự thay thế — Ritsu khiến người dùng phải thực hiện công việc chủ động tạo ra mastery. (Belief theo `positioning.md` §1: "AI không thể học thay bạn.")
 
 ---
 
-## The three-step user flow (homepage)
+## 6. Năng lực cốt lõi
 
-1. **Drop your file.** Any document. ~5 seconds.
-2. **AI builds your plan.** Ritsu analyzes and creates a structured learning path automatically. Topics ordered by difficulty. Activities auto-generated. ~30 seconds.
-3. **Start mastering.** Take quizzes, flip flashcards, explore concepts. Track progress on a heatmap.
+> Bề mặt sản phẩm như đang hoạt động trên https://ritsu.ai (xác minh 2026-05-28). Các tuyên bố trên trang marketing và thực tế trong sản phẩm có thể lệch nhau theo thời gian — các con số dưới đây được ghim theo snapshot xác minh này; để có danh sách hiện tại có thẩm quyền, luôn kiểm tra trang web thực tế hoặc bộ chọn trong sản phẩm.
+
+### 6.0 Ba cấp độ sản phẩm (cách đọc phần này)
+
+Theo "ba cấp độ sản phẩm" của Kotler, Ritsu được hiểu rõ nhất khi bắt đầu từ core value — **dẫn đầu bằng thứ người mua thực sự đang mua, rồi mới đến các tính năng mang lại điều đó:**
+
+- **Core value** — *mastery / hiểu thực sự.* Lợi ích căn bản; mọi thứ bên dưới tồn tại để mang lại điều này.
+- **Actual product** — đầu vào phổ quát (§6.1), 17+ loại hoạt động (§6.2), 7 chế độ dạy kèm (§6.3), công cụ mastery (§6.4), và giao diện người dùng.
+- **Augmented product** — lộ trình học cá nhân hóa, tính cách emotional-AI (§6.5), Knowledge Map, biểu đồ tiến độ heatmap, và bộ nhớ xuyên phiên.
+
+Mỗi năng lực dưới đây kết hợp tính năng đã xác minh với **lợi ích** mà nó tạo ra (kỷ luật benefits-not-features).
+
+### 6.1 Đầu vào phổ quát — 12+ định dạng nguồn
+
+Được đặt tên đã xác minh trên trang chủ (8 trong số 12+): **PDF, PPTX, DOCX, YouTube, web URL, Markdown, code, images.** Thêm 4+ định dạng có thể thấy trong giao diện tải lên nhưng không được liệt kê trên bề mặt marketing. "Thả vào — Ritsu xử lý phần còn lại."
+
+→ **Lợi ích:** bắt đầu từ bất cứ thứ gì bạn đã có — không có ma sát thiết lập; tài liệu học thực tế của bạn trở thành bài luyện tập trong vài giây.
+
+### 6.2 Học tập tương tác — 17+ loại hoạt động
+
+Được đặt tên đã xác minh (9 trong số 17+): **Quiz, Flashcard, Mindmap, Timeline, Crossword, Drag-and-drop, Diagram, Code exercise, Match.** Tất cả được tạo tự động từ tài liệu của người dùng — không phải mẫu có sẵn.
+
+Lệnh slash trong sản phẩm: `/quiz`, `/flashcard`, `/mindmap`, `/timeline`, `/crossword`, `/diagram`, `/code`, `/match`. Repository tuyên bố **185+ lệnh** tổng cộng — đó là tập hợp bao gồm cả hoạt động + chế độ + tiện ích, không chỉ riêng các loại hoạt động. Để có danh sách hoạt động hiện tại đầy đủ, tải https://ritsu.ai.
+
+→ **Lợi ích:** luyện tập theo đúng định dạng giúp *tài liệu này* ghi nhớ → thực sự master nó, không chỉ đọc lại.
+
+### 6.3 Chế độ dạy kèm — 7 chế độ
+
+Được đặt tên đã xác minh (5 trong số 7): **Ask Me, Exercise, Solve, Upthink, Adaptive.**
+
+- **Ask Me** — thách thức người dùng giải thích lại các khái niệm.
+- **Exercise** — đưa ra bài toán để giải từng bước một.
+- **Solve** — đặt ra các tình huống thực tế.
+- **Upthink, Adaptive** — xem bộ chọn trong sản phẩm để biết mô tả.
+
+Hai chế độ bổ sung có thể thấy trong sản phẩm nhưng không được liệt kê trên bề mặt marketing.
+
+→ **Lợi ích:** gia sư thích nghi theo *cách* bạn cần tương tác ngay lúc này — ghi nhớ, áp dụng, hoặc mở rộng.
+
+### 6.4 Công cụ mastery — xây dựng để hiểu, không phải để ghi nhớ
+
+Bản đồ khái niệm kết nối các ý tưởng xuyên suốt các chương. Các kỹ thuật có tên được áp dụng cho tài liệu của người dùng: **Compare, Analogies, Deep Explain, Feynman-style breakdowns.**
+
+Tính năng **Knowledge Map** hiển thị các kết nối này trực quan — cơ bản ở tầng Plus, đầy đủ (có chia sẻ + xuất) ở tầng Pro.
+
+→ **Lợi ích:** thấy cách các ý tưởng kết nối với nhau — sự khác biệt giữa ghi nhớ các sự kiện và thực sự hiểu một môn học.
+
+### 6.5 Emotional AI — 10 phong cách tính cách
+
+Được đặt tên đã xác minh (6 trong số 10): **Funny, Supportive, Nerdy, Chill, Energetic, Sarcastic.** Bốn phong cách bổ sung trong sản phẩm. Nhãn dán hoạt hình + tin nhắn cảm xúc tại các cột mốc. Mô tả: "việc học nên cảm thấy tốt như khi hiểu đúng."
+
+Tính khả dụng của tính cách theo tầng: **Free nhận 3 tính cách cơ bản; Plus / Pro / Ultra nhận đủ 10**; **Ultra ngoài ra còn mở khóa tính cách tùy chỉnh không giới hạn + nhân vật tùy chỉnh** (theo https://ritsu.ai/pricing, xác minh 2026-05-29).
+
+→ **Lợi ích:** việc học cảm thấy như người và khích lệ → bạn tiếp tục (hook tâm lý biến một công cụ thành thói quen).
+
+### 6.6 Đa ngôn ngữ — 10 ngôn ngữ
+
+Tất cả các tầng hỗ trợ 10 ngôn ngữ (theo https://ritsu.ai/pricing). **Tiếng Anh là ưu tiên; US-led intermarket** theo `00-core/icp-summary.md` — phân khúc đầu tiên-100-trả tiền là người học nghiêm túc nói tiếng Anh, dẫn đầu bởi Mỹ. **Tiếng Việt hiện là thị trường thứ cấp** (được phục vụ, không được nhắm mục tiêu đầu tiên; thực thể pháp lý vẫn ở Việt Nam — xem §12). 8 ngôn ngữ còn lại không được liệt kê trên bề mặt marketing — xác minh qua bộ chọn ngôn ngữ trong sản phẩm.
+
+→ **Lợi ích:** học bằng ngôn ngữ của bạn; cùng một công việc "thi trong 3 ngày" tồn tại giống hệt nhau trên toàn thế giới nói tiếng Anh (một phân khúc intermarket).
+
+### 6.7 Chất lượng dịch vụ — "tốt" có nghĩa là gì (SERVQUAL)
+
+Ritsu là một *dịch vụ*, vì vậy chất lượng có năm yếu tố quyết định (Kotler/SERVQUAL), theo thứ tự ưu tiên:
+
+1. **Độ tin cậy (#1)** — đầu ra chính xác, đúng với tài liệu; **không có câu hỏi kiểm tra bị hallucinated.** Đây là tiêu chuẩn chất lượng hàng đầu VÀ là điểm uy tín của thương hiệu (xem `positioning.md` §7): "AI ⇒ không đáng tin" phải được vô hiệu hóa bằng cách thực sự chính xác.
+2. **Khả năng phản hồi** — tạo nhanh (<30 giây, như được quảng bá trong §7).
+3. **Sự đảm bảo** — các giải thích dựa trên bằng chứng được trích dẫn từ nguồn của chính người dùng (điểm khác biệt learning-science / trust-first).
+4. **Sự đồng cảm** — 10 chế độ tính cách + khích lệ tại các cột mốc (§6.5).
+5. **Yếu tố hữu hình** — giao diện người dùng gọn gàng, nhanh.
+
+Đầu tư chất lượng #1 của sản phẩm là **độ chính xác** — một bài kiểm tra sai đồng thời thất bại cả mục tiêu cần hoàn thành lẫn cam kết thương hiệu (và cam kết thương hiệu phải có thể thực hiện được).
 
 ---
 
-## Target audience
+## 7. Luồng người dùng ba bước (trang chủ)
 
-Six personas, in homepage order:
+1. **Thả tệp của bạn vào.** Bất kỳ tài liệu nào. ~5 giây.
+2. **AI xây dựng kế hoạch của bạn.** Ritsu phân tích và tự động tạo lộ trình học có cấu trúc. Các chủ đề được sắp xếp theo độ khó. Hoạt động được tạo tự động. ~30 giây.
+3. **Bắt đầu mastering.** Làm bài kiểm tra, lật flashcard, khám phá các khái niệm. Theo dõi tiến độ trên biểu đồ heatmap.
 
-1. **Students** — primary. Textbook chapters, exam prep, homework.
-2. **Self-Learners** — multi-source learning projects.
-3. **Engineers** — learning a new framework from docs; code exercises.
-4. **Researchers** — breaking down dense research papers into testable knowledge.
-5. **Educators** — creating courses for their students from existing material.
-6. **Professionals** — career changers, ongoing learning.
+Đây là **magic moment** mà sản phẩm được thiết kế để mang lại trong vòng <60 giây (theo `00-core/icp-summary.md` § 1).
 
-Featured situational workflows on the homepage:
-- Master a textbook chapter (most popular)
-- Ace your exam in 3 days (exam season)
-- Learn from any YouTube video
-- Solve textbook exercises
-- Break down a research paper
-- Learn a new framework fast
-- Build a multi-source learning project
-- Remember what you read online (URL → quiz)
-- Create a course for your students
+> **Tại sao điều này quan trọng về mặt chiến lược:** chuỗi <60 giây này là **activation event** — "khoảnh khắc wow" chứng minh tuyên bố core value (mastery từ bất kỳ nguồn nào, nhanh chóng). Tỷ lệ activation (% lượt đăng ký đạt được khoảnh khắc aha bài kiểm tra đầu tiên trong N ngày) là **chỉ số dẫn đầu mạnh nhất duy nhất về retention**, và đó là **product-led-growth engine**: chính việc sử dụng sản phẩm thúc đẩy việc thu hút người dùng (share-link = vòng lặp viral), không phải outbound do sales dẫn đầu.
 
 ---
 
-## Key differentiators (vs competitors users actually compare against)
+## 8. Đối tượng mục tiêu
 
-| Competitor | What Ritsu does that they don't |
+Sáu persona, theo thứ tự trang chủ:
+
+1. **Học sinh** — chính. Các chương sách giáo khoa, ôn thi, bài tập về nhà.
+2. **Người tự học** — các dự án học tập đa nguồn.
+3. **Kỹ sư** — học framework mới từ tài liệu; bài tập code.
+4. **Nhà nghiên cứu** — phân tích các bài báo nghiên cứu dày đặc thành kiến thức có thể kiểm tra.
+5. **Nhà giáo dục** — tạo khóa học cho học sinh từ tài liệu hiện có.
+6. **Chuyên gia** — người chuyển nghề, học tập liên tục.
+
+> Sáu persona trên là **bề mặt trang marketing**. **Ưu tiên vận hành** (100-trả-tiền-đầu-tiên) tập trung vào MỘT ICP nhất quán: **người học nghiêm túc, nói tiếng Anh, có động lực mastery, dẫn đầu bởi Mỹ** — phân khúc sắc nét nhất = sinh viên đại học STEM/tiền chuyên nghiệp tại Mỹ có kỳ thi (xem `00-core/icp-summary.md`). Các persona còn lại + Việt Nam là bậc thang mở rộng / thị trường thứ cấp, không phải mục tiêu 100-đầu-tiên. Sự tập trung là có chủ ý: thu hẹp đối tượng tăng thị trường có thể tiếp cận thông qua những người ủng hộ nhiệt tình, sẵn sàng giới thiệu.
+
+Các luồng công việc tình huống nổi bật trên trang chủ (xác minh 2026-05-28):
+
+- Nắm vững một chương sách giáo khoa *(phổ biến nhất)*
+- Ôn thi trong 3 ngày *(mùa thi)*
+- Học từ bất kỳ video YouTube nào
+- Giải bài tập sách giáo khoa
+- Phân tích một bài báo nghiên cứu
+- Học framework mới nhanh chóng
+- Xây dựng dự án học đa nguồn
+- Ghi nhớ những gì bạn đọc trực tuyến (URL → câu hỏi kiểm tra)
+- Tạo khóa học cho học sinh của bạn
+
+Mỗi luồng công việc tình huống ánh xạ đến một cụm nội dung đuôi dài được sở hữu bởi `01-marketing` và là điểm vào lợi ích vào phân khúc (đặc biệt là "ôn thi trong 3 ngày" — bộ đếm thời gian willingness-to-pay sắc bén nhất).
+
+---
+
+## 9. Điểm khác biệt chính (so với các đối thủ người dùng thực sự so sánh)
+
+| Đối thủ | Điều Ritsu làm mà họ không làm |
 |---|---|
-| ChatGPT | Reads the entire document, persistent across sessions, structured 17+ activity output, learning-purpose-built. |
-| Anki / Quizlet | Auto-generates from any source in seconds; not just flashcards but full learning loop. |
-| Notion AI | Active learning instead of note storage; quiz/exercise generation; mastery tracking. |
-| Kahoot | Personal, not group; auto-generated; depth beyond multiple choice. |
+| **ChatGPT** | Đọc toàn bộ tài liệu; duy trì liên tục qua các phiên; đầu ra 17+ hoạt động có cấu trúc; được xây dựng có mục đích cho việc học (không phải chat đa năng). |
+| **Anki / Quizlet** | Tự động tạo từ bất kỳ nguồn nào trong vài giây; không chỉ flashcard mà là vòng lặp học đầy đủ. |
+| **Notion AI** | Active learning thay vì lưu trữ ghi chú; tạo câu hỏi kiểm tra / bài tập; theo dõi mastery. |
+| **Kahoot** | Cá nhân, không phải nhóm; tự động tạo từ tài liệu của bạn; chiều sâu vượt xa trắc nghiệm thông thường. |
+| **Coursera / Udemy** | Cá nhân hóa từ TÀI LIỆU CỦA BẠN; không phải chương trình giảng dạy một kích cỡ cho tất cả. |
+
+> Những điều này ánh xạ đến các points-of-difference trong `positioning.md` § 6. Điểm khác biệt **mang tính phòng ngừa** (khó nhất để đối thủ sao chép bằng cách cạnh tranh tính năng) là **sự nghiêm ngặt về khoa học học tập + trích dẫn minh bạch** — thẩm quyền tích lũy theo thời gian; tính năng thì không.
+
+Để biết phiên bản bị khóa giọng văn trên bề mặt marketing của những so sánh này, xem `00-core/positioning.md` § 5.
 
 ---
 
-## Pricing model
+## 10. Mô hình định giá
 
-**Freemium.** Free plan exists. Free forever, no credit card required to start. Detailed tiers live at https://ritsu.ai/pricing — agents must fetch the live page when discussing specific tier limits, never quote from memory.
+**Freemium, credit-based.** Gói miễn phí tồn tại vĩnh viễn — không cần thẻ tín dụng để bắt đầu. Các tầng trả phí được giới hạn ở **số lượng credit** (đơn vị sử dụng) + giới hạn kích thước theo nguồn (trang, phút video) + mở khóa tính năng (Knowledge Map, tính cách tùy chỉnh, quyền truy cập API).
 
----
+Bốn tầng (giá + giới hạn đã xác minh với https://ritsu.ai/pricing vào **2026-05-29**; USD/tháng):
 
-## Voice and tone
+| Tầng | Định vị | $/tháng | Credit/tháng | Giới hạn mỗi nguồn | Mở khóa chính |
+|---|---|---|---|---|---|
+| **Free** | Starter | **$0** | 600 | 40 trang / 30 phút video; 5 phiên/dự án | Tất cả 17+ hoạt động + 7 chế độ; 3 tính cách; the magic moment |
+| **Plus** | Cá nhân *(phổ biến nhất)* | **$29** | 12,000 | 100 trang / 2 giờ video; 20 phiên | Knowledge Map cơ bản; 10 tính cách + nhãn dán; XP/huy hiệu/heatmap |
+| **Pro** | Học thuật *(giá trị tốt nhất)* | **$59** | 25,000 | 200 trang / 6 giờ video; phiên không giới hạn | Knowledge Map đầy đủ (chia sẻ + xuất); xuất PDF/MD/DOCX; phân tích nâng cao |
+| **Ultra** | Chuyên nghiệp | **$119** | 55,000 | 500 trang / 12 giờ video | Tính cách + nhân vật tùy chỉnh không giới hạn; mô hình ưu tiên; API (beta) |
 
-The site copy uses these patterns. Marketing output should match.
+Thanh toán hàng năm = **−17%**. Credit-based; có thể mua thêm gói credit + không bao giờ hết hạn. Gói Cá nhân + Doanh nghiệp có sẵn trên trang thực tế.
 
-- **Direct, often imperative.** "Drop your file." "Stop re-reading." "Pick yours and start in seconds."
-- **Anti-passive-learning posture.** "Reading, watching, highlighting — none of it is learning." This is a strong stance and it is on-brand.
-- **Concrete numbers.** "30 seconds." "3 steps." "17+ activity types." Not vague.
-- **Confident comparisons.** Site directly names Anki, Quizlet, Kahoot, ChatGPT, Notion as things Ritsu replaces. We are not coy.
-- **Friendly, not corporate.** "🎯 You got 4/5 on Neural Networks!" The product has emotional warmth; marketing should too.
-- **No filler adjectives.** "Powerful," "amazing," "revolutionary" — avoid. Show specifics instead.
+> **Kỷ luật định giá:** bảng trên là một **snapshot có ngày (xác minh 2026-05-29)**. Giá + giới hạn là **động và THỰC NGHIỆM trước PMF** (theo SOP-PRODUCT-010 pricing-pull-test) — luôn **tải https://ritsu.ai/pricing để có số liệu hiện tại**; không bao giờ trích dẫn số liệu cũ. Khi giá thay đổi, làm mới snapshot này + ngày của nó (và các tham chiếu chéo trong `icp-summary.md` §5 + `north-star.md`).
 
-For full brand voice rules, see `00-core/brand_voice.md` (TODO).
+> **Định khung giá trị:** **trả phí = "nhiều hơn để nhận nhiều hơn"** (chiều sâu, tất cả 17+ hoạt động, Knowledge Map đầy đủ, không giới hạn — điểm đến), và **miễn phí = cổng vào loss-leader**, không phải sản phẩm. ICP nhạy cảm về giá, vì vậy sự rõ ràng về freemium quan trọng (nêu rõ tầng miễn phí + giới hạn của nó). Ritsu thay thế bộ công cụ học tập $25-100/tháng của người dùng (`icp-summary.md` §5) — vì vậy người dùng trả phí thường *tiết kiệm* tiền khi chuyển đổi.
 
----
-
-## Operational implications for the AI workforce
-
-This section is what makes this charter actionable for `ritsu-works` agents.
-
-- **01-growth must own SEO around "active learning," "AI tutor," and the situational workflows** (textbook chapter, exam in 3 days, YouTube learning, etc.). Each situational workflow on the homepage corresponds to a long-tail content cluster.
-- **03-delivery handles support at scale.** Ritsu has free users (high volume, low ARPU) — most support must be self-service or AI-handled. Escalation to human only for billing, abuse, or edge cases.
-- **02-product owns the feedback loop** from users back to the product team: which activity types get used, which modes drive retention, what content fails to generate well.
-- **06-trust-safety** is non-optional given:
-  - Users upload copyrighted material (textbooks, papers). DMCA process must be real.
-  - Users may include minors (medical students are adults; high school students are not). Age handling.
-  - GDPR/PDPA — users globally; site has GDPR page already.
-  - Hallucination in generated quizzes is a real product risk; safety layer must be in product code, but governance lives here.
-- **04-backoffice handles Vietnam-specific tax and compliance** for the operating entity. Revenue collected globally; tax obligations local.
+> Triết lý định giá (không có dark patterns, không có sự cấp bách giả tạo, freemium-forever như lợi thế cạnh tranh) nằm trong `00-core/charter.md` § 3. Chi tiết sẽ được bổ sung vào `00-core/pricing-philosophy.md` khi stub đó hoàn thiện.
 
 ---
 
-## What changes when?
+## 11. Giọng văn và phong cách
 
-- **Product positioning** changes only with founder approval. PR-only.
-- **Feature list** updated when new activity types or modes ship — agent should detect via product changelog feed (TBD: add to `knowledge/manifest.yaml` ETL flows).
-- **Persona priorities** revisited quarterly based on actual user data from `metrics.product_dau_snapshot`.
-- **Pricing** is live data; never cache numbers. Always fetch from `/pricing` page.
+Nguồn sự thật duy nhất: **`00-core/brand_voice.md`**. Mỗi skill hướng tới khách hàng (`blog-post-drafting`, `support-reply-drafting`, `social-post-drafting`, `email-drafting`) phải `Read` tệp đó khi bắt đầu phiên.
+
+Giọng thương hiệu trong một câu: **Hữu ích, trung thực, cụ thể, bình tĩnh, hiệu quả — không bao giờ bán hàng, cẩu thả, cứng nhắc kiểu doanh nghiệp, dễ thương giả tạo, hay giả vờ là con người.**
+
+Khi nghi ngờ: bắt chước các ví dụ TỐT trong `brand_voice.md`; từ chối các ví dụ XẤU.
 
 ---
 
-*This document is the canonical answer to "what is Ritsu?" Every other piece of marketing, sales, and support material should be consistent with it. If you find a contradiction, the contradiction is a bug — fix the source, not the symptom.*
+## 12. Hệ quả vận hành cho lực lượng AI
 
+Phần này làm cho charter có thể hành động được cho các agent `ritsu-works` (mã pillar theo kiến trúc v1.0.1). **Định vị thị trường là US-led intermarket** (theo `icp-summary.md`); thực thể vận hành *vẫn* ở Việt Nam (chỉ về thuế/tuân thủ — xem `08-finance`).
+
+- **`01-marketing`** sở hữu SEO + công cụ nội dung + bộ kit giọng thương hiệu. Mỗi luồng công việc tình huống trên trang chủ (chương sách giáo khoa, thi trong 3 ngày, học YouTube, v.v.) là một cụm nội dung đuôi dài — nhắm vào người học nghiêm túc nói tiếng Anh, dẫn đầu bởi Mỹ.
+- **`02-sales`** sở hữu thử nghiệm tầng định giá + kênh chuyển đổi + phát hiện điểm kích hoạt chuyển từ miễn phí sang trả phí. Các ranh giới định giá vẫn còn thực nghiệm cho đến khi **SOP-PRODUCT-010** (pricing-pull-test) tạo ra dữ liệu; mức neo WTP của Mỹ là $15-25/tháng (`icp-summary.md` §5).
+- **`03-gtm`** (pillar giai đoạn, tan rã khi PMF) kết hợp các module Marketing + Sales + Product + Customer để thúc đẩy north-star **100-trả-tiền-yêu-thích** (theo `00-core/north-star.md`). Trình tự kênh (Mỹ): Reddit / YouTube Shorts / X / study creators.
+- **`04-product`** sở hữu vòng phản hồi từ người dùng trở lại nhóm sản phẩm: loại hoạt động nào được sử dụng, chế độ nào thúc đẩy retention, nội dung nào không tạo được tốt. **PG gate: SOP-PRODUCT-002** yêu cầu N=10 người lạ được quan sát sử dụng sản phẩm trước bất kỳ việc xây dựng tính năng lớn nào. (Đối với US-led, người lạ nên là người kiểm tra Mỹ — Giai đoạn A.)
+- **`05-customer`** sở hữu thành công / onboarding / hỗ trợ / retention / phản hồi. Người dùng miễn phí có khối lượng cao + ARPU thấp — hầu hết hỗ trợ phải là tự phục vụ hoặc do AI xử lý; leo thang chỉ để thanh toán, lạm dụng hoặc các trường hợp ngoại lệ. Người sáng lập cá nhân onboard ~30 người trả phí đầu tiên qua **SOP-CUSTOMER-006** (giao thức Collison install); tự động hóa từ N=31 (SOP-CUSTOMER-009).
+- **`07-trust-safety`** là bắt buộc vì:
+  - Người dùng tải lên tài liệu có bản quyền (sách giáo khoa, bài báo). Quy trình DMCA phải thực sự.
+  - Người dùng có thể bao gồm trẻ vị thành niên (sinh viên y khoa là người lớn; học sinh trung học thì không). Xử lý độ tuổi.
+  - GDPR / PDPA — người dùng toàn cầu; trang web đã có trang GDPR. (US-led bổ sung thêm CCPA / luật bảo mật tiểu bang Mỹ.)
+  - Hallucination trong các bài kiểm tra được tạo là rủi ro sản phẩm thực sự (theo `00-core/transparency.md` § "Giới hạn và các vấn đề đã biết"); đây là yếu tố quyết định SERVQUAL #1 (§6.7) — lớp an toàn nằm trong code sản phẩm, quản trị nằm ở đây.
+- **`08-finance`** xử lý thuế và tuân thủ đặc thù của Việt Nam cho thực thể vận hành. Doanh thu thu được toàn cầu; nghĩa vụ thuế là cục bộ. (Thị trường = US-led; thực thể vận hành = VN — hai điều này khác nhau.)
+
+---
+
+## 13. Bối cảnh công nghệ
+
+Thông tin ngắn gọn về stack — các agent lực lượng AI (đặc biệt là `code-reviewer`, `etl-runner`, `growth-orchestrator` khi thảo luận về hiệu năng / SEO) được hưởng lợi từ việc biết cơ sở hạ tầng:
+
+- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui + Radix.
+- **Backend:** Supabase — Auth, Database, Storage, Edge Functions.
+- **AI:** Claude (Anthropic) là chính; OpenAI cho embeddings.
+- **Monorepo:** Turborepo + pnpm (apps/web + apps/admin; packages/ai, ui, utils, database, storage, config).
+- **Triển khai:** Vercel (trunk-based, liên tục từ `main`).
+- **Repo nguồn:** https://github.com/doanchienthangdev/ritsu (riêng tư).
+
+Đây chỉ là thông tin tham khảo. Operating-AI (repo `ritsu-works` này) **KHÔNG** ghi vào Product Supabase — tường lửa nghiêm ngặt được thực thi bởi vai trò `etl-runner` + ranh giới HITL D-MAX theo `governance/HITL.md`.
+
+---
+
+## 14. Điều gì thay đổi khi nào?
+
+- **Định vị sản phẩm** chỉ thay đổi khi có sự chấp thuận của người sáng lập. Chỉ qua PR.
+- **Danh sách / số lượng tính năng** (12+ định dạng, 17+ hoạt động, 7 chế độ, 10 tính cách, 10 ngôn ngữ) được làm mới sau mỗi sự kiện changelog sản phẩm. *(TODO: ETL flow `product_changelog_to_ops` trong `knowledge/manifest.yaml` — hiện chưa có.)*
+- **Ưu tiên persona** được xem xét hàng quý dựa trên dữ liệu người dùng thực tế từ `metrics.product_dau_snapshot` (ETL flow `product_metrics_to_ops`).
+- **Định giá** là dữ liệu trực tiếp; không bao giờ lưu cache số. Luôn tải từ trang `/pricing`. Ranh giới tầng thay đổi khi SOP-PRODUCT-010 pricing-pull-test tạo ra dữ liệu.
+- **Bối cảnh tech-stack** được làm mới khi migration framework lớn (phiên bản chính Next.js, thay đổi API Supabase, v.v.).
+- **Sự nhất quán định vị / thị trường:** nếu `positioning.md` hoặc `icp-summary.md` thay đổi phân khúc mục tiêu hoặc belief, làm mới §4 / §6.6 / §8 / §12 ở đây để khớp (tính nhất quán Tier-1).
+- **Chu kỳ xác minh:** frontmatter `last_verified_live_site` phải được làm mới ít nhất hàng quý; bất kỳ agent nào nhận thấy sự lệch giữa tài liệu này và ritsu.ai mở PR sớm hơn.
+
+---
+
+## 15. Tham chiếu chéo
+
+Các tài liệu 00-core anh em kết hợp với charter này — đọc khi bạn cần chiều sâu vượt ra ngoài những gì có ở đây:
+
+| Tài liệu | Khi nào cần đọc |
+|---|---|
+| `00-core/positioning.md` | Belief, khung cạnh tranh, PODs/POPs, danh sách slogan, và phân khúc US-led mà sản phẩm này thể hiện. |
+| `00-core/icp-summary.md` | ICP US-led (psychographics, wedge, kênh, substitution stack, anti-persona) mà sản phẩm này nhắm đến. |
+| `00-core/charter.md` | Tầm nhìn, thị trường mục tiêu, mô hình kiếm tiền, phong cách nhận thức, ranh giới, các bên liên quan, chỉ số thành công. |
+| `00-core/north-star.md` | Chỉ số duy nhất của năm (100 người trả tiền yêu thích). |
+| `00-core/brand_voice.md` | Cách Ritsu nghe — giọng bên ngoài + bên trong, ví dụ TỐT/XẤU, biến thể tiếng Việt. |
+| `00-core/transparency.md` | Lập trường công khai về AI, xử lý dữ liệu, giới hạn + các vấn đề đã biết — phiên bản công khai. |
+| `00-core/ai-native-philosophy.md` | Cách Ritsu vận hành như một công ty AI-native. |
+| `00-core/founder-profile.md` | Hồ sơ vận hành của người sáng lập. |
+| `knowledge/manifest.yaml` | Từng loại dữ liệu nằm ở đâu (hợp đồng lưu trữ Tier 1–4). |
+| `governance/HITL.md` | Các tầng phê duyệt — khi nào một agent phải leo thang trước khi hành động theo các chỉ thị của tài liệu này. |
+| `governance/ROLES.md` | Vai trò agent nào làm gì; quyền và ngân sách theo từng vai trò. |
+
+Bộ ba **"CÁI GÌ"** — `product.md` (Ritsu LÀ gì) + `positioning.md` (phải NÓI gì) + `icp-summary.md` (dành cho AI) — phải giữ nhất quán về cùng belief, phân khúc và tiêu chuẩn chất lượng dịch vụ.
+
+---
+
+## 16. Lịch sử phiên bản
+
+| Phiên bản | Ngày | Thay đổi |
+|---|---|---|
+| 1.0 | 2026-05-02 | Charter quy chuẩn ban đầu. |
+| 1.1 | 2026-05-28 | Làm mới qua `/update tier1-file` từ `.archives/brainstorming/product-md-revision-2026-05-28/`. Đối chiếu số lượng tính năng (12+ định dạng, 17+ hoạt động, 7 chế độ, 10 tính cách, 10 ngôn ngữ) với trang web thực tế; cập nhật tham chiếu pillar lên mã v1.0.1; phần Voice & tone thu gọn thành con trỏ một dòng đến `brand_voice.md`; thêm mô hình kiếm tiền credit-based + đặt tên 4 tầng (không có số $ ); thêm Đa ngôn ngữ § 6.6 mới; thêm Bối cảnh công nghệ § 13 mới; thêm Tham chiếu chéo § 15 mới; thêm Lịch sử phiên bản § 16 mới; đã thêm các marker "tải trực tiếp" trên dữ liệu động. Đã xóa TODO cũ ("brand_voice.md (TODO)"). |
+| 1.2 | 2026-05-29 | Làm mới A+ qua `/update tier1-file` (run 6fb167a2, D-Std). **Điều chỉnh US-led** (§6.6 tiếng Anh ưu tiên; §8 ưu tiên vận hành = người học nghiêm túc Mỹ; §12 thị trường US-led, chỉ thực thể VN) để nhất quán với positioning #148 + icp #149. **Cấu trúc lý thuyết sản phẩm**: §6.0 ba cấp độ sản phẩm dẫn đầu (core value = mastery được đề cao); dòng benefits-not-features trên §6.1-6.6; MỚI §6.7 chất lượng dịch vụ (SERVQUAL, độ chính xác = #1); §4 định khung sản phẩm desirable-vs-pleasing; §5 +"KHÔNG phải công cụ AI làm thay"; §7 định khung là activation / PLG engine; §10 "nhiều hơn để nhận nhiều hơn". **Tất cả THÔNG TIN THỰC TẾ sản phẩm không thay đổi + vẫn được xác minh trực tiếp 2026-05-28** (chỉ làm mới định khung). |
+| 1.3 | 2026-05-29 | **Độ chính xác định giá** (PR chỉnh tay, không phải /update): §10 hiện có giá đã xác minh — Free **$0** / Plus **$29** / Pro **$59** / Ultra **$119** (USD/tháng, xác minh với ritsu.ai/pricing 2026-05-29; hàng năm −17%); đã thêm credit + giới hạn mỗi nguồn. Đã sửa §6.5 về phân tầng tính cách (Free nhận **3** tính cách cơ bản, không phải 10). Đã thêm ghi chú kỷ luật định giá (snapshot có ngày + tải trực tiếp để có số liệu hiện tại). Kết hợp với `icp-summary.md` v1.0.1 (cùng sửa lỗi). |
+
+---
+
+*Tài liệu này là câu trả lời quy chuẩn cho "Ritsu là gì?" Mọi tài liệu marketing, sales và support khác đều phải nhất quán với nó. Nếu bạn tìm thấy mâu thuẫn, mâu thuẫn đó là một lỗi — hãy sửa nguồn, không phải triệu chứng.*

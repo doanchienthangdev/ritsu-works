@@ -1,0 +1,346 @@
+---
+title: "Chương 42 — Capability Case Study #9: /evolve v1.1 SkillOpt Forensic — Khi schema im lặng và timeout vô hình bóp nghẹt mạch self-improvement"
+description: "Chương 42 — Capability Case Study #9: /evolve v1.1 SkillOpt Forensic — Khi schema im lặng và timeout vô hình bóp nghẹt mạch self-improvement"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/42-capability-case-evolve-v1-1-skillopt-forensic.md
+source_hash: 968ee6b8ba1bffc5a4d4240eb5041705c9604c3bacebc691384622982b73eb36
+generated_at: '2026-05-29T17:32:35.180Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 968ee6b8ba1bffc5a4d4240eb5041705c9604c3bacebc691384622982b73eb36
+translated_at: '2026-05-29T17:32:35.180Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 42
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"4 dry-run liên tiếp cho cùng một skill (wiki-sync/ask) trên cùng một dataset, chỉ khác nhau ở patches tôi áp dụng giữa các lần. Run 1+2: 3 skips. Run 3: 2 rejects + 1 skip. Run 4: 3 rejects + 0 skips. Cùng kết quả end-state (sandbox bằng baseline), nhưng MỖI con số nói một câu chuyện khác về layer của infrastructure đang gãy. Forensic này là minh chứng rằng `/evolve` không phải là một tool 'tự cải thiện skill' đơn giản — nó là một chuỗi 4-5 contracts giữa skill author, agent file, vendor backend, env adapter, và orchestrator. Một mắt xích sai khiến cả pipeline lặng lẽ degrade thành no-op, không có error visible cho đến khi ai đó forensically đếm `total_skips`."*
+
+Chương này document **4-layer fix** cho `/evolve skillopt` (capability evolve v1.1 SkillOpt extension), surfaced qua 1 session dry-run vào ngày 2026-05-27. Net result: orchestration loop chạy được end-to-end thay vì degrade silent. PR #138. Sandbox + production untouched throughout — đây là "diễnposed forensic của 1 capability đang fail im lặng," không phải skill cải thiện thật sự (skill wiki-sync/ask là v0.1 STUB by design, doc-only patches không thể move runtime score — đó là constraint Lớp 2 chúng ta sẽ thảo luận §42.4).
+
+**Trạng thái:** PR #138 merged to main. Capability evolve v1.1 + SkillOpt extension now operating end-to-end. 4 runs trong `ops.agent_runs` lineage tạo bằng chứng forensic.
+
+---
+
+## 42.1 Bài toán — Symptom
+
+Founder gõ `/evolve skillopt wiki-sync/ask --dry-run` mong đợi:
+1. Vendor train.py launch
+2. Bridge dispatch requests đến orchestrator session
+3. Orchestrator dispatch tới subagents (haiku/sonnet)
+4. Trainer accept responses, propose patches
+5. Phase D K4 gate decide keep/revert
+6. Phase E + F (skipped vì dry-run)
+7. Phase G cleanup
+
+Thực tế:
+- Subprocess launch ✓
+- Bridge dispatch ✓
+- Orchestrator dispatch ✓
+- **Trainer mark ALL responses as `RuntimeError: ritsu_file_queue ... failed after 3 attempts`** ✗
+- 3 epochs đều `[skip] no usable patches — skill unchanged`
+- Final: `accept=0 reject=0 skip=3`, no skill change
+
+**Bằng chứng paradox**: file `resp-*.json` viết đúng schema theo `queue-protocol.md`, kích thước đầy đủ, content valid JSON, response ARRIVE ở filesystem. Nhưng trainer treat as failed. Forensic phải dig 4 lớp xuống mới ra answer.
+
+## 42.2 Lớp 4 — Retry timeout vs in-session orchestrator latency
+
+### Triệu chứng
+
+Trainer log line by line (run d265be16, 2026-05-27 16:15 UTC):
+```
+[1/4 ROLLOUT] train items=4 (from pool, batch_seed=1043)
+[ritsu_skill rollout] 1/4 (hard_acc=0.000) id=task-p1-003-package-scoped-filter soft=0.000
+[ritsu_skill rollout] 2/4 (hard_acc=0.000) ...
+```
+
+`hard_acc=0.000` cho TẤT CẢ — không variance. Đó là smell: nếu rollouts đến nơi đúng cách, score sẽ varied (subagent với task khác nhau, criteria khác nhau → score khác nhau). 0.000 đồng nhất = upstream failure.
+
+Optimizer prompt user reveal:
+```json
+{
+  "target_response": "",
+  "judge_score": 0.0,
+  "fail_reason": "target_rollout_error: RuntimeError: ritsu_file_queue target failed after 3 attempts"
+}
+```
+
+`target_response` rỗng. Trainer chưa bao giờ nhận response từ orchestrator.
+
+### Forensic — timing reconstruction
+
+Compare req/resp file timestamps:
+```
+req-2f93... attempt=0 enqueued at 16:20:25
+req-attempt=1 enqueued at 16:22:27       ← 122s sau
+req-attempt=2 enqueued at 16:24:29       ← 122s sau nữa
+trainer give up at 16:26:29               ← retries=3 exhausted
+resp-2f93... written at 16:27:43          ← 78s SAU khi trainer gave up
+```
+
+Trainer per-attempt timeout = **120 giây**. Mỗi attempt mints NEW UUID. Response của tôi đến `resp-2f93...` (UUID attempt=0) sau khi trainer đã moved on to attempt=2 UUIDs. Orphaned.
+
+### Root cause
+
+Vendor `vendor/skillopt/skillopt/envs/ritsu_skill/adapter.py` hard-coded:
+- `exec_timeout=120` (rollout)
+- `judge_timeout=120` (judge)
+- `timeout=180` (optimizer reflect)
+- `retries=3` ở 3 call sites
+
+Trong-session orchestrator latency:
+- Mỗi `Task()` dispatch tới subagent: 5-15 giây
+- Batch overhead (request scan + classify + write-response + batch-complete): 5-10 giây
+- Total per response cycle: 15-30 giây
+- Nếu 4 dispatches parallel trong 1 message: 30-60 giây cho cả batch
+
+120s/attempt × 3 attempts = 360s tổng budget. Hoàn toàn không đủ cho human-paced in-session orchestrator.
+
+**Vendor được thiết kế cho direct OpenAI/Anthropic API calls** (sub-second latency). Bridge insert một LLM dispatch (5-15s) giữa request-write và response-write — trainer's tight retry policy không tolerate được.
+
+### Fix
+
+3 layers:
+1. `scripts/skillopt/upstream-patches/configs-ritsu_skill-default.yaml`: `judge_timeout` + `exec_timeout` 120 → **1800** (30 phút/attempt)
+2. `scripts/skillopt/upstream-patches/ritsu_skill/adapter.py`: 3 sites `retries=3` → **retries=10**; optimizer site `timeout=180` → **1800**
+3. `06-ai-ops/skills/eval-evo/skillopt-runner/SKILL.md`: cfg template + env `SKILLOPT_FILE_QUEUE_TIMEOUT_S=1800` belt-and-suspenders
+
+Belt-and-suspenders: 1800s × 10 retries = 5 GIỜ budget per call. Generous cho mọi human pacing.
+
+### Validation
+
+Run 2 (post-L4-fix): `accept=0 reject=0 skip=3`. **Vẫn skip × 3** — nhưng KHÔNG còn timeout. Trainer log line **"[skip] no usable patches"** thay vì "[error] RuntimeError" — moved on to Lớp 3.
+
+## 42.3 Lớp 3 — Patch schema mismatch silent drop
+
+### Triệu chứng
+
+Sau khi fix Lớp 4, run 2 vẫn skip × 3. Log mới:
+```
+[1/6 done] hard=0.7500 soft=0.7500
+[2/6 done] failure_patches=0 success_patches=0
+[skip] no usable patches — skill unchanged
+```
+
+`hard=0.75` (varied!) — chứng tỏ rollouts + judges đã accept responses. Vấn đề giờ ở patch parsing. `failure_patches=0` nghĩa là tôi propose patch nhưng trainer extract 0 edits.
+
+### Root cause forensic — 3 layers nested
+
+Đi từ orchestrator (top) xuống vendor apply_patch (bottom):
+
+**1. Agent file `.claude/agents/skillopt-optimizer-reflect.md` documented schema SAI:**
+```json
+{
+  "edits": [
+    {
+      "op": "add" | "delete" | "replace",       ← "add" không tồn tại!
+      "target": "L42-L48",                       ← line ranges KHÔNG SUPPORTED!
+      "new_text": "..."                          ← vendor đọc "content"!
+    }
+  ]
+}
+```
+
+**2. Env adapter `vendor/skillopt/skillopt/envs/ritsu_skill/adapter.py:415-429`** expect FLAT top-level:
+```python
+parsed = _parse_strict_json(response)
+if not parsed or not isinstance(parsed.get("edits"), list):
+    print("unparseable response")    # ← My response thất bại check này nếu nested
+    return None
+return {"patch": {"edits": parsed["edits"]}, "source_type": kind}   # ← Wrap internally
+```
+
+So adapter expects `{"edits": [...]}` FLAT, sau đó nó WRAP thành `{"patch": {"edits": ...}}` cho vendor reflect.py. Subagent KHÔNG được wrap mình.
+
+**3. Vendor `apply_patch` reads:**
+```python
+# vendor/skillopt/skillopt/optimizer/skill.py
+def _edit_fields(edit):
+    op = edit.get("op", "")              # ← "add" sẽ vào status="skipped_unknown_op"
+    content = edit.get("content", "")    # ← KHÔNG đọc "new_text"
+    target = edit.get("target", "")      # ← target IN skill (substring match)
+    return op, content, target
+
+# Only 4 ops supported: append / insert_after / replace / delete
+# Anything else → skipped_unknown_op
+```
+
+### Triple-blind silent drop
+
+Mỗi layer "thất bại đẹp đẽ" — không exception, không error log, chỉ return None / 0 items:
+1. Subagent emit `{"op":"add", "new_text":"..."}` 
+2. Adapter `parsed.get("edits")` returns list → check pass → wrap to `{"patch":{"edits":[...]}}`
+3. Vendor reflect.py `truncate_payload(result["patch"], edit_budget, "patch")` — works on dict, gets `result["patch"]["edits"]` list
+4. Apply step `_edit_fields()` reads `op="add"` → status `skipped_unknown_op`, reads `content=""` (because field name is `new_text`) → empty content
+5. Trainer counts edits with valid `op`+`content` → **0**
+6. Log: `failure_patches=0`
+
+Mỗi layer làm "đúng" theo defensive contract — không crash, không exception. Nhưng combined: silent drop của 100% patches. **Đây chính là "Triple-blind silent drop" anti-pattern** — defense-in-depth đến mức loss-of-visibility.
+
+### Fix
+
+Rewrite agent file schema documentation với:
+1. Schema example FLAT `{"edits": [{...}]}` (không có top-level `patch` wrapper)
+2. 4-op enum chính xác: `append | insert_after | replace | delete`
+3. Field name `content` (không phải `new_text`)
+4. Schema gotchas section cite exact vendor file:line + describe nesting + ops + field names
+5. "Edit ops semantics" subsection list semantic của từng op (append at end, insert_after target, replace target, delete target)
+
+Plus playbook updates (`06-ai-ops/skills/eval-evo/playbooks/`):
+- `skill-skillopt.md`: add `allowed_paths_for_proposer_notes` block về schema discipline
+- `agent.md`: expand C5 sub-criterion để rate "downstream parser citation discipline"
+
+### Validation
+
+Run 3 (post-L3-partial-fix): `accept=0 reject=2 skip=1`. **First time patches FLOW THROUGH pipeline**. Step 1 still skipped (tested nested schema before final fix); steps 2+3 reject (correct trainer behavior — doc-only patches don't move runtime score, trainer's K4 gate rejects).
+
+Run 4 (full fix + automated driver): `accept=0 reject=3 skip=0`. **Clean** — 100% rejects, 0 silent drops.
+
+## 42.4 Lớp 2 — Data prep mismatch (deferred, not blocked)
+
+### Symptom
+
+Patches now flow through pipeline. `[5/6 UPDATE] skill_len 16161 -> 16941` (skill text grows!). But `[6/6 EVALUATE] REJECT hard=0.0000 <= current=0.0000` — score doesn't improve → trainer reverts → next step.
+
+3 epochs × 3 rejects = sandbox unchanged.
+
+### Root cause
+
+Dataset (5 task) có rubric đo **runtime behavior**:
+- task-p1-001 entity-first-answered: `reason='answered'`, citations non-empty
+- task-p1-002 source-chunk-fallback: `retrieval_summary.vector_hits < 3`, fallback path triggered
+- task-p1-003 package-scoped-filter: every citation `package=growth-playbook-fixture`
+- task-p1-004 no-coverage-hallucination-guard: `reason='no_coverage'`
+- task-p1-005 v01-stub-deferred: `reason='embedding_search_deferred_v0_2'`
+
+Skill `wiki-sync/ask` hiện tại = v0.1 STUB (per documentation). Runtime LUÔN return `{"reason": "embedding_search_deferred_v0_2"}` — không gọi OpenAI, không retrieval thật. 3/5 task rubric expect v0.2 runtime → fail by construction.
+
+Optimizer text patches có thể document v0.2 invariants, add observability hooks — nhưng KHÔNG thể make stub return real `"answered"` response. Text edits không change runtime — runtime cần OpenAI key + v0.2 implementation.
+
+### Decision
+
+Lớp 2 = **deferred, not fixed** trong PR này. Rationale:
+- Refresh dataset → cần `/cla extend evolve` cycle để regenerate gen-data với text-level rubrics (e.g., "skill documents v0.2 invariants", "skill cites parser file:line", etc.)
+- Mất ~30 phút + ~$0.10 LLM
+- Mục tiêu của session này = validate orchestration mechanism, không phải chase score improvement
+- Current dataset đủ tốt để chứng minh full pipeline (parse → aggregate → apply → evaluate → keep/reject)
+
+Founder có thể chạy `/cla extend evolve "add text-level rubric variant for stub skills"` về sau khi muốn THỰC SỰ thấy skill cải thiện qua /evolve.
+
+## 42.5 Lớp 1 — `--dry-run` flag invariant (intentional, không phải bug)
+
+### Behavior
+
+`--dry-run` flag CỨNG skip Phase E (install) + Phase F (founder review):
+```
+Phase A pre-flight → B gen-data → C train → D K4
+→ Phase E SKIPPED (vì --dry-run)
+→ Phase F SKIPPED (vì --dry-run)
+→ Phase G cleanup
+```
+
+Phase E là bước DUY NHẤT ghi vào sandbox. Skip = sandbox không đổi, kể cả khi training accept patches.
+
+### Validation (without dry-run)
+
+Run 25e3374e (no `--dry-run`):
+- All phases A-G engaged
+- Phase E: `cp best-skill.md → sandbox SKILL.md`
+- best_step=0 (all 3 rejects) → best=baseline → cp is NO-OP
+- Phase F: auto-accept (diff = empty)
+- Sandbox size: 16255 bytes before + after (unchanged)
+
+Đây là **correct behavior**: trainer reject doc-only patches (vì rubric đo runtime), Phase E ghi baseline = baseline = no-op, Phase F auto-accept. Pipeline cleanly closes loop.
+
+## 42.6 4-layer fix recap + lineage trail
+
+| Lớp | Symptom | Root cause | Fix file(s) | Validation run |
+|---|---|---|---|---|
+| **L4** | `RuntimeError: failed after 3 attempts` × all rollouts | retries=3 + 120s timeout per attempt \< orchestrator latency | configs-ritsu_skill-default.yaml + adapter.py + runner SKILL.md | d265be16 → 2c863e07 |
+| **L3** | `[skip] no usable patches × 3` | Agent schema docs wrong (op:add, new_text, nested wrapper) | .claude/agents/skillopt-optimizer-reflect.md | 2c863e07 → a94fa1b8 (partial) → 25e3374e (full) |
+| **L2** | `accept=0 reject=3` — runtime-only rubric vs stub skill | Dataset rubric tests v0.2 behavior; skill is v0.1 stub | DEFERRED: separate /cla extend evolve | n/a |
+| **L1** | Sandbox không đổi sau run | `--dry-run` skip Phase E by design | INTENTIONAL; bỏ flag để Phase E ghi | 25e3374e |
+
+`ops.agent_runs` trail:
+- `d265be16-7161-4553-9209-1dfc1c0934e5` — pre-fix discovery
+- `2c863e07-1931-4126-a260-f0718c3da5a4` — post-L4 retry timeout fix
+- `a94fa1b8-f371-400b-9662-47fb62631495` — post-L3 schema fix (partial)
+- `25e3374e-a6a6-4b53-a371-8ac2043d4d86` — full fix + non-dry-run
+
+## 42.7 Bài học cho future capability authors
+
+### Anti-pattern: triple-blind silent drop
+
+Khi viết một subagent có output được parse downstream qua nhiều layer:
+1. Agent định nghĩa output schema
+2. Adapter parse + transform schema
+3. Vendor consumer apply schema
+
+Mỗi layer có defensive try/catch + "return None on parse fail". Hợp nhau = silent loss. Nếu agent docs lệch với vendor expectation, không layer nào CRASH — chỉ silently degrade thành no-op. **Solution**: agent docs MUST cite EXACT downstream parser file:line + describe schema, không reply only on common-sense.
+
+Playbook `agent.md` C5 rubric expanded (post-PR #138) để rate "downstream parser citation discipline" như một explicit grading dimension.
+
+### Anti-pattern: in-session orchestrator latency
+
+Vendor tools (SkillOpt, frameworks tương tự) được tuned cho direct API calls với sub-second latency. Khi bridge insert một LLM dispatch (5-15s) giữa request và response, vendor's retry/timeout assumptions break. **Solution**: bump timeouts ≥30 phút/attempt + retries ≥10. Belt-and-suspenders qua env vars cho callers không pass explicit timeout. Documentation Layer 4 fix in capability runbook + memory.
+
+### Anti-pattern: data-prep vs mechanism conflation
+
+Đầu session, founder hỏi "tại sao sandbox không đổi?" — câu trả lời lười là "data prep không tốt". Câu trả lời ĐÚNG là "có 4 lớp issues stacked":
+- L1: --dry-run (mode)
+- L2: data prep (rubric)
+- L3: patch schema (code)
+- L4: retry timeout (config)
+
+Fix L1+L2 alone, vẫn skip × 3 because L3+L4 chưa fix. Bóc layers theo thứ tự + validate từng cái với 1 dry-run = forensic methodology cho self-improvement capability.
+
+### Tier B decision: bypass /cla fix ceremony (chấp nhận tradeoff)
+
+Founder + tôi bypass `/cla fix evolve` cho cả L4 + L3 fix. Cost:
+- Lost: `ops.capability_runs` row với phase events; sprint plan documentation; full audit lineage in capability lifecycle
+- Gained: ~30 min - 2 hours per fix saved (no /cla ceremony rerunning diagnostic I already had in session)
+
+Compromise: created `ops.agent_runs` + `ops.run_summaries` + `ops.events` trail (4 runs documented); updated memory file. **Retrospective `/cla fix` entry post-PR-138 = nice-to-have, not blocker**. For larger fixes (architecture-level changes, new sub-flow design), DO use /cla fix.
+
+### Repo discipline
+
+PR #138 stayed scoped:
+- 5 source files touched (agent + cfg + adapter + runner SKILL + .gitignore)
+- 6 resolver catalog files auto-regen
+- 2 playbook files (skill-skillopt + agent)
+- No vendor commit (vendor/skillopt submodule untouched per UPSTREAM-DEVIATION discipline)
+- Sandbox + production never touched during validation
+- Local main rebased after merge
+
+Branch: `fix/evolve-skillopt-retry-and-schema` → merged → main.
+
+---
+
+## 42.8 Mạng case-study trinity update (Wave 2 preview)
+
+Sau Chương 41 (/update v1.0 → v1.1.1 same-day forensic), Chương 42 đóng case study mạng:
+- Chương 37: /evolve v1.0 ship (self-improve via judge persona path)
+- Chương 41: /update v1.0 ship (refresh via external truth path)
+- **Chương 42 (this): /evolve v1.1 + SkillOpt extension forensic (held-out task-completion path)** ← post-Wave-1 anti-pattern study
+
+Trinity hoàn chỉnh — /cla create (Wave 1 Chương 33-40), /evolve self-improve (Chương 37, 42), /update ingest external (Chương 41). 9 capabilities operating end-of-Wave-2.
+
+Wave 3 candidates (post-PMF): /reflect (cross-capability synthesis), /promote (skill graduation), /retire (capability sunset).
+
+---
+
+## 42.9 Câu hỏi cho founders apply pattern này
+
+1. **Khi nào bạn dùng /evolve vs /update vs /cla fix?** /evolve = improve quality của entity hiện hữu qua signal data. /update = ingest external truth (book/wiki/spec) vào entity. /cla fix = explicit bug fix với /cla ceremony lineage.
+
+2. **Tại sao L1 → L4 thứ tự ngược lại với fix order?** L1 (mode) là user choice — chọn dry-run hay không. L2 (data) deferred vì cost. L3 (code) + L4 (config) là mandatory mechanism fixes. Fix order: L4 → L3 → (L2 deferred) → L1 (founder decision).
+
+3. **Sandbox vs production discipline trong /evolve.** Default sandbox flow: `runtime/sandboxes/<flat>/SKILL.md` is working copy. Phase E ghi sandbox, founder manual `cp sandbox → production` sau khi review. `--apply` flag switch sang production-edit với git stash safety net. Đầy đủ rebuilds — production NEVER edited automatically.
+
+4. **Khi nào cần update playbook?** Sau MỖI capability bug fix có lesson tổng quát. PR #138 — schema discipline lesson áp dụng cho TẤT CẢ subagent có output downstream-parsed (>= 5 agents trong repo hiện tại). Playbook Chương 42 captures it; rubric `agent.md` C5 enforces it going forward.
+
+---
+
+*Chương 42 đóng Wave 2 capability case studies. Kế tiếp: Phần VI — Operating Cadence (Chương 43+) khi capability inventory ổn định và session-by-session signal data trở thành steady-state input cho founder review weekly.*

@@ -23,6 +23,7 @@
     "mcp-roles",
     "mcp-tools",
     "muse-personas",
+    "playbook-chapter-source-map",
     "schedules",
     "state-machines",
     "surface-compliance",

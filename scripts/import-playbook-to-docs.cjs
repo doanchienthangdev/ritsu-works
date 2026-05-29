@@ -78,6 +78,9 @@ const CHAPTER_ORDER = [
   "phase-a2/39-capability-case-resolver-v2.md",
   "phase-a2/40-capability-case-resolver-v2-1.md",
   "phase-a2/41-capability-case-update.md",
+  "phase-a2/42-capability-case-evolve-v1-1-skillopt-forensic.md",
+  "phase-a2/43-thinking-toolkit.md",
+  "phase-a2/44-case-00-core-spine-aplus-production.md",
   "A1-glossary.md",
   "A2-references.md",
   "A3-pr-templates.md",
@@ -219,8 +222,9 @@ const SIDEBAR_SEGMENTS = [
   ["---Phần III — Scaling & Intelligence---", "---Part III — Scaling & Intelligence---", (s) => /^(0[6-9]|10)-/.test(s)],
   ["---Phần IV — Triển khai---", "---Part IV — Implementation---", (s) => /^1[1-3]-/.test(s)],
   ["---Phần V — Phase A.2---", "---Part V — Phase A.2---", (s) => /^(1[4-9]|2\d|3[0-3])-/.test(s)],
-  // Match any 2-digit chapter number followed by "-capability-case" (was /^3[4-9]/ which only covered ch34-39 → missed ch40+)
-  ["---Phần VI — Capability Case Studies---", "---Part VI — Capability Case Studies---", (s) => /^\d{2}-capability-case/.test(s)],
+  // Part VI = ch34-49 by number prefix (was /^\d{2}-capability-case/ which dropped
+  // ch43-thinking-toolkit + ch44-case-... because they aren't named "-capability-case").
+  ["---Phần VI — Capability Case Studies---", "---Part VI — Capability Case Studies---", (s) => /^(3[4-9]|4\d)-/.test(s)],
   ["---Phụ lục---", "---Appendix---", (s) => /^A\d/.test(s)],
 ];
 
