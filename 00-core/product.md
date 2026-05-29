@@ -124,7 +124,7 @@ The **Knowledge Map** feature surfaces these connections visually — Basic at P
 
 Verified-named (6 of 10): **Funny, Supportive, Nerdy, Chill, Energetic, Sarcastic.** Four additional styles in-product. Animated stickers + emotional messages at milestones. Pitch: "learning should feel as good as getting it right."
 
-Personality availability gates by tier: Free + Plus get the 10 stock personalities; **Ultra unlocks unlimited custom personalities** (per https://ritsu.ai/pricing).
+Personality availability gates by tier: **Free gets 3 of the stock personalities; Plus / Pro / Ultra get the full 10**; **Ultra additionally unlocks unlimited custom personalities + custom characters** (per https://ritsu.ai/pricing, verified 2026-05-29).
 
 → **Benefit:** learning that feels human and encouraging → you keep going (the psychological hook that turns a tool into a habit).
 
@@ -209,16 +209,18 @@ For the voice-locked marketing-surface version of these comparisons, see `00-cor
 
 **Freemium, credit-based.** Free plan exists permanently — no credit card required to start. Paid tiers gate at **credit volume** (the usage unit) + per-source size limits (pages, video minutes) + feature unlocks (Knowledge Map, custom personalities, API access).
 
-Four tiers (positioning labels, verified 2026-05-28):
+Four tiers (prices + limits verified against https://ritsu.ai/pricing on **2026-05-29**; USD/mo):
 
-| Tier | Positioning | Notes |
-|---|---|---|
-| **Free** | Starter | Sufficient for casual learning + the magic moment |
-| **Plus** | Personal *(most popular)* | Basic Knowledge Map, 10 personalities, XP badges |
-| **Pro** | Academic *(best value)* | Full Knowledge Map (share + export), advanced analytics |
-| **Ultra** | Professional | Unlimited custom personalities, priority models, API access (beta) |
+| Tier | Positioning | $/mo | Credits/mo | Per-source limit | Key unlocks |
+|---|---|---|---|---|---|
+| **Free** | Starter | **$0** | 600 | 40 pages / 30 min video; 5 sessions/project | All 17+ activities + 7 modes; 3 personalities; the magic moment |
+| **Plus** | Personal *(most popular)* | **$29** | 12,000 | 100 pages / 2h video; 20 sessions | Basic Knowledge Map; 10 personalities + stickers; XP/badges/heatmap |
+| **Pro** | Academic *(best value)* | **$59** | 25,000 | 200 pages / 6h video; unlimited sessions | Full Knowledge Map (share + export); export PDF/MD/DOCX; advanced analytics |
+| **Ultra** | Professional | **$119** | 55,000 | 500 pages / 12h video | Unlimited custom personalities + characters; priority models; API (beta) |
 
-**Detailed tier numbers (price, credit allocation, page / video limits, included features) live at https://ritsu.ai/pricing.** Agents must fetch the live page when discussing specific limits — never quote from memory. Pricing is dynamic and tier boundaries are EXPERIMENTAL pre-PMF (per SOP-PRODUCT-010 pricing-pull-test).
+Annual billing = **−17%**. Credit-based; extra credit packs purchasable + never expire. Individual + Business plans exist on the live page.
+
+> **Pricing discipline:** the table above is a **dated snapshot (verified 2026-05-29)**. Prices + limits are **dynamic and EXPERIMENTAL pre-PMF** (per SOP-PRODUCT-010 pricing-pull-test) — always **fetch https://ritsu.ai/pricing for current numbers**; never quote a stale figure. When prices change, refresh this snapshot + its date (and the cross-doc references in `icp-summary.md` §5 + `north-star.md`).
 
 > **Value-proposition framing:** **paid = "more for more"** (depth, all 17+ activities, full Knowledge Map, unlimited — the destination), and **free = the loss-leader on-ramp**, not the product. The ICP is price-sensitive, so freemium clarity matters (state the free tier + its limits plainly). Ritsu replaces the user's $25-100/mo study stack (`icp-summary.md` §5) — so paying users typically *save* money switching.
 
@@ -310,6 +312,7 @@ The **"WHAT" trio** — `product.md` (what Ritsu IS) + `positioning.md` (what to
 | 1.0 | 2026-05-02 | Initial canonical charter. |
 | 1.1 | 2026-05-28 | Refreshed via `/update tier1-file` from `.archives/brainstorming/product-md-revision-2026-05-28/`. Reconciled feature counts (12+ formats, 17+ activities, 7 modes, 10 personalities, 10 languages) with live site; pillar references updated to v1.0.1 codes; Voice & tone section collapsed to single-line pointer at `brand_voice.md`; credit-based monetization model + 4-tier naming added (no $ numbers); new Multi-language § 6.6; new Technology context § 13; new Cross-references § 15; new Versioning § 16; "fetch live" markers added on dynamic data. Stale TODO ("brand_voice.md (TODO)") removed. |
 | 1.2 | 2026-05-29 | A+ refresh via `/update tier1-file` (run 6fb167a2, D-Std). **US-led realignment** (§6.6 English-first; §8 operating-priority = US serious learner; §12 US-led market, VN entity-only) to cohere with positioning #148 + icp #149. **Product-theory structure**: §6.0 three-product-levels lead (core value = mastery foregrounded); benefits-not-features lines on §6.1-6.6; NEW §6.7 service quality (SERVQUAL, accuracy = #1); §4 desirable-vs-pleasing product framing; §5 +"NOT an AI-does-it-for-you tool"; §7 framed as activation / PLG engine; §10 "more for more". **All product FACTS unchanged + still live-verified 2026-05-28** (framing-only refresh). |
+| 1.3 | 2026-05-29 | **Pricing accuracy** (hand-edit PR, not /update): §10 now carries verified prices — Free **$0** / Plus **$29** / Pro **$59** / Ultra **$119** (USD/mo, verified against ritsu.ai/pricing 2026-05-29; annual −17%); credits + per-source limits added. Fixed §6.5 personality gating (Free gets **3** stock personalities, not 10). Pricing-discipline note added (dated snapshot + fetch-live for current). Paired with `icp-summary.md` v1.0.1 (same correction). |
 
 ---
 
