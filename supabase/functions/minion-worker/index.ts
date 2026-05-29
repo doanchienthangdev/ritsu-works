@@ -93,13 +93,19 @@ const SKILL_REGISTRY: SkillRegistry = {
   "data-retention-scanner": makeDeferredStubHandler("data-retention-scanner not implemented yet (Bài #16)"),
   "ingestion-source-poller": makeDeferredStubHandler("ingestion-source-poller not implemented yet (Bài #18)"),
   "minion-queue-cleaner": makeDeferredStubHandler("minion-queue-cleaner not implemented yet"),
-  // === Wiki-sync v3.0.5 cron handler stubs ===
-  // Both added 2026-05-18 to satisfy L2 paired-handler validator. Real
-  // implementations defer to v3.1 OR founder manual invocation:
-  //   wiki-embeddings-backfill: founder runs
-  //     `node scripts/sync/backfill-wiki-embeddings.cjs` manually for now
+  // === Wiki-sync cron handler stubs ===
+  // Registered to satisfy the L2 paired-handler validator.
+  //   wiki-embeddings-backfill: the CLI scripts/sync/backfill-wiki-embeddings.cjs
+  //     is now v0.2 (real OpenAI text-embedding-3-small backfill; founder/CI
+  //     runnable). The Edge cron handler stays deferred for an architectural
+  //     reason, NOT laziness: Supabase Edge has no repo filesystem AND
+  //     ops.knowledge_pages.compiled_truth is NULL for derived entities, so a
+  //     Deno handler cannot read page bodies the way the Node CLI does.
+  //     Activating cron needs a vehicle decision (GitHub-fetch in Deno OR a
+  //     GitHub-Actions runner that checks out the repo) PLUS OPENAI_API_KEY
+  //     provisioned into Edge env. Tracked in /cla fix wiki-sync-from-refs v4.4.1.
   //   wiki-review-queue-digest: founder runs `/wiki review` interactively
-  "wiki-embeddings-backfill": makeDeferredStubHandler("wiki-embeddings-backfill stub: needs OpenAI dep + scripts/sync/backfill-wiki-embeddings.cjs v0.2 wiring. Founder may run manually in the meantime."),
+  "wiki-embeddings-backfill": makeDeferredStubHandler("wiki-embeddings-backfill: CLI scripts/sync/backfill-wiki-embeddings.cjs is v0.2 (real backfill, runnable now). Edge handler deferred — Edge has no repo FS + knowledge_pages.compiled_truth is NULL; needs a GitHub-fetch/GH-Actions vehicle + OPENAI_API_KEY in Edge env. Run the CLI manually meanwhile."),
   "wiki-review-queue-digest": makeDeferredStubHandler("wiki-review-queue-digest stub: needs Telegram bot wiring. Founder runs /wiki review interactively in the meantime."),
   // docs-engine drift detection (Sprint 1 PR-3). Real implementation is
   // deterministic (scripts/validate-docs-coverage.cjs + scripts/docs-sync.cjs --dry-run);

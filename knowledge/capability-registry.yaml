@@ -121,7 +121,7 @@ capabilities:
       7-day post-v4-ship commitment (Muse Paul Graham M1, Tier C ceremony):
       founder ingests ≥3 growth playbooks by 2026-05-25.
     state: operating       # Promoted 2026-05-18 (Phase 8 of v4.0 revise); Sprint 1 merge 0cd0c62; Sprint 2 merge 70ee2ee; migration 00032 applied 2026-05-18; ops.capability_runs[f75502d4] operating_since 2026-05-18T~09:30Z. v4.1 minor extension 2026-05-18 (recursive folder support). v4.2 minor extension 2026-05-18 (namespace output folder).
-    version: "4.4.0"       # Minor bump from 4.3.0 — adds query mode (--query=) + entity-list mode (--entities=) to /wiki get; schema fix for POM frontmatter (parse chapter from extracted_from_source slug as fallback). Backward compatible.
+    version: "4.4.1"       # Patch (2026-05-29, /cla fix). embeddings-backfill v0.2: scripts/sync/backfill-wiki-embeddings.cjs now does the REAL OpenAI text-embedding-3-small backfill (was a v0.1 dry-run stub) + 33 unit tests. Root cause it fixes: wiki embeddings were soft-deferred (G3) and never generated — Tier 4 had 0 embeddings for 185 5-star + 16 other pages; all 706 wiki pages now embedded. Edge/pg_cron handler stays a deferred-stub on purpose: Supabase Edge has no repo filesystem AND knowledge_pages.compiled_truth is NULL for derived entities, so it cannot read page bodies; activating cron needs a vehicle decision (GitHub-fetch in Deno OR a GitHub-Actions runner) + OPENAI_API_KEY provisioned to Edge env. Prior 4.4.0: query mode (--query=) + entity-list mode (--entities=) + POM frontmatter fix.
     state_since: 2026-05-18
     proposed_at: 2026-05-16
     deployed_at: 2026-05-18  # v4.0 Sprint 1 + Sprint 2 merged 2026-05-18
