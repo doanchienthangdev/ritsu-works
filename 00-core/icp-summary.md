@@ -66,9 +66,9 @@ This is the **wedge** (narrowest viable entry). The broader **English-speaking s
 |---|---|---|
 | **M**easurable | size/profile knowable? | ✓ funnel-trackable |
 | **A**ccessible | reachable? | ✓ Reddit, YouTube Shorts, X, study creators |
-| **S**ubstantial | big/profitable enough? | ✓ huge TAM; $15-25/mo WTP |
+| **S**ubstantial | big/profitable enough? | ✓ huge TAM; Ritsu Plus $29 / Pro $59 (live, verified 2026-05-29) — below the $25-100 study stack |
 | **D**ifferentiable | responds differently? | ⚠ **VALIDATE in Phase A** — do US learners respond like this model? (the #1 open risk of the US pivot; founder intuition weaker for US than VN) |
-| **A**ctionable | can a solo + AI team serve them? | ✓ async product + AI ops at $15-25/mo |
+| **A**ctionable | can a solo + AI team serve them? | ✓ async product + AI ops; paid tiers $29 / $59 / $119/mo |
 
 ## 4. The transition wedge
 
@@ -76,7 +76,7 @@ This is the **wedge** (narrowest viable entry). The broader **English-speaking s
 
 **The wedge:** "drop a textbook chapter / lecture PDF → personalized active-recall quiz in 30 seconds" beats "30+ min building Anki cards." Sharpest entry workflow: **"ace your exam in 3 days."**
 
-- **Willingness-to-pay:** exam urgency = a sharp WTP timer (exam in 2 weeks → $15-25 is trivial vs the cost of failing).
+- **Willingness-to-pay:** exam urgency = a sharp WTP timer (exam in 2 weeks → $29/mo Plus is trivial vs the cost of failing).
 - **Referral velocity:** study groups + classmates + in-product **share-links** (the viral mechanism) = high within-segment referral.
 
 **Testable hypothesis:** a US STEM student drops a chapter PDF mid-exam-prep and gets a gap-finding quiz in <60s (vs the 30+ min Anki alternative) → (1) uses Ritsu for the rest of the chapter, (2) uploads the next chapter unprompted, (3) tells a classmate within 7 days, (4) converts to paid at the first hard limit.
@@ -96,7 +96,7 @@ This is the **wedge** (narrowest viable entry). The broader **English-speaking s
 | Coursera / Udemy | $10-40 | Not user-uploaded material; one-size-fits-all |
 | Notion / paper | $5 or free | Storage ≠ practice; doesn't make you remember |
 
-**Aggregate stack: $25-100+/mo.** US serious learners pay **$15-25/mo** for Ritsu — which *replaces $30-50* of the stack, so they **save money** switching (Plus/Pro sufficient). Frame: **paid = "more for more"** (depth, all 17+ activities, unlimited — the destination); **free = loss-leader on-ramp**, stated clearly (students are price-sensitive — freemium must be obvious + limits named before signup, never a surprise).
+**Aggregate stack: $25-100+/mo.** Ritsu prices **Plus $29 / Pro $59 / Ultra $119** (live, verified 2026-05-29) — Plus sits **below the $25-100 stack** and replaces its ChatGPT + Quizlet + Anki-time core (~$28+), so the value case holds. **Whether the US ICP actually pays at these points is the SOP-PRODUCT-010 pricing-pull-test** (price is SET, but proven WTP is unvalidated pre-PMF). Frame: **paid = "more for more"** (depth, all 17+ activities, unlimited — the destination); **free = loss-leader on-ramp**, stated clearly (students are price-sensitive — freemium must be obvious + limits named before signup, never a surprise).
 
 ## 6. Where they are + observable proxies
 
@@ -137,7 +137,8 @@ Detailed ICP work: `01-marketing/icp/SOP-MARKETING-001-icp-discovery/` (when gro
 | Version | Date | Changes |
 |---|---|---|
 | 0.1 | 2026-05-21 | AI-synthesized VN-first (primary persona = VN STEM undergrad; VN channels; $7-15 pricing). |
-| 1.0 | 2026-05-29 | Founder-confirmed + **US-led realignment** via `/update tier1-file` (run 7130c72c, D-Std). Center of gravity demographics→**psychographics** (added §1 with the "I'm not smart enough → wrong method" core). Added §0 single-coherent-ICP, §2 full tactical persona (search/channels/triggers/objections + 3-layer JTBD), §3 MASDA validation, §6 observable proxies. Wedge reframed with WTP + referral velocity; substitution US-calibrated ($15-25). VN demoted to secondary market (NOT anti-persona). Founder Phase-3 review: US-led VN-secondary · narrow wedge (US college STEM w/ exam) · VN secondary. Grounded in 5-Star BRAVO Audience + growth-playbook ICP + Kotler targeting corpus + Ritsu-observed evidence. Coheres with the new US-led positioning.md (#148). |
+| 1.0 | 2026-05-29 | Founder-confirmed + **US-led realignment** via `/update tier1-file` (run 7130c72c, D-Std). Center of gravity demographics→**psychographics** (added §1 with the "I'm not smart enough → wrong method" core). Added §0 single-coherent-ICP, §2 full tactical persona (search/channels/triggers/objections + 3-layer JTBD), §3 MASDA validation, §6 observable proxies. Wedge reframed with WTP + referral velocity; substitution US-calibrated. VN demoted to secondary market (NOT anti-persona). Founder Phase-3 review: US-led VN-secondary · narrow wedge (US college STEM w/ exam) · VN secondary. Grounded in 5-Star BRAVO Audience + growth-playbook ICP + Kotler targeting corpus + Ritsu-observed evidence. Coheres with the new US-led positioning.md (#148). |
+| 1.0.1 | 2026-05-29 | **Pricing accuracy** — aligned price refs to live ritsu.ai/pricing: Ritsu Plus **$29** / Pro **$59** / Ultra **$119** (corrected an earlier "$15-25" estimate). Reframed price-vs-WTP honestly: prices are SET; proven willingness at these points = SOP-PRODUCT-010 pricing-pull-test (unvalidated pre-PMF). |
 
 ---
 
