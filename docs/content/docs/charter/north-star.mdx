@@ -17,7 +17,7 @@ translated_source_hash: 946823bc791d825af62bebee39bf1436d31a939a56ad60f0ff5fa794
 {/* generated-by: docs-engine v1.2.0 */}
 
 
-<!-- updated-by: /update tier1-file v1.1.1 run=77ae5713-dd82-49a1-84db-26535aeda9c7 @ 2026-05-29 (D-Std override: [redacted-example] -->
+\<!-- updated-by: /update tier1-file v1.1.1 run=77ae5713-dd82-49a1-84db-26535aeda9c7 @ 2026-05-29 (D-Std override: [redacted-example] -->
 
 # Ritsu North Star
 
@@ -60,12 +60,12 @@ Một proxy kết hợp **giá trị** (mastery moment — tuyên bố giá tr�
 
 | Leading indicator | Mục tiêu | Chủ sở hữu | KPI |
 |---|---|---|---|
-| **Activation rate** (signup → <60s magic moment, phiên đầu tiên) | ≥ 40% signups *(tinh chỉnh qua SOP-CUSTOMER-002)* | product-orchestrator | `magic_moment_completion_rate` |
+| **Activation rate** (signup → \<60s magic moment, phiên đầu tiên) | ≥ 40% signups *(tinh chỉnh qua SOP-CUSTOMER-002)* | product-orchestrator | `magic_moment_completion_rate` |
 | **Week-4 retention** | ≥ 30% | customer-lead | `day_30_retention` / `paid_retention_week_4` |
 | **Free → paid conversion** | ≥ 5% (rolling 30d) | gtm-orchestrator | `free_to_plus_conversion` |
 | **Sean Ellis "very disappointed"** | ≥ 40% | gtm-orchestrator | `nps_very_disappointed_pct` |
 
-**Activation là đòn bẩy hàng đầu:** activation phiên đầu tiên chạy **4-5× tốt hơn retention 30 ngày** so với thời gian đến giá trị >24h (PLG telemetry được nhân bản — Amplitude/Mixpanel/Heap). Magic moment <60s (`product.md` §7) LÀ activation phiên đầu tiên đó + máy PLG viral (share-links).
+**Activation là đòn bẩy hàng đầu:** activation phiên đầu tiên chạy **4-5× tốt hơn retention 30 ngày** so với thời gian đến giá trị >24h (PLG telemetry được nhân bản — Amplitude/Mixpanel/Heap). Magic moment \<60s (`product.md` §7) LÀ activation phiên đầu tiên đó + máy PLG viral (share-links).
 
 ### 1.4 — Leading vs lagging (vì vậy bạn biết những gì bạn có thể hành động)
 
@@ -84,8 +84,8 @@ Chính xác hoạt động (không có chỗ nào để lắc):
 - **"Trong 30 ngày"** = một **cửa sổ đo lường** rolling 30 ngày (nhịp độ chúng ta báo cáo). Đặt lại Ngày 1 của mỗi tháng.
 
 Thanh chắn counter-metric (không làm trò chơi north star):
-- CAC payback < 90 ngày (không mua khách hàng thanh toán với lỗ để đạt 100)
-- < 5% tỷ lệ hoàn lại trong 30 ngày đầu (hoàn lại = không thực sự thanh toán)
+- CAC payback \< 90 ngày (không mua khách hàng thanh toán với lỗ để đạt 100)
+- \< 5% tỷ lệ hoàn lại trong 30 ngày đầu (hoàn lại = không thực sự thanh toán)
 - 0 sự cố thảm họa (rò rỉ dữ liệu, AI hallucination gây hại thực tế — thanh chắn #1 SERVQUAL theo `product.md` §6.7)
 
 ## 2b. Độ trung thực về timeline (cửa sổ là nhịp độ, không phải thời hạn)
@@ -127,7 +127,7 @@ Các agent pre-PMF CÓ THỂ tối ưu hóa những cái này như *inputs*, nh�
 **Tại sao hình dạng này:**
 - Mỗi lớp yêu cầu lớp trước được chứng minh (không B2B trước khi B2C wedge hoạt động; không API trước B2B network effect).
 - Sức mạnh giá tăng qua brand + data moat (đường dẫn học được đào tạo trên các đường cong mastery thực tế) + moat thẩm quyền khoa học học (`positioning.md` §6 preemptive POD).
-- Đường cong khả năng AI cắt chi phí trong khi tăng giá trị (luận điểm kinh tế AI-Native `ai_ops_cost_as_pct_of_mrr` <5%).
+- Đường cong khả năng AI cắt chi phí trong khi tăng giá trị (luận điểm kinh tế AI-Native `ai_ops_cost_as_pct_of_mrr` \<5%).
 
 ## 5. Khi điều này thay đổi
 
