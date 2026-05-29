@@ -157,11 +157,12 @@ async function shouldSelfThrottle(env) {
   const rows = await restSelectAll(
     env,
     'scheduled_runs',
-    'select=state_payload,fired_at&schedule_id=eq.wiki-embeddings-backfill&order=fired_at.desc&limit=1',
+    'select=output_payload,fired_at&schedule_id=eq.wiki-embeddings-backfill&order=fired_at.desc&limit=1',
   );
   if (!rows.length) return false;
   const last = rows[0];
-  const affected = Number(last.state_payload && last.state_payload.affected_rows) || 0;
+  // ops.scheduled_runs stores the result blob in output_payload (NOT state_payload).
+  const affected = Number(last.output_payload && last.output_payload.affected_rows) || 0;
   const ageMs = Date.now() - new Date(last.fired_at).getTime();
   return affected === 0 && ageMs < 6 * 60 * 60 * 1000;
 }
@@ -179,6 +180,12 @@ function stripFrontmatter(raw) {
   return s.replace(/^\s*<!--[\s\S]*?-->\s*/, '').trim(); // drop leading generated-by comment
 }
 
+function hardWindow(s, max) {
+  const parts = [];
+  for (let i = 0; i < s.length; i += max) parts.push(s.slice(i, i + max));
+  return parts;
+}
+
 function chunkBody(text) {
   const trimmed = text.trim();
   if (!trimmed) return [];
@@ -188,6 +195,14 @@ function chunkBody(text) {
     if (section.length <= MAX_CHUNK_CHARS) { out.push(section); continue; }
     let cur = '';
     for (const para of section.split(/\n\n+/)) {
+      if (para.length > MAX_CHUNK_CHARS) {
+        // A single paragraph longer than the limit has no natural split point;
+        // flush the accumulator then hard-window it so NO chunk ever exceeds
+        // MAX (guards the OpenAI 8191-token ceiling regardless of corpus growth).
+        if (cur) { out.push(cur); cur = ''; }
+        out.push(...hardWindow(para, MAX_CHUNK_CHARS));
+        continue;
+      }
       if (cur && (cur + '\n\n' + para).length > MAX_CHUNK_CHARS) { out.push(cur); cur = para; }
       else { cur = cur ? cur + '\n\n' + para : para; }
     }
@@ -220,6 +235,8 @@ function rowsForPage(page, chunks, vectors) {
     chunk_text: c,
     embedding: JSON.stringify(vectors[i]), // pgvector canonical text form '[...]'
     embedding_model: MODEL,
+    // Per-chunk char/4 estimate (metadata only). Real billed tokens come from
+    // OpenAI usage and are reported via stats.tokens — not stored per-chunk.
     token_count: Math.ceil(c.length / 4),
     chunk_hash: crypto.createHash('sha256').update(c).digest('hex'),
   }));

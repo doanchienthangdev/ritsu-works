@@ -143,14 +143,22 @@ describe("scripts/sync/backfill-wiki-embeddings.cjs", () => {
       chunks.forEach((c) => expect(c.length).toBeLessThanOrEqual(bf.MAX_CHUNK_CHARS));
     });
 
-    it("documents the lone-paragraph limitation: one paragraph above MAX stays one chunk", () => {
-      // A single unbroken paragraph longer than MAX has no split point. It stays
-      // whole (still well under the model's 8191-token limit). Asserting the
-      // current behavior so a future change is a conscious decision.
+    it("hard-windows a lone paragraph that exceeds MAX into <=MAX chunks with no content loss", () => {
+      // A single unbroken paragraph longer than MAX has no natural split point;
+      // chunkBody hard-windows it so no chunk can exceed the model token ceiling
+      // regardless of corpus growth (CTO review nit on PR #150).
       const giant = "x".repeat(bf.MAX_CHUNK_CHARS + 2000);
       const chunks = bf.chunkBody(giant);
-      expect(chunks).toHaveLength(1);
-      expect(chunks[0].length).toBe(bf.MAX_CHUNK_CHARS + 2000);
+      expect(chunks).toHaveLength(2);
+      chunks.forEach((c) => expect(c.length).toBeLessThanOrEqual(bf.MAX_CHUNK_CHARS));
+      expect(chunks.join("")).toBe(giant); // content preserved exactly
+    });
+
+    it("splits H2 sections correctly with CRLF (\\r\\n) line endings", () => {
+      const text = `## A\r\n${"a".repeat(3500)}\r\n## B\r\n${"b".repeat(3500)}`;
+      const chunks = bf.chunkBody(text);
+      expect(chunks.length).toBe(2);
+      chunks.forEach((c) => expect(c.length).toBeLessThanOrEqual(bf.MAX_CHUNK_CHARS));
     });
 
     it("emits no empty chunks", () => {
