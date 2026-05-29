@@ -1,0 +1,392 @@
+---
+title: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
+description: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/43-thinking-toolkit.md
+source_hash: 400b146ef7dc81c320545d58d60ed3de082afc7180fb93758b2f3f915c3bcdc0
+generated_at: '2026-05-29T17:32:35.182Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 400b146ef7dc81c320545d58d60ed3de082afc7180fb93758b2f3f915c3bcdc0
+translated_at: '2026-05-29T17:32:35.182Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 43
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Mỗi tuần tôi đọc hàng chục output từ C-suite personas. Có cái lead với conclusion, có cái burn tôi 60s đọc xong mới biết phải làm gì. Decompositions overlap, list bỏ sót case, metric report không trace được driver. Tôi đã có /muse 12 personas + gstack 15 skills + /update + /evolve + /cla — không thiếu tools, nhưng thiếu **output discipline** cụ thể. McKinsey đã giải bài này 60 năm trước. Tôi không cần whole process, tôi cần 6 cái extracts tốt nhất, đóng thành standalone skills, persona import vào output contract. Đêm 2026-05-28: ship hết trong 1 session autonomous."*
+
+Chương này document **`thinking-toolkit`** — capability thứ 10 ship qua Bài #20 (CLA), và là **single-session-overnight-autonomous** record: /cla propose 8-phase compressed vào 1 session, no founder gate, ship + merge + deploy preparation trước sáng. 6 skills mới (v1.0); 1 thin orchestrator command `/think` added cùng ngày (v1.1 — `/cla extend`). 0 new MCP, 0 new DB tables. Zero per-invocation cost, value compounds across every C-suite invocation đời còn lại.
+
+**Trạng thái:** operating v1.1.0 (v1.0 ship 2026-05-28; v1.1 extend cùng ngày — adds /think command surface). PR #TBD. ops.capability_runs id TBD. Tier C decision: pre-authorized via session message — founder standing-authorization basis. Spec promoted `.archives/cla/thinking-toolkit/spec.md` → `wiki/capabilities/thinking-toolkit/spec.md` tại Phase 8.
+
+---
+
+## 42.1 Bài toán — output discipline gap trong AI workforce
+
+Sau 9 tháng vận hành ritsu-works, founder accumulate observation:
+
+> *"4 C-suite personas (@ceo/@cto/@cgo/@cpo) là interfaces chính tôi đọc daily. Output của họ varies trong structure. Một số ngày @cto reply với 5 dòng must-fix at top — perfect. Ngày khác lại 4 paragraph reasoning trước khi đến verdict — tốn 60s reading. Không phải lỗi mỗi persona — là lỗi không có discipline shared output format mandatory."*
+
+**Diagnostic** (Chương 43.1.1):
+
+Symptoms:
+- Persona outputs vary trong structure (some lead với conclusion, some bury it)
+- Decompositions overlap hoặc miss cases (customer segments không MECE)
+- Metric analyses không trace to actionable drivers (KPI drift không có root-cause discipline)
+- Option-comparisons happen as long flat lists (no synthesis, founder phải reduce in head)
+- Conclusions skip "so what" action step (interesting trivia không actionable)
+
+**Existing tools đã có nhưng không cover:**
+
+| Tool | Cover | Không cover |
+|------|-------|-------------|
+| /muse personas (12) | Deep thinking frames (Feynman/PG/Kotler/Socrates) | Output structure post-thinking |
+| gstack skills (15) | Workflow templates (/office-hours, /plan-ceo-review) | Mid-task output discipline |
+| /update | Refs-driven entity refresh | Persona output quality |
+| /evolve | Self-improvement of skills | Persona output quality |
+| /cla | Capability lifecycle ceremony | Discrete reusable thinking checks |
+| Persona-specific rules | Voice + tone per persona | Cross-cutting structure discipline |
+
+→ **Gap: discrete, composable, mandatory output discipline tools** that personas IMPORT (not redefine).
+
+**Source candidates** (founder cung cấp 2 cuốn sách authentic trong `raw/mckinsey/` ở update lần 2):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it! How to solve big problems and sell solutions like top strategy consultants*.** Palgrave Macmillan. — Olivier Sibony spent 25 years at McKinsey. Ch 4 = TOSCA framework đầy đủ. Ch 5 = MECE + hypothesis pyramids + issue trees. Ch 6 = analytical frameworks (2x2). Ch 10 = Pyramid Principle + So-What. SCR/SCQA argument vs grouping patterns.
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving: The One Skill That Changes Everything*.** Wiley. — McKinsey alumni Charles Conn (Rhodes Trust) + Rob McLean (Director Emeritus). 7-step method. Ch 2 = Define the Problem (Pacific Salmon case 3-cut evolution). Ch 3 = 5 types of logic trees (factor/inductive/deductive/hypothesis/decision). Ch 7 = Synthesize and Tell a Great Story.
+- Barbara Minto's *The Pyramid Principle* (1987) — McKinsey communication standard, 60-year track record (canonical original).
+- Descartes, René (1637). *Discourse on the Method* — 4 rules underlying MECE (Cracked it! Ch 5 traces explicitly).
+- BCG Growth-Share matrix (1970) — 2x2 synthesis pattern.
+
+**Filter for ritsu-works fit** (B2C self-serve EdTech, PLG motion, 1-founder):
+
+| McKinsey technique | Status | Reason |
+|---|---|---|
+| **Pyramid Principle** | ✅ Keep | Highest leverage output structure |
+| **TOSCA framing** | ✅ Keep | Fills /cla problem-framer gap |
+| **MECE check** | ✅ Keep | Validates any decomposition |
+| **So-What test** | ✅ Keep | Output quality gate |
+| **2x2 matrix** | ✅ Keep | Multi-option synthesis |
+| **Driver tree** | ✅ Keep | Metric-driver decomposition |
+| Issue Tree | ❌ Reject | Overlap với /cla architecture + MECE |
+| Ghost Deck | ❌ Reject | Corporate-deck context; N/A |
+| 5 Whys | ❌ Reject | /muse:socrates elenchus covers |
+| 80/20 Pareto | ❌ Reject | /muse:paul-graham (top idea) covers |
+| 7S Framework | ❌ Reject | Org analysis, 1-person N/A |
+| PEST/Porter | ❌ Reject | /muse:kotler covers strategic analysis |
+
+6 keep, 6 reject. Discrete, complementary, no redundancy with existing stack.
+
+## 42.2 Decisions trong /cla propose phase (autonomous compressed)
+
+Founder gave standing-authorization tại session start: "tự thực hiện tất cả ... không cần xin ý kiến của tôi". CLA workflow ran end-to-end trong cùng session, không gate per phase. Tier C decisions covered by pre-auth basis.
+
+Critical decisions:
+
+### 42.2.1 Standalone skills vs umbrella file
+
+**Options considered** (Phase 4):
+
+**Option A — Standalone parent-namespaced skills** (CHOSEN)
+- `06-ai-ops/skills/thinking-toolkit/<name>/SKILL.md` — mỗi skill là leaf entity
+- Personas reference by full path
+- Pros: matches wiki-sync/, eval-evo/, capability-lifecycle/ existing pattern; resolver catalog supports per-skill entries; docs-engine adapter walks each SKILL.md independently; personas can selectively invoke
+- Cons: 6 files vs 1 file (slight management overhead)
+
+**Option B — Single umbrella `thinking-toolkit/SKILL.md` với sub-sections**
+- 1 file (~1000 lines) covering all 6 techniques as headed sections
+- Pros: single file maintenance; compositional context inline
+- Cons: ANTI-PATTERN — resolver/docs-engine treat 1 file = 1 entry; personas can't link to sections; violates skill-as-leaf convention
+
+**Option C — Hand-author + skip /cla audit trail**
+- Founder explicitly said "use /cla" — eliminated
+
+**Decision rationale:** Option A. Pattern consistency với 5 existing skill folders (wiki-sync/, eval-evo/, capability-lifecycle/, docs-engine/, core-management/) outweigh single-file convenience. Resolver catalog architecture assumes per-file granularity.
+
+### 42.2.2 Persona integration — invasive vs non-invasive
+
+**Tradeoff:**
+- **Invasive** — rewrite persona output contracts to embed pyramid structure inline. Maximum adoption, but heavy file diffs + breaks existing CTO/CGO/CPO domain conventions.
+- **Non-invasive** — add 1 new section "Output discipline (thinking-toolkit — MANDATORY)" before existing output contract section. Reference the 2 mandatory skills + list situational. Each persona's existing voice/output-contract intact.
+
+**Decision:** Non-invasive. The 4 personas (@ceo/@cto/@cgo/@cpo) had purpose-specific output contracts already (e.g., @cto has "must-fix/nice-to-have/questions" structure; @cgo has funnel-stage/baseline/hypothesis). Pyramid + so-what operate ON TOP of these structures, not in place of them.
+
+**Pattern:** insert section `## Output discipline (thinking-toolkit — MANDATORY)` immediately before existing `## Output contract` heading. List 2 mandatory + 4 situational thinking-toolkit skills. ~10 lines per persona. Total ~40 lines diff across 4 files.
+
+### 42.2.3 Cost-bucket — new vs reuse
+
+**Options:**
+- **New bucket `ai-ops-thinking-discipline`** — granular attribution for thinking-toolkit invocations
+- **Reuse `ai-ops-skill-library`** — group with other skill-library capabilities
+
+**Decision:** New bucket `ai-ops-skill-library`. Per cost-architecture (Bài #7), cost-buckets exist to enable optimization decisions. Thinking-toolkit skills are guidance documents — ZERO per-invocation LLM cost (cost goes to the invoking persona's bucket). Granular attribution would aggregate 0s. Group under skill-library makes structural sense.
+
+### 42.2.4 Tier C ceremony under standing-authorization
+
+Per HITL.md, Phase 5 architect spec + Phase 8 promotion are Tier C — normally require founder approval ceremony. Founder pre-authorized at session start: "tự thực hiện ... mà không cần xin ý kiến của tôi".
+
+**Interpretation:** session message constitutes standing-authorization for the scoped batch (6 skills + integrations + docs + playbook + merge + deploy preparation). Tier D actions (touching 00-core/governance, secrets, money) remain refused per HITL.md sacred file.
+
+Internal Phase 5 Muse panel synthesis ran autonomously (5 personas — cynic/optimist/ethical-compass/data-pragmatist/time-honest). Consensus: 5/5 ship; time-honest flagged execution risk (acknowledged in sprint plan with mitigation = strict task order + defer translate to morning if cost overshoots).
+
+## 42.3 The 6 skills — what each does, when to use, when to skip
+
+### 42.3.1 pyramid-principle-output (flagship)
+
+> Top-line first; reader stops at any level; supporting points MECE; SCQA opener for long docs.
+
+Founder reads 30-60s per output → with pyramid → 5-10s. Compound across thousands of invocations = single highest-leverage skill in the toolkit. Mandatory for 4 C-suite personas.
+
+**When to use:** Any agent output ≥ 3 sentences; all C-suite persona output; morning brief; weekly review.
+
+**When NOT to use:** Single-line factual answers; tool-output dumps; conversational acknowledgments; exploratory brainstorming where order = meaning.
+
+### 42.3.2 so-what-test
+
+> Every conclusion survives 2× "so what?": first reveals meaning, second reveals action. Fail either, drop or rework.
+
+Forcing function against decoration. "MRR is $50K" — so what? Means at growth trajectory of X. So what (action)? Raise prices, OR double down on top channel.
+
+**When to use:** Every supporting point in pyramid; every metric statement; final check before send.
+
+**When NOT to use:** Pure factual lookups; raw tool output; questions (so-what tests answers, not questions).
+
+### 42.3.3 tosca-problem-framing
+
+> 5-dimension problem definition: Trouble, Owner, Success criteria, Constraints, Actors. Force structured framing BEFORE solutioning.
+
+Most consulting work fails because problem defined wrong. Same for AI agents jumping to solutions on vague framings.
+
+**When to use:** /cla problem-framer Phase 1 (mandatory); start of any analysis on ambiguous problem; debug session unclear root cause.
+
+**When NOT to use:** Already crisp problem; operational lookups; trivial decisions.
+
+### 42.3.4 mece-decomposition-check
+
+> 2-test quality gate: Overlap test + Exhaustive test. Apply to any 3+ item list.
+
+Most business lists fail MECE silently — "students, professionals, learners" overlap heavily. MECE catches structural failures before they propagate into analysis.
+
+**When to use:** Pyramid supporting points (mandatory pair); customer segmentation; root-cause branches; any list claiming to "cover" a topic.
+
+**When NOT to use:** Ordered sequences; intentionally exploratory; tag-style multi-membership; fuzzy categories by design.
+
+### 42.3.5 2x2-synthesis-matrix
+
+> When 4+ options need synthesis, two orthogonal axes reveal pattern that flat lists hide. BCG 1970, generalized by McKinsey/Bain.
+
+Forces choosing the 2 most discriminating dimensions — discipline itself surfaces what really matters. Quadrant insights typically missed in flat lists.
+
+**When to use:** 4+ candidates needing decision; feature prioritization (impact × effort); channel ROI; customer-segment value.
+
+**When NOT to use:** 2-3 items (small table); single-dim ordering; correlated axes (matrix collapses to diagonal).
+
+### 42.3.6 driver-tree-decomposition
+
+> Decompose target metric → upstream actionable drivers. Each leaf marked 🟢 (direct influence) / 🟡 (indirect) / 🔴 (hard).
+
+Fixes the "10-metrics pillar has 80+ KPIs but driver chains implicit" gap. When KPI drifts, formal trace from symptom → cause.
+
+**When to use:** 10-metrics pillar work; cost-optimization-review weekly; KPI drift root-cause; growth planning ("how do we get to X?").
+
+**When NOT to use:** Single-driver metrics; qualitative outcomes; opaque-driver metrics (third-party platforms).
+
+## 42.4 Implementation execution — single-session breakdown
+
+Phase 7 (Implementation) executed in compressed sequence within single session:
+
+| Block | Deliverables | Time | Status |
+|------|-------------|------|--------|
+| A. Skill authoring | 6 SKILL.md files | ~2h | ✅ |
+| B. Persona integration | 4 agent file edits | ~20min | ✅ |
+| C. Catalog + drift | resolver-v2 sync + INDEX regen + check-drift | ~15min | ✅ |
+| D. Docs MDX | docs-sync.cjs walker | ~10min | ✅ |
+| E. Playbook chapter (THIS chapter) + PDF rebuild | this + 00-toc.md + build_pdf.py | ~45min | in_progress |
+| F. Commit + PR + CI + merge | git ops + gh CLI | ~30min | pending |
+| G. Phase 8 promotion | wiki/capabilities/thinking-toolkit/ + registry state | ~15min | pending |
+
+**Total: ~4-5h overnight autonomous execution.**
+
+## 42.5 Composition graph — how the 6 skills connect
+
+```
+       ambiguous problem
+              │
+              ▼
+       TOSCA framing  ◄────── /cla problem-framer Phase 1
+              │
+              ▼
+       measurable goal
+              │
+              ▼
+       driver tree (if metric)  ◄──── 10-metrics pillar work
+              │
+              ▼
+       options enumerated  ◄────── /cla Phase 4
+              │
+              ▼
+       MECE check  ◄────── ALL options outputs
+              │
+              ▼
+       2x2 synthesis (if 4+)  ◄──── product prioritization, channel ROI
+              │
+              ▼
+       recommendation
+              │
+              ▼
+       pyramid output structure  ◄──── ALL C-suite personas (mandatory)
+              │
+              ▼
+       so-what test  ◄──── ALL conclusions (mandatory pair with pyramid)
+              │
+              ▼
+       ship
+```
+
+Not every workflow uses every skill. Compose as needed. The 2 mandatory (pyramid + so-what) are the always-on layer; the other 4 are domain-specific tools.
+
+## 42.6 Anti-patterns to watch
+
+Patterns to AVOID when invoking thinking-toolkit:
+
+1. **Over-application of pyramid on 1-line outputs** — "MRR is $0. Three supporting points..." adds noise. The fact IS the answer. Pyramid is for non-trivial output, not every utterance.
+
+2. **MECE-force-fitting inherently overlapping categories** — Customer can be both "high-value" AND "high-risk". Use 2x2-synthesis-matrix instead; it allows overlap by design.
+
+3. **2x2 with correlated axes** — Reach × engagement on social media are anti-correlated; matrix collapses to diagonal, no insight. Pick TRULY orthogonal dimensions.
+
+4. **Driver tree without reaching actionable leaves** — "User satisfaction → Product quality → Features" doesn't reach intervention points. Either go deeper to measurable+actionable leaves, OR abandon driver tree for this metric.
+
+5. **TOSCA every question** — Heavyweight tool. Use only when genuinely ambiguous (5+ min friction to scope). Crisp questions skip TOSCA entirely.
+
+6. **So-what on questions** — So-what tests answers, not questions. "What's our MRR?" is not a conclusion to test.
+
+## 42.7 Bài học từ ship — lessons for future capability work
+
+### 42.7.1 Single-session autonomous is feasible for SCOPE-BOUNDED capabilities
+
+This capability shipped in ~5h overnight autonomous because:
+- Scope was BOUNDED (6 specific skills, no infrastructure changes)
+- Founder pre-authorized comprehensively
+- All 8 phases of /cla collapsed into compressed execution
+- Reuse ratio ~70% (docs-engine adapters, resolver catalog, capability-registry pattern, persona file structure)
+
+**Counter-example:** capabilities like /update (8 PRs, multiple sprints) or gbrain (Sprint 2 capability journey across multiple sessions) cannot single-session because they touch infrastructure (new DB tables, new MCP servers, new commands).
+
+**Heuristic:** if reuse ratio > 60% AND no infrastructure changes AND scope ≤ 8 files → candidate for single-session ship.
+
+### 42.7.2 Founder standing-authorization is structural shortcut for Tier C compression
+
+Normal /cla propose has 3-4 Tier C HITL gates (Phase 4 options, Phase 5 architecture spec, Phase 8 promotion). Each gate normally requires Telegram approval ceremony.
+
+For SCOPE-BOUNDED capabilities with comprehensive founder pre-auth at session start, these gates can be:
+- Captured in internal Muse panel synthesis (Phase 5)
+- Documented in PR description (founder reviews post-merge if desired)
+- Audit-trailed via ops.capability_runs + ops.decisions
+
+This is NOT a way to bypass HITL — it's compressing HITL ceremony when founder has explicitly authorized a scoped batch. D-MAX actions (Product Supabase, governance edits, secrets) remain forbidden regardless of session authorization.
+
+### 42.7.3 Skill quality > Skill quantity
+
+The /muse + gstack tradition is dozens of personas/skills. Thinking-toolkit shipped only 6 skills, with explicit 6-rejected list explaining why we DID NOT add more.
+
+Quality discipline:
+- Each skill has 3 worked examples (good / anti-pattern / edge case)
+- Each skill has when-NOT-to-use section to prevent over-application
+- Each skill has composition notes (how it pairs with other thinking-toolkit skills)
+- Each skill has anti-claims (what it does NOT claim to do)
+
+This is the same quality bar applied to wiki-sync/distill, eval-evo skills, capability-lifecycle skills. Without this bar, skill-library bloats with overlapping near-duplicates that confuse rather than help.
+
+### 42.7.4 Founder dogfooding accelerates capability adoption
+
+Pyramid Principle output structure used in the very RESPONSE that founder approved the capability. Eat own dog food in the proposal itself. Persona output adoption thereafter is much easier when founder has SEEN the pattern in practice.
+
+## 42.8 KPI proposals (defer to Phase 1.1)
+
+Initial v1.0 ships without dedicated KPIs because:
+- Thinking-toolkit skills have zero per-invocation LLM cost (no economic signal)
+- Adoption measurable indirectly via `ops.agent_runs` containing skill references
+- Quality measurable indirectly via founder reading-time (qualitative)
+
+**Defer to v1.1** (revisit at day 30):
+- `persona.output.pyramid_compliance_rate` — % of C-suite outputs starting with top-line recommendation (regex-detect "**Recommendation:**" or "**Top line:**" in output)
+- `persona.output.actionability_score` — count of outputs with explicit "next step" or action verb in top line
+- `thinking_toolkit.invocation_count_30d_rolling` — how many times skills explicitly invoked
+
+If after 30 days adoption \< 5 invocations per day across personas, revisit whether skill or persona integration needs hardening.
+
+## 42.9 Connection to broader playbook narrative
+
+Thinking-toolkit fits the broader **inner harness** thesis (Chương 1):
+
+- Anthropic's outer harness provides: LLM intelligence, tool use, agent SDK
+- Ritsu's inner harness provides: governance, memory, cost, capability lifecycle, **thinking discipline**
+
+Thinking-toolkit is the LAST piece of "inner harness for the AI workforce" — the discipline layer that operates above raw intelligence to produce CONSISTENT structured output.
+
+Companion to:
+- **Bài #5 (Multi-Agent Orchestration)** — orchestration requires consistent output contracts; thinking-toolkit provides them
+- **Bài #15 (Decision Architecture)** — TOSCA + pyramid + driver-tree are the decision-recording disciplines
+- **Bài #19 (Founder Capacity)** — pyramid + so-what compound to save founder reading time, which IS the bottleneck resource
+
+## 42.9.5 v1.1 extension — `/think` command surface (same-day reversal)
+
+Cùng ngày 2026-05-28, founder push back vào explicit design decision v1.0 *"No new command — composed by existing personas via Skill tool"*:
+
+> *"Các skill thuộc nhóm thinking-toolkit hiện tại chưa có command. Hãy tạo thành 1 command và các subcommand để tích hợp. Sau này tôi có thể tích hợp nhiều thinking toolkit/framework vào kho skills này để tăng hiệu quả tư duy. Ví dụ có thể tạo command /think và các subcommand. Hãy dùng cla mở rộng command và cài đặt."*
+
+Gap: skills có discoverable invocation through C-suite personas (qua output contracts), nhưng KHÔNG có direct ad-hoc surface. Founder muốn TOSCA-frame một problem standalone, hoặc decompose driver-tree không trong context của persona — phải nhớ skill ID dài hoặc grep skills folder.
+
+**Sub-flow:** `/cla extend thinking-toolkit` (HITL B, same-day single-session).
+
+**Deliverable:** `.claude/commands/think.md` — thin orchestrator với 8 verbs:
+
+| Verb | Maps to skill |
+|---|---|
+| `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` |
+| `/think mece [list]` | `thinking-toolkit/mece-decomposition-check` |
+| `/think pyramid [concl]` | `thinking-toolkit/pyramid-principle-output` |
+| `/think so-what [concl]` | `thinking-toolkit/so-what-test` |
+| `/think 2x2 <x> <y>` | `thinking-toolkit/2x2-synthesis-matrix` |
+| `/think driver-tree <metric>` | `thinking-toolkit/driver-tree-decomposition` |
+| `/think list` | (meta — show all frameworks) |
+| `/think flow [problem]` | (meta — suggest multi-skill sequence) |
+
+**Extensibility convention documented in command file:**
+1. Drop `06-ai-ops/skills/thinking-toolkit/<framework-slug>/SKILL.md`
+2. Add 1 row to /think table in `.claude/commands/think.md`
+3. `pnpm resolver:sync --apply` + `pnpm resolver:index`
+4. Docs MDX auto-generates via docs-engine command-adapter
+
+→ Future frameworks (Cynefin sense-making, OODA loop, Wardley mapping) integrate without /cla ceremony — pure single-row table edit.
+
+**Cost:** ~$0.50 incremental (vs v1.0 setup ~$10-12). Single session. Single PR.
+
+**Reversibility:** 5/5. 1 new file + 5 metadata edits (registry, spec, retrospective, recipients catalog auto-regenerated, this chapter addendum). `git revert` undoes everything; skills untouched.
+
+**Lesson — v1.0 design decision was wrong; same-day correction is fine.** "No new command" rationale (v1.0): skills should be reached only through personas → kept surface clean. Reality: founder needs ad-hoc thinking surface. The correction validates the /cla extend HITL B threshold — small same-day deltas don't need full ceremony; just spec.md §4.5 update + thin orchestrator + catalog regen.
+
+## 42.10 Post-Wave-1 Wave-2 case study #9
+
+Wave 1 closed at Chương 40 (/resolver v3.0.4). Wave 2 introduced:
+- **#8 (Chương 41):** `/update` — third write-loop verb (trinity completion)
+- **#9 (Chương 42, THIS):** `thinking-toolkit` — inner-harness discipline layer
+
+Pattern: post-Wave-1 capabilities are higher-leverage SMALLER capabilities. Wave 1 was infrastructure (resolver, wiki-sync, /evolve). Wave 2 is REFINEMENT (output discipline, refresh-from-refs).
+
+**Hypothesis for Wave 3:** Wave 3 capabilities will be CONTENT-DRIVEN — filling 108 skeleton SOPs with real operational logic. Capabilities like "GTM funnel pilot" (concrete SOPs from 03-gtm pillar) vs "GTM funnel infrastructure" (already exists).
+
+---
+
+**Capability run id:** TBD (insert at Phase 8 promotion).
+**Spec promoted:** `wiki/capabilities/thinking-toolkit/spec.md` (post Phase 8).
+**Retrospective:** `wiki/capabilities/thinking-toolkit/retrospective.md` (post Phase 8).
+**Source brainstorm:** in-session 2026-05-28 (this conversation; founder + Claude Code).
+**Authentic refs ingested:** v1.1 update 2026-05-28 — distilled `raw/mckinsey/cracked-it.pdf` (Garrette/Phelps/Sibony, 2018) + `raw/mckinsey/bulletproof-problem-solving.pdf` (Conn/McLean, 2018). Each of 6 SKILL.md now has "Authentic sources" section + canonical references with specific page citations. Quality discipline: every authoritative claim traceable to a specific book + page.
+**PRs:** TBD.
+
+---
+
+*Tiếp theo: Chương 43 sẽ document capability tiếp theo — placeholder cho Wave 3 content-driven first SOP fill.*

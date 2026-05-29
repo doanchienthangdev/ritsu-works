@@ -2,8 +2,8 @@
 title: Ritsu ICP Summary
 description: ''
 source_path: 00-core/icp-summary.md
-source_hash: 18bc02cd0a047d5ce01e654ba21ee26077ce6e0fabfdc8c3b230bded2d253249
-generated_at: '2026-05-22T01:09:07.457Z'
+source_hash: 2e49a963be63a25c4b70117608231b6bc86138955820eec7d0d900362ba36dd0
+generated_at: '2026-05-29T17:31:50.175Z'
 generated_by: docs-engine v1.2.0
 category: charter
 language: en
@@ -11,124 +11,5 @@ language: en
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-> 1-page distillation of **WHO the first 100 customers are**. Detailed ICP work lives in `01-marketing/icp/` (SOP-MARKETING-001 when scaffolded). This file is the compressed canonical pointer cited by growth-orchestrator, content-drafter, support-agent.
->
-> **v0 caveat:** ICP IS the hypothesis we test in the next 30 days. Revise on first 30 paying customer signal — at that point we have observed-not-surveyed data and the persona crystallizes.
 
-## 1. Primary persona
-
-**The 20-year-old bilingual STEM undergraduate, mid-semester, with a textbook to master in 2 weeks.**
-
-Concretely:
-- **Demographics:** 18-24 years old; university student (year 1-4); STEM major (engineering, medicine, CS, biology — fields with heavy textbook + memorization load); Vietnamese-primary + English-second (functional academic English); urban or peri-urban Vietnam (Ho Chi Minh, Hanoi, Da Nang, Can Tho).
-- **Devices:** Mobile-first (Android dominant in VN); laptop for upload + deep study sessions.
-- **Behavioral:** Studies in spurts (exam-driven). Currently uses a frankenstein stack: Anki for vocabulary, Quizlet for shared decks, ChatGPT for "explain this concept", Notion for notes, paper notes for math. Frustrated by stack-switching cost — 3 hours of "study time" becomes 90 min of actual study + 90 min of tool overhead.
-- **Job to be done:** "Help me actually remember this textbook chapter / lecture / paper so I pass the exam — and ideally understand it deeply enough to apply later."
-- **Magic moment:** drops PDF chapter → 30 sec later first quiz appears → gets 3 wrong, 7 right, sees concept map of what they missed → "wait this actually works."
-
-**Why this persona for first 100:**
-- Geographic density (founder's location = lowest CAC).
-- Bilingual = expands available content corpus (textbook PDFs come in EN, lectures in VN).
-- Exam-driven urgency = sharp willingness to pay timer (exam in 2 weeks = $7-15 is trivial).
-- High word-of-mouth coefficient (study groups, classmate referrals).
-- Existing study-stack pain (substitution money already moving — see §3).
-
-## 2. Where they hang out
-
-**Vietnam-specific (primary 70% of first 100):**
-- Facebook study groups: "Học sinh Y Khoa Việt Nam", "Kỹ sư công nghệ thông tin Việt Nam", university-specific groups for HCMUT, HUST, UET, etc.
-- TikTok study communities (#studytok #studygram VN variants)
-- YouTube exam-prep + study-with-me channels (VN, Vietnamese-language)
-- Zalo + Messenger group chats (post-secondary class groups)
-- Local subreddits (r/VietNam, r/saigon) — smaller signal but high-quality
-- Facebook university-specific pages (e.g. "Hỗ trợ học tập [tên trường]")
-
-**English-secondary 30%:**
-- Reddit: r/GetStudying, r/college, r/medicalschool, r/learnprogramming
-- YouTube: ali abdaal, thomas frank study channels (analogous niches)
-- Discord servers: Math Help, Programming Help, university-specific
-- Twitter / X student communities (#studytwt)
-
-**Channels we DO NOT use for first 100:**
-- LinkedIn (wrong demographic for individual learners)
-- Pinterest / Instagram (low intent at upload-a-PDF level)
-- Press / PR (vanity at this stage)
-- Conference / event presence (too slow + expensive)
-
-## 3. What they pay for today (substitution stack)
-
-The total monthly study-tool spend in this persona's wallet (year 2026):
-
-| Tool | Monthly cost | What it does | Why it doesn't fully solve job |
-|---|---|---|---|
-| **Quizlet Plus** | ~$3/mo (annualized $35.88) | Shared flashcard decks | Requires hand-building OR shared deck quality random |
-| **ChatGPT Plus** | $20/mo | Answer questions, explain | No persistent context; ephemeral; no quiz generation |
-| **Anki + plugins** | Free + ~$5/mo for power users | Spaced repetition flashcards | Manual card creation = 30+ min per textbook chapter |
-| **Private tutoring** | $10-50/hr (~$80-200/mo for serious students) | 1:1 explanation + practice | Expensive; scheduling friction; quality varies |
-| **Course platforms** (Coursera/Udemy) | $10-40/mo | Pre-built curricula | Not user-uploaded material; one-size-fits-all |
-| **Notion / paper notes** | Free or $4/mo | Note storage | Storage ≠ practice; doesn't make you remember |
-
-**Aggregate stack spend:** $25-100/mo per active learner. Ritsu replaces $20-50 of this without losing function. Net consumer surplus = significant.
-
-**Substitution math for first 100 conversion:** if first 100 each pay $7-15/mo, that's $700-1500 MRR. Reference: most are switching from $35+ Quizlet/ChatGPT/Anki combo, so they SAVE money switching to Ritsu (assuming Plus tier is sufficient).
-
-## 4. The transition wedge
-
-**The wedge:** "Drop PDF → quiz in 30 seconds" beats "30 min of manually building Anki cards from a textbook chapter."
-
-**Specific testable hypothesis:**
-> If a STEM student drops a textbook chapter PDF into Ritsu mid-exam-prep and gets a personalized quiz that finds their gaps within 60 seconds (vs the 30+ minute Anki card-building alternative), they will:
-> 1. Use Ritsu for the rest of that chapter (immediate behavior switch)
-> 2. Upload the next chapter unprompted (habit formation)
-> 3. Tell at least one classmate within 7 days (referral)
-> 4. Convert to paid at the first hard limit hit (free tier exhaustion)
-
-**Wedge KPIs (the love-test indicators):**
-- Time-to-first-aha \< 60 sec (signup → first quiz answered correctly)
-- "Upload again within 7 days" % > 40
-- Refer-a-friend triggered at week 2 % > 15
-- Free → paid trigger conversion > 5% (over rolling 30 days)
-
-**What the wedge is NOT:**
-- Not "AI tutor for everything" (too abstract).
-- Not "study smarter not harder" (cliché; no specific moment).
-- Not "ChatGPT for studying" (wrong frame — ChatGPT answers; Ritsu generates practice).
-
-## 5. Channel sequence for first 100
-
-**Order matters.** Each channel has different feedback loop quality + speed:
-
-| # | Channel | Target customers | Why this order | Cost estimate |
-|---|---|---|---|---|
-| 1 | **Founder direct outreach** (Zalo/Messenger to classmates of cofounder + extended student network) | 5-10 | Fastest feedback, deepest signal, Collison install protocol (SOP-CUSTOMER-006) | $0 + ~5h founder time |
-| 2 | **Targeted Facebook group posts** (high-quality groups w/ admin permission) | 15-25 | Organic signal-rich channel; tests message + visual | $0 + ~10h founder time |
-| 3 | **YouTube study-with-me influencer partnership** (1-2 micro-influencers \<100K subs) | 20-30 | Lower CAC than ads, high intent audience | $200-500 founder budget |
-| 4 | **Paid ad test (FB/Instagram, narrowly targeted)** | 30-50 | Validates willingness to pay attention + click; tests message at scale | $300-800 budget; CAC target \< $5 |
-| 5 | **Referral activation** (in-product "share with friend → both get 1 month Plus free") | 10-20 (last fill) | Validates LOVE — only loved products refer | $0 marginal (free month given) |
-
-**Total time-to-100:** 30 days if all channels fire smoothly. Founder solo can do 1-3; growth-orchestrator (AI) helps with 2-4 scaling.
-
-**Channel-attribution discipline** (per SOP-GTM-009): each customer tagged with first-touch channel at signup. Channel-by-channel CAC computed weekly. Double-down on best channel after first 20 paying.
-
-## 6. Anti-persona (who we EXPLICITLY don't sell to in first 100)
-
-| Anti-persona | Why excluded (right now) |
-|---|---|
-| Enterprises (corporate training, L&D) | No compliance; no procurement; multi-month sales cycle. Activate post-PMF + Series A. |
-| K-12 schools | Parental consent + curriculum approval bureaucracy. Activate via educator B2B layer year 2. |
-| Edutainment seekers (Duolingo-like daily-streak users) | Engagement-metric users; not mastery-metric users. Different product. |
-| Casual / one-off content viewers (TikTok scroll users) | No upload intent; wrong product surface. |
-| Adults learning hobby topics (history buffs, cooking enthusiasts) | Lower urgency = lower willingness to pay. Activate post-PMF via expansion. |
-| Users with native language ≠ VN or EN | Don't have content corpus + brand voice + customer support coverage. Activate year 2 i18n (placeholders/internationalization).|
-| Under-13 users | Legal (COPPA in US, similar in EU). Not blocked but not targeted. |
-
-**Naming the anti-persona prevents scope creep.** When a feature request comes in from an anti-persona, the answer is "not yet, future roadmap" — not silent ignore, not premature build.
-
-## 7. Pointer to detail
-
-Detailed ICP work in `01-marketing/icp/SOP-MARKETING-001-icp-discovery/` (scaffolds when growth-orchestrator runs first ICP discovery sprint).
-
-Cofounder usage analysis (data point N=2) lives in `04-product/wedge-discovery/SOP-PRODUCT-001-cofounder-usage-analysis/` — the N=2 cofounders ARE the closest existing data on persona-fit; treat their usage patterns as priors.
-
-This compressed summary updates on the 30-paying milestone with observed-customer-language refinement. At that point we replace this AI-synthesized v0.1 with content drawn from 30 real customer interview transcripts (SOP-CUSTOMER-006 Collison install protocol output).
 

@@ -112,3 +112,13 @@ mappings:
       - .claude/agents/cgo.md
       - .claude/agents/cpo.md
     note: "Thinking-toolkit v1.0 — McKinsey/Minto skills + C-suite persona import"
+
+  - chapter: phase-a2/44-case-00-core-spine-aplus-production.md
+    sources:
+      - 00-core/product.md
+      - 00-core/positioning.md
+      - 00-core/icp-summary.md
+      - 00-core/north-star.md
+      - .claude/commands/update.md
+      - .claude/commands/think.md
+    note: "Production case study — 00-core strategic spine A+ via /update tier1-file + /think tosca (PRs #148/149/152/153/154 + chapter); 2026-05-29→30. Production USAGE case (not a new capability)."

@@ -1,0 +1,96 @@
+---
+title: "Chương 44 — Production Case Study: 00-core Strategic Spine A+ (`/update tier1-file` + `/think tosca` áp lên ground-truth)"
+description: "Chương 44 — Production Case Study: 00-core Strategic Spine A+ (`/update tier1-file` + `/think tosca` áp lên ground-truth)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/44-case-00-core-spine-aplus-production.md
+source_hash: 1c1cc8b6d666f79ce75305cde66b3d4bd5446d125006850f30b7b0936079af29
+generated_at: '2026-05-29T17:32:35.182Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 1c1cc8b6d666f79ce75305cde66b3d4bd5446d125006850f30b7b0936079af29
+translated_at: '2026-05-29T17:32:35.182Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 44
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Chương 34-43 document các capability được SHIP. Chương 44 là cái khác: một phiên duy nhất USE các capability đã ship (`/update tier1-file`, `/think tosca`, `/browse`) lên 4 tài liệu ground-truth quan trọng nhất của công ty — product / positioning / icp-summary / north-star — đưa cả 4 từ AI-synthesized-v0.1 + VN-first lên A+ + coherent US-led, trong 1 phiên, 6 PR. Đây là bằng chứng 'capability đã ship chạy thật trên high-stakes work', + 2 bài học không lường trước: verify-don't-assume (bắt được lỗi giá thật) và artifact-quality ≠ validated-truth."*
+
+Chương này KHÔNG document một capability mới. Nó document **một phiên production** (2026-05-29 → 05-30) dùng các capability có sẵn để refresh **bộ 4 tài liệu chiến lược 00-core** sau một quyết định pivot (Vietnam-first → US-led). Đây là first-time `/update tier1-file` được dùng liên tiếp trên nhiều Tier-1 identity docs trong cùng một session, có chuỗi citation-disciplined đầy đủ.
+
+**Trạng thái:** 6 PR merged (#148 positioning, #149 icp, #152 product, #153 pricing-accuracy, #154 north-star) + chương này. 4 audit rows trong `ops.agent_runs` (`was_override=true`, tier `D-Std`). Bộ `.archives/{positioning,icp-summary,product,north-star}/` (20 brainstorming files) là citation spine.
+
+## 44.1 Bài toán — incoherence sau pivot
+
+Founder quyết định pivot **US-led intermarket** (từ VN-first) trong một phiên brainstorming chiến lược định vị. Nhưng 4 tài liệu 00-core vẫn ở trạng thái cũ:
+
+- `positioning.md` — AI-synthesized v0.1, benefit-level ("Turn Raw Materials Into True Mastery"), thiếu Kotler scaffolding (không positioning statement, không POP/POD, không CVP 3-domain). Điểm: **39/100**.
+- `icp-summary.md` — VN-first (70% VN), demographic-heavy (không psychographic), không MASDA. **53/100**.
+- `product.md` — đã A+ ở #147 NHƯNG trước pivot → VN-first §6.6, feature-list không cấu trúc theo product-levels, không SERVQUAL. **61/100**.
+- `north-star.md` — conflate milestone/metric/leading-indicators, timeline optimistic-from-zero, ARPU stale ($7-15). **60/100**.
+
+Trouble: **bộ "WHAT/WHO/OPTIMIZE" nói các hướng khác nhau** sau pivot. Mọi agent downstream (content/sales/support) quy chiếu về các doc mâu thuẫn này.
+
+## 44.2 Approach — per-doc `/update tier1-file`, citation-disciplined
+
+Mỗi doc đi qua cùng một quy trình kỷ luật:
+
+1. **Research wiki** — distill lý thuyết từ corpus đã ingest: Kotler (Principles 18e + Marketing Management 16e), **5-Star Marketing System** (Exposure Ninja, non-Kotler — BRAVO/CLV/audience-research), growth-playbook-fixture (ICP/wedge/PLG/activation).
+2. **A+ rubric + scorecard** — 12 tiêu chí có trọng số, chấm điểm doc hiện tại, gap analysis.
+3. **Blueprint** — cấu trúc target section-by-section + draft content (primary `--refs`).
+4. **`/update tier1-file <doc> --refs=...`** — D-Std ceremony (`override:` magic phrase) → distill → extraction buckets (auto/pending/rejected) → founder Phase-3 review (AskUserQuestion ở các judgment call) → propose → 3-way diff → Tier C PR.
+5. **Review + merge + CI + update local main.**
+
+Refs mỗi run gồm: blueprint + rubric + theory-synthesis + homepage-reference (`.archives/<doc>/`) + các doc anchor đã merge (coherence) + `wiki:query=`. Citation spine ghi vào `ops.evolve_extractions`.
+
+## 44.3 TOSCA insight (north-star) — `/think tosca` trước khi rewrite
+
+north-star là doc duy nhất chạy **`/think tosca`** (thinking-toolkit Ch43) trước. TOSCA framing phát hiện vấn đề thật, không chỉ format:
+
+- Doc **conflate 3 thứ** dưới "the metric of the year": PMF milestone ("100 paying who love") + ongoing north-star metric (value-delivery proxy, per growth-playbook) + leading-indicator ladder. Workforce bị giao một **lagging milestone không thể "làm" trực tiếp**, không có leading ladder.
+- Timeline "100 in 30d / 1000 in 90d" từ zero = stretch → demoralizing/gameable nếu hiểu là deadline.
+
+Fix: tách 3 lớp (act on C → produces B → clears A); timeline-honesty (window = nhịp đo, không phải deadline); thêm leading ladder (activation → week-4 retention → free→paid → Sean Ellis very-disappointed). **Giữ nguyên goal + $1B ambition.** Bài học: TOSCA biến một "rewrite cosmetic" thành "sửa một nhầm lẫn khái niệm có thật".
+
+## 44.4 Pricing-accuracy catch — verify-don't-assume
+
+Founder yêu cầu verify giá sản phẩm. `/browse` fetch live `ritsu.ai/pricing`:
+
+- **Phát hiện**: brainstorming files ước lượng WTP "$15-25" — nhưng giá thật **Plus $29 / Pro $59 / Ultra $119**. Và `product.md` §6.5 sai: "Free + Plus get 10 personalities" trong khi live = **Free chỉ 3**.
+- **Hệ quả**: không chỉ typo — docs *understate* giá thật; value-case "save money vs $25-100 stack" **chặt hơn** ở $29; và **WTP thật ở $29 chưa được validate** (= SOP-PRODUCT-010 pull-test).
+- **Fix** (PR #153): align icp/product về giá thật + reframe price-vs-WTP honestly. positioning.md không cần sửa (không có Ritsu price sai).
+
+**Bài học**: AI ước lượng (mình tự bịa "$15-25") có thể sai so với reality. Founder's "check pricing" instinct bắt được. Verify-against-source > assume.
+
+## 44.5 Coherence achieved — bộ spine thống nhất
+
+| Doc | Câu hỏi | Score | PR |
+|---|---|---|---|
+| product.md | Ritsu LÀ gì | 61→~95 | #152, #153 |
+| positioning.md | NÓI gì | 39→~95 | #148 |
+| icp-summary.md | AI dùng | 53→~95 | #149, #153 |
+| north-star.md | tối ưu gì | 60→~95 | #154 |
+
+Coherence khoá xuyên 4 doc: cùng **belief** ("AI can't learn for you / active mastery / method-not-ability") · cùng **segment** (US-led English serious learner) · cùng **giá thật** ($29/$59/$119) · cùng **activation** (\<60s magic moment) · cùng **Phase-A-provisional honesty**.
+
+## 44.6 Design lessons
+
+**Lesson 1 — Artifact-quality ≠ validated-truth.** Cả 4 doc ~95/100 *as artifacts*, nhưng đứng trên US-pivot + ICP + WTP-$29 CHƯA test với 1 US user thật. Một tài liệu 95/100 trên premise sai = câu trả lời sai format đẹp. Mỗi doc tự flag Phase-A-provisional (tốt) — nhưng đó là rủi ro thống trị. Đòn bẩy tiếp theo KHÔNG phải thêm doc mà là **validate** (5-10 US interviews).
+
+**Lesson 2 — Rubric circularity.** Cùng một agent thiết kế rubric VÀ viết doc theo rubric. ~95/100 so với rubric tự tạo là phần nào self-fulfilling. Rubric grounded trong lý thuyết Kotler (không bịa) nên không phải pure self-reference — nhưng nó đo "áp dụng lý thuyết đúng + coherent", KHÔNG đo sự thật thị trường.
+
+**Lesson 3 — Verify-don't-assume (§44.4).** AI ước lượng có thể lệch reality; founder's verify-instinct là một safety layer thật.
+
+**Lesson 4 — `/update tier1-file` là đúng weight cho 00-core content refresh.** Hand-edit mất citation/audit; `/cla extend` là ceremony thừa cho content-refresh. `/update tier1-file` (D-Std + 3-way diff + Tier C PR) lấp đúng khoảng giữa cho identity-doc refresh có provenance.
+
+**Lesson 5 — Coherence là deliverable, không free.** Trước phiên: 4 doc mâu thuẫn. Sau: thống nhất trên cùng belief/segment/price. Đạt coherence xuyên Tier-1 là khó + hiếm; nó nâng sàn cho mọi agent downstream — NHƯNG chỉ khi premise đúng.
+
+**Lesson 6 — Preserve-the-goal discipline.** Với north-star, ràng buộc rõ: giữ founder-chosen goal ("100 paying who love") + $1B ambition; chỉ sharpen structure/honesty/coherence. `/update` reject các extraction muốn thay goal — đúng. Refresh ≠ teardown.
+
+## 44.7 Reflection — AI-Native ops thesis chạy thật
+
+Phiên này là minh hoạ cụ thể của AI-Native ops: **founder quyết định + review ở các judgment call; AI làm research/distill/draft/PR/audit/CI/deploy.** Cùng một founder, cost thấp (mỗi /update ~$0.70 distill), governance đầy đủ (D-Std audit × 4, Tier C PR × 6, CI green, không bypass).
+
+Cái KHÔNG nên rút ra: "bộ não chiến lược đã xong". Cái NÊN rút ra: "đã xây một bộ não chiến lược coherent + theory-grounded; giờ nó cần CHẠM một US customer thật để biết đúng hay chỉ tự-nhất-quán". **Dừng polish. Đi validate.** Đó là cách phiên này KHÔNG rơi vào AI-Native trap (build hệ thống thay vì build business).

@@ -142,6 +142,13 @@ function sanitizeSlug(s) {
 // the exact example phrase is neutralized.
 function scrubBody(body) {
   return body
+    // 0. Strip /update + wiki-sync provenance markers (`<!-- updated-by: … -->`,
+    //    `<!-- generated-by: … -->`) — these are SOURCE-level provenance, not docs
+    //    content. They otherwise (a) leak as escaped visible text in published docs
+    //    and (b) can carry the `override:` magic-phrase reason → lint-secrets LAYER 2
+    //    FAIL. Strip before any other processing. (The docs' OWN marker is the
+    //    JSX-comment `{/* generated-by */}` injected in emitMdx — unaffected.)
+    .replace(/<!--\s*(?:updated-by|generated-by)\b[\s\S]*?-->\n?/gi, "")
     // 1. Magic phrase: `override:` followed by ≥5 plausible word tokens.
     //    Placeholder syntax (`override: <reason ...>`) is preserved by the
     //    negative lookahead. Real-looking phrases get neutralized.

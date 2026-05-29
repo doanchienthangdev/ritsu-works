@@ -1,0 +1,59 @@
+---
+title: 'Tier 1 yaml: playbook-chapter-source-map'
+description: Schema overview for `knowledge/playbook-chapter-source-map.yaml`.
+source_path: knowledge/playbook-chapter-source-map.yaml
+source_hash: 59642861a7decafdf44ba1881f38f35c10de65daaee948d1b74749d1350528fa
+generated_at: '2026-05-29T17:48:29.859Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+===========================================================================
+Playbook Chapter ↔ Tier 1 Source Map
+===========================================================================
+
+Maps AI-Native Company Playbook chapters (.archives/ritsu-handoff-bundle/
+playbook/chapters/) to their Tier 1 source files. Consumed by
+`/docs sync` (via docs-engine/sync skill post-hook) to detect when a
+Tier 1 change should trigger /playbook build automatically.
+
+Format:
+  mappings:
+    - chapter: \<relative path from chapters/>
+      sources:
+        - \<Tier 1 source path or glob>
+        - ...
+      note: \<optional rationale>
+
+Composition flow:
+  1. /docs sync writes MDX
+  2. For each modified MDX source, check this file
+  3. If source matches a mapping → enqueue /playbook build for the affected chapter
+  4. After all docs writes, run /playbook build (deduplicates across chapters)
+
+Maintenance:
+  - Add entry when authoring a new chapter that derives content from Tier 1
+  - Validator (`validate-playbook-coherence.cjs` v1.1+) will catch
+    entries pointing to non-existent chapter files
+  - Globs use shell-style (`**` matches any depth; `*` matches one segment)
+
+Not all chapters need mappings — chapters that are pure synthesis of
+brainstorming sessions (e.g., 1-13, 14-30) have no direct Tier 1 source
+and aren't listed here. Only post-Wave capability case studies + similar
+Tier 1-anchored chapters need mappings.
+===========================================================================
+
+## Top-level keys
+
+- `version`
+- `owner`
+- `last_updated`
+- `generated_by`
+- `mappings`
+
+> Live values in [`knowledge/playbook-chapter-source-map.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/playbook-chapter-source-map.yaml). This page describes the schema; not the data.
