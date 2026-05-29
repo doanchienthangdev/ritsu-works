@@ -178,13 +178,7 @@ permissions:
     - google-search-console (read)
     - google-analytics (read)
     - posthog (read)
-  skills:
-    - seo-research
-    - blog-post-drafting
-    - social-post-drafting
-    - email-campaign-design
-    - landing-page-copywriting
-    - ad-copy-iteration
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: seo-research, blog-post-drafting, social-post-drafting, email-campaign-design, landing-page-copywriting, ad-copy-iteration
   secrets:
     - ANTHROPIC_API_KEY
     - GITHUB_TOKEN_GROWTH
@@ -227,10 +221,7 @@ permissions:
     - intercom OR helpscout (TBD — depends on chosen support tool)
     - email-sender (single-recipient transactional only)
     - github (read product changelog only)
-  skills:
-    - faq-classification
-    - reply-drafting
-    - escalation-routing
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: faq-classification, reply-drafting, escalation-routing
   secrets:
     - ANTHROPIC_API_KEY
     - SUPPORT_TOOL_API_KEY
@@ -269,11 +260,7 @@ permissions:
   mcp_servers:
     # NONE that can publish. Only read-only research.
     - web-fetch (read public URLs)
-  skills:
-    - blog-post-drafting
-    - email-drafting
-    - social-post-drafting
-    - support-reply-drafting
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: blog-post-drafting, email-drafting, social-post-drafting, support-reply-drafting
   secrets:
     - ANTHROPIC_API_KEY
 hitl_max_tier: A    # drafting is internal
@@ -301,10 +288,7 @@ permissions:
     - ops.agent_runs (own log)
   mcp_servers:
     - github (read repos, post review comments — NOT approve, NOT merge)
-  skills:
-    - code-review
-    - security-review
-    - test-coverage-check
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: code-review, security-review, test-coverage-check
   secrets:
     - ANTHROPIC_API_KEY
     - GITHUB_TOKEN_REVIEWER   # scope: pull_requests:write but not approve/merge
@@ -362,10 +346,7 @@ permissions:
     - supabase-ops (full)
     - supabase-product (read-only, via dedicated read role)
     - vector-store (write)
-  skills:
-    - schema-migration
-    - embedding-rebuild
-    - cross-tier-sync
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: schema-migration, embedding-rebuild, cross-tier-sync
   secrets:
     - ANTHROPIC_API_KEY
     - SUPABASE_OPS_SERVICE_KEY
@@ -406,11 +387,7 @@ permissions:
     - github (PR for policy updates)
     - email-sender (single-recipient — DMCA counter-notices, ToS notifications)
     - support-tool (to interact with ticket holders)
-  skills:
-    - dmca-evaluation
-    - tos-violation-classification
-    - copyright-fair-use-analysis
-    - hallucination-incident-triage
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: dmca-evaluation, tos-violation-classification, copyright-fair-use-analysis, hallucination-incident-triage
   secrets:
     - ANTHROPIC_API_KEY
     - GITHUB_TOKEN_TS
@@ -451,11 +428,7 @@ permissions:
     - bank (READ-ONLY — Vietnam banking integration when available)
     - accounting-tool (TBD — Misa, Bravo, or international like Xero)
     - email-sender (single recipient — invoice delivery)
-  skills:
-    - transaction-categorization
-    - invoice-drafting
-    - vat-classification-vn
-    - vendor-payment-prep
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: transaction-categorization, invoice-drafting, vat-classification-vn, vendor-payment-prep
   secrets:
     - ANTHROPIC_API_KEY
     - STRIPE_READ_KEY                  # NOT secret key
