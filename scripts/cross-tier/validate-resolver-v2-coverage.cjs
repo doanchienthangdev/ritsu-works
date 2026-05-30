@@ -3,25 +3,29 @@
 /**
  * scripts/cross-tier/validate-resolver-v2-coverage.cjs
  *
- * L2 WARN validator: every source entity (across ALL 16 recipient kinds) should
- * have a catalog entry, and every catalog entry should have a source. Missing
- * entries are warnings (the resolver-catalog-sync cron / `sync.cjs --apply` picks
- * them up next run), not errors.
+ * L2 CRITICAL validator: every source entity (across ALL 16 recipient kinds) MUST
+ * have a catalog entry, and every catalog entry MUST have a source. A missing entry
+ * (a real component invisible to the resolver) or an orphan (a catalog entry whose
+ * source was removed) is now BLOCKING.
  *
  * resolver-plan v1.0 (Sprint 2): expected-set extended from 5 kinds
  * (skills/commands/agents/personas/mcps) to ALL 16 kinds (+ wiki, sop, capability,
- * workflow, schedule, hook, page, view, metric, runbook, external-source). This is
- * a PREREQUISITE for the Sprint-4 WARN→CRITICAL promotion: a CRITICAL gate that
- * only covered 5/16 kinds would give false "no silent invisible component"
- * confidence. STILL WARN here (process.exit(0)) — the promotion happens in Sprint 4
- * after one clean resolver-catalog-sync cron cycle.
+ * workflow, schedule, hook, page, view, metric, runbook, external-source). A
+ * CRITICAL gate that only covered 5/16 kinds would give false "no silent invisible
+ * component" confidence — so Sprint 2 widened coverage to all 16 FIRST.
+ *
+ * resolver-plan v1.0 (Sprint 4): promoted WARN→CRITICAL in check-consistency.cjs.
+ * Drift now exits non-zero (was exit 0 warn-only). The nightly resolver-catalog-sync
+ * GitHub Action (`.github/workflows/resolver-catalog-sync.yml`) regenerates the
+ * catalog and opens a DRAFT PR when it drifts, so this gate stays green between
+ * source changes and their catalog refresh.
  *
  * CONTENT-compare, NOT mtime: builds the expected id-set in-memory from the
  * catalog-generator's per-kind source walks and diffs it against the loaded
  * catalog ids. No statSync / mtime comparison (avoids the worktree mtime
  * false-positive).
  *
- * Exit 0 = pass (or warn). 1 = catalog completely missing.
+ * Exit 0 = pass. 1 = drift (missing/orphan) OR catalog completely missing.
  */
 
 const path = require('path');
@@ -96,16 +100,21 @@ function main() {
     process.exit(0);
   }
   if (missing.length > 0) {
-    console.warn(`[WARN] ${missing.length} source entities missing from catalog (run sync to add):`);
-    for (const id of missing.slice(0, 20)) console.warn('  -', id);
-    if (missing.length > 20) console.warn(`  ... and ${missing.length - 20} more`);
+    console.error(`[FAIL] ${missing.length} source entities missing from catalog (run sync to add):`);
+    for (const id of missing.slice(0, 20)) console.error('  -', id);
+    if (missing.length > 20) console.error(`  ... and ${missing.length - 20} more`);
   }
   if (orphan.length > 0) {
-    console.warn(`[WARN] ${orphan.length} catalog entries have no source (run sync to prune):`);
-    for (const id of orphan.slice(0, 20)) console.warn('  -', id);
-    if (orphan.length > 20) console.warn(`  ... and ${orphan.length - 20} more`);
+    console.error(`[FAIL] ${orphan.length} catalog entries have no source (run sync to prune):`);
+    for (const id of orphan.slice(0, 20)) console.error('  -', id);
+    if (orphan.length > 20) console.error(`  ... and ${orphan.length - 20} more`);
   }
-  process.exit(0); // warn-only (Sprint 4 promotes to CRITICAL after one clean cron cycle)
+  // resolver-plan v1.0 Sprint 4: promoted WARN→CRITICAL in check-consistency.cjs.
+  // A real drift (missing or orphan) now BLOCKS — the nightly resolver-catalog-sync
+  // GitHub Action regenerates the catalog and opens a draft PR to clear it. The
+  // generator-throws tolerance (a kind whose source dir is absent in this checkout)
+  // is still handled in expectedIds(), so a partial source tree does not hard-fail.
+  process.exit(1);
 }
 
 // Exported for unit tests; only run main() when invoked as a script.

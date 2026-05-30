@@ -1,0 +1,107 @@
+name: Resolver Catalog Sync
+
+# Nightly drift-repair for the resolver v2 catalog + v3 INDEX.
+#
+# WHY a GitHub Action and not a knowledge/schedules.yaml entry: on drift this job
+# must OPEN A DRAFT PR carrying the regenerated catalog. The Supabase Edge
+# minion-worker that backs schedules.yaml has no git / gh / filesystem, so it
+# cannot do that. A scheduled GitHub Action can (it has a checkout + GITHUB_TOKEN).
+# Founder-approved mechanism choice (resolver-plan v1.0 Sprint 4).
+#
+# Companion gate: scripts/cross-tier/validate-resolver-v2-coverage.cjs is a CRITICAL
+# L2 check (promoted Sprint 4). It BLOCKS when a source entity is missing from — or
+# orphaned in — the catalog. This workflow keeps that gate green between a source
+# change landing and its catalog refresh: it regenerates nightly and, on drift,
+# raises a draft PR for a human to review + merge.
+
+on:
+  schedule:
+    # 03:30 UTC nightly. After most merges have settled; before the morning brief.
+    - cron: "30 3 * * *"
+  workflow_dispatch: {}
+
+# Least privilege: only what is needed to push a branch + open a PR.
+permissions:
+  contents: write
+  pull-requests: write
+
+# One catalog-sync run at a time; a newer run supersedes an in-flight one.
+concurrency:
+  group: resolver-catalog-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Regenerate catalog + open draft PR on drift
+    runs-on: ubuntu-latest
+    env:
+      # Fixed branch so the nightly job updates ONE PR instead of spamming a new
+      # PR every night (idempotency — see the open-or-update step below).
+      SYNC_BRANCH: automation/resolver-catalog-sync
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Regenerate catalog (apply) + INDEX
+        run: |
+          node scripts/resolver-v2/sync.cjs --apply
+          pnpm resolver:index
+
+      - name: Detect catalog drift
+        id: drift
+        run: |
+          if [ -n "$(git status --porcelain knowledge/recipients/)" ]; then
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+            echo "Catalog drift detected:"
+            git status --porcelain knowledge/recipients/
+          else
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+            echo "No catalog drift — catalog is up to date."
+          fi
+
+      - name: Open or update draft PR
+        if: steps.drift.outputs.drifted == 'true'
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Stage ONLY the regenerated catalog (sync.cjs writes nothing else, but
+          # scope the add defensively).
+          git checkout -B "$SYNC_BRANCH"
+          git add knowledge/recipients/
+          git commit -m "chore(resolver): nightly catalog + INDEX sync"
+
+          # Force-update the fixed automation branch.
+          git push --force-with-lease origin "$SYNC_BRANCH"
+
+          # If a PR for this branch is already open, the force-push above already
+          # updated it — do not open a second one. Otherwise open a DRAFT PR.
+          EXISTING="$(gh pr list --head "$SYNC_BRANCH" --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$EXISTING" ]; then
+            echo "Draft PR #$EXISTING already open for $SYNC_BRANCH — updated via push, not reopening."
+          else
+            gh pr create \
+              --draft \
+              --base main \
+              --head "$SYNC_BRANCH" \
+              --title "chore(resolver): nightly catalog sync" \
+              --body "Automated by \`.github/workflows/resolver-catalog-sync.yml\`. The resolver catalog (\`knowledge/recipients/\`) drifted from its sources; this PR carries the regenerated catalog + INDEX so the CRITICAL coverage gate stays green. Review and mark ready to merge."
+          fi

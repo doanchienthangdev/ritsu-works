@@ -223,6 +223,12 @@ async function main() {
     ['validate-resolver-v2-link-integrity.cjs', 'resolver-v2 composes_with link integrity'],
     // capability resolver-plan v1.0 Sprint 2 — axis + enrichment tags (CONTENT-compare, not mtime)
     ['validate-resolver-axis-tags.cjs', 'resolver-plan axis tags ↔ axis-map'],
+    // capability resolver-plan v1.0 Sprint 4 — coverage promoted WARN→CRITICAL.
+    // Covers all 16 recipient kinds (CONTENT-compare id-set, not mtime); a CRITICAL
+    // gate here means "no source entity is silently invisible to the resolver, and
+    // no catalog entry is orphaned". Safe to block: verified clean (0 missing/orphan)
+    // before promotion. Tolerates a generator whose source dir is absent (skips it).
+    ['validate-resolver-v2-coverage.cjs', 'resolver-v2 catalog coverage (16 kinds)'],
     // capability gbrain-operational-brain v1.0 Sprint 6 — 2 NEW L2 validators
     ['validate-mcp-json-tools-consistency.cjs', '.mcp.json ↔ knowledge/mcp-tools.yaml'],
     ['validate-gbrain-invariant-handlers.cjs', 'gbrain L1/L2/L3 invariant handlers'],
@@ -246,7 +252,8 @@ async function main() {
       ['validate-governance-roles.cjs', 'governance/ROLES ↔ skills'],
       ['validate-hitl-hooks.cjs', 'HITL.md Tier-D ↔ hooks'],
       ['validate-wiki-integrity.cjs', 'wiki-integrity (file/frontmatter)'],
-      ['validate-resolver-v2-coverage.cjs', 'resolver-v2 catalog coverage (warn-only)'],
+      // resolver-v2-coverage promoted to the CRITICAL L2 block above
+      // (resolver-plan v1.0 Sprint 4); no longer warn-only.
       // capability evolve v1.1 Sprint 4 — runtime cleanup advisory
       ['validate-skillopt-runtime-staleness.cjs', 'skillopt-runtime-staleness (>60d runs)'],
     ]) {
