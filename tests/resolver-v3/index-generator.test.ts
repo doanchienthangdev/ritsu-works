@@ -153,7 +153,9 @@ describe("resolver-v3 index-generator", () => {
     it("INDEX content includes invoke conventions header", () => {
       const r = gen.generate();
       expect(r.content).toContain("# Resolver Index v3.0");
-      expect(r.content).toContain("mcp__resolver__find");
+      // v3.0.5: the real drill-down tool is mcp__supabase-ops__resolver_find
+      // (lives under the supabase-ops server); `mcp__resolver__find` was a phantom.
+      expect(r.content).toContain("mcp__supabase-ops__resolver_find");
       expect(r.content).toContain("## Invoke conventions");
     });
 
@@ -187,10 +189,10 @@ describe("resolver-v3 index-generator", () => {
 
     it("INDEX excludes stub/deprecated/planned entries (heuristic check)", () => {
       const r = gen.generate();
-      // We expect well under 400 active (vs ~453 total) — stubs filtered
-      // Loose bound: ≤ 450 active, ≥ 100 active (sanity)
+      // ~493 active after gbrain's 74 live MCP tools joined the catalog (v3.0.5);
+      // stubs/planned/deprecated still filtered. Loose sanity band, not an exact count.
       expect(r.totalActive).toBeGreaterThanOrEqual(100);
-      expect(r.totalActive).toBeLessThanOrEqual(450);
+      expect(r.totalActive).toBeLessThanOrEqual(600);
     });
 
     it("deterministic — same input → same output (modulo timestamp)", () => {

@@ -72,7 +72,7 @@ const CONFIG = {
     sourceDir: 'wiki',
     // Pattern: wiki/<source-slug>/source.md (v4.0 source-grouped layout)
     // Skip _prefix, README, ENTITY_TYPES, _index/, capabilities/ (handled by capability kind)
-    invokeTemplate: (slug) => `\`Read("wiki/${slug}/source.md")\` or \`mcp__supabase_ops__wiki_get_page({slug: "${slug}"})\``,
+    invokeTemplate: (slug) => `\`Read("wiki/${slug}/source.md")\` or \`mcp__supabase-ops__wiki_get_page({slug: "${slug}"})\``,
     file: 'wikis.md',
   },
   sop: {
@@ -114,12 +114,12 @@ const CONFIG = {
   view: {
     sourceDir: 'supabase/migrations',
     pattern: /\.sql$/,
-    invokeTemplate: (qualifiedView) => `\`mcp__supabase_ops__query({sql: "SELECT * FROM ${qualifiedView} LIMIT 10"})\``,
+    invokeTemplate: (qualifiedView) => `\`mcp__supabase-ops__query({sql: "SELECT * FROM ${qualifiedView} LIMIT 10"})\``,
     file: 'views.md',
   },
   metric: {
     sourceFile: 'knowledge/kpi-ownership.yaml',
-    invokeTemplate: (kpiId) => `\`mcp__supabase_ops__query\` against the source listed in the entry, or read the KPI definition at \`knowledge/kpi-ownership.yaml#${kpiId}\``,
+    invokeTemplate: (kpiId) => `\`mcp__supabase-ops__query\` against the source listed in the entry, or read the KPI definition at \`knowledge/kpi-ownership.yaml#${kpiId}\``,
     file: 'metrics.md',
   },
   runbook: {
@@ -474,10 +474,19 @@ function generateMcps() {
       id: `mcp/${slug}`,
       kind: 'mcp',
       when_to_use: tool.description.trim().replace(/\s+/g, ' '),
-      invoke: `\`mcp__${server.replace(/-/g, '_')}__${tool.id}\``,
+      // Invoke MUST use the server name VERBATIM as it appears in .mcp.json
+      // (the Claude Code tool registry keeps the key as-is, e.g. `supabase-ops`,
+      // NOT `supabase_ops`). Do not sanitize hyphens — that produced a
+      // pervasive phantom-name drift. Verified against the live registry +
+      // enforced by validate-mcp-catalog-coherence.cjs (server-fidelity).
+      invoke: `\`mcp__${server}__${tool.id}\``,
       composes_with: [],
       role_scope: Array.isArray(tool.role_scope) ? tool.role_scope : ['*'],
-      status: tool.status || 'active',
+      // mcp-tools.yaml lifecycle vocab is live|planned|deprecated (per schema);
+      // the resolver's isActive() treats only 'active'/empty as shown. Map
+      // live/omitted → active so a genuinely-live tool is never hidden (latent
+      // bug: an explicit `status: live` used to be filtered out of INDEX).
+      status: (tool.status === 'live' || !tool.status) ? 'active' : tool.status,
       pillar: '06-ai-ops',
       // resolver-plan v1.0 signal: per-tool HITL tier_default from mcp-tools.yaml
       // (governance/HITL.md Appendix A). side_effect is then derived from the tier

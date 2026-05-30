@@ -18,7 +18,7 @@ Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 **Axis:** content
 **When to use:** View `metrics.gbrain_cost_daily` defined in 00037_metrics_gbrain_cost_daily_view.sql. Query for current snapshot of the modeled data.
 
-**Invoke:** `mcp__supabase_ops__query({sql: "SELECT * FROM metrics.gbrain_cost_daily LIMIT 10"})`
+**Invoke:** `mcp__supabase-ops__query({sql: "SELECT * FROM metrics.gbrain_cost_daily LIMIT 10"})`
 **Authority:** SoR
 **Freshness:** hourly
 **Grounding:** supabase/migrations/00037_metrics_gbrain_cost_daily_view.sql
@@ -34,7 +34,7 @@ Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 **Axis:** content
 **When to use:** View `ops.v_capability_lineage` — 5. View: lineage chain (for /cla history command) ---------------------------------------------------------------------------- Recursive query through supersedes_id chain. Returns all rows for a capability_id ordered by proposed_at. (defined in 00025_capability_update_lock.sql).
 
-**Invoke:** `mcp__supabase_ops__query({sql: "SELECT * FROM ops.v_capability_lineage LIMIT 10"})`
+**Invoke:** `mcp__supabase-ops__query({sql: "SELECT * FROM ops.v_capability_lineage LIMIT 10"})`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** supabase/migrations/00025_capability_update_lock.sql
@@ -49,7 +49,7 @@ Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 **Axis:** content
 **When to use:** View `ops.v_capability_pipeline` — ---------------------------------------------------------------------------- View: active capability pipeline ---------------------------------------------------------------------------- (defined in 00011_capability_lifecycle.sql).
 
-**Invoke:** `mcp__supabase_ops__query({sql: "SELECT * FROM ops.v_capability_pipeline LIMIT 10"})`
+**Invoke:** `mcp__supabase-ops__query({sql: "SELECT * FROM ops.v_capability_pipeline LIMIT 10"})`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** supabase/migrations/00011_capability_lifecycle.sql
@@ -65,7 +65,7 @@ Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 **Axis:** content
 **When to use:** View `ops.v_entity_update_lineage` — founder ad-hoc audits Capability: update v1.0 (capability_run_id: 16720cb5-f2fe-47f0-9d47-beaeca5f05e1) Sprint: 4 (final sprint before Phase 8 promote) (defined in 00041_v_entity_update_lineage.sql).
 
-**Invoke:** `mcp__supabase_ops__query({sql: "SELECT * FROM ops.v_entity_update_lineage LIMIT 10"})`
+**Invoke:** `mcp__supabase-ops__query({sql: "SELECT * FROM ops.v_entity_update_lineage LIMIT 10"})`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** supabase/migrations/00041_v_entity_update_lineage.sql
@@ -80,7 +80,7 @@ Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 **Axis:** content
 **When to use:** Materialized view `public.mv_customer_360` — ---------------------------------------------------------------------------- Materialized view: customer_360 (Bài #16) ---------------------------------------------------------------------------- (defined in 00007_decisions_ingestion_attention.sql).
 
-**Invoke:** `mcp__supabase_ops__query({sql: "SELECT * FROM public.mv_customer_360 LIMIT 10"})`
+**Invoke:** `mcp__supabase-ops__query({sql: "SELECT * FROM public.mv_customer_360 LIMIT 10"})`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** supabase/migrations/00007_decisions_ingestion_attention.sql

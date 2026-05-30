@@ -189,11 +189,11 @@ schedules:
   # ==========================================================================
   # resolver-v3 health-check (capability resolver-v3-jit-loading v3.0.0 Sprint 4)
   # ==========================================================================
-  # Hourly canary find() against mcp__resolver__find. Detects silent MCP server
+  # Hourly canary find() against mcp__supabase-ops__resolver_find. Detects silent MCP server
   # start failures after CLAUDE.md cutover. Per spec §7.4 (eng review Finding 4).
   #
   # Behavior:
-  #   - Invokes mcp__resolver__find({intent: "canary test query", limit: 1})
+  #   - Invokes mcp__supabase-ops__resolver_find({intent: "canary test query", limit: 1})
   #   - Logs result to ops.events event_type='resolver.health_check'
   #   - After 3 consecutive failures: emits ops.events 'resolver.health_degraded'
   #     → Tier B Telegram alert to founder (catch silent MCP boot failures)
@@ -201,7 +201,7 @@ schedules:
   # No API key needed (per resolver-v3 iter4 policy alignment).
   - id: resolver-v3-health-check
     cron: "0 * * * *"                 # hourly
-    description: "Canary mcp__resolver__find call; alert founder on 3 consecutive failures"
+    description: "Canary mcp__supabase-ops__resolver_find call; alert founder on 3 consecutive failures"
     skill: resolver-v3-health-check
     enabled_when_mode: [hybrid, full_api]
     fallback: log_only

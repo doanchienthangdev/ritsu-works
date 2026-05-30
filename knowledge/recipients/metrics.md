@@ -18,7 +18,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by customer pillar (customer-lead) (sub-pillar 01-success). Formula: signups achieving aha moment within 24h / total signups.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#activation_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#activation_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#activation_rate
@@ -33,7 +33,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by gtm pillar (gtm-orchestrator) (sub-pillar 04-funnel-orchestration). Formula: first_paid_users / activated_users (rolling cohort).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#activation_to_paid_pct`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#activation_to_paid_pct`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#activation_to_paid_pct
@@ -48,7 +48,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (aiops-engineer) (sub-pillar 05-cost-budget-architecture). Source: ops.cost_attributions.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#agent_run_cost_trend`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#agent_run_cost_trend`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#agent_run_cost_trend
@@ -63,7 +63,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by finance pillar (backoffice-clerk). Formula: sum(ops.cost_attributions.usd) / mrr.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#ai_ops_cost_as_pct_of_mrr`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#ai_ops_cost_as_pct_of_mrr`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#ai_ops_cost_as_pct_of_mrr
@@ -78,7 +78,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by metrics pillar (alert-router). Formula: alerts_dismissed_without_action / total_alerts. Target: < 30%.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#alert_fatigue_ratio`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#alert_fatigue_ratio`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#alert_fatigue_ratio
@@ -93,7 +93,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by metrics pillar (alert-router).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#alert_p0_to_action_latency_min`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#alert_p0_to_action_latency_min`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#alert_p0_to_action_latency_min
@@ -108,7 +108,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by sales pillar (growth-orchestrator). Formula: monthly_revenue / paying_users_count.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#arppu`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#arppu`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#arppu
@@ -123,7 +123,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by finance pillar (backoffice-clerk). Formula: mrr * 12.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#arr_projection`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#arr_projection`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#arr_projection
@@ -138,7 +138,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by gtm pillar (gtm-orchestrator) (sub-pillar 04-funnel-orchestration).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#blended_ltv_proxy`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#blended_ltv_proxy`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#blended_ltv_proxy
@@ -153,7 +153,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 06-revenue-and-cost-views). Formula: SUM(usd) WHERE cost_bucket LIKE 'gbrain.%' AND ts > now() - interval '30 days'. Source: ops.cost_attributions. Target: 100 HARD cap. Notes: Capability gbrain-operational-brain v1.0 success criterion #4. HARD cap enforced by .mcp.json wrapper Sprint 5..
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.cost_usd_monthly_rolling30d`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.cost_usd_monthly_rolling30d`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#brain.cost_usd_monthly_rolling30d
@@ -168,7 +168,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 01-kpi-registry). Formula: COUNT(* FILTER state='completed')::float / NULLIF(COUNT(*),0) WHERE persona_slug='gbrain-maintainer' AND started_at > now() - 7d. Source: ops.agent_runs. Target: >= 0.95 rolling 7d. Notes: Capability gbrain-operational-brain v1.0 success criterion #5. gbrain-maintainer autonomous dream cycle reliability..
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.dream_cycle_success_rate_7d`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.dream_cycle_success_rate_7d`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#brain.dream_cycle_success_rate_7d
@@ -183,7 +183,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 01-kpi-registry). Formula: SELECT count(*) FROM gbrain.pages WHERE page_type != 'system'. Source: gbrain DB direct (mirrored to ops.kpi_snapshots daily via Sprint 4 cron). Target: 500 by 2026-09-30. Notes: Capability gbrain-operational-brain v1.0 success criterion #3.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.operational_pages_total`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.operational_pages_total`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#brain.operational_pages_total
@@ -198,7 +198,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 01-kpi-registry). Formula: COUNT(DISTINCT caller_role WHERE invoked gbrain READ tool in last 30d). Source: ops.agent_runs (tool_name LIKE 'mcp__gbrain__%' AND NOT WRITE tools). Target: 20 by 2026-09-30. Notes: Capability gbrain-operational-brain v1.0 success criterion #2.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.read_roles_active_30d`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.read_roles_active_30d`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#brain.read_roles_active_30d
@@ -213,7 +213,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by 10-metrics pillar (metrics-curator) (sub-pillar 01-kpi-registry). Formula: COUNT(DISTINCT roles WHERE has mcp_servers:[gbrain] AND wrote in last 30d). Source: ops.cost_attributions (filtered to gbrain.<role>.<op> excluding gbrain.shared.*). Target: 6 by 2026-09-30. Notes: Capability gbrain-operational-brain v1.0 success criterion #1.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.write_roles_operational`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brain.write_roles_operational`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#brain.write_roles_operational
@@ -228,7 +228,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by marketing pillar (growth-orchestrator). Source: manual audit.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brand_voice_consistency_score`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#brand_voice_consistency_score`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#brand_voice_consistency_score
@@ -243,7 +243,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by gtm pillar (gtm-orchestrator) (sub-pillar 03-distribution-engine).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#channel_cac_by_channel`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#channel_cac_by_channel`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#channel_cac_by_channel
@@ -258,7 +258,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by founder pillar (gps) (sub-pillar 02-charter-discipline).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#charter_pr_count_quarterly`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#charter_pr_count_quarterly`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#charter_pr_count_quarterly
@@ -273,7 +273,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by customer pillar (retention-watcher) (sub-pillar 04-retention).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#churn_rate_monthly`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#churn_rate_monthly`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#churn_rate_monthly
@@ -288,7 +288,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by marketing pillar (growth-orchestrator).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#content_template_usage_count`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#content_template_usage_count`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#content_template_usage_count
@@ -303,7 +303,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by metrics pillar (metrics-curator).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#dashboard_load_time_ms`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#dashboard_load_time_ms`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#dashboard_load_time_ms
@@ -318,7 +318,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by customer pillar (customer-lead) (sub-pillar 01-success).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#day_30_retention`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#day_30_retention`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#day_30_retention
@@ -333,7 +333,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by customer pillar (customer-lead) (sub-pillar 01-success).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#day_7_retention`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#day_7_retention`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#day_7_retention
@@ -348,7 +348,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by founder pillar (gps) (sub-pillar 01-cognition). Source: ops.decisions.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#decision_count_per_week`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#decision_count_per_week`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#decision_count_per_week
@@ -363,7 +363,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by founder pillar (gps) (sub-pillar 06-learning). Target: 1 per quarter (SOP-FOUNDER-021).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#deep_research_week_frequency`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#deep_research_week_frequency`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#deep_research_week_frequency
@@ -378,7 +378,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by trust_safety pillar (trust-safety).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#dmca_avg_response_time_hours`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#dmca_avg_response_time_hours`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#dmca_avg_response_time_hours
@@ -393,7 +393,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by trust_safety pillar (trust-safety).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#dmca_notice_volume_monthly`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#dmca_notice_volume_monthly`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#dmca_notice_volume_monthly
@@ -408,7 +408,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (code-reviewer) (sub-pillar skill-library). Formula: count(pages WHERE source_hash != computed_hash) from scripts/validate-docs-coverage.cjs. Source: scripts/validate-docs-coverage.cjs. Dashboard: founder-monday/system-health. Notes: docs-engine capability — reports drift between source filesystem and docs/ MDX. Aim: 0 sustained drift..
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#docs_drift_count`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#docs_drift_count`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#docs_drift_count
@@ -423,7 +423,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (aiops-engineer) (sub-pillar 07-cross-tier-consistency).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#drift_check_pass_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#drift_check_pass_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#drift_check_pass_rate
@@ -438,7 +438,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (etl-runner).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#etl_freshness_lag_minutes`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#etl_freshness_lag_minutes`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#etl_freshness_lag_minutes
@@ -453,7 +453,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by metrics pillar (experiment-analyst). Formula: median(decision_made_at - test_launched_at) in days.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#experiment_turnaround_days`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#experiment_turnaround_days`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#experiment_turnaround_days
@@ -468,7 +468,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by customer pillar (support-agent) (sub-pillar 03-support). Formula: tickets_auto_resolved / total_tickets. Target: >= 70%.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#faq_handled_pct`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#faq_handled_pct`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#faq_handled_pct
@@ -483,7 +483,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by product pillar (product-orchestrator). Notes: Which of 17 activity types get used. Reveals wedge feature..
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#feature_usage_distribution`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#feature_usage_distribution`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#feature_usage_distribution
@@ -498,7 +498,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by founder pillar (gps) (sub-pillar 05-health). Target: <= 50. Notes: Self-reported via SOP-FOUNDER-016.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#founder_hours_per_week`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#founder_hours_per_week`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#founder_hours_per_week
@@ -513,7 +513,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by sales pillar (growth-orchestrator) (sub-pillar modules/free-to-paid-triggers).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#free_to_plus_conversion`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#free_to_plus_conversion`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#free_to_plus_conversion
@@ -528,7 +528,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by trust_safety pillar (trust-safety).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#gdpr_dsr_response_time_hours`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#gdpr_dsr_response_time_hours`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#gdpr_dsr_response_time_hours
@@ -543,7 +543,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by trust_safety pillar (trust-safety). Formula: incidents per 10K user-prompts.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#hallucination_incident_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#hallucination_incident_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#hallucination_incident_rate
@@ -558,7 +558,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by founder pillar (hitl-router) (sub-pillar 03-hitl-flow).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#hitl_queue_length`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#hitl_queue_length`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#hitl_queue_length
@@ -573,7 +573,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (aiops-engineer) (sub-pillar 04-hooks-enforcement). Notes: Breakdown: HITL block / budget block / secret-firewall block.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#hook_block_rate_by_reason`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#hook_block_rate_by_reason`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#hook_block_rate_by_reason
@@ -588,7 +588,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by gtm pillar (gtm-orchestrator) (sub-pillar 05-pmf-instrumentation). Formula: weighted blend of paying_count + week_4_retention + nps_very_disappointed_pct, normalized 0-100%. Dashboard: founder-monday/THE-tile. Notes: If this number doesn't move, nothing else matters. — CEO Review v1.0.1.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#hundred_paying_who_love_composite`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#hundred_paying_who_love_composite`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#hundred_paying_who_love_composite
@@ -603,7 +603,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by marketing pillar (growth-orchestrator). Formula: days_since_last_icp_refresh from SOP-MARKETING-001.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#icp_definition_staleness_days`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#icp_definition_staleness_days`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#icp_definition_staleness_days
@@ -618,7 +618,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by metrics pillar (metrics-curator). Formula: % of registered KPIs updated in past week.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#kpi_freshness_pct`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#kpi_freshness_pct`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#kpi_freshness_pct
@@ -633,7 +633,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by product pillar (product-orchestrator). Notes: Aha moment percent — depends on aha moment definition from SOP-CUSTOMER-001.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#magic_moment_completion_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#magic_moment_completion_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#magic_moment_completion_rate
@@ -648,7 +648,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by customer pillar (cs-coach) (sub-pillar 01-success). Notes: Ritsu-specific. % of users who actually master the content they upload..
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#mastery_progression_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#mastery_progression_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#mastery_progression_rate
@@ -663,7 +663,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by finance pillar (backoffice-clerk). Source: Stripe (READ-ONLY) → ops.kpi_snapshots.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#mrr`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#mrr`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#mrr
@@ -678,7 +678,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by customer pillar (feedback-aggregator) (sub-pillar 05-feedback-and-research). Notes: Rolling 30-day NPS. Aggregated from in-app + cancel-flow surveys..
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#nps_score`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#nps_score`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#nps_score
@@ -693,7 +693,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by gtm pillar (gtm-orchestrator) (sub-pillar 05-pmf-instrumentation). Formula: % of survey respondents answering 'very disappointed' to Sean Ellis question. Target: >= 40%.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#nps_very_disappointed_pct`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#nps_very_disappointed_pct`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#nps_very_disappointed_pct
@@ -708,7 +708,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by marketing pillar (growth-orchestrator).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#organic_seo_signups_share`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#organic_seo_signups_share`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#organic_seo_signups_share
@@ -723,7 +723,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by gtm pillar (gtm-orchestrator) (sub-pillar 05-pmf-instrumentation). Formula: % of paying users still subscribed at week 4 (cohort). Target: >= 25%.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#paid_retention_week_4`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#paid_retention_week_4`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#paid_retention_week_4
@@ -738,7 +738,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by finance pillar (backoffice-clerk).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#paying_users_count_by_tier`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#paying_users_count_by_tier`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#paying_users_count_by_tier
@@ -753,7 +753,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gps). Formula: now() - mtime(06-ai-ops/workforce-personas/ceo/dossier.md). Source: filesystem. Target: < 48h during active weeks.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.dossier_freshness`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.dossier_freshness`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#persona.ceo.dossier_freshness
@@ -768,7 +768,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gps). Formula: COUNT(*) WHERE persona_slug='ceo' AND tier='C' AND was_override=false GROUP BY week. Source: ops.agent_runs. Target: 3-8/week (band; too few = overstepping, too many = too cautious).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.escalations_per_week`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.escalations_per_week`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.ceo.escalations_per_week
@@ -783,7 +783,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gps). Formula: AVG(child run count per ceo run) — derived from parent_run_id. Source: ops.agent_runs. Target: 1.5-3.0 (healthy delegation).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.fanout_avg`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.fanout_avg`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.ceo.fanout_avg
@@ -798,7 +798,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gps). Formula: COUNT(corrections WHERE persona_slug='ceo') / COUNT(invocations WHERE persona_slug='ceo'). Source: ops.corrections + ops.agent_runs. Target: < 0.15.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.founder_correction_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.founder_correction_rate`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.ceo.founder_correction_rate
@@ -813,7 +813,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gps). Formula: weekdays_with_at_least_one_/ceo_session / 5 (business days/week). Source: ops.agent_runs (persona_slug='ceo', invocation_kind='slash'). Target: > 0.60.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.morning_brief_invocation_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.morning_brief_invocation_rate`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.ceo.morning_brief_invocation_rate
@@ -828,7 +828,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gps). Formula: 1 - (COUNT(*) FILTER (WHERE c.correction_kind IN ('redirect','reject'))::float / NULLIF(COUNT(*), 0)) from ops.agent_runs r LEFT JOIN ops.corrections c ON c.run_id = r.id WHERE r.persona_slug = 'ceo' AND r.started_at > now() - interval '7 days'. Source: ops.agent_runs + ops.corrections (persona_slug='ceo'). Target: > 0.85 (4 weeks); > 0.90 (12 weeks). Das...
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.routing_accuracy_first_try`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.routing_accuracy_first_try`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.ceo.routing_accuracy_first_try
@@ -843,7 +843,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gps). Formula: AVG(tokens_input + tokens_output) WHERE persona_slug='ceo'. Source: ops.agent_runs. Target: < 8000 (well under gps working_tokens=80000).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.tokens_per_invocation_avg`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.ceo.tokens_per_invocation_avg`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.ceo.tokens_per_invocation_avg
@@ -858,7 +858,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gtm-orchestrator). Formula: killed_experiments / total_decided_experiments. Source: ops.campaigns. Target: 50-70% (band).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.experiment_kill_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.experiment_kill_rate`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cgo.experiment_kill_rate
@@ -873,7 +873,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gtm-orchestrator). Formula: COUNT(experiments_started_with_kill_threshold) per week. Source: ops.campaigns. Target: 1-3/week sustained.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.experiments_shipped_per_week`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.experiments_shipped_per_week`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cgo.experiments_shipped_per_week
@@ -888,7 +888,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gtm-orchestrator). Formula: MEDIAN(decided_at - launched_at) in days. Source: ops.campaigns. Target: ≤ 7 days.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.time_from_experiment_to_decision`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.time_from_experiment_to_decision`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cgo.time_from_experiment_to_decision
@@ -903,7 +903,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gtm-orchestrator). Formula: COUNT(cgo runs blocked on @cpo wedge validation). Source: ops.agent_runs (outcome='blocked-upstream'). Target: tracked, not bounded (discipline signal).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.upstream_wait_count`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.upstream_wait_count`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cgo.upstream_wait_count
@@ -918,7 +918,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (gtm-orchestrator). Formula: AVG(funnel_kpi_delta) across CGO-actioned funnel stages, weekly. Source: ops.kpi_snapshots cross-ref with ops.agent_runs.state_payload.funnel_stage. Target: positive average over 4-week windows.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.weekly_funnel_kpi_delta`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cgo.weekly_funnel_kpi_delta`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cgo.weekly_funnel_kpi_delta
@@ -933,7 +933,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (product-orchestrator). Formula: cancel_flow_themes_added_to_backlog_same_month / total_cancel_flow_themes. Source: ops.events (cancel-flow) + ops.tasks (backlog). Target: > 0.70.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.cancel_flow_insights_converted_to_backlog`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.cancel_flow_insights_converted_to_backlog`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cpo.cancel_flow_insights_converted_to_backlog
@@ -948,7 +948,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (product-orchestrator). Formula: founder_corrections_about_persona_routing between cpo and cgo per week. Source: ops.corrections. Target: ≤ 1/week sustained.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.cpo_cgo_boundary_conflicts`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.cpo_cgo_boundary_conflicts`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cpo.cpo_cgo_boundary_conflicts
@@ -963,7 +963,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (product-orchestrator). Formula: COUNT(features moved PRD → shipped) per week. Source: ops.tasks (task_type='feature') + ops.events. Target: 1-2/week sustained.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.features_shipped_per_week`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.features_shipped_per_week`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cpo.features_shipped_per_week
@@ -978,7 +978,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (product-orchestrator). Formula: corrections_to_prioritization_recommendations / total_prioritization_recommendations. Source: ops.corrections (filtered to task_kind='prioritization'). Target: < 0.20.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.founder_correction_rate_on_prioritization`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.founder_correction_rate_on_prioritization`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cpo.founder_correction_rate_on_prioritization
@@ -993,7 +993,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (product-orchestrator). Formula: MEDIAN(decision_made_at - observation_kickoff_at) in days. Source: ops.agent_runs + ops.tasks. Target: ≤ 14 days.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.observe_to_decision_days`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.observe_to_decision_days`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cpo.observe_to_decision_days
@@ -1008,7 +1008,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (product-orchestrator). Formula: features_surviving_N=10_observation_and_30d_post_launch / total_features. Source: ops.events (feature-launched + feature-killed) + CPO wedge-validation outputs. Target: > 0.60 after 3 months operation.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.wedge_validity_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cpo.wedge_validity_rate`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cpo.wedge_validity_rate
@@ -1023,7 +1023,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (code-reviewer). Formula: cto_surfaced_drift / total_drift_in_same_week. Source: ops.consistency_checks + ops.agent_runs. Target: > 0.80.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.drift_catch_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.drift_catch_rate`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cto.drift_catch_rate
@@ -1038,7 +1038,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (code-reviewer). Formula: merges_against_cto_must_fix / total_cto_reviews. Source: ops.corrections + ops.agent_runs. Target: < 0.10.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.founder_override_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.founder_override_rate`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cto.founder_override_rate
@@ -1053,7 +1053,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (code-reviewer). Formula: bugs_reported_within_14d_after_cto_approved / total_cto_approvals. Source: ops.corrections. Target: < 0.05.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.missed_bug_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.missed_bug_rate`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cto.missed_bug_rate
@@ -1068,7 +1068,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (code-reviewer). Formula: AVG(ended_at - started_at) WHERE persona_slug='cto' AND task_kind='pr_review'. Source: ops.agent_runs. Target: < 5 min for diffs < 500 LOC; < 15 min for 500-2000 LOC.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.review_turnaround_minutes`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.review_turnaround_minutes`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cto.review_turnaround_minutes
@@ -1083,7 +1083,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (code-reviewer). Formula: AVG(tokens_input + tokens_output) per review. Source: ops.agent_runs. Target: < $0.30/review.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.tokens_per_review_avg`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#persona.cto.tokens_per_review_avg`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#persona.cto.tokens_per_review_avg
@@ -1098,7 +1098,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by sales pillar (growth-orchestrator).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#plus_to_pro_upgrade_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#plus_to_pro_upgrade_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#plus_to_pro_upgrade_rate
@@ -1113,7 +1113,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by sales pillar (growth-orchestrator).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#pricing_experiment_count`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#pricing_experiment_count`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#pricing_experiment_count
@@ -1128,7 +1128,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by sales pillar (growth-orchestrator).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#pro_to_ultra_upgrade_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#pro_to_ultra_upgrade_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#pro_to_ultra_upgrade_rate
@@ -1143,7 +1143,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (aiops-engineer) (sub-pillar 06-episodic-memory-architecture). Formula: useful_recalls / total_recalls (qualitative; rated post-hoc).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#recall_hit_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#recall_hit_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#recall_hit_rate
@@ -1158,7 +1158,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by finance pillar (backoffice-clerk). Formula: (current_balance) / (monthly_burn - monthly_revenue) when burn > revenue; otherwise 'default alive'. Dashboard: founder-monday/runway.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#runway_months`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#runway_months`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#runway_months
@@ -1173,7 +1173,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by gtm pillar (gtm-orchestrator) (sub-pillar 04-funnel-orchestration). Formula: activated_users / signed_up_users in same cohort window. Source: ops.events (signup) + ops.events (aha_moment). Dashboard: founder-monday/funnel.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#signup_to_activation_pct`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#signup_to_activation_pct`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#signup_to_activation_pct
@@ -1188,7 +1188,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by 06-ai-ops pillar (eval-evo-orchestrator) (sub-pillar eval-evo). Formula: Mean ratio (post-install 30d correction rate) / (pre-install 30d baseline correction rate) across all skills with ≥30 days of post-install data. Source: ops.kpi_snapshots (same cron as correlation). Target: <= 1.0 (no regression). > 2.0 warn. > 5.0 critical.. Notes: Detects whether skillopt-evolved skills regress...
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#skillopt_post_install_correction_rate_delta`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#skillopt_post_install_correction_rate_delta`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#skillopt_post_install_correction_rate_delta
@@ -1203,7 +1203,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by 06-ai-ops pillar (eval-evo-orchestrator) (sub-pillar eval-evo). Formula: COUNT(*) WHERE agent_slug='evolve' AND state_payload->>'mode'='skillopt' AND state IN ('completed','failed') AND date_trunc('month',started_at)=date_trunc('month',now()). Source: ops.agent_runs. Target: >= 5 / month after first 3 months of operating. Notes: Adoption metric for /evolve skillopt path. Capability ev...
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#skillopt_runs_monthly`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#skillopt_runs_monthly`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#skillopt_runs_monthly
@@ -1218,7 +1218,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by 06-ai-ops pillar (eval-evo-orchestrator) (sub-pillar eval-evo). Formula: Spearman correlation (rolling 30-day) between held-out judge composite + post-install prod correction rate. Source: ops.kpi_snapshots (computed by skillopt-synth-prod-correlation-monthly cron). Target: >= 0.5 (above 0.3 critical threshold). Notes: Falsifiable signal that synth predicts prod. < 0.3 → playbook revi...
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#skillopt_synth_to_prod_correlation`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#skillopt_synth_to_prod_correlation`
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#skillopt_synth_to_prod_correlation
@@ -1233,7 +1233,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by ai_ops pillar (aiops-engineer). Formula: completed_runs / total_runs from ops.agent_runs.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#sop_success_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#sop_success_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#sop_success_rate
@@ -1248,7 +1248,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by customer pillar (support-agent) (sub-pillar 03-support).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#support_ticket_volume_by_category`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#support_ticket_volume_by_category`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#support_ticket_volume_by_category
@@ -1263,7 +1263,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by product pillar (product-orchestrator). Formula: median(activated_at - signup_at) in seconds.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#time_to_first_value`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#time_to_first_value`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#time_to_first_value
@@ -1278,7 +1278,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by founder pillar (founder-coach) (sub-pillar 01-cognition). Notes: What's the shower thought? Categorical: product / fundraising / dispute / strategy / personal.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#top_idea_classification_weekly`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#top_idea_classification_weekly`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#top_idea_classification_weekly
@@ -1293,7 +1293,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by trust_safety pillar (trust-safety).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#tos_violation_count`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#tos_violation_count`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#tos_violation_count
@@ -1308,7 +1308,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by product pillar (product-orchestrator). Notes: Disaggregation of nps_very_disappointed_pct by feature usage.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#very_disappointed_pct_by_feature`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#very_disappointed_pct_by_feature`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#very_disappointed_pct_by_feature
@@ -1323,7 +1323,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by product pillar (product-orchestrator). Source: metrics.product_dau_snapshot.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#weekly_active_users`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#weekly_active_users`
 **Authority:** SoR
 **Freshness:** hourly
 **Grounding:** knowledge/kpi-ownership.yaml#weekly_active_users
@@ -1338,7 +1338,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by founder pillar (gps) (sub-pillar 04-weekly-review).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#weekly_review_completion_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#weekly_review_completion_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#weekly_review_completion_rate
@@ -1353,7 +1353,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by gtm pillar (gtm-orchestrator) (sub-pillar 04-funnel-orchestration). Formula: COUNT(DISTINCT user_id) per week from signup events. Source: metrics.product_dau_snapshot. Dashboard: founder-monday/funnel.
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#weekly_signups`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#weekly_signups`
 **Authority:** SoR
 **Freshness:** hourly
 **Grounding:** knowledge/kpi-ownership.yaml#weekly_signups
@@ -1368,7 +1368,7 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Axis:** content
 **When to use:** KPI owned by customer pillar (retention-watcher) (sub-pillar 04-retention).
 
-**Invoke:** `mcp__supabase_ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#win_back_rate`
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#win_back_rate`
 **Authority:** SoR
 **Freshness:** unknown
 **Grounding:** knowledge/kpi-ownership.yaml#win_back_rate

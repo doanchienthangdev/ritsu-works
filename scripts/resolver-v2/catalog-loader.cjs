@@ -44,7 +44,7 @@ const OPTIONAL_SCALAR_FIELDS = ['Role scope', 'Status', 'Pillar', 'Disambiguator
 
 // resolver-plan v1.0 (Sprint 2): ADDITIVE enrichment fields emitted per-entry by
 // catalog-generator.cjs (Sprint 1). The loader exposes them so deterministic
-// consumers — mcp__resolver__find, the resolver-plan skill, validators — can read
+// consumers — mcp__supabase-ops__resolver_find, the resolver-plan skill, validators — can read
 // them WITHOUT re-parsing the markdown. Backward-compatible: every field is
 // optional and absent on entries that predate enrichment; existing consumers that
 // only read the v2 base fields ignore these extra keys.
