@@ -8,10 +8,10 @@
 > catalog is the human-readable view that links into each capability's
 > promoted spec + retrospective.
 
-**Last updated:** 2026-05-22 (post-evolve v1.0 promotion)
-**Total capabilities (operating):** 4
+**Last updated:** 2026-05-30 (post-resolver-plan v1.0 promotion)
+**Total capabilities (operating):** 5
 **Total capabilities (deployed pending operating):** 1
-**Total capabilities (any state):** 5
+**Total capabilities (any state):** 6
 
 ---
 
@@ -23,6 +23,7 @@
 | `cla-update-mechanism` | CLA Update Sub-flows (v1.1) | 1.0.0 | 06-ai-ops | 2026-05-15 | [spec.md](cla-update-mechanism/spec.md) | [retrospective.md](cla-update-mechanism/retrospective.md) |
 | `wiki-sync-from-refs` | Wiki Sync from External Refs (v4.4 source-grouped + 3-mode bundler) | **4.4.0** | 06-ai-ops | 2026-05-20 | [spec.md](wiki-sync-from-refs/spec.md) | [retrospective-v4.4.0.md](wiki-sync-from-refs/retrospective-v4.4.0.md) |
 | `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN, incremental translation) | **1.2.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective-v1.2.0.md](docs-engine/retrospective-v1.2.0.md) |
+| `resolver-plan` | resolver as a first-class 2-axis planner (`ResolverPlan v1` = populated `context_recipe`) + self-fresh catalog | **1.0.0** | 06-ai-ops | 2026-05-30 | [spec.md](resolver-plan/spec.md) | [retrospective.md](resolver-plan/retrospective.md) |
 
 ## Deployed (pending operational gate)
 
@@ -120,6 +121,21 @@
 - Merge commit: `7f39b2c` (5 sprint commits squashed via `--no-ff`)
 - Migration applied: `00031_wiki_distillation.sql` (Block E backfill flagged 1 row `spaced-repetition` as `legacy_v2_verbatim=true`)
 - Hard kill criterion clock starts: 2026-05-18; day-30 + day-60 evaluations per spec-v3.md §0
+
+### resolver-plan v1.0 Phase 8 promotion details
+
+- **PRs shipped (one per sprint):**
+  - [#157](https://github.com/doanchienthangdev/ritsu-works/pull/157) Sprint 1 — axis tag + per-kind enrichment + **audit-repair migration `00044`**
+  - [#158](https://github.com/doanchienthangdev/ritsu-works/pull/158) Sprint 2 — `mcp__resolver__find` axis/enrichment (NO LLM) + `validate-resolver-axis-tags.cjs` (CRITICAL) + coverage→16 kinds
+  - [#159](https://github.com/doanchienthangdev/ritsu-works/pull/159) Sprint 3 — `resolver-plan` skill + `ResolverPlan v1` schema + `/resolver plan` + plan audit
+  - [#160](https://github.com/doanchienthangdev/ritsu-works/pull/160) Sprint 4 — nightly catalog-sync **GitHub Action** + `sync.cjs --draft` + coverage WARN→CRITICAL
+  - *this PR* Sprint 5 — `context_recipe` optional→**first-class** docs + find→plan contract test + Phase 8 promotion
+- **The contract object:** `ResolverPlan v1` (`knowledge/schemas/resolver-plan.schema.json`) — a populated, first-class `context_recipe`: `content_axis` (READ) + `capability_axis` (RUN, HITL-tier-tagged) + `governance_constraints` (always `page/governance-HITL` when any capability is tier B+) + `goal_metrics` + `primary_lens` + honest `no_coverage`. Consumed by `/deepask` (Capability 2) with zero routing.
+- **@cto Phase-5 discovery → live repair:** `ops.resolver_decisions.mode` was `char(1)`, so `'A2'` audit inserts had silently failed since the v3 cutover; migration `00044` (APPLIED to ritsu-ops) widens it to `varchar(8)` + reconciles the CHECK + adds `plan_payload jsonb`.
+- **Deviation (founder-approved):** the nightly cron is a **GitHub Action** (`.github/workflows/resolver-catalog-sync.yml`), NOT a `knowledge/schedules.yaml` entry — a Supabase-Edge handler can't `git`/`gh` to regenerate the catalog + open a draft PR.
+- **Tests:** ~263 across S1-S4 + 7 in S5 (the find→plan contract-boundary seam). **2 pre-existing failures persist** (`v21-new-kinds` SOP-ID regex; `v22-context-sources` CLAUDE.md 16-`@import` assertion obsoleted by resolver-v3 #114) — unrelated to this capability.
+- **Reversibility:** 5/5 (additive/backward-compatible; only stateful change = an additive nullable column).
+- **Program:** Capability 1 of 2 — unblocks **deepask** (Capability 2; `/cla` PROMPT 2 in `.archives/brainstorming/deepask/`).
 
 ## Implementing / Architecting / Analyzing
 

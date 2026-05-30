@@ -104,6 +104,37 @@ Mode A.
 }
 ```
 
+## From a recipient list to an executable plan — `context_recipe` is first-class
+
+`resolver-query` answers **"WHICH recipient?"** (primary + supporting +
+alternatives). It does NOT partition those recipients into "read these" vs "run
+these", attach HITL tiers, or ground a query — that is the job of the companion
+skill **`resolver-plan`** (`06-ai-ops/skills/resolver-plan/SKILL.md`), surfaced as
+`/resolver plan "<intent>"`.
+
+`resolver-plan` returns a **populated `context_recipe`** — the **ResolverPlan v1**
+object (schema: `knowledge/schemas/resolver-plan.schema.json`). As of
+capability `resolver-plan` v1.0 (operating), `context_recipe` is **first-class**,
+not an optional ignore-if-unknown field: it is a populated, schema-validated
+2-axis plan —
+
+- `content_axis` — recipients to **READ** (each carries `authority` / `freshness`
+  / `grounding_ref` / optional `columns_hint`),
+- `capability_axis` — recipients to **RUN** (each carries `hitl_tier` /
+  `side_effect` / optional `cost_bucket`), HITL-gated,
+- plus `governance_constraints` (ALWAYS `page/governance-HITL` when any capability
+  is HITL tier B+), `goal_metrics`, optional `primary_lens`, and an honest
+  `no_coverage`.
+
+**Backward-compat:** a consumer that only reads the legacy `context_recipe`
+subset (`primary_lens` / `governance_constraints` / `goal_metrics`, or just the
+flat `primary` + `supporting` from this skill) still works unchanged — the
+ResolverPlan is a superset (skill INV-6). New consumers (e.g. `/deepask`) read the
+full 2-axis plan.
+
+→ Use **this skill / Mode A** when you only need to identify the recipient(s).
+Use **`resolver-plan`** when you need the assembled, directly-executable plan.
+
 ## INVARIANTS
 
 **INV-1:** Zero false-positive matches. LLM hallucinations rejected.
@@ -116,7 +147,9 @@ It returns metadata + invocation spec. Caller (you) executes.
 
 **INV-4:** Catalog auto-sync is frontmatter→catalog (one-way). Founder
 overrides via direct edit + `<!-- override-start -->` markers detected on next
-sync.
+sync. The nightly `resolver-catalog-sync` GitHub Action
+(`.github/workflows/resolver-catalog-sync.yml`) regenerates the catalog and opens
+a **draft** PR on drift (capability `resolver-plan`, Sprint 4).
 
 ## Failure modes
 
@@ -136,5 +169,8 @@ sync.
 - Catalog files: `knowledge/recipients/*.md`
 - Engine: `scripts/resolver-v2/`
 - Mode C fallback: `scripts/resolver-v2/keyword-fallback.cjs`
-- Audit table: `ops.resolver_decisions` (+ migration 00035)
+- Audit table: `ops.resolver_decisions` (+ migrations 00035 / 00038 / 00044)
 - v1 retrospective: `wiki/capabilities/resolver/retrospective.md`
+- **Planning companion (`context_recipe` first-class)**: `06-ai-ops/skills/resolver-plan/SKILL.md` (`/resolver plan`)
+- **ResolverPlan v1 schema** (the populated `context_recipe` contract): `knowledge/schemas/resolver-plan.schema.json`
+- **Planner capability spec**: `wiki/capabilities/resolver-plan/spec.md`
