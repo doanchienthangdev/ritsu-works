@@ -15,9 +15,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cco
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Customer Officer persona (Phase 3, status: planned, bound to technical role: customer-lead).
 
 **Invoke:** `Agent({ subagent_type: "cco", ... })` or `/cco`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Customer Officer
 **Role scope:** *
@@ -27,9 +30,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cdo
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Design Officer persona (Phase 3, status: planned, bound to technical role: design-lead).
 
 **Invoke:** `Agent({ subagent_type: "cdo", ... })` or `/cdo`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Design Officer
 **Role scope:** *
@@ -39,9 +45,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cds
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Data Scientist persona (Phase 4, status: planned, bound to technical role: metrics-curator). "New alert rule" actions promote tier to C; that escalation requires
 
 **Invoke:** `Agent({ subagent_type: "cds", ... })` or `/cds`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Data Scientist
 **Role scope:** *
@@ -51,9 +60,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/ceo
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Executive Officer persona (Phase 1, status: active, bound to technical role: gps). Founder's primary routing interface. Owns the master routing-matrix.md.
 
 **Invoke:** `Agent({ subagent_type: "ceo", ... })` or `/ceo`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Executive Officer
 **Role scope:** *
@@ -63,9 +75,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cfo
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Financial Officer persona (Phase 4, status: planned, bound to technical role: backoffice-clerk).
 
 **Invoke:** `Agent({ subagent_type: "cfo", ... })` or `/cfo`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Financial Officer
 **Role scope:** *
@@ -75,9 +90,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cgo
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Growth Officer (GTM) persona (Phase 1, status: active, bound to technical role: gtm-orchestrator). Drives 03-gtm stage pillar toward "100 paying who love". Composes
 
 **Invoke:** `Agent({ subagent_type: "cgo", ... })` or `/cgo`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Growth Officer (GTM)
 **Role scope:** *
@@ -87,9 +105,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/ciso
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Information Security Officer persona (Phase 4, status: planned, bound to technical role: trust-safety).
 
 **Invoke:** `Agent({ subagent_type: "ciso", ... })` or `/ciso`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Information Security Officer
 **Role scope:** *
@@ -99,9 +120,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cla-code
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** CLA domain routing slot for "code" → dispatches to cto (fallback: code-reviewer). Keywords: code, migration, schema, MCP, integration, PR, hook, refactor
 
 **Invoke:** via /cla propose (auto-routes to cto)
+**HITL tier:** A
+**Side effect:** none
 
 **Composes with:**
 - persona/cto
@@ -115,9 +139,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cla-customer
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** CLA domain routing slot for "customer" → dispatches to cco (fallback: customer-lead). Keywords: retention, churn, support, onboarding, escalation, NPS
 
 **Invoke:** via /cla propose (auto-routes to cco)
+**HITL tier:** A
+**Side effect:** none
 
 **Composes with:**
 - persona/cco
@@ -131,9 +158,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cla-finance
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** CLA domain routing slot for "finance" → dispatches to cfo (fallback: backoffice-clerk). Keywords: revenue, cost, runway, refund, invoice, MRR
 
 **Invoke:** via /cla propose (auto-routes to cfo)
+**HITL tier:** A
+**Side effect:** none
 
 **Composes with:**
 - persona/cfo
@@ -147,9 +177,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cla-growth
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** CLA domain routing slot for "growth" → dispatches to cgo (fallback: gtm-orchestrator). Keywords: khách hàng, customer, lead, acquisition, funnel, ICP, channel
 
 **Invoke:** via /cla propose (auto-routes to cgo)
+**HITL tier:** A
+**Side effect:** none
 
 **Composes with:**
 - persona/cgo
@@ -163,9 +196,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cla-marketing
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** CLA domain routing slot for "marketing" → dispatches to cmo (fallback: growth-orchestrator). Keywords: ads, campaign, content, blog, social, SEO, brand
 
 **Invoke:** via /cla propose (auto-routes to cmo)
+**HITL tier:** A
+**Side effect:** none
 
 **Composes with:**
 - persona/cmo
@@ -179,9 +215,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cla-metrics
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** CLA domain routing slot for "metrics" → dispatches to cds (fallback: metrics-curator). Keywords: metric, KPI, dashboard, alert, experiment, A/B
 
 **Invoke:** via /cla propose (auto-routes to cds)
+**HITL tier:** A
+**Side effect:** none
 
 **Composes with:**
 - persona/cds
@@ -195,9 +234,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cla-product
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** CLA domain routing slot for "product" → dispatches to cpo (fallback: product-orchestrator). Keywords: feature, PRD, wedge, observed, stranger, user research
 
 **Invoke:** via /cla propose (auto-routes to cpo)
+**HITL tier:** A
+**Side effect:** none
 
 **Composes with:**
 - persona/cpo
@@ -211,9 +253,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cla-sales
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** CLA domain routing slot for "sales" → dispatches to cso (fallback: growth-orchestrator). Keywords: pricing, conversion, sales, upsell, paywall, trial
 
 **Invoke:** via /cla propose (auto-routes to cso)
+**HITL tier:** A
+**Side effect:** none
 
 **Composes with:**
 - persona/cso
@@ -227,9 +272,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cla-trust_safety
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** CLA domain routing slot for "trust_safety" → dispatches to ciso (fallback: trust-safety). Keywords: DMCA, abuse, ToS, hallucination, copyright, PII
 
 **Invoke:** via /cla propose (auto-routes to ciso)
+**HITL tier:** A
+**Side effect:** none
 
 **Composes with:**
 - persona/ciso
@@ -243,9 +291,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cmo
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Marketing Officer persona (Phase 2, status: planned, bound to technical role: growth-orchestrator).
 
 **Invoke:** `Agent({ subagent_type: "cmo", ... })` or `/cmo`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Marketing Officer
 **Role scope:** *
@@ -255,9 +306,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/coo
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Operating Officer persona (Phase 4, status: deferred, bound to technical role: TBD).
 
 **Invoke:** `Agent({ subagent_type: "coo", ... })` or `/coo`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Operating Officer
 **Role scope:** *
@@ -267,9 +321,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cpo
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Product Officer persona (Phase 1, status: active, bound to technical role: product-orchestrator). Owns 04-product/. Custodian of N=10 strangers PG gate
 
 **Invoke:** `Agent({ subagent_type: "cpo", ... })` or `/cpo`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Product Officer
 **Role scope:** *
@@ -279,9 +336,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cso
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Sales Officer persona (Phase 2, status: planned, bound to technical role: growth-orchestrator).
 
 **Invoke:** `Agent({ subagent_type: "cso", ... })` or `/cso`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Sales Officer
 **Role scope:** *
@@ -291,9 +351,12 @@ Read in any Claude Code session via `@knowledge/recipients/personas.md` import.
 ## persona/cto
 
 **Kind:** persona
+**Axis:** capability
 **When to use:** Chief Technology Officer persona (Phase 1, status: active, bound to technical role: code-reviewer).
 
 **Invoke:** `Agent({ subagent_type: "cto", ... })` or `/cto`
+**HITL tier:** A
+**Side effect:** none
 
 **Aliases:** Chief Technology Officer
 **Role scope:** *

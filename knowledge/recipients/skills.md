@@ -15,6 +15,7 @@ Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 ## skill/ai-disclosure-check
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use to verify an outgoing customer-facing message contains required
 AI disclosure per `00-core/transparency.md` and EU AI Act Article
 50. Returns either "compliant" or specific fix recommendations.
@@ -33,6 +34,8 @@ Cost: ~50ms wall-clock. ~200 tokens input + ~100 tokens output.
 Per-invocation cost: < $0.001.
 
 **Invoke:** `Skill({ skill: "ai-disclosure-check" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -41,6 +44,7 @@ Per-invocation cost: < $0.001.
 ## skill/brain-promotion
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Helper for gbrain → wiki/ promotion flow. v1.0 = MANUAL AID (drafts the
 wiki/ source.md from a gbrain page; presents founder Tier C PR). Phase 3
 capability will add a `/promote <source> <target>` command and autonomous
@@ -54,6 +58,8 @@ Skip when: gbrain page state != 'mature'; OR brain_affinity: none caller;
 OR concept domain is brain-only (no wiki/ counterpart).
 
 **Invoke:** `Skill({ skill: "brain-promotion" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -62,6 +68,7 @@ OR concept domain is brain-only (no wiki/ counterpart).
 ## skill/brain-write-discipline
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Canonical template + guidance for `## Brain context` sections in any skill
 that interacts with gbrain (Type 4 Semantic Memory). Standardizes WHEN to
 read brain, WHEN to write brain, format of HITL Tier B notify-first-then-
@@ -81,6 +88,8 @@ cost-report, ai-disclosure-check, docs-engine, eval-evo, wiki-sync,
 resolver-query, core-management). These domains are brain-agnostic.
 
 **Invoke:** `Skill({ skill: "brain-write-discipline" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -89,9 +98,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/architect
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Phase 5 of CLA workflow (Bài
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/architect" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -100,9 +112,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/catalog-updater
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Phase 8 of CLA workflow (Bài
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/catalog-updater" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -111,9 +126,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/dependency-scanner
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Scans every wiki/capabilities/*/spec.md + knowledge/capability-registry.yaml `dependencies` block to find capabilities that reference a given capability_id. Returns a reverse-dependency list. Used by `/cla extend` (warning) and `/cla deprecate` (mandatory blocker) to surface impact before mutation. Deterministic — no LLM call. Detects circular dependencies and unreferenced capabilities.
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/dependency-scanner" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -122,9 +140,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/domain-analyst
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Phase 2 of CLA workflow (Bài
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/domain-analyst" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -133,9 +154,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/implementation-coordinator
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Phase 7 of CLA workflow (Bài
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/implementation-coordinator" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -144,9 +168,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/options-generator
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Phase 4 of CLA workflow (Bài
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/options-generator" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -155,9 +182,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/problem-framer
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Phase 1 of CLA workflow (Bài
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/problem-framer" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -166,9 +196,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/sprint-planner
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Phase 6 of CLA workflow (Bài
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/sprint-planner" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -177,9 +210,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/system-inventory-scanner
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Phase 3 of CLA workflow (Bài
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/system-inventory-scanner" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -188,9 +224,12 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/capability-lifecycle/version-bumper
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Pure semver helper. Computes next version from current version + sub-flow type. Rules deterministic per /cla evolution sub-flow contract. Used by Phase 8 of every update sub-flow except :deprecate. Reads current version from knowledge/capability-registry.yaml; writes next version back. No LLM, no side effects beyond the registry edit.
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/version-bumper" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -199,6 +238,7 @@ resolver-query, core-management). These domains are brain-agnostic.
 ## skill/core-management/core-fill
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Interactive fill for 00-core docs. Used by /core fill command. Two modes:
 stub-to-draft (stub → v0.1-draft) and draft-to-canonical (v0.1-draft →
 canonical). Uses AskUserQuestion per layer-specific section schema, supports
@@ -209,6 +249,8 @@ Sprint 2 of Phase 7. Per-layer schema designed in this SKILL.md per CTO
 Reviewer Concern #2.
 
 **Invoke:** `Skill({ skill: "core-management/core-fill" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -217,6 +259,7 @@ Reviewer Concern #2.
 ## skill/cost-optimization-review
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use weekly to scan cost data from past 7-30 days, identify
 optimization opportunities, and generate a PR with specific
 recommendations. Founder reviews + approves. The "find the savings"
@@ -232,6 +275,8 @@ Cost: ~5-10 SQL queries, 1 LLM call (Sonnet) for diff drafting,
 ~3-5K tokens output. Wall-clock ~5s.
 
 **Invoke:** `Skill({ skill: "cost-optimization-review" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -240,6 +285,7 @@ Cost: ~5-10 SQL queries, 1 LLM call (Sonnet) for diff drafting,
 ## skill/cost-report
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use when founder asks about cost breakdown, unit economics, budget
 status, or spend trends. Queries `ops.cost_attributions` and
 `ops.budget_alerts` to render structured reports for Telegram or
@@ -259,6 +305,8 @@ cost-optimization-review needs current data.
 Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 
 **Invoke:** `Skill({ skill: "cost-report" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -267,6 +315,7 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 ## skill/docs-engine
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Umbrella for the docs-engine capability. Drives the live Fumadocs site at
 `docs/` (deployed on Vercel Hobby). Walks Tier 1 + `.claude/` runtime files
 via 9 source-kind adapters (skill, agent, hook, command, charter, governance,
@@ -281,6 +330,8 @@ internal→docs/. Distinct corpora, distinct output substrate, distinct
 audience (operators + AI runtime, not external research).
 
 **Invoke:** `Skill({ skill: "docs-engine" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -289,11 +340,14 @@ audience (operators + AI runtime, not external research).
 ## skill/docs-engine/adapters/agent-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Adapter that renders `.claude/agents/<name>.md` into an MDX page under
 `docs/content/agents/<name>.mdx`. Includes role binding from
 `knowledge/workforce-personas.yaml` + permissions cross-ref to `governance/ROLES.md`.
 
 **Invoke:** `Skill({ skill: "docs-engine/adapters/agent-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -302,11 +356,14 @@ audience (operators + AI runtime, not external research).
 ## skill/docs-engine/adapters/charter-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Adapter for `00-core/*.md`. Pass-through markdown with title-from-H1
 fallback. **EXCLUDES `founder-profile.md` by default** (PII concern flagged
 in Phase 3 system inventory).
 
 **Invoke:** `Skill({ skill: "docs-engine/adapters/charter-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -315,11 +372,14 @@ in Phase 3 system inventory).
 ## skill/docs-engine/adapters/command-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Adapter that renders `.claude/commands/<name>.md` into MDX page. Handles
 INCONSISTENT frontmatter discipline — some commands (e.g. /cla) have YAML
 frontmatter; some (e.g. /wiki) start directly with H1.
 
 **Invoke:** `Skill({ skill: "docs-engine/adapters/command-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -328,11 +388,14 @@ frontmatter; some (e.g. /wiki) start directly with H1.
 ## skill/docs-engine/adapters/governance-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Adapter for `governance/*.md`. **HARD EXCLUDES `governance/SECRETS.md`** —
 this file enumerates secrets by name and MUST NEVER appear in public docs.
 Renders HITL.md, ROLES.md, BUDGET.md, IDENTITY.md as structured reference pages.
 
 **Invoke:** `Skill({ skill: "docs-engine/adapters/governance-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -341,11 +404,14 @@ Renders HITL.md, ROLES.md, BUDGET.md, IDENTITY.md as structured reference pages.
 ## skill/docs-engine/adapters/hook-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Adapter that renders `.claude/hooks/<name>.md` into MDX page. Hook frontmatter
 is rich (name, version, type, tools, default_decision, fail_mode); rendered as
 structured policy spec.
 
 **Invoke:** `Skill({ skill: "docs-engine/adapters/hook-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -354,11 +420,14 @@ structured policy spec.
 ## skill/docs-engine/adapters/pillar-readme-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Adapter for pillar-level docs: `0[0-9]-*/{README,CLAUDE}.md` AND recursive
 sub-pillar `README.md` + `CLAUDE.md`. Most content lives at sub-pillar level
 for DEEP pillars (e.g. 03-gtm has 6 sub-pillars each with own README).
 
 **Invoke:** `Skill({ skill: "docs-engine/adapters/pillar-readme-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -367,11 +436,14 @@ for DEEP pillars (e.g. 03-gtm has 6 sub-pillars each with own README).
 ## skill/docs-engine/adapters/skill-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Adapter that renders a `06-ai-ops/skills/**/SKILL.md` source file into an MDX
 reference page under `docs/content/skills/<path>.mdx`. Preserves YAML frontmatter
 (`name`, `description`); extracts headings into Fumadocs `<Steps>` if "Process" section exists.
 
 **Invoke:** `Skill({ skill: "docs-engine/adapters/skill-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -380,12 +452,15 @@ reference page under `docs/content/skills/<path>.mdx`. Preserves YAML frontmatte
 ## skill/docs-engine/adapters/sop-flow-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Adapter for SOP `flow.yaml` files. Renders the structured YAML
 (steps, inputs, outputs, acceptance_criteria, failure_handling, audit) into
 Fumadocs MDX with `<Steps>` component for the steps array. Most-visited
 adapter (102 SOPs in repo).
 
 **Invoke:** `Skill({ skill: "docs-engine/adapters/sop-flow-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -394,11 +469,14 @@ adapter (102 SOPs in repo).
 ## skill/docs-engine/adapters/tier1-yaml-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Adapter for `knowledge/*.yaml` (top-level only). Each Tier 1 yaml is a
 declarative manifest; rendered as MDX with top-of-file comments as prose
 intro + structured key schema as the body.
 
 **Invoke:** `Skill({ skill: "docs-engine/adapters/tier1-yaml-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -407,6 +485,7 @@ intro + structured key schema as the body.
 ## skill/docs-engine/check
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Deterministic drift detector. Compares filesystem inventory of walker scope
 against docs/content/ MDX pages (via source_path frontmatter). Reports missing
 pages, orphan pages, and stale source_hash. Records `docs_drift_count` KPI.
@@ -414,6 +493,8 @@ Used by /docs check command + docs-drift-nightly cron + .github/workflows/docs-c
 No LLM call. Sibling pattern: wiki-sync/audit.
 
 **Invoke:** `Skill({ skill: "docs-engine/check" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -422,11 +503,14 @@ No LLM call. Sibling pattern: wiki-sync/audit.
 ## skill/docs-engine/nav
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Sidebar / navigation editor. Edits `docs/content/meta.json` per Fumadocs
 conventions (pages, groups, ordering). Interactive prompts for pillar grouping.
 Idempotent: re-running with same args is a no-op.
 
 **Invoke:** `Skill({ skill: "docs-engine/nav" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -435,11 +519,14 @@ Idempotent: re-running with same args is a no-op.
 ## skill/docs-engine/publish
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Trigger Vercel production deploy from latest `main`. Tier B HITL (founder
 visually confirms preview URL before production). Wraps the Vercel CLI or
 webhook trigger; emits `ritsu.docs.published` event with deploy ID.
 
 **Invoke:** `Skill({ skill: "docs-engine/publish" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -448,6 +535,7 @@ webhook trigger; emits `ritsu.docs.published` event with deploy ID.
 ## skill/docs-engine/scaffold
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Idempotent scaffolder for the `docs/` Next.js + Fumadocs subproject.
 First-time only (after first run, `docs/` exists and re-running is a no-op).
 Generates Vercel-deployable Next.js app with rootDirectory=docs, plus the
@@ -458,6 +546,8 @@ intention-revealing-names principle — `scaffold` describes the action more
 precisely than `build`.)
 
 **Invoke:** `Skill({ skill: "docs-engine/scaffold" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -466,6 +556,7 @@ precisely than `build`.)
 ## skill/docs-engine/sync
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Walker + adapter dispatch + MDX writer. The workhorse of docs-engine.
 Walks Tier 1 + `.claude/` runtime per Phase 1 Q3 scope (~215 sources),
 fans out to 9 adapters, runs 3-layer secret redaction (CTO mod #2),
@@ -473,6 +564,8 @@ performs 3-way diff on `<!-- generated-by -->` marked pages (CTO mod #1),
 writes MDX to `docs/content/`, emits events, snapshots KPI.
 
 **Invoke:** `Skill({ skill: "docs-engine/sync" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -481,6 +574,7 @@ writes MDX to `docs/content/`, emits events, snapshots KPI.
 ## skill/docs-engine/translate
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Incremental translation orchestrator for the docs-engine bilingual pipeline.
 Re-translates only files marked `needs_retranslation: true` or with
 `translated_source_hash !== source_hash` (introduced in docs-engine v1.2).
@@ -489,6 +583,8 @@ translations across walker re-runs. No Anthropic API key required when
 invoked from a Claude Code Desktop session.
 
 **Invoke:** `Skill({ skill: "docs-engine/translate" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -497,10 +593,13 @@ invoked from a Claude Code Desktop session.
 ## skill/docs-engine/update
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Alias for `docs-engine/sync --area=<area>`. Convenience verb to refresh one
 content area without walking the full corpus.
 
 **Invoke:** `Skill({ skill: "docs-engine/update" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -509,6 +608,7 @@ content area without walking the full corpus.
 ## skill/entity-update/orchestrator
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Runs the /update <type> <name> --refs=<refs> phase chain for a single
 entity refresh. Composes shared eval-evo skills (distill-from-refs,
 review-extractions, propose-improvement, install-improvement, score-{type},
@@ -516,6 +616,8 @@ test-gen). Replaces ad-hoc refresh hand-edits with citation-discipline +
 K4 quality ratchet + auto-revert. Invoked by .claude/commands/update.md.
 
 **Invoke:** `Skill({ skill: "entity-update/orchestrator" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -524,6 +626,7 @@ K4 quality ratchet + auto-revert. Invoked by .claude/commands/update.md.
 ## skill/episodic-recall
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use AT THE START of any non-trivial task to surface the role's recent
 comparable past runs from ops.agent_runs. Returns up to 5 prior runs
 with their summaries, outcomes, costs, and any founder corrections.
@@ -542,6 +645,8 @@ Returns ~1K tokens of structured context. Cost ~50ms wall-clock for
 the SQL query.
 
 **Invoke:** `Skill({ skill: "episodic-recall" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -550,6 +655,7 @@ the SQL query.
 ## skill/eval-evo/distill-from-refs
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Per-entity-type LLM extraction of structured proposed changes from raw refs
 (founder-supplied files, wiki bundles, web URLs). Emits 3-bucket confidence
 signals and INSERTs to ops.evolve_extractions as the citation spine. Invoked
@@ -557,6 +663,8 @@ by /update orchestrator immediately after refs resolution. Bridges raw
 knowledge to entity-actionable diffs without bypassing the verify gate.
 
 **Invoke:** `Skill({ skill: "eval-evo/distill-from-refs" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -565,6 +673,7 @@ knowledge to entity-actionable diffs without bypassing the verify gate.
 ## skill/eval-evo/gen-skill-examples
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** LLM-driven generator for `<example>` blocks in a SKILL.md. Reads the skill's
 spec (description, process, inputs, outputs, failure modes) via Sonnet 4.6
 and produces 5 authentic INPUT/OUTPUT/RUBRIC tuples that demonstrate the
@@ -576,6 +685,8 @@ before examples are written. Output goes to a sandbox SKILL.md (NEVER
 production) under runtime/sandboxes/.
 
 **Invoke:** `Skill({ skill: "eval-evo/gen-skill-examples" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -584,12 +695,15 @@ production) under runtime/sandboxes/.
 ## skill/eval-evo/install-improvement
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Applies a proposer diff to the working tree via git stash isolation. Tier-aware:
 Tier B installs in-place (git apply); Tier C+ accumulates diffs through the
 loop, then orchestrator (not this skill) opens a PR after loop completes.
 Returns success/failure + post-apply state for orchestrator decision logic.
 
 **Invoke:** `Skill({ skill: "eval-evo/install-improvement" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -598,6 +712,7 @@ Returns success/failure + post-apply state for orchestrator decision logic.
 ## skill/eval-evo/orchestrator
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Runs the /evolve iteration loop on a single entity. Loads context (entity
 + last 3 run_summaries + relevant corrections), invokes per-type judge,
 invokes proposer, applies diff via git stash isolation, re-scores, keeps
@@ -605,6 +720,8 @@ or reverts per Karpathy K4, repeats until --loop or --stop met. Returns
 final state for the command to persist. Invoked by .claude/commands/evolve.md.
 
 **Invoke:** `Skill({ skill: "eval-evo/orchestrator" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -613,6 +730,7 @@ final state for the command to persist. Invoked by .claude/commands/evolve.md.
 ## skill/eval-evo/outside-voice
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Tier C+ second-opinion challenge on /evolve accumulated diffs. Three-tier
 fallback chain: codex CLI (primary, different model family) → Claude
 subagent (different persona from proposer + judge) → annotate-only PR
@@ -620,6 +738,8 @@ label. Catches LLM-judge reward-hacking on safety-critical entity changes.
 Invoked by orchestrator's post-loop step on Tier C+ runs.
 
 **Invoke:** `Skill({ skill: "eval-evo/outside-voice" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -628,12 +748,15 @@ Invoked by orchestrator's post-loop step on Tier C+ runs.
 ## skill/eval-evo/propose-improvement
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Generates an improvement diff for an entity based on current score + sub-scores
 + memory context + corrections. Output: unified diff. Constraints: must touch
 only paths in playbook.allowed_paths_for_proposer. Reverse-Goodhart prompt
 discipline. Invoked by orchestrator each iter.
 
 **Invoke:** `Skill({ skill: "eval-evo/propose-improvement" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -642,6 +765,7 @@ discipline. Invoked by orchestrator each iter.
 ## skill/eval-evo/review-extractions
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Founder-facing review queue UX for ops.evolve_extractions in pending_review
 state (confidence 0.6-0.85 bucket). Mirrors /wiki review pattern. Surfaces
 one extraction at a time with raw_quote + proposed_change + section_target;
@@ -649,6 +773,8 @@ founder picks Accept / Edit / Reject. Multi-session resumable via the
 agent_run_id key.
 
 **Invoke:** `Skill({ skill: "eval-evo/review-extractions" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -657,11 +783,14 @@ agent_run_id key.
 ## skill/eval-evo/score-agent
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Scores an agent entity (.claude/agents/<name>.md) on the 10-criterion
 rubric in playbooks/agent.md. Invokes @ceo persona as judge. Returns
 composite + sub_scores. See score-skill/SKILL.md for canonical template.
 
 **Invoke:** `Skill({ skill: "eval-evo/score-agent" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -670,12 +799,15 @@ composite + sub_scores. See score-skill/SKILL.md for canonical template.
 ## skill/eval-evo/score-command
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Scores a command entity (.claude/commands/<name>.md) on the 10-criterion
 rubric in playbooks/command.md. Invokes @ceo persona as judge. Returns
 composite + sub_scores. See score-skill/SKILL.md for canonical template;
 this skill differs only in playbook + judge persona.
 
 **Invoke:** `Skill({ skill: "eval-evo/score-command" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -684,12 +816,15 @@ this skill differs only in playbook + judge persona.
 ## skill/eval-evo/score-hook
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Scores a hook entity (.claude/hooks/<name>.md) on the 10-criterion
 rubric in playbooks/hook.md. Invokes @cto persona as judge. Returns
 composite + sub_scores. Hooks are TIER C entities (safety infrastructure);
 /evolve on a hook always opens a PR.
 
 **Invoke:** `Skill({ skill: "eval-evo/score-hook" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -698,12 +833,15 @@ composite + sub_scores. Hooks are TIER C entities (safety infrastructure);
 ## skill/eval-evo/score-skill
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Scores a skill entity (SKILL.md body + supporting files) on the 10-criterion
 rubric in playbooks/skill.md. Invokes @cto persona as judge. Returns
 composite + sub_scores. Template skill — score-command / score-agent /
 score-hook / score-sop differ only in playbook path + judge persona.
 
 **Invoke:** `Skill({ skill: "eval-evo/score-skill" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -712,11 +850,14 @@ score-hook / score-sop differ only in playbook path + judge persona.
 ## skill/eval-evo/score-sop
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Scores an SOP entity (06-ai-ops/sops/<name>/) on the 10-criterion rubric
 in playbooks/sop.md. Invokes @cto persona as judge. SOPs are TIER C
 entities (process governance); /evolve on an SOP always opens a PR.
 
 **Invoke:** `Skill({ skill: "eval-evo/score-sop" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -725,6 +866,7 @@ entities (process governance); /evolve on an SOP always opens a PR.
 ## skill/eval-evo/skillopt-gen-data
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Phase B of /evolve skillopt. Generates synthetic (task, expected_behavior, rubric)
 tuples from a target SKILL.md by blending up to 3 active grounding pillars
 in v1.1: P1 founder gold examples, P3 wiki RAG silver, P5 00-core anchor
@@ -738,6 +880,8 @@ bulk generation proceeds. Output dataset cached under
 runtime/skillopt/<entity>/data/v<ts>/.
 
 **Invoke:** `Skill({ skill: "eval-evo/skillopt-gen-data" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -746,6 +890,7 @@ runtime/skillopt/<entity>/data/v<ts>/.
 ## skill/eval-evo/skillopt-judge
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Per-task LLM-as-judge for /evolve skillopt. Given a (task, target_output) pair,
 scores the target's output against the task's rubric and returns a normalized
 pass-rate in [0, 1]. Invoked by the SkillOpt Python train.py via the file-queue
@@ -753,6 +898,8 @@ backend (kind: "judge"), but ALSO directly invocable in isolation for testing.
 Stateless — no DB writes, no caching, no Task() fanout.
 
 **Invoke:** `Skill({ skill: "eval-evo/skillopt-judge" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -761,6 +908,7 @@ Stateless — no DB writes, no caching, no Task() fanout.
 ## skill/eval-evo/skillopt-runner
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Orchestrator for /evolve skillopt <skill>. Runs the 7-phase pipeline (A pre-flight →
 B gen-data → C train loop → D outer K4 → E install → F founder review → G cleanup)
 per spec §19.6/§19.7. Drives the SkillOpt Python subprocess + session-bridge.cjs
@@ -773,6 +921,8 @@ Subscription invariant: zero direct HTTP calls; Python runs with empty
 ANTHROPIC_API_KEY; every LLM call flows file-queue → bridge → Task() subagent.
 
 **Invoke:** `Skill({ skill: "eval-evo/skillopt-runner" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -781,6 +931,7 @@ ANTHROPIC_API_KEY; every LLM call flows file-queue → bridge → Task() subagen
 ## skill/eval-evo/test-fixtures/skill-foo
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Test fixture skill for /evolve skillopt S1 acceptance gate. Summarizes a
 paragraph (max ~200 words) into a single sentence (≤30 words) preserving
 the central claim. NOT for production use — exists purely so the
@@ -789,6 +940,8 @@ extraction during gen-data, and a rubric the judge can score against.
 Path: 06-ai-ops/skills/eval-evo/test-fixtures/skill-foo/SKILL.md.
 
 **Invoke:** `Skill({ skill: "eval-evo/test-fixtures/skill-foo" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -797,6 +950,7 @@ Path: 06-ai-ops/skills/eval-evo/test-fixtures/skill-foo/SKILL.md.
 ## skill/eval-evo/test-gen
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Generates regression tests for an entity being modified by /update or
 /evolve. Embeds the All-Edge-Cases-Test 5-phase methodology VERBATIM
 (committed per @cto NIT T7 to avoid drift from ~/.claude/CLAUDE.md
@@ -804,6 +958,8 @@ source). Per-type test conventions; co-located under <entity-dir>/tests/.
 Invoked by orchestrators in Phase 7.
 
 **Invoke:** `Skill({ skill: "eval-evo/test-gen" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -812,6 +968,7 @@ Invoked by orchestrators in Phase 7.
 ## skill/monthly-learning-review
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Monthly cron-triggered skill that reviews the past month of agent
 activity and identifies patterns worth promoting to canonical Tier 1
 (skills, charter, SOPs). Produces a candidate list for founder review.
@@ -827,6 +984,8 @@ This skill does NOT make Tier 1 changes itself. It only proposes.
 Founder approval converts a candidate into a PR.
 
 **Invoke:** `Skill({ skill: "monthly-learning-review" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -835,6 +994,7 @@ Founder approval converts a candidate into a PR.
 ## skill/playbook-builder/build
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Rebuild + version-bump + publish the AI-Native Company Playbook PDF
 (.archives/ritsu-handoff-bundle/playbook/). Detects chapter changes,
 auto-bumps version (semver: patch for content tweak, minor for new chapter,
@@ -845,6 +1005,8 @@ build_pdf.py under /opt/anaconda3 Python with WeasyPrint native libs from
 versions.
 
 **Invoke:** `Skill({ skill: "playbook-builder/build" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -853,6 +1015,7 @@ versions.
 ## skill/playbook-builder/sync-meta
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Sync TOC and build_pdf.py metadata from chapter source files. Reads
 .archives/ritsu-handoff-bundle/playbook/chapters/, derives chapter list +
 H1 titles, writes 4 version fields in 00-toc.md + 3 fields in build_pdf.py.
@@ -860,6 +1023,8 @@ Deterministic transform — no LLM. Invoked by playbook-builder/build at
 Step 5 OR by founder for manual `/playbook check --fix` workflow.
 
 **Invoke:** `Skill({ skill: "playbook-builder/sync-meta" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -868,6 +1033,7 @@ Step 5 OR by founder for manual `/playbook check --fix` workflow.
 ## skill/resolver-query
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** CONSUMER CONTRACT for resolver v2 LLM-native catalog. Any skill or agent MAY
 invoke this to find AI workforce recipients for a trigger across kinds (skill,
 command, agent, mcp, persona). v2 uses Mode A (in-session ambient catalog —
@@ -877,6 +1043,8 @@ Returns: primary recipient + supporting composition + invocation spec.
 Caller executes the invocation (D-4 INVARIANT).
 
 **Invoke:** `Skill({ skill: "resolver-query" })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -885,6 +1053,7 @@ Caller executes the invocation (D-4 INVARIANT).
 ## skill/synthesize-morning-brief
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use to retrieve and present the daily morning brief for the founder. The
 brief is assembled automatically every day at 05:45 ICT by a server-side
 cron handler (`makeSynthesizeMorningBriefHandler` in
@@ -914,6 +1083,8 @@ recency, ~50ms wall-clock. ~300 tokens output (the brief plus
 freshness metadata).
 
 **Invoke:** `Skill({ skill: "synthesize-morning-brief" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -922,6 +1093,7 @@ freshness metadata).
 ## skill/task-decompose
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use when GPS or a pillar orchestrator receives a coarse-grained task
 that needs decomposition into sub-tasks for delegation to specialist
 subagents. Inserts parent + child rows into ops.tasks with proper
@@ -939,6 +1111,8 @@ or output feeds immediately into next reasoning step.
 Cost: ~3-5 SQL inserts + ~500 tokens reasoning. Wall-clock ~200ms.
 
 **Invoke:** `Skill({ skill: "task-decompose" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -947,6 +1121,7 @@ Cost: ~3-5 SQL inserts + ~500 tokens reasoning. Wall-clock ~200ms.
 ## skill/task-status
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use when founder asks about progress of an in-flight orchestration,
 or when GPS needs to check sub-task status before advancing parent.
 Queries ops.tasks + ops.task_state_transitions to render a structured
@@ -964,6 +1139,8 @@ are complete via this skill.
 Cost: 1-3 SQL queries, ~200-500 tokens output. Wall-clock ~100ms.
 
 **Invoke:** `Skill({ skill: "task-status" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -972,6 +1149,7 @@ Cost: 1-3 SQL queries, ~200-500 tokens output. Wall-clock ~100ms.
 ## skill/thinking-toolkit/2x2-synthesis-matrix
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use when you have 4+ options, items, or candidates and need to synthesize
 them into a decision. Pick 2 orthogonal axes (the most discriminating
 dimensions), classify each item into one of 4 quadrants, then read the
@@ -989,6 +1167,8 @@ Cost: zero LLM. Forces ~5-10 min synthesis that reveals quadrant
 insights typically missed in flat lists.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/2x2-synthesis-matrix" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -997,6 +1177,7 @@ insights typically missed in flat lists.
 ## skill/thinking-toolkit/driver-tree-decomposition
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use to decompose any target metric (KPI, business outcome, cost driver)
 into a tree of upstream actionable drivers. Each leaf is a driver you
 can directly influence; each internal node is a composition of children.
@@ -1016,6 +1197,8 @@ Cost: zero LLM (rules + arithmetic). ~10-15 min per metric. Catches
 intervention points typically missed when staring at the top-line KPI.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/driver-tree-decomposition" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1024,6 +1207,7 @@ intervention points typically missed when staring at the top-line KPI.
 ## skill/thinking-toolkit/mece-decomposition-check
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use as a 2-test quality gate on any list, decomposition, or grouping
 output. Overlap test (do any items chồng lấp / overlap in meaning?) +
 Exhaustive test (are there missing cases?). MECE = Mutually Exclusive,
@@ -1044,6 +1228,8 @@ Cost: zero LLM (rules-based check). ~2-5 min per list. Catches ~40% of
 unstructured business lists that have overlap or gaps.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/mece-decomposition-check" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1052,6 +1238,7 @@ unstructured business lists that have overlap or gaps.
 ## skill/thinking-toolkit/pyramid-principle-output
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use to structure any non-trivial output (persona response, recommendation,
 analysis report, decision memo) so the reader can stop at any level and
 still act. Top-line conclusion FIRST, then 3-5 supporting points (MECE),
@@ -1070,6 +1257,8 @@ Cost: zero LLM (guidance document). Reader-time savings compound across
 every invocation — ~30-60s saved per founder reading.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/pyramid-principle-output" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1078,6 +1267,7 @@ every invocation — ~30-60s saved per founder reading.
 ## skill/thinking-toolkit/so-what-test
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use as a quality gate on every conclusion or top-line statement in
 agent output. Ask "So what?" twice. First "so what?" surfaces meaning;
 second "so what?" surfaces action. If the second has no answer, the
@@ -1096,6 +1286,8 @@ Cost: zero LLM (guidance document). Eliminates ~20-30% of noise
 in agent outputs by forcing actionable framing.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/so-what-test" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1104,6 +1296,7 @@ in agent outputs by forcing actionable framing.
 ## skill/thinking-toolkit/tosca-problem-framing
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Use to frame any ambiguous business or technical problem before
 proposing solutions. Forces structured definition across 5 dimensions:
 Trouble (the situation), Owner (who cares), Success criteria (measurable),
@@ -1124,6 +1317,8 @@ Cost: zero LLM (template). Forces ~5-15 min upfront thinking that saves
 hours of downstream re-scoping.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/tosca-problem-framing" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1132,6 +1327,7 @@ hours of downstream re-scoping.
 ## skill/wiki-sync
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Umbrella for the wiki-sync capability (`wiki-sync-from-refs`).
 v3.0 (2026-05-18 onward): DEFAULT semantic = distill+extract.
 Source files become RECORD pages; the IMPORTANT KNOWLEDGE
@@ -1145,6 +1341,8 @@ tools. Built on Bài #14 knowledge-graph + Bài #18 ingestion substrate +
 v3.0 migration 00031 (knowledge_extractions table).
 
 **Invoke:** `Skill({ skill: "wiki-sync" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1153,6 +1351,7 @@ v3.0 migration 00031 (knowledge_extractions table).
 ## skill/wiki-sync/adapters/folder-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Folder = collection adapter. When /wiki sync is invoked with a directory
 path, traverses the folder tree via breadth-first search (BFS) and
 dispatches each leaf folder's files to its matching sibling adapter
@@ -1167,6 +1366,8 @@ collapse: wiki/<namespace>/<file>/source.md (when BFS finds 1 leaf == root
 AND col_slug == namespace).
 
 **Invoke:** `Skill({ skill: "wiki-sync/adapters/folder-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1175,12 +1376,15 @@ AND col_slug == namespace).
 ## skill/wiki-sync/adapters/markdown-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Markdown passthrough adapter for wiki-sync. For `.md` files already in
 Markdown form, no extraction needed. source_kind=`markdown_passthrough`;
 entity_type derived from file frontmatter `type:` field (defaults to
 `concept` if absent).
 
 **Invoke:** `Skill({ skill: "wiki-sync/adapters/markdown-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1189,6 +1393,7 @@ entity_type derived from file frontmatter `type:` field (defaults to
 ## skill/wiki-sync/adapters/meeting-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Meeting transcript adapter (Sprint 2 PR4, v2.0.0). Parses VTT/SRT cue
 blocks into speaker-attributed Markdown; plain TXT passes through with
 paragraph-only chunking. Chunking strategy: structural per speaker turn
@@ -1197,6 +1402,8 @@ wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout). File location 
 `raw/meetings/<filename>.{vtt,srt,txt}` (other extensions delegate back to ingest).
 
 **Invoke:** `Skill({ skill: "wiki-sync/adapters/meeting-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1205,6 +1412,7 @@ wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout). File location 
 ## skill/wiki-sync/adapters/pdf-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** PDF source adapter for wiki-sync. Extracts text from PDF refs via pymupdf
 (text layer first; OCR fallback in Sprint 2+ when pages have no text).
 Emits raw_text, source_ref (abspath), source_hash (sha256 of file bytes),
@@ -1213,6 +1421,8 @@ chapter-split threshold. Maps to source_kind=`book`, entity_type=`book`,
 wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout; chapters at `wiki/<slug>/chapters/`).
 
 **Invoke:** `Skill({ skill: "wiki-sync/adapters/pdf-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1221,11 +1431,14 @@ wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout; chapters at `wi
 ## skill/wiki-sync/adapters/url-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** URL source adapter for wiki-sync. Fetches HTML via HTTP GET, extracts main
 content via readability (Mozilla Readability port), converts HTML→Markdown.
 source_kind=`article`, entity_type=`article`, wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout).
 
 **Invoke:** `Skill({ skill: "wiki-sync/adapters/url-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1234,6 +1447,7 @@ source_kind=`article`, entity_type=`article`, wiki target `wiki/<slug>/source.md
 ## skill/wiki-sync/adapters/youtube-adapter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** YouTube transcript adapter (Sprint 2 PR4, v2.0.0). Fetches video transcript
 via yt-dlp (auto-captions first; whisper fallback when captions missing,
 feature-flag gated). Parses YouTube native chapter markers from the video's
@@ -1242,6 +1456,8 @@ wiki target `wiki/<slug>/source.md` (v4.0 source-grouped layout). URL accepted f
 youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID.
 
 **Invoke:** `Skill({ skill: "wiki-sync/adapters/youtube-adapter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1250,6 +1466,7 @@ youtube.com/watch?v=ID, youtu.be/ID, youtube.com/shorts/ID.
 ## skill/wiki-sync/ask
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Citation-disciplined RAG over wiki/ + ops.knowledge_embeddings.
 v3.0 update (Sprint 4): ENTITY-FIRST retrieval. Prefer derived entity pages
 (page_type IN concept/observation/decision/idea where extracted_from_source_id
@@ -1261,6 +1478,8 @@ Sprint 3 PR5 v0.1 = STUB returning contract structure; v0.2 wires real
 OpenAI calls (gated on wiki_sync_llm_fallback flag + OPENAI_API_KEY).
 
 **Invoke:** `Skill({ skill: "wiki-sync/ask" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1269,6 +1488,7 @@ OpenAI calls (gated on wiki_sync_llm_fallback flag + OPENAI_API_KEY).
 ## skill/wiki-sync/attribution-watcher
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** v3.0 Muse M2 axis A11 — attribution discipline. Background skill (no
 /wiki invocation). Monitors 01-marketing/ and 02-sales/ file edits;
 correlates with recent /wiki ask invocations (±10 min). When a
@@ -1278,6 +1498,8 @@ reviews attribution before publishing. Falls into growth-orchestrator
 role's brand-voice review discipline.
 
 **Invoke:** `Skill({ skill: "wiki-sync/attribution-watcher" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1286,6 +1508,7 @@ role's brand-voice review discipline.
 ## skill/wiki-sync/audit
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Wiki integrity scan. v2.0 base = 5 checks (hash drift, orphan links, dead
 URLs, file-missing, stale-claim sample). v3.0 adds 3 distill+extract
 checks: distillation completeness (sources with no derived entities),
@@ -1298,6 +1521,8 @@ Companion L2 CI validator validate-wiki-integrity.cjs (v0.2) catches
 deterministic-subset on every PR.
 
 **Invoke:** `Skill({ skill: "wiki-sync/audit" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1306,6 +1531,7 @@ deterministic-subset on every PR.
 ## skill/wiki-sync/chapter-splitter
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Splits oversized refs (PDFs > 100 pages, Markdown > 25 KB, or any ref with
 explicit --split flag) into per-chapter child ingestion_jobs rows + per-chapter
 wiki pages under wiki/<book-slug>/chapters/ (v4.0 source-grouped layout). Modes: toc (PDF bookmarks /
@@ -1315,6 +1541,8 @@ Each chapter is its own knowledge_pages row with page_type='book' and slug
 (ON DELETE CASCADE) to link chapter children to the parent book ingestion.
 
 **Invoke:** `Skill({ skill: "wiki-sync/chapter-splitter" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1323,6 +1551,7 @@ Each chapter is its own knowledge_pages row with page_type='book' and slug
 ## skill/wiki-sync/dedup
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** v3.0 dedup engine. Cross-source semantic deduplication of derived entity
 pages (concept/observation/decision/idea). Three-tier match: slug equality
 (cheap fast path) -> vector similarity > 0.92 (auto-merge) -> 0.75-0.92
@@ -1331,6 +1560,8 @@ distill completes, and by folder-adapter for cross-paper concept
 aggregation per spec A7. Cost-bucket task_kind wiki-dedup-batch ($0.30 cap).
 
 **Invoke:** `Skill({ skill: "wiki-sync/dedup" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1339,6 +1570,7 @@ aggregation per spec A7. Cost-bucket task_kind wiki-dedup-batch ($0.30 cap).
 ## skill/wiki-sync/distill
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** v3.0 CORE ENGINE — LLM-driven entity extraction from source chunks into
 separately-projected wiki entity pages (concept / observation / decision / idea)
 with full citation back to source via ops.knowledge_extractions. Per-type
@@ -1348,6 +1580,8 @@ distill+extract (v3.0). Invoked by ingest SKILL Step 6 after chunks come out
 of the adapter; writes derived entity pages + knowledge_extractions rows.
 
 **Invoke:** `Skill({ skill: "wiki-sync/distill" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1356,6 +1590,7 @@ of the adapter; writes derived entity pages + knowledge_extractions rows.
 ## skill/wiki-sync/embeddings-backfill
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Backfill embeddings for wiki pages that were ingested without OPENAI_API_KEY
 present (G3 soft-defer disposition, capability v2.0.0). Invoked by pg_cron
 entry `wiki-embeddings-backfill` hourly. Self-throttles per CTO NIT 4 (skip
@@ -1368,6 +1603,8 @@ extracted_from_source_id IS NOT NULL) — required for cross-source semantic
 dedup (wiki-sync/dedup vector similarity matching).
 
 **Invoke:** `Skill({ skill: "wiki-sync/embeddings-backfill" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1376,6 +1613,7 @@ dedup (wiki-sync/dedup vector similarity matching).
 ## skill/wiki-sync/get
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Extract bundled context from a v4.0 source-grouped wiki package into
 one markdown block. Pure filesystem read, no LLM. Backend for the
 `/wiki get` slash command. Used by operators + agents to feed
@@ -1384,6 +1622,8 @@ propose`, `@cgo`, `@cpo`) WITHOUT duplicating into intermediate context
 files (anti-pattern: drift + manual labor + broken citation chain).
 
 **Invoke:** `Skill({ skill: "wiki-sync/get" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1392,6 +1632,7 @@ files (anti-pattern: drift + manual labor + broken citation chain).
 ## skill/wiki-sync/index-rebuild
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** v4.0 Sprint 2 — Regenerate `wiki/_index/<page_type>/<canonical-name>.md`
 reverse-lookup link-lists from all source-grouped wiki packages. Each link-list
 is a small Markdown file enumerating every package that mentions an entity
@@ -1401,6 +1642,8 @@ deterministic — re-runs produce identical content. Cost: ~$0.02-$0.05 / run
 (mostly file I/O; LLM call only if alias resolution flag enables it).
 
 **Invoke:** `Skill({ skill: "wiki-sync/index-rebuild" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1409,6 +1652,7 @@ deterministic — re-runs produce identical content. Cost: ~$0.02-$0.05 / run
 ## skill/wiki-sync/ingest
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Ingest verb of the wiki-sync capability. Implements SOP-INGEST-001's 6-step
 pipeline: fetch (via adapter) → dedup (against ops.ingestion_jobs) →
 acquire lock → optional chapter-split → extract entities → entity-link →
@@ -1417,6 +1661,8 @@ the wiki page is a re-derivable projection. Re-runs with same source_hash
 short-circuit on dedup unless --force.
 
 **Invoke:** `Skill({ skill: "wiki-sync/ingest" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1425,6 +1671,7 @@ short-circuit on dedup unless --force.
 ## skill/wiki-sync/link-extractor
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** Sprint 1 baseline: regex-only extraction per Bài #14 link-inference-rules.
 Sprint 2 PR3 (v2.0) added `related_concept` rule for informal concept→concept
 cross-references with "(see also)" / "(cf.)" prefixes (G2 disposition).
@@ -1432,6 +1679,8 @@ Sprint 4 will add LLM-fallback (escalate to LLM when regex finds < 3 links
 in a > 1000-token chunk) gated by feature flag `wiki_sync_llm_fallback`.
 
 **Invoke:** `Skill({ skill: "wiki-sync/link-extractor" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1440,6 +1689,7 @@ in a > 1000-token chunk) gated by feature flag `wiki_sync_llm_fallback`.
 ## skill/wiki-sync/merge
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** v3.0 manual page merge. Invoked by /wiki merge <slug-a> <slug-b> (or from
 wiki-sync/review when founder picks "merge"). Rewires
 knowledge_extractions.derived_page_id from the loser page to canonical.
@@ -1448,6 +1698,8 @@ Soft-deletes loser via knowledge_pages.deleted_at = now() (CTO P2/P3 #6).
 Tier B (recoverable via --undo).
 
 **Invoke:** `Skill({ skill: "wiki-sync/merge" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1456,12 +1708,15 @@ Tier B (recoverable via --undo).
 ## skill/wiki-sync/package
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** v4.0 Sprint 2 — `/wiki package <slug>`. Lists a wiki source-package's full
 inventory: source RECORD frontmatter + counts by entity type + per-entity
 slugs grouped by type. Pure file-system read; no LLM call required. Used
 for skill input planning (e.g. "what entities are in wiki/growth-playbook/?").
 
 **Invoke:** `Skill({ skill: "wiki-sync/package" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1470,6 +1725,7 @@ for skill input planning (e.g. "what entities are in wiki/growth-playbook/?").
 ## skill/wiki-sync/review
 
 **Kind:** skill
+**Axis:** capability
 **When to use:** v3.0 founder-review queue processor. Invoked by /wiki review. Iterates
 knowledge_pages where review_state='pending_review' (confidence 0.6-0.85
 extractions, OR dedup queue 0.75-0.92 merge candidates). For each item:
@@ -1479,6 +1735,8 @@ Tier B per item. Daily Telegram digest from wiki-review-queue-digest cron
 surfaces backlog.
 
 **Invoke:** `Skill({ skill: "wiki-sync/review" })`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active

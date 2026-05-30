@@ -15,9 +15,12 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 ## external-source/anthropic-api
 
 **Kind:** external-source
+**Axis:** content
 **When to use:** Anthropic Claude Messages API. Used for non-session LLM calls — out-of-band agents, CRON eval handlers (eval-evo-calibrate-efficacy, synthesize-morning-brief), Edge Functions in supabase/functions/. In-session Claude Code calls do NOT need this — they use the host session's billing. Auth env: `ANTHROPIC_API_KEY`.
 
 **Invoke:** `@anthropic-ai/sdk` in Node/Edge functions, e.g. `new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }).messages.create({...})`.
+**Authority:** SoR-external
+**Freshness:** live
 
 **Disambiguator:** source_type: llm-api
 **Role scope:** *
@@ -27,9 +30,12 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 ## external-source/gbrain-mcp
 
 **Kind:** external-source
+**Axis:** content
 **When to use:** GBrain local MCP — separate knowledge graph (74 MCP tools when active). Provides search, recall, query, get_page, list_pages, put_page, get_chunks, traverse_graph, get_links/backlinks, think, find_anomalies, find_contradictions, find_experts, find_trajectory, code_callees/callers/def/refs/blast/flow, file_upload/list/url, submit_job, list_jobs, retry_job, pause_job, whoami, get_health, get_brain_i...
 
 **Invoke:** `mcp__gbrain__{search,recall,query,get_page,list_pages,put_page,traverse_graph,think,find_anomalies,find_experts,code_callees,...}` — 74 MCP tools auto-loaded when the gbrain MCP server is running.
+**Authority:** SoR-external
+**Freshness:** live
 
 **Disambiguator:** source_type: knowledge-graph-mcp
 **Role scope:** founder
@@ -39,9 +45,12 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 ## external-source/github-repo
 
 **Kind:** external-source
+**Axis:** content
 **When to use:** GitHub doanchienthangdev/ritsu-works repo. Used for repo metadata, PR listing/review, issue tracking, GitHub Actions workflow status. Merge permission gated to founder-only PAT per governance/SECRETS.md. Auth env: `GITHUB_TOKEN`.
 
 **Invoke:** gh CLI via Bash tool (e.g. `gh pr list`, `gh issue view`, `gh api repos/...`). MCP variant `mcp__github__*` if/when an MCP server is added.
+**Authority:** SoR-external
+**Freshness:** live
 
 **Disambiguator:** source_type: api
 **Role scope:** *
@@ -51,9 +60,12 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 ## external-source/openai-api
 
 **Kind:** external-source
+**Axis:** content
 **When to use:** OpenAI API. Primary use: text-embedding-3-small for wiki-sync embeddings (1536 dim, written to ops.knowledge_embeddings). Also used by wiki-sync/ask LLM-fallback retrieval (feature-flag gated). Auth env: `OPENAI_API_KEY`.
 
 **Invoke:** `openai` SDK in scripts/sync/* and 06-ai-ops/skills/wiki-sync/*. Example: `new OpenAI({apiKey: process.env.OPENAI_API_KEY}).embeddings.create({model: 'text-embedding-3-small', input})`.
+**Authority:** SoR-external
+**Freshness:** live
 
 **Disambiguator:** source_type: llm-api
 **Role scope:** etl-runner, founder
@@ -63,9 +75,12 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 ## external-source/stripe-readonly
 
 **Kind:** external-source
+**Axis:** content
 **When to use:** Stripe — payments + subscriptions read-only. Used by backoffice-clerk role for transaction categorization, invoice prep, MRR snapshots. Charging + refunds require founder Tier C/D ceremony per HITL.md — no agent role holds a write Stripe key. Auth env: `STRIPE_READ_KEY`.
 
 **Invoke:** `stripe` SDK read-only methods (charges.list, subscriptions.list, customers.list, invoices.list). MCP variant `mcp__stripe__*` if added later.
+**Authority:** SoR-external
+**Freshness:** live
 
 **Disambiguator:** source_type: payments-api
 **Role scope:** backoffice-clerk, founder
@@ -75,9 +90,12 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 ## external-source/supabase-product-readonly
 
 **Kind:** external-source
+**Axis:** content
 **When to use:** Product Supabase project (read-only via etl-runner). The single most important access boundary in the company per governance/HITL.md D-MAX rules. Operating AI never writes here; reads happen exclusively through metrics.* mirror populated by the etl_flows.product_metrics_to_ops pipeline in knowledge/manifest.yaml. Auth env: `SUPABASE_PRODUCT_READ_KEY`.
 
 **Invoke:** etl-runner only — invoked via supabase/functions/_shared/worker.ts makeEtlProductDauSnapshotHandler. See knowledge/manifest.yaml etl_flows.product_metrics_to_ops.
+**Authority:** SoR-external
+**Freshness:** live
 
 **Disambiguator:** source_type: db-readonly
 **Role scope:** etl-runner
@@ -87,9 +105,12 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 ## external-source/telegram-bot
 
 **Kind:** external-source
+**Axis:** content
 **When to use:** Telegram bot for HITL routing (Tier B/C/D approval flows). Receives "override: <reason>" magic phrase from founder per governance/HITL.md. Posts dry-run previews + inline approve/reject buttons. Currently stub — bot setup scheduled with SOP-FOUNDER-009-telegram-hitl-bot-config. Auth env: `TELEGRAM_BOT_TOKEN`.
 
 **Invoke:** Telegram Bot API via Edge Function. MCP variant `mcp__telegram__*` if/when added (planned).
+**Authority:** SoR-external
+**Freshness:** live
 
 **Disambiguator:** source_type: messaging
 **Role scope:** founder, hitl-router
@@ -99,9 +120,12 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 ## external-source/vercel
 
 **Kind:** external-source
+**Axis:** content
 **When to use:** Vercel Hobby plan hosting for `docs/` Fumadocs subproject. Deployed at https://ritsu-works.vercel.app. Auto-deploys on push to main via rootDirectory=docs. Operator + AI runtime context bundle per capability docs-engine. Auth env: `VERCEL_TOKEN`.
 
 **Invoke:** `vercel` CLI for triggers + status; Vercel REST API for programmatic deploy/list. Optional webhook trigger from CI.
+**Authority:** SoR-external
+**Freshness:** live
 
 **Disambiguator:** source_type: deployment
 **Role scope:** founder

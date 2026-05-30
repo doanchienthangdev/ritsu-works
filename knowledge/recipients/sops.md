@@ -15,9 +15,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-001-capability-lifecycle
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Standard Operating Procedure SOP-AIOPS-001-capability-lifecycle
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/skills/eval-evo/cases/sop/SOP-AIOPS-001-capability-lifecycle/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -26,9 +29,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-001-deprecate
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Deprecate operating capability. Cleanup scheduled SOPs, CATALOG move, dependent check. Tier C ceremony. Irreversible.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-001-deprecate/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -37,9 +43,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-001-extend
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Medium-weight workflow for scope expansion. Adds new components; auto-escalates Tier C if spec changes are substantial.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-001-extend/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -48,9 +57,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-001-fix
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Light delta workflow for bug fixes on operating capabilities. Patch-version bump; no spec change; single PR.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-001-fix/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -59,9 +71,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-001-revise
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Heavy-weight workflow for architecture revision. Full ceremony (@cto + Muse panel + Tier C). Major version bump. Multi-session.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-001-revise/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -70,9 +85,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-001-tune
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Lightest workflow. Registry edit only. No spec or code change. Patch version bump for tracking.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-001-tune/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -81,9 +99,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-002-cross-tier-consistency
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Detects drift between Tier 1 git artifacts (manifest, governance, skills, hooks, schedules) and Tier 2 Supabase state. Routes drift events through ops.events → ops.hitl_runs based on severity (info/warn/critical) and hitl_tier (A/B/C/D-Std/D-MAX) declared per invariant in knowledge/cross-tier-invariants.yaml.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-002-cross-tier-consistency/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -92,9 +113,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-003-docs-sync
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Status: Scaffold (Phase 7 Sprint 1 PR-2 — skill markdown + SOP + command stubs only; live walker code lands in PR-3) Version: 1.0.0 Pillar: 06-ai-ops Capability: docs-engine Sibling SOP: SOP-INGEST-001-wiki-sync (external → wiki/); this one is internal → docs/.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-003-docs-sync/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -103,9 +127,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-003-sop-runtime-contract
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > The canonical contract for what an SOP is, how it's invoked, and what flow.yaml must contain. > Every other SOP in this repo MUST conform to the schema defined here. The validator (validator/validate.ts) enforces it. Smoke test SOP-AIOPS-004 runs the validator across every flow.yaml in repo.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sop-engine/SOP-AIOPS-003-sop-runtime-contract/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -114,9 +141,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-004-evolve
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Canonical SOP for the /evolve self-improvement command. Defines the > declarative loop semantics; pairs with flow.yaml (machine-readable) > and wiki/capabilities/evolve/spec.md (full capability spec).
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-004-evolve/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -125,9 +155,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-004-flow-yaml-smoke-test
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Runs SOP-AIOPS-003/validator/validate.sh across every flow.yaml in repo. Fails CI if any flow.yaml violates the runtime contract schema.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sop-engine/SOP-AIOPS-004-flow-yaml-smoke-test/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -136,9 +169,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-GBRAIN-001-write-discipline
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Governs every gbrain MCP write tool invocation (put_page, add_link, update_page, archive_page). Tier B notify-first-then-batch per founder Phase 4 selection. Daily Telegram digest batches multiple writes for one founder review session. Founder one-click [Undo] within 1h reverts via mcp__gbrain__archive_page on the new page or revert the diff on update.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-001-write-discipline/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -147,9 +183,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-GBRAIN-002-promotion-workflow
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Governs the promotion path defined in knowledge/memory-architecture.md v1.1. Brain pages mature → wiki/ research → 00-core/ canonical. Each step is Tier C PR; quarterly 00-core step requires founder + cofounder signatures.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-002-promotion-workflow/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -158,9 +197,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Governs the nightly gbrain-dream-cycle (04:00 ICT). Routes both ritsu.gbrain.consistency_drift events (Tier B, from nightly L1/L2/L3 sweep) and ritsu.gbrain.budget_breach events (Tier C, from pre-budget- check.sh threshold crossings) to founder via appropriate channels. Tracks dream cycle success rate via brain.dream_cycle_success_rate_7d KPI.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-003-dream-cycle-monitoring/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -169,9 +211,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-001-aha-moment-definition-and-tracking
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 01-success sub-pillar > Owner role: cs-coach > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/success/sops/SOP-CUSTOMER-001-aha-moment-definition-and-tracking/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -180,9 +225,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-002-activation-event-instrumentation
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 01-success sub-pillar > Owner role: cs-coach > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/success/sops/SOP-CUSTOMER-002-activation-event-instrumentation/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -191,9 +239,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-003-day-1-day-7-day-30-cohort-tracking
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 01-success sub-pillar > Owner role: cs-coach > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/success/sops/SOP-CUSTOMER-003-day-1-day-7-day-30-cohort-tracking/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -202,9 +253,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-004-streak-and-emotional-hook-design
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 01-success sub-pillar > Owner role: cs-coach > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/success/sops/SOP-CUSTOMER-004-streak-and-emotional-hook-design/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -213,9 +267,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-005-mastery-progression-tracking
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 01-success sub-pillar > Owner role: cs-coach > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/success/sops/SOP-CUSTOMER-005-mastery-progression-tracking/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -224,9 +281,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-006-collison-install-script
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 02-onboarding sub-pillar > Owner role: cs-coach > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/onboarding/sops/SOP-CUSTOMER-006-collison-install-script/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -235,9 +295,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-007-stuck-user-detection-and-outreach
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 02-onboarding sub-pillar > Owner role: cs-coach > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/onboarding/sops/SOP-CUSTOMER-007-stuck-user-detection-and-outreach/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -246,9 +309,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-008-onboarding-call-runbook
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 02-onboarding sub-pillar > Owner role: cs-coach > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/onboarding/sops/SOP-CUSTOMER-008-onboarding-call-runbook/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -257,9 +323,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-009-onboarding-script-automation-31plus
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 02-onboarding sub-pillar > Owner role: cs-coach > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/onboarding/sops/SOP-CUSTOMER-009-onboarding-script-automation-31plus/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -268,9 +337,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-010-faq-classification-and-routing
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 03-support sub-pillar > Owner role: support-agent > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/support/sops/SOP-CUSTOMER-010-faq-classification-and-routing/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -279,9 +351,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-011-support-reply-drafting
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 03-support sub-pillar > Owner role: support-agent > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/support/sops/SOP-CUSTOMER-011-support-reply-drafting/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -290,9 +365,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-012-escalation-to-founder-criteria
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 03-support sub-pillar > Owner role: escalation-router > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/support/sops/SOP-CUSTOMER-012-escalation-to-founder-criteria/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -301,9 +379,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-013-incident-status-page-update
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 03-support sub-pillar > Owner role: support-agent > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/support/sops/SOP-CUSTOMER-013-incident-status-page-update/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -312,9 +393,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-014-reactivation-email-on-7-day-silence
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 04-retention sub-pillar > Owner role: retention-watcher > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/retention/sops/SOP-CUSTOMER-014-reactivation-email-on-7-day-silence/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -323,9 +407,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-015-cancel-flow-design
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 04-retention sub-pillar > Owner role: retention-watcher > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/retention/sops/SOP-CUSTOMER-015-cancel-flow-design/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -334,9 +421,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-016-win-back-attempt-protocol
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 04-retention sub-pillar > Owner role: retention-watcher > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/retention/sops/SOP-CUSTOMER-016-win-back-attempt-protocol/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -345,9 +435,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-017-deep-engagement-celebration-protocol
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 04-retention sub-pillar > Owner role: retention-watcher > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/retention/sops/SOP-CUSTOMER-017-deep-engagement-celebration-protocol/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -356,9 +449,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-018-in-app-nps-collection
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 05-feedback-and-research sub-pillar > Owner role: feedback-aggregator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/feedback-and-research/sops/SOP-CUSTOMER-018-in-app-nps-collection/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -367,9 +463,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-019-cancel-flow-feedback-capture
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 05-feedback-and-research sub-pillar > Owner role: feedback-aggregator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/feedback-and-research/sops/SOP-CUSTOMER-019-cancel-flow-feedback-capture/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -378,9 +477,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-020-user-interview-recruitment
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 05-feedback-and-research sub-pillar > Owner role: feedback-aggregator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/feedback-and-research/sops/SOP-CUSTOMER-020-user-interview-recruitment/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -389,9 +491,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-021-feedback-to-product-pipeline
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 05-feedback-and-research sub-pillar > Owner role: feedback-aggregator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/feedback-and-research/sops/SOP-CUSTOMER-021-feedback-to-product-pipeline/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -400,9 +505,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-022-customer-360-refresh
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 06-customer-data sub-pillar > Owner role: customer-lead > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/customer-data/sops/SOP-CUSTOMER-022-customer-360-refresh/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -411,9 +519,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-023-gdpr-account-deletion
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 06-customer-data sub-pillar > Owner role: customer-lead > HITL tier: D-Std
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/customer-data/sops/SOP-CUSTOMER-023-gdpr-account-deletion/flow.yaml")`
+**HITL tier:** D-Std
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -422,9 +533,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-CUSTOMER-024-segmentation-by-behavior
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: customer · 06-customer-data sub-pillar > Owner role: customer-lead > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("05-customer/customer-data/sops/SOP-CUSTOMER-024-segmentation-by-behavior/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -433,9 +547,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-001-weekly-top-idea-audit
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 01-cognition sub-pillar > Owner role: founder-coach > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/cognition/sops/SOP-FOUNDER-001-weekly-top-idea-audit/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -444,9 +561,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-002-nile-perch-detection
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 01-cognition sub-pillar > Owner role: founder-coach > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/cognition/sops/SOP-FOUNDER-002-nile-perch-detection/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -455,9 +575,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-003-makers-schedule-protection
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 01-cognition sub-pillar > Owner role: gps > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/cognition/sops/SOP-FOUNDER-003-makers-schedule-protection/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -466,9 +589,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-004-decision-log-discipline
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 01-cognition sub-pillar > Owner role: gps > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/cognition/sops/SOP-FOUNDER-004-decision-log-discipline/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -477,9 +603,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-005-reversible-vs-irreversible-router
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 01-cognition sub-pillar > Owner role: gps > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/cognition/sops/SOP-FOUNDER-005-reversible-vs-irreversible-router/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -488,9 +617,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-006-weekly-charter-reread
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 02-charter-discipline sub-pillar > Owner role: gps > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/charter-discipline/sops/SOP-FOUNDER-006-weekly-charter-reread/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -499,9 +631,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-007-charter-violation-detection
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 02-charter-discipline sub-pillar > Owner role: gps > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/charter-discipline/sops/SOP-FOUNDER-007-charter-violation-detection/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -510,9 +645,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-008-charter-evolution-pr-protocol
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 02-charter-discipline sub-pillar > Owner role: gps > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/charter-discipline/sops/SOP-FOUNDER-008-charter-evolution-pr-protocol/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -521,9 +659,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-009-telegram-hitl-bot-config
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 03-hitl-flow sub-pillar > Owner role: hitl-router > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/hitl-flow/sops/SOP-FOUNDER-009-telegram-hitl-bot-config/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -532,9 +673,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-010-tier-c-d-batch-and-clear
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 03-hitl-flow sub-pillar > Owner role: hitl-router > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/hitl-flow/sops/SOP-FOUNDER-010-tier-c-d-batch-and-clear/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -543,9 +687,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-011-override-magic-phrase-discipline
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 03-hitl-flow sub-pillar > Owner role: hitl-router > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/hitl-flow/sops/SOP-FOUNDER-011-override-magic-phrase-discipline/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -554,9 +701,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-012-d-max-cooldown-protocol
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 03-hitl-flow sub-pillar > Owner role: hitl-router > HITL tier: D-MAX
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/hitl-flow/sops/SOP-FOUNDER-012-d-max-cooldown-protocol/flow.yaml")`
+**HITL tier:** D-MAX
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -565,9 +715,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-013-friday-review-template
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 04-weekly-review sub-pillar > Owner role: gps > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/weekly-review/sops/SOP-FOUNDER-013-friday-review-template/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -576,9 +729,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-014-week-ahead-pillar-priorities
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 04-weekly-review sub-pillar > Owner role: gps > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/weekly-review/sops/SOP-FOUNDER-014-week-ahead-pillar-priorities/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -587,9 +743,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-015-monthly-charter-and-budget-reset
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 04-weekly-review sub-pillar > Owner role: gps > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/weekly-review/sops/SOP-FOUNDER-015-monthly-charter-and-budget-reset/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -598,9 +757,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-016-weekly-energy-tracking
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 05-health sub-pillar > Owner role: health-tracker > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/health/sops/SOP-FOUNDER-016-weekly-energy-tracking/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -609,9 +771,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-017-mandatory-rest-window
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 05-health sub-pillar > Owner role: health-tracker > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/health/sops/SOP-FOUNDER-017-mandatory-rest-window/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -620,9 +785,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-018-burnout-early-warning-signs
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 05-health sub-pillar > Owner role: health-tracker > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/health/sops/SOP-FOUNDER-018-burnout-early-warning-signs/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -631,9 +799,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-019-weekly-reading-budget
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 06-learning sub-pillar > Owner role: gps > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/learning/sops/SOP-FOUNDER-019-weekly-reading-budget/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -642,9 +813,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-020-monthly-skill-gap-audit
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 06-learning sub-pillar > Owner role: gps > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/learning/sops/SOP-FOUNDER-020-monthly-skill-gap-audit/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -653,9 +827,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-FOUNDER-021-quarterly-deep-research-week
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: founder · 06-learning sub-pillar > Owner role: gps > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("09-founder/learning/sops/SOP-FOUNDER-021-quarterly-deep-research-week/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -664,9 +841,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-001-icp-discovery-from-2-cofounders
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 01-icp-and-segmentation sub-pillar > Owner role: gtm-orchestrator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/icp-and-segmentation/sops/SOP-GTM-001-icp-discovery-from-2-cofounders/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -675,9 +855,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-002-stealth-end-pre-launch-checklist
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 02-launch-sequence sub-pillar > Owner role: gtm-orchestrator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/launch-sequence/sops/SOP-GTM-002-stealth-end-pre-launch-checklist/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -686,9 +869,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-003-public-launch-channels
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 02-launch-sequence sub-pillar > Owner role: gtm-orchestrator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/launch-sequence/sops/SOP-GTM-003-public-launch-channels/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -697,9 +883,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-004-day-one-monitoring
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 02-launch-sequence sub-pillar > Owner role: gtm-orchestrator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/launch-sequence/sops/SOP-GTM-004-day-one-monitoring/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -708,9 +897,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-005-message-test-before-amplify
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 03-distribution-engine sub-pillar > Owner role: gtm-orchestrator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/distribution-engine/sops/SOP-GTM-005-message-test-before-amplify/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -719,9 +911,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-006-multi-channel-deploy-ai
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 03-distribution-engine sub-pillar > Owner role: distribution-deployer > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/distribution-engine/sops/SOP-GTM-006-multi-channel-deploy-ai/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -730,9 +925,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-007-apollo-outbound-cold-email
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 03-distribution-engine sub-pillar > Owner role: apollo-outbound-agent > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/distribution-engine/sops/SOP-GTM-007-apollo-outbound-cold-email/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -741,9 +939,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-008-youtube-influencer-discovery
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 03-distribution-engine sub-pillar > Owner role: gtm-orchestrator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/distribution-engine/sops/SOP-GTM-008-youtube-influencer-discovery/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -752,9 +953,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-009-channel-attribution-and-doubling-down
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 03-distribution-engine sub-pillar > Owner role: gtm-orchestrator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/distribution-engine/sops/SOP-GTM-009-channel-attribution-and-doubling-down/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -763,9 +967,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-010-landing-to-signup-conversion
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 04-funnel-orchestration sub-pillar > Owner role: funnel-analyst > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/funnel-orchestration/sops/SOP-GTM-010-landing-to-signup-conversion/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -774,9 +981,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-011-signup-to-first-upload-activation
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 04-funnel-orchestration sub-pillar > Owner role: funnel-analyst > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/funnel-orchestration/sops/SOP-GTM-011-signup-to-first-upload-activation/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -785,9 +995,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-012-free-to-paid-trigger-detection
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 04-funnel-orchestration sub-pillar > Owner role: funnel-analyst > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/funnel-orchestration/sops/SOP-GTM-012-free-to-paid-trigger-detection/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -796,9 +1009,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-013-weekly-funnel-review
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 04-funnel-orchestration sub-pillar > Owner role: gtm-orchestrator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/funnel-orchestration/sops/SOP-GTM-013-weekly-funnel-review/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -807,9 +1023,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-014-pmf-survey-sean-ellis
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 05-pmf-instrumentation sub-pillar > Owner role: gtm-orchestrator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/pmf-instrumentation/sops/SOP-GTM-014-pmf-survey-sean-ellis/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -818,9 +1037,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-015-cohort-retention-tracking
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 05-pmf-instrumentation sub-pillar > Owner role: gtm-orchestrator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/pmf-instrumentation/sops/SOP-GTM-015-cohort-retention-tracking/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -829,9 +1051,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-016-very-disappointed-percentage-tracking
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 05-pmf-instrumentation sub-pillar > Owner role: gtm-orchestrator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/pmf-instrumentation/sops/SOP-GTM-016-very-disappointed-percentage-tracking/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -840,9 +1065,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-GTM-017-hand-recruit-and-onboard-by-name
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: gtm · 06-collison-install-protocol sub-pillar > Owner role: gtm-orchestrator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("03-gtm/collison-install-protocol/sops/SOP-GTM-017-hand-recruit-and-onboard-by-name/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -851,9 +1079,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-INGEST-001-wiki-sync
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** Capability: wiki-sync-from-refs (Sprint 1) Pillar: 06-ai-ops (knowledge-engineering) Status: Active from Sprint 1 (2026-05-16) Author: /cla propose 2026-05-16, Option B (Aligned with Bài #18)
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-INGEST-001-wiki-sync/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -862,9 +1093,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-001-kpi-definition-template
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 01-kpi-registry sub-pillar > Owner role: metrics-curator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/kpi-registry/sops/SOP-METRICS-001-kpi-definition-template/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -873,9 +1107,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-002-kpi-ownership-mapping
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 01-kpi-registry sub-pillar > Owner role: metrics-curator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/kpi-registry/sops/SOP-METRICS-002-kpi-ownership-mapping/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -884,9 +1121,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-003-kpi-deprecation-protocol
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 01-kpi-registry sub-pillar > Owner role: metrics-curator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/kpi-registry/sops/SOP-METRICS-003-kpi-deprecation-protocol/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -895,9 +1135,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-004-sean-ellis-very-disappointed-tracking
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 02-pmf-instrumentation sub-pillar > Owner role: metrics-curator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/pmf-instrumentation/sops/SOP-METRICS-004-sean-ellis-very-disappointed-tracking/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -906,9 +1149,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-005-cohort-retention-week-1-week-4
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 02-pmf-instrumentation sub-pillar > Owner role: metrics-curator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/pmf-instrumentation/sops/SOP-METRICS-005-cohort-retention-week-1-week-4/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -917,9 +1163,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-006-nps-collection-and-aggregation
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 02-pmf-instrumentation sub-pillar > Owner role: metrics-curator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/pmf-instrumentation/sops/SOP-METRICS-006-nps-collection-and-aggregation/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -928,9 +1177,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-007-100-paying-who-love-composite-metric
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 02-pmf-instrumentation sub-pillar > Owner role: metrics-curator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/pmf-instrumentation/sops/SOP-METRICS-007-100-paying-who-love-composite-metric/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -939,9 +1191,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-008-founder-monday-dashboard
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 03-dashboards sub-pillar > Owner role: metrics-curator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/dashboards/sops/SOP-METRICS-008-founder-monday-dashboard/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -950,9 +1205,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-009-cross-pillar-weekly-review-board
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 03-dashboards sub-pillar > Owner role: metrics-curator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/dashboards/sops/SOP-METRICS-009-cross-pillar-weekly-review-board/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -961,9 +1219,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-010-pillar-health-rollup
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 03-dashboards sub-pillar > Owner role: metrics-curator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/dashboards/sops/SOP-METRICS-010-pillar-health-rollup/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -972,9 +1233,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-011-alert-rule-yaml-format
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 04-alerting sub-pillar > Owner role: alert-router > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/alerting/sops/SOP-METRICS-011-alert-rule-yaml-format/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -983,9 +1247,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-012-alert-routing-by-severity
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 04-alerting sub-pillar > Owner role: alert-router > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/alerting/sops/SOP-METRICS-012-alert-routing-by-severity/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -994,9 +1261,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-013-alert-fatigue-audit
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 04-alerting sub-pillar > Owner role: alert-router > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/alerting/sops/SOP-METRICS-013-alert-fatigue-audit/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1005,9 +1275,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-014-experiment-design-checklist
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 05-experiment-measurement sub-pillar > Owner role: experiment-analyst > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/experiment-measurement/sops/SOP-METRICS-014-experiment-design-checklist/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1016,9 +1289,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-015-significance-and-lift-calculation
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 05-experiment-measurement sub-pillar > Owner role: experiment-analyst > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/experiment-measurement/sops/SOP-METRICS-015-significance-and-lift-calculation/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1027,9 +1303,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-016-experiment-stop-and-decide-protocol
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 05-experiment-measurement sub-pillar > Owner role: experiment-analyst > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/experiment-measurement/sops/SOP-METRICS-016-experiment-stop-and-decide-protocol/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1038,9 +1317,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-017-mrr-growth-rate-weekly
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 06-revenue-and-cost-views sub-pillar > Owner role: metrics-curator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/revenue-and-cost-views/sops/SOP-METRICS-017-mrr-growth-rate-weekly/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -1049,9 +1331,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-018-blended-cac-ltv-by-channel
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 06-revenue-and-cost-views sub-pillar > Owner role: metrics-curator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/revenue-and-cost-views/sops/SOP-METRICS-018-blended-cac-ltv-by-channel/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1060,9 +1345,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-019-ai-ops-cost-per-task-trend
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 06-revenue-and-cost-views sub-pillar > Owner role: metrics-curator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/revenue-and-cost-views/sops/SOP-METRICS-019-ai-ops-cost-per-task-trend/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1071,9 +1359,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-METRICS-020-runway-projection-monthly
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: metrics · 06-revenue-and-cost-views sub-pillar > Owner role: metrics-curator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("10-metrics/revenue-and-cost-views/sops/SOP-METRICS-020-runway-projection-monthly/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1082,9 +1373,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-001-cofounder-usage-analysis
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: v1.0.0 (filled in 2026-05-15 as part of workforce Phase 1.5 hardening — flow.yaml was previously a skeleton) > Pillar: product · wedge-discovery sub-pillar > Owner role: product-orchestrator (CPO persona façade) > HITL tier: A (analysis only; ACTING on the recommendation may bump tier)
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/wedge-discovery/sops/SOP-PRODUCT-001-cofounder-usage-analysis/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -1093,9 +1387,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-002-stranger-recruit-and-watch
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 01-wedge-discovery sub-pillar > Owner role: product-orchestrator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/wedge-discovery/sops/SOP-PRODUCT-002-stranger-recruit-and-watch/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1104,9 +1401,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-003-wedge-feature-naming-and-doubling-down
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 01-wedge-discovery sub-pillar > Owner role: product-orchestrator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/wedge-discovery/sops/SOP-PRODUCT-003-wedge-feature-naming-and-doubling-down/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1115,9 +1415,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-004-weekly-feature-prioritization
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 02-build-loop sub-pillar > Owner role: product-orchestrator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/build-loop/sops/SOP-PRODUCT-004-weekly-feature-prioritization/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1126,9 +1429,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-005-ship-then-listen-cycle
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 02-build-loop sub-pillar > Owner role: product-orchestrator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/build-loop/sops/SOP-PRODUCT-005-ship-then-listen-cycle/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1137,9 +1443,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-006-rage-detection-from-support
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 02-build-loop sub-pillar > Owner role: product-orchestrator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/build-loop/sops/SOP-PRODUCT-006-rage-detection-from-support/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1148,9 +1457,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-007-in-app-nps-collection
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 03-feedback-pipeline sub-pillar > Owner role: feedback-aggregator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/feedback-pipeline/sops/SOP-PRODUCT-007-in-app-nps-collection/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -1159,9 +1471,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-008-cancel-flow-feedback
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 03-feedback-pipeline sub-pillar > Owner role: feedback-aggregator > HITL tier: A
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/feedback-pipeline/sops/SOP-PRODUCT-008-cancel-flow-feedback/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -1170,9 +1485,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-009-feedback-to-roadmap-pipeline
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 03-feedback-pipeline sub-pillar > Owner role: product-orchestrator > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/feedback-pipeline/sops/SOP-PRODUCT-009-feedback-to-roadmap-pipeline/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1181,9 +1499,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-010-pricing-pull-test
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 04-pricing-experiments sub-pillar > Owner role: product-orchestrator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/pricing-experiments/sops/SOP-PRODUCT-010-pricing-pull-test/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1192,9 +1513,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-011-tier-boundary-experiment
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 04-pricing-experiments sub-pillar > Owner role: product-orchestrator > HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/pricing-experiments/sops/SOP-PRODUCT-011-tier-boundary-experiment/flow.yaml")`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -1203,9 +1527,12 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 ## sop/SOP-PRODUCT-012-ab-test-decision-protocol
 
 **Kind:** sop
+**Axis:** capability
 **When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 05-ab-test-discipline sub-pillar > Owner role: experiment-analyst > HITL tier: B
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/ab-test-discipline/sops/SOP-PRODUCT-012-ab-test-decision-protocol/flow.yaml")`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active

@@ -15,9 +15,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__add_link
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Add a single link between two pages. Tier B.
 
 **Invoke:** `mcp__gbrain__gbrain__add_link`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -26,9 +29,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__archive_page
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Transition page state published → archived (soft delete). Tier B.
 
 **Invoke:** `mcp__gbrain__gbrain__archive_page`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -37,9 +43,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__archive_purge_now
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Move all archived pages older than 90d to purged. Normally runs autonomously via nightly cron; this manual variant is Tier C. >100 pages → D-Std.
 
 **Invoke:** `mcp__gbrain__gbrain__archive_purge_now`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer
 **Status:** planned
@@ -48,9 +57,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__bulk_link
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Bulk add links ≤ 10 at once. Escalates to C if > 10.
 
 **Invoke:** `mcp__gbrain__gbrain__bulk_link`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -59,9 +71,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__bulk_unlink
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Bulk remove links ≤ 10 at once. Escalates to C if > 10.
 
 **Invoke:** `mcp__gbrain__gbrain__bulk_unlink`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -70,9 +85,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__code_blast
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Code graph: impact analysis (blast radius of changing X).
 
 **Invoke:** `mcp__gbrain__gbrain__code_blast`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -81,9 +99,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__code_callees
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Code graph: who does X call? (per recipients/external-sources gbrain-mcp entry)
 
 **Invoke:** `mcp__gbrain__gbrain__code_callees`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -92,9 +113,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__code_callers
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Code graph: who calls X?
 
 **Invoke:** `mcp__gbrain__gbrain__code_callers`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -103,9 +127,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__code_def
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Code graph: where is X defined?
 
 **Invoke:** `mcp__gbrain__gbrain__code_def`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -114,9 +141,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__code_refs
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Code graph: references to X.
 
 **Invoke:** `mcp__gbrain__gbrain__code_refs`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -125,9 +155,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__dream_cycle_manual
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Manually trigger dream cycle outside nightly cron. Founder + gbrain-maintainer. Tier C — cost variable (~$0.20-2.00 per run depending on brain size).
 
 **Invoke:** `mcp__gbrain__gbrain__dream_cycle_manual`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer
 **Status:** planned
@@ -136,9 +169,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__drop_all_links
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Clear all link edges. Semi-destructive (re-derivable from links_extracted).
 
 **Invoke:** `mcp__gbrain__gbrain__drop_all_links`
+**HITL tier:** D-Std
+**Side effect:** write
 
 **Role scope:** founder, cofounder
 **Status:** planned
@@ -147,9 +183,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__embedding_regenerate_all
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Re-embed ALL pages. Cost-heavy. Tier C.
 
 **Invoke:** `mcp__gbrain__gbrain__embedding_regenerate_all`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer
 **Status:** planned
@@ -158,9 +197,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__file_upload
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Upload a file blob attached to a page. Tier B.
 
 **Invoke:** `mcp__gbrain__gbrain__file_upload`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -169,9 +211,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__file_url
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Signed URL for a file blob attached to a page.
 
 **Invoke:** `mcp__gbrain__gbrain__file_url`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -180,9 +225,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__find_anomalies
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Statistical pattern detection across pages (dead links, isolated nodes, etc.).
 
 **Invoke:** `mcp__gbrain__gbrain__find_anomalies`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -191,9 +239,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__find_contradictions
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** LLM-based contradiction detection across pages on related topics.
 
 **Invoke:** `mcp__gbrain__gbrain__find_contradictions`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -202,9 +253,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__find_experts
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** People pages with most expertise on a topic (heuristic over links + page tags).
 
 **Invoke:** `mcp__gbrain__gbrain__find_experts`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -213,9 +267,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__find_trajectory
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Entity evolution over time (page history + state transitions).
 
 **Invoke:** `mcp__gbrain__gbrain__find_trajectory`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -224,9 +281,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__get_backlinks
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** List backlinks to a page.
 
 **Invoke:** `mcp__gbrain__gbrain__get_backlinks`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -235,9 +295,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__get_brain_info
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Brain DB stats (page count, embedding count, schema version, health score).
 
 **Invoke:** `mcp__gbrain__gbrain__get_brain_info`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -246,9 +309,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__get_chunks
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Get chunks for a given page (chunked storage for long pages).
 
 **Invoke:** `mcp__gbrain__gbrain__get_chunks`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -257,9 +323,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__get_health
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Health check (connection + RLS + extensions). Same as `gbrain doctor` CLI.
 
 **Invoke:** `mcp__gbrain__gbrain__get_health`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -268,9 +337,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__get_links
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** List forward links from a page.
 
 **Invoke:** `mcp__gbrain__gbrain__get_links`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -279,9 +351,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__get_page
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Fetch a single gbrain page by slug or id. Returns frontmatter + content.
 
 **Invoke:** `mcp__gbrain__gbrain__get_page`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -290,9 +365,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__list_jobs
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** List background jobs (dream cycle, ingestion, retries).
 
 **Invoke:** `mcp__gbrain__gbrain__list_jobs`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -301,9 +379,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__list_pages
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Paginated list of gbrain pages; filter by page_type, state, etc.
 
 **Invoke:** `mcp__gbrain__gbrain__list_pages`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -312,9 +393,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__mass_purge
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Hard-delete >100 pages in one operation. ONE-WAY. Magic phrase + 30s cooldown. GDPR DSR exception: SOP-CUSTOMER-023 (Tier D-Std + founder GitHub /founder-approved-irreversible) may invoke for people/<email-slug> deletion.
 
 **Invoke:** `mcp__gbrain__gbrain__mass_purge`
+**HITL tier:** D-Std
+**Side effect:** write
 
 **Role scope:** founder, cofounder
 **Status:** planned
@@ -323,9 +407,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__mass_update_pages
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Update many pages in one operation (>10). Tier C — dry-run preview + founder approval. Mass-purge threshold rule: >100 pages escalates to D-Std regardless of starting tier.
 
 **Invoke:** `mcp__gbrain__gbrain__mass_update_pages`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer
 **Status:** planned
@@ -334,9 +421,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__pause_job
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Pause a running background job. Tier B.
 
 **Invoke:** `mcp__gbrain__gbrain__pause_job`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -345,9 +435,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__put_page
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Create OR update a single gbrain page. Founder + 6 WRITE-enabled roles + gbrain-maintainer only. Tier B notify-first-then-batch per SOP-AIOPS-GBRAIN-001-write-discipline.
 
 **Invoke:** `mcp__gbrain__gbrain__put_page`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -356,9 +449,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__remove_link
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Remove a single link between two pages. Tier B.
 
 **Invoke:** `mcp__gbrain__gbrain__remove_link`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -367,9 +463,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__reset_brain
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Full brain DB reset. Equivalent to re-install. Magic phrase + cooldown.
 
 **Invoke:** `mcp__gbrain__gbrain__reset_brain`
+**HITL tier:** D-Std
+**Side effect:** write
 
 **Role scope:** founder
 **Status:** planned
@@ -378,9 +477,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__retry_job
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Retry a failed background job. Tier B.
 
 **Invoke:** `mcp__gbrain__gbrain__retry_job`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -389,9 +491,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__schema_migrate
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Apply a gbrain DB schema migration. Tier C.
 
 **Invoke:** `mcp__gbrain__gbrain__schema_migrate`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** founder, cofounder
 **Status:** planned
@@ -400,9 +505,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__search
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Semantic search across all gbrain pages. pgvector HNSW + tsvector hybrid. Founder + AI workforce primary read path.
 
 **Invoke:** `mcp__gbrain__gbrain__search`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -411,9 +519,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__submit_job
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Enqueue a background job (e.g., bulk embed, custom recipe). Tier B.
 
 **Invoke:** `mcp__gbrain__gbrain__submit_job`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -422,9 +533,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__think
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** LLM-based brain-wide reflection on a topic. Higher cost per call.
 
 **Invoke:** `mcp__gbrain__gbrain__think`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -433,9 +547,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__traverse_graph
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Graph traversal from a start node along link types; configurable depth.
 
 **Invoke:** `mcp__gbrain__gbrain__traverse_graph`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -444,9 +561,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__update_page
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** In-place page edit. Tier B.
 
 **Invoke:** `mcp__gbrain__gbrain__update_page`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
 **Status:** planned
@@ -455,9 +575,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/gbrain__gbrain__whoami
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Return calling role identity + per-tool grants. Diagnostic.
 
 **Invoke:** `mcp__gbrain__gbrain__whoami`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
 **Status:** planned
@@ -466,9 +589,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/supabase-ops__insert
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** INSERT 1..100 rows into a ritsu-ops table the caller's role may write. Table allowlist enforced from governance/ROLES.md tier2_schemas_write via mcp-server role-resolver. Phase 1: on_conflict=error|ignore only; no UPDATE/UPSERT (Phase 1.5).
 
 **Invoke:** `mcp__supabase_ops__insert`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, etl-runner, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst
 **Status:** active
@@ -477,9 +603,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/supabase-ops__query
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Execute a parameterized read-only SELECT against ritsu-ops. The shim's sql-guard rejects multi-statement, SELECT INTO, and any non-SELECT/WITH leading keyword BEFORE the DB even sees the SQL. RLS applies via the connection's role.
 
 **Invoke:** `mcp__supabase_ops__query`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, etl-runner, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst
 **Status:** active
@@ -488,9 +617,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/supabase-ops__resolver_find
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** JIT resolver — find top-N workforce recipients matching natural-language intent. Returns top-20 keyword-pre-filtered candidates with FULL when_to_use + composes_with + role_scope + recency (batched ops.agent_runs join). Session model picks primary by reading the candidates — no API key, no MCP-subprocess LLM call (iter4 policy alignment). Per-session circuit breaker: 20 finds/session/4h hard cap; warning at 15. Per-role filter: caller MCP_CALLER_ROLE matched against recipient role_scope. Catalog corrupt → degraded mode (returns INDEX-only data with degraded=true). Wire format: spec.md §4 (resolver-v3-jit-loading spec, iter4).
 
 **Invoke:** `mcp__supabase_ops__resolver_find`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, etl-runner, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, eval-evo-orchestrator, gbrain-maintainer
 **Status:** active
@@ -499,9 +631,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/supabase-ops__wiki_ask
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Citation-disciplined RAG over wiki/ + ops.knowledge_embeddings. v3.0 entity-first retrieval (prefers derived entity pages over source chunks). v4.0 adds filter.source / filter.packages for package-scoped retrieval. Returns structured retrieval_results (no synthesis — caller LLM synthesizes with Muse M5 citation discipline). NEVER falls back to training data.
 
 **Invoke:** `mcp__supabase_ops__wiki_ask`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, etl-runner, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst
 **Status:** active
@@ -510,9 +645,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/supabase-ops__wiki_get_page
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Fetch a single wiki page by slug + optionally read its Markdown file. Slug is global UNIQUE (v2.0); v4.0 adds composite UNIQUE on derived entities (extracted_from_source_id, slug) but lookup remains by id-or-slug.
 
 **Invoke:** `mcp__supabase_ops__wiki_get_page`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, etl-runner, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst
 **Status:** active
@@ -521,9 +659,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/supabase-ops__wiki_list_pages
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** List wiki pages in ops.knowledge_pages, optionally filtered by page_type. v3.0 adds entity_only flag (filter to derived entity pages). v3.0 default excludes soft-deleted pages (include_deleted=false).
 
 **Invoke:** `mcp__supabase_ops__wiki_list_pages`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, etl-runner, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst
 **Status:** active
@@ -532,9 +673,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/supabase-ops__wiki_source
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Reverse lookup: list all derived entities extracted FROM a source RECORD. Returns source frontmatter + the extracted concepts/observations/decisions/ ideas joined via ops.knowledge_extractions (with confidence + raw_quote depending on include_raw_quotes). v3.0 surface; unchanged in v4.0.
 
 **Invoke:** `mcp__supabase_ops__wiki_source`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, etl-runner, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst
 **Status:** active
@@ -543,9 +687,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/unknown__ritsu.kpi.snapshot
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Get current KPI values (Phase 2)
 
 **Invoke:** `mcp__unknown__ritsu.kpi.snapshot`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, metrics-curator
 **Status:** planned
@@ -554,9 +701,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/unknown__ritsu.sop.execute
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Execute SOP by ID (Phase 2)
 
 **Invoke:** `mcp__unknown__ritsu.sop.execute`
+**HITL tier:** C
+**Side effect:** write
 
 **Role scope:** founder, cofounder
 **Status:** planned
@@ -565,9 +715,12 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 ## mcp/unknown__ritsu.system.health_check
 
 **Kind:** mcp
+**Axis:** capability
 **When to use:** Returns system health summary (Phase 2)
 
 **Invoke:** `mcp__unknown__ritsu.system.health_check`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** founder, cofounder, gps
 **Status:** planned

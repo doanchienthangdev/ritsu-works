@@ -15,6 +15,7 @@ Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 ## command/brain
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Founder-facing surface for gbrain operational brain (Type 4 Semantic
 Memory). Thin orchestrator over `mcp__gbrain__*` MCP tools. ~30 subcommands
 covering search/recall/think/write/lifecycle/tags/timeline/facts/versions/
@@ -29,6 +30,8 @@ reasoning, use @brain subagent. For automatic brain context in skills,
 rely on the 12 skills with `## Brain context` sections (Sprint 2).
 
 **Invoke:** `/brain`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -36,12 +39,15 @@ rely on the 12 skills with `## Brain context` sections (Sprint 2).
 ## command/ceo
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Open an interactive session with the CEO persona. Bound to role `gps`.
 Use this for open-ended strategic dialog, weekly planning, polling
 specialist chiefs in parallel, or "what should I focus on?" sessions.
 For bounded one-shot tasks, use @ceo (subagent) instead.
 
 **Invoke:** `/ceo`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -49,11 +55,14 @@ For bounded one-shot tasks, use @ceo (subagent) instead.
 ## command/cgo
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Open an interactive session with the CGO persona for funnel diagnosis,
 experiment design, campaign briefs, and weekly GTM planning. Bound to
 role `gtm-orchestrator`. For bounded tasks use @cgo.
 
 **Invoke:** `/cgo`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -61,9 +70,12 @@ role `gtm-orchestrator`. For bounded tasks use @cgo.
 ## command/check-drift
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Run the Cross-Tier Consistency Engine on demand. Detects drift between Tier 1 git artifacts (manifest, governance, skills, schedules) and Tier 2 Supabase state. Default mode (~3s) runs L1 + 3 critical L2 validators. `--full` adds 2 warn-tier validators. `--remote` triggers the L3 nightly sweep against the live ritsu-ops DB.
 
 **Invoke:** `/check-drift`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -71,6 +83,7 @@ role `gtm-orchestrator`. For bounded tasks use @cgo.
 ## command/cla
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Capability Lifecycle Architecture — interactive 8-phase workflow that takes
 any business problem from idea → integrated capability on Agent OS,
 end-to-end. Front-end orchestrator for SOP-AIOPS-001 (Bài #20). Dispatches
@@ -78,6 +91,8 @@ to skills in 06-ai-ops/skills/capability-lifecycle/, routes to CxOs per
 knowledge/cla-routing-keywords.yaml, persists state in ops.capability_runs.
 
 **Invoke:** `/cla`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -85,6 +100,7 @@ knowledge/cla-routing-keywords.yaml, persists state in ops.capability_runs.
 ## command/core
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Project-scoped command for ritsu-works. Front-end for the 00-core foundation
 pillar. Thin orchestrator — read/compose/validate logic in scripts/core/*.cjs,
 interactive fill logic in 06-ai-ops/skills/core-management/core-fill/.
@@ -102,6 +118,8 @@ Capability: core-redesign-and-command
 Run ID: cd377ba8-d8c6-44ed-b0ad-69981b49d45a
 
 **Invoke:** `/core`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -109,12 +127,15 @@ Run ID: cd377ba8-d8c6-44ed-b0ad-69981b49d45a
 ## command/cpo
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Open an interactive session with the CPO persona for product priorities,
 wedge discovery, PRD drafts, cancel-flow analysis, A/B test design.
 Bound to role `product-orchestrator`. Custodian of N=10 strangers PG gate.
 For bounded one-shot tasks use @cpo.
 
 **Invoke:** `/cpo`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -122,11 +143,14 @@ For bounded one-shot tasks use @cpo.
 ## command/cto
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Open an interactive session with the CTO persona for code review,
 architecture sanity, hook/MCP config review, schema/migration checks.
 Bound to role `code-reviewer`. For one-shot bounded review use @cto.
 
 **Invoke:** `/cto`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -134,9 +158,12 @@ Bound to role `code-reviewer`. For one-shot bounded review use @cto.
 ## command/docs
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Project-scoped command for ritsu-works. Front-end for the docs-engine capability. Thin orchestrator — phase logic lives in skills under 06-ai-ops/skills/docs-engine/. Mirrors /wiki ergonomics 1:1 (per @cto Phase 2 lens).
 
 **Invoke:** `/docs`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -144,11 +171,14 @@ Bound to role `code-reviewer`. For one-shot bounded review use @cto.
 ## command/evolve
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Iterative evaluate→propose-improvement→install→re-evaluate loop on any
 ritsu-works leaf entity (skill / command / agent / hook / SOP). Foundational
 self-improvement capability per wiki/capabilities/evolve/spec.md.
 
 **Invoke:** `/evolve`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -156,6 +186,7 @@ self-improvement capability per wiki/capabilities/evolve/spec.md.
 ## command/mcp-doctor
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Diagnose supabase-ops MCP shim health. Verifies .mcp.json, env vars,
 project_ref allowlist, registry, role resolution, registered tools,
 Supabase connectivity, ops_run_select RPC presence, and today's audit
@@ -163,6 +194,8 @@ row count. Output: HEALTHY | DEGRADED | UNHEALTHY plus a per-check
 table.
 
 **Invoke:** `/mcp-doctor`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -170,9 +203,12 @@ table.
 ## command/playbook
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Project-scoped command for ritsu-works. Front-end for the playbook-builder capability (v1.0.0). Capability spec at wiki/capabilities/playbook-builder/ spec.md (after Phase 8 promotion; current draft .archives/cla/playbook-builder/ spec.md).
 
 **Invoke:** `/playbook`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -180,9 +216,12 @@ table.
 ## command/resolver
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Lookup PLATFORM v3 (JIT Loading). Founder/operator surface for resolver. Mode A2 delegates to mcp__resolver__find for ~10K INDEX + drill-down via MCP. Mode C keyword fallback retained for CRON/edge. v2.2 ambient (55K catalog) deprecated post-cutover.
 
 **Invoke:** `/resolver`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -190,6 +229,7 @@ table.
 ## command/think
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Project-scoped command for ritsu-works. Front-end for the
 **thinking-toolkit** capability (v1.1.0). Routes to 6 McKinsey/Minto-derived
 thinking-discipline skills under `06-ai-ops/skills/thinking-toolkit/`.
@@ -208,6 +248,8 @@ subcommand table below — no command-side code changes.
 Tier A (guidance only — no external action, no money, no user impact).
 
 **Invoke:** `/think`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -215,6 +257,7 @@ Tier A (guidance only — no external action, no money, no user impact).
 ## command/update
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Refresh any ritsu-works leaf entity (skill | command | agent | sop) from
 verified external information via citation-disciplined distill + K4
 quality ratchet. Third foundational write-loop alongside /cla (create)
@@ -225,6 +268,8 @@ on quality regression. See wiki/capabilities/update/spec.md (after Phase
 8 promotion) or draft .archives/cla/update/spec.md.
 
 **Invoke:** `/update`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -232,9 +277,12 @@ on quality regression. See wiki/capabilities/update/spec.md (after Phase
 ## command/wiki
 
 **Kind:** command
+**Axis:** capability
 **When to use:** Project-scoped command for ritsu-works. Front-end for the wiki-sync capability (wiki-sync-from-refs). Thin orchestrator — phase logic lives in the skills under 06-ai-ops/skills/wiki-sync/. Follows the same orchestrator pattern as /cla (delegate to skill; manage HITL gates; persist state).
 
 **Invoke:** `/wiki`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active

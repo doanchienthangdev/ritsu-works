@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 12
+**Total entries:** 13
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -15,6 +15,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/capability-lifecycle-architecture
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** Capability Lifecycle Architecture (Bài #20). Standardized workflow để propose, analyze, architect, build new capabilities. v1.2 (2026-05-25) — Phase 5 architect adds Step 2.5 (brain-integration decision: 3-question rubric → NONE|READ-only|READ+WRITE|WRITE-only|COST-managed). Phase 8 catalog-updater adds Step 6.5 (auto-regenerate resolver v2 catalog via sync.cjs --apply, all 16 recipient kinds). Cl v1.2.0
 
 **Invoke:** `Read("wiki/capabilities/capability-lifecycle-architecture/spec.md")` or `/cla update capability-lifecycle-architecture`
@@ -26,6 +27,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/cla-update-mechanism
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** CLA Update Sub-flows (v1.1 — fix/extend/revise/tune/deprecate). Right-sized evolution sub-flows for operating capabilities. Extends Bài #20 v1.0 with 5 sub-commands + dependency-scanner + spec versioning + concurrency lock + lineage chain. First non-meta capability built via Approach E (use /cla on itself). Resolves Bài #20 OQ-CLA-2. v1.0.0
 
 **Invoke:** `Read("wiki/capabilities/cla-update-mechanism/spec.md")` or `/cla update cla-update-mechanism`
@@ -37,6 +39,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/core-redesign-and-command
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** Redesign 00-core foundation + /core command. Transformed 00-core/ from a 5-doc charter folder into a 19-doc canonical v1.0.0
 
 **Invoke:** `Read("wiki/capabilities/core-redesign-and-command/spec.md")` or `/cla update core-redesign-and-command`
@@ -48,6 +51,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/docs-engine
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN). Live operator + AI runtime context bundle. docs/ folder ở repo root v1.2.0
 
 **Invoke:** `Read("wiki/capabilities/docs-engine/spec.md")` or `/cla update docs-engine`
@@ -59,6 +63,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/evolve
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** /evolve — Eval+Evo Feedback Loop for ritsu-works entities. Iterative evaluate→propose-improvement→install→re-evaluate loop on v1.1.0
 
 **Invoke:** `Read("wiki/capabilities/evolve/spec.md")` or `/cla update evolve`
@@ -70,6 +75,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/gbrain-operational-brain
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** GBrain Operational Brain (Type 4 Semantic Memory Integration). Integrate GBrain (installed 2026-05-23 as ritsu-brain Supabase Free v1.0.0
 
 **Invoke:** `Read("wiki/capabilities/gbrain-operational-brain/spec.md")` or `/cla update gbrain-operational-brain`
@@ -81,6 +87,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/playbook-builder
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration. Automation layer for the AI-Native Company Playbook PDF v1.0.0
 
 **Invoke:** `Read("wiki/capabilities/playbook-builder/spec.md")` or `/cla update playbook-builder`
@@ -89,9 +96,22 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **Status:** operating
 **Pillar:** 06-ai-ops
 
+## capability/resolver-plan
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** resolver-plan — resolver as a first-class 2-axis planner with a self-fresh catalog. Extends resolver into a first-class TWO-AXIS PLANNER (content vs capability) that emits a populated ResolverPlan v1 (= first-class context_recipe) for direct consumption by orchestrators — starting with /deepask (Capability 2). Adds a DETERMINISTIC axis tag + candidate enrichment (hitl_tier/side_effect for capabili v1.0.0
+
+**Invoke:** `Read("wiki/capabilities/resolver-plan/spec.md")` or `/cla update resolver-plan`
+
+**Role scope:** *
+**Status:** planning
+**Pillar:** 06-ai-ops
+
 ## capability/resolver-v2.2-context-sources
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** /resolver v2.2 — Context Sources (5 new recipient kinds + adapter skeleton). Incremental on resolver-v2.1 (catalog architecture unchanged). Adds 5 new v2.2.0
 
 **Invoke:** `Read("wiki/capabilities/resolver-v2.2-context-sources/spec.md")` or `/cla update resolver-v2.2-context-sources`
@@ -103,6 +123,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/resolver-v3-jit-loading
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** /resolver v3 — JIT Loading (Pocket Map + Drill-Down). Replaces v2.2's 55K-token ambient catalog (preloaded every session via v3.0.4
 
 **Invoke:** `Read("wiki/capabilities/resolver-v3-jit-loading/spec.md")` or `/cla update resolver-v3-jit-loading`
@@ -114,6 +135,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/thinking-toolkit
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 6 standalone composable skills extracted from McKinsey/Minto thinking v1.1.0
 
 **Invoke:** `Read("wiki/capabilities/thinking-toolkit/spec.md")` or `/cla update thinking-toolkit`
@@ -125,6 +147,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/update
 
 **Kind:** capability
+**Axis:** meta
 **When to use:** Update — Bayesian-update verb for ritsu-works entities (refs-driven). NEW slash command /update <type> <name> --refs=<refs> for refs-driven v1.1.1
 
 **Invoke:** `Read("wiki/capabilities/update/spec.md")` or `/cla update update`
@@ -136,7 +159,8 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 ## capability/wiki-sync-from-refs
 
 **Kind:** capability
-**When to use:** Wiki Sync from External Refs (v4.0 source-grouped distill+extract). v4.0 (2026-05-18): SOURCE-GROUPED layout flip. Same distill+extract v4.4.0
+**Axis:** meta
+**When to use:** Wiki Sync from External Refs (v4.0 source-grouped distill+extract). v4.0 (2026-05-18): SOURCE-GROUPED layout flip. Same distill+extract v4.4.1
 
 **Invoke:** `Read("wiki/capabilities/wiki-sync-from-refs/spec.md")` or `/cla update wiki-sync-from-refs`
 

@@ -15,9 +15,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-ai-native-philosophy
 
 **Kind:** page
+**Axis:** content
 **When to use:** > Canonical statement of how Ritsu operates as an AI-Native company. Previously spread across CLAUDE.md + governance/ROLES.md + .archives/pillars/PLAN.md. This file consolidates the operating belief; cited by every new agent role spec + cofounder onboarding + founder-coach. > > v0.1 caveat: This is theory based on the FIRST 30 days of building the workforce. Revise after 30 days of OPERATING data ...
 
 **Invoke:** `Read("00-core/ai-native-philosophy.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/ai-native-philosophy.md
 
 **Role scope:** *
 **Status:** active
@@ -25,9 +29,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-brand_voice
 
 **Kind:** page
+**Axis:** content
 **When to use:** > How Ritsu sounds — internally to the workforce, externally to customers, and consistently across both.
 
 **Invoke:** `Read("00-core/brand_voice.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/brand_voice.md
 
 **Role scope:** *
 **Status:** active
@@ -35,9 +43,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-charter
 
 **Kind:** page
+**Axis:** content
 **When to use:** > Vision, market, monetization, cognitive style, and boundaries.
 
 **Invoke:** `Read("00-core/charter.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/charter.md
 
 **Role scope:** *
 **Status:** active
@@ -45,9 +57,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-decision-rights-narrative
 
 **Kind:** page
+**Axis:** content
 **When to use:** Tier 1 core doc: decision-rights-narrative
 
 **Invoke:** `Read("00-core/decision-rights-narrative.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/decision-rights-narrative.md
 
 **Role scope:** *
 **Status:** active
@@ -55,9 +71,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-design-system
 
 **Kind:** page
+**Axis:** content
 **When to use:** Tier 1 core doc: design-system
 
 **Invoke:** `Read("00-core/design-system.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/design-system.md
 
 **Role scope:** *
 **Status:** active
@@ -65,9 +85,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-glossary
 
 **Kind:** page
+**Axis:** content
 **When to use:** Tier 1 core doc: glossary
 
 **Invoke:** `Read("00-core/glossary.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/glossary.md
 
 **Role scope:** *
 **Status:** active
@@ -75,9 +99,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-icp-summary
 
 **Kind:** page
-**When to use:** > 1-page distillation of WHO the first 100 customers are. Detailed ICP work lives in 01-marketing/icp/ (SOP-MARKETING-001 when scaffolded). This file is the compressed canonical pointer cited by growth-orchestrator, content-drafter, support-agent. > > v0 caveat: ICP IS the hypothesis we test in the next 30 days. Revise on first 30 paying customer signal — at that point we have observed-not-surveye...
+**Axis:** content
+**When to use:** <!-- updated-by: /update tier1-file v1.1.1 run=7130c72c-dc71-4b6a-89b5-5097eac378f6 @ 2026-05-29 (D-Std override: realign icp-summary to US-led intermarket psychographic-deep ICP matching positioning A+) -->
 
 **Invoke:** `Read("00-core/icp-summary.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/icp-summary.md
 
 **Role scope:** *
 **Status:** active
@@ -85,9 +113,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-north-star
 
 **Kind:** page
-**When to use:** > The single canonical compressed answer to "what are we optimizing?". Cited by ANY agent making prioritization decisions across 03-gtm / 04-product / 10-metrics. Update on stage transition (current → next stage).
+**Axis:** content
+**When to use:** <!-- updated-by: /update tier1-file v1.1.1 run=77ae5713-dd82-49a1-84db-26535aeda9c7 @ 2026-05-29 (D-Std override: realign north-star to A+ three-layer structure + honest timeline + US coherence). Goal + ambition preserved; structure/honesty/coherence sharpened. -->
 
 **Invoke:** `Read("00-core/north-star.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/north-star.md
 
 **Role scope:** *
 **Status:** active
@@ -95,9 +127,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-operating-cadence
 
 **Kind:** page
+**Axis:** content
 **When to use:** Tier 1 core doc: operating-cadence
 
 **Invoke:** `Read("00-core/operating-cadence.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/operating-cadence.md
 
 **Role scope:** *
 **Status:** active
@@ -105,9 +141,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-positioning
 
 **Kind:** page
-**When to use:** > One-liner + elevator + slogan + tagline registry. Single source for every marketing touchpoint — homepage, ads, emails, social, slides. Skills cite this directly via Read OR /core compose strategy. > > Brand voice + tone rules live in brandvoice.md. This file is the WHAT TO SAY; brandvoice.md is the HOW TO SAY IT.
+**Axis:** content
+**When to use:** <!-- updated-by: /update tier1-file v1.1.1 run=3c414130-f23b-4aa1-9c6e-b901b971f797 @ 2026-05-29 (D-Std override: refine positioning.md to Kotler A+ + trust-first US-led repositioning) -->
 
 **Invoke:** `Read("00-core/positioning.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/positioning.md
 
 **Role scope:** *
 **Status:** active
@@ -115,9 +155,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-pricing-philosophy
 
 **Kind:** page
+**Axis:** content
 **When to use:** Tier 1 core doc: pricing-philosophy
 
 **Invoke:** `Read("00-core/pricing-philosophy.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/pricing-philosophy.md
 
 **Role scope:** *
 **Status:** active
@@ -125,9 +169,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-principles
 
 **Kind:** page
+**Axis:** content
 **When to use:** > Decision-making heuristics. The "if-then" patterns Ritsu uses to act fast under uncertainty. Cited by /cla architect, sprint-planner, founder-coach skills. > > v0.1 caveat: These principles draw from PG, Bezos, Munger, Horowitz, Altman, Chesky, Graham — well-tested by other founders, but UNTESTED by Ritsu's situation specifically. Revise at first founder retro post-30-paying with real Ritsu exam...
 
 **Invoke:** `Read("00-core/principles.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/principles.md
 
 **Role scope:** *
 **Status:** active
@@ -135,9 +183,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-product
 
 **Kind:** page
-**When to use:** > Canonical source of truth for what Ritsu is. > Every agent must align with this document before producing marketing, sales, support, or product-ops output. If reality drifts from this document, update the document via PR — do not let two truths exist.
+**Axis:** content
+**When to use:** <!-- updated-by: /update tier1-file v1.1.1 run=6fb167a2-7e2c-4bdb-aae8-f82075e32eb6 @ 2026-05-29 (D-Std override: realign product.md to US-led A+ with three-level product structure + SERVQUAL). FRAMING + COHERENCE + THEORY refresh only — all product FACTS unchanged + still live-verified 2026-05-28. -->
 
 **Invoke:** `Read("00-core/product.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/product.md
 
 **Role scope:** *
 **Status:** active
@@ -145,9 +197,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-transparency
 
 **Kind:** page
+**Axis:** content
 **When to use:** > Public-facing transparency document. Source for the page at ritsu.ai/transparency. Updates via PR (Tier C).
 
 **Invoke:** `Read("00-core/transparency.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/transparency.md
 
 **Role scope:** *
 **Status:** active
@@ -155,9 +211,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-values
 
 **Kind:** page
+**Axis:** content
 **When to use:** > Operating principles that bias every decision when in doubt. Cited by /cla domain-analyst + decision-aware skills. > > v0.1 caveat: Pre-PMF, these are HYPOTHESES extracted from already-stated boundaries (transparency.md + HITL.md). Revise at 30-paying milestone with actual paying-customer language + retention failure analysis. Don't lock values that come from theory rather than observed behavior...
 
 **Invoke:** `Read("00-core/values.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/values.md
 
 **Role scope:** *
 **Status:** active
@@ -165,9 +225,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/core-wedge
 
 **Kind:** page
+**Axis:** content
 **When to use:** Tier 1 core doc: wedge
 
 **Invoke:** `Read("00-core/wedge.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** 00-core/wedge.md
 
 **Role scope:** *
 **Status:** active
@@ -175,9 +239,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/governance-BUDGET
 
 **Kind:** page
+**Axis:** content
 **When to use:** > Hard limits + soft thresholds cho AI workforce spending. Per Bài #7 economic architecture + chương 30 LLM modes.
 
 **Invoke:** `Read("governance/BUDGET.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** governance/BUDGET.md
 
 **Role scope:** *
 **Status:** active
@@ -185,9 +253,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/governance-HITL
 
 **Kind:** page
+**Axis:** content
 **When to use:** > The single most important policy in this repo. > Read before any action that touches the world outside .archives/ or raw/.
 
 **Invoke:** `Read("governance/HITL.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** governance/HITL.md
 
 **Role scope:** *
 **Status:** active
@@ -195,9 +267,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/governance-IDENTITY
 
 **Kind:** page
+**Axis:** content
 **When to use:** > Operational governance for Ritsu's per-role service identities across external systems. The implementation reference for the strategy in knowledge/identity-architecture.md sub-domain D.
 
 **Invoke:** `Read("governance/IDENTITY.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** governance/IDENTITY.md
 
 **Role scope:** *
 **Status:** active
@@ -205,9 +281,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/governance-ROLES
 
 **Kind:** page
+**Axis:** content
 **When to use:** > Defines the agent roles operating in ritsu-works, what each is permitted to do, and how roles map to skills, tools, and secrets.
 
 **Invoke:** `Read("governance/ROLES.md")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** governance/ROLES.md
 
 **Role scope:** *
 **Status:** active
@@ -215,9 +295,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-alert-rules
 
 **Kind:** page
+**Axis:** content
 **When to use:** alert-rules.yaml — Alert routing (Bài #10)
 
 **Invoke:** `Read("knowledge/alert-rules.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/alert-rules.yaml
 
 **Role scope:** *
 **Status:** active
@@ -225,9 +309,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-capability-registry
 
 **Kind:** page
+**Axis:** content
 **When to use:** ============================================================================ capability-registry.yaml — Capability Registry (Bài #20) ============================================================================ Tier 1 declarative file (Tier 1 #19). Tracks all capabilities deployed on Agent OS — proposed, in-progress, deployed, deprecated. Each capability = unit of business value packaged as: - 1+ ...
 
 **Invoke:** `Read("knowledge/capability-registry.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/capability-registry.yaml
 
 **Role scope:** *
 **Status:** active
@@ -235,9 +323,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-channels
 
 **Kind:** page
+**Axis:** content
 **When to use:** ============================================================================ channels.yaml — Multi-Surface channels (Bài #17) ============================================================================ Tier 1 declarative file. Defines surfaces project publishes to / receives from. Pattern: SurfaceAdapter interface implementation per channel. Each channel: - Has type (video, social, email, dashboa...
 
 **Invoke:** `Read("knowledge/channels.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/channels.yaml
 
 **Role scope:** *
 **Status:** active
@@ -245,9 +337,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-cla-routing-keywords
 
 **Kind:** page
+**Axis:** content
 **When to use:** CLA Routing Keywords Tier 1 file mapping problem-statement keywords → CxO persona + fallback role. Read by /cla command Phase 2 (Domain Deep-Dive) to auto-route the problem to the right specialist chief. Resolution rule (per .archives/cla/03-architecture.md §6): 1. /cla scans problem.md text against `routes.*.keywords` (case-insensitive substring match). 2. If exactly 1 route matches → dispatch to...
 
 **Invoke:** `Read("knowledge/cla-routing-keywords.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/cla-routing-keywords.yaml
 
 **Role scope:** *
 **Status:** active
@@ -255,9 +351,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-cross-tier-invariants
 
 **Kind:** page
+**Axis:** content
 **When to use:** ============================================================================ Cross-Tier Invariants — Ritsu Works Consistency Engine ============================================================================ Declarative manifest of relationships between Tier 1 git artifacts, Tier 2 Supabase ops state, and (later) Tier 3/4 derived artifacts. Consumed by: - L1 pre-commit: structural invariants (fil...
 
 **Invoke:** `Read("knowledge/cross-tier-invariants.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/cross-tier-invariants.yaml
 
 **Role scope:** *
 **Status:** active
@@ -265,9 +365,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-data-retention
 
 **Kind:** page
+**Axis:** content
 **When to use:** data-retention.yaml — GDPR data retention (Bài #16)
 
 **Invoke:** `Read("knowledge/data-retention.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/data-retention.yaml
 
 **Role scope:** *
 **Status:** active
@@ -275,9 +379,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-event-aggregation
 
 **Kind:** page
+**Axis:** content
 **When to use:** event-aggregation.yaml — Event aggregation rules (Bài #11)
 
 **Invoke:** `Read("knowledge/event-aggregation.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/event-aggregation.yaml
 
 **Role scope:** *
 **Status:** active
@@ -285,9 +393,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-event-subscriptions
 
 **Kind:** page
+**Axis:** content
 **When to use:** event-subscriptions.yaml — Event subscriptions (Bài #11) See playbook chương 18 + DRAFT bai-11
 
 **Invoke:** `Read("knowledge/event-subscriptions.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/event-subscriptions.yaml
 
 **Role scope:** *
 **Status:** active
@@ -295,9 +407,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-external-sources
 
 **Kind:** page
+**Axis:** content
 **When to use:** External Sources Registry — resolver v2.2 (Context Sources capability) Single declarative file listing every 3rd-party / external integration the AI workforce uses to reach the world outside ritsu-works. Read by scripts/resolver-v2/catalog-generator.cjs generateExternalSources() and projected into knowledge/recipients/external-sources.md as recipients with kind=external-source + source_type discri...
 
 **Invoke:** `Read("knowledge/external-sources.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/external-sources.yaml
 
 **Role scope:** *
 **Status:** active
@@ -305,9 +421,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-feature-flags
 
 **Kind:** page
+**Axis:** content
 **When to use:** ============================================================================ feature-flags.yaml — LLM Access Modes & Feature Gating ============================================================================ Tier 1 declarative: which features run autonomously (need API keys) vs manually (fallback to Claude Code session). Edit via PR governance. See playbook chương 30 for full explanation of modes...
 
 **Invoke:** `Read("knowledge/feature-flags.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/feature-flags.yaml
 
 **Role scope:** *
 **Status:** active
@@ -315,9 +435,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-founder-rhythm
 
 **Kind:** page
+**Axis:** content
 **When to use:** ============================================================================ founder-rhythm.yaml — Founder Capacity Architecture (Bài #19) ============================================================================ Tier 1 declarative file. Defines founder daily/weekly rhythms, attention budget, cognitive load distribution. Capstone bài toán — touches every prior architecture layer. ==============...
 
 **Invoke:** `Read("knowledge/founder-rhythm.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/founder-rhythm.yaml
 
 **Role scope:** *
 **Status:** active
@@ -325,9 +449,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-ingestion-routing
 
 **Kind:** page
+**Axis:** content
 **When to use:** ingestion-routing.yaml — Voice note classification routing (Bài #18) v4.0 boundary note (wiki-sync-from-refs revise, Sprint 1, 2026-05-18): The targets below (wiki/raw-ideas/, wiki/observations/) are for the VOICE-NOTE direct-ingest flow, NOT for wiki-sync's distill+extract pipeline. v4.0 source-grouped layout (wiki/<source-slug>/{source.md, concepts/, ...}/) applies to wiki-sync output. Voice not...
 
 **Invoke:** `Read("knowledge/ingestion-routing.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/ingestion-routing.yaml
 
 **Role scope:** *
 **Status:** active
@@ -335,9 +463,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-ingestion-sources
 
 **Kind:** page
+**Axis:** content
 **When to use:** ingestion-sources.yaml — Knowledge ingestion sources (Bài #18) v3.0 update (2026-05-18): wiki-sync v3.0 distill+extract is now the default semantic. Each source_kind gains `distillation_supported: true|false` flag. When true, ingest pipeline runs distill skill (Sprint 2) after extract. When false (or --verbatim flag), pipeline writes single source RECORD page without entity extraction. See wiki/ca...
 
 **Invoke:** `Read("knowledge/ingestion-sources.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/ingestion-sources.yaml
 
 **Role scope:** *
 **Status:** active
@@ -345,9 +477,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-kpi-ownership
 
 **Kind:** page
+**Axis:** content
 **When to use:** KPI Ownership Index — auto-derived from pillar READMEs' "KPIs owned" sections Single-file lookup: kpi_id → owner pillar + owner role + sub-pillar (if applicable) Generated 2026-05-15 as part of pillar architecture v1.0.1 migration (Phase 1.7) Update protocol: whenever a pillar README's "KPIs owned" section changes, also update this file. Future: SOP-METRICS-002-kpi-ownership-mapping automates the ...
 
 **Invoke:** `Read("knowledge/kpi-ownership.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/kpi-ownership.yaml
 
 **Role scope:** *
 **Status:** active
@@ -355,9 +491,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-kpi-registry
 
 **Kind:** page
+**Axis:** content
 **When to use:** kpi-registry.yaml — KPIs (Bài #10)
 
 **Invoke:** `Read("knowledge/kpi-registry.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/kpi-registry.yaml
 
 **Role scope:** *
 **Status:** active
@@ -365,9 +505,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-link-inference-rules
 
 **Kind:** page
+**Axis:** content
 **When to use:** link-inference-rules.yaml — Knowledge graph (Bài #14) Auto-link extraction patterns (zero-LLM regex)
 
 **Invoke:** `Read("knowledge/link-inference-rules.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/link-inference-rules.yaml
 
 **Role scope:** *
 **Status:** active
@@ -375,9 +519,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-locales
 
 **Kind:** page
+**Axis:** content
 **When to use:** locales.yaml — Multi-locale support (Bài #17)
 
 **Invoke:** `Read("knowledge/locales.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/locales.yaml
 
 **Role scope:** *
 **Status:** active
@@ -385,9 +533,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-manifest
 
 **Kind:** page
+**Axis:** content
 **When to use:** Ritsu Works — Knowledge Manifest This file is the CONTRACT that tells every agent where each kind of company truth lives. Read it before searching, querying, or writing data. Four tiers: T1 = Canonical (this git repo) — identity, strategy, SOPs, skills, agents T2 = Operational (Postgres / Supabase ritsu-ops) — current state T3 = Events & Artifacts (Supabase Storage / S3) — append-only, immutable T...
 
 **Invoke:** `Read("knowledge/manifest.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/manifest.yaml
 
 **Role scope:** *
 **Status:** active
@@ -395,9 +547,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-mcp-roles
 
 **Kind:** page
+**Axis:** content
 **When to use:** mcp-roles.yaml — MCP role definitions (Bài #12)
 
 **Invoke:** `Read("knowledge/mcp-roles.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/mcp-roles.yaml
 
 **Role scope:** *
 **Status:** active
@@ -405,9 +561,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-mcp-tools
 
 **Kind:** page
+**Axis:** content
 **When to use:** mcp-tools.yaml — MCP tools registry (Bài #12) Lists every MCP tool the workforce may invoke, what server hosts it, the HITL tier required by default, and which roles may call it. Phase 1 (2026-05-16): real entries for the supabase-ops shim. Bài #12 generic placeholders kept as PLANNED until Phase 2 (semantic tool layer). Validated by: scripts/cross-tier/validate-mcp-tools-skill-refs.cjs (TODO-MCP-...
 
 **Invoke:** `Read("knowledge/mcp-tools.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/mcp-tools.yaml
 
 **Role scope:** *
 **Status:** active
@@ -415,9 +575,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-muse-personas
 
 **Kind:** page
+**Axis:** content
 **When to use:** ============================================================================ muse-personas.yaml — Decision Architecture personas (Bài #15) ============================================================================ Tier 1 declarative file. Defines personas for Muse panel decision-making. Each persona = expertise lens + use cases + activation patterns. 29 personas typical (founder, team, customer,...
 
 **Invoke:** `Read("knowledge/muse-personas.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/muse-personas.yaml
 
 **Role scope:** *
 **Status:** active
@@ -425,9 +589,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-playbook-chapter-source-map
 
 **Kind:** page
+**Axis:** content
 **When to use:** =========================================================================== Playbook Chapter ↔ Tier 1 Source Map =========================================================================== Maps AI-Native Company Playbook chapters (.archives/ritsu-handoff-bundle/ playbook/chapters/) to their Tier 1 source files. Consumed by `/docs sync` (via docs-engine/sync skill post-hook) to detect when a Tier 1...
 
 **Invoke:** `Read("knowledge/playbook-chapter-source-map.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/playbook-chapter-source-map.yaml
 
 **Role scope:** *
 **Status:** active
@@ -435,9 +603,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-schedules
 
 **Kind:** page
+**Axis:** content
 **When to use:** ============================================================================ schedules.yaml — Scheduled triggers (Bài #8) ============================================================================ Tier 1 declarative file. Edit via PR governance. Defines when scheduled tasks fire. Dispatcher reads this + invokes skills. Schema validation: schemas/schedules.schema.json Engine: supabase/functions/s...
 
 **Invoke:** `Read("knowledge/schedules.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/schedules.yaml
 
 **Role scope:** *
 **Status:** active
@@ -445,9 +617,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-state-machines
 
 **Kind:** page
+**Axis:** content
 **When to use:** ============================================================================ state-machines.yaml — Domain state machines (Bài #13) ============================================================================ Tier 1 declarative file. Defines state machines for domain entities. Schema convention: 4 columns (state, state_since, state_history, audit) + state_log sidecar table. Schema validation: schem...
 
 **Invoke:** `Read("knowledge/state-machines.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/state-machines.yaml
 
 **Role scope:** *
 **Status:** active
@@ -455,9 +631,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-surface-compliance
 
 **Kind:** page
+**Axis:** content
 **When to use:** surface-compliance.yaml — Per-surface compliance (Bài #17)
 
 **Invoke:** `Read("knowledge/surface-compliance.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/surface-compliance.yaml
 
 **Role scope:** *
 **Status:** active
@@ -465,9 +645,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-update-file-paths
 
 **Kind:** page
+**Axis:** content
 **When to use:** ============================================================================ update-file-paths.yaml — Path-tier classifier for /update file <path> mode ============================================================================ Tier 1 declarative — consumed by scripts/update/path-classify.cjs at /update file time. Globs evaluated in DECLARED ORDER; first match wins. Tier values: refuse — REFUSED ...
 
 **Invoke:** `Read("knowledge/update-file-paths.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/update-file-paths.yaml
 
 **Role scope:** *
 **Status:** active
@@ -475,9 +659,13 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 ## page/knowledge-workforce-personas
 
 **Kind:** page
+**Axis:** content
 **When to use:** Workforce Persona Registry Source of truth for the C-suite persona → technical role binding. Personas are FAÇADE — they do NOT redeclare permissions, budgets, secrets, or HITL tiers. Those live in governance/ROLES.md against the bound role. Resolution rule: when the runtime sees /<slug> or @<slug>: 1. Look up persona here → find binds_to.primary. 2. Apply ROLES.md policy for the bound role. 3. Per...
 
 **Invoke:** `Read("knowledge/workforce-personas.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/workforce-personas.yaml
 
 **Role scope:** *
 **Status:** active

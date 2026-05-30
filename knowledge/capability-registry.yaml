@@ -1121,6 +1121,34 @@ capabilities:
       Interim memory: feedback_docs_sync_autosync_playbook.md captures
       proactive auto-sync rule UNTIL this capability lands.
 
+  # === /deepask program · Capability 1 of 2: resolver-plan (prereq for deepask) ===
+  - id: resolver-plan
+    name: "resolver-plan — resolver as a first-class 2-axis planner with a self-fresh catalog"
+    description: "Extends resolver into a first-class TWO-AXIS PLANNER (content vs capability) that emits a populated ResolverPlan v1 (= first-class context_recipe) for direct consumption by orchestrators — starting with /deepask (Capability 2). Adds a DETERMINISTIC axis tag + candidate enrichment (hitl_tier/side_effect for capability recipients; authority/freshness/grounding_ref/columns_hint for content recipients) to catalog-generator.cjs + mcp__resolver__find (NO LLM in subprocess); a session-model resolver-plan skill; /resolver plan surface; context_recipe promoted optional→first-class (versioned schema knowledge/schemas/resolver-plan.schema.json); catalog auto-freshness (nightly resolver-catalog-sync cron auto-PR + validate-resolver-axis-tags.cjs + coverage-gate promotion); plan-mode audit in ops.resolver_decisions (additive plan_payload jsonb). Prereq for capability deepask."
+    version: "1.0.0"
+    state: planning            # Phases 0-6 complete (Tier C architecture approved); Phase 7 implementation pending
+    state_since: 2026-05-30
+    proposed_at: 2026-05-30
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/resolver-plan/spec.md   # target — promoted at Phase 8
+    cost_bucket: ai-ops-cla
+    notes: |
+      Proposed 2026-05-30 via /cla propose. ops.capability_runs id
+      dbdf2d14-7a4e-462d-b56f-37abd3a41e2d.
+      Brainstorm: .archives/brainstorming/deepask/ — functional spec is
+      04-spec-resolver-plan-v1.0.md; the ResolverPlan v1 contract + locked
+      founder decisions are in 03-design-decisions.md. Verified-architecture
+      context bundle: runtime/deepask/context/.
+      First of a two-capability program: resolver-plan (this) → deepask
+      (Capability 2, proposed after this reaches `operating`).
+      HITL target: Tier C (resolver core + catalog-generator + new cron + migration).
+      Progress 2026-05-30: CLA Phases 0-6 COMPLETE (run dbdf2d14-7a4e-462d-b56f-37abd3a41e2d;
+      Tier C architecture approved, ops.decisions slug resolver-plan-architecture-option-a).
+      Phase 7 (5-sprint implementation) PENDING — resume via `/cla resume resolver-plan`.
+      Artifacts: .archives/cla/resolver-plan/ (problem/domain/gap/options/spec/sprint-plan + draft/).
+      NOTE: ops.capability_runs.state lags at 'proposed' (INSERT-only MCP, Phase 1.5);
+      authoritative progress = ops.capability_phase_events (phases 1-6 'completed') + this entry + STATUS.md.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:
