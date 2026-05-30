@@ -9,15 +9,14 @@ description: |
   Trả về: primary recipient + supporting composition + invocation spec.
   Caller chịu trách nhiệm execute invocation (D-4 INVARIANT).
 source_path: 06-ai-ops/skills/resolver-query/SKILL.md
-source_hash: a8bb868741ad51128d2e15495388d078e5e64e65a310c714d293f84fdd9636b5
-generated_at: '2026-05-24T02:09:52.565Z'
+source_hash: 1cfb48d8b4020bc7c97634380dcc7595f1e995da09b5bddfa5e4f3ada96ca6aa
+generated_at: '2026-05-30T16:11:31.662Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_at: '2026-05-24T09:10:00.000Z'
-translated_by: docs-translate-inline v1.0 (claude-code session, v2 rewrite)
-translated_source_hash: a8bb868741ad51128d2e15495388d078e5e64e65a310c714d293f84fdd9636b5
+translated_source_hash: 1cfb48d8b4020bc7c97634380dcc7595f1e995da09b5bddfa5e4f3ada96ca6aa
+translated_at: '2026-05-30T16:30:00Z'
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -38,12 +37,12 @@ trong ambient context qua `.claude/CLAUDE.md` imports.
 
 → **Bạn KHÔNG cần invoke skill này.** Bạn chỉ cần reason về trigger một cách
 tự nhiên và identify primary + supporting recipients từ ambient context. Sau đó
-invoke recipient trực tiếp (`Skill({...})`, `Agent({...})`, vv.).
+invoke recipient trực tiếp (`Skill({...})`, `Agent({...})`, v.v.).
 
 Tùy chọn ghi audit row qua `audit.cjs` nếu quyết định quan trọng (ví dụ:
 orchestration delegation).
 
-**Latency:** 0ms additional. **Cost:** $0 (không có LLM call thêm).
+**Latency:** 0ms thêm. **Cost:** $0 (không có LLM call thêm).
 
 ### Mode B (Explicit — operator-facing, audit/debug)
 
@@ -53,37 +52,37 @@ Steps:
 1. Load catalog (`scripts/resolver-v2/catalog-loader.cjs#loadCatalog()`)
 2. Format structured prompt:
    ```
-   System: \<catalog as text — all 5 files concatenated, hoặc kind-filtered nếu --kind cho>
-   User: Cho trigger "\<trigger>", return JSON:
-     \{ primary: \<recipient-id>, supporting: [\<id>...], rationale: "...", alternatives: [\<id>...] }
+   System: <catalog như text — tất cả 5 files concatenated, hoặc kind-filtered nếu --kind cho>
+   User: Cho trigger "<trigger>", return JSON:
+     { primary: <recipient-id>, supporting: [<id>...], rationale: "...", alternatives: [<id>...] }
    ```
-3. Current session LLM (bạn, Claude) reasons → emits JSON
+3. Current session LLM (bạn, Claude) reason → emits JSON
 4. Validate IDs tồn tại trong catalog (`byId.has()`); reject hallucinations
-5. Build audit record qua `audit.cjs#buildRecord` với `mode='B', llm_reasoning=\<rationale>, composition_supporting=[\<supporting>]`
-6. Write audit qua `mcp__supabase-ops__insert` to `ops.resolver_decisions`
+5. Build audit record qua `audit.cjs#buildRecord` với `mode='B', llm_reasoning=<rationale>, composition_supporting=[<supporting>]`
+6. Write audit qua `mcp__supabase-ops__insert` tới `ops.resolver_decisions`
 7. Return human-readable output
 
 **Latency:** ~5-500ms (catalog load + LLM reasoning). **Cost:** $0 in-session
-(no separate API call); cached system prompt nếu invoked multiple times.
+(không separate API call); cached system prompt nếu invoked nhiều lần.
 
-### Mode C (Keyword fallback — non-LLM consumers only)
+### Mode C (Keyword fallback — non-LLM consumers chỉ)
 
 CRON jobs, Edge Functions, pre-commit hooks. Không có LLM trong loop.
 
-Invoke `scripts/resolver-v2/keyword-fallback.cjs#match(\{trigger})` trực tiếp.
+Invoke `scripts/resolver-v2/keyword-fallback.cjs#match({trigger})` trực tiếp.
 Single-recipient response. ~30% recall (acknowledged degradation vs Mode A).
 
 Dùng cái này **CHỈ KHI** bạn không thể reach LLM context. Encourage migration
 sang Mode A.
 
-**Latency:** \<5ms. **Cost:** $0.
+**Latency:** <5ms. **Cost:** $0.
 
 ## Output schema (Mode A/B)
 
 ```typescript
 {
   primary: {
-    id: string,           // e.g. "skill/customer-onboarding"
+    id: string,           // ví dụ "skill/customer-onboarding"
     kind: string,
     invoke: string,       // exact invocation snippet
     when_to_use: string,
@@ -93,7 +92,7 @@ sang Mode A.
     id: string,
     kind: string,
     invoke: string,
-    why: string,          // why this supports the primary
+    why: string,          // tại sao cái này hỗ trợ primary
   }>,
   alternatives: Array<{   // other valid primary choices caller có thể prefer
     id: string,
@@ -103,7 +102,7 @@ sang Mode A.
   rationale: string,       // LLM's natural-language reasoning
   catalog_files_loaded: string[],
   mode: 'A' | 'B' | 'C',
-  audit_run_id?: string,   // nếu audit written
+  audit_run_id?: string,   // nếu audit được written
 }
 ```
 

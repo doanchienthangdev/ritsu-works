@@ -1,0 +1,100 @@
+---
+title: 'Skill: execute'
+description: >-
+  deepask Stage 3 — per-sub-need executor. READS content_axis (authoring its own read-only SQL /
+  wiki_ask / params, grounded in grounding_ref/columns_hint — never invents columns) AND RUNS
+  capability_axis (auto-runs Tier-A no-side-effect via capability-gate.cjs; surfaces Tier-B+ for
+  HITL approval; refuses D-MAX), delegating the external-web leg to deep-research. Firewall-aware
+  (product only via metrics.*), gbrain-cap-aware, bounded self-correct on error.
+source_path: 06-ai-ops/skills/deepask/execute/SKILL.md
+source_hash: 3e84268e6b1a415e81213578aeee59c451e3c24148e2a906bbc64de6dd058b02
+generated_at: '2026-05-30T16:11:31.629Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_source_hash: 3e84268e6b1a415e81213578aeee59c451e3c24148e2a906bbc64de6dd058b02
+translated_at: '2026-05-30T16:30:00Z'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Stage 3 của vòng lặp. Chạy MỘT sub-need's `ResolverPlan v1`, in parallel với siblings.
+> resolver-plan cung cấp WHICH recipient + interface contract + grounding pointer; **execute
+> tác giả the literal call** — cho both the READ legs (`content_axis`) và the RUN legs
+> (`capability_axis`, governed bởi the capability-gate). deepask issues no routing của riêng nó.
+
+## Khi nào sử dụng
+- Được gọi bởi `deepask/orchestrator` (Stage 3), once per sub-need, fanned out in parallel.
+
+## Đầu vào
+- `sub_need` (text + ia_type) và its `ResolverPlan v1` (`content_axis`, `capability_axis`, `governance_constraints`, `goal_metrics`, `no_coverage`). Mỗi `capability_axis` entry carries `hitl_tier` + `side_effect` (from resolver-plan enrichment).
+
+## Quy trình — READ legs (`content_axis`)
+
+### 1. Đọc mỗi `content_axis` recipient
+Cho mỗi entry, dispatch the read per the recipient's `invoke` contract:
+- `page/<slug>` → `Read("<path>")` · `wiki/<slug>` → `mcp__supabase-ops__wiki_ask` / `wiki_get_page`
+- `view/<schema>__<name>` hoặc `metric/<id>` → `mcp__supabase-ops__query` (SELECT)
+- `external-source/<id>` → per the entry's invoke pattern (read-only)
+- gbrain (derived-memory) → `mcp__gbrain__{search,recall,traverse}` — **ưu tiên cheap `search`/`recall` hơn `think`**; respect the $100/mo cap (degrade gracefully if capped → record như là a gap, đừng fail the run).
+
+### 2. AUTHOR the concrete call, grounded trong schema (the crux)
+deepask KHÔNG receive pre-written SQL. Cho một `view`/`metric` read:
+- Nếu the plan carries `columns_hint`, sử dụng nó directly.
+- Else **đọc the DDL first** (`supabase/migrations/*.sql`) hoặc the metric def (`knowledge/kpi-ownership.yaml#<id>`) — then compose the SELECT. **NEVER invent a column name** (CLAUDE.md operating principle 3).
+- `mcp__supabase-ops__query` is read-only by tool contract (SqlGuard rejects writes). Sử dụng the plan's `grounding_ref` để know what to read before writing.
+- Worked example (MRR MoM): plan → `content_axis:[metric/mrr]`, `grounding_ref: kpi-ownership.yaml#mrr` (source `ops.kpi_snapshots`) → read grounding → write `SELECT date_trunc('month',ts), value FROM ops.kpi_snapshots WHERE kpi_id='mrr' …` → run → return evidence + the SQL + freshness.
+
+Cùng authoring principle áp dụng cho every recipient: deepask frames the precise `wiki_ask` question / gbrain query / read params itself, grounded trong the recipient's contract.
+
+## Quy trình — RUN legs (`capability_axis`)
+
+### 3. Gate every capability leg (the read-vs-RUN rule)
+Classify mỗi `capability_axis` recipient với the deterministic gate, then act trên `action`:
+```js
+const { classifyCapabilityLeg } = require('scripts/deepask/capability-gate.cjs');
+const { action, reason } = classifyCapabilityLeg({ hitl_tier, side_effect }); // from plan enrichment
+```
+- **`auto_run`** (Tier-A, `side_effect: none`) → run it now. deepask AUTHORS the invocation (frames the precise skill params / `gbrain.think` prompt / tool args, grounded trong the recipient's contract trong `mcp-tools.yaml` / SKILL.md). Typical: `cost-report`, `thinking-toolkit/*`, `wiki_ask`, gbrain reads, `experiment-analyst`, `synthesize-morning-brief`.
+- **`surface`** (Tier-B+, hoặc bất kỳ declared side effect nào) → **KHÔNG run.** Append tới `surfaced_capabilities[]` cho the orchestrator để present như là một HITL-gated suggestion ("để answer fully I'd run X (Tier B) — approve?"). Founder approval is required before bất kỳ side-effecting capability nào runs; deepask never auto-runs nó.
+- **`refuse`** (Tier D-MAX) → never run, never surface như actionable. Record a gap (`gap_reason='not_built'`, `remedy="X requires D-MAX — beyond deepask's read/synthesize remit"`) so the answer is honest về the boundary.
+
+### 4. Web leg → delegate to `deep-research`
+Nếu một sub-need genuinely needs the **external web** (internal sources insufficient), delegate that leg tới the `deep-research` skill — deepask never web-searches directly (internal-first). Treat deep-research's cited report như một evidence source (`authority: SoR-external`, `freshness: live`).
+
+## Cross-leg guards (READ + RUN)
+
+### 5. Firewall (hard, always)
+**Product data ONLY via `metrics.*` views** (the ETL mirror). NEVER query `product.*` / the product Supabase directly — the `pre-tool-supabase-product` hook blocks it (D-MAX). Nếu một sub-need seems to need product data not trong `metrics.*`, đó là một honest gap (`gap_reason='not_built'`, `remedy="expand the metrics.* ETL"`), không là một firewall bypass.
+
+### 6. gbrain cap + cost
+gbrain reads AND capability runs count against the global $100/mo cap (`pre-budget-check.sh`). Ưu tiên cheap `search`/`recall` hơn `think`; nếu the cap is hit, degrade gracefully (record a gap, đừng crash). Mỗi leg logs tới `ops.cost_attributions` (cost-bucket `ai-ops-deepask`).
+
+### 7. Bounded self-correction
+On a query/tool error: inspect → re-read the schema/DDL → retry **once** → else emit an honest `no_coverage` cho that leg ("can't safely query X — schema mismatch"). **NEVER fabricate a result row.** A partial failure của one leg must not sink the whole run.
+
+## Output (per sub-need, tới orchestrator)
+```yaml
+evidence:
+  - claim_support: "<what this supports>"
+    source_ref: "<recipient_id + concrete locator (path / SQL / wiki page / capability output)>"
+    authority: "SoR|SoR-external|derived-memory|scratch"
+    freshness: "static|hourly|daily|live|unknown"
+    retrieved_at: "<ts>"
+    got_data: true|false
+surfaced_capabilities: [ { recipient, hitl_tier, side_effect, why } ]   # Tier-B+ — NOT run; cho HITL
+gaps: [ { facet, gap_reason: no_match|stale|empty|not_built|breaker_budget, remedy } ]
+```
+Cái này feeds `ops.deepask_coverage` (one row/sub-need) + Stage-4 synthesis.
+
+## Ràng buộc
+- **No routing** — execute runs the plan it's given; nó never decides WHICH recipient (resolver-plan did).
+- **Auto-run Tier-A only**; surface Tier-B+; refuse D-MAX. Mỗi claim carries một `source_ref` (no uncited evidence reaches synthesis).
+- Subscription billing trong session; gbrain dưới cap; API key out-of-band only.
+
+## HITL / chi phí
+Tier A cho the read legs + auto-run Tier-A capability legs. Tier-B+ capability legs are **surfaced** cho founder approval (never auto-run). Cost-bucket `ai-ops-deepask` + capped gbrain reads.
+
+## Tests (per spec §10)
+`scripts/deepask/capability-gate.cjs` unit-tested (`tests/deepask/capability-gate.test.ts`, 25 cases — exactly one auto_run combo, D-MAX always refuses, everything else surfaces). Skill-level (land với this sprint): Tier-A auto-runs; **Tier-B+ surfaced never auto-run** (both paths); **D-MAX refused** (boundary honesty); product.* blocked (firewall); gbrain-cap degrade → gap not crash; deep-research invoked ONLY trên một web-needing sub-need; partial-failure của one leg doesn't sink the run; invalid column → re-read schema → retry → honest no_coverage (never fabricated rows).

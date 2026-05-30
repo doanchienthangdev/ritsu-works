@@ -1,0 +1,85 @@
+---
+title: 'Skill: deepask/format (capability `deepask` v1.0)'
+description: ''
+source_path: 06-ai-ops/skills/deepask/format/SKILL.md
+source_hash: 29af54000f375216003c9a9b5f7ddc4dce9e877fa8161ac64a4a5c33309562a2
+generated_at: '2026-05-30T16:11:31.631Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_source_hash: 29af54000f375216003c9a9b5f7ddc4dce9e877fa8161ac64a4a5c33309562a2
+translated_at: '2026-05-30T16:30:00Z'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Format Engine. Tiêu thụ synthesis IR (từ `deepask/synthesize`, spec §5.1) và
+> produce artifact cho `--format`. **Reuse existing skills — không bao giờ rebuild renderer.**
+>
+> **Structure note (deviation từ spec §4.1):** spec drafted 12 *per-format* adapter
+> folders. Để stay dưới resolver INDEX token hard-cap (~14k/15k; +12 catalog entries
+> sẽ breach nó) và cho maintainability, đây là ONE umbrella skill với **dispatch
+> table**. Extensibility được preserve — add format = one new row + reuse pointer.
+> Sẽ được reconcile ở Phase-8 promotion.
+
+## Khi nào dùng
+
+- Được gọi bởi `deepask/orchestrator` (final stage) sau khi `completeness-critic` đặt IR verdict.
+
+## Đầu vào
+
+- Synthesis IR (verdict + sections/claims/tables/charts/diagrams/conflicts/coverage/sources).
+- `--format` (một trong 12, hoặc `smartauto`), `--depth`, run slug.
+
+## Quá trình
+
+### 1. Resolve target format
+
+- Explicit `--format=<x>` → dùng `<x>` trực tiếp.
+- `--format=smartauto` (default) → `scripts/deepask/format-select.cjs` `selectFormat({intent})` (classify `intent` từ câu hỏi + IR). Kể từ **Sprint 5 default `available` set là `ALL_FORMATS`** — mỗi adapter được built. Trả về `{format, reason, fellBack}`; record `reason` trong `plan.json`.
+
+### 2. Dispatch table (tất cả 12 format)
+
+| `--format` | reuse | cách |
+|---|---|---|
+| `text` | native | flatten IR (exec_summary + sections→claims, mỗi claims với citation) thành plain text |
+| `article` | native Markdown | **canonical `answer.md`** — Pyramid prose, mỗi claim với inline `[source-ref]`, Conflicts section, Freshness note, và Coverage/Gaps section nếu PARTIAL. Luôn được written bất kể `--format`. |
+| `pdf` | `anthropic-skills:pdf` (portable) hoặc `playbook-builder` (WeasyPrint, Mac-local) | render article MD → PDF |
+| `docx` | `anthropic-skills:docx` | IR sections/tables → Word |
+| `pptx` | `anthropic-skills:pptx` | exec_summary → title; mỗi section → slide; tables/charts như slide objects |
+| `xlsx` | `anthropic-skills:xlsx` | IR `tables[]` + metric rows → sheets (tốt nhất cho data/metric-heavy answers) |
+| `mermaid` | mermaid MCP (`validate_and_render_mermaid_diagram`) | IR `diagrams[].mermaid_src` → validated/rendered diagram(s) |
+| `chart` | `anthropic-skills:xlsx` charts / `design:*` html-chart | IR `charts[]` (series-data, không phải pixels) → chart image/html |
+| `dashboard` | `design:*` / `frontend-design` | multi-panel html dashboard từ IR sections + charts + tables |
+| `html` | `design:*` / `frontend-design` | standalone html rendering của article + visuals |
+| `interactive` | `frontend-design` | interactive html (filterable tables, toggles) |
+| `canvas` | `anthropic-skills:canvas-design` | canvas / infographic artifact từ IR |
+
+deepask AUTHORS concrete invocation của mỗi reuse-skill (frames inputs từ IR); reuse-skill làm rendering.
+
+### 3. Artifact layout (luôn)
+
+Viết vào `.archives/deepask/<YYYY-MM-DD>-<slug>/`:
+- **`answer.md`** — cited article canonical (LUÔN, bất kể `--format`).
+- **`plan.json`** — decomposition + ResolverPlans + coverage matrix + smartauto `reason`.
+- **`sources.json`** — citation ledger (mỗi `source-ref` với recipient_id, axis, authority, freshness, retrieved_at).
+- **`<artifact>.<ext>`** — rendered `--format` output (khi không `text`/`article`).
+
+### 4. Graceful degradation
+
+Nếu reuse-skill không có sẵn trong session (ví dụ, `anthropic-skills:pdf` absent, hoặc Mac-local WeasyPrint missing), KHÔNG fail run: viết `answer.md` + note trong `plan.json` (`format_degraded: {requested, reason, delivered: 'article'}`) và báo cho operator "rendered như Markdown; \<format> adapter không có sẵn session này." Canonical answer không bao giờ bị mất.
+
+## Constraints
+
+- **Reuse chỉ** — không bespoke rendering engine. New format = new dispatch row + reuse pointer (+ add nó vào `format-select` availability khi được built).
+- `answer.md` luôn được viết (durable, portable answer).
+- Không new content/claims ở render time — Format Engine chỉ *re-presents* IR (đã pass `citation-audit`); nó không bao giờ add uncited claim.
+
+## HITL / cost
+
+Tier A (rendering là local/in-session). Cost-bucket `ai-ops-deepask`. PDF/docx/pptx/xlsx via session skills (subscription).
+
+## Tests (per spec §10)
+
+`scripts/deepask/format-select.cjs` unit-tested (`tests/deepask/format-select.test.ts`, 23 cases — mỗi intent × availability, fallback flag, validation). Skill-level (land per sprint): mỗi doc adapter render IR → valid artifact; **smartauto picks sane format per intent**; **`answer.md` luôn được written**; artifact dir layout đúng; **graceful-degrade path** viết answer.md + note khi reuse-skill missing.

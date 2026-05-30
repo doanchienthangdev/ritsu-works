@@ -1,0 +1,83 @@
+---
+title: 'Skill: synthesize'
+description: >-
+  deepask Stage 4 — turns the executed evidence into a format-agnostic synthesis IR. Pyramid
+  (conclusion-first); EVERY claim cites ≥1 source (self-checked by
+  scripts/deepask/citation-audit.cjs — zero uncited claims is a hard gate); authority-ranked
+  (SoR>memory for facts, memory>SoR for judgement/history); conflicts flagged; freshness tagged; key
+  claims adversarially verified (depth-scaled). Emits the IR every format adapter consumes.
+source_path: 06-ai-ops/skills/deepask/synthesize/SKILL.md
+source_hash: a20c25194b70441243ee7121f212ece7ed0ef856d85dc456a6c0faac11fbabd3
+generated_at: '2026-05-30T16:11:31.632Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_source_hash: a20c25194b70441243ee7121f212ece7ed0ef856d85dc456a6c0faac11fbabd3
+translated_at: '2026-05-30T16:30:00Z'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Stage 4. Consumes the per-sub-need evidence từ `deepask/execute`; emits the
+> **format-agnostic synthesis IR** (spec §5.1) mà the Format Engine (S4–S5) renders.
+> Chất lượng core của deepask: citation discipline + authority ranking + conflict +
+> freshness + adversarial verification.
+
+## Khi nào sử dụng
+- Được gọi bởi `deepask/orchestrator` (Stage 4) sau khi `deepask/execute` returns evidence cho tất cả sub-needs.
+
+## Đầu vào
+- `question`, the decomposition, và per-sub-need `evidence[]` (mỗi item: `claim_support`, `source_ref`, `authority`, `freshness`, `retrieved_at`, `got_data`) + `gaps[]` + `surfaced_capabilities[]` từ execute.
+- `--depth` (drives adversarial-verify vote count: quick=0, standard=1, deep=2, exhaustive=3).
+
+## Quy trình
+
+### 1. Pyramid structure (conclusion-first)
+Lead với the answer (`executive_summary`), then supporting `sections`. Mỗi section groups claims mà support one part của the conclusion. Reuse `thinking-toolkit/pyramid-principle-output` cho the structure và `thinking-toolkit/so-what-test` trên the top line.
+
+### 2. Citation discipline (HARD GATE)
+**Mỗi claim carries ≥1 `citations` entry** (a `source_ref` từ the evidence). Không claim có thể rest trên training data hoặc unsourced inference.
+- Sau khi assembling the IR, **chạy `scripts/deepask/citation-audit.cjs` `auditCitations(ir)`** trên your own IR.
+- Nếu `ok === false`, you MUST repair mỗi entry trong `uncited[]` (add the real source_ref, hoặc delete the claim) và re-audit cho đến khi `ok === true`. Stage synthesize không return một IR với uncited claims.
+- `auditCitations` result feeds `ops.deepask_runs` → the `deepask.uncited_claim_rate` KPI (**target 0**).
+
+### 3. Authority ranking
+Rank/attribute mỗi claim by source authority:
+- **Facts** (numbers, current state, definitions): **SoR > derived-memory** (a Tier-1 page / `metrics.*` view beats a gbrain recollection).
+- **Judgement / history / rationale** (why a decision was made, what we learned): **derived-memory > SoR** (gbrain/wiki retros + decisions carry the reasoning).
+Khi two sources của same authority tier agree, cite cả hai; khi a lower-authority source contradicts a higher one trên a fact, prefer the higher và note the discrepancy dưới conflicts.
+
+### 4. Conflict detection
+Khi two evidence items disagree, emit a `conflicts[]` entry `{claim_a, claim_b, resolution}` — state which wins (by authority + freshness) và why. Never silently drop one side.
+
+### 5. Freshness tagging
+Carry mỗi claim's `freshness` (static|hourly|daily|live|unknown) + `retrieved_at`. Flag stale-but-load-bearing facts explicitly (e.g., "MRR như của last hourly snapshot").
+
+### 6. Adversarial verification (depth-scaled)
+Cho the **key claims** (the ones the conclusion depends on), spawn `--depth` skeptic passes (0/1/2/3) mà try to REFUTE the claim từ its own cited source. Nếu a skeptic shows the claim isn't supported by its citation, demote hoặc drop nó. Đây là the defense against plausible-but-unsupported synthesis.
+
+### 7. Emit the IR (spec §5.1)
+```yaml
+title, question, verdict: COMPLETE|PARTIAL    # verdict set bởi completeness-critic (Stage 5), không ở đây
+executive_summary
+sections: [ { heading, claims: [ { text, citations:[source-ref], authority, freshness, confidence } ] } ]
+tables:   [ { caption, columns, rows, source-refs } ]
+charts:   [ { kind, caption, series-data, source-refs } ]   # data, không pixels
+diagrams: [ { kind: mermaid, caption, mermaid_src } ]
+conflicts:[ { claim_a, claim_b, resolution } ]
+coverage: { matrix, gaps: [ {facet, reason, remedy} ] }      # filled bởi completeness-critic
+sources:  [ { ref, recipient_id, axis, authority, freshness, retrieved_at } ]
+```
+Hand the IR tới `deepask/completeness-critic` (Stage 5), mà sets the final `verdict` + `coverage`.
+
+## Ràng buộc
+- **Zero uncited claims** (enforced bởi citation-audit; non-negotiable).
+- **No training-data substitution** — nếu the evidence doesn't support a needed claim, đó là a gap (cho the critic), không là một invented answer.
+- No routing; no new retrieval (synthesize works chỉ from execute's evidence — nếu nó needs more, đó là the critic's bounded follow-up, không một ad-hoc read ở đây).
+
+## HITL / chi phí
+Tier A (in-session subscription). Cost-bucket `ai-ops-deepask`. Adversarial-verify cost scales với `--depth`.
+
+## Tests (per spec §10)
+`scripts/deepask/citation-audit.cjs` unit-tested (`tests/deepask/citation-audit.test.ts`, 18 cases). Skill-level (land với this sprint): assert the emitted IR passes `auditCitations` (no uncited claim); authority ranking (SoR vs memory) trên a mixed-evidence fixture; conflict surfaced khi two sources disagree; **negative test — a question whose evidence has a gap yields NO fabricated claim** (the gap flows tới the critic).

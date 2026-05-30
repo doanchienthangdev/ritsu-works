@@ -1,0 +1,81 @@
+---
+title: 'Skill: synthesize'
+description: >-
+  deepask Stage 4 — turns the executed evidence into a format-agnostic synthesis IR. Pyramid
+  (conclusion-first); EVERY claim cites ≥1 source (self-checked by
+  scripts/deepask/citation-audit.cjs — zero uncited claims is a hard gate); authority-ranked
+  (SoR>memory for facts, memory>SoR for judgement/history); conflicts flagged; freshness tagged; key
+  claims adversarially verified (depth-scaled). Emits the IR every format adapter consumes.
+source_path: 06-ai-ops/skills/deepask/synthesize/SKILL.md
+source_hash: a20c25194b70441243ee7121f212ece7ed0ef856d85dc456a6c0faac11fbabd3
+generated_at: '2026-05-30T16:11:31.632Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Stage 4. Consumes the per-sub-need evidence from `deepask/execute`; emits the
+> **format-agnostic synthesis IR** (spec §5.1) that the Format Engine (S4–S5) renders.
+> The quality core of deepask: citation discipline + authority ranking + conflict +
+> freshness + adversarial verification.
+
+## When to use
+- Called by `deepask/orchestrator` (Stage 4) after `deepask/execute` returns evidence for all sub-needs.
+
+## Inputs
+- `question`, the decomposition, and per-sub-need `evidence[]` (each item: `claim_support`, `source_ref`, `authority`, `freshness`, `retrieved_at`, `got_data`) + `gaps[]` + `surfaced_capabilities[]` from execute.
+- `--depth` (drives adversarial-verify vote count: quick=0, standard=1, deep=2, exhaustive=3).
+
+## Process
+
+### 1. Pyramid structure (conclusion-first)
+Lead with the answer (`executive_summary`), then supporting `sections`. Each section groups claims that support one part of the conclusion. Reuse `thinking-toolkit/pyramid-principle-output` for the structure and `thinking-toolkit/so-what-test` on the top line.
+
+### 2. Citation discipline (HARD GATE)
+**Every claim carries ≥1 `citations` entry** (a `source_ref` from the evidence). No claim may rest on training data or unsourced inference.
+- After assembling the IR, **run `scripts/deepask/citation-audit.cjs` `auditCitations(ir)`** on your own IR.
+- If `ok === false`, you MUST repair every entry in `uncited[]` (add the real source_ref, or delete the claim) and re-audit until `ok === true`. The synthesize stage does not return an IR with uncited claims.
+- `auditCitations` result feeds `ops.deepask_runs` → the `deepask.uncited_claim_rate` KPI (**target 0**).
+
+### 3. Authority ranking
+Rank/attribute each claim by source authority:
+- **Facts** (numbers, current state, definitions): **SoR > derived-memory** (a Tier-1 page / `metrics.*` view beats a gbrain recollection).
+- **Judgement / history / rationale** (why a decision was made, what we learned): **derived-memory > SoR** (gbrain/wiki retros + decisions carry the reasoning).
+When two sources of the same authority tier agree, cite both; when a lower-authority source contradicts a higher one on a fact, prefer the higher and note the discrepancy under conflicts.
+
+### 4. Conflict detection
+When two evidence items disagree, emit a `conflicts[]` entry `{claim_a, claim_b, resolution}` — state which wins (by authority + freshness) and why. Never silently drop one side.
+
+### 5. Freshness tagging
+Carry each claim's `freshness` (static|hourly|daily|live|unknown) + `retrieved_at`. Flag stale-but-load-bearing facts explicitly (e.g., "MRR as of last hourly snapshot").
+
+### 6. Adversarial verification (depth-scaled)
+For the **key claims** (the ones the conclusion depends on), spawn `--depth` skeptic passes (0/1/2/3) that try to REFUTE the claim from its own cited source. If a skeptic shows the claim isn't supported by its citation, demote or drop it. This is the defense against plausible-but-unsupported synthesis.
+
+### 7. Emit the IR (spec §5.1)
+```yaml
+title, question, verdict: COMPLETE|PARTIAL    # verdict set by completeness-critic (Stage 5), not here
+executive_summary
+sections: [ { heading, claims: [ { text, citations:[source-ref], authority, freshness, confidence } ] } ]
+tables:   [ { caption, columns, rows, source-refs } ]
+charts:   [ { kind, caption, series-data, source-refs } ]   # data, not pixels
+diagrams: [ { kind: mermaid, caption, mermaid_src } ]
+conflicts:[ { claim_a, claim_b, resolution } ]
+coverage: { matrix, gaps: [ {facet, reason, remedy} ] }      # filled by completeness-critic
+sources:  [ { ref, recipient_id, axis, authority, freshness, retrieved_at } ]
+```
+Hand the IR to `deepask/completeness-critic` (Stage 5), which sets the final `verdict` + `coverage`.
+
+## Constraints
+- **Zero uncited claims** (enforced by citation-audit; non-negotiable).
+- **No training-data substitution** — if the evidence doesn't support a needed claim, that's a gap (for the critic), not an invented answer.
+- No routing; no new retrieval (synthesize works only from execute's evidence — if it needs more, that's the critic's bounded follow-up, not an ad-hoc read here).
+
+## HITL / cost
+Tier A (in-session subscription). Cost-bucket `ai-ops-deepask`. Adversarial-verify cost scales with `--depth`.
+
+## Tests (per spec §10)
+`scripts/deepask/citation-audit.cjs` unit-tested (`tests/deepask/citation-audit.test.ts`, 18 cases). Skill-level (land with this sprint): assert the emitted IR passes `auditCitations` (no uncited claim); authority ranking (SoR vs memory) on a mixed-evidence fixture; conflict surfaced when two sources disagree; **negative test — a question whose evidence has a gap yields NO fabricated claim** (the gap flows to the critic).
+

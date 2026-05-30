@@ -1,0 +1,63 @@
+---
+title: 'Skill: completeness-critic'
+description: >-
+  deepask Stage 5 — the honesty gate. Builds a coverage matrix (sub-need × planned-recipient ×
+  executed? × got-data?), MECE-re-checks across the 4 IA types + capability axis, runs a live-probe,
+  and sets the verdict COMPLETE | PARTIAL-WITH-HONEST-GAPS (+ exact missing source/capability +
+  remedy). May trigger ONE bounded follow-up resolve→execute round. NEVER answers partial silently;
+  NEVER substitutes training data.
+source_path: 06-ai-ops/skills/deepask/completeness-critic/SKILL.md
+source_hash: da002e52f577e94c03294f75b6c71f7076c39d3477fb71719c0843186ff9c46a
+generated_at: '2026-05-30T16:11:31.624Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Stage 5. The reason deepask can be trusted: it states EXACTLY what it could and could
+> not answer, and never fakes coverage. Consumes the synthesis IR (Stage 4) + the
+> execute evidence/gaps; sets the IR's final `verdict` + `coverage`.
+
+## When to use
+- Called by `deepask/orchestrator` (Stage 5) after `deepask/synthesize` emits the IR.
+
+## Inputs
+- The synthesis IR (from Stage 4), the decomposition (sub-needs + IA tags), and per-sub-need `evidence[]`/`gaps[]` + the `ResolverPlan.no_coverage[]` from execute, plus the surfaced Tier-B+ capabilities.
+
+## Process
+
+### 1. Build the coverage matrix
+One row per sub-need: `sub_need × planned_recipients (from ResolverPlan) × executed? × got_data?`. A cell is GREEN only when a planned recipient executed AND returned usable evidence. Persist each row to `ops.deepask_coverage`.
+
+### 2. MECE re-check across the 4 IA types + capability axis
+Confirm the decomposition still covers the question with no overlap/gap (`thinking-toolkit/mece-decomposition-check`), and that each IA type the question implies was actually touched (A SoR / B derived-memory / C scratch / D conduit) — plus any capability the answer needed. A sub-need tagged IA-B (gbrain/wiki) that never got data is a gap, not a silent omission.
+
+### 3. Live-probe (catch the catalog blind-spot)
+For a sub-need that returned `no_match`, do ONE cheap live-probe to distinguish "the catalog is stale (a source exists but isn't catalogued)" from "no such source exists" — e.g., a direct `Grep`/`Read` or a `resolver_find` re-query. This closes the "deepask is blind to a freshly-added component" risk. (Budget-aware: counts against the resolver breaker — the orchestrator's accountant already reserved for one follow-up.)
+
+### 4. Classify every gap
+Each uncovered facet → `{facet, reason, remedy}`:
+- `reason`: `no_match` | `stale` | `empty` | `not_built` | `breaker_budget`.
+- `remedy`: the EXACT action — `ingest via /wiki sync <x>` · `wire MCP <x>` · `expand the metrics.* ETL` · `build via /cla propose` · `restart session / wait for the 4h breaker reset`.
+
+### 5. Bounded follow-up (at most once)
+If a gap is **fillable now** (e.g., live-probe found a stale-catalog source, or one more sub-need would close it) AND the resolver budget allows (ask the orchestrator's accountant), trigger **ONE** more resolve→execute→synthesize round for just that facet. Never loop more than once — a second dry round → accept the gap honestly.
+
+### 6. Set the verdict
+- **COMPLETE** — every sub-need GREEN, MECE clean, zero uncited claims (synthesize's citation-audit already `ok`), no unresolved fillable gap. 
+- **PARTIAL-WITH-HONEST-GAPS** — otherwise. The IR's `coverage.gaps[]` lists exactly what's missing/stale/not-built + the remedy, and the answer says so up front ("I can answer X and Y; I could NOT answer Z because \<reason> — to fix: \<remedy>").
+- Write `verdict` + `coverage` into the IR; the orchestrator records it in `ops.deepask_runs.verdict` (→ the `deepask.complete_verdict_rate` KPI). A `breaker_budget` gap also feeds `deepask.breaker_trip_rate`.
+
+## Hard rules (the honesty contract)
+- **Never answer partial silently** — a PARTIAL verdict MUST surface its gaps in the answer, not bury them.
+- **Never substitute training data** for a missing system source — an unanswerable facet is a gap with a remedy, not a hallucinated answer.
+- **Never fabricate coverage** — a `breaker_budget` exhaustion or an execution failure is reported as such, never disguised as `no_match`/"nothing found".
+
+## HITL / cost
+Tier A. Cost-bucket `ai-ops-deepask`. The one bounded follow-up + live-probe are budgeted against the resolver breaker by the orchestrator's accountant.
+
+## Tests (per spec §10)
+coverage-matrix correctness (green only when executed AND got_data); MECE re-check catches a missing IA type; **the bounded follow-up triggers at most once**; PARTIAL verdict path exercised; **honest no-coverage — a no-internal-coverage question yields a stated gap + remedy, NOT a hallucinated answer** (the headline negative test); a `breaker_budget` gap is labeled as such, never as `no_match`.
+

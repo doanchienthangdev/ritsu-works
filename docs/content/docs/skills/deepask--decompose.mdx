@@ -1,0 +1,67 @@
+---
+title: 'Skill: decompose'
+description: >-
+  deepask Stage 1 — splits a question into MECE sub-needs, each tagged by IA type (A
+  System-of-Record / B Derived-memory / C Scratch / D Conduit). Depth-bounded (≤6 standard / ≤12
+  deep) and budget-capped by the orchestrator's resolver-budget accountant. Reuses
+  thinking-toolkit/{tosca,mece-decomposition-check,driver-tree-decomposition}. Pure decomposition —
+  no routing (that's resolver-plan), no retrieval.
+source_path: 06-ai-ops/skills/deepask/decompose/SKILL.md
+source_hash: b1bca1a94ac5e6e71c4d438277c745b62b0e6ea7c827c63dc91278b77e5443ae
+generated_at: '2026-05-30T16:11:31.628Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_source_hash: b1bca1a94ac5e6e71c4d438277c745b62b0e6ea7c827c63dc91278b77e5443ae
+translated_at: '2026-05-30T16:30:00Z'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Stage 1 của deepask loop. Chuyển một question thành một bộ sub-needs sạch mà
+> orchestrator có thể resolve+execute độc lập. Chất lượng của toàn bộ answer bắt đầu ở đây:
+> một decomposition tồi → gaps hoặc overlap downstream.
+
+## Khi nào sử dụng
+- Được gọi bởi `deepask/orchestrator` sau Stage-0 budget gate, với một `allowedSubNeeds` cap.
+
+## Đầu vào
+- `question` (1–500 chars).
+- `maxSubNeeds` — the orchestrator's budget-approved cap (from `computeBreakerBudget`; ≤6 standard / ≤12 deep, possibly capped lower).
+- `--sources` filter (optional) — restricts which IA types are in-scope.
+
+## Quy trình
+1. **Frame** the question với `thinking-toolkit/tosca-problem-framing` nếu nó ambiguous (extract the real ask).
+2. **Decompose** thành sub-needs sử dụng `thinking-toolkit/driver-tree-decomposition` (break the question thành the independent things you must learn để answer it).
+3. **MECE-check** với `thinking-toolkit/mece-decomposition-check` — no overlap (two sub-needs asking the same thing), no gap (a facet của the question với no sub-need). Merge overlaps; add missing facets.
+4. **Tag mỗi sub-need với its IA type** (the hint resolver-plan uses):
+   - **A — System-of-Record:** authoritative truth → Tier-1 git (`Read`/`Grep`), `ops.*`/`metrics.*` via `mcp__supabase-ops__query`, Tier-3 blobs.
+   - **B — Derived-memory:** distilled meaning → gbrain (`search`/`recall`/`think`/`traverse`), wiki (`wiki_ask`).
+   - **C — Scratch:** transient/local → `raw/`, `.archives/`, `runtime/`.
+   - **D — Conduit:** gateway / 3rd-party / web → MCP + (web leg → `deep-research`).
+   Một sub-need có thể carry a primary + secondary IA tag (e.g., "are we on track for 100-paying?" = A metric + B retro context).
+5. **Enforce the bound:** nếu the natural decomposition exceeds `maxSubNeeds`, merge the lowest-value sub-needs (hoặc, nếu the orchestrator capped do to breaker budget, keep the highest-value ones và let the completeness-critic surface the rest như là một honest gap). NEVER silently drop a facet without recording it.
+6. Honor `--sources`: drop sub-needs whose only IA type is excluded by the filter (và note them như là out-of-scope-by-filter, không như gaps).
+
+## Output (tới orchestrator)
+```yaml
+sub_needs:
+  - text: "<sub-question>"
+    ia_type: "A|B|C|D"
+    ia_secondary: "A|B|C|D|null"
+    rationale: "<why this is a distinct facet>"
+mece_check: { overlap: none|<note>, gap: none|<note> }
+dropped: [ { text, reason: "over_budget|out_of_scope_filter" } ]   # recorded, never silent
+```
+
+## Ràng buộc
+- **No routing.** decompose nói WHAT to learn + its IA type; resolver-plan decides WHERE/HOW. Không name specific recipients ở đây.
+- **No retrieval.** decompose reads nothing external; nó chỉ structures the question.
+- Deterministic-ish: same question + cap → stable decomposition (helps the future /evolve learning loop).
+
+## HITL / chi phí
+Tier A (pure reasoning, in-session subscription). No external calls. Cost-bucket `ai-ops-deepask`.
+
+## Tests (per spec §10, land với this skill's sprint)
+MECE (no overlap/gap trên a known multi-facet question); bound enforcement (n>cap → merges, records dropped); degenerate (1-word question → 1 sub-need; huge question → capped + honest dropped list); `--sources` filter excludes correctly (out_of_scope_filter, không gap).

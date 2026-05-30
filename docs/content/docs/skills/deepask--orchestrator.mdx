@@ -1,0 +1,89 @@
+---
+title: 'Skill: orchestrator'
+description: >-
+  deepask loop driver — owns depth/sources/dry-run semantics and the resolver-budget accountant.
+  Runs the 5-stage loop (decompose → resolve via resolver-plan → execute fan-out → synthesize →
+  completeness-critic), budgets resolver calls against the shared SESSION_HARD_CAP=20 breaker, and
+  writes ops.deepask_runs/coverage. deepask has ZERO routing of its own — it consumes ResolverPlan
+  v1 from resolver-plan. Invoked by /deepask.
+source_path: 06-ai-ops/skills/deepask/orchestrator/SKILL.md
+source_hash: fd6e6057b397afedc3e7c3b492f76e829cd86a3a8123c39e23c8ccdd5059cf19
+generated_at: '2026-05-30T16:11:31.631Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_source_hash: fd6e6057b397afedc3e7c3b492f76e829cd86a3a8123c39e23c8ccdd5059cf19
+translated_at: '2026-05-30T16:30:00Z'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Trí não của `/deepask`. Điều khiển vòng lặp; ủy thác TẬT CẢ routing cho `resolver-plan`.
+> Sprint 1 scope: pre-flight budget gate + decompose + resolve + execute(read-only) +
+> observability. Synthesize/critic (S2), capability-run leg (S3), Format Engine (S4–S5)
+> wire in later. Spec: `wiki/capabilities/deepask/spec.md` (current `.archives/cla/deepask/spec.md`).
+
+## Khi nào sử dụng
+- Được gọi bởi `.claude/commands/deepask.md` trên mọi `/deepask "<q>" [flags]`.
+
+## Đầu vào
+- `question` (string, 1–500 chars), `--format`, `--sources`, `--depth`, `--dry-run` (parsed by the command).
+- `session_finds_count` mới nhất (từ bất kỳ prior `resolver_find` response nào trong session này; 0 nếu không có).
+
+## Quy trình
+
+### Stage 0 — Resolver-budget pre-flight (the @cto Sprint-1 gate)
+Resolver per-session circuit breaker là `SESSION_HARD_CAP = 20`, **shared session-wide**, resetting chỉ sau 4h idle (`mcp-server/src/tools/resolver-find.ts:43,45,74`). `resolver-plan` spends one `resolver_find` per sub-need và critic có thể thêm one follow-up round. `≤6/≤12` decomposition bound do đó necessary-but-NOT-sufficient.
+
+1. Tentatively size the decomposition từ `--depth`: quick≤3, standard≤6, deep≤12, exhaustive≤12.
+2. Đọc current `session_finds_count` (last `resolver_find` response field; 0 nếu unknown).
+3. Gọi the deterministic helper:
+   ```js
+   const { computeBreakerBudget } = require('scripts/deepask/breaker-budget.cjs');
+   const b = computeBreakerBudget({ sessionFindsCount, subNeedCount: plannedSubNeeds });
+   ```
+4. Hành động dựa trên result:
+   - `viable && !degrade` → proceed with `plannedSubNeeds`.
+   - `reason === 'capped_to_budget'` → cap decompose to `b.allowedSubNeeds`; tell the operator "depth capped to fit resolver budget (N finds left this session)".
+   - `!viable` (`reason === 'breaker_budget'`) → **emit an honest PARTIAL up front**, write a `ops.deepask_coverage` row with `gap_reason='breaker_budget'` + `remedy="restart session or wait for the 4h breaker window"`, and STOP. **Never** a fabricated `no_coverage`.
+5. Record `resolver_find_calls` (running) so it lands trong `ops.deepask_runs` (@cto NIT-1 — required for `breaker_trip_rate` KPI).
+
+### Stage 1 — Decompose
+Invoke `deepask/decompose` with `question` + the budget-approved `allowedSubNeeds` cap + `--sources`. Returns MECE sub-needs, mỗi IA-type-tagged (A/B/C/D).
+
+### Stage 2 — Resolve (consume resolver-plan; deepask routes nothing)
+Cho mỗi sub-need, call `resolver-plan` (`/resolver plan "<sub-need>"` hoặc `mcp__supabase-ops__resolver_find` + the resolver-plan skill) → một `ResolverPlan v1` (`content_axis` + `capability_axis` + `governance_constraints` + `goal_metrics` + `no_coverage`). Pass `--sources` như là resolver filter. Increment `resolver_find_calls`.
+
+### Stage 3 — Execute (Sprint 1: READ-only)
+Invoke `deepask/execute` per sub-need (parallel). S1 reads `content_axis` only; the capability-RUN leg + deep-research delegation land trong S3. Collect evidence with source-refs + freshness + got_data.
+
+### Stage 4–5 — Synthesize + completeness-critic (S2)
+Cho đến khi S2 lands, assemble a read-only evidence bundle: a cited `answer.md` stub (mỗi evidence item carries its source-ref) + `plan.json` (decomposition + ResolverPlans + coverage matrix) + `sources.json`. Full Pyramid synthesis + the COMPLETE/PARTIAL verdict + the ≤1 bounded follow-up arrive with `deepask/synthesize` + `deepask/completeness-critic`.
+
+### Stage 6 — Observe (write the audit + learning rows)
+- INSERT one `ops.deepask_runs` row: `question, format, depth, sources_filter, dry_run, verdict, sub_need_count, resolver_find_calls, recipients_touched, artifact_path, cost_usd, latency_ms`.
+- INSERT one `ops.deepask_coverage` row per sub-need: `sub_need, ia_type, planned_recipients, executed, got_data, gap_reason, remedy`.
+- `--dry-run`: write ONLY the `dry_run=true` `ops.deepask_runs` row; perform zero reads/runs/other writes (nhưng Stage 2 DID call resolver-plan to show real plans — its breaker cost is real and labeled).
+
+## `--dry-run` contract
+Shows: the decomposition, the **real** ResolverPlans (resolve IS executed — nó consumes breaker budget, stated honestly trong output), predicted coverage, and a cost estimate. Executes: no content reads, no capability runs, no writes beyond the single dry-run audit row.
+
+## Bảo vệ (luôn bật)
+- Firewall: không bao giờ `product.*` (hook `pre-tool-supabase-product`); product chỉ via `metrics.*`.
+- gbrain reads dưới $100/mo cap; ưu tiên `search`/`recall` hơn `think`.
+- Subscription billing trong session; API key out-of-band only.
+- HITL: runtime Tier A; Tier-B+ capability legs surfaced bởi `deepask/execute` (S3), không bao giờ auto-run.
+
+## Đầu ra
+- `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` always; `plan.json`; `sources.json`; rendered artifact từ S4–S5).
+- `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) rows.
+
+## HITL
+Tier A (read/synthesize). Tier-B+ capability legs surfaced for approval (S3).
+
+## Chi phí
+Subscription (trong session) — cost-bucket `ai-ops-deepask`; logged to `ops.cost_attributions` + `ops.deepask_runs.cost_usd`. gbrain reads dưới the global cap.
+
+## Tests
+`scripts/deepask/breaker-budget.cjs` is unit-tested (`tests/deepask/breaker-budget.test.ts`, 27 cases incl. the cap off-by-one + honest-PARTIAL exhaustion). Loop-level tests (decompose MECE, firewall block, zero-routing trong plan.json, dry-run writes only a dry-run row) land per the spec §10 test matrix as their stages ship.
