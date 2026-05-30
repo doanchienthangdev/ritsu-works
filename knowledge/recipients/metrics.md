@@ -7,7 +7,7 @@
 This file is THE source of truth for metric recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 
-**Total entries:** 91
+**Total entries:** 94
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -371,6 +371,51 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Role scope:** gps
 **Status:** active
 **Pillar:** founder
+
+## metric/deepask.breaker_trip_rate
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: COUNT(runs with ops.deepask_coverage.gap_reason='breaker_budget') / total runs. Source: ops.deepask_coverage + ops.deepask_runs. Dashboard: founder-monday/system-health. Notes: Resolver session-breaker exhaustion rate (@cto Phase-2 risk made first-class observable)..
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#deepask.breaker_trip_rate`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** knowledge/kpi-ownership.yaml#deepask.breaker_trip_rate
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
+
+## metric/deepask.complete_verdict_rate
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: COUNT(ops.deepask_runs WHERE verdict='COMPLETE') / COUNT(WHERE dry_run=false). Source: ops.deepask_runs. Dashboard: founder-monday/system-health. Notes: Capability deepask v1.0. Honest-gaps mean a low rate isn't inherently bad — read alongside deepask.breaker_trip_rate..
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#deepask.complete_verdict_rate`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** knowledge/kpi-ownership.yaml#deepask.complete_verdict_rate
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
+
+## metric/deepask.uncited_claim_rate
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: mean(scripts/deepask/citation-audit.cjs uncitedRate) across runs. Source: ops.deepask_runs (citation-audit self-check). Dashboard: founder-monday/system-health. Notes: HARD guardrail — target 0; citation-audit.cjs enforces per-run before an answer is emitted..
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#deepask.uncited_claim_rate`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** knowledge/kpi-ownership.yaml#deepask.uncited_claim_rate
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
 
 ## metric/dmca_avg_response_time_hours
 

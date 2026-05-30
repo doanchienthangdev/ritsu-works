@@ -257,6 +257,32 @@ docs_drift_count:
     p1: "docs_drift_count > 10 (sustained > 1h)"
   notes: "docs-engine capability — reports drift between source filesystem and docs/ MDX. Aim: 0 sustained drift."
 
+deepask.complete_verdict_rate:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "COUNT(ops.deepask_runs WHERE verdict='COMPLETE') / COUNT(WHERE dry_run=false)"
+  source: ops.deepask_runs
+  dashboard_tile: founder-monday/system-health
+  notes: "Capability deepask v1.0. Honest-gaps mean a low rate isn't inherently bad — read alongside deepask.breaker_trip_rate."
+
+deepask.uncited_claim_rate:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "mean(scripts/deepask/citation-audit.cjs uncitedRate) across runs"
+  source: ops.deepask_runs (citation-audit self-check)
+  dashboard_tile: founder-monday/system-health
+  alert_thresholds:
+    p1: "deepask.uncited_claim_rate > 0 (citation-discipline breach — every claim must cite a source)"
+  notes: "HARD guardrail — target 0; citation-audit.cjs enforces per-run before an answer is emitted."
+
+deepask.breaker_trip_rate:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "COUNT(runs with ops.deepask_coverage.gap_reason='breaker_budget') / total runs"
+  source: ops.deepask_coverage + ops.deepask_runs
+  dashboard_tile: founder-monday/system-health
+  notes: "Resolver session-breaker exhaustion rate (@cto Phase-2 risk made first-class observable)."
+
 # ===========================================================================
 # T&S metrics — owned by 07-trust-safety (activate when first incident)
 # ===========================================================================

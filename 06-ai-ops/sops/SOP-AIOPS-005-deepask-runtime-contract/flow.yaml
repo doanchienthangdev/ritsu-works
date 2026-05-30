@@ -1,0 +1,159 @@
+# SOP-AIOPS-005 — /deepask Runtime Contract
+#
+# Declarative runtime contract for the /deepask 5-stage loop. Read by
+# .claude/commands/deepask.md + 06-ai-ops/skills/deepask/orchestrator/SKILL.md.
+#
+# NOTE: This is a RUNTIME-CONTRACT SOP (like SOP-AIOPS-004-evolve), NOT a
+# CLA-style 8-phase ceremony. Every /deepask invocation runs once through this
+# flow. deepask is Tier A (read + synthesize); the ONLY non-A surface is a
+# Tier-B+ capability leg, which is SURFACED for approval, never auto-run.
+
+sop_id: SOP-AIOPS-005
+slug: deepask-runtime-contract
+name: "/deepask runtime contract"
+version: "1.0.0"
+state: operating
+owner: 06-ai-ops
+hitl_default: A           # read/synthesize; Tier-B+ capability legs surfaced (never auto-run)
+cost_bucket: ai-ops-deepask
+capability_id: deepask
+
+# ----------------------------------------------------------------------
+# Steps (each /deepask invocation runs once through this sequence)
+# ----------------------------------------------------------------------
+steps:
+  - id: pre_flight
+    name: "Stage 0 — resolver-budget pre-flight"
+    skill: deepask/orchestrator
+    actions:
+      - argv_parse                  # --format --sources --depth --dry-run
+      - read_session_finds_count    # latest resolver_find response
+      - compute_breaker_budget      # scripts/deepask/breaker-budget.cjs
+      - cap_or_degrade_decision      # cap depth | honest PARTIAL up front
+    hitl: A
+    failure_handling:
+      breaker_exhausted: emit_honest_partial_gap_breaker_budget   # NEVER fabricated no_coverage
+
+  - id: decompose
+    name: "Stage 1 — decompose into MECE sub-needs"
+    skill: deepask/decompose
+    actions:
+      - tosca_frame
+      - driver_tree_decompose
+      - mece_check
+      - ia_type_tag                 # A/B/C/D per sub-need
+      - enforce_depth_bound          # <=6 standard / <=12 deep; budget-capped
+    hitl: A
+
+  - id: resolve
+    name: "Stage 2 — resolve (consume resolver-plan; ZERO routing in deepask)"
+    actions:
+      - per_sub_need_resolver_plan   # /resolver plan -> ResolverPlan v1
+      - increment_resolver_find_calls
+    hitl: A
+
+  - id: execute
+    name: "Stage 3 — execute / fan-out (parallel subagents)"
+    skill: deepask/execute
+    actions:
+      - read_content_axis            # Read / supabase query / wiki_ask / gbrain read / external-source
+      - author_concrete_call_grounded # grounding_ref/columns_hint; never invents columns
+      - run_capability_axis_gated    # scripts/deepask/capability-gate.cjs: auto_run Tier-A / surface Tier-B+ / refuse D-MAX
+      - delegate_web_to_deep_research # internal-first
+      - bounded_self_correct          # re-read schema -> retry once -> honest no_coverage
+    hitl: A                           # Tier-B+ legs surfaced (a HITL suggestion), never auto-run
+
+  - id: synthesize
+    name: "Stage 4 — synthesize -> format-agnostic IR"
+    skill: deepask/synthesize
+    actions:
+      - pyramid_structure
+      - citation_self_check          # scripts/deepask/citation-audit.cjs -> zero uncited (HARD gate)
+      - authority_rank               # SoR>memory for facts; memory>SoR for judgement
+      - conflict_flag
+      - freshness_tag
+      - adversarial_verify           # depth-scaled skeptics
+    hitl: A
+    failure_handling:
+      uncited_claim_found: repair_or_drop_then_reaudit   # never emit an IR with uncited claims
+
+  - id: completeness_critic
+    name: "Stage 5 — completeness critic (honesty gate)"
+    skill: deepask/completeness-critic
+    actions:
+      - build_coverage_matrix
+      - mece_recheck_4_ia_types
+      - live_probe                   # distinguish stale-catalog vs no-such-source
+      - classify_gaps                # no_match|stale|empty|not_built|breaker_budget + remedy
+      - bounded_follow_up_once       # <=1 more resolve->execute round if fillable
+      - set_verdict                  # COMPLETE | PARTIAL-WITH-HONEST-GAPS
+    hitl: A
+    failure_handling:
+      never_silent_partial: surface_gaps_in_answer
+      never_training_substitution: gap_with_remedy_not_hallucination
+
+  - id: format
+    name: "Format Engine — IR -> artifact"
+    skill: deepask/format
+    actions:
+      - resolve_format               # explicit --format | smartauto via format-select.cjs
+      - dispatch_to_reuse_skill      # anthropic-skills:* / mermaid MCP / design:* / playbook-builder
+      - always_write_answer_md        # canonical, regardless of --format
+      - graceful_degrade_if_renderer_absent
+      - write_artifact_dir           # scripts/deepask/artifact-path.cjs -> .archives/deepask/<date>-<slug>/
+    hitl: A
+
+  - id: observe
+    name: "Observe — audit + learning substrate"
+    actions:
+      - insert_ops_deepask_runs      # 1 row/query (incl. dry_run rows)
+      - insert_ops_deepask_coverage  # 1 row/sub-need
+    hitl: A
+
+# ----------------------------------------------------------------------
+# Always-on guards (every stage)
+# ----------------------------------------------------------------------
+guards:
+  firewall: "Product data ONLY via metrics.* views (hook pre-tool-supabase-product); never product.* (D-MAX)."
+  gbrain_cap: "gbrain reads+runs under the $100/mo HARD cap (pre-budget-check.sh); prefer search/recall over think."
+  resolver_breaker: "SESSION_HARD_CAP=20 finds/session/4h — budgeted by the Stage-0 accountant."
+  billing: "Subscription (session model) for in-session decompose/synthesize/format-selection; API key out-of-band/embeddings only."
+  dry_run: "--dry-run: shows decomposition + real ResolverPlans + predicted coverage + cost estimate; zero reads/runs/writes except one dry_run audit row (it DOES call resolver-plan, consuming breaker budget — labeled honestly)."
+
+# ----------------------------------------------------------------------
+# Events emitted
+# ----------------------------------------------------------------------
+events_emitted:
+  - type: ritsu.deepask.run_completed
+    when: observe stage (each non-dry-run query)
+    payload:
+      capability_id: deepask
+      run_id: <uuid>
+      verdict: COMPLETE | PARTIAL
+      format: <str>
+      depth: <str>
+      sub_need_count: <int>
+      resolver_find_calls: <int>
+      cost_usd: <float>
+  - type: ritsu.deepask.coverage_gap
+    when: completeness_critic sets a PARTIAL verdict with gaps
+    payload:
+      run_id: <uuid>
+      gaps: [ { facet, gap_reason, remedy } ]
+
+# ----------------------------------------------------------------------
+# State persistence
+# ----------------------------------------------------------------------
+state_persisted_in:
+  - ops.deepask_runs        # 1 row per /deepask query (migration 00045)
+  - ops.deepask_coverage    # 1 row per sub-need (migration 00045)
+  - ops.corrections         # founder edits/rejects the answer -> learning signal
+  - ops.cost_attributions   # per LLM/capability call (cost_bucket ai-ops-deepask)
+
+# ----------------------------------------------------------------------
+# KPIs (knowledge/kpi-registry.yaml)
+# ----------------------------------------------------------------------
+kpis:
+  - deepask.complete_verdict_rate
+  - deepask.uncited_claim_rate     # target 0 (citation-discipline guardrail)
+  - deepask.breaker_trip_rate

@@ -57,7 +57,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **Invoke:** `Read("wiki/capabilities/deepask/spec.md")` or `/cla update deepask`
 
 **Role scope:** *
-**Status:** proposed
+**Status:** operating
 **Pillar:** 06-ai-ops
 
 ## capability/docs-engine

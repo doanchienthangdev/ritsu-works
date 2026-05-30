@@ -7,7 +7,7 @@
 This file is THE source of truth for sop recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 
-**Total entries:** 109
+**Total entries:** 110
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -159,6 +159,20 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 **When to use:** > Runs SOP-AIOPS-003/validator/validate.sh across every flow.yaml in repo. Fails CI if any flow.yaml violates the runtime contract schema.
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sop-engine/SOP-AIOPS-004-flow-yaml-smoke-test/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## sop/SOP-AIOPS-005-deepask-runtime-contract
+
+**Kind:** sop
+**Axis:** capability
+**When to use:** > The runtime contract for the /deepask supercommand (capability deepask v1.0). > Authoritative flow: [flow.yaml](flow.yaml). Front-ends: .claude/commands/deepask.md > + 06-ai-ops/skills/deepask/orchestrator/SKILL.md.
+
+**Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-005-deepask-runtime-contract/flow.yaml")`
 **HITL tier:** A
 **Side effect:** none
 
