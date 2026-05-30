@@ -294,17 +294,30 @@ $0 API cost preserved.
 - Feature flag: `RESOLVER_JIT_ENABLED` (set false in `.env.local` to disable MCP)
 - Health-check cron: `resolver-v3-health-check` hourly (stub — wires in Sprint 4 follow-up)
 
-## Composition output — v2.2 adds optional `context_recipe`
+## Composition output — `context_recipe` is now FIRST-CLASS (capability `resolver-plan` v1.0, operating)
 
-> **resolver-plan v1.0 (Sprint 3):** `/resolver plan` returns a **populated**
-> version of this `context_recipe` — the **ResolverPlan v1** object (schema:
-> `knowledge/schemas/resolver-plan.schema.json`), with the 2 axes filled in
-> (`content_axis` to READ, `capability_axis` to RUN — tier-tagged) plus
-> `governance_constraints` / `goal_metrics` / `primary_lens` / honest `no_coverage`.
-> The full optional→first-class `context_recipe` promotion docs land in Sprint 5.
+> **`context_recipe` is no longer an optional, ignore-if-not-understood field.**
+> As of capability `resolver-plan` v1.0 (operating — S1-S4 merged #157-#160),
+> `/resolver plan` returns a **populated, schema-validated** `context_recipe` —
+> the **ResolverPlan v1** object
+> (schema: `knowledge/schemas/resolver-plan.schema.json`; skill:
+> `06-ai-ops/skills/resolver-plan/SKILL.md`). The 2 axes are filled in
+> (`content_axis` to READ — with `authority`/`freshness`/`grounding_ref`/
+> `columns_hint`; `capability_axis` to RUN — tier-tagged with
+> `hitl_tier`/`side_effect`/`cost_bucket`), plus `governance_constraints`
+> (ALWAYS `page/governance-HITL` when any capability is HITL tier B+),
+> `goal_metrics`, optional `primary_lens`, and an honest `no_coverage`.
+> See the `/resolver plan` workflow above + `wiki/capabilities/resolver-plan/spec.md`.
 
-Backward-compat: callers that don't understand `context_recipe` ignore the
-field. Callers that want context-assembly recipes can request:
+**Backward-compatible (the legacy subset still works).** A consumer that only
+reads the legacy `context_recipe` subset — `primary_lens` /
+`governance_constraints` / `goal_metrics`, or just the flat `primary` +
+`supporting` from a `query` — keeps working unchanged: the populated ResolverPlan
+is a **superset** of the optional shape (resolver-plan skill INV-6). A consumer
+that does NOT understand `context_recipe` at all still ignores it. The optional
+v2.2 shape below is the **legacy subset** of the now-first-class ResolverPlan —
+prefer the full ResolverPlan v1 (`/resolver plan` / `knowledge/schemas/resolver-plan.schema.json`)
+for new consumers (e.g. `/deepask`):
 
 ```yaml
 primary: <recipient-id>

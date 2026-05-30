@@ -105,7 +105,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **Invoke:** `Read("wiki/capabilities/resolver-plan/spec.md")` or `/cla update resolver-plan`
 
 **Role scope:** *
-**Status:** planning
+**Status:** operating
 **Pillar:** 06-ai-ops
 
 ## capability/resolver-v2.2-context-sources
