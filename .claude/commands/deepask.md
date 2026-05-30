@@ -20,10 +20,10 @@ argument-hint: "\"<question>\" [--format=<...>] [--sources=<...>] [--depth=quick
 | S2 | merged (#166) | `synthesize` (Pyramid + citation guardrail + authority + conflict + freshness + adversarial-verify) + `completeness-critic` (coverage matrix + MECE + live-probe + honest-gap verdict) |
 | S3 | merged (#167) | `execute` capability-RUN leg via `capability-gate.cjs` (Tier-A auto / Tier-B+ surface / D-MAX refuse) + gbrain-cap + `deep-research` delegation → **full 5-stage loop end-to-end** |
 | S4 | merged (#168) | Format Engine (`deepask/format` umbrella + dispatch table) — **doc family** (text·article·pdf·docx·pptx·xlsx) + `smartauto` via `format-select.cjs` |
-| **S5** | **this PR** | Format Engine — **visual adapters** (mermaid·chart·dashboard·html·interactive·canvas); `smartauto` default flipped to `ALL_FORMATS`; `artifact-path.cjs` layout helper → **all 12 formats live** |
-| S6 | pending | 3 KPIs + SOP-AIOPS-005 + docs + Phase-8 promotion |
+| S5 | merged (#169) | Format Engine — **visual adapters** (mermaid·chart·dashboard·html·interactive·canvas); `smartauto` default flipped to `ALL_FORMATS`; `artifact-path.cjs` layout helper → **all 12 formats live** |
+| **S6** | **this PR (final)** | 3 KPIs (`complete_verdict_rate`/`uncited_claim_rate`/`breaker_trip_rate`) + `SOP-AIOPS-005-deepask-runtime-contract` + `ai-ops-deepask` cost-bucket + **Phase-8 promotion → `operating`** (spec/retro → `wiki/capabilities/deepask/`) |
 
-After S5, **all 12 `--format` values produce a valid artifact** (or degrade gracefully) and `smartauto` can pick visual formats; the answer always also lands as canonical `answer.md` in `.archives/deepask/<date>-<slug>/`. Only S6 (KPIs + SOP + Phase-8 promotion → `operating`) remains.
+**deepask is `operating` as of 2026-05-30** (capability-registry `state: operating`). Full 5-stage loop + 12-format engine, breaker-safe + citation-disciplined, a zero-routing consumer of resolver-plan. Runtime contract: `SOP-AIOPS-005-deepask-runtime-contract`.
 
 ## Flags
 

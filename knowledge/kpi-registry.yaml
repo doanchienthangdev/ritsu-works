@@ -189,5 +189,40 @@ kpis:
     cadence: monthly
     source: "Computed alongside skillopt_synth_to_prod_correlation by the same cron handler. Pre-install baseline = correction rate in the 30 days BEFORE the /evolve skillopt run's install commit; post-install = correction rate in the 30 days AFTER."
 
+  # deepask KPIs (capability deepask v1.0, Sprint 6 — substrate: ops.deepask_runs/coverage, migration 00045)
+  - id: deepask.complete_verdict_rate
+    type: operational
+    description: "% of /deepask runs ending COMPLETE (vs PARTIAL-with-honest-gaps). Trends up as catalog coverage + source ingestion improve. Per capability deepask spec §6."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 0.8
+    threshold_warn: 0.6
+    threshold_critical: 0.4
+    cadence: monthly
+    source: "ops.deepask_runs: COUNT(verdict='COMPLETE') / COUNT(dry_run=false). Inserted to ops.kpi_snapshots."
+    notes: "A low complete rate is not inherently bad — deepask is honest about gaps. Pair with deepask.breaker_trip_rate to separate 'genuinely uncovered' from 'budget-starved'."
+
+  - id: deepask.uncited_claim_rate
+    type: operational
+    description: "Fraction of synthesized claims lacking >=1 citation across /deepask runs. HARD guardrail — MUST be 0 (citation-discipline invariant enforced per-run by scripts/deepask/citation-audit.cjs)."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 0.0
+    threshold_warn: 0.001
+    threshold_critical: 0.01
+    cadence: monthly
+    source: "Aggregated from scripts/deepask/citation-audit.cjs uncitedRate self-check recorded per run. Any non-zero is a citation-discipline breach to investigate."
+
+  - id: deepask.breaker_trip_rate
+    type: operational
+    description: "% of /deepask runs whose PARTIAL carried gap_reason='breaker_budget' (resolver session-breaker exhaustion). Makes the #1 runtime risk (shared SESSION_HARD_CAP=20) first-class observable. Per @cto Phase-2 finding + Muse panel."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 0.05
+    threshold_warn: 0.15
+    threshold_critical: 0.3
+    cadence: monthly
+    source: "ops.deepask_coverage.gap_reason='breaker_budget' joined to ops.deepask_runs. High rate → sessions over-spending resolver finds; revisit depth defaults / breaker tuning."
+
   # Business KPIs (customize per project)
   # {{ADD_BUSINESS_KPIS}}

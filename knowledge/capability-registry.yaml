@@ -1166,23 +1166,31 @@ capabilities:
     name: "deepask — federated retrieval + capability-execution + cited synthesis supercommand"
     description: "First-class supercommand /deepask \"<q>\" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its own — a PURE CONSUMER of resolver-plan (Cap 1, the sole routing brain; 2-axis content/capability ResolverPlan v1). 5-stage loop: decompose (MECE sub-needs, IA-type A/B/C/D tags, depth-bounded ≤6/≤12) → resolve (per sub-need ResolverPlan v1 via resolver-plan) → execute/fan-out (parallel subagents READ content_axis + RUN Tier-A capability_axis only, surface Tier-B+, delegate web leg to deep-research; AUTHORS the concrete read-only SQL/wiki_ask/skill-params grounded in plan grounding_ref/columns_hint, never invents columns) → synthesize (Pyramid, every claim cited, authority-ranked, conflict-flagged, freshness-tagged, adversarial-verified; emits format-agnostic IR) → completeness-critic (coverage matrix + MECE re-check + live-probe; COMPLETE or PARTIAL-WITH-HONEST-GAPS + remedy; one bounded follow-up). FORMAT ENGINE: IR → 12 pluggable format-adapter skills (text·article·pdf·docx·pptx·xlsx·mermaid·chart·dashboard·html·interactive·canvas·smartauto) reusing anthropic-skills + mermaid MCP + design:*; artifacts → .archives/deepask/<date>-<slug>/. New ops.deepask_runs + ops.deepask_coverage tables mirror ops.resolver_decisions. Depends on capability resolver-plan (must be operating)."
     version: "1.0.0"
-    state: proposed
+    state: operating           # Phase 8 promotion 2026-05-30; Sprints 1-6 merged (#165-#169 + S6)
     proposed_at: 2026-05-30
+    deployed_at: 2026-05-30
+    operating_since: 2026-05-30
     pillar_owner: 06-ai-ops
-    spec_path: wiki/capabilities/deepask/spec.md   # target — promoted at Phase 8
-    cost_bucket: ai-ops-cla
+    spec_path: wiki/capabilities/deepask/spec.md   # promoted at Phase 8 (2026-05-30)
+    cost_bucket: ai-ops-deepask
     notes: |
-      Capability 2 of the /deepask program (resolver-plan → deepask). Proposed
-      2026-05-30 via /cla propose. ops.capability_runs id
-      46bec9c9-a094-4979-a62f-614943e64c6a (Phase 0 INSERT).
-      Dependency resolver-plan = operating (sibling entry above) — built precisely
-      so deepask can be a ZERO-routing pure consumer of ResolverPlan v1.
-      Brainstorm: .archives/brainstorming/deepask/{00..06,99}.md (root, local-only)
-      + context runtime/deepask/context/. CLA working dir: .archives/cla/deepask/.
-      HITL: build = Tier C (new command + skill suite + migration + Format Engine);
-      deepask RUNTIME = Tier A (read/synthesize) with any Tier-B+ run-leg surfaced,
-      not auto-run. NOTE: ops.capability_runs.state lags (INSERT-only MCP, Phase
-      1.5); authoritative progress = ops.capability_phase_events + this entry.
+      Capability 2 of the /deepask program (resolver-plan → deepask). OPERATING;
+      6 sprints merged: #165 (foundation + breaker accountant + migration 00045
+      APPLIED to ritsu-ops), #166 (synthesize + completeness-critic + citation
+      guardrail), #167 (capability-RUN leg + capability-gate + deep-research),
+      #168 (Format Engine doc family + smartauto), #169 (visual formats — all 12).
+      S6 = 3 KPIs (deepask.complete_verdict_rate/uncited_claim_rate/breaker_trip_rate)
+      + SOP-AIOPS-005-deepask-runtime-contract + Phase-8 promotion.
+      ops.capability_runs id 46bec9c9-a094-4979-a62f-614943e64c6a; Tier C decision
+      861f8eb4-6572-4df5-b1cc-44aac0a7b014 (slug deepask-architecture-option-b).
+      5 tested deterministic helpers scripts/deepask/{breaker-budget,citation-audit,
+      capability-gate,format-select,artifact-path}.cjs (116 tests). Spec + retrospective
+      promoted to wiki/capabilities/deepask/.
+      DEVIATION (reconciled Phase 8): Format Engine = 1 umbrella deepask/format skill +
+      dispatch table, NOT 12 per-format folders per spec §4.1 — resolver INDEX token
+      cap (~14k/15k); extensibility preserved (new format = dispatch row + format-select
+      availability). NOTE: ops.capability_runs.state lags (INSERT-only MCP, Phase 1.5);
+      authoritative = ops.capability_phase_events + this entry.
 
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
@@ -1210,6 +1218,10 @@ cost_buckets:
   ai-ops-skill-library:
     description: "Skill-library capabilities — guidance documents that structure thinking and output of invoking agents. Zero per-invocation LLM cost; one-time authoring cost only."
     capabilities: [thinking-toolkit]
+
+  ai-ops-deepask:
+    description: "deepask runtime — federated retrieval + capability-execution + cited synthesis. Subscription (in-session) orchestration; gbrain reads under the global $100/mo cap. Per-run cost logged to ops.cost_attributions + ops.deepask_runs.cost_usd."
+    capabilities: [deepask]
 
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
