@@ -1,0 +1,75 @@
+---
+name: orchestrator
+description: deepask loop driver — owns depth/sources/dry-run semantics and the resolver-budget accountant. Runs the 5-stage loop (decompose → resolve via resolver-plan → execute fan-out → synthesize → completeness-critic), budgets resolver calls against the shared SESSION_HARD_CAP=20 breaker, and writes ops.deepask_runs/coverage. deepask has ZERO routing of its own — it consumes ResolverPlan v1 from resolver-plan. Invoked by /deepask.
+---
+
+# deepask/orchestrator (capability `deepask` v1.0)
+
+> The brain of `/deepask`. Drives the loop; delegates ALL routing to `resolver-plan`.
+> Sprint 1 scope: pre-flight budget gate + decompose + resolve + execute(read-only) +
+> observability. Synthesize/critic (S2), capability-run leg (S3), Format Engine (S4–S5)
+> wire in later. Spec: `wiki/capabilities/deepask/spec.md` (current `.archives/cla/deepask/spec.md`).
+
+## When to use
+- Invoked by `.claude/commands/deepask.md` on every `/deepask "<q>" [flags]`.
+
+## Inputs
+- `question` (string, 1–500 chars), `--format`, `--sources`, `--depth`, `--dry-run` (parsed by the command).
+- The latest `session_finds_count` (from any prior `resolver_find` response this session; 0 if none).
+
+## Process
+
+### Stage 0 — Resolver-budget pre-flight (the @cto Sprint-1 gate)
+The resolver per-session circuit breaker is `SESSION_HARD_CAP = 20`, **shared session-wide**, resetting only after 4h idle (`mcp-server/src/tools/resolver-find.ts:43,45,74`). `resolver-plan` spends one `resolver_find` per sub-need and the critic may add one follow-up round. The `≤6/≤12` decomposition bound is therefore necessary-but-NOT-sufficient.
+
+1. Tentatively size the decomposition from `--depth`: quick≤3, standard≤6, deep≤12, exhaustive≤12.
+2. Read the current `session_finds_count` (last `resolver_find` response field; 0 if unknown).
+3. Call the deterministic helper:
+   ```js
+   const { computeBreakerBudget } = require('scripts/deepask/breaker-budget.cjs');
+   const b = computeBreakerBudget({ sessionFindsCount, subNeedCount: plannedSubNeeds });
+   ```
+4. Act on the result:
+   - `viable && !degrade` → proceed with `plannedSubNeeds`.
+   - `reason === 'capped_to_budget'` → cap decompose to `b.allowedSubNeeds`; tell the operator "depth capped to fit resolver budget (N finds left this session)".
+   - `!viable` (`reason === 'breaker_budget'`) → **emit an honest PARTIAL up front**, write a `ops.deepask_coverage` row with `gap_reason='breaker_budget'` + `remedy="restart session or wait for the 4h breaker window"`, and STOP. **Never** a fabricated `no_coverage`.
+5. Record `resolver_find_calls` (running) so it lands in `ops.deepask_runs` (@cto NIT-1 — required for the `breaker_trip_rate` KPI).
+
+### Stage 1 — Decompose
+Invoke `deepask/decompose` with `question` + the budget-approved `allowedSubNeeds` cap + `--sources`. Returns MECE sub-needs, each IA-type-tagged (A/B/C/D).
+
+### Stage 2 — Resolve (consume resolver-plan; deepask routes nothing)
+For each sub-need, call `resolver-plan` (`/resolver plan "<sub-need>"` or `mcp__supabase-ops__resolver_find` + the resolver-plan skill) → a `ResolverPlan v1` (`content_axis` + `capability_axis` + `governance_constraints` + `goal_metrics` + `no_coverage`). Pass `--sources` as the resolver filter. Increment `resolver_find_calls`.
+
+### Stage 3 — Execute (Sprint 1: READ-only)
+Invoke `deepask/execute` per sub-need (parallel). S1 reads `content_axis` only; the capability-RUN leg + deep-research delegation land in S3. Collect evidence with source-refs + freshness + got_data.
+
+### Stage 4–5 — Synthesize + completeness-critic (S2)
+Until S2 lands, assemble a read-only evidence bundle: a cited `answer.md` stub (every evidence item carries its source-ref) + `plan.json` (decomposition + ResolverPlans + coverage matrix) + `sources.json`. Full Pyramid synthesis + the COMPLETE/PARTIAL verdict + the ≤1 bounded follow-up arrive with `deepask/synthesize` + `deepask/completeness-critic`.
+
+### Stage 6 — Observe (write the audit + learning rows)
+- INSERT one `ops.deepask_runs` row: `question, format, depth, sources_filter, dry_run, verdict, sub_need_count, resolver_find_calls, recipients_touched, artifact_path, cost_usd, latency_ms`.
+- INSERT one `ops.deepask_coverage` row per sub-need: `sub_need, ia_type, planned_recipients, executed, got_data, gap_reason, remedy`.
+- `--dry-run`: write ONLY the `dry_run=true` `ops.deepask_runs` row; perform zero reads/runs/other writes (but Stage 2 DID call resolver-plan to show real plans — its breaker cost is real and labeled).
+
+## `--dry-run` contract
+Shows: the decomposition, the **real** ResolverPlans (resolve IS executed — it consumes breaker budget, stated honestly in the output), predicted coverage, and a cost estimate. Executes: no content reads, no capability runs, no writes beyond the single dry-run audit row.
+
+## Guards (always-on)
+- Firewall: never `product.*` (hook `pre-tool-supabase-product`); product only via `metrics.*`.
+- gbrain reads under $100/mo cap; prefer `search`/`recall` over `think`.
+- Subscription billing in-session; API key out-of-band only.
+- HITL: runtime Tier A; Tier-B+ capability legs surfaced by `deepask/execute` (S3), never auto-run.
+
+## Outputs
+- `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` always; `plan.json`; `sources.json`; rendered artifact from S4–S5).
+- `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) rows.
+
+## HITL
+Tier A (read/synthesize). Tier-B+ capability legs surfaced for approval (S3).
+
+## Cost
+Subscription (in-session) — cost-bucket `ai-ops-deepask`; logged to `ops.cost_attributions` + `ops.deepask_runs.cost_usd`. gbrain reads under the global cap.
+
+## Tests
+`scripts/deepask/breaker-budget.cjs` is unit-tested (`tests/deepask/breaker-budget.test.ts`, 27 cases incl. the cap off-by-one + honest-PARTIAL exhaustion). Loop-level tests (decompose MECE, firewall block, zero-routing in plan.json, dry-run writes only a dry-run row) land per the spec §10 test matrix as their stages ship.

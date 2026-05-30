@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 13
+**Total entries:** 14
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -46,6 +46,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Role scope:** *
 **Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/deepask
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** deepask — federated retrieval + capability-execution + cited synthesis supercommand. First-class supercommand /deepask "<q>" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its v1.0.0
+
+**Invoke:** `Read("wiki/capabilities/deepask/spec.md")` or `/cla update deepask`
+
+**Role scope:** *
+**Status:** proposed
 **Pillar:** 06-ai-ops
 
 ## capability/docs-engine

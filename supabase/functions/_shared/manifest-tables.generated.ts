@@ -2,10 +2,10 @@
 // knowledge/manifest.yaml. Do not edit by hand.
 // Re-run with: pnpm wave2:bundle-manifest-tables
 //
-// Source version: 0.13.0
-// ops tables:     33
+// Source version: 0.14.0
+// ops tables:     35
 // metrics tables: 1
-// Generated at:   2026-05-27T14:23:57.226Z
+// Generated at:   2026-05-30T10:38:37.227Z
 
 export const MANIFEST_OPS_TABLES: readonly string[] = Object.freeze(
 [
@@ -21,6 +21,8 @@ export const MANIFEST_OPS_TABLES: readonly string[] = Object.freeze(
   "corrections",
   "cost_attributions",
   "decisions",
+  "deepask_coverage",
+  "deepask_runs",
   "entity_edit_locks",
   "events",
   "evolve_extractions",

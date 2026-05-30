@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 87
+**Total entries:** 90
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -305,6 +305,48 @@ cost-optimization-review needs current data.
 Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 
 **Invoke:** `Skill({ skill: "cost-report" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/deepask/decompose
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** deepask Stage 1 — splits a question into MECE sub-needs, each tagged by IA type (A System-of-Record / B Derived-memory / C Scratch / D Conduit). Depth-bounded (≤6 standard / ≤12 deep) and budget-capped by the orchestrator's resolver-budget accountant. Reuses thinking-toolkit/{tosca,mece-decomposition-check,driver-tree-decomposition}. Pure decomposition — no routing (that's resolver-plan), no retrieval.
+
+**Invoke:** `Skill({ skill: "deepask/decompose" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/deepask/execute
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** deepask Stage 3 — per-sub-need executor. Sprint 1 = READ-only legs (content_axis from the ResolverPlan). AUTHORS the concrete read-only SQL / wiki_ask question / read params itself, grounded in the plan's grounding_ref/columns_hint — NEVER invents column names. Firewall-aware (product only via metrics.*), gbrain-cap-aware, bounded self-correct on error. Sprint 3 adds the capability-RUN leg (Tier-A auto / Tier-B+ surface) + deep-research delegation.
+
+**Invoke:** `Skill({ skill: "deepask/execute" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/deepask/orchestrator
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** deepask loop driver — owns depth/sources/dry-run semantics and the resolver-budget accountant. Runs the 5-stage loop (decompose → resolve via resolver-plan → execute fan-out → synthesize → completeness-critic), budgets resolver calls against the shared SESSION_HARD_CAP=20 breaker, and writes ops.deepask_runs/coverage. deepask has ZERO routing of its own — it consumes ResolverPlan v1 from resolver-plan. Invoked by /deepask.
+
+**Invoke:** `Skill({ skill: "deepask/orchestrator" })`
 **HITL tier:** B
 **Side effect:** write
 
