@@ -18,11 +18,12 @@ argument-hint: "\"<question>\" [--format=<...>] [--sources=<...>] [--depth=quick
 |---|---|---|
 | S1 | merged (#165) | command + `orchestrator` (resolver-budget accountant) + `decompose` + `execute` (READ-only legs) + migration 00045 |
 | S2 | merged (#166) | `synthesize` (Pyramid + citation guardrail + authority + conflict + freshness + adversarial-verify) + `completeness-critic` (coverage matrix + MECE + live-probe + honest-gap verdict) |
-| **S3** | **this PR** | `execute` capability-RUN leg via `capability-gate.cjs` (Tier-A auto / Tier-B+ surface / D-MAX refuse) + gbrain-cap + `deep-research` delegation → **full 5-stage loop end-to-end** |
-| S4–S5 | pending | Format Engine — 12 adapters + smartauto |
+| S3 | merged (#167) | `execute` capability-RUN leg via `capability-gate.cjs` (Tier-A auto / Tier-B+ surface / D-MAX refuse) + gbrain-cap + `deep-research` delegation → **full 5-stage loop end-to-end** |
+| **S4** | **this PR** | Format Engine (`deepask/format` umbrella + dispatch table) — **doc family** (text·article·pdf·docx·pptx·xlsx) + `smartauto` via `format-select.cjs` |
+| S5 | pending | Format Engine — visual adapters (mermaid·chart·dashboard·html·interactive·canvas) |
 | S6 | pending | 3 KPIs + SOP-AIOPS-005 + docs + Phase-8 promotion |
 
-After S3, the **full 5-stage loop is complete and breaker-safe**: decompose → resolve → execute (read content + run Tier-A capabilities, surface Tier-B+, delegate web to deep-research) → synthesize → completeness-critic. The answer renders as canonical `answer.md` + `plan.json` + `sources.json` (Markdown); the rich 12-format engine (S4–S5) and KPIs/SOP/promotion (S6) arrive next.
+After S4, the synthesis IR renders to the **doc-family formats** (text·article·pdf·docx·pptx·xlsx) with `smartauto` selection; canonical `answer.md` always written; rich formats degrade gracefully when a session renderer is unavailable. Visual formats (S5) + KPIs/SOP/promotion (S6) remain.
 
 ## Flags
 
