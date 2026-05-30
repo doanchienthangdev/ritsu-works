@@ -16,13 +16,13 @@ argument-hint: "\"<question>\" [--format=<...>] [--sources=<...>] [--depth=quick
 
 | Sprint | Status | Surface |
 |---|---|---|
-| **S1** | **this PR** | command + `orchestrator` (resolver-budget accountant) + `decompose` + `execute` (READ-only legs) + migration 00045 |
-| S2 | pending | `synthesize` (Pyramid + citation + authority + conflict + freshness + adversarial-verify) + `completeness-critic` |
+| S1 | merged (#165) | command + `orchestrator` (resolver-budget accountant) + `decompose` + `execute` (READ-only legs) + migration 00045 |
+| **S2** | **this PR** | `synthesize` (Pyramid + citation guardrail + authority + conflict + freshness + adversarial-verify) + `completeness-critic` (coverage matrix + MECE + live-probe + honest-gap verdict) |
 | S3 | pending | `execute` capability-RUN leg (Tier-A auto / Tier-B+ surface) + gbrain-cap + deep-research delegation |
 | S4–S5 | pending | Format Engine — 12 adapters + smartauto |
 | S6 | pending | 3 KPIs + SOP-AIOPS-005 + docs + Phase-8 promotion |
 
-Until S2 lands, `/deepask` produces a **read-only evidence bundle** (`plan.json` + `sources.json` + a cited `answer.md` stub); full Pyramid synthesis + rich formats arrive in later sprints.
+After S2, `/deepask` produces a **fully-synthesized cited answer** (Pyramid, zero uncited claims, authority-ranked, conflict-aware, freshness-tagged) + an honest COMPLETE/PARTIAL verdict, written as canonical `answer.md` + `plan.json` + `sources.json`. The capability-RUN leg (S3) and rich output formats (S4–S5) arrive next; until then the answer renders as Markdown.
 
 ## Flags
 
