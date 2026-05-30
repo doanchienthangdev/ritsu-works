@@ -1,5 +1,5 @@
 ---
-description: Lookup PLATFORM v3 (JIT Loading). Founder/operator surface for resolver. Mode A2 delegates to mcp__resolver__find for ~10K INDEX + drill-down via MCP. Mode C keyword fallback retained for CRON/edge. v2.2 ambient (55K catalog) deprecated post-cutover.
+description: Lookup PLATFORM v3 (JIT Loading). Founder/operator surface for resolver. Mode A2 delegates to mcp__supabase-ops__resolver_find for ~10K INDEX + drill-down via MCP. Mode C keyword fallback retained for CRON/edge. v2.2 ambient (55K catalog) deprecated post-cutover.
 argument-hint: "<query|plan|list|validate|sync|explain> [args] [flags]"
 capability: resolver-v3-jit-loading
 version: 3.0.0
@@ -10,7 +10,7 @@ supersedes: resolver-v2.2-context-sources@2.2.0
 # /resolver (v3.0.2)
 
 Project-scoped command for ritsu-works. Front-end for capability
-`resolver-v3-jit-loading` (`knowledge/recipients/INDEX.md` + `mcp__resolver__find`).
+`resolver-v3-jit-loading` (`knowledge/recipients/INDEX.md` + `mcp__supabase-ops__resolver_find`).
 This command is a thin orchestrator — engine logic lives in `scripts/resolver-v2/*.cjs`
 (reused via Node interop) + `mcp-server/src/tools/resolver-find.ts`.
 
@@ -20,7 +20,7 @@ This command is a thin orchestrator — engine logic lives in `scripts/resolver-
 |---|---|---|---|
 | `<subcommand>` | yes | enum | `query` \| `plan` \| `list` \| `validate` \| `sync` \| `explain` |
 | `"<trigger>"` (query/plan/explain) | yes for those | string | 1-500 chars |
-| `--sources=<csv>` (plan) | no | csv | comma-list of kinds (skill,page,metric,…) or axis (content,capability) to constrain `mcp__resolver__find` |
+| `--sources=<csv>` (plan) | no | csv | comma-list of kinds (skill,page,metric,…) or axis (content,capability) to constrain `mcp__supabase-ops__resolver_find` |
 | `--kind=<k>` | no | enum | one-of 16 kinds: skill\|command\|agent\|persona\|mcp\|wiki\|sop\|capability\|workflow\|schedule\|hook\|page\|view\|metric\|runbook\|external-source |
 | `--limit=N` | no | int 1-20 | default 20 (raised from 5 in iter4 — session does ranking) |
 | `--role=<role>` | no | string | override caller MCP_CALLER_ROLE for role_scope filter |
@@ -74,11 +74,11 @@ adapter ships).
 |---|---|---|---|
 | **A — ambient INDEX** (post-v3-cutover) | You see INDEX.md in CLAUDE.md preamble (~11K tokens); reason naturally about what kinds + entries exist | 0ms | $0 |
 | **A2 — JIT MCP `find()`** (NEW v3) | Need full details for a recipient (composes_with, recency, role_scope) | ~80ms MCP + session ranking | $0 (subscription billing) |
-| **B — explicit `/resolver query`** | Founder CLI ergonomics; delegates to `mcp__resolver__find` per Q3.4 | ~80ms + session ranking | $0 in-session |
+| **B — explicit `/resolver query`** | Founder CLI ergonomics; delegates to `mcp__supabase-ops__resolver_find` per Q3.4 | ~80ms + session ranking | $0 in-session |
 | **C — keyword fallback** | CRON/edge function (no LLM in loop) | <5ms | $0 |
 
 **Per Q3.4 resolution**: `/resolver query` (Mode B) is now a thin wrapper that
-invokes `mcp__resolver__find` internally. Single source of truth (MCP tool)
+invokes `mcp__supabase-ops__resolver_find` internally. Single source of truth (MCP tool)
 serves both slash command + AI workforce agents.
 
 ## Subcommands
@@ -129,7 +129,7 @@ You don't need to invoke this command. Just read the catalog naturally:
 ```
 $ /resolver query "onboard first 30 customers"
 
-[Mode B → mcp__resolver__find delegate per Q3.4]
+[Mode B → mcp__supabase-ops__resolver_find delegate per Q3.4]
 Primary: skill/customer-onboarding (keyword_score: 0.85)
   Invoke: Skill({ skill: "customer-onboarding" })
   When: Onboarding a new paying customer (especially the first 30 high-touch
@@ -158,7 +158,7 @@ Session finds: 1/20 in current 4h window
 ## `/resolver plan` workflow (2-axis execution plan)
 
 `/resolver plan` invokes the `resolver-plan` skill
-(`06-ai-ops/skills/resolver-plan/SKILL.md`), which calls `mcp__resolver__find` once per
+(`06-ai-ops/skills/resolver-plan/SKILL.md`), which calls `mcp__supabase-ops__resolver_find` once per
 sub-need and SESSION-MODEL assembles a populated **ResolverPlan v1** — a first-class,
 filled-in `context_recipe` (the optional shape documented below). It splits the
 axis-tagged candidates into `content_axis` (READ — with authority/freshness/grounding) vs
@@ -233,8 +233,8 @@ Recall acknowledged ~30% (keyword-only); use Mode A whenever possible.
 |---|---|
 | 16 files `@imported` into CLAUDE.md (~55K tokens ambient) | 1 file `INDEX.md` (~11K tokens, all 373 active entries) |
 | Mode A = full text in context | Mode A = INDEX in context (1-line per entry) |
-| No JIT pattern | Mode A2 = `mcp__resolver__find` for drill-down |
-| `/resolver query` Mode B = in-session LLM | `/resolver query` delegates to `mcp__resolver__find` |
+| No JIT pattern | Mode A2 = `mcp__supabase-ops__resolver_find` for drill-down |
+| `/resolver query` Mode B = in-session LLM | `/resolver query` delegates to `mcp__supabase-ops__resolver_find` |
 | ~80% recall (Mode A reads full catalog) | ~89% recall (session model picks from 20 keyword-pre-filtered) |
 | Catalog grows linearly into ambient (failure at ~800 entries) | Scales to 1500+ entries (INDEX size capped at 15K) |
 | Per-call API cost via Mode B = $0 (in-session) | Per-call API cost = $0 (still in-session per `external-source/anthropic-api`) |
@@ -248,18 +248,18 @@ $0 API cost preserved.
 
 | Subcommand | ops.* writes | Events emitted | Filesystem writes |
 |---|---|---|---|
-| `query` | `ops.resolver_decisions` (mode='A2', via `mcp__resolver__find`) | none | none |
-| `plan` | `ops.resolver_decisions` (mode='A2' + `plan_payload`, best-effort) — 1 row per plan call; plus 1 `mcp__resolver__find` audit row per sub-need | none | none |
+| `query` | `ops.resolver_decisions` (mode='A2', via `mcp__supabase-ops__resolver_find`) | none | none |
+| `plan` | `ops.resolver_decisions` (mode='A2' + `plan_payload`, best-effort) — 1 row per plan call; plus 1 `mcp__supabase-ops__resolver_find` audit row per sub-need | none | none |
 | `list` | none (read-only) | none | none |
 | `validate` | none (read-only) | none | none |
 | `sync --dry-run` | none | none | none (preview only) |
 | `sync --apply` | none | none | `knowledge/recipients/*.md` (regenerated from source frontmatter) |
 | `sync --auto-pr` | none | none | `knowledge/recipients/*.md` + git commit + GitHub PR via `gh` |
 | `explain` | `ops.resolver_decisions` (mode='A2') optionally | none | none |
-| (auto) `mcp__resolver__find` | `ops.resolver_decisions` (mode='A2') + IF bypass detection enabled: `ops.events` (event_type=`resolver.bypass_detected`) | `resolver.bypass_detected` (cherry-pick #13 post-cutover) | none |
+| (auto) `mcp__supabase-ops__resolver_find` | `ops.resolver_decisions` (mode='A2') + IF bypass detection enabled: `ops.events` (event_type=`resolver.bypass_detected`) | `resolver.bypass_detected` (cherry-pick #13 post-cutover) | none |
 | (cron) `resolver-v3-health-check` | `ops.events` (event_type=`resolver.health_check`); 3 consecutive fails → `resolver.health_degraded` | `resolver.health_check`, `resolver.health_degraded` | none |
 
-## Error codes (mcp__resolver__find pass-through)
+## Error codes (mcp__supabase-ops__resolver_find pass-through)
 
 | Code | When | What to do |
 |---|---|---|
@@ -290,7 +290,7 @@ $0 API cost preserved.
 - Drift: `pnpm check` passes (5 validators including new `resolver-v3 INDEX.md ↔ catalog`)
 - INDEX.md size: ~11K tokens, 386 active recipients (was 55K full catalog in v2.2)
 - Hard cap: 15K tokens (room for ~5 more capabilities worth of new recipients)
-- MCP tool: `mcp__resolver__find` registered, returns top-20 enriched candidates
+- MCP tool: `mcp__supabase-ops__resolver_find` registered, returns top-20 enriched candidates
 - Feature flag: `RESOLVER_JIT_ENABLED` (set false in `.env.local` to disable MCP)
 - Health-check cron: `resolver-v3-health-check` hourly (stub — wires in Sprint 4 follow-up)
 

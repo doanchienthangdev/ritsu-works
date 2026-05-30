@@ -12,7 +12,7 @@
  *
  * This map is the single source of truth for the `axis` field emitted on every
  * catalog entry by catalog-generator.cjs, and (Sprint 2) surfaced by
- * mcp__resolver__find. It is intentionally a static lookup — NO LLM, NO network,
+ * mcp__supabase-ops__resolver_find. It is intentionally a static lookup — NO LLM, NO network,
  * NO inference — so the classification is reproducible and a wrong mapping is a
  * one-line fix caught by a unit test.
  *

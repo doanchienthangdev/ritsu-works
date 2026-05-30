@@ -26,6 +26,11 @@
     "resolver:index": "node scripts/resolver-v3/index-generator.cjs",
     "resolver:index:dry-run": "node scripts/resolver-v3/index-generator.cjs --dry-run",
     "resolver:index:check": "node scripts/resolver-v3/index-generator.cjs --check",
+    "resolver:sync": "node scripts/resolver-v2/sync.cjs",
+    "resolver:sync:apply": "node scripts/resolver-v2/sync.cjs --apply",
+    "reconcile:mcp": "node scripts/resolver-v3/mcp-runtime-reconcile.cjs",
+    "reconcile:mcp:ci": "node scripts/resolver-v3/mcp-runtime-reconcile.cjs --allow-spawn-fail",
+    "gen:gbrain-catalog": "node scripts/resolver-v3/gen-gbrain-catalog.cjs",
     "bootstrap": "bash .scripts/bootstrap.sh",
     "postinstall": "bash scripts/skillopt/install-vendor.sh || true",
     "setup:skillopt": "bash scripts/skillopt/install-vendor.sh"

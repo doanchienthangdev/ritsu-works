@@ -4,7 +4,7 @@
 // Source version:  1.0.0
 // Source timezone: Asia/Ho_Chi_Minh
 // Schedule count:  16
-// Generated at:    2026-05-27T09:36:12.614Z
+// Generated at:    2026-05-30T05:50:38.525Z
 
 import type { ScheduleEntry } from "./dispatcher.ts";
 
@@ -162,7 +162,7 @@ export const SCHEDULES: Record<string, ScheduleEntry> = {
   "resolver-v3-health-check": {
     "id": "resolver-v3-health-check",
     "cron": "0 * * * *",
-    "description": "Canary mcp__resolver__find call; alert founder on 3 consecutive failures",
+    "description": "Canary mcp__supabase-ops__resolver_find call; alert founder on 3 consecutive failures",
     "skill": "resolver-v3-health-check",
     "enabled_when_mode": [
       "hybrid",

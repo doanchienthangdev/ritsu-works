@@ -546,7 +546,7 @@ capabilities:
       Replaces v2.2's 55K-token ambient catalog (preloaded every session via
       knowledge/recipients/*.md @import; grew 30K→55K in 2 sprints; projected
       80-100K next year) with ~11K compressed INDEX.md (all 373 active entries)
-      + mcp__resolver__find MCP tool returning top-20 keyword-pre-filtered
+      + mcp__supabase-ops__resolver_find MCP tool returning top-20 keyword-pre-filtered
       enriched candidates for SESSION-MODEL ranking.
 
       Architectural shift: ambient catalog (documentation) → JIT MCP tool

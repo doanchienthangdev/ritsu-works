@@ -170,7 +170,7 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 
 **Kind:** schedule
 **Axis:** capability
-**When to use:** Cron 0 * * * *: Canary mcp__resolver__find call; alert founder on 3 consecutive failures
+**When to use:** Cron 0 * * * *: Canary mcp__supabase-ops__resolver_find call; alert founder on 3 consecutive failures
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `resolver-v3-health-check`
 **HITL tier:** B
