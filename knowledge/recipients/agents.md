@@ -15,6 +15,7 @@ Read in any Claude Code session via `@knowledge/recipients/agents.md` import.
 ## agent/brain
 
 **Kind:** agent
+**Axis:** capability
 **When to use:** Delegated brain reasoning subagent for the gbrain operational brain
 (Type 4 Semantic Memory). Use `@brain` when you want a synthesized
 answer from across multiple brain pages without leaving the current
@@ -26,6 +27,8 @@ defaults to founder. HITL max tier: B (writes notify-first-then-batch;
 no D-tier ops).
 
 **Invoke:** `Agent({ subagent_type: "brain", ... })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -33,6 +36,7 @@ no D-tier ops).
 ## agent/ceo
 
 **Kind:** agent
+**Axis:** capability
 **When to use:** Chief Executive Officer persona for Ritsu Works. The founder's primary
 routing interface. Bound to technical role `gps` (General Purpose Steward)
 per knowledge/workforce-personas.yaml. HITL max tier: C.
@@ -41,6 +45,8 @@ multi-turn strategic sessions. Other invocations recurse to CEO's
 routing-matrix.
 
 **Invoke:** `Agent({ subagent_type: "ceo", ... })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -48,6 +54,7 @@ routing-matrix.
 ## agent/cgo
 
 **Kind:** agent
+**Axis:** capability
 **When to use:** Chief Growth Officer (GTM) persona for Ritsu Works. Drives the 03-gtm
 funnel toward PMF goal "100 paying who love". Composes Marketing+Sales+
 Product+Customer modules. Bound to role `gtm-orchestrator` per
@@ -55,6 +62,8 @@ knowledge/workforce-personas.yaml. HITL max tier: C. Use @cgo for
 bounded funnel/experiment tasks; /cgo for weekly planning.
 
 **Invoke:** `Agent({ subagent_type: "cgo", ... })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -62,6 +71,7 @@ bounded funnel/experiment tasks; /cgo for weekly planning.
 ## agent/cla
 
 **Kind:** agent
+**Axis:** capability
 **When to use:** Capability Lifecycle Architecture subagent — bounded one-shot invocation
 of /cla sub-flows mid-conversation. Used when founder wants to update an
 existing operating capability without exiting the current session.
@@ -70,6 +80,8 @@ or `@cla history <id>`. NOT for new capability proposal — use /cla propose
 for that (multi-session ceremony).
 
 **Invoke:** `Agent({ subagent_type: "cla", ... })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -77,6 +89,7 @@ for that (multi-session ceremony).
 ## agent/cpo
 
 **Kind:** agent
+**Axis:** capability
 **When to use:** Chief Product Officer persona for Ritsu Works. Owns 04-product —
 wedge-discovery, build-loop, feedback-pipeline, pricing-experiments,
 A/B test discipline. Custodian of N=10 strangers PG gate (SOP-PRODUCT-002).
@@ -85,6 +98,8 @@ HITL max tier: C. Use @cpo for bounded product tasks (PRD draft, wedge
 analysis, cancel-flow synthesis); /cpo for weekly product session.
 
 **Invoke:** `Agent({ subagent_type: "cpo", ... })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -92,6 +107,7 @@ analysis, cancel-flow synthesis); /cpo for weekly product session.
 ## agent/cto
 
 **Kind:** agent
+**Axis:** capability
 **When to use:** Chief Technology Officer persona for Ritsu Works. Code review, PR triage,
 schema/migration sanity, hook/MCP config review, drift diagnostics.
 Bound to technical role `code-reviewer` per knowledge/workforce-personas.yaml.
@@ -99,6 +115,8 @@ HITL max tier: B. Never merges; founder merges. Use @cto for bounded
 one-shot review; /cto for an interactive review session.
 
 **Invoke:** `Agent({ subagent_type: "cto", ... })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -106,6 +124,7 @@ one-shot review; /cto for an interactive review session.
 ## agent/gbrain-maintainer
 
 **Kind:** agent
+**Axis:** capability
 **When to use:** Autonomous nightly maintainer for gbrain (Type 4 Semantic Memory engine).
 Runs the dream cycle: dedup, citation fix, contradiction detection,
 synthesis. NOT invoked interactively; fired by `gbrain-dream-cycle` cron
@@ -120,6 +139,8 @@ Skip when: gbrain cost-bucket monthly aggregate ≥ $100 (Hard-cap Option B
 graceful degrade — dream cycle disabled until founder PR raises cap).
 
 **Invoke:** `Agent({ subagent_type: "gbrain-maintainer", ... })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -127,6 +148,7 @@ graceful degrade — dream cycle disabled until founder PR raises cap).
 ## agent/skillopt-optimizer-reflect
 
 **Kind:** agent
+**Axis:** capability
 **When to use:** SkillOpt optimizer that reflects on a minibatch of (success | failure)
 trajectories and proposes add/delete/replace edits to skill markdown.
 Stateless, single-pass. Never spawns subagents. Dispatched by the session
@@ -136,6 +158,8 @@ Used by `/evolve skillopt` subcommand (capability evolve v1.1) during the
 reflection phase of each SkillOpt iteration.
 
 **Invoke:** `Agent({ subagent_type: "skillopt-optimizer-reflect", ... })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
@@ -143,6 +167,7 @@ reflection phase of each SkillOpt iteration.
 ## agent/skillopt-target-rollout
 
 **Kind:** agent
+**Axis:** capability
 **When to use:** Frozen-agent simulator for SkillOpt rollouts. Receives (current_skill, task)
 and produces (trajectory, self_grade). Stateless, single-pass. Never spawns
 subagents. Dispatched by the session bridge (`scripts/skillopt/session-bridge.cjs`)
@@ -151,6 +176,8 @@ runs/<rid>/llm-requests/`. Used by `/evolve skillopt` subcommand (capability
 evolve v1.1).
 
 **Invoke:** `Agent({ subagent_type: "skillopt-target-rollout", ... })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active

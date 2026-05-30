@@ -15,9 +15,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/consistency-sweep-nightly
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 3 * * *: Nightly L3 sweep: insert pending consistency_checks rows for each L3 invariant
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `consistency-sweep`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -26,9 +29,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/crm-to-gbrain-mirror
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 2 * * *: Nightly CRM → gbrain mirror (ETL public.companies billing fields → gbrain companies/ frontmatter)
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `crm-to-gbrain-mirror`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -37,9 +43,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/data-retention-scan
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 3 * * *: GDPR data retention enforcement (Bài #16)
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `data-retention-scanner`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -48,9 +57,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/docs-drift-nightly
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 30 2 * * *: Run /docs check to detect codebase ↔ MDX drift overnight
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `docs-engine-check`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -59,9 +71,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/etl-product-dau-hourly
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 5 * * * *: Hourly ETL of Product DAU snapshot to metrics.product_dau_snapshot
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `etl-product-dau-snapshot`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -70,9 +85,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/evolve-day30-calibration
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 9 * * *: Run /evolve falsifiable efficacy gate; alert founder on PAUSE-RECOMMENDED
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `eval-evo-calibrate-efficacy`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -81,9 +99,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/gbrain-consistency-nightly
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 3 * * *: Nightly L1+L2+L3 gbrain invariant sweep → ops.consistency_checks
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `gbrain-consistency-nightly`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -92,9 +113,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/gbrain-dream-cycle
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 4 * * *: Nightly gbrain dream cycle (dedup + citation fix + contradiction detection + synthesis), run by gbrain-maintainer role
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `gbrain-dream-cycle`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -103,9 +127,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/ingestion-source-poll
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron */30 * * * *: Poll active ingestion sources (Bài #18)
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `ingestion-source-poller`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -114,9 +141,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/minion-queue-cleanup
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 4 * * *: Cleanup completed Minion jobs > 30 days (Bài #5)
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `minion-queue-cleaner`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -125,9 +155,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/morning-brief-assembly
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 45 5 * * *: Assemble morning brief 15 min before founder block
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `synthesize-morning-brief`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -136,9 +169,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/resolver-v3-health-check
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 * * * *: Canary mcp__resolver__find call; alert founder on 3 consecutive failures
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `resolver-v3-health-check`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -147,9 +183,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/skillopt-synth-prod-correlation-monthly
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 9 1 * *: Monthly Spearman correlation between SkillOpt held-out scores and prod correction rates
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `scripts/eval-evo/skillopt-synth-prod-correlation.cjs`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -158,9 +197,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/stale-decision-check
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 9 * * MON: Identify decisions needing review (Bài #15)
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `stale-decision-detector`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -169,9 +211,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/wiki-embeddings-backfill
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 * * * *: Backfill soft-deferred wiki embeddings (v2.0 G3 + v3.0 derived entities)
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `wiki-embeddings-backfill`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active
@@ -180,9 +225,12 @@ Read in any Claude Code session via `@knowledge/recipients/schedules.md` import.
 ## schedule/wiki-review-queue-digest
 
 **Kind:** schedule
+**Axis:** capability
 **When to use:** Cron 0 9 * * *: Daily digest of pending_review extraction count (v3.0 Tier B)
 
 **Invoke:** Auto-triggered by pg_cron + dispatcher. Handler: `wiki-review-queue-digest`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** founder, etl-runner
 **Status:** active

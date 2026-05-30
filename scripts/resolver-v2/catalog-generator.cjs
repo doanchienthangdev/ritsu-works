@@ -25,6 +25,11 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
+// resolver-plan v1.0 (Sprint 1): deterministic per-entry enrichment (axis +
+// hitl_tier/side_effect for capability kinds; authority/freshness/grounding/
+// columns for content kinds). NO LLM, NO network — pure static derivation.
+const { enrichEntry } = require('./enrichment.cjs');
+
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const RECIPIENTS_DIR = path.join(REPO_ROOT, 'knowledge', 'recipients');
 
@@ -217,14 +222,33 @@ function statusFromFrontmatter(fm) {
   return 'active';
 }
 
-function emitEntry({ id, kind, when_to_use, invoke, composes_with, role_scope, status, pillar, aliases, disambiguator }) {
+function emitEntry({
+  id, kind, when_to_use, invoke, composes_with, role_scope, status, pillar, aliases, disambiguator,
+  // resolver-plan v1.0 (Sprint 1) — ADDITIVE enrichment fields. Backward-compatible:
+  // catalog-loader.cjs ignores any **Field:** it doesn't know, and these labels
+  // never contain a second ':' (loader regex /^\*\*([^*]+):\*\*/). `Columns` uses
+  // the inline-comma convention (NOT a multi-line list) so the loader can't glom
+  // continuation lines into the previous field.
+  axis, hitl_tier, side_effect, authority, freshness, grounding, columns,
+}) {
   const lines = [];
   lines.push(`## ${id}`);
   lines.push('');
   lines.push(`**Kind:** ${kind}`);
+  if (axis) lines.push(`**Axis:** ${axis}`);
   lines.push(`**When to use:** ${when_to_use}`);
   lines.push('');
   lines.push(`**Invoke:** ${invoke}`);
+  // Capability-axis enrichment.
+  if (hitl_tier) lines.push(`**HITL tier:** ${hitl_tier}`);
+  if (side_effect) lines.push(`**Side effect:** ${side_effect}`);
+  // Content-axis enrichment.
+  if (authority) lines.push(`**Authority:** ${authority}`);
+  if (freshness) lines.push(`**Freshness:** ${freshness}`);
+  if (grounding) lines.push(`**Grounding:** ${grounding}`);
+  if (Array.isArray(columns) && columns.length > 0) {
+    lines.push(`**Columns:** ${columns.join(', ')}`);
+  }
   if (composes_with && composes_with.length > 0) {
     lines.push('');
     lines.push('**Composes with:**');
@@ -238,6 +262,26 @@ function emitEntry({ id, kind, when_to_use, invoke, composes_with, role_scope, s
   if (pillar) lines.push(`**Pillar:** ${pillar}`);
   lines.push('');
   return lines.join('\n');
+}
+
+/**
+ * resolver-plan v1.0 (Sprint 1): merge deterministic enrichment onto every entry.
+ *
+ * Each entry already carries its `kind`; `signalsFor(entry)` supplies the
+ * per-kind raw source signals (declared HITL tier, SQL source text, grounding
+ * pointer, parsed columns) that the generator already parsed. enrichEntry()
+ * owns the classification rules — so the generators stay free of derivation logic
+ * (Kent Beck: one reason to change per function). Mutates + returns `entries`.
+ *
+ * @param {Object[]} entries — generated recipient entries (each has `kind`).
+ * @param {(entry: Object) => Object} [signalsFor] — extra signals per entry.
+ */
+function withEnrichment(entries, signalsFor) {
+  for (const entry of entries) {
+    const extra = signalsFor ? signalsFor(entry) : {};
+    Object.assign(entry, enrichEntry({ kind: entry.kind, ...extra }));
+  }
+  return entries;
 }
 
 function generateSkills() {
@@ -260,8 +304,13 @@ function generateSkills() {
       role_scope: roleScopeFromFrontmatter(frontmatter),
       status: statusFromFrontmatter(frontmatter),
       pillar: pillarFromPath(fp),
+      // resolver-plan v1.0: a skill may declare hitl_max_tier in frontmatter (an
+      // explicit HITL signal). Use it; else enrichment defaults conservative B.
+      _rawTier: typeof frontmatter.hitl_max_tier === 'string' ? frontmatter.hitl_max_tier : null,
     });
   }
+  withEnrichment(entries, (e) => ({ rawTier: e._rawTier }));
+  for (const e of entries) { delete e._rawTier; }
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -287,6 +336,7 @@ function generateCommands() {
       pillar: pillarFromPath(fp),
     });
   }
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -312,6 +362,7 @@ function generateAgents() {
       pillar: pillarFromPath(fp),
     });
   }
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -403,6 +454,7 @@ function generatePersonas() {
     } catch (_e) { /* skip on parse error */ }
   }
 
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -427,8 +479,15 @@ function generateMcps() {
       role_scope: Array.isArray(tool.role_scope) ? tool.role_scope : ['*'],
       status: tool.status || 'active',
       pillar: '06-ai-ops',
+      // resolver-plan v1.0 signal: per-tool HITL tier_default from mcp-tools.yaml
+      // (governance/HITL.md Appendix A). side_effect is then derived from the tier
+      // (A→none, B+→write) — every current ops/gbrain write tool is a DB write, none
+      // imply send/money/publish, so the tier-derived default is correct. Stripped post-enrich.
+      _rawTier: tool.tier_default,
     });
   }
+  withEnrichment(entries, (e) => ({ rawTier: e._rawTier }));
+  for (const e of entries) { delete e._rawTier; }
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -465,6 +524,7 @@ function generateWikis() {
       pillar: frontmatter.pillar || null,
     });
   }
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -512,6 +572,9 @@ function generateSops() {
     let desc = `Standard Operating Procedure ${slug}`;
     let status = 'active';
     let roleScope = ['*'];
+    // resolver-plan v1.0: a SOP's flow.yaml may declare a flow-LEVEL HITL tier
+    // (top-level `hitl_tier` or `hitl_default`). Use it; else default conservative B.
+    let flowTier = null;
 
     if (fs.existsSync(flowYaml)) {
       try {
@@ -522,6 +585,8 @@ function generateSops() {
           if (typeof flow.status === 'string') status = flow.status;
           if (Array.isArray(flow.roles_required)) roleScope = flow.roles_required;
           else if (Array.isArray(flow.role_scope)) roleScope = flow.role_scope;
+          if (typeof flow.hitl_tier === 'string') flowTier = flow.hitl_tier;
+          else if (typeof flow.hitl_default === 'string') flowTier = flow.hitl_default;
         }
       } catch (_e) { /* ignore parse errors */ }
     }
@@ -543,8 +608,11 @@ function generateSops() {
       role_scope: roleScope,
       status,
       pillar: pillarFromPath(sopDir),
+      _rawTier: flowTier,  // stripped after enrichment
     });
   }
+  withEnrichment(entries, (e) => ({ rawTier: e._rawTier }));
+  for (const e of entries) { delete e._rawTier; }
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -582,6 +650,7 @@ function generateCapabilities() {
       pillar: cap.pillar_owner || null,
     });
   }
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -613,6 +682,7 @@ function generateWorkflows() {
       pillar: '06-ai-ops',
     });
   }
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -647,6 +717,7 @@ function generateSchedules() {
       pillar: '06-ai-ops',
     });
   }
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -678,6 +749,7 @@ function generateHooks() {
       pillar: '06-ai-ops',
     });
   }
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -746,9 +818,13 @@ function generatePages() {
         role_scope: ['*'],
         status: 'active',
         pillar,
+        // resolver-plan v1.0: a page IS its own grounding/contract — the file path.
+        _grounding: relPath,
       });
     }
   }
+  withEnrichment(entries, (e) => ({ grounding: e._grounding }));
+  for (const e of entries) { delete e._grounding; }
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -772,6 +848,108 @@ function extractYamlPurpose(content) {
     }
   }
   return buf.join(' ').replace(/\s+/g, ' ').trim() || null;
+}
+
+/** Remove SQL `--` line comments (to end-of-line), preserving newlines. */
+function stripSqlLineComments(sql) {
+  return sql.replace(/--[^\n]*/g, '');
+}
+
+/**
+ * resolver-plan v1.0: best-effort `columns_hint` for a view.
+ *
+ * Parses the output column list of a `CREATE ... VIEW <name> AS SELECT ... FROM`
+ * statement, deterministically (no SQL engine). Strategy: take the text between
+ * the view's `AS SELECT` and its first top-level `FROM`, split on top-level commas
+ * (depth-aware so `func(a, b)` and `(SELECT ...)` don't split), and for each item
+ * resolve the output name = explicit `AS alias` › trailing `alias` › last dotted
+ * identifier. `*` (star-select) or any unparseable item yields NO columns (honest
+ * absence — deepask reads the DDL in that case) rather than a misleading guess.
+ *
+ * @param {string} content     — full migration file text.
+ * @param {number} fromIndex   — index of the matched CREATE VIEW (search starts here).
+ * @returns {string[]} parsed output column names (possibly empty).
+ */
+function parseViewColumns(content, fromIndex) {
+  const slice = content.slice(fromIndex);
+  // Find `AS SELECT` (the view body). Allow whitespace/newlines between tokens.
+  const asSelect = slice.match(/\bAS\s+SELECT\s+/i);
+  if (!asSelect) return [];
+  // Strip SQL line comments (`-- … <newline>`) BEFORE parsing — a comment must
+  // never become part of a column expression. (Block comments are rare in our
+  // view DDL; the depth-aware split + keyword bail handle any residue safely.)
+  const afterSelect = stripSqlLineComments(slice.slice(asSelect.index + asSelect[0].length));
+  // Find the first top-level FROM (depth 0). Walk char-by-char tracking paren depth.
+  const selectList = topLevelSelectList(afterSelect);
+  if (selectList === null) return [];
+  const items = splitTopLevelCommas(selectList);
+  const cols = [];
+  for (const raw of items) {
+    const name = outputColumnName(raw);
+    if (!name) return []; // a star or unparseable item → bail (honest: no hint).
+    cols.push(name);
+  }
+  return cols;
+}
+
+/** Return the SELECT-list text up to the first top-level `FROM`, or null. */
+function topLevelSelectList(text) {
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    else if (depth === 0) {
+      // Match the keyword FROM at a word boundary at depth 0.
+      if (/[fF]/.test(ch) && /^from\b/i.test(text.slice(i)) &&
+          (i === 0 || /\s/.test(text[i - 1]))) {
+        return text.slice(0, i);
+      }
+    }
+  }
+  return null; // no top-level FROM found (e.g. SELECT with no FROM) — give up.
+}
+
+/** Split a SELECT list on commas that are at paren-depth 0. */
+function splitTopLevelCommas(list) {
+  const out = [];
+  let depth = 0;
+  let buf = '';
+  for (const ch of list) {
+    if (ch === '(') { depth++; buf += ch; }
+    else if (ch === ')') { depth--; buf += ch; }
+    else if (ch === ',' && depth === 0) { out.push(buf); buf = ''; }
+    else buf += ch;
+  }
+  if (buf.trim()) out.push(buf);
+  return out;
+}
+
+// SQL keywords that signal a multi-word EXPRESSION (not a simple aliasable column).
+// If an un-aliased item contains any of these, we cannot safely name it → bail.
+const SQL_EXPR_KEYWORDS = /\b(CASE|WHEN|THEN|ELSE|END|DISTINCT|OVER|FILTER|WITHIN|ORDER|GROUP|UNION|JOIN|AND|OR|NOT|NULL|IS|IN|LIKE|BETWEEN|CAST)\b/i;
+
+/** Resolve one SELECT item to its output column name (or null if unparseable/star). */
+function outputColumnName(rawItem) {
+  const item = rawItem.replace(/\s+/g, ' ').trim();
+  if (!item || item === '*' || /(^|\.)\*$/.test(item)) return null; // star-select
+  // Explicit alias: `... AS alias` (alias is a bare identifier). Always wins.
+  const asAlias = item.match(/\sAS\s+"?([a-zA-Z_][a-zA-Z0-9_]*)"?$/i);
+  if (asAlias) return asAlias[1];
+  // No explicit AS: any keyword-laden / parenthesized expression is unnameable → bail
+  // (honest no-hint; deepask reads the DDL in this case).
+  if (SQL_EXPR_KEYWORDS.test(item) || /[(),]/.test(item)) return null;
+  const tokens = item.split(' ');
+  // Implicit alias `expr alias` is only safe for a clean 2-token `col alias` form.
+  if (tokens.length === 2) {
+    const last = tokens[1].replace(/"/g, '');
+    return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(last) ? last : null;
+  }
+  if (tokens.length > 2) return null; // multi-token without AS → can't name safely.
+  // Single token: bare column, possibly schema-qualified (`t.col` → `col`).
+  const dotted = item.split('.');
+  const candidate = dotted[dotted.length - 1].replace(/"/g, '');
+  return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(candidate) ? candidate : null;
 }
 
 function generateViews() {
@@ -821,9 +999,18 @@ function generateViews() {
         role_scope: ['*'],
         status: 'active',
         pillar: '06-ai-ops',
+        // resolver-plan v1.0 signals (stripped after enrichment):
+        //   grounding = the migration DDL to READ before authoring a query
+        //   source    = qualified name → freshness (metrics.* hourly; ops./public.* live)
+        //   columns   = best-effort columns_hint parsed from the CREATE VIEW body
+        _grounding: path.relative(REPO_ROOT, fp),
+        _source: `${schema}.${viewName}`,
+        _columns: parseViewColumns(content, m.index),
       });
     }
   }
+  withEnrichment(entries, (e) => ({ grounding: e._grounding, source: e._source, columns: e._columns }));
+  for (const e of entries) { delete e._grounding; delete e._source; delete e._columns; }
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -878,8 +1065,15 @@ function generateMetrics() {
       role_scope: [ownerRole],
       status,
       pillar: ownerPillar,
+      // resolver-plan v1.0 signals (stripped after enrichment):
+      //   grounding = the KPI definition (formula + source) to READ before querying
+      //   source    = raw kpi.source → freshness (metrics.* hourly; ops.* live; else unknown)
+      _grounding: `knowledge/kpi-ownership.yaml#${kpiId}`,
+      _source: kpi.source ? String(kpi.source) : null,
     });
   }
+  withEnrichment(entries, (e) => ({ grounding: e._grounding, source: e._source }));
+  for (const e of entries) { delete e._grounding; delete e._source; }
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -909,6 +1103,7 @@ function generateRunbooks() {
       pillar: frontmatter.pillar || null,
     });
   }
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -948,6 +1143,7 @@ function generateExternalSources() {
       disambiguator: `source_type: ${src.source_type}`,
     });
   }
+  withEnrichment(entries);
   entries.sort((a, b) => a.id.localeCompare(b.id));
   return entries;
 }
@@ -1031,4 +1227,6 @@ module.exports = {
   parseFrontmatter, emitEntry,
   // v1.2.0 (capability-lifecycle-architecture extend) — exported so sync.cjs can iterate all kinds
   KINDS, CONFIG,
+  // resolver-plan v1.0 (Sprint 1) — exported for unit tests
+  withEnrichment, parseViewColumns,
 };

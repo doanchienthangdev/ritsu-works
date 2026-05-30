@@ -15,9 +15,12 @@ Read in any Claude Code session via `@knowledge/recipients/runbooks.md` import.
 ## runbook/evolve
 
 **Kind:** runbook
+**Axis:** content
 **When to use:** > Operational reference for the /evolve self-improvement command. > Spec: wiki/capabilities/evolve/spec.md. SOP: 06-ai-ops/sops/SOP-AIOPS-004-evolve/.
 
 **Invoke:** `Read("wiki/runbooks/evolve.md")`
+**Authority:** derived-memory
+**Freshness:** static
 
 **Role scope:** *
 **Status:** active

@@ -15,9 +15,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/post-persona-log
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > Writes the final personaslug attribution to ops.agentruns at the end of an invocation, and appends a one-line entry to 06-ai-ops/workforce-personas/<slug>/dossier.md for non-trivial actions (Tier B+).
 
 **Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -26,9 +29,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/post-stripe-customer-created
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > When Stripe webhook reports customer.created, write a draft gbrain companies/<slug> page with PII placeholder + emit Tier B notify to customer-lead for confirmation.
 
 **Invoke:** Auto-triggered (post-event) for tools matching: `mcp__gbrain__put_page,mcp__supabase-ops__insert`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -37,9 +43,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/post-tier1-rename
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > When a merged PR to main includes a file rename in Tier 1 governance paths, scan gbrain for stale path references + Tier B notify founder with diff.
 
 **Invoke:** Auto-triggered (post-event) for tools matching: `mcp__gbrain__search,mcp__supabase-ops__insert`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -48,9 +57,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-bash-dangerous
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > Detects dangerous shell command patterns and escalates or blocks per severity. The set of patterns is empirical — built from "things that have caused incidents elsewhere."
 
 **Invoke:** Auto-triggered (pre-tool) for tools matching: `Bash,bash_tool`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -59,9 +71,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-bash-mass-action
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > Observability-only — never blocks. Detects when model uses Bash for actions > that have a registered workforce recipient (skill, command, SOP, etc.) and > logs ops.events.resolver.bypassdetected for A1 efficacy measurement.
 
 **Invoke:** Auto-triggered (pre-tool) for tools matching: `Bash`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -70,9 +85,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-delegate-check
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > Watches session metrics (tool count, context size, intermediate output volume) and emits warnings when an agent should consider delegating to a subagent. This hook never blocks — it only flags.
 
 **Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -81,9 +99,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-edit-significant
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > Observability-only — never blocks. Companion to pre-bash-mass-action > for Edit/Write tools. Detects when model edits files that have a registered > workforce recipient (skill, SOP, capability spec) and logs > ops.events.resolver.bypassdetected if a recipient would match.
 
 **Invoke:** Auto-triggered (pre-tool) for tools matching: `Edit,Write`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -92,9 +113,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-edit-tier1
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > Blocks direct edits to Tier 1 files. Forces all changes through PR + governance per governance/HITL.md.
 
 **Invoke:** Auto-triggered (pre-tool) for tools matching: `Edit,Write,MultiEdit,str_replace,create_file`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -103,9 +127,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-llm-call-budget
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > The runtime enforcement of knowledge/economic-architecture.md Axis 2. Every LLM call passes through here. Three-tier escalation (alert 80% / escalate 100% / block 150%) protects against silent cost spirals while not blocking legitimate work.
 
 **Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -114,9 +141,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-persona-resolve
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > Resolves a /<slug> or @<slug> invocation against the workforce persona > registry, injects personaslug and boundrole into the agent context, > and surfaces a clear error when the slug is unknown. Does NOT broaden > permissions — narrowing only. Permission ceiling stays with the bound role > per governance/ROLES.md.
 
 **Invoke:** Auto-triggered (pre-tool) for tools matching: `Task`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -125,9 +155,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-tool-customer-message
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > The runtime safety net for customer-facing AI disclosure compliance. Per EU AI Act Article 50, missing disclosure is not a UX issue — it's a regulatory violation. This hook prevents shipping non-compliant messages.
 
 **Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -136,9 +169,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-tool-publish
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > Any tool call that publishes externally goes through HITL per governance/HITL.md. This hook is the enforcement.
 
 **Invoke:** Auto-triggered (pre-tool) for tools matching: `email_sender_*,resend_*,twitter_post,linkedin_post,youtube_upload,github_pr_merge,github_release_create,discord_announce,slack_post_external_channel`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -147,9 +183,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-tool-secrets
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > Enforces the role-secret allowlist in governance/SECRETS.md and governance/ROLES.md. A role can only USE the secrets explicitly granted to it.
 
 **Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active
@@ -158,9 +197,12 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 ## hook/pre-tool-supabase-product
 
 **Kind:** hook
+**Axis:** capability
 **When to use:** > The firewall. Operating AI must not write to Product Supabase. This hook enforces that boundary unconditionally.
 
 **Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+**HITL tier:** B
+**Side effect:** write
 
 **Role scope:** *
 **Status:** active

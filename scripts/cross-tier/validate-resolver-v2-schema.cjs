@@ -24,7 +24,12 @@ const VALID_KINDS = E.VALID_KINDS;
 // emitted by scripts/resolver-v2/catalog-generator.cjs generateCapabilities()
 // (line ~581) from knowledge/capability-registry.yaml `state` field. Added
 // 2026-05-26 by capability `update` v1.0 Sprint 2 catalog sync.
-const VALID_STATUSES = ['active', 'stub', 'deprecated', 'planned', 'deferred', 'operating', 'implementing', 'deployed', 'proposed', 'analyzing', 'architecting', 'disabled', 'draft'];
+// Per Bài #20 capability lifecycle (see header comment): proposed → analyzing →
+// architecting → planning → implementing → deployed → operating. `planning` was
+// missing here (latent gap surfaced 2026-05-30 by capability `resolver-plan`
+// Sprint 1, which registered itself with state=planning); added to match the
+// documented lifecycle + generateCapabilities()'s `cap.state` passthrough.
+const VALID_STATUSES = ['active', 'stub', 'deprecated', 'planned', 'deferred', 'operating', 'implementing', 'deployed', 'proposed', 'analyzing', 'architecting', 'planning', 'disabled', 'draft'];
 
 function main() {
   if (!fs.existsSync(RECIPIENTS_DIR)) {

@@ -42,6 +42,17 @@ class InvalidKindFilter extends ResolverError {
   }
 }
 
+// resolver-plan v1.0 (Sprint 1): a recipient kind has no entry in the
+// kind→axis map (scripts/resolver-v2/axis-map.cjs). Programmer error — a new
+// kind was added to VALID_KINDS without being classified content|capability|meta.
+class UnknownAxisKind extends ResolverError {
+  constructor(unknownKind, mappedKinds) {
+    super(`No axis mapping for kind "${unknownKind}". Mapped: ${(mappedKinds || []).join(', ')}`, 'UNKNOWN_AXIS_KIND', 'input');
+    this.unknownKind = unknownKind;
+    this.mappedKinds = mappedKinds || [];
+  }
+}
+
 class HallucinatedRecipient extends ResolverError {
   constructor(recipientId, availableIds) {
     super(`LLM returned recipient ID "${recipientId}" not in catalog`, 'HALLUCINATED_RECIPIENT', 'validation');
@@ -140,6 +151,7 @@ module.exports = {
   InvalidTrigger,
   TriggerTooLong,
   InvalidKindFilter,
+  UnknownAxisKind,
   HallucinatedRecipient,
   InvalidLlmResponse,
   CatalogDown,
