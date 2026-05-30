@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 16
+**Total entries:** 17
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -149,6 +149,19 @@ architecture sanity, hook/MCP config review, schema/migration checks.
 Bound to role `code-reviewer`. For one-shot bounded review use @cto.
 
 **Invoke:** `/cto`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/deepask
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Federated retrieval + capability-execution + cited synthesis over the ENTIRE internal IA. Zero-routing pure consumer of resolver-plan. Decompose → resolve → execute/fan-out → synthesize → completeness-critic → format. Returns a Pyramid, 100%-cited, authority-ranked, conflict-aware, freshness-tagged answer in 1 of 12 formats, OR an honest no-coverage gap + remedy. Internal-first (web leg delegated to deep-research). Tier A runtime (Tier-B+ legs surfaced, never auto-run).
+
+**Invoke:** `/deepask`
 **HITL tier:** A
 **Side effect:** none
 
