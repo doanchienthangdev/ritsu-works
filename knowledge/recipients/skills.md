@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 92
+**Total entries:** 93
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -347,6 +347,20 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 **When to use:** deepask Stage 3 — per-sub-need executor. READS content_axis (authoring its own read-only SQL / wiki_ask / params, grounded in grounding_ref/columns_hint — never invents columns) AND RUNS capability_axis (auto-runs Tier-A no-side-effect via capability-gate.cjs; surfaces Tier-B+ for HITL approval; refuses D-MAX), delegating the external-web leg to deep-research. Firewall-aware (product only via metrics.*), gbrain-cap-aware, bounded self-correct on error.
 
 **Invoke:** `Skill({ skill: "deepask/execute" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/deepask/format
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** > The Format Engine. Consumes the synthesis IR (from deepask/synthesize, spec §5.1) and > produces the artifact for --format. Reuses existing skills — never rebuilds a renderer. > > Structure note (deviation from spec §4.1): the spec drafted 12 per-format adapter > folders. To stay under the resolver INDEX token hard-cap (~14k/15k; +12 catalog entries > would breach it) and for maintainability, this is ONE umbrella skill with a dispatch > table. Extensibility is preserved — adding a format = one new row + a reuse pointer. > To be reconciled at Phase-8 promotion.
+
+**Invoke:** `Skill({ skill: "deepask/format" })`
 **HITL tier:** B
 **Side effect:** write
 
