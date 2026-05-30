@@ -344,7 +344,7 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 
 **Kind:** skill
 **Axis:** capability
-**When to use:** deepask Stage 3 — per-sub-need executor. Sprint 1 = READ-only legs (content_axis from the ResolverPlan). AUTHORS the concrete read-only SQL / wiki_ask question / read params itself, grounded in the plan's grounding_ref/columns_hint — NEVER invents column names. Firewall-aware (product only via metrics.*), gbrain-cap-aware, bounded self-correct on error. Sprint 3 adds the capability-RUN leg (Tier-A auto / Tier-B+ surface) + deep-research delegation.
+**When to use:** deepask Stage 3 — per-sub-need executor. READS content_axis (authoring its own read-only SQL / wiki_ask / params, grounded in grounding_ref/columns_hint — never invents columns) AND RUNS capability_axis (auto-runs Tier-A no-side-effect via capability-gate.cjs; surfaces Tier-B+ for HITL approval; refuses D-MAX), delegating the external-web leg to deep-research. Firewall-aware (product only via metrics.*), gbrain-cap-aware, bounded self-correct on error.
 
 **Invoke:** `Skill({ skill: "deepask/execute" })`
 **HITL tier:** B
