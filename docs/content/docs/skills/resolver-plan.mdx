@@ -95,7 +95,7 @@ Cho mỗi sub-need (single `intent`, hoặc mỗi element của `sub_needs`):
 
 3. **governance_constraints** (load-bearing safety rule):
    **LUÔN include `page/governance-HITL` khi ANY `capability_axis` item có
-   `hitl_tier` trong {B, C, D-Std, D-MAX}** (tức là side-effecting). Consumer
+   `hitl_tier` trong \{B, C, D-Std, D-MAX}** (tức là side-effecting). Consumer
    auto-run Tier-B+ capability mà không HITL là failure này prevent. Add bounding
    `metric/*` recipients khi sub-need là metric-constrained (ví dụ budget cap). Deterministic
    helper `scripts/resolver-v2/plan-audit.cjs#governanceRequiresHitl(capability_axis)`
@@ -184,7 +184,7 @@ Batch: `{ plans: [ <ResolverPlan>, ... ] }` — một per `sub_needs[i]`, same o
   nó không bao giờ re-derive axis hoặc invent enrichment. Không LLM trong find subprocess; không API key.
 - **INV-2 (HITL-in-governance):** `page/governance-HITL` present trong
   `governance_constraints` bất cứ khi nào bất kỳ capability có
-  `hitl_tier` trong {B, C, D-Std, D-MAX} — agrees với
+  `hitl_tier` trong \{B, C, D-Std, D-MAX} — agrees với
   `plan-audit.cjs#governanceRequiresHitl`.
 - **INV-3 (breaker):** chính xác một `mcp__supabase-ops__resolver_find` per sub-need; không bao giờ loop. Warn ở
   ≥15/20; degrade tới `no_coverage` ở cap.
