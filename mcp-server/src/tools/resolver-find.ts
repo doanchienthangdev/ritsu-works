@@ -50,6 +50,16 @@ const VALID_KINDS = [
   "page", "view", "metric", "runbook", "external-source",
 ];
 
+// resolver-plan v1.0 (Sprint 2): the 2-axis filter values a caller may pass.
+// Only the two ACTIONABLE axes are filterable (`content` = read-to-answer,
+// `capability` = run-to-answer); `meta` (the capability-registry kind) is neither
+// read nor run, so it is intentionally NOT an allowed filter value. The `axis`
+// SURFACED on a match can still be "meta" — this only constrains the input filter.
+// Source of truth for an entry's axis is scripts/resolver-v2/axis-map.cjs, emitted
+// into each catalog entry by the generator (Sprint 1) and read here off the
+// already-loaded catalog — deterministic, no LLM, no network.
+const VALID_AXIS_FILTERS = ["content", "capability"];
+
 // In-MCP-process per-session circuit breaker state.
 // Per spec §4.3: SESSION_CAP_EXCEEDED at call 21 within 4h window.
 interface SessionState {
@@ -76,9 +86,11 @@ export function _resetSessionLimits(): void {
 
 export const resolverFindDescription =
   `JIT resolver — find top-N workforce recipients matching natural-language intent. ` +
-  `Inputs: { intent: string (1-500 chars), kind?: one-of-16-kinds, role?: caller-role-override, ` +
+  `Inputs: { intent: string (1-500 chars), kind?: one-of-16-kinds, axis?: content|capability, role?: caller-role-override, ` +
   `limit?: 1-20 (default 20), include_composition?: bool (default true), include_recency?: bool (default true) }. ` +
-  `Returns top-N keyword-pre-filtered candidates with FULL when_to_use + composes_with + recency + role_scope. ` +
+  `Returns top-N keyword-pre-filtered candidates with FULL when_to_use + composes_with + recency + role_scope, ` +
+  `each tagged with its deterministic axis (content|capability|meta) + enrichment (capability: hitl_tier, side_effect; ` +
+  `content: authority, freshness, grounding_ref, columns_hint). ` +
   `Session model does final ranking by reading the candidates (no API key needed; session billing only).`;
 
 export const resolverFindInputSchema = {
@@ -95,6 +107,11 @@ export const resolverFindInputSchema = {
       type: "string",
       enum: VALID_KINDS,
       description: "Filter to one recipient kind (skill|command|agent|persona|mcp|wiki|sop|capability|workflow|schedule|hook|page|view|metric|runbook|external-source).",
+    },
+    axis: {
+      type: "string",
+      enum: VALID_AXIS_FILTERS,
+      description: "Filter by execution axis: 'content' (recipients you READ — page/view/metric/wiki/runbook/external-source) or 'capability' (recipients you RUN — skill/command/agent/persona/mcp/sop/workflow/schedule/hook). Deterministic; combinable with kind.",
     },
     role: {
       type: "string",
@@ -123,6 +140,7 @@ export const resolverFindInputSchema = {
 interface ResolverFindInput {
   intent: string;
   kind?: string;
+  axis?: string;
   role?: string;
   limit: number;
   include_composition: boolean;
@@ -153,6 +171,16 @@ function parseInput(raw: unknown): ResolverFindInput {
       );
     }
   }
+  // resolver-plan v1.0 (Sprint 2): optional axis filter — validated like `kind`.
+  const axis = obj.axis;
+  if (axis !== undefined) {
+    if (typeof axis !== "string" || !VALID_AXIS_FILTERS.includes(axis)) {
+      throw new MCPToolError(
+        "unknown_axis",
+        `resolver_find: axis must be one of ${VALID_AXIS_FILTERS.join("|")}, got "${String(axis)}"`,
+      );
+    }
+  }
   const role = typeof obj.role === "string" ? obj.role : undefined;
   let limit = typeof obj.limit === "number" ? obj.limit : DEFAULT_LIMIT;
   if (limit < 1 || limit > HARD_CAP_LIMIT) {
@@ -166,11 +194,27 @@ function parseInput(raw: unknown): ResolverFindInput {
   return {
     intent,
     kind: kind as string | undefined,
+    axis: axis as string | undefined,
     role,
     limit,
     include_composition,
     include_recency,
   };
+}
+
+// resolver-plan v1.0 (Sprint 2): the additive enrichment surface, read off the
+// catalog entry (emitted by catalog-generator.cjs, exposed by catalog-loader.cjs).
+// Every field is OPTIONAL — absent on entries that predate enrichment, and
+// axis-shaped (capability entries carry hitl_tier/side_effect; content entries
+// carry authority/freshness/grounding/columns). Read-only passthrough; no LLM.
+interface RecipientEnrichment {
+  axis?: string;          // content | capability | meta
+  hitl_tier?: string;     // capability: A | B | C | D-Std | D-MAX
+  side_effect?: string;   // capability: none | write | send | money | publish
+  authority?: string;     // content: SoR | SoR-external | derived-memory | scratch
+  freshness?: string;     // content: static | hourly | daily | live | unknown
+  grounding?: string;     // content (view/metric/page): schema/contract pointer
+  columns?: string[];     // content (view): parsed column list
 }
 
 interface CandidateRanked {
@@ -185,7 +229,7 @@ interface CandidateRanked {
     status: string;
     pillar?: string | null;
     disambiguator?: string | null;
-  };
+  } & RecipientEnrichment;
   confidence: number;
   matchedToken: string;
 }
@@ -202,6 +246,17 @@ interface MatchOutput {
   pillar?: string;
   aliases?: string[];
   disambiguator?: string;
+  // resolver-plan v1.0 (Sprint 2): deterministic axis + enrichment, surfaced when
+  // present on the catalog entry. `axis` is set for every enriched entry;
+  // grounding_ref/columns_hint use the ResolverPlan v1 names (the consumer-facing
+  // contract) even though the catalog labels them Grounding/Columns.
+  axis?: string;
+  hitl_tier?: string;
+  side_effect?: string;
+  authority?: string;
+  freshness?: string;
+  grounding_ref?: string;
+  columns_hint?: string[];
   recency?: {
     invocations_last_7d_by_role: number;
     last_success_ts: string | null;
@@ -216,6 +271,7 @@ interface MatchOutput {
 function rankCandidates(
   intent: string,
   kindFilter: string | undefined,
+  axisFilter: string | undefined,
   callerRole: string,
   limit: number,
 ): { candidates: CandidateRanked[]; totalConsidered: number; loadMs: number; degraded: boolean; degradedReason?: string } {
@@ -240,6 +296,10 @@ function rankCandidates(
 
   for (const recipient of catalog.recipients) {
     if (kindFilter && recipient.kind !== kindFilter) continue;
+    // resolver-plan v1.0 (Sprint 2): axis filter — deterministic read of the
+    // entry's emitted axis. An entry without an axis tag (pre-enrichment) can
+    // never satisfy an axis filter, so it is correctly excluded when one is set.
+    if (axisFilter && recipient.axis !== axisFilter) continue;
     if (recipient.status === "deprecated") continue;
     // Per-role filter at the source (cherry-pick #12) — recipient must include caller role or '*'
     if (callerRole && recipient.role_scope && Array.isArray(recipient.role_scope)) {
@@ -258,6 +318,27 @@ function rankCandidates(
     loadMs,
     degraded: false,
   };
+}
+
+/**
+ * resolver-plan v1.0 (Sprint 2): project a catalog entry's deterministic axis +
+ * enrichment onto the match-output shape. Pure, allocation-only — NO LLM, NO
+ * network, NO DB; it reads fields the catalog already carries. Only present
+ * fields are emitted (absent on pre-enrichment entries), and `grounding`/`columns`
+ * are renamed to the ResolverPlan v1 consumer names `grounding_ref`/`columns_hint`.
+ */
+function enrichmentOf(recipient: RecipientEnrichment): Partial<MatchOutput> {
+  const out: Partial<MatchOutput> = {};
+  if (recipient.axis !== undefined) out.axis = recipient.axis;
+  if (recipient.hitl_tier !== undefined) out.hitl_tier = recipient.hitl_tier;
+  if (recipient.side_effect !== undefined) out.side_effect = recipient.side_effect;
+  if (recipient.authority !== undefined) out.authority = recipient.authority;
+  if (recipient.freshness !== undefined) out.freshness = recipient.freshness;
+  if (recipient.grounding !== undefined) out.grounding_ref = recipient.grounding;
+  if (Array.isArray(recipient.columns) && recipient.columns.length > 0) {
+    out.columns_hint = recipient.columns;
+  }
+  return out;
 }
 
 /**
@@ -394,7 +475,7 @@ export async function handleResolverFind(
   }
 
   // Rank candidates (deterministic keyword pre-filter)
-  const ranked = rankCandidates(parsed.intent, parsed.kind, callerRole, parsed.limit);
+  const ranked = rankCandidates(parsed.intent, parsed.kind, parsed.axis, callerRole, parsed.limit);
 
   if (ranked.degraded) {
     // Degraded mode — catalog corrupt; return empty matches + alert
@@ -438,6 +519,7 @@ export async function handleResolverFind(
     pillar: c.recipient.pillar ?? undefined,
     aliases: c.recipient.aliases?.length ? c.recipient.aliases : undefined,
     disambiguator: c.recipient.disambiguator ?? undefined,
+    ...enrichmentOf(c.recipient),
   }));
 
   // Enrich with recency (batched query)
@@ -472,6 +554,7 @@ export async function handleResolverFind(
       total_candidates: ranked.totalConsidered,
       load_ms: ranked.loadMs,
       kind_filter: parsed.kind ?? null,
+      axis_filter: parsed.axis ?? null,
       include_composition: parsed.include_composition,
       include_recency: parsed.include_recency,
       session_finds_count: session.count,
@@ -491,8 +574,11 @@ export async function handleResolverFind(
     session_finds_count: session.count,
   };
   if (noMatch) {
-    output.no_match_reason = parsed.kind
-      ? `No active recipients of kind="${parsed.kind}" match intent "${parsed.intent.slice(0, 60)}..." for role="${callerRole}".`
+    const filterParts: string[] = [];
+    if (parsed.kind) filterParts.push(`kind="${parsed.kind}"`);
+    if (parsed.axis) filterParts.push(`axis="${parsed.axis}"`);
+    output.no_match_reason = filterParts.length > 0
+      ? `No active recipients matching ${filterParts.join(" + ")} match intent "${parsed.intent.slice(0, 60)}..." for role="${callerRole}".`
       : `No active recipients match intent "${parsed.intent.slice(0, 60)}..." for role="${callerRole}". Try broader keywords or check INDEX.md ambient.`;
   }
   if (session.count >= SESSION_WARN_THRESHOLD) {

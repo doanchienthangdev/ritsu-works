@@ -221,6 +221,8 @@ async function main() {
     ['validate-resolver-v2-schema.cjs', 'resolver-v2 catalog ↔ schema'],
     ['validate-resolver-v2-uniqueness.cjs', 'resolver-v2 recipient ID uniqueness'],
     ['validate-resolver-v2-link-integrity.cjs', 'resolver-v2 composes_with link integrity'],
+    // capability resolver-plan v1.0 Sprint 2 — axis + enrichment tags (CONTENT-compare, not mtime)
+    ['validate-resolver-axis-tags.cjs', 'resolver-plan axis tags ↔ axis-map'],
     // capability gbrain-operational-brain v1.0 Sprint 6 — 2 NEW L2 validators
     ['validate-mcp-json-tools-consistency.cjs', '.mcp.json ↔ knowledge/mcp-tools.yaml'],
     ['validate-gbrain-invariant-handlers.cjs', 'gbrain L1/L2/L3 invariant handlers'],

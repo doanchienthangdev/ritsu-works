@@ -42,6 +42,34 @@ const REQUIRED_FIELDS = ['Kind', 'When to use', 'Invoke', 'Status'];
 const OPTIONAL_LIST_FIELDS = ['Composes with', 'Aliases'];
 const OPTIONAL_SCALAR_FIELDS = ['Role scope', 'Status', 'Pillar', 'Disambiguator'];
 
+// resolver-plan v1.0 (Sprint 2): ADDITIVE enrichment fields emitted per-entry by
+// catalog-generator.cjs (Sprint 1). The loader exposes them so deterministic
+// consumers — mcp__resolver__find, the resolver-plan skill, validators — can read
+// them WITHOUT re-parsing the markdown. Backward-compatible: every field is
+// optional and absent on entries that predate enrichment; existing consumers that
+// only read the v2 base fields ignore these extra keys.
+//
+// Field label (in the .md) → exposed key (on the parsed Recipient):
+//   **Axis:**        → axis        (all kinds; content|capability|meta)
+//   **HITL tier:**   → hitl_tier   (capability kinds)
+//   **Side effect:** → side_effect (capability kinds)
+//   **Authority:**   → authority   (content kinds)
+//   **Freshness:**   → freshness   (content kinds)
+//   **Grounding:**   → grounding   (view/metric/page content kinds)
+//   **Columns:**     → columns     (view; comma-list → string[])
+// Provenance: .archives/cla/resolver-plan/refs/03-design-decisions.md (Field provenance).
+const ENRICHMENT_SCALAR_FIELDS = Object.freeze({
+  Axis: 'axis',
+  'HITL tier': 'hitl_tier',
+  'Side effect': 'side_effect',
+  Authority: 'authority',
+  Freshness: 'freshness',
+  Grounding: 'grounding',
+});
+const ENRICHMENT_LIST_FIELDS = Object.freeze({
+  Columns: 'columns',
+});
+
 let _cache = null;
 
 function nowMs() { return Date.now(); }
@@ -137,7 +165,7 @@ function parseEntry(headerLine, bodyLines, sourceFile) {
     }
   }
 
-  return {
+  const recipient = {
     id,
     kind: parseScalar(fields['Kind']),
     when_to_use: parseScalar(fields['When to use']),
@@ -150,6 +178,22 @@ function parseEntry(headerLine, bodyLines, sourceFile) {
     disambiguator: fields['Disambiguator'] ? parseScalar(fields['Disambiguator']) : null,
     _source: { file: sourceFile },
   };
+
+  // resolver-plan v1.0 (Sprint 2): additively expose enrichment fields when present.
+  // Absent fields are simply not set (kept off the object) so non-enriched entries
+  // keep their original shape and consumers can `if (r.axis)` to detect enrichment.
+  for (const [label, key] of Object.entries(ENRICHMENT_SCALAR_FIELDS)) {
+    if (fields[label] !== undefined && fields[label] !== '') {
+      recipient[key] = parseScalar(fields[label]);
+    }
+  }
+  for (const [label, key] of Object.entries(ENRICHMENT_LIST_FIELDS)) {
+    // Emitted inline-comma (e.g. "**Columns:** a, b, c") → string[]; omit when empty.
+    const list = parseCommaList(fields[label] || '');
+    if (list.length > 0) recipient[key] = list;
+  }
+
+  return recipient;
 }
 
 /**
@@ -292,4 +336,8 @@ module.exports = {
   invalidateCache,
   CATALOG_FILES,
   REQUIRED_FIELDS,
+  // resolver-plan v1.0 (Sprint 2): the additive enrichment field maps, exported so
+  // validators/consumers share one label↔key source of truth.
+  ENRICHMENT_SCALAR_FIELDS,
+  ENRICHMENT_LIST_FIELDS,
 };
