@@ -19,11 +19,11 @@ argument-hint: "\"<question>\" [--format=<...>] [--sources=<...>] [--depth=quick
 | S1 | merged (#165) | command + `orchestrator` (resolver-budget accountant) + `decompose` + `execute` (READ-only legs) + migration 00045 |
 | S2 | merged (#166) | `synthesize` (Pyramid + citation guardrail + authority + conflict + freshness + adversarial-verify) + `completeness-critic` (coverage matrix + MECE + live-probe + honest-gap verdict) |
 | S3 | merged (#167) | `execute` capability-RUN leg via `capability-gate.cjs` (Tier-A auto / Tier-B+ surface / D-MAX refuse) + gbrain-cap + `deep-research` delegation → **full 5-stage loop end-to-end** |
-| **S4** | **this PR** | Format Engine (`deepask/format` umbrella + dispatch table) — **doc family** (text·article·pdf·docx·pptx·xlsx) + `smartauto` via `format-select.cjs` |
-| S5 | pending | Format Engine — visual adapters (mermaid·chart·dashboard·html·interactive·canvas) |
+| S4 | merged (#168) | Format Engine (`deepask/format` umbrella + dispatch table) — **doc family** (text·article·pdf·docx·pptx·xlsx) + `smartauto` via `format-select.cjs` |
+| **S5** | **this PR** | Format Engine — **visual adapters** (mermaid·chart·dashboard·html·interactive·canvas); `smartauto` default flipped to `ALL_FORMATS`; `artifact-path.cjs` layout helper → **all 12 formats live** |
 | S6 | pending | 3 KPIs + SOP-AIOPS-005 + docs + Phase-8 promotion |
 
-After S4, the synthesis IR renders to the **doc-family formats** (text·article·pdf·docx·pptx·xlsx) with `smartauto` selection; canonical `answer.md` always written; rich formats degrade gracefully when a session renderer is unavailable. Visual formats (S5) + KPIs/SOP/promotion (S6) remain.
+After S5, **all 12 `--format` values produce a valid artifact** (or degrade gracefully) and `smartauto` can pick visual formats; the answer always also lands as canonical `answer.md` in `.archives/deepask/<date>-<slug>/`. Only S6 (KPIs + SOP + Phase-8 promotion → `operating`) remains.
 
 ## Flags
 

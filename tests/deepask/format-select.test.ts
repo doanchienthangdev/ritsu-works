@@ -48,9 +48,15 @@ describe("selectFormat (smartauto)", () => {
     });
   });
 
-  describe("default availability is DOC_FAMILY when omitted", () => {
-    it("metric_trend with no `available` arg → xlsx", () => {
-      expect(selectFormat({ intent: "metric_trend" }).format).toBe("xlsx");
+  describe("default availability is ALL_FORMATS when omitted (Sprint 5: all adapters built)", () => {
+    it("metric_trend with no `available` arg → chart (visual now reachable)", () => {
+      expect(selectFormat({ intent: "metric_trend" }).format).toBe("chart");
+    });
+    it("architecture with no `available` arg → mermaid", () => {
+      expect(selectFormat({ intent: "architecture" }).format).toBe("mermaid");
+    });
+    it("exec_briefing with no `available` arg → pptx", () => {
+      expect(selectFormat({ intent: "exec_briefing" }).format).toBe("pptx");
     });
   });
 

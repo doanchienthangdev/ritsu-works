@@ -25,9 +25,9 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 
 ### 1. Resolve the target format
 - Explicit `--format=<x>` → use `<x>` directly.
-- `--format=smartauto` (default) → `scripts/deepask/format-select.cjs` `selectFormat({intent}, DOC_FAMILY)` (classify `intent` from the question + IR; `available` = the formats built in this release — DOC_FAMILY through S4, ALL_FORMATS after S5). Returns `{format, reason, fellBack}`; record `reason` in `plan.json`.
+- `--format=smartauto` (default) → `scripts/deepask/format-select.cjs` `selectFormat({intent})` (classify `intent` from the question + IR). As of **Sprint 5 the default `available` set is `ALL_FORMATS`** — every adapter is built. Returns `{format, reason, fellBack}`; record `reason` in `plan.json`.
 
-### 2. Dispatch (doc family — Sprint 4)
+### 2. Dispatch table (all 12 formats)
 | `--format` | reuse | how |
 |---|---|---|
 | `text` | native | flatten the IR (exec_summary + sections→claims, each with its citation) to plain text |
@@ -36,7 +36,12 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 | `docx` | `anthropic-skills:docx` | IR sections/tables → Word |
 | `pptx` | `anthropic-skills:pptx` | exec_summary → title; each section → a slide; tables/charts as slide objects |
 | `xlsx` | `anthropic-skills:xlsx` | IR `tables[]` + metric rows → sheets (best for data/metric-heavy answers) |
-| _visual: mermaid · chart · dashboard · html · interactive · canvas_ | _Sprint 5_ | _added as rows then_ |
+| `mermaid` | mermaid MCP (`validate_and_render_mermaid_diagram`) | IR `diagrams[].mermaid_src` → validated/rendered diagram(s) |
+| `chart` | `anthropic-skills:xlsx` charts / `design:*` html-chart | IR `charts[]` (series-data, not pixels) → chart image/html |
+| `dashboard` | `design:*` / `frontend-design` | multi-panel html dashboard from IR sections + charts + tables |
+| `html` | `design:*` / `frontend-design` | standalone html rendering of the article + visuals |
+| `interactive` | `frontend-design` | interactive html (filterable tables, toggles) |
+| `canvas` | `anthropic-skills:canvas-design` | canvas / infographic artifact from the IR |
 
 deepask AUTHORS the concrete invocation of each reuse-skill (frames its inputs from the IR); the reuse-skill does the rendering.
 

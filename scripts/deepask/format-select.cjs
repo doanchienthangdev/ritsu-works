@@ -42,11 +42,12 @@ const CANONICAL_FALLBACK = 'article';
  *
  * @param {object} signals
  * @param {string} signals.intent  one of VALID_INTENTS (session-model classification).
- * @param {string[]} [available=DOC_FAMILY]  formats whose adapters are built.
+ * @param {string[]} [available=ALL_FORMATS]  formats whose adapters are built
+ *        (defaults to ALL_FORMATS as of Sprint 5 — every adapter now exists).
  * @returns {{ format: string, reason: string, fellBack: boolean }}
  * @throws {TypeError} on invalid signals/intent or invalid `available`.
  */
-function selectFormat(signals, available = DOC_FAMILY) {
+function selectFormat(signals, available = ALL_FORMATS) {
   if (signals === null || typeof signals !== 'object' || Array.isArray(signals)) {
     throw new TypeError(
       `format-select: signals must be an object, got ${signals === null ? 'null' : Array.isArray(signals) ? 'array' : typeof signals}`,
