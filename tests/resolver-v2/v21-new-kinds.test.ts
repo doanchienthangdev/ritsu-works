@@ -65,10 +65,12 @@ describe("v2.1 — generateSops", () => {
     expect(sops.length).toBeGreaterThan(50); // ritsu-works has 100+ SOPs
   });
 
-  it("each SOP ID matches sop/SOP-{PILLAR}-NNN-{name} pattern", () => {
+  it("each SOP ID matches sop/SOP-{PILLAR}[-{SUBNS}]-NNN-{name} pattern", () => {
     const sops = gen.generateSops();
     for (const s of sops) {
-      expect(s.id).toMatch(/^sop\/SOP-[A-Z]+-\d+/);
+      // Allow an optional sub-namespace segment, e.g. SOP-AIOPS-GBRAIN-001-* — a
+      // valid pattern the original single-segment regex wrongly rejected.
+      expect(s.id).toMatch(/^sop\/SOP-[A-Z]+(?:-[A-Z]+)*-\d+/);
       expect(s.kind).toBe("sop");
     }
   });

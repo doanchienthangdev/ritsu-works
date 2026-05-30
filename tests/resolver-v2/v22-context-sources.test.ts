@@ -343,13 +343,12 @@ describe("v2.2 — CATALOG_FILES extension", () => {
 // ---------------------------------------------------------------------------
 
 describe("v2.2 — CLAUDE.md auto-imports", () => {
-  it("CLAUDE.md imports all 5 new recipient catalogs", () => {
+  // resolver-v3 (PR #114, cutover 2026-05-26) replaced the 16 per-kind @imports
+  // (incl. the 5 v2.2 Context-Sources catalogs) with a SINGLE JIT INDEX import.
+  // All 16 kinds remain reachable via INDEX.md + mcp__supabase-ops__resolver_find.
+  it("CLAUDE.md imports the resolver-v3 recipient INDEX (supersedes per-catalog @imports)", () => {
     const claudemd = readFileSync(join(REPO, "CLAUDE.md"), "utf-8");
-    expect(claudemd).toContain("@knowledge/recipients/pages.md");
-    expect(claudemd).toContain("@knowledge/recipients/views.md");
-    expect(claudemd).toContain("@knowledge/recipients/metrics.md");
-    expect(claudemd).toContain("@knowledge/recipients/runbooks.md");
-    expect(claudemd).toContain("@knowledge/recipients/external-sources.md");
+    expect(claudemd).toContain("@knowledge/recipients/INDEX.md");
   });
 });
 

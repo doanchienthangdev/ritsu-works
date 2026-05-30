@@ -1,0 +1,118 @@
+---
+title: 'Skill: playbook-builder/sync-meta'
+description: |
+  Sync TOC and build_pdf.py metadata from chapter source files. Reads
+  .archives/ritsu-handoff-bundle/playbook/chapters/, derives chapter list +
+  H1 titles, writes 4 version fields in 00-toc.md + 3 fields in build_pdf.py.
+  Deterministic transform — no LLM. Invoked by playbook-builder/build at
+  Step 5 OR by founder for manual `/playbook check --fix` workflow.
+source_path: 06-ai-ops/skills/playbook-builder/sync-meta/SKILL.md
+source_hash: d518f8487eecb19de9a38d5f7eafd7a15ce90e6bce2c2828ac1bd67a4d1ba308
+generated_at: '2026-05-30T16:11:31.657Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_source_hash: d518f8487eecb19de9a38d5f7eafd7a15ce90e6bce2c2828ac1bd67a4d1ba308
+translated_at: '2026-05-30T17:30:00Z'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Kết nối chapter source files → TOC + build_pdf.py metadata. Pure deterministic
+transform. Idempotent — running on already-synced state là no-op.
+
+## Khi nào sử dụng
+
+- Bước 5 của `playbook-builder/build` (every build).
+- Founder runs `/playbook check --fix` để repair detected drift.
+
+KHÔNG invoke standalone — đó là composed step, không phải user-facing skill.
+
+## Đầu vào
+
+```json
+{
+  "version":      "X.Y.Z",
+  "chapters_dir": ".archives/ritsu-handoff-bundle/playbook/chapters",
+  "toc_path":     ".archives/ritsu-handoff-bundle/playbook/00-toc.md",
+  "build_pdf_path": ".archives/ritsu-handoff-bundle/playbook/build_pdf.py",
+  "date":         "YYYY-MM-DD"   // for "Ngày: cập nhật cuối" + "vX.Y · YYYY-MM-DD"
+}
+```
+
+## Đầu ra
+
+```jsonc
+{
+  "toc_updates":         ["version", "date", "chapter_list"],
+  "build_pdf_updates":   ["CHAPTER_ORDER", "pdf_path", "cover_meta"],
+  "chapter_count":       43,
+  "noop":                false | true   // true if all 7 fields already in sync
+}
+```
+
+## Quy trình
+
+### Bước 1 — Scan chapters
+
+```js
+// Top-level chapters (01-13)
+const topLevelChapters = glob.sync(`${chapters_dir}/[0-9][0-9]-*.md`).sort();
+
+// Phase A.2 chapters (14+)
+const phaseA2Chapters = glob.sync(`${chapters_dir}/phase-a2/[0-9][0-9]-*.md`).sort();
+
+// Appendices
+const appendices = glob.sync(`${chapters_dir}/A[0-9]-*.md`).sort();
+
+const allChapters = [
+  ...topLevelChapters.map(p => path.relative(chapters_dir, p)),
+  ...phaseA2Chapters.map(p => path.relative(chapters_dir, p)),
+  ...appendices.map(p => path.relative(chapters_dir, p)),
+];
+```
+
+Cho mỗi chapter, parse first H1 (`# Chương N — Title`) để derive title.
+
+### Bước 2 — Update 00-toc.md
+
+Replace 4 fields (preserve surrounding prose):
+
+1. `**Phiên bản:** v<X.Y> ...` — first line matching `^\*\*Phiên bản:\*\*`. Update version, preserve trailing parenthetical prose.
+2. `**Ngày:** ... (cập nhật cuối: YYYY-MM-DD)` — update date.
+3. Chapter list — entries `NN. **Chương NN — title**`. Regenerate from scan.
+4. (Preserve) `### Phần I/II/...` section headers and intro prose.
+
+**Heuristic for chapter entry prose:** nếu chapter đã có prose blurb trong TOC (long-form description từ prior version), preserve nó. Nếu NEW chapter (added since last sync), use chapter H1 as base + leave bracketed `[TODO: prose description]` để founder fill.
+
+### Bước 3 — Update build_pdf.py
+
+3 fields to update:
+
+1. `CHAPTER_ORDER = [...]` — Python list, update entries from scan. Preserve `# section comments` between entries (e.g., `# Phần V — Phase A.2`).
+2. `pdf_path = BUILD_DIR / "ai-native-company-playbook-vX.Y.pdf"` — update version.
+3. `<div>vX.Y · YYYY-MM-DD</div>` (cover-meta) — update version + date.
+
+Use AST-safe text replace (regex anchored on field name) để avoid accidentally rewriting Python code.
+
+### Bước 4 — Idempotency check
+
+Nếu all 7 field reads return current values matching new values → `noop: true`, exit 0 without writing.
+
+## Compose with
+
+- `playbook-builder/build` (caller, Bước 5)
+- `validate-playbook-coherence.cjs` (this skill's output validated by the validator post-write)
+
+## Cost model
+
+- Per invocation: **$0** (deterministic file I/O + regex)
+- Wall-clock: \<0.5s cho 43 chapters
+- Idempotent — running on synced state là no-op
+
+## Reference
+
+- Spec: `wiki/capabilities/playbook-builder/spec.md` (after Phase 8 promotion)
+- Sister skill: `playbook-builder/build`
+

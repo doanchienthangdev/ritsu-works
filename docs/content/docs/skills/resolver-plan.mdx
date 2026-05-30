@@ -1,0 +1,242 @@
+---
+title: 'Skill: resolver-plan'
+description: |
+  Assemble populated ResolverPlan v1 (= first-class, populated context_recipe)
+  cho intent (hoặc batch sub-needs). Gọi mcp__supabase-ops__resolver_find cho axis-tagged +
+  enriched candidates, rồi SESSION-MODEL split thành content_axis (recipients bạn
+  READ — carry authority/freshness/grounding_ref/columns_hint) vs capability_axis
+  (recipients bạn RUN — carry hitl_tier/side_effect/cost_bucket), attach
+  governance_constraints (LUÔN page/governance-HITL khi bất kỳ capability là HITL tier
+  B+) + goal_metrics + primary_lens, và emit honest no_coverage list. Planning
+  layer cho phép orchestrators (deepask) consume executable plan với ZERO routing của
+  riêng họ. Output schema: knowledge/schemas/resolver-plan.schema.json. Subscription
+  billing (session model); không API key; read-only ngoại trừ best-effort plan-mode audit row.
+source_path: 06-ai-ops/skills/resolver-plan/SKILL.md
+source_hash: 537c603bf42bf63fcfdbc59e2897def5dd20d304a2a1062cb489a4f3f9e419ca
+generated_at: '2026-05-30T16:11:31.659Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_source_hash: 537c603bf42bf63fcfdbc59e2897def5dd20d304a2a1062cb489a4f3f9e419ca
+translated_at: '2026-05-30T16:30:00Z'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Companion của `resolver-query`. `resolver-query` trả lời "WHICH recipient?";
+> `resolver-plan` trả lời "đây là 2-axis EXECUTION PLAN — READ những cái này / RUN những cái này,
+> grounded cho query-authoring + tier-tagged cho safe auto-run." Plan IS populated
+> `context_recipe` (optional shape từ `resolver-query`/`/resolver`, giờ first-class
+> và được filled in). Output schema: `knowledge/schemas/resolver-plan.schema.json`
+> (ResolverPlan v1). Full contract + field provenance:
+> `.archives/cla/resolver-plan/refs/03-design-decisions.md`.
+
+## Khi nào dùng skill này
+
+Consumer cần directly-executable plan cho intent — content để READ +
+capabilities để RUN, grounded cho authoring concrete read/query và tier-gated cho
+safe auto-run. **Primary consumer: `/deepask`** (nó gọi cái này một lần per sub-need, rồi
+execute stage của nó authors concrete SQL/tool calls). Cũng reachable như
+`/resolver plan "<intent>"` cho operators.
+
+Bạn KHÔNG dùng skill này chỉ để "tìm recipient" — đó là `resolver-query` / Mode A
+ambient reasoning trên `INDEX.md`. Dùng `resolver-plan` chỉ khi bạn want assembled
+2-axis plan object.
+
+## Invocation
+
+```
+Skill({ skill: "resolver-plan" })
+```
+
+Input (một trong `intent` | `sub_needs` là required):
+
+| Field | Type | Required | Meaning |
+|---|---|---|---|
+| `intent` | string | one-of | Single sub-need → return ONE `ResolverPlan`. |
+| `sub_needs` | string[] | one-of | Batch sub-needs → return `{ plans: ResolverPlan[] }` (same order). |
+| `sources_filter` | string[] | no | Constrain IA kinds/axes nào được consider (ví dụ `["page","metric"]`, hoặc axis `["content"]`). Maps tới `kind`/`axis` filter trên `mcp__supabase-ops__resolver_find`. |
+| `role` | string | no | Override caller role cho role_scope filter (default: `MCP_CALLER_ROLE`). |
+
+Cũng được surface như `/resolver plan "<intent>" [--sources=<csv>] [--json]`.
+
+## Algorithm (session model — KHÔNG subprocess LLM, KHÔNG API key)
+
+Deterministic keyword pre-filter + axis tagging + enrichment tất cả xảy ra INSIDE
+`mcp__supabase-ops__resolver_find` (không LLM ở đó). Skill này là session model chỉ làm
+**assembly + selection** trên candidates mà tool trả về — subscription billing,
+không API key (per `external-source/anthropic-api` policy).
+
+Cho mỗi sub-need (single `intent`, hoặc mỗi element của `sub_needs`):
+
+1. **Tìm candidates.** Gọi
+   `mcp__supabase-ops__resolver_find({ intent: <sub-need>, include_composition: true, include_recency: true, role: <role?>, kind/axis: <từ sources_filter?>, limit: 20 })`.
+   Mỗi `match` được trả về mang `axis` + enrichment:
+   - content → `authority`, `freshness`, `grounding_ref`, `columns_hint?`
+   - capability → `hitl_tier`, `side_effect` (+ `cost_bucket` nếu known)
+   **Respect 20-find/4h/session breaker: chính xác ONE find per sub-need.** Nếu
+   response include `session_warning` (≥15/20) HOẶC `error: session_cap_exceeded`, STOP
+   issuing finds — assemble plans cho sub-needs đã resolved và mark rest
+   `no_coverage` (`reason: "no_match"`, remedy noting breaker). Không bao giờ loop find().
+
+2. **Partition by axis** (đọc `axis` field — KHÔNG re-derive nó):
+   - `axis === "content"` → `content_axis` item:
+     `{ recipient: <id>, invoke: <match.invoke>, authority, freshness, grounding_ref: <match.grounding_ref ?? null>, columns_hint?: <match.columns_hint> }`.
+   - `axis === "capability"` → `capability_axis` item:
+     `{ recipient: <id>, invoke: <match.invoke>, hitl_tier, side_effect, cost_bucket?: <match.cost_bucket ?? null> }`.
+   - `axis === "meta"` (capability registry kind) → nó không read cũng không run;
+     KHÔNG place nó trong axis nào. Cite nó dưới `no_coverage` CHỈ nếu nó
+     closest thing đến facet và không có real content/capability cho facet đó
+     (`reason: "not_built"`, remedy `/cla propose` / `/cla update <id>`).
+   Select relevant candidates bằng reading chúng — drop off-topic high-keyword-score
+   noise; keep những cái thực sự serve sub-need (đây là session-model
+   judgment mà tool không thể làm).
+
+3. **governance_constraints** (load-bearing safety rule):
+   **LUÔN include `page/governance-HITL` khi ANY `capability_axis` item có
+   `hitl_tier` trong \{B, C, D-Std, D-MAX}** (tức là side-effecting). Consumer
+   auto-run Tier-B+ capability mà không HITL là failure này prevent. Add bounding
+   `metric/*` recipients khi sub-need là metric-constrained (ví dụ budget cap). Deterministic
+   helper `scripts/resolver-v2/plan-audit.cjs#governanceRequiresHitl(capability_axis)`
+   encode chính xác B+ rule này — plan PHẢI agree với nó.
+
+4. **goal_metrics / primary_lens / ia_type_hint** (session-model selection):
+   - `goal_metrics`: `metric/*` recipient(s) mà sub-need ultimately bears on.
+   - `primary_lens`: `persona/*` framing nếu one clearly applies (else omit).
+   - `ia_type_hint`: coarse A|B|C|D IA-type label nếu confidently classifiable (else omit).
+
+5. **no_coverage** (honest gaps): cho bất kỳ facet của sub-need nào mà
+   `mcp__supabase-ops__resolver_find` không trả lại usable match (`matches: []` / `no_match_reason`),
+   HOẶC matched source cũ / empty / not-yet-built, append
+   `{ facet, reason: "no_match"|"stale"|"empty"|"not_built", remedy }`. Không bao giờ
+   silently drop facet; không bao giờ substitute training-data knowledge cho missing source.
+
+6. **Validate + return.** Assembled object PHẢI validate against
+   `knowledge/schemas/resolver-plan.schema.json` (single `ResolverPlan`, hoặc
+   `{ plans: [...] }` batch wrapper). Return nó. `content_axis`, `capability_axis`,
+   `governance_constraints`, `goal_metrics`, `no_coverage` là REQUIRED keys (empty array
+   khi nothing applies) để consumers iterate mà không presence-checks.
+
+7. **Plan-mode audit (best-effort, non-blocking).** Build audit row với
+   `scripts/resolver-v2/plan-audit.cjs#buildPlanAuditRow({ plan, intent, callerRole, latencyMs, findCalls })`
+   và write nó via `mcp__supabase-ops__insert`:
+
+   ```json
+   {
+     "table": "ops.resolver_decisions",
+     "rows": [
+       {
+         "trigger": "<intent>",
+         "trigger_normalized": "<normalized intent>",
+         "matched_route_id": null,
+         "confidence": null,
+         "semantic_used": false,
+         "caller_role": "<role>",
+         "latency_ms": 0,
+         "decision": "dispatch_silently | surface_candidates | no_match",
+         "mode": "A2",
+         "plan_payload": { /* assembled ResolverPlan v1 (single hoặc {plans:[...]}) */ },
+         "catalog_files_loaded": ["recipients/*.md (via mcp__supabase-ops__resolver_find)"],
+         "metadata": { "kind": "resolver-plan", "sub_need_count": 1, "no_coverage_count": 0, "find_calls": 1 }
+       }
+     ]
+   }
+   ```
+
+   Plan rows được discriminate như `mode='A2' AND plan_payload IS NOT NULL` (per migration
+   00044; **không `'PLAN'` mode token** — @cto Phase-5 decision). Write là fire-and-forget:
+   nếu fail (RLS / DB down), vẫn return plan — audit loss phải không bao giờ block planning.
+
+## Output schema (single)
+
+```yaml
+schema_version: "1.0"
+sub_need: "<sub-question text>"
+ia_type_hint: "A|B|C|D"                  # OPTIONAL
+primary_lens: ["persona/<id>"]            # OPTIONAL
+content_axis:                             # READ những cái này — REQUIRED key (có thể là [])
+  - recipient: "page/core-pricing"
+    invoke: "Read(\"00-core/pricing-philosophy.md\")"
+    authority: "SoR|SoR-external|derived-memory|scratch"
+    freshness: "static|hourly|daily|live|unknown"
+    grounding_ref: "<file/migration/kpi-id> | null"   # OPTIONAL
+    columns_hint: ["col_a", "col_b"]                  # OPTIONAL (view/metric)
+capability_axis:                          # RUN những cái này (HITL-gated) — REQUIRED key (có thể là [])
+  - recipient: "skill/cost-report"
+    invoke: "Skill({skill:\"cost-report\"})"
+    hitl_tier: "A|B|C|D-Std|D-MAX"
+    side_effect: "none|write|send|money|publish"
+    cost_bucket: "gbrain.<role>.<op> | null"          # OPTIONAL
+governance_constraints: ["page/governance-HITL", "metric/<id>"]   # REQUIRED key
+goal_metrics: ["metric/<id>"]             # REQUIRED key (có thể là [])
+no_coverage:                              # REQUIRED key (có thể là [])
+  - { facet: "<unresolved facet>", reason: "no_match|stale|empty|not_built",
+      remedy: "ingest via /wiki sync | wire MCP <x> | build via /cla propose" }
+```
+
+Batch: `{ plans: [ <ResolverPlan>, ... ] }` — một per `sub_needs[i]`, same order.
+
+## Guarantees / INVARIANTS
+
+- **INV-1 (deterministic substrate):** axis + enrichment đến từ catalog
+  (generator-emitted, surfaced bởi `mcp__supabase-ops__resolver_find`). Skill này READ những fields;
+  nó không bao giờ re-derive axis hoặc invent enrichment. Không LLM trong find subprocess; không API key.
+- **INV-2 (HITL-in-governance):** `page/governance-HITL` present trong
+  `governance_constraints` bất cứ khi nào bất kỳ capability có
+  `hitl_tier` trong \{B, C, D-Std, D-MAX} — agrees với
+  `plan-audit.cjs#governanceRequiresHitl`.
+- **INV-3 (breaker):** chính xác một `mcp__supabase-ops__resolver_find` per sub-need; không bao giờ loop. Warn ở
+  ≥15/20; degrade tới `no_coverage` ở cap.
+- **INV-4 (firewall + no writes):** product data chỉ via `metrics.*` (không bao giờ Product
+  Supabase); ONLY write skill này perform là best-effort `ops.resolver_decisions`
+  audit row. Không other Tier-2/3 write.
+- **INV-5 (honest coverage):** mỗi unresolved facet appear trong `no_coverage`; không bao giờ
+  silent partial; không bao giờ training-data substitution cho missing source.
+- **INV-6 (plan ⊇ context_recipe):** plan là superset của `context_recipe` shape —
+  consumer chỉ hiểu `context_recipe` reads `primary_lens` /
+  `governance_constraints` / `goal_metrics` và ignores execution fields.
+
+## Division of labor (ai viết concrete call)
+
+resolver-plan cung cấp **WHICH recipient + interface + grounding pointer**, KHÔNG
+literal SQL/params/prompt. Consumer's execute stage (ví dụ deepask, session model)
+authors concrete invocation, grounded trong `grounding_ref`/`columns_hint` (read
+DDL/KPI def trước viết SQL; không bao giờ invent column names — CLAUDE.md operating principle 3).
+`mcp__supabase-ops__query` là read-only by tool contract, nên consumer's SQL không thể mutate,
+và firewall hook keep product data tới `metrics.*`.
+
+## Cost / skip notes
+
+- **Cost:** session-model assembly = Claude Code subscription (KHÔNG API key, per
+  `external-source/anthropic-api`). Per find ≈ ~80-440ms MCP + session ranking, $0 API.
+  Standard plan là ≤6 sub-needs (≤6 finds); deep ≤12 — budget against 20-find/4h cap.
+- **Skip find hoàn toàn** cho sub-need bạn có thể resolve từ ambient `INDEX.md`
+  AND không cần composition/recency/enrichment — nhưng bạn khi đó LOSE enrichment
+  (`hitl_tier`/`authority`/`grounding_ref`) plan cần, nên thực tế planning calls
+  find. KHÔNG skip find chỉ để save call nếu plan sẽ lose tier tags.
+- **Audit là best-effort** — không bao giờ blocks; failed insert return plan mà không
+  `audit_run_id`.
+
+## Failure modes
+
+| Code / signal | Cause | Handling |
+|---|---|---|
+| `INVALID_INPUT` | neither `intent` nor `sub_needs` given (hoặc empty) | Throw; caller phải supply one. |
+| `session_cap_exceeded` (từ find) | 21st find trong 4h window | STOP find()'ing; assemble resolved sub-needs; mark rest `no_coverage`. Likely loop bug — restart session để reset. |
+| `no_match` (empty `matches[]`) | không recipient pass keyword pre-filter cho facet | Record facet trong `no_coverage` (`reason: "no_match"`); broaden sub-need hoặc `/cla propose`. |
+| `degraded: true` (catalog corrupt) | `recipients/*.md` unparseable | find return INDEX-only; assemble cái bạn có thể; flag remaining facets `no_coverage`. Fix catalog + `pnpm resolver:index`. |
+| `AUDIT_WRITE_FAILED` | `ops.resolver_decisions` insert failed | Best-effort: warn, return plan anyway (không `audit_run_id`). |
+
+## Xem thêm
+
+- Output schema: `knowledge/schemas/resolver-plan.schema.json`
+- Deterministic helper (audit row + B+ governance rule): `scripts/resolver-v2/plan-audit.cjs`
+- Find tool (axis-tagged candidates): `mcp-server/src/tools/resolver-find.ts`
+- Companion skill: `06-ai-ops/skills/resolver-query/SKILL.md`
+- Command surface: `.claude/commands/resolver.md` (`/resolver plan`)
+- Contract + field provenance: `.archives/cla/resolver-plan/refs/03-design-decisions.md`
+- Capability spec: `.archives/cla/resolver-plan/spec.md` (→ `wiki/capabilities/resolver-plan/spec.md` sau Phase 8)
+- Audit table: `ops.resolver_decisions` (mode='A2' + plan_payload; migrations 00034/00035/00038/00044)
+- Governance: `governance/HITL.md` (tier classification — B+ rule); `governance/ROLES.md` (role_scope)
+- Policy: `knowledge/recipients/external-sources.md` entry `external-source/anthropic-api` (session billing, không API key)

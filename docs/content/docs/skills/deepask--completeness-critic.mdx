@@ -1,0 +1,76 @@
+---
+title: 'Skill: completeness-critic'
+description: >-
+  deepask Stage 5 — cổng kiểm tra tính trung thực. Xây dựng ma trận độ bao phủ (sub-need × planned-recipient ×
+  executed? × got-data?), MECE-re-check trên 4 loại IA + capability axis, chạy live-probe,
+  và đặt verdict COMPLETE | PARTIAL-WITH-HONEST-GAPS (+ chính xác missing source/capability +
+  remedy). Có thể kích hoạt ONE bounded follow-up resolve→execute round. KHÔNG bao giờ trả lời partial âm thầm;
+  KHÔNG bao giờ thay thế training data.
+source_path: 06-ai-ops/skills/deepask/completeness-critic/SKILL.md
+source_hash: da002e52f577e94c03294f75b6c71f7076c39d3477fb71719c0843186ff9c46a
+generated_at: '2026-05-30T16:11:31.626Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_source_hash: da002e52f577e94c03294f75b6c71f7076c39d3477fb71719c0843186ff9c46a
+translated_at: '2026-05-30T16:30:00Z'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Stage 5. Lý do deepask đáng tin cậy: nó nêu rõ ràng CHÍNH XÁC những gì nó có thể và
+> không thể trả lời, và không bao giờ làm giả bao phủ. Tiêu thụ synthesis IR (Stage 4) + 
+> execute evidence/gaps; đặt IR's final `verdict` + `coverage`.
+
+## Khi nào dùng
+
+- Được gọi bởi `deepask/orchestrator` (Stage 5) sau khi `deepask/synthesize` phát ra IR.
+
+## Đầu vào
+
+- Synthesis IR (từ Stage 4), decomposition (sub-needs + IA tags), và per-sub-need `evidence[]`/`gaps[]` + `ResolverPlan.no_coverage[]` từ execute, cộng với các Tier-B+ capabilities được surface.
+
+## Quá trình
+
+### 1. Xây dựng ma trận độ bao phủ
+
+Một hàng per sub-need: `sub_need × planned_recipients (từ ResolverPlan) × executed? × got_data?`. Một cell là GREEN chỉ khi planned recipient đã executed AND trả lại evidence có thể dùng được. Persist mỗi hàng vào `ops.deepask_coverage`.
+
+### 2. MECE re-check trên 4 loại IA + capability axis
+
+Xác nhận decomposition vẫn còn cover câu hỏi với không overlap/gap (`thinking-toolkit/mece-decomposition-check`), và mỗi loại IA mà câu hỏi yêu cầu thực sự được touched (A SoR / B derived-memory / C scratch / D conduit) — cộng với bất kỳ capability nào mà câu trả lời cần. Sub-need được tag IA-B (gbrain/wiki) mà không bao giờ nhận dữ liệu là gap, không phải silent omission.
+
+### 3. Live-probe (bắt blind-spot của catalog)
+
+Với sub-need trả về `no_match`, làm ONE cheap live-probe để phân biệt "catalog cũ (source tồn tại nhưng không được catalogued)" từ "không có source như vậy" — ví dụ, một `Grep`/`Read` trực tiếp hoặc `resolver_find` re-query. Điều này đóng risk "deepask mù quáng với component mới được thêm vào". (Budget-aware: tính vào resolver breaker — accountant của orchestrator đã dành cho one follow-up.)
+
+### 4. Phân loại mỗi gap
+
+Mỗi uncovered facet → `{facet, reason, remedy}`:
+- `reason`: `no_match` | `stale` | `empty` | `not_built` | `breaker_budget`.
+- `remedy`: CHÍNH XÁC action — `ingest via /wiki sync <x>` · `wire MCP <x>` · `expand the metrics.* ETL` · `build via /cla propose` · `restart session / wait for the 4h breaker reset`.
+
+### 5. Bounded follow-up (tối đa một lần)
+
+Nếu gap là **fillable ngay** (ví dụ, live-probe tìm stale-catalog source, hoặc one more sub-need sẽ đóng nó) AND resolver budget cho phép (hỏi accountant của orchestrator), trigger **ONE** more resolve→execute→synthesize round chỉ cho facet đó. Không bao giờ loop nhiều hơn một lần — second dry round → chấp nhận gap một cách trung thực.
+
+### 6. Đặt verdict
+
+- **COMPLETE** — mỗi sub-need GREEN, MECE clean, zero uncited claims (citation-audit của synthesize đã `ok`), không unresolved fillable gap.
+- **PARTIAL-WITH-HONEST-GAPS** — ngược lại. IR's `coverage.gaps[]` liệt kê chính xác những gì thiếu/cũ/chưa built + remedy, và câu trả lời nói rõ ("Tôi có thể trả lời X và Y; Tôi KHÔNG THỂ trả lời Z vì \<reason> — để fix: \<remedy>").
+- Viết `verdict` + `coverage` vào IR; orchestrator ghi nó vào `ops.deepask_runs.verdict` (→ KPI `deepask.complete_verdict_rate`). Gap `breaker_budget` cũng feed `deepask.breaker_trip_rate`.
+
+## Hard rules (honesty contract)
+
+- **Không bao giờ trả lời partial âm thầm** — PARTIAL verdict PHẢI surface gaps của nó trong câu trả lời, không bury chúng.
+- **Không bao giờ thay thế training data** cho missing system source — uncoverable facet là gap với remedy, không phải hallucinated answer.
+- **Không bao giờ fabricate coverage** — `breaker_budget` exhaustion hoặc execution failure được report như vậy, không bao giờ che giấu như `no_match`/"nothing found".
+
+## HITL / cost
+
+Tier A. Cost-bucket `ai-ops-deepask`. Bounded follow-up + live-probe được budget vào resolver breaker bởi accountant của orchestrator.
+
+## Tests (per spec §10)
+
+coverage-matrix correctness (green chỉ khi executed AND got_data); MECE re-check bắt missing IA type; **bounded follow-up triggers tối đa một lần**; PARTIAL verdict path exercised; **honest no-coverage — no-internal-coverage question yields stated gap + remedy, KHÔNG hallucinated answer** (headline negative test); `breaker_budget` gap được labeled như vậy, không bao giờ như `no_match`.

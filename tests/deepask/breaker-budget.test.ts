@@ -228,4 +228,19 @@ describe("computeBreakerBudget", () => {
       ).toThrow(/followUpReserve must be >= 0/);
     });
   });
+
+  describe("degenerate config (broken-but-survivable, never crashes)", () => {
+    it("followUpReserve >= hardCap → exhausted (viable false), not a crash", () => {
+      const r = computeBreakerBudget({ sessionFindsCount: 0, subNeedCount: 3, followUpReserve: 25 });
+      expect(r.viable).toBe(false);
+      expect(r.reason).toBe("breaker_budget");
+      expect(r.allowedSubNeeds).toBe(0);
+    });
+    it("huge subNeedCount on a fresh session caps to budget, never negative", () => {
+      const r = computeBreakerBudget({ sessionFindsCount: 0, subNeedCount: 10000 });
+      expect(r.reason).toBe("capped_to_budget");
+      expect(r.allowedSubNeeds).toBe(18); // remaining 20 - 2 reserve
+      expect(r.allowedSubNeeds).toBeGreaterThanOrEqual(0);
+    });
+  });
 });
