@@ -1,22 +1,22 @@
 ---
 name: execute
-description: deepask Stage 3 — per-sub-need executor. Sprint 1 = READ-only legs (content_axis from the ResolverPlan). AUTHORS the concrete read-only SQL / wiki_ask question / read params itself, grounded in the plan's grounding_ref/columns_hint — NEVER invents column names. Firewall-aware (product only via metrics.*), gbrain-cap-aware, bounded self-correct on error. Sprint 3 adds the capability-RUN leg (Tier-A auto / Tier-B+ surface) + deep-research delegation.
+description: deepask Stage 3 — per-sub-need executor. READS content_axis (authoring its own read-only SQL / wiki_ask / params, grounded in grounding_ref/columns_hint — never invents columns) AND RUNS capability_axis (auto-runs Tier-A no-side-effect via capability-gate.cjs; surfaces Tier-B+ for HITL approval; refuses D-MAX), delegating the external-web leg to deep-research. Firewall-aware (product only via metrics.*), gbrain-cap-aware, bounded self-correct on error.
 ---
 
 # deepask/execute (capability `deepask` v1.0)
 
 > Stage 3 of the loop. Runs ONE sub-need's `ResolverPlan v1`, in parallel with siblings.
 > resolver-plan supplies WHICH recipient + interface contract + grounding pointer; **execute
-> authors the literal call.** Sprint 1 scope: read-only `content_axis`. The capability-RUN
-> leg (`capability_axis`) + deep-research delegation land in Sprint 3.
+> authors the literal call** — for both the READ legs (`content_axis`) and the RUN legs
+> (`capability_axis`, governed by the capability-gate). deepask issues no routing of its own.
 
 ## When to use
 - Called by `deepask/orchestrator` (Stage 3), once per sub-need, fanned out in parallel.
 
 ## Inputs
-- `sub_need` (text + ia_type) and its `ResolverPlan v1` (`content_axis`, `capability_axis`, `governance_constraints`, `goal_metrics`, `no_coverage`).
+- `sub_need` (text + ia_type) and its `ResolverPlan v1` (`content_axis`, `capability_axis`, `governance_constraints`, `goal_metrics`, `no_coverage`). Each `capability_axis` entry carries `hitl_tier` + `side_effect` (from resolver-plan enrichment).
 
-## Process (Sprint 1 — READ-only)
+## Process — READ legs (`content_axis`)
 
 ### 1. Read each `content_axis` recipient
 For each entry, dispatch the read per the recipient's `invoke` contract:
@@ -34,36 +34,53 @@ deepask does NOT receive pre-written SQL. For a `view`/`metric` read:
 
 The same authoring principle applies to every recipient: deepask frames the precise `wiki_ask` question / gbrain query / read params itself, grounded in the recipient's contract.
 
-### 3. Firewall (hard, always)
+## Process — RUN legs (`capability_axis`)
+
+### 3. Gate every capability leg (the read-vs-RUN rule)
+Classify each `capability_axis` recipient with the deterministic gate, then act on `action`:
+```js
+const { classifyCapabilityLeg } = require('scripts/deepask/capability-gate.cjs');
+const { action, reason } = classifyCapabilityLeg({ hitl_tier, side_effect }); // from plan enrichment
+```
+- **`auto_run`** (Tier-A, `side_effect: none`) → run it now. deepask AUTHORS the invocation (frames the precise skill params / `gbrain.think` prompt / tool args, grounded in the recipient's contract in `mcp-tools.yaml` / SKILL.md). Typical: `cost-report`, `thinking-toolkit/*`, `wiki_ask`, gbrain reads, `experiment-analyst`, `synthesize-morning-brief`.
+- **`surface`** (Tier-B+, or any declared side effect) → **do NOT run.** Append to `surfaced_capabilities[]` for the orchestrator to present as a HITL-gated suggestion ("to answer fully I'd run X (Tier B) — approve?"). Founder approval is required before any side-effecting capability runs; deepask never auto-runs it.
+- **`refuse`** (Tier D-MAX) → never run, never surface as actionable. Record a gap (`gap_reason='not_built'`, `remedy="X requires D-MAX — beyond deepask's read/synthesize remit"`) so the answer is honest about the boundary.
+
+### 4. Web leg → delegate to `deep-research`
+If a sub-need genuinely needs the **external web** (internal sources insufficient), delegate that leg to the `deep-research` skill — deepask never web-searches directly (internal-first). Treat deep-research's cited report as one evidence source (`authority: SoR-external`, `freshness: live`).
+
+## Cross-leg guards (READ + RUN)
+
+### 5. Firewall (hard, always)
 **Product data ONLY via `metrics.*` views** (the ETL mirror). NEVER query `product.*` / the product Supabase directly — the `pre-tool-supabase-product` hook blocks it (D-MAX). If a sub-need seems to need product data not in `metrics.*`, that's an honest gap (`gap_reason='not_built'`, `remedy="expand the metrics.* ETL"`), not a firewall bypass.
 
-### 4. Bounded self-correction
-On a query/tool error: inspect → re-read the schema/DDL → retry **once** → else emit an honest `no_coverage` for that leg ("can't safely query X — schema mismatch"). **NEVER fabricate a result row.**
+### 6. gbrain cap + cost
+gbrain reads AND capability runs count against the global $100/mo cap (`pre-budget-check.sh`). Prefer cheap `search`/`recall` over `think`; if the cap is hit, degrade gracefully (record a gap, don't crash). Every leg logs to `ops.cost_attributions` (cost-bucket `ai-ops-deepask`).
 
-### 5. Tier-B+ capability legs (Sprint 1: surface only)
-If the `ResolverPlan.capability_axis` contains a Tier-B+ (side-effecting) recipient, **do not run it** — record it as a surfaced suggestion for the orchestrator to present ("to answer fully I'd run X (Tier B) — approve?"). Auto-running Tier-A capabilities + the full surface/HITL wiring is Sprint 3.
+### 7. Bounded self-correction
+On a query/tool error: inspect → re-read the schema/DDL → retry **once** → else emit an honest `no_coverage` for that leg ("can't safely query X — schema mismatch"). **NEVER fabricate a result row.** A partial failure of one leg must not sink the whole run.
 
 ## Output (per sub-need, to the orchestrator)
 ```yaml
 evidence:
   - claim_support: "<what this supports>"
-    source_ref: "<recipient_id + concrete locator (path / SQL / wiki page)>"
+    source_ref: "<recipient_id + concrete locator (path / SQL / wiki page / capability output)>"
     authority: "SoR|SoR-external|derived-memory|scratch"
     freshness: "static|hourly|daily|live|unknown"
     retrieved_at: "<ts>"
     got_data: true|false
-surfaced_capabilities: [ { recipient, hitl_tier, why } ]   # Tier-B+, NOT run (S1)
+surfaced_capabilities: [ { recipient, hitl_tier, side_effect, why } ]   # Tier-B+ — NOT run; for HITL
 gaps: [ { facet, gap_reason: no_match|stale|empty|not_built|breaker_budget, remedy } ]
 ```
 This feeds `ops.deepask_coverage` (one row/sub-need) + Stage-4 synthesis.
 
 ## Constraints
 - **No routing** — execute runs the plan it's given; it never decides WHICH recipient (resolver-plan did).
-- Read-only in Sprint 1; every claim must carry a `source_ref` (no uncited evidence reaches synthesis).
+- **Auto-run Tier-A only**; surface Tier-B+; refuse D-MAX. Every claim carries a `source_ref` (no uncited evidence reaches synthesis).
 - Subscription billing in-session; gbrain under cap; API key out-of-band only.
 
 ## HITL / cost
-Tier A (reads). Tier-B+ legs surfaced (S3 wires the approval). Cost-bucket `ai-ops-deepask` + capped gbrain reads.
+Tier A for the read legs + auto-run Tier-A capability legs. Tier-B+ capability legs are **surfaced** for founder approval (never auto-run). Cost-bucket `ai-ops-deepask` + capped gbrain reads.
 
 ## Tests (per spec §10)
-read-only enforced; **product.* attempt blocked** (firewall); **invalid column → re-reads schema → retry → honest no_coverage, never fabricated rows** (negative test); gbrain-cap degrade → gap not crash; partial-failure of one leg doesn't sink the run; every evidence item has a source_ref.
+`scripts/deepask/capability-gate.cjs` unit-tested (`tests/deepask/capability-gate.test.ts`, 25 cases — exactly one auto_run combo, D-MAX always refuses, everything else surfaces). Skill-level (land with this sprint): Tier-A auto-runs; **Tier-B+ surfaced never auto-run** (both paths); **D-MAX refused** (boundary honesty); product.* blocked (firewall); gbrain-cap degrade → gap not crash; deep-research invoked ONLY on a web-needing sub-need; partial-failure of one leg doesn't sink the run; invalid column → re-read schema → retry → honest no_coverage (never fabricated rows).
