@@ -1,6 +1,6 @@
 ---
 description: Lookup PLATFORM v3 (JIT Loading). Founder/operator surface for resolver. Mode A2 delegates to mcp__resolver__find for ~10K INDEX + drill-down via MCP. Mode C keyword fallback retained for CRON/edge. v2.2 ambient (55K catalog) deprecated post-cutover.
-argument-hint: "<query|list|validate|sync|explain> [args] [flags]"
+argument-hint: "<query|plan|list|validate|sync|explain> [args] [flags]"
 capability: resolver-v3-jit-loading
 version: 3.0.0
 spec: .archives/cla/resolver-v3-jit-loading/spec.md
@@ -18,8 +18,9 @@ This command is a thin orchestrator — engine logic lives in `scripts/resolver-
 
 | Position / Flag | Required | Type | Validation |
 |---|---|---|---|
-| `<subcommand>` | yes | enum | `query` \| `list` \| `validate` \| `sync` \| `explain` |
-| `"<trigger>"` (query/explain) | yes for those | string | 1-500 chars |
+| `<subcommand>` | yes | enum | `query` \| `plan` \| `list` \| `validate` \| `sync` \| `explain` |
+| `"<trigger>"` (query/plan/explain) | yes for those | string | 1-500 chars |
+| `--sources=<csv>` (plan) | no | csv | comma-list of kinds (skill,page,metric,…) or axis (content,capability) to constrain `mcp__resolver__find` |
 | `--kind=<k>` | no | enum | one-of 16 kinds: skill\|command\|agent\|persona\|mcp\|wiki\|sop\|capability\|workflow\|schedule\|hook\|page\|view\|metric\|runbook\|external-source |
 | `--limit=N` | no | int 1-20 | default 20 (raised from 5 in iter4 — session does ranking) |
 | `--role=<role>` | no | string | override caller MCP_CALLER_ROLE for role_scope filter |
@@ -85,6 +86,7 @@ serves both slash command + AI workforce agents.
 | Invocation | Purpose | HITL |
 |---|---|---|
 | `/resolver query "<trigger>" [--kind=<k>] [--json] [--mode=A\|B\|C]` | Find recipient + composition | A |
+| `/resolver plan "<intent>" [--sources=<csv>] [--json]` | Assemble a populated **ResolverPlan v1** (2-axis context_recipe) — content to READ + capabilities to RUN (tier-tagged) + governance + honest no_coverage. Batch form below. | A |
 | `/resolver list [--kind=<k>] [--status=<s>] [--json]` | Enumerate catalog entries | A |
 | `/resolver validate` | Run 4 v2 validators (schema, uniqueness, coverage, link-integrity) | A |
 | `/resolver sync [--dry-run\|--apply\|--auto-pr] [--kind=<k>]` | Rebuild catalog from source frontmatter | A/B/C |
@@ -153,6 +155,53 @@ Session finds: 1/20 in current 4h window
 **No API key used** — session ranking only (subscription billing per
 `external-source/anthropic-api` policy iter4).
 
+## `/resolver plan` workflow (2-axis execution plan)
+
+`/resolver plan` invokes the `resolver-plan` skill
+(`06-ai-ops/skills/resolver-plan/SKILL.md`), which calls `mcp__resolver__find` once per
+sub-need and SESSION-MODEL assembles a populated **ResolverPlan v1** — a first-class,
+filled-in `context_recipe` (the optional shape documented below). It splits the
+axis-tagged candidates into `content_axis` (READ — with authority/freshness/grounding) vs
+`capability_axis` (RUN — tier-tagged), attaches `governance_constraints` (always
+`page/governance-HITL` when any capability is HITL tier B+), `goal_metrics`, optional
+`primary_lens`, and an honest `no_coverage`. Output validates against
+`knowledge/schemas/resolver-plan.schema.json`.
+
+```
+$ /resolver plan "what is our current MRR and is AI-ops cost within budget?"
+
+ResolverPlan v1  (sub_need = "what is our current MRR and is AI-ops cost within budget?")
+  ia_type_hint: B
+  content_axis (READ):
+    - metric/mrr                          [authority SoR · freshness hourly]
+        invoke: mcp__supabase_ops__query against knowledge/kpi-ownership.yaml#mrr
+        grounding_ref: knowledge/kpi-ownership.yaml#mrr
+    - metric/ai_ops_cost_as_pct_of_mrr    [authority SoR · freshness live]
+        grounding_ref: knowledge/kpi-ownership.yaml#ai_ops_cost_as_pct_of_mrr
+  capability_axis (RUN):
+    - skill/cost-report                   [hitl_tier A · side_effect none]   ← auto-runnable
+        invoke: Skill({ skill: "cost-report" })
+  governance_constraints: []              (capability axis is all Tier-A → no HITL gate)
+  goal_metrics: [metric/mrr, metric/ai_ops_cost_as_pct_of_mrr]
+  no_coverage: []
+
+Audit: run_id=<uuid> → ops.resolver_decisions (mode='A2', plan_payload set)
+Session finds: 1/20 in current 4h window
+```
+
+Batch form (decompose first, ≤6 standard / ≤12 deep to respect the 20-find/4h breaker):
+
+```
+$ /resolver plan "draft a churn-reduction plan" --sources=metric,skill,page
+→ { "plans": [ <ResolverPlan>, <ResolverPlan>, ... ] }   # one per sub-need
+```
+
+`--json` returns the raw ResolverPlan / batch object (for piping into `/deepask` or tools).
+The plan IS a populated `context_recipe` — see the "Composition output" section below for
+the shape a `context_recipe`-only consumer reads. **No API key used** (session assembly;
+subscription billing). The skill writes a best-effort plan-mode audit row
+(`mode='A2'` + `plan_payload`); a failed audit never blocks the returned plan.
+
 ## Mode C workflow (non-LLM consumer)
 
 ```bash
@@ -200,6 +249,7 @@ $0 API cost preserved.
 | Subcommand | ops.* writes | Events emitted | Filesystem writes |
 |---|---|---|---|
 | `query` | `ops.resolver_decisions` (mode='A2', via `mcp__resolver__find`) | none | none |
+| `plan` | `ops.resolver_decisions` (mode='A2' + `plan_payload`, best-effort) — 1 row per plan call; plus 1 `mcp__resolver__find` audit row per sub-need | none | none |
 | `list` | none (read-only) | none | none |
 | `validate` | none (read-only) | none | none |
 | `sync --dry-run` | none | none | none (preview only) |
@@ -246,6 +296,13 @@ $0 API cost preserved.
 
 ## Composition output — v2.2 adds optional `context_recipe`
 
+> **resolver-plan v1.0 (Sprint 3):** `/resolver plan` returns a **populated**
+> version of this `context_recipe` — the **ResolverPlan v1** object (schema:
+> `knowledge/schemas/resolver-plan.schema.json`), with the 2 axes filled in
+> (`content_axis` to READ, `capability_axis` to RUN — tier-tagged) plus
+> `governance_constraints` / `goal_metrics` / `primary_lens` / honest `no_coverage`.
+> The full optional→first-class `context_recipe` promotion docs land in Sprint 5.
+
 Backward-compat: callers that don't understand `context_recipe` ignore the
 field. Callers that want context-assembly recipes can request:
 
@@ -288,6 +345,9 @@ context_recipe:               # OPTIONAL — v2.2
 - MCP tool source: `mcp-server/src/tools/resolver-find.ts`
 - Audit table: `ops.resolver_decisions` (mode='A2' for v3; migration 00035 base + 00038 mode CHECK extension)
 - Consumer SKILL (legacy v2 wrapper): `06-ai-ops/skills/resolver-query/SKILL.md`
+- **Planning SKILL (`/resolver plan`)**: `06-ai-ops/skills/resolver-plan/SKILL.md` (resolver-plan v1.0, Sprint 3)
+- **ResolverPlan v1 schema**: `knowledge/schemas/resolver-plan.schema.json` (the populated `context_recipe` contract)
+- Plan-audit helper (deterministic row + B+ governance rule): `scripts/resolver-v2/plan-audit.cjs`
 - Hold-out telemetry hooks (post-cutover, cherry-pick #13): `.claude/hooks/pre-bash-mass-action.md`, `.claude/hooks/pre-edit-significant.md`
 - Health-check cron: `resolver-v3-health-check` in `knowledge/schedules.yaml` (hourly canary)
 - Governance: `governance/HITL.md` for tier classification; `governance/ROLES.md` for role_scope semantics

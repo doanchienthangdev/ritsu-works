@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "resolver-plan.schema.json",
+  "title": "ResolverPlan v1 (capability `resolver-plan` v1.0)",
+  "description": "A populated, directly-consumable 2-axis execution plan emitted by the resolver-plan skill (= a first-class, populated `context_recipe`). One ResolverPlan per sub-need: CONTENT recipients to READ (where the answer lives) + CAPABILITY recipients to RUN (HITL-gated) to produce the answer, plus governance constraints, goal metrics, primary lens, and an honest no_coverage list. Consumed by deepask and any orchestrator with zero routing of its own. Contract source: .archives/cla/resolver-plan/refs/03-design-decisions.md. The `definitions.resolverPlan` is a single plan; the top level accepts EITHER a single plan OR a batch wrapper { plans: [...] }.",
+  "oneOf": [
+    { "$ref": "#/definitions/resolverPlan" },
+    { "$ref": "#/definitions/resolverPlanBatch" }
+  ],
+  "definitions": {
+    "resolverPlanBatch": {
+      "type": "object",
+      "description": "Batch form: the result of planning a list of sub_needs in one call.",
+      "required": ["plans"],
+      "additionalProperties": false,
+      "properties": {
+        "plans": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/resolverPlan" },
+          "description": "One ResolverPlan per sub-need, in the order the sub-needs were supplied."
+        }
+      }
+    },
+    "resolverPlan": {
+      "type": "object",
+      "description": "A single sub-need's 2-axis plan.",
+      "required": [
+        "schema_version",
+        "sub_need",
+        "content_axis",
+        "capability_axis",
+        "governance_constraints",
+        "goal_metrics",
+        "no_coverage"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "1.0",
+          "description": "ResolverPlan schema version. Pinned to 1.0 for v1; bumped on a breaking shape change."
+        },
+        "sub_need": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The sub-question this plan answers (the intent, or one decomposed facet of it)."
+        },
+        "ia_type_hint": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D"],
+          "description": "OPTIONAL coarse Information-Architecture type hint for the sub-need (A|B|C|D), to help a downstream MECE/completeness check. Session-model selected; omit when not confidently classifiable."
+        },
+        "primary_lens": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/recipientId" },
+          "uniqueItems": true,
+          "description": "OPTIONAL cognitive framing — persona recipient id(s) (e.g. persona/cgo) that frame how to interpret the answer. Session-model selected."
+        },
+        "content_axis": {
+          "type": "array",
+          "description": "Recipients to READ — where the answer lives. May be empty (a pure run-to-answer plan) but the key is REQUIRED so consumers can iterate without presence-checks.",
+          "items": { "$ref": "#/definitions/contentItem" }
+        },
+        "capability_axis": {
+          "type": "array",
+          "description": "Recipients to RUN (HITL-gated) to produce the answer. May be empty (a pure read-to-answer plan) but the key is REQUIRED.",
+          "items": { "$ref": "#/definitions/capabilityItem" }
+        },
+        "governance_constraints": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/recipientId" },
+          "uniqueItems": true,
+          "description": "Governance recipients a consumer MUST honor before running the capability axis. MUST include page/governance-HITL whenever any capability_axis item is HITL tier B|C|D-Std|D-MAX (a side-effecting capability). May also include bounding metric/* recipients. REQUIRED (empty allowed only when the capability axis is all Tier-A)."
+        },
+        "goal_metrics": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/recipientId" },
+          "uniqueItems": true,
+          "description": "metric/* recipients that the sub-need ultimately bears on (the KPIs the answer should move or measure). REQUIRED key; empty allowed when no metric is relevant."
+        },
+        "no_coverage": {
+          "type": "array",
+          "description": "HONEST gaps — facets of the sub-need with no resolvable recipient, or a matched recipient that is stale/empty/not-yet-built. REQUIRED key; empty array means full coverage.",
+          "items": { "$ref": "#/definitions/noCoverageItem" }
+        }
+      }
+    },
+    "recipientId": {
+      "type": "string",
+      "minLength": 3,
+      "pattern": "^(skill|command|agent|persona|mcp|wiki|sop|capability|workflow|schedule|hook|page|view|metric|runbook|external-source)/.+$",
+      "description": "A catalog recipient id: <kind>/<slug>, where <kind> is one of the 16 active recipient kinds."
+    },
+    "contentItem": {
+      "type": "object",
+      "description": "One content-axis recipient to READ, carrying the grounding a consumer needs to author a correct concrete read/query.",
+      "required": ["recipient", "invoke", "authority", "freshness"],
+      "additionalProperties": false,
+      "properties": {
+        "recipient": { "$ref": "#/definitions/recipientId" },
+        "invoke": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The exact invocation snippet to READ this recipient (e.g. Read(\"00-core/pricing-philosophy.md\") or an mcp__supabase_ops__query SELECT)."
+        },
+        "authority": {
+          "type": "string",
+          "enum": ["SoR", "SoR-external", "derived-memory", "scratch"],
+          "description": "Trust class: SoR (Tier-1 / live operating system of record), SoR-external (an external system of record / API), derived-memory (extracted notes / operational memory), scratch (disposable)."
+        },
+        "freshness": {
+          "type": "string",
+          "enum": ["static", "hourly", "daily", "live", "unknown"],
+          "description": "How current the source is: static (git-committed), hourly/daily (ETL'd), live (queried at read time), unknown (e.g. wiki last-distilled)."
+        },
+        "grounding_ref": {
+          "type": ["string", "null"],
+          "description": "OPTIONAL schema/contract to READ before authoring a concrete query: a migration DDL path, knowledge/kpi-ownership.yaml#<id>, a file path, or null. Lets a consumer ground a SQL/tool call without guessing."
+        },
+        "columns_hint": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "description": "OPTIONAL parsed column list (view/metric), so a consumer can author a grounded SELECT without reading the full DDL. Absent (not empty) when the columns could not be safely parsed."
+        }
+      }
+    },
+    "capabilityItem": {
+      "type": "object",
+      "description": "One capability-axis recipient to RUN, tier-tagged so a consumer can auto-run Tier-A and SURFACE (never auto-run) Tier-B+.",
+      "required": ["recipient", "invoke", "hitl_tier", "side_effect"],
+      "additionalProperties": false,
+      "properties": {
+        "recipient": { "$ref": "#/definitions/recipientId" },
+        "invoke": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The exact invocation snippet to RUN this recipient (e.g. Skill({skill:\"cost-report\"}))."
+        },
+        "hitl_tier": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D-Std", "D-MAX"],
+          "description": "Blast-radius tier (governance/HITL.md). A = auto-runnable (read/compute/retrieve). B|C|D-Std|D-MAX = side-effecting; SURFACE as a suggestion, never auto-run. Unknown derives conservatively to B upstream."
+        },
+        "side_effect": {
+          "type": "string",
+          "enum": ["none", "write", "send", "money", "publish"],
+          "description": "What running it does to the world: none (read), write (DB), send (message/email), money (charge/refund), publish (external)."
+        },
+        "cost_bucket": {
+          "type": ["string", "null"],
+          "description": "OPTIONAL cost attribution bucket for the run (e.g. gbrain.<role>.<op>), or null when not metered separately."
+        }
+      }
+    },
+    "noCoverageItem": {
+      "type": "object",
+      "description": "One honest gap.",
+      "required": ["facet", "reason", "remedy"],
+      "additionalProperties": false,
+      "properties": {
+        "facet": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The unresolved facet of the sub-need (what could not be covered)."
+        },
+        "reason": {
+          "type": "string",
+          "enum": ["no_match", "stale", "empty", "not_built"],
+          "description": "Why it is uncovered: no_match (resolver returned nothing), stale (matched source is outdated), empty (matched source has no data), not_built (the capability/source does not exist yet)."
+        },
+        "remedy": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The concrete next step to close the gap (e.g. 'ingest via /wiki sync', 'wire MCP <x>', 'build via /cla propose')."
+        }
+      }
+    }
+  }
+}

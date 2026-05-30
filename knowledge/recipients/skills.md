@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 86
+**Total entries:** 87
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1025,6 +1025,29 @@ Step 5 OR by founder for manual `/playbook check --fix` workflow.
 **Invoke:** `Skill({ skill: "playbook-builder/sync-meta" })`
 **HITL tier:** B
 **Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/resolver-plan
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Assemble a populated ResolverPlan v1 (= a first-class, populated context_recipe)
+for an intent (or a batch of sub-needs). Calls mcp__resolver__find for axis-tagged +
+enriched candidates, then SESSION-MODEL splits them into content_axis (recipients you
+READ — carry authority/freshness/grounding_ref/columns_hint) vs capability_axis
+(recipients you RUN — carry hitl_tier/side_effect/cost_bucket), attaches
+governance_constraints (ALWAYS page/governance-HITL when any capability is HITL tier
+B+) + goal_metrics + primary_lens, and emits an honest no_coverage list. The planning
+layer that lets orchestrators (deepask) consume an executable plan with ZERO routing of
+their own. Output schema: knowledge/schemas/resolver-plan.schema.json. Subscription
+billing (session model); no API key; read-only except a best-effort plan-mode audit row.
+
+**Invoke:** `Skill({ skill: "resolver-plan" })`
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
