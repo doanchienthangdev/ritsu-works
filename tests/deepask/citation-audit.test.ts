@@ -178,4 +178,23 @@ describe("auditCitations", () => {
       expect(isClaimCited(null)).toBe(false);
     });
   });
+
+  describe("broken citation shapes (all → uncited, never a crash)", () => {
+    it("citations: null → uncited (not missing, not array)", () => {
+      const r = auditCitations({ sections: [{ heading: "S", claims: [{ text: "x", citations: null }] }] });
+      expect(r.uncited).toHaveLength(1);
+      expect(r.ok).toBe(false);
+    });
+    it("citations: a number or object (non-array) → uncited", () => {
+      const r = auditCitations({ sections: [{ heading: "S", claims: [
+        { text: "n", citations: 5 }, { text: "o", citations: { ref: "x" } },
+      ] }] });
+      expect(r.citedClaims).toBe(0);
+      expect(r.uncited).toHaveLength(2);
+    });
+    it("citations array of non-strings → uncited unless ≥1 valid string present", () => {
+      expect(auditCitations({ sections: [{ claims: [{ text: "x", citations: [1, null, {}] }] }] }).ok).toBe(false);
+      expect(auditCitations({ sections: [{ claims: [{ text: "y", citations: [1, "page/ok"] }] }] }).ok).toBe(true);
+    });
+  });
 });
