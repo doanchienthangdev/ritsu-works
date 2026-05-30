@@ -405,90 +405,51 @@ This document protects you from your own future bad decisions as much as from ag
 
 ## Appendix A — Gbrain operation tier classification
 
-> Added 2026-05-25 via capability `gbrain-operational-brain` v1.0 (Tier C decision `5014456d-7526-4ba2-9c58-005166193864`). Classifies all ~70 `mcp__gbrain__*` MCP tools per the 4-tier policy above. Mass-purge threshold rule applies orthogonally.
+> Added 2026-05-25 via capability `gbrain-operational-brain` v1.0 (Tier C decision `5014456d-7526-4ba2-9c58-005166193864`). **Reconciled 2026-05-30 (PR #162) against the LIVE gbrain v0.40 surface — 74 MCP tools.** The prior version classified **13 tools the binary does NOT expose** (`mass_purge`, `reset_brain`, `drop_all_links`, `mass_update_pages`, `embedding_regenerate_all`, `schema_migrate`, `dream_cycle_manual`, `archive_purge_now`, `get_brain_info`, `update_page`, `archive_page`, `bulk_link`, `bulk_unlink` — all removed below) and **omitted ~33 real tools** (incl. the destructive `delete_page` / `purge_deleted_pages` / `sources_remove`), now classified.
+>
+> **Single source of truth for per-tool tier + `role_scope` is `knowledge/mcp-tools.yaml`**, regenerated from the live binary by `scripts/resolver-v3/gen-gbrain-catalog.cjs`, validated against it by `scripts/resolver-v3/mcp-runtime-reconcile.cjs`, and kept internally coherent by `scripts/cross-tier/validate-mcp-catalog-coherence.cjs` (runs in `check-drift` + pre-commit). This appendix states the **classification policy** and enumerates the **high-stakes (Tier C) tools explicitly**; the routine read/write bulk follows the rule (NOT re-enumerated here — an inline list is exactly what drifted, and nothing validates HITL.md's enumeration). When gbrain upgrades: refresh `mcp-tools.yaml` via the generator (reconcile catches drift); touch this appendix only if the *policy* or the *C/D set* changes.
 
-### Tier A — Autonomous (gbrain READ + low-stakes inspection, ~35 tools)
+### Classification policy (the rule)
 
-These are reads against the brain DB; no state changes, no external surface. Log to `ops.agent_runs` with cost-bucket `gbrain.<role>.<op>`.
+| Tool shape | Tier | Rationale |
+|---|---|---|
+| **Read / introspection** — `search`/`query`/`recall`/`search_by_image`, `get_*`, `list_*`, `find_*`, `traverse_graph`, `resolve_slugs`, `code_*`, `takes_*` (calibration reads), `sources_list`/`sources_status`, `think` (read-only synthesis), `whoami`, `run_doctor`, `file_url`/`file_list` | **A** Autonomous | no state change; reads brain DB. Auto-run. |
+| **Single-item write / mutation** — `put_page`, `delete_page` (soft), `restore_page`, `add_*`/`remove_*` (link/tag/timeline), `extract_facts`/`forget_fact`, `log_ingest`/`put_raw_data`, `file_upload`, `sources_add`, `revert_version`, `sync_brain`, `code_traversal_cache_clear`, job-control (`submit_job`/`submit_agent`/`retry_job`/`pause_job`/`resume_job`/`cancel_job`/`replay_job`/`send_job_message`) | **B** Notify-after | reversible brain-DB write; daily Telegram batch + 1h Undo. |
+| **Hard delete (irreversible, scoped)** — the Tier C list below | **C** Approve-before | dry-run + founder approval. |
 
-```
-mcp__gbrain__search                  (semantic search across pages)
-mcp__gbrain__recall                  (recall pages by criteria)
-mcp__gbrain__query                   (SQL-style query)
-mcp__gbrain__get_page                (single page by slug/id)
-mcp__gbrain__list_pages              (paginated page list)
-mcp__gbrain__get_chunks              (chunks for a page)
-mcp__gbrain__traverse_graph          (graph traversal)
-mcp__gbrain__get_links               (forward links from a page)
-mcp__gbrain__get_backlinks           (backlinks to a page)
-mcp__gbrain__think                   (LLM-based brain reflection)
-mcp__gbrain__find_anomalies          (statistical pattern detection)
-mcp__gbrain__find_contradictions     (logical inconsistency detection)
-mcp__gbrain__find_experts            (people pages with most expertise on topic)
-mcp__gbrain__find_trajectory         (entity evolution over time)
-mcp__gbrain__code_callees            (code graph: who does X call?)
-mcp__gbrain__code_callers            (code graph: who calls X?)
-mcp__gbrain__code_def                (code graph: where is X defined?)
-mcp__gbrain__code_refs               (code graph: references to X)
-mcp__gbrain__code_blast              (code graph: impact analysis)
-mcp__gbrain__code_flow               (code graph: data/control flow)
-mcp__gbrain__file_url                (signed URL for a file blob)
-mcp__gbrain__list_jobs               (background job list)
-mcp__gbrain__get_brain_info          (brain DB stats)
-mcp__gbrain__whoami                  (current role + grants)
-mcp__gbrain__get_health              (health check)
-(... ~10 more read-only / introspection tools — see knowledge/mcp-tools.yaml for the canonical list)
-```
+**v0.40 counts: A = 47, B = 25, C = 2, D-Std = 0** (= 74). Per-tool assignment is in `mcp-tools.yaml` (`tier_default`).
 
-### Tier B — Notify-after (gbrain WRITES + low-stakes mutations, ~14 tools)
+### Tier A — Autonomous (READ + introspection, 47 tools)
 
-Writes to brain DB. Notify-first-then-batch per `06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-001-write-discipline/flow.yaml` — agent drafts the write; Telegram daily batch shows founder Tier B summary; founder presses [Undo] within 1h to revert. Log to `ops.agent_runs` + emit `ritsu.gbrain.write_committed` event.
+Reads against the brain DB; no state change, no external surface. Auto-run; log to `ops.agent_runs` with cost-bucket `gbrain.<role>.<op>`. Full list = `mcp-tools.yaml` entries with `tier_default: A`. Covers semantic/keyword/image search, recall, page/chunk/link/backlink/timeline/tag/version reads, graph + code-graph traversal, health/stats/doctor/identity diagnostics, job inspection, takes-calibration reads, source status, and `think` (multi-hop synthesis — read-only; higher LLM cost but no write).
+
+### Tier B — Notify-after (single-item WRITES, 25 tools)
+
+Reversible writes. Notify-first-then-batch per `06-ai-ops/gbrain/sops/SOP-AIOPS-GBRAIN-001-write-discipline/flow.yaml` — agent drafts the write; Telegram daily batch shows the Tier B summary; founder presses [Undo] within 1h. Log to `ops.agent_runs` + emit `ritsu.gbrain.write_committed`. Full list = `mcp-tools.yaml` entries with `tier_default: B`. Notes:
+- `put_page` is **create-or-update** — there is no separate `update_page` (removed).
+- `delete_page` is a **SOFT delete**, recoverable via `restore_page` within the retention window — hence B, not C.
+- **`submit_agent`** enqueues an autonomous LLM agent job. It is a cost risk (not data-destruction), gated only by the `$100/mo` `pre-budget-check.sh` cap with no per-invocation HITL. FOUNDER: confirm B is acceptable, or elevate to C if per-job approval is wanted.
+
+### Tier C — Approve-before (irreversible scoped hard-deletes, 2 tools)
+
+Dry-run preview + founder approval via Telegram inline buttons. Log to `ops.agent_runs` with `was_override` if applicable. These are the **only hard-delete tools the v0.40 binary exposes**:
 
 ```
-mcp__gbrain__put_page                (create OR update page)
-mcp__gbrain__update_page             (in-place page edit)
-mcp__gbrain__add_link                (link between two pages)
-mcp__gbrain__remove_link             (remove a single link)
-mcp__gbrain__archive_page            (state: published → archived; soft delete)
-mcp__gbrain__file_upload             (upload a file blob attached to a page)
-mcp__gbrain__file_list               (list blobs for a page; read but page-mutating side effect of view tracking)
-mcp__gbrain__submit_job              (enqueue a background job)
-mcp__gbrain__retry_job               (retry a failed job)
-mcp__gbrain__pause_job               (pause a running job)
-mcp__gbrain__upload_image            (attach image to a page)
-mcp__gbrain__put_page_with_chunks    (chunked page write)
-mcp__gbrain__bulk_link               (≤ 10 links at once; >10 escalates to C)
-mcp__gbrain__bulk_unlink             (≤ 10 unlinks at once; >10 escalates to C)
+mcp__gbrain__purge_deleted_pages   (admin-only: HARD-deletes pages whose deleted_at is older than older_than_hours — irreversible)
+mcp__gbrain__sources_remove        (HARD-removes a source, cascading its pages/chunks/embeddings — irreversible; refuses the auto-managed clone)
 ```
 
-### Tier C — Approve-before (gbrain mutations affecting many pages OR semantic regen, ~6 tools)
+> FOUNDER NOTE: both are scoped (one source / aged soft-deleted pages), hence **C, not D-Std**. The C-vs-D-Std line for these two is a judgment call — confirm or elevate. If either touches >100 pages it auto-escalates to D-Std per the orthogonal rule.
 
-Dry-run preview + founder approval via Telegram inline buttons. Log to `ops.agent_runs` with `was_override` field if applicable.
+### Tier D-Std — Forbidden by default (0 tools in v0.40)
 
-```
-mcp__gbrain__mass_update_pages       (>10 pages updated in one operation)
-mcp__gbrain__bulk_link               (>10 links — escalates from B)
-mcp__gbrain__schema_migrate          (gbrain DB schema migration)
-mcp__gbrain__embedding_regenerate_all (re-embed ALL pages; cost-heavy)
-mcp__gbrain__dream_cycle_manual      (manually trigger dream cycle outside nightly cron)
-mcp__gbrain__archive_purge_now       (move all archived pages older than 90d to purged; >100 pages escalates to D-Std)
-```
-
-### Tier D-Std — Forbidden by default (gbrain destructive operations, ~3 tools)
-
-Magic phrase + 30s cooldown. Repair via founder PR if cap exceeded.
-
-```
-mcp__gbrain__mass_purge              (>100 pages purged in one operation; one-way)
-mcp__gbrain__drop_all_links          (clear all link edges; semi-destructive)
-mcp__gbrain__reset_brain             (full brain DB reset; effectively a re-install)
-```
+**The live gbrain v0.40 binary exposes NO D-Std gbrain tools.** The previously-listed `mass_purge` / `drop_all_links` / `reset_brain` are **not implemented** (removed 2026-05-30). The brain-wide-destruction tier is therefore empty; the orthogonal >100-page rule below pre-classifies any such tool if one ever ships.
 
 ### Orthogonal rules
 
-- **Mass-purge threshold:** any operation affecting >100 pages is automatically elevated to Tier D-Std regardless of starting tier. Example: `bulk_unlink` of 150 links → D-Std.
-- **GDPR DSR exception:** the "never hard-delete except archive → purge 90d" rule has an EXPLICIT exception. `SOP-CUSTOMER-023-gdpr-account-deletion` (Tier D-Std) may invoke `mcp__gbrain__archive_purge_now` or `mcp__gbrain__mass_purge` on `people/<email-slug>` pages without the 90-day archive window. Required: founder magic phrase + GitHub PR with `/founder-approved-irreversible` per Tier D-MAX ceremony adapted for the specific GDPR case.
-- **PII-bearing tools:** `put_page` and `update_page` that touch `people/` or `companies/` pages carry an extra discipline — the `post-stripe-customer-created` hook writes a PLACEHOLDER email field; founder must Tier B confirm to replace with real email. The `gbrain.l3.pii-no-email-in-companies-pages-unconfirmed` invariant (in `knowledge/cross-tier-invariants.yaml`) catches placeholders sitting >7d unconfirmed.
+- **Mass threshold (forward guard):** any single operation affecting >100 pages auto-elevates to Tier D-Std regardless of starting tier. No current v0.40 tool batches at that scale (the imagined `mass_*` / `bulk_*` tools do not exist); this guard pre-classifies any future bulk tool the day it ships.
+- **GDPR DSR exception:** the "never hard-delete except via the soft-delete → purge path" rule has an EXPLICIT exception. `SOP-CUSTOMER-023-gdpr-account-deletion` (Tier D-Std) may invoke `mcp__gbrain__delete_page` then `mcp__gbrain__purge_deleted_pages` on `people/<email-slug>` pages without the normal retention window. Required: founder magic phrase + GitHub PR with `/founder-approved-irreversible` per the Tier D-MAX ceremony adapted for the GDPR case.
+- **PII-bearing tools:** `put_page` (create-or-update), `delete_page`, and `restore_page` touching `people/` or `companies/` pages carry extra discipline — the `post-stripe-customer-created` hook writes a PLACEHOLDER email; founder must Tier B confirm before replacing it with a real email. Invariant `gbrain.l3.pii-no-email-in-companies-pages-unconfirmed` (`knowledge/cross-tier-invariants.yaml`) catches placeholders sitting >7d unconfirmed.
 
 ### Cost-bucket integration
 
