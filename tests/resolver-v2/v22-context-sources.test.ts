@@ -118,7 +118,7 @@ describe("v2.2 — generateViews", () => {
     const views = gen.generateViews();
     for (const v of views) {
       expect(v.invoke).toContain("SELECT");
-      expect(v.invoke).toContain("mcp__supabase_ops__query");
+      expect(v.invoke).toContain("mcp__supabase-ops__query");
     }
   });
 

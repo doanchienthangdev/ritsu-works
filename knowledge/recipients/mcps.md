@@ -7,583 +7,1045 @@
 This file is THE source of truth for mcp recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 
-**Total entries:** 51
+**Total entries:** 84
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
 
-## mcp/gbrain__gbrain__add_link
+## mcp/gbrain__add_link
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Add a single link between two pages. Tier B.
+**When to use:** Create link between pages
 
-**Invoke:** `mcp__gbrain__gbrain__add_link`
+**Invoke:** `mcp__gbrain__add_link`
 **HITL tier:** B
 **Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__archive_page
+## mcp/gbrain__add_tag
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Transition page state published → archived (soft delete). Tier B.
+**When to use:** Add tag to page
 
-**Invoke:** `mcp__gbrain__gbrain__archive_page`
+**Invoke:** `mcp__gbrain__add_tag`
 **HITL tier:** B
 **Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__archive_purge_now
+## mcp/gbrain__add_timeline_entry
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Move all archived pages older than 90d to purged. Normally runs autonomously via nightly cron; this manual variant is Tier C. >100 pages → D-Std.
+**When to use:** Add timeline entry to a page
 
-**Invoke:** `mcp__gbrain__gbrain__archive_purge_now`
+**Invoke:** `mcp__gbrain__add_timeline_entry`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__cancel_job
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Cancel a waiting, active, or delayed job
+
+**Invoke:** `mcp__gbrain__cancel_job`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__code_blast
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** BEFORE editing any function, run code_blast with the symbol name to surface every transitive caller grouped by depth (direct → 2-hop → 3-hop). Use this during plan-mode to size the change.
+
+**Invoke:** `mcp__gbrain__code_blast`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__code_callees
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** When tracing how a function flows to its dependencies (DB calls, HTTP calls, file I/O), run code_callees from the entry point. Forward view of the call graph: what does this symbol call?
+
+**Invoke:** `mcp__gbrain__code_callees`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__code_callers
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** BEFORE editing any function, run code_callers with the symbol name to find every caller (the people who'd be affected by your change). Returns direct callers from the v0.
+
+**Invoke:** `mcp__gbrain__code_callers`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__code_def
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Where is this symbol defined? Returns one row per definition site (function, class, type, interface, enum, struct, trait, module, contract).
+
+**Invoke:** `mcp__gbrain__code_def`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__code_flow
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** When tracing how a request flows through the codebase from entry point to side effect (DB write, HTTP call, file I/O), run code_flow from the entry point. Returns ordered execution chain with terminal-node tags.
+
+**Invoke:** `mcp__gbrain__code_flow`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__code_refs
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Find every reference to a symbol across the codebase (every file, every line). Differs from code_callers in two ways: (1) catches references in comments, strings, imports, type annotations — not just call sites; (2) returns line numbers, …
+
+**Invoke:** `mcp__gbrain__code_refs`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__code_traversal_cache_clear
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Clear cached code_blast / code_flow traversal results. Source-scoped by default; pass all_sources=true to wipe everything (D8 destructive-guard).
+
+**Invoke:** `mcp__gbrain__code_traversal_cache_clear`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__delete_page
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Soft-delete a page. The row is hidden from search and from get_page/list_pages, but is recoverable via restore_page within 72h.
+
+**Invoke:** `mcp__gbrain__delete_page`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__extract_facts
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** extract personal-knowledge facts (events, preferences, commitments, beliefs) from a conversation turn into the per-source hot memory. Sanitizes turn_text via INJECTION_PATTERNS, calls Haiku to extract structured claims, runs the cosine …
+
+**Invoke:** `mcp__gbrain__extract_facts`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__file_list
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** List stored files
+
+**Invoke:** `mcp__gbrain__file_list`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__file_upload
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Upload a file to storage
+
+**Invoke:** `mcp__gbrain__file_upload`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__file_url
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Get a URL for a stored file
+
+**Invoke:** `mcp__gbrain__file_url`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__find_anomalies
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Returns statistical anomalies in recent page activity, grouped by cohort (tag or type). Use this for questions about what stood out, what's unusual, or what changed recently.
+
+**Invoke:** `mcp__gbrain__find_anomalies`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__find_contradictions
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** return suspected-contradiction findings from the most recent `gbrain eval suspected-contradictions` probe run, optionally filtered by slug and/or severity. Use this when the user asks 'what's inconsistent in my brain', 'show me …
+
+**Invoke:** `mcp__gbrain__find_contradictions`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__find_experts
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Answers 'who in my brain knows about <topic>'. Returns ranked person/company pages by expertise depth (sub-linear match score), relationship recency (exp decay with 6-month half-life), and salience.
+
+**Invoke:** `mcp__gbrain__find_experts`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__find_orphans
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Find pages with no inbound wikilinks. Essential for content enrichment cycles.
+
+**Invoke:** `mcp__gbrain__find_orphans`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__find_trajectory
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** return the chronological claim trajectory for an entity (typed metric values over time, plus auto-detected regressions and narrative drift). Use this when the user asks 'how has Acme's MRR trended', 'show me what alice-example said about …
+
+**Invoke:** `mcp__gbrain__find_trajectory`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__forget_fact
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** forget a fact. Rewrites the page's `## Facts` fence to strike through the row and set valid_until=today (the DB's expired_at derives via valid_until + now() on the next reconcile so the forget survives `gbrain rebuild`).
+
+**Invoke:** `mcp__gbrain__forget_fact`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_backlinks
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** List incoming links to a page
+
+**Invoke:** `mcp__gbrain__get_backlinks`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_brain_identity
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Brain identity + counters for thin-client banner. Returns version, engine kind, and page/chunk counts.
+
+**Invoke:** `mcp__gbrain__get_brain_identity`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_calibration_profile
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Read the active calibration profile for a holder. Returns the latest row from calibration_profiles (per-source, per-holder) including Brier score, accuracy, pattern statements, and active bias tags.
+
+**Invoke:** `mcp__gbrain__get_calibration_profile`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_chunks
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Get content chunks for a page
+
+**Invoke:** `mcp__gbrain__get_chunks`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_health
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Brain health dashboard (embed coverage, stale pages, orphans)
+
+**Invoke:** `mcp__gbrain__get_health`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_ingest_log
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Get recent ingestion log entries
+
+**Invoke:** `mcp__gbrain__get_ingest_log`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_job
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Get job status and details by ID
+
+**Invoke:** `mcp__gbrain__get_job`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_job_progress
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Get structured progress for a running job
+
+**Invoke:** `mcp__gbrain__get_job_progress`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_links
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** List outgoing links from a page
+
+**Invoke:** `mcp__gbrain__get_links`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_page
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Read a page by slug (supports optional fuzzy matching). Soft-deleted pages are hidden by default; pass include_deleted: true to surface them with deleted_at populated (see v0.
+
+**Invoke:** `mcp__gbrain__get_page`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_raw_data
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Retrieve raw data for a page
+
+**Invoke:** `mcp__gbrain__get_raw_data`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_recent_salience
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Returns pages recently touched and ranked by emotional + activity salience (deterministic 0.
+
+**Invoke:** `mcp__gbrain__get_recent_salience`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_recent_transcripts
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Returns one-line summaries of recent raw conversation transcripts (NOT polished reflections). Use this FIRST for questions about 'what's going on with me', 'what have I been thinking about', or anything personal/emotional.
+
+**Invoke:** `mcp__gbrain__get_recent_transcripts`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_stats
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Brain statistics (page count, chunk count, etc.
+
+**Invoke:** `mcp__gbrain__get_stats`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_tags
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** List tags for a page
+
+**Invoke:** `mcp__gbrain__get_tags`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_timeline
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Get timeline entries for a page
+
+**Invoke:** `mcp__gbrain__get_timeline`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__get_versions
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Page version history
+
+**Invoke:** `mcp__gbrain__get_versions`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__list_jobs
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** List jobs with optional filters
+
+**Invoke:** `mcp__gbrain__list_jobs`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__list_pages
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** List pages with optional filters. For 'what's recent / what did I touch this week' questions, use list_pages with sort=updated_desc instead of semantic search.
+
+**Invoke:** `mcp__gbrain__list_pages`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__log_ingest
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Log an ingestion event
+
+**Invoke:** `mcp__gbrain__log_ingest`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__pause_job
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Pause a waiting, active, or delayed job
+
+**Invoke:** `mcp__gbrain__pause_job`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__purge_deleted_pages
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** admin-only. Hard-deletes pages whose deleted_at is older than older_than_hours (default 72).
+
+**Invoke:** `mcp__gbrain__purge_deleted_pages`
 **HITL tier:** C
 **Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__bulk_link
+## mcp/gbrain__put_page
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Bulk add links ≤ 10 at once. Escalates to C if > 10.
+**When to use:** Write/update a page (markdown with frontmatter). Chunks, embeds, reconciles tags, and (when auto_link/auto_timeline are enabled) extracts + reconciles graph links and timeline entries.
 
-**Invoke:** `mcp__gbrain__gbrain__bulk_link`
+**Invoke:** `mcp__gbrain__put_page`
 **HITL tier:** B
 **Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__bulk_unlink
+## mcp/gbrain__put_raw_data
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Bulk remove links ≤ 10 at once. Escalates to C if > 10.
+**When to use:** Store raw API response data for a page
 
-**Invoke:** `mcp__gbrain__gbrain__bulk_unlink`
+**Invoke:** `mcp__gbrain__put_raw_data`
 **HITL tier:** B
 **Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__code_blast
+## mcp/gbrain__query
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Code graph: impact analysis (blast radius of changing X).
+**When to use:** Hybrid search with vector + keyword + multi-query expansion. For personal/emotional questions ('what's going on with me', 'anything notable', 'how am I feeling'), prefer get_recent_salience, find_anomalies, or get_recent_transcripts.
 
-**Invoke:** `mcp__gbrain__gbrain__code_blast`
+**Invoke:** `mcp__gbrain__query`
 **HITL tier:** A
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__code_callees
+## mcp/gbrain__recall
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Code graph: who does X call? (per recipients/external-sources gbrain-mcp entry)
+**When to use:** query per-source hot memory (facts table). Filters by entity / since / session.
 
-**Invoke:** `mcp__gbrain__gbrain__code_callees`
+**Invoke:** `mcp__gbrain__recall`
 **HITL tier:** A
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__code_callers
+## mcp/gbrain__remove_link
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Code graph: who calls X?
+**When to use:** Remove link between pages
 
-**Invoke:** `mcp__gbrain__gbrain__code_callers`
+**Invoke:** `mcp__gbrain__remove_link`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__remove_tag
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Remove tag from page
+
+**Invoke:** `mcp__gbrain__remove_tag`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__replay_job
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Replay a completed/failed/dead job, optionally with modified data
+
+**Invoke:** `mcp__gbrain__replay_job`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__resolve_slugs
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Fuzzy-resolve a partial slug to matching page slugs
+
+**Invoke:** `mcp__gbrain__resolve_slugs`
 **HITL tier:** A
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__code_def
+## mcp/gbrain__restore_page
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Code graph: where is X defined?
+**When to use:** restore a soft-deleted page (clear deleted_at). Returns success only if the page was actually soft-deleted.
 
-**Invoke:** `mcp__gbrain__gbrain__code_def`
+**Invoke:** `mcp__gbrain__restore_page`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__resume_job
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Resume a paused job back to waiting
+
+**Invoke:** `mcp__gbrain__resume_job`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__retry_job
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Re-queue a failed or dead job for retry
+
+**Invoke:** `mcp__gbrain__retry_job`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__revert_version
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Revert page to a previous version
+
+**Invoke:** `mcp__gbrain__revert_version`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__run_doctor
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Run brain health checks and return a structured DoctorReport (thin-client doctor surface).
+
+**Invoke:** `mcp__gbrain__run_doctor`
 **HITL tier:** A
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__code_refs
+## mcp/gbrain__search
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Code graph: references to X.
+**When to use:** Keyword search using full-text search. For personal/emotional questions, prefer get_recent_salience or find_anomalies — they surface activity bursts without needing a search term.
 
-**Invoke:** `mcp__gbrain__gbrain__code_refs`
+**Invoke:** `mcp__gbrain__search`
 **HITL tier:** A
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__dream_cycle_manual
+## mcp/gbrain__search_by_image
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Manually trigger dream cycle outside nightly cron. Founder + gbrain-maintainer. Tier C — cost variable (~$0.20-2.00 per run depending on brain size).
+**When to use:** cross-modal Phase 2: image-as-query retrieval. Accepts a local path (CLI), data: URI, or http(s):// URL (SSRF-defended).
 
-**Invoke:** `mcp__gbrain__gbrain__dream_cycle_manual`
+**Invoke:** `mcp__gbrain__search_by_image`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__send_job_message
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Send a sidechannel message to a running job's inbox
+
+**Invoke:** `mcp__gbrain__send_job_message`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__sources_add
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Register a new source. Supports either --path (existing v0.
+
+**Invoke:** `mcp__gbrain__sources_add`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__sources_list
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** List registered sources with page counts and remote_url. v0.
+
+**Invoke:** `mcp__gbrain__sources_list`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__sources_remove
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Hard-remove a source (cascades pages/chunks/embeddings). Refuses to delete the auto-managed clone dir unless its resolved path is confined under $GBRAIN_HOME/clones/ (realpath+lstat — symlink-safe).
+
+**Invoke:** `mcp__gbrain__sources_remove`
 **HITL tier:** C
 **Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__drop_all_links
+## mcp/gbrain__sources_status
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Clear all link edges. Semi-destructive (re-derivable from links_extracted).
+**When to use:** Per-source diagnostic. Returns clone_state ("healthy" | "missing" | "not-a-dir" | "no-git" | "url-drift" | "corrupted" | "not-applicable") so a remote MCP caller can diagnose whether the on-disk clone is syncable without SSH access to the …
 
-**Invoke:** `mcp__gbrain__gbrain__drop_all_links`
-**HITL tier:** D-Std
-**Side effect:** write
+**Invoke:** `mcp__gbrain__sources_status`
+**HITL tier:** A
+**Side effect:** none
 
-**Role scope:** founder, cofounder
-**Status:** planned
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__embedding_regenerate_all
+## mcp/gbrain__submit_agent
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Re-embed ALL pages. Cost-heavy. Tier C.
+**When to use:** Submit an LLM agent job that the worker dispatches via the gateway-native tool loop. Requires the `agent` OAuth scope.
 
-**Invoke:** `mcp__gbrain__gbrain__embedding_regenerate_all`
-**HITL tier:** C
-**Side effect:** write
-
-**Role scope:** founder, cofounder, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__file_upload
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Upload a file blob attached to a page. Tier B.
-
-**Invoke:** `mcp__gbrain__gbrain__file_upload`
+**Invoke:** `mcp__gbrain__submit_agent`
 **HITL tier:** B
 **Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__file_url
+## mcp/gbrain__submit_job
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Signed URL for a file blob attached to a page.
+**When to use:** Submit a background job to the Minions queue. Built-in types: sync, embed, lint, import, extract, backlinks, autopilot-cycle.
 
-**Invoke:** `mcp__gbrain__gbrain__file_url`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__find_anomalies
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Statistical pattern detection across pages (dead links, isolated nodes, etc.).
-
-**Invoke:** `mcp__gbrain__gbrain__find_anomalies`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__find_contradictions
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** LLM-based contradiction detection across pages on related topics.
-
-**Invoke:** `mcp__gbrain__gbrain__find_contradictions`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__find_experts
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** People pages with most expertise on a topic (heuristic over links + page tags).
-
-**Invoke:** `mcp__gbrain__gbrain__find_experts`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__find_trajectory
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Entity evolution over time (page history + state transitions).
-
-**Invoke:** `mcp__gbrain__gbrain__find_trajectory`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__get_backlinks
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** List backlinks to a page.
-
-**Invoke:** `mcp__gbrain__gbrain__get_backlinks`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__get_brain_info
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Brain DB stats (page count, embedding count, schema version, health score).
-
-**Invoke:** `mcp__gbrain__gbrain__get_brain_info`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__get_chunks
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Get chunks for a given page (chunked storage for long pages).
-
-**Invoke:** `mcp__gbrain__gbrain__get_chunks`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__get_health
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Health check (connection + RLS + extensions). Same as `gbrain doctor` CLI.
-
-**Invoke:** `mcp__gbrain__gbrain__get_health`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__get_links
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** List forward links from a page.
-
-**Invoke:** `mcp__gbrain__gbrain__get_links`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__get_page
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Fetch a single gbrain page by slug or id. Returns frontmatter + content.
-
-**Invoke:** `mcp__gbrain__gbrain__get_page`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__list_jobs
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** List background jobs (dream cycle, ingestion, retries).
-
-**Invoke:** `mcp__gbrain__gbrain__list_jobs`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__list_pages
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Paginated list of gbrain pages; filter by page_type, state, etc.
-
-**Invoke:** `mcp__gbrain__gbrain__list_pages`
-**HITL tier:** A
-**Side effect:** none
-
-**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__mass_purge
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Hard-delete >100 pages in one operation. ONE-WAY. Magic phrase + 30s cooldown. GDPR DSR exception: SOP-CUSTOMER-023 (Tier D-Std + founder GitHub /founder-approved-irreversible) may invoke for people/<email-slug> deletion.
-
-**Invoke:** `mcp__gbrain__gbrain__mass_purge`
-**HITL tier:** D-Std
-**Side effect:** write
-
-**Role scope:** founder, cofounder
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__mass_update_pages
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Update many pages in one operation (>10). Tier C — dry-run preview + founder approval. Mass-purge threshold rule: >100 pages escalates to D-Std regardless of starting tier.
-
-**Invoke:** `mcp__gbrain__gbrain__mass_update_pages`
-**HITL tier:** C
-**Side effect:** write
-
-**Role scope:** founder, cofounder, gbrain-maintainer
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__pause_job
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Pause a running background job. Tier B.
-
-**Invoke:** `mcp__gbrain__gbrain__pause_job`
+**Invoke:** `mcp__gbrain__submit_job`
 **HITL tier:** B
 **Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__put_page
+## mcp/gbrain__sync_brain
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Create OR update a single gbrain page. Founder + 6 WRITE-enabled roles + gbrain-maintainer only. Tier B notify-first-then-batch per SOP-AIOPS-GBRAIN-001-write-discipline.
+**When to use:** Sync git repo to brain (incremental)
 
-**Invoke:** `mcp__gbrain__gbrain__put_page`
+**Invoke:** `mcp__gbrain__sync_brain`
 **HITL tier:** B
 **Side effect:** write
 
 **Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__remove_link
+## mcp/gbrain__takes_calibration
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Remove a single link between two pages. Tier B.
+**When to use:** Calibration curve: resolved correct/incorrect bets binned by stated weight; observed vs predicted per bucket.
 
-**Invoke:** `mcp__gbrain__gbrain__remove_link`
-**HITL tier:** B
-**Side effect:** write
-
-**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__reset_brain
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Full brain DB reset. Equivalent to re-install. Magic phrase + cooldown.
-
-**Invoke:** `mcp__gbrain__gbrain__reset_brain`
-**HITL tier:** D-Std
-**Side effect:** write
-
-**Role scope:** founder
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__retry_job
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Retry a failed background job. Tier B.
-
-**Invoke:** `mcp__gbrain__gbrain__retry_job`
-**HITL tier:** B
-**Side effect:** write
-
-**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__schema_migrate
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Apply a gbrain DB schema migration. Tier C.
-
-**Invoke:** `mcp__gbrain__gbrain__schema_migrate`
-**HITL tier:** C
-**Side effect:** write
-
-**Role scope:** founder, cofounder
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__search
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Semantic search across all gbrain pages. pgvector HNSW + tsvector hybrid. Founder + AI workforce primary read path.
-
-**Invoke:** `mcp__gbrain__gbrain__search`
+**Invoke:** `mcp__gbrain__takes_calibration`
 **HITL tier:** A
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__submit_job
+## mcp/gbrain__takes_list
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Enqueue a background job (e.g., bulk embed, custom recipe). Tier B.
+**When to use:** List takes (typed/weighted/attributed claims) filtered by holder/kind/active/etc.
 
-**Invoke:** `mcp__gbrain__gbrain__submit_job`
-**HITL tier:** B
-**Side effect:** write
-
-**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__think
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** LLM-based brain-wide reflection on a topic. Higher cost per call.
-
-**Invoke:** `mcp__gbrain__gbrain__think`
+**Invoke:** `mcp__gbrain__takes_list`
 **HITL tier:** A
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__traverse_graph
+## mcp/gbrain__takes_scorecard
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Graph traversal from a start node along link types; configurable depth.
+**When to use:** Calibration scorecard for resolved bets: counts, accuracy, Brier (correct ∨ incorrect only), partial_rate.
 
-**Invoke:** `mcp__gbrain__gbrain__traverse_graph`
+**Invoke:** `mcp__gbrain__takes_scorecard`
 **HITL tier:** A
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
+**Status:** active
 **Pillar:** 06-ai-ops
 
-## mcp/gbrain__gbrain__update_page
+## mcp/gbrain__takes_search
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** In-place page edit. Tier B.
+**When to use:** Keyword search across takes (pg_trgm similarity over claim text)
 
-**Invoke:** `mcp__gbrain__gbrain__update_page`
-**HITL tier:** B
-**Side effect:** write
-
-**Role scope:** founder, cofounder, gbrain-maintainer, customer-lead, feedback-aggregator, gtm-orchestrator, cs-coach, product-orchestrator, eval-evo-orchestrator
-**Status:** planned
-**Pillar:** 06-ai-ops
-
-## mcp/gbrain__gbrain__whoami
-
-**Kind:** mcp
-**Axis:** capability
-**When to use:** Return calling role identity + per-tool grants. Diagnostic.
-
-**Invoke:** `mcp__gbrain__gbrain__whoami`
+**Invoke:** `mcp__gbrain__takes_search`
 **HITL tier:** A
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
-**Status:** planned
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__think
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Multi-hop synthesis across pages + takes + graph. Pulls relevant evidence and produces a cited answer with conflict + gap analysis.
+
+**Invoke:** `mcp__gbrain__think`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__traverse_graph
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Traverse link graph from a page. With link_type/direction, returns edges (GraphPath[]) instead of nodes.
+
+**Invoke:** `mcp__gbrain__traverse_graph`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/gbrain__whoami
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Introspect the calling identity. Returns one of three transport shapes: {transport: "oauth", client_id, client_name, scopes, expires_at}, {transport: "legacy", token_name, scopes, expires_at: null}, or {transport: "local", scopes: []}.
+
+**Invoke:** `mcp__gbrain__whoami`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
 **Pillar:** 06-ai-ops
 
 ## mcp/supabase-ops__insert
@@ -592,7 +1054,7 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 **Axis:** capability
 **When to use:** INSERT 1..100 rows into a ritsu-ops table the caller's role may write. Table allowlist enforced from governance/ROLES.md tier2_schemas_write via mcp-server role-resolver. Phase 1: on_conflict=error|ignore only; no UPDATE/UPSERT (Phase 1.5).
 
-**Invoke:** `mcp__supabase_ops__insert`
+**Invoke:** `mcp__supabase-ops__insert`
 **HITL tier:** B
 **Side effect:** write
 
@@ -606,7 +1068,7 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 **Axis:** capability
 **When to use:** Execute a parameterized read-only SELECT against ritsu-ops. The shim's sql-guard rejects multi-statement, SELECT INTO, and any non-SELECT/WITH leading keyword BEFORE the DB even sees the SQL. RLS applies via the connection's role.
 
-**Invoke:** `mcp__supabase_ops__query`
+**Invoke:** `mcp__supabase-ops__query`
 **HITL tier:** A
 **Side effect:** none
 
@@ -620,7 +1082,7 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 **Axis:** capability
 **When to use:** JIT resolver — find top-N workforce recipients matching natural-language intent. Returns top-20 keyword-pre-filtered candidates with FULL when_to_use + composes_with + role_scope + recency (batched ops.agent_runs join). Session model picks primary by reading the candidates — no API key, no MCP-subprocess LLM call (iter4 policy alignment). Per-session circuit breaker: 20 finds/session/4h hard cap; warning at 15. Per-role filter: caller MCP_CALLER_ROLE matched against recipient role_scope. Catalog corrupt → degraded mode (returns INDEX-only data with degraded=true). Wire format: spec.md §4 (resolver-v3-jit-loading spec, iter4).
 
-**Invoke:** `mcp__supabase_ops__resolver_find`
+**Invoke:** `mcp__supabase-ops__resolver_find`
 **HITL tier:** A
 **Side effect:** none
 
@@ -634,7 +1096,7 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 **Axis:** capability
 **When to use:** Citation-disciplined RAG over wiki/ + ops.knowledge_embeddings. v3.0 entity-first retrieval (prefers derived entity pages over source chunks). v4.0 adds filter.source / filter.packages for package-scoped retrieval. Returns structured retrieval_results (no synthesis — caller LLM synthesizes with Muse M5 citation discipline). NEVER falls back to training data.
 
-**Invoke:** `mcp__supabase_ops__wiki_ask`
+**Invoke:** `mcp__supabase-ops__wiki_ask`
 **HITL tier:** A
 **Side effect:** none
 
@@ -648,7 +1110,7 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 **Axis:** capability
 **When to use:** Fetch a single wiki page by slug + optionally read its Markdown file. Slug is global UNIQUE (v2.0); v4.0 adds composite UNIQUE on derived entities (extracted_from_source_id, slug) but lookup remains by id-or-slug.
 
-**Invoke:** `mcp__supabase_ops__wiki_get_page`
+**Invoke:** `mcp__supabase-ops__wiki_get_page`
 **HITL tier:** A
 **Side effect:** none
 
@@ -662,7 +1124,7 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 **Axis:** capability
 **When to use:** List wiki pages in ops.knowledge_pages, optionally filtered by page_type. v3.0 adds entity_only flag (filter to derived entity pages). v3.0 default excludes soft-deleted pages (include_deleted=false).
 
-**Invoke:** `mcp__supabase_ops__wiki_list_pages`
+**Invoke:** `mcp__supabase-ops__wiki_list_pages`
 **HITL tier:** A
 **Side effect:** none
 
@@ -676,7 +1138,7 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 **Axis:** capability
 **When to use:** Reverse lookup: list all derived entities extracted FROM a source RECORD. Returns source frontmatter + the extracted concepts/observations/decisions/ ideas joined via ops.knowledge_extractions (with confidence + raw_quote depending on include_raw_quotes). v3.0 surface; unchanged in v4.0.
 
-**Invoke:** `mcp__supabase_ops__wiki_source`
+**Invoke:** `mcp__supabase-ops__wiki_source`
 **HITL tier:** A
 **Side effect:** none
 

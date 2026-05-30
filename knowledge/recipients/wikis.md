@@ -18,7 +18,7 @@ Read in any Claude Code session via `@knowledge/recipients/wikis.md` import.
 **Axis:** content
 **When to use:** <!-- generated-by: wiki-sync v3.0 (source RECORD; derived entity pages cite this via ops.knowledgeextractions) -->
 
-**Invoke:** `Read("wiki/growth-playbook-fixture/source.md")` or `mcp__supabase_ops__wiki_get_page({slug: "growth-playbook-fixture"})`
+**Invoke:** `Read("wiki/growth-playbook-fixture/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "growth-playbook-fixture"})`
 **Authority:** derived-memory
 **Freshness:** unknown
 
@@ -31,7 +31,7 @@ Read in any Claude Code session via `@knowledge/recipients/wikis.md` import.
 **Axis:** content
 **When to use:** <!-- generated-by: wiki-sync v4.0 (Claude-walked) -->
 
-**Invoke:** `Read("wiki/marketing-management-kotler/source.md")` or `mcp__supabase_ops__wiki_get_page({slug: "marketing-management-kotler"})`
+**Invoke:** `Read("wiki/marketing-management-kotler/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "marketing-management-kotler"})`
 **Authority:** derived-memory
 **Freshness:** unknown
 
@@ -44,7 +44,7 @@ Read in any Claude Code session via `@knowledge/recipients/wikis.md` import.
 **Axis:** content
 **When to use:** <!-- generated-by: wiki-sync v4.0 (Claude-walked) -->
 
-**Invoke:** `Read("wiki/principles-of-marketing-kotler/source.md")` or `mcp__supabase_ops__wiki_get_page({slug: "principles-of-marketing-kotler"})`
+**Invoke:** `Read("wiki/principles-of-marketing-kotler/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "principles-of-marketing-kotler"})`
 **Authority:** derived-memory
 **Freshness:** unknown
 
@@ -57,7 +57,7 @@ Read in any Claude Code session via `@knowledge/recipients/wikis.md` import.
 **Axis:** content
 **When to use:** Stub source RECORD created by scripts/wiki-sync/migrate-to-v4.cjs during the v3.0→v4.0 layout migration. The single derived entity wiki/sample/concepts/spaced-repetition.md references this page via its extractedfromsource frontmatter and ops.knowledgepages.extractedfromsourceid FK.
 
-**Invoke:** `Read("wiki/sample/source.md")` or `mcp__supabase_ops__wiki_get_page({slug: "sample"})`
+**Invoke:** `Read("wiki/sample/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "sample"})`
 **Authority:** derived-memory
 **Freshness:** unknown
 

@@ -41,7 +41,7 @@ The v2.2 spec's 48K estimate was already insufficient — actual growth outpaced
 ### Baseline (10 items, included by default)
 
 1. **INDEX.md format + generator** — `knowledge/recipients/INDEX.md` (~6-8K tokens), generated from `recipients/*.md`.
-2. **`mcp__resolver__find` MCP tool** — registered in `mcp-server/src/server.ts`; input `{intent, kind?, role?, limit?}`; output: top-N full recipient details + composition graph.
+2. **`mcp__supabase-ops__resolver_find` MCP tool** — registered in `mcp-server/src/server.ts`; input `{intent, kind?, role?, limit?}`; output: top-N full recipient details + composition graph.
 3. **CLAUDE.md migration** — replace 16 `@knowledge/recipients/*.md` imports with 1 `@knowledge/recipients/INDEX.md` + 5-line usage instruction.
 4. **Composition discovery in tool output** — `find()` returns `composes_with` graph for primary match (uses existing field, zero new infra).
 5. **Audit Mode A2** — extend `ops.resolver_decisions.mode` CHECK constraint to include `'A2'` (JIT MCP lookup). Migration 00038.
@@ -80,11 +80,11 @@ The v2.2 spec's 48K estimate was already insufficient — actual growth outpaced
   │   knowledge/recipients/INDEX.md                                    │
   │     - Format: kind groups + 1-line per entry + invoke convention   │
   │     - 16 kinds, ~250 active entries shown (stubs/deprecated hidden)│
-  │     - Hint: "for full details, call mcp__resolver__find(intent)"   │
+  │     - Hint: "for full details, call mcp__supabase-ops__resolver_find(intent)"   │
   │                                                                    │
   │  WHEN MODEL NEEDS RECIPIENT DETAILS:                               │
   │    1. Sees INDEX entry, recognizes need for deeper info            │
-  │    2. Invokes mcp__resolver__find({intent, kind?, role?, limit?})  │
+  │    2. Invokes mcp__supabase-ops__resolver_find({intent, kind?, role?, limit?})  │
   │    3. MCP tool returns TOP-20 candidates WITH FULL details         │
   │       (When-to-use, Composes-with, Role-scope, recent usage)       │
   │       — NO LLM call inside MCP subprocess; pure keyword + DB only  │
@@ -190,7 +190,7 @@ The v2.2 spec's 48K estimate was already insufficient — actual growth outpaced
 
 For FULL details on any recipient, call:
 ```
-mcp__resolver__find({intent: "<natural language query>", limit: 5})
+mcp__supabase-ops__resolver_find({intent: "<natural language query>", limit: 5})
 ```
 
 Optional filters: `kind: "skill"`, `role: "founder"`.
@@ -206,7 +206,7 @@ Optional filters: `kind: "skill"`, `role: "founder"`.
 - `capability/<id>` → `Read("wiki/capabilities/<id>/spec.md")` or `/cla update <id>`
 - `page/<slug>` → see page entry for path
 - `view/<schema>__<name>` → `SELECT FROM <schema>.<name>`
-- `metric/<id>` → `mcp__supabase_ops__query` against source in entry
+- `metric/<id>` → `mcp__supabase-ops__query` against source in entry
 - `runbook/<id>` → `Read("wiki/runbooks/<id>.md")`
 - `external-source/<id>` → entry has source_type + invoke pattern
 
@@ -261,7 +261,7 @@ If exceeded at hard cap: generator emits warning + fails CI; founder PR to eithe
 
 ---
 
-## §4 `mcp__resolver__find` — Tool API (LOCKED via eng review 2026-05-25; Q2.2/Q2.3/Q2.4/Q2.5 still open for Sprint 2 design)
+## §4 `mcp__supabase-ops__resolver_find` — Tool API (LOCKED via eng review 2026-05-25; Q2.2/Q2.3/Q2.4/Q2.5 still open for Sprint 2 design)
 
 **Q2.1 RESOLUTION (eng review iter3) — VOIDED iter4**: original answer was "Haiku ranking = zero-shot prompt structure". After iter4 architecture revision (session-ranked, no MCP-subprocess LLM), this question is moot — no Haiku call exists.
 
@@ -356,7 +356,7 @@ Rationale: protects against runaway find() loop. 20 calls × $0.005 = $0.10 max 
 | `INVALID_INPUT` | intent > 500 chars or empty | 400, no audit row |
 | `UNKNOWN_KIND` | kind not in allowed list | 400, no audit row |
 | `CATALOG_CORRUPT` | catalog-loader throws | 200 with `degraded: true` — fall back to reading INDEX.md as flat source; return INDEX-line data only (no full when_to_use, no composition, no recency). Audit row with state=`degraded`. Alert founder via ops.events `resolver.catalog_corrupt`. |
-| `ROLE_DENIED` | caller role lacks `mcp__resolver__find` grant | 403, audit row with state=`denied` |
+| `ROLE_DENIED` | caller role lacks `mcp__supabase-ops__resolver_find` grant | 403, audit row with state=`denied` |
 | ~~`LLM_RANKING_FAILED`~~ | REMOVED iter4 — no LLM in subprocess | n/a |
 | ~~`BUDGET_EXCEEDED`~~ | REMOVED iter4 — no API call to budget | n/a |
 | `SESSION_CAP_EXCEEDED` | per-session counter > 20 in 4h window | 429 with "likely loop bug" hint; audit row state=`session_capped` |
@@ -364,7 +364,7 @@ Rationale: protects against runaway find() loop. 20 calls × $0.005 = $0.10 max 
 
 ### §4.5 Role allowlist
 
-`mcp__resolver__find` granted to ALL roles per `knowledge/mcp-tools.yaml`. Filter happens INSIDE the tool (cherry-pick #2), not at grant level. This is intentional — finding what's available is universal; CALLING the found recipient is gated separately.
+`mcp__supabase-ops__resolver_find` granted to ALL roles per `knowledge/mcp-tools.yaml`. Filter happens INSIDE the tool (cherry-pick #2), not at grant level. This is intentional — finding what's available is universal; CALLING the found recipient is gated separately.
 
 ---
 
@@ -519,9 +519,9 @@ Threshold: miss_rate < 20% within 30 days of v3 ship = A1 succeeded.
 
 **Decision**: Keep `/resolver` command + delegate to MCP internally.
 
-- `/resolver query "intent"` → `.claude/commands/resolver.md` updated to invoke `mcp__resolver__find({intent: "..."})` instead of in-session Mode B LLM
+- `/resolver query "intent"` → `.claude/commands/resolver.md` updated to invoke `mcp__supabase-ops__resolver_find({intent: "..."})` instead of in-session Mode B LLM
 - Founder ergonomics preserved (slash CLI familiar)
-- AI agents use `mcp__resolver__find` directly
+- AI agents use `mcp__supabase-ops__resolver_find` directly
 - Single source of truth: MCP tool. Both surfaces share same ranking + filtering + recency.
 - Mode C keyword-fallback (`/resolver --mode=c`) still routes through `keyword-fallback.cjs` for non-LLM consumers (CRON, Edge Functions, pre-commit hooks). NOT through MCP.
 
@@ -548,7 +548,7 @@ This consolidation reduces 2 code paths to 1 effective path (slash → MCP → e
 - Apply migration 00038 (ops.resolver_decisions mode='A2')
 - Implement cost-tracking discipline per §6.1 (direct ops.cost_attributions write)
 - Tests: input validation, error cases, basic find returns
-- Deliverable: `mcp__resolver__find` callable, returns valid (keyword-ranked) results, cost tracked
+- Deliverable: `mcp__supabase-ops__resolver_find` callable, returns valid (keyword-ranked) results, cost tracked
 
 **Sprint 3 (week 3) — Cherry-pick 14 only (recency); LLM ranking removed iter4**
 - Add batched recency join (single SQL IN(...) for top-20) per Finding 1
@@ -584,7 +584,7 @@ Founder flips env in `runtime/secrets/.env.local`. Backout = unset env, no code 
 ### §7.4 Health monitoring (NEW from eng review Finding 4)
 
 Add cron `resolver-v3-health-check` (every hour):
-- Invokes `mcp__resolver__find({intent: "canary test query", limit: 1})` from a synthetic role context
+- Invokes `mcp__supabase-ops__resolver_find({intent: "canary test query", limit: 1})` from a synthetic role context
 - Records result + latency to `ops.events` (event_type=`resolver.health_check`)
 - After 3 consecutive failures: emits `ops.events` event_type=`resolver.health_degraded` → Telegram alert founder (Tier B notify)
 - Distinct from `find()` audit rows — health check is separate from real usage telemetry
@@ -685,7 +685,7 @@ See `02-temporal-questions.md`. Critical ones:
 id: resolver-v3-jit-loading
 name: "/resolver v3 — JIT Loading (Pocket Map + Drill-Down)"
 description: |
-  Replaces v2.2's 55K ambient catalog with ~7K INDEX + mcp__resolver__find
+  Replaces v2.2's 55K ambient catalog with ~7K INDEX + mcp__supabase-ops__resolver_find
   MCP tool for JIT drill-down. Closes cognitive trigger gap (model treats
   tool as first-class affordance, not docs to scan). Includes 4 cherry-picks:
   LLM ranking, per-role filtering, bypass miss-rate telemetry, recent
@@ -750,9 +750,10 @@ Reviewer quality score: 7/10 (iteration 1) → 8.5/10 expected post-iteration-2 
 - 2026-05-25 v3.0.0-iter4 — **POLICY ENFORCEMENT REVISION**. Founder caught violation: cherry-pick #11 used Haiku via API key inside MCP subprocess, violating `external-source/anthropic-api` policy ("In-session Claude Code calls do NOT need API key — use host session's billing"). Architecture revised: L3 ranking moved from Haiku-in-MCP → session-model-in-Claude-Code. **Removed**: `llm-ranker.cjs`, MCP subprocess cost tracking discipline (§6.1), cost-bucket monitoring, `LLM_RANKING_FAILED` + `BUDGET_EXCEEDED` error codes, Sprint 3 LLM integration work. **Q2.1 resolution voided** (Haiku prompt structure moot — no Haiku call). Result: $0 API cost, ~89% recall (Opus/Sonnet > Haiku at 20-candidate ranking), policy-aligned, simpler. Spec status: spec-iter4 → READY for /cla propose.
 - 2026-05-25 **/cla propose 1fa9208d-2fda-45de-ac72-728998b1d33f** — capability lifecycle entry. Phases 0-5 completed in this session: Phase 0 drift gate clean + capability_runs INSERT + registry append; Phases 1-4 populated retroactively from pre-built CEO+Eng artifacts; Phase 5 ops.decisions row `3f71c5d8-a54d-4116-9a14-ff6216b46339` (state=draft, Tier C). **Founder Tier C approval granted in-session 2026-05-25 via AskUserQuestion ceremony** (Claude Code equivalent of Telegram inline approve). Muse panel skipped (5/5 reversibility + 2 prior review chains + iter4 policy fix = equivalent confidence). State transition logged here pending UPDATE-capability ops.decisions state→decided via service-role migration (supabase-ops MCP shim Phase 1.5 is INSERT-only). Advancing to Phase 6 sprint-planner.
 - 2026-05-26 **v3.0.1 patch via /cla fix** (light-delta Tier B) — speed optimization triggered by founder Q on Claude Code's tool-loading parallel. 3 improvements: **(1) Pre-warm catalog at MCP boot** (`mcp-server/src/tools/resolver-find.ts`): eager `catalogLoader.loadCatalog({})` at module init, silent try/catch. Eliminates 1.5s cold start (1862ms first-call → ~440ms expected). **(2) Richer INDEX 1-line via `firstSentenceOrTwo`** (`scripts/resolver-v3/index-generator.cjs`): if first sentence < 60 chars, append 2nd sentence under 100-char cap. INDEX 10.8K → 11.3K tokens (+4.5%, under 12K target). Improves Path A viability. **(3) Path A/B discipline nudge in INDEX header**: replaced generic drill-down hint with explicit "Path A (0ms direct) vs Path B (~80-440ms via find())" + 5 specific Path B triggers (composition / recency / role / disambiguation / full when_to_use). Tests: 62 → 65 (+5 new for v3.0.1 behavior, 3 updated for new semantics, 1 updated header filter). ops.capability_runs new row INSERT blocked by `capability_runs_root_only_unique` constraint (correct — `/cla fix` requires `ops.capability_acquire_update_lock` RPC not yet exposed via MCP shim Phase 1.5). Patch reflected in: capability-registry.yaml version 3.0.0 → 3.0.1, this change log, retrospective.md v3.0.1 section, CATALOG.md updated. pnpm check ALL CLEAN.
-- 2026-05-26 **v3.0.2 patch via manual /evolve simulation** (Tier B, single-file `.claude/commands/resolver.md`) — founder asked "tự viết và thực hiện /evolve". Real `/evolve command resolver` blocked by dirty tree (Sprint 4 + v3.0.1 changes uncommitted) + HOLDOUT cold-start. Executed manually using `06-ai-ops/skills/eval-evo/playbooks/command.md` 10-criterion rubric. Iter 1 scoring: 57/100. Top weakest sub-scores: C4 persistence pattern (4), C9 error message specificity (4), C1 invocation clarity (5), C7 stale spec refs (5). Proposed diff (constrained to `.claude/commands/resolver.md`): (1) title v2.2 → v3.0.1; (2) `## Invocation schema` table as first content section (argv discoverable in 30s); (3) `## Writes + Events (per subcommand)` table (per-subcommand blast radius); (4) `## Error codes (mcp__resolver__find pass-through)` table (each error → actionable next step); (5) updated `## See also` (v3 spec primary; v2.x marked superseded; new INDEX/MCP-tool refs). Re-score iter 1: **78/100 (+21)**. Per Karpathy K4 (keep if composite improves): KEEP. Loop stopped (below 85 stop threshold but diminishing returns; iter 2 would push C8 console UX +3 via output examples but cosmetic). **Anti-Goodhart caveats violated**: (1) judge=proposer (one model both scored and improved — bias); (2) Spearman validation skipped (HOLDOUT has AI proxy not founder ratings); (3) outside-voice (codex) skipped (Tier B optional); (4) git stash isolation skipped (direct Edit). Manual simulation serves as proof-of-concept; real /evolve runtime (when founder commits + rates HOLDOUT) will produce more rigorous diff. File: 238 → 294 lines (+24%). Tests: 65/65 still pass. pnpm check ALL CLEAN.
+- 2026-05-26 **v3.0.2 patch via manual /evolve simulation** (Tier B, single-file `.claude/commands/resolver.md`) — founder asked "tự viết và thực hiện /evolve". Real `/evolve command resolver` blocked by dirty tree (Sprint 4 + v3.0.1 changes uncommitted) + HOLDOUT cold-start. Executed manually using `06-ai-ops/skills/eval-evo/playbooks/command.md` 10-criterion rubric. Iter 1 scoring: 57/100. Top weakest sub-scores: C4 persistence pattern (4), C9 error message specificity (4), C1 invocation clarity (5), C7 stale spec refs (5). Proposed diff (constrained to `.claude/commands/resolver.md`): (1) title v2.2 → v3.0.1; (2) `## Invocation schema` table as first content section (argv discoverable in 30s); (3) `## Writes + Events (per subcommand)` table (per-subcommand blast radius); (4) `## Error codes (mcp__supabase-ops__resolver_find pass-through)` table (each error → actionable next step); (5) updated `## See also` (v3 spec primary; v2.x marked superseded; new INDEX/MCP-tool refs). Re-score iter 1: **78/100 (+21)**. Per Karpathy K4 (keep if composite improves): KEEP. Loop stopped (below 85 stop threshold but diminishing returns; iter 2 would push C8 console UX +3 via output examples but cosmetic). **Anti-Goodhart caveats violated**: (1) judge=proposer (one model both scored and improved — bias); (2) Spearman validation skipped (HOLDOUT has AI proxy not founder ratings); (3) outside-voice (codex) skipped (Tier B optional); (4) git stash isolation skipped (direct Edit). Manual simulation serves as proof-of-concept; real /evolve runtime (when founder commits + rates HOLDOUT) will produce more rigorous diff. File: 238 → 294 lines (+24%). Tests: 65/65 still pass. pnpm check ALL CLEAN.
 - 2026-05-26 **v3.0.3 Tier C cutover** (PR #115) — `CLAUDE.md` flipped from 16 `@knowledge/recipients/*.md` imports (~55K tokens ambient) to single `@knowledge/recipients/INDEX.md` import (~11K tokens, 386 active recipients). Bypass-detection hooks activated via `.claude/settings.json` PreToolUse matchers for Bash/Edit/Write → runtime handlers at `.claude/hooks/runtime/{pre-bash-mass-action,pre-edit-significant}.cjs` (observation-only, append to gitignored `runtime/resolver-v3-bypass-events.jsonl`). `.gitignore` exception added for `.claude/hooks/runtime/**` (overly-broad `runtime/` pattern was masking hook runtime code). State: deployed → runtime-active-pending-restart (founder ⌘Q + reopen required to load new ambient INDEX + activate hooks). 7-day baseline observation begins on first session post-restart.
 - 2026-05-26 **v3.0.4 patch — per-role propagation + CLA Phase 8 INDEX regen** (Tier B, multi-file) — founder asked "khi giao cho @ceo 1 task, ceo phải có resolver để biết tools của mình", surfacing gap: `MCP_CALLER_ROLE` env set once at MCP subprocess boot, does NOT auto-change when subagent spawns. Without explicit `role` param, subagents (CGO/CTO/CPO) inherit parent's filter slice (gps/founder), not their own. **Fix 1 (4 files)**: added `## Resolver discipline (per-role propagation)` section to `.claude/agents/{ceo,cgo,cto,cpo}.md` instructing each persona to ALWAYS pass `role: "<bound-role>"` on every `mcp__supabase-ops__resolver_find` call. Bound roles: ceo→gps, cgo→gtm-orchestrator, cto→code-reviewer, cpo→product-orchestrator. **Fix 2 (1 file)**: added Step 6.6 to `06-ai-ops/skills/capability-lifecycle/catalog-updater/SKILL.md` — after Step 6.5 (`sync.cjs --apply` regen recipients/*.md), run `pnpm resolver:index` to regen INDEX.md. Closes gap where mid-Phase 8 session operates against stale INDEX before husky pre-commit kicks in. Step 6.6 failure handling added; Outputs section updated; Step 7 description references both v2 + v3 validators. ops.capability_runs INSERT blocked by same constraint as v3.0.1/2/3 (accepted limitation). Tests: 65/65 still pass. pnpm check ALL CLEAN. Resolves founder Q: "CLA tự động update lại resolver chưa?" (was partial → now explicit). Note on related Qs: (a) "check-drift bao gồm resolver chưa?" → YES already (`validate-resolver-v3-index-consistency.cjs` L1 + 3 L2 v2 validators registered in `scripts/check-consistency.cjs` lines 221-228). (b) "Brain integrated into resolver chưa?" → YES as recipients (13 entries: agent/brain, agent/gbrain-maintainer, command/brain, 3 SOPs, schedules, 50 MCP tools surfacing via INDEX); NO as search backend — preserves single-responsibility per founder's affirmed principle ("resolver chỉ cần biết cần làm gì, việc làm để cho phần khác"). To search context, model invokes brain tools DISCOVERED VIA resolver.
+- 2026-05-30 **v3.0.5 — MCP catalog ↔ runtime coherence (foundational fix)**. Founder Q: "resolver có cơ chế check drift chưa? gbrain/brain MCP thiếu trong INDEX. Đã nhúng vào check-drift chưa?" Investigation surfaced **6 drift classes**, none caught by existing validators (all were git↔git internal; none reconciled catalog vs the LIVE MCP runtime): (1) **status drift** — all 41 gbrain tools `status: planned` though `.mcp.json` gbrain server is live + connected, hiding them from INDEX; (2) **double-prefix** — `mcp-tools.yaml` ids authored as `gbrain__search` (server-prefixed) + `generateMcps()` re-prefixes → phantom invoke `mcp__gbrain__gbrain__search`; (3) **hyphen-mangle** — `generateMcps()` `.replace(/-/g,'_')` produced `mcp__supabase_ops__*` vs live `mcp__supabase-ops__*`; (4) **phantom tool name** — `mcp__resolver__find` referenced in CLAUDE.md/INDEX/resolver.md/spec/registry/canary but the REAL tool is `mcp__supabase-ops__resolver_find` (no `resolver` server exists); (5) **completeness** — live gbrain exposes **74** tools, catalog had 41 (33 real tools, incl. destructive `delete_page`/`purge_deleted_pages`/`forget_fact`, ungoverned); (6) **13 phantom catalogued tools** — `mass_purge`/`reset_brain`/`drop_all_links`/`update_page`/`get_brain_info`/`schema_migrate`/`dream_cycle_manual`/`archive_purge_now`/`bulk_link`/`bulk_unlink`/`mass_update_pages`/`embedding_regenerate_all`/`archive_page` were tier-classified in HITL.md Appendix A but the gbrain v0.40 binary does NOT expose them. **3-layer fix**: **Lớp 0** generator — `catalog-generator.cjs::generateMcps()` drops hyphen-mangle (server verbatim) + maps yaml status `live`/omitted → `active` (fixes latent `status: live` hiding bug). **Lớp 1** data — `knowledge/mcp-tools.yaml` gbrain section regenerated from the LIVE binary via new `scripts/resolver-v3/gen-gbrain-catalog.cjs` (74 tools: A=47/B=25/C=2; bare ids; descriptions straight from binary; tier policy = read-prefix→A, write→B, hard-delete `sources_remove`/`purge_deleted_pages`→C); phantom `mcp__resolver__find`→`mcp__supabase-ops__resolver_find` across CLAUDE.md + resolver.md + spec + capability-registry + schedules canary + 2 generator headers. **Lớp 2** deterministic L2 validator — `scripts/cross-tier/validate-mcp-catalog-coherence.cjs` (I1 bare-id, I2 server-fidelity, I3 status-coherence) wired into `check-consistency.cjs` critical block + husky pre-commit; catches all 3 naming/status classes in CI WITHOUT live servers; 38 unit tests incl. the 3 regressions. **Lớp 3 KEYSTONE** — `scripts/resolver-v3/mcp-runtime-reconcile.cjs` spawns each `.mcp.json` server, does MCP `tools/list`, diffs vs catalog (missing/misnamed/extra); the ONLY check that catches upstream completeness/rename drift; L3 local/cron (degrades `--allow-spawn-fail` in CI). npm: `reconcile:mcp`, `gen:gbrain-catalog`, `resolver:sync:apply`. **REQUIRED FOLLOW-UP (D-MAX, founder)**: reconcile HITL.md Appendix A — remove the 13 phantom tools, add the ~33 real ones (incl. classifying the destructive reads/writes). Decision: NOT declared in cross-tier-invariants.yaml (schema `additionalProperties:false` + no `custom` kind; follows resolver-v2 validator precedent of wire-without-yaml-declaration).
 
 ## GSTACK REVIEW REPORT
 

@@ -12,8 +12,8 @@ For canonical product description, full governance, and detailed structure, see 
 ## Recipient catalog (resolver v3 — JIT loading, post-cutover 2026-05-26)
 
 Compressed INDEX loaded into ambient context for every session (~11K tokens
-covering all 386 active recipients across 16 kinds). For full details on
-any recipient, invoke `mcp__resolver__find({intent:"...", limit:5})` —
+covering all active recipients across every kind). For full details on
+any recipient, invoke `mcp__supabase-ops__resolver_find({intent:"...", limit:5})` —
 session model ranks 20 keyword-pre-filtered enriched candidates (no API
 key per `external-source/anthropic-api` policy; subscription billing).
 
@@ -21,7 +21,7 @@ key per `external-source/anthropic-api` policy; subscription billing).
 convention (e.g. `Skill({skill:"<id>"})`) is sufficient, invoke the
 recipient directly. NO drill-down call needed.
 
-**Path B (~80-440ms, only when needed)**: Call `mcp__resolver__find` when
+**Path B (~80-440ms, only when needed)**: Call `mcp__supabase-ops__resolver_find` when
 you need composition graph / recency signal / per-role filter /
 disambiguation between similar candidates / full when_to_use text.
 

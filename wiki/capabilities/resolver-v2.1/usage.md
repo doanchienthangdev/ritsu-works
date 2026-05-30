@@ -263,7 +263,7 @@ execution_plan:
   1. Read sop/SOP-CUSTOMER-006 to understand procedure
   2. Read wiki/collison-protocol for strategic framing
   3. Schedule Zoom with customer
-  4. Post-Zoom: mcp__supabase_ops__insert customer record
+  4. Post-Zoom: mcp__supabase-ops__insert customer record
   5. Send follow-up (hook auto-adds AI disclosure)
   6. Schedule day-3 check-in
 

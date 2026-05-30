@@ -231,6 +231,9 @@ async function main() {
     ['validate-resolver-v2-coverage.cjs', 'resolver-v2 catalog coverage (16 kinds)'],
     // capability gbrain-operational-brain v1.0 Sprint 6 — 2 NEW L2 validators
     ['validate-mcp-json-tools-consistency.cjs', '.mcp.json ↔ knowledge/mcp-tools.yaml'],
+    // MCP catalog coherence (per-tool deterministic): bare-id, server-fidelity, status-coherence.
+    // Catches the gbrain double-prefix/stale-planned + supabase_ops hyphen-mangle drift classes.
+    ['validate-mcp-catalog-coherence.cjs', 'mcp-tools.yaml ↔ .mcp.json per-tool coherence'],
     ['validate-gbrain-invariant-handlers.cjs', 'gbrain L1/L2/L3 invariant handlers'],
     // capability resolver-v3-jit-loading Sprint 1 — INDEX.md consistency
     ['validate-resolver-v3-index-consistency.cjs', 'resolver-v3 INDEX.md ↔ catalog'],
