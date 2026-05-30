@@ -123,7 +123,7 @@ function truncate(s, max) {
  * @param {string} [args.triggerNormalized] — normalized intent; defaults to a lowercased/collapsed `intent`.
  * @param {string} [args.callerRole]   — caller role at plan time (default: process.env.MCP_CALLER_ROLE || null).
  * @param {number} [args.latencyMs]    — wall-clock ms of the plan assembly (default 0; column is NOT NULL).
- * @param {number} [args.findCalls]    — how many mcp__resolver__find calls the plan consumed (audit metadata).
+ * @param {number} [args.findCalls]    — how many mcp__supabase-ops__resolver_find calls the plan consumed (audit metadata).
  * @param {string[]} [args.catalogFilesLoaded] — provenance for the audit (default a single marker entry).
  * @returns {Object} a row ready for mcp__supabase-ops__insert into ops.resolver_decisions.
  */
@@ -177,7 +177,7 @@ function buildPlanAuditRow(args) {
     plan_payload: plan,              // the assembled ResolverPlan v1 (single or batch).
     catalog_files_loaded: Array.isArray(args.catalogFilesLoaded)
       ? args.catalogFilesLoaded
-      : ['recipients/*.md (via mcp__resolver__find)'],
+      : ['recipients/*.md (via mcp__supabase-ops__resolver_find)'],
     metadata: {
       kind: 'resolver-plan',
       sub_need_count: subNeedCount,

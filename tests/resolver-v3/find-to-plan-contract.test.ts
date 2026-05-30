@@ -3,7 +3,7 @@
 // Why this test exists (the one genuine gap after S1-S4):
 //   resolver-plan-schema.test.ts validates the ResolverPlan schema against
 //   HAND-CRAFTED fixtures. resolver-find-axis.test.ts validates the find tool's
-//   output. Neither crosses the SEAM between them: that a REAL mcp__resolver__find
+//   output. Neither crosses the SEAM between them: that a REAL mcp__supabase-ops__resolver_find
 //   match — with its deterministic `axis` + enrichment fields (S2) — partitioned
 //   by the rule the resolver-plan skill documents (SKILL.md §Algorithm step 2:
 //   axis==="content" → contentItem, axis==="capability" → capabilityItem), yields

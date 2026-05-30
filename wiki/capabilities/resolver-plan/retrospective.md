@@ -16,7 +16,7 @@
 | Sprint | PR | Theme | Key artifacts |
 |---|---|---|---|
 | 1 | [#157](https://github.com/doanchienthangdev/ritsu-works/pull/157) | Axis tag + enrichment + **audit-repair migration** | `scripts/resolver-v2/axis-map.cjs`, `enrichment.cjs`; `catalog-generator.cjs` emits `Axis` + per-kind enrichment; migration `00044` (widen `mode` + reconcile CHECK + `plan_payload`) |
-| 2 | [#158](https://github.com/doanchienthangdev/ritsu-works/pull/158) | `mcp__resolver__find` axis + enrichment + `axis` filter | `mcp-server/src/tools/resolver-find.ts` (deterministic, NO LLM); NEW `validate-resolver-axis-tags.cjs` (CRITICAL, content-compare); coverage validator extended 5 → 16 kinds |
+| 2 | [#158](https://github.com/doanchienthangdev/ritsu-works/pull/158) | `mcp__supabase-ops__resolver_find` axis + enrichment + `axis` filter | `mcp-server/src/tools/resolver-find.ts` (deterministic, NO LLM); NEW `validate-resolver-axis-tags.cjs` (CRITICAL, content-compare); coverage validator extended 5 → 16 kinds |
 | 3 | [#159](https://github.com/doanchienthangdev/ritsu-works/pull/159) | `resolver-plan` skill + schema + `/resolver plan` + plan audit | NEW `06-ai-ops/skills/resolver-plan/SKILL.md`; `knowledge/schemas/resolver-plan.schema.json` (ResolverPlan v1); `scripts/resolver-v2/plan-audit.cjs`; `/resolver plan` subcommand |
 | 4 | [#160](https://github.com/doanchienthangdev/ritsu-works/pull/160) | Nightly catalog auto-sync + coverage WARN→CRITICAL | `.github/workflows/resolver-catalog-sync.yml` (**GitHub Action** — deviation, see below); `sync.cjs --draft`; coverage gate promoted to CRITICAL |
 | 5 | *this PR* | `context_recipe` → first-class docs + test consolidation + Phase 8 promotion | `resolver-query/SKILL.md` + `.claude/commands/resolver.md` (`context_recipe` first-class); `tests/resolver-v3/find-to-plan-contract.test.ts` (contract-boundary seam); promoted spec + this retrospective; CATALOG + registry → `operating` |
@@ -45,7 +45,7 @@ Consumed directly by `/deepask` (Capability 2) with zero routing of its own.
   `catalog-loader.cjs` ignores unknown `**Field:**` lines, v2/v3 validators ignore
   extras, the ResolverPlan is a strict superset of the optional `context_recipe`.
   Rollback stays `git revert` + drop one nullable column.
-- **The NO-LLM invariant survived the find extension.** `mcp__resolver__find`
+- **The NO-LLM invariant survived the find extension.** `mcp__supabase-ops__resolver_find`
   stays deterministic (axis + enrichment are generator-emitted; session-model
   assembly lives in the `resolver-plan` skill, subscription billing). A `fetch`
   tripwire test + a source-scan test re-assert it after the Sprint-2 edits.
@@ -59,7 +59,7 @@ Consumed directly by `/deepask` (Capability 2) with zero routing of its own.
 
 - **The catalog loader silently dropped enrichment fields.** Surfaced in Sprint 2:
   the generator emitted `Axis`/`Authority`/`Freshness`/`Grounding`/`Columns`, but
-  `catalog-loader.cjs` (and therefore `mcp__resolver__find`) wasn't exposing them
+  `catalog-loader.cjs` (and therefore `mcp__supabase-ops__resolver_find`) wasn't exposing them
   on each parsed recipient. Fixed by extending the loader's field parse +
   renaming `Grounding`/`Columns` to the consumer-facing `grounding_ref`/`columns_hint`
   on the match (with `catalog-loader-enrichment.test.ts` pinning the round-trip).
@@ -160,7 +160,7 @@ resolver-v2 test-maintenance pass) — out of scope for this capability.
 |---|---|---|
 | `/resolver plan "<intent>"` (+ batch, `--sources`, `--json`) | slash subcommand | `.claude/commands/resolver.md` |
 | `resolver-plan` skill | skill (session-model assembly) | `06-ai-ops/skills/resolver-plan/SKILL.md` |
-| `mcp__resolver__find` (axis + enrichment + `axis` filter) | MCP tool | `mcp-server/src/tools/resolver-find.ts` |
+| `mcp__supabase-ops__resolver_find` (axis + enrichment + `axis` filter) | MCP tool | `mcp-server/src/tools/resolver-find.ts` |
 | nightly catalog auto-sync (draft-PR on drift) | GitHub Action | `.github/workflows/resolver-catalog-sync.yml` |
 
 ## Promotion confirmed

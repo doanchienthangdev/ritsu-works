@@ -1035,7 +1035,7 @@ Step 5 OR by founder for manual `/playbook check --fix` workflow.
 **Kind:** skill
 **Axis:** capability
 **When to use:** Assemble a populated ResolverPlan v1 (= a first-class, populated context_recipe)
-for an intent (or a batch of sub-needs). Calls mcp__resolver__find for axis-tagged +
+for an intent (or a batch of sub-needs). Calls mcp__supabase-ops__resolver_find for axis-tagged +
 enriched candidates, then SESSION-MODEL splits them into content_axis (recipients you
 READ — carry authority/freshness/grounding_ref/columns_hint) vs capability_axis
 (recipients you RUN — carry hitl_tier/side_effect/cost_bucket), attaches

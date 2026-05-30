@@ -2,7 +2,7 @@
 name: resolver-plan
 description: |
   Assemble a populated ResolverPlan v1 (= a first-class, populated context_recipe)
-  for an intent (or a batch of sub-needs). Calls mcp__resolver__find for axis-tagged +
+  for an intent (or a batch of sub-needs). Calls mcp__supabase-ops__resolver_find for axis-tagged +
   enriched candidates, then SESSION-MODEL splits them into content_axis (recipients you
   READ — carry authority/freshness/grounding_ref/columns_hint) vs capability_axis
   (recipients you RUN — carry hitl_tier/side_effect/cost_bucket), attaches
@@ -18,7 +18,7 @@ role_scope: ['*']
 home_pillar: 06-ai-ops
 spec: .archives/cla/resolver-plan/spec.md
 allowed-tools:
-  - mcp__resolver__find
+  - mcp__supabase-ops__resolver_find
   - mcp__supabase-ops__insert
   - Read
 ---
@@ -57,7 +57,7 @@ Input (one of `intent` | `sub_needs` is required):
 |---|---|---|---|
 | `intent` | string | one-of | A single sub-need → returns ONE `ResolverPlan`. |
 | `sub_needs` | string[] | one-of | A batch of sub-needs → returns `{ plans: ResolverPlan[] }` (same order). |
-| `sources_filter` | string[] | no | Constrain which IA kinds/axes to consider (e.g. `["page","metric"]`, or axis `["content"]`). Maps to the `kind`/`axis` filter on `mcp__resolver__find`. |
+| `sources_filter` | string[] | no | Constrain which IA kinds/axes to consider (e.g. `["page","metric"]`, or axis `["content"]`). Maps to the `kind`/`axis` filter on `mcp__supabase-ops__resolver_find`. |
 | `role` | string | no | Override caller role for the role_scope filter (default: `MCP_CALLER_ROLE`). |
 
 Also surfaced as `/resolver plan "<intent>" [--sources=<csv>] [--json]`.
@@ -65,14 +65,14 @@ Also surfaced as `/resolver plan "<intent>" [--sources=<csv>] [--json]`.
 ## Algorithm (session model — NO subprocess LLM, NO API key)
 
 The deterministic keyword pre-filter + axis tagging + enrichment all happen INSIDE
-`mcp__resolver__find` (no LLM there). This skill is the session model doing only
+`mcp__supabase-ops__resolver_find` (no LLM there). This skill is the session model doing only
 **assembly + selection** over the candidates the tool returns — subscription billing,
 no API key (per `external-source/anthropic-api` policy).
 
 For each sub-need (the single `intent`, or each element of `sub_needs`):
 
 1. **Find candidates.** Call
-   `mcp__resolver__find({ intent: <sub-need>, include_composition: true, include_recency: true, role: <role?>, kind/axis: <from sources_filter?>, limit: 20 })`.
+   `mcp__supabase-ops__resolver_find({ intent: <sub-need>, include_composition: true, include_recency: true, role: <role?>, kind/axis: <from sources_filter?>, limit: 20 })`.
    Each returned `match` carries `axis` + enrichment:
    - content → `authority`, `freshness`, `grounding_ref`, `columns_hint?`
    - capability → `hitl_tier`, `side_effect` (+ `cost_bucket` if known)
@@ -108,7 +108,7 @@ For each sub-need (the single `intent`, or each element of `sub_needs`):
    - `ia_type_hint`: a coarse A|B|C|D IA-type label if confidently classifiable (else omit).
 
 5. **no_coverage** (honest gaps): for any facet of the sub-need where
-   `mcp__resolver__find` returned no usable match (`matches: []` / `no_match_reason`),
+   `mcp__supabase-ops__resolver_find` returned no usable match (`matches: []` / `no_match_reason`),
    OR a matched source is stale / empty / not-yet-built, append
    `{ facet, reason: "no_match"|"stale"|"empty"|"not_built", remedy }`. Never silently
    drop a facet; never substitute training-data knowledge for a missing source.
@@ -138,7 +138,7 @@ For each sub-need (the single `intent`, or each element of `sub_needs`):
          "decision": "dispatch_silently | surface_candidates | no_match",
          "mode": "A2",
          "plan_payload": { /* the assembled ResolverPlan v1 (single or {plans:[...]}) */ },
-         "catalog_files_loaded": ["recipients/*.md (via mcp__resolver__find)"],
+         "catalog_files_loaded": ["recipients/*.md (via mcp__supabase-ops__resolver_find)"],
          "metadata": { "kind": "resolver-plan", "sub_need_count": 1, "no_coverage_count": 0, "find_calls": 1 }
        }
      ]
@@ -181,12 +181,12 @@ Batch: `{ plans: [ <ResolverPlan>, ... ] }` — one per `sub_needs[i]`, same ord
 ## Guarantees / INVARIANTS
 
 - **INV-1 (deterministic substrate):** axis + enrichment come from the catalog
-  (generator-emitted, surfaced by `mcp__resolver__find`). This skill READS those fields;
+  (generator-emitted, surfaced by `mcp__supabase-ops__resolver_find`). This skill READS those fields;
   it never re-derives axis or invents enrichment. No LLM in the find subprocess; no API key.
 - **INV-2 (HITL-in-governance):** `page/governance-HITL` is present in
   `governance_constraints` whenever any capability is HITL tier B+ — agrees with
   `plan-audit.cjs#governanceRequiresHitl`.
-- **INV-3 (breaker):** exactly one `mcp__resolver__find` per sub-need; never loop. Warn at
+- **INV-3 (breaker):** exactly one `mcp__supabase-ops__resolver_find` per sub-need; never loop. Warn at
   ≥15/20; degrade to `no_coverage` at the cap.
 - **INV-4 (firewall + no writes):** product data only via `metrics.*` (never the Product
   Supabase); the ONLY write this skill performs is the best-effort `ops.resolver_decisions`
