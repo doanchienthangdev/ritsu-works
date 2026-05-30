@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 90
+**Total entries:** 92
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -312,6 +312,20 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/deepask/completeness-critic
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** deepask Stage 5 — the honesty gate. Builds a coverage matrix (sub-need × planned-recipient × executed? × got-data?), MECE-re-checks across the 4 IA types + capability axis, runs a live-probe, and sets the verdict COMPLETE | PARTIAL-WITH-HONEST-GAPS (+ exact missing source/capability + remedy). May trigger ONE bounded follow-up resolve→execute round. NEVER answers partial silently; NEVER substitutes training data.
+
+**Invoke:** `Skill({ skill: "deepask/completeness-critic" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/deepask/decompose
 
 **Kind:** skill
@@ -347,6 +361,20 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 **When to use:** deepask loop driver — owns depth/sources/dry-run semantics and the resolver-budget accountant. Runs the 5-stage loop (decompose → resolve via resolver-plan → execute fan-out → synthesize → completeness-critic), budgets resolver calls against the shared SESSION_HARD_CAP=20 breaker, and writes ops.deepask_runs/coverage. deepask has ZERO routing of its own — it consumes ResolverPlan v1 from resolver-plan. Invoked by /deepask.
 
 **Invoke:** `Skill({ skill: "deepask/orchestrator" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/deepask/synthesize
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** deepask Stage 4 — turns the executed evidence into a format-agnostic synthesis IR. Pyramid (conclusion-first); EVERY claim cites ≥1 source (self-checked by scripts/deepask/citation-audit.cjs — zero uncited claims is a hard gate); authority-ranked (SoR>memory for facts, memory>SoR for judgement/history); conflicts flagged; freshness tagged; key claims adversarially verified (depth-scaled). Emits the IR every format adapter consumes.
+
+**Invoke:** `Skill({ skill: "deepask/synthesize" })`
 **HITL tier:** B
 **Side effect:** write
 
