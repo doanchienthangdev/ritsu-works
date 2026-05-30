@@ -24,7 +24,7 @@
 //      fixture and the deterministic helper agree).
 //
 // NOT unit-tested here (documented): the SESSION-MODEL assembly itself (the skill reading
-//   mcp__resolver__find candidates and SELECTING/partitioning) — that is an LLM judgment,
+//   mcp__supabase-ops__resolver_find candidates and SELECTING/partitioning) — that is an LLM judgment,
 //   not deterministic code. We test the schema it must satisfy + the deterministic helper
 //   it calls. (Skipped: session-assembly — non-deterministic by design.)
 //
@@ -467,7 +467,7 @@ describe("plan-audit.buildPlanAuditRow", () => {
   it("defaults catalog_files_loaded to the find marker", () => {
     const row = buildPlanAuditRow({ plan: minimalValidPlan(), intent: "x" });
     expect(row.catalog_files_loaded).toEqual([
-      "recipients/*.md (via mcp__resolver__find)",
+      "recipients/*.md (via mcp__supabase-ops__resolver_find)",
     ]);
   });
 

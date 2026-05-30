@@ -100,7 +100,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** resolver-plan — resolver as a first-class 2-axis planner with a self-fresh catalog. Extends resolver into a first-class TWO-AXIS PLANNER (content vs capability) that emits a populated ResolverPlan v1 (= first-class context_recipe) for direct consumption by orchestrators — starting with /deepask (Capability 2). Adds a DETERMINISTIC axis tag + candidate enrichment (hitl_tier/side_effect for capabili v1.0.0
+**When to use:** resolver-plan — resolver as a first-class 2-axis planner with a self-fresh catalog. Extends resolver into a first-class TWO-AXIS PLANNER (content vs capability) that emits a populated ResolverPlan v1 (= first-class context_recipe) for direct consumption by orchestrators — starting with /deepask (Capability 2). Adds a DETERMINISTIC axis tag + candidate enrichment (hitl_tier/side_effect for capabili v1.0.1
 
 **Invoke:** `Read("wiki/capabilities/resolver-plan/spec.md")` or `/cla update resolver-plan`
 

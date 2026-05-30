@@ -1124,8 +1124,8 @@ capabilities:
   # === /deepask program · Capability 1 of 2: resolver-plan (prereq for deepask) ===
   - id: resolver-plan
     name: "resolver-plan — resolver as a first-class 2-axis planner with a self-fresh catalog"
-    description: "Extends resolver into a first-class TWO-AXIS PLANNER (content vs capability) that emits a populated ResolverPlan v1 (= first-class context_recipe) for direct consumption by orchestrators — starting with /deepask (Capability 2). Adds a DETERMINISTIC axis tag + candidate enrichment (hitl_tier/side_effect for capability recipients; authority/freshness/grounding_ref/columns_hint for content recipients) to catalog-generator.cjs + mcp__resolver__find (NO LLM in subprocess); a session-model resolver-plan skill; /resolver plan surface; context_recipe promoted optional→first-class (versioned schema knowledge/schemas/resolver-plan.schema.json); catalog auto-freshness (nightly resolver-catalog-sync cron auto-PR + validate-resolver-axis-tags.cjs + coverage-gate promotion); plan-mode audit in ops.resolver_decisions (additive plan_payload jsonb). Prereq for capability deepask."
-    version: "1.0.0"
+    description: "Extends resolver into a first-class TWO-AXIS PLANNER (content vs capability) that emits a populated ResolverPlan v1 (= first-class context_recipe) for direct consumption by orchestrators — starting with /deepask (Capability 2). Adds a DETERMINISTIC axis tag + candidate enrichment (hitl_tier/side_effect for capability recipients; authority/freshness/grounding_ref/columns_hint for content recipients) to catalog-generator.cjs + mcp__supabase-ops__resolver_find (NO LLM in subprocess); a session-model resolver-plan skill; /resolver plan surface; context_recipe promoted optional→first-class (versioned schema knowledge/schemas/resolver-plan.schema.json); catalog auto-freshness (nightly resolver-catalog-sync cron auto-PR + validate-resolver-axis-tags.cjs + coverage-gate promotion); plan-mode audit in ops.resolver_decisions (additive plan_payload jsonb). Prereq for capability deepask."
+    version: "1.0.1"           # v1.0.1: /cla fix 2026-05-30 — phantom find-tool name → mcp__supabase-ops__resolver_find (see notes)
     state: operating           # Phase 8 promotion 2026-05-30; Sprints 1-4 merged #157-#160; Sprint 5 = docs + promotion
     state_since: 2026-05-30
     proposed_at: 2026-05-30
@@ -1142,7 +1142,7 @@ capabilities:
       Spec + retrospective promoted to wiki/capabilities/resolver-plan/.
       Sprint map: #157 axis tag + enrichment + audit-repair migration 00044
       (APPLIED — repaired the live mode char(1) breakage @cto found at Phase 5);
-      #158 mcp__resolver__find axis/enrichment (NO LLM) + validate-resolver-axis-tags.cjs
+      #158 mcp__supabase-ops__resolver_find axis/enrichment (NO LLM) + validate-resolver-axis-tags.cjs
       (CRITICAL) + coverage→16 kinds; #159 resolver-plan skill + ResolverPlan v1 schema
       (knowledge/schemas/resolver-plan.schema.json) + /resolver plan + plan audit;
       #160 nightly catalog-sync GitHub Action (.github/workflows/resolver-catalog-sync.yml —
@@ -1154,6 +1154,12 @@ capabilities:
       now unblocked; /cla PROMPT 2 in .archives/brainstorming/deepask/).
       NOTE: ops.capability_runs.state lags (INSERT-only MCP, Phase 1.5); authoritative
       progress = ops.capability_phase_events + this entry.
+      v1.0.1 (2026-05-30, /cla fix): canonicalized resolver-plan's OWN files (SKILL.md,
+      plan-audit.cjs, schema-test, contract-test, wiki spec+retrospective, this entry)
+      from a phantom find-tool name (a `resolver` MCP server that does not exist) → the
+      real mcp__supabase-ops__resolver_find (the tool lives under the supabase-ops
+      server). Global/shared files (CLAUDE.md, .claude/commands/resolver.md, catalog
+      generators incl. the INDEX axis-legend) are corrected separately by PR #162.
 
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.

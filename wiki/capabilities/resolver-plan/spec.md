@@ -19,7 +19,7 @@
 
 ## 1. Problem statement (from Phase 1)
 
-`mcp__resolver__find` returns a flat ranked list; the 2-axis `context_recipe` plan
+`mcp__supabase-ops__resolver_find` returns a flat ranked list; the 2-axis `context_recipe` plan
 was optional and never populated; coverage was WARN-only and sync was manual. To let
 `/deepask` (Capability 2) be a pure consumer with zero routing, resolver must
 (a) make the content/capability axis first-class, (b) emit a populated
@@ -31,7 +31,7 @@ Build the entire `04-spec` in 5 sprints. **Locks:** batch planning form IN v1;
 catalog-freshness cron ships FIRST, then `validate-resolver-v2-coverage` promoted
 WARN→CRITICAL after one clean nightly cycle; axis surfaced in the INDEX header
 legend only (frugal — INDEX at ~12K/15K). All changes additive +
-backward-compatible; no LLM in `mcp__resolver__find`; session-model (subscription)
+backward-compatible; no LLM in `mcp__supabase-ops__resolver_find`; session-model (subscription)
 assembly in the `resolver-plan` skill.
 
 ## 3. The contract object — `ResolverPlan v1`
@@ -131,7 +131,7 @@ command (not a new command file). No new agent.
 ## 6. Acceptance criteria
 
 ### Phase 7 (Implementation) — MET
-- [x] `mcp__resolver__find` returns deterministic `axis` on every match; no LLM in subprocess (test asserts no `fetch`/API).
+- [x] `mcp__supabase-ops__resolver_find` returns deterministic `axis` on every match; no LLM in subprocess (test asserts no `fetch`/API).
 - [x] catalog entries carry enrichment (capability: `hitl_tier`/`side_effect`; content: `authority`/`freshness`/`grounding_ref`/`columns_hint`); regenerated via generator.
 - [x] `resolver-plan` skill returns schema-valid `ResolverPlan v1` (single + batch); `governance_constraints` includes `page/governance-HITL` whenever any capability is tier B+; honest `no_coverage`.
 - [x] `/resolver plan "<intent>"` renders a plan; `resolver-plan.schema.json` validates.
@@ -184,7 +184,7 @@ factual defects (all mechanical, fixed in the drafts + shipped):
 | S1 | `sync.cjs --auto-pr` had **no `--draft`** → ready-for-review PR (Tier B), not the Tier-A draft the spec claims. | Added `sync.cjs --draft`; the Action uses it to open a **draft** PR. |
 | S2 | `validate-resolver-v2-coverage` only checked **5 of 16 kinds**. | Extended expected-set to all 16 kinds (S2) **before** the WARN→CRITICAL promotion (S4). |
 
-**Confirmed OK by @cto:** the "NO LLM in `mcp__resolver__find`" invariant holds
+**Confirmed OK by @cto:** the "NO LLM in `mcp__supabase-ops__resolver_find`" invariant holds
 (deterministic axis + generator-emitted enrichment; session-model assembly in the
 skill, subscription billing — no API-key leak); backward-compat is safe
 (`catalog-loader.cjs` ignores unknown `**Field:**` lines; v2/v3 validators ignore
@@ -255,7 +255,7 @@ spec text above. Read it before trusting any mechanism detail.
 
 5. **Test consolidation (Sprint 5).** The All-Edge-Cases surface was already covered by
    S1-S4 (axis-map, enrichment, find-axis, plan-schema, sprint4-cron). The one genuine
-   gap — the **find→plan contract boundary** (§2N: real `mcp__resolver__find` output
+   gap — the **find→plan contract boundary** (§2N: real `mcp__supabase-ops__resolver_find` output
    partitioning into a schema-valid `ResolverPlan`) — is closed by
    `tests/resolver-v3/find-to-plan-contract.test.ts` (drives the REAL find tool → the
    documented `axis` partition → schema validation + the governance B+ rule).
@@ -264,7 +264,7 @@ spec text above. Read it before trusting any mechanism detail.
 | Sprint | PR | Theme |
 |---|---|---|
 | 1 | [#157](https://github.com/doanchienthangdev/ritsu-works/pull/157) | axis tag + enrichment + audit-repair migration 00044 |
-| 2 | [#158](https://github.com/doanchienthangdev/ritsu-works/pull/158) | `mcp__resolver__find` axis/enrichment (no LLM) + axis-tags validator + coverage→16 kinds |
+| 2 | [#158](https://github.com/doanchienthangdev/ritsu-works/pull/158) | `mcp__supabase-ops__resolver_find` axis/enrichment (no LLM) + axis-tags validator + coverage→16 kinds |
 | 3 | [#159](https://github.com/doanchienthangdev/ritsu-works/pull/159) | `resolver-plan` skill + ResolverPlan v1 schema + `/resolver plan` + plan audit |
 | 4 | [#160](https://github.com/doanchienthangdev/ritsu-works/pull/160) | nightly catalog-sync GitHub Action + `sync.cjs --draft` + coverage WARN→CRITICAL |
 | 5 | *this PR* | `context_recipe` first-class docs + find→plan contract test + Phase 8 promotion |
