@@ -93,20 +93,21 @@ steps:
       never_training_substitution: gap_with_remedy_not_hallucination
 
   - id: format
-    name: "Format Engine — IR -> artifact"
+    name: "Format Engine — IR -> inline answer (default) | file artifact"
     skill: deepask/format
     actions:
-      - resolve_format               # explicit --format | smartauto via format-select.cjs
-      - dispatch_to_reuse_skill      # anthropic-skills:* / mermaid MCP / design:* / playbook-builder
-      - always_write_answer_md        # canonical, regardless of --format
+      - resolve_format_or_mode        # NO --format -> inline (conversational, NO files); explicit --format -> file mode (smartauto via format-select.cjs)
+      - inline_render_to_conversation # DEFAULT: render IR into the chat — Pyramid + inline citations + Sources list; writes NO files / no artifact dir
+      - dispatch_to_reuse_skill       # FILE MODE only: anthropic-skills:* / mermaid MCP / design:* / playbook-builder
+      - write_answer_md_in_file_mode  # canonical answer.md — file mode only (regardless of which --format)
       - graceful_degrade_if_renderer_absent
-      - write_artifact_dir           # scripts/deepask/artifact-path.cjs -> .archives/deepask/<date>-<slug>/
+      - write_artifact_dir            # FILE MODE only: scripts/deepask/artifact-path.cjs -> .archives/deepask/<date>-<slug>/
     hitl: A
 
   - id: observe
     name: "Observe — audit + learning substrate"
     actions:
-      - insert_ops_deepask_runs      # 1 row/query (incl. dry_run rows)
+      - insert_ops_deepask_runs      # 1 row/query (incl. dry_run rows); artifact_path NULL in inline default, set in file mode. Written in BOTH modes (DB rows are not "output files").
       - insert_ops_deepask_coverage  # 1 row/sub-need
     hitl: A
 

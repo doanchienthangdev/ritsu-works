@@ -7,8 +7,8 @@ description: >-
   freshness-tagged answer in 1 of 12 formats, OR an honest no-coverage gap + remedy. Internal-first
   (web leg delegated to deep-research). Tier A runtime (Tier-B+ legs surfaced, never auto-run).
 source_path: .claude/commands/deepask.md
-source_hash: 23ccd2f8b67383255617da8f16a76a909c2fb6694835c5c8cf5ac3543f066a73
-generated_at: '2026-05-30T16:11:31.698Z'
+source_hash: dd8475b8f5dafa6b8aa3151854b1fc5a7d3bddfcc4a45c1aaa3436a844281070
+generated_at: '2026-05-31T03:54:41.244Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: en
@@ -39,7 +39,7 @@ language: en
 
 | Flag | Values | Effect |
 |---|---|---|
-| `--format` | text·article·pdf·docx·pptx·xlsx·mermaid·chart·dashboard·html·interactive·canvas·**smartauto** (default) | format adapter (S4–S5; pre-S4 → `article`/`answer.md` only) |
+| `--format` | **inline** (default) · text·article·pdf·docx·pptx·xlsx·mermaid·chart·dashboard·html·interactive·canvas·smartauto | **Omitted → `inline`:** the answer is rendered **straight into the conversation** (Pyramid + inline citations + a Sources list; Conflicts/Coverage sections when relevant) — **NO `.archives/deepask/` files written.** **Any explicit value** (incl. `smartauto`) → **file mode**: writes the artifact dir (`answer.md` + `plan.json` + `sources.json` + rendered artifact). |
 | `--sources` | csv of \{pillars,ops,metrics,wiki,brain,external,scratch} · **auto** (default) | constrain which IA types deepask may touch (passed to resolver-plan as a filter) |
 | `--depth` | quick·**standard** (default)·deep·exhaustive | sub-need bound (≤6 standard / ≤12 deep) + parallel fan-out + adversarial-verify votes (0/1/2/3) |
 | `--dry-run` | flag | show decomposition + **real** ResolverPlans + predicted coverage + cost estimate; perform zero reads/runs/writes EXCEPT one `ops.deepask_runs` dry-run row. NB: dry-run DOES call resolver-plan → consumes resolver-breaker budget → labeled honestly. |
@@ -52,8 +52,8 @@ language: en
 3. `deepask/execute` — parallel subagents: **READ** `content_axis` (S1); **RUN** Tier-A `capability_axis` + surface Tier-B+ + delegate web→`deep-research` (S3). Authors the concrete read-only SQL / `wiki_ask` question / skill params, **grounded in `grounding_ref`/`columns_hint`; never invents column names**.
 4. `deepask/synthesize` (S2) — Pyramid + citation + authority + conflict + freshness + adversarial-verify → format-agnostic IR.
 5. `deepask/completeness-critic` (S2) — coverage matrix + MECE + live-probe → COMPLETE | PARTIAL+remedy; ≤1 bounded follow-up.
-6. Format (S4–S5) → artifact in `.archives/deepask/<YYYY-MM-DD>-<slug>/` (always `answer.md` + `plan.json` + `sources.json` + rendered artifact).
-7. **Observe** → `ops.deepask_runs` + `ops.deepask_coverage`; founder edit/reject → `ops.corrections`.
+6. Format → **`inline` (default, no `--format`):** render the answer **into the conversation** (Pyramid + inline citations + Sources list; no files). **File mode (explicit `--format`):** artifact in `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` + `plan.json` + `sources.json` + rendered artifact).
+7. **Observe** → `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) — written in **both** modes (DB audit/learning rows are not "output files"; `artifact_path` is NULL in inline mode); founder edit/reject → `ops.corrections`.
 
 ## Guards (always-on)
 - **Firewall:** product data only via `metrics.*` (hook `pre-tool-supabase-product`); never `product.*`.

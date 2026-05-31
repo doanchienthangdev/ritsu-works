@@ -62,8 +62,9 @@ Shows: the decomposition, the **real** ResolverPlans (resolve IS executed — it
 - HITL: runtime Tier A; Tier-B+ capability legs surfaced by `deepask/execute` (S3), never auto-run.
 
 ## Outputs
-- `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` always; `plan.json`; `sources.json`; rendered artifact from S4–S5).
-- `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) rows.
+- **Default (`inline`, no `--format`):** the cited Pyramid answer rendered **into the conversation** — no files.
+- **File mode (explicit `--format`):** `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` + `plan.json` + `sources.json` + rendered artifact from the Format Engine).
+- `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) rows — written in **both** modes (`artifact_path` is NULL in inline mode).
 
 ## HITL
 Tier A (read/synthesize). Tier-B+ capability legs surfaced for approval (S3).

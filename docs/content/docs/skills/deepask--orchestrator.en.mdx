@@ -7,8 +7,8 @@ description: >-
   writes ops.deepask_runs/coverage. deepask has ZERO routing of its own — it consumes ResolverPlan
   v1 from resolver-plan. Invoked by /deepask.
 source_path: 06-ai-ops/skills/deepask/orchestrator/SKILL.md
-source_hash: fd6e6057b397afedc3e7c3b492f76e829cd86a3a8123c39e23c8ccdd5059cf19
-generated_at: '2026-05-30T16:11:31.631Z'
+source_hash: b1a1f55db1184b529daed7abdd4ef0d7bdcf2a93562332147f14414a70e4c5b4
+generated_at: '2026-05-31T03:54:41.186Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -73,8 +73,9 @@ Shows: the decomposition, the **real** ResolverPlans (resolve IS executed — it
 - HITL: runtime Tier A; Tier-B+ capability legs surfaced by `deepask/execute` (S3), never auto-run.
 
 ## Outputs
-- `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` always; `plan.json`; `sources.json`; rendered artifact from S4–S5).
-- `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) rows.
+- **Default (`inline`, no `--format`):** the cited Pyramid answer rendered **into the conversation** — no files.
+- **File mode (explicit `--format`):** `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` + `plan.json` + `sources.json` + rendered artifact from the Format Engine).
+- `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) rows — written in **both** modes (`artifact_path` is NULL in inline mode).
 
 ## HITL
 Tier A (read/synthesize). Tier-B+ capability legs surfaced for approval (S3).
