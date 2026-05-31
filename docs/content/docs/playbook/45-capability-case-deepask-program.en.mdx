@@ -1,0 +1,106 @@
+---
+title: "Chương 45 — Capability Case Study: Chương trình /deepask (resolver-plan → deepask)"
+description: "Chương 45 — Capability Case Study: Chương trình /deepask (resolver-plan → deepask)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/45-capability-case-deepask-program.md
+source_hash: c448f02a6d7c31874e45d0cbe7b5c7fb78fdbf265370cbae1ba5de19f3e36869
+generated_at: '2026-05-31T03:53:40.088Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: c448f02a6d7c31874e45d0cbe7b5c7fb78fdbf265370cbae1ba5de19f3e36869
+translated_at: '2026-05-31T03:53:40.088Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 45
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Founder muốn một câu lệnh duy nhất trả lời được câu hỏi khó, cross-pillar — 'mình có đang on-track cho 100-paying-who-love không, và cái gì đang chặn, xét trên product + GTM + customer?' — bằng cách federate cả retrieval LẪN capability-execution trên TOÀN BỘ internal IA, rồi trả về câu trả lời cited, authority-ranked, conflict-aware, đẹp. Nhưng có một ràng buộc cứng: deepask KHÔNG được tự route. Nó phải là consumer thuần của resolver. Hệ quả: phải ship HAI capability theo thứ tự — resolver-plan trước (biến resolver thành planner 2-trục), rồi deepask sau (consumer). Đây là case study đầu tiên về một CHƯƠNG TRÌNH 2-capability với dependency rõ ràng, và là minh hoạ sạch nhất cho 'risk-first sprint sequencing'."*
+
+Chương này document **chương trình /deepask** — hai capability ship tuần tự qua Bài #20 (CLA), trong 1 ngày (2026-05-30): **resolver-plan** (Capability 1, prerequisite) và **deepask** (Capability 2, consumer). Cả hai đều đạt `operating`. deepask là capability tổng hợp tri thức (knowledge-synthesis) nền tảng của ritsu-works.
+
+**Trạng thái:** cả hai `operating` 2026-05-30. resolver-plan PRs #157-#161 (migration 00044 audit-repair applied). deepask PRs #165-#170 (migration 00045 applied). ops.capability_runs id `46bec9c9-…` (deepask); Tier C decision `861f8eb4-…` slug `deepask-architecture-option-b`.
+
+---
+
+## 45.1 Bài toán — không có entry point nào COMPOSE các nguồn
+
+ritsu-works là một OS lớn: 11 pillars, ~494 catalog recipients trên 14 kinds, mô hình 4-tier, hai Supabase project, gbrain, wiki, hàng chục skill/agent/SOP, MCP conduit. Để trả lời một câu hỏi khó cross-cutting, operator phải *tự* biết query nguồn nào trong hàng chục surface, query từng cái, tự reconcile xung đột/stale, rồi tự format. Có sẵn các lệnh single-source (`/brain`, `/wiki ask`) nhưng **không cái nào COMPOSE chúng**.
+
+**Ràng buộc cứng (founder-locked):** deepask có **ZERO routing**. Nó là consumer thuần của resolver — bộ não routing duy nhất — bộ não này plan trên **2 trục**: **content** (câu trả lời nằm ở đâu) và **capability** (chạy gì để tạo ra nó). Không được xây source-map song song.
+
+→ Hệ quả kiến trúc: resolver hiện tại trả về một flat list, KHÔNG có khái niệm content-vs-capability first-class. Vậy phải **nâng cấp resolver trước** thành planner 2-trục (Capability 1), rồi deepask mới consume được (Capability 2). Đây là gốc rễ của packaging 2-capability.
+
+## 45.2 Bốn quyết định khoá (founder, AskUserQuestion)
+
+| Fork | Lựa chọn | Hệ quả |
+|---|---|---|
+| **F1 · resolver↔deepask contract** | **Extend resolver** — axis tag + skill `resolver-plan` phát ra `ResolverPlan v1` (populated context_recipe) | 2-trục là first-class TRONG resolver; deepask zero-routing |
+| **F2 · catalog auto-sync** | **Full** — cron `resolver-catalog-sync` (auto-PR khi drift) + coverage-gate + deepask live-probe | catalog tự tươi; deepask không bao giờ "mù" |
+| **F3 · format engine v1** | **Full 12 formats** ngay v1 | build lớn hơn; 1 adapter / format, bridge các session-only skill |
+| **F4 · packaging** | **Hai capability** — resolver-plan TRƯỚC, rồi deepask | hai ceremony; dependency sạch |
+
+## 45.3 Capability 1 — resolver-plan (planner 2-trục)
+
+resolver-plan biến resolver thành một **planner 2-trục first-class với catalog tự-tươi**:
+- **axis tag** deterministic (content | capability | meta) — map kind→axis, thêm vào `catalog-generator.cjs` + `mcp__supabase-ops__resolver_find` (KHÔNG LLM trong subprocess → giữ subscription billing).
+- **candidate enrichment**: hitl_tier + side_effect (capability), authority + freshness + grounding_ref + columns_hint (content) — phần lớn derived.
+- **skill `resolver-plan`** (session-model) → `ResolverPlan v1` = một context_recipe populated.
+- **`/resolver plan "<intent>"`** surface + schema versioned `knowledge/schemas/resolver-plan.schema.json`.
+- **catalog auto-freshness**: GitHub Action nightly (Edge không git/gh được → deviation có chủ đích) + axis validator + coverage WARN→CRITICAL.
+- **plan-mode audit** trong `ops.resolver_decisions` (additive `plan_payload`).
+
+Bài học resolver-plan: @cto Phase-5 review bắt được một bug LIVE (`ops.resolver_decisions.mode char(1)` audit vỡ từ 2026-05-23) → migration 00044 vừa ship feature vừa **repair** bug. Đây là giá trị của review-gate trên một capability "chỉ mở rộng".
+
+## 45.4 Capability 2 — deepask (5-stage loop + Format Engine)
+
+`/deepask "<q>" [--format][--sources][--depth][--dry-run]` chạy vòng lặp 5 bước:
+
+1. **decompose** → MECE sub-needs, mỗi cái gắn IA-type A/B/C/D, depth-bounded ≤6 (standard)/≤12 (deep).
+2. **resolve** → mỗi sub-need gọi resolver-plan → `ResolverPlan v1` (content_axis + capability_axis + governance + goal_metrics + no_coverage). deepask **không route**.
+3. **execute / fan-out** (parallel) → ĐỌC content_axis + CHẠY capability_axis (auto Tier-A; surface Tier-B+; refuse D-MAX); ủy quyền web cho `deep-research`. deepask **tự viết** SQL read-only / câu wiki_ask / params — grounded trong `grounding_ref`/`columns_hint`, **không bịa tên cột** (nguyên tắc CLAUDE.md #3); self-correct có giới hạn (đọc lại schema → retry 1 lần → honest no_coverage, không bao giờ bịa kết quả).
+4. **synthesize** → Pyramid (kết luận trước); **mọi claim đều cite**; authority-rank (SoR thắng fact, memory thắng judgement); flag conflict; tag freshness; adversarial-verify; phát ra IR format-agnostic.
+5. **completeness-critic** → coverage matrix + MECE re-check + live-probe → **COMPLETE | PARTIAL-WITH-HONEST-GAPS** (+ remedy chính xác); ≤1 follow-up round.
+
+**Format Engine:** IR → dispatch table → artifact, **tái sử dụng** skill có sẵn (anthropic-skills:\{pdf,docx,pptx,xlsx,canvas-design}, mermaid MCP, design:*, playbook-builder). 12 formats + smartauto. **Default = `inline`** (refinement v1.0.1, 2026-05-31): không gõ `--format` → câu trả lời cited render **thẳng vào hội thoại, KHÔNG tạo file** (vì đa số câu hỏi cần câu trả lời nhanh, không cần artifact trên đĩa). Chỉ khi gõ `--format` (kể cả `smartauto`) mới sang **file mode**: artifacts → `.archives/deepask/<date>-<slug>/` (`answer.md` + `plan.json` + `sources.json` + bản render). Audit rows (`ops.deepask_runs`/`_coverage`) ghi ở CẢ hai mode (`artifact_path` = NULL khi inline).
+
+## 45.5 Phát hiện định hình lại build — resolver breaker dùng chung SESSION-WIDE
+
+Trong Phase 2 (Domain), @cto bắt được điều mà brainstorm bỏ sót: resolver breaker `SESSION_HARD_CAP=20` (`mcp-server/src/tools/resolver-find.ts:43`) là **dùng chung cả session** và chỉ reset sau 4h idle (`:45,74`), KHÔNG reset giữa burst. Vì resolver-plan tiêu đúng 1 `resolver_find`/sub-need + critic có thể thêm 1 follow-up round, nên **bound ≤6/≤12 là CẦN nhưng KHÔNG ĐỦ**: 12 + follow-up + sibling calls > 20 → trip call 21 → một `no_coverage` *giả* trông như thật.
+
+→ Quyết định Option B (risk-first): Sprint 1 phải gate trên một **resolver-budget accountant** (đọc `session_finds_count` từ response, dự trữ follow-up round, degrade thành **honest PARTIAL** với `gap_reason='breaker_budget'` thay vì no_coverage giả) — **trước** Format Engine. Đây là minh hoạ: review-gate biến một rủi ro ẩn (bound tĩnh tưởng an toàn) thành một component Sprint-1 có chủ đích.
+
+Muse panel `high-stakes-decision-panel`: **4/5 APPROVE** (cynic HOLD vì breaker-burst + format-portability — đúng là 2 mitigation của Option B). @cto verdict: **NITS** (đã resolve vào spec).
+
+## 45.6 Thực thi — 6 sprint, mỗi sprint 1 helper deterministic + test
+
+deepask là markdown skill-suite, nhưng 3 bảo chứng KHÓ NHẤT được mã hoá thành **pure function có test exhaustive** (không "hy vọng prompt đúng"):
+
+| Sprint | PR | Deliverable + helper deterministic |
+|---|---|---|
+| S1 | #165 | command + orchestrator + **`breaker-budget.cjs`** (budget accountant) + decompose + execute(read-only) + **migration 00045** (ops.deepask_runs/coverage) |
+| S2 | #166 | synthesize + completeness-critic + **`citation-audit.cjs`** (zero-uncited guardrail) |
+| S3 | #167 | execute capability-RUN leg + **`capability-gate.cjs`** (auto_run/surface/refuse) + deep-research → vòng lặp đầy đủ |
+| S4 | #168 | Format Engine umbrella + dispatch table (doc family) + **`format-select.cjs`** (smartauto) |
+| S5 | #169 | visual adapters (all 12) + **`artifact-path.cjs`** (slug fs-safe) |
+| S6 | #170 | 3 KPIs + SOP-AIOPS-005 + Phase-8 promotion → `operating` |
+
+5 helper, **124 All-Edge-Cases tests** (bao gồm broken/security: path-traversal `../../etc/passwd` → slug fs-safe `etc-passwd`; null/non-array citations → uncited; followUpReserve≥hardCap → graceful). 0 net-new full-suite failure suốt 6 PR.
+
+**Pattern rút ra — "deterministic-helper-per-sprint":** một capability bản chất là markdown (session-model executes) vẫn có thể *thực sự testable* nếu mỗi sprint kết tinh quyết định then-chốt thành 1 pure `.cjs` + bộ test. Quyết định "read-vs-run", "đủ-citation", "budget-breaker", "chọn-format", "slug" đều deterministic — đừng để chúng là improv của LLM.
+
+## 45.7 Deviation được reconcile tại Phase 8
+
+Spec §4.1 vẽ **12 folder adapter / format**. Khi tới S4, resolver INDEX đã ~14k/15k token hard-cap — thêm 12 catalog entry sẽ vỡ cap. → Triển khai thành **1 umbrella skill `deepask/format` + dispatch table** (+1 catalog entry thay vì +12). Outcome y hệt (đủ 12 format, reuse, IR, smartauto, extensible: format mới = 1 dòng dispatch + 1 entry availability). **Accepted** làm cấu trúc operating; ghi rõ trong spec + retrospective + registry. Bài học: một ràng buộc thật (token budget) có thể hợp lý hoá một deviation khỏi spec đã-duyệt — miễn là OUTCOME bất biến và deviation được document + reconcile minh bạch.
+
+## 45.8 Trạng thái cuối + bài học chương trình
+
+- **resolver-plan operating** (PRs #157-#161); **deepask operating** (PRs #165-#170); migration 00044 + 00045 applied; SOP-AIOPS-005; 3 KPIs (`deepask.complete_verdict_rate`/`uncited_claim_rate`=0/`breaker_trip_rate`); cost-bucket `ai-ops-deepask`.
+- **Zero-routing verified**: mọi routing đi qua resolver-plan; kiểm chứng được trong `plan.json`.
+- **Firewall + cap + breaker** đều cứng: product chỉ qua `metrics.*`; gbrain dưới $100/mo; breaker được accountant quản.
+
+**Ba bài học cho playbook:**
+1. **Risk-first sprint sequencing** — gate rủi ro #1 (do review-gate chỉ ra) ở Sprint 1; chứng minh core loop trước khi làm breadth. Option B thắng Option A (spec-faithful) chính vì điều này.
+2. **Deterministic-helper-per-sprint** — giữ một markdown-capability testable bằng cách kết tinh mỗi quyết định then-chốt thành pure function + All-Edge-Cases test.
+3. **Honesty contract như acceptance gate** — "đừng nói dối, đừng leak" (zero-uncited + negative no-coverage test + firewall hook) được wired vào acceptance, không phải aspiration. Đây là điều khiến một synthesizer đáng tin.

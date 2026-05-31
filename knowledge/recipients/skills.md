@@ -358,7 +358,7 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 
 **Kind:** skill
 **Axis:** capability
-**When to use:** > The Format Engine. Consumes the synthesis IR (from deepask/synthesize, spec §5.1) and > produces the artifact for --format. Reuses existing skills — never rebuilds a renderer. > > Structure note (deviation from spec §4.1): the spec drafted 12 per-format adapter > folders. To stay under the resolver INDEX token hard-cap (~14k/15k; +12 catalog entries > would breach it) and for maintainability, this is ONE umbrella skill with a dispatch > table. Extensibility is preserved — adding a format = one new row + a reuse pointer. > To be reconciled at Phase-8 promotion.
+**When to use:** > The Format Engine. Consumes the synthesis IR (from deepask/synthesize, spec §5.1) and > either renders it inline into the conversation (DEFAULT, no files) or — when an explicit > --format is given — produces a file artifact. Reuses existing skills — never rebuilds a renderer. > > Structure note (deviation from spec §4.1): the spec drafted 12 per-format adapter > folders. To stay under the resolver INDEX token hard-cap (~14k/15k; +12 catalog entries > would breach it) and for maintainability, this is ONE umbrella skill with a dispatch > table. Extensibility is preserved — adding a format = one new row + a reuse pointer. > To be reconciled at Phase-8 promotion.
 
 **Invoke:** `Skill({ skill: "deepask/format" })`
 **HITL tier:** B

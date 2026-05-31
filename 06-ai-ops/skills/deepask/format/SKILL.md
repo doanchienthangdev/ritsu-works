@@ -1,12 +1,13 @@
 ---
 name: format
-description: deepask Format Engine — renders the format-agnostic synthesis IR into the requested --format artifact by REUSING existing renderer skills (no bespoke renderers). Dispatch-table architecture: each format = one row mapping to its reuse-skill (adding a format = a new row + reuse pointer). smartauto picks the best available format via scripts/deepask/format-select.cjs. Always writes canonical answer.md; rich formats degrade gracefully to answer.md + a note when a session skill is unavailable.
+description: deepask Format Engine — renders the format-agnostic synthesis IR into the requested output by REUSING existing renderer skills (no bespoke renderers). DEFAULT (no --format) = inline: the answer is rendered straight into the conversation (no files). Any explicit --format = file mode: writes the artifact dir. Dispatch-table architecture: each format = one row mapping to its reuse-skill (adding a format = a new row + reuse pointer). smartauto picks the best available file format via scripts/deepask/format-select.cjs. In file mode always writes canonical answer.md; rich formats degrade gracefully to answer.md + a note when a session skill is unavailable.
 ---
 
 # deepask/format (capability `deepask` v1.0)
 
 > The Format Engine. Consumes the synthesis IR (from `deepask/synthesize`, spec §5.1) and
-> produces the artifact for `--format`. **Reuses existing skills — never rebuilds a renderer.**
+> either renders it **inline into the conversation (DEFAULT, no files)** or — when an explicit
+> `--format` is given — produces a file artifact. **Reuses existing skills — never rebuilds a renderer.**
 >
 > **Structure note (deviation from spec §4.1):** the spec drafted 12 *per-format* adapter
 > folders. To stay under the resolver INDEX token hard-cap (~14k/15k; +12 catalog entries
@@ -23,15 +24,17 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 
 ## Process
 
-### 1. Resolve the target format
-- Explicit `--format=<x>` → use `<x>` directly.
-- `--format=smartauto` (default) → `scripts/deepask/format-select.cjs` `selectFormat({intent})` (classify `intent` from the question + IR). As of **Sprint 5 the default `available` set is `ALL_FORMATS`** — every adapter is built. Returns `{format, reason, fellBack}`; record `reason` in `plan.json`.
+### 1. Resolve the target format / mode
+- **No `--format` (DEFAULT) → `inline` mode:** render the cited answer **into the conversation**; write **NO files**. Skip `format-select` and the artifact dir entirely — go to the `inline` dispatch row in §2. This is the common path for quick questions (you asked, you read the answer in chat).
+- Explicit `--format=<x>` → **file mode**; use `<x>` directly.
+- Explicit `--format=smartauto` → **file mode**; `scripts/deepask/format-select.cjs` `selectFormat({intent})` (classify `intent` from the question + IR). As of **Sprint 5 the default `available` set is `ALL_FORMATS`** — every adapter is built. Returns `{format, reason, fellBack}`; record `reason` in `plan.json`.
 
-### 2. Dispatch table (all 12 formats)
+### 2. Dispatch table (inline default + 12 file formats)
 | `--format` | reuse | how |
 |---|---|---|
-| `text` | native | flatten the IR (exec_summary + sections→claims, each with its citation) to plain text |
-| `article` | native Markdown | the **canonical `answer.md`** — Pyramid prose, every claim with inline `[source-ref]`, a Conflicts section, a Freshness note, and a Coverage/Gaps section if PARTIAL. Always written regardless of `--format`. |
+| **`inline`** (DEFAULT) | native (conversational) | render the IR **into the chat response**: Pyramid prose (exec_summary → sections → claims, each with an inline `[source-ref]`), then a **Sources** list, plus Conflicts + Coverage/Gaps sections when present. **Writes NO files** (no artifact dir). The conversational answer *is* the deliverable. |
+| `text` | native | (file) flatten the IR (exec_summary + sections→claims, each with its citation) to plain text |
+| `article` | native Markdown | (file) the **canonical `answer.md`** — Pyramid prose, every claim with inline `[source-ref]`, a Conflicts section, a Freshness note, and a Coverage/Gaps section if PARTIAL. Always written in **file mode** (regardless of which file `--format`). |
 | `pdf` | `anthropic-skills:pdf` (portable) or `playbook-builder` (WeasyPrint, Mac-local) | render the article MD → PDF |
 | `docx` | `anthropic-skills:docx` | IR sections/tables → Word |
 | `pptx` | `anthropic-skills:pptx` | exec_summary → title; each section → a slide; tables/charts as slide objects |
@@ -45,9 +48,9 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 
 deepask AUTHORS the concrete invocation of each reuse-skill (frames its inputs from the IR); the reuse-skill does the rendering.
 
-### 3. Artifact layout (always)
-Write to `.archives/deepask/<YYYY-MM-DD>-<slug>/`:
-- **`answer.md`** — the canonical cited article (ALWAYS, regardless of `--format`).
+### 3. Artifact layout (FILE MODE ONLY — skipped entirely in `inline` default)
+**Inline mode (default) writes nothing to disk** — the cited answer + Sources list live in the conversation; only the Stage-7 `ops.deepask_runs`/`ops.deepask_coverage` audit rows are written (DB rows, not files), with `artifact_path = NULL`. In **file mode** (any explicit `--format`), write to `.archives/deepask/<YYYY-MM-DD>-<slug>/`:
+- **`answer.md`** — the canonical cited article (ALWAYS in file mode, regardless of which `--format`).
 - **`plan.json`** — decomposition + ResolverPlans + coverage matrix + smartauto `reason`.
 - **`sources.json`** — the citation ledger (every `source-ref` with recipient_id, axis, authority, freshness, retrieved_at).
 - **`<artifact>.<ext>`** — the rendered `--format` output (when not `text`/`article`).
@@ -57,7 +60,7 @@ If a reuse-skill is unavailable in the session (e.g., `anthropic-skills:pdf` abs
 
 ## Constraints
 - **Reuse only** — no bespoke rendering engine. New format = new dispatch row + reuse pointer (+ add it to `format-select` availability when built).
-- `answer.md` is always written (the durable, portable answer).
+- **Mode contract:** no `--format` → `inline` (conversational answer, **zero files**); any explicit `--format` → file mode where `answer.md` is always written (the durable, portable answer). Inline is the default because most questions want a fast answer, not an artifact.
 - No new content/claims at render time — the Format Engine only *re-presents* the IR (which already passed `citation-audit`); it never adds an uncited claim.
 
 ## HITL / cost

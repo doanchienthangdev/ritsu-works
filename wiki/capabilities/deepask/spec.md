@@ -11,6 +11,8 @@
 
 ---
 
+> **v1.0.1 refinement (2026-05-31, founder-directed) — inline default.** The runtime **default output mode is now `inline`**: when `--format` is omitted, `/deepask` renders the cited Pyramid answer **directly into the conversation and writes NO files**. The `.archives/deepask/<date>-<slug>/` artifact dir (`answer.md` + `plan.json` + `sources.json` + rendered artifact) is produced **only in file mode** — i.e. when any explicit `--format` is given (including `smartauto`). The DB audit/learning rows (`ops.deepask_runs` / `ops.deepask_coverage`) are written in **both** modes (`artifact_path` is NULL inline). Rationale: most questions want a fast answer, not an artifact on disk. The §1/§2 text below describes the as-designed Phase-5 contract (where `answer.md` was "always-on"); this note states the current operating default. Authoritative: `.claude/commands/deepask.md` + `06-ai-ops/skills/deepask/format/SKILL.md` + `SOP-AIOPS-005`.
+
 ## 1. Problem statement (carried from Phase 1)
 
 Ship `/deepask "<q>" [--format][--sources][--depth][--dry-run]` — a **zero-routing** federated synthesizer that decomposes a question into MECE sub-needs, consumes a 2-axis `ResolverPlan v1` from `resolver-plan` per sub-need, fans out parallel reads + Tier-A capability runs across all 4 IA types, and returns a Pyramid-structured answer with **100% of claims cited**, authority-ranked, conflict-flagged, freshness-tagged, in one of **12 output formats** — OR an **honest no-coverage gap + remedy**. Never a hallucination; never silent partial.

@@ -7,14 +7,14 @@ description: >-
   writes ops.deepask_runs/coverage. deepask has ZERO routing of its own — it consumes ResolverPlan
   v1 from resolver-plan. Invoked by /deepask.
 source_path: 06-ai-ops/skills/deepask/orchestrator/SKILL.md
-source_hash: fd6e6057b397afedc3e7c3b492f76e829cd86a3a8123c39e23c8ccdd5059cf19
-generated_at: '2026-05-30T16:11:31.631Z'
+source_hash: b1a1f55db1184b529daed7abdd4ef0d7bdcf2a93562332147f14414a70e4c5b4
+generated_at: '2026-05-31T03:54:41.186Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_source_hash: fd6e6057b397afedc3e7c3b492f76e829cd86a3a8123c39e23c8ccdd5059cf19
-translated_at: '2026-05-30T16:30:00Z'
+translated_at: '2026-05-31T11:00:00Z'
+translated_source_hash: b1a1f55db1184b529daed7abdd4ef0d7bdcf2a93562332147f14414a70e4c5b4
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -61,7 +61,10 @@ Invoke `deepask/execute` per sub-need (parallel). S1 reads `content_axis` only; 
 ### Stage 4–5 — Synthesize + completeness-critic (S2)
 Cho đến khi S2 lands, assemble a read-only evidence bundle: a cited `answer.md` stub (mỗi evidence item carries its source-ref) + `plan.json` (decomposition + ResolverPlans + coverage matrix) + `sources.json`. Full Pyramid synthesis + the COMPLETE/PARTIAL verdict + the ≤1 bounded follow-up arrive with `deepask/synthesize` + `deepask/completeness-critic`.
 
-### Stage 6 — Observe (write the audit + learning rows)
+### Stage 6 — Format Engine
+Invoke `deepask/format` với synthesis IR. Nếu không `--format` → **inline mode** (render vào conversation, không file). Nếu explicit `--format` → **file mode** (artifact dir).
+
+### Stage 7 — Observe (write the audit + learning rows)
 - INSERT one `ops.deepask_runs` row: `question, format, depth, sources_filter, dry_run, verdict, sub_need_count, resolver_find_calls, recipients_touched, artifact_path, cost_usd, latency_ms`.
 - INSERT one `ops.deepask_coverage` row per sub-need: `sub_need, ia_type, planned_recipients, executed, got_data, gap_reason, remedy`.
 - `--dry-run`: write ONLY the `dry_run=true` `ops.deepask_runs` row; perform zero reads/runs/other writes (nhưng Stage 2 DID call resolver-plan to show real plans — its breaker cost is real and labeled).
@@ -76,8 +79,9 @@ Shows: the decomposition, the **real** ResolverPlans (resolve IS executed — n�
 - HITL: runtime Tier A; Tier-B+ capability legs surfaced bởi `deepask/execute` (S3), không bao giờ auto-run.
 
 ## Đầu ra
-- `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` always; `plan.json`; `sources.json`; rendered artifact từ S4–S5).
-- `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) rows.
+- **Default (`inline`, không `--format`):** câu trả lời Pyramid được trích dẫn render **vào cuộc trò chuyện** — không có file.
+- **File mode (explicit `--format`):** `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` + `plan.json` + `sources.json` + rendered artifact từ Format Engine).
+- `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) rows — written trong **cả hai** modes (`artifact_path` là NULL trong inline mode).
 
 ## HITL
 Tier A (read/synthesize). Tier-B+ capability legs surfaced for approval (S3).
@@ -87,3 +91,4 @@ Subscription (trong session) — cost-bucket `ai-ops-deepask`; logged to `ops.co
 
 ## Tests
 `scripts/deepask/breaker-budget.cjs` is unit-tested (`tests/deepask/breaker-budget.test.ts`, 27 cases incl. the cap off-by-one + honest-PARTIAL exhaustion). Loop-level tests (decompose MECE, firewall block, zero-routing trong plan.json, dry-run writes only a dry-run row) land per the spec §10 test matrix as their stages ship.
+

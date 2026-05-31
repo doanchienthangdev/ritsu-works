@@ -2,20 +2,21 @@
 title: 'Skill: deepask/format (capability `deepask` v1.0)'
 description: ''
 source_path: 06-ai-ops/skills/deepask/format/SKILL.md
-source_hash: 29af54000f375216003c9a9b5f7ddc4dce9e877fa8161ac64a4a5c33309562a2
-generated_at: '2026-05-30T16:11:31.631Z'
+source_hash: c6c5ef868c76a2186d405e7f9d084a391fe6e2f25986223b1cd0ca0149833007
+generated_at: '2026-05-31T03:54:41.181Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_source_hash: 29af54000f375216003c9a9b5f7ddc4dce9e877fa8161ac64a4a5c33309562a2
-translated_at: '2026-05-30T16:30:00Z'
+translated_at: '2026-05-31T11:00:00Z'
+translated_source_hash: c6c5ef868c76a2186d405e7f9d084a391fe6e2f25986223b1cd0ca0149833007
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
 > Format Engine. Tiêu thụ synthesis IR (từ `deepask/synthesize`, spec §5.1) và
-> produce artifact cho `--format`. **Reuse existing skills — không bao giờ rebuild renderer.**
+> hoặc render nó **inline vào cuộc trò chuyện (DEFAULT, không có file)** hoặc — khi một `--format`
+> rõ ràng được cung cấp — produce một file artifact. **Reuse existing skills — không bao giờ rebuild renderer.**
 >
 > **Structure note (deviation từ spec §4.1):** spec drafted 12 *per-format* adapter
 > folders. Để stay dưới resolver INDEX token hard-cap (~14k/15k; +12 catalog entries
@@ -34,17 +35,19 @@ translated_at: '2026-05-30T16:30:00Z'
 
 ## Quá trình
 
-### 1. Resolve target format
+### 1. Resolve target format / mode
 
-- Explicit `--format=<x>` → dùng `<x>` trực tiếp.
-- `--format=smartauto` (default) → `scripts/deepask/format-select.cjs` `selectFormat({intent})` (classify `intent` từ câu hỏi + IR). Kể từ **Sprint 5 default `available` set là `ALL_FORMATS`** — mỗi adapter được built. Trả về `{format, reason, fellBack}`; record `reason` trong `plan.json`.
+- **Không `--format` (DEFAULT) → `inline` mode:** render câu trả lời được trích dẫn **vào cuộc trò chuyện**; viết **KHÔNG file nào**. Bỏ qua `format-select` và artifact dir hoàn toàn — đi đến inline dispatch row trong §2. Đây là con đường phổ biến cho câu hỏi nhanh (bạn hỏi, bạn đọc câu trả lời trong chat).
+- Explicit `--format=<x>` → **file mode**; dùng `<x>` trực tiếp.
+- Explicit `--format=smartauto` → **file mode**; `scripts/deepask/format-select.cjs` `selectFormat({intent})` (classify `intent` từ câu hỏi + IR). Kể từ **Sprint 5 default `available` set là `ALL_FORMATS`** — mỗi adapter được built. Trả về `{format, reason, fellBack}`; record `reason` trong `plan.json`.
 
-### 2. Dispatch table (tất cả 12 format)
+### 2. Dispatch table (inline default + 12 file formats)
 
 | `--format` | reuse | cách |
 |---|---|---|
-| `text` | native | flatten IR (exec_summary + sections→claims, mỗi claims với citation) thành plain text |
-| `article` | native Markdown | **canonical `answer.md`** — Pyramid prose, mỗi claim với inline `[source-ref]`, Conflicts section, Freshness note, và Coverage/Gaps section nếu PARTIAL. Luôn được written bất kể `--format`. |
+| **`inline`** (DEFAULT) | native (conversational) | render IR **vào chat response**: Pyramid prose (exec_summary → sections → claims, mỗi claim với inline `[source-ref]`), sau đó một **Sources** list, cộng với Conflicts + Coverage/Gaps sections khi có. **Viết KHÔNG file nào** (không artifact dir). Câu trả lời conversational *là* deliverable. |
+| `text` | native | (file) flatten IR (exec_summary + sections→claims, mỗi claims với citation) thành plain text |
+| `article` | native Markdown | (file) **canonical `answer.md`** — Pyramid prose, mỗi claim với inline `[source-ref]`, Conflicts section, Freshness note, và Coverage/Gaps section nếu PARTIAL. Luôn được written trong **file mode** (bất kể `--format` nào). |
 | `pdf` | `anthropic-skills:pdf` (portable) hoặc `playbook-builder` (WeasyPrint, Mac-local) | render article MD → PDF |
 | `docx` | `anthropic-skills:docx` | IR sections/tables → Word |
 | `pptx` | `anthropic-skills:pptx` | exec_summary → title; mỗi section → slide; tables/charts như slide objects |
@@ -58,10 +61,10 @@ translated_at: '2026-05-30T16:30:00Z'
 
 deepask AUTHORS concrete invocation của mỗi reuse-skill (frames inputs từ IR); reuse-skill làm rendering.
 
-### 3. Artifact layout (luôn)
+### 3. Artifact layout (FILE MODE ONLY — bỏ qua hoàn toàn trong `inline` default)
 
-Viết vào `.archives/deepask/<YYYY-MM-DD>-<slug>/`:
-- **`answer.md`** — cited article canonical (LUÔN, bất kể `--format`).
+**Inline mode (default) viết không gì vào disk** — câu trả lời được trích dẫn + Sources list sống trong cuộc trò chuyện; chỉ Stage-7 `ops.deepask_runs`/`ops.deepask_coverage` audit rows được viết (DB rows, không phải file), với `artifact_path = NULL`. Trong **file mode** (bất kỳ `--format` rõ ràng nào), viết vào `.archives/deepask/<YYYY-MM-DD>-<slug>/`:
+- **`answer.md`** — cited article canonical (LUÔN trong file mode, bất kể `--format` nào).
 - **`plan.json`** — decomposition + ResolverPlans + coverage matrix + smartauto `reason`.
 - **`sources.json`** — citation ledger (mỗi `source-ref` với recipient_id, axis, authority, freshness, retrieved_at).
 - **`<artifact>.<ext>`** — rendered `--format` output (khi không `text`/`article`).
@@ -73,7 +76,7 @@ Nếu reuse-skill không có sẵn trong session (ví dụ, `anthropic-skills:pd
 ## Constraints
 
 - **Reuse chỉ** — không bespoke rendering engine. New format = new dispatch row + reuse pointer (+ add nó vào `format-select` availability khi được built).
-- `answer.md` luôn được viết (durable, portable answer).
+- **Mode contract:** không `--format` → `inline` (conversational answer, **zero file**); bất kỳ `--format` rõ ràng nào → file mode nơi `answer.md` luôn được viết (câu trả lời durable, portable). Inline là default vì hầu hết câu hỏi muốn câu trả lời nhanh, không artifact.
 - Không new content/claims ở render time — Format Engine chỉ *re-presents* IR (đã pass `citation-audit`); nó không bao giờ add uncited claim.
 
 ## HITL / cost
@@ -83,3 +86,4 @@ Tier A (rendering là local/in-session). Cost-bucket `ai-ops-deepask`. PDF/docx/
 ## Tests (per spec §10)
 
 `scripts/deepask/format-select.cjs` unit-tested (`tests/deepask/format-select.test.ts`, 23 cases — mỗi intent × availability, fallback flag, validation). Skill-level (land per sprint): mỗi doc adapter render IR → valid artifact; **smartauto picks sane format per intent**; **`answer.md` luôn được written**; artifact dir layout đúng; **graceful-degrade path** viết answer.md + note khi reuse-skill missing.
+
