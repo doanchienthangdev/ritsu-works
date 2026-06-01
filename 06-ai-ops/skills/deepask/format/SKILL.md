@@ -37,6 +37,14 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 
 **Visual** formats (html/dashboard/interactive/canvas/pptx/pdf/docx/chart/mermaid + the v1.1 image formats **infographics/img-slide**) → tokens drive the look. For the image formats the style coupling is the STRONGEST: the resolved tokens + DESIGN.md prose become the "brand style block" `deepask/image-compose` injects into every gpt-image-2 prompt (so `--style=ritsu` ⇒ cyan/slate/Inter imagery; plain ⇒ neutral editorial). **Non-visual** (inline/text/article/xlsx) → honest no-op (at most a cover/accent note). Full contract: `SOP-AIOPS-007-design-system-runtime-contract`.
 
+### 1.5b `--art-style=<name>` — artistic GENRE injection (image → code-rendered too, v1.2.x)
+`--art-style` is the SECOND, orthogonal axis — the artistic genre (`knowledge/art-styles.yaml`, resolved ONCE via `scripts/deepask/art-style.cjs` `resolveArtStyle(name)`; CLOSED registry → hard-fail on an unknown name, AD-3). It now drives **both** kinds of visual output:
+- **Image formats** (infographics/img-slide) → the genre is the GENRE block in the gpt-image-2 prompt (`deepask/image-compose` §1b).
+- **Code-rendered visual formats** (`html`/`dashboard`/`interactive`/`canvas`/`chart` + `pdf`-via-html) → **v1.2.x**: the resolved genre is passed as design context INTO the §2 reuse-renderer (`design:*`/`frontend-design`) and consumed by `deepask/aesthetic` **Part 2** (the code-rendered checklist): `genre.layout`→page composition, `genre.assets`→CSS illustration motifs / decorative treatment (drawn in the brand palette, never raster clip-art), `genre.tone`→mood, `genre.secondary_palette`→secondary accents, `genre.display_type`→headline feel.
+- **Non-visual / native-doc** (`inline`/`text`/`article`/`xlsx`/`docx`/`pptx`/`mermaid`) → genre is an honest **no-op** (no illustration surface; the brand `--style` still applies where it did). *(Native docx/pptx theme-per-genre = a future extension.)*
+
+**Precedence identical to the image branch: brand (`--style`) core palette / logo / body-type ALWAYS WIN > legibility/a11y > genre (`--art-style`) > art-direction > content density.** Like `--style`, `--art-style` is DATA — it NEVER adds a §2 dispatch row (AD-4). The logo-data-URI + the honesty invariant carry over to code-rendered outputs.
+
 ### 2. Dispatch table (inline default + 12 file formats)
 | `--format` | reuse | how |
 |---|---|---|
@@ -56,7 +64,7 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 | `infographics` *(v1.1, image)* | `deepask/image-compose` → `scripts/deepask/image-gen.cjs` (gpt-image-2) | ONE poster image; `--orientation=landscape\|portrait`; style-block-driven |
 | `img-slide` *(v1.1, image)* | `deepask/image-compose` → `image-gen.cjs` (×N) → `scripts/deepask/slide-deck.cjs` | a **16:9** deck: `slides/NN-*.png` folder **+** combined `slides.pdf` |
 
-deepask AUTHORS the concrete invocation of each reuse-skill (frames its inputs from the IR); the reuse-skill does the rendering.
+deepask AUTHORS the concrete invocation of each reuse-skill (frames its inputs from the IR); the reuse-skill does the rendering. **For the code-rendered visual rows (`chart`/`dashboard`/`html`/`interactive`/`canvas`, + `pdf`-via-html), deepask passes BOTH the resolved `--style` brand tokens AND the resolved `--art-style` genre (§1.5b) as design context — the renderer applies `aesthetic` Part 2 (brand wins, genre dresses the data).**
 
 ### 2.5 Image pipeline (v1.1 — `infographics` · `img-slide`, gpt-image-2)
 These two formats render via OpenAI image generation, so they have an extra pipeline + flags + a cost gate. They are **explicit-only** (never returned by `smartauto` — image gen spends money).

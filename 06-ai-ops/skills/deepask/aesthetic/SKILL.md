@@ -41,6 +41,13 @@ The `/design:good` floor (MUST all be true) **+** the extraordinary additions:
 
 **DON'T:** flood the accent; use >2 font families; lorem/placeholder; emoji as iconography; raw HTML-default tables/charts; drop-shadow soup; centered walls of text.
 
+**Genre (`--art-style`) for code-rendered outputs (v1.2.x).** When `--art-style` resolves `styled` (via `resolveArtStyle`), consume the genre INTO the CSS aesthetic — **subordinate to the brand** (brand palette / logo / body-type win; legibility outranks genre):
+- `genre.layout` → the page composition / grid (isometric → isometric CSS cards; swiss-international → a strict modular grid; risograph → layered offset blocks; neo-glassmorphism → frosted floating panels).
+- `genre.assets` → decorative CSS illustration motifs (line-icon system / isometric platforms / grain-texture overlay / halftone dots) drawn **in the brand palette**, as CSS/SVG — NEVER stock or raster clip-art.
+- `genre.tone` → the mood; `genre.secondary_palette` → secondary accents ONLY (the brand hero color still leads); `genre.display_type` → the headline character (overridden by legibility for VN/diacritic-heavy copy).
+- **Honesty rule holds:** no load-bearing figure/claim may exist ONLY as a decorative motif — every number stays legible, cited text; the genre dresses the data, it never replaces it.
+- Plain (`--art-style` omitted) → the neutral editorial aesthetic (today's behavior). Brand `--style` still drives palette/logo when set.
+
 ## Part 3 — IMAGE art-direction block (infographics · img-slide, gpt-image-2)
 `deepask/image-compose` appends THIS block to every gpt-image-2 prompt, **after** the brand style block (brand wins on conflict). Adapt the nouns to the piece; keep it concrete:
 

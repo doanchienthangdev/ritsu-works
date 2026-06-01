@@ -1165,8 +1165,8 @@ capabilities:
   - id: deepask
     name: "deepask — federated retrieval + capability-execution + cited synthesis supercommand"
     description: "First-class supercommand /deepask \"<q>\" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its own — a PURE CONSUMER of resolver-plan (Cap 1, the sole routing brain; 2-axis content/capability ResolverPlan v1). 5-stage loop: decompose (MECE sub-needs, IA-type A/B/C/D tags, depth-bounded ≤6/≤12) → resolve (per sub-need ResolverPlan v1 via resolver-plan) → execute/fan-out (parallel subagents READ content_axis + RUN Tier-A capability_axis only, surface Tier-B+, delegate web leg to deep-research; AUTHORS the concrete read-only SQL/wiki_ask/skill-params grounded in plan grounding_ref/columns_hint, never invents columns) → synthesize (Pyramid, every claim cited, authority-ranked, conflict-flagged, freshness-tagged, adversarial-verified; emits format-agnostic IR) → completeness-critic (coverage matrix + MECE re-check + live-probe; COMPLETE or PARTIAL-WITH-HONEST-GAPS + remedy; one bounded follow-up). FORMAT ENGINE: IR → 12 pluggable format-adapter skills (text·article·pdf·docx·pptx·xlsx·mermaid·chart·dashboard·html·interactive·canvas·smartauto) reusing anthropic-skills + mermaid MCP + design:*; artifacts → .archives/deepask/<date>-<slug>/. New ops.deepask_runs + ops.deepask_coverage tables mirror ops.resolver_decisions. Depends on capability resolver-plan (must be operating)."
-    version: "1.1.1"
-    state: operating           # Phase 8 promotion 2026-05-30; Sprints 1-6 merged (#165-#169 + S6). v1.1 + v1.1.1 extend 2026-06-01.
+    version: "1.2.0"
+    state: operating           # Phase 8 2026-05-30; Sprints 1-6 (#165-#169 + S6); v1.1+v1.1.1 extend 2026-06-01; v1.2.0 = art-style GENRE axis (#191) + genre→code-rendered formats (2026-06-01).
     proposed_at: 2026-05-30
     deployed_at: 2026-05-30
     operating_since: 2026-05-30
@@ -1181,6 +1181,14 @@ capabilities:
       #168 (Format Engine doc family + smartauto), #169 (visual formats — all 12).
       S6 = 3 KPIs (deepask.complete_verdict_rate/uncited_claim_rate/breaker_trip_rate)
       + SOP-AIOPS-005-deepask-runtime-contract + Phase-8 promotion.
+      v1.2.0 (2026-06-01): the artistic-genre axis. knowledge/art-styles.yaml
+      (80 genres) + scripts/deepask/{art-style,art-style-registry-io,
+      gen-art-styles-registry}.cjs + validate-art-styles.cjs + the --art-style/
+      --lang flags + image-compose/aesthetic re-arch (GENRE block + per-piece
+      focal_illustration + honesty gate) [PR #191], THEN extended to the
+      code-rendered visual formats (html/dashboard/interactive/canvas/chart +
+      pdf-via-html) via aesthetic Part-2 + format §1.5b. ops.decisions
+      deepask-image-uplift-v1-2-artistic-genre-axis + deepask-art-style-code-rendered-formats.
       v1.1.0 (2026-06-01, /cla extend, HITL B): +2 image formats infographics +
       img-slide (gpt-image-2, --style-aware via deepask/image-compose; new helpers
       scripts/deepask/{image-spec,image-cost,image-gen,slide-deck}.cjs; new flags
