@@ -63,9 +63,9 @@ describe("download builders", () => {
   });
 
   describe("buildFromRepoPlan (designmd hydration, no API key — AD-2)", () => {
-    it("plans a build via the design-system/build skill", () => {
+    it("plans a build via the design-system/build-from-repo skill", () => {
       const plan = buildFromRepoPlan("stripe", "https://github.com/x/stripe-design");
-      expect(plan).toMatchObject({ name: "stripe", repo: "https://github.com/x/stripe-design", skill: "design-system/build" });
+      expect(plan).toMatchObject({ name: "stripe", repo: "https://github.com/x/stripe-design", skill: "design-system/build-from-repo" });
       expect(plan.designMdPath.endsWith(path.join("stripe", "DESIGN.md"))).toBe(true);
       expect(plan.note).toMatch(/no DESIGNMD_API_KEY/i);
     });
