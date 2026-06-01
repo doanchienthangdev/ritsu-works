@@ -76,12 +76,12 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Multi design-system + universal --style output layer. PROPOSED via /cla (ops.capability_runs id fbd8edb1). A 'build once, use forever' output-styling layer. Two parts: (1) a managed LIBRARY of design systems — each = 1 folder + 1 DESIGN.md per the emerging Google Stitch / google-labs-code/design.md standard (YAML design tokens + Markdown rationale; ADOPT, do not invent); (2) a UNIVERSAL --style=<n v0.1.0
+**When to use:** Multi design-system + universal --style output layer. PROPOSED via /cla (ops.capability_runs id fbd8edb1). A 'build once, use forever' output-styling layer. Two parts: (1) a managed LIBRARY of design systems — each = 1 folder + 1 DESIGN.md per the emerging Google Stitch / google-labs-code/design.md standard (YAML design tokens + Markdown rationale; ADOPT, do not invent); (2) a UNIVERSAL --style=<n v1.0.0
 
 **Invoke:** `Read("wiki/capabilities/design-system-styling/spec.md")` or `/cla update design-system-styling`
 
 **Role scope:** *
-**Status:** implementing
+**Status:** operating
 **Pillar:** 06-ai-ops
 
 ## capability/docs-engine

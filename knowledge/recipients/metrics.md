@@ -7,7 +7,7 @@
 This file is THE source of truth for metric recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 
-**Total entries:** 98
+**Total entries:** 101
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -412,6 +412,51 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** knowledge/kpi-ownership.yaml#deepask.uncited_claim_rate
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
+
+## metric/design_system.library_size
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: scripts/design-system/registry-io.cjs readRegistry().design_systems.length. Source: knowledge/design-systems.yaml. Dashboard: founder-monday/system-health. Notes: Library ships populated (~15: ritsu + curated starter); grows via /design-system add..
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#design_system.library_size`
+**Authority:** SoR
+**Freshness:** unknown
+**Grounding:** knowledge/kpi-ownership.yaml#design_system.library_size
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
+
+## metric/design_system.style_resolve_failure_rate
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: COUNT(StyleResolveError in ops.agent_runs.output_payload) / total --style resolutions. Source: ops.agent_runs. Dashboard: founder-monday/system-health. Notes: < 5% healthy. Catches broken installs / cache-miss-in-CI..
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#design_system.style_resolve_failure_rate`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** knowledge/kpi-ownership.yaml#design_system.style_resolve_failure_rate
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
+
+## metric/design_system.styled_artifact_rate
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: COUNT(ops.deepask_runs WHERE metadata->>'style' IS NOT NULL AND artifact_path IS NOT NULL) / NULLIF(COUNT(file-mode runs),0). Source: ops.deepask_runs. Dashboard: founder-monday/system-health. Notes: R1 FALSIFIABILITY GATE — >= 6 distinct non-default --style artifacts within 60d of v1 (~2026-07-31) else /cla deprecate or de-scope. Muse data-pragmatist kil...
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#design_system.styled_artifact_rate`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** knowledge/kpi-ownership.yaml#design_system.styled_artifact_rate
 
 **Role scope:** gps
 **Status:** active
