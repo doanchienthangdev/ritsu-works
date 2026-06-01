@@ -30,7 +30,13 @@ const SRGB_HEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 function getByPath(root, dotted) {
   let node = root;
   for (const key of dotted.split('.')) {
-    if (node === null || typeof node !== 'object' || !(key in node)) return undefined;
+    // hasOwnProperty (NOT `key in node`) so inherited Object keys — {toString},
+    // {constructor}, {__proto__}, {hasOwnProperty} — resolve to undefined (→ a
+    // thrown "unresolved token reference") instead of leaking native built-ins
+    // into tokens from an untrusted downloaded DESIGN.md (PR #175 @cto review).
+    if (node === null || typeof node !== 'object' || !Object.prototype.hasOwnProperty.call(node, key)) {
+      return undefined;
+    }
     node = node[key];
   }
   return node;

@@ -131,4 +131,17 @@ describe("parseDesignMd", () => {
       expect(r.body).toContain("Design System");
     });
   });
+
+  describe("regressions", () => {
+    // PR #175 @cto review: getByPath used `key in node` (walks the prototype chain),
+    // so {toString}/{constructor}/{__proto__}/{hasOwnProperty} resolved to native
+    // built-ins instead of throwing. Reachable via an untrusted downloaded DESIGN.md.
+    // Fixed with Object.prototype.hasOwnProperty.call — these MUST throw unresolved.
+    it.each(["toString", "constructor", "__proto__", "hasOwnProperty", "valueOf"])(
+      "regression: inherited Object key {%s} throws 'unresolved token reference' (not a native built-in)",
+      (key) => {
+        expect(() => parseDesignMd(fm(`name: F\ncomponents:\n  x:\n    v: "{${key}}"`))).toThrow(/unresolved token reference/);
+      },
+    );
+  });
 });
