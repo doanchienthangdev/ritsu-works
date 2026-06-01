@@ -30,5 +30,11 @@ description: >-
 ## Verbs → helpers
 `list/show` → `registry-io`; `add` → `download`(getdesign); `build --from` → `design-system/build-from-repo` skill; `preview` → `parse-design-md`+render; `vendor`/`remove` → `registry-io` + git (HITL C for owned).
 
+## License gate (R2 — "downloaded ≠ redistributable")
+`add` / `build --from` / seed MUST call `assertCacheable(name, license)` (`scripts/design-system/license-gate.cjs`) BEFORE writing a cached DESIGN.md. **Fail-closed**: unknown / missing / restrictive license → refuse to cache; record the `license` in `knowledge/design-systems.yaml`.
+
+## First consumer — deepask (live)
+`/deepask --format=<visual> --style=<name>` is wired (`.claude/commands/deepask.md` + `06-ai-ops/skills/deepask/format/SKILL.md` §1.5): the resolved tokens inject as design context into the `--format` renderer; the dispatch table is unchanged (AD-4). `/docs` + playbook-builder inherit the same contract.
+
 ## Tiers · cost · events
 See `SOP-AIOPS-007-design-system-runtime-contract`. Cost-bucket `ai-ops-design-system`.

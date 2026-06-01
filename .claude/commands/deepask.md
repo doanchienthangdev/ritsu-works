@@ -1,7 +1,7 @@
 ---
 name: deepask
 description: Federated retrieval + capability-execution + cited synthesis over the ENTIRE internal IA. Zero-routing pure consumer of resolver-plan. Decompose → resolve → execute/fan-out → synthesize → completeness-critic → format. Returns a Pyramid, 100%-cited, authority-ranked, conflict-aware, freshness-tagged answer in 1 of 12 formats, OR an honest no-coverage gap + remedy. Internal-first (web leg delegated to deep-research). Tier A runtime (Tier-B+ legs surfaced, never auto-run).
-argument-hint: "\"<question>\" [--format=<...>] [--sources=<...>] [--depth=quick|standard|deep|exhaustive] [--dry-run]"
+argument-hint: "\"<question>\" [--format=<...>] [--style=<name>] [--sources=<...>] [--depth=quick|standard|deep|exhaustive] [--dry-run]"
 ---
 
 # /deepask
@@ -30,6 +30,7 @@ argument-hint: "\"<question>\" [--format=<...>] [--sources=<...>] [--depth=quick
 | Flag | Values | Effect |
 |---|---|---|
 | `--format` | **inline** (default) · text·article·pdf·docx·pptx·xlsx·mermaid·chart·dashboard·html·interactive·canvas·smartauto | **Omitted → `inline`:** the answer is rendered **straight into the conversation** (Pyramid + inline citations + a Sources list; Conflicts/Coverage sections when relevant) — **NO `.archives/deepask/` files written.** **Any explicit value** (incl. `smartauto`) → **file mode**: writes the artifact dir (`answer.md` + `plan.json` + `sources.json` + rendered artifact). |
+| `--style` | `<design-system name>` · **omitted → plain (no style)** | render the artifact in a named DESIGN.md design system (capability `design-system-styling`). **ORTHOGONAL to `--format`** (`--format`=which artifact; `--style`=which visual language). Visual formats (html/dashboard/canvas/pptx/pdf/docx/chart/mermaid) → tokens drive the look; non-visual (inline/text/article/xlsx) → honest no-op. Resolved via `scripts/design-system/resolve-style.cjs`; non-interactive cache-miss hard-fails (no silent fetch). E.g. `--format=html --style=ritsu`. See `SOP-AIOPS-007`. |
 | `--sources` | csv of {pillars,ops,metrics,wiki,brain,external,scratch} · **auto** (default) | constrain which IA types deepask may touch (passed to resolver-plan as a filter) |
 | `--depth` | quick·**standard** (default)·deep·exhaustive | sub-need bound (≤6 standard / ≤12 deep) + parallel fan-out + adversarial-verify votes (0/1/2/3) |
 | `--dry-run` | flag | show decomposition + **real** ResolverPlans + predicted coverage + cost estimate; perform zero reads/runs/writes EXCEPT one `ops.deepask_runs` dry-run row. NB: dry-run DOES call resolver-plan → consumes resolver-breaker budget → labeled honestly. |
@@ -42,7 +43,7 @@ argument-hint: "\"<question>\" [--format=<...>] [--sources=<...>] [--depth=quick
 3. `deepask/execute` — parallel subagents: **READ** `content_axis` (S1); **RUN** Tier-A `capability_axis` + surface Tier-B+ + delegate web→`deep-research` (S3). Authors the concrete read-only SQL / `wiki_ask` question / skill params, **grounded in `grounding_ref`/`columns_hint`; never invents column names**.
 4. `deepask/synthesize` (S2) — Pyramid + citation + authority + conflict + freshness + adversarial-verify → format-agnostic IR.
 5. `deepask/completeness-critic` (S2) — coverage matrix + MECE + live-probe → COMPLETE | PARTIAL+remedy; ≤1 bounded follow-up.
-6. Format → **`inline` (default, no `--format`):** render the answer **into the conversation** (Pyramid + inline citations + Sources list; no files). **File mode (explicit `--format`):** artifact in `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` + `plan.json` + `sources.json` + rendered artifact).
+6. Format → **`inline` (default, no `--format`):** render the answer **into the conversation** (Pyramid + inline citations + Sources list; no files). **File mode (explicit `--format`):** artifact in `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` + `plan.json` + `sources.json` + rendered artifact). **`--style=<name>` (if given):** resolve once via `design-system` (`resolve-style.cjs`) and pass the tokens as **design context** into the format's renderer — no new dispatch row; non-visual formats → no-op (see `06-ai-ops/skills/deepask/format/SKILL.md` §1.5 + `SOP-AIOPS-007`).
 7. **Observe** → `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) — written in **both** modes (DB audit/learning rows are not "output files"; `artifact_path` is NULL in inline mode); founder edit/reject → `ops.corrections`.
 
 ## Guards (always-on)

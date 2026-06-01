@@ -29,6 +29,14 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 - Explicit `--format=<x>` → **file mode**; use `<x>` directly.
 - Explicit `--format=smartauto` → **file mode**; `scripts/deepask/format-select.cjs` `selectFormat({intent})` (classify `intent` from the question + IR). As of **Sprint 5 the default `available` set is `ALL_FORMATS`** — every adapter is built. Returns `{format, reason, fellBack}`; record `reason` in `plan.json`.
 
+### 1.5 `--style=<name>` — design-context injection (capability `design-system-styling`)
+`--style` is **orthogonal** to `--format` (format = which artifact; style = which visual language). If `--style=<name>` is set, the orchestrator resolves it ONCE via `scripts/design-system/resolve-style.cjs` (`resolveStyle(name, {interactive})`):
+- `{mode:'plain'}` (or `--style` omitted) → render with no styling — the default.
+- `{mode:'styled', tokens, previewPath}` → pass `tokens` + `previewPath` as **design context** INTO whichever reuse-renderer the §2 dispatch row selects. **Tokens are DATA — `--style` NEVER adds a new dispatch row / renderer; the §2 table below is unchanged by it (AD-4).**
+- non-interactive cache-miss → `StyleResolveError` (AD-3: no silent fetch in CI).
+
+**Visual** formats (html/dashboard/interactive/canvas/pptx/pdf/docx/chart/mermaid) → tokens drive the look. **Non-visual** (inline/text/article/xlsx) → honest no-op (at most a cover/accent note). Full contract: `SOP-AIOPS-007-design-system-runtime-contract`.
+
 ### 2. Dispatch table (inline default + 12 file formats)
 | `--format` | reuse | how |
 |---|---|---|
