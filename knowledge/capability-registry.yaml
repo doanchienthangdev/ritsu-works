@@ -1192,6 +1192,40 @@ capabilities:
       availability). NOTE: ops.capability_runs.state lags (INSERT-only MCP, Phase 1.5);
       authoritative = ops.capability_phase_events + this entry.
 
+  # === book→capability PROMOTE step — DESIGNED + BUILD-APPROVED (B-lean, staged) 2026-06-01 (Tier-C) ===
+  - id: book-to-capability
+    name: "book-to-capability — need-driven, citation-disciplined PROMOTE of wiki knowledge into a runnable skill (command /forge)"
+    description: "BUILD-APPROVED, STAGED (Tier-C decision book-to-capability-build-approved-staged, ops.decisions 721170f0; founder override of the prior defer f4724da4 on forward-sync-cadence conviction). Fills the PROMOTE step in 'accumulate everything, activate selectively': /wiki sync accumulates whole books; /forge ACTIVATES the right slice into a runnable skill, need-driven + source-grounded. Architecture (Option B-lean, @cto-validated): standalone /forge ABOVE /cla + /update (deepask precedent — zero own routing); extend→/update --refs=wiki:, net-new→PURE delegation into /cla propose (never a fork); 5-gate anti-over-build funnel (default REJECT); bound to gps (NO new role); NO new table (reuse ops.evolve_extractions + ops.entity_edit_locks + ops.agent_runs.output_payload + a v_forge_lineage view); /forge holds ZERO entity_edit_locks. Internal-only; reads wiki, writes Tier 1 via PR; never product Supabase."
+    version: "0.1.0"
+    state: implementing                # Phase 7 underway — Sprint 1 BUILT (forge/{orchestrator,selection-funnel,route-classifier} skills + scripts/forge/{route-classify,dry-run-preview}.cjs (43 tests) + SOP-AIOPS-006); Sprint 2 = /forge command + v_forge_lineage view + gps task_kinds + KPIs
+    proposed_at: 2026-06-01
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/book-to-capability/spec.md   # target (promoted Phase 8); current design = .archives/cla/book-to-capability/spec.md + ops.decisions 721170f0
+    cost_bucket: ai-ops-meta
+    target_kpis: [forge.citation_coverage, forge.post_install_score_delta, forge.new_vs_extend_ratio, forge.gate_rejection_rate, founder_correction_rate]
+    build:
+      decision_slug: book-to-capability-build-approved-staged
+      decision_id: 721170f0-1e49-4bed-8d00-ab512be9b95c
+      supersedes: f4724da4-8b0a-4238-a59b-1b7433eaf32f   # prior defer decision (founder override on forward-cadence conviction)
+      staging:
+        sprint_1: "selection-funnel + route-classifier + orchestrator skills + scripts/forge/{route-classify,dry-run-preview}.cjs (All-Edge-Cases-Test) + SOP-AIOPS-006; verdict→agent_runs.output_payload; zero locks"
+        sprint_2: "/forge command + v_forge_lineage view + ROLES.md gps forge-* task_kinds + validator EXPECTATIONS row + 4 forge.* KPIs + Phase-8 promote"
+      reassess_gate: "before Sprint 2, confirm real Sprint-1 usage shows ≥4 recurring skill candidates/month; else hold Sprint 2 (funnel-as-code already banked)"
+      sprint_plan: .archives/cla/book-to-capability/sprint-plan.md
+    notes: |
+      5-GATE FUNNEL (becomes the selection-funnel skill spec; also usable
+      manually meanwhile; default REJECT):
+        Gate 1 — entity + confidence: distill yields ≥1 citation-backed change, conf ≥0.6.
+        Gate 2 — founder review of the 0.6–0.85 confidence bucket.
+        Gate 3 — repeated-decision: is the need RECURRING? one-off → REJECT (use wiki_ask).
+        Gate 4 — DEEP-pillar + stage: target pillar is deep/lite, not skeleton/placeholder.
+        Gate 5 — so-what + real gap (resolver_find) + EXECUTABLE not philosophy
+                 (a "should/principle" → Tier-1 doc PR via /update tier1-file, NOT a skill).
+      Route after PASS: existing skill → /update <skill> <name> --refs=wiki:;
+      no target → /cla propose --refs=wiki:. Full design + @cto landmine fixes +
+      Muse synthesis: .archives/cla/book-to-capability/ + ops.decisions 721170f0.
+      ops.capability_runs id 487d0d1c.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:

@@ -7,10 +7,22 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 14
+**Total entries:** 15
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
+
+## capability/book-to-capability
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** book-to-capability — need-driven, citation-disciplined PROMOTE of wiki knowledge into a runnable skill (command /forge). BUILD-APPROVED, STAGED (Tier-C decision book-to-capability-build-approved-staged, ops.decisions 721170f0; founder override of the prior defer f4724da4 on forward-sync-cadence conviction). Fills the PROMOTE step in 'accumulate everything, activate selectively': /wiki sync accumul v0.1.0
+
+**Invoke:** `Read("wiki/capabilities/book-to-capability/spec.md")` or `/cla update book-to-capability`
+
+**Role scope:** *
+**Status:** implementing
+**Pillar:** 06-ai-ops
 
 ## capability/capability-lifecycle-architecture
 

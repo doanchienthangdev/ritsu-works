@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 93
+**Total entries:** 96
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1042,6 +1042,48 @@ source). Per-type test conventions; co-located under <entity-dir>/tests/.
 Invoked by orchestrators in Phase 7.
 
 **Invoke:** `Skill({ skill: "eval-evo/test-gen" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/forge/orchestrator
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** > The brain of /forge. Gates with selection-funnel, routes with route-classifier, > and delegates every build to /update (extend) or /cla (net-new). It is the > "accumulate everything, activate selectively" principle's activate half. > Sprint 1 scope: funnel + classifier + --dry-run (the discipline as enforced code). > The /forge command shell + vforgelineage view + gps binding land in Sprint 2. > Spec: .archives/cla/book-to-capability/spec.md (→ wiki/capabilities/book-to-capability/ at Phase 8).
+
+**Invoke:** `Skill({ skill: "forge/orchestrator" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/forge/route-classifier
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** /forge route classifier — AFTER the selection-funnel passes, decides EXTEND an existing skill vs birth NET-NEW vs SURFACE (ambiguous target). Calls resolver_find for candidate skills, then the deterministic scripts/forge/route-classify.cjs (threshold 0.6, ambiguity-margin 0.1). NEVER auto-picks an ambiguous extend target — a mis-route sends a cheap Tier-B /update down the Tier-C /cla path (silent 5x cost), so the decision is deterministic + unit-tested. Part of capability book-to-capability (/forge).
+
+**Invoke:** `Skill({ skill: "forge/route-classifier" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/forge/selection-funnel
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** > The judgment engine — and the whole point of /forge. It exists to say no > as often as yes: a wrong "build" is expensive + sticky; a wrong "don't build" > is cheap (knowledge stays latent, still RAG-able via wikiask). Default REJECT. > Spec: .archives/cla/book-to-capability/spec.md §2.2.
+
+**Invoke:** `Skill({ skill: "forge/selection-funnel" })`
 **HITL tier:** B
 **Side effect:** write
 
