@@ -229,7 +229,7 @@ describe("orchestrator SKILL.md — tier1-file phase additions", () => {
 // ──────────────────────────────────────────────────────────────────
 describe("governance/ROLES.md — entity-update-orchestrator v1.1.1 extension", () => {
   it("entity-update-distill-tier1-file cap declared ($0.30)", () => {
-    expect(rolesText).toMatch(/entity-update-distill-tier1-file:\s+0\.30/);
+    expect(rolesText).toMatch(/entity-update-distill-tier1-file:\s+\{unit:\s*usd,\s*cap:\s*0\.30\}/);
   });
 
   it("tier1_paths extended with 00-core/** + governance/* + knowledge/manifest + invariants", () => {
