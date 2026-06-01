@@ -1,0 +1,77 @@
+---
+title: "Chương 47 — Capability Case Study: design-system-styling (universal `--style` + thư viện DESIGN.md)"
+description: "Chương 47 — Capability Case Study: design-system-styling (universal `--style` + thư viện DESIGN.md)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/47-capability-case-design-system-styling.md
+source_hash: 3f9ebe27f9156239eff5c3dd8bd3bbb12427cb1d2a862b302a7d8a30ce4e52bc
+generated_at: '2026-06-01T17:40:49.834Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 3f9ebe27f9156239eff5c3dd8bd3bbb12427cb1d2a862b302a7d8a30ce4e52bc
+translated_at: '2026-06-01T17:40:49.834Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 47
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Mỗi command tạo-output đang tự lo phần nhìn của nó — và không cái nào biết 'Ritsu trông như thế nào'. Founder muốn một lớp styling 'build once, use forever': một THƯ VIỆN design system (mỗi cái = 1 folder + 1 DESIGN.md theo chuẩn đang nổi của Google Stitch / google-labs-code/design.md — ADOPT, đừng tự phát minh) + một flag UNIVERSAL `--style=<name>` mà BẤT KỲ command tạo-output nào cũng pass để render artifact của nó trong design system đó. Mặc định (không gõ flag) = plain, không style. Thiếu system = fetch CLI on-demand, key-free."*
+
+Chương này document capability **design-system-styling** — lớp output-styling nền tảng đứng *dưới* deepask (Chương 45) và mọi command tạo-output khác. Đây là *trục BRAND* mà deepask `--art-style` (Chương 45 §45.9) nhân lên. `operating` v1.0.2, ship qua `/cla` (Bài #20) trong 4 sprint.
+
+**Trạng thái:** `operating` v1.0.2 (Phase-8 promotion 2026-06-01). PRs #175 / #178 / #179 + Sprint 4. ops.capability_runs id `fbd8edb1-…`; Tier C decision slug `design-system-styling-architecture-option-a` (`bf3a6323`). spec + retrospective promoted → `wiki/capabilities/design-system-styling/`. R1 kill-criterion: **≥ 6 styled artifacts / 60 ngày** (đến ~2026-07-31) nếu không → deprecate.
+
+---
+
+## 47.1 Bài toán — styling là tài sản phân tán, không có "Ritsu trông thế nào" tái sử dụng
+
+deepask render được 12 format; docs-engine render Fumadocs; các command khác sẽ còn tạo HTML/slide/poster. Nhưng *cách chúng trông* đang là improv của từng renderer — không có một định nghĩa **tái sử dụng** về palette/type/logo của Ritsu, cũng không có cách "mặc" một phong cách bên-ngoài (Stripe, Linear) lên một artifact. Hai thiếu hụt: (1) một identity *"Ritsu trông như thế nào"* sống ở Tier 1, dùng được bởi mọi renderer; (2) một cách *plug* một design system bất kỳ vào output mà không phải sửa renderer.
+
+## 47.2 Hai phần — thư viện + flag universal
+
+1. **Thư viện design system.** Mỗi system = **1 folder + 1 `DESIGN.md`** theo định dạng *google-labs-code/design.md / Google Stitch* đang nổi: **YAML design tokens** (colors/typography/rounded/spacing/components) + **Markdown rationale** (Overview personality + Do's/Don'ts). Nguyên tắc khoá: **ADOPT chuẩn đang-nổi, KHÔNG tự phát minh** một format token mới.
+2. **Flag UNIVERSAL `--style=<name>`.** Bất kỳ command tạo-output nào cũng pass `--style`; orchestrator resolve nó MỘT lần qua `scripts/design-system/resolve-style.cjs` rồi tiêm DESIGN.md đã-resolve làm **design context** vào *bất kỳ* renderer mà `--format` dispatch tới. `--style` là **DATA**, không bao giờ thêm một dispatch row / renderer mới (AD-4). Bỏ qua `--style` → `{mode:'plain'}` (mặc định, zero-cost).
+
+## 47.3 SPLIT registry — owned ở Tier-1, downloaded ở cache gitignored
+
+Một quyết định kiến trúc trung tâm: **registry tách đôi**, vì owned và downloaded có *vòng đời khác nhau*.
+- **owned/canonical** → `00-core/design-system/<name>/` (Tier-1, PR-governed). Hệ thống `ritsu` ("Electric Cyan V2", primary `#0ABCD0`) sống ở đây — nó LÀ *"Ritsu trông như thế nào"*, graduate stub `00-core/design-system.md` thành canonical.
+- **downloaded third-party** → `runtime/design-systems/<name>/` (gitignored cache, re-downloadable). Stripe/Vercel/Linear/… nằm đây sau khi fetch.
+- **Index** = `knowledge/design-systems.yaml` + JSON schema; validator `validate-design-systems.cjs` (L2). `registration ≠ materialization` (AD-2): một system đăng-ký metadata-first (`status: not_cached`) và materialize lười khi `--style` đầu tiên cần. Verb `vendor` promote một cache → Tier-1 cho CI reproducibility.
+
+## 47.4 `/design-system` command — 9 verb, HITL A→B→C
+
+Thin orchestrator soi gương hình dạng của `/deepask`, trên `scripts/design-system/*.cjs` (`resolve-style`, `parse-design-md`, `registry-io`, `download`):
+
+| Verb | Mục đích | HITL |
+|---|---|---|
+| `list` / `show <name>` / `search <query>` | liệt kê / xem tokens+rationale / tìm thư viện remote (no download) | A |
+| `add <name> [--source=getdesign\|designmd]` | download → cache `runtime/design-systems/` → register | A→B |
+| `build <name> --from=<repo>` | nghiên cứu một codebase → emit DESIGN.md hợp lệ (HSL→hex) | A→B |
+| `preview` / `lint <name>` | mở/gen `preview.html` light+dark / validate DESIGN.md | A |
+| `vendor <name>` | promote cache → Tier-1 `00-core/design-system/` (PR) | **C** |
+| `remove <name>` | xoá cache (B); **từ chối owned khi không có PR** (C) | B/C |
+
+## 47.5 Resolution order + AD-3 (determinism cho CI)
+
+`resolve-style.cjs` cho `--style=<name>`: **index → owned path → cache path → (miss + interactive) download → cache → use**. Bỏ qua → `plain`. Một DESIGN.md "có-mặt-nhưng-không-dùng-được" (prose tokenless, frontmatter hỏng, màu non-sRGB, `{ref}` cycle) **không bao giờ crash** command tiêu thụ — degrade về `plain` + một `warning` đã-log. **Non-interactive/CI (AD-3):** chỉ đọc file có-sẵn (owned + cache materialized), **hard-fail khi cache-miss** — KHÔNG bao giờ lén `npx` trong CI/cron/edge.
+
+## 47.6 Hai ràng buộc khoá — NO MCP / NO API key, và license gate fail-closed
+
+- **NO persistent MCP server, NO API key** (tôn trọng api-key-vs-subscription policy): download = `Bash(npx getdesign@latest add)` key-free; `build --from` nghiên cứu repo. Không có conduit MCP đứng-luôn.
+- **License gate R2 (Muse ethical-compass) — fail-closed:** *"downloaded ≠ redistributable"*. Một system `license: null` (chưa ghi license) bị `assertCacheable` (`license-gate.cjs`) **CHẶN cache vào registry** cho tới khi founder ghi một license redistributable. Mặc định an-toàn (refuse) thay vì giả-định cho-phép.
+
+## 47.7 Orthogonal với `--format` — và compose với deepask
+
+`--style` **trực giao** với `--format`: *format = loại artifact; style = ngôn ngữ thị giác*. Chúng compose bằng cách tiêm DESIGN.md đã-resolve vào renderer mà `--format` chọn — **no-op trung thực** cho format phi-thị-giác (inline/text/article/xlsx). Đây chính là trục mà deepask `--art-style` (genre, §45.9) *nhân lên*: brand (`--style`, capability này) thắng palette/logo/type; genre (`--art-style`, deepask) sở-hữu composition/assets/mood. Hai capability, một merge function brand-thắng.
+
+## 47.8 Trạng thái cuối + bài học
+
+- **operating v1.0.2** (4 sprint: #175 helpers+registry+validator+111 tests, #178/#179 fixes, S4 deepask `--style` wiring + SOP-AIOPS-007 + license gate + pre-seed + 3 KPI). `ritsu` seed INSTALLED ở `00-core/design-system/ritsu/` (DESIGN.md + assets logo/mark/favicon + preview). Cost-bucket `ai-ops-design-system`.
+- **Falsifiability gate (R1):** capability tự đặt điều-kiện-chết — ≥6 styled artifact/60d, nếu không thì deprecate. Một capability "đẹp" phải chứng minh được dùng, không chỉ tồn tại.
+
+**Ba bài học cho playbook:**
+1. **ADOPT chuẩn đang-nổi, đừng phát minh** — design.md/Google Stitch là format token đang hội-tụ; xài nó để tương-thích + giảm surface, thay vì một schema token riêng.
+2. **Split-registry theo vòng-đời** — owned (Tier-1, identity, PR-governed) vs downloaded (cache gitignored, re-downloadable) là hai lớp khác nhau; ép chung sẽ buộc CI phải có file gitignored hoặc làm phình Tier-1.
+3. **Universal-flag-as-DATA** — một trục output (`--style`) nên là *dữ liệu* tiêm vào renderer, KHÔNG bao giờ một dispatch row mới (AD-4). Đây là điều khiến nó "build once, use forever" trên mọi command — và để deepask `--art-style` chồng lên đúng một merge function (§45.9).
