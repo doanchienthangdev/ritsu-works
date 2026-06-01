@@ -245,6 +245,9 @@ async function main() {
     ['validate-playbook-coherence.cjs', 'playbook bundle coherence (TOC ↔ build_pdf.py)'],
     // capability design-system-styling v1.0 Sprint 1 — design-systems.yaml structural + file-existence
     ['validate-design-systems.cjs', 'design-systems.yaml ↔ schema + owned paths'],
+    // security drift guard (migration 00047) — no SECURITY DEFINER fn in schema
+    // ops may expose public/unpinned search_path to authenticated/PUBLIC.
+    ['validate-secdef-rpc-exposure.cjs', 'ops SECURITY DEFINER RPCs ↔ no RLS-bypass exposure'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;

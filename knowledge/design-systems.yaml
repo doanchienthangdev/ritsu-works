@@ -76,3 +76,19 @@ design_systems:
   - {name: pinterest, origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/pinterest/design-md", path: runtime/design-systems/pinterest/DESIGN.md, status: not_cached, license: null, last_synced: null}
   - {name: intercom,  origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/intercom/design-md",  path: runtime/design-systems/intercom/DESIGN.md,  status: not_cached, license: null, last_synced: null}
   - {name: sentry,    origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/sentry/design-md",    path: runtime/design-systems/sentry/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  # ── Founder-requested additions (2026-06-01) ─────────────────────────────
+  # METADATA-FIRST + LAZY (status: not_cached → no file check, AD-2). 9 confirmed
+  # present on `npx getdesign list`; `netflix` + `openai` are NOT on getdesign
+  # (source_ref: null) — registered for intent, to materialize later via
+  # build-from-repo or another key-free source. license: null ⇒ R2 gate (per AD).
+  - {name: tesla,      origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/tesla/design-md",      path: runtime/design-systems/tesla/DESIGN.md,      status: not_cached, license: null, last_synced: null}
+  - {name: framer,     origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/framer/design-md",     path: runtime/design-systems/framer/DESIGN.md,     status: not_cached, license: null, last_synced: null}
+  - {name: claude,     origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/claude/design-md",     path: runtime/design-systems/claude/DESIGN.md,     status: not_cached, license: null, last_synced: null}
+  - {name: elevenlabs, origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/elevenlabs/design-md", path: runtime/design-systems/elevenlabs/DESIGN.md, status: not_cached, license: null, last_synced: null}
+  - {name: cursor,     origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/cursor/design-md",     path: runtime/design-systems/cursor/DESIGN.md,     status: not_cached, license: null, last_synced: null}
+  - {name: webflow,    origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/webflow/design-md",    path: runtime/design-systems/webflow/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: starbucks,  origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/starbucks/design-md",  path: runtime/design-systems/starbucks/DESIGN.md,  status: not_cached, license: null, last_synced: null}
+  - {name: nike,       origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/nike/design-md",       path: runtime/design-systems/nike/DESIGN.md,       status: not_cached, license: null, last_synced: null}
+  - {name: spacex,     origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/spacex/design-md",     path: runtime/design-systems/spacex/DESIGN.md,     status: not_cached, license: null, last_synced: null}
+  - {name: netflix,    origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/netflix/DESIGN.md, status: not_cached, license: null, last_synced: null}
+  - {name: openai,     origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/openai/DESIGN.md,  status: not_cached, license: null, last_synced: null}
