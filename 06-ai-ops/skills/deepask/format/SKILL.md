@@ -65,15 +65,17 @@ These two formats render via OpenAI image generation, so they have an extra pipe
 
 | Flag | Values | Default | Effect |
 |---|---|---|---|
+| `--art-style` | genre id \| omit | `plain` | **(v1.2-image)** artistic GENRE from `knowledge/art-styles.yaml` (orthogonal to brand `--style`). → `art-style.resolveArtStyle`; injected by image-compose as the GENRE block (brand palette wins). |
+| `--lang` | ISO (e.g. `vi`) \| omit | IR-auto | **(v1.2-image)** VN diacritic-locking sub-block when the text is Vietnamese. |
 | `--orientation` | `landscape` \| `portrait` | `landscape` | infographics canvas (img-slide ignores it — always 16:9). → `image-spec.resolveImageSpec`. |
-| `--img-quality` | `low` \| `medium` \| `high` \| `auto` | `medium` | gpt-image `quality` = the **primary cost dial**. |
+| `--img-quality` | `low` \| `medium` \| `high` \| `auto` | `medium` | gpt-image `quality` = the **primary cost dial**. **(v1.2-image) WARN on `low`** for image formats — it's a draft tier; artistic decks want `medium`+ (the `high`-default flip is gated on a separate gpt-image-2 COST_TABLE re-verify, @cto R3). |
 | `--image-model` | model id | `gpt-image-2` | the image model (parameterized for robustness if the name changes). |
 | `--max-slides` | int | `8` | img-slide deck cap (cost control); overflow sections recorded in `image-plan.json.dropped[]`. |
 | `--max-cost-usd` | number | `1.00` | **cost circuit-breaker**: if the pre-gen estimate exceeds it → REFUSE up front (mirror of the resolver breaker), tell the operator, do not silently overspend. |
 
 **Pipeline (Stage 6, image branch):**
-1. `resolveStyle(--style)` → style context (tokens + DESIGN.md path). `resolveImageSpec({format, orientation})` → `apiSize` + 16:9 `crop` (img-slide).
-2. **`deepask/image-compose`** → `image-plan.json` (pieces + per-piece gpt-image-2 prompts carrying the style block + the EXACT IR text; no new claims).
+1. `resolveStyle(--style)` → brand context. **`resolveArtStyle(--art-style)` → genre context (v1.2-image).** `resolveImageSpec({format, orientation})` → `apiSize` + 16:9 `crop` (img-slide).
+2. **`deepask/image-compose`** → `image-plan.json` (pieces + per-piece gpt-image-2 prompts = byte-identical brand block + **genre block + a REQUIRED per-piece focal illustration from the cited IR** + the EXACT IR text; no new claims; **honesty invariant** — no load-bearing figure exists ONLY as illustration).
 3. **Cost gate:** `image-cost.estimateRunCost({size, quality, count})` → `checkCostBudget({estimatedUsd, maxCostUsd})`. If `!ok` → STOP, report the estimate vs cap, suggest lowering `--img-quality`/`--max-slides` or raising `--max-cost-usd`. Show the estimate either way.
 4. **Gen:** for each piece, `node scripts/deepask/image-gen.cjs --prompt-file=… --size=… --quality=… --model=… --out=images/NN-role.png` (writes PNG via OpenAI; `--dry-run` writes prompt sidecars + no PNG + no spend).
 5. **Assemble (img-slide only):** `node scripts/deepask/slide-deck.cjs --images-dir=slides/ --out=slides.pdf --crop=16:9` (Pillow; crops each page to true 16:9; graceful-degrade → keep PNGs + note if Pillow absent).

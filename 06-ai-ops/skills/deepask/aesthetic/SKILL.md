@@ -50,8 +50,15 @@ The `/design:good` floor (MUST all be true) **+** the extraordinary additions:
 - **Per-piece focal point:** title slide → the headline; a metric slide → the number; a comparison → the table; a poster → the single key takeaway.
 - **Legibility first:** if art-direction and text-clarity conflict, text-clarity wins (a beautiful illegible slide is a failed slide).
 
+### Part 3b — GENRE direction (the `--art-style` axis, v1.2-image) — the POSITIVE complement
+Part 3 is mostly *prohibition* (no clip-art / 3-D / slop). The `--art-style` GENRE block is the *positive* instruction that makes an image **illustrated**, not "text on a gradient", and sits BETWEEN the brand block and Part 3 (precedence: brand > legibility > **genre** > art-direction). `deepask/image-compose` (§1b) builds it from the resolved genre:
+- **`assets` = THE lever** — the concrete objects / textures / lighting / medium to DRAW (e.g. "isometric floating platforms, tiny people, glowing path, line-icons"). Name them; this is what the model paints.
+- **`layout` / `tone` / `display_type` / `secondary_palette`** → composition + mood + headline character + a SECONDARY accent.
+- **Rendered IN the brand palette** — the genre owns the *register*; the `--style` brand owns the *palette / logo / body-type* (brand wins; a green-locked genre keeps its composition + assets, never its green).
+- **REQUIRED per-piece focal illustration** — every content piece gets ONE concrete drawn subject derived from its cited IR, distinct from the other pieces' (kills sameness while the shared brand+genre keep cohesion).
+
 ## Part 4 — Prompt assembly order (images)
-`[content brief (exact cited text)] + [layout] + [STYLE BLOCK (brand, --style)] + [ART-DIRECTION BLOCK (Part 3)] + [canvas/aspect] + [legibility & citation rules]`. On any conflict: **brand > legibility > art-direction > content density** (drop density, never the brand or legibility).
+`[content brief (exact cited text)] + [FOCAL_ILLUSTRATION (per-piece)] + [layout] + [STYLE BLOCK (brand, --style)] + [GENRE BLOCK (--art-style, Part 3b)] + [ART-DIRECTION BLOCK (Part 3)] + [canvas/aspect] + [legibility / citation / VN rules]`. On any conflict: **brand > legibility/a11y (incl. VN diacritics) > genre > art-direction > content density** (drop density, never the brand or legibility).
 
 ## Part 5 — The extraordinary gate (pre-finalize self-check)
 Before emitting any visual artifact, confirm ALL:
@@ -59,9 +66,11 @@ Before emitting any visual artifact, confirm ALL:
 - [ ] Accent used once, decisively (not flooded); ≤2 type families.
 - [ ] Generous, intentional negative space; everything on a grid.
 - [ ] (Code) logo embedded as data URI; `/design:good` floor all true; reduced-motion honored; AA+ contrast.
-- [ ] (Image) no AI-slop tells; all text crisp + correctly spelled + exact wording.
-- [ ] Brand (`--style`) faithfully expressed; citation/legibility intact.
-- If any box fails → revise before emitting. "Looks generated" is a fail.
+- [ ] (Image) no AI-slop tells; all text crisp + correctly spelled + exact wording (incl. VN diacritics correctly attached if `--lang=vi`).
+- [ ] (Image, v1.2-image) every CONTENT piece has a distinct `focal_illustration` drawn from its cited IR; NO two content pieces share an identical one.
+- [ ] **(Honesty, v1.2-image — the load-bearing gate)** no load-bearing figure/claim exists ONLY as illustration — every number is legible text + cited; the illustration carries the SHAPE of an argument, never its SUBSTANCE, and asserts nothing absent from the piece's `[source-ref]`.
+- [ ] Brand (`--style`) faithfully expressed; genre (`--art-style`) rendered IN the brand palette; citation/legibility intact.
+- If any box fails → revise before emitting. "Looks generated" is a fail; "pretty but uncited / dishonest" is a worse fail.
 
 ## Constraints
 - **Never trade correctness for beauty** — citations, legibility, accessibility, and brand are inviolable (Part-mandate order of authority).

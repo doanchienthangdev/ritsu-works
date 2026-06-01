@@ -32,29 +32,40 @@ This is what makes the image obey the design system.
   - **`Read(designMdPath)`** and lift the **Overview personality** + **Do's and Don'ts** verbatim-in-spirit into the prompt (e.g. ritsu: *"calm, confident, precise; one decisive cyan accent over slate; generous whitespace; flat-with-intent depth; NEVER salesy, no hype, no 'AI magic' clichés, no emoji-as-logo"*). The Don'ts are as important as the Do's for an image model.
 - **Neutral brief (plain / no style):** *"clean modern editorial infographic style; one restrained accent color; high contrast on near-white; sans-serif; generous whitespace; flat; no clip-art, no stock-photo clichés, no hype."*
 
-Compose the block ONCE; reuse it across every prompt in the plan so the deck/poster is visually coherent.
+Compose the brand block ONCE as a **byte-identical frozen string** and reuse it VERBATIM across every prompt (paraphrase = cross-slide drift; reserve "in-spirit" for the *content* brief, never the *style* block).
+
+### 1b. Build the GENRE BLOCK (the `--art-style` axis, v1.2-image)
+The SECOND, orthogonal axis — what makes the image *illustrated*, not "text on a gradient". `resolveArtStyle(name)` (`scripts/deepask/art-style.cjs`):
+- `{mode:'plain'}` (no `--art-style`) → NO genre block (today's behavior; the brand block + aesthetic Part-3 still apply).
+- `{mode:'styled', genre}` → build a GENRE block from `genre.{layout, assets, tone, secondary_palette, display_type}`:
+  - **`assets` is THE lever** — name the concrete objects / textures / lighting / medium the model must DRAW (e.g. "isometric floating platforms, tiny people, glowing ascending path, thin line-icons"). A POSITIVE instruction (draw THESE), the complement to aesthetic Part-3's don'ts.
+  - **`layout`** → composition geometry; **`tone`** → mood; **`display_type`** → headline character; **`secondary_palette`** → SECONDARY accent guidance ONLY.
+- **Precedence (the merge — brand WINS):** the brand block's core palette / logo / body-type ALWAYS override the genre. The genre contributes composition + assets + lighting + mood + a secondary accent + display character — NEVER the core palette. State it in the prompt: *"<genre> composition + assets, rendered in the <brand> palette"* (a green-locked cyber genre keeps its grid-rain + lock assets, but the brand cyan/slate wins). Compose the genre block ONCE too (byte-identical) so the whole deck shares one register.
 
 ### 2. Derive the piece plan
 **`img-slide`** — a deck (cap at `--max-slides`, default 8). Canonical ordering, dropped tail recorded (never silently):
-1. **Title slide** — the IR `title` + the question + the verdict badge (COMPLETE/PARTIAL).
-2. **Executive summary** — the Pyramid conclusion (≤3 bullets), each with its `[source-ref]` shown small.
-3. **One slide per `sections[]`** (highest-value first) — section heading + its key claims (verbatim wording for headings/labels/numbers); render any `tables`/`charts` belonging to it as a styled table/chart drawn IN the image.
-4. **Conflicts / Observation slide** (only if `conflicts[]` non-empty).
-5. **Coverage & gaps slide** (only if `verdict==='PARTIAL'`) — the honest gaps + remedies.
-6. **Sources slide** — the citation ledger (ref → recipient → authority → freshness).
+1. **Hero COVER** (v1.2-image) — a true designed cover: IR `title` + the question + the verdict badge, with ONE bold genre-styled hero visual and minimal text (the single slide where art LEADS).
+2. **Agenda / TOC** (v1.2-image; only when `sections.length ≥ 4`) — the section headings as a clean outline.
+3. **Executive summary** — the Pyramid conclusion (≤3 bullets), each with its `[source-ref]` shown small.
+4. **One slide per `sections[]`** (highest-value first) — section heading + its key claims (verbatim wording for headings/labels/numbers). **Claim-shape → designed widget** (v1.2-image): comparison → quadrant/table, trend → chart, sequence → timeline, single metric → big-number stat card, equation → typeset LaTeX-style focal object. Bullets are the FALLBACK, not the default. Render exact numerals — never round/abbreviate.
+5. **Conflicts / Observation slide** (only if `conflicts[]` non-empty).
+6. **Coverage & gaps slide** (only if `verdict==='PARTIAL'`) — the honest gaps + remedies.
+7. **Sources slide** — the citation ledger (ref → recipient → authority → freshness).
 
-If sections+fixed slides exceed `max-slides`, MERGE the lowest-value sections (or keep the highest-value ones) and **record the dropped sections in `image-plan.json.dropped[]`** — never silently omit. Always keep title + exec-summary + sources.
+If pieces exceed `max-slides`, MERGE the lowest-value sections (drop the Agenda first, then merge sections) and **record dropped sections in `image-plan.json.dropped[]`** — never silently omit. Always keep cover + exec-summary + sources.
 
 **`infographics`** — ONE poster. Landscape (3:2) = a left-to-right or grid layout; portrait (2:3) = a top-to-bottom vertical infographic (title → key-stat band → 3–5 section blocks → gaps/verdict → a sources footer). Pack the whole IR into the single canvas; prioritize the exec-summary + the most cited claims + any headline number.
 
 ### 3. Compose the per-piece gpt-image-2 prompt
-Each prompt (assembly order from `deepask/aesthetic` Part 4) = **[content brief] + [layout] + [STYLE BLOCK (brand)] + [ART-DIRECTION BLOCK (`deepask/aesthetic` Part 3)] + [canvas] + [legibility/citation rules]**. On any conflict: **brand > legibility > art-direction > content density.**
-- **Content brief:** the EXACT text to render — headings, labels, numbers, short claim phrases — quoted from the IR. Image models render text; give them the literal strings (e.g. `"100 paying customers who LOVE Ritsu"`, `"Activation ≥ 40%"`). Keep per-slide text tight (a slide is not a paragraph). Each piece has ONE focal point (title→headline, metric→number, comparison→table, poster→the single takeaway).
-- **Layout:** "infographic slide", "title + 3 metric cards", "vertical timeline", "comparison table", "2-column", etc. — matched to the section's shape (a `tables[]` → a table; a `charts[]` → a bar/line chart with the given series-data).
-- **STYLE BLOCK:** from step 1 (the brand identity — palette, type-feel, radius, personality).
-- **ART-DIRECTION BLOCK (extraordinary bar):** append `deepask/aesthetic` Part 3 verbatim-in-spirit — award-grade editorial composition, one focal point, disciplined grid + generous margins, restraint, crisp vector iconography in the brand style, NO AI-slop/clip-art/stock/3-D/gradient-mush. This is what makes the image look *designed*, not *generated*. Subordinate to the brand block.
-- **Canvas:** state the aspect ratio explicitly ("16:9 widescreen slide" / "vertical poster, 2:3"). (The API `size` comes from `image-spec`; stating it in the prompt improves composition.)
-- **Legibility & citation rules:** "render all text crisply, correctly spelled, properly kerned, no lorem ipsum, no warped/nonsensical glyphs; use the EXACT words provided; small source tag in a corner: `[S1]`; no watermark; no stock photography; no emoji-as-logo."
+Each prompt (assembly order, v1.2-image) = **[content brief (exact cited text)] + [per-piece FOCAL_ILLUSTRATION] + [layout] + [BRAND STYLE BLOCK (byte-identical)] + [GENRE BLOCK (`--art-style`)] + [ART-DIRECTION BLOCK (`deepask/aesthetic` Part 3)] + [canvas] + [legibility / citation / VN rules]**. On any conflict: **brand > legibility/a11y (incl. VN diacritics) > genre > art-direction > content density.**
+- **Content brief:** the EXACT text to render — headings, labels, numbers, short claim phrases — quoted from the IR. Image models render text; give them the literal strings (e.g. `"100 paying customers who LOVE Ritsu"`, `"Activation ≥ 40%"`). Keep per-slide text tight (a slide is not a paragraph).
+- **FOCAL ILLUSTRATION (REQUIRED on every content piece, v1.2-image):** a concrete drawn subject DERIVED FROM the piece's cited IR — a metric → "a large editorial vector figure of the number"; a process → "an isometric N-stage flow"; the exec → "one hero conceptual illustration of the takeaway". Drawn in the `--art-style` genre's `assets` vocabulary. **Two content pieces MUST NOT share an identical focal illustration** (the Part-5 gate fails sameness). **Honesty invariant:** the illustration may carry the SHAPE of an argument (an ascending path = growth) but NEVER its SUBSTANCE — no load-bearing figure/claim may exist ONLY as a drawing (every number stays legible text + cited), and the illustration must encode NO directional / quantitative / causal claim absent from the piece's `[source-ref]`.
+- **Layout:** from the genre's `layout` + the claim-shape→widget mapping (§2): "title + 3 metric cards", "isometric scene", "vertical timeline", "comparison quadrant", etc.
+- **BRAND STYLE BLOCK:** the byte-identical frozen brand block from step 1 (palette, type-feel, radius, logo, personality). Wins on any conflict.
+- **GENRE BLOCK (`--art-style`):** from step 1b — the genre's composition + `assets` (the drawn motifs) + mood + secondary accent + display character, explicitly *rendered IN the brand palette* (brand wins). Omitted if no `--art-style`.
+- **ART-DIRECTION BLOCK (extraordinary bar):** `deepask/aesthetic` Part 3 — award-grade editorial composition, one focal point, disciplined grid + generous margins, restraint, NO AI-slop/clip-art/stock/3-D/gradient-mush. Subordinate to brand + genre.
+- **Canvas:** state the aspect ratio explicitly ("16:9 widescreen slide" / "vertical poster, 2:3").
+- **Legibility, citation & VN rules:** "render all text crisply, correctly spelled, properly kerned, no lorem ipsum, no warped/nonsensical glyphs; use the EXACT words provided; small source tag in a corner: `[S1]`; no watermark; no emoji-as-logo." **If `--lang=vi` or the IR text is Vietnamese:** append a DIACRITIC-LOCKING sub-block — "render Vietnamese in a VN-complete face (Be Vietnam Pro / Inter); keep tone marks correctly attached + positioned on ă â ê ô ơ ư đ; do not detach / drop / distort accents; prefer a clean non-distressed face for diacritic-heavy copy." Legibility outranks genre, so this overrides any genre calling for a stylized/condensed face on VN text.
 
 Before emitting the plan, apply the `deepask/aesthetic` **Part 5 extraordinary gate** to each piece's prompt (one focal point? accent used once? art-direction present? legibility preserved?). Revise any piece that would "look generated."
 
@@ -65,11 +76,14 @@ The image only **re-presents** IR content that already passed `citation-audit`. 
 ```json
 {
   "format": "img-slide|infographics",
-  "style": { "name": "ritsu|null", "mode": "styled|plain" },
+  "style":     { "name": "ritsu|null", "mode": "styled|plain" },
+  "art_style": { "name": "isometric-kingdom|null", "mode": "styled|plain" },
+  "lang": "vi|en|null",
   "pieces": [
-    { "index": 1, "role": "title|exec|section|conflict|gaps|sources|poster",
+    { "index": 1, "role": "cover|agenda|exec|section|conflict|gaps|sources|poster",
       "size": "1536x1024", "quality": "medium",
       "source_refs": ["S1","S2"],
+      "focal_illustration": "<concrete drawn subject from the cited IR — REQUIRED on content pieces; MUST be distinct per piece>",
       "prompt": "<full composed gpt-image-2 prompt>" }
   ],
   "dropped": [ { "role": "section", "heading": "...", "reason": "over_max_slides" } ]
@@ -78,7 +92,10 @@ The image only **re-presents** IR content that already passed `citation-audit`. 
 
 ## Constraints
 - **No new claims** — images re-present the cited IR only (same hard rule as synthesize).
-- **Style-faithful** — when `--style` is set, every prompt carries the brand block; the Don'ts matter.
+- **Honesty invariant (v1.2-image)** — no load-bearing figure/claim may exist ONLY as illustration; every number stays legible text + cited; the illustration carries the SHAPE of an argument, never its SUBSTANCE, and encodes no directional/quantitative/causal claim absent from the piece's `[source-ref]`.
+- **Style-faithful** — when `--style` is set, every prompt carries the byte-identical brand block; the Don'ts matter.
+- **Genre-faithful (v1.2-image)** — when `--art-style` is set, every prompt carries the genre block (`assets`/layout/mood) rendered IN the brand palette (brand wins on conflict); a genre never overrides the brand core palette / logo / body-type.
+- **Distinct focal illustration (v1.2-image)** — every content piece has a REQUIRED `focal_illustration`; no two content pieces share an identical one (Part-5 gate).
 - **Cost-aware** — respect `--max-slides`; the orchestrator runs `image-cost.estimateRunCost` + `checkCostBudget` against `--max-cost-usd` BEFORE any gen and refuses up front if over.
 - **Explicit-only** — image formats are never chosen by `smartauto` (they cost OpenAI money); the operator must ask for them.
 - The canonical `answer.md` is still written alongside (the durable text answer is never replaced by images).
@@ -87,4 +104,4 @@ The image only **re-presents** IR content that already passed `citation-audit`. 
 Planning is Tier A (in-session, no external call). The GEN step (`deepask/format` → `image-gen.cjs`) spends OpenAI image $ (out-of-subscription, like embeddings) — surfaced as an estimate; gated by `--max-cost-usd`.
 
 ## Tests (per spec §10)
-Plan derivation (img-slide → title+exec+sections+sources, capped at max-slides with dropped[] recorded); infographics → exactly 1 poster piece; style block present iff `--style` resolved styled; **negative — no piece prompt contains a claim absent from the IR**; every piece lists ≥1 source_ref when its content has citations.
+Plan derivation (img-slide → cover+exec+sections+sources, +agenda when sections≥4, capped at max-slides with dropped[] recorded); infographics → exactly 1 poster piece; brand block present iff `--style` resolved styled; **genre block present iff `--art-style` resolved styled**; **negative — no piece prompt contains a claim absent from the IR**; **negative — no two content pieces share an identical `focal_illustration`** (the v1.2-image anti-sameness guarantee); every content piece carries a `focal_illustration`; every piece lists ≥1 source_ref when its content has citations; resolveArtStyle covered by `tests/deepask/art-style.test.ts`.
