@@ -14,7 +14,7 @@ sop_id: SOP-AIOPS-007
 slug: design-system-runtime-contract
 name: "design-system --style runtime contract"
 version: "1.0.0"
-state: implementing       # Sprint 3: deepask wired + contract live; → operating at Phase 8
+state: operating          # Phase 8 (2026-06-01): capability operating; all sprints merged
 owner: 06-ai-ops
 owner_role: gps
 hitl_default: A           # resolve/list/show are A; add/build/preview = B; vendor + remove-owned = C

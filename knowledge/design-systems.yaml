@@ -29,6 +29,27 @@ design_systems:
     status: installed
     license: null
     last_synced: "2026-06-01"
-  # Third-party top-10 from getdesign.md (origin: downloaded) + designmd.ai
-  # (origin: built-from-repo, no DESIGNMD_API_KEY) are appended metadata-first by
-  # the Sprint-4 seed task (status: not_cached; materialized lazily on first use).
+  # ── Curated third-party starter (Sprint 4 pre-seed) ──────────────────────
+  # METADATA-FIRST + LAZY (AD-2 + Muse-cynic "no eager 20-download"): these are
+  # registered as `status: not_cached` — NOT downloaded. They materialize on first
+  # `/design-system add <name>` (getdesign, key-free) or `build --from` (designmd repo).
+  # `license: null` ⇒ the R2 license gate (license-gate.cjs assertCacheable) BLOCKS
+  # caching until a founder records a redistributable license. This is a curated
+  # well-known set (getdesign confirmed Stripe/Vercel/Linear per the dossier); the
+  # live per-source top-N is discovered via `/design-system search` + added on demand.
+  # getdesign-source (origin: downloaded — key-free CLI fetch):
+  - {name: stripe,    origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/stripe/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: vercel,    origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/vercel/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: linear,    origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/linear/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: github,    origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/github/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: notion,    origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/notion/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: tailwind,  origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/tailwind/DESIGN.md,  status: not_cached, license: null, last_synced: null}
+  - {name: shadcn,    origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/shadcn/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: radix,     origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/radix/DESIGN.md,     status: not_cached, license: null, last_synced: null}
+  - {name: mui,       origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/mui/DESIGN.md,       status: not_cached, license: null, last_synced: null}
+  - {name: chakra,    origin: downloaded, source: getdesign, source_ref: null, path: runtime/design-systems/chakra/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  # designmd-source (origin: built-from-repo — hydrate from the public repo, NO DESIGNMD_API_KEY, AD-2):
+  - {name: bootstrap, origin: built-from-repo, source: designmd, source_ref: "https://github.com/twbs/bootstrap",   path: runtime/design-systems/bootstrap/DESIGN.md, status: not_cached, license: null, last_synced: null}
+  - {name: bulma,     origin: built-from-repo, source: designmd, source_ref: "https://github.com/jgthms/bulma",      path: runtime/design-systems/bulma/DESIGN.md,     status: not_cached, license: null, last_synced: null}
+  - {name: primer,    origin: built-from-repo, source: designmd, source_ref: "https://github.com/primer/css",        path: runtime/design-systems/primer/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: open-props, origin: built-from-repo, source: designmd, source_ref: "https://github.com/argyleink/open-props", path: runtime/design-systems/open-props/DESIGN.md, status: not_cached, license: null, last_synced: null}

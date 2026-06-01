@@ -273,5 +273,37 @@ kpis:
     source: "Median score_delta from the spawned /update runs: ops.v_entity_update_lineage.score_delta joined via ops.v_forge_lineage.spawned_run_id. Negative = a forge promotion degraded the entity (K4 breach)."
     notes: "The build quality is enforced by the delegate's K4 ratchet (/update auto-reverts on regression); this KPI surfaces it at the forge level."
 
+  # capability design-system-styling v1.0 (Phase 8) — 3 KPIs (cost-bucket ai-ops-design-system)
+  - id: design_system.library_size
+    type: operational
+    description: "Count of registered design systems in knowledge/design-systems.yaml (owned + downloaded + built-from-repo). Deterministic registry scan. Library ships populated (~15: ritsu + curated starter); grows via /design-system add."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 15
+    threshold_warn: 5
+    threshold_critical: 1
+    cadence: monthly
+    source: "scripts/design-system/registry-io.cjs readRegistry().design_systems.length"
+  - id: design_system.styled_artifact_rate
+    type: operational
+    description: "% of deepask FILE-mode artifacts emitted with a non-plain --style. R1 FALSIFIABILITY GATE: >= 6 DISTINCT non-default --style artifacts within 60 days of v1 (by ~2026-07-31) → keep; else founder decides /cla deprecate or de-scope to ritsu-only. Makes the capability evidence-killable despite N~1 emitter (Muse data-pragmatist gate)."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 0.2
+    threshold_warn: 0.05
+    threshold_critical: 0.0
+    cadence: monthly
+    source: "ops.deepask_runs.metadata.style (non-null, file mode) / file-mode runs"
+  - id: design_system.style_resolve_failure_rate
+    type: operational
+    description: "StyleResolveError count / total --style resolutions. Catches broken installs / cache-miss-in-CI. Should stay low (< 5%)."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 0.05
+    threshold_warn: 0.05
+    threshold_critical: 0.15
+    cadence: monthly
+    source: "ops.agent_runs.output_payload (resolve-style StyleResolveError occurrences)"
+
   # Business KPIs (customize per project)
   # {{ADD_BUSINESS_KPIS}}

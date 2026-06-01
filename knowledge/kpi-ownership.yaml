@@ -732,6 +732,31 @@ skillopt_post_install_correction_rate_delta:
   target: "<= 1.0 (no regression). > 2.0 warn. > 5.0 critical."
   notes: "Detects whether skillopt-evolved skills regress in production. Per spec §19.10."
 
+# capability design-system-styling v1.0 (Phase 8) — 3 KPIs (owned by 06-ai-ops, gps)
+design_system.library_size:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "scripts/design-system/registry-io.cjs readRegistry().design_systems.length"
+  source: knowledge/design-systems.yaml
+  dashboard_tile: founder-monday/system-health
+  notes: "Library ships populated (~15: ritsu + curated starter); grows via /design-system add."
+
+design_system.styled_artifact_rate:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "COUNT(ops.deepask_runs WHERE metadata->>'style' IS NOT NULL AND artifact_path IS NOT NULL) / NULLIF(COUNT(file-mode runs),0)"
+  source: ops.deepask_runs
+  dashboard_tile: founder-monday/system-health
+  notes: "R1 FALSIFIABILITY GATE — >= 6 distinct non-default --style artifacts within 60d of v1 (~2026-07-31) else /cla deprecate or de-scope. Muse data-pragmatist kill-criterion."
+
+design_system.style_resolve_failure_rate:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "COUNT(StyleResolveError in ops.agent_runs.output_payload) / total --style resolutions"
+  source: ops.agent_runs
+  dashboard_tile: founder-monday/system-health
+  notes: "< 5% healthy. Catches broken installs / cache-miss-in-CI."
+
 # ===========================================================================
 # Anti-orphan check (any KPI not listed here should NOT exist in any pillar README)
 # ===========================================================================
