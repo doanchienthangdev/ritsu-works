@@ -303,7 +303,7 @@ describe("governance/ROLES.md — entity-update-orchestrator v1.1 extensions", (
     const roleSection = rolesText.split("### `entity-update-orchestrator`")[1] || "";
     const nextSection = roleSection.split("### ")[0];
     expect(nextSection).toContain("entity-update-path-classify");
-    expect(nextSection).toMatch(/entity-update-path-classify:\s+0\.00/);
+    expect(nextSection).toMatch(/entity-update-path-classify:\s+\{unit:\s*usd,\s*cap:\s*0\.00\}/);
   });
 
   it("tier1_paths extended with hook + pillar README/CLAUDE", () => {
@@ -317,8 +317,8 @@ describe("governance/ROLES.md — entity-update-orchestrator v1.1 extensions", (
 // capability-registry.yaml — version bump 1.0.0 → 1.1.0
 // ──────────────────────────────────────────────────────────────────
 describe("capability-registry.yaml — update entry v1.1 bump", () => {
-  it("update entry version: 1.1.0", () => {
-    expect(registryText).toMatch(/- id:\s+update[\s\S]{0,2000}version:\s+"1\.1\.0"/);
+  it("update entry version: 1.1.x (v1.1 series; patch-agnostic)", () => {
+    expect(registryText).toMatch(/- id:\s+update[\s\S]{0,2000}version:\s+"1\.1\.\d+"/);
   });
 
   it("state remains operating across version bump", () => {

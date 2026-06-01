@@ -117,9 +117,10 @@ describe("kpi-registry.yaml — 3 NEW KPIs for capability `update`", () => {
     expect(kpiText).toMatch(/entity_update_revert_rate[\s\S]{0,800}threshold_critical:\s+0\.50/);
   });
 
-  it("attributes ownership to entity-update-orchestrator role for all 3 KPIs", () => {
+  it("attributes ownership to entity-update-orchestrator role for all 4 KPIs", () => {
+    // 4 update-owned KPIs: the original 3 (Sprint 4) + a file-mode KPI added in v1.1.
     const entries = kpiText.match(/owner_role:\s+entity-update-orchestrator/g) || [];
-    expect(entries.length).toBe(3);
+    expect(entries.length).toBe(4);
   });
 });
 

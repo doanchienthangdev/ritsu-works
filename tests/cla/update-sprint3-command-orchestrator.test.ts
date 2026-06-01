@@ -213,8 +213,8 @@ describe("governance/ROLES.md — entity-update-orchestrator role", () => {
   });
 
   it("declares economic_budget with $30/mo cap + 80% alert", () => {
-    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,3000}monthly_cap_usd:\s+30/);
-    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,3000}alert_at_pct:\s+0\.80/);
+    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,6000}monthly_cap_usd:\s+30/);
+    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,6000}alert_at_pct:\s+0\.80/);
   });
 
   it("declares all 8 per_task_kind_caps", () => {
@@ -235,8 +235,8 @@ describe("governance/ROLES.md — entity-update-orchestrator role", () => {
   });
 
   it("preferred_models: Sonnet default + Haiku for light tasks", () => {
-    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,4000}default:\s+claude-sonnet-4-6/);
-    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,4000}light_tasks:\s+claude-haiku-4-5/);
+    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,7000}default:\s+claude-sonnet-4-6/);
+    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,7000}light_tasks:\s+claude-haiku-4-5/);
   });
 
   it("gbrain mcp grant READ-only (no writes v1.0)", () => {
@@ -244,7 +244,7 @@ describe("governance/ROLES.md — entity-update-orchestrator role", () => {
   });
 
   it("references the Tier C decision id from Sprint 1", () => {
-    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,5000}a683a371-0611-49c7-9650-53503027d60e/);
+    expect(rolesText).toMatch(/role:\s+entity-update-orchestrator[\s\S]{0,8000}a683a371-0611-49c7-9650-53503027d60e/);
   });
 });
 

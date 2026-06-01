@@ -186,8 +186,8 @@ describe("knowledge/cross-tier-invariants.yaml — 3 new invariants", () => {
     expect(invariantsText).toMatch(/id:\s+entity-edit-locks-holder-run-references-valid[\s\S]{0,400}layer:\s+L2[\s\S]{0,200}status:\s+live/);
   });
 
-  it("declares evolve-extractions-review-state-machine-valid (deferred until Sprint 2 mig lands)", () => {
-    expect(invariantsText).toMatch(/id:\s+evolve-extractions-review-state-machine-valid[\s\S]{0,400}status:\s+deferred/);
+  it("declares evolve-extractions-review-state-machine-valid (L1, live as of Sprint 2 migration)", () => {
+    expect(invariantsText).toMatch(/id:\s+evolve-extractions-review-state-machine-valid[\s\S]{0,400}status:\s+live/);
   });
 
   it("declares entity-update-runs-role-attribution-correct (L2 live, vacuously true until first run)", () => {
