@@ -1,7 +1,7 @@
 // Tests for scripts/validate-tier1.cjs
 //
 // Phase 1 — Code Analysis:
-//   The script is top-level (no exports). It iterates 21 entries in FILE_TO_SCHEMA,
+//   The script is top-level (no exports). It iterates 22 entries in FILE_TO_SCHEMA,
 //   reads each yaml + schema, validates with Ajv, prints, exits 0/1/2.
 //   Branches: deps-missing(2), yaml-missing(1), schema-missing(1), parse-error(1),
 //             validation-error(1), success-all(0).
@@ -22,7 +22,7 @@ import { tmpdir } from "node:os";
 const REPO = resolve(__dirname, "..");
 const VALIDATOR = join(REPO, "scripts", "validate-tier1.cjs");
 
-// 21 yamls FILE_TO_SCHEMA covers (matches scripts/validate-tier1.cjs)
+// 22 yamls FILE_TO_SCHEMA covers (matches scripts/validate-tier1.cjs)
 const COVERED_YAMLS = [
   "feature-flags.yaml",
   "schedules.yaml",
@@ -45,6 +45,7 @@ const COVERED_YAMLS = [
   "cross-tier-invariants.yaml",
   "workforce-personas.yaml",
   "cla-routing-keywords.yaml",
+  "update-file-paths.yaml",
 ];
 
 interface RunResult {
@@ -80,10 +81,10 @@ function runValidator(cwd: string): RunResult {
 // ============================================================================
 
 describe("validate-tier1 — real repo (current state)", () => {
-  it("exits 0 with all 21 yamls valid", () => {
+  it("exits 0 with all 22 yamls valid", () => {
     const r = runValidator(REPO);
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/Valid:\s+21\/21/);
+    expect(r.stdout).toMatch(/Valid:\s+22\/22/);
     expect(r.stdout).toMatch(/Invalid:\s+0/);
     expect(r.stdout).toMatch(/Missing:\s+0/);
     expect(r.stdout).toContain("All present files valid");
@@ -99,6 +100,24 @@ describe("validate-tier1 — real repo (current state)", () => {
 // Fixture-based failure cases — copy the real validator + schemas into a temp
 // dir, mutate one yaml at a time, ensure the validator fails appropriately.
 // ============================================================================
+
+// Resolve the nearest ancestor node_modules that actually contains the validator's
+// runtime deps (js-yaml + ajv). In a git worktree the local node_modules is empty —
+// deps are hoisted to the main checkout — so `join(REPO, "node_modules")` would point
+// at an empty dir, the fixture's symlink would resolve nothing, and the copied
+// validator would fail to require() its deps (exit 2 instead of the asserted 0/1).
+function findDepsNodeModules(): string {
+  let dir = REPO;
+  for (;;) {
+    const nm = join(dir, "node_modules");
+    if (existsSync(join(nm, "js-yaml")) && existsSync(join(nm, "ajv"))) return nm;
+    const parent = resolve(dir, "..");
+    if (parent === dir) {
+      throw new Error("Could not locate a node_modules containing js-yaml + ajv");
+    }
+    dir = parent;
+  }
+}
 
 function makeFixtureRepo(): string {
   const fixture = join(tmpdir(), `validate-tier1-fixture-${Date.now()}-${Math.random()}`);
@@ -119,11 +138,11 @@ function makeFixtureRepo(): string {
     if (existsSync(schemaSrc)) copyFileSync(schemaSrc, schemaDst);
   }
 
-  // node_modules: symlink to real one so require() resolves
-  const realNm = join(REPO, "node_modules");
+  // node_modules: symlink to the real one (the ancestor that actually has the deps,
+  // not the empty worktree-local node_modules) so the copied validator's require()
+  // resolves js-yaml + ajv.
+  const realNm = findDepsNodeModules();
   const fixtureNm = join(fixture, "node_modules");
-  // Use symlinkSync via fs would require import; just relative require by setting NODE_PATH at exec time.
-  // Easiest: copy a tiny symlink. On macOS, symlink is fast.
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   require("node:fs").symlinkSync(realNm, fixtureNm, "dir");
 
@@ -211,14 +230,12 @@ describe("validate-tier1 — fixture failure cases", () => {
     expect([0, 1]).toContain(r.status);
   });
 
-  it("preserves exit code 0 when all 20 covered files present + valid", () => {
-    // Don't mutate anything — fixture is a copy of the working real repo.
-    // Count is 20, not 21, because the test below removes one yaml in fixture
-    // setup. Actually no — this test doesn't remove anything; it should
-    // match the full COVERED_YAMLS length (21).
+  it("preserves exit code 0 when all 22 covered files present + valid", () => {
+    // Don't mutate anything — fixture is a copy of the working real repo, so it
+    // should match the full COVERED_YAMLS length (22).
     const r = runValidator(fixture);
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/Valid:\s+21\/21/);
+    expect(r.stdout).toMatch(/Valid:\s+22\/22/);
   });
 });
 
@@ -233,10 +250,10 @@ describe("validate-tier1 — invariants", () => {
     expect(r1.status).toBe(r2.status);
   });
 
-  it("output mentions exactly 21 yamls (matches FILE_TO_SCHEMA size)", () => {
+  it("output mentions exactly 22 yamls (matches FILE_TO_SCHEMA size)", () => {
     const r = runValidator(REPO);
     // Count occurrences of yaml filenames in output
     const mentioned = COVERED_YAMLS.filter((y) => r.stdout.includes(y));
-    expect(mentioned).toHaveLength(21);
+    expect(mentioned).toHaveLength(22);
   });
 });

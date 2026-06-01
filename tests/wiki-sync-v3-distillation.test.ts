@@ -14,23 +14,39 @@
 //   - DB-bound D4/D5/D6 invariants (require SUPABASE_ACCESS_TOKEN)
 
 import { describe, it, expect } from "vitest";
-import { execFileSync, spawnSync } from "node:child_process";
-import { readFileSync, existsSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { readFileSync, existsSync, openSync, closeSync, rmSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { tmpdir } from "node:os";
 
 const REPO = resolve(__dirname, "..");
 
-function runValidator(): { status: number; stdout: string; stderr: string } {
-  const r = spawnSync(
-    "node",
-    [join(REPO, "scripts/cross-tier/validate-wiki-integrity.cjs"), "--json"],
-    { cwd: REPO, encoding: "utf-8", timeout: 30000 }
+// The validator prints its full JSON report (100KB+ with hundreds of findings) via
+// console.log then calls process.exit(). process.exit() truncates a *piped* stdout
+// before it drains (Node flushes pipes asynchronously), so spawnSync({encoding}) only
+// captures the first ~8KB and JSON.parse throws "Unterminated string". A regular-file
+// stdout sink is written synchronously and in full, so redirect the child's stdout to
+// a temp file (equivalent to `node validator --json > file`) and read it back.
+function runValidator(extraArgs: string[] = []): { status: number; stdout: string; stderr: string } {
+  const outFile = join(
+    tmpdir(),
+    `wiki-integrity-${process.pid}-${Math.random().toString(36).slice(2)}.json`
   );
-  return {
-    status: r.status ?? -1,
-    stdout: r.stdout ?? "",
-    stderr: r.stderr ?? "",
-  };
+  const fd = openSync(outFile, "w");
+  let status: number;
+  try {
+    const r = spawnSync(
+      "node",
+      [join(REPO, "scripts/cross-tier/validate-wiki-integrity.cjs"), "--json", ...extraArgs],
+      { cwd: REPO, timeout: 30000, stdio: ["ignore", fd, "pipe"] }
+    );
+    status = r.status ?? -1;
+  } finally {
+    closeSync(fd);
+  }
+  const stdout = readFileSync(outFile, "utf-8");
+  rmSync(outFile, { force: true });
+  return { status, stdout, stderr: "" };
 }
 
 // ============================================================================
@@ -70,16 +86,8 @@ describe("validate-wiki-integrity v0.2 (wiki-sync v3.0 Sprint 1)", () => {
   });
 
   it("--json output enumerates v3 invariants in db_checks contract block", () => {
-    const r = spawnSync(
-      "node",
-      [
-        join(REPO, "scripts/cross-tier/validate-wiki-integrity.cjs"),
-        "--with-db",
-        "--json",
-      ],
-      { cwd: REPO, encoding: "utf-8", timeout: 30000 }
-    );
-    const result = JSON.parse(r.stdout ?? "");
+    const r = runValidator(["--with-db"]);
+    const result = JSON.parse(r.stdout);
     expect(result.db_checks).toBeTruthy();
     // v3.0.5: db_checks is now executed live via runAllDbChecks. Shape:
     //   { status: 'executed', timestamp, invariants: { D4_..., D5_..., D6_... }, total_violations }
@@ -246,12 +254,19 @@ describe("Tier 1 yaml declarations for v3.0", () => {
     expect(manifest).toContain("00031_wiki_distillation.sql");
   });
 
-  it("manifest.yaml version bumped to 0.6.0", () => {
+  it("manifest.yaml declares a semver version >= 0.6.0 (knowledge_extractions landed at 0.6.0)", () => {
     const manifest = readFileSync(
       join(REPO, "knowledge/manifest.yaml"),
       "utf-8"
     );
-    expect(manifest).toMatch(/^version:\s*0\.6\.0/m);
+    const m = manifest.match(/^version:\s*(\d+)\.(\d+)\.(\d+)/m);
+    expect(m, "manifest.yaml must declare a top-level semver version field").toBeTruthy();
+    // v3.0 distillation (ops.knowledge_extractions, migration 00031) shipped at
+    // manifest 0.6.0. The version only moves forward, so assert the floor — not an
+    // exact value that drifts to red on every unrelated manifest bump.
+    const major = Number(m![1]);
+    const minor = Number(m![2]);
+    expect(major > 0 || (major === 0 && minor >= 6)).toBe(true);
   });
 
   it("feature-flags.yaml declares 3 wiki_sync_v3 flags", () => {
