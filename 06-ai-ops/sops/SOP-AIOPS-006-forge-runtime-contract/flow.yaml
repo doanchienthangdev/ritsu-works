@@ -1,0 +1,136 @@
+# SOP-AIOPS-006 — /forge Runtime Contract
+#
+# Declarative runtime contract for the /forge gate-then-route loop. Read by
+# .claude/commands/forge.md (Sprint 2) + 06-ai-ops/skills/forge/orchestrator/SKILL.md.
+#
+# NOTE: This is a RUNTIME-CONTRACT SOP (like SOP-AIOPS-004-evolve and
+# SOP-AIOPS-005-deepask-runtime-contract), NOT a CLA-style 8-phase ceremony, so
+# it follows the 004/005 shape (sop_id/slug/steps/guards/...), not the ceremony
+# flow-schema.yaml (which targets the SOP-AIOPS-001-* family). Every /forge
+# invocation runs once through this flow. /forge is the "accumulate everything,
+# activate selectively" principle's ACTIVATE half: it GATES (5-gate funnel,
+# default REJECT) then ROUTES (extend → /update | net-new → /cla), delegating
+# every build. It owns ZERO routing/build primitives and ZERO entity_edit_locks.
+
+sop_id: SOP-AIOPS-006
+slug: forge-runtime-contract
+name: "/forge runtime contract"
+version: "0.1.0"
+state: implementing       # Sprint 1: funnel + classifier + dry-run live (via Skill); the /forge command shell lands Sprint 2 → operating
+owner: 06-ai-ops
+owner_role: gps           # founder-only; bound to gps (router, not worker)
+hitl_default: A           # gate/classify/dry-run are A; EXTEND execution = B (/update), NET-NEW = C (/cla) — routed, surfaced
+cost_bucket: ai-ops-meta
+capability_id: book-to-capability
+
+# ----------------------------------------------------------------------
+# Steps (each /forge invocation runs once through this sequence)
+# ----------------------------------------------------------------------
+steps:
+  - id: assemble
+    name: "Stage 1 — assemble wiki sources"
+    skill: forge/orchestrator
+    actions:
+      - wiki_get_per_src            # /wiki get --src=<spec> for --src + --also
+      - surface_missing_source       # NOT auto-synced; --sync-missing opts in to /wiki sync
+    hitl: A
+
+  - id: frame
+    name: "Stage 2 — frame the NEED"
+    skill: thinking-toolkit/tosca-problem-framing
+    actions:
+      - tosca_frame                  # crisp problem frame for the funnel + classifier
+    hitl: A
+
+  - id: funnel
+    name: "Stage 3 — 5-gate selection funnel (default REJECT)"
+    skill: forge/selection-funnel
+    actions:
+      - gate1_entity_confidence      # eval-evo/distill-from-refs → ops.evolve_extractions (conf >= 0.6)
+      - gate2_founder_review         # eval-evo/review-extractions on the 0.6-0.85 bucket
+      - gate3_repeated_decision      # recurring not one-off → else REJECT (use wiki_ask)
+      - gate4_deep_pillar_stage      # target pillar deep/lite, not skeleton/placeholder
+      - gate5_sowhat_gap_executable  # so-what + real gap (resolver_find) + EXECUTABLE not philosophy
+    hitl: A                          # gate-2 founder review is the human checkpoint (B)
+    failure_handling:
+      gate_reject: report_disposition_latent_or_tier1_doc   # most candidates end here — that is the point
+
+  - id: classify
+    name: "Stage 4 — route classifier (extend vs net-new vs surface)"
+    skill: forge/route-classifier
+    actions:
+      - resolver_find_skill_candidates  # mcp__supabase-ops__resolver_find (kind=skill); counts vs SESSION_HARD_CAP=20 breaker
+      - classify_route_deterministic    # scripts/forge/route-classify.cjs (threshold 0.6, margin 0.1)
+    hitl: A
+    failure_handling:
+      ambiguous_target: surface_tied_candidates_never_auto_pick   # @cto: ambiguity must surface
+
+  - id: preview_or_route
+    name: "Stage 5 — --dry-run preview OR delegate the build"
+    skill: forge/orchestrator
+    actions:
+      - dry_run_preview_then_stop    # scripts/forge/dry-run-preview.cjs: sources + gate verdicts + route + est cost/tier; ZERO build spend
+      - route_extend_to_update       # /update <skill> <name> --refs=wiki: (Tier B)
+      - route_new_pure_delegate_cla  # /cla propose --refs=wiki: (Tier C) — PURE delegation, /cla owns the ceremony, NEVER a fork
+      - hold_surface_for_founder     # surface route waits on the founder's entity pick
+    hitl: A                          # routed execution inherits the delegate's tier (B extend / C net-new), surfaced
+    failure_handling:
+      forge_acquires_no_lock: delegate_owns_entity_edit_lock   # invariant #5 — same-key double-acquire would self-deadlock
+
+  - id: record
+    name: "Stage 6 — record verdict + lineage"
+    skill: forge/orchestrator
+    actions:
+      - stamp_output_payload         # forge_verdict, gates, route, entity_target, spawned_run_id (for v_forge_lineage)
+    hitl: A
+
+# ----------------------------------------------------------------------
+# Always-on guards (every stage)
+# ----------------------------------------------------------------------
+guards:
+  default_reject: "Any borderline funnel gate → REJECT; the funnel must EARN a build (knowledge is ~5-50x cheaper than a capability). Founder may override a REJECT."
+  wiki_tier1_boundary: "Read the knowledge plane (wiki); write the capability plane (Tier 1) ONLY via the delegate's PR. Never blur (CLAUDE.md)."
+  pure_delegation: "Net-new = a pure call into /cla propose; /forge adds only the funnel + route in front. Never a fork (invariant #1)."
+  zero_locks: "/forge acquires NO ops.entity_edit_locks; the spawned /update//cla owns the lock (invariant #5)."
+  verdict_sink: "Funnel verdict → ops.agent_runs.output_payload (gps-writable), NOT ops.decisions (invariant #4)."
+  firewall: "Internal-only; never product.* (hook pre-tool-supabase-product); no customer surface."
+  billing: "Subscription (session model) in-session; resolver_find under the SESSION_HARD_CAP=20 breaker."
+  dry_run: "--dry-run: shows sources + gate verdicts + route + cost estimate; performs NO build (no /update, no /cla), no locks. resolver_find DID run in classify (real breaker cost, shown honestly)."
+
+# ----------------------------------------------------------------------
+# Events emitted
+# ----------------------------------------------------------------------
+events_emitted:
+  - type: ritsu.forge.candidate_gated
+    when: funnel stage sets a verdict
+    payload:
+      capability_id: book-to-capability
+      verdict: PASS | REJECT
+      disposition: latent | tier1-doc | proceed
+  - type: ritsu.forge.routed_extend
+    when: preview_or_route delegates an EXTEND to /update
+    payload: { entity_target: <skill>, spawned_run_id: <uuid> }
+  - type: ritsu.forge.routed_new
+    when: preview_or_route delegates a NET-NEW to /cla propose
+    payload: { spawned_run_id: <uuid> }
+  - type: ritsu.forge.rejected
+    when: funnel REJECTs (knowledge stays latent or → Tier-1 doc)
+    payload: { gate: <int>, disposition: latent | tier1-doc }
+
+# ----------------------------------------------------------------------
+# State persistence
+# ----------------------------------------------------------------------
+state_persisted_in:
+  - ops.agent_runs              # output_payload: forge_verdict + gates + route + spawned_run_id (Sprint 2 view v_forge_lineage reads this)
+  - ops.evolve_extractions      # gate-1 citation spine (makes forge.citation_coverage = 100% true)
+  - ops.cost_attributions       # per LLM/resolver call (cost_bucket ai-ops-meta)
+  - ops.corrections             # founder rejects/edits a routing decision → learning signal
+
+# ----------------------------------------------------------------------
+# KPIs (registered in knowledge/kpi-registry.yaml at Sprint 2)
+# ----------------------------------------------------------------------
+kpis:
+  - forge.citation_coverage        # target 100% (every change traces to a wiki chunk)
+  - forge.gate_rejection_rate      # > 0 (the funnel is load-bearing, not a rubber stamp)
+  - forge.new_vs_extend_ratio      # extend should dominate at maturity
+  - forge.post_install_score_delta # >= 0 (K4 ratchet, via the /update delegate)
