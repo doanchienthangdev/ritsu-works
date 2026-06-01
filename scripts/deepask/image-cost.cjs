@@ -29,6 +29,10 @@ const COST_TABLE = Object.freeze({
   '1024x1024': { low: 0.011, medium: 0.042, high: 0.167 },
   '1536x1024': { low: 0.016, medium: 0.063, high: 0.25 },
   '1024x1536': { low: 0.016, medium: 0.063, high: 0.25 },
+  // img-slide native 16:9 (gpt-image-2; 2048x1152 = 2.36M px ≈ 1.5× 1536x1024).
+  // ESTIMATE: pixel-area-scaled from 1536x1024 + rounded UP (conservative, so the
+  // --max-cost-usd breaker never under-refuses). VERIFY at platform.openai.com/pricing.
+  '2048x1152': { low: 0.025, medium: 0.1, high: 0.4 },
 });
 // Sizes that share the landscape/portrait price tier if a cropped finalSize is passed.
 const SIZE_ALIASES = Object.freeze({

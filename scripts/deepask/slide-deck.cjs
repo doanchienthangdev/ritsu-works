@@ -2,9 +2,12 @@
 // scripts/deepask/slide-deck.cjs — deepask img-slide PDF assembler
 // ============================================================================
 // Capability `deepask` v1.1 (extend: image formats), 2026-06-01. Combines the
-// generated slide PNGs (slides/01-*.png, 02-*.png, ...) into ONE slides.pdf,
-// cropping each page to a true 16:9 (the founder's spec; gpt-image native sizes
-// don't include 16:9, so img-slide gens 1536x1024 and this crops to 1536x864).
+// generated slide PNGs (slides/01-*.png, 02-*.png, ...) into ONE slides.pdf.
+// img-slide now gens NATIVELY at 2048x1152 (= true 16:9 via image-spec on
+// gpt-image-2), so the `--crop=16:9` pass is a SAFETY no-op (cropping a 16:9
+// image to 16:9 changes nothing); it stays as a defensive guard if a PNG is
+// ever off-ratio. (The prior approach gen'd 1536x1024 and cropped to 1536x864,
+// which clipped the title — fixed by the native-16:9 gen.)
 //
 // Reuses the repo's existing PDF substrate convention (anaconda python3 + a
 // Pillow image→PDF merge — same interpreter family the playbook-builder uses for

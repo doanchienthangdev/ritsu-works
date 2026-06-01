@@ -51,6 +51,10 @@ describe("costSizeKey", () => {
   it("maps the img-slide cropped 1536x864 → landscape 1536x1024 price tier", () => {
     expect(costSizeKey("1536x864")).toBe("1536x1024");
   });
+  it("2048x1152 (img-slide native 16:9, v1.2.1) is a direct COST_TABLE size", () => {
+    expect(costSizeKey("2048x1152")).toBe("2048x1152");
+    expect(estimateImageCost({ size: "2048x1152", quality: "medium" })).toBe(0.1);
+  });
   it("throws on unknown size", () => {
     expect(() => costSizeKey("4096x4096")).toThrow(/unknown size/);
   });
