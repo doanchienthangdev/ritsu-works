@@ -51,6 +51,8 @@ steps:
       - pass_tokens_to_renderer     # {mode:'styled'} → tokens + previewPath handed to whichever renderer the artifact-type flag dispatches to
       - no_new_dispatch_rows         # tokens are DATA, never a new renderer/dispatch row (AD-4)
       - visual_drives_look           # visual formats (html/dashboard/canvas/pptx/pdf/docx/chart/mermaid) → tokens drive the look
+      - image_formats_strongest      # deepask v1.1 image formats (infographics/img-slide via gpt-image-2) are the STRONGEST --style consumers: tokens + DESIGN.md prose → the brand "style block" + the deepask/aesthetic art-direction block injected into every image prompt (deepask/image-compose)
+      - embed_logo_data_uri          # deepask v1.1.1: code-rendered visual formats embed the brand logo + favicon as base64 DATA URIs via scripts/design-system/style-asset.cjs (resolveStyleLogo) — NEVER a sibling-file src/href path (fixes the --format=html missing-logo bug); plain --style → CSS wordmark
       - nonvisual_noop               # non-visual (inline/text/article/xlsx-data) → honest no-op (at most a cover/accent note)
     hitl: A
 
@@ -92,7 +94,8 @@ references:
   - 06-ai-ops/skills/design-system/SKILL.md
   - 06-ai-ops/skills/design-system/build-from-repo/SKILL.md
   - .claude/commands/design-system.md
-  - scripts/design-system/{resolve-style,parse-design-md,registry-io,download,license-gate}.cjs
+  - scripts/design-system/{resolve-style,parse-design-md,registry-io,download,license-gate,style-asset}.cjs   # style-asset.cjs (v1.1.1): logo/favicon → base64 data URI
+  - 06-ai-ops/skills/deepask/aesthetic/SKILL.md   # the EXTRAORDINARY aesthetic bar (refs omgkit /design:good)
   - knowledge/design-systems.yaml
   - SOP-AIOPS-005-deepask-runtime-contract   # the first consumer's contract
   - governance/HITL.md
