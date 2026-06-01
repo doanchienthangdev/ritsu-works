@@ -63,7 +63,7 @@ function buildFromRepoPlan(name, repo, cacheRoot = DEFAULT_CACHE_ROOT) {
   return {
     name,
     repo,
-    skill: 'design-system/build',
+    skill: 'design-system/build-from-repo',
     targetDir: cacheTargetDir(name, cacheRoot),
     designMdPath: cacheDesignMdPath(name, cacheRoot),
     note: 'hydrate via the build --from verb (no DESIGNMD_API_KEY; honors locked decision #3)',

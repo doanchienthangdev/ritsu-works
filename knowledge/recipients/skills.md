@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 96
+**Total entries:** 98
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -389,6 +389,34 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 **When to use:** deepask Stage 4 — turns the executed evidence into a format-agnostic synthesis IR. Pyramid (conclusion-first); EVERY claim cites ≥1 source (self-checked by scripts/deepask/citation-audit.cjs — zero uncited claims is a hard gate); authority-ranked (SoR>memory for facts, memory>SoR for judgement/history); conflicts flagged; freshness tagged; key claims adversarially verified (depth-scaled). Emits the IR every format adapter consumes.
 
 **Invoke:** `Skill({ skill: "deepask/synthesize" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/design-system
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Umbrella skill for the design-system-styling capability — the registry model, the --style resolution order, and THE adoption contract every output-producing command follows to render in a named DESIGN.md design system. Read this when wiring --style into a command, or when /design-system dispatches a verb.
+
+**Invoke:** `Skill({ skill: "design-system" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/design-system/build-from-repo
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Generate a valid DESIGN.md by researching a codebase. Reads a repo's theme source (theme.json / CSS vars / tailwind config / brand usage) and emits the YAML tokens + Markdown rationale (HSL→hex sRGB). Powers `build <name> --from=<repo>` — the `ritsu` seed path AND the key-free hydration of designmd-listed systems from their public repos (AD-2: never needs DESIGNMD_API_KEY).
+
+**Invoke:** `Skill({ skill: "design-system/build-from-repo" })`
 **HITL tier:** B
 **Side effect:** write
 

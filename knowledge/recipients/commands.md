@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 18
+**Total entries:** 19
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -162,6 +162,19 @@ Bound to role `code-reviewer`. For one-shot bounded review use @cto.
 **When to use:** Federated retrieval + capability-execution + cited synthesis over the ENTIRE internal IA. Zero-routing pure consumer of resolver-plan. Decompose → resolve → execute/fan-out → synthesize → completeness-critic → format. Returns a Pyramid, 100%-cited, authority-ranked, conflict-aware, freshness-tagged answer in 1 of 12 formats, OR an honest no-coverage gap + remedy. Internal-first (web leg delegated to deep-research). Tier A runtime (Tier-B+ legs surfaced, never auto-run).
 
 **Invoke:** `/deepask`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/design-system
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Manage the multi-design-system library + the universal --style output layer. A design system = 1 folder + 1 DESIGN.md (Google Stitch / google-labs-code/design.md format: YAML tokens + Markdown rationale). SPLIT registry: owned/canonical in Tier-1 00-core/design-system/, downloaded third-party in runtime/design-systems/ (gitignored cache), indexed by knowledge/design-systems.yaml. Default = plain (no style). Missing system = on-demand CLI fetch. Tier A read/search; A→B download; C for vendor/Tier-1 + remove-owned.
+
+**Invoke:** `/design-system`
 **HITL tier:** A
 **Side effect:** none
 
