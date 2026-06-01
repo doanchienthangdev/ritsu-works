@@ -7,7 +7,7 @@
 This file is THE source of truth for view recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 
-**Total entries:** 5
+**Total entries:** 6
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -69,6 +69,21 @@ Read in any Claude Code session via `@knowledge/recipients/views.md` import.
 **Authority:** SoR
 **Freshness:** live
 **Grounding:** supabase/migrations/00041_v_entity_update_lineage.sql
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## view/ops-v_forge_lineage
+
+**Kind:** view
+**Axis:** content
+**When to use:** View `ops.v_forge_lineage` — Consumed by: /forge history (future), forge.* KPIs, founder ad-hoc audits. Capability: book-to-capability v0.1 (ops.capability_runs 487d0d1c; Tier C build decision 721170f0). Sprint: 2 (final before Phase 8 promote). (defined in 00046_v_forge_lineage.sql).
+
+**Invoke:** `mcp__supabase-ops__query({sql: "SELECT * FROM ops.v_forge_lineage LIMIT 10"})`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** supabase/migrations/00046_v_forge_lineage.sql
 
 **Role scope:** *
 **Status:** active

@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 17
+**Total entries:** 18
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -190,6 +190,19 @@ ritsu-works leaf entity (skill / command / agent / hook / SOP). Foundational
 self-improvement capability per wiki/capabilities/evolve/spec.md.
 
 **Invoke:** `/evolve`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/forge
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Promote a slice of latent wiki knowledge into a runnable skill — need-driven + citation-disciplined. GATES (5-gate anti-over-build funnel, default REJECT) then ROUTES (extend → /update | net-new → pure delegation into /cla propose), delegating every build. Thin orchestrator ABOVE /cla + /update (deepask precedent, zero own routing); bound to gps; holds zero entity_edit_locks. --dry-run shows route + gate verdicts + cost before any spend. Founder-only. Capability book-to-capability v0.1.
+
+**Invoke:** `/forge`
 **HITL tier:** A
 **Side effect:** none
 
