@@ -29,27 +29,46 @@ const fs = require('fs');
 const path = require('path');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
-const ENV_LOCAL = path.join(REPO_ROOT, 'runtime', 'secrets', '.env.local');
 const OPENAI_IMAGES_URL = 'https://api.openai.com/v1/images/generations';
 
-/** Load OPENAI_API_KEY from runtime/secrets/.env.local into process.env if absent. No value is logged. */
+/**
+ * Candidate .env.local paths, in priority order. runtime/ is local-only and is
+ * NOT copied into git worktrees, so when we run from `<root>/.claude/worktrees/<name>/`
+ * the secrets live in the MAIN repo root — resolve both. Override via RITSU_ENV_LOCAL.
+ */
+function envLocalCandidates() {
+  const cands = [];
+  if (process.env.RITSU_ENV_LOCAL) cands.push(process.env.RITSU_ENV_LOCAL);
+  cands.push(path.join(REPO_ROOT, 'runtime', 'secrets', '.env.local'));
+  const marker = `${path.sep}.claude${path.sep}worktrees${path.sep}`;
+  const idx = REPO_ROOT.indexOf(marker);
+  if (idx !== -1) {
+    const mainRoot = REPO_ROOT.slice(0, idx);
+    cands.push(path.join(mainRoot, 'runtime', 'secrets', '.env.local'));
+  }
+  return [...new Set(cands)];
+}
+
+/** Load OPENAI_API_KEY from the first readable .env.local candidate into process.env if absent. No value is logged. */
 function ensureOpenAiKey() {
   if (process.env.OPENAI_API_KEY) return true;
-  try {
-    const raw = fs.readFileSync(ENV_LOCAL, 'utf-8');
-    for (const line of raw.split('\n')) {
-      const m = /^\s*OPENAI_API_KEY\s*=\s*(.*)\s*$/.exec(line);
-      if (m) {
-        let v = m[1].trim();
-        if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
-        if (v) {
-          process.env.OPENAI_API_KEY = v;
-          return true;
+  for (const file of envLocalCandidates()) {
+    try {
+      const raw = fs.readFileSync(file, 'utf-8');
+      for (const line of raw.split('\n')) {
+        const m = /^\s*(?:export\s+)?OPENAI_API_KEY\s*=\s*(.*?)\s*$/.exec(line);
+        if (m) {
+          let v = m[1].trim();
+          if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+          if (v) {
+            process.env.OPENAI_API_KEY = v;
+            return true;
+          }
         }
       }
+    } catch (_e) {
+      /* try next candidate */
     }
-  } catch (_e) {
-    /* file missing → handled by caller */
   }
   return Boolean(process.env.OPENAI_API_KEY);
 }
