@@ -1,23 +1,28 @@
 /**
- * `query` tool — parameterized SELECT against ritsu-ops.
+ * `query` tool — parameterized read-only SELECT against ritsu-ops.
  *
- * Supabase JS doesn't expose raw SQL by default. We rely on a Postgres RPC
- * named `ops_run_select` (deferred to Phase 1.5 if not already present in
- * the DB; for Phase 1 boot, the RPC may not exist, and the tool will return
- * `rpc_missing` — caller skill handles gracefully).
+ * All queries run through the Postgres RPC `ops.ops_run_select` (deployed in
+ * migration 00026_mcp_query_rpc.sql). The RPC is the SOLE execution path —
+ * there is no supabase-js `.from().select()` fallback. supabase-js doesn't
+ * expose raw SQL, and skills need arbitrary SELECT (multi-table joins,
+ * aggregations, CTEs), so this RPC is the single entry point.
  *
- * The RPC contract (to be added in a future migration):
- *   CREATE FUNCTION ops_run_select(sql text, params jsonb)
- *     RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER AS $$
- *   ...
+ * Security model — this tool does NOT rely on RLS:
+ *   - `ops_run_select` is SECURITY DEFINER, so it runs as the function owner
+ *     (postgres, which has BYPASSRLS).
+ *   - The shim connects as `service_role` (see lib/supabase-client.ts +
+ *     lib/env.ts; service key is preferred over anon), which ALSO bypasses RLS.
+ *   So row-level security policies do NOT constrain what this tool can read.
+ *   Reads are constrained instead by, in order:
+ *     1. the role-allowlist / `canReadSchema` gate (governance/role-resolver.ts)
+ *     2. the sql-guard (lib/sql-guard.ts — SELECT-only, no multi-statement,
+ *        no SELECT INTO), which the RPC re-applies inside the DB as
+ *        belt-and-suspenders
+ *     3. the project-ref allowlist (lib/env.ts — only ritsu-ops, never Product)
  *
- * For Phase 1 (this commit), we implement a best-effort path that uses
- * supabase-js .from(table).select() syntax when the SQL is a trivial
- * `SELECT ... FROM <table> WHERE ...` and falls back to the RPC otherwise.
- * The trivial path covers ~80% of skill use cases per the spec analysis.
- *
- * Phase 1.5 adds the RPC and routes ALL queries through it for consistency
- * and a single audit/RLS surface.
+ * The `rpc_missing` branch in handleQuery is a defensive guard only: the RPC
+ * is deployed, so it should not fire in normal operation; it surfaces a clear
+ * error if the function is ever absent (e.g. a fresh DB without 00026).
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -30,7 +35,7 @@ export const queryDescription = `Execute a parameterized read-only SELECT agains
 Inputs: { sql: SELECT-only string, params?: bind-param array, schema?: 'ops'|'metrics'|'public' (default ops), row_limit?: 1..1000 (default 100) }. \
 Output: { rows, row_count, truncated, query_ms }. \
 Multi-statement, SELECT INTO, UPDATE/DELETE/etc. are rejected by SqlGuard before reaching the DB. \
-RLS still applies via the connection's role.`;
+Runs as service_role via the SECURITY DEFINER RPC ops_run_select, so RLS does NOT apply; reads are constrained by the caller role's read-allowlist (canReadSchema) and the SqlGuard, not by RLS.`;
 
 export const queryInputSchema = {
   type: "object",
@@ -131,8 +136,11 @@ export async function handleQuery(
     throw err;
   }
 
-  // Execute via RPC. The RPC `ops_run_select` is the unified read entry point;
-  // if not yet deployed, return rpc_missing so the caller knows to add the migration.
+  // Execute via the RPC — the sole read path. `ops_run_select` is
+  // SECURITY DEFINER and the shim connects as service_role, so the canReadSchema
+  // gate + sql-guard above (not RLS) are what constrain this read. The
+  // rpc_missing branch below is a defensive guard for a DB without migration
+  // 00026; it should not fire in normal operation.
   // Note: `.schema('ops')` is required because supabase-js defaults to looking up
   // RPC functions in the `public` schema; `ops_run_select` lives in `ops`.
   const startedAt = Date.now();
