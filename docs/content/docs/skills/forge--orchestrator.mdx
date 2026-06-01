@@ -1,0 +1,96 @@
+---
+title: 'Skill: orchestrator'
+description: >-
+  /forge loop driver — turns a NEED + wiki sources into a runnable skill by GATING then ROUTING,
+  delegating all execution. Stages: assemble (/wiki get) → frame (thinking-toolkit/tosca) → funnel
+  (forge/selection-funnel, default REJECT) → classify (forge/route-classifier) → (--dry-run preview |
+  route to /update for EXTEND or /cla propose for NET-NEW). Owns ZERO routing/build primitives of its
+  own (thin orchestrator, deepask precedent); holds ZERO entity_edit_locks (the delegate owns the lock);
+  net-new is a PURE delegating call into /cla propose, never a fork. Founder-only, bound to gps. Part of
+  capability book-to-capability (/forge).
+source_path: 06-ai-ops/skills/forge/orchestrator/SKILL.md
+source_hash: 1e5044a64b2389f91096481cdedc4ff4112eea6e2d16023a0426196c24dc2c2f
+generated_at: '2026-06-01T08:00:00.000Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_at: '2026-06-01T08:00:00.000Z'
+translated_source_hash: 1e5044a64b2389f91096481cdedc4ff4112eea6e2d16023a0426196c24dc2c2f
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+# forge/orchestrator (capability `book-to-capability` v0.1)
+
+> Trí não của `/forge`. Gate với `selection-funnel`, route với `route-classifier`,
+> và **ủy thác mọi build** cho `/update` (extend) hoặc `/cla` (net-new). Nó là nửa
+> *activate* của nguyên tắc "accumulate everything, activate selectively".
+> Sprint 1 scope: funnel + classifier + `--dry-run` (kỷ luật như code được enforce).
+> `/forge` command shell + `v_forge_lineage` view + gps binding land trong Sprint 2.
+> Spec: `.archives/cla/book-to-capability/spec.md` (→ `wiki/capabilities/book-to-capability/` tại Phase 8).
+
+## Khi nào sử dụng
+- Được gọi bởi `.claude/commands/forge.md` (Sprint 2) trên `/forge "<NEED>" --src=wiki:... [flags]`. Trong Sprint 1, được gọi trực tiếp qua Skill tool.
+
+## Đầu vào
+- `need` (string) — positional NEED / query.
+- `--src=wiki:<slug>[#part]` (repeatable) + `--also=wiki:...` — nguồn dominant + hỗ trợ.
+- `--target=auto|new|extend:<entity>`, `--pillar=`, `--type=skill` (v1 skill-only), `--sync-missing`, `--dry-run`.
+
+## Quy trình
+
+### Stage 1 — Assemble sources
+`/wiki get --src=<spec>` mỗi `--src`/`--also` → một grounded source bundle. Nếu một nguồn chưa synced: **surface** nó (không auto-sync); `--sync-missing` opts in tới `/wiki sync` trước.
+
+### Stage 2 — Frame the need
+`thinking-toolkit/tosca-problem-framing` trên NEED + bundle → một crisp problem frame (funnel + classifier consume cái này).
+
+### Stage 3 — Funnel (gate; default REJECT)
+Invoke `forge/selection-funnel`. Trên `REJECT`: stop; report disposition (`latent` = ở lại wiki; `tier1-doc` = gate-5 redirect tới `/update tier1-file`). **Hầu hết candidates kết thúc ở đây — đó là điểm mấu chốt.**
+
+### Stage 4 — Classify the route
+Trên funnel `PASS`, invoke `forge/route-classifier` → `extend:<entity>` | `net-new` | `surface`.
+
+### Stage 5 — Dry-run preview OR route
+```js
+const { renderPreview } = require('scripts/forge/dry-run-preview.cjs');
+```
+- `--dry-run` → in `renderPreview({ need, sources, gates, route, entity })` (sources + gate verdicts + route + est cost + est HITL tier) và **STOP — zero build spend**.
+- Else **delegate** (orchestrator tự build không gì cả):
+  - `extend` → `/update <skill> <entity-or-name> --refs=wiki:<srcs>` (Tier B).
+  - `net-new` → **pure delegating call** vào `/cla propose "<need>" --refs=wiki:<srcs>` (Tier C). `/forge` chỉ thêm funnel + route ở phía trước; `/cla` owns ceremony **không đổi** — không bao giờ là fork (invariant #1).
+  - `surface` → present tied candidates cho founder; không build cho đến khi họ chọn.
+
+### Stage 6 — Record
+Stamp `ops.agent_runs.output_payload`: `forge_verdict`, `gates`, `route`, `entity_target`, `spawned_run_id` (run id của `/update`//`/cla`, cho `v_forge_lineage` linkage). Citations đã land trong `ops.evolve_extractions` (gate 1).
+
+## Locked invariants (@cto-validated — spec §2)
+1. Net-new = **pure delegation** vào `/cla propose`, không bao giờ là fork.
+2. Bound tới **`gps`** (no new role).
+3. **No new table** — reuse `ops.evolve_extractions` + `ops.entity_edit_locks` + `ops.agent_runs.output_payload` + `v_forge_lineage`.
+4. Funnel verdict sink = `ops.agent_runs.output_payload` (gps không thể ghi `ops.decisions`).
+5. **`/forge` acquires ZERO `ops.entity_edit_locks`** — spawned `/update`//`/cla` owns lock (same-key double-acquire sẽ self-deadlock).
+
+## `--dry-run` contract
+Shows: sources, per-gate funnel verdicts, route (`extend:<entity>` | `net-new`), est cost + est HITL tier. Executes: NO build (no `/update`, no `/cla`), no locks; resolver_find DID run trong classify (real breaker cost, shown honestly).
+
+## Bảo vệ
+- Default REJECT funnel; founder có thể override.
+- wiki↔Tier1 boundary: đọc wiki, ghi Tier 1 chỉ qua PR của delegate.
+- Firewall: không bao giờ `product.*`. Internal-only; no customer surface.
+- Subscription billing trong session; resolver_find dưới breaker budget.
+
+## Đầu ra
+- Funnel REJECT → một disposition report (latent / tier1-doc).
+- `--dry-run` → preview, no spend.
+- PASS + route → một `/update` hoặc `/cla` run (delegate produces skill), + `output_payload` lineage stamp.
+
+## HITL
+Tier A (dry-run, funnel run). Tier B (extend execution = một `/update` run). Tier C (net-new execution = một `/cla propose` run). Gate-2 founder review + một `surface` result là founder checkpoints.
+
+## Chi phí
+Subscription; OWN spend của forge = funnel + classify overhead (~$0.10–0.30). Build spend land trên role/bucket của delegate. cost-bucket `ai-ops-meta`, task-kind `forge-orchestration` (gps cap $0.50).
+
+## Tests
+Deterministic core unit-tested: `tests/forge/route-classify.test.ts` (classifier) + `tests/forge/dry-run-preview.test.ts` (cost/tier estimate + preview render). Loop-level acceptance (funnel REJECT trên one-off; pure-delegation; zero-lock) per spec §6.

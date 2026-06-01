@@ -1,0 +1,65 @@
+---
+title: 'Skill: route-classifier'
+description: >-
+  /forge route classifier — AFTER the selection-funnel passes, decides EXTEND an existing skill vs birth
+  NET-NEW vs SURFACE (ambiguous target). Calls resolver_find for candidate skills, then the deterministic
+  scripts/forge/route-classify.cjs (threshold 0.6, ambiguity-margin 0.1). NEVER auto-picks an ambiguous
+  extend target — a mis-route sends a cheap Tier-B /update down the Tier-C /cla path (silent 5x cost), so
+  the decision is deterministic + unit-tested. Part of capability book-to-capability (/forge).
+source_path: 06-ai-ops/skills/forge/route-classifier/SKILL.md
+source_hash: 780e9ca1e7326bd7a262f44b18a39fffb0372111c82b8f1c51d9fd28dcd66359
+generated_at: '2026-06-01T08:00:00.000Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+# forge/route-classifier (capability `book-to-capability` v0.1)
+
+> The 5x-cost risk surface. Runs only AFTER `forge/selection-funnel` returns PASS.
+> The impure part (resolver_find) lives here; the decision is the pure, tested
+> `scripts/forge/route-classify.cjs`. Spec: `.archives/cla/book-to-capability/spec.md` §2.3.
+
+## When to use
+- Invoked by `forge/orchestrator` once a candidate clears all 5 funnel gates.
+
+## Inputs
+- `need` (string) — the framed NEED.
+- `sources` (string[]) — the assembled wiki refs (grounding).
+- Tuning (optional): `threshold` (default 0.6), `ambiguityMargin` (default 0.1).
+
+## Process
+
+### 1 — Find candidate extend targets (impure)
+Call `mcp__supabase-ops__resolver_find({ intent: need, kind: "skill", limit: 5 })`. Map each result to `{ entity: <skill-id>, score: <0..1 similarity> }`. (resolver_find counts against the shared `SESSION_HARD_CAP=20` breaker — one call per classify.)
+
+### 2 — Classify (pure, deterministic, tested)
+```js
+const { classifyRoute } = require('scripts/forge/route-classify.cjs');
+const r = classifyRoute({ candidates, threshold, ambiguityMargin });
+```
+- `r.route === 'extend'` → target = `r.entity`; the orchestrator will route to `/update <skill> <entity-or-name> --refs=wiki:`.
+- `r.route === 'net-new'` → no strong existing target; route to `/cla propose --refs=wiki:`.
+- `r.route === 'surface'` → **ambiguous** (`r.candidates` are within the margin). **Surface the tied list to the founder; NEVER auto-pick.** The founder either names the extend target (→ extend) or confirms net-new.
+
+### 3 — Return
+`{ route, entity?, candidates?, reason }` to the orchestrator, which renders it in the `--dry-run` preview before any spend.
+
+## Guards
+- **Never auto-pick an ambiguous target** — a `surface` result must reach the founder (invariant; the deterministic core enforces it, this skill must not override).
+- Mis-route = silent 5x cost → the orchestrator's mandatory `--dry-run` shows the route + cost BEFORE spend.
+- resolver_find under the breaker budget (the orchestrator accounts for it).
+
+## Outputs
+The route decision object. No writes (the orchestrator stamps it into `agent_runs.output_payload`).
+
+## HITL
+Tier A (the classification itself is read-only). The chosen route's EXECUTION is B (extend/`/update`) or C (net-new/`/cla`); a `surface` waits on the founder.
+
+## Cost
+Subscription (in-session) + one resolver_find. cost-bucket `ai-ops-meta`, task-kind `forge-route-classify` (gps cap $0.10).
+
+## Tests
+`scripts/forge/route-classify.cjs` is unit-tested — `tests/forge/route-classify.test.ts` (26 cases): threshold/margin boundaries, exact-tie-never-auto-picks, order-independence, the full mis-route matrix, input validation.

@@ -1,0 +1,75 @@
+---
+title: 'Command: /forge'
+description: >-
+  Promote a slice of latent wiki knowledge into a runnable skill — need-driven + citation-disciplined.
+  GATES (5-gate anti-over-build funnel, default REJECT) then ROUTES (extend → /update | net-new → pure
+  delegation into /cla propose), delegating every build. Thin orchestrator ABOVE /cla + /update (deepask
+  precedent, zero own routing); bound to gps; holds zero entity_edit_locks. --dry-run shows route + gate
+  verdicts + cost before any spend. Founder-only. Capability book-to-capability v0.1.
+source_path: .claude/commands/forge.md
+source_hash: ab26c96f88677d735256389626cdb7e0e5961d96698a03d861646745cffdcee9
+generated_at: '2026-06-01T08:00:00.000Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+translated: true
+translated_at: '2026-06-01T08:00:00.000Z'
+translated_source_hash: ab26c96f88677d735256389626cdb7e0e5961d96698a03d861646745cffdcee9
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+# /forge
+
+> Orchestrator mỏng cho bộ skill `forge/*` (`06-ai-ops/skills/forge/`). Sở hữu phân tích cờ;
+> **ủy thác mọi build** — EXTEND → `/update`, NET-NEW → `/cla propose` (một lời gọi thuần,
+> không bao giờ là một fork). Nửa *activate* của nguyên tắc "accumulate everything, activate
+> selectively": nó quyết định liệu một lát kiến thức wiki tiềm ẩn có nên trở thành một skill hay
+> không, và nếu có thì route nó. Spec khả năng: `wiki/capabilities/book-to-capability/spec.md`.
+> Quyết định build Tier C `ops.decisions[721170f0-1e49-4bed-8d00-ab512be9b95c]` (founder override
+> của data-based hold f4724da4 về conviction forward-sync-cadence).
+
+## Trạng thái triển khai (xây dựng theo sprint-plan.md)
+
+| Sprint | Trạng thái | Bề mặt |
+|---|---|---|
+| S1 | merged (#173) | `forge/{orchestrator,selection-funnel,route-classifier}` skills + `scripts/forge/{route-classify,dry-run-preview}.cjs` (43 tests) + `SOP-AIOPS-006-forge-runtime-contract` |
+| **S2** | **this PR (final)** | `/forge` command (file này) + `v_forge_lineage` view (migration 00046) + gps `forge-*` task_kinds + 4 `forge.*` KPIs + Phase-8 promotion → `operating` |
+
+> **Ghi chú nhu cầu (trung thực):** Phase-5 reserve-walk + một full funnel pass 2026-06-01 trên 64 ý tưởng chỉ tìm thấy ~3–6 recurring-skill candidates (một backlog một lần, không phải ≥4/tháng). S2 được xây dựng trên **founder conviction** về forward sync cadence, overriding data đó. Công việc của funnel là giữ `/forge` không over-building — bao gồm, một cách trớ trêu, chính nó.
+
+## Argv
+
+| Arg | Bắt buộc | Ghi chú |
+|---|---|---|
+| `"<NEED>"` | có | need/capability bạn muốn — funnel + classifier frame quanh nó |
+| `--src=wiki:<slug>[#part]` | có | nguồn grounding **dominant** (lặp lại được); `#part` scopes tới một chapter/concept |
+| `--also=wiki:<slug>[#part]` | không | nguồn hỗ trợ |
+| `--target=auto\|new\|extend:<entity>` | không | ép một route (default `auto` → classifier quyết định) |
+| `--pillar=<id>` | không | gợi ý target pillar cho gate-4 (DEEP-pillar check) |
+| `--type=skill` | không | v1 = **skill only** (`sop`/`tier1-doc` bị reject với một pointer tới v1.1) |
+| `--sync-missing` | không | opt-in: `/wiki sync` một nguồn chưa có trong wiki (default = surface nó, không auto-sync) |
+| `--dry-run` | không | in sources + gate verdicts + route + est cost/tier; **zero build spend** |
+
+## Phân phối (vòng lặp gate-then-route — `06-ai-ops/sops/SOP-AIOPS-006-forge-runtime-contract`)
+
+1. **assemble** (`forge/orchestrator`) — `/wiki get` mỗi `--src`/`--also`; một nguồn thiếu được **surfaced** (không auto-synced trừ khi `--sync-missing`).
+2. **frame** — `thinking-toolkit/tosca-problem-framing` trên NEED.
+3. **funnel** (`forge/selection-funnel`, **default REJECT**) — 5 gates: entity+confidence (distill → `ops.evolve_extractions`) · founder-review của bucket 0.6–0.85 · repeated-decision (recurring không one-off) · DEEP-pillar+stage · so-what + real gap + EXECUTABLE-not-philosophy. **REJECT** → report disposition (`latent` ở lại wiki / `tier1-doc` → `/update tier1-file`). *Hầu hết candidates kết thúc ở đây — đó là điểm mấu chốt.*
+4. **classify** (`forge/route-classifier`) — `resolver_find` (kind=skill) → deterministic `scripts/forge/route-classify.cjs` → `extend:<entity>` | `net-new` | `surface` (ambiguous → founder chọn, **không bao giờ auto-picked**).
+5. **preview-or-route** — `--dry-run` → `scripts/forge/dry-run-preview.cjs` rồi STOP. Else delegate: `extend` → `/update <skill> <name> --refs=wiki:…` (Tier B); `net-new` → **pure** `/cla propose "<need>" --refs=wiki:…` (Tier C, ceremony không đổi); `surface` → chờ founder.
+6. **record** — stamp `ops.agent_runs.output_payload` (`forge_verdict`, `gates`, `route`, `entity_target`, `spawned_run_id`) → surfaced qua `ops.v_forge_lineage`.
+
+## Bảo vệ (luôn bật)
+- **Default REJECT** funnel; founder có thể override một rejection.
+- **wiki↔Tier1 boundary:** đọc knowledge plane (wiki); ghi capability plane (Tier 1) **chỉ** qua PR của delegate.
+- **Pure delegation** (net-new = một lời gọi vào `/cla propose`, không bao giờ là fork) + **zero locks** (`/forge` acquires không `ops.entity_edit_locks`; delegate owns lock — invariants #1, #5).
+- **Verdict sink** = `agent_runs.output_payload` (gps không thể ghi `ops.decisions` — invariant #4).
+- **Firewall:** internal-only; không bao giờ `product.*`; no customer surface.
+- **Billing:** subscription trong session; cost-bucket `ai-ops-meta`, gps task-kinds `forge-orchestration`/`forge-funnel-gate`/`forge-route-classify`.
+
+## Ranh giới
+`/forge` nằm **trên** `/cla` và `/update` và route **tới** chúng; nó KHÔNG re-implement creation (`/cla`) hay refresh (`/update`), và nó KHÔNG route content (đó là `resolver-plan`). Nó **founder-only** (bound tới `gps`, role router-not-worker). HITL: dry-run/funnel/classify = Tier A; EXTEND execution = B (một `/update` run); NET-NEW execution = C (một `/cla` run).
+
+## KPIs
+`forge.citation_coverage` (target 100%) · `forge.gate_rejection_rate` (>0 — funnel load-bearing) · `forge.new_vs_extend_ratio` · `forge.post_install_score_delta` (≥0, K4 qua `/update` delegate). Xem `knowledge/kpi-registry.yaml`.
