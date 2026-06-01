@@ -1,0 +1,82 @@
+---
+title: "Chương 46 — Capability Case Study #12: book-to-capability (`/forge`)"
+description: "Chương 46 — Capability Case Study #12: book-to-capability (`/forge`)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/46-capability-case-book-to-capability-forge.md
+source_hash: 19961856500f57772aa107b8482a006a34ae87580781147b76349e4902a11429
+generated_at: '2026-06-01T09:19:53.293Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 19961856500f57772aa107b8482a006a34ae87580781147b76349e4902a11429
+translated_at: '2026-06-01T09:19:53.293Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 46
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Đây là case study trung thực nhất của cả playbook. Một capability được DESIGN xong, bị DEFER bởi dữ liệu, rồi được BUILD bởi conviction của founder — hai lần override chính cái verdict của nó. /forge là bước PROMOTE: biến một lát kiến thức latent trong wiki thành một skill chạy được. Nhưng điều quan trọng nhất nó dạy không phải về kiến trúc — mà về kỷ luật quyết định: CLA hoạt động như một MÁY-TÌM-SỰ-THẬT, không phải máy-đóng-dấu; và khi founder override sự thật đó, ta GHI LẠI rõ ràng kèm trigger re-tune, chứ không giấu."*
+
+Chương này document **book-to-capability** (`/forge`) — capability lấp đúng đoạn PROMOTE giữa *tích luỹ* tri thức (`/wiki sync` nạp trọn sách vào wiki) và *xây* capability (`/cla` đẻ mới, `/update` refresh). Ship trọn Phase 0–8 trong 1 ngày (2026-06-01). Đây là case study đầu tiên mà **quyết định bị đảo hai lần** — và là minh hoạ sạch nhất cho nguyên tắc "tích luỹ toàn bộ, kích hoạt chọn lọc".
+
+**Trạng thái:** `operating` v0.1.0 (2026-06-01). Sprint 1 PR #173 (`6582c1a`); Sprint 2 PR #174 (`f09af5a`, migration 00046 applied). ops.capability_runs `487d0d1c`. Decision trail: defer `ops.decisions f4724da4` → **override** → build `721170f0` (supersedes).
+
+---
+
+## 46.1 Bài toán — đoạn PROMOTE bị thiếu
+
+ritsu-works *tích luỹ* tri thức tốt (`/wiki sync` → distill + citation spine) và *xây/refresh* capability tốt (`/cla`, `/update` — cả hai đã nói được `--refs=wiki:`). Cái thiếu là **tầng quyết-định-và-định-tuyến** ở giữa: một lát kiến thức latent *có nên* thành capability không, và nếu có thì builder nào? Thiếu nó → hai failure mode: (a) tri thức chết trong wiki (chỉ RAG qua `wiki_ask`); (b) over-build (mọi framework thành skill → sprawl + chi phí maintain). Trọng tâm của `/forge` vì thế là **phễu chống-over-build + quyết định route**; việc build được ủy quyền.
+
+**Bất đối xứng chi phí (founder-locked):** một capability đắt hơn knowledge ~5–50× (/cla Tier C ~$3–5; /update ~$0.70 + maintain + budget role). Nên lọc ở ranh giới promote phải GẮT, và phễu mặc định **REJECT**.
+
+## 46.2 Kiến trúc — Option B-lean (@cto-validated)
+
+`/forge` đứng **TRÊN** `/cla` + `/update` và route **sang** chúng (đúng tiền lệ deepask-trên-resolver-plan). Thin orchestrator, **zero own routing**. Founder-only, bound `gps`. v1 output = **skill only**.
+
+**5 invariant khoá (@cto):**
+1. **Net-new = pure delegation** vào `/cla propose` — `/forge` chỉ thêm phễu + route *phía trước*; `/cla` giữ nguyên ceremony. **KHÔNG fork.**
+2. **Role = `gps`** (không role mới; role "router không phải worker").
+3. **KHÔNG bảng mới** — tái dùng `ops.evolve_extractions` (citations) + `entity_edit_locks` (lock) + `ops.agent_runs.output_payload` (sink verdict) + view `ops.v_forge_lineage`.
+4. **Verdict sink = `agent_runs.output_payload`, KHÔNG phải `ops.decisions`** (gps không write được `ops.decisions`; verdict mỗi-run là telemetry chứ không phải governance decision).
+5. **`/forge` giữ ZERO `entity_edit_locks`** — delegate (`/update`//`/cla`) giữ lock; tự-acquire cùng key sẽ self-deadlock.
+
+## 46.3 Lõi mới: phễu 5 cổng + classifier
+
+**Phễu 5 cổng (mặc định REJECT):** (1) entity+confidence (distill conf ≥0.6, có citation) · (2) founder review bucket 0.6–0.85 · (3) repeated-decision (recurring, không one-off → else REJECT, dùng `wiki_ask`) · (4) DEEP-pillar+stage (không skeleton/placeholder) · (5) so-what + gap thật + **executable không phải philosophy** (một "should/principle" → Tier-1 doc PR qua `/update tier1-file`, KHÔNG phải skill).
+
+**Route classifier (bề mặt rủi ro 5×):** sau khi phễu PASS, `resolver_find` → `scripts/forge/route-classify.cjs` deterministic → `extend:<skill>` | `net-new` | `surface`. Mis-route đẩy một việc Tier-B rẻ (`/update`) xuống đường Tier-C đắt (`/cla`) → **âm thầm tốn 5×**. Vì thế quyết định là deterministic + unit-tested (43 test), **không bao giờ tự chọn khi mơ hồ** (true score-tie → surface). `--dry-run` bắt buộc in sources + verdict từng cổng + route + ước tính chi phí trước khi tiêu.
+
+## 46.4 Vòng cung quyết định — hai lần override (bài học trung tâm)
+
+Đây là phần đáng học nhất:
+
+1. `/cla propose` → Phase 0–5. @cto lật **2/2 lean của proposer** (bind `gps` không phải role mới; không bảng mới). Chọn **Option B-lean**.
+2. **Phase 5:** Muse panel (**1/5 GO**) + một **reserve-walk LIVE** trên `ops.knowledge_pages` cho thấy volume 6–12/tháng là *khát vọng*, không phải bằng chứng → **DEFER** (`f4724da4`).
+3. Founder hỏi "vì sao không build?", rồi **OVERRIDE để build** trên conviction về nhịp-sync-phía-trước → `721170f0` (supersedes defer).
+4. **Sprint 1** (funnel-as-code) build + 43 test + **merge** (#173).
+5. Khi `/cla resume`, founder chọn **hold + gather data**. Một lượt phễu đầy đủ trên CẢ 64 trang `idea` xác nhận chỉ **~3–6 ứng viên skill recurring** (~90% bị reject đúng) → cổng KHÔNG đạt như một nhịp/tháng.
+6. Founder chọn "forge ~3–6 bằng tay" — rồi **override LẦN HAI** ("xong luôn") → **Sprint 2** build + merge (#174) + Phase-8 → `operating`.
+
+→ **CLA đã hai lần cho ra "build ít hơn"** (defer; rồi reserve-walk). Kỷ luật hoạt động đúng như thiết kế — kể cả ngược lại lean của proposer VÀ (ban đầu) của founder. Founder override là *hợp lệ* (họ biết roadmap sync mà snapshot corpus không biết), và mỗi override được **ghi vào `ops.decisions` + registry `reassess_gate_outcome` + retrospective**, kèm trigger re-tune v1.1.
+
+## 46.5 Giá trị review-gate — 4 landmine @cto bắt ở Phase 5
+
+Review của @cto không phải nghi thức — nó gỡ 3 quả mìn runtime trước khi nổ ở Sprint 1:
+1. **gps KHÔNG write được `ops.decisions`** (`ROLES.md` tier2_schemas_write = chỉ `ops.tasks`+`ops.agent_runs`) → verdict mỗi-run nếu ghi vào `ops.decisions` sẽ bị role-deny *âm thầm* lúc chạy. Fix: sink vào `agent_runs.output_payload` (invariant #4). *Đây là quả mìn dễ nổ nhất ở Sprint 1.*
+2. **`evolve_extractions` chỉ link run qua `agent_run_id`** (00040:22), không có cột forge/decision → view `v_forge_lineage` phải mirror `v_entity_update_lineage` (đọc verdict từ `output_payload`), giữ được "no new table".
+3. **Self-deadlock**: `/forge` + delegate cùng acquire `entity_edit_locks(entity_type,entity_name)` → first-acquirer-wins từ chối cái thứ hai. Fix: `/forge` giữ ZERO lock (invariant #5).
+4. **Validator fail-closed**: thêm `forge-*` task_kind vào `gps` mà không thêm dòng EXPECTATIONS trong `validate-roles-task-kind-caps-units.cjs` → CI fail. Fix: thêm dòng cùng PR.
+
+## 46.6 Trớ trêu được ôm trọn — /forge trượt chính phễu của nó
+
+Chạy 5 cổng của `/forge` lên CHÍNH `/forge`: cổng 3 (recurring) + cổng 5 (executable) **trượt** ở pre-PMF (backlog one-time, hai tầng trừu tượng khỏi khách trả tiền). Cách phá một công cụ chống-over-build trung thực nhất chính là cổng chống-over-build của nó. Ship nó vẫn là một **cú cược có chủ đích vào corpus PHÍA TRƯỚC**, không phải corpus hiện tại — và registry nói điều đó **thẳng**: `reassess_gate_outcome: OVERRIDDEN ... demand unproven; built on conviction. v1.1 re-tunes on real usage.` Nếu `/forge` nằm im, retrospective là biên lai; nếu nhịp sync phía trước đến, founder đúng và nó sẵn sàng. **Phép thử thật là usage** (`forge.gate_rejection_rate` nên cao — phễu đang lọc thật).
+
+## 46.7 Bài học (boilerplate-extractable)
+
+1. **Reserve-walk 0-LOC trước khi build meta-tooling**: query cái store mà tool khai thác, đếm ứng viên thật theo CHÍNH cổng của tool. Phép-thử-demand rẻ nhất. → ứng viên cho một bước chuẩn ở CLA Phase 3.
+2. **Áp cổng của một gating-capability lên chính nó** như một sanity-check Phase 5.
+3. **Provenance không-bảng-mới**: verdict → `agent_runs.output_payload`; lineage = view mirror `v_entity_update_lineage`. Tái dùng được cho mọi thin orchestrator tương lai.
+4. **Kỷ luật override**: founder có quyền override dữ liệu trên conviction — nhưng GHI override (decision + registry + retro) kèm **trigger re-tune**, không giấu. Đây là cách giữ honesty của một công ty AI-native khi người + máy bất đồng.
+
+> **Postscript — quan hệ với Chương 41/45:** `/forge` hoàn tất bộ-ba write-loop ở một tầng cao hơn. `/cla` *tạo*, `/update` *refresh*, `/evolve` *tự-cải-thiện* — cả ba thao tác trên một entity. `/forge` đứng TRÊN và *quyết định + định tuyến* tới `/cla`//`/update`, đúng như deepask (Ch45) đứng trên resolver-plan. Cùng một pattern thin-orchestrator-zero-routing, lần này cho trục *kích hoạt tri thức* thay vì *tổng hợp tri thức*.
