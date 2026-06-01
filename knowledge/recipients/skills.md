@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 99
+**Total entries:** 100
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -305,6 +305,20 @@ cost-optimization-review needs current data.
 Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 
 **Invoke:** `Skill({ skill: "cost-report" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/deepask/aesthetic
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** > The reason a /deepask artifact looks designed, not generated. Every visual > output — whether HTML I author or an image gpt-image-2 renders — must clear an > extraordinary bar: the work a senior editorial/brand designer would ship. > omgkit /design:good is the FLOOR (its checklist is table-stakes); this skill > is the ceiling. Consumed by deepask/format (code-rendered) and > deepask/image-compose (image-gen).
+
+**Invoke:** `Skill({ skill: "deepask/aesthetic" })`
 **HITL tier:** B
 **Side effect:** write
 

@@ -85,6 +85,21 @@ These two formats render via OpenAI image generation, so they have an extra pipe
 
 **Billing:** gpt-image-2 is OUTSIDE the Claude subscription → `OPENAI_API_KEY` (runtime/secrets/.env.local), exactly like `text-embedding-3-small`. Logged to `ops.deepask_runs.metadata.image_gen` + `cost_usd` (cost-bucket `ai-ops-deepask`).
 
+### 2.6 Aesthetic quality bar — EXTRAORDINARY (v1.1) + the logo-embed contract
+**Every visual artifact MUST clear the `deepask/aesthetic` bar** (references omgkit `/design:good` as the FLOOR and exceeds it: one focal point, ruthless restraint, optical spacing, fluid type scale, layered depth, purposeful motion, zero AI-slop). This is NOT optional polish — it is the deliverable standard for `html`/`dashboard`/`interactive`/`canvas`/`chart` (code-rendered) AND `infographics`/`img-slide` (image-gen).
+- **Code-rendered** (html/dashboard/interactive/canvas/chart): apply `deepask/aesthetic` Part 2 (the `/design:good` floor + extraordinary additions) and run the Part-5 gate before writing the file. May lean on `frontend-design` / `design:*` for execution; `deepask/aesthetic` sets the bar.
+- **Image-gen** (infographics/img-slide): `deepask/image-compose` injects `deepask/aesthetic` Part 3 (the art-direction block) into every prompt, after the brand style block.
+
+**Logo-embed contract (FIXES the `--format=html --style=ritsu` missing-logo / path bug).** Code-rendered visual formats MUST embed the brand logo **inline as a base64 data URI** — NEVER a sibling-file `src`/`href` (which breaks when the artifact is viewed from a different base — preview panel, moved file, email):
+```js
+const { resolveStyleLogo } = require('scripts/design-system/style-asset.cjs');
+const logo = resolveStyleLogo(resolved /* from resolveStyle(--style) */, { prefer: 'mark' });
+// logo === null  → plain style / no assets → render a tasteful CSS wordmark instead
+// logo.dataUri        → <img src="${logo.dataUri}" alt="${name}">   (header mark)
+// logo.faviconDataUri → <link rel="icon" href="${logo.faviconDataUri}">
+```
+The asset is resolved from the design system's `assets/` dir (beside its DESIGN.md). Self-contained → the logo renders everywhere, always. `--style` plain → no logo file; use a CSS wordmark in the brand-neutral aesthetic.
+
 ### 3. Artifact layout (FILE MODE ONLY — skipped entirely in `inline` default)
 **Inline mode (default) writes nothing to disk** — the cited answer + Sources list live in the conversation; only the Stage-7 `ops.deepask_runs`/`ops.deepask_coverage` audit rows are written (DB rows, not files), with `artifact_path = NULL`. In **file mode** (any explicit `--format`), write to `.archives/deepask/<YYYY-MM-DD>-<slug>/`:
 - **`answer.md`** — the canonical cited article (ALWAYS in file mode, regardless of which `--format`).

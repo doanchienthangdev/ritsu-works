@@ -48,12 +48,15 @@ If sections+fixed slides exceed `max-slides`, MERGE the lowest-value sections (o
 **`infographics`** — ONE poster. Landscape (3:2) = a left-to-right or grid layout; portrait (2:3) = a top-to-bottom vertical infographic (title → key-stat band → 3–5 section blocks → gaps/verdict → a sources footer). Pack the whole IR into the single canvas; prioritize the exec-summary + the most cited claims + any headline number.
 
 ### 3. Compose the per-piece gpt-image-2 prompt
-Each prompt = **[content brief] + [layout] + [STYLE BLOCK] + [canvas] + [legibility/citation rules]**:
-- **Content brief:** the EXACT text to render — headings, labels, numbers, short claim phrases — quoted from the IR. Image models render text; give them the literal strings (e.g. `"100 paying customers who LOVE Ritsu"`, `"Activation ≥ 40%"`). Keep per-slide text tight (a slide is not a paragraph).
+Each prompt (assembly order from `deepask/aesthetic` Part 4) = **[content brief] + [layout] + [STYLE BLOCK (brand)] + [ART-DIRECTION BLOCK (`deepask/aesthetic` Part 3)] + [canvas] + [legibility/citation rules]**. On any conflict: **brand > legibility > art-direction > content density.**
+- **Content brief:** the EXACT text to render — headings, labels, numbers, short claim phrases — quoted from the IR. Image models render text; give them the literal strings (e.g. `"100 paying customers who LOVE Ritsu"`, `"Activation ≥ 40%"`). Keep per-slide text tight (a slide is not a paragraph). Each piece has ONE focal point (title→headline, metric→number, comparison→table, poster→the single takeaway).
 - **Layout:** "infographic slide", "title + 3 metric cards", "vertical timeline", "comparison table", "2-column", etc. — matched to the section's shape (a `tables[]` → a table; a `charts[]` → a bar/line chart with the given series-data).
-- **STYLE BLOCK:** from step 1 (the brand identity).
+- **STYLE BLOCK:** from step 1 (the brand identity — palette, type-feel, radius, personality).
+- **ART-DIRECTION BLOCK (extraordinary bar):** append `deepask/aesthetic` Part 3 verbatim-in-spirit — award-grade editorial composition, one focal point, disciplined grid + generous margins, restraint, crisp vector iconography in the brand style, NO AI-slop/clip-art/stock/3-D/gradient-mush. This is what makes the image look *designed*, not *generated*. Subordinate to the brand block.
 - **Canvas:** state the aspect ratio explicitly ("16:9 widescreen slide" / "vertical poster, 2:3"). (The API `size` comes from `image-spec`; stating it in the prompt improves composition.)
-- **Legibility & citation rules:** "render all text crisply and correctly spelled, no lorem ipsum, no gibberish text; use the EXACT words provided; small source tag in a corner: `[S1]`; no watermark; no stock photography; no emoji-as-logo."
+- **Legibility & citation rules:** "render all text crisply, correctly spelled, properly kerned, no lorem ipsum, no warped/nonsensical glyphs; use the EXACT words provided; small source tag in a corner: `[S1]`; no watermark; no stock photography; no emoji-as-logo."
+
+Before emitting the plan, apply the `deepask/aesthetic` **Part 5 extraordinary gate** to each piece's prompt (one focal point? accent used once? art-direction present? legibility preserved?). Revise any piece that would "look generated."
 
 ### 4. Citation discipline (inherited from synthesize)
 The image only **re-presents** IR content that already passed `citation-audit`. Each piece's prompt lists the `[source-ref]`s of the claims it shows (rendered as a small tag), so the deck/poster stays traceable. **No new claim may appear in an image that isn't in the IR** — if a slide needs a fact the IR doesn't have, that's a gap (the IR already records it), not an invention.
