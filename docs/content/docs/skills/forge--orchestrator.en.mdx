@@ -1,0 +1,93 @@
+---
+title: 'Skill: orchestrator'
+description: >-
+  /forge loop driver — turns a NEED + wiki sources into a runnable skill by GATING then ROUTING,
+  delegating all execution. Stages: assemble (/wiki get) → frame (thinking-toolkit/tosca) → funnel
+  (forge/selection-funnel, default REJECT) → classify (forge/route-classifier) → (--dry-run preview |
+  route to /update for EXTEND or /cla propose for NET-NEW). Owns ZERO routing/build primitives of its
+  own (thin orchestrator, deepask precedent); holds ZERO entity_edit_locks (the delegate owns the lock);
+  net-new is a PURE delegating call into /cla propose, never a fork. Founder-only, bound to gps. Part of
+  capability book-to-capability (/forge).
+source_path: 06-ai-ops/skills/forge/orchestrator/SKILL.md
+source_hash: 1e5044a64b2389f91096481cdedc4ff4112eea6e2d16023a0426196c24dc2c2f
+generated_at: '2026-06-01T08:00:00.000Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+# forge/orchestrator (capability `book-to-capability` v0.1)
+
+> The brain of `/forge`. Gates with `selection-funnel`, routes with `route-classifier`,
+> and **delegates every build** to `/update` (extend) or `/cla` (net-new). It is the
+> "accumulate everything, activate selectively" principle's *activate* half.
+> Sprint 1 scope: funnel + classifier + `--dry-run` (the discipline as enforced code).
+> The `/forge` command shell + `v_forge_lineage` view + gps binding land in Sprint 2.
+> Spec: `.archives/cla/book-to-capability/spec.md` (→ `wiki/capabilities/book-to-capability/` at Phase 8).
+
+## When to use
+- Invoked by `.claude/commands/forge.md` (Sprint 2) on `/forge "<NEED>" --src=wiki:... [flags]`. In Sprint 1, invoked directly via the Skill tool.
+
+## Inputs
+- `need` (string) — positional NEED / query.
+- `--src=wiki:<slug>[#part]` (repeatable) + `--also=wiki:...` — the dominant + supporting sources.
+- `--target=auto|new|extend:<entity>`, `--pillar=`, `--type=skill` (v1 skill-only), `--sync-missing`, `--dry-run`.
+
+## Process
+
+### Stage 1 — Assemble sources
+`/wiki get --src=<spec>` per `--src`/`--also` → a grounded source bundle. If a source isn't synced: **surface** it (don't auto-sync); `--sync-missing` opts in to `/wiki sync` first.
+
+### Stage 2 — Frame the need
+`thinking-toolkit/tosca-problem-framing` over the NEED + bundle → a crisp problem frame (the funnel + classifier consume this).
+
+### Stage 3 — Funnel (gate; default REJECT)
+Invoke `forge/selection-funnel`. On `REJECT`: stop; report the disposition (`latent` = stays in wiki; `tier1-doc` = gate-5 redirect to `/update tier1-file`). **Most candidates end here — that is the point.**
+
+### Stage 4 — Classify the route
+On funnel `PASS`, invoke `forge/route-classifier` → `extend:<entity>` | `net-new` | `surface`.
+
+### Stage 5 — Dry-run preview OR route
+```js
+const { renderPreview } = require('scripts/forge/dry-run-preview.cjs');
+```
+- `--dry-run` → print `renderPreview({ need, sources, gates, route, entity })` (sources + gate verdicts + route + est cost + est HITL tier) and **STOP — zero build spend**.
+- Else **delegate** (the orchestrator builds nothing itself):
+  - `extend` → `/update <skill> <entity-or-name> --refs=wiki:<srcs>` (Tier B).
+  - `net-new` → **pure delegating call** into `/cla propose "<need>" --refs=wiki:<srcs>` (Tier C). `/forge` adds only the funnel + route in front; `/cla` owns the ceremony **unchanged** — never a fork (invariant #1).
+  - `surface` → present the tied candidates to the founder; do not build until they choose.
+
+### Stage 6 — Record
+Stamp `ops.agent_runs.output_payload`: `forge_verdict`, `gates`, `route`, `entity_target`, `spawned_run_id` (the `/update`//`/cla` run id, for `v_forge_lineage` linkage). Citations already landed in `ops.evolve_extractions` (gate 1).
+
+## Locked invariants (@cto-validated — spec §2)
+1. Net-new = **pure delegation** into `/cla propose`, never a fork.
+2. Bound to **`gps`** (no new role).
+3. **No new table** — reuse `ops.evolve_extractions` + `ops.entity_edit_locks` + `ops.agent_runs.output_payload` + `v_forge_lineage`.
+4. Funnel verdict sink = `ops.agent_runs.output_payload` (gps can't write `ops.decisions`).
+5. **`/forge` acquires ZERO `ops.entity_edit_locks`** — the spawned `/update`//`/cla` owns the lock (same-key double-acquire would self-deadlock).
+
+## `--dry-run` contract
+Shows: sources, per-gate funnel verdicts, route (`extend:<entity>` | `net-new`), est cost + est HITL tier. Executes: NO build (no `/update`, no `/cla`), no locks; resolver_find DID run in classify (real breaker cost, shown honestly).
+
+## Guards
+- Default REJECT funnel; founder may override.
+- wiki↔Tier1 boundary: read wiki, write Tier 1 only via the delegate's PR.
+- Firewall: never `product.*`. Internal-only; no customer surface.
+- Subscription billing in-session; resolver_find under the breaker budget.
+
+## Outputs
+- Funnel REJECT → a disposition report (latent / tier1-doc).
+- `--dry-run` → the preview, no spend.
+- PASS + route → a `/update` or `/cla` run (the delegate produces the skill), + the `output_payload` lineage stamp.
+
+## HITL
+Tier A (dry-run, funnel run). Tier B (extend execution = a `/update` run). Tier C (net-new execution = a `/cla propose` run). Gate-2 founder review + a `surface` result are founder checkpoints.
+
+## Cost
+Subscription; forge's OWN spend = funnel + classify overhead (~$0.10–0.30). Build spend lands on the delegate's role/bucket. cost-bucket `ai-ops-meta`, task-kind `forge-orchestration` (gps cap $0.50).
+
+## Tests
+Deterministic core unit-tested: `tests/forge/route-classify.test.ts` (classifier) + `tests/forge/dry-run-preview.test.ts` (cost/tier estimate + preview render). Loop-level acceptance (funnel REJECT on one-off; pure-delegation; zero-lock) per spec §6.
