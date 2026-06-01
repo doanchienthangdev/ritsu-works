@@ -245,6 +245,8 @@ async function main() {
     ['validate-playbook-coherence.cjs', 'playbook bundle coherence (TOC ↔ build_pdf.py)'],
     // capability design-system-styling v1.0 Sprint 1 — design-systems.yaml structural + file-existence
     ['validate-design-systems.cjs', 'design-systems.yaml ↔ schema + owned paths'],
+    // capability deepask v1.2-image Sprint 1 — art-styles.yaml structural + no brand-palette leak (genre axis)
+    ['validate-art-styles.cjs', 'art-styles.yaml ↔ schema + no brand-palette leak'],
     // security drift guard (migration 00047) — no SECURITY DEFINER fn in schema
     // ops may expose public/unpinned search_path to authenticated/PUBLIC.
     ['validate-secdef-rpc-exposure.cjs', 'ops SECURITY DEFINER RPCs ↔ no RLS-bypass exposure'],

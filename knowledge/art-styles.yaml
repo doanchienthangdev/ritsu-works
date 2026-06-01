@@ -1,0 +1,670 @@
+# ============================================================================
+# art-styles.yaml — deepask artistic-genre registry (capability deepask v1.2-image)
+# ============================================================================
+# The SECOND, orthogonal aesthetic axis for deepask image formats (img-slide,
+# infographics). Multiplies AGAINST the brand --style axis (knowledge/design-
+# systems.yaml): brand owns palette/logo/body-type; a genre owns composition
+# (layout) + material/motifs (assets) + mood (tone) + a SECONDARY accent
+# (secondary_palette) + display-headline character (display_type).
+#
+# Orthogonality is STRUCTURAL: a genre has NO `colors`/`background`/`primary`
+# token — only `secondary_palette` PROSE — so it can never shadow the brand core
+# palette (@cto Phase-5 R5; the merge precedence brand > legibility > genre is in
+# 06-ai-ops/skills/deepask/image-compose + aesthetic). Resolved by
+# scripts/deepask/art-style.cjs (resolveArtStyle, AD-3 non-interactive hard-fail).
+#
+# Seeded from the founder-supplied 80-style library (all 80; the founder elected
+# the full corpus over the Muse "ship 3" restraint — ops.decisions
+# 'deepask-image-uplift-v1-2-artistic-genre-axis'). This YAML is the source of
+# truth and is hand-maintained thereafter (NOT re-generated in CI), exactly like
+# design-systems.yaml. Bootstrap: scripts/deepask/gen-art-styles-registry.cjs.
+#
+# Schema:    knowledge/schemas/art-styles.schema.json
+# Validator: scripts/cross-tier/validate-art-styles.cjs (L2 critical; wired into
+#            check-consistency.cjs AND .github/workflows/cross-tier-consistency.yml)
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/art-styles.schema.json
+
+art_styles:
+  - id: tech-teardown-premium
+    seed_id: 1
+    name: "Tech Teardown Premium"
+    tone: "High-tech, Fascinating, Minimalist"
+    layout: "Exploded view, Multi-section grid"
+    secondary_palette: "Monochromatic Dark Mode, Cyan Accents, Matte Black"
+    display_type: "Headline: Neue Haas Grotesk (Bold); Body: Inter (Light)"
+    assets: "High-quality 3D renders, No flat icons, Ray-tracing lighting"
+  - id: swiss-international
+    seed_id: 2
+    name: "Swiss International"
+    tone: "Objective, Clean, Structured"
+    layout: "Asymmetric Grid, Heavy Negative Space"
+    secondary_palette: "International Orange (#FF3B30), White, Black, Neutral Grey"
+    display_type: "Headline: Helvetica Now (Bold); Body: Helvetica Now (Regular)"
+    assets: "Geometric shapes, High-contrast photography, Clean lines"
+  - id: glassmorphism-ui
+    seed_id: 3
+    name: "Glassmorphism UI"
+    tone: "Digital, Soft, Modern"
+    layout: "Floating Cards, Frosted Glass Effect"
+    secondary_palette: "Pastel Gradients, Translucent White, Vivid Blur backgrounds"
+    display_type: "Headline: SF Pro Display; Body: SF Pro Text"
+    assets: "3D UI elements, Soft shadows, Background blur, Rounded corners"
+  - id: eco-organic-paper
+    seed_id: 4
+    name: "Eco-Organic Paper"
+    tone: "Natural, Sustainable, Friendly"
+    layout: "Collage style, Layered paper look"
+    secondary_palette: "Earth Tones (Sage Green, Beige, Terracotta, Brown)"
+    display_type: "Headline: Recoleta (Serif); Body: Avenir (Sans)"
+    assets: "Paper texture overlays, Watercolor illustrations, Plant motifs"
+  - id: neon-cyberpunk-data
+    seed_id: 5
+    name: "Neon Cyberpunk Data"
+    tone: "Futuristic, Data-heavy, Intense"
+    layout: "HUD (Heads Up Display), Complex Data Viz"
+    secondary_palette: "Neon Pink, Electric Blue, Deep Purple background"
+    display_type: "Headline: Rajdhani (Bold); Body: Share Tech Mono"
+    assets: "Glowing lines, Glitch effects, Matrix grids, Holograms"
+  - id: corporate-trust
+    seed_id: 6
+    name: "Corporate Trust"
+    tone: "Professional, Reliable, Corporate"
+    layout: "Split Screen (Image/Text), Clean Columns"
+    secondary_palette: "Navy Blue, Slate Grey, Crisp White"
+    display_type: "Headline: Montserrat (Bold); Body: Open Sans"
+    assets: "Stock photography (people in suits), Vector icons, Charts"
+  - id: neo-brutalism-pop
+    seed_id: 7
+    name: "Neo-Brutalism Pop"
+    tone: "Bold, Trendy, Raw"
+    layout: "Hard borders, Unaligned elements, Brutalist"
+    secondary_palette: "High Contrast, Lemon Yellow, Hot Pink, Black Strokes"
+    display_type: "Headline: Archivo Black; Body: Space Grotesk"
+    assets: "Retro clip art, Stark shadows, Default UI components"
+  - id: architectural-blueprint
+    seed_id: 8
+    name: "Architectural Blueprint"
+    tone: "Technical, Precise, Planning"
+    layout: "Grid paper background, Schematics"
+    secondary_palette: "Blueprint Blue (#0044CC), White Lines"
+    display_type: "Headline: DIN Pro; Body: Roboto Mono"
+    assets: "Technical drawings, Ruler lines, Annotations, White outlines"
+  - id: vogue-editorial
+    seed_id: 9
+    name: "Vogue Editorial"
+    tone: "Fashionable, Elegant, Expensive"
+    layout: "Magazine spread, Full-bleed images"
+    secondary_palette: "Black, White, Gold, Deep Emerald"
+    display_type: "Headline: Didot or Bodoni (Serif); Body: Lato (Light)"
+    assets: "High-fashion photography, Minimal text overlay, Serif numbers"
+  - id: claymorphism-3d
+    seed_id: 10
+    name: "Claymorphism 3D"
+    tone: "Playful, Soft, Educational"
+    layout: "Central focus, Rounded bubbles"
+    secondary_palette: "Soft Plastic Colors, Marshmallow White, Sky Blue"
+    display_type: "Headline: Nunito (Rounded); Body: Quicksand"
+    assets: "3D Clay render characters, Inflated objects, Soft lighting"
+  - id: vintage-botanical
+    seed_id: 11
+    name: "Vintage Botanical"
+    tone: "Classic, Scientific, Detailed"
+    layout: "Encyclopedia layout, Framed borders"
+    secondary_palette: "Aged Paper (Yellowish), Ink Black, Faded Green"
+    display_type: "Headline: Garamond; Body: Caslon"
+    assets: "Hand-drawn scientific engravings, Detailed sketches"
+  - id: isometric-kingdom
+    seed_id: 12
+    name: "Isometric Kingdom"
+    tone: "Overview, Strategic, Gamified"
+    layout: "Isometric 3D Map, Floating Islands"
+    secondary_palette: "Vibrant Flat Colors, Soft Gradients"
+    display_type: "Headline: Poppins (Bold); Body: Roboto"
+    assets: "Isometric buildings, Tiny people, 3D paths/roads"
+  - id: dark-academia
+    seed_id: 13
+    name: "Dark Academia"
+    tone: "Scholarly, Mysterious, Historical"
+    layout: "Dense information, Textured backgrounds"
+    secondary_palette: "Dark Brown, Charcoal, Old Gold, Crimson"
+    display_type: "Headline: Playfair Display; Body: Lora"
+    assets: "Leather textures, Old maps, Candlelight, Oil painting style"
+  - id: duo-tone-gradient
+    seed_id: 14
+    name: "Duo-Tone Gradient"
+    tone: "Start-up, Energetic, SaaS"
+    layout: "Large Typography, Gradient Overlays"
+    secondary_palette: "Purple to Orange Gradient, White Text"
+    display_type: "Headline: Inter (Extra Bold); Body: Inter (Regular)"
+    assets: "Abstract 3D blobs, Gradient mesh, No real photos"
+  - id: japanese-zen
+    seed_id: 15
+    name: "Japanese Zen"
+    tone: "Peaceful, Balanced, Essentialist"
+    layout: "Extreme Minimalism, Vertical text support"
+    secondary_palette: "Stone Grey, Bamboo Green, Rice Paper White"
+    display_type: "Headline: Noto Sans JP (Medium); Body: Noto Serif JP"
+    assets: "Ink wash painting (Sumi-e), Circles (Enso), Nature macro"
+  - id: retro-80s-synthwave
+    seed_id: 16
+    name: "Retro 80s Synthwave"
+    tone: "Nostalgic, Vibrant, Digital"
+    layout: "Horizon grids, Sunset background"
+    secondary_palette: "Magenta, Cyan, Violet, Sunburst Orange"
+    display_type: "Headline: Lazer 84 or Brush Script; Body: VCR OSD Mono"
+    assets: "Palm trees silouhette, Grid floor, Chrome text effects"
+  - id: medical-clean
+    seed_id: 17
+    name: "Medical Clean"
+    tone: "Sterile, Precise, Health-focused"
+    layout: "Clean cards, Anatomy focus"
+    secondary_palette: "Medical Blue, Mint Green, Pure White"
+    display_type: "Headline: Franklin Gothic; Body: Arial"
+    assets: "High-end medical 3D renders, DNA strands, Microscopic view"
+  - id: chalkboard-education
+    seed_id: 18
+    name: "Chalkboard Education"
+    tone: "Informative, Teaching, Rough"
+    layout: "Blackboard background, Handwritten notes"
+    secondary_palette: "Chalk White, Pastel Chalk colors, Blackboard Green/Black"
+    display_type: "Headline: Chalkboard SE; Body: Handwriting font"
+    assets: "Chalk sketches, Arrows, Doodles, Eraser marks"
+  - id: abstract-geometric
+    seed_id: 19
+    name: "Abstract Geometric"
+    tone: "Artistic, Bauhaus-inspired, Creative"
+    layout: "Overlapping shapes, Compositional"
+    secondary_palette: "Primary Colors (Red, Blue, Yellow), Black, Cream"
+    display_type: "Headline: Futura (Bold); Body: Futura (Book)"
+    assets: "Basic geometric shapes (Circle, Triangle, Square), Patterns"
+  - id: cinematic-documentary
+    seed_id: 20
+    name: "Cinematic Documentary"
+    tone: "Dramatic, Storytelling, Real"
+    layout: "Full screen cinematic shots, Letterbox bars"
+    secondary_palette: "Color graded (Teal & Orange), High Dynamic Range"
+    display_type: "Headline: Gotham (Black); Body: Gotham (Book)"
+    assets: "Realistic photography, Motion blur, Film grain, Lens flare"
+  - id: cyber-security-matrix
+    seed_id: 21
+    name: "Cyber Security Matrix"
+    tone: "Encrypted, Secretive, Digital Defense"
+    layout: "Terminal windows, Falling code rain background"
+    secondary_palette: "Matrix Green (#00FF41), Terminal Black, Dark Grey"
+    display_type: "Headline: VT323 or Courier Prime (Monospace); Body: Fira Code"
+    assets: "Binary code streams, Shield grids, Lock icons, Wireframe globes"
+  - id: luxury-marble-and-gold
+    seed_id: 22
+    name: "Luxury Marble & Gold"
+    tone: "Opulent, High-end, Exclusive"
+    layout: "Minimalist framing with gold borders, Marble texture backgrounds"
+    secondary_palette: "White Marble, Metallic Gold, Deep Velvet Black"
+    display_type: "Headline: Cinzel (Decorative Serif); Body: Raleway (Light)"
+    assets: "Gold foil textures, Marble surfaces, Elegant serif numbers, Spotlight effects"
+  - id: 8-bit-pixel-adventure
+    seed_id: 23
+    name: "8-Bit Pixel Adventure"
+    tone: "Retro Gaming, Fun, Nostalgic"
+    layout: "Game UI bars, Pixel grid alignment"
+    secondary_palette: "Primary Pixel Palette (Red, Blue, Green, Yellow), Black outlines"
+    display_type: "Headline: Press Start 2P; Body: DotGothic16"
+    assets: "Pixel art characters, Hearts/Lives icons, Blocky UI containers"
+  - id: art-deco-luxury
+    seed_id: 24
+    name: "Art Deco Luxury"
+    tone: "Glamorous, Geometric, Roaring 20s"
+    layout: "Symmetrical patterns, Gold frames, Sunbursts"
+    secondary_palette: "Black, Metallic Gold, Deep Emerald, Pearl White"
+    display_type: "Headline: Righteous or Broadway; Body: Josefin Sans"
+    assets: "Gold geometric lines, Marble floors, Elegant fan patterns"
+  - id: pop-art-comic
+    seed_id: 25
+    name: "Pop Art Comic"
+    tone: "Bold, Expressive, Retro Fun"
+    layout: "Comic strip panels, Speech bubbles"
+    secondary_palette: "Cyan, Magenta, Yellow, Black Halftones"
+    display_type: "Headline: Bangers; Body: Comic Neue"
+    assets: "Halftone dots patterns, Action lines, Boom/Pow effects"
+  - id: steampunk-industrial
+    seed_id: 26
+    name: "Steampunk Industrial"
+    tone: "Vintage Sci-Fi, Mechanical, Gritty"
+    layout: "Brass borders, Exposed machinery visuals"
+    secondary_palette: "Copper, Brass, Leather Brown, Steam White"
+    display_type: "Headline: Rye; Body: Courier Prime"
+    assets: "Gears, Pipes, Analog gauges, Victorian decorations"
+  - id: corporate-memphis
+    seed_id: 27
+    name: "Corporate Memphis"
+    tone: "Friendly, Big Tech, Inclusive"
+    layout: "Flat illustrations, Floating elements, Clean background"
+    secondary_palette: "Vibrant Purple, Yellow, Blue, Pastel Pink"
+    display_type: "Headline: DM Sans (Bold); Body: DM Sans (Regular)"
+    assets: "Flat characters with exaggerated limbs, Abstract shapes, Vector plants"
+  - id: risograph-print
+    seed_id: 28
+    name: "Risograph Print"
+    tone: "Artistic, Imperfect, Textured"
+    layout: "Misaligned layers, Grainy texture overlap"
+    secondary_palette: "Fluorescent Pink, Riso Blue, Bright Teal, Cream Paper"
+    display_type: "Headline: Space Mono; Body: Anonymous Pro"
+    assets: "Grainy gradients, Multiply blending mode effects, Rough edges"
+  - id: holographic-chrome
+    seed_id: 29
+    name: "Holographic Chrome"
+    tone: "Futuristic, Fluid, Trendy"
+    layout: "Liquid metal shapes, Glass distortions"
+    secondary_palette: "Iridescent Rainbow, Silver Chrome, Purple sheen"
+    display_type: "Headline: Syne (Extra Bold); Body: Manrope"
+    assets: "3D Liquid metal blobs, Rainbow gradients, Sparkles"
+  - id: urban-graffiti
+    seed_id: 30
+    name: "Urban Graffiti"
+    tone: "Rebellious, Street, Raw"
+    layout: "Spray paint backgrounds, Sticker bombing"
+    secondary_palette: "Neon Green, Asphalt Grey, Brick Red, Spray Black"
+    display_type: "Headline: Permanent Marker; Body: Gochi Hand"
+    assets: "Drip effects, Spray textures, Concrete wall backgrounds"
+  - id: watercolor-dream
+    seed_id: 31
+    name: "Watercolor Dream"
+    tone: "Soft, Artistic, Flowing"
+    layout: "Bleeding edges, Paper texture background"
+    secondary_palette: "Washed out Pastels, Water Blue, Blush Pink"
+    display_type: "Headline: Amatic SC; Body: Cormorant Garamond"
+    assets: "Watercolor stains, Hand-painted illustrations, Wet paper texture"
+  - id: film-noir-mystery
+    seed_id: 32
+    name: "Film Noir Mystery"
+    tone: "Dramatic, Shadowy, Crime"
+    layout: "High contrast lighting, Venetian blind shadows"
+    secondary_palette: "Black, White, Greyscale, Deep Shadow"
+    display_type: "Headline: Bebas Neue; Body: Old Standard TT"
+    assets: "Silhouettes, Smoke swirls, Spotlight beams, Rain streaks"
+  - id: origami-craft
+    seed_id: 33
+    name: "Origami Craft"
+    tone: "Creative, Delicate, Structured"
+    layout: "Folded paper scenes, Creased textures"
+    secondary_palette: "Paper White, Soft Shadow Grey, Pastel Accents"
+    display_type: "Headline: Quicksand; Body: Comfortaa"
+    assets: "Folded paper animals/objects, Sharp creases, Realistic paper shadows"
+  - id: boho-chic
+    seed_id: 34
+    name: "Boho Chic"
+    tone: "Natural, Warm, Organic"
+    layout: "Arch shapes, Organic blobs"
+    secondary_palette: "Terracotta, Beige, Sage, Dried Flower colors"
+    display_type: "Headline: Yeseva One; Body: Montserrat (Light)"
+    assets: "Abstract organic shapes, Line art plants, Sun motifs"
+  - id: extreme-sports-energy
+    seed_id: 35
+    name: "Extreme Sports Energy"
+    tone: "Fast, Dynamic, Adrenaline"
+    layout: "Slanted layouts, Motion blur background"
+    secondary_palette: "Volt Green, Racing Red, Carbon Fiber Black"
+    display_type: "Headline: Russo One (Italic); Body: Exo 2"
+    assets: "Speed lines, Splatters, Grunge textures, High contrast action shots"
+  - id: kids-learning
+    seed_id: 36
+    name: "Kids Learning"
+    tone: "Playful, Simple, Bright"
+    layout: "Rounded boxes, Large buttons"
+    secondary_palette: "Primary Red, Blue, Yellow, Grass Green"
+    display_type: "Headline: Fredoka One; Body: Balsamiq Sans"
+    assets: "Cute mascots, Rounded icons, Clouds, Stars"
+  - id: survival-horror
+    seed_id: 37
+    name: "Survival Horror"
+    tone: "Scary, Gritty, Distressed"
+    layout: "Scratchy overlays, Vignette borders"
+    secondary_palette: "Blood Red, Rust, Pitch Black, Dirty Brown"
+    display_type: "Headline: Creepster or Nosifer; Body: Special Elite"
+    assets: "Grunge textures, Ink splatters, Film noise, Glitch"
+  - id: psychedelic-swirl
+    seed_id: 38
+    name: "Psychedelic Swirl"
+    tone: "Trippy, 60s, Fluid"
+    layout: "Warped grids, Spiral compositions"
+    secondary_palette: "Acid Green, Hot Pink, Electric Purple, Orange"
+    display_type: "Headline: Shrikhand; Body: Space Grotesk"
+    assets: "Liquid marble patterns, Mushroom motifs, Warped text"
+  - id: scandi-minimal
+    seed_id: 39
+    name: "Scandi Minimal"
+    tone: "Cozy, Clean, Hygge"
+    layout: "Lots of whitespace, Balanced grid"
+    secondary_palette: "Wood tones, White, Soft Grey, Muted Blue"
+    display_type: "Headline: Jost; Body: Mulish"
+    assets: "Minimalist line icons, Wood textures, Soft daylight"
+  - id: tactical-military
+    seed_id: 40
+    name: "Tactical Military"
+    tone: "Serious, Strategic, Robust"
+    layout: "HUD interfaces, Grid maps"
+    secondary_palette: "Olive Drab, Camo Green, Desert Tan, Black"
+    display_type: "Headline: Black Ops One; Body: Quantico"
+    assets: "Target reticles, Stencil shapes, Topographic lines"
+  - id: low-poly-3d
+    seed_id: 41
+    name: "Low Poly 3D"
+    tone: "Modern, Digital, Sharp"
+    layout: "Faceted backgrounds, Geometric clusters"
+    secondary_palette: "Vibrant Gradients, Polygon edges"
+    display_type: "Headline: Exo; Body: Titillium Web"
+    assets: "Low poly 3D models, Triangulated backgrounds, Crystal shapes"
+  - id: tiki-tropical
+    seed_id: 42
+    name: "Tiki Tropical"
+    tone: "Summer, Warm, Relaxed"
+    layout: "Leaf borders, Sunset gradients"
+    secondary_palette: "Sunset Orange, Ocean Teal, Palm Green, Yellow"
+    display_type: "Headline: Lobster; Body: Lato"
+    assets: "Monstera leaves, Bamboo frames, Hibiscus flowers"
+  - id: newspaper-daily
+    seed_id: 43
+    name: "Newspaper Daily"
+    tone: "Classic, Informative, Trustworthy"
+    layout: "Multi-column text, Separator lines"
+    secondary_palette: "Newsprint White/Grey, Ink Black"
+    display_type: "Headline: Playfair Display; Body: Merriweather"
+    assets: "Black and white photos, Cross-hatching illustrations"
+  - id: quantum-entanglement
+    seed_id: 44
+    name: "Quantum Entanglement"
+    tone: "Mysterious, Subatomic, Advanced Physics"
+    layout: "Particle clouds, Wave function curves, Probability distributions"
+    secondary_palette: "Deep Void Blue, Neon Cyan, Photon White, Ultraviolet"
+    display_type: "Headline: Orbitron (Bold); Body: Rajdhani (Light)"
+    assets: "Atom models, Energy waves, Probability clouds, Schrödinger's cat motifs"
+  - id: blueprint-geometry
+    seed_id: 45
+    name: "Blueprint Geometry"
+    tone: "Precise, Mathematical, Engineered"
+    layout: "Grid paper background, Golden ratio guides, Construction lines"
+    secondary_palette: "Blueprint Blue (#0044CC), White Chalk Lines, Ruler Yellow"
+    display_type: "Headline: DIN 1451; Body: Roboto Mono"
+    assets: "Compasses, Protractors, Geometric primitives, Calculated angles, Wireframes"
+  - id: neural-synapse-ai
+    seed_id: 46
+    name: "Neural Synapse AI"
+    tone: "Intelligent, Connected, Machine Learning"
+    layout: "Network nodes, Brain-shaped clusters, Layered connections"
+    secondary_palette: "Deep Purple background, Electric Pink connections, Glowing White nodes"
+    display_type: "Headline: Exo 2 (Black); Body: Lato (Regular)"
+    assets: "Connection lines, Glowing dots, Brain wiring diagrams, Neural layers"
+  - id: silicon-circuitry
+    seed_id: 47
+    name: "Silicon Circuitry"
+    tone: "Hardware, Intricate, Physical Tech"
+    layout: "PCB traces background, Chip macro shots"
+    secondary_palette: "Matte Black PCB, Gold Traces, Silver Solder, LED Red indicators"
+    display_type: "Headline: Share Tech Mono; Body: Fira Sans"
+    assets: "Microchips, Capacitors, Gold pathways, Transistors, CPU sockets"
+  - id: infinite-data-stream
+    seed_id: 48
+    name: "Infinite Data Stream"
+    tone: "Corporate IT, Big Data, Flowing"
+    layout: "Isometric server racks, Data highways, Perspective lines"
+    secondary_palette: "Server Room Blue, Steel Grey, Fiber Optic Light"
+    display_type: "Headline: Montserrat (Extra Bold); Body: Open Sans"
+    assets: "Server racks, Optical fiber cables, Binary streams, Database cylinders"
+  - id: generative-diffusion
+    seed_id: 49
+    name: "Generative Diffusion"
+    tone: "Artistic, AI-generated, Surreal"
+    layout: "Morphing shapes, Fluid composition, Dreamlike"
+    secondary_palette: "Iridescent, Dreamy Pastels, Vivid Oil Slick, Holographic"
+    display_type: "Headline: Syne (Extra Bold); Body: Space Grotesk"
+    assets: "AI art hallucinations, Fluid morphs, Impossible objects, Glitch art"
+  - id: molecular-biology
+    seed_id: 50
+    name: "Molecular Biology"
+    tone: "Organic, Microscopic, Life-science"
+    layout: "Cellular structures, DNA helix borders, Clean lab look"
+    secondary_palette: "Mint Green, Blood Red accents, Cell Membrane Pink, Sterile White"
+    display_type: "Headline: Quicksand (Bold); Body: Nunito Sans"
+    assets: "DNA strands, Bacteria shapes, Microscope viewports, Petri dishes"
+  - id: cloud-infrastructure
+    seed_id: 51
+    name: "Cloud Infrastructure"
+    tone: "Light, Scalable, Networked, SaaS"
+    layout: "Floating connected icons, Cloud metaphors, Clean whitespace"
+    secondary_palette: "Sky Blue, Pure White, Soft Grey shadows, Signal Orange CTA"
+    display_type: "Headline: Work Sans; Body: PT Sans"
+    assets: "3D Cloud icons, Wi-Fi signals, Server blocks floating, API connectors"
+  - id: devops-terminal
+    seed_id: 52
+    name: "DevOps Terminal"
+    tone: "Coder, Scripting, Backend, Hacker"
+    layout: "Command line interface boxes, Monospace blocks"
+    secondary_palette: "Terminal Black background, Syntax Highlighting (Yellow, Blue, Magenta)"
+    display_type: "Headline: JetBrains Mono (Bold); Body: Ubuntu Mono"
+    assets: "Code snippets, Brackets {}, Cursor block _, Git branches, Bash prompts"
+  - id: fractal-mathematics
+    seed_id: 53
+    name: "Fractal Mathematics"
+    tone: "Infinite, Complex, Beautiful"
+    layout: "Mandelbrot sets, Recursive patterns, Fibonacci spirals"
+    secondary_palette: "Psychedelic Gradients, Mathematical Black, Neon Edges"
+    display_type: "Headline: Cinzel (Decorative); Body: Raleway"
+    assets: "Fractals, Golden spirals, Recursive geometry, 3D Manifolds"
+  - id: academic-latex-manuscript
+    seed_id: 54
+    name: "Academic LaTeX Manuscript"
+    tone: "Scholarly, Rigorous, Formal"
+    layout: "Standard Academic Paper, Wide Margins, Theorem Blocks"
+    secondary_palette: "Paper White, Ink Black, Citation Green, Hyperlink Blue"
+    display_type: "Headline: Latin Modern Roman (Bold); Body: Latin Modern Roman"
+    assets: "Rendered LaTeX equations (sums, integrals), Theorem boxes, Vector plots, Serif numbers"
+  - id: dark-mode-latex
+    seed_id: 55
+    name: "Dark Mode LaTeX"
+    tone: "Modern, Sleek, High-Contrast Math"
+    layout: "Dark card UI, Syntax highlighting for math terms"
+    secondary_palette: "Dark Background (#2D2D2D), Pastel Yellow/Pink/Blue for Math Symbols"
+    display_type: "Headline: Computer Modern Sans (Bold); Body: Computer Modern Serif (White)"
+    assets: "Glowing mathematical symbols, Clean function graphs, Dark theme UI elements"
+  - id: vibrant-isometric-city
+    seed_id: 56
+    name: "Vibrant Isometric City"
+    tone: "Busy, Structural, Logistic"
+    layout: "Isometric 3D projection, Floating platforms, Sim-city style"
+    secondary_palette: "Bright Cyan, Sunset Orange, Electric Purple, White Bases"
+    display_type: "Headline: Poppins (Bold); Body: Open Sans"
+    assets: "3D buildings, Roads, Vehicles, Trees, Floating data blocks"
+  - id: neo-glassmorphism-3d
+    seed_id: 57
+    name: "Neo-Glassmorphism 3D"
+    tone: "Modern, Clean, Depth-focused"
+    layout: "Frosted glass layers, Floating 3D spheres, Soft blurs"
+    secondary_palette: "Translucent White, Vivid Gradient Orbs (Pink/Blue), Soft Shadows"
+    display_type: "Headline: Helvetica Now Display (Bold); Body: Inter"
+    assets: "Frosted glass cards, Glossy spheres, Refraction effects, Floating icons"
+  - id: toy-brick-voxel
+    seed_id: 58
+    name: "Toy Brick Voxel"
+    tone: "Playful, Constructive, Digital"
+    layout: "Voxel grid, Lego-like blocks, Pixelated 3D"
+    secondary_palette: "Plastic Red, Blue, Yellow, Green (Primary Colors)"
+    display_type: "Headline: Fredoka One; Body: Varela Round"
+    assets: "Voxel characters, Brick structures, Blocky terrain, Snap-fit joints"
+  - id: cyber-organic-flow
+    seed_id: 59
+    name: "Cyber-Organic Flow"
+    tone: "Futuristic, Biotech, Fluid"
+    layout: "Organic curves, Bioluminescent flows, Dark background"
+    secondary_palette: "Bioluminescent Blue, Neon Green, Deep Ocean Black"
+    display_type: "Headline: Orbitron; Body: Mauro"
+    assets: "Glowing veins, Liquid metal, Organic 3D shapes, Fiber optics"
+  - id: low-poly-vibrant-landscape
+    seed_id: 60
+    name: "Low-Poly Vibrant Landscape"
+    tone: "Geometric, Abstract, Adventure"
+    layout: "Triangulated terrain, Angular mountains, Gradient skies"
+    secondary_palette: "Hot Pink to Cyan Gradients, Low-poly flat shading"
+    display_type: "Headline: Montserrat (Black); Body: Raleway"
+    assets: "Low-poly mountains, Geometric trees, Angular clouds, faceted water"
+  - id: abstract-3d-liquid
+    seed_id: 61
+    name: "Abstract 3D Liquid"
+    tone: "Creative, Smooth, High-end"
+    layout: "Floating liquid blobs, Zero gravity, Macro photography"
+    secondary_palette: "Metallic Gold, Glossy Black, Chrome, Iridescent sheen"
+    display_type: "Headline: Playfair Display (Bold); Body: Lato"
+    assets: "Liquid splashes, Floating droplets, Metallic textures, Reflection maps"
+  - id: vaporwave-3d-grid
+    seed_id: 62
+    name: "Vaporwave 3D Grid"
+    tone: "Retro-Future, Nostalgic, Surreal"
+    layout: "Perspective laser grids, Floating statues, Glitch art"
+    secondary_palette: "Miami Pink, Cyan, Deep Purple, Checkerboard"
+    display_type: "Headline: Alien Encounters or VCR OSD; Body: Roboto Mono"
+    assets: "Roman busts, Palm trees, Grid floors, VHS static, Geometric primitives"
+  - id: high-gloss-candy
+    seed_id: 63
+    name: "High-Gloss Candy"
+    tone: "Pop, Fun, Commercial"
+    layout: "Inflated typography, Soft plastic textures, Studio lighting"
+    secondary_palette: "Bubblegum Pink, Mint Green, Banana Yellow, High Gloss"
+    display_type: "Headline: Nunito (Extra Bold); Body: Quicksand"
+    assets: "Balloon letters, 3D Emojis, Soft plastic shapes, Sprinkles"
+  - id: isometric-data-block
+    seed_id: 64
+    name: "Isometric Data Block"
+    tone: "Analytical, Tech-heavy, Structured"
+    layout: "Floating cubes, Modular grid, Data visualization"
+    secondary_palette: "Tech Blue, Data Viz Palette (Teal, Orange, Purple), Dark Grey"
+    display_type: "Headline: Saira; Body: Fira Sans"
+    assets: "Data cubes, Bar charts in 3D, Modular connectors, Floating screens"
+  - id: crystal-prism-refraction
+    seed_id: 65
+    name: "Crystal Prism Refraction"
+    tone: "Ethereal, Light-focused, Pure"
+    layout: "Glass prisms, Light dispersion, Dark contrast"
+    secondary_palette: "Spectral Rainbow, Deep Black background, Crystal Clear White"
+    display_type: "Headline: Cinzel; Body: Cormorant Garamond"
+    assets: "Prisms, Rainbow light beams, Caustics, Glass shards, Diamond cuts"
+  - id: vietnamese-dong-son
+    seed_id: 66
+    name: "Vietnamese Dong Son"
+    tone: "Ancient, Powerful, Historic"
+    layout: "Circular concentric patterns, Bronze drum surface background"
+    secondary_palette: "Aged Bronze, Verdigris Green, Clay Brown, Black"
+    display_type: "Headline: Cinzel Decorative; Body: Merriweather"
+    assets: "Dong Son drum motifs, Flying cranes (Lac bird), Bronze textures, Geometric borders"
+  - id: indochine-elegance
+    seed_id: 67
+    name: "Indochine Elegance"
+    tone: "Nostalgic, Romantic, Colonial Fusion"
+    layout: "Tile patterns, Arch windows, French-Vietnamese architecture"
+    secondary_palette: "Mustard Yellow, Deep Teal, Dark Wood, Cream"
+    display_type: "Headline: Playfair Display; Body: Josefin Sans"
+    assets: "Encaustic cement tiles, Rattan textures, Shutters, Tropical palms, Fan shapes"
+  - id: dong-ho-folk
+    seed_id: 68
+    name: "Dong Ho Folk"
+    tone: "Rustic, Traditional, Cheerful"
+    layout: "Woodcut print style, Textured paper background (Diep paper)"
+    secondary_palette: "Natural dyes: Burned Bamboo Black, Seashell White, Red Gravel, Indigo"
+    display_type: "Headline: Amatic SC (Handwritten feel); Body: Comfortaa"
+    assets: "Pig and Chicken motifs, Rough woodblock strokes, Sparkly seashell paper texture"
+  - id: hue-imperial-court
+    seed_id: 69
+    name: "Hue Imperial Court"
+    tone: "Regal, Solemn, Traditional Vietnamese"
+    layout: "Dragon pillars, Cloud patterns, Symmetry"
+    secondary_palette: "Imperial Gold, Lacquer Red, Royal Blue, Black"
+    display_type: "Headline: Prata; Body: Noto Serif"
+    assets: "Vietnamese Dragon (Rong), Phoenix, Lotus lamps, Silk textures"
+  - id: chinese-ink-wash-shuimo
+    seed_id: 70
+    name: "Chinese Ink Wash (Shuimo)"
+    tone: "Ethereal, Poetic, Minimalist"
+    layout: "Vast negative space (Void), Vertical composition"
+    secondary_palette: "Black Ink shades, Rice Paper White, Faded Grey"
+    display_type: "Headline: Ma Shan Zheng (Brush style) or Noto Serif SC; Body: Noto Sans SC"
+    assets: "Misty mountains, Twisted pine trees, Bamboo stalks, Ink splatters"
+  - id: forbidden-city-gold
+    seed_id: 71
+    name: "Forbidden City Gold"
+    tone: "Majestic, Detailed, Powerful"
+    layout: "Intricate roof patterns, Red walls, Grid symmetry"
+    secondary_palette: "Vermilion Red, Emperor Gold, Jade Green, Lapis Blue"
+    display_type: "Headline: Zcool XiaoWei; Body: Lato"
+    assets: "Golden roof tiles, Guardian lions, intricate dougong brackets, Chinese knots"
+  - id: calligraphy-master
+    seed_id: 72
+    name: "Calligraphy Master"
+    tone: "Artistic, Flowing, Wisdom"
+    layout: "Vertical scrolls, Parchment texture, Red seal stamps"
+    secondary_palette: "Parchment Beige, Deep Black Ink, Vermilion Red (Seals)"
+    display_type: "Headline: Long Cang (Calligraphy); Body: Noto Serif"
+    assets: "Brush strokes, Red chops (Seals), Ink grinding stones, Hanging scrolls"
+  - id: old-shanghai-jazz
+    seed_id: 73
+    name: "Old Shanghai Jazz"
+    tone: "Retro, Glamorous, 1920s East-Meets-West"
+    layout: "Art Deco frames with Oriental motifs, Neon signs"
+    secondary_palette: "Emerald Green, Satin Gold, Lipstick Red, Night Black"
+    display_type: "Headline: Limelight; Body: Raleway"
+    assets: "Qipao fabric patterns, Gramophones, Art Deco sunbursts, Neon Kanji"
+  - id: japanese-ukiyo-e
+    seed_id: 74
+    name: "Japanese Ukiyo-e"
+    tone: "Flat, Artistic, Woodblock Print"
+    layout: "Asymmetric framing, Gradient skies (Bokashi)"
+    secondary_palette: "Prussian Blue, Salmon Pink, Antique White, Outline Black"
+    display_type: "Headline: Potta One; Body: Sawarabi Mincho"
+    assets: "Great Wave motifs, Mt. Fuji silhouettes, Cherry blossoms, textured paper"
+  - id: zen-garden-minimalism
+    seed_id: 75
+    name: "Zen Garden Minimalism"
+    tone: "Peaceful, Meditative, Clean"
+    layout: "Raked sand lines, Balanced stone placement, Empty space"
+    secondary_palette: "Stone Grey, Moss Green, Sand Beige, Bamboo Green"
+    display_type: "Headline: Zen Old Mincho; Body: Zen Kaku Gothic"
+    assets: "Raked sand patterns, River stones, Bonsai, Water basins"
+  - id: kintsugi-gold-repair
+    seed_id: 76
+    name: "Kintsugi Gold Repair"
+    tone: "Philosophical, Imperfect, Resilient"
+    layout: "Broken ceramic textures joined by gold lines"
+    secondary_palette: "Ceramic Blue/White, Liquid Gold, Dark Clay"
+    display_type: "Headline: Shippori Mincho; Body: Muli"
+    assets: "Gold cracks (Kintsugi), Pottery textures, Wabi-sabi aesthetics"
+  - id: buddhist-mandala
+    seed_id: 77
+    name: "Buddhist Mandala"
+    tone: "Spiritual, Intricate, Enlightened"
+    layout: "Radial symmetry, Kaleidoscope patterns, Center focus"
+    secondary_palette: "Saffron Orange, Maroon, Gold, Turquoise"
+    display_type: "Headline: Cinzel Decorative; Body: Noto Sans"
+    assets: "Lotus flowers, Dharma wheels, Geometric mandalas, Incense smoke"
+  - id: taoist-yin-yang
+    seed_id: 78
+    name: "Taoist Yin Yang"
+    tone: "Balanced, Natural, Flowing"
+    layout: "S-curves, Dualistic composition (Light/Dark)"
+    secondary_palette: "Black, White, Bagua Grey, Element accents (Fire Red/Water Blue)"
+    display_type: "Headline: Tenor Sans; Body: Source Sans Pro"
+    assets: "Yin Yang symbols, Bagua trigrams, Flowing water, Koi fish"
+  - id: bamboo-forest
+    seed_id: 79
+    name: "Bamboo Forest"
+    tone: "Fresh, Upright, Natural"
+    layout: "Vertical lines, Filtered light (Komorebi)"
+    secondary_palette: "Fresh Bamboo Green, Earthy Brown, Mist White"
+    display_type: "Headline: Barlow Condensed; Body: Noto Sans"
+    assets: "Bamboo stalks, Panda motifs, Light rays, Falling leaves"
+  - id: silk-road-tapestry
+    seed_id: 80
+    name: "Silk Road Tapestry"
+    tone: "Cultural, Textured, Warm"
+    layout: "Fabric patterns, Woven textures, Horizontal bands"
+    secondary_palette: "Desert Sand, Spices (Curry, Paprika), Silk Sheen"
+    display_type: "Headline: Eczar; Body: Cardo"
+    assets: "Persian rug patterns, Camel silhouettes, Silk textures, Ancient maps"
