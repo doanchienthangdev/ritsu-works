@@ -23,6 +23,18 @@ const DOC_FAMILY = ['text', 'article', 'pdf', 'docx', 'pptx', 'xlsx'];
 const VISUAL_FAMILY = ['mermaid', 'chart', 'dashboard', 'html', 'interactive', 'canvas'];
 const ALL_FORMATS = [...DOC_FAMILY, ...VISUAL_FAMILY];
 
+// Image family — v1.1 (extend: gpt-image-2 formats). EXPLICIT-ONLY: deliberately
+// NOT in ALL_FORMATS / INTENT_PREFERENCES so `smartauto` NEVER selects them
+// (image generation spends OpenAI money — the operator must ask for them). Listed
+// here only for the command's --format validation + isImageFormat() guards.
+const IMAGE_FAMILY = ['infographics', 'img-slide'];
+const ALL_FORMATS_WITH_IMAGE = [...ALL_FORMATS, ...IMAGE_FAMILY];
+
+/** True iff `f` is one of the v1.1 gpt-image formats (explicit-only). */
+function isImageFormat(f) {
+  return IMAGE_FAMILY.includes(f);
+}
+
 // Per-intent preference, ideal → fallback (spec §5.3). The first entry that is
 // in `available` wins; `article` is the guaranteed canonical fallback.
 const INTENT_PREFERENCES = {
@@ -101,7 +113,10 @@ module.exports = {
   selectFormat,
   DOC_FAMILY,
   VISUAL_FAMILY,
+  IMAGE_FAMILY,
   ALL_FORMATS,
+  ALL_FORMATS_WITH_IMAGE,
+  isImageFormat,
   INTENT_PREFERENCES,
   VALID_INTENTS,
 };
