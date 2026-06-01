@@ -1,0 +1,34 @@
+# ============================================================================
+# design-systems.yaml — Design-system registry (capability design-system-styling)
+# ============================================================================
+# Single index for the universal --style=<name> output layer. SPLIT registry:
+#   - owned/canonical  → Tier-1 00-core/design-system/<name>/ (PR-governed identity)
+#   - downloaded/built  → runtime/design-systems/<name>/ (gitignored, re-downloadable cache)
+#
+# registration != materialization (AD-2): a system may be registered metadata-
+# first (status: not_cached / pending) and materialized lazily on first --style use.
+#
+# Schema: knowledge/schemas/design-systems.schema.json
+# Gate:   scripts/cross-tier/validate-design-systems.cjs (structural + file-existence)
+# Spec:   wiki/capabilities/design-system-styling/spec.md (after Phase 8 promotion;
+#         draft .archives/cla/design-system-styling/spec.md). Decision bf3a6323.
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/design-systems.schema.json
+
+design_systems:
+  # The owned Ritsu brand system ("Electric Cyan V2", primary #0ABCD0).
+  # status: pending in Sprint 1 — the DESIGN.md + assets are INSTALLED in Sprint 2
+  # (graduation of the 00-core/design-system.md stub). Flips pending → installed then.
+  - name: ritsu
+    origin: owned
+    source: built-from-repo
+    source_ref: /Users/doanchienthang/omg/ritsu
+    path: 00-core/design-system/ritsu/DESIGN.md
+    status: pending
+    license: null
+    last_synced: null
+  # Third-party top-10 from getdesign.md (origin: downloaded) + designmd.ai
+  # (origin: built-from-repo, no DESIGNMD_API_KEY) are appended metadata-first by
+  # the Sprint-4 seed task (status: not_cached; materialized lazily on first use).

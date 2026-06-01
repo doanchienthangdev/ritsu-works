@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "design-systems.schema.json",
+  "title": "Design-system registry (capability design-system-styling)",
+  "description": "Single index for the --style output layer. SPLIT registry: owned/canonical systems live in Tier-1 00-core/design-system/<name>/; downloaded third-party live in the gitignored runtime/design-systems/<name>/ cache. registration != materialization (AD-2): a system may be registered metadata-first and materialized lazily on first use. Structural shape only; file-existence + owned-not-in-runtime are enforced by scripts/cross-tier/validate-design-systems.cjs.",
+  "type": "object",
+  "required": ["version", "design_systems"],
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema": { "type": "string" },
+    "design_systems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "origin", "source", "path", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "Unique slug; the value passed to --style=<name>."
+          },
+          "origin": {
+            "type": "string",
+            "enum": ["owned", "downloaded", "built-from-repo"],
+            "description": "owned = Tier-1 identity (00-core); downloaded = key-free getdesign cache; built-from-repo = hydrated from a public repo via the build verb (no API key)."
+          },
+          "source": {
+            "type": "string",
+            "description": "e.g. getdesign | designmd | built-from-repo"
+          },
+          "source_ref": {
+            "type": ["string", "null"],
+            "description": "repo path/URL or library id the system was built/downloaded from."
+          },
+          "path": {
+            "type": "string",
+            "description": "repo-relative path to the DESIGN.md. owned → 00-core/design-system/<name>/DESIGN.md; downloaded → runtime/design-systems/<name>/DESIGN.md."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "installed", "cached", "not_cached", "cache-pending-key", "vendored"],
+            "description": "pending = owned, registered, not yet committed (sprint in-between). installed = owned, file present. cached = downloaded, file present. not_cached = registered, lazily materialized on first use. cache-pending-key = designmd entry awaiting an optional operator key. vendored = promoted cache→Tier-1. File-existence is required only for installed|cached|vendored."
+          },
+          "license": {
+            "type": ["string", "null"],
+            "description": "SPDX-ish license of a third-party system (R2 license gate). null for owned. Non-redistributable licenses are flagged before caching."
+          },
+          "last_synced": {
+            "type": ["string", "null"],
+            "description": "ISO date of last download/build, or null if never materialized."
+          }
+        }
+      }
+    }
+  }
+}
