@@ -243,6 +243,8 @@ async function main() {
     ['validate-roles-task-kind-caps-units.cjs', 'ROLES.md per_task_kind_caps ↔ spec unit expectations'],
     // capability playbook-builder v1.0 — TOC ↔ CHAPTER_ORDER ↔ pdf_path ↔ cover-meta coherence
     ['validate-playbook-coherence.cjs', 'playbook bundle coherence (TOC ↔ build_pdf.py)'],
+    // capability design-system-styling v1.0 Sprint 1 — design-systems.yaml structural + file-existence
+    ['validate-design-systems.cjs', 'design-systems.yaml ↔ schema + owned paths'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;

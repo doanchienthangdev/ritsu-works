@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 47
+**Total entries:** 48
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -372,6 +372,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/data-retention.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-design-systems
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ design-systems.yaml — Design-system registry (capability design-system-styling) ============================================================================ Single index for the universal --style=<name> output layer. SPLIT registry: - owned/canonical → Tier-1 00-core/design-system/<name>/ (PR-governed identity) - download...
+
+**Invoke:** `Read("knowledge/design-systems.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/design-systems.yaml
 
 **Role scope:** *
 **Status:** active
