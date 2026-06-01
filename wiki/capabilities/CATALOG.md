@@ -8,10 +8,10 @@
 > catalog is the human-readable view that links into each capability's
 > promoted spec + retrospective.
 
-**Last updated:** 2026-05-30 (post-deepask v1.0 promotion)
-**Total capabilities (operating):** 6
+**Last updated:** 2026-06-01 (post-book-to-capability /forge v0.1 promotion)
+**Total capabilities (operating):** 7
 **Total capabilities (deployed pending operating):** 1
-**Total capabilities (any state):** 7
+**Total capabilities (any state):** 8
 
 ---
 
@@ -25,6 +25,7 @@
 | `docs-engine` | Live Documentation Engine (Fumadocs + Vercel, bilingual VI+EN, incremental translation) | **1.2.0** | 06-ai-ops | 2026-05-19 | [spec.md](docs-engine/spec.md) | [retrospective-v1.2.0.md](docs-engine/retrospective-v1.2.0.md) |
 | `resolver-plan` | resolver as a first-class 2-axis planner (`ResolverPlan v1` = populated `context_recipe`) + self-fresh catalog | **1.0.0** | 06-ai-ops | 2026-05-30 | [spec.md](resolver-plan/spec.md) | [retrospective.md](resolver-plan/retrospective.md) |
 | `deepask` | federated retrieval + capability-execution + cited synthesis supercommand (5-stage loop, 12-format engine; zero-routing consumer of resolver-plan) | **1.0.0** | 06-ai-ops | 2026-05-30 | [spec.md](deepask/spec.md) | [retrospective.md](deepask/retrospective.md) |
+| `book-to-capability` | book→capability PROMOTE (`/forge`) — gate-then-route latent wiki knowledge into a runnable skill (5-gate anti-over-build funnel + extend/net-new classifier; zero-routing thin orchestrator above /cla + /update) | **0.1.0** | 06-ai-ops | 2026-06-01 | [spec.md](book-to-capability/spec.md) | [retrospective.md](book-to-capability/retrospective.md) |
 
 ## Deployed (pending operational gate)
 

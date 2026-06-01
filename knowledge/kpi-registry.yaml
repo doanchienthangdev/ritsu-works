@@ -224,5 +224,54 @@ kpis:
     cadence: monthly
     source: "ops.deepask_coverage.gap_reason='breaker_budget' joined to ops.deepask_runs. High rate → sessions over-spending resolver finds; revisit depth defaults / breaker tuning."
 
+  # capability book-to-capability (/forge) v0.1 — Sprint 2 KPIs (spec §6 acceptance)
+  - id: forge.citation_coverage
+    type: operational
+    description: "Fraction of /forge runs that PASSED the funnel and built/extended a skill whose change traces to >=1 wiki source chunk. HARD guardrail — target 1.0 (every promotion is citation-backed via ops.evolve_extractions). Per capability book-to-capability spec §6."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 1.0
+    threshold_warn: 0.99
+    threshold_critical: 0.95
+    cadence: monthly
+    source: "ops.v_forge_lineage: COUNT(citation_count > 0) / NULLIF(COUNT(*) FILTER (WHERE forge_verdict='PASS'), 0). Any non-citation-backed promotion is a discipline breach."
+    notes: "Citation discipline is the whole point of the distill gate (gate 1). A drop below 1.0 means a promotion bypassed the citation spine."
+
+  - id: forge.gate_rejection_rate
+    type: operational
+    description: "% of /forge candidates the 5-gate selection-funnel REJECTs (stays latent / → Tier-1 doc) rather than building. Proves the anti-over-build funnel is LOAD-BEARING, not a rubber stamp. A HIGH rate is healthy (knowledge is ~5-50x cheaper than capability). Per spec §6."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 0.5
+    threshold_warn: 0.3
+    threshold_critical: 0.15
+    cadence: monthly
+    source: "ops.v_forge_lineage: COUNT(forge_verdict='REJECT') / NULLIF(COUNT(*), 0). Low rate → funnel rubber-stamping (over-build risk); investigate the gates."
+    notes: "Inverse-polarity KPI: low is BAD. Calibration baseline = the 2026-06-01 reserve-walk (~90% of 64 ideas correctly rejected as non-skills)."
+
+  - id: forge.new_vs_extend_ratio
+    type: operational
+    description: "Ratio of net-new skill births to extends among funnel-PASS /forge routes. Lower = healthier (reuse/extend over sprawl). Per spec §6 (forge.new_vs_extend_ratio)."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 0.5
+    threshold_warn: 1.0
+    threshold_critical: 2.0
+    cadence: monthly
+    source: "ops.v_forge_lineage: COUNT(route='net-new') / NULLIF(COUNT(route='extend'), 0). Persistently high → every need becomes a NEW skill = sprawl; the classifier or the corpus needs review."
+    notes: "Observational. At healthy maturity extend should dominate (more skills exist to extend)."
+
+  - id: forge.post_install_score_delta
+    type: operational
+    description: "Median eval-evo score delta of the entity a /forge run built/extended, pre vs post. K4 ratchet — must be >= 0 (no /forge promotion regresses an entity's quality; auto-reverted by the /update delegate otherwise). Per spec §6."
+    owner_pillar: 06-ai-ops
+    owner_role: gps
+    target: 0.0
+    threshold_warn: -0.5
+    threshold_critical: -1.0
+    cadence: monthly
+    source: "Median score_delta from the spawned /update runs: ops.v_entity_update_lineage.score_delta joined via ops.v_forge_lineage.spawned_run_id. Negative = a forge promotion degraded the entity (K4 breach)."
+    notes: "The build quality is enforced by the delegate's K4 ratchet (/update auto-reverts on regression); this KPI surfaces it at the forge level."
+
   # Business KPIs (customize per project)
   # {{ADD_BUSINESS_KPIS}}

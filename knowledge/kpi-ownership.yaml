@@ -283,6 +283,39 @@ deepask.breaker_trip_rate:
   dashboard_tile: founder-monday/system-health
   notes: "Resolver session-breaker exhaustion rate (@cto Phase-2 risk made first-class observable)."
 
+# capability book-to-capability (/forge) v0.1 — Sprint 2 KPIs (owned by 06-ai-ops, gps)
+forge.citation_coverage:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "COUNT(ops.v_forge_lineage WHERE citation_count>0) / COUNT(WHERE forge_verdict='PASS')"
+  source: ops.v_forge_lineage
+  dashboard_tile: founder-monday/system-health
+  notes: "Capability book-to-capability v0.1. HARD guardrail — every funnel-PASS promotion must trace to a wiki chunk (target 1.0)."
+
+forge.gate_rejection_rate:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "COUNT(ops.v_forge_lineage WHERE forge_verdict='REJECT') / COUNT(*)"
+  source: ops.v_forge_lineage
+  dashboard_tile: founder-monday/system-health
+  notes: "Inverse-polarity — LOW is bad (funnel rubber-stamping). The anti-over-build funnel must be load-bearing."
+
+forge.new_vs_extend_ratio:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "COUNT(ops.v_forge_lineage WHERE route='net-new') / NULLIF(COUNT(WHERE route='extend'),0)"
+  source: ops.v_forge_lineage
+  dashboard_tile: founder-monday/system-health
+  notes: "Lower = healthier (reuse over sprawl). Observational."
+
+forge.post_install_score_delta:
+  owner_pillar: ai_ops
+  owner_role: gps
+  formula: "median(ops.v_entity_update_lineage.score_delta joined via v_forge_lineage.spawned_run_id)"
+  source: ops.v_forge_lineage + ops.v_entity_update_lineage
+  dashboard_tile: founder-monday/system-health
+  notes: "K4 ratchet surfaced at the forge level — must be >=0 (the /update delegate auto-reverts regressions)."
+
 # ===========================================================================
 # T&S metrics — owned by 07-trust-safety (activate when first incident)
 # ===========================================================================
