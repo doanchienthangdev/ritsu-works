@@ -35,7 +35,7 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 - `{mode:'styled', tokens, previewPath}` → pass `tokens` + `previewPath` as **design context** INTO whichever reuse-renderer the §2 dispatch row selects. **Tokens are DATA — `--style` NEVER adds a new dispatch row / renderer; the §2 table below is unchanged by it (AD-4).**
 - non-interactive cache-miss → `StyleResolveError` (AD-3: no silent fetch in CI).
 
-**Visual** formats (html/dashboard/interactive/canvas/pptx/pdf/docx/chart/mermaid) → tokens drive the look. **Non-visual** (inline/text/article/xlsx) → honest no-op (at most a cover/accent note). Full contract: `SOP-AIOPS-007-design-system-runtime-contract`.
+**Visual** formats (html/dashboard/interactive/canvas/pptx/pdf/docx/chart/mermaid + the v1.1 image formats **infographics/img-slide**) → tokens drive the look. For the image formats the style coupling is the STRONGEST: the resolved tokens + DESIGN.md prose become the "brand style block" `deepask/image-compose` injects into every gpt-image-2 prompt (so `--style=ritsu` ⇒ cyan/slate/Inter imagery; plain ⇒ neutral editorial). **Non-visual** (inline/text/article/xlsx) → honest no-op (at most a cover/accent note). Full contract: `SOP-AIOPS-007-design-system-runtime-contract`.
 
 ### 2. Dispatch table (inline default + 12 file formats)
 | `--format` | reuse | how |
@@ -53,8 +53,52 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 | `html` | `design:*` / `frontend-design` | standalone html rendering of the article + visuals |
 | `interactive` | `frontend-design` | interactive html (filterable tables, toggles) |
 | `canvas` | `anthropic-skills:canvas-design` | canvas / infographic artifact from the IR |
+| `infographics` *(v1.1, image)* | `deepask/image-compose` → `scripts/deepask/image-gen.cjs` (gpt-image-2) | ONE poster image; `--orientation=landscape\|portrait`; style-block-driven |
+| `img-slide` *(v1.1, image)* | `deepask/image-compose` → `image-gen.cjs` (×N) → `scripts/deepask/slide-deck.cjs` | a **16:9** deck: `slides/NN-*.png` folder **+** combined `slides.pdf` |
 
 deepask AUTHORS the concrete invocation of each reuse-skill (frames its inputs from the IR); the reuse-skill does the rendering.
+
+### 2.5 Image pipeline (v1.1 — `infographics` · `img-slide`, gpt-image-2)
+These two formats render via OpenAI image generation, so they have an extra pipeline + flags + a cost gate. They are **explicit-only** (never returned by `smartauto` — image gen spends money).
+
+**New flags** (orthogonal to `--format`; only meaningful for the 2 image formats):
+
+| Flag | Values | Default | Effect |
+|---|---|---|---|
+| `--orientation` | `landscape` \| `portrait` | `landscape` | infographics canvas (img-slide ignores it — always 16:9). → `image-spec.resolveImageSpec`. |
+| `--img-quality` | `low` \| `medium` \| `high` \| `auto` | `medium` | gpt-image `quality` = the **primary cost dial**. |
+| `--image-model` | model id | `gpt-image-2` | the image model (parameterized for robustness if the name changes). |
+| `--max-slides` | int | `8` | img-slide deck cap (cost control); overflow sections recorded in `image-plan.json.dropped[]`. |
+| `--max-cost-usd` | number | `1.00` | **cost circuit-breaker**: if the pre-gen estimate exceeds it → REFUSE up front (mirror of the resolver breaker), tell the operator, do not silently overspend. |
+
+**Pipeline (Stage 6, image branch):**
+1. `resolveStyle(--style)` → style context (tokens + DESIGN.md path). `resolveImageSpec({format, orientation})` → `apiSize` + 16:9 `crop` (img-slide).
+2. **`deepask/image-compose`** → `image-plan.json` (pieces + per-piece gpt-image-2 prompts carrying the style block + the EXACT IR text; no new claims).
+3. **Cost gate:** `image-cost.estimateRunCost({size, quality, count})` → `checkCostBudget({estimatedUsd, maxCostUsd})`. If `!ok` → STOP, report the estimate vs cap, suggest lowering `--img-quality`/`--max-slides` or raising `--max-cost-usd`. Show the estimate either way.
+4. **Gen:** for each piece, `node scripts/deepask/image-gen.cjs --prompt-file=… --size=… --quality=… --model=… --out=images/NN-role.png` (writes PNG via OpenAI; `--dry-run` writes prompt sidecars + no PNG + no spend).
+5. **Assemble (img-slide only):** `node scripts/deepask/slide-deck.cjs --images-dir=slides/ --out=slides.pdf --crop=16:9` (Pillow; crops each page to true 16:9; graceful-degrade → keep PNGs + note if Pillow absent).
+6. **Always also write `answer.md`** (+ `plan.json` + `sources.json` + `image-plan.json`). The image deck/poster is the rich artifact; the cited text answer is never lost.
+
+**Artifact layout (image formats):**
+- `infographics` → `.archives/deepask/<date>-<slug>/poster.png` (+ `image-plan.json`, `answer.md`, …).
+- `img-slide` → `.archives/deepask/<date>-<slug>/slides/NN-role.png` (folder) + `slides.pdf` (+ `image-plan.json`, `answer.md`, …).
+
+**Billing:** gpt-image-2 is OUTSIDE the Claude subscription → `OPENAI_API_KEY` (runtime/secrets/.env.local), exactly like `text-embedding-3-small`. Logged to `ops.deepask_runs.metadata.image_gen` + `cost_usd` (cost-bucket `ai-ops-deepask`).
+
+### 2.6 Aesthetic quality bar — EXTRAORDINARY (v1.1) + the logo-embed contract
+**Every visual artifact MUST clear the `deepask/aesthetic` bar** (references omgkit `/design:good` as the FLOOR and exceeds it: one focal point, ruthless restraint, optical spacing, fluid type scale, layered depth, purposeful motion, zero AI-slop). This is NOT optional polish — it is the deliverable standard for `html`/`dashboard`/`interactive`/`canvas`/`chart` (code-rendered) AND `infographics`/`img-slide` (image-gen).
+- **Code-rendered** (html/dashboard/interactive/canvas/chart): apply `deepask/aesthetic` Part 2 (the `/design:good` floor + extraordinary additions) and run the Part-5 gate before writing the file. May lean on `frontend-design` / `design:*` for execution; `deepask/aesthetic` sets the bar.
+- **Image-gen** (infographics/img-slide): `deepask/image-compose` injects `deepask/aesthetic` Part 3 (the art-direction block) into every prompt, after the brand style block.
+
+**Logo-embed contract (FIXES the `--format=html --style=ritsu` missing-logo / path bug).** Code-rendered visual formats MUST embed the brand logo **inline as a base64 data URI** — NEVER a sibling-file `src`/`href` (which breaks when the artifact is viewed from a different base — preview panel, moved file, email):
+```js
+const { resolveStyleLogo } = require('scripts/design-system/style-asset.cjs');
+const logo = resolveStyleLogo(resolved /* from resolveStyle(--style) */, { prefer: 'mark' });
+// logo === null  → plain style / no assets → render a tasteful CSS wordmark instead
+// logo.dataUri        → <img src="${logo.dataUri}" alt="${name}">   (header mark)
+// logo.faviconDataUri → <link rel="icon" href="${logo.faviconDataUri}">
+```
+The asset is resolved from the design system's `assets/` dir (beside its DESIGN.md). Self-contained → the logo renders everywhere, always. `--style` plain → no logo file; use a CSS wordmark in the brand-neutral aesthetic.
 
 ### 3. Artifact layout (FILE MODE ONLY — skipped entirely in `inline` default)
 **Inline mode (default) writes nothing to disk** — the cited answer + Sources list live in the conversation; only the Stage-7 `ops.deepask_runs`/`ops.deepask_coverage` audit rows are written (DB rows, not files), with `artifact_path = NULL`. In **file mode** (any explicit `--format`), write to `.archives/deepask/<YYYY-MM-DD>-<slug>/`:

@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 98
+**Total entries:** 100
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -312,6 +312,20 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/deepask/aesthetic
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** > The reason a /deepask artifact looks designed, not generated. Every visual > output — whether HTML I author or an image gpt-image-2 renders — must clear an > extraordinary bar: the work a senior editorial/brand designer would ship. > omgkit /design:good is the FLOOR (its checklist is table-stakes); this skill > is the ceiling. Consumed by deepask/format (code-rendered) and > deepask/image-compose (image-gen).
+
+**Invoke:** `Skill({ skill: "deepask/aesthetic" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/deepask/completeness-critic
 
 **Kind:** skill
@@ -361,6 +375,20 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 **When to use:** > The Format Engine. Consumes the synthesis IR (from deepask/synthesize, spec §5.1) and > either renders it inline into the conversation (DEFAULT, no files) or — when an explicit > --format is given — produces a file artifact. Reuses existing skills — never rebuilds a renderer. > > Structure note (deviation from spec §4.1): the spec drafted 12 per-format adapter > folders. To stay under the resolver INDEX token hard-cap (~14k/15k; +12 catalog entries > would breach it) and for maintainability, this is ONE umbrella skill with a dispatch > table. Extensibility is preserved — adding a format = one new row + a reuse pointer. > To be reconciled at Phase-8 promotion.
 
 **Invoke:** `Skill({ skill: "deepask/format" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/deepask/image-compose
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** deepask image-format planner (capability deepask v1.1, extend). Turns the synthesis IR into an image-plan — for img-slide, a deck of ≤max-slides 16:9 slides (title → exec-summary → one per section → conflicts/verdict → sources); for infographics, ONE poster (landscape or portrait). For each piece it composes a gpt-image-2 prompt that (a) re-presents ONLY cited IR content (no new claims), (b) embeds the resolved --style DESIGN.md tokens as a brand "style block" so the rendered image matches the design system, (c) instructs legible exact-text rendering. Pure planning — emits prompts; deepask/format runs image-gen + slide-deck. NEVER invents claims; NEVER selected by smartauto (explicit cost gate).
+
+**Invoke:** `Skill({ skill: "deepask/image-compose" })`
 **HITL tier:** B
 **Side effect:** write
 

@@ -177,3 +177,49 @@ See `draft/tier1-diffs.yaml`. Summary: `capability-registry.yaml` (✅ done Phas
 ## 12. Next phase
 
 Phase 6: Sprint Planning (`sprint-planner` skill) — finalize the Option-B 6-sprint plan with acceptance criteria + Wave alignment.
+
+---
+
+## 13. v1.1 — image formats (extend, 2026-06-01)
+
+> `/cla extend deepask` (HITL B; additive, no architecture revision). Adds **two image output formats** — `infographics` and `img-slide` — rendered by **gpt-image-2**, fully `--style`-aware. Additive + reversible; **no migration** (format is `text`; image params + cost live in `ops.deepask_runs.metadata.image_gen`). Founder-directed; founder pre-authorized autonomous build.
+
+### 13.1 What's new
+- **`--format=infographics`** → ONE poster PNG. `--orientation=landscape` (3:2, 1536×1024) or `portrait` (2:3, 1024×1536).
+- **`--format=img-slide`** → a **16:9** deck: a `slides/NN-role.png` folder **+** a combined `slides.pdf` (gen 1536×1024 → center-crop to 1536×864 = true 16:9).
+- **New flags:** `--orientation`, `--img-quality=low|medium|high|auto` (cost dial → gpt-image `quality`), `--image-model` (default `gpt-image-2`), `--max-slides` (default 8), `--max-cost-usd` (default 1.00 — cost circuit-breaker).
+- **`--style` compatibility (the core requirement):** the resolved DESIGN.md tokens + prose become a "brand style block" that `deepask/image-compose` injects into EVERY gpt-image-2 prompt → imagery follows the design system (`--style=ritsu` ⇒ electric-cyan/slate/Inter; plain ⇒ neutral editorial). Strongest style-coupling of any format.
+
+### 13.2 Pipeline (Stage-6 image branch)
+`resolveStyle` + `image-spec.resolveImageSpec` → **`deepask/image-compose`** (IR → slide/poster plan → per-piece prompts re-presenting ONLY cited IR content) → **cost gate** (`image-cost.estimateRunCost` → `checkCostBudget(--max-cost-usd)`, refuse-up-front + always show estimate) → **`image-gen.cjs`** (gpt-image-2 per piece) → **`slide-deck.cjs`** (img-slide: Pillow merge → 16:9 PDF, graceful-degrade if Pillow absent). `answer.md` + `plan.json` + `sources.json` + `image-plan.json` always written; the image artifact never replaces the cited text answer.
+
+### 13.3 Components
+| Component | Path | Kind |
+|---|---|---|
+| `deepask/image-compose` | `06-ai-ops/skills/deepask/image-compose/SKILL.md` | NEW skill (planner) |
+| image-spec | `scripts/deepask/image-spec.cjs` | NEW pure helper (size/orientation/16:9 crop) |
+| image-cost | `scripts/deepask/image-cost.cjs` | NEW pure helper (estimate + `--max-cost-usd` breaker) |
+| image-gen | `scripts/deepask/image-gen.cjs` | NEW helper (gpt-image-2 API leg; `--dry-run`) |
+| slide-deck | `scripts/deepask/slide-deck.cjs` | NEW helper (Pillow PNG→16:9 PDF) |
+| format dispatch | `06-ai-ops/skills/deepask/format/SKILL.md` §2 + §2.5 | extended (2 rows + image pipeline + flags) |
+| format-select | `scripts/deepask/format-select.cjs` | extended (`IMAGE_FAMILY` + `isImageFormat`; **explicit-only — never smartauto-selected**) |
+| command | `.claude/commands/deepask.md` | extended (formats + flags + dispatch + billing) |
+| tests | `tests/deepask/{image-spec,image-cost,format-select-image}.test.ts` | NEW (64 cases) |
+
+### 13.4 Billing / safety
+gpt-image-2 is OUTSIDE the Claude subscription (Claude can't generate images) → `OPENAI_API_KEY` (runtime/secrets/.env.local), the same legitimate use as `text-embedding-3-small`. Image spend: estimated + `--max-cost-usd` circuit-breaker; image formats are **explicit-only** (never auto-selected by `smartauto`). HITL: planning Tier A; the gen step spends OpenAI $ (surfaced + capped). The cited `answer.md` is always produced regardless.
+
+### 13.5 Founder-merge follow-ups (NOT applied on this branch — Tier-C gated, escalate via `pre-edit-tier1`)
+Recorded here for the merge PR rather than direct-edited:
+- **`governance/ROLES.md`** — add a `deepask-image-gen` per-task-kind cap for `gps` (e.g. `{unit: usd, cap: 0.50}`) so image spend has a soft ceiling beyond `--max-cost-usd`.
+- **`SOP-AIOPS-005-deepask-runtime-contract`** — note the 2 image formats + the `--max-cost-usd` breaker in the runtime contract.
+- **`SOP-AIOPS-007-design-system-runtime-contract`** — record that image formats are the strongest `--style` consumers (tokens → prompt brand block).
+
+### 13.6 v1.1.1 — EXTRAORDINARY aesthetic + logo fix (extend, 2026-06-01)
+> `/cla extend deepask` (HITL B, additive). Two things, founder-directed: a quality mandate across ALL visual outputs, and a concrete bug fix.
+
+**(A) EXTRAORDINARY aesthetic bar** — new skill **`deepask/aesthetic`** (`06-ai-ops/skills/deepask/aesthetic/SKILL.md`). References omgkit **`/design:good`** as the FLOOR (hierarchy·spacing·transitions·a11y·dark-mode) and **exceeds** it with senior art-direction: one focal point, ruthless restraint, optical spacing, a fluid type scale, layered depth, purposeful motion, zero AI-slop. Provides (1) a code-render polish checklist (`html`/`dashboard`/`interactive`/`canvas`/`chart`) and (2) a reusable IMAGE art-direction block (`infographics`/`img-slide`) — both ALWAYS subordinate to the `--style` brand block (**brand > legibility > art-direction > content density**). Wired into `deepask/format` §2.6 + `deepask/image-compose` (Part-3 block appended to every gpt-image-2 prompt + Part-5 "extraordinary gate" pre-emit). Verified: an elevated gpt-image-2 infographic rendered award-grade (bold display headline, gradient hero card with on-brand mark, crisp icon cards, decisive accent).
+
+**(B) Logo fix** — new helper **`scripts/design-system/style-asset.cjs`** (`resolveStyleLogo` / `findBrandAssets` / `toDataUri`). Code-rendered visual formats now embed the `--style` brand logo + favicon **inline as base64 data URIs** (resolved from the design system's `assets/` dir) — NEVER a sibling-file `src`/`href`. Fixes the founder-reported missing-logo / path bug on `--format=html --style=ritsu` (the artifact broke when viewed from a different base — preview panel / moved file). Plain `--style` → `null` → a tasteful CSS wordmark. 22 new tests (`tests/design-system/style-asset.test.ts`) incl. a named regression block. Verified by re-embedding the logo into the previously-broken run-1 artifact (now self-contained, zero path refs).
+
+Components added: `deepask/aesthetic` skill · `scripts/design-system/style-asset.cjs` · `format` §2.6 + `--style` logo-embed contract · `image-compose` art-direction injection · command v1.1.1 row. No migration.

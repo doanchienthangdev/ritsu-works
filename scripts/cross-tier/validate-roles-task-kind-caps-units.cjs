@@ -78,6 +78,12 @@ const EXPECTATIONS = [
   // capability book-to-capability (/forge) — gps-bound USD caps (spec §5)
   { match: /^forge-(orchestration|funnel-gate|route-classify)$/, unit: 'usd',
     source: 'book-to-capability spec §5 — /forge gps per-task USD soft caps' },
+  // capability design-system-styling — gps-bound USD caps (cost-bucket ai-ops-design-system)
+  { match: /^design-system-(build|resolve|add)$/, unit: 'usd',
+    source: 'design-system-styling spec — /design-system gps per-task USD soft caps' },
+  // capability deepask v1.1 — gps-bound image-gen USD cap (spec §13.5/§13.6; cost-bucket ai-ops-deepask)
+  { match: /^deepask-image-gen$/, unit: 'usd',
+    source: 'deepask v1.1 spec §13.5 — gpt-image-2 generation gps USD soft cap (beyond per-run --max-cost-usd)' },
 ];
 
 function lookupExpectation(taskKind) {

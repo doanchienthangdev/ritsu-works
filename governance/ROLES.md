@@ -140,6 +140,8 @@ economic_budget:
     design-system-build:   {unit: usd, cap: 0.50}    # build --from=<repo> → DESIGN.md generation (LLM token extraction + rationale)
     design-system-resolve: {unit: usd, cap: 0.02}    # --style resolution (mostly deterministic; parse-design-md)
     design-system-add:     {unit: usd, cap: 0.05}    # add <name> (getdesign fetch / metadata register)
+    # capability deepask v1.1 (image formats) — gps-bucketed (cost-bucket ai-ops-deepask); gpt-image-2 spend
+    deepask-image-gen:     {unit: usd, cap: 0.50}    # /deepask --format=infographics|img-slide image generation; soft monthly ceiling beyond the per-run --max-cost-usd breaker
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition
