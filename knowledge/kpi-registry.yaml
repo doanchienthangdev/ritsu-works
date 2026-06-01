@@ -276,11 +276,11 @@ kpis:
   # capability design-system-styling v1.0 (Phase 8) — 3 KPIs (cost-bucket ai-ops-design-system)
   - id: design_system.library_size
     type: operational
-    description: "Count of registered design systems in knowledge/design-systems.yaml (owned + downloaded + built-from-repo). Deterministic registry scan. Library ships populated (~15: ritsu + curated starter); grows via /design-system add."
+    description: "Count of registered design systems in knowledge/design-systems.yaml (owned + downloaded + built-from-repo). Deterministic registry scan. Library populated (~31: ritsu + getdesign/designmd curated + big-tech from VoltAgent/awesome-design-md); grows via /design-system add."
     owner_pillar: 06-ai-ops
     owner_role: gps
-    target: 15
-    threshold_warn: 5
+    target: 30
+    threshold_warn: 10
     threshold_critical: 1
     cadence: monthly
     source: "scripts/design-system/registry-io.cjs readRegistry().design_systems.length"
