@@ -3,21 +3,62 @@ title: Ritsu Company Design System
 type: core-doc
 slug: design-system
 layer: brand-design
-status: stub
+status: canonical
 owner: founder
-last_reviewed: 2026-05-21
+last_reviewed: 2026-06-01
 review_cadence: on-trigger
 cited_by: []
 auto_load: false
-entry_condition: "First marketing visual needed AND brand-tokens.yaml exists"
-triggered_by: "first paid campaign OR blog post requiring branded visual OR landing page redesign"
-why_deferred: |
-  Product UI design system exists separately (/Users/doanchienthang/omg/ritsu/.omgkit/design/).
-  COMPANY design system (blog templates, slide deck, social cards, email
-  signatures, ad layouts) needs to exist when first multi-channel marketing
-  visual is needed. brand-tokens.yaml is the precursor (color, type, spacing)
-  — that's deferred to TODOS.md. Design system itself graduates when there's
-  enough downstream demand to make tokens earn their existence.
 ---
 
-# Stub — see frontmatter for entry condition
+# Ritsu Company Design System
+
+> **Index + overview.** The machine-readable design systems live in the
+> `00-core/design-system/` folder (one folder + one `DESIGN.md` each). This page
+> is the human-readable map. Graduated from stub → canonical 2026-06-01 by the
+> `design-system-styling` capability (Tier-C decision `bf3a6323`).
+
+## What this is
+
+The company's **artifact** design system — the visual identity for everything
+`ritsu-works` emits (deepask reports, dashboards, decks, blog visuals, social
+cards, PDFs). It is distinct from the **product UI** design system, which lives
+in the product repo (`/Users/doanchienthang/omg/ritsu/.omgkit/design/`). This is
+"who Ritsu is" visually, for the operating company's output.
+
+## The format — `DESIGN.md` (adopt, don't invent)
+
+Each design system = **1 folder + 1 `DESIGN.md`** in the emerging Google Stitch /
+[`google-labs-code/design.md`](https://github.com/google-labs-code/design.md)
+format: YAML design tokens (colors/typography/rounded/spacing/components, hex
+sRGB, `{token.refs}`) + a Markdown rationale body (Overview · Colors · Typography
+· Layout · Elevation & Depth · Shapes · Components · Do's & Don'ts).
+
+## Owned systems (Tier-1 identity)
+
+| System | Path | Status |
+|---|---|---|
+| **`ritsu`** | [`design-system/ritsu/DESIGN.md`](design-system/ritsu/DESIGN.md) | installed — "Electric Cyan V2", primary `#0ABCD0`, Inter + JetBrains Mono, 8px radius, four-blade pinwheel mark. Previews: [light](design-system/ritsu/preview.html) · [dark](design-system/ritsu/preview-dark.html). Assets in `design-system/ritsu/assets/`. |
+
+Downloaded third-party systems are **notes about the world** (re-downloadable),
+NOT identity — they live in the gitignored `runtime/design-systems/<name>/`
+cache, never here. A system is promoted into this folder only via the
+`/design-system vendor <name>` verb (Tier-C PR, for CI reproducibility).
+
+## How it's used — the universal `--style` flag
+
+Any output-producing command renders in a named system via `--style=<name>`
+(omitted → plain text, the default). `--style` is **orthogonal** to an
+artifact-type flag like deepask's `--format`: `--format` = which artifact,
+`--style` = which visual language. The resolution + adoption contract is in
+`06-ai-ops/skills/design-system/SKILL.md` and `SOP-AIOPS-007-design-system-runtime-contract`.
+
+- **Registry index:** `knowledge/design-systems.yaml` (+ schema).
+- **Command:** `/design-system` (`list`/`show`/`search`/`add`/`build --from`/`preview`/`lint`/`vendor`/`remove`).
+- **Resolver:** `scripts/design-system/resolve-style.cjs` (deterministic; non-interactive cache-miss hard-fails — no silent fetch in CI).
+
+## What changes when
+
+- A new **owned** system (or a `vendor`-promoted one) → add a row above (PR).
+- The `ritsu` brand evolves → edit `design-system/ritsu/DESIGN.md` + regenerate previews via `/design-system preview ritsu` (PR).
+- Re-derive `ritsu` from the product repo → `/design-system build ritsu --from=/Users/doanchienthang/omg/ritsu`.

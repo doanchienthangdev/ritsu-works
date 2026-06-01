@@ -19,16 +19,16 @@ schema: knowledge/schemas/design-systems.schema.json
 
 design_systems:
   # The owned Ritsu brand system ("Electric Cyan V2", primary #0ABCD0).
-  # status: pending in Sprint 1 — the DESIGN.md + assets are INSTALLED in Sprint 2
-  # (graduation of the 00-core/design-system.md stub). Flips pending → installed then.
+  # INSTALLED Sprint 2: DESIGN.md + assets/ + previews live in 00-core/design-system/ritsu/;
+  # the 00-core/design-system.md stub graduated stub → canonical (G1).
   - name: ritsu
     origin: owned
     source: built-from-repo
     source_ref: /Users/doanchienthang/omg/ritsu
     path: 00-core/design-system/ritsu/DESIGN.md
-    status: pending
+    status: installed
     license: null
-    last_synced: null
+    last_synced: "2026-06-01"
   # Third-party top-10 from getdesign.md (origin: downloaded) + designmd.ai
   # (origin: built-from-repo, no DESIGNMD_API_KEY) are appended metadata-first by
   # the Sprint-4 seed task (status: not_cached; materialized lazily on first use).

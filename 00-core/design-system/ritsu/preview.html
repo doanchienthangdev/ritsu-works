@@ -1,0 +1,75 @@
+<!doctype html>
+<!-- generated-by: design-system-styling v1.0 — light preview of the `ritsu` design system.
+     Tokens mirror 00-core/design-system/ritsu/DESIGN.md (Electric Cyan V2). Regenerate via `/design-system preview ritsu`. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ritsu — Design System (light)</title>
+<style>
+  :root {
+    --primary: #0ABCD0; --primary-hover: #05ABBD; --accent: #12A58D;
+    --bg: #FFFFFF; --fg: #020817; --surface: #FCFCFD; --muted: #F1F5F9;
+    --muted-fg: #64748B; --border: #E2E8F0;
+    --destructive: #EF4444; --success: #30A66D; --warning: #FFA600; --info: #0090FF;
+    --radius: 8px; --radius-md: 6px;
+    --glow: 0 0 20px rgba(10,188,208,0.4);
+    --gradient: linear-gradient(135deg, #0ABCD0, #19DEF4);
+    font-family: Inter, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); line-height: 1.6;
+         font-feature-settings: "rlig" 1, "calt" 1; padding: 40px; }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  .wordmark { font-weight: 800; font-size: 2rem; letter-spacing: -0.02em;
+    background: linear-gradient(90deg,#0ABCD0,#0093A3); -webkit-background-clip: text;
+    background-clip: text; color: transparent; }
+  h2 { font-weight: 700; letter-spacing: -0.01em; margin: 40px 0 16px; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap: 12px; }
+  .sw { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .sw .chip { height: 56px; } .sw .lbl { padding: 8px 10px; font-size: 12px; }
+  .sw .hex { font-family: "JetBrains Mono", monospace; color: var(--muted-fg); }
+  .btn { background: var(--primary); color: #F8FAFC; border: 0; border-radius: var(--radius);
+    padding: 10px 18px; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn:hover { background: var(--primary-hover); }
+  .btn.glow { box-shadow: var(--glow); }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-top: 16px; }
+  .badge { background: var(--muted); color: var(--fg); border-radius: 9999px; padding: 2px 10px; font-size: 12px; }
+  .gradient-bar { height: 40px; border-radius: var(--radius); background: var(--gradient); margin-top: 8px; }
+  code { font-family: "JetBrains Mono", monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="wordmark">Ritsu</span>
+  <p style="color:var(--muted-fg)">Design System — <strong>Electric Cyan V2</strong> · light · <code>--style=ritsu</code></p>
+
+  <h2>Colors</h2>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:#0ABCD0"></div><div class="lbl">primary<br><span class="hex">#0ABCD0</span></div></div>
+    <div class="sw"><div class="chip" style="background:#12A58D"></div><div class="lbl">accent<br><span class="hex">#12A58D</span></div></div>
+    <div class="sw"><div class="chip" style="background:#020817"></div><div class="lbl">foreground<br><span class="hex">#020817</span></div></div>
+    <div class="sw"><div class="chip" style="background:#F1F5F9"></div><div class="lbl">muted<br><span class="hex">#F1F5F9</span></div></div>
+    <div class="sw"><div class="chip" style="background:#EF4444"></div><div class="lbl">destructive<br><span class="hex">#EF4444</span></div></div>
+    <div class="sw"><div class="chip" style="background:#30A66D"></div><div class="lbl">success<br><span class="hex">#30A66D</span></div></div>
+    <div class="sw"><div class="chip" style="background:#FFA600"></div><div class="lbl">warning<br><span class="hex">#FFA600</span></div></div>
+    <div class="sw"><div class="chip" style="background:#0090FF"></div><div class="lbl">info<br><span class="hex">#0090FF</span></div></div>
+  </div>
+
+  <h2>Signature gradient</h2>
+  <div class="gradient-bar"></div>
+
+  <h2>Components</h2>
+  <button class="btn glow">Primary CTA</button>
+  <span class="badge" style="margin-left:12px">most popular</span>
+  <div class="card">
+    <strong>Card</strong>
+    <p style="color:var(--muted-fg);margin:8px 0 0">White surface, 1px border <code>#E2E8F0</code>, 8px radius, 24px padding. Cyan is the single decisive accent.</p>
+  </div>
+
+  <h2>Typography</h2>
+  <p>Inter — body 400, line-height 1.6. <code>JetBrains Mono</code> for code, slash-commands (<code>/quiz</code>), metrics.</p>
+</div>
+</body>
+</html>

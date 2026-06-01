@@ -72,7 +72,7 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
 **Kind:** page
 **Axis:** content
-**When to use:** Tier 1 core doc: design-system
+**When to use:** > Index + overview. The machine-readable design systems live in the > 00-core/design-system/ folder (one folder + one DESIGN.md each). This page > is the human-readable map. Graduated from stub → canonical 2026-06-01 by the > design-system-styling capability (Tier-C decision bf3a6323).
 
 **Invoke:** `Read("00-core/design-system.md")`
 **Authority:** SoR
