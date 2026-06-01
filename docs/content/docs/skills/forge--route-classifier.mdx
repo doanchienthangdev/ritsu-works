@@ -1,0 +1,68 @@
+---
+title: 'Skill: route-classifier'
+description: >-
+  /forge route classifier — AFTER the selection-funnel passes, decides EXTEND an existing skill vs birth
+  NET-NEW vs SURFACE (ambiguous target). Calls resolver_find for candidate skills, then the deterministic
+  scripts/forge/route-classify.cjs (threshold 0.6, ambiguity-margin 0.1). NEVER auto-picks an ambiguous
+  extend target — a mis-route sends a cheap Tier-B /update down the Tier-C /cla path (silent 5x cost), so
+  the decision is deterministic + unit-tested. Part of capability book-to-capability (/forge).
+source_path: 06-ai-ops/skills/forge/route-classifier/SKILL.md
+source_hash: 780e9ca1e7326bd7a262f44b18a39fffb0372111c82b8f1c51d9fd28dcd66359
+generated_at: '2026-06-01T08:00:00.000Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_at: '2026-06-01T08:00:00.000Z'
+translated_source_hash: 780e9ca1e7326bd7a262f44b18a39fffb0372111c82b8f1c51d9fd28dcd66359
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+# forge/route-classifier (capability `book-to-capability` v0.1)
+
+> Bề mặt rủi ro 5x-cost. Chỉ chạy SAU KHI `forge/selection-funnel` trả về PASS.
+> Phần impure (resolver_find) sống ở đây; quyết định là `scripts/forge/route-classify.cjs`
+> thuần, đã được test. Spec: `.archives/cla/book-to-capability/spec.md` §2.3.
+
+## Khi nào sử dụng
+- Được gọi bởi `forge/orchestrator` một khi một candidate clears tất cả 5 funnel gates.
+
+## Đầu vào
+- `need` (string) — NEED đã framed.
+- `sources` (string[]) — các wiki refs đã assembled (grounding).
+- Tuning (optional): `threshold` (default 0.6), `ambiguityMargin` (default 0.1).
+
+## Quy trình
+
+### 1 — Find candidate extend targets (impure)
+Call `mcp__supabase-ops__resolver_find({ intent: need, kind: "skill", limit: 5 })`. Map mỗi result tới `{ entity: <skill-id>, score: <0..1 similarity> }`. (resolver_find counts against shared `SESSION_HARD_CAP=20` breaker — một call per classify.)
+
+### 2 — Classify (pure, deterministic, tested)
+```js
+const { classifyRoute } = require('scripts/forge/route-classify.cjs');
+const r = classifyRoute({ candidates, threshold, ambiguityMargin });
+```
+- `r.route === 'extend'` → target = `r.entity`; orchestrator sẽ route tới `/update <skill> <entity-or-name> --refs=wiki:`.
+- `r.route === 'net-new'` → không strong existing target; route tới `/cla propose --refs=wiki:`.
+- `r.route === 'surface'` → **ambiguous** (`r.candidates` nằm trong margin). **Surface tied list cho founder; NEVER auto-pick.** Founder hoặc đặt tên extend target (→ extend) hoặc confirms net-new.
+
+### 3 — Return
+`{ route, entity?, candidates?, reason }` cho orchestrator, render nó trong `--dry-run` preview trước bất kỳ spend nào.
+
+## Bảo vệ
+- **Never auto-pick một ambiguous target** — một `surface` result phải tới founder (invariant; deterministic core enforces nó, skill này không được override).
+- Mis-route = silent 5x cost → mandatory `--dry-run` của orchestrator shows route + cost TRƯỚC spend.
+- resolver_find dưới breaker budget (orchestrator accounts cho nó).
+
+## Đầu ra
+Route decision object. No writes (orchestrator stamps nó vào `agent_runs.output_payload`).
+
+## HITL
+Tier A (classification tự nó là read-only). EXECUTION của route đã chọn là B (extend/`/update`) hoặc C (net-new/`/cla`); một `surface` chờ founder.
+
+## Chi phí
+Subscription (trong session) + một resolver_find. cost-bucket `ai-ops-meta`, task-kind `forge-route-classify` (gps cap $0.10).
+
+## Tests
+`scripts/forge/route-classify.cjs` được unit-tested — `tests/forge/route-classify.test.ts` (26 cases): threshold/margin boundaries, exact-tie-never-auto-picks, order-independence, full mis-route matrix, input validation.

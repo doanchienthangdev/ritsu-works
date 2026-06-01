@@ -1,0 +1,63 @@
+---
+title: 'Skill: selection-funnel'
+description: >-
+  /forge 5-gate anti-over-build selection funnel — default REJECT. Decides whether a slice of latent
+  wiki knowledge should become a runnable skill at all. Gates: (1) entity+confidence via distill, (2)
+  founder review of the 0.6-0.85 bucket, (3) repeated-decision (recurring not one-off), (4) DEEP-pillar+stage,
+  (5) so-what + real gap + EXECUTABLE-not-philosophy. Most candidates correctly stay latent (knowledge is
+  ~5-50x cheaper than capability). Verdict → ops.agent_runs.output_payload. Part of capability
+  book-to-capability (/forge).
+source_path: 06-ai-ops/skills/forge/selection-funnel/SKILL.md
+source_hash: 791cc49341f0fe9f729c6fc0d9277fb57e086b1b1ec2267b652efe92a51fd8a7
+generated_at: '2026-06-01T08:00:00.000Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+# forge/selection-funnel (capability `book-to-capability` v0.1)
+
+> The judgment engine — and the whole point of `/forge`. It exists to say **no**
+> as often as yes: a wrong "build" is expensive + sticky; a wrong "don't build"
+> is cheap (knowledge stays latent, still RAG-able via `wiki_ask`). **Default REJECT.**
+> Spec: `.archives/cla/book-to-capability/spec.md` §2.2.
+
+## When to use
+- Invoked by `forge/orchestrator` after the NEED is framed + sources assembled, before any route/build.
+
+## Inputs
+- `need` (string), `sources` (string[] of wiki refs), `pillar` (optional target pillar).
+
+## The 5 gates (ALL must PASS; borderline → REJECT)
+
+| # | Gate | PASS condition | Reuses |
+|---|---|---|---|
+| 1 | **Entity + confidence** | `eval-evo/distill-from-refs` over the sources yields ≥1 proposed entity change, citation-backed, confidence ≥ 0.6 → `ops.evolve_extractions`. | distill |
+| 2 | **Founder review** | The 0.6–0.85 confidence bucket is founder-reviewed (accept/reject/edit). | `eval-evo/review-extractions` |
+| 3 | **Repeated-decision** | The need is **recurring** (would be invoked/used ≥N times), NOT a one-off. One-off → **REJECT** (answer once via `wiki_ask`). | `thinking-toolkit/so-what-test` |
+| 4 | **DEEP-pillar + stage** | The target pillar is `deep`/`lite` (not `skeleton`/placeholder) per `knowledge/manifest.yaml`, and the stage justifies a standing capability. | manifest `stage_status` |
+| 5 | **So-what + gap + executable** | Passes so-what; a real gap exists (no existing skill already covers it — `resolver_find`); AND it is **executable** (a skill) not **philosophy** (a "should/principle" → redirect to a **Tier-1 doc PR** via `/update tier1-file`, NOT a skill). | so-what + mece + resolver_find |
+
+## Verdict
+- All 5 PASS → `{ verdict: 'PASS', gates: [...] }` → orchestrator proceeds to `forge/route-classifier`.
+- Any REJECT → `{ verdict: 'REJECT', gates: [...], disposition }` where `disposition` ∈ \{`latent` (stays in wiki), `tier1-doc` (gate-5 philosophy redirect)}.
+- The aggregate verdict + per-gate results are stamped by the orchestrator into `ops.agent_runs.output_payload->>'forge_verdict'` / `'gates'` (gps-writable; surfaced via `v_forge_lineage`). **NOT `ops.decisions`** (gps cannot write it; a per-run verdict is telemetry, not a governance decision — invariant #4).
+
+## Guards
+- **Default REJECT** on any borderline gate — the funnel must *earn* a build. Founder may override a REJECT.
+- Citation discipline: gate 1 produces the `ops.evolve_extractions` rows that make `forge.citation_coverage = 100%` true.
+- wiki↔Tier1 boundary: this skill READS wiki; the only Tier-1 write it triggers is a gate-5 doc-PR redirect (via `/update tier1-file`), never a direct wiki→Tier1 mutation.
+
+## Outputs
+The verdict object (PASS with gates, or REJECT with disposition). No direct DB write (orchestrator owns the `output_payload` stamp).
+
+## HITL
+Tier A to run the gates; the gate-2 founder review is the human checkpoint (B — founder confirms borderline verdicts).
+
+## Cost
+Subscription (in-session); gate 1 distill is the main spend. cost-bucket `ai-ops-meta`, task-kind `forge-funnel-gate` (gps cap $0.15).
+
+## Tests
+Gate logic is markdown-driven (LLM judgment), so loop-level: an integration test asserts a one-off need REJECTs at gate 3 and a philosophy need redirects at gate 5 (spec §6 acceptance). The deterministic route decision downstream is unit-tested separately (`tests/forge/route-classify.test.ts`).
