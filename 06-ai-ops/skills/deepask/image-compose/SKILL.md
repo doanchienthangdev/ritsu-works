@@ -81,7 +81,7 @@ The image only **re-presents** IR content that already passed `citation-audit`. 
   "lang": "vi|en|null",
   "pieces": [
     { "index": 1, "role": "cover|agenda|exec|section|conflict|gaps|sources|poster",
-      "size": "1536x1024", "quality": "medium",
+      "size": "2048x1152", "quality": "medium",
       "source_refs": ["S1","S2"],
       "focal_illustration": "<concrete drawn subject from the cited IR — REQUIRED on content pieces; MUST be distinct per piece>",
       "prompt": "<full composed gpt-image-2 prompt>" }

@@ -6,11 +6,14 @@
 // concrete gpt-image-* API `size` and any post-gen crop needed to hit the
 // requested aspect ratio.
 //
-// WHY a helper: gpt-image native sizes are square (1024x1024), landscape 3:2
-// (1536x1024), and portrait 2:3 (1024x1536) — there is NO native 16:9. The
-// founder requires img-slide at a literal 16:9. So img-slide generates at the
-// widest native landscape (1536x1024) then center-crops to 1536x864 (= 16:9).
-// infographics use the native landscape/portrait sizes per --orientation.
+// WHY a helper: gpt-image-2 supports FLEXIBLE sizing (per the OpenAI image-gen
+// prompting guide §4.10): any size whose edges are multiples of 16, aspect ratio
+// ≤ 3:1, max edge < 3840px. So img-slide now generates NATIVELY at a true 16:9 —
+// 2048x1152 (= 16:9 EXACTLY; 128×16 by 72×16; ~1.5× the old crop area for crisper
+// slides) — with NO crop, so the title is never clipped. (The prior approach gen'd
+// the widest gpt-image-1 native landscape 1536x1024 then center-cropped to 1536x864,
+// which lost the top 80px where gpt-image places the title — the reported bug.)
+// infographics still use the native landscape (3:2) / portrait (2:3) per --orientation.
 //
 // Pure functions: no I/O, no side effects. The crop is performed downstream by
 // slide-deck.cjs (Pillow); this module only computes the math + contract.
@@ -99,17 +102,17 @@ function resolveImageSpec(args) {
   }
 
   if (format === 'img-slide') {
-    // Always 16:9, regardless of requested orientation. Gen 1536x1024 → crop to 1536x864.
-    const apiSize = '1536x1024';
-    const { w, h } = parseSize(apiSize);
-    const crop = centeredCropBox(w, h, 16, 9); // → 1536x864
+    // Always a TRUE 16:9, regardless of requested orientation. gpt-image-2 takes a
+    // native 16:9 directly (2048x1152 = exact 16:9, both edges ×16) — NO crop, so
+    // the slide composes for the real 16:9 frame and the title is never clipped.
+    const apiSize = '2048x1152';
     return {
       format,
       orientation: 'landscape',
       apiSize,
       ratio: '16:9',
-      crop,
-      finalSize: `${crop.width}x${crop.height}`,
+      crop: null,
+      finalSize: apiSize,
     };
   }
 

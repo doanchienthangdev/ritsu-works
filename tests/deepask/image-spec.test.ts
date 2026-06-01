@@ -26,15 +26,25 @@ const {
 
 describe("resolveImageSpec", () => {
   describe("happy path", () => {
-    it("img-slide → always 16:9 (gen 1536x1024, center-crop to 1536x864, top=80)", () => {
+    it("img-slide → native TRUE 16:9 (gen 2048x1152, NO crop — title never clipped)", () => {
       expect(resolveImageSpec({ format: "img-slide" })).toStrictEqual({
         format: "img-slide",
         orientation: "landscape",
-        apiSize: "1536x1024",
+        apiSize: "2048x1152",
         ratio: "16:9",
-        crop: { left: 0, top: 80, width: 1536, height: 864 },
-        finalSize: "1536x864",
+        crop: null,
+        finalSize: "2048x1152",
       });
+    });
+
+    it("img-slide finalSize is EXACTLY 16:9, ×16 edges, within gpt-image-2 limits", () => {
+      const r = resolveImageSpec({ format: "img-slide" });
+      const [w, h] = r.finalSize.split("x").map(Number);
+      expect(w / h).toBeCloseTo(16 / 9, 5); // exact 16:9 — no crop drift
+      expect(r.crop).toBeNull(); // native gen — nothing cropped away (no title clip)
+      expect(w % 16).toBe(0);
+      expect(h % 16).toBe(0);
+      expect(Math.max(w, h)).toBeLessThan(3840); // gpt-image-2 max edge
     });
 
     it("infographics default orientation → landscape 3:2 (1536x1024), no crop", () => {
@@ -65,7 +75,7 @@ describe("resolveImageSpec", () => {
       const r = resolveImageSpec({ format: "img-slide", orientation: "portrait" });
       expect(r.orientation).toBe("landscape");
       expect(r.ratio).toBe("16:9");
-      expect(r.finalSize).toBe("1536x864");
+      expect(r.finalSize).toBe("2048x1152");
     });
   });
 
