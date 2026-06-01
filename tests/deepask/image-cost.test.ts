@@ -83,7 +83,7 @@ describe("estimateImageCost", () => {
 });
 
 describe("estimateRunCost", () => {
-  it("8 medium img-slide pages (1536x864) → 8 × 0.063 = 0.504", () => {
+  it("8 medium pages at the legacy 1536x864 crop-alias → 8 × 0.063 = 0.504 (alias still maps to 1536x1024)", () => {
     const r = estimateRunCost({ size: "1536x864", quality: "medium", count: 8 });
     expect(r.perImageUsd).toBe(0.063);
     expect(r.totalUsd).toBe(0.504);

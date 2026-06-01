@@ -82,7 +82,7 @@ These two formats render via OpenAI image generation, so they have an extra pipe
 | `--max-cost-usd` | number | `1.00` | **cost circuit-breaker**: if the pre-gen estimate exceeds it → REFUSE up front (mirror of the resolver breaker), tell the operator, do not silently overspend. |
 
 **Pipeline (Stage 6, image branch):**
-1. `resolveStyle(--style)` → brand context. **`resolveArtStyle(--art-style)` → genre context (v1.2-image).** `resolveImageSpec({format, orientation})` → `apiSize` + 16:9 `crop` (img-slide).
+1. `resolveStyle(--style)` → brand context. **`resolveArtStyle(--art-style)` → genre context (v1.2-image).** `resolveImageSpec({format, orientation})` → `apiSize` (img-slide = **2048×1152 native 16:9, `crop:null`** — no crop, so the title is never clipped, v1.2.1).
 2. **`deepask/image-compose`** → `image-plan.json` (pieces + per-piece gpt-image-2 prompts = byte-identical brand block + **genre block + a REQUIRED per-piece focal illustration from the cited IR** + the EXACT IR text; no new claims; **honesty invariant** — no load-bearing figure exists ONLY as illustration).
 3. **Cost gate:** `image-cost.estimateRunCost({size, quality, count})` → `checkCostBudget({estimatedUsd, maxCostUsd})`. If `!ok` → STOP, report the estimate vs cap, suggest lowering `--img-quality`/`--max-slides` or raising `--max-cost-usd`. Show the estimate either way.
 4. **Gen:** for each piece, `node scripts/deepask/image-gen.cjs --prompt-file=… --size=… --quality=… --model=… --out=images/NN-role.png` (writes PNG via OpenAI; `--dry-run` writes prompt sidecars + no PNG + no spend).
