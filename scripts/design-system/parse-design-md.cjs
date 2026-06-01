@@ -7,6 +7,12 @@
 // (with cycle + unresolved-ref detection), validates that the `colors` map is sRGB
 // hex, and returns a normalized token object + the markdown body.
 //
+// Reference semantics (v1.0.2): a PURE ref — a string that is exactly one `{ref}` —
+// is a TYPED ALIAS and resolves to its target with the type preserved, so
+// `typography: "{typography.button-md}"` resolves to the typography OBJECT (not the
+// literal "[object Object]"). A ref EMBEDDED in a larger string is interpolation: the
+// target must be a scalar (an embedded object/array ref throws — never "[object Object]").
+//
 // Mirrors the deterministic, throw-on-bad-input discipline of scripts/deepask/*.cjs.
 // Reuses scripts/core/lib/frontmatter.cjs parse() — DESIGN.md has the same
 // `---` YAML-frontmatter + body shape as a core doc.
@@ -42,50 +48,87 @@ function getByPath(root, dotted) {
   return node;
 }
 
+// A token reference path. Segments allow [a-zA-Z0-9_-]: real getdesign DESIGN.md
+// keys are hyphenated (e.g. {colors.on-primary}, {typography.button-md},
+// {colors.primary-deep}). getByPath splits on "." and resolves hyphenated keys.
+const REF_PATH = '[a-zA-Z0-9_-]+(?:\\.[a-zA-Z0-9_-]+)*';
+// A "pure ref": the ENTIRE string is exactly one {ref}, no surrounding text.
+// Anchored, no /g (stateless for .exec).
+const PURE_REF = new RegExp(`^\\{(${REF_PATH})\\}$`);
+
 /**
- * Resolve every `{a.b.c}` reference inside a string against `root`, recursively
- * (a ref may resolve to another ref). `chain` tracks the paths currently being
- * resolved so circular references throw instead of looping forever.
+ * Resolve a single `{a.b.c}` reference to its target VALUE against `root`,
+ * preserving the target's type and deep-resolving the target's own contents (a
+ * ref may point at another ref, or at an object/array that itself contains refs).
+ * `chain` tracks the ref paths currently being resolved so a cycle throws instead
+ * of looping forever — extended as we descend so a cycle THROUGH an object/array's
+ * fields is still detected.
+ *
+ * @returns the resolved value (string | number | boolean | object | array).
+ * @throws {DesignMdParseError} on a circular or unresolved reference.
  */
-function resolveString(root, str, chain) {
-  // Path segments allow [a-zA-Z0-9_-]: real getdesign DESIGN.md token keys are
-  // hyphenated (e.g. {colors.on-primary}, {typography.button-md}, {colors.primary-deep}).
-  // getByPath already splits on "." and resolves hyphenated keys — the regex was the
-  // lone inconsistency, silently leaving every such ref as a literal "{...}" string in
-  // the output (a recovered getdesign system would otherwise inject dozens of them).
-  const re = /\{([a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*)\}/g;
+function resolveRef(root, refPath, chain) {
+  if (chain.includes(refPath)) {
+    throw new DesignMdParseError(
+      `circular token reference: ${[...chain, refPath].join(' -> ')}`,
+    );
+  }
+  const target = getByPath(root, refPath);
+  if (target === undefined || target === null) {
+    throw new DesignMdParseError(`unresolved token reference {${refPath}}`);
+  }
+  return deepResolve(root, target, [...chain, refPath]);
+}
+
+/**
+ * Resolve a string token value against `root`.
+ *
+ *  - A PURE ref (the whole string is exactly one `{ref}`) resolves to the target
+ *    VALUE with its TYPE PRESERVED — a ref is a typed alias. `{typography.button-md}`
+ *    becomes the typography OBJECT (not the literal "[object Object]"), a ref to a
+ *    list becomes the array, a ref to a number stays a number, and a ref to a string
+ *    resolves (recursively, for chains) to that string.
+ *  - Any OTHER string is INTERPOLATION: each embedded `{ref}` must resolve to a
+ *    SCALAR and is substituted via String(). An embedded ref whose target is a
+ *    non-scalar (object/array) is an authoring error — throw rather than silently
+ *    emit "[object Object]" (resolve-style.cjs degrades such a system to plain).
+ */
+function resolveStringNode(root, str, chain) {
+  const pure = PURE_REF.exec(str);
+  if (pure) return resolveRef(root, pure[1], chain);
+
+  const re = new RegExp(`\\{(${REF_PATH})\\}`, 'g');
   let out = '';
   let lastIndex = 0;
   let m;
   while ((m = re.exec(str)) !== null) {
     out += str.slice(lastIndex, m.index);
-    const refPath = m[1];
-    if (chain.includes(refPath)) {
+    const resolved = resolveRef(root, m[1], chain);
+    if (resolved !== null && typeof resolved === 'object') {
       throw new DesignMdParseError(
-        `circular token reference: ${[...chain, refPath].join(' -> ')}`,
+        `token reference {${m[1]}} resolves to a${Array.isArray(resolved) ? 'n array' : 'n object'}, ` +
+          `which cannot be embedded in a string ("${str}")`,
       );
     }
-    const target = getByPath(root, refPath);
-    if (target === undefined || target === null) {
-      throw new DesignMdParseError(`unresolved token reference {${refPath}}`);
-    }
-    out +=
-      typeof target === 'string'
-        ? resolveString(root, target, [...chain, refPath])
-        : String(target);
+    out += String(resolved);
     lastIndex = m.index + m[0].length;
   }
   out += str.slice(lastIndex);
   return out;
 }
 
-/** Deep-copy `node`, resolving all string `{refs}` against `root`. */
-function deepResolve(root, node) {
-  if (typeof node === 'string') return resolveString(root, node, []);
-  if (Array.isArray(node)) return node.map((v) => deepResolve(root, v));
+/**
+ * Deep-resolve `node` against `root`, returning a resolved copy. A string node may
+ * resolve to a NON-string when it is a pure ref to an object/array/number/boolean
+ * (see resolveStringNode). `chain` threads cycle-detection state through nested
+ * object/array refs; the top-level call starts with an empty chain.
+ */
+function deepResolve(root, node, chain = []) {
+  if (typeof node === 'string') return resolveStringNode(root, node, chain);
+  if (Array.isArray(node)) return node.map((v) => deepResolve(root, v, chain));
   if (node !== null && typeof node === 'object') {
     const out = {};
-    for (const [k, v] of Object.entries(node)) out[k] = deepResolve(root, v);
+    for (const [k, v] of Object.entries(node)) out[k] = deepResolve(root, v, chain);
     return out;
   }
   return node;
@@ -164,8 +207,11 @@ function sanitizeFrontmatterScalars(content) {
  *
  * @param {string} content  raw DESIGN.md file content.
  * @returns {{ name, version, description, colors, typography, rounded, spacing, components, body, tokens }}
+ *   Note: a component field that is a pure ref to a non-scalar token (e.g.
+ *   `typography: "{typography.button-md}"`) resolves to the referenced object/array.
  * @throws {DesignMdParseError} on non-string input, missing frontmatter, malformed
- *   YAML, circular/unresolved token refs, or a non-sRGB-hex color value.
+ *   YAML, circular/unresolved token refs, an object/array ref embedded in a larger
+ *   string, or a non-sRGB-hex color value.
  */
 function parseDesignMd(content) {
   if (typeof content !== 'string') {
