@@ -64,7 +64,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** deepask — federated retrieval + capability-execution + cited synthesis supercommand. First-class supercommand /deepask "<q>" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its v1.1.0
+**When to use:** deepask — federated retrieval + capability-execution + cited synthesis supercommand. First-class supercommand /deepask "<q>" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its v1.1.1
 
 **Invoke:** `Read("wiki/capabilities/deepask/spec.md")` or `/cla update deepask`
 
@@ -76,7 +76,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Multi design-system + universal --style output layer. PROPOSED via /cla (ops.capability_runs id fbd8edb1). A 'build once, use forever' output-styling layer. Two parts: (1) a managed LIBRARY of design systems — each = 1 folder + 1 DESIGN.md per the emerging Google Stitch / google-labs-code/design.md standard (YAML design tokens + Markdown rationale; ADOPT, do not invent); (2) a UNIVERSAL --style=<n v1.0.0
+**When to use:** Multi design-system + universal --style output layer. PROPOSED via /cla (ops.capability_runs id fbd8edb1). A 'build once, use forever' output-styling layer. Two parts: (1) a managed LIBRARY of design systems — each = 1 folder + 1 DESIGN.md per the emerging Google Stitch / google-labs-code/design.md standard (YAML design tokens + Markdown rationale; ADOPT, do not invent); (2) a UNIVERSAL --style=<n v1.0.1
 
 **Invoke:** `Read("wiki/capabilities/design-system-styling/spec.md")` or `/cla update design-system-styling`
 
