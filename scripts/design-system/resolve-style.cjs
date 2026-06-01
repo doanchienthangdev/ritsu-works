@@ -7,9 +7,17 @@
 //
 // Contract (spec §4.8):
 //   resolveStyle(undefined|null|'')        → { mode: 'plain', ... }        (the default)
-//   resolveStyle(name) [file present]      → { mode: 'styled', tokens, ... }
+//   resolveStyle(name) [file present, valid]  → { mode: 'styled', tokens, ... }
+//   resolveStyle(name) [file present, unusable] → { mode: 'plain', warning, ... }  (never crash)
 //   resolveStyle(name) [miss, interactive] → { mode: 'needs-download', ... }
 //   resolveStyle(name) [miss, non-interactive] → THROWS StyleResolveError    (AD-3)
+//
+// A "present but unusable" DESIGN.md (a tokenless prose file from getdesign, a
+// malformed-beyond-recovery frontmatter, non-sRGB colors, or a {ref} cycle) must NOT
+// hard-crash the consuming command. The file IS present, so this is a clean "no usable
+// tokens" miss — distinct from the AD-3 cache-miss that hard-fails — and degrades to
+// plain + a logged `warning`. sRGB / ref-cycle validation stays strict: an invalid
+// system is refused (plain), never silently accepted.
 //
 // AD-3 (CI/offline determinism): in non-interactive mode the resolver reads only
 // already-present files (owned 00-core/ + materialized cache) and HARD-FAILS on a
@@ -26,7 +34,7 @@
 const fs = require('fs');
 const path = require('path');
 const { findSystem, MATERIALIZED_STATUSES } = require('./registry-io.cjs');
-const { parseDesignMd } = require('./parse-design-md.cjs');
+const { parseDesignMd, DesignMdParseError } = require('./parse-design-md.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
@@ -58,7 +66,7 @@ const PLAIN = Object.freeze({
  * @param {string}  [opts.cacheRoot]     override runtime/design-systems root (tests).
  * @param {function}[opts.fileExists]    (absPath)→bool, defaults to fs.existsSync.
  * @param {function}[opts.readFile]      (absPath)→string, defaults to fs.readFileSync.
- * @returns {{mode:'plain'|'styled'|'needs-download', name, designMdPath, tokens, previewPath, origin, source?}}
+ * @returns {{mode:'plain'|'styled'|'needs-download', name, designMdPath, tokens, previewPath, origin, source?, warning?}}
  * @throws {StyleResolveError} bad name type, or a miss in non-interactive mode.
  */
 function resolveStyle(name, opts = {}) {
@@ -91,9 +99,24 @@ function resolveStyle(name, opts = {}) {
 
   const designMdPath = path.isAbsolute(entry.path) ? entry.path : path.join(REPO_ROOT, entry.path);
 
-  // Present on disk → styled (parse → tokens).
+  // Present on disk → parse → styled. A present-but-UNUSABLE DESIGN.md degrades to
+  // plain + warning rather than propagating the parse throw to the consuming command.
   if (fileExists(designMdPath)) {
-    const tokens = parseDesignMd(readFile(designMdPath));
+    let tokens;
+    try {
+      tokens = parseDesignMd(readFile(designMdPath));
+    } catch (e) {
+      if (!(e instanceof DesignMdParseError)) throw e; // a real read/IO error still propagates
+      return {
+        mode: 'plain',
+        name,
+        designMdPath,
+        tokens: null,
+        previewPath: null,
+        origin: entry.origin,
+        warning: `style "${name}" is present at ${designMdPath} but has no usable design tokens (${e.message}); rendering plain.`,
+      };
+    }
     const previewPath = derivePreview(designMdPath, fileExists);
     return { mode: 'styled', name, designMdPath, tokens, previewPath, origin: entry.origin };
   }

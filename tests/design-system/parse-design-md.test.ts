@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import * as fs from "fs";
+import * as path from "path";
 // @ts-ignore — Node interop from TS to CJS (repo convention; see deepask/resolver-v3 tests)
-const { parseDesignMd, DesignMdParseError, SRGB_HEX } = require("../../scripts/design-system/parse-design-md.cjs");
+const { parseDesignMd, DesignMdParseError, SRGB_HEX, sanitizeFrontmatterScalars, isRiskyPlainScalar } = require("../../scripts/design-system/parse-design-md.cjs");
 
 // All-Edge-Cases-Test (global CLAUDE.md). Function under test: parseDesignMd (pure data transform).
 // Phase 1: 1 param (content:string). Branches = non-string→throw | no/empty frontmatter→throw |
@@ -143,5 +144,175 @@ describe("parseDesignMd", () => {
         expect(() => parseDesignMd(fm(`name: F\ncomponents:\n  x:\n    v: "{${key}}"`))).toThrow(/unresolved token reference/);
       },
     );
+  });
+
+  // ==========================================================================
+  // /cla fix design-system-styling (Tier B, 2026-06-01): real `npx getdesign add`
+  // output broke two ways. (1) spotify = tokenless prose (no frontmatter) → was an
+  // uncaught throw that crashed the consuming command (resolve-style now degrades).
+  // (2) supabase = valid colors/typography but a long unquoted `description:` with an
+  // embedded ": " → js-yaml "bad indentation of a mapping entry (3:323)".
+  // Phase 1: NEW units sanitizeFrontmatterScalars (string→string|null; branches:
+  //   BOM/CRLF · no-fence→null · unterminated→null · nothing-risky→null · repair),
+  //   isRiskyPlainScalar (3 OR'd predicates), coerceRiskyScalarLine (verbatim vs
+  //   quote+escape), + resolveString ref regex now allows hyphens (getdesign keys).
+  //   Recovery wired into parseDesignMd's catch (null→throw / retry-ok / retry-fail).
+  // Phase 2: real captured fixtures (2N contract w/ live getdesign), embedded/trailing
+  //   ":", " #", indicator-start, escaping " and \, nested-not-touched, idempotence,
+  //   CRLF+BOM. 2K: malicious-looking description is double-quoted (can't break out).
+  // ==========================================================================
+
+  describe("hyphenated token {ref} resolution (getdesign keys are hyphenated)", () => {
+    it("resolves a hyphenated single-segment ref {x.a-b}", () => {
+      const r = parseDesignMd(fm(`name: F\nx:\n  a-b: "deep"\n  use: "{x.a-b}"`));
+      expect(r.tokens.x.use).toBe("deep");
+    });
+    it("resolves a hyphenated path ref {colors.on-primary} (the supabase pattern)", () => {
+      const r = parseDesignMd(fm(`name: F\ncolors:\n  on-primary: "#171717"\ncomponents:\n  btn:\n    textColor: "{colors.on-primary}"`));
+      expect(r.components.btn.textColor).toBe("#171717");
+    });
+    it("resolves an EMBEDDED hyphenated ref (radius: r={rounded.full-pill})", () => {
+      const r = parseDesignMd(fm(`name: F\nrounded:\n  full-pill: "9999px"\ncomponents:\n  c:\n    radius: "r={rounded.full-pill}"`));
+      expect(r.components.c.radius).toBe("r=9999px");
+    });
+    it("regression: a NON-hyphen ref still resolves (no regression from the hyphen change)", () => {
+      const r = parseDesignMd(fm(`name: F\ncolors:\n  primary: "#0ABCD0"\ncomponents:\n  b:\n    bg: "{colors.primary}"`));
+      expect(r.components.b.bg).toBe("#0ABCD0");
+    });
+  });
+
+  describe("isRiskyPlainScalar (the recovery predicate)", () => {
+    it.each([
+      ["embedded colon-space", "reads as quietly technical: minimal chrome"],
+      ["trailing colon", "the value ends here:"],
+      ["inline comment", "green primary # the only accent"],
+      ["leading '#' (would be a YAML comment → null value)", "#3ecf8e"],
+      ["leading bang", "!secret"],
+      ["leading at", "@handle stuff"],
+      ["leading backtick", "`code`"],
+      ["leading percent", "%directive"],
+      ["leading comma", ",leading"],
+    ])("flags %s as risky", (_l, v) => {
+      expect(isRiskyPlainScalar(v)).toBe(true);
+    });
+    it.each([
+      ["plain prose", "An inspired interpretation of the design language"],
+      ["css shorthand (space, no colon)", "8px 16px"],
+      ["negative dimension", "-1.92px"],
+      ["url (colon not followed by space)", "https://example.com/path"],
+      ["hyphenated word", "near-monochrome palette"],
+      ["empty string", ""],
+    ])("does NOT flag %s", (_l, v) => {
+      expect(isRiskyPlainScalar(v)).toBe(false);
+    });
+  });
+
+  describe("sanitizeFrontmatterScalars (frontmatter repair, top-level scalars only)", () => {
+    it("returns null when there is no frontmatter block (tokenless prose)", () => {
+      expect(sanitizeFrontmatterScalars("# Heading\n\nprose only")).toBeNull();
+    });
+    it("returns null for an unterminated frontmatter (--- open, no closing fence)", () => {
+      expect(sanitizeFrontmatterScalars("---\nname: F\nno closing fence here")).toBeNull();
+    });
+    it("returns null when nothing at the top level is risky (clean frontmatter)", () => {
+      expect(sanitizeFrontmatterScalars(fm(`name: F\nversion: alpha`))).toBeNull();
+    });
+    it("quotes a risky top-level description (embedded colon-space) → re-parses cleanly", () => {
+      const out = sanitizeFrontmatterScalars(fm(`name: F\ndescription: reads as quietly technical: minimal chrome`));
+      expect(out).toContain(`description: "reads as quietly technical: minimal chrome"`);
+      expect(() => parseDesignMd(out as string)).not.toThrow();
+    });
+    it("does NOT touch a nested (indented) risky line — only column-0 scalars are in scope", () => {
+      // `meta:` is a block-parent (no value); `  note:` is indented → neither is rewritten,
+      // so nothing top-level is risky and the repair declines (returns null). Nested token
+      // blocks (colors/typography/components) are therefore never corrupted by the repair.
+      expect(sanitizeFrontmatterScalars(fm(`name: F\nmeta:\n  note: a: b risky nested`))).toBeNull();
+    });
+    it("does NOT re-quote an already double-quoted value", () => {
+      expect(sanitizeFrontmatterScalars(fm(`name: F\ndescription: "already: quoted"`))).toBeNull();
+    });
+    it("leaves an intentional flow-collection value ([...]) alone", () => {
+      expect(sanitizeFrontmatterScalars(fm(`name: F\ntags: [a, b, c]`))).toBeNull();
+    });
+    it("escapes embedded double-quotes when coercing (round-trips to the exact string)", () => {
+      const out = sanitizeFrontmatterScalars(fm(`name: F\ndescription: say "hi": and more`));
+      expect(out).toContain(`description: "say \\"hi\\": and more"`);
+      expect(parseDesignMd(out as string).description).toBe(`say "hi": and more`);
+    });
+    it("escapes embedded backslashes when coercing (round-trips to the exact string)", () => {
+      // value has one backslash AND a ": " (so it is risky → gets double-quoted).
+      const out = sanitizeFrontmatterScalars(fm(`name: F\ndescription: a\\b: c`));
+      expect(parseDesignMd(out as string).description).toBe(`a\\b: c`);
+    });
+    it("idempotence: repairing an already-repaired doc offers no further change", () => {
+      const once = sanitizeFrontmatterScalars(fm(`name: F\ndescription: a: b`));
+      expect(once).not.toBeNull();
+      expect(sanitizeFrontmatterScalars(once as string)).toBeNull();
+    });
+    it("preserves the markdown body verbatim across repair", () => {
+      const out = sanitizeFrontmatterScalars(fm(`name: F\ndescription: x: y`, "\n## Body\n\nhello\n"));
+      expect(parseDesignMd(out as string).body).toBe("\n## Body\n\nhello\n");
+    });
+    it("handles BOM + CRLF input", () => {
+      const bom = "﻿" + fm(`name: F\ndescription: a: b`).replace(/\n/g, "\r\n");
+      const out = sanitizeFrontmatterScalars(bom);
+      expect(out).not.toBeNull();
+      expect(() => parseDesignMd(out as string)).not.toThrow();
+    });
+  });
+
+  describe("frontmatter recovery via parseDesignMd (malformed → repair → retry)", () => {
+    it("recovers a malformed unquoted description and resolves the rest of the tokens", () => {
+      const r = parseDesignMd(fm(`name: Supa\ndescription: clean and technical: minimal — green CTA\ncolors:\n  primary: "#3ecf8e"`));
+      expect(r.name).toBe("Supa");
+      expect(r.description).toBe("clean and technical: minimal — green CTA");
+      expect(r.colors.primary).toBe("#3ecf8e");
+    });
+    it("still throws 'no YAML token frontmatter' on tokenless input (nothing to repair)", () => {
+      expect(() => parseDesignMd("# Design System Inspired by X\n\nprose only")).toThrow(/no YAML token frontmatter/);
+    });
+    it("throws 'malformed YAML frontmatter:' when nothing top-level is repairable", () => {
+      // `broken: [unclosed` starts with `[` → left as an intentional flow value → repair declines → original error.
+      expect(() => parseDesignMd(`---\nbroken: [unclosed flow\n---\nbody`)).toThrow(/malformed YAML frontmatter: /);
+    });
+    it("throws 'recovery failed' when repair quotes a scalar but a second error remains", () => {
+      const bad = `---\ndescription: risky: colon here\nbroken: [unclosed flow\n---\nbody`;
+      expect(() => parseDesignMd(bad)).toThrow(/recovery failed/);
+    });
+    it("recovery NEVER triggers for valid frontmatter (initial parse succeeds first)", () => {
+      const r = parseDesignMd(fm(`name: F\ncolors:\n  primary: "#0ABCD0"`));
+      expect(r.colors.primary).toBe("#0ABCD0");
+    });
+    it("security: a malicious-looking description is double-quoted, not injected as YAML", () => {
+      // The ": " would otherwise let "evil: true" read as a sibling key; quoting neutralizes it.
+      const r = parseDesignMd(fm(`name: F\ndescription: harmless prose: evil: true\ncolors:\n  primary: "#0ABCD0"`));
+      expect(typeof r.description).toBe("string");
+      expect((r.tokens as any).evil).toBeUndefined();
+      expect(r.colors.primary).toBe("#0ABCD0");
+    });
+  });
+
+  describe("real getdesign fixtures (regression — captured from npx getdesign@latest add)", () => {
+    const fxDir = path.join(__dirname, "fixtures");
+    const spotify = fs.readFileSync(path.join(fxDir, "spotify-DESIGN.md"), "utf-8");
+    const supabase = fs.readFileSync(path.join(fxDir, "supabase-DESIGN.md"), "utf-8");
+
+    it("spotify (tokenless prose) throws 'no YAML token frontmatter'; repair declines", () => {
+      expect(() => parseDesignMd(spotify)).toThrow(/no YAML token frontmatter/);
+      expect(sanitizeFrontmatterScalars(spotify)).toBeNull();
+    });
+
+    it("supabase (malformed description) RECOVERS to fully-resolved, sRGB-valid tokens", () => {
+      const r = parseDesignMd(supabase);
+      // 27 colors, every one a valid sRGB hex — sRGB validation stayed strict through the repair.
+      expect(Object.keys(r.colors).length).toBe(27);
+      for (const v of Object.values(r.colors)) expect(SRGB_HEX.test(v as string)).toBe(true);
+      // The description that broke js-yaml is recovered as a string.
+      expect(typeof r.description).toBe("string");
+      expect(r.description.length).toBeGreaterThan(100);
+      // Invariant (Phase 2M): no unresolved {a.b.c} token references leak into the styled tokens
+      // (the hyphen-ref fix resolved every {colors.on-primary}-style reference).
+      expect(JSON.stringify(r.tokens)).not.toMatch(/\{[a-zA-Z0-9_][a-zA-Z0-9_.-]*\}/);
+    });
   });
 });
