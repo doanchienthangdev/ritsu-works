@@ -53,3 +53,26 @@ design_systems:
   - {name: bulma,     origin: built-from-repo, source: designmd, source_ref: "https://github.com/jgthms/bulma",      path: runtime/design-systems/bulma/DESIGN.md,     status: not_cached, license: null, last_synced: null}
   - {name: primer,    origin: built-from-repo, source: designmd, source_ref: "https://github.com/primer/css",        path: runtime/design-systems/primer/DESIGN.md,    status: not_cached, license: null, last_synced: null}
   - {name: open-props, origin: built-from-repo, source: designmd, source_ref: "https://github.com/argyleink/open-props", path: runtime/design-systems/open-props/DESIGN.md, status: not_cached, license: null, last_synced: null}
+  # ── Big-tech / major-company systems from VoltAgent/awesome-design-md ─────
+  # (getdesign-source; `npx getdesign add <name>` fetches the DESIGN.md key-free,
+  # URL pattern https://getdesign.md/<slug>/design-md). METADATA-FIRST + LAZY
+  # (status: not_cached) — registered, not downloaded; materialized on first
+  # /design-system add or --style use, behind the R2 license gate (license: null
+  # → assertCacheable blocks caching until a license is recorded). dot-free names
+  # only (NAME_RE forbids dots; e.g. linear.app → already registered as `linear`).
+  - {name: apple,     origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/apple/design-md",     path: runtime/design-systems/apple/DESIGN.md,     status: not_cached, license: null, last_synced: null}
+  - {name: meta,      origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/meta/design-md",      path: runtime/design-systems/meta/DESIGN.md,      status: not_cached, license: null, last_synced: null}
+  - {name: ibm,       origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/ibm/design-md",       path: runtime/design-systems/ibm/DESIGN.md,       status: not_cached, license: null, last_synced: null}
+  - {name: nvidia,    origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/nvidia/design-md",    path: runtime/design-systems/nvidia/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: uber,      origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/uber/design-md",      path: runtime/design-systems/uber/DESIGN.md,      status: not_cached, license: null, last_synced: null}
+  - {name: spotify,   origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/spotify/design-md",   path: runtime/design-systems/spotify/DESIGN.md,   status: not_cached, license: null, last_synced: null}
+  - {name: shopify,   origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/shopify/design-md",   path: runtime/design-systems/shopify/DESIGN.md,   status: not_cached, license: null, last_synced: null}
+  - {name: airbnb,    origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/airbnb/design-md",    path: runtime/design-systems/airbnb/DESIGN.md,    status: not_cached, license: null, last_synced: null}
+  - {name: figma,     origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/figma/design-md",     path: runtime/design-systems/figma/DESIGN.md,     status: not_cached, license: null, last_synced: null}
+  - {name: coinbase,  origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/coinbase/design-md",  path: runtime/design-systems/coinbase/DESIGN.md,  status: not_cached, license: null, last_synced: null}
+  - {name: mastercard, origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/mastercard/design-md", path: runtime/design-systems/mastercard/DESIGN.md, status: not_cached, license: null, last_synced: null}
+  - {name: mongodb,   origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/mongodb/design-md",   path: runtime/design-systems/mongodb/DESIGN.md,   status: not_cached, license: null, last_synced: null}
+  - {name: supabase,  origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/supabase/design-md",  path: runtime/design-systems/supabase/DESIGN.md,  status: not_cached, license: null, last_synced: null}
+  - {name: pinterest, origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/pinterest/design-md", path: runtime/design-systems/pinterest/DESIGN.md, status: not_cached, license: null, last_synced: null}
+  - {name: intercom,  origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/intercom/design-md",  path: runtime/design-systems/intercom/DESIGN.md,  status: not_cached, license: null, last_synced: null}
+  - {name: sentry,    origin: downloaded, source: getdesign, source_ref: "https://getdesign.md/sentry/design-md",    path: runtime/design-systems/sentry/DESIGN.md,    status: not_cached, license: null, last_synced: null}
