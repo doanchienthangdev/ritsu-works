@@ -83,6 +83,7 @@ const CHAPTER_ORDER = [
   "phase-a2/44-case-00-core-spine-aplus-production.md",
   "phase-a2/45-capability-case-deepask-program.md",
   "phase-a2/46-capability-case-book-to-capability-forge.md",
+  "phase-a2/47-capability-case-design-system-styling.md",
   "A1-glossary.md",
   "A2-references.md",
   "A3-pr-templates.md",

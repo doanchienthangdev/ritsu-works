@@ -2,14 +2,14 @@
 title: "Chương 45 — Capability Case Study: Chương trình /deepask (resolver-plan → deepask)"
 description: "Chương 45 — Capability Case Study: Chương trình /deepask (resolver-plan → deepask)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/45-capability-case-deepask-program.md
-source_hash: c448f02a6d7c31874e45d0cbe7b5c7fb78fdbf265370cbae1ba5de19f3e36869
-generated_at: '2026-05-31T03:53:40.088Z'
+source_hash: 35998b213d29a5b62348f79d9bdb8e5a610fccbafc52fb02575b33d9afc40fd9
+generated_at: '2026-06-01T17:40:49.829Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: c448f02a6d7c31874e45d0cbe7b5c7fb78fdbf265370cbae1ba5de19f3e36869
-translated_at: '2026-05-31T03:53:40.088Z'
+translated_source_hash: 35998b213d29a5b62348f79d9bdb8e5a610fccbafc52fb02575b33d9afc40fd9
+translated_at: '2026-06-01T17:40:49.829Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 45
 ---
@@ -104,3 +104,27 @@ Spec §4.1 vẽ **12 folder adapter / format**. Khi tới S4, resolver INDEX đ�
 1. **Risk-first sprint sequencing** — gate rủi ro #1 (do review-gate chỉ ra) ở Sprint 1; chứng minh core loop trước khi làm breadth. Option B thắng Option A (spec-faithful) chính vì điều này.
 2. **Deterministic-helper-per-sprint** — giữ một markdown-capability testable bằng cách kết tinh mỗi quyết định then-chốt thành pure function + All-Edge-Cases test.
 3. **Honesty contract như acceptance gate** — "đừng nói dối, đừng leak" (zero-uncited + negative no-coverage test + firewall hook) được wired vào acceptance, không phải aspiration. Đây là điều khiến một synthesizer đáng tin.
+
+## 45.9 Mở rộng styling — hai trục thẩm mỹ (brand × genre), Format Engine art-directed, fix 16:9 (v1.2.x, 2026-06-01→02)
+
+Sau khi deepask `operating`, Format Engine có đủ 12 format nhưng output ảnh/HTML còn **"đẹp cấu trúc nhưng phẳng"** — chữ trên một nền gradient brand, không có minh hoạ, không có *register* nghệ thuật. Founder đẩy lên một bậc: slide/poster phải đạt **cấp độ art-directed** (Pentagram / Information-is-Beautiful), không chỉ "text on a gradient". Lời giải là một chuỗi extend/fix qua `/cla` — và nó để lại 3 pattern đáng vào playbook.
+
+**Hai trục thẩm mỹ TRỰC GIAO (orthogonal).** Đây là insight cốt lõi: một artifact bị ràng buộc bởi *hai loại* ràng buộc độc lập, gắn vào *hai lớp* khác nhau —
+- **Trục BRAND** `--style` → DESIGN.md design-system (Chương 47): identity-invariant — palette/logo/type. Trả lời *"artifact này của AI?"*. Đã có sẵn (`resolveStyle`).
+- **Trục GENRE** `--art-style` (NEW) → `knowledge/art-styles.yaml` (80 genres seed từ thư viện founder cung cấp; mỗi genre = tone/layout/colors/typography/**assets**). Trả lời *"render trong *register* nghệ thuật nào?"*. `resolveArtStyle` (registry đóng → hard-fail khi tên lạ, AD-3).
+
+Bằng chứng orthogonality (giữ một trục, đổi trục kia, vẫn ra artifact coherent + non-redundant): trường `assets` — danh từ + chất liệu + ánh sáng model *vẽ* — **không có đối ứng nào ở trục brand** (DESIGN.md không có slot asset). `Ritsu × Isometric-Kingdom` và `Ritsu × Risograph` là hai artifact khác hẳn nhau mà đều *không lẫn vào đâu được là Ritsu* — brand giữ nguyên, genre đổi. Flatten 80 genre vào `design-systems.yaml` sẽ nhân registry ×80 + biến "ritsu-as-isometric" thành một *brand khác* → phá vỡ tính độc lập. Giữ genre là **registry thứ hai mà trục brand nhân lên** — recipe 2-token `{brand, genre}`, soi gương đúng `context_recipe` 2-trục của resolver-plan.
+
+**Merge function (precedence, brand THẮNG):** `brand core-palette/logo/body-type` > `legibility/a11y (kể cả dấu tiếng Việt)` > `genre (layout/material/lighting/assets/mood/secondary-accent/display)` > `art-direction` > `content density`. Cái làm orthogonality **an toàn về mặt vận hành**: một guard cấu trúc — genre chỉ mang `secondary_palette`/`display_type` PROSE, **không bao giờ** một key `colors`/`background`/`primary`/`surface` (schema `additionalProperties:false` + validator `validate-art-styles.cjs`). Một genre có palette cứng (vd Cyber-Matrix xanh-neon) góp *bố cục lưới + asset khoá/khiên* nhưng KHÔNG bao giờ màu xanh của nó — cyan Ritsu thắng.
+
+**Honesty invariant — cổng load-bearing (Muse Rams + Kotler).** "Đẹp không bao giờ đánh đổi đúng": **không một con số/claim chịu-lực nào được tồn tại CHỈ dưới dạng minh hoạ** — mọi số vẫn là text đọc-được + cited; minh hoạ mang *HÌNH DẠNG* của luận điểm (đường dốc-lên = tăng trưởng) nhưng KHÔNG bao giờ *BẢN CHẤT* của nó, và không encode claim hướng/lượng/nhân-quả nào vắng khỏi `[source-ref]` của mảnh đó. Vào `aesthetic` Part-5 gate; mỗi content piece bắt-buộc có một `focal_illustration` riêng-biệt (negative test: hai piece không được trùng).
+
+**Ba bước ship qua `/cla`:**
+- **v1.2-image extend** (PR #191) — trục genre + image formats (img-slide/infographics qua gpt-image-2): brand block byte-identical + GENRE block + per-piece focal illustration; PoC `Ritsu × Isometric-Kingdom` render "hành trình học-tập dốc lên" 100→1,000. Founder **override** Muse "ship 3" → seed cả 80 genre (structural guard làm cho 80 an toàn).
+- **v1.2.0 extend** (PR #192) — đưa `--art-style` (+`--style`) sang **code-rendered formats** (html/dashboard/interactive/canvas/chart + pdf-via-html) qua `aesthetic` Part-2 (genre → CSS); non-visual/native (inline/text/article/xlsx/docx/pptx/mermaid) → no-op trung thực.
+- **v1.2.1 fix** (PR #193) — **bug aspect-ratio**: img-slide gen 1536×1024 (3:2) rồi center-crop 1536×864 → mất 80px TRÊN ĐỈNH nơi gpt-image đặt title → title bị cắt. Fix theo OpenAI cookbook §4.10 (gpt-image-2 hỗ-trợ *flexible sizing*: cạnh ×16, ratio ≤3:1): gen NATIVE **2048×1152** (true 16:9, no crop) → title không bao giờ bị cắt. Bằng chứng: một call gpt-image-2 thật trả về PNG đúng 2048×1152.
+
+**Ba bài học cho playbook (styling):**
+1. **Trục trực giao nhân nhau, không cộng vào** — khi hai ràng buộc độc lập, đừng nhồi vào một registry; tách registry thứ hai + một *merge function* có precedence rõ. Structural guard (genre không có key palette) làm orthogonality an-toàn-bằng-cấu-trúc chứ không bằng kỷ luật.
+2. **Honesty-as-decoration gate** — khi cho phép "đẹp", phải đồng thời đóng đinh "không được nói dối bằng hình": số chịu-lực ở dạng text + cited, minh hoạ chỉ mang hình-dạng. Nếu không, một synthesizer cited tự phá chính uy tín của nó.
+3. **Native-ratio-via-flexible-sizing** — đừng crop để ép tỉ lệ (crop = mất nội dung + nhỏ đi); đọc đúng *flexible sizing* của model và gen đúng size native. Comment "no native 16:9" là di-sản gpt-image-1; gpt-image-2 đổi luật.
