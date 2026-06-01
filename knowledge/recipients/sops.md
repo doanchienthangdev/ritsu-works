@@ -7,7 +7,7 @@
 This file is THE source of truth for sop recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 
-**Total entries:** 111
+**Total entries:** 112
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -187,6 +187,20 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 **When to use:** > The runtime contract for the /forge PROMOTE command (capability book-to-capability v0.1). > Authoritative flow: [flow.yaml](flow.yaml). Front-ends: .claude/commands/forge.md (Sprint 2) > + 06-ai-ops/skills/forge/orchestrator/SKILL.md. > > Runtime-contract SOP (like SOP-AIOPS-004/005) — follows the 004/005 shape, not the > ceremony flow-schema.yaml (which targets the SOP-AIOPS-001- family).
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-006-forge-runtime-contract/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## sop/SOP-AIOPS-007-design-system-runtime-contract
+
+**Kind:** sop
+**Axis:** capability
+**When to use:** Standard Operating Procedure SOP-AIOPS-007-design-system-runtime-contract
+
+**Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-007-design-system-runtime-contract/flow.yaml")`
 **HITL tier:** A
 **Side effect:** none
 

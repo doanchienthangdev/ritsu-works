@@ -1294,6 +1294,10 @@ cost_buckets:
     description: "deepask runtime — federated retrieval + capability-execution + cited synthesis. Subscription (in-session) orchestration; gbrain reads under the global $100/mo cap. Per-run cost logged to ops.cost_attributions + ops.deepask_runs.cost_usd."
     capabilities: [deepask]
 
+  ai-ops-design-system:
+    description: "design-system styling layer — /design-system command (list/show/search/add/build --from/preview/lint/vendor/remove) + the universal --style resolver. Build-once layer: ~$0/mo ongoing; per-instance LLM cost is the build --from repo→DESIGN.md generation (task_kind design-system-build). NO MCP, NO API key (CLI-on-demand)."
+    capabilities: [design-system-styling]
+
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
   #   capabilities: [daily-customer-acquisition, ...]

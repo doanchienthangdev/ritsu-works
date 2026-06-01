@@ -1,0 +1,98 @@
+# SOP-AIOPS-007 — design-system `--style` Runtime Contract
+#
+# Declarative runtime contract for the universal `--style=<name>` output layer.
+# Read by ANY output-producing command that adopts `--style` (deepask is the
+# first consumer; /docs + playbook-builder inherit it). Read by
+# .claude/commands/design-system.md + 06-ai-ops/skills/design-system/SKILL.md.
+#
+# NOTE: RUNTIME-CONTRACT SOP (like SOP-AIOPS-004-evolve / 005-deepask / 006-forge),
+# NOT a CLA-style 8-phase ceremony — follows the 004/005/006 shape (sop_id/slug/
+# steps/...), not the SOP-AIOPS-001-* ceremony flow-schema. The "steps" are the
+# adoption sequence a command follows to render in a named design system.
+
+sop_id: SOP-AIOPS-007
+slug: design-system-runtime-contract
+name: "design-system --style runtime contract"
+version: "1.0.0"
+state: implementing       # Sprint 3: deepask wired + contract live; → operating at Phase 8
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A           # resolve/list/show are A; add/build/preview = B; vendor + remove-owned = C
+cost_bucket: ai-ops-design-system
+capability_id: design-system-styling
+
+# ----------------------------------------------------------------------
+# The adoption sequence (how ANY command renders in a named design system)
+# ----------------------------------------------------------------------
+steps:
+  - id: parse_style
+    name: "Stage 1 — parse --style=<name> (omitted → plain, the default)"
+    skill: design-system
+    actions:
+      - argv_parse_style            # --style is ORTHOGONAL to the command's artifact-type flag (e.g. deepask --format)
+    hitl: A
+
+  - id: resolve
+    name: "Stage 2 — resolve the design system to design context"
+    skill: design-system
+    actions:
+      - resolve_style               # scripts/design-system/resolve-style.cjs (name|undefined, {interactive})
+      - plain_short_circuit          # {mode:'plain'} → render normally, no styling (zero-cost)
+      - needs_download_interactive   # {mode:'needs-download'} (interactive only) → download then re-resolve
+      - hard_fail_noninteractive     # cache-miss in non-interactive → StyleResolveError (AD-3: no silent npx in CI)
+    hitl: A
+    failure_handling:
+      cache_miss_noninteractive: throw_StyleResolveError   # NEVER silently fetch in CI/cron
+
+  - id: inject
+    name: "Stage 3 — inject tokens as design context into the --format renderer"
+    skill: design-system
+    actions:
+      - pass_tokens_to_renderer     # {mode:'styled'} → tokens + previewPath handed to whichever renderer the artifact-type flag dispatches to
+      - no_new_dispatch_rows         # tokens are DATA, never a new renderer/dispatch row (AD-4)
+      - visual_drives_look           # visual formats (html/dashboard/canvas/pptx/pdf/docx/chart/mermaid) → tokens drive the look
+      - nonvisual_noop               # non-visual (inline/text/article/xlsx-data) → honest no-op (at most a cover/accent note)
+    hitl: A
+
+# ----------------------------------------------------------------------
+# Resolution order + per-verb HITL (the /design-system command surface)
+# ----------------------------------------------------------------------
+resolution_order: "registry (knowledge/design-systems.yaml) → owned path (00-core/design-system/) → cache (runtime/design-systems/) → (miss + interactive) download → cache → use; omitted → plain"
+
+hitl_tiers:
+  list / show / search / lint: A
+  add / build --from / preview: B        # writes the runtime cache; B if it shells `npx` (notify-after)
+  vendor: C                              # cache → Tier-1 00-core/design-system/ (PR)
+  remove (cached): B
+  remove (owned): C                      # refuses without a PR
+
+# ----------------------------------------------------------------------
+# R2 license gate (Muse ethical-compass) — "downloaded != redistributable"
+# ----------------------------------------------------------------------
+license_gate:
+  helper: scripts/design-system/license-gate.cjs
+  rule: "add/build/seed MUST assertCacheable(name, license) BEFORE writing a cached DESIGN.md. FAIL-CLOSED: unknown/missing/restrictive license → refuse to cache; record license in knowledge/design-systems.yaml."
+
+# ----------------------------------------------------------------------
+# R4 customer-facing guard (Muse ethical-compass)
+# ----------------------------------------------------------------------
+customer_facing_guard: "A styled internal artifact NEVER licenses unverified external claims. Style is presentation; substance/citations are governed by the producing capability (e.g. deepask's 100%-cited synthesis). A beautiful deck asserting unverified metrics is more dangerous than an ugly one."
+
+guards:
+  - no_mcp_no_api_key            # locked decision #3: CLI-on-demand only (npx getdesign / build --from); zero API key
+  - ci_determinism               # non-interactive reads owned/vendored only; cache-miss hard-fails (AD-3)
+  - no_product_supabase          # internal artifact styling only; never touches Product Supabase
+
+events:
+  - ritsu.design_system.style_resolved
+  - ritsu.design_system.added
+  - ritsu.design_system.vendored
+
+references:
+  - 06-ai-ops/skills/design-system/SKILL.md
+  - 06-ai-ops/skills/design-system/build-from-repo/SKILL.md
+  - .claude/commands/design-system.md
+  - scripts/design-system/{resolve-style,parse-design-md,registry-io,download,license-gate}.cjs
+  - knowledge/design-systems.yaml
+  - SOP-AIOPS-005-deepask-runtime-contract   # the first consumer's contract
+  - governance/HITL.md

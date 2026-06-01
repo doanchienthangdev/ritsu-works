@@ -136,6 +136,10 @@ economic_budget:
     forge-orchestration:  {unit: usd, cap: 0.50}    # /forge loop: assemble + frame + funnel + classify + record (delegates the build to /update//cla)
     forge-funnel-gate:    {unit: usd, cap: 0.15}    # 5-gate selection-funnel (gate-1 distill is the main spend)
     forge-route-classify: {unit: usd, cap: 0.10}    # resolver_find + deterministic route-classify.cjs
+    # capability design-system-styling v1.0 (Sprint 3) — cost-bucket ai-ops-design-system
+    design-system-build:   {unit: usd, cap: 0.50}    # build --from=<repo> → DESIGN.md generation (LLM token extraction + rationale)
+    design-system-resolve: {unit: usd, cap: 0.02}    # --style resolution (mostly deterministic; parse-design-md)
+    design-system-add:     {unit: usd, cap: 0.05}    # add <name> (getdesign fetch / metadata register)
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition
