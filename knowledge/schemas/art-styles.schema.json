@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "knowledge/schemas/art-styles.schema.json",
+  "title": "deepask art-styles registry",
+  "description": "The artistic-genre axis for deepask image formats (capability deepask v1.2-image). Orthogonal to the brand --style design-systems registry. A genre carries composition/material/mood + a SECONDARY accent + display-headline character ONLY — never a structured brand palette (additionalProperties:false forbids a `colors`/`background` key, enforcing the merge precedence brand > genre, @cto Phase-5 R5).",
+  "type": "object",
+  "required": ["version", "art_styles"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string" },
+    "schema": { "type": "string" },
+    "art_styles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "tone", "layout", "assets"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "description": "kebab id; may start with a digit; no dots."
+          },
+          "seed_id": { "type": "integer", "description": "Provenance: original id in the 80-style seed corpus." },
+          "name": { "type": "string", "minLength": 1, "description": "Human display name." },
+          "tone": { "type": "string", "minLength": 1, "description": "Mood of the genre (prose)." },
+          "layout": { "type": "string", "minLength": 1, "description": "Composition geometry (prose)." },
+          "secondary_palette": {
+            "type": "string",
+            "description": "SECONDARY accent guidance ONLY (prose). The brand --style owns the core palette; this decorates around it. Renamed from the seed's `colors` to make subordination structural."
+          },
+          "display_type": {
+            "type": "string",
+            "description": "Display-headline character ONLY (prose). Brand owns body type; legibility (incl. VN diacritics) outranks this."
+          },
+          "assets": {
+            "type": "string",
+            "minLength": 1,
+            "description": "THE illustration lever — the concrete objects/textures/lighting/medium the model paints. No brand-axis counterpart; this is what makes a genre look illustrated, not 'text on a gradient'."
+          }
+        }
+      }
+    }
+  }
+}

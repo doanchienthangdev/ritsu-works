@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 48
+**Total entries:** 49
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -302,6 +302,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/alert-rules.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-art-styles
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ art-styles.yaml — deepask artistic-genre registry (capability deepask v1.2-image) ============================================================================ The SECOND, orthogonal aesthetic axis for deepask image formats (img-slide, infographics). Multiplies AGAINST the brand --style axis (knowledge/design- systems.yaml...
+
+**Invoke:** `Read("knowledge/art-styles.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/art-styles.yaml
 
 **Role scope:** *
 **Status:** active
