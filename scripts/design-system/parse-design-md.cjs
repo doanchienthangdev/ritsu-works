@@ -48,7 +48,12 @@ function getByPath(root, dotted) {
  * resolved so circular references throw instead of looping forever.
  */
 function resolveString(root, str, chain) {
-  const re = /\{([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)*)\}/g;
+  // Path segments allow [a-zA-Z0-9_-]: real getdesign DESIGN.md token keys are
+  // hyphenated (e.g. {colors.on-primary}, {typography.button-md}, {colors.primary-deep}).
+  // getByPath already splits on "." and resolves hyphenated keys — the regex was the
+  // lone inconsistency, silently leaving every such ref as a literal "{...}" string in
+  // the output (a recovered getdesign system would otherwise inject dozens of them).
+  const re = /\{([a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*)\}/g;
   let out = '';
   let lastIndex = 0;
   let m;
@@ -86,6 +91,74 @@ function deepResolve(root, node) {
   return node;
 }
 
+// ----------------------------------------------------------------------------
+// Frontmatter recovery — the getdesign-output salvage path.
+//
+// Real `npx getdesign add <name>` output sometimes emits a long UNQUOTED top-level
+// scalar — most often `description:` — whose value embeds a ": " (colon+space), a
+// " #", or a leading YAML indicator char. js-yaml then rejects the whole block
+// ("bad indentation of a mapping entry"). We salvage the system by double-quoting the
+// offending TOP-LEVEL scalar(s) and re-parsing ONCE. Scope is deliberately narrow —
+// only column-0 `key: value` plain scalars — so nested token blocks (colors /
+// typography / components) are never rewritten, valid token blocks keep their strict
+// sRGB + ref-cycle validation, and a genuinely-broken document still throws
+// (resolve-style.cjs is the outer safety net that degrades to plain on any throw).
+// ----------------------------------------------------------------------------
+
+// First-char of a value that is an INTENTIONAL quoted / flow-collection / block-scalar /
+// anchor-or-alias — left verbatim (re-quoting these would corrupt them).
+const QUOTED_OR_STRUCTURED_START = new Set(['"', "'", '[', '{', '|', '>', '*', '&', '?']);
+
+/** True if `value` is a plain scalar js-yaml would mis-read as a mapping / comment / indicator. */
+function isRiskyPlainScalar(value) {
+  return (
+    /:(?:\s|$)/.test(value) || // "a: b" colon+space (or trailing ":") → looks like a nested mapping
+    /(?:^|\s)#/.test(value) || // "#…" / " #…" → YAML comment indicator
+    /^[!@`%,]/.test(value) // value-start indicator chars not already in the quoted/structured set
+  );
+}
+
+/**
+ * Coerce a single frontmatter line. Only top-level (column 0) `key: value` plain
+ * scalars are touched, and only when risky; everything else is returned verbatim.
+ */
+function coerceRiskyScalarLine(line) {
+  const m = /^([A-Za-z0-9_][A-Za-z0-9_-]*):[ \t]+(\S.*)$/.exec(line);
+  if (!m) return line; // blank line, nested (indented) key, or a block parent (`key:` w/ no value)
+  const key = m[1];
+  const value = m[2].replace(/[ \t]+$/, ''); // YAML ignores trailing space; drop it before quoting
+  if (QUOTED_OR_STRUCTURED_START.has(value[0])) return line; // intentional quoted/flow/block/anchor
+  if (!isRiskyPlainScalar(value)) return line;
+  // Double-quote the value: escape backslashes first, then double-quotes → valid YAML.
+  const quoted = value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return `${key}: "${quoted}"`;
+}
+
+/**
+ * Attempt to repair a DESIGN.md whose YAML frontmatter failed to parse, by
+ * double-quoting risky TOP-LEVEL scalar values. Returns the repaired full content,
+ * or null when there is no frontmatter block, or nothing risky to change (the caller
+ * then keeps the original parse error and lets it throw).
+ *
+ * Mirrors the `---\n … \n---\n` boundary logic of scripts/core/lib/frontmatter.cjs (the
+ * shared parser) so the repaired text re-parses through exactly the same path.
+ *
+ * @param {string} content  raw DESIGN.md content (caller guarantees a string).
+ * @returns {string|null}
+ */
+function sanitizeFrontmatterScalars(content) {
+  let c = content;
+  if (c.charCodeAt(0) === 0xfeff) c = c.slice(1); // strip BOM
+  c = c.replace(/\r\n/g, '\n'); // normalize CRLF
+  if (!c.startsWith('---\n')) return null; // no frontmatter block to repair (e.g. tokenless prose)
+  const endIdx = c.indexOf('\n---\n', 4);
+  if (endIdx === -1) return null; // unterminated frontmatter
+  const fmRaw = c.slice(4, endIdx);
+  const fmFixed = fmRaw.split('\n').map(coerceRiskyScalarLine).join('\n');
+  if (fmFixed === fmRaw) return null; // nothing risky at the top level → no repair to offer
+  return `---\n${fmFixed}${c.slice(endIdx)}`;
+}
+
 /**
  * Parse a DESIGN.md document into normalized tokens + body.
  *
@@ -105,7 +178,17 @@ function parseDesignMd(content) {
   try {
     ({ frontmatter, body } = parse(content));
   } catch (e) {
-    throw new DesignMdParseError(`malformed YAML frontmatter: ${e.message}`);
+    // Recovery: try double-quoting a risky top-level scalar (e.g. an unquoted
+    // getdesign `description:` with an embedded ": ") and re-parse ONCE before failing.
+    const repaired = sanitizeFrontmatterScalars(content);
+    if (repaired === null) {
+      throw new DesignMdParseError(`malformed YAML frontmatter: ${e.message}`);
+    }
+    try {
+      ({ frontmatter, body } = parse(repaired));
+    } catch (e2) {
+      throw new DesignMdParseError(`malformed YAML frontmatter (recovery failed): ${e2.message}`);
+    }
   }
 
   if (!frontmatter || Object.keys(frontmatter).length === 0) {
@@ -140,4 +223,10 @@ function parseDesignMd(content) {
   };
 }
 
-module.exports = { parseDesignMd, DesignMdParseError, SRGB_HEX };
+module.exports = {
+  parseDesignMd,
+  DesignMdParseError,
+  SRGB_HEX,
+  sanitizeFrontmatterScalars,
+  isRiskyPlainScalar,
+};

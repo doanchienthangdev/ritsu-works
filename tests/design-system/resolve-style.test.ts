@@ -158,4 +158,56 @@ describe("resolveStyle", () => {
       expect(() => resolveStyle("dl-missing", mkOpts({ interactive: false }))).toThrow(/no silent npx/i);
     });
   });
+
+  // /cla fix design-system-styling (Tier B, 2026-06-01): a PRESENT-but-unusable
+  // DESIGN.md must never hard-crash the consuming command. Phase 1: the present-file
+  // branch now wraps parseDesignMd — DesignMdParseError → {mode:'plain', warning}; any
+  // other (real IO) error still propagates. Phase 2: real captured getdesign fixtures
+  // (2N contract w/ live output), non-sRGB + ref-cycle (validation stays strict, no
+  // crash), an IO error (must NOT be swallowed). The two layers compose: supabase is
+  // recovered by the parse layer → styled; spotify is unrecoverable → plain + warning.
+  describe("present but unusable DESIGN.md → plain + warning (never crash)", () => {
+    const fxDir = path.join(__dirname, "fixtures");
+    const spotify = fs.readFileSync(path.join(fxDir, "spotify-DESIGN.md"), "utf-8");
+    const supabase = fs.readFileSync(path.join(fxDir, "supabase-DESIGN.md"), "utf-8");
+
+    it("tokenless content (real spotify) → plain + warning; tokens null, name + origin preserved", () => {
+      const r = resolveStyle("dl-cached", mkOpts({ readFile: () => spotify }));
+      expect(r.mode).toBe("plain");
+      expect(r.tokens).toBeNull();
+      expect(r.name).toBe("dl-cached"); // requested name preserved (not the bare PLAIN null)
+      expect(r.origin).toBe("downloaded");
+      expect(r.warning).toMatch(/no usable design tokens/);
+    });
+
+    it("malformed-but-recoverable content (real supabase) → styled (parse layer recovers it)", () => {
+      const r = resolveStyle("dl-cached", mkOpts({ readFile: () => supabase }));
+      expect(r.mode).toBe("styled");
+      expect(r.warning).toBeUndefined();
+      expect(r.tokens.colors.primary).toBe("#3ecf8e");
+    });
+
+    it("non-sRGB colors → plain + warning (sRGB validation stays strict, no crash)", () => {
+      const r = resolveStyle("dl-cached", mkOpts({ readFile: () => `---\nname: X\ncolors:\n  primary: "rgb(0,0,0)"\n---\n# X\n` }));
+      expect(r.mode).toBe("plain");
+      expect(r.warning).toMatch(/no usable design tokens/);
+    });
+
+    it("a {ref} cycle → plain + warning (cycle detection stays strict, no crash)", () => {
+      const r = resolveStyle("dl-cached", mkOpts({ readFile: () => `---\nname: X\nx:\n  a: "{x.b}"\n  b: "{x.a}"\n---\n# X\n` }));
+      expect(r.mode).toBe("plain");
+      expect(r.warning).toMatch(/no usable design tokens/);
+    });
+
+    it("a real (non-parse) read/IO error still PROPAGATES — only DesignMdParseError degrades", () => {
+      const boom = () => { throw new Error("EACCES: permission denied"); };
+      expect(() => resolveStyle("dl-cached", mkOpts({ readFile: boom }))).toThrow(/EACCES/);
+    });
+
+    it("valid present content is unaffected → still styled (no regression)", () => {
+      const r = resolveStyle("dl-cached", mkOpts()); // default readFile → VALID_DESIGN_MD
+      expect(r.mode).toBe("styled");
+      expect(r.tokens.colors.primary).toBe("#0ABCD0");
+    });
+  });
 });

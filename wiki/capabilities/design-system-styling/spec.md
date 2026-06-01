@@ -88,8 +88,8 @@ None.
 ### 4.8 New helpers (the brains — mirror `scripts/deepask/*.cjs`)
 | Helper | Path | Contract |
 |---|---|---|
-| resolve-style | `scripts/design-system/resolve-style.cjs` | `(name\|undefined, {interactive}) → {mode:'plain'\|'styled'\|'needs-download', name, designMdPath, tokens, previewPath, origin}`; `undefined`→`{mode:'plain'}` zero-cost early return; cache-miss on `origin:downloaded` in non-interactive → throws `StyleResolveError` (AD-3). |
-| parse-design-md | `scripts/design-system/parse-design-md.cjs` | parse YAML tokens + Markdown body; resolve `{token.refs}` (detect cycles); validate sRGB hex; return normalized tokens. Pure. |
+| resolve-style | `scripts/design-system/resolve-style.cjs` | `(name\|undefined, {interactive}) → {mode:'plain'\|'styled'\|'needs-download', name, designMdPath, tokens, previewPath, origin, warning?}`; `undefined`→`{mode:'plain'}` zero-cost early return; cache-miss on `origin:downloaded` in non-interactive → throws `StyleResolveError` (AD-3). **A present-but-UNUSABLE DESIGN.md (tokenless, malformed-beyond-recovery, non-sRGB, ref-cycle) degrades to `{mode:'plain', warning}` — it never crashes the consuming command (v1.0.1).** |
+| parse-design-md | `scripts/design-system/parse-design-md.cjs` | parse YAML tokens + Markdown body; resolve `{token.refs}` incl. **hyphenated keys** like `{colors.on-primary}` (detect cycles); validate sRGB hex; return normalized tokens. **On a frontmatter YAML error, attempts ONE recovery pass that double-quotes risky top-level scalars (e.g. a getdesign `description:` with an embedded `": "`) before throwing (v1.0.1).** Pure. |
 | registry-io | `scripts/design-system/registry-io.cjs` | read/write/validate `knowledge/design-systems.yaml` against its schema. |
 | download | `scripts/design-system/download.cjs` | wrappers: `npx getdesign add` (→ runtime cache) + `build --from=<repo>` hydration; updates the index. Side-effecting (Tier A/B). |
 
