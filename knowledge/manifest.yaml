@@ -892,6 +892,25 @@ tier2_operational:
             (no_match|stale|empty|not_built|breaker_budget), remedy.
             The honest-no-coverage spine: every PARTIAL verdict traces to
             per-sub-need gap rows here. RLS inherits parent run's caller_role.
+        # ====================================================================
+        # Capability `book-to-capability` (/forge) v0.1 — provenance view (Sprint 2)
+        # ====================================================================
+        - name: v_forge_lineage
+          migration_file: supabase/migrations/00046_v_forge_lineage.sql
+          kind: view
+          status: live
+          purpose: |
+            Provenance of /forge runs. One row per agent_run with
+            agent_slug='forge'; reads input_payload.need + output_payload.
+            {forge_verdict, route, entity_target, spawned_run_id}; LEFT JOINs
+            ops.evolve_extractions for the citation spine. source_refs (array)
+            expresses the many-to-many: 1 capability <- N sources per row;
+            unnest source_refs across rows for 1 source -> N capabilities.
+            lineage_depth: 0 = most recent forge run touching an entity_target.
+            NO new table — verdict sink = ops.agent_runs.output_payload (gps
+            cannot write ops.decisions, invariant #4). Mirrors
+            v_entity_update_lineage. Sprint 2 of capability book-to-capability;
+            applied to ritsu-ops post-merge (empty until first /forge run).
     metrics:
       description: ETL'd snapshots of Product metrics (read-only mirror) + derived rollup views
       tables:

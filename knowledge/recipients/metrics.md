@@ -7,7 +7,7 @@
 This file is THE source of truth for metric recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 
-**Total entries:** 94
+**Total entries:** 98
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -536,6 +536,66 @@ Read in any Claude Code session via `@knowledge/recipients/metrics.md` import.
 **Role scope:** product-orchestrator
 **Status:** active
 **Pillar:** product
+
+## metric/forge.citation_coverage
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: COUNT(ops.v_forge_lineage WHERE citation_count>0) / COUNT(WHERE forge_verdict='PASS'). Source: ops.v_forge_lineage. Dashboard: founder-monday/system-health. Notes: Capability book-to-capability v0.1. HARD guardrail — every funnel-PASS promotion must trace to a wiki chunk (target 1.0)..
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#forge.citation_coverage`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** knowledge/kpi-ownership.yaml#forge.citation_coverage
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
+
+## metric/forge.gate_rejection_rate
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: COUNT(ops.v_forge_lineage WHERE forge_verdict='REJECT') / COUNT(*). Source: ops.v_forge_lineage. Dashboard: founder-monday/system-health. Notes: Inverse-polarity — LOW is bad (funnel rubber-stamping). The anti-over-build funnel must be load-bearing..
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#forge.gate_rejection_rate`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** knowledge/kpi-ownership.yaml#forge.gate_rejection_rate
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
+
+## metric/forge.new_vs_extend_ratio
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: COUNT(ops.v_forge_lineage WHERE route='net-new') / NULLIF(COUNT(WHERE route='extend'),0). Source: ops.v_forge_lineage. Dashboard: founder-monday/system-health. Notes: Lower = healthier (reuse over sprawl). Observational..
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#forge.new_vs_extend_ratio`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** knowledge/kpi-ownership.yaml#forge.new_vs_extend_ratio
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
+
+## metric/forge.post_install_score_delta
+
+**Kind:** metric
+**Axis:** content
+**When to use:** KPI owned by ai_ops pillar (gps). Formula: median(ops.v_entity_update_lineage.score_delta joined via v_forge_lineage.spawned_run_id). Source: ops.v_forge_lineage + ops.v_entity_update_lineage. Dashboard: founder-monday/system-health. Notes: K4 ratchet surfaced at the forge level — must be >=0 (the /update delegate auto-reverts regressions)..
+
+**Invoke:** `mcp__supabase-ops__query` against the source listed in the entry, or read the KPI definition at `knowledge/kpi-ownership.yaml#forge.post_install_score_delta`
+**Authority:** SoR
+**Freshness:** live
+**Grounding:** knowledge/kpi-ownership.yaml#forge.post_install_score_delta
+
+**Role scope:** gps
+**Status:** active
+**Pillar:** ai_ops
 
 ## metric/founder_hours_per_week
 

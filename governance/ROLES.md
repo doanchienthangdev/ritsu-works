@@ -132,6 +132,10 @@ economic_budget:
     # v1.1 tagged form (capability evolve v1.1, 2026-05-27). USD caps.
     parent-orchestration: {unit: usd, cap: 0.50}    # GPS itself shouldn't cost much per orchestration; subagents do the work
     cost-report-query:    {unit: usd, cap: 0.05}
+    # capability book-to-capability (/forge) v0.1 Sprint 2 — gps is /forge's bound role (router, not worker)
+    forge-orchestration:  {unit: usd, cap: 0.50}    # /forge loop: assemble + frame + funnel + classify + record (delegates the build to /update//cla)
+    forge-funnel-gate:    {unit: usd, cap: 0.15}    # 5-gate selection-funnel (gate-1 distill is the main spend)
+    forge-route-classify: {unit: usd, cap: 0.10}    # resolver_find + deterministic route-classify.cjs
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition

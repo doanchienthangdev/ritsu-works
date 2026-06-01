@@ -16,12 +16,12 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** book-to-capability — need-driven, citation-disciplined PROMOTE of wiki knowledge into a runnable skill (command /forge). BUILD-APPROVED, STAGED (Tier-C decision book-to-capability-build-approved-staged, ops.decisions 721170f0; founder override of the prior defer f4724da4 on forward-sync-cadence conviction). Fills the PROMOTE step in 'accumulate everything, activate selectively': /wiki sync accumul v0.1.0
+**When to use:** book-to-capability — need-driven, citation-disciplined PROMOTE of wiki knowledge into a runnable skill (command /forge). OPERATING (Option B-lean, @cto-validated). Fills the PROMOTE step in 'accumulate everything, activate selectively': /wiki sync accumulates whole books; /forge ACTIVATES the right slice into a runnable skill, need-driven + source-grounded. Standalone /forge ABOVE /cla + /update ( v0.1.0
 
 **Invoke:** `Read("wiki/capabilities/book-to-capability/spec.md")` or `/cla update book-to-capability`
 
 **Role scope:** *
-**Status:** implementing
+**Status:** operating
 **Pillar:** 06-ai-ops
 
 ## capability/capability-lifecycle-architecture

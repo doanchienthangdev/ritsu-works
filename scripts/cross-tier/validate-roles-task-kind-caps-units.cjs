@@ -75,6 +75,9 @@ const EXPECTATIONS = [
   // gps orchestration — USD caps
   { match: /^(parent-orchestration|cost-report-query)$/, unit: 'usd',
     source: 'gps role default USD caps' },
+  // capability book-to-capability (/forge) — gps-bound USD caps (spec §5)
+  { match: /^forge-(orchestration|funnel-gate|route-classify)$/, unit: 'usd',
+    source: 'book-to-capability spec §5 — /forge gps per-task USD soft caps' },
 ];
 
 function lookupExpectation(taskKind) {
