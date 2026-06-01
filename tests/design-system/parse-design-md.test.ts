@@ -315,4 +315,174 @@ describe("parseDesignMd", () => {
       expect(JSON.stringify(r.tokens)).not.toMatch(/\{[a-zA-Z0-9_][a-zA-Z0-9_.-]*\}/);
     });
   });
+
+  // ==========================================================================
+  // /update fix design-system-styling → v1.0.2 (2026-06-01): a PURE ref (a string
+  // that is EXACTLY one {ref}, no surrounding text) is now a TYPED ALIAS — it resolves
+  // to its target with the type preserved. Before v1.0.2, `typography:
+  // "{typography.button-md}"` (an OBJECT target) was String()'d to the literal
+  // "[object Object]". A ref EMBEDDED in a larger string stays scalar-only
+  // interpolation; an embedded object/array ref is an authoring error and THROWS
+  // (resolve-style.cjs then degrades the system to plain) instead of silently emitting
+  // "[object Object]".
+  // Phase 1: changed resolveStringNode (pure-vs-interpolation dispatch), resolveRef
+  //   (returns a TYPED value), deepResolve (chain-threaded so cycles through an aliased
+  //   object's fields are still caught). Branches: pure→typed-alias | embedded-scalar→
+  //   substitute | embedded-non-scalar→throw | cycle→throw | unresolved→throw.
+  // Phase 2: target-type matrix (object/array/number/boolean/string), nested refs inside
+  //   an aliased object, chained-ending-at-non-scalar (object + array), embedded-non-scalar
+  //   (object + array), strict "no surrounding text" boundary (trailing space), cycle-
+  //   through-an-object, the real supabase fixture contract (2N), 2M no-leftover-{ref}.
+  // Skipped: security (own DESIGN.md, not user input — adversarial YAML covered above);
+  //   state/timing (stateless pure); input boundaries (covered by parent describe).
+  // ==========================================================================
+  describe("pure ref = typed alias; embedded non-scalar throws (v1.0.2)", () => {
+    describe("a pure ref preserves the target's type", () => {
+      it("pure-ref-to-OBJECT resolves to the object (not the string \"[object Object]\")", () => {
+        const r = parseDesignMd(
+          fm(`name: F\ntypography:\n  button-md:\n    fontFamily: Inter\n    fontSize: 14px\n    fontWeight: 500\ncomponents:\n  btn:\n    typography: "{typography.button-md}"`),
+        );
+        expect(r.components.btn.typography).toEqual({ fontFamily: "Inter", fontSize: "14px", fontWeight: 500 });
+        expect(r.components.btn.typography).not.toBe("[object Object]");
+      });
+
+      it("pure-ref-to-ARRAY resolves to the array", () => {
+        const r = parseDesignMd(
+          fm(`name: F\nfonts:\n  stack:\n    - Inter\n    - Arial\ncomponents:\n  b:\n    fontFamily: "{fonts.stack}"`),
+        );
+        expect(r.components.b.fontFamily).toEqual(["Inter", "Arial"]);
+        expect(Array.isArray(r.components.b.fontFamily)).toBe(true);
+      });
+
+      it("pure-ref-to-NUMBER resolves to a number, not a stringification (typed-alias decision)", () => {
+        // Deliberate: a pure ref is a typed alias, so a ref to a number stays a number
+        // (CSS font-weight is numeric). Embedded refs still String()-coerce — see below.
+        const r = parseDesignMd(fm(`name: F\nweights:\n  bold: 700\ncomponents:\n  b:\n    fontWeight: "{weights.bold}"`));
+        expect(r.components.b.fontWeight).toBe(700);
+        expect(typeof r.components.b.fontWeight).toBe("number");
+      });
+
+      it("pure-ref-to-BOOLEAN resolves to a boolean", () => {
+        const r = parseDesignMd(fm(`name: F\nflags:\n  dark: true\ncomponents:\n  b:\n    inverted: "{flags.dark}"`));
+        expect(r.components.b.inverted).toBe(true);
+      });
+
+      it("pure-ref-to-STRING still resolves to a string (the scalar path is unchanged)", () => {
+        const r = parseDesignMd(fm(`name: F\ncolors:\n  primary: "#0ABCD0"\ncomponents:\n  b:\n    bg: "{colors.primary}"`));
+        expect(r.components.b.bg).toBe("#0ABCD0");
+      });
+
+      it("a pure ref to an aliased object STILL resolves refs nested inside that object", () => {
+        const r = parseDesignMd(
+          fm(`name: F\ncolors:\n  ink: "#171717"\ntypography:\n  base:\n    fontFamily: Inter\n    color: "{colors.ink}"\ncomponents:\n  b:\n    typography: "{typography.base}"`),
+        );
+        expect(r.components.b.typography).toEqual({ fontFamily: "Inter", color: "#171717" });
+      });
+    });
+
+    describe("chained pure refs ending at a non-scalar", () => {
+      it("chained ref a → b → OBJECT resolves to the object", () => {
+        const r = parseDesignMd(
+          fm(`name: F\ntypography:\n  base:\n    fontSize: 16px\n  alias: "{typography.base}"\ncomponents:\n  c:\n    typography: "{typography.alias}"`),
+        );
+        expect(r.components.c.typography).toEqual({ fontSize: "16px" });
+      });
+
+      it("chained ref a → b → ARRAY resolves to the array", () => {
+        const r = parseDesignMd(
+          fm(`name: F\nfonts:\n  stack:\n    - Inter\n  alias: "{fonts.stack}"\ncomponents:\n  c:\n    ff: "{fonts.alias}"`),
+        );
+        expect(r.components.c.ff).toEqual(["Inter"]);
+      });
+    });
+
+    describe("an embedded (non-pure) ref must resolve to a scalar", () => {
+      it("an embedded OBJECT ref throws (never emits \"[object Object]\")", () => {
+        expect(() =>
+          parseDesignMd(
+            fm(`name: F\ntypography:\n  big:\n    fontSize: 64px\ncomponents:\n  h:\n    label: "font: {typography.big} fast"`),
+          ),
+        ).toThrow(/cannot be embedded in a string/);
+      });
+
+      it("the embedded-object-ref error names the offending ref and is NOT \"[object Object]\"", () => {
+        let msg = "";
+        try {
+          parseDesignMd(fm(`name: F\ntypography:\n  big:\n    fontSize: 64px\ncomponents:\n  h:\n    label: "x {typography.big}"`));
+        } catch (e) {
+          msg = (e as Error).message;
+        }
+        expect(msg).toContain("{typography.big}");
+        expect(msg).not.toContain("[object Object]");
+      });
+
+      it("an embedded ARRAY ref throws with an \"array\" message", () => {
+        expect(() =>
+          parseDesignMd(fm(`name: F\nfonts:\n  stack:\n    - Inter\ncomponents:\n  c:\n    ff: "stack: {fonts.stack}!"`)),
+        ).toThrow(/resolves to an array/);
+      });
+
+      it("an embedded SCALAR ref still interpolates normally (no regression)", () => {
+        const r = parseDesignMd(fm(`name: F\ncolors:\n  border: "#E2E8F0"\ncomponents:\n  c:\n    border: "1px solid {colors.border}"`));
+        expect(r.components.c.border).toBe("1px solid #E2E8F0");
+      });
+
+      it("strict boundary: a trailing space makes a ref NON-pure → an object target throws", () => {
+        // "EXACTLY one {ref}, no surrounding text" — a stray trailing space IS surrounding
+        // text, so this is interpolation; an embedded object ref is then an authoring error.
+        expect(() =>
+          parseDesignMd(
+            fm(`name: F\ntypography:\n  big:\n    fontSize: 64px\ncomponents:\n  h:\n    typography: "{typography.big} "`),
+          ),
+        ).toThrow(/cannot be embedded in a string/);
+      });
+    });
+
+    describe("invariants preserved by the typed-alias change", () => {
+      it("cycle detection still fires THROUGH an aliased object's fields", () => {
+        // c.t → typography.a (obj) → its x → typography.b (obj) → its y → typography.a : cycle.
+        expect(() =>
+          parseDesignMd(
+            fm(`name: F\ntypography:\n  a:\n    x: "{typography.b}"\n  b:\n    y: "{typography.a}"\ncomponents:\n  c:\n    t: "{typography.a}"`),
+          ),
+        ).toThrow(/circular token reference/);
+      });
+
+      it("a pure ref to a missing token still throws unresolved", () => {
+        expect(() => parseDesignMd(fm(`name: F\ncomponents:\n  c:\n    t: "{typography.nope}"`))).toThrow(/unresolved token reference/);
+      });
+
+      it("invariant: an inlined typography object leaves NO {ref} tokens in the output", () => {
+        const r = parseDesignMd(
+          fm(`name: F\ntypography:\n  button-md:\n    fontFamily: Inter\n    fontWeight: 500\ncomponents:\n  btn:\n    typography: "{typography.button-md}"`),
+        );
+        expect(JSON.stringify(r.tokens)).not.toMatch(/\{[a-zA-Z0-9_][a-zA-Z0-9_.-]*\}/);
+      });
+    });
+
+    describe("contract — the real supabase getdesign fixture (2N)", () => {
+      const supabase = fs.readFileSync(path.join(__dirname, "fixtures", "supabase-DESIGN.md"), "utf-8");
+
+      it("button-primary-green.typography deep-equals the typography.button-md OBJECT (was \"[object Object]\")", () => {
+        const r = parseDesignMd(supabase);
+        expect(r.components["button-primary-green"].typography).not.toBe("[object Object]");
+        expect(r.components["button-primary-green"].typography).toEqual(r.typography["button-md"]);
+        expect(r.components["button-primary-green"].typography).toMatchObject({ fontWeight: 500, fontSize: "14px" });
+      });
+
+      it("the scalar refs on the same component stay scalars (color + radius)", () => {
+        const r = parseDesignMd(supabase);
+        expect(r.components["button-primary-green"].backgroundColor).toBe("#3ecf8e");
+        expect(r.components["button-primary-green"].rounded).toBe("6px");
+      });
+
+      it("EVERY component's typography ref resolved to an object (none left as \"[object Object]\")", () => {
+        const r = parseDesignMd(supabase);
+        for (const [name, comp] of Object.entries(r.components)) {
+          expect(typeof (comp as any).typography, `component ${name}`).toBe("object");
+          expect((comp as any).typography, `component ${name}`).not.toBe("[object Object]");
+        }
+      });
+    });
+  });
 });

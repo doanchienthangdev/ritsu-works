@@ -3,6 +3,20 @@
 Lineage of changes to the `design-system-styling` capability. Newest first.
 Created by `/cla fix` Phase 8 (SOP-AIOPS-001-fix). Spec: `wiki/capabilities/design-system-styling/spec.md`.
 
+## v1.0.2 — 2026-06-01 — Tier B fix (the v1.0.1 follow-up)
+
+**Problem.** The v1.0.1 "known limitation": in `parse-design-md.cjs`, a `{token.ref}` whose target is a **non-scalar** (an object or array) was `String(target)`-ed to the literal `"[object Object]"`. This surfaces with real `npx getdesign add <name>` output — e.g. `tests/design-system/fixtures/supabase-DESIGN.md` has every component reference its type block as `typography: "{typography.button-md}"`, where `typography.button-md` is an object (`fontFamily` / `fontSize` / `fontWeight` / …). After parsing, `components["button-primary-green"].typography` was the useless string `"[object Object]"` instead of the typography object — degrading the `--style` design context handed to renderers (per `SOP-AIOPS-007`, "tokens are DATA").
+
+**Decision (a deliberate reference semantics, not just a crash patch).** A **pure ref** — a string that is *exactly* one `{ref}` with no surrounding text — is now a **typed alias**: it resolves to its target with the **type preserved**. `{typography.button-md}` → the object; a ref to a list → the array; a ref to a number → a number; a ref to a string → the (recursively-resolved) string. A ref **embedded** in a larger string stays scalar-only **interpolation** (`"1px solid {colors.border}"` → `"1px solid #E2E8F0"`); an **embedded object/array ref** is an authoring error and now **throws** `DesignMdParseError` rather than emitting `"[object Object]"` (`resolve-style.cjs` then degrades that system to `plain` + warning — never a crash).
+
+**Why it's safe / aligned.** Consumers treat resolved tokens as design-context **data** injected into renderers (`06-ai-ops/skills/deepask/format/SKILL.md` §1.5, `06-ai-ops/skills/design-system/SKILL.md`, `SOP-AIOPS-007`); a structured typography object is strictly more useful than `"[object Object]"`. No contract pins tokens to flat strings. The strict sRGB, circular-ref, and unresolved-ref checks are unchanged.
+
+**Implementation.** `scripts/design-system/parse-design-md.cjs` only — `resolveString` → `resolveStringNode` (pure-vs-interpolation dispatch) + new `resolveRef` (typed, deep-resolves the target) + `deepResolve` (threads the cycle-detection chain through nested object/array refs). No change to the recovery path, sRGB validation, or exports.
+
+**Tests.** +19 All-Edge-Cases cases in `tests/design-system/parse-design-md.test.ts` (215 pass total): the target-type matrix (object / array / number / boolean / string), refs nested inside an aliased object, chained refs ending at an object/array, embedded object & array refs throw, the strict "no surrounding text" boundary, cycle-through-an-object, the no-leftover-`{ref}` invariant, and the **real supabase fixture contract** (`button-primary-green.typography` deep-equals `typography.button-md`).
+
+**Files.** `scripts/design-system/parse-design-md.cjs`, `tests/design-system/parse-design-md.test.ts`, `knowledge/capability-registry.yaml` (version bump), `wiki/capabilities/design-system-styling/CHANGELOG.md`.
+
 ## v1.0.1 — 2026-06-01 — `/cla fix` (Tier B)
 
 **Problem.** Two real `npx getdesign@latest add <name>` outputs failed to materialize, hard-crashing the consuming command instead of degrading:
