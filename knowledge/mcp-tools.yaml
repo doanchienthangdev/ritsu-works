@@ -19,8 +19,10 @@ tools:
     description: |
       Execute a parameterized read-only SELECT against ritsu-ops. The shim's
       sql-guard rejects multi-statement, SELECT INTO, and any non-SELECT/WITH
-      leading keyword BEFORE the DB even sees the SQL. RLS applies via the
-      connection's role.
+      leading keyword BEFORE the DB even sees the SQL. Runs as service_role via
+      the SECURITY DEFINER RPC ops_run_select, so RLS does NOT apply; reads are
+      constrained by the caller role's read-allowlist (canReadSchema) and the
+      sql-guard, not by RLS.
     input_schema_ref: mcp-server/src/tools/query.ts#queryInputSchema
     output_schema:
       rows: array

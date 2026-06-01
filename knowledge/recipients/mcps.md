@@ -1066,7 +1066,7 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 
 **Kind:** mcp
 **Axis:** capability
-**When to use:** Execute a parameterized read-only SELECT against ritsu-ops. The shim's sql-guard rejects multi-statement, SELECT INTO, and any non-SELECT/WITH leading keyword BEFORE the DB even sees the SQL. RLS applies via the connection's role.
+**When to use:** Execute a parameterized read-only SELECT against ritsu-ops. The shim's sql-guard rejects multi-statement, SELECT INTO, and any non-SELECT/WITH leading keyword BEFORE the DB even sees the SQL. Runs as service_role via the SECURITY DEFINER RPC ops_run_select, so RLS does NOT apply; reads are constrained by the caller role's read-allowlist (canReadSchema) and the sql-guard, not by RLS.
 
 **Invoke:** `mcp__supabase-ops__query`
 **HITL tier:** A
