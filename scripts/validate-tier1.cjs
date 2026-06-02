@@ -54,6 +54,7 @@ const FILE_TO_SCHEMA = {
   'workforce-personas.yaml': 'workforce-personas.schema.json',
   'cla-routing-keywords.yaml': 'cla-routing-keywords.schema.json',
   'update-file-paths.yaml': 'update-file-paths.schema.json',
+  'image-adapters.yaml': 'image-adapters.schema.json',
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });
