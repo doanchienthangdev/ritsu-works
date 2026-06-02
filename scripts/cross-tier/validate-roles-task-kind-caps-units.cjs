@@ -84,6 +84,9 @@ const EXPECTATIONS = [
   // capability deepask v1.1 — gps-bound image-gen USD cap (spec §13.5/§13.6; cost-bucket ai-ops-deepask)
   { match: /^deepask-image-gen$/, unit: 'usd',
     source: 'deepask v1.1 spec §13.5 — gpt-image-2 generation gps USD soft cap (beyond per-run --max-cost-usd)' },
+  // capability image-platform v0.1 — gps-bound /image USD caps (spec §5; cost-bucket ai-ops-image)
+  { match: /^image-(gen|enhance)$/, unit: 'usd',
+    source: 'image-platform spec §5 — /image gpt-image-2 gen (advisory, MF1) + --enhance gps per-task USD soft caps' },
 ];
 
 function lookupExpectation(taskKind) {
