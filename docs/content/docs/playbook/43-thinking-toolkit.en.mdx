@@ -2,14 +2,14 @@
 title: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
 description: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/43-thinking-toolkit.md
-source_hash: 400b146ef7dc81c320545d58d60ed3de082afc7180fb93758b2f3f915c3bcdc0
-generated_at: '2026-05-29T17:32:35.182Z'
+source_hash: 6cb699d17bf69e2661ea0f40be1e0a4d1eedb556b0ad3d14090cc204d5e5f668
+generated_at: '2026-06-02T19:40:50.423Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: 400b146ef7dc81c320545d58d60ed3de082afc7180fb93758b2f3f915c3bcdc0
-translated_at: '2026-05-29T17:32:35.182Z'
+translated_source_hash: 6cb699d17bf69e2661ea0f40be1e0a4d1eedb556b0ad3d14090cc204d5e5f668
+translated_at: '2026-06-02T19:40:50.423Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 43
 ---
@@ -20,7 +20,7 @@ chapter_order: 43
 
 Chương này document **`thinking-toolkit`** — capability thứ 10 ship qua Bài #20 (CLA), và là **single-session-overnight-autonomous** record: /cla propose 8-phase compressed vào 1 session, no founder gate, ship + merge + deploy preparation trước sáng. 6 skills mới (v1.0); 1 thin orchestrator command `/think` added cùng ngày (v1.1 — `/cla extend`). 0 new MCP, 0 new DB tables. Zero per-invocation cost, value compounds across every C-suite invocation đời còn lại.
 
-**Trạng thái:** operating v1.1.0 (v1.0 ship 2026-05-28; v1.1 extend cùng ngày — adds /think command surface). PR #TBD. ops.capability_runs id TBD. Tier C decision: pre-authorized via session message — founder standing-authorization basis. Spec promoted `.archives/cla/thinking-toolkit/spec.md` → `wiki/capabilities/thinking-toolkit/spec.md` tại Phase 8.
+**Trạng thái:** operating **v1.3.0** (v1.0 ship 2026-05-28 — 6 skills; v1.1 cùng ngày — `/think` command surface; **v1.2** 2026-06-03 — curated +5 skills, [PR #211](https://github.com/doanchienthangdev/ritsu-works/pull/211); **v1.3** 2026-06-03 — McKinsey 4S workflow + concept catalog, [PR #212](https://github.com/doanchienthangdev/ritsu-works/pull/212)). `/think` 12 skills / 14 verbs. Tier C decisions: `ops.decisions[thinking-toolkit-v1.2-curated-expansion]` + `[thinking-toolkit-v1.3-mckinsey-workflow]`. Spec promoted `wiki/capabilities/thinking-toolkit/spec.md`. (v1.2/v1.3 detail: §42.9.6 + §42.9.7.)
 
 ---
 
@@ -368,6 +368,49 @@ Gap: skills có discoverable invocation through C-suite personas (qua output con
 
 **Lesson — v1.0 design decision was wrong; same-day correction is fine.** "No new command" rationale (v1.0): skills should be reached only through personas → kept surface clean. Reality: founder needs ad-hoc thinking surface. The correction validates the /cla extend HITL B threshold — small same-day deltas don't need full ceremony; just spec.md §4.5 update + thin orchestrator + catalog regen.
 
+## 42.9.6 v1.2 extension — curated +5 skills (the "curate, don't inflate" answer)
+
+2026-06-03. Founder asked the sharpest possible scaling question: *"implement TẤT CẢ các concepts phù hợp trong Cracked-It! + Bulletproof thành skills cho /think — ổn không?"* The answer — and the lesson — was **curate, don't inflate**. A skill carries a resolver-catalog + maintenance cost; most book concepts are *knowledge* (a noun you recall), not *operations* (a verb you run), and knowledge belongs in the wiki library, retrievable — not as 200 commands.
+
+**The 5-test gate** (a concept becomes a `/think` skill only if it passes ALL): (1) operation-not-knowledge; (2) invoked-at-a-decision-point; (3) distinct from the existing skills + each other; (4) general/portable (not a book's domain example); (5) worth the catalog cost. Triaging all **259** distilled concepts: only **~2%** passed as new operations, ~28% were already in the 6, **~54% stay as wiki library**. Result — **+5 skills (6→11)**:
+
+| Skill | Cognitive mode it adds |
+|---|---|
+| `hypothesis-driven` | sequence an analysis (falsify-first + one-day answer) |
+| `pre-mortem` | surface risk before committing (prospective hindsight) |
+| `root-cause` | trace a *confirmed* symptom backward (Five Whys, scoped) |
+| `design-thinking` | *generate* when there's nothing to decompose (the one generative skill) |
+| `debias` | guard the thinker (pre-commit bias checklist, wraps ~28 concepts) |
+
+**Read-before-write caught 2 conflicts** — the payoff of reading the capability's own history before extending it:
+1. v1.0 had *deliberately rejected* "5 Whys" — but for **framing** (Cracked it! p.58, *"asking why isn't always specific enough"*). `root-cause` re-admitted it NARROWLY for *causal-tracing of a confirmed symptom*; framing stays with TOSCA. The two source books genuinely disagree by design; v1.0 sided with Cracked it! for framing, v1.2 added back the Bulletproof use only.
+2. The planned "pyramid += SCR/SCQA" enhancement was a **no-op** — `pyramid-principle-output` already exposed both Grouping + Argument/SCR variants. Dropped before writing.
+
+Review: **@cto** FIX-FIRST (fixed dangling refs — `root-cause` cited a non-existent `debugger` agent; `debias` cited a non-existent `multiple-frameworks` skill) + **conceptual critic** SHIP-ALL-5 (all five survived a real cut-test). [PR #211](https://github.com/doanchienthangdev/ritsu-works/pull/211). Tier C: `ops.decisions[thinking-toolkit-v1.2-curated-expansion]`.
+
+**Lesson:** the lever for thinking quality is NOT framework *count* (259 already exist in the wiki) — it's a *memorable* set of operations + applying the right one at the right moment. More frameworks past a point *reduces* quality (choice overload — which the books themselves warn against: `maslows-hammer`, `framework-mental-model-danger`).
+
+## 42.9.7 v1.3 extension — the McKinsey 4S Workflow (spine + concept catalog)
+
+Same night, founder: *"Tôi dự kiến sẽ làm mckinsey nên cơ chế đưa các concepts trong problem solving vào các steps trong 'mckinsey workflow' rất quan trọng."* → build a **McKinsey workflow** AND the mechanism to bind the ~230 non-skill concepts (from v1.2's triage) to its steps + find them by catalog later.
+
+**Delivered:**
+- **`mckinsey-workflow` skill** + `/think mckinsey` verb (now **12 skills, 14 verbs**) — the **4S spine** (State → Structure → Solve → Sell, Cracked it! Ch 3), cross-mapped to the Bulletproof 7-step. Sequences all 11 atomic skills into one end-to-end path.
+- **`knowledge/mckinsey-workflow.yaml`** — *the mechanism*. Each 4S step → `{skills to run, curated key_concepts, retrieval recipe}`. The ~230 wiki concepts are now (a) bound to the 4S step where they're useful + (b) findable per-step via a `wiki_ask` recipe — so the toolkit grows in *capability* without growing in *surface area* (the answer to "where do the other concepts go?").
+- **`validate-mckinsey-workflow.cjs`** (L2; wired into `check-consistency.cjs` + CI + `validate-tier1` `FILE_TO_SCHEMA`) — proves every referenced skill (11) + concept (34) file *actually exists*, step-id uniqueness, contiguous orders, the 4 canonical steps. Pure `validateWorkflow(doc, repoRoot)` → **34 vitest cases** (edge + broken: missing skill/concept, malformed step, dup id, order gap, missing canonical step, garbage root).
+- **Why skill + Tier-1 catalog, NOT `workflows/` infra:** `workflows/` is "planned"/unbuilt (`knowledge/manifest.yaml`); the 4S workflow fits the zero-cost guidance-doc model exactly. No new DB, no new command.
+
+| 4S step | Skills | Concepts bound | 7-step cross-map |
+|---|---|---|---|
+| **State** | tosca | 7 (worksheet, SMART, wicked-problems…) | Define the problem |
+| **Structure** | mece, driver-tree, hypothesis-driven | 8 (logic-tree, issue-tree, knock-out…) | Disaggregate · Prioritize · Workplan |
+| **Solve** | root-cause, design-thinking, pre-mortem, debias, 2x2 | 11 (one-day-answer, Monte-Carlo, HMW, D/F/V…) | Conduct analyses |
+| **Sell** | pyramid, so-what | 8 (governing-thought, SCR, action-titles…) | Synthesize · Communicate |
+
+[PR #212](https://github.com/doanchienthangdev/ritsu-works/pull/212). Tier C: `ops.decisions[thinking-toolkit-v1.3-mckinsey-workflow]`.
+
+**Lesson (compounds v1.2's):** v1.2 decided *which* concepts become skills (few — ~2%); v1.3 gave the *rest* a home (the 4S catalog, bound per-step). Together they answer the founder's deeper question — chất lượng tư duy scales by *organizing* the library into a workflow, not by minting 200 commands.
+
 ## 42.10 Post-Wave-1 Wave-2 case study #9
 
 Wave 1 closed at Chương 40 (/resolver v3.0.4). Wave 2 introduced:
@@ -385,7 +428,7 @@ Pattern: post-Wave-1 capabilities are higher-leverage SMALLER capabilities. Wave
 **Retrospective:** `wiki/capabilities/thinking-toolkit/retrospective.md` (post Phase 8).
 **Source brainstorm:** in-session 2026-05-28 (this conversation; founder + Claude Code).
 **Authentic refs ingested:** v1.1 update 2026-05-28 — distilled `raw/mckinsey/cracked-it.pdf` (Garrette/Phelps/Sibony, 2018) + `raw/mckinsey/bulletproof-problem-solving.pdf` (Conn/McLean, 2018). Each of 6 SKILL.md now has "Authentic sources" section + canonical references with specific page citations. Quality discipline: every authoritative claim traceable to a specific book + page.
-**PRs:** TBD.
+**PRs:** v1.0/v1.1 (original ship); v1.2 [#211](https://github.com/doanchienthangdev/ritsu-works/pull/211) (curated +5 skills); v1.3 [#212](https://github.com/doanchienthangdev/ritsu-works/pull/212) (McKinsey 4S workflow + catalog); docs #213 (this chapter + reference MDX).
 
 ---
 

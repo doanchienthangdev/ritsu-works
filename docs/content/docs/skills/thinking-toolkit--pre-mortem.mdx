@@ -1,0 +1,125 @@
+---
+title: 'Skill: thinking-toolkit/pre-mortem'
+description: |
+  Use BEFORE committing to a consequential, hard-to-reverse decision.
+  Imagine it is the future and the decision has already FAILED, then work
+  backward: each reviewer independently writes why it failed. Cluster the
+  causes, and for the top ones add a guard, kill-switch, or leading
+  indicator — or modify/kill the decision. Prospective hindsight surfaces
+  risks that "are there any concerns?" never does.
+
+  Trigger conditions: any HITL Tier C / D decision (irreversible, external,
+  money, user-affecting); /cla phase 5 architecture sign-off; pricing
+  changes; public launches; capability deprecation; any "one-way door"
+  decision per SOP-FOUNDER-005 reversible-vs-irreversible router.
+
+  Skip when: the decision is cheap and reversible (a "two-way door" — just
+  try it and learn); routine operations; low-stakes experiments designed to
+  fail cheaply.
+
+  Cost: zero LLM (guidance document). ~10-20 min that prevents the
+  expensive, hard-to-undo mistake. The natural companion to the HITL
+  Tier C/D regret window.
+source_path: 06-ai-ops/skills/thinking-toolkit/pre-mortem/SKILL.md
+source_hash: eeeaa85147a691203802c9b36dc1b24009382ac28e54f8242a0e8a1c2074be9e
+generated_at: '2026-06-02T19:36:04.269Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Assume the decision already failed. Work backward to *why* — before you commit, while you still can change it.
+
+A pre-mortem is the inverse of a post-mortem. Instead of explaining a failure after it happens, you *imagine* the failure has happened and explain it in advance. The framing shift — from "could this fail?" to "it DID fail; why?" — is what makes it work: prospective hindsight makes people far more willing and able to name concrete risks they'd otherwise suppress to avoid sounding negative.
+
+## Authentic sources
+
+- **Conn & McLean, *Bulletproof Problem Solving*** (Wiley, 2018) — **Chapter 4** (pp. 117-140). Pre-mortem analysis requires the team to *"work through all implications of even unlikely failure cases before committing to a solution,"* paired with explicit **downside scenario modeling** (long-tailed / black-swan distributions, not assumed-normal). Both are recommended **to counter overoptimism bias** — one of the five core cognitive biases (Ch 4). Direct quote: *"Tools like pre-mortems can help highlight risks to focus on with big decisions where a lot is at stake."*
+
+- **Gary Klein, "Performing a Project Premortem"** (*Harvard Business Review*, Sept 2007) — the origin of the technique. Klein's research: prospective hindsight increases the accuracy and specificity of risk identification by ~30%. **Daniel Kahneman** repeatedly cites the pre-mortem as one of the single most effective debiasing tools available to a team (*Thinking, Fast and Slow*, 2011).
+
+## When to use
+
+**Mandatory (recommended) for:**
+- Every HITL **Tier C / D** decision per `governance/HITL.md` — irreversible, external-facing, money out, or user-affecting. The pre-mortem IS the content of the regret window.
+- `/cla` phase 5 architecture sign-off (before founder approves the spec)
+- Pricing changes, public launches, capability deprecation, schema migrations
+- Any decision SOP-FOUNDER-005 flags as a **one-way door**
+
+**Recommended for:**
+- Sprint plans with a single large dependency
+- New channel bets (GTM) before spend commits
+
+## When NOT to use
+
+- **Two-way doors** — cheap, reversible decisions. Just try it; the experiment IS the test. A pre-mortem here is overhead.
+- Routine operations with established guards.
+- Experiments deliberately designed to fail cheaply (the failure is the point).
+
+**Anti-pattern: pre-mortem theater.** Listing failures and then proceeding unchanged is worse than not doing one — it manufactures false confidence ("we considered the risks"). A pre-mortem must change the decision, add a guard, or be honestly recorded as accepted risk.
+
+## How to apply
+
+### Step 1 — Frame the failure as already-happened
+State it in past tense, vividly: *"It's 6 months from now. We shipped the annual-only pricing change. It was a disaster."* Past tense is not optional — it's the mechanism.
+
+### Step 2 — Independent failure-cause generation
+Each reviewer (or, solo, each `/muse` lens — `cynic`, `data-pragmatist`, `customer-advocate`) writes WHY it failed, independently, before discussion. Independence prevents anchoring on the first voice.
+
+### Step 3 — Cluster the causes
+Group the failure stories (MECE — see `mece-decomposition-check`). Typical clusters: demand wrong, execution slipped, second-order effect, external shock.
+
+### Step 4 — For each top cause: preventable?
+For the highest-likelihood / highest-impact causes, choose one:
+- **Guard** — a check that catches it early
+- **Leading indicator** — a metric that warns before the failure fully lands
+- **Kill-switch** — a pre-agreed condition to reverse
+- **Modify** — change the decision to remove the cause
+- **Accept** — explicitly record as accepted risk (with rationale)
+
+### Step 5 — Decide: proceed-with-guards / modify / kill
+The output is not a list — it's a changed (or consciously-confirmed) decision plus the guards/indicators/kill-switches now attached to it.
+
+## Worked examples
+
+### Example 1 — GOOD (pricing experiment)
+**Failure framing:** "It's Q3. We moved Plus to annual-only billing to lift LTV. It backfired — signups cratered."
+**Independent causes:** (a) annual-only killed the low-commitment on-ramp the ICP needs; (b) competitors stayed monthly and we looked expensive; (c) refund requests spiked, hurting cash + support load.
+**Guards attached:** keep monthly as the default on-ramp (modify); leading indicator = signup→trial rate, kill-switch if it drops >15% in week 1; cap the experiment to one cohort.
+**Decision:** proceed, but as an A/B on one cohort with the kill-switch — not a full cutover.
+**Why good:** the pre-mortem changed the decision (cohort A/B, not cutover) and attached a concrete kill-switch.
+
+### Example 2 — ANTI-PATTERN (pre-mortem theater)
+Team lists 6 ways a launch could fail, nods, and ships the exact same plan unchanged with no guards. **Why anti-pattern:** the exercise produced zero change → it was decoration that now provides false cover ("we did a pre-mortem"). **Fix:** each top cause MUST yield a guard, a modification, or an explicitly-recorded accepted risk.
+
+### Example 3 — EDGE CASE (reversible → skip)
+**Decision:** "Change the morning-brief send time from 6:00 to 5:45."
+**Verdict:** two-way door, near-zero blast radius. Skip the pre-mortem; just change it and watch. Pre-mortems are for one-way doors.
+
+## Composition notes
+
+- **With HITL Tier C/D (`governance/HITL.md`):** the pre-mortem is the *substance* of the Tier C dry-run / Tier D regret window. "What would make us regret this in an hour?" = a 1-minute pre-mortem.
+- **With `hypothesis-driven`:** pre-mortem the recommended option; each failure cause becomes a hypothesis worth testing before commit.
+- **With `2x2-synthesis-matrix`:** plot failure causes on likelihood × impact; guard the top-right quadrant.
+- **With `/muse:cynic` + `muse-personas` panel:** the `high-stakes-decision-panel` (cynic, data-pragmatist, time-honest) is a ready-made independent-reviewer set for Step 2.
+- **With `so-what-test`:** each surfaced risk must pass so-what — if there's no action it implies, it's not a risk worth listing.
+
+## References
+
+Primary (in `raw/mckinsey/`):
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 4** (pp. 117-140). Pre-mortem + downside scenario modeling, framed as overoptimism-bias countermeasures.
+
+Supporting:
+- **Klein, G. (2007). "Performing a Project Premortem." *Harvard Business Review*, 85(9), 18-19.** Origin of the technique.
+- **Kahneman, D. (2011). *Thinking, Fast and Slow*.** Farrar, Straus and Giroux — endorses the pre-mortem as a top debiasing tool.
+- Distilled wiki concept: `wiki/bulletproof-problem-solving/concepts/pre-mortem-analysis.md`.
+
+## Anti-claims
+
+- A pre-mortem does NOT predict the actual failure. It widens the set of considered failures so you can guard the plausible ones.
+- Imagined failures are NOT calibrated probabilities — don't treat the scariest story as the most likely.
+- This is NOT a veto tool. Its output can be "proceed, with these guards," not only "kill."
+- A pre-mortem that changes nothing is worse than none — it manufactures false confidence.
+
