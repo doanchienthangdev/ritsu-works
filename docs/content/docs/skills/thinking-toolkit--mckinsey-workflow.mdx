@@ -1,0 +1,135 @@
+---
+title: 'Skill: thinking-toolkit/mckinsey-workflow'
+description: |
+  Use to run a whole problem end-to-end through the McKinsey 4S method
+  (State → Structure → Solve → Sell), with the right thinking-toolkit skills
+  AND the relevant wiki problem-solving concepts attached at each step. This
+  is the SPINE that sequences all 11 thinking-toolkit skills and makes the
+  ~230 wiki concepts (the ones that did NOT become skills) findable per-step.
+
+  Trigger conditions: any non-trivial business/strategy problem worth solving
+  properly (a capability proposal, a GTM/pricing/funnel decision, a weekly
+  strategic review, a "why is X happening and what do we do" question); the
+  `/think mckinsey <problem>` verb; when you want a disciplined path from
+  "we have a problem" to "decision-ready recommendation".
+
+  Skip when: a single thinking-toolkit skill already covers your need (call it
+  directly — don't run the whole workflow for a list-MECE check); trivial or
+  operational lookups; a crisp bug with a clear fix.
+
+  Cost: zero LLM (guidance document; reads knowledge/mckinsey-workflow.yaml).
+  This is the orchestration spine, NOT a replacement for the per-step skills.
+source_path: 06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md
+source_hash: 75d8f0728abd03bf0b8dbdeef36a4b2f52f5d69b8fbb503cae3c314ae82481b5
+generated_at: '2026-06-02T19:36:04.267Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Run a problem end-to-end. At each of the 4 stages, the workflow tells you which *operations* (skills) to run and which *concepts* (wiki) to consult — and how to find more.
+
+The six v1.0 + five v1.2 thinking-toolkit skills are discrete tools. This skill is the **spine** that orders them into the McKinsey **4S method** (Cracked it!, Ch 3), cross-mapped to the Bulletproof **7-step** process. It answers the question "I have a real problem — what do I do, in what order, with which tool?"
+
+It also solves the *library* problem: only ~5% of the 259 distilled problem-solving concepts became skills. The other ~230 live in the wiki. This workflow **binds each concept to the 4S step where it's useful** — as a curated reading list per step, plus a `retrieval` recipe so any concept is findable on demand.
+
+## Source of truth
+
+The step → \{skills, concepts, retrieval} mapping is the machine-readable catalog **`knowledge/mckinsey-workflow.yaml`** (schema: `knowledge/schemas/mckinsey-workflow.schema.json`; validated by `scripts/cross-tier/validate-mckinsey-workflow.cjs`, which proves every referenced skill + concept file actually exists). This skill reflects that catalog; when they differ, the YAML wins. To add a concept to a step, add one `{book, slug}` line to the YAML (the file must exist in `wiki/<book>/concepts/`).
+
+## Authentic sources
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (Palgrave Macmillan, 2018) — **Chapter 3: "The 4S Method"** (pp. 52-69). *"The four stages of the 4S method are sequential, but, in practice, you won't work through them rigidly. Sometimes you'll double back to previous stages. The problem-solving process is inherently iterative."* The 4S spine (State / Structure / Solve / Sell) offers three paths inside it: hypothesis-driven, issue-driven, and design thinking.
+- **Conn & McLean, *Bulletproof Problem Solving*** (Wiley, 2018) — the **7-step process** (define → disaggregate → prioritize → workplan → analyze → synthesize → communicate), cross-mapped onto 4S below.
+
+## The 4S workflow
+
+> 4S is **iterative, not rigid** — double back when a later stage reveals the problem was mis-framed (Cracked it! Ch 3). The arrows are the default path, not a one-way gate.
+
+### ① STATE — frame the problem
+**Intent:** define + frame before solutioning; most failures are solving the wrong problem. Output: a one-page framed problem + a single Core Question.
+**Run:** `tosca-problem-framing`.
+**Consult (wiki):** `cracked-it/tosca-framework`, `cracked-it/core-question-scope`, `bulletproof-problem-solving/problem-statement-worksheet`, `bulletproof-problem-solving/smart-problem-statement-criteria`, `bulletproof-problem-solving/wicked-problems`.
+**Find more:** `wiki_ask "problem framing, definition, success criteria, wicked problems"` (cracked-it + bulletproof).
+*Bulletproof 7-step: Define the problem.*
+
+### ② STRUCTURE — disaggregate
+**Intent:** break the framed problem into MECE parts; choose hypothesis-driven (you have a hunch) vs issue-driven (thorough); prioritize so you analyze only branches that can move the answer. Output: a logic/issue tree + workplan.
+**Run:** `mece-decomposition-check`, `driver-tree-decomposition`, `hypothesis-driven`.
+**Consult:** `bulletproof/logic-tree`, `bulletproof/problem-disaggregation`, `bulletproof/knock-out-analysis`, `bulletproof/prioritization-2x2-matrix`, `cracked-it/issue-tree`, `cracked-it/hypothesis-pyramid`, `cracked-it/hypothesis-driven-vs-issue-driven`.
+**Find more:** `wiki_ask "issue tree, logic tree, disaggregation, prioritization, hypothesis vs issue driven"`.
+*Bulletproof 7-step: Disaggregate · Prioritize · Workplan.*
+
+### ③ SOLVE — analyze + generate
+**Intent:** do the analysis. Heuristics before big guns; carry a one-day answer. Trace a confirmed broken symptom (`root-cause`); switch to the **generative** path for unmet-need problems analysis can't crack (`design-thinking`); pre-mortem the leading option; run the debias checklist before committing.
+**Run:** `root-cause`, `design-thinking`, `pre-mortem`, `debias`, `2x2-synthesis-matrix`.
+**Consult:** `bulletproof/one-day-answer`, `bulletproof/heuristics-before-big-guns`, `bulletproof/expected-value-calculation`, `bulletproof/monte-carlo-simulation`, `bulletproof/five-cognitive-biases-problem-solving`, `cracked-it/design-thinking`, `cracked-it/how-might-we-question`, `cracked-it/desirability-feasibility-viability-triad`.
+**Find more:** `wiki_ask "analysis tools, heuristics, expected value, simulation, design thinking, cognitive biases"`.
+*Bulletproof 7-step: Conduct analyses.*
+
+### ④ SELL — synthesize + communicate
+**Intent:** synthesize into a recommendation and communicate so it lands. Governing thought first (pyramid); every point survives so-what; pick grouping vs argument (SCR/SCQA) for the audience; pre-wire the decision. Output: an action-titled, decision-ready recommendation.
+**Run:** `pyramid-principle-output`, `so-what-test`.
+**Consult:** `cracked-it/pyramid-principle`, `cracked-it/governing-thought`, `cracked-it/argument-pattern-scr`, `cracked-it/storyline-design`, `cracked-it/action-title-discipline`, `cracked-it/pre-wiring-the-final-meeting`, `bulletproof/synthesis-and-storytelling`.
+**Find more:** `wiki_ask "synthesis, storyline, pyramid, governing thought, action titles"`.
+*Bulletproof 7-step: Synthesize · Communicate.*
+
+## When to use
+
+- A capability proposal (`/cla propose` Phase 1 already invokes TOSCA — the workflow is the fuller discipline behind it)
+- A GTM/pricing/funnel decision worth getting right (not a quick experiment)
+- A weekly strategic review where a recurring problem needs structured attack
+- Onboarding into a messy problem space — the 4S spine gives you a place to start
+
+## When NOT to use
+
+- A single skill suffices → call it directly (e.g., just need a list MECE-checked → `mece-decomposition-check`)
+- Trivial / operational / crisp-bug problems → overhead exceeds benefit
+- A two-way-door experiment → just run it and learn
+
+**Anti-pattern: ceremony for ceremony's sake.** 4S is iterative and you skip stages that don't apply. A 5-minute problem does not need all four stages. The workflow is a *map*, not a mandatory gate.
+
+## How to apply
+
+1. **Identify which stage you're in.** Most problems enter at STATE; a confirmed regression enters at SOLVE (root-cause); a polished analysis that needs packaging enters at SELL.
+2. **Run that stage's skills** (the "Run:" line), consulting the listed concepts as needed.
+3. **Use the retrieval recipe** when the curated concepts aren't enough — `wiki_ask` scoped to the stage's books surfaces the rest of the ~230.
+4. **Double back** when a later stage reveals an earlier mistake (e.g., SOLVE shows the problem was mis-framed → return to STATE). This is expected, not failure.
+5. **Exit at SELL** with an action-titled recommendation that survives the so-what test.
+
+## Worked example (ritsu-works problem through 4S)
+
+**Problem:** "Free→paid conversion is stuck at 8% despite 3× signup growth."
+
+- **STATE** (`tosca`): Trouble = conversion flat while signups 3×; Owner = gtm-orchestrator; Success = 8%→15% by date; Constraint = can't raise price pre-pull-test. Core Question: *"How do we lift free→paid to 15% without a price change?"*
+- **STRUCTURE** (`driver-tree` + `hypothesis-driven`): decompose conversion = activation-rate × activated→paid-rate. Hunch: the gate is the 7-day inactivity cliff, not price. Disproof criterion defined.
+- **SOLVE** (`root-cause` + `debias`): cohort analysis confirms 7-day returners convert 4×. Root-cause traces the cliff to a slow first-quiz. `debias` checks confirmation bias (looked at non-returners too). `pre-mortem` on the fix.
+- **SELL** (`pyramid` + `so-what`): **"Attack the 7-day cliff with reactivation, not pricing — it's the load-bearing driver (4× conversion delta)."** Supporting points survive so-what; action-titled.
+
+One problem, four stages, seven skills, a dozen concepts — composed, not improvised.
+
+## Composition notes
+
+- **With `/think flow`:** `flow` recommends a lightweight skill sequence; `mckinsey-workflow` is the full named 4S spine with concepts + retrieval per step. Use `flow` for a quick "what order?"; use this for a real problem you'll work for hours/days.
+- **With `/cla propose`:** CLA's phases mirror 4S (problem-framer→State, domain/options→Structure/Solve, architecture→Sell). Running this workflow is the disciplined way to think *inside* a CLA proposal.
+- **With every thinking-toolkit skill:** this is their index. Each skill is a tool; this is the toolbox layout.
+- **With `wiki_ask`:** the per-step `retrieval` recipe is how the ~230 non-skill concepts stay reachable without bloating `/think` into 200 verbs.
+
+## References
+
+Primary (in `raw/mckinsey/`):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 3** (the 4S method) + the State/Structure/Solve/Sell chapters (4-10).
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — the 7-step process (cross-mapped).
+
+Catalog + machine-readable source of truth:
+- `knowledge/mckinsey-workflow.yaml` · `knowledge/schemas/mckinsey-workflow.schema.json` · `scripts/cross-tier/validate-mckinsey-workflow.cjs`.
+
+## Anti-claims
+
+- This is NOT a new method — it's the McKinsey 4S spine indexing tools we already have.
+- This does NOT replace the per-step skills; it sequences them.
+- 4S is NOT a rigid gate — it's iterative; skip and double-back as the problem demands.
+- The per-step concept lists are NOT exhaustive — they're curated starting points; the `retrieval` recipe reaches the rest.
+

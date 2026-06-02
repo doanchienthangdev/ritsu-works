@@ -2,7 +2,7 @@
 title: 'Command: /think'
 description: |
   Project-scoped command for ritsu-works. Front-end for the
-  **thinking-toolkit** capability (v1.1.0). Routes to 6 McKinsey/Minto-derived
+  **thinking-toolkit** capability (v1.3.0). Routes to 12 McKinsey/Minto-derived
   thinking-discipline skills under `06-ai-ops/skills/thinking-toolkit/`.
 
   Use when you want to apply a specific thinking framework to the current
@@ -18,65 +18,75 @@ description: |
 
   Tier A (guidance only — no external action, no money, no user impact).
 source_path: .claude/commands/think.md
-source_hash: a75407f3965d3c54b9bc6bd48eea4b55570b0dc2d3f391ee92eed6e48a982c55
-generated_at: '2026-05-28T05:02:04.449Z'
+source_hash: a9362a6c22f32aa01a09cf4a457fd2954ed7d2083d53987d32f4b3130e7deef6
+generated_at: '2026-06-02T19:38:15.451Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
-translated_at: '2026-05-28T15:45:30.000Z'
-translated_source_hash: a75407f3965d3c54b9bc6bd48eea4b55570b0dc2d3f391ee92eed6e48a982c55
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-Lệnh dùng cho project ritsu-works. Giao diện front-end cho capability **thinking-toolkit**
-(v1.1.0). Chi tiết capability tại `wiki/capabilities/thinking-toolkit/spec.md`.
+Project-scoped command for ritsu-works. Front-end for the **thinking-toolkit**
+capability (v1.3.0). Capability spec at `wiki/capabilities/thinking-toolkit/spec.md`.
 
-Lệnh này là một **thin orchestrator**. Toàn bộ thinking discipline nằm trong 6
-skill dưới `06-ai-ops/skills/thinking-toolkit/`. Các subcommand gọi những skill này
-qua tool `Skill` với ngữ cảnh hiện tại làm input.
+The command is a **thin orchestrator**. All thinking discipline lives in the 12
+skills under `06-ai-ops/skills/thinking-toolkit/`. Subcommands invoke those
+skills via the `Skill` tool with the current context as input.
 
-Theo `governance/HITL.md`, tất cả invocation `/think` là **Tier A** — tài liệu hướng dẫn
-được đọc bởi agent gọi nó; không có hành động bên ngoài, không di chuyển tiền,
-không tác động tới user, không có escalation path.
+Per `governance/HITL.md`, all `/think` invocations are **Tier A** — guidance
+documents read by the invoking agent; no external action, no money movement,
+no user impact, no escalation paths.
 
-## Subcommands (v1.1 — 8 động từ)
+## Subcommands (v1.3 — 14 verbs)
 
-| Invocation | Ánh xạ tới skill | Mục đích | HITL |
+| Invocation | Maps to skill | Purpose | HITL |
 |---|---|---|---|
-| `/think` | — | Hiển thị menu + composition flow + skill index | A |
-| `/think list` | — | Bảng tất cả 6 thinking framework (tên, one-line, khi nào dùng) | A |
-| `/think flow [problem]` | — | Đề xuất chuỗi multi-skill (TOSCA → MECE → driver-tree → 2x2 → pyramid → so-what) | A |
-| `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` | Khung hóa bài toán mơ hồ qua T/O/S/C/A trước khi đưa giải pháp | A |
-| `/think mece [list]` | `thinking-toolkit/mece-decomposition-check` | Gate chất lượng 2 test trên list/decomposition (overlap + exhaustive) | A |
-| `/think pyramid [conclusion]` | `thinking-toolkit/pyramid-principle-output` | Top-line trước; reader có thể dừng ở bất cứ level nào | A |
-| `/think so-what [conclusion]` | `thinking-toolkit/so-what-test` | Buộc kết luận phải sống sót qua 2 lần "so what?" challenges | A |
-| `/think 2x2 <axis-x> <axis-y>` | `thinking-toolkit/2x2-synthesis-matrix` | Tổng hợp 4+ option trên 2 trục trực giao | A |
-| `/think driver-tree <metric>` | `thinking-toolkit/driver-tree-decomposition` | Phân rã target metric thành upstream driver có thể hành động | A |
+| `/think` | — | Show menu + composition flow + skill index | A |
+| `/think list` | — | Table of all 11 thinking frameworks (name, one-line, when to use) | A |
+| `/think flow [problem]` | — | Recommend a multi-skill sequence (TOSCA → MECE → driver-tree → 2x2 → pyramid → so-what) | A |
+| `/think mckinsey <problem>` | `thinking-toolkit/mckinsey-workflow` | Run a problem end-to-end through the McKinsey 4S spine (skills + concepts per step) (v1.3) | A |
+| `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` | Frame ambiguous problem via T/O/S/C/A before solutioning | A |
+| `/think mece [list]` | `thinking-toolkit/mece-decomposition-check` | 2-test quality gate on list/decomposition (overlap + exhaustive) | A |
+| `/think pyramid [conclusion]` | `thinking-toolkit/pyramid-principle-output` | Top-line first; reader can stop at any level | A |
+| `/think so-what [conclusion]` | `thinking-toolkit/so-what-test` | Force conclusion to survive 2× "so what?" challenges | A |
+| `/think 2x2 <axis-x> <axis-y>` | `thinking-toolkit/2x2-synthesis-matrix` | Synthesize 4+ options on 2 orthogonal axes | A |
+| `/think driver-tree <metric>` | `thinking-toolkit/driver-tree-decomposition` | Decompose target metric into actionable upstream drivers | A |
+| `/think hypothesis <problem>` | `thinking-toolkit/hypothesis-driven` | Falsify-first analysis sequencing + running one-day answer (v1.2) | A |
+| `/think premortem [decision]` | `thinking-toolkit/pre-mortem` | Assume it failed; work backward to why before committing (v1.2) | A |
+| `/think root-cause [symptom]` | `thinking-toolkit/root-cause` | Trace a CONFIRMED symptom to its fundamental cause — Five Whys, scoped (v1.2) | A |
+| `/think design-thinking <problem>` | `thinking-toolkit/design-thinking` | Generative path for human-centered problems: empathize→HMW→ideate→prototype (v1.2) | A |
+| `/think debias [decision]` | `thinking-toolkit/debias` | Pre-commit bias checklist — name the bias, apply the counter (v1.2) | A |
 
-Quy ước đối số:
-- Đối số vị trí (ví dụ `<problem>`, `<metric>`) được truyền tới skill như input chính.
-- Đối số trong ngoặc vuông tùy chọn (ví dụ `[list]`, `[conclusion]`) — nếu bỏ qua, skill sử dụng ngữ cảnh conversation gần nhất (reasoning trước đó của agent) như input.
-- Đối số nhiều từ có thể được đặt trong dấu ngoặc: `/think tosca "Why is free→paid conversion stalled at 8%?"`
+Argument conventions:
+- Positional args (e.g. `<problem>`, `<metric>`) are passed to the skill as the primary input.
+- Optional bracketed args (e.g. `[list]`, `[conclusion]`) — if omitted, the skill uses the most recent conversation context (the agent's prior reasoning) as input.
+- Multi-word args may be quoted: `/think tosca "Why is free→paid conversion stalled at 8%?"`
 
-## Quy trình cho từng động từ
+## Workflow per verb
 
-### `/think` (không có đối số)
+### `/think` (no args)
 
-In ra một menu compact:
+Print a compact menu:
 
 ```
-/think — McKinsey/Minto thinking discipline (6 skills, capability v1.1.0)
+/think — McKinsey/Minto thinking discipline (12 skills, capability v1.3.0)
 
-  tosca <problem>      Frame an ambiguous problem (T/O/S/C/A)
-  mece [list]          Check a list for overlap + exhaustive
-  pyramid [concl]      Structure output: top-line first
-  so-what [concl]      Force conclusion to action ("so what?" 2×)
-  2x2 <x> <y>          Synthesize 4+ options on 2 axes
-  driver-tree <metric> Decompose a metric into drivers
+  tosca <problem>        Frame an ambiguous problem (T/O/S/C/A)
+  mece [list]            Check a list for overlap + exhaustive
+  pyramid [concl]        Structure output: top-line first
+  so-what [concl]        Force conclusion to action ("so what?" 2×)
+  2x2 <x> <y>            Synthesize 4+ options on 2 axes
+  driver-tree <metric>   Decompose a metric into drivers
+  hypothesis <problem>   Falsify-first sequencing + one-day answer   (v1.2)
+  premortem [decision]   Assume it failed; find why before committing (v1.2)
+  root-cause [symptom]   Trace a confirmed symptom to its root        (v1.2)
+  design-thinking <prob> Generative path: empathize→HMW→prototype      (v1.2)
+  debias [decision]      Pre-commit bias checklist                     (v1.2)
 
   list                 Detailed table (when to use, pairs with)
   flow [problem]       Suggest multi-skill sequence
+  mckinsey <problem>   Run end-to-end via the McKinsey 4S spine        (v1.3)
 
 Spec: wiki/capabilities/thinking-toolkit/spec.md
 Skills: 06-ai-ops/skills/thinking-toolkit/
@@ -84,13 +94,13 @@ Skills: 06-ai-ops/skills/thinking-toolkit/
 
 ### `/think list`
 
-Đọc `06-ai-ops/skills/thinking-toolkit/README.md` và hiển thị bảng "What's in this folder". Tự động khám phá bất cứ framework mới nào được thêm bằng cách drop một SKILL.md dưới parent folder.
+Read `06-ai-ops/skills/thinking-toolkit/README.md` and render the "What's in this folder" table. Auto-discovers any new framework added by dropping a SKILL.md under the parent folder.
 
 ### `/think flow [problem]`
 
-Đề xuất quy trình multi-skill. Nếu cung cấp `[problem]`, điều chỉnh nhẹ; ngược lại hiển thị flow canonical.
+Recommend a multi-skill workflow. If `[problem]` provided, lightly tailor; otherwise show the canonical flow.
 
-Canonical flow (theo `06-ai-ops/skills/thinking-toolkit/README.md`):
+Canonical flow (per `06-ai-ops/skills/thinking-toolkit/README.md`):
 
 ```
 ambiguous problem
@@ -123,61 +133,61 @@ ambiguous problem
   ship
 ```
 
-Không phải mỗi quy trình đều dùng hết mọi skill. Lệnh bề mặt này như hướng dẫn; agent chọn những liên kết nào của chuỗi để gọi.
+Not every workflow uses every skill. The command surfaces this as guidance; the agent picks which links of the chain to invoke.
 
 ### `/think tosca <problem>`
 
-Gọi skill `thinking-toolkit/tosca-problem-framing` với `<problem>` làm input. Skill tạo ra một tài liệu T/O/S/C/A 1 trang. Agent viết output tới conversation; founder có thể tùy chọn `--to=<path>` để lưu vào file (v1.2 — deferred).
+Invoke `thinking-toolkit/tosca-problem-framing` skill with `<problem>` as input. The skill produces a 1-page T/O/S/C/A document. The agent writes the output to the conversation; founder may optionally `--to=<path>` capture to file (deferred — revisit post-v1.2).
 
 ```
 /think tosca "Why is free→paid conversion stalled at 8% despite 3x signup growth?"
 ```
 
-→ Output: Trouble / Owner / Success criteria / Constraints / Actors theo template `tosca-problem-framing`.
+→ Output: Trouble / Owner / Success criteria / Constraints / Actors per `tosca-problem-framing` template.
 
 ### `/think mece [list]`
 
-Gọi `thinking-toolkit/mece-decomposition-check`. Nếu cung cấp `[list]` làm inline arg, dùng trực tiếp; nếu không, áp dụng vào list-shaped output gần nhất trong conversation.
+Invoke `thinking-toolkit/mece-decomposition-check`. If `[list]` provided as inline arg, use directly; otherwise apply to the most recent list-shaped output in the conversation.
 
 ```
 /think mece "fixed-cost: rent, salaries, software; variable-cost: stripe-fees, ad-spend, vendor-payments"
 ```
 
-→ Output: Gate 2-test (overlap? exhaustive?) với gợi ý remediation nếu có.
+→ Output: 2-test gate (overlap? exhaustive?) with remediation suggestions if any.
 
 ### `/think pyramid [conclusion]`
 
-Gọi `thinking-toolkit/pyramid-principle-output`. Cấu trúc lại một đoạn/lập luận thành dạng top-line-first. Cặp bắt buộc với `so-what-test`.
+Invoke `thinking-toolkit/pyramid-principle-output`. Restructures a paragraph/argument to top-line-first form. Mandatory pair with `so-what-test`.
 
 ### `/think so-what [conclusion]`
 
-Gọi `thinking-toolkit/so-what-test`. Buộc một kết luận phải sống sót qua hai lần lặp "so what?". Output: hoặc là một kết luận được tăng cường hoặc là action item bị thiếu.
+Invoke `thinking-toolkit/so-what-test`. Forces a conclusion to survive two iterations of "so what?". Output: either a strengthened conclusion or the action item that was missing.
 
 ### `/think 2x2 <axis-x> <axis-y>`
 
-Gọi `thinking-toolkit/2x2-synthesis-matrix`. Vẽ 4+ item trên hai trục trực giao mà founder cung cấp.
+Invoke `thinking-toolkit/2x2-synthesis-matrix`. Plots 4+ items on the two orthogonal axes the founder supplies.
 
 ```
 /think 2x2 "founder-effort-required" "expected-MRR-uplift"
 ```
 
-→ Output: ma trận 2x2 với item được đặt trong quadrant, cộng với insight + recommendation mỗi quadrant.
+→ Output: 2x2 matrix with items placed in quadrants, plus per-quadrant insight + recommendation.
 
 ### `/think driver-tree <metric>`
 
-Gọi `thinking-toolkit/driver-tree-decomposition`. Phân rã một target metric thành upstream driver qua 5 loại logic-tree (theo Conn & McLean Ch 3).
+Invoke `thinking-toolkit/driver-tree-decomposition`. Decomposes a target metric into upstream drivers via the 5 logic-tree types (per Conn & McLean Ch 3).
 
 ```
 /think driver-tree "free_to_paid_conversion"
 ```
 
-→ Output: cây hiển thị driver được phân rã, MECE-checked, với khuyến nghị hành động ở lá cây.
+→ Output: tree showing decomposed drivers, MECE-checked, with action recommendations at the leaves.
 
 ## Composition
 
-### Với persona `/muse`
+### With `/muse` personas
 
-`/muse <persona>` dùng những lăng kính cognitive khác nhau (Feynman, Socrates, Kotler, etc.). `/think` dùng *output discipline* (cấu trúc, phân rã, kiểm tra kết luận). Chúng kết hợp tốt:
+`/muse <persona>` uses different cognitive lenses (Feynman, Socrates, Kotler, etc.). `/think` uses *output discipline* (structure, decomposition, conclusion testing). They compose well:
 
 ```
 /muse:paul-graham "Should we kill the Plus tier?"     # cognitive lens
@@ -186,94 +196,96 @@ Gọi `thinking-toolkit/driver-tree-decomposition`. Phân rã một target metri
 /think so-what                                         # force action item
 ```
 
-### Với `/cla propose`
+### With `/cla propose`
 
-`/cla propose` Phase 1 (problem-framer) gọi `tosca-problem-framing` một cách implicit. Dùng `/think tosca` standalone khi bạn muốn framing TOSCA MÀ KHÔNG kích hoạt toàn bộ CLA ceremony (ví dụ, exploratory thinking).
+`/cla propose` Phase 1 (problem-framer) invokes `tosca-problem-framing` implicitly. Use `/think tosca` standalone when you want TOSCA framing WITHOUT triggering full CLA ceremony (e.g., exploratory thinking).
 
-### Với `/office-hours`
+### With `/office-hours`
 
-`/office-hours` (gstack) startup mode buộc 6 câu hỏi. `/think tosca` là phiên bản nhẹ hơn khi bạn đã hiểu không gian bài toán nhưng cần framing có kỷ luật.
+`/office-hours` (gstack) startup mode forces 6 questions. `/think tosca` is the lighter version when you already know the problem space but need disciplined framing.
 
-### Với C-suite persona
+### With C-suite personas
 
-`@ceo` / `@cto` / `@cgo` / `@cpo` đã tham chiếu `pyramid-principle-output` + `so-what-test` là MANDATORY trong output contract của họ (theo file persona trong `.claude/agents/`). `/think pyramid` + `/think so-what` là những invocation *thủ công* — skill giống nhau, surface trực tiếp.
+`@ceo` / `@cto` / `@cgo` / `@cpo` already reference `pyramid-principle-output` + `so-what-test` as MANDATORY in their output contracts (per persona files in `.claude/agents/`). `/think pyramid` + `/think so-what` are the *manual* invocations — same skills, direct surface.
 
-## Khả năng mở rộng — thêm một khung tư duy mới
+## Extensibility — adding a new thinking framework
 
-Để thêm một framework mới (ví dụ, Cynefin sense-making, OODA loop, Wardley mapping):
+To add a new framework (e.g., Cynefin sense-making, OODA loop, Wardley mapping):
 
-1. **Tác giả skill** tại `06-ai-ops/skills/thinking-toolkit/<framework-slug>/SKILL.md`.
-   Theo cấu trúc đã thiết lập: frontmatter, when-to-use, when-NOT-to-use,
+1. **Author the skill** at `06-ai-ops/skills/thinking-toolkit/<framework-slug>/SKILL.md`.
+   Follow the established structure: frontmatter, when-to-use, when-NOT-to-use,
    how-to-apply, output format, ≥3 worked examples, composition notes,
    anti-claims, references.
 
-2. **Thêm một hàng** vào bảng "Subcommands" trên:
+2. **Add one row** to the "Subcommands" table above:
    ```
    | `/think <framework-slug> [arg]` | `thinking-toolkit/<framework-slug>` | <one-line purpose> | A |
    ```
 
-3. **Cập nhật `06-ai-ops/skills/thinking-toolkit/README.md`** với framework mới
-   trong bảng "What's in this folder".
+3. **Update `06-ai-ops/skills/thinking-toolkit/README.md`** with the new framework
+   in the "What's in this folder" table.
 
-4. **Sinh lại resolver catalog:**
+4. **Regenerate resolver catalog:**
    ```bash
    pnpm resolver:sync --apply
    pnpm resolver:index
    ```
 
-5. **MDX docs tự động sinh** qua docs-engine skill-adapter trên `/docs sync` tiếp theo.
+5. **Docs MDX auto-generates** via docs-engine skill-adapter on next `/docs sync`.
 
-6. **Commit + PR + merge.** Không cần `/cla` ceremony nếu pure-additive (theo `/cla extend` HITL B threshold).
+6. **Commit + PR + merge.** No `/cla` ceremony needed if pure-additive (per `/cla extend` HITL B threshold).
 
-Không có code changes tới `/think` command itself cho framework mới — bảng là registry.
+No code changes to `/think` command itself for new frameworks — the table is the registry.
 
-## Khi nào dữ liệu được lưu giữ
+## State persistence
 
-Mỗi invocation `/think <subcommand>` = một hàng `ops.agent_runs` (agent_slug=`thinking-toolkit/<skill-name>`). Cost-bucket: `ai-ops-skill-library`. LLM cost mỗi invocation: $0 (skills là guidance documents; LLM cost được ghi công vào reasoning budget hiện tại của agent gọi nó, không phải cost line `/think` riêng).
+Each `/think <subcommand>` invocation = single `ops.agent_runs` row (agent_slug=`thinking-toolkit/<skill-name>`). Cost-bucket: `ai-ops-skill-library`. Per-invocation LLM cost: $0 (skills are guidance documents; LLM cost is attributed to the calling agent's existing reasoning budget, not a separate `/think` cost line).
 
 ## Drift gates
 
-- `pnpm check` bao gồm `resolver-v2 catalog` validator — fails CI nếu skill mới được thêm nhưng catalog không được tái sinh.
-- Không có dedicated `/think` validator (command file là source of truth của chính nó).
+- `pnpm check` includes `resolver-v2 catalog` validator — fails CI if new skill added but catalog not regenerated.
+- No dedicated `/think` validator (command file is its own source of truth).
 
-## HITL kỷ luật
+## HITL discipline
 
-- Tất cả operations Tier A. Không HITL escalation trong bất cứ subcommand nào.
-- Đây là highest-frequency-acceptable-invocation surface trong workforce (founder có thể gọi `/think` hàng trăm lần mỗi tháng ở $0 LLM cost).
+- All operations Tier A. No HITL escalation in any subcommand.
+- This is the highest-frequency-acceptable-invocation surface in the workforce (founder can call `/think` hundreds of times per month at $0 LLM cost).
 
-## Lỗi
+## Errors
 
-- `UnknownSubcommandError` — argument không khớp với bất cứ verb nào trong bảng; hiển thị menu.
-- `SkillNotFoundError` — file skill tham chiếu bị mất trên disk (có nghĩa là catalog drift; đề xuất `pnpm resolver:sync`).
-- `MissingPositionalArgError` — positional bắt buộc (ví dụ, `<problem>` cho tosca) vắng mặt; in ra usage hint.
+- `UnknownSubcommandError` — argument doesn't match any verb in the table; show menu.
+- `SkillNotFoundError` — referenced skill file missing on disk (means catalog drift; suggest `pnpm resolver:sync`).
+- `MissingPositionalArgError` — required positional (e.g., `<problem>` for tosca) absent; print usage hint.
 
-## Ghi chú phòng ngừa
+## Defensive notes
 
-- Lệnh này KHÔNG thay thế việc đọc skill. Subcommand là *invocation* convenience; thinking discipline thực tế nằm trong file SKILL.md. Khuyến khích skim-then-pattern-match làm mất đi ý nghĩa.
-- Output mặc định là in-conversation (không file writes). `/think list` và `/think flow` là auto-discovery surface — chúng đọc README + skill folder trên disk. Chúng sẽ phản ánh bất cứ framework nào được thêm vào folder mà không cần edit command.
+- This command does NOT replace reading the skill. Subcommands are *invocation* convenience; the actual thinking discipline lives in the SKILL.md files. Encouraging skim-then-pattern-match defeats the point.
+- Output is by default in-conversation (no file writes). Future `--to=<path>` capture is deferred (revisit post-v1.2 if founder demands).
+- `/think list` and `/think flow` are auto-discovery surfaces — they read the README + skill folder on disk. They will reflect any framework added to the folder without command edits.
 
-## Lệnh liên quan
+## Related commands
 
-- `/muse <persona>` — cognitive-lens persona (góc nhìn khác trên cùng một bài toán).
-- `/cla propose` — full capability proposal (dùng tosca implicit trong Phase 1).
+- `/muse <persona>` — cognitive-lens personas (different angle on the same problem).
+- `/cla propose` — full capability proposal (uses tosca implicitly in Phase 1).
 - `/office-hours` (gstack) — YC-style problem interrogation.
-- `/core` — canonical doc surface (read-only reference tới charter/values/etc.).
+- `/core` — canonical doc surface (read-only reference to charter/values/etc.).
 
-## Tham chiếu spec
+## Spec reference
 
-Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v1.1.0).
+Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v1.3.0).
 Retrospective: `wiki/capabilities/thinking-toolkit/retrospective.md`.
 Sub-flow draft notes: `.archives/cla/thinking-toolkit/v1.1-extension-delta.md`.
 
-## Nguồn gốc
+## Origin
 
-Capability `thinking-toolkit` v1.0 (shipped 2026-05-28) tác giả 6 skill dưới
-`06-ai-ops/skills/thinking-toolkit/` distilled từ:
-- Garrette, Phelps & Sibony (2018) — *Cracked it!* — phương pháp 4S (State / Structure / Solve / Sell)
-- Conn & McLean (2018) — *Bulletproof Problem Solving* — phương pháp 7 bước
+Capability `thinking-toolkit` v1.0 (shipped 2026-05-28) authored 6 skills under
+`06-ai-ops/skills/thinking-toolkit/` distilled from:
+- Garrette, Phelps & Sibony (2018) — *Cracked it!* — the 4S method (State / Structure / Solve / Sell)
+- Conn & McLean (2018) — *Bulletproof Problem Solving* — 7-step method
 - Minto (1987) — *The Pyramid Principle*
 - BCG Growth-Share matrix (1970)
-- Descartes (1637) — *Discourse on the Method* — gốc MECE
+- Descartes (1637) — *Discourse on the Method* — MECE roots
 
-v1.1 (lệnh này, shipped 2026-05-28) thêm `/think` invocation surface — pure
-additive, zero changes tới underlying skill.
+v1.1 (this command, shipped 2026-05-28) adds the `/think` invocation surface — pure
+additive, zero changes to the underlying skills.
+
