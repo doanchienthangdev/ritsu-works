@@ -29,7 +29,7 @@ const { COST_TABLE, costQuality } = require('../../deepask/image-cost.cjs');
 const UNIVERSAL_PARAMS = Object.freeze([
   'prompt', 'use', 'ar', 'count', 'quality', 'resolution', 'seed', 'format',
   'ref', 'ref-style', 'ref-character', 'ref-strength', 'mask', 'negative',
-  'style', 'art-style', 'enhance', 'stylize', 'raw', 'variety', 'weird', 'tile',
+  'style', 'art-style', 'enhance', 'enhance-mode', 'stylize', 'raw', 'variety', 'weird', 'tile',
   'out', 'deck', 'background', 'safety', 'model', 'max-cost-usd', 'dry-run',
 ]);
 
@@ -235,7 +235,7 @@ function computeWarnings(caps, provided) {
   // `prompt-file` is read into options.prompt by gen.cjs (run()), so it IS honored —
   // warning "ignored" would be false and break the never-silent-drop / consequence-honest
   // contract. It belongs with `prompt`/`out`/`model`, not the generation-knob path.
-  const NEVER_WARN = new Set(['prompt', 'prompt-file', 'use', 'out', 'model', 'max-cost-usd', 'dry-run', 'quality', 'ar', 'count', 'format', 'style', 'art-style']);
+  const NEVER_WARN = new Set(['prompt', 'prompt-file', 'use', 'out', 'model', 'max-cost-usd', 'dry-run', 'quality', 'ar', 'count', 'format', 'style', 'art-style', 'enhance-mode', 'pro-max-base']);
   const warnings = [];
   for (const flag of provided) {
     if (NEVER_WARN.has(flag) || supports.has(flag)) continue;

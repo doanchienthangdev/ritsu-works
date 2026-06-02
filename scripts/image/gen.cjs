@@ -291,7 +291,11 @@ async function run(argv) {
     logo_overlay: overlayActive
       ? { applied: false, asset: overlayAsset, trigger_ref: refPaths[0], position: logoPolicy.position || 'top-left', scale: logoPolicy.scale, margin: logoPolicy.margin }
       : null,
-    enhance: Boolean(options.enhance), dry_run: Boolean(options['dry-run']),
+    enhance: Boolean(options.enhance), enhance_mode: options['enhance-mode'] || null, dry_run: Boolean(options['dry-run']),
+    // v0.4 --use=pro-max: the in-session pro-max enhance passes the chosen community base's
+    // attribution (@author · tweet · title) via --pro-max-base; recorded here for audit (the
+    // upstream skill's license requires citing prompt authors).
+    pro_max: options['pro-max-base'] ? { base: String(options['pro-max-base']) } : null,
     cost_usd: totalCost, is_estimate: true, breaker_tripped: false, max_cost_usd: maxCost,
     warnings, error: null, files: [],
   };

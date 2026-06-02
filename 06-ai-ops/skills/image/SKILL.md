@@ -36,7 +36,8 @@ Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a bac
 | `--use` | Adapter | Status | Generator |
 |---|---|---|---|
 | `gpt-image-2` *(default)* | `adapters/gpt-image-2` | installed | `scripts/image/gen.cjs` |
-| `gpt-image-2-pro-max` | `adapters/gpt-image-2` (preset) | installed | `gen.cjs` + `--enhance --quality=high` |
+| `pro-max` *(v0.4)* | `adapters/gpt-image-2` (preset) | installed | `gen.cjs` + `--enhance --enhance-mode=pro-max --quality=high` |
+| `gpt-image-2-pro-max` | alias of `pro-max` | installed | same as `pro-max` |
 | `nano-banana` | — | registered-not-built | (stub → `not_built` error) |
 | `midjourney` | — | registered-not-built | (stub → `not_built` error) |
 | `flux` | — | registered-not-built | (stub → `not_built` error) |
@@ -46,7 +47,7 @@ Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a bac
 ## Run flow
 
 1. **Parse** flags (`params.cjs`). Resolve `--use` against the registry.
-2. **(optional) `--enhance`** → dispatch to `image/enhance` (in-session prompt refinement; subscription billing; NEVER an external API). Records `prompt_enhanced` (before/after) for `run.json`.
+2. **(optional) `--enhance` / `--use=pro-max`** → dispatch to `image/enhance` (in-session prompt refinement). **Two modes:** (a) **generic** (`--enhance`) = pure in-session rewrite; (b) **pro-max** (`--use=pro-max` / `--enhance-mode=pro-max`, v0.4) = the vendored `gpt-image-2-pro-max` media-designer loop — `scripts/image/pro-max/search.cjs` searches the hosted community-prompt corpus (free, key-less; `external-source/gpt-image-2-prompts-backend`), picks a mood-aligned base, refactors + resolves it WITH author attribution, and falls back to generic if the backend is unreachable. Records `prompt_enhanced` (before/after) + the chosen base into `run.json` (`pro_max.base` via `--pro-max-base`). The enhanced prompt is the **content brief only** — brand/genre/logo are still the deterministic blocks below.
 3. **`--style` / `--art-style` → gen.cjs** (v0.2: composition is now **deterministic**, not in-session). The command just passes the flags; `scripts/image/gen.cjs` calls `scripts/image/lib/compose.cjs`, which:
    - **BRAND block** — `resolveStyle(--style)` (`scripts/design-system/resolve-style.cjs`) injects the DESIGN.md palette / typography / personality. Omitted or uncached (non-interactive AD-3 miss) → plain + warn, never crash.
    - **GENRE block** — `resolveArtStyle(--art-style)` (`scripts/deepask/art-style.cjs`) → `assets` (the lever — concrete objects to DRAW) + layout / tone / display + a SECONDARY accent only.
@@ -65,4 +66,4 @@ Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a bac
 - **`--ref`/`--mask`** (v0.2): reference-guided generation via the `/v1/images/edits` multipart endpoint (`gen.cjs callOpenAiEdit`) — `--ref=<image[,image2]>`, optional `--mask=<png>` inpaint region.
 
 ## Composes with
-`scripts/image/{gen,lib/params,lib/compose,lib/png-overlay}.cjs` · `scripts/design-system/resolve-style.cjs` · `scripts/deepask/art-style.cjs` · `deepask/image-compose` (§1/§1b technique) · `deepask/aesthetic` (Part 3) · `knowledge/{image-adapters,design-systems,art-styles}.yaml` · `00-core/design-system/ritsu/DESIGN.md` (`logo:` overlay policy).
+`scripts/image/{gen,lib/params,lib/compose,lib/png-overlay,pro-max/search}.cjs` · `scripts/design-system/resolve-style.cjs` · `scripts/deepask/art-style.cjs` · `deepask/image-compose` (§1/§1b technique) · `deepask/aesthetic` (Part 3) · `knowledge/{image-adapters,design-systems,art-styles,external-sources}.yaml` · `00-core/design-system/ritsu/DESIGN.md` (`logo:` overlay policy) · `vendor/gpt-image-2-pro-max/` (the MIT media-designer skill — v0.4 `--use=pro-max`).

@@ -156,3 +156,28 @@ sources:
     invoke_pattern: "`mcp__gbrain__{search,recall,query,get_page,list_pages,put_page,traverse_graph,think,find_anomalies,find_experts,code_callees,...}` — 74 MCP tools auto-loaded when the gbrain MCP server is running."
     availability: "when the gbrain MCP server is running (started via runtime/brain/ install scripts)"
     status: active
+
+  # -------------------------------------------------------------------------
+  # IMAGE / PROMPT TOOLING — gpt-image-2-pro-max hosted prompt corpus
+  # -------------------------------------------------------------------------
+  - id: gpt-image-2-prompts-backend
+    source_type: api
+    description: |
+      Hosted community-prompt corpus behind the vendored gpt-image-2-pro-max
+      skill (therichardngai-code, MIT — vendor/gpt-image-2-pro-max/). A
+      key-less, FREE, read-only BM25 search API over ~7,405 community-vetted
+      GPT-Image prompts (+ 9,903 reference images) across 10 facet vocabularies.
+      Powers /image --use=pro-max: the in-session media-designer enhance loop
+      searches it for a mood-aligned base prompt, then refactors + resolves it
+      (with mandatory author attribution) before generation on our governed
+      gpt-image-2. Same governance lane as a web search — NO credential, rate-
+      limited per IP; send ONLY non-sensitive creative briefs (never PII /
+      user data / secrets). Endpoints: GET /search?q=&n=&shape=&has_image=,
+      GET /vocab/<facet>. Default host https://gpt-image-2-prompts.goclawoffice.com
+      (overridable via $PROMPTS_API). Graceful fallback: if unreachable, /image
+      --use=pro-max degrades to the generic in-session --enhance + a warning.
+    auth_env: null
+    role_scope: ['*']
+    invoke_pattern: "`node scripts/image/pro-max/search.cjs \"<facet+free-text>\" [--shape <s>] -n 5 --json` — called by the in-session image/enhance pro-max mode; thin Node client re-implementing the vendored search.py over the same hosted backend."
+    availability: "public internet reachable; rate-limited per IP. Override host with $PROMPTS_API."
+    status: active

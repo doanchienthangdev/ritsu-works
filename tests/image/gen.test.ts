@@ -261,3 +261,50 @@ describe("run() — v0.3 brand logo overlay (no-network dry_run paths)", () => {
     expect(r.warnings.some((w: string) => /overlay needs PNG/.test(w))).toBe(true);
   });
 });
+
+// v0.4 — --use=pro-max retrieval-augmented preset (the gpt-image-2-pro-max backend).
+describe("run() — v0.4 pro-max preset (no-network dry_run)", () => {
+  const REF = path.resolve(__dirname, "../../00-core/design-system/ritsu/assets/ritsu-logo.png");
+
+  it("resolveAdapter('pro-max') → target gpt-image-2 + enhance/enhance-mode/quality preset flags", () => {
+    const adapters = loadRegistry();
+    const r = resolveAdapter(adapters, "pro-max");
+    expect(r.error).toBeUndefined();
+    expect(r.target.id).toBe("gpt-image-2");           // preset_of resolves to the real backend
+    expect(r.presetFlags.enhance).toBe(true);
+    expect(r.presetFlags["enhance-mode"]).toBe("pro-max");
+    expect(r.presetFlags.quality).toBe("high");
+  });
+
+  it("'gpt-image-2-pro-max' long-form alias resolves to the same preset", () => {
+    const adapters = loadRegistry();
+    const r = resolveAdapter(adapters, "gpt-image-2-pro-max");
+    expect(r.target.id).toBe("gpt-image-2");
+    expect(r.presetFlags["enhance-mode"]).toBe("pro-max");
+  });
+
+  it("--use=pro-max (dry_run) → run.json enhance_mode=pro-max + quality high, no spurious warnings", async () => {
+    const out = path.join(TMP, "pro-max");
+    const r = await run(["--prompt=cosmetics livestream ad ring light", "--use=pro-max", "--dry-run", `--out=${out}`]);
+    expect(r.ok).toBe(true);
+    const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
+    expect(rj.adapter).toBe("gpt-image-2");
+    expect(rj.enhance).toBe(true);
+    expect(rj.enhance_mode).toBe("pro-max");
+    expect(rj.quality).toBe("high");
+    expect(r.warnings).toEqual([]); // enhance-mode is supported / never-warn — no papercut
+  });
+
+  it("--pro-max-base attribution is recorded in run.json.pro_max, and composes with --style + --ref", async () => {
+    const out = path.join(TMP, "pro-max-compose");
+    const r = await run([
+      "--prompt=exam prep poster", "--use=pro-max", "--style=ritsu", `--ref=${REF}`,
+      "--pro-max-base=@Daniel · https://x.com/x/1 · SaaS AI Dashboard", "--dry-run", `--out=${out}`,
+    ]);
+    const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
+    expect(rj.pro_max).toEqual({ base: "@Daniel · https://x.com/x/1 · SaaS AI Dashboard" });
+    expect(rj.style).toBe("ritsu");                       // pro-max composes with the brand
+    expect(rj.logo_overlay.asset).toMatch(/ritsu-lockup\.png$/); // ...and the corner lockup
+    expect(r.warnings).toEqual([]);
+  });
+});
