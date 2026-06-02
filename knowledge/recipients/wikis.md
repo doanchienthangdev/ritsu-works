@@ -7,10 +7,36 @@
 This file is THE source of truth for wiki recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/wikis.md` import.
 
-**Total entries:** 4
+**Total entries:** 7
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
+
+## wiki/bulletproof-problem-solving
+
+**Kind:** wiki
+**Axis:** content
+**When to use:** <!-- generated-by: wiki-sync v4.0 (Claude-walked, distill mode, autonomous batch 2026-06-02) -->
+
+**Invoke:** `Read("wiki/bulletproof-problem-solving/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "bulletproof-problem-solving"})`
+**Authority:** derived-memory
+**Freshness:** unknown
+
+**Role scope:** *
+**Status:** active
+
+## wiki/cracked-it
+
+**Kind:** wiki
+**Axis:** content
+**When to use:** <!-- generated-by: wiki-sync v4.0 (Claude-walked, distill mode, autonomous batch 2026-06-02) -->
+
+**Invoke:** `Read("wiki/cracked-it/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "cracked-it"})`
+**Authority:** derived-memory
+**Freshness:** unknown
+
+**Role scope:** *
+**Status:** active
 
 ## wiki/growth-playbook-fixture
 
@@ -58,6 +84,19 @@ Read in any Claude Code session via `@knowledge/recipients/wikis.md` import.
 **When to use:** Stub source RECORD created by scripts/wiki-sync/migrate-to-v4.cjs during the v3.0→v4.0 layout migration. The single derived entity wiki/sample/concepts/spaced-repetition.md references this page via its extractedfromsource frontmatter and ops.knowledgepages.extractedfromsourceid FK.
 
 **Invoke:** `Read("wiki/sample/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "sample"})`
+**Authority:** derived-memory
+**Freshness:** unknown
+
+**Role scope:** *
+**Status:** active
+
+## wiki/the-north-star-playbook
+
+**Kind:** wiki
+**Axis:** content
+**When to use:** <!-- generated-by: wiki-sync v4.0 (Claude-walked, distill mode, autonomous batch 2026-06-02) -->
+
+**Invoke:** `Read("wiki/the-north-star-playbook/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "the-north-star-playbook"})`
 **Authority:** derived-memory
 **Freshness:** unknown
 
