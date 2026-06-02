@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 19
+**Total entries:** 20
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -216,6 +216,25 @@ self-improvement capability per wiki/capabilities/evolve/spec.md.
 **When to use:** Promote a slice of latent wiki knowledge into a runnable skill — need-driven + citation-disciplined. GATES (5-gate anti-over-build funnel, default REJECT) then ROUTES (extend → /update | net-new → pure delegation into /cla propose), delegating every build. Thin orchestrator ABOVE /cla + /update (deepask precedent, zero own routing); bound to gps; holds zero entity_edit_locks. --dry-run shows route + gate verdicts + cost before any spend. Founder-only. Capability book-to-capability v0.1.
 
 **Invoke:** `/forge`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/image
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Generate an image from a prompt — model-agnostic front door with a pluggable
+adapter layer (--use=<adapter>). Default backend gpt-image-2 (in-repo, governed).
+Universal sensibly-defaulted params (--ar --tier --count --format --style brand
+--art-style genre --enhance --max-cost-usd --dry-run --out …); unsupported params
+WARN, never silently drop. Reuses the deepask image helpers + both style axes.
+Tier A; per-run --max-cost-usd breaker; OPENAI_API_KEY out-of-band; artifacts to
+.archives/image/<date>-<slug>/. Thin orchestrator over the `image` umbrella skill.
+
+**Invoke:** `/image`
 **HITL tier:** A
 **Side effect:** none
 

@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 100
+**Total entries:** 103
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1140,6 +1140,71 @@ Invoked by orchestrators in Phase 7.
 **When to use:** > The judgment engine — and the whole point of /forge. It exists to say no > as often as yes: a wrong "build" is expensive + sticky; a wrong "don't build" > is cheap (knowledge stays latent, still RAG-able via wikiask). Default REJECT. > Spec: .archives/cla/book-to-capability/spec.md §2.2.
 
 **Invoke:** `Skill({ skill: "forge/selection-funnel" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/image
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Umbrella for the image-platform capability — the `/image` command's brain.
+A model-agnostic image-generation front door with a pluggable adapter layer
+(`--use=<adapter>`), so new image models plug in WITHOUT command-side code
+change (mirrors docs-engine/wiki-sync: umbrella + adapters/<id>/ + routing
+table). v0.1 ships ONE real backend (gpt-image-2, reusing the in-place deepask
+helpers — deepask untouched) + gpt-image-2-pro-max preset + nano-banana/
+midjourney/flux registered-not-built stubs. Composes the final prompt from the
+user prompt + the two orthogonal style axes (`--style` brand via
+design-systems.yaml, `--art-style` genre via art-styles.yaml) + art-direction,
+then runs scripts/image/gen.cjs (out-of-band OpenAI). Tier A; per-run
+--max-cost-usd breaker. Invoked by `.claude/commands/image.md`.
+
+**Invoke:** `Skill({ skill: "image" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/image/adapters/gpt-image-2
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The one real image-platform adapter (v0.1) — OpenAI gpt-image-2. Maps the
+universal /image params to gpt-image-2 native params and runs
+scripts/image/gen.cjs (which require()s the in-place deepask helpers —
+deepask untouched). Flexible native sizing (--ar → ×16-edge size, AR≤3:1,
+edge<3840, no in-range crop). quality=low|medium|high via --tier. png/jpeg/webp.
+NO seed (warns). --ref/--mask = Phase-7 stretch (edits endpoint). gpt-image-2-pro-max
+is a PRESET of this adapter (= --enhance --tier=high). Billing: OPENAI_API_KEY
+out-of-band. Adapter contract: {ok, files[], model, cost_usd, warnings[]}.
+
+**Invoke:** `Skill({ skill: "image/adapters/gpt-image-2" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/image/enhance
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Optional in-session prompt-refinement stage for /image (the "gpt-image-2-pro-max"
+concept, reframed). Takes the user's raw prompt + the resolved --style/--art-style
+context and rewrites it into a richer, more specific image-generation prompt
+BEFORE the brand/genre/art-direction blocks are appended. Runs IN-SESSION
+(Claude, subscription billing) — NEVER routed through an external API. Records
+before/after into run.json.prompt_enhanced. Cost-bucket ai-ops-image task_kind
+image-enhance (hook-enforced, cap $0.10). NO image generation here — pure text.
+
+**Invoke:** `Skill({ skill: "image/enhance" })`
 **HITL tier:** B
 **Side effect:** write
 
