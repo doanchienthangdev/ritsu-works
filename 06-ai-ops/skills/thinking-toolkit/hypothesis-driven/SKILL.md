@@ -1,0 +1,142 @@
+---
+name: thinking-toolkit/hypothesis-driven
+description: |
+  Use to SEQUENCE an analysis when you already have a credible hunch.
+  State the hunch as a single falsifiable sentence, define up front what
+  evidence would DISPROVE it, run the killing analyses first, and keep a
+  running "one-day answer" so you always have a current best guess. This
+  is analysis sequencing — NOT problem framing (that's tosca-problem-framing)
+  and NOT tree structure (that's driver-tree-decomposition).
+
+  Trigger conditions: /cla phase 4 options work; any "we think X is
+  happening" investigation; debugging where one cause is most likely;
+  time-pressured analysis where you can't boil the ocean; weekly funnel
+  diagnosis with a leading suspicion.
+
+  Skip when: you have NO credible hunch (use issue-driven / driver-tree to
+  enumerate exhaustively instead); the problem isn't framed yet (run tosca
+  first); stakes are high AND your hunch is weak (issue-driven leaves no
+  stone unturned).
+
+  Cost: zero LLM (guidance document). Saves hours by testing the load-bearing
+  belief first instead of analyzing everything. Pairs naturally with debias
+  (confirmation bias is its failure mode); Step 2 (define disproof criteria
+  first) is the built-in guard.
+allowed-tools: []
+disable-model-invocation: false
+---
+
+# Hypothesis-Driven Approach (falsify-first sequencing)
+
+> Start with a falsifiable best guess, then hunt for what would KILL it — not what would confirm it. Always carry a one-day answer.
+
+This skill is the **analysis-sequencing** discipline: when you have a credible hunch, don't investigate everything — state the hunch explicitly, define what would disprove it, and run those disproving analyses first. It is the opposite of open-ended "gather all the data and see what emerges."
+
+The premise (Conn & McLean): constraining scope with an explicit hypothesis makes problem solving *more accurate and speedy* — but only if you actively try to break the hypothesis rather than defend it. That caveat is the whole game.
+
+## Authentic sources
+
+Anchored in two McKinsey-derived textbooks (both in `raw/mckinsey/`):
+
+- **Conn & McLean, *Bulletproof Problem Solving*** (Wiley, 2018) — **Chapter 1** (pp. 31-60). The hypothesis is *not* a conclusion — it surfaces the arguments that would disprove or support it, with the support criteria defined up front. Direct quote: *"Rob knows that constraining the scope of the problem with clear boundaries makes problem solving more accurate and speedy."* The **one-day answer** discipline (pp. 31-60, reprised Ch 7 pp. 209-224): *"We often use the expression, 'What's the one-day answer?' This means we ask our team to have a coherent summary of our best understanding of the problem and a solution path at any point in the project, not just at the end."* And: *"This process of creating active hypotheses is at the heart of Bulletproof Problem Solving."* The one-day answer is structured **situation–observation–resolution (SOR)** and is *constantly pressure-tested* against incoming analyses.
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (Palgrave Macmillan, 2018) — **Chapter 5** (pp. 86-110). Contrasts the **hypothesis-driven** path (the *hypothesis pyramid* — zeroes in on the key analyses that prove or disprove your hunch) with the **issue-driven** path (the *issue tree* — "leaves no stone unturned"). Hypothesis-driven is faster but riskier; issue-driven is thorough but slower. Cracked it! Ch 3 also names the failure mode head-on: **confirmation bias** is *"the primary pitfall of hypothesis-driven problem solving."*
+
+## Core principle — hypothesis-driven vs issue-driven (Cracked it! Ch 5)
+
+Two ways to structure a problem. Pick deliberately:
+
+| | Hypothesis-driven (this skill) | Issue-driven (use driver-tree / mece) |
+|---|---|---|
+| Shape | Hypothesis pyramid — a hunch + the analyses that test it | Issue tree — every sub-question, no preconception |
+| Speed | Fast (tests the load-bearing belief first) | Slow (exhaustive) |
+| Use when | Credible hunch + time pressure | Weak/no hunch + high stakes + time to be thorough |
+| Risk | Confirmation bias (you defend the hunch) | Boil-the-ocean (you analyze everything) |
+
+If you have a strong hunch, hypothesize. If you'd be guessing, enumerate the tree instead. This skill is the first column.
+
+## When to use
+
+**Recommended:**
+- `/cla` phase 4 (options) — state the recommended option as a hypothesis, then attack it
+- Weekly funnel / metric diagnosis where you have a leading suspicion ("the 7-day cliff, not price")
+- Debugging where one root cause is most likely (pair with `root-cause`)
+- Any time-boxed analysis — hypothesis-driven is how you finish on time
+
+**Strongly recommended:** run `debias` (confirmation-bias guard) alongside — though Step 2 (define disproof criteria first) is the built-in guard. The entire value of hypothesis-driven collapses if you seek confirming evidence.
+
+## When NOT to use
+
+- **No credible hunch** → you'd be guessing. Use `driver-tree-decomposition` / issue-tree to enumerate exhaustively first.
+- **Problem not yet framed** → run `tosca-problem-framing` first. You can't hypothesize an answer to an undefined problem.
+- **High stakes + weak hunch** → issue-driven "leave no stone unturned" beats a fast-but-fragile hypothesis.
+- **Confirmation bias unmanaged** → if you can't honestly try to disprove your own hunch, don't use this; you'll just rationalize.
+
+**Anti-pattern: hypothesis-as-conclusion.** A hypothesis is a *bet you're trying to lose*, not a conclusion you're defending. The moment you stop looking for disconfirming evidence, you've abandoned the method.
+
+## How to apply
+
+### Step 1 — State the hypothesis as one falsifiable sentence
+It must be specific enough that evidence could prove it WRONG.
+- Weak: "Conversion is a problem." (not falsifiable)
+- Strong: "Free→paid conversion is gated by the 7-day inactivity cliff, NOT by price."
+
+### Step 2 — Define disproof criteria UP FRONT
+Before looking at data, write: *"This hypothesis is dead if I see ___."*
+- "Dead if: users who return within 7 days convert at the same rate as those who don't."
+
+### Step 3 — List the 2-3 analyses most likely to DISPROVE it
+Not confirm. The fastest path to truth is the analysis that could kill the hunch.
+- "Cohort: 7-day-returners vs non-returners, conversion delta." (the killing analysis)
+
+### Step 4 — Run the killing analyses first
+If the hunch survives the analysis most likely to break it, confidence jumps. If it dies, you saved the time you'd have spent confirming.
+
+### Step 5 — Keep a one-day answer (SOR), always current
+At any moment you should be able to state: **Situation** (where we are) → **Observation** (what the analyses show so far) → **Resolution** (current best answer). Update it as each analysis lands. This is the seed of the eventual `pyramid-principle-output`.
+
+### Step 6 — If disproved, restate — don't cling
+A killed hypothesis is a *win* (you learned fast). Restate a new one and repeat. Clinging = confirmation bias.
+
+## Worked examples
+
+### Example 1 — GOOD (funnel diagnosis)
+**Hypothesis:** "Free→paid conversion is gated by the 7-day inactivity cliff, not by price."
+**Dead if:** 7-day-returners convert at the same rate as non-returners.
+**Killing analysis (run first):** cohort conversion of returners vs non-returners.
+**One-day answer (day 1):** *Situation:* conversion stuck at 8%. *Observation:* returners convert 4× non-returners. *Resolution:* hunch SURVIVES — attack the 7-day cliff (reactivation), de-prioritize the pricing experiment.
+**Why good:** tested the belief that could be wrong, first; carried a current answer from day 1; didn't touch price until the cliff hypothesis was confirmed.
+
+### Example 2 — ANTI-PATTERN (confirmation-seeking)
+**Hypothesis:** "Users churn because onboarding is too long."
+**What the analyst did:** pulled 5 quotes from churned users complaining onboarding was long. Declared victory.
+**Why anti-pattern:** never looked at users who finished onboarding (did THEY stay?), never defined disproof. This is confirmation bias wearing a hypothesis costume. **Fix:** define "dead if" first (e.g., "dead if onboarding-completers churn at the same rate"), then run THAT.
+
+### Example 3 — EDGE CASE (wrong tool — no hunch)
+**Situation:** "MRR is below plan and we have no idea why."
+**Verdict:** No credible hunch → hypothesis-driven is the WRONG tool. Use `driver-tree-decomposition` to enumerate MRR drivers (new vs expansion vs churn vs contraction) exhaustively, find where the gap is, THEN hypothesize on that branch. Hypothesis-driven is a scalpel; this needs the map first.
+
+## Composition notes
+
+- **With `driver-tree-decomposition`:** the tree enumerates branches; hypothesis-driven picks WHICH branch to test first (the one your hunch says is load-bearing). Tree = breadth, hypothesis = depth-first on the likely branch.
+- **With `tosca-problem-framing`:** TOSCA frames the problem (upstream); hypothesis-driven sequences the analysis (downstream). Never hypothesize before framing.
+- **With `debias`:** strongly recommended. Confirmation bias is the named failure mode (Cracked it! Ch 3); hypothesis-driven's Step 2 builds in the core guard.
+- **With `root-cause`:** when the hypothesis is about WHY a symptom occurred, root-cause is the technique to test it.
+- **With `pyramid-principle-output`:** the one-day answer (SOR) IS the seed of the eventual pyramid top-line.
+- **With `pre-mortem`:** pre-mortem the recommended option; the failure modes it surfaces become hypotheses to test.
+
+## References
+
+Primary (in `raw/mckinsey/`):
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 1** (pp. 31-60, hypothesis-driven approach + one-day answer + SOR) and **Chapter 7** (pp. 209-224, pressure-testing the one-day answer).
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 5** (pp. 86-110, hypothesis pyramid vs issue tree) and **Chapter 3** (confirmation bias as the primary pitfall).
+
+Supporting:
+- Distilled wiki concepts: `wiki/bulletproof-problem-solving/concepts/hypothesis-driven-approach.md`, `.../one-day-answer.md`; `wiki/cracked-it/concepts/hypothesis-driven-vs-issue-driven.md`, `.../hypothesis-pyramid.md`.
+
+## Anti-claims
+
+- A hypothesis is NOT a conclusion. It's a bet you actively try to lose.
+- This is NOT for problem framing — TOSCA owns that. Hypothesis-driven sequences analysis AFTER the problem is framed.
+- This does NOT replace evidence. It tells you which evidence to gather first, not what to believe without it.
+- "Run the killing analysis first" is the discipline; confirmation bias is the ever-present failure mode → always pair with `debias`.

@@ -39,7 +39,7 @@ const KIND_ORDER = [
   'page', 'view', 'metric', 'runbook', 'external-source',
 ];
 
-const MAX_SUMMARY_CHARS = 100;
+const MAX_SUMMARY_CHARS = 94;  // v3.0.x: tightened 100→94 to keep INDEX under the 15000-token ambient hard cap after thinking-toolkit v1.2 added 5 skills (108 skill entries). The cap is a context-discipline guardrail (INDEX loads ambient every session); tightening per-entry truncation is the design-sanctioned relief valve over raising the cap.
 const SHORT_FIRST_SENTENCE_THRESHOLD = 60;  // v3.0.1: if first sentence shorter than this, try to include 2nd
 const TOKEN_HARD_CAP = 15000;
 const TOKEN_TARGET = 12000;

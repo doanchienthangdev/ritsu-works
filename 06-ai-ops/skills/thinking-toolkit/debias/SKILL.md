@@ -1,0 +1,125 @@
+---
+name: thinking-toolkit/debias
+description: |
+  Use as a pre-commit checklist on any consequential analysis, hypothesis,
+  or recommendation. Run the decision through the named cognitive biases;
+  for each one that fires, apply its counter (often another thinking-toolkit
+  skill) before sending. One checklist that wraps the whole bias catalogue —
+  not 28 separate skills. Recognition is the debiasing; you can't fix a bias
+  you can't name.
+
+  Trigger conditions: before committing any hypothesis-driven conclusion
+  (confirmation bias is its named failure mode); before any HITL Tier C/D
+  decision; final-stage check on options memos, capability specs, and
+  C-suite persona recommendations; whenever a conclusion feels "obviously
+  right" (that feeling is the warning).
+
+  Skip when: pure factual lookup; reversible low-stakes decision; the output
+  is raw data with no judgment.
+
+  Cost: zero LLM (guidance document). ~3-5 min that catches the expensive
+  error analysis can't — the one in your own reasoning.
+allowed-tools: []
+disable-model-invocation: false
+---
+
+# Debias Checklist (name the bias, apply the counter)
+
+> You cannot correct a bias you cannot name. Run the decision through the catalogue; for each bias that fires, apply its counter before you commit.
+
+The other thinking-toolkit skills structure *thinking* and *output*. This one guards the *thinker*. The biases below are not trivia — they are the documented, recurring failure modes of exactly the analytical work the rest of the toolkit produces. The discipline is operational: a **checklist you run against a specific decision**, not a list you read once.
+
+This is deliberately ONE skill, not 28. The wiki holds ~28 distilled bias/pitfall concepts; turning each into a command would bury the toolkit. Instead, this checklist *wraps* them — and where a counter is another skill, it points there.
+
+## Authentic sources
+
+- **Conn & McLean, *Bulletproof Problem Solving*** (Wiley, 2018) — **Chapter 4** (pp. 117-140), citing Kahneman & Lovallo, names **five core biases** as the ones most worth addressing — *"Most other described biases are forms of these five"*: **confirmation bias** (*"falling in love with your one-day answer... the failure to seriously consider the antithesis to your thesis"*), **anchoring**, **loss aversion / sunk-cost**, **availability bias** (*"use of an existing mental map because it is readily at hand, rather than developing a new model for a new problem"*), and **overoptimism**.
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (Palgrave Macmillan, 2018) — **Chapter 3** on **confirmation bias** as the primary pitfall of hypothesis-driven work: *"we are much more likely to seek evidence that confirms our hypotheses... than we are to search for, and pay attention to, disconfirming evidence"* / *"Man prefers to believe what he prefers to be true."* And **Chapter 6** on the **framework-as-hammer** trap: *"The danger is that when we apply frameworks routinely and unquestioningly, we lose sight of the assumptions embedded in them"* / *"A way of seeing is also a way of not seeing"* / *"To a man with a hammer, everything looks like a nail."*
+
+- **Kahneman, D. (2011). *Thinking, Fast and Slow*** — the System-1/System-2 account underneath all of the above, including **WYSIATI** ("what you see is all there is").
+
+## The checklist
+
+Run each row against your current analysis/recommendation. If the "tell" matches, you're likely in that bias — apply the counter before committing.
+
+| Bias | The tell (how to spot you're in it) | The counter |
+|---|---|---|
+| **Confirmation** | You're listing evidence FOR your view; you haven't tried to break it | State disproof criteria first (`hypothesis-driven`); actively seek the antithesis |
+| **Overoptimism** | No failure scenario considered; plan assumes things go right | Run a `pre-mortem`; model the downside explicitly |
+| **Anchoring** | Estimates cluster around the first number you saw | Re-estimate from a different starting point; question the anchor's relevance |
+| **Availability** | "This is just like [the most recent/memorable case]" | Ask what's DIFFERENT about THIS problem; build a fresh model, don't reuse the nearest map |
+| **Loss aversion / sunk-cost** | "We've already invested X, we can't stop now" | Decide as if starting fresh today; past spend is gone either way |
+| **Framework-as-hammer** | Reaching for your favorite tool regardless of fit | Try a SECOND lens (e.g. `2x2-synthesis-matrix`, or a different framework — cf. wiki `multiple-frameworks-discipline`); "a way of seeing is a way of not seeing" |
+| **WYSIATI** | Judging only on the data in front of you | Name the unknowns: "what would I need to know to be wrong?" |
+| **Narrow framing** | The choice is binary ("X or not-X") | Force a third option; use `2x2-synthesis-matrix` to widen the space |
+| **Survivorship** | Studying only winners / responders | Where are the failures, the churned, the non-responders? Look there |
+| **Groupthink** (panels) | Quick consensus, no dissent voiced | Independent generation first (`pre-mortem` step 2; muse-panel obligation-to-dissent) |
+
+## When to use
+
+- **Mandatory pair with `hypothesis-driven`** — confirmation bias is its documented primary failure mode.
+- Before any HITL **Tier C/D** decision (alongside `pre-mortem`).
+- Final-stage check on options memos, `/cla` specs, and C-suite persona recommendations.
+- **Whenever a conclusion feels "obviously right."** That feeling is System-1; it's the single best trigger for this checklist.
+
+## When NOT to use
+
+- Pure factual lookups (no judgment to bias).
+- Reversible, low-stakes decisions (the cost of being wrong is a quick redo).
+- Raw data pass-through with no interpretation.
+
+**Anti-pattern: debias theater.** Reciting "we considered our biases" without changing anything is itself a bias (overconfidence dressed as rigor). A real debias pass either changes the conclusion, adds a check, or records the bias as consciously accepted.
+
+## How to apply
+
+### Step 1 — Pick the decision/conclusion to test
+One specific recommendation or analysis you're about to commit. Not a vague "are we biased?"
+
+### Step 2 — Run the checklist (top to bottom)
+For each row, honestly ask "does the tell match?" Be specific — "yes, I only have confirming evidence" beats "no, I'm objective" (that answer is itself confirmation bias).
+
+### Step 3 — For each bias that fires, apply its counter
+The counter is an action, not an acknowledgment. If confirmation fires → actually go find disconfirming evidence. If overoptimism fires → actually run a pre-mortem.
+
+### Step 4 — Re-state the conclusion
+After applying counters, the conclusion may change, gain a caveat, or stand (now more credibly). Record which biases fired and what you did.
+
+## Worked examples
+
+### Example 1 — GOOD (catches confirmation before a build)
+**Conclusion:** "We should build feature X — every user I talked to wants it."
+**Checklist fires:** Confirmation ("every user I talked to" — who did you NOT talk to?); Survivorship (you sampled engaged users, not churned ones).
+**Counters applied:** pulled feedback from churned + silent users → they wanted reliability, not X. **Revised conclusion:** fix reliability first; X is a vocal-minority want.
+**Why good:** the checklist changed the decision by surfacing who was missing from the evidence.
+
+### Example 2 — ANTI-PATTERN (debias theater)
+A spec says "Biases considered: confirmation, anchoring, overoptimism. ✓" then proceeds identically. **Why anti-pattern:** zero counters applied, conclusion unchanged → it's a checkbox, now providing false rigor cover. **Fix:** name which bias actually fired and what concretely changed; if none fired, say *why* the tells didn't match.
+
+### Example 3 — EDGE CASE (framework-as-hammer — meta)
+Mid-way through expanding this very toolkit, the temptation is "every concept should become a /think skill." **Tell:** framework-as-hammer ("to a man with a hammer..."). **Counter applied:** a second lens (a skill has a catalog + maintenance cost) → most concepts are knowledge, not operations → they stay in the wiki. **Lesson:** the toolkit must debias its own growth; this checklist is the guard.
+
+## Composition notes
+
+- **With `hypothesis-driven`:** mandatory pairing. The checklist's confirmation-bias row is the explicit guard the hypothesis method needs.
+- **With `pre-mortem`:** the overoptimism counter IS a pre-mortem; the two compose into the standard pre-commit pass for Tier C/D.
+- **With `2x2-synthesis-matrix`:** the counter to narrow framing — widen a binary choice into a space.
+- **With the `muse-personas` panel:** `high-stakes-decision-panel` (cynic, data-pragmatist, time-honest) operationalizes the groupthink counter (independent dissent).
+- **With `so-what-test` + `pyramid-principle-output`:** run debias before finalizing the top-line — a biased conclusion structured beautifully is still biased.
+
+## References
+
+Primary (in `raw/mckinsey/`):
+- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — **Chapter 4** (pp. 117-140). The five core biases + team mitigation practices (dialectic standard, obligation to dissent).
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 3** (confirmation bias) + **Chapter 6** (framework-as-hammer; "a way of seeing is a way of not seeing").
+
+Supporting:
+- **Kahneman, D. (2011). *Thinking, Fast and Slow*.** Farrar, Straus and Giroux — System 1/2, WYSIATI, anchoring, availability.
+- Distilled wiki concepts (the ~28 this checklist wraps): `wiki/bulletproof-problem-solving/concepts/{five-cognitive-biases-problem-solving,problem-solving-pitfalls-catalogue,team-bias-mitigation-practices}.md`; `wiki/cracked-it/concepts/{confirmation-bias,survivor-bias,wysiati-bias,narrow-framing,maslows-hammer,framework-mental-model-danger,groupthink-in-hypothesis-testing}.md`.
+
+## Anti-claims
+
+- Naming a bias does NOT eliminate it — applying the counter does. Recognition is necessary, not sufficient.
+- This is NOT a content-accuracy check (`so-what-test` and facts handle that). It checks the *reasoning process*, not the data.
+- The checklist is NOT exhaustive — it's the highest-leverage ~10. The full catalogue lives in the wiki, retrievable via `wiki_ask`.
+- A debias pass that changes nothing is theater; it must change the conclusion, add a check, or consciously accept the named risk.

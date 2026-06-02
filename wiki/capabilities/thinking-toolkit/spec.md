@@ -2,9 +2,9 @@
 
 **ID:** thinking-toolkit
 **Pillar owner:** 06-ai-ops (sub-pillar: skill-library)
-**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day)
+**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day; v1.2.0 curated +5 skills 2026-06-03)
 **Proposed:** 2026-05-28
-**Spec version:** 1.1.0
+**Spec version:** 1.2.0
 **Capability run id:** TBD (insert at promotion time)
 **Selected option (from Phase 4):** Option A — Standalone parent-namespaced skills + (v1.1) thin orchestrator command surface
 
@@ -30,6 +30,14 @@ Six standalone leaf skills, each at `06-ai-ops/skills/thinking-toolkit/<name>/SK
 5. **2x2-synthesis-matrix** — Classify 4+ options/items on 2 orthogonal axes → quadrant insights (BCG)
 6. **driver-tree-decomposition** — Decompose target metric into upstream actionable drivers (McKinsey value-tree)
 
+**v1.2 additions (5 skills, selected by a 259-concept 5-test triage of the two source books):**
+
+7. **hypothesis-driven** — Falsify-first analysis sequencing + running one-day answer (Bulletproof Ch1; Cracked it! Ch5 hypothesis-pyramid)
+8. **pre-mortem** — Prospective-hindsight risk surfacing before commit; companion to HITL Tier C/D (Bulletproof Ch4; Klein, HBR 2007)
+9. **root-cause** — Five Whys causal tracing of a CONFIRMED symptom, scoped away from framing (Bulletproof Ch5). NB: v1.0 rejected 5 Whys for *framing* per Cracked it! p.58; v1.2 re-admits it narrowly for *causal tracing* only.
+10. **design-thinking** — Generative path for human-centered problems: empathize→define→HMW→ideate→prototype→test (Cracked it! Ch8-9, previously uncovered by v1.0)
+11. **debias** — Pre-commit cognitive-bias checklist wrapping ~28 wiki bias concepts as one operation (Bulletproof Ch4; Cracked it! Ch3/6; Kahneman)
+
 Persona integration: C-suite (@ceo/@cto/@cgo/@cpo) reference `pyramid-principle-output` + `so-what-test` in output format section as MANDATORY. Other 4 skills invoked situationally.
 
 ## 3. Per-Bài-toán impact
@@ -51,18 +59,32 @@ Persona integration: C-suite (@ceo/@cto/@cgo/@cpo) reference `pyramid-principle-
 
 ## 4. Component changes
 
-### 4.1 New skills (6)
+### 4.1 Skills (v1.0: 6 · v1.2: +5 = 11)
 
-| Skill | Path |
-|---|---|
-| `thinking-toolkit/tosca-problem-framing` | `06-ai-ops/skills/thinking-toolkit/tosca-problem-framing/SKILL.md` |
-| `thinking-toolkit/mece-decomposition-check` | `06-ai-ops/skills/thinking-toolkit/mece-decomposition-check/SKILL.md` |
-| `thinking-toolkit/pyramid-principle-output` | `06-ai-ops/skills/thinking-toolkit/pyramid-principle-output/SKILL.md` |
-| `thinking-toolkit/so-what-test` | `06-ai-ops/skills/thinking-toolkit/so-what-test/SKILL.md` |
-| `thinking-toolkit/2x2-synthesis-matrix` | `06-ai-ops/skills/thinking-toolkit/2x2-synthesis-matrix/SKILL.md` |
-| `thinking-toolkit/driver-tree-decomposition` | `06-ai-ops/skills/thinking-toolkit/driver-tree-decomposition/SKILL.md` |
+| Skill | Path | Ver |
+|---|---|---|
+| `thinking-toolkit/tosca-problem-framing` | `06-ai-ops/skills/thinking-toolkit/tosca-problem-framing/SKILL.md` | 1.0 |
+| `thinking-toolkit/mece-decomposition-check` | `06-ai-ops/skills/thinking-toolkit/mece-decomposition-check/SKILL.md` | 1.0 |
+| `thinking-toolkit/pyramid-principle-output` | `06-ai-ops/skills/thinking-toolkit/pyramid-principle-output/SKILL.md` | 1.0 |
+| `thinking-toolkit/so-what-test` | `06-ai-ops/skills/thinking-toolkit/so-what-test/SKILL.md` | 1.0 |
+| `thinking-toolkit/2x2-synthesis-matrix` | `06-ai-ops/skills/thinking-toolkit/2x2-synthesis-matrix/SKILL.md` | 1.0 |
+| `thinking-toolkit/driver-tree-decomposition` | `06-ai-ops/skills/thinking-toolkit/driver-tree-decomposition/SKILL.md` | 1.0 |
+| `thinking-toolkit/hypothesis-driven` | `06-ai-ops/skills/thinking-toolkit/hypothesis-driven/SKILL.md` | 1.2 |
+| `thinking-toolkit/pre-mortem` | `06-ai-ops/skills/thinking-toolkit/pre-mortem/SKILL.md` | 1.2 |
+| `thinking-toolkit/root-cause` | `06-ai-ops/skills/thinking-toolkit/root-cause/SKILL.md` | 1.2 |
+| `thinking-toolkit/design-thinking` | `06-ai-ops/skills/thinking-toolkit/design-thinking/SKILL.md` | 1.2 |
+| `thinking-toolkit/debias` | `06-ai-ops/skills/thinking-toolkit/debias/SKILL.md` | 1.2 |
 
 Plus parent navigation: `06-ai-ops/skills/thinking-toolkit/README.md`.
+
+### 4.7 v1.2.0 delta (2026-06-03, /cla extend)
+
+Added 5 skills + 5 `/think` verbs (`hypothesis`, `premortem`, `root-cause`, `design-thinking`, `debias`); `/think` 6→11 skill-verbs (8→13 total verbs incl. `list`+`flow`). Selected by a **259-concept 5-test triage** of `wiki/{cracked-it,bulletproof-problem-solving}` (operation-not-knowledge · invoked-at-a-decision · distinct · portable · worth-the-catalog-cost): only ~2% of concepts passed as new operations, ~28% were already in the 6, ~54% stay as wiki library. Registry → v1.2.0; resolver catalog regenerated (+5 `skills.md` entries + INDEX). Tier C (substantial). **Two in-flow corrections** (read-before-write):
+- v1.0 had rejected "5 Whys" — but for *framing* (Cracked it! p.58). `root-cause` re-admits it SCOPED to *causal-tracing of a confirmed symptom* only; framing stays with `tosca-problem-framing`.
+- The planned `pyramid += SCR/SCQA` enhancement was a **no-op** — the existing `pyramid-principle-output` skill already exposes both Grouping and Argument/SCR variants. Dropped.
+- `screen` (knock-out + Desirability/Feasibility/Viability) deferred as borderline. 80/20 Pareto stays rejected (overlaps `/muse:paul-graham`).
+
+**Follow-up (NOT in this PR — per the docs-engine reference-sync pattern, cf. `/image` PR #206):** docs reference MDX for the 5 new skills (`docs/content/docs/skills/thinking-toolkit--{hypothesis-driven,pre-mortem,root-cause,design-thinking,debias}.{mdx,en.mdx}`) is **not yet generated**. Until a `/docs sync --area=skills` follow-up lands, `docs-drift-nightly` will report 5 missing pages. The v1.0 acceptance line "Docs MDX generated for all 6 skills" (§6) refers to the original 6 and remains accurate; it does NOT cover the v1.2 +5.
 
 ### 4.2 Persona integration
 

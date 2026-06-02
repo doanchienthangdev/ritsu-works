@@ -184,7 +184,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 6 standalone composable skills extracted from McKinsey/Minto thinking v1.1.0
+**When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 11 standalone composable skills extracted from McKinsey/Minto thinking v1.2.0
 
 **Invoke:** `Read("wiki/capabilities/thinking-toolkit/spec.md")` or `/cla update thinking-toolkit`
 
