@@ -328,6 +328,22 @@ describe("computeWarnings (supports/WARN — never silent-drop)", () => {
     const w = computeWarnings(caps, new Set(["prompt", "use", "out", "quality", "ar", "max-cost-usd", "dry-run"]));
     expect(w).toEqual([]);
   });
+  it("regression: --prompt-file is operational plumbing → NO warning (it IS read by gen.cjs)", () => {
+    // Pre-fix, `prompt-file` was absent from NEVER_WARN, not in any adapter supports[],
+    // and had no CONSEQUENCE entry → fell through to the generic
+    // "--prompt-file is not supported by this adapter → ignored" branch. That message is
+    // FALSE: gen.cjs run() reads the file into options.prompt. A false "ignored" on a
+    // working feature breaks the platform's consequence-honest / never-silent-drop contract.
+    const w = computeWarnings(caps, new Set(["prompt-file"]));
+    expect(w).toEqual([]);
+  });
+  it("regression: --prompt-file produces no warning even alongside a genuinely unsupported flag", () => {
+    // The fix is scoped to prompt-file only — seed must still warn, prompt-file must not.
+    const w = computeWarnings(caps, new Set(["prompt-file", "seed"]));
+    expect(w.length).toBe(1);
+    expect(w[0]).toMatch(/NOT reproducible/);
+    expect(w.join(" ")).not.toMatch(/prompt-file/);
+  });
   it("only warns on EXPLICITLY-provided flags", () => {
     // seed is in unsupported_warn but NOT provided → no warning.
     const w = computeWarnings(caps, new Set(["enhance"]));
