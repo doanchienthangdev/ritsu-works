@@ -1,0 +1,46 @@
+---
+title: 'Skill: image/enhance'
+description: |
+  Giai đoạn tinh-chỉnh-prompt trong-phiên tùy chọn cho /image (khái niệm "gpt-image-2-pro-max",
+  được tái-định-khung). Nhận prompt thô của người dùng + ngữ cảnh --style/--art-style
+  đã-resolve và viết lại thành một prompt tạo-ảnh giàu hơn, cụ thể hơn
+  TRƯỚC khi các khối brand/genre/art-direction được nối vào. Chạy TRONG-PHIÊN
+  (Claude, tính phí subscription) — KHÔNG BAO GIỜ định tuyến qua API ngoài. Ghi
+  trước/sau vào run.json.prompt_enhanced. Cost-bucket ai-ops-image task_kind
+  image-enhance (hook thực thi, cap $0.10). KHÔNG tạo ảnh ở đây — thuần văn bản.
+source_path: 06-ai-ops/skills/image/enhance/SKILL.md
+source_hash: 0fa22f287d8a0e4e71581a0764652d31374bf8eee4a14bc97f7b0752f478a5ed
+generated_at: '2026-06-02T12:03:00.965Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_at: '2026-06-02T12:12:00.000Z'
+translated_by: docs-translate v1.1.0
+translated_source_hash: 0fa22f287d8a0e4e71581a0764652d31374bf8eee4a14bc97f7b0752f478a5ed
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Giai đoạn tinh-chỉnh-prompt tùy chọn. `--enhance` (và preset `gpt-image-2-pro-max`,
+> = `--enhance --quality=high`) đi qua đây. Đây là cách founder tái-định-khung
+> skill `gpt-image-2-pro-max` trên GitHub (một công cụ prompt, không phải
+> generator): ta giữ *khái niệm tinh-chỉnh-prompt* như một giai đoạn trong-phiên và
+> bỏ generator ngoài.
+
+## Khi nào dùng
+- Skill umbrella `image` gọi cái này khi `--enhance` được bật (hoặc `--use=gpt-image-2-pro-max`), TRƯỚC khi soạn prompt (bước 2 của luồng chạy umbrella).
+
+## Làn tính phí (quan trọng)
+**Trong-phiên / subscription** — đây là một bước suy luận của Claude, KHÔNG phải lệnh gọi API ngoài. KHÔNG shell ra bất kỳ API ảnh/prompt nào. Nó được hook thực thi dưới `image-enhance` (cap $0.10). Đây là giai đoạn `/image` duy nhất mà budget hook thực sự thấy.
+
+## Quy trình
+1. Lấy prompt thô của người dùng + mode `resolveStyle(--style)` + thể loại `resolveArtStyle(--art-style)` (để nắm ngữ cảnh — đừng lặp lại khối style, vốn được umbrella nối vào ngay sau đó).
+2. Viết lại prompt cho **cụ thể hơn + dễ render hơn**: chủ thể cụ thể, bố cục, ánh sáng, chất liệu, tâm trạng, điểm-nhấn, và mọi đoạn text chính xác cần render. Giữ ý định của người dùng; thêm độ cụ thể, không thêm nghĩa mới.
+3. KHÔNG nhồi sẵn palette / logo thương hiệu / asset thể loại — đó là các khối BRAND + GENRE của umbrella (nối vào sau cái này). Chỉ nâng cấp *content brief* mà thôi.
+4. Trả về `{ prompt_input, prompt_enhanced }`. Umbrella ghi cả hai vào `run.json` (minh bạch: founder thấy chính xác phần tinh-chỉnh đã đổi gì).
+
+## Lan can an toàn
+- Không bao giờ bịa claim/sự-thật cho một ảnh thông-tin (soi gương kỷ luật no-new-claims của deepask).
+- An-toàn-từ-chối: đừng viết lại prompt thành thứ làm OpenAI moderation kích hoạt; nếu prompt thô đã rủi-ro-chính-sách, hãy nêu ra thay vì "nâng cấp" lách qua nó.
+- Nếu việc nâng cấp không thêm giá trị (đã đủ cụ thể), trả về input nguyên trạng (`prompt_enhanced === prompt_input`) — đừng độn thêm.
