@@ -28,7 +28,7 @@ description: |
 - NOT auto-invoked by other flows. Generation is explicit-only (mirrors deepask image — never silently spends).
 
 ## Inputs (the universal parameter vocabulary)
-Parsed by `scripts/image/lib/params.cjs` (`UNIVERSAL_PARAMS`, the single source of truth the L2 validator checks adapter `supports[]` against). Full flag table + defaults: see `.claude/commands/image.md`. Core: `<prompt>` · `--use` (default `gpt-image-2`) · `--ar` (1:1) · `--tier` (standard) · `--count` (1) · `--format` (png) · `--style` · `--art-style` · `--enhance` · `--max-cost-usd` (1.00) · `--dry-run` · `--out`.
+Parsed by `scripts/image/lib/params.cjs` (`UNIVERSAL_PARAMS`, the single source of truth the L2 validator checks adapter `supports[]` against). Full flag table + defaults: see `.claude/commands/image.md`. Core: `<prompt>` · `--use` (default `gpt-image-2`) · `--ar` (1:1) · `--quality` (medium; `low|medium|high` = OpenAI native) · `--count` (1) · `--format` (png) · `--style` · `--art-style` · `--enhance` · `--max-cost-usd` (1.00) · `--dry-run` · `--out`.
 
 ## Adapter routing (`--use` → adapter)
 Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a backend = a new row + `adapters/<id>/SKILL.md`.
@@ -36,7 +36,7 @@ Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a bac
 | `--use` | Adapter | Status | Generator |
 |---|---|---|---|
 | `gpt-image-2` *(default)* | `adapters/gpt-image-2` | installed | `scripts/image/gen.cjs` |
-| `gpt-image-2-pro-max` | `adapters/gpt-image-2` (preset) | installed | `gen.cjs` + `--enhance --tier=high` |
+| `gpt-image-2-pro-max` | `adapters/gpt-image-2` (preset) | installed | `gen.cjs` + `--enhance --quality=high` |
 | `nano-banana` | — | registered-not-built | (stub → `not_built` error) |
 | `midjourney` | — | registered-not-built | (stub → `not_built` error) |
 | `flux` | — | registered-not-built | (stub → `not_built` error) |

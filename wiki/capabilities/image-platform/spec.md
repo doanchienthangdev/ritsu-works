@@ -4,7 +4,11 @@
 **Selected option (Phase 4):** **A+ — lean, table-ready** (founder, 2026-06-02)
 **HITL tier:** C (APPROVED 2026-06-02) · **Decision row:** `ops.decisions.id = d7e92ec2-bcfb-4b7f-a140-bfb14a12dacf`
 **Generated:** 2026-06-02 · **CLA run:** `f494f9c9-b4be-4308-a1c2-d006a0e0476e`
-**Version:** 0.1.0
+**Version:** 0.1.1
+
+---
+
+> **v0.1.1 (2026-06-02, `/cla fix`-class):** the quality flag was renamed **`--tier` → `--quality`** and its values **`draft|standard|high` → `low|medium|high`** (1:1 with OpenAI's native `quality` param; default `medium`; behaviour-preserving — old `standard` = new `medium`). The `tierToQuality` translation layer is gone (`--quality` IS the native value); `params.cjs` exports `QUALITIES` + `QUALITY_TO_LONG_EDGE` + `normalizeQuality`. **This spec body below is the Phase-5 design record and still uses the original `--tier` naming** — the authoritative current surface is `.claude/commands/image.md` + `06-ai-ops/skills/image/**` + `knowledge/image-adapters.yaml`.
 
 ---
 

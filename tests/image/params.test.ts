@@ -2,13 +2,13 @@ import { describe, it, expect } from "vitest";
 // @ts-ignore — Node interop from TS to CJS (repo convention)
 const {
   UNIVERSAL_PARAMS,
-  TIER_TO_LONG_EDGE,
+  QUALITY_TO_LONG_EDGE,
   DEFAULTS,
   MAX_AR,
   MAX_EDGE,
   MIN_PIXEL_BUDGET,
   parseImageArgs,
-  tierToQuality,
+  normalizeQuality,
   resolveAspectRatio,
   estimateFlexibleCost,
   computeWarnings,
@@ -18,8 +18,8 @@ const {
 // All-Edge-Cases-Test (global CLAUDE.md). Pure functions of the image-platform universal
 // param layer (capability image-platform v0.1 PR-1).
 // Phase 1: parseImageArgs (positional|--flag, =val|bare, bool|num|str, unknown, prompt-from-positional);
-//   tierToQuality (known|unknown→medium); round16 (round + min/max clamp); resolveAspectRatio
-//   (valid|malformed|non-positive|landscape|portrait|square|clamp>3:1|clamp<1:3|×16|tier-budget);
+//   normalizeQuality (valid|invalid→medium); round16 (round + min/max clamp); resolveAspectRatio
+//   (valid|malformed|non-positive|landscape|portrait|square|clamp>3:1|clamp<1:3|×16|quality-budget);
 //   estimateFlexibleCost (invalid-dims throw|area below/within/above table|auto→high|invalid-quality throw);
 //   computeWarnings (supported|unsupported-with/without-consequence|stretch|NEVER_WARN|provided-filter).
 // Phase 2 boundaries: AR exactly 3:1 / just over; edge<3840 ceiling; ×16 at odd inputs; count via Number().
@@ -31,13 +31,13 @@ describe("UNIVERSAL_PARAMS + DEFAULTS (the contract)", () => {
     expect(Array.isArray(UNIVERSAL_PARAMS)).toBe(true);
     expect(UNIVERSAL_PARAMS).toContain("ar");
     expect(UNIVERSAL_PARAMS).toContain("use");
-    expect(UNIVERSAL_PARAMS).toContain("tier");
+    expect(UNIVERSAL_PARAMS).toContain("quality");
     expect(UNIVERSAL_PARAMS).toContain("max-cost-usd");
     expect(Object.isFrozen(UNIVERSAL_PARAMS)).toBe(true);
   });
-  it("DEFAULTS match the spec (1:1, standard, png, gpt-image-2, $1 cap)", () => {
+  it("DEFAULTS match the spec (1:1, medium, png, gpt-image-2, $1 cap)", () => {
     expect(DEFAULTS.ar).toBe("1:1");
-    expect(DEFAULTS.tier).toBe("standard");
+    expect(DEFAULTS.quality).toBe("medium");
     expect(DEFAULTS.format).toBe("png");
     expect(DEFAULTS.use).toBe("gpt-image-2");
     expect(DEFAULTS["max-cost-usd"]).toBe(1.0);
@@ -48,7 +48,7 @@ describe("parseImageArgs", () => {
   it("returns defaults for empty argv", () => {
     const { options, provided } = parseImageArgs([]);
     expect(options.ar).toBe("1:1");
-    expect(options.tier).toBe("standard");
+    expect(options.quality).toBe("medium");
     expect(provided.size).toBe(0);
   });
   it("joins positional tokens into the prompt", () => {
@@ -56,11 +56,11 @@ describe("parseImageArgs", () => {
     expect(options.prompt).toBe("a calm lake");
   });
   it("--key=value sets the value and records provided", () => {
-    const { options, provided } = parseImageArgs(["--ar=16:9", "--tier=high"]);
+    const { options, provided } = parseImageArgs(["--ar=16:9", "--quality=high"]);
     expect(options.ar).toBe("16:9");
-    expect(options.tier).toBe("high");
+    expect(options.quality).toBe("high");
     expect(provided.has("ar")).toBe(true);
-    expect(provided.has("tier")).toBe(true);
+    expect(provided.has("quality")).toBe(true);
   });
   it("coerces numeric flags via Number()", () => {
     const { options } = parseImageArgs(["--count=3", "--max-cost-usd=0.5"]);
@@ -84,15 +84,15 @@ describe("parseImageArgs", () => {
   });
 });
 
-describe("tierToQuality", () => {
-  it("maps the three tiers", () => {
-    expect(tierToQuality("draft")).toBe("low");
-    expect(tierToQuality("standard")).toBe("medium");
-    expect(tierToQuality("high")).toBe("high");
+describe("normalizeQuality", () => {
+  it("passes through the three OpenAI-native values", () => {
+    expect(normalizeQuality("low")).toBe("low");
+    expect(normalizeQuality("medium")).toBe("medium");
+    expect(normalizeQuality("high")).toBe("high");
   });
-  it("unknown tier → medium (never throws on a convenience flag)", () => {
-    expect(tierToQuality("ultra")).toBe("medium");
-    expect(tierToQuality(undefined)).toBe("medium");
+  it("unknown quality → medium (never throws on a convenience flag)", () => {
+    expect(normalizeQuality("ultra")).toBe("medium");
+    expect(normalizeQuality(undefined)).toBe("medium");
   });
 });
 
@@ -111,8 +111,8 @@ describe("round16", () => {
 });
 
 describe("resolveAspectRatio", () => {
-  it("square 1:1 standard → 1024x1024, no clamp", () => {
-    const r = resolveAspectRatio("1:1", "standard");
+  it("square 1:1 medium → 1024x1024, no clamp", () => {
+    const r = resolveAspectRatio("1:1", "medium");
     expect(r.size).toBe("1024x1024");
     expect(r.clamped).toBe(false);
     expect(r.warnings).toEqual([]);
@@ -128,10 +128,10 @@ describe("resolveAspectRatio", () => {
     expect(r.width).toBeLessThan(r.height);
     expect(r.size).toBe("1152x2048");
   });
-  it("tier budgets: draft/standard long-edge 1024, high 2048", () => {
-    expect(TIER_TO_LONG_EDGE.draft).toBe(1024);
-    expect(TIER_TO_LONG_EDGE.standard).toBe(1024);
-    expect(TIER_TO_LONG_EDGE.high).toBe(2048);
+  it("quality budgets: low/medium long-edge 1024, high 2048", () => {
+    expect(QUALITY_TO_LONG_EDGE.low).toBe(1024);
+    expect(QUALITY_TO_LONG_EDGE.medium).toBe(1024);
+    expect(QUALITY_TO_LONG_EDGE.high).toBe(2048);
   });
   it("clamps AR above 3:1 and warns (exactly 3:1 does NOT clamp)", () => {
     const exact = resolveAspectRatio("3:1", "high");
@@ -148,12 +148,12 @@ describe("resolveAspectRatio", () => {
     expect(r.height / r.width).toBeLessThanOrEqual(MAX_AR + 0.05);
   });
   it("malformed --ar falls back to 1:1 + warning (never throws)", () => {
-    const r = resolveAspectRatio("not-a-ratio", "standard");
+    const r = resolveAspectRatio("not-a-ratio", "medium");
     expect(r.size).toBe("1024x1024");
     expect(r.warnings.join(" ")).toMatch(/not "W:H"/);
   });
   it("non-positive edge (16:0) falls back to 1:1 + warning", () => {
-    const r = resolveAspectRatio("16:0", "standard");
+    const r = resolveAspectRatio("16:0", "medium");
     expect(r.warnings.length).toBeGreaterThan(0);
     expect(r.size).toBe("1024x1024");
   });
@@ -167,71 +167,71 @@ describe("resolveAspectRatio", () => {
 });
 
 // Regression (All-Edge-Cases Phase 1F + 2L). gpt-image-2 enforces a MINIMUM pixel
-// budget (an area floor), not just a max edge. Pre-fix, 16:9 at standard tier resolved
+// budget (an area floor), not just a max edge. Pre-fix, 16:9 at medium quality resolved
 // to 1024x576 (0.59 MP), which the OpenAI Images API rejects 400 with "Requested
 // resolution is below the current minimum pixel budget" — observed LIVE 2026-06-02 on
 // `/image "...contratubex ad" --ar=16:9`. The dry-run couldn't catch it (no API call)
-// and no prior test covered a standard-tier WIDE AR. resolveAspectRatio now lifts the
-// long edge so every AR ≤ 3:1, at every tier, clears MIN_PIXEL_BUDGET — ratio preserved,
-// warned, never silent.
+// and no prior test covered a medium-quality WIDE AR. resolveAspectRatio now lifts the
+// long edge so every AR ≤ 3:1, at every quality, clears MIN_PIXEL_BUDGET — ratio preserved,
+// warned, never silent. (Flag renamed --tier→--quality v0.1.1; values low|medium|high.)
 describe("resolveAspectRatio — minimum pixel budget (regression: gpt-image-2 area floor)", () => {
   it("exposes MIN_PIXEL_BUDGET as the known-good 1024x1024 area (~1 MP)", () => {
     expect(MIN_PIXEL_BUDGET).toBe(1024 * 1024);
   });
 
-  it("regression (2026-06-02): 16:9 standard no longer yields the rejected 1024x576", () => {
-    const r = resolveAspectRatio("16:9", "standard");
+  it("regression (2026-06-02): 16:9 medium no longer yields the rejected 1024x576", () => {
+    const r = resolveAspectRatio("16:9", "medium");
     expect(r.size).not.toBe("1024x576");
     expect(r.width * r.height).toBeGreaterThanOrEqual(MIN_PIXEL_BUDGET);
   });
 
-  it("16:9 standard upscales to 1376x768 and warns honestly (never silent)", () => {
-    const r = resolveAspectRatio("16:9", "standard");
+  it("16:9 medium upscales to 1376x768 and warns honestly (never silent)", () => {
+    const r = resolveAspectRatio("16:9", "medium");
     expect(r.size).toBe("1376x768");
     expect(r.warnings.join(" ")).toMatch(/minimum/);
     expect(r.warnings.join(" ")).toMatch(/1376x768/);
   });
 
-  it("every AR ≤ 3:1 at every tier clears MIN_PIXEL_BUDGET (the invariant)", () => {
+  it("every AR ≤ 3:1 at every quality clears MIN_PIXEL_BUDGET (the invariant)", () => {
     for (const ar of ["1:1", "4:3", "3:2", "16:9", "3:1", "2:3", "9:16", "1:3"]) {
-      for (const tier of ["draft", "standard", "high"]) {
-        const r = resolveAspectRatio(ar, tier);
+      for (const quality of ["low", "medium", "high"]) {
+        const r = resolveAspectRatio(ar, quality);
         expect(r.width * r.height).toBeGreaterThanOrEqual(MIN_PIXEL_BUDGET);
       }
     }
   });
 
   it("the upscale preserves the requested aspect ratio (within ×16 rounding slack)", () => {
-    const r = resolveAspectRatio("16:9", "standard");
+    const r = resolveAspectRatio("16:9", "medium");
     expect(r.width / r.height).toBeCloseTo(16 / 9, 1);
   });
 
-  it("portrait 9:16 standard upscales symmetrically (taller than wide, ≥ budget, warns)", () => {
-    const r = resolveAspectRatio("9:16", "standard");
+  it("portrait 9:16 medium upscales symmetrically (taller than wide, ≥ budget, warns)", () => {
+    const r = resolveAspectRatio("9:16", "medium");
     expect(r.width).toBeLessThan(r.height);
     expect(r.width * r.height).toBeGreaterThanOrEqual(MIN_PIXEL_BUDGET);
     expect(r.warnings.join(" ")).toMatch(/minimum/);
   });
 
-  it("draft tier (same long-edge budget as standard) upscales 16:9 identically", () => {
-    expect(resolveAspectRatio("16:9", "draft").size).toBe(resolveAspectRatio("16:9", "standard").size);
+  it("low quality (same long-edge budget as medium) upscales 16:9 identically", () => {
+    expect(resolveAspectRatio("16:9", "low").size).toBe(resolveAspectRatio("16:9", "medium").size);
   });
 
-  it("high tier wide ARs already clear the floor → NOT upscaled, NO budget warning", () => {
+  it("high quality wide ARs already clear the floor → NOT upscaled, NO budget warning", () => {
     const r = resolveAspectRatio("16:9", "high");
     expect(r.size).toBe("2048x1152"); // identical to pre-fix
     expect(r.warnings.join(" ")).not.toMatch(/minimum/);
   });
 
-  it("square 1:1 standard sits exactly at the floor → valid, no budget warning (boundary ==, not <)", () => {
-    const r = resolveAspectRatio("1:1", "standard");
+  it("square 1:1 medium sits exactly at the floor → valid, no budget warning (boundary ==, not <)", () => {
+    const r = resolveAspectRatio("1:1", "medium");
     expect(r.width * r.height).toBe(MIN_PIXEL_BUDGET);
     expect(r.warnings.join(" ")).not.toMatch(/minimum/);
   });
 
-  it("upscaled edges stay ×16 and strictly below MAX_EDGE (incl. extreme 3:1 standard)", () => {
+  it("upscaled edges stay ×16 and strictly below MAX_EDGE (incl. extreme 3:1 medium)", () => {
     for (const ar of ["16:9", "9:16", "3:1", "1:3", "21:9"]) {
-      const r = resolveAspectRatio(ar, "standard");
+      const r = resolveAspectRatio(ar, "medium");
       expect(r.width % 16).toBe(0);
       expect(r.height % 16).toBe(0);
       expect(r.width).toBeLessThan(3840);
@@ -239,8 +239,8 @@ describe("resolveAspectRatio — minimum pixel budget (regression: gpt-image-2 a
     }
   });
 
-  it("budget upscale composes with the >3:1 clamp (5:1 standard → clamp AND raise, both warnings)", () => {
-    const r = resolveAspectRatio("5:1", "standard");
+  it("budget upscale composes with the >3:1 clamp (5:1 medium → clamp AND raise, both warnings)", () => {
+    const r = resolveAspectRatio("5:1", "medium");
     expect(r.clamped).toBe(true);
     expect(r.width * r.height).toBeGreaterThanOrEqual(MIN_PIXEL_BUDGET);
     const joined = r.warnings.join(" ");
@@ -297,7 +297,7 @@ describe("estimateFlexibleCost", () => {
 
 describe("computeWarnings (supports/WARN — never silent-drop)", () => {
   const caps = {
-    supports: ["ar", "tier", "count", "format", "enhance"],
+    supports: ["ar", "quality", "count", "format", "enhance"],
     supports_stretch: ["ref", "mask"],
     unsupported_warn: ["seed", "stylize", "background"],
   };
@@ -324,8 +324,8 @@ describe("computeWarnings (supports/WARN — never silent-drop)", () => {
     const w = computeWarnings(caps, new Set(["weird"]));
     expect(w[0]).toMatch(/Midjourney-only/);
   });
-  it("NEVER_WARN plumbing flags (prompt/use/out/tier/ar) produce no warning", () => {
-    const w = computeWarnings(caps, new Set(["prompt", "use", "out", "tier", "ar", "max-cost-usd", "dry-run"]));
+  it("NEVER_WARN plumbing flags (prompt/use/out/quality/ar) produce no warning", () => {
+    const w = computeWarnings(caps, new Set(["prompt", "use", "out", "quality", "ar", "max-cost-usd", "dry-run"]));
     expect(w).toEqual([]);
   });
   it("only warns on EXPLICITLY-provided flags", () => {

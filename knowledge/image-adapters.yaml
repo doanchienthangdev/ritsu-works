@@ -26,7 +26,7 @@ adapters:
     generator: scripts/image/gen.cjs
     skill: 06-ai-ops/skills/image/adapters/gpt-image-2
     default_model: gpt-image-2
-    supports: [ar, tier, count, format, style, art-style, enhance, safety, max-cost-usd, dry-run, out, deck]
+    supports: [ar, quality, count, format, style, art-style, enhance, safety, max-cost-usd, dry-run, out, deck]
     supports_stretch: [ref, mask]     # MF2: need /v1/images/edits multipart endpoint (2nd code path); Phase-7 stretch. Until built → WARN-as-unsupported.
     unsupported_warn: [seed, resolution, ref-style, ref-character, ref-strength, negative, stylize, raw, variety, weird, tile, background]
     auth: { env: OPENAI_API_KEY, billing: out-of-band }
@@ -37,18 +37,18 @@ adapters:
   - id: gpt-image-2-pro-max
     status: installed
     preset_of: gpt-image-2
-    preset_flags: { enhance: true, tier: high }
+    preset_flags: { enhance: true, quality: high }
     generator: scripts/image/gen.cjs
     default_model: gpt-image-2
-    supports: [ar, tier, count, format, style, art-style, enhance, safety, max-cost-usd, dry-run, out, deck]
+    supports: [ar, quality, count, format, style, art-style, enhance, safety, max-cost-usd, dry-run, out, deck]
     auth: { env: OPENAI_API_KEY, billing: out-of-band }
-    notes: "Preset = gpt-image-2 --enhance --tier=high. Inherits gpt-image-2 supports/stretch. The GitHub gpt-image-2-pro-max skill is a prompt-search tool, NOT a generator."
+    notes: "Preset = gpt-image-2 --enhance --quality=high. Inherits gpt-image-2 supports/stretch. The GitHub gpt-image-2-pro-max skill is a prompt-search tool, NOT a generator."
 
   # ── Registered-not-built stubs (v0.1 proves the abstraction; plug these later) ──
   - id: nano-banana
     status: registered-not-built
     default_model: gemini-3-pro-image
-    supports: [ar, tier, resolution, ref, ref-character, format, max-cost-usd, dry-run, out]
+    supports: [ar, quality, resolution, ref, ref-character, format, max-cost-usd, dry-run, out]
     auth: { env: GOOGLE_API_KEY, billing: out-of-band }
     notes: "Gemini 3 Pro Image / Nano Banana Pro. True 4K + strongest character refs. NOT built v0.1."
 
@@ -62,6 +62,6 @@ adapters:
   - id: flux
     status: registered-not-built
     default_model: flux-1.1-pro-ultra
-    supports: [ar, tier, seed, format, ref, raw, max-cost-usd, dry-run, out]
+    supports: [ar, quality, seed, format, ref, raw, max-cost-usd, dry-run, out]
     auth: { env: BFL_API_KEY, billing: out-of-band }
     notes: "BFL / fal / Replicate. Open weights, cheap, seed-able. NOT built v0.1."
