@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/settings.schema.json",
-  "_comment": "Activated 2026-05-26 as part of resolver-v3-jit-loading Tier C cutover ceremony. Cherry-pick #13 bypass detection hooks (observation-only — never block). Hook specs: .claude/hooks/pre-bash-mass-action.md + pre-edit-significant.md. Runtime impl: .claude/hooks/runtime/*.cjs. Logs to runtime/resolver-v3-bypass-events.jsonl (gitignored). Separate cron will batch-sync to ops.events.resolver.bypass_detected post-7-day-baseline.",
+  "_comment": "Activated 2026-05-26 (resolver-v3-jit-loading Tier C cutover): cherry-pick #13 bypass-detection hooks (observation-only — never block). 2026-06-02: + L0 Product-Supabase firewall pre-tool-supabase-product.cjs (capability product-db-readonly-access Phase 0 — ENFORCED CODE, fail-closed, BLOCKS direct/raw Product access; spec .claude/hooks/pre-tool-supabase-product.md v1.0.0; engine .claude/hooks/runtime/lib/product-firewall.cjs). Bypass hooks log to runtime/resolver-v3-bypass-events.jsonl; firewall blocks log to runtime/product-firewall-events.jsonl (both gitignored; cron batches to ops.events / alert-router).",
   "hooks": {
     "PreToolUse": [
       {
@@ -9,6 +9,19 @@
           {
             "type": "command",
             "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/runtime/pre-bash-mass-action.cjs"
+          },
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/runtime/pre-tool-supabase-product.cjs"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__supabase-product.*|mcp__postgres.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/runtime/pre-tool-supabase-product.cjs"
           }
         ]
       },
