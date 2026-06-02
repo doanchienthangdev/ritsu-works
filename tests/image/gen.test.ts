@@ -214,3 +214,47 @@ describe("run() — v0.2 --style + --ref (no-network paths)", () => {
     expect(r.error).toMatch(/--mask file not found/);
   });
 });
+
+// v0.3 — brand corner logo OVERLAY routing (ritsu declares a logo.overlay policy).
+describe("run() — v0.3 brand logo overlay (no-network dry_run paths)", () => {
+  const REF = path.resolve(__dirname, "../../00-core/design-system/ritsu/assets/ritsu-logo.png");
+
+  it("--style=ritsu + --ref → endpoint flips to generations, logo_overlay intent recorded, directive in prompt", async () => {
+    const out = path.join(TMP, "overlay");
+    const r = await run(["--prompt=poster", "--style=ritsu", `--ref=${REF}`, "--dry-run", `--out=${out}`]);
+    expect(r.ok).toBe(true);
+    const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
+    expect(rj.endpoint).toBe("generations"); // NOT edits — the ref is consumed by the overlay
+    expect(rj.logo_overlay).toBeTruthy();
+    expect(rj.logo_overlay.position).toBe("top-left");
+    expect(rj.logo_overlay.applied).toBe(false); // dry-run never stamps
+    expect(rj.logo_overlay.asset).toBe(REF);
+    expect(rj.prompt_sent).toMatch(/Do NOT draw/); // suppress-directive present
+  });
+
+  it("--style=ritsu WITHOUT --ref → no overlay (logo_overlay null), no suppress directive", async () => {
+    const out = path.join(TMP, "no-overlay");
+    await run(["--prompt=poster", "--style=ritsu", "--dry-run", `--out=${out}`]);
+    const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
+    expect(rj.logo_overlay).toBeNull();
+    expect(rj.prompt_sent).not.toMatch(/Do NOT draw/);
+  });
+
+  it("--ref WITHOUT a brand --style → keeps edits endpoint (overlay is brand-scoped)", async () => {
+    const out = path.join(TMP, "ref-nostyle");
+    await run(["--prompt=x", `--ref=${REF}`, "--dry-run", `--out=${out}`]);
+    const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
+    expect(rj.endpoint).toBe("edits");
+    expect(rj.logo_overlay).toBeNull();
+  });
+
+  it("overlay + --mask → mask-ignored warning (no inpaint mask on /generations)", async () => {
+    const r = await run(["--prompt=x", "--style=ritsu", `--ref=${REF}`, `--mask=${REF}`, "--dry-run", `--out=${path.join(TMP, "overlay-mask")}`]);
+    expect(r.warnings.some((w: string) => /--mask ignored/.test(w))).toBe(true);
+  });
+
+  it("overlay + non-png --format → 'overlay needs PNG' warning (corner logo not stamped)", async () => {
+    const r = await run(["--prompt=x", "--style=ritsu", `--ref=${REF}`, "--format=webp", "--dry-run", `--out=${path.join(TMP, "overlay-webp")}`]);
+    expect(r.warnings.some((w: string) => /overlay needs PNG/.test(w))).toBe(true);
+  });
+});
