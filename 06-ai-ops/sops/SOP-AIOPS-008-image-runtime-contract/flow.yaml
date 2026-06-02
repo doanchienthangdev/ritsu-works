@@ -1,0 +1,126 @@
+# SOP-AIOPS-008 — /image Runtime Contract
+#
+# Declarative runtime contract for the image-platform capability (/image command).
+# Read by .claude/commands/image.md + 06-ai-ops/skills/image/SKILL.md (umbrella) +
+# the per-backend adapter skills.
+#
+# NOTE: RUNTIME-CONTRACT SOP (like SOP-AIOPS-004-evolve / 005-deepask / 006-forge /
+# 007-design-system), NOT a CLA-style 8-phase ceremony — follows the 004/005/006/007
+# shape (sop_id/slug/steps/...). The "steps" are the sequence /image follows to turn
+# a prompt + flags into image artifacts.
+
+sop_id: SOP-AIOPS-008
+slug: image-runtime-contract
+name: "/image runtime contract"
+version: "1.0.0"
+state: operating          # Phase 8 (2026-06-02): capability operating; all 3 sprints merged (PR #197/#198/#199)
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A           # generation is Tier A (reversible, local writes, metered + capped); explicit-invoke only
+cost_bucket: ai-ops-image
+capability_id: image-platform
+
+# ----------------------------------------------------------------------
+# The generation sequence (how /image turns a prompt + flags into artifacts)
+# ----------------------------------------------------------------------
+steps:
+  - id: parse
+    name: "Stage 1 — parse the universal flags + resolve --use"
+    skill: image
+    actions:
+      - parse_universal_args         # scripts/image/lib/params.cjs (UNIVERSAL_PARAMS — single source of truth)
+      - resolve_adapter              # read knowledge/image-adapters.yaml; --use (default gpt-image-2); preset_of applies preset_flags
+      - not_built_short_circuit      # registered-not-built adapter → clean not_built error citing the registry (NEVER a silent fallback)
+    hitl: A
+
+  - id: enhance
+    name: "Stage 2 — (optional) --enhance in-session prompt refinement"
+    skill: image/enhance
+    actions:
+      - in_session_refine            # subscription billing — NEVER an external API (the one /image stage the budget hook sees)
+      - record_before_after          # prompt_input + prompt_enhanced → run.json (legible refinement)
+    hitl: A
+    when: "--enhance set (or --use=gpt-image-2-pro-max preset)"
+
+  - id: compose
+    name: "Stage 3 — compose the final prompt (brand + genre + art-direction)"
+    skill: image
+    actions:
+      - content_brief                # the (possibly enhanced) user prompt
+      - brand_style_block            # resolveStyle(--style) → byte-identical brand block (technique: deepask/image-compose §1)
+      - genre_block                  # resolveArtStyle(--art-style) → assets/layout/tone (technique: deepask/image-compose §1b)
+      - art_direction_block          # deepask/aesthetic Part 3 (don'ts; legibility; exact-text rendering)
+    hitl: A
+    precedence: "brand core palette/logo/body-type > legibility/a11y > genre > art-direction > content density"
+
+  - id: generate
+    name: "Stage 4 — generate (out-of-band) + write artifacts"
+    skill: image/adapters/gpt-image-2
+    actions:
+      - resolve_aspect_ratio         # R2: --ar → native flexible size (×16 edges, AR≤3:1, edge<3840, warn-on-clamp, no in-range crop)
+      - estimate_cost                # R3: per-tier area-interpolation over scripts/deepask/image-cost.cjs COST_TABLE
+      - cost_breaker                 # checkCostBudget vs --max-cost-usd — REFUSE before the API call (never silent overspend)
+      - dry_run_short_circuit        # --dry-run → composed prompt sidecar + cost estimate, NO API call, NO key
+      - call_openai_out_of_band      # scripts/image/gen.cjs — OPENAI_API_KEY (ensureOpenAiKey); key value never printed
+      - write_artifacts              # PNG(s) + typed run.json + (dry-run) prompt sidecar → .archives/image/<date>-<slug>/
+    hitl: A
+    failure_handling:
+      over_cost_cap: breaker_refusal          # abort before the call
+      content_policy: moderation_block        # distinguished from a breaker refusal
+      missing_key_or_bad_param_or_5xx: api_error
+
+  - id: report
+    name: "Stage 5 — report the adapter contract"
+    skill: image
+    actions:
+      - surface_contract             # {ok, outcome, files[], model, cost_usd, warnings[]}
+      - always_surface_warnings      # unsupported params are WARNED, never silently dropped (consequence-honest)
+      - typed_outcome                # success | dry_run | not_built | breaker_refusal | moderation_block | api_error
+    hitl: A
+
+# ----------------------------------------------------------------------
+# Adapter contract (what every backend must implement) + extension
+# ----------------------------------------------------------------------
+adapter_contract:
+  registry: knowledge/image-adapters.yaml          # split-registry; supports[]⊆UNIVERSAL_PARAMS; installed⇒generator-on-disk
+  output: "{ ok, outcome, files[], model, cost_usd, warnings[] }"
+  add_a_backend: "drop adapters/<id>/SKILL.md + one registry row + one umbrella routing-table row — NO command-side code change"
+  v0_1_backends: "gpt-image-2 (installed real) + gpt-image-2-pro-max (preset) ; nano-banana/midjourney/flux (registered-not-built stubs)"
+
+# ----------------------------------------------------------------------
+# Billing lanes
+# ----------------------------------------------------------------------
+billing:
+  generation: out-of-band              # OPENAI_API_KEY via scripts/image/gen.cjs — Claude can't gen images (same lane as text-embedding-3-small). COMPLIANT with the api-key-vs-subscription policy.
+  enhance: in-session                  # subscription; hook-enforced under image-enhance
+  cost_caps: "gps per_task_kind_caps image-gen $0.50 (ADVISORY — out-of-band, invisible to the budget hook) / image-enhance $0.10 (hook-enforced). Per-run --max-cost-usd (default 1.00) is the REAL spend guard."
+
+guards:
+  - breaker_before_call            # --max-cost-usd refuses up front; never silent overspend
+  - warn_never_drop                # unsupported params WARN with the consequence; image still generates
+  - deepask_untouched              # /image is a NEW peer consumer; reuses deepask helpers via require() — zero file moves (decision #2)
+  - no_product_supabase            # local .archives/ artifacts only; never touches Product Supabase
+  - explicit_invoke_only           # generation is founder-invoked; never auto-run by another flow without explicit opt-in
+
+events:
+  - ritsu.image.generated          # (optional, deferred) one per successful /image run
+
+# ----------------------------------------------------------------------
+# Observability (Option A+ lean — table-ready)
+# ----------------------------------------------------------------------
+observability:
+  v0_1: "per-run run.json (local, full audit row) + the per-run --max-cost-usd breaker. run.json columns are a forward-compat superset of a future ops.image_runs."
+  future: "Option B = a /cla extend image-platform adds ops.image_runs (cost_usd + metadata) + KPIs (gen_count / cost_usd_monthly / warn_rate) + hook/cross-run enforcement. Pure INSERT-wiring (no rework)."
+
+references:
+  - .claude/commands/image.md
+  - 06-ai-ops/skills/image/SKILL.md
+  - 06-ai-ops/skills/image/adapters/gpt-image-2/SKILL.md
+  - 06-ai-ops/skills/image/enhance/SKILL.md
+  - scripts/image/{gen,lib/params}.cjs
+  - scripts/deepask/{image-gen,image-cost,image-spec,slide-deck}.cjs   # reused via require() — deepask UNTOUCHED
+  - knowledge/image-adapters.yaml
+  - scripts/cross-tier/validate-image-adapters.cjs
+  - SOP-AIOPS-005-deepask-runtime-contract   # the deepask image branch (separate peer consumer)
+  - SOP-AIOPS-007-design-system-runtime-contract   # the --style axis contract
+  - governance/HITL.md

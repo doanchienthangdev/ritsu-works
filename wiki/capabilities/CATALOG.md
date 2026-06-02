@@ -8,10 +8,10 @@
 > catalog is the human-readable view that links into each capability's
 > promoted spec + retrospective.
 
-**Last updated:** 2026-06-01 (post-design-system-styling v1.0 promotion)
-**Total capabilities (operating):** 8
+**Last updated:** 2026-06-02 (post-image-platform v0.1 promotion)
+**Total capabilities (operating):** 9
 **Total capabilities (deployed pending operating):** 1
-**Total capabilities (any state):** 9
+**Total capabilities (any state):** 10
 
 ---
 
@@ -27,6 +27,7 @@
 | `deepask` | federated retrieval + capability-execution + cited synthesis supercommand (5-stage loop, 12-format engine; zero-routing consumer of resolver-plan) | **1.0.0** | 06-ai-ops | 2026-05-30 | [spec.md](deepask/spec.md) | [retrospective.md](deepask/retrospective.md) |
 | `book-to-capability` | book→capability PROMOTE (`/forge`) — gate-then-route latent wiki knowledge into a runnable skill (5-gate anti-over-build funnel + extend/net-new classifier; zero-routing thin orchestrator above /cla + /update) | **0.1.0** | 06-ai-ops | 2026-06-01 | [spec.md](book-to-capability/spec.md) | [retrospective.md](book-to-capability/retrospective.md) |
 | `design-system-styling` | multi design-system library + universal `--style` output layer (DESIGN.md format; SPLIT registry owned/00-core + downloaded/runtime; deepask first consumer; `ritsu` brand seed) | **1.0.0** | 06-ai-ops | 2026-06-01 | [spec.md](design-system-styling/spec.md) | [retrospective.md](design-system-styling/retrospective.md) |
+| `image-platform` | foundational pluggable image-generation primitive (`/image`) — model-agnostic adapter layer (`--use`); gpt-image-2 real + pro-max preset + nano-banana/midjourney/flux stubs; reuses deepask image helpers (untouched) + both style axes; A+ lean (run.json table-ready) | **0.1.0** | 06-ai-ops | 2026-06-02 | [spec.md](image-platform/spec.md) | [retrospective.md](image-platform/retrospective.md) |
 
 ## Deployed (pending operational gate)
 
