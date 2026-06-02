@@ -2,14 +2,14 @@
 title: "Chương 47 — Capability Case Study: design-system-styling (universal `--style` + thư viện DESIGN.md)"
 description: "Chương 47 — Capability Case Study: design-system-styling (universal `--style` + thư viện DESIGN.md)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/47-capability-case-design-system-styling.md
-source_hash: 3f9ebe27f9156239eff5c3dd8bd3bbb12427cb1d2a862b302a7d8a30ce4e52bc
-generated_at: '2026-06-01T17:40:49.834Z'
+source_hash: 1910a5a88842e247f247e4caf209c22c7158f589aba0e24bd8a5fbffd2d638f1
+generated_at: '2026-06-02T11:39:09.086Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: 3f9ebe27f9156239eff5c3dd8bd3bbb12427cb1d2a862b302a7d8a30ce4e52bc
-translated_at: '2026-06-01T17:40:49.834Z'
+translated_source_hash: 1910a5a88842e247f247e4caf209c22c7158f589aba0e24bd8a5fbffd2d638f1
+translated_at: '2026-06-02T11:39:09.086Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 47
 ---
@@ -64,7 +64,7 @@ Thin orchestrator soi gương hình dạng của `/deepask`, trên `scripts/desi
 
 ## 47.7 Orthogonal với `--format` — và compose với deepask
 
-`--style` **trực giao** với `--format`: *format = loại artifact; style = ngôn ngữ thị giác*. Chúng compose bằng cách tiêm DESIGN.md đã-resolve vào renderer mà `--format` chọn — **no-op trung thực** cho format phi-thị-giác (inline/text/article/xlsx). Đây chính là trục mà deepask `--art-style` (genre, §45.9) *nhân lên*: brand (`--style`, capability này) thắng palette/logo/type; genre (`--art-style`, deepask) sở-hữu composition/assets/mood. Hai capability, một merge function brand-thắng.
+`--style` **trực giao** với `--format`: *format = loại artifact; style = ngôn ngữ thị giác*. Chúng compose bằng cách tiêm DESIGN.md đã-resolve vào renderer mà `--format` chọn — **no-op trung thực** cho format phi-thị-giác (inline/text/article/xlsx). Đây chính là trục mà deepask `--art-style` (genre, §45.9) *nhân lên*: brand (`--style`, capability này) thắng palette/logo/type; genre (`--art-style`, deepask) sở-hữu composition/assets/mood. Hai capability, một merge function brand-thắng. **(Cập nhật 2026-06-02 — Chương 48:** `/image` (image-platform v0.2.0) là consumer THỨ HAI của `--style` sau deepask, qua `scripts/image/lib/compose.cjs` tiêm DESIGN.md **deterministic** (out-of-band, no-LLM). Trục `--style` giờ phục-vụ ≥2 command — đúng tinh-thần "build once, use forever": chứng-minh universal-flag-as-DATA nhân được lên một consumer mới mà capability này không đổi gì.)
 
 ## 47.8 Trạng thái cuối + bài học
 

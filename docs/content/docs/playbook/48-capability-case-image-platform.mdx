@@ -1,0 +1,76 @@
+---
+title: "Chương 48 — Capability Case Study: image-platform (`/image` — image-gen model-agnostic + `--style` + `--ref`)"
+description: "Chương 48 — Capability Case Study: image-platform (`/image` — image-gen model-agnostic + `--style` + `--ref`)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/48-capability-case-image-platform.md
+source_hash: 5a6f6365cc3abc45f6d8a9dbe08795992eb901dede2fc8da0237ab1377803413
+generated_at: '2026-06-02T11:39:09.087Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 5a6f6365cc3abc45f6d8a9dbe08795992eb901dede2fc8da0237ab1377803413
+translated_at: '2026-06-02T11:39:09.087Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 48
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Image generation là một trong những primitive tần-suất-cao nhất hệ thống sẽ dùng (marketing asset, social/OG card, deepask infographic, design preview). Founder muốn một lệnh `/image <prompt> [flags]` NỀN TẢNG, build-once-use-forever: một cửa-trước model-agnostic với lớp adapter cắm-được (`--use=<adapter>`) để model ảnh mới plug vào sau MÀ KHÔNG sửa code phía-command. Default = gpt-image-2 in-repo. Một bộ tham số phổ-quát, mặc-định-hợp-lý."*
+
+Chương này document **image-platform** (`/image`) — primitive image-generation nền tảng. Đáng chú ý vì ba điều: (1) phần lớn được xây *tự-động* qua `/cla` dưới uỷ-quyền founder; (2) nó là consumer THỨ HAI của trục BRAND `--style` (Chương 47) sau deepask; (3) tái-sử-dụng ~70% từ deepask mà KHÔNG đụng một dòng deepask. `operating` v0.2.0, ship qua `/cla` (Bài #20) + `/cla extend`.
+
+**Trạng thái:** `operating` v0.2.0 (2026-06-02). v0.1 ship 3 PR (#197 foundation → #198 surface → #199 Phase-8); v0.1.1 rename (#201); v0.2.0 extend (#202). Tier C decision slug `image-platform-architecture-a-plus` (`d7e92ec2`). ops.capability_runs id `f494f9c9-…`. spec + retrospective promoted → `wiki/capabilities/image-platform/`.
+
+---
+
+## 48.1 Bài toán — image-gen là code rải rác, không có primitive dùng-lại
+
+Trước image-platform, sinh ảnh CHỈ sống trong nhánh infographics/img-slide của deepask (Chương 45). Mọi nhu-cầu khác (marketing asset, OG card, design preview) sẽ phải hoặc copy call-site của deepask, hoặc không được phục-vụ. Một primitive mỏng, governed, dùng-lại ngăn N bản sao "gọi image API" rải khắp pillar — và cho MỘT chỗ để thêm model, enforce cost cap, áp brand + art-direction discipline.
+
+## 48.2 Ba quyết định khoá của founder (constraint, không re-litigate)
+
+1. **Default = gpt-image-2 in-repo** (`scripts/deepask/image-gen.cjs`). GitHub skill `gpt-image-2-pro-max` là CÔNG-CỤ-PROMPT chứ không phải generator → trở thành stage `--enhance` (in-session) + preset alias (`--enhance --quality=high`).
+2. **`/image` là consumer NGANG-HÀNG mới** — deepask GIỮ NGUYÊN ở v0.1 (migration deepask→delegate documented, KHÔNG thực-thi để khỏi destabilize một capability đang operating).
+3. **v0.1 build adapter gpt-image-2 THẬT** + contract/registry; nano-banana/midjourney/flux = stub `registered-not-built` (chứng-minh abstraction bằng MỘT backend, cắm phần còn-lại sau).
+
+## 48.3 Kiến trúc — umbrella skill + adapters + split-registry, tái-dùng deepask
+
+Soi gương pattern docs-engine/wiki-sync (umbrella SKILL.md + `adapters/<id>/` + routing table) + split-registry của `design-systems.yaml`:
+- **Umbrella `image` skill** = dispatcher; đọc `knowledge/image-adapters.yaml` → resolve `--use` → adapter. Thêm model = drop `adapters/<id>/` + 1 row registry + 1 row routing — **KHÔNG sửa code phía-command**.
+- **`scripts/image/gen.cjs`** = orchestrator mỏng, `require()` 4 helper deepask in-place (image-gen/image-cost/image-spec/slide-deck) — ZERO file move, **deepask UNTOUCHED** (quyết định #2).
+- **`knowledge/image-adapters.yaml`** + JSON schema + `validate-image-adapters.cjs` (L2 critical, wire vào CẢ `check-consistency.cjs` LẪN GitHub CI — quy-tắc two-edit).
+- Output contract đồng-nhất mọi adapter: `{ok, files[], model, cost_usd, warnings[]}`. Layer `supports()` WARN-never-drop: param không hỗ-trợ thì cảnh-báo (kèm hệ-quả), không bao giờ âm-thầm drop.
+
+## 48.4 Ba refinement phát-hiện ở Phase 5 (đọc code thật, sửa giả-định của brief)
+
+Đọc code helper deepask thật đã sửa ba giả-định của design brief — đúng giá-trị của phase kiến-trúc:
+- **R1** — `resolveImageSpec` KHÔNG tái-dùng được (coupled cứng với format deepask `{infographics, img-slide}`); chỉ `parseSize` + `centeredCropBox` (geometry thuần) tái-dùng được → `gen.cjs` tự viết `resolveAspectRatio`.
+- **R2** — gpt-image-2 **flexible-sized** (cạnh ×16, AR ≤ 3:1, cạnh \< 3840), KHÔNG phải enum cố-định → `--ar` resolve thẳng sang size native, KHÔNG crop trong-tầm. *Tốt hơn* brief §7 (snap-enum-rồi-crop), và đóng open-question A6.
+- **R3** — `COST_TABLE` tuyến-tính theo diện-tích-pixel → ước-tính size tuỳ-ý bằng nội-suy per-quality giữa hai key gần nhất.
+
+Cộng thêm **fix #200** (PR concurrent, tích-hợp khi rebase): gpt-image-2 có SÀN diện-tích ~1MP — request quá nhỏ (16:9 medium = 1024×576 = 0.59MP) bị API từ-chối 400 → `resolveAspectRatio` nâng cạnh dài để diện-tích ≥ sàn (warn, không im-lặng).
+
+## 48.5 A+ observability — lean, table-ready
+
+Founder chọn **Option A+** (lean): KHÔNG bảng Tier-2 ở v0.1, nhưng `gen.cjs` phát một `run.json` mang ĐỦ cột một `ops.image_runs` tương-lai cần → thêm bảng sau = pure INSERT-wiring, không rework. @cto MF1 honesty: cap `image-gen` là ADVISORY (spend out-of-band → vô-hình với budget hook); guard THẬT = breaker `--max-cost-usd` per-run (refuse-up-front). Billing: `OPENAI_API_KEY` out-of-band (compliant policy); `--enhance` in-session/subscription (hook-enforced).
+
+## 48.6 v0.1.1 — rename `--tier` → `--quality` (rõ-ràng thắng clever)
+
+Founder: *"gọi là quality dễ hiểu hơn, tier nghe khó hiểu"*. Đổi `--tier draft|standard|high` → `--quality low|medium|high` — khớp **1:1** param native `quality` của OpenAI, BỎ luôn lớp dịch `tierToQuality`. Behaviour-preserving (`standard` cũ = `medium` mới). Một fix-class rename xuyên 17 file, 55 test giữ xanh. Bài học nhỏ: tên gây-khó-hiểu là nợ — sửa sớm khi usage ≈ 0.
+
+## 48.7 v0.2.0 — `--style` design-system first-class + `--ref` reference
+
+`/cla extend` chạy *tự-động* (uỷ-quyền founder) thêm hai thứ founder yêu cầu:
+1. **`--style` first-class, DETERMINISTIC** — `scripts/image/lib/compose.cjs` resolve DESIGN.md (`resolveStyle` → palette/typography/personality) + genre (`--art-style` → `resolveArtStyle`) và ghép vào prompt ngay trong `gen.cjs`, OUT-OF-BAND (không LLM). Parity với lớp design-system của deepask NHƯNG **deterministic** (không phụ-thuộc model variance). Đây là điểm `/image` thành consumer THỨ HAI của trục BRAND (Chương 47) sau deepask — cùng một merge function brand-thắng (palette/logo/type của brand > genre).
+2. **`--ref`/`--mask` reference-guided** — `callOpenAiEdit` → endpoint OpenAI `/v1/images/edits` (multipart; single ref → `image`, multi → `image[]`). `ref`/`mask` chuyển `supports_stretch` → `supports`. **Live-verified**: round-trip thật OK (logo ritsu → gradient sạch, $0.042).
+
+## 48.8 Trạng thái cuối + bài học
+
+- **operating v0.2.0**: 3 PR v0.1 (#197/#198/#199) + #201 rename + #202 extend; **87 image test**; `pnpm check` CLEAN mọi PR; **deepask UNTOUCHED** suốt 5 PR. Test thật 10 ví-dụ: `--style=ritsu` ra asset on-brand thật (cyan `#0ABCD0`, wordmark, tagline "Turn any document into true mastery").
+
+**Bốn bài học cho playbook:**
+1. **Build-once pluggable, chứng-minh bằng MỘT backend** — adapter contract + registry + 3 stub chứng-minh abstraction; thêm model sau = 1 registry row + 1 adapter folder, KHÔNG sửa command.
+2. **Reuse-don't-duplicate, KHÔNG đụng cái đang-operating** — `require()` helper deepask in-place, zero file move; deepask không đổi một dòng. Tái-dùng phải an-toàn với capability đang chạy.
+3. **Deterministic > LLM khi có thể** — `compose.cjs` tiêm design-system bằng code thuần (không model variance), sạch hơn cả /deepask cho input prompt đơn-giản. Không phải mọi composition cần một LLM.
+4. **Per-PR drift discipline** — gate `resolver-v2-coverage` (critical) bắn NGAY khi một source entity tồn-tại → mỗi PR phải regen catalog cho entity NÓ thêm, không defer. Và khi một PR concurrent (#200) đụng cùng file → **rebase + dịch logic của nó vào naming mới, không clobber**.
