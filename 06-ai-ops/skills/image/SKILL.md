@@ -47,13 +47,11 @@ Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a bac
 
 1. **Parse** flags (`params.cjs`). Resolve `--use` against the registry.
 2. **(optional) `--enhance`** → dispatch to `image/enhance` (in-session prompt refinement; subscription billing; NEVER an external API). Records `prompt_enhanced` (before/after) for `run.json`.
-3. **Compose the final prompt** (in-session) — reuse the deepask composition technique, adapted for a free-form prompt (not a synthesis IR):
-   - **Content** = the user prompt (after `--enhance`, if any).
-   - **BRAND STYLE BLOCK** — `resolveStyle(--style)` (`scripts/design-system/resolve-style.cjs`) → if `{mode:'plain'}` use the neutral brief; if `{mode:'styled', tokens, designMdPath}` build the brand block from tokens + `Read(designMdPath)` Do's/Don'ts. Compose ONCE, byte-identical. (Technique: `deepask/image-compose` §1.)
-   - **GENRE BLOCK** — `resolveArtStyle(--art-style)` (`scripts/deepask/art-style.cjs`) → `{layout, assets, tone, secondary_palette, display_type}`; `assets` is the lever (concrete objects to DRAW). (Technique: `deepask/image-compose` §1b.)
-   - **ART-DIRECTION** — `deepask/aesthetic` Part 3 (the don'ts: no clip-art / stock clichés / hype; legibility; exact-text rendering).
-   - **Precedence on conflict:** brand core palette/logo/body-type **>** legibility/a11y **>** genre **>** art-direction **>** content density.
-4. **Generate** — call the resolved adapter's generator (`scripts/image/gen.cjs`) with the composed `--prompt` + the operational flags. gen.cjs: resolves size (R2 flexible native), estimates cost (R3), enforces the `--max-cost-usd` breaker BEFORE the call, writes PNG(s) + typed `run.json` + prompt sidecar. See `adapters/gpt-image-2/SKILL.md`.
+3. **`--style` / `--art-style` → gen.cjs** (v0.2: composition is now **deterministic**, not in-session). The command just passes the flags; `scripts/image/gen.cjs` calls `scripts/image/lib/compose.cjs`, which:
+   - **BRAND block** — `resolveStyle(--style)` (`scripts/design-system/resolve-style.cjs`) injects the DESIGN.md palette / typography / personality. Omitted or uncached (non-interactive AD-3 miss) → plain + warn, never crash.
+   - **GENRE block** — `resolveArtStyle(--art-style)` (`scripts/deepask/art-style.cjs`) → `assets` (the lever — concrete objects to DRAW) + layout / tone / display + a SECONDARY accent only.
+   - **Precedence:** brand core palette/logo/type **>** genre (secondary accent only). The only **in-session** prompt step is the optional `--enhance` (step 2); brand/genre composition is fully deterministic.
+4. **Generate** — call the resolved adapter's generator (`scripts/image/gen.cjs`). gen.cjs: composes (step 3), resolves size (R2 flexible native), estimates cost (R3), enforces the `--max-cost-usd` breaker BEFORE the call, **routes to the `/v1/images/edits` multipart endpoint when `--ref`/`--mask` are set** (reference-guided generation; else `/generations`), writes PNG(s) + typed `run.json` + prompt sidecar. See `adapters/gpt-image-2/SKILL.md`.
 5. **Report** — surface the adapter's output contract `{ok, files[], model, cost_usd, warnings[]}`. **Always surface `warnings[]`** (unsupported params are warned, never silently dropped). On `outcome ∈ {not_built, breaker_refusal, moderation_block, api_error}`, report the typed reason + remedy.
 
 ## Output contract (uniform across adapters)
@@ -63,7 +61,7 @@ Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a bac
 - **Tier A** runtime (reversible, local writes, metered + capped). Explicit-invoke only.
 - **Billing:** generation = `OPENAI_API_KEY` out-of-band via `gen.cjs` (compliant — Claude can't generate images, same lane as text-embedding-3-small). `--enhance` = in-session/subscription.
 - **Cost:** per-run `--max-cost-usd` breaker (default 1.00) is the real guard. The `ai-ops-image` `image-gen` per-task cap is advisory (out-of-band → invisible to the budget hook); `image-enhance` is hook-enforced (in-session). See `governance/ROLES.md` gps `per_task_kind_caps`.
-- **`--ref`/`--mask`** are v0.1 `supports_stretch` (need the `/v1/images/edits` multipart endpoint) → WARN-as-unsupported until built.
+- **`--ref`/`--mask`** (v0.2): reference-guided generation via the `/v1/images/edits` multipart endpoint (`gen.cjs callOpenAiEdit`) — `--ref=<image[,image2]>`, optional `--mask=<png>` inpaint region.
 
 ## Composes with
 `scripts/image/{gen,lib/params}.cjs` · `scripts/design-system/resolve-style.cjs` · `scripts/deepask/art-style.cjs` · `deepask/image-compose` (§1/§1b technique) · `deepask/aesthetic` (Part 3) · `knowledge/{image-adapters,design-systems,art-styles}.yaml`.

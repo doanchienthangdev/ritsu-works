@@ -43,15 +43,14 @@ steps:
     when: "--enhance set (or --use=gpt-image-2-pro-max preset)"
 
   - id: compose
-    name: "Stage 3 — compose the final prompt (brand + genre + art-direction)"
+    name: "Stage 3 — compose the final prompt (brand + genre) — DETERMINISTIC (v0.2)"
     skill: image
     actions:
-      - content_brief                # the (possibly enhanced) user prompt
-      - brand_style_block            # resolveStyle(--style) → byte-identical brand block (technique: deepask/image-compose §1)
-      - genre_block                  # resolveArtStyle(--art-style) → assets/layout/tone (technique: deepask/image-compose §1b)
-      - art_direction_block          # deepask/aesthetic Part 3 (don'ts; legibility; exact-text rendering)
+      - content_brief                # the (possibly --enhance'd) user prompt
+      - brand_block                  # scripts/image/lib/compose.cjs → resolveStyle(--style) → DESIGN.md palette/typography/personality injected (deterministic, out-of-band — NO LLM; uncached non-interactive miss → plain + warn, AD-3)
+      - genre_block                  # compose.cjs → resolveArtStyle(--art-style) → assets (the lever) + layout/tone/display + a SECONDARY accent only
     hitl: A
-    precedence: "brand core palette/logo/body-type > legibility/a11y > genre > art-direction > content density"
+    precedence: "brand core palette/logo/type > genre (secondary accent only). Composition is fully deterministic in gen.cjs; the only in-session prompt step is the optional --enhance (Stage 2)."
 
   - id: generate
     name: "Stage 4 — generate (out-of-band) + write artifacts"
@@ -61,7 +60,7 @@ steps:
       - estimate_cost                # R3: per-quality area-interpolation over scripts/deepask/image-cost.cjs COST_TABLE
       - cost_breaker                 # checkCostBudget vs --max-cost-usd — REFUSE before the API call (never silent overspend)
       - dry_run_short_circuit        # --dry-run → composed prompt sidecar + cost estimate, NO API call, NO key
-      - call_openai_out_of_band      # scripts/image/gen.cjs — OPENAI_API_KEY (ensureOpenAiKey); key value never printed
+      - call_openai_out_of_band      # scripts/image/gen.cjs — POST /generations (JSON) OR /edits (multipart, callOpenAiEdit) when --ref/--mask set (v0.2 reference-guided). OPENAI_API_KEY (ensureOpenAiKey); key value never printed
       - write_artifacts              # PNG(s) + typed run.json + (dry-run) prompt sidecar → .archives/image/<date>-<slug>/
     hitl: A
     failure_handling:

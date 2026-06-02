@@ -40,8 +40,8 @@ umbrella skill (`06-ai-ops/skills/image/SKILL.md`), reports the result.
 | `--art-style` | plain | **artistic genre** (80-style registry) — `knowledge/art-styles.yaml` |
 | `--enhance` | off | in-session prompt refinement (subscription) — the "pro-max" concept |
 
-### Reference (v0.1 stretch — WARN-as-unsupported on gpt-image-2)
-`--ref` `--mask` (need the OpenAI edits endpoint; built later) · `--ref-style` `--ref-character` `--ref-strength` `--negative` (warn).
+### Reference (v0.2 — `--ref`/`--mask` BUILT via the OpenAI edits endpoint)
+`--ref=<image[,image2]>` reference-guided generation · `--mask=<png>` inpaint region. Still warn-only (no gpt-image-2 mapping): `--ref-style` `--ref-character` `--ref-strength` `--negative`.
 
 ### Operational
 | Flag | Default | Notes |
@@ -57,8 +57,8 @@ MJ-only knobs `--stylize/--raw/--variety/--weird/--tile` are registered vocabula
 ## Flow (dispatches to the `image` umbrella skill)
 1. Parse flags (`params.cjs`); resolve `--use` against `knowledge/image-adapters.yaml`.
 2. If `--enhance` → `image/enhance` (in-session refine).
-3. Compose the final prompt: user prompt + BRAND block (`--style`) + GENRE block (`--art-style`) + art-direction + legibility (precedence: brand > a11y > genre > art-direction > density).
-4. `node scripts/image/gen.cjs --prompt="<composed>" …` → resolves size (R2), estimates cost (R3), enforces `--max-cost-usd` BEFORE the call, writes PNG(s) + typed `run.json` + sidecar.
+3. `--style`/`--art-style` pass to gen.cjs (the only in-session prompt step is the optional `--enhance` in step 2).
+4. `node scripts/image/gen.cjs --prompt="<prompt>" --style=… --art-style=… [--ref=… --mask=…] …` → **gen.cjs deterministically composes** the BRAND block (`--style` → DESIGN.md tokens via `lib/compose.cjs`) + GENRE block (`--art-style`), precedence brand > a11y > genre > art-direction > density; resolves size (R2); estimates cost (R3); enforces `--max-cost-usd` BEFORE the call; routes to the **edits** endpoint when `--ref` is set; writes PNG(s) + typed `run.json` + sidecar.
 5. Report `{ok, files[], model, cost_usd, warnings[]}` — **always surface warnings**; on `not_built|breaker_refusal|moderation_block|api_error`, give the typed reason.
 
 ## Examples
