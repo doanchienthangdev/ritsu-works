@@ -1,0 +1,40 @@
+---
+title: 'SOP-AIOPS-008: SOP'
+description: ''
+source_path: 06-ai-ops/sops/SOP-AIOPS-008-image-runtime-contract/flow.yaml
+source_hash: 97c2617abb549fe386a2b3d2de9776a8385e98cc8eccbf9eadc80cb56a866715
+generated_at: '2026-06-02T12:03:01.091Z'
+generated_by: docs-engine v1.2.0
+category: sop
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+**SOP ID:** `SOP-AIOPS-008`
+**Pillar:** n/a
+**Cost bucket:** `ai-ops-image`
+**Capability:** `image-platform`
+
+## Steps
+
+### Step parse — Stage 1 — parse the universal flags + resolve --use
+
+- **Skill:** `image`
+
+### Step enhance — Stage 2 — (optional) --enhance in-session prompt refinement
+
+- **Skill:** `image/enhance`
+
+### Step compose — Stage 3 — compose the final prompt (brand + genre) — DETERMINISTIC (v0.2)
+
+- **Skill:** `image`
+
+### Step generate — Stage 4 — generate (out-of-band) + write artifacts
+
+- **Skill:** `image/adapters/gpt-image-2`
+
+### Step report — Stage 5 — report the adapter contract
+
+- **Skill:** `image`
+

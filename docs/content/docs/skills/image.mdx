@@ -1,0 +1,77 @@
+---
+title: 'Skill: image'
+description: |
+  Umbrella cho capability image-platform — bộ não của lệnh `/image`.
+  Cửa trước tạo-ảnh model-agnostic với lớp adapter cắm-được
+  (`--use=<adapter>`), nên model ảnh mới cắm vào MÀ KHÔNG cần đổi code
+  phía-lệnh (soi gương docs-engine/wiki-sync: umbrella + adapters/<id>/ + bảng
+  routing). v0.1 ship MỘT backend thật (gpt-image-2, tái dùng các helper deepask
+  tại-chỗ — deepask không đụng) + preset gpt-image-2-pro-max + các stub nano-banana/
+  midjourney/flux đã-đăng-ký-chưa-dựng. Soạn prompt cuối từ prompt người dùng + hai
+  trục style trực giao (`--style` thương hiệu qua design-systems.yaml, `--art-style`
+  thể loại qua art-styles.yaml) + art-direction, rồi chạy scripts/image/gen.cjs
+  (OpenAI out-of-band). Tier A; breaker --max-cost-usd mỗi lần chạy. Được gọi bởi
+  `.claude/commands/image.md`.
+source_path: 06-ai-ops/skills/image/SKILL.md
+source_hash: 3575201bd38bff7453f88ae3578c9cc5bf47d5116bed34920a835880c5f9e425
+generated_at: '2026-06-02T12:03:00.963Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_at: '2026-06-02T12:12:00.000Z'
+translated_by: docs-translate v1.1.0
+translated_source_hash: 3575201bd38bff7453f88ae3578c9cc5bf47d5116bed34920a835880c5f9e425
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Bộ não điều-phối + soạn-prompt đứng sau `/image <prompt> [flags]`.
+> Resolve adapter từ `knowledge/image-adapters.yaml`, soạn một prompt
+> brand+genre+art-directed trong-phiên, rồi giao cho generator out-of-band
+> `scripts/image/gen.cjs`. Thêm model sau này = thả vào
+> `adapters/<id>/SKILL.md` + một dòng registry + một dòng bảng-routing. **Không
+> đổi code phía-lệnh.**
+
+## Khi nào dùng
+- Founder chạy `/image "<prompt>" [flags]` → skill này điều khiển lần chạy.
+- KHÔNG được tự-gọi bởi các luồng khác. Việc tạo ảnh là chỉ-gọi-tường-minh (soi gương deepask image — không bao giờ âm thầm tiêu tiền).
+
+## Đầu vào (từ vựng tham số phổ quát)
+Được phân tích bởi `scripts/image/lib/params.cjs` (`UNIVERSAL_PARAMS`, nguồn-chân-lý-duy-nhất mà validator L2 dùng để đối chiếu `supports[]` của adapter). Bảng cờ đầy đủ + mặc định: xem `.claude/commands/image.md`. Cốt lõi: `<prompt>` · `--use` (mặc định `gpt-image-2`) · `--ar` (1:1) · `--quality` (medium; `low|medium|high` = native OpenAI) · `--count` (1) · `--format` (png) · `--style` · `--art-style` · `--enhance` · `--max-cost-usd` (1.00) · `--dry-run` · `--out`.
+
+## Routing adapter (`--use` → adapter)
+Đọc `knowledge/image-adapters.yaml`; resolve `--use` về entry của nó. Thêm backend = một dòng mới + `adapters/<id>/SKILL.md`.
+
+| `--use` | Adapter | Trạng thái | Generator |
+|---|---|---|---|
+| `gpt-image-2` *(mặc định)* | `adapters/gpt-image-2` | installed | `scripts/image/gen.cjs` |
+| `gpt-image-2-pro-max` | `adapters/gpt-image-2` (preset) | installed | `gen.cjs` + `--enhance --quality=high` |
+| `nano-banana` | — | registered-not-built | (stub → lỗi `not_built`) |
+| `midjourney` | — | registered-not-built | (stub → lỗi `not_built`) |
+| `flux` | — | registered-not-built | (stub → lỗi `not_built`) |
+
+Bản thân `gen.cjs` đọc registry và trả về lỗi `not_built` sạch (dẫn `image-adapters.yaml`) cho bất kỳ adapter `registered-not-built` nào — nên routing là data-driven, không hard-code ở đây.
+
+## Luồng chạy
+
+1. **Parse** cờ (`params.cjs`). Resolve `--use` dựa trên registry.
+2. **(tùy chọn) `--enhance`** → điều phối tới `image/enhance` (tinh chỉnh prompt trong-phiên; tính phí subscription; KHÔNG BAO GIỜ qua API ngoài). Ghi `prompt_enhanced` (trước/sau) vào `run.json`.
+3. **`--style` / `--art-style` → gen.cjs** (v0.2: việc soạn prompt giờ **tất định**, không còn trong-phiên). Lệnh chỉ truyền cờ; `scripts/image/gen.cjs` gọi `scripts/image/lib/compose.cjs`, hàm này:
+   - **Khối BRAND** — `resolveStyle(--style)` (`scripts/design-system/resolve-style.cjs`) tiêm palette / typography / personality của DESIGN.md. Bỏ trống hoặc chưa-cache (miss AD-3 phi-tương-tác) → plain + cảnh báo, không bao giờ crash.
+   - **Khối GENRE** — `resolveArtStyle(--art-style)` (`scripts/deepask/art-style.cjs`) → `assets` (đòn bẩy — các vật thể cụ thể để VẼ) + layout / tone / display + chỉ một điểm-nhấn THỨ CẤP.
+   - **Thứ tự ưu tiên:** palette/logo/type lõi của brand **>** genre (chỉ điểm-nhấn thứ cấp). Bước prompt **trong-phiên** duy nhất là `--enhance` tùy chọn (bước 2); việc soạn brand/genre hoàn toàn tất định.
+4. **Generate** — gọi generator của adapter đã-resolve (`scripts/image/gen.cjs`). gen.cjs: soạn prompt (bước 3), resolve kích thước (R2 native linh hoạt), ước tính chi phí (R3), thực thi breaker `--max-cost-usd` TRƯỚC khi gọi, **định tuyến tới endpoint multipart `/v1/images/edits` khi có `--ref`/`--mask`** (tạo ảnh dẫn-hướng-bằng-tham-chiếu; ngược lại dùng `/generations`), ghi PNG + `run.json` có kiểu + sidecar prompt. Xem `adapters/gpt-image-2/SKILL.md`.
+5. **Report** — hiển thị output contract của adapter `{ok, files[], model, cost_usd, warnings[]}`. **Luôn hiển thị `warnings[]`** (tham số không hỗ trợ được cảnh báo, không bao giờ âm thầm bỏ). Khi `outcome ∈ {not_built, breaker_refusal, moderation_block, api_error}`, báo lý do có kiểu + cách khắc phục.
+
+## Output contract (đồng nhất giữa các adapter)
+`{ ok, outcome, files[], model, cost_usd, warnings[], runJson, error }` — `outcome ∈ success | dry_run | not_built | breaker_refusal | moderation_block | api_error`. Artifact: `.archives/image/<date>-<slug>/` (`.archives` ở root, chỉ-local).
+
+## Quản trị
+- Runtime **Tier A** (đảo ngược được, ghi local, có đo + có chặn ngưỡng). Chỉ gọi-tường-minh.
+- **Tính phí:** tạo ảnh = `OPENAI_API_KEY` out-of-band qua `gen.cjs` (tuân thủ — Claude không tạo được ảnh, cùng làn với text-embedding-3-small). `--enhance` = trong-phiên/subscription.
+- **Chi phí:** breaker `--max-cost-usd` mỗi lần chạy (mặc định 1.00) mới là chốt-chặn thực sự. Cap per-task `image-gen` của `ai-ops-image` là tư vấn (out-of-band → vô hình với budget hook); `image-enhance` được hook thực thi (trong-phiên). Xem `per_task_kind_caps` của gps trong `governance/ROLES.md`.
+- **`--ref`/`--mask`** (v0.2): tạo ảnh dẫn-hướng-bằng-tham-chiếu qua endpoint multipart `/v1/images/edits` (`gen.cjs callOpenAiEdit`) — `--ref=<image[,image2]>`, tùy chọn `--mask=<png>` vùng inpaint.
+
+## Kết hợp với
+`scripts/image/{gen,lib/params}.cjs` · `scripts/design-system/resolve-style.cjs` · `scripts/deepask/art-style.cjs` · `deepask/image-compose` (kỹ thuật §1/§1b) · `deepask/aesthetic` (Phần 3) · `knowledge/{image-adapters,design-systems,art-styles}.yaml`.

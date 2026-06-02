@@ -1,0 +1,84 @@
+---
+title: 'Command: /image — capability `image-platform` v0.1'
+description: |
+  Tạo ảnh từ một prompt — cửa trước model-agnostic với lớp adapter cắm-được
+  (--use=<adapter>). Backend mặc định gpt-image-2 (in-repo, được quản trị).
+  Tham số phổ quát có mặc định hợp lý (--ar --quality --count --format --style brand
+  --art-style genre --enhance --max-cost-usd --dry-run --out …); tham số không hỗ trợ thì
+  CẢNH BÁO, không bao giờ âm thầm bỏ. Tái dùng các helper ảnh của deepask + cả hai trục style.
+  Tier A; circuit breaker --max-cost-usd mỗi lần chạy; OPENAI_API_KEY out-of-band; artifact ghi vào
+  .archives/image/<date>-<slug>/. Orchestrator mỏng trên skill umbrella `image`.
+source_path: .claude/commands/image.md
+source_hash: 3efe6b5a60cd8790cbef51e81a696390a23a387d26dfb804297e78ca39b7c669
+generated_at: '2026-06-02T12:03:00.834Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+translated: true
+translated_at: '2026-06-02T12:12:00.000Z'
+translated_by: docs-translate v1.1.0
+translated_source_hash: 3efe6b5a60cd8790cbef51e81a696390a23a387d26dfb804297e78ca39b7c669
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Front-end cho capability image-platform. Phân tích cờ, điều khiển skill `image`
+umbrella (`06-ai-ops/skills/image/SKILL.md`), báo cáo kết quả.
+
+## Cách dùng
+```
+/image "<prompt>" [flags]
+```
+
+## Cờ (từ vựng phổ quát — `scripts/image/lib/params.cjs`)
+
+### Cốt lõi
+| Cờ | Mặc định | Ghi chú |
+|---|---|---|
+| `<prompt>` | — (bắt buộc) | phần mô tả (đặt theo vị trí, hoặc `--prompt=`) |
+| `--use` | `gpt-image-2` | id adapter; `gpt-image-2-pro-max` = preset (`--enhance --quality=high`) |
+| `--ar` | `1:1` | tỉ lệ khung `W:H`; gpt-image-2 → kích thước native linh hoạt (AR ≤ 3:1, ngoài ngưỡng thì clamp+cảnh báo) |
+| `--quality` | `medium` | `low\|medium\|high` (= quality native của OpenAI, 1:1; `high` còn phóng to canvas) |
+| `--count` | `1` | số ảnh (gpt-image-2 n ≤ 10) |
+| `--format` | `png` | `png\|jpeg\|webp` |
+| `--seed` | — | ⚠️ gpt-image-2 không có seed → cảnh báo (không tái lập được) |
+
+### Style (hai trục trực giao)
+| Cờ | Mặc định | Ghi chú |
+|---|---|---|
+| `--style` | plain | design system **thương hiệu** (`ritsu`, …) — `knowledge/design-systems.yaml` |
+| `--art-style` | plain | **thể loại nghệ thuật** (registry 80 style) — `knowledge/art-styles.yaml` |
+| `--enhance` | off | tinh chỉnh prompt trong-phiên (subscription) — khái niệm "pro-max" |
+
+### Tham chiếu (v0.2 — `--ref`/`--mask` ĐÃ DỰNG qua endpoint edits của OpenAI)
+`--ref=<image[,image2]>` tạo ảnh dẫn-hướng-bằng-tham-chiếu · `--mask=<png>` vùng inpaint. Vẫn chỉ-cảnh-báo (chưa map sang gpt-image-2): `--ref-style` `--ref-character` `--ref-strength` `--negative`.
+
+### Vận hành
+| Cờ | Mặc định | Ghi chú |
+|---|---|---|
+| `--max-cost-usd` | `1.00` | circuit breaker mỗi lần chạy (từ-chối-trước, **chốt-chặn chi tiêu thực sự**) |
+| `--dry-run` | off | sidecar prompt đã-soạn + ước tính chi phí, **không tốn API** |
+| `--out` | `.archives/image/<date>-<slug>/` | thư mục output (`.archives` ở root, chỉ-local) |
+| `--deck` | off | khi `--count>1`, dựng thêm `deck.pdf` |
+| `--background` `--safety` `--model` `--resolution` | mặc-định-adapter | xem `supports()` của adapter (một số cảnh báo trên gpt-image-2) |
+
+Các nút chỉ-dành-cho-MJ `--stylize/--raw/--variety/--weird/--tile` là từ vựng đã-đăng-ký → bị cảnh-báo-rồi-bỏ-qua trên gpt-image-2 (sẽ được tôn trọng khi adapter Midjourney ra mắt).
+
+## Luồng (điều phối tới skill umbrella `image`)
+1. Phân tích cờ (`params.cjs`); resolve `--use` dựa trên `knowledge/image-adapters.yaml`.
+2. Nếu có `--enhance` → `image/enhance` (tinh chỉnh trong-phiên).
+3. `--style`/`--art-style` truyền tới gen.cjs (bước prompt trong-phiên duy nhất là `--enhance` tùy chọn ở bước 2).
+4. `node scripts/image/gen.cjs --prompt="<prompt>" --style=… --art-style=… [--ref=… --mask=…] …` → **gen.cjs soạn prompt một cách tất định**: khối BRAND (`--style` → token DESIGN.md qua `lib/compose.cjs`) + khối GENRE (`--art-style`), thứ tự ưu tiên brand > a11y > genre > art-direction > density; resolve kích thước (R2); ước tính chi phí (R3); thực thi `--max-cost-usd` TRƯỚC khi gọi; định tuyến tới endpoint **edits** khi có `--ref`; ghi PNG + `run.json` có kiểu + sidecar.
+5. Báo cáo `{ok, files[], model, cost_usd, warnings[]}` — **luôn hiển thị cảnh báo**; khi `not_built|breaker_refusal|moderation_block|api_error`, đưa ra lý do có kiểu.
+
+## Ví dụ
+```
+/image "a serene mountain lake at dawn"
+/image "Q3 funnel overview" --ar=16:9 --quality=high --style=ritsu --art-style=swiss-international
+/image "product hero" --use=gpt-image-2-pro-max          # = --enhance --quality=high
+/image "anything" --dry-run                              # no spend; preview prompt + cost
+/image "x" --use=midjourney                              # → not_built (proves the registry)
+```
+
+## Quản trị
+Tier A (đảo ngược được, ghi local, có đo + có chặn ngưỡng). Tạo ảnh = `OPENAI_API_KEY` out-of-band (tuân thủ); `--enhance` = trong-phiên/subscription. Cost-bucket `ai-ops-image` (gps): `image-gen` $0.50 (tư vấn — out-of-band; breaker `--max-cost-usd` mới là chốt-chặn thực sự), `image-enhance` $0.10 (hook thực thi). Runtime contract: `SOP-AIOPS-008-image-runtime-contract` (PR-3). deepask là một consumer ngang hàng riêng — không đổi.
