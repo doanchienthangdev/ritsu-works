@@ -124,12 +124,12 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Image generation platform (/image command). PROPOSED via /cla 2026-06-02 (ops.capability_runs id f494f9c9-b4be-4308-a1c2-d006a0e0476e). Foundational, build-once-use-forever image-generation primitive exposed as /image <prompt> [flags]: a model-agnostic front door with a pluggable adapter layer (--use=<adapter>) so new image models plug in WITHOUT command-side code change (mirrors the wiki-sync/doc v0.1.0
+**When to use:** Image generation platform (/image command). OPERATING since 2026-06-02 (Tier-C decision d7e92ec2-bcfb-4b7f-a140-bfb14a12dacf; PR #197 foundation + #198 surface + the Phase-8 promotion PR; ops.capability_runs id f494f9c9-b4be-4308-a1c2-d006a0e0476e). Foundational, build-once-use-forever image-generation primitive exposed as /image <prompt> [flags]: a model-agnostic front door with a pluggable adapt v0.1.0
 
 **Invoke:** `Read("wiki/capabilities/image-platform/spec.md")` or `/cla update image-platform`
 
 **Role scope:** *
-**Status:** proposed
+**Status:** operating
 **Pillar:** 06-ai-ops
 
 ## capability/playbook-builder
