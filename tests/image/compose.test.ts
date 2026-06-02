@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 // @ts-ignore — Node interop from TS to CJS (repo convention)
-const { composePrompt, buildBrandBlock, buildGenreBlock } = require("../../scripts/image/lib/compose.cjs");
+const { composePrompt, buildBrandBlock, buildGenreBlock, extractLogoPolicy } = require("../../scripts/image/lib/compose.cjs");
 
 // All-Edge-Cases-Test (global CLAUDE.md). image-platform v0.2 deterministic prompt
 // composer (--style brand + --art-style genre). composePrompt / buildBrandBlock /
@@ -112,5 +112,76 @@ describe("composePrompt (contract: real resolveStyle / resolveArtStyle)", () => 
     const genreIdx = r.prompt.indexOf("Artistic genre");
     expect(brandIdx).toBeGreaterThan(-1);
     expect(genreIdx).toBeGreaterThan(brandIdx); // brand block precedes genre block
+  });
+});
+
+// v0.3 — brand corner logo-overlay policy + hasRef-gated "draw no logo" directive.
+describe("extractLogoPolicy", () => {
+  it("null for a non-styled / missing resolution", () => {
+    expect(extractLogoPolicy(null)).toBeNull();
+    expect(extractLogoPolicy({ mode: "plain" })).toBeNull();
+  });
+  it("null when the design system declares no logo block", () => {
+    // shape mirrors resolveStyle→parseDesignMd: tokens.tokens = full frontmatter
+    expect(extractLogoPolicy({ mode: "styled", tokens: { tokens: { colors: {} } } })).toBeNull();
+  });
+  it("null when a logo block exists but overlay is not true", () => {
+    expect(extractLogoPolicy({ mode: "styled", tokens: { tokens: { logo: { overlay: false, position: "top-left" } } } })).toBeNull();
+  });
+  it("returns the policy object when logo.overlay === true", () => {
+    const pol = { overlay: true, position: "top-left", scale: 0.12, margin: 0.05 };
+    expect(extractLogoPolicy({ mode: "styled", tokens: { tokens: { logo: pol } } })).toEqual(pol);
+  });
+  it("contract: the REAL ritsu design system declares an active top-left overlay policy", () => {
+    // resolveStyle is exercised through composePrompt below; here assert the policy surfaces.
+    const r = composePrompt({ prompt: "x", style: "ritsu", hasRef: true });
+    expect(r.logoPolicy).toBeTruthy();
+    expect(r.logoPolicy.overlay).toBe(true);
+    expect(r.logoPolicy.position).toBe("top-left");
+    expect(typeof r.logoPolicy.scale).toBe("number");
+  });
+});
+
+describe("buildBrandBlock — logo overlay directive", () => {
+  const styled = {
+    mode: "styled", name: "ritsu",
+    tokens: { colors: { primary: "#0ABCD0" }, typography: { display: "Inter" }, description: "Calm." },
+  };
+  it("with an overlay policy → emits the 'do NOT draw any logo, keep the corner clean' directive", () => {
+    const block = buildBrandBlock(styled, { overlay: true, position: "top-left" });
+    expect(block).toMatch(/Do NOT draw/);
+    expect(block).toMatch(/top left corner/);
+    expect(block).toMatch(/composited there separately/);
+    expect(block).not.toMatch(/logo and typography take precedence/); // original line replaced
+  });
+  it("a non-top-left position is reflected in the directive text", () => {
+    const block = buildBrandBlock(styled, { overlay: true, position: "bottom-right" });
+    expect(block).toMatch(/bottom right corner/);
+  });
+  it("without a policy (null) → keeps the original 'logo … take precedence' line, no suppression", () => {
+    const block = buildBrandBlock(styled, null);
+    expect(block).toMatch(/logo and typography take precedence/);
+    expect(block).not.toMatch(/Do NOT draw/);
+  });
+});
+
+describe("composePrompt — overlay directive is gated on hasRef", () => {
+  it("ritsu + hasRef:true → logoPolicy set, overlayWillApply, directive in the composed prompt", () => {
+    const r = composePrompt({ prompt: "poster", style: "ritsu", hasRef: true });
+    expect(r.logoPolicy).toBeTruthy();
+    expect(r.overlayWillApply).toBe(true);
+    expect(r.prompt).toMatch(/Do NOT draw/);
+  });
+  it("ritsu + hasRef:false (no ref) → policy still surfaced BUT no suppression directive (backward compatible)", () => {
+    const r = composePrompt({ prompt: "poster", style: "ritsu", hasRef: false });
+    expect(r.logoPolicy).toBeTruthy();      // policy still reported (for callers)
+    expect(r.overlayWillApply).toBe(false);
+    expect(r.prompt).not.toMatch(/Do NOT draw/);
+    expect(r.prompt).toMatch(/take precedence/); // original line retained
+  });
+  it("default (no hasRef arg) behaves as hasRef:false", () => {
+    const r = composePrompt({ prompt: "poster", style: "ritsu" });
+    expect(r.overlayWillApply).toBe(false);
+    expect(r.prompt).not.toMatch(/Do NOT draw/);
   });
 });

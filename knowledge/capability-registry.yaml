@@ -1295,7 +1295,7 @@ capabilities:
   - id: image-platform
     name: "Image generation platform (/image command)"
     description: "OPERATING since 2026-06-02 (Tier-C decision d7e92ec2-bcfb-4b7f-a140-bfb14a12dacf; PR #197 foundation + #198 surface + the Phase-8 promotion PR; ops.capability_runs id f494f9c9-b4be-4308-a1c2-d006a0e0476e). Foundational, build-once-use-forever image-generation primitive exposed as /image <prompt> [flags]: a model-agnostic front door with a pluggable adapter layer (--use=<adapter>) so new image models plug in WITHOUT command-side code change (mirrors the wiki-sync/docs-engine umbrella-skill + adapters/<id>/ + routing-table pattern). Default backend = in-repo gpt-image-2 (REUSES scripts/deepask/{image-gen,image-cost,image-spec,slide-deck}.cjs via require() — zero file moves, deepask untouched). Exposes a universal sensibly-defaulted parameter vocabulary (--ar, --tier, --count, --seed, --format, --ref*, --style brand-axis, --art-style genre-axis, --enhance, MJ-style knobs --stylize/--raw/--variety/--weird/--tile, --background, --safety, --max-cost-usd, --dry-run, --out); each adapter declares supports() and WARNS (never silently drops) on unsupported params. Adapter output contract {ok, files[], model, cost_usd, warnings[]}. NEW knowledge/image-adapters.yaml split-registry (mirrors design-systems.yaml owned-vs-cache) + scripts/cross-tier/validate-image-adapters.cjs (L2 critical, wired into check-consistency.cjs AND .github CI). Cost-bucket ai-ops-image under gps; OPENAI_API_KEY out-of-band (compliant w/ api-key-vs-subscription policy); --enhance in-session/subscription. Tier A runtime; artifacts to .archives/image/<date>-<slug>/. LOCKED founder decisions: (1) default=gpt-image-2, the gpt-image-2-pro-max GitHub skill is a PROMPT tool not a generator → becomes optional --enhance prompt-refinement stage + preset alias (gpt-image-2 --enhance --tier=high); (2) /image = NEW peer consumer, deepask unchanged in v0.1 (future /cla revise deepask→delegate migration documented, not executed); (3) v0.1 builds the gpt-image-2 adapter for real + contract/registry, nano-banana/midjourney/flux = registered-not-built stubs."
-    version: "0.2.0"   # v0.2.0 (2026-06-02, /cla extend): first-class --style design-system (scripts/image/lib/compose.cjs — deterministic DESIGN.md injection, parity with /deepask) + --ref/--mask reference-guided generation (OpenAI /v1/images/edits multipart endpoint). v0.1.1: --tier → --quality (low|medium|high, 1:1 OpenAI native).
+    version: "0.3.0"   # v0.3.0 (2026-06-02, /cla extend): brand-scoped corner LOGO OVERLAY — when a --style design system declares a `logo.overlay` policy in its DESIGN.md frontmatter AND a --ref brand asset is given, /image generates a CLEAN base (model told to leave the corner clear) then composites the REAL ref asset small in the corner via a dependency-free pure-Node PNG compositor (scripts/image/lib/png-overlay.cjs, zlib-only → CI-safe), instead of feeding the square logo to the edits endpoint (which rendered it BIG + CENTERED — the founder-reported bug). Ritsu-scoped by data (00-core/design-system/ritsu/DESIGN.md logo block: top-left, scale 0.12, margin 0.05), general by mechanism. Overlay mode forces /generations + consumes the ref locally; the brand block emits a "draw no logo, keep the corner clean" directive gated on hasRef; graceful fallback (warn, keep base) on any decode/encode failure; PNG-only (non-png → warn). 136 image tests (was 87). v0.2.0: first-class --style design-system (scripts/image/lib/compose.cjs — deterministic DESIGN.md injection, parity with /deepask) + --ref/--mask reference-guided generation (OpenAI /v1/images/edits multipart endpoint). v0.1.1: --tier → --quality (low|medium|high, 1:1 OpenAI native).
     state: operating
     state_since: 2026-06-02
     proposed_at: 2026-06-02
@@ -1328,6 +1328,19 @@ capabilities:
       Observability deferred (A+): run.json is the forward-compat superset of a future
       ops.image_runs (Option B = /cla extend). Spec + retrospective promoted to
       wiki/capabilities/image-platform/.
+      v0.3.0 (2026-06-02, /cla extend — founder "logo too big/centered on ritsu
+      branded images" report): brand-scoped corner LOGO OVERLAY. New
+      scripts/image/lib/png-overlay.cjs (dependency-free zlib PNG decode/resize/
+      composite/encode — sharp + ImageMagick are absent and CI has no native-build
+      job, so a from-scratch compositor is the CI-safe choice). New `logo:` overlay
+      policy in 00-core/design-system/ritsu/DESIGN.md frontmatter (parseDesignMd
+      passes it through as a token; sRGB/ref validation untouched). compose.cjs
+      surfaces the policy + emits a hasRef-gated "draw no logo, keep the corner
+      clean" directive; gen.cjs routes overlay mode (policy + --ref) to /generations
+      and stamps the real ref asset small in the corner, graceful-fallback on any
+      failure. 49 new image tests (87 → 136). NO Tier-2 migration; run.json gains a
+      logo_overlay block (forward-compat). Tier B leaf-extend on an operating
+      capability; founder-authorized commit → PR → merge → Vercel deploy.
 
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.

@@ -217,20 +217,29 @@ async function run(argv) {
     return { ok: false, outcome: 'api_error', error: 'a prompt is required (positional text, --prompt=, or --prompt-file=)' };
   }
 
-  // --style (brand) + --art-style (genre) → deterministic prompt composition (out-of-band; no LLM).
-  const composition = composePrompt({ prompt: options.prompt, style: options.style, artStyle: options['art-style'] });
-  const finalPrompt = composition.prompt;
-
-  // --ref / --mask → reference-guided generation via the OpenAI edits endpoint (v0.2).
+  // --ref / --mask paths — resolved FIRST so the composer knows whether a logo will actually
+  // be overlaid (hasRef): the brand "draw no logo, keep the corner clean" directive must only
+  // fire when there is a ref to stamp, not for every ritsu image.
   const refPaths = options.ref ? String(options.ref).split(',').map((s) => s.trim()).filter(Boolean) : [];
   const maskPath = options.mask ? String(options.mask).trim() : null;
-  const endpoint = refPaths.length ? 'edits' : 'generations';
   for (const rp of refPaths) {
     if (!fs.existsSync(path.resolve(rp))) return { ok: false, outcome: 'api_error', error: `--ref file not found: ${rp}` };
   }
   if (maskPath && !fs.existsSync(path.resolve(maskPath))) {
     return { ok: false, outcome: 'api_error', error: `--mask file not found: ${maskPath}` };
   }
+
+  // --style (brand) + --art-style (genre) → deterministic prompt composition (out-of-band; no LLM).
+  const composition = composePrompt({ prompt: options.prompt, style: options.style, artStyle: options['art-style'], hasRef: refPaths.length > 0 });
+  const finalPrompt = composition.prompt;
+  const logoPolicy = composition.logoPolicy || null;   // v0.3: non-null iff the brand declares a corner overlay
+
+  // v0.3 brand corner-logo OVERLAY: when the resolved --style declares a logo.overlay policy
+  // AND a --ref brand asset is given, the ref is composited small in the corner AFTER a CLEAN
+  // base generation — NOT fed to the edits endpoint (which makes a square logo big + centered).
+  // So overlay mode forces the /generations endpoint and consumes the ref locally.
+  const overlayActive = !!(logoPolicy && refPaths.length);
+  const endpoint = overlayActive ? 'generations' : (refPaths.length ? 'edits' : 'generations');
 
   // size (R2) + quality + cost (R3).
   const quality = normalizeQuality(options.quality);
@@ -239,6 +248,15 @@ async function run(argv) {
   const warnings = computeWarnings(target, provided).concat(spec.warnings, composition.warnings);
   if (!Number.isInteger(n) || n < 1) { warnings.push(`--count ${options.count} invalid → 1`); n = 1; }
   if (n > 10) { warnings.push(`--count ${n} exceeds gpt-image-2 max 10 → clamped to 10`); n = 10; }
+  if (maskPath && overlayActive) {
+    warnings.push(`--mask ignored — brand "${composition.style.name}" uses corner logo-overlay (the /generations endpoint), which has no inpaint mask`);
+  }
+  // Overlay compositing is PNG-only. For a non-png format the base still generates clean
+  // (no model logo, per the brand directive) but the corner logo can't be stamped → say so.
+  const overlayFormatOk = (options.format || 'png') === 'png';
+  if (overlayActive && !overlayFormatOk) {
+    warnings.push(`brand logo overlay needs PNG — --format=${options.format} → corner logo NOT stamped (use --format=png to keep the brand mark)`);
+  }
 
   const per = estimateFlexibleCost({ width: spec.width, height: spec.height, quality });
   const totalCost = Math.round(per.usd * n * 1e4) / 1e4;
@@ -253,6 +271,9 @@ async function run(argv) {
     style: composition.style.name, style_mode: composition.style.mode,
     art_style: composition.artStyle.name, art_style_mode: composition.artStyle.mode,
     ref: refPaths.length ? refPaths : null, mask: maskPath,
+    logo_overlay: overlayActive
+      ? { applied: false, asset: refPaths[0], position: logoPolicy.position || 'top-left', scale: logoPolicy.scale, margin: logoPolicy.margin }
+      : null,
     enhance: Boolean(options.enhance), dry_run: Boolean(options['dry-run']),
     cost_usd: totalCost, is_estimate: true, breaker_tripped: false, max_cost_usd: maxCost,
     warnings, error: null, files: [],
@@ -286,7 +307,23 @@ async function run(argv) {
     const apiJson = endpoint === 'edits'
       ? await callOpenAiEdit({ ...payload, refPaths, maskPath, format: options.format })
       : await callOpenAi(payload);
-    const buffers = await extractAllBuffers(apiJson);
+    let buffers = await extractAllBuffers(apiJson);
+
+    // v0.3 brand corner-logo OVERLAY — stamp the real ref asset small in the policy corner.
+    // Never fatal: any decode/encode/geometry failure → warn + keep the un-overlaid base.
+    let overlayApplied = false;
+    if (overlayActive && overlayFormatOk) {
+      try {
+        const { overlayLogo } = require('./lib/png-overlay.cjs');
+        const logoBuf = fs.readFileSync(path.resolve(refPaths[0]));
+        const pol = { position: logoPolicy.position, scale: logoPolicy.scale, margin: logoPolicy.margin };
+        buffers = buffers.map((b) => overlayLogo(b, logoBuf, pol));
+        overlayApplied = true;
+      } catch (e) {
+        warnings.push(`brand logo overlay skipped (${String(e.message || e)}) → base image written WITHOUT the corner logo`);
+      }
+    }
+
     fs.mkdirSync(outDir, { recursive: true });
     const ext = options.format === 'jpeg' ? 'jpg' : options.format;
     const files = buffers.map((buf, i) => {
@@ -294,7 +331,12 @@ async function run(argv) {
       fs.writeFileSync(fp, buf);
       return fp;
     });
-    const runJson = { ...baseRun, outcome: 'success', files };
+    const runJson = {
+      ...baseRun,
+      outcome: 'success',
+      files,
+      logo_overlay: baseRun.logo_overlay ? { ...baseRun.logo_overlay, applied: overlayApplied } : null,
+    };
     writeRunJson(outDir, runJson);
     return { ok: true, outcome: 'success', files, model: runJson.model, cost_usd: totalCost, warnings, runJson: path.join(outDir, 'run.json') };
   } catch (e) {

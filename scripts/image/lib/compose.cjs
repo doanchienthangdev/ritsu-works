@@ -24,7 +24,7 @@ const { resolveStyle } = require('../../design-system/resolve-style.cjs');
 const { resolveArtStyle } = require('../../deepask/art-style.cjs');
 
 /** Build a byte-stable BRAND style block from a resolved design system (or '' when plain). */
-function buildBrandBlock(resolved) {
+function buildBrandBlock(resolved, logoPolicy) {
   if (!resolved || resolved.mode !== 'styled' || !resolved.tokens) return '';
   const t = resolved.tokens;
   const colors = t.colors && typeof t.colors === 'object' ? t.colors : {};
@@ -46,8 +46,28 @@ function buildBrandBlock(resolved) {
   personality = personality.replace(/\s*\([^)]*[/\\][^)]*\)/g, '').replace(/\s+([.,;])/g, '$1').trim();
   if (personality.length > 200) personality = `${personality.slice(0, 200).replace(/\s+\S*$/, '')}…`;
   if (personality) block += ` Brand personality: ${personality}.`;
-  block += ' The brand core palette, logo and typography take precedence over any other styling.';
+  // When the brand declares a corner logo-overlay policy (v0.3), the real logo asset is
+  // composited afterward — so the MODEL must NOT draw one (else two logos), and must keep
+  // the chosen corner clear. Otherwise, keep the original "logo takes precedence" line.
+  if (logoPolicy && logoPolicy.overlay) {
+    const pos = String(logoPolicy.position || 'top-left').replace(/-/g, ' ');
+    block += ` Do NOT draw, render, or include any logo, wordmark, brand mark, or app icon anywhere in the image`
+      + ` — keep the ${pos} corner as clean, empty negative space (the real brand logo is composited there separately).`
+      + ` The brand core palette and typography still take precedence over any other styling.`;
+  } else {
+    block += ' The brand core palette, logo and typography take precedence over any other styling.';
+  }
   return block;
+}
+
+/** Extract a usable logo-overlay policy from a resolved design system (or null). */
+function extractLogoPolicy(styleResolved) {
+  if (!styleResolved || styleResolved.mode !== 'styled') return null;
+  // parseDesignMd returns { ...namedFields, tokens: <full resolved frontmatter> };
+  // the `logo` block is a non-standard frontmatter key, so it lives under tokens.tokens.
+  const fullFm = styleResolved.tokens && styleResolved.tokens.tokens;
+  const logo = fullFm && typeof fullFm === 'object' ? fullFm.logo : null;
+  return logo && logo.overlay === true ? logo : null;
 }
 
 /** Build a GENRE block from a resolved --art-style (or '' when plain). `assets` is the lever. */
@@ -75,7 +95,7 @@ function buildGenreBlock(resolved) {
  * @param {boolean} [a.interactive=false]  resolveStyle may fetch-on-miss only when true.
  * @returns {{ prompt, warnings:string[], style:{mode,name}, artStyle:{mode,name}, brandBlock, genreBlock }}
  */
-function composePrompt({ prompt, style, artStyle, interactive = false } = {}) {
+function composePrompt({ prompt, style, artStyle, interactive = false, hasRef = false } = {}) {
   const warnings = [];
   let styleResolved = { mode: 'plain', name: null, tokens: null };
   let artResolved = { mode: 'plain', name: null, genre: null };
@@ -104,7 +124,13 @@ function composePrompt({ prompt, style, artStyle, interactive = false } = {}) {
     }
   }
 
-  const brandBlock = buildBrandBlock(styleResolved);
+  const logoPolicy = extractLogoPolicy(styleResolved);
+  // The "draw no logo / keep the corner clean" directive ONLY makes sense when a logo will
+  // actually be composited afterward — i.e. a --ref brand asset is present (hasRef). With the
+  // policy declared but NO ref, keep the original behavior (don't suppress the logo into an
+  // empty corner — there'd be nothing to fill it).
+  const overlayWillApply = !!(logoPolicy && hasRef);
+  const brandBlock = buildBrandBlock(styleResolved, overlayWillApply ? logoPolicy : null);
   const genreBlock = buildGenreBlock(artResolved);
   const composed = [String(prompt == null ? '' : prompt).trim(), brandBlock, genreBlock].filter(Boolean).join('\n\n');
 
@@ -115,7 +141,9 @@ function composePrompt({ prompt, style, artStyle, interactive = false } = {}) {
     artStyle: { mode: artResolved.mode, name: artResolved.name || null },
     brandBlock,
     genreBlock,
+    logoPolicy,        // v0.3: the brand's corner logo-overlay policy (null if none) — gen.cjs does the stamp
+    overlayWillApply,  // v0.3: true iff (policy present AND a --ref will be overlaid) — drove the brand directive
   };
 }
 
-module.exports = { composePrompt, buildBrandBlock, buildGenreBlock };
+module.exports = { composePrompt, buildBrandBlock, buildGenreBlock, extractLogoPolicy };

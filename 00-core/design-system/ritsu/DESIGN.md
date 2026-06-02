@@ -90,6 +90,20 @@ components:
     border: "1px solid {colors.border}"
     rounded: "{rounded.md}"
     height: "40px"
+logo:
+  # image-platform v0.3 (/cla extend): brand-scoped corner logo overlay policy.
+  # When `/image --style=ritsu --ref=<asset>` runs, the ref brand asset is composited
+  # SMALL in this corner (deterministic, pixel-perfect, the real asset) instead of being
+  # fed to the OpenAI /v1/images/edits endpoint — which renders a square logo BIG and
+  # CENTERED (the bug this fixes). Consumed by scripts/image/lib/compose.cjs (the
+  # "draw no logo, leave the corner clean" directive) + scripts/image/lib/png-overlay.cjs
+  # (the dependency-free PNG stamp). Ritsu-scoped by data; the mechanism is general — any
+  # design system may set this block to get the same corner-lockup treatment.
+  overlay: true
+  position: top-left      # top-left | top-right | bottom-left | bottom-right
+  scale: 0.12             # logo width = 12% of the canvas's SHORTER edge (small, balanced)
+  margin: 0.05            # inset from the edges = 5% of the shorter edge
+  asset: assets/ritsu-logo.png   # canonical brand mark (default; an explicit --ref overrides)
 ---
 
 # Ritsu — Design System
