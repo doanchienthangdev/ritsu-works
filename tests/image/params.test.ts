@@ -6,6 +6,7 @@ const {
   DEFAULTS,
   MAX_AR,
   MAX_EDGE,
+  MIN_PIXEL_BUDGET,
   parseImageArgs,
   tierToQuality,
   resolveAspectRatio,
@@ -162,6 +163,89 @@ describe("resolveAspectRatio", () => {
       expect(r.width).toBeLessThan(3840);
       expect(r.height).toBeLessThan(3840);
     }
+  });
+});
+
+// Regression (All-Edge-Cases Phase 1F + 2L). gpt-image-2 enforces a MINIMUM pixel
+// budget (an area floor), not just a max edge. Pre-fix, 16:9 at standard tier resolved
+// to 1024x576 (0.59 MP), which the OpenAI Images API rejects 400 with "Requested
+// resolution is below the current minimum pixel budget" — observed LIVE 2026-06-02 on
+// `/image "...contratubex ad" --ar=16:9`. The dry-run couldn't catch it (no API call)
+// and no prior test covered a standard-tier WIDE AR. resolveAspectRatio now lifts the
+// long edge so every AR ≤ 3:1, at every tier, clears MIN_PIXEL_BUDGET — ratio preserved,
+// warned, never silent.
+describe("resolveAspectRatio — minimum pixel budget (regression: gpt-image-2 area floor)", () => {
+  it("exposes MIN_PIXEL_BUDGET as the known-good 1024x1024 area (~1 MP)", () => {
+    expect(MIN_PIXEL_BUDGET).toBe(1024 * 1024);
+  });
+
+  it("regression (2026-06-02): 16:9 standard no longer yields the rejected 1024x576", () => {
+    const r = resolveAspectRatio("16:9", "standard");
+    expect(r.size).not.toBe("1024x576");
+    expect(r.width * r.height).toBeGreaterThanOrEqual(MIN_PIXEL_BUDGET);
+  });
+
+  it("16:9 standard upscales to 1376x768 and warns honestly (never silent)", () => {
+    const r = resolveAspectRatio("16:9", "standard");
+    expect(r.size).toBe("1376x768");
+    expect(r.warnings.join(" ")).toMatch(/minimum/);
+    expect(r.warnings.join(" ")).toMatch(/1376x768/);
+  });
+
+  it("every AR ≤ 3:1 at every tier clears MIN_PIXEL_BUDGET (the invariant)", () => {
+    for (const ar of ["1:1", "4:3", "3:2", "16:9", "3:1", "2:3", "9:16", "1:3"]) {
+      for (const tier of ["draft", "standard", "high"]) {
+        const r = resolveAspectRatio(ar, tier);
+        expect(r.width * r.height).toBeGreaterThanOrEqual(MIN_PIXEL_BUDGET);
+      }
+    }
+  });
+
+  it("the upscale preserves the requested aspect ratio (within ×16 rounding slack)", () => {
+    const r = resolveAspectRatio("16:9", "standard");
+    expect(r.width / r.height).toBeCloseTo(16 / 9, 1);
+  });
+
+  it("portrait 9:16 standard upscales symmetrically (taller than wide, ≥ budget, warns)", () => {
+    const r = resolveAspectRatio("9:16", "standard");
+    expect(r.width).toBeLessThan(r.height);
+    expect(r.width * r.height).toBeGreaterThanOrEqual(MIN_PIXEL_BUDGET);
+    expect(r.warnings.join(" ")).toMatch(/minimum/);
+  });
+
+  it("draft tier (same long-edge budget as standard) upscales 16:9 identically", () => {
+    expect(resolveAspectRatio("16:9", "draft").size).toBe(resolveAspectRatio("16:9", "standard").size);
+  });
+
+  it("high tier wide ARs already clear the floor → NOT upscaled, NO budget warning", () => {
+    const r = resolveAspectRatio("16:9", "high");
+    expect(r.size).toBe("2048x1152"); // identical to pre-fix
+    expect(r.warnings.join(" ")).not.toMatch(/minimum/);
+  });
+
+  it("square 1:1 standard sits exactly at the floor → valid, no budget warning (boundary ==, not <)", () => {
+    const r = resolveAspectRatio("1:1", "standard");
+    expect(r.width * r.height).toBe(MIN_PIXEL_BUDGET);
+    expect(r.warnings.join(" ")).not.toMatch(/minimum/);
+  });
+
+  it("upscaled edges stay ×16 and strictly below MAX_EDGE (incl. extreme 3:1 standard)", () => {
+    for (const ar of ["16:9", "9:16", "3:1", "1:3", "21:9"]) {
+      const r = resolveAspectRatio(ar, "standard");
+      expect(r.width % 16).toBe(0);
+      expect(r.height % 16).toBe(0);
+      expect(r.width).toBeLessThan(3840);
+      expect(r.height).toBeLessThan(3840);
+    }
+  });
+
+  it("budget upscale composes with the >3:1 clamp (5:1 standard → clamp AND raise, both warnings)", () => {
+    const r = resolveAspectRatio("5:1", "standard");
+    expect(r.clamped).toBe(true);
+    expect(r.width * r.height).toBeGreaterThanOrEqual(MIN_PIXEL_BUDGET);
+    const joined = r.warnings.join(" ");
+    expect(joined).toMatch(/3:1 limit/); // clamp warning preserved
+    expect(joined).toMatch(/minimum/); // budget warning added
   });
 });
 

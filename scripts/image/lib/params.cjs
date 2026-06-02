@@ -47,6 +47,12 @@ const TIER_TO_LONG_EDGE = Object.freeze({ draft: 1024, standard: 1024, high: 204
 const MAX_AR = 3;            // gpt-image-2: aspect ratio ≤ 3:1.
 const MAX_EDGE = 3824;       // largest multiple of 16 strictly < 3840.
 const MIN_EDGE = 256;        // sane floor.
+// gpt-image-2 also enforces a MINIMUM pixel budget (an area floor): a too-small
+// request — e.g. 16:9 at standard tier = 1024x576 = 0.59 MP — is rejected by the
+// API with "Requested resolution is below the current minimum pixel budget". The
+// known-good baseline 1024x1024 (1.05 MP) passes, so we target that area. R2 lifts
+// the long edge so the SHORT edge keeps area ≥ this floor (see resolveAspectRatio).
+const MIN_PIXEL_BUDGET = 1024 * 1024;  // 1,048,576 px (~1 MP).
 
 // Consequence text for semantics-changing params (§10a — warn names the consequence,
 // not just "ignored"). Absent here ⇒ a plain "not supported" warning.
@@ -145,11 +151,34 @@ function resolveAspectRatio(ar, tier) {
   else if (ratio < 1 / MAX_AR) { ratio = 1 / MAX_AR; clamped = true; }
   if (clamped) warnings.push(`--ar ${ar} exceeds gpt-image-2's 3:1 limit → clamped to ${ratio >= 1 ? '3:1' : '1:3'}`);
 
-  const longEdge = TIER_TO_LONG_EDGE[tier] || TIER_TO_LONG_EDGE.standard;
+  // Long edge = the larger of the tier's budget and the minimum long edge that keeps
+  // the SHORT edge's area ≥ MIN_PIXEL_BUDGET. For area A and long/short ratio s ≥ 1,
+  // a long edge L gives area L²/s, so L ≥ √(A·s) clears the floor. High tier (long
+  // edge 2048) already exceeds this for every AR ≤ 3:1, so this only lifts standard/
+  // draft wide ARs — and never shrinks an already-large tier.
+  const tierLongEdge = TIER_TO_LONG_EDGE[tier] || TIER_TO_LONG_EDGE.standard;
+  const longOverShort = ratio >= 1 ? ratio : 1 / ratio;            // ≥ 1
+  const minLongForBudget = Math.sqrt(MIN_PIXEL_BUDGET * longOverShort);
+  const longEdge = Math.min(MAX_EDGE, Math.max(tierLongEdge, minLongForBudget));
+
   let width;
   let height;
   if (ratio >= 1) { width = round16(longEdge); height = round16(longEdge / ratio); }
   else { height = round16(longEdge); width = round16(longEdge * ratio); }
+
+  // ×16 rounding can nudge the area just under the floor — bump the long edge up in
+  // 16-px steps until the rounded size clears MIN_PIXEL_BUDGET (bounded; ≤ MAX_EDGE).
+  let guard = 0;
+  while (width * height < MIN_PIXEL_BUDGET && Math.max(width, height) + 16 <= MAX_EDGE && guard < 16) {
+    if (ratio >= 1) { width += 16; height = round16(width / ratio); }
+    else { height += 16; width = round16(height * ratio); }
+    guard += 1;
+  }
+
+  // Honest, never-silent: if we raised the size to clear the floor, say so.
+  if (longEdge > tierLongEdge + 0.5) {
+    warnings.push(`--ar ${ar} at "${tier}" tier is below gpt-image-2's ~1 MP minimum → size raised to ${width}x${height} (aspect ratio preserved)`);
+  }
 
   return {
     width,
@@ -229,6 +258,7 @@ module.exports = {
   DEFAULTS,
   MAX_AR,
   MAX_EDGE,
+  MIN_PIXEL_BUDGET,
   parseImageArgs,
   tierToQuality,
   resolveAspectRatio,
