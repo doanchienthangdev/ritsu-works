@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 49
+**Total entries:** 50
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -470,6 +470,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/founder-rhythm.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-image-adapters
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ image-adapters.yaml — Image-backend registry (capability image-platform) ============================================================================ Single index for the /image pluggable adapter layer (--use=<adapter>). SPLIT- registry shape (mirrors design-systems.yaml): a built adapter carries a `generator` script path...
+
+**Invoke:** `Read("knowledge/image-adapters.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/image-adapters.yaml
 
 **Role scope:** *
 **Status:** active

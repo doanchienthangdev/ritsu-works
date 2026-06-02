@@ -1,0 +1,67 @@
+# ============================================================================
+# image-adapters.yaml — Image-backend registry (capability image-platform)
+# ============================================================================
+# Single index for the /image pluggable adapter layer (--use=<adapter>). SPLIT-
+# registry shape (mirrors design-systems.yaml): a built adapter carries a
+# `generator` script path that MUST exist on disk; a `registered-not-built` stub
+# carries none (it documents intent + its native param surface for the day it ships).
+#
+# Adding a model later = drop adapters/<id>/SKILL.md + one row here + one routing-
+# table row in the umbrella skill. NO command-side code change.
+#
+# Schema: knowledge/schemas/image-adapters.schema.json
+# Gate:   scripts/cross-tier/validate-image-adapters.cjs (L2 critical — structural +
+#         supports[] ⊆ UNIVERSAL_PARAMS + installed⇒generator-on-disk + preset_of⇒target)
+# Spec:   wiki/capabilities/image-platform/spec.md (after Phase 8; draft .archives/cla/image-platform/spec.md)
+# Decision: ops.decisions d7e92ec2-bcfb-4b7f-a140-bfb14a12dacf (Tier C, 2026-06-02).
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/image-adapters.schema.json
+
+adapters:
+  # ── The one real backend (v0.1) ───────────────────────────────────────────
+  - id: gpt-image-2
+    status: installed
+    generator: scripts/image/gen.cjs
+    skill: 06-ai-ops/skills/image/adapters/gpt-image-2
+    default_model: gpt-image-2
+    supports: [ar, tier, count, format, style, art-style, enhance, safety, max-cost-usd, dry-run, out, deck]
+    supports_stretch: [ref, mask]     # MF2: need /v1/images/edits multipart endpoint (2nd code path); Phase-7 stretch. Until built → WARN-as-unsupported.
+    unsupported_warn: [seed, resolution, ref-style, ref-character, ref-strength, negative, stylize, raw, variety, weird, tile, background]
+    auth: { env: OPENAI_API_KEY, billing: out-of-band }
+    cost_table_ref: scripts/deepask/image-cost.cjs#COST_TABLE
+    notes: "Default backend. Flexible sizing (edges ×16, AR ≤ 3:1, edge < 3840) → --ar resolves to a native size, no crop in-range. quality=low|medium|high. png/jpeg/webp. NO seed. --ref/--mask via edits endpoint = Phase-7 stretch (MF2). --background transparent is gpt-image-1/1.5 only."
+
+  # ── Quality preset alias (NOT a distinct backend) ─────────────────────────
+  - id: gpt-image-2-pro-max
+    status: installed
+    preset_of: gpt-image-2
+    preset_flags: { enhance: true, tier: high }
+    generator: scripts/image/gen.cjs
+    default_model: gpt-image-2
+    supports: [ar, tier, count, format, style, art-style, enhance, safety, max-cost-usd, dry-run, out, deck]
+    auth: { env: OPENAI_API_KEY, billing: out-of-band }
+    notes: "Preset = gpt-image-2 --enhance --tier=high. Inherits gpt-image-2 supports/stretch. The GitHub gpt-image-2-pro-max skill is a prompt-search tool, NOT a generator."
+
+  # ── Registered-not-built stubs (v0.1 proves the abstraction; plug these later) ──
+  - id: nano-banana
+    status: registered-not-built
+    default_model: gemini-3-pro-image
+    supports: [ar, tier, resolution, ref, ref-character, format, max-cost-usd, dry-run, out]
+    auth: { env: GOOGLE_API_KEY, billing: out-of-band }
+    notes: "Gemini 3 Pro Image / Nano Banana Pro. True 4K + strongest character refs. NOT built v0.1."
+
+  - id: midjourney
+    status: registered-not-built
+    default_model: midjourney-v8
+    supports: [ar, seed, ref-style, ref-character, ref-strength, negative, stylize, raw, variety, weird, tile, max-cost-usd, dry-run, out]
+    auth: { env: null, billing: third-party-bridge }
+    notes: "No official API → needs a 3rd-party bridge. Richest stylistic knobs (--stylize/--variety/--weird/--tile/--no). NOT built v0.1."
+
+  - id: flux
+    status: registered-not-built
+    default_model: flux-1.1-pro-ultra
+    supports: [ar, tier, seed, format, ref, raw, max-cost-usd, dry-run, out]
+    auth: { env: BFL_API_KEY, billing: out-of-band }
+    notes: "BFL / fal / Replicate. Open weights, cheap, seed-able. NOT built v0.1."

@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 16
+**Total entries:** 17
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -64,7 +64,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** deepask — federated retrieval + capability-execution + cited synthesis supercommand. First-class supercommand /deepask "<q>" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its v1.1.1
+**When to use:** deepask — federated retrieval + capability-execution + cited synthesis supercommand. First-class supercommand /deepask "<q>" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its v1.2.1
 
 **Invoke:** `Read("wiki/capabilities/deepask/spec.md")` or `/cla update deepask`
 
@@ -118,6 +118,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Role scope:** *
 **Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/image-platform
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Image generation platform (/image command). PROPOSED via /cla 2026-06-02 (ops.capability_runs id f494f9c9-b4be-4308-a1c2-d006a0e0476e). Foundational, build-once-use-forever image-generation primitive exposed as /image <prompt> [flags]: a model-agnostic front door with a pluggable adapter layer (--use=<adapter>) so new image models plug in WITHOUT command-side code change (mirrors the wiki-sync/doc v0.1.0
+
+**Invoke:** `Read("wiki/capabilities/image-platform/spec.md")` or `/cla update image-platform`
+
+**Role scope:** *
+**Status:** proposed
 **Pillar:** 06-ai-ops
 
 ## capability/playbook-builder
