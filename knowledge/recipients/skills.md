@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 103
+**Total entries:** 108
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1446,6 +1446,69 @@ insights typically missed in flat lists.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/thinking-toolkit/debias
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Use as a pre-commit checklist on any consequential analysis, hypothesis,
+or recommendation. Run the decision through the named cognitive biases;
+for each one that fires, apply its counter (often another thinking-toolkit
+skill) before sending. One checklist that wraps the whole bias catalogue —
+not 28 separate skills. Recognition is the debiasing; you can't fix a bias
+you can't name.
+
+Trigger conditions: before committing any hypothesis-driven conclusion
+(confirmation bias is its named failure mode); before any HITL Tier C/D
+decision; final-stage check on options memos, capability specs, and
+C-suite persona recommendations; whenever a conclusion feels "obviously
+right" (that feeling is the warning).
+
+Skip when: pure factual lookup; reversible low-stakes decision; the output
+is raw data with no judgment.
+
+Cost: zero LLM (guidance document). ~3-5 min that catches the expensive
+error analysis can't — the one in your own reasoning.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/debias" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/design-thinking
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Use for GENERATIVE, human-centered problems where the answer isn't an
+analysis but an invention — when you don't yet know what to build and the
+users barely do either. The opposite of the toolkit's 6 analytical skills.
+Cycle: Empathize → Define (POV) → "How Might We" → Ideate (diverge) →
+Prototype → Test (converge). Screen ideas on Desirability × Feasibility ×
+Viability.
+
+Trigger conditions: product feature ideation; onboarding / activation
+redesign; SOP-PRODUCT-002 N=10-strangers observation work; any "users
+aren't doing X and we don't know what would make them"; reframing a
+stuck problem from the user's lived experience.
+
+Skip when: the problem is analytical with a knowable answer (use
+tosca → driver-tree → 2x2); the symptom is a confirmed regression (use
+root-cause); you already know what to build and just need to structure
+the case (use pyramid).
+
+Cost: zero LLM (guidance document). The generative complement to the
+analytical toolkit — fills the gap that all 6 prior skills are deductive.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/design-thinking" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/thinking-toolkit/driver-tree-decomposition
 
 **Kind:** skill
@@ -1469,6 +1532,40 @@ Cost: zero LLM (rules + arithmetic). ~10-15 min per metric. Catches
 intervention points typically missed when staring at the top-line KPI.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/driver-tree-decomposition" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/hypothesis-driven
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Use to SEQUENCE an analysis when you already have a credible hunch.
+State the hunch as a single falsifiable sentence, define up front what
+evidence would DISPROVE it, run the killing analyses first, and keep a
+running "one-day answer" so you always have a current best guess. This
+is analysis sequencing — NOT problem framing (that's tosca-problem-framing)
+and NOT tree structure (that's driver-tree-decomposition).
+
+Trigger conditions: /cla phase 4 options work; any "we think X is
+happening" investigation; debugging where one cause is most likely;
+time-pressured analysis where you can't boil the ocean; weekly funnel
+diagnosis with a leading suspicion.
+
+Skip when: you have NO credible hunch (use issue-driven / driver-tree to
+enumerate exhaustively instead); the problem isn't framed yet (run tosca
+first); stakes are high AND your hunch is weak (issue-driven leaves no
+stone unturned).
+
+Cost: zero LLM (guidance document). Saves hours by testing the load-bearing
+belief first instead of analyzing everything. Pairs naturally with debias
+(confirmation bias is its failure mode); Step 2 (define disproof criteria
+first) is the built-in guard.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/hypothesis-driven" })`
 **HITL tier:** B
 **Side effect:** write
 
@@ -1507,6 +1604,38 @@ unstructured business lists that have overlap or gaps.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/thinking-toolkit/pre-mortem
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Use BEFORE committing to a consequential, hard-to-reverse decision.
+Imagine it is the future and the decision has already FAILED, then work
+backward: each reviewer independently writes why it failed. Cluster the
+causes, and for the top ones add a guard, kill-switch, or leading
+indicator — or modify/kill the decision. Prospective hindsight surfaces
+risks that "are there any concerns?" never does.
+
+Trigger conditions: any HITL Tier C / D decision (irreversible, external,
+money, user-affecting); /cla phase 5 architecture sign-off; pricing
+changes; public launches; capability deprecation; any "one-way door"
+decision per SOP-FOUNDER-005 reversible-vs-irreversible router.
+
+Skip when: the decision is cheap and reversible (a "two-way door" — just
+try it and learn); routine operations; low-stakes experiments designed to
+fail cheaply.
+
+Cost: zero LLM (guidance document). ~10-20 min that prevents the
+expensive, hard-to-undo mistake. The natural companion to the HITL
+Tier C/D regret window.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/pre-mortem" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/thinking-toolkit/pyramid-principle-output
 
 **Kind:** skill
@@ -1529,6 +1658,37 @@ Cost: zero LLM (guidance document). Reader-time savings compound across
 every invocation — ~30-60s saved per founder reading.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/pyramid-principle-output" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/root-cause
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Use to trace a CONFIRMED symptom to its fundamental cause via iterative
+"why?" (Five Whys) and, when causes branch, a fishbone/Ishikawa map. Stop
+at a cause you can actually act on to prevent recurrence. This is for
+causal tracing of something that already broke — a metric drop, an
+incident, a bug — NOT for problem framing.
+
+Trigger conditions: a metric moved the wrong way and you need to know why;
+an incident / regression / support spike; a bug with an observed
+reproduction; any confirmed "X is happening and it shouldn't be."
+
+Skip when (IMPORTANT): you are defining the problem or success criteria —
+use tosca-problem-framing instead (Cracked it! p.58 explicitly rejects
+"why?" for framing). The symptom isn't confirmed yet (you're guessing —
+hypothesize first). You need to decompose a target metric forward into
+drivers (use driver-tree-decomposition).
+
+Cost: zero LLM (guidance document). Prevents treating symptoms — the
+expensive failure of fixing the same thing repeatedly.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/root-cause" })`
 **HITL tier:** B
 **Side effect:** write
 

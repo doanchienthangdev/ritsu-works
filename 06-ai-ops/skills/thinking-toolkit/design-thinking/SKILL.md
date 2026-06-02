@@ -1,0 +1,120 @@
+---
+name: thinking-toolkit/design-thinking
+description: |
+  Use for GENERATIVE, human-centered problems where the answer isn't an
+  analysis but an invention — when you don't yet know what to build and the
+  users barely do either. The opposite of the toolkit's 6 analytical skills.
+  Cycle: Empathize → Define (POV) → "How Might We" → Ideate (diverge) →
+  Prototype → Test (converge). Screen ideas on Desirability × Feasibility ×
+  Viability.
+
+  Trigger conditions: product feature ideation; onboarding / activation
+  redesign; SOP-PRODUCT-002 N=10-strangers observation work; any "users
+  aren't doing X and we don't know what would make them"; reframing a
+  stuck problem from the user's lived experience.
+
+  Skip when: the problem is analytical with a knowable answer (use
+  tosca → driver-tree → 2x2); the symptom is a confirmed regression (use
+  root-cause); you already know what to build and just need to structure
+  the case (use pyramid).
+
+  Cost: zero LLM (guidance document). The generative complement to the
+  analytical toolkit — fills the gap that all 6 prior skills are deductive.
+allowed-tools: []
+disable-model-invocation: false
+---
+
+# Design Thinking (the generative path: empathize → ideate → prototype)
+
+> When the problem is human-centered and the answer must be invented, not deduced — observe the need, reframe it as "How Might We," diverge into many ideas, then prototype the most desirable-feasible-viable one.
+
+The other six thinking-toolkit skills are **analytical** — they decompose, structure, and test a knowable answer. Design thinking is the **generative / abductive** path, for problems that analysis alone can't crack: where the need is poorly understood and the solution must be discovered by observing real users and rapidly prototyping. This is the toolkit's one creative tool.
+
+## Authentic sources
+
+- **Garrette, Phelps & Sibony, *Cracked it!*** (Palgrave Macmillan, 2018) — **Chapter 3** (the design-thinking path within the 4S method) and **Chapters 8-9** (the path in depth). *"Design thinking is a disciplined process for solving human-centered, complex problems that are poorly understood by solution developers. This approach puts the observation and discovery of human needs at the core of the problem-solving process."* It is **abductive reasoning** (Peirce): *"abduction takes place when you use a limited set of observations to generate the most plausible and parsimonious explanation."* It has a **bias for action** via iterative prototyping, and runs five phases: **Empathize, Define, Ideate, Prototype, Test.**
+  - **"How Might We" (Ch 8):** the question that caps Define and launches Ideate — *"broad enough to stimulate many ideas for solutions, but narrow enough to provoke you and your team to think of specific, novel ideas."* Exploratory framing ("might/could") generates more and better options than directive framing ("should/must").
+  - **Desirability–Feasibility–Viability (Ch 9):** *"Innovative solutions to challenging business problems exist at the intersection of three criteria: desirability, feasibility, and viability."* This triad is both the idea-screening filter and the stopping criterion ("when you have sufficient confidence... you're ready to move to Sell").
+
+> Note: thinking-toolkit v1.0 mapped Cracked it! Ch 4/5/6/10 to the analytical skills but left **Ch 8-9 (design thinking) uncovered**. This skill (v1.2) fills that gap.
+
+## When to use
+
+- Product feature ideation — especially Ritsu's "how do we make passive learners do the active work?" class of problem
+- Onboarding / activation redesign (the magic-moment funnel)
+- `SOP-PRODUCT-002` N=10-strangers observation → the Empathize + Test phases ARE this protocol
+- Any "users aren't doing X and we don't know what would change that"
+- Reframing a stuck problem from the user's actual lived experience (when analysis keeps circling)
+
+## When NOT to use
+
+- **Analytical problems with a knowable answer** → `tosca-problem-framing` → `driver-tree-decomposition` → `2x2-synthesis-matrix`. Don't "design-think" a pricing-elasticity question.
+- **A confirmed regression** → `root-cause`. The thing isn't an unmet need; it broke.
+- **You already know what to build** → skip ideation; structure the case with `pyramid-principle-output`.
+
+**Anti-pattern: design-thinking the analytical.** Brainstorming "How Might We increase MRR" wastes the method — MRR has a driver tree, not an empathy map. Design thinking is for *human needs you must discover*, not metrics you can decompose.
+
+## How to apply (five phases, diverge then converge)
+
+### 1 — Empathize (observe, don't ask)
+Watch real users in their context. For Ritsu: observe a stranger uploading their first document (SOP-PRODUCT-002), don't survey them. Capture what they DO and feel, not what they say they want. Tools: observation notes, empathy map (says/thinks/does/feels), journey map.
+
+### 2 — Define (POV statement)
+Synthesize observations into a single **point-of-view**: *[user] needs [need] because [surprising insight]*. e.g., "A cramming student needs to feel they're *making progress*, not just *covering material*, because the dread is about uncertainty, not workload."
+
+### 3 — "How Might We" (the bridge)
+Turn the POV into an HMW question — broad enough for many ideas, narrow enough to provoke specifics. *"How might we make the first quiz feel like progress rather than extra work?"* Use "might," not "should."
+
+### 4 — Ideate (diverge)
+Generate many ideas without judging. Defer evaluation. Quantity first. (SCAMPER, brainwriting, and morphological analysis are ideation aids here — they live inside this phase, not as separate skills.)
+
+### 5 — Prototype → Test (converge)
+Build the cheapest thing that tests the riskiest assumption. Put it in front of real users. Iterate. **Bias for action**: a rough prototype tested beats a polished plan unvalidated.
+
+### Screen every surviving idea on D × F × V
+- **Desirable** — do users want it more than alternatives, net of switching cost?
+- **Feasible** — can we build it with the stack/resources we have?
+- **Viable** — do the economics work (credit-unit / MRR)?
+An idea must clear all three to graduate. (This is the same triad behind `/cla` Phase 4 options.)
+
+## Worked examples
+
+### Example 1 — GOOD (activation reframe)
+**Empathize:** watched 10 strangers; most uploaded, generated a quiz, then *stopped* before taking it.
+**Define (POV):** "A new user needs reassurance that the quiz is *about their material* before investing effort, because they distrust generic AI quizzes."
+**HMW:** "How might we prove the quiz is from THEIR document in the first 5 seconds?"
+**Ideate:** show a source-citation chip per question; preview a question mid-upload; quote their own sentence in Q1; ...
+**Prototype/Test:** ship the citation chip to one cohort; measure first-quiz-start rate.
+**D/F/V:** desirable (addresses the distrust), feasible (citations already exist), viable (no new cost).
+**Why good:** started from observed behavior, reframed via HMW, diverged then converged, screened on D/F/V.
+
+### Example 2 — ANTI-PATTERN (analytical problem in design-thinking clothing)
+"How Might We increase free→paid conversion?" → a brainstorm of 30 ideas. **Why anti-pattern:** conversion is an analytical, decomposable metric — this needed `driver-tree` + `hypothesis-driven`, not ideation. Design thinking generates options for *unmet human needs*, not for metrics with known levers. **Fix:** driver-tree the conversion metric; design-think only the specific human-need branch it surfaces.
+
+### Example 3 — EDGE CASE (empathize phase IS an existing SOP)
+For Ritsu, the Empathize + Test phases are not new ceremony — they ARE `SOP-PRODUCT-002` (N=10 strangers observed before any major feature build). **Lesson:** design thinking here mostly formalizes the *front* (POV + HMW) and *screen* (D/F/V) around an observation protocol the product pillar already mandates.
+
+## Composition notes
+
+- **With `tosca-problem-framing`:** TOSCA frames analytical problems crisply; design thinking *reframes* human-centered ones from observation. If TOSCA's Trouble keeps coming out vague and user-experiential, switch to the Empathize→POV path.
+- **With `hypothesis-driven`:** a prototype test IS a hypothesis test — state what the prototype must show to survive.
+- **With `2x2-synthesis-matrix`:** screen ideated options on two of {Desirability, Feasibility, Viability} when you have 4+ candidates.
+- **With `/cla` Phase 4:** the D/F/V triad is the same lens the options-generator uses; design thinking feeds it candidate solutions.
+- **With `pre-mortem`:** pre-mortem the prototype before a wide rollout.
+
+## References
+
+Primary (in `raw/mckinsey/`):
+- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 3** (design-thinking path), **Chapter 8** (Redefine the Problem: the design-thinking path; POV + How-Might-We), **Chapter 9** (Structure and Solve using design thinking; Desirability-Feasibility-Viability).
+
+Supporting:
+- Brown, T. (2009). *Change by Design.* HarperBusiness — IDEO's design-thinking canon.
+- Peirce, C.S. — abductive reasoning (cited in Cracked it! Ch 3).
+- Distilled wiki concepts: `wiki/cracked-it/concepts/design-thinking.md`, `.../how-might-we-question.md`, `.../desirability-feasibility-viability-triad.md`, `.../five-phases-of-design-thinking.md`.
+
+## Anti-claims
+
+- This is NOT for analytical problems. Metrics get decomposed (driver-tree), not empathy-mapped.
+- This is NOT "brainstorming." Ideation is one of five phases; without Empathize and Test it's just opinions.
+- A prototype is NOT a product. Its only job is to test the riskiest assumption cheaply.
+- Desirability alone is not enough — an idea must clear Feasibility AND Viability too.
