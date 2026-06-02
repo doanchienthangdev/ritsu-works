@@ -43,6 +43,11 @@ const { checkCostBudget } = require('../deepask/image-cost.cjs');
 const {
   parseImageArgs, normalizeQuality, resolveAspectRatio, estimateFlexibleCost, computeWarnings,
 } = require('./lib/params.cjs');
+const { composePrompt } = require('./lib/compose.cjs');
+
+// Reference-guided generation (--ref/--mask) uses the OpenAI Images EDITS endpoint
+// (multipart) — a distinct code path from JSON /generations. v0.2.
+const OPENAI_IMAGES_EDITS_URL = OPENAI_IMAGES_URL.replace('/generations', '/edits');
 
 // ── registry ────────────────────────────────────────────────────────────────
 /** Load + parse knowledge/image-adapters.yaml. Throws a clear error if absent/malformed. */
@@ -128,6 +133,53 @@ async function callOpenAi(payload) {
   return JSON.parse(text);
 }
 
+function mimeForImage(p) {
+  const e = path.extname(p).toLowerCase();
+  if (e === '.jpg' || e === '.jpeg') return 'image/jpeg';
+  if (e === '.webp') return 'image/webp';
+  return 'image/png';
+}
+
+/**
+ * Reference-guided generation via POST /v1/images/edits (multipart/form-data). v0.2 (--ref/--mask).
+ * Single ref → `image`; multiple → `image[]` (gpt-image-* accepts multiple input images).
+ * NOTE: exact multipart field names re-verify against the live API at first real use (like the
+ * gpt-image-2 size enum). The structure mirrors callOpenAi's error handling exactly.
+ */
+async function callOpenAiEdit({ model, prompt, size, quality, n, format, refPaths, maskPath }) {
+  const fd = new FormData();
+  const multi = refPaths.length > 1;
+  for (const rp of refPaths) {
+    const abs = path.resolve(rp);
+    const buf = fs.readFileSync(abs);
+    fd.append(multi ? 'image[]' : 'image', new Blob([buf], { type: mimeForImage(abs) }), path.basename(abs));
+  }
+  if (maskPath) {
+    const mbuf = fs.readFileSync(path.resolve(maskPath));
+    fd.append('mask', new Blob([mbuf], { type: 'image/png' }), 'mask.png');
+  }
+  fd.append('model', model);
+  fd.append('prompt', prompt);
+  fd.append('size', size);
+  fd.append('quality', quality);
+  fd.append('n', String(n));
+  if (format && format !== 'png') fd.append('output_format', format);
+  const res = await fetch(OPENAI_IMAGES_EDITS_URL, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, // NO Content-Type — fetch sets the multipart boundary
+    body: fd,
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    let detail = text.slice(0, 400);
+    try { detail = JSON.stringify(JSON.parse(text).error || JSON.parse(text)).slice(0, 400); } catch (_e) { /* raw */ }
+    const err = new Error(`OpenAI Images edits API ${res.status}: ${detail}`);
+    err.outcome = classifyError(detail);
+    throw err;
+  }
+  return JSON.parse(text);
+}
+
 function writeRunJson(outDir, run) {
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, 'run.json'), `${JSON.stringify(run, null, 2)}\n`, 'utf-8');
@@ -165,11 +217,26 @@ async function run(argv) {
     return { ok: false, outcome: 'api_error', error: 'a prompt is required (positional text, --prompt=, or --prompt-file=)' };
   }
 
+  // --style (brand) + --art-style (genre) → deterministic prompt composition (out-of-band; no LLM).
+  const composition = composePrompt({ prompt: options.prompt, style: options.style, artStyle: options['art-style'] });
+  const finalPrompt = composition.prompt;
+
+  // --ref / --mask → reference-guided generation via the OpenAI edits endpoint (v0.2).
+  const refPaths = options.ref ? String(options.ref).split(',').map((s) => s.trim()).filter(Boolean) : [];
+  const maskPath = options.mask ? String(options.mask).trim() : null;
+  const endpoint = refPaths.length ? 'edits' : 'generations';
+  for (const rp of refPaths) {
+    if (!fs.existsSync(path.resolve(rp))) return { ok: false, outcome: 'api_error', error: `--ref file not found: ${rp}` };
+  }
+  if (maskPath && !fs.existsSync(path.resolve(maskPath))) {
+    return { ok: false, outcome: 'api_error', error: `--mask file not found: ${maskPath}` };
+  }
+
   // size (R2) + quality + cost (R3).
   const quality = normalizeQuality(options.quality);
   const spec = resolveAspectRatio(options.ar, quality);
   let n = Number(options.count) || 1;
-  const warnings = computeWarnings(target, provided).concat(spec.warnings);
+  const warnings = computeWarnings(target, provided).concat(spec.warnings, composition.warnings);
   if (!Number.isInteger(n) || n < 1) { warnings.push(`--count ${options.count} invalid → 1`); n = 1; }
   if (n > 10) { warnings.push(`--count ${n} exceeds gpt-image-2 max 10 → clamped to 10`); n = 10; }
 
@@ -180,9 +247,12 @@ async function run(argv) {
   const outDir = path.resolve(options.out || path.join(REPO_ROOT, '.archives', 'image', `${isoDate(new Date())}-${slugify(options.prompt)}`));
   const baseRun = {
     ts: new Date().toISOString(), command: '/image', adapter: target.id, model: options.model || 'gpt-image-2',
-    prompt_input: options.prompt, prompt_enhanced: options.prompt_enhanced || null, prompt_sent: options.prompt,
+    endpoint, prompt_input: options.prompt, prompt_enhanced: options.prompt_enhanced || null, prompt_sent: finalPrompt,
     ar: spec.requestedRatio, quality, size: spec.size, size_clamped: spec.clamped,
-    count: n, format: options.format, style: options.style || null, art_style: options['art-style'] || null,
+    count: n, format: options.format,
+    style: composition.style.name, style_mode: composition.style.mode,
+    art_style: composition.artStyle.name, art_style_mode: composition.artStyle.mode,
+    ref: refPaths.length ? refPaths : null, mask: maskPath,
     enhance: Boolean(options.enhance), dry_run: Boolean(options['dry-run']),
     cost_usd: totalCost, is_estimate: true, breaker_tripped: false, max_cost_usd: maxCost,
     warnings, error: null, files: [],
@@ -199,7 +269,7 @@ async function run(argv) {
   // dry-run — composed prompt sidecar + run.json, NO API call, NO key needed (acceptance #4).
   if (options['dry-run']) {
     fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, '01.png.prompt.txt'), options.prompt, 'utf-8');
+    fs.writeFileSync(path.join(outDir, '01.png.prompt.txt'), finalPrompt, 'utf-8');
     const runJson = { ...baseRun, outcome: 'dry_run' };
     writeRunJson(outDir, runJson);
     return { ok: true, outcome: 'dry_run', files: [], model: runJson.model, cost_usd: totalCost, warnings, runJson: path.join(outDir, 'run.json') };
@@ -211,9 +281,11 @@ async function run(argv) {
     return { ok: false, outcome: 'api_error', model: runJson.model, warnings, error: runJson.error, runJson: path.join(outDir, 'run.json') };
   }
 
-  const payload = buildPayload({ prompt: options.prompt, size: spec.size, quality, n, options, provided });
+  const payload = buildPayload({ prompt: finalPrompt, size: spec.size, quality, n, options, provided });
   try {
-    const apiJson = await callOpenAi(payload);
+    const apiJson = endpoint === 'edits'
+      ? await callOpenAiEdit({ ...payload, refPaths, maskPath, format: options.format })
+      : await callOpenAi(payload);
     const buffers = await extractAllBuffers(apiJson);
     fs.mkdirSync(outDir, { recursive: true });
     const ext = options.format === 'jpeg' ? 'jpg' : options.format;
@@ -234,7 +306,8 @@ async function run(argv) {
 }
 
 module.exports = {
-  run, loadRegistry, resolveAdapter, buildPayload, classifyError, extractAllBuffers, slugify, REGISTRY_PATH,
+  run, loadRegistry, resolveAdapter, buildPayload, classifyError, extractAllBuffers, slugify,
+  callOpenAiEdit, mimeForImage, OPENAI_IMAGES_EDITS_URL, REGISTRY_PATH,
 };
 
 if (require.main === module) {

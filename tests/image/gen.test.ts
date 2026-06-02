@@ -10,6 +10,8 @@ const {
   buildPayload,
   classifyError,
   slugify,
+  mimeForImage,
+  OPENAI_IMAGES_EDITS_URL,
 } = require("../../scripts/image/gen.cjs");
 
 // All-Edge-Cases-Test (global CLAUDE.md). image-platform gen.cjs orchestrator
@@ -145,5 +147,70 @@ describe("run() — no-network outcomes (the impure edge is NOT hit)", () => {
     const r = await run(["--prompt=x", "--seed=42", "--dry-run", `--out=${out}`]);
     expect(r.ok).toBe(true);
     expect(r.warnings.join(" ")).toMatch(/NOT reproducible/);
+  });
+});
+
+// v0.2 — design-system --style wiring + --ref/--mask reference-guided generation.
+describe("mimeForImage", () => {
+  it("maps extensions to image mime types (default png)", () => {
+    expect(mimeForImage("a.png")).toBe("image/png");
+    expect(mimeForImage("a.jpg")).toBe("image/jpeg");
+    expect(mimeForImage("a.jpeg")).toBe("image/jpeg");
+    expect(mimeForImage("a.webp")).toBe("image/webp");
+    expect(mimeForImage("a.gif")).toBe("image/png"); // fallback
+  });
+});
+
+describe("OPENAI_IMAGES_EDITS_URL", () => {
+  it("is the /v1/images/edits endpoint (derived from /generations)", () => {
+    expect(OPENAI_IMAGES_EDITS_URL).toMatch(/\/v1\/images\/edits$/);
+  });
+});
+
+describe("run() — v0.2 --style + --ref (no-network paths)", () => {
+  // A committed, reliably-present image used as a reference fixture (absolute path → cwd-independent).
+  const REF = path.resolve(__dirname, "../../00-core/design-system/ritsu/assets/ritsu-logo.png");
+
+  it("--style=ritsu (dry_run) → run.json style_mode=styled + brand block in prompt_sent", async () => {
+    const out = path.join(TMP, "style");
+    const r = await run(["--prompt=a calm lake", "--style=ritsu", "--dry-run", `--out=${out}`]);
+    expect(r.ok).toBe(true);
+    const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
+    expect(rj.style).toBe("ritsu");
+    expect(rj.style_mode).toBe("styled");
+    expect(rj.prompt_input).toBe("a calm lake");
+    expect(rj.prompt_sent).toMatch(/brand design system/); // composed, not raw
+    expect(rj.endpoint).toBe("generations"); // no --ref
+  });
+
+  it("plain (no --style) → style_mode=plain, prompt_sent == prompt_input", async () => {
+    const out = path.join(TMP, "plain");
+    const r = await run(["--prompt=just this", "--dry-run", `--out=${out}`]);
+    const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
+    expect(rj.style_mode).toBe("plain");
+    expect(rj.prompt_sent).toBe("just this");
+  });
+
+  it("--ref=<existing> (dry_run) → endpoint=edits, ref recorded, NO api call", async () => {
+    const out = path.join(TMP, "ref-ok");
+    const r = await run(["--prompt=restyle this", `--ref=${REF}`, "--dry-run", `--out=${out}`]);
+    expect(r.ok).toBe(true);
+    expect(r.outcome).toBe("dry_run");
+    const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
+    expect(rj.endpoint).toBe("edits");
+    expect(rj.ref).toEqual([REF]);
+  });
+
+  it("--ref=<missing> → ok=false api_error before any call", async () => {
+    const r = await run(["--prompt=x", "--ref=/tmp/nope-does-not-exist.png", "--dry-run", `--out=${path.join(TMP, "ref-missing")}`]);
+    expect(r.ok).toBe(false);
+    expect(r.outcome).toBe("api_error");
+    expect(r.error).toMatch(/--ref file not found/);
+  });
+
+  it("--mask=<missing> → ok=false api_error", async () => {
+    const r = await run(["--prompt=x", `--ref=${REF}`, "--mask=/tmp/nope-mask.png", "--dry-run", `--out=${path.join(TMP, "mask-missing")}`]);
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/--mask file not found/);
   });
 });
