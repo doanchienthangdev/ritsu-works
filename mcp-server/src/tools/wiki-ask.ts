@@ -428,7 +428,153 @@ export async function fetchEmbeddingsBatched(
 }
 
 // ---------------------------------------------------------------------------
-// rankByEmbedding — fetch embeddings for a set of pages, compute cosine, sort
+// Embedding match (RPC rows and client-cosine rows share this shape)
+// ---------------------------------------------------------------------------
+
+export interface EmbeddingMatch {
+  page_id: string;
+  chunk_index: number | null;
+  chunk_text: string;
+  similarity: number;
+}
+
+// Weak-signal floor, shared by the RPC path and the client-cosine fallback.
+const MIN_SIMILARITY = 0.5;
+
+/**
+ * Coerce a PostgREST numeric (which may arrive as a JS number OR a string) to a
+ * finite number. Returns NaN for null / undefined / non-numeric strings so the
+ * caller can drop the row.
+ */
+export function coerceSimilarity(v: unknown): number {
+  if (typeof v === "number") return v;
+  if (typeof v === "string") return Number.parseFloat(v);
+  return NaN;
+}
+
+/**
+ * Primary ranking path — server-side cosine via the ops.match_wiki_embeddings
+ * RPC (migration 00048). The page-id array + query embedding travel in the RPC
+ * POST body, so there is no request-URL length limit at any corpus size, and
+ * only the top-k chunks cross the wire. Returns matches on success, or `null`
+ * if the RPC is unavailable or errors (e.g. the migration is not applied yet) —
+ * the caller then falls back to client-side cosine, so wiki_ask never regresses.
+ */
+export async function matchViaRpc(
+  client: SupabaseClient,
+  pageIds: string[],
+  questionEmbedding: number[],
+  topK: number,
+): Promise<EmbeddingMatch[] | null> {
+  const { data, error } = await client.schema("ops").rpc("match_wiki_embeddings", {
+    page_ids: pageIds,
+    query_embedding: `[${questionEmbedding.join(",")}]`, // pgvector literal; cast inside the RPC
+    match_limit: topK,
+    min_similarity: MIN_SIMILARITY,
+  });
+  if (error) return null; // RPC missing/errored → signal fallback
+  return (data ?? [])
+    .map((r: any): EmbeddingMatch => ({
+      page_id: r.page_id,
+      chunk_index: r.chunk_index ?? null,
+      chunk_text: r.chunk_text,
+      similarity: coerceSimilarity(r.similarity),
+    }))
+    .filter((m: EmbeddingMatch) => Number.isFinite(m.similarity));
+}
+
+/**
+ * Fallback ranking path — batched client-side fetch + TypeScript cosine. Used
+ * only until migration 00048 is applied (or if the RPC errors). Correct but
+ * ships every candidate embedding to the client; the batched `.in()` keeps each
+ * request URL under the gateway limit (PR #210).
+ */
+async function matchViaClientCosine(
+  client: SupabaseClient,
+  pageIds: string[],
+  questionEmbedding: number[],
+): Promise<EmbeddingMatch[]> {
+  const embeddings = await fetchEmbeddingsBatched(pageIds, (ids) =>
+    client
+      .schema("ops")
+      .from("knowledge_embeddings")
+      .select("page_id, chunk_index, chunk_text, embedding")
+      .in("page_id", ids),
+  );
+  const matches: EmbeddingMatch[] = [];
+  for (const emb of embeddings) {
+    let embVec: number[];
+    if (typeof emb.embedding === "string") {
+      // pgvector returns embedding as string "[0.1,0.2,...]" via supabase-js
+      embVec = parseEmbeddingString(emb.embedding);
+    } else if (Array.isArray(emb.embedding)) {
+      embVec = emb.embedding as number[];
+    } else {
+      continue;
+    }
+    const sim = cosineSimilarity(questionEmbedding, embVec);
+    if (!Number.isFinite(sim) || sim < MIN_SIMILARITY) continue; // weak signal; skip
+    matches.push({
+      page_id: emb.page_id,
+      chunk_index: emb.chunk_index ?? null,
+      chunk_text: emb.chunk_text,
+      similarity: sim,
+    });
+  }
+  return matches;
+}
+
+/**
+ * Assemble RetrievalResults from ranked matches + candidate-page metadata.
+ * Pure (no I/O): skips matches whose page is not in the candidate set or whose
+ * similarity is non-finite, builds the Muse M5 citation, sorts by similarity
+ * desc, and slices to topK.
+ */
+export function assembleResults(
+  matches: EmbeddingMatch[],
+  pageById: Map<string, any>,
+  sourceMetaById: Map<string, { slug: string; title: string }>,
+  isDerived: boolean,
+  topK: number,
+): RetrievalResult[] {
+  const results: RetrievalResult[] = [];
+  for (const m of matches) {
+    const p = pageById.get(m.page_id);
+    if (!p) continue; // match for a page outside the candidate set — skip
+    if (!Number.isFinite(m.similarity)) continue;
+
+    const sourceMeta = (isDerived && p.extracted_from_source_id
+      ? sourceMetaById.get(p.extracted_from_source_id)
+      : null) ?? null;
+    const citationFormat = formatCitation({
+      page: p,
+      chunk_index: m.chunk_index,
+      chunk_text: m.chunk_text,
+      similarity: m.similarity,
+      source_meta: sourceMeta,
+      is_derived: isDerived,
+    });
+    results.push({
+      page_id: p.id,
+      page_slug: p.slug,
+      page_type: p.page_type,
+      page_title: p.title,
+      is_derived_entity: isDerived,
+      source_page_id: p.extracted_from_source_id ?? null,
+      source_slug: sourceMeta?.slug ?? null,
+      source_title: sourceMeta?.title ?? null,
+      chunk_index: m.chunk_index ?? null,
+      chunk_text: m.chunk_text,
+      similarity: m.similarity,
+      citation_format: citationFormat,
+    });
+  }
+  results.sort((a, b) => b.similarity - a.similarity);
+  return results.slice(0, topK);
+}
+
+// ---------------------------------------------------------------------------
+// rankByEmbedding — RPC-first (server-side cosine), client-cosine fallback
 // ---------------------------------------------------------------------------
 
 async function rankByEmbedding(
@@ -439,27 +585,28 @@ async function rankByEmbedding(
   isDerived: boolean,
 ): Promise<RetrievalResult[]> {
   if (pages.length === 0) return [];
-
   const pageIds = pages.map((p) => p.id);
-  // Batched fetch — a single `.in()` over hundreds of ids overflows the
-  // PostgREST request URL → HTTP 400 "Bad Request". See fetchEmbeddingsBatched.
-  const embeddings = await fetchEmbeddingsBatched(pageIds, (ids) =>
-    client
-      .schema("ops")
-      .from("knowledge_embeddings")
-      .select("page_id, chunk_index, chunk_text, embedding")
-      .in("page_id", ids),
-  );
 
-  // Index pages by id for join
+  // RPC primary; client-cosine fallback if the RPC is unavailable/errors.
+  const matches =
+    (await matchViaRpc(client, pageIds, questionEmbedding, topK)) ??
+    (await matchViaClientCosine(client, pageIds, questionEmbedding));
+
+  // Index candidate pages by id for the metadata join.
   const pageById = new Map<string, any>();
   for (const p of pages) pageById.set(p.id, p);
 
-  // For derived entities, fetch source RECORD metadata for citation
+  // Fetch source RECORD metadata ONLY for the matched derived pages (≤ topK).
+  // Scoping to matches — not all candidate pages — keeps this `.in()` tiny and
+  // avoids the secondary URL-overflow a 755-page source set would have hit.
   const sourceMetaById = new Map<string, { slug: string; title: string }>();
   if (isDerived) {
     const sourceIds = Array.from(
-      new Set(pages.map((p) => p.extracted_from_source_id).filter(Boolean)),
+      new Set(
+        matches
+          .map((m) => pageById.get(m.page_id)?.extracted_from_source_id)
+          .filter(Boolean),
+      ),
     );
     if (sourceIds.length > 0) {
       const { data: sources, error: srcErr } = await client
@@ -476,52 +623,7 @@ async function rankByEmbedding(
     }
   }
 
-  // Compute similarities + build results
-  const results: RetrievalResult[] = [];
-  for (const emb of embeddings ?? []) {
-    const p = pageById.get(emb.page_id);
-    if (!p) continue;
-    let embVec: number[];
-    if (typeof emb.embedding === "string") {
-      // pgvector returns embedding as string "[0.1,0.2,...]" via supabase-js
-      embVec = parseEmbeddingString(emb.embedding);
-    } else if (Array.isArray(emb.embedding)) {
-      embVec = emb.embedding as number[];
-    } else {
-      continue;
-    }
-    const sim = cosineSimilarity(questionEmbedding, embVec);
-    if (sim < 0.5) continue; // weak signal; skip
-
-    const sourceMeta = (isDerived && p.extracted_from_source_id
-      ? sourceMetaById.get(p.extracted_from_source_id)
-      : null) ?? null;
-    const citationFormat = formatCitation({
-      page: p,
-      chunk_index: emb.chunk_index,
-      chunk_text: emb.chunk_text,
-      similarity: sim,
-      source_meta: sourceMeta,
-      is_derived: isDerived,
-    });
-    results.push({
-      page_id: p.id,
-      page_slug: p.slug,
-      page_type: p.page_type,
-      page_title: p.title,
-      is_derived_entity: isDerived,
-      source_page_id: p.extracted_from_source_id ?? null,
-      source_slug: sourceMeta?.slug ?? null,
-      source_title: sourceMeta?.title ?? null,
-      chunk_index: emb.chunk_index ?? null,
-      chunk_text: emb.chunk_text,
-      similarity: sim,
-      citation_format: citationFormat,
-    });
-  }
-
-  results.sort((a, b) => b.similarity - a.similarity);
-  return results.slice(0, topK);
+  return assembleResults(matches, pageById, sourceMetaById, isDerived, topK);
 }
 
 function parseEmbeddingString(s: string): number[] {
