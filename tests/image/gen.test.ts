@@ -224,11 +224,14 @@ describe("run() — v0.3 brand logo overlay (no-network dry_run paths)", () => {
     const r = await run(["--prompt=poster", "--style=ritsu", `--ref=${REF}`, "--dry-run", `--out=${out}`]);
     expect(r.ok).toBe(true);
     const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
-    expect(rj.endpoint).toBe("generations"); // NOT edits — the ref is consumed by the overlay
+    expect(rj.endpoint).toBe("generations"); // NOT edits — the ref triggers a clean-base + overlay
     expect(rj.logo_overlay).toBeTruthy();
     expect(rj.logo_overlay.position).toBe("top-left");
     expect(rj.logo_overlay.applied).toBe(false); // dry-run never stamps
-    expect(rj.logo_overlay.asset).toBe(REF);
+    // the stamped asset is the brand's canonical LOCKUP (mark + wordmark), not the raw --ref;
+    // the --ref is recorded as the trigger.
+    expect(rj.logo_overlay.asset).toMatch(/ritsu-lockup\.png$/);
+    expect(rj.logo_overlay.trigger_ref).toBe(REF);
     expect(rj.prompt_sent).toMatch(/Do NOT draw/); // suppress-directive present
   });
 

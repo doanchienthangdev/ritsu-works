@@ -239,6 +239,20 @@ async function run(argv) {
   // base generation — NOT fed to the edits endpoint (which makes a square logo big + centered).
   // So overlay mode forces the /generations endpoint and consumes the ref locally.
   const overlayActive = !!(logoPolicy && refPaths.length);
+  // The overlaid asset is the brand's canonical lockup (mark + wordmark) declared by the policy
+  // (logoPolicy.assetPath), NOT the raw --ref — so `--ref=<any ritsu asset>` always stamps the
+  // proper lockup. The --ref is the trigger. Fall back to the --ref when the policy declares no
+  // asset (or its file is missing on disk).
+  let overlayAsset = null;
+  let overlayAssetFellBack = false;
+  if (overlayActive) {
+    if (logoPolicy.assetPath && fs.existsSync(logoPolicy.assetPath)) {
+      overlayAsset = logoPolicy.assetPath;
+    } else {
+      overlayAsset = refPaths[0];
+      if (logoPolicy.assetPath) overlayAssetFellBack = true;
+    }
+  }
   const endpoint = overlayActive ? 'generations' : (refPaths.length ? 'edits' : 'generations');
 
   // size (R2) + quality + cost (R3).
@@ -257,6 +271,9 @@ async function run(argv) {
   if (overlayActive && !overlayFormatOk) {
     warnings.push(`brand logo overlay needs PNG — --format=${options.format} → corner logo NOT stamped (use --format=png to keep the brand mark)`);
   }
+  if (overlayAssetFellBack) {
+    warnings.push(`brand "${composition.style.name}" logo asset ${logoPolicy.assetPath} missing → overlaying the --ref ${refPaths[0]} instead`);
+  }
 
   const per = estimateFlexibleCost({ width: spec.width, height: spec.height, quality });
   const totalCost = Math.round(per.usd * n * 1e4) / 1e4;
@@ -272,7 +289,7 @@ async function run(argv) {
     art_style: composition.artStyle.name, art_style_mode: composition.artStyle.mode,
     ref: refPaths.length ? refPaths : null, mask: maskPath,
     logo_overlay: overlayActive
-      ? { applied: false, asset: refPaths[0], position: logoPolicy.position || 'top-left', scale: logoPolicy.scale, margin: logoPolicy.margin }
+      ? { applied: false, asset: overlayAsset, trigger_ref: refPaths[0], position: logoPolicy.position || 'top-left', scale: logoPolicy.scale, margin: logoPolicy.margin }
       : null,
     enhance: Boolean(options.enhance), dry_run: Boolean(options['dry-run']),
     cost_usd: totalCost, is_estimate: true, breaker_tripped: false, max_cost_usd: maxCost,
@@ -315,7 +332,7 @@ async function run(argv) {
     if (overlayActive && overlayFormatOk) {
       try {
         const { overlayLogo } = require('./lib/png-overlay.cjs');
-        const logoBuf = fs.readFileSync(path.resolve(refPaths[0]));
+        const logoBuf = fs.readFileSync(path.resolve(overlayAsset));
         const pol = { position: logoPolicy.position, scale: logoPolicy.scale, margin: logoPolicy.margin };
         buffers = buffers.map((b) => overlayLogo(b, logoBuf, pol));
         overlayApplied = true;

@@ -92,18 +92,21 @@ components:
     height: "40px"
 logo:
   # image-platform v0.3 (/cla extend): brand-scoped corner logo overlay policy.
-  # When `/image --style=ritsu --ref=<asset>` runs, the ref brand asset is composited
-  # SMALL in this corner (deterministic, pixel-perfect, the real asset) instead of being
-  # fed to the OpenAI /v1/images/edits endpoint — which renders a square logo BIG and
-  # CENTERED (the bug this fixes). Consumed by scripts/image/lib/compose.cjs (the
-  # "draw no logo, leave the corner clean" directive) + scripts/image/lib/png-overlay.cjs
+  # When `/image --style=ritsu --ref=<asset>` runs, the canonical brand LOCKUP below is
+  # composited SMALL in this corner (deterministic, pixel-perfect, the real asset) instead
+  # of feeding the logo to the OpenAI /v1/images/edits endpoint — which renders it BIG and
+  # CENTERED (the bug this fixes). The `--ref` flag is the TRIGGER ("brand this image");
+  # the `asset` below is what gets stamped (the mark + "Ritsu" wordmark lockup, matching
+  # ritsu.ai). Consumed by scripts/image/lib/compose.cjs (the "draw no logo, keep the
+  # corner clean" directive + asset-path resolution) + scripts/image/lib/png-overlay.cjs
   # (the dependency-free PNG stamp). Ritsu-scoped by data; the mechanism is general — any
   # design system may set this block to get the same corner-lockup treatment.
   overlay: true
   position: top-left      # top-left | top-right | bottom-left | bottom-right
-  scale: 0.12             # logo width = 12% of the canvas's SHORTER edge (small, balanced)
+  scale: 0.18             # lockup WIDTH = 18% of the canvas's SHORTER edge; the lockup is wide
+                          # + short (~3.4:1), so this reads as a SMALL, balanced corner logo.
   margin: 0.05            # inset from the edges = 5% of the shorter edge
-  asset: assets/ritsu-logo.png   # canonical brand mark (default; an explicit --ref overrides)
+  asset: assets/ritsu-lockup.png   # the canonical mark + "Ritsu" wordmark lockup (NOT the bare mark)
 ---
 
 # Ritsu — Design System
@@ -191,7 +194,11 @@ Ritsu has both a **symbol mark** and a **wordmark**:
 - **Wordmark** — "Ritsu" in **Inter Bold** with a left-to-right cyan gradient text
   fill (cyan-9 → cyan-11, `#0ABCD0` → `#0093A3`, `bg-clip-text`).
 - **Lockup** — mark + wordmark side by side; mark alone for favicons/app icons;
-  wordmark alone in tight horizontal space.
+  wordmark alone in tight horizontal space. Staged asset: `ritsu-lockup.png`
+  (799×237, transparent, ~3.4:1) — the mark + "Ritsu" cyan-gradient wordmark matching
+  the ritsu.ai navbar. This is the `logo.overlay.asset` that `/image` stamps small in
+  the corner of branded images (image-platform v0.3); rasterized from the mark + the
+  Inter-Bold cyan wordmark per this spec.
 
 Clear space ≥ one blade-width around the mark; keep the blades within the teal–cyan
 family (never recolor off-brand); avoid the gradient mark on busy backgrounds (use a
