@@ -218,6 +218,17 @@ describe("overlayLogo — geometry + policy", () => {
   it("POSITIONS exposes exactly the four corners", () => {
     expect([...POSITIONS].sort()).toEqual(["bottom-left", "bottom-right", "top-left", "top-right"]);
   });
+  it("a WIDE lockup-shaped asset (3:1) keeps aspect → height is 1/3 of width, sits in the corner", () => {
+    const wide = encodePng(solid(300, 100, 0, 200, 220, 255)); // 3:1, cyan-ish
+    const base = encodePng(solid(800, 1400, 2, 8, 23, 255));   // 9:16-ish, short edge 800
+    const out = decodePng(overlayLogo(base, wide, { position: "top-left", scale: 0.2, margin: 0.05 }));
+    const m = Math.round(800 * 0.05);   // 40
+    const w = Math.round(800 * 0.2);    // 160 wide
+    const h = Math.round(100 * (w / 300)); // ~53 tall (aspect preserved, short)
+    expect(px(out, m + 4, m + 4).slice(0, 3)).toEqual([0, 200, 220]); // top-left of the lockup painted
+    expect(px(out, m + 4, m + h + 30)).toEqual([2, 8, 23, 255]);      // below the (short) lockup = clear
+    expect(px(out, 400, 700)).toEqual([2, 8, 23, 255]);              // center clear
+  });
 });
 
 // Contract test (2N) — the REAL ritsu logo asset (exercises adaptive PNG filters 0-4

@@ -128,17 +128,28 @@ describe("extractLogoPolicy", () => {
   it("null when a logo block exists but overlay is not true", () => {
     expect(extractLogoPolicy({ mode: "styled", tokens: { tokens: { logo: { overlay: false, position: "top-left" } } } })).toBeNull();
   });
-  it("returns the policy object when logo.overlay === true", () => {
-    const pol = { overlay: true, position: "top-left", scale: 0.12, margin: 0.05 };
-    expect(extractLogoPolicy({ mode: "styled", tokens: { tokens: { logo: pol } } })).toEqual(pol);
+  it("returns the policy fields when logo.overlay === true (assetPath null without a designMdPath)", () => {
+    const pol = { overlay: true, position: "top-left", scale: 0.18, margin: 0.05 };
+    const out = extractLogoPolicy({ mode: "styled", tokens: { tokens: { logo: pol } } });
+    expect(out).toMatchObject(pol);
+    expect(out.assetPath).toBeNull(); // no designMdPath → cannot resolve a relative asset
   });
-  it("contract: the REAL ritsu design system declares an active top-left overlay policy", () => {
+  it("resolves a relative `asset` to an absolute path against the DESIGN.md directory", () => {
+    const out = extractLogoPolicy({
+      mode: "styled",
+      designMdPath: "/x/design-system/ritsu/DESIGN.md",
+      tokens: { tokens: { logo: { overlay: true, asset: "assets/ritsu-lockup.png" } } },
+    });
+    expect(out.assetPath).toBe("/x/design-system/ritsu/assets/ritsu-lockup.png");
+  });
+  it("contract: the REAL ritsu design system declares an active top-left overlay policy + lockup asset", () => {
     // resolveStyle is exercised through composePrompt below; here assert the policy surfaces.
     const r = composePrompt({ prompt: "x", style: "ritsu", hasRef: true });
     expect(r.logoPolicy).toBeTruthy();
     expect(r.logoPolicy.overlay).toBe(true);
     expect(r.logoPolicy.position).toBe("top-left");
     expect(typeof r.logoPolicy.scale).toBe("number");
+    expect(r.logoPolicy.assetPath).toMatch(/ritsu-lockup\.png$/); // the canonical mark+wordmark lockup
   });
 });
 

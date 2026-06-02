@@ -20,6 +20,7 @@
 
 'use strict';
 
+const path = require('path');
 const { resolveStyle } = require('../../design-system/resolve-style.cjs');
 const { resolveArtStyle } = require('../../deepask/art-style.cjs');
 
@@ -67,7 +68,18 @@ function extractLogoPolicy(styleResolved) {
   // the `logo` block is a non-standard frontmatter key, so it lives under tokens.tokens.
   const fullFm = styleResolved.tokens && styleResolved.tokens.tokens;
   const logo = fullFm && typeof fullFm === 'object' ? fullFm.logo : null;
-  return logo && logo.overlay === true ? logo : null;
+  if (!logo || logo.overlay !== true) return null;
+  // Resolve the canonical overlay asset (the brand lockup) to an ABSOLUTE path, relative to the
+  // design system's DESIGN.md directory. gen.cjs stamps THIS (not the raw --ref) so the founder's
+  // `--ref=<any ritsu asset>` always yields the proper mark+wordmark lockup. Falls back to the
+  // --ref in gen.cjs when a policy declares no asset.
+  let assetPath = null;
+  if (typeof logo.asset === 'string' && logo.asset.trim() && styleResolved.designMdPath) {
+    assetPath = path.isAbsolute(logo.asset)
+      ? logo.asset
+      : path.join(path.dirname(styleResolved.designMdPath), logo.asset);
+  }
+  return { ...logo, assetPath };
 }
 
 /** Build a GENRE block from a resolved --art-style (or '' when plain). `assets` is the lever. */
