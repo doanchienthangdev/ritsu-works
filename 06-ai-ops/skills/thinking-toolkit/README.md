@@ -1,6 +1,6 @@
 # Thinking Toolkit
 
-> 11 standalone composable skills extracted from McKinsey/Minto thinking discipline. NOT the whole process — discrete high-leverage tools.
+> 12 skills extracted from McKinsey/Minto thinking discipline — 11 discrete high-leverage tools + the `mckinsey-workflow` 4S spine that sequences them.
 
 ## What's in this folder
 
@@ -16,7 +16,8 @@
 | [`pre-mortem`](./pre-mortem/SKILL.md) *(v1.2)* | Assume it failed; work backward to why before committing | HITL Tier C/D, 2x2, muse-panel |
 | [`root-cause`](./root-cause/SKILL.md) *(v1.2)* | Trace a CONFIRMED symptom to its root (Five Whys; scoped — NOT framing) | driver-tree, debias; tosca (framing is separate) |
 | [`design-thinking`](./design-thinking/SKILL.md) *(v1.2)* | Generative path for human-centered problems: empathize→HMW→prototype | tosca, 2x2, hypothesis-driven |
-| [`debias`](./debias/SKILL.md) *(v1.2)* | Pre-commit cognitive-bias checklist — name the bias, apply the counter | hypothesis-driven (mandatory), pre-mortem |
+| [`debias`](./debias/SKILL.md) *(v1.2)* | Pre-commit cognitive-bias checklist — name the bias, apply the counter | hypothesis-driven, pre-mortem |
+| [`mckinsey-workflow`](./mckinsey-workflow/SKILL.md) *(v1.3)* | The 4S spine (State→Structure→Solve→Sell) — sequences all skills + binds the ~230 wiki concepts per step | ALL skills; `/think mckinsey`; `knowledge/mckinsey-workflow.yaml` |
 
 ## When to use this folder
 
@@ -88,7 +89,7 @@ Filtered for ritsu-works fit (B2C self-serve EdTech, PLG, 1-founder):
 
 ## Capability lifecycle
 
-This folder is the deliverable of capability `thinking-toolkit` — v1.0 (6 skills, shipped 2026-05-28), v1.1 (`/think` command surface, same day), v1.2 (+5 skills via `/cla extend`, 2026-06-03). See `wiki/capabilities/thinking-toolkit/spec.md`.
+This folder is the deliverable of capability `thinking-toolkit` — v1.0 (6 skills, shipped 2026-05-28), v1.1 (`/think` command surface, same day), v1.2 (+5 skills via `/cla extend`, 2026-06-03), v1.3 (the `mckinsey-workflow` 4S spine + `knowledge/mckinsey-workflow.yaml` catalog binding the ~230 non-skill wiki concepts per step, 2026-06-03). See `wiki/capabilities/thinking-toolkit/spec.md`.
 
 ## Anti-claims
 

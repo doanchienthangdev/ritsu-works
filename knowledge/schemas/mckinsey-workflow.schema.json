@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "knowledge/schemas/mckinsey-workflow.schema.json",
+  "title": "McKinsey 4S problem-solving workflow catalog",
+  "description": "The spine that sequences thinking-toolkit skills + wiki problem-solving concepts into the McKinsey 4S method (State/Structure/Solve/Sell, Cracked it! Ch 3). Capability thinking-toolkit v1.3. Each step binds the OPERATIONS to run (skills) + a curated key-concept reading list + a retrieval recipe so any of the ~230 wiki concepts is findable by step. Structural validity here; file-existence of every referenced skill + concept is enforced by scripts/cross-tier/validate-mckinsey-workflow.cjs.",
+  "type": "object",
+  "required": ["version", "steps"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string" },
+    "schema": { "type": "string" },
+    "spine": { "type": "string", "description": "The workflow spine label, e.g. '4S'." },
+    "source_books": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Wiki source slugs the concepts are drawn from."
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "order", "name", "intent", "skills", "key_concepts", "retrieval"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "kebab step id (e.g. state, structure, solve, sell)."
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "1-based position in the workflow; must be contiguous + unique."
+          },
+          "name": { "type": "string", "minLength": 1, "description": "Human display name of the step." },
+          "intent": { "type": "string", "minLength": 1, "description": "What this step accomplishes (prose)." },
+          "bulletproof_7step": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Cross-map to the Bulletproof Problem Solving 7-step process (finer granularity)."
+          },
+          "skills": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9/-]*$",
+              "description": "Skill name (e.g. thinking-toolkit/tosca-problem-framing); must resolve to 06-ai-ops/skills/<name>/SKILL.md."
+            },
+            "description": "The OPERATIONS to run at this step."
+          },
+          "key_concepts": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["book", "slug"],
+              "additionalProperties": false,
+              "properties": {
+                "book": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Wiki source slug; must resolve to wiki/<book>/concepts/<slug>.md."
+                },
+                "slug": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]*$",
+                  "description": "Concept page slug under wiki/<book>/concepts/."
+                }
+              }
+            },
+            "description": "Curated starting reading-list of wiki concepts for this step."
+          },
+          "retrieval": {
+            "type": "object",
+            "required": ["query", "sources"],
+            "additionalProperties": false,
+            "properties": {
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "description": "wiki_ask query template to surface MORE concepts for this step on demand."
+              },
+              "sources": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "string" },
+                "description": "Wiki source slugs to scope the retrieval query to."
+              }
+            },
+            "description": "The 'search by catalog later' recipe — how to find any of the ~230 concepts scoped to this step."
+          }
+        }
+      }
+    }
+  }
+}

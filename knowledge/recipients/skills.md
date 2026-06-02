@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 108
+**Total entries:** 109
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1566,6 +1566,37 @@ belief first instead of analyzing everything. Pairs naturally with debias
 first) is the built-in guard.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/hypothesis-driven" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/mckinsey-workflow
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Use to run a whole problem end-to-end through the McKinsey 4S method
+(State → Structure → Solve → Sell), with the right thinking-toolkit skills
+AND the relevant wiki problem-solving concepts attached at each step. This
+is the SPINE that sequences all 11 thinking-toolkit skills and makes the
+~230 wiki concepts (the ones that did NOT become skills) findable per-step.
+
+Trigger conditions: any non-trivial business/strategy problem worth solving
+properly (a capability proposal, a GTM/pricing/funnel decision, a weekly
+strategic review, a "why is X happening and what do we do" question); the
+`/think mckinsey <problem>` verb; when you want a disciplined path from
+"we have a problem" to "decision-ready recommendation".
+
+Skip when: a single thinking-toolkit skill already covers your need (call it
+directly — don't run the whole workflow for a list-MECE check); trivial or
+operational lookups; a crisp bug with a clear fix.
+
+Cost: zero LLM (guidance document; reads knowledge/mckinsey-workflow.yaml).
+This is the orchestration spine, NOT a replacement for the per-step skills.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/mckinsey-workflow" })`
 **HITL tier:** B
 **Side effect:** write
 

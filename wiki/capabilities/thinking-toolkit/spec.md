@@ -2,9 +2,9 @@
 
 **ID:** thinking-toolkit
 **Pillar owner:** 06-ai-ops (sub-pillar: skill-library)
-**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day; v1.2.0 curated +5 skills 2026-06-03)
+**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day; v1.2.0 curated +5 skills 2026-06-03; v1.3.0 McKinsey 4S workflow 2026-06-03)
 **Proposed:** 2026-05-28
-**Spec version:** 1.2.0
+**Spec version:** 1.3.0
 **Capability run id:** TBD (insert at promotion time)
 **Selected option (from Phase 4):** Option A — Standalone parent-namespaced skills + (v1.1) thin orchestrator command surface
 
@@ -85,6 +85,16 @@ Added 5 skills + 5 `/think` verbs (`hypothesis`, `premortem`, `root-cause`, `des
 - `screen` (knock-out + Desirability/Feasibility/Viability) deferred as borderline. 80/20 Pareto stays rejected (overlaps `/muse:paul-graham`).
 
 **Follow-up (NOT in this PR — per the docs-engine reference-sync pattern, cf. `/image` PR #206):** docs reference MDX for the 5 new skills (`docs/content/docs/skills/thinking-toolkit--{hypothesis-driven,pre-mortem,root-cause,design-thinking,debias}.{mdx,en.mdx}`) is **not yet generated**. Until a `/docs sync --area=skills` follow-up lands, `docs-drift-nightly` will report 5 missing pages. The v1.0 acceptance line "Docs MDX generated for all 6 skills" (§6) refers to the original 6 and remains accurate; it does NOT cover the v1.2 +5.
+
+### 4.8 v1.3.0 delta (2026-06-03, /cla extend) — the McKinsey 4S Workflow
+
+Founder ask: build a "McKinsey workflow" and a **mechanism to put the remaining problem-solving concepts into its steps + find them by catalog later.** Delivered:
+
+- **NEW skill `thinking-toolkit/mckinsey-workflow`** — the 4S spine (State → Structure → Solve → Sell, Cracked it! Ch 3; cross-mapped to Bulletproof 7-step). Sequences all 11 atomic skills. `/think` 12 skills, 14 verbs (+`/think mckinsey <problem>`).
+- **NEW catalog `knowledge/mckinsey-workflow.yaml`** (+ `knowledge/schemas/mckinsey-workflow.schema.json`) — THE mechanism. Each 4S step → `{skills to run, curated key_concepts, retrieval recipe}`. The ~230 wiki concepts that did NOT become skills (v1.2 triage: ~54% stayed library) are now **bound to the 4S step where they're useful** + **findable per-step** via a `wiki_ask` retrieval recipe. Machine-readable source of truth; the skill reflects it.
+- **NEW validator `scripts/cross-tier/validate-mckinsey-workflow.cjs`** (L2 critical) — proves every referenced skill (`06-ai-ops/skills/<skill>/SKILL.md`) + concept (`wiki/<book>/concepts/<slug>.md`) **actually exists** (11 skill refs + 34 concept refs), plus step-id uniqueness, contiguous orders, and the 4 canonical 4S steps present. Wired into `check-consistency.cjs` AND `.github/workflows/cross-tier-consistency.yml` (registered in `validate-tier1` `FILE_TO_SCHEMA` for L1 schema validation too). Exported `validateWorkflow(doc, repoRoot)` is pure → tested by `tests/mckinsey-workflow.test.ts` (edge + broken cases: missing skill/concept, malformed step, dup id, order gap, missing canonical step, garbage root).
+- **Why a skill + catalog, NOT `workflows/` infra:** `workflows/` is "planned" (unbuilt) per `knowledge/manifest.yaml`; the 4S workflow fits the zero-cost guidance-doc model exactly, so it ships as a thinking-toolkit skill + a Tier-1 catalog yaml. No new DB, no new command.
+- Decision: `ops.decisions[thinking-toolkit-v1.3-mckinsey-workflow]`.
 
 ### 4.2 Persona integration
 
