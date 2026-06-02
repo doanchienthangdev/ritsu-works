@@ -3,7 +3,7 @@ name: image
 description: |
   Generate an image from a prompt — model-agnostic front door with a pluggable
   adapter layer (--use=<adapter>). Default backend gpt-image-2 (in-repo, governed).
-  Universal sensibly-defaulted params (--ar --tier --count --format --style brand
+  Universal sensibly-defaulted params (--ar --quality --count --format --style brand
   --art-style genre --enhance --max-cost-usd --dry-run --out …); unsupported params
   WARN, never silently drop. Reuses the deepask image helpers + both style axes.
   Tier A; per-run --max-cost-usd breaker; OPENAI_API_KEY out-of-band; artifacts to
@@ -26,9 +26,9 @@ umbrella skill (`06-ai-ops/skills/image/SKILL.md`), reports the result.
 | Flag | Default | Notes |
 |---|---|---|
 | `<prompt>` | — (required) | the description (positional, or `--prompt=`) |
-| `--use` | `gpt-image-2` | adapter id; `gpt-image-2-pro-max` = preset (`--enhance --tier=high`) |
+| `--use` | `gpt-image-2` | adapter id; `gpt-image-2-pro-max` = preset (`--enhance --quality=high`) |
 | `--ar` | `1:1` | aspect ratio `W:H`; gpt-image-2 → native flexible size (AR ≤ 3:1, else clamp+warn) |
-| `--tier` | `standard` | `draft\|standard\|high` → quality low/medium/high (`high` also upsizes) |
+| `--quality` | `medium` | `low\|medium\|high` (= OpenAI native quality, 1:1; `high` also upsizes the canvas) |
 | `--count` | `1` | images (gpt-image-2 n ≤ 10) |
 | `--format` | `png` | `png\|jpeg\|webp` |
 | `--seed` | — | ⚠️ gpt-image-2 has no seed → warns (not reproducible) |
@@ -64,8 +64,8 @@ MJ-only knobs `--stylize/--raw/--variety/--weird/--tile` are registered vocabula
 ## Examples
 ```
 /image "a serene mountain lake at dawn"
-/image "Q3 funnel overview" --ar=16:9 --tier=high --style=ritsu --art-style=swiss-international
-/image "product hero" --use=gpt-image-2-pro-max          # = --enhance --tier=high
+/image "Q3 funnel overview" --ar=16:9 --quality=high --style=ritsu --art-style=swiss-international
+/image "product hero" --use=gpt-image-2-pro-max          # = --enhance --quality=high
 /image "anything" --dry-run                              # no spend; preview prompt + cost
 /image "x" --use=midjourney                              # → not_built (proves the registry)
 ```

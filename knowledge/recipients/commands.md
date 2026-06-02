@@ -228,7 +228,7 @@ self-improvement capability per wiki/capabilities/evolve/spec.md.
 **Axis:** capability
 **When to use:** Generate an image from a prompt — model-agnostic front door with a pluggable
 adapter layer (--use=<adapter>). Default backend gpt-image-2 (in-repo, governed).
-Universal sensibly-defaulted params (--ar --tier --count --format --style brand
+Universal sensibly-defaulted params (--ar --quality --count --format --style brand
 --art-style genre --enhance --max-cost-usd --dry-run --out …); unsupported params
 WARN, never silently drop. Reuses the deepask image helpers + both style axes.
 Tier A; per-run --max-cost-usd breaker; OPENAI_API_KEY out-of-band; artifacts to

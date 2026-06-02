@@ -13,7 +13,7 @@ description: |
 # image/enhance (capability `image-platform` v0.1)
 
 > The optional prompt-refinement stage. `--enhance` (and the `gpt-image-2-pro-max`
-> preset, = `--enhance --tier=high`) route through here. This is the founder's
+> preset, = `--enhance --quality=high`) route through here. This is the founder's
 > reframing of the GitHub `gpt-image-2-pro-max` skill (a prompt tool, not a
 > generator): we keep the *prompt-refinement concept* as an in-session stage and
 > drop the external generator.

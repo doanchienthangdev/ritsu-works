@@ -45,7 +45,7 @@ describe("resolveAdapter", () => {
     const adapters = loadRegistry();
     const r = resolveAdapter(adapters, "gpt-image-2-pro-max");
     expect(r.target.id).toBe("gpt-image-2");
-    expect(r.presetFlags).toMatchObject({ enhance: true, tier: "high" });
+    expect(r.presetFlags).toMatchObject({ enhance: true, quality: "high" });
   });
   it("returns an error object for an unknown --use", () => {
     const adapters = loadRegistry();
@@ -120,7 +120,7 @@ describe("run() — no-network outcomes (the impure edge is NOT hit)", () => {
   });
   it("breaker_refusal: estimate over --max-cost-usd aborts before any call", async () => {
     const out = path.join(TMP, "brk");
-    const r = await run(["--prompt=x", "--tier=high", "--max-cost-usd=0.001", `--out=${out}`]);
+    const r = await run(["--prompt=x", "--quality=high", "--max-cost-usd=0.001", `--out=${out}`]);
     expect(r.ok).toBe(false);
     expect(r.outcome).toBe("breaker_refusal");
     const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
@@ -137,7 +137,7 @@ describe("run() — no-network outcomes (the impure edge is NOT hit)", () => {
     expect(r.ok).toBe(true);
     const rj = JSON.parse(fs.readFileSync(path.join(out, "run.json"), "utf-8"));
     expect(rj.enhance).toBe(true);
-    expect(rj.tier).toBe("high");
+    expect(rj.quality).toBe("high");
     expect(rj.size).toBe("2048x2048");
   });
   it("--seed on gpt-image-2 → still ok (dry_run) + a consequence-honest warning", async () => {

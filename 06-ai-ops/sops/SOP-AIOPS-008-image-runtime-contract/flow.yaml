@@ -58,7 +58,7 @@ steps:
     skill: image/adapters/gpt-image-2
     actions:
       - resolve_aspect_ratio         # R2: --ar → native flexible size (×16 edges, AR≤3:1, edge<3840, warn-on-clamp, no in-range crop)
-      - estimate_cost                # R3: per-tier area-interpolation over scripts/deepask/image-cost.cjs COST_TABLE
+      - estimate_cost                # R3: per-quality area-interpolation over scripts/deepask/image-cost.cjs COST_TABLE
       - cost_breaker                 # checkCostBudget vs --max-cost-usd — REFUSE before the API call (never silent overspend)
       - dry_run_short_circuit        # --dry-run → composed prompt sidecar + cost estimate, NO API call, NO key
       - call_openai_out_of_band      # scripts/image/gen.cjs — OPENAI_API_KEY (ensureOpenAiKey); key value never printed

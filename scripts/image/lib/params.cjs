@@ -11,10 +11,10 @@
 //                         the L2 validator asserts every adapter's supports[] ⊆ this).
 //   - parseImageArgs    — argv → {options, provided} (provided = explicitly-set flags,
 //                         so supports()/WARN only fires on flags the user actually passed).
-//   - tierToQuality     — --tier → OpenAI quality knob.
+//   - normalizeQuality  — validate the --quality value (= OpenAI quality low|medium|high; default medium).
 //   - resolveAspectRatio— R2: --ar → a NATIVE gpt-image-2 flexible size (edges ×16,
 //                         AR ≤ 3:1, edge < 3840), warn-on-clamp, NO post-crop in-range.
-//   - estimateFlexibleCost — R3: per-tier area-interpolation over deepask COST_TABLE.
+//   - estimateFlexibleCost — R3: per-quality area-interpolation over deepask COST_TABLE.
 //   - computeWarnings   — supports()/WARN engine; consequence-honest, never silent-drop.
 // ============================================================================
 
@@ -27,28 +27,26 @@ const { COST_TABLE, costQuality } = require('../../deepask/image-cost.cjs');
 // Flag names WITHOUT the leading `--`. An adapter's supports[]/supports_stretch[]/
 // unsupported_warn[] in knowledge/image-adapters.yaml must each be a subset of this.
 const UNIVERSAL_PARAMS = Object.freeze([
-  'prompt', 'use', 'ar', 'count', 'tier', 'resolution', 'seed', 'format',
+  'prompt', 'use', 'ar', 'count', 'quality', 'resolution', 'seed', 'format',
   'ref', 'ref-style', 'ref-character', 'ref-strength', 'mask', 'negative',
   'style', 'art-style', 'enhance', 'stylize', 'raw', 'variety', 'weird', 'tile',
   'out', 'deck', 'background', 'safety', 'model', 'max-cost-usd', 'dry-run',
 ]);
 
-const TIERS = Object.freeze(['draft', 'standard', 'high']);
+const QUALITIES = Object.freeze(['low', 'medium', 'high']);   // = OpenAI gpt-image-2 native quality enum (1:1, no translation layer)
 const FORMATS = Object.freeze(['png', 'jpeg', 'webp']);
 
-// --tier → OpenAI `quality` knob (image-gen.cjs accepts low|medium|high|auto).
-const TIER_TO_QUALITY = Object.freeze({ draft: 'low', standard: 'medium', high: 'high' });
-// --tier → target LONG edge (px). All ×16 and < 3840 (the gpt-image-2 ceiling).
-// Quality is the primary tier lever (low/medium/high); `high` additionally upsizes.
-// standard 1:1 → 1024x1024 (matches the proven deepask baseline + brief "1K tier", cheap);
-// high 1:1 → 2048x2048; high 16:9 → 2048x1152 (matches deepask img-slide). draft = standard size, low quality.
-const TIER_TO_LONG_EDGE = Object.freeze({ draft: 1024, standard: 1024, high: 2048 });
+// --quality → target LONG edge (px). All ×16 and < 3840 (the gpt-image-2 ceiling).
+// `--quality` IS the OpenAI quality knob directly (low|medium|high); it ALSO sets the size budget.
+// medium 1:1 → 1024x1024 (the proven deepask baseline, cheap); high 1:1 → 2048x2048;
+// high 16:9 → 2048x1152 (matches deepask img-slide). low + medium share the 1024 budget; high upsizes.
+const QUALITY_TO_LONG_EDGE = Object.freeze({ low: 1024, medium: 1024, high: 2048 });
 
 const MAX_AR = 3;            // gpt-image-2: aspect ratio ≤ 3:1.
 const MAX_EDGE = 3824;       // largest multiple of 16 strictly < 3840.
 const MIN_EDGE = 256;        // sane floor.
 // gpt-image-2 also enforces a MINIMUM pixel budget (an area floor): a too-small
-// request — e.g. 16:9 at standard tier = 1024x576 = 0.59 MP — is rejected by the
+// request — e.g. 16:9 at medium quality = 1024x576 = 0.59 MP — is rejected by the
 // API with "Requested resolution is below the current minimum pixel budget". The
 // known-good baseline 1024x1024 (1.05 MP) passes, so we target that area. R2 lifts
 // the long edge so the SHORT edge keeps area ≥ this floor (see resolveAspectRatio).
@@ -68,11 +66,11 @@ const CONSEQUENCE = Object.freeze({
   weird: 'Midjourney-only knob; ignored',
   tile: 'seamless-tiling is Midjourney-only; ignored',
   raw: 'raw mode is Midjourney/Flux-only; ignored',
-  resolution: 'explicit resolution override not honored; size derives from --ar × --tier',
+  resolution: 'explicit resolution override not honored; size derives from --ar × --quality',
 });
 
 const DEFAULTS = Object.freeze({
-  use: 'gpt-image-2', ar: '1:1', count: 1, tier: 'standard', format: 'png',
+  use: 'gpt-image-2', ar: '1:1', count: 1, quality: 'medium', format: 'png',
   'ref-strength': 0.5, stylize: 40, variety: 0, weird: 0, 'max-cost-usd': 1.0,
   safety: 'standard', background: 'auto', enhance: false, raw: false, tile: false,
   'dry-run': false,
@@ -116,9 +114,9 @@ function parseImageArgs(argv) {
   return { options, provided };
 }
 
-/** --tier → OpenAI quality. Unknown tier → 'medium' (never throw on a convenience flag). */
-function tierToQuality(tier) {
-  return TIER_TO_QUALITY[tier] || 'medium';
+/** Validate --quality (= OpenAI quality low|medium|high). Unknown → 'medium' (never throw on a convenience flag). */
+function normalizeQuality(quality) {
+  return QUALITIES.includes(quality) ? quality : 'medium';
 }
 
 function round16(n) {
@@ -130,10 +128,10 @@ function round16(n) {
  * R2 — resolve --ar to a NATIVE gpt-image-2 flexible size.
  * Edges ×16, AR clamped ≤ 3:1 (warn), edge < 3840. No post-crop for in-range ratios.
  * @param {string} ar    "W:H" (e.g. "16:9").
- * @param {string} tier  draft|standard|high (sets the long-edge pixel budget).
+ * @param {string} quality  low|medium|high (sets the long-edge pixel budget).
  * @returns {{ width, height, size, requestedRatio, effectiveRatio, clamped, warnings }}
  */
-function resolveAspectRatio(ar, tier) {
+function resolveAspectRatio(ar, quality) {
   const warnings = [];
   let W = 1;
   let H = 1;
@@ -151,16 +149,15 @@ function resolveAspectRatio(ar, tier) {
   else if (ratio < 1 / MAX_AR) { ratio = 1 / MAX_AR; clamped = true; }
   if (clamped) warnings.push(`--ar ${ar} exceeds gpt-image-2's 3:1 limit → clamped to ${ratio >= 1 ? '3:1' : '1:3'}`);
 
-  // Long edge = the larger of the tier's budget and the minimum long edge that keeps
+  // Long edge = the larger of the quality's budget and the minimum long edge that keeps
   // the SHORT edge's area ≥ MIN_PIXEL_BUDGET. For area A and long/short ratio s ≥ 1,
-  // a long edge L gives area L²/s, so L ≥ √(A·s) clears the floor. High tier (long
-  // edge 2048) already exceeds this for every AR ≤ 3:1, so this only lifts standard/
-  // draft wide ARs — and never shrinks an already-large tier.
-  const tierLongEdge = TIER_TO_LONG_EDGE[tier] || TIER_TO_LONG_EDGE.standard;
+  // a long edge L gives area L²/s, so L ≥ √(A·s) clears the floor. High quality (long
+  // edge 2048) already exceeds this for every AR ≤ 3:1, so this only lifts low/medium
+  // wide ARs — and never shrinks an already-large budget.
+  const qualityLongEdge = QUALITY_TO_LONG_EDGE[quality] || QUALITY_TO_LONG_EDGE.medium;
   const longOverShort = ratio >= 1 ? ratio : 1 / ratio;            // ≥ 1
   const minLongForBudget = Math.sqrt(MIN_PIXEL_BUDGET * longOverShort);
-  const longEdge = Math.min(MAX_EDGE, Math.max(tierLongEdge, minLongForBudget));
-
+  const longEdge = Math.min(MAX_EDGE, Math.max(qualityLongEdge, minLongForBudget));
   let width;
   let height;
   if (ratio >= 1) { width = round16(longEdge); height = round16(longEdge / ratio); }
@@ -176,8 +173,8 @@ function resolveAspectRatio(ar, tier) {
   }
 
   // Honest, never-silent: if we raised the size to clear the floor, say so.
-  if (longEdge > tierLongEdge + 0.5) {
-    warnings.push(`--ar ${ar} at "${tier}" tier is below gpt-image-2's ~1 MP minimum → size raised to ${width}x${height} (aspect ratio preserved)`);
+  if (longEdge > qualityLongEdge + 0.5) {
+    warnings.push(`--ar ${ar} at "${quality}" quality is below gpt-image-2's ~1 MP minimum → size raised to ${width}x${height} (aspect ratio preserved)`);
   }
 
   return {
@@ -192,7 +189,7 @@ function resolveAspectRatio(ar, tier) {
 }
 
 /**
- * R3 — estimate USD for an arbitrary flexible size by per-tier AREA interpolation
+ * R3 — estimate USD for an arbitrary flexible size by per-quality AREA interpolation
  * between the two nearest COST_TABLE keys (NOT a single global rate, per @cto).
  * Linearly extrapolates from the nearest rate outside the table's area range.
  * @returns {{ usd:number, isEstimate:true, quality:string }}
@@ -235,7 +232,7 @@ function computeWarnings(caps, provided) {
   const supports = new Set(caps && Array.isArray(caps.supports) ? caps.supports : []);
   const stretch = new Set(caps && Array.isArray(caps.supports_stretch) ? caps.supports_stretch : []);
   // params that are operational plumbing, not generation knobs — never warn on these.
-  const NEVER_WARN = new Set(['prompt', 'use', 'out', 'model', 'max-cost-usd', 'dry-run', 'tier', 'ar', 'count', 'format', 'style', 'art-style']);
+  const NEVER_WARN = new Set(['prompt', 'use', 'out', 'model', 'max-cost-usd', 'dry-run', 'quality', 'ar', 'count', 'format', 'style', 'art-style']);
   const warnings = [];
   for (const flag of provided) {
     if (NEVER_WARN.has(flag) || supports.has(flag)) continue;
@@ -251,16 +248,15 @@ function computeWarnings(caps, provided) {
 
 module.exports = {
   UNIVERSAL_PARAMS,
-  TIERS,
+  QUALITIES,
   FORMATS,
-  TIER_TO_QUALITY,
-  TIER_TO_LONG_EDGE,
+  QUALITY_TO_LONG_EDGE,
   DEFAULTS,
   MAX_AR,
   MAX_EDGE,
   MIN_PIXEL_BUDGET,
   parseImageArgs,
-  tierToQuality,
+  normalizeQuality,
   resolveAspectRatio,
   estimateFlexibleCost,
   computeWarnings,

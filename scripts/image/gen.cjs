@@ -24,7 +24,7 @@
 //
 // CLI:
 //   node scripts/image/gen.cjs --prompt="<text>" [--use=gpt-image-2] [--ar=16:9]
-//     [--tier=standard] [--count=1] [--format=png] [--max-cost-usd=1.00]
+//     [--quality=medium] [--count=1] [--format=png] [--max-cost-usd=1.00]
 //     [--out=<dir>] [--style=ritsu] [--art-style=swiss-international]
 //     [--safety=standard] [--background=auto] [--dry-run]
 // ============================================================================
@@ -41,7 +41,7 @@ const REGISTRY_PATH = path.join(REPO_ROOT, 'knowledge', 'image-adapters.yaml');
 const { ensureOpenAiKey, OPENAI_IMAGES_URL } = require('../deepask/image-gen.cjs');
 const { checkCostBudget } = require('../deepask/image-cost.cjs');
 const {
-  parseImageArgs, tierToQuality, resolveAspectRatio, estimateFlexibleCost, computeWarnings,
+  parseImageArgs, normalizeQuality, resolveAspectRatio, estimateFlexibleCost, computeWarnings,
 } = require('./lib/params.cjs');
 
 // ── registry ────────────────────────────────────────────────────────────────
@@ -166,8 +166,8 @@ async function run(argv) {
   }
 
   // size (R2) + quality + cost (R3).
-  const spec = resolveAspectRatio(options.ar, options.tier);
-  const quality = tierToQuality(options.tier);
+  const quality = normalizeQuality(options.quality);
+  const spec = resolveAspectRatio(options.ar, quality);
   let n = Number(options.count) || 1;
   const warnings = computeWarnings(target, provided).concat(spec.warnings);
   if (!Number.isInteger(n) || n < 1) { warnings.push(`--count ${options.count} invalid → 1`); n = 1; }
@@ -181,7 +181,7 @@ async function run(argv) {
   const baseRun = {
     ts: new Date().toISOString(), command: '/image', adapter: target.id, model: options.model || 'gpt-image-2',
     prompt_input: options.prompt, prompt_enhanced: options.prompt_enhanced || null, prompt_sent: options.prompt,
-    ar: spec.requestedRatio, tier: options.tier, size: spec.size, size_clamped: spec.clamped,
+    ar: spec.requestedRatio, quality, size: spec.size, size_clamped: spec.clamped,
     count: n, format: options.format, style: options.style || null, art_style: options['art-style'] || null,
     enhance: Boolean(options.enhance), dry_run: Boolean(options['dry-run']),
     cost_usd: totalCost, is_estimate: true, breaker_tripped: false, max_cost_usd: maxCost,

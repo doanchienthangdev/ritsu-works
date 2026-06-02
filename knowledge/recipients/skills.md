@@ -1179,9 +1179,9 @@ then runs scripts/image/gen.cjs (out-of-band OpenAI). Tier A; per-run
 universal /image params to gpt-image-2 native params and runs
 scripts/image/gen.cjs (which require()s the in-place deepask helpers —
 deepask untouched). Flexible native sizing (--ar → ×16-edge size, AR≤3:1,
-edge<3840, no in-range crop). quality=low|medium|high via --tier. png/jpeg/webp.
+edge<3840, no in-range crop). --quality low|medium|high = OpenAI native quality (1:1). png/jpeg/webp.
 NO seed (warns). --ref/--mask = Phase-7 stretch (edits endpoint). gpt-image-2-pro-max
-is a PRESET of this adapter (= --enhance --tier=high). Billing: OPENAI_API_KEY
+is a PRESET of this adapter (= --enhance --quality=high). Billing: OPENAI_API_KEY
 out-of-band. Adapter contract: {ok, files[], model, cost_usd, warnings[]}.
 
 **Invoke:** `Skill({ skill: "image/adapters/gpt-image-2" })`
