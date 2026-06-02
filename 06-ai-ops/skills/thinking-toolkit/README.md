@@ -1,6 +1,6 @@
 # Thinking Toolkit
 
-> 12 skills extracted from McKinsey/Minto thinking discipline — 11 discrete high-leverage tools + the `mckinsey-workflow` 4S spine that sequences them.
+> 12 skills extracted from McKinsey/Minto thinking discipline — 11 discrete high-leverage tools + the `mckinsey-workflow` 4S **dynamic engine** that sequences them (pulls real data, validates, porpoises).
 
 ## What's in this folder
 
@@ -17,7 +17,7 @@
 | [`root-cause`](./root-cause/SKILL.md) *(v1.2)* | Trace a CONFIRMED symptom to its root (Five Whys; scoped — NOT framing) | driver-tree, debias; tosca (framing is separate) |
 | [`design-thinking`](./design-thinking/SKILL.md) *(v1.2)* | Generative path for human-centered problems: empathize→HMW→prototype | tosca, 2x2, hypothesis-driven |
 | [`debias`](./debias/SKILL.md) *(v1.2)* | Pre-commit cognitive-bias checklist — name the bias, apply the counter | hypothesis-driven, pre-mortem |
-| [`mckinsey-workflow`](./mckinsey-workflow/SKILL.md) *(v1.3)* | The 4S spine (State→Structure→Solve→Sell) — sequences all skills + binds the ~230 wiki concepts per step | ALL skills; `/think mckinsey`; `knowledge/mckinsey-workflow.yaml` |
+| [`mckinsey-workflow`](./mckinsey-workflow/SKILL.md) *(v1.3→v1.4)* | The 4S **dynamic engine** — workplan routes each hypothesis to real data (deepask/wiki/brain/supabase-ops/deep-research/ask-user) → validate → update one-day answer → re-route → porpoise; binds ~230 concepts per step | ALL skills; `/think mckinsey`; `knowledge/mckinsey-workflow.yaml` |
 
 ## When to use this folder
 

@@ -2,9 +2,9 @@
 
 **ID:** thinking-toolkit
 **Pillar owner:** 06-ai-ops (sub-pillar: skill-library)
-**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day; v1.2.0 curated +5 skills 2026-06-03; v1.3.0 McKinsey 4S workflow 2026-06-03)
+**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day; v1.2.0 curated +5 skills 2026-06-03; v1.3.0 McKinsey 4S workflow 2026-06-03; v1.4.0 static-map→dynamic-ENGINE 2026-06-03)
 **Proposed:** 2026-05-28
-**Spec version:** 1.3.0
+**Spec version:** 1.4.0
 **Capability run id:** TBD (insert at promotion time)
 **Selected option (from Phase 4):** Option A — Standalone parent-namespaced skills + (v1.1) thin orchestrator command surface
 
@@ -95,6 +95,22 @@ Founder ask: build a "McKinsey workflow" and a **mechanism to put the remaining 
 - **NEW validator `scripts/cross-tier/validate-mckinsey-workflow.cjs`** (L2 critical) — proves every referenced skill (`06-ai-ops/skills/<skill>/SKILL.md`) + concept (`wiki/<book>/concepts/<slug>.md`) **actually exists** (11 skill refs + 34 concept refs), plus step-id uniqueness, contiguous orders, and the 4 canonical 4S steps present. Wired into `check-consistency.cjs` AND `.github/workflows/cross-tier-consistency.yml` (registered in `validate-tier1` `FILE_TO_SCHEMA` for L1 schema validation too). Exported `validateWorkflow(doc, repoRoot)` is pure → tested by `tests/mckinsey-workflow.test.ts` (edge + broken cases: missing skill/concept, malformed step, dup id, order gap, missing canonical step, garbage root).
 - **Why a skill + catalog, NOT `workflows/` infra:** `workflows/` is "planned" (unbuilt) per `knowledge/manifest.yaml`; the 4S workflow fits the zero-cost guidance-doc model exactly, so it ships as a thinking-toolkit skill + a Tier-1 catalog yaml. No new DB, no new command.
 - Decision: `ops.decisions[thinking-toolkit-v1.3-mckinsey-workflow]`.
+
+### 4.9 v1.4.0 delta (2026-06-03, /cla extend) — static map → DYNAMIC ENGINE
+
+Founder critique: *"quá trình mckinsey cần nhiều kết quả trung gian … lấy kết quả qua deepask/wiki/brain/mcps … search + deep-research + validate … đặt đầu bài rồi yêu cầu người dùng cung cấp data … validate rồi tích hợp … chọn hướng + chọn tool kế. Tôi muốn 1 world-class McKinsey member, không chỉ tổng hợp bình thường."* Exactly right — v1.3 was a static reading-list map.
+
+A **5-agent research workflow** extracted the real 4S/7-step operating loop from the two books; the **audit scored v1.3 at 0/6 real-engine capabilities** (`porpoising` + `analysis-plan` — the books' core dynamic moves — existed in the wiki but were bound to ZERO steps). v1.4 makes it an engine, encoded machine-readably in `knowledge/mckinsey-workflow.yaml`:
+
+- **The 6-column WORKPLAN** (Bulletproof Exhibit 4.3, verbatim: `issue · hypothesis · analysis · source-of-data · owner · end-product`) = the data-routing spine. *"We don't do any analysis for which we don't have a hypothesis."*
+- **`data_routing`** — each hypothesis routes to a REAL tool: deepask · wiki_ask · gbrain · supabase-ops query (metrics.* only, firewall) · deep-research · think-skills · **ask-user (HITL)**. Never fabricate a fact.
+- **`validation_gate`** — every datum: knock-out → 8-degrees-of-certainty → correlation≠causation → sensitivity → triangulation/dissent → honesty-label.
+- **`routing_rules` (IF→THEN)** + **`back_edges` (porpoising)** — after each analysis: update the **living one-day answer** → re-prioritize → porpoise/switch-direction/dive.
+- **`hitl_triggers`** — ask the founder for founder-only data (degree-6 plans, judgment calls, unverifiable flip-assumptions); framed decision-relevantly.
+- **`stopping_criterion`** — marginal-analysis (no cheap answer-moving analysis remains) + robust-to-sensitivity + labeled residual uncertainty.
+- Per-step **`produces`** artifacts → `.archives/mckinsey/<slug>/` (problem-statement → tree → workplan → analysis-log → one-day-answer → synthesis).
+
+The skill is the executable PLAYBOOK that pulls real data, validates, asks the user, and porpoises — running in the active session (so HITL works), not a headless subagent. Validator + schema extended (artifacts / data_routing / engine-sections + concept-ref existence across ALL sections); `tests/mckinsey-workflow.test.ts` extended (edge + broken cases for every new field). **Why skill+catalog, not a deterministic orchestrator:** the 4S loop is judgment-heavy (framing, hypothesizing, validating causation) — an intelligent agent executing a world-class playbook IS the engine; deterministic code would be fake rigor. Decision: `ops.decisions[thinking-toolkit-v1.4-mckinsey-engine]`.
 
 ### 4.2 Persona integration
 

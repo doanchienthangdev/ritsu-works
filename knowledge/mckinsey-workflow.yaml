@@ -1,73 +1,257 @@
 # ============================================================================
-# mckinsey-workflow.yaml — the 4S problem-solving workflow catalog
+# mckinsey-workflow.yaml — the 4S problem-solving ENGINE catalog
 # ============================================================================
-# Capability: thinking-toolkit v1.3 (/cla extend). The SPINE that sequences the
-# whole thinking-toolkit into the McKinsey 4S method (State → Structure → Solve
-# → Sell, Cracked it! Ch 3), cross-mapped to the Bulletproof 7-step process.
+# Capability: thinking-toolkit v1.4 (/cla extend). The machine-readable spec of
+# a world-class McKinsey problem-solving process — NOT a static map of "which
+# skill at which stage", but a DYNAMIC, DATA-DRIVEN ENGINE:
+#   frame → structure → WORKPLAN (route every hypothesis to a data source) →
+#   analyze-loop (pull real data · validate · update the one-day answer ·
+#   re-prioritize · porpoise) → synthesize → sell — with intermediate
+#   artifacts persisted, findings flowing BACKWARD, and the user asked for
+#   data only they hold.
 #
-# WHAT THIS SOLVES (founder ask, 2026-06-03): "cơ chế đưa các concepts trong
-# problem solving vào các steps trong mckinsey workflow." The 5 v1.2 + 6 v1.0
-# skills are the OPERATIONS you run at each step; the ~230 wiki concepts that
-# did NOT become skills are attached here per-step as (a) a curated key-concept
-# reading list + (b) a `retrieval` recipe so ANY concept is findable by step
-# later (`mcp__supabase-ops__wiki_ask` / `/wiki ask` scoped to the step's books).
+# Source: *Bulletproof Problem Solving* (Conn & McLean 2018, the 7-step) +
+# *Cracked It!* (Garrette/Phelps/Sibony 2018, the 4S). Spine = 4S; the 7-step
+# is the finer cross-map. The load-bearing mechanics distilled from the books:
+#   - 6-column WORKPLAN (Exhibit 4.3, verbatim): issue · hypothesis · analysis ·
+#     source-of-data · responsibility · end-product. "We don't do any analysis
+#     for which we don't have a hypothesis." This is the data-routing spine.
+#   - ONE-DAY ANSWER (situation-observation-resolution): the living state,
+#     updated after every analysis, re-ranks the remaining workplan rows.
+#   - PORPOISING: dive into data → resurface a sharper problem statement.
+#   - VALIDATION GATE + DIALECTIC: every datum gated before it moves the answer.
+#   - MARGINAL-ANALYSIS stopping rule: stop when no cheap, answer-moving
+#     analysis remains.
 #
-# This is the machine-readable SOURCE OF TRUTH. The skill
-# `06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md` reflects it;
-# the `/think mckinsey <problem>` verb walks it.
+# v1.3 was a static reading-list index (audited: 0/6 real-engine capabilities;
+# `porpoising` + `analysis-plan` existed in the wiki but were bound to ZERO
+# steps). v1.4 binds them and adds the engine sections below: artifacts,
+# data_routing, validation_gate, routing_rules, hitl_triggers, back_edges,
+# stopping_criterion.
 #
 # Schema:    knowledge/schemas/mckinsey-workflow.schema.json
 # Validator: scripts/cross-tier/validate-mckinsey-workflow.cjs (L2 critical;
-#            wired into check-consistency.cjs AND
-#            .github/workflows/cross-tier-consistency.yml). The validator proves
-#            every referenced skill + concept file ACTUALLY EXISTS — the catalog
-#            cannot drift into citing a skill or concept that isn't there.
-#
-# Maintenance: hand-maintained (NOT regenerated), like design-systems.yaml /
-# art-styles.yaml. Add a concept to a step = add one {book, slug} line (the file
-# must exist in wiki/<book>/concepts/<slug>.md). Add a step = unlikely (4S is
-# fixed); finer granularity goes in `bulletproof_7step`.
+#            check-consistency.cjs + CI + validate-tier1 FILE_TO_SCHEMA). Proves
+#            every referenced skill + concept file exists, every `produces` +
+#            `data_routing.tool` + `artifacts.files[].stage` is from a known set,
+#            and the engine sections are present + non-empty.
+# Skill:     06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md
+#            (the executable playbook reflecting this spec). /think mckinsey.
+# Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
 # ============================================================================
 
-version: "1.0.0"
+version: "1.4.0"
 schema: knowledge/schemas/mckinsey-workflow.schema.json
 spine: "4S"                                   # State / Structure / Solve / Sell (Cracked it! Ch 3)
 source_books: [cracked-it, bulletproof-problem-solving]
 
+# --------------------------------------------------------------------------
+# INTERMEDIATE ARTIFACTS — the run produces persisted work products, not one
+# brainstorm. Written to the run folder; the one-day-answer is the living state.
+# (Accordion principle: for a small problem, compress — the one-day-answer alone
+# may suffice. For a substantial one, produce the full chain.)
+# --------------------------------------------------------------------------
+artifacts:
+  run_folder: ".archives/mckinsey/<slug>/"
+  files:
+    - {name: problem-statement, stage: state,     contents: "TOSCA 5 slots (Trouble/Owner/Success/Constraints/Actors) + Core Question + the 5-check"}
+    - {name: decomposition,     stage: structure, contents: "issue tree OR hypothesis pyramid — MECE; each leaf a falsifiable hypothesis"}
+    - {name: workplan,          stage: structure, contents: "the 6 book columns (issue · hypothesis · analysis · source-of-data · owner · end-product, dummy exhibit, Exhibit 4.3) + a STATUS column (open|pulled|validated|knocked-out|spawned) the Solve loop rewrites each iteration; knock-out-ordered. The status column is the ledger that keeps a long loop from drifting — you may not reach Sell with an 'open' row above the knock-out bar"}
+    - {name: analysis-log,      stage: solve,     contents: "per workplan row: data pulled (which tool) + result + validation verdict + degree-of-certainty (1-8)"}
+    - {name: one-day-answer,    stage: solve,     contents: "the LIVING state — situation→observation→resolution; updated after every analysis; seeds the final synthesis"}
+    - {name: synthesis,         stage: sell,      contents: "pyramid: governing thought → MECE key line → support; grouping|SCR storyline; action titles"}
+
+# --------------------------------------------------------------------------
+# DATA ROUTING — the "pull real data" mechanism. In Solve, each workplan row's
+# `source-of-data` routes to ONE of these tools. Cheapest-sufficient-source
+# first; never brainstorm a fact; if no tool has it → ask-user.
+# --------------------------------------------------------------------------
+data_routing:
+  - need: "Broad internal company evidence / answer spanning multiple internal sources"
+    tool: deepask
+    invoke: '/deepask "<question>"   (inline; --dry-run first for cost/coverage)'
+    hitl: A
+    note: "heavyweight federated synthesis; Tier-B+ legs are surfaced, never auto-run; resolver-breaker bounded"
+  - need: "A framework / concept / definition / best-practice from the distilled reference library"
+    tool: wiki_ask
+    invoke: '/wiki ask "<q>"   OR   mcp__supabase-ops__wiki_ask({question})'
+    hitl: A
+    note: "fast/cheap; cite the wiki path; honest no_coverage if absent"
+  - need: "A person / company / past decision / relationship / prior bet / entity history"
+    tool: gbrain
+    invoke: '/brain search "<q>" → recall --entity=<slug> → think only if needed'
+    hitl: A
+    note: "prefer search/recall (cheap) over think ($0.10-0.50, Opus); $100/mo hard cap"
+  - need: "A current metric / number / KPI / count / live operational fact"
+    tool: supabase-ops-query
+    invoke: "mcp__supabase-ops__query({sql, schema:'metrics'|'ops'|'public'})"
+    hitl: A
+    note: "metrics.* ONLY (product firewall — never product.*); read knowledge/schemas first, don't invent columns; metrics.product_dau_snapshot ETL may be empty → then ask-user"
+  - need: "External market / competitor / benchmark / industry trend / world fact"
+    tool: deep-research
+    invoke: '/deepask "<q>" (repo-native; delegates its web leg to deep-research) OR Skill({skill:"deep-research", args:"<refined question>"}) directly'
+    hitl: A
+    note: "deep-research is a HARNESS/plugin skill (registered at runtime in interactive sessions, not a repo file) — /deepask is the repo-native external route (it delegates the web leg to deep-research). SLOW + external; research only — never publish (publish = Tier C). In a headless context where deep-research is absent, route external via /deepask or ask-user."
+  - need: "Structuring / sequencing the analysis itself (decompose a metric, MECE-gate, frame, stress-test)"
+    tool: think-skills
+    invoke: "/think driver-tree|mece|hypothesis|root-cause|pyramid|so-what|2x2"
+    hitl: A
+    note: "reasoning discipline, not evidence; scaffolds WHAT to pull, then route to a data tool"
+  - need: "Data that exists ONLY in the founder's head (private intent, unrecorded decisions, risk appetite, qualitative judgment, degree-6 internal plans)"
+    tool: ask-user
+    invoke: "AskUserQuestion — surface the gap + show where it changes the one-day answer + a proposed default"
+    hitl: human
+    note: "the McKinsey move: don't fabricate past a gap you could close by asking the owner; frame as a scheduled checkpoint"
+
+# --------------------------------------------------------------------------
+# VALIDATION GATE — run on EVERY analysis/datum before it updates the one-day
+# answer. Must clear a trust test (is it true?) AND a relevance test (does it
+# matter?). Fail any → re-source, downgrade weight, or knock it out.
+# --------------------------------------------------------------------------
+validation_gate:
+  - check: "Decision-relevance / knock-out (run FIRST — cheapest filter)"
+    test: "Does this realistically move the answer? importance × influence × expected-value. If it can't move the answer → abandon now (80/20)."
+    concept: {book: bulletproof-problem-solving, slug: knock-out-analysis}
+  - check: "Source-quality / degree-of-certainty"
+    test: "Tag the datum 1-8 (given-fact … judgment-call). Reliability falls as the number rises; discount degree-6 forecasts + degree-7 expert input for owner-incentive bias."
+    concept: {book: cracked-it, slug: eight-degrees-of-analysis}
+  - check: "Correlation ≠ causation (on any X-drives-Y claim)"
+    test: "Reverse-causation? common-driver/confounder? If causation is load-bearing → demand an experiment/natural-experiment/regression, else downgrade to 'associated with'."
+    concept: {book: bulletproof-problem-solving, slug: correlation-vs-causation-pitfall}
+  - check: "Sensitivity / robustness (on any assumption-based conclusion)"
+    test: "Inverse-sensitivity: by how much must assumptions change for the conclusion to flip? Tiny swing → fragile (gather more / hedge). Correct for overprecision."
+    concept: {book: cracked-it, slug: sensitivity-analysis}
+  - check: "Triangulation / independent challenge (anti-confirmation)"
+    test: "Has a SECOND independent read reached the same conclusion? Generate + test one alternative interpretation before accepting the one that fits your storyline."
+    concept: {book: cracked-it, slug: confirmation-bias-in-analysis}
+  - check: "Honesty-labeling (output of the gate)"
+    test: "Tag the surviving datum with its degree-of-certainty; label irreducible judgment calls AS judgment calls — never let the reader believe a judgment is a fact."
+    concept: {book: cracked-it, slug: judgment-call-transparency}
+
+# --------------------------------------------------------------------------
+# ROUTING RULES (IF → THEN) — after each validated analysis, RE-DECIDE the
+# route. The engine is a continuously-updated loop, not a waterfall.
+# --------------------------------------------------------------------------
+routing_rules:
+  - when: "any analysis clears the gate"
+    then: "update the one-day-answer (SOR) immediately; re-derive whether the top-line still holds"
+    concept: {book: bulletproof-problem-solving, slug: one-day-answer}
+  - when: "the validated result CONTRADICTS the current one-day answer"
+    then: "revise the governing thought; mark which downstream hypotheses are now dead/live; re-prioritize against the NEW answer (not the old plan)"
+    concept: {book: bulletproof-problem-solving, slug: one-day-answer}
+  - when: "the result CONFIRMS the one-day answer"
+    then: "apply suspicion not relief — was it an adversarial test or confirmation-seeking? if not adversarial, route to an independent challenge before banking it"
+    concept: {book: cracked-it, slug: confirmation-bias-in-analysis}
+  - when: "an analysis materially MOVED the answer"
+    then: "double down — spawn deeper sub-analyses around this lever (it's in the high-value 20%)"
+    concept: {book: bulletproof-problem-solving, slug: knock-out-analysis}
+  - when: "an analysis DIDN'T move the answer AND sensitivity is low"
+    then: "knock the branch out; reallocate to the next-highest-expected-value open issue"
+    concept: {book: bulletproof-problem-solving, slug: critical-path-analysis-prioritization}
+  - when: "the central hypothesis FAILS its targeted test"
+    then: "route to the sibling MECE branch of the hypothesis pyramid (the pre-built alternative), not a patch of the dead hypothesis"
+    concept: {book: cracked-it, slug: hypothesis-pyramid-testing}
+  - when: "a causal claim is load-bearing but only correlational evidence exists"
+    then: "switch tools — from descriptive stats to experiment / natural-experiment / regression"
+    concept: {book: bulletproof-problem-solving, slug: correlation-vs-causation-pitfall}
+
+# --------------------------------------------------------------------------
+# HITL DATA-REQUEST — when to STOP and ask the founder for data, and how to
+# frame it. Going back to the owner for data is routine, not failure.
+# --------------------------------------------------------------------------
+hitl_triggers:
+  - when: "the missing input is a degree-6 internal plan/forecast or a target the owner holds and the team structurally cannot generate"
+    ask: "request it; don't substitute a guess"
+    concept: {book: cracked-it, slug: eight-degrees-of-analysis}
+  - when: "the input is an irreducible judgment about the owner's own world (risk appetite, strategic intent, success threshold, stakeholder reactions)"
+    ask: "surface it explicitly and ask the owner to weigh in"
+    concept: {book: cracked-it, slug: judgment-call-transparency}
+  - when: "a sensitivity test shows the answer FLIPS on an assumption you can't verify yourself"
+    ask: "the value of closing that gap is high (it passed knock-out) — request the real number"
+    concept: {book: cracked-it, slug: sensitivity-analysis}
+  - when: "framing or scope may have drifted since kickoff"
+    ask: "fire an intermediary checkpoint — reconfirm the problem, share interim findings, pre-wire"
+    concept: {book: cracked-it, slug: intermediary-checkpoints}
+
+# --------------------------------------------------------------------------
+# BACK-EDGES (porpoising / iterate) — the process is a cycle with explicit
+# back-transitions, not a one-way waterfall.
+# --------------------------------------------------------------------------
+back_edges:
+  - from: solve
+    to: state
+    trigger: "data shows the problem itself is mis-framed / mis-scoped / embeds a solution → surface, rewrite the problem statement, then dive again"
+    concept: {book: bulletproof-problem-solving, slug: porpoising}
+  - from: solve
+    to: structure
+    trigger: "a result opens a new avenue or kills a branch → rewrite the (chunky) workplan"
+    concept: {book: bulletproof-problem-solving, slug: chunky-workplans-lean-project-plans}
+  - from: solve
+    to: structure
+    trigger: "branch findings don't add up, or the frame was chosen by habit/expertise → re-cleave the tree (try multiple cleaves)"
+    concept: {book: bulletproof-problem-solving, slug: team-bias-mitigation-practices}
+  - from: sell
+    to: solve
+    trigger: "an intermediary checkpoint surfaces an objection or a gap → return to analysis before the final meeting"
+    concept: {book: cracked-it, slug: intermediary-checkpoints}
+
+# --------------------------------------------------------------------------
+# STOPPING CRITERION — move from Solve to Sell only when ALL hold.
+# --------------------------------------------------------------------------
+stopping_criterion:
+  - condition: "central hypothesis proven by a targeted, ADVERSARIAL (not confirmation-seeking) analysis; the one-day answer has stabilized"
+    concept: {book: cracked-it, slug: hypothesis-pyramid-testing}
+  - condition: "marginal: no remaining open analysis is cheap AND powerful enough to move the answer (clears the knock-out bar) — stop where marginal benefit ≈ marginal cost"
+    concept: {book: bulletproof-problem-solving, slug: marginal-analysis}
+  - condition: "robust to sensitivity — the recommendation holds across the plausible range of every key assumption"
+    concept: {book: cracked-it, slug: sensitivity-analysis}
+  - condition: "residual uncertainty is LABELED as judgment calls (with degree-of-certainty), not hidden; tail/downside understood, not just the mean"
+    concept: {book: cracked-it, slug: judgment-call-transparency}
+
+# --------------------------------------------------------------------------
+# THE 4S STAGES — each binds operations (skills) + concepts + the artifact it
+# produces + a per-stage data/validation note. Solve is the data-driven loop.
+# --------------------------------------------------------------------------
 steps:
-  # --------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   - id: state
     order: 1
     name: "State the Problem"
     intent: >
-      Define and frame the problem before any solutioning. Get the problem
-      statement right — most problem-solving fails because the wrong problem
-      was solved. Output: a one-page framed problem + a single Core Question.
+      Define + frame before solutioning — most failures solve the wrong problem.
+      Fill TOSCA (Trouble/Owner/Success/Constraints/Actors), write a Core
+      Question, pass the 5-check. Iterate with the owner ("sing TOSCA as a
+      choir"). Where TOSCA needs inputs only the founder holds, ASK (HITL).
     bulletproof_7step: ["Define the problem"]
+    produces: [problem-statement]
     skills:
       - thinking-toolkit/tosca-problem-framing
     key_concepts:
       - {book: cracked-it, slug: tosca-framework}
       - {book: cracked-it, slug: core-question-scope}
       - {book: cracked-it, slug: success-criteria-component}
+      - {book: cracked-it, slug: problem-statement-iteration}
       - {book: bulletproof-problem-solving, slug: problem-statement-worksheet}
       - {book: bulletproof-problem-solving, slug: smart-problem-statement-criteria}
       - {book: bulletproof-problem-solving, slug: outcomes-focused-problem-definition}
       - {book: bulletproof-problem-solving, slug: wicked-problems}
     retrieval:
-      query: "problem framing, problem definition, success criteria, core question, wicked problems"
+      query: "problem framing, TOSCA, core question, success criteria, wicked problems"
       sources: [cracked-it, bulletproof-problem-solving]
 
-  # --------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   - id: structure
     order: 2
-    name: "Structure the Problem"
+    name: "Structure the Problem + Build the Workplan"
     intent: >
-      Disaggregate the framed problem into MECE parts you can attack one by one.
-      Choose the path — hypothesis-driven (fast, you have a hunch) vs issue-driven
-      (thorough, no preconception) — then prioritize so you analyze only the
-      branches that can move the answer. Output: a logic/issue tree + a workplan.
+      Disaggregate into a MECE tree (issue-driven by default; hypothesis pyramid
+      only with a strong prior or time starvation; design-thinking path for
+      ill-defined human problems). Prioritize via the impact×influence 2×2
+      (knock-out). Then build the 6-COLUMN WORKPLAN — route every surviving
+      hypothesis to an analysis + a DATA SOURCE + an owner + a dummy exhibit.
+      "We don't do any analysis for which we don't have a hypothesis."
     bulletproof_7step: ["Disaggregate the issues", "Prioritize", "Build a workplan"]
+    produces: [decomposition, workplan]
     skills:
       - thinking-toolkit/mece-decomposition-check
       - thinking-toolkit/driver-tree-decomposition
@@ -75,27 +259,32 @@ steps:
     key_concepts:
       - {book: bulletproof-problem-solving, slug: logic-tree}
       - {book: bulletproof-problem-solving, slug: problem-disaggregation}
-      - {book: bulletproof-problem-solving, slug: mece}
+      - {book: bulletproof-problem-solving, slug: hypothesis-driven-workplanning}
+      - {book: bulletproof-problem-solving, slug: chunky-workplans-lean-project-plans}
       - {book: bulletproof-problem-solving, slug: knock-out-analysis}
       - {book: bulletproof-problem-solving, slug: prioritization-2x2-matrix}
       - {book: cracked-it, slug: issue-tree}
       - {book: cracked-it, slug: hypothesis-pyramid}
       - {book: cracked-it, slug: hypothesis-driven-vs-issue-driven}
+      - {book: cracked-it, slug: analysis-plan}
     retrieval:
-      query: "issue tree, logic tree, disaggregation, MECE, prioritization, hypothesis vs issue driven, workplan"
+      query: "issue tree, logic tree, MECE, prioritization, workplan, hypothesis vs issue driven, analysis plan"
       sources: [cracked-it, bulletproof-problem-solving]
 
-  # --------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   - id: solve
     order: 3
-    name: "Solve (Analyze + Generate)"
+    name: "Solve — the analysis loop (pull · validate · update · re-route)"
     intent: >
-      Do the analysis. Lead with heuristics before big guns; carry a one-day
-      answer. For a confirmed broken symptom, trace the root cause; for an
-      unmet human need that analysis can't crack, switch to the generative
-      design-thinking path; pre-mortem the leading option; and run the debias
-      checklist before committing. Output: an evidence-backed answer per branch.
+      Execute the workplan in KNOCK-OUT-FIRST order. For each row: route to a
+      real data source (see data_routing) — heuristics before big guns — pull
+      the data, run it through the VALIDATION GATE, write the verdict to the
+      analysis-log, UPDATE THE ONE-DAY ANSWER, then RE-ROUTE per routing_rules
+      (re-prioritize / porpoise / switch direction / pick a different tool).
+      Ask the user for data only they hold. Iterate until the stopping_criterion
+      holds. (Design-thinking path: empathize→HMW→prototype→test until D/F/V.)
     bulletproof_7step: ["Conduct analyses"]
+    produces: [analysis-log, one-day-answer]
     skills:
       - thinking-toolkit/root-cause
       - thinking-toolkit/design-thinking
@@ -105,30 +294,29 @@ steps:
     key_concepts:
       - {book: bulletproof-problem-solving, slug: one-day-answer}
       - {book: bulletproof-problem-solving, slug: heuristics-before-big-guns}
-      - {book: bulletproof-problem-solving, slug: expected-value-calculation}
-      - {book: bulletproof-problem-solving, slug: monte-carlo-simulation}
-      - {book: bulletproof-problem-solving, slug: root-cause-analysis-five-whys}
-      - {book: bulletproof-problem-solving, slug: pre-mortem-analysis}
-      - {book: bulletproof-problem-solving, slug: five-cognitive-biases-problem-solving}
-      - {book: cracked-it, slug: design-thinking}
-      - {book: cracked-it, slug: how-might-we-question}
-      - {book: cracked-it, slug: desirability-feasibility-viability-triad}
+      - {book: bulletproof-problem-solving, slug: porpoising}
+      - {book: bulletproof-problem-solving, slug: seven-step-process-as-accordion}
+      - {book: bulletproof-problem-solving, slug: marginal-analysis}
+      - {book: cracked-it, slug: eight-degrees-of-analysis}
       - {book: cracked-it, slug: sensitivity-analysis}
+      - {book: cracked-it, slug: hypothesis-pyramid-testing}
+      - {book: cracked-it, slug: scope-narrowing-during-solve}
+      - {book: cracked-it, slug: desirability-feasibility-viability-triad}
     retrieval:
-      query: "analysis tools, heuristics, expected value, simulation, regression, root cause, design thinking, cognitive biases"
+      query: "analysis, heuristics, one-day answer, porpoising, sensitivity, eight degrees, validation, marginal analysis"
       sources: [cracked-it, bulletproof-problem-solving]
 
-  # --------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   - id: sell
     order: 4
     name: "Sell the Solution"
     intent: >
-      Synthesize findings into a recommendation and communicate it so it lands.
-      Lead with the governing thought (pyramid, top-line first); make every
-      supporting point survive the so-what test; pick the grouping vs argument
-      (SCR/SCQA) storyline for the audience; pre-wire the decision. Output: an
-      action-titled, decision-ready recommendation.
+      Synthesize the analysis-log + the final one-day answer into a recommendation
+      that lands. Governing thought first (pyramid, top-line); MECE key line;
+      grouping vs argument (SCR/SCQA) by audience; action titles; pre-wire the
+      owner so nothing is a surprise. NEVER tell the story-of-the-search.
     bulletproof_7step: ["Synthesize findings", "Communicate / tell a great story"]
+    produces: [synthesis]
     skills:
       - thinking-toolkit/pyramid-principle-output
       - thinking-toolkit/so-what-test
@@ -139,8 +327,9 @@ steps:
       - {book: cracked-it, slug: storyline-design}
       - {book: cracked-it, slug: action-title-discipline}
       - {book: cracked-it, slug: pre-wiring-the-final-meeting}
+      - {book: cracked-it, slug: story-of-the-search-antipattern}
       - {book: bulletproof-problem-solving, slug: synthesis-and-storytelling}
-      - {book: bulletproof-problem-solving, slug: pyramid-structure}
+      - {book: bulletproof-problem-solving, slug: situation-observation-resolution}
     retrieval:
-      query: "synthesis, storyline, pyramid principle, governing thought, SCR SCQA, action titles, communicate recommendation"
+      query: "synthesis, storyline, pyramid, governing thought, SCR, action titles, pre-wire"
       sources: [cracked-it, bulletproof-problem-solving]

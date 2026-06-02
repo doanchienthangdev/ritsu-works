@@ -1004,8 +1004,9 @@ capabilities:
   - id: thinking-toolkit
     name: "Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills)"
     description: |
-      11 standalone composable skills extracted from McKinsey/Minto thinking
-      discipline, deployed as a parent-namespaced skill folder at
+      12 skills (11 composable thinking tools + the mckinsey-workflow 4S
+      ENGINE) extracted from McKinsey/Minto thinking discipline, deployed as a
+      parent-namespaced skill folder at
       06-ai-ops/skills/thinking-toolkit/. Skills are guidance documents (zero
       LLM cost at invocation); they structure the THINKING and OUTPUT of the
       invoking agent. The 4 C-suite personas (@ceo/@cto/@cgo/@cpo) import
@@ -1014,9 +1015,12 @@ capabilities:
       hypothesis-driven, pre-mortem, root-cause, design-thinking, debias,
       mckinsey-workflow) are invoked situationally by personas, /cla phases,
       /cgo funnel work, 10-metrics pillar KPI decomposition, and /update
-      entity analysis. v1.3 adds mckinsey-workflow — the 4S spine that
-      sequences all skills + binds the ~230 non-skill wiki concepts per step
-      via knowledge/mckinsey-workflow.yaml.
+      entity analysis. v1.3 added mckinsey-workflow (the 4S spine binding the
+      ~230 non-skill wiki concepts per step via knowledge/mckinsey-workflow.yaml);
+      v1.4 upgraded it from that static map into a dynamic, data-driven ENGINE
+      (6-column workplan routing each hypothesis to a real data source +
+      per-datum validation gate + living one-day answer + porpoising + HITL
+      data-requests).
 
       Inventory:
         - thinking-toolkit/tosca-problem-framing (problem-definition discipline)
@@ -1030,7 +1034,7 @@ capabilities:
         - thinking-toolkit/root-cause (Five Whys on a confirmed symptom; scoped) [v1.2]
         - thinking-toolkit/design-thinking (generative: empathize→HMW→prototype) [v1.2]
         - thinking-toolkit/debias (pre-commit cognitive-bias checklist) [v1.2]
-        - thinking-toolkit/mckinsey-workflow (the 4S spine: sequences all skills + binds ~230 wiki concepts per step) [v1.3]
+        - thinking-toolkit/mckinsey-workflow (the 4S DYNAMIC ENGINE: workplan routes each hypothesis to real data → validate → update one-day answer → re-route → porpoise; HITL) [v1.3→v1.4]
 
       Origin: Barbara Minto's *Pyramid Principle* (1987), McKinsey internal
       training (TOSCA, driver-tree, So-What), BCG Growth-Share matrix (2x2).
@@ -1042,7 +1046,7 @@ capabilities:
       symptom only (v1.0's rejection was framing-specific, Cracked it! p.58).
       Still rejected: 80/20 (overlaps /muse:paul-graham), screen/knock-out
       (deferred), Ghost Deck, 7S, PEST/Porter.
-    version: "1.3.0"
+    version: "1.4.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28
@@ -1106,6 +1110,25 @@ capabilities:
       exists (11 skill refs + 34 concept refs). Tests: tests/mckinsey-workflow.
       test.ts (edge + broken cases). /think 12 skills / 14 verbs. Tier C.
       Decision: ops.decisions (slug thinking-toolkit-v1.3-mckinsey-workflow).
+
+      v1.4 (2026-06-03): /cla extend — turned mckinsey-workflow from a STATIC MAP
+      into a DYNAMIC, DATA-DRIVEN ENGINE (founder critique: "tôi muốn 1 world-class
+      McKinsey member, không chỉ tổng hợp bình thường"). 5-agent research workflow
+      extracted the real 4S/7-step operating loop from Cracked It! + Bulletproof;
+      audit found the v1.3 skill scored 0/6 real-engine capabilities (porpoising +
+      analysis-plan existed in the wiki but were bound to ZERO steps). v1.4 encodes
+      the engine in knowledge/mckinsey-workflow.yaml: the 6-column WORKPLAN
+      (issue·hypothesis·analysis·source-of-data·owner·end-product, Exhibit 4.3) as
+      the data-routing spine; a `data_routing` table (deepask/wiki_ask/gbrain/
+      supabase-ops/deep-research/think-skills/ask-user); a `validation_gate`
+      (knock-out→8-degrees→causation→sensitivity→triangulation→honesty); `routing_rules`
+      (IF→THEN); `back_edges` (porpoise); `hitl_triggers` (ask the founder for
+      founder-only data — never fabricate); `stopping_criterion` (marginal analysis);
+      per-step `produces` artifacts written to .archives/mckinsey/<slug>/. Validator
+      + schema + 50 vitest cases extended. The skill is the executable playbook that
+      pulls real data, validates, asks the user, and porpoises — runs in the active
+      session (HITL). Tier C. Decision: ops.decisions (slug
+      thinking-toolkit-v1.4-mckinsey-engine).
 
   - id: playbook-builder
     name: "Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration"

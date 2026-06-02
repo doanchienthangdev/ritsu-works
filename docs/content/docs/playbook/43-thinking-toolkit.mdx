@@ -2,14 +2,14 @@
 title: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
 description: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/43-thinking-toolkit.md
-source_hash: 6cb699d17bf69e2661ea0f40be1e0a4d1eedb556b0ad3d14090cc204d5e5f668
-generated_at: '2026-06-02T19:40:50.421Z'
+source_hash: f681eb4ba7db90ea26353da7125dfaea604538ee7b1bf5161bf1722475575ec7
+generated_at: '2026-06-02T20:54:45.552Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: 6cb699d17bf69e2661ea0f40be1e0a4d1eedb556b0ad3d14090cc204d5e5f668
-translated_at: '2026-06-02T19:40:50.421Z'
+translated_source_hash: f681eb4ba7db90ea26353da7125dfaea604538ee7b1bf5161bf1722475575ec7
+translated_at: '2026-06-02T20:54:45.552Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 43
 ---
@@ -20,7 +20,7 @@ chapter_order: 43
 
 Chương này document **`thinking-toolkit`** — capability thứ 10 ship qua Bài #20 (CLA), và là **single-session-overnight-autonomous** record: /cla propose 8-phase compressed vào 1 session, no founder gate, ship + merge + deploy preparation trước sáng. 6 skills mới (v1.0); 1 thin orchestrator command `/think` added cùng ngày (v1.1 — `/cla extend`). 0 new MCP, 0 new DB tables. Zero per-invocation cost, value compounds across every C-suite invocation đời còn lại.
 
-**Trạng thái:** operating **v1.3.0** (v1.0 ship 2026-05-28 — 6 skills; v1.1 cùng ngày — `/think` command surface; **v1.2** 2026-06-03 — curated +5 skills, [PR #211](https://github.com/doanchienthangdev/ritsu-works/pull/211); **v1.3** 2026-06-03 — McKinsey 4S workflow + concept catalog, [PR #212](https://github.com/doanchienthangdev/ritsu-works/pull/212)). `/think` 12 skills / 14 verbs. Tier C decisions: `ops.decisions[thinking-toolkit-v1.2-curated-expansion]` + `[thinking-toolkit-v1.3-mckinsey-workflow]`. Spec promoted `wiki/capabilities/thinking-toolkit/spec.md`. (v1.2/v1.3 detail: §42.9.6 + §42.9.7.)
+**Trạng thái:** operating **v1.4.0** (v1.0 ship 2026-05-28 — 6 skills; v1.1 cùng ngày — `/think` command surface; **v1.2** 2026-06-03 — curated +5 skills, [PR #211](https://github.com/doanchienthangdev/ritsu-works/pull/211); **v1.3** 2026-06-03 — McKinsey 4S workflow + concept catalog, [PR #212](https://github.com/doanchienthangdev/ritsu-works/pull/212); **v1.4** 2026-06-03 — mckinsey-workflow static map → dynamic data-driven **ENGINE**). `/think` 12 skills / 14 verbs. Tier C decisions: `ops.decisions[thinking-toolkit-v1.2-curated-expansion]` + `[thinking-toolkit-v1.3-mckinsey-workflow]` + `[thinking-toolkit-v1.4-mckinsey-engine]`. Spec promoted `wiki/capabilities/thinking-toolkit/spec.md`. (v1.2/v1.3/v1.4 detail: §42.9.6 + §42.9.7 + §42.9.8.)
 
 ---
 
@@ -410,6 +410,23 @@ Same night, founder: *"Tôi dự kiến sẽ làm mckinsey nên cơ chế đưa 
 [PR #212](https://github.com/doanchienthangdev/ritsu-works/pull/212). Tier C: `ops.decisions[thinking-toolkit-v1.3-mckinsey-workflow]`.
 
 **Lesson (compounds v1.2's):** v1.2 decided *which* concepts become skills (few — ~2%); v1.3 gave the *rest* a home (the 4S catalog, bound per-step). Together they answer the founder's deeper question — chất lượng tư duy scales by *organizing* the library into a workflow, not by minting 200 commands.
+
+## 42.9.8 v1.4 — static map → DYNAMIC ENGINE (the "world-class McKinsey member" rebuild)
+
+Same night, the founder pushed deeper: *"quá trình mckinsey cần nhiều kết quả trung gian, không chỉ brainstorming — lấy data qua deepask/wiki/brain/mcps, search + deep-research + validate, đặt đầu bài rồi yêu cầu người dùng cung cấp data, validate rồi tích hợp rồi chọn hướng + chọn tool kế. Tôi muốn 1 world-class McKinsey member, không chỉ tổng hợp bình thường."* The v1.3 skill was a **static map** — it named the tools but pulled nothing, validated nothing, asked nothing, routed nothing.
+
+**Method:** a 5-agent research **Workflow** (the Workflow tool) extracted the real 4S/7-step operating loop from Cracked It! + Bulletproof; an audit scored v1.3 at **0/6 real-engine capabilities** — most tellingly, `porpoising` (the books' core dynamic move) and `analysis-plan` (the data-pull generator) existed in the wiki at confidence 0.95 but were bound to **ZERO steps**.
+
+**v1.4 encodes the engine** in `knowledge/mckinsey-workflow.yaml`:
+- the **6-column WORKPLAN** (Bulletproof Exhibit 4.3, verbatim: `issue · hypothesis · analysis · source-of-data · owner · end-product`) + a **STATUS column** — the data-routing spine; *"no analysis without a hypothesis."* The status ledger keeps a long Solve loop from drifting back into opinion-narration (the partner-critic's must-fix).
+- a **`data_routing`** table — each hypothesis routes to a REAL tool: deepask · wiki_ask · gbrain · supabase-ops (metrics.* only) · deep-research · think-skills · **ask-user (HITL)**. Never fabricate a fact.
+- **`validation_gate`** (knock-out → 8-degrees → causation → sensitivity → triangulation → honesty), **`routing_rules`** (IF→THEN), **`back_edges`** (porpoising), **`hitl_triggers`** (ask the founder for founder-only data), **`stopping_criterion`** (marginal analysis), and per-step **`produces`** artifacts → `.archives/mckinsey/<slug>/`.
+
+The skill is the executable **playbook** that pulls real data, validates, asks the user, and porpoises — running in the active session (so HITL works). Validator + schema extended (artifacts / data_routing / engine-sections + concept-ref existence across ALL sections + `produces ⊆ artifacts.files`); 56 vitest cases. Review: @cto FIX-FIRST (resolved) + a McKinsey-partner critic SHIP-WITH-FIXES who verified **6/6 founder requirements DELIVERED, nothing decorative**.
+
+**Why skill + catalog, not a deterministic orchestrator:** the 4S loop is judgment-heavy (framing, hypothesizing, validating causation) — an intelligent agent executing a world-class playbook IS the engine; deterministic code would be fake rigor. Tier C: `ops.decisions[thinking-toolkit-v1.4-mckinsey-engine]`.
+
+**Lesson:** the line between "synthesis with McKinsey vocabulary" and "a McKinsey engine" is **bound, validated machinery** — a workplan that routes to real data, a validation gate that rejects, a status ledger that forces the loop to close, and an honest "ask the owner" instead of a fabricated number. v1.3 had the vocabulary; v1.4 has the machinery.
 
 ## 42.10 Post-Wave-1 Wave-2 case study #9
 

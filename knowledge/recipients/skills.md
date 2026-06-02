@@ -1577,24 +1577,27 @@ first) is the built-in guard.
 
 **Kind:** skill
 **Axis:** capability
-**When to use:** Use to run a whole problem end-to-end through the McKinsey 4S method
-(State → Structure → Solve → Sell), with the right thinking-toolkit skills
-AND the relevant wiki problem-solving concepts attached at each step. This
-is the SPINE that sequences all 11 thinking-toolkit skills and makes the
-~230 wiki concepts (the ones that did NOT become skills) findable per-step.
+**When to use:** Use to run a CONSEQUENTIAL problem end-to-end as a world-class McKinsey study —
+a dynamic, data-driven ENGINE, not a brainstorm. Frame (TOSCA) → Structure
+(MECE tree + the 6-column workplan) → Solve (the analysis loop: route each
+hypothesis to a REAL data source, pull it, run it through the validation gate,
+update the living one-day answer, re-prioritize, porpoise) → Sell (pyramid +
+pre-wire). It pulls real data (deepask/wiki/brain/supabase-ops/deep-research),
+validates every datum, ASKS THE FOUNDER for data only they hold, and persists
+intermediate artifacts. It NEVER fabricates a fact.
 
-Trigger conditions: any non-trivial business/strategy problem worth solving
-properly (a capability proposal, a GTM/pricing/funnel decision, a weekly
-strategic review, a "why is X happening and what do we do" question); the
-`/think mckinsey <problem>` verb; when you want a disciplined path from
-"we have a problem" to "decision-ready recommendation".
+Trigger conditions: `/think mckinsey <problem>`; any high-stakes business /
+strategy / GTM / pricing / product decision worth a rigorous study; when you
+want a decision-ready recommendation backed by pulled-and-validated evidence,
+not opinion.
 
-Skip when: a single thinking-toolkit skill already covers your need (call it
-directly — don't run the whole workflow for a list-MECE check); trivial or
-operational lookups; a crisp bug with a clear fix.
+Skip when: a quick lookup (use one `/think` skill, or `/deepask` directly);
+trivial / operational questions; a crisp bug. Accordion: compress for small
+problems — the one-day answer alone may suffice.
 
-Cost: zero LLM (guidance document; reads knowledge/mckinsey-workflow.yaml).
-This is the orchestration spine, NOT a replacement for the per-step skills.
+Runs IN THE ACTIVE SESSION (it needs the conversation channel for HITL
+data-requests + owner checkpoints) — not a headless subagent. Reads its
+machine-readable spec from knowledge/mckinsey-workflow.yaml.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/mckinsey-workflow" })`
 **HITL tier:** B
