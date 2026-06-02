@@ -26,23 +26,41 @@ adapters:
     generator: scripts/image/gen.cjs
     skill: 06-ai-ops/skills/image/adapters/gpt-image-2
     default_model: gpt-image-2
-    supports: [ar, quality, count, ref, mask, style, art-style, format, enhance, safety, max-cost-usd, dry-run, out, deck]
+    supports: [ar, quality, count, ref, mask, style, art-style, format, enhance, enhance-mode, safety, max-cost-usd, dry-run, out, deck]
     # v0.2: --ref/--mask now BUILT via the OpenAI /v1/images/edits multipart endpoint (scripts/image/gen.cjs callOpenAiEdit); --style/--art-style composed deterministically by scripts/image/lib/compose.cjs.
     unsupported_warn: [seed, resolution, ref-style, ref-character, ref-strength, negative, stylize, raw, variety, weird, tile, background]
     auth: { env: OPENAI_API_KEY, billing: out-of-band }
     cost_table_ref: scripts/deepask/image-cost.cjs#COST_TABLE
     notes: "Default backend. Flexible sizing (edges ×16, AR ≤ 3:1, edge < 3840) → --ar resolves to a native size, no crop in-range. quality=low|medium|high (= OpenAI native). png/jpeg/webp. NO seed. v0.2: --ref/--mask reference-guided generation via the edits endpoint; --style (brand DESIGN.md) + --art-style (genre) injected deterministically by compose.cjs. --background transparent is gpt-image-1/1.5 only."
 
-  # ── Quality preset alias (NOT a distinct backend) ─────────────────────────
+  # ── pro-max — retrieval-augmented prompt-engineering preset (v0.4) ─────────
+  # The founder-facing short id. Routes through the vendored gpt-image-2-pro-max
+  # (therichardngai-code, MIT — vendor/gpt-image-2-pro-max/) media-designer loop:
+  # the in-session `image/enhance` pro-max mode searches the hosted community-prompt
+  # corpus (scripts/image/pro-max/search.cjs → goclawoffice.com), picks a mood-aligned
+  # base, refactors + resolves it (with author attribution), THEN generates on our
+  # governed gpt-image-2 (NOT the upstream OAuth/gpt-image-1.5 generator). Composes
+  # with --style (brand) + --art-style (genre) + --ref (corner lockup) unchanged.
+  - id: pro-max
+    status: installed
+    preset_of: gpt-image-2
+    preset_flags: { enhance: true, enhance-mode: pro-max, quality: high }
+    generator: scripts/image/gen.cjs
+    default_model: gpt-image-2
+    supports: [ar, quality, count, ref, mask, style, art-style, format, enhance, enhance-mode, safety, max-cost-usd, dry-run, out, deck]
+    auth: { env: OPENAI_API_KEY, billing: out-of-band }
+    notes: "v0.4 (/cla extend). = gpt-image-2 --enhance --enhance-mode=pro-max --quality=high. The pro-max enhance is the vendored media-designer methodology (retrieval-augmented over goclawoffice.com — free, key-less, registered in external-sources.yaml); generation stays on governed gpt-image-2. Graceful fallback to generic --enhance if the backend is unreachable."
+
+  # ── gpt-image-2-pro-max — long-form alias of pro-max (back-compat) ────────
   - id: gpt-image-2-pro-max
     status: installed
     preset_of: gpt-image-2
-    preset_flags: { enhance: true, quality: high }
+    preset_flags: { enhance: true, enhance-mode: pro-max, quality: high }
     generator: scripts/image/gen.cjs
     default_model: gpt-image-2
-    supports: [ar, quality, count, format, style, art-style, enhance, safety, max-cost-usd, dry-run, out, deck]
+    supports: [ar, quality, count, ref, mask, style, art-style, format, enhance, enhance-mode, safety, max-cost-usd, dry-run, out, deck]
     auth: { env: OPENAI_API_KEY, billing: out-of-band }
-    notes: "Preset = gpt-image-2 --enhance --quality=high. Inherits gpt-image-2 supports/stretch. The GitHub gpt-image-2-pro-max skill is a prompt-search tool, NOT a generator."
+    notes: "Long-form alias of `pro-max` (both resolve to gpt-image-2 + pro-max enhance + high quality). v0.4: the GitHub gpt-image-2-pro-max skill (a prompt-engineering tool, NOT a generator) is now vendored + wired as the --enhance-mode=pro-max retrieval loop."
 
   # ── Registered-not-built stubs (v0.1 proves the abstraction; plug these later) ──
   - id: nano-banana

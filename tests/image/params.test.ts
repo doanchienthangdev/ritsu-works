@@ -328,6 +328,14 @@ describe("computeWarnings (supports/WARN — never silent-drop)", () => {
     const w = computeWarnings(caps, new Set(["prompt", "use", "out", "quality", "ar", "max-cost-usd", "dry-run"]));
     expect(w).toEqual([]);
   });
+  it("v0.4: enhance-mode + pro-max-base are operational plumbing → NO warning (set by the pro-max preset)", () => {
+    // The pro-max preset injects enhance-mode=pro-max; the in-session enhance passes
+    // --pro-max-base for attribution. Neither is a generation knob → must not warn.
+    expect(computeWarnings(caps, new Set(["enhance-mode", "pro-max-base"]))).toEqual([]);
+  });
+  it("v0.4: enhance-mode is in the universal vocabulary", () => {
+    expect(UNIVERSAL_PARAMS).toContain("enhance-mode");
+  });
   it("regression: --prompt-file is operational plumbing → NO warning (it IS read by gen.cjs)", () => {
     // Pre-fix, `prompt-file` was absent from NEVER_WARN, not in any adapter supports[],
     // and had no CONSEQUENCE entry → fell through to the generic

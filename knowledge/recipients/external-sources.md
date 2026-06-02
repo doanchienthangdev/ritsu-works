@@ -7,7 +7,7 @@
 This file is THE source of truth for external-source recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/external-sources.md` import.
 
-**Total entries:** 8
+**Total entries:** 9
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -49,6 +49,21 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 **When to use:** GitHub doanchienthangdev/ritsu-works repo. Used for repo metadata, PR listing/review, issue tracking, GitHub Actions workflow status. Merge permission gated to founder-only PAT per governance/SECRETS.md. Auth env: `GITHUB_TOKEN`.
 
 **Invoke:** gh CLI via Bash tool (e.g. `gh pr list`, `gh issue view`, `gh api repos/...`). MCP variant `mcp__github__*` if/when an MCP server is added.
+**Authority:** SoR-external
+**Freshness:** live
+
+**Disambiguator:** source_type: api
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## external-source/gpt-image-2-prompts-backend
+
+**Kind:** external-source
+**Axis:** content
+**When to use:** Hosted community-prompt corpus behind the vendored gpt-image-2-pro-max skill (therichardngai-code, MIT — vendor/gpt-image-2-pro-max/). A key-less, FREE, read-only BM25 search API over ~7,405 community-vetted GPT-Image prompts (+ 9,903 reference images) across 10 facet vocabularies. Powers /image --use=pro-max: the in-session media-designer enhance loop searches it for a mood-aligned base prompt, t...
+
+**Invoke:** `node scripts/image/pro-max/search.cjs "<facet+free-text>" [--shape <s>] -n 5 --json` — called by the in-session image/enhance pro-max mode; thin Node client re-implementing the vendored search.py over the same hosted backend.
 **Authority:** SoR-external
 **Freshness:** live
 

@@ -26,7 +26,7 @@ umbrella skill (`06-ai-ops/skills/image/SKILL.md`), reports the result.
 | Flag | Default | Notes |
 |---|---|---|
 | `<prompt>` | — (required) | the description (positional, or `--prompt=`) |
-| `--use` | `gpt-image-2` | adapter id; `gpt-image-2-pro-max` = preset (`--enhance --quality=high`) |
+| `--use` | `gpt-image-2` | adapter id. **`pro-max`** *(v0.4)* = retrieval-augmented preset (`--enhance --enhance-mode=pro-max --quality=high`): searches the vendored gpt-image-2-pro-max community-prompt corpus for a mood-aligned base, refactors it (with author attribution), then generates on gpt-image-2. `gpt-image-2-pro-max` = long-form alias. Composes with `--style`/`--art-style`/`--ref`. |
 | `--ar` | `1:1` | aspect ratio `W:H`; gpt-image-2 → native flexible size (AR ≤ 3:1, else clamp+warn) |
 | `--quality` | `medium` | `low\|medium\|high` (= OpenAI native quality, 1:1; `high` also upsizes the canvas) |
 | `--count` | `1` | images (gpt-image-2 n ≤ 10) |
@@ -38,7 +38,7 @@ umbrella skill (`06-ai-ops/skills/image/SKILL.md`), reports the result.
 |---|---|---|
 | `--style` | plain | **brand** design system (`ritsu`, …) — `knowledge/design-systems.yaml` |
 | `--art-style` | plain | **artistic genre** (80-style registry) — `knowledge/art-styles.yaml` |
-| `--enhance` | off | in-session prompt refinement (subscription) — the "pro-max" concept |
+| `--enhance` | off | in-session prompt refinement (subscription). `--enhance-mode=pro-max` (or `--use=pro-max`) = the vendored gpt-image-2-pro-max media-designer loop (search a community-prompt corpus → refactor a mood-aligned base → resolve, with attribution). Falls back to generic if the corpus backend is unreachable. |
 
 ### Reference (v0.2 — `--ref`/`--mask` BUILT via the OpenAI edits endpoint)
 `--ref=<image[,image2]>` reference-guided generation · `--mask=<png>` inpaint region. Still warn-only (no gpt-image-2 mapping): `--ref-style` `--ref-character` `--ref-strength` `--negative`.
@@ -67,7 +67,8 @@ MJ-only knobs `--stylize/--raw/--variety/--weird/--tile` are registered vocabula
 ```
 /image "a serene mountain lake at dawn"
 /image "Q3 funnel overview" --ar=16:9 --quality=high --style=ritsu --art-style=swiss-international
-/image "product hero" --use=gpt-image-2-pro-max          # = --enhance --quality=high
+/image "cosmetics livestream ad" --use=pro-max --ar=4:5  # retrieval-augmented: search corpus → refactor a mood-aligned base → gen
+/image "exam-prep poster" --use=pro-max --style=ritsu --art-style=duo-tone-gradient --ar=9:16  # pro-max + ritsu lockup + genre all compose
 /image "anything" --dry-run                              # no spend; preview prompt + cost
 /image "x" --use=midjourney                              # → not_built (proves the registry)
 ```

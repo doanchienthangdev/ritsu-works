@@ -1196,13 +1196,15 @@ out-of-band. Adapter contract: {ok, files[], model, cost_usd, warnings[]}.
 
 **Kind:** skill
 **Axis:** capability
-**When to use:** Optional in-session prompt-refinement stage for /image (the "gpt-image-2-pro-max"
-concept, reframed). Takes the user's raw prompt + the resolved --style/--art-style
-context and rewrites it into a richer, more specific image-generation prompt
-BEFORE the brand/genre/art-direction blocks are appended. Runs IN-SESSION
-(Claude, subscription billing) — NEVER routed through an external API. Records
-before/after into run.json.prompt_enhanced. Cost-bucket ai-ops-image task_kind
-image-enhance (hook-enforced, cap $0.10). NO image generation here — pure text.
+**When to use:** In-session prompt-refinement stage for /image. TWO modes. (1) generic (`--enhance`):
+Claude rewrites the raw prompt into a richer, more renderable brief — pure in-session.
+(2) pro-max (`--enhance-mode=pro-max`, i.e. `--use=pro-max`): the vendored
+gpt-image-2-pro-max "media-designer" loop — diagnose → SEARCH the hosted community-prompt
+corpus (scripts/image/pro-max/search.cjs → goclawoffice.com, free + key-less) → pick a
+mood-aligned base → refactor into a parameterised template → resolve from the brief, WITH
+mandatory author attribution. Both run BEFORE the umbrella appends the brand/genre blocks,
+and NEITHER generates an image. Records before/after into run.json.prompt_enhanced (+ the
+chosen base into run.json.pro_max). Cost-bucket ai-ops-image task_kind image-enhance.
 
 **Invoke:** `Skill({ skill: "image/enhance" })`
 **HITL tier:** B
