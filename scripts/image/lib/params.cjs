@@ -232,7 +232,10 @@ function computeWarnings(caps, provided) {
   const supports = new Set(caps && Array.isArray(caps.supports) ? caps.supports : []);
   const stretch = new Set(caps && Array.isArray(caps.supports_stretch) ? caps.supports_stretch : []);
   // params that are operational plumbing, not generation knobs — never warn on these.
-  const NEVER_WARN = new Set(['prompt', 'use', 'out', 'model', 'max-cost-usd', 'dry-run', 'quality', 'ar', 'count', 'format', 'style', 'art-style']);
+  // `prompt-file` is read into options.prompt by gen.cjs (run()), so it IS honored —
+  // warning "ignored" would be false and break the never-silent-drop / consequence-honest
+  // contract. It belongs with `prompt`/`out`/`model`, not the generation-knob path.
+  const NEVER_WARN = new Set(['prompt', 'prompt-file', 'use', 'out', 'model', 'max-cost-usd', 'dry-run', 'quality', 'ar', 'count', 'format', 'style', 'art-style']);
   const warnings = [];
   for (const flag of provided) {
     if (NEVER_WARN.has(flag) || supports.has(flag)) continue;
