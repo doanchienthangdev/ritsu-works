@@ -3,26 +3,29 @@
 /**
  * scripts/cross-tier/validate-mckinsey-workflow.cjs
  *
- * L2 validator for capability `thinking-toolkit` v1.3 (the McKinsey 4S workflow
- * catalog — knowledge/mckinsey-workflow.yaml). Beyond the L1 JSON-schema shape
- * check (validate-tier1.cjs), this enforces the CROSS-TIER invariants a schema
- * can't express:
- *   - steps non-empty; step ids unique; orders unique + contiguous 1..N
- *   - the 4 canonical 4S step ids are present: state, structure, solve, sell
- *   - EVERY referenced skill exists on disk: 06-ai-ops/skills/<skill>/SKILL.md
- *   - EVERY referenced concept exists on disk: wiki/<book>/concepts/<slug>.md
+ * L2 validator for capability `thinking-toolkit` v1.4 (the McKinsey 4S workflow
+ * ENGINE catalog — knowledge/mckinsey-workflow.yaml). Beyond the L1 JSON-schema
+ * shape check (validate-tier1.cjs), this enforces the CROSS-TIER invariants:
+ *   STEPS:  non-empty; ids unique; orders unique + contiguous 1..N; the 4
+ *           canonical 4S ids present (state/structure/solve/sell); every
+ *           referenced skill exists (06-ai-ops/skills/<skill>/SKILL.md); every
+ *           key_concept exists (wiki/<book>/concepts/<slug>.md); each step's
+ *           `produces` is from the known ARTIFACT set.
+ *   ENGINE (v1.4): `artifacts` (run_folder + files, each name∈ARTIFACTS,
+ *           stage∈stepIds), `data_routing` (each tool∈TOOLS), and the
+ *           non-empty sections validation_gate / routing_rules / hitl_triggers /
+ *           back_edges (from+to∈stepIds) / stopping_criterion. EVERY `concept`
+ *           {book,slug} ref across ALL sections must exist on disk.
  *
  * The file-existence checks are the whole point: the catalog must never drift
- * into citing a skill or concept that isn't there (that would silently break
- * the /think mckinsey workflow + the per-step retrieval recipe).
+ * into citing a skill/concept/tool/artifact that isn't real — that would
+ * silently break the /think mckinsey engine.
  *
  * Registered in scripts/check-consistency.cjs (local `pnpm check`) AND as an
- * explicit job in .github/workflows/cross-tier-consistency.yml (GitHub CI runs
- * hand-listed validator jobs, NOT check-consistency.cjs — the GitHub-CI ≠
- * check-consistency gotcha). BOTH are required.
+ * explicit job in .github/workflows/cross-tier-consistency.yml. BOTH required.
  *
  * `validateWorkflow(doc, repoRoot)` is exported pure (returns string[] of
- * errors) so tests can exercise edge + broken cases without a CLI.
+ * errors) so tests exercise edge + broken cases without a CLI.
  * Exit 0 = pass, 1 = drift.
  */
 
@@ -36,6 +39,12 @@ const CANONICAL_4S = ['state', 'structure', 'solve', 'sell'];
 const ID_RE = /^[a-z][a-z0-9-]*$/;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 
+// v1.4 known sets — the catalog may only reference these.
+const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'one-day-answer', 'synthesis'];
+const TOOLS = ['deepask', 'wiki_ask', 'gbrain', 'supabase-ops-query', 'deep-research', 'think-skills', 'ask-user'];
+// Engine sections that must each be a non-empty array (v1.4 dynamic engine).
+const ENGINE_SECTIONS = ['validation_gate', 'routing_rules', 'hitl_triggers', 'back_edges', 'stopping_criterion'];
+
 /**
  * Pure validation. Returns an array of error strings (empty = valid).
  * @param {*} doc       parsed YAML (any shape — defends against garbage)
@@ -43,6 +52,22 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
  */
 function validateWorkflow(doc, repoRoot) {
   const errs = [];
+  const conceptExists = (book, slug) =>
+    typeof book === 'string' && typeof slug === 'string' &&
+    fs.existsSync(path.join(repoRoot, 'wiki', book, 'concepts', `${slug}.md`));
+  // Validate a {book, slug} concept ref; push errors tagged by `where`.
+  const checkConcept = (kc, where) => {
+    if (!kc || typeof kc !== 'object' || Array.isArray(kc) ||
+        typeof kc.book !== 'string' || !kc.book.trim() ||
+        typeof kc.slug !== 'string' || !kc.slug.trim()) {
+      errs.push(`${where}: concept must be a {book, slug} mapping of non-empty strings`);
+      return;
+    }
+    if (!SLUG_RE.test(kc.slug)) errs.push(`${where}: concept slug not kebab-case: ${kc.slug}`);
+    if (!conceptExists(kc.book, kc.slug)) {
+      errs.push(`${where}: concept not found on disk: ${kc.book}/${kc.slug} (expected wiki/${kc.book}/concepts/${kc.slug}.md)`);
+    }
+  };
 
   if (doc === null || typeof doc !== 'object' || Array.isArray(doc)) {
     return ['root must be a mapping'];
@@ -74,11 +99,8 @@ function validateWorkflow(doc, repoRoot) {
     }
 
     // order
-    if (!Number.isInteger(s.order) || s.order < 1) {
-      errs.push(`${where}: order must be an integer >= 1`);
-    } else {
-      orders.push(s.order);
-    }
+    if (!Number.isInteger(s.order) || s.order < 1) errs.push(`${where}: order must be an integer >= 1`);
+    else orders.push(s.order);
 
     // name / intent
     if (typeof s.name !== 'string' || !s.name.trim()) errs.push(`${where}: name must be a non-empty string`);
@@ -93,8 +115,7 @@ function validateWorkflow(doc, repoRoot) {
           errs.push(`${where}: skill entry must be a non-empty string`);
           continue;
         }
-        const p = path.join(repoRoot, '06-ai-ops', 'skills', sk, 'SKILL.md');
-        if (!fs.existsSync(p)) {
+        if (!fs.existsSync(path.join(repoRoot, '06-ai-ops', 'skills', sk, 'SKILL.md'))) {
           errs.push(`${where}: skill not found on disk: ${sk} (expected 06-ai-ops/skills/${sk}/SKILL.md)`);
         }
       }
@@ -104,18 +125,15 @@ function validateWorkflow(doc, repoRoot) {
     if (!Array.isArray(s.key_concepts) || s.key_concepts.length === 0) {
       errs.push(`${where}: key_concepts must be a non-empty array`);
     } else {
-      for (const kc of s.key_concepts) {
-        if (!kc || typeof kc !== 'object' || Array.isArray(kc) ||
-            typeof kc.book !== 'string' || !kc.book.trim() ||
-            typeof kc.slug !== 'string' || !kc.slug.trim()) {
-          errs.push(`${where}: key_concept must be a {book, slug} mapping of non-empty strings`);
-          continue;
-        }
-        if (!SLUG_RE.test(kc.slug)) errs.push(`${where}: concept slug not kebab-case: ${kc.slug}`);
-        const p = path.join(repoRoot, 'wiki', kc.book, 'concepts', `${kc.slug}.md`);
-        if (!fs.existsSync(p)) {
-          errs.push(`${where}: concept not found on disk: ${kc.book}/${kc.slug} (expected wiki/${kc.book}/concepts/${kc.slug}.md)`);
-        }
+      for (const kc of s.key_concepts) checkConcept(kc, where);
+    }
+
+    // produces (v1.4) — non-empty array of known artifact names
+    if (!Array.isArray(s.produces) || s.produces.length === 0) {
+      errs.push(`${where}: produces must be a non-empty array of artifact names`);
+    } else {
+      for (const a of s.produces) {
+        if (!ARTIFACTS.includes(a)) errs.push(`${where}: unknown artifact in produces: ${a} (known: ${ARTIFACTS.join(', ')})`);
       }
     }
 
@@ -139,8 +157,57 @@ function validateWorkflow(doc, repoRoot) {
   }
 
   // canonical 4S coverage
-  for (const c of CANONICAL_4S) {
-    if (!ids.has(c)) errs.push(`missing canonical 4S step: '${c}'`);
+  for (const c of CANONICAL_4S) if (!ids.has(c)) errs.push(`missing canonical 4S step: '${c}'`);
+
+  // ---- v1.4 ENGINE SECTIONS ----
+
+  // artifacts: run_folder + files (each name∈ARTIFACTS, stage∈stepIds)
+  const art = doc.artifacts;
+  if (!art || typeof art !== 'object' || Array.isArray(art)) {
+    errs.push('artifacts must be a mapping (v1.4 engine)');
+  } else {
+    if (typeof art.run_folder !== 'string' || !art.run_folder.trim()) errs.push('artifacts.run_folder must be a non-empty string');
+    if (!Array.isArray(art.files) || art.files.length === 0) {
+      errs.push('artifacts.files must be a non-empty array');
+    } else {
+      for (const f of art.files) {
+        if (!f || typeof f !== 'object' || Array.isArray(f)) { errs.push('artifacts.files entry must be a mapping'); continue; }
+        if (!ARTIFACTS.includes(f.name)) errs.push(`artifacts.files: unknown artifact name: ${f.name}`);
+        if (!ids.has(f.stage)) errs.push(`artifacts.files '${f.name}': stage '${f.stage}' is not a step id`);
+        if (typeof f.contents !== 'string' || !f.contents.trim()) errs.push(`artifacts.files '${f.name}': contents must be a non-empty string`);
+      }
+    }
+  }
+
+  // data_routing: each {need, tool∈TOOLS, invoke, hitl}
+  if (!Array.isArray(doc.data_routing) || doc.data_routing.length === 0) {
+    errs.push('data_routing must be a non-empty array (v1.4 engine)');
+  } else {
+    for (const dr of doc.data_routing) {
+      if (!dr || typeof dr !== 'object' || Array.isArray(dr)) { errs.push('data_routing entry must be a mapping'); continue; }
+      if (typeof dr.need !== 'string' || !dr.need.trim()) errs.push('data_routing entry: need must be a non-empty string');
+      if (!TOOLS.includes(dr.tool)) errs.push(`data_routing entry: unknown tool: ${dr.tool} (known: ${TOOLS.join(', ')})`);
+      if (typeof dr.invoke !== 'string' || !dr.invoke.trim()) errs.push(`data_routing '${dr.tool}': invoke must be a non-empty string`);
+      if (dr.hitl === undefined || dr.hitl === null || `${dr.hitl}`.trim() === '') errs.push(`data_routing '${dr.tool}': hitl must be set`);
+    }
+  }
+
+  // engine sections: non-empty arrays + every concept ref exists
+  const stepIds = ids; // alias for readability
+  for (const sec of ENGINE_SECTIONS) {
+    const v = doc[sec];
+    if (!Array.isArray(v) || v.length === 0) {
+      errs.push(`${sec} must be a non-empty array (v1.4 engine)`);
+      continue;
+    }
+    v.forEach((e, i) => {
+      if (!e || typeof e !== 'object' || Array.isArray(e)) { errs.push(`${sec}[${i}]: must be a mapping`); return; }
+      if (e.concept !== undefined) checkConcept(e.concept, `${sec}[${i}]`);
+      if (sec === 'back_edges') {
+        if (!stepIds.has(e.from)) errs.push(`back_edges[${i}]: from '${e.from}' is not a step id`);
+        if (!stepIds.has(e.to)) errs.push(`back_edges[${i}]: to '${e.to}' is not a step id`);
+      }
+    });
   }
 
   return errs;
@@ -149,7 +216,7 @@ function validateWorkflow(doc, repoRoot) {
 function main() {
   const REGISTRY = path.join(REPO_ROOT, REGISTRY_REL);
   if (!fs.existsSync(REGISTRY)) {
-    console.error(`[FAIL] ${REGISTRY_REL} missing. (capability thinking-toolkit v1.3)`);
+    console.error(`[FAIL] ${REGISTRY_REL} missing. (capability thinking-toolkit v1.4)`);
     process.exit(1);
   }
   let doc;
@@ -169,10 +236,10 @@ function main() {
 
   const nSkills = doc.steps.reduce((a, s) => a + (Array.isArray(s.skills) ? s.skills.length : 0), 0);
   const nConcepts = doc.steps.reduce((a, s) => a + (Array.isArray(s.key_concepts) ? s.key_concepts.length : 0), 0);
-  console.log(`[OK] mckinsey-workflow.yaml — ${doc.steps.length} 4S steps, ${nSkills} skill refs + ${nConcepts} concept refs all exist on disk.`);
+  console.log(`[OK] mckinsey-workflow.yaml — ${doc.steps.length} 4S steps · ${nSkills} skill + ${nConcepts} step-concept refs exist · ${doc.data_routing.length} data-routing tools · ${doc.artifacts.files.length} artifacts · engine sections valid.`);
   process.exit(0);
 }
 
 if (require.main === module) main();
 
-module.exports = { validateWorkflow, CANONICAL_4S, REGISTRY_REL };
+module.exports = { validateWorkflow, CANONICAL_4S, ARTIFACTS, TOOLS, ENGINE_SECTIONS, REGISTRY_REL };

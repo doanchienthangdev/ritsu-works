@@ -1,130 +1,165 @@
 ---
 name: thinking-toolkit/mckinsey-workflow
 description: |
-  Use to run a whole problem end-to-end through the McKinsey 4S method
-  (State → Structure → Solve → Sell), with the right thinking-toolkit skills
-  AND the relevant wiki problem-solving concepts attached at each step. This
-  is the SPINE that sequences all 11 thinking-toolkit skills and makes the
-  ~230 wiki concepts (the ones that did NOT become skills) findable per-step.
+  Use to run a CONSEQUENTIAL problem end-to-end as a world-class McKinsey study —
+  a dynamic, data-driven ENGINE, not a brainstorm. Frame (TOSCA) → Structure
+  (MECE tree + the 6-column workplan) → Solve (the analysis loop: route each
+  hypothesis to a REAL data source, pull it, run it through the validation gate,
+  update the living one-day answer, re-prioritize, porpoise) → Sell (pyramid +
+  pre-wire). It pulls real data (deepask/wiki/brain/supabase-ops/deep-research),
+  validates every datum, ASKS THE FOUNDER for data only they hold, and persists
+  intermediate artifacts. It NEVER fabricates a fact.
 
-  Trigger conditions: any non-trivial business/strategy problem worth solving
-  properly (a capability proposal, a GTM/pricing/funnel decision, a weekly
-  strategic review, a "why is X happening and what do we do" question); the
-  `/think mckinsey <problem>` verb; when you want a disciplined path from
-  "we have a problem" to "decision-ready recommendation".
+  Trigger conditions: `/think mckinsey <problem>`; any high-stakes business /
+  strategy / GTM / pricing / product decision worth a rigorous study; when you
+  want a decision-ready recommendation backed by pulled-and-validated evidence,
+  not opinion.
 
-  Skip when: a single thinking-toolkit skill already covers your need (call it
-  directly — don't run the whole workflow for a list-MECE check); trivial or
-  operational lookups; a crisp bug with a clear fix.
+  Skip when: a quick lookup (use one `/think` skill, or `/deepask` directly);
+  trivial / operational questions; a crisp bug. Accordion: compress for small
+  problems — the one-day answer alone may suffice.
 
-  Cost: zero LLM (guidance document; reads knowledge/mckinsey-workflow.yaml).
-  This is the orchestration spine, NOT a replacement for the per-step skills.
-allowed-tools: []
+  Runs IN THE ACTIVE SESSION (it needs the conversation channel for HITL
+  data-requests + owner checkpoints) — not a headless subagent. Reads its
+  machine-readable spec from knowledge/mckinsey-workflow.yaml.
+allowed-tools: [Read, Write, Skill, AskUserQuestion, mcp__supabase-ops__query, mcp__supabase-ops__wiki_ask, mcp__gbrain__search, mcp__gbrain__recall, mcp__gbrain__think]
 disable-model-invocation: false
 ---
 
-# McKinsey Workflow — the 4S spine (State → Structure → Solve → Sell)
+# McKinsey Workflow — the 4S problem-solving ENGINE
 
-> Run a problem end-to-end. At each of the 4 stages, the workflow tells you which *operations* (skills) to run and which *concepts* (wiki) to consult — and how to find more.
+> Not a brainstorm. A data-driven engine: **frame → structure → workplan → analysis-loop (pull · validate · update · re-route) → synthesize → sell.** Pull real data, validate every datum, ask the founder for what only they hold, carry a living one-day answer, porpoise when the data reframes the problem.
 
-The six v1.0 + five v1.2 thinking-toolkit skills are discrete tools. This skill is the **spine** that orders them into the McKinsey **4S method** (Cracked it!, Ch 3), cross-mapped to the Bulletproof **7-step** process. It answers the question "I have a real problem — what do I do, in what order, with which tool?"
+This is the **spine** of the thinking-toolkit and the one skill that *orchestrates* the others + real data tools. The 11 atomic skills are the operations; this is the operating procedure that sequences them into a McKinsey-grade study. Distilled from *Bulletproof Problem Solving* (Conn & McLean — the 7-step) and *Cracked It!* (Garrette/Phelps/Sibony — the 4S). Its machine-readable spec is `knowledge/mckinsey-workflow.yaml` (validated by `scripts/cross-tier/validate-mckinsey-workflow.cjs`); this playbook executes it.
 
-It also solves the *library* problem: only ~5% of the 259 distilled problem-solving concepts became skills. The other ~230 live in the wiki. This workflow **binds each concept to the 4S step where it's useful** — as a curated reading list per step, plus a `retrieval` recipe so any concept is findable on demand.
+## What makes it an engine, not a brainstorm (the v1.4 contract)
 
-## Source of truth
+A brainstorm narrates opinions in four stages. This engine:
+1. **Pulls real data** for every hypothesis (never asserts a number it didn't fetch).
+2. **Produces persisted artifacts** (problem-statement → tree → workplan → analysis-log → one-day-answer → synthesis).
+3. **Validates every datum** through a gate before it's allowed to move the answer.
+4. **Asks the founder** for data only they hold (HITL) instead of guessing.
+5. **Routes dynamically** — the one-day answer re-ranks remaining work after every analysis; porpoise back when the data reframes the problem.
+6. **Stops on marginal analysis** — when no cheap, answer-moving analysis remains.
 
-The step → {skills, concepts, retrieval} mapping is the machine-readable catalog **`knowledge/mckinsey-workflow.yaml`** (schema: `knowledge/schemas/mckinsey-workflow.schema.json`; validated by `scripts/cross-tier/validate-mckinsey-workflow.cjs`, which proves every referenced skill + concept file actually exists). This skill reflects that catalog; when they differ, the YAML wins. To add a concept to a step, add one `{book, slug}` line to the YAML (the file must exist in `wiki/<book>/concepts/`).
+> **The McKinsey rule that governs everything (Bulletproof, Ch 4):** *"We don't do any analysis for which we don't have a hypothesis."* Every data pull traces to a hypothesis it proves or disproves.
 
-## Authentic sources
+## Run setup
 
-- **Garrette, Phelps & Sibony, *Cracked it!*** (Palgrave Macmillan, 2018) — **Chapter 3: "The 4S Method"** (pp. 52-69). *"The four stages of the 4S method are sequential, but, in practice, you won't work through them rigidly. Sometimes you'll double back to previous stages. The problem-solving process is inherently iterative."* The 4S spine (State / Structure / Solve / Sell) offers three paths inside it: hypothesis-driven, issue-driven, and design thinking.
-- **Conn & McLean, *Bulletproof Problem Solving*** (Wiley, 2018) — the **7-step process** (define → disaggregate → prioritize → workplan → analyze → synthesize → communicate), cross-mapped onto 4S below.
+For a substantial problem, scaffold a **run folder** and write artifacts as you go (so the study is reviewable + resumable):
+```
+.archives/mckinsey/<slug>/
+  problem-statement.md   tree.md   workplan.md
+  analysis-log.md        one-day-answer.md   synthesis.md
+```
+`one-day-answer.md` is the **living state** — created in STATE, rewritten after every analysis (situation → observation → resolution). For a small problem, the accordion compresses: keep the one-day answer inline and skip the folder.
 
-## The 4S workflow
+---
 
-> 4S is **iterative, not rigid** — double back when a later stage reveals the problem was mis-framed (Cracked it! Ch 3). The arrows are the default path, not a one-way gate.
+## ① STATE — frame the problem  ·  artifact: `problem-statement.md`
 
-### ① STATE — frame the problem
-**Intent:** define + frame before solutioning; most failures are solving the wrong problem. Output: a one-page framed problem + a single Core Question.
-**Run:** `tosca-problem-framing`.
-**Consult (wiki):** `cracked-it/tosca-framework`, `cracked-it/core-question-scope`, `bulletproof-problem-solving/problem-statement-worksheet`, `bulletproof-problem-solving/smart-problem-statement-criteria`, `bulletproof-problem-solving/wicked-problems`.
-**Find more:** `wiki_ask "problem framing, definition, success criteria, wicked problems"` (cracked-it + bulletproof).
-*Bulletproof 7-step: Define the problem.*
+Fill **TOSCA** (run `/think tosca`): **T**rouble (gap as a symptom, not a diagnosis; pass "Why now?") · **O**wner (whose problem + who judges "good enough") · **S**uccess criteria (time-bound + quantified; *never* defined as the proposed solution) · **C**onstraints (provisional — revisit during Solve) · **A**ctors. Then write the **Core Question** and run the **5-check** (does it address Trouble / from Owner's view / meet Success / recognize Constraints / consider Actors?).
 
-### ② STRUCTURE — disaggregate
-**Intent:** break the framed problem into MECE parts; choose hypothesis-driven (you have a hunch) vs issue-driven (thorough); prioritize so you analyze only branches that can move the answer. Output: a logic/issue tree + workplan.
-**Run:** `mece-decomposition-check`, `driver-tree-decomposition`, `hypothesis-driven`.
-**Consult:** `bulletproof/logic-tree`, `bulletproof/problem-disaggregation`, `bulletproof/knock-out-analysis`, `bulletproof/prioritization-2x2-matrix`, `cracked-it/issue-tree`, `cracked-it/hypothesis-pyramid`, `cracked-it/hypothesis-driven-vs-issue-driven`.
-**Find more:** `wiki_ask "issue tree, logic tree, disaggregation, prioritization, hypothesis vs issue driven"`.
-*Bulletproof 7-step: Disaggregate · Prioritize · Workplan.*
+**HITL here:** where a TOSCA slot needs input only the founder holds — the real success threshold, a fixed constraint, strategic intent — **`AskUserQuestion`; do not fabricate it** (the v1.3 worked example *invented* `Success = 8%→15%`; the engine asks). Iterate with the owner until they agree "answering this question solves my problem."
 
-### ③ SOLVE — analyze + generate
-**Intent:** do the analysis. Heuristics before big guns; carry a one-day answer. Trace a confirmed broken symptom (`root-cause`); switch to the **generative** path for unmet-need problems analysis can't crack (`design-thinking`); pre-mortem the leading option; run the debias checklist before committing.
-**Run:** `root-cause`, `design-thinking`, `pre-mortem`, `debias`, `2x2-synthesis-matrix`.
-**Consult:** `bulletproof/one-day-answer`, `bulletproof/heuristics-before-big-guns`, `bulletproof/expected-value-calculation`, `bulletproof/monte-carlo-simulation`, `bulletproof/five-cognitive-biases-problem-solving`, `cracked-it/design-thinking`, `cracked-it/how-might-we-question`, `cracked-it/desirability-feasibility-viability-triad`.
-**Find more:** `wiki_ask "analysis tools, heuristics, expected value, simulation, design thinking, cognitive biases"`.
-*Bulletproof 7-step: Conduct analyses.*
+*(Boundary: a problem with no clear owner / irreconcilable owners is a wicked problem — TOSCA doesn't fit; say so.)*
 
-### ④ SELL — synthesize + communicate
-**Intent:** synthesize into a recommendation and communicate so it lands. Governing thought first (pyramid); every point survives so-what; pick grouping vs argument (SCR/SCQA) for the audience; pre-wire the decision. Output: an action-titled, decision-ready recommendation.
-**Run:** `pyramid-principle-output`, `so-what-test`.
-**Consult:** `cracked-it/pyramid-principle`, `cracked-it/governing-thought`, `cracked-it/argument-pattern-scr`, `cracked-it/storyline-design`, `cracked-it/action-title-discipline`, `cracked-it/pre-wiring-the-final-meeting`, `bulletproof/synthesis-and-storytelling`.
-**Find more:** `wiki_ask "synthesis, storyline, pyramid, governing thought, action titles"`.
-*Bulletproof 7-step: Synthesize · Communicate.*
+## ② STRUCTURE — disaggregate + build the workplan  ·  artifacts: `tree.md`, `workplan.md`
 
-## When to use
+**Choose the path** (`hypothesis-driven-vs-issue-driven`): **issue tree by default**; **hypothesis pyramid** only with a strong prior or under time starvation; **design-thinking path** when the problem is ill-defined/human-centered (empathize→HMW→prototype→test until Desirability-Feasibility-Viability).
 
-- A capability proposal (`/cla propose` Phase 1 already invokes TOSCA — the workflow is the fuller discipline behind it)
-- A GTM/pricing/funnel decision worth getting right (not a quick experiment)
-- A weekly strategic review where a recurring problem needs structured attack
-- Onboarding into a messy problem space — the 4S spine gives you a place to start
+**Decompose** into a **MECE** tree (run `/think mece` + `/think driver-tree`); find the right cleaving point; try multiple cleaves (anti-availability-bias); each leaf = a **falsifiable hypothesis**. **Prioritize** with the impact × influence 2×2 (knock-out); prune the immovable + the low-impact.
 
-## When NOT to use
+**Build the 6-column WORKPLAN** — the data-routing spine (Bulletproof Exhibit 4.3, verbatim columns):
 
-- A single skill suffices → call it directly (e.g., just need a list MECE-checked → `mece-decomposition-check`)
-- Trivial / operational / crisp-bug problems → overhead exceeds benefit
-- A two-way-door experiment → just run it and learn
+| issue | hypothesis | analysis | source-of-data | owner | end-product |
+|---|---|---|---|---|---|
+| (the leaf) | (falsifiable claim) | (what proves/disproves it) | **(which tool — see routing table)** | (who) | (the dummy exhibit) |
 
-**Anti-pattern: ceremony for ceremony's sake.** 4S is iterative and you skip stages that don't apply. A 5-minute problem does not need all four stages. The workflow is a *map*, not a mandatory gate.
+One row per surviving leaf. The **source-of-data** column is the data-pull instruction — route it via the table below. Order rows **knock-out-first** (the analyses that can kill the answer fastest). Keep it **chunky** (the few most important analyses; revise constantly), not encyclopedic.
 
-## How to apply
+## ③ SOLVE — the analysis loop  ·  artifacts: `analysis-log.md`, `one-day-answer.md`
 
-1. **Identify which stage you're in.** Most problems enter at STATE; a confirmed regression enters at SOLVE (root-cause); a polished analysis that needs packaging enters at SELL.
-2. **Run that stage's skills** (the "Run:" line), consulting the listed concepts as needed.
-3. **Use the retrieval recipe** when the curated concepts aren't enough — `wiki_ask` scoped to the stage's books surfaces the rest of the ~230.
-4. **Double back** when a later stage reveals an earlier mistake (e.g., SOLVE shows the problem was mis-framed → return to STATE). This is expected, not failure.
-5. **Exit at SELL** with an action-titled recommendation that survives the so-what test.
+The run-loop. For each workplan row, knock-out order, **heuristics before big guns**:
 
-## Worked example (ritsu-works problem through 4S)
+1. **ROUTE** the row's source-of-data to a tool (table below).
+2. **PULL** the data — a real tool call. If it's founder-only → `AskUserQuestion`. **Never assert a fact you didn't fetch.**
+3. **VALIDATE** through the gate (below); tag the datum's degree-of-certainty (1–8).
+4. **WRITE** to `analysis-log.md`: hypothesis · data pulled (which tool) · result · validation verdict · degree.
+5. **UPDATE** `one-day-answer.md` (S→O→R).
+6. **RE-ROUTE** per the dynamic rules (re-prioritize / porpoise / switch direction / pick a different tool).
 
-**Problem:** "Free→paid conversion is stuck at 8% despite 3× signup growth."
+Iterate until the **stopping criterion** holds → go to Sell.
 
-- **STATE** (`tosca`): Trouble = conversion flat while signups 3×; Owner = gtm-orchestrator; Success = 8%→15% by date; Constraint = can't raise price pre-pull-test. Core Question: *"How do we lift free→paid to 15% without a price change?"*
-- **STRUCTURE** (`driver-tree` + `hypothesis-driven`): decompose conversion = activation-rate × activated→paid-rate. Hunch: the gate is the 7-day inactivity cliff, not price. Disproof criterion defined.
-- **SOLVE** (`root-cause` + `debias`): cohort analysis confirms 7-day returners convert 4×. Root-cause traces the cliff to a slow first-quiz. `debias` checks confirmation bias (looked at non-returners too). `pre-mortem` on the fix.
-- **SELL** (`pyramid` + `so-what`): **"Attack the 7-day cliff with reactivation, not pricing — it's the load-bearing driver (4× conversion delta)."** Supporting points survive so-what; action-titled.
+> **Worked micro-loop (real pulls, not fabricated):** *Hypothesis:* "free→paid is gated by the 7-day inactivity cliff, not price." *Analysis:* cohort conversion, returners vs non-returners. *Source:* `mcp__supabase-ops__query` on `metrics.product_dau_snapshot` — **or, if that ETL is empty, `AskUserQuestion` to the founder for the cohort number** (don't invent it). *Validate:* knock-out (does it move the answer? yes) → degree-2 hard number → correlation≠causation (triangulate with a second cut: do 7-day-returners differ in source/plan?) → sensitivity. *Update one-day answer:* returners convert 4×. *Re-route:* cliff confirmed → knock out the pricing branch, double down on reactivation.
 
-One problem, four stages, seven skills, a dozen concepts — composed, not improvised.
+### Data routing table (pull real data — `data_routing` in the catalog)
 
-## Composition notes
+| Need | Tool | Invoke | HITL |
+|---|---|---|---|
+| Broad internal evidence across pillars/ops/wiki/brain | **deepask** | `/deepask "<q>"` (`--dry-run` first) | A (B+ legs surfaced) |
+| A framework / concept / definition | **wiki_ask** | `/wiki ask "<q>"` or `mcp__supabase-ops__wiki_ask` | A |
+| A person / company / past decision / relationship / history | **gbrain** | `/brain search` → `recall` → `think` (only if needed) | A |
+| A current metric / number / KPI / count | **supabase-ops query** | `mcp__supabase-ops__query({sql, schema:'metrics'\|'ops'\|'public'})` | A |
+| External market / competitor / benchmark | **deep-research** | `Skill({skill:"deep-research", args:"<q>"})` | A (research only) |
+| Structuring the analysis itself | **/think skills** | `/think driver-tree\|mece\|hypothesis\|root-cause\|pyramid\|so-what` | A |
+| **Data only the founder holds** | **ask-user** | `AskUserQuestion` — show where it changes the answer + a default | human |
 
-- **With `/think flow`:** `flow` recommends a lightweight skill sequence; `mckinsey-workflow` is the full named 4S spine with concepts + retrieval per step. Use `flow` for a quick "what order?"; use this for a real problem you'll work for hours/days.
-- **With `/cla propose`:** CLA's phases mirror 4S (problem-framer→State, domain/options→Structure/Solve, architecture→Sell). Running this workflow is the disciplined way to think *inside* a CLA proposal.
-- **With every thinking-toolkit skill:** this is their index. Each skill is a tool; this is the toolbox layout.
-- **With `wiki_ask`:** the per-step `retrieval` recipe is how the ~230 non-skill concepts stay reachable without bloating `/think` into 200 verbs.
+Cheapest-sufficient-source first (a number → supabase-ops; a definition → wiki_ask; an entity → gbrain `search`/`recall`). Reserve `/deepask` for genuinely cross-source synthesis, `deep-research` for genuinely external questions, `/brain think` for when search/recall is insufficient.
+
+### Validation gate (run on EVERY datum — `validation_gate`)
+
+A datum must clear a **trust** test (is it true?) and a **relevance** test (does it matter?). Fail any → re-source, downgrade weight, or knock it out.
+1. **Knock-out (first, cheapest):** does this realistically move the answer? (importance × influence × EV). If not → abandon now.
+2. **Degree-of-certainty (1–8):** given-fact … judgment-call. Reliability falls as the number rises; discount degree-6 forecasts + degree-7 expert input for incentive bias.
+3. **Correlation ≠ causation:** reverse-causation? confounder? If causation is load-bearing → demand an experiment/regression, else downgrade to "associated with."
+4. **Sensitivity:** by how much must assumptions change for the conclusion to flip? Tiny → fragile (gather more / hedge). Correct for overprecision.
+5. **Triangulation / dissent:** has a *second, independent* read agreed? Generate + test one alternative interpretation before accepting the convenient one. (Pair `/think debias`.)
+6. **Honesty-label:** tag the surviving datum with its degree; label judgment calls *as* judgment calls — never let a judgment pass as a fact.
+
+### Dynamic routing — IF → THEN (after each validated analysis — `routing_rules` + `back_edges`)
+
+- **Always:** update the one-day answer; re-derive whether the top-line still holds.
+- Result **contradicts** the one-day answer → revise the governing thought; re-prioritize against the *new* answer.
+- Result **confirms** it → suspicion, not relief: was the test adversarial? If not, route to an independent challenge.
+- Analysis **moved** the answer → double down (it's in the high-value 20%). **Didn't move** it + low sensitivity → knock the branch out, reallocate.
+- Central hypothesis **fails** → route to the sibling MECE branch (the pre-built alternative), not a patch.
+- **Porpoise (back-edges):** data shows the problem is mis-framed → return to STATE (rewrite the problem statement, re-cleave). A result opens a new avenue or kills a branch → rewrite the workplan (STRUCTURE).
+
+### When to ask the founder for data (HITL — `hitl_triggers`)
+
+Stop and `AskUserQuestion` when: the input is a **degree-6 internal plan/target only they hold**; an **irreducible judgment about their world** (risk appetite, intent, success threshold); a **sensitivity test flips on an unverifiable assumption**; or **scope has drifted** (fire an intermediary checkpoint). **Frame the ask decision-relevantly:** lead with the one-day answer so far → show where this datum changes it → state your interim assumption. Don't disguise an assumption as a fact.
+
+### Stopping criterion (Solve → Sell — `stopping_criterion`)
+
+Stop when ALL hold: central hypothesis **proven by an adversarial test** + one-day answer stable; **marginal** — no remaining analysis is cheap+powerful enough to move the answer; **robust to sensitivity**; residual uncertainty **labeled** as judgment calls. One-line test: *"proven + robust, and no cheap answer-moving analysis remains?"*
+
+## ④ SELL — synthesize + communicate  ·  artifact: `synthesis.md`
+
+Synthesize the analysis-log + final one-day answer into a recommendation. Run `/think pyramid` + `/think so-what`: **governing thought first** (the recommendation as one crisp sentence) → **MECE key line** → support. Choose **grouping** (receptive audience) vs **argument/SCR** (skeptical). **Action titles** (each section a full declarative sentence; read them aloud = the storyline). **Pre-wire** the owner so the final answer isn't a surprise. **Never the story-of-the-search** (don't narrate your process; lead with the answer).
+
+---
+
+## When to use / NOT
+
+- **Use:** a real, consequential problem worth a rigorous study (capability bet, pricing/GTM/funnel decision, "why is X happening and what do we do").
+- **Don't:** quick lookups (one `/think` skill, or `/deepask`); trivial/operational; crisp bugs. Don't run the full engine when one analysis answers it — that's the accordion compressing.
+
+## Composition + guards
+
+- **With the atomic `/think` skills:** this engine *invokes* them — `tosca` (State), `mece`/`driver-tree`/`hypothesis` (Structure), `root-cause`/`design-thinking`/`pre-mortem`/`debias`/`2x2` (Solve), `pyramid`/`so-what` (Sell).
+- **With `/cla propose`:** CLA's phases mirror 4S; this engine is the disciplined way to think *inside* a proposal.
+- **Firewall:** company/product data only via `metrics.*` (never `product.*`). **HITL:** all data READS are Tier A; never auto-run a WRITE or a publish — surface it. **Cost:** prefer gbrain `search`/`recall` over `think`; `/deepask` is resolver-breaker-bounded; in-session = subscription billing.
+- **Runs in the active session** (HITL + checkpoints need the conversation channel) — not a fire-and-forget subagent.
 
 ## References
 
-Primary (in `raw/mckinsey/`):
-- **Garrette, B., Phelps, C., & Sibony, O. (2018). *Cracked it!*** Palgrave Macmillan. — **Chapter 3** (the 4S method) + the State/Structure/Solve/Sell chapters (4-10).
-- **Conn, C., & McLean, R. (2018). *Bulletproof Problem Solving*.** Wiley. — the 7-step process (cross-mapped).
-
-Catalog + machine-readable source of truth:
-- `knowledge/mckinsey-workflow.yaml` · `knowledge/schemas/mckinsey-workflow.schema.json` · `scripts/cross-tier/validate-mckinsey-workflow.cjs`.
+Primary (in `raw/mckinsey/`): **Conn & McLean (2018), *Bulletproof Problem Solving*** — 7-step, the 6-column workplan (Ch 4, Exhibit 4.3), one-day answer (Ch 1), porpoising (Ch 2), heuristics-before-big-guns + analytics decision tree (Ch 5), dialectic (Ch 4). **Garrette, Phelps & Sibony (2018), *Cracked It!*** — 4S (Ch 3), TOSCA (Ch 4), analysis plan + eight degrees of analysis + sensitivity (Ch 5/7), pyramid/SCR/pre-wire (Ch 10), design-thinking path (Ch 8-9).
+Machine-readable spec + per-step concept bindings: `knowledge/mckinsey-workflow.yaml` + `knowledge/schemas/mckinsey-workflow.schema.json`. The ~230 wiki concepts not bound here are reachable per-step via each step's `retrieval` recipe.
 
 ## Anti-claims
 
-- This is NOT a new method — it's the McKinsey 4S spine indexing tools we already have.
-- This does NOT replace the per-step skills; it sequences them.
-- 4S is NOT a rigid gate — it's iterative; skip and double-back as the problem demands.
-- The per-step concept lists are NOT exhaustive — they're curated starting points; the `retrieval` recipe reaches the rest.
+- This is NOT a brainstorm and NOT deterministic code — it's a judgment-heavy operating procedure an intelligent agent executes with real tools.
+- It does NOT fabricate facts — every datum is pulled or asked-for, and validated.
+- 4S is NOT a rigid waterfall — it porpoises; the one-day answer is the living state, not an end-of-run summary.
+- It is NOT mandatory for every question — the accordion compresses for small problems; a single `/think` skill or `/deepask` is often enough.

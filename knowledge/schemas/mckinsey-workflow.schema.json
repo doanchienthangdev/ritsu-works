@@ -4,7 +4,7 @@
   "title": "McKinsey 4S problem-solving workflow catalog",
   "description": "The spine that sequences thinking-toolkit skills + wiki problem-solving concepts into the McKinsey 4S method (State/Structure/Solve/Sell, Cracked it! Ch 3). Capability thinking-toolkit v1.3. Each step binds the OPERATIONS to run (skills) + a curated key-concept reading list + a retrieval recipe so any of the ~230 wiki concepts is findable by step. Structural validity here; file-existence of every referenced skill + concept is enforced by scripts/cross-tier/validate-mckinsey-workflow.cjs.",
   "type": "object",
-  "required": ["version", "steps"],
+  "required": ["version", "steps", "artifacts", "data_routing"],
   "additionalProperties": true,
   "properties": {
     "version": { "type": "string" },
@@ -15,12 +15,30 @@
       "items": { "type": "string" },
       "description": "Wiki source slugs the concepts are drawn from."
     },
+    "artifacts": {
+      "type": "object",
+      "description": "v1.4: the run-artifact convention (run_folder + the files the engine produces).",
+      "properties": {
+        "run_folder": { "type": "string" },
+        "files": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "data_routing": {
+      "type": "array",
+      "description": "v1.4: analysis-need → data tool routing table (the pull-real-data mechanism).",
+      "items": { "type": "object" }
+    },
+    "validation_gate": { "type": "array", "items": { "type": "object" }, "description": "v1.4: per-datum validation checklist (knock-out, 8-degrees, causation, sensitivity, triangulation, honesty)." },
+    "routing_rules": { "type": "array", "items": { "type": "object" }, "description": "v1.4: IF→THEN dynamic-routing rules applied after each analysis." },
+    "hitl_triggers": { "type": "array", "items": { "type": "object" }, "description": "v1.4: when + how to request data from the user." },
+    "back_edges": { "type": "array", "items": { "type": "object" }, "description": "v1.4: porpoise/iterate back-transitions between stages." },
+    "stopping_criterion": { "type": "array", "items": { "type": "object" }, "description": "v1.4: conditions to move Solve→Sell." },
     "steps": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "order", "name", "intent", "skills", "key_concepts", "retrieval"],
+        "required": ["id", "order", "name", "intent", "skills", "key_concepts", "retrieval", "produces"],
         "additionalProperties": false,
         "properties": {
           "id": {
@@ -39,6 +57,12 @@
             "type": "array",
             "items": { "type": "string" },
             "description": "Cross-map to the Bulletproof Problem Solving 7-step process (finer granularity)."
+          },
+          "produces": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "enum": ["problem-statement", "decomposition", "workplan", "analysis-log", "one-day-answer", "synthesis"] },
+            "description": "v1.4: the intermediate artifact(s) this stage emits (from the known artifact set)."
           },
           "skills": {
             "type": "array",

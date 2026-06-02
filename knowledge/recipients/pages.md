@@ -590,7 +590,7 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
 **Kind:** page
 **Axis:** content
-**When to use:** ============================================================================ mckinsey-workflow.yaml — the 4S problem-solving workflow catalog ============================================================================ Capability: thinking-toolkit v1.3 (/cla extend). The SPINE that sequences the whole thinking-toolkit into the McKinsey 4S method (State → Structure → Solve → Sell, Cracked it! Ch 3)...
+**When to use:** ============================================================================ mckinsey-workflow.yaml — the 4S problem-solving ENGINE catalog ============================================================================ Capability: thinking-toolkit v1.4 (/cla extend). The machine-readable spec of a world-class McKinsey problem-solving process — NOT a static map of "which skill at which stage", but a ...
 
 **Invoke:** `Read("knowledge/mckinsey-workflow.yaml")`
 **Authority:** SoR

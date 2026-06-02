@@ -1,7 +1,7 @@
 ---
 description: |
   Project-scoped command for ritsu-works. Front-end for the
-  **thinking-toolkit** capability (v1.3.0). Routes to 12 McKinsey/Minto-derived
+  **thinking-toolkit** capability (v1.4.0). Routes to 12 McKinsey/Minto-derived
   thinking-discipline skills under `06-ai-ops/skills/thinking-toolkit/`.
 
   Use when you want to apply a specific thinking framework to the current
@@ -23,7 +23,7 @@ argument-hint: "[tosca <problem> | mece [list] | pyramid [conclusion] | so-what 
 # /think
 
 Project-scoped command for ritsu-works. Front-end for the **thinking-toolkit**
-capability (v1.3.0). Capability spec at `wiki/capabilities/thinking-toolkit/spec.md`.
+capability (v1.4.0). Capability spec at `wiki/capabilities/thinking-toolkit/spec.md`.
 
 The command is a **thin orchestrator**. All thinking discipline lives in the 12
 skills under `06-ai-ops/skills/thinking-toolkit/`. Subcommands invoke those
@@ -33,14 +33,14 @@ Per `governance/HITL.md`, all `/think` invocations are **Tier A** — guidance
 documents read by the invoking agent; no external action, no money movement,
 no user impact, no escalation paths.
 
-## Subcommands (v1.3 — 14 verbs)
+## Subcommands (v1.4 — 14 verbs)
 
 | Invocation | Maps to skill | Purpose | HITL |
 |---|---|---|---|
 | `/think` | — | Show menu + composition flow + skill index | A |
 | `/think list` | — | Table of all 11 thinking frameworks (name, one-line, when to use) | A |
 | `/think flow [problem]` | — | Recommend a multi-skill sequence (TOSCA → MECE → driver-tree → 2x2 → pyramid → so-what) | A |
-| `/think mckinsey <problem>` | `thinking-toolkit/mckinsey-workflow` | Run a problem end-to-end through the McKinsey 4S spine (skills + concepts per step) (v1.3) | A |
+| `/think mckinsey <problem>` | `thinking-toolkit/mckinsey-workflow` | Run a problem as a McKinsey 4S **engine** — pull real data · validate · update the living one-day answer · re-route · ask the founder for founder-only data (v1.4) | A |
 | `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` | Frame ambiguous problem via T/O/S/C/A before solutioning | A |
 | `/think mece [list]` | `thinking-toolkit/mece-decomposition-check` | 2-test quality gate on list/decomposition (overlap + exhaustive) | A |
 | `/think pyramid [conclusion]` | `thinking-toolkit/pyramid-principle-output` | Top-line first; reader can stop at any level | A |
@@ -65,7 +65,7 @@ Argument conventions:
 Print a compact menu:
 
 ```
-/think — McKinsey/Minto thinking discipline (12 skills, capability v1.3.0)
+/think — McKinsey/Minto thinking discipline (12 skills, capability v1.4.0)
 
   tosca <problem>        Frame an ambiguous problem (T/O/S/C/A)
   mece [list]            Check a list for overlap + exhaustive
@@ -81,7 +81,7 @@ Print a compact menu:
 
   list                 Detailed table (when to use, pairs with)
   flow [problem]       Suggest multi-skill sequence
-  mckinsey <problem>   Run end-to-end via the McKinsey 4S spine        (v1.3)
+  mckinsey <problem>   Run a real problem as a 4S data-driven engine    (v1.4)
 
 Spec: wiki/capabilities/thinking-toolkit/spec.md
 Skills: 06-ai-ops/skills/thinking-toolkit/
@@ -267,7 +267,7 @@ Each `/think <subcommand>` invocation = single `ops.agent_runs` row (agent_slug=
 
 ## Spec reference
 
-Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v1.3.0).
+Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v1.4.0).
 Retrospective: `wiki/capabilities/thinking-toolkit/retrospective.md`.
 Sub-flow draft notes: `.archives/cla/thinking-toolkit/v1.1-extension-delta.md`.
 
