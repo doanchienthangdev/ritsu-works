@@ -384,6 +384,50 @@ export async function handleWikiAsk(
 }
 
 // ---------------------------------------------------------------------------
+// Batched embeddings fetch (PostgREST URL-overflow guard)
+// ---------------------------------------------------------------------------
+// supabase-js encodes `.in("page_id", ids)` into the PostgREST request URL as
+// `?page_id=in.(id1,id2,...)`. A single call with hundreds of uuids overflows
+// the Supabase/Kong gateway URI limit (~8-16 KB) and the gateway rejects it with
+// HTTP 400 "Bad Request" (observed: 755 entity ids ≈ 28 KB URL → 400). Batching
+// keeps each request URL small. Cosine ranking stays TypeScript-side, which is
+// the author's stated design envelope ("fine for < ~5K embeddings").
+
+export const EMBEDDINGS_IN_BATCH_SIZE = 100;
+
+interface BatchFetchResult {
+  // Row shape: { page_id, chunk_index, chunk_text, embedding }. Typed `any` to
+  // mirror the untyped supabase-js client used throughout this file.
+  data: any[] | null;
+  error: { message: string } | null;
+}
+
+/**
+ * Fetch knowledge_embeddings rows for `pageIds`, splitting the `.in()` filter
+ * into batches of at most `batchSize` so the request URL never overflows the
+ * gateway URI limit. Rows are concatenated in batch order. A batch error is
+ * surfaced as an MCPToolError preserving the original "embeddings query: ..."
+ * message; a null `data` for a batch contributes nothing (no throw).
+ */
+export async function fetchEmbeddingsBatched(
+  pageIds: string[],
+  fetchBatch: (ids: string[]) => PromiseLike<BatchFetchResult>,
+  batchSize: number = EMBEDDINGS_IN_BATCH_SIZE,
+): Promise<any[]> {
+  const step = Math.max(1, Math.floor(batchSize)); // guard: never 0/neg → no infinite loop
+  const out: any[] = [];
+  for (let i = 0; i < pageIds.length; i += step) {
+    const slice = pageIds.slice(i, i + step);
+    const { data, error } = await fetchBatch(slice);
+    if (error) {
+      throw new MCPToolError("sql_execution_error", `embeddings query: ${error.message}`);
+    }
+    if (data) out.push(...data);
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // rankByEmbedding — fetch embeddings for a set of pages, compute cosine, sort
 // ---------------------------------------------------------------------------
 
@@ -397,14 +441,15 @@ async function rankByEmbedding(
   if (pages.length === 0) return [];
 
   const pageIds = pages.map((p) => p.id);
-  const { data: embeddings, error: embErr } = await client
-    .schema("ops")
-    .from("knowledge_embeddings")
-    .select("page_id, chunk_index, chunk_text, embedding")
-    .in("page_id", pageIds);
-  if (embErr) {
-    throw new MCPToolError("sql_execution_error", `embeddings query: ${embErr.message}`);
-  }
+  // Batched fetch — a single `.in()` over hundreds of ids overflows the
+  // PostgREST request URL → HTTP 400 "Bad Request". See fetchEmbeddingsBatched.
+  const embeddings = await fetchEmbeddingsBatched(pageIds, (ids) =>
+    client
+      .schema("ops")
+      .from("knowledge_embeddings")
+      .select("page_id, chunk_index, chunk_text, embedding")
+      .in("page_id", ids),
+  );
 
   // Index pages by id for join
   const pageById = new Map<string, any>();
