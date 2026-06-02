@@ -1,0 +1,174 @@
+---
+title: "Tra cứu: deepask formats, styles & art-styles"
+description: "All /deepask --format, --style and --art-style values (lookup catalog)."
+source_path: scripts/docs/gen-deepask-catalog.cjs
+source_hash: 0f3ea02c008a7ae9f926b885298d24f45379b81b52813aac3a2e38a3ce6307ed
+generated_by: gen-deepask-catalog v1.0.0
+category: command
+language: vi
+translated: true
+translated_source_hash: 0f3ea02c008a7ae9f926b885298d24f45379b81b52813aac3a2e38a3ce6307ed
+---
+
+{/* generated-by: gen-deepask-catalog v1.0.0 */}
+
+> Trang tra cứu: TẤT CẢ giá trị cho `--format`, `--style` (design-system) và `--art-style` (artistic genre) của `/deepask`. Auto-generate từ `knowledge/design-systems.yaml` + `knowledge/art-styles.yaml` — chạy lại `scripts/docs/gen-deepask-catalog.cjs` khi registry đổi.
+
+## `--format` — tất cả format
+
+| Format | Họ | Mô tả |
+|---|---|---|
+| `inline` | DEFAULT | Câu trả lời cited render thẳng vào hội thoại — không tạo file. |
+| `text` | doc | Văn bản thuần của IR (tóm tắt + claim cited). |
+| `article` | doc | answer.md chuẩn — văn xuôi Pyramid, citation inline, conflict, freshness, gap. |
+| `pdf` | doc | Bài article render ra PDF. |
+| `docx` | doc | IR sections/tables → Word. |
+| `pptx` | doc | tóm tắt → title; mỗi section → 1 slide PowerPoint native. |
+| `xlsx` | doc | IR tables + metric → spreadsheet (cho câu trả lời nặng dữ liệu). |
+| `mermaid` | visual | IR diagrams → sơ đồ Mermaid đã validate. |
+| `chart` | visual | IR charts (series-data) → ảnh/html biểu đồ. |
+| `dashboard` | visual | Dashboard HTML nhiều panel. Nhận `--style`/`--art-style`. |
+| `html` | visual | HTML standalone có style của article + visual. Nhận `--style`/`--art-style`. |
+| `interactive` | visual | HTML tương tác (bảng lọc được, toggle). Nhận `--style`/`--art-style`. |
+| `canvas` | visual | Artifact canvas/infographic từ IR. Nhận `--style`/`--art-style`. |
+| `infographics` | image | MỘT poster PNG qua gpt-image-2; `--orientation`. Theo style + art-style. |
+| `img-slide` | image | Bộ slide 16:9: `slides/NN-*.png` (2048×1152 native) + `slides.pdf`. Theo style + art-style. |
+| `smartauto` | meta | Tự chọn file format tốt nhất từ câu hỏi + IR (không bao giờ chọn image format — tốn $). |
+
+## `--style` — design-system (trục BRAND)
+
+Palette/logo/type từ một `DESIGN.md`. owned = canonical Tier-1 `00-core/design-system/`; downloaded = cache `runtime/` (materialize lười khi dùng lần đầu qua `/design-system add`). Bỏ qua `--style` → plain.
+
+| Style | Loại | Trạng thái |
+|---|---|---|
+| `ritsu` | sở hữu (Tier-1) | ✅ installed |
+| `stripe` | tải về | not_cached |
+| `vercel` | tải về | not_cached |
+| `linear` | tải về | not_cached |
+| `github` | tải về | not_cached |
+| `notion` | tải về | not_cached |
+| `tailwind` | tải về | not_cached |
+| `shadcn` | tải về | not_cached |
+| `radix` | tải về | not_cached |
+| `mui` | tải về | not_cached |
+| `chakra` | tải về | not_cached |
+| `bootstrap` | tải về | not_cached |
+| `bulma` | tải về | not_cached |
+| `primer` | tải về | not_cached |
+| `open-props` | tải về | not_cached |
+| `apple` | tải về | not_cached |
+| `meta` | tải về | not_cached |
+| `ibm` | tải về | not_cached |
+| `nvidia` | tải về | not_cached |
+| `uber` | tải về | not_cached |
+| `spotify` | tải về | not_cached |
+| `shopify` | tải về | not_cached |
+| `airbnb` | tải về | not_cached |
+| `figma` | tải về | not_cached |
+| `coinbase` | tải về | not_cached |
+| `mastercard` | tải về | not_cached |
+| `mongodb` | tải về | not_cached |
+| `supabase` | tải về | not_cached |
+| `pinterest` | tải về | not_cached |
+| `intercom` | tải về | not_cached |
+| `sentry` | tải về | not_cached |
+| `tesla` | tải về | not_cached |
+| `framer` | tải về | not_cached |
+| `claude` | tải về | not_cached |
+| `elevenlabs` | tải về | not_cached |
+| `cursor` | tải về | not_cached |
+| `webflow` | tải về | not_cached |
+| `starbucks` | tải về | not_cached |
+| `nike` | tải về | not_cached |
+| `spacex` | tải về | not_cached |
+| `netflix` | tải về | not_cached |
+| `openai` | tải về | not_cached |
+
+## `--art-style` — artistic genre (trục GENRE)
+
+Register nghệ thuật (layout/assets/mood) trực giao với `--style`; brand palette/logo/type LUÔN thắng. Chỉ áp dụng cho image formats + code-rendered formats. Registry đóng → tên lạ sẽ hard-fail.
+
+| Art-style (id) | Tên | Assets (đòn bẩy minh hoạ) |
+|---|---|---|
+| `tech-teardown-premium` | Tech Teardown Premium | High-quality 3D renders, No flat icons, Ray-tracing lighting |
+| `swiss-international` | Swiss International | Geometric shapes, High-contrast photography, Clean lines |
+| `glassmorphism-ui` | Glassmorphism UI | 3D UI elements, Soft shadows, Background blur, Rounded corners |
+| `eco-organic-paper` | Eco-Organic Paper | Paper texture overlays, Watercolor illustrations, Plant motifs |
+| `neon-cyberpunk-data` | Neon Cyberpunk Data | Glowing lines, Glitch effects, Matrix grids, Holograms |
+| `corporate-trust` | Corporate Trust | Stock photography (people in suits), Vector icons, Charts |
+| `neo-brutalism-pop` | Neo-Brutalism Pop | Retro clip art, Stark shadows, Default UI components |
+| `architectural-blueprint` | Architectural Blueprint | Technical drawings, Ruler lines, Annotations, White outlines |
+| `vogue-editorial` | Vogue Editorial | High-fashion photography, Minimal text overlay, Serif numbers |
+| `claymorphism-3d` | Claymorphism 3D | 3D Clay render characters, Inflated objects, Soft lighting |
+| `vintage-botanical` | Vintage Botanical | Hand-drawn scientific engravings, Detailed sketches |
+| `isometric-kingdom` | Isometric Kingdom | Isometric buildings, Tiny people, 3D paths/roads |
+| `dark-academia` | Dark Academia | Leather textures, Old maps, Candlelight, Oil painting style |
+| `duo-tone-gradient` | Duo-Tone Gradient | Abstract 3D blobs, Gradient mesh, No real photos |
+| `japanese-zen` | Japanese Zen | Ink wash painting (Sumi-e), Circles (Enso), Nature macro |
+| `retro-80s-synthwave` | Retro 80s Synthwave | Palm trees silouhette, Grid floor, Chrome text effects |
+| `medical-clean` | Medical Clean | High-end medical 3D renders, DNA strands, Microscopic view |
+| `chalkboard-education` | Chalkboard Education | Chalk sketches, Arrows, Doodles, Eraser marks |
+| `abstract-geometric` | Abstract Geometric | Basic geometric shapes (Circle, Triangle, Square), Patterns |
+| `cinematic-documentary` | Cinematic Documentary | Realistic photography, Motion blur, Film grain, Lens flare |
+| `cyber-security-matrix` | Cyber Security Matrix | Binary code streams, Shield grids, Lock icons, Wireframe globes |
+| `luxury-marble-and-gold` | Luxury Marble & Gold | Gold foil textures, Marble surfaces, Elegant serif numbers, Spotlight effects |
+| `8-bit-pixel-adventure` | 8-Bit Pixel Adventure | Pixel art characters, Hearts/Lives icons, Blocky UI containers |
+| `art-deco-luxury` | Art Deco Luxury | Gold geometric lines, Marble floors, Elegant fan patterns |
+| `pop-art-comic` | Pop Art Comic | Halftone dots patterns, Action lines, Boom/Pow effects |
+| `steampunk-industrial` | Steampunk Industrial | Gears, Pipes, Analog gauges, Victorian decorations |
+| `corporate-memphis` | Corporate Memphis | Flat characters with exaggerated limbs, Abstract shapes, Vector plants |
+| `risograph-print` | Risograph Print | Grainy gradients, Multiply blending mode effects, Rough edges |
+| `holographic-chrome` | Holographic Chrome | 3D Liquid metal blobs, Rainbow gradients, Sparkles |
+| `urban-graffiti` | Urban Graffiti | Drip effects, Spray textures, Concrete wall backgrounds |
+| `watercolor-dream` | Watercolor Dream | Watercolor stains, Hand-painted illustrations, Wet paper texture |
+| `film-noir-mystery` | Film Noir Mystery | Silhouettes, Smoke swirls, Spotlight beams, Rain streaks |
+| `origami-craft` | Origami Craft | Folded paper animals/objects, Sharp creases, Realistic paper shadows |
+| `boho-chic` | Boho Chic | Abstract organic shapes, Line art plants, Sun motifs |
+| `extreme-sports-energy` | Extreme Sports Energy | Speed lines, Splatters, Grunge textures, High contrast action shots |
+| `kids-learning` | Kids Learning | Cute mascots, Rounded icons, Clouds, Stars |
+| `survival-horror` | Survival Horror | Grunge textures, Ink splatters, Film noise, Glitch |
+| `psychedelic-swirl` | Psychedelic Swirl | Liquid marble patterns, Mushroom motifs, Warped text |
+| `scandi-minimal` | Scandi Minimal | Minimalist line icons, Wood textures, Soft daylight |
+| `tactical-military` | Tactical Military | Target reticles, Stencil shapes, Topographic lines |
+| `low-poly-3d` | Low Poly 3D | Low poly 3D models, Triangulated backgrounds, Crystal shapes |
+| `tiki-tropical` | Tiki Tropical | Monstera leaves, Bamboo frames, Hibiscus flowers |
+| `newspaper-daily` | Newspaper Daily | Black and white photos, Cross-hatching illustrations |
+| `quantum-entanglement` | Quantum Entanglement | Atom models, Energy waves, Probability clouds, Schrödinger's cat motifs |
+| `blueprint-geometry` | Blueprint Geometry | Compasses, Protractors, Geometric primitives, Calculated angles, Wireframes |
+| `neural-synapse-ai` | Neural Synapse AI | Connection lines, Glowing dots, Brain wiring diagrams, Neural layers |
+| `silicon-circuitry` | Silicon Circuitry | Microchips, Capacitors, Gold pathways, Transistors, CPU sockets |
+| `infinite-data-stream` | Infinite Data Stream | Server racks, Optical fiber cables, Binary streams, Database cylinders |
+| `generative-diffusion` | Generative Diffusion | AI art hallucinations, Fluid morphs, Impossible objects, Glitch art |
+| `molecular-biology` | Molecular Biology | DNA strands, Bacteria shapes, Microscope viewports, Petri dishes |
+| `cloud-infrastructure` | Cloud Infrastructure | 3D Cloud icons, Wi-Fi signals, Server blocks floating, API connectors |
+| `devops-terminal` | DevOps Terminal | Code snippets, Brackets {}, Cursor block _, Git branches, Bash prompts |
+| `fractal-mathematics` | Fractal Mathematics | Fractals, Golden spirals, Recursive geometry, 3D Manifolds |
+| `academic-latex-manuscript` | Academic LaTeX Manuscript | Rendered LaTeX equations (sums, integrals), Theorem boxes, Vector plots, Serif numbers |
+| `dark-mode-latex` | Dark Mode LaTeX | Glowing mathematical symbols, Clean function graphs, Dark theme UI elements |
+| `vibrant-isometric-city` | Vibrant Isometric City | 3D buildings, Roads, Vehicles, Trees, Floating data blocks |
+| `neo-glassmorphism-3d` | Neo-Glassmorphism 3D | Frosted glass cards, Glossy spheres, Refraction effects, Floating icons |
+| `toy-brick-voxel` | Toy Brick Voxel | Voxel characters, Brick structures, Blocky terrain, Snap-fit joints |
+| `cyber-organic-flow` | Cyber-Organic Flow | Glowing veins, Liquid metal, Organic 3D shapes, Fiber optics |
+| `low-poly-vibrant-landscape` | Low-Poly Vibrant Landscape | Low-poly mountains, Geometric trees, Angular clouds, faceted water |
+| `abstract-3d-liquid` | Abstract 3D Liquid | Liquid splashes, Floating droplets, Metallic textures, Reflection maps |
+| `vaporwave-3d-grid` | Vaporwave 3D Grid | Roman busts, Palm trees, Grid floors, VHS static, Geometric primitives |
+| `high-gloss-candy` | High-Gloss Candy | Balloon letters, 3D Emojis, Soft plastic shapes, Sprinkles |
+| `isometric-data-block` | Isometric Data Block | Data cubes, Bar charts in 3D, Modular connectors, Floating screens |
+| `crystal-prism-refraction` | Crystal Prism Refraction | Prisms, Rainbow light beams, Caustics, Glass shards, Diamond cuts |
+| `vietnamese-dong-son` | Vietnamese Dong Son | Dong Son drum motifs, Flying cranes (Lac bird), Bronze textures, Geometric borders |
+| `indochine-elegance` | Indochine Elegance | Encaustic cement tiles, Rattan textures, Shutters, Tropical palms, Fan shapes |
+| `dong-ho-folk` | Dong Ho Folk | Pig and Chicken motifs, Rough woodblock strokes, Sparkly seashell paper texture |
+| `hue-imperial-court` | Hue Imperial Court | Vietnamese Dragon (Rong), Phoenix, Lotus lamps, Silk textures |
+| `chinese-ink-wash-shuimo` | Chinese Ink Wash (Shuimo) | Misty mountains, Twisted pine trees, Bamboo stalks, Ink splatters |
+| `forbidden-city-gold` | Forbidden City Gold | Golden roof tiles, Guardian lions, intricate dougong brackets, Chinese knots |
+| `calligraphy-master` | Calligraphy Master | Brush strokes, Red chops (Seals), Ink grinding stones, Hanging scrolls |
+| `old-shanghai-jazz` | Old Shanghai Jazz | Qipao fabric patterns, Gramophones, Art Deco sunbursts, Neon Kanji |
+| `japanese-ukiyo-e` | Japanese Ukiyo-e | Great Wave motifs, Mt. Fuji silhouettes, Cherry blossoms, textured paper |
+| `zen-garden-minimalism` | Zen Garden Minimalism | Raked sand patterns, River stones, Bonsai, Water basins |
+| `kintsugi-gold-repair` | Kintsugi Gold Repair | Gold cracks (Kintsugi), Pottery textures, Wabi-sabi aesthetics |
+| `buddhist-mandala` | Buddhist Mandala | Lotus flowers, Dharma wheels, Geometric mandalas, Incense smoke |
+| `taoist-yin-yang` | Taoist Yin Yang | Yin Yang symbols, Bagua trigrams, Flowing water, Koi fish |
+| `bamboo-forest` | Bamboo Forest | Bamboo stalks, Panda motifs, Light rays, Falling leaves |
+| `silk-road-tapestry` | Silk Road Tapestry | Persian rug patterns, Camel silhouettes, Silk textures, Ancient maps |
+
+*80 art-styles · 42 design-systems · 16 formats. Brand × genre = một merge function brand-thắng (xem Chương 45 §45.9 + Chương 47).*

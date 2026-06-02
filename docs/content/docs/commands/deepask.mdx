@@ -1,66 +1,83 @@
 ---
 title: 'Command: /deepask'
 description: >-
-  Federated retrieval + capability-execution + cited synthesis over the ENTIRE internal IA.
-  Zero-routing pure consumer of resolver-plan. Decompose → resolve → execute/fan-out → synthesize →
-  completeness-critic → format. Returns a Pyramid, 100%-cited, authority-ranked, conflict-aware,
-  freshness-tagged answer in 1 of 12 formats, OR an honest no-coverage gap + remedy. Internal-first
-  (web leg delegated to deep-research). Tier A runtime (Tier-B+ legs surfaced, never auto-run).
+  Federated retrieval + capability-execution + cited synthesis trên TOÀN BỘ internal IA.
+  Zero-routing — consumer thuần của resolver-plan. Decompose → resolve → execute/fan-out → synthesize →
+  completeness-critic → format. Trả về câu trả lời Pyramid, 100%-cited, authority-ranked, conflict-aware,
+  freshness-tagged trong 1 / 12 format, HOẶC một no-coverage gap trung thực + remedy. Internal-first
+  (web leg ủy quyền cho deep-research). Tier A runtime (các leg Tier-B+ được surface, không bao giờ auto-run).
 source_path: .claude/commands/deepask.md
-source_hash: dd8475b8f5dafa6b8aa3151854b1fc5a7d3bddfcc4a45c1aaa3436a844281070
-generated_at: '2026-05-31T03:54:41.244Z'
+source_hash: b4508d2ca41fc24abf8131e4f73debee3635762281aa162c6f0d7ecc2049fe82
+generated_at: '2026-06-02T03:42:36.806Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_at: '2026-05-31T11:00:00Z'
-translated_source_hash: dd8475b8f5dafa6b8aa3151854b1fc5a7d3bddfcc4a45c1aaa3436a844281070
+translated_source_hash: b4508d2ca41fc24abf8131e4f73debee3635762281aa162c6f0d7ecc2049fe82
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-> Orchestrator mỏng cho bộ skill `deepask/*` (`06-ai-ops/skills/deepask/`). Sở hữu phân tích cờ; ủy thác TẬT CẢ routing cho `resolver-plan` (deepask không có routing của riêng nó — không có song song source-map, bao giờ). Spec khả năng: `wiki/capabilities/deepask/spec.md` (mục tiêu Phase-8 promotion; hiện tại `.archives/cla/deepask/spec.md`). Quyết định Tier C `ops.decisions[861f8eb4-6572-4df5-b1cc-44aac0a7b014]`.
+> Orchestrator mỏng cho bộ skill `deepask/*` (`06-ai-ops/skills/deepask/`). Sở hữu việc phân tích cờ;
+> ủy thác TẤT CẢ routing cho `resolver-plan` (deepask KHÔNG có routing riêng — không bao giờ có
+> source-map song song). Spec capability: `wiki/capabilities/deepask/spec.md`. Quyết định Tier C
+> `ops.decisions[861f8eb4-6572-4df5-b1cc-44aac0a7b014]`.
 
 ## Trạng thái triển khai (xây dựng dần theo sprint-plan.md)
 
 | Sprint | Trạng thái | Bề mặt |
 |---|---|---|
-| S1 | merged (#165) | command + `orchestrator` (resolver-budget accountant) + `decompose` + `execute` (READ-only legs) + migration 00045 |
+| S1 | merged (#165) | command + `orchestrator` (resolver-budget accountant) + `decompose` + `execute` (leg READ-only) + migration 00045 |
 | S2 | merged (#166) | `synthesize` (Pyramid + citation guardrail + authority + conflict + freshness + adversarial-verify) + `completeness-critic` (coverage matrix + MECE + live-probe + honest-gap verdict) |
-| S3 | merged (#167) | `execute` capability-RUN leg via `capability-gate.cjs` (Tier-A auto / Tier-B+ surface / D-MAX refuse) + gbrain-cap + `deep-research` delegation → **full 5-stage loop end-to-end** |
-| S4 | merged (#168) | Format Engine (`deepask/format` umbrella + dispatch table) — **doc family** (text·article·pdf·docx·pptx·xlsx) + `smartauto` via `format-select.cjs` |
-| S5 | merged (#169) | Format Engine — **visual adapters** (mermaid·chart·dashboard·html·interactive·canvas); `smartauto` default flipped to `ALL_FORMATS`; `artifact-path.cjs` layout helper → **all 12 formats live** |
-| **S6** | **this PR (final)** | 3 KPIs (`complete_verdict_rate`/`uncited_claim_rate`/`breaker_trip_rate`) + `SOP-AIOPS-005-deepask-runtime-contract` + `ai-ops-deepask` cost-bucket + **Phase-8 promotion → `operating`** (spec/retro → `wiki/capabilities/deepask/`) |
+| S3 | merged (#167) | `execute` leg capability-RUN qua `capability-gate.cjs` (Tier-A auto / Tier-B+ surface / D-MAX refuse) + gbrain-cap + ủy quyền `deep-research` → **vòng lặp 5-stage đầy đủ** |
+| S4 | merged (#168) | Format Engine (`deepask/format` umbrella + dispatch table) — **họ doc** (text·article·pdf·docx·pptx·xlsx) + `smartauto` qua `format-select.cjs` |
+| S5 | merged (#169) | Format Engine — **visual adapters** (mermaid·chart·dashboard·html·interactive·canvas); 12 format live |
+| **S6** | **merged** | 3 KPI + `SOP-AIOPS-005-deepask-runtime-contract` + cost-bucket `ai-ops-deepask` + **Phase-8 promotion → `operating`** |
+| **v1.1 (extend)** | **merged** | 2 image format `infographics` + `img-slide` (gpt-image-2, nhận `--style`) — skill `deepask/image-compose` + helper `scripts/deepask/{image-spec,image-cost,image-gen,slide-deck}.cjs`; cờ mới `--orientation`/`--img-quality`/`--image-model`/`--max-slides`/`--max-cost-usd`. `/cla extend deepask`. |
+| **v1.1.1 (extend)** | **merged** | Thanh thẩm mỹ **EXTRAORDINARY** cho mọi visual output — skill `deepask/aesthetic` + LOGO FIX (`style-asset.cjs` nhúng logo brand dạng base64 data URI). |
+| **v1.2-image (extend)** | **merged (#191)** | Trục GENRE `--art-style` (`knowledge/art-styles.yaml`, 80 genres) + cờ `--lang`; image-compose/aesthetic re-arch (GENRE block + per-piece focal_illustration + honesty gate). |
+| **v1.2.0 (extend)** | **merged (#192)** | `--art-style` + `--style` mở rộng sang **code-rendered formats** (html/dashboard/interactive/canvas/chart + pdf-via-html) qua `aesthetic` Part-2. |
+| **v1.2.1 (fix)** | **merged (#193)** | Fix tỉ lệ img-slide → **16:9 native 2048×1152** (no crop, title không bị cắt) theo OpenAI cookbook §4.10. |
 
-**deepask là `operating` từ 2026-05-30** (capability-registry `state: operating`). Full 5-stage loop + 12-format engine, breaker-safe + citation-disciplined, một zero-routing consumer của resolver-plan. Runtime contract: `SOP-AIOPS-005-deepask-runtime-contract`.
+**deepask `operating` từ 2026-05-30**. Vòng lặp 5-stage đầy đủ + 12-format engine, breaker-safe + citation-disciplined, consumer zero-routing của resolver-plan. Runtime contract: `SOP-AIOPS-005-deepask-runtime-contract`.
 
-## Cờ
+## Cờ (Flags)
 
 | Cờ | Giá trị | Hiệu ứng |
 |---|---|---|
-| `--format` | **inline** (default) · text·article·pdf·docx·pptx·xlsx·mermaid·chart·dashboard·html·interactive·canvas·smartauto | **Bỏ qua → `inline`:** câu trả lời được render **trực tiếp vào cuộc trò chuyện** (Pyramid + inline citations + Sources list; Conflicts/Coverage sections khi liên quan) — **KHÔNG viết file `.archives/deepask/`.** **Bất kỳ giá trị rõ ràng nào** (bao gồm `smartauto`) → **file mode**: viết artifact dir (`answer.md` + `plan.json` + `sources.json` + rendered artifact). |
-| `--sources` | csv của \{pillars,ops,metrics,wiki,brain,external,scratch} · **auto** (default) | hạn chế loại IA nào deepask có thể chạm vào (truyền cho resolver-plan như một bộ lọc) |
-| `--depth` | quick·**standard** (default)·deep·exhaustive | sub-need bound (≤6 standard / ≤12 deep) + parallel fan-out + adversarial-verify votes (0/1/2/3) |
-| `--dry-run` | flag | hiển thị decomposition + **real** ResolverPlans + predicted coverage + cost estimate; thực hiện zero reads/runs/writes TRỪ một `ops.deepask_runs` dry-run row. NB: dry-run DOES call resolver-plan → consumes resolver-breaker budget → labeled honestly. |
+| `--format` | **inline** (mặc định) · text·article·pdf·docx·pptx·xlsx·mermaid·chart·dashboard·html·interactive·canvas·**infographics**·**img-slide**·smartauto | **Bỏ qua → `inline`:** render **thẳng vào hội thoại** (không file). **Có giá trị** (kể cả `smartauto`) → **file mode**: thư mục artifact (`answer.md` + `plan.json` + `sources.json` + bản render). **`infographics`** → MỘT poster PNG (gpt-image-2). **`img-slide`** → bộ deck **16:9**: thư mục `slides/NN-*.png` **+** `slides.pdf`. Image format là **explicit-only** (không bao giờ được `smartauto` chọn — chúng tốn $ OpenAI). Xem danh sách đầy đủ ở trang **deepask-catalog**. |
+| `--style` | `<tên design-system>` · **bỏ qua → plain (không style)** | render trong một design system DESIGN.md (capability `design-system-styling`). **TRỰC GIAO với `--format`**. Visual + **image** format → tokens dẫn dắt phần nhìn; non-visual (inline/text/article/xlsx) → no-op trung thực. **Logo brand** nhúng vào artifact code-rendered dạng base64 **data URI** qua `style-asset.cjs`. Resolve qua `resolve-style.cjs`; non-interactive cache-miss hard-fail. Mọi visual output vượt thanh **EXTRAORDINARY** `deepask/aesthetic`. VD `--format=img-slide --style=ritsu`. Xem `SOP-AIOPS-007`. |
+| `--art-style` | `<tên genre>` · **bỏ qua → không genre (plain)** | **TRỰC GIAO với `--style`; áp dụng cho CẢ image format LẪN code-rendered visual format (v1.2.x).** Render trong một ARTISTIC GENRE từ `knowledge/art-styles.yaml` (80 genre, vd `isometric-kingdom`, `scandi-minimal`, `risograph-print`). Genre sở hữu composition (`layout`) + bộ từ vựng minh hoạ (`assets`) + mood (`tone`) + secondary accent + ký tự headline; brand `--style` core palette / logo / body-type **LUÔN THẮNG** khi xung đột. Resolve qua `art-style.cjs` (registry ĐÓNG → hard-fail khi tên lạ, AD-3). Đây là trục biến "text on a gradient" thành artifact art-directed, có minh hoạ. VD `--format=html --style=ritsu --art-style=neo-glassmorphism-3d`. Xem danh sách đầy đủ ở trang **deepask-catalog**. |
+| `--lang` | `<mã ISO, vd vi>` · **bỏ qua → IR-auto-detect** | **image format (v1.2-image)** — khi text render là tiếng Việt (hoặc `--lang=vi`), `image-compose` thêm một sub-block KHOÁ-DẤU (font VN đầy đủ — Be Vietnam Pro / Inter — + dấu thanh gắn đúng trên ă â ê ô ơ ư đ; legibility hơn genre về precedence). |
+| `--orientation` | `landscape` (mặc định) · `portrait` | **chỉ infographics** — canvas poster (landscape 3:2 = 1536×1024, portrait 2:3 = 1024×1536). `img-slide` bỏ qua (luôn 16:9). |
+| `--img-quality` | `low` · **medium** (mặc định) · `high` · `auto` | **chỉ image format** — `quality` gpt-image = **nút cost chính** (low ≈ $0.01–0.02/ảnh, medium ≈ $0.04–0.06, high ≈ $0.17–0.25; ước lượng — verify ở platform.openai.com/pricing). |
+| `--max-slides` | int (mặc định `8`) | **chỉ img-slide** — cap số slide (kiểm soát cost); section dư ghi vào `image-plan.json.dropped[]`, không bao giờ âm thầm bỏ. |
+| `--max-cost-usd` | số (mặc định `1.00`) | **chỉ image format** — **cầu dao cost**: nếu ước lượng pre-gen vượt → TỪ CHỐI trước, báo estimate-vs-cap + gợi ý giảm `--img-quality`/`--max-slides`. |
+| `--image-model` | model id (mặc định `gpt-image-2`) | **chỉ image format** — model ảnh OpenAI (tham số hoá cho robustness). |
+| `--sources` | csv của \{pillars,ops,metrics,wiki,brain,external,scratch} · **auto** (mặc định) | giới hạn loại IA deepask được chạm (truyền cho resolver-plan như một filter) |
+| `--depth` | quick·**standard** (mặc định)·deep·exhaustive | bound sub-need (≤6 standard / ≤12 deep) + fan-out song song + số phiếu adversarial-verify (0/1/2/3) |
+| `--dry-run` | flag | hiện decomposition + ResolverPlan **thật** + coverage dự đoán + ước lượng cost; KHÔNG read/run/write TRỪ một row `ops.deepask_runs` dry-run. Với image format, `--dry-run` cũng soạn `image-plan.json` + ghi prompt sidecar (`*.prompt.txt`) nhưng KHÔNG gọi gpt-image (không tốn). NB: dry-run CÓ gọi resolver-plan → tiêu resolver-breaker budget → ghi trung thực. |
 
-## Phân phối (vòng lặp 5 giai đoạn)
+## Dispatch (vòng lặp 5-stage)
 
-0. **Pre-flight (orchestrator):** **resolver-budget accountant** — đọc `session_finds_count` mới nhất, gọi `scripts/deepask/breaker-budget.cjs` `computeBreakerBudget({sessionFindsCount, subNeedCount, ...})`; nếu không viable → emit honest PARTIAL up front (`gap_reason='breaker_budget'`), không bao giờ một `no_coverage` được tạo ra; nếu `capped_to_budget` → giảm depth và thông báo cho operator.
-1. `deepask/decompose` — question → MECE sub-needs (≤6/≤12), IA-type A/B/C/D tags.
-2. `deepask/orchestrator` → per sub-need call `resolver-plan` (`/resolver plan` / `mcp__supabase-ops__resolver_find`) → `ResolverPlan v1`.
-3. `deepask/execute` — parallel subagents: **READ** `content_axis` (S1); **RUN** Tier-A `capability_axis` + surface Tier-B+ + delegate web→`deep-research` (S3). Tác giả concrete read-only SQL / `wiki_ask` question / skill params, **grounded trong `grounding_ref`/`columns_hint`; không bao giờ invents column names**.
-4. `deepask/synthesize` (S2) — Pyramid + citation + authority + conflict + freshness + adversarial-verify → format-agnostic IR.
-5. `deepask/completeness-critic` (S2) — coverage matrix + MECE + live-probe → COMPLETE | PARTIAL+remedy; ≤1 bounded follow-up.
-6. Format → **`inline` (default, không `--format`):** render câu trả lời **vào cuộc trò chuyện** (Pyramid + inline citations + Sources list; không có file). **File mode (explicit `--format`):** artifact trong `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` + `plan.json` + `sources.json` + rendered artifact).
-7. **Observe** → `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) — written trong **cả hai** modes (DB audit/learning rows không phải "output files"; `artifact_path` là NULL trong inline mode); founder edit/reject → `ops.corrections`.
+0. **Pre-flight (orchestrator):** **resolver-budget accountant** — đọc `session_finds_count` mới nhất, gọi `breaker-budget.cjs`; nếu không viable → emit PARTIAL trung thực ngay (`gap_reason='breaker_budget'`), không bao giờ `no_coverage` giả; nếu `capped_to_budget` → giảm depth và báo operator.
+1. `deepask/decompose` — câu hỏi → sub-needs MECE (≤6/≤12), gắn IA-type A/B/C/D.
+2. `deepask/orchestrator` → mỗi sub-need gọi `resolver-plan` → `ResolverPlan v1`.
+3. `deepask/execute` — subagent song song: **ĐỌC** `content_axis`; **CHẠY** `capability_axis` Tier-A + surface Tier-B+ + ủy quyền web→`deep-research`. Tự viết SQL read-only / câu `wiki_ask` / params, **grounded trong `grounding_ref`/`columns_hint`; không bao giờ bịa tên cột**.
+4. `deepask/synthesize` — Pyramid + citation + authority + conflict + freshness + adversarial-verify → IR format-agnostic.
+5. `deepask/completeness-critic` — coverage matrix + MECE + live-probe → COMPLETE | PARTIAL+remedy; ≤1 follow-up.
+6. Format → **`inline` (mặc định):** render câu trả lời **vào hội thoại** (không file). **File mode (có `--format`):** artifact ở `.archives/deepask/<YYYY-MM-DD>-<slug>/`. **`--style`/`--art-style` (nếu có):** resolve một lần và truyền tokens/genre làm **design context** vào renderer của format — không thêm dispatch row.
+   - **Nhánh image (`infographics` · `img-slide`):** `image-compose` biến IR + tokens `--style` (brand) **+ genre `--art-style`** thành `image-plan.json` (prompt gpt-image-2 mỗi mảnh = **brand STYLE block + GENRE block + một `focal_illustration` bắt buộc mỗi mảnh từ IR cited + `aesthetic` Part-3**). Orchestrator chạy cost gate → `image-gen.cjs` mỗi mảnh → PNG, và với `img-slide` `slide-deck.cjs` → `slides.pdf` (16:9 native). `answer.md` LUÔN được ghi kèm. **Honesty invariant:** không một con số/claim chịu-lực nào tồn tại CHỈ dưới dạng minh hoạ — mọi số vẫn là text đọc-được + cited; minh hoạ mang HÌNH DẠNG luận điểm, không bao giờ BẢN CHẤT.
+7. **Observe** → `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) — ghi ở CẢ hai mode (`artifact_path` = NULL khi inline).
 
-## Bảo vệ (luôn bật)
-- **Firewall:** product data chỉ via `metrics.*` (hook `pre-tool-supabase-product`); không bao giờ `product.*`.
-- **gbrain:** reads dưới $100/mo cap; ưu tiên `search`/`recall` hơn `think`.
-- **resolver breaker:** 20-find/4h/session — budgeted bởi accountant (Stage 0).
-- **Billing:** subscription trong session; API key out-of-band/embeddings only.
-- **HITL:** runtime = Tier A (read/synthesize); bất kỳ Tier-B+ capability leg nào là **surfaced**, không bao giờ auto-run.
+## Guards (luôn bật)
+- **Firewall:** product data chỉ qua `metrics.*` (hook `pre-tool-supabase-product`); không bao giờ `product.*`.
+- **gbrain:** đọc dưới cap $100/mo; ưu tiên `search`/`recall` hơn `think`.
+- **resolver breaker:** 20-find/4h/session — quản bởi accountant (Stage 0).
+- **Billing:** subscription in-session; OpenAI API key cho out-of-band/embeddings **và image generation** (gpt-image-2 ngoài subscription của Claude — dùng hợp lệ như `text-embedding-3-small`; key ở `runtime/secrets/.env.local`). Cost ảnh được ước lượng + gate bởi `--max-cost-usd`, log vào `ops.deepask_runs.metadata.image_gen` + `cost_usd`.
+- **HITL:** runtime = Tier A (read/synthesize); leg capability Tier-B+ được **surface**, không bao giờ auto-run.
 
 ## Ranh giới
-`/deepask` federates + **composes** `/brain` (gbrain) + `/wiki ask` + supabase-query + `/think` frameworks, delegating the web leg to `deep-research`. Nó KHÔNG route (đó là `resolver-plan`) và KHÔNG create/modify (đó là `/cla` · `/evolve` · `/update`). Internal-first.
+`/deepask` federate + **compose** `/brain` (gbrain) + `/wiki ask` + supabase-query + `/think`, ủy quyền web cho `deep-research`. Nó KHÔNG route (đó là `resolver-plan`) và KHÔNG tạo/sửa (đó là `/cla` · `/evolve` · `/update`). Internal-first.
 
+> 📚 **Danh sách đầy đủ** mọi `--format`, `--style` và `--art-style` để tra cứu: xem trang **[deepask-catalog](/vi/docs/commands/deepask-catalog)**.
