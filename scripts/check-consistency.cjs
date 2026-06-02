@@ -249,6 +249,8 @@ async function main() {
     ['validate-art-styles.cjs', 'art-styles.yaml ↔ schema + no brand-palette leak'],
     // capability image-platform v0.1 PR-1 — image-adapters.yaml structural + supports⊆universal + installed⇒generator-on-disk
     ['validate-image-adapters.cjs', 'image-adapters.yaml ↔ schema + generator-on-disk'],
+    // capability thinking-toolkit v1.3 — mckinsey-workflow.yaml 4S catalog: every referenced skill + concept exists on disk
+    ['validate-mckinsey-workflow.cjs', 'mckinsey-workflow.yaml ↔ skills + concepts exist'],
     // security drift guard (migration 00047) — no SECURITY DEFINER fn in schema
     // ops may expose public/unpinned search_path to authenticated/PUBLIC.
     ['validate-secdef-rpc-exposure.cjs', 'ops SECURITY DEFINER RPCs ↔ no RLS-bypass exposure'],

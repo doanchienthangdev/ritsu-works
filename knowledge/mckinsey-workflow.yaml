@@ -1,0 +1,146 @@
+# ============================================================================
+# mckinsey-workflow.yaml — the 4S problem-solving workflow catalog
+# ============================================================================
+# Capability: thinking-toolkit v1.3 (/cla extend). The SPINE that sequences the
+# whole thinking-toolkit into the McKinsey 4S method (State → Structure → Solve
+# → Sell, Cracked it! Ch 3), cross-mapped to the Bulletproof 7-step process.
+#
+# WHAT THIS SOLVES (founder ask, 2026-06-03): "cơ chế đưa các concepts trong
+# problem solving vào các steps trong mckinsey workflow." The 5 v1.2 + 6 v1.0
+# skills are the OPERATIONS you run at each step; the ~230 wiki concepts that
+# did NOT become skills are attached here per-step as (a) a curated key-concept
+# reading list + (b) a `retrieval` recipe so ANY concept is findable by step
+# later (`mcp__supabase-ops__wiki_ask` / `/wiki ask` scoped to the step's books).
+#
+# This is the machine-readable SOURCE OF TRUTH. The skill
+# `06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md` reflects it;
+# the `/think mckinsey <problem>` verb walks it.
+#
+# Schema:    knowledge/schemas/mckinsey-workflow.schema.json
+# Validator: scripts/cross-tier/validate-mckinsey-workflow.cjs (L2 critical;
+#            wired into check-consistency.cjs AND
+#            .github/workflows/cross-tier-consistency.yml). The validator proves
+#            every referenced skill + concept file ACTUALLY EXISTS — the catalog
+#            cannot drift into citing a skill or concept that isn't there.
+#
+# Maintenance: hand-maintained (NOT regenerated), like design-systems.yaml /
+# art-styles.yaml. Add a concept to a step = add one {book, slug} line (the file
+# must exist in wiki/<book>/concepts/<slug>.md). Add a step = unlikely (4S is
+# fixed); finer granularity goes in `bulletproof_7step`.
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/mckinsey-workflow.schema.json
+spine: "4S"                                   # State / Structure / Solve / Sell (Cracked it! Ch 3)
+source_books: [cracked-it, bulletproof-problem-solving]
+
+steps:
+  # --------------------------------------------------------------------------
+  - id: state
+    order: 1
+    name: "State the Problem"
+    intent: >
+      Define and frame the problem before any solutioning. Get the problem
+      statement right — most problem-solving fails because the wrong problem
+      was solved. Output: a one-page framed problem + a single Core Question.
+    bulletproof_7step: ["Define the problem"]
+    skills:
+      - thinking-toolkit/tosca-problem-framing
+    key_concepts:
+      - {book: cracked-it, slug: tosca-framework}
+      - {book: cracked-it, slug: core-question-scope}
+      - {book: cracked-it, slug: success-criteria-component}
+      - {book: bulletproof-problem-solving, slug: problem-statement-worksheet}
+      - {book: bulletproof-problem-solving, slug: smart-problem-statement-criteria}
+      - {book: bulletproof-problem-solving, slug: outcomes-focused-problem-definition}
+      - {book: bulletproof-problem-solving, slug: wicked-problems}
+    retrieval:
+      query: "problem framing, problem definition, success criteria, core question, wicked problems"
+      sources: [cracked-it, bulletproof-problem-solving]
+
+  # --------------------------------------------------------------------------
+  - id: structure
+    order: 2
+    name: "Structure the Problem"
+    intent: >
+      Disaggregate the framed problem into MECE parts you can attack one by one.
+      Choose the path — hypothesis-driven (fast, you have a hunch) vs issue-driven
+      (thorough, no preconception) — then prioritize so you analyze only the
+      branches that can move the answer. Output: a logic/issue tree + a workplan.
+    bulletproof_7step: ["Disaggregate the issues", "Prioritize", "Build a workplan"]
+    skills:
+      - thinking-toolkit/mece-decomposition-check
+      - thinking-toolkit/driver-tree-decomposition
+      - thinking-toolkit/hypothesis-driven
+    key_concepts:
+      - {book: bulletproof-problem-solving, slug: logic-tree}
+      - {book: bulletproof-problem-solving, slug: problem-disaggregation}
+      - {book: bulletproof-problem-solving, slug: mece}
+      - {book: bulletproof-problem-solving, slug: knock-out-analysis}
+      - {book: bulletproof-problem-solving, slug: prioritization-2x2-matrix}
+      - {book: cracked-it, slug: issue-tree}
+      - {book: cracked-it, slug: hypothesis-pyramid}
+      - {book: cracked-it, slug: hypothesis-driven-vs-issue-driven}
+    retrieval:
+      query: "issue tree, logic tree, disaggregation, MECE, prioritization, hypothesis vs issue driven, workplan"
+      sources: [cracked-it, bulletproof-problem-solving]
+
+  # --------------------------------------------------------------------------
+  - id: solve
+    order: 3
+    name: "Solve (Analyze + Generate)"
+    intent: >
+      Do the analysis. Lead with heuristics before big guns; carry a one-day
+      answer. For a confirmed broken symptom, trace the root cause; for an
+      unmet human need that analysis can't crack, switch to the generative
+      design-thinking path; pre-mortem the leading option; and run the debias
+      checklist before committing. Output: an evidence-backed answer per branch.
+    bulletproof_7step: ["Conduct analyses"]
+    skills:
+      - thinking-toolkit/root-cause
+      - thinking-toolkit/design-thinking
+      - thinking-toolkit/pre-mortem
+      - thinking-toolkit/debias
+      - thinking-toolkit/2x2-synthesis-matrix
+    key_concepts:
+      - {book: bulletproof-problem-solving, slug: one-day-answer}
+      - {book: bulletproof-problem-solving, slug: heuristics-before-big-guns}
+      - {book: bulletproof-problem-solving, slug: expected-value-calculation}
+      - {book: bulletproof-problem-solving, slug: monte-carlo-simulation}
+      - {book: bulletproof-problem-solving, slug: root-cause-analysis-five-whys}
+      - {book: bulletproof-problem-solving, slug: pre-mortem-analysis}
+      - {book: bulletproof-problem-solving, slug: five-cognitive-biases-problem-solving}
+      - {book: cracked-it, slug: design-thinking}
+      - {book: cracked-it, slug: how-might-we-question}
+      - {book: cracked-it, slug: desirability-feasibility-viability-triad}
+      - {book: cracked-it, slug: sensitivity-analysis}
+    retrieval:
+      query: "analysis tools, heuristics, expected value, simulation, regression, root cause, design thinking, cognitive biases"
+      sources: [cracked-it, bulletproof-problem-solving]
+
+  # --------------------------------------------------------------------------
+  - id: sell
+    order: 4
+    name: "Sell the Solution"
+    intent: >
+      Synthesize findings into a recommendation and communicate it so it lands.
+      Lead with the governing thought (pyramid, top-line first); make every
+      supporting point survive the so-what test; pick the grouping vs argument
+      (SCR/SCQA) storyline for the audience; pre-wire the decision. Output: an
+      action-titled, decision-ready recommendation.
+    bulletproof_7step: ["Synthesize findings", "Communicate / tell a great story"]
+    skills:
+      - thinking-toolkit/pyramid-principle-output
+      - thinking-toolkit/so-what-test
+    key_concepts:
+      - {book: cracked-it, slug: pyramid-principle}
+      - {book: cracked-it, slug: governing-thought}
+      - {book: cracked-it, slug: argument-pattern-scr}
+      - {book: cracked-it, slug: storyline-design}
+      - {book: cracked-it, slug: action-title-discipline}
+      - {book: cracked-it, slug: pre-wiring-the-final-meeting}
+      - {book: bulletproof-problem-solving, slug: synthesis-and-storytelling}
+      - {book: bulletproof-problem-solving, slug: pyramid-structure}
+    retrieval:
+      query: "synthesis, storyline, pyramid principle, governing thought, SCR SCQA, action titles, communicate recommendation"
+      sources: [cracked-it, bulletproof-problem-solving]

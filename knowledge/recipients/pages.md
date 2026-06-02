@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 50
+**Total entries:** 51
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -582,6 +582,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/manifest.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-mckinsey-workflow
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ mckinsey-workflow.yaml — the 4S problem-solving workflow catalog ============================================================================ Capability: thinking-toolkit v1.3 (/cla extend). The SPINE that sequences the whole thinking-toolkit into the McKinsey 4S method (State → Structure → Solve → Sell, Cracked it! Ch 3)...
+
+**Invoke:** `Read("knowledge/mckinsey-workflow.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/mckinsey-workflow.yaml
 
 **Role scope:** *
 **Status:** active

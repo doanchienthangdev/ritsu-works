@@ -55,6 +55,7 @@ const FILE_TO_SCHEMA = {
   'cla-routing-keywords.yaml': 'cla-routing-keywords.schema.json',
   'update-file-paths.yaml': 'update-file-paths.schema.json',
   'image-adapters.yaml': 'image-adapters.schema.json',
+  'mckinsey-workflow.yaml': 'mckinsey-workflow.schema.json',
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });
