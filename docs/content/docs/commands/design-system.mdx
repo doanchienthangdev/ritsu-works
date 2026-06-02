@@ -1,0 +1,46 @@
+---
+title: 'Command: /design-system  (capability: design-system-styling v1.0)'
+description: >-
+  Quản lý thư viện multi-design-system + lớp output `--style` universal. Một design system = 1
+  folder + 1 DESIGN.md (định dạng Google Stitch / google-labs-code/design.md: YAML tokens + Markdown
+  rationale). Registry TÁCH ĐÔI: owned/canonical ở Tier-1 00-core/design-system/, third-party tải về
+  ở runtime/design-systems/ (cache gitignored), index bởi knowledge/design-systems.yaml. Mặc định =
+  plain (không style). Thiếu system = fetch CLI on-demand. Tier A đọc/tìm; A→B tải; C cho vendor/Tier-1 + xoá-owned.
+source_path: .claude/commands/design-system.md
+source_hash: 8e963091635a5806829f0b09a5b84dcf51a585d7e38a0564d069c24e16347ad6
+generated_at: '2026-06-02T03:42:36.813Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+translated: true
+translated_source_hash: 8e963091635a5806829f0b09a5b84dcf51a585d7e38a0564d069c24e16347ad6
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Orchestrator mỏng trên các helper `scripts/design-system/*.cjs` + nhóm skill
+`design-system`. Soi gương hình dạng của command deepask.
+
+## Các verb
+| Verb | Mục đích | HITL |
+|---|---|---|
+| `list` | liệt kê các system đã đăng ký (từ `knowledge/design-systems.yaml`) | A |
+| `show <name>` | in tokens + rationale + đường dẫn của một system | A |
+| `search <query>` | tìm trong thư viện remote (getdesign/designmd, không tải) | A |
+| `add <name> [--source=getdesign\|designmd]` | tải về → cache `runtime/design-systems/` → đăng ký | A→B |
+| `build <name> --from=<repo>` | nghiên cứu một codebase → emit một DESIGN.md hợp lệ (HSL→hex) | A→B |
+| `preview <name>` | mở/tạo `preview.html` light+dark | A |
+| `lint <name>` | validate một DESIGN.md (dùng lại `lint` của design.md nếu có) | A |
+| `vendor <name>` | promote cache → Tier-1 `00-core/design-system/` (PR) | **C** |
+| `remove <name>` | xoá một system trong cache (B); **từ chối owned khi không có PR** (C) | B/C |
+
+## Thứ tự resolve (cho `--style=<name>`, qua `resolve-style.cjs`)
+index → đường dẫn owned (`00-core/design-system/`) → cache (`runtime/design-systems/`)
+→ (miss + interactive) tải về → cache → dùng. Bỏ qua → `{mode:'plain'}`.
+**Non-interactive/CI:** chỉ owned/vendored; cache-miss = hard-fail (AD-3).
+
+## Ghi chú
+- Helper làm phần việc: `resolve-style`, `parse-design-md`, `registry-io`, `download`.
+- KHÔNG MCP, KHÔNG API key (locked #3). Tải về = `Bash(npx getdesign@latest add)` / `build --from`.
+- Events: `ritsu.design_system.{style_resolved,added,vendored}` → `ops.events`.
+- Cost-bucket `ai-ops-design-system`; task_kinds `design-system-{build,resolve,add}`.
