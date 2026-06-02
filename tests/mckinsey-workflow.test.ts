@@ -230,6 +230,11 @@ describe("validateWorkflow — v1.4 artifacts", () => {
   it("artifact file stage not a step id -> error", () => {
     expect(has(validateWorkflow(validDoc({ artifacts: { run_folder: "x/", files: [{ name: "synthesis", stage: "nope", contents: "x" }] } }), REPO_ROOT), "is not a step id")).toBe(true);
   });
+  it("a step produces an artifact NOT declared in artifacts.files -> error (coherence)", () => {
+    // default artifacts.files declares only 'problem-statement'; make a step produce 'workplan' (undeclared)
+    const d = validDoc({ steps: [step("state", 1, { produces: ["workplan"] }), step("structure", 2), step("solve", 3), step("sell", 4)] });
+    expect(has(validateWorkflow(d, REPO_ROOT), "produced by a step but not declared in artifacts.files")).toBe(true);
+  });
 });
 
 describe("validateWorkflow — v1.4 data_routing", () => {

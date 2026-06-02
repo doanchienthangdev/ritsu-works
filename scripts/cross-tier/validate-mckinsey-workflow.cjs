@@ -210,6 +210,16 @@ function validateWorkflow(doc, repoRoot) {
     });
   }
 
+  // produces ⊆ artifacts.files.name (coherence: every artifact a step produces must be declared in artifacts.files)
+  if (art && typeof art === 'object' && Array.isArray(art.files)) {
+    const declared = new Set(art.files.map((f) => f && f.name).filter(Boolean));
+    const produced = new Set();
+    for (const s of steps) if (s && Array.isArray(s.produces)) for (const a of s.produces) produced.add(a);
+    for (const a of produced) {
+      if (!declared.has(a)) errs.push(`artifact '${a}' is produced by a step but not declared in artifacts.files`);
+    }
+  }
+
   return errs;
 }
 

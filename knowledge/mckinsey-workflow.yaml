@@ -56,7 +56,7 @@ artifacts:
   files:
     - {name: problem-statement, stage: state,     contents: "TOSCA 5 slots (Trouble/Owner/Success/Constraints/Actors) + Core Question + the 5-check"}
     - {name: decomposition,     stage: structure, contents: "issue tree OR hypothesis pyramid — MECE; each leaf a falsifiable hypothesis"}
-    - {name: workplan,          stage: structure, contents: "6-column table: issue · hypothesis · analysis · source-of-data · owner · end-product (dummy exhibit); knock-out-ordered"}
+    - {name: workplan,          stage: structure, contents: "the 6 book columns (issue · hypothesis · analysis · source-of-data · owner · end-product, dummy exhibit, Exhibit 4.3) + a STATUS column (open|pulled|validated|knocked-out|spawned) the Solve loop rewrites each iteration; knock-out-ordered. The status column is the ledger that keeps a long loop from drifting — you may not reach Sell with an 'open' row above the knock-out bar"}
     - {name: analysis-log,      stage: solve,     contents: "per workplan row: data pulled (which tool) + result + validation verdict + degree-of-certainty (1-8)"}
     - {name: one-day-answer,    stage: solve,     contents: "the LIVING state — situation→observation→resolution; updated after every analysis; seeds the final synthesis"}
     - {name: synthesis,         stage: sell,      contents: "pyramid: governing thought → MECE key line → support; grouping|SCR storyline; action titles"}
@@ -89,9 +89,9 @@ data_routing:
     note: "metrics.* ONLY (product firewall — never product.*); read knowledge/schemas first, don't invent columns; metrics.product_dau_snapshot ETL may be empty → then ask-user"
   - need: "External market / competitor / benchmark / industry trend / world fact"
     tool: deep-research
-    invoke: 'Skill({skill:"deep-research", args:"<refined question>"})'
+    invoke: '/deepask "<q>" (repo-native; delegates its web leg to deep-research) OR Skill({skill:"deep-research", args:"<refined question>"}) directly'
     hitl: A
-    note: "SLOW + external; research only — never publish (publish = Tier C)"
+    note: "deep-research is a HARNESS/plugin skill (registered at runtime in interactive sessions, not a repo file) — /deepask is the repo-native external route (it delegates the web leg to deep-research). SLOW + external; research only — never publish (publish = Tier C). In a headless context where deep-research is absent, route external via /deepask or ask-user."
   - need: "Structuring / sequencing the analysis itself (decompose a metric, MECE-gate, frame, stress-test)"
     tool: think-skills
     invoke: "/think driver-tree|mece|hypothesis|root-cause|pyramid|so-what|2x2"

@@ -72,24 +72,26 @@ Fill **TOSCA** (run `/think tosca`): **T**rouble (gap as a symptom, not a diagno
 
 **Build the 6-column WORKPLAN** — the data-routing spine (Bulletproof Exhibit 4.3, verbatim columns):
 
-| issue | hypothesis | analysis | source-of-data | owner | end-product |
-|---|---|---|---|---|---|
-| (the leaf) | (falsifiable claim) | (what proves/disproves it) | **(which tool — see routing table)** | (who) | (the dummy exhibit) |
+| issue | hypothesis | analysis | source-of-data | owner | end-product | status |
+|---|---|---|---|---|---|---|
+| (the leaf) | (falsifiable claim) | (what proves/disproves it) | **(which tool — see routing table)** | (who) | (the dummy exhibit) | `open` → `pulled` → `validated` / `knocked-out` / `spawned` |
 
-One row per surviving leaf. The **source-of-data** column is the data-pull instruction — route it via the table below. Order rows **knock-out-first** (the analyses that can kill the answer fastest). Keep it **chunky** (the few most important analyses; revise constantly), not encyclopedic.
+One row per surviving leaf. The **source-of-data** column is the data-pull instruction — route it via the table below. The **status** column is the ledger the Solve loop rewrites each iteration — it's what keeps a long run from drifting back into opinion-narration (the v1.3 failure). Order rows **knock-out-first** (the analyses that can kill the answer fastest). Keep it **chunky** (the few most important analyses; revise constantly), not encyclopedic.
 
 ## ③ SOLVE — the analysis loop  ·  artifacts: `analysis-log.md`, `one-day-answer.md`
 
-The run-loop. For each workplan row, knock-out order, **heuristics before big guns**:
+The run-loop is **status-driven** — the workplan's `status` column is the ledger; an LLM drifts away from prose instructions over a long loop, but not from a column it must re-read and rewrite. **Heuristics before big guns.** Each iteration:
 
-1. **ROUTE** the row's source-of-data to a tool (table below).
+0. **RE-READ** the workplan `status` column; pick the highest-priority `open` row (knock-out order).
+1. **ROUTE** its source-of-data to a tool (table below); mark the row `pulled`.
 2. **PULL** the data — a real tool call. If it's founder-only → `AskUserQuestion`. **Never assert a fact you didn't fetch.**
 3. **VALIDATE** through the gate (below); tag the datum's degree-of-certainty (1–8).
 4. **WRITE** to `analysis-log.md`: hypothesis · data pulled (which tool) · result · validation verdict · degree.
 5. **UPDATE** `one-day-answer.md` (S→O→R).
-6. **RE-ROUTE** per the dynamic rules (re-prioritize / porpoise / switch direction / pick a different tool).
+6. **MARK** the row `validated` or `knocked-out`; if it spawned deeper sub-analyses, append them as `open` rows and mark this one `spawned`.
+7. **RE-ROUTE** per the dynamic rules — re-prioritize the remaining `open` rows against the *new* one-day answer / porpoise / switch direction / pick a different tool.
 
-Iterate until the **stopping criterion** holds → go to Sell.
+Loop until the **stopping criterion** holds → Sell. **You may NOT move to Sell with any `open` row still above the knock-out bar** — an open high-value row means the answer can still change (this is the explicit guard against the v1.3 drift: narrating opinions while rows silently go stale).
 
 > **Worked micro-loop (real pulls, not fabricated):** *Hypothesis:* "free→paid is gated by the 7-day inactivity cliff, not price." *Analysis:* cohort conversion, returners vs non-returners. *Source:* `mcp__supabase-ops__query` on `metrics.product_dau_snapshot` — **or, if that ETL is empty, `AskUserQuestion` to the founder for the cohort number** (don't invent it). *Validate:* knock-out (does it move the answer? yes) → degree-2 hard number → correlation≠causation (triangulate with a second cut: do 7-day-returners differ in source/plan?) → sensitivity. *Update one-day answer:* returners convert 4×. *Re-route:* cliff confirmed → knock out the pricing branch, double down on reactivation.
 
@@ -101,7 +103,7 @@ Iterate until the **stopping criterion** holds → go to Sell.
 | A framework / concept / definition | **wiki_ask** | `/wiki ask "<q>"` or `mcp__supabase-ops__wiki_ask` | A |
 | A person / company / past decision / relationship / history | **gbrain** | `/brain search` → `recall` → `think` (only if needed) | A |
 | A current metric / number / KPI / count | **supabase-ops query** | `mcp__supabase-ops__query({sql, schema:'metrics'\|'ops'\|'public'})` | A |
-| External market / competitor / benchmark | **deep-research** | `Skill({skill:"deep-research", args:"<q>"})` | A (research only) |
+| External market / competitor / benchmark | **deep-research** | `/deepask "<q>"` (repo-native; delegates the web leg to deep-research) or `Skill({skill:"deep-research", args:"<q>"})` | A (research only) |
 | Structuring the analysis itself | **/think skills** | `/think driver-tree\|mece\|hypothesis\|root-cause\|pyramid\|so-what` | A |
 | **Data only the founder holds** | **ask-user** | `AskUserQuestion` — show where it changes the answer + a default | human |
 

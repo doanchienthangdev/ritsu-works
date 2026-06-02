@@ -38,7 +38,7 @@ no user impact, no escalation paths.
 | Invocation | Maps to skill | Purpose | HITL |
 |---|---|---|---|
 | `/think` | — | Show menu + composition flow + skill index | A |
-| `/think list` | — | Table of all 11 thinking frameworks (name, one-line, when to use) | A |
+| `/think list` | — | Table of all 12 skills (11 atomic + the mckinsey-workflow engine; name, one-line, when to use) | A |
 | `/think flow [problem]` | — | Recommend a multi-skill sequence (TOSCA → MECE → driver-tree → 2x2 → pyramid → so-what) | A |
 | `/think mckinsey <problem>` | `thinking-toolkit/mckinsey-workflow` | Run a problem as a McKinsey 4S **engine** — pull real data · validate · update the living one-day answer · re-route · ask the founder for founder-only data (v1.4) | A |
 | `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` | Frame ambiguous problem via T/O/S/C/A before solutioning | A |
