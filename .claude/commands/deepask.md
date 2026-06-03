@@ -64,4 +64,6 @@ argument-hint: "\"<question>\" [--format=<...>] [--style=<name>] [--orientation=
 - **HITL:** runtime = Tier A (read/synthesize); any Tier-B+ capability leg is **surfaced**, never auto-run.
 
 ## Boundary
-`/deepask` federates + **composes** `/brain` (gbrain) + `/wiki ask` + supabase-query + `/think` frameworks, delegating the web leg to `deep-research`. It does NOT route (that's `resolver-plan`) and does NOT create/modify (that's `/cla` · `/evolve` · `/update`). Internal-first.
+`/deepask` federates + **composes** `/brain` (gbrain) + `/wiki ask` + supabase-query + the lightweight `/think` micro-frameworks (pyramid · mece · so-what · …), delegating the web leg to `deep-research`. It does NOT route (that's `resolver-plan`) and does NOT create/modify (that's `/cla` · `/evolve` · `/update`). Internal-first.
+
+**One-way composition with `/think mckinsey` (v1.7):** the McKinsey 4S engine composes `/deepask` as a *leaf data tool* in its Solve loop (`knowledge/mckinsey-workflow.yaml` `data_routing` + `composition_guards`). The arrow points ONE way — `mckinsey → deepask → /think micro-frameworks`. deepask MUST NOT re-invoke `/think mckinsey` (the `capability-gate` `RECURSION_DENYLIST` refuses it even at Tier-A), and deepask returns cited **evidence + a COMPLETE/PARTIAL verdict**, never the decision — the synthesize→recommend judgment stays with the engine (Sell) and the founder.

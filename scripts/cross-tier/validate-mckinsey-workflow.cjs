@@ -11,11 +11,12 @@
  *           referenced skill exists (06-ai-ops/skills/<skill>/SKILL.md); every
  *           key_concept exists (wiki/<book>/concepts/<slug>.md); each step's
  *           `produces` is from the known ARTIFACT set.
- *   ENGINE (v1.4): `artifacts` (run_folder + files, each name∈ARTIFACTS,
+ *   ENGINE (v1.4-v1.7): `artifacts` (run_folder + files, each name∈ARTIFACTS,
  *           stage∈stepIds), `data_routing` (each tool∈TOOLS), and the
- *           non-empty sections validation_gate / routing_rules / hitl_triggers /
- *           back_edges (from+to∈stepIds) / stopping_criterion. EVERY `concept`
- *           {book,slug} ref across ALL sections must exist on disk.
+ *           non-empty sections tool_selection / validation_gate / routing_rules /
+ *           hitl_triggers / back_edges (from+to∈stepIds) / stopping_criterion /
+ *           composition_guards (v1.7). EVERY `concept` {book,slug} ref across ALL
+ *           sections must exist on disk.
  *
  * The file-existence checks are the whole point: the catalog must never drift
  * into citing a skill/concept/tool/artifact that isn't real — that would
@@ -46,7 +47,10 @@ const TOOLS = ['deepask', 'wiki_ask', 'gbrain', 'supabase-ops-query', 'deep-rese
 // Engine sections that must each be a non-empty array (v1.4 dynamic engine; each
 // element may carry a `concept` {book,slug} ref that is file-existence-checked).
 // v1.5: +'tool_selection' (the load + select mechanism over the candidate registry).
-const ENGINE_SECTIONS = ['tool_selection', 'validation_gate', 'routing_rules', 'hitl_triggers', 'back_edges', 'stopping_criterion'];
+// v1.7: +'composition_guards' (the contract for composing a heavyweight sub-
+//   capability — deepask — as a Solve data tool: anti-recursion, cost-valve,
+//   evidence-not-decider; same generic non-empty + concept-ref enforcement).
+const ENGINE_SECTIONS = ['tool_selection', 'validation_gate', 'routing_rules', 'hitl_triggers', 'back_edges', 'stopping_criterion', 'composition_guards'];
 
 /**
  * Pure validation. Returns an array of error strings (empty = valid).
@@ -209,6 +213,16 @@ function validateWorkflow(doc, repoRoot) {
       if (sec === 'back_edges') {
         if (!stepIds.has(e.from)) errs.push(`back_edges[${i}]: from '${e.from}' is not a step id`);
         if (!stepIds.has(e.to)) errs.push(`back_edges[${i}]: to '${e.to}' is not a step id`);
+      }
+      // v1.7: composition_guards.applies_to (optional) must reference known data tools.
+      if (sec === 'composition_guards' && e.applies_to !== undefined) {
+        if (!Array.isArray(e.applies_to)) {
+          errs.push(`composition_guards[${i}]: applies_to must be an array of tool names`);
+        } else {
+          for (const t of e.applies_to) {
+            if (!TOOLS.includes(t)) errs.push(`composition_guards[${i}]: applies_to references unknown tool: ${t} (known: ${TOOLS.join(', ')})`);
+          }
+        }
       }
     });
   }

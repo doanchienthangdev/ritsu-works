@@ -23,6 +23,14 @@
 const VALID_TIERS = ['A', 'B', 'C', 'D-Std', 'D-MAX'];
 const VALID_SIDE_EFFECTS = ['none', 'write', 'send', 'money', 'publish'];
 
+// v1.7 (thinking-toolkit ↔ deepask composition contract — knowledge/
+// mckinsey-workflow.yaml `composition_guards`). Recipients deepask must NEVER run
+// as a capability leg because they would RECURSE into deepask's own caller. The
+// `/think mckinsey` ENGINE composes deepask as a LEAF data tool, so deepask
+// re-invoking that engine = mckinsey → deepask → mckinsey. (The lightweight
+// `/think` micro-frameworks are fine to compose — only the engine itself is denied.)
+const RECURSION_DENYLIST = ['thinking-toolkit/mckinsey-workflow'];
+
 function assertEnum(value, allowed, name) {
   if (typeof value !== 'string' || !allowed.includes(value)) {
     throw new TypeError(
@@ -48,6 +56,19 @@ function classifyCapabilityLeg(leg) {
       `capability-gate: leg must be an object, got ${leg === null ? 'null' : Array.isArray(leg) ? 'array' : typeof leg}`,
     );
   }
+
+  // v1.7 anti-recursion guard (runs FIRST, absolute — independent of how the leg
+  // is tagged): a denylisted recipient is the /think mckinsey engine that composes
+  // deepask; deepask must not re-enter it. Keyed on the OPTIONAL recipient_id, so
+  // existing {hitl_tier, side_effect} callers are unaffected (no recipient_id →
+  // skip). See knowledge/mckinsey-workflow.yaml composition_guards (one-way layering).
+  if (typeof leg.recipient_id === 'string' && RECURSION_DENYLIST.includes(leg.recipient_id)) {
+    return {
+      action: 'refuse',
+      reason: `anti-recursion: "${leg.recipient_id}" is the /think mckinsey engine — deepask is its leaf data tool and must not re-enter it (composition_guards: one-way layering)`,
+    };
+  }
+
   assertEnum(leg.hitl_tier, VALID_TIERS, 'hitl_tier');
   assertEnum(leg.side_effect, VALID_SIDE_EFFECTS, 'side_effect');
 
@@ -79,4 +100,4 @@ function classifyCapabilityLeg(leg) {
   };
 }
 
-module.exports = { classifyCapabilityLeg, VALID_TIERS, VALID_SIDE_EFFECTS };
+module.exports = { classifyCapabilityLeg, VALID_TIERS, VALID_SIDE_EFFECTS, RECURSION_DENYLIST };
