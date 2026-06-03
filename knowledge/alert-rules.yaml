@@ -48,5 +48,30 @@ rules:
     # evolved skills introducing more bugs than they fix. Warn at 2×; ROLES.md
     # + spec §19.10 escalate to critical at 5×.
 
+  # === Capability product-db-readonly-access (Door 2) — analytics sync (Sprint 4) ===
+  # KPI values are populated by scripts/cross-tier/check-analytics-sync-health.cjs
+  # (the daily handler parses its `HEALTH {json}` line → upserts ops.kpi_snapshots).
+  # Until the schedule-dispatcher gains ritsu-analytics access (infra follow-up),
+  # run the health-check manually; these rules arm automatically once KPIs flow.
+  - id: analytics_pii_canary_trips_critical
+    condition: kpi.analytics_pii_canary_trips >= 1
+    severity: critical
+    notify: [telegram_founder]
+    # P0: a non-zero canary means email-shaped data reached a staged copy. The
+    # swap is already blocked (live.sync_one raises), but the founder must know
+    # immediately — the boundary's #1 promise. Per analytics-sync-contract.yaml.
+
+  - id: analytics_sync_freshness_stale
+    condition: kpi.analytics_sync_freshness > 26
+    severity: warning
+    notify: [telegram_founder]
+    # Door-2 dataset past the 26h SLO — the nightly in-DB pg_cron sync on
+    # ritsu-analytics may have failed silently. > 48h escalates to critical below.
+
+  - id: analytics_sync_freshness_critical
+    condition: kpi.analytics_sync_freshness > 48
+    severity: critical
+    notify: [telegram_founder]
+
   # Business alerts (customize per project)
   # {{ADD_BUSINESS_ALERTS}}
