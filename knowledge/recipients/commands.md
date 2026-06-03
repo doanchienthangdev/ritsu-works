@@ -289,7 +289,7 @@ table.
 **Kind:** command
 **Axis:** capability
 **When to use:** Project-scoped command for ritsu-works. Front-end for the
-**thinking-toolkit** capability (v1.5.0). Routes to 12 McKinsey/Minto-derived
+**thinking-toolkit** capability (v1.6.0). Routes to 12 McKinsey/Minto-derived
 thinking-discipline skills under `06-ai-ops/skills/thinking-toolkit/`.
 
 Use when you want to apply a specific thinking framework to the current
