@@ -89,20 +89,33 @@ function parseFirstTable(text) {
   return null;
 }
 
-/** Find the index of the column whose normalized header matches any of `keys` (substring). */
+/**
+ * Find the column index for `keys` (priority-ordered). EXACT normalized match
+ * first (across all headers, for every key), THEN key-major substring. This
+ * prevents a decoy header from stealing the match — e.g. a `data source` column
+ * must NOT win the `provenance` lookup over the real `provenance` column, and a
+ * `status-note` column must NOT win over `status`. (@cto v1.6 must-fix.)
+ */
 function colIndex(headers, keys) {
   const H = headers.map(norm);
-  for (let i = 0; i < H.length; i++) for (const k of keys) if (H[i].includes(norm(k))) return i;
+  for (const k of keys) { const e = H.indexOf(norm(k)); if (e !== -1) return e; } // exact, key-priority
+  for (const k of keys) { const nk = norm(k); for (let i = 0; i < H.length; i++) if (H[i].includes(nk)) return i; } // then substring, key-major
   return -1;
 }
 
-/** Is a parsed row a real data row (not a template placeholder / not empty)? */
+/**
+ * Is a parsed row a real data row (vs the pristine scaffold template row)?
+ * A row is "filler" only if EVERY non-empty cell is either a `<...>` placeholder
+ * OR a status keyword (the template ships a default `open`). So the pristine
+ * template row (placeholders + `open`) is skipped, but a HALF-FILLED real row
+ * (any real, non-status cell) IS counted — closing the @cto v1.6 should-fix
+ * where a 3/6-placeholder row escaped the gate.
+ */
 function isDataRow(cells) {
   const nonEmpty = cells.filter((c) => c.trim());
   if (!nonEmpty.length) return false;
-  // skip rows that are mostly scaffold placeholders (cells wrapped in <...>)
-  const placeholders = nonEmpty.filter((c) => /^<.*>$/.test(c.trim())).length;
-  if (placeholders * 2 >= nonEmpty.length) return false;
+  const isFiller = (c) => /^<.*>$/.test(c.trim()) || STATUS_VALUES.map(norm).includes(norm(c));
+  if (nonEmpty.every(isFiller)) return false; // pristine template row → not data
   return true;
 }
 
@@ -201,4 +214,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { scaffoldRun, checkRun, parseFirstTable, colIndex, ARTIFACTS, WORKPLAN_COLUMNS, STATUS_VALUES, RUN_BASE };
+module.exports = { scaffoldRun, checkRun, parseFirstTable, colIndex, isDataRow, ARTIFACTS, WORKPLAN_COLUMNS, STATUS_VALUES, RUN_BASE };

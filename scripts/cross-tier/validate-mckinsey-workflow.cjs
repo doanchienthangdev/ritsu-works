@@ -251,11 +251,13 @@ function main() {
   // agree with the catalog on the 7 artifact names (catalog spec ↔ run folder).
   try {
     const { ARTIFACTS: RUN_ARTIFACTS } = require('../thinking-toolkit/mckinsey-run.cjs');
-    const catalogArtifacts = JSON.stringify([...new Set(doc.artifacts.files.map((f) => f.name))].sort());
-    const runArtifacts = JSON.stringify([...RUN_ARTIFACTS].sort());
-    if (catalogArtifacts !== runArtifacts) {
-      console.error(`[FAIL] mckinsey-workflow.yaml ↔ scripts/thinking-toolkit/mckinsey-run.cjs artifact drift:\n  catalog    = ${catalogArtifacts}\n  run-helper = ${runArtifacts}`);
-      process.exit(1);
+    if (Array.isArray(doc.artifacts && doc.artifacts.files)) { // guaranteed by validateWorkflow; belt-and-suspenders
+      const catalogArtifacts = JSON.stringify([...new Set(doc.artifacts.files.map((f) => f.name))].sort());
+      const runArtifacts = JSON.stringify([...RUN_ARTIFACTS].sort());
+      if (catalogArtifacts !== runArtifacts) {
+        console.error(`[FAIL] mckinsey-workflow.yaml ↔ scripts/thinking-toolkit/mckinsey-run.cjs artifact drift:\n  catalog    = ${catalogArtifacts}\n  run-helper = ${runArtifacts}`);
+        process.exit(1);
+      }
     }
   } catch (e) {
     if (e && e.code !== 'MODULE_NOT_FOUND') throw e; // helper absent (partial checkout) → skip
