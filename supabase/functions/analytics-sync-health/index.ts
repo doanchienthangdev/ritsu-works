@@ -43,13 +43,25 @@ async function readAnalyticsHealth(): Promise<{ lastOkMs: number | null; latest:
     const fr = await pg.queryObject<{ last_ok: Date | null }>(
       `select max(finished_at) as last_ok from live._sync_runs where status = 'ok'`,
     );
-    const latest = await pg.queryObject<SyncRunLatest>(
-      `select table_name, status, detail
-       from (select distinct on (table_name) table_name, status, detail
+    const latest = await pg.queryObject<{
+      table_name: string; status: string; detail: string | null;
+      rows_synced: string | number | null; started_ms: string | number | null; finished_ms: string | number | null;
+    }>(
+      `select table_name, status, detail, rows_synced,
+              extract(epoch from started_at) * 1000  as started_ms,
+              extract(epoch from finished_at) * 1000 as finished_ms
+       from (select distinct on (table_name) *
              from live._sync_runs order by table_name, id desc) s`,
     );
+    const num = (x: string | number | null) => (x == null ? null : Number(x));
     const lastOk = fr.rows[0]?.last_ok ?? null;
-    return { lastOkMs: lastOk ? new Date(lastOk).getTime() : null, latest: latest.rows };
+    return {
+      lastOkMs: lastOk ? new Date(lastOk).getTime() : null,
+      latest: latest.rows.map((r): SyncRunLatest => ({
+        table_name: r.table_name, status: r.status, detail: r.detail,
+        rows_synced: num(r.rows_synced), started_ms: num(r.started_ms), finished_ms: num(r.finished_ms),
+      })),
+    };
   } finally {
     await pg.end();
   }
