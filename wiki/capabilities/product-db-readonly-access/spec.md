@@ -60,9 +60,25 @@ Three properties never erode: **(a)** identity + content stay in Product forever
 | S4 | monitoring + GDPR erasure | #223 |
 | Phase 8 | this promotion → `operating` | (this PR) |
 
-## 7. Honest follow-ups / residuals
+## 7. Scale, production-impact & monitoring
 
-- **Unattended alert delivery** — the `schedule-dispatcher` Edge Function (Deno) needs `ritsu-analytics` access (creds in the Edge env, a founder D-MAX-ish provisioning) to fire `check-analytics-sync-health.cjs` daily + raise `ops.alerts` → Telegram. Until then, run the health-check manually; the `alert-rules` arm automatically once KPI values flow to `ops.kpi_snapshots`.
+### 7.1 Sync mechanism at scale (the full-replace question)
+`live.sync_one` is **full-replace** per table: pull the whole stripped view over FDW → canary → swap. `sync_all` runs in ONE transaction (pg_cron / single Management-API call), so all 17 swaps commit **atomically** — consumers never see a cross-table mix. The cost is **availability**: each table is `ACCESS EXCLUSIVE`-locked from its drop until the batch commit, so readers block for ~the sync duration (milliseconds now; minutes at scale).
+
+Measured baseline (canonical machinery = `mcp-server-analytics/sql/analytics-machinery.sql`, real per-table timing via `_sync_runs.started_at`/`finished_at`): heaviest table `learning_units` (3.3k rows) ≈ **125ms**; whole batch ≈ 500ms; ~26k rows/s/table. Extrapolating, the heaviest table crosses a ~60–120s/table budget at ~1.6–3.2M rows ≈ **~15–25k users** — i.e. graduate **well before 100k users** (a naive linear extrapolation of full-replace to 100k users / ~35M rows gives **hours**, and would time out on free-tier).
+
+**Roadmap (triggered by `_sync_runs` duration, not pre-built — avoid over-engineering at tiny scale):**
+- **Tầng 0 (done / cheap, [A]):** real per-table duration in `_sync_runs` (the trigger signal). *Next-cheap:* a **view-indirection swap** (`live.<t>` = view over `live._data.<t>_vN`; build the new version lock-free, flip all 17 view pointers in one short txn) → atomic **and** non-blocking. Build when readers start to feel the lock.
+- **Tầng 1 (at ~15–25k users):** **incremental** for the append-only logs (`ai_usage_logs`, `credit_transactions`, `learning_sessions`, `learning_units`) by `created_at`/`id` watermark + UPSERT; keep full-replace for small dims (`profiles`, config) = hybrid. Duration then scales with daily **change**, not total size. Caveat: incremental loses "erasure auto-drops" → add a periodic full-reconcile (anti-join drop vanished PKs) + keep the force-resync; update `SOP-CUSTOMER-023`. Canary unchanged (runs on the delta).
+- **Tầng 2 (real scale):** managed ELT (dlt/Airbyte) or a warehouse + CDC. The security principles (stripped+hashed views, no content, salt product-side, contract-as-API, canary) carry over unchanged — only the plumbing swaps.
+
+### 7.2 Production-DB impact
+At current scale: **negligible** — each pull is a ~125ms `SELECT` on the stripped view (off-peak 11:00 UTC = US trough), `analytics_export_ro` is SELECT-only (can't write/lock-for-write), and a read takes only `ACCESS SHARE` (MVCC → does **not** block Product writes). At scale the concerns are (a) read CPU/IO + buffer-cache pressure, and (b) a long read transaction holding back Product VACUUM (xmin horizon → bloat). Mitigations: **incremental** (cuts the Product read to the daily delta — same fix as §7.1); the founder-applied **`statement_timeout` guard** on `analytics_export_ro` (`sprint4-product-side-guard.sql`, Tier D-MAX — caps a runaway scan, protects VACUUM); and eventually pointing the FDW at a Product **read-replica** so analytics never reads the primary (Door 1 territory).
+
+### 7.3 Monitoring delivery (Bước 3 — Option 2, the Edge path)
+`supabase/functions/analytics-sync-health/` (Deno) + `_shared/analytics-health.ts` (pure verdict logic, unit-tested): reads `live._sync_runs` AS the read-only `analytics_reader` (the canary already ran + logged during the sync), upserts the 2 KPIs to `ops.kpi_snapshots`, raises `ops.alerts` on breach, and delivers **directly to Telegram** (the alert-router backbone is unbuilt; the bot token exists → direct delivery is the interim). **Founder gate** (ops infra + secrets, can't be done from ritsu-works): `supabase functions deploy analytics-sync-health` + `supabase secrets set ANALYTICS_READER_DB_URL / ANALYTICS_HEALTH_SECRET / TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID` + schedule a daily authenticated POST at 12:00 UTC (Supabase cron or pg_cron + pg_net). Until deployed: run `scripts/cross-tier/check-analytics-sync-health.cjs` manually.
+
+### 7.4 Residuals
 - **Same-org residual** — `ritsu-analytics` shares the Product org (free 2-project quota). Isolation pillars intact (separate project/DB/creds + product-side salt + pseudonymized + no content); account/org-level compromise is the residual. Flagged in the DPIA; revisit at scale.
 - **Lawyer / DPIA** — founder-owned track (consulted directly).
 - **Doors 1 & 3** — separate future capabilities.
@@ -71,6 +87,8 @@ Three properties never erode: **(a)** identity + content stay in Product forever
 
 - Contract: `knowledge/analytics-sync-contract.yaml` · Runtime: `SOP-AIOPS-009-analytics-sync-contract`
 - Validator: `scripts/cross-tier/validate-analytics-readonly.cjs` · Health: `scripts/cross-tier/check-analytics-sync-health.cjs`
+- Machinery (reproducible): `mcp-server-analytics/sql/analytics-machinery.sql` · Edge monitor: `supabase/functions/analytics-sync-health/` (+ `_shared/analytics-health.ts`, `tests/analytics-health.test.ts`)
+- Product-side guard (founder D-MAX): `.archives/brainstorming/product-db-readonly-access-2026-06-02/sql/sprint4-product-side-guard.sql`
 - Firewall: `.claude/hooks/runtime/{product-firewall.cjs,pre-tool-supabase-product.cjs}` (PR #204)
 - Manifest: `knowledge/manifest.yaml` `etl_flows.analytics_sync_nightly` + `cross_cutting.tool_plane` `supabase-analytics`
 - Brainstorm + all SQL (local-only): `.archives/brainstorming/product-db-readonly-access-2026-06-02/`
