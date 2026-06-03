@@ -86,6 +86,7 @@ const CHAPTER_ORDER = [
   "phase-a2/47-capability-case-design-system-styling.md",
   "phase-a2/48-capability-case-image-platform.md",
   "phase-a2/49-tutorial-think-mckinsey-engine.md",
+  "phase-a2/50-tutorial-product-db-readonly-access.md",
   "A1-glossary.md",
   "A2-references.md",
   "A3-pr-templates.md",
