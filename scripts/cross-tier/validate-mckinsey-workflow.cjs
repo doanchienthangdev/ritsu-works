@@ -39,11 +39,14 @@ const CANONICAL_4S = ['state', 'structure', 'solve', 'sell'];
 const ID_RE = /^[a-z][a-z0-9-]*$/;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 
-// v1.4 known sets — the catalog may only reference these.
-const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'one-day-answer', 'synthesis'];
+// v1.4/v1.5 known sets — the catalog may only reference these.
+// v1.5: +'communication' (the step-7 story artifact, distinct from step-6 'synthesis').
+const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'one-day-answer', 'synthesis', 'communication'];
 const TOOLS = ['deepask', 'wiki_ask', 'gbrain', 'supabase-ops-query', 'deep-research', 'think-skills', 'ask-user'];
-// Engine sections that must each be a non-empty array (v1.4 dynamic engine).
-const ENGINE_SECTIONS = ['validation_gate', 'routing_rules', 'hitl_triggers', 'back_edges', 'stopping_criterion'];
+// Engine sections that must each be a non-empty array (v1.4 dynamic engine; each
+// element may carry a `concept` {book,slug} ref that is file-existence-checked).
+// v1.5: +'tool_selection' (the load + select mechanism over the candidate registry).
+const ENGINE_SECTIONS = ['tool_selection', 'validation_gate', 'routing_rules', 'hitl_triggers', 'back_edges', 'stopping_criterion'];
 
 /**
  * Pure validation. Returns an array of error strings (empty = valid).

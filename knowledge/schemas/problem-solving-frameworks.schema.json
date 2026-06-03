@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "knowledge/schemas/problem-solving-frameworks.schema.json",
+  "title": "McKinsey problem-solving toolkit candidate registry",
+  "description": "The structured, filterable, extensible pool of problem-solving frameworks / models / heuristics / techniques / concepts / biases distilled from Cracked It! + Bulletproof Problem Solving — the LOAD substrate for the mckinsey-workflow (thinking-toolkit v1.5) `tool_selection` layer. Each entry classifies a wiki concept by 4S step + type so the engine can FILTER candidates for a sub-need, then read the real content via wiki_path. Structural validity here; file-existence + COMPLETENESS (every book concept registered) is enforced by scripts/cross-tier/validate-frameworks-registry.cjs.",
+  "type": "object",
+  "required": ["version", "frameworks"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string", "minLength": 1 },
+    "schema": { "type": "string" },
+    "source_books": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Wiki source slugs the candidates are drawn from."
+    },
+    "frameworks": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The candidate pool — one entry per problem-solving concept.",
+      "items": {
+        "type": "object",
+        "required": ["slug", "book", "fours_step", "type", "wiki_path", "title"],
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "description": "Concept page slug under wiki/<book>/concepts/."
+          },
+          "book": {
+            "type": "string",
+            "enum": ["cracked-it", "bulletproof-problem-solving"],
+            "description": "Wiki source slug the concept was distilled from."
+          },
+          "fours_step": {
+            "type": "string",
+            "enum": ["state", "structure", "solve", "sell", "cross"],
+            "description": "Which 4S stage this candidate primarily serves; 'cross' = applies across stages (methods, cognition, guard-rail biases)."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["framework", "model", "heuristic", "technique", "concept", "bias", "antipattern"],
+            "description": "Coarse kind. framework/model/heuristic/technique = tools to LOAD+APPLY; bias/antipattern = guard-rails for the debias/validation gate; concept = principle/idea. A filter hint — the engine reads the content to decide."
+          },
+          "wiki_path": {
+            "type": "string",
+            "pattern": "^wiki/(cracked-it|bulletproof-problem-solving)/concepts/[a-z0-9][a-z0-9-]*\\.md$",
+            "description": "Path to the concept's full content; the engine Reads (or wiki_asks) this at SELECT time."
+          },
+          "title": { "type": "string", "minLength": 1, "description": "Human display name of the candidate." }
+        }
+      }
+    }
+  }
+}
