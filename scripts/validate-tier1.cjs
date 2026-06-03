@@ -56,6 +56,7 @@ const FILE_TO_SCHEMA = {
   'update-file-paths.yaml': 'update-file-paths.schema.json',
   'image-adapters.yaml': 'image-adapters.schema.json',
   'mckinsey-workflow.yaml': 'mckinsey-workflow.schema.json',
+  'problem-solving-frameworks.yaml': 'problem-solving-frameworks.schema.json',
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });

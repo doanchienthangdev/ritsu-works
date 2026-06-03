@@ -1,0 +1,1276 @@
+# ============================================================================
+# problem-solving-frameworks.yaml — the McKinsey toolkit CANDIDATE REGISTRY
+# ============================================================================
+# Capability: thinking-toolkit v1.5. The structured, filterable, extensible pool
+# of 207 problem-solving frameworks / models / heuristics / techniques /
+# concepts / biases distilled from the two McKinsey books — the LOAD substrate
+# for the mckinsey-workflow `tool_selection` layer. The engine FILTERs this
+# registry (by fours_step + type) to shortlist candidates for a sub-need, then
+# reads each candidate's content via wiki_path (or wiki_ask) at SELECT time.
+#
+# Why this exists (founder, 2026-06-03): the ~207 candidates EXISTED as wiki
+# files, but there was no structured/classified/enumerable registry — wiki_ask
+# is fuzzy RAG (can't filter "Structure-step frameworks"), and the resolver
+# indexes recipients, not individual concepts. This is that registry.
+#
+# SEEDED by scripts/thinking-toolkit/gen-frameworks-registry.cjs (deterministic:
+# fours_step from source chapter, type from slug keyword) then HAND-MAINTAINABLE
+# (fix a mis-typed entry by editing here; re-run the generator with --check to
+# find concepts newly synced into the wiki — extensible). `type` is a coarse
+# filter hint; the engine reads the real content to decide.
+#
+# Schema:    knowledge/schemas/problem-solving-frameworks.schema.json
+# Validator: scripts/cross-tier/validate-frameworks-registry.cjs (L2 critical;
+#            check-consistency.cjs + CI). Proves COMPLETENESS (every book concept
+#            is registered) + every wiki_path exists + enums valid.
+#
+# Counts: 207 total | by step {"sell":38,"cross":52,"state":20,"solve":59,"structure":38} | by type {"concept":110,"antipattern":12,"technique":23,"framework":42,"bias":12,"heuristic":8}
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/problem-solving-frameworks.schema.json
+source_books: [cracked-it, bulletproof-problem-solving]
+
+frameworks:
+  - slug: 4s-method-end-to-end-application
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/4s-method-end-to-end-application.md
+    title: "4S Method End-to-End Application"
+  - slug: 4s-method
+    book: cracked-it
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/4s-method.md
+    title: "The 4S Method"
+  - slug: action-title-discipline
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/action-title-discipline.md
+    title: "Action Title Discipline"
+  - slug: actors-component
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/actors-component.md
+    title: "Actors (TOSCA Component)"
+  - slug: amazon-narrative-memo-format
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/amazon-narrative-memo-format.md
+    title: "Amazon Narrative Memo Format"
+  - slug: analogical-reasoning-limits
+    book: cracked-it
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/analogical-reasoning-limits.md
+    title: "Analogical Reasoning and Its Limits"
+  - slug: analogical-thinking
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/analogical-thinking.md
+    title: "Analogical Thinking"
+  - slug: analysis-paralysis-vs-jumping-to-conclusions
+    book: cracked-it
+    fours_step: cross
+    type: antipattern
+    wiki_path: wiki/cracked-it/concepts/analysis-paralysis-vs-jumping-to-conclusions.md
+    title: "Othello–Hamlet Spectrum"
+  - slug: analysis-plan
+    book: cracked-it
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/cracked-it/concepts/analysis-plan.md
+    title: "Analysis Plan"
+  - slug: analytical-framework
+    book: cracked-it
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/analytical-framework.md
+    title: "Analytical Framework"
+  - slug: argument-pattern-scr
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/argument-pattern-scr.md
+    title: "Argument Pattern (Situation–Complication–Resolution)"
+  - slug: bottom-up-pyramid-building
+    book: cracked-it
+    fours_step: sell
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/bottom-up-pyramid-building.md
+    title: "Bottom-Up Pyramid Building"
+  - slug: brainstorming-and-brainwriting
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/brainstorming-and-brainwriting.md
+    title: "Brainstorming and Brainwriting"
+  - slug: cartesian-method
+    book: cracked-it
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/cartesian-method.md
+    title: "Cartesian Method as Foundation for Issue-Driven Structuring"
+  - slug: collegial-practice-for-feedback
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/collegial-practice-for-feedback.md
+    title: "Collegial Practice for Feedback"
+  - slug: concept-selection-matrix
+    book: cracked-it
+    fours_step: solve
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/concept-selection-matrix.md
+    title: "Concept Selection Matrix"
+  - slug: conceptual-charts-sparingly
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/conceptual-charts-sparingly.md
+    title: "Conceptual Charts Used Sparingly"
+  - slug: confirmation-bias-in-analysis
+    book: cracked-it
+    fours_step: solve
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/confirmation-bias-in-analysis.md
+    title: "Confirmation Bias in Analysis"
+  - slug: confirmation-bias-in-hypothesis-driven-thinking
+    book: cracked-it
+    fours_step: structure
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/confirmation-bias-in-hypothesis-driven-thinking.md
+    title: "Confirmation Bias and Pitfalls of Hypothesis-Driven Thinking"
+  - slug: confirmation-bias
+    book: cracked-it
+    fours_step: cross
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/confirmation-bias.md
+    title: "Confirmation Bias"
+  - slug: constraints-component
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/constraints-component.md
+    title: "Constraints (TOSCA Component)"
+  - slug: core-question-scope
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/core-question-scope.md
+    title: "Core Question Scope"
+  - slug: correlation-vs-causation
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/correlation-vs-causation.md
+    title: "Correlation vs. Causation"
+  - slug: creative-peers-in-concept-evaluation
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/creative-peers-in-concept-evaluation.md
+    title: "Creative Peers in Concept Evaluation"
+  - slug: deliberate-practice-with-stabilizers
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/deliberate-practice-with-stabilizers.md
+    title: "Deliberate Practice with Stabilizers"
+  - slug: design-brief
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/design-brief.md
+    title: "Design Brief"
+  - slug: design-imperatives
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/design-imperatives.md
+    title: "Design Imperatives"
+  - slug: design-thinking-mindset
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/design-thinking-mindset.md
+    title: "Design Thinking Mindset"
+  - slug: design-thinking
+    book: cracked-it
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/design-thinking.md
+    title: "Design Thinking"
+  - slug: desirability-feasibility-viability-triad
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/desirability-feasibility-viability-triad.md
+    title: "Desirability–Feasibility–Viability Triad"
+  - slug: disciplined-problem-solving-method
+    book: cracked-it
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/disciplined-problem-solving-method.md
+    title: "Disciplined Problem-Solving Method"
+  - slug: eight-degrees-of-analysis
+    book: cracked-it
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/cracked-it/concepts/eight-degrees-of-analysis.md
+    title: "Eight Degrees of Analysis"
+  - slug: elevator-pitch-for-recommendations
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/elevator-pitch-for-recommendations.md
+    title: "Elevator Pitch for Recommendations"
+  - slug: empathize-phase
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/empathize-phase.md
+    title: "Empathize Phase (Design Thinking)"
+  - slug: empathy-map
+    book: cracked-it
+    fours_step: solve
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/empathy-map.md
+    title: "Empathy Map"
+  - slug: expertise-trap
+    book: cracked-it
+    fours_step: cross
+    type: antipattern
+    wiki_path: wiki/cracked-it/concepts/expertise-trap.md
+    title: "The Expertise Trap"
+  - slug: extreme-users
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/extreme-users.md
+    title: "Extreme Users"
+  - slug: field-of-dreams-principle
+    book: cracked-it
+    fours_step: cross
+    type: antipattern
+    wiki_path: wiki/cracked-it/concepts/field-of-dreams-principle.md
+    title: "Field of Dreams Principle"
+  - slug: five-phases-of-design-thinking
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/five-phases-of-design-thinking.md
+    title: "Five Phases of Design Thinking"
+  - slug: flawed-problem-definition
+    book: cracked-it
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/flawed-problem-definition.md
+    title: "Flawed Problem Definition"
+  - slug: framework-mental-model-danger
+    book: cracked-it
+    fours_step: structure
+    type: antipattern
+    wiki_path: wiki/cracked-it/concepts/framework-mental-model-danger.md
+    title: "Framework as Mental Model — The Danger of Unquestioned Assumptions"
+  - slug: functional-framework
+    book: cracked-it
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/functional-framework.md
+    title: "Functional Framework"
+  - slug: governing-thought
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/governing-thought.md
+    title: "Governing Thought (Core Message)"
+  - slug: grouping-pattern
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/grouping-pattern.md
+    title: "Grouping Storyline Pattern"
+  - slug: groupthink-in-hypothesis-testing
+    book: cracked-it
+    fours_step: cross
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/groupthink-in-hypothesis-testing.md
+    title: "Groupthink in Hypothesis Testing"
+  - slug: how-might-we-question
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/how-might-we-question.md
+    title: "\\\"How Might We\\\" Design Goal"
+  - slug: hypothesis-driven-problem-solving
+    book: cracked-it
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/hypothesis-driven-problem-solving.md
+    title: "Hypothesis-Driven Problem Solving"
+  - slug: hypothesis-driven-vs-issue-driven
+    book: cracked-it
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/hypothesis-driven-vs-issue-driven.md
+    title: "Hypothesis-Driven vs. Issue-Driven Problem Structuring"
+  - slug: hypothesis-pyramid-testing
+    book: cracked-it
+    fours_step: solve
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/hypothesis-pyramid-testing.md
+    title: "Hypothesis Pyramid Testing"
+  - slug: hypothesis-pyramid
+    book: cracked-it
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/hypothesis-pyramid.md
+    title: "Hypothesis Pyramid"
+  - slug: ideate-phase-diverge-then-converge
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/ideate-phase-diverge-then-converge.md
+    title: "Ideate Phase: Diverge Then Converge"
+  - slug: industry-framework
+    book: cracked-it
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/industry-framework.md
+    title: "Industry Framework"
+  - slug: intermediary-checkpoints
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/intermediary-checkpoints.md
+    title: "Intermediary Checkpoints"
+  - slug: internal-plans-as-assumption-type
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/internal-plans-as-assumption-type.md
+    title: "Internal Plans as a Special Type of Assumption"
+  - slug: issue-driven-problem-solving
+    book: cracked-it
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/issue-driven-problem-solving.md
+    title: "Issue-Driven Problem Solving"
+  - slug: issue-tree-two-branch-structure
+    book: cracked-it
+    fours_step: sell
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/issue-tree-two-branch-structure.md
+    title: "Issue Tree Two-Branch Structure"
+  - slug: issue-tree
+    book: cracked-it
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/issue-tree.md
+    title: "Issue Tree"
+  - slug: journey-map
+    book: cracked-it
+    fours_step: solve
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/journey-map.md
+    title: "User Journey Map"
+  - slug: judgment-call-transparency
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/judgment-call-transparency.md
+    title: "Judgment Call Transparency"
+  - slug: key-line
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/key-line.md
+    title: "Key Line"
+  - slug: like-for-like-lfl-growth-framework
+    book: cracked-it
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/like-for-like-lfl-growth-framework.md
+    title: "Like-for-Like (LFL) Growth Framework"
+  - slug: logical-decomposition
+    book: cracked-it
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/logical-decomposition.md
+    title: "Logical Decomposition"
+  - slug: maslows-hammer
+    book: cracked-it
+    fours_step: cross
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/maslows-hammer.md
+    title: "Maslow's Hammer (Law of the Instrument)"
+  - slug: master-problem-solver-profile
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/master-problem-solver-profile.md
+    title: "Master Problem-Solver Profile"
+  - slug: mece
+    book: cracked-it
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/mece.md
+    title: "MECE (Mutually Exclusive and Collectively Exhaustive)"
+  - slug: miscommunication-pitfall
+    book: cracked-it
+    fours_step: cross
+    type: antipattern
+    wiki_path: wiki/cracked-it/concepts/miscommunication-pitfall.md
+    title: "Miscommunication Pitfall"
+  - slug: modular-report-structure
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/modular-report-structure.md
+    title: "Modular Report Structure"
+  - slug: morphological-analysis
+    book: cracked-it
+    fours_step: solve
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/morphological-analysis.md
+    title: "Morphological Analysis"
+  - slug: multiple-frameworks-discipline
+    book: cracked-it
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/multiple-frameworks-discipline.md
+    title: "Multiple Frameworks Discipline"
+  - slug: narrow-framing
+    book: cracked-it
+    fours_step: cross
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/narrow-framing.md
+    title: "Narrow Framing"
+  - slug: necessary-and-sufficient-conditions
+    book: cracked-it
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/necessary-and-sufficient-conditions.md
+    title: "Necessary and Sufficient Conditions"
+  - slug: open-mindedness-through-iteration
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/open-mindedness-through-iteration.md
+    title: "Open-Mindedness Through Iteration"
+  - slug: owner-centric-problem-definition
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/owner-centric-problem-definition.md
+    title: "Owner-Centric Problem Definition"
+  - slug: owner-component
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/owner-component.md
+    title: "Owner (TOSCA Component)"
+  - slug: pareto-80-20-pruning
+    book: cracked-it
+    fours_step: structure
+    type: heuristic
+    wiki_path: wiki/cracked-it/concepts/pareto-80-20-pruning.md
+    title: "80/20 Rule for Issue Tree Pruning"
+  - slug: pattern-recognition-in-expert-problem-solving
+    book: cracked-it
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/pattern-recognition-in-expert-problem-solving.md
+    title: "Pattern Recognition in Expert Problem Solving"
+  - slug: pov-statement
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/pov-statement.md
+    title: "Point-of-View (POV) Statement"
+  - slug: powerpoint-curse
+    book: cracked-it
+    fours_step: sell
+    type: antipattern
+    wiki_path: wiki/cracked-it/concepts/powerpoint-curse.md
+    title: "The PowerPoint Curse"
+  - slug: pre-wiring-the-final-meeting
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/pre-wiring-the-final-meeting.md
+    title: "Pre-Wiring the Final Meeting"
+  - slug: problem-reframing-via-empathy
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/problem-reframing-via-empathy.md
+    title: "Problem Reframing via Empathy"
+  - slug: problem-solving-as-skill-not-knowledge
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/problem-solving-as-skill-not-knowledge.md
+    title: "Problem-Solving as Skill, Not Knowledge"
+  - slug: problem-statement-iteration
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/problem-statement-iteration.md
+    title: "Iterative Problem Statement"
+  - slug: prototype-as-experiment
+    book: cracked-it
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/cracked-it/concepts/prototype-as-experiment.md
+    title: "Prototype as Experiment"
+  - slug: prototype-planning-four-steps
+    book: cracked-it
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/cracked-it/concepts/prototype-planning-four-steps.md
+    title: "Prototype Planning: Four Steps"
+  - slug: psac-problem-solving-approach-of-consulting
+    book: cracked-it
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/psac-problem-solving-approach-of-consulting.md
+    title: "PSAC: Problem-Solving Approach of Consulting"
+  - slug: pyramid-principle-mini-pyramids
+    book: cracked-it
+    fours_step: sell
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/pyramid-principle-mini-pyramids.md
+    title: "Pyramid Principle Mini-Pyramids"
+  - slug: pyramid-principle
+    book: cracked-it
+    fours_step: sell
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/pyramid-principle.md
+    title: "Pyramid Principle"
+  - slug: qualitative-data-sampling-bias
+    book: cracked-it
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/cracked-it/concepts/qualitative-data-sampling-bias.md
+    title: "Qualitative Data Sampling Bias"
+  - slug: quantitative-chart-typology
+    book: cracked-it
+    fours_step: sell
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/quantitative-chart-typology.md
+    title: "Quantitative Chart Typology"
+  - slug: reservation-price-valuation
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/reservation-price-valuation.md
+    title: "Reservation Price Valuation"
+  - slug: scamper-ideation-framework
+    book: cracked-it
+    fours_step: solve
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/scamper-ideation-framework.md
+    title: "SCAMPER Ideation Framework"
+  - slug: scope-narrowing-during-solve
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/scope-narrowing-during-solve.md
+    title: "Scope Narrowing During Solve"
+  - slug: sensitivity-analysis
+    book: cracked-it
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/cracked-it/concepts/sensitivity-analysis.md
+    title: "Sensitivity Analysis"
+  - slug: so-what-question
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/so-what-question.md
+    title: "The 'So What?' Question"
+  - slug: solution-confirmation-pitfall
+    book: cracked-it
+    fours_step: state
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/solution-confirmation-pitfall.md
+    title: "Solution-Confirmation Pitfall"
+  - slug: solution-confirmation
+    book: cracked-it
+    fours_step: solve
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/solution-confirmation.md
+    title: "Solution Confirmation"
+  - slug: solution-imperatives
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/solution-imperatives.md
+    title: "Solution Imperatives"
+  - slug: stakeholder-empathy-and-immersion
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/stakeholder-empathy-and-immersion.md
+    title: "Stakeholder Empathy and Immersion"
+  - slug: story-of-the-search-antipattern
+    book: cracked-it
+    fours_step: sell
+    type: antipattern
+    wiki_path: wiki/cracked-it/concepts/story-of-the-search-antipattern.md
+    title: "Story-of-the-Search Anti-Pattern"
+  - slug: storyline-design
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/storyline-design.md
+    title: "Storyline Design"
+  - slug: storyline-grouping-pattern
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/storyline-grouping-pattern.md
+    title: "Storyline Grouping Pattern"
+  - slug: storyline-to-slide-deck
+    book: cracked-it
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/storyline-to-slide-deck.md
+    title: "Storyline-to-Slide-Deck Translation"
+  - slug: success-criteria-component
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/success-criteria-component.md
+    title: "Success Criteria (TOSCA Component)"
+  - slug: survivor-bias
+    book: cracked-it
+    fours_step: solve
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/survivor-bias.md
+    title: "Survivor Bias"
+  - slug: symptom-vs-diagnosis
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/symptom-vs-diagnosis.md
+    title: "Symptom vs. Diagnosis in Problem Definition"
+  - slug: system-1-system-2-thinking
+    book: cracked-it
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/system-1-system-2-thinking.md
+    title: "System 1 and System 2 Thinking"
+  - slug: test-phase-process
+    book: cracked-it
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/cracked-it/concepts/test-phase-process.md
+    title: "Test Phase Process"
+  - slug: three-styles-of-frameworks
+    book: cracked-it
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/three-styles-of-frameworks.md
+    title: "Three Styles of Analytical Frameworks"
+  - slug: tosca-framework
+    book: cracked-it
+    fours_step: state
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/tosca-framework.md
+    title: "TOSCA Framework"
+  - slug: tosca-problem-framing-in-practice
+    book: cracked-it
+    fours_step: sell
+    type: framework
+    wiki_path: wiki/cracked-it/concepts/tosca-problem-framing-in-practice.md
+    title: "TOSCA Problem Framing in Practice"
+  - slug: trouble-component
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/trouble-component.md
+    title: "Trouble (TOSCA Component)"
+  - slug: unknown-unknowns
+    book: cracked-it
+    fours_step: cross
+    type: antipattern
+    wiki_path: wiki/cracked-it/concepts/unknown-unknowns.md
+    title: "Unknown Unknowns (Unk-Unks)"
+  - slug: user-persona
+    book: cracked-it
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/user-persona.md
+    title: "User Persona"
+  - slug: value-drivers
+    book: cracked-it
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/value-drivers.md
+    title: "Value Drivers (Industry-Specific)"
+  - slug: wicked-problems
+    book: cracked-it
+    fours_step: state
+    type: concept
+    wiki_path: wiki/cracked-it/concepts/wicked-problems.md
+    title: "Wicked Problems"
+  - slug: wrong-framework
+    book: cracked-it
+    fours_step: cross
+    type: antipattern
+    wiki_path: wiki/cracked-it/concepts/wrong-framework.md
+    title: "Wrong Framework"
+  - slug: wysiati-bias
+    book: cracked-it
+    fours_step: cross
+    type: bias
+    wiki_path: wiki/cracked-it/concepts/wysiati-bias.md
+    title: "WYSIATI — What You See Is All There Is"
+  - slug: analytics-tool-selection-decision-tree
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/analytics-tool-selection-decision-tree.md
+    title: "Analytics Tool Selection Decision Tree"
+  - slug: anxious-parade-of-knowledge
+    book: bulletproof-problem-solving
+    fours_step: sell
+    type: antipattern
+    wiki_path: wiki/bulletproof-problem-solving/concepts/anxious-parade-of-knowledge.md
+    title: "Anxious Parade of Knowledge (APK)"
+  - slug: bayesian-conditional-statistics
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/bayesian-conditional-statistics.md
+    title: "Bayesian / Conditional Statistics"
+  - slug: big-bets-and-no-regrets-moves
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/big-bets-and-no-regrets-moves.md
+    title: "Big Bets and No-Regrets Moves"
+  - slug: break-even-analysis
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/break-even-analysis.md
+    title: "Break-Even Analysis"
+  - slug: bulletproof-problem-solving-cycle
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/bulletproof-problem-solving-cycle.md
+    title: "Bulletproof Problem Solving Cycle"
+  - slug: bulletproof-problem-solving-seven-step-framework
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/bulletproof-problem-solving-seven-step-framework.md
+    title: "Bulletproof Problem Solving Seven-Step Framework"
+  - slug: chunky-workplans-lean-project-plans
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/chunky-workplans-lean-project-plans.md
+    title: "Chunky Workplans and Lean Project Plans"
+  - slug: cleaving-frames
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/cleaving-frames.md
+    title: "Cleaving Frames"
+  - slug: cleaving-wicked-problems
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/cleaving-wicked-problems.md
+    title: "Cleaving Wicked Problems"
+  - slug: cognitive-bias-in-problem-solving
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: bias
+    wiki_path: wiki/bulletproof-problem-solving/concepts/cognitive-bias-in-problem-solving.md
+    title: "Cognitive Bias in Problem Solving"
+  - slug: compelling-storyline-synthesis
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/compelling-storyline-synthesis.md
+    title: "Compelling Storyline Synthesis"
+  - slug: correlation-vs-causation-pitfall
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: antipattern
+    wiki_path: wiki/bulletproof-problem-solving/concepts/correlation-vs-causation-pitfall.md
+    title: "Correlation vs. Causation Pitfall"
+  - slug: cost-curve-for-policy-interventions
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/cost-curve-for-policy-interventions.md
+    title: "Cost Curve for Policy Interventions"
+  - slug: critical-path-analysis-prioritization
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/critical-path-analysis-prioritization.md
+    title: "Critical Path Analysis and Prioritization"
+  - slug: crowdsourcing-algorithms
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/crowdsourcing-algorithms.md
+    title: "Crowdsourcing Algorithms and Competitions"
+  - slug: decision-tree
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/decision-tree.md
+    title: "Decision Tree"
+  - slug: deductive-logic-tree
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/deductive-logic-tree.md
+    title: "Deductive Logic Tree"
+  - slug: design-thinking-integration
+    book: bulletproof-problem-solving
+    fours_step: state
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/design-thinking-integration.md
+    title: "Design Thinking Integration with Seven Steps"
+  - slug: dialectic-standard
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/dialectic-standard.md
+    title: "Dialectic Standard (Thesis-Antithesis-Synthesis)"
+  - slug: distribution-of-outcomes
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/distribution-of-outcomes.md
+    title: "Distribution of Outcomes"
+  - slug: expected-value-calculation
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/expected-value-calculation.md
+    title: "Expected Value Calculation"
+  - slug: factor-component-tree
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/factor-component-tree.md
+    title: "Factor / Component Tree"
+  - slug: five-cognitive-biases-problem-solving
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: bias
+    wiki_path: wiki/bulletproof-problem-solving/concepts/five-cognitive-biases-problem-solving.md
+    title: "Five Core Cognitive Biases in Problem Solving"
+  - slug: five-level-uncertainty-schema
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/five-level-uncertainty-schema.md
+    title: "Five-Level Uncertainty Schema"
+  - slug: game-theory-thinking
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/game-theory-thinking.md
+    title: "Game Theory Thinking"
+  - slug: heuristics-before-big-guns
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: heuristic
+    wiki_path: wiki/bulletproof-problem-solving/concepts/heuristics-before-big-guns.md
+    title: "Heuristics Before Big Guns"
+  - slug: heuristics-rules-of-thumb
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: heuristic
+    wiki_path: wiki/bulletproof-problem-solving/concepts/heuristics-rules-of-thumb.md
+    title: "Heuristics and Rules of Thumb"
+  - slug: highest-level-problem-solving
+    book: bulletproof-problem-solving
+    fours_step: state
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/highest-level-problem-solving.md
+    title: "Highest-Level Problem Solving"
+  - slug: horizontal-logic-storyboard
+    book: bulletproof-problem-solving
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/horizontal-logic-storyboard.md
+    title: "Horizontal Logic and Storyboarding"
+  - slug: hypothesis-driven-approach
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/hypothesis-driven-approach.md
+    title: "Hypothesis-Driven Approach"
+  - slug: hypothesis-driven-workplanning
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/hypothesis-driven-workplanning.md
+    title: "Hypothesis-Driven Workplanning"
+  - slug: hypothesis-first-sequencing
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/hypothesis-first-sequencing.md
+    title: "Hypothesis-First Sequencing Before Advanced Analysis"
+  - slug: inductive-deductive-argument-structures
+    book: bulletproof-problem-solving
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/inductive-deductive-argument-structures.md
+    title: "Inductive and Deductive Argument Structures"
+  - slug: inductive-logic-tree
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/inductive-logic-tree.md
+    title: "Inductive Logic Tree"
+  - slug: internalizing-externalities
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/internalizing-externalities.md
+    title: "Internalizing Externalities"
+  - slug: knock-out-analysis
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: heuristic
+    wiki_path: wiki/bulletproof-problem-solving/concepts/knock-out-analysis.md
+    title: "Knock-Out Analysis"
+  - slug: logic-tree
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/logic-tree.md
+    title: "Logic Tree"
+  - slug: machine-learning-for-prediction
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/machine-learning-for-prediction.md
+    title: "Machine Learning for Prediction"
+  - slug: marginal-analysis
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/marginal-analysis.md
+    title: "Marginal Analysis"
+  - slug: market-based-conservation-easement
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/market-based-conservation-easement.md
+    title: "Market-Based Conservation Easement"
+  - slug: mece-problem-structure
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/mece-problem-structure.md
+    title: "MECE Problem Structure"
+  - slug: mece
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/mece.md
+    title: "MECE (Mutually Exclusive, Collectively Exhaustive)"
+  - slug: mental-muscle-machine-muscle-partnership
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/mental-muscle-machine-muscle-partnership.md
+    title: "Mental Muscle and Machine Muscle Partnership"
+  - slug: monte-carlo-simulation
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/monte-carlo-simulation.md
+    title: "Monte Carlo / Computer Simulation"
+  - slug: multivariate-regression-analysis
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/multivariate-regression-analysis.md
+    title: "Multivariate Regression Analysis"
+  - slug: natural-experiments
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/natural-experiments.md
+    title: "Natural Experiments (Quasi-Experiments)"
+  - slug: neglecting-team-diversity-and-norms
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/neglecting-team-diversity-and-norms.md
+    title: "Neglecting Team Diversity and Cognitive Norms"
+  - slug: occams-razor
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: heuristic
+    wiki_path: wiki/bulletproof-problem-solving/concepts/occams-razor.md
+    title: "Occam's Razor"
+  - slug: one-day-answer
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/one-day-answer.md
+    title: "One-Day Answer"
+  - slug: one-day-answers
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/one-day-answers.md
+    title: "One-Day Answers"
+  - slug: order-of-magnitude-analysis
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: heuristic
+    wiki_path: wiki/bulletproof-problem-solving/concepts/order-of-magnitude-analysis.md
+    title: "Order of Magnitude Analysis"
+  - slug: outcomes-focused-problem-definition
+    book: bulletproof-problem-solving
+    fours_step: state
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/outcomes-focused-problem-definition.md
+    title: "Outcomes-Focused Problem Definition"
+  - slug: pareto-principle-80-20
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: heuristic
+    wiki_path: wiki/bulletproof-problem-solving/concepts/pareto-principle-80-20.md
+    title: "Pareto Principle (80:20 Rule)"
+  - slug: porpoising
+    book: bulletproof-problem-solving
+    fours_step: state
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/porpoising.md
+    title: "Porpoising"
+  - slug: portfolio-of-strategies-matrix
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/portfolio-of-strategies-matrix.md
+    title: "Portfolio of Strategies Matrix"
+  - slug: pre-mortem-analysis
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/pre-mortem-analysis.md
+    title: "Pre-Mortem Analysis and Downside Scenario Modeling"
+  - slug: prioritization-2x2-matrix
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/prioritization-2x2-matrix.md
+    title: "Prioritization 2x2 Matrix (Impact vs. Ability to Affect)"
+  - slug: problem-boundary-definition
+    book: bulletproof-problem-solving
+    fours_step: state
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/problem-boundary-definition.md
+    title: "Problem Boundary Definition"
+  - slug: problem-disaggregation
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/problem-disaggregation.md
+    title: "Problem Disaggregation"
+  - slug: problem-solvers-are-made-not-born
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/problem-solvers-are-made-not-born.md
+    title: "Problem Solvers Are Made Not Born"
+  - slug: problem-solving-organization
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/problem-solving-organization.md
+    title: "Problem-Solving Organization"
+  - slug: problem-solving-pitfalls-catalogue
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: antipattern
+    wiki_path: wiki/bulletproof-problem-solving/concepts/problem-solving-pitfalls-catalogue.md
+    title: "Seven Common Problem-Solving Pitfalls"
+  - slug: problem-statement-worksheet
+    book: bulletproof-problem-solving
+    fours_step: state
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/problem-statement-worksheet.md
+    title: "Problem Statement Worksheet"
+  - slug: profit-lever-tree
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/profit-lever-tree.md
+    title: "Profit Lever Tree"
+  - slug: pyramid-principle-output-structure
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/pyramid-principle-output-structure.md
+    title: "Situation-Complication-Resolution Structure"
+  - slug: pyramid-structure
+    book: bulletproof-problem-solving
+    fours_step: sell
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/pyramid-structure.md
+    title: "Pyramid Structure"
+  - slug: question-based-problem-solving
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/question-based-problem-solving.md
+    title: "Question-Based Problem Solving (Sherlock Holmes Framework)"
+  - slug: randomized-controlled-trials-and-ab-testing
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/randomized-controlled-trials-and-ab-testing.md
+    title: "Randomized Controlled Trials and A/B Testing"
+  - slug: reasoning-by-analogy
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/reasoning-by-analogy.md
+    title: "Reasoning by Analogy"
+  - slug: return-on-invested-capital-tree
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/return-on-invested-capital-tree.md
+    title: "Return on Invested Capital (ROIC) Tree"
+  - slug: revealed-decision-tree-storyline
+    book: bulletproof-problem-solving
+    fours_step: sell
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/revealed-decision-tree-storyline.md
+    title: "Revealed Decision-Tree Storyline"
+  - slug: root-cause-analysis-five-whys
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/root-cause-analysis-five-whys.md
+    title: "Root Cause Analysis and Five Whys"
+  - slug: rule-of-72
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: heuristic
+    wiki_path: wiki/bulletproof-problem-solving/concepts/rule-of-72.md
+    title: "Rule of 72"
+  - slug: s-curve-adoption
+    book: bulletproof-problem-solving
+    fours_step: solve
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/s-curve-adoption.md
+    title: "S-Curve Adoption Model"
+  - slug: seven-step-process-as-accordion
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/seven-step-process-as-accordion.md
+    title: "Seven-Step Process as Accordion"
+  - slug: seven-steps-applied-to-wicked-problems
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/seven-steps-applied-to-wicked-problems.md
+    title: "Seven-Steps Framework Applied to Wicked Problems"
+  - slug: situation-observation-resolution
+    book: bulletproof-problem-solving
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/situation-observation-resolution.md
+    title: "Situation–Observation–Resolution (SOR) Structure"
+  - slug: smart-problem-statement-criteria
+    book: bulletproof-problem-solving
+    fours_step: state
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/smart-problem-statement-criteria.md
+    title: "SMART Problem Statement Criteria"
+  - slug: staircase-architecture-dimensions
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/staircase-architecture-dimensions.md
+    title: "Staircase Architecture Dimensions"
+  - slug: staircase-strategy
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/staircase-strategy.md
+    title: "Staircase Strategy (Growth Horizons)"
+  - slug: synthesis-and-storytelling
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/synthesis-and-storytelling.md
+    title: "Synthesis and Storytelling"
+  - slug: synthesis-of-findings
+    book: bulletproof-problem-solving
+    fours_step: sell
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/synthesis-of-findings.md
+    title: "Synthesis of Findings"
+  - slug: team-bias-mitigation-practices
+    book: bulletproof-problem-solving
+    fours_step: structure
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/team-bias-mitigation-practices.md
+    title: "Team Bias Mitigation Practices"
+  - slug: theory-of-change-map
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: framework
+    wiki_path: wiki/bulletproof-problem-solving/concepts/theory-of-change-map.md
+    title: "Theory of Change Map"
+  - slug: tragedy-of-the-commons
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/tragedy-of-the-commons.md
+    title: "Tragedy of the Commons"
+  - slug: uncertainty-response-toolkit
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/uncertainty-response-toolkit.md
+    title: "Uncertainty Response Toolkit"
+  - slug: value-of-development-options
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/value-of-development-options.md
+    title: "Value of Development Options"
+  - slug: weighted-factor-analysis
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: technique
+    wiki_path: wiki/bulletproof-problem-solving/concepts/weighted-factor-analysis.md
+    title: "Weighted Factor Analysis"
+  - slug: wicked-problems
+    book: bulletproof-problem-solving
+    fours_step: cross
+    type: concept
+    wiki_path: wiki/bulletproof-problem-solving/concepts/wicked-problems.md
+    title: "Wicked Problems"

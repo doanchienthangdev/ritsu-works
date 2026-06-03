@@ -251,6 +251,8 @@ async function main() {
     ['validate-image-adapters.cjs', 'image-adapters.yaml ↔ schema + generator-on-disk'],
     // capability thinking-toolkit v1.3 — mckinsey-workflow.yaml 4S catalog: every referenced skill + concept exists on disk
     ['validate-mckinsey-workflow.cjs', 'mckinsey-workflow.yaml ↔ skills + concepts exist'],
+    // capability thinking-toolkit v1.5 — problem-solving-frameworks.yaml candidate registry: every wiki_path exists + COMPLETE (every book concept registered)
+    ['validate-frameworks-registry.cjs', 'problem-solving-frameworks.yaml ↔ wiki concepts exist + complete'],
     // security drift guard (migration 00047) — no SECURITY DEFINER fn in schema
     // ops may expose public/unpinned search_path to authenticated/PUBLIC.
     ['validate-secdef-rpc-exposure.cjs', 'ops SECURITY DEFINER RPCs ↔ no RLS-bypass exposure'],

@@ -32,15 +32,16 @@ disable-model-invocation: false
 
 This is the **spine** of the thinking-toolkit and the one skill that *orchestrates* the others + real data tools. The 11 atomic skills are the operations; this is the operating procedure that sequences them into a McKinsey-grade study. Distilled from *Bulletproof Problem Solving* (Conn & McLean — the 7-step) and *Cracked It!* (Garrette/Phelps/Sibony — the 4S). Its machine-readable spec is `knowledge/mckinsey-workflow.yaml` (validated by `scripts/cross-tier/validate-mckinsey-workflow.cjs`); this playbook executes it.
 
-## What makes it an engine, not a brainstorm (the v1.4 contract)
+## What makes it an engine, not a brainstorm (the v1.5 contract)
 
 A brainstorm narrates opinions in four stages. This engine:
 1. **Pulls real data** for every hypothesis (never asserts a number it didn't fetch).
-2. **Produces persisted artifacts** (problem-statement → tree → workplan → analysis-log → one-day-answer → synthesis).
+2. **Produces persisted artifacts** (problem-statement → tree → workplan → analysis-log → one-day-answer → synthesis → communication).
 3. **Validates every datum** through a gate before it's allowed to move the answer.
 4. **Asks the founder** for data only they hold (HITL) instead of guessing.
 5. **Routes dynamically** — the one-day answer re-ranks remaining work after every analysis; porpoise back when the data reframes the problem.
 6. **Stops on marginal analysis** — when no cheap, answer-moving analysis remains.
+7. **Loads + selects the right tool** (v1.5) — for each sub-need it CLASSIFIEs (analytical vs design; causation vs prediction; formula vs typology vs checklist), LOADs candidates from the **dedicated registry** `knowledge/problem-solving-frameworks.yaml` (207 classified frameworks/models/heuristics — filterable by 4S step + type), then SELECTs + COMBINEs ≤3 complementary lenses, guarding against grabbing the familiar tool. See **Tool selection** below.
 
 > **The McKinsey rule that governs everything (Bulletproof, Ch 4):** *"We don't do any analysis for which we don't have a hypothesis."* Every data pull traces to a hypothesis it proves or disproves.
 
@@ -50,9 +51,10 @@ For a substantial problem, scaffold a **run folder** and write artifacts as you 
 ```
 .archives/mckinsey/<slug>/
   problem-statement.md   tree.md   workplan.md
-  analysis-log.md        one-day-answer.md   synthesis.md
+  analysis-log.md        one-day-answer.md
+  synthesis.md           communication.md
 ```
-`one-day-answer.md` is the **living state** — created in STATE, rewritten after every analysis (situation → observation → resolution). For a small problem, the accordion compresses: keep the one-day answer inline and skip the folder.
+`one-day-answer.md` is the **living state** — **seeded in STATE as the day-one hypothesis** ("if forced to answer today, we'd say X"), then rewritten after every analysis (situation → observation → resolution). It is *not* born at Solve; Solve only sharpens it. `synthesis.md` (step 6, the logic) and `communication.md` (step 7, the story) are distinct Sell products. For a small problem, the accordion compresses: keep the one-day answer inline and skip the folder.
 
 ---
 
@@ -61,6 +63,8 @@ For a substantial problem, scaffold a **run folder** and write artifacts as you 
 Fill **TOSCA** (run `/think tosca`): **T**rouble (gap as a symptom, not a diagnosis; pass "Why now?") · **O**wner (whose problem + who judges "good enough") · **S**uccess criteria (time-bound + quantified; *never* defined as the proposed solution) · **C**onstraints (provisional — revisit during Solve) · **A**ctors. Then write the **Core Question** and run the **5-check** (does it address Trouble / from Owner's view / meet Success / recognize Constraints / consider Actors?).
 
 **HITL here:** where a TOSCA slot needs input only the founder holds — the real success threshold, a fixed constraint, strategic intent — **`AskUserQuestion`; do not fabricate it** (the v1.3 worked example *invented* `Success = 8%→15%`; the engine asks). Iterate with the owner until they agree "answering this question solves my problem."
+
+**Then seed the day-one answer** (`one-day-answer.md`): the moment framing is done, write the provisional hypothesis — *"if forced to answer today, we'd say X, because Y."* It will be wrong; that's the point — it's the spine Structure + Solve sharpen, and it re-ranks the workplan. Skipping it (waiting to "have the data first") is the classic non-McKinsey move.
 
 *(Boundary: a problem with no clear owner / irreconcilable owners is a wicked problem — TOSCA doesn't fit; say so.)*
 
@@ -94,6 +98,21 @@ The run-loop is **status-driven** — the workplan's `status` column is the ledg
 Loop until the **stopping criterion** holds → Sell. **You may NOT move to Sell with any `open` row still above the knock-out bar** — an open high-value row means the answer can still change (this is the explicit guard against the v1.3 drift: narrating opinions while rows silently go stale).
 
 > **Worked micro-loop (real pulls, not fabricated):** *Hypothesis:* "free→paid is gated by the 7-day inactivity cliff, not price." *Analysis:* cohort conversion, returners vs non-returners. *Source:* `mcp__supabase-ops__query` on `metrics.product_dau_snapshot` — **or, if that ETL is empty, `AskUserQuestion` to the founder for the cohort number** (don't invent it). *Validate:* knock-out (does it move the answer? yes) → degree-2 hard number → correlation≠causation (triangulate with a second cut: do 7-day-returners differ in source/plan?) → sensitivity. *Update one-day answer:* returners convert 4×. *Re-route:* cliff confirmed → knock out the pricing branch, double down on reactivation.
+
+### Tool selection — load + select the RIGHT framework (`tool_selection` in the catalog)
+
+*Routing* (next table) answers **where to get the data**. *Selection* answers **which framework / model / analysis to apply** — the v1.5 mechanism. The candidate pool is a dedicated registry: **`knowledge/problem-solving-frameworks.yaml`** — 207 frameworks/models/heuristics/techniques/biases distilled from the two books, each classified by `fours_step` + `type`. Three stages:
+
+**1 · CLASSIFY the sub-need** (source decision-trees decide what *kind* of tool fits):
+- **solve_mode** — *analytical* (a right answer exists → hypothesis + workplan loop) vs **design** (ill-defined / human / innovation → the **design-thinking branch**: empathize → reframe (HMW) → ideate → prototype → test, until desirability×feasibility×viability). [`five-phases-of-design-thinking`]
+- **analysis_mode** — *description* (summary stats) vs *causation* (experiment / natural-experiment / regression) vs *prediction* (ML / Monte-Carlo). **Heuristics before big guns** — escalate only when a cheap tool can't move the answer. [`analytics-tool-selection-decision-tree`]
+- **framework_shape** — a *formula* (compute a number) vs a *typology* (2×2 / segmentation) vs a *checklist* (factors to cover). Match the shape to the job. [`three-styles-of-frameworks`]
+
+**2 · LOAD candidates** (the ritsu JIT pull): FILTER the registry `WHERE fours_step ∈ {current-step, cross} AND type matches` (framework/model/heuristic/technique to *apply*; bias/antipattern feed the validation gate). Then `resolver_find` for matching `/think` skills + `wiki_ask` for any long-tail concept. **Read each finalist's `wiki_path` before applying** — `type` is only a filter hint.
+
+**3 · SELECT + COMBINE:** Munger **latticework** — combine 2–3 *complementary* lenses (e.g. a typology to map options + a causal analysis to test the driver), never one [`multiple-frameworks-discipline`]. **Debias:** don't grab the framework you know best and bend the problem to fit — match tool to problem; a familiar tool as the *only* candidate is a smell → widen the load [`framework-mental-model-danger` / Maslow's hammer].
+
+> Quick filter (no tool needed): *"What step am I in, and is this analytical or design? Causation or prediction?"* → the registry rows for that step + type are your shortlist.
 
 ### Data routing table (pull real data — `data_routing` in the catalog)
 
@@ -136,9 +155,15 @@ Stop and `AskUserQuestion` when: the input is a **degree-6 internal plan/target 
 
 Stop when ALL hold: central hypothesis **proven by an adversarial test** + one-day answer stable; **marginal** — no remaining analysis is cheap+powerful enough to move the answer; **robust to sensitivity**; residual uncertainty **labeled** as judgment calls. One-line test: *"proven + robust, and no cheap answer-moving analysis remains?"*
 
-## ④ SELL — synthesize + communicate  ·  artifact: `synthesis.md`
+## ④ SELL — synthesize THEN communicate (two distinct moves)  ·  artifacts: `synthesis.md`, `communication.md`
 
-Synthesize the analysis-log + final one-day answer into a recommendation. Run `/think pyramid` + `/think so-what`: **governing thought first** (the recommendation as one crisp sentence) → **MECE key line** → support. Choose **grouping** (receptive audience) vs **argument/SCR** (skeptical). **Action titles** (each section a full declarative sentence; read them aloud = the storyline). **Pre-wire** the owner so the final answer isn't a surprise. **Never the story-of-the-search** (don't narrate your process; lead with the answer).
+Bulletproof separates step 6 from step 7; don't conflate them.
+
+**(6) SYNTHESIZE the LOGIC** (`synthesis.md`) — build the argument so it stands on its own *before* any telling. Run `/think pyramid` + `/think so-what`: **governing thought first** (the recommendation as one crisp sentence) → **MECE key line** → support, from the final one-day answer + analysis-log. If the logic doesn't hold as a bare pyramid, no storytelling will save it.
+
+**(7) COMMUNICATE the STORY** (`communication.md`) — render that logic for THIS audience. Choose **grouping** (receptive) vs **argument/SCR/SCQA** (skeptical). **Action titles** (each section a full declarative sentence; read aloud = the storyline). **Pre-wire** the owner so the final answer isn't a surprise.
+
+> **APK guard (anxious-parade-of-knowledge):** lead with the *answer*, not the journey. Do NOT dump everything you found or tell the **story-of-the-search** (problem → all the analyses we ran → … → answer). The reader wants the answer first; the analysis is support, surfaced only as needed.
 
 ---
 
@@ -157,7 +182,7 @@ Synthesize the analysis-log + final one-day answer into a recommendation. Run `/
 ## References
 
 Primary (in `raw/mckinsey/`): **Conn & McLean (2018), *Bulletproof Problem Solving*** — 7-step, the 6-column workplan (Ch 4, Exhibit 4.3), one-day answer (Ch 1), porpoising (Ch 2), heuristics-before-big-guns + analytics decision tree (Ch 5), dialectic (Ch 4). **Garrette, Phelps & Sibony (2018), *Cracked It!*** — 4S (Ch 3), TOSCA (Ch 4), analysis plan + eight degrees of analysis + sensitivity (Ch 5/7), pyramid/SCR/pre-wire (Ch 10), design-thinking path (Ch 8-9).
-Machine-readable spec + per-step concept bindings: `knowledge/mckinsey-workflow.yaml` + `knowledge/schemas/mckinsey-workflow.schema.json`. The ~230 wiki concepts not bound here are reachable per-step via each step's `retrieval` recipe.
+Machine-readable spec + per-step concept bindings: `knowledge/mckinsey-workflow.yaml` + `knowledge/schemas/mckinsey-workflow.schema.json`. The full candidate pool — **207 classified frameworks/models/heuristics** — is the dedicated registry `knowledge/problem-solving-frameworks.yaml` (filter by `fours_step` + `type`; seeded by `scripts/thinking-toolkit/gen-frameworks-registry.cjs`, extensible as more concepts sync in). Concepts beyond the registry stay reachable per-step via each step's `retrieval` recipe + `wiki_ask`.
 
 ## Anti-claims
 

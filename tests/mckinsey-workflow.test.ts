@@ -52,13 +52,18 @@ function step(id: string, order: number, over: Record<string, any> = {}) {
 }
 function validDoc(over: Record<string, any> = {}) {
   return {
-    version: "1.4.0",
+    version: "1.5.0",
     steps: [step("state", 1), step("structure", 2), step("solve", 3), step("sell", 4)],
     artifacts: {
       run_folder: ".archives/mckinsey/<slug>/",
       files: [{ name: "problem-statement", stage: "state", contents: "TOSCA + Core Question" }],
     },
     data_routing: [{ need: "internal evidence", tool: "deepask", invoke: '/deepask "q"', hitl: "A" }],
+    // v1.5 tool_selection: a CLASSIFY entry (with concept) + a LOAD entry (no concept — optional)
+    tool_selection: [
+      { stage: "classify", decides: "analysis_mode", via: "decision tree", concept: { ...REAL_CONCEPT } },
+      { stage: "load", decides: "shortlist", via: "filter registry", registry: "knowledge/problem-solving-frameworks.yaml" },
+    ],
     validation_gate: [{ check: "knock-out", test: "moves the answer?", concept: { ...REAL_CONCEPT } }],
     routing_rules: [{ when: "analysis clears gate", then: "update one-day answer", concept: { ...REAL_CONCEPT } }],
     hitl_triggers: [{ when: "founder-only data", ask: "request it", concept: { ...REAL_CONCEPT } }],
@@ -70,7 +75,7 @@ function validDoc(over: Record<string, any> = {}) {
 const has = (errs: string[], sub: string) => errs.some((e) => e.includes(sub));
 
 describe("validateWorkflow — happy path", () => {
-  it("returns no errors for a structurally valid v1.4 doc", () => {
+  it("returns no errors for a structurally valid v1.5 doc", () => {
     expect(validateWorkflow(validDoc(), REPO_ROOT)).toEqual([]);
   });
 });
@@ -80,14 +85,16 @@ describe("validateWorkflow — specification / real-catalog conformance", () => 
     const doc = yaml.load(fs.readFileSync(path.join(REPO_ROOT, REGISTRY_REL), "utf-8"));
     expect(validateWorkflow(doc, REPO_ROOT)).toEqual([]);
   });
-  it("exports the canonical 4S ids + the v1.4 known sets", () => {
+  it("exports the canonical 4S ids + the v1.4/v1.5 known sets", () => {
     expect(CANONICAL_4S).toEqual(["state", "structure", "solve", "sell"]);
     expect(ARTIFACTS).toContain("workplan");
     expect(ARTIFACTS).toContain("one-day-answer");
+    expect(ARTIFACTS).toContain("communication"); // v1.5 — step-7 story artifact
     expect(TOOLS).toContain("deepask");
     expect(TOOLS).toContain("ask-user");
     expect(ENGINE_SECTIONS).toContain("validation_gate");
     expect(ENGINE_SECTIONS).toContain("back_edges");
+    expect(ENGINE_SECTIONS).toContain("tool_selection"); // v1.5 — load + select mechanism
   });
 });
 
@@ -257,7 +264,7 @@ describe("validateWorkflow — v1.4 data_routing", () => {
 });
 
 describe("validateWorkflow — v1.4 engine sections", () => {
-  for (const sec of ["validation_gate", "routing_rules", "hitl_triggers", "back_edges", "stopping_criterion"]) {
+  for (const sec of ["tool_selection", "validation_gate", "routing_rules", "hitl_triggers", "back_edges", "stopping_criterion"]) {
     it(`missing ${sec} -> error`, () => {
       const d = validDoc(); delete (d as any)[sec];
       expect(has(validateWorkflow(d, REPO_ROOT), `${sec} must be a non-empty array`)).toBe(true);
@@ -277,5 +284,39 @@ describe("validateWorkflow — v1.4 engine sections", () => {
   it("back_edge with a to that isn't a step id -> error", () => {
     const d = validDoc({ back_edges: [{ from: "solve", to: "nowhere", trigger: "x", concept: { ...REAL_CONCEPT } }] });
     expect(has(validateWorkflow(d, REPO_ROOT), "to 'nowhere' is not a step id")).toBe(true);
+  });
+});
+
+// ---- v1.5 ENGINE ADDITIONS (tool_selection + communication artifact) ----
+
+describe("validateWorkflow — v1.5 tool_selection", () => {
+  it("a tool_selection entry whose concept doesn't exist -> 'concept not found on disk'", () => {
+    const d = validDoc({ tool_selection: [{ stage: "classify", decides: "x", via: "y", concept: { book: "cracked-it", slug: "ghost-tool" } }] });
+    expect(has(validateWorkflow(d, REPO_ROOT), "concept not found on disk")).toBe(true);
+  });
+  it("a tool_selection entry WITHOUT a concept (the LOAD stage) is allowed (concept optional)", () => {
+    const d = validDoc({ tool_selection: [{ stage: "load", decides: "shortlist", via: "filter the registry", registry: "knowledge/problem-solving-frameworks.yaml" }] });
+    expect(validateWorkflow(d, REPO_ROOT)).toEqual([]);
+  });
+  it("a malformed concept on a tool_selection entry is caught", () => {
+    const d = validDoc({ tool_selection: [{ stage: "classify", decides: "x", via: "y", concept: { book: "cracked-it" } }] });
+    expect(has(validateWorkflow(d, REPO_ROOT), "concept must be a {book, slug}")).toBe(true);
+  });
+});
+
+describe("validateWorkflow — v1.5 communication artifact", () => {
+  it("'communication' is an accepted produces value when declared in artifacts.files", () => {
+    const d = validDoc({
+      steps: [step("state", 1), step("structure", 2), step("solve", 3), step("sell", 4, { produces: ["communication"] })],
+      artifacts: { run_folder: "x/", files: [
+        { name: "problem-statement", stage: "state", contents: "x" },
+        { name: "communication", stage: "sell", contents: "the step-7 story" },
+      ] },
+    });
+    expect(validateWorkflow(d, REPO_ROOT)).toEqual([]);
+  });
+  it("'communication' in artifacts.files with a stage that isn't a step id -> error", () => {
+    const d = validDoc({ artifacts: { run_folder: "x/", files: [{ name: "communication", stage: "ghost", contents: "x" }] } });
+    expect(has(validateWorkflow(d, REPO_ROOT), "is not a step id")).toBe(true);
   });
 });

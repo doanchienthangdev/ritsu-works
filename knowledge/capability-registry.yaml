@@ -1020,7 +1020,12 @@ capabilities:
       v1.4 upgraded it from that static map into a dynamic, data-driven ENGINE
       (6-column workplan routing each hypothesis to a real data source +
       per-datum validation gate + living one-day answer + porpoising + HITL
-      data-requests).
+      data-requests). v1.5 added the LOAD+SELECT mechanism (a `tool_selection`
+      catalog section + a NEW dedicated candidate registry,
+      knowledge/problem-solving-frameworks.yaml — 207 classified frameworks the
+      engine filters by step+type) plus 4 fact-check gap-fixes (day-one answer
+      seeded at State, analytics causation-vs-prediction tree, synthesize≠
+      communicate + APK guard, design-thinking branch).
 
       Inventory:
         - thinking-toolkit/tosca-problem-framing (problem-definition discipline)
@@ -1046,7 +1051,7 @@ capabilities:
       symptom only (v1.0's rejection was framing-specific, Cracked it! p.58).
       Still rejected: 80/20 (overlaps /muse:paul-graham), screen/knock-out
       (deferred), Ghost Deck, 7S, PEST/Porter.
-    version: "1.4.0"
+    version: "1.5.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28
@@ -1129,6 +1134,37 @@ capabilities:
       pulls real data, validates, asks the user, and porpoises — runs in the active
       session (HITL). Tier C. Decision: ops.decisions (slug
       thinking-toolkit-v1.4-mckinsey-engine).
+
+      v1.5 (2026-06-03): /cla extend — the LOAD + SELECT mechanism (founder:
+      "tại mỗi bước dùng toolkit/model/concept thì load + lựa chọn đúng đắn như
+      thế nào? … phần load >200 ứng viên đã có file riêng chưa?"). Answer was NO,
+      so v1.5 builds it: NEW dedicated candidate registry
+      knowledge/problem-solving-frameworks.yaml — 207 problem-solving candidates
+      from the 2 books, each classified {slug·book·fours_step·type·wiki_path},
+      seeded by scripts/thinking-toolkit/gen-frameworks-registry.cjs (deterministic:
+      chapter→4S step + slug-keyword type; hand-maintainable + extensible via
+      --check) + schema + L2 validator scripts/cross-tier/validate-frameworks-
+      registry.cjs (proves every wiki_path exists AND the registry is COMPLETE —
+      no book concept dropped; (book,slug) is the unique key so dual-book concepts
+      like mece/wicked-problems are legal). Wired into check-consistency.cjs +
+      CI + validate-tier1 FILE_TO_SCHEMA. A NEW `tool_selection` engine section in
+      mckinsey-workflow.yaml encodes the 3-stage mechanism (CLASSIFY the need via
+      source decision-trees [analytical-vs-design, causation-vs-prediction,
+      formula/typology/checklist] → LOAD candidates [filter the registry by
+      step+type + resolver_find for skills + wiki_ask for content] → SELECT+COMBINE
+      [Munger latticework ≤3 lenses + debias the familiar-tool trap]). PLUS 4
+      fact-check gap-fixes vs the source process: (1) one-day-answer now SEEDED at
+      State (day-one hypothesis), not born at Solve; (2) analytics-tool-selection-
+      decision-tree (causation vs prediction) bound to Solve; (3) Sell SPLITS the
+      `synthesis` (step-6 logic) from a NEW `communication` artifact (step-7 story)
+      with an APK (anxious-parade-of-knowledge) guard; (4) design-thinking 5-phase
+      branch is a first-class solve_mode. mckinsey-workflow.yaml → v1.5.0 (7
+      artifacts, 43 step-concept refs, tool_selection validated). Tests: NEW
+      tests/frameworks-registry.test.ts (fixture-rooted, 35 cases incl. completeness
+      + dual-book) + extended tests/mckinsey-workflow.test.ts (tool_selection +
+      communication). /think still 12 skills / 14 verbs (v1.5 is registry +
+      mechanism, NOT new verbs). Tier C. Decision: ops.decisions (slug
+      thinking-toolkit-v1.5-tool-selection-registry).
 
   - id: playbook-builder
     name: "Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration"

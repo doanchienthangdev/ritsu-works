@@ -4,7 +4,7 @@
   "title": "McKinsey 4S problem-solving workflow catalog",
   "description": "The spine that sequences thinking-toolkit skills + wiki problem-solving concepts into the McKinsey 4S method (State/Structure/Solve/Sell, Cracked it! Ch 3). Capability thinking-toolkit v1.3. Each step binds the OPERATIONS to run (skills) + a curated key-concept reading list + a retrieval recipe so any of the ~230 wiki concepts is findable by step. Structural validity here; file-existence of every referenced skill + concept is enforced by scripts/cross-tier/validate-mckinsey-workflow.cjs.",
   "type": "object",
-  "required": ["version", "steps", "artifacts", "data_routing"],
+  "required": ["version", "steps", "artifacts", "data_routing", "tool_selection"],
   "additionalProperties": true,
   "properties": {
     "version": { "type": "string" },
@@ -26,6 +26,12 @@
     "data_routing": {
       "type": "array",
       "description": "v1.4: analysis-need → data tool routing table (the pull-real-data mechanism).",
+      "items": { "type": "object" }
+    },
+    "tool_selection": {
+      "type": "array",
+      "minItems": 1,
+      "description": "v1.5: the load + select mechanism — CLASSIFY a sub-need (book decision-trees) → LOAD candidates from knowledge/problem-solving-frameworks.yaml (filter by step+type) + resolver_find + wiki_ask → SELECT + COMBINE (latticework + debias). Each entry is a decision lever; concept refs are file-existence-checked by the L2 validator.",
       "items": { "type": "object" }
     },
     "validation_gate": { "type": "array", "items": { "type": "object" }, "description": "v1.4: per-datum validation checklist (knock-out, 8-degrees, causation, sensitivity, triangulation, honesty)." },
@@ -61,8 +67,8 @@
           "produces": {
             "type": "array",
             "minItems": 1,
-            "items": { "type": "string", "enum": ["problem-statement", "decomposition", "workplan", "analysis-log", "one-day-answer", "synthesis"] },
-            "description": "v1.4: the intermediate artifact(s) this stage emits (from the known artifact set)."
+            "items": { "type": "string", "enum": ["problem-statement", "decomposition", "workplan", "analysis-log", "one-day-answer", "synthesis", "communication"] },
+            "description": "v1.4/v1.5: the intermediate artifact(s) this stage emits (from the known artifact set; v1.5 adds 'communication' — the step-7 story, distinct from the step-6 'synthesis' logic)."
           },
           "skills": {
             "type": "array",
