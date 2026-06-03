@@ -201,4 +201,15 @@ describe("validateRegistry — completeness (every on-disk concept registered)",
   it("a complete registry passes the completeness check", () => {
     expect(validateRegistry(fixtureDoc(), FIXTURE)).toEqual([]);
   });
+  it("dropping ONE book's copy of a dual-book slug still fails completeness (composite-key, not slug-only)", () => {
+    // `dual` is on disk in BOTH books. Drop only the bulletproof copy but KEEP
+    // the cracked-it copy. A slug-only completeness check would see `dual`
+    // registered and falsely pass; the composite-key check must still flag the
+    // missing bulletproof copy. (Guards the exact false-negative the generator's
+    // pre-fix --check had — see gen-frameworks-registry.cjs.)
+    const f = frames().filter((e) => !(e.book === "bulletproof-problem-solving" && e.slug === "dual"));
+    const errs = validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE);
+    expect(has(errs, "bulletproof-problem-solving:")).toBe(true);
+    expect(has(errs, "dual")).toBe(true);
+  });
 });

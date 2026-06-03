@@ -58,6 +58,8 @@ const OVERRIDES = {
   'issue-driven-problem-solving': { fours_step: 'structure' },
   'solution-imperatives': { fours_step: 'state' },
   'solution-confirmation': { fours_step: 'solve' },
+  // whole-method overview cited in Ch10 (Sell) but applies across all 4 stages
+  '4s-method-end-to-end-application': { fours_step: 'cross' },
 };
 
 // Coarse type by slug keyword (a FILTER HINT — the engine reads content to decide).
@@ -159,9 +161,16 @@ function main() {
     console.log(`[check] ${entries.length} candidates found in the 2 books.`);
     const out = path.join(REPO, OUT_REL);
     if (fs.existsSync(out)) {
-      const registered = new Set([...fs.readFileSync(out, 'utf8').matchAll(/^\s+- slug:\s*(\S+)/gm)].map((m) => m[1]));
-      const missing = entries.filter((e) => !registered.has(e.slug));
-      console.log(missing.length ? `[check] ${missing.length} concept(s) NOT in registry: ${missing.map((m) => m.slug).join(', ')}` : '[check] registry is complete.');
+      // Key by (book, slug) — NOT slug alone — so a dropped dual-book copy
+      // (mece / wicked-problems live in both books) is detected. A slug-only
+      // Set would collapse the two and falsely report "complete" (matches the
+      // L2 validator's composite-key completeness check).
+      const txt = fs.readFileSync(out, 'utf8');
+      const registered = new Set(
+        [...txt.matchAll(/^\s+- slug:\s*(\S+)\n\s+book:\s*(\S+)/gm)].map((m) => `${m[2]}/${m[1]}`)
+      );
+      const missing = entries.filter((e) => !registered.has(`${e.book}/${e.slug}`));
+      console.log(missing.length ? `[check] ${missing.length} concept(s) NOT in registry: ${missing.map((m) => `${m.book}/${m.slug}`).join(', ')}` : '[check] registry is complete.');
     }
     return;
   }

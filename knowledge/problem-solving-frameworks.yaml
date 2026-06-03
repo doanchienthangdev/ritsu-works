@@ -24,7 +24,7 @@
 #            check-consistency.cjs + CI). Proves COMPLETENESS (every book concept
 #            is registered) + every wiki_path exists + enums valid.
 #
-# Counts: 207 total | by step {"sell":38,"cross":52,"state":20,"solve":59,"structure":38} | by type {"concept":110,"antipattern":12,"technique":23,"framework":42,"bias":12,"heuristic":8}
+# Counts: 207 total | by step {"cross":53,"sell":37,"state":20,"solve":59,"structure":38} | by type {"concept":110,"antipattern":12,"technique":23,"framework":42,"bias":12,"heuristic":8}
 # ============================================================================
 
 version: "1.0.0"
@@ -34,7 +34,7 @@ source_books: [cracked-it, bulletproof-problem-solving]
 frameworks:
   - slug: 4s-method-end-to-end-application
     book: cracked-it
-    fours_step: sell
+    fours_step: cross
     type: concept
     wiki_path: wiki/cracked-it/concepts/4s-method-end-to-end-application.md
     title: "4S Method End-to-End Application"
