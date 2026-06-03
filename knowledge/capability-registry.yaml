@@ -1473,6 +1473,36 @@ capabilities:
       New --enhance-mode param; graceful fallback to generic --enhance. No new API key (Tier C
       governance for the external dep + vendoring, documented in NOTICE.md). 164 image tests.
 
+  - id: product-db-readonly-access
+    name: "Product DB read-only access — Door 2 (pseudonymized analytics)"
+    description: "OPERATING since 2026-06-03 (Tier-C decision 0647e301-4ad2-495f-806e-d17c3b130072). Lets the Operating AI answer behavioral / unit-economics questions from Product-derived data WITHOUT touching Product and WITHOUT raw PII. 'Door 2' of the 3-door architecture (L0 firewall-as-code + Door1 gateway + Door2 analytics-copy + Door3 action-MCP). Mechanism: Product builds PII-stripped + HMAC-hashed VIEWS (analytics_export.*, salt product-side, enums ::text-cast in the view); an ISOLATED ritsu-analytics Supabase project (ddgbabvbfjrsznvzhizf, us-west-1; NOT Product) pulls ONLY those views via postgres_fdw into ext.* → staging → array-aware PII-canary gate → atomic swap into live.*; nightly in-DB pg_cron FULL-REPLACE. Consumed read-only via the supabase-analytics MCP (query / list_tables) AS the least-priv analytics_reader Postgres role (SELECT on live.* only — the DB role IS the boundary, opposite model to supabase-ops), behind a default-deny 6-role consumer allowlist (founder/cofounder/customer-lead/product-orchestrator/gtm-orchestrator/feedback-aggregator). The L0 firewall (pre-tool-supabase-product, enforced code PR #204) blocks any direct Product touch AND treats mcp__supabase-analytics__* as safe-mcp. 17 synced tables (behavioral/billing/config core; content + identity tables excluded FOREVER). Monitoring: scripts/cross-tier/check-analytics-sync-health.cjs (freshness + active canary) + 3 alert-rules + 2 KPIs (analytics_sync_freshness ≤26h, analytics_pii_canary_trips=0). GDPR erasure = nightly full-replace auto-drop + force-resync (SOP-CUSTOMER-023). Governance: knowledge/analytics-sync-contract.yaml (committed contract) + validate-analytics-readonly.cjs (L2 critical, in check-consistency AND CI) + SOP-AIOPS-009. Built across 4 sprints: S1 consumer MCP (#220), S2 governance registration (#221), S3 dataset 3→17 (#222), S4 monitoring + erasure (#223) + this Phase-8 promotion."
+    version: "1.0.0"
+    state: operating
+    state_since: 2026-06-03
+    proposed_at: 2026-06-02
+    deployed_at: 2026-06-03
+    operating_since: 2026-06-03
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/product-db-readonly-access/spec.md
+    retrospective_path: wiki/capabilities/product-db-readonly-access/retrospective.md
+    cost_bucket: ai-ops-analytics
+    notes: |
+      This registry entry = DOOR 2 only (the pseudonymized analytics copy +
+      read-only consumer MCP). Doors 1 (bounded read-gateway) and 3 (action-MCP
+      + HITL) are separate FUTURE tracks. Near-zero ongoing cost: the sync is
+      in-DB pg_cron on ritsu-analytics (free); the MCP is read-only SELECT
+      (subscription, no API key — compliant with the api-key-vs-subscription
+      policy). HONEST follow-up at promotion time: unattended alert DELIVERY
+      needs the schedule-dispatcher Edge Function to reach ritsu-analytics
+      (Deno + analytics creds, founder-infra) — run check-analytics-sync-health.cjs
+      manually meanwhile; the alert-rules arm once KPI values flow. RESIDUAL:
+      ritsu-analytics is same-org-as-Product (free 2-project quota; separate org
+      = pay Pro ×2) — isolation pillars intact (separate project/DB/creds +
+      product-side salt + pseudonymized + no-content), flagged in DPIA, revisit
+      at scale. Lawyer/DPIA = founder-owned track. Brainstorm + SQL (local-only):
+      .archives/brainstorming/product-db-readonly-access-2026-06-02/. Spec draft:
+      .archives/cla/product-db-readonly-access/spec.md (promoted to wiki/ here).
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:
@@ -1511,6 +1541,10 @@ cost_buckets:
   ai-ops-image:
     description: "image-platform runtime — /image command + pluggable adapter layer (gpt-image-2 real; nano-banana/midjourney/flux registered-not-built stubs). Image generation uses OPENAI_API_KEY out-of-band via scripts/image/gen.cjs (task_kind image-gen, cap $0.50); --enhance prompt refinement is in-session/subscription (task_kind image-enhance, cap $0.10). Per-run --max-cost-usd circuit breaker (default 1.00) is orthogonal. Build-once foundational primitive; reuses deepask image helpers (no duplicate API spend path)."
     capabilities: [image-platform]
+
+  ai-ops-analytics:
+    description: "product-db-readonly-access Door 2 — pseudonymized Product→analytics sync + read-only supabase-analytics MCP. NEAR-ZERO ongoing: the sync is in-DB pg_cron on ritsu-analytics (free); the consumer MCP is read-only SELECT as analytics_reader (subscription, no API key — api-key-vs-subscription compliant). One-time build cost only (4 sprints)."
+    capabilities: [product-db-readonly-access]
 
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
