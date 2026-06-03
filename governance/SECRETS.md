@@ -4,7 +4,7 @@
 > **Secret values never appear in this file or anywhere in this repo.** This file is the map; values live in the secret manager.
 
 **Owner:** founder
-**Last updated:** 2026-05-02
+**Last updated:** 2026-06-03
 **Change policy:** D-MAX (per `governance/HITL.md`). Every change to this file requires founder approval via PR + override ceremony.
 
 ---
@@ -85,6 +85,18 @@ This is the canonical mapping. Every secret listed must:
 > **Critical access boundary.** Only `etl-runner` holds `SUPABASE_PRODUCT_READONLY_ETL_KEY`. This is the firewall between Operating AI and Product. If this key is granted to any other role, the firewall is broken — recovery requires a key rotation and a postmortem.
 >
 > **Equally critical:** `SUPABASE_PRODUCT_FULL_SERVICE_KEY` is **NOT** in this matrix because no role in `ritsu-works` may hold it. It belongs to the product repo. Any role that "needs" it should instead request data through `metrics.*` ETL.
+
+### Analytics — Door 2 (capability `product-db-readonly-access`)
+
+The pseudonymized analytics path (added 2026-06-03, capability `product-db-readonly-access` Sprint 2; Tier-C decision `0647e301`). These are **infrastructure / connection** secrets consumed by the `supabase-analytics` MCP wrapper + the in-DB FDW — **not** per-role grants. The 6 allowlisted roles use them *indirectly* via the MCP.
+
+| Secret | Used by | Scope | Rotation |
+|---|---|---|---|
+| `ANALYTICS_READER_DB_URL` | `supabase-analytics` MCP (allowlist: founder, cofounder, customer-lead, product-orchestrator, gtm-orchestrator, feedback-aggregator) | Connection string for the least-priv `analytics_reader` role on `ritsu-analytics` — `SELECT` on `live.*` ONLY (role-level read-only txn). Pseudonymized data; NEVER Product, NEVER raw PII. | 90d |
+| `ANALYTICS_EXPORT_RO_PASSWORD` | in-DB FDW on `ritsu-analytics` (user mapping → Product pooler) | Password for the product-side `analytics_export_ro` role — `SELECT` on the PII-stripped `analytics_export.*` views only. Held by no ops agent role. | 60d |
+| `PRODUCT_POOLER_HOST` | in-DB FDW on `ritsu-analytics` | The Product Session-pooler hostname (FDW target). A hostname, not strictly secret; kept in `.env.local` for completeness. | rotate-on-change |
+
+> **Conn-string-with-password exception.** `ANALYTICS_READER_DB_URL` is a full connection string with an embedded password — normally avoided per "What's NOT in this file". It is an **accepted exception** for this MCP: `pg` needs a `connectionString`, the embedded credential is the **least-priv** `analytics_reader` (`SELECT` on pseudonymized `live.*` only, no writes), and the value lives only in local-only `.env.local`. Low blast-radius. The HMAC **salt** that makes the data pseudonymous lives ONLY product-side (`analytics_secret.config`, RLS) and is **never** in this stack — see invariant `analytics-salt-product-only`.
 
 ### Email
 
