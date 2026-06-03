@@ -16,7 +16,7 @@
 # Change policy: PR + founder review (Tier C). Expanding synced_tables also
 # requires a founder D-MAX product-side DDL touch (Sprint 3).
 
-version: 1.1.0                        # Sprint 3 — synced_tables 3 → 17 (behavioral/billing/config core); array-aware PII canary
+version: 1.2.0                        # Sprint 5 — synced_tables 17 → 30 (+ REVENUE: payments/lemon_variants/credit_packs LemonSqueezy; + learning-research quiz/flashcard/activity/achievements; + anonymous content engagement). Sprint 3 was 3 → 17.
 last_updated: 2026-06-03
 owner: founder
 capability_id: product-db-readonly-access
@@ -59,6 +59,22 @@ synced_tables:
   - ai_models
   - command_model_configs
   - onboarding_categories
+  # Sprint 5 — REVENUE (LemonSqueezy)
+  - payments                  # revenue ledger (amount_usd). Drops lemon_customer_id/order/sub/refund ids + invoice/update-payment-method URLs + metadata jsonb
+  - lemon_variants            # price catalog (config, no user)
+  - credit_packs              # credit-pack catalog (config, no user)
+  # Sprint 5 — learning-research / engagement (user_hash-keyed)
+  - quiz_attempts             # drops user_answer (jsonb)
+  - flashcard_reviews         # SM-2 spaced-repetition metrics
+  - activity_results          # drops details (jsonb)
+  - user_achievements
+  - achievements              # config catalog (no user)
+  - resource_providers        # config cost-per-unit (no user)
+  # Sprint 5 — anonymous content engagement (session_hash, NO user_id)
+  - blog_post_views
+  - docs_article_views
+  - docs_article_feedback     # drops comment (free-text) + user_agent (fingerprint)
+  - learn_tutorial_views
 
 # Content / identity tables — NEVER synced. They stay in Product forever.
 # default-deny already excludes anything not in synced_tables; this list is an
@@ -67,10 +83,19 @@ synced_tables:
 forbidden_content_tables:
   - chat_messages
   - source_contents
+  - source_images
+  - chunks
   - pok_content
   - messages
   - documents
   - notes
+  # Sprint 5 — explicit tripwires for the highest-risk live tables (audit 2026-06-04)
+  - webhook_events            # raw LemonSqueezy webhook payloads — customer email/card
+  - content_subscribers       # email list (PII)
+  - admin_users               # admin PII
+  - admin_audit_log           # admin/system audit
+  - system_settings           # may hold secrets
+  - password_change_otp       # auth/security
 
 # Which ops roles may query the supabase-analytics MCP at all (default-deny).
 # MUST equal ANALYTICS_ALLOWED_ROLES in
