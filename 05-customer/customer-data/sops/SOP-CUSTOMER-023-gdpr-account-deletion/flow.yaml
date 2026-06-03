@@ -43,6 +43,42 @@ steps:
     cost_estimate: 0.02   # mcp__gbrain__mass_purge call
     hitl_tier: D-Std
 
+  # ==========================================================================
+  # analytics extension (capability product-db-readonly-access Sprint 4)
+  # ==========================================================================
+  - id: analytics_erasure_propagation
+    type: subprocess
+    description: |
+      Propagate the erasure to the Door-2 pseudonymized copy on ritsu-analytics
+      (capability product-db-readonly-access). The analytics dataset holds only
+      user_hash-keyed pseudonymized rows (never email/name/content), but
+      pseudonymized != anonymized → GDPR Art. 17 still applies, so the erased
+      user must leave ritsu-analytics too.
+
+      LARGELY AUTOMATIC — the nightly sync is a FULL REPLACE (live.sync_one drops
+      + recreates each live.* table from the product analytics_export.* views).
+      Once the product-side account deletion (the upstream steps) removes the user
+      from public.*, the analytics_export.* views stop returning them, so they
+      drop out of live.* on the NEXT nightly sync (≤ ~24h) with NO analytics action.
+
+      FORCE within 24h (timely Art. 17 guarantee — recommended):
+        1. Confirm the product-side deletion completed (user gone from public.*).
+        2. On ritsu-analytics run `call live.sync_all();` (same procedure the
+           nightly cron runs) — analytics-side, [A]; NO product write, NO D-MAX.
+        3. Verify the user_hash no longer appears in live.* (unlinkable anyway once
+           the product user_id is deleted — salt is product-only).
+        4. Run scripts/cross-tier/check-analytics-sync-health.cjs → HEALTHY
+           (a re-sync must keep PII canary 0).
+        5. Log ops.audit_log: action='gdpr_dsr_analytics_resync',
+           target_kind='ritsu_analytics_live', payload = the sync run id.
+
+      The boundary design (drop content+identity, hash ids, full-replace sync)
+      makes erasure a RE-SYNC, not a search-and-purge — there is no directly-
+      identifying row to delete on the analytics side.
+    cost_estimate: 0
+    hitl_tier: B   # analytics re-sync is reversible [A]/B; the irreversible leg is
+                   # the product-side account deletion (its own D-MAX steps above)
+
 hitl_tier: D-Std
 cost_estimate: 0    # TODO: estimate per run
 idempotent: true    # TODO: verify when implemented
