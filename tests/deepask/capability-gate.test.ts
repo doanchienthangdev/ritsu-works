@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 // @ts-ignore — Node interop from TS to CJS (repo convention; see resolver-v3 tests)
-const { classifyCapabilityLeg, VALID_TIERS, VALID_SIDE_EFFECTS } = require("../../scripts/deepask/capability-gate.cjs");
+const { classifyCapabilityLeg, VALID_TIERS, VALID_SIDE_EFFECTS, RECURSION_DENYLIST } = require("../../scripts/deepask/capability-gate.cjs");
 
 // All-Edge-Cases-Test (global CLAUDE.md). Function under test: classifyCapabilityLeg.
 // Phase 1 analysis: 1 param (obj w/ hitl_tier, side_effect); branches = invalid→throw |
@@ -93,10 +93,43 @@ describe("classifyCapabilityLeg", () => {
     });
   });
 
+  // v1.7 — anti-recursion guard (thinking-toolkit ↔ deepask composition contract):
+  // the /think mckinsey ENGINE composes deepask as a leaf data tool, so deepask must
+  // refuse to re-run that engine (else mckinsey → deepask → mckinsey recurses).
+  describe("anti-recursion guard (recipient_id denylist, v1.7)", () => {
+    it("refuses the mckinsey engine even at {A, none} (which would otherwise auto_run)", () => {
+      const r = classifyCapabilityLeg({ recipient_id: "thinking-toolkit/mckinsey-workflow", hitl_tier: "A", side_effect: "none" });
+      expect(r.action).toBe("refuse");
+      expect(r.reason).toMatch(/anti-recursion/);
+    });
+    it("the guard is ABSOLUTE — refuses across the full tier × side_effect matrix", () => {
+      for (const t of VALID_TIERS) {
+        for (const se of VALID_SIDE_EFFECTS) {
+          expect(classifyCapabilityLeg({ recipient_id: "thinking-toolkit/mckinsey-workflow", hitl_tier: t, side_effect: se }).action).toBe("refuse");
+        }
+      }
+    });
+    it("a NON-denylisted recipient_id is unaffected — {A, none} still auto_run", () => {
+      expect(classifyCapabilityLeg({ recipient_id: "thinking-toolkit/pyramid-principle-output", hitl_tier: "A", side_effect: "none" }).action).toBe("auto_run");
+    });
+    it("ABSENT recipient_id → unchanged legacy behavior ({A, none} → auto_run)", () => {
+      expect(classifyCapabilityLeg({ hitl_tier: "A", side_effect: "none" }).action).toBe("auto_run");
+    });
+    it("a non-string recipient_id is ignored (falls through to tier logic)", () => {
+      expect(classifyCapabilityLeg({ recipient_id: 123 as any, hitl_tier: "A", side_effect: "none" }).action).toBe("auto_run");
+    });
+    it("every entry in RECURSION_DENYLIST is refused", () => {
+      for (const id of RECURSION_DENYLIST) {
+        expect(classifyCapabilityLeg({ recipient_id: id, hitl_tier: "A", side_effect: "none" }).action).toBe("refuse");
+      }
+    });
+  });
+
   describe("exported constants", () => {
     it("enumerate the governance vocab", () => {
       expect(VALID_TIERS).toStrictEqual(["A", "B", "C", "D-Std", "D-MAX"]);
       expect(VALID_SIDE_EFFECTS).toStrictEqual(["none", "write", "send", "money", "publish"]);
+      expect(RECURSION_DENYLIST).toContain("thinking-toolkit/mckinsey-workflow"); // v1.7
     });
   });
 });

@@ -40,11 +40,12 @@ The same authoring principle applies to every recipient: deepask frames the prec
 Classify each `capability_axis` recipient with the deterministic gate, then act on `action`:
 ```js
 const { classifyCapabilityLeg } = require('scripts/deepask/capability-gate.cjs');
-const { action, reason } = classifyCapabilityLeg({ hitl_tier, side_effect }); // from plan enrichment
+const { action, reason } = classifyCapabilityLeg({ recipient_id, hitl_tier, side_effect }); // recipient_id + enrichment from the plan
 ```
-- **`auto_run`** (Tier-A, `side_effect: none`) → run it now. deepask AUTHORS the invocation (frames the precise skill params / `gbrain.think` prompt / tool args, grounded in the recipient's contract in `mcp-tools.yaml` / SKILL.md). Typical: `cost-report`, `thinking-toolkit/*`, `wiki_ask`, gbrain reads, `experiment-analyst`, `synthesize-morning-brief`.
+- **`auto_run`** (Tier-A, `side_effect: none`) → run it now. deepask AUTHORS the invocation (frames the precise skill params / `gbrain.think` prompt / tool args, grounded in the recipient's contract in `mcp-tools.yaml` / SKILL.md). Typical: `cost-report`, `thinking-toolkit/*` (the micro-frameworks), `wiki_ask`, gbrain reads, `experiment-analyst`, `synthesize-morning-brief`.
 - **`surface`** (Tier-B+, or any declared side effect) → **do NOT run.** Append to `surfaced_capabilities[]` for the orchestrator to present as a HITL-gated suggestion ("to answer fully I'd run X (Tier B) — approve?"). Founder approval is required before any side-effecting capability runs; deepask never auto-runs it.
 - **`refuse`** (Tier D-MAX) → never run, never surface as actionable. Record a gap (`gap_reason='not_built'`, `remedy="X requires D-MAX — beyond deepask's read/synthesize remit"`) so the answer is honest about the boundary.
+- **`refuse`** (anti-recursion, v1.7) → the gate ALSO refuses a `recipient_id` on the `RECURSION_DENYLIST` (currently `thinking-toolkit/mckinsey-workflow`) **even at Tier-A**: the `/think mckinsey` ENGINE composes deepask as a *leaf data tool*, so deepask re-running that engine recurses (`mckinsey → deepask → mckinsey`). deepask composes ONLY the lightweight `/think` micro-frameworks (pyramid · mece · so-what · …), never the engine. Record a gap (`gap_reason='not_built'`, `remedy="engine-recursion guard — run /think mckinsey at the top level, not via deepask"`). Contract: `knowledge/mckinsey-workflow.yaml` `composition_guards`.
 
 ### 4. Web leg → delegate to `deep-research`
 If a sub-need genuinely needs the **external web** (internal sources insufficient), delegate that leg to the `deep-research` skill — deepask never web-searches directly (internal-first). Treat deep-research's cited report as one evidence source (`authority: SoR-external`, `freshness: live`).

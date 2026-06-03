@@ -51,6 +51,22 @@
 #   (every 4S step has ≥1 selectable candidate). artifact name `decomposition`
 #   is canonical across catalog ↔ run-folder ↔ checker (coherence-guarded).
 #
+# v1.7 (the "compose deepask without recursion / runaway cost / ceded judgment"
+#   upgrade): data_routing already lists deepask as a Solve data tool (since
+#   v1.4), but the INTEGRATION CONTRACT was implicit. v1.7 makes it a first-class,
+#   validated `composition_guards` engine section — 3 disciplines for composing a
+#   HEAVYWEIGHT sub-capability (deepask first; gbrain `think` + deep-research share
+#   the shape): (1) ANTI-RECURSION one-way layering (mckinsey → deepask → /think
+#   micro-frameworks; deepask never re-enters /think mckinsey — breaks the latent
+#   mckinsey→deepask→think-skills→mckinsey cycle; enforced deterministically by
+#   scripts/deepask/capability-gate.cjs RECURSION_DENYLIST); (2) COST-VALVE — a
+#   full /deepask loop fires ONLY on a knock-out-surviving, genuinely multi-source
+#   workplan row (--dry-run first; budget the resolver breaker across the run;
+#   heuristics before big guns); (3) EVIDENCE-NOT-DECIDER — deepask returns cited
+#   evidence + a COMPLETE/PARTIAL verdict, not the call; a PARTIAL is a
+#   data-blocked branch (ask-user or carry an explicit assumption), and the
+#   synthesize→recommend judgment stays with the engine (Sell) + the owner.
+#
 # Schema:    knowledge/schemas/mckinsey-workflow.schema.json
 # Validator: scripts/cross-tier/validate-mckinsey-workflow.cjs (L2 critical;
 #            check-consistency.cjs + CI + validate-tier1 FILE_TO_SCHEMA). Proves
@@ -64,7 +80,7 @@
 # Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
 # ============================================================================
 
-version: "1.6.0"
+version: "1.7.0"
 schema: knowledge/schemas/mckinsey-workflow.schema.json
 spine: "4S"                                   # State / Structure / Solve / Sell (Cracked it! Ch 3)
 source_books: [cracked-it, bulletproof-problem-solving]
@@ -96,7 +112,7 @@ data_routing:
     tool: deepask
     invoke: '/deepask "<question>"   (inline; --dry-run first for cost/coverage)'
     hitl: A
-    note: "heavyweight federated synthesis; Tier-B+ legs are surfaced, never auto-run; resolver-breaker bounded"
+    note: "heavyweight federated synthesis; Tier-B+ legs surfaced never auto-run; resolver-breaker bounded. Compose per `composition_guards`: knock-out-gated (big gun, not every leaf), one-way (deepask never re-enters this engine), evidence-not-decider (a PARTIAL is a data-blocked branch → ask-user, don't fabricate)"
   - need: "A framework / concept / definition / best-practice from the distilled reference library"
     tool: wiki_ask
     invoke: '/wiki ask "<q>"   OR   mcp__supabase-ops__wiki_ask({question})'
@@ -121,12 +137,61 @@ data_routing:
     tool: think-skills
     invoke: "/think driver-tree|mece|hypothesis|root-cause|pyramid|so-what|2x2"
     hitl: A
-    note: "reasoning discipline, not evidence; scaffolds WHAT to pull, then route to a data tool"
+    note: "reasoning discipline, not evidence; scaffolds WHAT to pull, then route to a data tool. MICRO-FRAMEWORKS ONLY — never `/think mckinsey` (that IS this engine; re-invoking it recurses — see composition_guards anti-recursion)"
   - need: "Data that exists ONLY in the founder's head (private intent, unrecorded decisions, risk appetite, qualitative judgment, degree-6 internal plans)"
     tool: ask-user
     invoke: "AskUserQuestion — surface the gap + show where it changes the one-day answer + a proposed default"
     hitl: human
     note: "the McKinsey move: don't fabricate past a gap you could close by asking the owner; frame as a scheduled checkpoint"
+
+# --------------------------------------------------------------------------
+# COMPOSITION GUARDS (v1.7) — the contract for composing a HEAVYWEIGHT
+# sub-capability as a Solve-loop data tool. data_routing says WHICH tool to call;
+# these guards say HOW to compose the expensive ones (deepask first; gbrain
+# `think` + deep-research share the shape) without (1) recursion, (2) runaway
+# cost, or (3) ceding the judgment that belongs to the engine + the owner.
+# Validated as a non-empty engine section (any `concept` ref is file-checked).
+# --------------------------------------------------------------------------
+composition_guards:
+  - guard: "anti-recursion — one-way layering"
+    applies_to: [deepask]
+    rule: >
+      The McKinsey engine is the ORCHESTRATOR; deepask (and any heavyweight
+      sub-capability it routes to) is a LEAF data tool. A data pull MUST NOT
+      re-enter this engine. Concretely: never invoke `/think mckinsey` from
+      inside a Solve `data_routing` pull, and deepask composes ONLY the
+      lightweight `/think` micro-frameworks (pyramid · mece · so-what ·
+      hypothesis · driver-tree · root-cause · 2x2) — never `/think mckinsey`.
+      One direction only: mckinsey → deepask → /think micro-frameworks. This
+      breaks the latent `mckinsey → deepask → think-skills → mckinsey` cycle.
+    enforced_by: >
+      deepask/execute capability-gate (scripts/deepask/capability-gate.cjs
+      RECURSION_DENYLIST refuses thinking-toolkit/mckinsey-workflow even at
+      Tier-A) + the `think-skills` data_routing note (micro-frameworks only).
+  - guard: "cost-valve — prioritize-gated, breaker-aware"
+    applies_to: [deepask, deep-research]
+    rule: >
+      A full `/deepask` loop is a BIG GUN (multi-subagent, resolver-breaker
+      bounded at 20 finds / 4h / session). Fire it ONLY on a workplan row that
+      SURVIVED knock-out (high impact×influence) AND genuinely spans multiple
+      internal sources. For a single-source need use the cheaper direct tool
+      (supabase-ops-query for a number · wiki_ask for a concept · gbrain
+      search/recall for an entity). Always `/deepask --dry-run` first (see
+      coverage + cost), and BUDGET the breaker across the whole run so a
+      10-leaf workplan doesn't exhaust it on leaf 3. Heuristics before big guns.
+    concept: {book: bulletproof-problem-solving, slug: knock-out-analysis}
+  - guard: "evidence-not-decider — deepask informs; the engine + owner decide"
+    applies_to: [deepask, deep-research, gbrain]
+    rule: >
+      deepask returns CITED EVIDENCE + an honest COMPLETE/PARTIAL coverage
+      verdict — it does NOT make the call. Its output is ONE input to the
+      validation_gate (run degree-of-certainty + triangulation on it like any
+      datum), not a finished recommendation. A deepask PARTIAL / honest-gap is
+      a DATA-BLOCKED branch: do not fabricate past it — route to `ask-user`
+      (founder-held data) or carry the assumption explicitly with a sensitivity
+      note. The synthesize → recommend judgment stays with the engine (Sell)
+      and the owner, never the data tool.
+    concept: {book: cracked-it, slug: judgment-call-transparency}
 
 # --------------------------------------------------------------------------
 # TOOL SELECTION — HOW the engine loads + selects the RIGHT framework / model /

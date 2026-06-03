@@ -69,6 +69,12 @@ function validDoc(over: Record<string, any> = {}) {
     hitl_triggers: [{ when: "founder-only data", ask: "request it", concept: { ...REAL_CONCEPT } }],
     back_edges: [{ from: "solve", to: "state", trigger: "mis-framed", concept: { ...REAL_CONCEPT } }],
     stopping_criterion: [{ condition: "proven + robust", concept: { ...REAL_CONCEPT } }],
+    // v1.7 composition_guards: an anti-recursion entry (no concept — optional) + a
+    // cost-valve entry (with a concept that must exist on disk).
+    composition_guards: [
+      { guard: "anti-recursion", rule: "one-way layering", applies_to: ["deepask"] },
+      { guard: "cost-valve", rule: "knock-out-gated", concept: { ...REAL_CONCEPT } },
+    ],
     ...over,
   };
 }
@@ -95,6 +101,7 @@ describe("validateWorkflow — specification / real-catalog conformance", () => 
     expect(ENGINE_SECTIONS).toContain("validation_gate");
     expect(ENGINE_SECTIONS).toContain("back_edges");
     expect(ENGINE_SECTIONS).toContain("tool_selection"); // v1.5 — load + select mechanism
+    expect(ENGINE_SECTIONS).toContain("composition_guards"); // v1.7 — deepask composition contract
   });
 });
 
@@ -264,7 +271,7 @@ describe("validateWorkflow — v1.4 data_routing", () => {
 });
 
 describe("validateWorkflow — v1.4 engine sections", () => {
-  for (const sec of ["tool_selection", "validation_gate", "routing_rules", "hitl_triggers", "back_edges", "stopping_criterion"]) {
+  for (const sec of ["tool_selection", "validation_gate", "routing_rules", "hitl_triggers", "back_edges", "stopping_criterion", "composition_guards"]) {
     it(`missing ${sec} -> error`, () => {
       const d = validDoc(); delete (d as any)[sec];
       expect(has(validateWorkflow(d, REPO_ROOT), `${sec} must be a non-empty array`)).toBe(true);
@@ -318,5 +325,48 @@ describe("validateWorkflow — v1.5 communication artifact", () => {
   it("'communication' in artifacts.files with a stage that isn't a step id -> error", () => {
     const d = validDoc({ artifacts: { run_folder: "x/", files: [{ name: "communication", stage: "ghost", contents: "x" }] } });
     expect(has(validateWorkflow(d, REPO_ROOT), "is not a step id")).toBe(true);
+  });
+});
+
+// ---- v1.7 COMPOSITION GUARDS (the deepask composition contract) ----
+
+describe("validateWorkflow — v1.7 composition_guards", () => {
+  it("an entry WITHOUT a concept (the anti-recursion guard) is allowed (concept optional)", () => {
+    const d = validDoc({ composition_guards: [{ guard: "anti-recursion", rule: "one-way layering", applies_to: ["deepask"] }] });
+    expect(validateWorkflow(d, REPO_ROOT)).toEqual([]);
+  });
+  it("an entry with a concept that doesn't exist -> 'concept not found on disk'", () => {
+    const d = validDoc({ composition_guards: [{ guard: "cost-valve", rule: "x", concept: { book: "bulletproof-problem-solving", slug: "ghost-guard" } }] });
+    expect(has(validateWorkflow(d, REPO_ROOT), "concept not found on disk")).toBe(true);
+  });
+  it("a malformed concept on an entry is caught", () => {
+    const d = validDoc({ composition_guards: [{ guard: "x", rule: "y", concept: { book: "cracked-it" } }] });
+    expect(has(validateWorkflow(d, REPO_ROOT), "concept must be a {book, slug}")).toBe(true);
+  });
+  it("a non-mapping entry -> 'must be a mapping'", () => {
+    const d = validDoc({ composition_guards: ["not-an-object"] });
+    expect(has(validateWorkflow(d, REPO_ROOT), "must be a mapping")).toBe(true);
+  });
+  it("applies_to referencing an unknown tool -> error (v1.7 — applies_to is load-bearing)", () => {
+    const d = validDoc({ composition_guards: [{ guard: "x", rule: "y", applies_to: ["deeepask"] }] });
+    expect(has(validateWorkflow(d, REPO_ROOT), "applies_to references unknown tool")).toBe(true);
+  });
+  it("applies_to that isn't an array -> error", () => {
+    const d = validDoc({ composition_guards: [{ guard: "x", rule: "y", applies_to: "deepask" }] });
+    expect(has(validateWorkflow(d, REPO_ROOT), "applies_to must be an array")).toBe(true);
+  });
+  it("applies_to with all-known tools is accepted", () => {
+    const d = validDoc({ composition_guards: [{ guard: "x", rule: "y", applies_to: ["deepask", "deep-research", "gbrain"] }] });
+    expect(validateWorkflow(d, REPO_ROOT)).toEqual([]);
+  });
+  // Phase 2N — contract against the REAL committed catalog: the 3 disciplines exist.
+  it("the committed catalog declares >=3 composition_guards incl. anti-recursion + cost-valve + evidence-not-decider", () => {
+    const doc: any = yaml.load(fs.readFileSync(path.join(REPO_ROOT, REGISTRY_REL), "utf-8"));
+    expect(Array.isArray(doc.composition_guards)).toBe(true);
+    expect(doc.composition_guards.length).toBeGreaterThanOrEqual(3);
+    const blob = JSON.stringify(doc.composition_guards).toLowerCase();
+    expect(blob).toContain("anti-recursion");
+    expect(blob).toContain("cost-valve");
+    expect(blob).toContain("evidence-not-decider");
   });
 });

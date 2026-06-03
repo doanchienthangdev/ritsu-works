@@ -274,3 +274,20 @@ v1.0 design decision *"No new command — composed by existing personas via Skil
 
 **Reversibility:**
 5/5 — `git revert` of the v1.1 commit removes 1 command file + 4 doc/spec edits. Skills untouched.
+
+> Versions v1.2–v1.6 are documented in the registry notes (`knowledge/capability-registry.yaml`, `thinking-toolkit` entry) + `CHANGELOG.md`, not as separate spec sections.
+
+## 15. v1.7 changelog (2026-06-04) — the `/think mckinsey` ↔ `/deepask` composition contract
+
+`/cla extend thinking-toolkit` — Tier C, autonomous overnight ship (founder pre-auth 2026-06-04).
+
+**Why:** founder asked, after watching `/deepask` answer two real questions against live Ritsu data, *"đánh giá cơ chế này kết nối với /think mckinsey có ok không?"* The assessment: the fit is right (McKinsey = reasoning spine; deepask = evidence arm; they already share MECE + Pyramid grammar, and deepask's anti-hallucination gate protects McKinsey's rigor) — but the integration, while present since v1.4 (`deepask` was already a `data_routing` tool), was an **implicit** contract. Three disciplines were missing and are the whole point of doing it right.
+
+**What changed (the 3 disciplines, now a first-class validated `composition_guards` engine section):**
+1. **Anti-recursion (one-way layering)** — `mckinsey → deepask → /think micro-frameworks`; deepask never re-enters this engine. Enforced **deterministically** by a new `scripts/deepask/capability-gate.cjs` `RECURSION_DENYLIST` that refuses `thinking-toolkit/mckinsey-workflow` *even at Tier-A* (keyed on an optional `recipient_id` → backward-compatible; the 25 existing gate tests are untouched). Breaks the latent `mckinsey → deepask → think-skills → mckinsey` cycle.
+2. **Cost-valve (prioritize-gated, breaker-aware)** — a full `/deepask` loop is a big gun (multi-subagent, resolver-breaker-bounded 20 finds/4h); fire it ONLY on a knock-out-surviving, genuinely multi-source workplan row (`--dry-run` first; budget the breaker across the run; a single number → `supabase-ops`, a concept → `wiki_ask`, an entity → gbrain `search`). Heuristics before big guns.
+3. **Evidence-not-decider** — deepask returns cited evidence + a COMPLETE/PARTIAL verdict, run through the validation gate like any datum; a PARTIAL is a data-blocked branch (→ `ask-user` or carry an explicit assumption); the synthesize→recommend judgment stays with the engine (Sell) + the founder.
+
+**Touches:** `knowledge/mckinsey-workflow.yaml` (1.6.0 → 1.7.0; +`composition_guards`; enriched `deepask`/`think-skills` routing notes) · its schema (+`composition_guards` property) · `scripts/cross-tier/validate-mckinsey-workflow.cjs` (`ENGINE_SECTIONS` += `composition_guards`) · `scripts/deepask/capability-gate.cjs` (+`RECURSION_DENYLIST`) · `06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md` (Composition + guards) · `.claude/commands/deepask.md` (Boundary) · `06-ai-ops/skills/deepask/execute/SKILL.md` (pass `recipient_id` + anti-recursion refuse). Tests: +5 `mckinsey-workflow` (composition_guards edge) +6 `deepask/capability-gate` (recursion-guard matrix + backward-compat). **No new DB table, no migration, no new `/think` verb** — pure contract hardening.
+
+**Reversibility:** 5/5 — `git revert` of the v1.7 commit removes one engine section + one denylist constant + doc edits; the data_routing deepask entry (v1.4) and all behavior pre-v1.7 are preserved. Decision: `ops.decisions` (slug `thinking-toolkit-v1.7-deepask-composition-contract`).
