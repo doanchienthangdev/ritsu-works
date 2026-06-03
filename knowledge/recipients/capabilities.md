@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 17
+**Total entries:** 18
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -139,6 +139,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **When to use:** Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration. Automation layer for the AI-Native Company Playbook PDF v1.0.0
 
 **Invoke:** `Read("wiki/capabilities/playbook-builder/spec.md")` or `/cla update playbook-builder`
+
+**Role scope:** *
+**Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/product-db-readonly-access
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Product DB read-only access — Door 2 (pseudonymized analytics). OPERATING since 2026-06-03 (Tier-C decision 0647e301-4ad2-495f-806e-d17c3b130072). Lets the Operating AI answer behavioral / unit-economics questions from Product-derived data WITHOUT touching Product and WITHOUT raw PII. 'Door 2' of the 3-door architecture (L0 firewall-as-code + Door1 gateway + Door2 analytics-copy + Door3 action-MCP v1.0.0
+
+**Invoke:** `Read("wiki/capabilities/product-db-readonly-access/spec.md")` or `/cla update product-db-readonly-access`
 
 **Role scope:** *
 **Status:** operating
