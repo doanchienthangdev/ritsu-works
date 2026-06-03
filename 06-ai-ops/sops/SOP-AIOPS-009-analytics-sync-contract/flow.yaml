@@ -1,0 +1,138 @@
+# SOP-AIOPS-009 — Analytics Sync + Consumer MCP Runtime Contract
+#
+# Declarative runtime contract for capability product-db-readonly-access (Door 2):
+# the pseudonymized Product→analytics nightly sync + the read-only supabase-analytics
+# consumer MCP. Read by mcp-server-analytics/ + the cross-tier validator.
+#
+# RUNTIME-CONTRACT SOP (like SOP-AIOPS-004..008), NOT a CLA 8-phase ceremony —
+# follows the sop_id/slug/steps shape. The "steps" document the safe-read pipeline
+# end to end: product builds stripped+hashed views → analytics pulls only those →
+# ops queries the pseudonymized result. Identity + content never cross.
+
+sop_id: SOP-AIOPS-009
+slug: analytics-sync-contract
+name: "Analytics sync + consumer MCP runtime contract"
+version: "1.0.0"
+state: operating          # Sprint 1 (MCP) merged PR #220; Sprint 2 (this) registers governance
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A           # reads over pseudonymized data are Tier A; expansion of synced_tables is founder D-MAX (product-side)
+cost_bucket: ai-ops-analytics
+capability_id: product-db-readonly-access
+
+# ----------------------------------------------------------------------
+# The safe-read pipeline (Product → analytics → ops). Identity never crosses.
+# ----------------------------------------------------------------------
+steps:
+  - id: export
+    name: "Stage 1 — Product builds PII-stripped + HMAC-hashed views (PRODUCT-SIDE, founder D-MAX)"
+    skill: none
+    actions:
+      - stripped_views               # analytics_export.* : user_hash = uh(user_id) (HMAC, product-held salt); email/name/content DROPPED
+      - salt_product_only            # analytics_secret.config (RLS-locked); uh() SECURITY DEFINER; never reaches ops/analytics
+      - export_role                  # analytics_export_ro : SELECT on analytics_export.* only
+    hitl: D-MAX                      # ALL product DDL is founder-only (charter: never write Product)
+
+  - id: pull
+    name: "Stage 2 — analytics pulls ONLY the stripped views via postgres_fdw"
+    skill: none
+    actions:
+      - fdw_import                   # ext.* foreign tables → product analytics_export.* (enum cols mapped to text)
+      - default_deny                 # ONLY synced_tables are pulled; anything else (incl. content) excluded forever
+    hitl: A
+
+  - id: validate
+    name: "Stage 3 — stage + PII-canary + row-count guard BEFORE swap"
+    skill: none
+    actions:
+      - stage_copy                   # staging.<tbl> as select * from ext.<tbl>
+      - pii_canary                   # live.pii_canary(staging,<tbl>) MUST be 0 (no email-shaped cell) — else abort, keep last-good
+      - rowcount_guard               # 0 rows → abort (keep last-good)
+    hitl: A
+    failure_handling:
+      canary_tripped: abort_keep_last_good      # P0 — surface to alert-router (Sprint 4)
+      zero_rows: abort_keep_last_good
+
+  - id: swap
+    name: "Stage 4 — atomic swap into live.* + re-grant"
+    skill: none
+    actions:
+      - schema_swap                  # drop live.<tbl>; alter staging.<tbl> set schema live
+      - regrant_consumer             # grant select on live.<tbl> to analytics_reader (survives the swap — the new table object loses the one-time grant)
+      - log_run                      # live._sync_runs row (freshness signal → KPI analytics_sync_freshness)
+    hitl: A
+
+  - id: consume
+    name: "Stage 5 — ops queries the pseudonymized result via the supabase-analytics MCP"
+    skill: none
+    actions:
+      - mcp_query                    # mcp__supabase-analytics__{query,list_tables} — read-only SELECT over live.*
+      - role_allowlist               # default-deny; only consumer_allowlist roles (== role-allowlist.ts)
+      - least_priv_role              # connection IS analytics_reader: SELECT on live.* only; read-only txn + statement_timeout (role-level)
+      - sql_guard                    # SELECT/WITH-only, single statement, no INTO
+    hitl: A
+
+# ----------------------------------------------------------------------
+# The committed contract + what the validator checks
+# ----------------------------------------------------------------------
+contract:
+  source_of_truth: knowledge/analytics-sync-contract.yaml
+  validator: scripts/cross-tier/validate-analytics-readonly.cjs   # L2 critical
+  checks:
+    - "synced_tables ∩ forbidden_content_tables == ∅ (no content/identity ever synced)"
+    - "consumer_allowlist == ANALYTICS_ALLOWED_ROLES in mcp-server-analytics/src/governance/role-allowlist.ts"
+    - "mcp_server registered in .mcp.json"
+    - "read_surface_schema == 'live'; consumer role == analytics_reader"
+  product_side_enforced_not_repo_checkable:
+    - "no direct-identifier / JSONB / *_token column in any analytics_export.* view"
+    - "salt lives ONLY in product (analytics_secret.config, RLS)"
+    - "PII-canary clause present per text column"
+
+# ----------------------------------------------------------------------
+# Guards
+# ----------------------------------------------------------------------
+guards:
+  - never_write_product            # ops/analytics NEVER write Product; all product DDL is founder D-MAX
+  - identity_never_crosses         # only user_hash crosses; email/name/content stay in Product
+  - default_deny_columns           # new columns/tables reviewed before sync; content tables excluded forever
+  - least_priv_consumer            # the MCP connects as analytics_reader (SELECT live.* only) — the DB role is the boundary
+  - firewall_safe_mcp              # mcp__supabase-analytics__* is safe-mcp in the L0 firewall (pre-tool-supabase-product.cjs v1.2)
+  - canary_before_swap             # PII-canary must be 0 before any staging→live promotion
+
+# ----------------------------------------------------------------------
+# Schedule (in-DB pg_cron on ritsu-analytics — NOT the ops dispatcher)
+# ----------------------------------------------------------------------
+schedule:
+  job: analytics-sync-nightly
+  cron: "0 11 * * *"               # 11:00 UTC daily; self-runs (no laptop)
+  runner: in_db_pg_cron            # cron.schedule on ritsu-analytics; documented in manifest.etl_flows (NOT knowledge/schedules.yaml, which is for the ops dispatcher)
+  pause: "select cron.unschedule('analytics-sync-nightly') on ritsu-analytics"
+
+# ----------------------------------------------------------------------
+# GDPR erasure
+# ----------------------------------------------------------------------
+erasure:
+  mechanism: nightly-full-replace  # an erased user disappears next sync (the product view stops returning them)
+  sop: SOP-CUSTOMER-023            # extend to name ritsu-analytics + a force-reseed-within-24h note (Sprint 4)
+
+# ----------------------------------------------------------------------
+# Observability (Sprint 4 wires alerting)
+# ----------------------------------------------------------------------
+observability:
+  freshness_kpi: analytics_sync_freshness   # alerts if max(live._sync_runs.finished_at) older than 26h
+  canary_kpi: analytics_pii_canary_trips    # MUST be 0; P0 → alert-router → Telegram (Sprint 4)
+  sync_log: "live._sync_runs (per-table status + rows + finished_at)"
+
+teardown:
+  analytics_side: "drop server product_ro cascade; drop schema ext, staging, live cascade; drop role analytics_reader;"
+  product_side: "drop schema analytics_export cascade; drop schema analytics_secret cascade; drop role analytics_export_ro; (founder D-MAX)"
+
+references:
+  - mcp-server-analytics/README.md
+  - mcp-server-analytics/src/server.ts
+  - knowledge/analytics-sync-contract.yaml
+  - scripts/cross-tier/validate-analytics-readonly.cjs
+  - knowledge/manifest.yaml          # etl_flows.analytics_sync_nightly + tool_plane registration
+  - governance/HITL.md               # D-MAX product boundary
+  - .claude/hooks/pre-tool-supabase-product.md   # L0 firewall (safe-mcp)
+  - SOP-CUSTOMER-023-gdpr-account-deletion

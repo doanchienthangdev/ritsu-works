@@ -188,3 +188,19 @@ jobs:
           version: 9
       - run: pnpm install --frozen-lockfile
       - run: node scripts/cross-tier/validate-hitl-hooks.cjs
+
+  # capability product-db-readonly-access Sprint 2 — CRITICAL (blocks merge)
+  l2-analytics-readonly:
+    name: L2 — analytics-sync-contract ↔ allowlist + .mcp.json + no-content
+    runs-on: ubuntu-latest
+    needs: l1-tier1-yaml-schemas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/cross-tier/validate-analytics-readonly.cjs

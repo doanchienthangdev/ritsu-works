@@ -35,7 +35,7 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..');
 // as a pillar candidate.
 const NON_PILLAR_TOPLEVEL = new Set([
   '.archives', '.claude', '.github', '.husky', '.git',
-  'node_modules', 'frontend', 'mcp-server', 'tests', 'wiki',
+  'node_modules', 'frontend', 'mcp-server', 'mcp-server-analytics', 'tests', 'wiki',
   'supabase', 'notes', 'knowledge', 'governance', 'raw',
   'src', 'scripts', 'placeholders', '_templates',
   'runtime', 'dist', 'build', 'coverage',

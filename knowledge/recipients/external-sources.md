@@ -7,7 +7,7 @@
 This file is THE source of truth for external-source recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/external-sources.md` import.
 
-**Total entries:** 9
+**Total entries:** 10
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -87,6 +87,21 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## external-source/ritsu-analytics-readonly
+
+**Kind:** external-source
+**Axis:** content
+**When to use:** ritsu-analytics Supabase project (ddgbabvbfjrsznvzhizf, us-west-1) — the PSEUDONYMIZED Door-2 analytics copy (capability product-db-readonly-access). NOT Product Supabase: an isolated ops-side project holding only HMAC-hashed, PII-stripped views of Product behavioral data in schema live.* (user_hash, never email/name; content tables excluded forever). Synced nightly via postgres_fdw + pg_cron behi...
+
+**Invoke:** `mcp__supabase-analytics__{query,list_tables}` — read-only SELECT over live.*; never a raw connection. The L0 firewall (pre-tool-supabase-product.cjs v1.2) treats mcp__supabase-analytics__* as safe-mcp. Out-of-band/admin verification uses the Management API on the analytics ref only.
+**Authority:** SoR-external
+**Freshness:** live
+
+**Disambiguator:** source_type: db-readonly
+**Role scope:** founder, cofounder, customer-lead, product-orchestrator, gtm-orchestrator, feedback-aggregator
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## external-source/stripe-readonly
 
 **Kind:** external-source
@@ -106,7 +121,7 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 
 **Kind:** external-source
 **Axis:** content
-**When to use:** Product Supabase project (read-only via etl-runner). The single most important access boundary in the company per governance/HITL.md D-MAX rules. Operating AI never writes here; reads happen exclusively through metrics.* mirror populated by the etl_flows.product_metrics_to_ops pipeline in knowledge/manifest.yaml. Auth env: `SUPABASE_PRODUCT_READ_KEY`.
+**When to use:** Product Supabase project (read-only via etl-runner). The single most important access boundary in the company per governance/HITL.md D-MAX rules. Operating AI never writes here; reads happen exclusively through metrics.* mirror populated by the etl_flows.product_metrics_to_ops pipeline in knowledge/manifest.yaml. Auth env: `SUPABASE_PRODUCT_READONLY_ETL_KEY`.
 
 **Invoke:** etl-runner only — invoked via supabase/functions/_shared/worker.ts makeEtlProductDauSnapshotHandler. See knowledge/manifest.yaml etl_flows.product_metrics_to_ops.
 **Authority:** SoR-external

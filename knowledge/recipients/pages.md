@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 52
+**Total entries:** 53
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -302,6 +302,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/alert-rules.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-analytics-sync-contract
+
+**Kind:** page
+**Axis:** content
+**When to use:** Analytics Sync Contract — capability product-db-readonly-access (Door 2) The single COMMITTED, repo-side source of truth for the pseudonymized Product→analytics data path. Everything product-side (the stripped views, the salt, the FDW) lives in the product DB and a local-only SQL file; THIS file is the ops-side contract a validator can check deterministically. Validated by scripts/cross-tier/valid...
+
+**Invoke:** `Read("knowledge/analytics-sync-contract.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/analytics-sync-contract.yaml
 
 **Role scope:** *
 **Status:** active

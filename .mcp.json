@@ -26,6 +26,17 @@
         "GBRAIN_BUDGET_ALERT_THRESHOLD": "${GBRAIN_BUDGET_ALERT_THRESHOLD:-80}",
         "GBRAIN_BUDGET_HARD_BLOCK_THRESHOLD": "${GBRAIN_BUDGET_HARD_BLOCK_THRESHOLD:-150}"
       }
+    },
+    "supabase-analytics": {
+      "command": "/bin/sh",
+      "args": [
+        "-c",
+        "set -a; [ -f /Users/doanchienthang/ritsu-works/runtime/secrets/.env.local ] && . /Users/doanchienthang/ritsu-works/runtime/secrets/.env.local; set +a; exec npx -y tsx /Users/doanchienthang/ritsu-works/mcp-server-analytics/src/server.ts"
+      ],
+      "env": {
+        "MCP_CALLER_ROLE": "${MCP_CALLER_ROLE:-gps}",
+        "MCP_CALLER_SESSION_ID": "${MCP_CALLER_SESSION_ID:-}"
+      }
     }
   }
 }

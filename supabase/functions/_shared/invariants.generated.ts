@@ -3,9 +3,9 @@
 // Re-run with: pnpm wave2:bundle-invariants
 //
 // Source version: 1.0.0
-// Invariant count: 29
-// By layer: L1=8 L2=15 L3=6
-// Generated at: 2026-05-26T15:17:52.900Z
+// Invariant count: 33
+// By layer: L1=8 L2=18 L3=7
+// Generated at: 2026-06-03T09:09:50.972Z
 
 import type { Invariant } from "./invariants.ts";
 
@@ -598,6 +598,90 @@ export const ALL_INVARIANTS: Invariant[] = [
     "hitl_tier": "B",
     "fix_strategy": "manual_only",
     "notes": "Catches drift if /update runs are mis-attributed to a different role\n(e.g., gps or founder direct) — undermines cost-bucket attribution\n($30/mo cap on ai-ops-entity-update) and per-task-kind cap enforcement.\nVacuously true until first /update run lands; first row will exercise\nthe check. Validator extracts role from state_payload->>'role' since\nops.agent_runs has no dedicated triggered_by_role column.\n"
+  },
+  {
+    "id": "analytics-no-content-in-sync",
+    "description": "synced_tables in analytics-sync-contract.yaml MUST be disjoint from forbidden_content_tables — no content/identity table is ever synced to ritsu-analytics (Door 2).",
+    "kind": "subset",
+    "layer": "L2",
+    "status": "live",
+    "source": {
+      "tier": 1,
+      "ref": "knowledge/analytics-sync-contract.yaml",
+      "query": "$.synced_tables[*]"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "knowledge/analytics-sync-contract.yaml",
+      "query": "$.forbidden_content_tables[*] (synced MUST be disjoint from this set)"
+    },
+    "severity": "critical",
+    "hitl_tier": "C",
+    "fix_strategy": "patch_yaml",
+    "notes": "The load-bearing privacy invariant: content + identity stay in Product\nforever. Default-deny already excludes anything not in synced_tables;\nforbidden_content_tables is an explicit tripwire. Executor:\nscripts/cross-tier/validate-analytics-readonly.cjs (L2 critical).\n"
+  },
+  {
+    "id": "analytics-allowlist-no-drift",
+    "description": "consumer_allowlist in analytics-sync-contract.yaml MUST equal ANALYTICS_ALLOWED_ROLES in mcp-server-analytics/src/governance/role-allowlist.ts.",
+    "kind": "equal",
+    "layer": "L2",
+    "status": "live",
+    "source": {
+      "tier": 1,
+      "ref": "knowledge/analytics-sync-contract.yaml",
+      "query": "$.consumer_allowlist[*]"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "mcp-server-analytics/src/governance/role-allowlist.ts",
+      "query": "members of new Set([...]) assigned to ANALYTICS_ALLOWED_ROLES"
+    },
+    "severity": "critical",
+    "hitl_tier": "C",
+    "fix_strategy": "patch_yaml",
+    "notes": "Keeps the governed allowlist (contract) and the runtime gate (the MCP's\nrole-allowlist.ts) in lockstep — a role added in one place but not the\nother is drift. Executor: validate-analytics-readonly.cjs.\n"
+  },
+  {
+    "id": "analytics-mcp-registered",
+    "description": "mcp_server (supabase-analytics) named in analytics-sync-contract.yaml MUST be registered in .mcp.json mcpServers.",
+    "kind": "exists",
+    "layer": "L2",
+    "status": "live",
+    "source": {
+      "tier": 1,
+      "ref": "knowledge/analytics-sync-contract.yaml",
+      "query": "$.mcp_server"
+    },
+    "target": {
+      "tier": 1,
+      "ref": ".mcp.json",
+      "query": "$.mcpServers['supabase-analytics']"
+    },
+    "severity": "critical",
+    "hitl_tier": "C",
+    "fix_strategy": "open_pr",
+    "notes": "Executor: validate-analytics-readonly.cjs. Catches a contract that\nreferences an unregistered server (or a removed registration).\n"
+  },
+  {
+    "id": "analytics-salt-product-only",
+    "description": "The pseudonym salt (analytics_secret.config / app.analytics_salt) MUST live ONLY product-side and never appear in an ops credential or .env context.",
+    "kind": "implies",
+    "layer": "L3",
+    "status": "deferred",
+    "source": {
+      "tier": 1,
+      "ref": "ops repo committed files",
+      "query": "grep -i 'analytics_salt|analytics_secret' outside product-side docs"
+    },
+    "target": {
+      "tier": 1,
+      "ref": "governance/SECRETS.md + runtime/secrets",
+      "query": "salt value absent (pseudonymized != anonymized; salt stays in Product)"
+    },
+    "severity": "critical",
+    "hitl_tier": "C",
+    "fix_strategy": "manual_only",
+    "notes": "Product-side enforced (salt in product analytics_secret.config, RLS-locked;\nuh() SECURITY DEFINER). Not deterministically checkable from the ops repo\nyet — L3 manual. Documented in SOP-AIOPS-009 + brainstorm doc 13 (legal).\n"
   }
 ] as unknown as Invariant[];
 
