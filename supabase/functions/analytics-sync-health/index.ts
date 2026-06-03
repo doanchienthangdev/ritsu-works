@@ -95,9 +95,11 @@ serve(async (req) => {
           state: "firing",
         })),
       );
-      // 3. Direct Telegram (interim until the alert-router backbone lands)
-      await telegram(h.message);
     }
+
+    // 3. Direct Telegram — deliver the sync RESULT every run (daily heartbeat:
+    //    ✅ healthy / 🟡 warn / 🔴 critical). Interim until the alert-router backbone lands.
+    await telegram(h.message);
 
     return new Response(JSON.stringify({ ok: true, ...h }), {
       status: h.level === "critical" ? 503 : 200,
