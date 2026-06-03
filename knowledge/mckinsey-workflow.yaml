@@ -41,6 +41,16 @@
 #     as two artifacts with an APK (anxious-parade-of-knowledge) guard; and the
 #     design-thinking 5-phase branch is a first-class solve_mode in tool_selection.
 #
+# v1.6 (the "enforce the discipline mechanically" upgrade): a deterministic
+#   helper, scripts/thinking-toolkit/mckinsey-run.cjs, scaffolds the run folder
+#   and CHECKS it — the 6-column + status workplan, a provenance + degree(1-8)
+#   tag on every analysis-log datum, the product firewall on source-of-data, and
+#   the stopping gate (no `open` row before Sell). The engine's discipline is now
+#   a gate, not just prose. The registry also gains source_chapter provenance
+#   (every candidate traces to a book chapter) + a per-step coverage invariant
+#   (every 4S step has ≥1 selectable candidate). artifact name `decomposition`
+#   is canonical across catalog ↔ run-folder ↔ checker (coherence-guarded).
+#
 # Schema:    knowledge/schemas/mckinsey-workflow.schema.json
 # Validator: scripts/cross-tier/validate-mckinsey-workflow.cjs (L2 critical;
 #            check-consistency.cjs + CI + validate-tier1 FILE_TO_SCHEMA). Proves
@@ -54,7 +64,7 @@
 # Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
 # ============================================================================
 
-version: "1.5.0"
+version: "1.6.0"
 schema: knowledge/schemas/mckinsey-workflow.schema.json
 spine: "4S"                                   # State / Structure / Solve / Sell (Cracked it! Ch 3)
 source_books: [cracked-it, bulletproof-problem-solving]

@@ -20,7 +20,7 @@
       "description": "The candidate pool — one entry per problem-solving concept.",
       "items": {
         "type": "object",
-        "required": ["slug", "book", "fours_step", "type", "wiki_path", "title"],
+        "required": ["slug", "book", "fours_step", "type", "source_chapter", "wiki_path", "title"],
         "additionalProperties": false,
         "properties": {
           "slug": {
@@ -42,6 +42,11 @@
             "type": "string",
             "enum": ["framework", "model", "heuristic", "technique", "concept", "bias", "antipattern"],
             "description": "Coarse kind. framework/model/heuristic/technique = tools to LOAD+APPLY; bias/antipattern = guard-rails for the debias/validation gate; concept = principle/idea. A filter hint — the engine reads the content to decide."
+          },
+          "source_chapter": {
+            "type": "integer",
+            "minimum": -1,
+            "description": "Source-book chapter index the concept was distilled from (provenance; deterministic from frontmatter source_chapter_index). -1 when the source omits it."
           },
           "wiki_path": {
             "type": "string",

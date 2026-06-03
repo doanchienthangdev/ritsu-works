@@ -2,14 +2,14 @@
 title: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
 description: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/43-thinking-toolkit.md
-source_hash: 348b82b9c1010e3ad16c2cc061c718b6c814965775fb30371cd8a68836366193
-generated_at: '2026-06-03T03:48:32.641Z'
+source_hash: 7fe3138a6e5a985057ea62a5e3a5d8e443eab07634c9fdbc2d2aabeaf6aca76d
+generated_at: '2026-06-03T05:20:38.909Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: 348b82b9c1010e3ad16c2cc061c718b6c814965775fb30371cd8a68836366193
-translated_at: '2026-06-03T03:48:32.641Z'
+translated_source_hash: 7fe3138a6e5a985057ea62a5e3a5d8e443eab07634c9fdbc2d2aabeaf6aca76d
+translated_at: '2026-06-03T05:20:38.909Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 43
 ---
@@ -439,6 +439,16 @@ A NEW `tool_selection` engine section encodes the **3-stage mechanism**: **CLASS
 Review: **@cto** request-changes with **no MUST-FIX** — but it caught a real bug: the generator's `--check` drift detector used a slug-only Set, so it would falsely report "complete" when one book's copy of a dual-book slug was dropped (the *gating* validator was already correct; only the operator-facing helper lied). Fixed + given a regression test. 94 vitest cases; check-consistency ALL CLEAN. [PR #216](https://github.com/doanchienthangdev/ritsu-works/pull/216). Tier C: `ops.decisions[thinking-toolkit-v1.5-tool-selection-registry]`.
 
 **Lesson (closes the v1.2→v1.5 arc):** v1.2 decided *which* concepts become skills (~2%); v1.3 gave the rest a per-step *home*; v1.4 made the workflow a real *engine*; v1.5 makes the library a **selectable, classified, complete pool** — so "use the right framework" stops being a vibe and becomes *filter by (step, type) → read → combine ≤3 → debias*. The founder's instinct ("a dedicated load file for the 200+ candidates") was the missing piece: a fuzzy RAG over a folder is not a selection substrate; a classified, completeness-validated registry is.
+
+## 42.9.10 v1.6 — enforce the discipline mechanically
+
+The founder asked for a comprehensive self-evaluation of `/think mckinsey`, then: *"đưa các tiêu chí lên 10 điểm (trừ phần chạy thực tế)"* — raise every criterion except proven-in-production to 10. The honest scorecard had pinpointed the gap: the engine was **well-architected but its discipline lived in prose** — "pull real data", "tag every datum", "don't reach Sell with an open row" were *instructions an LLM could drift away from*, not gates. v1.6 turns the prose into a gate.
+
+**The deterministic half of the engine** (`scripts/thinking-toolkit/mckinsey-run.cjs`): `scaffold <slug>` creates the run folder's 7 artifact templates; `check <slug> --before-sell` *validates* the run — the 6-column + status workplan, a **provenance + degree(1-8) tag on every analysis-log datum** (so a fabricated number is mechanically caught, not just discouraged), the **product firewall** on `source-of-data` (no `product.*`), and the **stopping gate** (no `open` row before Sell). Crucially it checks **structure + discipline-presence, never judgment** — it does not grade whether your analysis is good, only whether the engine recorded *where* each datum came from and *closed every row*. This is exactly the v1.4 line held: judgment stays with the agent; the helper guards the scaffolding around it (the /deepask "deterministic-helper-for-the-mechanical-stages" pattern, applied to mckinsey). Registry hardening shipped alongside: `source_chapter` provenance on all 207 candidates (every one traces to a book chapter) + a **per-step coverage invariant** (every 4S step must have ≥1 selectable framework/model/heuristic/technique, so LOAD never comes up empty), both deterministic + validator-enforced; and the `decomposition` artifact name unified across catalog ↔ run-folder ↔ checker (coherence-guarded).
+
+**The scorecard moved:** engine-not-static-map, data-grounding, and usability (the three lowest non-production criteria, 7.5–8.5) rise to ~10 because the discipline is now *enforced*; source-fidelity + tool-selection + drift-safety rise via provenance + coverage + the determinism test. The one criterion left untouched — **proven value in production** — is the one the founder explicitly excluded: it only moves when the engine is *run on real problems*. 34 new vitest cases (162 total across the three files). [PR](https://github.com/doanchienthangdev/ritsu-works/pulls) — Tier C, slug `thinking-toolkit-v1.6-mechanical-enforcement`.
+
+**Lesson:** a self-score that's high on "built well" and low on "proven" has a specific cure — **convert the prose discipline into checkable structure**, so the gap between "the engine says it pulls real data" and "the engine *cannot reach Sell* without recording where each datum came from" closes. You can't make a tool prove itself for you (that needs runs), but you *can* make it impossible to use sloppily.
 
 ## 42.10 Post-Wave-1 Wave-2 case study #9
 

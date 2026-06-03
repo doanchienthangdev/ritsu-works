@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as yaml from "js-yaml";
+import { execFileSync } from "child_process";
 // @ts-ignore — Node interop from TS to CJS
 const {
   validateRegistry,
@@ -48,7 +49,7 @@ let FIXTURE: string;
 beforeAll(() => {
   FIXTURE = fs.mkdtempSync(path.join(os.tmpdir(), "fwk-reg-"));
   const tree: Record<string, string[]> = {
-    "cracked-it": ["alpha", "beta", "dual"],
+    "cracked-it": ["alpha", "beta", "dual", "sigma"],
     "bulletproof-problem-solving": ["gamma", "dual"],
   };
   for (const [book, slugs] of Object.entries(tree)) {
@@ -59,14 +60,18 @@ beforeAll(() => {
 });
 afterAll(() => { fs.rmSync(FIXTURE, { recursive: true, force: true }); });
 
-// A COMPLETE, valid set of entries for the fixture (registers all 5 concepts).
+// A COMPLETE, valid set of entries for the fixture (registers all 6 concepts).
+// Spread across the 4 canonical steps with a SELECTABLE type each, so the
+// coverage check passes: state=alpha(framework) structure=beta(technique)
+// solve=gamma(heuristic) sell=sigma(framework); dual×2=cross.
 function frames() {
   return [
-    { slug: "alpha", book: "cracked-it", fours_step: "state", type: "framework", wiki_path: "wiki/cracked-it/concepts/alpha.md", title: "Alpha" },
-    { slug: "beta", book: "cracked-it", fours_step: "solve", type: "technique", wiki_path: "wiki/cracked-it/concepts/beta.md", title: "Beta" },
-    { slug: "dual", book: "cracked-it", fours_step: "cross", type: "concept", wiki_path: "wiki/cracked-it/concepts/dual.md", title: "Dual (CI)" },
-    { slug: "gamma", book: "bulletproof-problem-solving", fours_step: "sell", type: "bias", wiki_path: "wiki/bulletproof-problem-solving/concepts/gamma.md", title: "Gamma" },
-    { slug: "dual", book: "bulletproof-problem-solving", fours_step: "cross", type: "concept", wiki_path: "wiki/bulletproof-problem-solving/concepts/dual.md", title: "Dual (BP)" },
+    { slug: "alpha", book: "cracked-it", fours_step: "state", type: "framework", source_chapter: 4, wiki_path: "wiki/cracked-it/concepts/alpha.md", title: "Alpha" },
+    { slug: "beta", book: "cracked-it", fours_step: "structure", type: "technique", source_chapter: 5, wiki_path: "wiki/cracked-it/concepts/beta.md", title: "Beta" },
+    { slug: "sigma", book: "cracked-it", fours_step: "sell", type: "framework", source_chapter: 10, wiki_path: "wiki/cracked-it/concepts/sigma.md", title: "Sigma" },
+    { slug: "dual", book: "cracked-it", fours_step: "cross", type: "concept", source_chapter: 3, wiki_path: "wiki/cracked-it/concepts/dual.md", title: "Dual (CI)" },
+    { slug: "gamma", book: "bulletproof-problem-solving", fours_step: "solve", type: "heuristic", source_chapter: 5, wiki_path: "wiki/bulletproof-problem-solving/concepts/gamma.md", title: "Gamma" },
+    { slug: "dual", book: "bulletproof-problem-solving", fours_step: "cross", type: "concept", source_chapter: 3, wiki_path: "wiki/bulletproof-problem-solving/concepts/dual.md", title: "Dual (BP)" },
   ];
 }
 function fixtureDoc(over: Record<string, any> = {}) {
@@ -97,7 +102,7 @@ describe("validateRegistry — specification / real-catalog conformance", () => 
     expect(TYPES).toContain("antipattern");
   });
   it("conceptsOnDisk returns the sorted slugs for a book", () => {
-    expect(conceptsOnDisk(FIXTURE, "cracked-it")).toEqual(["alpha", "beta", "dual"]);
+    expect(conceptsOnDisk(FIXTURE, "cracked-it")).toEqual(["alpha", "beta", "dual", "sigma"]);
     expect(conceptsOnDisk(FIXTURE, "bulletproof-problem-solving")).toEqual(["dual", "gamma"]);
   });
   it("conceptsOnDisk returns [] for a missing dir", () => {
@@ -162,13 +167,14 @@ describe("validateRegistry — per-entry structural", () => {
   });
   it("each known type is accepted", () => {
     for (const t of TYPES) {
-      const f = frames(); f[0] = { ...f[0], type: t };
+      // mutate the cross `dual` entry (f[3]) — not a coverage-critical canonical selectable
+      const f = frames(); f[3] = { ...f[3], type: t };
       expect(validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE)).toEqual([]);
     }
   });
   it("each known fours_step is accepted", () => {
     for (const s of FOURS) {
-      const f = frames(); f[0] = { ...f[0], fours_step: s };
+      const f = frames(); f[3] = { ...f[3], fours_step: s };
       expect(validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE)).toEqual([]);
     }
   });
@@ -186,7 +192,7 @@ describe("validateRegistry — wiki_path checks", () => {
   });
   it("phantom wiki_path (no file) -> 'not found on disk'", () => {
     const f = frames();
-    f.push({ slug: "phantom", book: "cracked-it", fours_step: "cross", type: "concept", wiki_path: "wiki/cracked-it/concepts/phantom.md", title: "Phantom" });
+    f.push({ slug: "phantom", book: "cracked-it", fours_step: "cross", type: "concept", source_chapter: 1, wiki_path: "wiki/cracked-it/concepts/phantom.md", title: "Phantom" });
     expect(has(validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE), "not found on disk")).toBe(true);
   });
 });
@@ -211,5 +217,54 @@ describe("validateRegistry — completeness (every on-disk concept registered)",
     const errs = validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE);
     expect(has(errs, "bulletproof-problem-solving:")).toBe(true);
     expect(has(errs, "dual")).toBe(true);
+  });
+});
+
+// ---- v1.6 additions: source_chapter provenance + per-step coverage ----
+
+describe("validateRegistry — source_chapter provenance (v1.6)", () => {
+  it("missing source_chapter -> error", () => {
+    const f = frames(); delete (f[0] as any).source_chapter;
+    expect(has(validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE), "source_chapter must be an integer")).toBe(true);
+  });
+  it("non-integer source_chapter -> error", () => {
+    const f = frames(); f[0] = { ...f[0], source_chapter: 4.5 as any };
+    expect(has(validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE), "source_chapter must be an integer")).toBe(true);
+  });
+  it("source_chapter < -1 -> error", () => {
+    const f = frames(); f[0] = { ...f[0], source_chapter: -2 };
+    expect(has(validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE), "source_chapter must be an integer")).toBe(true);
+  });
+  it("source_chapter == -1 (source omitted it) is accepted", () => {
+    const f = frames(); f[3] = { ...f[3], source_chapter: -1 }; // mutate cross entry (coverage-safe)
+    expect(validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE)).toEqual([]);
+  });
+});
+
+describe("validateRegistry — per-step coverage (v1.6)", () => {
+  it("a canonical step with 0 selectable candidates -> coverage error", () => {
+    // remove the only sell-selectable (sigma) → sell has 0 framework/model/heuristic/technique
+    const f = frames().filter((e) => e.slug !== "sigma");
+    const errs = validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE);
+    expect(has(errs, "coverage: step 'sell'")).toBe(true);
+  });
+  it("a cross-only candidate does NOT satisfy a canonical step's coverage", () => {
+    // change sigma from sell→cross: sell now has 0 selectable even though count is unchanged
+    const f = frames(); const s = f.find((e) => e.slug === "sigma")!; (s as any).fours_step = "cross";
+    expect(has(validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE), "coverage: step 'sell'")).toBe(true);
+  });
+  it("a step covered only by a bias/antipattern (non-selectable) -> coverage error", () => {
+    const f = frames(); const s = f.find((e) => e.slug === "sigma")!; (s as any).type = "bias";
+    expect(has(validateRegistry(fixtureDoc({ frameworks: f }), FIXTURE), "coverage: step 'sell'")).toBe(true);
+  });
+});
+
+describe("generator ↔ committed registry (determinism + sync)", () => {
+  it("gen-frameworks-registry.cjs --check reports the committed registry complete (deterministic + in sync)", () => {
+    const out = execFileSync("node", ["scripts/thinking-toolkit/gen-frameworks-registry.cjs", "--check"], {
+      cwd: REPO_ROOT,
+      encoding: "utf8",
+    });
+    expect(out).toContain("registry is complete.");
   });
 });

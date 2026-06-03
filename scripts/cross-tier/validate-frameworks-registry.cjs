@@ -35,7 +35,11 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const REGISTRY_REL = 'knowledge/problem-solving-frameworks.yaml';
 const BOOKS = ['cracked-it', 'bulletproof-problem-solving'];
 const FOURS = ['state', 'structure', 'solve', 'sell', 'cross'];
+const FOURS_CANONICAL = ['state', 'structure', 'solve', 'sell']; // the 4 real steps (cross = catch-all)
 const TYPES = ['framework', 'model', 'heuristic', 'technique', 'concept', 'bias', 'antipattern'];
+// SELECTABLE = tools you LOAD + apply (vs bias/antipattern = guard-rails, concept = principle).
+// Every 4S step must have ≥1 selectable candidate so the tool_selection LOAD never comes up empty.
+const SELECTABLE_TYPES = ['framework', 'model', 'heuristic', 'technique'];
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 /** All concept slugs that exist on disk for a given book (sorted). */
@@ -67,6 +71,8 @@ function validateRegistry(doc, repoRoot) {
   const seen = new Set();
   // registered slugs per book — for the completeness check
   const registeredByBook = Object.fromEntries(BOOKS.map((b) => [b, new Set()]));
+  // count of SELECTABLE candidates per canonical step — for the coverage check
+  const selectableByStep = Object.fromEntries(FOURS_CANONICAL.map((s) => [s, 0]));
 
   fw.forEach((e, i) => {
     const where = e && typeof e.slug === 'string' ? `framework '${e.slug}'` : `frameworks[${i}]`;
@@ -94,8 +100,18 @@ function validateRegistry(doc, repoRoot) {
     if (!FOURS.includes(e.fours_step)) errs.push(`${where}: fours_step must be one of ${FOURS.join(', ')} (got ${JSON.stringify(e.fours_step)})`);
     if (!TYPES.includes(e.type)) errs.push(`${where}: type must be one of ${TYPES.join(', ')} (got ${JSON.stringify(e.type)})`);
 
+    // source_chapter: integer >= -1 (provenance; -1 = source omitted it)
+    if (!Number.isInteger(e.source_chapter) || e.source_chapter < -1) {
+      errs.push(`${where}: source_chapter must be an integer >= -1 (got ${JSON.stringify(e.source_chapter)})`);
+    }
+
     // title
     if (typeof e.title !== 'string' || !e.title.trim()) errs.push(`${where}: title must be a non-empty string`);
+
+    // coverage accounting: count selectable tools per canonical step
+    if (FOURS_CANONICAL.includes(e.fours_step) && SELECTABLE_TYPES.includes(e.type)) {
+      selectableByStep[e.fours_step]++;
+    }
 
     // wiki_path: canonical shape + matches slug/book + exists on disk
     if (typeof e.wiki_path !== 'string' || !e.wiki_path.trim()) {
@@ -119,6 +135,16 @@ function validateRegistry(doc, repoRoot) {
     const missing = onDisk.filter((s) => !registeredByBook[book].has(s));
     if (missing.length) {
       errs.push(`${book}: ${missing.length} concept(s) on disk not registered: ${missing.slice(0, 8).join(', ')}${missing.length > 8 ? ', …' : ''} (re-run scripts/thinking-toolkit/gen-frameworks-registry.cjs)`);
+    }
+  }
+
+  // COVERAGE — every canonical 4S step must have ≥1 selectable candidate
+  // (framework/model/heuristic/technique), so the tool_selection LOAD layer can
+  // always shortlist something to apply at that step (cross candidates also
+  // apply, but a step with zero of its OWN selectable tools is a real gap).
+  for (const step of FOURS_CANONICAL) {
+    if (selectableByStep[step] === 0) {
+      errs.push(`coverage: step '${step}' has 0 selectable candidates (framework/model/heuristic/technique) — the engine cannot LOAD a tool for it`);
     }
   }
 
@@ -155,4 +181,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { validateRegistry, BOOKS, FOURS, TYPES, REGISTRY_REL, conceptsOnDisk };
+module.exports = { validateRegistry, BOOKS, FOURS, FOURS_CANONICAL, TYPES, SELECTABLE_TYPES, REGISTRY_REL, conceptsOnDisk };

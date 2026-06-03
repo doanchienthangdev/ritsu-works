@@ -22,7 +22,7 @@ description: |
   Runs IN THE ACTIVE SESSION (it needs the conversation channel for HITL
   data-requests + owner checkpoints) — not a headless subagent. Reads its
   machine-readable spec from knowledge/mckinsey-workflow.yaml.
-allowed-tools: [Read, Write, Skill, AskUserQuestion, mcp__supabase-ops__query, mcp__supabase-ops__wiki_ask, mcp__gbrain__search, mcp__gbrain__recall, mcp__gbrain__think]
+allowed-tools: [Read, Write, Bash, Skill, AskUserQuestion, mcp__supabase-ops__query, mcp__supabase-ops__wiki_ask, mcp__gbrain__search, mcp__gbrain__recall, mcp__gbrain__think]
 disable-model-invocation: false
 ---
 
@@ -32,29 +32,39 @@ disable-model-invocation: false
 
 This is the **spine** of the thinking-toolkit and the one skill that *orchestrates* the others + real data tools. The 11 atomic skills are the operations; this is the operating procedure that sequences them into a McKinsey-grade study. Distilled from *Bulletproof Problem Solving* (Conn & McLean — the 7-step) and *Cracked It!* (Garrette/Phelps/Sibony — the 4S). Its machine-readable spec is `knowledge/mckinsey-workflow.yaml` (validated by `scripts/cross-tier/validate-mckinsey-workflow.cjs`); this playbook executes it.
 
-## What makes it an engine, not a brainstorm (the v1.5 contract)
+## What makes it an engine, not a brainstorm (the v1.6 contract)
 
 A brainstorm narrates opinions in four stages. This engine:
 1. **Pulls real data** for every hypothesis (never asserts a number it didn't fetch).
-2. **Produces persisted artifacts** (problem-statement → tree → workplan → analysis-log → one-day-answer → synthesis → communication).
+2. **Produces persisted artifacts** (problem-statement → decomposition → workplan → analysis-log → one-day-answer → synthesis → communication).
 3. **Validates every datum** through a gate before it's allowed to move the answer.
 4. **Asks the founder** for data only they hold (HITL) instead of guessing.
 5. **Routes dynamically** — the one-day answer re-ranks remaining work after every analysis; porpoise back when the data reframes the problem.
 6. **Stops on marginal analysis** — when no cheap, answer-moving analysis remains.
 7. **Loads + selects the right tool** (v1.5) — for each sub-need it CLASSIFIEs (analytical vs design; causation vs prediction; formula vs typology vs checklist), LOADs candidates from the **dedicated registry** `knowledge/problem-solving-frameworks.yaml` (207 classified frameworks/models/heuristics — filterable by 4S step + type), then SELECTs + COMBINEs ≤3 complementary lenses, guarding against grabbing the familiar tool. See **Tool selection** below.
+8. **Enforces its own discipline mechanically** (v1.6) — a deterministic helper (`scripts/thinking-toolkit/mckinsey-run.cjs`) scaffolds the run folder and *checks* it: the 6-column + status workplan, a provenance + degree(1-8) tag on every analysis-log datum, the product firewall on `source-of-data`, and the stopping gate (no `open` row before Sell). The discipline is no longer just prose you can drift away from — it's a gate. (Judgment stays yours; the helper guards the scaffolding around it.)
 
-> **The McKinsey rule that governs everything (Bulletproof, Ch 4):** *"We don't do any analysis for which we don't have a hypothesis."* Every data pull traces to a hypothesis it proves or disproves.
+> **The McKinsey rule that governs everything (Bulletproof Problem Solving, Ch 4):** *"We don't do any analysis for which we don't have a hypothesis."* Every data pull traces to a hypothesis it proves or disproves.
 
 ## Run setup
 
-For a substantial problem, scaffold a **run folder** and write artifacts as you go (so the study is reviewable + resumable):
+For a substantial problem, **scaffold the run folder mechanically** — don't hand-create it:
+```bash
+node scripts/thinking-toolkit/mckinsey-run.cjs scaffold <slug>   # creates .archives/mckinsey/<slug>/ with 7 artifact templates (idempotent)
+```
 ```
 .archives/mckinsey/<slug>/
-  problem-statement.md   tree.md   workplan.md
+  problem-statement.md   decomposition.md   workplan.md
   analysis-log.md        one-day-answer.md
   synthesis.md           communication.md
 ```
-`one-day-answer.md` is the **living state** — **seeded in STATE as the day-one hypothesis** ("if forced to answer today, we'd say X"), then rewritten after every analysis (situation → observation → resolution). It is *not* born at Solve; Solve only sharpens it. `synthesis.md` (step 6, the logic) and `communication.md` (step 7, the story) are distinct Sell products. For a small problem, the accordion compresses: keep the one-day answer inline and skip the folder.
+`one-day-answer.md` is the **living state** — **seeded in STATE as the day-one hypothesis** ("if forced to answer today, we'd say X"; Bulletproof Ch 1), then rewritten after every analysis (situation → observation → resolution). It is *not* born at Solve; Solve only sharpens it. `synthesis.md` (step 6, the logic) and `communication.md` (step 7, the story) are distinct Sell products. For a small problem, the accordion compresses: keep the one-day answer inline and skip the folder.
+
+**The discipline gate (run before Sell):**
+```bash
+node scripts/thinking-toolkit/mckinsey-run.cjs check <slug> --before-sell
+```
+fails if the workplan is missing its 6+status columns, a status value is invalid, a `source-of-data` references `product.*` (firewall), an analysis-log datum lacks provenance or a degree(1-8), or any workplan row is still `open`. **You may not move to Sell while it fails.** It checks *structure + discipline-presence*, never your judgment.
 
 ---
 

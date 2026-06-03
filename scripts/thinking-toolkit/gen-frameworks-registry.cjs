@@ -60,6 +60,13 @@ const OVERRIDES = {
   'solution-confirmation': { fours_step: 'solve' },
   // whole-method overview cited in Ch10 (Sell) but applies across all 4 stages
   '4s-method-end-to-end-application': { fours_step: 'cross' },
+  // selection-meta concepts: used by the tool_selection CLASSIFY/SELECT funnel
+  // regardless of the current 4S step → cross (not pinned to the chapter they sit in).
+  'three-styles-of-frameworks': { fours_step: 'cross' },        // CLASSIFY: framework_shape
+  'multiple-frameworks-discipline': { fours_step: 'cross' },    // SELECT: Munger latticework
+  'framework-mental-model-danger': { fours_step: 'cross' },     // SELECT: debias the familiar-tool trap
+  'five-phases-of-design-thinking': { type: 'framework' },      // it IS a framework, not a bare concept
+  'logic-tree': { fours_step: 'structure' },                    // Structure decomposition tool (Ch1 intro mis-maps to cross)
 };
 
 // Coarse type by slug keyword (a FILTER HINT — the engine reads content to decide).
@@ -100,6 +107,9 @@ function build() {
         book,
         fours_step: ov.fours_step || STEP_MAP[book](Number.isNaN(ch) ? -1 : ch),
         type: ov.type || typeOf(slug),
+        // provenance: the source-book chapter the concept was distilled from
+        // (deterministic from frontmatter). -1 when the source omits it.
+        source_chapter: Number.isNaN(ch) ? -1 : ch,
         wiki_path: `wiki/${book}/concepts/${slug}.md`,
         title,
       });
@@ -149,7 +159,7 @@ source_books: [cracked-it, bulletproof-problem-solving]
 frameworks:
 `;
   for (const e of entries) {
-    out += `  - slug: ${e.slug}\n    book: ${e.book}\n    fours_step: ${e.fours_step}\n    type: ${e.type}\n    wiki_path: ${e.wiki_path}\n    title: ${JSON.stringify(e.title)}\n`;
+    out += `  - slug: ${e.slug}\n    book: ${e.book}\n    fours_step: ${e.fours_step}\n    type: ${e.type}\n    source_chapter: ${e.source_chapter}\n    wiki_path: ${e.wiki_path}\n    title: ${JSON.stringify(e.title)}\n`;
   }
   return out;
 }

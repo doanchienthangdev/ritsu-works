@@ -1051,7 +1051,7 @@ capabilities:
       symptom only (v1.0's rejection was framing-specific, Cracked it! p.58).
       Still rejected: 80/20 (overlaps /muse:paul-graham), screen/knock-out
       (deferred), Ghost Deck, 7S, PEST/Porter.
-    version: "1.5.0"
+    version: "1.6.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28
@@ -1165,6 +1165,27 @@ capabilities:
       communication). /think still 12 skills / 14 verbs (v1.5 is registry +
       mechanism, NOT new verbs). Tier C. Decision: ops.decisions (slug
       thinking-toolkit-v1.5-tool-selection-registry).
+
+      v1.6 (2026-06-03): /cla extend — "enforce the discipline mechanically"
+      hardening (founder ask: raise every evaluation criterion except proven-in-
+      production to 10). NEW deterministic helper scripts/thinking-toolkit/
+      mckinsey-run.cjs (scaffold + check): scaffolds the run folder's 7 artifact
+      templates and CHECKS the run — the 6-column + status workplan, a provenance
+      + degree(1-8) tag on EVERY analysis-log datum, the product firewall on
+      source-of-data (no product.*), and the stopping gate (no `open` row before
+      Sell). This converts the engine's prose discipline into a gate (raises
+      engine-not-static-map + data-grounding + usability); it checks STRUCTURE +
+      DISCIPLINE-PRESENCE, never judgment (the v1.4 principle holds). Registry
+      gains `source_chapter` provenance (all 207 trace to a book chapter,
+      deterministic) + a per-step COVERAGE invariant (every 4S step has ≥1
+      selectable framework/model/heuristic/technique) — raises source-fidelity +
+      tool-selection + drift-safety. Artifact name `decomposition` unified across
+      catalog ↔ run-folder ↔ checker (coherence-guarded in validate-mckinsey-
+      workflow.cjs). mckinsey-workflow.yaml → v1.6.0. SKILL.md wires scaffold +
+      the before-Sell gate (+Bash tool). 34 NEW vitest (tests/mckinsey-run.test.ts
+      26 + frameworks-registry source_chapter/coverage/generator-determinism) →
+      162 total across the 3 files. /think unchanged 12 skills / 14 verbs. Tier C.
+      Decision: ops.decisions (slug thinking-toolkit-v1.6-mechanical-enforcement).
 
   - id: playbook-builder
     name: "Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration"

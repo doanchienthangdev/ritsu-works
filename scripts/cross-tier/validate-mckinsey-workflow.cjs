@@ -247,6 +247,20 @@ function main() {
     process.exit(1);
   }
 
+  // v1.6 coherence: the run-folder scaffolder/checker (mckinsey-run.cjs) must
+  // agree with the catalog on the 7 artifact names (catalog spec ↔ run folder).
+  try {
+    const { ARTIFACTS: RUN_ARTIFACTS } = require('../thinking-toolkit/mckinsey-run.cjs');
+    const catalogArtifacts = JSON.stringify([...new Set(doc.artifacts.files.map((f) => f.name))].sort());
+    const runArtifacts = JSON.stringify([...RUN_ARTIFACTS].sort());
+    if (catalogArtifacts !== runArtifacts) {
+      console.error(`[FAIL] mckinsey-workflow.yaml ↔ scripts/thinking-toolkit/mckinsey-run.cjs artifact drift:\n  catalog    = ${catalogArtifacts}\n  run-helper = ${runArtifacts}`);
+      process.exit(1);
+    }
+  } catch (e) {
+    if (e && e.code !== 'MODULE_NOT_FOUND') throw e; // helper absent (partial checkout) → skip
+  }
+
   const nSkills = doc.steps.reduce((a, s) => a + (Array.isArray(s.skills) ? s.skills.length : 0), 0);
   const nConcepts = doc.steps.reduce((a, s) => a + (Array.isArray(s.key_concepts) ? s.key_concepts.length : 0), 0);
   console.log(`[OK] mckinsey-workflow.yaml — ${doc.steps.length} 4S steps · ${nSkills} skill + ${nConcepts} step-concept refs exist · ${doc.data_routing.length} data-routing tools · ${doc.artifacts.files.length} artifacts · engine sections valid.`);
