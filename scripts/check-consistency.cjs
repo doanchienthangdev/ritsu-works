@@ -256,6 +256,9 @@ async function main() {
     // security drift guard (migration 00047) — no SECURITY DEFINER fn in schema
     // ops may expose public/unpinned search_path to authenticated/PUBLIC.
     ['validate-secdef-rpc-exposure.cjs', 'ops SECURITY DEFINER RPCs ↔ no RLS-bypass exposure'],
+    // capability product-db-readonly-access Sprint 2 — analytics-sync-contract.yaml:
+    // no content table in the sync list; consumer_allowlist ↔ role-allowlist.ts; MCP registered.
+    ['validate-analytics-readonly.cjs', 'analytics-sync-contract ↔ allowlist + .mcp.json + no-content'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;

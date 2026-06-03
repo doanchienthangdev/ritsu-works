@@ -28,7 +28,7 @@
 # Change policy: PR + founder review (Tier C — affects what the workforce can reach)
 
 version: 1.0.0
-last_updated: 2026-05-24
+last_updated: 2026-06-03
 owner: founder
 
 sources:
@@ -43,9 +43,29 @@ sources:
       D-MAX rules. Operating AI never writes here; reads happen exclusively
       through metrics.* mirror populated by the etl_flows.product_metrics_to_ops
       pipeline in knowledge/manifest.yaml.
-    auth_env: SUPABASE_PRODUCT_READ_KEY
+    auth_env: SUPABASE_PRODUCT_READONLY_ETL_KEY
     role_scope: [etl-runner]
     invoke_pattern: "etl-runner only — invoked via supabase/functions/_shared/worker.ts makeEtlProductDauSnapshotHandler. See knowledge/manifest.yaml etl_flows.product_metrics_to_ops."
+    status: active
+
+  # -------------------------------------------------------------------------
+  # DATA — ritsu-analytics (PSEUDONYMIZED Door-2 copy; supabase-analytics MCP)
+  # -------------------------------------------------------------------------
+  - id: ritsu-analytics-readonly
+    source_type: db-readonly
+    description: |
+      ritsu-analytics Supabase project (ddgbabvbfjrsznvzhizf, us-west-1) — the
+      PSEUDONYMIZED Door-2 analytics copy (capability product-db-readonly-access).
+      NOT Product Supabase: an isolated ops-side project holding only HMAC-hashed,
+      PII-stripped views of Product behavioral data in schema live.* (user_hash,
+      never email/name; content tables excluded forever). Synced nightly via
+      postgres_fdw + pg_cron behind a product-side PII-stripping boundary. Read
+      ONLY through the supabase-analytics MCP as the least-priv analytics_reader
+      role (SELECT on live.* only; read-only txn). See
+      knowledge/analytics-sync-contract.yaml + SOP-AIOPS-009.
+    auth_env: ANALYTICS_READER_DB_URL
+    role_scope: [founder, cofounder, customer-lead, product-orchestrator, gtm-orchestrator, feedback-aggregator]
+    invoke_pattern: "`mcp__supabase-analytics__{query,list_tables}` — read-only SELECT over live.*; never a raw connection. The L0 firewall (pre-tool-supabase-product.cjs v1.2) treats mcp__supabase-analytics__* as safe-mcp. Out-of-band/admin verification uses the Management API on the analytics ref only."
     status: active
 
   # -------------------------------------------------------------------------

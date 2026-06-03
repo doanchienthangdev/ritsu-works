@@ -363,7 +363,7 @@ permissions:
   secrets:
     - ANTHROPIC_API_KEY
     - SUPABASE_OPS_SERVICE_KEY
-    - SUPABASE_PRODUCT_READ_KEY      # the ONE role that holds this
+    - SUPABASE_PRODUCT_READONLY_ETL_KEY      # the ONE role that holds this
     - VECTOR_STORE_WRITE_KEY
 hitl_max_tier: B    # routine ETL is autonomous; schema changes are PR (Tier C)
 budget:
@@ -373,7 +373,7 @@ notify_on_completion: false  # logs only; daily summary
 escalation_role: gps
 ```
 
-> **Critical:** etl-runner is the **only** role that holds `SUPABASE_PRODUCT_READ_KEY`. Any other role that needs product data must request it via metrics.* tables that etl-runner populates. This is the single most important access boundary in the company.
+> **Critical:** etl-runner is the **only** role that holds `SUPABASE_PRODUCT_READONLY_ETL_KEY`. Any other role that needs product data must request it via metrics.* tables that etl-runner populates. This is the single most important access boundary in the company.
 
 ### `trust-safety` — T&S triage and policy
 
@@ -1116,6 +1116,39 @@ The 8 roles with `mcp_servers: [gbrain]` grant (gbrain-maintainer + founder + co
 ### Activation
 
 These role configurations are CONTRACT-level (this file is policy). The runtime `.claude/agents/<role>.md` config files are updated in Sprint 2 PR to mirror this contract. Until Sprint 2 lands, the contract is canonical and the runtime is being aligned. L2 validator `gbrain-l2-role-allowlist-consistency` (registered in `knowledge/cross-tier-invariants.yaml`) catches drift between this contract and `knowledge/mcp-roles.yaml`.
+
+---
+
+## v1.2 analytics integration (added 2026-06-03 — capability `product-db-readonly-access` Sprint 2)
+
+> Tier-C decision `0647e301-4ad2-495f-806e-d17c3b130072`. Door 2: read-only ops access to **pseudonymized** Product behavioral data through the isolated `ritsu-analytics` project + the `supabase-analytics` MCP (Sprint 1, PR #220). This section is the v1.2 ADDITIVE delta for analytics access only. Contract: `knowledge/analytics-sync-contract.yaml`; runtime: `SOP-AIOPS-009`.
+
+### NEW DB role (not an agent role): `analytics_reader`
+
+`analytics_reader` is a **Postgres role on ritsu-analytics**, not a workforce agent role — so it has no `.claude/agents/<role>.md`. It is the principal the `supabase-analytics` MCP connects as: `LOGIN`, `SELECT` on `live.*` ONLY (no writes, no `ext`/`staging`/FDW, no PII), plus role-level `default_transaction_read_only=on` + `statement_timeout`. The DB role IS the security boundary (mirror-image of supabase-ops, which fronts `service_role` with an app-layer guard). Its connection string is `ANALYTICS_READER_DB_URL` (local-only `.env.local`; documented in `governance/SECRETS.md` — founder D-MAX follow-up).
+
+### `analytics_affinity` — which workforce roles may query the analytics MCP
+
+Default-deny. The consumer allowlist is the SAME 6 roles encoded in `mcp-server-analytics/src/governance/role-allowlist.ts` (kept in lockstep by the L2 invariant `analytics-allowlist-no-drift`):
+
+| Role | analytics MCP access | Rationale |
+|---|---|---|
+| `founder` / `cofounder` | ✅ query + list_tables | full operator access |
+| `customer-lead` | ✅ | retention / activation / churn questions |
+| `product-orchestrator` | ✅ | feature-usage / wedge / behavioral analysis |
+| `gtm-orchestrator` | ✅ | funnel / cohort / unit-economics |
+| `feedback-aggregator` | ✅ | behavioral signal for the feedback pipeline |
+| **all other roles** | ❌ default-deny | not granted; the MCP returns `role_not_allowed` |
+
+The 17 READ-only-elsewhere roles get NO analytics access (default-deny is the point — product-derived behavioral data is more sensitive than ops state). `etl-runner` is **excluded** (it already holds the Product read key; analytics is a different, narrower surface).
+
+### `mcp_servers: [supabase-analytics]` grant
+
+The 6 allowlisted roles above gain `supabase-analytics` MCP access. All tools are read-only (Tier A): `query` (SELECT over `live.*`), `list_tables`. The L0 firewall (`pre-tool-supabase-product.cjs` v1.2) already treats `mcp__supabase-analytics__*` as `safe-mcp`. No WRITE tools exist on this MCP.
+
+### Activation
+
+CONTRACT-level (this file is policy). Runtime gate is `mcp-server-analytics/src/governance/role-allowlist.ts`; the L2 validator `validate-analytics-readonly.cjs` + invariant `analytics-allowlist-no-drift` catch drift between this contract and that runtime. The `.mcp.json` registration (D-MAX) lands in the Sprint 2 PR.
 
 ---
 

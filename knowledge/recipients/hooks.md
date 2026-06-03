@@ -198,9 +198,9 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 
 **Kind:** hook
 **Axis:** capability
-**When to use:** > The firewall. Operating AI must not write to Product Supabase. This hook enforces that boundary unconditionally.
+**When to use:** > The firewall. Operating AI must never touch the Product Supabase project (ritsu) directly. This > hook enforces that boundary unconditionally, as code, fail-closed.
 
-**Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+**Invoke:** Auto-triggered (pre-tool) for tools matching: `*`
 **HITL tier:** B
 **Side effect:** write
 

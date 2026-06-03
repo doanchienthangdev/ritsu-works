@@ -1,0 +1,77 @@
+# Analytics Sync Contract — capability product-db-readonly-access (Door 2)
+#
+# The single COMMITTED, repo-side source of truth for the pseudonymized
+# Product→analytics data path. Everything product-side (the stripped views, the
+# salt, the FDW) lives in the product DB and a local-only SQL file; THIS file is
+# the ops-side contract a validator can check deterministically.
+#
+# Validated by scripts/cross-tier/validate-analytics-readonly.cjs (L2 critical):
+#   1. synced_tables ∩ forbidden_content_tables == ∅  (no content table ever synced)
+#   2. consumer_allowlist == ANALYTICS_ALLOWED_ROLES in
+#      mcp-server-analytics/src/governance/role-allowlist.ts  (no allowlist drift)
+#   3. mcp_server is registered in .mcp.json
+#   4. read_surface_schema == 'live' and the two roles are present
+#
+# Owner: founder
+# Change policy: PR + founder review (Tier C). Expanding synced_tables also
+# requires a founder D-MAX product-side DDL touch (Sprint 3).
+
+version: 1.0.0
+last_updated: 2026-06-03
+owner: founder
+capability_id: product-db-readonly-access
+
+project:
+  name: ritsu-analytics
+  ref: ddgbabvbfjrsznvzhizf          # us-west-1; isolated from Product (ixfvqxnohlmayzuesrrq)
+  region: us-west-1
+  org: same-org-as-product           # accepted residual (free-tier quota) — flagged in DPIA; revisit at scale
+  read_surface_schema: live          # the ONLY schema the consumer MCP may read
+
+roles:
+  consumer: analytics_reader         # least-priv: LOGIN, SELECT on live.* only; read-only txn + statement_timeout (role-level). The MCP connects AS this.
+  product_export: analytics_export_ro  # product-side FDW export role: SELECT on the PII-stripped analytics_export.* views only
+
+# The ONLY tables synced Product → analytics (Door 2). PoC-3; expanded Sprint 3.
+# Each is a PII-stripped + HMAC-hashed VIEW product-side (analytics_export.*),
+# pulled via postgres_fdw into ext.*, validated in staging, swapped into live.*.
+synced_tables:
+  - profiles
+  - learning_sessions
+  - learning_progress
+
+# Content / identity tables — NEVER synced. They stay in Product forever.
+# default-deny already excludes anything not in synced_tables; this list is an
+# explicit tripwire — if any of these EVER appears in synced_tables, the
+# validator fails (critical).
+forbidden_content_tables:
+  - chat_messages
+  - source_contents
+  - pok_content
+  - messages
+  - documents
+  - notes
+
+# Which ops roles may query the supabase-analytics MCP at all (default-deny).
+# MUST equal ANALYTICS_ALLOWED_ROLES in
+# mcp-server-analytics/src/governance/role-allowlist.ts — the validator enforces.
+consumer_allowlist:
+  - founder
+  - cofounder
+  - customer-lead
+  - product-orchestrator
+  - gtm-orchestrator
+  - feedback-aggregator
+
+mcp_server: supabase-analytics       # must be registered in .mcp.json (validator checks)
+
+privacy:
+  pseudonymized: true                # user_hash = HMAC(user_id, salt); never email/name
+  salt_location: product-only        # analytics_secret.config (RLS-locked); never reaches ops/analytics
+  pii_canary: per-text-column        # live.pii_canary() must return 0 before any staging→live swap
+  gdpr_erasure: nightly-full-replace # an erased user drops out next sync; formalized in SOP-CUSTOMER-023
+
+schedule:
+  job: analytics-sync-nightly        # in-DB pg_cron on ritsu-analytics (NOT the ops dispatcher)
+  cron: "0 11 * * *"                 # 11:00 UTC daily
+  freshness_slo_hours: 26            # KPI analytics_sync_freshness alerts if last success older than this

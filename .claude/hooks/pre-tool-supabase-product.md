@@ -2,7 +2,7 @@
 name: pre-tool-supabase-product
 version: 1.2.0
 type: pre-tool
-status: enforced-code
+status: active
 runtime: .claude/hooks/runtime/pre-tool-supabase-product.cjs
 engine: .claude/hooks/runtime/lib/product-firewall.cjs
 tests: tests/product-firewall.test.ts

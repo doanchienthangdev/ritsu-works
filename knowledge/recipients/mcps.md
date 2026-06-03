@@ -7,7 +7,7 @@
 This file is THE source of truth for mcp recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 
-**Total entries:** 84
+**Total entries:** 86
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1045,6 +1045,34 @@ Read in any Claude Code session via `@knowledge/recipients/mcps.md` import.
 **Side effect:** none
 
 **Role scope:** founder, cofounder, gps, growth-orchestrator, support-agent, content-drafter, code-reviewer, trust-safety, backoffice-clerk, gtm-orchestrator, product-orchestrator, customer-lead, cs-coach, retention-watcher, escalation-router, feedback-aggregator, founder-coach, hitl-router, health-tracker, metrics-curator, alert-router, experiment-analyst, gbrain-maintainer
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/supabase-analytics__list_tables
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Enumerate the tables in schema live (information_schema) of the pseudonymized ritsu-analytics dataset. Discovery helper before query. Role-gated identically to query (default-deny allowlist).
+
+**Invoke:** `mcp__supabase-analytics__list_tables`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, customer-lead, product-orchestrator, gtm-orchestrator, feedback-aggregator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## mcp/supabase-analytics__query
+
+**Kind:** mcp
+**Axis:** capability
+**When to use:** Read-only SELECT over the pseudonymized ritsu-analytics dataset (schema live). Connects as the least-priv analytics_reader role. sql-guard rejects non-SELECT/WITH, multi-statement, and SELECT INTO before the DB. Data is user_hash-pseudonymized — never raw Product PII. JS row-cap (truncated flag).
+
+**Invoke:** `mcp__supabase-analytics__query`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** founder, cofounder, customer-lead, product-orchestrator, gtm-orchestrator, feedback-aggregator
 **Status:** active
 **Pillar:** 06-ai-ops
 

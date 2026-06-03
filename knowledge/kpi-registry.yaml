@@ -305,5 +305,27 @@ kpis:
     cadence: monthly
     source: "ops.agent_runs.output_payload (resolve-style StyleResolveError occurrences)"
 
+  # capability product-db-readonly-access (Door 2) — Sprint 2
+  - id: analytics_sync_freshness
+    type: operational
+    description: "Hours since the last successful ritsu-analytics nightly sync (max live._sync_runs.finished_at WHERE status='ok'). Alerts if staler than the 26h SLO — the Door-2 dataset is going stale."
+    owner_pillar: 10-metrics
+    owner_role: metrics-curator
+    target: 24
+    threshold_warn: 26
+    threshold_critical: 48
+    cadence: daily
+    source: "ritsu-analytics live._sync_runs (max finished_at WHERE status='ok'); surfaced via the supabase-analytics MCP or the Sprint-4 alert ETL"
+  - id: analytics_pii_canary_trips
+    type: operational
+    description: "Count of PII-canary trips in the analytics sync (live.pii_canary > 0 on any staged table). MUST be 0 — a non-zero value means email-shaped data crossed the boundary; P0."
+    owner_pillar: 10-metrics
+    owner_role: metrics-curator
+    target: 0
+    threshold_warn: 1
+    threshold_critical: 1
+    cadence: daily
+    source: "ritsu-analytics live._sync_runs (status='failed' with canary detail) + live.pii_canary() per synced table"
+
   # Business KPIs (customize per project)
   # {{ADD_BUSINESS_KPIS}}
