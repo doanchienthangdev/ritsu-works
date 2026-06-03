@@ -1,6 +1,6 @@
 ---
 name: pre-tool-supabase-product
-version: 1.1.0
+version: 1.2.0
 type: pre-tool
 status: enforced-code
 runtime: .claude/hooks/runtime/pre-tool-supabase-product.cjs
@@ -111,6 +111,16 @@ PRE_APPROVED_VIEWS = { public.v_ops_dau_export }   # the real ETL contract view 
 
 System-metadata reads (`pg_catalog`, `information_schema`) are allowed on the sanctioned read path.
 Identity/system schemas (`auth`, `storage`, `vault`) are **never** approved, even by accident.
+
+## Supabase Management API (v1.2)
+
+`api.supabase.com/v1/projects/<ref>/database/query` can run arbitrary SQL on a project — a path that bypasses
+psql/connection-string detection. The firewall gates Management-API calls by the `/projects/<ref>/` segment:
+Product ref → block, safe ref (ops/brain/analytics) → allow, unknown ref → fail-closed block; account-level
+metadata (`/v1/projects` list, `/v1/organizations`, no project DB target) → allow. `decide()` scans `other`
+tool payloads too, so a script's out-of-band guard catches a Product-targeting Management-API call even
+though the tool isn't `Bash`. (Note: a call whose URL lives only *inside* a script — not in the command
+text — is invisible to the session hook; such scripts must self-guard with `assertProductAccessAllowed`.)
 
 ## Out-of-band callers (`05` §9.3)
 

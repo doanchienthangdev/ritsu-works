@@ -276,6 +276,36 @@ describe("product-firewall: security (injection / exfil attempts)", () => {
 });
 
 // ============================================================================
+describe("product-firewall: Supabase Management API path (v1.2 — closes out-of-band hole)", () => {
+  const PROD = "ixfvqxnohlmayzuesrrq";
+  const ANLY = "ddgbabvbfjrsznvzhizf";
+  const env = { PRODUCT_PROJECT_REF: PROD, ANALYTICS_PROJECT_REF: ANLY };
+  function mgmt(url: string, role = "founder") {
+    return decide({ toolName: "Bash", toolInput: { command: `curl -s -H "Authorization: Bearer $TOKEN" ${url}` }, callerRole: role, env });
+  }
+  it("BLOCKS running SQL on the Product project via the Management API query endpoint", () => {
+    const d = mgmt(`https://api.supabase.com/v1/projects/${PROD}/database/query`);
+    expect(d.decision).toBe("block");
+    expect(d.matchRule).toBe("raw-product-access");
+  });
+  it("ALLOWS the Management API query endpoint on ritsu-analytics (safe project)", () => {
+    expect(mgmt(`https://api.supabase.com/v1/projects/${ANLY}/database/query`).decision).toBe("allow");
+  });
+  it("fail-closed: Management API on an UNKNOWN project ref → block", () => {
+    expect(mgmt("https://api.supabase.com/v1/projects/zzzzzzzzzzzzzzzzzzzz/database/query").matchRule).toBe("fail-closed-unknown-db");
+  });
+  it("ALLOWS account-level Management API metadata (list projects / orgs, no project DB target)", () => {
+    expect(mgmt("https://api.supabase.com/v1/projects").decision).toBe("allow");
+    expect(mgmt("https://api.supabase.com/v1/organizations").decision).toBe("allow");
+  });
+  it("out-of-band guard: a script can self-guard a Management API call before hitting Product", () => {
+    expect(() => assertProductAccessAllowed({ toolName: "mgmt-api", toolInput: { url: `https://api.supabase.com/v1/projects/${PROD}/database/query` }, callerRole: "founder", env })).toThrow(/BLOCKED/);
+    // ...and passes for analytics
+    expect(assertProductAccessAllowed({ toolName: "mgmt-api", toolInput: { url: `https://api.supabase.com/v1/projects/${ANLY}/database/query` }, callerRole: "founder", env }).decision).toBe("allow");
+  });
+});
+
+// ============================================================================
 describe("loadEnvFileRefs — firewall self-config from .env.local (v1.1)", () => {
   const { loadEnvFileRefs } = fw;
   const PROD = "ixfvqxnohlmayzuesrrq"; // real product ref (non-secret project id)

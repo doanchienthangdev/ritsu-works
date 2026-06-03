@@ -29,7 +29,7 @@
 
 const fs = require('fs');
 
-const PRODUCT_FIREWALL_VERSION = '1.1.0';
+const PRODUCT_FIREWALL_VERSION = '1.2.0';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Known project refs (the only DB targets we can PROVE are not Product).
@@ -113,13 +113,14 @@ const WRITE_KEYWORD_RE =
   /\b(?:insert|update|delete|drop|alter|truncate|create|grant|revoke|replace|merge|upsert|copy)\b/;
 
 // A Supabase project ref is a 20-char lowercase alphanumeric string. Capture it
-// from the shapes it actually appears in (host, pooler user, CLI flag).
+// from the shapes it actually appears in (host, pooler user, CLI flag, API path).
 const REF_PATTERNS = [
   /\bdb\.([a-z0-9]{20})\.supabase\.co\b/gi, // direct host
   /\b([a-z0-9]{20})\.supabase\.(?:co|com)\b/gi, // project host
   /\bpostgres\.([a-z0-9]{20})\b/gi, // pooler user `postgres.<ref>`
   /--project-ref[=\s]+([a-z0-9]{20})\b/gi, // supabase CLI
   /\bproject[_-]?ref["'\s:=]+([a-z0-9]{20})\b/gi, // json/payload field
+  /\/projects\/([a-z0-9]{20})\b/gi, // Management API path /v1/projects/<ref>/...
 ];
 
 // Connection indicators — only treat a Bash/raw string as a DB call if one of
@@ -133,6 +134,7 @@ const CONNECTION_INDICATORS = [
   /--project-ref/i,
   /\bpg_dump\b/i,
   /\bpg_restore\b/i,
+  /\bapi\.supabase\.(?:com|co)\b/i, // Management API (can run SQL via /database/query)
 ];
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -242,6 +244,20 @@ function classifyRawTarget(text, cfg) {
   if (mentionsProductOnlyArtifact(text)) return 'product';
   if (text.includes('supabase_product') || text.includes('product_supabase')) return 'product';
 
+  // Supabase Management API (api.supabase.com): the /v1/projects/<ref>/database/query
+  // endpoint can run arbitrary SQL on a project — gate it by the project ref.
+  // (Closes the out-of-band path used to verify ritsu-analytics; 05 §9.3.)
+  if (/\bapi\.supabase\.(?:com|co)\b/.test(text)) {
+    const mref = text.match(/\/projects\/([a-z0-9]{20})\b/);
+    if (mref) {
+      const r = mref[1].toLowerCase();
+      if (cfg.productRef && r === cfg.productRef.toLowerCase()) return 'product';
+      if (cfg.safeRefs.has(r)) return 'safe';
+      return 'unknown-db'; // a project DB we cannot prove safe → fail-closed
+    }
+    return 'none'; // account-level metadata (list orgs/projects) — no project DB target
+  }
+
   const refs = extractRefs(text);
 
   // A known Product ref (once injected at provisioning) → Product.
@@ -323,9 +339,7 @@ function decide(input) {
 
   const cls = classifyTool(toolName);
 
-  // Tools that cannot reach a DB → not the firewall's concern.
-  if (cls === 'other') return allow('not-db-tool');
-  // Our own DBs (ritsu-ops, gbrain) via their dedicated MCP → allowed.
+  // Our own DBs (ritsu-ops, gbrain, analytics) via their dedicated MCP → allowed.
   if (cls === 'safe-mcp') return allow('safe-mcp-server');
 
   const text = gatherText(toolName, toolInput);
@@ -333,7 +347,11 @@ function decide(input) {
   if (cls === 'gateway') return decideGateway(text, callerRole);
   if (cls === 'action') return decideAction(callerRole);
 
-  // cls is 'raw-bash' or 'raw-mcp' — classify the DB target, fail closed.
+  // 'raw-bash' | 'raw-mcp' | 'other' — scan the payload for a DB / Management-API
+  // target and fail closed. 'other' tools are scanned too (not blanket-allowed)
+  // so an out-of-band guard, a WebFetch/curl-shaped tool, or any non-DB-named
+  // caller carrying a Product target is still caught; the scan self-limits to
+  // 'none' (allow) when there is no connection/API indicator.
   const target = classifyRawTarget(text, cfg);
   switch (target) {
     case 'none':
