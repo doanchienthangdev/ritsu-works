@@ -1,0 +1,437 @@
+---
+title: "Tutorial: Engine /think mckinsey — Workflow + Kiến trúc"
+description: "Tutorial: Engine /think mckinsey — Workflow + Kiến trúc"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/49-tutorial-think-mckinsey-engine.md
+source_hash: 2cd17bd6e54b26a127b3ea237c8a214da312d1cf5c91e8779c02a765559998e1
+generated_at: '2026-06-03T04:17:58.869Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 2cd17bd6e54b26a127b3ea237c8a214da312d1cf5c91e8779c02a765559998e1
+translated_at: '2026-06-03T04:17:58.869Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 49
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> **Một chương DẠY HỌC, không phải case study.** Các capability case study ở Phần VI kể bạn nghe *chúng tôi đã xây gì và học được gì*. Tutorial này dạy bạn *engine `/think mckinsey` thực sự hoạt động ra sao* — vấn đề nó giải, phương pháp McKinsey nó hiện thực hóa, kiến trúc giữ cho nó trung thực, và cơ chế v1.5 cho phép nó load + select đúng thinking tool ở mỗi bước. Đọc để *dùng* engine cho khéo, hoặc để *mở rộng* nó.
+
+Chương được viết để đọc tuần tự: Section 1 nêu vấn đề, Section 2 dạy phương pháp, Section 3 trình bày kiến trúc, Section 4 là trái tim (candidate registry + `tool_selection`), Section 5 lái một bài toán thực đầu-đến-cuối, và Section 6 chắt lọc hành trình build, các bài học, và cách invoke.
+
+
+
+## 1. The Problem — vì sao phần lớn analysis thất bại, và "thinking engine" dùng để làm gì
+
+Trước khi đụng vào bất kỳ cơ chế nào của engine `/think mckinsey`, ta cần thành thật về một thất bại âm thầm hơn, tốn kém hơn: **phần lớn analysis — dù do người hay AI làm — thất bại không phải ở phần toán, mà ở phần tư duy bao quanh phần toán.** Một regression hoàn hảo trên một câu hỏi sai thì chẳng đáng gì. Một recommendation trình bày đẹp đẽ nhưng xây trên một ý kiến chủ quan thì là một gánh nặng. Chương này tồn tại vì Ritsu là một công ty một-founder, nơi attention của founder là nguồn lực khan hiếm nhất trong tòa nhà — và một analysis tự tin-nhưng-sai còn tốn kém hơn là không có analysis nào cả.
+
+### Bốn kiểu thất bại kinh điển
+
+Chắt lọc từ hai cuốn sách mà engine này xây dựng trên đó — *Bulletproof Problem Solving* (Conn & McLean) và *Cracked It!* (Garrette, Phelps, Sibony) — analysis thất bại theo bốn cách lặp đi lặp lại:
+
+1. **Giải sai vấn đề.** Sai lầm tốn kém nhất, và xảy ra sớm nhất. Bạn trả lời một câu hỏi sắc bén mà thực ra chẳng ai có. Liều thuốc giải McKinsey là kỷ luật *Trouble must be a symptom, not a diagnosis* (`tosca-problem-framing`): bạn không được phép bắt đầu cho đến khi owner đồng ý "trả lời câu hỏi này giải quyết được vấn đề của tôi."
+
+2. **Không có structure — boiling the ocean.** Bạn phân tích mọi thứ, không theo thứ tự nào, không có lý thuyết về lát cắt nào quan trọng. Nỗ lực rải đều khắp bề mặt và không bao giờ chạm tới một quyết định. Liều thuốc giải là một cây MECE cộng với quy tắc chi phối toàn bộ engine: **"We don't do any analysis for which we don't have a hypothesis"** (`mckinsey-workflow/SKILL.md`, dòng 46). Mọi lần pull data phải truy được về một hypothesis mà nó chứng minh hoặc bác bỏ.
+
+3. **Opinion, không phải evidence.** Output *nghe có vẻ* phân tích nhưng thực ra là một chuỗi các khẳng định hợp lý — những con số chẳng ai fetch về, những nguyên nhân chẳng ai test. Với một LLM, đây là kiểu thất bại mặc định: nó sẽ vui vẻ *kể* về một cohort conversion rate mà nó chưa bao giờ query. Quy tắc khó nhất của engine là phản đề: **nó không bao giờ fabricate một fact** (`SKILL.md` dòng 11); khi chỉ có founder nắm một dữ liệu, nó hỏi (`AskUserQuestion`) thay vì bịa ra.
+
+4. **Vớ lấy framework sai-hoặc-quen-thuộc.** Bạn chộp lấy công cụ mình rành nhất — một 2×2, một Five Whys, cái framework từ deck lần trước — và bẻ cong vấn đề cho khớp với nó. *Cracked It!* gọi đây là Maslow's hammer; registry tag nó là `framework-mental-model-danger`. Một công cụ quen thuộc được đưa ra như candidate *duy nhất* là một dấu hiệu đáng ngờ.
+
+### Kỷ luật tư duy như một công cụ
+
+Insight của Ritsu là bốn thất bại này không phải là khiếm khuyết tính cách — chúng là **những lớp guidance còn thiếu**, và các lớp guidance có thể được cài đặt như tools. Đó chính là bản chất của capability `thinking-toolkit` (`capability-registry.yaml`, id `thinking-toolkit`): một tập hợp các **guidance documents** "structure the THINKING and OUTPUT of the invoking agent" với **zero LLM cost tại thời điểm invocation** (chúng được đọc, không phải run). Một skill như `mece-decomposition-check` hay `pyramid-principle-output` không *làm* việc — nó *kỷ luật hóa* agent đang làm việc đó, cùng cách một checklist kỷ luật hóa một bác sĩ phẫu thuật vốn đã biết cách mổ.
+
+### Bước nhảy: từ một tập skill rời rạc sang một WORKFLOW điều phối
+
+v1.0 ship sáu skill có đòn bẩy cao; v1.2 thêm năm cái nữa — mười một thao tác *atomic* (TOSCA, MECE, pyramid, So-What, 2×2, driver-tree, hypothesis-driven, pre-mortem, root-cause, design-thinking, debias). Hữu dụng khi dùng riêng lẻ, nhưng một người giải-vấn-đề cần nhiều hơn một ngăn kéo công cụ — nó cần một **operating procedure** để sequence chúng. v1.3 thêm cái thứ mười hai, skill đặc biệt đó: `mckinsey-workflow`, **xương sống 4S** (State → Structure → Solve → Sell) *điều phối* mười một cái còn lại cộng với các data tool thật. v1.4 sau đó nâng cấp nó từ một static reading-list thành một **dynamic, data-driven engine** — một workplan 6 cột route mọi hypothesis tới một data source thật, một validation gate trên mọi datum, một "one-day answer" sống động, porpoising, và HITL data-requests.
+
+```text
+  ELEVEN ATOMIC SKILLS                 THE ENGINE (mckinsey-workflow)
+  (operations)                         (operating procedure)
+  ┌───────────┬───────────┐
+  │ tosca     │ mece       │           STATE ─▶ STRUCTURE ─▶ SOLVE ─▶ SELL
+  │ pyramid   │ so-what    │   ──▶        │         │          │ (loop)  │
+  │ 2x2       │ driver-tree│           sequences + pulls real data +
+  │ hypothesis│ pre-mortem │           validates + asks the founder +
+  │ root-cause│ debias     │           carries a living one-day answer
+  │ design-thinking        │
+  └───────────┴───────────┘
+```
+
+### Khoảng trống chính xác mà v1.5 đã đóng lại
+
+Engine v1.4 có thể route **DATA** — tại mỗi bước Solve nó biết *fetch evidence ở đâu* (deepask, wiki, gbrain, supabase-ops). Nhưng việc chọn **framework, model, hay concept nào để áp dụng** tại mỗi bước thì vẫn còn mơ hồ. Như header của registry nói thẳng (`problem-solving-frameworks.yaml`, dòng 11–14): ~207 candidate concepts *đã tồn tại dưới dạng wiki files*, nhưng "there was no structured/classified/enumerable registry — `wiki_ask` is fuzzy RAG (can't filter 'Structure-step frameworks'), and the resolver indexes recipients, not individual concepts." Vậy nên việc *selection* công cụ dựa trên fuzzy retrieval trên một pool phi cấu trúc — đúng cái kiểu-thất-bại-thứ-tư (vớ-lấy-công-cụ-quen-thuộc) mà engine vốn được tạo ra để ngăn chặn.
+
+v1.5 xây dựng cơ chế còn thiếu: một **dedicated candidate registry** gồm **207 classified frameworks** (`knowledge/problem-solving-frameworks.yaml`, đã verify số đếm), mỗi cái tag theo `fours_step` + `type`, cộng với một lớp `tool_selection` trong catalog mã hóa một vòng lặp ba giai đoạn **CLASSIFY → LOAD → SELECT+COMBINE**. Nó cũng ship bốn fact-check gap-fix đối chiếu với source process (`mckinsey-workflow.yaml` header, dòng 31–42): one-day answer giờ được *seed ngay tại State*, cây analytics causation-vs-prediction được bind vào, Sell *tách* synthesize (cái logic) khỏi communicate (câu chuyện) với một anti-"parade-of-knowledge" guard, và design-thinking là một first-class solve mode.
+
+### Phần còn lại của tutorial này bao gồm những gì
+
+Section 2 dạy **phương pháp McKinsey 4S** và các operating principle mà engine mã hóa. Section 3 trình bày **architecture** — cách catalog, skill, registry, và validators ghép với nhau trong Ritsu. Section 4 đào sâu vào **candidate registry và cơ chế `tool_selection`** — trái tim của bản nâng cấp v1.5. Section 5 là một **lần chạy thực tế đầy đủ, end-to-end.** Section 6 khép lại với **hành trình build, các bài học, và cách dùng nó.**
+
+## 2. The Approach — phương pháp McKinsey 4S + các operating principle
+
+Một thinking engine chỉ tốt ngang với *phương pháp* mà nó hiện thực hóa. Engine này hiện thực hóa một phương pháp cụ thể, đã được kiểm chứng qua thực chiến: **4S spine** từ *Cracked It!* (Garrette, Phelps & Sibony, 2018), cross-map với **7-step process** chi tiết hơn từ *Bulletproof Problem Solving* (Conn & McLean, 2018) — cả hai đều do các cựu partner McKinsey viết, cả hai đều đã được ingest vào wiki của chúng ta (`wiki/cracked-it/`, `wiki/bulletproof-problem-solving/`). Spec machine-readable là `knowledge/mckinsey-workflow.yaml`; section này dạy phương pháp mà spec đó mã hóa.
+
+### 4S spine — và 7-step cross-map
+
+`mckinsey-workflow.yaml` đặt `spine: "4S"` và bind bốn step. *Cracked It!* đặt tên cho chúng; *Bulletproof* tách chúng thành bảy move chi tiết hơn. Field `bulletproof_7step` trên mỗi step chính là cross-map nguyên văn:
+
+```text
+  CRACKED IT! (4S)        BULLETPROOF (7-step)
+  ┌──────────────┐
+  │ 1. STATE     │  →  Define the problem
+  ├──────────────┤
+  │ 2. STRUCTURE │  →  Disaggregate · Prioritize · Build a workplan
+  ├──────────────┤
+  │ 3. SOLVE     │  →  Conduct analyses
+  ├──────────────┤
+  │ 4. SELL      │  →  Synthesize findings · Tell a great story
+  └──────────────┘
+```
+
+- **State** (`tosca-framework`, `core-question-scope`): define và *frame* trước khi solutioning. Điền TOSCA — **T**rouble, **O**wner, **S**uccess criteria, **C**onstraints, **A**ctors — và viết Core Question.
+- **Structure** (`logic-tree`, `issue-tree`, `hypothesis-pyramid`): disaggregate thành một cây **MECE**, prioritize bằng 2×2 impact × influence, và build **6-column workplan**.
+- **Solve** (`one-day-answer`, `heuristics-before-big-guns`): execute workplan như một *loop* — pull data, validate, update, re-route.
+- **Sell** (`pyramid-principle`, `governing-thought`): synthesize logic (step 6), rồi communicate câu chuyện (step 7).
+
+### Vì sao lại là *chính* trình tự này
+
+Thứ tự không phải để trang trí — nó phòng vệ chống lại thất bại phổ biến nhất: **giải sai vấn đề một cách nhanh chóng và đầy tự tin.** State đến trước vì một problem statement chính xác là đòn bẩy rẻ nhất trong cả study; reframe về sau tốn nhiều ngày. Structure đứng trước Solve vì những vấn đề *chưa-disaggregate* dẫn đến analysis kiểu boil-the-ocean — cây MECE biến một vấn đề mờ mịt thành vài hypothesis có thể falsify mà bạn knock out với chi phí rẻ. Solve đứng trước Sell vì một recommendation phải *đúng* trước khi được làm cho *thuyết phục* — và các cuốn sách nhấn mạnh rằng đây là hai công việc khác nhau (một deck đẹp không thể cứu được logic yếu). Trình tự này là một funnel đi từ "rốt cuộc ta đang trả lời cái gì?" đến "đây là câu trả lời, và đây là cách tôi sẽ kể nó cho bạn."
+
+### Các operating principle chịu lực
+
+Trình tự là bộ xương; các principle này là cơ bắp. Mỗi cái được bind với một concept slug trong catalog và được verify là tồn tại trên disk.
+
+- **The one-day answer** (`one-day-answer`). Ngay khoảnh khắc framing xong — tại *State*, không phải tại Solve — bạn viết hypothesis tạm thời: *"nếu buộc phải trả lời hôm nay, ta sẽ nói X, vì Y."* Nó sẽ sai; đó chính là điểm mấu chốt. Nó là **living state**, được viết lại sau mỗi analysis dưới dạng situation → observation → resolution, và nó liên tục **re-rank phần workplan còn lại**. Trực giác: một best-guess mà bạn đang update tốt hơn một trang giấy trắng mà bạn đang "research hướng tới" — nó cho bạn biết phải test gì *tiếp theo*. (Một trong bốn v1.5 gap-fix là seed nó ngay tại State, vì một version trước đó chỉ sinh ra nó tại Solve.)
+
+- **"We don't do any analysis for which we don't have a hypothesis"** (Bulletproof, Ch 4). Đây là data-routing spine. Mỗi dòng của workplan buộc một analysis với hypothesis mà nó prove hoặc disprove. Trực giác: analysis tốn kém; một hypothesis là *target* khiến việc pull đáng làm. Không target → không pull.
+
+- **Heuristics before big guns** (`heuristics-before-big-guns`). Với lấy công cụ rẻ nhất giải quyết được sub-need; chỉ escalate lên regression / ML / Monte-Carlo khi một heuristic *chứng minh được là không thể* dịch chuyển câu trả lời. Trực giác: hầu hết câu trả lời dịch chuyển dựa trên một rule of thumb, và một "big gun" mà bạn không cần là chi phí lãng phí và độ chính xác giả tạo.
+
+- **Porpoising** (`porpoising`). Như một con cá heo, bạn **lặn vào data, rồi trồi lên với một vấn đề sắc bén hơn.** Loop có các *back-edge* tường minh — `solve → state` (data cho thấy vấn đề bị mis-frame; viết lại nó) và `solve → structure` (một kết quả giết một branch hoặc mở một branch mới; viết lại workplan). Trực giác: discovery *nên* thay đổi câu hỏi — từ chối trồi lên là cách các team đánh bóng câu trả lời cho sai vấn đề.
+
+- **The marginal-analysis stopping rule** (`marginal-analysis`). Chuyển từ Solve sang Sell chỉ khi **không còn open analysis nào vừa rẻ *vừa* đủ mạnh để dịch chuyển câu trả lời** — dừng ở nơi marginal benefit ≈ marginal cost. Trực giác: analysis có lợi suất giảm dần; kỷ luật nằm ở việc biết khi nào "đủ tốt để quyết định" đã đến, thay vì gold-plating.
+
+### 4S loop, với các back-edge
+
+Cách đọc 4S kiểu waterfall là sai. `back_edges` của catalog biến nó thành một chu trình:
+
+```text
+   ┌────────────────────────── porpoise: data re-frames ────────────────────────┐
+   │                                                                             │
+   ▼                                                                             │
+ STATE ───────▶ STRUCTURE ───────▶ SOLVE ─────────────────▶ SELL                 │
+ (TOSCA +       (MECE tree +       (loop: pull · validate ·  (synthesize→         │
+  day-one        6-col workplan)    update one-day-answer ·   communicate)        │
+  answer)            ▲              re-route)   │   │                             │
+                     │              │           │   └── solve→state ──────────────┘
+                     └─ solve→structure ────────┘
+                        (kill/open a branch →
+                         rewrite the workplan)        SELL ──▶ SOLVE
+                                                       (a checkpoint surfaces a gap)
+```
+
+Các forward arrow là 4S spine. Các back-edge là phần thông minh của engine: Solve loop trên chính nó (pull → validate → update → re-route theo `routing_rules`), porpoise trở về State khi data phơi bày một mis-framing, re-cleave cây tại Structure khi một branch chết, và thậm chí quay về từ Sell sang Solve khi một intermediary checkpoint phơi bày một objection. Mỗi analysis phải qua một **validation gate** trước khi được phép dịch chuyển one-day answer — knock-out relevance trước, rồi degree-of-certainty, correlation-vs-causation, sensitivity, và triangulation — để living answer không bao giờ bị dịch chuyển bởi một datum chưa được validate. Đó là sự khác biệt giữa một brainstorm chỉ tường thuật ý kiến qua bốn stage và một engine *hội tụ về một câu trả lời có thể bảo vệ được*.
+
+## 3. The Architecture — Engine Được Xây Trong Ritsu Như Thế Nào
+
+Một phương pháp chỉ tốt ngang với bộ máy giữ cho nó trung thực. Section 2 đã cho bạn phương pháp 4S; section này cho bạn thấy phần *engineering* khiến `/think mckinsey` trở thành một engine thực sự trong repo này thay vì một prompt khôn ngoan nhưng trôi dạt về phía ý kiến chủ quan sau ba lượt. Toàn bộ thiết kế dựa trên một ý tưởng đáng nêu ngay từ đầu: **engine tách spec khỏi executor khỏi candidate library, rồi dùng validators để chứng minh ba thứ này không bao giờ nói dối lẫn nhau.**
+
+### Ba artifact phối hợp, một sự phân công lao động
+
+Engine không phải một file đơn lẻ. Nó là ba artifact, mỗi cái có một nhiệm vụ riêng biệt, được giữ tách biệt một cách có chủ đích.
+
+**(1) `knowledge/mckinsey-workflow.yaml` — ENGINE SPEC dạng machine-readable.** Đây là source of truth cho *engine là gì*. Phần header nói thẳng: "NOT a static map of 'which skill at which stage', but a DYNAMIC, DATA-DRIVEN ENGINE." Nó khai báo `version: "1.5.0"`, `spine: "4S"`, bốn `steps` (state / structure / solve / sell), và — quan trọng nhất — các **engine sections** biến một reading list thành một cỗ máy: `artifacts` (các work product được lưu lại + `run_folder`), `data_routing` (7 data tools), `tool_selection` (classify → load → select), `validation_gate`, `routing_rules`, `back_edges`, `hitl_triggers`, và `stopping_criterion`. Mỗi concept nó trích dẫn là một cặp `{book, slug}` — một *pointer* đến file wiki, không bao giờ là một bản diễn giải nhúng sẵn. Header document bước nhảy v1.4 → v1.5: v1.3 là "a static reading-list index (audited: 0/6 real-engine capabilities)"; v1.4 *bound* các concept đang ngủ và thêm các engine section; v1.5 thêm `tool_selection` cộng với 4 fact-check gap-fixes.
+
+**(2) `06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md` — EXECUTABLE PLAYBOOK.** Đây là thứ một agent thông minh thực sự *chạy* trong live session. Nơi YAML mang tính declarative, SKILL.md mang tính procedural: nó đi qua STATE → STRUCTURE → SOLVE → SELL, đưa ra bảng workplan 7-cột theo nghĩa đen, micro-loop Solve 7-bước, ví dụ đã giải, và các composition guards. Frontmatter của nó khai báo chính xác những tools mà nó có thể chạm tới (`Read, Write, Skill, AskUserQuestion, mcp__supabase-ops__query, mcp__supabase-ops__wiki_ask, mcp__gbrain__{search,recall,think}`) và — mang tính load-bearing — rằng nó "Runs IN THE ACTIVE SESSION ... not a headless subagent," bởi vì nó cần kênh hội thoại để hỏi founder lấy dữ liệu. SKILL.md nói rằng nó đọc spec của mình từ YAML; hai thứ này được chủ đích làm thành một cặp (spec ↔ executor).
+
+**(3) `knowledge/problem-solving-frameworks.yaml` — candidate registry.** Bể chứa **207 classified candidates** (frameworks, models, heuristics, techniques, biases) mà cơ chế `tool_selection` load từ đó. Được seed bởi `scripts/thinking-toolkit/gen-frameworks-registry.cjs`. *(Được bàn đầy đủ trong Section 4 — ở đây nó chỉ là chân thứ ba của cái ghế đẩu.)*
+
+```text
+   /think mckinsey "<problem>"   ← founder / agent / CLA invokes in the LIVE session
+            │
+            ▼
+  ┌───────────────────────────────────────────────┐
+  │ (2) SKILL.md  — the EXECUTABLE PLAYBOOK         │  runs the 4S loop in-session
+  │     reads its spec from ─────────────┐          │
+  └──────────────────────────────────────┼─────────┘
+            │ loads candidates from       │ declares the engine
+            ▼                             ▼
+  ┌──────────────────────┐    ┌──────────────────────────────────┐
+  │ (3) problem-solving-  │    │ (1) mckinsey-workflow.yaml        │
+  │     frameworks.yaml   │    │     the ENGINE SPEC               │
+  │  207 classified       │    │  steps + artifacts·data_routing·  │
+  │  candidates (§4)      │    │  tool_selection·validation_gate·  │
+  └──────────────────────┘    │  routing_rules·back_edges·        │
+            ▲                  │  hitl_triggers·stopping_criterion │
+            │                  └──────────────────────────────────┘
+            │ both prove "every cited file EXISTS"  │
+  ┌─────────┴──────────────────────────────────────┴─────────────┐
+  │ VALIDATION LAYER                                              │
+  │  L1  scripts/validate-tier1.cjs   (JSON-schema shape)         │
+  │        FILE_TO_SCHEMA: mckinsey-workflow.yaml → .schema.json  │
+  │  L2  scripts/cross-tier/validate-mckinsey-workflow.cjs        │
+  │        + validate-frameworks-registry.cjs                     │
+  │      ↳ wired into BOTH:                                       │
+  │         • scripts/check-consistency.cjs  (local `pnpm check`) │
+  │         • .github/.../cross-tier-consistency.yml  (CI job)    │
+  └──────────────────────────────────────────────────────────────┘
+```
+
+### Validation layer — tại sao engine không thể nói dối
+
+Một spec trích dẫn một skill không tồn tại còn tệ hơn không có spec: agent tự tin route đến một tool đã chết giữa chừng phân tích. Vì vậy engine được phòng thủ ở hai cấp độ.
+
+**L1 — JSON-schema shape (`scripts/validate-tier1.cjs`).** Map `FILE_TO_SCHEMA` mang entry `'mckinsey-workflow.yaml': 'mckinsey-workflow.schema.json'`, validate cấu trúc hình thức (version có mặt, steps đúng dạng, các required key).
+
+**L2 — cross-tier existence (`scripts/cross-tier/validate-mckinsey-workflow.cjs`).** Đây là cái quan trọng. Comment của chính nó nêu rõ ý định: "the catalog must never drift into citing a skill/concept/tool/artifact that isn't real — that would silently break the `/think mckinsey` engine." Cụ thể nó chứng minh: mọi skill được tham chiếu resolve về `06-ai-ops/skills/<skill>/SKILL.md`; mọi concept `{book, slug}` resolve về `wiki/<book>/concepts/<slug>.md` — *xuyên suốt mọi engine section*, không chỉ các steps; mọi `produces`, mọi `data_routing.tool`, và mọi `artifacts.files[].stage` đều thuộc một tập đã biết (các allowlist `ARTIFACTS` và `TOOLS`); bốn step 4S canonical đều có mặt với các order liền mạch; và cả sáu `ENGINE_SECTIONS` (`tool_selection, validation_gate, routing_rules, hitl_triggers, back_edges, stopping_criterion`) đều không rỗng. Một validator anh em, `validate-frameworks-registry.cjs`, làm điều tương tự cho registry 207-candidate. Cả hai đều được wire vào **`check-consistency.cjs`** (để một lệnh local `pnpm check` bắt được drift) **và** vào các job tường minh trong **`.github/workflows/cross-tier-consistency.yml`** (để CI bắt nó trên mỗi PR). Việc wire kép là có chủ đích — một bài học ritsu đã biết: một validator chỉ ở một nơi sẽ để CI hoặc local xanh trong khi nơi kia đỏ.
+
+### Lựa chọn thiết kế then chốt — skill + catalog, KHÔNG phải một deterministic orchestrator
+
+Đây là quyết định kiến trúc quan trọng nhất, và phản trực giác nhất. Tại sao engine không chỉ là một script `.cjs` chạy các step theo thứ tự? Bởi vì **vòng lặp 4S nặng tính judgment.** Quyết định xem một kết quả có "moves the answer," xem một correlation có load-bearing, xem một phân tích là adversarial hay chỉ confirmation-seeking, xem vấn đề có bị mis-framed và bạn phải porpoise back về STATE — không cái nào trong số này là một nhánh mà một câu lệnh `switch` có thể đi. SKILL.md nói thẳng: đây là "NOT deterministic code — it's a judgment-heavy operating procedure an intelligent agent executes with real tools." Một deterministic orchestrator chồng lên judgment sẽ là *fake rigor*: nó trông có nguyên tắc trong khi lặng lẽ ép mọi vấn đề qua cùng một cái ống. Vì vậy kiến trúc đặt *bộ máy* (data tools, validation gate, kỷ luật status-ledger, stopping rule) vào các artifact có thể kiểm chứng, và để *judgment* cho agent thông minh chạy playbook. Validators bảo đảm bộ máy là thật; agent cung cấp tư duy.
+
+### Bảng data_routing và validation_gate
+
+Hai engine section đáng đọc kỹ, bởi vì chúng là nơi "pull real data, validate every datum" trở nên vận hành được.
+
+**`data_routing`** là bảng "tôi lấy fact này ở đâu?". `source-of-data` của mỗi workplan row route đến đúng một trong bảy tool, theo nguyên tắc cheapest-sufficient-source first:
+
+| Need | Tool | HITL |
+|---|---|---|
+| Broad internal evidence across pillars/ops/wiki/brain | `deepask` | A (B+ legs surfaced) |
+| A framework / concept / definition | `wiki_ask` | A |
+| A person / company / past decision / entity history | `gbrain` (`search`→`recall`→`think`) | A |
+| A current metric / KPI / count / live operational fact | `supabase-ops-query` | A |
+| External market / competitor / benchmark | `deep-research` (via `/deepask`) | A (research only) |
+| Structuring the analysis itself | `think-skills` | A |
+| Data only the founder holds | `ask-user` (`AskUserQuestion`) | human |
+
+Lưu ý **product firewall** được nướng sẵn vào metric route: catalog giới hạn `supabase-ops-query` ở `metrics.*` (không bao giờ `product.*`), chỉ thị đọc `knowledge/schemas` trước để không phát minh ra column, và thêm fallback trung thực — nếu ETL của `metrics.product_dau_snapshot` rỗng, route sang `ask-user` thay vì bịa. Hàng `ask-user` chính là nước đi McKinsey được mã hóa: "don't fabricate past a gap you could close by asking the owner."
+
+**`validation_gate`** là cổng "fact này có đúng *và* có quan trọng không?", chạy trên mọi datum theo một thứ tự cố định: **knock-out** (rẻ nhất trước — nó có moves the answer chút nào không?) → **8-degrees-of-certainty** (tag 1–8; chiết khấu các forecast degree-6 và expert input degree-7 vì incentive bias) → **correlation ≠ causation** (đòi một experiment/regression nếu causation là load-bearing) → **sensitivity** (các giả định phải dịch chuyển bao nhiêu để lật kết luận?) → **triangulation** (đã có một read thứ hai, độc lập, đồng ý chưa?) → **honesty-labeling** (tag degree của kẻ sống sót; label các judgment call *là* judgment call). Mỗi một trong sáu check đó mang một `concept` pointer mà L2 chứng minh tồn tại trên đĩa — nên cổng không bao giờ có thể trích dẫn một validation principle không có wiki page chống lưng. Đó là toàn bộ kiến trúc thu nhỏ: bộ máy thật, thực thi dẫn dắt bởi judgment, và validators đứng gác để không điều gì engine nói về chính nó là một lời nói dối.
+
+## 4. The Candidate Registry + `tool_selection` — cơ chế "load + select đúng tool" của v1.5
+
+### 4.1 Tại sao cần một registry chuyên dụng
+
+Đến thời điểm xây v1.5, ritsu đã nắm giữ một khối lượng lớn kiến thức problem-solving: các trang concept đã synthesize được distill từ những cuốn như *Bulletproof Problem Solving*, *Cracked It*, các sách marketing của Kotler, và *The North Star Playbook*, tất cả tồn tại dưới dạng file trong `wiki/`. Nhiệm vụ của engine — chạy một bài toán consequential như một nghiên cứu McKinsey đẳng cấp thế giới — phụ thuộc vào việc chọn *đúng analytical tool* ở mỗi bước. Nên bạn sẽ nghĩ: cứ hỏi wiki là xong.
+
+Nó không hoạt động được. Đây là lỗ hổng chính xác, và nó có ba phần.
+
+**Fuzzy retrieval không thể FILTER.** `wiki_ask` (RAG citation-disciplined trên `wiki/` + `ops.knowledge_embeddings`) được xây cho câu hỏi *"corpus nói gì về X?"* Nó rank theo semantic similarity và trả về văn xuôi kèm citation. Nhưng nhu cầu thực sự của engine là một truy vấn *set-membership*: *"đưa cho tôi mọi typology bước Structure mà tôi có thể áp dụng ở đây."* Đó là một filter trên một tập đóng, đã được phân loại — không phải một similarity search. RAG sẽ vui vẻ trả về ba đoạn nghe có vẻ hợp lý và lặng lẽ bỏ sót cái tool thứ tư mà bạn cần; nó không có khái niệm "đầy đủ".
+
+**Resolver index các recipient, không phải concept.** `mcp__supabase-ops__resolver_find` và `INDEX.md` đứng sau nó catalog các *runnable recipient* — skill, command, agent, SOP, MCP tool. Một thinking *framework* như "MECE" hay "ma trận prioritization 2×2" không phải một recipient; nó là một lăng kính bạn giữ trong đầu. Resolver chưa bao giờ được thiết kế để liệt kê ~200 concept riêng lẻ bên trong các cuốn sách wiki.
+
+**Các concept chỉ tồn tại dưới dạng file rời rạc.** Khoảng 207 framework/model/heuristic ứng viên tồn tại dưới dạng file concept wiki không có schema chung — không có `type` thống nhất, không có tag bước 4S thống nhất. Bạn có thể đọc bất kỳ cái nào trong số đó, nhưng bạn không thể *select among* chúng.
+
+Cách khắc phục là một index nhỏ, đã phân loại, machine-checkable, được xây riêng cho việc filter: **`knowledge/problem-solving-frameworks.yaml`**.
+
+### 4.2 Registry: `knowledge/problem-solving-frameworks.yaml`
+
+Phần header nói rõ điều đó: 207 framework, model, heuristic, và concept problem-solving ứng viên, mỗi cái đều được phân loại để bước `tool_selection` của engine có thể **LOAD rồi SELECT** đúng lăng kính. Mỗi entry mang sáu trường:
+
+```text
+- slug: hypothesis-driven-tree           # stable id (unique within a book)
+  book: bulletproof-problem-solving      # source wiki book it was distilled from
+  fours_step: structure                  # which McKinsey 4S step it serves
+  type: framework                        # what KIND of thinking tool it is
+  wiki_path: wiki/bulletproof-problem-solving/concepts/hypothesis-driven-tree.md
+  title: Hypothesis-driven issue tree    # human-readable name
+```
+
+- **`slug`** — định danh ổn định. Nó unique *trong một cuốn sách*, không phải toàn cục (xem §4.4).
+- **`book`** — nguồn wiki mà concept được distill từ đó. Cho phép engine cân theo authority và truy vết provenance.
+- **`fours_step`** — bộ phân loại load-bearing để selection. Một trong **`state` · `structure` · `solve` · `sell` · `cross`** — bốn bước McKinsey (State the problem, Structure it, Solve it, Sell it) cộng `cross` cho các tool trải dài tất cả các bước (ví dụ MECE, debiasing).
+- **`type`** — *loại* tool: **`framework` · `model` · `heuristic` · `technique` · `concept` · `bias` · `antipattern`**. Đây là cái cho phép bạn yêu cầu "một *typology* cho Structure" so với "một *bias* cần đề phòng".
+- **`wiki_path`** — đường dẫn tới trang concept đầy đủ, để một khi đã chọn engine đọc nội dung thực thay vì re-derive lại nó.
+- **`title`** — tên dễ đọc hiển thị trong các danh sách ứng viên.
+
+Cùng nhau, `fours_step` × `type` biến một đống file không-thể-search được thành một lưới hai chiều bạn có thể cắt lát.
+
+### 4.3 Generator tất định: `scripts/thinking-toolkit/gen-frameworks-registry.cjs`
+
+Registry không được gõ tay từng entry một — nó được **generate một cách tất định** từ wiki, rồi có thể hand-maintain. Generator duyệt qua các file concept wiki và phân loại từng cái dùng ba quy tắc thuần:
+
+1. **Một map chapter → bước 4S.** Các chapter của mỗi cuốn sách nguồn map tới một giá trị `fours_step`, nên một concept thừa hưởng bước của nó từ vị trí nó nằm trong sách.
+2. **Một heuristic `type` theo keyword của slug.** Slug được quét tìm các từ tín hiệu để gán `type` (ví dụ tên chứa "bias" → `bias`, "trap"/"fallacy" → `antipattern`, "tree"/"matrix"/"canvas" → `framework`, v.v.).
+3. **Một map OVERRIDE marquee.** Một bảng nhỏ được curate ghim các tool nổi tiếng, load-bearing vào phân loại *đúng* của chúng khi heuristic đoán sai — các framework marquee mà mọi analyst phải xác định cho đúng.
+
+Nó cũng expose một **chế độ drift `--check`**: thay vì ghi, nó regenerate trong memory và so sánh với YAML đã commit, fail nếu chúng phân kỳ.
+
+Tại sao tất định? Ba lý do, tất cả đều về trust. **Regenerable** — chạy lại nó và bạn nhận được output giống hệt từng byte, nên registry luôn có thể được rebuild từ wiki. **Không LLM drift** — một LLM được yêu cầu phân loại 207 concept hai lần sẽ lặng lẽ đưa ra hai câu trả lời khác nhau; một script thuần thì không bao giờ, nên *bản thân việc phân loại* ổn định qua các lần chạy và các reviewer. Và **seeded-then-maintained** — generator tạo ra pass đầy đủ đầu tiên; sau đó con người tinh chỉnh map OVERRIDE và chạy lại, giữ file vừa authoritative vừa auditable. Các tool marquee được curate; phần long tail là cơ học.
+
+### 4.4 Validator completeness L2: `scripts/cross-tier/validate-frameworks-registry.cjs`
+
+Một registry chỉ hữu ích nếu bạn có thể *trust* nó, và kiểu fail nguy hiểm là kiểu im lặng: một ứng viên bị rớt, và engine kết luận một tool **không tồn tại** trong khi nó có. Vậy nên validator enforce hai invariant:
+
+1. **Mọi `wiki_path` đều resolve.** Không có pointer treo trỏ tới một trang đã bị xóa hoặc đặt tên sai.
+2. **Registry là COMPLETE** — không concept nào tồn tại trong một cuốn sách nguồn mà thiếu khỏi registry. Đây là invariant load-bearing. Fuzzy retrieval bỏ sót lặng lẽ; validator này *từ chối để cho engine tin rằng một lăng kính là không khả dụng.*
+
+Khóa unique là cặp **`(book, slug)`**, không phải `slug` đơn lẻ. Điều đó cố tình làm cho **các concept hai-sách hợp lệ**: một concept như `mece` hay `wicked-problems` xuất hiện trong hai cuốn sách nguồn nhận được hai hàng hợp pháp (mỗi cuốn một hàng), mỗi hàng truy vết tới trang riêng của nó. Một khóa chỉ-`slug` sẽ collide chúng và buộc bạn phải xóa một nguồn thực, có-thể-trích-dẫn.
+
+Đây là một **validator L2 critical**, được nối vào cả đường `check-drift` cục bộ lẫn CI — cùng kỷ luật belt-and-suspenders mà phần còn lại của cross-tier engine dùng, nơi một gating validator phải được đăng ký ở *cả* `check-consistency.cjs` (cục bộ) lẫn một CI workflow job.
+
+### 4.5 Cơ chế `tool_selection` 3 giai đoạn
+
+Registry là *inventory*; `tool_selection` trong `knowledge/mckinsey-workflow.yaml` là *bộ máy* chọn từ nó. Nó chạy như một phễu — **CLASSIFY → LOAD → SELECT+COMBINE** — và quan trọng là nó không để bạn với tay lấy tool yêu thích của mình trước.
+
+```text
+                 ┌──────────────────────────────────────────────┐
+   problem ───▶  │  STAGE 1 — CLASSIFY  (what KIND of problem?)  │
+                 │  • analytical vs design                      │
+                 │      → five-phases-of-design-thinking        │
+                 │  • causation vs prediction                   │
+                 │      → analytics-tool-selection-decision-tree │
+                 │  • formula / typology / checklist            │
+                 │      → three-styles-of-frameworks            │
+                 └───────────────────────┬──────────────────────┘
+                                         │  problem-shape signature
+                                         ▼
+                 ┌──────────────────────────────────────────────┐
+                 │  STAGE 2 — LOAD  (gather the candidate set)   │
+                 │  • FILTER the registry by fours_step + type   │
+                 │    (problem-solving-frameworks.yaml)         │
+                 │  • resolver_find  → runnable skills           │
+                 │  • wiki_ask       → the long tail / detail    │
+                 └───────────────────────┬──────────────────────┘
+                                         │  candidate lenses (a SET)
+                                         ▼
+                 ┌──────────────────────────────────────────────┐
+                 │  STAGE 3 — SELECT + COMBINE                   │
+                 │  • Munger latticework: pick ≤ 3 lenses        │
+                 │  • debias the "familiar-tool" trap           │
+                 └───────────────────────┬──────────────────────┘
+                                         ▼
+                              chosen lenses for the step
+```
+
+**Stage 1 — CLASSIFY.** Trước khi load bất cứ thứ gì, đặt tên cho *shape* của bài toán. Nó là **analytical** (tìm câu trả lời) hay **design** (phát minh ra một câu trả lời)? — định tuyến qua `five-phases-of-design-thinking`. Câu hỏi là về **causation** (tại sao điều này xảy ra?) hay **prediction** (điều gì sẽ xảy ra?)? — định tuyến qua `analytics-tool-selection-decision-tree`. Và đây đòi hỏi *style* framework nào — một **formula**, một **typology**, hay một **checklist**? — định tuyến qua `three-styles-of-frameworks`. Classification-trước chính là toàn bộ điểm mấu chốt: nó chuyển "tôi có một bài toán" thành một signature chính xác mà bạn có thể filter dựa vào.
+
+**Stage 2 — LOAD.** Giờ gom candidate set dựa vào signature đó. Động tác chính là một **filter trên registry theo `fours_step` + `type`** — chính là truy vấn set-membership mà RAG không làm được. Rồi `resolver_find` bổ sung các skill `thinking-toolkit` runnable, và `wiki_ask` quét nốt phần long tail chi tiết. Để ý sự phân công lao động mà cả section được thiết kế xoay quanh: **registry filter, resolver run, wiki explain.**
+
+**Stage 3 — SELECT + COMBINE.** Một *tập* ứng viên không phải một câu trả lời. Áp dụng **Munger's latticework** — chọn **≤ 3** lăng kính bổ trợ, vì hơn ba thường có nghĩa là bạn thực ra chưa quyết. Và explicitly **debias cái bẫy "familiar-tool"**: lý do CLASSIFY chạy trước SELECT là để ngăn bạn mặc định dùng ma trận 2×2 chỉ vì bạn luôn với tay lấy nó. Phễu buộc cái tool quen thuộc phải kiếm chỗ đứng của nó đối chiếu với shape thực của bài toán.
+
+Đó là cơ chế v1.5 từ đầu đến cuối: một inventory đóng, đã phân loại, đã validate completeness (registry) nuôi một kỷ luật buộc bạn phải *đặt tên bài toán trước khi đặt tên tool* (phễu `tool_selection`).
+
+## 5. Workflow Walkthrough — Một Ví Dụ Chạy Thực, Đầu Đến Cuối
+
+Cách tốt nhất để học một engine là tự tay lái nó một lần. Vậy nên ta sẽ lấy một bài toán Ritsu thực, consequential và chạy nó qua cả bốn stage — **State → Structure → Solve → Sell** — chỉ ra ở mỗi stage *engine tạo ra artifact được persist nào* và *cơ chế "load + select" của v1.5 được đan vào ở đâu*. Để ý bốn gap-fix của v1.5 khi chúng xuất hiện: day-one answer sinh ra tại **State** (không phải Solve), analytics decision-tree ràng buộc causation-vs-prediction, sự tách **synthesize-then-communicate**, và APK guard.
+
+Bài toán: **"Vì sao free→paid conversion bị đứng, và ta làm gì với nó?"** Đây đúng là loại câu hỏi mà engine sinh ra để giải — consequential, cross-source, và dễ trả lời sai bằng ý kiến cảm tính. (Một lookup nhanh sẽ dùng một skill `/think` hoặc `/deepask` trực tiếp; engine dành riêng cho một study nghiêm ngặt — xem SKILL "When to use / NOT".)
+
+Invocation: `/think mckinsey "why has free→paid conversion stalled"`. Skill chạy *trong session đang active* (nó cần kênh hội thoại cho HITL), và scaffold một run folder: `.archives/mckinsey/free-to-paid-stall/` với `problem-statement.md`, `tree.md`, `workplan.md`, `analysis-log.md`, `one-day-answer.md`, `synthesis.md`, `communication.md`.
+
+### STATE — frame, rồi seed day-one answer
+
+Engine điền **TOSCA** (qua `/think tosca`) vào `problem-statement.md`: **T**rouble — "free→paid conversion đã đi ngang" (một symptom, vượt qua test "Why now?", *không phải* một chẩn đoán kiểu "pricing của ta sai"); **O**wner — founder, người cũng phán "đủ tốt"; **S**uccess — một threshold giới hạn-thời-gian, được lượng hóa; **C**onstraints (tạm thời, được xem lại ở Solve); **A**ctors. Sau đó nó viết **Core Question** và chạy **5-check** (giải quyết Trouble / từ góc nhìn Owner / đạt Success / nhận diện Constraints / cân nhắc Actors).
+
+**HITL ở đây, và nó quan trọng.** Success threshold là thứ chỉ founder nắm. SKILL nói rõ rằng worked example v1.3 đã *bịa ra* `Success = 8%→15%` — và engine thay vào đó **`AskUserQuestion`; nó không fabricate ra con số ấy**. Vậy nên engine dừng và hỏi: *"Conversion rate bao nhiêu, đến khi nào, thì coi như đã giải xong?"* — không bao giờ là một con số đoán mò.
+
+**Rồi nó seed day-one answer** (gap-fix #1). Ngay khi framing xong, `one-day-answer.md` nhận hypothesis tạm thời: *"Nếu buộc phải trả lời hôm nay: conversion đứng vì các free user đã activated trở nên im lặng ở 7-day inactivity cliff trước cả khi họ chạm tới paywall — nên lever là reactivation, không phải price."* SKILL nhấn mạnh rằng cái này *không* sinh ra ở Solve — "bỏ qua nó (đợi để 'có data trước đã') là nước đi non-McKinsey kinh điển." Nó sẽ sai; đó chính là điểm — nó là cái xương sống re-rank lại workplan.
+
+### STRUCTURE — cây MECE + workplan 6-cột
+
+Engine **chọn path** (`hypothesis-driven-vs-issue-driven`): issue tree theo mặc định. Rồi nó disaggregate thành một cây **MECE** (`/think mece` + `/think driver-tree`) trong `tree.md`, thử nhiều cách cắt (cleave) để chống availability bias, với mỗi leaf là một **falsifiable hypothesis**. Nó **prioritize** bằng 2×2 impact × influence (knock-out), tỉa đi những cái bất di bất dịch và low-impact.
+
+Rồi nó dựng **WORKPLAN 6-cột** (`workplan.md`) — xương sống data-routing từ Exhibit 4.3 của *Bulletproof*, cộng cột **status ledger** mà vòng lặp Solve viết lại. Các hàng được sắp **knock-out-first**:
+
+| issue | hypothesis | analysis | source-of-data | owner | end-product | status |
+|---|---|---|---|---|---|---|
+| Inactivity cliff | 7-day-returners convert ≫ non-returners | cohort conversion split | `mcp__supabase-ops__query` on `metrics.product_dau_snapshot` (else ask-user) | analyst | cohort bar chart | `open` |
+| Price | free users hit + abandon the paywall | paywall-view → upgrade funnel | `mcp__supabase-ops__query` (ops) | analyst | funnel exhibit | `open` |
+| Activation depth | low-activation users never see value | activation × conversion regression | supabase-ops query + `/deepask` | analyst | scatter + fit | `open` |
+
+SKILL gọi cột **status** là "cái ledger mà vòng lặp Solve viết lại mỗi iteration — nó là thứ giữ cho một run dài khỏi trôi dạt trở lại opinion-narration (lỗi của v1.3)." Giữ nó **chunky**, không bách khoa.
+
+### SOLVE — vòng lặp status-driven, với một tool_selection thực + một validation pass
+
+Solve là **status-driven** và chạy **heuristics trước big guns**:
+
+```text
+   ┌─────────────────────────────────────────────────────────┐
+   │  0 RE-READ workplan.status → pick top 'open' (knock-out)  │
+   │  1 ROUTE source-of-data → tool   (mark row 'pulled')      │
+   │  2 PULL real data  (founder-only → AskUserQuestion)       │
+   │  3 VALIDATE through the gate (tag degree 1-8)             │
+   │  4 WRITE analysis-log.md                                  │
+   │  5 UPDATE one-day-answer.md (S→O→R)                       │
+   │  6 MARK 'validated'|'knocked-out'|'spawned'              │
+   │  7 RE-ROUTE → re-prioritize / PORPOISE / switch tool      │
+   └───────────────┬───────────────────────────▲─────────────┘
+                   │ open row above knock-out bar │ loop
+                   └──────────────────────────────┘
+        stop only when: proven + robust + marginal → SELL
+```
+
+**Một quyết định `tool_selection` cụ thể.** Lấy hàng inactivity-cliff. Engine trước tiên **CLASSIFY** (3 stage trên registry): `solve_mode` = *analytical* (tồn tại một câu trả lời đúng); `analysis_mode` — claim load-bearing là "returning *drives* conversion," tức là **causation**, nên theo `analytics-tool-selection-decision-tree` thì *loại* tool là experiment / natural-experiment / **regression**, không phải một summary stat; `framework_shape` = một *formula/regression* (ta cần một con số), không phải một typology. Nhưng — **heuristics trước big guns** — nó *không* nhảy thẳng vào regression. Nó chạy cohort split rẻ trước (một heuristic). Chỉ khi cái đó không xê dịch được câu trả lời thì nó mới escalate. Rồi nó **LOAD** candidates bằng cách FILTER `knowledge/problem-solving-frameworks.yaml` (registry **207-candidate** — `WHERE fours_step ∈ {solve, cross} AND type matches`) và đọc `wiki_path` của từng finalist trước khi áp dụng. Cuối cùng nó **SELECT + COMBINE** ≤3 lens bổ sung cho nhau (Munger latticework) và **debias** — *đừng* chộp lấy regression quen thuộc chỉ vì nó quen thuộc; một candidate quen thuộc đơn độc là "một smell → widen the load" (Maslow's hammer).
+
+**Một validation-gate pass.** Cohort split trả về: returners convert ~4×. Chạy gate: **knock-out** trước (nó có xê dịch câu trả lời không? có — giữ) → **degree-of-certainty** (một con số cứng → degree-2) → **correlation ≠ causation** (check load-bearing của gate: triangulate với một cut thứ hai — 7-day-returners có khác về source/plan không? nếu causation vẫn load-bearing, đòi regression) → **sensitivity** (assumptions phải dịch chuyển bao nhiêu để lật ngược nó?). Nó clear. **UPDATE one-day-answer:** "returners convert 4× — cliff confirmed." **RE-ROUTE:** double down vào reactivation; **knock out** nhánh pricing. (Đây là micro-loop worked chính xác của SKILL — pulls thực, không bao giờ fabricated; nếu ETL rỗng, nó `AskUserQuestion` hỏi con số cohort thay vì bịa ra.)
+
+**Nhánh design-thinking** là `solve_mode` thay thế. Nếu STATE đã hé lộ rằng bài toán là *ill-defined / human-centered* — chẳng hạn "users không cảm thấy product đáng trả tiền" — engine tắt vòng lặp hypothesis để chuyển sang vòng lặp 5-phase: **empathize → reframe (How-Might-We) → ideate → prototype → test**, lặp cho đến khi **desirability × feasibility × viability** đều hold (`five-phases-of-design-thinking`).
+
+Hard rule của vòng lặp: **bạn không được chuyển sang Sell khi còn bất kỳ hàng `open` nào vẫn nằm trên knock-out bar.**
+
+### SELL — synthesize cái LOGIC, rồi communicate cái STORY
+
+Đây là gap-fix #3: *hai nước đi tách biệt*, không phải một.
+
+**(6) SYNTHESIZE** (`synthesis.md`) — `/think pyramid` + `/think so-what` dựng lập luận để nó đứng vững một mình *trước* bất kỳ sự kể-lể nào: **governing thought trước** ("Conversion đứng ở 7-day cliff, không phải tại price; ship reactivation"), rồi một key line MECE, rồi support rút ra từ one-day answer cuối cùng + analysis-log. "Nếu logic không hold ở dạng một pyramid trần trụi, không storytelling nào cứu được nó."
+
+**(7) COMMUNICATE** (`communication.md`) — render cái logic đó cho *audience này*: chọn grouping (receptive) vs SCR/SCQA (skeptical), viết **action titles** (mỗi section là một câu declarative đầy đủ), và **pre-wire** founder để câu trả lời không gây bất ngờ.
+
+> **APK guard (anxious-parade-of-knowledge):** dẫn bằng *answer*, không bao giờ bằng hành trình. **Đừng** kể câu-chuyện-của-quá-trình-tìm-kiếm ("đây là vấn đề → đây là cả sáu analyses ta đã chạy → … → đây là câu trả lời"). Người đọc muốn answer trước; analysis là support, chỉ bày ra khi cần.
+
+Đó là một full run: một bài toán đã được frame, một workplan đã được route, một vòng lặp status-driven của những pull thực đã validated, và một recommendation đã pre-wire — ý kiến cảm tính không bao giờ chen vào.
+
+## 6. The Build Journey, Lessons, and How to Use It
+
+Cách nhanh nhất để hiểu *tại sao* engine có hình dạng như vậy — và làm sao dùng nó cho khéo — là quan sát cách nó lớn lên. Capability `thinking-toolkit` đi từ v1.0 đến v1.5 trong vài chu kỳ `/cla extend` (tất cả vào 2026-06-03 trừ phần ship v1.0/v1.1 vào 2026-05-28), và mỗi version giải quyết một khiếm khuyết mà version trước phơi bày. Lịch sử đó *chính là* phần sư phạm.
+
+### Part A — Five versions, five lessons
+
+```text
+v1.0  6 curated skills        LESSON: curate, don't inflate
+  │   (5-test triage)         (only the high-leverage operations earn a skill)
+  ▼
+v1.2  +5 skills (~2% pass)    LESSON: the bar is brutal on purpose
+  │   259-concept re-triage   (most "frameworks" are knowledge, not operations)
+  ▼
+v1.3  +mckinsey-workflow      LESSON: organize the library INTO a workflow
+  │   +per-step catalog       (the non-skill concepts finally get a home)
+  ▼
+v1.4  static map → ENGINE     LESSON: a named map is not bound machinery
+  │   audit: 0/6 real-engine  (research the real process before you encode it)
+  ▼
+v1.5  +207-candidate registry LESSON: a folder + fuzzy RAG is not a
+      +tool_selection          selection substrate
+```
+
+**v1.0 — curate, don't inflate.** Lần ship đầu chỉ author **6** skills (TOSCA, MECE, pyramid, so-what, 2×2, driver-tree) và *từ chối* 6 candidates (Issue Tree, Ghost Deck, 5 Whys, 80/20, 7S, PEST/Porter). Kỷ luật: một thinking framework chỉ xứng đáng có một SKILL.md nếu nó là một *operation* riêng biệt, tái-sử-dụng-được — không chỉ là một cái tên nổi tiếng. Đây là nguyên tắc nền tảng của cả thư viện.
+
+**v1.2 — the bar is brutal on purpose.** Một `5-test triage` được chạy trên **259 concepts** distill từ *Cracked It!* và *Bulletproof Problem Solving*. Chỉ **~2%** vượt qua như những operation thực-sự-mới; ~28% đã được cover bởi 6 cái gốc; ~54% là "knowledge đáng giữ như một thư viện wiki, không phải một skill." Năm skills tốt nghiệp (hypothesis-driven, pre-mortem, root-cause, design-thinking, debias). Lưu ý phần tự-điều-chỉnh: v1.0 đã từ chối Five Whys vì *framing*; v1.2 nhận lại nó với **scope** vào causal-tracing của một symptom *đã được xác nhận*. Curation không phải là một cổng một-lần — nó được chạy lại với tiêu chí sắc bén hơn.
+
+**v1.3 — organize the library into a workflow.** ~230 concepts *không* trở thành skills đã vô gia cư. v1.3 xây `mckinsey-workflow` cộng một per-step catalog (`knowledge/mckinsey-workflow.yaml`): mỗi 4S step giờ trỏ vào các skills cần run *và* các key concepts đã được curate cho step đó. Thư viện thôi là một folder phẳng và trở thành một workflow được sắp theo trình tự.
+
+**v1.4 — a named map is not bound machinery.** Đây là bài học sắc bén nhất. Một research workflow 5-agent re-extract *quy trình vận hành thật* từ hai cuốn sách, và một audit phát hiện skill v1.3 đạt **0/6** trên các năng lực real-engine — porpoising và analysis-plan *tồn tại trong wiki nhưng bound vào zero step*. Một "static map" *gọi tên* các tools không giống với **bound, validated machinery** *chạy* chúng. v1.4 encode engine thực sự: workplan 6-cột làm xương sống data-routing, một validation gate, các routing rule IF→THEN, các porpoise back-edge, các HITL trigger, và một stopping criterion. **Research the real process before you encode it.**
+
+**v1.5 — a folder + fuzzy RAG is not a selection substrate.** ~207 candidate concepts tồn tại dưới dạng wiki files, nhưng không có cách nào để *filter* chúng ("đưa tôi các framework của Structure-step"): `wiki_ask` là fuzzy RAG, và resolver index *recipients*, không phải từng concept riêng lẻ. v1.5 xây registry chuyên dụng `knowledge/problem-solving-frameworks.yaml` — **207** candidates, mỗi cái classified `{slug · book · fours_step · type · wiki_path}` — cộng cơ chế `tool_selection`. Hai lựa chọn thiết kế mang theo những bài học bền vững:
+
+- **Deterministic generator over LLM for a regenerable registry.** `scripts/thinking-toolkit/gen-frameworks-registry.cjs` seed registry một cách deterministic (chapter → 4S step; slug-keyword → type), rồi nó hand-maintainable và mở rộng được qua `--check`. Một registry mà bạn phải *rebuild và re-verify được* nên được generate bằng rules, không phải bằng một model.
+- **Completeness as the load-bearing invariant — and the @cto catch.** L2 validator (`scripts/cross-tier/validate-frameworks-registry.cjs`) chứng minh không chỉ rằng mọi `wiki_path` tồn tại mà còn rằng registry *complete* — không concept-sách nào bị bỏ. Cái bẫy tinh vi, bắt được trong review: các dual-book concept như `mece` và `wicked-problems` xuất hiện trong *cả hai* cuốn sách. Một key chỉ-`slug` ngây thơ sẽ khiến completeness sweep của `--check` thành một false-negative (đếm thầm một cái và "thỏa mãn" cái kia). Cách sửa: **`(book, slug)` là unique key**, để một dual-book concept được đăng ký hợp lệ hai lần. Completeness check chỉ đáng tin nếu identity key của nó khớp với thực tế.
+
+### Part B — How to use it
+
+**Invoke it:** `/think mckinsey "<problem>"`. 4S engine chạy *trong active session* (nó cần kênh hội thoại cho các HITL data-request và owner checkpoint). Bề mặt rộng hơn là **12 skills / 14 verbs** dưới `/think` — `/think list` liệt kê chúng, `/think flow [problem]` gợi ý một trình tự.
+
+**The accordion principle — the most important usage rule.** Engine *không* bắt buộc. Theo chính contract của skill, "the accordion compresses for small problems — the one-day answer alone may suffice." Với phần lớn câu hỏi, một skill nguyên tử đơn lẻ (`/think tosca`, `/think so-what`) hoặc một `/deepask` là đủ. Dành nguyên engine đầy đủ cho những problem thực sự đáng một study.
+
+```text
+trivial / lookup / operational ──► /deepask  or  one /think skill
+small decision ────────────────► /think mckinsey (one-day answer, inline)
+consequential, hard-to-reverse ─► /think mckinsey (full run folder, HITL)
+```
+
+**When to USE:** một quyết định thực, hệ trọng, đáng một study nghiêm túc — một capability bet, một call pricing/GTM/funnel, một "tại sao X đang xảy ra và ta làm gì." **When NOT:** tra cứu nhanh, câu hỏi tầm thường hoặc mang tính vận hành, một bug rõ ràng.
+
+**The two non-negotiable guards** (mọi operator và agent đều phải tôn trọng): the **firewall** — dữ liệu công ty chỉ chảy qua `metrics.*`, *không bao giờ* `product.*`; và **HITL discipline** — mỗi *read* dữ liệu trong engine là **Tier A**, nhưng engine *không bao giờ* được auto-run một write hay một publish. Nó surface những cái đó để approval. Engine kéo evidence; nó không hành động lên thế giới.

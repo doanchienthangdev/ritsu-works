@@ -85,6 +85,7 @@ const CHAPTER_ORDER = [
   "phase-a2/46-capability-case-book-to-capability-forge.md",
   "phase-a2/47-capability-case-design-system-styling.md",
   "phase-a2/48-capability-case-image-platform.md",
+  "phase-a2/49-tutorial-think-mckinsey-engine.md",
   "A1-glossary.md",
   "A2-references.md",
   "A3-pr-templates.md",
@@ -226,9 +227,12 @@ const SIDEBAR_SEGMENTS = [
   ["---Phần III — Scaling & Intelligence---", "---Part III — Scaling & Intelligence---", (s) => /^(0[6-9]|10)-/.test(s)],
   ["---Phần IV — Triển khai---", "---Part IV — Implementation---", (s) => /^1[1-3]-/.test(s)],
   ["---Phần V — Phase A.2---", "---Part V — Phase A.2---", (s) => /^(1[4-9]|2\d|3[0-3])-/.test(s)],
-  // Part VI = ch34-49 by number prefix (was /^\d{2}-capability-case/ which dropped
+  // Part VI = ch34-48 by number prefix (was /^\d{2}-capability-case/ which dropped
   // ch43-thinking-toolkit + ch44-case-... because they aren't named "-capability-case").
-  ["---Phần VI — Capability Case Studies---", "---Part VI — Capability Case Studies---", (s) => /^(3[4-9]|4\d)-/.test(s)],
+  ["---Phần VI — Capability Case Studies---", "---Part VI — Capability Case Studies---", (s) => /^(3[4-9]|4[0-8])-/.test(s)],
+  // Part VII = Tutorials (instructional how-it-works chapters, distinct from the
+  // retrospective case studies). ch49 = the /think mckinsey engine tutorial; 50-59 reserved.
+  ["---Phần VII — Tutorials---", "---Part VII — Tutorials---", (s) => /^(49|5\d)-/.test(s)],
   ["---Phụ lục---", "---Appendix---", (s) => /^A\d/.test(s)],
 ];
 
