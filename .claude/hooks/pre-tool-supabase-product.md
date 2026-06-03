@@ -1,6 +1,6 @@
 ---
 name: pre-tool-supabase-product
-version: 1.0.0
+version: 1.1.0
 type: pre-tool
 status: enforced-code
 runtime: .claude/hooks/runtime/pre-tool-supabase-product.cjs
@@ -82,10 +82,17 @@ DB-shaped.
 - `ritsu-brain` — `qqlggvkcynhjiwgomgma` (gbrain)
 - `ritsu-analytics` — injected via env `ANALYTICS_PROJECT_REF` at provisioning (`15` K3); holds no raw PII.
 
-The Product ref is **deliberately absent** from this repo. It is injected via env `PRODUCT_PROJECT_REF` at the
-D-MAX provisioning gate. **Until then, fail-closed already covers Product** (any unknown supabase DB target is
-blocked) — so the firewall is safe to ship before the ref is known. Extra safe refs may be added via
-`PRODUCT_FIREWALL_EXTRA_SAFE_REFS` (Tier C).
+The Product ref is **deliberately absent** from the committed code. It is configured via env
+`PRODUCT_PROJECT_REF`. **Until it is known, fail-closed already covers Product** (any unknown supabase DB
+target is blocked) — so the firewall is safe to ship before the ref is known. Extra safe refs may be added
+via `PRODUCT_FIREWALL_EXTRA_SAFE_REFS`.
+
+**v1.1 self-config (2026-06-02):** the hook reads `runtime/secrets/.env.local` (`loadEnvFileRefs`) and lifts
+`PRODUCT_PROJECT_REF` + `ANALYTICS_PROJECT_REF` (the latter auto-derived from `RITSU_ANALYTICS_DB_URL` if not
+explicit) — only those firewall keys, never the rest of the secrets file. This makes the firewall **precise**
+(explicit Product block + security alert; analytics recognized as safe) instead of relying on fail-closed
+alone. Absent file (worktree / CI) → `{}` → fail-closed still holds. `process.env` overrides the file.
+Real refs live in `.env.local` (local-only), never in the committed code.
 
 ## Pre-approved read views (Finding 2 — single source of truth)
 

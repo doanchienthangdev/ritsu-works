@@ -27,7 +27,9 @@
  * NO network. NO file reads. O(1) classification. Latency budget < 5ms.
  */
 
-const PRODUCT_FIREWALL_VERSION = '1.0.0';
+const fs = require('fs');
+
+const PRODUCT_FIREWALL_VERSION = '1.1.0';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Known project refs (the only DB targets we can PROVE are not Product).
@@ -353,6 +355,44 @@ function decide(input) {
 }
 
 /**
+ * Self-configure the firewall from a `.env.local` (the hook calls this; decide()
+ * stays pure and file-free). Extracts ONLY the firewall-relevant keys — never
+ * loads the rest of the secrets file. Derives ANALYTICS_PROJECT_REF from
+ * RITSU_ANALYTICS_DB_URL if not set explicitly, so the firewall recognizes the
+ * analytics project as safe with zero extra config.
+ * @returns {{PRODUCT_PROJECT_REF?:string, ANALYTICS_PROJECT_REF?:string, PRODUCT_FIREWALL_EXTRA_SAFE_REFS?:string}}
+ */
+function loadEnvFileRefs(filePath) {
+  const out = {};
+  let raw;
+  try {
+    raw = fs.readFileSync(filePath, 'utf8');
+  } catch {
+    return out; // absent (e.g. worktree, CI) → caller stays fail-closed
+  }
+  const get = (key) => {
+    const m = raw.match(new RegExp('^\\s*' + key + "\\s*=\\s*[\"']?([^\"'\\n#]+)", 'm'));
+    return m ? m[1].trim() : null;
+  };
+  const prod = get('PRODUCT_PROJECT_REF');
+  if (prod) out.PRODUCT_PROJECT_REF = prod;
+  let analytics = get('ANALYTICS_PROJECT_REF');
+  if (!analytics) {
+    const url = get('RITSU_ANALYTICS_DB_URL');
+    if (url) {
+      const um =
+        url.match(/postgres(?:ql)?:\/\/[^.@/]+\.([a-z0-9]{20})/i) ||
+        url.match(/db\.([a-z0-9]{20})\.supabase/i);
+      if (um) analytics = um[1];
+    }
+  }
+  if (analytics) out.ANALYTICS_PROJECT_REF = analytics;
+  const extra = get('PRODUCT_FIREWALL_EXTRA_SAFE_REFS');
+  if (extra) out.PRODUCT_FIREWALL_EXTRA_SAFE_REFS = extra;
+  return out;
+}
+
+/**
  * Out-of-band guard (05 §9.3): CRON / Edge Function / MCP-subprocess Node
  * callers import this and call it before any Product-reaching operation.
  * Throws on block so the caller aborts. (The PRIMARY out-of-band enforcement
@@ -372,6 +412,7 @@ module.exports = {
   PRODUCT_FIREWALL_VERSION,
   decide,
   assertProductAccessAllowed,
+  loadEnvFileRefs,
   // exported for unit tests + reuse
   classifyTool,
   classifyRawTarget,

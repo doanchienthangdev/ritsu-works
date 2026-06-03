@@ -28,7 +28,15 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const LOG_DIR = path.join(REPO_ROOT, 'runtime');
 const LOG_FILE = path.join(LOG_DIR, 'product-firewall-events.jsonl');
 
-const { decide, PRODUCT_FIREWALL_VERSION } = require('./lib/product-firewall.cjs');
+const { decide, PRODUCT_FIREWALL_VERSION, loadEnvFileRefs } = require('./lib/product-firewall.cjs');
+
+// Self-configure from .env.local (the hook process doesn't inherit the shell
+// env in Claude Desktop; the MCP wrappers source it, so the hook reads it too).
+// PRODUCT_PROJECT_REF / ANALYTICS_PROJECT_REF here make the firewall PRECISE
+// (explicit block + alert on Product; recognize analytics as safe) instead of
+// relying on fail-closed alone. Absent file (worktree/CI) → fail-closed holds.
+const ENV_FILE = path.join(REPO_ROOT, 'runtime', 'secrets', '.env.local');
+const FILE_REFS = loadEnvFileRefs(ENV_FILE);
 
 function readStdinSync() {
   try {
@@ -124,7 +132,7 @@ function main() {
       toolName,
       toolInput,
       callerRole: process.env.MCP_CALLER_ROLE || null,
-      env: process.env,
+      env: { ...FILE_REFS, ...process.env }, // process.env wins; .env.local fills the gaps
     });
   } catch (err) {
     // Internal error while deciding. Fail closed ONLY if the call looks like it

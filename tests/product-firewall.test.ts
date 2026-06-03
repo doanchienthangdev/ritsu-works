@@ -19,6 +19,8 @@ import { describe, it, expect } from "vitest";
 import { spawnSync } from "node:child_process";
 import { resolve, join } from "node:path";
 import { createRequire } from "node:module";
+import { writeFileSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 
 const cjsRequire = createRequire(import.meta.url);
 const REPO = resolve(__dirname, "..");
@@ -270,6 +272,44 @@ describe("product-firewall: security (injection / exfil attempts)", () => {
   it("out-of-band guard returns the decision on an allowed call (etl-runner reads the contract view)", () => {
     const d = assertProductAccessAllowed({ toolName: "mcp__supabase-product-readonly__query", toolInput: { view: "public.v_ops_dau_export" }, callerRole: "etl-runner", env: ENV });
     expect(d.decision).toBe("allow");
+  });
+});
+
+// ============================================================================
+describe("loadEnvFileRefs — firewall self-config from .env.local (v1.1)", () => {
+  const { loadEnvFileRefs } = fw;
+  const PROD = "ixfvqxnohlmayzuesrrq"; // real product ref (non-secret project id)
+  const ANLY = "ddgbabvbfjrsznvzhizf"; // real ritsu-analytics ref
+  function tmpEnv(content: string): string {
+    const dir = mkdtempSync(join(tmpdir(), "fw-env-"));
+    const f = join(dir, ".env.local");
+    writeFileSync(f, content);
+    return f;
+  }
+  it("reads PRODUCT_PROJECT_REF + ANALYTICS_PROJECT_REF explicitly", () => {
+    const f = tmpEnv(`FOO=bar\nPRODUCT_PROJECT_REF=${PROD}\nANALYTICS_PROJECT_REF=${ANLY}\n`);
+    expect(loadEnvFileRefs(f)).toEqual({ PRODUCT_PROJECT_REF: PROD, ANALYTICS_PROJECT_REF: ANLY });
+  });
+  it("derives ANALYTICS_PROJECT_REF from RITSU_ANALYTICS_DB_URL (pooler form) when not explicit", () => {
+    const f = tmpEnv(`RITSU_ANALYTICS_DB_URL="postgresql://postgres.${ANLY}:pw@aws-1-us-west-1.pooler.supabase.com:5432/postgres"\n`);
+    expect(loadEnvFileRefs(f).ANALYTICS_PROJECT_REF).toBe(ANLY);
+  });
+  it("strips quotes, ignores comments and unrelated secret keys", () => {
+    const f = tmpEnv(`# comment\nPRODUCT_PROJECT_REF="${PROD}"\nOPENAI_API_KEY=sk-supersecret\n`);
+    const r = loadEnvFileRefs(f);
+    expect(r.PRODUCT_PROJECT_REF).toBe(PROD);
+    expect(Object.keys(r)).not.toContain("OPENAI_API_KEY"); // never loads the rest of the secrets
+  });
+  it("missing file → {} (caller stays fail-closed)", () => {
+    expect(loadEnvFileRefs(join(tmpdir(), "nope-xyz-123", ".env.local"))).toEqual({});
+  });
+  it("integration: loaded refs make the firewall PRECISE — explicit product block + analytics allow", () => {
+    const env = loadEnvFileRefs(tmpEnv(`PRODUCT_PROJECT_REF=${PROD}\nANALYTICS_PROJECT_REF=${ANLY}\n`));
+    const prod = decide({ toolName: "Bash", toolInput: { command: `psql "postgresql://postgres.${PROD}@aws-1-us-west-1.pooler.supabase.com:5432/postgres" -c "select 1"` }, callerRole: "founder", env });
+    expect(prod.matchRule).toBe("raw-product-access"); // explicit (not just fail-closed-unknown-db)
+    const anly = decide({ toolName: "Bash", toolInput: { command: `psql "postgresql://postgres.${ANLY}@aws-1-us-west-1.pooler.supabase.com:5432/postgres" -c "select 1"` }, callerRole: "founder", env });
+    expect(anly.decision).toBe("allow");
+    expect(anly.matchRule).toBe("raw-safe-target");
   });
 });
 
