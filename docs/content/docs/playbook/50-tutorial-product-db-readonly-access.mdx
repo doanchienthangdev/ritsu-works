@@ -1,0 +1,252 @@
+---
+title: "Tutorial: Operating AI đọc Product DB an toàn — Cơ chế đồng bộ \"Door 2\""
+description: "Tutorial: Operating AI đọc Product DB an toàn — Cơ chế đồng bộ \"Door 2\""
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/50-tutorial-product-db-readonly-access.md
+source_hash: 64942a5877be499eb98825bfff3b926b311356c8110863d5396bc7bc0619acc6
+generated_at: '2026-06-03T17:32:46.209Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 64942a5877be499eb98825bfff3b926b311356c8110863d5396bc7bc0619acc6
+translated_at: '2026-06-03T17:32:46.209Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 50
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> **Một chương DẠY HỌC, không phải case study.** Các capability case study ở Phần VI kể bạn nghe *chúng tôi đã xây gì*. Tutorial này dạy bạn *làm thế nào để một AI vận hành (Operating AI) đọc được dữ liệu của sản phẩm — để trả lời câu hỏi về hành vi người dùng, unit-economics, chi phí — mà KHÔNG bao giờ chạm vào Product database và KHÔNG bao giờ thấy PII của người dùng thật.* Đọc để hiểu *nguyên lý*, để *dùng* được surface analytics, hoặc để *mở rộng* nó khi hệ thống lớn lên.
+
+Chương được viết để đọc tuần tự. §1 nêu vấn đề và vì sao những lời giải "hiển nhiên" đều sai. §2 trình bày nguyên lý kiến trúc ("3 cửa + 1 người gác"). §3 mổ xẻ kiến trúc Door 2. §4 là trái tim — cơ chế đồng bộ từng bước. §5 kể những **vấn đề thực sự phát sinh** khi build (phần đáng giá nhất để học). §6 trả lời câu hỏi sống còn: *khi người dùng nhiều lên thì sao?* §7 là giám sát + cảnh báo. §8 chắt lọc workflow build + các bài học + cách dùng.
+
+---
+
+## 1. The Problem — vì sao "cho AI đọc DB" là một cái bẫy
+
+Ritsu là một công ty AI-native, một-founder. Đội ngũ vận hành (marketing, sales, product-ops, customer, finance…) **là** AI — gọi chung là *Operating AI*, sống trong repo `ritsu-works`. Để vận hành thông minh, Operating AI cần biết: *người dùng trả tiền có học nhiều hơn không? Chi phí AI theo tier ra sao? Hoạt động kích hoạt (activation) đang ở đâu?* Tất cả những câu đó cần **dữ liệu của Product** — cái database `ritsu` chứa user thật.
+
+Và đây là cái bẫy. "Cho AI đọc DB sản phẩm" nghe vô hại, nhưng nó kéo theo một chuỗi rủi ro mà ba lời giải hiển nhiên đều **không** xử lý được:
+
+### Lời giải sai #1 — "Cấp read-only key cho AI"
+Read-only bảo vệ **tính toàn vẹn** (AI không xoá/sửa được dữ liệu), nhưng **không** bảo vệ **tính riêng tư**. Một read-only key vẫn đọc được `email`, `full_name`, nội dung chat, tài liệu user upload. Operating AI mà cầm được PII của người dùng trả tiền = một blast-radius khổng lồ: một prompt-injection, một log rò rỉ, một câu trả lời vô tình in ra email — tất cả thành sự cố. **Read-only ≠ confidentiality.**
+
+### Lời giải sai #2 — "Clone cả DB sang một chỗ cho AI nghịch"
+Một bản sao read-replica đầy đủ = một **PII honeypot**. Giờ bạn có HAI nơi chứa toàn bộ dữ liệu nhạy cảm thay vì một. Bề mặt tấn công nhân đôi, nghĩa vụ GDPR nhân đôi, và bạn vừa tạo ra đúng cái thứ mà mọi security review sẽ gạch đỏ.
+
+### Lời giải sai #3 — "Thì hash/ẩn danh đi là xong"
+Gần đúng, nhưng có một cái bẫy pháp lý: **pseudonymized ≠ anonymized**. Hash `user_id` thành `user_hash` giúp *giữ được join* mà *không lộ danh tính* — nhưng theo GDPR, dữ liệu pseudonymized **vẫn nằm trong phạm vi điều chỉnh** (vì về lý thuyết có thể re-identify nếu có khóa). Vậy nên: hash là cần, nhưng *khóa hash (salt) phải ở đâu* và *cái gì được phép rời Product* mới là phần khó.
+
+### Bốn ràng buộc cứng
+Gộp lại, một lời giải đúng phải đồng thời thỏa:
+1. **Operating AI KHÔNG BAO GIỜ ghi vào Product** (điều khoản "Refuse without question" trong charter — tuyệt đối).
+2. **Operating AI KHÔNG BAO GIỜ đọc PII thô** (email/tên/nội dung không được rời Product).
+3. **Vẫn join được** dữ liệu giữa các bảng để phân tích (nếu hash phá vỡ join thì vô dụng).
+4. **Tự chạy, tự làm tươi**, không cần laptop của ai bật suốt.
+
+Bốn ràng buộc này *xung đột bề mặt*: muốn phân tích thì cần dữ liệu, muốn an toàn thì phải bỏ dữ liệu. Cả chương này là câu chuyện về cách **hòa giải** chúng thay vì hy sinh cái nào.
+
+---
+
+## 2. Nguyên lý — "3 cửa + 1 người gác"
+
+Cái nhìn lớn: thay vì một con đường "AI → DB", ta dựng **bốn lớp**, mỗi lớp giải một phần của bài toán.
+
+| Lớp | Là gì | Giải ràng buộc |
+|---|---|---|
+| **L0 — Người gác (firewall-as-code)** | Một hook chặn *mọi* lời gọi tool nhắm vào Product `ritsu`, fail-closed | #1 (không ghi), #2 (không đọc thô) |
+| **Door 1 — Gateway realtime** | Cổng đọc replica có lọc PII, cho KPI cần tươi từng giây *(track tương lai)* | #2, #4 |
+| **Door 2 — Bản sao analytics pseudonymized** | Đây là chương này: bản sao đã-strip-và-hash để chẩn đoán diện rộng | #2, #3, #4 |
+| **Door 3 — Action-MCP + HITL** | Mọi *hành động* (kể cả publish blog — blog sống trong Product DB) đi qua người duyệt | #1 |
+
+Chương này tập trung **Door 2**. Ba nguyên lý chịu lực của nó — *không bao giờ được xói mòn*:
+
+- **(a) Danh tính + nội dung ở lại Product MÃI MÃI.** Không phải "ẩn đi", mà là *không bao giờ rời khỏi Product*. Mặc định-từ-chối (default-deny): một bảng chỉ được đồng bộ khi *được thêm có chủ đích* sau khi review từng cột. Có một danh sách `forbidden_content_tables` làm dây bẫy: nếu bất kỳ bảng nội dung nào lọt vào danh sách đồng bộ, một validator sẽ fail cứng.
+- **(b) Salt (khóa hash) chỉ ở Product.** `user_hash = HMAC(user_id, salt)`, và `salt` nằm trong một bảng khóa kín *phía Product*, không bao giờ tới được phía analytics hay ops. Hệ quả: phía analytics có thể *forward-hash* (băm một id mới ra cùng hash) nhưng **không bao giờ re-identify** (đảo ngược hash về id). Đây là điều biến "pseudonymized" từ một lời hứa thành một bất biến toán học.
+- **(c) Mọi hành động qua HITL.** Door 2 chỉ đọc; mọi *ghi* đi qua Door 3 + người duyệt.
+
+> **Điểm mấu chốt triết học:** ta bảo vệ riêng tư bằng **sự VẮNG MẶT** (strip + hash + loại bỏ), không phải bằng **canh gác** một bản sao đầy đủ. Cái gì không có ở đó thì không thể rò rỉ.
+
+---
+
+## 3. Kiến trúc Door 2
+
+```
+Product ritsu (ixfvqxnohlmayzuesrrq)              ritsu-analytics (ddgbabvbfjrsznvzhizf, us-west-1 — KHÔNG phải Product)
+─────────────────────────────────────             ──────────────────────────────────────────────────────────────────
+public.<table>                                     ext.<table>      (foreign tables — postgres_fdw)
+   │  VIEW analytics_export.<table>  ◄── founder       │  IMPORT FOREIGN SCHEMA (role analytics_export_ro)
+   │   • uh(user_id) → user_hash (HMAC-SHA256)         ▼
+   │   • enum ::text                                  staging.<table>   (landing mỗi lần sync)
+   │   • DROP email/name/content/free-text/JSONB       │  live.pii_canary() — quét email, PHẢI = 0
+   ▼                                                    ▼  (nếu >0 → abort, giữ bản last-good)
+analytics_export_ro (chỉ SELECT các view) ────────►  live.<table>   (swap atomic; re-GRANT cho analytics_reader)
+                                                        ▲  pg_cron 'analytics-sync-nightly' @ 0 11 * * * UTC
+
+Consumer:  ops role ──► mcp__supabase-analytics__{query,list_tables}  AS  analytics_reader (SELECT trên live.* mà thôi)
+```
+
+Các thành phần, và *tại sao* mỗi cái tồn tại:
+
+- **Firewall L0** (`pre-tool-supabase-product`, code đã enforce): chặn mọi lời gọi nhắm Product ref; coi `mcp__supabase-analytics__*` là `safe-mcp`. Đây là cái khiến "không chạm Product" thành *bất khả thi về mặt cấu trúc*, không phải honor-system.
+- **Product views `analytics_export.*`** (do **founder** apply, Tier D-MAX): mỗi view = một bản đã-strip-và-hash của `public.<table>`. View tính **LIVE** lúc đọc — không có bản copy nào ở Product.
+- **Project `ritsu-analytics` cô lập**: một Supabase project RIÊNG (khác Product). Nó chỉ chứa dữ liệu pseudonymized.
+- **`analytics_reader` — DB role LÀ ranh giới.** MCP consumer kết nối *dưới quyền* role `analytics_reader` (LOGIN, chỉ SELECT trên `live.*`; read-only transaction + statement_timeout ở mức role). Đây là **mô hình ngược** với `supabase-ops` (vốn dùng service_role + app-layer guard). Ở đây, *bản thân DB role là tường lửa* — đơn giản hơn để suy luận về an toàn.
+- **Role allowlist mặc-định-từ-chối**: chỉ 6 role ops được query MCP analytics (founder, cofounder, customer-lead, product-orchestrator, gtm-orchestrator, feedback-aggregator). Role khác nhận `role_not_allowed`.
+- **Contract committed** (`knowledge/analytics-sync-contract.yaml`) + **validator L2** (`validate-analytics-readonly.cjs`, chạy trong `check-drift` AND CI): kiểm `synced_tables ∩ forbidden_content_tables = ∅`, allowlist khớp code, MCP đã đăng ký. Sự thật bảo mật được *kiểm tra tự động*, không phải tin lời.
+
+---
+
+## 4. Cơ chế đồng bộ — trái tim
+
+Mỗi đêm, một `pg_cron` *bên trong* ritsu-analytics gọi `live.sync_all()`. Procedure đó lặp 17 bảng, mỗi bảng chạy `live.sync_one(tbl)`:
+
+```sql
+-- (rút gọn từ mcp-server-analytics/sql/analytics-machinery.sql)
+1. drop table staging.X;  create table staging.X as select * from ext.X;   -- KÉO view product LIVE qua FDW
+2. bad := live.pii_canary('staging', X);   if bad > 0 then RAISE;          -- quét email mọi cột text + phần tử text[]
+3. (empty-safe) nếu 0 dòng NHƯNG live.X đang có dữ liệu → abort, giữ last-good
+4. drop table live.X;  alter table staging.X set schema live;             -- SWAP
+5. grant select on live.X to analytics_reader;                            -- grant-survival
+6. insert into live._sync_runs(... started_at, finished_at, status, rows) -- log + duration thật
+```
+
+Bốn đặc tính cần hiểu:
+
+1. **FULL REPLACE.** Mỗi bảng bị *drop + tạo lại từ đầu* mỗi đêm (không incremental). Ưu điểm rất lớn: **xoá/erasure tự lan** (user bị xoá ở Product → view không trả họ → mẻ sau họ biến mất khỏi `live.*`, không cần xoá từng dòng — chính là cách GDPR erasure được xử lý), và **không tích lũy drift** (mỗi mẻ là một ảnh chụp sạch). Nhược điểm — kéo toàn bộ mỗi đêm — là chủ đề §6.
+
+2. **PII canary là cái van an toàn THẬT.** Nó quét mọi cột text *và* mọi phần tử của cột `text[]` để tìm pattern giống email. Nếu >0, `sync_one` RAISE → subtransaction rollback → `live.X` giữ bản last-good, và một dòng `failed` được ghi. Tức là: **canary không chỉ *báo* rò rỉ, nó *chặn* rò rỉ** — cái swap bị hủy trước khi dữ liệu xấu kịp vào `live`.
+
+3. **`sync_all` chạy trong 1 transaction.** pg_cron gọi `call live.sync_all()` như một câu lệnh → một transaction. Lúc COMMIT, cả 17 swap apply *cùng lúc* → consumer không bao giờ thấy JOIN trộn bảng-cũ với bảng-mới. (Cái giá của tính nhất quán này — readers bị chặn trong cửa sổ sync — là chủ đề §6.)
+
+4. **Lịch + độ trễ.** Job `analytics-sync-nightly @ 0 11 * * * UTC` (= 18:00 giờ VN). Dữ liệu trong `live.*` = ảnh chụp Product *tại lần sync thành công gần nhất* → độ trễ tối đa ~24h. **Không có replication lag** vì view đọc Product LIVE lúc sync (không phải đọc replica trễ); độ trễ duy nhất là *nhịp 24h*. Cần tươi ngay → `call live.sync_all()` (force-resync).
+
+---
+
+## 5. Những vấn đề phát sinh khi build (phần đáng học nhất)
+
+Một kiến trúc đẹp trên giấy luôn va vào hiện thực. Đây là những va chạm thật, và bài học rút ra — vì *cách bạn xử lý cái bất ngờ* mới là kỹ năng, không phải cái sơ đồ.
+
+### 5.1 `IMPORT FOREIGN SCHEMA` chết vì enum
+**Vấn đề:** postgres_fdw import các view, nhưng các cột enum (`subscription_tier`, `source_status`…) khiến import lỗi `type … does not exist` (kiểu enum không tồn tại ở phía analytics).
+**Cách giải:** cast enum sang `::text` **NGAY TRONG VIEW** product (`source_type::text AS source_type`). postgres_fdw truyền text sạch sẽ; phía analytics không cần nhân bản kiểu enum; nhãn phân loại vẫn nguyên giá trị phân tích.
+**Bài học:** xử lý sự bất tương thích *ở ranh giới có ngữ cảnh đầy đủ* (view product biết kiểu thật), đừng đẩy nó xuống hạ nguồn.
+
+### 5.2 Canary mù với mảng
+**Vấn đề:** canary đời đầu chỉ quét cột text vô hướng. Nhưng Door 2 đồng bộ cả cột `text[]` (`objectives`, `keywords`, `explorations_visited`, `commands_used`). Một email lẩn trong mảng sẽ lọt.
+**Cách giải:** nâng `pii_canary()` để `unnest` các cột `text[]` và quét từng phần tử.
+**Bài học:** *lưới an toàn phải phủ đúng cái bạn đang đồng bộ, không phải cái bạn tưởng tượng lúc đầu.* Ta đã viết một self-test chạy canary trên cột `commands_used` thật để *chứng minh* lưới có bắt — nó không bắt gì (sạch) nhưng *chứng minh* nó có chạy.
+
+### 5.3 "0 dòng = abort" phá lần sync đầu của bảng rỗng
+**Vấn đề:** guard "0 dòng → giữ last-good" đúng cho re-sync, nhưng SAI cho *lần đầu* của một bảng hợp-lệ-mà-rỗng (`session_shares` lúc chưa ai share) — nó abort, để lại bảng không tồn tại.
+**Cách giải:** chỉ abort 0-dòng KHI `live.X` *đã có* dữ liệu trước đó.
+**Bài học:** mọi guard "đừng thay dữ liệu tốt bằng rỗng" phải phân biệt *rỗng-hợp-lệ-lần-đầu* với *rỗng-do-lỗi*.
+
+### 5.4 Guard chống-rò-rỉ báo nhầm trên bảng config
+**Vấn đề:** query verify D1 (chặn cột định danh) dùng blocklist tên-cột thiết kế cho *bảng user* (`description`, `provider_id` = nội dung/PII phải drop), nhưng áp schema-wide → báo nhầm `ai_models.description`, `ai_providers.description`, `ai_models.provider_id` (đều là metadata config vô hại, cố ý giữ).
+**Cách giải:** D1 v2 — scope các tên "mềm" (`description`/`provider_id`) chỉ check trên *view có `user_hash`* (bảng user) qua một CTE. Bảng config giữ chúng hợp lệ.
+**Bài học:** hợp đồng "0 = sạch" của một dây bẫy chỉ tốt bằng *độ chính xác* của nó. Scope check vào đúng bề mặt nó bảo vệ, kẻo "non-zero = báo động giả" làm xói mòn lòng tin vào chính cái van.
+
+### 5.5 Kết nối cross-project từ Edge Function — nỗi lo hóa ra thừa
+**Vấn đề (lo ngại):** Edge Function giám sát chạy trên ritsu-ops nhưng cần đọc ritsu-analytics (project khác) qua pooler — liệu Deno Edge có mở được kết nối pg ra project khác không?
+**Kết quả:** **được.** Test thực tế: function đọc `live._sync_runs` của analytics dưới quyền `analytics_reader` qua deno-postgres (pooler, `sslmode=require`) — chạy ngon. Nỗi lo vô căn cứ.
+**Bài học:** *đo, đừng đoán.* Một test 30 giây dập tắt một giả định kiến trúc.
+
+### 5.6 Token Telegram rỗng
+**Vấn đề:** khi bật cảnh báo Telegram, `getMe` trả "Not Found" → token trong `.env.local` là placeholder rỗng (key có, value trống). Backbone alert chưa từng được dựng thật.
+**Cách giải:** founder tạo bot thật qua @BotFather + channel; nạp token + chat_id; function gửi *thẳng* Telegram (bỏ qua alert-router chưa tồn tại).
+**Bài học:** "đã cấu hình" ≠ "đã hoạt động". Luôn validate đầu-cuối bằng một lời gọi thật (ở đây là `getMe` rồi `sendMessage`), đừng tin sự hiện diện của một biến môi trường.
+
+> Còn vài cái nhỏ hơn (`information_schema.foreign_tables` dùng cột `foreign_table_name` chứ không phải `table_name`; secret Edge cần ~15s để propagate sau `secrets set`). Mỗi cái đều bị bắt bởi *một bước verify* chứ không phải bởi may mắn — đó mới là điểm.
+
+---
+
+## 6. Khi người dùng nhiều lên — đồng bộ có tốn time không, có đổi cơ chế không, ảnh hưởng Product thế nào?
+
+Đây là câu hỏi sống còn. Trả lời thẳng: **CÓ tốn thêm, CÓ phải đổi cơ chế, và lộ trình đã sẵn sàng.**
+
+### 6.1 Có tốn time nhiều không? — CÓ (full-replace scale theo TỔNG size)
+Đo thật trên data hiện tại (machinery có duration thật trong `_sync_runs`):
+
+| | dòng | time |
+|---|---|---|
+| Bảng nặng nhất (`learning_units`) | 3.329 | **125ms** |
+| Cả 17 bảng (1 mẻ) | ~9.000 | **~500ms** |
+| Throughput | | ~26.000 dòng/s/bảng |
+
+Ngoại suy **100.000 users** (~35 triệu dòng): full-replace = **hàng GIỜ** → free-tier sẽ **timeout**, và reader bị chặn suốt cửa sổ đó. **Mốc phải đổi cơ chế ≈ 15–25k users** (khi bảng nặng nhất vượt 60–120s/mẻ). Tín hiệu chuyển = chính cột duration trong `_sync_runs` (đã đo được, sẽ báo qua KPI khi vượt ngưỡng).
+
+### 6.2 Có đổi cơ chế không, đổi như nào? — CÓ, theo 3 tầng
+
+| Tầng | Khi nào | Thay đổi |
+|---|---|---|
+| **Tầng 0** | đã làm | Duration-tracking (xong) + *view-indirection swap*: build bản mới *lock-free* rồi flip con trỏ view atomic → reader **không bị chặn**. Vẫn full-replace. |
+| **Tầng 1** | ~15–25k users | **INCREMENTAL** cho bảng log (ai_usage_logs, credit_transactions, learning_sessions, learning_units): chỉ kéo **delta** (`WHERE created_at > watermark` + UPSERT); dim nhỏ giữ full-replace = **hybrid**. Time scale theo *lượng thay đổi*, không phải tổng. *Caveat:* incremental mất "erasure tự lan" → thêm **weekly full-reconcile** (anti-join xoá PK biến mất) + cập nhật SOP erasure. Canary giữ nguyên. |
+| **Tầng 2** | scale lớn thật | **Warehouse** (BigQuery/ClickHouse) + CDC. Nguyên tắc bảo mật (stripped+hashed views, no content, salt product-side, canary) **giữ nguyên** — chỉ đổi đường ống. |
+
+### 6.3 Ảnh hưởng ritsu Production ở mức độ nào, như thế nào?
+**Hiện tại: GẦN NHƯ KHÔNG.** Mỗi pull là 1 `SELECT` ~125ms trên view; role `analytics_export_ro` *chỉ SELECT* (không write, không lock-for-write); read lấy `ACCESS SHARE` → **MVCC không chặn write của user**; chạy 11:00 UTC = giờ thấp điểm (US ngủ).
+
+**Ở scale — cơ chế ảnh hưởng:**
+
+| Rủi ro | Như thế nào | Mức độ |
+|---|---|---|
+| Tải đọc CPU/IO | full scan `public.X` + `uh()` HMAC *toàn bảng* mỗi đêm | trung bình, bounded |
+| Cache pressure | scan lớn đẩy hot pages khỏi buffer → query user chậm hơn lúc sync | thấp–trung bình |
+| **VACUUM bị giữ** | long-read-txn ghim xmin horizon → Product **bloat** | **đáng lưu ý nhất** ở scale |
+| Chặn write user | KHÔNG (read = ACCESS SHARE) | không |
+
+**Cách giảm (theo thứ tự cần):**
+1. **`statement_timeout` trên `analytics_export_ro`** (founder apply, D-MAX): cap scan chạy hoang, bảo vệ VACUUM.
+2. **Incremental** (Tầng 1): cắt read Product xuống *delta hằng ngày* → fix chính, *giải quyết cả time lẫn production-impact cùng lúc*.
+3. **Read-replica**: trỏ FDW vào *bản replica* của Product → analytics không bao giờ đọc primary → impact = 0 (đây là Door 1).
+
+> **Tóm 1 câu:** hiện tại impact ≈ 0; ở scale, ảnh hưởng là *tải đọc + nguy cơ giữ VACUUM* (không phải chặn user), và được khử dần bằng statement_timeout → incremental → read-replica — tất cả có lộ trình + tín hiệu trigger.
+
+---
+
+## 7. Giám sát + cảnh báo (Bước "Gate B")
+
+Sync tự chạy thì tốt, nhưng *một mẻ sync hỏng âm thầm* mà không ai biết thì tệ. Lớp giám sát:
+
+- **Health-check** (`scripts/cross-tier/check-analytics-sync-health.cjs`): đọc `_sync_runs` + chủ động chạy lại canary → tính 2 KPI (`analytics_sync_freshness`, `analytics_pii_canary_trips`) + verdict + exit code. Chạy tay bất cứ lúc nào.
+- **Edge Function `analytics-sync-health`** (Deno, deploy trên ritsu-ops): đọc analytics dưới quyền `analytics_reader` (canary đã chạy + log trong sync) → ghi `ops.kpi_snapshots` + `ops.alerts` khi breach → **bắn thẳng Telegram mỗi lần chạy** (heartbeat ✅/🟡/🔴).
+- **Lịch**: ops `pg_cron + pg_net` `analytics-sync-health-daily @ 0 12 * * * UTC` (sau mẻ sync 11:00) → `net.http_post` tới function.
+- **Message Telegram chi tiết** (verified live):
+  ```
+  ✅ Ritsu · Đồng bộ analytics — KHỎE MẠNH
+  🕐 Hoàn thành: 04/06 00:13:17 (VN) · 03/06 17:13:17 UTC
+  ⏱️ Thời lượng: 548ms · chậm nhất: learning_units (134ms)
+  📊 17/17 bảng OK · 9.040 dòng · PII canary: 0
+  🔒 Độ tươi: 0h (SLO ≤26h)
+  ```
+
+**Một bài học delivery:** alert-router backbone (ops.alerts → Telegram) *chưa* được dựng — nhưng bot token đã tồn tại, nên function *gửi thẳng* Telegram làm giải pháp tạm. Trung thực về cái chưa có, và đi đường ngắn nhất *thực sự hoạt động* thay vì xây trên một hạ tầng tưởng tượng.
+
+---
+
+## 8. Workflow build + bài học + cách dùng
+
+### 8.1 Cách nó được xây — kỷ luật HITL là nhân vật chính
+Capability này được build qua **4 sprint + Phase-8**, và điều đáng học nhất *không* phải code mà là **kỷ luật ranh giới**:
+
+- **Mọi thứ chạm Product = founder, Tier D-MAX.** Các view `analytics_export.*`, salt, role export — *founder* apply trong Product SQL editor; Operating AI chỉ *soạn* SQL. Có lúc founder bảo agent "tự apply view qua management token đi" — agent **từ chối** (charter "refuse-without-question: any write to Product") và *in SQL ra cho founder paste*. Đó chính là điều giữ cho ranh giới *thật*, không phải honor-system: nếu agent tự phá tường bằng token mạnh, cả capability mất lý do tồn tại.
+- **Ngược lại, phía ops/analytics = agent tự làm.** Deploy Edge Function, set secret ops, schedule cron — đều là *trong lằn ranh ops* (không phải Product), reversible, founder ủy quyền → agent tự thực hiện + verify đầu-cuối.
+- **PoC-first.** Trước khi build đầy đủ, một PoC mỏng (3 bảng) chứng minh các phần *khó* trên data thật (FDW egress, hash giữ join, salt product-side, canary, cron tự chạy). Tới lúc build chính thức, rủi ro kiến trúc đã thấp.
+
+### 8.2 Ba bài học mang đi được
+1. **Read-only ≠ confidential.** Bảo vệ riêng tư bằng *vắng mặt* (strip + hash + loại bỏ), không phải bằng *canh gác* một bản sao đầy đủ.
+2. **Ranh giới phải bất-khả-bypass bằng cấu trúc** — tripwire `REF !== PROD` trong *mọi* script + firewall L0 + "founder apply product-side" cùng nhau khiến "ops AI không thể ghi Product" thành sự thật cấu trúc, không phải lời hứa.
+3. **Verify lưới an toàn trên data thật** — self-test canary trên cột mảng thật không bắt gì, nhưng *chứng minh* lưới có nổ.
+
+### 8.3 Cách DÙNG surface analytics
+- **Trực tiếp qua MCP** (nếu role được allowlist): `mcp__supabase-analytics__query` với một câu SELECT trên `live.*`. Ví dụ "chi phí AI theo tier":
+  ```sql
+  select p.subscription_tier, count(distinct p.user_hash) users,
+         round(sum(l.estimated_cost)::numeric,2) est_cost_usd
+  from live.profiles p join live.ai_usage_logs l using (user_hash)
+  group by p.subscription_tier order by est_cost_usd desc nulls last;
+  ```
+- **Qua resolver / deepask.** Cả hai tool MCP (`query`, `list_tables`) đã được đăng ký là *recipient* trong resolver (`knowledge/recipients/mcps.md` + INDEX). Nghĩa là `/deepask` — bộ tổng-hợp-liên-bang đọc-toàn-bộ-IA — có thể *tự định tuyến* tới surface analytics khi một câu hỏi cần dữ liệu hành vi, miễn là caller role nằm trong allowlist. Bạn không cần nhớ tên tool; cứ hỏi `/deepask "paid users có học nhiều hơn không?"` và nó sẽ tìm + query đúng chỗ (read-only, Tier A).
+
+> **Bất biến cuối cùng cần nhớ:** surface này *chỉ* chứa dữ liệu pseudonymized — `user_hash`, không bao giờ email/tên/nội dung. Nó để *chẩn đoán xu hướng diện rộng*, không để tra cứu một người. Muốn realtime → Door 1 (tương lai). Muốn *hành động* trên dữ liệu → Door 3 + HITL. Door 2 là con mắt đọc, không phải bàn tay viết.
