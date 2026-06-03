@@ -2,14 +2,14 @@
 title: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
 description: "Chương 43 — Capability Case Study #10: Thinking Toolkit — McKinsey/Minto-extracted Thinking Discipline Skills"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/43-thinking-toolkit.md
-source_hash: f681eb4ba7db90ea26353da7125dfaea604538ee7b1bf5161bf1722475575ec7
-generated_at: '2026-06-02T20:54:45.553Z'
+source_hash: 348b82b9c1010e3ad16c2cc061c718b6c814965775fb30371cd8a68836366193
+generated_at: '2026-06-03T03:48:32.641Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: f681eb4ba7db90ea26353da7125dfaea604538ee7b1bf5161bf1722475575ec7
-translated_at: '2026-06-02T20:54:45.553Z'
+translated_source_hash: 348b82b9c1010e3ad16c2cc061c718b6c814965775fb30371cd8a68836366193
+translated_at: '2026-06-03T03:48:32.641Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 43
 ---
@@ -427,6 +427,18 @@ The skill is the executable **playbook** that pulls real data, validates, asks t
 **Why skill + catalog, not a deterministic orchestrator:** the 4S loop is judgment-heavy (framing, hypothesizing, validating causation) — an intelligent agent executing a world-class playbook IS the engine; deterministic code would be fake rigor. Tier C: `ops.decisions[thinking-toolkit-v1.4-mckinsey-engine]`.
 
 **Lesson:** the line between "synthesis with McKinsey vocabulary" and "a McKinsey engine" is **bound, validated machinery** — a workplan that routes to real data, a validation gate that rejects, a status ledger that forces the loop to close, and an honest "ask the owner" instead of a fabricated number. v1.3 had the vocabulary; v1.4 has the machinery.
+
+## 42.9.9 v1.5 — load + SELECT the right tool (the candidate registry)
+
+Next morning, the founder asked the question v1.4 had skipped: *"tại mỗi bước dùng toolkit/model/concept thì **load và lựa chọn** đúng đắn như thế nào? Phần load >200 ứng viên — đã có **file riêng** chưa?"* v1.4 routed *data* to tools, but the choice of *which framework/model/concept* to apply at a step was hand-wavy — the engine leaned on `wiki_ask` (fuzzy RAG, can't filter "Structure-step typologies") and a small per-step curated list. **Answer to "is there a dedicated load file?": No.** The ~207 candidates existed as `wiki/.../concepts/*.md`, but with no structured, classified, enumerable pool to load + select from (the resolver indexes *recipients*, not individual concepts).
+
+**v1.5 builds the missing substrate** — a NEW dedicated candidate registry `knowledge/problem-solving-frameworks.yaml`: all 207 problem-solving candidates from the two books, each classified `{slug · book · fours_step · type · wiki_path · title}`. Seeded by a **deterministic** generator (`gen-frameworks-registry.cjs`: chapter→4S-step map + slug-keyword `type` heuristic + a 8-entry marquee OVERRIDE map for tools the overview chapter mis-shelves) — regenerable, hand-maintainable, extensible (`--check` finds concepts a future wiki sync adds). A NEW L2 validator proves every `wiki_path` exists **AND the registry is COMPLETE** (no book concept silently dropped) with `(book, slug)` as the unique key — so dual-book concepts (`mece`, `wicked-problems`, real in *both* books) are legal.
+
+A NEW `tool_selection` engine section encodes the **3-stage mechanism**: **CLASSIFY** the sub-need via the books' own decision-trees (analytical-vs-design · causation-vs-prediction · formula/typology/checklist) → **LOAD** candidates (filter the registry by step + type, + `resolver_find` for skills, + `wiki_ask` for the long tail) → **SELECT + COMBINE** (Munger latticework, ≤3 complementary lenses + debias the familiar-tool trap). Plus **4 fact-check gap-fixes** vs the source process: the one-day-answer is now SEEDED at State (a day-one hypothesis, not born at Solve); the analytics causation-vs-prediction tree is bound; Sell SPLITS `synthesis` (step-6 logic) from a new `communication` artifact (step-7 story) with an APK (anxious-parade-of-knowledge) guard; and design-thinking's 5-phase loop is a first-class `solve_mode`.
+
+Review: **@cto** request-changes with **no MUST-FIX** — but it caught a real bug: the generator's `--check` drift detector used a slug-only Set, so it would falsely report "complete" when one book's copy of a dual-book slug was dropped (the *gating* validator was already correct; only the operator-facing helper lied). Fixed + given a regression test. 94 vitest cases; check-consistency ALL CLEAN. [PR #216](https://github.com/doanchienthangdev/ritsu-works/pull/216). Tier C: `ops.decisions[thinking-toolkit-v1.5-tool-selection-registry]`.
+
+**Lesson (closes the v1.2→v1.5 arc):** v1.2 decided *which* concepts become skills (~2%); v1.3 gave the rest a per-step *home*; v1.4 made the workflow a real *engine*; v1.5 makes the library a **selectable, classified, complete pool** — so "use the right framework" stops being a vibe and becomes *filter by (step, type) → read → combine ≤3 → debias*. The founder's instinct ("a dedicated load file for the 200+ candidates") was the missing piece: a fuzzy RAG over a folder is not a selection substrate; a classified, completeness-validated registry is.
 
 ## 42.10 Post-Wave-1 Wave-2 case study #9
 
