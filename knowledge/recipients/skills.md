@@ -316,15 +316,16 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 
 **Kind:** skill
 **Axis:** capability
-**When to use:** Umbrella for the data-visualization capability — the /dataviz command's brain. From
-a data source + a one-sentence MESSAGE, produce a McKinsey-caliber chart: an intelligent,
-taxonomy-driven selector picks the BEST of 27 built chart types (all six families) from
-the message + data-shape + audience (Zelazny), explains the choice + alternatives +
-anti-pattern warnings, then renders byte-stable SVG with the McKinsey aesthetic
-(one-highlight, data-ink minimalism, direct labels, action-title, source footer), branded
-via the SAME --style design-system + --art-style axes as /image. Pluggable renderer layer
-(--use); default svg-native (zero-dep, pure-Node). Pure/offline — no API key. Dispatches
-to scripts/dataviz/gen.cjs.
+**When to use:** Umbrella for the data-visualization capability — the /dataviz command's brain. From a
+data source + a one-sentence MESSAGE, produce a McKinsey-caliber chart across 60 built
+chart types (all six families). Chart SELECTION is LLM-native (v0.4): the calling agent
+reads a generated catalog (catalog.md, from lib/taxonomy.cjs) + the situation (message +
+data-shape + audience, Zelazny) and picks the best chart itself; a deterministic regex
+selector (select.cjs) is the headless fallback. Renders byte-stable SVG with the McKinsey
+aesthetic (one-highlight, data-ink minimalism, direct labels, action-title, source footer),
+branded via the SAME --style design-system + --art-style axes as /image. Pluggable renderer
+(--use); default svg-native (zero-dep, pure-Node). Pure/offline — no API key. Dispatches to
+scripts/dataviz/gen.cjs.
 
 **Invoke:** `Skill({ skill: "dataviz" })`
 **HITL tier:** B

@@ -3,35 +3,40 @@ title: 'Command: /dataviz'
 description: |
   Biến một nguồn dữ liệu thành biểu đồ chuẩn McKinsey — cửa trước model-agnostic với
   lớp renderer cắm-được (--use=<renderer>). Backend mặc định svg-native (in-repo,
-  zero-dependency, pure-Node, SVG byte-stable). v0.3: 60 loại chart đã build qua cả
-  sáu họ biểu đồ + một bộ chọn THÔNG MINH, theo bối cảnh, tự chọn loại chart TỐT NHẤT
-  từ message + hình-dạng-dữ-liệu + đối-tượng (Zelazny "Say It With Charts"), giải thích
-  lựa chọn, đề xuất phương án thay thế, và cảnh báo anti-pattern. Mã hoá thẩm mỹ McKinsey
-  (one-highlight, data-ink tối-giản, direct label, action-title-trên-chart, source
-  footer); brand qua CÙNG trục --style design-system + --art-style như /image + /deepask.
-  Pure/offline (KHÔNG API key). Tier A; artifact ghi vào .archives/dataviz/<date>-<slug>/.
-  Orchestrator mỏng trên skill umbrella `dataviz` (scripts/dataviz/gen.cjs).
+  zero-dependency, pure-Node, SVG byte-stable). 60 loại chart đã build qua cả sáu họ
+  biểu đồ. v0.4: việc CHỌN chart là LLM-NATIVE — agent gọi lệnh (Claude Code/Codex)
+  đọc một catalog chart + bối cảnh (message + hình-dạng-dữ-liệu + đối-tượng) rồi TỰ
+  chọn chart TỐT NHẤT (đa ngôn ngữ, theo ngữ cảnh, Zelazny "Say It With Charts"), sau
+  đó render bằng --chart=<pick> --selected-by=agent; một bộ chọn regex deterministic
+  vẫn là fallback cho caller headless/out-of-band. Mã hoá thẩm mỹ McKinsey (one-highlight,
+  data-ink tối-giản, direct label, action-title-trên-chart, source footer); brand qua
+  CÙNG trục --style design-system + --art-style như /image + /deepask. Pure/offline
+  (KHÔNG API key — việc chọn dùng session model). Tier A; artifact ghi vào
+  .archives/dataviz/<date>-<slug>/. Orchestrator mỏng trên skill umbrella `dataviz`
+  (scripts/dataviz/gen.cjs).
 source_path: .claude/commands/dataviz.md
-source_hash: b4994500fd3db495368d94ea8a14e0bbc5b823fa666cb7b27045d8b120f498fb
-generated_at: '2026-06-04T16:36:21.925Z'
+source_hash: 4bd846feb6c61d800cf49e25afd396cce1f3169c65133b2a782e32cec38cdba2
+generated_at: '2026-06-04T17:26:50.244Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_at: '2026-06-04T16:40:00.000Z'
-translated_source_hash: b4994500fd3db495368d94ea8a14e0bbc5b823fa666cb7b27045d8b120f498fb
+translated_at: '2026-06-05T00:30:00.000Z'
+translated_source_hash: 4bd846feb6c61d800cf49e25afd396cce1f3169c65133b2a782e32cec38cdba2
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
 Command phạm-vi-dự-án của ritsu-works. Front-end cho capability **dataviz**
-(v0.3) — một nền-tảng data-visualization tổng-quát, dùng-lại-nhiều-lần như `/image`, nhưng
+(v0.4) — một nền-tảng data-visualization tổng-quát, dùng-lại-nhiều-lần như `/image`, nhưng
 cho **dữ-liệu → biểu-đồ**. Spec capability: `wiki/capabilities/dataviz/spec.md`.
 
 Command là một **orchestrator mỏng**. Bộ não nằm trong `scripts/dataviz/`
-(tất cả PURE + unit-test): `select.cjs` (bộ chọn loại-chart-từ-message kiểu Zelazny),
-`render.cjs` (renderer SVG chuẩn McKinsey), `lib/{theme,params,svg}.cjs`. Skill
-umbrella `06-ai-ops/skills/dataviz/SKILL.md` mô tả luồng.
+(tất cả PURE + unit-test): **catalog chart** `06-ai-ops/skills/dataviz/catalog.md`
+(sinh từ `lib/taxonomy.cjs` — chính là substrate mà BẠN, agent, đọc để chọn),
+`render.cjs` (renderer SVG chuẩn McKinsey), `select.cjs` (bộ chọn fallback
+deterministic), `lib/{theme,params,svg,catalog}.cjs`. Skill umbrella
+`06-ai-ops/skills/dataviz/SKILL.md` mô tả luồng.
 
 Theo `governance/HITL.md`, `/dataviz` là **Tier A** — pure compute, không tiền, không
 bề-mặt bên-ngoài, không ảnh-hưởng người-dùng, **không secret/API key** (renderer là pure/offline,
@@ -53,7 +58,7 @@ hội-thoại; chế-độ file ghi vào `.archives/dataviz/<date>-<slug>/`).
 |---|---|---|---|
 | `<message>` / `--message` | một câu | — | MESSAGE (Zelazny: quyết-định lựa-chọn chart VÀ trở-thành action-title) |
 | `--data` | path (.json/.csv) \| inline JSON \| inline CSV | — | dữ-liệu chuỗi (KHÔNG phải pixel) |
-| `--chart` | `auto` \| một trong 60 loại đã build | `auto` | ép một loại, hoặc để bộ chọn thông minh chọn từ `--message` + data + `--audience`. **60 loại đã build qua 6 họ** — Comparison: `bar column grouped lollipop dot dumbbell slope radar quadrant bullet small-multiples range matrix-chart table-chart`; Correlation: `scatter bubble heatmap connected-scatter hexbin`; Part-to-whole: `stacked stacked100 pie donut marimekko diverging funnel waffle treemap population-pyramid sunburst dendrogram venn semicircle-donut`; Change-over-time: `line area stacked-area waterfall bump spline step-line gantt candlestick ohlc barcode`; Distribution: `histogram box density ridgeline violin strip jitter beeswarm horizon`; Flow: `sankey chord arc network flowchart tile-map`; cộng `kpi`. 14 loại cataloged (anti-McKinsey: radial-bar/nightingale/pictogram/icon-chart/icon-array/word-cloud/gauge/stream/parallel-coordinates/radial-histogram; + bất-khả-thi trong renderer pure: choropleth/geo-heatmap/contour/euler) map về loại built gần nhất + ghi-chú trung-thực. |
+| `--chart` | `auto` \| một trong 60 loại đã build | `auto` | ép một loại, hoặc để agent/bộ-chọn chọn từ `--message` + data + `--audience`. **60 loại đã build qua 6 họ** — Comparison: `bar column grouped lollipop dot dumbbell slope radar quadrant bullet small-multiples range matrix-chart table-chart`; Correlation: `scatter bubble heatmap connected-scatter hexbin`; Part-to-whole: `stacked stacked100 pie donut marimekko diverging funnel waffle treemap population-pyramid sunburst dendrogram venn semicircle-donut`; Change-over-time: `line area stacked-area waterfall bump spline step-line gantt candlestick ohlc barcode`; Distribution: `histogram box density ridgeline violin strip jitter beeswarm horizon`; Flow: `sankey chord arc network flowchart tile-map`; cộng `kpi`. 14 loại cataloged (anti-McKinsey: radial-bar/nightingale/pictogram/icon-chart/icon-array/word-cloud/gauge/stream/parallel-coordinates/radial-histogram; + bất-khả-thi trong renderer pure: choropleth/geo-heatmap/contour/euler) map về loại built gần nhất + ghi-chú trung-thực. |
 | `--title` / `--title-style` | string / `action`\|`topic` | `--message` / `action` | override caption exhibit; topic label cho genre survey/trend |
 | `--source` | string | — | source footer bắt-buộc (`Source: <data>; McKinsey analysis` hoặc dạng survey) |
 | `--footnotes` | `a \| b \| c` | — | dòng footnote (gồm dòng `Note: …rounding` trên stacked) |
@@ -65,8 +70,11 @@ hội-thoại; chế-độ file ghi vào `.archives/dataviz/<date>-<slug>/`).
 | `--ar` / `--width` / `--height` | `W:H` / px / px | `4:3` / 720 | kích-thước exhibit (aspect là SEMANTIC — không bao-giờ auto-stretch) |
 | `--unit` / `--decimals` / `--percent` / `--thousands` | … | — | format số (nêu một lần, nhất-quán mỗi exhibit) |
 | `--use` | `svg-native` \| (stub) | `svg-native` | renderer cắm-được (`knowledge/dataviz-renderers.yaml`) |
-| `--audience` | `exec` \| `analyst` \| `general` | `general` | điều-chỉnh bối-cảnh cho auto-select (vd ranking dài → lollipop cho exec) |
-| `--explain` | cờ | — | in lý-do của bộ chọn: chart đã chọn + ideal + family + reason + alternatives + cảnh-báo anti-pattern + confidence |
+| `--audience` | `exec` \| `analyst` \| `general` | `general` | đối-tượng — agent (và bộ chọn fallback) đơn-giản-hoá cho `exec` (vd ranking dài → lollipop) |
+| `--selected-by` | `agent` | — | **v0.4 — đường LLM-native.** Đặt khi CHÍNH BẠN (agent) đã chọn `--chart` bằng cách đọc catalog + bối cảnh; ghi `select_mode=agent` vào `run.json` (khác với fallback deterministic hay hard-force) |
+| `--select-reason` | string | — | lý-do một-dòng cho lựa-chọn của bạn (ghi vào `run.json` cho audit; hiện qua `--explain`) |
+| `--select-intent` / `--select-confidence` | string / `high`\|`medium`\|`low` | `llm-native` / `high` | tuỳ-chọn: nhãn intent bạn suy-ra + độ tự-tin vào lựa-chọn |
+| `--explain` | cờ | — | in lý-do lựa-chọn: chart + ideal + family + intent + select_mode + reason + alternatives + cảnh-báo anti-pattern + confidence |
 | `--target` | số | — | giá-trị target / tham-chiếu (mốc cho bullet chart; reference line) |
 | `--x-label` / `--y-label` | string | — | nhãn trục (scatter / bubble / quadrant / box) |
 | `--out` / `--dry-run` / `--max-cost-usd` | path / — / usd | — | đường-dẫn output / chỉ-lên-kế-hoạch / breaker (đối-xứng với /image) |
@@ -75,18 +83,37 @@ hội-thoại; chế-độ file ghi vào `.archives/dataviz/<date>-<slug>/`).
 
 1. **Chart từ MESSAGE, không từ dữ-liệu** (Zelazny). 2. **Chỉ một highlight** (phần còn-lại xám trung-tính). 3. **Data-ink tối-giản** (không gridline/legend/3D/fill). 4. **Direct data label** (không legend). 5. **Trục-giá-trị bar từ 0** (không cắt-cụt). 6. **Action-title TRÊN chart** + **source footer trên mọi exhibit**. 7. **Structure ⊥ brand** — `--style` override palette/type, không bao-giờ override cấu-trúc. Nền-tảng từ 3 báo-cáo McKinsey thật (xem `06-ai-ops/skills/dataviz/renderers/svg-native/SKILL.md` + dataviz-design-brief).
 
-## Bộ chọn thông minh (v0.3 — lõi "khôn")
+## Chọn chart — LLM-native (v0.4 — lõi "khôn")
 
-`--chart=auto` (mặc-định) làm đúng việc một analyst McKinsey làm: **chọn đúng chart cho bối-cảnh NÀY, và bảo-vệ được lựa-chọn.** Dựa trên taxonomy chart đầy-đủ (`scripts/dataviz/lib/taxonomy.cjs` — mọi loại từ catalog Datylon, gắn family + message-intent + data-shape + McKinsey stance + anti-pattern), bộ chọn (`scripts/dataviz/select.cjs`, PURE):
+**CHÍNH BẠN, agent gọi lệnh, là bộ-chọn-chart.** Chọn biểu-đồ làm-bật điểm là một việc PHÁN-ĐOÁN — và bạn (Claude Code / Codex) đọc ngôn-ngữ tự-nhiên ở MỌI thứ tiếng và lý-luận về sắc-thái tốt hơn hẳn một matcher từ-khoá regex. Vì vậy việc chọn của `/dataviz` là **LLM-native** (đúng nước đi resolver v2/v3 đã làm: đưa session model một catalog thay vì hardcode matcher). Khi yêu-cầu CHƯA nêu sẵn một loại chart:
 
-1. **phát-hiện INTENT của message** (18 luật trigger có-thứ-tự → một loại so-sánh Zelazny);
-2. **phân-giải chart ideal từ HÌNH-DẠNG DỮ-LIỆU** (2 measures → scatter, 3 → bubble; share + time → 100%-stacked vs stacked-area; part-to-whole một-kỳ → pie, **auto-demote về bar**; …);
-3. **nudge theo BỐI-CẢNH** (`--audience=exec` đơn-giản-hoá; ranking dài → lollipop);
-4. **áp guard-rails McKinsey** (trục-thực-thể ⇒ Item không phải trend; pie/donut demote; cảnh-báo pie >6 lát, quá nhiều series grouped, radar >8 trục);
-5. **map mọi ideal cataloged → loại built gần nhất** kèm lý-do trung-thực;
-6. **trả lựa-chọn + `reason` giải-thích + `alternatives` á-quân + `warnings` anti-pattern + `confidence`** — chạy `--explain` để xem tất-cả.
+1. **Đọc catalog chart** — `06-ai-ops/skills/dataviz/catalog.md` (sinh từ `lib/taxonomy.cjs`: cả 60 loại built × khi-nào-dùng + fit hình-dạng-dữ-liệu + McKinsey stance, gom theo họ, kèm trình-tự chọn của analyst + ví-dụ chạy thật).
+2. **Lý-luận về bối-cảnh NÀY** — MESSAGE một câu (Zelazny: chart theo message, không theo data), hình-dạng dữ-liệu, và `--audience`. Áp kỷ-luật McKinsey: ưu-tiên loại `preferred`; KHÔNG dùng `pie`/`donut` (bị demote → dùng `bar` xếp-hạng) hay bất-kỳ loại `avoid`/cataloged nào; một highlight, bar từ-0, direct label.
+3. **Render kèm lựa-chọn + lý-do của bạn:**
+   ```bash
+   node scripts/dataviz/gen.cjs --chart=<your-pick> --selected-by=agent \
+     --select-reason="vì sao loại này hơn á-quân" [--select-confidence=high|medium|low] \
+     --message="..." --data=... --source=...
+   ```
+   `--selected-by=agent` ghi `select_mode=agent` + lý-do của bạn vào `run.json` (vết audit), phân-biệt với fallback deterministic và với hard-force trần.
 
-Đây là tính-năng quan-trọng cho cả exhibit ritsu-works lẫn engine `/think mckinsey`: chọn chart làm-bật điểm, không chỉ *một* chart.
+**Fallback deterministic (Mode C).** Bỏ `--chart` (hoặc truyền `--chart=auto`) thì `scripts/dataviz/select.cjs` (PURE, ~50 luật regex có-thứ-tự → intent → data-shape → guard-rails → loại built) chọn một default an-toàn. Đường này tồn-tại cho **caller headless / out-of-band** (CRON, Edge function, script không-phải-agent) — nó trung-thực rằng mình là heuristic (dựa từ-khoá tiếng Anh, nên trượt message không-phải-tiếng-Anh; đó chính là lý-do đường in-session là LLM-native). Khi CHÍNH BẠN chạy lệnh, hãy ưu-tiên Mode A — bạn gần như luôn chọn tốt hơn.
+
+Đây là điều quan-trọng cho cả exhibit ritsu-works lẫn engine `/think mckinsey`: bộ-lý-luận thông-minh nhất đang có chọn chart làm-bật điểm, không chỉ *một* chart.
+
+## 60 loại chart
+
+Hướng-dẫn khi-nào-dùng đầy-đủ nằm trong catalog (`06-ai-ops/skills/dataviz/catalog.md`); nguồn-sự-thật là `scripts/dataviz/lib/taxonomy.cjs`. Truyền bất-kỳ loại nào qua `--chart=<type>`:
+
+- **Comparison (14)** — `bar` (xếp-hạng/so-sánh; default an-toàn) · `column` (ít loại có-thứ-tự/thời-gian-ngắn) · `grouped` (2-3 series/category) · `lollipop` (nhiều category) · `dot` (range không-từ-0) · `dumbbell` (delta/gap cặp, before/after) · `slope` (đổi-hạng hai-kỳ) · `radar` (profile đa-chiều) · `quadrant` (định-vị 2×2) · `bullet` (thực-tế-vs-target) · `small-multiples` (một panel mỗi lát) · `range` (thấp–cao mỗi item) · `matrix-chart` (presence/strength) · `table-chart` (bảng tô-màu-có-điều-kiện)
+- **Correlation (5)** — `scatter` (2 measures) · `bubble` (3 measures: x,y,size) · `heatmap` (ma-trận hàng×cột) · `connected-scatter` (điểm nối theo thời-gian) · `hexbin` (mật-độ nhiều điểm)
+- **Part-to-whole (14)** — `stacked` (sub-part tuyệt-đối) · `stacked100` (share qua category/thời-gian) · `pie` *(demote→bar)* · `donut` *(demote→bar)* · `marimekko` (size×share — chữ-ký McKinsey) · `diverging` (Likert/sentiment) · `funnel` (drop-off theo bước) · `waffle` (lưới ô vuông) · `treemap` (chữ-nhật lồng theo size) · `population-pyramid` (tuổi/giới) · `sunburst` (phân-cấp toả-tròn) · `dendrogram` (cây cluster) · `venn` (giao tập) · `semicircle-donut` (nửa-vòng)
+- **Change over time (11)** — `line` (trend, nhiều kỳ/đa-series) · `area` (magnitude một-series) · `stacked-area` (cơ-cấu theo thời-gian) · `waterfall` (bridge A→B) · `bump` (đổi-hạng) · `spline` (làm-mượt) · `step-line` (bước rời-rạc) · `gantt` (lịch dự-án) · `candlestick` / `ohlc` (tài-chính) · `barcode` (tick thời-gian)
+- **Distribution (9)** — `histogram` (bin tần-suất) · `box` (quartile/outlier) · `density` (đường xác-suất) · `ridgeline` (density xếp-chồng) · `violin` (density gương) · `strip` (giá-trị riêng-lẻ) · `jitter` / `beeswarm` (điểm theo nhóm) · `horizon` (lệch theo dải gọn)
+- **Flow / geospatial (6)** — `sankey` (luồng giữa node) · `chord` (liên-kết thực-thể tròn) · `arc` (node thẳng + cung) · `network` (đồ-thị node-link) · `flowchart` (bước quy-trình) · `tile-map` (bản-đồ lưới ô-bằng-nhau)
+- **KPI (1)** — `kpi` (callout số-lớn)
+
+**14 loại cataloged-nhưng-chưa-build** (bộ-chọn/agent map về loại built gần nhất + ghi-chú trung-thực — ĐỪNG truyền chúng): **10 anti-McKinsey** (`radial-bar` `nightingale` `pictogram` `icon-chart` `icon-array` `word-cloud` `gauge` `stream` `parallel-coordinates` `radial-histogram`) + **4 bất-khả-thi trong renderer pure zero-dep** (`choropleth` `geo-heatmap` cần boundary polygon; `contour` cần continuous-field engine; `euler` cần general set geometry). **Wordmark output = brand Ritsu** (nhãn "McKinsey" là *kỷ-luật thiết-kế*, không phải brand trên ảnh); `--style=<ds>` override nó.
 
 ## Composition
 
@@ -96,5 +123,3 @@ hội-thoại; chế-độ file ghi vào `.archives/dataviz/<date>-<slug>/`).
 
 ## Liên quan
 `/image` (sinh raster — nền-tảng song-sinh mà cái này soi-gương) · `/deepask` (synthesis liên-hợp; route chart về đây) · `/think mckinsey` (engine McKinsey; tiêu-thụ cái này cho exhibit) · `/design-system` (registry `--style`).
-
-

@@ -2,14 +2,14 @@
 title: "Chương 49 — Capability Case Study: dataviz (`/dataviz` — bộ chọn thông minh + 60 loại chart)"
 description: "Chương 49 — Capability Case Study: dataviz (`/dataviz` — bộ chọn thông minh + 60 loại chart)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/49-capability-case-dataviz.md
-source_hash: ef25c3a55f870f58b1413c8a2a65750d20f7d749617fab3ffce064c785b612d9
-generated_at: '2026-06-04T16:39:12.702Z'
+source_hash: becd7bae74b36b6b294bdfd97183716130f3497f1d2fc9f0b44c55b7bdff5fad
+generated_at: '2026-06-04T17:29:46.400Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: ef25c3a55f870f58b1413c8a2a65750d20f7d749617fab3ffce064c785b612d9
-translated_at: '2026-06-04T16:39:12.702Z'
+translated_source_hash: becd7bae74b36b6b294bdfd97183716130f3497f1d2fc9f0b44c55b7bdff5fad
+translated_at: '2026-06-04T17:29:46.400Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 49
 ---
@@ -87,3 +87,17 @@ Một `/cla extend` thứ hai (cùng pattern tự-ship) đóng nốt khoảng-tr
 3. **De-brand output:** wordmark mặc-định `McKinsey & Company` → **`Ritsu`** (`render.cjs frame()`). Tên "McKinsey" vẫn là *kỷ-luật thiết-kế*, không bao giờ là *brand* trên ảnh; `--style=<ds>` vẫn override wordmark bằng tên design-system. Báo-cáo "test mọi loại" v0.3 render cả **60/60 loại qua HAI design system** (default + `--style=ritsu`) trong cùng một file — minh-hoạ trục structure ⊥ brand.
 
 **188 test xanh.** `/dataviz` **v0.3.0 operating**. Bài học #1 không đổi — *build cái bộ-não, đừng build 90 cái tay* — nhưng v0.3 cho thấy mặt còn lại: khi một loại *thực sự* khả-thi và không-anti-pattern, build nó (deterministic, byte-stable) còn rẻ hơn là mãi map-về-gần-nhất. Ranh-giới đúng không phải "9 hay 90", mà là *"loại nào nâng được thông-điệp mà vẫn giữ được kỷ-luật pure/McKinsey"* — và câu trả lời hoá ra là 60.
+
+## 49.10 Postscript — v0.4: việc CHỌN chart thành LLM-native (regex → reasoning)
+
+Suốt v0.1→v0.3, phần "thông minh" — *chọn đúng chart cho bối-cảnh* — là một bộ **regex 50-luật** (`select.cjs`: từ-khoá message → intent → data-shape → guard-rails → loại built). Nó deterministic, unit-test được, $0 — nhưng có một điểm mù chí-mạng: **regex là tiếng Anh**. Một message tiếng Việt như *"Reddit dẫn đầu các kênh acquisition"* không khớp luật nào → rơi về default `bar` với `confidence=low`. Founder chỉ ra điều đúng đắn: **khi caller ĐÃ là một LLM thông minh (Claude Code/Codex), việc bắt nó gọi một matcher regex là phí — hãy đưa nó một catalog + bối-cảnh và để nó lý-luận.**
+
+Đó chính xác là nước đi **resolver v2/v3** đã làm cho việc resolve recipient (thay matcher bằng một catalog ambient mà session model đọc). v0.4 áp đúng pattern đó cho việc chọn chart:
+
+1. **`scripts/dataviz/lib/catalog.cjs`** render một **catalog** (`06-ai-ops/skills/dataviz/catalog.md`) TỪ `taxonomy.cjs` (nguồn-sự-thật) — 60 loại × khi-nào-dùng + fit data-shape + McKinsey stance, gom theo họ, kèm trình-tự chọn của analyst + ví-dụ đa-ngôn-ngữ. Một test bảo-đảm file trên-đĩa **byte-equals** generator (drift guard) — catalog không bao giờ lệch khỏi các loại đã-build.
+2. **Command + skill chỉ-thị agent**: khi yêu-cầu chưa nêu loại chart, ĐỌC catalog + lý-luận về MESSAGE/data/audience → chọn → render với `--chart=<pick> --selected-by=agent --select-reason="..."`. `gen.cjs` ghi `select_mode ∈ {agent, deterministic, forced}` + lý-do của agent vào `run.json` (vết audit).
+3. **`select.cjs` GIỮ NGUYÊN** — hạ vai thành **fallback deterministic** cho caller headless/out-of-band (CRON, Edge function, script không-phải-agent). Trung-thực là heuristic.
+
+**Vì sao đây là kiến-trúc đúng:** việc chọn chart là một việc *phán-đoán*, và bộ-phán-đoán tốt nhất đang-có trong môi-trường là chính agent — đa-ngôn-ngữ, theo-ngữ-cảnh, biện-hộ-được. KHÔNG tốn API key (dùng session model, đúng policy "API key chỉ cho out-of-band"). 224 test xanh (188 + catalog/provenance). `/dataviz` **v0.4.0 operating**.
+
+**Bài học #5 — đặt "trí thông minh" ở đúng tầng.** v0.2 nhồi trí-thông-minh vào regex; v0.4 nhận ra caller *đã* thông minh hơn regex. Quy-tắc tổng-quát cho cả repo: **một quyết-định phán-đoán mà caller-LLM làm tốt → đưa nó context (catalog) + để nó lý-luận; chỉ giữ deterministic cho đường headless và cho những bất-biến phải-đúng-100%.** Regex không sai — nó chỉ sai *tầng*.

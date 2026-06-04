@@ -1,5 +1,39 @@
 # CHANGELOG — capability `dataviz`
 
+## v0.4.0 — 2026-06-04 (extend, SOP-AIOPS-001-extend)
+
+**"LLM-native chart selection."** `/cla extend dataviz`, self-shipped. The founder's insight:
+when the caller is already an intelligent LLM (Claude Code / Codex), give it a catalog + the
+situation and let it reason — don't keyword-match. The resolver v2/v3 pattern, applied to chart
+choice.
+
+### Added
+- **`scripts/dataviz/lib/catalog.cjs`** — `buildCatalog()` + `renderCatalogMarkdown()`, rendered
+  FROM `taxonomy.cjs` (the single source of truth), so the catalog can never drift from the built
+  types. PURE, byte-stable.
+- **`scripts/dataviz/gen-catalog.cjs`** — writes `06-ai-ops/skills/dataviz/catalog.md`; `--check`
+  is the in-sync drift guard (a test asserts the on-disk file equals `renderCatalogMarkdown()`).
+- **`06-ai-ops/skills/dataviz/catalog.md`** (generated) — the agent-facing selection substrate:
+  60 built types × when-to-use + data-shape fit + McKinsey stance, grouped by family, with the
+  analyst's selection sequence + worked examples (incl. multilingual ones).
+- **4 selection-provenance flags** — `--selected-by=agent`, `--select-reason`, `--select-intent`,
+  `--select-confidence`. `gen.cjs` records `select_mode ∈ {agent, deterministic, forced}` + the
+  agent's reasoning in `run.json`.
+- The readable **60-chart list** in the command content (founder ask: the command doc was missing it).
+
+### Changed
+- **Selection is now LLM-native by default.** The command/skill instruct the calling agent to read
+  `catalog.md` + the situation and pick the chart itself (multilingual, context-aware), then render
+  with `--chart=<pick> --selected-by=agent`. This is the "smart" core, moved from regex to reasoning.
+- `select.cjs` (the v0.2 regex selector) is **retained UNCHANGED**, reframed as the **deterministic
+  fallback** for headless / out-of-band callers (`--chart=auto`, CRON, Edge functions).
+- Fixed `gen.cjs` `runJson.version` (was stale `0.2.0` → `0.4.0`).
+
+### Unchanged
+- The 60 renderers, the McKinsey discipline, the de-branded `Ritsu` wordmark, pure/offline, Tier A,
+  ~$0, byte-stability. NO API key — selection uses the session model's reasoning, not an external call.
+
+
 ## v0.3.0 — 2026-06-04 (extend, SOP-AIOPS-001-extend)
 
 **"Near-complete chart library + de-branded output."** `/cla extend dataviz`, self-shipped.

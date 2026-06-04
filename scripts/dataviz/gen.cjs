@@ -106,9 +106,14 @@ function run(argv) {
   // 2. load data.
   const data = loadData(options.data);
 
-  // 3. select chart — the intelligent selector (auto) or honor --chart.
-  let chartType; let ideal; let reason = ''; let selection;
+  // 3. select chart. Selection is LLM-NATIVE by default (v0.4): the calling agent
+  //    reads the catalog (06-ai-ops/skills/dataviz/catalog.md) + the situation, picks,
+  //    and passes --chart=<pick> --selected-by=agent --select-reason="…". A bare
+  //    --chart is a hard force; --chart=auto (or none) falls back to the DETERMINISTIC
+  //    select.cjs regex selector (for headless / out-of-band callers — CRON, Edge fns).
+  let chartType; let ideal; let reason = ''; let selection; let selectMode;
   if (!options.chart || options.chart === 'auto') {
+    selectMode = 'deterministic';
     selection = selectChart(options.message || options.title || '', buildHints(data, options), { audience: options.audience });
     chartType = selection.chartType; ideal = selection.ideal; reason = selection.reason;
     if (Array.isArray(selection.warnings)) warnings.push(...selection.warnings);
@@ -117,8 +122,22 @@ function run(argv) {
     chartType = T.toBuilt(options.chart);   // built → itself; cataloged → nearest built (honest); unknown → bar
     if (!T.meta(options.chart)) { chartType = 'bar'; reason = `unknown chart type "${options.chart}" → bar`; warnings.push(reason); }
     else if (!T.isBuilt(options.chart)) { reason = `chart "${options.chart}" is a cataloged (not-yet-built) type → rendered as the nearest built type (${chartType})`; warnings.push(reason); }
-    selection = { chartType, ideal, family: T.familyOf(ideal) || null, intent: 'forced', reason: reason || `forced via --chart=${options.chart}`, alternatives: [], warnings: [], confidence: 'forced' };
+    const byAgent = String(options['selected-by'] || '').toLowerCase() === 'agent';
+    selectMode = byAgent ? 'agent' : 'forced';
+    if (byAgent) {
+      const agentReason = typeof options['select-reason'] === 'string' && options['select-reason'] ? options['select-reason'] : 'selected by the calling agent (LLM-native)';
+      reason = reason ? `${reason}; ${agentReason}` : agentReason;
+    }
+    selection = {
+      chartType, ideal, family: T.familyOf(ideal) || null,
+      intent: byAgent ? (typeof options['select-intent'] === 'string' && options['select-intent'] ? options['select-intent'] : 'llm-native') : 'forced',
+      reason: reason || (byAgent ? 'selected by the calling agent (LLM-native)' : `forced via --chart=${options.chart}`),
+      alternatives: [],
+      warnings: [],
+      confidence: byAgent ? (['high', 'medium', 'low'].includes(String(options['select-confidence'])) ? options['select-confidence'] : 'high') : 'forced',
+    };
   }
+  selection.select_mode = selectMode;
 
   // 4. spec.
   const { width, height } = resolveSize(options);
@@ -140,10 +159,10 @@ function run(argv) {
   warnings.push(...computeWarnings({ supports: require('./lib/params.cjs').UNIVERSAL_PARAMS.filter((p) => p !== 'art-style') }, provided));
 
   const format = normalizeFormat(options.format);
-  const runJson = { capability: 'dataviz', version: '0.2.0', chartType, ideal, family: selection.family, intent: selection.intent, reason, confidence: selection.confidence, alternatives: selection.alternatives, theme: theme.name, styled: theme.styled, format, width, height, title: spec.title, source: spec.source, warnings, generated_at: new Date().toISOString() };
+  const runJson = { capability: 'dataviz', version: '0.4.0', chartType, ideal, family: selection.family, intent: selection.intent, select_mode: selectMode, reason, confidence: selection.confidence, alternatives: selection.alternatives, theme: theme.name, styled: theme.styled, format, width, height, title: spec.title, source: spec.source, warnings, generated_at: new Date().toISOString() };
 
   if (options['dry-run']) {
-    return { ok: true, outcome: 'dry_run', chartType, ideal, selection, files: [], svg: null, warnings, runJson, plan: { chartType, ideal, family: selection.family, intent: selection.intent, reason, confidence: selection.confidence, alternatives: selection.alternatives, theme: theme.name, width, height, title: spec.title, source: spec.source } };
+    return { ok: true, outcome: 'dry_run', chartType, ideal, selection, files: [], svg: null, warnings, runJson, plan: { chartType, ideal, family: selection.family, intent: selection.intent, select_mode: selectMode, reason, confidence: selection.confidence, alternatives: selection.alternatives, theme: theme.name, width, height, title: spec.title, source: spec.source } };
   }
 
   // 5. render.
@@ -172,7 +191,7 @@ function run(argv) {
 function explainSelection(sel) {
   if (!sel) return '';
   const lines = [];
-  lines.push(`Chart: ${sel.chartType}${sel.ideal && sel.ideal !== sel.chartType ? ` (ideal: ${sel.ideal})` : ''}  ·  family: ${sel.family || '?'}  ·  intent: ${sel.intent || '?'}  ·  confidence: ${sel.confidence || '?'}`);
+  lines.push(`Chart: ${sel.chartType}${sel.ideal && sel.ideal !== sel.chartType ? ` (ideal: ${sel.ideal})` : ''}  ·  family: ${sel.family || '?'}  ·  intent: ${sel.intent || '?'}  ·  confidence: ${sel.confidence || '?'}${sel.select_mode ? `  ·  selected: ${sel.select_mode}` : ''}`);
   if (sel.reason) lines.push(`Why: ${sel.reason}`);
   if (Array.isArray(sel.alternatives) && sel.alternatives.length) lines.push(`Alternatives: ${sel.alternatives.map((a) => a.type).join(', ')}`);
   if (Array.isArray(sel.warnings) && sel.warnings.length) sel.warnings.forEach((w) => lines.push(`⚠ ${w}`));
