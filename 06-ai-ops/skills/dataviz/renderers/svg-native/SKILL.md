@@ -3,8 +3,8 @@ name: dataviz/renderers/svg-native
 description: |
   The default /dataviz renderer — a zero-dependency, pure-Node, byte-stable SVG-string
   renderer encoding the McKinsey data-viz house style. renderChart(chartType, data,
-  spec, theme) -> svgString (scripts/dataviz/render.cjs). No d3/canvas/DOM. v0.1
-  builds 9 chart types; the McKinsey aesthetic is grounded in 3 real reports.
+  spec, theme) -> svgString (scripts/dataviz/render.cjs). No d3/canvas/DOM. v0.2
+  builds 27 chart types across all six families; the McKinsey aesthetic is grounded in 3 real reports.
 allowed-tools: [Read, Bash]
 disable-model-invocation: false
 ---
@@ -17,9 +17,13 @@ disable-model-invocation: false
 
 `d3-scale`/`d3-shape` v4+ are ESM-only → not `require()`-able from a `.cjs`; vega-lite's accurate-text SVG path pulls `node-canvas` (native build). The McKinsey look is **subtractive + direct-labeled** — you AUTHOR the exact SVG (strip gridlines/legend/axis-chrome, inject direct labels + action title + source footer), you don't override an engine. The scale math (`(v-d0)/(d1-d0)*(r1-r0)+r0`; band `i*step+pad`; paths `M…L…`; bars = `<rect>`) is elementary (`scripts/dataviz/lib/svg.cjs`). Result: no `pnpm-lock` churn, no native builds, works in CI/worktree immediately.
 
-## v0.1 chart types (9 built)
+## v0.2 chart types (27 built)
 
-`bar` (horizontal sorted desc), `column`, `line` (multi-series, end-labels), `stacked`, `stacked100`, `grouped` (paired/leader-vs-laggard), `scatter`, **`waterfall`** (running-cumulative bridge, rising=teal/falling=amber/total=highlight, dashed connectors), `kpi` (big-number callout). Deferred to v0.2 (registry `deferred_chart_types`): marimekko, statstack, dumbbell, diverging, bubble, heatmap, bubble-matrix, histogram, area, pie.
+The dispatch (`DISPATCH` in `render.cjs`) and the source-of-truth list (`BUILT` in `lib/taxonomy.cjs`):
+
+`bar` (horizontal sorted desc) · `column` · `line` (multi-series, end-labels) · `area` (filled magnitude) · `stacked-area` · `stacked` · `stacked100` · `grouped` (leader-vs-laggard) · `scatter` · `bubble` (size = 3rd measure) · **`waterfall`** (running-cumulative bridge; rising=teal/falling=amber/total=highlight; dashed connectors) · `kpi` (big-number callout) · `pie` · `donut` (center total) · `marimekko` (variable-width stacked) · `heatmap` (interpolated-hex cells) · `dumbbell` (paired delta) · `lollipop` · `dot` (non-zero baseline) · `slope` (two-period) · `bullet` (vs-target) · `diverging` (Likert; negatives warm, positives cool, around center) · `histogram` (auto-binned) · `box` (quartiles + whiskers) · `funnel` (centered stages + conversion %) · `quadrant` (2×2 cross + points) · `radar` (polygon over polar axes).
+
+New SVG primitives (`lib/svg.cjs`): `polarToCartesian`, `arcPath` (pie wedge), `ringPath` (donut segment), `polygonD` (radar). Cataloged-but-not-built types (treemap, sankey, gantt, small-multiples, …) live in the taxonomy and render as their nearest built type + a warning.
 
 ## The McKinsey aesthetic it encodes (`lib/theme.cjs`)
 
@@ -29,6 +33,6 @@ Classic hex: highlight `#005EB8`, neutrals `#A2AAAD`/`#C0C5C9`, ink `#222222`, i
 
 ## Documented v0.1 non-goals (honest)
 
-No text-measurement engine (no canvas/DOM) → **data-label de-collision on dense data is a non-goal** (axis ticks use a coarse char-width estimate; positioning via `text-anchor`/`dominant-baseline`). PNG/PDF raster output is a v0.2 stretch (svg/html/inline now). marimekko + the other deferred types render as their nearest built type with a warning until v0.2.
+No text-measurement engine (no canvas/DOM) → **data-label de-collision on dense data is a non-goal** (axis ticks use a coarse char-width estimate; positioning via `text-anchor`/`dominant-baseline`). PNG/PDF raster output remains a stretch (svg/html/inline now). The cataloged-only types (treemap, sankey, gantt, choropleth, …) render as their nearest built type with a warning (heavy graph/map topology or anti-McKinsey decoration — see `lib/taxonomy.cjs`).
 
 ## Data shapes — see the umbrella `06-ai-ops/skills/dataviz/SKILL.md`.

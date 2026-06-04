@@ -72,3 +72,72 @@ describe("renderChart — --style brand override (structure ⊥ brand)", () => {
     expect(s).toContain("Source: Internal"); // structure (source footer) unchanged
   });
 });
+
+// ============================================================================
+// v0.2 (extend): the 18 NEW chart types. The BUILT-loop edge tests above already
+// assert valid-svg + no-NaN + source-footer for ALL 27 types; these add the
+// type-SPECIFIC rendering behavior + byte-stability + degenerate safety.
+// ============================================================================
+describe("renderChart — v0.2 chart types render type-specific SVG", () => {
+  const SP = { ...SPEC };
+  it("pie renders wedges (<path>) + % labels", () => { const s = renderChart("pie", { categories: ["A", "B", "C"], series: [{ name: "v", values: [50, 30, 20] }] }, SP, THEME); expect(s).toContain("<path"); expect(s).toMatch(/\d+(\.\d+)?%/); });
+  it("donut renders a ring + a center total", () => { const s = renderChart("donut", { categories: ["A", "B"], series: [{ name: "v", values: [60, 40] }] }, SP, THEME); expect(s).toContain("<path"); expect(s).toContain(">100<"); });
+  it("area fills under the line (fill-opacity)", () => expect(renderChart("area", { categories: ["19", "20", "21"], series: [{ name: "v", values: [10, 20, 30] }] }, SP, THEME)).toContain("fill-opacity"));
+  it("stacked-area stacks filled bands", () => expect(renderChart("stacked-area", { categories: ["19", "20"], series: [{ name: "a", values: [10, 20] }, { name: "b", values: [5, 15] }] }, SP, THEME)).toContain("<path"));
+  it("marimekko emits variable-width columns (>2 rects)", () => expect((renderChart("marimekko", { categories: ["X", "Y"], series: [{ name: "a", values: [30, 10] }, { name: "b", values: [10, 20] }] }, SP, THEME).match(/<rect/g) || []).length).toBeGreaterThan(2));
+  it("bubble sizes circles by the size measure", () => { const s = renderChart("bubble", { points: [{ x: 10, y: 20, size: 5, label: "P" }, { x: 30, y: 15, size: 20 }] }, SP, THEME); expect(s).toContain("<circle"); expect(s).toContain("fill-opacity"); });
+  it("heatmap colors ≥4 cells (interpolated hex)", () => expect((renderChart("heatmap", { categories: ["c1", "c2"], series: [{ name: "r1", values: [1, 9] }, { name: "r2", values: [5, 2] }] }, SP, THEME).match(/<rect/g) || []).length).toBeGreaterThanOrEqual(4));
+  it("dumbbell draws two dots + a connector per category", () => { const s = renderChart("dumbbell", { categories: ["A", "B"], series: [{ name: "before", values: [10, 20] }, { name: "after", values: [40, 25] }] }, SP, THEME); expect((s.match(/<circle/g) || []).length).toBeGreaterThanOrEqual(4); expect(s).toContain("<line"); });
+  it("lollipop draws stem (<line>) + dot (<circle>)", () => { const s = renderChart("lollipop", { categories: ["A", "B", "C"], series: [{ name: "v", values: [3, 7, 5] }] }, SP, THEME); expect(s).toContain("<line"); expect(s).toContain("<circle"); });
+  it("dot plot draws dots", () => expect(renderChart("dot", { categories: ["A", "B"], series: [{ name: "v", values: [95, 98] }] }, SP, THEME)).toContain("<circle"));
+  it("slope connects two periods", () => { const s = renderChart("slope", { categories: ["2023", "2024"], series: [{ name: "A", values: [10, 30] }, { name: "B", values: [20, 15] }] }, SP, THEME); expect(s).toContain("<path"); expect(s).toContain("2024"); });
+  it("bullet draws a measure bar + a target tick", () => { const s = renderChart("bullet", { measures: [{ label: "Rev", value: 80, target: 100 }] }, SP, THEME); expect((s.match(/<rect/g) || []).length).toBeGreaterThanOrEqual(2); expect(s).toContain("<line"); });
+  it("diverging splits negatives (amber) around center", () => expect(renderChart("diverging", { categories: ["Q1"], series: [{ name: "agree", values: [40] }, { name: "disagree", values: [-25] }] }, SP, THEME)).toContain(THEME.amber));
+  it("histogram bins values into adjacent columns", () => expect((renderChart("histogram", { values: [1, 2, 2, 3, 3, 3, 4, 5, 9] }, SP, THEME).match(/<rect/g) || []).length).toBeGreaterThanOrEqual(3));
+  it("funnel renders descending stages + conversion %", () => expect(renderChart("funnel", { stages: [{ label: "Visit", value: 1000 }, { label: "Paid", value: 100 }] }, SP, THEME)).toMatch(/\d+%/));
+  it("quadrant draws a dashed 2x2 cross + points", () => { const s = renderChart("quadrant", { points: [{ x: 10, y: 20, label: "P", highlight: true }], quadrants: ["Q1", "Q2", "Q3", "Q4"] }, SP, THEME); expect(s).toContain("stroke-dasharray"); expect(s).toContain("<circle"); });
+  it("radar draws closed polygons (path ending in Z)", () => { const s = renderChart("radar", { axes: ["A", "B", "C", "D"], series: [{ name: "Us", values: [8, 6, 9, 7] }] }, SP, THEME); expect(s).toContain("<path"); expect(s).toContain(" Z"); });
+  it("box draws a quartile box + median + whiskers", () => { const s = renderChart("box", { samples: [{ label: "G1", values: [1, 2, 3, 4, 5, 9] }] }, SP, THEME); expect(s).toContain("<rect"); expect(s).toContain("<line"); });
+});
+
+describe("renderChart — v0.2 byte-stability + degenerate safety", () => {
+  const NEW = ["pie", "donut", "area", "stacked-area", "marimekko", "bubble", "heatmap", "dumbbell", "lollipop", "dot", "slope", "bullet", "diverging", "histogram", "funnel", "quadrant", "radar", "box"];
+  const properData = (t: string): any => t === "bubble" || t === "quadrant" ? { points: [{ x: 1, y: 2, size: 3 }] }
+    : t === "box" ? { samples: [{ label: "g", values: [1, 2, 3] }] }
+      : t === "bullet" ? { measures: [{ label: "m", value: 5, target: 8 }] }
+        : t === "funnel" ? { stages: [{ label: "s", value: 9 }] }
+          : t === "histogram" ? { values: [1, 2, 3, 3] }
+            : t === "radar" ? { axes: ["a", "b", "c"], series: [{ name: "s", values: [1, 2, 3] }] } : BARS;
+  it("every v0.2 type is byte-stable (same input → identical bytes)", () => { for (const t of NEW) expect(renderChart(t, properData(t), SPEC, THEME)).toBe(renderChart(t, properData(t), SPEC, THEME)); });
+  it("degenerate inputs never yield NaN/undefined and stay valid SVG", () => {
+    const cases: [string, any][] = [["pie", { categories: ["A", "B"], series: [{ name: "v", values: [1, 1] }] }], ["marimekko", { categories: ["A"], series: [{ name: "v", values: [0] }] }], ["radar", { axes: ["A", "B"], series: [{ name: "s", values: [1, 2] }] }], ["box", {}], ["bubble", {}], ["heatmap", {}], ["funnel", { stages: [] }], ["pie", { categories: [], series: [] }]];
+    for (const [t, d] of cases) { const s = renderChart(t, d, SPEC, THEME); expect(s.includes("NaN")).toBe(false); expect(s.includes("undefined")).toBe(false); expect(s.startsWith("<svg")).toBe(true); }
+  });
+});
+
+// ============================================================================
+// Review hardening (adversarial code-review findings, 2026-06-04): a renderer
+// must NEVER throw + NEVER emit "NaN"/"undefined" — even on a null/scalar element
+// inside a correctly-named array, and kpi must not render a non-finite number.
+// ============================================================================
+describe("renderChart — malformed array elements never throw / no NaN", () => {
+  const MALFORMED: [string, any][] = [
+    ["scatter", { points: [null, { x: 1, y: 2 }, 3] }],
+    ["bubble", { points: [null] }],
+    ["quadrant", { points: [null, undefined] }],
+    ["waterfall", { steps: [null, { label: "x", delta: 5 }] }],
+    ["funnel", { stages: [null] }],
+    ["bullet", { measures: [null] }],
+    ["histogram", { bins: [null] }],
+    ["box", { boxes: [null] }],
+    ["box", { samples: [null] }],
+    ["kpi", { stats: [null] }],
+  ];
+  it("never throws + emits valid NaN-free SVG for null/scalar elements", () => {
+    for (const [t, d] of MALFORMED) { let s = ""; expect(() => { s = renderChart(t, d, SPEC, THEME); }).not.toThrow(); expect(s.startsWith("<svg")).toBe(true); expect(s.includes("NaN")).toBe(false); expect(s.includes("undefined")).toBe(false); }
+  });
+  it("renders the valid elements alongside a null (graceful, not all-or-nothing)", () => { const s = renderChart("scatter", { points: [null, { x: 5, y: 5, label: "P" }] }, SPEC, THEME); expect(s).toContain("<circle"); expect(s).toContain(">P<"); });
+  it("kpi never renders literal 'NaN'/'Infinity' for a non-finite numeric value", () => { const s = renderChart("kpi", { stats: [{ value: NaN, label: "x" }, { value: Infinity }] }, SPEC, THEME); expect(s.includes("NaN")).toBe(false); expect(s.includes("Infinity")).toBe(false); });
+  it("kpi keeps string + finite-number values", () => { const s = renderChart("kpi", { stats: [{ value: "42%" }, { value: 9 }] }, SPEC, THEME); expect(s).toContain("42%"); expect(s).toContain(">9<"); });
+  it("the renderChart try/catch net wraps a throwing renderer into a valid footed exhibit", () => { const s = renderChart("scatter", { get points() { throw new Error("boom"); } }, SPEC, THEME); expect(s.startsWith("<svg")).toBe(true); expect(s).toContain("Source: Internal"); });
+});

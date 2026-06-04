@@ -161,10 +161,12 @@ Bound to role `code-reviewer`. For one-shot bounded review use @cto.
 **Axis:** capability
 **When to use:** Turn a data source into a McKinsey-caliber chart — model-agnostic front door with
 a pluggable renderer layer (--use=<renderer>). Default backend svg-native (in-repo,
-zero-dependency, pure-Node, byte-stable SVG). Chooses the chart type FROM THE MESSAGE
-(Zelazny "Say It With Charts"), encodes the McKinsey aesthetic (one-highlight,
-data-ink minimalism, direct labels, action-title-on-the-chart, source footer), and
-brands via the SAME --style design-system + --art-style axes as /image + /deepask.
+zero-dependency, pure-Node, byte-stable SVG). v0.2: 27 built chart types across all
+six chart families + an INTELLIGENT, context-aware selector that picks the BEST chart
+from the message + data-shape + audience (Zelazny "Say It With Charts"), explains its
+choice, offers alternatives, and warns on anti-patterns. Encodes the McKinsey aesthetic
+(one-highlight, data-ink minimalism, direct labels, action-title-on-the-chart, source
+footer); brands via the SAME --style design-system + --art-style axes as /image + /deepask.
 Pure/offline (NO API key). Tier A; artifacts to .archives/dataviz/<date>-<slug>/.
 Thin orchestrator over the `dataviz` umbrella skill (scripts/dataviz/gen.cjs).
 

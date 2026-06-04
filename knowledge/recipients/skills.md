@@ -317,12 +317,14 @@ Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 **Kind:** skill
 **Axis:** capability
 **When to use:** Umbrella for the data-visualization capability — the /dataviz command's brain. From
-a data source + a one-sentence MESSAGE, produce a McKinsey-caliber chart: choose the
-chart type FROM THE MESSAGE (Zelazny), render it byte-stable SVG with the McKinsey
-aesthetic (one-highlight, data-ink minimalism, direct labels, action-title, source
-footer), and brand via the SAME --style design-system + --art-style axes as /image.
-Pluggable renderer layer (--use); default svg-native (zero-dep, pure-Node). Pure/
-offline — no API key. Dispatches to scripts/dataviz/gen.cjs.
+a data source + a one-sentence MESSAGE, produce a McKinsey-caliber chart: an intelligent,
+taxonomy-driven selector picks the BEST of 27 built chart types (all six families) from
+the message + data-shape + audience (Zelazny), explains the choice + alternatives +
+anti-pattern warnings, then renders byte-stable SVG with the McKinsey aesthetic
+(one-highlight, data-ink minimalism, direct labels, action-title, source footer), branded
+via the SAME --style design-system + --art-style axes as /image. Pluggable renderer layer
+(--use); default svg-native (zero-dep, pure-Node). Pure/offline — no API key. Dispatches
+to scripts/dataviz/gen.cjs.
 
 **Invoke:** `Skill({ skill: "dataviz" })`
 **HITL tier:** B
@@ -338,8 +340,8 @@ offline — no API key. Dispatches to scripts/dataviz/gen.cjs.
 **Axis:** capability
 **When to use:** The default /dataviz renderer — a zero-dependency, pure-Node, byte-stable SVG-string
 renderer encoding the McKinsey data-viz house style. renderChart(chartType, data,
-spec, theme) -> svgString (scripts/dataviz/render.cjs). No d3/canvas/DOM. v0.1
-builds 9 chart types; the McKinsey aesthetic is grounded in 3 real reports.
+spec, theme) -> svgString (scripts/dataviz/render.cjs). No d3/canvas/DOM. v0.2
+builds 27 chart types across all six families; the McKinsey aesthetic is grounded in 3 real reports.
 
 **Invoke:** `Skill({ skill: "dataviz/renderers/svg-native" })`
 **HITL tier:** B
@@ -353,8 +355,11 @@ builds 9 chart types; the McKinsey aesthetic is grounded in 3 real reports.
 
 **Kind:** skill
 **Axis:** capability
-**When to use:** The Zelazny message→chart-type selector for /dataviz. Choose the chart FROM THE
-MESSAGE, not the data (Gene Zelazny, "Say It With Charts"). Deterministic, pure
+**When to use:** The intelligent, context-aware chart selector for /dataviz (v0.2). Choose the chart
+FROM THE MESSAGE, not the data (Gene Zelazny), made smart: a full chart taxonomy +
+a multi-factor pipeline (message-intent → data-shape → audience → McKinsey guard-rails
+→ built type) that returns the BEST chart with an explained reason, runner-up
+alternatives, anti-pattern warnings, and a confidence. Deterministic, pure
 (scripts/dataviz/select.cjs). Used by gen.cjs when --chart=auto.
 
 **Invoke:** `Skill({ skill: "dataviz/select" })`

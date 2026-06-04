@@ -64,7 +64,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Data Visualization (McKinsey-caliber charts, like /image for data→chart). A general, reused-many-times data-visualization capability — the /dataviz v0.1.0
+**When to use:** Data Visualization (McKinsey-caliber charts, like /image for data→chart). A general, reused-many-times data-visualization capability — the /dataviz v0.2.0
 
 **Invoke:** `Read("wiki/capabilities/dataviz/spec.md")` or `/cla update dataviz`
 

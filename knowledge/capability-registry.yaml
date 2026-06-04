@@ -1633,9 +1633,10 @@ capabilities:
       v0.1 backend = svg-native: a ZERO-DEPENDENCY, pure-Node, byte-stable SVG-string
       renderer (renderChart(type,data,spec,theme)->svg is a PURE function → unit-
       tested with toBe/toEqual, no vitest snapshots; no d3 [ESM-only], no canvas/DOM,
-      no native build). 9 chart types (bar/column/line/stacked/stacked100/grouped/
-      scatter/waterfall/kpi); marimekko + 9 more deferred to v0.2 (the selector names
-      them + maps to the nearest built type + warns). PURE/OFFLINE — no secret, no
+      no native build). v0.2: 27 BUILT chart types across all six Datylon families +
+      an INTELLIGENT context-aware selector (taxonomy-driven: intent + data-shape +
+      audience → best chart + reason + alternatives + anti-pattern warnings + confidence);
+      47 cataloged types map to the nearest built + an honest reason. PURE/OFFLINE — no secret, no
       API key (unlike /image's OPENAI_API_KEY). Grounded in 3 real local McKinsey
       reports (the mckinsey-grounding-research workflow) + the dataviz-design-brief.
       Consumed by /think mckinsey (mckinsey-sell, v2.2) + routable from /deepask's
@@ -1645,7 +1646,7 @@ capabilities:
       lib/{params,theme,svg}.cjs + knowledge/dataviz-renderers.yaml (split registry)
       + schema + scripts/cross-tier/validate-dataviz-renderers.cjs (L2) +
       SOP-AIOPS-011-dataviz-runtime-contract.
-    version: "0.1.0"
+    version: "0.2.0"
     state: operating
     state_since: 2026-06-04
     proposed_at: 2026-06-04
@@ -1663,9 +1664,18 @@ capabilities:
       keys; byte-stable fmt(); toBe/toEqual not snapshots; waterfall cumulative +
       marimekko deferred; validator imports dataviz UNIVERSAL_PARAMS; resolver:sync
       committed). Decision: ops.decisions slug dataviz-capability-v0.1. Reversibility
-      5/5 (self-contained; git revert removes it cleanly). v0.2 ladder: the deferred
-      chart types (marimekko/statstack/dumbbell/diverging/bubble/heatmap/bubble-matrix/
-      histogram/area/pie) + png/pdf raster + the echarts-ssr stub → installed.
+      5/5 (self-contained; git revert removes it cleanly).
+      v0.2 (2026-06-04): /cla extend (SOP-AIOPS-001-extend), self-shipped. +18 built
+      chart types → 27 across all six Datylon families (the v0.1 "ladder" delivered:
+      area/stacked-area/pie/donut/marimekko/bubble/heatmap/dumbbell/lollipop/dot/slope/
+      bullet/diverging/histogram/box/funnel/quadrant/radar). NEW scripts/dataviz/lib/
+      taxonomy.cjs (the ~74-type chart knowledge base, source of truth for BUILT). select.cjs
+      rewritten → intelligent context-aware selector (intent+data-shape+audience → best chart
+      + reason + alternatives + anti-pattern warnings + confidence; explainable via --explain).
+      +5 flags (explain/audience/target/x-label/y-label). +polar/arc SVG primitives. wiki
+      spec.md promoted (v0.1 gap filled) + CHANGELOG. 167+ unit tests. Decision: ops.decisions
+      slug dataviz-v0.2-chart-library-and-smart-select. Reversibility 5/5 (additive pure code).
+      Remaining ladder: png/pdf raster + echarts-ssr stub + the 47 cataloged types → built.
 
   - id: product-db-readonly-access
     name: "Product DB read-only access — Door 2 (pseudonymized analytics)"

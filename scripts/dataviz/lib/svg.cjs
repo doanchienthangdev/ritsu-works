@@ -109,7 +109,40 @@ function svgDoc(width, height, body, bg) {
 /** Coarse text-width ESTIMATE (no measurement engine; @cto must-fix #5 — axis ticks only). */
 const estTextWidth = (s, fontSize) => String(s == null ? '' : s).length * fontSize * 0.6;
 
+// ── polar / arc primitives (pie, donut, radar) — byte-stable via fmt ──────────
+// Angles in DEGREES, measured CLOCKWISE from 12 o'clock (the natural pie convention):
+// 0° = top, 90° = right, 180° = bottom, 270° = left. SVG y grows downward.
+function polarToCartesian(cx, cy, r, angleDeg) {
+  const a = (angleDeg * Math.PI) / 180;
+  return { x: cx + r * Math.sin(a), y: cy - r * Math.cos(a) };
+}
+
+/** Closed polygon path d-string from [[x,y],…] (M…L…Z). For radar. */
+function polygonD(points) {
+  if (!Array.isArray(points) || points.length === 0) return '';
+  return points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${fmt(x)} ${fmt(y)}`).join(' ') + ' Z';
+}
+
+/** Pie wedge path (filled from center): start→end clockwise. Full circle handled by caller (split). */
+function arcPath(cx, cy, r, startDeg, endDeg) {
+  const p1 = polarToCartesian(cx, cy, r, startDeg);
+  const p2 = polarToCartesian(cx, cy, r, endDeg);
+  const largeArc = Math.abs(endDeg - startDeg) > 180 ? 1 : 0;
+  return `M${fmt(cx)} ${fmt(cy)} L${fmt(p1.x)} ${fmt(p1.y)} A${fmt(r)} ${fmt(r)} 0 ${largeArc} 1 ${fmt(p2.x)} ${fmt(p2.y)} Z`;
+}
+
+/** Donut ring-segment path: start→end clockwise between rInner and rOuter. */
+function ringPath(cx, cy, rOuter, rInner, startDeg, endDeg) {
+  const o1 = polarToCartesian(cx, cy, rOuter, startDeg);
+  const o2 = polarToCartesian(cx, cy, rOuter, endDeg);
+  const i2 = polarToCartesian(cx, cy, rInner, endDeg);
+  const i1 = polarToCartesian(cx, cy, rInner, startDeg);
+  const largeArc = Math.abs(endDeg - startDeg) > 180 ? 1 : 0;
+  return `M${fmt(o1.x)} ${fmt(o1.y)} A${fmt(rOuter)} ${fmt(rOuter)} 0 ${largeArc} 1 ${fmt(o2.x)} ${fmt(o2.y)} L${fmt(i2.x)} ${fmt(i2.y)} A${fmt(rInner)} ${fmt(rInner)} 0 ${largeArc} 0 ${fmt(i1.x)} ${fmt(i1.y)} Z`;
+}
+
 module.exports = {
-  fmt, esc, attrs, rect, line, circle, path, text, group, polylineD,
+  fmt, esc, attrs, rect, line, circle, path, text, group, polylineD, polygonD,
   linearScale, bandScale, niceMax, svgDoc, estTextWidth,
+  polarToCartesian, arcPath, ringPath,
 };
