@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 109
+**Total entries:** 110
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1566,6 +1566,30 @@ belief first instead of analyzing everything. Pairs naturally with debias
 first) is the built-in guard.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/hypothesis-driven" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/mckinsey-sell
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The Sell formatter for the /think mckinsey engine (v2.0). Renders the final
+deliverable — the "sell" — from the run's synthesis + analysis-log + checkpoint-log,
+conforming to a McKinsey deliverable TEMPLATE (knowledge/mckinsey-templates.yaml)
+and rendered in any of /deepask's formats + design-systems. It does NOT rebuild a
+format engine: it builds the McKinsey-template-structured synthesis IR, then hands
+it to `deepask/format` with `--style` (brand) + `--art-style` (genre) as design
+context. Structure (McKinsey template) and design (--style/--art-style) are ORTHOGONAL.
+
+Invoked at Sell (step 7) by thinking-toolkit/mckinsey-workflow. Parameters:
+--sell=<template-id|auto>, --audience=receptive|skeptical, --style=<design-system>,
+--art-style=<genre>, --format=<deepask medium>. Not a standalone /think verb.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/mckinsey-sell" })`
 **HITL tier:** B
 **Side effect:** write
 

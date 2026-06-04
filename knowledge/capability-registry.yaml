@@ -1004,8 +1004,9 @@ capabilities:
   - id: thinking-toolkit
     name: "Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills)"
     description: |
-      12 skills (11 composable thinking tools + the mckinsey-workflow 4S
-      ENGINE) extracted from McKinsey/Minto thinking discipline, deployed as a
+      13 skills (11 composable thinking tools + the mckinsey-workflow 4S
+      ENGINE + the mckinsey-sell Sell formatter) extracted from McKinsey/Minto
+      thinking discipline, deployed as a
       parent-namespaced skill folder at
       06-ai-ops/skills/thinking-toolkit/. Skills are guidance documents (zero
       LLM cost at invocation); they structure the THINKING and OUTPUT of the
@@ -1039,7 +1040,8 @@ capabilities:
         - thinking-toolkit/root-cause (Five Whys on a confirmed symptom; scoped) [v1.2]
         - thinking-toolkit/design-thinking (generative: empathize→HMW→prototype) [v1.2]
         - thinking-toolkit/debias (pre-commit cognitive-bias checklist) [v1.2]
-        - thinking-toolkit/mckinsey-workflow (the 4S DYNAMIC ENGINE: workplan routes each hypothesis to real data → validate → update one-day answer → re-route → porpoise; HITL hard-gate) [v1.3→v1.8]
+        - thinking-toolkit/mckinsey-workflow (the 4S DYNAMIC ENGINE: workplan routes each hypothesis to real data → validate → update one-day answer → re-route → porpoise; HITL hard-gate; v2.0 TEAM operating model: --mode + 7 team-session checkpoints + sell formatter + thorough data sweep) [v1.3→v2.0]
+        - thinking-toolkit/mckinsey-sell (v2.0 Sell formatter — builds the McKinsey-template-structured synthesis IR + renders via deepask/format with --style/--art-style; composes, does not rebuild) [v2.0]
 
       Origin: Barbara Minto's *Pyramid Principle* (1987), McKinsey internal
       training (TOSCA, driver-tree, So-What), BCG Growth-Share matrix (2x2).
@@ -1051,7 +1053,7 @@ capabilities:
       symptom only (v1.0's rejection was framing-specific, Cracked it! p.58).
       Still rejected: 80/20 (overlaps /muse:paul-graham), screen/knock-out
       (deferred), Ghost Deck, 7S, PEST/Porter.
-    version: "1.8.0"
+    version: "2.0.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28
@@ -1239,6 +1241,38 @@ capabilities:
       +1 mckinsey-workflow. @cto review APPROVE-WITH-NITS (3 must-fix integrated). NO
       DB table, NO migration, NO new /think verb. Decision: ops.decisions (slug
       thinking-toolkit-v1.8-hitl-hard-gate). Reversibility 5/5 (backward-compatible).
+
+      v2.0 (2026-06-04): /cla extend — the McKinsey TEAM OPERATING MODEL (MAJOR;
+      founder thesis: "the power of McKinsey is the disciplined team process, not a
+      fast answer"). THREE additions on top of the v1.4-v1.8 engine. (1) MODES +
+      CHECKPOINTS: --mode=interactive(default)/auto + 7 team-session checkpoints
+      (frame/hypothesize/plan/prioritize/porpoise/dissent/pre-wire) logged to a NEW
+      checkpoint-log.md artifact; a --before-sell gate REQUIRES a pre-wire + dissent
+      session (WARNS frame/prioritize). interactive = treat the founder as a team
+      member, present STATE/THINKING(which frameworks+WHY)/PROPOSAL, ask "what would
+      have to be true for this to be WRONG?". (2) SELL FORMATTER: NEW skill
+      thinking-toolkit/mckinsey-sell + NEW registry knowledge/mckinsey-templates.yaml
+      (6 templates) + schema + validator — builds the McKinsey-template-structured
+      synthesis IR then renders via deepask/format with --style/--art-style (composes,
+      does NOT rebuild; structure ⟂ design enforced by FORBIDDEN_BRAND_KEYS). (3)
+      THOROUGH DATA SWEEP: sweep all source CLASSES + a completeness-critic at
+      CP-PREWIRE writing a COVERAGE statement. Params: --mode --depth --sell
+      --audience --style --art-style --sources --format. Panel review: @cto
+      request-changes→4 must-fixes integrated; ex-McKinsey-EM faithful-with-gaps→6
+      gaps integrated (competing hypotheses + disconfirmation-is-law + cleave≠
+      prioritize + dedicated dissent + challenge-seeking + ghost-exhibit-at-Structure).
+      Touches: mckinsey-run.cjs (ARTIFACTS+TEMPLATES checkpoint-log + checkpoint gate +
+      one-day-answer disconfirmation lines) + validate-mckinsey-workflow.cjs ARTIFACTS
+      + mckinsey-workflow.yaml (1.7.0→2.0.0; +checkpoint-log artifact + state/solve
+      produces + sell.skills mckinsey-sell + sell intent) + schema enum + mckinsey-sell
+      SKILL.md + mckinsey-templates.yaml/schema/validator + validate-tier1 map +
+      check-consistency + CI job + SKILL.md operating-model section + think.md +
+      resolver catalog regen. Tests: +9 mckinsey-run (checkpoint gate) +1
+      mckinsey-workflow +24 mckinsey-templates (NEW). MAJOR (operating-model change +
+      new sell sub-capability) via /cla extend (layering, NOT revise). Decision:
+      ops.decisions (slug thinking-toolkit-v2.0-mckinsey-team-mode). Reversibility 5/5
+      (backward-compatible: runs without checkpoint-log/Sell unaffected; gates fire
+      only --before-sell).
 
   - id: playbook-builder
     name: "Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration"

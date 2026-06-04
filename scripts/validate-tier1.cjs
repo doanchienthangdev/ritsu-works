@@ -56,6 +56,7 @@ const FILE_TO_SCHEMA = {
   'update-file-paths.yaml': 'update-file-paths.schema.json',
   'image-adapters.yaml': 'image-adapters.schema.json',
   'mckinsey-workflow.yaml': 'mckinsey-workflow.schema.json',
+  'mckinsey-templates.yaml': 'mckinsey-templates.schema.json',
   'problem-solving-frameworks.yaml': 'problem-solving-frameworks.schema.json',
 };
 

@@ -18,16 +18,17 @@ const {
 // ============================================================================
 // All-Edge-Cases-Test (global CLAUDE.md). Units: scaffoldRun(repoRoot, slug),
 // checkRun(repoRoot, slug, opts) from scripts/thinking-toolkit/mckinsey-run.cjs
-// (capability thinking-toolkit v1.6/v1.8 — the deterministic run scaffolder + checker).
+// (capability thinking-toolkit v1.6/v1.8/v2.0 — the deterministic run scaffolder + checker).
 //
-// Phase 1 — scaffoldRun: slug-invalid → error; creates dir + 8 templates;
+// Phase 1 — scaffoldRun: slug-invalid → error; creates dir + 9 templates;
 //   idempotent (skip existing, never clobber). checkRun: slug-invalid; dir
 //   missing; missing artifact; workplan no-table / missing-column / bad-status /
 //   product.* firewall; analysis-log missing-provenance-col / missing-degree-col /
 //   row-missing-provenance / degree-out-of-1-8; beforeSell open-rows gate;
-//   v1.8 HITL receipt gate (ask-user [H#] ↔ hitl-log reconciliation); happy.
+//   v1.8 HITL receipt gate (ask-user [H#] ↔ hitl-log reconciliation);
+//   v2.0 checkpoint gate (pre-wire + dissent required --before-sell; frame/prioritize warn); happy.
 // Phase 2 — boundaries: invalid slugs, empty dir, malformed tables, degree
-//   0/9/NaN, status casing, placeholder rows skipped, phantom <H1> template row.
+//   0/9/NaN, status casing, placeholder rows skipped, phantom <H1>/<C1> template row.
 // Uses a fresh tmp repoRoot per test (the helper writes under
 //   <root>/.archives/mckinsey/<slug>/). Skipped: security (operator paths);
 //   async (sync); performance (tiny folders).
@@ -51,9 +52,17 @@ const GOOD_LOG = `# al
 |---|---|---|---|---|
 | cliff | 4x | supabase-ops metrics.* | 2 | clears |
 `;
+// v2.0: a complete checkpoint-log carrying the gated closing sessions (pre-wire + dissent).
+const GOOD_CHECKPOINT = `# cp
+| id | stage | kind | presented | team input | decision |
+|---|---|---|---|---|---|
+| C1 | state | frame | TOSCA + core Q + day-one answer | founder agreed | frame set |
+| C2 | solve | dissent | falsifier: if returners don't differ, answer flips | challenged, held | held |
+| C3 | sell | pre-wire | final answer + coverage + pre-mortem | agreed | ship |
+`;
 
 describe("scaffoldRun", () => {
-  it("creates the run folder + all 8 artifact templates", () => {
+  it("creates the run folder + all 9 artifact templates", () => {
     const r = scaffoldRun(ROOT, "free-to-paid-stall");
     expect(r.errors).toEqual([]);
     expect(r.created.sort()).toEqual(ARTIFACTS.map((a: string) => `${a}.md`).sort());
@@ -83,16 +92,24 @@ describe("checkRun — happy path", () => {
     const r = checkRun(ROOT, "fresh");
     expect(r.errors).toEqual([]);
   });
-  it("freshly-scaffolded run passes --before-sell (no real open rows)", () => {
+  it("a freshly-scaffolded run FAILS --before-sell (v2.0: the pre-wire + dissent closing sessions are missing)", () => {
     scaffoldRun(ROOT, "fresh");
-    expect(checkRun(ROOT, "fresh", { beforeSell: true }).errors).toEqual([]);
+    const errs = checkRun(ROOT, "fresh", { beforeSell: true }).errors;
+    expect(has(errs, "no `pre-wire` session")).toBe(true);
+    expect(has(errs, "no `dissent` session")).toBe(true);
   });
-  it("a filled, disciplined run passes", () => {
+  it("a filled, disciplined run passes normal check (checkpoint gate is --before-sell only)", () => {
     scaffoldRun(ROOT, "good");
     writeArtifact("good", "workplan.md", GOOD_WORKPLAN);
     writeArtifact("good", "analysis-log.md", GOOD_LOG);
     expect(checkRun(ROOT, "good").errors).toEqual([]);
-    expect(checkRun(ROOT, "good", { beforeSell: true }).errors).toEqual([]); // all rows validated
+  });
+  it("a COMPLETE disciplined run (workplan validated + pre-wire + dissent logged) passes --before-sell", () => {
+    scaffoldRun(ROOT, "good2");
+    writeArtifact("good2", "workplan.md", GOOD_WORKPLAN);
+    writeArtifact("good2", "analysis-log.md", GOOD_LOG);
+    writeArtifact("good2", "checkpoint-log.md", GOOD_CHECKPOINT);
+    expect(checkRun(ROOT, "good2", { beforeSell: true }).errors).toEqual([]);
   });
 });
 
@@ -255,9 +272,9 @@ describe("checkRun — half-filled open row trips the stopping gate (v1.6 should
     writeArtifact("r", "workplan.md", "# wp\n| issue | hypothesis | analysis | source-of-data | owner | end-product | status |\n|---|---|---|---|---|---|---|\n| cliff | <hyp> | <a> | <src> | <who> | <ep> | open |\n");
     expect(has(checkRun(ROOT, "r", { beforeSell: true }).errors, "stopping gate")).toBe(true);
   });
-  it("the pristine scaffold (template row only) still passes --before-sell", () => {
+  it("the pristine scaffold (template row only) trips no STOPPING gate --before-sell (open-row gate clear; v2.0 checkpoint gate is separate)", () => {
     scaffoldRun(ROOT, "fresh2");
-    expect(checkRun(ROOT, "fresh2", { beforeSell: true }).errors).toEqual([]);
+    expect(checkRun(ROOT, "fresh2", { beforeSell: true }).errors.filter((e: string) => /stopping gate/.test(e))).toEqual([]);
   });
 });
 
@@ -351,5 +368,67 @@ describe("checkRun — HITL receipt gate (v1.8)", () => {
     // 'data source' column literally mentions ask-user; the real provenance col is supabase
     writeArtifact("r", "analysis-log.md", "# al\n| hypothesis | data source | provenance | degree | verdict |\n|---|---|---|---|---|\n| ownership | scraped from an ask-user note | supabase-analytics | 2 | ok |\n");
     expect(hitlErrs("r")).toEqual([]);
+  });
+});
+
+// ---- v2.0: checkpoint gate (McKinsey team-session ledger; --before-sell) ----
+
+const cpLog = (rows: string) => `# cp
+| id | stage | kind | presented | team input | decision |
+|---|---|---|---|---|---|
+${rows}`;
+const cpErrs = (slug: string) => checkRun(ROOT, slug, { beforeSell: true }).errors.filter((e: string) => /checkpoint gate/.test(e));
+const cpWarns = (slug: string) => checkRun(ROOT, slug, { beforeSell: true }).warnings.filter((e: string) => /checkpoint gate/.test(e));
+const cpReady = (slug: string) => {
+  scaffoldRun(ROOT, slug);
+  writeArtifact(slug, "workplan.md", GOOD_WORKPLAN); // validated → stopping gate clear, isolate the checkpoint gate
+};
+
+describe("checkRun — checkpoint gate (v2.0)", () => {
+  it("pre-wire + dissent rows present → no checkpoint errors --before-sell", () => {
+    cpReady("r");
+    writeArtifact("r", "checkpoint-log.md", cpLog("| C1 | sell | pre-wire | final | ok | ship |\n| C2 | solve | dissent | falsifier named | challenged | held |\n"));
+    expect(cpErrs("r")).toEqual([]);
+  });
+  it("missing pre-wire → ERROR", () => {
+    cpReady("r");
+    writeArtifact("r", "checkpoint-log.md", cpLog("| C2 | solve | dissent | falsifier | challenged | held |\n"));
+    expect(has(cpErrs("r"), "no `pre-wire` session")).toBe(true);
+  });
+  it("missing dissent → ERROR", () => {
+    cpReady("r");
+    writeArtifact("r", "checkpoint-log.md", cpLog("| C1 | sell | pre-wire | final | ok | ship |\n"));
+    expect(has(cpErrs("r"), "no `dissent` session")).toBe(true);
+  });
+  it("MUST-FIX #4: the pristine <C1> all-placeholder template row satisfies NEITHER gate", () => {
+    cpReady("r"); // checkpoint-log left as the scaffold template (all <...> placeholders)
+    expect(cpErrs("r").length).toBe(2); // pre-wire + dissent both missing
+  });
+  it("frame + prioritize missing → WARNINGS (not errors)", () => {
+    cpReady("r");
+    writeArtifact("r", "checkpoint-log.md", cpLog("| C1 | sell | pre-wire | final | ok | ship |\n| C2 | solve | dissent | falsifier | challenged | held |\n"));
+    expect(cpErrs("r")).toEqual([]);
+    expect(has(cpWarns("r"), "no `frame` session")).toBe(true);
+    expect(has(cpWarns("r"), "no `prioritize` session")).toBe(true);
+  });
+  it("frame + prioritize present → no warnings", () => {
+    cpReady("r");
+    writeArtifact("r", "checkpoint-log.md", cpLog("| C1 | state | frame | tosca | ok | set |\n| C2 | structure | prioritize | dropped branch X | ok | cut |\n| C3 | solve | dissent | falsifier | challenged | held |\n| C4 | sell | pre-wire | final | ok | ship |\n"));
+    expect(cpErrs("r")).toEqual([]);
+    expect(cpWarns("r")).toEqual([]);
+  });
+  it("case-insensitive: PRE-WIRE / Dissent kinds resolve", () => {
+    cpReady("r");
+    writeArtifact("r", "checkpoint-log.md", cpLog("| C1 | sell | PRE-WIRE | final | ok | ship |\n| C2 | solve | Dissent | falsifier | ok | held |\n"));
+    expect(cpErrs("r")).toEqual([]);
+  });
+  it("a decoy `kind-note` column does NOT steal the `kind` lookup", () => {
+    cpReady("r");
+    writeArtifact("r", "checkpoint-log.md", "# cp\n| id | stage | kind-note | kind | presented | decision |\n|---|---|---|---|---|---|\n| C1 | sell | (n/a) | pre-wire | final | ship |\n| C2 | solve | (n/a) | dissent | falsifier | held |\n");
+    expect(cpErrs("r")).toEqual([]);
+  });
+  it("the checkpoint gate is --before-sell ONLY (a normal check never fires it)", () => {
+    cpReady("r"); // pristine checkpoint-log template (no pre-wire/dissent)
+    expect(checkRun(ROOT, "r").errors.filter((e: string) => /checkpoint gate/.test(e))).toEqual([]);
   });
 });
