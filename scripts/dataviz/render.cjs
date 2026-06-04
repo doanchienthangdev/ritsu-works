@@ -226,7 +226,7 @@ function renderGrouped(data, spec, theme, plot) {
 
 // ── SCATTER ──
 function renderScatter(data, spec, theme, plot) {
-  const pts = Array.isArray(data && data.points) ? data.points : [];
+  const pts = objs(data && data.points);
   const xs = pts.map((p) => Number(p.x));
   const ys = pts.map((p) => Number(p.y));
   const xmax = niceMax(Math.max(1, ...xs));
@@ -246,7 +246,7 @@ function renderScatter(data, spec, theme, plot) {
 
 // ── WATERFALL (running-cumulative bridge; @cto must-fix #4) ──
 function renderWaterfall(data, spec, theme, plot) {
-  const steps = Array.isArray(data && data.steps) ? data.steps.map((s) => ({ label: String(s.label), delta: Number(s.delta), total: !!s.total })) : [];
+  const steps = objs(data && data.steps).map((s) => ({ label: String(s.label), delta: Number(s.delta), total: !!s.total }));
   // running cumulative — total steps sit at absolute (0..cumulative); delta steps float.
   let cum = 0;
   const bars = steps.map((s) => {
@@ -280,14 +280,17 @@ function renderWaterfall(data, spec, theme, plot) {
 
 // ── KPI (big-number callout; can be a stack of several) ──
 function renderKpi(data, spec, theme, plot) {
-  const stats = Array.isArray(data && data.stats) ? data.stats : [{ value: data && data.value, label: data && data.label, sub: data && data.sub }];
+  let stats = objs(data && data.stats);
+  if (!stats.length) stats = [{ value: data && data.value, label: data && data.label, sub: data && data.sub }];
   const n = Math.max(1, stats.length);
   const colW = plot.w / n;
   let out = '';
   stats.forEach((st, i) => {
     const cx = plot.x + colW * i + colW / 2;
     const cy = plot.y + plot.h / 2;
-    out += text(String(st.value != null ? st.value : ''), { x: cx, y: cy, fill: i === 0 ? theme.highlight : theme.ink, 'font-size': Math.min(64, plot.h * 0.42), 'font-family': theme.headingFont, 'font-weight': 'bold', 'text-anchor': 'middle' });
+    const v = st.value;  // NaN/Infinity must not render the literal "NaN"/"Infinity" string.
+    const disp = typeof v === 'number' ? (Number.isFinite(v) ? String(v) : '') : (v != null ? String(v) : '');
+    out += text(disp, { x: cx, y: cy, fill: i === 0 ? theme.highlight : theme.ink, 'font-size': Math.min(64, plot.h * 0.42), 'font-family': theme.headingFont, 'font-weight': 'bold', 'text-anchor': 'middle' });
     if (st.label) out += text(String(st.label), { x: cx, y: cy + 26, fill: theme.inkMuted, 'font-size': SUB_FS, 'font-family': theme.bodyFont, 'text-anchor': 'middle' });
     if (st.sub) out += text(String(st.sub), { x: cx, y: cy + 26 + SUB_FS + 4, fill: theme.inkMuted, 'font-size': LABEL_FS - 1, 'font-family': theme.bodyFont, 'text-anchor': 'middle' });
   });
@@ -323,6 +326,9 @@ function fiveNum(arr) {
   return { min: v[0], q1: q(0.25), median: q(0.5), q3: q(0.75), max: v[v.length - 1] };
 }
 const tlab = (theme, extra) => ({ fill: theme.inkMuted, 'font-size': LABEL_FS, 'font-family': theme.bodyFont, ...extra });
+// Defensive intake: keep only real object elements (a stray null/scalar inside a
+// correctly-named array must not throw — invariant: a renderer never throws).
+const objs = (x) => (Array.isArray(x) ? x : []).filter((e) => e && typeof e === 'object');
 
 // ── AREA (magnitude over time; series[0] filled, others as lines) ──
 function renderArea(data, spec, theme, plot) {
@@ -432,7 +438,7 @@ function renderMarimekko(data, spec, theme, plot) {
 
 // ── BUBBLE (scatter + size-encoded radius — 3 measures) ──
 function renderBubble(data, spec, theme, plot) {
-  const pts = Array.isArray(data && data.points) ? data.points : [];
+  const pts = objs(data && data.points);
   const xs = pts.map((p) => Number(p.x)); const ys = pts.map((p) => Number(p.y));
   const smax = Math.max(1, ...pts.map((p) => Number(p.size) || 1));
   const xmax = niceMax(Math.max(1, ...xs)); const ymax = niceMax(Math.max(1, ...ys));
@@ -547,7 +553,7 @@ function renderSlope(data, spec, theme, plot) {
 
 // ── BULLET (actual vs target — performance KPI bars) ──
 function renderBullet(data, spec, theme, plot) {
-  let measures = Array.isArray(data && data.measures) ? data.measures : null;
+  let measures = Array.isArray(data && data.measures) ? objs(data.measures) : null;
   if (!measures) { const cats = normCats(data); const s0 = normSeries(data)[0] || { values: [] }; measures = cats.map((c, i) => ({ label: c, value: s0.values[i] || 0, target: Number(spec.target) || 0 })); }
   if (!measures.length) return '';
   const maxV = niceMax(Math.max(1, ...measures.map((m) => Math.max(Number(m.value) || 0, Number(m.target) || 0, Number(m.max) || 0))));
@@ -592,7 +598,7 @@ function renderDiverging(data, spec, theme, plot) {
 // ── HISTOGRAM (binned frequency; adjacent columns) ──
 function renderHistogram(data, spec, theme, plot) {
   let bins;
-  if (Array.isArray(data && data.bins)) bins = data.bins.map((b) => ({ label: String(b.label), count: Number(b.count) || 0 }));
+  if (Array.isArray(data && data.bins)) bins = objs(data.bins).map((b) => ({ label: String(b.label), count: Number(b.count) || 0 }));
   else if (Array.isArray(data && data.values)) bins = binValues(data.values, 8);
   else { const cats = normCats(data); const s0 = normSeries(data)[0] || { values: [] }; bins = cats.map((c, i) => ({ label: String(c), count: s0.values[i] || 0 })); }
   if (!bins.length) return '';
@@ -629,7 +635,7 @@ function renderFunnel(data, spec, theme, plot) {
 
 // ── QUADRANT (2×2 matrix — the consulting positioning chart) ──
 function renderQuadrant(data, spec, theme, plot) {
-  const pts = Array.isArray(data && data.points) ? data.points : [];
+  const pts = objs(data && data.points);
   const xs = pts.map((p) => Number(p.x)); const ys = pts.map((p) => Number(p.y));
   const xmax = niceMax(Math.max(1, ...xs)); const ymax = niceMax(Math.max(1, ...ys)); const smax = Math.max(1, ...pts.map((p) => Number(p.size) || 1));
   const px = plot.x + 24; const pw = plot.w - 48; const py = plot.y + 8; const ph = plot.h - 30;
@@ -675,8 +681,8 @@ function renderRadar(data, spec, theme, plot) {
 // ── BOX PLOT (quartiles + whiskers — distribution summary) ──
 function renderBox(data, spec, theme, plot) {
   let boxes;
-  if (Array.isArray(data && data.boxes)) boxes = data.boxes.map((b) => ({ label: String(b.label), min: Number(b.min) || 0, q1: Number(b.q1) || 0, median: Number(b.median) || 0, q3: Number(b.q3) || 0, max: Number(b.max) || 0 }));
-  else if (Array.isArray(data && data.samples)) boxes = data.samples.map((s) => ({ label: String(s.label), ...fiveNum(s.values) }));
+  if (Array.isArray(data && data.boxes)) boxes = objs(data.boxes).map((b) => ({ label: String(b.label), min: Number(b.min) || 0, q1: Number(b.q1) || 0, median: Number(b.median) || 0, q3: Number(b.q3) || 0, max: Number(b.max) || 0 }));
+  else if (Array.isArray(data && data.samples)) boxes = objs(data.samples).map((s) => ({ label: String(s.label), ...fiveNum(s.values) }));
   else return '';
   if (!boxes.length) return '';
   const allV = boxes.flatMap((b) => [b.min, b.max]); const lo = Math.min(...allV); const hi = Math.max(...allV); const pad = (hi - lo) * 0.1 || 1;
@@ -719,7 +725,10 @@ function renderChart(chartType, data, spec, theme) {
   const ct = BUILT.includes(chartType) ? chartType : 'bar';
   const sp = { width: 720, height: 540, titleStyle: 'action', ...(spec || {}) };
   const f = frame(sp, theme);
-  const plotBody = (DISPATCH[ct] || renderBar)(data || {}, sp, theme, f.plot);
+  // A renderer must NEVER throw out of renderChart — on any unexpected/malformed shape,
+  // degrade to a titled, footed, empty exhibit (valid SVG, no throw, no NaN).
+  let plotBody = '';
+  try { plotBody = (DISPATCH[ct] || renderBar)(data || {}, sp, theme, f.plot); } catch (_) { plotBody = ''; }
   return svgDoc(f.W, f.H, f.head + plotBody + f.foot, theme.bg);
 }
 

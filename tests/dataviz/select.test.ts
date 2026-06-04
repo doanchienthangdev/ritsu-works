@@ -99,3 +99,10 @@ describe("detectIntent + resolve — internals", () => {
   it("detectIntent falls back to 'item' on no match", () => expect(detectIntent("nothing here", {})).toBe("item"));
   it("resolve maps a cataloged ideal to its built fallback with a reason", () => { const r = resolve("component", "treemap of folders", { has_time_axis: false, n_categories: 3 }, {}); expect(BUILT).toContain(r.chartType); });
 });
+
+describe("selectChart — tightened heuristics (review hardening)", () => {
+  it("bare 'customer satisfaction by region' is NOT forced to diverging", () => expect(selectChart("customer satisfaction by region").chartType).not.toBe("diverging"));
+  it("explicit agree/disagree still → diverging", () => expect(selectChart("agree vs disagree by cohort").chartType).toBe("diverging"));
+  it("two-period 'both X and Y by dimension' is NOT forced to marimekko", () => expect(selectChart("compare both this year and last year by dimension", { n_periods: 2 }).intent).not.toBe("marimekko"));
+  it("size-and-share still → marimekko", () => expect(selectChart("market size and share by segment").chartType).toBe("marimekko"));
+});

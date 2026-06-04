@@ -114,3 +114,30 @@ describe("renderChart — v0.2 byte-stability + degenerate safety", () => {
     for (const [t, d] of cases) { const s = renderChart(t, d, SPEC, THEME); expect(s.includes("NaN")).toBe(false); expect(s.includes("undefined")).toBe(false); expect(s.startsWith("<svg")).toBe(true); }
   });
 });
+
+// ============================================================================
+// Review hardening (adversarial code-review findings, 2026-06-04): a renderer
+// must NEVER throw + NEVER emit "NaN"/"undefined" — even on a null/scalar element
+// inside a correctly-named array, and kpi must not render a non-finite number.
+// ============================================================================
+describe("renderChart — malformed array elements never throw / no NaN", () => {
+  const MALFORMED: [string, any][] = [
+    ["scatter", { points: [null, { x: 1, y: 2 }, 3] }],
+    ["bubble", { points: [null] }],
+    ["quadrant", { points: [null, undefined] }],
+    ["waterfall", { steps: [null, { label: "x", delta: 5 }] }],
+    ["funnel", { stages: [null] }],
+    ["bullet", { measures: [null] }],
+    ["histogram", { bins: [null] }],
+    ["box", { boxes: [null] }],
+    ["box", { samples: [null] }],
+    ["kpi", { stats: [null] }],
+  ];
+  it("never throws + emits valid NaN-free SVG for null/scalar elements", () => {
+    for (const [t, d] of MALFORMED) { let s = ""; expect(() => { s = renderChart(t, d, SPEC, THEME); }).not.toThrow(); expect(s.startsWith("<svg")).toBe(true); expect(s.includes("NaN")).toBe(false); expect(s.includes("undefined")).toBe(false); }
+  });
+  it("renders the valid elements alongside a null (graceful, not all-or-nothing)", () => { const s = renderChart("scatter", { points: [null, { x: 5, y: 5, label: "P" }] }, SPEC, THEME); expect(s).toContain("<circle"); expect(s).toContain(">P<"); });
+  it("kpi never renders literal 'NaN'/'Infinity' for a non-finite numeric value", () => { const s = renderChart("kpi", { stats: [{ value: NaN, label: "x" }, { value: Infinity }] }, SPEC, THEME); expect(s.includes("NaN")).toBe(false); expect(s.includes("Infinity")).toBe(false); });
+  it("kpi keeps string + finite-number values", () => { const s = renderChart("kpi", { stats: [{ value: "42%" }, { value: 9 }] }, SPEC, THEME); expect(s).toContain("42%"); expect(s).toContain(">9<"); });
+  it("the renderChart try/catch net wraps a throwing renderer into a valid footed exhibit", () => { const s = renderChart("scatter", { get points() { throw new Error("boom"); } }, SPEC, THEME); expect(s.startsWith("<svg")).toBe(true); expect(s).toContain("Source: Internal"); });
+});

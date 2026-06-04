@@ -38,12 +38,14 @@ const RULES = [
   { id: 'funnel', fn: (m, h) => has(m, /\b(funnel|conversion (rate|funnel|path)|drop[-\s]?off|stage[-\s]?by[-\s]?stage|through the (stages|pipeline)|signup.*(activation|paid)|step[-\s]?through)\b/) },
   // actual-vs-target performance → bullet.
   { id: 'bullet', fn: (m, h) => h.has_target || has(m, /\b((vs\.?|versus|against|to) target|performance (vs|against|to) (goal|target|plan)|actual vs\.? (target|plan|budget)|attainment|% of (goal|target|quota)|on track (to|against))\b/) },
-  // Likert / sentiment split around a center → diverging.
-  { id: 'diverging', fn: (m, h) => h.is_likert || has(m, /\b(agree|disagree|satisfaction|favora|unfavora|sentiment|likert|approve.*disapprove|positive.*negative responses|net (promoter|sentiment))\b/) },
+  // Likert / sentiment split around a center → diverging. (Bare "satisfaction"/"sentiment"
+  // are too broad — require an explicit opposing-pair signal or is_likert.)
+  { id: 'diverging', fn: (m, h) => h.is_likert || has(m, /\b(agree|disagree|favora|unfavora|likert|approve.*disapprove|positive.*negative responses|net (promoter|sentiment)|strongly (agree|disagree))\b/) },
   // 2x2 / positioning / prioritization matrix → quadrant (before scatter).
   { id: 'quadrant', fn: (m, h) => has(m, /\b(2\s?[x×]\s?2|two[-\s]by[-\s]two|quadrant|positioning (map|matrix)|priorit\w* matrix|bcg matrix|magic quadrant|attractiveness vs|impact vs effort|map(ped)? on two)\b/) },
-  // two share dimensions (size × share) → marimekko (built in v0.2).
-  { id: 'marimekko', fn: (m, h) => has(m, /\b(size\s+(and|x|×|by)\s+share|market size.*share|by segment and by (player|competitor|region)|both.*and.*(axis|dimension)|two (share )?dimensions|mekko|marimekko)\b/) },
+  // two share dimensions (size × share) → marimekko (built in v0.2). (Dropped the loose
+  // "both…and…axis/dimension" clause — it caught ordinary two-period comparisons.)
+  { id: 'marimekko', fn: (m, h) => has(m, /\b(size\s+(and|x|×|by)\s+share|market size.*share|by segment and by (player|competitor|region)|two (share|size) dimensions|mekko|marimekko)\b/) },
   // three measures → bubble; exactly two → scatter.
   { id: 'bubble', fn: (m, h) => h.n_measures >= 3 || h.has_size || has(m, /\bbubble\b/) },
   { id: 'scatter', fn: (m, h) => h.n_measures === 2 || has(m, /\b(correlat|relationship between|relates to|varies with|the more.*the (more|less)|as\s+\S+\s+(rises|increases|grows).*(rises|falls|increases|decreases)|driven by|scatter)\b/) },
