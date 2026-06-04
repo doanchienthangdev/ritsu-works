@@ -1,32 +1,41 @@
 ---
 name: dataviz/select
 description: |
-  The Zelazny message→chart-type selector for /dataviz. Choose the chart FROM THE
-  MESSAGE, not the data (Gene Zelazny, "Say It With Charts"). Deterministic, pure
+  The intelligent, context-aware chart selector for /dataviz (v0.2). Choose the chart
+  FROM THE MESSAGE, not the data (Gene Zelazny), made smart: a full chart taxonomy +
+  a multi-factor pipeline (message-intent → data-shape → audience → McKinsey guard-rails
+  → built type) that returns the BEST chart with an explained reason, runner-up
+  alternatives, anti-pattern warnings, and a confidence. Deterministic, pure
   (scripts/dataviz/select.cjs). Used by gen.cjs when --chart=auto.
 allowed-tools: [Read, Bash]
 disable-model-invocation: false
 ---
 
-# dataviz/select — pick the chart from the message
+# dataviz/select — pick the BEST chart for the context, and defend the choice
 
-> **The whole method in one sentence: choose the chart from the MESSAGE, not the data.** Write the message as one complete sentence (it doubles as the action-title), find its trigger words, map to ONE comparison type, then the data only fills the form.
+> **The whole method: choose the chart from the MESSAGE, not the data (Zelazny) — and do it the way a McKinsey analyst would: pick the form that makes the point, explain why, name the runner-ups, and refuse the anti-patterns.** The "smart" core of `/dataviz`.
 
-`selectChart(message, hints) -> { chartType, ideal, reason }` (`scripts/dataviz/select.cjs`). Top-down FIRST-MATCH (order resolves overlaps):
+`selectChart(message, hints, context) -> { chartType, ideal, family, intent, reason, alternatives[], warnings[], confidence }` (`scripts/dataviz/select.cjs`, PURE, deterministic — no LLM in the path; the calling agent supplies the message + data).
 
-1. **waterfall** — bridge / build-up / contribution-to-change / inflows-outflows / has_negatives ("how did we get from A to B").
-2. **marimekko** (→ stacked100 in v0.1) — two share dimensions (size × share).
-3. **bubble** (→ scatter) — three measures.
-4. **scatter** — correlation / relationship-between / two measures.
-5. **histogram** (→ column) — distribution / frequency / buckets.
-6. **stacked100** — a share-word AND a time-word (component over time; never multiple pies).
-7. **grouped** — leader-vs-laggard triad (winners/high-performers vs others), n_series ≥ 2.
-8. **component** (→ bar) — share / % / composition single-period (McKinsey demotes pie → ranked bar).
-9. **timeseries** → column (≤7 periods, absolute, zero-baseline) | line (many periods / multi-series).
-10. **item** → horizontal bar sorted desc (Zelazny safe default / fallback).
+## The knowledge base
 
-**Two HARD guard-rails:** (#1) **entity x-axis ⇒ Item, never time-series** — only a real date/period axis is time ("market share by salesperson" reads like a trend but is a ranking). (#2) **>~6 slices ⇒ demote pie → bar.** **`vs.`/`%` are overloaded** — disambiguate by operand TYPE (entity-vs-entity = Item; measure-vs-measure = correlation; part-of-whole = component), never the token.
+`scripts/dataviz/lib/taxonomy.cjs` — every chart type from the Datylon catalog (~74), each tagged: `family` (comparison · correlation · part-to-whole · change-over-time · distribution · flow-geospatial · kpi), `built` (27) vs cataloged, `fallback` (the nearest built type), `mckinsey` stance (preferred · acceptable · demoted · avoid), `intents`, data-shape `needs`. This is what makes selection *informed*, not a keyword guess.
 
-**Hints** (data tie-breakers only): `{ n_categories, n_periods, n_series, n_measures, has_negatives, has_time_axis, max_pie_slices=6 }`. Deferred ideals map to the nearest BUILT type + an honest `reason`. Seeded from `wiki/cracked-it/concepts/quantitative-chart-typology.md` (the Cracked It! Ch.11 Zelazny+waterfall taxonomy).
+## The pipeline (the six factors)
 
-The chosen message-sentence IS the rendered **action-title** (analytical/survey genre) or a topic label (brand/survey-trend genre).
+1. **Message INTENT** — 18 ordered first-match trigger rules → a Zelazny comparison kind (waterfall · funnel · bullet · diverging · quadrant · marimekko · bubble · scatter · radar · box · histogram · slope · dumbbell · stacked100 · grouped · component · timeseries · item).
+2. **Data SHAPE** (`hints`) disambiguates within the family — `n_measures` 2→scatter / 3→bubble; share + time → 100%-stacked vs `stacked-area` (relative vs absolute); single-period part-to-whole → pie (then demoted); `n_periods`=2 + ≥4 items → slope; `has_target` → bullet; `has_size` → bubble.
+3. **CONTEXT** (`context.audience`) nudges — `exec` + a long ranking → `lollipop` (space-efficient); `general` → `bar` (the safe default).
+4. **McKinsey GUARD-RAILS** — (#1) an entity x-axis is an **Item compare, never a trend**; (#2) **pie/donut are DEMOTED → ranked bar** in auto mode (force with `--chart=pie`); warnings on >6 pie slices, >5 grouped series (→ small-multiples/line), radar >8 axes.
+5. **Map ideal → BUILT** — a cataloged ideal renders as `taxonomy.fallback` + an honest `reason`. (In v0.2 the selector's detected ideals are all built, so this mainly serves explicit `--chart=<cataloged>`.)
+6. **Explain** — `reason` (the headline rationale), `alternatives[]` (2-3 runner-up built types with a `why`), `warnings[]` (anti-patterns, consequence-honest), `confidence` (high / medium / low). `--explain` prints all of it.
+
+## Hints (data tie-breakers, computed by gen.cjs `buildHints`)
+
+`{ n_categories, n_periods, n_series, n_measures, n_axes, has_negatives, has_time_axis, has_target, has_size, is_likert, max_pie_slices=6 }`.
+
+## What's preserved vs what changed (v0.1 → v0.2)
+
+The v0.1 rule outcomes are **preserved** (same ideal for the same input); v0.2 **adds** intents (funnel/bullet/diverging/quadrant/radar/box/slope/dumbbell/area/stacked-area) + the explainability fields. Three v0.1 outcomes **intentionally improve** because the deferred types are now built: marimekko/bubble/histogram now render natively instead of falling back to stacked100/scatter/column.
+
+The chosen message-sentence IS the rendered **action-title** (analytical/survey genre) or a topic label (`--title-style=topic`, brand/survey-trend genre). Seeded from `wiki/cracked-it/concepts/quantitative-chart-typology.md` (Cracked It! Ch.11) + the Datylon taxonomy.

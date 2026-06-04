@@ -2,20 +2,22 @@
 description: |
   Turn a data source into a McKinsey-caliber chart — model-agnostic front door with
   a pluggable renderer layer (--use=<renderer>). Default backend svg-native (in-repo,
-  zero-dependency, pure-Node, byte-stable SVG). Chooses the chart type FROM THE MESSAGE
-  (Zelazny "Say It With Charts"), encodes the McKinsey aesthetic (one-highlight,
-  data-ink minimalism, direct labels, action-title-on-the-chart, source footer), and
-  brands via the SAME --style design-system + --art-style axes as /image + /deepask.
+  zero-dependency, pure-Node, byte-stable SVG). v0.2: 27 built chart types across all
+  six chart families + an INTELLIGENT, context-aware selector that picks the BEST chart
+  from the message + data-shape + audience (Zelazny "Say It With Charts"), explains its
+  choice, offers alternatives, and warns on anti-patterns. Encodes the McKinsey aesthetic
+  (one-highlight, data-ink minimalism, direct labels, action-title-on-the-chart, source
+  footer); brands via the SAME --style design-system + --art-style axes as /image + /deepask.
   Pure/offline (NO API key). Tier A; artifacts to .archives/dataviz/<date>-<slug>/.
   Thin orchestrator over the `dataviz` umbrella skill (scripts/dataviz/gen.cjs).
-argument-hint: "<message> --data=<path|json|csv> [--chart=auto|<type>] [--style=<ds>] [--source=...] [--format=svg|html|inline] [--theme=mckinsey] [--highlight=<series>]"
+argument-hint: "<message> --data=<path|json|csv> [--chart=auto|<type>] [--style=<ds>] [--source=...] [--audience=exec|analyst] [--explain] [--format=svg|html|inline]"
 ---
 
 # /dataviz
 
 Project-scoped command for ritsu-works. Front-end for the **dataviz** capability
-(v0.1) — a general, reused-many-times data-visualization platform like `/image`, but
-for **data → chart**. Capability spec: `wiki/capabilities/dataviz/spec.md` (after Phase 8).
+(v0.2) — a general, reused-many-times data-visualization platform like `/image`, but
+for **data → chart**. Capability spec: `wiki/capabilities/dataviz/spec.md`.
 
 The command is a **thin orchestrator**. The brains live in `scripts/dataviz/`
 (all PURE + unit-tested): `select.cjs` (the Zelazny message→chart-type selector),
@@ -42,7 +44,7 @@ the conversation; file modes write to `.archives/dataviz/<date>-<slug>/`).
 |---|---|---|---|
 | `<message>` / `--message` | one sentence | — | the MESSAGE (Zelazny: drives the chart choice AND becomes the action-title) |
 | `--data` | path (.json/.csv) \| inline JSON \| inline CSV | — | the series-data (NOT pixels) |
-| `--chart` | `auto` \| `bar`/`column`/`line`/`stacked`/`stacked100`/`grouped`/`scatter`/`waterfall`/`kpi` | `auto` | force a type or auto-select from `--message` |
+| `--chart` | `auto` \| one of 27 built types | `auto` | force a type, or let the intelligent selector pick from `--message` + data + `--audience`. Built: `bar column line area stacked-area stacked stacked100 grouped scatter bubble waterfall kpi pie donut marimekko heatmap dumbbell lollipop dot slope bullet diverging histogram box funnel quadrant radar`. A cataloged type (treemap, sankey, …) maps to the nearest built + an honest note. |
 | `--title` / `--title-style` | string / `action`\|`topic` | `--message` / `action` | exhibit caption override; topic labels for survey/trend genre |
 | `--source` | string | — | the mandatory source footer (`Source: <data>; McKinsey analysis` or survey form) |
 | `--footnotes` | `a \| b \| c` | — | footnote lines (incl. the `Note: …rounding` line on stacked) |
@@ -54,11 +56,28 @@ the conversation; file modes write to `.archives/dataviz/<date>-<slug>/`).
 | `--ar` / `--width` / `--height` | `W:H` / px / px | `4:3` / 720 | exhibit size (aspect is SEMANTIC — never auto-stretched) |
 | `--unit` / `--decimals` / `--percent` / `--thousands` | … | — | number formatting (stated once, consistent per exhibit) |
 | `--use` | `svg-native` \| (stubs) | `svg-native` | pluggable renderer (`knowledge/dataviz-renderers.yaml`) |
+| `--audience` | `exec` \| `analyst` \| `general` | `general` | context modifier for auto-selection (e.g. a long ranking → lollipop for exec) |
+| `--explain` | flag | — | print the selector's rationale: chosen chart + ideal + family + reason + alternatives + anti-pattern warnings + confidence |
+| `--target` | number | — | target / reference value (bullet chart marker; reference line) |
+| `--x-label` / `--y-label` | string | — | axis labels (scatter / bubble / quadrant / box) |
 | `--out` / `--dry-run` / `--max-cost-usd` | path / — / usd | — | output path / plan-only / breaker (symmetry with /image) |
 
 ## What makes it McKinsey-grade
 
 1. **Chart from the MESSAGE, not the data** (Zelazny). 2. **One highlight only** (the rest neutral gray). 3. **Data-ink minimalism** (no gridlines/legend/3D/fill). 4. **Direct data labels** (no legend). 5. **Bar value-axis from zero** (no truncation). 6. **Action-title ON the chart** + a **source footer on every exhibit**. 7. **Structure ⊥ brand** — `--style` overrides the palette/type, never the structure. Grounded in 3 real McKinsey reports (see `06-ai-ops/skills/dataviz/renderers/svg-native/SKILL.md` + the dataviz-design-brief).
+
+## The intelligent selector (v0.2 — the "smart" core)
+
+`--chart=auto` (the default) does what a McKinsey analyst does: it **chooses the right chart for THIS context, and can defend the choice.** Backed by the full chart taxonomy (`scripts/dataviz/lib/taxonomy.cjs` — every type from the Datylon catalog, tagged by family + message-intent + data-shape + McKinsey stance + anti-patterns), the selector (`scripts/dataviz/select.cjs`, PURE):
+
+1. **detects the message INTENT** (18 ordered trigger rules → a Zelazny comparison kind);
+2. **resolves the ideal chart from the DATA SHAPE** (2 measures → scatter, 3 → bubble; share + time → 100%-stacked vs stacked-area; single period part-to-whole → pie, **auto-demoted to bar**; …);
+3. **nudges by CONTEXT** (`--audience=exec` simplifies; a long ranking → lollipop);
+4. **applies the McKinsey guard-rails** (entity x-axis ⇒ Item not trend; pie/donut demote; warns on >6 pie slices, too many grouped series, radar >8 axes);
+5. **maps any cataloged ideal → the nearest built type** with an honest reason;
+6. **returns the choice + an explained `reason` + runner-up `alternatives` + anti-pattern `warnings` + a `confidence`** — run `--explain` to see all of it.
+
+This is the feature that matters for both ritsu-works exhibits and the `/think mckinsey` engine: pick the chart that makes the point, not just *a* chart.
 
 ## Composition
 

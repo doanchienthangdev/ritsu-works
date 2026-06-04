@@ -20,7 +20,7 @@
 # Consumer:  06-ai-ops/skills/dataviz/SKILL.md (--use=<renderer>)
 # ============================================================================
 
-version: "1.0.0"
+version: "1.1.0"
 schema: knowledge/schemas/dataviz-renderers.schema.json
 
 renderers:
@@ -29,15 +29,17 @@ renderers:
     generator: scripts/dataviz/render.cjs
     skill: 06-ai-ops/skills/dataviz/renderers/svg-native/SKILL.md
     default_theme: mckinsey
-    chart_types: [bar, column, line, stacked, stacked100, grouped, scatter, waterfall, kpi]
-    deferred_chart_types: [marimekko, statstack, dumbbell, diverging, bubble, heatmap, bubble-matrix, histogram, area, small-multiples, pie]
-    supports: [message, chart, data, title, title-style, source, footnotes, highlight, sort, unit, decimals, percent, thousands, style, theme, format, ar, width, height, use, out, max-cost-usd, dry-run]
+    # v0.2: 27 BUILT types (the source of truth is scripts/dataviz/lib/taxonomy.cjs `BUILT`).
+    chart_types: [bar, column, grouped, lollipop, dot, dumbbell, slope, radar, quadrant, bullet, scatter, bubble, heatmap, stacked, stacked100, pie, donut, marimekko, diverging, funnel, line, area, stacked-area, histogram, box, waterfall, kpi]
+    # CATALOGED (named in the taxonomy; the selector maps to the nearest built type + an honest reason).
+    deferred_chart_types: [small-multiples, range, pictogram, icon-chart, radial-bar, nightingale, parallel-coordinates, matrix-chart, word-cloud, table-chart, connected-scatter, hexbin, contour, waffle, treemap, population-pyramid, icon-array, sunburst, dendrogram, venn, euler, gauge, semicircle-donut, bump, stream, spline, step-line, gantt, candlestick, ohlc, barcode, density, ridgeline, violin, strip, jitter, beeswarm, horizon, radial-histogram, sankey, chord, arc, network, flowchart, choropleth, tile-map, geo-heatmap]
+    supports: [message, chart, data, title, title-style, source, footnotes, highlight, sort, unit, decimals, percent, thousands, style, theme, format, ar, width, height, use, out, max-cost-usd, dry-run, explain, audience, target, x-label, y-label]
     supports_stretch: []
     unsupported_warn: [art-style]
     auth:
       env: null            # PURE / offline — no secret, no API key (unlike /image's OPENAI_API_KEY)
       billing: in-process-pure
-    notes: "Zero-dependency pure-Node SVG-string renderer (no d3/canvas/DOM). renderChart(chartType,data,spec,theme)->svgString is a PURE function → byte-stable, snapshot-free toBe()/toEqual() tests. Format png/pdf rasterization is a v0.2 stretch (svg/html/inline in v0.1)."
+    notes: "Zero-dependency pure-Node SVG-string renderer (no d3/canvas/DOM). renderChart(chartType,data,spec,theme)->svgString is a PURE function → byte-stable, snapshot-free toBe()/toEqual() tests. v0.2 (extend): 27 built chart types across all six Datylon families + the intelligent context-aware selector (scripts/dataviz/select.cjs) backed by the full chart taxonomy (scripts/dataviz/lib/taxonomy.cjs). Format png/pdf rasterization remains a stretch (svg/html/inline)."
 
   - id: echarts-ssr
     status: registered-not-built

@@ -16,6 +16,8 @@ const UNIVERSAL_PARAMS = Object.freeze([
   'highlight', 'sort', 'unit', 'decimals', 'percent', 'thousands',
   'style', 'art-style', 'theme', 'format', 'ar', 'width', 'height',
   'use', 'out', 'max-cost-usd', 'dry-run',
+  // v0.2 (extend): the intelligent-selection + new-chart inputs.
+  'explain', 'audience', 'target', 'x-label', 'y-label',
 ]);
 
 const FORMATS = Object.freeze(['svg', 'png', 'html', 'inline']);
@@ -28,13 +30,16 @@ const DEFAULTS = Object.freeze({
   'max-cost-usd': 0.05, 'dry-run': false,
 });
 
-const BOOL_FLAGS = Object.freeze(['dry-run', 'sort', 'percent', 'thousands']);
-const NUM_FLAGS = Object.freeze(['width', 'height', 'decimals', 'max-cost-usd', 'highlight']);
+const BOOL_FLAGS = Object.freeze(['dry-run', 'sort', 'percent', 'thousands', 'explain']);
+const NUM_FLAGS = Object.freeze(['width', 'height', 'decimals', 'max-cost-usd', 'highlight', 'target']);
 
 // Params that are operational plumbing, never a "renderer can't do this" warning.
 // NB: `art-style` is deliberately NOT here — it falls to the unsupported_warn path
 // (a pure data chart has no illustration surface; honest no-op + consequence).
-const NEVER_WARN = Object.freeze(['message', 'chart', 'data', 'title', 'title-style', 'source', 'footnotes', 'highlight', 'sort', 'unit', 'decimals', 'percent', 'thousands', 'style', 'theme', 'format', 'ar', 'width', 'height', 'use', 'out', 'max-cost-usd', 'dry-run']);
+// `explain` + `audience` are selection PLUMBING (never a "renderer can't do this" warning).
+// `target`/`x-label`/`y-label` are renderer CAPABILITIES — they fall to the supports/warn path
+// (a future renderer without axis labels SHOULD warn), so they are NOT listed here.
+const NEVER_WARN = Object.freeze(['message', 'chart', 'data', 'title', 'title-style', 'source', 'footnotes', 'highlight', 'sort', 'unit', 'decimals', 'percent', 'thousands', 'style', 'theme', 'format', 'ar', 'width', 'height', 'use', 'out', 'max-cost-usd', 'dry-run', 'explain', 'audience']);
 
 // Consequence text for params a backend doesn't honor (consequence-honest, never silent).
 const CONSEQUENCE = Object.freeze({
