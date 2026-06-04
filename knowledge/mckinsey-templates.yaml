@@ -27,8 +27,15 @@
 # Consumer:  06-ai-ops/skills/thinking-toolkit/mckinsey-sell/SKILL.md (--sell=<id>)
 # ============================================================================
 
-version: "1.1.0"
+version: "1.2.0"
 schema: knowledge/schemas/mckinsey-templates.schema.json
+# v2.2: the GENRE matrix (brand/impact · survey/data · thought-leadership-POV ·
+# decision-memo) is the first classification step — see mckinsey-deliverable-anatomy.md
+# (now rebuilt from 3 REAL primary-source reports read end-to-end: [SIG] sustainable-
+# growth-2025, [AI25] state-of-AI-2025, [B2B26] b2b-economics-2026). grounded_in below
+# re-anchored to those primaries. Exhibits render via /dataviz (the per-exhibit chart
+# capability) — the action-title is the chart message + caption; the source line is the
+# footer /dataviz mandates.
 
 mckinsey_templates:
   - id: governing-thought-memo
@@ -88,7 +95,8 @@ mckinsey_templates:
       - "APK guard: no story-of-the-search"
     default_format: pdf
     grounded_in:
-      - "MGI publishes standalone 'In Brief' boxed-bullet summaries — 'A Future That Works' In-Brief PDF (mckinsey.com); MGI 'AI: The Next Digital Frontier' IN BRIEF section (anyflip.com/hhxry/mlmg)"
+      - "[B2B26] PRIMARY (read end-to-end): The surprising economics of B2B growth (Jun 2026) — the gold-standard 'At a glance' box (p.2): 5 em-dash bullets, each a BOLD-ITALIC lead-in sentence + a roman gloss, answer-first. mckinsey-deliverable-anatomy.md §1."
+      - "MGI also publishes standalone 'In Brief' boxed-bullet summaries ('A Future That Works' In-Brief PDF, mckinsey.com)"
 
   - id: action-titled-deck
     name: "Action-Titled Deck"
@@ -140,7 +148,8 @@ mckinsey_templates:
       - "Named 'implications / where to start' block, not just a conclusion"
     default_format: article
     grounded_in:
-      - "Full real-report anatomy (Preface → IN BRIEF → exec summary → MECE all-caps action-title chapters → action-title exhibits → 'businesses... need to act now' → Appendix B technical appendix, n=3,073 → city-tagged authors) — MGI 'AI: The Next Digital Frontier' (anyflip.com/hhxry/mlmg)"
+      - "[AI25] PRIMARY (read end-to-end): The state of AI in 2025 (QuantumBlack, Nov 2025, 30pp/19 exhibits) — numbered 'Key findings' 1-6 In-Brief (stat per bullet) → action-title section AND exhibit headers → 'About the research' box (n=1,993, GDP-weighted) + 6 expert-commentary panels + restating pull-quotes → city-tagged byline + Insights-App QR. mckinsey-deliverable-anatomy.md §0-§6."
+      - "Full real-report anatomy also confirmed in MGI 'AI: The Next Digital Frontier' (Preface → IN BRIEF → MECE action-title chapters → technical appendix n=3,073 → city-tagged authors)"
 
   - id: insights-article
     name: "Insights Article (short thought-leadership; topic-labels OK)"

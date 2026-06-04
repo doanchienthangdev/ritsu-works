@@ -4,6 +4,16 @@
 > (`knowledge/capability-registry.yaml`, `thinking-toolkit` entry) and `spec.md`.
 > This file is the forward changelog from the point it was created (v1.7).
 
+## v2.2.0 — 2026-06-04 — primary-source genre matrix + /dataviz integration
+
+**`/cla extend thinking-toolkit`** · the founder's two upgrades: report presentation *"đạt tầm vóc mckinsey"* + integrate the new `/dataviz` capability. Grounded by the **`mckinsey-grounding-research` workflow** (the founder asked to "tạo workflows") reading **3 REAL local McKinsey PDFs end-to-end** ([SIG] sustainable-growth-2025, [AI25] state-of-AI-2025, [B2B26] b2b-economics-2026).
+
+**Part 1 — primary-source genre matrix.** Rebuilt `mckinsey-deliverable-anatomy.md` from the 3 primary reports (v2.1 used blog deconstructions). **Key finding: McKinsey has NO single house format — it is a GENRE-KEYED format system** (brand/impact · survey/data · thought-leadership-POV · decision-memo), each with its own front-matter device, header style, close, and methodology placement. `mckinsey-sell` now **classifies the genre FIRST**; added pull-quote/Pro-tip elements + the two verbatim source-footer forms; re-anchored `grounded_in` to the 3 primaries (templates 1.1.0 → 1.2.0).
+
+**Part 2 — `/dataviz` integration.** The new `/dataviz` capability (CLA A, PR #235) is consumed at Sell: `mckinsey-sell` renders **every exhibit via `/dataviz`** (the exhibit action-title = the chart `--message`+caption; the source line = the footer `/dataviz` mandates; `--style` flows the brand). McKinsey is exhibit-led; the deliverable now ships genuine McKinsey-grade charts, not prose-described ones.
+
+**Changed:** `mckinsey-deliverable-anatomy.md` (rewritten) + `mckinsey-sell`/`mckinsey-workflow` SKILL.md + `mckinsey-templates.yaml` (1.1.0 → 1.2.0). No new gate, no schema change. Decision: `ops.decisions` slug `thinking-toolkit-v2.2-real-grounding-and-dataviz`. Reversibility 5/5.
+
 ## v2.1.0 — 2026-06-04 — grounded sell templates + dynamic-workflow orchestration
 
 **`/cla extend thinking-toolkit`** · MINOR (additive; `--workflow` defaults off → v2.0 preserved) · @cto APPROVE-WITH-NITS (4 fixes integrated). Two upgrades the founder asked for: sell *"đúng chuẩn McKinsey ngoài đời thực chứ không đoán"* + dynamic workflows at the important points.
