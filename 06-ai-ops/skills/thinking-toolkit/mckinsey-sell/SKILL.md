@@ -37,7 +37,9 @@ disable-model-invocation: false
 
 ## Pick the template (`--sell`)
 
-Read `knowledge/mckinsey-templates.yaml` (9 templates) — and **read `mckinsey-deliverable-anatomy.md` (co-located here)**: the real McKinsey deliverable anatomy EXTRACTED FROM ACTUAL REPORTS (the In-Brief box, action-title exhibit captions + source footers, the "where to start" block, the methodology/appendix, the author box). The templates are grounded in it (`grounded_in` cites the real reports); render to match what McKinsey actually ships, not a guess. `--sell=<id>` selects one; `--sell=auto` (default) picks by `--audience` + the deliverable kind:
+**Classify the GENRE first (v2.2 — the single biggest discipline).** McKinsey has no ONE house format — it has a **genre-keyed format system** (grounded in 3 real reports): **brand/impact** (visual-TOC + signed letter; two-register topic-label headers; ~no charts) · **survey/data** (numbered "Key findings" In-Brief; action-title section AND exhibit headers; exhibit-dense + commentary panels) · **thought-leadership POV** (boxed "At a glance" bold-italic In-Brief; topic-label section headers BUT action-title exhibit titles; SCR spine) · **decision-memo/deck** (the pyramid templates). The genre matrix in the anatomy doc routes the front-matter device, the header style, the close, and the methodology placement. **The most common bug: applying survey/POV action-titles to a brand piece, or brand two-register headers to a data report whose exhibit titles MUST be action sentences.**
+
+Read `knowledge/mckinsey-templates.yaml` (9 templates) — and **read `mckinsey-deliverable-anatomy.md` (co-located here)**: the real McKinsey deliverable anatomy EXTRACTED FROM ACTUAL REPORTS (primary-source, v2.2) (the In-Brief box, action-title exhibit captions + source footers, the "where to start" block, the methodology/appendix, the author box). The templates are grounded in it (`grounded_in` cites the real reports); render to match what McKinsey actually ships, not a guess. `--sell=<id>` selects one; `--sell=auto` (default) picks by `--audience` + the deliverable kind:
 - **receptive memo** → `governing-thought-memo` (lead with the answer, grouped support).
 - **skeptical** → `scr-storyline` or `scqa-memo` (argument-led; walk them from shared context to the answer).
 - A presentation → `action-titled-deck`; a board paper → `pyramid-doc`; a time-poor exec one-pager → `exec-one-pager`; a **boxed C-suite summary** → `executive-briefing`.
@@ -69,6 +71,22 @@ Skill({skill: "deepask/format", args: "<IR + --format=<medium> --style=<ds> --ar
 - `--art-style=<genre>` adds an artistic genre for image formats; a no-op for non-visual.
 
 The final deliverable is written alongside `communication.md` in the run folder (the "sell" = `communication.md` [the storyline] + the rendered artifact). The full run artifact set (`problem-statement → … → checkpoint-log → synthesis → communication` + the rendered deliverable) ships WITH the deliverable so the founder can audit the reasoning behind the answer.
+
+## Exhibits via `/dataviz` (v2.2 — McKinsey-grade charts from the data)
+
+The McKinsey deliverable is **exhibit-led** (a survey report is ~1 chart/page). For every exhibit in the synthesis IR's `charts[]` (series-data, not pixels), call **`/dataviz`** — the McKinsey-caliber chart capability — instead of describing a chart in prose:
+
+```
+node scripts/dataviz/gen.cjs --message="<the exhibit's action-title>" --data=<series-data> \
+  --source="<the source line>" --style=<design-system> --format=svg
+```
+
+- **The exhibit's action-title is the `--message`** — `/dataviz` chooses the chart type FROM that message (Zelazny) AND uses it as the chart caption; so the exhibit caption is an **action sentence** (survey/POV genre) or a **topic label** (`--title-style=topic`, brand/survey-trend genre) — matching the genre matrix above.
+- **The `--source` carries the verbatim source-footer form** (`Source: <data>; McKinsey analysis` OR the survey form `Source: <survey>, <dates>, n=<N>; <countries>`) — `/dataviz` mandates a source footer on every exhibit, exactly as the real reports do.
+- **`--style`/`--art-style` flow the brand** (the SAME design context the deliverable uses) — structure ⊥ brand.
+- `/dataviz` encodes the McKinsey data-viz discipline (one-highlight, data-ink minimalism, direct labels, zero-baseline) so the exhibit is genuinely McKinsey-grade, not a generic chart. The rendered SVG drops into the deliverable alongside the storyline. (See `06-ai-ops/skills/dataviz/SKILL.md`.)
+
+The ghost-exhibit built at STRUCTURE (the workplan `end-product` column) names the chart's intended message + shape; Sell fills it with real data via `/dataviz` — it does not invent it.
 
 ## Anti-claims
 
