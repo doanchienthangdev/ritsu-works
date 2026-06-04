@@ -1,15 +1,16 @@
 ---
 name: dataviz
 description: |
-  Umbrella for the data-visualization capability — the /dataviz command's brain. From
-  a data source + a one-sentence MESSAGE, produce a McKinsey-caliber chart: an intelligent,
-  taxonomy-driven selector picks the BEST of 27 built chart types (all six families) from
-  the message + data-shape + audience (Zelazny), explains the choice + alternatives +
-  anti-pattern warnings, then renders byte-stable SVG with the McKinsey aesthetic
-  (one-highlight, data-ink minimalism, direct labels, action-title, source footer), branded
-  via the SAME --style design-system + --art-style axes as /image. Pluggable renderer layer
-  (--use); default svg-native (zero-dep, pure-Node). Pure/offline — no API key. Dispatches
-  to scripts/dataviz/gen.cjs.
+  Umbrella for the data-visualization capability — the /dataviz command's brain. From a
+  data source + a one-sentence MESSAGE, produce a McKinsey-caliber chart across 60 built
+  chart types (all six families). Chart SELECTION is LLM-native (v0.4): the calling agent
+  reads a generated catalog (catalog.md, from lib/taxonomy.cjs) + the situation (message +
+  data-shape + audience, Zelazny) and picks the best chart itself; a deterministic regex
+  selector (select.cjs) is the headless fallback. Renders byte-stable SVG with the McKinsey
+  aesthetic (one-highlight, data-ink minimalism, direct labels, action-title, source footer),
+  branded via the SAME --style design-system + --art-style axes as /image. Pluggable renderer
+  (--use); default svg-native (zero-dep, pure-Node). Pure/offline — no API key. Dispatches to
+  scripts/dataviz/gen.cjs.
 allowed-tools: [Read, Write, Bash, Skill]
 disable-model-invocation: false
 ---
@@ -24,7 +25,7 @@ disable-model-invocation: false
 2. **Resolve `--style`** via `scripts/design-system/resolve-style.cjs` (the SAME resolver `/image` uses); a registry miss → classic McKinsey theme + warn (never crash).
 3. **Build the theme** (`lib/theme.cjs`) — classic McKinsey tokens by default; `--style` brand palette/type OVERRIDES them (structure ⊥ brand). Tokens read from `resolved.tokens.colors`/`.typography` with guarded fallbacks (arbitrary design-system keys).
 4. **Load `--data`** (path/.json/.csv/inline) → the series-data IR.
-5. **Select the chart** (`select.cjs`) if `--chart=auto` — the intelligent, taxonomy-driven selector (intent + data-shape + `--audience` → best chart + `reason` + `alternatives` + anti-pattern `warnings` + `confidence`; `--explain` surfaces it); or honor `--chart=<type>` (cataloged → nearest built + reason).
+5. **Select the chart — LLM-native (v0.4).** Selecting a chart is a JUDGMENT task, so the **calling agent** is the selector: read the catalog `06-ai-ops/skills/dataviz/catalog.md` (generated from `lib/taxonomy.cjs` — 60 types × when-to-use + data-shape + McKinsey stance + the selection sequence), reason over the MESSAGE + data-shape + `--audience`, then render with `--chart=<pick> --selected-by=agent --select-reason="…"` (records `select_mode=agent` in `run.json`). This mirrors resolver v2/v3 (give the in-session model a catalog, not a regex). **Deterministic fallback:** `--chart=auto` (or none) runs `select.cjs` (PURE regex selector) for headless/out-of-band callers — honest heuristic, English-keyword based. A bare `--chart=<type>` is a hard force; cataloged → nearest built + reason.
 6. **Render** (`render.cjs`) — `renderChart(type, data, spec, theme) -> svgString` (PURE).
 7. **Inline** (return the SVG) or **write** `.archives/dataviz/<date>-<slug>/` + `run.json`.
 
@@ -34,7 +35,7 @@ disable-model-invocation: false
 
 ## The chart-type set (v0.3 — 60 built across all six families)
 
-The full taxonomy + per-type metadata is `scripts/dataviz/lib/taxonomy.cjs` (the source of truth for `BUILT` + the selector's knowledge base; 74 types catalogued, every type from the Datylon catalog).
+The full taxonomy + per-type metadata is `scripts/dataviz/lib/taxonomy.cjs` (the source of truth for `BUILT`; 74 types catalogued, every type from the Datylon catalog). The agent-facing **selection catalog** `06-ai-ops/skills/dataviz/catalog.md` is generated from it (`scripts/dataviz/gen-catalog.cjs`) — that is what YOU read to pick a chart (LLM-native).
 
 - **Comparison (14):** `bar` `column` `grouped` `lollipop` `dot` `dumbbell` `slope` `radar` `quadrant` (2×2) `bullet` (vs-target) `small-multiples` `range` `matrix-chart` `table-chart`
 - **Correlation (5):** `scatter` `bubble` (3 measures) `heatmap` `connected-scatter` `hexbin`
@@ -65,4 +66,4 @@ One-highlight-only · data-ink minimalism (no gridlines/legend/3D/fill) · bar v
 
 ## References
 
-`scripts/dataviz/{gen,select,render}.cjs` + `lib/{params,theme,svg,taxonomy}.cjs` · `knowledge/dataviz-renderers.yaml` · `06-ai-ops/skills/dataviz/{select,renderers/svg-native}/SKILL.md` · `06-ai-ops/sops/SOP-AIOPS-011-dataviz-runtime-contract/flow.yaml` · the grounding: Gene Zelazny *Say It With Charts*; `wiki/cracked-it/concepts/quantitative-chart-typology.md`; the dataviz-design-brief (3 real McKinsey reports).
+`scripts/dataviz/{gen,select,render,gen-catalog}.cjs` + `lib/{params,theme,svg,taxonomy,catalog}.cjs` · the agent-facing **`06-ai-ops/skills/dataviz/catalog.md`** (generated; the LLM-native selection substrate) · `knowledge/dataviz-renderers.yaml` · `06-ai-ops/skills/dataviz/{select,renderers/svg-native}/SKILL.md` · `06-ai-ops/sops/SOP-AIOPS-011-dataviz-runtime-contract/flow.yaml` · the grounding: Gene Zelazny *Say It With Charts*; `wiki/cracked-it/concepts/quantitative-chart-typology.md`; the dataviz-design-brief (3 real McKinsey reports).

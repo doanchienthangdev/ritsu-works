@@ -18,6 +18,10 @@ const UNIVERSAL_PARAMS = Object.freeze([
   'use', 'out', 'max-cost-usd', 'dry-run',
   // v0.2 (extend): the intelligent-selection + new-chart inputs.
   'explain', 'audience', 'target', 'x-label', 'y-label',
+  // v0.4 (extend): LLM-native selection provenance — the calling agent records
+  // THAT it selected the chart (and why) so run.json distinguishes an agent's
+  // reasoned pick from the deterministic fallback or a hard human force.
+  'selected-by', 'select-reason', 'select-intent', 'select-confidence',
 ]);
 
 const FORMATS = Object.freeze(['svg', 'png', 'html', 'inline']);
@@ -39,7 +43,7 @@ const NUM_FLAGS = Object.freeze(['width', 'height', 'decimals', 'max-cost-usd', 
 // `explain` + `audience` are selection PLUMBING (never a "renderer can't do this" warning).
 // `target`/`x-label`/`y-label` are renderer CAPABILITIES — they fall to the supports/warn path
 // (a future renderer without axis labels SHOULD warn), so they are NOT listed here.
-const NEVER_WARN = Object.freeze(['message', 'chart', 'data', 'title', 'title-style', 'source', 'footnotes', 'highlight', 'sort', 'unit', 'decimals', 'percent', 'thousands', 'style', 'theme', 'format', 'ar', 'width', 'height', 'use', 'out', 'max-cost-usd', 'dry-run', 'explain', 'audience']);
+const NEVER_WARN = Object.freeze(['message', 'chart', 'data', 'title', 'title-style', 'source', 'footnotes', 'highlight', 'sort', 'unit', 'decimals', 'percent', 'thousands', 'style', 'theme', 'format', 'ar', 'width', 'height', 'use', 'out', 'max-cost-usd', 'dry-run', 'explain', 'audience', 'selected-by', 'select-reason', 'select-intent', 'select-confidence']);
 
 // Consequence text for params a backend doesn't honor (consequence-honest, never silent).
 const CONSEQUENCE = Object.freeze({

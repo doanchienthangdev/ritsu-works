@@ -63,3 +63,31 @@ describe("checkRenderers — the registry validator", () => {
   it("non-kebab id → error", () => expect(checkRenderers({ renderers: [{ id: "Bad_Id", status: "registered-not-built" }] }, REPO).some((e: string) => /kebab/.test(e))).toBe(true));
   it("empty renderers → error", () => expect(checkRenderers({ renderers: [] }, REPO).length).toBeGreaterThan(0));
 });
+
+// ── v0.4: LLM-native selection-provenance flags ─────────────────────────────
+describe("dataviz params — v0.4 selection-provenance flags", () => {
+  it("parseDatavizArgs reads --selected-by / --select-reason / --select-intent / --select-confidence", () => {
+    const { options } = P.parseDatavizArgs([
+      "--selected-by=agent",
+      "--select-reason=ranking of items beats a pie",
+      "--select-intent=ranking",
+      "--select-confidence=high",
+    ]);
+    expect(options["selected-by"]).toBe("agent");
+    expect(options["select-reason"]).toBe("ranking of items beats a pie");
+    expect(options["select-intent"]).toBe("ranking");
+    expect(options["select-confidence"]).toBe("high");
+  });
+
+  it("the 4 flags are registered in UNIVERSAL_PARAMS", () => {
+    for (const f of ["selected-by", "select-reason", "select-intent", "select-confidence"]) {
+      expect(P.UNIVERSAL_PARAMS.includes(f)).toBe(true);
+    }
+  });
+
+  it("computeWarnings never warns on the provenance flags (they are selection plumbing)", () => {
+    const caps = { supports: ["message", "chart", "data", "source", "title"] }; // svg-native-like
+    const warns = P.computeWarnings(caps, new Set(["selected-by", "select-reason", "select-intent", "select-confidence"]));
+    expect(warns).toEqual([]);
+  });
+});

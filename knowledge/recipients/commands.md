@@ -161,14 +161,17 @@ Bound to role `code-reviewer`. For one-shot bounded review use @cto.
 **Axis:** capability
 **When to use:** Turn a data source into a McKinsey-caliber chart — model-agnostic front door with
 a pluggable renderer layer (--use=<renderer>). Default backend svg-native (in-repo,
-zero-dependency, pure-Node, byte-stable SVG). v0.3: 60 built chart types across all
-six chart families + an INTELLIGENT, context-aware selector that picks the BEST chart
-from the message + data-shape + audience (Zelazny "Say It With Charts"), explains its
-choice, offers alternatives, and warns on anti-patterns. Encodes the McKinsey aesthetic
-(one-highlight, data-ink minimalism, direct labels, action-title-on-the-chart, source
-footer); brands via the SAME --style design-system + --art-style axes as /image + /deepask.
-Pure/offline (NO API key). Tier A; artifacts to .archives/dataviz/<date>-<slug>/.
-Thin orchestrator over the `dataviz` umbrella skill (scripts/dataviz/gen.cjs).
+zero-dependency, pure-Node, byte-stable SVG). 60 built chart types across all six
+chart families. v0.4: chart SELECTION is LLM-NATIVE — the calling agent (Claude
+Code/Codex) reads a chart catalog + the situation (message + data-shape + audience)
+and picks the BEST chart itself (multilingual, context-aware, Zelazny "Say It With
+Charts"), then renders with --chart=<pick> --selected-by=agent; a deterministic regex
+selector remains the fallback for headless/out-of-band callers. Encodes the McKinsey
+aesthetic (one-highlight, data-ink minimalism, direct labels, action-title-on-the-chart,
+source footer); brands via the SAME --style design-system + --art-style axes as /image
++ /deepask. Pure/offline (NO API key — selection uses the session model). Tier A;
+artifacts to .archives/dataviz/<date>-<slug>/. Thin orchestrator over the `dataviz`
+umbrella skill (scripts/dataviz/gen.cjs).
 
 **Invoke:** `/dataviz`
 **HITL tier:** A
