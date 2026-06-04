@@ -2,14 +2,14 @@
 title: "Chương 5 — Bài #2: Trust & Blast Radius"
 description: "Chương 5 — Bài #2: Trust & Blast Radius"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/05-bai-2-trust-blast-radius.md
-source_hash: fc584000df55980eeb652716f93a2222b9279ee1130e1f1aa0d0fbc49ea1c962
-generated_at: '2026-06-03T17:32:46.121Z'
+source_hash: 39befd122160c11d6196f47ecb0a4eac00cd0dd6440f29a535792e7916679f45
+generated_at: '2026-06-04T15:36:45.132Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: fc584000df55980eeb652716f93a2222b9279ee1130e1f1aa0d0fbc49ea1c962
-translated_at: '2026-06-03T17:32:46.121Z'
+translated_source_hash: 39befd122160c11d6196f47ecb0a4eac00cd0dd6440f29a535792e7916679f45
+translated_at: '2026-06-04T15:36:45.132Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 5
 ---
@@ -434,7 +434,7 @@ Phần III sẽ đào sâu 5 bài còn lại — scaling và intelligence layer 
 ---
 
 **Tham khảo:**
-- **Chương 50 (Tutorial)** — *Operating AI đọc Product DB an toàn (Door 2)*: ví dụ worked-example đầy đủ của nguyên lý blast-radius này áp dụng cho bài toán *đọc dữ liệu Product* — firewall L0 (`pre-tool-supabase-product` chặn cứng mọi lời gọi nhắm Product) + bản sao pseudonymized (strip + hash, không bao giờ chứa PII) + `analytics_reader` DB-role-LÀ-ranh-giới. Minh họa "ceremony tỷ lệ thuận với blast radius": mọi *write* Product = Tier D-MAX (founder), trong khi *đọc* bản sao analytics đã-strip = Tier A.
+- **Chương 51 (Tutorial)** — *Operating AI đọc Product DB an toàn (Door 2)*: ví dụ worked-example đầy đủ của nguyên lý blast-radius này áp dụng cho bài toán *đọc dữ liệu Product* — firewall L0 (`pre-tool-supabase-product` chặn cứng mọi lời gọi nhắm Product) + bản sao pseudonymized (strip + hash, không bao giờ chứa PII) + `analytics_reader` DB-role-LÀ-ranh-giới. Minh họa "ceremony tỷ lệ thuận với blast radius": mọi *write* Product = Tier D-MAX (founder), trong khi *đọc* bản sao analytics đã-strip = Tier A.
 - Ritsu repo: `governance/HITL.md`, `governance/ROLES.md`, `governance/SECRETS.md`, `.claude/hooks/`
 - Brainstorm note: `_build/notes/problem-2-trust-blast-radius.md` (TODO backfill)
 - Anthropic docs on agent permissions: https://platform.claude.com/docs/en/build-with-claude/agent-skills

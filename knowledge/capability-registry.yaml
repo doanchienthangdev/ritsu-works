@@ -1633,19 +1633,23 @@ capabilities:
       v0.1 backend = svg-native: a ZERO-DEPENDENCY, pure-Node, byte-stable SVG-string
       renderer (renderChart(type,data,spec,theme)->svg is a PURE function → unit-
       tested with toBe/toEqual, no vitest snapshots; no d3 [ESM-only], no canvas/DOM,
-      no native build). 9 chart types (bar/column/line/stacked/stacked100/grouped/
-      scatter/waterfall/kpi); marimekko + 9 more deferred to v0.2 (the selector names
-      them + maps to the nearest built type + warns). PURE/OFFLINE — no secret, no
-      API key (unlike /image's OPENAI_API_KEY). Grounded in 3 real local McKinsey
-      reports (the mckinsey-grounding-research workflow) + the dataviz-design-brief.
-      Consumed by /think mckinsey (mckinsey-sell, v2.2) + routable from /deepask's
-      chart format (the repo's only deterministic McKinsey-grade SVG chart renderer).
+      no native build). 60 BUILT chart types across all six Datylon families; 14 cataloged
+      types map to the nearest built + an honest reason. v0.4: chart SELECTION is LLM-NATIVE
+      — the calling agent (Claude Code/Codex) reads a generated catalog (catalog.md, from
+      lib/taxonomy.cjs) + the situation (message + data-shape + audience, Zelazny) and picks
+      the best chart itself (multilingual, context-aware), recording select_mode=agent + its
+      reason; select.cjs (the v0.2 regex selector) is retained as the deterministic fallback
+      for headless/out-of-band callers. PURE/OFFLINE — no secret, no API key (selection uses
+      the session model; render is pure-Node). Grounded in 3 real local McKinsey reports (the
+      mckinsey-grounding-research workflow) + the dataviz-design-brief. Consumed by /think
+      mckinsey (mckinsey-sell, v2.2) + routable from /deepask's chart format (the repo's only
+      deterministic McKinsey-grade SVG chart renderer).
       Components: .claude/commands/dataviz.md + 06-ai-ops/skills/dataviz/{SKILL.md,
-      select,renderers/svg-native} + scripts/dataviz/{gen,select,render}.cjs +
-      lib/{params,theme,svg}.cjs + knowledge/dataviz-renderers.yaml (split registry)
+      catalog.md,select,renderers/svg-native} + scripts/dataviz/{gen,select,render,gen-catalog}.cjs +
+      lib/{params,theme,svg,taxonomy,catalog}.cjs + knowledge/dataviz-renderers.yaml (split registry)
       + schema + scripts/cross-tier/validate-dataviz-renderers.cjs (L2) +
       SOP-AIOPS-011-dataviz-runtime-contract.
-    version: "0.1.0"
+    version: "0.4.0"
     state: operating
     state_since: 2026-06-04
     proposed_at: 2026-06-04
@@ -1657,15 +1661,52 @@ capabilities:
     estimated_cost_setup_usd: 0   # autonomous build; no external spend
     estimated_cost_recurring_usd: 0   # pure/offline render — zero LLM/API per invocation
     notes: |
+      v0.4 (2026-06-04): /cla extend (SOP-AIOPS-001-extend), self-shipped. Chart SELECTION
+      moved from regex (select.cjs) to LLM-NATIVE — the founder's insight: when the caller
+      is already an intelligent LLM (Claude Code/Codex), give it a catalog + the situation
+      and let it reason, instead of keyword-matching (the resolver v2/v3 pattern applied to
+      chart choice; multilingual — the old regex missed non-English messages). NEW
+      scripts/dataviz/lib/catalog.cjs (renderCatalogMarkdown from taxonomy) + gen-catalog.cjs
+      → 06-ai-ops/skills/dataviz/catalog.md (the agent-read selection substrate, in-sync drift
+      test). gen.cjs records select_mode ∈ {agent,deterministic,forced} + the agent's reason in
+      run.json; 4 provenance flags (--selected-by/--select-reason/--select-intent/--select-
+      confidence). select.cjs retained UNCHANGED as the deterministic headless fallback. Command
+      content gains the readable 60-chart list (founder ask). NO API key (session model selects).
+      Decision: ops.decisions slug dataviz-v0.4-llm-native-selection. Reversibility 5/5 (additive;
+      the regex selector still works as fallback).
       v0.1 (2026-06-04): /cla propose-then-execute (founder pattern, like /image +
       /forge). Tier A. @cto review APPROVE-WITH-NITS → 6 must-fixes integrated (the
       resolve-style token shape {mode,tokens:{colors,typography}} guarded-arbitrary-
       keys; byte-stable fmt(); toBe/toEqual not snapshots; waterfall cumulative +
       marimekko deferred; validator imports dataviz UNIVERSAL_PARAMS; resolver:sync
       committed). Decision: ops.decisions slug dataviz-capability-v0.1. Reversibility
-      5/5 (self-contained; git revert removes it cleanly). v0.2 ladder: the deferred
-      chart types (marimekko/statstack/dumbbell/diverging/bubble/heatmap/bubble-matrix/
-      histogram/area/pie) + png/pdf raster + the echarts-ssr stub → installed.
+      5/5 (self-contained; git revert removes it cleanly).
+      v0.3 (2026-06-04): /cla extend (SOP-AIOPS-001-extend), self-shipped. +33 built
+      chart types → 60 across all six families (the remaining feasible, non-anti-McKinsey
+      Datylon types: small-multiples/range/matrix-chart/table-chart/connected-scatter/
+      hexbin/waffle/treemap/population-pyramid/sunburst/dendrogram/venn/semicircle-donut/
+      bump/spline/step-line/gantt/candlestick/ohlc/barcode/density/ridgeline/violin/strip/
+      jitter/beeswarm/horizon/sankey/chord/arc/network/flowchart/tile-map). Only 14 stay
+      cataloged: 10 anti-McKinsey (radial-bar/nightingale/pictogram/icon-chart/icon-array/
+      word-cloud/gauge/stream/parallel-coordinates/radial-histogram) + 4 infeasible in a
+      pure zero-dep renderer (choropleth/geo-heatmap need boundary polygons; contour needs
+      a continuous-field engine; euler needs general set geometry). New svg primitives
+      (splinePath/bezierH/hexPath/squarify/jitterOffset) + selector auto-rules for the new
+      types + a dispatch-coverage invariant test. DE-BRANDED: default output wordmark
+      'McKinsey & Company' → 'Ritsu' (the McKinsey label is the design discipline, not the
+      output brand; --style overrides). 188 dataviz tests. Decision: ops.decisions slug
+      dataviz-v0.3-full-chart-library-and-debrand. Reversibility 5/5 (additive pure code).
+      v0.2 (2026-06-04): /cla extend (SOP-AIOPS-001-extend), self-shipped. +18 built
+      chart types → 27 across all six Datylon families (the v0.1 "ladder" delivered:
+      area/stacked-area/pie/donut/marimekko/bubble/heatmap/dumbbell/lollipop/dot/slope/
+      bullet/diverging/histogram/box/funnel/quadrant/radar). NEW scripts/dataviz/lib/
+      taxonomy.cjs (the ~74-type chart knowledge base, source of truth for BUILT). select.cjs
+      rewritten → intelligent context-aware selector (intent+data-shape+audience → best chart
+      + reason + alternatives + anti-pattern warnings + confidence; explainable via --explain).
+      +5 flags (explain/audience/target/x-label/y-label). +polar/arc SVG primitives. wiki
+      spec.md promoted (v0.1 gap filled) + CHANGELOG. 167+ unit tests. Decision: ops.decisions
+      slug dataviz-v0.2-chart-library-and-smart-select. Reversibility 5/5 (additive pure code).
+      Remaining ladder: png/pdf raster + echarts-ssr stub + the 47 cataloged types → built.
 
   - id: product-db-readonly-access
     name: "Product DB read-only access — Door 2 (pseudonymized analytics)"

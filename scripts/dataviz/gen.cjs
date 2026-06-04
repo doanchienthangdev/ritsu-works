@@ -25,6 +25,7 @@ const { parseDatavizArgs, normalizeFormat, normalizeTheme, resolveSize, numberFo
 const { buildTheme } = require('./lib/theme.cjs');
 const { selectChart, BUILT } = require('./select.cjs');
 const { renderChart } = require('./render.cjs');
+const T = require('./lib/taxonomy.cjs');
 
 let resolveStyle;
 try { ({ resolveStyle } = require('../design-system/resolve-style.cjs')); } catch (_) { resolveStyle = null; }
@@ -69,15 +70,22 @@ function loadData(raw) {
 function buildHints(data, options) {
   const series = Array.isArray(data && data.series) ? data.series : (Array.isArray(data && data.values) ? [{ values: data.values }] : []);
   const cats = Array.isArray(data && data.categories) ? data.categories : [];
+  const points = Array.isArray(data && data.points) ? data.points : [];
+  const measures = Array.isArray(data && data.measures) ? data.measures : [];
   const allVals = series.flatMap((s) => (s.values || []).map(Number));
   const isYearAxis = cats.some((c) => /^(19|20)\d{2}$/.test(String(c))) || cats.some((c) => /^q[1-4]/i.test(String(c)));
+  const hasSize = points.some((p) => p && p.size != null);  // a 3rd (size) measure ⇒ bubble, not scatter
+  const optTarget = options && Number.isFinite(Number(options.target));
   return {
     n_categories: cats.length,
     n_periods: cats.length,
     n_series: series.length || 1,
-    n_measures: Array.isArray(data && data.points) ? 2 : 0,
-    has_negatives: allVals.some((v) => v < 0) || Array.isArray(data && data.steps && data.steps.some((s) => Number(s.delta) < 0)),
+    n_measures: points.length ? (hasSize ? 3 : 2) : 0,
+    n_axes: Array.isArray(data && data.axes) ? data.axes.length : cats.length,
+    has_negatives: allVals.some((v) => v < 0) || (Array.isArray(data && data.steps) && data.steps.some((s) => Number(s.delta) < 0)),
     has_time_axis: isYearAxis,
+    has_target: optTarget || measures.some((mm) => mm && mm.target != null),
+    has_size: hasSize,
   };
 }
 
@@ -98,17 +106,38 @@ function run(argv) {
   // 2. load data.
   const data = loadData(options.data);
 
-  // 3. select chart (auto) or honor --chart.
-  let chartType; let ideal; let reason = '';
+  // 3. select chart. Selection is LLM-NATIVE by default (v0.4): the calling agent
+  //    reads the catalog (06-ai-ops/skills/dataviz/catalog.md) + the situation, picks,
+  //    and passes --chart=<pick> --selected-by=agent --select-reason="…". A bare
+  //    --chart is a hard force; --chart=auto (or none) falls back to the DETERMINISTIC
+  //    select.cjs regex selector (for headless / out-of-band callers — CRON, Edge fns).
+  let chartType; let ideal; let reason = ''; let selection; let selectMode;
   if (!options.chart || options.chart === 'auto') {
-    const sel = selectChart(options.message || options.title || '', buildHints(data, options));
-    chartType = sel.chartType; ideal = sel.ideal; reason = sel.reason;
+    selectMode = 'deterministic';
+    selection = selectChart(options.message || options.title || '', buildHints(data, options), { audience: options.audience });
+    chartType = selection.chartType; ideal = selection.ideal; reason = selection.reason;
+    if (Array.isArray(selection.warnings)) warnings.push(...selection.warnings);
   } else {
     ideal = options.chart;
-    chartType = BUILT.includes(options.chart) ? options.chart : 'bar';
-    if (!BUILT.includes(options.chart)) { reason = `chart "${options.chart}" is not a v0.1 built type → rendered as bar`; warnings.push(reason); }
+    chartType = T.toBuilt(options.chart);   // built → itself; cataloged → nearest built (honest); unknown → bar
+    if (!T.meta(options.chart)) { chartType = 'bar'; reason = `unknown chart type "${options.chart}" → bar`; warnings.push(reason); }
+    else if (!T.isBuilt(options.chart)) { reason = `chart "${options.chart}" is a cataloged (not-yet-built) type → rendered as the nearest built type (${chartType})`; warnings.push(reason); }
+    const byAgent = String(options['selected-by'] || '').toLowerCase() === 'agent';
+    selectMode = byAgent ? 'agent' : 'forced';
+    if (byAgent) {
+      const agentReason = typeof options['select-reason'] === 'string' && options['select-reason'] ? options['select-reason'] : 'selected by the calling agent (LLM-native)';
+      reason = reason ? `${reason}; ${agentReason}` : agentReason;
+    }
+    selection = {
+      chartType, ideal, family: T.familyOf(ideal) || null,
+      intent: byAgent ? (typeof options['select-intent'] === 'string' && options['select-intent'] ? options['select-intent'] : 'llm-native') : 'forced',
+      reason: reason || (byAgent ? 'selected by the calling agent (LLM-native)' : `forced via --chart=${options.chart}`),
+      alternatives: [],
+      warnings: [],
+      confidence: byAgent ? (['high', 'medium', 'low'].includes(String(options['select-confidence'])) ? options['select-confidence'] : 'high') : 'forced',
+    };
   }
-  if (reason) warnings.push(`chart selection: ${reason}`);
+  selection.select_mode = selectMode;
 
   // 4. spec.
   const { width, height } = resolveSize(options);
@@ -121,28 +150,31 @@ function run(argv) {
     sort: options.sort !== false,
     width, height,
     numberFormat: numberFormat(options),
+    target: Number.isFinite(Number(options.target)) ? Number(options.target) : undefined,
+    xLabel: typeof options['x-label'] === 'string' ? options['x-label'] : undefined,
+    yLabel: typeof options['y-label'] === 'string' ? options['y-label'] : undefined,
   };
 
   // adapter warnings (art-style etc.)
   warnings.push(...computeWarnings({ supports: require('./lib/params.cjs').UNIVERSAL_PARAMS.filter((p) => p !== 'art-style') }, provided));
 
   const format = normalizeFormat(options.format);
-  const runJson = { capability: 'dataviz', version: '0.1.0', chartType, ideal, reason, theme: theme.name, styled: theme.styled, format, width, height, title: spec.title, source: spec.source, warnings, generated_at: new Date().toISOString() };
+  const runJson = { capability: 'dataviz', version: '0.4.0', chartType, ideal, family: selection.family, intent: selection.intent, select_mode: selectMode, reason, confidence: selection.confidence, alternatives: selection.alternatives, theme: theme.name, styled: theme.styled, format, width, height, title: spec.title, source: spec.source, warnings, generated_at: new Date().toISOString() };
 
   if (options['dry-run']) {
-    return { ok: true, outcome: 'dry_run', chartType, ideal, files: [], svg: null, warnings, runJson, plan: { chartType, ideal, reason, theme: theme.name, width, height, title: spec.title, source: spec.source } };
+    return { ok: true, outcome: 'dry_run', chartType, ideal, selection, files: [], svg: null, warnings, runJson, plan: { chartType, ideal, family: selection.family, intent: selection.intent, select_mode: selectMode, reason, confidence: selection.confidence, alternatives: selection.alternatives, theme: theme.name, width, height, title: spec.title, source: spec.source } };
   }
 
   // 5. render.
   let svg;
   try { svg = renderChart(chartType, data, spec, theme); }
-  catch (e) { return { ok: false, outcome: 'error', chartType, ideal, files: [], svg: null, warnings, error: e && e.message, runJson }; }
+  catch (e) { return { ok: false, outcome: 'error', chartType, ideal, selection, files: [], svg: null, warnings, error: e && e.message, runJson }; }
 
   if (format === 'png' || format === 'pdf') warnings.push(`--format=${format} raster output is a v0.2 stretch → wrote SVG instead`);
 
   // 6. inline vs write.
   if (format === 'inline' && !options.out) {
-    return { ok: true, outcome: 'inline', chartType, ideal, files: [], svg, warnings, runJson };
+    return { ok: true, outcome: 'inline', chartType, ideal, selection, files: [], svg, warnings, runJson };
   }
   const date = new Date().toISOString().slice(0, 10);
   const dir = options.out && /\/$/.test(String(options.out)) ? path.resolve(process.cwd(), options.out) : path.join(REPO_ROOT, '.archives', 'dataviz', `${date}-${slugify(spec.title)}`);
@@ -152,18 +184,32 @@ function run(argv) {
   const files = [svgPath];
   if (format === 'html') { const htmlPath = svgPath.replace(/\.svg$/, '.html'); fs.writeFileSync(htmlPath, `<!doctype html><meta charset="utf-8"><title>${spec.title}</title><body style="margin:0">${svg}</body>`); files.push(htmlPath); }
   const runPath = path.join(path.dirname(svgPath), 'run.json'); fs.writeFileSync(runPath, JSON.stringify(runJson, null, 2)); files.push(runPath);
-  return { ok: true, outcome: 'written', chartType, ideal, files, svg, warnings, runJson };
+  return { ok: true, outcome: 'written', chartType, ideal, selection, files, svg, warnings, runJson };
+}
+
+/** Human-readable selection rationale (for --explain). Pure. */
+function explainSelection(sel) {
+  if (!sel) return '';
+  const lines = [];
+  lines.push(`Chart: ${sel.chartType}${sel.ideal && sel.ideal !== sel.chartType ? ` (ideal: ${sel.ideal})` : ''}  ·  family: ${sel.family || '?'}  ·  intent: ${sel.intent || '?'}  ·  confidence: ${sel.confidence || '?'}${sel.select_mode ? `  ·  selected: ${sel.select_mode}` : ''}`);
+  if (sel.reason) lines.push(`Why: ${sel.reason}`);
+  if (Array.isArray(sel.alternatives) && sel.alternatives.length) lines.push(`Alternatives: ${sel.alternatives.map((a) => a.type).join(', ')}`);
+  if (Array.isArray(sel.warnings) && sel.warnings.length) sel.warnings.forEach((w) => lines.push(`⚠ ${w}`));
+  return lines.join('\n');
 }
 
 function main() {
-  const r = run(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  const explain = argv.some((a) => a === '--explain' || /^--explain=(?!false|0|no)/i.test(a));
+  const r = run(argv);
   if (r.outcome === 'inline') { process.stdout.write(r.svg); }
   else if (r.outcome === 'dry_run') { console.log(JSON.stringify(r.plan, null, 2)); }
   else if (r.outcome === 'written') { console.log(`[OK] dataviz ${r.chartType} → ${r.files.join(', ')}`); }
   else if (r.outcome === 'error') { console.error(`[FAIL] ${r.error}`); process.exit(1); }
+  if (explain && r.selection) console.error(`[explain]\n${explainSelection(r.selection)}`);
   if (r.warnings && r.warnings.length) r.warnings.forEach((w) => console.error(`[warn] ${w}`));
 }
 
 if (require.main === module) main();
 
-module.exports = { run, loadData, parseCsv, buildHints, slugify };
+module.exports = { run, loadData, parseCsv, buildHints, slugify, explainSelection };

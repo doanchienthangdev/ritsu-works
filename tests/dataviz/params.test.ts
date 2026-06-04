@@ -44,6 +44,14 @@ describe("computeWarnings — consequence-honest", () => {
   it("plumbing flags never warn", () => expect(P.computeWarnings({ supports: [] }, new Set(["message", "data", "source"]))).toEqual([]));
 });
 
+describe("parseDatavizArgs — v0.2 flags", () => {
+  it("--explain is a bool flag", () => expect(P.parseDatavizArgs(["--explain"]).options.explain).toBe(true));
+  it("--target coerces to number", () => expect(P.parseDatavizArgs(["--target=100"]).options.target).toBe(100));
+  it("--audience / --x-label / --y-label parse as strings", () => { const { options } = P.parseDatavizArgs(["--audience=exec", "--x-label=Spend", "--y-label=Growth"]); expect(options.audience).toBe("exec"); expect(options["x-label"]).toBe("Spend"); expect(options["y-label"]).toBe("Growth"); });
+  it("all 5 new flags are in UNIVERSAL_PARAMS", () => { for (const f of ["explain", "audience", "target", "x-label", "y-label"]) expect(P.UNIVERSAL_PARAMS).toContain(f); });
+  it("explain/audience never warn (plumbing); target warns when unsupported (renderer capability)", () => { expect(P.computeWarnings({ supports: [] }, new Set(["explain", "audience"]))).toEqual([]); expect(P.computeWarnings({ supports: [] }, new Set(["target"])).length).toBe(1); });
+});
+
 describe("checkRenderers — the registry validator", () => {
   const REPO = process.cwd();
   const good = () => ({ renderers: [{ id: "svg-native", status: "installed", generator: "scripts/dataviz/render.cjs", supports: ["chart"], unsupported_warn: ["art-style"] }] });
@@ -54,4 +62,32 @@ describe("checkRenderers — the registry validator", () => {
   it("invalid status → error", () => expect(checkRenderers({ renderers: [{ id: "x", status: "bogus" }] }, REPO).some((e: string) => /status must be/.test(e))).toBe(true));
   it("non-kebab id → error", () => expect(checkRenderers({ renderers: [{ id: "Bad_Id", status: "registered-not-built" }] }, REPO).some((e: string) => /kebab/.test(e))).toBe(true));
   it("empty renderers → error", () => expect(checkRenderers({ renderers: [] }, REPO).length).toBeGreaterThan(0));
+});
+
+// ── v0.4: LLM-native selection-provenance flags ─────────────────────────────
+describe("dataviz params — v0.4 selection-provenance flags", () => {
+  it("parseDatavizArgs reads --selected-by / --select-reason / --select-intent / --select-confidence", () => {
+    const { options } = P.parseDatavizArgs([
+      "--selected-by=agent",
+      "--select-reason=ranking of items beats a pie",
+      "--select-intent=ranking",
+      "--select-confidence=high",
+    ]);
+    expect(options["selected-by"]).toBe("agent");
+    expect(options["select-reason"]).toBe("ranking of items beats a pie");
+    expect(options["select-intent"]).toBe("ranking");
+    expect(options["select-confidence"]).toBe("high");
+  });
+
+  it("the 4 flags are registered in UNIVERSAL_PARAMS", () => {
+    for (const f of ["selected-by", "select-reason", "select-intent", "select-confidence"]) {
+      expect(P.UNIVERSAL_PARAMS.includes(f)).toBe(true);
+    }
+  });
+
+  it("computeWarnings never warns on the provenance flags (they are selection plumbing)", () => {
+    const caps = { supports: ["message", "chart", "data", "source", "title"] }; // svg-native-like
+    const warns = P.computeWarnings(caps, new Set(["selected-by", "select-reason", "select-intent", "select-confidence"]));
+    expect(warns).toEqual([]);
+  });
 });

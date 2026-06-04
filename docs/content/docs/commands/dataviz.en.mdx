@@ -1,4 +1,5 @@
 ---
+title: 'Command: /dataviz'
 description: |
   Turn a data source into a McKinsey-caliber chart — model-agnostic front door with
   a pluggable renderer layer (--use=<renderer>). Default backend svg-native (in-repo,
@@ -13,10 +14,15 @@ description: |
   + /deepask. Pure/offline (NO API key — selection uses the session model). Tier A;
   artifacts to .archives/dataviz/<date>-<slug>/. Thin orchestrator over the `dataviz`
   umbrella skill (scripts/dataviz/gen.cjs).
-argument-hint: "<message> --data=<path|json|csv> [--chart=<type> --selected-by=agent --select-reason=...] [--style=<ds>] [--source=...] [--audience=exec|analyst] [--format=svg|html|inline]"
+source_path: .claude/commands/dataviz.md
+source_hash: 4bd846feb6c61d800cf49e25afd396cce1f3169c65133b2a782e32cec38cdba2
+generated_at: '2026-06-04T17:26:50.241Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: en
 ---
 
-# /dataviz
+{/* generated-by: docs-engine v1.2.0 */}
 
 Project-scoped command for ritsu-works. Front-end for the **dataviz** capability
 (v0.4) — a general, reused-many-times data-visualization platform like `/image`, but
@@ -114,3 +120,4 @@ Full when-to-use guidance is in the catalog (`06-ai-ops/skills/dataviz/catalog.m
 
 ## Related
 `/image` (raster generation — the sibling platform this mirrors) · `/deepask` (federated synthesis; routes charts here) · `/think mckinsey` (the McKinsey engine; consumes this for exhibits) · `/design-system` (the `--style` registry).
+

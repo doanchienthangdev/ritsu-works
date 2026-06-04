@@ -11,7 +11,7 @@
 sop_id: SOP-AIOPS-011
 slug: dataviz-runtime-contract
 name: "/dataviz runtime contract"
-version: "1.0.0"
+version: "1.1.0"   # v0.2 (extend): 27 built chart types + the intelligent context-aware selector
 state: operating
 owner: 06-ai-ops
 owner_role: gps
@@ -51,11 +51,13 @@ steps:
     hitl: A
 
   - id: select
-    name: "Stage 4 — choose the chart from the MESSAGE (Zelazny)"
+    name: "Stage 4 — intelligently choose the BEST chart (Zelazny + taxonomy + context)"
     skill: dataviz/select
     actions:
-      - select_chart                 # scripts/dataviz/select.cjs — message→type matcher + 2 guard-rails; or honor --chart=<type>
-      - map_deferred_to_built        # a v0.2 ideal → nearest built type + honest reason
+      - select_chart                 # scripts/dataviz/select.cjs — intent + data-shape + --audience → best of 27 built types; or honor --chart=<type>
+      - apply_guard_rails            # McKinsey guard-rails: entity-x⇒item, pie/donut demote, grouped/radar caps; consequence-honest anti-pattern warnings
+      - map_cataloged_to_built       # a cataloged ideal (treemap/sankey/…) → nearest built type (taxonomy.fallback) + honest reason
+      - explain                      # reason + alternatives[] + warnings[] + confidence (surfaced by --explain; always in run.json)
     hitl: A
     when: "--chart=auto (default)"
 
