@@ -1595,6 +1595,53 @@ capabilities:
       New --enhance-mode param; graceful fallback to generic --enhance. No new API key (Tier C
       governance for the external dep + vendoring, documented in NOTICE.md). 164 image tests.
 
+  - id: dataviz
+    name: "Data Visualization (McKinsey-caliber charts, like /image for data→chart)"
+    description: |
+      A general, reused-many-times data-visualization capability — the /dataviz
+      command + a pluggable renderer layer (--use), mirroring /image. From a data
+      source + a one-sentence MESSAGE it chooses the chart type FROM THE MESSAGE
+      (Gene Zelazny "Say It With Charts") and renders a McKinsey-grade exhibit:
+      one-highlight-only, data-ink minimalism, direct labels, action-title-on-the-
+      chart, source-footer-on-every-exhibit. Brands via the SAME --style design-
+      system + --art-style axes as /image + /deepask (structure ⊥ brand).
+      v0.1 backend = svg-native: a ZERO-DEPENDENCY, pure-Node, byte-stable SVG-string
+      renderer (renderChart(type,data,spec,theme)->svg is a PURE function → unit-
+      tested with toBe/toEqual, no vitest snapshots; no d3 [ESM-only], no canvas/DOM,
+      no native build). 9 chart types (bar/column/line/stacked/stacked100/grouped/
+      scatter/waterfall/kpi); marimekko + 9 more deferred to v0.2 (the selector names
+      them + maps to the nearest built type + warns). PURE/OFFLINE — no secret, no
+      API key (unlike /image's OPENAI_API_KEY). Grounded in 3 real local McKinsey
+      reports (the mckinsey-grounding-research workflow) + the dataviz-design-brief.
+      Consumed by /think mckinsey (mckinsey-sell, v2.2) + routable from /deepask's
+      chart format (the repo's only deterministic McKinsey-grade SVG chart renderer).
+      Components: .claude/commands/dataviz.md + 06-ai-ops/skills/dataviz/{SKILL.md,
+      select,renderers/svg-native} + scripts/dataviz/{gen,select,render}.cjs +
+      lib/{params,theme,svg}.cjs + knowledge/dataviz-renderers.yaml (split registry)
+      + schema + scripts/cross-tier/validate-dataviz-renderers.cjs (L2) +
+      SOP-AIOPS-011-dataviz-runtime-contract.
+    version: "0.1.0"
+    state: operating
+    state_since: 2026-06-04
+    proposed_at: 2026-06-04
+    deployed_at: 2026-06-04
+    operating_since: 2026-06-04
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/dataviz/spec.md
+    cost_bucket: ai-ops-dataviz
+    estimated_cost_setup_usd: 0   # autonomous build; no external spend
+    estimated_cost_recurring_usd: 0   # pure/offline render — zero LLM/API per invocation
+    notes: |
+      v0.1 (2026-06-04): /cla propose-then-execute (founder pattern, like /image +
+      /forge). Tier A. @cto review APPROVE-WITH-NITS → 6 must-fixes integrated (the
+      resolve-style token shape {mode,tokens:{colors,typography}} guarded-arbitrary-
+      keys; byte-stable fmt(); toBe/toEqual not snapshots; waterfall cumulative +
+      marimekko deferred; validator imports dataviz UNIVERSAL_PARAMS; resolver:sync
+      committed). Decision: ops.decisions slug dataviz-capability-v0.1. Reversibility
+      5/5 (self-contained; git revert removes it cleanly). v0.2 ladder: the deferred
+      chart types (marimekko/statstack/dumbbell/diverging/bubble/heatmap/bubble-matrix/
+      histogram/area/pie) + png/pdf raster + the echarts-ssr stub → installed.
+
   - id: product-db-readonly-access
     name: "Product DB read-only access — Door 2 (pseudonymized analytics)"
     description: "OPERATING since 2026-06-03 (Tier-C decision 0647e301-4ad2-495f-806e-d17c3b130072). Lets the Operating AI answer behavioral / unit-economics questions from Product-derived data WITHOUT touching Product and WITHOUT raw PII. 'Door 2' of the 3-door architecture (L0 firewall-as-code + Door1 gateway + Door2 analytics-copy + Door3 action-MCP). Mechanism: Product builds PII-stripped + HMAC-hashed VIEWS (analytics_export.*, salt product-side, enums ::text-cast in the view); an ISOLATED ritsu-analytics Supabase project (ddgbabvbfjrsznvzhizf, us-west-1; NOT Product) pulls ONLY those views via postgres_fdw into ext.* → staging → array-aware PII-canary gate → atomic swap into live.*; nightly in-DB pg_cron FULL-REPLACE. Consumed read-only via the supabase-analytics MCP (query / list_tables) AS the least-priv analytics_reader Postgres role (SELECT on live.* only — the DB role IS the boundary, opposite model to supabase-ops), behind a default-deny 6-role consumer allowlist (founder/cofounder/customer-lead/product-orchestrator/gtm-orchestrator/feedback-aggregator). The L0 firewall (pre-tool-supabase-product, enforced code PR #204) blocks any direct Product touch AND treats mcp__supabase-analytics__* as safe-mcp. 17 synced tables (behavioral/billing/config core; content + identity tables excluded FOREVER). Monitoring: scripts/cross-tier/check-analytics-sync-health.cjs (freshness + active canary) + 3 alert-rules + 2 KPIs (analytics_sync_freshness ≤26h, analytics_pii_canary_trips=0). GDPR erasure = nightly full-replace auto-drop + force-resync (SOP-CUSTOMER-023). Governance: knowledge/analytics-sync-contract.yaml (committed contract) + validate-analytics-readonly.cjs (L2 critical, in check-consistency AND CI) + SOP-AIOPS-009. Built across 4 sprints: S1 consumer MCP (#220), S2 governance registration (#221), S3 dataset 3→17 (#222), S4 monitoring + erasure (#223) + this Phase-8 promotion."

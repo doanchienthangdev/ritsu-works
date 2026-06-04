@@ -1,0 +1,76 @@
+# SOP-AIOPS-011 — /dataviz Runtime Contract
+#
+# Declarative runtime contract for the dataviz capability (/dataviz command).
+# Read by .claude/commands/dataviz.md + 06-ai-ops/skills/dataviz/SKILL.md (umbrella)
+# + the per-renderer adapter skills.
+#
+# RUNTIME-CONTRACT SOP (like SOP-AIOPS-004/005/006/007/008), NOT a CLA 8-phase
+# ceremony. The "steps" are the sequence /dataviz follows to turn a message + data
+# + flags into a McKinsey-grade chart.
+
+sop_id: SOP-AIOPS-011
+slug: dataviz-runtime-contract
+name: "/dataviz runtime contract"
+version: "1.0.0"
+state: operating
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A           # pure compute, local writes, NO money/external/secret — Tier A; explicit-invoke only
+cost_bucket: ai-ops-dataviz
+capability_id: dataviz
+
+# billing: the render is in-process PURE Node — ZERO LLM/API calls, NO meter exists.
+# The gps per_task_kind_cap `dataviz-render $0.05` is a documentation placeholder
+# (nothing to meter); the only LLM cost is the CALLING agent authoring --message/--data
+# (its own already-budgeted task_kind). NO secret / NO API key (unlike /image).
+
+steps:
+  - id: parse
+    name: "Stage 1 — parse the universal flags + resolve --use"
+    skill: dataviz
+    actions:
+      - parse_universal_args         # scripts/dataviz/lib/params.cjs (UNIVERSAL_PARAMS — single source of truth)
+      - resolve_renderer             # read knowledge/dataviz-renderers.yaml; --use (default svg-native)
+      - not_built_short_circuit      # registered-not-built renderer → clean error citing the registry (NEVER a silent fallback)
+    hitl: A
+
+  - id: style
+    name: "Stage 2 — resolve --style + build the theme (deterministic)"
+    skill: dataviz
+    actions:
+      - resolve_style                # scripts/design-system/resolve-style.cjs (the SAME resolver /image uses); miss → classic + warn (AD-3, never crash)
+      - build_theme                  # scripts/dataviz/lib/theme.cjs → classic McKinsey tokens; --style brand palette/type OVERRIDES (structure ⊥ brand; guarded arbitrary keys)
+    hitl: A
+
+  - id: data
+    name: "Stage 3 — load the data source"
+    skill: dataviz
+    actions:
+      - load_data                    # --data path (.json/.csv) | inline JSON | inline CSV → the series-data IR (NOT pixels)
+      - build_hints                  # n_categories/n_periods/n_series/n_measures/has_negatives/has_time_axis for the selector
+    hitl: A
+
+  - id: select
+    name: "Stage 4 — choose the chart from the MESSAGE (Zelazny)"
+    skill: dataviz/select
+    actions:
+      - select_chart                 # scripts/dataviz/select.cjs — message→type matcher + 2 guard-rails; or honor --chart=<type>
+      - map_deferred_to_built        # a v0.2 ideal → nearest built type + honest reason
+    hitl: A
+    when: "--chart=auto (default)"
+
+  - id: render
+    name: "Stage 5 — render the McKinsey-grade SVG (PURE)"
+    skill: dataviz/renderers/svg-native
+    actions:
+      - render_chart                 # scripts/dataviz/render.cjs — renderChart(type,data,spec,theme)->svgString; byte-stable (every number through fmt())
+      - apply_mckinsey_discipline    # one-highlight, data-ink minimalism, direct labels, action-title, source footer on every exhibit
+    hitl: A
+
+  - id: emit
+    name: "Stage 6 — inline or write artifacts"
+    skill: dataviz
+    actions:
+      - inline_or_write              # --format inline → return SVG; svg/html → .archives/dataviz/<date>-<slug>/ + run.json
+      - emit_warnings                # consequence-honest warnings (unsupported params, deferred-chart demotions, style miss) — never silent
+    hitl: A

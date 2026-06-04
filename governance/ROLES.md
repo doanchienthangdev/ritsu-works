@@ -145,6 +145,8 @@ economic_budget:
     # capability image-platform v0.1 (Sprint 2) — cost-bucket ai-ops-image; /image gpt-image-2 spend
     image-gen:     {unit: usd, cap: 0.50}    # /image out-of-band gpt-image-2 generation. ADVISORY (MF1): out-of-band → invisible to the budget hook; the per-run --max-cost-usd breaker is the real enforcement. Hook/cross-run enforcement arrives with a future ops.image_runs /cla extend.
     image-enhance: {unit: usd, cap: 0.10}    # /image --enhance in-session prompt refinement (subscription; hook-enforced — the one /image stage the budget hook sees)
+    # capability dataviz v0.1 — cost-bucket ai-ops-dataviz; /dataviz pure-Node SVG render
+    dataviz-render: {unit: usd, cap: 0.05}   # /dataviz svg-native render. DOC PLACEHOLDER: the render is in-process PURE Node — ZERO LLM/API calls, nothing to meter; the only LLM cost is the calling agent authoring --message/--data (its own task_kind). No secret/key.
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition

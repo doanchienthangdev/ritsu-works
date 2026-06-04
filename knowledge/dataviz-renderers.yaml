@@ -1,0 +1,60 @@
+# ============================================================================
+# dataviz-renderers.yaml — /dataviz pluggable renderer registry
+# (capability `dataviz` v0.1 — McKinsey-caliber data visualization)
+# ============================================================================
+# Mirrors knowledge/image-adapters.yaml (the split-registry convention): a built
+# renderer carries `status: installed` + a `generator` path that MUST exist on disk;
+# a `registered-not-built` stub carries none (documents intent + the engine surface,
+# awaiting implementation). Each renderer's supports[]/supports_stretch[]/
+# unsupported_warn[] must each be ⊆ UNIVERSAL_PARAMS (scripts/dataviz/lib/params.cjs)
+# — enforced by scripts/cross-tier/validate-dataviz-renderers.cjs (L2 critical;
+# wired into check-consistency.cjs AND .github/workflows/cross-tier-consistency.yml).
+#
+# v0.1 ships ONE real backend: svg-native (the zero-dependency, pure-Node, byte-
+# stable SVG-string renderer). echarts-ssr + vega-lite are documented stubs (the
+# engine fallbacks if hand-rolled layout ever outruns budget — both are no-DOM/
+# no-native-build SVG paths; vega-lite's accurate-text path historically pulls
+# node-canvas, so it is the LAST resort).
+#
+# Schema:    knowledge/schemas/dataviz-renderers.schema.json
+# Consumer:  06-ai-ops/skills/dataviz/SKILL.md (--use=<renderer>)
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/dataviz-renderers.schema.json
+
+renderers:
+  - id: svg-native
+    status: installed
+    generator: scripts/dataviz/render.cjs
+    skill: 06-ai-ops/skills/dataviz/renderers/svg-native/SKILL.md
+    default_theme: mckinsey
+    chart_types: [bar, column, line, stacked, stacked100, grouped, scatter, waterfall, kpi]
+    deferred_chart_types: [marimekko, statstack, dumbbell, diverging, bubble, heatmap, bubble-matrix, histogram, area, small-multiples, pie]
+    supports: [message, chart, data, title, title-style, source, footnotes, highlight, sort, unit, decimals, percent, thousands, style, theme, format, ar, width, height, use, out, max-cost-usd, dry-run]
+    supports_stretch: []
+    unsupported_warn: [art-style]
+    auth:
+      env: null            # PURE / offline — no secret, no API key (unlike /image's OPENAI_API_KEY)
+      billing: in-process-pure
+    notes: "Zero-dependency pure-Node SVG-string renderer (no d3/canvas/DOM). renderChart(chartType,data,spec,theme)->svgString is a PURE function → byte-stable, snapshot-free toBe()/toEqual() tests. Format png/pdf rasterization is a v0.2 stretch (svg/html/inline in v0.1)."
+
+  - id: echarts-ssr
+    status: registered-not-built
+    skill: null
+    chart_types: []
+    supports: []
+    auth:
+      env: null
+      billing: in-process-pure
+    notes: "STUB. Apache ECharts server-side render — echarts.init(null,null,{renderer:'svg',ssr:true}).renderToSVGString() with animation:false for byte-stability. The ONLY chart engine meeting no-DOM + no-native-build (true since 5.3.0). The documented fallback if hand-rolled per-chart layout outruns budget. Adds a dep; not built in v0.1."
+
+  - id: vega-lite
+    status: registered-not-built
+    skill: null
+    chart_types: []
+    supports: []
+    auth:
+      env: null
+      billing: in-process-pure
+    notes: "STUB / LAST RESORT. Vega-Lite JSON spec → SVG. Rejected for v0.1: v4+ is ESM-only (not require()-able from a .cjs), and its accurate-text SVG path historically pulls node-canvas (native build) which breaks the zero-native-build mandate AND the direct-label positioning McKinsey depends on."

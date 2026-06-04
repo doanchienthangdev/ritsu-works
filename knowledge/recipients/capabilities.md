@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 19
+**Total entries:** 20
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -55,6 +55,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **When to use:** Redesign 00-core foundation + /core command. Transformed 00-core/ from a 5-doc charter folder into a 19-doc canonical v1.0.0
 
 **Invoke:** `Read("wiki/capabilities/core-redesign-and-command/spec.md")` or `/cla update core-redesign-and-command`
+
+**Role scope:** *
+**Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/dataviz
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Data Visualization (McKinsey-caliber charts, like /image for data→chart). A general, reused-many-times data-visualization capability — the /dataviz v0.1.0
+
+**Invoke:** `Read("wiki/capabilities/dataviz/spec.md")` or `/cla update dataviz`
 
 **Role scope:** *
 **Status:** operating
