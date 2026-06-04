@@ -148,7 +148,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Product code read-only access — the CODE sibling of Door 2 (DATA). OPERATING since 2026-06-04 (Tier-C, autonomous /cla propose per founder pre-auth). Makes the Product source CODE repo (github.com/doanchienthangdev/ritsu — PRIVATE TS Turborepo) a governed, READ-ONLY, resolver-registered source-of-truth that /deepask + /think mckinsey ground product questions in — stronger than 00-core/product.md ( v1.0.0
+**When to use:** Product code read-only access — the CODE sibling of Door 2 (DATA). OPERATING (v1.1) since 2026-06-04 (Tier-C, autonomous /cla propose + extend per founder pre-auth). Makes the Product source CODE repo (github.com/doanchienthangdev/ritsu — PRIVATE TS Turborepo) a governed, READ-ONLY, resolver-registered source-of-truth that /deepask + /think mckinsey ground product questions in — stronger than 00-c v1.1.0
 
 **Invoke:** `Read("wiki/capabilities/product-code-readonly-access/spec.md")` or `/cla update product-code-readonly-access`
 

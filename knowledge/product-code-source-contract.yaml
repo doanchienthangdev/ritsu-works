@@ -20,11 +20,24 @@
 # code-graph parse cost vs the $100/mo gbrain cap); the hook write-block is a
 # Tier C/D-Std safety-hook edit. Both are flagged in `deferred`, neither auto-done.
 
-version: 1.0.0
+version: 1.1.0   # v1.1: read-only is now HOOK-ENFORCED (firewall v1.3.0 product-repo write-block) + SOP-AIOPS-010 added; gbrain mode deferred-with-findings
 last_updated: 2026-06-04
 owner: founder
 capability_id: product-code-readonly-access
 external_source_id: ritsu-product-source
+
+# Read-only ENFORCEMENT (v1.1). The read-only invariant is no longer policy-only:
+# the L0 firewall (.claude/hooks/runtime/lib/product-firewall.cjs v1.3.0) BLOCKS
+# git/gh WRITES to doanchienthangdev/ritsu (matchRule product-repo-write) — git
+# push, gh pr create|merge|edit|close, write gh api, gh release|repo|secret|
+# workflow writes. Word-boundaried so our OWN ritsu-works repo is unaffected;
+# READS pass. Tested in tests/product-firewall.test.ts. Residual: a bare `git
+# push` from inside a product-clone cwd carries no slug → not command-text-catchable.
+enforcement:
+  read_only_via: firewall-product-repo-write-block   # lib/product-firewall.cjs v1.3.0
+  match_rule: product-repo-write
+  tested_in: tests/product-firewall.test.ts
+  residual: bare-git-push-from-product-clone-cwd (not command-text-catchable)
 
 repo:
   owner: doanchienthangdev
@@ -32,9 +45,9 @@ repo:
   url: https://github.com/doanchienthangdev/ritsu
   visibility: private
   default_branch: main
-  write_forbidden: true        # POLICY: ritsu-works must never write/commit/push/PR here (D-MAX-class).
-                               # NOTE: v1 does NOT hook-enforce this (firewall = Supabase DATA only);
-                               # the enforcing write-block is deferred (see deferred.hook-write-block).
+  write_forbidden: true        # ritsu-works never writes/commits/pushes/PRs here (D-MAX-class).
+                               # ENFORCED (v1.1) by the L0 firewall product-repo-write block (v1.3.0) —
+                               # see the `enforcement` block above; tested in tests/product-firewall.test.ts.
 
 read_only: true
 # The secret-gate BY CONSTRUCTION: read the GitHub REMOTE's committed tree only.
@@ -65,7 +78,12 @@ read_modes:
     invoke: "gh api / gh search code / shallow read-only clone + git grep (read-only)"
     use_for: "exact current values, presence checks, keyword/string search, fresh ground-truth"
   - id: gbrain-code-graph
-    status: planned            # v1.1 — enable only after a founder-approved cost dry-run
+    status: planned            # DEFERRED-with-findings (2026-06-04 measurement): gbrain `sync_brain`
+                               # is a MARKDOWN/doc indexer (imported 15 doc pages, skipped 38 source
+                               # files) — NOT a source-code/code_* graph indexer; embeddings also need
+                               # OpenAI in the gbrain process (generated 0 here); and doc-page sync lands
+                               # in the `default` source (isolation). Kept `planned` (NOT active). Re-attempt
+                               # needs a code-aware index path + the embedding pipeline + a dedicated source.
     freshness: snapshot         # synced periodically; carries a freshness tag
     cost: gated                 # embeddings + code-graph parse vs the $100/mo gbrain cap
     invoke: "mcp__gbrain__{search,code_blast,code_flow,code_refs,code_def,code_callers,code_callees}"
@@ -87,11 +105,18 @@ consumers:
   - deepask
   - think-mckinsey
 
-# Deferred hardening — founder-gated, NOT done in v1:
-deferred:
+# v1.1 DELIVERED (2026-06-04, founder-authorized "tự làm 3 việc kia"):
+delivered_in_v1_1:
   - id: hook-write-block
-    what: "Extend pre-tool-supabase-product (or a new pre-bash hook) to BLOCK any git push / gh pr create|merge / gh api write targeting doanchienthangdev/ritsu."
-    why_gated: "Editing a safety hook is Tier C/D-Std. v1 is safe without it (this capability adds only a READ source; it introduces no new write path), but the explicit write-block is the right hardening."
-  - id: gbrain-v1.1-ingestion
-    what: "sources_add + sync_brain the committed tree (scoped to apps/ + packages/ + supabase/, secret-denylist applied), enabling the gbrain-code-graph read mode."
-    why_gated: "Ingestion is a gbrain WRITE (Tier B) + a cost event vs the $100/mo cap. Needs a scoped dry-run estimate + founder go. Back-of-envelope: ~2413 committed files / ~9.8MB; embeddings ~cents, but the code-graph parse cost is unmeasured — hence the dry-run gate."
+    status: done
+    what: "L0 firewall product-repo-write block (lib/product-firewall.cjs v1.3.0; matchRule product-repo-write). git/gh WRITES to doanchienthangdev/ritsu blocked; reads pass; our own ritsu-works repo unaffected (slug word-boundary). Tested in tests/product-firewall.test.ts."
+  - id: sop-aiops-010
+    status: done
+    what: "06-ai-ops/sops/SOP-AIOPS-010-product-code-source-contract/flow.yaml — the runtime contract (read pipeline + enforcement + guards + residual)."
+
+# Still DEFERRED (founder-gated):
+deferred:
+  - id: gbrain-code-graph-ingestion
+    status: deferred-with-findings
+    what: "Enable the gbrain-code-graph read mode (semantic + code_* over the product source)."
+    finding: "2026-06-04 measurement: gbrain sync_brain is a MARKDOWN/doc indexer (15 doc pages imported, 38 source files SKIPPED) — NOT a source-code/code_* graph indexer; embeddings also need OpenAI in the gbrain process (generated 0 here); and doc-page sync lands in the shared `default` source (isolation). Cleanly enabling it needs a code-aware index path + the embedding pipeline wired + a dedicated isolated source — beyond an autonomous run. The trial source+clone were registered then FULLY REMOVED and the brain restored (3 doc pages remain only because the safety classifier blocked their delete — harmless, embedded:0)."

@@ -49,18 +49,22 @@ Runtime: `/deepask "<product q>"` → decompose → resolver-plan routes a sub-n
 
 - `validate-product-code-source.cjs` green; `pnpm check` clean; CI green.
 - `external-source/ritsu-product-source` discoverable in the resolver (deepask/mckinsey routable, default-deny 6-role scope).
-- The contract's typed fields (`read_only`, `repo.write_forbidden`, `read_surface`, `secret_denylist`) are **validator-enforced** so the *contract* can't silently drift. **Honesty note:** this enforces the **declared policy**, not the **runtime act** — v1 does NOT machine-block a `git push` / `gh pr` to the product repo (the firewall blocks Supabase DATA only); the enforcing **hook write-block is deferred (§6.2)**. v1's read-only-ness rests on policy + the read-only invoke-patterns + `GITHUB_TOKEN` scope + role discipline, and crucially adds **no new write path**.
-- No new DB table / migration. No safety-hook edit. No gbrain ingestion (no cost incurred).
+- The contract's typed fields (`read_only`, `repo.write_forbidden`, `read_surface`, `secret_denylist`) are **validator-enforced** so the *contract* can't silently drift.
+- **Read-only is HOOK-ENFORCED (v1.1):** the L0 firewall (`lib/product-firewall.cjs` v1.3.0) BLOCKS git/gh writes to `doanchienthangdev/ritsu` (matchRule `product-repo-write`) — word-boundaried so our own ritsu-works repo is unaffected; reads pass; +20 firewall tests. **Residual:** a bare `git push` from inside a product-clone cwd carries no slug in the command text → not catchable (documented in SOP-AIOPS-010).
+- No new DB table / migration. The firewall edit is a founder-authorized safety-hook change (v1.1).
 
-## 6. Deferred (founder-gated — explicitly NOT in v1)
+## 6. v1.1 delivered + still deferred
 
-1. **gbrain v1.1 ingestion** — `sources_add` + `sync_brain` the committed tree (scoped to `apps/` + `packages/` + `supabase/`, secret-denylist applied) → enables the `gbrain-code-graph` read mode. **Gate:** scoped cost dry-run (1 package) + founder go (Tier B write + cost vs `$100/mo` cap). Back-of-envelope: ~2,413 files / ~9.8 MB; embeddings ≈ cents; code-graph parse cost **unmeasured** → hence the dry-run.
-2. **Hook write-block hardening** — extend `pre-tool-supabase-product` (or a new pre-bash hook) to **BLOCK** any `git push` / `gh pr create|merge` / write `gh api` targeting `doanchienthangdev/ritsu`. v1 is safe without it (this capability adds only a READ source — no new write path), but the explicit block is the right hardening. **Gate:** editing a safety hook is Tier C/D-Std → founder.
-3. **SOP-AIOPS-010** runtime contract (symmetric to SOP-AIOPS-009) — deferred to v1.1.
+**Delivered in v1.1 (2026-06-04, founder-authorized "tự làm 3 việc kia"):**
+1. **Hook write-block ✓** — the L0 firewall (`lib/product-firewall.cjs` v1.3.0) blocks git/gh writes to `doanchienthangdev/ritsu` (`git push` · `gh pr create|merge|edit|close` · write `gh api` · `gh release|repo|secret|workflow` writes) → matchRule `product-repo-write`; word-boundaried (ritsu-works unaffected); reads pass; +20 firewall tests.
+2. **SOP-AIOPS-010 ✓** — `06-ai-ops/sops/SOP-AIOPS-010-product-code-source-contract/flow.yaml` (the runtime contract: read pipeline + enforcement + guards + residual).
+
+**Still deferred (founder-gated):**
+3. **gbrain code-graph ingestion** — *measured 2026-06-04, deferred-with-findings:* gbrain `sync_brain` is a **markdown/doc** indexer (imported 15 doc pages, **skipped 38 source files**), **not** a source-code/`code_*` graph indexer; embeddings also need OpenAI in the gbrain process (generated 0); and doc-page sync lands in the shared `default` source (isolation). The trial source+clone were registered then **fully removed** and the brain restored. Cleanly enabling it needs a **code-aware index path + the embedding pipeline wired + a dedicated isolated source** — beyond an autonomous run.
 
 ## 7. References
 
 - Sibling: `product-db-readonly-access` (DATA, Door 2) — `wiki/capabilities/product-db-readonly-access/spec.md`.
-- Firewall: `.claude/hooks/pre-tool-supabase-product.{md,runtime/*.cjs}` (DATA-only; code-read passes).
+- Firewall: `.claude/hooks/runtime/lib/product-firewall.cjs` v1.3.0 (Supabase DATA + product-repo write-block; code-read passes). Runtime contract: `SOP-AIOPS-010-product-code-source-contract`.
 - Contract: `knowledge/product-code-source-contract.yaml`. Recipient: `knowledge/external-sources.yaml#ritsu-product-source`.
 - Brainstorm/decision: in-session 2026-06-04; `.archives/cla/product-code-readonly-access/`.

@@ -29,7 +29,11 @@
 
 const fs = require('fs');
 
-const PRODUCT_FIREWALL_VERSION = '1.2.0';
+// v1.3.0 (capability product-code-readonly-access v1.1): + product CODE repo
+// write-block. git/gh WRITES to doanchienthangdev/ritsu are blocked — the product
+// code is a READ-ONLY source; reads pass. The slug is WORD-BOUNDARIED so our own
+// doanchienthangdev/ritsu-works repo is unaffected (ritsu is a prefix of ritsu-works).
+const PRODUCT_FIREWALL_VERSION = '1.3.0';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Known project refs (the only DB targets we can PROVE are not Product).
@@ -136,6 +140,16 @@ const CONNECTION_INDICATORS = [
   /\bpg_restore\b/i,
   /\bapi\.supabase\.(?:com|co)\b/i, // Management API (can run SQL via /database/query)
 ];
+
+// ─────────────────────────────────────────────────────────────────────────
+// Product CODE repo (capability product-code-readonly-access). The product
+// source repo is a READ-ONLY source → git/gh WRITES targeting it are blocked.
+// WORD-BOUNDARIED so it does NOT match our own `doanchienthangdev/ritsu-works`
+// repo (ritsu is a prefix of ritsu-works). The negative lookahead `(?![\w-])`
+// rejects a following word-char or hyphen → matches `ritsu`, `ritsu.git`,
+// `ritsu/`, `ritsu ` but NOT `ritsu-works` / `ritsux`.
+// ─────────────────────────────────────────────────────────────────────────
+const PRODUCT_REPO_RE = /doanchienthangdev\/ritsu(?![\w-])/i;
 
 // ─────────────────────────────────────────────────────────────────────────
 // Small pure helpers
@@ -278,6 +292,38 @@ function classifyRawTarget(text, cfg) {
   return 'none';
 }
 
+/**
+ * Detect a git/gh WRITE targeting the Product CODE repo (doanchienthangdev/ritsu).
+ * READS (gh api GET, gh search code, git clone, git grep, gh pr list/view) carry
+ * NONE of these write verbs → allowed. Our own ritsu-works repo is excluded by the
+ * word-boundaried PRODUCT_REPO_RE. `text` is already lowercased by gatherText.
+ *
+ * Residual (documented in the capability spec): a bare `git push` run from INSIDE a
+ * product-repo clone cwd carries no slug in the command text → not catchable from
+ * command text alone. The realistic vectors (explicit --repo / a product git URL /
+ * a write gh api path) all name the slug and ARE caught.
+ * @returns {boolean} true → block (a product-repo write)
+ */
+function classifyProductRepoWrite(text) {
+  if (!PRODUCT_REPO_RE.test(text)) return false;
+  if (/\bgit\s+push\b/.test(text)) return true;
+  if (/\bgit\s+remote\s+(?:add|set-url)\b/.test(text)) return true;
+  if (/\bgh\s+pr\s+(?:create|merge|edit|close|reopen|ready)\b/.test(text)) return true;
+  if (/\bgh\s+(?:release|repo|secret|workflow|cache)\s+(?:create|edit|delete|set|rename|archive|develop|run|enable|disable)\b/.test(text)) return true;
+  // gh api with an explicit write method.
+  if (/\bgh\s+api\b/.test(text) && /(?:-x\s*|--method[=\s]*)(?:post|patch|put|delete)\b/.test(text)) return true;
+  // gh api AUTO-switches to POST when a field/input flag (-f/-F/--field/--raw-field/
+  // --input) is present and no read method is forced → an IMPLICIT WRITE (e.g.
+  // `gh api repos/.../issues -f title=x` creates an issue). Exclude `gh api graphql`
+  // (a READ that also uses -f) and a forced `-X GET`. (text is already lowercased,
+  // so -F folds to -f.)
+  if (/\bgh\s+api\b/.test(text)
+      && !/\bgh\s+api\s+graphql\b/.test(text)
+      && !/(?:-x\s*|--method[=\s]*)get\b/.test(text)
+      && /(?:\s|^)(?:-f|--field|--raw-field|--input)(?:[=\s]|$)/.test(text)) return true;
+  return false;
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // Decision result factory
 // ─────────────────────────────────────────────────────────────────────────
@@ -346,6 +392,21 @@ function decide(input) {
 
   if (cls === 'gateway') return decideGateway(text, callerRole);
   if (cls === 'action') return decideAction(callerRole);
+
+  // Product CODE repo write-block (v1.3.0; capability product-code-readonly-access).
+  // The product source repo is a READ-ONLY source — a git/gh WRITE to it is forbidden.
+  // Checked BEFORE the DB classification (a `git push` carries no DB target). Reads
+  // pass; only writes block; our own ritsu-works repo is unaffected (slug boundary).
+  // Gated to `raw-bash`: only Bash can execute a git/gh command, and this keeps the
+  // matcher structurally INERT for content-bearing tools (Edit/Write/WebFetch) whose
+  // payload may merely DOCUMENT a product git command (e.g. this capability's own
+  // spec/SOP examples) — preventing a false-block if the hook is ever widened.
+  if (cls === 'raw-bash' && classifyProductRepoWrite(text)) {
+    return block(
+      'product-repo-write',
+      'WRITE to the Product code repo (doanchienthangdev/ritsu) is forbidden — it is a READ-ONLY source (capability product-code-readonly-access). Operating AI must never push/PR/commit to Product (D-MAX). Reads (gh api GET, gh search code, git grep/clone) are allowed. See knowledge/product-code-source-contract.yaml.',
+    );
+  }
 
   // 'raw-bash' | 'raw-mcp' | 'other' — scan the payload for a DB / Management-API
   // target and fail closed. 'other' tools are scanned too (not blanket-allowed)
@@ -434,6 +495,8 @@ module.exports = {
   // exported for unit tests + reuse
   classifyTool,
   classifyRawTarget,
+  classifyProductRepoWrite,
+  PRODUCT_REPO_RE,
   extractRefs,
   extractTargetViews,
   isWriteOperation,
