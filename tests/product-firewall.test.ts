@@ -377,3 +377,100 @@ describe("pre-tool-supabase-product.cjs runtime hook (Claude Code PreToolUse con
     expect(r.status).toBe(0);
   });
 });
+
+// ── v1.3.0: product CODE repo write-block (capability product-code-readonly-access) ──
+// READ-ONLY source: git/gh WRITES to doanchienthangdev/ritsu are blocked; reads pass;
+// our own doanchienthangdev/ritsu-works repo (ritsu is a prefix) is unaffected.
+describe("product-firewall: BLOCKS writes to the Product CODE repo (doanchienthangdev/ritsu)", () => {
+  it.each([
+    "gh pr create --repo doanchienthangdev/ritsu --title x --body y",
+    "gh pr merge 5 --repo doanchienthangdev/ritsu --squash",
+    "gh pr edit 5 --repo doanchienthangdev/ritsu --add-label bug",
+    "gh pr close 5 --repo doanchienthangdev/ritsu",
+    "git push https://github.com/doanchienthangdev/ritsu.git main",
+    "git push git@github.com:doanchienthangdev/ritsu.git HEAD",
+    "git remote add prod git@github.com:doanchienthangdev/ritsu.git",
+    "git remote set-url origin https://github.com/doanchienthangdev/ritsu.git",
+    "gh api repos/doanchienthangdev/ritsu/issues -X POST -f title=bug",
+    "gh api repos/doanchienthangdev/ritsu/contents/x --method PUT -f content=z",
+    "gh api repos/doanchienthangdev/ritsu/git/refs -X DELETE",
+    "gh release create v1 --repo doanchienthangdev/ritsu",
+    "gh secret set FOO --repo doanchienthangdev/ritsu",
+    "GH_REPO=x gh workflow run deploy --repo doanchienthangdev/ritsu", // workflow run = write trigger
+  ])("BLOCKS: %s", (cmd) => {
+    const d = bash(cmd);
+    expect(d.decision).toBe("block");
+    expect(d.matchRule).toBe("product-repo-write");
+  });
+
+  it("case-insensitive on the slug (DOANCHIENTHANGDEV/RITSU)", () => {
+    expect(bash("git push https://github.com/DOANCHIENTHANGDEV/RITSU.git main").matchRule).toBe("product-repo-write");
+  });
+});
+
+describe("product-firewall: ALLOWS reads of the Product CODE repo (the v1 read modes)", () => {
+  it.each([
+    "gh api repos/doanchienthangdev/ritsu/git/trees/main?recursive=1",
+    "gh api repos/doanchienthangdev/ritsu/contents/apps/web/package.json",
+    "gh search code --repo doanchienthangdev/ritsu pricing",
+    "git clone --depth 1 https://github.com/doanchienthangdev/ritsu.git /tmp/r",
+    "gh pr list --repo doanchienthangdev/ritsu",
+    "gh pr view 5 --repo doanchienthangdev/ritsu",
+    "gh repo view doanchienthangdev/ritsu --json name",
+    "gh api graphql -f query='{ repository(owner:\"doanchienthangdev\",name:\"ritsu\"){id} }'", // GraphQL READ via -f
+  ])("ALLOWS: %s", (cmd) => {
+    expect(bash(cmd).decision).toBe("allow");
+  });
+});
+
+describe("product-firewall: the prefix trap — our OWN ritsu-works repo writes must NOT be blocked", () => {
+  it.each([
+    "git push origin claude/product-code-v1-1",
+    "git push https://github.com/doanchienthangdev/ritsu-works.git main",
+    "git push git@github.com:doanchienthangdev/ritsu-works.git HEAD",
+    "gh pr create --repo doanchienthangdev/ritsu-works --title x",
+    "gh pr merge 231 --squash",
+    "gh api repos/doanchienthangdev/ritsu-works/issues -X POST -f title=x",
+    "git remote add up git@github.com:doanchienthangdev/ritsu-works.git",
+  ])("ALLOWS (ritsu-works ≠ ritsu): %s", (cmd) => {
+    const d = bash(cmd);
+    expect(d.matchRule).not.toBe("product-repo-write");
+  });
+});
+
+// v1.1.1 (@cto firewall review): gh api implicit-POST under-block + non-Bash over-block fixes.
+describe("product-firewall: gh api implicit-POST writes to the product repo are blocked", () => {
+  it.each([
+    "gh api repos/doanchienthangdev/ritsu/issues -f title=x -f body=spam",   // -f → implicit POST (creates an issue)
+    "gh api repos/doanchienthangdev/ritsu/issues --field title=x",
+    "gh api repos/doanchienthangdev/ritsu/issues --raw-field title=x",
+    "gh api repos/doanchienthangdev/ritsu/pulls --input body.json",
+    "gh repo delete doanchienthangdev/ritsu --yes",
+  ])("BLOCKS implicit/destructive write: %s", (cmd) => {
+    expect(bash(cmd).matchRule).toBe("product-repo-write");
+  });
+
+  it.each([
+    "gh api graphql -f query='{repository(owner:\"doanchienthangdev\",name:\"ritsu\"){id}}'", // graphql READ also uses -f
+    "gh api repos/doanchienthangdev/ritsu/issues -X GET -f state=open",                       // forced GET = read
+    "gh api repos/doanchienthangdev/ritsu/git/trees/main",                                    // plain GET
+  ])("ALLOWS read: %s", (cmd) => {
+    expect(bash(cmd).decision).toBe("allow");
+  });
+
+  it("ritsu-works implicit-POST is NOT blocked (slug boundary holds)", () => {
+    expect(bash("gh api repos/doanchienthangdev/ritsu-works/issues -f title=x").matchRule).not.toBe("product-repo-write");
+  });
+});
+
+describe("product-firewall: the write-block is INERT for non-Bash tools (over-block guard)", () => {
+  const tool = (toolName: string, toolInput: any) => decide({ toolName, toolInput, callerRole: "founder", env: ENV });
+  it("a Write whose content DOCUMENTS a product git command is NOT blocked (cls=other, not raw-bash)", () => {
+    const d = tool("Write", { file_path: "spec.md", content: "example: gh pr create --repo doanchienthangdev/ritsu" });
+    expect(d.matchRule).not.toBe("product-repo-write");
+  });
+  it("an Edit inserting a product git URL into a doc is NOT blocked", () => {
+    const d = tool("Edit", { file_path: "x.md", old_string: "a", new_string: "git push https://github.com/doanchienthangdev/ritsu.git" });
+    expect(d.matchRule).not.toBe("product-repo-write");
+  });
+});

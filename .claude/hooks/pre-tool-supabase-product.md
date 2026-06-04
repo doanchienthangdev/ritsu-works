@@ -1,6 +1,6 @@
 ---
 name: pre-tool-supabase-product
-version: 1.2.0
+version: 1.3.0
 type: pre-tool
 status: active
 runtime: .claude/hooks/runtime/pre-tool-supabase-product.cjs
@@ -23,6 +23,8 @@ fail_mode: closed
 `product-db-readonly-access` (brainstorm: `.archives/brainstorming/product-db-readonly-access-2026-06-02/`,
 esp. `07` Phase 0, `05` §7/§9). Closes **Finding 1** (firewall was honor-system). Implements the chosen
 3-door architecture (`10`/`04`): the AI never walks into the house; it talks through guarded doors.
+
+**v1.3.0 (2026-06-04)** — + **product CODE repo write-block** (capability `product-code-readonly-access` v1.1). git/gh WRITES to `doanchienthangdev/ritsu` (`git push` · `gh pr create|merge|edit|close` · write `gh api` · `gh release|repo|secret|workflow` writes) are blocked (matchRule `product-repo-write`); the slug is word-boundaried so our own `ritsu-works` repo is unaffected; READS (`gh api` GET · `gh search code` · `git grep|clone`) pass. The product source code is a READ-ONLY source-of-truth. See `SOP-AIOPS-010` + `knowledge/product-code-source-contract.yaml`.
 
 ## What it does
 
@@ -63,6 +65,7 @@ decide(input):
   if cls == 'gateway'    → role? write? forbidden-schema? view∈pre_approved? → allow/block
   if cls == 'action'     → role? → allow/block
   # raw-bash | raw-mcp:
+  if classifyProductRepoWrite(text) → block (product-repo-write)   # v1.3.0: git/gh WRITE to doanchienthangdev/ritsu (read-only code source; ritsu-works unaffected)
   target = classifyRawTarget(text)          # scans the WHOLE payload
     'none'        → allow                    # no DB connection in the command
     'safe'        → allow                    # ref ∈ {ritsu-ops, ritsu-brain, ritsu-analytics}

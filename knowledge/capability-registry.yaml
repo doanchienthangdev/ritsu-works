@@ -1533,8 +1533,8 @@ capabilities:
 
   - id: product-code-readonly-access
     name: "Product code read-only access — the CODE sibling of Door 2 (DATA)"
-    description: "OPERATING since 2026-06-04 (Tier-C, autonomous /cla propose per founder pre-auth). Makes the Product source CODE repo (github.com/doanchienthangdev/ritsu — PRIVATE TS Turborepo) a governed, READ-ONLY, resolver-registered source-of-truth that /deepask + /think mckinsey ground product questions in — stronger than 00-core/product.md (drifts vs the live site). SAFER than the DATA path: source code has no PII; the only sensitive content is secrets, and reading the COMMITTED REMOTE tree is secret-free BY CONSTRUCTION (secrets gitignored → absent from GitHub; verified 2026-06-04: of 2413 committed files, only apps/{web,admin}/.env.example templates). The local clone (.env.local secrets) is out of bounds. READ-ONLY by POLICY + role-discipline (ritsu-works must never write/push/PR → D-MAX-class) — but NOT yet machine-enforced in v1: the firewall blocks Supabase DATA, not product-repo git writes, so the write-block rests on policy + GITHUB_TOKEN scope + the role prompt; the enforcing hook write-block is the DEFERRED hardening. v1 introduces no new write path (adds only READ invoke-patterns). HYBRID, B-first: v1 = live gh/git-grep (always fresh, zero-cost) via the NEW external-source ritsu-product-source (source_type code-repo-readonly, default-deny 6-role scope); v1.1 (planned, ingestion cost-gated vs the $100/mo gbrain cap) = gbrain code-graph (code_blast/flow/refs) for semantic + callers/callees/flow. Firewall (pre-tool-supabase-product) unchanged — code-read passes, Supabase-DATA still blocked. Governance: knowledge/product-code-source-contract.yaml + validate-product-code-source.cjs (L2 critical, in check-consistency AND CI). NO new DB table / migration / safety-hook edit / gbrain ingestion in v1. Deferred (founder-gated): gbrain v1.1 ingestion (cost dry-run) + hook write-block hardening + SOP-AIOPS-010."
-    version: "1.0.0"
+    description: "OPERATING (v1.1) since 2026-06-04 (Tier-C, autonomous /cla propose + extend per founder pre-auth). Makes the Product source CODE repo (github.com/doanchienthangdev/ritsu — PRIVATE TS Turborepo) a governed, READ-ONLY, resolver-registered source-of-truth that /deepask + /think mckinsey ground product questions in — stronger than 00-core/product.md (drifts vs the live site). SAFER than the DATA path: source code has no PII; the only sensitive content is secrets, and reading the COMMITTED REMOTE tree is secret-free BY CONSTRUCTION (secrets gitignored → absent from GitHub; verified 2026-06-04: of 2413 committed files, only apps/{web,admin}/.env.example templates). The local clone (.env.local secrets) is out of bounds. READ-ONLY, HOOK-ENFORCED (v1.1): the L0 firewall (lib/product-firewall.cjs v1.3.0) BLOCKS git/gh WRITES to doanchienthangdev/ritsu (matchRule product-repo-write — git push / gh pr create|merge|edit / write gh api / gh release|repo|secret|workflow writes), word-boundaried so our own ritsu-works repo is unaffected; reads pass. Residual: a bare git push from a product-clone cwd isn't command-text-catchable (documented). HYBRID, B-first: v1 = live gh/git-grep (always fresh, zero-cost) via the NEW external-source ritsu-product-source (source_type code-repo-readonly, default-deny 6-role scope); gbrain code-graph DEFERRED-with-findings (measured 2026-06-04: gbrain sync_brain is a MARKDOWN/doc indexer, NOT a source-code/code_* graph indexer; embeddings need OpenAI in the gbrain process; the trial source+clone were registered then FULLY REMOVED + brain restored). Firewall EXTENDED v1.3.0 — code-read passes, Supabase-DATA blocked, AND product-repo git/gh WRITES blocked. Governance: knowledge/product-code-source-contract.yaml + validate-product-code-source.cjs (L2 critical, in check-consistency AND CI) + SOP-AIOPS-010. v1.1 DELIVERED (founder-authorized 'tự làm 3 việc kia'): firewall write-block (safety-hook edit) + SOP-AIOPS-010. Still deferred: gbrain code-graph ingestion. NO new DB table / migration."
+    version: "1.1.0"
     state: operating
     state_since: 2026-06-04
     proposed_at: 2026-06-04
@@ -1544,16 +1544,25 @@ capabilities:
     spec_path: wiki/capabilities/product-code-readonly-access/spec.md
     cost_bucket: ai-ops-skill-library
     notes: |
-      v1 = the live-read path only (zero-cost, always-fresh, registered in the
-      resolver as external-source/ritsu-product-source). gbrain code-graph (v1.1)
-      is DESIGNED but NOT enabled — ingestion is a gbrain WRITE + a cost event vs
-      the $100/mo cap, gated on a founder-approved scoped dry-run. The hook
-      write-block (block git push / gh pr to the product repo) is also founder-
-      gated (safety-hook edit = Tier C/D-Std); v1 is safe without it because this
-      capability adds only a READ source, no new write path. Symmetric sibling of
-      product-db-readonly-access (DATA). Spec: wiki/capabilities/
-      product-code-readonly-access/spec.md. CLA artifacts (local-only):
-      .archives/cla/product-code-readonly-access/.
+      v1 (2026-06-04): live-read path — gh/git-grep over the committed remote tree,
+      registered in the resolver as external-source/ritsu-product-source. Read-only
+      by policy. Symmetric sibling of product-db-readonly-access (DATA).
+
+      v1.1 (2026-06-04, founder "tự làm 3 việc kia"): (1) READ-ONLY now HOOK-ENFORCED
+      — L0 firewall lib/product-firewall.cjs v1.3.0 blocks git/gh writes to
+      doanchienthangdev/ritsu (matchRule product-repo-write), word-boundaried so our
+      own ritsu-works repo is unaffected; +20 firewall tests. (2) SOP-AIOPS-010
+      runtime contract added. (3) gbrain code-graph ingestion DEFERRED-with-findings:
+      measured that gbrain sync_brain is a markdown/doc indexer (imported 15 doc
+      pages, skipped 38 source files), NOT a source-code/code_* graph indexer, and
+      embeddings need OpenAI in the gbrain process (generated 0); the trial
+      source+clone were registered then FULLY REMOVED and the brain restored
+      (3 doc pages remain in `default` only because the safety classifier blocked
+      their delete — harmless, embedded:0). Re-attempt needs a code-aware index +
+      embedding pipeline + a dedicated isolated source.
+
+      Spec: wiki/capabilities/product-code-readonly-access/spec.md. CLA artifacts
+      (local-only): .archives/cla/product-code-readonly-access/.
 
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.

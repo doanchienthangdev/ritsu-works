@@ -1,0 +1,115 @@
+# SOP-AIOPS-010 — Product Code Source Runtime Contract
+#
+# Declarative runtime contract for capability product-code-readonly-access (the
+# CODE sibling of product-db-readonly-access / Door 2). Governs how Operating AI
+# reads the Product source CODE repo (github.com/doanchienthangdev/ritsu) as a
+# READ-ONLY source-of-truth, and how the read-only-ness is ENFORCED.
+#
+# RUNTIME-CONTRACT SOP (like SOP-AIOPS-004..009), NOT a CLA 8-phase ceremony.
+# The "steps" document the read pipeline end to end: resolve → read the committed
+# REMOTE tree (read-only) → cite → synthesize. Writes are firewall-blocked.
+
+sop_id: SOP-AIOPS-010
+slug: product-code-source-contract
+name: "Product code source runtime contract"
+version: "1.0.0"
+state: operating          # v1.1 of product-code-readonly-access (hook write-block enforced)
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A           # reads of public-to-us code are Tier A; WRITES to the product repo are firewall-blocked (D-MAX-class)
+cost_bucket: ai-ops-skill-library
+capability_id: product-code-readonly-access
+
+# ----------------------------------------------------------------------
+# The read pipeline (resolve → read committed remote tree → cite → synthesize).
+# Reads only; every write to the product repo is blocked by the L0 firewall.
+# ----------------------------------------------------------------------
+steps:
+  - id: resolve
+    name: "Stage 1 — resolver-plan routes a product sub-need to external-source/ritsu-product-source"
+    skill: resolver-plan
+    actions:
+      - route                        # /deepask + /think mckinsey ground product questions here (a Tier-A content recipient)
+      - role_allowlist               # default-deny; only consumer_allowlist roles (== ritsu-product-source role_scope)
+    hitl: A
+
+  - id: read
+    name: "Stage 2 — read the COMMITTED REMOTE tree (read-only), per the active read mode"
+    skill: deepask/execute
+    actions:
+      - remote_tree_only             # read the GitHub remote's committed tree (secret-free by construction); NEVER the local clone's .env.local
+      - live_gh_grep                 # v1 read mode: gh api GET / gh search code / shallow read-only clone + git grep
+      - secret_denylist              # .env*/*.key/secrets/ honored on every read (belt-and-suspenders; the remote is already secret-free)
+    hitl: A
+
+  - id: cite
+    name: "Stage 3 — every claim is grounded in file:line + commit/freshness"
+    skill: deepask/synthesize
+    actions:
+      - cite_file_line               # cite file:line; never assert product behavior the code didn't show
+      - freshness_tag                # the live mode reads HEAD of main → always current; tag the commit
+    hitl: A
+
+  - id: enforce
+    name: "Stage 4 — read-only ENFORCED by the L0 firewall (no write to the product repo)"
+    skill: none
+    actions:
+      - firewall_write_block         # pre-tool-supabase-product (lib/product-firewall.cjs v1.3.0) BLOCKS git push / gh pr create|merge|edit|close / write gh api / gh release|repo|secret|workflow writes targeting doanchienthangdev/ritsu
+      - slug_word_boundary           # the block is word-boundaried so our OWN doanchienthangdev/ritsu-works repo is unaffected
+      - reads_pass                   # gh api GET / gh search code / git grep|clone pass (only writes block)
+    hitl: A
+
+# ----------------------------------------------------------------------
+# The committed contract + what the validator checks
+# ----------------------------------------------------------------------
+contract:
+  source_of_truth: knowledge/product-code-source-contract.yaml
+  validator: scripts/cross-tier/validate-product-code-source.cjs   # L2 critical
+  checks:
+    - "read_only == true AND repo.write_forbidden == true (read-only invariant)"
+    - "read_surface == 'committed-remote-tree' (secret-gate by construction — never the local clone)"
+    - "secret_denylist non-empty AND covers '.env'"
+    - "external_source_id registered in external-sources.yaml with source_type == 'code-repo-readonly' + status active"
+    - "consumer_allowlist == that external-source's role_scope (no drift)"
+    - ">=1 'active' read mode with freshness 'live'"
+  firewall_enforced_not_contract_checkable:
+    - "git/gh WRITE to doanchienthangdev/ritsu is blocked (matchRule product-repo-write; tested in tests/product-firewall.test.ts)"
+
+# ----------------------------------------------------------------------
+# Guards
+# ----------------------------------------------------------------------
+guards:
+  - read_only_hook_enforced         # the L0 firewall blocks product-repo writes (v1.3.0); read-only is no longer policy-only
+  - secret_gate_by_construction     # read the committed remote tree only; secrets gitignored → absent from the remote
+  - never_local_clone               # the local clone (/Users/.../omg/ritsu, has .env.local) is out of bounds
+  - reads_are_tier_a                # ground product questions in real code; surface, never publish, never write
+  - slug_boundary                   # doanchienthangdev/ritsu(?![\w-]) — our own ritsu-works repo is never affected
+
+# ----------------------------------------------------------------------
+# Read modes (v1 active; gbrain code-graph DEFERRED with findings)
+# ----------------------------------------------------------------------
+read_modes:
+  live_gh_grep:
+    status: active
+    freshness: live
+    cost: zero
+  gbrain_code_graph:
+    status: deferred                # v1.1 measurement (2026-06-04): sync_brain is a MARKDOWN/doc indexer (imported 15 doc pages, skipped 38 source files), NOT a source-code/code_* graph indexer; embeddings also need OpenAI in the gbrain process (generated 0 here); and the doc-page sync lands in the `default` source (isolation). Re-attempt requires: a code-aware index path + the embedding pipeline wired + a dedicated isolated source. NOT enabled.
+    enable_requires: "founder go after a working code-index + embedding dry-run on a dedicated source"
+
+# ----------------------------------------------------------------------
+# Residual / known gaps (honest)
+# ----------------------------------------------------------------------
+residual:
+  - bare_push_from_clone_cwd        # a `git push` run from INSIDE a product-repo clone cwd carries no slug in the command text → not catchable from command text alone. The realistic vectors (explicit --repo / product git URL / write gh api path) all name the slug and ARE blocked.
+  - compound_command_overblock      # a compound command that mixes a product-repo READ with an unrelated ritsu-works push may over-block (fail-safe; split the command)
+
+references:
+  - knowledge/product-code-source-contract.yaml
+  - knowledge/external-sources.yaml          # ritsu-product-source
+  - scripts/cross-tier/validate-product-code-source.cjs
+  - .claude/hooks/runtime/lib/product-firewall.cjs   # L0 firewall v1.3.0 (product-repo write-block)
+  - .claude/hooks/pre-tool-supabase-product.md
+  - tests/product-firewall.test.ts            # product-repo-write block tests
+  - wiki/capabilities/product-code-readonly-access/spec.md
+  - governance/HITL.md                        # D-MAX product boundary

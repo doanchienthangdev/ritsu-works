@@ -92,12 +92,13 @@ sources:
       product-db-readonly-access (DATA). Reads the COMMITTED REMOTE tree ONLY
       (secrets are gitignored → absent from the remote; verified 2026-06-04: only
       .env.example templates committed). NEVER the local clone's uncommitted
-      .env/.env.local (real secrets). READ-ONLY by POLICY + role-discipline:
-      ritsu-works must never write/commit/push/PR here (write = touching Product,
-      D-MAX-class). NOTE — v1 does NOT machine-block git writes: the firewall
-      blocks Supabase DATA, not product-repo writes; the enforcing hook write-block
-      is DEFERRED (founder-gated, see the contract's deferred.hook-write-block).
-      v1 introduces no new write path — it adds only READ invoke-patterns.
+      .env/.env.local (real secrets). READ-ONLY, HOOK-ENFORCED (v1.1): the L0
+      firewall (pre-tool-supabase-product, lib/product-firewall.cjs v1.3.0) BLOCKS
+      git/gh WRITES to doanchienthangdev/ritsu (git push, gh pr create|merge|edit,
+      write gh api, gh release|repo|secret|workflow writes) → matchRule
+      product-repo-write. Word-boundaried so our OWN ritsu-works repo is unaffected;
+      READS (gh api GET, gh search code, git grep/clone) pass. Residual: a bare
+      `git push` from inside a product-clone cwd carries no slug → not catchable.
       v1 read mode = live gh/git-grep (always fresh, zero-cost); v1.1
       (planned, ingestion cost-gated vs the $100/mo gbrain cap) = gbrain code-graph
       for semantic + callers/callees/flow queries. Contract:
@@ -105,7 +106,7 @@ sources:
       contract is deferred to v1.1).
     auth_env: GITHUB_TOKEN
     role_scope: [founder, cofounder, product-orchestrator, gtm-orchestrator, code-reviewer, gps]
-    invoke_pattern: "READ-ONLY on the committed REMOTE tree only. v1: `gh api repos/doanchienthangdev/ritsu/git/trees/main?recursive=1` (structure), `gh search code --repo doanchienthangdev/ritsu` / `gh api .../contents` blob reads, or a shallow read-only clone + `git grep`. Used by /deepask + /think mckinsey to ground product questions in real code (cite file:line + commit). v1.1: `mcp__gbrain__{search,code_blast,code_flow,code_refs,code_def,code_callers,code_callees}` over a synced snapshot. Secret-denylist (.env*/*.key/secrets/) honored on every read. v1 prescribes only READ verbs (no push/commit/PR) BY POLICY — not yet hook-enforced (write-block deferred). See knowledge/product-code-source-contract.yaml."
+    invoke_pattern: "READ-ONLY on the committed REMOTE tree only. v1: `gh api repos/doanchienthangdev/ritsu/git/trees/main?recursive=1` (structure), `gh search code --repo doanchienthangdev/ritsu` / `gh api .../contents` blob reads, or a shallow read-only clone + `git grep`. Used by /deepask + /think mckinsey to ground product questions in real code (cite file:line + commit). v1.1: `mcp__gbrain__{search,code_blast,code_flow,code_refs,code_def,code_callers,code_callees}` over a synced snapshot. Secret-denylist (.env*/*.key/secrets/) honored on every read. Only READ verbs are prescribed; WRITES to the product repo are HOOK-ENFORCED-blocked by the L0 firewall (v1.3.0, matchRule product-repo-write). See knowledge/product-code-source-contract.yaml + SOP-AIOPS-010."
     availability: "v1 live-read active now; v1.1 gbrain code-graph planned (cost-gated)"
     status: active
 
