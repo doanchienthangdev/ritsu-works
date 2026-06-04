@@ -40,7 +40,7 @@ no user impact, no escalation paths.
 | `/think` | — | Show menu + composition flow + skill index | A |
 | `/think list` | — | Table of all 12 skills (11 atomic + the mckinsey-workflow engine; name, one-line, when to use) | A |
 | `/think flow [problem]` | — | Recommend a multi-skill sequence (TOSCA → MECE → driver-tree → 2x2 → pyramid → so-what) | A |
-| `/think mckinsey <problem>` | `thinking-toolkit/mckinsey-workflow` | Run a problem as a McKinsey 4S **engine** — pull real data · validate · update the living one-day answer · re-route · ask the founder for founder-only data (v1.4 engine) · **load+select the right framework from the 207-candidate registry** (v1.5) · **mechanically scaffold + gate the run** via `mckinsey-run.cjs` (provenance · firewall · stopping gate) (v1.6) | A |
+| `/think mckinsey <problem> [flags]` | `thinking-toolkit/mckinsey-workflow` | Run a problem as a McKinsey 4S **TEAM** — pull real data · validate · living one-day answer · re-route · ask founder-only data (v1.4) · load+select from the 207-framework registry (v1.5) · mechanically scaffold + gate (v1.6) · **HITL receipt gate** (v1.8) · **team operating model** (v2.0): `--mode=interactive`(default)`/auto`, 7 team-session checkpoints (frame/hypothesize/plan/prioritize/porpoise/dissent/pre-wire) with a `pre-wire`+`dissent` gate, thorough data-sweep + completeness-critic, and a **Sell formatter** to McKinsey templates in any `/deepask` format+design-system. Flags: `--mode --depth --sell --audience --style --art-style --sources --format` (see SKILL.md) | A |
 | `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` | Frame ambiguous problem via T/O/S/C/A before solutioning | A |
 | `/think mece [list]` | `thinking-toolkit/mece-decomposition-check` | 2-test quality gate on list/decomposition (overlap + exhaustive) | A |
 | `/think pyramid [conclusion]` | `thinking-toolkit/pyramid-principle-output` | Top-line first; reader can stop at any level | A |
@@ -81,7 +81,8 @@ Print a compact menu:
 
   list                 Detailed table (when to use, pairs with)
   flow [problem]       Suggest multi-skill sequence
-  mckinsey <problem>   Run a real problem as a 4S data-driven engine    (v1.4)
+  mckinsey <problem>   Run a problem as a McKinsey 4S TEAM (--mode interactive/auto,
+                       team-session checkpoints, sell formatter)         (v2.0)
 
 Spec: wiki/capabilities/thinking-toolkit/spec.md
 Skills: 06-ai-ops/skills/thinking-toolkit/

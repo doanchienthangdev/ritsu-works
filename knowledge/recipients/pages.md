@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 54
+**Total entries:** 55
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -596,6 +596,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/manifest.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-mckinsey-templates
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ mckinsey-templates.yaml — McKinsey deliverable-template registry (capability thinking-toolkit v2.0 — the /think mckinsey TEAM operating model) ============================================================================ The STRUCTURE layer of the McKinsey Sell phase. `mckinsey-sell` (06-ai-ops/ skills/thinking-toolkit/mck...
+
+**Invoke:** `Read("knowledge/mckinsey-templates.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/mckinsey-templates.yaml
 
 **Role scope:** *
 **Status:** active

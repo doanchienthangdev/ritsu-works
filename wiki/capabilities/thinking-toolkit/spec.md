@@ -2,9 +2,9 @@
 
 **ID:** thinking-toolkit
 **Pillar owner:** 06-ai-ops (sub-pillar: skill-library)
-**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day; v1.2.0 curated +5 skills 2026-06-03; v1.3.0 McKinsey 4S workflow 2026-06-03; v1.4.0 static-map→dynamic-ENGINE 2026-06-03)
+**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day; v1.2.0 curated +5 skills 2026-06-03; v1.3.0 McKinsey 4S workflow 2026-06-03; v1.4.0 static-map→dynamic-ENGINE 2026-06-03; v1.5–v1.6 engine hardening 2026-06-03; v1.7.0 deepask composition 2026-06-04; v1.8.0 HITL hard-gate 2026-06-04; **v2.0.0 McKinsey TEAM operating model 2026-06-04**)
 **Proposed:** 2026-05-28
-**Spec version:** 1.4.0
+**Spec version:** 2.0.0 (header summary; per-version detail in §14–§17 + `CHANGELOG.md` — §1–§13 describe the v1.0/v1.4 baseline and were not rewritten per-version)
 **Capability run id:** TBD (insert at promotion time)
 **Selected option (from Phase 4):** Option A — Standalone parent-namespaced skills + (v1.1) thin orchestrator command surface
 
@@ -291,3 +291,47 @@ v1.0 design decision *"No new command — composed by existing personas via Skil
 **Touches:** `knowledge/mckinsey-workflow.yaml` (1.6.0 → 1.7.0; +`composition_guards`; enriched `deepask`/`think-skills` routing notes) · its schema (+`composition_guards` property) · `scripts/cross-tier/validate-mckinsey-workflow.cjs` (`ENGINE_SECTIONS` += `composition_guards`) · `scripts/deepask/capability-gate.cjs` (+`RECURSION_DENYLIST`) · `06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md` (Composition + guards) · `.claude/commands/deepask.md` (Boundary) · `06-ai-ops/skills/deepask/execute/SKILL.md` (pass `recipient_id` + anti-recursion refuse). Tests: +5 `mckinsey-workflow` (composition_guards edge) +6 `deepask/capability-gate` (recursion-guard matrix + backward-compat). **No new DB table, no migration, no new `/think` verb** — pure contract hardening.
 
 **Reversibility:** 5/5 — `git revert` of the v1.7 commit removes one engine section + one denylist constant + doc edits; the data_routing deepask entry (v1.4) and all behavior pre-v1.7 are preserved. Decision: `ops.decisions` (slug `thinking-toolkit-v1.7-deepask-composition-contract`).
+
+## 16. v1.8 changelog (2026-06-04) — the HITL hard-gate
+
+`/cla extend thinking-toolkit` — Tier C, @cto sanity review (APPROVE-WITH-NITS, 3 must-fix integrated), founder approve gate.
+
+**Why:** founder ran `/think mckinsey` on a real problem (`.archives/mckinsey/find-100-love-paying-60d/`) and reported it *"không dừng lại tương tác từng bước; output không thể hiện rõ quá trình chạy."* Diagnosis: the engine *described* HITL (`hitl_triggers`) but **nothing forced a real `AskUserQuestion`**, and the only mechanical gate (`mckinsey-run.cjs check`) validated artifact STRUCTURE only — a row with provenance `ask-user (founder)` passed identically to a real pulled datum (the checker just saw a non-empty cell). In that run, the single load-bearing porpoise (*"25 accounts = founder's own test emails; the 571-session power-user = the founder"*) was lifted from a degree-3 `"likely internal"` inference to an asserted fact driving the whole strategy, with no confirmation checkpoint — violating the engine's own *"never let a judgment pass as a fact."*
+
+**What changed — make `ask-user` a verifiable RECEIPT, not an honor-system label.** New invariant: every `analysis-log` datum whose provenance matches `/ask-user/i` MUST carry a `[H<n>]` tag resolving to a row in a NEW `hitl-log.md` artifact (the question actually asked + the founder's verbatim one-line answer). No receipt → the run-folder gate fails. The honest no-ask path is to label the datum `assumption` (degree ≥6 + a sensitivity note). This is the same "status-ledger > prose" move v1.4 used to stop the Solve loop drifting, now applied to HITL.
+
+**The semantic ceiling (stated honestly, per @cto must-fix #3):** the gate is **receipt DISCIPLINE, not proof of asking** — a post-hoc checker cannot see the conversation, so it cannot *prove* an `AskUserQuestion` fired. It makes *skipping* the ask (or faking the label without a logged exchange) a gate failure, and leaves the founder an auditable trail to spot-check. A true runtime force would need a harness hook (out of scope; deferred).
+
+**Touches (6 files, coherent — the validator enforces cross-file agreement):**
+1. NEW artifact `hitl-log.md` (`stage: state`) — `ARTIFACTS` in `scripts/thinking-toolkit/mckinsey-run.cjs` (+`TEMPLATES`) AND `scripts/cross-tier/validate-mckinsey-workflow.cjs` (set-equal — the catalog↔run-helper coherence check enforces it); `artifacts.files` + `state`/`solve` `produces` in `knowledge/mckinsey-workflow.yaml`; `produces` enum in `knowledge/schemas/mckinsey-workflow.schema.json`.
+2. NEW one-way reconciliation gate in `mckinsey-run.cjs` `checkRun()` (runs every `check`, not only `--before-sell`): valid receipt-ids built ONLY from `isDataRow`-filtered hitl-log rows + anchored `/^H\d+$/` (the pristine `<H1>` template can't sneak in — @cto must-fix #1); provenance read from `row[pi]` via the decoy-proof `colIndex` (not a row-join — @cto question C); `[H<n>]` tags parsed from the provenance cell only.
+3. `SKILL.md` — HITL promoted from prose to a hard contract (State Success/Constraint MUST ask+log; Solve PULL of founder-only datum MUST ask+log+tag; porpoise-on-founder-only-fact MUST confirm; degree-3 "likely" may not be promoted to fact without a receipt) + the honest "discipline-not-proof" framing.
+4. `mckinsey-workflow.yaml` `hitl_triggers` — each trigger gains a `gate:` note; single-line answer rule (`<br>` for breaks — @cto must-fix #2: multi-line cells break `parseFirstTable`).
+
+**Tests:** +12 `tests/mckinsey-run.test.ts` (`HITL receipt gate (v1.8)` describe — matched-pass, no-tag-fail, dangling-fail, phantom-`<H1>`-template-fail, assumption-pass, real-tool-pass, one-way-pass, malformed-hitl-fail, case-insensitive, multi-tag both-resolve/one-missing, decoy-cell) + the prior `ask-user`/`assumption` test split to the honest `assumption`-only path; +1 `tests/mckinsey-workflow.test.ts` (`ARTIFACTS` contains `hitl-log`). **No new DB table, no migration, no new `/think` verb.**
+
+**Reversibility:** 5/5 — `git revert` of the v1.8 commit removes one artifact + one gate block + the `ARTIFACTS` additions; runs without `hitl-log.md` / without `ask-user` rows are unaffected (backward-compatible). Decision: `ops.decisions` slug `thinking-toolkit-v1.8-hitl-hard-gate`.
+
+## 17. v2.0 changelog (2026-06-04) — the McKinsey TEAM operating model
+
+`/cla extend thinking-toolkit` — MAJOR (operating-model change + new sell sub-capability; via the extend sub-flow per the founder self-ship directive — layering on the v1.4-v1.8 machine, NOT a re-architecture). Panel: **@cto** request-changes → 4 must-fixes integrated; an **ex-McKinsey EM** faithful-with-gaps → 6 gaps integrated.
+
+**Why:** the founder's thesis — *"the power of McKinsey is the disciplined TEAM process, not a fast answer. A team gathers data continuously, but value is created in team problem-solving SESSIONS at milestones: re-frame/update/rethink, analyze, propose, verify, brainstorm, select the right frameworks for the next step — and at each milestone there is a concrete output AND interaction with the problem-owner for consensus."* v1.4-v1.8 gave the engine the substance; v2.0 adds the team OPERATING MODEL.
+
+**The three additions:**
+
+1. **Modes + the 7 team sessions.** `--mode=interactive` (default) | `auto`. Seven checkpoints = team problem-solving sessions, logged to a NEW `checkpoint-log.md` artifact (`kind ∈ frame|hypothesize|plan|prioritize|porpoise|dissent|pre-wire`). `interactive` treats the founder as a team member — present STATE + THINKING (which frameworks + WHY) + PROPOSAL, then ask the **challenge-seeking** question *"what would have to be true for this to be WRONG?"* (EM #4). `auto` self-plays the dialectic, escalating to a real `AskUserQuestion` only at porpoise / pre-wire / founder-only-data. A `mckinsey-run.cjs --before-sell` gate **blocks Sell** without a `pre-wire` AND a `dissent` session, and **warns** if `frame`/`prioritize` are missing. The EM substance — **competing hypotheses** (≥3, routed to disconfirm — EM #1), **cleave ≠ prioritize** (EM #2), a **dedicated dissent** that red-teams the ANALYSIS (≠ pre-mortem, ≠ completeness — EM #3), **ghost-exhibit at Structure** (EM #5), and the law that **every answer names the analysis that would falsify it** (EM #6, the single biggest anti-confident-wrong discipline; the dissent gate + the `one-day-answer` `**Disconfirmation:**` line anchor it).
+
+2. **Sell formatter.** NEW skill `thinking-toolkit/mckinsey-sell` + NEW registry `knowledge/mckinsey-templates.yaml` (6 templates: governing-thought-memo / exec-one-pager / action-titled-deck / scr-storyline / scqa-memo / pyramid-doc) + schema + `validate-mckinsey-templates.cjs`. It **composes** `deepask/format` (does NOT rebuild a format engine): builds the McKinsey-template-structured synthesis IR, then renders via `deepask/format` with `--style` (brand) + `--art-style` (genre) as orthogonal design context. Orthogonality enforced by `FORBIDDEN_BRAND_KEYS` (a template carries STRUCTURE prose only — never a color/brand token — so it can't shadow the resolved `--style`).
+
+3. **Thorough data sweep.** Sweep all relevant source CLASSES (internal deepask/wiki/brain/supabase-ops/analytics + external deep-research/web + ask-user) for real; a **completeness-critic** at CP-PREWIRE writes a COVERAGE statement into the pre-wire checkpoint row. `--sources` scopes the sweep.
+
+**Parameters:** `--mode --depth --sell --audience --style --art-style --sources --format` (parsed by the SKILL from the `/think mckinsey` invocation; `/think` stays a thin orchestrator).
+
+**Touches:** `mckinsey-run.cjs` (ARTIFACTS + TEMPLATES `checkpoint-log` + the `--before-sell` checkpoint gate [pre-wire+dissent error, frame/prioritize warn; isDataRow-filtered + decoy-proof colIndex on `kind` + norm-anchored — the pristine `<C1>` placeholder can't satisfy it] + `one-day-answer` disconfirmation lines) · `validate-mckinsey-workflow.cjs` ARTIFACTS (set-equal) · `mckinsey-workflow.yaml` (**1.7.0 → 2.0.0**; +`checkpoint-log` artifact + state/solve `produces` + `sell.skills` `mckinsey-sell` + sell intent) · schema `produces` enum · `mckinsey-sell/SKILL.md` · `mckinsey-templates.yaml`/schema/validator + `validate-tier1` FILE_TO_SCHEMA + `check-consistency.cjs` + the CI workflow job · mckinsey `SKILL.md` (the operating-model section) · `think.md` (the mckinsey row + menu) · resolver catalog regen.
+
+**Tests:** +9 `mckinsey-run` (the checkpoint-gate describe — matched/missing-each/phantom-`<C1>`/warnings/case-insensitive/decoy/before-sell-only) + the broken `--before-sell` fixtures realigned (fresh scaffold now correctly FAILS; a COMPLETE run passes) · +1 `mckinsey-workflow` (`ARTIFACTS` contains `checkpoint-log`) · +24 `mckinsey-templates` (NEW — validateEntry signature/branch/forbidden-keys/spec-conformance). **No new DB table, no migration, no new `/think` verb.**
+
+**@cto must-fixes integrated:** the 7 enumeration places for `checkpoint-log`; the test-count 8→9 + a complete-run happy-path; the 7 registration places for `mckinsey-templates` incl. the CI job + the `FORBIDDEN_BRAND_KEYS` guard; the pristine-`<C1>` parse-robustness (`norm('<pre-wire>')`===`norm('pre-wire')` so the `isDataRow` filter is load-bearing); the `mckinsey-workflow.yaml` version bump (v1.8 had silently left it at 1.7.0); modes/checkpoints kept as SKILL.md prose (schema root open but unvalidated).
+
+**Reversibility:** 5/5 — `git revert` removes one artifact + one gate + one skill + one registry; pre-v2.0 runs (no `checkpoint-log`, no Sell) are unaffected (gates fire only `--before-sell`). Decision: `ops.decisions` slug `thinking-toolkit-v2.0-mckinsey-team-mode`.

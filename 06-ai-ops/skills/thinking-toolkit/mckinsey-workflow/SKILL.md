@@ -42,9 +42,60 @@ A brainstorm narrates opinions in four stages. This engine:
 5. **Routes dynamically** — the one-day answer re-ranks remaining work after every analysis; porpoise back when the data reframes the problem.
 6. **Stops on marginal analysis** — when no cheap, answer-moving analysis remains.
 7. **Loads + selects the right tool** (v1.5) — for each sub-need it CLASSIFIEs (analytical vs design; causation vs prediction; formula vs typology vs checklist), LOADs candidates from the **dedicated registry** `knowledge/problem-solving-frameworks.yaml` (207 classified frameworks/models/heuristics — filterable by 4S step + type), then SELECTs + COMBINEs ≤3 complementary lenses, guarding against grabbing the familiar tool. See **Tool selection** below.
-8. **Enforces its own discipline mechanically** (v1.6) — a deterministic helper (`scripts/thinking-toolkit/mckinsey-run.cjs`) scaffolds the run folder and *checks* it: the 6-column + status workplan, a provenance + degree(1-8) tag on every analysis-log datum, the product firewall on `source-of-data`, and the stopping gate (no `open` row before Sell). The discipline is no longer just prose you can drift away from — it's a gate. (Judgment stays yours; the helper guards the scaffolding around it.)
+8. **Enforces its own discipline mechanically** (v1.6, +v1.8) — a deterministic helper (`scripts/thinking-toolkit/mckinsey-run.cjs`) scaffolds the run folder and *checks* it: the 6-column + status workplan, a provenance + degree(1-8) tag on every analysis-log datum, the product firewall on `source-of-data`, the stopping gate (no `open` row before Sell), and **(v1.8) the HITL receipt gate** — every `ask-user` datum must carry a `[H<n>]` tag resolving to a logged question+answer in `hitl-log.md`, else it fails. The discipline is no longer just prose you can drift away from — it's a gate. (Judgment stays yours; the helper guards the scaffolding around it. The receipt gate is **discipline, not proof** — it can't see the conversation, so it can't *prove* you asked; it makes *skipping* the ask, or faking an `ask-user` label without a logged exchange, a failure, and leaves the founder an auditable trail.)
 
 > **The McKinsey rule that governs everything (Bulletproof Problem Solving, Ch 4):** *"We don't do any analysis for which we don't have a hypothesis."* Every data pull traces to a hypothesis it proves or disproves.
+
+## ⓿ Operating model (v2.0) — modes · the 7 team sessions · the protocol
+
+> The power of McKinsey is not a fast answer — it is the disciplined TEAM process. This engine runs as a sequence of **team problem-solving sessions** (checkpoints): at each, present what we have + how we're thinking + which frameworks we chose & why → **brainstorm as a team** → reach consensus → proceed. Never rush; always surface the thinking; produce a full artifact set + a final sell.
+
+### Parameters (parse from the `/think mckinsey <problem> [flags]` invocation)
+
+| Flag | Values | Default | Effect |
+|---|---|---|---|
+| `--mode` | `interactive` \| `auto` | `interactive` | the team-session interaction model (below) |
+| `--depth` | `quick` \| `standard` \| `deep` | `standard` | accordion: quick = inline one-day answer, no folder/gate; deep = every checkpoint interactive |
+| `--sell` | `<template-id>` \| `auto` | `auto` | the McKinsey deliverable template (`knowledge/mckinsey-templates.yaml`) |
+| `--audience` | `receptive` \| `skeptical` | `skeptical` | grouping vs SCR/SCQA storyline |
+| `--style` | `<design-system>` | none | brand the sell deliverable (reuse `/deepask`) |
+| `--art-style` | `<genre>` | none | artistic genre for visual sell formats (reuse `/deepask`) |
+| `--sources` | csv `internal,web,brain,analytics,wiki,deepask` \| `all` | `all` | scope/expand the data sweep |
+| `--format` | a `/deepask` medium | template default | the sell rendering medium |
+
+### The two modes
+
+- **`interactive` (default)** — at each checkpoint **STOP and treat the founder as another McKinsey team member.** Present (1) **STATE** — what we have now (pulled data + the current one-day answer + degree tags); (2) **THINKING** — how you framed/analyzed it + **which frameworks you selected from the 207-registry and WHY** (latticework: 2–3 complementary lenses; debias: not the familiar tool); the options + your read; (3) **PROPOSAL** — the next step / reframe / synthesis. Then **ASK — not "do we agree?" but "what would have to be true for this to be WRONG? what am I missing? challenge this."** Brainstorm via `AskUserQuestion`. Record consensus + any redirection to `checkpoint-log.md`.
+- **`auto`** — run autonomously; **self-play the dialectic** (present STATE/THINKING/PROPOSAL + your own challenge + decision, logged to `checkpoint-log.md`). Escalate to a real `AskUserQuestion` only at the irreducible stops: **CP-PORPOISE, CP-PREWIRE, and any founder-only datum** (the v1.8 hitl receipt).
+
+**Both modes REPORT per-step** — surface the thinking in the conversation as you go; never silently write files (the v1.8 failure was a silent run that emitted only artifacts).
+
+### The 7 team sessions (checkpoints) — logged to `checkpoint-log.md` (`kind` column)
+
+| # | kind | when | the session | gate |
+|---|---|---|---|---|
+| 1 | **frame** | end of State | align TOSCA + core question + day-one answer | warn |
+| 2 | **hypothesize** | Frame→Structure | **generate ≥3 competing, mutually-exclusive candidate answers**; the day-one answer is the lead, alternatives explicit; route the workplan to **DISCONFIRM** each, not confirm the favorite | prose |
+| 3 | **plan** | tree built | the MECE issue tree (cleaving — a distinct cognitive act) | prose |
+| 4 | **prioritize** | the cut | impact×influence 2×2; **record what was DROPPED and why** | warn |
+| 5 | **porpoise** | each Solve reframe | "data reframed X→Y; the rethink + revised workplan" | prose (founder-only facts → hitl receipt) |
+| 6 | **dissent** | after Solve | **independently red-team the ANALYSIS**: name the one analysis that, if wrong, flips the answer; hunt disconfirming evidence (≠ pre-mortem, which attacks the *recommendation*; ≠ completeness, which attacks *coverage*) | **ERROR** |
+| 7 | **pre-wire** | before Sell | final one-day answer + synthesis + the **completeness/coverage critic** + the pre-mortem; pre-wire | **ERROR** |
+
+The gate (`mckinsey-run.cjs check <slug> --before-sell`) **blocks Sell** without a `pre-wire` AND a `dissent` session, and **warns** if `frame`/`prioritize` are missing. **Honest ceiling:** the gate can't prove a session happened or was good — it makes *skipping the closing sessions* a failure and leaves an auditable trail. (`--depth=quick` is the accordion escape hatch — inline answer, no folder, no gate.)
+
+### The two EM moves that make a team (not a solo)
+
+1. **so-what on every exhibit** — an observation is NOT an insight until it implies an action (`/think so-what`). Force it at every checkpoint.
+2. **Ghost-exhibit first** — the workplan's `end-product` column IS the dummy exhibit (Exhibit 4.3): draw the chart you EXPECT before you have the data; if the *filled* exhibit wouldn't change the answer, the analysis wasn't worth running. The **action-titled storyline is built HERE at Structure** (to drive the workplan), NOT invented at Sell.
+
+### Disconfirmation is the law (the single discipline that most prevents confident-wrong)
+
+Every carried one-day answer must **name the single analysis that would prove it WRONG**, and that analysis must appear as a **workplan row**. *An answer no evidence could overturn isn't an answer — it's a belief.* CP-DISSENT red-teams exactly this. Carry the competing hypotheses you're disconfirming in `one-day-answer.md` (the `**Competing hypotheses**` + `**Disconfirmation**` lines).
+
+### Thorough data sweep (never 1–2 shallow areas)
+
+Sweep the relevant source **CLASSES** for real (route via the data-routing table): internal **deepask / wiki_ask / gbrain / supabase-ops / analytics** + external **deep-research / web** + **ask-user** for what only the founder holds. At CP-PREWIRE run the **completeness-critic** (mirrors `deepask/completeness-critic`): *"which source CLASS did we NOT consult? what's unverified? what gap needs founder input?"* → consult it, ask-user (a hitl receipt), or carry an explicit assumption + sensitivity. Write the **COVERAGE** statement into the CP-PREWIRE checkpoint row: `internal[deepask✓ wiki✓ brain✓ supabase✓ analytics✓] external[web ✓/—] gaps[…] → remedy`. `--sources` scopes the sweep.
 
 ## Run setup
 
@@ -55,16 +106,17 @@ node scripts/thinking-toolkit/mckinsey-run.cjs scaffold <slug>   # creates .arch
 ```
 .archives/mckinsey/<slug>/
   problem-statement.md   decomposition.md   workplan.md
-  analysis-log.md        one-day-answer.md
+  analysis-log.md        hitl-log.md        checkpoint-log.md   one-day-answer.md
   synthesis.md           communication.md
 ```
-`one-day-answer.md` is the **living state** — **seeded in STATE as the day-one hypothesis** ("if forced to answer today, we'd say X"; Bulletproof Ch 1), then rewritten after every analysis (situation → observation → resolution). It is *not* born at Solve; Solve only sharpens it. `synthesis.md` (step 6, the logic) and `communication.md` (step 7, the story) are distinct Sell products. For a small problem, the accordion compresses: keep the one-day answer inline and skip the folder.
+`one-day-answer.md` is the **living state** — **seeded in STATE as the day-one hypothesis** ("if forced to answer today, we'd say X"; Bulletproof Ch 1), then rewritten after every analysis (situation → observation → resolution). It is *not* born at Solve; Solve only sharpens it. `hitl-log.md` is the **HITL receipt ledger** — also seeded in STATE and appended through Solve; every real `AskUserQuestion` you put to the founder gets a row (`H1`, `H2`, …) with the verbatim one-line answer (see §SOLVE + the receipt rule below). `synthesis.md` (step 6, the logic) and `communication.md` (step 7, the story) are distinct Sell products. For a small problem, the accordion compresses: keep the one-day answer inline and skip the folder.
 
-**The discipline gate (run before Sell):**
+**The discipline gate (run during + before Sell):**
 ```bash
-node scripts/thinking-toolkit/mckinsey-run.cjs check <slug> --before-sell
+node scripts/thinking-toolkit/mckinsey-run.cjs check <slug>                 # runs every iteration — includes the v1.8 HITL receipt gate
+node scripts/thinking-toolkit/mckinsey-run.cjs check <slug> --before-sell   # additionally enforces the stopping gate
 ```
-fails if the workplan is missing its 6+status columns, a status value is invalid, a `source-of-data` references `product.*` (firewall), an analysis-log datum lacks provenance or a degree(1-8), or any workplan row is still `open`. **You may not move to Sell while it fails.** It checks *structure + discipline-presence*, never your judgment.
+fails if the workplan is missing its 6+status columns, a status value is invalid, a `source-of-data` references `product.*` (firewall), an analysis-log datum lacks provenance or a degree(1-8), an **`ask-user` datum has no `[H<n>]` receipt resolving to a row in `hitl-log.md`** (v1.8), or (with `--before-sell`) any workplan row is still `open` **OR `checkpoint-log.md` lacks a `pre-wire` session AND a `dissent` session** (v2.0; it also WARNS if `frame`/`prioritize` are missing). **You may not move to Sell while it fails.** It checks *structure + discipline-presence*, never your judgment — and both the receipt gate and the checkpoint gate are **discipline, not proof** (a checker can't see the conversation; they make *skipping* the ask / the closing sessions a failure and leave an auditable trail).
 
 ---
 
@@ -72,7 +124,7 @@ fails if the workplan is missing its 6+status columns, a status value is invalid
 
 Fill **TOSCA** (run `/think tosca`): **T**rouble (gap as a symptom, not a diagnosis; pass "Why now?") · **O**wner (whose problem + who judges "good enough") · **S**uccess criteria (time-bound + quantified; *never* defined as the proposed solution) · **C**onstraints (provisional — revisit during Solve) · **A**ctors. Then write the **Core Question** and run the **5-check** (does it address Trouble / from Owner's view / meet Success / recognize Constraints / consider Actors?).
 
-**HITL here:** where a TOSCA slot needs input only the founder holds — the real success threshold, a fixed constraint, strategic intent — **`AskUserQuestion`; do not fabricate it** (the v1.3 worked example *invented* `Success = 8%→15%`; the engine asks). Iterate with the owner until they agree "answering this question solves my problem."
+**HITL here (hard gate, v1.8):** where a TOSCA slot needs input only the founder holds — the real success threshold, a fixed constraint, strategic intent — you **MUST emit a real `AskUserQuestion` and log it to `hitl-log.md` as `H<n>` before seeding the day-one answer; do not fabricate it** (the v1.3 worked example *invented* `Success = 8%→15%`; the engine asks, logs the receipt, and only then seeds). Iterate with the owner until they agree "answering this question solves my problem."
 
 **Then seed the day-one answer** (`one-day-answer.md`): the moment framing is done, write the provisional hypothesis — *"if forced to answer today, we'd say X, because Y."* It will be wrong; that's the point — it's the spine Structure + Solve sharpen, and it re-ranks the workplan. Skipping it (waiting to "have the data first") is the classic non-McKinsey move.
 
@@ -98,7 +150,7 @@ The run-loop is **status-driven** — the workplan's `status` column is the ledg
 
 0. **RE-READ** the workplan `status` column; pick the highest-priority `open` row (knock-out order).
 1. **ROUTE** its source-of-data to a tool (table below); mark the row `pulled`.
-2. **PULL** the data — a real tool call. If it's founder-only → `AskUserQuestion`. **Never assert a fact you didn't fetch.**
+2. **PULL** the data — a real tool call. If it's founder-only → **emit a real `AskUserQuestion`, write the question + the founder's verbatim (one-line) answer to `hitl-log.md` as `H<n>`, and tag the analysis-log row `ask-user (founder) [H<n>]`.** You may NOT write `ask-user` provenance without a logged receipt — the gate fails it. If you choose not to ask, the only honest provenance is `assumption` (degree ≥6 + a sensitivity line). **Never assert a fact you didn't fetch, and never let a degree-3 "likely" inference pass as a fact without a receipt.**
 3. **VALIDATE** through the gate (below); tag the datum's degree-of-certainty (1–8).
 4. **WRITE** to `analysis-log.md`: hypothesis · data pulled (which tool) · result · validation verdict · degree.
 5. **UPDATE** `one-day-answer.md` (S→O→R).
@@ -160,6 +212,8 @@ A datum must clear a **trust** test (is it true?) and a **relevance** test (does
 ### When to ask the founder for data (HITL — `hitl_triggers`)
 
 Stop and `AskUserQuestion` when: the input is a **degree-6 internal plan/target only they hold**; an **irreducible judgment about their world** (risk appetite, intent, success threshold); a **sensitivity test flips on an unverifiable assumption**; or **scope has drifted** (fire an intermediary checkpoint). **Frame the ask decision-relevantly:** lead with the one-day answer so far → show where this datum changes it → state your interim assumption. Don't disguise an assumption as a fact.
+
+**The receipt gate (v1.8) — what "ask" mechanically means.** Each of the triggers above is now *gated*: when you ask, you **log the question + the founder's verbatim one-line answer to `hitl-log.md`** as `H<n>` and tag the analysis-log datum `ask-user (founder) [H<n>]`. A bare `ask-user` with no receipt **fails `mckinsey-run.cjs check`**. The most dangerous miss is a **porpoise resting on a founder-only fact**: before you reframe on "these accounts are the founder's own," "the power-user is internal," "the real budget is X" — **STOP and confirm.** A degree-3 *"likely internal"* inference may **not** be promoted to an asserted fact (and drive the whole strategy) without a logged receipt — that exact failure (the 2026-06-04 run) is why this gate exists. Honest alternative if you won't ask: keep provenance `assumption`, degree ≥6, with a sensitivity note — never relabel a guess as an answer. **The gate is discipline, not proof:** it can't watch the conversation, so it can't *prove* you asked; it makes *not asking* (or faking the label) a failure and leaves the founder an auditable trail to spot-check.
 
 ### Stopping criterion (Solve → Sell — `stopping_criterion`)
 

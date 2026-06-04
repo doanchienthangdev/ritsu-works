@@ -42,7 +42,10 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 // v1.4/v1.5 known sets — the catalog may only reference these.
 // v1.5: +'communication' (the step-7 story artifact, distinct from step-6 'synthesis').
-const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'one-day-answer', 'synthesis', 'communication'];
+// v1.8: +'hitl-log' (the HITL receipt ledger; MUST stay set-equal to mckinsey-run.cjs
+//   ARTIFACTS — the catalog↔run-helper coherence check below enforces it).
+// v2.0: +'checkpoint-log' (the McKinsey team-session milestone ledger; set-equal too).
+const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'hitl-log', 'checkpoint-log', 'one-day-answer', 'synthesis', 'communication'];
 const TOOLS = ['deepask', 'wiki_ask', 'gbrain', 'supabase-ops-query', 'deep-research', 'think-skills', 'ask-user'];
 // Engine sections that must each be a non-empty array (v1.4 dynamic engine; each
 // element may carry a `concept` {book,slug} ref that is file-existence-checked).

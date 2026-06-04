@@ -80,7 +80,7 @@
 # Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
 # ============================================================================
 
-version: "1.7.0"
+version: "2.0.0"
 schema: knowledge/schemas/mckinsey-workflow.schema.json
 spine: "4S"                                   # State / Structure / Solve / Sell (Cracked it! Ch 3)
 source_books: [cracked-it, bulletproof-problem-solving]
@@ -99,6 +99,8 @@ artifacts:
     - {name: workplan,          stage: structure, contents: "the 6 book columns (issue · hypothesis · analysis · source-of-data · owner · end-product, dummy exhibit, Exhibit 4.3) + a STATUS column (open|pulled|validated|knocked-out|spawned) the Solve loop rewrites each iteration; knock-out-ordered. The status column is the ledger that keeps a long loop from drifting — you may not reach Sell with an 'open' row above the knock-out bar"}
     - {name: analysis-log,      stage: solve,     contents: "per workplan row: data pulled (which tool) + result + validation verdict + degree-of-certainty (1-8)"}
     - {name: one-day-answer,    stage: state,     contents: "the LIVING state, SEEDED at State as the day-one hypothesis ('if forced to answer today, we'd say X' — Bulletproof's day-one answer) the moment the problem is framed, then formalized as situation→observation→resolution and UPDATED after every Solve analysis. It is the spine that re-ranks the open workplan rows; it is NOT born at Solve — Solve only sharpens it"}
+    - {name: hitl-log,          stage: state,     contents: "v1.8 HITL RECEIPT LEDGER — one row per REAL AskUserQuestion put to the founder (id H1, H2, …; verbatim ONE-LINE answer, <br> for breaks). Seeded at State (Success/Constraint asks), appended through Solve. analysis-log 'ask-user' data rows MUST carry a [H<n>] tag resolving here; the run-folder gate (mckinsey-run.cjs) FAILS a bare 'ask-user' with no receipt. DISCIPLINE NOT PROOF: it cannot prove the ask happened — it makes skipping it a gate failure + gives the founder an auditable spot-check trail. Did not ask → label the datum 'assumption' (degree >=6 + sensitivity), never a fabricated ask-user"}
+    - {name: checkpoint-log,    stage: state,     contents: "v2.0 McKINSEY TEAM-SESSION LEDGER — one row per team problem-solving session. kind ∈ frame|hypothesize|plan|prioritize|porpoise|dissent|pre-wire. Seeded at State, appended through Solve. The Solve→Sell gate (mckinsey-run.cjs --before-sell) REQUIRES a pre-wire row (the close) + a dissent row (red-team the ANALYSIS: name the one analysis that, if wrong, flips the answer — the disconfirmation discipline) and WARNS if frame/prioritize are missing. interactive mode asks the founder-as-team-member 'what would have to be true for this to be WRONG?'. DISCIPLINE NOT PROOF: can't prove the session happened — makes skipping the closing sessions a failure + leaves an auditable trail"}
     - {name: synthesis,         stage: sell,      contents: "STEP 6 (synthesize the LOGIC): pyramid — governing thought → MECE key line → support; the argument must stand on its own before any storytelling. Built from the final one-day-answer + the analysis-log"}
     - {name: communication,     stage: sell,      contents: "STEP 7 (communicate the STORY): the synthesis rendered for THIS audience — grouping vs SCR/SCQA storyline, action titles, pre-wire plan. APK GUARD: lead with the answer; do NOT parade the analysis (anxious-parade-of-knowledge) or tell the story-of-the-search"}
 
@@ -293,18 +295,29 @@ routing_rules:
 # HITL DATA-REQUEST — when to STOP and ask the founder for data, and how to
 # frame it. Going back to the owner for data is routine, not failure.
 # --------------------------------------------------------------------------
+# v1.8 RECEIPT GATE: when ANY trigger below fires you MUST emit a REAL AskUserQuestion,
+# log the Q + verbatim answer to hitl-log.md as H<n>, then tag the analysis-log datum
+# `ask-user (founder) [H<n>]`. The run-folder gate (scripts/thinking-toolkit/mckinsey-run.cjs)
+# FAILS a bare 'ask-user' datum with no receipt. Choosing NOT to ask is allowed — but then
+# the only honest provenance is 'assumption' (degree >=6 + a sensitivity note); a fabricated
+# ask-user is the exact failure this gate exists to catch. Discipline, not proof: the gate
+# cannot see the conversation, it makes skipping the ask a failure + leaves an auditable trail.
 hitl_triggers:
   - when: "the missing input is a degree-6 internal plan/forecast or a target the owner holds and the team structurally cannot generate"
     ask: "request it; don't substitute a guess"
+    gate: "log to hitl-log.md as H<n>; tag the datum [H<n>] — or relabel 'assumption'"
     concept: {book: cracked-it, slug: eight-degrees-of-analysis}
   - when: "the input is an irreducible judgment about the owner's own world (risk appetite, strategic intent, success threshold, stakeholder reactions)"
     ask: "surface it explicitly and ask the owner to weigh in"
+    gate: "a degree-3 'likely' inference may NOT be promoted to an asserted fact without a logged receipt (the 2026-06-04 porpoise-fabrication failure mode)"
     concept: {book: cracked-it, slug: judgment-call-transparency}
   - when: "a sensitivity test shows the answer FLIPS on an assumption you can't verify yourself"
     ask: "the value of closing that gap is high (it passed knock-out) — request the real number"
+    gate: "log the receipt before the flip changes the one-day answer"
     concept: {book: cracked-it, slug: sensitivity-analysis}
   - when: "framing or scope may have drifted since kickoff"
     ask: "fire an intermediary checkpoint — reconfirm the problem, share interim findings, pre-wire"
+    gate: "a checkpoint row in hitl-log.md need not feed a datum (the gate is one-way)"
     concept: {book: cracked-it, slug: intermediary-checkpoints}
 
 # --------------------------------------------------------------------------
@@ -360,7 +373,7 @@ steps:
       provisional hypothesis written the moment framing is done. It is the living
       state from here on; Structure + Solve sharpen it, they don't birth it.
     bulletproof_7step: ["Define the problem"]
-    produces: [problem-statement, one-day-answer]
+    produces: [problem-statement, one-day-answer, hitl-log, checkpoint-log]
     skills:
       - thinking-toolkit/tosca-problem-framing
     key_concepts:
@@ -427,7 +440,7 @@ steps:
       DESIGN BRANCH (ill-defined/human/innovation): empathize → reframe (HMW) →
       ideate → prototype → test, looping until desirability×feasibility×viability.
     bulletproof_7step: ["Conduct analyses"]
-    produces: [analysis-log, one-day-answer]
+    produces: [analysis-log, one-day-answer, hitl-log, checkpoint-log]
     skills:
       - thinking-toolkit/root-cause
       - thinking-toolkit/design-thinking
@@ -466,12 +479,19 @@ steps:
       (7) COMMUNICATE the STORY: render that logic for THIS audience — grouping
       vs SCR/SCQA, action titles, pre-wire the owner so nothing is a surprise.
       APK GUARD: lead with the answer; NEVER parade the analysis you did
-      (anxious-parade-of-knowledge) or tell the story-of-the-search.
+      (anxious-parade-of-knowledge) or tell the story-of-the-search. v2.0: the
+      story is RENDERED by thinking-toolkit/mckinsey-sell to a McKinsey TEMPLATE
+      (knowledge/mckinsey-templates.yaml) in any /deepask format + design-system
+      (--sell/--audience/--style/--art-style) — structure (template) and design
+      (--style) orthogonal. The action-titled storyline skeleton was built at
+      STRUCTURE (the workplan end-product column = the dummy/ghost exhibits); Sell
+      FILLS + pre-wires it, never invents it.
     bulletproof_7step: ["Synthesize findings", "Communicate / tell a great story"]
     produces: [synthesis, communication]
     skills:
       - thinking-toolkit/pyramid-principle-output
       - thinking-toolkit/so-what-test
+      - thinking-toolkit/mckinsey-sell
     key_concepts:
       - {book: cracked-it, slug: pyramid-principle}
       - {book: cracked-it, slug: governing-thought}

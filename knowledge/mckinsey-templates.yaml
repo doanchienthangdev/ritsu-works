@@ -1,0 +1,125 @@
+# ============================================================================
+# mckinsey-templates.yaml — McKinsey deliverable-template registry
+# (capability thinking-toolkit v2.0 — the /think mckinsey TEAM operating model)
+# ============================================================================
+# The STRUCTURE layer of the McKinsey Sell phase. `mckinsey-sell` (06-ai-ops/
+# skills/thinking-toolkit/mckinsey-sell) builds the synthesis IR per ONE of these
+# templates, then hands it to deepask/format for rendering — with --style (brand
+# design-system) + --art-style (genre) as the DESIGN layer. The two layers are
+# ORTHOGONAL: a template owns the McKinsey STRUCTURE (pyramid skeleton, action
+# titles, SCR/SCQA, MECE key line, APK guard, pre-wire) as PROSE only; it carries
+# NO color/brand/logo token, so it can never shadow the resolved --style core
+# palette. That orthogonality is enforced structurally by validate-mckinsey-
+# templates.cjs (FORBIDDEN_BRAND_KEYS — the art-styles no-palette-leak analog).
+#
+# Source of truth, hand-maintained (NOT re-generated in CI), like art-styles.yaml
+# + design-systems.yaml.
+#
+# Schema:    knowledge/schemas/mckinsey-templates.schema.json
+# Validator: scripts/cross-tier/validate-mckinsey-templates.cjs (L2 critical; wired
+#            into check-consistency.cjs AND .github/workflows/cross-tier-consistency.yml)
+# Consumer:  06-ai-ops/skills/thinking-toolkit/mckinsey-sell/SKILL.md (--sell=<id>)
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/mckinsey-templates.schema.json
+
+mckinsey_templates:
+  - id: governing-thought-memo
+    name: "Governing-Thought Memo"
+    when_to_use: "The default. Any decision-ready recommendation; the reader wants the answer first, then the logic. Works for receptive and skeptical alike when the answer is sound."
+    audience: both
+    structure:
+      - "Governing thought — the recommendation as ONE crisp declarative sentence (the answer)"
+      - "MECE key line — the 3-4 mutually-exclusive reasons the governing thought holds"
+      - "Support — evidence (cited, degree-tagged) under each key-line point"
+      - "Implication — the so-what: the specific next actions the answer forces"
+    rules:
+      - "Governing-thought-first (Minto Pyramid): top-line before any detail"
+      - "APK guard: lead with the answer, NEVER the story-of-the-search"
+      - "MECE key line: the supports don't overlap and are collectively exhaustive"
+      - "Action titles: every section header is a full declarative sentence; the titles alone read as the storyline"
+      - "so-what on every point: an observation isn't an insight until it implies an action"
+    default_format: article
+
+  - id: exec-one-pager
+    name: "Executive One-Pager (the answer that IS the deck)"
+    when_to_use: "A time-poor executive; the whole case must fit on one page and survive the elevator test (defensible in 30 seconds)."
+    audience: both
+    structure:
+      - "Situation — the agreed context in one line"
+      - "Complication — what changed / the tension that forces a decision"
+      - "Resolution — the governing thought (the answer)"
+      - "Three proofs — the strongest cited evidence, one line each"
+      - "Next actions — owner + date"
+    rules:
+      - "Elevator test: the governing thought + 3 supports are defensible in 30 seconds"
+      - "One page, hard limit"
+      - "Governing-thought-first; APK guard"
+      - "Action titles"
+    default_format: pdf
+
+  - id: action-titled-deck
+    name: "Action-Titled Deck"
+    when_to_use: "A readout/presentation; the storyline must carry when read as titles-only. The deck skeleton is built at STRUCTURE (the workplan end-products = the dummy/ghost exhibits) and FILLED at Sell — never invented at Sell."
+    audience: both
+    structure:
+      - "Title slide — the governing thought AS an action title"
+      - "One action-titled slide per MECE key-line point (each title a full declarative sentence)"
+      - "One evidence exhibit per slide (the ghost exhibit, now filled with real data)"
+      - "Next-steps slide — owners + dates"
+    rules:
+      - "Action titles read top-to-bottom AS the storyline (the elevator test for a deck)"
+      - "One message per slide; the exhibit proves exactly that message"
+      - "Ghost-exhibit discipline: the exhibit shape was drawn at STRUCTURE before the data existed"
+      - "Pyramid: title slide governs; body slides are the MECE key line"
+    default_format: pptx
+
+  - id: scr-storyline
+    name: "Situation-Complication-Resolution Storyline"
+    when_to_use: "A SKEPTICAL audience that must be walked from shared context to the answer via argument (not just grouped reasons)."
+    audience: skeptical
+    structure:
+      - "Situation — context the reader already accepts"
+      - "Complication — the problem/tension that breaks the status quo"
+      - "Resolution — the governing thought (the answer to the implied question)"
+      - "Argument — the deductive support chain, cited"
+      - "Risks — the pre-mortem + the disconfirming evidence considered"
+    rules:
+      - "SCR (Minto) for skeptical readers: argument-led, not grouping-led"
+      - "Surface the dissent/risks explicitly (pre-wire — no surprises)"
+      - "so-what at the resolution"
+    default_format: article
+
+  - id: scqa-memo
+    name: "Situation-Complication-Question-Answer Memo"
+    when_to_use: "A skeptical reader for whom the core QUESTION must be made explicit before the answer lands (the question is itself contested)."
+    audience: skeptical
+    structure:
+      - "Situation — the stable starting context"
+      - "Complication — what destabilized it"
+      - "Question — the core question, stated explicitly"
+      - "Answer — the governing thought"
+      - "Support — the MECE pyramid under the answer, cited"
+      - "Next actions"
+    rules:
+      - "SCQA (Minto): question-then-answer; the reader agrees the question before the answer"
+      - "Pyramid support under the answer"
+      - "Action titles"
+    default_format: article
+
+  - id: pyramid-doc
+    name: "Full Minto Pyramid Document"
+    when_to_use: "A complex, multi-argument recommendation that needs the complete vertical (Q&A) + horizontal (MECE) pyramid laid out — a board paper or a deep memo."
+    audience: both
+    structure:
+      - "Governing thought — the single top-line answer"
+      - "Key line — the MECE arguments that support it"
+      - "Supporting pyramid per argument — sub-points + cited evidence, each itself MECE"
+      - "Synthesis — the so-what and the decision it forces"
+    rules:
+      - "Full Minto pyramid: vertical Q&A logic, horizontal MECE at every level"
+      - "Every box is supported by the boxes beneath it"
+      - "so-what at the apex and at each argument"
+      - "APK guard"
+    default_format: html

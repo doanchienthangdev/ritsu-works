@@ -96,6 +96,8 @@ describe("validateWorkflow — specification / real-catalog conformance", () => 
     expect(ARTIFACTS).toContain("workplan");
     expect(ARTIFACTS).toContain("one-day-answer");
     expect(ARTIFACTS).toContain("communication"); // v1.5 — step-7 story artifact
+    expect(ARTIFACTS).toContain("hitl-log"); // v1.8 — HITL receipt ledger
+    expect(ARTIFACTS).toContain("checkpoint-log"); // v2.0 — McKinsey team-session ledger
     expect(TOOLS).toContain("deepask");
     expect(TOOLS).toContain("ask-user");
     expect(ENGINE_SECTIONS).toContain("validation_gate");
