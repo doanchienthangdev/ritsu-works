@@ -2,9 +2,9 @@
 
 **ID:** thinking-toolkit
 **Pillar owner:** 06-ai-ops (sub-pillar: skill-library)
-**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day; v1.2.0 curated +5 skills 2026-06-03; v1.3.0 McKinsey 4S workflow 2026-06-03; v1.4.0 static-map→dynamic-ENGINE 2026-06-03)
+**State:** operating (single-session ship 2026-05-28; extended v1.1.0 same day; v1.2.0 curated +5 skills 2026-06-03; v1.3.0 McKinsey 4S workflow 2026-06-03; v1.4.0 static-map→dynamic-ENGINE 2026-06-03; v1.5–v1.6 engine hardening 2026-06-03; v1.7.0 deepask composition 2026-06-04; **v1.8.0 HITL hard-gate 2026-06-04**)
 **Proposed:** 2026-05-28
-**Spec version:** 1.4.0
+**Spec version:** 1.8.0 (header summary; per-version detail in §14–§16 + `CHANGELOG.md` — §1–§13 describe the v1.0/v1.4 baseline and were not rewritten per-version)
 **Capability run id:** TBD (insert at promotion time)
 **Selected option (from Phase 4):** Option A — Standalone parent-namespaced skills + (v1.1) thin orchestrator command surface
 
@@ -291,3 +291,23 @@ v1.0 design decision *"No new command — composed by existing personas via Skil
 **Touches:** `knowledge/mckinsey-workflow.yaml` (1.6.0 → 1.7.0; +`composition_guards`; enriched `deepask`/`think-skills` routing notes) · its schema (+`composition_guards` property) · `scripts/cross-tier/validate-mckinsey-workflow.cjs` (`ENGINE_SECTIONS` += `composition_guards`) · `scripts/deepask/capability-gate.cjs` (+`RECURSION_DENYLIST`) · `06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md` (Composition + guards) · `.claude/commands/deepask.md` (Boundary) · `06-ai-ops/skills/deepask/execute/SKILL.md` (pass `recipient_id` + anti-recursion refuse). Tests: +5 `mckinsey-workflow` (composition_guards edge) +6 `deepask/capability-gate` (recursion-guard matrix + backward-compat). **No new DB table, no migration, no new `/think` verb** — pure contract hardening.
 
 **Reversibility:** 5/5 — `git revert` of the v1.7 commit removes one engine section + one denylist constant + doc edits; the data_routing deepask entry (v1.4) and all behavior pre-v1.7 are preserved. Decision: `ops.decisions` (slug `thinking-toolkit-v1.7-deepask-composition-contract`).
+
+## 16. v1.8 changelog (2026-06-04) — the HITL hard-gate
+
+`/cla extend thinking-toolkit` — Tier C, @cto sanity review (APPROVE-WITH-NITS, 3 must-fix integrated), founder approve gate.
+
+**Why:** founder ran `/think mckinsey` on a real problem (`.archives/mckinsey/find-100-love-paying-60d/`) and reported it *"không dừng lại tương tác từng bước; output không thể hiện rõ quá trình chạy."* Diagnosis: the engine *described* HITL (`hitl_triggers`) but **nothing forced a real `AskUserQuestion`**, and the only mechanical gate (`mckinsey-run.cjs check`) validated artifact STRUCTURE only — a row with provenance `ask-user (founder)` passed identically to a real pulled datum (the checker just saw a non-empty cell). In that run, the single load-bearing porpoise (*"25 accounts = founder's own test emails; the 571-session power-user = the founder"*) was lifted from a degree-3 `"likely internal"` inference to an asserted fact driving the whole strategy, with no confirmation checkpoint — violating the engine's own *"never let a judgment pass as a fact."*
+
+**What changed — make `ask-user` a verifiable RECEIPT, not an honor-system label.** New invariant: every `analysis-log` datum whose provenance matches `/ask-user/i` MUST carry a `[H<n>]` tag resolving to a row in a NEW `hitl-log.md` artifact (the question actually asked + the founder's verbatim one-line answer). No receipt → the run-folder gate fails. The honest no-ask path is to label the datum `assumption` (degree ≥6 + a sensitivity note). This is the same "status-ledger > prose" move v1.4 used to stop the Solve loop drifting, now applied to HITL.
+
+**The semantic ceiling (stated honestly, per @cto must-fix #3):** the gate is **receipt DISCIPLINE, not proof of asking** — a post-hoc checker cannot see the conversation, so it cannot *prove* an `AskUserQuestion` fired. It makes *skipping* the ask (or faking the label without a logged exchange) a gate failure, and leaves the founder an auditable trail to spot-check. A true runtime force would need a harness hook (out of scope; deferred).
+
+**Touches (6 files, coherent — the validator enforces cross-file agreement):**
+1. NEW artifact `hitl-log.md` (`stage: state`) — `ARTIFACTS` in `scripts/thinking-toolkit/mckinsey-run.cjs` (+`TEMPLATES`) AND `scripts/cross-tier/validate-mckinsey-workflow.cjs` (set-equal — the catalog↔run-helper coherence check enforces it); `artifacts.files` + `state`/`solve` `produces` in `knowledge/mckinsey-workflow.yaml`; `produces` enum in `knowledge/schemas/mckinsey-workflow.schema.json`.
+2. NEW one-way reconciliation gate in `mckinsey-run.cjs` `checkRun()` (runs every `check`, not only `--before-sell`): valid receipt-ids built ONLY from `isDataRow`-filtered hitl-log rows + anchored `/^H\d+$/` (the pristine `<H1>` template can't sneak in — @cto must-fix #1); provenance read from `row[pi]` via the decoy-proof `colIndex` (not a row-join — @cto question C); `[H<n>]` tags parsed from the provenance cell only.
+3. `SKILL.md` — HITL promoted from prose to a hard contract (State Success/Constraint MUST ask+log; Solve PULL of founder-only datum MUST ask+log+tag; porpoise-on-founder-only-fact MUST confirm; degree-3 "likely" may not be promoted to fact without a receipt) + the honest "discipline-not-proof" framing.
+4. `mckinsey-workflow.yaml` `hitl_triggers` — each trigger gains a `gate:` note; single-line answer rule (`<br>` for breaks — @cto must-fix #2: multi-line cells break `parseFirstTable`).
+
+**Tests:** +12 `tests/mckinsey-run.test.ts` (`HITL receipt gate (v1.8)` describe — matched-pass, no-tag-fail, dangling-fail, phantom-`<H1>`-template-fail, assumption-pass, real-tool-pass, one-way-pass, malformed-hitl-fail, case-insensitive, multi-tag both-resolve/one-missing, decoy-cell) + the prior `ask-user`/`assumption` test split to the honest `assumption`-only path; +1 `tests/mckinsey-workflow.test.ts` (`ARTIFACTS` contains `hitl-log`). **No new DB table, no migration, no new `/think` verb.**
+
+**Reversibility:** 5/5 — `git revert` of the v1.8 commit removes one artifact + one gate block + the `ARTIFACTS` additions; runs without `hitl-log.md` / without `ask-user` rows are unaffected (backward-compatible). Decision: `ops.decisions` slug `thinking-toolkit-v1.8-hitl-hard-gate`.

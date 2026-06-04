@@ -18,15 +18,16 @@ const {
 // ============================================================================
 // All-Edge-Cases-Test (global CLAUDE.md). Units: scaffoldRun(repoRoot, slug),
 // checkRun(repoRoot, slug, opts) from scripts/thinking-toolkit/mckinsey-run.cjs
-// (capability thinking-toolkit v1.6 — the deterministic run scaffolder + checker).
+// (capability thinking-toolkit v1.6/v1.8 — the deterministic run scaffolder + checker).
 //
-// Phase 1 — scaffoldRun: slug-invalid → error; creates dir + 7 templates;
+// Phase 1 — scaffoldRun: slug-invalid → error; creates dir + 8 templates;
 //   idempotent (skip existing, never clobber). checkRun: slug-invalid; dir
 //   missing; missing artifact; workplan no-table / missing-column / bad-status /
 //   product.* firewall; analysis-log missing-provenance-col / missing-degree-col /
-//   row-missing-provenance / degree-out-of-1-8; beforeSell open-rows gate; happy.
+//   row-missing-provenance / degree-out-of-1-8; beforeSell open-rows gate;
+//   v1.8 HITL receipt gate (ask-user [H#] ↔ hitl-log reconciliation); happy.
 // Phase 2 — boundaries: invalid slugs, empty dir, malformed tables, degree
-//   0/9/NaN, status casing, placeholder rows skipped.
+//   0/9/NaN, status casing, placeholder rows skipped, phantom <H1> template row.
 // Uses a fresh tmp repoRoot per test (the helper writes under
 //   <root>/.archives/mckinsey/<slug>/). Skipped: security (operator paths);
 //   async (sync); performance (tiny folders).
@@ -52,7 +53,7 @@ const GOOD_LOG = `# al
 `;
 
 describe("scaffoldRun", () => {
-  it("creates the run folder + all 7 artifact templates", () => {
+  it("creates the run folder + all 8 artifact templates", () => {
     const r = scaffoldRun(ROOT, "free-to-paid-stall");
     expect(r.errors).toEqual([]);
     expect(r.created.sort()).toEqual(ARTIFACTS.map((a: string) => `${a}.md`).sort());
@@ -169,11 +170,13 @@ describe("checkRun — analysis-log grounding", () => {
       fs.rmSync(runDir("r"), { recursive: true, force: true });
     }
   });
-  it("ask-user / assumption count as valid provenance", () => {
+  it("assumption counts as valid provenance with no receipt required (the honest no-ask path)", () => {
     scaffoldRun(ROOT, "r");
-    writeArtifact("r", "analysis-log.md", "# al\n| hypothesis | data | provenance | degree | verdict |\n|---|---|---|---|---|\n| a | guess | ask-user | 6 | pending |\n| b | est | assumption | 7 | flagged |\n");
-    expect(checkRun(ROOT, "r").errors.filter((e: string) => /analysis-log/.test(e))).toEqual([]);
+    writeArtifact("r", "analysis-log.md", "# al\n| hypothesis | data | provenance | degree | verdict |\n|---|---|---|---|---|\n| b | est | assumption | 7 | flagged |\n");
+    expect(checkRun(ROOT, "r").errors).toEqual([]);
   });
+  // NB: 'ask-user' provenance now requires a [H#] receipt — see the dedicated
+  // "HITL receipt gate (v1.8)" describe below (it can no longer pass bare).
 });
 
 describe("checkRun — stopping gate (--before-sell)", () => {
@@ -255,5 +258,98 @@ describe("checkRun — half-filled open row trips the stopping gate (v1.6 should
   it("the pristine scaffold (template row only) still passes --before-sell", () => {
     scaffoldRun(ROOT, "fresh2");
     expect(checkRun(ROOT, "fresh2", { beforeSell: true }).errors).toEqual([]);
+  });
+});
+
+// ---- v1.8: HITL receipt gate (analysis-log ask-user ↔ hitl-log reconciliation) ----
+
+const HITL_H1 = `# hitl
+| id | stage | question asked | founder answer | feeds datum | assumption-if-unanswered |
+|---|---|---|---|---|---|
+| H1 | state | are the 25 accounts yours? | yes, all my test emails | ownership | assume external (deg 6) |
+`;
+const HITL_H1_H2 = `# hitl
+| id | stage | question asked | founder answer | feeds datum | assumption-if-unanswered |
+|---|---|---|---|---|---|
+| H1 | state | q1 | a1 | d1 | x |
+| H2 | solve | q2 | a2 | d2 | y |
+`;
+// analysis-log with one ask-user datum whose provenance cell is `prov`
+const logProv = (prov: string) => `# al
+| hypothesis | data pulled | provenance | degree | verdict |
+|---|---|---|---|---|
+| ownership | 25 = founder's | ${prov} | 2 | confirmed |
+`;
+const hitlErrs = (slug: string) => checkRun(ROOT, slug).errors.filter((e: string) => /hitl gate/.test(e));
+
+describe("checkRun — HITL receipt gate (v1.8)", () => {
+  it("ask-user datum WITH a matching [H1] + hitl-log row H1 → passes", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logProv("ask-user (founder) [H1]"));
+    writeArtifact("r", "hitl-log.md", HITL_H1);
+    expect(checkRun(ROOT, "r").errors).toEqual([]);
+  });
+  it("ask-user datum with NO [H#] receipt tag → fails (missing receipt)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logProv("ask-user (founder)"));
+    writeArtifact("r", "hitl-log.md", HITL_H1);
+    expect(has(hitlErrs("r"), "no [H<n>] receipt tag")).toBe(true);
+  });
+  it("ask-user datum citing [H9] but no hitl-log row H9 → fails (dangling ref)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logProv("ask-user (founder) [H9]"));
+    writeArtifact("r", "hitl-log.md", HITL_H1);
+    expect(has(hitlErrs("r"), "no data row with id H9")).toBe(true);
+  });
+  it("MUST-FIX #1: the pristine <H1> template row does NOT satisfy a [H1] tag", () => {
+    scaffoldRun(ROOT, "r"); // hitl-log.md left as the scaffold template (placeholder <H1> only)
+    writeArtifact("r", "analysis-log.md", logProv("ask-user (founder) [H1]"));
+    expect(has(hitlErrs("r"), "no data row with id H1")).toBe(true);
+  });
+  it("assumption provenance needs no receipt even when hitl-log is empty → passes the gate", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logProv("assumption"));
+    expect(hitlErrs("r")).toEqual([]);
+  });
+  it("a real-tool provenance (supabase-analytics) is untouched by the gate → passes", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logProv("supabase-analytics live.profiles"));
+    expect(hitlErrs("r")).toEqual([]);
+  });
+  it("a hitl-log row with NO matching analysis-log datum is allowed (one-way gate)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", GOOD_LOG); // no ask-user rows
+    writeArtifact("r", "hitl-log.md", HITL_H1);      // an extra receipt (e.g. a scope checkpoint)
+    expect(checkRun(ROOT, "r").errors).toEqual([]);
+  });
+  it("an empty/malformed hitl-log table while an ask-user [H1] datum exists → fails (dangling)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logProv("ask-user (founder) [H1]"));
+    writeArtifact("r", "hitl-log.md", "# hitl\n\njust prose, no table\n");
+    expect(has(hitlErrs("r"), "no data row with id H1")).toBe(true);
+  });
+  it("case-insensitive: ASK-USER provenance + [h1] tag resolves against hitl row H1 → passes", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logProv("ASK-USER (founder) [h1]"));
+    writeArtifact("r", "hitl-log.md", HITL_H1);
+    expect(checkRun(ROOT, "r").errors).toEqual([]);
+  });
+  it("multiple tags [H1][H2] on one row: both must resolve (one missing → fail)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logProv("ask-user (founder) [H1][H2]"));
+    writeArtifact("r", "hitl-log.md", HITL_H1); // only H1 exists
+    expect(has(hitlErrs("r"), "no data row with id H2")).toBe(true);
+  });
+  it("multiple tags [H1][H2] both present → passes", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logProv("ask-user (founder) [H1][H2]"));
+    writeArtifact("r", "hitl-log.md", HITL_H1_H2);
+    expect(checkRun(ROOT, "r").errors).toEqual([]);
+  });
+  it("decoy: 'ask-user' text in a non-provenance cell does NOT trip the gate (reads provenance col only)", () => {
+    scaffoldRun(ROOT, "r");
+    // 'data source' column literally mentions ask-user; the real provenance col is supabase
+    writeArtifact("r", "analysis-log.md", "# al\n| hypothesis | data source | provenance | degree | verdict |\n|---|---|---|---|---|\n| ownership | scraped from an ask-user note | supabase-analytics | 2 | ok |\n");
+    expect(hitlErrs("r")).toEqual([]);
   });
 });
