@@ -7,7 +7,7 @@
 This file is THE source of truth for wiki recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/wikis.md` import.
 
-**Total entries:** 7
+**Total entries:** 8
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -19,6 +19,19 @@ Read in any Claude Code session via `@knowledge/recipients/wikis.md` import.
 **When to use:** <!-- generated-by: wiki-sync v4.0 (Claude-walked, distill mode, autonomous batch 2026-06-02) -->
 
 **Invoke:** `Read("wiki/bulletproof-problem-solving/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "bulletproof-problem-solving"})`
+**Authority:** derived-memory
+**Freshness:** unknown
+
+**Role scope:** *
+**Status:** active
+
+## wiki/consulting-toolkits
+
+**Kind:** wiki
+**Axis:** content
+**When to use:** 19 world-class consulting processes (strategy, M&A, supply chain, Lean Six Sigma, risk, FP&A, …), each reconstructed into an executable playbook with full per-framework anatomy. The searchable knowledge layer behind the /think mckinsey checkpoint tool-selector. Original synthesis in the consulting genre — not a copy of any source.
+
+**Invoke:** `Read("wiki/consulting-toolkits/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "consulting-toolkits"})`
 **Authority:** derived-memory
 **Freshness:** unknown
 

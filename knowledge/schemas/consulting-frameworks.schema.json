@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "consulting-frameworks.yaml — the toolkit half of the /think mckinsey thinking-tool registry",
+  "type": "object",
+  "required": ["version", "frameworks"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string" },
+    "schema": { "type": "string" },
+    "source": { "type": "string" },
+    "note": { "type": "string" },
+    "count": { "type": "integer" },
+    "frameworks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slug", "name", "fours_step", "wiki_path"],
+        "additionalProperties": true,
+        "properties": {
+          "slug": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "name": { "type": "string" },
+          "toolkits": { "type": "array", "items": { "type": "string" } },
+          "domains": { "type": "array", "items": { "type": "string" } },
+          "category": { "type": "string" },
+          "type": { "type": "string" },
+          "fours_step": { "type": "string", "enum": ["frame", "structure", "solve", "sell", "cross"] },
+          "cognitive_moves": { "type": "array", "items": { "type": "string" } },
+          "select_when": { "type": "string" },
+          "checkpoint_fit": { "type": "array", "items": { "type": "string" } },
+          "jtbd": { "type": "string" },
+          "wiki_path": { "type": "string", "pattern": "^wiki/" }
+        }
+      }
+    }
+  }
+}

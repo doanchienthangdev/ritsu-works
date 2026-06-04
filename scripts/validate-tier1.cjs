@@ -59,6 +59,8 @@ const FILE_TO_SCHEMA = {
   'mckinsey-workflow.yaml': 'mckinsey-workflow.schema.json',
   'mckinsey-templates.yaml': 'mckinsey-templates.schema.json',
   'problem-solving-frameworks.yaml': 'problem-solving-frameworks.schema.json',
+  'consulting-frameworks.yaml': 'consulting-frameworks.schema.json',
+  'consulting-processes.yaml': 'consulting-processes.schema.json',
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });

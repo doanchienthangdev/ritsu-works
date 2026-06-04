@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 56
+**Total entries:** 58
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -372,6 +372,34 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/cla-routing-keywords.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-consulting-frameworks
+
+**Kind:** page
+**Axis:** content
+**When to use:** Tier 1 knowledge registry: consulting-frameworks
+
+**Invoke:** `Read("knowledge/consulting-frameworks.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/consulting-frameworks.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-consulting-processes
+
+**Kind:** page
+**Axis:** content
+**When to use:** Tier 1 knowledge registry: consulting-processes
+
+**Invoke:** `Read("knowledge/consulting-processes.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/consulting-processes.yaml
 
 **Role scope:** *
 **Status:** active

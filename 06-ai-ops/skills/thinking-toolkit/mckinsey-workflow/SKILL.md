@@ -151,6 +151,8 @@ Fill **TOSCA** (run `/think tosca`): **T**rouble (gap as a symptom, not a diagno
 
 **Choose the path** (`hypothesis-driven-vs-issue-driven`): **issue tree by default**; **hypothesis pyramid** only with a strong prior or under time starvation; **design-thinking path** when the problem is ill-defined/human-centered (empathize→HMW→prototype→test until Desirability-Feasibility-Viability).
 
+**Pull an inherited domain process if one fits (v3.0) — don't reinvent the tree.** Check `knowledge/thinking-tool-index/processes.md` (the domain-process router). If the problem signature matches a row (strategy / operating-model / digital / change / HR / M&A / PMI / sales-pricing / supply-chain / Lean-Six-Sigma / risk / business-case / dashboards / leadership / FP&A / data-AI / personal-finance), **load that inherited ex-McKinsey process** (`wiki/consulting-toolkits/<slug>/process.md`, full spine in `knowledge/consulting-processes.yaml`) and use its **gated phase spine + frameworks-per-phase as your issue-tree/workplan skeleton** — then adapt it to THIS problem (it is a starting structure refined by real data, not a script to follow blindly; you still cleave, prioritize, and porpoise). This is the "inherited from people who did the work at McKinsey" leverage: a proven, complete decomposition for the domain instead of an ad-hoc one. If no process matches (a novel/cross-domain problem), build the MECE tree from scratch as below.
+
 **Decompose** into a **MECE** tree (run `/think mece` + `/think driver-tree`); find the right cleaving point; try multiple cleaves (anti-availability-bias); each leaf = a **falsifiable hypothesis**. **Prioritize** with the impact × influence 2×2 (knock-out); prune the immovable + the low-impact.
 
 **Build the 6-column WORKPLAN** — the data-routing spine (Bulletproof Exhibit 4.3, verbatim columns):
@@ -180,14 +182,19 @@ Loop until the **stopping criterion** holds → Sell. **You may NOT move to Sell
 
 ### Tool selection — load + select the RIGHT framework (`tool_selection` in the catalog)
 
-*Routing* (next table) answers **where to get the data**. *Selection* answers **which framework / model / analysis to apply** — the v1.5 mechanism. The candidate pool is a dedicated registry: **`knowledge/problem-solving-frameworks.yaml`** — 207 frameworks/models/heuristics/techniques/biases distilled from the two books, each classified by `fours_step` + `type`. Three stages:
+*Routing* (next table) answers **where to get the data**. *Selection* answers **which framework / model / analysis to apply** — the v1.5 mechanism, **expanded in v3.0 to the full consulting thinking-tool library**. The candidate pool is now UNIFIED:
+- **207 book frameworks** — `knowledge/problem-solving-frameworks.yaml` (distilled from *Bulletproof* + *Cracked It!*; classified by `fours_step` + `type`).
+- **460 consulting-toolkit frameworks** — `knowledge/consulting-frameworks.yaml` (reconstructed from the 19 ex-McKinsey domain toolkits; each richly tagged `fours_step` · `cognitive_moves` · `domains` · **`select_when`** (the disambiguator) · `checkpoint_fit`, pointing to a `wiki/consulting-toolkits/.../concepts/<slug>.md` page).
+- **19 inherited domain PROCESSES** — `knowledge/consulting-processes.yaml` (the gated phase-spine playbooks; see STRUCTURE below).
+
+= **667 tools + 19 processes.** Three stages:
 
 **1 · CLASSIFY the sub-need** (source decision-trees decide what *kind* of tool fits):
 - **solve_mode** — *analytical* (a right answer exists → hypothesis + workplan loop) vs **design** (ill-defined / human / innovation → the **design-thinking branch**: empathize → reframe (HMW) → ideate → prototype → test, until desirability×feasibility×viability). [`five-phases-of-design-thinking`]
 - **analysis_mode** — *description* (summary stats) vs *causation* (experiment / natural-experiment / regression) vs *prediction* (ML / Monte-Carlo). **Heuristics before big guns** — escalate only when a cheap tool can't move the answer. [`analytics-tool-selection-decision-tree`]
 - **framework_shape** — a *formula* (compute a number) vs a *typology* (2×2 / segmentation) vs a *checklist* (factors to cover). Match the shape to the job. [`three-styles-of-frameworks`]
 
-**2 · LOAD candidates** (the ritsu JIT pull): FILTER the registry `WHERE fours_step ∈ {current-step, cross} AND type matches` (framework/model/heuristic/technique to *apply*; bias/antipattern feed the validation gate). Then `resolver_find` for matching `/think` skills + `wiki_ask` for any long-tail concept. **Read each finalist's `wiki_path` before applying** — `type` is only a filter hint.
+**2 · LOAD candidates — the FAST per-checkpoint map (v3.0; the "load fast, no context-lost" guard):** do **NOT** load the whole 667-tool registry into context. **Load ONLY the per-4S-step map for your current step** — `knowledge/thinking-tool-index/{frame|structure|solve|sell|cross}.md` — a compact 1-line-per-tool slice (`tool · select-when · moves · domains · checkpoint · → page`). Then **filter that map** by your `domain` + `cognitive_move` + scan the **`select when`** column (the disambiguator that separates neighbours — e.g. Porter's Five Forces *"is this industry structurally attractive before entry/investment"* vs Value Driver Tree *"which lever actually moves the economics"*). That is your shortlist. (Still `resolver_find` for matching `/think` skills + `wiki_ask`/the registries for a long-tail concept the map doesn't carry.) **READ each finalist's wiki page before applying** — the map is a pointer; the page is the executable how-to (tutorial + template). See `knowledge/thinking-tool-index/README.md`.
 
 **3 · SELECT + COMBINE:** Munger **latticework** — combine 2–3 *complementary* lenses (e.g. a typology to map options + a causal analysis to test the driver), never one [`multiple-frameworks-discipline`]. **Debias:** don't grab the framework you know best and bend the problem to fit — match tool to problem; a familiar tool as the *only* candidate is a smell → widen the load [`framework-mental-model-danger` / Maslow's hammer].
 
@@ -264,7 +271,13 @@ Bulletproof separates step 6 from step 7; don't conflate them.
 ## References
 
 Primary (in `raw/mckinsey/`): **Conn & McLean (2018), *Bulletproof Problem Solving*** — 7-step, the 6-column workplan (Ch 4, Exhibit 4.3), one-day answer (Ch 1), porpoising (Ch 2), heuristics-before-big-guns + analytics decision tree (Ch 5), dialectic (Ch 4). **Garrette, Phelps & Sibony (2018), *Cracked It!*** — 4S (Ch 3), TOSCA (Ch 4), analysis plan + eight degrees of analysis + sensitivity (Ch 5/7), pyramid/SCR/pre-wire (Ch 10), design-thinking path (Ch 8-9).
-Machine-readable spec + per-step concept bindings: `knowledge/mckinsey-workflow.yaml` + `knowledge/schemas/mckinsey-workflow.schema.json`. The full candidate pool — **207 classified frameworks/models/heuristics** — is the dedicated registry `knowledge/problem-solving-frameworks.yaml` (filter by `fours_step` + `type`; seeded by `scripts/thinking-toolkit/gen-frameworks-registry.cjs`, extensible as more concepts sync in). Concepts beyond the registry stay reachable per-step via each step's `retrieval` recipe + `wiki_ask`.
+Machine-readable spec + per-step concept bindings: `knowledge/mckinsey-workflow.yaml` + `knowledge/schemas/mckinsey-workflow.schema.json`.
+
+**The thinking-tool library (v3.0 — the candidate pool for Selection):**
+- `knowledge/problem-solving-frameworks.yaml` — **207** book frameworks (filter by `fours_step` + `type`).
+- `knowledge/consulting-frameworks.yaml` — **460** consulting-toolkit frameworks, reconstructed from 19 ex-McKinsey domain toolkits, tagged `fours_step`·`cognitive_moves`·`domains`·`select_when`·`checkpoint_fit` → `wiki/consulting-toolkits/<toolkit>/concepts/<slug>.md`.
+- `knowledge/consulting-processes.yaml` — **19** inherited domain process playbooks (gated spines) + routing cards.
+- `knowledge/thinking-tool-index/{frame,structure,solve,sell,cross}.md` — the **fast per-4S-step maps** (unify all 667 tools; load ONLY the current step's map at a checkpoint — the no-context-lost guard) + `processes.md` (the domain-process router) + `README.md`. Built by `scripts/consulting-toolkit/build-thinking-os.cjs`; the toolkit knowledge layer is `wiki/consulting-toolkits/`. Concepts beyond the maps stay reachable per-step via `wiki_ask` + the registries.
 
 ## Anti-claims
 
