@@ -1,0 +1,77 @@
+---
+title: "Chương 49 — Capability Case Study: dataviz (`/dataviz` — 27 loại chart + bộ chọn thông minh)"
+description: "Chương 49 — Capability Case Study: dataviz (`/dataviz` — 27 loại chart + bộ chọn thông minh)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/49-capability-case-dataviz.md
+source_hash: e763b38ac3e1be008e3345e72800f90af248324fcbd70caef628329ba21af740
+generated_at: '2026-06-04T15:36:45.192Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: e763b38ac3e1be008e3345e72800f90af248324fcbd70caef628329ba21af740
+translated_at: '2026-06-04T15:36:45.192Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 49
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> **Case Study #15.** `/dataviz` là primitive "dữ-liệu → biểu-đồ" — song sinh với `/image` (Chương 48) nhưng cho chart thay vì ảnh. v0.1 ship 9 loại chart + một bộ chọn từ-khoá thô. v0.2 (`/cla extend`, tự-ship trong một phiên) nâng lên **27 loại chart qua cả 6 họ Datylon** và — phần quan trọng — biến việc **CHỌN biểu đồ** từ một matcher regex 10-luật thành **một bộ máy quyết định thông minh, giải-thích-được, theo bối cảnh**. Bài học lớn nhất: thứ cần "thông minh" không phải là *vẽ thêm 90 loại*, mà là *biết chọn đúng loại cho thông điệp cụ thể* — đúng nghề của một analyst McKinsey.
+
+## 49.1 Bài toán — đủ loại để vẽ, không đủ "khôn" để chọn
+
+v0.1 chỉ có 9 loại (bar/column/line/stacked/stacked100/grouped/scatter/waterfall/kpi) và một selector match một từ-khoá trong message → một loại. Hai giới hạn:
+
+1. **Độ phủ:** phân tích kinh doanh thật cần nhiều hơn — part-to-whole (pie/donut/marimekko), paired-delta (dumbbell/slope), phân-phối (histogram/box), phễu (funnel), ma trận 2×2 (BCG), bubble 3-đo, heatmap, diverging (Likert). v0.1 "đặt tên rồi defer" hầu hết.
+2. **Trí thông minh:** selector match từ-khoá → một loại. Nó KHÔNG suy luận theo *hình dạng dữ liệu*, không cân *đối-tượng/medium*, không **giải thích vì sao**, không đề-xuất **phương án thay thế**, và không **cảnh báo anti-pattern** (pie >6 lát, line trên trục không-thời-gian, dual-axis, radar >8 trục). Một analyst McKinsey làm tất cả những điều đó — *chọn biểu đồ chính là tay nghề*. Đây là deliverable được nhấn mạnh.
+
+## 49.2 Quyết định khoá — KHÔNG build 90 loại; build "bộ não" + tập McKinsey-relevant
+
+Datylon liệt kê ~90 loại chart. Phản-xạ sai là build hết. Nhiều loại **anti-McKinsey** (radial-bar, nightingale, word-cloud, gauge), **nặng hình học/topo** (sankey, chord, network, treemap, sunburst, contour, hexbin), hoặc **cần dữ-liệu ngoài** (bản đồ choropleth) — ROI thấp trong một renderer pure-Node byte-stable, và hiếm khi là exhibit McKinsey.
+
+Synthesis (giữ MỌI ràng buộc, không dao-động): **(a)** build một SUPERSET McKinsey-relevant (~18 loại mới → 27) — những loại thực sự xứng exhibit; **(b)** catalog TOÀN BỘ ~90 loại trong một taxonomy (bộ não biết mọi loại, gọi đúng tên "ideal" kể cả khi map về loại đã-build); **(c)** dồn "trí thông minh" vào BỘ CHỌN. Đây mới là nơi giá-trị nằm — và là nơi quan trọng cho McKinsey.
+
+## 49.3 Kiến trúc — taxonomy (nguồn-sự-thật) + selector + renderer pure byte-stable
+
+- **`scripts/dataviz/lib/taxonomy.cjs`** (MỚI) — bộ tri-thức: ~74 loại từ catalog Datylon, mỗi loại gắn `family · built · fallback · McKinsey-stance · intents · data-shape needs`. Là nguồn-sự-thật cho `BUILT` (27). Để là **code** chứ không YAML: selector chạy trong path PURE (không đọc file, không js-yaml), và tránh thêm một `page` recipient vào INDEX resolver (đang sát trần 15K token).
+- **`select.cjs`** — bộ chọn (PURE). Xem 49.4.
+- **`render.cjs`** — 27 renderer pure, byte-stable (mọi toạ-độ qua `fmt()`; KHÔNG d3 [ESM-only], KHÔNG canvas/DOM, KHÔNG `Date.now()`/`Math.random()`). Test bằng `toBe`/`toEqual`, không snapshot. `renderChart()` có try/catch net → **không bao giờ throw** với bất kỳ shape nào (degrade thành exhibit rỗng có title + source footer).
+- **Kỷ luật McKinsey** (renderer mã-hoá, không override): one-highlight, data-ink tối-giản, trục-giá-trị-từ-0, direct label (không legend), action-title trên chart, **source footer trên MỌI exhibit**, structure ⊥ brand (`--style` chỉ đổi palette/font, không đổi cấu-trúc).
+
+## 49.4 Phần "thông minh" — bộ chọn giải-thích-được, theo bối cảnh
+
+`selectChart(message, hints, context) -> { chartType, ideal, family, intent, reason, alternatives[], warnings[], confidence }`. PURE, deterministic, taxonomy-driven — **không LLM trong path** (agent gọi cung cấp message + data; đây là phép map có-kỷ-luật).
+
+Pipeline 6 yếu-tố: **(1) Intent** — 18 luật trigger first-match → một loại so-sánh Zelazny. **(2) Hình-dạng dữ-liệu** (`hints`) phân-giải trong họ (2 measures→scatter, 3→bubble; share+time→100%-stacked vs stacked-area; single-period part-to-whole→pie *demote→bar*). **(3) Bối cảnh** (`--audience`) nudge (exec → đơn-giản hơn; ranking dài → lollipop). **(4) Guard-rails McKinsey** — trục-thực-thể ⇒ Item không phải trend; pie/donut demote; cảnh báo >6 lát, >5 series grouped, radar >8 trục. **(5) Map ideal → BUILT** (fallback trung-thực). **(6) Giải thích** — `reason` + `alternatives[]` (loại á-quân + lý do) + `warnings[]` (anti-pattern) + `confidence` (high/medium/low). Cờ `--explain` in tất cả.
+
+Đây là "tay nghề analyst làm cho minh-bạch": chọn biểu đồ làm-bật-thông-điệp, và **bảo-vệ được lựa chọn** — một cách deterministic.
+
+## 49.5 27 loại chart qua 6 họ (+ 47 cataloged map-về-gần-nhất)
+
+- **Comparison:** bar · column · grouped · lollipop · dot · **dumbbell** · **slope** · **radar** · **quadrant (2×2)** · **bullet (vs-target)**
+- **Correlation:** scatter · **bubble** · **heatmap**
+- **Part-to-whole:** stacked · stacked100 · **pie** · **donut** · **marimekko (mekko)** · **diverging (Likert)** · **funnel**
+- **Change-over-time:** line · **area** · **stacked-area** · waterfall
+- **Distribution:** **histogram** · **box**
+- **KPI:** kpi
+
+47 loại còn lại được **catalog** trong taxonomy (treemap/sankey/gantt/sunburst/violin/choropleth/…): selector gọi đúng tên ideal rồi **map về loại built gần nhất + ghi lý do trung-thực** — non-goal có-tài-liệu, đúng pattern v0.1.
+
+## 49.6 Quy trình — `/cla extend` tự-ship + review đối-kháng + hardening
+
+Chạy `/cla extend dataviz` (SOP-AIOPS-001-extend), tự-ship theo pattern `/image` + `/forge`. Tier A runtime; ceremony extend auto-Tier-C (thêm component). Trước khi merge: một **code-review đối-kháng** xác nhận byte-stable/no-NaN/backward-compat giữ vững, và bắt 3 điểm thật — renderer throw khi gặp `null` trong mảng đúng-tên; kpi in `"NaN"`; 2 regex selector quá rộng — đều đã fix + test. **3.161 test xanh** (176 cho dataviz: mọi renderer × shape, mọi nhánh selector/guard-rail/alternatives/confidence, taxonomy invariants, primitives, hardening input lỗi). 3 test `select` cũ được realign về hành-vi v0.2 mạnh hơn (marimekko/bubble/histogram nay render natively; pie auto-demote) — **không làm yếu test**.
+
+## 49.7 Report test chuẩn McKinsey — 27/27 render, audit selector minh-bạch
+
+Để "test các loại chart", ta dựng một fact-base McKinsey hoàn-chỉnh — *"The path to 100 paying users who love"* — trong đó **mỗi exhibit dùng đúng một loại chart khác nhau**, render bằng chính engine. Kết quả: **27/27 loại render** · throw 0 · NaN/undefined 0. Mỗi exhibit kèm panel audit "auto-selector chọn gì, confidence, vì sao": **17/27 khớp ở high-confidence**; 10 khác biệt đều có lý-do trung-thực (pie/donut demote; lollipop/dot/heatmap là biến-thể của bar nên auto chọn bar canonical; dữ-liệu âm của diverging → `has_negatives` ưu-tiên waterfall — điểm v0.3 sẽ tune; 8 kỳ → line). Đây chính là cách bộ chọn thông minh hoạt-động: nắm chắc khi message mã-hoá intent, fallback/cảnh-báo minh-bạch khi không.
+
+## 49.8 Trạng thái cuối + bài học
+
+`/dataviz` v0.2.0 **operating** (PR #237 squash-merge). 4 bài học:
+
+1. **Build cái bộ-não, đừng build 90 cái tay.** Thứ đáng "thông minh" là *taxonomy + bộ chọn*, không phải 90 renderer xoàng. Một SUPERSET McKinsey-relevant + một taxonomy đầy-đủ + fallback trung-thực > một zoo biểu-đồ.
+2. **Lựa-chọn deterministic + giải-thích-được > LLM-trong-path.** Bộ chọn là số-học trên taxonomy: pure, byte-stable, unit-test được, $0 — mà vẫn trả `reason`/`alternatives`/`warnings`/`confidence`. Trí thông minh không bắt-buộc phải tốn token.
+3. **Action-title mã-hoá INSIGHT, không mã-hoá loại-chart.** Khi tiêu-đề thuần là kết-luận ("we lose 60% before the first quiz"), selector về mặc-định an-toàn (bar) và analyst ép loại — vì-thế `--chart=<type>` tồn-tại bên cạnh `--chart=auto`. Audit phơi-bày điều này thay vì giấu.
+4. **Pure + byte-stable là tính-năng, không phải gò-bó.** Không d3/canvas/DOM → chạy ngay trong CI/worktree, deterministic, không native build; mọi số qua `fmt()` → diff git sạch.
+
+**Vì sao quan trọng cho mckinsey:** `/think mckinsey` (`mckinsey-sell`) gọi `/dataviz` cho mỗi exhibit — action-title là `--message`. Bộ chọn thông-minh + 27 loại (gồm các chữ-ký McKinsey: marimekko, waterfall, dumbbell, slope, bullet, diverging, 2×2, bubble) nâng chất-lượng MỌI deliverable McKinsey ở chi-phí biên ~$0. Chọn biểu-đồ làm-bật điểm, không chỉ *một* biểu-đồ.
