@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 113
+**Total entries:** 114
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -228,6 +228,30 @@ resolver-query, core-management). These domains are brain-agnostic.
 **When to use:** Pure semver helper. Computes next version from current version + sub-flow type. Rules deterministic per /cla evolution sub-flow contract. Used by Phase 8 of every update sub-flow except :deprecate. Reads current version from knowledge/capability-registry.yaml; writes next version back. No LLM, no side effects beyond the registry edit.
 
 **Invoke:** `Skill({ skill: "capability-lifecycle/version-bumper" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/consulting-toolkit
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Reconstruct a partial consulting toolkit or framework deck (a "clue" — e.g.
+a Domont/Slidebooks-style overview preview that reveals a process spine +
+named frameworks + a few sample slides) into a COMPLETE, executable process
+artifact bundle: a detailed handbook PDF, a McKinsey/Domont-genre 16:9 deck,
+a machine-readable process.yaml spine, and per-framework anatomy files
+(description · visual · step-by-step tutorial · real example · template ·
+pitfalls). Use when turning consultant framework previews, a process outline,
+or a methodology sketch into a full step-by-step, do-able business process —
+not just a list of framework names. Pairs with `thinking-toolkit` (atomic
+thinking disciplines + the McKinsey workflow engine), `dataviz`/`image`
+(visuals) and `design-system` (styling). Invoked by the `/toolkit` command.
+
+**Invoke:** `Skill({ skill: "consulting-toolkit" })`
 **HITL tier:** B
 **Side effect:** write
 

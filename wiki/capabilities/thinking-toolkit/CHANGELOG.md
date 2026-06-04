@@ -4,6 +4,18 @@
 > (`knowledge/capability-registry.yaml`, `thinking-toolkit` entry) and `spec.md`.
 > This file is the forward changelog from the point it was created (v1.7).
 
+## v3.0.0 — 2026-06-05 — the consulting thinking-tool LIBRARY + fast checkpoint tool-selection
+
+**`/cla` (autonomous, founder away)** · the founder's thesis: *"the pinnacle of McKinsey thinking is selecting the most-correct thinking tool at each checkpoint,"* backed by inherited ex-McKinsey processes. This release makes `/think mckinsey`'s tool-selection draw from the full reconstructed consulting library (the `consulting-toolkit` capability's 19 domain toolkits) and adds a fast, precise, no-context-lost checkpoint selector. Built with two bounded Workflows (reconstruction reuse + a 19-agent enrichment-tagging pass).
+
+**Part 1 — the knowledge layer (ask 1).** The 19 reconstructed toolkits are ingested into `wiki/consulting-toolkits/` (1 wiki source · 19 `process.md` · **460 framework concept pages**) — the searchable knowledge behind selection. (DB rows + embeddings = backfill follow-up; the engine runs in-session and reads the files + registry directly.)
+
+**Part 2 — the unified registry (ask 2).** Faithful extension of the existing CLASSIFY→LOAD→SELECT mechanism. The candidate pool grows from **207 book frameworks** to a UNIFIED **667 tools** (207 books + `knowledge/consulting-frameworks.yaml`'s **374 deduped toolkit frameworks**, each tagged `fours_step`·`cognitive_moves`·`domains`·**`select_when`** (the disambiguator)·`checkpoint_fit` → its wiki page) + **19 inherited domain PROCESSES** (`knowledge/consulting-processes.yaml`, gated phase-spine playbooks + routing cards).
+
+**Part 3 — fast + precise checkpoint selection (ask 3).** `knowledge/thinking-tool-index/{frame,structure,solve,sell,cross}.md` = compact per-4S-step maps (1 line/tool) — the engine loads ONLY the current step's map at a checkpoint (the **no-context-lost guard**), filters by domain + cognitive-move + `select_when`, picks 2-3 complementary lenses, then reads the finalist's wiki page. `processes.md` is the **domain-process router**: at STRUCTURE, a domain problem pulls its inherited process as the issue-tree/workplan spine instead of an ad-hoc tree.
+
+**Engine integration** — `mckinsey-workflow/SKILL.md` §Tool-selection (LOAD now uses the per-step maps) + §STRUCTURE (domain-process pull) + References updated. **Guards:** L1 schemas for both new registries (`validate-tier1`); L2 `validate-thinking-os.cjs` (every framework `wiki_path` exists · valid `fours_step` · processes ↔ wiki pages · maps present) registered in `pnpm check` AND CI. Build: `scripts/consulting-toolkit/{to-wiki-and-registry,build-thinking-os}.cjs`.
+
 ## v2.2.0 — 2026-06-04 — primary-source genre matrix + /dataviz integration
 
 **`/cla extend thinking-toolkit`** · the founder's two upgrades: report presentation *"đạt tầm vóc mckinsey"* + integrate the new `/dataviz` capability. Grounded by the **`mckinsey-grounding-research` workflow** (the founder asked to "tạo workflows") reading **3 REAL local McKinsey PDFs end-to-end** ([SIG] sustainable-growth-2025, [AI25] state-of-AI-2025, [B2B26] b2b-economics-2026).

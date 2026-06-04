@@ -1,0 +1,2329 @@
+version: 1.0.0
+schema: knowledge/schemas/consulting-processes.schema.json
+source: >-
+  The 19 reconstructed domain process playbooks (wiki/consulting-toolkits/<slug>/process.md). Each plugs into /think
+  mckinsey STRUCTURE as a domain-specific issue-tree/workplan spine.
+count: 19
+processes:
+  - slug: business-strategy
+    title: Business Strategy & Strategic Planning
+    domain: strategy
+    model_name: >-
+      5-Phase Corporate Strategy Cycle (Internal & External Analysis → Strategy Tools → Strategy Definition → Strategic
+      Plan Implementation → Strategic Dashboards)
+    when_to_use: >-
+      When you need to define or refresh corporate or business strategy: annual planning cycle, new CEO mandate,
+      performance crisis (flat revenue, margin compression, competitive disruption), growth ambition requiring new
+      strategic options, portfolio rationalization, market entry evaluation, or pre/post-merger strategy alignment.
+    core_value: >-
+      The complete, step-by-step operating system to define and implement a winning corporate or business strategy —
+      covering every phase from situation analysis to board-endorsed strategy, funded initiative portfolio, and live
+      performance dashboard. Not just the framework names, but the exact how-to for every step, every tool, and every
+      decision gate.
+    phases:
+      - 'n': 1
+        name: Internal and External Analysis
+        goal: >-
+          Build a rigorous, evidence-based picture of where the company stands internally and in its competitive
+          environment before any strategy is shaped.
+        key_question: >-
+          What are our true strengths and weaknesses, and what does the market, competitive, and macro environment tell
+          us about where opportunities and threats lie?
+        gate: >-
+          Leadership alignment session confirms the SWOT summary accurately represents the company's strategic
+          situation; strategic options from TOWS are viable for Phase 2 exploration
+        frameworks:
+          - value-driver-tree
+          - mckinsey-7s
+          - porters-five-forces
+          - pestle-analysis
+          - swot-analysis
+          - competitor-profiling
+          - strategic-group-mapping
+          - tam-sizing
+      - 'n': 2
+        name: Strategy Tools & Frameworks to Shape the Strategy
+        goal: >-
+          Apply proven strategic frameworks to answer the most consequential strategic questions and determine the right
+          corporate and growth strategy options.
+        key_question: >-
+          Given our situation, which strategic options (portfolio shifts, growth moves, competitive positioning) are
+          most likely to create sustainable value?
+        gate: >-
+          Leadership selects a preferred strategic direction from the options; no option proceeds to Phase 3 without a
+          clear answer to 'what will we NOT do?'
+        frameworks:
+          - bcg-growth-share-matrix
+          - ge-mckinsey-matrix
+          - ansoff-growth-matrix
+          - seven-degrees-of-freedom
+          - blue-ocean-strategy
+          - mckinsey-7s
+          - porters-generic-strategies
+          - product-life-cycle
+          - greiners-growth-model
+          - value-chain-analysis
+          - value-driver-tree
+          - pareto-principle
+      - 'n': 3
+        name: Strategy Definition
+        goal: >-
+          Translate the chosen strategic direction into a fully articulated strategy: business model, purpose,
+          objectives, balanced scorecard, strategic pillars, initiatives, and prioritized portfolio.
+        key_question: >-
+          What exactly is our strategy — as a set of integrated choices about where to play, how to win, what to
+          measure, and what to do — and how do we know it is internally consistent?
+        gate: >-
+          Board or Exec Committee formally endorses the strategy document and approves the initiative portfolio; no
+          resource commitment precedes this gate
+        frameworks:
+          - business-model-canvas
+          - mission-vision-values
+          - balanced-scorecard
+          - strategic-pillars
+          - seven-degrees-of-freedom
+          - project-prioritization-matrix
+      - 'n': 4
+        name: Strategic Plan Definition and Implementation
+        goal: >-
+          Translate the endorsed strategy into a detailed, governed, time-bound execution plan and establish the
+          operating cadence to track, adapt, and learn from implementation.
+        key_question: >-
+          How do we turn strategy into a funded, governed, measurable action plan — and how do we know if execution is
+          on track or needs to be adjusted?
+        gate: >-
+          Strategy dashboard is live with real data; first monthly strategy review has been conducted; OKRs are set for
+          all teams
+        frameworks:
+          - three-horizons-of-growth
+          - okrs
+          - balanced-scorecard
+          - strategic-dashboards
+      - 'n': 5
+        name: Strategic Dashboards
+        goal: >-
+          Establish permanent financial and strategic performance dashboards that give leadership real-time visibility
+          into both strategic progress and financial health.
+        key_question: >-
+          Are we winning? Are the financial and strategic metrics telling a consistent story — and where are the gaps
+          between plan and reality?
+        gate: >-
+          First complete monthly board pack produced and reviewed; data owners confirmed for all KPIs; 3-statement model
+          verified against audited actuals
+        frameworks:
+          - strategic-dashboards
+          - three-statement-financial-model
+          - pareto-principle
+          - value-driver-tree
+    routing_card:
+      trigger: client needs a full corporate strategy — where to play, how to win, and execution plan
+      plugs_into: structure
+      value: >-
+        provides a proven 5-phase spine (external/internal analysis → option generation → strategy definition →
+        implementation → dashboards) so the workplan doesn't re-invent sequencing and misses no critical analytical
+        stage
+      key_question: What strategy should this company pursue, and how do they execute it with measurable accountability?
+  - slug: operating-model-org-design
+    title: Operating Model & Organization Design
+    domain: organization
+    model_name: 7-Phase Operating Model & Organization Design Process
+    when_to_use: >-
+      Use when launching a new strategy, undergoing a merger/integration, experiencing performance decline due to
+      organizational misalignment, responding to market disruption, or when accountability and decision-making are
+      chronically unclear.
+    core_value: >-
+      A structured 7-phase process to translate strategy into an executable operating model—aligning capabilities,
+      structure, culture, talent, processes, and technology so the organization actually delivers on its strategic
+      intent.
+    phases:
+      - 'n': 1
+        name: Business Case for Change
+        goal: Build an evidence-based, stakeholder-approved mandate that justifies the operating model redesign initiative.
+        key_question: Why must we act now, what will we achieve, and is the investment justified?
+        gate: Steering committee formally approves business case and authorizes Phase 2 resources
+        frameworks:
+          - balanced-scorecard
+          - rapid-decision-rights
+          - value-complexity-matrix
+      - 'n': 2
+        name: Define the 6-Pillar Operating Model
+        goal: >-
+          Design the target-state operating model across all six interdependent pillars: Capability Management,
+          Structure & Governance, Culture, Talent Development, Processes, and Technology.
+        key_question: >-
+          What does the organization need to look like—capabilities, structure, people, processes, and systems—to
+          deliver the strategy?
+        gate: Executive committee approves the target operating model across all 6 pillars
+        frameworks:
+          - capability-heat-map
+          - mckinsey-7s
+          - org-design-archetypes
+          - rapid-decision-rights
+          - competing-values-framework
+          - nine-box-talent-grid
+          - value-complexity-matrix
+      - 'n': 3
+        name: Generate Initiative List per Pillar
+        goal: Produce an exhaustive, structured list of improvement initiatives—one per gap—across all six pillars.
+        key_question: What specific initiatives will close the gaps between current and target state for each pillar?
+        gate: Functional leads confirm completeness—no major gap left uncovered
+        frameworks: []
+      - 'n': 4
+        name: Business Cases & Financial Models for Initiatives
+        goal: >-
+          Quantify the value and cost of each shortlisted initiative so that leadership can make informed investment
+          decisions.
+        key_question: Which initiatives are financially justified and in what sequence should we invest?
+        gate: >-
+          CFO and steering committee approve the business case package; confirm which initiatives proceed to
+          prioritization
+        frameworks: []
+      - 'n': 5
+        name: Prioritize, Plan & Implement
+        goal: >-
+          Sequence, resource, and execute the approved initiatives through a structured project management approach with
+          continuous improvement built in.
+        key_question: In what order do we implement which initiatives, with what governance, and how do we keep improving as we go?
+        gate: Steering committee confirms first-wave delivery and authorizes next-wave resourcing
+        frameworks:
+          - value-complexity-matrix
+          - pdca-cycle
+      - 'n': 6
+        name: Change Management, Communication & Stakeholder Engagement
+        goal: Ensure the human side of the transformation succeeds—building the will and skill to adopt new ways of working.
+        key_question: Who needs to change what behavior, and how will we bring them along so changes stick?
+        gate: Change adoption metrics meet minimum thresholds before each major go-live milestone
+        frameworks:
+          - adkar-model
+      - 'n': 7
+        name: Strategic Dashboards
+        goal: >-
+          Provide real-time, structured visibility into transformation performance and ongoing operating model health
+          for all leadership levels.
+        key_question: Is the transformation delivering its intended value, and is the new operating model performing as designed?
+        gate: >-
+          Program close: final NPV delivered ≥ 80% of business case; operating model KPIs trending green for 3
+          consecutive months
+        frameworks:
+          - balanced-scorecard
+    routing_card:
+      trigger: client must redesign or transform its operating model to execute a new strategy
+      plugs_into: structure
+      value: >-
+        grounds the issue tree in the 6-pillar spine (capabilities, structure, people, processes, systems, culture) so
+        analytical workstreams are exhaustive and non-overlapping by design
+      key_question: >-
+        What changes to the operating model are required to close the gap between current organizational reality and
+        what the strategy demands?
+  - slug: digital-transformation-it-strategy
+    title: Digital Transformation & IT Strategy
+    domain: technology
+    model_name: Dual-Track Digital Transformation & IT Strategy Programme
+    when_to_use: >-
+      Use when the organisation faces one or more of: (1) a mandate to digitise core operations or customer experience;
+      (2) an IT landscape that no longer supports the business strategy; (3) a board or investor requiring a structured
+      ROI case for a multi-year technology programme; (4) a failed or stalled digital initiative that needs a reset; (5)
+      a merger or carve-out requiring IT integration or separation; (6) a market disruption (AI, IoT, cloud-native
+      competitors) demanding a strategic response.
+    core_value: >-
+      A practitioner-ready operating system for end-to-end digital transformation and IT strategy: from building the
+      board-level business case through defining the IT architecture, running agile delivery, and embedding change
+      management — all wired to measurable outcomes.
+    phases:
+      - 'n': 1
+        name: Carry Out a Business Case for Change
+        goal: >-
+          Produce a board-ready business case that quantifies the strategic imperative for digital transformation, the
+          ROI, and the risks of inaction.
+        key_question: Why must we transform — and why now?
+        gate: Board approval of the Business Case and budget authorisation to proceed to Phase II
+        frameworks:
+          - pyramid-principle
+          - digital-maturity-model
+          - digital-value-driver-tree
+          - digital-roi-model
+          - strategy-alignment-matrix
+      - 'n': 2
+        name: Define the Digital Transformation Strategy
+        goal: >-
+          Translate the approved business case into a concrete, funded, prioritised roadmap with a clear vision, target
+          maturity, and shortlisted technology initiatives.
+        key_question: What exactly will we do, in what sequence, for how much, and how do we know it will work?
+        gate: ExCo approval of the Digital Transformation Strategy and 3-year roadmap; individual project sponsors assigned
+        frameworks:
+          - digital-maturity-model
+          - balanced-scorecard
+          - okr-framework
+          - project-prioritisation-matrix
+          - digital-transformation-roadmap
+          - design-thinking
+          - enterprise-architecture-framework
+          - digital-roi-model
+          - raci-model
+          - critical-success-factor-analysis
+          - vision-crafting
+          - project-business-case-template
+          - technology-radar
+      - 'n': 3
+        name: Implement, Track & Manage Progress
+        goal: >-
+          Deliver the prioritised digital projects on time, on budget, and with the expected outcomes, using the right
+          delivery methodology for each project type.
+        key_question: How do we deliver the roadmap, measure progress, and course-correct quickly?
+        gate: >-
+          Steering Committee quarterly review confirms programme is on track (RAG green/amber on ≥80% of workstreams)
+          and benefits are materialising per forecast
+        frameworks:
+          - agile-scrum
+          - design-thinking
+          - raci-model
+          - programme-governance-model
+          - programme-dashboard-design
+          - prince2-stage-gate
+          - raid-log
+          - kaizen-continuous-improvement
+          - benefits-realisation-framework
+      - 'n': 4
+        name: Define and Implement Change Management & Internal Communication Strategy
+        goal: >-
+          Ensure that the people affected by the transformation actively embrace the new ways of working, so that
+          technology deployment translates into lasting behaviour change and benefit realisation.
+        key_question: How do we bring people with us, not just deploy technology at them?
+        gate: >-
+          Change readiness assessment confirms ≥70% readiness across all high-impact departments before major go-lives;
+          Training completion ≥90%
+        frameworks:
+          - adkar-change-model
+          - stakeholder-influence-interest-matrix
+          - change-impact-assessment
+          - communication-plan-template
+          - training-needs-analysis
+          - change-readiness-assessment
+      - 'n': 5
+        name: Strategic Dashboards and Performance Reporting
+        goal: >-
+          Provide leadership with accurate, timely, and actionable performance data to steer the transformation and
+          demonstrate value to the Board.
+        key_question: Are we achieving the outcomes we promised, and where do we intervene?
+        gate: >-
+          Board confirms dashboards provide sufficient visibility; benefits realisation trajectory confirms programme
+          investment is justified
+        frameworks:
+          - balanced-scorecard
+          - ibcs-data-visualisation
+          - three-statement-financial-model
+          - digital-roi-model
+          - kpi-dictionary-template
+          - issue-tree-analysis
+      - 'n': 6
+        name: Define the IT Strategy (IT Track — Phase I)
+        goal: >-
+          Define a comprehensive IT Strategy that directly enables the business strategy and the digital transformation
+          roadmap.
+        key_question: >-
+          What kind of IT organisation, architecture, and capabilities do we need to support the business for the next
+          3–5 years?
+        gate: CIO and ExCo approval of the IT Strategy document; IT budget approved by CFO/Board
+        frameworks:
+          - togaf-adm
+          - enterprise-architecture-framework
+          - business-capability-map
+          - it-capability-maturity-framework
+          - it-operating-model
+          - it-value-driver-framework
+          - balanced-scorecard
+          - vision-crafting
+          - raci-model
+          - okr-framework
+          - it-guiding-principles
+      - 'n': 7
+        name: Implement the 5 IT Strategy Pillars
+        goal: >-
+          Build the IT capabilities needed to deliver the IT strategy through five structural pillars: Operating Model,
+          Technology, Data Management, IT Services, and Sourcing.
+        key_question: How do we build the IT capabilities required, and in what priority order?
+        gate: >-
+          CIO and Architecture Review Board approve the 5-pillar implementation plans; sufficient budget confirmed for
+          Year 1 initiatives
+        frameworks:
+          - weill-ross-it-operating-model
+          - technology-radar
+          - enterprise-architecture-framework
+          - dama-dmbok-data-management
+          - data-architecture-blueprint
+          - itil4-framework
+          - it-sourcing-strategy
+          - total-cost-of-ownership
+      - 'n': 8
+        name: IT Initiatives, Business Cases, Prioritisation, Roadmap, and Governance
+        goal: Translate the IT Strategy pillars into a funded, governed, and measurable portfolio of IT initiatives.
+        key_question: Which IT initiatives do we fund, in what order, and how do we govern delivery?
+        gate: Board and ExCo approve the IT initiative portfolio and 3-year IT Roadmap; IT governance structure operational
+        frameworks:
+          - project-prioritisation-matrix
+          - digital-transformation-roadmap
+          - raci-model
+          - programme-governance-model
+          - digital-roi-model
+          - project-business-case-template
+          - jobs-to-be-done
+          - itil4-framework
+    routing_card:
+      trigger: client needs a full digital or IT transformation strategy with roadmap, business case, and governance
+      plugs_into: structure
+      value: >-
+        provides the 8-phase dual-track spine (business transformation + IT strategy) so the issue tree, workplan, and
+        wave sequencing are inherited rather than invented from scratch
+      key_question: >-
+        What digital capabilities must this organisation build, in what order, at what cost, and how do we govern and
+        sustain the change?
+  - slug: program-project-change-management
+    title: Program, Project & Change Management
+    domain: execution
+    model_name: >-
+      3-track execution model: Program Management (8 modules) + Project Management Traditional (3 phases) + Project
+      Management Agile (7 events) + Change Management (3 phases)
+    when_to_use: >-
+      Use this toolkit whenever an organisation needs to (a) govern a portfolio of related projects as a program, (b)
+      scope, justify, initiate, and close a single project using either a traditional waterfall or an Agile approach, or
+      (c) help individuals and teams adapt to a business or technical change. Typical triggers: digital transformation,
+      post-merger integration, ERP roll-out, operational improvement, new market entry, or any initiative that cuts
+      across functions and requires deliberate stakeholder and change management.
+    core_value: >-
+      A practitioner who can run this toolkit can take any initiative from vague idea to closed project — building the
+      business case, mobilising the team, managing risk and issues, running Agile sprints, and bringing people through
+      the change — without relying on an external consultant.
+    phases:
+      - 'n': 1
+        name: Program Management Setup
+        goal: >-
+          Establish portfolio-level governance so that individual projects align to strategy, are prioritised correctly,
+          and are tracked through a unified dashboard.
+        key_question: Which initiatives should we fund, in what order, and how do we govern their execution as a coherent program?
+        gate: >-
+          Executive Committee approves the program portfolio, roadmap, and governance structure before Phase 2 project
+          initiation begins.
+        frameworks:
+          - raci-matrix
+          - kotter-8-step-model
+          - agile-scrum-framework
+      - 'n': 2
+        name: Build a Business Case & Financial Model
+        goal: >-
+          Produce an executive-quality business case that quantifies the value of the project and secures approval to
+          proceed.
+        key_question: Is this project worth the investment, and are we ready to commit resources?
+        gate: >-
+          Executive Committee (or equivalent approval body) formally approves the business case and releases project
+          funding before Phase 3 begins.
+        frameworks:
+          - mckinsey-7s-framework
+      - 'n': 3
+        name: Initiate the Project
+        goal: >-
+          Stand up the project with a clear charter, a fully engaged team, identified risks, and engaged stakeholders so
+          execution can start with no ambiguity.
+        key_question: >-
+          Does every member of the team and every key stakeholder know the project's objectives, their role, the plan,
+          and what could go wrong?
+        gate: >-
+          Kick-off meeting completed; all team members briefed; charter signed; risk and issue logs live. Project
+          Manager confirms readiness to proceed.
+        frameworks:
+          - raci-matrix
+      - 'n': 4
+        name: Define and Implement the Project Plan (Traditional)
+        goal: >-
+          Execute the project to scope, schedule, and budget while tracking progress, managing the parking lot and punch
+          list, and formally closing the project.
+        key_question: >-
+          Are we on track to deliver the agreed scope, on time and on budget, and are we managing every open item to
+          resolution?
+        gate: >-
+          Sponsor signs the project closure document confirming all deliverables are accepted and all open items are
+          resolved.
+        frameworks: []
+      - 'n': 5
+        name: Agile Project Delivery
+        goal: >-
+          Deliver a working product increment iteratively, incorporating feedback every 2–4 weeks, so the end result
+          matches actual user needs rather than initial assumptions.
+        key_question: >-
+          What is the highest-value slice we can build and ship in the next sprint, and are we inspecting and adapting
+          fast enough?
+        gate: >-
+          Product Owner confirms the increment meets the Definition of Done and the sprint goal is achieved before the
+          next sprint begins.
+        frameworks:
+          - agile-scrum-framework
+      - 'n': 6
+        name: Define the Change Management Strategy
+        goal: >-
+          Understand the depth of change required, assess organisational readiness, and build a strategic foundation so
+          that the change plans that follow are grounded in reality.
+        key_question: >-
+          What is the scope and depth of the change, and do we have the right strategy, team, and tools to help people
+          through it?
+        gate: >-
+          Executive Sponsor approves the change management strategy and ADKAR objectives before change plan development
+          begins.
+        frameworks:
+          - adkar-model
+          - mckinsey-7s-framework
+          - prosci-3-phase-process
+          - burke-litwin-change-model
+          - raci-matrix
+          - change-commitment-curve
+      - 'n': 7
+        name: Develop the Change Management Plans
+        goal: >-
+          Translate the change strategy into six actionable plans — communication, sponsorship, coaching, training, and
+          resistance management — that are ready to execute.
+        key_question: Do we have concrete, owned, scheduled plans that will move every impacted group through the ADKAR dimensions?
+        gate: >-
+          Change Manager confirms all 6 plans are documented, owned, and reviewed by the Executive Sponsor before
+          implementation begins.
+        frameworks:
+          - prosci-3-phase-process
+          - kotter-8-step-model
+          - adkar-model
+          - change-commitment-curve
+          - change-personal-transition-curve
+      - 'n': 8
+        name: Implement, Track & Manage Progress
+        goal: >-
+          Execute the change plans, monitor adoption in real time, sustain the change after go-live, and formally close
+          the change management workstream.
+        key_question: >-
+          Are people actually changing their behaviours, and what do we need to do differently to ensure the change
+          sticks?
+        gate: >-
+          Executive Sponsor formally closes the change management workstream after confirming ADKAR targets are met and
+          sustainment is operating independently.
+        frameworks:
+          - prosci-3-phase-process
+          - adkar-model
+          - kotter-8-step-model
+          - four-stages-team-development
+    routing_card:
+      trigger: initiative requires coordinating multiple workstreams, capital commitment, and people-behaviour change
+      plugs_into: structure
+      value: >-
+        delivers an integrated program spine — governance, workplan, ADKAR tracking, and sprint cadence — replacing
+        ad-hoc project planning
+      key_question: >-
+        How do we fund, sequence, govern, and land a multi-workstream initiative so that scope is delivered on time, on
+        budget, and with the behaviours actually adopted?
+  - slug: management-consulting
+    title: Management Consulting
+    domain: consulting
+    model_name: The 5-phase consulting engagement (Practice → Proposal → Problem → Solution → Presentation)
+    when_to_use: >-
+      When you are launching or running an independent consulting practice, leading a strategy/transformation engagement
+      (internal or external), preparing a client proposal, or facing a board-level question — 'why did profit fall?',
+      'should we enter this market / launch this product / acquire this company?' — and you need a structured,
+      defensible path from blank page to decision.
+    core_value: >-
+      The confidence and the operating system to actually run a paid management-consulting engagement end-to-end — from
+      launching the practice, to winning the client, to diagnosing the real problem, to producing a defensible
+      recommendation, to landing it in the room — not merely recognizing the framework names.
+    phases:
+      - 'n': 1
+        name: Create a business plan for your consulting practice
+        goal: >-
+          Stand up a fundable, legally-sound, differentiated consulting practice with a clear offer, target market,
+          economics and 90-day launch plan.
+        key_question: >-
+          Is there a profitable, defensible consulting business here — and what exactly will I sell, to whom, and how
+          will I make money?
+        gate: >-
+          Go/no-go: Is the SOM large enough and the unit economics positive at an achievable utilization? If yes,
+          incorporate and start BD; if no, re-segment or kill.
+        frameworks:
+          - business-model-canvas
+          - problem-definition-worksheet
+          - mission-vision-values
+          - smart-objectives
+          - tam-sam-som
+          - pestle-analysis
+          - strategic-group-mapping
+          - benchmarking
+          - marketing-funnel
+          - operating-model-design
+          - financial-model-3-statement
+          - business-valuation
+          - action-plan
+      - 'n': 2
+        name: Create your consulting proposal & legal agreements
+        goal: >-
+          Convert a qualified opportunity into a signed, scoped, de-risked engagement with a compelling proposal and the
+          right legal protections.
+        key_question: >-
+          How do we win this specific client — with a proposal that proves we understand their problem and a contract
+          that protects both sides?
+        gate: 'Signature gate: Is the engagement signed with scope, fees, IP and liability defined? No work begins until yes.'
+        frameworks:
+          - scq-situation-complication-question
+          - engagement-approach-design
+          - business-case-roi
+          - value-proposition-canvas
+          - consulting-legal-agreements
+      - 'n': 3
+        name: Identify your client's problem
+        goal: >-
+          Replace the symptom the client presented with the true, structured, evidence-based problem — and frame it so
+          it can be solved.
+        key_question: What is the real problem (not the symptom), and how do we break it into MECE pieces we can analyse?
+        gate: >-
+          Problem-definition gate: Does the client sponsor agree this is the real problem? Re-frame until yes before any
+          solutioning.
+        frameworks:
+          - value-driver-tree
+          - financial-analysis
+          - tam-sam-som
+          - porters-five-forces
+          - pestle-analysis
+          - strategic-group-mapping
+          - benchmarking
+          - competitor-profiling
+          - issue-tree
+          - five-whys
+          - fishbone-ishikawa
+          - problem-definition-worksheet
+          - swot-tows
+      - 'n': 4
+        name: Find a solution using world-class frameworks & tools
+        goal: >-
+          Generate, evaluate and select the recommendation using the right strategy frameworks for the question at hand,
+          with quantified impact.
+        key_question: >-
+          Given the validated problem, what is the best-supported recommendation — and why this option over the
+          alternatives?
+        gate: >-
+          Recommendation gate: Is the recommended option the best-supported one, quantified, and feasible given the 7S?
+          If not, iterate on options.
+        frameworks:
+          - profit-decline-tree
+          - market-entry-framework
+          - new-product-framework
+          - ma-acquisition-screen
+          - bcg-growth-share-matrix
+          - ge-mckinsey-matrix
+          - seven-degrees-of-freedom
+          - ansoff-matrix
+          - blue-ocean-strategy
+          - product-life-cycle
+          - porters-generic-strategies
+          - mckinsey-7s
+          - value-chain-analysis
+          - value-driver-tree
+          - pareto-principle
+      - 'n': 5
+        name: Present effectively
+        goal: >-
+          Land the recommendation in the room so the client decides and acts — a top-down, evidence-backed story, not a
+          data tour.
+        key_question: How do we structure and deliver the message so the decision-maker says yes and the organisation moves?
+        gate: >-
+          Decision gate: Did the client decide and commit owners/dates? If deferred, identify the open objection and
+          close it.
+        frameworks:
+          - scq-situation-complication-question
+          - pyramid-principle
+          - storyboarding
+          - consulting-chart-selection
+          - executive-storyline-delivery
+    routing_card:
+      trigger: client engagement where the full cycle spans problem diagnosis through recommendation delivery
+      plugs_into: structure
+      value: >-
+        gives the team a proven 5-phase spine (practice → proposal → problem → solution → presentation) so each
+        workstream knows its deliverable and sequence
+      key_question: >-
+        What is the real problem, and what is the best-supported recommendation — structured, analysed and delivered so
+        the decision-maker says yes?
+  - slug: hr-talent-management
+    title: HR & Talent Management
+    domain: people
+    model_name: 6-Phase HR Transformation Engine
+    when_to_use: >-
+      Deploy when an organisation faces one or more of: (a) inability to fill critical roles within target time-to-hire,
+      (b) high regrettable attrition among top performers, (c) leadership succession gaps identified by a board, (d)
+      post-merger HR-function integration, (e) rapid scaling requiring a structured people-operating-model, or (f) a
+      CEO/board mandate to elevate HR from administrative to strategic. Equally applicable to build-from-scratch HR
+      functions in scale-ups and to maturity-level upgrades in large enterprises.
+    core_value: >-
+      The ability to build a talent engine that consistently attracts, develops, and retains high performers — turning
+      HR from a cost centre into a measurable competitive advantage. Practitioners walk away with a repeatable system: a
+      strategy on a page, 10 operational pillars with specific action plans, a prioritised initiative roadmap, financial
+      business cases, and a change-management playbook — everything a CHRO or HR director needs to run a full
+      talent-transformation engagement from day one.
+    phases:
+      - 'n': 1
+        name: HR & Talent Management Strategy
+        goal: >-
+          Define where HR is today, where it needs to be, and the strategic objectives and KPIs required to close that
+          gap — fully anchored to the corporate and business strategy.
+        key_question: >-
+          What does the business need from HR over the next 3–5 years, and how mature is the HR function today against
+          that need?
+        gate: >-
+          CHRO and at least two C-suite sponsors formally sign off on the HR Strategy Document, including target-state
+          maturity, strategic objectives, KPIs, and budget envelope. Without this sign-off, Phase 2 does not begin.
+        frameworks:
+          - corporate-strategy-summary
+          - hr-health-dashboard
+          - hr-capability-maturity-model
+          - current-target-state-framework
+          - mission-vision-values-framework
+          - okr-framework
+          - hr-kpi-framework
+          - hrbp-model
+          - hr-service-delivery-model
+          - guiding-principles-framework
+      - 'n': 2
+        name: 10 Pillars to Reach HR Strategic Objectives
+        goal: >-
+          Design the detailed operating model for each of the 10 HR pillars — defining desired capabilities,
+          current-state diagnosis, target state, specific sub-modules, and action plans — so that every HR pillar has a
+          clear blueprint for improvement.
+        key_question: For each of the 10 HR pillars, what specifically needs to change, and what does world-class look like?
+        gate: >-
+          All 10 pillar blueprints are completed and validated by the respective HR pillar leads and the CHRO. Business
+          sponsors for each pillar have reviewed and agreed on the target state. Blueprints feed directly into Phase 3
+          initiative ideation.
+        frameworks:
+          - capability-framework
+          - skills-gap-analysis
+          - org-design-framework
+          - raci-matrix
+          - competing-values-framework
+          - culture-design-principles
+          - competency-framework
+          - employer-value-proposition
+          - recruitment-process-framework
+          - structured-interview-guide
+          - nine-box-talent-grid
+          - individual-development-plan
+          - seventy-twenty-ten-model
+          - succession-planning-framework
+          - mentoring-programme-design
+          - reverse-mentoring-framework
+          - okr-framework
+          - balanced-scorecard
+          - sbi-feedback-model
+          - total-rewards-framework
+          - compensation-benchmarking
+          - employee-lifecycle-framework
+          - workforce-reduction-protocol
+      - 'n': 3
+        name: Potential Initiatives for Each Pillar
+        goal: >-
+          Generate a comprehensive long-list of HR initiatives — one per identified gap — that collectively address the
+          delta between the current state and the target state across all 10 pillars, without filtering yet.
+        key_question: What are all the specific changes we could make to close the gaps in each of our 10 HR pillars?
+        gate: >-
+          CHRO and Finance sign off on the feasibility filter criteria and agree the screened medium-list is
+          comprehensive enough to proceed to detailed financial analysis. If major gaps exist in any pillar, return for
+          another ideation round.
+        frameworks:
+          - design-thinking-ideation
+          - how-might-we-framework
+          - initiative-brief-template
+          - feasibility-screening
+      - 'n': 4
+        name: Business Cases and Financial Models
+        goal: >-
+          Quantify the expected value and cost of each initiative on the screened list so that leadership can make
+          informed, financially grounded prioritisation decisions in Phase 5.
+        key_question: What is the financial and strategic value of each initiative, and does it justify the investment?
+        gate: >-
+          CHRO and CFO review and accept the Business Case Portfolio as a credible basis for prioritisation. At least
+          60% of initiatives must show positive NPV. If fewer, return to initiative ideation to generate higher-value
+          options.
+        frameworks:
+          - hr-roi-model
+          - npv-analysis
+          - business-case-template
+          - assumption-validation-protocol
+      - 'n': 5
+        name: Project Prioritisation, Business Roadmap, and Implementation
+        goal: >-
+          Select the optimal portfolio of HR initiatives, sequence them into a phased 3-year roadmap, establish
+          governance, and execute the highest-priority projects using proven implementation methodologies.
+        key_question: Which initiatives should we do, in what order, and how do we ensure they deliver their promised value?
+        gate: >-
+          Steering Committee approves the prioritised roadmap and governance structure. At least the first-year
+          initiatives have signed project charters with assigned resources. Governance PMO is operational.
+        frameworks:
+          - ge-mckinsey-matrix-hr
+          - prioritisation-scoring-model
+          - roadmap-design-framework
+          - horizon-planning
+          - programme-governance-model
+          - raid-log-template
+          - agile-scrum-for-hr
+          - design-thinking-for-hr
+          - waterfall-methodology
+          - post-project-evaluation
+          - pdca-continuous-improvement
+      - 'n': 6
+        name: Change Management, Internal Communication and Stakeholder Engagement
+        goal: >-
+          Ensure that every HR initiative is adopted by employees and managers, sustaining the behaviour changes
+          required for the transformation to deliver its promised value — preventing the 70% initiative failure rate
+          caused by poor change management.
+        key_question: >-
+          How do we win hearts and minds so that the new HR capabilities are actually used and the transformation
+          sticks?
+        gate: >-
+          At programme close: ADKAR composite score >70, adoption rate >80% for all major initiatives, and
+          post-programme evaluation completed showing aggregate HR maturity improvement of at least 1 level per pillar.
+        frameworks:
+          - adkar-model
+          - change-management-plan-template
+          - resistance-management-matrix
+          - communication-calendar-template
+          - wiifm-principle
+          - power-interest-grid
+          - stakeholder-engagement-tracker
+          - change-health-dashboard
+    routing_card:
+      trigger: client is undertaking an HR transformation or building HR strategic capability from a low base
+      plugs_into: structure
+      value: >-
+        provides a 6-phase sequenced spine — from diagnostic baseline through pillar design, business cases, prioritised
+        roadmap, and change management — replacing an ad-hoc issue tree with a proven HR transformation architecture
+      key_question: >-
+        What HR capabilities does the business need over the next 3-5 years, how large is the gap from today, and what
+        is the sequenced investment plan to close it?
+  - slug: mergers-acquisitions
+    title: Mergers & Acquisitions
+    domain: corp-dev
+    model_name: 7-Phase M&A Deal Funnel
+    when_to_use: >-
+      Use this toolkit whenever an organization is considering, executing, or integrating an acquisition or divestiture:
+      at the earliest strategy-setting stage to define screening criteria; during target identification and financial
+      modeling; throughout due diligence and deal execution; and into the post-merger integration period. Also
+      applicable to carve-out separations where a business unit is being sold or spun off.
+    core_value: >-
+      A complete, gate-driven playbook that takes a corporate development team from strategy definition through
+      post-merger integration — replacing guesswork with a tested seven-phase process used by JP Morgan, McKinsey, and
+      Deloitte practitioners so acquisitions reliably create value instead of destroying it.
+    phases:
+      - 'n': 1
+        name: Define Your M&A Strategy
+        goal: >-
+          Establish a clear, board-approved M&A rationale, screening criteria, and pipeline so every subsequent deal
+          decision is anchored to strategic intent.
+        key_question: Why are we doing M&A, what kind of target would accelerate our strategy, and what will we not acquire?
+        gate: >-
+          Board formally approves M&A strategy, objectives, and guiding principles before any external target outreach
+          begins
+        frameworks:
+          - mckinsey-7s
+          - ansoff-matrix
+          - porters-5-forces
+          - ge-mckinsey-matrix
+          - dcf-valuation
+      - 'n': 2
+        name: Identify Target Companies
+        goal: >-
+          Narrow a long-list of potential targets to a short-list of 2–5 companies approved for full business-case
+          development, supported by a defensible preliminary valuation.
+        key_question: >-
+          Which specific company, at what approximate valuation, represents the best strategic and financial fit — and
+          are they acquirable?
+        gate: >-
+          Steering committee formally approves 2–5 targets and authorizes business-case development budget and
+          confidential outreach
+        frameworks:
+          - ge-mckinsey-matrix
+          - porters-5-forces
+          - dcf-valuation
+          - comparable-company-analysis
+          - dupont-analysis
+      - 'n': 3
+        name: Build a Business Case and Financial Model
+        goal: >-
+          Produce a rigorous, board-ready investment case that quantifies strategic benefit, feasibility, and financial
+          return — including full merger financial model — sufficient to support a Letter of Intent.
+        key_question: Does this acquisition create enough value, at an acceptable price, to justify the investment and risk?
+        gate: >-
+          Investment committee approves the business case and financial returns; LOI signed granting exclusivity before
+          proceeding to due diligence
+        frameworks:
+          - ansoff-matrix
+          - mckinsey-7s
+          - dcf-valuation
+      - 'n': 4
+        name: Conduct Due Diligence
+        goal: >-
+          Validate or invalidate the key assumptions underlying the business case, identify material risks, and update
+          the valuation and deal terms accordingly.
+        key_question: Does the target match what we believed, and do the deal risks justify the price and structure?
+        gate: >-
+          Investment committee accepts updated business case and authorizes team to enter final negotiations and prepare
+          the SPA
+        frameworks:
+          - porters-5-forces
+          - dcf-valuation
+          - comparable-company-analysis
+      - 'n': 5
+        name: Execute Transaction
+        goal: >-
+          Negotiate and close the legally binding acquisition agreement on terms that protect deal value and give the
+          combined entity a clean start.
+        key_question: Can we close this deal on terms that preserve the strategic and financial rationale?
+        gate: All regulatory approvals obtained, SPA signed, consideration transferred, and Day 1 communications issued
+        frameworks:
+          - negotiation-batna
+      - 'n': 6
+        name: Conduct Post-Merger Integration
+        goal: >-
+          Capture the synergies and strategic benefits identified in the business case while maintaining business
+          continuity and retaining key talent.
+        key_question: Are we capturing the planned synergies on schedule, and is the combined organization performing as modeled?
+        gate: >-
+          12-month post-close review confirms synergy realization on track; integration declared 'business as usual' by
+          IMO Lead and CEO
+        frameworks:
+          - mckinsey-7s
+          - adkar-change-model
+          - stakeholder-mapping
+      - 'n': 7
+        name: Carve-Out Execution
+        goal: >-
+          Separate and sell or spin off a business unit cleanly, preserving its standalone viability and achieving the
+          seller's target valuation.
+        key_question: >-
+          Can we separate this business cleanly, make it attractive to buyers, and complete the transaction without
+          disrupting the retained business?
+        gate: Sale or spin-off legally completed, buyer operating independently, and all TSAs on schedule for termination
+        frameworks:
+          - porters-5-forces
+    routing_card:
+      trigger: client is evaluating, executing, or integrating an acquisition or divestiture
+      plugs_into: structure
+      value: >-
+        provides the 7-phase M&A spine (strategy → target → business case → due diligence → transaction → integration →
+        carve-out) so the workplan is sequenced by deal logic, not generic MECE branches
+      key_question: >-
+        Does this acquisition create sufficient value at an acceptable price and risk to justify the investment, and can
+        we capture it through integration?
+  - slug: post-merger-integration
+    title: Post Merger Integration
+    domain: corp-dev
+    model_name: 6-Phase Post-Merger Integration (PMI) — Strategy → Initiatives → Plans → Implementation → Change → Stakeholders
+    when_to_use: >-
+      Immediately after deal close (and ideally beginning in parallel during late-stage due diligence) when the
+      acquiring leadership team must operationalize the deal rationale, stand up an Integration Management Office,
+      sequence synergy capture, and manage two workforces through a change. Also use when a prior integration is
+      stalling — missed synergy targets, talent attrition, culture clash, or stakeholder anxiety — and a structured
+      reset is needed.
+    core_value: >-
+      The operating system to capture the value promised in the deal thesis — translating a signed acquisition into
+      working integration, realized synergies, and a unified organization that outperforms either predecessor.
+    phases:
+      - 'n': 1
+        name: Integration Strategy
+        goal: >-
+          Establish the strategic foundation: confirm why the deal was done, define what success looks like, establish
+          governance, and set guiding principles before any workstream touches operational detail.
+        key_question: What are we integrating, to what end, and how will we make decisions when we disagree?
+        gate: >-
+          Steering Committee formally approves the Integration Strategy Document before any workstream moves to
+          initiative identification
+        frameworks:
+          - deal-rationale-canvas
+          - smart-objectives
+          - balanced-scorecard
+          - imo-governance-model
+          - guiding-principles-workshop
+          - integration-approach-archetypes
+          - mckinsey-7s
+          - star-model
+          - synergy-waterfall-model
+      - 'n': 2
+        name: Integration & Synergy Initiatives
+        goal: >-
+          Translate the strategy into a prioritized, business-cased portfolio of integration and synergy initiatives
+          with a sequenced roadmap.
+        key_question: Which initiatives will actually capture our synergy targets, in what order, and what will they cost?
+        gate: Steering Committee approves the prioritized initiative portfolio and roadmap before detailed planning begins
+        frameworks:
+          - initiative-ideation-workshop
+          - initiative-business-case
+          - initiative-prioritization-matrix
+          - integration-roadmap-gantt
+      - 'n': 3
+        name: Detailed Plans
+        goal: >-
+          Build the operational blueprints — integration timelines, Day-1 readiness, people retention, culture
+          integration, and risk management — that workstreams execute against.
+        key_question: What exactly needs to happen by when, by whom, and what could derail it?
+        gate: IMO Director and Steering Committee sign off on all five planning deliverables before Day 1 execution begins
+        frameworks:
+          - day-1-30-60-90-plan
+          - day-1-readiness-checklist
+          - talent-retention-matrix
+          - competing-values-framework
+          - iso-31000-risk
+          - risk-register
+      - 'n': 4
+        name: Implementation & Monitoring
+        goal: >-
+          Execute the integration plans, track progress against KPIs and synergy targets, and course-correct rapidly
+          when deviations appear.
+        key_question: >-
+          Are we on track to realize our synergy commitments and integration milestones — and where do we need to
+          intervene?
+        gate: >-
+          180-day integration review confirms synergy trajectory on track; Steering Committee approves continuation or
+          calls for formal remediation plan
+        frameworks:
+          - imo-governance-model
+          - balanced-scorecard
+          - synergy-waterfall-model
+          - manager-integration-toolkit
+          - integration-lessons-learned
+      - 'n': 5
+        name: Change Management & Internal Communication
+        goal: >-
+          Manage the human transition from two organizations to one — maintaining productivity, reducing anxiety, and
+          building commitment to the integrated future.
+        key_question: >-
+          How do we move every employee through the change curve, from awareness to commitment, without losing the
+          people and productivity we paid for?
+        gate: >-
+          Change Readiness Index at Month 3 ≥70%; if below, escalate to Steering Committee for remediation before
+          entering steady-state Phase IV cadence
+        frameworks:
+          - adkar-model
+          - change-impact-assessment
+          - change-readiness-index
+          - communication-cascade
+      - 'n': 6
+        name: Stakeholder Engagement
+        goal: >-
+          Map, prioritize, and systematically engage all external and internal stakeholders to maintain confidence,
+          secure approvals, and prevent activist resistance to the integration.
+        key_question: Who has the power to accelerate or derail our integration, and what do each of them need from us?
+        gate: >-
+          All regulatory approvals confirmed and top-20 customer retention confirmed before integration is declared
+          complete
+        frameworks:
+          - stakeholder-power-interest-grid
+          - stakeholder-engagement-matrix
+          - stakeholder-engagement-plan
+    routing_card:
+      trigger: client has completed or is executing an M&A transaction and must integrate two organizations
+      plugs_into: structure
+      value: >-
+        replaces ad-hoc integration planning with a 6-phase sequenced process covering strategy, synergies, detailed
+        plans, implementation, change, and stakeholders — ensuring no domain is omitted and governance is set before
+        workstreams begin
+      key_question: >-
+        How do we capture our synergy targets and sustain business performance while integrating two organizations into
+        one operating model?
+  - slug: sales-marketing-pricing-communication
+    title: Sales, Marketing, Pricing & Communication
+    domain: commercial
+    model_name: 6-Phase Commercial Transformation (Diagnose, Strategise, Design Pillars, Ideate, Invest, Deliver, Embed)
+    when_to_use: >-
+      Use when launching a product or entering a new market; repositioning an existing brand; facing margin pressure
+      requiring a pricing overhaul; reorganising the sales force; planning a major marketing investment; or preparing a
+      commercial transformation programme.
+    core_value: >-
+      A Fortune-100 commercial leader can run the entire go-to-market cycle — from market sizing and competitor mapping
+      through brand positioning, pricing architecture, distribution design, digital execution, and implementation
+      governance — using a single sequenced, gate-controlled process rather than a bag of disconnected frameworks.
+    phases:
+      - 'n': 1
+        name: Sales & Marketing Strategy
+        goal: >-
+          Establish a grounded-in-evidence commercial strategy by diagnosing the market, competitors, and internal
+          capabilities, then setting a vision, objectives, and resource plan for the Sales and Marketing functions.
+        key_question: >-
+          Where do we compete, why will we win, and what does the Sales & Marketing function need to look like to get
+          there?
+        gate: >-
+          Executive leadership approves strategic direction, VMV, KPIs, and budget before Phase 2 begins. Gate
+          questions: Is the market analysis grounded in data? Is the strategic direction unambiguous? Are KPIs
+          measurable?
+        frameworks:
+          - porters-five-forces
+          - pestle-analysis
+          - tam-sam-som
+          - ge-mckinsey-matrix
+          - competitive-profiling-matrix
+          - pareto-analysis
+          - sales-marketing-funnel
+          - marketing-roi-analysis
+          - swot-analysis
+          - ansoff-matrix
+          - blue-ocean-strategy
+          - stp-model
+          - balanced-scorecard
+      - 'n': 2
+        name: Five Pillars to Reach Sales and Marketing Strategic Objectives
+        goal: >-
+          Translate the approved strategy into five executable go-to-market pillars: Product/Service Positioning,
+          Communication Strategy, Sales Distribution Strategy, Pricing Strategy, and Digital Strategy.
+        key_question: >-
+          What specific decisions must be made in positioning, communication, distribution, pricing, and digital to
+          reach our strategic objectives?
+        gate: >-
+          CCO and executive team sign off on all five pillars. Gate check: Is each pillar internally consistent with the
+          strategy from Phase 1? Are the five pillars mutually reinforcing?
+        frameworks:
+          - value-proposition-canvas
+          - product-life-cycle
+          - perceptual-map
+          - stakeholder-analysis
+          - communication-plan-matrix
+          - distribution-channel-matrix
+          - pricing-maturity-model
+          - van-westendorp-psm
+          - price-sensitivity-ladder
+          - digital-marketing-mix
+      - 'n': 3
+        name: Potential Initiatives for Each Pillar
+        goal: >-
+          Generate and evaluate a long-list of improvement initiatives across all five pillars so that only the
+          highest-value work enters the business case pipeline.
+        key_question: >-
+          What are the best opportunities to close the gap between current and target performance across all five
+          pillars?
+        gate: >-
+          CCO approves the shortlist for business-case development. Gate check: Does each shortlisted initiative have a
+          clear strategic rationale? Have duplicates and low-value ideas been eliminated?
+        frameworks:
+          - effort-impact-matrix
+          - ansoff-matrix
+      - 'n': 4
+        name: Business Cases and Financial Models
+        goal: >-
+          Build rigorous financial models for each shortlisted initiative so that investment decisions are based on
+          evidence, not intuition.
+        key_question: >-
+          Which initiatives generate positive NPV and acceptable payback periods, and how do they rank against each
+          other?
+        gate: >-
+          CFO and CCO approve the funded programme. Gate check: Are financial assumptions documented and stress-tested?
+          Is total investment within board-approved budget?
+        frameworks:
+          - npv-irr-payback-model
+          - effort-impact-matrix
+      - 'n': 5
+        name: Project Prioritisation, Business Roadmap and Implementation
+        goal: >-
+          Sequence, plan, and execute the funded initiative portfolio using a governed, agile-compatible delivery
+          framework with continuous improvement built in.
+        key_question: In what sequence do we execute the approved initiatives, and how do we govern delivery so we stay on track?
+        gate: >-
+          Steering Committee confirms that 80% of Phase 2 milestones are on track before additional budget is released
+          for Phase 3 of the roadmap.
+        frameworks:
+          - effort-impact-matrix
+          - raci-model
+          - balanced-scorecard
+          - agile-scrum
+          - design-thinking
+      - 'n': 6
+        name: Change Management, Internal Communication and Stakeholder Engagement
+        goal: >-
+          Ensure that the people affected by the commercial transformation understand, accept, and sustain the changes
+          so that initiative benefits are actually realised.
+        key_question: >-
+          Who is impacted by these changes, how do we bring them on the journey, and how do we embed the changes
+          permanently?
+        gate: Change readiness score exceeds 70% across all impacted populations before each major go-live milestone.
+        frameworks:
+          - adkar-model
+          - stakeholder-analysis
+          - communication-plan-matrix
+    routing_card:
+      trigger: 'commercial performance gap: revenue, margin, market share, or customer acquisition underperforming'
+      plugs_into: structure
+      value: >-
+        forces the study to cover all five commercial levers (positioning, communication, distribution, pricing,
+        digital) rather than fixing only the most visible symptom
+      key_question: >-
+        Which commercial levers — positioning, communication, distribution, pricing, and digital — must change to close
+        the performance gap, and in what sequence?
+  - slug: business-plan-entrepreneurship
+    title: Business Plan & Entrepreneurship
+    domain: strategy
+    model_name: 8-Phase Entrepreneurship Lifecycle
+    when_to_use: >-
+      Use this toolkit when: (1) you are evaluating a new business idea and need a structured process to select the most
+      promising one before committing capital; (2) you have a business concept and need to stress-test it with real data
+      before building a full plan; (3) you are preparing a business plan to raise seed or venture capital; (4) you are
+      already operating a startup and need to scale operations, tighten financial discipline, or build an investor-ready
+      valuation package; (5) you are preparing for an exit (IPO or acquisition) and need to ensure all commercial,
+      financial, and legal foundations are in place.
+    core_value: >-
+      The practitioner can transform a raw idea into a funded, operating venture by following an end-to-end 8-phase
+      process — from generating and filtering ideas, through validating assumptions with real data, building a bankable
+      business plan, implementing with KPI discipline, raising capital with professional-grade valuation and term-sheet
+      literacy, conducting rigorous financial analysis, and managing stakeholders — without ever needing to hire an
+      expensive consulting firm.
+    phases:
+      - 'n': 1
+        name: Generate Business Ideas and Select the Most Promising One
+        goal: >-
+          Produce a shortlist of high-quality business ideas and score them against a consistent prioritisation rubric
+          to select one concept for deep development.
+        key_question: >-
+          Which business idea — given market size, differentiation potential, and my own capabilities — offers the
+          highest probability-weighted return?
+        gate: >-
+          The founding team unanimously agrees the champion idea is worth investing 2–4 weeks in hypothesis testing. If
+          no idea scores ≥70%, restart ideation with a different set of lenses before proceeding.
+        frameworks:
+          - business-idea-generator
+          - scamper
+          - business-idea-prioritisation
+      - 'n': 2
+        name: Define Your Business Model and Identify Critical Assumptions
+        goal: >-
+          Translate the champion idea into a complete, visual business model and surface the riskiest assumptions that
+          must be validated before building the business plan.
+        key_question: >-
+          How will this business create, deliver, and capture value — and which beliefs about customers, channels, and
+          economics are we least certain about?
+        gate: >-
+          The founding team can articulate the top 3 critical assumptions that, if wrong, would invalidate the business
+          model. These 3 assumptions drive the phase 3 research design.
+        frameworks:
+          - business-model-canvas
+          - assumption-mapping
+      - 'n': 3
+        name: Gather Data to Validate or Invalidate Critical Assumptions
+        goal: >-
+          Run the minimum set of experiments to generate sufficient evidence to either confirm the top critical
+          assumptions (proceed) or update/abandon the business model (pivot or kill).
+        key_question: >-
+          Does real-world evidence support or contradict our riskiest assumptions — and what does this mean for the
+          business model?
+        gate: >-
+          At least 4 of 5 top critical assumptions are confirmed (or a pivot has been executed and the new model's top
+          assumptions are defined). The founding team has met ≥10 target customers in person or by video call.
+        frameworks:
+          - hypothesis-testing-protocol
+          - lean-experiment-design
+          - assumption-mapping
+          - business-model-canvas
+      - 'n': 4
+        name: Build a Business Plan
+        goal: >-
+          Produce a complete, investor-ready business plan document that translates the validated business model into a
+          compelling narrative, a market-grounded strategy, and a credible 3–5 year financial model.
+        key_question: >-
+          Can we articulate a compelling, data-grounded case that this business will create significant value — and can
+          we back it up with rigorous financial projections?
+        gate: >-
+          A trusted adviser (mentor, investor, or experienced operator) has reviewed the business plan and rated it
+          credible. The founding team can defend every financial assumption with a data-grounded rationale.
+        frameworks:
+          - value-proposition-canvas
+          - smart-objectives
+          - tam-sam-som
+          - porters-five-forces
+          - competitor-comparison-matrix
+          - stp-model
+          - marketing-4ps
+          - organisational-design-canvas
+          - three-statement-model
+      - 'n': 5
+        name: Implement Your Business Plan and Gather More Data
+        goal: >-
+          Launch operations, track performance against plan using a KPI dashboard, and update the business model and
+          business plan continuously as real operating data flows in.
+        key_question: >-
+          Are we executing to plan — and what does the emerging data tell us we should adjust in our business model or
+          strategy?
+        gate: >-
+          At least one full quarter of operating data is available, showing MRR growth ≥ plan or a documented and
+          accepted explanation for variance. The founding team can articulate the 2–3 most important changes made to the
+          strategy based on real data.
+        frameworks:
+          - aarrr-pirate-metrics
+          - kpi-dashboard
+          - okr-framework
+          - action-plan
+          - budget-variance-tracker
+          - customer-feedback-loop
+      - 'n': 6
+        name: Estimate the Value of Your Business and Raise Funds
+        goal: >-
+          Produce a credible, multi-method business valuation, understand the mechanics of venture capital and term
+          sheets, and successfully close a funding round at a fair valuation.
+        key_question: >-
+          What is our business worth — and how do we raise capital on terms that are fair to founders and attractive to
+          investors?
+        gate: >-
+          A signed term sheet from a reputable investor at a valuation within the 'football field' range, with no term
+          that would be classified as 'founder-unfriendly' by an independent counsel.
+        frameworks:
+          - dcf-valuation
+          - comparable-company-analysis
+          - precedent-transaction-analysis
+          - venture-capital-101
+          - cap-table-model
+          - term-sheet-negotiation
+      - 'n': 7
+        name: Carry Out a Financial Analysis
+        goal: >-
+          Conduct rigorous ongoing financial analysis to monitor business health, identify risk factors, and provide the
+          board and investors with transparent, decision-quality financial reporting.
+        key_question: >-
+          Is the business financially healthy — and what do the numbers tell us about where to invest more and where to
+          cut?
+        gate: >-
+          Board and investors receive the monthly financial package with no material restatements. The CFO can answer
+          any question about the financial statements without needing to look up data.
+        frameworks:
+          - income-statement-analysis
+          - balance-sheet-analysis
+          - cash-flow-analysis
+          - three-statement-model
+          - sales-cost-analysis
+          - cohort-analysis
+          - financial-ratios-dashboard
+      - 'n': 8
+        name: Engage Your Stakeholders Effectively
+        goal: >-
+          Identify all stakeholders, understand their interests and influence, and execute a differentiated engagement
+          strategy that builds trust, secures ongoing support, and manages resistance.
+        key_question: >-
+          Who has the power to make or break this venture — and what must we do to keep them informed, aligned, and
+          actively supportive?
+        gate: >-
+          Board, lead investors, and top 3 customers have all been briefed on the company's strategy and most recent
+          performance, with no unresolved concerns rated as 'high priority.'
+        frameworks:
+          - stakeholder-analysis-matrix
+          - stakeholder-engagement-strategy
+          - stakeholder-engagement-plan
+    routing_card:
+      trigger: client is launching, pivoting, or evaluating a new venture requiring a fundable business plan
+      plugs_into: structure
+      value: >-
+        replaces ad-hoc issue trees with a validated 8-phase lifecycle that sequences ideation, model design, assumption
+        testing, financial modelling, and stakeholder management in the correct dependency order
+      key_question: >-
+        Does this venture have a credible, data-validated path to significant value creation — and can we prove it to
+        investors?
+  - slug: supply-chain-strategy
+    title: Supply Chain Strategy
+    domain: operations
+    model_name: 6-Phase Supply Chain Strategy Process (SCOR-informed)
+    when_to_use: >-
+      Use this toolkit when: (1) the current supply chain is a competitive liability and the leadership team needs a
+      structured path to redesign it; (2) corporate strategy has shifted (new markets, new channels, M&A) and the supply
+      chain must be realigned; (3) cost, service-level, or resilience KPIs are materially below industry benchmarks; (4)
+      a new CPO or COO must stand up a credible 18–36-month transformation agenda; or (5) the organization is preparing
+      for a major investment in technology (ERP, AI/ML planning, automation) and needs a strategic framework to
+      prioritize.
+    core_value: >-
+      The ability to translate corporate ambition into an end-to-end supply chain blueprint — covering demand planning,
+      sourcing, manufacturing, and logistics — with a prioritized initiative roadmap and a change management plan that
+      gets the transformation actually implemented.
+    phases:
+      - 'n': 1
+        name: Supply Chain Overarching Strategy
+        goal: >-
+          Translate the corporate and business strategy into a supply chain vision, mission, strategic objectives,
+          operating model choices, and guiding principles that will direct all four functional pillars.
+        key_question: What kind of supply chain do we need to win in our chosen markets — and what are the non-negotiables?
+        gate: >-
+          Executive team formally endorses the Overarching Strategy document; all four pillars have an appointed
+          functional owner ready to lead Phase II work.
+        frameworks:
+          - vision-mission-values-canvas
+          - balanced-scorecard
+          - supply-chain-maturity-model
+          - make-or-buy-matrix
+          - kraljic-matrix
+      - 'n': 2
+        name: Four Functional Pillar Strategies
+        goal: >-
+          Define a clear current state, maturity level, KPI baseline, and future-state target for each of the four
+          supply chain pillars: Demand & Supply Planning, Sourcing & Procurement, Manufacturing, and Logistics &
+          Distribution.
+        key_question: >-
+          Where is each pillar today, where does it need to be in 3 years, and what does 'best practice' look like for
+          our context?
+        gate: >-
+          All four Pillar Strategy documents approved by CSCO and respective pillar functional leaders; capability gap
+          lists are signed off as the input to Phase III initiative identification.
+        frameworks:
+          - supply-chain-maturity-model
+          - scor-model
+          - kpi-benchmarking-framework
+          - current-future-state-gap-analysis
+      - 'n': 3
+        name: Potential Initiatives to Reach the Future State
+        goal: >-
+          Generate, structure, and screen a comprehensive long-list of improvement initiatives that — if implemented —
+          would close the capability gaps identified in Phase II.
+        key_question: >-
+          What specific programs and projects could close each pillar's capability gaps, and are they technically and
+          organizationally feasible?
+        gate: >-
+          CSCO and functional pillar leaders review and approve the medium-list as the input to Phase IV. Any 'must-do'
+          compliance or safety initiatives are tagged as non-negotiable before financial prioritization begins.
+        frameworks:
+          - 5-whys
+          - initiative-scoring-matrix
+      - 'n': 4
+        name: Business Cases and Financial Models
+        goal: >-
+          Quantify the cost, benefit, and risk profile of each initiative with a rigorous financial model so that
+          leadership can make evidence-based investment decisions.
+        key_question: >-
+          What is the expected financial return, payback period, and risk of each initiative, and how confident are we
+          in those numbers?
+        gate: >-
+          Investment Committee or CFO approves the full portfolio of business cases. All approved initiatives receive
+          budget authorization and a designated initiative owner before proceeding to Phase V.
+        frameworks:
+          - npv-irr-payback-model
+          - risk-register
+          - program-governance-model
+      - 'n': 5
+        name: Project Prioritization, Business Roadmap, and Implementation
+        goal: >-
+          Sequence the approved initiatives into a realistic, deliverable transformation roadmap using a robust
+          prioritization framework, governance model, and implementation methodology.
+        key_question: >-
+          In what order should we implement the approved initiatives, and how do we govern and deliver the
+          transformation?
+        gate: >-
+          Executive Steering Committee formally endorses the roadmap and governance model; PMO is staffed; Year 1
+          initiative project charters are signed by initiative owners. Roadmap baseline is locked for tracking.
+        frameworks:
+          - impact-effort-matrix
+          - program-governance-model
+          - npv-irr-payback-model
+          - plan-do-check-act
+          - 5-whys
+      - 'n': 6
+        name: Change Management, Internal Communication, and Stakeholder Engagement
+        goal: >-
+          Ensure that all stakeholders — from frontline operators to the board — understand, support, and are equipped
+          to sustain the supply chain transformation.
+        key_question: >-
+          Who needs to change their behaviour, how will we build their commitment, and how will we communicate
+          throughout the transformation?
+        gate: >-
+          Post-implementation Change Readiness Scorecard shows ≥80% of impacted employees at 'Ability' or
+          'Reinforcement' stage; benefits are being sustained 90 days after go-live; Change Champion network is
+          self-sustaining without external facilitation.
+        frameworks:
+          - power-interest-grid
+          - adkar-change-model
+          - stakeholder-communication-plan
+    routing_card:
+      trigger: >-
+        client needs to redesign or transform their supply chain to support a new strategy or fix chronic performance
+        gaps
+      plugs_into: structure
+      value: >-
+        replaces an ad-hoc issue tree with a six-phase, SCOR-informed spine that sequences capability diagnosis,
+        initiative generation, financial validation, and change management in the proven order supply chain
+        transformations require
+      key_question: >-
+        What supply chain capabilities must we build, in what order, to support our chosen competitive strategy — and
+        how do we make the change stick?
+  - slug: lean-six-sigma
+    title: Lean Six Sigma
+    domain: operations
+    model_name: DMAIC
+    when_to_use: >-
+      Use Lean Six Sigma when: (1) a process problem is persistent and costly but its root cause is unclear; (2) defect
+      rates, cycle times, or customer complaints are unacceptably high and trending worse; (3) you need a data-backed,
+      auditable improvement case for senior leadership or a board; (4) previous quick-fix initiatives have failed to
+      hold. It is especially powerful in manufacturing, financial services, healthcare, and logistics operations where
+      process repeatability is high and variation is measurable.
+    core_value: >-
+      The ability to run a rigorous, data-driven improvement project that simultaneously eliminates process waste (Lean)
+      and reduces defect-producing variation (Six Sigma) — translating operational pain into measurable cost savings,
+      quality gains, and cycle-time reductions that shareholders see in the next reporting period.
+    phases:
+      - 'n': 1
+        name: Define
+        goal: >-
+          Frame the problem precisely, align stakeholders, establish project governance, and capture the Voice of the
+          Customer so the team is solving the right problem for the right people.
+        key_question: What problem are we solving, for whom, and how will we know we have succeeded?
+        gate: >-
+          Toll-gate D: Sponsor reviews and approves the Project Charter. Project proceeds only if the problem is
+          sufficiently significant (savings estimate ≥ threshold), scope is bounded, and the team is resourced.
+        frameworks:
+          - sipoc
+          - voc-ctq-tree
+          - stakeholder-matrix
+      - 'n': 2
+        name: Measure
+        goal: >-
+          Establish a validated, quantitative baseline of current process performance and surface candidate root causes
+          for the data-collection phase.
+        key_question: How is the process actually performing right now, and what data do we have to explain the gap?
+        gate: >-
+          Toll-gate M: Black Belt presents baseline data to sponsor. Project proceeds only if measurement system is
+          validated, baseline is established, and the performance gap is confirmed as significant.
+        frameworks:
+          - process-capability-sigma
+          - fishbone-diagram
+      - 'n': 3
+        name: Analyze
+        goal: >-
+          Identify and confirm the true, statistically validated root causes of the performance gap using structured
+          problem-solving tools.
+        key_question: What is actually causing the defects or waste, and which causes account for the majority of the problem?
+        gate: >-
+          Toll-gate A: Sponsor and Master Black Belt review root-cause evidence. Project proceeds to Improve only if at
+          least one actionable, controllable root cause is confirmed with statistical evidence.
+        frameworks:
+          - five-whys
+          - fishbone-diagram
+          - pareto-analysis
+          - fmea
+          - process-capability-sigma
+      - 'n': 4
+        name: Improve
+        goal: >-
+          Generate, evaluate, select, pilot, and implement the best-fit solution set that addresses confirmed root
+          causes and delivers the target CTQ improvement.
+        key_question: What is the best set of changes to implement, and have we proven they actually work?
+        gate: >-
+          Toll-gate I: Sponsor reviews improvement verification data. Project proceeds to Control only if CTQ
+          improvement is statistically significant and the solution is fully documented in an SOP.
+        frameworks:
+          - 5s-framework
+          - crazy-8s-ideation
+          - mind-mapping
+          - commitment-curve
+          - process-capability-sigma
+      - 'n': 5
+        name: Control
+        goal: >-
+          Institutionalise the gains through monitoring, control plans, and knowledge transfer — ensuring the process
+          does not revert to its old performance level.
+        key_question: How do we make sure the improvement sticks permanently and the organisation learns from this project?
+        gate: >-
+          Project Closure: Master Black Belt certifies that control mechanisms are in place, financial benefits are
+          validated by Finance, and the process owner has formally accepted responsibility for ongoing control.
+        frameworks:
+          - kaizen
+    routing_card:
+      trigger: process performance gap with measurable defect rate and identifiable root causes to fix permanently
+      plugs_into: structure
+      value: >-
+        DMAIC phases become the issue-tree spine, ensuring every analytical step (Measure → Analyze → Improve → Control)
+        is sequenced correctly and produces evidence before solution design begins
+      key_question: >-
+        What is causing our process to produce defects or waste, and what changes will reliably eliminate them at their
+        root?
+  - slug: risk-management
+    title: Risk Management
+    domain: governance
+    model_name: ISO 31000 — 3-Section Risk Management Operating System
+    when_to_use: >-
+      Deploy when launching a major program or transformation (project risks), conducting an annual enterprise risk
+      assessment (strategic risks), responding to a near-miss or incident (operational risks), preparing board or audit
+      committee risk reporting, or establishing a new risk management function from scratch.
+    core_value: >-
+      A complete, board-ready risk management capability: from strategy definition and appetite-setting through
+      systematic identification, assessment, prioritization, mitigation, and stakeholder engagement — giving executives
+      a repeatable operating system that turns uncertainty into governed, auditable decisions.
+    phases:
+      - 'n': 1
+        name: Risk Management Strategy
+        goal: >-
+          Define the governance structure, appetite, maturity baseline, and operating framework that will guide all
+          subsequent risk work.
+        key_question: >-
+          What is our risk appetite, how mature are we today, and what governance structure will own the risk management
+          function?
+        gate: >-
+          Board or Executive Risk Committee formally approves the Risk Management Strategy before any phase-2 activities
+          begin.
+        frameworks:
+          - strategic-context-summary
+          - risk-appetite-statement
+          - risk-capability-maturity-model
+          - mission-vision-values-framework
+          - risk-kpi-scorecard
+          - risk-roadmap
+          - risk-raci-model
+          - three-lines-of-defence
+          - risk-guiding-principles
+          - iso-31000
+          - coso-erm
+      - 'n': 2
+        name: Risk Identification
+        goal: >-
+          Systematically surface all material risks that could prevent the organization from achieving its strategic
+          objectives.
+        key_question: What could go wrong — and have we captured every material risk across all categories and horizons?
+        gate: >-
+          CRO validates that the risk register covers all major risk categories and strategic objectives. No risk with
+          potential impact > defined threshold is missing.
+        frameworks:
+          - risk-taxonomy
+          - pestle-analysis
+          - risk-identification-workshop
+          - risk-register
+      - 'n': 3
+        name: Risk Assessment
+        goal: >-
+          Evaluate each identified risk on likelihood and consequence to generate a risk score that enables
+          prioritization.
+        key_question: How likely is each risk to materialize, and what would be the impact if it did?
+        gate: >-
+          Risk Manager and CRO validate that scoring is consistent across business units (calibration session with all
+          risk owners).
+        frameworks:
+          - risk-assessment-matrix
+      - 'n': 4
+        name: Risk Prioritization
+        goal: Rank risks by severity to focus management attention and mitigation resources on the most material threats.
+        key_question: Which risks deserve immediate action, which warrant monitoring, and which can be accepted as-is?
+        gate: >-
+          Executive Risk Committee approves the priority classifications and dashboard format before Phase 5
+          (mitigation) begins.
+        frameworks:
+          - risk-heat-map-3x3
+          - risk-heat-map-5x5
+          - risk-dashboard
+      - 'n': 5
+        name: Risk Mitigation
+        goal: >-
+          Develop and execute targeted mitigation actions for all High- and Medium-priority risks, reducing residual
+          risk to within appetite.
+        key_question: What specific actions will reduce each material risk to an acceptable level, and who is accountable?
+        gate: >-
+          CRO confirms that residual risk for all High-priority risks is within the approved Risk Appetite. Ongoing — no
+          formal exit, but a quarterly review gate.
+        frameworks:
+          - 4t-risk-response
+          - risk-action-plan
+          - risk-dashboard
+      - 'n': 6
+        name: Risk Closure and Issue Management
+        goal: >-
+          Formally close risks that are no longer material and manage risks that have materialized into issues through a
+          structured issue-response process.
+        key_question: Which risks can be closed, and how do we manage the issues that have already occurred?
+        gate: >-
+          Ongoing. CRO and Board receive quarterly report of all closed risks and resolved issues with lessons-learned
+          summary.
+        frameworks:
+          - risk-closure-protocol
+          - issue-log
+          - issue-escalation-protocol
+      - 'n': 7
+        name: Stakeholder Engagement
+        goal: >-
+          Ensure all internal and external stakeholders are appropriately informed, consulted, and engaged throughout
+          the risk management process.
+        key_question: Who are our stakeholders, what do they need from us on risk, and how do we engage them effectively?
+        gate: >-
+          CRO confirms all Tier-1 stakeholders have received at least one risk briefing and provided feedback before the
+          annual risk appetite review.
+        frameworks:
+          - stakeholder-analysis
+          - stakeholder-engagement-strategy
+          - stakeholder-engagement-plan
+    routing_card:
+      trigger: client needs to build, reform, or mature an enterprise risk management program
+      plugs_into: structure
+      value: >-
+        delivers a sequenced 7-phase ERM spine (strategy → identify → assess → prioritize → mitigate → close → engage)
+        so the workplan is pre-populated with proven steps rather than invented from scratch
+      key_question: >-
+        What risks threaten our strategic objectives, how severe are they, and what governance and actions will reduce
+        them to an acceptable level?
+  - slug: business-case
+    title: Business Case
+    domain: finance
+    model_name: The 3-Phase Business Case (Describe → Assess → Prioritise)
+    when_to_use: >-
+      When you need to justify investment in a new business initiative, product launch, or improvement project to an
+      executive committee or board; when building a financial model for a project; or when helping a client decide which
+      projects to fund and which to defer.
+    core_value: >-
+      The analytical rigour and structured methodology to build a compelling, defensible business case that convinces an
+      executive committee or board of directors to invest — from defining the project clearly, through assessing
+      strategic and financial merit, to prioritising it against competing demands and presenting it with impact.
+    phases:
+      - 'n': 1
+        name: Project Description
+        goal: >-
+          Establish a complete, unambiguous picture of the project — its context, objectives, scope, activities, team,
+          and risks — before any assessment begins.
+        key_question: Do we have a clear, complete, and agreed description of what this project is and what it aims to achieve?
+        gate: >-
+          Description gate: Is the project description complete and agreed by the sponsor? No assessment begins until
+          the description is locked.
+        frameworks:
+          - scq-situation-complication-question
+          - smart-objectives
+          - raci-matrix
+          - work-breakdown-structure
+          - gantt-chart
+          - risk-matrix
+      - 'n': 2
+        name: Project Assessment
+        goal: >-
+          Test the project rigorously across three dimensions — strategic alignment, value creation, and ease of
+          implementation — to build a defensible investment thesis.
+        key_question: Is this project strategically aligned, financially attractive, and feasible enough to warrant investment?
+        gate: >-
+          Assessment gate: Does the project pass on all three dimensions at sufficient thresholds? If not, redesign or
+          de-prioritise before proceeding to financial modelling.
+        frameworks:
+          - strategic-alignment-matrix
+          - value-driver-tree
+          - benchmarking
+          - implementation-ease-scorecard
+      - 'n': 3
+        name: Project Prioritisation, Financial Modelling, and Presentation
+        goal: >-
+          Place the project in its competitive context relative to other investment candidates, build a rigorous
+          financial model with scenarios, and present a compelling board-ready investment case.
+        key_question: >-
+          Given competing demands for capital, should this project be funded now — and what does a rigorous financial
+          model with scenarios show?
+        gate: >-
+          Investment gate: Did the board approve the investment with named owners and a start date? If deferred,
+          identify the specific objection and address it before the next meeting.
+        frameworks:
+          - prioritisation-matrix
+          - npv-irr-payback
+          - scenario-analysis
+          - pyramid-principle
+          - scq-situation-complication-question
+    routing_card:
+      trigger: project or capital investment requires a formal, board-ready funding decision with financials
+      plugs_into: structure
+      value: >-
+        gives the study a 3-phase spine (Describe → Assess → Prioritise) so every workstream maps to a decision gate
+        rather than an ad-hoc analysis
+      key_question: Should this project be funded now, and what does the rigorous financial model say about its value and risk?
+  - slug: executive-dashboard
+    title: Executive Dashboard
+    domain: metrics
+    model_name: 5-Category Executive Dashboard Build
+    when_to_use: >-
+      Use when a leader, finance team, or consultant needs to (1) replace fragmented spreadsheet reports with a unified
+      performance view, (2) prepare board or investor presentations with world-class charts, (3) diagnose
+      underperformance across a business unit or function, or (4) track a strategic plan or project portfolio in real
+      time. Particularly valuable at the start of a new leadership mandate, during a budget cycle, or in a
+      performance-recovery programme.
+    core_value: >-
+      A set of live, data-driven dashboards that give executives an instant, one-screen picture of organisational
+      performance — so every leadership decision is grounded in numbers, not gut feel.
+    phases:
+      - 'n': 1
+        name: Company Overall Performance Dashboards
+        goal: >-
+          Build a single integrated dashboard that gives the C-suite a real-time view of enterprise-wide financial and
+          operational performance versus target.
+        key_question: >-
+          How is the company performing against revenue, profit, margin, and cash targets — and what is driving any
+          variance?
+        gate: >-
+          C-suite sponsor reviews dashboard; confirms all headline KPIs are captured and chart stories align with
+          management narrative. Sign-off required before Phase 2.
+        frameworks:
+          - kpi-input-table
+          - income-statement-waterfall
+          - kpi-scorecard
+          - rag-status-indicator
+          - waterfall-chart
+          - variance-bridge
+          - gauge-chart
+          - donut-needle-chart
+          - combo-chart
+          - trend-line
+          - kpi-dashboard-layout
+          - dashboard-grid-design
+      - 'n': 2
+        name: Functional Dashboards
+        goal: >-
+          Deploy purpose-built dashboards for each major business function (Sales, Marketing, Operations, HR, Finance,
+          Supply Chain) so functional leaders have their own KPI view aligned to company targets.
+        key_question: How is each function performing against its own KPIs, and how do those KPIs roll up to enterprise goals?
+        gate: >-
+          Each functional head reviews their dashboard and confirms the KPIs reflect operational reality. CFO validates
+          roll-up arithmetic to company dashboard. Proceed only when all functions signed off.
+        frameworks:
+          - smart-kpi
+          - kpi-dictionary
+          - data-source-mapping
+          - kpi-input-table
+          - kpi-scorecard
+          - rag-status-indicator
+          - combo-chart
+          - sales-funnel-chart
+          - headcount-waterfall
+          - channel-mix-donut
+          - kpi-hierarchy
+          - dashboard-grid-design
+      - 'n': 3
+        name: Project Dashboards
+        goal: >-
+          Give project managers and executive sponsors a real-time view of project status, progress, budget, risks, and
+          milestones across all active projects.
+        key_question: Are our projects on time, on budget, and on scope — and what corrective action is needed?
+        gate: >-
+          PMO Director and project sponsors review; confirm that the dashboard presents an accurate picture of portfolio
+          health. Finance validates budget numbers against the cost-tracking system.
+        frameworks:
+          - project-portfolio-table
+          - rag-status-indicator
+          - gantt-chart
+          - budget-vs-actual-chart
+          - variance-bridge
+          - milestone-tracker
+          - kpi-dashboard-layout
+      - 'n': 4
+        name: Strategic Plan and Business Roadmap Dashboards
+        goal: >-
+          Translate the multi-year strategic plan and business roadmap into a visual, trackable dashboard so the
+          leadership team can monitor whether strategic initiatives are being executed on schedule.
+        key_question: Are we executing our strategic plan, and are the initiatives that will deliver our long-term goals on track?
+        gate: >-
+          CEO and Board Chair review the strategic dashboard; confirm the initiative portfolio aligns with the approved
+          strategy and the KPIs are the right leading indicators of strategic success.
+        frameworks:
+          - strategic-pillar-map
+          - balanced-scorecard
+          - roadmap-timeline-chart
+          - gantt-chart
+          - initiative-roi-scatter
+          - bubble-chart
+          - kpi-dashboard-layout
+      - 'n': 5
+        name: Stock Investment and Net Worth Dashboards
+        goal: >-
+          Give individual investors, family offices, or corporate treasury teams a live dashboard to monitor portfolio
+          performance, asset allocation, and net worth trajectory.
+        key_question: How is my investment portfolio performing relative to benchmarks, and is my net worth growing on plan?
+        gate: >-
+          Investor / Treasury Director reviews the completed dashboard; validates that holdings, valuations, and net
+          worth figures match brokerage statements and balance sheets. Sign-off to publish.
+        frameworks:
+          - portfolio-input-table
+          - asset-allocation-tracker
+          - asset-allocation-donut
+          - channel-mix-donut
+          - portfolio-performance-chart
+          - combo-chart
+          - net-worth-tracker
+          - balance-sheet-summary
+          - kpi-dashboard-layout
+    routing_card:
+      trigger: build or redesign an executive or management dashboard for any organisational level
+      plugs_into: structure
+      value: >-
+        provides a proven 5-phase scaffold (company → function → project → strategy → investment) with validated chart
+        types, KPI governance tools, and layout conventions — eliminating blank-sheet design time
+      key_question: >-
+        What performance information does each audience need, at what granularity, to make decisions and take corrective
+        action?
+  - slug: leadership-development
+    title: Leadership Development
+    domain: people
+    model_name: 9-Module Leadership Mastery System
+    when_to_use: >-
+      Use this toolkit when (1) a newly promoted manager or senior individual contributor needs a structured fast-track
+      to executive-level leadership skills; (2) an organisation is running a leadership development programme for its
+      top-100 or top-500; (3) a team is underperforming and the root cause traces to leadership capability gaps; (4) a
+      leader is preparing for a step-change role (e.g., country MD, C-suite) and needs to rapidly build the full
+      leadership skill stack.
+    core_value: >-
+      The practitioner gains a complete, executable leadership operating system — nine interlocking skill modules
+      spanning problem-solving, communication, negotiation, time mastery, team management, stakeholder influence,
+      facilitation, and personal mission — so they can lead with measurable impact from the first day of application.
+    phases:
+      - 'n': 1
+        name: Resolve Complex Problems
+        goal: >-
+          Equip the leader with a rigorous, structured seven-step methodology to move from an ambiguous problem to an
+          evidence-based recommendation, reliably and repeatably.
+        key_question: How do I move from a messy, ill-defined problem to a clear, prioritised, board-ready recommendation?
+        gate: Decision-maker confirms the problem is solved and gives go-ahead on the recommended action
+        frameworks:
+          - smart-problem-definition
+          - issue-tree-mece
+          - prioritisation-matrix-2x2
+          - pyramid-principle
+          - so-what-test
+          - scr-situation-complication-resolution
+          - work-plan-template
+          - hypothesis-driven-analysis
+      - 'n': 2
+        name: Present with Impact
+        goal: >-
+          Build the leader's ability to command a room, project executive presence, and deliver presentations that
+          persuade and motivate action.
+        key_question: How do I present in a way that makes my audience remember my message and act on it?
+        gate: Presenter receives unprompted positive feedback on clarity and presence from a senior stakeholder
+        frameworks:
+          - executive-presence-model
+          - three-cs-communication
+      - 'n': 3
+        name: Communicate Effectively
+        goal: >-
+          Develop the leader's full communication repertoire — listening, verbal and non-verbal, feedback, questioning,
+          and style-adaptation — to build trust and accelerate understanding in all interactions.
+        key_question: How do I communicate in a way that makes people feel heard, understood, and motivated to act?
+        gate: 360-degree feedback confirms measurable improvement in communication effectiveness vs. baseline
+        frameworks:
+          - active-listening-rasa
+          - communication-killers-openers
+          - mehrabian-communication-model
+          - sbi-feedback-model
+          - disc-model
+      - 'n': 4
+        name: Negotiate Effectively
+        goal: >-
+          Equip the leader with a structured, principled three-stage negotiation process that consistently creates value
+          while preserving relationships.
+        key_question: How do I achieve the best outcome in any negotiation while keeping the relationship intact?
+        gate: Agreement reached, documented, and accepted by all parties; relationship maintained or improved
+        frameworks:
+          - batna-negotiation
+          - principled-negotiation
+      - 'n': 5
+        name: Manage Your Time
+        goal: >-
+          Establish a personal productivity system that eliminates low-value activity, protects deep-work time, and
+          consistently directs energy to highest-priority tasks.
+        key_question: How do I spend my finite time on the highest-value work, with minimal distraction and procrastination?
+        gate: Leader sustains weekly time-management practice for 4 consecutive weeks without regressing
+        frameworks:
+          - prioritisation-matrix-2x2
+          - time-blocking
+          - four-ds-email
+          - deep-work-protocol
+      - 'n': 6
+        name: Manage Your Team
+        goal: >-
+          Build a high-performing, cohesive team with a clear mission, defined ways of working, strong trust, and a
+          culture of coaching and accountability.
+        key_question: How do I turn a group of individuals into a high-performing team with shared purpose and clear accountability?
+        gate: >-
+          Team produces its signed charter, agreed OKRs, and validated RACI — and leader has held the first round of
+          GROW coaching sessions with all direct reports
+        frameworks:
+          - five-dysfunctions-lencioni
+          - team-charter
+          - okr-framework
+          - raci-matrix
+          - grow-coaching-model
+          - adkar-change-model
+      - 'n': 7
+        name: Manage Your Stakeholders
+        goal: >-
+          Build a systematic stakeholder management practice that identifies every party who can affect or be affected
+          by the leader's work, and implements tailored engagement plans to secure their support.
+        key_question: Who are the key people I need to influence, and how do I manage each relationship proactively?
+        gate: >-
+          Leader has met with all 'Manage Closely' stakeholders within the first 30 days and has an active engagement
+          plan for each
+        frameworks:
+          - stakeholder-mapping-matrix
+      - 'n': 8
+        name: Facilitate Meetings and Workshops
+        goal: >-
+          Enable the leader to design and facilitate high-energy, outcome-driven meetings and workshops where every
+          participant contributes and every session produces a clear decision or plan.
+        key_question: How do I run meetings and workshops that consistently produce decisions, not just discussion?
+        gate: All participants confirm the meeting purpose was achieved and can name the 3 key decisions made
+        frameworks:
+          - facilitation-foundations
+      - 'n': 9
+        name: Define Personal Mission, Goals, and Values
+        goal: >-
+          Ground the leader's development in a clear personal identity: a mission statement, long- and short-term goals,
+          and explicit values that guide every day's decisions.
+        key_question: What kind of leader do I want to be, what am I driving toward, and what principles will I never compromise?
+        gate: >-
+          Leader can articulate their mission statement from memory and identify one concrete action this week that
+          serves each long-term goal
+        frameworks:
+          - personal-mission-canvas
+          - smart-problem-definition
+    routing_card:
+      trigger: engagement requires building leadership capability or diagnosing people/team/org effectiveness
+      plugs_into: structure
+      value: >-
+        gives you a proven 9-phase spine (problem→communicate→negotiate→time→team→stakeholders→facilitation→mission)
+        instead of an ad-hoc people-framework pick
+      key_question: >-
+        What leadership system does this leader or team need to close the gap between current capability and required
+        performance?
+  - slug: financial-modeling-planning-analysis
+    title: Financial Modeling, Planning & Analysis
+    domain: finance
+    model_name: >-
+      3-Phase FP&A Cycle (Financial Modeling Foundation → Financial Analysis → Financial Planning → Implement, Track &
+      Manage)
+    when_to_use: >-
+      Use this toolkit when: (1) you need to evaluate the financial viability of a project, acquisition, or new
+      business; (2) you are building an annual operating plan, multi-year strategic financial plan, or budget; (3) you
+      need to consolidate financial performance across business units; (4) you are preparing investor-grade valuation
+      materials (DCF, comparable companies, precedent transactions); (5) you want to establish a repeatable FP&A
+      function with dashboards, governance, and continuous improvement; or (6) you are a CFO, FP&A lead, or strategy
+      consultant who needs one authoritative reference for all modeling and planning methods.
+    core_value: >-
+      The ability to translate strategy into numbers — building accurate financial models, a coherent multi-year
+      financial plan, and the governance to track and improve performance — so executives can make decisions with
+      quantified confidence instead of intuition.
+    phases:
+      - 'n': 1
+        name: Financial Modeling Foundation
+        goal: >-
+          Build or select the right financial model for the decision at hand — from a basic three-statement model to a
+          full M&A or DCF valuation — so all downstream analysis rests on technically sound, auditable numbers.
+        key_question: Which model type fits this decision, and is it built to investment-grade standards?
+        gate: >-
+          All standard models built, peer-reviewed, and version-controlled in shared drive. Modeling best-practices
+          document signed off by CFO.
+        frameworks:
+          - financial-modeling-best-practices
+          - three-statement-model
+          - project-business-case-model
+          - dcf-model
+          - wacc-model
+          - scenario-sensitivity-model
+          - comparable-company-analysis
+          - precedent-transaction-analysis
+          - ma-model
+          - business-units-consolidation-model
+          - cap-table-model
+          - discounted-earnings-model
+      - 'n': 2
+        name: Carry Out a Financial Analysis
+        goal: >-
+          Develop a comprehensive, fact-based understanding of the company's historical and current financial health —
+          income, balance sheet, cash flows, ratios, and competitive position — as the foundation for realistic
+          planning.
+        key_question: >-
+          Where do we actually stand financially, and what are the key value drivers and risks in our current
+          performance?
+        gate: >-
+          CFO and CEO have reviewed and aligned on the financial baseline findings. Key questions are documented for
+          input into Phase 3 planning.
+        frameworks:
+          - income-statement-analysis
+          - balance-sheet-analysis
+          - cash-flow-analysis
+          - three-statement-model
+          - sales-costs-analysis
+          - financial-ratios-analysis
+          - financial-benchmarking
+          - dcf-model
+          - discounted-earnings-model
+          - business-units-consolidation-model
+      - 'n': 3
+        name: Define Your Financial Plan
+        goal: >-
+          Translate strategic objectives into a quantified, funded financial plan with a prioritized initiative roadmap,
+          a multi-year forecast, and budget allocations that make the plan executable.
+        key_question: >-
+          What financial performance do we need to achieve our vision, and exactly how will we get there — initiative by
+          initiative, dollar by dollar?
+        gate: >-
+          Board or executive committee approves the financial plan, budget allocations, and top-10 initiative portfolio.
+          Financial KPI targets formally set.
+        frameworks:
+          - mission-vision-strategic-objectives
+          - dcf-model
+          - scenario-sensitivity-model
+          - financial-kpis-objectives
+          - budget-allocation
+          - initiative-list
+          - project-business-case-model
+          - initiative-prioritization
+          - business-roadmap
+      - 'n': 4
+        name: Implement, Track & Manage Progress
+        goal: >-
+          Execute the financial plan with rigorous governance, real-time dashboards, and continuous improvement —
+          closing the loop between plan and performance so the finance function drives outcomes, not just reports them.
+        key_question: Are we on track to hit our financial plan, and how do we course-correct fast when we are not?
+        gate: >-
+          Year-end: financial plan objectives met or CFO has a credible corrective action plan presented to Board.
+          Annual FP&A capability review completed with next-year improvement targets set.
+        frameworks:
+          - financial-governance
+          - financial-dashboards
+          - agile-methodology
+          - design-thinking-methodology
+          - traditional-project-management
+          - quarterly-financial-update
+          - continuous-improvement-fpa
+          - program-project-evaluation
+    routing_card:
+      trigger: client needs a multi-year financial plan, valuation, budget, or performance management system
+      plugs_into: structure
+      value: >-
+        provides a four-phase spine (model → analyze → plan → track) that sequences every financial tool in the right
+        order, preventing the common failure of jumping to planning before rigorous analysis
+      key_question: >-
+        What financial performance must we achieve to realize our strategic vision, and are we currently on track to get
+        there?
+  - slug: data-analytics-ai-strategy
+    title: Data Analytics & AI Strategy
+    domain: technology
+    model_name: >-
+      The 6-phase Data Analytics & AI Strategy (Strategy → 4 Pillars → Use Cases → Business Cases → Roadmap → Change
+      Management)
+    when_to_use: >-
+      When a board or executive asks 'how do we actually use AI?'; when data quality is blocking decisions; when the
+      analytics team produces dashboards nobody acts on; when the company has multiple data sources but no single source
+      of truth; when a CDO or CTO needs a defensible 3-year data roadmap; or when an organisation is launching a major
+      digital or AI transformation and needs a structured programme framework.
+    core_value: >-
+      The structured capability to move from ad-hoc reporting to a data-driven operating model — auditing what you have,
+      designing the right platform architecture, governing data so it is trusted, deploying analytics and AI against
+      proven use cases, and measuring whether any of it is producing real business value. The buyer is purchasing the 'I
+      finally know how to run a data and AI programme end-to-end' outcome.
+    phases:
+      - 'n': 1
+        name: Define the Data Analytics & AI Strategy
+        goal: >-
+          Produce a signed-off strategy document that captures the corporate context, current and target maturity,
+          vision/mission/values, strategic objectives and KPIs, team and budget plan, and guiding principles — for both
+          the Data Analytics and AI dimensions.
+        key_question: >-
+          What do we want to achieve with data analytics and AI, how mature are we today, and what is the plan to close
+          the gap?
+        gate: >-
+          Strategy gate: Is the Data Analytics & AI Strategy signed off by the CEO, CDO and CFO — including the budget
+          and the KPI targets? No pillar work or use-case funding begins without sign-off.
+        frameworks:
+          - strategy-alignment-mapping
+          - data-analytics-maturity-model
+          - vision-mission-values-framework
+          - strategic-objectives-kpi-framework
+          - team-budget-planning
+          - guiding-principles-framework
+      - 'n': 2
+        name: Build the 4 Pillars
+        goal: >-
+          Design and implement the four structural enablers — Data Management & Infrastructure, Data Governance &
+          Compliance, Analytics Tools & Techniques, and Data-Driven Organisation — that make the strategic objectives
+          achievable.
+        key_question: >-
+          What infrastructure, governance, tools and organisational capabilities must we build to deliver the strategic
+          objectives at scale?
+        gate: >-
+          Pillar readiness gate: Are the four pillars sufficiently built to support the use-case delivery in Phase III?
+          Specifically: is the priority data governed and quality-scored? If not, return to Pillar 2.
+        frameworks:
+          - data-architecture-patterns
+          - data-pipeline-design
+          - dimensional-modelling
+          - data-governance-framework
+          - technology-selection-matrix
+          - analytics-tools-selection-matrix
+          - analytics-org-model
+          - data-literacy-programme
+      - 'n': 3
+        name: Identify Use Cases and Potential Initiatives
+        goal: >-
+          Build an exhaustive, prioritised portfolio of data analytics and AI use cases mapped to each pillar and each
+          function, with value and feasibility estimates.
+        key_question: >-
+          What are the highest-value analytics and AI use cases for each business function, and which should we fund
+          first?
+        gate: >-
+          Portfolio gate: Is there a shared, business-sponsor-validated view of the top-10 use cases? No business case
+          is developed without a sponsoring business leader willing to own the value delivery.
+        frameworks:
+          - use-case-discovery-framework
+          - value-feasibility-matrix
+      - 'n': 4
+        name: Build Business Cases and Financial Models
+        goal: >-
+          For each priority use case, build a rigorous business case that quantifies the financial return, the
+          investment required, and the risk — enabling go/no-go investment decisions.
+        key_question: Does each use case justify its investment, and how do we measure whether it has delivered its promised value?
+        gate: >-
+          Investment gate: Has the CFO approved the financial model methodology and the top-5 funded use cases? Only
+          CFO-approved use cases enter the implementation roadmap.
+        frameworks:
+          - analytics-business-case-model
+          - sensitivity-analysis
+      - 'n': 5
+        name: Prioritise, Plan and Implement Projects
+        goal: >-
+          Build and execute the project portfolio — from roadmap and governance to delivery using the right methodology
+          (agile, design thinking, traditional) — with continuous improvement and post-implementation evaluation.
+        key_question: >-
+          How do we deliver the use-case portfolio on time, within budget, and with quality sufficient to change
+          business decisions?
+        gate: >-
+          Delivery gate: Has Wave 1 delivered at least 3 working use cases that demonstrably change a business decision
+          in the direction of better outcomes? If not, audit the portfolio before committing Wave 2 funding.
+        frameworks:
+          - project-prioritisation-framework
+          - business-roadmap-framework
+          - programme-governance-model
+          - crisp-dm
+          - agile-delivery-framework
+          - post-implementation-review
+          - mlops-framework
+      - 'n': 6
+        name: Change Management, Communication and Stakeholder Engagement
+        goal: >-
+          Ensure the organisation has the will, the skills and the management routines to adopt data-driven and
+          AI-enabled ways of working — so the technology investment translates into lasting behavioural change.
+        key_question: >-
+          How do we make data-driven decision-making the default operating mode, not the exception — and how do we
+          sustain it after the programme ends?
+        gate: >-
+          Sustainability gate: Is data-driven decision-making embedded in the management routines (business reviews,
+          ExCo dashboards, hiring criteria) such that it will persist without a programme team to enforce it?
+        frameworks:
+          - adkar-change-model
+          - change-management-plan
+          - internal-comms-strategy
+          - change-adoption-scorecard
+    routing_card:
+      trigger: client asks how to build or reset their data, analytics, or AI strategy end-to-end
+      plugs_into: structure
+      value: >-
+        replaces ad-hoc issue trees with a six-phase validated spine covering maturity, pillars, use-case portfolio,
+        business cases, roadmap, and change management
+      key_question: >-
+        What must this organisation build — technically, organisationally, and culturally — to reliably generate value
+        from data and AI at scale?
+  - slug: personal-finance-buffett-investing
+    title: Personal Finance & Warren Buffett Investing
+    domain: finance
+    model_name: 6-Phase Personal Wealth & Value Investing Lifecycle
+    when_to_use: >-
+      Use this toolkit when you want to move from reactive money management to a deliberate wealth-building system: when
+      you feel you have no clear picture of your net worth or cash flows; when you are ready to invest in equities but
+      lack a disciplined, repeatable stock-selection process; when you are transitioning from index funds to individual
+      stock picking; or when past speculative trades have not produced consistent returns and you want to rebuild on
+      Buffett's first-principles value investing methodology.
+    core_value: >-
+      A practitioner gains the complete system to diagnose their current financial health, build a sustainable savings
+      engine, then deploy surplus capital exactly as Warren Buffett would — selecting only businesses with durable
+      competitive moats at prices that guarantee a margin of safety — so they can compound wealth across decades rather
+      than speculate month-to-month.
+    phases:
+      - 'n': 1
+        name: Personal Finance Baseline
+        goal: >-
+          Establish a precise, quantified picture of your current net worth, income, costs, savings rate, and
+          wealth-building trajectory so you know exactly how much capital is available to invest and on what timeline.
+        key_question: >-
+          What is my true financial position today — assets, liabilities, income, expenses, and free cash flow for
+          investing?
+        gate: Investable monthly surplus ≥ chosen minimum AND emergency fund fully funded → proceed to Phase 2
+        frameworks:
+          - net-worth-statement
+          - income-expense-savings-dashboard
+          - investment-options-ladder
+      - 'n': 2
+        name: Warren Buffett Value Investing Philosophy
+        goal: >-
+          Build the intellectual foundation for Buffett-style investing by internalising the core principles drawn from
+          the six canonical texts, so every subsequent decision is grounded in a coherent philosophy, not headlines or
+          tips.
+        key_question: >-
+          What are the first principles that make Buffett's approach work, and which of my existing beliefs must be
+          discarded?
+        gate: Manifesto written and reviewed → proceed to Phase 3
+        frameworks:
+          - buffett-philosophy-canvas
+      - 'n': 3
+        name: Warren Buffett Value Investing Strategy Design
+        goal: >-
+          Translate philosophy into a concrete, personalised investment strategy by specifying the eight strategic
+          parameters that will govern every decision — from what you buy to how much cash you keep.
+        key_question: >-
+          What are my precise, written rules for how I will invest — objective, portfolio structure, mindset guardrails,
+          decision process, frequency, cash reserve, horizon, and valuation models?
+        gate: IPS complete and all valuation models functional → proceed to Phase 4
+        frameworks:
+          - investment-policy-statement
+          - portfolio-construction-rules
+          - buffett-mindset-rules
+          - dcf-valuation
+          - owner-earnings-model
+          - irr-calculator
+      - 'n': 4
+        name: Stock Watchlist and Screener
+        goal: >-
+          Build and maintain an ongoing pipeline of high-quality business candidates that pass Buffett's preliminary
+          filters, so Phase 5 due diligence is applied only to genuinely promising investments.
+        key_question: >-
+          Which businesses currently on the market meet my preliminary quality and price filters, and how do I
+          systematically track and update this list?
+        gate: >-
+          Watchlist populated with ≥ 10 qualified companies, all with investment thesis and estimated intrinsic value →
+          proceed to Phase 5
+        frameworks:
+          - buffett-stock-screener
+          - moat-assessment-framework
+          - margin-of-safety
+      - 'n': 5
+        name: Detailed Stock Investment Decision-Making Process
+        goal: >-
+          Apply Buffett's four-gate decision framework to each watchlist company that enters the buying zone, producing
+          a rigorous, documented buy/no-buy decision with full supporting analysis.
+        key_question: >-
+          Does this specific company — at this specific price — pass all four gates: personal fit, business quality,
+          durable MOAT, and value pricing?
+        gate: All four gates pass AND written Investment Case document complete → execute trade
+        frameworks:
+          - circle-of-competence
+          - investment-policy-statement
+          - financial-statement-analysis
+          - porters-five-forces
+          - moat-assessment-framework
+          - dcf-valuation
+          - owner-earnings-model
+          - irr-calculator
+          - margin-of-safety
+          - portfolio-construction-rules
+      - 'n': 6
+        name: Stock Portfolio Management
+        goal: >-
+          Maintain a disciplined, ongoing record of all trades, monitor portfolio performance against benchmark, and
+          make informed decisions about holding, adding to, or exiting positions — without the emotional noise of daily
+          price movements.
+        key_question: >-
+          Is my portfolio performing as expected relative to the S&P 500, are the businesses I own still fundamentally
+          strong, and is there anything I should add, hold, or exit?
+        gate: >-
+          Ongoing — exit any position when Gate 2/3 fundamentals fail; hold until fundamentals deteriorate or price
+          exceeds 150% of intrinsic value
+        frameworks:
+          - portfolio-management-system
+          - moat-assessment-framework
+          - financial-statement-analysis
+    routing_card:
+      trigger: >-
+        individual needs to build or audit a disciplined value-investing process from personal financial baseline to
+        active portfolio
+      plugs_into: structure
+      value: >-
+        replaces ad-hoc stock-picking with a gated 6-phase lifecycle that connects personal cash flow, written strategy,
+        systematic screening, and ongoing portfolio governance
+      key_question: >-
+        Given my current financial position and temperament, which businesses can I understand, own for a decade, and
+        buy at a significant discount to intrinsic value?

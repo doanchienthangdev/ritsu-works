@@ -257,6 +257,8 @@ async function main() {
     ['validate-mckinsey-templates.cjs', 'mckinsey-templates.yaml ↔ schema + no brand-key leak'],
     // capability thinking-toolkit v1.5 — problem-solving-frameworks.yaml candidate registry: every wiki_path exists + COMPLETE (every book concept registered)
     ['validate-frameworks-registry.cjs', 'problem-solving-frameworks.yaml ↔ wiki concepts exist + complete'],
+    // capability thinking-toolkit v3.0 — consulting-frameworks/processes registries ↔ wiki pages exist + fast-load maps present
+    ['validate-thinking-os.cjs', 'thinking-os registries ↔ wiki pages ↔ fast-load maps'],
     // security drift guard (migration 00047) — no SECURITY DEFINER fn in schema
     // ops may expose public/unpinned search_path to authenticated/PUBLIC.
     ['validate-secdef-rpc-exposure.cjs', 'ops SECURITY DEFINER RPCs ↔ no RLS-bypass exposure'],
