@@ -224,8 +224,8 @@ describe("resolver-v3 index-generator", () => {
       expect(gen.KIND_ORDER).toContain("external-source");
     });
 
-    it("MAX_SUMMARY_CHARS = 100", () => {
-      expect(gen.MAX_SUMMARY_CHARS).toBe(100);
+    it("MAX_SUMMARY_CHARS = 94", () => {
+      expect(gen.MAX_SUMMARY_CHARS).toBe(94); // tightened 100→94 for the INDEX token cap (realigned to source)
     });
 
     it("TOKEN_HARD_CAP = 15000, TOKEN_TARGET = 12000", () => {
