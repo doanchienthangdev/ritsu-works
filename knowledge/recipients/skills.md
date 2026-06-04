@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 110
+**Total entries:** 113
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -305,6 +305,59 @@ cost-optimization-review needs current data.
 Cost: 1-3 SQL queries, ~300-1000 tokens output. Wall-clock ~150ms.
 
 **Invoke:** `Skill({ skill: "cost-report" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/dataviz
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Umbrella for the data-visualization capability — the /dataviz command's brain. From
+a data source + a one-sentence MESSAGE, produce a McKinsey-caliber chart: choose the
+chart type FROM THE MESSAGE (Zelazny), render it byte-stable SVG with the McKinsey
+aesthetic (one-highlight, data-ink minimalism, direct labels, action-title, source
+footer), and brand via the SAME --style design-system + --art-style axes as /image.
+Pluggable renderer layer (--use); default svg-native (zero-dep, pure-Node). Pure/
+offline — no API key. Dispatches to scripts/dataviz/gen.cjs.
+
+**Invoke:** `Skill({ skill: "dataviz" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/dataviz/renderers/svg-native
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The default /dataviz renderer — a zero-dependency, pure-Node, byte-stable SVG-string
+renderer encoding the McKinsey data-viz house style. renderChart(chartType, data,
+spec, theme) -> svgString (scripts/dataviz/render.cjs). No d3/canvas/DOM. v0.1
+builds 9 chart types; the McKinsey aesthetic is grounded in 3 real reports.
+
+**Invoke:** `Skill({ skill: "dataviz/renderers/svg-native" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/dataviz/select
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The Zelazny message→chart-type selector for /dataviz. Choose the chart FROM THE
+MESSAGE, not the data (Gene Zelazny, "Say It With Charts"). Deterministic, pure
+(scripts/dataviz/select.cjs). Used by gen.cjs when --chart=auto.
+
+**Invoke:** `Skill({ skill: "dataviz/select" })`
 **HITL tier:** B
 **Side effect:** write
 

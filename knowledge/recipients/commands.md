@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 20
+**Total entries:** 21
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -149,6 +149,26 @@ architecture sanity, hook/MCP config review, schema/migration checks.
 Bound to role `code-reviewer`. For one-shot bounded review use @cto.
 
 **Invoke:** `/cto`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/dataviz
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Turn a data source into a McKinsey-caliber chart — model-agnostic front door with
+a pluggable renderer layer (--use=<renderer>). Default backend svg-native (in-repo,
+zero-dependency, pure-Node, byte-stable SVG). Chooses the chart type FROM THE MESSAGE
+(Zelazny "Say It With Charts"), encodes the McKinsey aesthetic (one-highlight,
+data-ink minimalism, direct labels, action-title-on-the-chart, source footer), and
+brands via the SAME --style design-system + --art-style axes as /image + /deepask.
+Pure/offline (NO API key). Tier A; artifacts to .archives/dataviz/<date>-<slug>/.
+Thin orchestrator over the `dataviz` umbrella skill (scripts/dataviz/gen.cjs).
+
+**Invoke:** `/dataviz`
 **HITL tier:** A
 **Side effect:** none
 

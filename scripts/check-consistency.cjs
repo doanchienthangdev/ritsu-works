@@ -249,6 +249,8 @@ async function main() {
     ['validate-art-styles.cjs', 'art-styles.yaml ↔ schema + no brand-palette leak'],
     // capability image-platform v0.1 PR-1 — image-adapters.yaml structural + supports⊆universal + installed⇒generator-on-disk
     ['validate-image-adapters.cjs', 'image-adapters.yaml ↔ schema + generator-on-disk'],
+    // capability dataviz v0.1 — dataviz-renderers.yaml structural + supports⊆universal + installed⇒generator-on-disk
+    ['validate-dataviz-renderers.cjs', 'dataviz-renderers.yaml ↔ schema + supports⊆universal'],
     // capability thinking-toolkit v1.3 — mckinsey-workflow.yaml 4S catalog: every referenced skill + concept exists on disk
     ['validate-mckinsey-workflow.cjs', 'mckinsey-workflow.yaml ↔ skills + concepts exist'],
     // capability thinking-toolkit v2.0 — mckinsey-templates.yaml Sell registry: structural + no brand-key leak (orthogonal to --style)

@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "dataviz renderer registry (capability dataviz v0.1)",
+  "type": "object",
+  "required": ["version", "schema", "renderers"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string", "minLength": 1 },
+    "schema": { "type": "string" },
+    "renderers": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Split registry (mirror image-adapters): installed ⇒ generator on disk; registered-not-built = stub. supports[]/supports_stretch[]/unsupported_warn[] each ⊆ UNIVERSAL_PARAMS (scripts/dataviz/lib/params.cjs), enforced at L2 by validate-dataviz-renderers.cjs.",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "the --use=<renderer> value." },
+          "status": { "type": "string", "enum": ["installed", "registered-not-built"] },
+          "generator": { "type": "string", "description": "repo-relative path; REQUIRED + must exist on disk when status=installed." },
+          "skill": { "type": ["string", "null"] },
+          "supports": { "type": "array", "items": { "type": "string" } },
+          "supports_stretch": { "type": "array", "items": { "type": "string" } },
+          "unsupported_warn": { "type": "array", "items": { "type": "string" } },
+          "chart_types": { "type": "array", "items": { "type": "string" } },
+          "deferred_chart_types": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

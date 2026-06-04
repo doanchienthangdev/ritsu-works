@@ -1,0 +1,74 @@
+import { describe, it, expect } from "vitest";
+// @ts-ignore — CJS interop
+const { renderChart, valFmt, BUILT } = require("../../scripts/dataviz/render.cjs");
+// @ts-ignore
+const { fmt } = require("../../scripts/dataviz/lib/svg.cjs");
+// @ts-ignore
+const { buildTheme } = require("../../scripts/dataviz/lib/theme.cjs");
+
+// ============================================================================
+// All-Edge-Cases-Test. Units: renderChart(type,data,spec,theme)->svg (PURE),
+// valFmt, fmt (scripts/dataviz/render.cjs + lib/svg.cjs). Byte-stable → asserted
+// with toBe/toEqual (the repo forbids vitest snapshots; @cto must-fix #2).
+// ============================================================================
+
+const THEME = buildTheme(null, "mckinsey").theme;
+const BARS = { categories: ["A", "B", "C"], series: [{ name: "v", values: [30, 55, 20] }] };
+const SPEC = { title: "B leads on revenue", source: "Internal; analysis", width: 600, height: 400, numberFormat: {} };
+
+describe("fmt — byte-stable coordinate formatter", () => {
+  it("rounds to 2 dp", () => expect(fmt(142.857142)).toBe("142.86"));
+  it("strips trailing zeros", () => { expect(fmt(100)).toBe("100"); expect(fmt(100.5)).toBe("100.5"); });
+  it("normalizes -0 → 0", () => expect(fmt(-0)).toBe("0"));
+  it("non-finite → 0", () => { expect(fmt(NaN)).toBe("0"); expect(fmt(Infinity)).toBe("0"); });
+  it("is locale-independent (1/3)", () => expect(fmt(1 / 3)).toBe("0.33"));
+});
+
+describe("valFmt — data-label formatter", () => {
+  it("integers by default", () => expect(valFmt(55, { numberFormat: {} })).toBe("55"));
+  it("percent", () => expect(valFmt(39, { numberFormat: { percent: true } })).toBe("39%"));
+  it("thousands separator", () => expect(valFmt(1234567, { numberFormat: { thousandsSep: true } })).toBe("1,234,567"));
+  it("scale abbreviation", () => expect(valFmt(2500000, { numberFormat: { scaleAbbrev: true } })).toBe("2.5M"));
+  it("non-finite → empty", () => expect(valFmt(NaN, {})).toBe(""));
+});
+
+describe("renderChart — determinism + validity", () => {
+  it("is deterministic (same input → identical bytes)", () => expect(renderChart("bar", BARS, SPEC, THEME)).toBe(renderChart("bar", BARS, SPEC, THEME)));
+  it("emits a valid SVG root", () => { const s = renderChart("bar", BARS, SPEC, THEME); expect(s.startsWith("<svg")).toBe(true); expect(s.endsWith("</svg>")).toBe(true); expect(s).toContain('xmlns="http://www.w3.org/2000/svg"'); });
+  it("renders the action-title", () => expect(renderChart("bar", BARS, SPEC, THEME)).toContain("B leads on revenue"));
+  it("renders the source footer on EVERY exhibit", () => { for (const t of BUILT) { const d = t === "waterfall" ? { steps: [{ label: "X", delta: 10 }] } : t === "scatter" ? { points: [{ x: 1, y: 2 }] } : t === "kpi" ? { stats: [{ value: "9", label: "k" }] } : BARS; expect(renderChart(t, d, SPEC, THEME)).toContain("Source: Internal"); } });
+  it("an unknown chartType falls back to bar (no throw)", () => expect(renderChart("nonsense" as any, BARS, SPEC, THEME).startsWith("<svg")).toBe(true));
+});
+
+describe("renderChart — bar discipline", () => {
+  it("sorts descending by default (B=55 first → its bar widest)", () => { const s = renderChart("bar", BARS, SPEC, THEME); const firstLabelIdx = s.indexOf(">B<"); const aIdx = s.indexOf(">A<"); expect(firstLabelIdx).toBeGreaterThan(0); expect(firstLabelIdx).toBeLessThan(aIdx); });
+  it("the top bar uses the highlight color (one-highlight rule)", () => expect(renderChart("bar", BARS, SPEC, THEME)).toContain(THEME.highlight));
+  it("3 categories → 3 bar rects", () => { const s = renderChart("bar", BARS, SPEC, THEME); expect((s.match(/<rect[^>]*fill="#005EB8"/g) || []).length + (s.match(/<rect[^>]*fill="#A2AAAD"/g) || []).length).toBe(3); });
+});
+
+describe("renderChart — waterfall (running cumulative; @cto must-fix #4)", () => {
+  const WF = { steps: [{ label: "Base", delta: 100 }, { label: "Up", delta: 40 }, { label: "Down", delta: -15 }, { label: "Target", delta: 0, total: true }] };
+  it("renders without throwing + valid svg", () => expect(renderChart("waterfall", WF, SPEC, THEME).startsWith("<svg")).toBe(true));
+  it("rising step uses the accent (teal), falling uses amber", () => { const s = renderChart("waterfall", WF, SPEC, THEME); expect(s).toContain(THEME.accent); expect(s).toContain(THEME.amber); });
+  it("signed delta labels (+40 / -15)", () => { const s = renderChart("waterfall", WF, SPEC, THEME); expect(s).toContain("+40"); expect(s).toContain("-15"); });
+  it("has dashed connectors between bars", () => expect(renderChart("waterfall", WF, SPEC, THEME)).toContain("stroke-dasharray"));
+});
+
+describe("renderChart — edge cases", () => {
+  it("empty data → valid svg, no throw", () => { for (const t of BUILT) expect(renderChart(t, {}, SPEC, THEME).startsWith("<svg")).toBe(true); });
+  it("single datum bar", () => expect(renderChart("bar", { categories: ["solo"], series: [{ name: "v", values: [10] }] }, SPEC, THEME)).toContain(">solo<"));
+  it("all-equal values (degenerate scale, no NaN)", () => { const s = renderChart("column", { categories: ["A", "B"], series: [{ name: "v", values: [5, 5] }] }, SPEC, THEME); expect(s).not.toContain("NaN"); expect(s).not.toContain("undefined"); });
+  it("stacked100 normalizes to percentages", () => { const s = renderChart("stacked100", { categories: ["X"], series: [{ name: "a", values: [1] }, { name: "b", values: [3] }] }, { ...SPEC }, THEME); expect(s).toContain("25%"); });
+  it("no NaN / undefined anywhere across all types", () => { for (const t of BUILT) { const d = t === "waterfall" ? { steps: [{ label: "X", delta: -5 }] } : t === "scatter" ? { points: [{ x: 0, y: 0 }] } : t === "kpi" ? { stats: [{ value: "9" }] } : BARS; const s = renderChart(t, d, SPEC, THEME); expect(s.includes("NaN")).toBe(false); expect(s.includes("undefined")).toBe(false); } });
+});
+
+describe("renderChart — --style brand override (structure ⊥ brand)", () => {
+  it("a styled theme paints the highlight in the brand primary, keeps structure", () => {
+    const styled = buildTheme({ mode: "styled", name: "acme", tokens: { colors: { primary: "#FF0000" }, typography: { body: { fontFamily: "Inter" } } } }, "mckinsey").theme;
+    const s = renderChart("bar", BARS, SPEC, styled);
+    expect(s).toContain("#FF0000");   // brand highlight
+    expect(s).toContain("Inter");      // brand body font
+    expect(s).toContain("acme");       // brand wordmark
+    expect(s).toContain("Source: Internal"); // structure (source footer) unchanged
+  });
+});

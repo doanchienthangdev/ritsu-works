@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 55
+**Total entries:** 56
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -400,6 +400,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/data-retention.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-dataviz-renderers
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ dataviz-renderers.yaml — /dataviz pluggable renderer registry (capability `dataviz` v0.1 — McKinsey-caliber data visualization) ============================================================================ Mirrors knowledge/image-adapters.yaml (the split-registry convention): a built renderer carries `status: installed` + ...
+
+**Invoke:** `Read("knowledge/dataviz-renderers.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/dataviz-renderers.yaml
 
 **Role scope:** *
 **Status:** active
