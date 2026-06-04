@@ -1053,7 +1053,7 @@ capabilities:
       symptom only (v1.0's rejection was framing-specific, Cracked it! p.58).
       Still rejected: 80/20 (overlaps /muse:paul-graham), screen/knock-out
       (deferred), Ghost Deck, 7S, PEST/Porter.
-    version: "2.0.0"
+    version: "2.1.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28
@@ -1273,6 +1273,41 @@ capabilities:
       ops.decisions (slug thinking-toolkit-v2.0-mckinsey-team-mode). Reversibility 5/5
       (backward-compatible: runs without checkpoint-log/Sell unaffected; gates fire
       only --before-sell).
+
+      v2.1 (2026-06-04): /cla extend — TWO quality upgrades (founder: sell "đúng
+      chuẩn McKinsey ngoài đời thực chứ không đoán" + dynamic workflows tại các
+      điểm quan trọng). PART 1 — GROUND the sell templates in REAL McKinsey reports
+      (a researcher fetched real deliverables: MGI 'AI: The Next Digital Frontier'
+      full report + verbatim deconstructions of Women-in-the-Workplace-2022,
+      State-of-Fashion-2026, etc.). v2.0 templates were "guessed from principles"
+      and MISSED the real furniture: the boxed IN-BRIEF (distinct from exec summary),
+      action-title EXHIBIT captions + mandatory source footer, the named "where to
+      start"/"act now" block, the methodology/technical-appendix + survey-N, the
+      city-tagged author box + Preface; AND a BUG — "every header is an action title"
+      mis-fits trend/survey pieces (topic-labels are correct there). Fix: NEW grounding
+      reference 06-ai-ops/skills/thinking-toolkit/mckinsey-sell/mckinsey-deliverable-
+      anatomy.md (9 ordered components + per-type skeletons + citations); refined the
+      6 templates + added 3 real types (mgi-research-report, insights-article [topic-
+      labels OK], executive-briefing) = 9; NEW REQUIRED field `grounded_in` on every
+      template (schema required + validateEntry non-empty-array check — the mechanical
+      "not guessed" anchor) + optional `components`. PART 2 — NEW param
+      `--workflow=off(default)/steps/full`: run each high-leverage step as a Claude
+      Code dynamic WORKFLOW (the Workflow tool). Per-step patterns: CP-HYPOTHESIZE →
+      judge-panel of competing hypotheses; Solve → multi-modal sweep + adversarial-
+      verify; CP-DISSENT → perspective-diverse red-team; Sell → judge-panel of drafts.
+      Load-bearing constraint (from the workflow runtime): NO mid-run user input → each
+      STEP runs as its own workflow + the interactive CHECKPOINTS happen BETWEEN
+      workflows (the docs' "run each stage as its own workflow for sign-off between");
+      workflow output = EVIDENCE through the validation gate, not a decision. Documented
+      patterns (agent authors inline); pre-baked .claude/workflows/ scripts deferred to
+      v2.2. @cto review APPROVE-WITH-NITS (grounded_in test fixture + schema/validator
+      lockstep + grounded_in test block + evidence-not-decider — all integrated). Touches:
+      mckinsey-templates.yaml (1.0→1.1; 6→9 + grounded_in) + schema + validator +
+      mckinsey-deliverable-anatomy.md (NEW) + mckinsey-sell SKILL.md + mckinsey-workflow
+      SKILL.md (--workflow section) + think.md + resolver page regen. Tests: +6
+      mckinsey-templates (grounded_in) + spec test 9-templates. MINOR (additive;
+      --workflow defaults off → v2.0 preserved). Decision: ops.decisions (slug
+      thinking-toolkit-v2.1-grounding-and-workflows). Reversibility 5/5.
 
   - id: playbook-builder
     name: "Playbook PDF Builder — automated rebuild + version bump + publish + docs-sync integration"

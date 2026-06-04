@@ -37,18 +37,23 @@ disable-model-invocation: false
 
 ## Pick the template (`--sell`)
 
-Read `knowledge/mckinsey-templates.yaml`. `--sell=<id>` selects one; `--sell=auto` (default) picks by `--audience`:
-- **receptive** → `governing-thought-memo` (lead with the answer, grouped support).
+Read `knowledge/mckinsey-templates.yaml` (9 templates) — and **read `mckinsey-deliverable-anatomy.md` (co-located here)**: the real McKinsey deliverable anatomy EXTRACTED FROM ACTUAL REPORTS (the In-Brief box, action-title exhibit captions + source footers, the "where to start" block, the methodology/appendix, the author box). The templates are grounded in it (`grounded_in` cites the real reports); render to match what McKinsey actually ships, not a guess. `--sell=<id>` selects one; `--sell=auto` (default) picks by `--audience` + the deliverable kind:
+- **receptive memo** → `governing-thought-memo` (lead with the answer, grouped support).
 - **skeptical** → `scr-storyline` or `scqa-memo` (argument-led; walk them from shared context to the answer).
-- A presentation → `action-titled-deck`; a board paper → `pyramid-doc`; a time-poor exec → `exec-one-pager`.
+- A presentation → `action-titled-deck`; a board paper → `pyramid-doc`; a time-poor exec one-pager → `exec-one-pager`; a **boxed C-suite summary** → `executive-briefing`.
+- A **deep evidence-heavy fact base** → `mgi-research-report`; a **short thought-leadership / trend / survey piece** → `insights-article`.
 
-Each template gives a `structure` (the ordered skeleton) + `rules` (the McKinsey standards the IR must satisfy) + a `default_format`. **Apply the rules to the IR before rendering** — they are non-negotiable:
+Each template gives a `structure` (the ordered skeleton) + `rules` (the McKinsey standards the IR must satisfy) + a `default_format` + `grounded_in` (its real-report provenance). **Apply the rules to the IR before rendering** — they are non-negotiable:
 - **Governing-thought-first (Minto Pyramid)** — the answer is the first thing; everything else supports it.
-- **Action titles** — every section header is a full declarative sentence; read top-to-bottom, the titles ARE the storyline (the deck's elevator test).
-- **MECE key line** — the supports don't overlap and are collectively exhaustive.
-- **APK guard** — lead with the answer; never tell the story-of-the-search (problem → all the analyses → … → answer). The reader wants the answer first; analysis is support, surfaced as needed.
+- **The In-Brief box** — for report/briefing templates, lead with a boxed 3-5-bullet summary (answer first), DISTINCT from the exec summary (the real McKinsey "In Brief").
+- **Action titles — genre-matched** — for ANALYTICAL/RECOMMENDATION deliverables, every section header is a full declarative sentence AND **every quantitative exhibit caption is itself an action-title conclusion** ("Technology giants dominate investment in AI"); read top-to-bottom the titles ARE the storyline. **For survey/trend pieces (`insights-article`), TOPIC-LABEL headers are correct** — match header style to genre (the v2.1 grounding fix).
+- **Source footer** — every quantitative exhibit/claim carries a source line ("Source: <data>; McKinsey analysis").
+- **MECE key line** — 2-5 supports (3 optimal), non-overlapping + collectively exhaustive; "don't boil the ocean."
+- **The "where to start" block** — end with a NAMED implications/act-now section (next actions, owner + date), not just a conclusion.
+- **APK guard** — lead with the answer; never tell the story-of-the-search. The reader wants the answer first; analysis is support, surfaced as needed.
 - **so-what** — every observation must imply an action, or it's not an insight (`/think so-what`).
 - **pre-wire** — the deliverable matches what was agreed at CP-PREWIRE; nothing in it is a surprise.
+- **(mgi-research-report)** carry the **methodology/technical appendix + the survey-N** + the **city-tagged author box** — the rigor that earns the authority.
 
 ## The storyline was built at STRUCTURE — Sell FILLS it, never invents it
 
@@ -73,4 +78,4 @@ The final deliverable is written alongside `communication.md` in the run folder 
 
 ## References
 
-`knowledge/mckinsey-templates.yaml` (the 6 templates) · `06-ai-ops/skills/deepask/format/SKILL.md` + `deepask/aesthetic/SKILL.md` (the render engine) · `scripts/design-system/resolve-style.cjs` + `scripts/deepask/art-style.cjs` (the design resolvers) · Minto (1987) *The Pyramid Principle* · Garrette/Phelps/Sibony (2018) *Cracked It!* Ch 10 (pyramid / SCR / pre-wire) · Conn & McLean (2018) *Bulletproof Problem Solving* (synthesis ≠ storytelling; Exhibit 4.3 dummy exhibits at Structure).
+`knowledge/mckinsey-templates.yaml` (the 9 grounded templates) · `mckinsey-deliverable-anatomy.md` (co-located — the real anatomy extracted from actual McKinsey reports, with citations) · `06-ai-ops/skills/deepask/format/SKILL.md` + `deepask/aesthetic/SKILL.md` (the render engine) · `scripts/design-system/resolve-style.cjs` + `scripts/deepask/art-style.cjs` (the design resolvers) · Minto (1987) *The Pyramid Principle* · Garrette/Phelps/Sibony (2018) *Cracked It!* Ch 10 (pyramid / SCR / pre-wire) · Conn & McLean (2018) *Bulletproof Problem Solving* (synthesis ≠ storytelling; Exhibit 4.3 dummy exhibits at Structure).

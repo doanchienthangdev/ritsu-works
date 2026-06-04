@@ -62,6 +62,7 @@ A brainstorm narrates opinions in four stages. This engine:
 | `--art-style` | `<genre>` | none | artistic genre for visual sell formats (reuse `/deepask`) |
 | `--sources` | csv `internal,web,brain,analytics,wiki,deepask` \| `all` | `all` | scope/expand the data sweep |
 | `--format` | a `/deepask` medium | template default | the sell rendering medium |
+| `--workflow` | `off` \| `steps` \| `full` | `off` | run each high-leverage step as a dynamic multi-agent WORKFLOW (v2.1; see below) |
 
 ### The two modes
 
@@ -96,6 +97,22 @@ Every carried one-day answer must **name the single analysis that would prove it
 ### Thorough data sweep (never 1–2 shallow areas)
 
 Sweep the relevant source **CLASSES** for real (route via the data-routing table): internal **deepask / wiki_ask / gbrain / supabase-ops / analytics** + external **deep-research / web** + **ask-user** for what only the founder holds. At CP-PREWIRE run the **completeness-critic** (mirrors `deepask/completeness-critic`): *"which source CLASS did we NOT consult? what's unverified? what gap needs founder input?"* → consult it, ask-user (a hitl receipt), or carry an explicit assumption + sensitivity. Write the **COVERAGE** statement into the CP-PREWIRE checkpoint row: `internal[deepask✓ wiki✓ brain✓ supabase✓ analytics✓] external[web ✓/—] gaps[…] → remedy`. `--sources` scopes the sweep.
+
+### Dynamic workflows (`--workflow`) — orchestrate each step as a multi-agent fan-out (v2.1)
+
+When `--workflow=steps|full`, the high-leverage steps run as a **Claude Code dynamic Workflow** (the Workflow tool — a script that orchestrates many subagents in parallel), pushing each step's quality far above a single-agent pass. **Setting `--workflow` IS the explicit opt-in the Workflow tool requires.**
+
+**The load-bearing constraint (from the workflow runtime):** a workflow takes **NO mid-run user input** — *"for sign-off between stages, run each stage as its own workflow."* This composes exactly with the checkpoint model: each **STEP runs as its own workflow** (heavy parallel work, no HITL inside); the **CHECKPOINTS between steps stay in the active session**, where the main agent presents the workflow's output and (interactive mode) brainstorms with the founder. **Workflow output is EVIDENCE, not a decision** — run it through the validation gate like any datum; a fan-out judge-panel must NOT launder a verdict past the gate (the `evidence-not-decider` discipline already applied to `/deepask`).
+
+**Per-step workflow patterns** (author the workflow INLINE via the Workflow tool per the shape below; pre-baked saved `.claude/workflows/` scripts are a v2.2 follow-up once exercised on real runs):
+- **CP-HYPOTHESIZE → judge-panel of competing hypotheses.** `parallel()` N agents, each generating a candidate answer from a different angle (MVP-first / risk-first / contrarian / customer-first); dedup; keep ≥3 mutually-exclusive, each routed to disconfirm.
+- **Solve data-sweep → multi-modal sweep + adversarial verify.** `parallel()` one agent per source CLASS (deepask / wiki / brain / supabase / analytics / web); then per datum a `parallel()` adversarial-verify panel runs the validation gate (knock-out → degree → causation → sensitivity → triangulation) and votes — mirrors `/deep-research`'s cross-check-and-vote.
+- **CP-DISSENT → perspective-diverse red-team.** `parallel()` N independent agents each try to REFUTE the answer (find the falsifier); if ≥majority refute → the answer is fragile → back to Solve.
+- **Sell → judge-panel of drafts.** `parallel()` draft N deliverables (different templates/angles); judge against the McKinsey-template `rules`; synthesize from the winner, grafting the best of the runners-up.
+
+**Levels + cost.** `off` (default) = solo agent (no workflow). `steps` = workflows at hypothesize / solve-sweep / dissent / sell. `full` = every step that benefits. `--depth` scales the fan-out (`quick` skips workflows; `deep` ⇒ `full`). Workflows spawn many agents (16 concurrent / 1000 max per run) → use only when `--workflow` is set; gauge cost on a small slice first.
+
+**Audit annotation.** When a step used a workflow, tag its `checkpoint-log.md` row `workflow:<step>` (e.g. `workflow:dissent`) — an auditable trail of where the heavy orchestration ran (discipline-not-proof, like the `[H<n>]` receipt; NOT gated, since the run folder can't see the Workflow runtime).
 
 ## Run setup
 

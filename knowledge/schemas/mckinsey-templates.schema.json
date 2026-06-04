@@ -13,7 +13,7 @@
       "description": "The McKinsey Sell STRUCTURE templates. The brand/design layer is orthogonal (--style); a template carries NO color/brand token — enforced at L2 by validate-mckinsey-templates.cjs FORBIDDEN_BRAND_KEYS.",
       "items": {
         "type": "object",
-        "required": ["id", "name", "when_to_use", "audience", "structure", "rules", "default_format"],
+        "required": ["id", "name", "when_to_use", "audience", "structure", "rules", "default_format", "grounded_in"],
         "additionalProperties": true,
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "kebab id; the --sell=<id> value." },
@@ -22,7 +22,9 @@
           "audience": { "type": "string", "enum": ["receptive", "skeptical", "both"] },
           "structure": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "description": "The ordered McKinsey skeleton sections (prose)." },
           "rules": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "description": "The McKinsey standards the IR must satisfy (pyramid, action titles, MECE, SCR/SCQA, APK, pre-wire, so-what)." },
-          "default_format": { "type": "string", "minLength": 1, "description": "The default deepask/format medium for this template (article/pdf/pptx/html/...)." }
+          "default_format": { "type": "string", "minLength": 1, "description": "The default deepask/format medium for this template (article/pdf/pptx/html/...)." },
+          "grounded_in": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "description": "v2.1: REQUIRED citation(s) to the REAL McKinsey report(s) this template's structure was extracted from — the 'not guessed' anchor (full anatomy in mckinsey-sell/mckinsey-deliverable-anatomy.md)." },
+          "components": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "v2.1 (optional): the ordered real-anatomy component ids for report-type templates (preface/in-brief/exec-summary-scr/...)." }
         }
       }
     }
