@@ -32,18 +32,19 @@ disable-model-invocation: false
 
 `knowledge/dataviz-renderers.yaml` (split registry, mirror image-adapters): **`svg-native`** (default, installed — the zero-dep pure-Node SVG renderer); `echarts-ssr` + `vega-lite` are registered-not-built stubs (the engine fallbacks). Adding a renderer = a registry row + a generator + a skill — no command-code change.
 
-## The chart-type set (v0.2 — 27 built across all six families)
+## The chart-type set (v0.3 — 60 built across all six families)
 
-The full taxonomy + per-type metadata is `scripts/dataviz/lib/taxonomy.cjs` (the source of truth for `BUILT` + the selector's knowledge base; ~74 types catalogued, every type from the Datylon catalog).
+The full taxonomy + per-type metadata is `scripts/dataviz/lib/taxonomy.cjs` (the source of truth for `BUILT` + the selector's knowledge base; 74 types catalogued, every type from the Datylon catalog).
 
-- **Comparison:** `bar` `column` `grouped` `lollipop` `dot` `dumbbell` `slope` `radar` `quadrant` (2×2) `bullet` (vs-target)
-- **Correlation:** `scatter` `bubble` (3 measures) `heatmap`
-- **Part-to-whole:** `stacked` `stacked100` `pie` `donut` `marimekko` (mekko) `diverging` (Likert) `funnel`
-- **Change over time:** `line` `area` `stacked-area` (+ `waterfall` bridge)
-- **Distribution:** `histogram` `box`
-- **KPI:** `kpi` (big-number callout)
+- **Comparison (14):** `bar` `column` `grouped` `lollipop` `dot` `dumbbell` `slope` `radar` `quadrant` (2×2) `bullet` (vs-target) `small-multiples` `range` `matrix-chart` `table-chart`
+- **Correlation (5):** `scatter` `bubble` (3 measures) `heatmap` `connected-scatter` `hexbin`
+- **Part-to-whole (14):** `stacked` `stacked100` `pie` `donut` `marimekko` (mekko) `diverging` (Likert) `funnel` `waffle` `treemap` `population-pyramid` `sunburst` `dendrogram` `venn` `semicircle-donut`
+- **Change over time (11):** `line` `area` `stacked-area` `waterfall` (bridge) `bump` `spline` `step-line` `gantt` `candlestick` `ohlc` `barcode`
+- **Distribution (9):** `histogram` `box` `density` `ridgeline` `violin` `strip` `jitter` `beeswarm` `horizon`
+- **Flow (6):** `sankey` `chord` `arc` `network` `flowchart` `tile-map`
+- **KPI (1):** `kpi` (big-number callout)
 
-**Cataloged-but-not-built** (named in the taxonomy; the selector maps to the nearest built type + an honest reason): treemap, sankey, sunburst, gantt, small-multiples, waffle, candlestick, choropleth, violin, … (47 in total — anti-McKinsey decorations, heavy graph/map topology, or v-next renderers). **pie/donut are built but McKinsey-DEMOTED** — auto-mode renders a ranked bar; force with `--chart=pie`.
+**Only 14 stay cataloged-but-not-built** (selector maps to the nearest built + an honest reason): **10 anti-McKinsey** (radial-bar, nightingale, pictogram, icon-chart, icon-array, word-cloud, gauge, stream, parallel-coordinates, radial-histogram) + **4 infeasible in a pure zero-dep renderer** (choropleth/geo-heatmap need real boundary polygons; contour needs a continuous-field/marching-squares engine; euler needs general set geometry). **pie/donut are built but McKinsey-DEMOTED** — auto-mode renders a ranked bar; force with `--chart=pie`. **Output wordmark = the Ritsu brand** (the "McKinsey" label is the design *discipline*, not the output brand); `--style=<ds>` overrides it with the design-system name.
 
 ## The McKinsey discipline (the renderer encodes; do NOT override)
 

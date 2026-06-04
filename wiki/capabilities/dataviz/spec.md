@@ -1,6 +1,6 @@
-# Capability spec — `dataviz` (v0.2)
+# Capability spec — `dataviz` (v0.3)
 
-> **Status:** operating · **Version:** 0.2.0 · **Pillar:** 06-ai-ops · **Tier:** A (pure
+> **Status:** operating · **Version:** 0.3.0 · **Pillar:** 06-ai-ops · **Tier:** A (pure
 > compute; no money, no external surface, no secret/API key) · **Cost-bucket:** `ai-ops-dataviz`
 > · **Decision:** `ops.decisions` slug `dataviz-v0.2-chart-library-and-smart-select`
 > (extend; v0.1 = `dataviz-capability-v0.1`).
@@ -12,18 +12,26 @@ type, renders a McKinsey-grade exhibit as byte-stable SVG, and brands it via the
 in-process Node with zero dependencies (no d3 [ESM-only], no canvas/DOM, no network); the only
 LLM cost is the *calling* agent authoring `--message`/`--data` (its own budgeted task_kind).
 
-## 1. What v0.2 adds (the extend)
+## 1. What v0.3 adds (the extend) — and the v0.2 baseline
 
-1. **27 built chart types** (was 9) across all six chart families — see §3.
-2. **An intelligent, context-aware selector** (the emphasized deliverable) — a complete chart
+**v0.3 (this version):** **+33 built chart types → 60 total** (the remaining feasible,
+non-anti-McKinsey Datylon forms), so only **14 stay cataloged** (10 anti-McKinsey + 4
+infeasible in a pure zero-dep renderer) — see §3. New `lib/svg.cjs` primitives
+(`splinePath`, `bezierH`, `hexPath`, `squarify`, `jitterOffset`) + selector auto-trigger
+rules for the new types + a `dispatch-coverage` invariant (every built type must have a
+real renderer). **De-branded** the default output wordmark (`McKinsey & Company` → `Ritsu`;
+`--style=<ds>` still overrides it with the design-system name) — the McKinsey name stays the
+design *discipline*, never the output brand.
+
+**v0.2 baseline (carried forward):**
+1. **The intelligent, context-aware selector** (the emphasized deliverable) — a complete chart
    taxonomy + a multi-factor decision engine that returns the best chart **with an explained
    rationale, runner-up alternatives, anti-pattern warnings, and a confidence** — see §4.
-3. **5 new flags** — `--explain --audience --target --x-label --y-label` — see §5.
+2. **5 flags** — `--explain --audience --target --x-label --y-label` — see §5.
 
-Backward compatible: the 9 v0.1 types render byte-identically; the McKinsey discipline is
-unchanged; `--chart=auto` still demotes pie→bar (now as a *selector discipline*, since pie is
-buildable). Three v0.1 *fallback* outcomes intentionally improve (marimekko/bubble/histogram
-now render natively).
+Backward compatible: the 27 prior types render byte-identically; the McKinsey discipline is
+unchanged; `--chart=auto` still demotes pie→bar (a *selector discipline*, since pie is
+buildable).
 
 ## 2. Architecture (components)
 
@@ -49,20 +57,22 @@ zeros stripped, `-0` normalized, locale-independent); attribute order fixed; no
 ## 3. The chart-type taxonomy (`lib/taxonomy.cjs`)
 
 ~74 types catalogued (every type from the Datylon catalog), each tagged `family · built ·
-fallback · mckinsey-stance · intents · needs`. **27 BUILT:**
+fallback · mckinsey-stance · intents · needs`. **60 BUILT (v0.3):**
 
-- **Comparison:** bar · column · grouped · lollipop · dot · dumbbell · slope · radar · quadrant · bullet
-- **Correlation:** scatter · bubble · heatmap
-- **Part-to-whole:** stacked · stacked100 · pie · donut · marimekko · diverging · funnel
-- **Change over time:** line · area · stacked-area · waterfall
-- **Distribution:** histogram · box
-- **KPI:** kpi
+- **Comparison (14):** bar · column · grouped · lollipop · dot · dumbbell · slope · radar · quadrant · bullet · small-multiples · range · matrix-chart · table-chart
+- **Correlation (5):** scatter · bubble · heatmap · connected-scatter · hexbin
+- **Part-to-whole (14):** stacked · stacked100 · pie · donut · marimekko · diverging · funnel · waffle · treemap · population-pyramid · sunburst · dendrogram · venn · semicircle-donut
+- **Change over time (11):** line · area · stacked-area · waterfall · bump · spline · step-line · gantt · candlestick · ohlc · barcode
+- **Distribution (9):** histogram · box · density · ridgeline · violin · strip · jitter · beeswarm · horizon
+- **Flow (6):** sankey · chord · arc · network · flowchart · tile-map
+- **KPI (1):** kpi
 
-**47 CATALOGED-but-not-built** (named; the selector maps to the nearest built type + an honest
-reason): small-multiples, treemap, sankey, sunburst, gantt, waffle, candlestick, choropleth,
-violin, radial-bar, nightingale, parallel-coordinates, word-cloud, … — anti-McKinsey
-decoration, heavy graph/map topology, or v-next renderers. This is the honest, documented
-non-goal boundary (the v0.1 pattern, kept).
+**14 CATALOGED-but-not-built (v0.3)** (named; the selector maps to the nearest built type + an
+honest reason): **10 anti-McKinsey** (radial-bar, nightingale, pictogram, icon-chart, icon-array,
+word-cloud, gauge, stream, parallel-coordinates, radial-histogram) + **4 infeasible in a pure
+zero-dep renderer** (choropleth + geo-heatmap need real boundary polygons; contour needs a
+continuous-field/marching-squares engine; euler needs general set geometry). This is the honest,
+documented non-goal boundary — everything else (33 types) was built in v0.3.
 
 ## 4. The intelligent selector — the "smart" core
 
@@ -105,15 +115,19 @@ series:[{name(row),values}]}`; bullet = `{measures:[{label,value,target,max?}]}`
 
 ## 7. Testing + non-goals
 
-All-Edge-Cases unit tests (167+ cases): each of 27 renderers (valid SVG, no-NaN on empty/
-degenerate/wrong-shape data, byte-stability, source-footer); each selector intent + guard-rail
-+ alternatives + confidence + context + boundaries; taxonomy invariants (built/cataloged,
-fallbacks built, families, stances); the polar/arc primitives; the new params.
+All-Edge-Cases unit tests (188 dataviz cases): each of the 60 renderers (valid SVG, no-NaN on
+empty/degenerate/wrong-shape data, byte-stability, source-footer); a `dispatch-coverage`
+invariant (every built type maps to a real renderer — caught `beeswarm` silently falling back
+to bar); each selector intent + guard-rail + alternatives + confidence + context + boundaries;
+taxonomy invariants (built/cataloged, fallbacks built, families, stances); the polar/arc/
+spline/hex/squarify primitives; the new params.
 
 Non-goals (honest): no text-measurement engine → dense-label de-collision is out of scope;
-PNG/PDF raster is a stretch (svg/html/inline now); the 47 cataloged types are not rendered
-(map to nearest built + warn); geospatial maps + graph/flow topology (sankey/chord/network/
-choropleth) are out of scope for a zero-dep byte-stable renderer.
+PNG/PDF raster is a stretch (svg/html/inline now); the **14 cataloged** types are not rendered
+(map to nearest built + warn) — 10 anti-McKinsey + 4 infeasible in a pure zero-dep byte-stable
+renderer (choropleth/geo-heatmap need boundary polygons; contour needs a continuous-field
+engine; euler needs general set geometry). Graph/flow topology now renders deterministically
+(sankey/chord/arc/network/flowchart via fixed layouts — no force simulation).
 
 ## 8. Versioning
 
@@ -121,3 +135,4 @@ choropleth) are out of scope for a zero-dep byte-stable renderer.
 |---|---|---|
 | 0.1.0 | 2026-06-04 | Initial — 9 chart types, the Zelazny selector, the pure byte-stable renderer, the McKinsey discipline. |
 | 0.2.0 | 2026-06-04 | **Extend** — 27 built chart types (all six families) + the intelligent, context-aware, explainable selector (taxonomy-driven) + 5 flags. wiki spec promoted (v0.1 gap filled). |
+| 0.3.0 | 2026-06-04 | **Extend** — 60 built chart types (+33: the remaining feasible, non-anti-McKinsey Datylon forms); only 14 stay cataloged (10 anti-McKinsey + 4 infeasible-in-pure-renderer). New svg primitives (spline/bezier/hex/squarify/jitter) + selector auto-rules + dispatch-coverage invariant. **De-branded** the default output wordmark to the Ritsu brand. 188 tests. |

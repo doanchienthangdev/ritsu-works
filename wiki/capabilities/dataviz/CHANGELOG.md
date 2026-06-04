@@ -1,5 +1,38 @@
 # CHANGELOG — capability `dataviz`
 
+## v0.3.0 — 2026-06-04 (extend, SOP-AIOPS-001-extend)
+
+**"Near-complete chart library + de-branded output."** `/cla extend dataviz`, self-shipped.
+
+### Added
+- **+33 built chart types → 60 total** (the remaining feasible, non-anti-McKinsey Datylon
+  forms): `small-multiples`, `range`, `matrix-chart`, `table-chart`, `connected-scatter`,
+  `hexbin`, `waffle`, `treemap`, `population-pyramid`, `sunburst`, `dendrogram`, `venn`,
+  `semicircle-donut`, `bump`, `spline`, `step-line`, `gantt`, `candlestick`, `ohlc`,
+  `barcode`, `density`, `ridgeline`, `violin`, `strip`, `jitter`, `beeswarm`, `horizon`,
+  `sankey`, `chord`, `arc`, `network`, `flowchart`, `tile-map`. All pure, byte-stable,
+  never-throw, deterministic-layout.
+- New `lib/svg.cjs` primitives: `splinePath`, `bezierH`, `hexPath`, `squarify`, `jitterOffset`.
+- Selector auto-trigger rules for the new types (+ a `dispatch-coverage` invariant test:
+  every built type must have a real renderer — caught `beeswarm` silently falling back to bar).
+- +~50 tests (188 dataviz total).
+
+### Changed
+- **De-branded the default output wordmark**: `McKinsey & Company` → `Ritsu` (`render.cjs`
+  `frame()`). The "McKinsey" name remains the design *discipline*, never the output brand;
+  `--style=<ds>` still overrides the wordmark with the design-system name.
+- Taxonomy: flipped the 33 from `cataloged` → `built`; only **14 stay cataloged** — 10
+  anti-McKinsey (radial-bar/nightingale/pictogram/icon-chart/icon-array/word-cloud/gauge/
+  stream/parallel-coordinates/radial-histogram) + 4 infeasible in a pure zero-dep renderer
+  (choropleth/geo-heatmap need boundary polygons; contour needs a continuous-field engine;
+  euler needs general set geometry). Infeasible fallbacks repointed (choropleth/geo-heatmap→
+  tile-map, euler→venn). `dataviz-renderers.yaml` 1.1.0→1.2.0.
+
+### Unchanged
+- The 27 prior types render byte-identically; the McKinsey discipline (one-highlight, data-ink,
+  zero-baseline, direct labels, source-footer, structure ⊥ brand); pure/offline, Tier A, ~$0.
+
+
 ## v0.2.0 — 2026-06-04 (extend, SOP-AIOPS-001-extend)
 
 **"Many charts + an intelligent, context-aware selector."** `/cla extend dataviz`,

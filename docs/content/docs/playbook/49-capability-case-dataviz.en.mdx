@@ -1,15 +1,15 @@
 ---
-title: "Chương 49 — Capability Case Study: dataviz (`/dataviz` — 27 loại chart + bộ chọn thông minh)"
-description: "Chương 49 — Capability Case Study: dataviz (`/dataviz` — 27 loại chart + bộ chọn thông minh)"
+title: "Chương 49 — Capability Case Study: dataviz (`/dataviz` — bộ chọn thông minh + 60 loại chart)"
+description: "Chương 49 — Capability Case Study: dataviz (`/dataviz` — bộ chọn thông minh + 60 loại chart)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/49-capability-case-dataviz.md
-source_hash: e763b38ac3e1be008e3345e72800f90af248324fcbd70caef628329ba21af740
-generated_at: '2026-06-04T15:36:45.192Z'
+source_hash: ef25c3a55f870f58b1413c8a2a65750d20f7d749617fab3ffce064c785b612d9
+generated_at: '2026-06-04T16:39:12.702Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: e763b38ac3e1be008e3345e72800f90af248324fcbd70caef628329ba21af740
-translated_at: '2026-06-04T15:36:45.192Z'
+translated_source_hash: ef25c3a55f870f58b1413c8a2a65750d20f7d749617fab3ffce064c785b612d9
+translated_at: '2026-06-04T16:39:12.702Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 49
 ---
@@ -75,3 +75,15 @@ Chạy `/cla extend dataviz` (SOP-AIOPS-001-extend), tự-ship theo pattern `/im
 4. **Pure + byte-stable là tính-năng, không phải gò-bó.** Không d3/canvas/DOM → chạy ngay trong CI/worktree, deterministic, không native build; mọi số qua `fmt()` → diff git sạch.
 
 **Vì sao quan trọng cho mckinsey:** `/think mckinsey` (`mckinsey-sell`) gọi `/dataviz` cho mỗi exhibit — action-title là `--message`. Bộ chọn thông-minh + 27 loại (gồm các chữ-ký McKinsey: marimekko, waterfall, dumbbell, slope, bullet, diverging, 2×2, bubble) nâng chất-lượng MỌI deliverable McKinsey ở chi-phí biên ~$0. Chọn biểu-đồ làm-bật điểm, không chỉ *một* biểu-đồ.
+
+## 49.9 Postscript — v0.3: gần-trọn thư-viện (60 loại) + de-brand output
+
+Một `/cla extend` thứ hai (cùng pattern tự-ship) đóng nốt khoảng-trống "build thêm các loại còn thiếu". Ba việc:
+
+1. **+33 renderer → 60 loại built**, phủ những loại Datylon *khả-thi & không-anti-McKinsey* còn lại: `small-multiples · range · matrix-chart · table-chart · connected-scatter · hexbin · waffle · treemap · population-pyramid · sunburst · dendrogram · venn · semicircle-donut · bump · spline · step-line · gantt · candlestick · ohlc · barcode · density · ridgeline · violin · strip · jitter · beeswarm · horizon · sankey · chord · arc · network · flowchart · tile-map`. Tất cả vẫn pure, byte-stable, never-throw, **layout deterministic** (network = bố-cục tròn cố-định, KHÔNG force-simulation; jitter qua `jitterOffset` dựa `Math.sin` — không `Math.random`). Thêm 5 primitive `lib/svg.cjs` (`splinePath · bezierH · hexPath · squarify · jitterOffset`) + auto-trigger rule cho từng loại mới + một test bất-biến **`dispatch-coverage`** (mọi loại built PHẢI có renderer thật — bắt được `beeswarm` âm-thầm rơi về bar).
+
+2. **Chỉ còn 14 loại cataloged** (từ 47): **10 anti-McKinsey** (radial-bar/nightingale/pictogram/icon-chart/icon-array/word-cloud/gauge/stream/parallel-coordinates/radial-histogram) + **4 bất-khả-thi trong renderer pure zero-dep** (choropleth/geo-heatmap cần boundary polygon; contour cần continuous-field engine; euler cần general set geometry). Đây là ranh-giới non-goal *trung-thực, có-tài-liệu* — phần còn lại đã build hết.
+
+3. **De-brand output:** wordmark mặc-định `McKinsey & Company` → **`Ritsu`** (`render.cjs frame()`). Tên "McKinsey" vẫn là *kỷ-luật thiết-kế*, không bao giờ là *brand* trên ảnh; `--style=<ds>` vẫn override wordmark bằng tên design-system. Báo-cáo "test mọi loại" v0.3 render cả **60/60 loại qua HAI design system** (default + `--style=ritsu`) trong cùng một file — minh-hoạ trục structure ⊥ brand.
+
+**188 test xanh.** `/dataviz` **v0.3.0 operating**. Bài học #1 không đổi — *build cái bộ-não, đừng build 90 cái tay* — nhưng v0.3 cho thấy mặt còn lại: khi một loại *thực sự* khả-thi và không-anti-pattern, build nó (deterministic, byte-stable) còn rẻ hơn là mãi map-về-gần-nhất. Ranh-giới đúng không phải "9 hay 90", mà là *"loại nào nâng được thông-điệp mà vẫn giữ được kỷ-luật pure/McKinsey"* — và câu trả lời hoá ra là 60.

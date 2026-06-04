@@ -48,6 +48,8 @@ const RULES = [
   { id: 'marimekko', fn: (m, h) => has(m, /\b(size\s+(and|x|×|by)\s+share|market size.*share|by segment and by (player|competitor|region)|two (share|size) dimensions|mekko|marimekko)\b/) },
   // three measures → bubble; exactly two → scatter.
   { id: 'bubble', fn: (m, h) => h.n_measures >= 3 || h.has_size || has(m, /\bbubble\b/) },
+  // connected-scatter must beat the bare-"scatter" rule below.
+  { id: 'connected-scatter', fn: (m) => has(m, /\b(connected[-\s]?scatter|connected[-\s]?dot plot)\b/) },
   { id: 'scatter', fn: (m, h) => h.n_measures === 2 || has(m, /\b(correlat|relationship between|relates to|varies with|the more.*the (more|less)|as\s+\S+\s+(rises|increases|grows).*(rises|falls|increases|decreases)|driven by|scatter)\b/) },
   // multi-dimensional profile → radar.
   { id: 'radar', fn: (m, h) => has(m, /\b(radar|spider chart|across (several |multiple )?(dimensions|attributes|criteria|capabilities)|capability profile|strengths? and weakness|multi[-\s]?dimensional profile|on \d+ (dimensions|criteria|attributes))\b/) },
@@ -63,6 +65,40 @@ const RULES = [
   { id: 'stacked100', fn: (m, h) => (h.has_time_axis || has(m, /\b(over time|since|trend|by (year|quarter|month)|\b(19|20)\d{2}\b)\b/)) && has(m, /\b(share|%|percent|proportion|composition|breakdown|mix|split)\b/) },
   // leader-vs-laggard triad → grouped/paired bars.
   { id: 'grouped', fn: (m, h) => (h.n_series || 1) >= 2 && has(m, /\b(winners?|laggards?|high[-\s]?performers?|leaders?|top performers?|best[-\s]?in[-\s]?class).*(vs\.?|versus|compared|against|than)|(vs\.?|versus).*(others?|laggards?|rest|all)\b/) },
+  // ── v0.3 new types: specific triggers (chart-name + a natural phrase) — placed after
+  //    the established rules + before component/timeseries/item, so a named/graph/
+  //    financial/hierarchy intent wins WITHOUT stealing the generic-word cases above. ──
+  { id: 'population-pyramid', fn: (m) => has(m, /\b(population pyramid|age[-\s]?sex|by age and (gender|sex)|age structure)\b/) },
+  { id: 'gantt', fn: (m) => has(m, /\b(gantt|project (timeline|schedule|plan)|task schedule|timeline of (tasks|the project)|task durations?)\b/) },
+  { id: 'ohlc', fn: (m) => has(m, /\b(ohlc|open[\/-]high[\/-]low[\/-]close)\b/) },
+  { id: 'candlestick', fn: (m) => has(m, /\b(candlestick|candle chart|price action|price movement)\b/) },
+  { id: 'sankey', fn: (m) => has(m, /\b(sankey|flow of \w+ (from|between|into)|value flows? (from|between)|where (the |our )?\w+ (go|goes|flow|flows))\b/) },
+  { id: 'chord', fn: (m) => has(m, /\b(chord diagram|flows? between all|circular flow)\b/) },
+  { id: 'network', fn: (m) => has(m, /\b(network (diagram|graph|map)|graph of (connections|relationships)|node[-\s]?link|who (connects|links) to)\b/) },
+  { id: 'arc', fn: (m) => has(m, /\b(arc diagram)\b/) },
+  { id: 'flowchart', fn: (m) => has(m, /\b(flow ?chart|process (flow|map|steps)|decision (flow|tree)|workflow (steps|diagram))\b/) },
+  { id: 'treemap', fn: (m) => has(m, /\b(tree ?map|nested rectangles|hierarch\w+ (composition|breakdown|of size)|nested (folder|file) sizes)\b/) },
+  { id: 'sunburst', fn: (m) => has(m, /\b(sunburst|radial hierarchy|nested rings)\b/) },
+  { id: 'dendrogram', fn: (m) => has(m, /\b(dendrogram|clustering tree|hierarchical clustering|cluster (tree|hierarchy))\b/) },
+  { id: 'venn', fn: (m) => has(m, /\b(venn|overlap between (the )?(sets|groups|segments)|set intersection)\b/) },
+  { id: 'waffle', fn: (m) => has(m, /\b(waffle|\d+ (out of|in) (every )?100|squares? (chart|grid))\b/) },
+  { id: 'tile-map', fn: (m) => has(m, /\b(tile[-\s]?(grid )?map|grid map|tile grid|by (state|region|country|province) (grid|tiles?))\b/) },
+  { id: 'small-multiples', fn: (m) => has(m, /\b(small multiples?|trellis|one (chart|panel|plot) per|faceted|panel grid)\b/) },
+  { id: 'bump', fn: (m) => has(m, /\b(bump chart|rankings? (change|shift)s? (over|across) (the )?(time|periods|years|quarters|seasons)|how (the )?ranking changes)\b/) },
+  { id: 'density', fn: (m) => has(m, /\b(density (plot|curve|chart)|probability density|kde|distribution (curve|shape))\b/) },
+  { id: 'violin', fn: (m) => has(m, /\bviolin\b/) },
+  { id: 'ridgeline', fn: (m) => has(m, /\b(ridgeline|joy plot|stacked distributions)\b/) },
+  { id: 'strip', fn: (m) => has(m, /\b(strip plot|individual (data )?points|raw data points)\b/) },
+  { id: 'jitter', fn: (m) => has(m, /\b(jitter|beeswarm|swarm plot)\b/) },
+  { id: 'barcode', fn: (m) => has(m, /\bbarcode\b/) },
+  { id: 'hexbin', fn: (m) => has(m, /\b(hex ?bin|hexagonal (bin|plot)|density of (many )?points)\b/) },
+  { id: 'horizon', fn: (m) => has(m, /\bhorizon chart\b/) },
+  { id: 'range', fn: (m) => has(m, /\b(range (chart|plot|bar)s?|min[-\s]?max range|range between \w+ and \w+|low (to|and) high)\b/) },
+  { id: 'matrix-chart', fn: (m) => has(m, /\b(matrix chart|presence matrix|matrix of (presence|relationships)|which \w+ (have|has) which)\b/) },
+  { id: 'table-chart', fn: (m) => has(m, /\b(table chart|data table|conditionally[-\s]?formatted table|table with heat)\b/) },
+  { id: 'semicircle-donut', fn: (m) => has(m, /\b(semicircle|half[-\s]?donut|gauge[-\s]?style (share|donut))\b/) },
+  { id: 'spline', fn: (m) => has(m, /\b(spline|smoothed (trend|line|curve))\b/) },
+  { id: 'step-line', fn: (m) => has(m, /\b(step (line|chart)|step[-\s]?wise|right[-\s]?angle steps)\b/) },
   // part-to-whole, single period → pie (auto-demoted to bar by the guard-rail).
   { id: 'component', fn: (m, h) => has(m, /\b(share|%|percent|of total|composition|portion|accounts for|makes up|breakdown|split of|proportion|part of (the )?whole)\b/) },
   // real time axis → column (few) | line (many/multi) | area (magnitude).
@@ -152,6 +188,16 @@ const ALTS = Object.freeze({
   waterfall: ['column', 'bar'], histogram: ['box', 'column'], box: ['histogram', 'column'],
   funnel: ['bar', 'column'], diverging: ['stacked100', 'bar'], bullet: ['bar', 'column'],
   radar: ['grouped', 'bar'], lollipop: ['bar', 'dot'], dot: ['bar', 'lollipop'], kpi: ['bullet', 'column'],
+  // v0.3
+  range: ['dumbbell', 'bar'], 'step-line': ['line', 'area'], spline: ['line', 'area'], barcode: ['column', 'line'],
+  strip: ['box', 'scatter'], jitter: ['box', 'scatter'], 'connected-scatter': ['scatter', 'line'], hexbin: ['scatter', 'heatmap'],
+  'semicircle-donut': ['donut', 'pie'], waffle: ['stacked100', 'pie'], 'population-pyramid': ['diverging', 'grouped'],
+  'matrix-chart': ['heatmap', 'table-chart'], 'table-chart': ['heatmap', 'matrix-chart'], bump: ['line', 'slope'],
+  gantt: ['bar', 'column'], candlestick: ['ohlc', 'column'], ohlc: ['candlestick', 'column'],
+  density: ['histogram', 'area'], ridgeline: ['density', 'area'], violin: ['box', 'histogram'], horizon: ['area', 'line'],
+  'small-multiples': ['grouped', 'line'], treemap: ['bar', 'sunburst'], sunburst: ['donut', 'treemap'], dendrogram: ['treemap', 'bar'],
+  venn: ['bar', 'stacked'], 'tile-map': ['heatmap', 'bar'], arc: ['network', 'chord'], network: ['arc', 'chord'],
+  flowchart: ['funnel', 'bar'], sankey: ['flowchart', 'bar'], chord: ['network', 'heatmap'],
 });
 function alternativesFor(ideal, chartType) {
   const seed = ALTS[ideal] || ALTS[chartType] || ['bar', 'column'];

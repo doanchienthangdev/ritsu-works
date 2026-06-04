@@ -3,7 +3,7 @@ title: 'Command: /dataviz'
 description: |
   Biến một nguồn dữ liệu thành biểu đồ chuẩn McKinsey — cửa trước model-agnostic với
   lớp renderer cắm-được (--use=<renderer>). Backend mặc định svg-native (in-repo,
-  zero-dependency, pure-Node, SVG byte-stable). v0.2: 27 loại chart đã build qua cả
+  zero-dependency, pure-Node, SVG byte-stable). v0.3: 60 loại chart đã build qua cả
   sáu họ biểu đồ + một bộ chọn THÔNG MINH, theo bối cảnh, tự chọn loại chart TỐT NHẤT
   từ message + hình-dạng-dữ-liệu + đối-tượng (Zelazny "Say It With Charts"), giải thích
   lựa chọn, đề xuất phương án thay thế, và cảnh báo anti-pattern. Mã hoá thẩm mỹ McKinsey
@@ -12,20 +12,20 @@ description: |
   Pure/offline (KHÔNG API key). Tier A; artifact ghi vào .archives/dataviz/<date>-<slug>/.
   Orchestrator mỏng trên skill umbrella `dataviz` (scripts/dataviz/gen.cjs).
 source_path: .claude/commands/dataviz.md
-source_hash: 0b6083fcfa387c018a3fd68fc0d6f4509d99fb6ce004bbff096e412e24960ab0
-generated_at: '2026-06-04T15:38:12.214Z'
+source_hash: b4994500fd3db495368d94ea8a14e0bbc5b823fa666cb7b27045d8b120f498fb
+generated_at: '2026-06-04T16:36:21.925Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_source_hash: 0b6083fcfa387c018a3fd68fc0d6f4509d99fb6ce004bbff096e412e24960ab0
-translated_at: '2026-06-04T15:40:00.000Z'
+translated_at: '2026-06-04T16:40:00.000Z'
+translated_source_hash: b4994500fd3db495368d94ea8a14e0bbc5b823fa666cb7b27045d8b120f498fb
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
 Command phạm-vi-dự-án của ritsu-works. Front-end cho capability **dataviz**
-(v0.2) — một nền-tảng data-visualization tổng-quát, dùng-lại-nhiều-lần như `/image`, nhưng
+(v0.3) — một nền-tảng data-visualization tổng-quát, dùng-lại-nhiều-lần như `/image`, nhưng
 cho **dữ-liệu → biểu-đồ**. Spec capability: `wiki/capabilities/dataviz/spec.md`.
 
 Command là một **orchestrator mỏng**. Bộ não nằm trong `scripts/dataviz/`
@@ -53,7 +53,7 @@ hội-thoại; chế-độ file ghi vào `.archives/dataviz/<date>-<slug>/`).
 |---|---|---|---|
 | `<message>` / `--message` | một câu | — | MESSAGE (Zelazny: quyết-định lựa-chọn chart VÀ trở-thành action-title) |
 | `--data` | path (.json/.csv) \| inline JSON \| inline CSV | — | dữ-liệu chuỗi (KHÔNG phải pixel) |
-| `--chart` | `auto` \| một trong 27 loại đã build | `auto` | ép một loại, hoặc để bộ chọn thông minh chọn từ `--message` + data + `--audience`. Đã build: `bar column line area stacked-area stacked stacked100 grouped scatter bubble waterfall kpi pie donut marimekko heatmap dumbbell lollipop dot slope bullet diverging histogram box funnel quadrant radar`. Một loại cataloged (treemap, sankey, …) map về loại built gần nhất + một ghi-chú trung-thực. |
+| `--chart` | `auto` \| một trong 60 loại đã build | `auto` | ép một loại, hoặc để bộ chọn thông minh chọn từ `--message` + data + `--audience`. **60 loại đã build qua 6 họ** — Comparison: `bar column grouped lollipop dot dumbbell slope radar quadrant bullet small-multiples range matrix-chart table-chart`; Correlation: `scatter bubble heatmap connected-scatter hexbin`; Part-to-whole: `stacked stacked100 pie donut marimekko diverging funnel waffle treemap population-pyramid sunburst dendrogram venn semicircle-donut`; Change-over-time: `line area stacked-area waterfall bump spline step-line gantt candlestick ohlc barcode`; Distribution: `histogram box density ridgeline violin strip jitter beeswarm horizon`; Flow: `sankey chord arc network flowchart tile-map`; cộng `kpi`. 14 loại cataloged (anti-McKinsey: radial-bar/nightingale/pictogram/icon-chart/icon-array/word-cloud/gauge/stream/parallel-coordinates/radial-histogram; + bất-khả-thi trong renderer pure: choropleth/geo-heatmap/contour/euler) map về loại built gần nhất + ghi-chú trung-thực. |
 | `--title` / `--title-style` | string / `action`\|`topic` | `--message` / `action` | override caption exhibit; topic label cho genre survey/trend |
 | `--source` | string | — | source footer bắt-buộc (`Source: <data>; McKinsey analysis` hoặc dạng survey) |
 | `--footnotes` | `a \| b \| c` | — | dòng footnote (gồm dòng `Note: …rounding` trên stacked) |
@@ -75,7 +75,7 @@ hội-thoại; chế-độ file ghi vào `.archives/dataviz/<date>-<slug>/`).
 
 1. **Chart từ MESSAGE, không từ dữ-liệu** (Zelazny). 2. **Chỉ một highlight** (phần còn-lại xám trung-tính). 3. **Data-ink tối-giản** (không gridline/legend/3D/fill). 4. **Direct data label** (không legend). 5. **Trục-giá-trị bar từ 0** (không cắt-cụt). 6. **Action-title TRÊN chart** + **source footer trên mọi exhibit**. 7. **Structure ⊥ brand** — `--style` override palette/type, không bao-giờ override cấu-trúc. Nền-tảng từ 3 báo-cáo McKinsey thật (xem `06-ai-ops/skills/dataviz/renderers/svg-native/SKILL.md` + dataviz-design-brief).
 
-## Bộ chọn thông minh (v0.2 — lõi "khôn")
+## Bộ chọn thông minh (v0.3 — lõi "khôn")
 
 `--chart=auto` (mặc-định) làm đúng việc một analyst McKinsey làm: **chọn đúng chart cho bối-cảnh NÀY, và bảo-vệ được lựa-chọn.** Dựa trên taxonomy chart đầy-đủ (`scripts/dataviz/lib/taxonomy.cjs` — mọi loại từ catalog Datylon, gắn family + message-intent + data-shape + McKinsey stance + anti-pattern), bộ chọn (`scripts/dataviz/select.cjs`, PURE):
 
@@ -96,3 +96,5 @@ hội-thoại; chế-độ file ghi vào `.archives/dataviz/<date>-<slug>/`).
 
 ## Liên quan
 `/image` (sinh raster — nền-tảng song-sinh mà cái này soi-gương) · `/deepask` (synthesis liên-hợp; route chart về đây) · `/think mckinsey` (engine McKinsey; tiêu-thụ cái này cho exhibit) · `/design-system` (registry `--style`).
+
+

@@ -141,3 +141,61 @@ describe("renderChart — malformed array elements never throw / no NaN", () => 
   it("kpi keeps string + finite-number values", () => { const s = renderChart("kpi", { stats: [{ value: "42%" }, { value: 9 }] }, SPEC, THEME); expect(s).toContain("42%"); expect(s).toContain(">9<"); });
   it("the renderChart try/catch net wraps a throwing renderer into a valid footed exhibit", () => { const s = renderChart("scatter", { get points() { throw new Error("boom"); } }, SPEC, THEME); expect(s.startsWith("<svg")).toBe(true); expect(s).toContain("Source: Internal"); });
 });
+
+// ============================================================================
+// v0.3: the remaining 33 chart types (→60 built) + the de-branded wordmark.
+// ============================================================================
+describe("renderChart — v0.3 chart types render + byte-stable + de-branded", () => {
+  const SP = { ...SPEC };
+  const PTS = { points: [{ x: 1, y: 2 }, { x: 3, y: 4 }, { x: 5, y: 1 }] };
+  const SAMP = { samples: [{ label: "G1", values: [1, 2, 3, 4, 5, 9] }, { label: "G2", values: [2, 4, 5, 7] }] };
+  const CASES: [string, any, string][] = [
+    ["range", { ranges: [{ label: "A", low: 10, high: 40 }] }, "<rect"],
+    ["step-line", { categories: ["a", "b", "c"], series: [{ name: "v", values: [1, 3, 2] }] }, "<path"],
+    ["spline", { categories: ["a", "b", "c"], series: [{ name: "v", values: [1, 3, 2] }] }, "<path"],
+    ["barcode", { values: [3, 5, 2, 8] }, "<line"],
+    ["strip", SAMP, "<circle"], ["jitter", SAMP, "<circle"],
+    ["connected-scatter", PTS, "<path"],
+    ["hexbin", { points: [{ x: 1, y: 1 }, { x: 1, y: 1 }, { x: 5, y: 5 }] }, "<path"],
+    ["semicircle-donut", { categories: ["A", "B"], series: [{ name: "m", values: [60, 40] }] }, "<path"],
+    ["waffle", { categories: ["A", "B"], series: [{ name: "m", values: [70, 30] }] }, "<rect"],
+    ["population-pyramid", { categories: ["0-18", "19+"], series: [{ name: "M", values: [30, 40] }, { name: "F", values: [28, 42] }] }, "<rect"],
+    ["matrix-chart", { categories: ["c1", "c2"], series: [{ name: "r1", values: [1, 9] }] }, "<circle"],
+    ["table-chart", { categories: ["c1", "c2"], series: [{ name: "r1", values: [1, 9] }] }, "<rect"],
+    ["bump", { categories: ["Q1", "Q2", "Q3"], series: [{ name: "A", values: [10, 30, 20] }, { name: "B", values: [20, 10, 30] }] }, "<path"],
+    ["gantt", { tasks: [{ label: "T", start: 0, end: 5 }] }, "<rect"],
+    ["candlestick", { candles: [{ label: "M", open: 10, high: 14, low: 8, close: 12 }] }, "<rect"],
+    ["ohlc", { candles: [{ label: "M", open: 10, high: 14, low: 8, close: 12 }] }, "<line"],
+    ["density", SAMP, "<path"], ["ridgeline", SAMP, "<path"], ["violin", SAMP, "<path"],
+    ["horizon", { categories: ["a", "b", "c"], series: [{ name: "v", values: [2, 5, 3] }] }, "<path"],
+    ["small-multiples", { categories: ["a", "b"], series: [{ name: "S1", values: [1, 2] }, { name: "S2", values: [3, 1] }] }, "<rect"],
+    ["treemap", { items: [{ label: "A", value: 4 }, { label: "B", value: 6 }] }, "<rect"],
+    ["sunburst", { items: [{ label: "A", value: 4 }, { label: "B", value: 6 }] }, "<path"],
+    ["dendrogram", { categories: ["l1", "l2", "l3"] }, "<line"],
+    ["venn", { sets: [{ label: "A", size: 30 }, { label: "B", size: 20 }] }, "<circle"],
+    ["tile-map", { tiles: [{ label: "CA", row: 0, col: 0, value: 9 }] }, "<rect"],
+    ["arc", { nodes: ["A", "B", "C"], links: [{ source: "A", target: "C" }] }, "<path"],
+    ["network", { nodes: ["A", "B", "C"], links: [{ source: "A", target: "B" }] }, "<circle"],
+    ["flowchart", { steps: ["A", "B", "C"] }, "<rect"],
+    ["sankey", { nodes: ["A", "B"], links: [{ source: "A", target: "B", value: 5 }] }, "<rect"],
+    ["chord", { matrix: [[0, 5], [5, 0]] }, "<path"],
+  ];
+  it("each v0.3 type renders valid SVG with its marker, byte-stable, no NaN", () => {
+    for (const [t, d, marker] of CASES) {
+      const s = renderChart(t, d, SP, THEME);
+      expect(s.startsWith("<svg")).toBe(true);
+      expect(s).toContain(marker);
+      expect(s.includes("NaN")).toBe(false); expect(s.includes("undefined")).toBe(false);
+      expect(renderChart(t, d, SP, THEME)).toBe(s);
+    }
+  });
+  it("the default wordmark is Ritsu, not 'McKinsey & Company' (de-branded)", () => { const s = renderChart("bar", BARS, SPEC, THEME); expect(s).toContain(">Ritsu<"); expect(s.includes("McKinsey")).toBe(false); });
+  it("a --style brand still overrides the wordmark", () => { const styled = buildTheme({ mode: "styled", name: "acme", tokens: { colors: { primary: "#FF0000" }, typography: {} } }, "mckinsey").theme; expect(renderChart("bar", BARS, SPEC, styled)).toContain(">acme<"); });
+});
+
+describe("renderChart — dispatch coverage (no built type silently falls back to bar)", () => {
+  // @ts-ignore
+  const { DISPATCH } = require("../../scripts/dataviz/render.cjs");
+  it("every one of the 60 BUILT types has a real dispatch function", () => { expect(BUILT.length).toBe(60); for (const t of BUILT) expect(typeof DISPATCH[t]).toBe("function"); });
+  it("beeswarm renders a value-swarm (circles), not a bar fallback", () => { const s = renderChart("beeswarm", { samples: [{ label: "g", values: [1, 2, 3, 4, 5, 6] }] }, SPEC, THEME); expect(s).toContain("<circle"); });
+});

@@ -18,7 +18,7 @@
 'use strict';
 
 const S = require('./lib/svg.cjs');
-const { fmt, rect, line, circle, text, group, polylineD, polygonD, linearScale, bandScale, niceMax, svgDoc, arcPath, ringPath, polarToCartesian } = S;
+const { fmt, rect, line, circle, text, group, polylineD, polygonD, linearScale, bandScale, niceMax, svgDoc, arcPath, ringPath, polarToCartesian, splinePath, bezierH, hexPath, squarify, jitterOffset } = S;
 const { BUILT } = require('./lib/taxonomy.cjs');   // v0.2: the taxonomy is the source of truth for the built set.
 
 // ── value formatting (data labels; distinct from fmt() which is for coordinates) ──
@@ -73,8 +73,9 @@ function frame(spec, theme) {
     const src = /^source\s*:/i.test(spec.source) ? spec.source : `Source: ${spec.source}`;
     foot += text(src, { x: PAD, y: fy, fill: theme.inkMuted, 'font-size': SRC_FS, 'font-family': theme.bodyFont });
   }
-  // wordmark lower-right (the --style logo name or the McKinsey-equivalent placeholder)
-  const mark = theme.styleName ? theme.styleName : 'McKinsey & Company';
+  // wordmark lower-right: the --style brand name, else the Ritsu brand (the charts are
+  // Ritsu's; the "McKinsey" label is the design *discipline*, never the output brand).
+  const mark = theme.styleName ? theme.styleName : 'Ritsu';
   foot += text(mark, { x: W - PAD, y: H - PAD * 0.5, fill: theme.inkMuted, 'font-size': SRC_FS, 'font-family': theme.bodyFont, 'text-anchor': 'end' });
 
   return { W, H, plot, head, foot };
@@ -329,6 +330,8 @@ const tlab = (theme, extra) => ({ fill: theme.inkMuted, 'font-size': LABEL_FS, '
 // Defensive intake: keep only real object elements (a stray null/scalar inside a
 // correctly-named array must not throw — invariant: a renderer never throws).
 const objs = (x) => (Array.isArray(x) ? x : []).filter((e) => e && typeof e === 'object');
+// Node list that accepts BOTH string ids (["A","B"]) and {name} objects.
+const nodeList = (x) => (Array.isArray(x) ? x : []).map((n) => (n && typeof n === 'object') ? String(n.name == null ? '' : n.name) : String(n == null ? '' : n)).filter((s) => s !== '');
 
 // ── AREA (magnitude over time; series[0] filled, others as lines) ──
 function renderArea(data, spec, theme, plot) {
@@ -701,6 +704,455 @@ function renderBox(data, spec, theme, plot) {
   return out;
 }
 
+// ============================================================================
+// v0.3 renderers — the remaining feasible, non-anti-McKinsey chart types (33).
+// All PURE, byte-stable, defensive (empty/degenerate/wrong-shape → valid SVG, no
+// NaN; renderChart's try/catch is the backstop). Deterministic layouts only (no
+// force-directed; no Math.random/Date — jitter via jitterOffset()).
+// ============================================================================
+const seriesColors = (theme) => [theme.highlight, theme.neutral1, theme.neutral2, theme.accent, theme.amber];
+function groupsFrom(data) {
+  // → [{label, values:number[]}] from {samples}|{groups}|{categories,series}
+  if (Array.isArray(data && data.samples)) return objs(data.samples).map((s) => ({ label: String(s.label == null ? '' : s.label), values: (s.values || []).map(Number).filter(Number.isFinite) }));
+  if (Array.isArray(data && data.groups)) return objs(data.groups).map((s) => ({ label: String(s.label == null ? '' : s.label), values: (s.values || []).map(Number).filter(Number.isFinite) }));
+  const cats = normCats(data); const series = normSeries(data);
+  if (cats.length && series.length) return cats.map((c, i) => ({ label: c, values: series.map((s) => s.values[i]).filter(Number.isFinite) }));
+  return [];
+}
+
+// ── RANGE (floating low→high bar per category) ──
+function renderRange(data, spec, theme, plot) {
+  let rows = Array.isArray(data && data.ranges) ? objs(data.ranges).map((r) => ({ label: String(r.label), low: Number(r.low) || 0, high: Number(r.high) || 0 })) : null;
+  if (!rows) { const cats = normCats(data); const s = normSeries(data); rows = cats.map((c, i) => ({ label: c, low: (s[0] && s[0].values[i]) || 0, high: (s[1] && s[1].values[i]) || 0 })); }
+  if (!rows.length) return '';
+  const all = rows.flatMap((r) => [r.low, r.high]); const max = niceMax(Math.max(0, ...all));
+  const labelW = Math.min(plot.w * 0.3, 120); const x0 = plot.x + labelW; const x = linearScale(0, max, x0, plot.x + plot.w - 40);
+  const band = bandScale(rows.length, plot.y, plot.y + plot.h, 0.4); let out = '';
+  rows.forEach((r, i) => {
+    const yy = band.pos(i); const lo = Math.min(r.low, r.high); const hi = Math.max(r.low, r.high);
+    out += rect(x(lo), yy, Math.max(0, x(hi) - x(lo)), band.bandwidth, { fill: i === 0 ? theme.highlight : theme.neutral1 });
+    out += text(r.label, { x: x0 - 8, y: yy + band.bandwidth / 2 + 4, 'text-anchor': 'end', ...tlab(theme, { fill: theme.ink }) });
+    out += text(valFmt(lo, spec), { x: x(lo) - 4, y: yy + band.bandwidth / 2 + 4, 'text-anchor': 'end', ...tlab(theme) });
+    out += text(valFmt(hi, spec), { x: x(hi) + 5, y: yy + band.bandwidth / 2 + 4, ...tlab(theme) });
+  });
+  return out;
+}
+
+// ── STEP-LINE (right-angle steps) ──
+function renderStepLine(data, spec, theme, plot) {
+  const cats = normCats(data); const series = normSeries(data);
+  const allV = series.flatMap((s) => s.values); const max = niceMax(Math.max(0, ...allV));
+  const base = plot.y + plot.h - 22; const y = linearScale(0, max, base, plot.y + 14);
+  const n = Math.max(1, cats.length - 1); const x = (i) => plot.x + (plot.w - 60) * (n === 0 ? 0 : i / n);
+  const hi = highlightIndexFor(spec, series);
+  let out = line(plot.x, base, plot.x + plot.w - 60, base, { stroke: theme.neutral1, 'stroke-width': 1 });
+  cats.forEach((c, i) => { out += text(c, { x: x(i), y: base + 14, 'text-anchor': 'middle', ...tlab(theme) }); });
+  series.forEach((s, si) => {
+    if (!s.values.length) return; const loud = hi != null ? si === hi : si === 0; const color = loud ? theme.highlight : theme.neutral1;
+    const pts = []; s.values.forEach((v, i) => { if (i > 0) pts.push([x(i), y(s.values[i - 1])]); pts.push([x(i), y(v)]); });
+    out += S.path(polylineD(pts), { fill: 'none', stroke: color, 'stroke-width': loud ? 2.5 : 1.5 });
+    const last = s.values.length - 1; out += text(`${s.name} ${valFmt(s.values[last], spec)}`, { x: x(last) + 6, y: y(s.values[last]) + 4, fill: color, ...tlab(theme, { fill: color }) });
+  });
+  return out;
+}
+
+// ── SPLINE (smoothed line) ──
+function renderSpline(data, spec, theme, plot) {
+  const cats = normCats(data); const series = normSeries(data);
+  const allV = series.flatMap((s) => s.values); const max = niceMax(Math.max(0, ...allV));
+  const base = plot.y + plot.h - 22; const y = linearScale(0, max, base, plot.y + 14);
+  const n = Math.max(1, cats.length - 1); const x = (i) => plot.x + (plot.w - 60) * (n === 0 ? 0 : i / n);
+  const hi = highlightIndexFor(spec, series);
+  let out = line(plot.x, base, plot.x + plot.w - 60, base, { stroke: theme.neutral1, 'stroke-width': 1 });
+  cats.forEach((c, i) => { out += text(c, { x: x(i), y: base + 14, 'text-anchor': 'middle', ...tlab(theme) }); });
+  series.forEach((s, si) => {
+    if (!s.values.length) return; const loud = hi != null ? si === hi : si === 0; const color = loud ? theme.highlight : theme.neutral1;
+    out += S.path(splinePath(s.values.map((v, i) => [x(i), y(v)])), { fill: 'none', stroke: color, 'stroke-width': loud ? 2.5 : 1.5 });
+    const last = s.values.length - 1; out += text(`${s.name} ${valFmt(s.values[last], spec)}`, { x: x(last) + 6, y: y(s.values[last]) + 4, ...tlab(theme, { fill: color }) });
+  });
+  return out;
+}
+
+// ── BARCODE (dense vertical ticks per period) ──
+function renderBarcode(data, spec, theme, plot) {
+  const cats = normCats(data); const series = normSeries(data); const vals = (series[0] ? series[0].values : (Array.isArray(data && data.values) ? data.values.map(Number) : []));
+  if (!vals.length) return '';
+  const max = niceMax(Math.max(0, ...vals)); const base = plot.y + plot.h - 22; const y = linearScale(0, max, base, plot.y + 14);
+  const step = plot.w / Math.max(1, vals.length); let out = line(plot.x, base, plot.x + plot.w, base, { stroke: theme.neutral1, 'stroke-width': 1 });
+  vals.forEach((v, i) => { const xx = plot.x + step * i + step / 2; out += line(xx, base, xx, y(v), { stroke: i === vals.length - 1 ? theme.highlight : theme.neutral1, 'stroke-width': Math.max(1, step * 0.5) }); });
+  if (cats.length && cats.length <= 16) cats.forEach((c, i) => { out += text(c, { x: plot.x + step * i + step / 2, y: base + 14, 'text-anchor': 'middle', ...tlab(theme, { 'font-size': LABEL_FS - 2 }) }); });
+  return out;
+}
+
+// ── STRIP / JITTER (1D scatter per group) ──
+function renderStripJitter(data, spec, theme, plot, jit) {
+  const groups = groupsFrom(data); if (!groups.length) return '';
+  const all = groups.flatMap((g) => g.values); if (!all.length) return '';
+  const lo = Math.min(...all); const hi = Math.max(...all); const pad = (hi - lo) * 0.08 || 1;
+  const base = plot.y + plot.h - 22; const y = linearScale(lo - pad, hi + pad, base, plot.y + 14);
+  const band = bandScale(groups.length, plot.x + 20, plot.x + plot.w, 0.3); let out = '';
+  groups.forEach((g, gi) => {
+    const xc = band.pos(gi) + band.bandwidth / 2;
+    g.values.forEach((v, k) => { const dx = jit ? jitterOffset(gi * 97 + k, band.bandwidth * 0.32) : 0; out += circle(xc + dx, y(v), 3.5, { fill: gi === 0 ? theme.highlight : theme.neutral1, 'fill-opacity': '0.7' }); });
+    out += text(g.label, { x: xc, y: base + 14, 'text-anchor': 'middle', ...tlab(theme) });
+  });
+  return out;
+}
+
+// ── CONNECTED SCATTER (scatter + path in order) ──
+function renderConnectedScatter(data, spec, theme, plot) {
+  const pts = objs(data && data.points); if (!pts.length) return renderScatter(data, spec, theme, plot);
+  const xs = pts.map((p) => Number(p.x)); const ys = pts.map((p) => Number(p.y));
+  const xmax = niceMax(Math.max(1, ...xs)); const ymax = niceMax(Math.max(1, ...ys));
+  const base = plot.y + plot.h - 22; const x = linearScale(0, xmax, plot.x + 30, plot.x + plot.w - 20); const y = linearScale(0, ymax, base, plot.y + 14);
+  let out = line(plot.x + 30, base, plot.x + plot.w - 20, base, { stroke: theme.neutral1, 'stroke-width': 1 }) + line(plot.x + 30, base, plot.x + 30, plot.y + 14, { stroke: theme.neutral1, 'stroke-width': 1 });
+  out += S.path(polylineD(pts.map((p) => [x(Number(p.x)), y(Number(p.y))])), { fill: 'none', stroke: theme.neutral1, 'stroke-width': 1.5 });
+  pts.forEach((p, i) => { out += circle(x(Number(p.x)), y(Number(p.y)), 4, { fill: (i === 0 || i === pts.length - 1) ? theme.highlight : theme.neutral1 }); if (p.label) out += text(String(p.label), { x: x(Number(p.x)) + 6, y: y(Number(p.y)) + 3, ...tlab(theme, { 'font-size': LABEL_FS - 1 }) }); });
+  if (spec.xLabel) out += text(spec.xLabel, { x: plot.x + plot.w / 2, y: base + 16, 'text-anchor': 'middle', ...tlab(theme) });
+  return out;
+}
+
+// ── HEXBIN (hexagonal binning of points) ──
+function renderHexbin(data, spec, theme, plot) {
+  const pts = objs(data && data.points); if (!pts.length) return '';
+  const xs = pts.map((p) => Number(p.x)); const ys = pts.map((p) => Number(p.y));
+  const xmin = Math.min(...xs); const xmax = Math.max(...xs); const ymin = Math.min(...ys); const ymax = Math.max(...ys);
+  const px = plot.x + 30; const pw = plot.w - 50; const py = plot.y + 14; const ph = plot.h - 36;
+  const sx = linearScale(xmin, xmax, px, px + pw); const sy = linearScale(ymax, ymin, py, py + ph);
+  const r = Math.max(8, Math.min(pw, ph) / 14); const hw = r * 1.5; const hh = r * Math.sqrt(3);
+  const bins = {};
+  pts.forEach((p) => { const cx = sx(Number(p.x)); const cy = sy(Number(p.y)); const col = Math.round((cx - px) / hw); const row = Math.round((cy - py) / hh - (col % 2 ? 0.5 : 0)); const k = col + ',' + row; bins[k] = bins[k] || { col, row, n: 0 }; bins[k].n++; });
+  const maxN = Math.max(1, ...Object.values(bins).map((b) => b.n)); let out = '';
+  Object.values(bins).forEach((b) => { const cx = px + b.col * hw; const cy = py + b.row * hh + (b.col % 2 ? hh / 2 : 0); out += S.path(hexPath(cx, cy, r), { fill: lerpHex(theme.bg, theme.highlight, b.n / maxN), stroke: theme.bg, 'stroke-width': 1 }); });
+  return out;
+}
+
+// ── SEMICIRCLE DONUT (half-ring) ──
+function renderSemicircleDonut(data, spec, theme, plot) {
+  const cats = normCats(data); const vals = ((normSeries(data)[0] || {}).values || []).map((v) => Math.max(0, Number(v) || 0));
+  const total = vals.reduce((a, b) => a + b, 0); if (total <= 0) return '';
+  const cx = plot.x + plot.w / 2; const cy = plot.y + plot.h * 0.66; const rO = Math.max(20, Math.min(plot.w / 2, plot.h * 0.62) - 20); const rI = rO * 0.58;
+  let ang = -90; let out = ''; // -90 → +90 sweep (top half)... use 270→90 across bottom? use left(270) to right(90) over the top: start at 270 (left), go to 90 (right) clockwise through top.
+  let a = 270; vals.forEach((v, i) => { const frac = v / total; const end = a + frac * 180; out += S.path(ringPath(cx, cy, rO, rI, a, Math.min(end, a + 179.99)), { fill: i === 0 ? theme.highlight : lerpHex(theme.neutral1, theme.neutral2, (i % 4) / 3) }); const mid = (a + end) / 2; const lp = polarToCartesian(cx, cy, rO + 12, mid); if (frac > 0.05) out += text(`${cats[i] ? cats[i] + ' ' : ''}${Math.round(frac * 100)}%`, { x: lp.x, y: lp.y + 3, 'text-anchor': lp.x < cx ? 'end' : 'start', ...tlab(theme, { fill: theme.ink }) }); a = end; });
+  out += text(valFmt(total, spec), { x: cx, y: cy - 4, 'text-anchor': 'middle', fill: theme.ink, 'font-size': 20, 'font-family': theme.headingFont, 'font-weight': 'bold' });
+  return out;
+}
+
+// ── WAFFLE (10×10 grid part-to-whole) ──
+function renderWaffle(data, spec, theme, plot) {
+  const cats = normCats(data); const vals = ((normSeries(data)[0] || {}).values || []).map((v) => Math.max(0, Number(v) || 0));
+  const total = vals.reduce((a, b) => a + b, 0); if (total <= 0) return '';
+  const cells = vals.map((v) => Math.round((v / total) * 100)); // 100 cells
+  const cols = seriesColors(theme); const side = Math.min((plot.w) / 11, (plot.h - 20) / 11); const gap = side * 0.12;
+  const ox = plot.x + (plot.w - side * 10) / 2; const oy = plot.y + 6; let idx = 0; let out = '';
+  for (let row = 0; row < 10; row++) for (let col = 0; col < 10; col++) {
+    let cat = cells.length - 1; let acc = 0; for (let c = 0; c < cells.length; c++) { acc += cells[c]; if (idx < acc) { cat = c; break; } }
+    out += rect(ox + col * side, oy + (9 - row) * side, side - gap, side - gap, { fill: cols[cat % cols.length] }); idx++;
+  }
+  // legend
+  cats.forEach((c, i) => { const ly = plot.y + plot.h - 14; out += rect(plot.x + i * 90, ly - 8, 8, 8, { fill: cols[i % cols.length] }); out += text(`${c} ${Math.round((vals[i] / total) * 100)}%`, { x: plot.x + i * 90 + 12, y: ly, ...tlab(theme, { 'font-size': LABEL_FS - 1 }) }); });
+  return out;
+}
+
+// ── POPULATION PYRAMID (back-to-back bars, two named sides) ──
+function renderPopulationPyramid(data, spec, theme, plot) {
+  const cats = normCats(data); const series = normSeries(data); const L = series[0] || { name: 'Left', values: [] }; const R = series[1] || { name: 'Right', values: [] };
+  if (!cats.length) return '';
+  const max = niceMax(Math.max(1, ...L.values.map((v) => Math.abs(v)), ...R.values.map((v) => Math.abs(v))));
+  const cx = plot.x + plot.w / 2; const halfW = plot.w / 2 - 30; const xL = linearScale(0, max, cx - 40, cx - 40 - halfW); const xR = linearScale(0, max, cx + 40, cx + 40 + halfW);
+  const band = bandScale(cats.length, plot.y, plot.y + plot.h - 14, 0.3); let out = '';
+  cats.forEach((c, i) => {
+    const yy = band.pos(i); const lv = Math.abs(L.values[i] || 0); const rv = Math.abs(R.values[i] || 0);
+    out += rect(xL(lv), yy, (cx - 40) - xL(lv), band.bandwidth, { fill: theme.neutral1 });
+    out += rect(cx + 40, yy, xR(rv) - (cx + 40), band.bandwidth, { fill: theme.highlight });
+    out += text(c, { x: cx, y: yy + band.bandwidth / 2 + 4, 'text-anchor': 'middle', ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 1 }) });
+  });
+  out += text(L.name, { x: plot.x, y: plot.y + plot.h, ...tlab(theme) }) + text(R.name, { x: plot.x + plot.w, y: plot.y + plot.h, 'text-anchor': 'end', ...tlab(theme) });
+  return out;
+}
+
+// ── MATRIX (presence/strength dots at row×col) ──
+function renderMatrix(data, spec, theme, plot) {
+  const cols = normCats(data); const rows = normSeries(data); if (!cols.length || !rows.length) return '';
+  const max = Math.max(1, ...rows.flatMap((r) => r.values.map((v) => Math.abs(Number(v) || 0))));
+  const labelW = Math.min(plot.w * 0.24, 120); const x0 = plot.x + labelW; const topPad = 18;
+  const cw = (plot.x + plot.w - x0) / cols.length; const ch = (plot.h - topPad - 14) / rows.length; const rmax = Math.min(cw, ch) / 2 - 4; let out = '';
+  cols.forEach((c, j) => { out += text(String(c), { x: x0 + cw * j + cw / 2, y: plot.y + 12, 'text-anchor': 'middle', ...tlab(theme, { 'font-size': LABEL_FS - 1 }) }); });
+  rows.forEach((r, i) => {
+    out += text(r.name, { x: x0 - 6, y: plot.y + topPad + ch * i + ch / 2 + 4, 'text-anchor': 'end', ...tlab(theme, { 'font-size': LABEL_FS - 1 }) });
+    cols.forEach((_, j) => { const v = Math.abs(Number(r.values[j]) || 0); const rr = rmax * Math.sqrt(v / max); if (rr > 0.5) out += circle(x0 + cw * j + cw / 2, plot.y + topPad + ch * i + ch / 2, rr, { fill: i === 0 ? theme.highlight : theme.neutral1, 'fill-opacity': '0.8' }); });
+  });
+  return out;
+}
+
+// ── TABLE (conditionally-shaded data table) ──
+function renderTable(data, spec, theme, plot) {
+  const cols = normCats(data); const rows = normSeries(data); if (!cols.length || !rows.length) return '';
+  const max = Math.max(1, ...rows.flatMap((r) => r.values.map((v) => Math.abs(Number(v) || 0))));
+  const labelW = Math.min(plot.w * 0.26, 130); const x0 = plot.x + labelW; const headH = 22;
+  const cw = (plot.x + plot.w - x0) / cols.length; const rh = Math.min(30, (plot.h - headH - 8) / rows.length); let out = '';
+  cols.forEach((c, j) => { out += text(String(c), { x: x0 + cw * j + cw / 2, y: plot.y + 15, 'text-anchor': 'middle', ...tlab(theme, { fill: theme.ink, 'font-weight': 'bold', 'font-size': LABEL_FS - 1 }) }); });
+  out += line(plot.x, plot.y + headH, plot.x + plot.w, plot.y + headH, { stroke: theme.neutral1, 'stroke-width': 1 });
+  rows.forEach((r, i) => {
+    const ry = plot.y + headH + rh * i; out += text(r.name, { x: plot.x + 2, y: ry + rh / 2 + 4, ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 1 }) });
+    cols.forEach((_, j) => { const v = Number(r.values[j]) || 0; const t = Math.abs(v) / max; out += rect(x0 + cw * j, ry, cw - 1, rh - 1, { fill: lerpHex(theme.bg, theme.highlight, t * 0.5) }); out += text(valFmt(v, spec), { x: x0 + cw * j + cw / 2, y: ry + rh / 2 + 4, 'text-anchor': 'middle', ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 1 }) }); });
+  });
+  return out;
+}
+
+// ── BUMP (ranking lines over periods) ──
+function renderBump(data, spec, theme, plot) {
+  const cats = normCats(data); const series = normSeries(data); if (!cats.length || !series.length) return '';
+  const n = Math.max(1, cats.length - 1); const x = (i) => plot.x + 90 + (plot.w - 160) * (n === 0 ? 0 : i / n);
+  const ranksByPeriod = cats.map((_, i) => series.map((s, si) => ({ si, v: s.values[i] || 0 })).sort((a, b) => b.v - a.v).map((o, rank) => ({ si: o.si, rank })));
+  const rankOf = (si, i) => { const r = ranksByPeriod[i].find((o) => o.si === si); return r ? r.rank : 0; };
+  const y = linearScale(0, Math.max(1, series.length - 1), plot.y + 20, plot.y + plot.h - 24);
+  const hi = highlightIndexFor(spec, series); let out = '';
+  cats.forEach((c, i) => { out += text(c, { x: x(i), y: plot.y + plot.h - 8, 'text-anchor': 'middle', ...tlab(theme) }); });
+  series.forEach((s, si) => {
+    const loud = hi != null ? si === hi : si === 0; const color = loud ? theme.highlight : theme.neutral1;
+    out += S.path(splinePath(cats.map((_, i) => [x(i), y(rankOf(si, i))])), { fill: 'none', stroke: color, 'stroke-width': loud ? 2.5 : 1.5 });
+    out += text(s.name, { x: x(0) - 6, y: y(rankOf(si, 0)) + 4, 'text-anchor': 'end', ...tlab(theme, { fill: color, 'font-size': LABEL_FS - 1 }) });
+  });
+  return out;
+}
+
+// ── GANTT (task bars over a time axis) ──
+function renderGantt(data, spec, theme, plot) {
+  const tasks = Array.isArray(data && data.tasks) ? objs(data.tasks).map((t) => ({ label: String(t.label), start: Number(t.start) || 0, end: Number(t.end) || 0 })) : [];
+  if (!tasks.length) return '';
+  const min = Math.min(...tasks.map((t) => t.start)); const max = Math.max(...tasks.map((t) => t.end));
+  const labelW = Math.min(plot.w * 0.28, 140); const x0 = plot.x + labelW; const x = linearScale(min, max || min + 1, x0, plot.x + plot.w - 20);
+  const band = bandScale(tasks.length, plot.y, plot.y + plot.h, 0.4); let out = '';
+  tasks.forEach((t, i) => { const yy = band.pos(i); const a = Math.min(t.start, t.end); const b = Math.max(t.start, t.end); out += rect(x(a), yy, Math.max(2, x(b) - x(a)), band.bandwidth, { fill: i === 0 ? theme.highlight : theme.neutral1 }); out += text(t.label, { x: x0 - 8, y: yy + band.bandwidth / 2 + 4, 'text-anchor': 'end', ...tlab(theme, { fill: theme.ink }) }); });
+  return out;
+}
+
+// ── CANDLESTICK / OHLC ──
+function renderCandlestick(data, spec, theme, plot, ohlc) {
+  const cd = Array.isArray(data && data.candles) ? objs(data.candles).map((c) => ({ label: String(c.label == null ? '' : c.label), o: Number(c.open) || 0, h: Number(c.high) || 0, l: Number(c.low) || 0, c: Number(c.close) || 0 })) : [];
+  if (!cd.length) return '';
+  const lo = Math.min(...cd.map((c) => c.l)); const hi = Math.max(...cd.map((c) => c.h)); const pad = (hi - lo) * 0.05 || 1;
+  const base = plot.y + plot.h - 22; const y = linearScale(lo - pad, hi + pad, base, plot.y + 14); const band = bandScale(cd.length, plot.x, plot.x + plot.w, 0.45); let out = '';
+  cd.forEach((c, i) => {
+    const xc = band.pos(i) + band.bandwidth / 2; const up = c.c >= c.o; const col = up ? theme.accent : theme.amber;
+    out += line(xc, y(c.h), xc, y(c.l), { stroke: col, 'stroke-width': 1.5 });
+    if (ohlc) { out += line(xc - band.bandwidth * 0.3, y(c.o), xc, y(c.o), { stroke: col, 'stroke-width': 2 }); out += line(xc, y(c.c), xc + band.bandwidth * 0.3, y(c.c), { stroke: col, 'stroke-width': 2 }); }
+    else { const top = Math.min(y(c.o), y(c.c)); out += rect(xc - band.bandwidth * 0.35, top, band.bandwidth * 0.7, Math.max(1, Math.abs(y(c.c) - y(c.o))), { fill: col }); }
+  });
+  return out;
+}
+
+// ── DENSITY (binned + smoothed frequency curve, filled) ──
+function densityCurve(values, x0, x1, yBase, yTop) {
+  const v = values.map(Number).filter(Number.isFinite); if (v.length < 2) return null;
+  const lo = Math.min(...v); const hi = Math.max(...v); const k = 20; const w = (hi - lo) / k || 1; const counts = new Array(k).fill(0);
+  v.forEach((x) => { let idx = Math.floor((x - lo) / w); if (idx >= k) idx = k - 1; if (idx < 0) idx = 0; counts[idx]++; });
+  const cmax = Math.max(1, ...counts); const sx = linearScale(lo, hi, x0, x1); const sy = linearScale(0, cmax, yBase, yTop);
+  return counts.map((c, i) => [sx(lo + (i + 0.5) * w), sy(c)]).concat([[x1, yBase], [x0, yBase]]);
+}
+function renderDensity(data, spec, theme, plot) {
+  const groups = groupsFrom(data); const series = groups.length ? groups : [{ label: '', values: Array.isArray(data && data.values) ? data.values : [] }];
+  const base = plot.y + plot.h - 22; let out = line(plot.x, base, plot.x + plot.w, base, { stroke: theme.neutral1, 'stroke-width': 1 });
+  series.forEach((g, gi) => { const pts = densityCurve(g.values, plot.x + 10, plot.x + plot.w - 10, base, plot.y + 16); if (!pts) return; const color = gi === 0 ? theme.highlight : theme.neutral1; out += S.path(splinePath(pts), { fill: color, 'fill-opacity': '0.18', stroke: color, 'stroke-width': 2 }); });
+  return out;
+}
+
+// ── RIDGELINE (stacked density ridges) ──
+function renderRidgeline(data, spec, theme, plot) {
+  const groups = groupsFrom(data); if (!groups.length) return '';
+  const all = groups.flatMap((g) => g.values); if (!all.length) return '';
+  const rh = (plot.h - 14) / groups.length; let out = '';
+  groups.forEach((g, gi) => {
+    const yBase = plot.y + 14 + rh * (gi + 1); const pts = densityCurve(g.values, plot.x + 80, plot.x + plot.w - 10, yBase, yBase - rh * 1.4); if (!pts) return;
+    out += S.path(splinePath(pts), { fill: lerpHex(theme.highlight, theme.bg, gi / Math.max(1, groups.length)), 'fill-opacity': '0.7', stroke: theme.highlight, 'stroke-width': 1 });
+    out += text(g.label, { x: plot.x, y: yBase - 4, ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 1 }) });
+  });
+  return out;
+}
+
+// ── VIOLIN (mirrored density per group) ──
+function renderViolin(data, spec, theme, plot) {
+  const groups = groupsFrom(data); if (!groups.length) return '';
+  const all = groups.flatMap((g) => g.values); if (!all.length) return '';
+  const lo = Math.min(...all); const hi = Math.max(...all); const pad = (hi - lo) * 0.08 || 1;
+  const base = plot.y + plot.h - 22; const y = linearScale(lo - pad, hi + pad, base, plot.y + 14); const band = bandScale(groups.length, plot.x + 10, plot.x + plot.w, 0.4); let out = '';
+  groups.forEach((g, gi) => {
+    const xc = band.pos(gi) + band.bandwidth / 2; const half = band.bandwidth * 0.42; const v = g.values; if (v.length < 2) { out += circle(xc, y((Math.min(...v) + Math.max(...v)) / 2 || 0), 3, { fill: theme.neutral1 }); }
+    else {
+      const glo = Math.min(...v); const ghi = Math.max(...v); const k = 16; const w = (ghi - glo) / k || 1; const counts = new Array(k).fill(0);
+      v.forEach((x) => { let idx = Math.floor((x - glo) / w); if (idx >= k) idx = k - 1; if (idx < 0) idx = 0; counts[idx]++; });
+      const cmax = Math.max(1, ...counts); const right = counts.map((c, i) => [xc + (c / cmax) * half, y(glo + (i + 0.5) * w)]); const left = counts.map((c, i) => [xc - (c / cmax) * half, y(glo + (i + 0.5) * w)]).reverse();
+      out += S.path(polygonD(right.concat(left)), { fill: gi === 0 ? theme.highlight : theme.neutral1, 'fill-opacity': '0.4', stroke: gi === 0 ? theme.highlight : theme.neutral1, 'stroke-width': 1 });
+    }
+    out += text(g.label, { x: xc, y: base + 14, 'text-anchor': 'middle', ...tlab(theme) });
+  });
+  return out;
+}
+
+// ── HORIZON (banded compact area) ──
+function renderHorizon(data, spec, theme, plot) {
+  const cats = normCats(data); const vals = ((normSeries(data)[0] || {}).values || []).map(Number); if (!vals.length) return '';
+  const max = Math.max(1, ...vals.map((v) => Math.abs(v))); const bands = 3; const bandV = max / bands;
+  const base = plot.y + plot.h - 18; const top = plot.y + 14; const H = base - top; const n = Math.max(1, cats.length - 1); const x = (i) => plot.x + plot.w * (n === 0 ? 0 : i / n); let out = '';
+  for (let b = 0; b < bands; b++) {
+    const pts = vals.map((v, i) => { const seg = Math.max(0, Math.min(bandV, Math.abs(v) - b * bandV)); return [x(i), base - (seg / bandV) * H]; });
+    out += S.path(polygonD(pts.concat([[x(vals.length - 1), base], [x(0), base]])), { fill: lerpHex(lerpHex(theme.bg, theme.highlight, 0.3), theme.highlight, b / Math.max(1, bands - 1)), 'fill-opacity': '0.85', stroke: 'none' });
+  }
+  return out;
+}
+
+// ── SMALL MULTIPLES (grid of mini column charts, shared scale) ──
+function renderSmallMultiples(data, spec, theme, plot) {
+  const cats = normCats(data); const series = normSeries(data); if (!series.length) return '';
+  const allMax = niceMax(Math.max(1, ...series.flatMap((s) => s.values)));
+  const n = series.length; const ncols = Math.ceil(Math.sqrt(n)); const nrows = Math.ceil(n / ncols);
+  const pw = plot.w / ncols; const ph = plot.h / nrows; let out = '';
+  series.forEach((s, si) => {
+    const gx = plot.x + (si % ncols) * pw; const gy = plot.y + Math.floor(si / ncols) * ph; const innerBase = gy + ph - 18; const yT = gy + 16;
+    const sy = linearScale(0, allMax, innerBase, yT); const b = bandScale(s.values.length, gx + 6, gx + pw - 6, 0.25);
+    out += text(s.name, { x: gx + 6, y: gy + 12, ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 2 }) });
+    out += line(gx + 6, innerBase, gx + pw - 6, innerBase, { stroke: theme.gridline, 'stroke-width': 1 });
+    s.values.forEach((v, i) => { out += rect(b.pos(i), sy(v), b.bandwidth, innerBase - sy(v), { fill: si === 0 ? theme.highlight : theme.neutral1 }); });
+  });
+  return out;
+}
+
+// ── TREEMAP (squarified rects) ──
+function renderTreemap(data, spec, theme, plot) {
+  let items = Array.isArray(data && data.items) ? objs(data.items).map((it) => ({ label: String(it.label), v: Math.max(0, Number(it.value) || 0) })) : null;
+  if (!items) { const cats = normCats(data); const s = (normSeries(data)[0] || { values: [] }); items = cats.map((c, i) => ({ label: c, v: Math.max(0, s.values[i] || 0) })); }
+  items = items.filter((it) => it.v > 0); if (!items.length) return '';
+  const rects = squarify(items.map((it) => it.v), plot.x, plot.y + 4, plot.w, plot.h - 8); const cols = seriesColors(theme); let out = '';
+  rects.forEach((r) => { const it = items[r.i]; out += rect(r.x, r.y, Math.max(0, r.w - 2), Math.max(0, r.h - 2), { fill: cols[r.i % cols.length] }); if (r.w > 40 && r.h > 22) out += text(it.label, { x: r.x + 5, y: r.y + 16, fill: '#FFFFFF', 'font-size': LABEL_FS - 1, 'font-family': theme.bodyFont }); });
+  return out;
+}
+
+// ── SUNBURST (radial ring of value-arcs) ──
+function renderSunburst(data, spec, theme, plot) {
+  let items = Array.isArray(data && data.items) ? objs(data.items).map((it) => ({ label: String(it.label), v: Math.max(0, Number(it.value) || 0) })) : null;
+  if (!items) { const cats = normCats(data); const s = (normSeries(data)[0] || { values: [] }); items = cats.map((c, i) => ({ label: c, v: Math.max(0, s.values[i] || 0) })); }
+  items = items.filter((it) => it.v > 0); const total = items.reduce((a, it) => a + it.v, 0); if (total <= 0) return '';
+  const cx = plot.x + plot.w / 2; const cy = plot.y + plot.h / 2; const rO = Math.max(20, Math.min(plot.w, plot.h) / 2 - 24); const rI = rO * 0.4; const cols = seriesColors(theme);
+  let a = 0; let out = '';
+  items.forEach((it, i) => { const frac = it.v / total; const end = a + frac * 360; out += S.path(ringPath(cx, cy, rO, rI, a, Math.min(end, a + 359.99)), { fill: cols[i % cols.length] }); const mid = (a + end) / 2; const lp = polarToCartesian(cx, cy, (rO + rI) / 2, mid); if (frac > 0.05) out += text(it.label, { x: lp.x, y: lp.y + 3, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': LABEL_FS - 2, 'font-family': theme.bodyFont }); a = end; });
+  return out;
+}
+
+// ── DENDROGRAM (simple 1-level horizontal tree) ──
+function renderDendrogram(data, spec, theme, plot) {
+  let leaves; let rootLabel = 'root';
+  if (data && data.tree && Array.isArray(data.tree.children)) { rootLabel = String(data.tree.name || 'root'); leaves = objs(data.tree.children).map((c) => String(c.name == null ? '' : c.name)); }
+  else { leaves = normCats(data); }
+  if (!leaves.length) return '';
+  const x0 = plot.x + 20; const xMid = plot.x + plot.w * 0.4; const xLeaf = plot.x + plot.w - 110;
+  const band = bandScale(leaves.length, plot.y + 10, plot.y + plot.h - 10, 0.2); const ys = leaves.map((_, i) => band.pos(i) + band.bandwidth / 2);
+  const rootY = (ys[0] + ys[ys.length - 1]) / 2; let out = '';
+  out += line(x0, rootY, xMid, rootY, { stroke: theme.neutral1, 'stroke-width': 1.5 });
+  out += line(xMid, Math.min(...ys), xMid, Math.max(...ys), { stroke: theme.neutral1, 'stroke-width': 1.5 });
+  out += text(rootLabel, { x: x0 - 2, y: rootY - 4, ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 1 }) });
+  ys.forEach((yy, i) => { out += line(xMid, yy, xLeaf, yy, { stroke: theme.neutral1, 'stroke-width': 1 }); out += circle(xLeaf, yy, 3, { fill: theme.highlight }); out += text(leaves[i], { x: xLeaf + 6, y: yy + 4, ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 1 }) }); });
+  return out;
+}
+
+// ── VENN (2-3 overlapping sets) ──
+function renderVenn(data, spec, theme, plot) {
+  const sets = Array.isArray(data && data.sets) ? objs(data.sets).map((s) => ({ label: String(s.label), v: Math.max(1, Number(s.size) || 1) })) : (normCats(data).map((c, i) => ({ label: c, v: Math.max(1, ((normSeries(data)[0] || { values: [] }).values[i]) || 1) })));
+  if (!sets.length) return '';
+  const cx = plot.x + plot.w / 2; const cy = plot.y + plot.h / 2; const base = Math.min(plot.w, plot.h) / 4; const cols = seriesColors(theme); let out = '';
+  const pos = sets.length <= 2 ? [[cx - base * 0.5, cy], [cx + base * 0.5, cy], [cx, cy - base * 0.5]] : [[cx - base * 0.5, cy + base * 0.3], [cx + base * 0.5, cy + base * 0.3], [cx, cy - base * 0.6]];
+  sets.slice(0, 3).forEach((s, i) => { const r = base * (0.7 + 0.3 * Math.sqrt(s.v / Math.max(...sets.map((x) => x.v)))); out += circle(pos[i][0], pos[i][1], r, { fill: cols[i % cols.length], 'fill-opacity': '0.4', stroke: cols[i % cols.length], 'stroke-width': 1.5 }); out += text(`${s.label}`, { x: pos[i][0], y: pos[i][1] + (i === 2 ? -r - 4 : 0), 'text-anchor': 'middle', ...tlab(theme, { fill: theme.ink, 'font-weight': 'bold' }) }); });
+  return out;
+}
+
+// ── TILE-MAP (grid-positioned equal squares; schematic geo) ──
+function renderTileMap(data, spec, theme, plot) {
+  let tiles = Array.isArray(data && data.tiles) ? objs(data.tiles).map((t) => ({ label: String(t.label), row: Number(t.row) || 0, col: Number(t.col) || 0, v: Number(t.value) || 0 })) : null;
+  if (!tiles) { const cats = normCats(data); const s = (normSeries(data)[0] || { values: [] }); const ncol = Math.ceil(Math.sqrt(Math.max(1, cats.length))); tiles = cats.map((c, i) => ({ label: c, row: Math.floor(i / ncol), col: i % ncol, v: s.values[i] || 0 })); }
+  if (!tiles.length) return '';
+  const maxRow = Math.max(...tiles.map((t) => t.row)); const maxCol = Math.max(...tiles.map((t) => t.col)); const max = Math.max(1, ...tiles.map((t) => Math.abs(t.v)));
+  const side = Math.min((plot.w) / (maxCol + 1), (plot.h - 10) / (maxRow + 1)); const ox = plot.x + (plot.w - side * (maxCol + 1)) / 2; const oy = plot.y + 6; let out = '';
+  tiles.forEach((t) => { const tx = ox + t.col * side; const ty = oy + t.row * side; const tv = Math.abs(t.v) / max; out += rect(tx, ty, side - 3, side - 3, { fill: lerpHex(theme.bg, theme.highlight, tv) }); out += text(t.label, { x: tx + side / 2, y: ty + side / 2 + 4, 'text-anchor': 'middle', fill: tv > 0.55 ? '#FFFFFF' : theme.ink, 'font-size': LABEL_FS - 2, 'font-family': theme.bodyFont }); });
+  return out;
+}
+
+// ── ARC DIAGRAM (nodes on a line + arcs above) ──
+function renderArc(data, spec, theme, plot) {
+  const nodes = (data && data.nodes != null) ? nodeList(data.nodes) : normCats(data);
+  const links = Array.isArray(data && data.links) ? objs(data.links) : [];
+  if (!nodes.length) return '';
+  const idx = {}; nodes.forEach((n, i) => { idx[n] = i; });
+  const base = plot.y + plot.h - 30; const x = (i) => plot.x + 30 + (plot.w - 60) * (nodes.length <= 1 ? 0 : i / (nodes.length - 1)); let out = '';
+  links.forEach((l) => { const a = idx[l.source]; const b = idx[l.target]; if (a == null || b == null) return; const xa = x(a); const xb = x(b); const rr = Math.abs(xb - xa) / 2; out += S.path(`M${fmt(xa)} ${fmt(base)} A${fmt(rr)} ${fmt(rr)} 0 0 ${xb > xa ? 1 : 0} ${fmt(xb)} ${fmt(base)}`, { fill: 'none', stroke: theme.neutral1, 'stroke-width': Math.max(1, Number(l.value) || 1) }); });
+  nodes.forEach((nm, i) => { out += circle(x(i), base, 4, { fill: i === 0 ? theme.highlight : theme.neutral1 }); out += text(nm, { x: x(i), y: base + 16, 'text-anchor': 'middle', ...tlab(theme, { 'font-size': LABEL_FS - 1 }) }); });
+  return out;
+}
+
+// ── NETWORK (deterministic circular layout) ──
+function renderNetwork(data, spec, theme, plot) {
+  const nodes = (data && data.nodes != null) ? nodeList(data.nodes) : normCats(data);
+  const links = Array.isArray(data && data.links) ? objs(data.links) : [];
+  if (!nodes.length) return '';
+  const idx = {}; nodes.forEach((n, i) => { idx[n] = i; });
+  const cx = plot.x + plot.w / 2; const cy = plot.y + plot.h / 2; const r = Math.min(plot.w, plot.h) / 2 - 40;
+  const pos = nodes.map((_, i) => polarToCartesian(cx, cy, r, (i / nodes.length) * 360)); let out = '';
+  links.forEach((l) => { const a = idx[l.source]; const b = idx[l.target]; if (a == null || b == null) return; out += line(pos[a].x, pos[a].y, pos[b].x, pos[b].y, { stroke: theme.gridline, 'stroke-width': Math.max(1, Number(l.value) || 1) }); });
+  nodes.forEach((nm, i) => { out += circle(pos[i].x, pos[i].y, 6, { fill: i === 0 ? theme.highlight : theme.neutral1 }); const lp = polarToCartesian(cx, cy, r + 14, (i / nodes.length) * 360); out += text(nm, { x: lp.x, y: lp.y + 3, 'text-anchor': lp.x < cx - 2 ? 'end' : (lp.x > cx + 2 ? 'start' : 'middle'), ...tlab(theme, { 'font-size': LABEL_FS - 1 }) }); });
+  return out;
+}
+
+// ── FLOWCHART (linear sequence of boxes + arrows) ──
+function renderFlowchart(data, spec, theme, plot) {
+  const steps = Array.isArray(data && data.steps) ? objs(data.steps).map((s) => String(s.label == null ? s : s.label)) : normCats(data);
+  if (!steps.length) return '';
+  const n = steps.length; const boxH = Math.min(48, (plot.h - (n - 1) * 18) / n); const gap = ((plot.h - boxH * n) / Math.max(1, n - 1)) || 18;
+  const bw = Math.min(plot.w * 0.7, 360); const bx = plot.x + (plot.w - bw) / 2; let out = '';
+  steps.forEach((s, i) => {
+    const by = plot.y + i * (boxH + gap); out += rect(bx, by, bw, boxH, { fill: i === 0 ? theme.highlight : theme.neutral1, rx: 4 }); out += text(s, { x: bx + bw / 2, y: by + boxH / 2 + 4, 'text-anchor': 'middle', fill: '#FFFFFF', 'font-size': LABEL_FS, 'font-family': theme.bodyFont });
+    if (i < n - 1) { const ax = bx + bw / 2; out += line(ax, by + boxH, ax, by + boxH + gap, { stroke: theme.neutral1, 'stroke-width': 1.5 }); out += S.path(`M${fmt(ax - 4)} ${fmt(by + boxH + gap - 5)} L${fmt(ax)} ${fmt(by + boxH + gap)} L${fmt(ax + 4)} ${fmt(by + boxH + gap - 5)} Z`, { fill: theme.neutral1 }); }
+  });
+  return out;
+}
+
+// ── SANKEY (2-layer flow with bezier ribbons) ──
+function renderSankey(data, spec, theme, plot) {
+  const nodes = nodeList(data && data.nodes);
+  const links = Array.isArray(data && data.links) ? objs(data.links).map((l) => ({ s: String(l.source), t: String(l.target), v: Math.max(0, Number(l.value) || 0) })) : [];
+  if (!nodes.length || !links.length) return '';
+  // layer by: a node is a SOURCE-layer node if it appears as a link.source; TARGET if as link.target. (2-layer.)
+  const srcSet = new Set(links.map((l) => l.s)); const tgtSet = new Set(links.map((l) => l.t));
+  const left = nodes.filter((n) => srcSet.has(n) && !tgtSet.has(n)); const right = nodes.filter((n) => tgtSet.has(n));
+  const leftNodes = left.length ? left : nodes.filter((n) => srcSet.has(n)); const rightNodes = right.length ? right : nodes.filter((n) => tgtSet.has(n));
+  if (!leftNodes.length || !rightNodes.length) return '';
+  const total = links.reduce((a, l) => a + l.v, 0) || 1; const H = plot.h - 20; const gap = 6;
+  const colH = (set) => { const sum = set.reduce((a, n) => a + links.filter((l) => l.s === n || l.t === n).reduce((b, l) => b + l.v, 0), 0) || 1; return sum; };
+  const place = (set, x) => { const sizes = set.map((n) => links.filter((l) => l.s === n || l.t === n).reduce((b, l) => b + l.v, 0)); const sum = sizes.reduce((a, b) => a + b, 0) || 1; const scale = (H - gap * (set.length - 1)) / sum; let yy = plot.y + 10; const m = {}; set.forEach((n, i) => { const h = sizes[i] * scale; m[n] = { x, y0: yy, y1: yy + h, cur0: yy, cur1: yy }; yy += h + gap; }); return m; };
+  const lx = plot.x + 20; const rx = plot.x + plot.w - 90; const Lm = place(leftNodes, lx); const Rm = place(rightNodes, rx); const scale = (H - gap * (leftNodes.length - 1)) / (Object.values(Lm).reduce((a, n) => a + (n.y1 - n.y0), 0) || 1);
+  let out = '';
+  // ribbons
+  links.forEach((l) => { const L = Lm[l.s]; const R = Rm[l.t]; if (!L || !R) return; const h = l.v * (H / total); const ay0 = L.cur1; L.cur1 += h; const by0 = R.cur0; R.cur0 += h; const x0 = lx + 14; const x1 = rx; const mx = (x0 + x1) / 2;
+    out += S.path(`M${fmt(x0)} ${fmt(ay0)} C${fmt(mx)} ${fmt(ay0)} ${fmt(mx)} ${fmt(by0)} ${fmt(x1)} ${fmt(by0)} L${fmt(x1)} ${fmt(by0 + h)} C${fmt(mx)} ${fmt(by0 + h)} ${fmt(mx)} ${fmt(ay0 + h)} ${fmt(x0)} ${fmt(ay0 + h)} Z`, { fill: theme.neutral2, 'fill-opacity': '0.55' }); });
+  // node rects + labels
+  Object.keys(Lm).forEach((n) => { const m = Lm[n]; out += rect(lx, m.y0, 14, Math.max(2, m.y1 - m.y0), { fill: theme.highlight }); out += text(n, { x: lx - 4, y: (m.y0 + m.y1) / 2 + 4, 'text-anchor': 'end', ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 1 }) }); });
+  Object.keys(Rm).forEach((n) => { const m = Rm[n]; out += rect(rx, m.y0, 14, Math.max(2, m.y1 - m.y0), { fill: theme.neutral1 }); out += text(n, { x: rx + 18, y: (m.y0 + m.y1) / 2 + 4, ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 1 }) }); });
+  return out;
+}
+
+// ── CHORD (circular sectors + ribbons) ──
+function renderChord(data, spec, theme, plot) {
+  let labels = normCats(data); let mat = null;
+  if (Array.isArray(data && data.matrix)) { mat = data.matrix.map((row) => (row || []).map(Number)); if (!labels.length) labels = mat.map((_, i) => `N${i + 1}`); }
+  else { const series = normSeries(data); if (series.length && labels.length) mat = series.map((s) => labels.map((_, j) => Number(s.values[j]) || 0)); }
+  if (!mat || !mat.length) return '';
+  const n = mat.length; const sums = mat.map((row) => row.reduce((a, b) => a + Math.max(0, b), 0)); const total = sums.reduce((a, b) => a + b, 0) || 1;
+  const cx = plot.x + plot.w / 2; const cy = plot.y + plot.h / 2; const r = Math.min(plot.w, plot.h) / 2 - 30; const cols = seriesColors(theme); const gapDeg = 2;
+  let a = 0; const sectors = sums.map((s, i) => { const span = (s / total) * (360 - gapDeg * n); const sec = { start: a, end: a + span, mid: a + span / 2, i }; a += span + gapDeg; return sec; }); let out = '';
+  sectors.forEach((sec, i) => { out += S.path(ringPath(cx, cy, r, r - 14, sec.start, sec.end), { fill: cols[i % cols.length] }); const lp = polarToCartesian(cx, cy, r + 12, sec.mid); out += text(labels[i], { x: lp.x, y: lp.y + 3, 'text-anchor': lp.x < cx - 2 ? 'end' : (lp.x > cx + 2 ? 'start' : 'middle'), ...tlab(theme, { fill: theme.ink, 'font-size': LABEL_FS - 1 }) }); });
+  // ribbons: for i<j with value, a quadratic through center
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { const v = (mat[i][j] || 0) + (mat[j] && mat[j][i] || 0); if (v <= 0) continue; const p1 = polarToCartesian(cx, cy, r - 14, sectors[i].mid); const p2 = polarToCartesian(cx, cy, r - 14, sectors[j].mid); out += S.path(`M${fmt(p1.x)} ${fmt(p1.y)} Q${fmt(cx)} ${fmt(cy)} ${fmt(p2.x)} ${fmt(p2.y)}`, { fill: 'none', stroke: cols[i % cols.length], 'stroke-width': Math.max(1, (v / total) * 40), 'stroke-opacity': '0.4' }); }
+  return out;
+}
+
 const DISPATCH = {
   bar: renderBar, column: renderColumn, line: renderLine,
   stacked: (d, s, t, p) => renderStacked(d, s, t, p, false),
@@ -712,6 +1164,17 @@ const DISPATCH = {
   lollipop: renderLollipop, dot: renderDot, slope: renderSlope, bullet: renderBullet,
   diverging: renderDiverging, histogram: renderHistogram, funnel: renderFunnel,
   quadrant: renderQuadrant, radar: renderRadar, box: renderBox,
+  // v0.3 (the remaining 33 feasible, non-anti-McKinsey types)
+  range: renderRange, 'step-line': renderStepLine, spline: renderSpline, barcode: renderBarcode,
+  strip: (d, s, t, p) => renderStripJitter(d, s, t, p, false), jitter: (d, s, t, p) => renderStripJitter(d, s, t, p, true),
+  beeswarm: (d, s, t, p) => renderStripJitter(d, s, t, p, true),
+  'connected-scatter': renderConnectedScatter, hexbin: renderHexbin, 'semicircle-donut': renderSemicircleDonut,
+  waffle: renderWaffle, 'population-pyramid': renderPopulationPyramid, 'matrix-chart': renderMatrix, 'table-chart': renderTable,
+  bump: renderBump, gantt: renderGantt, candlestick: (d, s, t, p) => renderCandlestick(d, s, t, p, false), ohlc: (d, s, t, p) => renderCandlestick(d, s, t, p, true),
+  density: renderDensity, ridgeline: renderRidgeline, violin: renderViolin, horizon: renderHorizon,
+  'small-multiples': renderSmallMultiples, treemap: renderTreemap, sunburst: renderSunburst, dendrogram: renderDendrogram,
+  venn: renderVenn, 'tile-map': renderTileMap, arc: renderArc, network: renderNetwork, flowchart: renderFlowchart,
+  sankey: renderSankey, chord: renderChord,
 };
 
 /**
