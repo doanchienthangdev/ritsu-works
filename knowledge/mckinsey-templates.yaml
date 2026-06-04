@@ -1,27 +1,33 @@
 # ============================================================================
 # mckinsey-templates.yaml — McKinsey deliverable-template registry
-# (capability thinking-toolkit v2.0 — the /think mckinsey TEAM operating model)
+# (capability thinking-toolkit v2.0 → v2.1 — the /think mckinsey Sell layer)
 # ============================================================================
 # The STRUCTURE layer of the McKinsey Sell phase. `mckinsey-sell` (06-ai-ops/
 # skills/thinking-toolkit/mckinsey-sell) builds the synthesis IR per ONE of these
-# templates, then hands it to deepask/format for rendering — with --style (brand
-# design-system) + --art-style (genre) as the DESIGN layer. The two layers are
-# ORTHOGONAL: a template owns the McKinsey STRUCTURE (pyramid skeleton, action
-# titles, SCR/SCQA, MECE key line, APK guard, pre-wire) as PROSE only; it carries
-# NO color/brand/logo token, so it can never shadow the resolved --style core
-# palette. That orthogonality is enforced structurally by validate-mckinsey-
-# templates.cjs (FORBIDDEN_BRAND_KEYS — the art-styles no-palette-leak analog).
+# 9 templates, then hands it to deepask/format for rendering — with --style (brand
+# design-system) + --art-style (genre) as the DESIGN layer. Structure ⟂ design: a
+# template owns the McKinsey STRUCTURE (pyramid, action titles, In-Brief, SCR/SCQA,
+# MECE, "where to start", source footers) as PROSE only; it carries NO color/brand
+# token (FORBIDDEN_BRAND_KEYS in validate-mckinsey-templates.cjs).
 #
-# Source of truth, hand-maintained (NOT re-generated in CI), like art-styles.yaml
-# + design-systems.yaml.
+# v2.1 GROUNDING: every template carries a REQUIRED `grounded_in` citation array —
+# the structural anatomy is EXTRACTED FROM REAL McKinsey reports (the In-Brief box,
+# action-title exhibit captions + source footers, the "where to start"/"act now"
+# block, the methodology/appendix + survey-N, the city-tagged author box), NOT
+# guessed from principles. Full extracted anatomy + citations:
+# 06-ai-ops/skills/thinking-toolkit/mckinsey-sell/mckinsey-deliverable-anatomy.md.
+# Genre nuance (v2.1 fix): action titles are for ANALYTICAL/RECOMMENDATION
+# deliverables; TOPIC-LABEL headers are correct for survey/trend pieces (insights-
+# article) — real McKinsey uses both.
 #
+# Source of truth, hand-maintained (NOT re-generated in CI), like art-styles.yaml.
 # Schema:    knowledge/schemas/mckinsey-templates.schema.json
 # Validator: scripts/cross-tier/validate-mckinsey-templates.cjs (L2 critical; wired
 #            into check-consistency.cjs AND .github/workflows/cross-tier-consistency.yml)
 # Consumer:  06-ai-ops/skills/thinking-toolkit/mckinsey-sell/SKILL.md (--sell=<id>)
 # ============================================================================
 
-version: "1.0.0"
+version: "1.1.0"
 schema: knowledge/schemas/mckinsey-templates.schema.json
 
 mckinsey_templates:
@@ -31,49 +37,129 @@ mckinsey_templates:
     audience: both
     structure:
       - "Governing thought — the recommendation as ONE crisp declarative sentence (the answer)"
-      - "MECE key line — the 3-4 mutually-exclusive reasons the governing thought holds"
-      - "Support — evidence (cited, degree-tagged) under each key-line point"
-      - "Implication — the so-what: the specific next actions the answer forces"
+      - "(optional) In-Brief box — 3-5 boxed bullets restating the answer + key supports, before the body (the McKinsey In-Brief)"
+      - "MECE key line — the 3-4 mutually-exclusive reasons the governing thought holds (2-5 items, 3 optimal)"
+      - "Support — cited, degree-tagged evidence under each key-line point"
+      - "Where to start — the so-what as concrete next actions (owner + date)"
     rules:
       - "Governing-thought-first (Minto Pyramid): top-line before any detail"
       - "APK guard: lead with the answer, NEVER the story-of-the-search"
-      - "MECE key line: the supports don't overlap and are collectively exhaustive"
-      - "Action titles: every section header is a full declarative sentence; the titles alone read as the storyline"
+      - "MECE key line: supports don't overlap and are collectively exhaustive (2-5 items)"
+      - "Action titles: every section header is a full declarative sentence; the titles alone read as the storyline (this IS an analytical/recommendation deliverable)"
       - "so-what on every point: an observation isn't an insight until it implies an action"
+      - "Source line on every quantitative claim (e.g. 'Source: <data>; McKinsey analysis')"
     default_format: article
+    grounded_in:
+      - "McKinsey exec summaries follow SCR/Pyramid, lead with the resolution — slideuplift.com/blog/mckinsey-style-presentation; consultingsuccess.com/the-mckinsey-way (MECE 2-5, 3 optimal)"
+      - "The In-Brief box as a discrete lead element — MGI 'AI: The Next Digital Frontier' (anyflip.com/hhxry/mlmg)"
 
   - id: exec-one-pager
-    name: "Executive One-Pager (the answer that IS the deck)"
-    when_to_use: "A time-poor executive; the whole case must fit on one page and survive the elevator test (defensible in 30 seconds)."
+    name: "Executive One-Pager (SCR, the answer that IS the deck)"
+    when_to_use: "A time-poor executive; the whole case must fit on one page and survive the elevator test (defensible in 30 seconds). SCR-shaped."
     audience: both
     structure:
       - "Situation — the agreed context in one line"
       - "Complication — what changed / the tension that forces a decision"
       - "Resolution — the governing thought (the answer)"
-      - "Three proofs — the strongest cited evidence, one line each"
-      - "Next actions — owner + date"
+      - "Three proofs — the strongest cited evidence, one line each, with source"
+      - "Where to start — next actions, owner + date"
     rules:
-      - "Elevator test: the governing thought + 3 supports are defensible in 30 seconds"
+      - "Elevator test: governing thought + 3 supports defensible in 30 seconds"
       - "One page, hard limit"
-      - "Governing-thought-first; APK guard"
-      - "Action titles"
+      - "Governing-thought-first; APK guard; action titles"
+      - "Source line on every quantitative proof"
     default_format: pdf
+    grounded_in:
+      - "McKinsey one-pager / exec summary = SCR-structured — slideuplift.com/blog/mckinsey-style-presentation"
+      - "The standalone boxed summary — MGI 'A Future That Works' In-Brief PDF (mckinsey.com)"
+
+  - id: executive-briefing
+    name: "Executive Briefing (the boxed 'In Brief')"
+    when_to_use: "The time-poor C-suite who needs only the answer + the 3-5 load-bearing points, as a boxed bullet summary — McKinsey's standalone 'In Brief' format."
+    audience: both
+    structure:
+      - "Title — the governing thought as a headline"
+      - "In-Brief box — 3-5 boxed bullets: the answer first, then the key supports (each a full point, cited)"
+      - "Implication — one line: what the reader should DO now"
+    rules:
+      - "The answer is the FIRST bullet (lead-with-the-answer / Pyramid)"
+      - "3-5 bullets, no more (the In-Brief is not the exec summary)"
+      - "Each bullet stands alone + carries its source"
+      - "APK guard: no story-of-the-search"
+    default_format: pdf
+    grounded_in:
+      - "MGI publishes standalone 'In Brief' boxed-bullet summaries — 'A Future That Works' In-Brief PDF (mckinsey.com); MGI 'AI: The Next Digital Frontier' IN BRIEF section (anyflip.com/hhxry/mlmg)"
 
   - id: action-titled-deck
     name: "Action-Titled Deck"
-    when_to_use: "A readout/presentation; the storyline must carry when read as titles-only. The deck skeleton is built at STRUCTURE (the workplan end-products = the dummy/ghost exhibits) and FILLED at Sell — never invented at Sell."
+    when_to_use: "A readout/presentation; the storyline must carry when read as titles-only. The deck skeleton + dummy exhibits are built at STRUCTURE (the workplan end-products = the ghost exhibits) and FILLED at Sell — never invented at Sell."
     audience: both
     structure:
-      - "Title slide — the governing thought AS an action title"
-      - "One action-titled slide per MECE key-line point (each title a full declarative sentence)"
-      - "One evidence exhibit per slide (the ghost exhibit, now filled with real data)"
-      - "Next-steps slide — owners + dates"
+      - "SCQA opener — slides 1-4: Situation / Complication / Question / Answer (the governing thought)"
+      - "Pyramid body — one action-titled slide per MECE key-line point (each title a full declarative sentence)"
+      - "One exhibit per slide — the ghost exhibit, now filled; the caption is itself an action-title conclusion + a source footer"
+      - "Next-steps slides — owners + dates (the 'where to start')"
     rules:
-      - "Action titles read top-to-bottom AS the storyline (the elevator test for a deck)"
-      - "One message per slide; the exhibit proves exactly that message"
+      - "Action titles read top-to-bottom AS the storyline (the deck's elevator test)"
+      - "Action titles apply to EXHIBIT CAPTIONS too, not just slide headers (e.g. 'Technology giants dominate investment in AI')"
+      - "Every quantitative exhibit carries a source footer ('Source: <data>; McKinsey analysis')"
+      - "One message per slide; the exhibit proves exactly that message; each slide presentable in under a minute"
       - "Ghost-exhibit discipline: the exhibit shape was drawn at STRUCTURE before the data existed"
-      - "Pyramid: title slide governs; body slides are the MECE key line"
     default_format: pptx
+    grounded_in:
+      - "Action-title slide headers (verbatim) — 'Women in the Workplace 2022' via supernormal.com/blog/mckinsey-presentation-playbook"
+      - "Action-title EXHIBIT captions + mandatory source footer, SCQA-then-Pyramid slide order, 'presentable in under a minute' — deckary.com/blog/consulting-slide-standards; slideworks.io/resources/47-real-mckinsey-presentations"
+
+  - id: mgi-research-report
+    name: "MGI-Style Research Report (the long fact base)"
+    when_to_use: "A deep, evidence-heavy research deliverable for a policy/strategy audience — the full McKinsey Global Institute report shape, where authority is earned by methodology + survey scale."
+    audience: both
+    structure:
+      - "Preface — a short 'why we did this and what's inside' framing paragraph (SCQA Situation)"
+      - "In-Brief box — the governing thought + key findings, boxed, up front"
+      - "Executive summary — SCR/SCQA-structured, with the 3-4 supporting arguments"
+      - "MECE chapters — each headed by an action-title conclusion (often all-caps in MGI)"
+      - "Action-title exhibits — every chart's caption is a sentence-conclusion + a source footer"
+      - "Implications / 'act now' — a named closing block translating findings into action"
+      - "Technical appendix + survey-N — the methodology that earns the authority"
+      - "City-tagged author box — 'Name | City' attribution"
+    components:
+      - "preface"
+      - "in-brief"
+      - "executive-summary-scr"
+      - "mece-action-title-chapters"
+      - "action-title-exhibits-with-source-footer"
+      - "implications-where-to-start"
+      - "technical-appendix-survey-n"
+      - "city-tagged-author-box"
+    rules:
+      - "Lead with the In-Brief + exec summary (the answer up front), then the fact base"
+      - "Action titles on chapter headers AND exhibit captions; source footer on every exhibit"
+      - "MECE chapters (2-5; 3 optimal); every box supported by the boxes beneath it"
+      - "The methodology/appendix + the survey-N are non-negotiable — they earn the authority"
+      - "Named 'implications / where to start' block, not just a conclusion"
+    default_format: article
+    grounded_in:
+      - "Full real-report anatomy (Preface → IN BRIEF → exec summary → MECE all-caps action-title chapters → action-title exhibits → 'businesses... need to act now' → Appendix B technical appendix, n=3,073 → city-tagged authors) — MGI 'AI: The Next Digital Frontier' (anyflip.com/hhxry/mlmg)"
+
+  - id: insights-article
+    name: "Insights Article (short thought-leadership; topic-labels OK)"
+    when_to_use: "A short McKinsey-Insights-style article for executives skimming — a trend/survey or 'how to' piece. NB: for trend/survey content, TOPIC-LABEL section headers are correct (not imperatives)."
+    audience: receptive
+    structure:
+      - "Dek / thesis — the headline claim"
+      - "(optional) In-Brief box — 3-5 bullets"
+      - "3-7 themed sections — for trend/survey content these are TOPIC LABELS ('Sourcing shifts persist as tariffs bite'), not action titles"
+      - "'What it means' close — the implications for the reader"
+      - "Author box"
+    rules:
+      - "Lead with the thesis (Pyramid)"
+      - "Topic-label headers are correct for survey/trend pieces; action titles for analytical/recommendation pieces — match the header style to the genre (the v2.1 nuance fix)"
+      - "Cite the underlying data/survey; source line on quantitative claims"
+      - "Close with 'what it means' (so-what)"
+    default_format: article
+    grounded_in:
+      - "Topic-label theme headers in a trend/survey piece ('Sourcing shifts persist as tariffs bite', 'Resale continues to gain ground'; closes with 'What does it mean for 2026 and beyond?') — McKinsey 'State of Fashion 2026' via k3fashionsolutions.com"
 
   - id: scr-storyline
     name: "Situation-Complication-Resolution Storyline"
@@ -88,8 +174,10 @@ mckinsey_templates:
     rules:
       - "SCR (Minto) for skeptical readers: argument-led, not grouping-led"
       - "Surface the dissent/risks explicitly (pre-wire — no surprises)"
-      - "so-what at the resolution"
+      - "so-what at the resolution; source line on quantitative claims"
     default_format: article
+    grounded_in:
+      - "McKinsey exec summaries follow the Situation-Complication-Resolution framework — slideuplift.com/blog/mckinsey-style-presentation; SCQA decks slides 1-4 — supernormal.com/blog/mckinsey-presentation-playbook"
 
   - id: scqa-memo
     name: "Situation-Complication-Question-Answer Memo"
@@ -101,12 +189,13 @@ mckinsey_templates:
       - "Question — the core question, stated explicitly"
       - "Answer — the governing thought"
       - "Support — the MECE pyramid under the answer, cited"
-      - "Next actions"
+      - "Where to start — next actions"
     rules:
       - "SCQA (Minto): question-then-answer; the reader agrees the question before the answer"
-      - "Pyramid support under the answer"
-      - "Action titles"
+      - "Pyramid support under the answer; action titles; source line on quantitative claims"
     default_format: article
+    grounded_in:
+      - "SCQA opener (slides 1-4) then Pyramid body — supernormal.com/blog/mckinsey-presentation-playbook; Minto SCQA"
 
   - id: pyramid-doc
     name: "Full Minto Pyramid Document"
@@ -114,12 +203,14 @@ mckinsey_templates:
     audience: both
     structure:
       - "Governing thought — the single top-line answer"
-      - "Key line — the MECE arguments that support it"
+      - "Key line — the MECE arguments that support it (2-5; 3 optimal)"
       - "Supporting pyramid per argument — sub-points + cited evidence, each itself MECE"
       - "Synthesis — the so-what and the decision it forces"
     rules:
       - "Full Minto pyramid: vertical Q&A logic, horizontal MECE at every level"
       - "Every box is supported by the boxes beneath it"
-      - "so-what at the apex and at each argument"
+      - "so-what at the apex and at each argument; source line on quantitative claims"
       - "APK guard"
     default_format: html
+    grounded_in:
+      - "Minto Pyramid Principle; MECE 2-5 (3 optimal), 'don't boil the ocean', pre-wiring the final meeting — consultingsuccess.com/the-mckinsey-way"

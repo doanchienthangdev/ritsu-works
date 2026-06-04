@@ -604,7 +604,7 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
 **Kind:** page
 **Axis:** content
-**When to use:** ============================================================================ mckinsey-templates.yaml — McKinsey deliverable-template registry (capability thinking-toolkit v2.0 — the /think mckinsey TEAM operating model) ============================================================================ The STRUCTURE layer of the McKinsey Sell phase. `mckinsey-sell` (06-ai-ops/ skills/thinking-toolkit/mck...
+**When to use:** ============================================================================ mckinsey-templates.yaml — McKinsey deliverable-template registry (capability thinking-toolkit v2.0 → v2.1 — the /think mckinsey Sell layer) ============================================================================ The STRUCTURE layer of the McKinsey Sell phase. `mckinsey-sell` (06-ai-ops/ skills/thinking-toolkit/mckins...
 
 **Invoke:** `Read("knowledge/mckinsey-templates.yaml")`
 **Authority:** SoR

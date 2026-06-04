@@ -52,6 +52,11 @@ function validateEntry(e) {
   if (typeof e.default_format !== 'string' || !e.default_format.trim()) {
     errs.push('default_format must be a non-empty string (a deepask/format medium id)');
   }
+  // v2.1: the "not guessed" anchor — every template MUST cite the real McKinsey
+  // report(s) its structure was extracted from.
+  if (!Array.isArray(e.grounded_in) || e.grounded_in.length === 0 || !e.grounded_in.every((s) => typeof s === 'string' && s.trim())) {
+    errs.push('grounded_in must be a non-empty array of citation strings (the real McKinsey report(s) the structure was extracted from)');
+  }
   if (e && typeof e === 'object') {
     for (const k of Object.keys(e)) {
       if (FORBIDDEN_BRAND_KEYS.includes(String(k).toLowerCase())) {

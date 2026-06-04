@@ -32,6 +32,7 @@ const GOOD = () => ({
   structure: ["Governing thought", "MECE key line", "Support"],
   rules: ["Pyramid", "APK guard"],
   default_format: "article",
+  grounded_in: ["McKinsey exec summary SCR/Pyramid — slideuplift.com"],
 });
 const has = (errs: string[], sub: string) => errs.some((e) => e.includes(sub));
 
@@ -48,12 +49,14 @@ describe("validateEntry — specification / real-catalog conformance", () => {
   it("the committed knowledge/mckinsey-templates.yaml: every entry is valid + ids unique", () => {
     const doc: any = yaml.load(fs.readFileSync(REGISTRY, "utf-8"));
     expect(Array.isArray(doc.mckinsey_templates)).toBe(true);
-    expect(doc.mckinsey_templates.length).toBeGreaterThanOrEqual(6);
+    expect(doc.mckinsey_templates.length).toBeGreaterThanOrEqual(9); // v2.1: 6 refined + 3 real types
     const seen = new Set<string>();
     for (const e of doc.mckinsey_templates) {
       expect(validateEntry(e)).toEqual([]);
       expect(seen.has(e.id)).toBe(false);
       seen.add(e.id);
+      // v2.1 "not guessed" anchor: every template cites a real McKinsey report
+      expect(Array.isArray(e.grounded_in) && e.grounded_in.length > 0).toBe(true);
     }
   });
   it("exports the audience enum + a non-empty forbidden-brand-key set", () => {
@@ -122,4 +125,13 @@ describe("validateEntry — multiple errors accumulate", () => {
     expect(has(errs, "audience must be one of")).toBe(true);
     expect(has(errs, "forbidden brand/design key")).toBe(true);
   });
+});
+
+describe("validateEntry — grounded_in (v2.1 'not guessed' anchor)", () => {
+  it("missing grounded_in → error", () => { const e = GOOD(); delete (e as any).grounded_in; expect(has(validateEntry(e), "grounded_in must be a non-empty array")).toBe(true); });
+  it("grounded_in not an array → error", () => expect(has(validateEntry({ ...GOOD(), grounded_in: "a report" }), "grounded_in must be a non-empty array")).toBe(true));
+  it("empty grounded_in → error", () => expect(has(validateEntry({ ...GOOD(), grounded_in: [] }), "grounded_in must be a non-empty array")).toBe(true));
+  it("grounded_in with a non-string item → error", () => expect(has(validateEntry({ ...GOOD(), grounded_in: ["ok", 7] }), "grounded_in must be a non-empty array")).toBe(true));
+  it("grounded_in with a whitespace item → error", () => expect(has(validateEntry({ ...GOOD(), grounded_in: ["  "] }), "grounded_in must be a non-empty array")).toBe(true));
+  it("a valid grounded_in citation passes", () => expect(validateEntry({ ...GOOD(), grounded_in: ["MGI 'AI: The Next Digital Frontier' (anyflip.com/hhxry/mlmg)"] })).toEqual([]));
 });

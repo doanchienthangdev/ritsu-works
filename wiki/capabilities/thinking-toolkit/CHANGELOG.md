@@ -4,6 +4,16 @@
 > (`knowledge/capability-registry.yaml`, `thinking-toolkit` entry) and `spec.md`.
 > This file is the forward changelog from the point it was created (v1.7).
 
+## v2.1.0 — 2026-06-04 — grounded sell templates + dynamic-workflow orchestration
+
+**`/cla extend thinking-toolkit`** · MINOR (additive; `--workflow` defaults off → v2.0 preserved) · @cto APPROVE-WITH-NITS (4 fixes integrated). Two upgrades the founder asked for: sell *"đúng chuẩn McKinsey ngoài đời thực chứ không đoán"* + dynamic workflows at the important points.
+
+**Part 1 — ground the sell templates in REAL McKinsey reports.** A `researcher` fetched real McKinsey deliverables (MGI *AI: The Next Digital Frontier* + verbatim deconstructions of *Women in the Workplace 2022*, *State of Fashion 2026*, …). v2.0 templates were "guessed from principles" and MISSED the real furniture: the boxed **IN BRIEF**, action titles on **EXHIBIT CAPTIONS** + a **source footer**, the named **"where to start"** block, the **methodology/appendix + survey-N**, the **city-tagged author box**; and a BUG — "every header is an action title" mis-fits trend/survey pieces (topic-labels are correct there). Fix: NEW grounding reference `mckinsey-sell/mckinsey-deliverable-anatomy.md` (9 components + per-type skeletons + citations); refined the 6 + added 3 real types (`mgi-research-report`, `insights-article`, `executive-briefing`) = **9 templates**; NEW **required `grounded_in`** citation field (schema + validator) — the mechanical "not guessed" anchor.
+
+**Part 2 — `--workflow=off`(default)`|steps|full`.** Run each high-leverage step as a Claude Code dynamic **Workflow** (many subagents in parallel). The load-bearing constraint (no mid-run user input → "run each stage as its own workflow") composes with the checkpoints: each STEP = its own workflow (heavy fan-out, no HITL inside); the CHECKPOINTS between stay in-session for founder consensus; workflow output = **evidence through the validation gate**, not a decision. Per-step patterns documented (hypothesize→judge-panel; solve→multi-modal sweep + adversarial-verify; dissent→red-team; sell→judge-panel of drafts); pre-baked `.claude/workflows/` scripts deferred to v2.2. A `workflow:<step>` annotation leaves an auditable trail.
+
+**Changed:** `mckinsey-templates.yaml` (1.0.0→1.1.0; 6→9 + `grounded_in`) + schema + validator + NEW `mckinsey-deliverable-anatomy.md` + `mckinsey-sell`/`mckinsey-workflow` SKILL.md + `think.md` + resolver page regen. **Tests:** +6 `mckinsey-templates`. No DB table, no migration, no new `/think` verb. Decision: `ops.decisions` slug `thinking-toolkit-v2.1-grounding-and-workflows`. Reversibility 5/5.
+
 ## v2.0.0 — 2026-06-04 — the McKinsey TEAM operating model
 
 **`/cla extend thinking-toolkit`** · MAJOR · panel: **@cto** request-changes (4 must-fixes integrated) + an **ex-McKinsey EM** faithful-with-gaps (6 gaps integrated) · founder self-ship.
