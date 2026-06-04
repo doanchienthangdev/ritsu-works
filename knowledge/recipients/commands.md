@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 21
+**Total entries:** 22
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -326,6 +326,34 @@ subcommand table below — no command-side code changes.
 Tier A (guidance only — no external action, no money, no user impact).
 
 **Invoke:** `/think`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/toolkit
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Project-scoped command for ritsu-works. Front-end for the
+**consulting-toolkit** capability. Reconstructs a partial consulting toolkit
+or framework deck (a "clue" — a Domont/Slidebooks-style overview, a process
+outline, a methodology sketch) into a COMPLETE, executable process artifact
+bundle: a detailed handbook PDF, a McKinsey/Domont-genre 16:9 deck, a
+machine-readable process.yaml, and per-framework anatomy files
+(description · visual · step-by-step tutorial · real example · template ·
+pitfalls).
+
+Use when you have a consultant framework preview / process outline and want
+the full step-by-step, do-able process rebuilt — not just a list of framework
+names. Complements `/think` (atomic thinking disciplines + McKinsey workflow).
+
+Tier A — local artifact generation only (output is local; reconstructed
+content is original synthesis in the consulting-deck genre, never a copy of a
+source deck).
+
+**Invoke:** `/toolkit`
 **HITL tier:** A
 **Side effect:** none
 
