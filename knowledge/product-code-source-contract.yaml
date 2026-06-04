@@ -1,0 +1,97 @@
+# Product Code Source Contract — capability product-code-readonly-access
+#
+# The committed ops-side contract governing HOW ritsu-works reads the Product
+# source CODE repo (github.com/doanchienthangdev/ritsu) as a READ-ONLY
+# source-of-truth. The CODE sibling of product-db-readonly-access (DATA).
+#
+# Validated by scripts/cross-tier/validate-product-code-source.cjs (L2 critical):
+#   1. read_only == true AND repo.write_forbidden == true   (read-only invariant)
+#   2. read_surface == 'committed-remote-tree'              (secret-gate by construction —
+#      the REMOTE committed tree only; never the local clone with uncommitted .env)
+#   3. secret_denylist non-empty AND covers '.env'          (the secret-gate)
+#   4. external_source_id registered in external-sources.yaml with
+#      source_type == 'code-repo-readonly' AND status active
+#   5. consumer_allowlist == that external-source's role_scope (no drift)
+#   6. read_modes: >=1 'active' mode with freshness 'live'; every status known
+#
+# Owner: founder
+# Change policy: PR + founder review (Tier C — affects what the workforce reads).
+# Enabling the gbrain v1.1 ingestion is a SEPARATE founder decision (embedding +
+# code-graph parse cost vs the $100/mo gbrain cap); the hook write-block is a
+# Tier C/D-Std safety-hook edit. Both are flagged in `deferred`, neither auto-done.
+
+version: 1.0.0
+last_updated: 2026-06-04
+owner: founder
+capability_id: product-code-readonly-access
+external_source_id: ritsu-product-source
+
+repo:
+  owner: doanchienthangdev
+  name: ritsu
+  url: https://github.com/doanchienthangdev/ritsu
+  visibility: private
+  default_branch: main
+  write_forbidden: true        # POLICY: ritsu-works must never write/commit/push/PR here (D-MAX-class).
+                               # NOTE: v1 does NOT hook-enforce this (firewall = Supabase DATA only);
+                               # the enforcing write-block is deferred (see deferred.hook-write-block).
+
+read_only: true
+# The secret-gate BY CONSTRUCTION: read the GitHub REMOTE's committed tree only.
+# Secrets are gitignored → never reach the remote (verified 2026-06-04: of 2413
+# committed files, the only secret-ish are apps/{web,admin}/.env.example templates).
+# The local clone /Users/doanchienthang/omg/ritsu carries real secrets
+# (apps/web/.env.local) and is OUT OF BOUNDS for this source.
+read_surface: committed-remote-tree
+
+# Belt-and-suspenders denylist applied on every read/ingest — guards against a
+# future accidental secret commit and scopes any gbrain ingestion.
+secret_denylist:
+  - ".env"
+  - ".env.*"
+  - "*.local"
+  - "*.key"
+  - "*.pem"
+  - "secrets/"
+  - "**/secrets/**"
+
+# Read modes. v1 ships the live (zero-cost, always-fresh) mode; the gbrain
+# code-graph mode is planned + cost-gated (NOT enabled here).
+read_modes:
+  - id: live-gh-grep
+    status: active
+    freshness: live            # reads the remote at query time → always current
+    cost: zero
+    invoke: "gh api / gh search code / shallow read-only clone + git grep (read-only)"
+    use_for: "exact current values, presence checks, keyword/string search, fresh ground-truth"
+  - id: gbrain-code-graph
+    status: planned            # v1.1 — enable only after a founder-approved cost dry-run
+    freshness: snapshot         # synced periodically; carries a freshness tag
+    cost: gated                 # embeddings + code-graph parse vs the $100/mo gbrain cap
+    invoke: "mcp__gbrain__{search,code_blast,code_flow,code_refs,code_def,code_callers,code_callees}"
+    use_for: "semantic + structural questions — where is X computed, what calls Y, trace a flow"
+    enable_requires: "founder go after a scoped cost dry-run (1 package) + the hook write-block hardening"
+
+# Which ops roles may query this source (default-deny). MUST equal the
+# ritsu-product-source external-source role_scope (validator-enforced, no drift).
+consumer_allowlist:
+  - founder
+  - cofounder
+  - product-orchestrator
+  - gtm-orchestrator
+  - code-reviewer
+  - gps
+
+# Consumed as a Tier-A content recipient.
+consumers:
+  - deepask
+  - think-mckinsey
+
+# Deferred hardening — founder-gated, NOT done in v1:
+deferred:
+  - id: hook-write-block
+    what: "Extend pre-tool-supabase-product (or a new pre-bash hook) to BLOCK any git push / gh pr create|merge / gh api write targeting doanchienthangdev/ritsu."
+    why_gated: "Editing a safety hook is Tier C/D-Std. v1 is safe without it (this capability adds only a READ source; it introduces no new write path), but the explicit write-block is the right hardening."
+  - id: gbrain-v1.1-ingestion
+    what: "sources_add + sync_brain the committed tree (scoped to apps/ + packages/ + supabase/, secret-denylist applied), enabling the gbrain-code-graph read mode."
+    why_gated: "Ingestion is a gbrain WRITE (Tier B) + a cost event vs the $100/mo cap. Needs a scoped dry-run estimate + founder go. Back-of-envelope: ~2413 committed files / ~9.8MB; embeddings ~cents, but the code-graph parse cost is unmeasured — hence the dry-run gate."

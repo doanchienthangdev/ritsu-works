@@ -7,7 +7,7 @@
 This file is THE source of truth for external-source recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/external-sources.md` import.
 
-**Total entries:** 10
+**Total entries:** 11
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -99,6 +99,21 @@ Read in any Claude Code session via `@knowledge/recipients/external-sources.md` 
 
 **Disambiguator:** source_type: db-readonly
 **Role scope:** founder, cofounder, customer-lead, product-orchestrator, gtm-orchestrator, feedback-aggregator
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## external-source/ritsu-product-source
+
+**Kind:** external-source
+**Axis:** content
+**When to use:** Product source CODE repo (github.com/doanchienthangdev/ritsu — PRIVATE, TypeScript Turborepo). The governed READ-ONLY source-of-truth for what the product actually IS — stronger than 00-core/product.md (which drifts vs the live site). Capability product-code-readonly-access — the CODE sibling of product-db-readonly-access (DATA). Reads the COMMITTED REMOTE tree ONLY (secrets are gitignored → absen...
+
+**Invoke:** READ-ONLY on the committed REMOTE tree only. v1: `gh api repos/doanchienthangdev/ritsu/git/trees/main?recursive=1` (structure), `gh search code --repo doanchienthangdev/ritsu` / `gh api .../contents` blob reads, or a shallow read-only clone + `git grep`. Used by /deepask + /think mckinsey to ground product questions in real code (cite file:line + commit). v1.1: `mcp__gbrain__{search,code_blast,code_flow,code_refs,code_def,code_callers,code_callees}` over a synced snapshot. Secret-denylist (.env*/*.key/secrets/) honored on every read. v1 prescribes only READ verbs (no push/commit/PR) BY POLICY — not yet hook-enforced (write-block deferred). See knowledge/product-code-source-contract.yaml.
+**Authority:** SoR-external
+**Freshness:** live
+
+**Disambiguator:** source_type: code-repo-readonly
+**Role scope:** founder, cofounder, product-orchestrator, gtm-orchestrator, code-reviewer, gps
 **Status:** active
 **Pillar:** 06-ai-ops
 

@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 53
+**Total entries:** 54
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -680,6 +680,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/problem-solving-frameworks.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-product-code-source-contract
+
+**Kind:** page
+**Axis:** content
+**When to use:** Product Code Source Contract — capability product-code-readonly-access The committed ops-side contract governing HOW ritsu-works reads the Product source CODE repo (github.com/doanchienthangdev/ritsu) as a READ-ONLY source-of-truth. The CODE sibling of product-db-readonly-access (DATA). Validated by scripts/cross-tier/validate-product-code-source.cjs (L2 critical): 1. read_only == true AND repo.wr...
+
+**Invoke:** `Read("knowledge/product-code-source-contract.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/product-code-source-contract.yaml
 
 **Role scope:** *
 **Status:** active

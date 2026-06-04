@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 18
+**Total entries:** 19
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -144,6 +144,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **Status:** operating
 **Pillar:** 06-ai-ops
 
+## capability/product-code-readonly-access
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Product code read-only access — the CODE sibling of Door 2 (DATA). OPERATING since 2026-06-04 (Tier-C, autonomous /cla propose per founder pre-auth). Makes the Product source CODE repo (github.com/doanchienthangdev/ritsu — PRIVATE TS Turborepo) a governed, READ-ONLY, resolver-registered source-of-truth that /deepask + /think mckinsey ground product questions in — stronger than 00-core/product.md ( v1.0.0
+
+**Invoke:** `Read("wiki/capabilities/product-code-readonly-access/spec.md")` or `/cla update product-code-readonly-access`
+
+**Role scope:** *
+**Status:** operating
+**Pillar:** 06-ai-ops
+
 ## capability/product-db-readonly-access
 
 **Kind:** capability
@@ -196,7 +208,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 12 skills (11 composable thinking tools + the mckinsey-workflow 4S v1.6.0
+**When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 12 skills (11 composable thinking tools + the mckinsey-workflow 4S v1.7.0
 
 **Invoke:** `Read("wiki/capabilities/thinking-toolkit/spec.md")` or `/cla update thinking-toolkit`
 

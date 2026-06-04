@@ -259,6 +259,10 @@ async function main() {
     // capability product-db-readonly-access Sprint 2 — analytics-sync-contract.yaml:
     // no content table in the sync list; consumer_allowlist ↔ role-allowlist.ts; MCP registered.
     ['validate-analytics-readonly.cjs', 'analytics-sync-contract ↔ allowlist + .mcp.json + no-content'],
+    // capability product-code-readonly-access — product-code-source-contract.yaml:
+    // read-only invariant; secret-gate (committed-remote-tree); external-source registered;
+    // consumer_allowlist ↔ role_scope no-drift; >=1 live active read mode.
+    ['validate-product-code-source.cjs', 'product-code-source-contract ↔ external-source + read-only + secret-gate'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;
