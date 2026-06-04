@@ -58,7 +58,7 @@ describe("selectChart — v0.1 deferred ideals are now BUILT (intentional v0.2 c
   it("three measures → bubble (built natively now, not scatter)", () => { const r = selectChart("size by spend and growth", { n_measures: 3 }); expect(r.ideal).toBe("bubble"); expect(r.chartType).toBe("bubble"); });
   it("frequency → histogram (built natively now, not column)", () => { const r = selectChart("the distribution of deal sizes across buckets"); expect(r.ideal).toBe("histogram"); expect(r.chartType).toBe("histogram"); });
   it("every DEFER_MAP fallback is a real BUILT type", () => { for (const v of Object.values(DEFER_MAP)) expect(BUILT).toContain(v); });
-  it("BUILT has 27 types and contains the new ones", () => { expect(BUILT.length).toBe(27); for (const t of ["pie", "donut", "marimekko", "bubble", "heatmap", "dumbbell", "lollipop", "dot", "slope", "bullet", "diverging", "histogram", "funnel", "quadrant", "radar", "box", "area", "stacked-area"]) expect(BUILT).toContain(t); });
+  it("BUILT has 60 types (v0.3) and contains the new ones", () => { expect(BUILT.length).toBe(60); for (const t of ["pie", "donut", "marimekko", "bubble", "heatmap", "diverging", "funnel", "area", "stacked-area", "treemap", "sankey", "chord", "network", "flowchart", "gantt", "candlestick", "ohlc", "venn", "waffle", "bump", "violin", "density", "tile-map", "sunburst", "dendrogram", "range", "spline", "step-line", "barcode", "hexbin", "connected-scatter", "population-pyramid", "semicircle-donut", "small-multiples", "matrix-chart", "table-chart"]) expect(BUILT).toContain(t); });
 });
 
 describe("selectChart — explainability contract", () => {
@@ -105,4 +105,16 @@ describe("selectChart — tightened heuristics (review hardening)", () => {
   it("explicit agree/disagree still → diverging", () => expect(selectChart("agree vs disagree by cohort").chartType).toBe("diverging"));
   it("two-period 'both X and Y by dimension' is NOT forced to marimekko", () => expect(selectChart("compare both this year and last year by dimension", { n_periods: 2 }).intent).not.toBe("marimekko"));
   it("size-and-share still → marimekko", () => expect(selectChart("market size and share by segment").chartType).toBe("marimekko"));
+});
+
+describe("selectChart — v0.3 new auto-rules (33 new types)", () => {
+  it("gantt / sankey / treemap", () => { expect(ct("project timeline of tasks")).toBe("gantt"); expect(ct("sankey of where signups flow")).toBe("sankey"); expect(ct("treemap of folder sizes")).toBe("treemap"); });
+  it("candlestick / ohlc", () => { expect(ct("candlestick of daily price action")).toBe("candlestick"); expect(ct("an ohlc chart")).toBe("ohlc"); });
+  it("network / flowchart / venn", () => { expect(ct("network diagram of connections")).toBe("network"); expect(ct("the onboarding flowchart")).toBe("flowchart"); expect(ct("overlap between the segments")).toBe("venn"); });
+  it("waffle / population-pyramid", () => { expect(ct("waffle of plan mix")).toBe("waffle"); expect(ct("population pyramid by age and gender")).toBe("population-pyramid"); });
+  it("density / violin (distribution variants beat histogram/box)", () => { expect(ct("density curve of session length")).toBe("density"); expect(ct("violin of scores by class")).toBe("violin"); });
+  it("bump / spline / step-line / barcode", () => { expect(ct("ranking changes over the seasons")).toBe("bump"); expect(ct("smoothed trend of dau")).toBe("spline"); expect(ct("step chart of pricing tiers")).toBe("step-line"); expect(ct("barcode of events")).toBe("barcode"); });
+  it("tile-map / small-multiples / dendrogram / sunburst", () => { expect(ct("users by state grid")).toBe("tile-map"); expect(ct("one chart per region")).toBe("small-multiples"); expect(ct("hierarchical clustering of users")).toBe("dendrogram"); expect(ct("sunburst of revenue")).toBe("sunburst"); });
+  it("connected-scatter beats the bare-scatter rule", () => expect(ct("connected scatter over time")).toBe("connected-scatter"));
+  it("range / matrix / table / hexbin / chord / arc", () => { expect(ct("min-max range by region")).toBe("range"); expect(ct("presence matrix of features")).toBe("matrix-chart"); expect(ct("a data table of metrics")).toBe("table-chart"); expect(ct("hexbin of many points")).toBe("hexbin"); expect(ct("chord diagram of flows")).toBe("chord"); expect(ct("arc diagram of links")).toBe("arc"); });
 });

@@ -20,7 +20,7 @@
 # Consumer:  06-ai-ops/skills/dataviz/SKILL.md (--use=<renderer>)
 # ============================================================================
 
-version: "1.1.0"
+version: "1.2.0"
 schema: knowledge/schemas/dataviz-renderers.schema.json
 
 renderers:
@@ -29,17 +29,17 @@ renderers:
     generator: scripts/dataviz/render.cjs
     skill: 06-ai-ops/skills/dataviz/renderers/svg-native/SKILL.md
     default_theme: mckinsey
-    # v0.2: 27 BUILT types (the source of truth is scripts/dataviz/lib/taxonomy.cjs `BUILT`).
-    chart_types: [bar, column, grouped, lollipop, dot, dumbbell, slope, radar, quadrant, bullet, scatter, bubble, heatmap, stacked, stacked100, pie, donut, marimekko, diverging, funnel, line, area, stacked-area, histogram, box, waterfall, kpi]
-    # CATALOGED (named in the taxonomy; the selector maps to the nearest built type + an honest reason).
-    deferred_chart_types: [small-multiples, range, pictogram, icon-chart, radial-bar, nightingale, parallel-coordinates, matrix-chart, word-cloud, table-chart, connected-scatter, hexbin, contour, waffle, treemap, population-pyramid, icon-array, sunburst, dendrogram, venn, euler, gauge, semicircle-donut, bump, stream, spline, step-line, gantt, candlestick, ohlc, barcode, density, ridgeline, violin, strip, jitter, beeswarm, horizon, radial-histogram, sankey, chord, arc, network, flowchart, choropleth, tile-map, geo-heatmap]
+    # v0.3: 60 BUILT types across all 6 families (source of truth: scripts/dataviz/lib/taxonomy.cjs `BUILT`).
+    chart_types: [bar, column, grouped, lollipop, dot, dumbbell, slope, radar, quadrant, bullet, scatter, bubble, heatmap, stacked, stacked100, pie, donut, marimekko, diverging, funnel, line, area, stacked-area, histogram, box, waterfall, kpi, small-multiples, range, matrix-chart, table-chart, connected-scatter, hexbin, waffle, treemap, population-pyramid, sunburst, dendrogram, venn, semicircle-donut, bump, spline, step-line, gantt, candlestick, ohlc, barcode, density, ridgeline, violin, strip, jitter, beeswarm, horizon, sankey, chord, arc, network, flowchart, tile-map]
+    # CATALOGED v0.3 (14: 10 anti-McKinsey + 4 infeasible-in-pure-renderer — choropleth/geo-heatmap need real boundary polygons, contour needs a continuous-field/marching-squares engine, euler needs general set geometry; the selector maps each to the nearest built type + an honest reason).
+    deferred_chart_types: [pictogram, icon-chart, radial-bar, nightingale, parallel-coordinates, word-cloud, contour, icon-array, euler, gauge, stream, radial-histogram, choropleth, geo-heatmap]
     supports: [message, chart, data, title, title-style, source, footnotes, highlight, sort, unit, decimals, percent, thousands, style, theme, format, ar, width, height, use, out, max-cost-usd, dry-run, explain, audience, target, x-label, y-label]
     supports_stretch: []
     unsupported_warn: [art-style]
     auth:
       env: null            # PURE / offline — no secret, no API key (unlike /image's OPENAI_API_KEY)
       billing: in-process-pure
-    notes: "Zero-dependency pure-Node SVG-string renderer (no d3/canvas/DOM). renderChart(chartType,data,spec,theme)->svgString is a PURE function → byte-stable, snapshot-free toBe()/toEqual() tests. v0.2 (extend): 27 built chart types across all six Datylon families + the intelligent context-aware selector (scripts/dataviz/select.cjs) backed by the full chart taxonomy (scripts/dataviz/lib/taxonomy.cjs). Format png/pdf rasterization remains a stretch (svg/html/inline)."
+    notes: "Zero-dependency pure-Node SVG-string renderer (no d3/canvas/DOM). renderChart(chartType,data,spec,theme)->svgString is a PURE function → byte-stable, snapshot-free toBe()/toEqual() tests. v0.3 (extend): 60 built chart types across all six Datylon families + the intelligent context-aware selector (scripts/dataviz/select.cjs) backed by the full chart taxonomy (scripts/dataviz/lib/taxonomy.cjs); only 14 forms stay cataloged (10 anti-McKinsey + 4 infeasible-in-pure-renderer). The default output wordmark is the Ritsu brand (the 'McKinsey' label is the design discipline, not the output brand). Format png/pdf rasterization remains a stretch (svg/html/inline)."
 
   - id: echarts-ssr
     status: registered-not-built

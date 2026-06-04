@@ -1633,7 +1633,7 @@ capabilities:
       v0.1 backend = svg-native: a ZERO-DEPENDENCY, pure-Node, byte-stable SVG-string
       renderer (renderChart(type,data,spec,theme)->svg is a PURE function → unit-
       tested with toBe/toEqual, no vitest snapshots; no d3 [ESM-only], no canvas/DOM,
-      no native build). v0.2: 27 BUILT chart types across all six Datylon families +
+      no native build). v0.3: 60 BUILT chart types across all six Datylon families +
       an INTELLIGENT context-aware selector (taxonomy-driven: intent + data-shape +
       audience → best chart + reason + alternatives + anti-pattern warnings + confidence);
       47 cataloged types map to the nearest built + an honest reason. PURE/OFFLINE — no secret, no
@@ -1646,7 +1646,7 @@ capabilities:
       lib/{params,theme,svg}.cjs + knowledge/dataviz-renderers.yaml (split registry)
       + schema + scripts/cross-tier/validate-dataviz-renderers.cjs (L2) +
       SOP-AIOPS-011-dataviz-runtime-contract.
-    version: "0.2.0"
+    version: "0.3.0"
     state: operating
     state_since: 2026-06-04
     proposed_at: 2026-06-04
@@ -1665,6 +1665,21 @@ capabilities:
       marimekko deferred; validator imports dataviz UNIVERSAL_PARAMS; resolver:sync
       committed). Decision: ops.decisions slug dataviz-capability-v0.1. Reversibility
       5/5 (self-contained; git revert removes it cleanly).
+      v0.3 (2026-06-04): /cla extend (SOP-AIOPS-001-extend), self-shipped. +33 built
+      chart types → 60 across all six families (the remaining feasible, non-anti-McKinsey
+      Datylon types: small-multiples/range/matrix-chart/table-chart/connected-scatter/
+      hexbin/waffle/treemap/population-pyramid/sunburst/dendrogram/venn/semicircle-donut/
+      bump/spline/step-line/gantt/candlestick/ohlc/barcode/density/ridgeline/violin/strip/
+      jitter/beeswarm/horizon/sankey/chord/arc/network/flowchart/tile-map). Only 14 stay
+      cataloged: 10 anti-McKinsey (radial-bar/nightingale/pictogram/icon-chart/icon-array/
+      word-cloud/gauge/stream/parallel-coordinates/radial-histogram) + 4 infeasible in a
+      pure zero-dep renderer (choropleth/geo-heatmap need boundary polygons; contour needs
+      a continuous-field engine; euler needs general set geometry). New svg primitives
+      (splinePath/bezierH/hexPath/squarify/jitterOffset) + selector auto-rules for the new
+      types + a dispatch-coverage invariant test. DE-BRANDED: default output wordmark
+      'McKinsey & Company' → 'Ritsu' (the McKinsey label is the design discipline, not the
+      output brand; --style overrides). 188 dataviz tests. Decision: ops.decisions slug
+      dataviz-v0.3-full-chart-library-and-debrand. Reversibility 5/5 (additive pure code).
       v0.2 (2026-06-04): /cla extend (SOP-AIOPS-001-extend), self-shipped. +18 built
       chart types → 27 across all six Datylon families (the v0.1 "ladder" delivered:
       area/stacked-area/pie/donut/marimekko/bubble/heatmap/dumbbell/lollipop/dot/slope/

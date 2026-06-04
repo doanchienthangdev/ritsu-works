@@ -11,7 +11,7 @@ const S = require("../../scripts/dataviz/lib/svg.cjs");
 // ============================================================================
 
 describe("taxonomy — structural invariants", () => {
-  it("BUILT is 27 unique kebab-case ids", () => { expect(T.BUILT.length).toBe(27); expect(new Set(T.BUILT).size).toBe(27); for (const id of T.BUILT) expect(/^[a-z][a-z0-9-]*$/.test(id)).toBe(true); });
+  it("BUILT is 60 unique kebab-case ids (v0.3)", () => { expect(T.BUILT.length).toBe(60); expect(new Set(T.BUILT).size).toBe(60); for (const id of T.BUILT) expect(/^[a-z][a-z0-9-]*$/.test(id)).toBe(true); });
   it("every chart belongs to a known family", () => { for (const id of Object.keys(T.CHARTS)) expect(T.FAMILIES).toContain(T.CHARTS[id].family); });
   it("every cataloged chart is built:false with a BUILT fallback", () => { for (const id of T.CATALOGED) { expect(T.CHARTS[id].built).toBe(false); expect(T.BUILT).toContain(T.toBuilt(id)); } });
   it("every built chart maps to itself via toBuilt", () => { for (const id of T.BUILT) expect(T.toBuilt(id)).toBe(id); });
@@ -26,7 +26,7 @@ describe("taxonomy — helpers + boundaries", () => {
   it("meta(unknown) → null; toBuilt(unknown) → bar", () => { expect(T.meta("nope")).toBe(null); expect(T.toBuilt("nope")).toBe("bar"); });
   it("familyOf / stanceOf on unknown → null", () => { expect(T.familyOf("nope")).toBe(null); expect(T.stanceOf("nope")).toBe(null); });
   it("byIntent returns built-first matches", () => { const ids = T.byIntent("ranking"); expect(ids).toContain("bar"); });
-  it("catalog() has a row per chart with built+fallback fields", () => { const rows = T.catalog(); expect(rows.length).toBe(Object.keys(T.CHARTS).length); const tm = rows.find((r: any) => r.id === "treemap"); expect(tm.built).toBe(false); expect(T.BUILT).toContain(tm.fallback); const bar = rows.find((r: any) => r.id === "bar"); expect(bar.fallback).toBe(null); });
+  it("catalog() has a row per chart with built+fallback fields", () => { const rows = T.catalog(); expect(rows.length).toBe(Object.keys(T.CHARTS).length); const cp = rows.find((r: any) => r.id === "choropleth"); expect(cp.built).toBe(false); expect(T.BUILT).toContain(cp.fallback); const bar = rows.find((r: any) => r.id === "bar"); expect(bar.fallback).toBe(null); });
 });
 
 describe("svg primitives — polar/arc (byte-stable)", () => {

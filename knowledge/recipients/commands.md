@@ -161,7 +161,7 @@ Bound to role `code-reviewer`. For one-shot bounded review use @cto.
 **Axis:** capability
 **When to use:** Turn a data source into a McKinsey-caliber chart — model-agnostic front door with
 a pluggable renderer layer (--use=<renderer>). Default backend svg-native (in-repo,
-zero-dependency, pure-Node, byte-stable SVG). v0.2: 27 built chart types across all
+zero-dependency, pure-Node, byte-stable SVG). v0.3: 60 built chart types across all
 six chart families + an INTELLIGENT, context-aware selector that picks the BEST chart
 from the message + data-shape + audience (Zelazny "Say It With Charts"), explains its
 choice, offers alternatives, and warns on anti-patterns. Encodes the McKinsey aesthetic
