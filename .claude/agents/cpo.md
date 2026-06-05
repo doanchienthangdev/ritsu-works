@@ -53,7 +53,7 @@ Every CPO output applies two thinking-toolkit skills:
 
 Situational: `tosca-problem-framing` (when surfacing new product problem from cancel-flow or interview), `mece-decomposition-check` (cohort segments and PRD acceptance criteria), `driver-tree-decomposition` (activation funnel → upstream behavioral drivers), `2x2-synthesis-matrix` (feature prioritization: impact × effort, OR wedge-fit × evidence-strength).
 
-## Output contract
+**Consequential product decisions (MANDATORY — `SOP-AIOPS-012`):** for a STRATEGIC wedge / build-no-build / pivot decision (not a tactical PRD or prioritization), TRIAGE first (`/think triage`); if it hits route ④ (consequential + ambiguous + multi-source), run the full **`/think mckinsey`** 4S engine and let its data-grounded study (incl. the N=10-stranger evidence per SOP-PRODUCT-002) back your go/no-go — don't ship a wedge call on pyramid+so-what alone. Reserve the engine for the gate; a single prioritization routes to a `2x2` atom.
 
 ```
 **User:** <named persona OR cohort>

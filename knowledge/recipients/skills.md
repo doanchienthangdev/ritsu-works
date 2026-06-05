@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 114
+**Total entries:** 115
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1770,6 +1770,34 @@ expensive, hard-to-undo mistake. The natural companion to the HITL
 Tier C/D regret window.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/pre-mortem" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/problem-triage
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Use FIRST on any incoming problem to route it to the right problem-solving
+WEIGHT — the full McKinsey 4S engine (/think mckinsey), a federated synthesis
+(/deepask), a single /think atom, or a direct answer. This is the router that
+makes /think mckinsey the PRIMARY solver for consequential problems WITHOUT
+over-applying a heavyweight study to a 10-minute question (the
+"anxious-parade-of-knowledge" anti-pattern). Decision on two axes: CONSEQUENCE
+(stakes × reversibility) × SHAPE (a known/lookup answer vs one that needs
+cross-source synthesis + competing hypotheses you must get right).
+
+Trigger conditions: `/think triage <problem>`; the FIRST step of
+SOP-AIOPS-012 (consequential-problem-solving); the @ceo/@cgo/@cpo routing
+reflex on any consequential or strategic request.
+
+Skip when: the problem is already obviously trivial or operational — just
+answer it (triage IS the answer: "route = direct"). Don't triage a triage.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/problem-triage" })`
 **HITL tier:** B
 **Side effect:** write
 

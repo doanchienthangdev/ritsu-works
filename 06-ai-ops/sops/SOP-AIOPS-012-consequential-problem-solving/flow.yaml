@@ -1,0 +1,138 @@
+# SOP-AIOPS-012 — Consequential problem-solving (triage → 4S engine)
+#
+# The institutional mandate that makes /think mckinsey the AI workforce's PRIMARY
+# problem-solver for consequential decisions. Capability thinking-toolkit v3.2.
+#
+# A great engine on the shelf is not a primary solver. This SOP is what wires it
+# into how the company actually decides: any consequential/strategic problem is
+# TRIAGED first (right weight, not always the big gun), and the hardest ones run
+# the full McKinsey 4S engine whose study becomes the decision record — so the
+# recommendation is data-grounded + disconfirmed before it is acted on.
+#
+# NOTE: This is a RUNTIME-CONTRACT SOP (like SOP-AIOPS-005-deepask), NOT a CLA
+# 8-phase ceremony. The thinking is Tier A (read/synthesize); the DECISION the
+# study informs carries its own HITL tier (C/D) and ceremony per HITL.md — the
+# SOP surfaces it, never auto-acts.
+
+sop_id: SOP-AIOPS-012
+slug: consequential-problem-solving
+name: "Consequential problem-solving (triage → 4S engine)"
+version: "1.0.0"
+state: operating
+owner: 06-ai-ops
+hitl_default: A           # the thinking is Tier A; the decision it informs is surfaced at its own tier
+cost_bucket: ai-ops-skill-library
+capability_id: thinking-toolkit
+
+# ----------------------------------------------------------------------
+# TRIGGERS — when this SOP fires (a consequential problem appears)
+# ----------------------------------------------------------------------
+triggers:
+  - id: tier_c_d_decision_framing
+    when: "a Tier-C or Tier-D decision (per governance/HITL.md) is being framed — pricing, GTM bet, suspend/refund policy, irreversible spend, strategy"
+  - id: weekly_review_question
+    when: "a weekly product / GTM / customer review surfaces a 'why is X happening / what do we do' question that isn't a lookup"
+  - id: founder_strategic_question
+    when: "the founder (or @ceo) brings a strategic / ambiguous question — the @ceo routing reflex (Tier 3-4 per ADR-004)"
+  - id: cla_problem_framing
+    when: "a /cla proposal on a CONSEQUENTIAL capability needs its problem genuinely framed (beyond the tosca pass), not just scoped"
+  - id: pillar_orchestrator_consequential
+    when: "@cgo / @cpo (or any pillar orchestrator) faces a strategic wedge / funnel / build-no-build decision, not a tactical one"
+
+# ----------------------------------------------------------------------
+# STEPS — each consequential problem runs once through this sequence
+# ----------------------------------------------------------------------
+steps:
+  - id: triage
+    name: "Step 1 — triage the problem to its WEIGHT (never skip)"
+    skill: thinking-toolkit/problem-triage
+    actions:
+      - score_consequence            # stakes × (ir)reversibility
+      - score_shape                  # known/lookup vs needs cross-source synthesis + competing hypotheses
+      - route                        # the route table → one of the four weights
+      - state_route_and_reason       # NEVER route silently — declare the route + one-line why
+    hitl: A
+    routes:
+      direct:   "answer it, or 1 tool call (supabase-ops / wiki_ask / gbrain)"   # low-consequence + known
+      deepask:  "/deepask \"<q>\""                                                # synthesis, answer-shaped
+      atom:     "/think <tosca|driver-tree|hypothesis|pre-mortem|debias|2x2>"     # one structuring lens
+      mckinsey: "continue to Step 2"                                              # consequential + ambiguous + multi-source
+    guard: anti_over_application
+    guard_rule: >
+      Route to the full engine (Step 2) ONLY when ALL THREE hold: consequential
+      (cost-of-wrong >> cost-of-study) AND genuinely ambiguous (no credible answer
+      / competing answers) AND multi-source (one lens won't crack it). If any
+      fails → a lighter route + say why. Running the full engine otherwise is the
+      anxious-parade-of-knowledge anti-pattern (rigor mis-applied = expensive theater).
+
+  - id: study
+    name: "Step 2 — run the 4S engine (route ④ only)"
+    skill: thinking-toolkit/mckinsey-workflow
+    actions:
+      - run_think_mckinsey           # State → Structure → Solve → Sell; the engine's OWN decision_gates pick the path
+      - accordion_depth              # --depth=quick for a smaller consequential problem (discipline, no ceremony)
+      - pull_real_data               # deepask / supabase-ops metrics.* / gbrain / analytics — never fabricate
+    hitl: A                          # the study is read/synthesize; Tier-B+ data legs are surfaced, never auto-run
+    gate: mckinsey_before_sell_gate
+    gate_rule: >
+      The pre-write-mckinsey-gate hook auto-runs mckinsey-run.cjs --before-sell
+      when the Sell artifact is written: no open workplan rows · pre-wire + dissent
+      sessions logged · >=2 workplan rows · a non-trivial Disconfirmation. The
+      study's recommendation is not 'ready' until that gate is clear.
+
+  - id: decision_record
+    name: "Step 3 — the run-folder IS the decision record"
+    actions:
+      - link_run_folder               # .archives/mckinsey/<slug>/ is the auditable reasoning behind the call
+      - record_in_ops_decisions       # insert/annotate ops.decisions with the run-folder slug + the one-day answer
+      - carry_disconfirmation         # the answer names the analysis that would prove it WRONG (the audit of how we could be wrong)
+    hitl: A
+
+  - id: gate_before_act
+    name: "Step 4 — act only after the gate + the decision's own ceremony"
+    actions:
+      - require_pre_wire_and_dissent  # the --before-sell gate must be clear before the recommendation is acted on
+      - surface_decision_at_tier      # the DECISION (not the study) carries its HITL tier — C/D gets its ceremony per HITL.md
+    hitl: "decision's own tier (C/D surfaced per HITL.md; this SOP itself is A)"
+
+# ----------------------------------------------------------------------
+# RACI
+# ----------------------------------------------------------------------
+raci:
+  responsible: "the invoking persona / orchestrator (@ceo via gps, or @cgo / @cpo / pillar orchestrator)"
+  accountable: founder
+  consulted:   "founder (HITL data-requests + the pre-wire/dissent sessions); specialist personas for domain"
+  informed:    "the decision's stakeholders via the run-folder decision record"
+
+# ----------------------------------------------------------------------
+# GUARDS — what keeps 'primary' from becoming 'always heavyweight'
+# ----------------------------------------------------------------------
+guards:
+  - id: no_over_application
+    rule: "most problems route to ①/②/③; the full engine is reserved for the 3-condition gate. Triage is mandatory, mckinsey is not."
+  - id: thinking_not_deciding
+    rule: "the study informs; the engine + founder decide. A beautifully-run study does not make a wrong call right (that is what the validation gate + dissent are for)."
+  - id: data_grounded
+    rule: "every datum is pulled or asked-for + validated; never fabricated (the mckinsey engine's own discipline, inherited here)."
+
+# ----------------------------------------------------------------------
+# EVENTS + STATE
+# ----------------------------------------------------------------------
+events_emitted:
+  - ritsu.problem.triaged           # {problem, route, reason} — every triage, for the routing track-record
+  - ritsu.mckinsey.study_completed  # {slug, verdict, decision_id} — every route-④ study that reaches a clean Sell
+
+state_persisted_in:
+  triage_decisions: "ops.agent_runs (agent_slug of the invoking persona; route + reason in output_payload)"
+  studies:          ".archives/mckinsey/<slug>/ (the run-folder = the decision record) + ops.decisions"
+
+# ----------------------------------------------------------------------
+# REFERENCES
+# ----------------------------------------------------------------------
+references:
+  triage_skill:    06-ai-ops/skills/thinking-toolkit/problem-triage/SKILL.md
+  engine_skill:    06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md
+  engine_catalog:  knowledge/mckinsey-workflow.yaml
+  enforcement:     .claude/hooks/pre-write-mckinsey-gate.md
+  personas:        ".claude/agents/{ceo,cgo,cpo}.md (the routing reflex)"
+  hitl:            governance/HITL.md

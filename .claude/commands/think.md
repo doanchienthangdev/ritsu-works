@@ -1,7 +1,7 @@
 ---
 description: |
   Project-scoped command for ritsu-works. Front-end for the
-  **thinking-toolkit** capability (v3.1.0). Routes to 12 McKinsey/Minto-derived
+  **thinking-toolkit** capability (v3.2.0). Routes to 13 McKinsey/Minto-derived
   thinking-discipline skills under `06-ai-ops/skills/thinking-toolkit/`.
 
   Use when you want to apply a specific thinking framework to the current
@@ -17,13 +17,13 @@ description: |
 
   Tier A (guidance only — no external action, no money, no user impact).
 
-argument-hint: "[tosca <problem> | mece [list] | pyramid [conclusion] | so-what [conclusion] | 2x2 <axis-x> <axis-y> | driver-tree <metric> | hypothesis <problem> | premortem [decision] | root-cause [symptom] | design-thinking <problem> | debias [decision] | list | flow [problem]]"
+argument-hint: "[triage <problem> | mckinsey <problem> | tosca <problem> | mece [list] | pyramid [conclusion] | so-what [conclusion] | 2x2 <axis-x> <axis-y> | driver-tree <metric> | hypothesis <problem> | premortem [decision] | root-cause [symptom] | design-thinking <problem> | debias [decision] | list | flow [problem]]"
 ---
 
 # /think
 
 Project-scoped command for ritsu-works. Front-end for the **thinking-toolkit**
-capability (v3.1.0). Capability spec at `wiki/capabilities/thinking-toolkit/spec.md`.
+capability (v3.2.0). Capability spec at `wiki/capabilities/thinking-toolkit/spec.md`.
 
 The command is a **thin orchestrator**. All thinking discipline lives in the 12
 skills under `06-ai-ops/skills/thinking-toolkit/`. Subcommands invoke those
@@ -33,12 +33,13 @@ Per `governance/HITL.md`, all `/think` invocations are **Tier A** — guidance
 documents read by the invoking agent; no external action, no money movement,
 no user impact, no escalation paths.
 
-## Subcommands (v3.1 — 14 verbs)
+## Subcommands (v3.2 — 15 verbs)
 
 | Invocation | Maps to skill | Purpose | HITL |
 |---|---|---|---|
 | `/think` | — | Show menu + composition flow + skill index | A |
-| `/think list` | — | Table of all 12 skills (11 atomic + the mckinsey-workflow engine; name, one-line, when to use) | A |
+| `/think list` | — | Table of all 13 skills (12 atomic + the mckinsey-workflow engine; name, one-line, when to use) | A |
+| `/think triage <problem>` | `thinking-toolkit/problem-triage` | **Route a problem to the right WEIGHT** — mckinsey / deepask / a single atom / direct. The front door that makes mckinsey the PRIMARY solver for consequential problems without over-applying it (v3.2) | A |
 | `/think flow [problem]` | — | Recommend a multi-skill sequence (TOSCA → MECE → driver-tree → 2x2 → pyramid → so-what) | A |
 | `/think mckinsey <problem> [flags]` | `thinking-toolkit/mckinsey-workflow` | Run a problem as a McKinsey 4S **TEAM** — pull real data · validate · living one-day answer · re-route · ask founder-only data (v1.4) · load+select from the unified thinking-tool library — **631 frameworks + 20 inherited ex-McKinsey domain processes** via fast per-checkpoint maps (v1.5 registry → **v3.0** consulting library) · mechanically scaffold + gate (v1.6) · **HITL receipt gate** (v1.8) · **team operating model** (v2.0): `--mode=interactive`(default)`/auto`, 7 team-session checkpoints (frame/hypothesize/plan/prioritize/porpoise/dissent/pre-wire) with a `pre-wire`+`dissent` gate, thorough data-sweep + completeness-critic, and a **Sell formatter** to McKinsey templates in any `/deepask` format+design-system · **v2.1**: sell templates GROUNDED in real McKinsey reports (not guessed) + **`--workflow=off/steps/full`** runs each high-leverage step as a dynamic multi-agent WORKFLOW · **v3.1**: the 3 paths + 5 decision-gates of the 4S diagram restored as first-class catalog sections (`paths`/`decision_gates`), an **auto-run gate hook** at Sell, and **coherence-validated** tool counts (631/20). Flags: `--mode --depth --sell --audience --style --art-style --sources --format --workflow` (see SKILL.md) | A |
 | `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` | Frame ambiguous problem via T/O/S/C/A before solutioning | A |
@@ -65,7 +66,9 @@ Argument conventions:
 Print a compact menu:
 
 ```
-/think — McKinsey/Minto thinking discipline (12 skills, capability v3.1.0)
+/think — McKinsey/Minto thinking discipline (13 skills, capability v3.2.0)
+
+  triage <problem>       Route a problem to the right weight (the front door)  (v3.2)
 
   tosca <problem>        Frame an ambiguous problem (T/O/S/C/A)
   mece [list]            Check a list for overlap + exhaustive
@@ -130,6 +133,15 @@ ambiguous problem
 ```
 
 Not every workflow uses every skill. The command surfaces this as guidance; the agent picks which links of the chain to invoke.
+
+### `/think triage <problem>` (v3.2 — the front door)
+
+Invoke `thinking-toolkit/problem-triage`. Routes the problem to the right WEIGHT on two axes (consequence × shape): **① direct answer · ② `/deepask` · ③ a single `/think` atom · ④ `/think mckinsey`** (the full 4S engine, for consequential + ambiguous + multi-source). This is what makes `/think mckinsey` the **primary problem solver** for the hardest decisions while reserving the big gun (anti–"anxious parade of knowledge"). It is the FIRST step of `SOP-AIOPS-012-consequential-problem-solving` and the @ceo/@cgo/@cpo routing reflex.
+
+```
+/think triage "Is the US college-STEM wedge the right first-100 ICP, or Vietnam-first?"
+→ Route: ④ /think mckinsey (consequential + ambiguous + multi-source) → invoking the engine.
+```
 
 ### `/think tosca <problem>`
 
@@ -283,7 +295,7 @@ Each `/think <subcommand>` invocation = single `ops.agent_runs` row (agent_slug=
 
 ## Spec reference
 
-Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v3.1.0).
+Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v3.2.0).
 Retrospective: `wiki/capabilities/thinking-toolkit/retrospective.md`.
 Sub-flow draft notes: `.archives/cla/thinking-toolkit/v1.1-extension-delta.md`.
 
