@@ -52,7 +52,7 @@ const COVERED_YAMLS = [
   "mckinsey-workflow.yaml",
   "mckinsey-templates.yaml",
   "problem-solving-frameworks.yaml",
-  // thinking-toolkit v3.0 consulting library (#241) — realigned 2026-06-05:
+  // added by #241-243 (consulting-toolkit + thinking-OS v3.0) — realigned 2026-06-05:
   "consulting-frameworks.yaml",
   "consulting-processes.yaml",
 ];

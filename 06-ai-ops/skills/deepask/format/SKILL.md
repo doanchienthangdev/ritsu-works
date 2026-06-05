@@ -56,7 +56,7 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 | `pptx` | `anthropic-skills:pptx` | exec_summary → title; each section → a slide; tables/charts as slide objects |
 | `xlsx` | `anthropic-skills:xlsx` | IR `tables[]` + metric rows → sheets (best for data/metric-heavy answers) |
 | `mermaid` | mermaid MCP (`validate_and_render_mermaid_diagram`) | IR `diagrams[].mermaid_src` → validated/rendered diagram(s) |
-| `chart` | `anthropic-skills:xlsx` charts / `design:*` html-chart | IR `charts[]` (series-data, not pixels) → chart image/html |
+| `chart` | **`/dataviz`** (`scripts/dataviz/gen.cjs` via `scripts/deepask/chart-embed.cjs`) | IR `charts[]` (series-data, not pixels) → **McKinsey-grade byte-stable SVG** per chart; the agent picks the type from the dataviz catalog (`--selected-by=agent`). $0/offline. See §2.7. |
 | `dashboard` | `design:*` / `frontend-design` | multi-panel html dashboard from IR sections + charts + tables |
 | `html` | `design:*` / `frontend-design` | standalone html rendering of the article + visuals |
 | `interactive` | `frontend-design` | interactive html (filterable tables, toggles) |
@@ -68,6 +68,13 @@ deepask AUTHORS the concrete invocation of each reuse-skill (frames its inputs f
 
 ### 2.5 Image pipeline (v1.1 — `infographics` · `img-slide`, gpt-image-2)
 These two formats render via OpenAI image generation, so they have an extra pipeline + flags + a cost gate. They are **explicit-only** (never returned by `smartauto` — image gen spends money).
+
+> **v1.3 data-slide split (img-slide):** a slide whose content is fundamentally a **chart**
+> renders via **`/dataviz`** (§2.7 `data-slide` mode — deterministic, accurate, $0), NOT
+> gpt-image-2 (which fabricates plausible-but-wrong numbers). gpt-image-2 is reserved for the
+> concept / illustration / cover slides. The agent classifies each planned slide.
+> **v1.4 image platform:** the gpt-image generation below routes through **`/image`**
+> (`scripts/image/gen.cjs`) — the pluggable adapter + `--ref`/`--mask` + governed run.json — see §2.8.
 
 **New flags** (orthogonal to `--format`; only meaningful for the 2 image formats):
 
@@ -85,7 +92,7 @@ These two formats render via OpenAI image generation, so they have an extra pipe
 1. `resolveStyle(--style)` → brand context. **`resolveArtStyle(--art-style)` → genre context (v1.2-image).** `resolveImageSpec({format, orientation})` → `apiSize` (img-slide = **2048×1152 native 16:9, `crop:null`** — no crop, so the title is never clipped, v1.2.1).
 2. **`deepask/image-compose`** → `image-plan.json` (pieces + per-piece gpt-image-2 prompts = byte-identical brand block + **genre block + a REQUIRED per-piece focal illustration from the cited IR** + the EXACT IR text; no new claims; **honesty invariant** — no load-bearing figure exists ONLY as illustration).
 3. **Cost gate:** `image-cost.estimateRunCost({size, quality, count})` → `checkCostBudget({estimatedUsd, maxCostUsd})`. If `!ok` → STOP, report the estimate vs cap, suggest lowering `--img-quality`/`--max-slides` or raising `--max-cost-usd`. Show the estimate either way.
-4. **Gen:** for each piece, `node scripts/deepask/image-gen.cjs --prompt-file=… --size=… --quality=… --model=… --out=images/NN-role.png` (writes PNG via OpenAI; `--dry-run` writes prompt sidecars + no PNG + no spend).
+4. **Gen (v1.4 — via the `/image` platform, §2.8):** for each piece, build the invocation with `scripts/deepask/image-route.cjs` `buildImagePlatformInvocation(piece, {use, maxCostUsd})` (composed prompt → `composed:true`, no double-compose) and run `node scripts/image/gen.cjs --prompt-file=… --use=… --ar=… --quality=… --count=1 --out=<dir>/ --max-cost-usd=…` → `parseImageResult` → move `files[0]` to `images/NN-role.png`. (`--dry-run` writes prompt sidecars + run.json, no PNG, no spend. `--ref`/`--mask` available.)
 5. **Assemble (img-slide only):** `node scripts/deepask/slide-deck.cjs --images-dir=slides/ --out=slides.pdf --crop=16:9` (Pillow; crops each page to true 16:9; graceful-degrade → keep PNGs + note if Pillow absent).
 6. **Always also write `answer.md`** (+ `plan.json` + `sources.json` + `image-plan.json`). The image deck/poster is the rich artifact; the cited text answer is never lost.
 
@@ -109,6 +116,69 @@ const logo = resolveStyleLogo(resolved /* from resolveStyle(--style) */, { prefe
 // logo.faviconDataUri → <link rel="icon" href="${logo.faviconDataUri}">
 ```
 The asset is resolved from the design system's `assets/` dir (beside its DESIGN.md). Self-contained → the logo renders everywhere, always. `--style` plain → no logo file; use a CSS wordmark in the brand-neutral aesthetic.
+
+### 2.7 Chart embedding via `/dataviz` (v1.3 — charts in EVERY format)
+
+A cited answer with quantitative claims is far stronger with a chart that makes the point. The
+synthesis IR already carries **`charts[]`** (series-data, not pixels). v1.3 embeds them — the
+agent is the **LLM-native chart selector** (the same move dataviz v0.4 made): read the dataviz
+catalog (`06-ai-ops/skills/dataviz/catalog.md`), and **per IR chart** pick the type that makes
+the point, then render via `scripts/deepask/chart-embed.cjs` (which calls `scripts/dataviz/gen.cjs
+--selected-by=agent --style=<resolved --style> --art-style=<resolved --art-style>`). dataviz is
+**PURE/OFFLINE — $0, no API key** — so charts cost nothing.
+
+**When to embed:** any time the IR has `charts[]` (or a section asserts a number that a chart
+clarifies) AND the target format carries charts. `embedModeForFormat(format)` (pure) decides how:
+
+| format | embed mode | how the chart lands |
+|---|---|---|
+| `html` `dashboard` `interactive` `canvas` `article` `pdf`(-via-html) | **`svg-inline`** | the dataviz **SVG is inlined** into the artifact (native, perfect fidelity, $0) |
+| `pptx` `docx` | **`png`** | SVG **→ PNG** (headless Chrome, `scripts/deepask/chart-embed.cjs rasterizeSvgToPng`) → embedded as an image object; **graceful-degrade** → inline SVG + a note if Chrome is absent |
+| `img-slide` | **`data-slide`** | a slide that is fundamentally a chart renders via **dataviz (accurate, deterministic, $0)**, NOT gpt-image-2 (which fabricates numbers) — see §2.5. Concept/illustration slides still use gpt-image. **This is the accuracy + cost win.** |
+| `xlsx` | `native` | keep the spreadsheet's own chart object (series-data → native xlsx chart); dataviz optional |
+| `infographics` | `companion` | the single gpt-image poster can't composite an exact chart → emit a dataviz chart **alongside** + note (or recommend `--format=dashboard` for chart-heavy answers) |
+| `inline` `text` `mermaid` | `none` | no chart surface (mermaid is its own diagram format) |
+
+**Protocol (per IR chart, where the format embeds):**
+1. Read the dataviz catalog; from the chart's series-data + the section's MESSAGE, pick the chart type (Zelazny: chart-from-message). Frame `--message` = the exhibit's action-title, `--source` = the citation.
+2. `embedChart(chart, { format, style, artStyle, outDir, index })` → renders the SVG (and PNG for office/data-slide). Charts land in `<artifact>/charts/NN-<type>.{svg,png}`.
+3. Embed per the mode above; the brand `--style` + genre `--art-style` flow straight through (dataviz consumes the SAME axes → a `--style=ritsu` report gets ritsu-branded charts).
+
+**Honesty + safety:** charts re-present the cited IR series-data — never invent numbers (dataviz
+renders exactly what it's given). Chart embedding is an **enhancement**: any render/raster failure
+**degrades** (SVG kept where supported, a note in `plan.json`) and never fails the deepask run.
+Every embedded chart still clears the §2.6 aesthetic bar (the dataviz McKinsey discipline does this
+by construction: one-highlight, zero-baseline, direct labels, source footer).
+
+### 2.8 Image generation via the `/image` platform (v1.4)
+
+All deepask image generation routes through the **`/image` PLATFORM** (`scripts/image/gen.cjs`)
+via the bridge `scripts/deepask/image-route.cjs` — NOT the low-level `scripts/deepask/image-gen.cjs`
+directly. deepask thereby gains the pluggable **adapter registry** (`--use` → gpt-image-2 today,
+nano-banana/midjourney/flux later), **reference-guided generation** (`--ref`/`--mask`), the governed
+`run.json` + `ai-ops-image` cost-bucket, and the per-run `--max-cost-usd` breaker. Two callers:
+
+1. **infographics / img-slide** — `deepask/image-compose` still AUTHORS the IR-grounded prompt
+   (brand block + genre block + focal illustration + exact cited text + honesty invariant). The
+   composed prompt passes to `/image` with **`composed:true`** → `image-route` does **NOT** re-pass
+   `--style`/`--art-style` (the brand+genre are already in the prompt; re-passing would double the
+   blocks). `buildImagePlatformInvocation` maps the deepask size → `--ar` (`sizeToAr`), passes
+   `--use`/`--quality`/`--count=1`/`--out=<dir>/`/`--max-cost-usd`. `/image` writes `NN.png` into the
+   out-dir; `parseImageResult(stdout)` reads `{ok, files[], cost_usd, outcome, warnings}` and deepask
+   moves `files[0]` → its named slot (`slides/NN-role.png`).
+2. **Intelligent ILLUSTRATION (NEW)** — `shouldIllustrate(format, {illustrate})`: for a rich format
+   (`article`/`pdf`/`html`/`dashboard`/`interactive`/`canvas`) the agent may add a **hero / section
+   illustration** (concept art — NOT a chart; charts go through `/dataviz` §2.7) when it raises
+   quality. Here deepask passes a brief with **`composed:false`** → `/image` composes brand+genre
+   itself. **Explicit-only + budget-gated** (`--illustrate=on|hero`, `--max-cost-usd`) — image gen
+   spends OpenAI $, so it NEVER fires by default (`--illustrate=off`).
+
+**Discipline:** image gen is **OUT-OF-BAND** (`OPENAI_API_KEY`) + **EXPLICIT-ONLY** (never by
+`smartauto`) + **BUDGET-GATED** (the `/image` breaker REFUSES up front over `--max-cost-usd`).
+The illustration carries the SHAPE of an argument, never its SUBSTANCE (the §2.5 honesty invariant
+carries over): every load-bearing number stays legible cited text (or a `/dataviz` chart), never
+locked inside a generated image. `--charts` (dataviz, §2.7) and `--illustrate` (/image, here) are
+orthogonal axes — DATA charts vs CONCEPT imagery.
 
 ### 3. Artifact layout (FILE MODE ONLY — skipped entirely in `inline` default)
 **Inline mode (default) writes nothing to disk** — the cited answer + Sources list live in the conversation; only the Stage-7 `ops.deepask_runs`/`ops.deepask_coverage` audit rows are written (DB rows, not files), with `artifact_path = NULL`. In **file mode** (any explicit `--format`), write to `.archives/deepask/<YYYY-MM-DD>-<slug>/`:

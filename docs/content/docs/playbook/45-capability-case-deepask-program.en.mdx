@@ -2,14 +2,14 @@
 title: "Chương 45 — Capability Case Study: Chương trình /deepask (resolver-plan → deepask)"
 description: "Chương 45 — Capability Case Study: Chương trình /deepask (resolver-plan → deepask)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/45-capability-case-deepask-program.md
-source_hash: 35998b213d29a5b62348f79d9bdb8e5a610fccbafc52fb02575b33d9afc40fd9
-generated_at: '2026-06-01T17:40:49.832Z'
+source_hash: 1cc5d34937e178f4b0724712b79feb5be5db85d604f4750cf7dfd6afdfc8f653
+generated_at: '2026-06-05T04:03:06.997Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: en
 translated: true
-translated_source_hash: 35998b213d29a5b62348f79d9bdb8e5a610fccbafc52fb02575b33d9afc40fd9
-translated_at: '2026-06-01T17:40:49.832Z'
+translated_source_hash: 1cc5d34937e178f4b0724712b79feb5be5db85d604f4750cf7dfd6afdfc8f653
+translated_at: '2026-06-05T04:03:06.997Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 45
 ---
@@ -128,3 +128,15 @@ Bằng chứng orthogonality (giữ một trục, đổi trục kia, vẫn ra ar
 1. **Trục trực giao nhân nhau, không cộng vào** — khi hai ràng buộc độc lập, đừng nhồi vào một registry; tách registry thứ hai + một *merge function* có precedence rõ. Structural guard (genre không có key palette) làm orthogonality an-toàn-bằng-cấu-trúc chứ không bằng kỷ luật.
 2. **Honesty-as-decoration gate** — khi cho phép "đẹp", phải đồng thời đóng đinh "không được nói dối bằng hình": số chịu-lực ở dạng text + cited, minh hoạ chỉ mang hình-dạng. Nếu không, một synthesizer cited tự phá chính uy tín của nó.
 3. **Native-ratio-via-flexible-sizing** — đừng crop để ép tỉ lệ (crop = mất nội dung + nhỏ đi); đọc đúng *flexible sizing* của model và gen đúng size native. Comment "no native 16:9" là di-sản gpt-image-1; gpt-image-2 đổi luật.
+
+## 45.10 Postscript — ba tích-hợp output v1.3→v1.5 (deepask × dataviz × /image × workflows)
+
+Một loạt ba `/cla extend deepask` (tuần-tự, tự-ship, 2026-06-05) biến deepask từ "synthesizer cited" thành **deliverable engine**: chart đúng, ảnh đúng, và quy-mô đúng. Bài học chung: **deepask không tự build renderer/engine — nó COMPOSE các capability đã có** (đúng triết-lý "reuse, never rebuild a renderer" của Format Engine).
+
+1. **v1.3 — nhúng chart dataviz vào MỌI format (#244).** IR `charts[]` (đã có sẵn) render qua `/dataviz` (SVG byte-stable chuẩn McKinsey, $0/offline) và nhúng theo từng format: svg-inline (html/dashboard/pdf/article), PNG (pptx/docx, rasterize Chrome graceful-degrade), **data-slide** (img-slide: slide-là-chart render bằng dataviz CHÍNH-XÁC, không phải gpt-image-2 vốn *bịa số* — vừa đúng vừa $0), companion (infographics). Agent là bộ-chọn-chart LLM-native (đọc catalog dataviz, `--selected-by=agent`). NEW `chart-embed.cjs`.
+
+2. **v1.4 — sinh ảnh route qua nền-tảng /image (#245).** Thay vì gọi helper thô `image-gen.cjs`, MỌI việc sinh ảnh đi qua `/image` (`image-route.cjs` → `scripts/image/gen.cjs`) → adapter cắm-được (`--use`), reference-guided (`--ref`/`--mask`), run.json + cost-bucket governed. CỘNG **minh-hoạ concept thông-minh** (`--illustrate`) cho format giàu — agent quyết, explicit-only + budget-gated. Quyết-định khoá: `composed:true` cho prompt do `image-compose` author (tránh double-compose); `--charts` (DATA) ⊥ `--illustrate` (CONCEPT).
+
+3. **v1.5 — orchestration bằng Workflow.** deepask phức-tạp (≥8 sub-need / `--depth=exhaustive` / `--workflow=on`) chạy vòng-lặp 5-stage như một **Workflow đa-agent** (harness Workflow tool) với stage execute **fan-out song-song** → nhanh + kỹ hơn với report/dashboard lớn; IR trả về vẫn chảy qua Format Engine. NEW `workflow-plan.cjs` + orchestrator Stage 0.5. Opt-in tường-minh (cờ `--workflow`) — không âm-thầm spawn fleet.
+
+**Bài học #4 (xuyên ba bản):** *Một capability tốt là một CONSUMER tốt.* deepask mạnh hơn không bằng cách tự viết renderer/image-gen/orchestrator, mà bằng cách compose `/dataviz` + `/image` + Workflow tool — mỗi tích-hợp giữ nguyên kỷ-luật của capability được gọi (dataviz pure/$0; /image budget-gated/out-of-band; Workflow explicit-opt-in). Trục DATA (chart) ⊥ CONCEPT (ảnh) ⊥ SCALE (workflow): ba trục trực-giao, nhân vào nhau. 3247 test xanh; deepask **v1.5.0 operating**.
