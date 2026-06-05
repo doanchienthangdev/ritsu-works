@@ -4,11 +4,12 @@ description: >-
   Federated retrieval + capability-execution + cited synthesis over the ENTIRE internal IA.
   Zero-routing pure consumer of resolver-plan. Decompose → resolve → execute/fan-out → synthesize →
   completeness-critic → format. Returns a Pyramid, 100%-cited, authority-ranked, conflict-aware,
-  freshness-tagged answer in 1 of 12 formats, OR an honest no-coverage gap + remedy. Internal-first
-  (web leg delegated to deep-research). Tier A runtime (Tier-B+ legs surfaced, never auto-run).
+  freshness-tagged answer in 1 of 12 formats — with McKinsey-grade charts embedded via /dataviz
+  (v1.3) where they make the point — OR an honest no-coverage gap + remedy. Internal-first (web leg
+  delegated to deep-research). Tier A runtime (Tier-B+ legs surfaced, never auto-run).
 source_path: .claude/commands/deepask.md
-source_hash: b4508d2ca41fc24abf8131e4f73debee3635762281aa162c6f0d7ecc2049fe82
-generated_at: '2026-06-02T03:42:36.806Z'
+source_hash: 7f9e1f0378394a1a74472d6fbadb29dff8e55c1f340b46cec94eeec08a7d4b1c
+generated_at: '2026-06-05T03:26:20.190Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: en
@@ -33,7 +34,8 @@ language: en
 | S5 | merged (#169) | Format Engine — **visual adapters** (mermaid·chart·dashboard·html·interactive·canvas); `smartauto` default flipped to `ALL_FORMATS`; `artifact-path.cjs` layout helper → **all 12 formats live** |
 | **S6** | **merged** | 3 KPIs (`complete_verdict_rate`/`uncited_claim_rate`/`breaker_trip_rate`) + `SOP-AIOPS-005-deepask-runtime-contract` + `ai-ops-deepask` cost-bucket + **Phase-8 promotion → `operating`** (spec/retro → `wiki/capabilities/deepask/`) |
 | **v1.1 (extend)** | **merged** | 2 image formats `infographics` + `img-slide` (gpt-image-2, `--style`-aware) — new skill `deepask/image-compose` + helpers `scripts/deepask/{image-spec,image-cost,image-gen,slide-deck}.cjs`; new flags `--orientation`/`--img-quality`/`--image-model`/`--max-slides`/`--max-cost-usd`. No migration (image params + cost in `metadata` jsonb). `/cla extend deepask`. |
-| **v1.1.1 (extend)** | **this PR** | **EXTRAORDINARY aesthetic bar** across ALL visual outputs — new skill `deepask/aesthetic` (references omgkit `/design:good` as floor, exceeds it; art-direction block for image-gen + polish checklist for code-render) wired into `deepask/format` §2.6 + `deepask/image-compose`. **+ LOGO FIX:** new `scripts/design-system/style-asset.cjs` embeds the `--style` brand logo as a base64 **data URI** (fixes `--format=html --style=ritsu` missing-logo / path bug). `/cla extend deepask`. |
+| **v1.1.1 (extend)** | merged | **EXTRAORDINARY aesthetic bar** across ALL visual outputs — new skill `deepask/aesthetic` (references omgkit `/design:good` as floor, exceeds it; art-direction block for image-gen + polish checklist for code-render) wired into `deepask/format` §2.6 + `deepask/image-compose`. **+ LOGO FIX:** new `scripts/design-system/style-asset.cjs` embeds the `--style` brand logo as a base64 **data URI** (fixes `--format=html --style=ritsu` missing-logo / path bug). `/cla extend deepask`. |
+| **v1.3 (extend)** | **this PR** | **dataviz chart embedding** — the synthesis IR `charts[]` render via **`/dataviz`** (the repo's McKinsey-grade byte-stable SVG renderer) and embed in EVERY chart-carrying format: svg-inline (html/dashboard/interactive/canvas/article/pdf-via-html), PNG (pptx/docx, via headless-Chrome rasterize, graceful-degrade), **data-slide** (img-slide — a chart slide renders via dataviz, NOT gpt-image-2 which fabricates numbers), companion (infographics). LLM-native: the agent picks each chart from the dataviz catalog (`--selected-by=agent`). NEW `scripts/deepask/chart-embed.cjs` + `deepask/format` §2.7 + `--charts` flag. $0/offline (dataviz is pure). `/cla extend deepask`. |
 
 **deepask is `operating` as of 2026-05-30** (capability-registry `state: operating`). Full 5-stage loop + 12-format engine, breaker-safe + citation-disciplined, a zero-routing consumer of resolver-plan. Runtime contract: `SOP-AIOPS-005-deepask-runtime-contract`.
 
@@ -50,6 +52,7 @@ language: en
 | `--max-slides` | int (default `8`) | **img-slide only** — deck size cap (cost control); overflow sections recorded in `image-plan.json.dropped[]`, never silently dropped. |
 | `--max-cost-usd` | number (default `1.00`) | **image formats only** — cost **circuit-breaker**: if the pre-gen estimate exceeds it, REFUSE up front (mirror of the resolver breaker), report estimate-vs-cap + suggest lowering `--img-quality`/`--max-slides`. |
 | `--image-model` | model id (default `gpt-image-2`) | **image formats only** — the OpenAI image model (parameterized for robustness). |
+| `--charts` | **auto** (default) · `off` | **(v1.3)** embed McKinsey-grade charts via `/dataviz` (`scripts/deepask/chart-embed.cjs`) wherever the IR has `charts[]` AND the format carries charts (svg-inline for html/dashboard/pdf/article; PNG for pptx/docx; **data-slides** for img-slide — accurate dataviz, not gpt-image-2; companion for infographics). The agent picks each chart type from the dataviz catalog (LLM-native, `--selected-by=agent`). **$0/offline** (dataviz is pure). `off` → no embedded charts. Brand `--style`/`--art-style` flow through to the charts. |
 | `--sources` | csv of \{pillars,ops,metrics,wiki,brain,external,scratch} · **auto** (default) | constrain which IA types deepask may touch (passed to resolver-plan as a filter) |
 | `--depth` | quick·**standard** (default)·deep·exhaustive | sub-need bound (≤6 standard / ≤12 deep) + parallel fan-out + adversarial-verify votes (0/1/2/3) |
 | `--dry-run` | flag | show decomposition + **real** ResolverPlans + predicted coverage + cost estimate; perform zero reads/runs/writes EXCEPT one `ops.deepask_runs` dry-run row. For image formats, `--dry-run` ALSO composes the `image-plan.json` + writes per-piece prompt sidecars (`*.prompt.txt`) but makes **NO** gpt-image API call (no spend). NB: dry-run DOES call resolver-plan → consumes resolver-breaker budget → labeled honestly. |
@@ -63,6 +66,7 @@ language: en
 4. `deepask/synthesize` (S2) — Pyramid + citation + authority + conflict + freshness + adversarial-verify → format-agnostic IR.
 5. `deepask/completeness-critic` (S2) — coverage matrix + MECE + live-probe → COMPLETE | PARTIAL+remedy; ≤1 bounded follow-up.
 6. Format → **`inline` (default, no `--format`):** render the answer **into the conversation** (Pyramid + inline citations + Sources list; no files). **File mode (explicit `--format`):** artifact in `.archives/deepask/<YYYY-MM-DD>-<slug>/` (`answer.md` + `plan.json` + `sources.json` + rendered artifact). **`--style=<name>` (if given):** resolve once via `design-system` (`resolve-style.cjs`) and pass the tokens as **design context** into the format's renderer — no new dispatch row; non-visual formats → no-op (see `06-ai-ops/skills/deepask/format/SKILL.md` §1.5 + `SOP-AIOPS-007`).
+   - **Charts (`--charts=auto`, v1.3):** for each IR `charts[]` entry the agent picks a chart type from the dataviz catalog (`06-ai-ops/skills/dataviz/catalog.md`, LLM-native) and `scripts/deepask/chart-embed.cjs` renders it via `/dataviz` ($0/offline), embedded per `format/SKILL.md` §2.7 — **svg-inline** (html/dashboard/pdf/article), **PNG** (pptx/docx), **data-slide** (img-slide: a chart slide via dataviz not gpt-image-2), **companion** (infographics). `--style`/`--art-style` flow to the charts. Enhancement only → render failure degrades, never fails the run.
    - **Image branch (`infographics` · `img-slide`, v1.1 + v1.2-image):** `deepask/image-compose` turns the IR + the resolved `--style` (brand) tokens **+ the resolved `--art-style` genre** into an `image-plan.json` (per-piece gpt-image-2 prompts assembled as **brand STYLE block + GENRE block + a REQUIRED per-piece `focal_illustration` drawn from the cited IR + `aesthetic` Part-3 art-direction**, carrying the EXACT cited IR text). The orchestrator runs `image-cost.estimateRunCost` → `checkCostBudget(--max-cost-usd)` (REFUSE up front if over; always show the estimate), then `scripts/deepask/image-gen.cjs` per piece → `images/`/`slides/` PNGs, and for `img-slide` `scripts/deepask/slide-deck.cjs` → `slides.pdf` (cropped to true 16:9). `answer.md` is ALWAYS written alongside. **Honesty invariant (v1.2-image):** no load-bearing figure/claim may exist ONLY as illustration — every number stays legible text + cited; the illustration carries the SHAPE of an argument, never its SUBSTANCE. Flow: **analyze IR → split into cover/agenda/section/gaps/sources pieces → per piece: brand block + genre block + focal illustration + exact cited text → run gen → assemble PDF.**
 7. **Observe** → `ops.deepask_runs` (1) + `ops.deepask_coverage` (N) — written in **both** modes (DB audit/learning rows are not "output files"; `artifact_path` is NULL in inline mode); founder edit/reject → `ops.corrections`.
 
@@ -74,5 +78,7 @@ language: en
 - **HITL:** runtime = Tier A (read/synthesize); any Tier-B+ capability leg is **surfaced**, never auto-run.
 
 ## Boundary
-`/deepask` federates + **composes** `/brain` (gbrain) + `/wiki ask` + supabase-query + `/think` frameworks, delegating the web leg to `deep-research`. It does NOT route (that's `resolver-plan`) and does NOT create/modify (that's `/cla` · `/evolve` · `/update`). Internal-first.
+`/deepask` federates + **composes** `/brain` (gbrain) + `/wiki ask` + supabase-query + the lightweight `/think` micro-frameworks (pyramid · mece · so-what · …), delegating the web leg to `deep-research`. It does NOT route (that's `resolver-plan`) and does NOT create/modify (that's `/cla` · `/evolve` · `/update`). Internal-first.
+
+**One-way composition with `/think mckinsey` (v1.7):** the McKinsey 4S engine composes `/deepask` as a *leaf data tool* in its Solve loop (`knowledge/mckinsey-workflow.yaml` `data_routing` + `composition_guards`). The arrow points ONE way — `mckinsey → deepask → /think micro-frameworks`. deepask MUST NOT re-invoke `/think mckinsey` (the `capability-gate` `RECURSION_DENYLIST` refuses it even at Tier-A), and deepask returns cited **evidence + a COMPLETE/PARTIAL verdict**, never the decision — the synthesize→recommend judgment stays with the engine (Sell) and the founder.
 

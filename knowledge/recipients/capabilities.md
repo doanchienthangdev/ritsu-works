@@ -76,7 +76,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** deepask — federated retrieval + capability-execution + cited synthesis supercommand. First-class supercommand /deepask "<q>" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its v1.2.1
+**When to use:** deepask — federated retrieval + capability-execution + cited synthesis supercommand. First-class supercommand /deepask "<q>" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its v1.3.0
 
 **Invoke:** `Read("wiki/capabilities/deepask/spec.md")` or `/cla update deepask`
 

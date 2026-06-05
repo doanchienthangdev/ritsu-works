@@ -56,7 +56,7 @@ description: deepask Format Engine — renders the format-agnostic synthesis IR 
 | `pptx` | `anthropic-skills:pptx` | exec_summary → title; each section → a slide; tables/charts as slide objects |
 | `xlsx` | `anthropic-skills:xlsx` | IR `tables[]` + metric rows → sheets (best for data/metric-heavy answers) |
 | `mermaid` | mermaid MCP (`validate_and_render_mermaid_diagram`) | IR `diagrams[].mermaid_src` → validated/rendered diagram(s) |
-| `chart` | `anthropic-skills:xlsx` charts / `design:*` html-chart | IR `charts[]` (series-data, not pixels) → chart image/html |
+| `chart` | **`/dataviz`** (`scripts/dataviz/gen.cjs` via `scripts/deepask/chart-embed.cjs`) | IR `charts[]` (series-data, not pixels) → **McKinsey-grade byte-stable SVG** per chart; the agent picks the type from the dataviz catalog (`--selected-by=agent`). $0/offline. See §2.7. |
 | `dashboard` | `design:*` / `frontend-design` | multi-panel html dashboard from IR sections + charts + tables |
 | `html` | `design:*` / `frontend-design` | standalone html rendering of the article + visuals |
 | `interactive` | `frontend-design` | interactive html (filterable tables, toggles) |
@@ -68,6 +68,13 @@ deepask AUTHORS the concrete invocation of each reuse-skill (frames its inputs f
 
 ### 2.5 Image pipeline (v1.1 — `infographics` · `img-slide`, gpt-image-2)
 These two formats render via OpenAI image generation, so they have an extra pipeline + flags + a cost gate. They are **explicit-only** (never returned by `smartauto` — image gen spends money).
+
+> **v1.3 data-slide split (img-slide):** a slide whose content is fundamentally a **chart**
+> renders via **`/dataviz`** (§2.7 `data-slide` mode — deterministic, accurate, $0), NOT
+> gpt-image-2 (which fabricates plausible-but-wrong numbers). gpt-image-2 is reserved for the
+> concept / illustration / cover slides. The agent classifies each planned slide.
+> **v1.4 image platform:** the gpt-image generation below routes through **`/image`**
+> (`scripts/image/gen.cjs`) — the pluggable adapter + `--ref`/`--mask` + governed run.json — see §2.8.
 
 **New flags** (orthogonal to `--format`; only meaningful for the 2 image formats):
 
@@ -109,6 +116,39 @@ const logo = resolveStyleLogo(resolved /* from resolveStyle(--style) */, { prefe
 // logo.faviconDataUri → <link rel="icon" href="${logo.faviconDataUri}">
 ```
 The asset is resolved from the design system's `assets/` dir (beside its DESIGN.md). Self-contained → the logo renders everywhere, always. `--style` plain → no logo file; use a CSS wordmark in the brand-neutral aesthetic.
+
+### 2.7 Chart embedding via `/dataviz` (v1.3 — charts in EVERY format)
+
+A cited answer with quantitative claims is far stronger with a chart that makes the point. The
+synthesis IR already carries **`charts[]`** (series-data, not pixels). v1.3 embeds them — the
+agent is the **LLM-native chart selector** (the same move dataviz v0.4 made): read the dataviz
+catalog (`06-ai-ops/skills/dataviz/catalog.md`), and **per IR chart** pick the type that makes
+the point, then render via `scripts/deepask/chart-embed.cjs` (which calls `scripts/dataviz/gen.cjs
+--selected-by=agent --style=<resolved --style> --art-style=<resolved --art-style>`). dataviz is
+**PURE/OFFLINE — $0, no API key** — so charts cost nothing.
+
+**When to embed:** any time the IR has `charts[]` (or a section asserts a number that a chart
+clarifies) AND the target format carries charts. `embedModeForFormat(format)` (pure) decides how:
+
+| format | embed mode | how the chart lands |
+|---|---|---|
+| `html` `dashboard` `interactive` `canvas` `article` `pdf`(-via-html) | **`svg-inline`** | the dataviz **SVG is inlined** into the artifact (native, perfect fidelity, $0) |
+| `pptx` `docx` | **`png`** | SVG **→ PNG** (headless Chrome, `scripts/deepask/chart-embed.cjs rasterizeSvgToPng`) → embedded as an image object; **graceful-degrade** → inline SVG + a note if Chrome is absent |
+| `img-slide` | **`data-slide`** | a slide that is fundamentally a chart renders via **dataviz (accurate, deterministic, $0)**, NOT gpt-image-2 (which fabricates numbers) — see §2.5. Concept/illustration slides still use gpt-image. **This is the accuracy + cost win.** |
+| `xlsx` | `native` | keep the spreadsheet's own chart object (series-data → native xlsx chart); dataviz optional |
+| `infographics` | `companion` | the single gpt-image poster can't composite an exact chart → emit a dataviz chart **alongside** + note (or recommend `--format=dashboard` for chart-heavy answers) |
+| `inline` `text` `mermaid` | `none` | no chart surface (mermaid is its own diagram format) |
+
+**Protocol (per IR chart, where the format embeds):**
+1. Read the dataviz catalog; from the chart's series-data + the section's MESSAGE, pick the chart type (Zelazny: chart-from-message). Frame `--message` = the exhibit's action-title, `--source` = the citation.
+2. `embedChart(chart, { format, style, artStyle, outDir, index })` → renders the SVG (and PNG for office/data-slide). Charts land in `<artifact>/charts/NN-<type>.{svg,png}`.
+3. Embed per the mode above; the brand `--style` + genre `--art-style` flow straight through (dataviz consumes the SAME axes → a `--style=ritsu` report gets ritsu-branded charts).
+
+**Honesty + safety:** charts re-present the cited IR series-data — never invent numbers (dataviz
+renders exactly what it's given). Chart embedding is an **enhancement**: any render/raster failure
+**degrades** (SVG kept where supported, a note in `plan.json`) and never fails the deepask run.
+Every embedded chart still clears the §2.6 aesthetic bar (the dataviz McKinsey discipline does this
+by construction: one-highlight, zero-baseline, direct labels, source footer).
 
 ### 3. Artifact layout (FILE MODE ONLY — skipped entirely in `inline` default)
 **Inline mode (default) writes nothing to disk** — the cited answer + Sources list live in the conversation; only the Stage-7 `ops.deepask_runs`/`ops.deepask_coverage` audit rows are written (DB rows, not files), with `artifact_path = NULL`. In **file mode** (any explicit `--format`), write to `.archives/deepask/<YYYY-MM-DD>-<slug>/`:
