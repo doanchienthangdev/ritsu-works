@@ -2,7 +2,7 @@
 
 **ID:** consulting-toolkit
 **Pillar owner:** 06-ai-ops (sub-pillar: skill-library)
-**State:** operating (single-session ship 2026-06-04)
+**State:** operating (single-session ship 2026-06-04; v0.1.1 2026-06-05 — 20th toolkit #18 CX & Design Thinking + .pptx clue support)
 **Spec version:** 0.1.0
 **Bound role:** gps (orchestrator) — Tier A generation; Tier C to ship the capability
 **Selected option:** Option B — standalone parent-namespaced skill + thin `/toolkit` command + deterministic render pipeline + a Workflow for the reconstruction fan-out (NO Tier-2 migration; content is local-only).
@@ -127,3 +127,4 @@ redistributed (clean-IP posture; the founder chose `raw/`).
 | Version | Date | Change |
 |---|---|---|
 | 0.1.0 | 2026-06-04 | Initial ship. Render pipeline (19 layouts) + reconstruction Workflow + 19 Domont toolkit bundles + master index. |
+| 0.1.1 | 2026-06-05 | 20th toolkit #18 (CX & Design Thinking, `.pptx` clue → new `pptx-extract.py`); 9-phase bundle (54 frameworks). Deck render fix: `expandGrp()` tolerates literal `{grp:"…"}` gate markers. Set complete: 20 toolkits + index. |

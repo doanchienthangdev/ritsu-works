@@ -4,11 +4,11 @@ slug: consulting-toolkits
 title: Consulting Toolkits — Reconstructed Process & Framework Library
 source_kind: reconstructed_collection
 license_status: internal_reconstruction_original_synthesis
-collection_size: 19
+collection_size: 20
 ---
 # Consulting Toolkits — Reconstructed Process & Framework Library
 
-19 world-class consulting processes (strategy, M&A, supply chain, Lean Six Sigma, risk, FP&A, …), each reconstructed into an executable playbook with full per-framework anatomy. The searchable knowledge layer behind the `/think mckinsey` checkpoint tool-selector. Original synthesis in the consulting genre — not a copy of any source.
+20 world-class consulting processes (strategy, M&A, supply chain, Lean Six Sigma, risk, FP&A, …), each reconstructed into an executable playbook with full per-framework anatomy. The searchable knowledge layer behind the `/think mckinsey` checkpoint tool-selector. Original synthesis in the consulting genre — not a copy of any source.
 
 ## Toolkits
 
@@ -29,6 +29,7 @@ collection_size: 19
 - **[Executive Dashboard](executive-dashboard/process.md)** (`executive-dashboard`, metrics) — executive-dashboard/concepts/
 - **[Leadership Development](leadership-development/process.md)** (`leadership-development`, people) — leadership-development/concepts/
 - **[Financial Modeling, Planning & Analysis](financial-modeling-planning-analysis/process.md)** (`financial-modeling-planning-analysis`, finance) — financial-modeling-planning-analysis/concepts/
+- **[Customer Experience Strategy & Design Thinking](customer-experience-design-thinking/process.md)** (`customer-experience-design-thinking`, experience) — customer-experience-design-thinking/concepts/
 - **[Data Analytics & AI Strategy](data-analytics-ai-strategy/process.md)** (`data-analytics-ai-strategy`, technology) — data-analytics-ai-strategy/concepts/
 - **[Personal Finance & Warren Buffett Investing](personal-finance-buffett-investing/process.md)** (`personal-finance-buffett-investing`, finance) — personal-finance-buffett-investing/concepts/
 

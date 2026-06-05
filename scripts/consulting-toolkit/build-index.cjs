@@ -18,7 +18,7 @@ const GROUPS = [
   { title: 'Diagnose & Strategize', nums: [5, 1, 10], note: 'The problem-solving spine: run the engagement (5), set strategy (1), or stand up a venture (10).' },
   { title: 'Organize & Lead', nums: [2, 6, 16], note: 'Translate strategy into an operating model + org (2), staff & develop it (6), and lead it (16).' },
   { title: 'Transform & Build with Tech', nums: [3, 19, 4], note: 'Digital/IT strategy (3) and data/AI strategy (19), delivered through disciplined program & change management (4).' },
-  { title: 'Grow & Sell', nums: [9], note: 'Take it to market: segmentation, marketing mix, pricing, sales and communication (9).' },
+  { title: 'Grow & Sell', nums: [9, 18], note: 'Take it to market: segmentation, marketing mix, pricing, sales and communication (9); design the customer experience and innovate it with Design Thinking (18, Empathize→Define→Ideate→Prototype→Test).' },
   { title: 'Operate & Improve', nums: [11, 12], note: 'Run the value chain (11) and relentlessly remove waste & variation (12, DMAIC).' },
   { title: 'Buy & Integrate', nums: [7, 8], note: 'Acquire (7, deal funnel) then capture the value (8, post-merger integration).' },
   { title: 'Fund, Measure & De-risk', nums: [14, 17, 15, 13, 20], note: 'Justify the spend (14), model the money (17), watch the dials (15), manage risk (13) — and the personal-wealth corollary (20).' },

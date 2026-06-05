@@ -3,7 +3,7 @@ schema: knowledge/schemas/consulting-processes.schema.json
 source: >-
   The 19 reconstructed domain process playbooks (wiki/consulting-toolkits/<slug>/process.md). Each plugs into /think
   mckinsey STRUCTURE as a domain-specific issue-tree/workplan spine.
-count: 19
+count: 20
 processes:
   - slug: business-strategy
     title: Business Strategy & Strategic Planning
@@ -2081,6 +2081,170 @@ processes:
       key_question: >-
         What financial performance must we achieve to realize our strategic vision, and are we currently on track to get
         there?
+  - slug: customer-experience-design-thinking
+    title: Customer Experience Strategy & Design Thinking
+    domain: experience
+    model_name: Dual-Track CX & Design Thinking Model
+    when_to_use: >-
+      Use this toolkit when (1) customer satisfaction scores are declining or stagnating, (2) leadership wants to shift
+      from product-out to customer-in strategy, (3) a new product, service, or digital channel is being designed or
+      redesigned, (4) post-merger CX harmonization is needed, or (5) the organization is piloting design thinking as an
+      innovation discipline. It is the starting point before any customer-facing transformation program.
+    core_value: >-
+      A structured, end-to-end system that converts raw user observations into a validated CX strategy and a pipeline of
+      design-thinking-tested initiatives — so leaders can stop relying on opinion and start improving customer
+      satisfaction, conversion, and cost-to-serve with evidence.
+    phases:
+      - 'n': 1
+        name: CX Strategy — Strategic Foundation
+        goal: >-
+          Establish the strategic context and constraints within which the CX strategy will operate, aligning
+          stakeholders on what the business is trying to achieve before debating customer investments.
+        key_question: >-
+          What does our corporate and business strategy demand from the customer experience, and what constraints must
+          we respect?
+        gate: >-
+          Executive sponsor formally approves the Strategic Context Brief and CX Vision before moving to
+          objective-setting.
+        frameworks:
+          - strategic-context-brief
+          - cx-maturity-model
+          - cx-vision-mission-values
+      - 'n': 2
+        name: CX Strategy — Objectives & Organization
+        goal: >-
+          Translate the CX vision into measurable strategic objectives with clear KPIs, and design the governance
+          structure and budget to deliver them.
+        key_question: What does success look like in measurable terms, and who is accountable for delivering it with what resources?
+        gate: CFO and CCO co-sign the budget and KPI framework before segment analysis begins.
+        frameworks:
+          - cx-kpi-hierarchy
+          - cx-org-design
+      - 'n': 3
+        name: CX Strategy — Customer Segments & Journey Mapping
+        goal: >-
+          Deeply understand which customer segments to prioritize and what their actual end-to-end experience looks like
+          today, including pain points and moments of truth.
+        key_question: >-
+          Who are our most strategically important customer segments, and where does the experience break down or
+          delight them most?
+        gate: Leadership team aligns on which Moments of Truth are 'must-fix' priorities before initiative definition.
+        frameworks:
+          - customer-segmentation-matrix
+          - user-personas
+          - customer-journey-map
+      - 'n': 4
+        name: CX Strategy — Initiatives & Roadmap
+        goal: >-
+          Generate, size, and prioritize a portfolio of CX improvement initiatives, build business cases, and create a
+          sequenced implementation roadmap.
+        key_question: >-
+          Which initiatives will most efficiently close the gap between the current experience and the CX vision, and in
+          what sequence?
+        gate: >-
+          Executive Steering Committee approves the roadmap and allocates budget before design thinking begins on
+          priority initiatives.
+        frameworks:
+          - how-might-we
+          - initiative-screening
+          - cx-business-case
+          - initiative-prioritization-matrix
+          - cx-roadmap
+      - 'n': 5
+        name: Design Thinking — Empathize
+        goal: >-
+          Gain a deep, empathic understanding of the users affected by the initiative being designed, going beyond
+          surveys to observe actual behavior and emotional context.
+        key_question: What do our users actually experience, feel, and need — not what they say they need?
+        gate: Team reaches consensus on the top 5 user insights before moving to Define phase.
+        frameworks:
+          - project-canvas
+          - research-plan
+          - user-interviews
+          - dilo
+          - service-safari
+          - shadowing
+          - diary-study
+          - contextual-inquiry
+          - affinity-mapping
+          - empathy-map
+          - emotional-response-cards
+      - 'n': 6
+        name: Design Thinking — Define
+        goal: >-
+          Converge on a precise, human-centered problem statement that focuses the team's creative energy on the right
+          problem to solve.
+        key_question: >-
+          What is the single most important problem we must solve for our users, framed in a way that invites creative
+          solutions?
+        gate: Sponsor approves the Problem Statement as the design brief before ideation begins.
+        frameworks:
+          - user-personas
+          - customer-journey-map
+          - five-whys
+          - five-wh-questions
+          - problem-statement
+          - card-sorting
+          - landscape-review
+          - value-proposition
+      - 'n': 7
+        name: Design Thinking — Ideate
+        goal: >-
+          Generate a broad, diverse, and imaginative range of solution ideas anchored to the problem statement, then
+          evaluate and select the most promising concepts.
+        key_question: What are all the possible ways we could solve this problem, and which ones are most worth prototyping?
+        gate: Sponsor approves the selected 3–5 ideas for prototyping investment before Prototype phase.
+        frameworks:
+          - define-success
+          - ideation-constraints
+          - how-might-we
+          - brainstorming
+          - mind-mapping
+          - crazy-8s
+          - design-sprint
+          - nabc
+          - idea-evaluation
+      - 'n': 8
+        name: Design Thinking — Prototype
+        goal: >-
+          Build fast, low-cost representations of the selected solutions — from rough sketches to working models — to
+          make ideas tangible enough to learn from.
+        key_question: What is the fastest, cheapest way to test whether our solution idea actually works for users?
+        gate: At least one prototype per selected idea is ready for user testing before Test phase.
+        frameworks:
+          - sketching
+          - storyboarding
+          - role-playing
+          - high-fidelity-prototyping
+          - co-creation-workshops
+          - proof-of-concept
+          - minimum-viable-product
+      - 'n': 9
+        name: Design Thinking — Test
+        goal: >-
+          Return the prototypes to real users, gather structured feedback, identify remaining gaps, and iterate until
+          the solution is validated for development or scaling.
+        key_question: Does our solution actually work for users in practice, and what must we fix before we build it at scale?
+        gate: >-
+          Sponsor approves the Go/No-Go recommendation. A 'Go' decision triggers development resourcing; 'No-Go'
+          triggers a return to Ideate or Prototype.
+        frameworks:
+          - testing-sheet
+          - usability-testing
+          - heuristic-evaluation
+          - ab-testing
+          - eye-tracking
+          - heatmaps
+          - accessibility-testing
+          - performance-testing
+          - feedback-capture-grid
+    routing_card:
+      trigger: client needs to redesign or improve the end-to-end customer experience and develop scalable CX capability
+      plugs_into: structure
+      value: >-
+        replaces an ad-hoc issue tree with a proven dual-track spine (CX strategy → design thinking) that sequences
+        research, strategy, ideation, prototyping, and testing in the right order for experience transformation
+      key_question: What experience do our most valuable customers need, and how do we design, build, and govern it reliably?
   - slug: data-analytics-ai-strategy
     title: Data Analytics & AI Strategy
     domain: technology

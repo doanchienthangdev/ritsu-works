@@ -4,6 +4,13 @@
 > (`knowledge/capability-registry.yaml`, `thinking-toolkit` entry) and `spec.md`.
 > This file is the forward changelog from the point it was created (v1.7).
 
+## v3.0.1 — 2026-06-05 — 20th toolkit (#18 CX & Design Thinking) folded into the library
+
+The founder supplied the late-arriving **#18 Customer Experience Strategy & Design Thinking** toolkit. Reconstructed + integrated identically to the other 19 (incremental run on the proven pipelines). Net effect on the thinking-tool library:
+- Unified toolkit registry **374 → 424 deduped frameworks** (`consulting-frameworks.yaml`); domain processes **19 → 20** (`consulting-processes.yaml`, +the 9-phase CX-strategy + Design-Thinking spine). Per-4S-step maps + the unified pool now **631 tools** (424 toolkit + 207 book).
+- **Especially fills the design-thinking gap:** the engine already had a design-thinking BRANCH but few tagged design-thinking TOOLS; #18 adds ~50 (empathy maps, personas, journey maps, HMW, Crazy 8s, design sprint, MVP, usability/A-B/accessibility testing, …) tagged with the `design`/`prototype`/`diagnose` cognitive-moves and `solve`/`structure` 4S steps.
+- Wiki: `wiki/consulting-toolkits/` grows to 20 process pages + **514 concept pages**. No `/think mckinsey` SKILL change needed — the integration is data-driven (the maps + registries the engine already reads now include #18).
+
 ## v3.0.0 — 2026-06-05 — the consulting thinking-tool LIBRARY + fast checkpoint tool-selection
 
 **`/cla` (autonomous, founder away)** · the founder's thesis: *"the pinnacle of McKinsey thinking is selecting the most-correct thinking tool at each checkpoint,"* backed by inherited ex-McKinsey processes. This release makes `/think mckinsey`'s tool-selection draw from the full reconstructed consulting library (the `consulting-toolkit` capability's 19 domain toolkits) and adds a fast, precise, no-context-lost checkpoint selector. Built with two bounded Workflows (reconstruction reuse + a 19-agent enrichment-tagging pass).

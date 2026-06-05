@@ -7,8 +7,23 @@ const { esc, inline } = require('./md.cjs');
 
 const BRAND = 'Ritsu Works · Consulting Toolkit';
 
+// Tolerate an agent writing a group/gate marker as a LITERAL string
+// (e.g. '{grp:"Gate"} Sponsor approves…') instead of a {grp} object — split it.
+function expandGrp(items) {
+  const out = [];
+  for (const it of (items || [])) {
+    if (typeof it === 'string') {
+      const m = it.match(/^\s*\{\s*grp:\s*["']?([^"'}]+)["']?\s*\}\s*(.*)$/);
+      if (m) { out.push({ grp: m[1].trim() }); if (m[2].trim()) out.push(m[2].trim()); continue; }
+    }
+    out.push(it);
+  }
+  return out;
+}
+
 function bullets(items, cls = 'b') {
-  if (!items || !items.length) return '';
+  items = expandGrp(items);
+  if (!items.length) return '';
   const li = items.map((it) => {
     if (typeof it === 'string') return `<li>${inline(it)}</li>`;
     if (it && it.grp) return `<li class="grp">${inline(it.grp)}</li>`;
@@ -34,7 +49,7 @@ const L = {
     return `<div class="chev">${ph.map((p, i) => `
       <div class="ph ${s.active === (p.n ?? i + 1) ? 'active' : ''}">
         <div class="cap"><div class="n">${p.n ?? i + 1}</div><div class="nm">${inline(p.name || '')}</div></div>
-        <ul class="bul">${(p.bullets || []).map((b) => (typeof b === 'object' && b.grp) ? `<li class="grp">${inline(b.grp)}</li>` : `<li>${inline(typeof b === 'string' ? b : b.text)}</li>`).join('')}</ul>
+        <ul class="bul">${expandGrp(p.bullets).map((b) => (typeof b === 'object' && b.grp) ? `<li class="grp">${inline(b.grp)}</li>` : `<li>${inline(typeof b === 'string' ? b : b.text)}</li>`).join('')}</ul>
       </div>`).join('')}</div>`;
   },
 

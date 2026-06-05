@@ -7,7 +7,7 @@ note: >-
   The toolkit half of the unified /think mckinsey thinking-tool registry; the book half is
   knowledge/problem-solving-frameworks.yaml (207). The per-4S-step maps in knowledge/thinking-tool-index/ unify both for
   fast checkpoint selection.
-count: 374
+count: 424
 frameworks:
   - slug: 4t-risk-response
     name: 4T Risk Response Framework (Tolerate, Treat, Transfer, Terminate)
@@ -94,6 +94,46 @@ frameworks:
       Phase 5 (KPI dashboard setup) and phase 7 (ongoing financial and growth analysis). Also use as the primary
       framework for identifying where to invest product and marketing resources each quarter.
     wiki_path: wiki/consulting-toolkits/business-plan-entrepreneurship/concepts/aarrr-pirate-metrics.md
+  - slug: ab-testing
+    name: A/B Testing
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - analyze
+      - decide
+    select_when: determining which of two design variants performs better on a behavioral metric with live traffic
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use in the Test phase for any design decision where the 'correct' answer depends on user behavior (clicks,
+      completions, conversions) rather than usability or comprehension. Use only when you have sufficient traffic to
+      reach statistical sign
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/ab-testing.md
+  - slug: accessibility-testing
+    name: Accessibility Testing
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: verifying WCAG compliance on a digital interface as a quality gate before launch or hi-fi sign-off
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use in Phase 9 (Test) for all digital prototypes and production builds. Also use as a quality gate in the hi-fi
+      prototyping phase to catch accessibility issues before user testing begins.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/accessibility-testing.md
   - slug: action-plan
     name: Action Plan (Next Steps)
     toolkits:
@@ -196,6 +236,27 @@ frameworks:
       the target population. Also use as a diagnostic tool any time an initiative has stalled or is experiencing
       resistance.
     wiki_path: wiki/consulting-toolkits/operating-model-org-design/concepts/adkar-model.md
+  - slug: affinity-mapping
+    name: Affinity Mapping
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: analysis
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - synthesize
+      - analyze
+      - structure
+    select_when: organizing large volumes of qualitative research data into emergent themes when the team is overwhelmed
+    checkpoint_fit:
+      - solve-analyze
+      - hypothesize
+    jtbd: >-
+      Use immediately after completing qualitative research (user interviews, DILO sessions, ethnography). Use whenever
+      the team is overwhelmed by the volume of qualitative data and needs to find patterns quickly.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/affinity-mapping.md
   - slug: agile-delivery-framework
     name: Agile Delivery for Analytics and AI (Scrum + CRISP-DM Integration)
     toolkits:
@@ -651,6 +712,25 @@ frameworks:
       When growth in the existing market is structurally limited; when competing in a commoditized market with
       deteriorating margins; when a new executive mandate calls for a step-change in competitive position.
     wiki_path: wiki/consulting-toolkits/business-strategy/concepts/blue-ocean-strategy.md
+  - slug: brainstorming
+    name: Structured Brainstorming
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: ideation
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - design
+      - analyze
+    select_when: generating a high volume of diverse solution ideas rapidly after HMW questions are locked
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use as the core divergent ideation method in Phase 7 (Ideate), after HMW questions are defined and the Crazy 8s
+      visual warm-up is complete.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/brainstorming.md
   - slug: bubble-chart
     name: Bubble Chart
     toolkits:
@@ -1042,6 +1122,26 @@ frameworks:
       - plan
     jtbd: Use at the start of Phase 2 (Capability Management pillar) as the foundational gap analysis.
     wiki_path: wiki/consulting-toolkits/operating-model-org-design/concepts/capability-heat-map.md
+  - slug: card-sorting
+    name: Card Sorting
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - analyze
+      - diagnose
+    select_when: validating information architecture or mental-model groupings from users before committing to a design structure
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use at the end of the Define phase, immediately after drafting the Problem Statement. Do not proceed to ideation
+      until the Card Sort passes.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/card-sorting.md
   - slug: cash-flow-analysis
     name: Cash Flow Statement Analysis
     toolkits:
@@ -1255,6 +1355,29 @@ frameworks:
       Phase 3 (definition), Phase 4 (screener filter, Step 4.2), Phase 5, Gate 1 (personal fit check). The circle is a
       constant background constraint on all investment decisions.
     wiki_path: wiki/consulting-toolkits/personal-finance-buffett-investing/concepts/circle-of-competence.md
+  - slug: co-creation-workshops
+    name: Co-Creation Workshops
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: prototyping
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - prototype
+      - design
+      - diagnose
+    select_when: >-
+      involving real users to co-design solutions where their mental models will produce better answers than expert
+      design alone
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use in Phase 8 (Prototype) for design decisions where user mental models and contextual expertise are most likely
+      to produce better solutions than team-led design. Especially valuable for healthcare, financial services, and
+      enterprise softw
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/co-creation-workshops.md
   - slug: combo-chart
     name: Combo Chart (Column + Line)
     toolkits:
@@ -1545,6 +1668,26 @@ frameworks:
       - plan
     jtbd: When closing a proposal and before any engagement begins.
     wiki_path: wiki/consulting-toolkits/management-consulting/concepts/consulting-legal-agreements.md
+  - slug: contextual-inquiry
+    name: Contextual Inquiry
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: research
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: studying complex professional workflows where observation alone misses tacit knowledge and rationale
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use for design challenges involving complex professional workflows (enterprise software, healthcare, financial
+      services). Especially valuable when the gap between how users say they work and how they actually work is likely
+      to be large.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/contextual-inquiry.md
   - slug: continuous-improvement-fpa
     name: Continuous Improvement for the FP&A Function
     toolkits:
@@ -1609,6 +1752,25 @@ frameworks:
       ERM framework that explicitly links risk to strategy. Complement with ISO 31000 for the operational process detail
       that COSO 
     wiki_path: wiki/consulting-toolkits/risk-management/concepts/coso-erm.md
+  - slug: crazy-8s
+    name: Crazy 8s
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: ideation
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - design
+      - prototype
+    select_when: activating visual thinking and breaking fixation before a full brainstorming session
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use in the Ideate phase immediately after HMW questions have been defined and before the full Brainstorming
+      session, to activate visual thinking and establish a quantity-first norm for the workshop.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/crazy-8s.md
   - slug: crazy-8s-ideation
     name: Crazy 8s
     toolkits:
@@ -1716,6 +1878,176 @@ frameworks:
       validation — it never stops. It is what prevents successful products from becoming irrelevant as the market
       evolves.
     wiki_path: wiki/consulting-toolkits/business-plan-entrepreneurship/concepts/customer-feedback-loop.md
+  - slug: customer-journey-map
+    name: Customer Journey Map
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: diagnosis
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+      - structure
+    select_when: >-
+      identifying root causes of churn, satisfaction decline, or support volume by mapping the end-to-end customer
+      experience
+    checkpoint_fit:
+      - hypothesize
+      - solve-analyze
+    jtbd: >-
+      Use whenever you need to identify root causes of customer churn, satisfaction decline, or high support volume.
+      Also use as the anchor tool in any Design Thinking 'Define' phase to ground problem statements in real customer
+      experience.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/customer-journey-map.md
+  - slug: customer-segmentation-matrix
+    name: Customer Segmentation Matrix
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: analysis
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - prioritize
+      - analyze
+      - decide
+    select_when: choosing which customer segments deserve full journey-mapping investment based on current vs. strategic value
+    checkpoint_fit:
+      - prioritize
+      - solve-analyze
+    jtbd: >-
+      Use in Phase 3 (Customer Segments & Journey Mapping) to determine which segments receive full journey-mapping
+      investment. Revisit annually as segment dynamics evolve.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/customer-segmentation-matrix.md
+  - slug: cx-business-case
+    name: CX Initiative Business Case
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: financial
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - value
+      - analyze
+      - decide
+    select_when: quantifying expected financial and strategic impact of a specific CX initiative to justify investment
+    checkpoint_fit:
+      - solve-analyze
+      - sell
+    jtbd: >-
+      Use in Phase 4 (Initiatives & Roadmap) for all initiatives advancing from the screening process to the
+      prioritization matrix. One business case per initiative.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/cx-business-case.md
+  - slug: cx-kpi-hierarchy
+    name: CX KPI Hierarchy
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: measurement
+    type: framework
+    fours_step: structure
+    cognitive_moves:
+      - structure
+      - design
+      - value
+    select_when: building the measurement architecture that cascades from boardroom CX metrics to frontline operational indicators
+    checkpoint_fit:
+      - plan
+      - frame
+    jtbd: >-
+      Use in Phase 2 (CX Strategy: Objectives & Organization) to build the measurement architecture. Use as the
+      foundation for the CX Balanced Scorecard and the CX dashboard. Review and recalibrate annually.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/cx-kpi-hierarchy.md
+  - slug: cx-maturity-model
+    name: CX Maturity Model
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: diagnosis
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - diagnose
+      - frame
+      - prioritize
+    select_when: baselining CX capability before setting investment priorities or a transformation target
+    checkpoint_fit:
+      - frame
+      - hypothesize
+    jtbd: >-
+      Use at the start of any CX strategy engagement to baseline current capability, set a realistic target, and direct
+      investment to the highest-leverage gaps. Also use annually to track progress.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/cx-maturity-model.md
+  - slug: cx-org-design
+    name: CX Organization Design
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: governance
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - design
+      - decide
+      - structure
+    select_when: designing governance, accountability, and RACI after CX KPIs are agreed
+    checkpoint_fit:
+      - solve-analyze
+      - plan
+    jtbd: >-
+      Use in Phase 2 (Objectives & Organization) after the CX KPI Hierarchy is established. The org design enables the
+      governance structure that will deliver the KPI targets.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/cx-org-design.md
+  - slug: cx-roadmap
+    name: CX Implementation Roadmap
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: planning
+    type: framework
+    fours_step: sell
+    cognitive_moves:
+      - synthesize
+      - communicate
+      - structure
+    select_when: sequencing approved CX initiatives into implementation waves for Steering Committee sign-off
+    checkpoint_fit:
+      - sell
+      - synthesize
+    jtbd: >-
+      Use in Phase 4 (Initiatives & Roadmap) as the culminating output of the CX Strategy track. Present to the Steering
+      Committee for budget approval. Refresh quarterly.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/cx-roadmap.md
+  - slug: cx-vision-mission-values
+    name: CX Vision, Mission & Values
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: planning
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - frame
+      - synthesize
+    select_when: defining the long-run aspiration that will anchor all CX decisions and trade-offs
+    checkpoint_fit:
+      - frame
+      - sell
+    jtbd: >-
+      Use in Phase 1 after the Strategic Context Brief is approved. The Vision/Mission/Values become the permanent
+      anchor for all subsequent CX strategy and governance decisions.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/cx-vision-mission-values.md
   - slug: dama-dmbok-data-management
     name: DAMA-DMBOK Data Management Framework
     toolkits:
@@ -2029,6 +2361,47 @@ frameworks:
       are part of their responsibilities. Particularly important for leaders who have been promoted into roles where
       they are expecte
     wiki_path: wiki/consulting-toolkits/leadership-development/concepts/deep-work-protocol.md
+  - slug: define-success
+    name: Define Success Statement
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: ideation
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - frame
+      - decide
+    select_when: aligning the team on what a winning solution looks like before any idea generation starts
+    checkpoint_fit:
+      - frame
+      - hypothesize
+    jtbd: >-
+      Use at the start of Phase 7 (Ideate), before any idea generation begins. Post it visibly throughout the ideation
+      session and use it as a filter during idea evaluation.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/define-success.md
+  - slug: design-sprint
+    name: Design Sprint
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: ideation
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - design
+      - prototype
+      - decide
+    select_when: validating a high-stakes design decision in 5 days when there is no time for a full design cycle
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use when a team needs to validate a high-stakes design decision in 5 days rather than 5 months. Ideal for: new
+      product launches, major feature redesigns, and innovation challenges with a clear user population.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/design-sprint.md
   - slug: design-thinking
     name: Design Thinking (5-Stage Human-Centred Process)
     toolkits:
@@ -2076,6 +2449,25 @@ frameworks:
       decisions. Apply specifically to dashboard redesign, planning process redesign, and finance team operating model
       transformation.
     wiki_path: wiki/consulting-toolkits/financial-modeling-planning-analysis/concepts/design-thinking-methodology.md
+  - slug: diary-study
+    name: Diary Study
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: research
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: capturing infrequent or temporally distributed user experiences that cannot be observed in a single session
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use in the Empathize phase for design challenges involving infrequent, situational, or temporally distributed
+      behaviors. Especially valuable for mobile app, financial services, and healthcare design challenges.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/diary-study.md
   - slug: digital-marketing-mix
     name: Digital Marketing Mix (SEO / PPC / Social / Email / Website)
     toolkits:
@@ -2182,6 +2574,26 @@ frameworks:
       each project to the programme NPV. Also use in Phase V to track benefit realisation — the leaf-node metrics become
       the KPIs in 
     wiki_path: wiki/consulting-toolkits/digital-transformation-it-strategy/concepts/digital-value-driver-tree.md
+  - slug: dilo
+    name: DILO (Day in the Life Of)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: research
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: capturing a complete end-to-end picture of a user's day to expose pain points invisible in interview settings
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use as a primary research method in the Empathize phase, especially when the design challenge involves a complex,
+      multi-step user process (e.g., professional workflows, multi-channel customer journeys). Use when user interviews
+      alone produc
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/dilo.md
   - slug: dimensional-modelling
     name: Dimensional Modelling (Star and Snowflake Schema)
     toolkits:
@@ -2351,6 +2763,46 @@ frameworks:
       When prioritising a portfolio of initiatives after ideation, building a business roadmap, or making a go/no-go
       decision under budget constraints.
     wiki_path: wiki/consulting-toolkits/sales-marketing-pricing-communication/concepts/effort-impact-matrix.md
+  - slug: emotional-response-cards
+    name: Emotional Response Cards
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: research
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: surfacing emotional vocabulary from users during empathy synthesis or journey-mapping workshops
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use in every Empathy synthesis session, as part of Empathy Map construction. Also use in journey mapping workshops
+      to populate the emotion curve with precise, evidence-based labels.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/emotional-response-cards.md
+  - slug: empathy-map
+    name: Empathy Map
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: diagnosis
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - synthesize
+      - diagnose
+    select_when: synthesizing user research into a shared portrait of what a user thinks, feels, says, and does
+    checkpoint_fit:
+      - hypothesize
+      - solve-analyze
+    jtbd: >-
+      Use after completing user research and Affinity Mapping, as the final synthesis step before building User Personas
+      or crafting the Problem Statement. Use whenever the team has lost sight of the user's perspective during design
+      debates.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/empathy-map.md
   - slug: employer-value-proposition
     name: Employee Value Proposition (EVP) Framework
     toolkits:
@@ -2449,6 +2901,27 @@ frameworks:
       - sell
     jtbd: When delivering the final recommendation to the decision-maker.
     wiki_path: wiki/consulting-toolkits/management-consulting/concepts/executive-storyline-delivery.md
+  - slug: eye-tracking
+    name: Eye Tracking
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: identifying visual hierarchy problems on digital screens by measuring where users actually look
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use in Phase 9 (Test) for digital prototypes or production screens where visual hierarchy is a suspected issue.
+      Particularly valuable for landing pages, dashboards, and e-commerce pages where attention placement drives
+      conversion.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/eye-tracking.md
   - slug: facilitation-foundations
     name: Facilitation Foundations (Meeting Design Protocol)
     toolkits:
@@ -2472,6 +2945,26 @@ frameworks:
       team retrospectives, problem-solving sessions, cross-functional alignment meetings, and any meeting with 6+
       participants wher
     wiki_path: wiki/consulting-toolkits/leadership-development/concepts/facilitation-foundations.md
+  - slug: feedback-capture-grid
+    name: Feedback Capture Grid
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - synthesize
+      - analyze
+    select_when: organizing immediate post-session observations into what worked, what failed, questions, and ideas
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use immediately after every user testing session in the Test phase. Use also after co-creation workshops, expert
+      interviews, and any session where team members observe users interacting with a prototype or concept.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/feedback-capture-grid.md
   - slug: financial-analysis
     name: Financial Analysis (ratio & trend)
     toolkits:
@@ -2720,28 +3213,52 @@ frameworks:
       At the start of leading a new team. When team performance is below expectations and the cause traces to dynamic
       rather than skill. When an existing team needs a reset after a significant event.
     wiki_path: wiki/consulting-toolkits/leadership-development/concepts/five-dysfunctions-lencioni.md
+  - slug: five-wh-questions
+    name: 5W+H Questions (Who, What, When, Where, Why, How)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: analysis
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - frame
+      - diagnose
+      - structure
+    select_when: characterizing a problem systematically after research synthesis, before writing the Problem Statement
+    checkpoint_fit:
+      - frame
+      - hypothesize
+    jtbd: >-
+      Use in the Define phase after the Affinity Map and Empathy Map are complete, as a structured bridge between
+      synthesis and the Problem Statement. Best used in a 45-minute team workshop.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/five-wh-questions.md
   - slug: five-whys
     name: Five Whys
     toolkits:
       - management-consulting
       - lean-six-sigma
+      - customer-experience-design-thinking
     domains:
       - consulting
       - operations
+      - experience
     category: diagnosis
     type: framework
     fours_step: solve
     cognitive_moves:
       - diagnose
       - analyze
-    select_when: drilling through a confirmed symptom to one systemic root cause via iterative interrogation
+    select_when: tracing a stated pain point to its root cause by iterating 'why' before writing the Problem Statement
     checkpoint_fit:
       - solve-analyze
       - hypothesize
       - porpoise
     jtbd: >-
-      Phase III (Analyze) for validating root-cause hypotheses generated in the Fishbone brainstorm. Also used in Phase
-      V (Control) when an out-of-control signal appears on an SPC chart.
+      Use in the Define phase of Design Thinking to identify the root cause of each major pain point before writing the
+      Problem Statement. Use in retrospectives to prevent recurring operational failures. Do not use alone for systemic
+      problems — c
     wiki_path: wiki/consulting-toolkits/management-consulting/concepts/five-whys.md
   - slug: fmea
     name: Failure Modes and Effects Analysis (FMEA)
@@ -3004,6 +3521,86 @@ frameworks:
       Use on the HR functional dashboard monthly. Also use for workforce planning scenarios and as part of the business
       case for retention programmes.
     wiki_path: wiki/consulting-toolkits/executive-dashboard/concepts/headcount-waterfall.md
+  - slug: heatmaps
+    name: Behavioral Heatmaps (Click & Scroll Heatmaps)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: diagnosing click, scroll, and cursor patterns on live pages with sufficient traffic for statistical signal
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use in Phase 9 (Test) on live pages or production prototypes that have sufficient traffic to generate
+      statistically meaningful heatmap data. Complement usability testing data (depth) with heatmap data (breadth).
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/heatmaps.md
+  - slug: heuristic-evaluation
+    name: Heuristic Evaluation
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: catching structural usability issues cheaply via expert inspection before or after user testing
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use before usability testing (to catch structural issues cheaply) and after usability testing (to verify that
+      fixes didn't introduce new violations). Use for any new feature, redesign, or integration of an external
+      component.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/heuristic-evaluation.md
+  - slug: high-fidelity-prototyping
+    name: High-Fidelity (Hi-Fi) Prototyping
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: prototyping
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - prototype
+      - design
+    select_when: producing an interactive pixel-level prototype to validate full UX flows before development investment
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use in Phase 8 (Prototype) after low-fi sketching and storyboarding have validated the concept. The hi-fi
+      prototype is the input to usability testing, heuristic evaluation, and A/B testing.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/high-fidelity-prototyping.md
+  - slug: how-might-we
+    name: How Might We (HMW) Questions
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: ideation
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - frame
+      - design
+    select_when: reframing pain points as optimistic solution-inviting questions to bridge Define and Ideate
+    checkpoint_fit:
+      - frame
+      - solve-analyze
+    jtbd: >-
+      Use as the mandatory bridge between Define and Ideate — the last output of the Define phase and the first input to
+      the Ideate phase. Also use when an ideation session is drifting or producing solutions rather than exploring the
+      problem spac
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/how-might-we.md
   - slug: hr-capability-maturity-model
     name: HR Capability Maturity Model
     toolkits:
@@ -3127,6 +3724,47 @@ frameworks:
       Use in Phase V Step 2 (Build Annual, Quarterly, and Monthly Dashboards) when designing the dashboard suite.
       Enforce as a quality standard for all programme reporting.
     wiki_path: wiki/consulting-toolkits/digital-transformation-it-strategy/concepts/ibcs-data-visualisation.md
+  - slug: idea-evaluation
+    name: Idea Evaluation Canvas
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: ideation
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - decide
+      - prioritize
+      - analyze
+    select_when: formalizing a selected idea into a structured brief before it advances to prototyping
+    checkpoint_fit:
+      - solve-analyze
+      - prioritize
+    jtbd: >-
+      Use at the end of Phase 7 (Ideate) for every idea that scores ≥12/20 on NABC and advances to prototyping. The
+      canvas becomes the brief for the Prototype phase.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/idea-evaluation.md
+  - slug: ideation-constraints
+    name: Ideation Constraints
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: ideation
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - frame
+      - structure
+    select_when: documenting non-negotiable constraints that will bound ideation and prevent wasted creative energy
+    checkpoint_fit:
+      - frame
+      - plan
+    jtbd: >-
+      Use at the start of Phase 7 (Ideate), immediately before the Ideation Workshop. Post the Constraint Charter
+      alongside the Define Success Statement for the duration of the session.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/ideation-constraints.md
   - slug: imo-governance-model
     name: Integration Management Office (IMO) Governance Model
     toolkits:
@@ -3361,8 +3999,10 @@ frameworks:
     name: Integration Initiative Prioritization Matrix
     toolkits:
       - post-merger-integration
+      - customer-experience-design-thinking
     domains:
       - corp-dev
+      - experience
     category: portfolio
     type: framework
     fours_step: solve
@@ -3370,13 +4010,14 @@ frameworks:
       - prioritize
       - decide
       - value
-    select_when: selecting which integration and synergy initiatives to fund and sequence after all business cases are built
+    select_when: sequencing a portfolio of CX initiatives by plotting each on impact vs. effort to find quick wins and big bets
     checkpoint_fit:
       - prioritize
       - solve-analyze
     jtbd: >-
-      Phase II Step 3 (initiative prioritization), after all business cases are built and before the integration roadmap
-      is finalized.
+      Use in Phase 4 (CX Strategy: Initiatives & Roadmap) to sequence the initiative portfolio. Also use in Design
+      Thinking Phase 7 (Ideate) to select which ideas to prototype. Revisit quarterly as part of the CX strategy
+      governance cycle.
     wiki_path: wiki/consulting-toolkits/post-merger-integration/concepts/initiative-prioritization-matrix.md
   - slug: initiative-roi-scatter
     name: Initiative ROI Scatter Chart
@@ -3423,6 +4064,26 @@ frameworks:
       Use in Phase III Step 2 to screen the initiative long-list. Also use at mid-transformation (12–18 months) when new
       initiative ideas emerge and must be integrated into the existing portfolio.
     wiki_path: wiki/consulting-toolkits/supply-chain-strategy/concepts/initiative-scoring-matrix.md
+  - slug: initiative-screening
+    name: Initiative Screening (3-Criteria Quick Screen)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: portfolio
+    type: framework
+    fours_step: structure
+    cognitive_moves:
+      - prioritize
+      - decide
+    select_when: rapidly eliminating non-viable CX initiatives from a long-list before business case investment
+    checkpoint_fit:
+      - prioritize
+      - plan
+    jtbd: >-
+      Use in Phase 4 (Initiatives & Roadmap), immediately after the CX ideation workshop, to reduce the long-list before
+      business case investment. Run in a 2-hour group session.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/initiative-screening.md
   - slug: innovation-adoption-curve
     name: Innovation Adoption Curve (Diffusion of Innovations)
     toolkits:
@@ -4130,6 +4791,27 @@ frameworks:
       supply risk concentrations before a disruption, (3) define differentiated negotiation and relationship strategies
       by category, or 
     wiki_path: wiki/consulting-toolkits/supply-chain-strategy/concepts/kraljic-matrix.md
+  - slug: landscape-review
+    name: Landscape Review
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: analysis
+    type: framework
+    fours_step: structure
+    cognitive_moves:
+      - analyze
+      - prioritize
+    select_when: surveying competitor and analogous-industry solutions as final stimulus before an ideation workshop
+    checkpoint_fit:
+      - plan
+      - solve-analyze
+    jtbd: >-
+      Use at the end of the Define phase / start of the Ideate phase, as the final input before the Ideation workshop.
+      Also use when an ideation session is producing only incremental ideas — a mid-session Landscape Review resets
+      creative ambition
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/landscape-review.md
   - slug: lean-experiment-design
     name: Lean Experiment Design (MVP Typology)
     toolkits:
@@ -4482,24 +5164,48 @@ frameworks:
     name: Mind Mapping
     toolkits:
       - lean-six-sigma
+      - customer-experience-design-thinking
     domains:
       - operations
+      - experience
     category: ideation
     type: framework
     fours_step: solve
     cognitive_moves:
       - structure
-      - synthesize
-      - prioritize
+      - design
+      - analyze
     select_when: organising a raw idea bank into clusters to identify the most promising solution themes before business-casing
     checkpoint_fit:
       - solve-analyze
+      - plan
       - porpoise
     jtbd: >-
       Phase IV (Improve) as Step 3, after the raw idea bank has been generated (HMW questions, Crazy 8s) and before the
       business case is built. Also used in project retrospectives to organise learnings by theme and in team
       problem-solving session
     wiki_path: wiki/consulting-toolkits/lean-six-sigma/concepts/mind-mapping.md
+  - slug: minimum-viable-product
+    name: Minimum Viable Product (MVP)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: prototyping
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - decide
+      - design
+      - prioritize
+    select_when: scoping the smallest buildable version that tests core value hypothesis before full development commitment
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use at the end of the Prototype phase, as the formal scoping tool that determines what enters development vs. what
+      waits for the next iteration. Use with the Testing Sheet to ensure the MVP is sized to answer the core hypothesis.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/minimum-viable-product.md
   - slug: mission-vision-strategic-objectives
     name: Mission, Vision, and Strategic Objectives Framework
     toolkits:
@@ -4609,6 +5315,28 @@ frameworks:
       Phase 4 (qualitative watchlist scoring) and Phase 5, Gate 3. Re-assess every quarter in Phase 6 for all portfolio
       holdings.
     wiki_path: wiki/consulting-toolkits/personal-finance-buffett-investing/concepts/moat-assessment-framework.md
+  - slug: nabc
+    name: NABC (Need, Approach, Benefit, Competition)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: ideation
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - decide
+      - analyze
+      - prioritize
+    select_when: evaluating solution concepts against need, approach, benefit, and competition to select ideas for prototyping
+    checkpoint_fit:
+      - solve-analyze
+      - prioritize
+    jtbd: >-
+      Use in the Ideate phase as the second-round evaluation method (after dot voting) to select ideas for prototyping.
+      Use whenever a team has more ideas than it can prototype and needs a structured way to make the selection
+      decision.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/nabc.md
   - slug: negotiation-batna
     name: BATNA-Based Negotiation (Principled Negotiation)
     toolkits:
@@ -5002,6 +5730,25 @@ frameworks:
       When defining a new product's position, repositioning an existing brand, or evaluating the competitive landscape
       before a launch.
     wiki_path: wiki/consulting-toolkits/sales-marketing-pricing-communication/concepts/perceptual-map.md
+  - slug: performance-testing
+    name: Performance Testing (UX Performance)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: measuring load time and interaction responsiveness as a launch quality gate for digital prototypes
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use in Phase 9 (Test) for all digital prototypes before launch. Also use as a quality gate in hi-fi prototyping
+      (run Lighthouse on prototype links) and in the ongoing CX monitoring cycle post-launch.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/performance-testing.md
   - slug: personal-mission-canvas
     name: Personal Mission Canvas
     toolkits:
@@ -5447,6 +6194,26 @@ frameworks:
       - frame
     jtbd: At the start of every engagement and before any analysis, to lock the target.
     wiki_path: wiki/consulting-toolkits/management-consulting/concepts/problem-definition-worksheet.md
+  - slug: problem-statement
+    name: Problem Statement
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: planning
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - frame
+      - synthesize
+    select_when: crystallizing user research and root-cause analysis into a single actionable design challenge sentence
+    checkpoint_fit:
+      - frame
+      - hypothesize
+    jtbd: >-
+      Use at the end of the Define phase, after Five Whys and root-cause analysis are complete. It is the single output
+      that bridges Define and Ideate — no ideation session should begin without a signed Problem Statement.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/problem-statement.md
   - slug: process-capability-sigma
     name: Process Capability Analysis (Cpk, DPMO, and Sigma Level)
     toolkits:
@@ -5647,6 +6414,26 @@ frameworks:
       Use in Phase II Step 7 (Build Individual Project Business Cases) and Phase IT-III Step 2 (Build IT Initiative
       Business Cases).
     wiki_path: wiki/consulting-toolkits/digital-transformation-it-strategy/concepts/project-business-case-template.md
+  - slug: project-canvas
+    name: Project Canvas
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: planning
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - frame
+      - structure
+    select_when: aligning a design team on scope, objectives, constraints, and deliverables before fieldwork begins
+    checkpoint_fit:
+      - frame
+      - plan
+    jtbd: >-
+      Use at the start of every Design Thinking initiative or design sprint, before any research or ideation begins.
+      Also use when a project is drifting — return to the canvas to re-anchor the team.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/project-canvas.md
   - slug: project-portfolio-table
     name: Project Portfolio Input Table
     toolkits:
@@ -5729,6 +6516,27 @@ frameworks:
       After generating a long-list of strategic options; annual investment planning; when resources must be reallocated;
       PMO portfolio reviews.
     wiki_path: wiki/consulting-toolkits/business-strategy/concepts/project-prioritization-matrix.md
+  - slug: proof-of-concept
+    name: Proof of Concept (PoC)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: prototyping
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - prototype
+      - analyze
+    select_when: verifying technical feasibility of a proposed solution before design resources are committed to full prototyping
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use in Phase 8 (Prototype) for any proposed solution that includes a technically uncertain component. Build the
+      PoC in parallel with hi-fi prototyping so both technical feasibility and user experience are validated
+      simultaneously.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/proof-of-concept.md
   - slug: prosci-3-phase-process
     name: Prosci 3-Phase Change Management Process
     toolkits:
@@ -5912,6 +6720,26 @@ frameworks:
       Use in Phase 2 (Structure & Governance pillar) for all significant cross-functional decisions. Re-validate when
       the organizational structure changes.
     wiki_path: wiki/consulting-toolkits/operating-model-org-design/concepts/rapid-decision-rights.md
+  - slug: research-plan
+    name: Research Plan
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: research
+    type: framework
+    fours_step: structure
+    cognitive_moves:
+      - structure
+      - design
+    select_when: planning which research methods, samples, and timelines are needed before Empathize fieldwork begins
+    checkpoint_fit:
+      - plan
+      - frame
+    jtbd: >-
+      Use at the start of the Empathize phase, immediately after the Project Canvas is approved. The Research Plan is
+      the project plan for the research phase.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/research-plan.md
   - slug: responsible-ai-framework
     name: Responsible AI Framework (Fairness, Explainability, Privacy)
     toolkits:
@@ -6292,6 +7120,26 @@ frameworks:
       Use as the primary visualisation in Phase 4 (Strategic Plan Dashboard). Also use in board presentations, investor
       days, and all-hands strategy communication.
     wiki_path: wiki/consulting-toolkits/executive-dashboard/concepts/roadmap-timeline-chart.md
+  - slug: role-playing
+    name: Role-Playing (Service Role-Play)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: prototyping
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - prototype
+      - diagnose
+    select_when: testing a service interaction design through embodied enactment before digital prototyping
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use in Phase 8 (Prototype) immediately after low-fi sketching and before digital prototyping — especially for
+      service design challenges that involve human-to-human interactions.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/role-playing.md
   - slug: sales-costs-analysis
     name: Sales and Costs Analysis
     toolkits:
@@ -6522,6 +7370,27 @@ frameworks:
       In Phase 4 (Step 2: validate business case assumptions) for every use case in the top-15 priority list. Present
       alongside the base-case NPV to the CFO.
     wiki_path: wiki/consulting-toolkits/data-analytics-ai-strategy/concepts/sensitivity-analysis.md
+  - slug: service-safari
+    name: Service Safari
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: research
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: experiencing a service firsthand as a customer to surface insights invisible from behind the service desk
+    checkpoint_fit:
+      - solve-analyze
+      - hypothesize
+    jtbd: >-
+      Use in the Empathize phase at the start of any CX or service design initiative, before building journey maps.
+      Especially valuable when the team lacks first-hand customer experience of the full service journey. Also use
+      quarterly as a CX mon
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/service-safari.md
   - slug: seven-degrees-of-freedom
     name: 7 Degrees of Freedom for Growth
     toolkits:
@@ -6566,6 +7435,25 @@ frameworks:
       programmes. Also use when designing a graduate or early-career programme, and when evaluating existing L&D
       investments for effectiveness
     wiki_path: wiki/consulting-toolkits/hr-talent-management/concepts/seventy-twenty-ten-model.md
+  - slug: shadowing
+    name: Shadowing (Contextual Observation)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: research
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: understanding a specific, repeatable user workflow in its natural environment without influencing behavior
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use in the Empathize phase for any design challenge involving a specific, repeatable workflow or activity. Pair
+      with user interviews to triangulate self-reported and observed behavior.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/shadowing.md
   - slug: sipoc
     name: SIPOC Diagram
     toolkits:
@@ -6587,6 +7475,25 @@ frameworks:
       At the very start of Phase I (Define) of every DMAIC project. Also useful when onboarding a new team member to a
       process or when a process redesign needs clear scope boundaries before analysis begins.
     wiki_path: wiki/consulting-toolkits/lean-six-sigma/concepts/sipoc.md
+  - slug: sketching
+    name: Sketching (UX / Service Design Sketching)
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: prototyping
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - prototype
+      - design
+    select_when: externalizing a solution concept in its cheapest form before any digital tooling is used
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use as the first prototyping step in Phase 8, before any digital tools are used. Also use throughout the ideation
+      phase to make abstract ideas concrete during discussion.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/sketching.md
   - slug: smart-kpi
     name: SMART-KPI Framework
     toolkits:
@@ -6927,20 +7834,26 @@ frameworks:
     name: Storyboarding (Ghost Deck)
     toolkits:
       - management-consulting
+      - customer-experience-design-thinking
     domains:
       - consulting
+      - experience
     category: communication
     type: framework
-    fours_step: sell
+    fours_step: solve
     cognitive_moves:
-      - structure
       - communicate
-      - synthesize
-    select_when: before building any slide deck to map the argument flow and action titles first
+      - prototype
+      - design
+    select_when: validating a solution concept narrative visually before any digital prototyping investment is made
     checkpoint_fit:
+      - solve-analyze
       - plan
       - sell
-    jtbd: Before building any client deck.
+    jtbd: >-
+      Use at the start of the Prototype phase, before any digital prototyping begins, to validate the solution concept
+      at its coarsest level. Also use to communicate solution concepts to stakeholders who are not present in the design
+      process.
     wiki_path: wiki/consulting-toolkits/management-consulting/concepts/storyboarding.md
   - slug: stp-model
     name: STP Model (Segmentation, Targeting & Positioning)
@@ -6986,6 +7899,25 @@ frameworks:
       In Phase 2 (Step 2.1) to assess whether the project belongs in the portfolio; revisit when the corporate strategy
       changes.
     wiki_path: wiki/consulting-toolkits/business-case/concepts/strategic-alignment-matrix.md
+  - slug: strategic-context-brief
+    name: Strategic Context Brief
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: planning
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - frame
+      - structure
+    select_when: anchoring a CX engagement to corporate strategy before any vision or assessment work begins
+    checkpoint_fit:
+      - frame
+    jtbd: >-
+      Use at the very start of Phase 1 (CX Strategic Foundation), before any maturity assessment or vision work. Revisit
+      at the start of each annual CX planning cycle.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/strategic-context-brief.md
   - slug: strategic-context-summary
     name: Strategic Context Summary (Strategy-on-a-Page)
     toolkits:
@@ -7423,6 +8355,25 @@ frameworks:
       In Phase 2 (building Pillar 3: Analytics Tools & Techniques) when selecting the tooling stack. Also use when
       re-evaluating existing tools at the annual strategy review.
     wiki_path: wiki/consulting-toolkits/data-analytics-ai-strategy/concepts/technology-selection-matrix.md
+  - slug: testing-sheet
+    name: Testing Sheet
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: structure
+    cognitive_moves:
+      - structure
+      - design
+    select_when: planning a usability testing round with defined hypotheses, tasks, and success criteria before sessions begin
+    checkpoint_fit:
+      - plan
+    jtbd: >-
+      Use as the mandatory planning artifact for every round of usability testing in Phase 9. Never begin a user testing
+      session without a completed Testing Sheet.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/testing-sheet.md
   - slug: three-cs-communication
     name: The 3 Cs of Engaging Communication
     toolkits:
@@ -7679,6 +8630,26 @@ frameworks:
       Use for any KPI that shows meaningful month-to-month volatility (e.g., revenue, web traffic, conversion rates).
       Pair with the combo chart pattern as the second series.
     wiki_path: wiki/consulting-toolkits/executive-dashboard/concepts/trend-line.md
+  - slug: usability-testing
+    name: Usability Testing
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: testing
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: evaluating whether real users can complete tasks on a prototype before making a development investment
+    checkpoint_fit:
+      - solve-analyze
+      - porpoise
+    jtbd: >-
+      Use at the end of every prototyping round, before making any significant development investment. Use after any
+      major redesign of a user flow. Do not use to validate marketing copy — use A/B testing instead.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/usability-testing.md
   - slug: use-case-discovery-framework
     name: Use-Case Discovery Framework (Function-Based Workshop)
     toolkits:
@@ -7700,6 +8671,47 @@ frameworks:
       In Phase 3 (Step 1: map use cases to functions and AI technologies). Run workshops before any scoring or
       prioritisation begins.
     wiki_path: wiki/consulting-toolkits/data-analytics-ai-strategy/concepts/use-case-discovery-framework.md
+  - slug: user-interviews
+    name: User Interviews
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: research
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+    select_when: generating qualitative insight into user motivations, behaviors, and unmet needs through direct conversation
+    checkpoint_fit:
+      - solve-analyze
+    jtbd: >-
+      Use as the primary research method in the Empathize phase of every Design Thinking initiative. Use as a supplement
+      to surveys whenever quantitative data reveals a 'what' but not the 'why.' Use every 6–12 months to refresh
+      personas.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/user-interviews.md
+  - slug: user-personas
+    name: User Personas
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: diagnosis
+    type: framework
+    fours_step: frame
+    cognitive_moves:
+      - frame
+      - synthesize
+      - diagnose
+    select_when: creating a shared, research-validated human reference point that grounds all design and CX decisions
+    checkpoint_fit:
+      - frame
+      - hypothesize
+    jtbd: >-
+      Use at the start of any design or CX initiative, immediately after initial user research. Refresh every 12–18
+      months or after a major market shift. Use throughout the design process to anchor decisions to real users.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/user-personas.md
   - slug: value-chain-analysis
     name: Value Chain Analysis
     toolkits:
@@ -7789,6 +8801,27 @@ frameworks:
       At the end of Phase 3 (use-case identification) to sequence Phase 5 (implementation). Rerun at each wave planning
       session and annually at the strategy review.
     wiki_path: wiki/consulting-toolkits/data-analytics-ai-strategy/concepts/value-feasibility-matrix.md
+  - slug: value-proposition
+    name: Value Proposition Canvas
+    toolkits:
+      - customer-experience-design-thinking
+    domains:
+      - experience
+    category: analysis
+    type: framework
+    fours_step: solve
+    cognitive_moves:
+      - diagnose
+      - analyze
+      - design
+    select_when: identifying the gap between customer Jobs-to-be-done and current product offerings to define the design brief
+    checkpoint_fit:
+      - hypothesize
+      - solve-analyze
+    jtbd: >-
+      Use in the Define phase after user research is complete, to identify value gaps that become the design brief. Use
+      again in the Prototype phase to verify that the proposed solution closes the previously identified gaps.
+    wiki_path: wiki/consulting-toolkits/customer-experience-design-thinking/concepts/value-proposition.md
   - slug: value-proposition-canvas
     name: Value Proposition Canvas
     toolkits:
