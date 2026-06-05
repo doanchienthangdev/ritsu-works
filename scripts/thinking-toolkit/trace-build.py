@@ -142,11 +142,16 @@ def chart_tools(trace, out):
 
 def chart_toolkit_map(trace, out):
     """AUTO from trace['toolkit'] (the method ledger) — which thinking-tool for which sub-need,
-    grouped by 4S step: ✓ selected + why  vs  ✗ rejected/debias + why. The visible proof of
-    deliberate tool use. Drawn straight from the recorded toolkit-log — no invention."""
+    AT WHICH CHECKPOINT (v3.6): the left badge shows STAGE · C-id kind, then ✓ selected + why
+    vs ✗ rejected/debias + why. The visible proof of deliberate, per-checkpoint tool use.
+    Drawn straight from the recorded toolkit-log — no invention; sorted by checkpoint order."""
     tk = trace.get("toolkit", [])
     order = {"state": 0, "structure": 1, "solve": 2, "sell": 3}
-    tk = sorted(tk, key=lambda r: order.get((r.get("step") or "").lower(), 9))
+
+    def ck_num(r):
+        m = (r.get("checkpoint") or "").upper().lstrip("C")
+        return int(m) if m.isdigit() else 99
+    tk = sorted(tk, key=lambda r: (ck_num(r), order.get((r.get("step") or "").lower(), 9)))
     if not tk:
         fig, ax = plt.subplots(figsize=(9.0, 1.4))
         ax.text(0.5, 0.5, "Chưa ghi nhận lựa chọn công cụ (toolkit-log trống)", ha="center", va="center",
@@ -154,21 +159,23 @@ def chart_toolkit_map(trace, out):
         ax.axis("off"); _save(fig, out); return out
     n = len(tk)
     fig, ax = plt.subplots(figsize=(11.6, max(2.8, 0.95 * n + 1.0)))
-    ax.text(0.03, n + 0.30, "ĐÃ CHỌN + vì sao", fontsize=8.6, fontweight="bold", color=GREEN)
+    ax.text(0.03, n + 0.30, "MỐC · NHU CẦU", fontsize=8.6, fontweight="bold", color=INK)
     ax.text(0.40, n + 0.30, "ĐÃ CHỌN (tool + vì sao hợp)", fontsize=8.6, fontweight="bold", color=GREEN)
     ax.text(0.71, n + 0.30, "ĐÃ BỎ / debias + vì sao", fontsize=8.6, fontweight="bold", color=RED)
     for i, r in enumerate(tk):
         y = n - i - 1
         step = (r.get("step") or "").lower(); col = ACT_COLOR.get(step, GREY)
+        cid = (r.get("checkpoint") or "").upper(); ck = _plain(r.get("checkpoint_kind") or "")
+        badge = ACT_NAME.get(step, step.upper()) + (f" · {cid}{(' ' + ck) if ck else ''}" if cid else "")
         ax.add_patch(Rectangle((0.005, y + 0.10), 0.014, 0.78, color=col, zorder=2))
-        ax.text(0.03, y + 0.66, ACT_NAME.get(step, step.upper()), fontsize=6.8, fontweight="bold", color=col, va="center")
+        ax.text(0.03, y + 0.66, badge, fontsize=6.8, fontweight="bold", color=col, va="center")
         ax.text(0.03, y + 0.34, _wrap(_plain(r.get("sub_need", "")), 24), fontsize=8.0, color=INK, va="center", fontweight="bold")
         ax.add_patch(FancyBboxPatch((0.385, y + 0.12), 0.31, 0.74, boxstyle="round,pad=0.01", fc="#E9F8F0", ec=GREEN, lw=1.0))
         ax.text(0.40, y + 0.49, "✓ " + _wrap(_plain(r.get("selected", "")) or "—", 42), fontsize=7.4, color=INK, va="center")
         ax.add_patch(FancyBboxPatch((0.705, y + 0.12), 0.29, 0.74, boxstyle="round,pad=0.01", fc="#F4F6F8", ec=GREY, lw=0.9))
         ax.text(0.72, y + 0.49, "✗ " + _wrap(_plain(r.get("rejected", "")) or "—", 38), fontsize=7.0, color="#5a6b76", va="center")
     ax.set_xlim(0, 1); ax.set_ylim(0, n + 0.55); ax.axis("off")
-    ax.set_title("Bản đồ chọn công cụ tư duy — dùng tool nào cho việc gì, vì sao chọn / vì sao bỏ",
+    ax.set_title("Bản đồ chọn công cụ tư duy — tại MỖI mốc: tool nào cho việc gì, vì sao chọn / vì sao bỏ",
                  loc="left", fontsize=12, fontweight="bold", color=INK, pad=14)
     _save(fig, out); return out
 

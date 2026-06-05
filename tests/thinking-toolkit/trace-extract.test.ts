@@ -123,17 +123,21 @@ describe('extractTrace — run folder → structured trace', () => {
     expect(t.toolkit).toEqual([]);
   });
 
-  // v3.5: the toolkit-selection (method) ledger.
-  it('extracts the toolkit-log selection rows (step/sub-need/selected/rejected)', () => {
+  // v3.5/v3.6: the toolkit-selection (method) ledger, bound to its checkpoint.
+  it('extracts the toolkit-log selection rows + binds the checkpoint (v3.6)', () => {
+    fs.writeFileSync(path.join(dir, 'checkpoint-log.md'),
+      `# cp\n| id | stage | kind | presented | team input | decision |\n|---|---|---|---|---|---|\n| C2 | structure | hypothesize | x | y | z |\n`);
     fs.writeFileSync(path.join(dir, 'toolkit-log.md'),
-      `# tk\n| id | step | sub-need | classify | loaded | selected | rejected |\n|---|---|---|---|---|---|---|\n` +
-      `| T1 | structure | decompose | formula | driver-tree, issue-tree | driver-tree — testable drivers | issue-tree — less testable |\n`);
+      `# tk\n| id | step | checkpoint | sub-need | classify | loaded | selected | rejected |\n|---|---|---|---|---|---|---|---|\n` +
+      `| T1 | structure | C2 | decompose | formula | driver-tree, issue-tree | driver-tree — testable drivers | issue-tree — less testable |\n`);
     const t = extractTrace(dir);
     expect(t.stats.toolkit_selections).toBe(1);
     expect(t.toolkit[0].step).toBe('structure');
     expect(t.toolkit[0].sub_need).toBe('decompose');
     expect(t.toolkit[0].selected).toContain('driver-tree');
     expect(t.toolkit[0].rejected).toContain('issue-tree');
+    expect(t.toolkit[0].checkpoint).toBe('C2');
+    expect(t.toolkit[0].checkpoint_kind).toBe('hypothesize'); // joined from checkpoint-log by C-id
   });
 });
 
