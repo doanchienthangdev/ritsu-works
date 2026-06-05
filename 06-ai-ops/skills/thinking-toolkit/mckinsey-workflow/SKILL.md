@@ -227,7 +227,7 @@ A datum must clear a **trust** test (is it true?) and a **relevance** test (does
 2. **Degree-of-certainty (1–8):** given-fact … judgment-call. Reliability falls as the number rises; discount degree-6 forecasts + degree-7 expert input for incentive bias.
 3. **Correlation ≠ causation:** reverse-causation? confounder? If causation is load-bearing → demand an experiment/regression, else downgrade to "associated with."
 4. **Sensitivity:** by how much must assumptions change for the conclusion to flip? Tiny → fragile (gather more / hedge). Correct for overprecision.
-5. **Triangulation / dissent:** has a *second, independent* read agreed? Generate + test one alternative interpretation before accepting the convenient one. (Pair `/think debias`.)
+5. **Triangulation / dissent:** has a *second, independent* read agreed? Generate + test one alternative interpretation before accepting the convenient one. (Pair `/think debias`.) **v3.3 — for a load-bearing EXTERNAL / degree-≥5 number this is a MECHANISM, not a vibe:** fire `data-verification` (≥2 independent web/deep-research sources → a verification status: `verified-multi` / `single-source` / `conflicting` / `unverified`), recorded in the analysis-log verdict. *Actively search* for accurate reference numbers — never bank a single recalled figure.
 6. **Honesty-label:** tag the surviving datum with its degree; label judgment calls *as* judgment calls — never let a judgment pass as a fact.
 
 ### Dynamic routing — IF → THEN (after each validated analysis — `routing_rules` + `back_edges`)
@@ -260,6 +260,10 @@ Bulletproof separates step 6 from step 7; don't conflate them.
 > **APK guard (anxious-parade-of-knowledge):** lead with the *answer*, not the journey. Do NOT dump everything you found or tell the **story-of-the-search** (problem → all the analyses we ran → … → answer). The reader wants the answer first; the analysis is support, surfaced only as needed.
 
 ---
+
+## ⑤ TRACE — the thinking journal (v3.3) · `/think trace <slug>`
+
+After a substantial run, **`/think trace <slug>`** turns the run folder into a narrated **McKinsey thinking journal** — a 4S **timeline + flow/tree graph** (with the porpoise back-edges drawn) + per-band narration (*what · which framework/toolkit was chosen and WHY · the decision + its basis · the disconfirmation · any porpoise*) + a **data-provenance ledger** (each datum's tool + degree + verification status) + the **decision log** → **PDF**. Pipeline: `scripts/thinking-toolkit/trace-extract.cjs` (run folder → `trace.json`) → the `reasoning-trace` skill writes the narration → `scripts/thinking-toolkit/trace-build.py` renders the diagrams + compiles the PDF. It is the **provenance of the thinking** — auditable, study-able — distinct from the `--sell` report (which carries the *answer*). See `thinking-toolkit/reasoning-trace`.
 
 ## When to use / NOT
 

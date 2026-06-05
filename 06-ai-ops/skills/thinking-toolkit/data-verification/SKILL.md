@@ -1,0 +1,67 @@
+---
+name: thinking-toolkit/data-verification
+description: |
+  The re-check mechanism for the /think mckinsey engine. Research numbers can be
+  WRONG — a single recalled benchmark, a stale figure, a misread source. This skill
+  makes triangulation a MECHANISM, not just prose discipline: for a load-bearing
+  EXTERNAL / degree-≥5 datum, actively fire ≥2 INDEPENDENT lookups (WebSearch /
+  WebFetch / deep-research), cross-check them, and assign a verification STATUS
+  (verified-multi · single-source · conflicting · unverified) + a one-line note +
+  the sources. Records into the analysis-log verdict (and an optional
+  verification-log). Capability thinking-toolkit v3.3.
+
+  Trigger: invoked by the mckinsey-workflow Solve loop on any external benchmark
+  that SURVIVED knock-out (it moves the answer) — before that number updates the
+  one-day answer; or `/think verify` ad-hoc on a number you don't trust. Also the
+  enforcement behind the validation_gate's triangulation check.
+
+  Skip when: the datum is internal degree-2 (already hard, already pulled from
+  ritsu-analytics/supabase) — verification is for EXTERNAL/forecast numbers; or the
+  number doesn't move the answer (knock-out filters it out first).
+allowed-tools: [WebSearch, WebFetch, Read, Write]
+disable-model-invocation: false
+---
+
+# Data Verification — triangulate the numbers that move the answer
+
+> "Các số liệu nghiên cứu có thể sai" — a research number is a *claim*, not a *fact*, until an independent second source agrees. This skill turns the validation_gate's triangulation step from prose into a fired mechanism, using active search (deep-research / web) to ground load-bearing external numbers.
+
+## When it fires (the gate)
+
+Run verification on a datum that meets BOTH:
+1. **Load-bearing** — it survived the knock-out gate (it materially moves the one-day answer). Don't verify what doesn't matter (80/20).
+2. **External / forecast** — degree-≥5 (a benchmark, an industry rate, a CAC/CPI, a market size, a competitor fact). Internal degree-2 pulls (ritsu-analytics/supabase numbers) are already hard — they don't need this.
+
+This is exactly the `validation_gate` triangulation check, now mandatory + mechanical for the numbers that qualify.
+
+## The mechanism (≥2 independent sources)
+
+For the claim (e.g. *"edtech freemium free→paid ≈ 2–4% early-stage"*):
+
+1. **Search independently, ≥2 angles.** Fire 2–3 lookups that don't share a source: e.g. one `WebSearch` for the benchmark, one for a *different* phrasing/segment, and where a specific figure is load-bearing, a `WebFetch` of the most authoritative result to read the actual number (not the snippet). Prefer primary/industry sources (BusinessOfApps, vendor benchmark reports, peer-reviewed) over content-farm restatements. *(In a session where the deep-research plugin is available, route the harder ones through it — it fans out + adversarially cross-checks.)*
+2. **Cross-check.** Do the independent reads AGREE (same order of magnitude / overlapping range)? Note the spread.
+3. **Assign a verification STATUS:**
+   - `verified-multi` — ≥2 independent sources agree (within a reasonable range). Confidence raised.
+   - `single-source` — only one credible source found; could not independently corroborate. Carry with caution + a sensitivity note.
+   - `conflicting` — sources disagree materially. Use the RANGE, not a point; flag the disagreement; consider it a fragile input.
+   - `unverified` — could not find a credible source. Downgrade to an explicit assumption (degree ≥6 + sensitivity), never assert as fact.
+4. **Record.** Append to the analysis-log row's verdict: `[verified-multi: 2 sources agree 2–4% · Pathmonk + BusinessOfApps]` (or the relevant status). Optionally maintain a `verification-log.md` in the run folder (claim · status · sources · spread · note).
+
+## The decision rule (how status changes the answer)
+
+- `verified-multi` → use the number; keep its degree.
+- `single-source` / `conflicting` → use the RANGE; run a **sensitivity** check (does the conclusion flip across the range?). If it flips → this is now a fragile, load-bearing assumption → escalate (deeper research or `ask-user`).
+- `unverified` → it cannot move the answer as a fact; carry as an assumption with a sensitivity note, or knock the branch out.
+
+## Composition + honesty
+
+- **Composes with `reasoning-trace`** — the verification status surfaces in the trace's data-provenance ledger, so a reader sees not just *where* a number came from but *whether it was re-checked* and *how well sources agreed*.
+- **Evidence-not-decider** — verification informs the degree + the range; the synthesize→recommend judgment still belongs to the engine (Sell) + the owner.
+- **Honesty over completeness** — an honest `unverified` is better than a fabricated `verified`. The point is to *know* how solid each number is, not to force a green check.
+- **Cost-aware** — verify only knock-out-surviving external numbers; 2–3 searches each, not a research project per figure. Heuristics before big guns.
+
+## Anti-claims
+
+- This does NOT make a number TRUE — it makes its *trustworthiness explicit* (how many independent sources, how much they agree). A `verified-multi` can still be wrong if the whole industry mis-measures; that residual is what the degree-of-certainty + sensitivity carry.
+- It does NOT verify internal numbers — those come hard from ritsu-analytics/supabase already.
+- It is NOT a substitute for `ask-user` when the real number lives only in the founder's head.

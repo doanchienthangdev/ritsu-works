@@ -1004,7 +1004,7 @@ capabilities:
   - id: thinking-toolkit
     name: "Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills)"
     description: |
-      14 skills (12 composable thinking tools + the mckinsey-workflow 4S
+      16 skills (14 composable thinking tools + the mckinsey-workflow 4S
       ENGINE + the mckinsey-sell Sell formatter) extracted from McKinsey/Minto
       thinking discipline, deployed as a
       parent-namespaced skill folder at
@@ -1043,6 +1043,8 @@ capabilities:
         - thinking-toolkit/mckinsey-workflow (the 4S DYNAMIC ENGINE: workplan routes each hypothesis to real data → validate → update one-day answer → re-route → porpoise; HITL hard-gate; v2.0 TEAM operating model: --mode + 7 team-session checkpoints + sell formatter + thorough data sweep) [v1.3→v2.0]
         - thinking-toolkit/mckinsey-sell (v2.0 Sell formatter — builds the McKinsey-template-structured synthesis IR + renders via deepask/format with --style/--art-style; composes, does not rebuild) [v2.0]
         - thinking-toolkit/problem-triage (v3.2 — the ROUTER that makes mckinsey the PRIMARY solver: routes a problem to its weight [mckinsey/deepask/atom/direct] on consequence × shape; first step of SOP-AIOPS-012; @ceo/@cgo/@cpo routing reflex) [v3.2]
+        - thinking-toolkit/reasoning-trace (v3.3 — the thinking-journal: a completed mckinsey run → narrated 4S timeline + flow/tree graph + provenance ledger + decision log → PDF, via /think trace; scripts trace-extract.cjs + trace-build.py) [v3.3]
+        - thinking-toolkit/data-verification (v3.3 — the re-check mechanism: triangulate a load-bearing external/degree-≥5 number across ≥2 independent web/deep-research sources → a verification status; wired into the Solve validation gate) [v3.3]
 
       Origin: Barbara Minto's *Pyramid Principle* (1987), McKinsey internal
       training (TOSCA, driver-tree, So-What), BCG Growth-Share matrix (2x2).
@@ -1074,7 +1076,18 @@ capabilities:
       (consequential decisions run the full engine, not pyramid+so-what alone).
       Closes the audit's "primary = a routing property, not a capability property"
       gap. Run record: .archives/mckinsey-rigor-fix-2026-06-05/05-primary-solver-institutionalization.md.
-    version: "3.2.0"
+      v3.3 (2026-06-05, /cla extend, autonomous): Reasoning Trace + Data
+      Verification — the rigor + auditability upgrade to the workforce's primary
+      problem-solver. NEW thinking-toolkit/reasoning-trace (/think trace <slug> →
+      a narrated 4S timeline + flow/tree graph + provenance ledger + decision-log
+      PDF "thinking journal", reconstructed from the run folder; scripts
+      trace-extract.cjs [pure-Node, 15 tests] + trace-build.py [local renderer]).
+      NEW thinking-toolkit/data-verification (the re-check mechanism: a
+      load-bearing external/degree-≥5 number is triangulated across ≥2 independent
+      web/deep-research sources → a verification status, wired into the Solve
+      validation gate + mckinsey-workflow.yaml 3.2.0 data_verification +
+      reasoning_trace sections). Run record: .archives/cla/reasoning-trace-and-verify/.
+    version: "3.3.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28

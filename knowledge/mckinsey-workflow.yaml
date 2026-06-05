@@ -97,7 +97,17 @@
 # Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
 # ============================================================================
 
-version: "3.1.0"
+version: "3.2.0"
+# v3.2 (Reasoning Trace + Data Verification — thinking-toolkit v3.3, 2026-06-05):
+#   adds two engine sections — `data_verification` (the re-check MECHANISM: a
+#   load-bearing EXTERNAL/degree->=5 datum is triangulated across >=2 independent
+#   web/deep-research sources → a verification STATUS, no longer optional prose in
+#   the validation_gate) + `reasoning_trace` (the thinking-journal OUTPUT:
+#   `/think trace <slug>` turns the run folder into a narrated 4S timeline +
+#   flow/tree graph + provenance ledger + decision log → PDF). Wires
+#   thinking-toolkit/data-verification into the Solve step + strengthens the
+#   deep-research routing note (actively search; verify before the number moves the
+#   answer). Both new sections are additive top-level keys (schema additionalProperties).
 schema: knowledge/schemas/mckinsey-workflow.schema.json
 spine: "4S"                                   # State / Structure / Solve / Sell (Cracked it! Ch 3)
 source_books: [cracked-it, bulletproof-problem-solving]
@@ -151,7 +161,7 @@ data_routing:
     tool: deep-research
     invoke: '/deepask "<q>" (repo-native; delegates its web leg to deep-research) OR Skill({skill:"deep-research", args:"<refined question>"}) directly'
     hitl: A
-    note: "deep-research is a HARNESS/plugin skill (registered at runtime in interactive sessions, not a repo file) — /deepask is the repo-native external route (it delegates the web leg to deep-research). SLOW + external; research only — never publish (publish = Tier C). In a headless context where deep-research is absent, route external via /deepask or ask-user."
+    note: "deep-research is a HARNESS/plugin skill (registered at runtime in interactive sessions, not a repo file) — /deepask is the repo-native external route (it delegates the web leg to deep-research). SLOW + external; research only — never publish (publish = Tier C). In a headless context where deep-research is absent, route external via /deepask or ask-user. v3.2: ACTIVELY fire web/deep-research for a load-bearing external number (never recall a single figure), and run thinking-toolkit/data-verification (>=2 independent sources → a verification status) BEFORE the number moves the one-day answer — see the data_verification section."
   - need: "Structuring / sequencing the analysis itself (decompose a metric, MECE-gate, frame, stress-test)"
     tool: think-skills
     invoke: "/think driver-tree|mece|hypothesis|root-cause|pyramid|so-what|2x2"
@@ -275,7 +285,7 @@ validation_gate:
     test: "Inverse-sensitivity: by how much must assumptions change for the conclusion to flip? Tiny swing → fragile (gather more / hedge). Correct for overprecision."
     concept: {book: cracked-it, slug: sensitivity-analysis}
   - check: "Triangulation / independent challenge (anti-confirmation)"
-    test: "Has a SECOND independent read reached the same conclusion? Generate + test one alternative interpretation before accepting the one that fits your storyline."
+    test: "Has a SECOND independent read reached the same conclusion? Generate + test one alternative interpretation before accepting the one that fits your storyline. v3.2 MECHANISM: for a load-bearing EXTERNAL / degree->=5 datum this is no longer optional prose — FIRE thinking-toolkit/data-verification (>=2 independent web/deep-research sources) and record a verification status (verified-multi / single-source / conflicting / unverified) in the analysis-log verdict. See the data_verification section."
     concept: {book: cracked-it, slug: confirmation-bias-in-analysis}
   - check: "Honesty-labeling (output of the gate)"
     test: "Tag the surviving datum with its degree-of-certainty; label irreducible judgment calls AS judgment calls — never let the reader believe a judgment is a fact."
@@ -563,6 +573,7 @@ steps:
       - thinking-toolkit/pre-mortem
       - thinking-toolkit/debias
       - thinking-toolkit/2x2-synthesis-matrix
+      - thinking-toolkit/data-verification
     key_concepts:
       - {book: bulletproof-problem-solving, slug: one-day-answer}
       - {book: bulletproof-problem-solving, slug: heuristics-before-big-guns}
@@ -621,3 +632,46 @@ steps:
     retrieval:
       query: "synthesis, storyline, pyramid, governing thought, SCR, action titles, pre-wire"
       sources: [cracked-it, bulletproof-problem-solving]
+
+# --------------------------------------------------------------------------
+# DATA VERIFICATION (v3.2) — the re-check MECHANISM. "Research numbers can be
+# wrong." Triangulation is no longer just prose in the validation_gate — for a
+# load-bearing EXTERNAL / degree->=5 datum it FIRES: >=2 INDEPENDENT web/deep-
+# research lookups → cross-check → a verification STATUS. Implemented by the
+# Solve-step skill thinking-toolkit/data-verification; recorded into the
+# analysis-log verdict. (Additive top-level section; the L2 validator ignores
+# unknown sections, the schema is additionalProperties:true.)
+# --------------------------------------------------------------------------
+data_verification:
+  fires_when: "a datum is load-bearing (survived knock-out — it moves the one-day answer) AND external/forecast (degree >= 5: a benchmark, market rate, CAC/CPI, competitor fact). Internal degree-2 pulls (ritsu-analytics/supabase) are already hard — skip."
+  mechanism: ">=2 INDEPENDENT lookups (WebSearch / WebFetch / deep-research; prefer primary/industry sources over content-farm restatements) → cross-check agreement → assign a status."
+  statuses:
+    - {status: verified-multi, meaning: ">=2 independent sources agree within range → keep the number + its degree"}
+    - {status: single-source,  meaning: "only one credible source → use the range + a sensitivity note"}
+    - {status: conflicting,    meaning: "sources disagree materially → use the RANGE, flag fragility, run sensitivity"}
+    - {status: unverified,     meaning: "no credible source → downgrade to an explicit assumption (degree >=6 + sensitivity), never assert as fact"}
+  records_to: "the analysis-log row verdict (e.g. '[verified-multi: 2 sources agree 2-4% · Pathmonk + BusinessOfApps]'); optional verification-log.md in the run folder"
+  decision_rule: "single-source / conflicting + a sensitivity flip on that number → fragile load-bearing input → escalate (deeper research or ask-user). unverified → cannot move the answer as a fact."
+  skill: thinking-toolkit/data-verification
+  concept: {book: cracked-it, slug: confirmation-bias-in-analysis}
+
+# --------------------------------------------------------------------------
+# REASONING TRACE (v3.2) — the thinking-journal OUTPUT. A DERIVED artifact (NOT one
+# of the 9 coherence-locked run artifacts): `/think trace <slug>` turns the
+# completed run folder into a narrated 4S timeline + flow/tree graph + provenance
+# ledger + decision log → PDF. Like reading a McKinsey expert's thinking journal —
+# clear, full, easy to study + retrieve. Built by the skill
+# thinking-toolkit/reasoning-trace + scripts/thinking-toolkit/{trace-extract.cjs,
+# trace-build.py}.
+# --------------------------------------------------------------------------
+reasoning_trace:
+  invoke: "/think trace <slug>"
+  derived_from: [problem-statement, decomposition, workplan, analysis-log, hitl-log, checkpoint-log, one-day-answer, synthesis, communication]
+  pipeline: "trace-extract.cjs (run folder → trace.json) → the reasoning-trace skill writes the narration → trace-build.py renders the 4S flow diagram + timeline + tool chart + provenance ledger → PDF"
+  parts:
+    - "4S flow/tree graph (State→Structure→Solve→Sell + the porpoise back-edges)"
+    - "checkpoint timeline (the 7 team-sessions, in order)"
+    - "per-band narration: what · WHICH framework/toolkit chosen + WHY · decision + basis · disconfirmation · porpoise"
+    - "data-provenance ledger (each datum: tool + degree + verification status)"
+    - "decision log (the 7 checkpoints' decisions + their basis)"
+  skill: thinking-toolkit/reasoning-trace
