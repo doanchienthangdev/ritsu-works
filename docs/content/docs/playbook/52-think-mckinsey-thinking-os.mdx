@@ -1,82 +1,336 @@
 ---
-title: "Chương 52 — `/think mckinsey` Thinking-OS: Thư viện công cụ tư duy consultant + chọn công cụ chuẩn tại từng checkpoint (v3.0)"
-description: "Chương 52 — `/think mckinsey` Thinking-OS: Thư viện công cụ tư duy consultant + chọn công cụ chuẩn tại từng checkpoint (v3.0)"
+title: "Chương 52 — Cẩm nang lệnh `/think mckinsey`: chạy một bài toán hệ trọng như một team McKinsey 4S (v3.2)"
+description: "Chương 52 — Cẩm nang lệnh `/think mckinsey`: chạy một bài toán hệ trọng như một team McKinsey 4S (v3.2)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/52-think-mckinsey-thinking-os.md
-source_hash: e74f05fcbc50c69e4028d71bc07f590281b43547040203f62ce79ce410988dde
-generated_at: '2026-06-05T03:11:10.226Z'
+source_hash: 8caaa9dc2ec6512d12d139e1f46ad1787b9165208d70782701504a69f67afa64
+generated_at: '2026-06-05T09:18:47.376Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: e74f05fcbc50c69e4028d71bc07f590281b43547040203f62ce79ce410988dde
-translated_at: '2026-06-05T03:11:10.226Z'
+translated_source_hash: 8caaa9dc2ec6512d12d139e1f46ad1787b9165208d70782701504a69f67afa64
+translated_at: '2026-06-05T09:18:47.376Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 52
 ---
 
 {/* generated-by: playbook-import v1.0.0 */}
 
-> *"Đỉnh cao của McKinsey thinking không phải là một câu trả lời nhanh. Nó là khả năng — tại từng thời điểm checkpoint của bài toán — chọn ra ĐÚNG công cụ tư duy chuẩn nhất để phân tích, ra quyết định, đề xuất, thiết kế. Và những quy trình kế thừa trực tiếp từ những người đã từng làm tại McKinsey. Tôi có engine 4S rồi (Chương 50), tôi có 207 framework từ 2 cuốn sách rồi (v1.5). Nhưng khi đứng ở bước Solve một bài M&A, engine vẫn phải tự bịa ra cây vấn đề; nó không có sẵn quy trình M&A 7-pha mà một consultant thực thụ sẽ dùng, và không có sẵn ~400 framework chuyên ngành để chọn. Đêm 2026-06-05: nạp toàn bộ thư viện consultant vào engine."*
+> *"Đỉnh cao của McKinsey thinking không phải là một câu trả lời nhanh. Nó là khả năng — tại từng thời điểm checkpoint của bài toán — chọn ra ĐÚNG công cụ tư duy chuẩn nhất để phân tích, ra quyết định, đề xuất, thiết kế. Và những quy trình kế thừa trực tiếp từ những người đã từng làm tại McKinsey."*
 
-Chương này là chương **dành riêng cho `/think mckinsey`** ở tầng v3.0 — bước nhảy từ "engine 4S + 207 framework sách" (Chương 49/50 + v1.5) lên **một hệ điều hành tư duy** (thinking-OS): một thư viện hợp nhất **667 → 631 công cụ** đã được gắn thẻ để chọn-chính-xác + **20 quy trình chuyên ngành kế thừa** (inherited domain processes), nạp nhanh tại từng checkpoint mà không mất context. Đọc Chương 43 (capability case thinking-toolkit) cho gốc gác, Chương 50 (tutorial engine) cho cơ chế 4S, và **Chương 51 (consulting-toolkit reconstruction)** cho nguồn nguyên liệu (19+1 bộ toolkit Domont được tái tạo).
+Chương này là **cẩm nang lệnh dành riêng cho `/think mckinsey`** — cách DÙNG nó cho khéo, viết rõ ràng và chi tiết để bạn (founder hoặc bất kỳ agent nào trong workforce) có thể mở ra, đọc một mục, và chạy được ngay một bài toán hệ trọng đầu-đến-cuối như một team McKinsey thực thụ.
+
+Phân biệt với hai chương lân cận để bạn biết đọc cái nào khi nào:
+
+- **Chương 49/50 (Tutorial)** dạy *engine bên trong hoạt động ra sao* (kiến trúc 3-artifact, validator, registry, cơ chế load+select) — đọc khi bạn muốn **mở rộng** engine.
+- **Chương 51** kể *nguyên liệu đến từ đâu* (20 bộ consulting toolkit Domont được tái tạo thành process bundle chạy được).
+- **Chương 52 (chương này)** là *cẩm nang VẬN HÀNH lệnh* — đọc khi bạn muốn **dùng** lệnh để giải một bài toán thật.
+
+Lệnh đã tiến hoá qua nhiều phiên bản: engine 4S động (v1.4) → CLASSIFY→LOAD→SELECT (v1.5) → cổng kỷ luật cơ học (v1.6/v1.8) → **mô hình team 7-checkpoint + Sell formatter** (v2.0) → sell-grounded + `--workflow` đa-agent (v2.1) → **thư viện 631 công cụ + 20 quy trình kế thừa** (v3.0) → **bộ định tuyến `/think triage` + SOP-AIOPS-012 + phản xạ persona** biến nó thành **bộ-giải-bài-toán CHÍNH của cả workforce** (v3.2). Cẩm nang này mô tả bề mặt v3.2.
 
 ---
 
-## 52.1 Bài toán — "chọn sai công cụ" là điểm chết của tư duy
+## 52.1 Lệnh trong một dòng — và khi nào dùng / khi nào KHÔNG
 
-Engine `/think mckinsey` (v1.4) đã là một cỗ máy động: Frame (TOSCA) → Structure (cây MECE + workplan 6 cột) → Solve (vòng lặp pull-validate-update-reroute, porpoising) → Sell (pyramid + pre-wire). v1.5 thêm cơ chế **CLASSIFY → LOAD → SELECT**: tại mỗi sub-need, phân loại (analytical-vs-design, causation-vs-prediction, formula-typology-checklist), nạp ứng viên từ registry `problem-solving-frameworks.yaml` (207 framework lọc theo `fours_step` + `type`), rồi chọn 2-3 lăng kính bổ trợ (latticework) + debias.
+**`/think mckinsey <bài toán> [flags]`** — chạy một bài toán hệ trọng đầu-đến-cuối như một **ENGINE dựa-trên-dữ-liệu** (không phải brainstorm): **Frame** (TOSCA) → **Structure** (cây MECE + workplan 6 cột) → **Solve** (vòng lặp phân tích: route mỗi giả thuyết về một nguồn dữ-liệu THẬT, pull, qua cổng validate, cập nhật câu-trả-lời-một-ngày sống, tái ưu tiên, porpoise) → **Sell** (pyramid + pre-wire). Nó **pull dữ liệu thật** (deepask/wiki/brain/supabase-ops/deep-research), **validate mọi dữ kiện**, **HỎI founder** dữ liệu chỉ họ có, và **không bao giờ bịa một dữ kiện nào**.
 
-Nhưng founder chỉ ra **hai lỗ hổng sống còn**:
+Quy tắc McKinsey chi phối tất cả (*Bulletproof Problem Solving*, Ch 4): *"Chúng tôi không làm bất kỳ phân tích nào mà không có giả thuyết."* Mọi lần pull dữ liệu đều truy ngược về một giả thuyết nó chứng minh hoặc bác bỏ.
 
-1. **Registry quá hẹp.** 207 framework từ 2 cuốn sách (*Bulletproof Problem Solving* + *Cracked It!*) là tư duy TỔNG QUÁT. Khi bài toán thuộc một LĨNH VỰC cụ thể (M&A, supply chain, Lean Six Sigma, FP&A, CX…), engine thiếu các framework chuyên ngành (BCG/GE-McKinsey/Ansoff cho strategy, SCOR cho supply chain, DMAIC cho operations, deal-funnel cho M&A…) và — quan trọng hơn — thiếu **quy trình chuyên ngành đóng gói sẵn**: cái mà một ex-McKinsey sẽ rút ra dùng ngay thay vì dựng cây vấn đề từ đầu.
-2. **Chọn chưa đủ chuẩn + chưa đủ nhanh.** Lọc 207 (rồi 600+) dòng tại mỗi checkpoint hoặc là nạp cả registry (mất context), hoặc là lọc thô (chọn sai). Cần một cấu trúc **nạp nhanh + chọn chính xác** tại từng checkpoint.
+**DÙNG khi:** một bài toán thật, hệ trọng, đáng một nghiên cứu nghiêm túc — đặt cược capability, quyết định pricing/GTM/funnel, "tại sao X đang xảy ra và ta nên làm gì". Bạn muốn một **đề xuất sẵn-sàng-ra-quyết-định** được hậu thuẫn bằng bằng chứng đã-pull-và-đã-validate, không phải ý kiến.
 
-Nguyên liệu để vá hai lỗ hổng này vừa có: Chương 51 đã tái tạo **20 bộ consulting toolkit** (Domont) thành các process bundle chạy được — **460 framework** (mỗi cái đủ 6 phần: mô tả · hình · tutorial từng bước · ví dụ thật · template · pitfall) + **20 quy trình pha-có-cổng (gated phase spine)**. Việc của v3.0: nạp toàn bộ kho này vào engine, đúng theo tài liệu gốc.
+**KHÔNG dùng khi:** tra cứu nhanh (một skill `/think` đơn lẻ, hoặc `/deepask` trực tiếp); câu hỏi tầm thường/vận hành; một bug rõ ràng. **Đừng** chạy cả engine khi một phân tích là đủ.
 
-## 52.2 Nguyên lý — mở rộng TRUNG THÀNH cơ chế đã có, không dựng hệ song song
+**Accordion (cây đàn xếp):** engine nén lại cho bài toán nhỏ. `--depth=quick` cho câu-trả-lời-một-ngày inline, không tạo run folder, không cổng — kỷ luật mà không có nghi thức. Đây là van an toàn: một bài hệ-trọng-nhưng-nhỏ vẫn route về mckinsey nhưng ở chế độ nén.
 
-Quyết định kiến trúc cốt lõi: **không** xây một bộ chọn công cụ song song. Engine đã có CLASSIFY → LOAD → SELECT chuẩn rồi; ta chỉ **làm giàu chất nền (substrate)** mà bước LOAD rút từ, và **làm sắc** bước chọn. Ba phần khớp đúng ba yêu cầu của founder:
+> Để KHÔNG phải tự đoán "bài này có đáng cả engine không", v3.2 cho bạn một cửa trước 10 giây: **`/think triage`** (mục 52.3). Đó là cách khuyến nghị để bắt đầu.
 
-- **Ask 1 — đưa kho vào wiki:** kiến thức phải tìm-kiếm-được và mỗi framework phải có `wiki_path` (giống 207 framework sách đã trỏ vào `wiki/cracked-it/concepts/…`).
-- **Ask 2 — tích hợp vào engine theo đúng tài liệu gốc:** framework toolkit + quy trình chuyên ngành trở thành ứng viên engine chọn.
-- **Ask 3 — chọn nhanh + chính xác tại mọi checkpoint, tránh mất context:** cùng pattern JIT mà resolver-v3 đã dùng (INDEX nén ambient + drill-down) — nhưng cho công cụ tư duy.
+## 52.2 Cú pháp + đầy đủ 9 flag
 
-## 52.3 Kiến trúc — ba lớp
+```
+/think mckinsey "<bài toán>" [--mode] [--depth] [--sell] [--audience]
+                             [--style] [--art-style] [--sources] [--format] [--workflow]
+```
 
-### Lớp 1 — Tri thức (wiki): `wiki/consulting-toolkits/`
-20 bộ toolkit được đặt vào MỘT wiki source duy nhất `consulting-toolkits` (1 entry resolver → INDEX không phình quá cap 15K), với 20 trang `process.md` + **514 trang concept** (mỗi framework một trang đủ anatomy 6 phần). Mỗi framework giờ có `wiki_path` — engine đọc trang đó trước khi áp dụng (map chỉ là con trỏ; trang mới là how-to). (Lớp DB-rows + embeddings cho `wiki_ask` RAG để lại làm backfill — engine chạy trong session và đọc thẳng file + registry nên không phụ thuộc embeddings.)
+Engine parse các flag từ chính dòng lệnh. Tất cả đều có default hợp lý — bạn có thể chạy `/think mckinsey "<bài toán>"` trần và nó dùng default.
 
-### Lớp 2 — Registry hợp nhất (chất nền chọn)
-- `knowledge/problem-solving-frameworks.yaml` — **207** framework sách (đã có; lọc `fours_step` + `type`).
-- `knowledge/consulting-frameworks.yaml` — **424** framework toolkit đã dedup (từ 514 lần xuất hiện; Porter's Five Forces chẳng hạn gộp từ 5 toolkit), mỗi cái gắn thẻ: `fours_step` (frame/structure/solve/sell/cross) · `cognitive_moves` · `domains` · **`select_when`** (câu phân-biệt-với-hàng-xóm, yếu tố quyết định chọn đúng) · `checkpoint_fit` → trỏ `wiki_path`.
-- `knowledge/consulting-processes.yaml` — **20 quy trình chuyên ngành kế thừa** (gated phase spine + routing card): "kéo nguyên quy trình M&A 7-pha khi nào" + "cắm vào pha 4S nào".
+| Flag | Giá trị | Default | Tác dụng |
+|---|---|---|---|
+| `--mode` | `interactive` \| `auto` | `interactive` | mô hình tương tác tại các phiên team (mục 52.4) |
+| `--depth` | `quick` \| `standard` \| `deep` | `standard` | accordion: `quick` = câu-trả-lời-một-ngày inline, không folder/cổng; `deep` = mọi checkpoint đều interactive |
+| `--sell` | `<template-id>` \| `auto` | `auto` | template deliverable McKinsey (`knowledge/mckinsey-templates.yaml`) |
+| `--audience` | `receptive` \| `skeptical` | `skeptical` | grouping (thân thiện) vs cốt-truyện SCR/SCQA (hoài nghi) |
+| `--style` | `<design-system>` | none | gắn thương hiệu cho deliverable Sell (dùng lại trục BRAND của `/deepask`/`/image`) |
+| `--art-style` | `<genre>` | none | thể loại nghệ thuật cho format Sell trực quan (dùng lại trục GENRE của `/deepask`) |
+| `--sources` | csv `internal,web,brain,analytics,wiki,deepask` \| `all` | `all` | thu hẹp/mở rộng phạm vi quét dữ liệu |
+| `--format` | một medium của `/deepask` | theo template | medium render bản Sell |
+| `--workflow` | `off` \| `steps` \| `full` | `off` | chạy mỗi bước đòn-bẩy-cao như một WORKFLOW đa-agent động (mục 52.10) |
 
-Hợp nhất = **631 công cụ + 20 quy trình** (sau v3.0.1 thêm #18 CX & Design Thinking: 374→424 framework, 19→20 process).
+**Ví dụ dùng thật:**
+- `/think mckinsey "tại sao free→paid kẹt ở 8%?"` — chạy đầy đủ, interactive, standard.
+- `/think mckinsey "có nên đổi Plus từ $29 xuống $19?" --depth=deep --audience=skeptical` — mọi checkpoint dừng hỏi; bản Sell dựng theo cốt-truyện hoài nghi.
+- `/think mckinsey "ICP đầu-100 là US college-STEM hay Vietnam-first?" --workflow=full --style=ritsu` — mỗi bước fan-out đa-agent, deliverable gắn brand Ritsu.
+- `/think mckinsey "ưu tiên feature nào tiếp theo?" --depth=quick` — accordion: câu trả lời inline, không nghi thức.
 
-### Lớp 3 — Bộ chọn nhanh tại checkpoint (guard chống mất-context)
-`knowledge/thinking-tool-index/{frame,structure,solve,sell,cross}.md` — **bản đồ nén theo từng bước 4S**, mỗi công cụ một dòng (`tool · select-when · moves · domains · checkpoint · → page`). Tại một checkpoint, engine **chỉ nạp bản đồ của bước hiện tại** (không nạp cả 631-tool registry — đây chính là guard chống mất context), lọc theo domain + cognitive-move + quét cột `select when`, chọn 2-3 lăng kính bổ trợ (latticework, debias khỏi công-cụ-quen-tay), rồi đọc trang wiki của ứng viên chốt. `processes.md` là **bộ định tuyến quy trình chuyên ngành**: ở bước STRUCTURE, nếu bài toán khớp một lĩnh vực, kéo nguyên quy trình kế thừa (`wiki/consulting-toolkits/<slug>/process.md`) làm xương sống cây vấn đề / workplan — thay vì dựng cây ad-hoc.
+## 52.3 Cửa trước — `/think triage`: chọn đúng "trọng lượng" (v3.2)
 
-## 52.4 Nối vào engine (`mckinsey-workflow/SKILL.md`)
-- **§Tool-selection / bước LOAD** đổi sang nạp bản đồ-theo-bước thay vì cả registry; quét `select_when` để phân biệt hàng xóm (ví dụ Porter's Five Forces *"đánh giá sức hấp dẫn cấu trúc ngành trước khi vào/đầu tư"* vs Value Driver Tree *"đòn bẩy nào thực sự dịch chuyển kinh tế"*).
-- **§STRUCTURE** thêm bước "kéo quy trình chuyên ngành kế thừa nếu khớp" — đây là đòn bẩy "kế thừa từ người đã làm thật ở McKinsey": một cây phân rã đã được chứng minh cho lĩnh vực, refine bằng dữ liệu thật, thay vì bịa.
-- KHÔNG cần đổi logic engine khác: tích hợp là **data-driven** — thêm #18 vào registry/maps là tự động khả dụng (v3.0.1 không sửa SKILL).
+Điểm cốt yếu để DÙNG `/think mckinsey` cho đúng **không phải** là "chạy engine 4S cho mọi thứ" — mà là **"chạy đúng trọng lượng cho đúng bài toán"**. Chạy cả engine cho một câu hỏi 10 phút chính là phản-mẫu **"anxious-parade-of-knowledge"** (màn-trình-diễn-kiến-thức-lo-lắng): rigor McKinsey áp sai chỗ là một vở kịch tốn kém.
 
-## 52.5 Cách xây — hai pipeline + Workflow có giới hạn
-- **Tái tạo (Chương 51):** Workflow một-agent-mỗi-toolkit → 20 bundle.
-- **Làm giàu thẻ chọn:** một Workflow **19 (rồi +1) agent Sonnet** đọc từng toolkit, gắn `fours_step` / `cognitive_moves` / `select_when` / `checkpoint_fit` + soạn routing card — chạy 4 phút, 0 lỗi (output nhỏ + Sonnet + bounded = tin cậy).
-- **Build chất nền:** `scripts/consulting-toolkit/{to-wiki-and-registry,build-thinking-os}.cjs` (thuần Node, deterministic) → wiki + 2 registry + per-step maps. Guard: schema L1 + validator L2 `validate-thinking-os.cjs` (mọi `wiki_path` tồn tại · `fours_step` hợp lệ · process↔trang · maps đủ) trong `pnpm check` VÀ CI.
+Vì thế v3.2 cho một **bộ định tuyến 10 giây** — chạy `/think triage "<bài toán>"` TRƯỚC. Nó chấm bài toán trên hai trục rồi đọc ra "trọng lượng":
 
-**Ba lỗi workflow phải vượt (bài học tái dùng):** (a) rate-limit server-side ở ~12-14 agent Opus concurrent → đổi Stage-1 sang Sonnet + batch ≤9; (b) cap 32K-token một-response khi core lớn → yêu cầu agent ghi tăng-dần (skeleton + Edit từng batch); (c) "socket closed" lúc ack cuối (việc thường đã xong) → KIỂM tra trên đĩa, không tin ack.
+- **CONSEQUENCE = mức cược × (bất)khả-hồi.** *Cao:* tiền lớn / chiến lược / định-hình-công-ty / khó đảo ngược (HITL Tier C–D). *Thấp:* vận hành / thường nhật / hoàn-tác-trong-vài-phút (Tier A–B).
+- **SHAPE = câu trả lời đã BIẾT hay cần TỔNG HỢP?** *Đã biết / tra cứu:* một sự kiện, một con số, một định nghĩa, một-nguồn. *Cần tổng hợp:* nhiều nguồn, có **giả thuyết cạnh tranh**, dạng "tại sao X / nên làm gì" — bạn phải ĐÚNG, không chỉ "có thông tin".
 
-## 52.6 Ví dụ chạy — bài M&A
-Founder hỏi "có nên mua công ty X?". Engine ở STRUCTURE đọc `thinking-tool-index/processes.md` → khớp domain corp-dev → kéo quy trình **Mergers & Acquisitions** (xương sống 7-pha: Strategy → Target → Business case → Due diligence → Transaction → Integration → Carve-out) làm workplan, thay vì dựng MECE từ đầu. Ở Solve, sub-need "ngành mục tiêu có hấp dẫn không?" → nạp `solve.md`, quét `select_when` → chọn **Porter's Five Forces** (đúng checkpoint) + **Value Driver Tree** (đòn bẩy kinh tế) làm latticework; đọc trang wiki từng cái để lấy tutorial + template. Sell: dựng exhibit qua `/dataviz` (xem danh sách loại chart trong tài liệu lệnh `/think`).
+**Bảng định tuyến (CONSEQUENCE × SHAPE → trọng lượng):**
 
-## 52.7 Điểm đặc biệt giá trị — lấp lỗ hổng design-thinking (v3.0.1)
-Bộ #18 (Customer Experience & Design Thinking, file `.pptx` đến muộn → thêm `pptx-extract.py`) bổ sung ~50 công cụ design-thinking (empathy map, persona, journey map, How-Might-We, Crazy 8s, design sprint, MVP, usability/A-B/accessibility testing). Engine vốn đã có NHÁNH design-thinking nhưng thiếu CÔNG CỤ được gắn thẻ — #18 lấp đúng lỗ đó. Bộ Domont giờ trọn vẹn: **20 toolkit lĩnh vực + 1 index**.
+| | **Đã biết / tra cứu** | **Cần tổng hợp (đa nguồn, giả thuyết cạnh tranh)** |
+|---|---|---|
+| **Consequence thấp** | **① Trả lời thẳng** — trả lời, hoặc 1 tool call (`supabase-ops` cho con số · `wiki_ask` cho khái niệm · `gbrain` cho thực thể). Không nghi thức. | **② `/deepask`** — federated retrieval + tổng hợp có trích dẫn. Câu hỏi đa-nguồn dạng-trả-lời. |
+| **Consequence cao** | **③ Một skill `/think` đơn lẻ** — câu trả lời lấy được nhưng cần CẤU TRÚC: `tosca` (frame) · `driver-tree` (phân rã metric) · `hypothesis` (trình tự) · `pre-mortem`/`debias` (kiểm-áp-lực) · `2x2` (tổng hợp lựa chọn). Một lăng kính, không phải cả vòng lặp. | **④ `/think mckinsey` — CẢ ENGINE 4S.** Tuyến chính cho quyết định khó nhất: hệ trọng + mơ hồ + giả thuyết cạnh tranh + bạn phải đúng. |
 
-## 52.8 Bài học
-1. **Mở rộng chất nền, đừng dựng hệ song song** — engine đã có cơ chế chọn; làm giàu cái nó rút từ là đủ và trung thành.
-2. **`select_when` là linh hồn của chọn-chính-xác** — phân loại theo `fours_step` thôi không đủ; câu phân-biệt-hàng-xóm mới giúp chọn đúng giữa các công cụ cùng bước.
-3. **Nạp theo từng-bước = nhanh + không mất context** — đúng triết lý JIT của resolver-v3, áp cho công cụ tư duy.
-4. **Quy trình kế thừa > cây ad-hoc** — kéo nguyên xương sống chuyên ngành đã được chứng minh là đòn bẩy "ex-McKinsey thật".
-5. **Deterministic ở đâu được thì deterministic** — chỉ một Workflow LLM (gắn thẻ); phần còn lại là script thuần + validator, nên tin cậy và rẻ.
+**Cổng để route ④ (cả engine) — phải thoả CẢ BA:**
+1. **Hệ trọng** — cái giá của-việc-sai ≫ cái giá của-nghiên-cứu (Tier C–D, hoặc chiến lược/bất-khả-hồi).
+2. **Thực sự mơ hồ** — chưa có câu trả lời đáng tin, HOẶC ≥2 câu trả lời cạnh tranh đáng disconfirm.
+3. **Đa nguồn / đa giả thuyết** — một lăng kính không cắt được; nó cần vòng lặp workplan → pull → validate → re-route.
+
+**Hỏng bất kỳ một điều → tuyến nhẹ hơn** (và nói rõ vì sao). Một bài hệ-trọng-nhưng-hẹp → route ③ một atom. Hệ-trọng-nhưng-đã-trả-lời-được → ① hoặc verify nhanh. Tổng-hợp-nhưng-không-hệ-trọng → ② `/deepask`.
+
+**Luôn nói ra tuyến + lý do một dòng** (đừng route âm thầm), ví dụ:
+```
+Route: ④ /think mckinsey (--depth=standard)
+Why:   hệ trọng (đổi giá, Tier C, khó đảo) + mơ hồ (chưa có câu trả lời tin cậy)
+       + đa nguồn (cần cohort + WTP + đối thủ)
+Not ②/③ vì: một deepask/atom không disconfirm được các giả thuyết giá cạnh tranh.
+→ invoking: /think mckinsey "có nên đổi Plus từ $29 xuống $19?"
+```
+
+## 52.4 Hai chế độ vận hành — `interactive` vs `auto`
+
+Sức mạnh McKinsey không phải câu-trả-lời-nhanh mà là **quy trình TEAM có kỷ luật**. Engine chạy như một chuỗi **phiên giải-quyết-vấn-đề theo team** (checkpoint): tại mỗi phiên, trình bày những gì ta có + cách ta đang nghĩ + chọn framework nào & vì sao → brainstorm như một team → đồng thuận → đi tiếp.
+
+- **`interactive` (mặc định)** — tại mỗi checkpoint **DỪNG và coi founder như một thành viên team McKinsey nữa.** Trình bày: (1) **STATE** — ta đang có gì (dữ liệu đã pull + câu-trả-lời-một-ngày hiện tại + degree-tag); (2) **THINKING** — cách bạn frame/phân tích + **chọn framework nào từ thư viện và VÌ SAO** (latticework: 2–3 lăng kính bổ trợ; debias: không phải công-cụ-quen-tay); các lựa chọn + đánh giá của bạn; (3) **PROPOSAL** — bước/reframe/synthesis tiếp theo. Rồi **HỎI — không phải "ta đồng ý chứ?" mà "điều gì phải đúng để cái này SAI? tôi đang bỏ sót gì? hãy phản biện."** Ghi đồng thuận + mọi điều chỉnh vào `checkpoint-log.md`.
+- **`auto`** — chạy tự động; **tự-diễn phép biện chứng** (tự trình bày STATE/THINKING/PROPOSAL + tự phản biện + quyết định, ghi log). Chỉ leo thang lên một `AskUserQuestion` thật tại các điểm dừng không-thể-bỏ: **CP-PORPOISE, CP-PREWIRE, và bất kỳ dữ kiện chỉ-founder-có**.
+
+**Cả hai chế độ đều BÁO CÁO theo từng bước** — phơi bày suy nghĩ ngay trong hội thoại; **không bao giờ âm thầm chỉ ghi file** (lỗi v1.8 là một lần chạy im lặng chỉ phun ra artifact).
+
+## 52.5 Bộ tạo phẩm (run folder) + cổng kỷ luật cơ học
+
+Với một bài toán đáng kể, **scaffold run folder bằng máy** — đừng tạo tay:
+
+```bash
+node scripts/thinking-toolkit/mckinsey-run.cjs scaffold <slug>   # tạo .archives/mckinsey/<slug>/ với 9 template (idempotent)
+```
+
+```
+.archives/mckinsey/<slug>/
+  problem-statement.md   decomposition.md   workplan.md
+  analysis-log.md        hitl-log.md        checkpoint-log.md   one-day-answer.md
+  synthesis.md           communication.md
+```
+
+- `one-day-answer.md` là **trạng thái sống** — gieo ở STATE như giả thuyết ngày-đầu ("nếu buộc trả lời hôm nay, ta nói X"), rồi viết lại sau mỗi phân tích (situation → observation → resolution). Nó *không* sinh ra ở Solve; Solve chỉ mài sắc nó.
+- `hitl-log.md` là **sổ biên nhận HITL** — mỗi `AskUserQuestion` thật đặt cho founder được một dòng (`H1`, `H2`, …) kèm câu trả lời verbatim một dòng.
+- `synthesis.md` (bước 6, cái LOGIC) và `communication.md` (bước 7, câu CHUYỆN) là hai sản phẩm Sell tách biệt.
+
+**Cổng kỷ luật (chạy trong lúc làm + trước Sell):**
+
+```bash
+node scripts/thinking-toolkit/mckinsey-run.cjs check <slug>                 # chạy mỗi vòng lặp — gồm cổng biên-nhận HITL (v1.8)
+node scripts/thinking-toolkit/mckinsey-run.cjs check <slug> --before-sell   # thêm: cưỡng chế cổng dừng
+```
+
+Cổng **fail** nếu: workplan thiếu 6 cột + cột status; một giá trị status không hợp lệ; một `source-of-data` trỏ vào `product.*` (firewall); một dòng analysis-log thiếu provenance hoặc degree(1–8); một dữ kiện `ask-user` không có biên nhận `[H<n>]` truy về một dòng trong `hitl-log.md` (v1.8); hoặc (với `--before-sell`) còn bất kỳ dòng workplan nào `open` **HOẶC** `checkpoint-log.md` thiếu một phiên `pre-wire` **VÀ** một phiên `dissent` (v2.0).
+
+> **Trần độ trung thực:** cổng kiểm *cấu trúc + sự-hiện-diện-của-kỷ-luật*, KHÔNG kiểm phán đoán của bạn. Nó là **kỷ luật, không phải bằng chứng** — không thấy được hội thoại nên không *chứng minh* được bạn đã hỏi; nó làm cho việc *bỏ qua* hỏi/các phiên đóng trở thành một thất bại, và để lại dấu vết kiểm-toán-được. (`--depth=quick` là lối thoát accordion — bỏ folder, bỏ cổng.)
+
+**v3.1 còn thêm một hook auto-run** (`.claude/hooks/runtime/pre-write-mckinsey-gate.cjs`): khoảnh khắc một artifact Sell (`communication.md`) được ghi, hook tự chạy cổng `--before-sell` và log `mckinsey.sell_gate_failed` + cảnh báo stderr nếu một bản Sell chưa-qua-cổng được ship. **Chỉ quan sát** (không bao giờ chặn) — khớp triết lý hook của repo và an toàn khi chạy không-người-trông.
+
+## 52.6 Quy trình 4S từng bước (trái tim của lệnh)
+
+### ① STATE — frame bài toán · artifact `problem-statement.md`
+
+Điền **TOSCA** (chạy `/think tosca`): **T**rouble (khoảng cách như triệu chứng, không phải chẩn đoán; vượt "Why now?") · **O**wner (vấn đề của ai + ai phán "đủ tốt") · **S**uccess (định lượng + có-thời-hạn; *không bao giờ* định nghĩa bằng chính giải pháp đề xuất) · **C**onstraints (tạm thời — xét lại ở Solve) · **A**ctors. Rồi viết **Câu hỏi cốt lõi** và chạy **5-check** (có chạm Trouble / từ góc Owner / đạt Success / nhận diện Constraints / xét Actors?).
+
+**HITL ở đây (cổng cứng, v1.8):** nơi một ô TOSCA cần input chỉ founder có — ngưỡng success thật, một ràng buộc cố định, ý định chiến lược — bạn **PHẢI** phát một `AskUserQuestion` thật và log vào `hitl-log.md` là `H<n>` TRƯỚC khi gieo câu-trả-lời-một-ngày; **không được bịa** (bản v1.3 đã *bịa* `Success = 8%→15%`; engine hỏi, ghi biên nhận, rồi mới gieo).
+
+**Rồi gieo câu-trả-lời-một-ngày** (`one-day-answer.md`): ngay khi frame xong, viết giả thuyết tạm — *"nếu buộc trả lời hôm nay, ta nói X, vì Y."* Nó sẽ sai; đó là điểm mấu chốt — nó là xương sống Structure + Solve mài sắc, và nó tái-xếp-hạng workplan. Bỏ nó (chờ "có dữ liệu trước") là nước đi phản-McKinsey kinh điển.
+
+**Cổng-path 1 — kim cương ĐẦU TIÊN của sơ đồ 4S** (`decision_gates.know-enough-to-state`): *"Bạn có đủ hiểu để PHÁT BIỂU bài toán không?"* Nếu thật sự **không frame nổi** (không rõ Trouble/Owner; bài toán ill-defined hoặc human-centered/desirability-led), ĐỪNG ép TOSCA — vào **nhánh design-thinking** và **EMPATHIZE trước** (*Cracked It!* Ch 8) để (tái)khám phá bài toán thật, rồi quay lại định nghĩa nó. Design-thinking trải **cả ba band** — Empathize=State, Ideate=Structure, Prototype&test=Solve — KHÔNG phải một lối-rẽ-chỉ-ở-Solve.
+
+### ② STRUCTURE — phân rã + dựng workplan · artifact `decomposition.md`, `workplan.md`
+
+**Chọn nhánh — các kim cương Structure của sơ đồ 4S** (`decision_gates`):
+- **Gate 2 — `have-candidate-solution`:** *"Có một giải pháp ứng viên tốt không?"* (prior mạnh, hoặc thiếu thời gian). **CÓ → nhánh hypothesis-driven** — dựng Hypothesis Pyramid (giả thuyết chủ → giả thuyết con MECE) và route workplan để DISCONFIRM cái dẫn đầu. **KHÔNG → Gate 3.**
+- **Gate 3 — `can-build-issue-tree`:** *"Dựng được issue tree không?"* **CÓ (mặc định) → nhánh issue-driven** — dựng Issue Tree. **KHÔNG → nhánh design-thinking** — IDEATE (phân kỳ→hội tụ), rồi prototype & test (Solve) đến khi Desirability×Feasibility×Viability.
+
+**Kéo một quy trình lĩnh vực kế thừa nếu khớp (v3.0) — đừng phát minh lại cây.** Xem `knowledge/thinking-tool-index/processes.md` (bộ định tuyến quy trình lĩnh vực). Nếu chữ-ký bài toán khớp một dòng (strategy / operating-model / digital / change / HR / M&A / PMI / sales-pricing / supply-chain / Lean-Six-Sigma / risk / business-case / dashboards / leadership / FP&A / data-AI / personal-finance), **nạp quy trình ex-McKinsey kế thừa đó** (`wiki/consulting-toolkits/<slug>/process.md`, spine đầy đủ trong `knowledge/consulting-processes.yaml`) và dùng **xương sống pha-có-cổng + framework-mỗi-pha của nó làm khung issue-tree/workplan** — rồi chỉnh cho ĐÚNG bài này. Đây là đòn bẩy "kế thừa từ người đã làm thật ở McKinsey": một cây phân rã đã-được-chứng-minh cho lĩnh vực, refine bằng dữ liệu thật, thay vì bịa. Nếu không quy trình nào khớp → dựng cây MECE từ đầu.
+
+**Phân rã** thành cây **MECE** (chạy `/think mece` + `/think driver-tree`); tìm điểm cleaving đúng; thử nhiều cách cleave (chống availability-bias); mỗi lá = một **giả thuyết khả-chứng-bác**. **Ưu tiên** bằng 2×2 impact × influence (knock-out); cắt cái bất-di-dịch + thấp-impact.
+
+**Dựng WORKPLAN 6 cột** — xương sống định tuyến dữ liệu (Bulletproof Exhibit 4.3, đúng tên cột):
+
+| issue | hypothesis | analysis | source-of-data | owner | end-product | status |
+|---|---|---|---|---|---|---|
+| (lá) | (claim khả-bác) | (cái gì chứng minh/bác) | **(tool nào — xem bảng routing)** | (ai) | (dummy exhibit) | `open` → `pulled` → `validated` / `knocked-out` / `spawned` |
+
+Một dòng cho mỗi lá còn sống. Cột **status** là sổ-cái mà vòng lặp Solve viết lại mỗi vòng — chính nó giữ một lần-chạy-dài khỏi trôi ngược về ý-kiến (lỗi v1.3). Xếp dòng **knock-out trước** (phân tích giết-câu-trả-lời nhanh nhất). Giữ **gọn** (vài phân tích quan trọng nhất), không bách khoa.
+
+**Hai nước-đi EM tạo nên một team:**
+1. **so-what trên mọi exhibit** — một quan sát CHƯA phải insight tới khi nó hàm ý một hành động (`/think so-what`). Ép ở mọi checkpoint.
+2. **Ghost-exhibit trước** — cột `end-product` của workplan CHÍNH LÀ dummy exhibit: vẽ chart bạn KỲ VỌNG trước khi có dữ liệu; nếu exhibit đã-điền-số mà không đổi câu trả lời thì phân tích đó không đáng chạy. **Cốt-truyện-action-title dựng NGAY Ở ĐÂY tại Structure** (để lái workplan), KHÔNG bịa ở Sell.
+
+### ③ SOLVE — vòng lặp phân tích · artifact `analysis-log.md`, `one-day-answer.md`
+
+Vòng chạy là **status-driven** — cột `status` của workplan là sổ-cái; LLM trôi khỏi chỉ-dẫn-prose qua một vòng lặp dài, nhưng không trôi khỏi một cột nó phải đọc-lại-và-viết-lại. **Heuristics trước, súng lớn sau.** Mỗi vòng:
+
+0. **RE-READ** cột `status`; chọn dòng `open` ưu tiên cao nhất (thứ tự knock-out).
+1. **ROUTE** source-of-data về một tool (bảng dưới); đánh dòng `pulled`.
+2. **PULL** dữ liệu — một tool call thật. Nếu chỉ-founder-có → **phát một `AskUserQuestion` thật, ghi câu hỏi + câu trả lời verbatim của founder vào `hitl-log.md` là `H<n>`, và tag dòng analysis-log `ask-user (founder) [H<n>]`.** Bạn KHÔNG được ghi provenance `ask-user` mà không có biên nhận — cổng fail nó. Nếu chọn không hỏi, provenance trung thực duy nhất là `assumption` (degree ≥6 + một dòng sensitivity). **Không bao giờ khẳng định một sự kiện bạn chưa fetch.**
+3. **VALIDATE** qua cổng (dưới); tag degree-of-certainty (1–8) của dữ kiện.
+4. **WRITE** vào `analysis-log.md`: giả thuyết · dữ liệu đã pull (tool nào) · kết quả · verdict validate · degree.
+5. **UPDATE** `one-day-answer.md` (S→O→R).
+6. **MARK** dòng `validated` / `knocked-out`; nếu nó sinh sub-analysis → thêm dòng `open` mới, đánh dòng này `spawned`.
+7. **RE-ROUTE** theo luật động — tái-ưu-tiên các dòng `open` còn lại so với câu-trả-lời-một-ngày *mới* / porpoise / đổi hướng / đổi tool.
+
+Lặp tới khi **tiêu chí dừng** đúng → Sell. Bạn **KHÔNG được** sang Sell khi còn dòng `open` nào trên ngưỡng knock-out.
+
+**CLASSIFY → LOAD → SELECT (chọn đúng framework — mục 52.8 nói kỹ):** với mỗi sub-need, (1) CLASSIFY (analytical-vs-design · causation-vs-prediction · formula-vs-typology-vs-checklist); (2) LOAD chỉ bản-đồ-theo-bước hiện tại (`thinking-tool-index/{frame|structure|solve|sell|cross}.md` — không nạp cả 631-tool registry); (3) SELECT+COMBINE 2–3 lăng kính bổ trợ (latticework) + debias khỏi công-cụ-quen-tay; rồi **đọc trang wiki** của ứng viên chốt trước khi áp.
+
+**Bảng định tuyến dữ liệu (pull dữ liệu THẬT):**
+
+| Cần | Tool | Gọi | HITL |
+|---|---|---|---|
+| Bằng chứng nội bộ rộng (pillar/ops/wiki/brain) | **deepask** | `/deepask "<q>"` (`--dry-run` trước) | A (leg B+ surfaced) |
+| Một framework / khái niệm / định nghĩa | **wiki_ask** | `/wiki ask "<q>"` hoặc `mcp__supabase-ops__wiki_ask` | A |
+| Một người / công ty / quyết định-cũ / quan hệ / lịch sử | **gbrain** | `/brain search` → `recall` → `think` (chỉ khi cần) | A |
+| Một metric / con số / KPI / count hiện tại | **supabase-ops query** | `mcp__supabase-ops__query({sql, schema:'metrics'\|'ops'\|'public'})` | A |
+| Thị trường / đối thủ / benchmark bên ngoài | **deep-research** | `/deepask "<q>"` (delegate leg web) hoặc `Skill({skill:"deep-research"})` | A |
+| Cấu trúc hoá chính phân tích | **/think skills** | `/think driver-tree\|mece\|hypothesis\|root-cause\|pyramid\|so-what` | A |
+| **Dữ liệu chỉ founder có** | **ask-user** | `AskUserQuestion` — nêu nơi nó đổi câu trả lời + một default | human |
+
+Nguồn-rẻ-nhất-đủ-dùng trước (một con số → supabase-ops; một định nghĩa → wiki_ask; một thực thể → gbrain). Dành `/deepask` cho tổng-hợp-đa-nguồn thật sự, `deep-research` cho câu-hỏi-bên-ngoài thật sự.
+
+**Cổng validate (chạy trên MỌI dữ kiện):** (1) **Knock-out** (rẻ nhất trước): nó có thực sự đổi câu trả lời? · (2) **Degree-of-certainty (1–8):** từ sự-kiện-cho-sẵn … phán-đoán; discount forecast degree-6 + expert-input degree-7 vì bias động cơ · (3) **Correlation ≠ causation:** reverse? confounder? · (4) **Sensitivity:** giả định phải đổi bao nhiêu để kết luận lật? Tí xíu → mong manh · (5) **Triangulation / dissent:** đã có một đọc-độc-lập-thứ-hai đồng ý? · (6) **Honesty-label:** tag degree; gán phán-đoán *như* phán-đoán, không để nó qua mặt thành sự-kiện.
+
+**Disconfirmation là luật.** Mọi câu-trả-lời-một-ngày phải **gọi tên một phân tích duy nhất sẽ chứng minh nó SAI**, và phân tích đó phải là một dòng workplan. *Một câu trả lời không bằng chứng nào lật nổi không phải câu trả lời — nó là một niềm tin.* CP-DISSENT red-team đúng cái này.
+
+**Tiêu chí dừng (Solve → Sell):** dừng khi TẤT CẢ đúng: giả thuyết chủ **được chứng bởi một test đối kháng** + câu-trả-lời-một-ngày ổn định; **marginal** — không còn phân tích nào đủ rẻ+mạnh để đổi câu trả lời; **bền với sensitivity**; bất định còn lại **được dán nhãn** là phán-đoán. Test một dòng: *"đã-chứng + bền, và không còn phân tích rẻ-đổi-được-câu-trả-lời?"*
+
+### ④ SELL — synthesize RỒI communicate (hai nước đi tách biệt) · artifact `synthesis.md`, `communication.md`
+
+Bulletproof tách bước 6 khỏi bước 7; đừng gộp.
+
+**(6) SYNTHESIZE cái LOGIC** (`synthesis.md`) — dựng lập luận đứng-vững-tự-thân *trước* mọi cách kể. Chạy `/think pyramid` + `/think so-what`: **governing thought trước** (đề xuất gói trong một câu sắc) → **key line MECE** → support, từ câu-trả-lời-một-ngày cuối + analysis-log. Nếu logic không đứng dạng pyramid trần, không cách kể nào cứu nổi.
+
+**(7) COMMUNICATE câu CHUYỆN** (`communication.md`) — render logic đó cho ĐÚNG audience này. Chọn **grouping** (receptive) vs **argument/SCR/SCQA** (skeptical). **Action title** (mỗi mục một câu khẳng định đầy đủ; đọc to = cốt truyện). **Pre-wire** owner để câu trả lời cuối không bất ngờ.
+
+> **Rào APK (anxious-parade-of-knowledge):** dẫn bằng *câu trả lời*, không phải hành trình. ĐỪNG đổ hết những gì tìm được hay kể chuyện-của-cuộc-tìm (vấn đề → mọi phân tích ta chạy → … → câu trả lời). Người đọc muốn câu trả lời trước; phân tích là support, chỉ phơi ra khi cần.
+
+## 52.7 Bảy phiên team (checkpoint) — `checkpoint-log.md` (cột `kind`)
+
+| # | kind | khi | phiên làm gì | cổng |
+|---|---|---|---|---|
+| 1 | **frame** | cuối State | thống nhất TOSCA + câu hỏi cốt lõi + câu-trả-lời-ngày-đầu | warn |
+| 2 | **hypothesize** | Frame→Structure | **sinh ≥3 câu trả lời ứng viên cạnh tranh, loại-trừ-lẫn-nhau**; câu-ngày-đầu là cái dẫn, các phương án khác tường minh; route workplan để **DISCONFIRM** từng cái | prose |
+| 3 | **plan** | cây dựng xong | cây issue MECE (cleaving — một nước-đi nhận-thức riêng) | prose |
+| 4 | **prioritize** | nhát cắt | 2×2 impact×influence; **ghi cái gì bị BỎ và vì sao** | warn |
+| 5 | **porpoise** | mỗi lần Solve reframe | "dữ liệu reframe X→Y; cách nghĩ-lại + workplan sửa" | prose (sự-kiện-chỉ-founder → biên nhận hitl) |
+| 6 | **dissent** | sau Solve | **độc lập red-team chính PHÂN TÍCH**: gọi tên một phân tích mà nếu sai sẽ lật câu trả lời; săn bằng chứng bác bỏ (≠ pre-mortem đánh *đề xuất*; ≠ completeness đánh *độ phủ*) | **ERROR** |
+| 7 | **pre-wire** | trước Sell | câu-trả-lời-một-ngày cuối + synthesis + **completeness/coverage critic** + pre-mortem; pre-wire | **ERROR** |
+
+Cổng (`mckinsey-run.cjs check <slug> --before-sell`) **chặn Sell** nếu thiếu một phiên `pre-wire` VÀ một phiên `dissent`, và **cảnh báo** nếu thiếu `frame`/`prioritize`.
+
+**Quét dữ liệu toàn diện (không bao giờ 1–2 vùng nông):** quét các LỚP nguồn cho thật (theo bảng routing): nội bộ **deepask / wiki_ask / gbrain / supabase-ops / analytics** + ngoài **deep-research / web** + **ask-user** cho cái chỉ founder có. Tại CP-PREWIRE chạy **completeness-critic**: *"lớp nguồn nào ta CHƯA hỏi? cái gì chưa verify? gap nào cần founder input?"* → hỏi tiếp, ask-user (một biên nhận hitl), hoặc mang một giả định tường minh + sensitivity. Ghi câu **COVERAGE** vào dòng checkpoint CP-PREWIRE.
+
+## 52.8 Chọn công cụ tư duy tại checkpoint (thinking-OS v3.0)
+
+Đây là tầng làm cho "đỉnh cao McKinsey thinking = chọn đúng công cụ tại từng checkpoint" trở thành cơ chế. *Routing* (52.6) trả lời **lấy dữ liệu ở đâu**; *Selection* trả lời **áp framework/model/phân-tích nào**. Bể ứng viên được HỢP NHẤT:
+
+- **207 framework sách** — `knowledge/problem-solving-frameworks.yaml` (chắt từ *Bulletproof* + *Cracked It!*; phân loại theo `fours_step` + `type`).
+- **424 framework consulting-toolkit** — `knowledge/consulting-frameworks.yaml` (tái tạo từ 20 bộ toolkit lĩnh vực ex-McKinsey; mỗi cái gắn thẻ giàu: `fours_step` · `cognitive_moves` · `domains` · **`select_when`** (câu phân-biệt-hàng-xóm) · `checkpoint_fit`, trỏ một trang `wiki/consulting-toolkits/.../concepts/<slug>.md`).
+- **20 quy trình lĩnh vực kế thừa** — `knowledge/consulting-processes.yaml` (playbook xương-sống-pha-có-cổng + routing card).
+
+= **631 công cụ + 20 quy trình.** Ba lớp của thinking-OS:
+
+- **Lớp 1 — Tri thức (wiki):** `wiki/consulting-toolkits/` — MỘT wiki source (1 entry resolver → INDEX không phình quá cap) với 20 trang `process.md` + **514 trang concept** (mỗi framework một trang đủ anatomy 6 phần). Mỗi framework có `wiki_path` — engine đọc trang đó trước khi áp (map chỉ là con trỏ; trang mới là how-to).
+- **Lớp 2 — Registry hợp nhất (chất nền chọn):** ba file YAML trên.
+- **Lớp 3 — Bộ chọn nhanh tại checkpoint (guard chống mất-context):** `knowledge/thinking-tool-index/{frame,structure,solve,sell,cross}.md` — bản-đồ-nén-theo-từng-bước-4S, mỗi công cụ một dòng. Tại một checkpoint, engine **chỉ nạp bản-đồ-của-bước-hiện-tại** — **đây CHÍNH LÀ guard chống mất context** — lọc theo domain + cognitive-move + quét cột `select when`, chọn 2–3 lăng kính bổ trợ, rồi đọc trang wiki ứng viên chốt. `processes.md` là **bộ định tuyến quy trình lĩnh vực**: ở STRUCTURE, nếu khớp một lĩnh vực, kéo nguyên quy trình kế thừa làm xương sống.
+
+**`select_when` là linh hồn của chọn-chính-xác.** Phân loại theo `fours_step` thôi không đủ; câu phân-biệt-hàng-xóm mới giúp chọn đúng giữa các công cụ cùng bước — ví dụ **Porter's Five Forces** *"ngành này có hấp dẫn về cấu trúc không, trước khi vào/đầu tư"* vs **Value Driver Tree** *"đòn bẩy nào THỰC SỰ dịch chuyển kinh tế"*.
+
+## 52.9 Loại chart cho bước Sell (qua `/dataviz`)
+
+Bước **Sell** của `/think mckinsey` là exhibit-led — mỗi exhibit render qua **`/dataviz`** (action-title thành `--message`/tiêu đề chart; dòng analysis thành source footer; `--style` flow brand). Chart theo **thông điệp, không theo dữ liệu** (Zelazny). `/dataviz` có **60 loại chart qua 6 họ** (catalog đầy đủ: `06-ai-ops/skills/dataviz/catalog.md`; registry: `knowledge/dataviz-renderers.yaml`):
+
+| Họ | Loại chart |
+|---|---|
+| **Comparison** | `bar` `column` `grouped` `lollipop` `dot` `dumbbell` `slope` `radar` `quadrant` `bullet` `small-multiples` `range` `matrix-chart` `table-chart` |
+| **Correlation** | `scatter` `bubble` `heatmap` `connected-scatter` `hexbin` |
+| **Part-to-whole** | `stacked` `stacked100` `pie` `donut` `marimekko` `diverging` `funnel` `waffle` `treemap` `population-pyramid` `sunburst` `dendrogram` `venn` `semicircle-donut` |
+| **Change-over-time** | `line` `area` `stacked-area` `waterfall` `bump` `spline` `step-line` `gantt` `candlestick` `ohlc` `barcode` |
+| **Distribution** | `histogram` `box` `density` `ridgeline` `violin` `strip` `jitter` `beeswarm` `horizon` |
+| **Flow** | `sankey` `chord` `arc` `network` `flowchart` `tile-map` |
+
+Cộng `kpi` (ô big-number). Heuristics **message → chart** mà Sell áp: **waterfall** cho một cây-cầu (start → drivers → end), **funnel** cho conversion/drop-off, **quadrant/matrix** cho positioning, **gantt** cho roadmap/plan, **slope** cho before-vs-after hai kỳ, **bar** xếp hạng cho "ai lớn nhất" (đừng bao giờ `pie`/`donut` cho xếp hạng), **line/area** cho xu hướng. Việc chọn là LLM-native — agent đọc catalog + tình huống và tự chọn.
+
+## 52.10 `--workflow` — chạy mỗi bước như một fan-out đa-agent (v2.1)
+
+Khi `--workflow=steps|full`, các bước đòn-bẩy-cao chạy như một **Claude Code Workflow động** (tool Workflow — một script điều phối nhiều subagent song song), đẩy chất lượng mỗi bước vượt xa một pass đơn-agent. **Đặt `--workflow` CHÍNH LÀ opt-in tường minh mà tool Workflow yêu cầu.**
+
+**Ràng buộc cốt yếu (từ runtime workflow):** một workflow KHÔNG nhận input giữa-chừng — *"để sign-off giữa các stage, chạy mỗi stage như workflow riêng."* Cái này khớp đúng mô hình checkpoint: mỗi **BƯỚC chạy như workflow riêng** (việc song song nặng, không HITL bên trong); các **CHECKPOINT giữa các bước ở lại session đang hoạt động**, nơi agent chính trình bày output workflow và (chế độ interactive) brainstorm với founder. **Output workflow là BẰNG CHỨNG, không phải QUYẾT ĐỊNH** — chạy nó qua cổng validate như mọi dữ kiện; một judge-panel fan-out KHÔNG được tuồn một verdict qua mặt cổng.
+
+**Mẫu workflow per-step:**
+- **CP-HYPOTHESIZE → judge-panel giả thuyết cạnh tranh.** `parallel()` N agent, mỗi cái sinh một câu trả lời từ một góc khác (MVP-first / risk-first / contrarian / customer-first); dedup; giữ ≥3 loại-trừ-lẫn-nhau, mỗi cái route để disconfirm.
+- **Quét dữ liệu Solve → multi-modal sweep + adversarial verify.** `parallel()` một agent mỗi LỚP nguồn; rồi mỗi dữ kiện một panel adversarial-verify chạy cổng validate và bỏ phiếu.
+- **CP-DISSENT → red-team đa-góc.** `parallel()` N agent độc lập mỗi cái thử REFUTE câu trả lời; nếu ≥đa số refute → câu trả lời mong manh → về Solve.
+- **Sell → judge-panel các bản nháp.** `parallel()` nháp N deliverable (template/góc khác nhau); chấm theo `rules` template McKinsey; synthesize từ cái thắng, ghép cái hay nhất của á quân.
+
+**Mức + chi phí.** `off` (mặc định) = solo. `steps` = workflow tại hypothesize / solve-sweep / dissent / sell. `full` = mọi bước hưởng lợi. `--depth` scale fan-out (`quick` bỏ workflow; `deep` ⇒ `full`). Workflow spawn nhiều agent (16 concurrent / 1000 max mỗi run) → chỉ dùng khi `--workflow` được đặt; đo chi phí trên một lát nhỏ trước.
+
+## 52.11 Ví dụ chạy đầu-đến-cuối — "có nên đổi Plus từ $29 xuống $19?"
+
+Một ví dụ pricing thật của Ritsu, đi qua cả 4S + checkpoint.
+
+**Triage:** `/think triage` → **④** (hệ trọng: đổi giá Tier C, khó đảo · mơ hồ: chưa có câu trả lời tin cậy · đa nguồn: cohort + WTP + đối thủ). → `/think mckinsey "có nên đổi Plus từ $29 xuống $19?" --depth=standard`.
+
+**① STATE.** TOSCA: *Trouble* = free→paid kẹt, nghi giá là rào · *Owner* = founder · *Success* = ? (chỉ founder biết ngưỡng) → **HITL H1:** "ngưỡng thành công thật là gì — conversion %, hay MRR ròng?" → founder: *"MRR ròng tăng ≥15% trong 90 ngày."* Ghi `H1`. **Gieo câu-ngày-đầu:** *"nếu buộc trả lời hôm nay: KHÔNG hạ giá — rào là cliff-7-ngày-không-hoạt-động, không phải giá; vì cohort returner convert cao hơn nhiều."* **CP-FRAME** đồng thuận.
+
+**② STRUCTURE.** `processes.md` → khớp **sales-pricing** → kéo quy trình pricing kế thừa làm xương sống. **CP-HYPOTHESIZE** sinh 3 giả thuyết loại-trừ: (A) rào là *giá* · (B) rào là *cliff kích hoạt* · (C) rào là *thiếu giá-trị-cảm-nhận ở tier Plus*. Workplan 6 cột, knock-out trước: dòng-1 "cohort returner vs non-returner convert" (source: `supabase-ops`), dòng-2 "WTP $19 vs $29" (source: ask-user + deepask đối thủ), dòng-3 "đối thủ định giá đâu" (source: deep-research). **Ghost-exhibit:** một waterfall MRR-ròng (giá × volume). **CP-PLAN/PRIORITIZE** ghi cái bị bỏ.
+
+**③ SOLVE.** Vòng 1: pull `supabase-ops` `metrics.product_dau_snapshot` → returner convert 4× (degree-2). Validate: knock-out ✓ → triangulate (returner khác source/plan?) → giả thuyết B mạnh lên, A yếu đi. Cập nhật câu-ngày-đầu. Vòng 2: WTP là dữ-liệu-founder-không-có → `/deepask` đối thủ ($-điểm) + **HITL H2** ngưỡng-co-giãn-giá founder kỳ vọng. **CP-PORPOISE:** dữ liệu reframe — "câu hỏi thật không phải $29-vs-$19 mà là *bỏ cliff hay hạ giá cái nào nâng MRR ròng hơn*". **CP-DISSENT** (ERROR-gate): red-team — "phân tích nào nếu sai sẽ lật?" → con-số-4× cohort; săn bác bỏ; bền. Dừng: marginal, bền.
+
+**④ SELL.** Synthesize pyramid: *governing thought* = "Giữ $29; đầu tư vào reactivation-cliff — nó nâng MRR ròng hơn hạ giá mà không bào ARPU." Communicate (skeptical, SCR): action-title + một **waterfall** (hạ-giá: −ARPU vs +volume = ròng âm) + một **funnel** (cliff-7-ngày là chỗ rớt). **CP-PREWIRE** (ERROR-gate) + completeness-critic ("đã quét analytics? web? gap?"). Cổng `--before-sell` xanh → ship. Run-folder `.archives/mckinsey/plus-pricing-29-to-19/` LÀ hồ-sơ-quyết-định (link `ops.decisions`).
+
+## 52.12 Kết hợp + rào chắn
+
+- **Với các skill `/think` nguyên tử:** engine *gọi* chúng — `tosca` (State), `mece`/`driver-tree`/`hypothesis` (Structure), `root-cause`/`design-thinking`/`pre-mortem`/`debias`/`2x2` (Solve), `pyramid`/`so-what` (Sell).
+- **Với `/deepask` — gọi một sub-capability nặng (3 kỷ luật):** **(1) Chống đệ quy** — một chiều (`mckinsey → deepask → /think micro-frameworks`); deepask không bao giờ re-enter engine này. **(2) Van chi phí** — `/deepask` là súng lớn (đa-subagent, breaker 20 finds/4h); bắn cả vòng CHỈ trên một dòng đã-qua-knock-out, thật sự đa-nguồn (`--dry-run` trước). **(3) Evidence-not-decider** — deepask trả bằng chứng có trích dẫn + verdict COMPLETE/PARTIAL mà bạn chạy qua cổng validate; PARTIAL là một nhánh kẹt-dữ-liệu; cú synthesize→recommend ở lại với bạn (Sell) + founder.
+- **Với `/cla propose`:** các pha CLA phản chiếu 4S; engine này là cách-nghĩ-có-kỷ-luật *bên trong* một proposal.
+- **Firewall:** dữ liệu công ty/sản phẩm chỉ qua `metrics.*` (không bao giờ `product.*`). **HITL:** mọi READ dữ liệu là Tier A; không bao giờ auto-run một WRITE/publish — phải surface. **Chi phí:** ưu tiên gbrain `search`/`recall` hơn `think`; in-session = subscription billing.
+- **Chạy trong session đang hoạt động** (HITL + checkpoint cần kênh hội thoại) — không phải subagent fire-and-forget.
+
+## 52.13 Thể chế hoá — engine là bộ-giải CHÍNH của workforce (v3.2)
+
+v3.1 audit phát hiện "bộ-giải-bài-toán chính" là một thuộc-tính *thể-chế/định-tuyến*, không phải thuộc-tính capability — và tầng đó từng rỗng: không SOP nào kích engine, không persona nào gọi nó (chúng chỉ dùng pyramid+so-what). v3.2 xây tầng đó:
+
+- **`/think triage`** (mục 52.3) — bộ định tuyến làm mckinsey thành bộ-giải chính **mà không over-apply**.
+- **`SOP-AIOPS-012-consequential-problem-solving`** — mệnh lệnh thể chế: một quyết định hệ trọng (framing Tier-C/D · câu-hỏi weekly-review · câu-hỏi-chiến-lược-founder · problem-framing của `/cla` · quyết-định-chiến-lược-pillar) → triage → (route ④ → chạy engine) → run-folder `.archives/mckinsey/<slug>/` LÀ hồ-sơ-quyết-định (link `ops.decisions`) → chỉ hành động sau khi cổng `--before-sell` xanh VÀ nghi-thức-HITL của chính quyết định đó. Hai guard: chống-over-application + tư-duy-không-phải-ra-quyết-định.
+- **Phản xạ định tuyến @ceo/@cgo/@cpo** — `.claude/agents/{ceo,cgo,cpo}.md` nay bắt buộc: trước một quyết định Tier-3/4 (CEO) / chiến-lược-wedge-funnel-build (CGO/CPO), TRIAGE trước; route ④ → chạy cả engine và để nghiên-cứu-có-dữ-liệu hậu thuẫn đề xuất — một quyết định chiến lược không còn ship trên pyramid+so-what đơn thuần.
+
+**Độ trung thực:** điều này làm engine thành bộ-giải-chính *được chỉ định* và đấu dây phản xạ; *track record* (≥5 nghiên cứu thật đa dạng) chỉ tích luỹ khi được gọi — đúng cái mà tầng này giờ gây ra.
+
+## 52.14 Bên dưới — thinking-OS được xây ra sao (cho người muốn mở rộng)
+
+- **Hai pipeline + Workflow có giới hạn.** *Tái tạo* (Chương 51): Workflow một-agent-mỗi-toolkit → 20 bundle. *Làm giàu thẻ chọn:* một Workflow **19 (rồi +1) agent Sonnet** đọc từng toolkit, gắn `fours_step`/`cognitive_moves`/`select_when`/`checkpoint_fit` + soạn routing card — chạy 4 phút, 0 lỗi (output nhỏ + Sonnet + bounded = tin cậy). *Build chất nền:* `scripts/consulting-toolkit/{to-wiki-and-registry,build-thinking-os}.cjs` (thuần Node, deterministic) → wiki + 2 registry + per-step maps.
+- **Guard:** schema L1 + validator L2 `validate-thinking-os.cjs` (mọi `wiki_path` tồn tại · `fours_step` hợp lệ · process↔trang · maps đủ) + `validate-mckinsey-coherence.cjs` (đếm 424/631/20 trong docs khớp registry thật) — cả hai trong `pnpm check` VÀ CI.
+- **Tích hợp là DATA-DRIVEN:** thêm một toolkit vào registry/maps là tự-động khả-dụng — không phải sửa logic engine (v3.0.1 thêm #18 CX & Design Thinking, lấp lỗ-hổng design-thinking-tools, mà không động SKILL).
+- **Ba lỗi workflow phải vượt (bài học tái dùng):** (a) rate-limit server-side ở ~12–14 agent Opus concurrent → đổi Stage-1 sang Sonnet + batch ≤9; (b) cap 32K-token một-response khi core lớn → yêu cầu agent ghi tăng-dần (skeleton + Edit từng batch); (c) "socket closed" lúc ack cuối (việc thường đã xong) → KIỂM tra trên đĩa, không tin ack.
+
+## 52.15 Bài học khi DÙNG lệnh
+
+1. **Triage trước, đừng vung súng lớn.** Sức mạnh không phải "chạy 4S cho mọi thứ" mà là "đúng trọng lượng cho đúng bài". Chạy cả engine cho câu-hỏi-nhỏ là APK — kịch tốn kém.
+2. **Gieo câu-trả-lời-một-ngày NGAY** rồi để dữ liệu mài nó. Chờ "có dữ liệu trước" là nước đi phản-McKinsey.
+3. **Không bao giờ khẳng định một dữ kiện chưa fetch.** Nếu chỉ-founder-có: hỏi (biên nhận `[H<n>]`); nếu không hỏi: provenance trung thực là `assumption` + sensitivity. Cổng làm việc-bỏ-hỏi thành một thất bại.
+4. **Disconfirm, đừng confirm.** Gọi tên phân-tích-sẽ-lật-câu-trả-lời và đặt nó thành dòng workplan. CP-DISSENT red-team chính nó.
+5. **`select_when` là linh hồn của chọn-chính-xác** — nạp theo-bước (guard chống mất-context), quét cột phân-biệt-hàng-xóm, latticework 2–3 lăng kính, đọc trang wiki trước khi áp.
+6. **Quy trình kế thừa > cây ad-hoc** — ở STRUCTURE, kéo nguyên xương sống lĩnh vực đã-được-chứng-minh là đòn bẩy "ex-McKinsey thật".
+7. **Synthesize TÁCH KHỎI communicate; dẫn bằng câu trả lời** (rào APK) — nếu logic không đứng dạng pyramid trần, không cách kể nào cứu nổi.
