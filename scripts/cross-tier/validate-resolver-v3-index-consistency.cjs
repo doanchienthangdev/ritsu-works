@@ -6,7 +6,7 @@
  * L1 validator for resolver-v3-jit-loading capability:
  *   - INDEX.md exists
  *   - INDEX.md content matches what generator would produce (no stale drift)
- *   - INDEX.md size under hard cap (15K tokens)
+ *   - INDEX.md size under hard cap (30K tokens; imported from the generator — raised 15K→30K founder 2026-06-05)
  *   - INDEX.md mtime ≥ max(recipients/*.md mtime) — catches manual edits
  *
  * Triggered by: pre-commit hook (when recipients/*.md changes) + pnpm check

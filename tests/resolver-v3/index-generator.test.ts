@@ -168,7 +168,7 @@ describe("resolver-v3 index-generator", () => {
     it("INDEX is under hard cap", () => {
       const r = gen.generate();
       expect(r.overHardCap).toBe(false);
-      expect(r.estimatedTokens).toBeLessThanOrEqual(15000);
+      expect(r.estimatedTokens).toBeLessThanOrEqual(gen.TOKEN_HARD_CAP); // robust: tracks the constant, not a literal
     });
 
     it("INDEX entries follow format `- <id> :: <summary>`", () => {
@@ -228,9 +228,9 @@ describe("resolver-v3 index-generator", () => {
       expect(gen.MAX_SUMMARY_CHARS).toBe(90); // tightened 100→94 (thinking-toolkit) then 94→90 (dataviz v0.1 #235); realigned to source 2026-06-04
     });
 
-    it("TOKEN_HARD_CAP = 15000, TOKEN_TARGET = 12000", () => {
-      expect(gen.TOKEN_HARD_CAP).toBe(15000);
-      expect(gen.TOKEN_TARGET).toBe(12000);
+    it("TOKEN_HARD_CAP = 30000, TOKEN_TARGET = 24000 (raised from 15000/12000, founder 2026-06-05)", () => {
+      expect(gen.TOKEN_HARD_CAP).toBe(30000);
+      expect(gen.TOKEN_TARGET).toBe(24000);
     });
   });
 });
