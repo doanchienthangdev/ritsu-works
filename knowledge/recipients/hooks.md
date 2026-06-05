@@ -7,7 +7,7 @@
 This file is THE source of truth for hook recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 
-**Total entries:** 14
+**Total entries:** 15
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -201,6 +201,20 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 **When to use:** > The firewall. Operating AI must never touch the Product Supabase project (ritsu) directly. This > hook enforces that boundary unconditionally, as code, fail-closed.
 
 **Invoke:** Auto-triggered (pre-tool) for tools matching: `*`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## hook/pre-write-mckinsey-gate
+
+**Kind:** hook
+**Axis:** capability
+**When to use:** > Observation-only — never blocks (by default). Auto-runs the /think mckinsey > run-folder discipline gate the moment a Sell artifact > (.archives/mckinsey/<slug>/communication.md) is written, and records an audit > row when an UNGATED Sell ships. Capability thinking-toolkit v3.1 — the > 2026-06-05 audit found the gate (scripts/thinking-toolkit/mckinsey-run.cjs) > was OPT-IN: nothing fired it, so 
+
+**Invoke:** Auto-triggered (pre-tool) for tools matching: `Write,Edit`
 **HITL tier:** B
 **Side effect:** write
 

@@ -202,6 +202,21 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: node scripts/cross-tier/validate-thinking-os.cjs
 
+  l2-mckinsey-coherence:
+    name: L2 — thinking-toolkit mckinsey coherence (doc stated counts ↔ registry actual counts)
+    runs-on: ubuntu-latest
+    needs: l1-tier1-yaml-schemas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/cross-tier/validate-mckinsey-coherence.cjs
+
   l2-governance-roles:
     name: L2 — governance/ROLES ↔ skills (warn)
     runs-on: ubuntu-latest

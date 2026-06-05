@@ -42,10 +42,21 @@ const runDir = (slug: string) => path.join(ROOT, RUN_BASE, slug);
 const writeArtifact = (slug: string, name: string, body: string) => fs.writeFileSync(path.join(runDir(slug), name), body);
 const has = (errs: string[], sub: string) => errs.some((e) => e.includes(sub));
 
+// v3.1: a disciplined workplan now carries >=2 data rows (the MECE minimum) with
+// >=1 REAL pulled source (not all ask-user/assumption).
 const GOOD_WORKPLAN = `# wp
 | issue | hypothesis | analysis | source-of-data | owner | end-product | status |
 |---|---|---|---|---|---|---|
 | cliff | returners convert more | cohort split | supabase-ops metrics.product_dau_snapshot | me | chart | validated |
+| price | price is the blocker | pricing pull test | ask-user (founder) [H1] | founder | slope | knocked-out |
+`;
+// v3.1: a disciplined one-day-answer fills the **Disconfirmation:** line.
+const GOOD_ODA = `# One-day answer
+**Situation:** free->paid stalled at 8%
+**Observation:** returners convert 4x
+**Resolution:** fix the 7-day cliff
+**Competing hypotheses (being disconfirmed):** price is the blocker
+**Disconfirmation (what would prove this wrong — must be a workplan row):** if returners and non-returners convert at the same rate, the cliff thesis dies
 `;
 const GOOD_LOG = `# al
 | hypothesis | data pulled | provenance | degree | verdict |
@@ -104,12 +115,53 @@ describe("checkRun — happy path", () => {
     writeArtifact("good", "analysis-log.md", GOOD_LOG);
     expect(checkRun(ROOT, "good").errors).toEqual([]);
   });
-  it("a COMPLETE disciplined run (workplan validated + pre-wire + dissent logged) passes --before-sell", () => {
+  it("a COMPLETE disciplined run (workplan >=2 rows + filled disconfirmation + pre-wire + dissent) passes --before-sell", () => {
     scaffoldRun(ROOT, "good2");
     writeArtifact("good2", "workplan.md", GOOD_WORKPLAN);
     writeArtifact("good2", "analysis-log.md", GOOD_LOG);
+    writeArtifact("good2", "one-day-answer.md", GOOD_ODA);
     writeArtifact("good2", "checkpoint-log.md", GOOD_CHECKPOINT);
     expect(checkRun(ROOT, "good2", { beforeSell: true }).errors).toEqual([]);
+  });
+});
+
+// v3.1 deeper before-sell discipline: MECE >=2 rows · filled disconfirmation · real data.
+describe("checkRun — v3.1 deeper before-sell gates", () => {
+  const setup = (slug: string) => {
+    scaffoldRun(ROOT, slug);
+    writeArtifact(slug, "workplan.md", GOOD_WORKPLAN);
+    writeArtifact(slug, "analysis-log.md", GOOD_LOG);
+    writeArtifact(slug, "one-day-answer.md", GOOD_ODA);
+    writeArtifact(slug, "checkpoint-log.md", GOOD_CHECKPOINT);
+  };
+  it("MECE gate: a 1-row workplan FAILS --before-sell", () => {
+    setup("r");
+    writeArtifact("r", "workplan.md", `# wp\n| issue | hypothesis | analysis | source-of-data | owner | end-product | status |\n|---|---|---|---|---|---|---|\n| only | one guess | a vibe | supabase-ops metrics.* | me | none | validated |\n`);
+    expect(has(checkRun(ROOT, "r", { beforeSell: true }).errors, "MECE gate")).toBe(true);
+  });
+  it("MECE gate does NOT fire on a normal (non-before-sell) check", () => {
+    setup("r");
+    writeArtifact("r", "workplan.md", `# wp\n| issue | hypothesis | analysis | source-of-data | owner | end-product | status |\n|---|---|---|---|---|---|---|\n| only | one guess | a vibe | supabase-ops metrics.* | me | none | validated |\n`);
+    expect(checkRun(ROOT, "r").errors.filter((e: string) => /MECE gate/.test(e))).toEqual([]);
+  });
+  it("disconfirmation gate: an EMPTY **Disconfirmation:** line FAILS --before-sell", () => {
+    setup("r"); // GOOD_ODA filled; now blank it out (pristine-style)
+    writeArtifact("r", "one-day-answer.md", `# oda\n**Situation:** x\n**Disconfirmation (what would prove this wrong — must be a workplan row):**\n`);
+    expect(has(checkRun(ROOT, "r", { beforeSell: true }).errors, "disconfirmation gate")).toBe(true);
+  });
+  it("disconfirmation: an ABSENT line is a WARNING, not an error (older-format run)", () => {
+    setup("r");
+    writeArtifact("r", "one-day-answer.md", `# oda\n**Situation:** x\n**Observation:** y\n**Resolution:** z\n`);
+    const r = checkRun(ROOT, "r", { beforeSell: true });
+    expect(r.errors.filter((e: string) => /disconfirmation/.test(e))).toEqual([]);
+    expect(has(r.warnings, "no `**Disconfirmation:**` line")).toBe(true);
+  });
+  it("data-pull gate: an all-ask-user workplan (>=2 rows) WARNS (does not block)", () => {
+    setup("r");
+    writeArtifact("r", "workplan.md", `# wp\n| issue | hypothesis | analysis | source-of-data | owner | end-product | status |\n|---|---|---|---|---|---|---|\n| a | h1 | x | ask-user (founder) [H1] | f | e | validated |\n| b | h2 | y | assumption | f | e | knocked-out |\n`);
+    const r = checkRun(ROOT, "r", { beforeSell: true });
+    expect(r.errors.filter((e: string) => /data-pull gate/.test(e))).toEqual([]);
+    expect(has(r.warnings, "data-pull gate")).toBe(true);
   });
 });
 

@@ -37,6 +37,8 @@ const yaml = require('js-yaml');
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const REGISTRY_REL = 'knowledge/mckinsey-workflow.yaml';
 const CANONICAL_4S = ['state', 'structure', 'solve', 'sell'];
+// v3.1: the 3 problem-solving paths of the 4S diagram (Cracked It! Fig 3.1).
+const CANONICAL_PATHS = ['hypothesis-driven', 'issue-driven', 'design-thinking'];
 const ID_RE = /^[a-z][a-z0-9-]*$/;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 
@@ -230,6 +232,90 @@ function validateWorkflow(doc, repoRoot) {
     });
   }
 
+  // ---- v3.1 PATHS — the 3 problem-solving paths of the 4S diagram (Fig 3.1) ----
+  const pathIds = new Set();
+  if (!Array.isArray(doc.paths) || doc.paths.length === 0) {
+    errs.push('paths must be a non-empty array (v3.1 — the 3 4S-diagram paths)');
+  } else {
+    doc.paths.forEach((p, i) => {
+      const where = p && typeof p.id === 'string' ? `paths '${p.id}'` : `paths[${i}]`;
+      if (!p || typeof p !== 'object' || Array.isArray(p)) { errs.push(`${where}: must be a mapping`); return; }
+      if (typeof p.id !== 'string' || !ID_RE.test(p.id)) errs.push(`${where}: id must be kebab-case`);
+      else pathIds.add(p.id);
+      if (typeof p.name !== 'string' || !p.name.trim()) errs.push(`${where}: name must be a non-empty string`);
+      if (typeof p.entry_condition !== 'string' || !p.entry_condition.trim()) errs.push(`${where}: entry_condition must be a non-empty string`);
+      if (p.concept !== undefined) checkConcept(p.concept, where);
+      if (!Array.isArray(p.band_staging) || p.band_staging.length === 0) {
+        errs.push(`${where}: band_staging must be a non-empty array`);
+      } else {
+        for (const b of p.band_staging) {
+          if (!b || typeof b !== 'object' || Array.isArray(b)) { errs.push(`${where}: band_staging entry must be a mapping`); continue; }
+          if (!stepIds.has(b.band)) errs.push(`${where}: band_staging band '${b.band}' is not a step id`);
+          if (typeof b.activity !== 'string' || !b.activity.trim()) errs.push(`${where}: band_staging activity must be a non-empty string`);
+        }
+      }
+    });
+    for (const c of CANONICAL_PATHS) if (!pathIds.has(c)) errs.push(`missing canonical 4S path: '${c}'`);
+  }
+
+  // ---- v3.1 DECISION GATES — the 5 decision diamonds of the 4S diagram ----
+  const gateIds = new Set();
+  if (Array.isArray(doc.decision_gates)) {
+    for (const g of doc.decision_gates) if (g && typeof g.id === 'string') gateIds.add(g.id);
+  }
+  if (!Array.isArray(doc.decision_gates) || doc.decision_gates.length === 0) {
+    errs.push('decision_gates must be a non-empty array (v3.1 — the 5 4S-diagram diamonds)');
+  } else {
+    doc.decision_gates.forEach((g, i) => {
+      const where = g && typeof g.id === 'string' ? `decision_gates '${g.id}'` : `decision_gates[${i}]`;
+      if (!g || typeof g !== 'object' || Array.isArray(g)) { errs.push(`${where}: must be a mapping`); return; }
+      if (typeof g.id !== 'string' || !ID_RE.test(g.id)) errs.push(`${where}: id must be kebab-case`);
+      if (!stepIds.has(g.at)) errs.push(`${where}: at '${g.at}' is not a step id`);
+      if (typeof g.question !== 'string' || !g.question.trim()) errs.push(`${where}: question must be a non-empty string`);
+      if (g.concept !== undefined) checkConcept(g.concept, where);
+      for (const rk of ['yes_route', 'no_route']) {
+        const r = g[rk];
+        if (!r || typeof r !== 'object' || Array.isArray(r)) { errs.push(`${where}: ${rk} must be a mapping`); continue; }
+        const targets = ['to_step', 'to_path', 'to_gate'].filter((t) => r[t] !== undefined);
+        if (targets.length !== 1) { errs.push(`${where}: ${rk} must have exactly ONE of to_step/to_path/to_gate`); continue; }
+        if (r.to_step !== undefined && !stepIds.has(r.to_step)) errs.push(`${where}: ${rk}.to_step '${r.to_step}' is not a step id`);
+        if (r.to_path !== undefined && !pathIds.has(r.to_path)) errs.push(`${where}: ${rk}.to_path '${r.to_path}' is not a path id`);
+        if (r.to_gate !== undefined && !gateIds.has(r.to_gate)) errs.push(`${where}: ${rk}.to_gate '${r.to_gate}' is not a gate id`);
+      }
+    });
+  }
+
+  // ---- v3.1 TOOL LIBRARY — the candidate pool reconciled into the spec ----
+  const tl = doc.tool_library;
+  if (!tl || typeof tl !== 'object' || Array.isArray(tl)) {
+    errs.push('tool_library must be a mapping (v3.1)');
+  } else if (!Array.isArray(tl.registries) || tl.registries.length === 0) {
+    errs.push('tool_library.registries must be a non-empty array');
+  } else {
+    let sumTools = 0;
+    for (const reg of tl.registries) {
+      if (!reg || typeof reg !== 'object' || Array.isArray(reg)) { errs.push('tool_library.registries entry must be a mapping'); continue; }
+      const abs = typeof reg.file === 'string' ? path.join(repoRoot, reg.file) : null;
+      if (!abs || !fs.existsSync(abs)) { errs.push(`tool_library: registry file not found: ${reg.file}`); continue; }
+      try {
+        const regDoc = yaml.load(fs.readFileSync(abs, 'utf8'));
+        const arrKey = regDoc && typeof regDoc === 'object'
+          ? Object.keys(regDoc).find((k) => Array.isArray(regDoc[k]) && k !== 'source_books')
+          : null;
+        const actual = arrKey ? regDoc[arrKey].length : null;
+        if (typeof reg.count === 'number' && actual !== null && reg.count !== actual) {
+          errs.push(`tool_library: ${reg.file} declares count ${reg.count} but has ${actual} entries`);
+        }
+        if (reg.kind !== 'domain-processes' && typeof actual === 'number') sumTools += actual;
+      } catch (e) {
+        errs.push(`tool_library: ${reg.file} parse error: ${e.message}`);
+      }
+    }
+    if (typeof tl.total_tools === 'number' && sumTools > 0 && tl.total_tools !== sumTools) {
+      errs.push(`tool_library: total_tools ${tl.total_tools} != sum of framework registries ${sumTools}`);
+    }
+  }
+
   // produces ⊆ artifacts.files.name (coherence: every artifact a step produces must be declared in artifacts.files)
   if (art && typeof art === 'object' && Array.isArray(art.files)) {
     const declared = new Set(art.files.map((f) => f && f.name).filter(Boolean));
@@ -282,10 +368,12 @@ function main() {
 
   const nSkills = doc.steps.reduce((a, s) => a + (Array.isArray(s.skills) ? s.skills.length : 0), 0);
   const nConcepts = doc.steps.reduce((a, s) => a + (Array.isArray(s.key_concepts) ? s.key_concepts.length : 0), 0);
-  console.log(`[OK] mckinsey-workflow.yaml — ${doc.steps.length} 4S steps · ${nSkills} skill + ${nConcepts} step-concept refs exist · ${doc.data_routing.length} data-routing tools · ${doc.artifacts.files.length} artifacts · engine sections valid.`);
+  const nPaths = Array.isArray(doc.paths) ? doc.paths.length : 0;
+  const nGates = Array.isArray(doc.decision_gates) ? doc.decision_gates.length : 0;
+  console.log(`[OK] mckinsey-workflow.yaml — ${doc.steps.length} 4S steps · ${nPaths} paths · ${nGates} decision-gates · ${nSkills} skill + ${nConcepts} step-concept refs exist · ${doc.data_routing.length} data-routing tools · ${doc.artifacts.files.length} artifacts · engine sections valid.`);
   process.exit(0);
 }
 
 if (require.main === module) main();
 
-module.exports = { validateWorkflow, CANONICAL_4S, ARTIFACTS, TOOLS, ENGINE_SECTIONS, REGISTRY_REL };
+module.exports = { validateWorkflow, CANONICAL_4S, CANONICAL_PATHS, ARTIFACTS, TOOLS, ENGINE_SECTIONS, REGISTRY_REL };

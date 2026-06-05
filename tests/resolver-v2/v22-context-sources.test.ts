@@ -376,9 +376,9 @@ describe("v2.2 — catalog-loader integration", () => {
     expect(cat.totalCount).toBeGreaterThan(252);
   });
 
-  it("totalCount under 600 (sanity ceiling — context budget)", () => {
+  it("totalCount under 650 (sanity ceiling — context budget; v3.0 consulting lib + v3.1 hook grew it past 600)", () => {
     const cat = loader.loadCatalog({ skipCache: true });
-    expect(cat.totalCount).toBeLessThan(600);
+    expect(cat.totalCount).toBeLessThan(650);
   });
 
   it("no duplicate IDs across all 16 catalogs", () => {

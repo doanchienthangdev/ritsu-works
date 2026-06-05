@@ -7,8 +7,8 @@
  * Also reads knowledge/problem-solving-frameworks.yaml (the existing 207 book frameworks).
  *
  * Outputs (knowledge/):
- *   consulting-frameworks.yaml      — the 460 toolkit frameworks, deduped by slug, fully tagged.
- *   consulting-processes.yaml       — the 19 domain process playbooks + routing cards.
+ *   consulting-frameworks.yaml      — the deduped toolkit frameworks (424 after slug-dedup of ~460 raw occurrences), fully tagged.
+ *   consulting-processes.yaml       — the 20 domain process playbooks + routing cards.
  *   thinking-tool-index/{frame,structure,solve,sell,cross}.md  — UNIFIED per-4S-step compact
  *     maps (toolkit + book frameworks), 1 line/tool → fast checkpoint loading (no context-lost).
  *   thinking-tool-index/processes.md — the domain-process router (trigger → process).
@@ -121,7 +121,7 @@ fs.writeFileSync(`${IDX}/README.md`, [
   `\n> The "load fast, select precisely, no context-lost" structure. Unifies **${tkFrameworks.length} toolkit frameworks** + **${bookFw.length} book frameworks** = ${all.length} tools, split by 4S step, plus **${processes.length} domain processes**.`,
   `\n## How the engine uses it (per checkpoint)`,
   `1. Know your 4S step + cognitive move (CLASSIFY, per the mckinsey-workflow SKILL).`,
-  `2. **Load ONLY \`${'{step}'}.md\`** (frame/structure/solve/sell/cross) — the compact map for that step (not the full 667-tool registry). This is the context-lost guard.`,
+  `2. **Load ONLY \`${'{step}'}.md\`** (frame/structure/solve/sell/cross) — the compact map for that step (not the full ${all.length}-tool registry). This is the context-lost guard.`,
   `3. Filter the map by domain + cognitive-move + scan \`select when\`; pick **2-3 complementary** tools (latticework; debias against the familiar tool).`,
   `4. **READ each finalist's wiki page** before applying (the map is a pointer; the page is the how-to).`,
   `5. At STRUCTURE, also check \`processes.md\` — if the problem matches a domain, pull that inherited process as the spine.`,
@@ -135,6 +135,6 @@ fs.writeFileSync(`${IDX}/README.md`, [
 console.log(`✓ consulting-frameworks.yaml: ${tkFrameworks.length} deduped toolkit frameworks (from ${base.length} occurrences)`);
 console.log(`✓ consulting-processes.yaml: ${processes.length} domain processes (${Object.keys(cards).length} routing cards)`);
 console.log(`✓ thinking-tool-index/: per-step maps [${counts}] + processes.md (unified ${all.length} tools)`);
-console.log(`  enriched toolkits: ${enrichedCount}/19${missingEnrich.length ? ' · ISSUES: ' + missingEnrich.join(', ') : ''}`);
+console.log(`  enriched toolkits: ${enrichedCount}/${processes.length}${missingEnrich.length ? ' · ISSUES: ' + missingEnrich.join(', ') : ''}`);
 const untagged = tkFrameworks.filter((f) => !(tags[f.slug] || []).length).length;
 if (untagged) console.log(`  ⚠ ${untagged} frameworks had no enrichment tags (defaulted fours_step=solve) — re-run enrich for missing toolkits`);
