@@ -116,10 +116,24 @@ describe('extractTrace — run folder → structured trace', () => {
   it('is empty-safe when artifacts are missing (no throw, zero counts)', () => {
     const t = extractTrace(dir); // empty dir
     expect(t.stats).toEqual({
-      checkpoints: 0, analyses: 0, hitl_receipts: 0, workplan_rows: 0, porpoises: 0, external_numbers: 0,
+      checkpoints: 0, analyses: 0, hitl_receipts: 0, workplan_rows: 0, toolkit_selections: 0, porpoises: 0, external_numbers: 0,
     });
     expect(t.checkpoints).toEqual([]);
     expect(t.bands.solve).toEqual([]);
+    expect(t.toolkit).toEqual([]);
+  });
+
+  // v3.5: the toolkit-selection (method) ledger.
+  it('extracts the toolkit-log selection rows (step/sub-need/selected/rejected)', () => {
+    fs.writeFileSync(path.join(dir, 'toolkit-log.md'),
+      `# tk\n| id | step | sub-need | classify | loaded | selected | rejected |\n|---|---|---|---|---|---|---|\n` +
+      `| T1 | structure | decompose | formula | driver-tree, issue-tree | driver-tree — testable drivers | issue-tree — less testable |\n`);
+    const t = extractTrace(dir);
+    expect(t.stats.toolkit_selections).toBe(1);
+    expect(t.toolkit[0].step).toBe('structure');
+    expect(t.toolkit[0].sub_need).toBe('decompose');
+    expect(t.toolkit[0].selected).toContain('driver-tree');
+    expect(t.toolkit[0].rejected).toContain('issue-tree');
   });
 });
 

@@ -20,7 +20,7 @@ const {
 // checkRun(repoRoot, slug, opts) from scripts/thinking-toolkit/mckinsey-run.cjs
 // (capability thinking-toolkit v1.6/v1.8/v2.0 — the deterministic run scaffolder + checker).
 //
-// Phase 1 — scaffoldRun: slug-invalid → error; creates dir + 9 templates;
+// Phase 1 — scaffoldRun: slug-invalid → error; creates dir + 10 templates;
 //   idempotent (skip existing, never clobber). checkRun: slug-invalid; dir
 //   missing; missing artifact; workplan no-table / missing-column / bad-status /
 //   product.* firewall; analysis-log missing-provenance-col / missing-degree-col /
@@ -71,9 +71,16 @@ const GOOD_CHECKPOINT = `# cp
 | C2 | solve | dissent | falsifier: if returners don't differ, answer flips | challenged, held | held |
 | C3 | sell | pre-wire | final answer + coverage + pre-mortem | agreed | ship |
 `;
+// v3.5: a disciplined toolkit-log carrying >=1 selection row + a rejected/debias note.
+const GOOD_TOOLKIT = `# tk
+| id | step | sub-need | classify | loaded | selected | rejected |
+|---|---|---|---|---|---|---|
+| T1 | structure | decompose the funnel | formula | driver-tree, issue-tree | driver-tree — splits the metric into testable drivers | issue-tree — less testable for a single metric |
+| T2 | solve | is the cliff causal | causation | cohort-split, regression | cohort-split — cheapest heuristic that moves the answer | regression — big gun, not needed yet (heuristics-before-big-guns) |
+`;
 
 describe("scaffoldRun", () => {
-  it("creates the run folder + all 9 artifact templates", () => {
+  it("creates the run folder + all 10 artifact templates", () => {
     const r = scaffoldRun(ROOT, "free-to-paid-stall");
     expect(r.errors).toEqual([]);
     expect(r.created.sort()).toEqual(ARTIFACTS.map((a: string) => `${a}.md`).sort());
@@ -115,13 +122,47 @@ describe("checkRun — happy path", () => {
     writeArtifact("good", "analysis-log.md", GOOD_LOG);
     expect(checkRun(ROOT, "good").errors).toEqual([]);
   });
-  it("a COMPLETE disciplined run (workplan >=2 rows + filled disconfirmation + pre-wire + dissent) passes --before-sell", () => {
+  it("a COMPLETE disciplined run (workplan >=2 rows + filled disconfirmation + pre-wire + dissent + toolkit selection) passes --before-sell", () => {
     scaffoldRun(ROOT, "good2");
     writeArtifact("good2", "workplan.md", GOOD_WORKPLAN);
     writeArtifact("good2", "analysis-log.md", GOOD_LOG);
     writeArtifact("good2", "one-day-answer.md", GOOD_ODA);
     writeArtifact("good2", "checkpoint-log.md", GOOD_CHECKPOINT);
+    writeArtifact("good2", "toolkit-log.md", GOOD_TOOLKIT);
     expect(checkRun(ROOT, "good2", { beforeSell: true }).errors).toEqual([]);
+  });
+});
+
+// v3.5 toolkit-selection discipline (--before-sell): the McKinsey crux = recorded tool use.
+describe("checkRun — v3.5 toolkit gate", () => {
+  const setup = (slug: string) => {
+    scaffoldRun(ROOT, slug);
+    writeArtifact(slug, "workplan.md", GOOD_WORKPLAN);
+    writeArtifact(slug, "analysis-log.md", GOOD_LOG);
+    writeArtifact(slug, "one-day-answer.md", GOOD_ODA);
+    writeArtifact(slug, "checkpoint-log.md", GOOD_CHECKPOINT);
+  };
+  it("an empty toolkit-log (pristine <T1> placeholder) FAILS --before-sell", () => {
+    setup("r"); // toolkit-log left as the scaffolded placeholder row
+    expect(has(checkRun(ROOT, "r", { beforeSell: true }).errors, "toolkit gate")).toBe(true);
+  });
+  it("toolkit gate does NOT fire on a normal (non-before-sell) check", () => {
+    setup("r");
+    expect(checkRun(ROOT, "r").errors.filter((e: string) => /toolkit gate/.test(e))).toEqual([]);
+  });
+  it("selections present but NO rejected/debias note WARNS (does not block)", () => {
+    setup("r");
+    writeArtifact("r", "toolkit-log.md", `# tk\n| id | step | sub-need | classify | loaded | selected | rejected |\n|---|---|---|---|---|---|---|\n| T1 | structure | decompose | formula | driver-tree | driver-tree — fits | |\n`);
+    const r = checkRun(ROOT, "r", { beforeSell: true });
+    expect(r.errors.filter((e: string) => /toolkit gate/.test(e))).toEqual([]);
+    expect(has(r.warnings, "toolkit gate")).toBe(true);
+  });
+  it("a full toolkit-log (selection + rejected) passes the toolkit gate", () => {
+    setup("r");
+    writeArtifact("r", "toolkit-log.md", GOOD_TOOLKIT);
+    const r = checkRun(ROOT, "r", { beforeSell: true });
+    expect(r.errors.filter((e: string) => /toolkit gate/.test(e))).toEqual([]);
+    expect(r.warnings.filter((w: string) => /toolkit gate/.test(w))).toEqual([]);
   });
 });
 

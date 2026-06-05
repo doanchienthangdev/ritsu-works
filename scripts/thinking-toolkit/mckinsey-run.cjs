@@ -37,7 +37,10 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 // asked + answered; reconciled against ask-user rows in analysis-log).
 // v2.0: +'checkpoint-log' (the McKinsey team-session milestone ledger — frame /
 // hypothesize / plan / prioritize / porpoise / dissent / pre-wire).
-const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'hitl-log', 'checkpoint-log', 'one-day-answer', 'synthesis', 'communication'];
+// v3.5: +'toolkit-log' (the METHOD ledger — which thinking-tool/framework was
+// SELECTED for which sub-need + why, and what was REJECTED + why; the McKinsey
+// crux "excellent tool use" made recorded + auditable, like hitl-log/checkpoint-log).
+const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'hitl-log', 'checkpoint-log', 'toolkit-log', 'one-day-answer', 'synthesis', 'communication'];
 // The 6 book columns (Bulletproof Exhibit 4.3) + the v1.4 status ledger column.
 const WORKPLAN_COLUMNS = ['issue', 'hypothesis', 'analysis', 'source-of-data', 'owner', 'end-product', 'status'];
 const STATUS_VALUES = ['open', 'pulled', 'validated', 'knocked-out', 'spawned'];
@@ -55,9 +58,10 @@ const TEMPLATES = {
   'one-day-answer.md': `# One-day answer (LIVING STATE — seeded at STATE, updated every analysis)\n\n<!-- "If forced to answer today, we'd say X, because Y." Rewrite after every analysis as Situation → Observation → Resolution. This re-ranks the open workplan rows. v2.0: also carry the COMPETING candidates you are disconfirming + the DISCONFIRMATION test (the single analysis that would prove this answer WRONG — it MUST appear as a workplan row; an answer no evidence could overturn is a belief, not an answer). The CP-DISSENT checkpoint red-teams exactly this. -->\n\n**Situation:**\n**Observation:**\n**Resolution:**\n**Competing hypotheses (being disconfirmed):**\n**Disconfirmation (what would prove this wrong — must be a workplan row):**\n`,
   'synthesis.md': `# Synthesis — the LOGIC (SELL, step 6)\n\n<!-- Pyramid: governing thought (top-line) → MECE key line → support. The argument must stand on its own before any storytelling. -->\n`,
   'communication.md': `# Communication — the STORY (SELL, step 7)\n\n<!-- Render the synthesis for THIS audience: grouping vs SCR/SCQA, action titles, pre-wire. APK guard: lead with the answer; never tell the story-of-the-search. -->\n`,
+  'toolkit-log.md': `# Toolkit log (METHOD LEDGER) — which thinking-tool for which sub-need, and WHY\n\n<!-- The McKinsey crux made auditable: one row per (4S step . sub-need) where you SELECTED a thinking-tool / framework / mental-model / lens. CLASSIFY (solve_mode analytical|design . analysis_mode description|causation|prediction . framework_shape formula|typology|checklist) -> LOAD candidates from knowledge/thinking-tool-index/<step>.md -> SELECT <=3 complementary (Munger latticework) -> RECORD the REJECTED + why (debias: did you avoid grabbing the familiar tool?). DISCIPLINE NOT PROOF: a checker can't see your reasoning - this makes skipping deliberate selection a gate failure + gives an auditable trail. Keep each cell ONE LINE - use <br> for breaks. id = T1, T2, ... -->\n\n| id | step | sub-need | classify (mode/shape) | loaded (index candidates) | selected (<=3 slug + why-fit) | rejected (+ why-not / debias) |\n|---|---|---|---|---|---|---|\n| <T1> | <state/structure/solve/sell> | <what you needed to frame/decompose/analyze/synthesize> | <solve_mode / analysis_mode / framework_shape> | <candidates scanned from thinking-tool-index/<step>.md> | <chosen tool(s) slug + why it fits THIS need> | <a candidate you did NOT pick + why; or the familiar tool you debiased against> |\n`,
 };
 
-/** Create the run folder + 9 artifact templates. Idempotent: never overwrites an existing file. */
+/** Create the run folder + 10 artifact templates. Idempotent: never overwrites an existing file. */
 function scaffoldRun(repoRoot, slug) {
   if (typeof slug !== 'string' || !SLUG_RE.test(slug)) {
     return { created: [], skipped: [], errors: [`slug must be kebab-case (^[a-z0-9][a-z0-9-]*$): ${JSON.stringify(slug)}`] };
@@ -314,6 +318,36 @@ function checkRun(repoRoot, slug, opts = {}) {
           errors.push("disconfirmation gate: one-day-answer.md `**Disconfirmation:**` is empty/placeholder — name the single analysis that, if wrong, flips the answer (it must be a workplan row). SKILL §SOLVE (CP-DISSENT red-teams exactly this).");
         }
       }
+    }
+  }
+
+  // 8. v3.5 toolkit-selection discipline (before Sell). The McKinsey crux is
+  //    deliberate, RECORDED tool use — which thinking-tool/framework was selected
+  //    for each sub-need + why, and what was rejected (debias). toolkit-log.md is
+  //    the method ledger. ERROR if no selection row; WARN if no row records a
+  //    `rejected`/debias note. DISCIPLINE NOT PROOF (a checker can't see the
+  //    reasoning) — same posture as the hitl + checkpoint gates.
+  if (opts.beforeSell) {
+    const tkPath = path.join(dir, 'toolkit-log.md');
+    let tkRows = 0;
+    let tkRejected = 0;
+    if (fs.existsSync(tkPath)) {
+      const tt = parseFirstTable(fs.readFileSync(tkPath, 'utf8'));
+      if (tt) {
+        const seli = colIndex(tt.headers, ['selected', 'select']);
+        const reji = colIndex(tt.headers, ['rejected', 'reject', 'debias']);
+        const filled = (v) => (v || '').trim() && !/^<.*>$/.test((v || '').trim());
+        for (const row of tt.rows) {
+          if (!isDataRow(row)) continue;                 // pristine <T1> placeholder row skipped
+          if (seli >= 0 && filled(row[seli])) tkRows++;
+          if (reji >= 0 && filled(row[reji])) tkRejected++;
+        }
+      }
+    }
+    if (tkRows === 0) {
+      errors.push("toolkit gate: no tool-selection row in toolkit-log.md — record which thinking-tool/framework you SELECTED for each sub-need (CLASSIFY → LOAD thinking-tool-index/<step>.md → SELECT ≤3 + why). The McKinsey crux is deliberate, recorded tool use. SKILL §Tool selection.");
+    } else if (tkRejected === 0) {
+      warnings.push("toolkit gate: toolkit-log.md records selections but no `rejected`/debias note — name at least one candidate you did NOT pick + why (Maslow's-hammer debias: avoid grabbing the familiar tool).");
     }
   }
 

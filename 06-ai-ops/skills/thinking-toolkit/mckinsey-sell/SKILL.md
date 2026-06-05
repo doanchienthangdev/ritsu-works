@@ -89,6 +89,15 @@ node scripts/dataviz/gen.cjs --message="<the exhibit's action-title>" --data=<se
 
 The ghost-exhibit built at STRUCTURE (the workplan `end-product` column) names the chart's intended message + shape; Sell fills it with real data via `/dataviz` — it does not invent it.
 
+## Surface the METHOD — the MECE tree + the tool choices (v3.5)
+
+McKinsey authority comes from *visible rigor*. The deliverable MUST carry a **Method / Phương pháp** surface (the methodology/technical appendix for report templates; a one-page "How we reached this" close for a memo/deck) that shows the two things a reader needs in order to trust the answer — neither of which the old reports surfaced:
+
+- **The MECE issue-tree** — the decomposition that scoped the work (built at STRUCTURE, in `decomposition.md`): the branches we analyzed (kept) + the branches we **deliberately cut** (out-of-scope) each with a one-line reason. Render it as an exhibit (`/dataviz` `flowchart`/`dendrogram`, or a clean nested list) — the reader sees what was in scope and what was consciously excluded.
+- **The tool-selection table** — from `toolkit-log.md`: per 4S step, which thinking-tool/framework was SELECTED for which sub-need and WHY (+ the notable rejected alternative / debias). This is the McKinsey crux — *excellent, deliberate tool use* — made auditable in the **report**, not only the trace. A study that hides its method has hidden its most important work.
+
+Both already exist as recorded artifacts (`decomposition` + `toolkit-log`); the Sell **surfaces** them, it does not invent them. The reasoning-trace (`/think trace`) carries the *narrated, journey-side* version of the same two artifacts (the `issue_tree` + `toolkit_map` charts); the report carries the *answer-side* method summary. Both must be present — the founder's directive: tool-selection + the MECE tree can be absent from neither the official report nor the reasoning-trace.
+
 ## Anti-claims
 
 - This is NOT a new format engine — it composes `deepask/format`. New media are added in deepask, not here.
