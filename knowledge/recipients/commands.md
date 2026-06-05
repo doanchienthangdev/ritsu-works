@@ -184,7 +184,7 @@ umbrella skill (scripts/dataviz/gen.cjs).
 
 **Kind:** command
 **Axis:** capability
-**When to use:** Federated retrieval + capability-execution + cited synthesis over the ENTIRE internal IA. Zero-routing pure consumer of resolver-plan. Decompose → resolve → execute/fan-out → synthesize → completeness-critic → format. Returns a Pyramid, 100%-cited, authority-ranked, conflict-aware, freshness-tagged answer in 1 of 12 formats, OR an honest no-coverage gap + remedy. Internal-first (web leg delegated to deep-research). Tier A runtime (Tier-B+ legs surfaced, never auto-run).
+**When to use:** Federated retrieval + capability-execution + cited synthesis over the ENTIRE internal IA. Zero-routing pure consumer of resolver-plan. Decompose → resolve → execute/fan-out → synthesize → completeness-critic → format. Returns a Pyramid, 100%-cited, authority-ranked, conflict-aware, freshness-tagged answer in 1 of 12 formats — with McKinsey-grade charts embedded via /dataviz (v1.3) where they make the point — OR an honest no-coverage gap + remedy. Internal-first (web leg delegated to deep-research). Tier A runtime (Tier-B+ legs surfaced, never auto-run).
 
 **Invoke:** `/deepask`
 **HITL tier:** A

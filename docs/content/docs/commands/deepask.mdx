@@ -2,18 +2,21 @@
 title: 'Command: /deepask'
 description: >-
   Federated retrieval + capability-execution + cited synthesis trên TOÀN BỘ internal IA.
-  Zero-routing — consumer thuần của resolver-plan. Decompose → resolve → execute/fan-out → synthesize →
-  completeness-critic → format. Trả về câu trả lời Pyramid, 100%-cited, authority-ranked, conflict-aware,
-  freshness-tagged trong 1 / 12 format, HOẶC một no-coverage gap trung thực + remedy. Internal-first
-  (web leg ủy quyền cho deep-research). Tier A runtime (các leg Tier-B+ được surface, không bao giờ auto-run).
+  Zero-routing — consumer thuần của resolver-plan. Decompose → resolve → execute/fan-out →
+  synthesize → completeness-critic → format. Trả về câu trả lời Pyramid, 100%-cited,
+  authority-ranked, conflict-aware, freshness-tagged trong 1 / 12 format — kèm biểu-đồ chuẩn
+  McKinsey nhúng qua /dataviz (v1.3) ở những chỗ làm-bật điểm — HOẶC một no-coverage gap
+  trung thực + remedy. Internal-first (web leg ủy quyền cho deep-research). Tier A runtime (các leg
+  Tier-B+ được surface, không bao giờ auto-run).
 source_path: .claude/commands/deepask.md
-source_hash: b4508d2ca41fc24abf8131e4f73debee3635762281aa162c6f0d7ecc2049fe82
-generated_at: '2026-06-02T03:42:36.806Z'
+source_hash: 7f9e1f0378394a1a74472d6fbadb29dff8e55c1f340b46cec94eeec08a7d4b1c
+generated_at: '2026-06-05T03:26:20.194Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_source_hash: b4508d2ca41fc24abf8131e4f73debee3635762281aa162c6f0d7ecc2049fe82
+translated_source_hash: 7f9e1f0378394a1a74472d6fbadb29dff8e55c1f340b46cec94eeec08a7d4b1c
+translated_at: '2026-06-05T03:40:00.000Z'
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -34,7 +37,8 @@ translated_source_hash: b4508d2ca41fc24abf8131e4f73debee3635762281aa162c6f0d7ecc
 | S5 | merged (#169) | Format Engine — **visual adapters** (mermaid·chart·dashboard·html·interactive·canvas); 12 format live |
 | **S6** | **merged** | 3 KPI + `SOP-AIOPS-005-deepask-runtime-contract` + cost-bucket `ai-ops-deepask` + **Phase-8 promotion → `operating`** |
 | **v1.1 (extend)** | **merged** | 2 image format `infographics` + `img-slide` (gpt-image-2, nhận `--style`) — skill `deepask/image-compose` + helper `scripts/deepask/{image-spec,image-cost,image-gen,slide-deck}.cjs`; cờ mới `--orientation`/`--img-quality`/`--image-model`/`--max-slides`/`--max-cost-usd`. `/cla extend deepask`. |
-| **v1.1.1 (extend)** | **merged** | Thanh thẩm mỹ **EXTRAORDINARY** cho mọi visual output — skill `deepask/aesthetic` + LOGO FIX (`style-asset.cjs` nhúng logo brand dạng base64 data URI). |
+| **v1.1.1 (extend)** | merged | Thanh thẩm mỹ **EXTRAORDINARY** cho mọi visual output — skill `deepask/aesthetic` + LOGO FIX (`style-asset.cjs` nhúng logo brand dạng base64 data URI). |
+| **v1.3 (extend)** | **PR này** | **Nhúng biểu-đồ dataviz** — IR `charts[]` render qua **`/dataviz`** (SVG byte-stable chuẩn McKinsey) và nhúng vào MỌI format chứa-chart: svg-inline (html/dashboard/interactive/canvas/article/pdf-via-html), PNG (pptx/docx, rasterize qua headless-Chrome, graceful-degrade), **data-slide** (img-slide — slide bản-chất-là-chart render bằng dataviz, KHÔNG phải gpt-image-2 vốn bịa số), companion (infographics). LLM-native: agent chọn từng chart từ catalog dataviz (`--selected-by=agent`). MỚI `scripts/deepask/chart-embed.cjs` + `deepask/format` §2.7 + cờ `--charts`. $0/offline (dataviz pure). `/cla extend deepask`. |
 | **v1.2-image (extend)** | **merged (#191)** | Trục GENRE `--art-style` (`knowledge/art-styles.yaml`, 80 genres) + cờ `--lang`; image-compose/aesthetic re-arch (GENRE block + per-piece focal_illustration + honesty gate). |
 | **v1.2.0 (extend)** | **merged (#192)** | `--art-style` + `--style` mở rộng sang **code-rendered formats** (html/dashboard/interactive/canvas/chart + pdf-via-html) qua `aesthetic` Part-2. |
 | **v1.2.1 (fix)** | **merged (#193)** | Fix tỉ lệ img-slide → **16:9 native 2048×1152** (no crop, title không bị cắt) theo OpenAI cookbook §4.10. |
@@ -54,6 +58,7 @@ translated_source_hash: b4508d2ca41fc24abf8131e4f73debee3635762281aa162c6f0d7ecc
 | `--max-slides` | int (mặc định `8`) | **chỉ img-slide** — cap số slide (kiểm soát cost); section dư ghi vào `image-plan.json.dropped[]`, không bao giờ âm thầm bỏ. |
 | `--max-cost-usd` | số (mặc định `1.00`) | **chỉ image format** — **cầu dao cost**: nếu ước lượng pre-gen vượt → TỪ CHỐI trước, báo estimate-vs-cap + gợi ý giảm `--img-quality`/`--max-slides`. |
 | `--image-model` | model id (mặc định `gpt-image-2`) | **chỉ image format** — model ảnh OpenAI (tham số hoá cho robustness). |
+| `--charts` | **auto** (mặc định) · `off` | **(v1.3)** nhúng biểu-đồ chuẩn McKinsey qua `/dataviz` (`scripts/deepask/chart-embed.cjs`) khi IR có `charts[]` VÀ format chứa-chart (svg-inline html/dashboard/pdf/article; PNG pptx/docx; **data-slide** cho img-slide — dataviz chính-xác, không phải gpt-image-2; companion cho infographics). Agent chọn từng loại chart từ catalog dataviz (LLM-native, `--selected-by=agent`). **$0/offline** (dataviz pure). `off` → không nhúng chart. `--style`/`--art-style` chảy xuống chart. |
 | `--sources` | csv của \{pillars,ops,metrics,wiki,brain,external,scratch} · **auto** (mặc định) | giới hạn loại IA deepask được chạm (truyền cho resolver-plan như một filter) |
 | `--depth` | quick·**standard** (mặc định)·deep·exhaustive | bound sub-need (≤6 standard / ≤12 deep) + fan-out song song + số phiếu adversarial-verify (0/1/2/3) |
 | `--dry-run` | flag | hiện decomposition + ResolverPlan **thật** + coverage dự đoán + ước lượng cost; KHÔNG read/run/write TRỪ một row `ops.deepask_runs` dry-run. Với image format, `--dry-run` cũng soạn `image-plan.json` + ghi prompt sidecar (`*.prompt.txt`) nhưng KHÔNG gọi gpt-image (không tốn). NB: dry-run CÓ gọi resolver-plan → tiêu resolver-breaker budget → ghi trung thực. |
@@ -81,3 +86,4 @@ translated_source_hash: b4508d2ca41fc24abf8131e4f73debee3635762281aa162c6f0d7ecc
 `/deepask` federate + **compose** `/brain` (gbrain) + `/wiki ask` + supabase-query + `/think`, ủy quyền web cho `deep-research`. Nó KHÔNG route (đó là `resolver-plan`) và KHÔNG tạo/sửa (đó là `/cla` · `/evolve` · `/update`). Internal-first.
 
 > 📚 **Danh sách đầy đủ** mọi `--format`, `--style` và `--art-style` để tra cứu: xem trang **[deepask-catalog](/vi/docs/commands/deepask-catalog)**.
+
