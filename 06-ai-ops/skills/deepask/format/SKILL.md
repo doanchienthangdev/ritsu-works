@@ -92,7 +92,7 @@ These two formats render via OpenAI image generation, so they have an extra pipe
 1. `resolveStyle(--style)` → brand context. **`resolveArtStyle(--art-style)` → genre context (v1.2-image).** `resolveImageSpec({format, orientation})` → `apiSize` (img-slide = **2048×1152 native 16:9, `crop:null`** — no crop, so the title is never clipped, v1.2.1).
 2. **`deepask/image-compose`** → `image-plan.json` (pieces + per-piece gpt-image-2 prompts = byte-identical brand block + **genre block + a REQUIRED per-piece focal illustration from the cited IR** + the EXACT IR text; no new claims; **honesty invariant** — no load-bearing figure exists ONLY as illustration).
 3. **Cost gate:** `image-cost.estimateRunCost({size, quality, count})` → `checkCostBudget({estimatedUsd, maxCostUsd})`. If `!ok` → STOP, report the estimate vs cap, suggest lowering `--img-quality`/`--max-slides` or raising `--max-cost-usd`. Show the estimate either way.
-4. **Gen:** for each piece, `node scripts/deepask/image-gen.cjs --prompt-file=… --size=… --quality=… --model=… --out=images/NN-role.png` (writes PNG via OpenAI; `--dry-run` writes prompt sidecars + no PNG + no spend).
+4. **Gen (v1.4 — via the `/image` platform, §2.8):** for each piece, build the invocation with `scripts/deepask/image-route.cjs` `buildImagePlatformInvocation(piece, {use, maxCostUsd})` (composed prompt → `composed:true`, no double-compose) and run `node scripts/image/gen.cjs --prompt-file=… --use=… --ar=… --quality=… --count=1 --out=<dir>/ --max-cost-usd=…` → `parseImageResult` → move `files[0]` to `images/NN-role.png`. (`--dry-run` writes prompt sidecars + run.json, no PNG, no spend. `--ref`/`--mask` available.)
 5. **Assemble (img-slide only):** `node scripts/deepask/slide-deck.cjs --images-dir=slides/ --out=slides.pdf --crop=16:9` (Pillow; crops each page to true 16:9; graceful-degrade → keep PNGs + note if Pillow absent).
 6. **Always also write `answer.md`** (+ `plan.json` + `sources.json` + `image-plan.json`). The image deck/poster is the rich artifact; the cited text answer is never lost.
 
@@ -149,6 +149,36 @@ renders exactly what it's given). Chart embedding is an **enhancement**: any ren
 **degrades** (SVG kept where supported, a note in `plan.json`) and never fails the deepask run.
 Every embedded chart still clears the §2.6 aesthetic bar (the dataviz McKinsey discipline does this
 by construction: one-highlight, zero-baseline, direct labels, source footer).
+
+### 2.8 Image generation via the `/image` platform (v1.4)
+
+All deepask image generation routes through the **`/image` PLATFORM** (`scripts/image/gen.cjs`)
+via the bridge `scripts/deepask/image-route.cjs` — NOT the low-level `scripts/deepask/image-gen.cjs`
+directly. deepask thereby gains the pluggable **adapter registry** (`--use` → gpt-image-2 today,
+nano-banana/midjourney/flux later), **reference-guided generation** (`--ref`/`--mask`), the governed
+`run.json` + `ai-ops-image` cost-bucket, and the per-run `--max-cost-usd` breaker. Two callers:
+
+1. **infographics / img-slide** — `deepask/image-compose` still AUTHORS the IR-grounded prompt
+   (brand block + genre block + focal illustration + exact cited text + honesty invariant). The
+   composed prompt passes to `/image` with **`composed:true`** → `image-route` does **NOT** re-pass
+   `--style`/`--art-style` (the brand+genre are already in the prompt; re-passing would double the
+   blocks). `buildImagePlatformInvocation` maps the deepask size → `--ar` (`sizeToAr`), passes
+   `--use`/`--quality`/`--count=1`/`--out=<dir>/`/`--max-cost-usd`. `/image` writes `NN.png` into the
+   out-dir; `parseImageResult(stdout)` reads `{ok, files[], cost_usd, outcome, warnings}` and deepask
+   moves `files[0]` → its named slot (`slides/NN-role.png`).
+2. **Intelligent ILLUSTRATION (NEW)** — `shouldIllustrate(format, {illustrate})`: for a rich format
+   (`article`/`pdf`/`html`/`dashboard`/`interactive`/`canvas`) the agent may add a **hero / section
+   illustration** (concept art — NOT a chart; charts go through `/dataviz` §2.7) when it raises
+   quality. Here deepask passes a brief with **`composed:false`** → `/image` composes brand+genre
+   itself. **Explicit-only + budget-gated** (`--illustrate=on|hero`, `--max-cost-usd`) — image gen
+   spends OpenAI $, so it NEVER fires by default (`--illustrate=off`).
+
+**Discipline:** image gen is **OUT-OF-BAND** (`OPENAI_API_KEY`) + **EXPLICIT-ONLY** (never by
+`smartauto`) + **BUDGET-GATED** (the `/image` breaker REFUSES up front over `--max-cost-usd`).
+The illustration carries the SHAPE of an argument, never its SUBSTANCE (the §2.5 honesty invariant
+carries over): every load-bearing number stays legible cited text (or a `/dataviz` chart), never
+locked inside a generated image. `--charts` (dataviz, §2.7) and `--illustrate` (/image, here) are
+orthogonal axes — DATA charts vs CONCEPT imagery.
 
 ### 3. Artifact layout (FILE MODE ONLY — skipped entirely in `inline` default)
 **Inline mode (default) writes nothing to disk** — the cited answer + Sources list live in the conversation; only the Stage-7 `ops.deepask_runs`/`ops.deepask_coverage` audit rows are written (DB rows, not files), with `artifact_path = NULL`. In **file mode** (any explicit `--format`), write to `.archives/deepask/<YYYY-MM-DD>-<slug>/`:

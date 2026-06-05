@@ -1,7 +1,7 @@
 // Tests for scripts/validate-tier1.cjs
 //
 // Phase 1 — Code Analysis:
-//   The script is top-level (no exports). It iterates 27 entries in FILE_TO_SCHEMA,
+//   The script is top-level (no exports). It iterates 29 entries in FILE_TO_SCHEMA,
 //   reads each yaml + schema, validates with Ajv, prints, exits 0/1/2.
 //   Branches: deps-missing(2), yaml-missing(1), schema-missing(1), parse-error(1),
 //             validation-error(1), success-all(0).
@@ -22,7 +22,7 @@ import { tmpdir } from "node:os";
 const REPO = resolve(__dirname, "..");
 const VALIDATOR = join(REPO, "scripts", "validate-tier1.cjs");
 
-// 27 yamls FILE_TO_SCHEMA covers (matches scripts/validate-tier1.cjs)
+// 29 yamls FILE_TO_SCHEMA covers (matches scripts/validate-tier1.cjs)
 const COVERED_YAMLS = [
   "feature-flags.yaml",
   "schedules.yaml",
@@ -52,6 +52,9 @@ const COVERED_YAMLS = [
   "mckinsey-workflow.yaml",
   "mckinsey-templates.yaml",
   "problem-solving-frameworks.yaml",
+  // added by #241-243 (consulting-toolkit + thinking-OS v3.0) — realigned 2026-06-05:
+  "consulting-frameworks.yaml",
+  "consulting-processes.yaml",
 ];
 
 interface RunResult {
@@ -87,10 +90,10 @@ function runValidator(cwd: string): RunResult {
 // ============================================================================
 
 describe("validate-tier1 — real repo (current state)", () => {
-  it("exits 0 with all 27 yamls valid", () => {
+  it("exits 0 with all 29 yamls valid", () => {
     const r = runValidator(REPO);
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/Valid:\s+27\/27/);
+    expect(r.stdout).toMatch(/Valid:\s+29\/29/);
     expect(r.stdout).toMatch(/Invalid:\s+0/);
     expect(r.stdout).toMatch(/Missing:\s+0/);
     expect(r.stdout).toContain("All present files valid");
@@ -236,12 +239,12 @@ describe("validate-tier1 — fixture failure cases", () => {
     expect([0, 1]).toContain(r.status);
   });
 
-  it("preserves exit code 0 when all 27 covered files present + valid", () => {
+  it("preserves exit code 0 when all 29 covered files present + valid", () => {
     // Don't mutate anything — fixture is a copy of the working real repo, so it
-    // should match the full COVERED_YAMLS length (27).
+    // should match the full COVERED_YAMLS length (29).
     const r = runValidator(fixture);
     expect(r.status).toBe(0);
-    expect(r.stdout).toMatch(/Valid:\s+27\/27/);
+    expect(r.stdout).toMatch(/Valid:\s+29\/29/);
   });
 });
 
@@ -256,10 +259,10 @@ describe("validate-tier1 — invariants", () => {
     expect(r1.status).toBe(r2.status);
   });
 
-  it("output mentions exactly 27 yamls (matches FILE_TO_SCHEMA size)", () => {
+  it("output mentions exactly 29 yamls (matches FILE_TO_SCHEMA size)", () => {
     const r = runValidator(REPO);
     // Count occurrences of yaml filenames in output
     const mentioned = COVERED_YAMLS.filter((y) => r.stdout.includes(y));
-    expect(mentioned).toHaveLength(27);
+    expect(mentioned).toHaveLength(29);
   });
 });
