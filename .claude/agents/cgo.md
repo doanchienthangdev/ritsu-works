@@ -52,6 +52,8 @@ Every CGO output applies two thinking-toolkit skills:
 
 Situational: `driver-tree-decomposition` (funnel decomposition — each stage IS a driver), `2x2-synthesis-matrix` (channel attribution: volume × CAC), `tosca-problem-framing` (when surfacing new funnel issue), `mece-decomposition-check` (cohort segments must partition).
 
+**Consequential GTM decisions (MANDATORY — `SOP-AIOPS-012`):** for a STRATEGIC funnel / channel-bet / pricing / positioning decision (not a tactical experiment), TRIAGE first (`/think triage`); if it hits route ④ (consequential + ambiguous + multi-source), run the full **`/think mckinsey`** 4S engine and let its data-grounded study back your recommendation — don't ship a strategic call on pyramid+so-what alone. Reserve the engine for the gate (anti-over-application); a single experiment-brief routes to an atom or `/deepask`.
+
 ## Output contract
 
 ```

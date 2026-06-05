@@ -1004,7 +1004,7 @@ capabilities:
   - id: thinking-toolkit
     name: "Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills)"
     description: |
-      13 skills (11 composable thinking tools + the mckinsey-workflow 4S
+      14 skills (12 composable thinking tools + the mckinsey-workflow 4S
       ENGINE + the mckinsey-sell Sell formatter) extracted from McKinsey/Minto
       thinking discipline, deployed as a
       parent-namespaced skill folder at
@@ -1042,6 +1042,7 @@ capabilities:
         - thinking-toolkit/debias (pre-commit cognitive-bias checklist) [v1.2]
         - thinking-toolkit/mckinsey-workflow (the 4S DYNAMIC ENGINE: workplan routes each hypothesis to real data → validate → update one-day answer → re-route → porpoise; HITL hard-gate; v2.0 TEAM operating model: --mode + 7 team-session checkpoints + sell formatter + thorough data sweep) [v1.3→v2.0]
         - thinking-toolkit/mckinsey-sell (v2.0 Sell formatter — builds the McKinsey-template-structured synthesis IR + renders via deepask/format with --style/--art-style; composes, does not rebuild) [v2.0]
+        - thinking-toolkit/problem-triage (v3.2 — the ROUTER that makes mckinsey the PRIMARY solver: routes a problem to its weight [mckinsey/deepask/atom/direct] on consequence × shape; first step of SOP-AIOPS-012; @ceo/@cgo/@cpo routing reflex) [v3.2]
 
       Origin: Barbara Minto's *Pyramid Principle* (1987), McKinsey internal
       training (TOSCA, driver-tree, So-What), BCG Growth-Share matrix (2x2).
@@ -1064,7 +1065,16 @@ capabilities:
       an auto-run enforcement hook at Sell (pre-write-mckinsey-gate, observation-
       only), and deeper before-sell checks (workplan ≥2 rows · disconfirmation ·
       real data pull). Run record: .archives/mckinsey-rigor-fix-2026-06-05/.
-    version: "3.1.0"
+      v3.2 (2026-06-05, /cla extend, autonomous): the INSTITUTIONALIZATION
+      layer that makes /think mckinsey the workforce's PRIMARY problem-solver —
+      NEW thinking-toolkit/problem-triage (the router: consequence × shape →
+      mckinsey/deepask/atom/direct, anti-over-application), NEW
+      SOP-AIOPS-012-consequential-problem-solving (triage → 4S engine → run-folder
+      = decision record → gate-before-act), and the @ceo/@cgo/@cpo routing reflex
+      (consequential decisions run the full engine, not pyramid+so-what alone).
+      Closes the audit's "primary = a routing property, not a capability property"
+      gap. Run record: .archives/mckinsey-rigor-fix-2026-06-05/05-primary-solver-institutionalization.md.
+    version: "3.2.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28

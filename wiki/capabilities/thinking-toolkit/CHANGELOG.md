@@ -4,6 +4,16 @@
 > (`knowledge/capability-registry.yaml`, `thinking-toolkit` entry) and `spec.md`.
 > This file is the forward changelog from the point it was created (v1.7).
 
+## v3.2.0 — 2026-06-05 — institutionalize `/think mckinsey` as the workforce's PRIMARY problem-solver
+
+**`/cla extend` (autonomous, founder away)** · the v3.1 audit found that "primary problem solver" is a **routing/institutional property, not a capability property** — and that layer was empty: no SOP triggered the engine, no persona invoked it (they used pyramid+so-what only), `/cla` didn't route through it, track record N≈1. The engine was a great tool *on the shelf*. v3.2 builds the layer that puts it to work.
+
+- **NEW `thinking-toolkit/problem-triage` (`/think triage <problem>`)** — the router that makes mckinsey the primary solver **without over-applying it**. Two axes (CONSEQUENCE = stakes × reversibility · SHAPE = known/lookup vs needs-synthesis) → four weights: ① direct answer · ② `/deepask` · ③ a single `/think` atom · ④ `/think mckinsey` (the full 4S engine). Route ④ ONLY when all three hold (consequential + ambiguous + multi-source); else a lighter route + say why (anti–anxious-parade-of-knowledge). The 13th `/think` skill / 15th verb.
+- **NEW `SOP-AIOPS-012-consequential-problem-solving`** — the institutional mandate: a consequential decision (Tier-C/D framing · weekly review question · founder strategic question · `/cla` problem-framing · pillar strategic decision) → triage → (route ④ → run the engine) → the `.archives/mckinsey/<slug>/` run-folder IS the decision record (linked to `ops.decisions`) → act only after the `--before-sell` gate clears AND the decision's own HITL ceremony. Two guards: anti-over-application + thinking-not-deciding.
+- **The @ceo/@cgo/@cpo routing reflex** — `.claude/agents/{ceo,cgo,cpo}.md` now mandate: before a Tier-3/4 (CEO) / strategic-wedge-funnel-build (CGO/CPO) decision, TRIAGE first; route ④ → run the full engine and let its data-grounded study back the recommendation — a strategic call is no longer shipped on pyramid+so-what alone. (Previously the personas referenced only the output atoms.)
+
+**Honest status:** this makes the engine the *designated* primary solver and wires the reflex; the *track record* (≥5 diverse real studies) accumulates only by being invoked — which is exactly what this layer now causes. `thinking-toolkit` → **v3.2.0**. Run record: `.archives/mckinsey-rigor-fix-2026-06-05/05-primary-solver-institutionalization.md`.
+
 ## v3.1.0 — 2026-06-05 — restore the 4S-diagram topology + close the coherence gap + enforce the gate
 
 **`/cla fix`+`extend` (autonomous, founder away)** · a deep audit of `/think mckinsey` against the canonical 4S diagram (*Cracked It!* Fig 3.1) scored it **6.2/10**: the thinking content is excellent (it exceeds the bare diagram) but the one thing McKinsey's power depends on — rigorous, ENFORCED process adherence — had three gaps. This release fixes all three.
