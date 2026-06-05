@@ -1043,7 +1043,7 @@ capabilities:
         - thinking-toolkit/mckinsey-workflow (the 4S DYNAMIC ENGINE: workplan routes each hypothesis to real data → validate → update one-day answer → re-route → porpoise; HITL hard-gate; v2.0 TEAM operating model: --mode + 7 team-session checkpoints + sell formatter + thorough data sweep) [v1.3→v2.0]
         - thinking-toolkit/mckinsey-sell (v2.0 Sell formatter — builds the McKinsey-template-structured synthesis IR + renders via deepask/format with --style/--art-style; composes, does not rebuild) [v2.0]
         - thinking-toolkit/problem-triage (v3.2 — the ROUTER that makes mckinsey the PRIMARY solver: routes a problem to its weight [mckinsey/deepask/atom/direct] on consequence × shape; first step of SOP-AIOPS-012; @ceo/@cgo/@cpo routing reflex) [v3.2]
-        - thinking-toolkit/reasoning-trace (v3.4 — the narrated McKinsey engagement journey: a completed mckinsey run → a client walkthrough, 4 acts × milestones in a 5-beat rhythm [bối cảnh → options+chart → chose+why → dropped+why → ✓ sign-off], chart-rich, -vi-day-du register → PDF, via /think trace; scripts trace-extract.cjs + trace-build.py [chart-library renderer]) [v3.4]
+        - thinking-toolkit/reasoning-trace (v3.5 — the narrated McKinsey engagement journey: a completed mckinsey run → a client walkthrough, 4 acts × milestones in a 5-beat rhythm [bối cảnh → options+chart → chose+why → dropped+why → ✓ sign-off], chart-rich, -vi-day-du register → PDF, via /think trace; v3.5 foregrounds TOOL-SELECTION via the auto toolkit_map [which thinking-tool for which sub-need, ✓/✗ + why] + a MECE issue_tree [kept ✓ · knock-out ★ · cut ✗ + reason]; scripts trace-extract.cjs + trace-build.py [chart-library renderer]) [v3.5]
         - thinking-toolkit/data-verification (v3.3 — the re-check mechanism: triangulate a load-bearing external/degree-≥5 number across ≥2 independent web/deep-research sources → a verification status; wired into the Solve validation gate) [v3.3]
 
       Origin: Barbara Minto's *Pyramid Principle* (1987), McKinsey internal
@@ -1102,7 +1102,23 @@ capabilities:
       → 3.3.0 (reasoning_trace.shape + milestone_rhythm + chart_library). Demo:
       .archives/mckinsey/find-100-love-paying-60d-v3/reasoning-trace.pdf (12pp).
       Run record: .archives/cla/reasoning-trace-v2-journey/.
-    version: "3.4.0"
+      v3.5 (2026-06-06, /cla extend, autonomous): Toolkit Selection made VISIBLE —
+      the McKinsey crux ("excellent, deliberate tool use") made RECORDED + SHOWN.
+      The engine SELECTED tools (CLASSIFY→LOAD→SELECT) but never recorded the choice,
+      so it was invisible in both the report and the trace, and the MECE tree was
+      never drawn. v3.5 adds the 10th run artifact `toolkit-log` (the METHOD ledger:
+      per sub-need — classify · loaded · selected+why · rejected+why; set-equal across
+      mckinsey-run.cjs ↔ validate-mckinsey-workflow.cjs ↔ mckinsey-workflow.yaml 3.4.0)
+      + a --before-sell toolkit gate (≥1 selection row) + a `record` stage in
+      tool_selection + the LOAD stage pointed at thinking-tool-index/<step>.md. Surfaced
+      downstream: the reasoning-trace gains the auto `toolkit_map` chart (which tool for
+      which sub-need, ✓/✗ + why) + a MECE `issue_tree` chart (kept ✓ · knock-out ★ ·
+      cut ✗ + reason) [trace-extract.cjs extracts toolkit; trace-build.py +2 chart types];
+      the mckinsey-sell report gains a mandated Method surface (the MECE tree + the
+      tool-selection table). Demo: the 100-love study's trace regenerated to 14pp / 10
+      charts incl. the two new ones. Tests: +4 toolkit-gate (mckinsey-run) +1 toolkit
+      extract. Run record: .archives/cla/toolkit-selection-visible/.
+    version: "3.5.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28

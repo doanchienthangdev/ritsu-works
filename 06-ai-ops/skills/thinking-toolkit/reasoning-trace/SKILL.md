@@ -7,16 +7,18 @@ description: |
   to a client and getting sign-off at each stage. Four acts (State / Structure /
   Solve / Sell); inside each, every team-session checkpoint is a "chặng" told in a
   fixed 5-beat rhythm — bối cảnh → the options (with a narrative CHART) → what we
-  chose + why → what we dropped + why → the client's ✓ sign-off. Chart-rich (a
-  journey map, a decision funnel, the kept/dropped cut, the funnel math, the path),
-  in flowing accessible prose. Renders to PDF.
+  chose + why → what we dropped + why → the client's ✓ sign-off. Chart-rich; v3.5
+  foregrounds the McKinsey crux — EXCELLENT TOOL USE — with a `toolkit_map` (which
+  thinking-tool for which sub-need, ✓ chosen / ✗ rejected + why) and a MECE
+  `issue_tree` (kept ✓ · knock-out ★ · cut ✗ + reason), plus the journey map, the
+  decision funnel, the cut, the funnel math, the path. Flowing accessible prose → PDF.
 
   Trigger: `/think trace <slug>`; or after any substantial `/think mckinsey` run
   when you want to SHOW the reasoning journey persuasively (not just the answer —
-  the report carries that). Capability thinking-toolkit v3.4.
+  the report carries that). Capability thinking-toolkit v3.5.
 
   Skip when: the run was a `--depth=quick` accordion (no run folder); a trivial
-  question. Needs the 9 persisted artifacts to reconstruct from.
+  question. Needs the 10 persisted artifacts to reconstruct from.
 allowed-tools: [Read, Write, Bash]
 disable-model-invocation: false
 ---
@@ -33,8 +35,8 @@ The founder's verdict on the old v3.3 trace: *"khó hiểu và khó theo trình 
 
 A `reasoning-trace.{md,pdf}` in the run folder, shaped as a **client walkthrough**:
 
-1. **Opening** — "how to read this journey" + a one-page **journey map** (the 4S arc with the milestones as numbered stations, each with its ✓ sign-off, + the porpoise loop). The whole journey on one page.
-2. **Four acts** — STATE → STRUCTURE → SOLVE → SELL, each act a page-break, holding its milestones.
+1. **Opening** — "how to read this journey" + a one-page **journey map** (the 4S arc with the milestones as numbered stations, each with its ✓ sign-off, + the porpoise loop) + a short **"how we chose our tools"** section carrying the **`toolkit_map`** chart. The McKinsey crux is *excellent, deliberate tool use* — so the whole tool-selection (which thinking-tool for which sub-need · ✓ chosen + why · ✗ rejected + why, grouped by 4S step) leads, not hides.
+2. **Four acts** — STATE → STRUCTURE → SOLVE → SELL, each act a page-break, holding its milestones. **STRUCTURE MUST carry the `issue_tree`** — the MECE decomposition drawn as a tree (kept branches ✓ · the knock-outs ★ · the out-of-scope cuts ✗ grey + a reason for each). This is the founder's explicit ask: *a tree showing the list of choices + cuts + the why-keep / why-drop argument.*
 3. **Each milestone (a "chặng")** is told in the **5-beat rhythm** (below), with **one narrative chart** that shows the THINKING (options narrowing, the cut, the math), not just structure.
 4. **Closing** — the answer + *why you can trust it* (because the journey was disciplined and signed off at every step), with the path chart.
 
@@ -44,7 +46,7 @@ For each of the run's team-session checkpoints, write a `## Mốc N — <kind>` 
 
 1. **Bối cảnh.** — what we faced at this point; why this milestone mattered.
 2. **Các lựa chọn.** — the options that were on the table, **followed by a narrative chart** (the funnel of strategies, the kept/dropped cut, the funnel math…). Narrate the chart ("hình này cho thấy…").
-3. **Lựa chọn và vì sao.** — what we chose, and the rationale: which framework/lens fit (TOSCA, driver-tree, the funnel model, the judge-panel…), and why it was right here.
+3. **Lựa chọn và vì sao.** — what we chose, and the rationale. **Name the actual thinking-tool selected (from `toolkit-log.md`)** + why it fit THIS need + the notable candidate rejected (why-not / debias) — do not say "we used a framework" vaguely. This is the McKinsey crux made narrative: e.g. *"chúng tôi chọn **cây vấn đề MECE** (không phải kim-tự-tháp giả thuyết, vì chưa có niềm tin mạnh) vì nó phơi ra nhánh-bằng-0-giết-cả-tích."* Source every tool claim from the recorded toolkit-log row — never invent a tool choice the ledger doesn't hold.
 4. **Bỏ gì và vì sao.** — what we **explicitly dropped**, and why. This is the most persuasive beat — it proves discipline. Name the dropped options; give the one-line reason for each.
 5. **✓ Nghiệm thu.** — the client's sign-off at that checkpoint (the recorded consensus/decision), as a **green sign-off box** (raw HTML, see below).
 
@@ -53,7 +55,8 @@ Map the 7 standard checkpoints to acts: **STATE** = {frame}; **STRUCTURE** = {hy
 ## The pipeline (extract → author walkthrough + chart-specs → render)
 
 ```bash
-# 1. EXTRACT — pure Node; builds trace.json (the skeleton) from the 9 artifacts
+# 1. EXTRACT — pure Node; builds trace.json (the skeleton) from the 10 artifacts
+#    (incl. the v3.5 toolkit-log → trace.json.toolkit → the auto toolkit_map chart)
 node scripts/thinking-toolkit/trace-extract.cjs <slug-or-path>
 
 # 2. AUTHOR (this is YOU) — write TWO files into the run folder:
@@ -77,11 +80,12 @@ Read `trace.json` + the source artifacts (`checkpoint-log.md`, `analysis-log.md`
 
 ### Writing `trace-charts.json`
 
-A map `{ "<chart-name>": {type, …data} }`. The renderer always draws three AUTO charts from `trace.json` (`journey`, `receipts`, `tools`) — you reference them by those names. You author the rest from this library:
+A map `{ "<chart-name>": {type, …data} }`. The renderer always draws **four AUTO charts** from `trace.json` (`journey`, `receipts`, `tools`, **`toolkit_map`** — the last drawn straight from the recorded `toolkit-log`, so it's faithful, no invention) — you reference them by those names. You author the rest from this library:
 
 | `type` | Use for | Key fields |
 |---|---|---|
 | `journey` *(override)* | clean in-register captions on the journey map | `stations: [{kind, decision}]` aligned 1:1 with checkpoints — strongly recommended (else the map shows raw run-log decisions) |
+| **`issue_tree`** | **the MECE decomposition as a tree (MANDATORY at STRUCTURE)** — kept ✓ · knock-out ★ · dropped/out-of-scope ✗ + reason | `root`, `title?`, `branches: [{label, status: kept\|knockout\|dropped, reason?, children?}]` (nest `children` arbitrarily deep) |
 | `funnel` | options/quantities narrowing (6→3→1, the funnel math) | `title`, `stages: [{label, value, display?, note?}]` |
 | `kept_dropped` | the cut — what we kept vs dropped + reasons | `title`, `kept: [str]`, `dropped: [{item, reason}]` |
 | `line_band` | a path / projection with a range band | `title`, `weeks[]`, `low[]`, `high[]`, `target`, `window?`, labels |
@@ -90,7 +94,7 @@ A map `{ "<chart-name>": {type, …data} }`. The renderer always draws three AUT
 | `twobytwo` | positioning on 2 axes | `title`, `x_label`, `y_label`, `items: [{label, x, y, kept?}]` |
 | `callout` | 2–4 big-number tiles | `title`, `tiles: [{number, label}]` |
 
-Pick the chart that makes each milestone's THINKING visible. A milestone with no obvious data chart can lean on the auto `journey`/`receipts`/`tools` or a `callout`. Keep `funnel`/`bars` labels short — push detail into `note`; the renderer wraps but very long in-box labels still crowd.
+**Two charts are non-negotiable** (the founder's two asks): the auto **`toolkit_map`** in the opening "how we chose our tools" section, and a skill-authored **`issue_tree`** at STRUCTURE. Build the `issue_tree.branches` from `decomposition.md` (the MECE tree is there as text) — mark the knock-out leaves `status:"knockout"` and the explicitly-cut scope items `status:"dropped"` with a one-line `reason`. Then pick a narrative chart per other milestone. Keep `funnel`/`bars` labels short — push detail into `note`; the renderer wraps but very long in-box labels still crowd. The renderer strips light markdown (`**`/`*`/`` ` ``) from chart text, so a `**slug**` in the toolkit-log renders clean.
 
 ## Honesty + anti-claims
 

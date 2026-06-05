@@ -1874,16 +1874,18 @@ thinking moved, milestone by milestone, exactly like a McKinsey member presentin
 to a client and getting sign-off at each stage. Four acts (State / Structure /
 Solve / Sell); inside each, every team-session checkpoint is a "chặng" told in a
 fixed 5-beat rhythm — bối cảnh → the options (with a narrative CHART) → what we
-chose + why → what we dropped + why → the client's ✓ sign-off. Chart-rich (a
-journey map, a decision funnel, the kept/dropped cut, the funnel math, the path),
-in flowing accessible prose. Renders to PDF.
+chose + why → what we dropped + why → the client's ✓ sign-off. Chart-rich; v3.5
+foregrounds the McKinsey crux — EXCELLENT TOOL USE — with a `toolkit_map` (which
+thinking-tool for which sub-need, ✓ chosen / ✗ rejected + why) and a MECE
+`issue_tree` (kept ✓ · knock-out ★ · cut ✗ + reason), plus the journey map, the
+decision funnel, the cut, the funnel math, the path. Flowing accessible prose → PDF.
 
 Trigger: `/think trace <slug>`; or after any substantial `/think mckinsey` run
 when you want to SHOW the reasoning journey persuasively (not just the answer —
-the report carries that). Capability thinking-toolkit v3.4.
+the report carries that). Capability thinking-toolkit v3.5.
 
 Skip when: the run was a `--depth=quick` accordion (no run folder); a trivial
-question. Needs the 9 persisted artifacts to reconstruct from.
+question. Needs the 10 persisted artifacts to reconstruct from.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/reasoning-trace" })`
 **HITL tier:** B

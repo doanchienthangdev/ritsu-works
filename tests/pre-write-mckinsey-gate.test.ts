@@ -39,11 +39,18 @@ const GOOD_CP = `# cp
 | C1 | solve | dissent | falsifier | held | keep |
 | C2 | sell | pre-wire | final | agreed | ship |
 `;
+// v3.5: the disciplined run also records its tool-selection (≥1 selection + a rejected note).
+const GOOD_TK = `# tk
+| id | step | sub-need | classify | loaded | selected | rejected |
+|---|---|---|---|---|---|---|
+| T1 | solve | is the cliff causal | causation | cohort-split, regression | cohort-split — cheap heuristic | regression — big gun, not needed |
+`;
 function disciplined(slug: string) {
   scaffoldRun(RUN_ROOT, slug);
   writeIn(slug, "workplan.md", GOOD_WP);
   writeIn(slug, "one-day-answer.md", GOOD_ODA);
   writeIn(slug, "checkpoint-log.md", GOOD_CP);
+  writeIn(slug, "toolkit-log.md", GOOD_TK);
 }
 function undisciplined(slug: string) {
   scaffoldRun(RUN_ROOT, slug); // pristine: 0 rows, empty disconfirmation, no dissent/pre-wire

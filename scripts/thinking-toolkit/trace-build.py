@@ -51,6 +51,11 @@ def _save(fig, out):
     plt.close(fig)
 
 
+def _plain(s):
+    # strip light markdown so matplotlib doesn't render literal ** / ` / * markers
+    return str(s or "").replace("**", "").replace("`", "").replace("*", "")
+
+
 def _wrap(s, n):
     return "\n".join(textwrap.wrap(str(s), n)) if s else ""
 
@@ -135,7 +140,81 @@ def chart_tools(trace, out):
     _save(fig, out)
 
 
+def chart_toolkit_map(trace, out):
+    """AUTO from trace['toolkit'] (the method ledger) — which thinking-tool for which sub-need,
+    grouped by 4S step: ✓ selected + why  vs  ✗ rejected/debias + why. The visible proof of
+    deliberate tool use. Drawn straight from the recorded toolkit-log — no invention."""
+    tk = trace.get("toolkit", [])
+    order = {"state": 0, "structure": 1, "solve": 2, "sell": 3}
+    tk = sorted(tk, key=lambda r: order.get((r.get("step") or "").lower(), 9))
+    if not tk:
+        fig, ax = plt.subplots(figsize=(9.0, 1.4))
+        ax.text(0.5, 0.5, "Chưa ghi nhận lựa chọn công cụ (toolkit-log trống)", ha="center", va="center",
+                fontsize=10, color=GREY, style="italic")
+        ax.axis("off"); _save(fig, out); return out
+    n = len(tk)
+    fig, ax = plt.subplots(figsize=(11.6, max(2.8, 0.95 * n + 1.0)))
+    ax.text(0.03, n + 0.30, "ĐÃ CHỌN + vì sao", fontsize=8.6, fontweight="bold", color=GREEN)
+    ax.text(0.40, n + 0.30, "ĐÃ CHỌN (tool + vì sao hợp)", fontsize=8.6, fontweight="bold", color=GREEN)
+    ax.text(0.71, n + 0.30, "ĐÃ BỎ / debias + vì sao", fontsize=8.6, fontweight="bold", color=RED)
+    for i, r in enumerate(tk):
+        y = n - i - 1
+        step = (r.get("step") or "").lower(); col = ACT_COLOR.get(step, GREY)
+        ax.add_patch(Rectangle((0.005, y + 0.10), 0.014, 0.78, color=col, zorder=2))
+        ax.text(0.03, y + 0.66, ACT_NAME.get(step, step.upper()), fontsize=6.8, fontweight="bold", color=col, va="center")
+        ax.text(0.03, y + 0.34, _wrap(_plain(r.get("sub_need", "")), 24), fontsize=8.0, color=INK, va="center", fontweight="bold")
+        ax.add_patch(FancyBboxPatch((0.385, y + 0.12), 0.31, 0.74, boxstyle="round,pad=0.01", fc="#E9F8F0", ec=GREEN, lw=1.0))
+        ax.text(0.40, y + 0.49, "✓ " + _wrap(_plain(r.get("selected", "")) or "—", 42), fontsize=7.4, color=INK, va="center")
+        ax.add_patch(FancyBboxPatch((0.705, y + 0.12), 0.29, 0.74, boxstyle="round,pad=0.01", fc="#F4F6F8", ec=GREY, lw=0.9))
+        ax.text(0.72, y + 0.49, "✗ " + _wrap(_plain(r.get("rejected", "")) or "—", 38), fontsize=7.0, color="#5a6b76", va="center")
+    ax.set_xlim(0, 1); ax.set_ylim(0, n + 0.55); ax.axis("off")
+    ax.set_title("Bản đồ chọn công cụ tư duy — dùng tool nào cho việc gì, vì sao chọn / vì sao bỏ",
+                 loc="left", fontsize=12, fontweight="bold", color=INK, pad=14)
+    _save(fig, out); return out
+
+
 # ============================ SPEC charts (from trace-charts.json) ============================
+def chart_issue_tree(spec, out):
+    """MECE issue tree — the decomposition as a tree: kept branches (✓) · knock-outs (★) ·
+    dropped/out-of-scope (✗ grey + reason). The founder's ask: a tree showing the list of
+    choices + cuts + the why-keep / why-drop argument. Outline-indent layout (compact, reads
+    top-to-bottom). spec: {root, title?, branches:[{label,status,reason?,children?}]}."""
+    flat = []  # [depth, node, parent_index]
+
+    def walk(node, depth, parent):
+        idx = len(flat)
+        flat.append([depth, node, parent])
+        for ch in node.get("children", []):
+            walk(ch, depth + 1, idx)
+    root = {"label": spec.get("root", ""), "status": "root", "children": spec.get("branches", [])}
+    walk(root, 0, -1)
+    n = len(flat)
+    fig, ax = plt.subplots(figsize=(11.2, max(3.0, 0.5 * n + 0.9)))
+    pos = []
+    for i, (depth, node, parent) in enumerate(flat):
+        pos.append((0.035 + depth * 0.06, n - i - 0.5))
+    for i, (depth, node, parent) in enumerate(flat):          # connectors behind
+        if parent >= 0:
+            px, py = pos[parent]; cx, cy = pos[i]
+            ax.plot([px, px], [py, cy], color=LGREY, lw=1.0, zorder=1)
+            ax.plot([px, cx], [cy, cy], color=LGREY, lw=1.0, zorder=1)
+    MARK = {"root": "●", "kept": "✓", "knockout": "★", "dropped": "✗"}
+    COL = {"root": INK, "kept": CYAN, "knockout": AMBER, "dropped": GREY}
+    for i, (depth, node, parent) in enumerate(flat):
+        x, y = pos[i]; st = node.get("status", "kept")
+        ax.scatter(x, y, s=240 if st == "root" else 150, color=COL.get(st, CYAN), edgecolor="white", lw=1, zorder=3)
+        ax.text(x, y, MARK.get(st, "✓"), ha="center", va="center", color="white", fontsize=7.4, fontweight="bold", zorder=4)
+        fs = 9.4 if depth == 0 else (8.5 if depth == 1 else 7.9)
+        wt = "bold" if depth <= 1 else "normal"
+        txtcol = "#8a97a0" if st == "dropped" else INK
+        reason = node.get("reason", "")
+        full = _plain(node.get("label", "")) + (f"  — {_plain(reason)}" if reason else "")
+        ax.text(x + 0.02, y, _wrap(full, max(40, 78 - depth * 8)), fontsize=fs, color=txtcol, va="center", fontweight=wt, zorder=4)
+    ax.set_xlim(0, 1); ax.set_ylim(0, n); ax.axis("off")
+    ax.set_title(spec.get("title", "Cây vấn đề (MECE) — giữ ✓ · knock-out ★ · loại ✗ + lý do"),
+                 loc="left", fontsize=12, fontweight="bold", color=INK, pad=12)
+    _save(fig, out)
+
 def chart_funnel(spec, out):
     stages = spec.get("stages", [])
     fig, ax = plt.subplots(figsize=(8.6, max(2.6, 0.98 * len(stages) + 0.8)))
@@ -267,7 +346,8 @@ def chart_callout(spec, out):
 
 
 SPEC_RENDERERS = {"funnel": chart_funnel, "kept_dropped": chart_kept_dropped, "line_band": chart_line_band,
-                  "assumptions": chart_assumptions, "bars": chart_bars, "twobytwo": chart_twobytwo, "callout": chart_callout}
+                  "assumptions": chart_assumptions, "bars": chart_bars, "twobytwo": chart_twobytwo,
+                  "callout": chart_callout, "issue_tree": chart_issue_tree}
 
 
 def md_to_html(md):
@@ -360,6 +440,7 @@ def main():
     chart_journey(trace, dd / "journey.png", override=(journey_spec or {}).get("stations"))
     chart_receipts(trace, dd / "receipts.png")
     chart_tools(trace, dd / "tools.png")
+    chart_toolkit_map(trace, dd / "toolkit_map.png")
 
     # spec charts authored by the skill
     rendered = []
@@ -385,9 +466,10 @@ def main():
         <span class="stat"><b>{s['checkpoints']}</b> mốc</span>
         <span class="stat"><b>{s['analyses']}</b> phân tích</span>
         <span class="stat"><b>{s['hitl_receipts']}</b> điều đã hỏi</span>
+        <span class="stat"><b>{s.get('toolkit_selections', 0)}</b> lựa chọn công cụ</span>
         <span class="stat"><b>{s['porpoises']}</b> porpoise</span>
         <span class="stat"><b>{s['external_numbers']}</b> số liệu ngoài (đã verify)</span>
-        <br/>Ritsu · ritsu-works · /think mckinsey · thinking-toolkit v3.4 reasoning-trace
+        <br/>Ritsu · ritsu-works · /think mckinsey · thinking-toolkit v3.5 reasoning-trace
       </div></div>"""
     body = md_to_html(narration)
     htmldoc = f"<!DOCTYPE html><html lang='vi'><head><meta charset='utf-8'></head><body>{cover}{body}</body></html>"
@@ -398,7 +480,7 @@ def main():
         fc = FontConfiguration()
         out = run / "reasoning-trace.pdf"
         HTML(string=htmldoc, base_url=str(run)).write_pdf(str(out), stylesheets=[WCSS(string=CSS, font_config=fc)], font_config=fc)
-        print(f"[OK] reasoning-trace.pdf → {out} ({out.stat().st_size // 1024} KB) · charts: journey, receipts, tools" + (", " + ", ".join(rendered) if rendered else ""))
+        print(f"[OK] reasoning-trace.pdf → {out} ({out.stat().st_size // 1024} KB) · charts: journey, receipts, tools, toolkit_map" + (", " + ", ".join(rendered) if rendered else ""))
     except Exception as e:
         print(f"[OK] reasoning-trace.html written; PDF skipped ({e.__class__.__name__}: {e}).")
 

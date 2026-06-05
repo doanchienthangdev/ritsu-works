@@ -3,11 +3,12 @@
 /**
  * scripts/thinking-toolkit/trace-extract.cjs
  *
- * The deterministic core of capability `thinking-toolkit` v3.3 (Reasoning Trace).
- * Reads a COMPLETED /think mckinsey run folder (the 9 persisted artifacts) and
+ * The deterministic core of capability `thinking-toolkit` Reasoning Trace (v3.3+).
+ * Reads a COMPLETED /think mckinsey run folder (the 10 persisted artifacts) and
  * reconstructs a STRUCTURED, ordered TRACE of the reasoning journey — the
  * timeline of team-session checkpoints, the data pulls + their tools + certainty,
- * the workplan routing, and the HITL receipts — into a single `trace.json`.
+ * the workplan routing, the HITL receipts, and (v3.5) the TOOLKIT-SELECTION ledger
+ * (which thinking-tool for which sub-need + why) — into a single `trace.json`.
  *
  * This is the machine-readable backbone that `thinking-toolkit/reasoning-trace`
  * (the skill) narrates and `scripts/thinking-toolkit/trace-build.py` (the local
@@ -90,6 +91,15 @@ function extractTrace(runDir) {
     answer: ['founder answer', 'answer'], feeds: ['feeds datum', 'feeds'],
   });
 
+  // v3.5: the METHOD ledger — which thinking-tool was SELECTED for which sub-need + why,
+  // and what was REJECTED. Recorded in toolkit-log.md; feeds the auto `toolkit_map` chart
+  // (faithful to the ledger — no invention) + the per-milestone tool-selection narration.
+  const toolkit = rows(readTable(runDir, 'toolkit-log.md'), {
+    id: ['id'], step: ['step'], sub_need: ['sub-need', 'subneed', 'sub need'],
+    classify: ['classify'], loaded: ['loaded'],
+    selected: ['selected', 'select'], rejected: ['rejected', 'reject', 'debias'],
+  });
+
   // tool-usage tally across the data pulls
   const tools_used = {};
   for (const a of analyses) tools_used[a.tool] = (tools_used[a.tool] || 0) + 1;
@@ -110,12 +120,13 @@ function extractTrace(runDir) {
 
   return {
     slug: path.basename(runDir),
-    checkpoints, analyses, workplan, hitl, bands, tools_used, external_data,
+    checkpoints, analyses, workplan, hitl, toolkit, bands, tools_used, external_data,
     stats: {
       checkpoints: checkpoints.length,
       analyses: analyses.length,
       hitl_receipts: hitl.length,
       workplan_rows: workplan.length,
+      toolkit_selections: toolkit.length,
       porpoises,
       external_numbers: external_data.length,
     },
@@ -141,7 +152,7 @@ function main() {
   const out = path.join(runDir, 'trace.json');
   fs.writeFileSync(out, JSON.stringify(trace, null, 2));
   const s = trace.stats;
-  console.log(`[OK] trace → ${out} (${s.checkpoints} checkpoints · ${s.analyses} analyses · ${s.hitl_receipts} receipts · ${s.porpoises} porpoise · ${s.external_numbers} external numbers)`);
+  console.log(`[OK] trace → ${out} (${s.checkpoints} checkpoints · ${s.analyses} analyses · ${s.hitl_receipts} receipts · ${s.toolkit_selections} tool-selections · ${s.porpoises} porpoise · ${s.external_numbers} external numbers)`);
 }
 
 if (require.main === module) main();

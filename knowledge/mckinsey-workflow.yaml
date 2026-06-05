@@ -97,7 +97,17 @@
 # Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
 # ============================================================================
 
-version: "3.3.0"
+version: "3.4.0"
+# v3.4 (Toolkit Selection made VISIBLE — thinking-toolkit v3.5, 2026-06-06): the
+#   McKinsey crux is excellent, DELIBERATE tool use — but the engine SELECTED tools
+#   (CLASSIFY→LOAD→SELECT) without RECORDING the choice, so it was invisible in both
+#   the report and the reasoning-trace, and the MECE tree was never drawn. v3.4 adds
+#   the 10th artifact `toolkit-log` (the METHOD LEDGER: per sub-need — classify · loaded
+#   · selected+why · rejected+why), a `record` stage to tool_selection, a --before-sell
+#   toolkit gate (≥1 selection row), and points the LOAD stage at thinking-tool-index/
+#   <step>.md. Downstream (thinking-toolkit v3.5): the Sell report gains a Method
+#   section + the reasoning-trace gains issue_tree + toolkit_map charts. ARTIFACTS set
+#   stays set-equal across mckinsey-run.cjs ↔ validate-mckinsey-workflow.cjs ↔ this file.
 # v3.3 (Reasoning Trace v2 — narrated engagement journey — thinking-toolkit v3.4,
 #   2026-06-05): re-architects the `reasoning_trace` OUTPUT. The v3.2 trace was a
 #   technical skeleton (4S box diagram + dot timeline + flat tables) the founder
@@ -133,6 +143,7 @@ artifacts:
     - {name: one-day-answer,    stage: state,     contents: "the LIVING state, SEEDED at State as the day-one hypothesis ('if forced to answer today, we'd say X' — Bulletproof's day-one answer) the moment the problem is framed, then formalized as situation→observation→resolution and UPDATED after every Solve analysis. It is the spine that re-ranks the open workplan rows; it is NOT born at Solve — Solve only sharpens it"}
     - {name: hitl-log,          stage: state,     contents: "v1.8 HITL RECEIPT LEDGER — one row per REAL AskUserQuestion put to the founder (id H1, H2, …; verbatim ONE-LINE answer, <br> for breaks). Seeded at State (Success/Constraint asks), appended through Solve. analysis-log 'ask-user' data rows MUST carry a [H<n>] tag resolving here; the run-folder gate (mckinsey-run.cjs) FAILS a bare 'ask-user' with no receipt. DISCIPLINE NOT PROOF: it cannot prove the ask happened — it makes skipping it a gate failure + gives the founder an auditable spot-check trail. Did not ask → label the datum 'assumption' (degree >=6 + sensitivity), never a fabricated ask-user"}
     - {name: checkpoint-log,    stage: state,     contents: "v2.0 McKINSEY TEAM-SESSION LEDGER — one row per team problem-solving session. kind ∈ frame|hypothesize|plan|prioritize|porpoise|dissent|pre-wire. Seeded at State, appended through Solve. The Solve→Sell gate (mckinsey-run.cjs --before-sell) REQUIRES a pre-wire row (the close) + a dissent row (red-team the ANALYSIS: name the one analysis that, if wrong, flips the answer — the disconfirmation discipline) and WARNS if frame/prioritize are missing. interactive mode asks the founder-as-team-member 'what would have to be true for this to be WRONG?'. DISCIPLINE NOT PROOF: can't prove the session happened — makes skipping the closing sessions a failure + leaves an auditable trail"}
+    - {name: toolkit-log,       stage: structure, contents: "v3.5 METHOD LEDGER — one row per (4S step · sub-need): the CLASSIFY tags (solve_mode/analysis_mode/framework_shape) · the candidates LOADed from knowledge/thinking-tool-index/<step>.md · the ≤3 SELECTED tools (slug + why-fit) · the REJECTED (+ why-not / debias). The McKinsey crux — excellent, deliberate tool use — made RECORDED + auditable (you can no longer claim a framework you didn't deliberately pick). Seeded at State, appended through Sell. The --before-sell gate REQUIRES ≥1 selection row + WARNS if no rejected/debias note. DISCIPLINE NOT PROOF, like hitl-log/checkpoint-log. SURFACED downstream: the Sell report's Method section + the reasoning-trace's toolkit_map + issue_tree charts"}
     - {name: synthesis,         stage: sell,      contents: "STEP 6 (synthesize the LOGIC): pyramid — governing thought → MECE key line → support; the argument must stand on its own before any storytelling. Built from the final one-day-answer + the analysis-log"}
     - {name: communication,     stage: sell,      contents: "STEP 7 (communicate the STORY): the synthesis rendered for THIS audience — grouping vs SCR/SCQA storyline, action titles, pre-wire plan. APK GUARD: lead with the answer; do NOT parade the analysis (anxious-parade-of-knowledge) or tell the story-of-the-search"}
 
@@ -255,8 +266,8 @@ tool_selection:
   # -- LOAD: pull the candidate shortlist for THIS step + classification --
   - stage: load
     decides: "the candidate shortlist for the current 4S step"
-    via: "FILTER knowledge/problem-solving-frameworks.yaml WHERE fours_step ∈ {current-step, cross} AND type matches the need (framework/model/heuristic/technique = tools to apply; bias/antipattern = feed the validation gate, not the solution). THEN resolver_find for matching /think skills, and wiki_ask to surface any long-tail concept not in the shortlist. Read each finalist's wiki_path content before applying — type is only a filter hint."
-    registry: knowledge/problem-solving-frameworks.yaml
+    via: "LOAD ONLY `knowledge/thinking-tool-index/<step>.md` (frame|structure|solve|sell|cross — the compact per-step map of the 631-tool library; at STRUCTURE also scan `processes.md` for a domain-process spine). This is the context-lost guard — do NOT load the full registries. Filter the map by domain + cognitive-move + `select when`. THEN resolver_find for matching /think skills, and wiki_ask to surface any long-tail concept not in the map. Read each finalist's → page before applying — the map is a pointer, the page is the how-to."
+    registry: "knowledge/thinking-tool-index/<step>.md (backing-tag registries — knowledge/consulting-frameworks.yaml + knowledge/problem-solving-frameworks.yaml + knowledge/consulting-processes.yaml)"
   # -- SELECT + COMBINE: pick ≤3, guard against the familiar-tool trap --
   - stage: select
     decides: "which 1-3 candidates to actually apply"
@@ -270,6 +281,11 @@ tool_selection:
     decides: "cost discipline on the chosen tool"
     via: "Heuristics before big guns — the cheapest tool that resolves the sub-need wins; escalate to regression / ML / Monte-Carlo only when a heuristic provably can't move the answer (ties to the knock-out gate)."
     concept: {book: bulletproof-problem-solving, slug: heuristics-before-big-guns}
+  # -- RECORD (v3.5): write the choice down — selection isn't real until it's logged --
+  - stage: record
+    decides: "make the selection auditable + visible (the McKinsey crux is RECORDED tool use, not silent tool use)"
+    via: "Write one `toolkit-log.md` row per (4S step · sub-need): the CLASSIFY tags · the candidates LOADed (from thinking-tool-index/<step>.md) · the ≤3 SELECTED (slug + why-fit) · the REJECTED (+ why-not / debias). The --before-sell gate REQUIRES ≥1 selection row. This is what makes tool-selection surfaceable in the Sell report (Method) + the reasoning-trace (toolkit_map + issue_tree) — a choice you didn't record can't be shown, and a study that shows no deliberate tool selection has hidden its most important work."
+    artifact: toolkit-log
 
 # --------------------------------------------------------------------------
 # VALIDATION GATE — run on EVERY analysis/datum before it updates the one-day
@@ -533,7 +549,7 @@ steps:
       hypothesis to an analysis + a DATA SOURCE + an owner + a dummy exhibit.
       "We don't do any analysis for which we don't have a hypothesis."
     bulletproof_7step: ["Disaggregate the issues", "Prioritize", "Build a workplan"]
-    produces: [decomposition, workplan]
+    produces: [decomposition, workplan, toolkit-log]
     skills:
       - thinking-toolkit/mece-decomposition-check
       - thinking-toolkit/driver-tree-decomposition
@@ -571,7 +587,7 @@ steps:
       DESIGN BRANCH (ill-defined/human/innovation): empathize → reframe (HMW) →
       ideate → prototype → test, looping until desirability×feasibility×viability.
     bulletproof_7step: ["Conduct analyses"]
-    produces: [analysis-log, one-day-answer, hitl-log, checkpoint-log]
+    produces: [analysis-log, one-day-answer, hitl-log, checkpoint-log, toolkit-log]
     skills:
       - thinking-toolkit/root-cause
       - thinking-toolkit/design-thinking
