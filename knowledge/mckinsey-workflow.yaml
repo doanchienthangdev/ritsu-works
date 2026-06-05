@@ -97,17 +97,22 @@
 # Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
 # ============================================================================
 
-version: "3.2.0"
+version: "3.3.0"
+# v3.3 (Reasoning Trace v2 — narrated engagement journey — thinking-toolkit v3.4,
+#   2026-06-05): re-architects the `reasoning_trace` OUTPUT. The v3.2 trace was a
+#   technical skeleton (4S box diagram + dot timeline + flat tables) the founder
+#   found "khó hiểu và khó theo trình tự suy nghĩ". v3.3 makes it a McKinsey CLIENT
+#   WALKTHROUGH: 4 acts (State/Structure/Solve/Sell), each milestone (the team-
+#   session checkpoints) told in a fixed 5-beat rhythm (bối cảnh → options+chart →
+#   chose+why → dropped+why → ✓ client sign-off), chart-rich (journey map · decision
+#   funnel · the kept/dropped cut · funnel math · path), in the -vi-day-du register.
+#   The skill now authors reasoning-trace.md (walkthrough) + trace-charts.json (chart
+#   specs); trace-build.py is the chart-library renderer. `data_verification`
+#   unchanged. Additive sub-fields under reasoning_trace (schema additionalProperties).
 # v3.2 (Reasoning Trace + Data Verification — thinking-toolkit v3.3, 2026-06-05):
-#   adds two engine sections — `data_verification` (the re-check MECHANISM: a
-#   load-bearing EXTERNAL/degree->=5 datum is triangulated across >=2 independent
-#   web/deep-research sources → a verification STATUS, no longer optional prose in
-#   the validation_gate) + `reasoning_trace` (the thinking-journal OUTPUT:
-#   `/think trace <slug>` turns the run folder into a narrated 4S timeline +
-#   flow/tree graph + provenance ledger + decision log → PDF). Wires
-#   thinking-toolkit/data-verification into the Solve step + strengthens the
-#   deep-research routing note (actively search; verify before the number moves the
-#   answer). Both new sections are additive top-level keys (schema additionalProperties).
+#   added `data_verification` (re-check MECHANISM: triangulate a load-bearing
+#   EXTERNAL/degree->=5 datum across >=2 sources → a STATUS) + `reasoning_trace`
+#   (the trace OUTPUT); wired data-verification into Solve. Additive top-level keys.
 schema: knowledge/schemas/mckinsey-workflow.schema.json
 spine: "4S"                                   # State / Structure / Solve / Sell (Cracked it! Ch 3)
 source_books: [cracked-it, bulletproof-problem-solving]
@@ -665,13 +670,21 @@ data_verification:
 # trace-build.py}.
 # --------------------------------------------------------------------------
 reasoning_trace:
+  # v3.4 (2026-06-05): re-architected from a technical skeleton (4S box diagram +
+  # dot timeline + flat tables) into a narrated McKinsey ENGAGEMENT JOURNEY — a
+  # client walkthrough, milestone by milestone, with the client's ✓ sign-off at each.
   invoke: "/think trace <slug>"
   derived_from: [problem-statement, decomposition, workplan, analysis-log, hitl-log, checkpoint-log, one-day-answer, synthesis, communication]
-  pipeline: "trace-extract.cjs (run folder → trace.json) → the reasoning-trace skill writes the narration → trace-build.py renders the 4S flow diagram + timeline + tool chart + provenance ledger → PDF"
-  parts:
-    - "4S flow/tree graph (State→Structure→Solve→Sell + the porpoise back-edges)"
-    - "checkpoint timeline (the 7 team-sessions, in order)"
-    - "per-band narration: what · WHICH framework/toolkit chosen + WHY · decision + basis · disconfirmation · porpoise"
-    - "data-provenance ledger (each datum: tool + degree + verification status)"
-    - "decision log (the 7 checkpoints' decisions + their basis)"
+  pipeline: "trace-extract.cjs (run folder → trace.json skeleton) → the reasoning-trace skill AUTHORS two files: reasoning-trace.md (the milestone walkthrough, -vi-day-du register) + trace-charts.json (narrative chart specs) → trace-build.py renders the chart library + compiles → McKinsey-styled PDF"
+  shape: "client walkthrough: opening journey-map + how-to-read → 4 acts (State/Structure/Solve/Sell), each holding its milestones → closing 'why you can trust it' + path chart"
+  milestone_rhythm:  # every checkpoint told in this fixed 5-beat shape
+    - "Bối cảnh — what we faced; why this milestone mattered"
+    - "Các lựa chọn — the options on the table, WITH a narrative chart"
+    - "Lựa chọn và vì sao — what we chose + which framework/lens fit + why"
+    - "Bỏ gì và vì sao — what we explicitly dropped + the reason (the discipline beat)"
+    - "✓ Nghiệm thu — the client's recorded sign-off at that checkpoint (green box)"
+  chart_library:  # matplotlib, McKinsey palette; auto = from trace.json, spec = from trace-charts.json
+    auto: [journey, receipts, tools]
+    spec: [journey-override, funnel, kept_dropped, line_band, assumptions, bars, twobytwo, callout]
+  register: "flowing, accessible, deeply-explained Vietnamese — like ritsu-100-who-love-strategy-vi-day-du.pdf; charts narrated; no scaffolding/glossary"
   skill: thinking-toolkit/reasoning-trace

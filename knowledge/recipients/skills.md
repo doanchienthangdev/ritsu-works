@@ -1868,17 +1868,19 @@ every invocation — ~30-60s saved per founder reading.
 
 **Kind:** skill
 **Axis:** capability
-**When to use:** Turn a COMPLETED /think mckinsey run folder into a narrated "McKinsey thinking
-journal" — a single, readable artifact that retraces the REASONING JOURNEY along
-a 4S timeline + a flow/tree graph: for each State/Structure/Solve/Sell band and
-each team-session checkpoint, what was done · WHICH framework/toolkit was chosen
-and WHY · the decision and its basis · the tool routed to for each datum · the
-porpoises (back-edges). Renders to PDF. Like reading the thinking journal of a
-McKinsey expert — clear, full, easy to study, easy to retrieve later.
+**When to use:** Turn a COMPLETED /think mckinsey run folder into a narrated McKinsey ENGAGEMENT
+JOURNEY — a single, easy-to-follow document that walks the reader through HOW the
+thinking moved, milestone by milestone, exactly like a McKinsey member presenting
+to a client and getting sign-off at each stage. Four acts (State / Structure /
+Solve / Sell); inside each, every team-session checkpoint is a "chặng" told in a
+fixed 5-beat rhythm — bối cảnh → the options (with a narrative CHART) → what we
+chose + why → what we dropped + why → the client's ✓ sign-off. Chart-rich (a
+journey map, a decision funnel, the kept/dropped cut, the funnel math, the path),
+in flowing accessible prose. Renders to PDF.
 
 Trigger: `/think trace <slug>`; or after any substantial `/think mckinsey` run
-when you want an auditable provenance of HOW the answer was reached (not just the
-answer — the report already carries that). Capability thinking-toolkit v3.3.
+when you want to SHOW the reasoning journey persuasively (not just the answer —
+the report carries that). Capability thinking-toolkit v3.4.
 
 Skip when: the run was a `--depth=quick` accordion (no run folder); a trivial
 question. Needs the 9 persisted artifacts to reconstruct from.

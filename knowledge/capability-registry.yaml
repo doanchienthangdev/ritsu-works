@@ -1043,7 +1043,7 @@ capabilities:
         - thinking-toolkit/mckinsey-workflow (the 4S DYNAMIC ENGINE: workplan routes each hypothesis to real data → validate → update one-day answer → re-route → porpoise; HITL hard-gate; v2.0 TEAM operating model: --mode + 7 team-session checkpoints + sell formatter + thorough data sweep) [v1.3→v2.0]
         - thinking-toolkit/mckinsey-sell (v2.0 Sell formatter — builds the McKinsey-template-structured synthesis IR + renders via deepask/format with --style/--art-style; composes, does not rebuild) [v2.0]
         - thinking-toolkit/problem-triage (v3.2 — the ROUTER that makes mckinsey the PRIMARY solver: routes a problem to its weight [mckinsey/deepask/atom/direct] on consequence × shape; first step of SOP-AIOPS-012; @ceo/@cgo/@cpo routing reflex) [v3.2]
-        - thinking-toolkit/reasoning-trace (v3.3 — the thinking-journal: a completed mckinsey run → narrated 4S timeline + flow/tree graph + provenance ledger + decision log → PDF, via /think trace; scripts trace-extract.cjs + trace-build.py) [v3.3]
+        - thinking-toolkit/reasoning-trace (v3.4 — the narrated McKinsey engagement journey: a completed mckinsey run → a client walkthrough, 4 acts × milestones in a 5-beat rhythm [bối cảnh → options+chart → chose+why → dropped+why → ✓ sign-off], chart-rich, -vi-day-du register → PDF, via /think trace; scripts trace-extract.cjs + trace-build.py [chart-library renderer]) [v3.4]
         - thinking-toolkit/data-verification (v3.3 — the re-check mechanism: triangulate a load-bearing external/degree-≥5 number across ≥2 independent web/deep-research sources → a verification status; wired into the Solve validation gate) [v3.3]
 
       Origin: Barbara Minto's *Pyramid Principle* (1987), McKinsey internal
@@ -1087,7 +1087,22 @@ capabilities:
       web/deep-research sources → a verification status, wired into the Solve
       validation gate + mckinsey-workflow.yaml 3.2.0 data_verification +
       reasoning_trace sections). Run record: .archives/cla/reasoning-trace-and-verify/.
-    version: "3.3.0"
+      v3.4 (2026-06-05, /cla extend, autonomous): Reasoning Trace v2 — the
+      narrated engagement journey. The v3.3 trace was a technical skeleton (4S box
+      diagram + dot timeline + flat tables) the founder found "khó hiểu và khó
+      theo trình tự suy nghĩ". v3.4 re-architects the reasoning-trace OUTPUT into a
+      McKinsey CLIENT WALKTHROUGH: an opening journey-map + 4 acts (State/Structure/
+      Solve/Sell), each milestone (the team-session checkpoints) told in a fixed
+      5-beat rhythm (bối cảnh → the options WITH a narrative chart → chose+why →
+      dropped+why → ✓ client sign-off), chart-rich (journey map · decision funnel ·
+      the kept/dropped cut · funnel math · path · assumptions), in the flowing
+      -vi-day-du register. The skill now AUTHORS reasoning-trace.md (walkthrough) +
+      trace-charts.json (chart specs); trace-build.py rewritten as an 8-type
+      chart-library renderer + McKinsey-styled PDF compiler. mckinsey-workflow.yaml
+      → 3.3.0 (reasoning_trace.shape + milestone_rhythm + chart_library). Demo:
+      .archives/mckinsey/find-100-love-paying-60d-v3/reasoning-trace.pdf (12pp).
+      Run record: .archives/cla/reasoning-trace-v2-journey/.
+    version: "3.4.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28
