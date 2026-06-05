@@ -6,17 +6,18 @@ description: >-
   synthesize → completeness-critic → format. Trả về câu trả lời Pyramid, 100%-cited,
   authority-ranked, conflict-aware, freshness-tagged trong 1 / 12 format — kèm biểu-đồ chuẩn
   McKinsey nhúng qua /dataviz (v1.3) + minh-hoạ thông-minh qua nền-tảng /image (v1.4) ở những chỗ
-  làm-bật điểm — HOẶC một no-coverage gap trung thực + remedy. Internal-first (web leg ủy quyền cho
+  làm-bật điểm — HOẶC một no-coverage gap trung thực + remedy. Truy vấn phức-tạp (hoặc --workflow)
+  chạy như một Workflow đa-agent song-song (v1.5). Internal-first (web leg ủy quyền cho
   deep-research). Tier A runtime (các leg Tier-B+ được surface, không bao giờ auto-run).
 source_path: .claude/commands/deepask.md
-source_hash: d07364cc20fcaa8d7cdddfcd4db48dde25e7ac58efbde8418c275203853d05e9
-generated_at: '2026-06-05T03:44:07.522Z'
+source_hash: 393c6273e523bd67caa0b83f9d6dad27e64bb61c4ed8ba3d45fb7f2a9c5bc872
+generated_at: '2026-06-05T04:00:24.068Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_at: '2026-06-05T03:55:00.000Z'
-translated_source_hash: d07364cc20fcaa8d7cdddfcd4db48dde25e7ac58efbde8418c275203853d05e9
+translated_at: '2026-06-05T04:10:00.000Z'
+translated_source_hash: 393c6273e523bd67caa0b83f9d6dad27e64bb61c4ed8ba3d45fb7f2a9c5bc872
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -38,8 +39,9 @@ translated_source_hash: d07364cc20fcaa8d7cdddfcd4db48dde25e7ac58efbde8418c275203
 | **S6** | **merged** | 3 KPI + `SOP-AIOPS-005-deepask-runtime-contract` + cost-bucket `ai-ops-deepask` + **Phase-8 promotion → `operating`** |
 | **v1.1 (extend)** | **merged** | 2 image format `infographics` + `img-slide` (gpt-image-2, nhận `--style`) — skill `deepask/image-compose` + helper `scripts/deepask/{image-spec,image-cost,image-gen,slide-deck}.cjs`; cờ mới `--orientation`/`--img-quality`/`--image-model`/`--max-slides`/`--max-cost-usd`. `/cla extend deepask`. |
 | **v1.1.1 (extend)** | merged | Thanh thẩm mỹ **EXTRAORDINARY** cho mọi visual output — skill `deepask/aesthetic` + LOGO FIX (`style-asset.cjs` nhúng logo brand dạng base64 data URI). |
-| **v1.3 (extend)** | **PR này** | **Nhúng biểu-đồ dataviz** — IR `charts[]` render qua **`/dataviz`** (SVG byte-stable chuẩn McKinsey) và nhúng vào MỌI format chứa-chart: svg-inline (html/dashboard/interactive/canvas/article/pdf-via-html), PNG (pptx/docx, rasterize qua headless-Chrome, graceful-degrade), **data-slide** (img-slide — slide bản-chất-là-chart render bằng dataviz, KHÔNG phải gpt-image-2 vốn bịa số), companion (infographics). LLM-native: agent chọn từng chart từ catalog dataviz (`--selected-by=agent`). MỚI `scripts/deepask/chart-embed.cjs` + `deepask/format` §2.7 + cờ `--charts`. $0/offline (dataviz pure). `/cla extend deepask`. |
-| **v1.4 (extend)** | **PR này** | **Tích hợp nền-tảng /image** — MỌI việc sinh ảnh của deepask route qua **`/image`** (`scripts/deepask/image-route.cjs` → `scripts/image/gen.cjs`) thay vì `image-gen.cjs` thô: adapter cắm-được (`--use`), reference-guided (`--ref`/`--mask`), run.json + cost-bucket `ai-ops-image` + breaker. CỘNG **minh-hoạ concept thông-minh** (`--illustrate=hero\|on`) cho format giàu (`article`/`pdf`/`html`/`dashboard`) — agent quyết, explicit-only, budget-gated. `image-compose` vẫn author prompt IR-grounded (composed:true → không double-compose). MỚI `scripts/deepask/image-route.cjs` + `deepask/format` §2.8 + cờ `--illustrate`/`--use`. `/cla extend deepask`. |
+| **v1.3 (extend)** | merged (#244) | **Nhúng biểu-đồ dataviz** — IR `charts[]` render qua **`/dataviz`** (SVG byte-stable chuẩn McKinsey) và nhúng vào MỌI format chứa-chart: svg-inline (html/dashboard/interactive/canvas/article/pdf-via-html), PNG (pptx/docx, rasterize qua headless-Chrome, graceful-degrade), **data-slide** (img-slide — slide bản-chất-là-chart render bằng dataviz, KHÔNG phải gpt-image-2 vốn bịa số), companion (infographics). LLM-native: agent chọn từng chart từ catalog dataviz (`--selected-by=agent`). MỚI `scripts/deepask/chart-embed.cjs` + `deepask/format` §2.7 + cờ `--charts`. $0/offline (dataviz pure). `/cla extend deepask`. |
+| **v1.4 (extend)** | merged (#245) | **Tích hợp nền-tảng /image** — MỌI việc sinh ảnh của deepask route qua **`/image`** (`scripts/deepask/image-route.cjs` → `scripts/image/gen.cjs`) thay vì `image-gen.cjs` thô: adapter cắm-được (`--use`), reference-guided (`--ref`/`--mask`), run.json + cost-bucket `ai-ops-image` + breaker. CỘNG **minh-hoạ concept thông-minh** (`--illustrate=hero\|on`) cho format giàu (`article`/`pdf`/`html`/`dashboard`) — agent quyết, explicit-only, budget-gated. `image-compose` vẫn author prompt IR-grounded (composed:true → không double-compose). MỚI `scripts/deepask/image-route.cjs` + `deepask/format` §2.8 + cờ `--illustrate`/`--use`. `/cla extend deepask`. |
+| **v1.5 (extend)** | **PR này** | **Orchestration bằng Workflow** — deepask phức-tạp (hoặc `--workflow=on`) chạy vòng-lặp 5-stage như một **Workflow đa-agent** (harness `Workflow` tool) với stage execute fan-out SONG-SONG (một agent mỗi sub-need) → nhanh + kỹ hơn với report/dashboard lớn; IR trả về chảy qua Format Engine như cũ. MỚI `scripts/deepask/workflow-plan.cjs` (`assessComplexity`/`resolveWorkflowMode`/`buildWorkflowScript`) + `deepask/orchestrator` Stage 0.5 + cờ `--workflow=auto\|on\|off`. Cùng firewall/breaker/HITL; opt-in tường-minh (cờ). `/cla extend deepask`. |
 | **v1.2-image (extend)** | **merged (#191)** | Trục GENRE `--art-style` (`knowledge/art-styles.yaml`, 80 genres) + cờ `--lang`; image-compose/aesthetic re-arch (GENRE block + per-piece focal_illustration + honesty gate). |
 | **v1.2.0 (extend)** | **merged (#192)** | `--art-style` + `--style` mở rộng sang **code-rendered formats** (html/dashboard/interactive/canvas/chart + pdf-via-html) qua `aesthetic` Part-2. |
 | **v1.2.1 (fix)** | **merged (#193)** | Fix tỉ lệ img-slide → **16:9 native 2048×1152** (no crop, title không bị cắt) theo OpenAI cookbook §4.10. |
@@ -64,6 +66,7 @@ translated_source_hash: d07364cc20fcaa8d7cdddfcd4db48dde25e7ac58efbde8418c275203
 | `--use` | id adapter ảnh · **gpt-image-2** (mặc định) | **(v1.4)** adapter `/image` cho MỌI việc sinh ảnh của deepask (infographics/img-slide/illustration) — cắm-được qua `knowledge/image-adapters.yaml`. `--ref`/`--mask` (reference-guided) khả-dụng qua `/image`. |
 | `--sources` | csv của \{pillars,ops,metrics,wiki,brain,external,scratch} · **auto** (mặc định) | giới hạn loại IA deepask được chạm (truyền cho resolver-plan như một filter) |
 | `--depth` | quick·**standard** (mặc định)·deep·exhaustive | bound sub-need (≤6 standard / ≤12 deep) + fan-out song song + số phiếu adversarial-verify (0/1/2/3) |
+| `--workflow` | **auto** (mặc định) · `on` · `off` | **(v1.5)** chạy vòng-lặp 5-stage như một **Workflow đa-agent** (harness `Workflow` tool) với stage execute fan-out SONG-SONG — nhanh + kỹ hơn nhiều với report/dashboard lớn. `auto` → dùng workflow khi truy-vấn **phức-tạp** (`scripts/deepask/workflow-plan.cjs assessComplexity`: ≥8 sub-need, hoặc `--depth=exhaustive` + format giàu, hoặc tín-hiệu tích-luỹ); `on` → luôn; `off` → luôn dùng vòng-lặp in-session. IR trả về vẫn chảy qua Format Engine (chart §2.7 / ảnh §2.8). Cùng guard firewall/breaker/HITL; leg Tier-B+ surface, không auto-run. |
 | `--dry-run` | flag | hiện decomposition + ResolverPlan **thật** + coverage dự đoán + ước lượng cost; KHÔNG read/run/write TRỪ một row `ops.deepask_runs` dry-run. Với image format, `--dry-run` cũng soạn `image-plan.json` + ghi prompt sidecar (`*.prompt.txt`) nhưng KHÔNG gọi gpt-image (không tốn). NB: dry-run CÓ gọi resolver-plan → tiêu resolver-breaker budget → ghi trung thực. |
 
 ## Dispatch (vòng lặp 5-stage)
@@ -89,5 +92,6 @@ translated_source_hash: d07364cc20fcaa8d7cdddfcd4db48dde25e7ac58efbde8418c275203
 `/deepask` federate + **compose** `/brain` (gbrain) + `/wiki ask` + supabase-query + `/think`, ủy quyền web cho `deep-research`. Nó KHÔNG route (đó là `resolver-plan`) và KHÔNG tạo/sửa (đó là `/cla` · `/evolve` · `/update`). Internal-first.
 
 > 📚 **Danh sách đầy đủ** mọi `--format`, `--style` và `--art-style` để tra cứu: xem trang **[deepask-catalog](/vi/docs/commands/deepask-catalog)**.
+
 
 

@@ -35,6 +35,24 @@ The resolver per-session circuit breaker is `SESSION_HARD_CAP = 20`, **shared se
    - `!viable` (`reason === 'breaker_budget'`) → **emit an honest PARTIAL up front**, write a `ops.deepask_coverage` row with `gap_reason='breaker_budget'` + `remedy="restart session or wait for the 4h breaker window"`, and STOP. **Never** a fabricated `no_coverage`.
 5. Record `resolver_find_calls` (running) so it lands in `ops.deepask_runs` (@cto NIT-1 — required for the `breaker_trip_rate` KPI).
 
+### Stage 0.5 — Workflow orchestration branch (v1.5, complex/explicit only)
+For a COMPLEX deepask (or explicit `--workflow=on`), run the 5-stage loop as a deterministic
+multi-agent **Workflow** (the harness `Workflow` tool) — the execute stage fans out in PARALLEL
+(one agent per sub-need), so big reports/dashboards finish in slowest-single-chain time, not
+sum-of-all. The in-session loop (Stages 1-6 below) stays the default for simple questions.
+
+1. After a tentative decompose sizing (Stage 0), call `scripts/deepask/workflow-plan.cjs`:
+   ```js
+   const { assessComplexity, resolveWorkflowMode, buildWorkflowScript } = require('scripts/deepask/workflow-plan.cjs');
+   const complexity = assessComplexity({ subNeedCount: plannedSubNeeds, depth, format, sourcesCount });
+   const { mode, why } = resolveWorkflowMode({ workflow: options.workflow /* auto|on|off */, complexity });
+   ```
+   `off` → never; `on` → always; `auto` (default) → workflow when `complexity.complex`
+   (≥8 sub-needs alone, or depth=exhaustive + a rich format, or accumulated signals).
+2. If `mode === 'workflow'`: author the script with `buildWorkflowScript({ question, format, style, depth, subNeedHint })` and run it via the **`Workflow` tool** (`Workflow({ script })`) — phases Decompose → **parallel** Resolve+Execute → Synthesize → Critic. It returns `{ ir, verdict, gaps }`. **Hand that IR to the Format Engine** (Stage 6 — charts via `/dataviz` §2.7, images via `/image` §2.8) exactly as the in-session path does. The Workflow inherits the SAME guards: firewall (product only via `metrics.*`), resolver `SESSION_HARD_CAP`, gbrain cap, and Tier-B+ legs surfaced not auto-run.
+3. The `Workflow` tool requires explicit opt-in — the `--workflow` flag (and this documented integration) IS that opt-in; deepask never silently spawns a fleet for a simple question. Record `select_mode='workflow'` + `why` in `ops.deepask_runs.metadata`.
+4. If `mode === 'inline'`: proceed with Stages 1-6 below (the default).
+
 ### Stage 1 — Decompose
 Invoke `deepask/decompose` with `question` + the budget-approved `allowedSubNeeds` cap + `--sources`. Returns MECE sub-needs, each IA-type-tagged (A/B/C/D).
 
