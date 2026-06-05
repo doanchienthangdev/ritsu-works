@@ -1,17 +1,19 @@
 ---
 name: thinking-toolkit/reasoning-trace
 description: |
-  Turn a COMPLETED /think mckinsey run folder into a narrated "McKinsey thinking
-  journal" — a single, readable artifact that retraces the REASONING JOURNEY along
-  a 4S timeline + a flow/tree graph: for each State/Structure/Solve/Sell band and
-  each team-session checkpoint, what was done · WHICH framework/toolkit was chosen
-  and WHY · the decision and its basis · the tool routed to for each datum · the
-  porpoises (back-edges). Renders to PDF. Like reading the thinking journal of a
-  McKinsey expert — clear, full, easy to study, easy to retrieve later.
+  Turn a COMPLETED /think mckinsey run folder into a narrated McKinsey ENGAGEMENT
+  JOURNEY — a single, easy-to-follow document that walks the reader through HOW the
+  thinking moved, milestone by milestone, exactly like a McKinsey member presenting
+  to a client and getting sign-off at each stage. Four acts (State / Structure /
+  Solve / Sell); inside each, every team-session checkpoint is a "chặng" told in a
+  fixed 5-beat rhythm — bối cảnh → the options (with a narrative CHART) → what we
+  chose + why → what we dropped + why → the client's ✓ sign-off. Chart-rich (a
+  journey map, a decision funnel, the kept/dropped cut, the funnel math, the path),
+  in flowing accessible prose. Renders to PDF.
 
   Trigger: `/think trace <slug>`; or after any substantial `/think mckinsey` run
-  when you want an auditable provenance of HOW the answer was reached (not just the
-  answer — the report already carries that). Capability thinking-toolkit v3.3.
+  when you want to SHOW the reasoning journey persuasively (not just the answer —
+  the report carries that). Capability thinking-toolkit v3.4.
 
   Skip when: the run was a `--depth=quick` accordion (no run folder); a trivial
   question. Needs the 9 persisted artifacts to reconstruct from.
@@ -19,49 +21,80 @@ allowed-tools: [Read, Write, Bash]
 disable-model-invocation: false
 ---
 
-# Reasoning Trace — the McKinsey "thinking journal"
+# Reasoning Trace — the narrated McKinsey engagement journey
 
-> Not the answer (the `--sell` report carries that). This is the **provenance of the thinking** — a narrated, diagram-led retrace of *how the mind moved* through the 4S engine, so anyone can study and audit the reasoning, the framework choices, and the decisions later.
+> Not the answer (the `--sell` report carries that). This is the **journey of the thinking, told to be followed** — the way a McKinsey member walks a client through *how we got here*, milestone by milestone, charts narrating each choice, the client signing off at every stage. The reader should finish able to *retrace and trust* the reasoning — not just admire it.
+
+## The north star (read this first)
+
+The founder's verdict on the old v3.3 trace: *"khó hiểu và khó theo trình tự suy nghĩ"* — a technical skeleton (a 4S box diagram + a dot timeline + flat tables), not a story. v3.4 fixes that. The output must read like **`ritsu-100-who-love-strategy-vi-day-du.pdf`** — flowing, accessible, deeply-explained Vietnamese — but tell the *thinking journey*, with the **client's sign-off (nghiệm thu) at every milestone**. If a reader can't follow "chart + its explanation together, in order, and see why each choice was made and each alternative dropped," the trace has failed.
 
 ## What it produces
 
-A `reasoning-trace.{md,pdf}` in the run folder, with five parts:
+A `reasoning-trace.{md,pdf}` in the run folder, shaped as a **client walkthrough**:
 
-1. **The 4S flow / tree graph** — State → Structure → Solve → Sell as a diagram: the 7 team-session checkpoints as nodes, the Solve data-pulls hanging off Solve, and the **porpoise back-edges** drawn explicitly (the loop, not a waterfall).
-2. **The timeline** — every checkpoint + key analysis in chronological order, each tagged with its band + the tool it routed to + the certainty (degree 1–8).
-3. **The narration** — per band, written like a McKinsey EM's journal: *what we were doing · which framework/toolkit we SELECTED and WHY (the latticework + debias choice) · what the data said · the decision and its basis · what we'd have done if it were wrong (the disconfirmation)*.
-4. **The data-provenance ledger** — every datum: which tool pulled it, the degree-of-certainty, and (v3.3) its verification status (see `data-verification`). Makes "where did this number come from?" answerable at a glance.
-5. **The decision log** — the 7 checkpoints' decisions + the porpoises, with the reasoning basis for each.
+1. **Opening** — "how to read this journey" + a one-page **journey map** (the 4S arc with the milestones as numbered stations, each with its ✓ sign-off, + the porpoise loop). The whole journey on one page.
+2. **Four acts** — STATE → STRUCTURE → SOLVE → SELL, each act a page-break, holding its milestones.
+3. **Each milestone (a "chặng")** is told in the **5-beat rhythm** (below), with **one narrative chart** that shows the THINKING (options narrowing, the cut, the math), not just structure.
+4. **Closing** — the answer + *why you can trust it* (because the journey was disciplined and signed off at every step), with the path chart.
 
-## The pipeline (deterministic extract → narrate → render)
+## The 5-beat rhythm (every milestone, same shape)
+
+For each of the run's team-session checkpoints, write a `## Mốc N — <kind>` section with these five beats as **flowing bold-lead-in paragraphs** (not rigid headers):
+
+1. **Bối cảnh.** — what we faced at this point; why this milestone mattered.
+2. **Các lựa chọn.** — the options that were on the table, **followed by a narrative chart** (the funnel of strategies, the kept/dropped cut, the funnel math…). Narrate the chart ("hình này cho thấy…").
+3. **Lựa chọn và vì sao.** — what we chose, and the rationale: which framework/lens fit (TOSCA, driver-tree, the funnel model, the judge-panel…), and why it was right here.
+4. **Bỏ gì và vì sao.** — what we **explicitly dropped**, and why. This is the most persuasive beat — it proves discipline. Name the dropped options; give the one-line reason for each.
+5. **✓ Nghiệm thu.** — the client's sign-off at that checkpoint (the recorded consensus/decision), as a **green sign-off box** (raw HTML, see below).
+
+Map the 7 standard checkpoints to acts: **STATE** = {frame}; **STRUCTURE** = {hypothesize, plan, prioritize}; **SOLVE** = {porpoise/analyze, dissent}; **SELL** = {pre-wire}. Group plan+prioritize into one chặng if their decisions are tight (as the demo does).
+
+## The pipeline (extract → author walkthrough + chart-specs → render)
 
 ```bash
-# 1. EXTRACT (pure Node — builds the structured trace.json from the 9 artifacts)
+# 1. EXTRACT — pure Node; builds trace.json (the skeleton) from the 9 artifacts
 node scripts/thinking-toolkit/trace-extract.cjs <slug-or-path>
 
-# 3. RENDER (local — diagrams + PDF; weasyprint + matplotlib, like the report build)
+# 2. AUTHOR (this is YOU) — write TWO files into the run folder:
+#    reasoning-trace.md   — the milestone-by-milestone walkthrough (the 5-beat rhythm, -vi-day-du register)
+#    trace-charts.json    — the narrative chart specs (see the chart library below)
+
+# 3. RENDER — local; renders the charts + compiles the walkthrough → McKinsey-styled PDF
 DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib /opt/anaconda3/bin/python3 \
   scripts/thinking-toolkit/trace-build.py <slug-or-path>
 ```
 
-Step 2 is YOU (the agent): read `trace.json` + the run folder, and **write the narration** to `reasoning-trace.md` in the run folder, using the structure below. `trace-build.py` embeds the narration + the rendered diagrams → PDF.
+Read `trace.json` + the source artifacts (`checkpoint-log.md`, `analysis-log.md`, `one-day-answer.md`, `decomposition.md`, `hitl-log.md`) for the specific options, drops, decisions, and sign-offs.
 
-## How to write the narration (the judgment part)
+### Writing `reasoning-trace.md`
 
-Read `trace.json` (the skeleton) + the source artifacts (`checkpoint-log.md`, `analysis-log.md`, `one-day-answer.md`, `decomposition.md`) and narrate each 4S band. For EACH band write:
+- Start with a `# Hành trình tư duy — đọc bản này thế nào` intro (2–3 paragraphs) + the journey map: `![cap](trace-charts/journey.png)`.
+- Each act header is **raw HTML** so it page-breaks: `<h1 class="act">STATE · Chặng 1 — …</h1>`.
+- Each milestone: `## Mốc N — <kind>` then the 5 beats; embed its chart with `![cap](trace-charts/<name>.png)`.
+- **Sign-off boxes are raw HTML** (markdown can't add the class): `<blockquote class="signoff"><strong>✓ Bạn đã nghiệm thu:</strong> …</blockquote>`. Escape `<`, `>`, `&` as `&lt; &gt; &amp;` inside them.
+- Register: flowing, accessible, deeply-explained Vietnamese. Explain terms inline. Narrate every chart. No jargon dumps, no scaffolding boxes, no glossary.
 
-- **What we set out to do** (the band's intent in plain language).
-- **The framework / toolkit we chose — and WHY.** This is the heart of the journal: name the lens(es) selected (TOSCA, driver-tree, 2×2, hypothesis-pyramid, the funnel model, the judge-panel…), and the *rationale* — why this tool fit this sub-need, and (debias) why NOT the familiar default. Cite `tool_selection` discipline (CLASSIFY → LOAD → SELECT ≤3 latticework lenses).
-- **What the data said** (the key pulls + their tools + degrees, from `analyses`).
-- **The decision + its basis** (from the checkpoint's `decision` + `consensus`).
-- **The disconfirmation** — what would have proven this band's conclusion wrong (the one analysis that flips it).
-- **Porpoise?** — if a back-edge fired here, narrate the reframe + why.
+### Writing `trace-charts.json`
 
-Write in clear, full, accessible prose (the `--sell` audience can read it) — *not* terse bullets. The goal is a journal a newcomer can read end-to-end and understand the entire problem-solving journey + every choice.
+A map `{ "<chart-name>": {type, …data} }`. The renderer always draws three AUTO charts from `trace.json` (`journey`, `receipts`, `tools`) — you reference them by those names. You author the rest from this library:
+
+| `type` | Use for | Key fields |
+|---|---|---|
+| `journey` *(override)* | clean in-register captions on the journey map | `stations: [{kind, decision}]` aligned 1:1 with checkpoints — strongly recommended (else the map shows raw run-log decisions) |
+| `funnel` | options/quantities narrowing (6→3→1, the funnel math) | `title`, `stages: [{label, value, display?, note?}]` |
+| `kept_dropped` | the cut — what we kept vs dropped + reasons | `title`, `kept: [str]`, `dropped: [{item, reason}]` |
+| `line_band` | a path / projection with a range band | `title`, `weeks[]`, `low[]`, `high[]`, `target`, `window?`, labels |
+| `assumptions` | stress-test: assumption → test → kill-criterion | `title`, `rows: [{assumption, test, kill}]` |
+| `bars` | ranked magnitudes | `title`, `items: [{label, value, display?, highlight?}]` |
+| `twobytwo` | positioning on 2 axes | `title`, `x_label`, `y_label`, `items: [{label, x, y, kept?}]` |
+| `callout` | 2–4 big-number tiles | `title`, `tiles: [{number, label}]` |
+
+Pick the chart that makes each milestone's THINKING visible. A milestone with no obvious data chart can lean on the auto `journey`/`receipts`/`tools` or a `callout`. Keep `funnel`/`bars` labels short — push detail into `note`; the renderer wraps but very long in-box labels still crowd.
 
 ## Honesty + anti-claims
 
-- The trace is **reconstructed from the persisted artifacts**, not a live keystroke log — it is as honest as the run folder (which the `mckinsey-run.cjs` gate already disciplines). It cannot invent reasoning the artifacts don't record.
-- It is **discipline-trace, not proof** — it shows what the engine *recorded* choosing, not a guarantee the choice was optimal. Its value is auditability + study, not certification.
-- It does NOT replace the report. Report = the answer (for the decision-maker). Trace = the journey (for whoever studies/audits the thinking).
-- Composes with `data-verification`: the provenance ledger surfaces each external datum's verification status, so the reader sees not just *where* a number came from but *whether it was re-checked*.
+- The journey is **reconstructed from the persisted artifacts**, not a live keystroke log — as honest as the run folder (which `mckinsey-run.cjs` already disciplines). It cannot invent reasoning, options, or sign-offs the artifacts don't record. If a checkpoint has no recorded dissent or drop, say so plainly — don't manufacture a beat.
+- It is a **discipline-trace, not proof** — it shows what the engine *recorded* choosing + signing off, not a guarantee the choice was optimal. Its value is *followability + auditability*, not certification.
+- It does NOT replace the report. Report = the answer (for the decision-maker, action-first). Trace = the journey (for whoever needs to follow/trust/study the thinking).
+- Composes with `data-verification`: the `tools` chart + the SOLVE narration surface where each number came from and which were re-checked — so the reader sees not just *where* a number came from but *whether it was verified*.
