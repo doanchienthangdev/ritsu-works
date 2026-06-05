@@ -143,8 +143,13 @@ function checkRun(repoRoot, slug, opts = {}) {
   }
 
   // 2. workplan: 7 columns, valid status, firewall on source-of-data
+  // v3.1 also counts data rows (the MECE minimum lives in the workplan — the
+  // decomposition.md artifact is often scratch/empty in a real run) + rows with a
+  // REAL pulled source (not ask-user/assumption), for the before-sell gates below.
   const wpPath = path.join(dir, 'workplan.md');
   let openRows = 0;
+  let wpDataRows = 0;
+  let wpRealSourceRows = 0;
   if (fs.existsSync(wpPath)) {
     const t = parseFirstTable(fs.readFileSync(wpPath, 'utf8'));
     if (!t) {
@@ -157,13 +162,18 @@ function checkRun(repoRoot, slug, opts = {}) {
       const sdi = colIndex(t.headers, ['source-of-data', 'sourceofdata', 'source']);
       for (const row of t.rows) {
         if (!isDataRow(row)) continue;
+        wpDataRows++;
         if (si >= 0) {
           const st = norm(row[si] || '');
           if (st && !STATUS_VALUES.map(norm).includes(st)) errors.push(`workplan.md: invalid status "${row[si]}" (allowed: ${STATUS_VALUES.join('|')})`);
           if (st === norm('open')) openRows++;
         }
-        if (sdi >= 0 && /\bproduct\./i.test(row[sdi] || '')) {
-          errors.push(`workplan.md: source-of-data references product.* — FIREWALL violation (metrics.* only): "${row[sdi]}"`);
+        if (sdi >= 0) {
+          const src = (row[sdi] || '').trim();
+          if (/\bproduct\./i.test(src)) {
+            errors.push(`workplan.md: source-of-data references product.* — FIREWALL violation (metrics.* only): "${src}"`);
+          }
+          if (src && !/^<.*>$/.test(src) && !/ask-?user|assumption/i.test(src)) wpRealSourceRows++;
         }
       }
     }
@@ -274,6 +284,36 @@ function checkRun(repoRoot, slug, opts = {}) {
     }
     if (!kinds.has(norm('prioritize'))) {
       warnings.push("checkpoint gate: no `prioritize` session logged (CP-PRIORITIZE: the impact×influence cut — record what was dropped and why).");
+    }
+  }
+
+  // 7. v3.1 deeper before-sell discipline (one layer past presence; still
+  //    STRUCTURE-not-judgment, conservative to avoid false-positives on real runs).
+  if (opts.beforeSell) {
+    // 7a. MECE minimum: a 4S study needs >=2 workplan data rows (the decomposition
+    //     lives in the workplan; a 1-row "study" isn't a MECE decomposition).
+    if (wpDataRows < 2) {
+      errors.push(`MECE gate: workplan has ${wpDataRows} data row(s) — a 4S study needs >=2 (the decomposition is carried by the workplan; a 1-row "study" isn't MECE). SKILL §STRUCTURE.`);
+    }
+    // 7b. real-data discipline: at least one row pulled real data (not all asserted).
+    if (wpDataRows >= 2 && wpRealSourceRows === 0) {
+      warnings.push("data-pull gate: no workplan row has a REAL pulled source (all ask-user/assumption) — a McKinsey study pulls real data; confirm this isn't all-asserted.");
+    }
+    // 7c. disconfirmation: the single biggest anti-confident-wrong discipline. If the
+    //     v2.0+ `**Disconfirmation:**` line exists it must be filled (empty/placeholder
+    //     → ERROR); if absent (an older-format run) → WARNING, not a false failure.
+    const odaPath = path.join(dir, 'one-day-answer.md');
+    if (fs.existsSync(odaPath)) {
+      const oda = fs.readFileSync(odaPath, 'utf8');
+      const m = oda.match(/\*\*Disconfirmation[^\n]*:\*\*[ \t]*([^\n]*)/i);
+      if (!m) {
+        warnings.push("disconfirmation: one-day-answer.md has no `**Disconfirmation:**` line (the v2.0+ template) — name the single analysis that would prove the answer WRONG.");
+      } else {
+        const c = (m[1] || '').trim();
+        if (!c || /^<.*>$/.test(c)) {
+          errors.push("disconfirmation gate: one-day-answer.md `**Disconfirmation:**` is empty/placeholder — name the single analysis that, if wrong, flips the answer (it must be a workplan row). SKILL §SOLVE (CP-DISSENT red-teams exactly this).");
+        }
+      }
     }
   }
 

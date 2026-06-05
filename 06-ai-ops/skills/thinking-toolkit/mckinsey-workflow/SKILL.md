@@ -145,11 +145,17 @@ Fill **TOSCA** (run `/think tosca`): **T**rouble (gap as a symptom, not a diagno
 
 **Then seed the day-one answer** (`one-day-answer.md`): the moment framing is done, write the provisional hypothesis — *"if forced to answer today, we'd say X, because Y."* It will be wrong; that's the point — it's the spine Structure + Solve sharpen, and it re-ranks the workplan. Skipping it (waiting to "have the data first") is the classic non-McKinsey move.
 
+**Path gate 1 — the 4S diagram's FIRST diamond (`decision_gates.know-enough-to-state`):** *"Do you know enough to STATE the problem?"* If you genuinely **can't frame it** (no clear Trouble/Owner; the problem is ill-defined or human-centered / desirability-led), do NOT force TOSCA — enter the **design-thinking path** and **EMPATHIZE first (Cracked It! Ch 8)** to (re)discover the real problem (POV / How-Might-We), then come back to define it. **Design-thinking is staged across ALL three bands** — Empathize=State, Ideate=Structure, Prototype&test=Solve (`paths.design-thinking.band_staging` in the catalog) — it is NOT a Solve-only detour. (The three paths + five diamonds of Fig 3.1 are first-class in `knowledge/mckinsey-workflow.yaml` → `paths` + `decision_gates`.)
+
 *(Boundary: a problem with no clear owner / irreconcilable owners is a wicked problem — TOSCA doesn't fit; say so.)*
 
 ## ② STRUCTURE — disaggregate + build the workplan  ·  artifacts: `tree.md`, `workplan.md`
 
-**Choose the path** (`hypothesis-driven-vs-issue-driven`): **issue tree by default**; **hypothesis pyramid** only with a strong prior or under time starvation; **design-thinking path** when the problem is ill-defined/human-centered (empathize→HMW→prototype→test until Desirability-Feasibility-Viability).
+**Choose the path — the 4S diagram's Structure diamonds** (`decision_gates`; the 3 paths' full band-staging in the catalog `paths`):
+- **Gate 2 — `have-candidate-solution`:** *"Do you have a good candidate solution?"* (a strong prior, or time-starved). **YES → the hypothesis-driven path** — Build the Hypothesis Pyramid (governing hypothesis → MECE sub-hypotheses) and route the workplan to DISCONFIRM the lead. **NO → Gate 3.**
+- **Gate 3 — `can-build-issue-tree`:** *"Can you build an issue tree?"* **YES (the DEFAULT) → the issue-driven path** — Build the Issue Tree. **NO → the design-thinking path** — IDEATE (diverge→converge; Ch 9), then prototype & test (Solve) until Desirability×Feasibility×Viability.
+
+(The diagram's Empathize→Ideate→Prototype design-thinking column threads State→Structure→Solve — see `paths.design-thinking`; here at Structure you are at its **Ideate** band if you took the NO-NO route.)
 
 **Pull an inherited domain process if one fits (v3.0) — don't reinvent the tree.** Check `knowledge/thinking-tool-index/processes.md` (the domain-process router). If the problem signature matches a row (strategy / operating-model / digital / change / HR / M&A / PMI / sales-pricing / supply-chain / Lean-Six-Sigma / risk / business-case / dashboards / leadership / FP&A / data-AI / personal-finance), **load that inherited ex-McKinsey process** (`wiki/consulting-toolkits/<slug>/process.md`, full spine in `knowledge/consulting-processes.yaml`) and use its **gated phase spine + frameworks-per-phase as your issue-tree/workplan skeleton** — then adapt it to THIS problem (it is a starting structure refined by real data, not a script to follow blindly; you still cleave, prioritize, and porpoise). This is the "inherited from people who did the work at McKinsey" leverage: a proven, complete decomposition for the domain instead of an ad-hoc one. If no process matches (a novel/cross-domain problem), build the MECE tree from scratch as below.
 
@@ -184,17 +190,17 @@ Loop until the **stopping criterion** holds → Sell. **You may NOT move to Sell
 
 *Routing* (next table) answers **where to get the data**. *Selection* answers **which framework / model / analysis to apply** — the v1.5 mechanism, **expanded in v3.0 to the full consulting thinking-tool library**. The candidate pool is now UNIFIED:
 - **207 book frameworks** — `knowledge/problem-solving-frameworks.yaml` (distilled from *Bulletproof* + *Cracked It!*; classified by `fours_step` + `type`).
-- **460 consulting-toolkit frameworks** — `knowledge/consulting-frameworks.yaml` (reconstructed from the 19 ex-McKinsey domain toolkits; each richly tagged `fours_step` · `cognitive_moves` · `domains` · **`select_when`** (the disambiguator) · `checkpoint_fit`, pointing to a `wiki/consulting-toolkits/.../concepts/<slug>.md` page).
-- **19 inherited domain PROCESSES** — `knowledge/consulting-processes.yaml` (the gated phase-spine playbooks; see STRUCTURE below).
+- **424 consulting-toolkit frameworks** — `knowledge/consulting-frameworks.yaml` (reconstructed from the 20 ex-McKinsey domain toolkits; each richly tagged `fours_step` · `cognitive_moves` · `domains` · **`select_when`** (the disambiguator) · `checkpoint_fit`, pointing to a `wiki/consulting-toolkits/.../concepts/<slug>.md` page).
+- **20 inherited domain PROCESSES** — `knowledge/consulting-processes.yaml` (the gated phase-spine playbooks; see STRUCTURE below).
 
-= **667 tools + 19 processes.** Three stages:
+= **631 tools + 20 processes.** Three stages:
 
 **1 · CLASSIFY the sub-need** (source decision-trees decide what *kind* of tool fits):
 - **solve_mode** — *analytical* (a right answer exists → hypothesis + workplan loop) vs **design** (ill-defined / human / innovation → the **design-thinking branch**: empathize → reframe (HMW) → ideate → prototype → test, until desirability×feasibility×viability). [`five-phases-of-design-thinking`]
 - **analysis_mode** — *description* (summary stats) vs *causation* (experiment / natural-experiment / regression) vs *prediction* (ML / Monte-Carlo). **Heuristics before big guns** — escalate only when a cheap tool can't move the answer. [`analytics-tool-selection-decision-tree`]
 - **framework_shape** — a *formula* (compute a number) vs a *typology* (2×2 / segmentation) vs a *checklist* (factors to cover). Match the shape to the job. [`three-styles-of-frameworks`]
 
-**2 · LOAD candidates — the FAST per-checkpoint map (v3.0; the "load fast, no context-lost" guard):** do **NOT** load the whole 667-tool registry into context. **Load ONLY the per-4S-step map for your current step** — `knowledge/thinking-tool-index/{frame|structure|solve|sell|cross}.md` — a compact 1-line-per-tool slice (`tool · select-when · moves · domains · checkpoint · → page`). Then **filter that map** by your `domain` + `cognitive_move` + scan the **`select when`** column (the disambiguator that separates neighbours — e.g. Porter's Five Forces *"is this industry structurally attractive before entry/investment"* vs Value Driver Tree *"which lever actually moves the economics"*). That is your shortlist. (Still `resolver_find` for matching `/think` skills + `wiki_ask`/the registries for a long-tail concept the map doesn't carry.) **READ each finalist's wiki page before applying** — the map is a pointer; the page is the executable how-to (tutorial + template). See `knowledge/thinking-tool-index/README.md`.
+**2 · LOAD candidates — the FAST per-checkpoint map (v3.0; the "load fast, no context-lost" guard):** do **NOT** load the whole 631-tool registry into context. **Load ONLY the per-4S-step map for your current step** — `knowledge/thinking-tool-index/{frame|structure|solve|sell|cross}.md` — a compact 1-line-per-tool slice (`tool · select-when · moves · domains · checkpoint · → page`). Then **filter that map** by your `domain` + `cognitive_move` + scan the **`select when`** column (the disambiguator that separates neighbours — e.g. Porter's Five Forces *"is this industry structurally attractive before entry/investment"* vs Value Driver Tree *"which lever actually moves the economics"*). That is your shortlist. (Still `resolver_find` for matching `/think` skills + `wiki_ask`/the registries for a long-tail concept the map doesn't carry.) **READ each finalist's wiki page before applying** — the map is a pointer; the page is the executable how-to (tutorial + template). See `knowledge/thinking-tool-index/README.md`.
 
 **3 · SELECT + COMBINE:** Munger **latticework** — combine 2–3 *complementary* lenses (e.g. a typology to map options + a causal analysis to test the driver), never one [`multiple-frameworks-discipline`]. **Debias:** don't grab the framework you know best and bend the problem to fit — match tool to problem; a familiar tool as the *only* candidate is a smell → widen the load [`framework-mental-model-danger` / Maslow's hammer].
 
@@ -239,9 +245,9 @@ Stop and `AskUserQuestion` when: the input is a **degree-6 internal plan/target 
 
 **The receipt gate (v1.8) — what "ask" mechanically means.** Each of the triggers above is now *gated*: when you ask, you **log the question + the founder's verbatim one-line answer to `hitl-log.md`** as `H<n>` and tag the analysis-log datum `ask-user (founder) [H<n>]`. A bare `ask-user` with no receipt **fails `mckinsey-run.cjs check`**. The most dangerous miss is a **porpoise resting on a founder-only fact**: before you reframe on "these accounts are the founder's own," "the power-user is internal," "the real budget is X" — **STOP and confirm.** A degree-3 *"likely internal"* inference may **not** be promoted to an asserted fact (and drive the whole strategy) without a logged receipt — that exact failure (the 2026-06-04 run) is why this gate exists. Honest alternative if you won't ask: keep provenance `assumption`, degree ≥6, with a sensitivity note — never relabel a guess as an answer. **The gate is discipline, not proof:** it can't watch the conversation, so it can't *prove* you asked; it makes *not asking* (or faking the label) a failure and leaves the founder an auditable trail to spot-check.
 
-### Stopping criterion (Solve → Sell — `stopping_criterion`)
+### Stopping criterion (Solve → Sell — `stopping_criterion`; the diagram's gates 4-5)
 
-Stop when ALL hold: central hypothesis **proven by an adversarial test** + one-day answer stable; **marginal** — no remaining analysis is cheap+powerful enough to move the answer; **robust to sensitivity**; residual uncertainty **labeled** as judgment calls. One-line test: *"proven + robust, and no cheap answer-moving analysis remains?"*
+This IS the 4S diagram's Solve diamonds — `candidate-solution-confirmed` (hypothesis path) / `satisfactory-solution` (issue + design paths). **NO → porpoise back to Structure** (sibling MECE branch / re-cleave / re-ideate-prototype), never patch the dead branch. **YES →** Sell. Stop when ALL hold: central hypothesis **proven by an adversarial test** + one-day answer stable; **marginal** — no remaining analysis is cheap+powerful enough to move the answer; **robust to sensitivity**; residual uncertainty **labeled** as judgment calls. One-line test: *"proven + robust, and no cheap answer-moving analysis remains?"*
 
 ## ④ SELL — synthesize THEN communicate (two distinct moves)  ·  artifacts: `synthesis.md`, `communication.md`
 
@@ -275,9 +281,9 @@ Machine-readable spec + per-step concept bindings: `knowledge/mckinsey-workflow.
 
 **The thinking-tool library (v3.0 — the candidate pool for Selection):**
 - `knowledge/problem-solving-frameworks.yaml` — **207** book frameworks (filter by `fours_step` + `type`).
-- `knowledge/consulting-frameworks.yaml` — **460** consulting-toolkit frameworks, reconstructed from 19 ex-McKinsey domain toolkits, tagged `fours_step`·`cognitive_moves`·`domains`·`select_when`·`checkpoint_fit` → `wiki/consulting-toolkits/<toolkit>/concepts/<slug>.md`.
-- `knowledge/consulting-processes.yaml` — **19** inherited domain process playbooks (gated spines) + routing cards.
-- `knowledge/thinking-tool-index/{frame,structure,solve,sell,cross}.md` — the **fast per-4S-step maps** (unify all 667 tools; load ONLY the current step's map at a checkpoint — the no-context-lost guard) + `processes.md` (the domain-process router) + `README.md`. Built by `scripts/consulting-toolkit/build-thinking-os.cjs`; the toolkit knowledge layer is `wiki/consulting-toolkits/`. Concepts beyond the maps stay reachable per-step via `wiki_ask` + the registries.
+- `knowledge/consulting-frameworks.yaml` — **424** consulting-toolkit frameworks, reconstructed from 20 ex-McKinsey domain toolkits, tagged `fours_step`·`cognitive_moves`·`domains`·`select_when`·`checkpoint_fit` → `wiki/consulting-toolkits/<toolkit>/concepts/<slug>.md`.
+- `knowledge/consulting-processes.yaml` — **20** inherited domain process playbooks (gated spines) + routing cards.
+- `knowledge/thinking-tool-index/{frame,structure,solve,sell,cross}.md` — the **fast per-4S-step maps** (unify all 631 tools; load ONLY the current step's map at a checkpoint — the no-context-lost guard) + `processes.md` (the domain-process router) + `README.md`. Built by `scripts/consulting-toolkit/build-thinking-os.cjs`; the toolkit knowledge layer is `wiki/consulting-toolkits/`. Concepts beyond the maps stay reachable per-step via `wiki_ask` + the registries.
 
 ## Anti-claims
 

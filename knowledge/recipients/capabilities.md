@@ -76,7 +76,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** deepask — federated retrieval + capability-execution + cited synthesis supercommand. First-class supercommand /deepask "<q>" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its v1.3.0
+**When to use:** deepask — federated retrieval + capability-execution + cited synthesis supercommand. First-class supercommand /deepask "<q>" [--format][--sources][--depth][--dry-run] that federates retrieval AND capability-execution across the ENTIRE internal IA and returns an exceptionally accurate, fully-cited, authority-ranked, conflict-aware, freshness-tagged, dynamically-formatted answer. ZERO routing of its v1.5.0
 
 **Invoke:** `Read("wiki/capabilities/deepask/spec.md")` or `/cla update deepask`
 
@@ -220,7 +220,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 13 skills (11 composable thinking tools + the mckinsey-workflow 4S v2.2.0
+**When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 13 skills (11 composable thinking tools + the mckinsey-workflow 4S v3.1.0
 
 **Invoke:** `Read("wiki/capabilities/thinking-toolkit/spec.md")` or `/cla update thinking-toolkit`
 

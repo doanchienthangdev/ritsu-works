@@ -4,7 +4,7 @@
 
 ## How the engine uses it (per checkpoint)
 1. Know your 4S step + cognitive move (CLASSIFY, per the mckinsey-workflow SKILL).
-2. **Load ONLY `{step}.md`** (frame/structure/solve/sell/cross) — the compact map for that step (not the full 667-tool registry). This is the context-lost guard.
+2. **Load ONLY `{step}.md`** (frame/structure/solve/sell/cross) — the compact map for that step (not the full 631-tool registry). This is the context-lost guard.
 3. Filter the map by domain + cognitive-move + scan `select when`; pick **2-3 complementary** tools (latticework; debias against the familiar tool).
 4. **READ each finalist's wiki page** before applying (the map is a pointer; the page is the how-to).
 5. At STRUCTURE, also check `processes.md` — if the problem matches a domain, pull that inherited process as the spine.

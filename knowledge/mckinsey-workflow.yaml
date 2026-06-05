@@ -67,6 +67,23 @@
 #   data-blocked branch (ask-user or carry an explicit assumption), and the
 #   synthesize→recommend judgment stays with the engine (Sell) + the owner.
 #
+# v3.1 (the "restore the 4S diagram topology + close the coherence gap" upgrade,
+#   2026-06-05 audit fix): the 2026-06-05 audit found the engine had FLATTENED the
+#   Cracked It! Fig 3.1 routing map — the three PATHS (hypothesis-driven / issue-
+#   driven / design-thinking) existed only as prose, the five DECISION DIAMONDS were
+#   softened into heuristics, and design-thinking was buried entirely in Solve
+#   (the diagram spreads it Empathize=State → Ideate=Structure → Prototype=Solve).
+#   It also found the human docs' tool counts had DRIFTED (460/667/19 vs the real
+#   424/631/20) with NOTHING in CI checking them. v3.1 adds three sections —
+#   `paths` (the 3 paths + their band_staging), `decision_gates` (the 5 diamonds +
+#   YES/NO routing), and `tool_library` (the full v3.0 candidate pool reconciled
+#   INTO the spec, closing the "spec lagged the SKILL" gap) — and a NEW coherence
+#   validator (scripts/cross-tier/validate-mckinsey-coherence.cjs) that makes the
+#   stated counts a falsifiable CI invariant. Plus an auto-run enforcement hook
+#   (.claude/hooks/runtime/pre-write-mckinsey-gate.cjs) that fires the run-folder
+#   gate the moment a Sell artifact is written, and a deeper before-sell checker
+#   (decomposition ≥2 branches · non-trivial disconfirmation · ≥1 real data pull).
+#
 # Schema:    knowledge/schemas/mckinsey-workflow.schema.json
 # Validator: scripts/cross-tier/validate-mckinsey-workflow.cjs (L2 critical;
 #            check-consistency.cjs + CI + validate-tier1 FILE_TO_SCHEMA). Proves
@@ -80,7 +97,7 @@
 # Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
 # ============================================================================
 
-version: "2.0.0"
+version: "3.1.0"
 schema: knowledge/schemas/mckinsey-workflow.schema.json
 spine: "4S"                                   # State / Structure / Solve / Sell (Cracked it! Ch 3)
 source_books: [cracked-it, bulletproof-problem-solving]
@@ -354,6 +371,105 @@ stopping_criterion:
     concept: {book: cracked-it, slug: sensitivity-analysis}
   - condition: "residual uncertainty is LABELED as judgment calls (with degree-of-certainty), not hidden; tail/downside understood, not just the mean"
     concept: {book: cracked-it, slug: judgment-call-transparency}
+
+# --------------------------------------------------------------------------
+# PATHS (v3.1) — the THREE problem-solving paths of the 4S diagram (Cracked It!
+# Fig 3.1), restored as first-class catalog entries. The 2026-06-05 audit found
+# the paths existed only as prose and were FLATTENED into the linear 4 steps
+# (design-thinking buried entirely in Solve). Each path declares its
+# entry_condition (the decision diamond that selects it) + its BAND STAGING —
+# which 4S band each activity sits in — crucially fixing that DESIGN-THINKING
+# SPANS State (Empathize, Ch 8), Structure (Ideate, Ch 9) and Solve (Prototype &
+# test, Ch 9), NOT just Solve. `steps` below stays the linear 4S spine; `paths`
+# is the routing overlay the agent selects via `decision_gates`.
+# --------------------------------------------------------------------------
+paths:
+  - id: hypothesis-driven
+    name: "Hypothesis-Driven Path"
+    entry_condition: "You have a good candidate solution / a strong prior (or time starvation forces a bet). Diagram diamond: 'Do you have a good candidate solution? → YES'."
+    when_to_prefer: "A credible answer already exists to test; speed matters; the team can state a falsifiable lead hypothesis."
+    band_staging:
+      - {band: structure, activity: "Build the Hypothesis Pyramid (governing hypothesis → sub-hypotheses)", source_chapter: "Cracked It! Ch 5-6"}
+      - {band: solve,     activity: "Perform analyses to CONFIRM/DISPROVE the lead hypothesis (gate: 'Is the candidate solution confirmed?')", source_chapter: "Cracked It! Ch 7"}
+    concept: {book: cracked-it, slug: hypothesis-driven-problem-solving}
+  - id: issue-driven
+    name: "Issue-Driven Path (DEFAULT)"
+    entry_condition: "No strong candidate solution, but the problem decomposes into a logical issue tree. Diagram diamond: 'Can you build an issue tree? → YES'. This is the analytical DEFAULT."
+    when_to_prefer: "Default analytical path: the problem is well-enough defined to cleave MECE but no answer is yet credible."
+    band_staging:
+      - {band: structure, activity: "Build the Issue Tree (MECE decomposition; each leaf a falsifiable hypothesis) + the 6-column workplan", source_chapter: "Cracked It! Ch 5-6"}
+      - {band: solve,     activity: "Perform analyses leaf-by-leaf (gate: 'Have you found a satisfactory solution?')", source_chapter: "Cracked It! Ch 7"}
+    concept: {book: cracked-it, slug: issue-driven-problem-solving}
+  - id: design-thinking
+    name: "Design-Thinking Path"
+    entry_condition: "The problem is ill-defined / human-centered / you DON'T know enough to even state it, OR you cannot build an issue tree. Diagram: 'Do you know enough to state the problem? → NO' AND/OR 'Can you build an issue tree? → NO'."
+    when_to_prefer: "Innovation / desirability-led problems with no single right answer; reframe via empathy before structuring."
+    band_staging:
+      - {band: state,     activity: "EMPATHIZE — immerse in users to (re)frame the problem (POV / How-Might-We)", source_chapter: "Cracked It! Ch 8"}
+      - {band: structure, activity: "IDEATE — diverge then converge to candidate concepts", source_chapter: "Cracked It! Ch 9"}
+      - {band: solve,     activity: "PROTOTYPE & TEST until desirability × feasibility × viability hold (gate: 'satisfactory solution?')", source_chapter: "Cracked It! Ch 9"}
+    concept: {book: cracked-it, slug: five-phases-of-design-thinking}
+
+# --------------------------------------------------------------------------
+# DECISION GATES (v3.1) — the FIVE decision diamonds of the 4S diagram, restored
+# explicitly. Each sits at a 4S band, asks the diagram's question, and routes
+# YES/NO to a path or a back-edge. These are the routing logic the audit found
+# softened into prose. They are GUIDANCE the agent applies (the run-folder
+# checker can't enforce a routing CHOICE) — but making them first-class makes the
+# path decision a conscious, auditable act instead of an implicit default.
+# Route targets: to_step ∈ step id · to_path ∈ path id · to_gate ∈ gate id.
+# --------------------------------------------------------------------------
+decision_gates:
+  - id: know-enough-to-state
+    at: state
+    question: "Do you know enough to STATE the problem?"
+    yes_route: {to_step: structure, note: "proceed to the analytical paths (define the problem via TOSCA)"}
+    no_route:  {to_path: design-thinking, note: "you cannot frame it yet → Empathize (Ch 8) to (re)discover the real problem"}
+    concept: {book: cracked-it, slug: problem-reframing-via-empathy}
+  - id: have-candidate-solution
+    at: structure
+    question: "Do you have a good candidate solution?"
+    yes_route: {to_path: hypothesis-driven, note: "Build the Hypothesis Pyramid and test the lead"}
+    no_route:  {to_gate: can-build-issue-tree, note: "no credible answer yet → try the issue tree"}
+    concept: {book: cracked-it, slug: hypothesis-driven-vs-issue-driven}
+  - id: can-build-issue-tree
+    at: structure
+    question: "Can you build an issue tree?"
+    yes_route: {to_path: issue-driven, note: "Build the Issue Tree (the default analytical path)"}
+    no_route:  {to_path: design-thinking, note: "the problem resists logical decomposition → Ideate (Ch 9)"}
+    concept: {book: cracked-it, slug: issue-tree}
+  - id: candidate-solution-confirmed
+    at: solve
+    question: "Is the candidate solution confirmed? (hypothesis-driven path)"
+    yes_route: {to_step: sell, note: "the lead hypothesis survived an adversarial test → synthesize + sell"}
+    no_route:  {to_step: structure, note: "route to the sibling MECE branch / re-cleave (NOT a patch) — back-edge"}
+    concept: {book: cracked-it, slug: solution-confirmation}
+  - id: satisfactory-solution
+    at: solve
+    question: "Have you found a satisfactory solution? (issue-driven + design-thinking paths)"
+    yes_route: {to_step: sell, note: "stopping_criterion holds → synthesize + sell"}
+    no_route:  {to_step: structure, note: "loop: re-cleave / re-ideate-prototype-test — back-edge (porpoise)"}
+    concept: {book: bulletproof-problem-solving, slug: porpoising}
+
+# --------------------------------------------------------------------------
+# TOOL LIBRARY (v3.1) — the candidate pool for SELECTION, reconciled INTO the
+# machine-readable spec. The audit found the SKILL.md cited the full v3.0 library
+# (631 tools + 20 processes) but THIS yaml only referenced the 207-book registry
+# — the spec lagged the playbook. Counts here are CI-checked against the actual
+# registry entry counts by scripts/cross-tier/validate-mckinsey-coherence.cjs.
+# --------------------------------------------------------------------------
+tool_library:
+  total_tools: 631
+  total_processes: 20
+  registries:
+    - {kind: book-frameworks,       file: knowledge/problem-solving-frameworks.yaml, count: 207, note: "distilled from Bulletproof + Cracked It!; filter by fours_step + type"}
+    - {kind: consulting-frameworks, file: knowledge/consulting-frameworks.yaml,      count: 424, note: "reconstructed from the 20 ex-McKinsey domain toolkits; tagged fours_step/cognitive_moves/domains/select_when/checkpoint_fit"}
+    - {kind: domain-processes,      file: knowledge/consulting-processes.yaml,       count: 20,  note: "gated phase-spine playbooks; pulled at STRUCTURE as the issue-tree/workplan skeleton"}
+  fast_maps:
+    dir: knowledge/thinking-tool-index/
+    files: [frame.md, structure.md, solve.md, sell.md, cross.md, processes.md]
+    note: "load ONLY the current 4S step's map at a checkpoint (the no-context-lost guard); READ each finalist's wiki page before applying"
+  selection_mechanism: "see tool_selection above (CLASSIFY → LOAD the per-step map → SELECT+COMBINE <=3 latticework lenses, debias against the familiar tool)"
 
 # --------------------------------------------------------------------------
 # THE 4S STAGES — each binds operations (skills) + concepts + the artifact it

@@ -1,7 +1,7 @@
 ---
 description: |
   Project-scoped command for ritsu-works. Front-end for the
-  **thinking-toolkit** capability (v1.6.0). Routes to 12 McKinsey/Minto-derived
+  **thinking-toolkit** capability (v3.1.0). Routes to 12 McKinsey/Minto-derived
   thinking-discipline skills under `06-ai-ops/skills/thinking-toolkit/`.
 
   Use when you want to apply a specific thinking framework to the current
@@ -23,7 +23,7 @@ argument-hint: "[tosca <problem> | mece [list] | pyramid [conclusion] | so-what 
 # /think
 
 Project-scoped command for ritsu-works. Front-end for the **thinking-toolkit**
-capability (v1.6.0). Capability spec at `wiki/capabilities/thinking-toolkit/spec.md`.
+capability (v3.1.0). Capability spec at `wiki/capabilities/thinking-toolkit/spec.md`.
 
 The command is a **thin orchestrator**. All thinking discipline lives in the 12
 skills under `06-ai-ops/skills/thinking-toolkit/`. Subcommands invoke those
@@ -33,14 +33,14 @@ Per `governance/HITL.md`, all `/think` invocations are **Tier A** — guidance
 documents read by the invoking agent; no external action, no money movement,
 no user impact, no escalation paths.
 
-## Subcommands (v1.6 — 14 verbs)
+## Subcommands (v3.1 — 14 verbs)
 
 | Invocation | Maps to skill | Purpose | HITL |
 |---|---|---|---|
 | `/think` | — | Show menu + composition flow + skill index | A |
 | `/think list` | — | Table of all 12 skills (11 atomic + the mckinsey-workflow engine; name, one-line, when to use) | A |
 | `/think flow [problem]` | — | Recommend a multi-skill sequence (TOSCA → MECE → driver-tree → 2x2 → pyramid → so-what) | A |
-| `/think mckinsey <problem> [flags]` | `thinking-toolkit/mckinsey-workflow` | Run a problem as a McKinsey 4S **TEAM** — pull real data · validate · living one-day answer · re-route · ask founder-only data (v1.4) · load+select from the unified thinking-tool library — **667 frameworks + 19 inherited ex-McKinsey domain processes** via fast per-checkpoint maps (v1.5 registry → **v3.0** consulting library) · mechanically scaffold + gate (v1.6) · **HITL receipt gate** (v1.8) · **team operating model** (v2.0): `--mode=interactive`(default)`/auto`, 7 team-session checkpoints (frame/hypothesize/plan/prioritize/porpoise/dissent/pre-wire) with a `pre-wire`+`dissent` gate, thorough data-sweep + completeness-critic, and a **Sell formatter** to McKinsey templates in any `/deepask` format+design-system · **v2.1**: sell templates GROUNDED in real McKinsey reports (not guessed) + **`--workflow=off/steps/full`** runs each high-leverage step as a dynamic multi-agent WORKFLOW. Flags: `--mode --depth --sell --audience --style --art-style --sources --format --workflow` (see SKILL.md) | A |
+| `/think mckinsey <problem> [flags]` | `thinking-toolkit/mckinsey-workflow` | Run a problem as a McKinsey 4S **TEAM** — pull real data · validate · living one-day answer · re-route · ask founder-only data (v1.4) · load+select from the unified thinking-tool library — **631 frameworks + 20 inherited ex-McKinsey domain processes** via fast per-checkpoint maps (v1.5 registry → **v3.0** consulting library) · mechanically scaffold + gate (v1.6) · **HITL receipt gate** (v1.8) · **team operating model** (v2.0): `--mode=interactive`(default)`/auto`, 7 team-session checkpoints (frame/hypothesize/plan/prioritize/porpoise/dissent/pre-wire) with a `pre-wire`+`dissent` gate, thorough data-sweep + completeness-critic, and a **Sell formatter** to McKinsey templates in any `/deepask` format+design-system · **v2.1**: sell templates GROUNDED in real McKinsey reports (not guessed) + **`--workflow=off/steps/full`** runs each high-leverage step as a dynamic multi-agent WORKFLOW · **v3.1**: the 3 paths + 5 decision-gates of the 4S diagram restored as first-class catalog sections (`paths`/`decision_gates`), an **auto-run gate hook** at Sell, and **coherence-validated** tool counts (631/20). Flags: `--mode --depth --sell --audience --style --art-style --sources --format --workflow` (see SKILL.md) | A |
 | `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` | Frame ambiguous problem via T/O/S/C/A before solutioning | A |
 | `/think mece [list]` | `thinking-toolkit/mece-decomposition-check` | 2-test quality gate on list/decomposition (overlap + exhaustive) | A |
 | `/think pyramid [conclusion]` | `thinking-toolkit/pyramid-principle-output` | Top-line first; reader can stop at any level | A |
@@ -65,7 +65,7 @@ Argument conventions:
 Print a compact menu:
 
 ```
-/think — McKinsey/Minto thinking discipline (12 skills, capability v1.6.0)
+/think — McKinsey/Minto thinking discipline (12 skills, capability v3.1.0)
 
   tosca <problem>        Frame an ambiguous problem (T/O/S/C/A)
   mece [list]            Check a list for overlap + exhaustive
@@ -283,7 +283,7 @@ Each `/think <subcommand>` invocation = single `ops.agent_runs` row (agent_slug=
 
 ## Spec reference
 
-Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v1.6.0).
+Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v3.1.0).
 Retrospective: `wiki/capabilities/thinking-toolkit/retrospective.md`.
 Sub-flow draft notes: `.archives/cla/thinking-toolkit/v1.1-extension-delta.md`.
 

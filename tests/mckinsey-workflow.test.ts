@@ -6,6 +6,7 @@ import * as yaml from "js-yaml";
 const {
   validateWorkflow,
   CANONICAL_4S,
+  CANONICAL_PATHS,
   ARTIFACTS,
   TOOLS,
   ENGINE_SECTIONS,
@@ -75,6 +76,24 @@ function validDoc(over: Record<string, any> = {}) {
       { guard: "anti-recursion", rule: "one-way layering", applies_to: ["deepask"] },
       { guard: "cost-valve", rule: "knock-out-gated", concept: { ...REAL_CONCEPT } },
     ],
+    // v3.1 paths — the 3 canonical 4S-diagram paths (band ∈ step ids).
+    paths: [
+      { id: "hypothesis-driven", name: "Hypothesis-Driven Path", entry_condition: "good candidate solution exists", band_staging: [{ band: "structure", activity: "build pyramid" }, { band: "solve", activity: "confirm" }], concept: { ...REAL_CONCEPT } },
+      { id: "issue-driven", name: "Issue-Driven Path", entry_condition: "can build an issue tree", band_staging: [{ band: "structure", activity: "build tree" }, { band: "solve", activity: "analyze" }], concept: { ...REAL_CONCEPT } },
+      { id: "design-thinking", name: "Design-Thinking Path", entry_condition: "ill-defined / human-centered", band_staging: [{ band: "state", activity: "empathize" }, { band: "structure", activity: "ideate" }, { band: "solve", activity: "prototype" }], concept: { ...REAL_CONCEPT } },
+    ],
+    // v3.1 decision_gates — diamonds routing to step/path/gate (all must resolve).
+    decision_gates: [
+      { id: "know-enough-to-state", at: "state", question: "know enough to state?", yes_route: { to_step: "structure" }, no_route: { to_path: "design-thinking" }, concept: { ...REAL_CONCEPT } },
+      { id: "have-candidate-solution", at: "structure", question: "good candidate?", yes_route: { to_path: "hypothesis-driven" }, no_route: { to_gate: "know-enough-to-state" }, concept: { ...REAL_CONCEPT } },
+    ],
+    // v3.1 tool_library — registries point at real files (count optional; omitted to decouple the fixture from exact counts).
+    tool_library: {
+      registries: [
+        { kind: "book-frameworks", file: "knowledge/problem-solving-frameworks.yaml" },
+        { kind: "domain-processes", file: "knowledge/consulting-processes.yaml" },
+      ],
+    },
     ...over,
   };
 }
@@ -370,5 +389,103 @@ describe("validateWorkflow — v1.7 composition_guards", () => {
     expect(blob).toContain("anti-recursion");
     expect(blob).toContain("cost-valve");
     expect(blob).toContain("evidence-not-decider");
+  });
+});
+
+// ============================================================================
+// v3.1 — paths / decision_gates / tool_library (the 4S-diagram topology restored)
+// ============================================================================
+describe("validateWorkflow — v3.1 paths (the 3 4S-diagram paths)", () => {
+  it("exports the 3 canonical paths", () => {
+    expect(CANONICAL_PATHS).toEqual(["hypothesis-driven", "issue-driven", "design-thinking"]);
+  });
+  it("the committed catalog declares the 3 paths; design-thinking spans State+Structure+Solve", () => {
+    const doc: any = yaml.load(fs.readFileSync(path.join(REPO_ROOT, REGISTRY_REL), "utf-8"));
+    const ids = doc.paths.map((p: any) => p.id);
+    for (const c of CANONICAL_PATHS) expect(ids).toContain(c);
+    const dt = doc.paths.find((p: any) => p.id === "design-thinking");
+    const bands = dt.band_staging.map((b: any) => b.band);
+    expect(bands).toContain("state"); // Empathize (Ch 8) — the audit's key fix
+    expect(bands).toContain("structure"); // Ideate (Ch 9)
+    expect(bands).toContain("solve"); // Prototype & test (Ch 9)
+  });
+  it("missing paths -> error", () => {
+    expect(has(validateWorkflow(validDoc({ paths: undefined }), REPO_ROOT), "paths must be a non-empty array")).toBe(true);
+  });
+  it("dropping a canonical path -> 'missing canonical 4S path'", () => {
+    const d = validDoc();
+    d.paths = d.paths.filter((p: any) => p.id !== "design-thinking");
+    expect(has(validateWorkflow(d, REPO_ROOT), "missing canonical 4S path: 'design-thinking'")).toBe(true);
+  });
+  it("band_staging band not a step id -> error", () => {
+    const d = validDoc();
+    d.paths[0].band_staging = [{ band: "nope", activity: "x" }];
+    expect(has(validateWorkflow(d, REPO_ROOT), "band 'nope' is not a step id")).toBe(true);
+  });
+  it("empty band_staging -> error", () => {
+    const d = validDoc();
+    d.paths[0].band_staging = [];
+    expect(has(validateWorkflow(d, REPO_ROOT), "band_staging must be a non-empty array")).toBe(true);
+  });
+  it("path concept that doesn't exist -> error", () => {
+    const d = validDoc();
+    d.paths[0].concept = { book: "cracked-it", slug: "no-such-concept-xyz" };
+    expect(has(validateWorkflow(d, REPO_ROOT), "concept not found on disk")).toBe(true);
+  });
+});
+
+describe("validateWorkflow — v3.1 decision_gates (the 5 diamonds)", () => {
+  it("the committed catalog declares >=5 gates incl. the diamond questions", () => {
+    const doc: any = yaml.load(fs.readFileSync(path.join(REPO_ROOT, REGISTRY_REL), "utf-8"));
+    expect(doc.decision_gates.length).toBeGreaterThanOrEqual(5);
+    const blob = JSON.stringify(doc.decision_gates).toLowerCase();
+    expect(blob).toContain("issue tree");
+    expect(blob).toContain("candidate solution");
+    expect(blob).toContain("satisfactory");
+  });
+  it("missing decision_gates -> error", () => {
+    expect(has(validateWorkflow(validDoc({ decision_gates: undefined }), REPO_ROOT), "decision_gates must be a non-empty array")).toBe(true);
+  });
+  it("gate `at` non-step -> error", () => {
+    const d = validDoc();
+    d.decision_gates[0].at = "nope";
+    expect(has(validateWorkflow(d, REPO_ROOT), "at 'nope' is not a step id")).toBe(true);
+  });
+  it("gate route to nonexistent path -> error", () => {
+    const d = validDoc();
+    d.decision_gates[0].no_route = { to_path: "ghost-path" };
+    expect(has(validateWorkflow(d, REPO_ROOT), "to_path 'ghost-path' is not a path id")).toBe(true);
+  });
+  it("gate route to nonexistent step -> error", () => {
+    const d = validDoc();
+    d.decision_gates[0].yes_route = { to_step: "ghost-step" };
+    expect(has(validateWorkflow(d, REPO_ROOT), "to_step 'ghost-step' is not a step id")).toBe(true);
+  });
+  it("gate route with two targets -> error", () => {
+    const d = validDoc();
+    d.decision_gates[0].yes_route = { to_step: "sell", to_path: "issue-driven" };
+    expect(has(validateWorkflow(d, REPO_ROOT), "exactly ONE of to_step/to_path/to_gate")).toBe(true);
+  });
+});
+
+describe("validateWorkflow — v3.1 tool_library", () => {
+  it("the committed catalog's tool_library reconciles to 631 tools + 20 processes and validates clean", () => {
+    const doc: any = yaml.load(fs.readFileSync(path.join(REPO_ROOT, REGISTRY_REL), "utf-8"));
+    expect(doc.tool_library.total_tools).toBe(631);
+    expect(doc.tool_library.total_processes).toBe(20);
+    expect(validateWorkflow(doc, REPO_ROOT)).toEqual([]);
+  });
+  it("missing tool_library -> error", () => {
+    expect(has(validateWorkflow(validDoc({ tool_library: undefined }), REPO_ROOT), "tool_library must be a mapping")).toBe(true);
+  });
+  it("registry file that doesn't exist -> error", () => {
+    const d = validDoc();
+    d.tool_library.registries = [{ kind: "x", file: "knowledge/nope.yaml" }];
+    expect(has(validateWorkflow(d, REPO_ROOT), "registry file not found")).toBe(true);
+  });
+  it("declared count != actual entries -> error (catches the exact 2026-06-05 drift class)", () => {
+    const d = validDoc();
+    d.tool_library.registries = [{ kind: "book-frameworks", file: "knowledge/problem-solving-frameworks.yaml", count: 999 }];
+    expect(has(validateWorkflow(d, REPO_ROOT), "declares count 999 but has 207")).toBe(true);
   });
 });

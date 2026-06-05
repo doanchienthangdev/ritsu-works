@@ -4,6 +4,20 @@
 > (`knowledge/capability-registry.yaml`, `thinking-toolkit` entry) and `spec.md`.
 > This file is the forward changelog from the point it was created (v1.7).
 
+## v3.1.0 — 2026-06-05 — restore the 4S-diagram topology + close the coherence gap + enforce the gate
+
+**`/cla fix`+`extend` (autonomous, founder away)** · a deep audit of `/think mckinsey` against the canonical 4S diagram (*Cracked It!* Fig 3.1) scored it **6.2/10**: the thinking content is excellent (it exceeds the bare diagram) but the one thing McKinsey's power depends on — rigorous, ENFORCED process adherence — had three gaps. This release fixes all three.
+
+**G1 — enforcement was honor-system → now auto-run + deeper.**
+- NEW hook `.claude/hooks/runtime/pre-write-mckinsey-gate.cjs` (+ spec `.claude/hooks/pre-write-mckinsey-gate.md`, wired into `.claude/settings.json` Write+Edit). It **auto-runs** the `mckinsey-run.cjs --before-sell` gate the moment a Sell artifact (`.archives/mckinsey/<slug>/communication.md`) is written, logging `mckinsey.sell_gate_failed` + a stderr advisory when an ungated Sell ships. **Observation-only** (never blocks; `BLOCK_ON_FAIL=false`) — matches the repo hook philosophy + is unattended-safe.
+- `mckinsey-run.cjs` gains 3 deeper `--before-sell` checks: **workplan ≥2 data rows** (MECE minimum — the decomposition lives in the workplan), a **non-trivial `**Disconfirmation:**` line** (empty → ERROR; absent/old-format → WARNING), and **≥1 real pulled source** (not all ask-user/assumption → WARNING).
+
+**G2 — the diagram topology was flattened → restored as first-class catalog sections.** `knowledge/mckinsey-workflow.yaml` (2.0.0 → 3.1.0) gains `paths` (the 3 paths — hypothesis-driven / issue-driven / design-thinking — each with `entry_condition` = its decision diamond + `band_staging`, crucially staging **design-thinking across State=Empathize → Structure=Ideate → Solve=Prototype**, not buried in Solve), `decision_gates` (the 5 diamonds + YES/NO routing), and `tool_library` (the full v3.0 631-tool / 20-process pool reconciled into the spec). `validate-mckinsey-workflow.cjs` enforces the 3 canonical paths + gate-route integrity + tool_library counts. The mckinsey SKILL §STATE/§STRUCTURE/§SOLVE now make the gates explicit.
+
+**G3 — count drift was CI-invisible → now a falsifiable invariant.** The hand docs stated `460 consulting frameworks → 667 tools + 19 processes`; the real registries are `424 → 631 + 20`. NEW `scripts/cross-tier/validate-mckinsey-coherence.cjs` (wired into `check-consistency.cjs` + a CI job) asserts every stated count in SKILL.md / command / index README equals the actual registry entry counts. SKILL.md + `think.md` + the index README + the `build-thinking-os.cjs` generator corrected to 424/631/20; version aligned to **v3.1.0** across command / yaml / registry / spec.
+
+**Tests:** `tests/mckinsey-workflow.test.ts` (+paths/gates/tool_library cases), `tests/mckinsey-run.test.ts` (+the 3 deeper gates), NEW `tests/pre-write-mckinsey-gate.test.ts`, NEW `tests/mckinsey-coherence.test.ts`. Run record + re-audit: `.archives/mckinsey-rigor-fix-2026-06-05/`.
+
 ## v3.0.1 — 2026-06-05 — 20th toolkit (#18 CX & Design Thinking) folded into the library
 
 The founder supplied the late-arriving **#18 Customer Experience Strategy & Design Thinking** toolkit. Reconstructed + integrated identically to the other 19 (incremental run on the proven pipelines). Net effect on the thinking-tool library:

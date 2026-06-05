@@ -4,7 +4,7 @@
   "title": "McKinsey 4S problem-solving workflow catalog",
   "description": "The spine that sequences thinking-toolkit skills + wiki problem-solving concepts into the McKinsey 4S method (State/Structure/Solve/Sell, Cracked it! Ch 3). Capability thinking-toolkit v1.3. Each step binds the OPERATIONS to run (skills) + a curated key-concept reading list + a retrieval recipe so any of the ~230 wiki concepts is findable by step. Structural validity here; file-existence of every referenced skill + concept is enforced by scripts/cross-tier/validate-mckinsey-workflow.cjs.",
   "type": "object",
-  "required": ["version", "steps", "artifacts", "data_routing", "tool_selection"],
+  "required": ["version", "steps", "artifacts", "data_routing", "tool_selection", "paths", "decision_gates", "tool_library"],
   "additionalProperties": true,
   "properties": {
     "version": { "type": "string" },
@@ -40,6 +40,9 @@
     "back_edges": { "type": "array", "items": { "type": "object" }, "description": "v1.4: porpoise/iterate back-transitions between stages." },
     "stopping_criterion": { "type": "array", "items": { "type": "object" }, "description": "v1.4: conditions to move Solve→Sell." },
     "composition_guards": { "type": "array", "items": { "type": "object" }, "description": "v1.7: the contract for composing a heavyweight sub-capability (deepask first; deep-research/gbrain share the shape) as a Solve data tool — anti-recursion (one-way layering), cost-valve (knock-out-gated + breaker-aware), evidence-not-decider. Enforced as a non-empty engine section by the L2 validator (concept refs file-checked)." },
+    "paths": { "type": "array", "minItems": 1, "items": { "type": "object" }, "description": "v3.1: the 3 problem-solving PATHS of the 4S diagram (Cracked It! Fig 3.1) — hypothesis-driven / issue-driven / design-thinking. Each declares entry_condition (its decision diamond) + band_staging (which 4S band each activity sits in; design-thinking spans State/Structure/Solve). The L2 validator enforces the 3 canonical paths + band ∈ step ids + concept file-existence." },
+    "decision_gates": { "type": "array", "minItems": 1, "items": { "type": "object" }, "description": "v3.1: the 5 decision DIAMONDS of the 4S diagram. Each sits `at` a 4S band, asks the diagram question, and routes yes_route/no_route to a to_step (step id) / to_path (path id) / to_gate (gate id). The L2 validator enforces at ∈ step ids + route targets resolve." },
+    "tool_library": { "type": "object", "description": "v3.1: the candidate pool for SELECTION reconciled INTO the spec (closes the gap where the SKILL cited the full v3.0 library but the yaml only referenced the 207-book registry). registries[].count is cross-checked vs the actual registry entry counts by the L2 validator + the coherence validator." },
     "steps": {
       "type": "array",
       "minItems": 1,
