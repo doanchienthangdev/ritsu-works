@@ -11,8 +11,9 @@ For canonical product description, full governance, and detailed structure, see 
 
 ## Recipient catalog (resolver v3 — JIT loading, post-cutover 2026-05-26)
 
-Compressed INDEX loaded into ambient context for every session (~11K tokens
-covering all active recipients across every kind). For full details on
+Compressed INDEX loaded into ambient context for every session (~15K tokens
+as of 2026-06-05; hard cap raised 15K→30K to give the growing catalog headroom)
+covering all active recipients across every kind. For full details on
 any recipient, invoke `mcp__supabase-ops__resolver_find({intent:"...", limit:5})` —
 session model ranks 20 keyword-pre-filtered enriched candidates (no API
 key per `external-source/anthropic-api` policy; subscription billing).

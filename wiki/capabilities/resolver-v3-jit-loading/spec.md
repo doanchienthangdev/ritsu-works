@@ -18,7 +18,7 @@
 
 Decomposed:
 
-- **E1 — Pocket map**: Single index small enough to live in ambient context always (target ~10-12K tokens, ~5-6% of 200K budget; hard cap 15K).
+- **E1 — Pocket map**: Single index small enough to live in ambient context always (original target ~10-12K tokens, ~5-6% of 200K budget; **hard cap raised 15K→30K on 2026-06-05** as the catalog grew — ~12% of the 200K window at the new ceiling).
 - **E2 — Always visible**: Model sees WHAT kinds of recipients exist + high-level capabilities every turn. No cognitive blindness at message 30 vs message 1.
 - **E3 — Drill-down on demand**: Full recipient details via JIT MCP tool when needed, not preloaded.
 - **E4 — No context decay**: Same recall quality across long sessions (vs v2's 55K preloaded that decays after attention shifts to immediate task).
@@ -158,7 +158,7 @@ The v2.2 spec's 48K estimate was already insufficient — actual growth outpaced
 
 | Property | v2.2 (actual, 2026-05-25) | v3.0 (A1 target) | Delta |
 |---|---|---|---|
-| Ambient context cost | **~55,623 tokens** (measured) | ~10-12K tokens (hard cap 15K) | **~-80%** |
+| Ambient context cost | **~55,623 tokens** (measured) | ~10-15K tokens (hard cap 30K since 2026-06-05) | **~-73%** |
 | Per-session passive cost | 55K paid upfront | ~11K paid upfront | -80% |
 | Per-lookup API cost | $0 (no LLM call) | **$0** (session billing only; no API key per policy) | unchanged |
 | Per-lookup latency | $0 (no call) | ~80ms MCP + session ranking time (~1-2s if Opus) | acceptable — find() is discovery, not hot path |
@@ -253,9 +253,9 @@ Rules:
 - Header + conventions: ~500 tokens
 - Per active entry: ~25-35 tokens (avg 30)
 - **~373 active entries** (measured 2026-05-25; sum across 16 kinds with `Status: active`): ~11,200 tokens
-- **Total ambient budget target: ~10-12K tokens; hard cap 15K**
+- **Total ambient budget target: ~24K tokens; hard cap 30K** (raised from 12K/15K on 2026-06-05 — see below)
 
-If exceeded at hard cap: generator emits warning + fails CI; founder PR to either trim per-entry summary length OR exclude a kind from ambient (kind must then be discovered only via `find()`). Initial recommendation if breach: trim `when_to_use` summary truncation from 100 → 60 chars.
+If exceeded at hard cap: generator emits warning + fails CI; founder PR to either trim per-entry summary length OR exclude a kind from ambient (kind must then be discovered only via `find()`) OR **raise the cap** (the third option, exercised 2026-06-05: 15K→30K, since the catalog had grown past the original guardrail and the JIT INDEX must cover all active recipients). Earlier relief valve actually used: `when_to_use` truncation tightened 100→90 chars (`MAX_SUMMARY_CHARS`).
 
 **Note on active count growth**: each new capability adds ~5-15 recipients on average (per v2.0→v2.1→v2.2 history: 118 → 252 → 392). At current pace, v3 will revisit budget after 5 more capabilities (~450 entries, ~13K tokens — still under cap).
 
