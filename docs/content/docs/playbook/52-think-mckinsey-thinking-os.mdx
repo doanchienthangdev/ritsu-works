@@ -2,14 +2,14 @@
 title: "Chương 52 — Cẩm nang lệnh `/think mckinsey`: chạy một bài toán hệ trọng như một team McKinsey 4S (v3.2)"
 description: "Chương 52 — Cẩm nang lệnh `/think mckinsey`: chạy một bài toán hệ trọng như một team McKinsey 4S (v3.2)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/52-think-mckinsey-thinking-os.md
-source_hash: 8caaa9dc2ec6512d12d139e1f46ad1787b9165208d70782701504a69f67afa64
-generated_at: '2026-06-05T09:18:47.376Z'
+source_hash: 13bb3492c1a1ed5791deea68099e2460f8f945486e234a31bd5b28f0dc0fa6bf
+generated_at: '2026-06-05T09:38:44.633Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: 8caaa9dc2ec6512d12d139e1f46ad1787b9165208d70782701504a69f67afa64
-translated_at: '2026-06-05T09:18:47.376Z'
+translated_source_hash: 13bb3492c1a1ed5791deea68099e2460f8f945486e234a31bd5b28f0dc0fa6bf
+translated_at: '2026-06-05T09:38:44.633Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 52
 ---
@@ -20,10 +20,10 @@ chapter_order: 52
 
 Chương này là **cẩm nang lệnh dành riêng cho `/think mckinsey`** — cách DÙNG nó cho khéo, viết rõ ràng và chi tiết để bạn (founder hoặc bất kỳ agent nào trong workforce) có thể mở ra, đọc một mục, và chạy được ngay một bài toán hệ trọng đầu-đến-cuối như một team McKinsey thực thụ.
 
-Phân biệt với hai chương lân cận để bạn biết đọc cái nào khi nào:
+Phân biệt với các tài liệu lân cận để bạn biết đọc cái nào khi nào:
 
-- **Chương 49/50 (Tutorial)** dạy *engine bên trong hoạt động ra sao* (kiến trúc 3-artifact, validator, registry, cơ chế load+select) — đọc khi bạn muốn **mở rộng** engine.
-- **Chương 51** kể *nguyên liệu đến từ đâu* (20 bộ consulting toolkit Domont được tái tạo thành process bundle chạy được).
+- **Chương 50 (Tutorial) — Engine /think mckinsey** dạy *engine bên trong hoạt động ra sao* (kiến trúc 3-artifact, validator, registry, cơ chế load+select) — đọc khi bạn muốn **mở rộng** engine.
+- **§52.14 (cuối chương này) + `wiki/consulting-toolkits/`** kể *nguyên liệu đến từ đâu* (20 bộ consulting toolkit Domont được tái tạo thành process bundle chạy được rồi nạp vào engine; nguồn thô ở `raw/consultant/`). Phần tái tạo không có chương playbook riêng — nó được tóm ở §52.14.
 - **Chương 52 (chương này)** là *cẩm nang VẬN HÀNH lệnh* — đọc khi bạn muốn **dùng** lệnh để giải một bài toán thật.
 
 Lệnh đã tiến hoá qua nhiều phiên bản: engine 4S động (v1.4) → CLASSIFY→LOAD→SELECT (v1.5) → cổng kỷ luật cơ học (v1.6/v1.8) → **mô hình team 7-checkpoint + Sell formatter** (v2.0) → sell-grounded + `--workflow` đa-agent (v2.1) → **thư viện 631 công cụ + 20 quy trình kế thừa** (v3.0) → **bộ định tuyến `/think triage` + SOP-AIOPS-012 + phản xạ persona** biến nó thành **bộ-giải-bài-toán CHÍNH của cả workforce** (v3.2). Cẩm nang này mô tả bề mặt v3.2.
@@ -320,7 +320,7 @@ v3.1 audit phát hiện "bộ-giải-bài-toán chính" là một thuộc-tính 
 
 ## 52.14 Bên dưới — thinking-OS được xây ra sao (cho người muốn mở rộng)
 
-- **Hai pipeline + Workflow có giới hạn.** *Tái tạo* (Chương 51): Workflow một-agent-mỗi-toolkit → 20 bundle. *Làm giàu thẻ chọn:* một Workflow **19 (rồi +1) agent Sonnet** đọc từng toolkit, gắn `fours_step`/`cognitive_moves`/`select_when`/`checkpoint_fit` + soạn routing card — chạy 4 phút, 0 lỗi (output nhỏ + Sonnet + bounded = tin cậy). *Build chất nền:* `scripts/consulting-toolkit/{to-wiki-and-registry,build-thinking-os}.cjs` (thuần Node, deterministic) → wiki + 2 registry + per-step maps.
+- **Hai pipeline + Workflow có giới hạn.** *Tái tạo* (nguồn `raw/consultant/` → bundle `raw/consultant/tookits/`): Workflow một-agent-mỗi-toolkit → 20 bundle. *Làm giàu thẻ chọn:* một Workflow **19 (rồi +1) agent Sonnet** đọc từng toolkit, gắn `fours_step`/`cognitive_moves`/`select_when`/`checkpoint_fit` + soạn routing card — chạy 4 phút, 0 lỗi (output nhỏ + Sonnet + bounded = tin cậy). *Build chất nền:* `scripts/consulting-toolkit/{to-wiki-and-registry,build-thinking-os}.cjs` (thuần Node, deterministic) → wiki + 2 registry + per-step maps.
 - **Guard:** schema L1 + validator L2 `validate-thinking-os.cjs` (mọi `wiki_path` tồn tại · `fours_step` hợp lệ · process↔trang · maps đủ) + `validate-mckinsey-coherence.cjs` (đếm 424/631/20 trong docs khớp registry thật) — cả hai trong `pnpm check` VÀ CI.
 - **Tích hợp là DATA-DRIVEN:** thêm một toolkit vào registry/maps là tự-động khả-dụng — không phải sửa logic engine (v3.0.1 thêm #18 CX & Design Thinking, lấp lỗ-hổng design-thinking-tools, mà không động SKILL).
 - **Ba lỗi workflow phải vượt (bài học tái dùng):** (a) rate-limit server-side ở ~12–14 agent Opus concurrent → đổi Stage-1 sang Sonnet + batch ≤9; (b) cap 32K-token một-response khi core lớn → yêu cầu agent ghi tăng-dần (skeleton + Edit từng batch); (c) "socket closed" lúc ack cuối (việc thường đã xong) → KIỂM tra trên đĩa, không tin ack.
