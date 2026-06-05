@@ -2,9 +2,9 @@
 
 **ID:** thinking-toolkit
 **Pillar owner:** 06-ai-ops (sub-pillar: skill-library)
-**State:** operating (single-session ship 2026-05-28; … v2.1.0 grounded sell + dynamic-workflow 2026-06-04; v2.2.0 primary-source genre matrix + /dataviz 2026-06-04; **v3.0.0 the consulting thinking-tool LIBRARY (667 tools + 19 inherited domain processes) + fast checkpoint tool-selection 2026-06-05**)
+**State:** operating (single-session ship 2026-05-28; … v2.1.0 grounded sell + dynamic-workflow 2026-06-04; v2.2.0 primary-source genre matrix + /dataviz 2026-06-04; v3.0.0 the consulting thinking-tool LIBRARY + fast checkpoint tool-selection 2026-06-05; **v3.0.1 20th toolkit #18 CX & Design Thinking folded in — 631-tool library + 20 domain processes 2026-06-05**)
 **Proposed:** 2026-05-28
-**Spec version:** 3.0.0 (header summary; per-version detail in `CHANGELOG.md` — v3.0.0 integrates the `consulting-toolkit` 19-toolkit corpus into the `/think mckinsey` checkpoint tool-selector; §1–§13 describe the v1.0/v1.4 baseline)
+**Spec version:** 3.0.1 (header summary; per-version detail in `CHANGELOG.md` — v3.0 integrates the `consulting-toolkit` corpus into the `/think mckinsey` checkpoint tool-selector; v3.0.1 adds the 20th toolkit; §1–§13 describe the v1.0/v1.4 baseline)
 **Capability run id:** TBD (insert at promotion time)
 **Selected option (from Phase 4):** Option A — Standalone parent-namespaced skills + (v1.1) thin orchestrator command surface
 

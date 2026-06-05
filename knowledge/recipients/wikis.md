@@ -29,7 +29,7 @@ Read in any Claude Code session via `@knowledge/recipients/wikis.md` import.
 
 **Kind:** wiki
 **Axis:** content
-**When to use:** 19 world-class consulting processes (strategy, M&A, supply chain, Lean Six Sigma, risk, FP&A, …), each reconstructed into an executable playbook with full per-framework anatomy. The searchable knowledge layer behind the /think mckinsey checkpoint tool-selector. Original synthesis in the consulting genre — not a copy of any source.
+**When to use:** 20 world-class consulting processes (strategy, M&A, supply chain, Lean Six Sigma, risk, FP&A, …), each reconstructed into an executable playbook with full per-framework anatomy. The searchable knowledge layer behind the /think mckinsey checkpoint tool-selector. Original synthesis in the consulting genre — not a copy of any source.
 
 **Invoke:** `Read("wiki/consulting-toolkits/source.md")` or `mcp__supabase-ops__wiki_get_page({slug: "consulting-toolkits"})`
 **Authority:** derived-memory

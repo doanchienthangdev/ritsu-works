@@ -2,6 +2,14 @@
 
 All notable changes to the `consulting-toolkit` capability.
 
+## [0.1.1] — 2026-06-05 — 20th toolkit (#18 CX & Design Thinking) + .pptx clue support
+
+The founder added the late-arriving **#18 Customer Experience Strategy & Design Thinking** toolkit (a `.pptx`, not a PDF). Reconstructed it like the other 19 → bundle in `raw/consultant/tookits/18-customer-experience-design-thinking/` (9 phases — CX-strategy tracks 1–4 + Design Thinking 5–9 [Empathize→Define→Ideate→Prototype→Test] — 54 frameworks, 5,212-word handbook, 36-slide deck). The full Domont set is now complete: **20 domain toolkits + #0 master index**.
+
+- **New: `scripts/consulting-toolkit/pptx-extract.py`** — python-pptx text extractor (slide-ordered, text frames + tables) for PowerPoint clues, producing the same `_extractions/NN-raw.txt` the PDF path produces.
+- **Render fix:** the deck engine (`lib/deck.cjs`) now tolerates a `{grp:"…"}` group/gate marker written as a literal string (not just an object) — `expandGrp()` splits it into a proper group header. Applies to all decks (re-rendered uniformly).
+- Registry (`lib/toolkits.cjs`), brief builder, and index groups updated to include #18 (domain `experience`).
+
 ## [0.1.0] — 2026-06-04
 
 Initial ship (single session, CLA-disciplined, autonomous per founder delegation).

@@ -19,6 +19,7 @@ const TOOLKITS = [
   { num: 15, slug: 'executive-dashboard',                   title: 'Executive Dashboard',                          domain: 'metrics' },
   { num: 16, slug: 'leadership-development',                title: 'Leadership Development',                       domain: 'people' },
   { num: 17, slug: 'financial-modeling-planning-analysis',  title: 'Financial Modeling, Planning & Analysis',      domain: 'finance' },
+  { num: 18, slug: 'customer-experience-design-thinking',    title: 'Customer Experience Strategy & Design Thinking', domain: 'experience' },
   { num: 19, slug: 'data-analytics-ai-strategy',            title: 'Data Analytics & AI Strategy',                 domain: 'technology' },
   { num: 20, slug: 'personal-finance-buffett-investing',    title: 'Personal Finance & Warren Buffett Investing',  domain: 'finance' },
 ];
