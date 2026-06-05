@@ -1,0 +1,82 @@
+---
+title: "Chương 52 — `/think mckinsey` Thinking-OS: Thư viện công cụ tư duy consultant + chọn công cụ chuẩn tại từng checkpoint (v3.0)"
+description: "Chương 52 — `/think mckinsey` Thinking-OS: Thư viện công cụ tư duy consultant + chọn công cụ chuẩn tại từng checkpoint (v3.0)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/52-think-mckinsey-thinking-os.md
+source_hash: e74f05fcbc50c69e4028d71bc07f590281b43547040203f62ce79ce410988dde
+generated_at: '2026-06-05T03:11:10.226Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: e74f05fcbc50c69e4028d71bc07f590281b43547040203f62ce79ce410988dde
+translated_at: '2026-06-05T03:11:10.226Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 52
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> *"Đỉnh cao của McKinsey thinking không phải là một câu trả lời nhanh. Nó là khả năng — tại từng thời điểm checkpoint của bài toán — chọn ra ĐÚNG công cụ tư duy chuẩn nhất để phân tích, ra quyết định, đề xuất, thiết kế. Và những quy trình kế thừa trực tiếp từ những người đã từng làm tại McKinsey. Tôi có engine 4S rồi (Chương 50), tôi có 207 framework từ 2 cuốn sách rồi (v1.5). Nhưng khi đứng ở bước Solve một bài M&A, engine vẫn phải tự bịa ra cây vấn đề; nó không có sẵn quy trình M&A 7-pha mà một consultant thực thụ sẽ dùng, và không có sẵn ~400 framework chuyên ngành để chọn. Đêm 2026-06-05: nạp toàn bộ thư viện consultant vào engine."*
+
+Chương này là chương **dành riêng cho `/think mckinsey`** ở tầng v3.0 — bước nhảy từ "engine 4S + 207 framework sách" (Chương 49/50 + v1.5) lên **một hệ điều hành tư duy** (thinking-OS): một thư viện hợp nhất **667 → 631 công cụ** đã được gắn thẻ để chọn-chính-xác + **20 quy trình chuyên ngành kế thừa** (inherited domain processes), nạp nhanh tại từng checkpoint mà không mất context. Đọc Chương 43 (capability case thinking-toolkit) cho gốc gác, Chương 50 (tutorial engine) cho cơ chế 4S, và **Chương 51 (consulting-toolkit reconstruction)** cho nguồn nguyên liệu (19+1 bộ toolkit Domont được tái tạo).
+
+---
+
+## 52.1 Bài toán — "chọn sai công cụ" là điểm chết của tư duy
+
+Engine `/think mckinsey` (v1.4) đã là một cỗ máy động: Frame (TOSCA) → Structure (cây MECE + workplan 6 cột) → Solve (vòng lặp pull-validate-update-reroute, porpoising) → Sell (pyramid + pre-wire). v1.5 thêm cơ chế **CLASSIFY → LOAD → SELECT**: tại mỗi sub-need, phân loại (analytical-vs-design, causation-vs-prediction, formula-typology-checklist), nạp ứng viên từ registry `problem-solving-frameworks.yaml` (207 framework lọc theo `fours_step` + `type`), rồi chọn 2-3 lăng kính bổ trợ (latticework) + debias.
+
+Nhưng founder chỉ ra **hai lỗ hổng sống còn**:
+
+1. **Registry quá hẹp.** 207 framework từ 2 cuốn sách (*Bulletproof Problem Solving* + *Cracked It!*) là tư duy TỔNG QUÁT. Khi bài toán thuộc một LĨNH VỰC cụ thể (M&A, supply chain, Lean Six Sigma, FP&A, CX…), engine thiếu các framework chuyên ngành (BCG/GE-McKinsey/Ansoff cho strategy, SCOR cho supply chain, DMAIC cho operations, deal-funnel cho M&A…) và — quan trọng hơn — thiếu **quy trình chuyên ngành đóng gói sẵn**: cái mà một ex-McKinsey sẽ rút ra dùng ngay thay vì dựng cây vấn đề từ đầu.
+2. **Chọn chưa đủ chuẩn + chưa đủ nhanh.** Lọc 207 (rồi 600+) dòng tại mỗi checkpoint hoặc là nạp cả registry (mất context), hoặc là lọc thô (chọn sai). Cần một cấu trúc **nạp nhanh + chọn chính xác** tại từng checkpoint.
+
+Nguyên liệu để vá hai lỗ hổng này vừa có: Chương 51 đã tái tạo **20 bộ consulting toolkit** (Domont) thành các process bundle chạy được — **460 framework** (mỗi cái đủ 6 phần: mô tả · hình · tutorial từng bước · ví dụ thật · template · pitfall) + **20 quy trình pha-có-cổng (gated phase spine)**. Việc của v3.0: nạp toàn bộ kho này vào engine, đúng theo tài liệu gốc.
+
+## 52.2 Nguyên lý — mở rộng TRUNG THÀNH cơ chế đã có, không dựng hệ song song
+
+Quyết định kiến trúc cốt lõi: **không** xây một bộ chọn công cụ song song. Engine đã có CLASSIFY → LOAD → SELECT chuẩn rồi; ta chỉ **làm giàu chất nền (substrate)** mà bước LOAD rút từ, và **làm sắc** bước chọn. Ba phần khớp đúng ba yêu cầu của founder:
+
+- **Ask 1 — đưa kho vào wiki:** kiến thức phải tìm-kiếm-được và mỗi framework phải có `wiki_path` (giống 207 framework sách đã trỏ vào `wiki/cracked-it/concepts/…`).
+- **Ask 2 — tích hợp vào engine theo đúng tài liệu gốc:** framework toolkit + quy trình chuyên ngành trở thành ứng viên engine chọn.
+- **Ask 3 — chọn nhanh + chính xác tại mọi checkpoint, tránh mất context:** cùng pattern JIT mà resolver-v3 đã dùng (INDEX nén ambient + drill-down) — nhưng cho công cụ tư duy.
+
+## 52.3 Kiến trúc — ba lớp
+
+### Lớp 1 — Tri thức (wiki): `wiki/consulting-toolkits/`
+20 bộ toolkit được đặt vào MỘT wiki source duy nhất `consulting-toolkits` (1 entry resolver → INDEX không phình quá cap 15K), với 20 trang `process.md` + **514 trang concept** (mỗi framework một trang đủ anatomy 6 phần). Mỗi framework giờ có `wiki_path` — engine đọc trang đó trước khi áp dụng (map chỉ là con trỏ; trang mới là how-to). (Lớp DB-rows + embeddings cho `wiki_ask` RAG để lại làm backfill — engine chạy trong session và đọc thẳng file + registry nên không phụ thuộc embeddings.)
+
+### Lớp 2 — Registry hợp nhất (chất nền chọn)
+- `knowledge/problem-solving-frameworks.yaml` — **207** framework sách (đã có; lọc `fours_step` + `type`).
+- `knowledge/consulting-frameworks.yaml` — **424** framework toolkit đã dedup (từ 514 lần xuất hiện; Porter's Five Forces chẳng hạn gộp từ 5 toolkit), mỗi cái gắn thẻ: `fours_step` (frame/structure/solve/sell/cross) · `cognitive_moves` · `domains` · **`select_when`** (câu phân-biệt-với-hàng-xóm, yếu tố quyết định chọn đúng) · `checkpoint_fit` → trỏ `wiki_path`.
+- `knowledge/consulting-processes.yaml` — **20 quy trình chuyên ngành kế thừa** (gated phase spine + routing card): "kéo nguyên quy trình M&A 7-pha khi nào" + "cắm vào pha 4S nào".
+
+Hợp nhất = **631 công cụ + 20 quy trình** (sau v3.0.1 thêm #18 CX & Design Thinking: 374→424 framework, 19→20 process).
+
+### Lớp 3 — Bộ chọn nhanh tại checkpoint (guard chống mất-context)
+`knowledge/thinking-tool-index/{frame,structure,solve,sell,cross}.md` — **bản đồ nén theo từng bước 4S**, mỗi công cụ một dòng (`tool · select-when · moves · domains · checkpoint · → page`). Tại một checkpoint, engine **chỉ nạp bản đồ của bước hiện tại** (không nạp cả 631-tool registry — đây chính là guard chống mất context), lọc theo domain + cognitive-move + quét cột `select when`, chọn 2-3 lăng kính bổ trợ (latticework, debias khỏi công-cụ-quen-tay), rồi đọc trang wiki của ứng viên chốt. `processes.md` là **bộ định tuyến quy trình chuyên ngành**: ở bước STRUCTURE, nếu bài toán khớp một lĩnh vực, kéo nguyên quy trình kế thừa (`wiki/consulting-toolkits/<slug>/process.md`) làm xương sống cây vấn đề / workplan — thay vì dựng cây ad-hoc.
+
+## 52.4 Nối vào engine (`mckinsey-workflow/SKILL.md`)
+- **§Tool-selection / bước LOAD** đổi sang nạp bản đồ-theo-bước thay vì cả registry; quét `select_when` để phân biệt hàng xóm (ví dụ Porter's Five Forces *"đánh giá sức hấp dẫn cấu trúc ngành trước khi vào/đầu tư"* vs Value Driver Tree *"đòn bẩy nào thực sự dịch chuyển kinh tế"*).
+- **§STRUCTURE** thêm bước "kéo quy trình chuyên ngành kế thừa nếu khớp" — đây là đòn bẩy "kế thừa từ người đã làm thật ở McKinsey": một cây phân rã đã được chứng minh cho lĩnh vực, refine bằng dữ liệu thật, thay vì bịa.
+- KHÔNG cần đổi logic engine khác: tích hợp là **data-driven** — thêm #18 vào registry/maps là tự động khả dụng (v3.0.1 không sửa SKILL).
+
+## 52.5 Cách xây — hai pipeline + Workflow có giới hạn
+- **Tái tạo (Chương 51):** Workflow một-agent-mỗi-toolkit → 20 bundle.
+- **Làm giàu thẻ chọn:** một Workflow **19 (rồi +1) agent Sonnet** đọc từng toolkit, gắn `fours_step` / `cognitive_moves` / `select_when` / `checkpoint_fit` + soạn routing card — chạy 4 phút, 0 lỗi (output nhỏ + Sonnet + bounded = tin cậy).
+- **Build chất nền:** `scripts/consulting-toolkit/{to-wiki-and-registry,build-thinking-os}.cjs` (thuần Node, deterministic) → wiki + 2 registry + per-step maps. Guard: schema L1 + validator L2 `validate-thinking-os.cjs` (mọi `wiki_path` tồn tại · `fours_step` hợp lệ · process↔trang · maps đủ) trong `pnpm check` VÀ CI.
+
+**Ba lỗi workflow phải vượt (bài học tái dùng):** (a) rate-limit server-side ở ~12-14 agent Opus concurrent → đổi Stage-1 sang Sonnet + batch ≤9; (b) cap 32K-token một-response khi core lớn → yêu cầu agent ghi tăng-dần (skeleton + Edit từng batch); (c) "socket closed" lúc ack cuối (việc thường đã xong) → KIỂM tra trên đĩa, không tin ack.
+
+## 52.6 Ví dụ chạy — bài M&A
+Founder hỏi "có nên mua công ty X?". Engine ở STRUCTURE đọc `thinking-tool-index/processes.md` → khớp domain corp-dev → kéo quy trình **Mergers & Acquisitions** (xương sống 7-pha: Strategy → Target → Business case → Due diligence → Transaction → Integration → Carve-out) làm workplan, thay vì dựng MECE từ đầu. Ở Solve, sub-need "ngành mục tiêu có hấp dẫn không?" → nạp `solve.md`, quét `select_when` → chọn **Porter's Five Forces** (đúng checkpoint) + **Value Driver Tree** (đòn bẩy kinh tế) làm latticework; đọc trang wiki từng cái để lấy tutorial + template. Sell: dựng exhibit qua `/dataviz` (xem danh sách loại chart trong tài liệu lệnh `/think`).
+
+## 52.7 Điểm đặc biệt giá trị — lấp lỗ hổng design-thinking (v3.0.1)
+Bộ #18 (Customer Experience & Design Thinking, file `.pptx` đến muộn → thêm `pptx-extract.py`) bổ sung ~50 công cụ design-thinking (empathy map, persona, journey map, How-Might-We, Crazy 8s, design sprint, MVP, usability/A-B/accessibility testing). Engine vốn đã có NHÁNH design-thinking nhưng thiếu CÔNG CỤ được gắn thẻ — #18 lấp đúng lỗ đó. Bộ Domont giờ trọn vẹn: **20 toolkit lĩnh vực + 1 index**.
+
+## 52.8 Bài học
+1. **Mở rộng chất nền, đừng dựng hệ song song** — engine đã có cơ chế chọn; làm giàu cái nó rút từ là đủ và trung thành.
+2. **`select_when` là linh hồn của chọn-chính-xác** — phân loại theo `fours_step` thôi không đủ; câu phân-biệt-hàng-xóm mới giúp chọn đúng giữa các công cụ cùng bước.
+3. **Nạp theo từng-bước = nhanh + không mất context** — đúng triết lý JIT của resolver-v3, áp cho công cụ tư duy.
+4. **Quy trình kế thừa > cây ad-hoc** — kéo nguyên xương sống chuyên ngành đã được chứng minh là đòn bẩy "ex-McKinsey thật".
+5. **Deterministic ở đâu được thì deterministic** — chỉ một Workflow LLM (gắn thẻ); phần còn lại là script thuần + validator, nên tin cậy và rẻ.
