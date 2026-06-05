@@ -91,13 +91,20 @@ function extractTrace(runDir) {
     answer: ['founder answer', 'answer'], feeds: ['feeds datum', 'feeds'],
   });
 
-  // v3.5: the METHOD ledger — which thinking-tool was SELECTED for which sub-need + why,
-  // and what was REJECTED. Recorded in toolkit-log.md; feeds the auto `toolkit_map` chart
-  // (faithful to the ledger — no invention) + the per-milestone tool-selection narration.
+  // v3.5/v3.6: the METHOD ledger — which thinking-tool was SELECTED for which sub-need + why,
+  // and what was REJECTED, AT WHICH CHECKPOINT (v3.6 `checkpoint` column → bound to the
+  // team-session where it happened). Feeds the auto `toolkit_map` chart (faithful to the
+  // ledger — no invention) + the per-milestone tool-selection narration. Each row is joined
+  // to its checkpoint's kind (frame/hypothesize/…) for the per-checkpoint display.
   const toolkit = rows(readTable(runDir, 'toolkit-log.md'), {
-    id: ['id'], step: ['step'], sub_need: ['sub-need', 'subneed', 'sub need'],
+    id: ['id'], step: ['step'], checkpoint: ['checkpoint'],
+    sub_need: ['sub-need', 'subneed', 'sub need'],
     classify: ['classify'], loaded: ['loaded'],
     selected: ['selected', 'select'], rejected: ['rejected', 'reject', 'debias'],
+  }).map((t) => {
+    const cid = ((t.checkpoint || '').match(/C\d+/i) || [''])[0].toUpperCase();
+    const cp = checkpoints.find((c) => (c.id || '').toUpperCase() === cid);
+    return { ...t, checkpoint: cid, checkpoint_kind: cp ? cp.kind : '' };
   });
 
   // tool-usage tally across the data pulls

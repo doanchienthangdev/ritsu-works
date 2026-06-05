@@ -85,6 +85,20 @@ A brainstorm narrates opinions in four stages. This engine:
 
 The gate (`mckinsey-run.cjs check <slug> --before-sell`) **blocks Sell** without a `pre-wire` AND a `dissent` session, and **warns** if `frame`/`prioritize` are missing. **Honest ceiling:** the gate can't prove a session happened or was good — it makes *skipping the closing sessions* a failure and leaves an auditable trail. (`--depth=quick` is the accordion escape hatch — inline answer, no folder, no gate.)
 
+### Tool-selection happens AT EACH checkpoint (the McKinsey execution loop — v3.6)
+
+The crux of McKinsey is not that a workflow exists — it is **selecting the right tools at each step of it**. Picture it as the founder does: *one toolkit pool + one strict workflow of big steps, sub-steps, and branches; at EVERY step, based on the information you already have + the pool, you pick the fitting/optimal tools, think + gather data with them, then advance.* So tool-selection is a **live act at every checkpoint**, never a ledger filled at the end. At each of the 7 sessions, BEFORE you present/decide, run this loop:
+
+1. **READ the info-so-far** — the current `one-day-answer` + the prior `analysis-log` rows + the open `workplan`. *What do we already know? what is the live question at THIS checkpoint?*
+2. **CLASSIFY** the need (solve_mode · analysis_mode · framework_shape — see Tool selection below).
+3. **LOAD** `knowledge/thinking-tool-index/<step>.md` (the per-step map) — the candidate pool for this step.
+4. **SELECT ≤3** fitting/optimal tools (Munger latticework; debias against the familiar tool); read each finalist's → page before applying.
+5. **APPLY** — think + gather data with the chosen tool(s) (route data via the data-routing table).
+6. **RECORD** to `toolkit-log.md` — one row per (this checkpoint's **C-id** · sub-need): classify · loaded · selected + why-fit · rejected + why/debias. The `--before-sell` gate REQUIRES **every 4S stage that ran a checkpoint to record ≥1 selection** (you can't run the Solve sessions and select no Solve tools — *"không để đấy"*) and WARNs on any checkpoint with no selection bound to it.
+7. **PROCEED** to the next checkpoint.
+
+This is what makes the toolkit pool *used*, not decorative — and what the reasoning-trace then narrates step by step. **Which tools tend to fit which checkpoint** (a starting map, NOT a cage — always re-classify against THIS problem + this checkpoint's info-so-far): *frame* → TOSCA · 5W+H · define-success · day-one-answer · circle-of-competence; *hypothesize* → issue-tree-vs-hypothesis-pyramid · the cleave · competing-hypotheses; *plan* → MECE-tree · the workplan · ghost-exhibit · knock-out-ordering; *prioritize* → impact×influence 2×2 · knock-out-analysis; *porpoise/analyze* → the analytics decision-tree (description / causation / prediction) · driver-tree · Fermi-estimate · the data tools; *dissent* → pre-mortem · disconfirmation · red-team · data-verification; *pre-wire* → pyramid-principle · SCR/SCQA · completeness-critic. The point is not the map — it is that you *deliberately chose, from the pool, for the situation in front of you, and recorded why*.
+
 ### The two EM moves that make a team (not a solo)
 
 1. **so-what on every exhibit** — an observation is NOT an insight until it implies an action (`/think so-what`). Force it at every checkpoint.

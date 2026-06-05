@@ -15,7 +15,10 @@ description: |
 
   Trigger: `/think trace <slug>`; or after any substantial `/think mckinsey` run
   when you want to SHOW the reasoning journey persuasively (not just the answer —
-  the report carries that). Capability thinking-toolkit v3.5.
+  the report carries that). Capability thinking-toolkit v3.6 — tool-selection is
+  PER-CHECKPOINT (the toolkit_map shows which tool was chosen at which session) and
+  the narration's depth bar is raised (each milestone deep + insight-rich, with an
+  explicit tool-choice beat + what-it-revealed).
 
   Skip when: the run was a `--depth=quick` accordion (no run folder); a trivial
   question. Needs the 10 persisted artifacts to reconstruct from.
@@ -35,20 +38,30 @@ The founder's verdict on the old v3.3 trace: *"khó hiểu và khó theo trình 
 
 A `reasoning-trace.{md,pdf}` in the run folder, shaped as a **client walkthrough**:
 
-1. **Opening** — "how to read this journey" + a one-page **journey map** (the 4S arc with the milestones as numbered stations, each with its ✓ sign-off, + the porpoise loop) + a short **"how we chose our tools"** section carrying the **`toolkit_map`** chart. The McKinsey crux is *excellent, deliberate tool use* — so the whole tool-selection (which thinking-tool for which sub-need · ✓ chosen + why · ✗ rejected + why, grouped by 4S step) leads, not hides.
+1. **Opening** — "how to read this journey" + a one-page **journey map** (the 4S arc with the milestones as numbered stations, each with its ✓ sign-off, + the porpoise loop) + a short **"how we chose our tools"** section carrying the **`toolkit_map`** chart. The McKinsey crux is *excellent, deliberate tool use AT EACH STEP* — so the whole tool-selection (per checkpoint: which thinking-tool for which sub-need · ✓ chosen + why · ✗ rejected + why) leads, not hides. The map is sorted by checkpoint order, so the reader sees the tool-choices happening in sequence.
 2. **Four acts** — STATE → STRUCTURE → SOLVE → SELL, each act a page-break, holding its milestones. **STRUCTURE MUST carry the `issue_tree`** — the MECE decomposition drawn as a tree (kept branches ✓ · the knock-outs ★ · the out-of-scope cuts ✗ grey + a reason for each). This is the founder's explicit ask: *a tree showing the list of choices + cuts + the why-keep / why-drop argument.*
 3. **Each milestone (a "chặng")** is told in the **5-beat rhythm** (below), with **one narrative chart** that shows the THINKING (options narrowing, the cut, the math), not just structure.
 4. **Closing** — the answer + *why you can trust it* (because the journey was disciplined and signed off at every step), with the path chart.
 
-## The 5-beat rhythm (every milestone, same shape)
+## The 6-beat rhythm (every milestone, same shape — v3.6: tool-choice is its own beat)
 
-For each of the run's team-session checkpoints, write a `## Mốc N — <kind>` section with these five beats as **flowing bold-lead-in paragraphs** (not rigid headers):
+For each of the run's team-session checkpoints, write a `## Mốc N — <kind>` section with these beats as **flowing bold-lead-in paragraphs** (not rigid headers). The tool-choice is now a **first-class, deep beat** — the founder's directive: *"lí giải đã chọn model/framework/toolkit/method nào trong từng bước + lý do."*
 
-1. **Bối cảnh.** — what we faced at this point; why this milestone mattered.
-2. **Các lựa chọn.** — the options that were on the table, **followed by a narrative chart** (the funnel of strategies, the kept/dropped cut, the funnel math…). Narrate the chart ("hình này cho thấy…").
-3. **Lựa chọn và vì sao.** — what we chose, and the rationale. **Name the actual thinking-tool selected (from `toolkit-log.md`)** + why it fit THIS need + the notable candidate rejected (why-not / debias) — do not say "we used a framework" vaguely. This is the McKinsey crux made narrative: e.g. *"chúng tôi chọn **cây vấn đề MECE** (không phải kim-tự-tháp giả thuyết, vì chưa có niềm tin mạnh) vì nó phơi ra nhánh-bằng-0-giết-cả-tích."* Source every tool claim from the recorded toolkit-log row — never invent a tool choice the ledger doesn't hold.
-4. **Bỏ gì và vì sao.** — what we **explicitly dropped**, and why. This is the most persuasive beat — it proves discipline. Name the dropped options; give the one-line reason for each.
-5. **✓ Nghiệm thu.** — the client's sign-off at that checkpoint (the recorded consensus/decision), as a **green sign-off box** (raw HTML, see below).
+1. **Bối cảnh.** — what we faced at this point AND **the info-so-far** (what we already knew coming into this checkpoint, what was still uncertain, what the live question was). Deep, not one line.
+2. **Các lựa chọn.** — the options on the table, **followed by a narrative chart** (the strategy funnel, the MECE issue-tree, the funnel math…). Narrate the chart ("hình này cho thấy…").
+3. **Công cụ đã chọn cho mốc này (và vì sao / vì sao bỏ).** — THE tool-selection beat, sourced from the `toolkit-log` row bound to this checkpoint. Spell it out: given the info-so-far, *the need was [X]*; from the pool we weighed [the candidates]; we **classified** it [description/causation/prediction · formula/typology/checklist]; we chose **[the actual tool]** because [the DEEP why — what the tool does, the mental model behind it, why it fits THIS exact situation]; we rejected **[the alternative]** because [why it would have misled — the debias]. Never "we used a framework" vaguely; never a tool the ledger doesn't record.
+4. **Công cụ đó cho thấy gì (insight).** — what *applying* the chosen tool actually revealed — the insight that moved the answer. This is where the journey earns its "sâu, nhiều insight": the tool isn't decoration, it surfaced something ("chính cái cây driver-tree, chứ không phải trực giác, buộc con số ~5.000-signup hiện ra → và đó là lúc chiến lược phải xoay").
+5. **Quyết định: giữ gì / bỏ gì + vì sao.** — what we decided, and what we **explicitly dropped** + why (the discipline beat — name the dropped options + the one-line reason each).
+6. **✓ Nghiệm thu.** — the client's sign-off at that checkpoint (the recorded consensus/decision), as a **green sign-off box** (raw HTML, see below).
+
+## The depth bar (v3.6 — write DEEP, not thin)
+
+The founder's verdict on the prior trace: *"vẫn còn sơ sài và chưa rõ ràng."* Fix it. Each milestone is **3–6 developed paragraphs**, not a 5-line skeleton:
+- **Explain, don't assert.** When you name a tool or a concept, explain what it IS and why it bites here (the reader may not know "knock-out analysis" or "the analytics decision-tree" — teach it inline in one clause).
+- **Draw out the insight.** Every chart + every tool must be *narrated* — "hình này cho thấy…", "điều đáng chú ý là…", "và đây là chỗ bất ngờ…". An exhibit no one explains is wasted.
+- **Connect the dots.** End each milestone by linking to the next ("…và chính điều đó đẩy chúng tôi sang câu hỏi tiếp theo: …"). The reader should feel one continuous line of thinking, not disconnected stations.
+- **More insight, less summary.** Prefer the *non-obvious* "so what" over restating the data. If a paragraph only repeats a number, cut it or deepen it.
+The test: a smart outsider reads it end-to-end and can *retrace and defend* every choice — and finds it genuinely insightful, not a checklist.
 
 Map the 7 standard checkpoints to acts: **STATE** = {frame}; **STRUCTURE** = {hypothesize, plan, prioritize}; **SOLVE** = {porpoise/analyze, dissent}; **SELL** = {pre-wire}. Group plan+prioritize into one chặng if their decisions are tight (as the demo does).
 

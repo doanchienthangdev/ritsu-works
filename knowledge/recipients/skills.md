@@ -1882,7 +1882,10 @@ decision funnel, the cut, the funnel math, the path. Flowing accessible prose �
 
 Trigger: `/think trace <slug>`; or after any substantial `/think mckinsey` run
 when you want to SHOW the reasoning journey persuasively (not just the answer —
-the report carries that). Capability thinking-toolkit v3.5.
+the report carries that). Capability thinking-toolkit v3.6 — tool-selection is
+PER-CHECKPOINT (the toolkit_map shows which tool was chosen at which session) and
+the narration's depth bar is raised (each milestone deep + insight-rich, with an
+explicit tool-choice beat + what-it-revealed).
 
 Skip when: the run was a `--depth=quick` accordion (no run folder); a trivial
 question. Needs the 10 persisted artifacts to reconstruct from.

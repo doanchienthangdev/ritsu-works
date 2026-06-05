@@ -39,11 +39,13 @@ const GOOD_CP = `# cp
 | C1 | solve | dissent | falsifier | held | keep |
 | C2 | sell | pre-wire | final | agreed | ship |
 `;
-// v3.5: the disciplined run also records its tool-selection (≥1 selection + a rejected note).
+// v3.6: the disciplined run records per-checkpoint tool-selection covering its checkpoint
+// stages (GOOD_CP = C1 solve/dissent, C2 sell/pre-wire) + a rejected note.
 const GOOD_TK = `# tk
-| id | step | sub-need | classify | loaded | selected | rejected |
-|---|---|---|---|---|---|---|
-| T1 | solve | is the cliff causal | causation | cohort-split, regression | cohort-split — cheap heuristic | regression — big gun, not needed |
+| id | step | checkpoint | sub-need | classify | loaded | selected | rejected |
+|---|---|---|---|---|---|---|---|
+| T1 | solve | C1 | is the cliff causal | causation | cohort-split, regression | cohort-split — cheap heuristic | regression — big gun, not needed |
+| T2 | sell | C2 | structure the recommendation | checklist | pyramid, chronological | pyramid — answer-first | chronological — APK |
 `;
 function disciplined(slug: string) {
   scaffoldRun(RUN_ROOT, slug);

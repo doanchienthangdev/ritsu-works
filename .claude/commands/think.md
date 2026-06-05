@@ -33,7 +33,7 @@ Per `governance/HITL.md`, all `/think` invocations are **Tier A** — guidance
 documents read by the invoking agent; no external action, no money movement,
 no user impact, no escalation paths.
 
-## Subcommands (v3.5 — 17 verbs)
+## Subcommands (v3.6 — 17 verbs)
 
 | Invocation | Maps to skill | Purpose | HITL |
 |---|---|---|---|
@@ -53,7 +53,7 @@ no user impact, no escalation paths.
 | `/think root-cause [symptom]` | `thinking-toolkit/root-cause` | Trace a CONFIRMED symptom to its fundamental cause — Five Whys, scoped (v1.2) | A |
 | `/think design-thinking <problem>` | `thinking-toolkit/design-thinking` | Generative path for human-centered problems: empathize→HMW→ideate→prototype (v1.2) | A |
 | `/think debias [decision]` | `thinking-toolkit/debias` | Pre-commit bias checklist — name the bias, apply the counter (v1.2) | A |
-| `/think trace <slug>` | `thinking-toolkit/reasoning-trace` | **Reasoning-trace journey** — turn a completed `mckinsey` run into a narrated McKinsey **client walkthrough** PDF: a journey-map + 4 acts × milestones in a 5-beat rhythm (bối cảnh → options+chart → chose+why → dropped+why → ✓ sign-off), chart-rich, `-vi-day-du` register; v3.5 foregrounds **tool-selection** (the `toolkit_map`: which tool for which task, ✓/✗ + why) + the MECE **`issue_tree`** (kept ✓ · knock-out ★ · cut ✗ + reason) (v3.5) | A |
+| `/think trace <slug>` | `thinking-toolkit/reasoning-trace` | **Reasoning-trace journey** — turn a completed `mckinsey` run into a narrated McKinsey **client walkthrough** PDF: a journey-map + 4 acts × milestones in a deep **6-beat rhythm** (bối cảnh+info → options+chart → **the tool-choice** [which tool at this checkpoint, why this/not that] → what-it-revealed insight → kept/dropped → ✓ sign-off), `-vi-day-du`; foregrounds **PER-CHECKPOINT tool-selection** (`toolkit_map` bound to each C-id) + the MECE **`issue_tree`** (kept ✓ · knock-out ★ · cut ✗ + reason) (v3.6) | A |
 | `/think verify [claim]` | `thinking-toolkit/data-verification` | **Data verification** — triangulate a load-bearing external number across ≥2 independent web/deep-research sources → a verification status (v3.3) | A |
 
 Argument conventions:
@@ -68,7 +68,7 @@ Argument conventions:
 Print a compact menu:
 
 ```
-/think — McKinsey/Minto thinking discipline (15 skills, capability v3.5.0)
+/think — McKinsey/Minto thinking discipline (15 skills, capability v3.6.0)
 
   triage <problem>       Route a problem to the right weight (the front door)  (v3.2)
 
@@ -84,7 +84,7 @@ Print a compact menu:
   design-thinking <prob> Generative path: empathize→HMW→prototype      (v1.2)
   debias [decision]      Pre-commit bias checklist                     (v1.2)
 
-  trace <slug>         Reasoning-trace journey: narrated walkthrough + toolkit_map + issue_tree → PDF (v3.5)
+  trace <slug>         Reasoning-trace journey: deep walkthrough + per-checkpoint toolkit_map + issue_tree → PDF (v3.6)
   verify [claim]       Triangulate an external number (≥2 sources)      (v3.3)
 
   list                 Detailed table (when to use, pairs with)

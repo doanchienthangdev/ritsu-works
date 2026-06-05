@@ -71,12 +71,14 @@ const GOOD_CHECKPOINT = `# cp
 | C2 | solve | dissent | falsifier: if returners don't differ, answer flips | challenged, held | held |
 | C3 | sell | pre-wire | final answer + coverage + pre-mortem | agreed | ship |
 `;
-// v3.5: a disciplined toolkit-log carrying >=1 selection row + a rejected/debias note.
+// v3.6: a disciplined toolkit-log — per-checkpoint, covering the GOOD_CHECKPOINT stages
+// (C1 state/frame, C2 solve/dissent, C3 sell/pre-wire) + a rejected/debias note.
 const GOOD_TOOLKIT = `# tk
-| id | step | sub-need | classify | loaded | selected | rejected |
-|---|---|---|---|---|---|---|
-| T1 | structure | decompose the funnel | formula | driver-tree, issue-tree | driver-tree — splits the metric into testable drivers | issue-tree — less testable for a single metric |
-| T2 | solve | is the cliff causal | causation | cohort-split, regression | cohort-split — cheapest heuristic that moves the answer | regression — big gun, not needed yet (heuristics-before-big-guns) |
+| id | step | checkpoint | sub-need | classify | loaded | selected | rejected |
+|---|---|---|---|---|---|---|---|
+| T1 | state | C1 | frame the problem | checklist | tosca, 5w+h | tosca — Owner+Success explicit | jump-to-solution — premature |
+| T2 | solve | C2 | red-team the answer | checklist | pre-mortem, swot | pre-mortem — falsifiable kill-criteria | swot — vague |
+| T3 | sell | C3 | structure the recommendation | checklist | pyramid, chronological | pyramid — answer-first | chronological — APK anti-pattern |
 `;
 
 describe("scaffoldRun", () => {
@@ -133,15 +135,17 @@ describe("checkRun — happy path", () => {
   });
 });
 
-// v3.5 toolkit-selection discipline (--before-sell): the McKinsey crux = recorded tool use.
-describe("checkRun — v3.5 toolkit gate", () => {
+// v3.6 toolkit-selection discipline (--before-sell): PER-CHECKPOINT recorded tool use.
+describe("checkRun — v3.6 toolkit gate (per-checkpoint)", () => {
   const setup = (slug: string) => {
     scaffoldRun(ROOT, slug);
     writeArtifact(slug, "workplan.md", GOOD_WORKPLAN);
     writeArtifact(slug, "analysis-log.md", GOOD_LOG);
     writeArtifact(slug, "one-day-answer.md", GOOD_ODA);
-    writeArtifact(slug, "checkpoint-log.md", GOOD_CHECKPOINT);
+    writeArtifact(slug, "checkpoint-log.md", GOOD_CHECKPOINT); // C1 state, C2 solve, C3 sell
   };
+  // a toolkit-log covering all three checkpoint stages with empty `rejected` (for the WARN test)
+  const TK_ALL_STAGES_NO_REJ = `# tk\n| id | step | checkpoint | sub-need | classify | loaded | selected | rejected |\n|---|---|---|---|---|---|---|---|\n| T1 | state | C1 | frame | checklist | tosca | tosca — fits | |\n| T2 | solve | C2 | analyze | causation | cohort | cohort — fits | |\n| T3 | sell | C3 | structure | checklist | pyramid | pyramid — fits | |\n`;
   it("an empty toolkit-log (pristine <T1> placeholder) FAILS --before-sell", () => {
     setup("r"); // toolkit-log left as the scaffolded placeholder row
     expect(has(checkRun(ROOT, "r", { beforeSell: true }).errors, "toolkit gate")).toBe(true);
@@ -150,14 +154,29 @@ describe("checkRun — v3.5 toolkit gate", () => {
     setup("r");
     expect(checkRun(ROOT, "r").errors.filter((e: string) => /toolkit gate/.test(e))).toEqual([]);
   });
-  it("selections present but NO rejected/debias note WARNS (does not block)", () => {
+  it("a 4S stage that ran a checkpoint but recorded NO selection FAILS (per-stage coverage)", () => {
+    setup("r"); // checkpoint-log ran state + solve + sell
+    writeArtifact("r", "toolkit-log.md", `# tk\n| id | step | checkpoint | sub-need | classify | loaded | selected | rejected |\n|---|---|---|---|---|---|---|---|\n| T1 | state | C1 | frame | checklist | tosca | tosca — fits | jump — premature |\n`);
+    const errs = checkRun(ROOT, "r", { beforeSell: true }).errors;
+    expect(has(errs, "Solve stage ran checkpoint")).toBe(true); // solve uncovered
+    expect(has(errs, "Sell stage ran checkpoint")).toBe(true);  // sell uncovered
+    expect(errs.filter((e: string) => /State stage ran checkpoint/.test(e))).toEqual([]); // state IS covered
+  });
+  it("a checkpoint with no bound tool-selection WARNS (per-checkpoint coverage)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "checkpoint-log.md", `# cp\n| id | stage | kind | presented | team input | decision |\n|---|---|---|---|---|---|\n| C1 | solve | porpoise | x | y | z |\n| C2 | solve | dissent | x | y | z |\n| C3 | sell | pre-wire | x | y | z |\n`);
+    writeArtifact("r", "toolkit-log.md", `# tk\n| id | step | checkpoint | sub-need | classify | loaded | selected | rejected |\n|---|---|---|---|---|---|---|---|\n| T1 | solve | C1 | analyze | causation | cohort | cohort — fits | reg — big gun |\n| T2 | sell | C3 | structure | checklist | pyramid | pyramid — fits | chrono — APK |\n`);
+    const r = checkRun(ROOT, "r", { beforeSell: true });
+    expect(has(r.warnings, "checkpoint C2")).toBe(true); // C2 ran but no tool bound to it
+  });
+  it("selections cover every stage but NO rejected/debias note WARNS (does not block)", () => {
     setup("r");
-    writeArtifact("r", "toolkit-log.md", `# tk\n| id | step | sub-need | classify | loaded | selected | rejected |\n|---|---|---|---|---|---|---|\n| T1 | structure | decompose | formula | driver-tree | driver-tree — fits | |\n`);
+    writeArtifact("r", "toolkit-log.md", TK_ALL_STAGES_NO_REJ);
     const r = checkRun(ROOT, "r", { beforeSell: true });
     expect(r.errors.filter((e: string) => /toolkit gate/.test(e))).toEqual([]);
     expect(has(r.warnings, "toolkit gate")).toBe(true);
   });
-  it("a full toolkit-log (selection + rejected) passes the toolkit gate", () => {
+  it("a full per-checkpoint toolkit-log (every stage + rejected + bound) passes the toolkit gate", () => {
     setup("r");
     writeArtifact("r", "toolkit-log.md", GOOD_TOOLKIT);
     const r = checkRun(ROOT, "r", { beforeSell: true });

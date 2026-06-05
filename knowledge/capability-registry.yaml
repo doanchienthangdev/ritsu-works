@@ -1043,7 +1043,7 @@ capabilities:
         - thinking-toolkit/mckinsey-workflow (the 4S DYNAMIC ENGINE: workplan routes each hypothesis to real data → validate → update one-day answer → re-route → porpoise; HITL hard-gate; v2.0 TEAM operating model: --mode + 7 team-session checkpoints + sell formatter + thorough data sweep) [v1.3→v2.0]
         - thinking-toolkit/mckinsey-sell (v2.0 Sell formatter — builds the McKinsey-template-structured synthesis IR + renders via deepask/format with --style/--art-style; composes, does not rebuild) [v2.0]
         - thinking-toolkit/problem-triage (v3.2 — the ROUTER that makes mckinsey the PRIMARY solver: routes a problem to its weight [mckinsey/deepask/atom/direct] on consequence × shape; first step of SOP-AIOPS-012; @ceo/@cgo/@cpo routing reflex) [v3.2]
-        - thinking-toolkit/reasoning-trace (v3.5 — the narrated McKinsey engagement journey: a completed mckinsey run → a client walkthrough, 4 acts × milestones in a 5-beat rhythm [bối cảnh → options+chart → chose+why → dropped+why → ✓ sign-off], chart-rich, -vi-day-du register → PDF, via /think trace; v3.5 foregrounds TOOL-SELECTION via the auto toolkit_map [which thinking-tool for which sub-need, ✓/✗ + why] + a MECE issue_tree [kept ✓ · knock-out ★ · cut ✗ + reason]; scripts trace-extract.cjs + trace-build.py [chart-library renderer]) [v3.5]
+        - thinking-toolkit/reasoning-trace (v3.6 — the narrated McKinsey engagement journey: a completed mckinsey run → a client walkthrough → PDF, via /think trace; a 6-beat rhythm per milestone [bối cảnh+info-so-far → options+chart → THE TOOL-CHOICE beat (which tool at this checkpoint, why this/not that) → what-it-revealed insight → kept/dropped → ✓ sign-off], deep + insight-rich (-vi-day-du); foregrounds PER-CHECKPOINT tool-selection via the auto toolkit_map [bound to each C-id] + a MECE issue_tree [kept ✓ · knock-out ★ · cut ✗ + reason]; scripts trace-extract.cjs + trace-build.py [chart-library renderer]) [v3.6]
         - thinking-toolkit/data-verification (v3.3 — the re-check mechanism: triangulate a load-bearing external/degree-≥5 number across ≥2 independent web/deep-research sources → a verification status; wired into the Solve validation gate) [v3.3]
 
       Origin: Barbara Minto's *Pyramid Principle* (1987), McKinsey internal
@@ -1118,7 +1118,26 @@ capabilities:
       tool-selection table). Demo: the 100-love study's trace regenerated to 14pp / 10
       charts incl. the two new ones. Tests: +4 toolkit-gate (mckinsey-run) +1 toolkit
       extract. Run record: .archives/cla/toolkit-selection-visible/.
-    version: "3.5.0"
+      v3.6 (2026-06-06, /cla extend, autonomous): PER-CHECKPOINT tool-selection +
+      a DEEPER reasoning-trace. Founder probe: "is there REALLY toolkit selection at
+      EACH checkpoint?" — honest answer was no (v3.5 keyed the ledger by 4S step, gated
+      ≥1 for the whole run, demo reconstructed post-hoc). v3.6 makes it real per-step:
+      toolkit-log gains a `checkpoint` column (binds each selection to its team-session
+      C-id); the --before-sell gate now REQUIRES every 4S stage that ran a checkpoint to
+      record ≥1 selection ("không để đấy") + WARNS on any checkpoint with no selection
+      bound. The mckinsey-workflow SKILL documents the McKinsey execution loop (at each
+      checkpoint: READ info-so-far → CLASSIFY → LOAD thinking-tool-index/<step>.md →
+      SELECT ≤3 → APPLY → RECORD → PROCEED). trace-extract joins each selection to its
+      checkpoint kind; trace-build toolkit_map shows the C-id binding, sorted by checkpoint
+      order. The reasoning-trace SKILL raises the DEPTH BAR (the prior trace was "sơ sài"):
+      a 6-beat rhythm with an explicit per-checkpoint TOOL-CHOICE beat ("which tool, why
+      this/not that") + a WHAT-IT-REVEALED insight beat; each milestone deep + insight-rich.
+      mckinsey-workflow.yaml → 3.5.0. Artifact SET unchanged (still 10 — only a column).
+      Demo: the 100-love trace rewritten to the deeper bar, toolkit_map now per-checkpoint
+      (C1-C7). Tests: the toolkit gate suite reworked to per-checkpoint (+per-stage ERROR
+      +per-checkpoint WARN); trace-extract checkpoint-binding test. Run record:
+      .archives/cla/per-checkpoint-toolkit-selection/.
+    version: "3.6.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28

@@ -58,7 +58,7 @@ const TEMPLATES = {
   'one-day-answer.md': `# One-day answer (LIVING STATE — seeded at STATE, updated every analysis)\n\n<!-- "If forced to answer today, we'd say X, because Y." Rewrite after every analysis as Situation → Observation → Resolution. This re-ranks the open workplan rows. v2.0: also carry the COMPETING candidates you are disconfirming + the DISCONFIRMATION test (the single analysis that would prove this answer WRONG — it MUST appear as a workplan row; an answer no evidence could overturn is a belief, not an answer). The CP-DISSENT checkpoint red-teams exactly this. -->\n\n**Situation:**\n**Observation:**\n**Resolution:**\n**Competing hypotheses (being disconfirmed):**\n**Disconfirmation (what would prove this wrong — must be a workplan row):**\n`,
   'synthesis.md': `# Synthesis — the LOGIC (SELL, step 6)\n\n<!-- Pyramid: governing thought (top-line) → MECE key line → support. The argument must stand on its own before any storytelling. -->\n`,
   'communication.md': `# Communication — the STORY (SELL, step 7)\n\n<!-- Render the synthesis for THIS audience: grouping vs SCR/SCQA, action titles, pre-wire. APK guard: lead with the answer; never tell the story-of-the-search. -->\n`,
-  'toolkit-log.md': `# Toolkit log (METHOD LEDGER) — which thinking-tool for which sub-need, and WHY\n\n<!-- The McKinsey crux made auditable: one row per (4S step . sub-need) where you SELECTED a thinking-tool / framework / mental-model / lens. CLASSIFY (solve_mode analytical|design . analysis_mode description|causation|prediction . framework_shape formula|typology|checklist) -> LOAD candidates from knowledge/thinking-tool-index/<step>.md -> SELECT <=3 complementary (Munger latticework) -> RECORD the REJECTED + why (debias: did you avoid grabbing the familiar tool?). DISCIPLINE NOT PROOF: a checker can't see your reasoning - this makes skipping deliberate selection a gate failure + gives an auditable trail. Keep each cell ONE LINE - use <br> for breaks. id = T1, T2, ... -->\n\n| id | step | sub-need | classify (mode/shape) | loaded (index candidates) | selected (<=3 slug + why-fit) | rejected (+ why-not / debias) |\n|---|---|---|---|---|---|---|\n| <T1> | <state/structure/solve/sell> | <what you needed to frame/decompose/analyze/synthesize> | <solve_mode / analysis_mode / framework_shape> | <candidates scanned from thinking-tool-index/<step>.md> | <chosen tool(s) slug + why it fits THIS need> | <a candidate you did NOT pick + why; or the familiar tool you debiased against> |\n`,
+  'toolkit-log.md': `# Toolkit log (METHOD LEDGER) — which thinking-tool, at which checkpoint, for which sub-need, and WHY\n\n<!-- The McKinsey crux made auditable + PER-CHECKPOINT. At EACH team-session checkpoint (checkpoint-log.md \`id\` column), based on the info-so-far + the toolkit pool, you SELECT the fitting/optimal tools, think + gather, then proceed. Log one row per (checkpoint . sub-need): CLASSIFY (solve_mode analytical|design . analysis_mode description|causation|prediction . framework_shape formula|typology|checklist) -> LOAD knowledge/thinking-tool-index/<step>.md -> SELECT <=3 complementary (Munger latticework) -> RECORD the REJECTED + why (debias). The \`checkpoint\` column binds the choice to the session where it happened (C1, C2, ...). The --before-sell gate REQUIRES every 4S stage that ran a checkpoint to record >=1 selection (you can't run the Solve sessions and select no Solve tools - "khong de day"). DISCIPLINE NOT PROOF. One line per cell - use <br>. id = T1, T2, ... -->\n\n| id | step | checkpoint | sub-need | classify (mode/shape) | loaded (index candidates) | selected (<=3 slug + why-fit) | rejected (+ why-not / debias) |\n|---|---|---|---|---|---|---|---|\n| <T1> | <state/structure/solve/sell> | <C-id from checkpoint-log, e.g. C1> | <what you needed to frame/decompose/analyze/synthesize> | <solve_mode / analysis_mode / framework_shape> | <candidates scanned from thinking-tool-index/<step>.md> | <chosen tool(s) slug + why it fits THIS need> | <a candidate you did NOT pick + why; debias> |\n`,
 };
 
 /** Create the run folder + 10 artifact templates. Idempotent: never overwrites an existing file. */
@@ -321,33 +321,77 @@ function checkRun(repoRoot, slug, opts = {}) {
     }
   }
 
-  // 8. v3.5 toolkit-selection discipline (before Sell). The McKinsey crux is
-  //    deliberate, RECORDED tool use — which thinking-tool/framework was selected
-  //    for each sub-need + why, and what was rejected (debias). toolkit-log.md is
-  //    the method ledger. ERROR if no selection row; WARN if no row records a
-  //    `rejected`/debias note. DISCIPLINE NOT PROOF (a checker can't see the
-  //    reasoning) — same posture as the hitl + checkpoint gates.
+  // 8. v3.6 toolkit-selection discipline (before Sell) — PER-CHECKPOINT. The McKinsey
+  //    crux is deliberate, RECORDED tool use AT EACH STEP — not a ledger filled at the
+  //    end. ERROR: no selection at all; OR a 4S stage that ran a checkpoint recorded
+  //    NO tool-selection ("không để đấy"). WARN: no rejected/debias note; OR a specific
+  //    checkpoint has no selection bound to it. DISCIPLINE NOT PROOF (a checker can't
+  //    see the reasoning) — same posture as the hitl + checkpoint gates.
   if (opts.beforeSell) {
-    const tkPath = path.join(dir, 'toolkit-log.md');
+    const filled = (v) => (v || '').trim() && !/^<.*>$/.test((v || '').trim());
+    const cidOf = (v) => ((v || '').match(/C\d+/i) || [null])[0];
+    // toolkit-log: count selections + which 4S stages + which checkpoints they cover
     let tkRows = 0;
     let tkRejected = 0;
+    const tkStages = new Set();
+    const tkCheckpoints = new Set();
+    const tkPath = path.join(dir, 'toolkit-log.md');
     if (fs.existsSync(tkPath)) {
       const tt = parseFirstTable(fs.readFileSync(tkPath, 'utf8'));
       if (tt) {
+        const sti = colIndex(tt.headers, ['step']);
+        const cki = colIndex(tt.headers, ['checkpoint']);
         const seli = colIndex(tt.headers, ['selected', 'select']);
         const reji = colIndex(tt.headers, ['rejected', 'reject', 'debias']);
-        const filled = (v) => (v || '').trim() && !/^<.*>$/.test((v || '').trim());
         for (const row of tt.rows) {
           if (!isDataRow(row)) continue;                 // pristine <T1> placeholder row skipped
-          if (seli >= 0 && filled(row[seli])) tkRows++;
+          if (seli >= 0 && filled(row[seli])) {
+            tkRows++;
+            if (sti >= 0) { const s = norm(row[sti] || ''); if (s) tkStages.add(s); }
+            if (cki >= 0) { const c = cidOf(row[cki]); if (c) tkCheckpoints.add(c.toUpperCase()); }
+          }
           if (reji >= 0 && filled(row[reji])) tkRejected++;
         }
       }
     }
+    // checkpoint-log: which 4S stages + which C-ids actually ran a session
+    const cpStages = new Set();
+    const cpIds = new Set();
+    const cpLog = path.join(dir, 'checkpoint-log.md');
+    if (fs.existsSync(cpLog)) {
+      const ct = parseFirstTable(fs.readFileSync(cpLog, 'utf8'));
+      if (ct) {
+        const sgi = colIndex(ct.headers, ['stage']);
+        const idi = colIndex(ct.headers, ['id']);
+        for (const row of ct.rows) {
+          if (!isDataRow(row)) continue;
+          if (sgi >= 0) { const s = norm(row[sgi] || ''); if (s) cpStages.add(s); }
+          if (idi >= 0) { const c = cidOf(row[idi]); if (c) cpIds.add(c.toUpperCase()); }
+        }
+      }
+    }
+    const STAGE_LABEL = { state: 'State', structure: 'Structure', solve: 'Solve', sell: 'Sell' };
     if (tkRows === 0) {
-      errors.push("toolkit gate: no tool-selection row in toolkit-log.md — record which thinking-tool/framework you SELECTED for each sub-need (CLASSIFY → LOAD thinking-tool-index/<step>.md → SELECT ≤3 + why). The McKinsey crux is deliberate, recorded tool use. SKILL §Tool selection.");
-    } else if (tkRejected === 0) {
-      warnings.push("toolkit gate: toolkit-log.md records selections but no `rejected`/debias note — name at least one candidate you did NOT pick + why (Maslow's-hammer debias: avoid grabbing the familiar tool).");
+      errors.push("toolkit gate: no tool-selection row in toolkit-log.md — at EACH checkpoint, record which thinking-tool you SELECTED (CLASSIFY → LOAD thinking-tool-index/<step>.md → SELECT ≤3 + why), bound to its checkpoint C-id. The McKinsey crux is deliberate, recorded, per-checkpoint tool use. SKILL §Tool selection.");
+    } else {
+      // per-stage coverage: every 4S stage that ran a checkpoint MUST record a selection.
+      for (const s of cpStages) {
+        if (!tkStages.has(s)) {
+          errors.push(`toolkit gate: the ${STAGE_LABEL[s] || s} stage ran checkpoint(s) but recorded NO tool-selection in toolkit-log.md — tool-selection must happen AT each step, not be left for the end ("không để đấy"). Add the ${STAGE_LABEL[s] || s} tool choice(s).`);
+        }
+      }
+      if (tkRejected === 0) {
+        warnings.push("toolkit gate: toolkit-log.md records selections but no `rejected`/debias note — name a candidate you did NOT pick + why (Maslow's-hammer debias: avoid grabbing the familiar tool).");
+      }
+      // per-checkpoint coverage (WARN only — a pure-proceed porpoise may reuse a prior tool).
+      // Fires only once the `checkpoint` column is in use (older runs without it aren't penalized).
+      if (tkCheckpoints.size > 0) {
+        for (const id of cpIds) {
+          if (!tkCheckpoints.has(id)) {
+            warnings.push(`toolkit gate: checkpoint ${id} (checkpoint-log.md) has no tool-selection bound to it in toolkit-log.md — record the tool(s) chosen at that session, or note it reused a prior choice.`);
+          }
+        }
+      }
     }
   }
 
