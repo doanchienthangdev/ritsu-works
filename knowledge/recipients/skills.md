@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 115
+**Total entries:** 117
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1529,6 +1529,36 @@ insights typically missed in flat lists.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/thinking-toolkit/data-verification
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The re-check mechanism for the /think mckinsey engine. Research numbers can be
+WRONG — a single recalled benchmark, a stale figure, a misread source. This skill
+makes triangulation a MECHANISM, not just prose discipline: for a load-bearing
+EXTERNAL / degree-≥5 datum, actively fire ≥2 INDEPENDENT lookups (WebSearch /
+WebFetch / deep-research), cross-check them, and assign a verification STATUS
+(verified-multi · single-source · conflicting · unverified) + a one-line note +
+the sources. Records into the analysis-log verdict (and an optional
+verification-log). Capability thinking-toolkit v3.3.
+
+Trigger: invoked by the mckinsey-workflow Solve loop on any external benchmark
+that SURVIVED knock-out (it moves the answer) — before that number updates the
+one-day answer; or `/think verify` ad-hoc on a number you don't trust. Also the
+enforcement behind the validation_gate's triangulation check.
+
+Skip when: the datum is internal degree-2 (already hard, already pulled from
+ritsu-analytics/supabase) — verification is for EXTERNAL/forecast numbers; or the
+number doesn't move the answer (knock-out filters it out first).
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/data-verification" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/thinking-toolkit/debias
 
 **Kind:** skill
@@ -1827,6 +1857,33 @@ Cost: zero LLM (guidance document). Reader-time savings compound across
 every invocation — ~30-60s saved per founder reading.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/pyramid-principle-output" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/reasoning-trace
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Turn a COMPLETED /think mckinsey run folder into a narrated "McKinsey thinking
+journal" — a single, readable artifact that retraces the REASONING JOURNEY along
+a 4S timeline + a flow/tree graph: for each State/Structure/Solve/Sell band and
+each team-session checkpoint, what was done · WHICH framework/toolkit was chosen
+and WHY · the decision and its basis · the tool routed to for each datum · the
+porpoises (back-edges). Renders to PDF. Like reading the thinking journal of a
+McKinsey expert — clear, full, easy to study, easy to retrieve later.
+
+Trigger: `/think trace <slug>`; or after any substantial `/think mckinsey` run
+when you want an auditable provenance of HOW the answer was reached (not just the
+answer — the report already carries that). Capability thinking-toolkit v3.3.
+
+Skip when: the run was a `--depth=quick` accordion (no run folder); a trivial
+question. Needs the 9 persisted artifacts to reconstruct from.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/reasoning-trace" })`
 **HITL tier:** B
 **Side effect:** write
 

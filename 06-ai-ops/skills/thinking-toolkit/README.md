@@ -18,6 +18,8 @@
 | [`design-thinking`](./design-thinking/SKILL.md) *(v1.2)* | Generative path for human-centered problems: empathize→HMW→prototype | tosca, 2x2, hypothesis-driven |
 | [`debias`](./debias/SKILL.md) *(v1.2)* | Pre-commit cognitive-bias checklist — name the bias, apply the counter | hypothesis-driven, pre-mortem |
 | [`mckinsey-workflow`](./mckinsey-workflow/SKILL.md) *(v1.3→v1.4)* | The 4S **dynamic engine** — workplan routes each hypothesis to real data (deepask/wiki/brain/supabase-ops/deep-research/ask-user) → validate → update one-day answer → re-route → porpoise; binds ~230 concepts per step | ALL skills; `/think mckinsey`; `knowledge/mckinsey-workflow.yaml` |
+| [`reasoning-trace`](./reasoning-trace/SKILL.md) *(v3.3)* | Turn a completed mckinsey run into a narrated **thinking journal** — 4S timeline + flow/tree graph + provenance ledger + decision log → PDF | mckinsey-workflow; `/think trace`; `trace-extract.cjs` + `trace-build.py` |
+| [`data-verification`](./data-verification/SKILL.md) *(v3.3)* | The re-check **mechanism** — triangulate a load-bearing external number across ≥2 independent web/deep-research sources → a verification status | mckinsey-workflow (Solve gate); `/think verify` |
 
 ## When to use this folder
 

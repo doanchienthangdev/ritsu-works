@@ -33,7 +33,7 @@ Per `governance/HITL.md`, all `/think` invocations are **Tier A** — guidance
 documents read by the invoking agent; no external action, no money movement,
 no user impact, no escalation paths.
 
-## Subcommands (v3.2 — 15 verbs)
+## Subcommands (v3.3 — 17 verbs)
 
 | Invocation | Maps to skill | Purpose | HITL |
 |---|---|---|---|
@@ -53,6 +53,8 @@ no user impact, no escalation paths.
 | `/think root-cause [symptom]` | `thinking-toolkit/root-cause` | Trace a CONFIRMED symptom to its fundamental cause — Five Whys, scoped (v1.2) | A |
 | `/think design-thinking <problem>` | `thinking-toolkit/design-thinking` | Generative path for human-centered problems: empathize→HMW→ideate→prototype (v1.2) | A |
 | `/think debias [decision]` | `thinking-toolkit/debias` | Pre-commit bias checklist — name the bias, apply the counter (v1.2) | A |
+| `/think trace <slug>` | `thinking-toolkit/reasoning-trace` | **Reasoning-trace journal** — turn a completed `mckinsey` run into a narrated 4S timeline + flow/tree graph + provenance ledger + decision log → PDF (v3.3) | A |
+| `/think verify [claim]` | `thinking-toolkit/data-verification` | **Data verification** — triangulate a load-bearing external number across ≥2 independent web/deep-research sources → a verification status (v3.3) | A |
 
 Argument conventions:
 - Positional args (e.g. `<problem>`, `<metric>`) are passed to the skill as the primary input.
@@ -66,7 +68,7 @@ Argument conventions:
 Print a compact menu:
 
 ```
-/think — McKinsey/Minto thinking discipline (13 skills, capability v3.2.0)
+/think — McKinsey/Minto thinking discipline (15 skills, capability v3.3.0)
 
   triage <problem>       Route a problem to the right weight (the front door)  (v3.2)
 
@@ -81,6 +83,9 @@ Print a compact menu:
   root-cause [symptom]   Trace a confirmed symptom to its root        (v1.2)
   design-thinking <prob> Generative path: empathize→HMW→prototype      (v1.2)
   debias [decision]      Pre-commit bias checklist                     (v1.2)
+
+  trace <slug>         Reasoning-trace journal: 4S timeline+flow → PDF  (v3.3)
+  verify [claim]       Triangulate an external number (≥2 sources)      (v3.3)
 
   list                 Detailed table (when to use, pairs with)
   flow [problem]       Suggest multi-skill sequence
