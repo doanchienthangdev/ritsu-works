@@ -179,6 +179,21 @@ Invoke `thinking-toolkit/driver-tree-decomposition`. Decomposes a target metric 
 
 → Output: tree showing decomposed drivers, MECE-checked, with action recommendations at the leaves.
 
+## Chart types for the McKinsey Sell (via `/dataviz`)
+
+`/think mckinsey`'s **Sell** step is exhibit-led — every exhibit is rendered through **`/dataviz`** (the action-title becomes the chart `--message`/title; the analysis line becomes the source footer; `--style` flows the brand). The chart follows the **message, not the data** (Zelazny). `/dataviz` offers **60 built chart types across 6 families** (full catalog: `06-ai-ops/skills/dataviz/catalog.md`; registry: `knowledge/dataviz-renderers.yaml`):
+
+| Family | Chart types |
+|---|---|
+| **Comparison** | `bar` `column` `grouped` `lollipop` `dot` `dumbbell` `slope` `radar` `quadrant` `bullet` `small-multiples` `range` `matrix-chart` `table-chart` |
+| **Correlation** | `scatter` `bubble` `heatmap` `connected-scatter` `hexbin` |
+| **Part-to-whole** | `stacked` `stacked100` `pie` `donut` `marimekko` `diverging` `funnel` `waffle` `treemap` `population-pyramid` `sunburst` `dendrogram` `venn` `semicircle-donut` |
+| **Change-over-time** | `line` `area` `stacked-area` `waterfall` `bump` `spline` `step-line` `gantt` `candlestick` `ohlc` `barcode` |
+| **Distribution** | `histogram` `box` `density` `ridgeline` `violin` `strip` `jitter` `beeswarm` `horizon` |
+| **Flow** | `sankey` `chord` `arc` `network` `flowchart` `tile-map` |
+
+Plus `kpi` (big-number tile). The McKinsey **message → chart** heuristics the Sell applies: **waterfall** for a bridge (start → drivers → end), **funnel** for conversion/drop-off, **quadrant/matrix** for positioning, **gantt** for a roadmap/plan, **slope** for before-vs-after on two periods, ranked **bar** for "who's biggest" (never `pie`/`donut` for ranking), **line/area** for a trend. Selection is LLM-native — the agent reads the catalog + the situation and picks; see `/dataviz`.
+
 ## Composition
 
 ### With `/muse` personas

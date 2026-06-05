@@ -2,7 +2,7 @@
 title: 'Command: /think'
 description: |
   Project-scoped command for ritsu-works. Front-end for the
-  **thinking-toolkit** capability (v1.5.0). Routes to 12 McKinsey/Minto-derived
+  **thinking-toolkit** capability (v1.6.0). Routes to 12 McKinsey/Minto-derived
   thinking-discipline skills under `06-ai-ops/skills/thinking-toolkit/`.
 
   Use when you want to apply a specific thinking framework to the current
@@ -18,8 +18,8 @@ description: |
 
   Tier A (guidance only — no external action, no money, no user impact).
 source_path: .claude/commands/think.md
-source_hash: 6cdc20e98e1d1bc9b72b1e36c72a8530dc5331f2a50b457d71dc155601c68b7f
-generated_at: '2026-06-03T04:08:47.357Z'
+source_hash: 46424db706600952f5a3a6c251be5cb3617325642a39f013abb31c6338905193
+generated_at: '2026-06-05T03:14:35.067Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: en
@@ -28,7 +28,7 @@ language: en
 {/* generated-by: docs-engine v1.2.0 */}
 
 Project-scoped command for ritsu-works. Front-end for the **thinking-toolkit**
-capability (v1.5.0). Capability spec at `wiki/capabilities/thinking-toolkit/spec.md`.
+capability (v1.6.0). Capability spec at `wiki/capabilities/thinking-toolkit/spec.md`.
 
 The command is a **thin orchestrator**. All thinking discipline lives in the 12
 skills under `06-ai-ops/skills/thinking-toolkit/`. Subcommands invoke those
@@ -38,14 +38,14 @@ Per `governance/HITL.md`, all `/think` invocations are **Tier A** — guidance
 documents read by the invoking agent; no external action, no money movement,
 no user impact, no escalation paths.
 
-## Subcommands (v1.5 — 14 verbs)
+## Subcommands (v1.6 — 14 verbs)
 
 | Invocation | Maps to skill | Purpose | HITL |
 |---|---|---|---|
 | `/think` | — | Show menu + composition flow + skill index | A |
 | `/think list` | — | Table of all 12 skills (11 atomic + the mckinsey-workflow engine; name, one-line, when to use) | A |
 | `/think flow [problem]` | — | Recommend a multi-skill sequence (TOSCA → MECE → driver-tree → 2x2 → pyramid → so-what) | A |
-| `/think mckinsey <problem>` | `thinking-toolkit/mckinsey-workflow` | Run a problem as a McKinsey 4S **engine** — pull real data · validate · update the living one-day answer · re-route · ask the founder for founder-only data (v1.4 engine) · **load+select the right framework from the 207-candidate registry** (v1.5) | A |
+| `/think mckinsey <problem> [flags]` | `thinking-toolkit/mckinsey-workflow` | Run a problem as a McKinsey 4S **TEAM** — pull real data · validate · living one-day answer · re-route · ask founder-only data (v1.4) · load+select from the unified thinking-tool library — **667 frameworks + 19 inherited ex-McKinsey domain processes** via fast per-checkpoint maps (v1.5 registry → **v3.0** consulting library) · mechanically scaffold + gate (v1.6) · **HITL receipt gate** (v1.8) · **team operating model** (v2.0): `--mode=interactive`(default)`/auto`, 7 team-session checkpoints (frame/hypothesize/plan/prioritize/porpoise/dissent/pre-wire) with a `pre-wire`+`dissent` gate, thorough data-sweep + completeness-critic, and a **Sell formatter** to McKinsey templates in any `/deepask` format+design-system · **v2.1**: sell templates GROUNDED in real McKinsey reports (not guessed) + **`--workflow=off/steps/full`** runs each high-leverage step as a dynamic multi-agent WORKFLOW. Flags: `--mode --depth --sell --audience --style --art-style --sources --format --workflow` (see SKILL.md) | A |
 | `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` | Frame ambiguous problem via T/O/S/C/A before solutioning | A |
 | `/think mece [list]` | `thinking-toolkit/mece-decomposition-check` | 2-test quality gate on list/decomposition (overlap + exhaustive) | A |
 | `/think pyramid [conclusion]` | `thinking-toolkit/pyramid-principle-output` | Top-line first; reader can stop at any level | A |
@@ -70,7 +70,7 @@ Argument conventions:
 Print a compact menu:
 
 ```
-/think — McKinsey/Minto thinking discipline (12 skills, capability v1.5.0)
+/think — McKinsey/Minto thinking discipline (12 skills, capability v1.6.0)
 
   tosca <problem>        Frame an ambiguous problem (T/O/S/C/A)
   mece [list]            Check a list for overlap + exhaustive
@@ -86,7 +86,8 @@ Print a compact menu:
 
   list                 Detailed table (when to use, pairs with)
   flow [problem]       Suggest multi-skill sequence
-  mckinsey <problem>   Run a real problem as a 4S data-driven engine    (v1.4)
+  mckinsey <problem>   Run a problem as a McKinsey 4S TEAM (--mode interactive/auto,
+                       team-session checkpoints, sell formatter)         (v2.0)
 
 Spec: wiki/capabilities/thinking-toolkit/spec.md
 Skills: 06-ai-ops/skills/thinking-toolkit/
@@ -183,6 +184,21 @@ Invoke `thinking-toolkit/driver-tree-decomposition`. Decomposes a target metric 
 
 → Output: tree showing decomposed drivers, MECE-checked, with action recommendations at the leaves.
 
+## Chart types for the McKinsey Sell (via `/dataviz`)
+
+`/think mckinsey`'s **Sell** step is exhibit-led — every exhibit is rendered through **`/dataviz`** (the action-title becomes the chart `--message`/title; the analysis line becomes the source footer; `--style` flows the brand). The chart follows the **message, not the data** (Zelazny). `/dataviz` offers **60 built chart types across 6 families** (full catalog: `06-ai-ops/skills/dataviz/catalog.md`; registry: `knowledge/dataviz-renderers.yaml`):
+
+| Family | Chart types |
+|---|---|
+| **Comparison** | `bar` `column` `grouped` `lollipop` `dot` `dumbbell` `slope` `radar` `quadrant` `bullet` `small-multiples` `range` `matrix-chart` `table-chart` |
+| **Correlation** | `scatter` `bubble` `heatmap` `connected-scatter` `hexbin` |
+| **Part-to-whole** | `stacked` `stacked100` `pie` `donut` `marimekko` `diverging` `funnel` `waffle` `treemap` `population-pyramid` `sunburst` `dendrogram` `venn` `semicircle-donut` |
+| **Change-over-time** | `line` `area` `stacked-area` `waterfall` `bump` `spline` `step-line` `gantt` `candlestick` `ohlc` `barcode` |
+| **Distribution** | `histogram` `box` `density` `ridgeline` `violin` `strip` `jitter` `beeswarm` `horizon` |
+| **Flow** | `sankey` `chord` `arc` `network` `flowchart` `tile-map` |
+
+Plus `kpi` (big-number tile). The McKinsey **message → chart** heuristics the Sell applies: **waterfall** for a bridge (start → drivers → end), **funnel** for conversion/drop-off, **quadrant/matrix** for positioning, **gantt** for a roadmap/plan, **slope** for before-vs-after on two periods, ranked **bar** for "who's biggest" (never `pie`/`donut` for ranking), **line/area** for a trend. Selection is LLM-native — the agent reads the catalog + the situation and picks; see `/dataviz`.
+
 ## Composition
 
 ### With `/muse` personas
@@ -272,7 +288,7 @@ Each `/think <subcommand>` invocation = single `ops.agent_runs` row (agent_slug=
 
 ## Spec reference
 
-Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v1.5.0).
+Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v1.6.0).
 Retrospective: `wiki/capabilities/thinking-toolkit/retrospective.md`.
 Sub-flow draft notes: `.archives/cla/thinking-toolkit/v1.1-extension-delta.md`.
 

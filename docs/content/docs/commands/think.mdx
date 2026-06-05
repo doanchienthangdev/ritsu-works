@@ -1,38 +1,38 @@
 ---
 title: 'Command: /think'
 description: |
-  Command project-scoped cho ritsu-works. Front-end cho capability
-  **thinking-toolkit** (v1.5.0). Route tới 12 skill thinking-discipline
-  rút từ McKinsey/Minto dưới `06-ai-ops/skills/thinking-toolkit/`.
+  Project-scoped command for ritsu-works. Front-end for the
+  **thinking-toolkit** capability (v1.6.0). Routes to 12 McKinsey/Minto-derived
+  thinking-discipline skills under `06-ai-ops/skills/thinking-toolkit/`.
 
-  Dùng khi bạn muốn áp dụng một thinking framework cụ thể lên vấn đề,
-  output, hay quyết định hiện tại — mà không phải nhớ tên chính xác của
-  từng skill. Subcommand map 1:1 với skill; `list` liệt kê các framework
-  có sẵn; `flow` đề xuất một sequence multi-skill cho các điểm khởi đầu
-  mơ hồ.
+  Use when you want to apply a specific thinking framework to the current
+  problem, output, or decision — without having to remember each skill's
+  exact name. Subcommands map 1:1 to skills; `list` enumerates available
+  frameworks; `flow` recommends a multi-skill sequence for ambiguous
+  starting points.
 
-  Mở rộng được theo thiết kế: thinking framework mới (Cynefin, OODA,
-  Wardley Mapping, v.v.) được thêm bằng cách thả một SKILL.md dưới
-  `06-ai-ops/skills/thinking-toolkit/<slug>/` và thêm một dòng vào bảng
-  subcommand bên dưới — không thay đổi code phía-command.
+  Extensible by design: new thinking frameworks (Cynefin, OODA, Wardley
+  Mapping, etc.) are added by dropping a SKILL.md under
+  `06-ai-ops/skills/thinking-toolkit/<slug>/` and adding one row to the
+  subcommand table below — no command-side code changes.
 
-  Tier A (chỉ guidance — không hành động ra ngoài, không tiền, không tác động người dùng).
+  Tier A (guidance only — no external action, no money, no user impact).
 source_path: .claude/commands/think.md
-source_hash: 6cdc20e98e1d1bc9b72b1e36c72a8530dc5331f2a50b457d71dc155601c68b7f
-generated_at: '2026-06-03T04:08:47.358Z'
+source_hash: 46424db706600952f5a3a6c251be5cb3617325642a39f013abb31c6338905193
+generated_at: '2026-06-05T03:14:35.067Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_at: '2026-06-03T00:00:00.000Z'
+translated_at: '2026-06-05T00:00:00.000Z'
 translated_by: in-session
-translated_source_hash: 6cdc20e98e1d1bc9b72b1e36c72a8530dc5331f2a50b457d71dc155601c68b7f
+translated_source_hash: 46424db706600952f5a3a6c251be5cb3617325642a39f013abb31c6338905193
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
 Command project-scoped cho ritsu-works. Front-end cho capability **thinking-toolkit**
-(v1.5.0). Capability spec tại `wiki/capabilities/thinking-toolkit/spec.md`.
+(v1.6.0). Capability spec tại `wiki/capabilities/thinking-toolkit/spec.md`.
 
 Command này là một **thin orchestrator**. Toàn bộ thinking discipline nằm trong 12
 skills dưới `06-ai-ops/skills/thinking-toolkit/`. Các subcommand gọi những
@@ -42,14 +42,14 @@ Theo `governance/HITL.md`, mọi lần gọi `/think` đều là **Tier A** — 
 liệu hướng dẫn được agent đang gọi đọc; không có hành động ra ngoài, không có dịch chuyển tiền,
 không tác động tới người dùng, không có escalation path.
 
-## Subcommands (v1.5 — 14 verbs)
+## Subcommands (v1.6 — 14 verbs)
 
 | Invocation | Maps to skill | Mục đích | HITL |
 |---|---|---|---|
 | `/think` | — | Hiển thị menu + composition flow + skill index | A |
 | `/think list` | — | Bảng toàn bộ 12 skills (11 atomic + engine mckinsey-workflow; tên, một dòng, khi nào dùng) | A |
 | `/think flow [problem]` | — | Đề xuất một sequence multi-skill (TOSCA → MECE → driver-tree → 2x2 → pyramid → so-what) | A |
-| `/think mckinsey <problem>` | `thinking-toolkit/mckinsey-workflow` | Chạy một vấn đề như một McKinsey 4S **engine** — kéo dữ liệu thật · validate · cập nhật one-day answer sống · re-route · hỏi founder các dữ liệu chỉ-founder-có (engine v1.4) · **load+select đúng framework từ registry 207 candidate** (v1.5) | A |
+| `/think mckinsey <problem> [flags]` | `thinking-toolkit/mckinsey-workflow` | Chạy một vấn đề như một McKinsey 4S **TEAM** — kéo dữ liệu thật · validate · one-day answer sống · re-route · hỏi founder các dữ liệu chỉ-founder-có (v1.4) · load+select từ thư viện thinking-tool hợp nhất — **667 framework + 19 quy trình domain ex-McKinsey kế thừa** qua các map nhanh per-checkpoint (v1.5 registry → **v3.0** consulting library) · scaffold + gate cơ học (v1.6) · **HITL receipt gate** (v1.8) · **team operating model** (v2.0): `--mode=interactive`(mặc định)`/auto`, 7 team-session checkpoint (frame/hypothesize/plan/prioritize/porpoise/dissent/pre-wire) với gate `pre-wire`+`dissent`, data-sweep kỹ lưỡng + completeness-critic, và một **Sell formatter** ra template McKinsey theo bất kỳ format+design-system của `/deepask` · **v2.1**: sell template ĐƯỢC GROUND trong báo cáo McKinsey thật (không phải đoán) + **`--workflow=off/steps/full`** chạy từng bước high-leverage như một WORKFLOW multi-agent động. Flags: `--mode --depth --sell --audience --style --art-style --sources --format --workflow` (xem SKILL.md) | A |
 | `/think tosca <problem>` | `thinking-toolkit/tosca-problem-framing` | Frame một vấn đề mơ hồ qua T/O/S/C/A trước khi đi vào giải pháp | A |
 | `/think mece [list]` | `thinking-toolkit/mece-decomposition-check` | Quality gate 2-test trên list/decomposition (overlap + exhaustive) | A |
 | `/think pyramid [conclusion]` | `thinking-toolkit/pyramid-principle-output` | Top-line trước; người đọc có thể dừng ở bất kỳ level nào | A |
@@ -74,7 +74,7 @@ Quy ước argument:
 In ra một menu gọn:
 
 ```
-/think — McKinsey/Minto thinking discipline (12 skills, capability v1.5.0)
+/think — McKinsey/Minto thinking discipline (12 skills, capability v1.6.0)
 
   tosca <problem>        Frame an ambiguous problem (T/O/S/C/A)
   mece [list]            Check a list for overlap + exhaustive
@@ -90,7 +90,8 @@ In ra một menu gọn:
 
   list                 Detailed table (when to use, pairs with)
   flow [problem]       Suggest multi-skill sequence
-  mckinsey <problem>   Run a real problem as a 4S data-driven engine    (v1.4)
+  mckinsey <problem>   Run a problem as a McKinsey 4S TEAM (--mode interactive/auto,
+                       team-session checkpoints, sell formatter)         (v2.0)
 
 Spec: wiki/capabilities/thinking-toolkit/spec.md
 Skills: 06-ai-ops/skills/thinking-toolkit/
@@ -187,6 +188,21 @@ Gọi `thinking-toolkit/driver-tree-decomposition`. Decompose một target metri
 
 → Output: cây thể hiện các driver đã decompose, được MECE-check, kèm các action recommendation ở các leaf.
 
+## Chart types cho McKinsey Sell (qua `/dataviz`)
+
+Bước **Sell** của `/think mckinsey` là exhibit-led — mọi exhibit được render qua **`/dataviz`** (action-title trở thành chart `--message`/title; dòng analysis trở thành source footer; `--style` flow theo brand). Chart bám theo **message, không phải data** (Zelazny). `/dataviz` cung cấp **60 chart type đã build trên 6 family** (catalog đầy đủ: `06-ai-ops/skills/dataviz/catalog.md`; registry: `knowledge/dataviz-renderers.yaml`):
+
+| Family | Chart types |
+|---|---|
+| **Comparison** | `bar` `column` `grouped` `lollipop` `dot` `dumbbell` `slope` `radar` `quadrant` `bullet` `small-multiples` `range` `matrix-chart` `table-chart` |
+| **Correlation** | `scatter` `bubble` `heatmap` `connected-scatter` `hexbin` |
+| **Part-to-whole** | `stacked` `stacked100` `pie` `donut` `marimekko` `diverging` `funnel` `waffle` `treemap` `population-pyramid` `sunburst` `dendrogram` `venn` `semicircle-donut` |
+| **Change-over-time** | `line` `area` `stacked-area` `waterfall` `bump` `spline` `step-line` `gantt` `candlestick` `ohlc` `barcode` |
+| **Distribution** | `histogram` `box` `density` `ridgeline` `violin` `strip` `jitter` `beeswarm` `horizon` |
+| **Flow** | `sankey` `chord` `arc` `network` `flowchart` `tile-map` |
+
+Cộng thêm `kpi` (tile big-number). Các heuristic **message → chart** kiểu McKinsey mà Sell áp dụng: **waterfall** cho một bridge (start → drivers → end), **funnel** cho conversion/drop-off, **quadrant/matrix** cho positioning, **gantt** cho một roadmap/plan, **slope** cho before-vs-after trên hai kỳ, **bar** xếp hạng cho "ai lớn nhất" (không bao giờ `pie`/`donut` cho ranking), **line/area** cho một trend. Việc chọn là LLM-native — agent đọc catalog + tình huống rồi chọn; xem `/dataviz`.
+
 ## Composition
 
 ### Với các persona `/muse`
@@ -276,7 +292,7 @@ Mỗi lần gọi `/think <subcommand>` = một row `ops.agent_runs` (agent_slug
 
 ## Spec reference
 
-Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v1.5.0).
+Canonical: `wiki/capabilities/thinking-toolkit/spec.md` (v1.6.0).
 Retrospective: `wiki/capabilities/thinking-toolkit/retrospective.md`.
 Sub-flow draft notes: `.archives/cla/thinking-toolkit/v1.1-extension-delta.md`.
 
