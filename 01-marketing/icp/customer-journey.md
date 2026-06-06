@@ -3,7 +3,7 @@ title: Ritsu Customer Journey — The Deadline-Bearing Committed STEM/ML Mastere
 type: customer-journey
 segment: deadline-bearing-committed-stem-ml-masterer
 framework: Kotler 5A (Aware · Appeal · Ask · Act · Advocacy) mapped to the Ritsu funnel
-status: draft (run ritsu-segment-persona-journey-v1) — proposed for 01-marketing/icp/ via PR (Tier C)
+status: v2 (run ritsu-segment-persona-journey-v1) — added the user-flow diagram (journey-flow.png) + rendered to customer-journey.pdf
 confidence_posture: true-zero — mostly hypothesis/inferred; `observed` only where grounded in supabase-analytics
 last_updated: 2026-06-06
 ---
@@ -25,6 +25,14 @@ last_updated: 2026-06-06
 | **ADVOCACY** | sustained mastery → **LOVE** → share-link → loop back to A1 | pride/relief → belonging/evangelism | a **stranger clicks a share-link** and sees the **multi-week PATH**, not a paywall or a thin quiz | **organic stranger-referral signups (now 0)** |
 
 **Two risks woven through the whole journey:** (1) the **NotebookLM-perception risk** bites at AWARE/APPEAL/ASK/ADVOCACY (Ritsu must *visibly* be the multi-week PATH + mastery-tracking, the spine free NotebookLM lacks — never "we also make quizzes"); (2) the **unproven WTP bet** is concentrated at the ACT money-moment (does a live deadline make them pay $29 vs free-ride NotebookLM — the thing the N=10 watch must test).
+
+---
+
+## The user flow at a glance (sơ đồ luồng người dùng)
+
+![User-flow diagram — the deadline-bearing STEM/ML masterer through the Ritsu funnel, with the 5A stages, the two moments of truth, the drop-offs, and the un-ignited referral loop](journey-flow.png)
+
+Read it top to bottom. The **left rail** is Kotler's 5A (Aware → Appeal → Ask → Act → Advocacy); the **centre column** is Ritsu's real product funnel. What the diagram makes unmissable is *where the certainty ends*. Every step from **landing through activation is observed** in the analytics — people who upload keep generating (3,329 learning-units from 756 sources) and they come back — but the funnel then narrows onto **two amber gates that have never once fired**. The first is the **<60-second aha on dense math**: if the quiz on a backprop PDF is mediocre, trust breaks instantly for this skeptical learner, and this is also the primary moat against *free* NotebookLM. The second is the **$29 money-moment** at the first hard limit with the deadline live — the single unproven bet (**R1**) the N=10 watch exists to settle. The **red branches** are where a burned-before learner leaves, and at most of them the off-ramp is **free NotebookLM** (**R2**). Finally, the **amber loop** is the referral flywheel: mechanically built (15 share-links) but **0 organic** — every share so far is the founder's. The operator's whole job, in one picture, is to **engineer the two amber gates and ignite that loop**.
 
 ---
 
