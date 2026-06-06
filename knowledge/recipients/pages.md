@@ -100,7 +100,7 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
 **Kind:** page
 **Axis:** content
-**When to use:** <!-- updated-by: /update tier1-file v1.1.1 run=7130c72c-dc71-4b6a-89b5-5097eac378f6 @ 2026-05-29 (D-Std override: realign icp-summary to US-led intermarket psychographic-deep ICP matching positioning A+) -->
+**When to use:** <!-- updated-by: /update tier1-file v1.1.1 run=7130c72c-dc71-4b6a-89b5-5097eac378f6 @ 2026-05-29 (D-Std override: realign icp-summary to US-led intermarket psychographic-deep ICP matching positioning A+) --> <!-- updated 2026-06-06: wedge SHARPENED (episodic "exam-in-3-days" cram → sustained mastery of a hard graded multi-week course; ML/AI beachhead; paying-core-vs-reach split; +R1/R2 risks) per ...
 
 **Invoke:** `Read("00-core/icp-summary.md")`
 **Authority:** SoR

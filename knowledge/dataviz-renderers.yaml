@@ -20,7 +20,7 @@
 # Consumer:  06-ai-ops/skills/dataviz/SKILL.md (--use=<renderer>)
 # ============================================================================
 
-version: "1.2.0"
+version: "1.3.0"
 schema: knowledge/schemas/dataviz-renderers.schema.json
 
 renderers:
@@ -40,6 +40,24 @@ renderers:
       env: null            # PURE / offline — no secret, no API key (unlike /image's OPENAI_API_KEY)
       billing: in-process-pure
     notes: "Zero-dependency pure-Node SVG-string renderer (no d3/canvas/DOM). renderChart(chartType,data,spec,theme)->svgString is a PURE function → byte-stable, snapshot-free toBe()/toEqual() tests. v0.3 (extend): 60 built chart types across all six Datylon families + the intelligent context-aware selector (scripts/dataviz/select.cjs) backed by the full chart taxonomy (scripts/dataviz/lib/taxonomy.cjs); only 14 forms stay cataloged (10 anti-McKinsey + 4 infeasible-in-pure-renderer). The default output wordmark is the Ritsu brand (the 'McKinsey' label is the design discipline, not the output brand). Format png/pdf rasterization remains a stretch (svg/html/inline)."
+
+  - id: flow-graphviz
+    status: installed
+    generator: scripts/dataviz/flow-render.cjs
+    skill: 06-ai-ops/skills/dataviz/renderers/flow-graphviz/SKILL.md
+    default_theme: mckinsey
+    # v0.5 (extend): the PRO renderer for the Flow/workflow family. Claude Code AUTHORS
+    # brand-themed Graphviz DOT (graph structure / sub-variety / labels — an LLM's strength);
+    # Graphviz `dot` does the AUTO-LAYOUT (the part hand-rolled code can't do well). The same
+    # family's `flowchart` on svg-native stays the DETERMINISTIC headless/CRON fallback.
+    chart_types: [flowchart, workflow, process-map, decision-tree, swimlane, org-chart, user-flow, network, state-diagram, dependency-graph]
+    supports: [message, chart, data, title, title-style, source, footnotes, style, theme, format, ar, width, height, use, out, max-cost-usd, dry-run, explain, audience]
+    supports_stretch: []
+    unsupported_warn: [highlight, sort, unit, decimals, percent, thousands, target, x-label, y-label, art-style]
+    auth:
+      env: null            # local `dot` render; DOT authoring is in-session/subscription — no API key
+      billing: in-session-authoring-plus-local-render
+    notes: "LLM-authored flowchart/workflow renderer (capability dataviz v0.5 extend). Two inputs: --dot=<authored DOT> (PREFERRED — a brand theme preamble is injected as graph/node/edge defaults; per-element attrs the author sets win) or --spec=<structured JSON> (deterministic headless/test path; specToDot() is PURE + unit-tested). Renders via Graphviz `dot -T{svg,png,pdf}` — the gold-standard DAG/flowchart layout engine, native, no browser/puppeteer. format png/pdf are NATIVE here (unlike svg-native where they're a stretch). Graceful when `dot` is absent (saves the .dot + an install hint; never throws raw). Brand: classic McKinsey palette by default; --style=<brand> overrides palette/type while the SEMANTIC amber/green/red (decision/win/drop) stay. The Flow family's PREFERRED renderer; svg-native `flowchart` is the headless/CRON fallback. Inherited by /think mckinsey Sell + reasoning-trace + /deepask flow exhibits."
 
   - id: echarts-ssr
     status: registered-not-built

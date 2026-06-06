@@ -1500,7 +1500,7 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 
 **Kind:** sop
 **Axis:** capability
-**When to use:** > Status: Skeleton (scaffolded 2026-05-15 as part of pillar architecture v1.0.1 Phase 4) > Pillar: product · 01-wedge-discovery sub-pillar > Owner role: product-orchestrator > HITL tier: C
+**When to use:** > Status: Spec re-pointed 2026-06-06 to the locked wedge (/think mckinsey ritsu-segment-persona-journey-v1). flow.yaml runtime still pre-implementation (Phase 5). > Pillar: product · 01-wedge-discovery sub-pillar · Owner role: product-orchestrator · HITL tier: C
 
 **Invoke:** Triggered by event subscriptions, or `Read("04-product/wedge-discovery/sops/SOP-PRODUCT-002-stranger-recruit-and-watch/flow.yaml")`
 **HITL tier:** C

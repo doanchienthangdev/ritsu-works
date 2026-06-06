@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 117
+**Total entries:** 118
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -352,6 +352,20 @@ branded via the SAME --style design-system + --art-style axes as /image. Pluggab
 scripts/dataviz/gen.cjs.
 
 **Invoke:** `Skill({ skill: "dataviz" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/dataviz/renderers/flow-graphviz
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The PRO renderer for the Flow/workflow family of /dataviz — flowcharts, workflows, process maps, decision trees, swimlanes, org charts, user-flows, network diagrams. Claude Code AUTHORS a brand-themed Graphviz DOT graph (the part an LLM is great at); `dot` does the auto-layout (the part code can't hand-roll well) → SVG/PNG/PDF. Use this whenever the chart is a flow/process/decision/dependency diagram instead of the deterministic svg-native `flowchart` (which stays the headless/CRON fallback).
+
+**Invoke:** `Skill({ skill: "dataviz/renderers/flow-graphviz" })`
 **HITL tier:** B
 **Side effect:** write
 
