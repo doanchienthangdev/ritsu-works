@@ -7,7 +7,7 @@ status: canonical
 owner: founder
 last_reviewed: 2026-05-29
 review_cadence: on-trigger
-primary_segment: us-college-stem-exam-driven-serious-learner
+primary_segment: deadline-bearing-stem-ml-masterer
 geo_posture: us-led-intermarket
 cited_by: []
 auto_load: false
@@ -18,6 +18,7 @@ ai_synthesis_note: "v0.1 (2026-05-21) AI-synthesized VN-first. v1.0 (2026-05-29)
 ---
 
 <!-- updated-by: /update tier1-file v1.1.1 run=7130c72c-dc71-4b6a-89b5-5097eac378f6 @ 2026-05-29 (D-Std override: realign icp-summary to US-led intermarket psychographic-deep ICP matching positioning A+) -->
+<!-- updated 2026-06-06: wedge SHARPENED (episodic "exam-in-3-days" cram → sustained mastery of a hard graded multi-week course; ML/AI beachhead; paying-core-vs-reach split; +R1/R2 risks) per /think mckinsey run ritsu-segment-persona-journey-v1. Persona (254 attrs) + 5A journey seeded in 01-marketing/icp/ (PR #256). -->
 
 # Ritsu ICP Summary
 
@@ -27,9 +28,9 @@ ai_synthesis_note: "v0.1 (2026-05-21) AI-synthesized VN-first. v1.0 (2026-05-29)
 
 ## 0. The ICP in one sentence
 
-**The exam-driven US college STEM/pre-professional student who has demanding material to truly master on a deadline — believes "I'm not smart enough," is wrong (their method is the problem), and will pay to actually learn.**
+**The deadline-bearing STEM/ML masterer — a US-led, English-speaking learner gripping a hard, *graded, multi-week* course (ML/AI courses — cs231n, MIT 6.S191, Andrew Ng, fast.ai — as the beachhead) who must *truly master* dense material before a real deadline; believes "I'm not smart enough," is wrong (their method is the problem), and will pay to actually learn.**
 
-This is the **wedge** (narrowest viable entry). The broader **English-speaking serious learner** (grad students, self-directed professionals, the UK/CA/AU/IN intermarket) is the **expansion frame** — same psychographics, served after the wedge proves out. Per ICP discipline: the ideal customer is the one who gets value fastest, refers most, churns least — a single coherent persona, NOT a demographic bucket.
+This is the **wedge** (narrowest viable entry). **Paying core vs reach:** the *paying core* is the **deadline-bearing committed masterer** — the recurring graded deadline is a *durable* WTP trigger (distinct from a one-shot exam-crammer, who churns post-exam). The **global open-courseware self-learner** is the **reach / top-of-funnel layer** (huge + reachable on Reddit/YouTube/Discord, but *soft* WTP — not the paying core). The broader English-speaking serious learner (grad students, self-directed professionals, the UK/CA/AU/IN intermarket) is the **expansion frame** — same psychographics, served after the wedge proves out. Per ICP discipline: the ideal customer is the one who gets value fastest, refers most, churns least — a single coherent persona, NOT a demographic bucket. *(Sharpened by the segment study — `/think mckinsey ritsu-segment-persona-journey-v1`, 2026-06-06; full persona + 5A journey in `01-marketing/icp/`.)*
 
 ## 1. Psychographic profile (the core — leads before demographics)
 
@@ -74,7 +75,7 @@ This is the **wedge** (narrowest viable entry). The broader **English-speaking s
 
 *(Narrowest viable entry; a correct wedge has high willingness-to-pay AND high referral velocity.)*
 
-**The wedge:** "drop a textbook chapter / lecture PDF → personalized active-recall quiz in 30 seconds" beats "30+ min building Anki cards." Sharpest entry workflow: **"ace your exam in 3 days."**
+**The wedge:** **master a hard, graded, multi-week course (ML/AI beachhead — cs231n / MIT 6.S191 / Andrew Ng / fast.ai) before its graded deadlines** — "drop a lecture PDF/video → a structured multi-week path + active-recall practice in 30s" beats re-reading + 30+ min of Anki. **"Ace your exam in N days" is the sharpest WTP-*trigger event* INSIDE this segment — not the segment itself:** an episodic crammer converts but churns post-exam (fails the love/retention north-star); the deadline-bearing *masterer* retains across the multi-week course.
 
 - **Willingness-to-pay:** exam urgency = a sharp WTP timer (exam in 2 weeks → $29/mo Plus is trivial vs the cost of failing).
 - **Referral velocity:** study groups + classmates + in-product **share-links** (the viral mechanism) = high within-segment referral.
@@ -125,6 +126,8 @@ This is the **wedge** (narrowest viable entry). The broader **English-speaking s
 
 - **Coheres with:** `positioning.md` §5 (same segment) + §1 belief (same "method not ability" reframe); `product.md` §8 (concentrates the 6 marketing personas → 1 coherent ICP + expansion ladder; the 9 situational workflows are the wedge's benefit entry-points); `north-star.md` (this ICP = the "True friends" quadrant — high value × high loyalty — that produces "100 paying who love").
 - **US-pivot open risk:** MASDA "Differentiable" (§3) + founder-compatibility — founder intuition is weaker for US than VN. **Validate in Phase A (5-10 US testers) before scaling.** This ICP is the hypothesis, not observed truth.
+- **★ R1 — payability unproven (the #1 test):** at true-zero, engagement is *observed* (analytics: PDF 63% + YouTube 16% material; a sustained-revisit mastery pattern beyond the founder) but **payment is not** (0 real paying). The N=10 watch (SOP-PRODUCT-002) must settle the one load-bearing question: **"do they pay at the first hard limit?"**
+- **★ R2 — free-substitution (NotebookLM):** Google NotebookLM (free) clones the doc→quiz→explanation→share-link spine and narrowed the gap further in **April 2026** (added mastery-tracking + a Socratic Learning Guide). The POD must lead on what it lacks — the **structured multi-week PATH + 17 activity types + concept-level Knowledge Map + learning-science authority** — never "we also make quizzes."
 - **Narrow → broad arc:** start at the US-college-STEM-exam wedge; expand to the broad English-speaking serious learner (then intermarket) once the wedge proves WTP + referral. Narrowing now *increases* the addressable market via passionate advocates (5-Star).
 - **Evolves on:** the 30-paying signal → replace this AI-synthesized v1.0 with content drawn from real US customer interview transcripts (SOP-CUSTOMER-006). VN secondary may re-activate post-PMF.
 
@@ -139,6 +142,7 @@ Detailed ICP work: `01-marketing/icp/SOP-MARKETING-001-icp-discovery/` (when gro
 | 0.1 | 2026-05-21 | AI-synthesized VN-first (primary persona = VN STEM undergrad; VN channels; $7-15 pricing). |
 | 1.0 | 2026-05-29 | Founder-confirmed + **US-led realignment** via `/update tier1-file` (run 7130c72c, D-Std). Center of gravity demographics→**psychographics** (added §1 with the "I'm not smart enough → wrong method" core). Added §0 single-coherent-ICP, §2 full tactical persona (search/channels/triggers/objections + 3-layer JTBD), §3 MASDA validation, §6 observable proxies. Wedge reframed with WTP + referral velocity; substitution US-calibrated. VN demoted to secondary market (NOT anti-persona). Founder Phase-3 review: US-led VN-secondary · narrow wedge (US college STEM w/ exam) · VN secondary. Grounded in 5-Star BRAVO Audience + growth-playbook ICP + Kotler targeting corpus + Ritsu-observed evidence. Coheres with the new US-led positioning.md (#148). |
 | 1.0.1 | 2026-05-29 | **Pricing accuracy** — aligned price refs to live ritsu.ai/pricing: Ritsu Plus **$29** / Pro **$59** / Ultra **$119** (corrected an earlier "$15-25" estimate). Reframed price-vs-WTP honestly: prices are SET; proven willingness at these points = SOP-PRODUCT-010 pricing-pull-test (unvalidated pre-PMF). |
+| 1.1 | 2026-06-06 | **Wedge SHARPENED** via the segment study (`/think mckinsey ritsu-segment-persona-journey-v1`). §0 + §4 re-centered from episodic "exam-in-3-days" cram → **sustained mastery of a hard, graded, multi-week course** (ML/AI beachhead: cs231n/6.S191/Andrew-Ng/fast.ai); cram reframed as a *trigger event INSIDE* the segment, not the segment. Added the **paying-core** (deadline-bearing committed masterer, durable WTP) vs **reach-layer** (open-courseware self-learner, soft WTP) split + `primary_segment` frontmatter update. §8 +**R1** (payability unproven — the N=10 "pay-at-first-limit" test) +**R2** (free NotebookLM clones the spine, Apr-2026 narrowing → lead on the PATH/mastery/learning-science). Psychographic core (§1), substitution stack (§5), anti-persona (§7) UNCHANGED. Decision-grade persona (254 attrs) + full 5A journey seeded in `01-marketing/icp/` (PR #256). |
 
 ---
 

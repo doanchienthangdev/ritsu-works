@@ -3,7 +3,7 @@
 ## once filled in.
 
 name: SOP-PRODUCT-002-stranger-recruit-and-watch
-version: 0.1.0-skeleton
+version: 0.2.0-spec    # README re-pointed 2026-06-06 to the deadline-bearing-masterer N=10 watch (runtime steps still Phase 5)
 owner_pillar: product
 owner_role: product-orchestrator
 trigger: manual    # TODO: change to cron|event|manual_gate|api when implemented
@@ -15,7 +15,7 @@ outputs: {}   # TODO: define outputs
 steps:
   - id: todo_implement
     type: subprocess
-    description: TODO — replace this placeholder with real steps
+    description: "TODO Phase 5 — implement the re-pointed spec (see README): recruit N=10 deadline-bearing STEM/ML masterers -> onboard + watch -> read pay-at-first-limit -> KEEP/SHARPEN/KILL"
     cost_estimate: 0
 
 hitl_tier: C
