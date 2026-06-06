@@ -14,6 +14,8 @@ last_updated: 2026-06-06
 >
 > **Confidence is honest:** at true-zero, most of this is `hypothesis`/`inferred`. Tags marked `observed` are grounded in the `supabase-analytics` Door-2 signal (756 sources · 656 sessions · 15 founder-only shares · 0 real paying).
 
+> **Subject scope (v2.2):** the journey below uses ML/AI (cs231n) as the running example, but the *same* 5A → funnel applies across the whole tiered segment-core (hard STEM + **medicine/pre-med** + the adjacents — see `persona-portrait.md` → "Segment boundary — the job, not the subject"). The cs231n specifics are illustrative; the mechanics are subject-agnostic. For a med cohort, the same money-moment lands before a board/shelf exam; the same accuracy bar is even less forgiving.
+
 ## 0. The journey at a glance — 5A × funnel × emotion
 
 | 5A stage | Ritsu funnel step(s) | Emotional arc | The moment of truth | Stage KPI |

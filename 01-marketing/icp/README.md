@@ -18,6 +18,8 @@ The decision-grade Ideal-Customer-Profile artifacts for Ritsu's first-100 wedge,
 
 > **v2 positioning note:** the *paying wedge* is unchanged, but the **ad-channel surface (S9-A) is broadened** to the full *"University Mastery with AI"* frame — all hard university subjects (STEM, pre-med/medicine, economics/finance, biology) and **especially learning-method / study-productivity** audiences — because those communities already hold the "active mastery beats passive" belief Ritsu sells. The channel map scores + ranks every source by fit.
 
+> **v2.2 segment boundary — the JOB, not the subject:** the segment is defined by a *job* (master dense, graded, multi-week material before a high-stakes deadline via active practice), so it's **tiered across disciplines**, not confined to STEM/ML — **CORE** = ML/AI (launch, 95) + hard STEM (90) + **medicine/pre-med (92)**; **STRONG** = CFA/quant-finance (84) + law (82); **MODERATE** = quant social science (76) + grad quals (78); **WEAK/out** = essay-humanities (~55, the job is synthesis not recall). STEM/ML stays rank-#1 for launch; **medicine/pre-med is a co-beachhead candidate worth a parallel N=10** (proven study-tool WTP de-risks R1). Full detail: `persona-portrait.md` → "Segment boundary", `00-core/icp-summary.md` §4b.
+
 ## The two load-bearing risks (carry in all copy)
 
 - **R1 — payability unproven:** at true-zero, engagement is observed but payment is not. The N=10 watch's #1 test: *do they pay at the first hard limit?*

@@ -14,6 +14,8 @@ last_updated: 2026-06-06
 >
 > **Độ tin cậy được trình bày trung thực:** ở true-zero (điểm-không thật sự), phần lớn nội dung này là `hypothesis`/`inferred`. Những thẻ được đánh dấu `observed` có căn cứ từ tín hiệu Door-2 của `supabase-analytics` (756 sources · 656 sessions · 15 link chia sẻ chỉ-của-founder · 0 khách trả tiền thật).
 
+> **Phạm vi môn học (v2.2):** hành trình dưới đây dùng ML/AI (cs231n) làm ví dụ xuyên suốt, nhưng *cùng* một 5A → phễu áp dụng cho toàn bộ lõi-phân-khúc có-tier (STEM cứng + **y khoa/pre-med** + các nhóm lân cận — xem `persona-portrait.md` → "Ranh giới phân khúc — theo công việc, không theo môn học"). Chi tiết cs231n chỉ mang tính minh hoạ; cơ chế thì không phụ thuộc môn học. Với một cohort y khoa, cùng thời-điểm-trả-tiền rơi trước một board/shelf exam; cùng thanh chính-xác còn khắt khe hơn.
+
 ## 0. Toàn cảnh hành trình — 5A × phễu × cảm xúc
 
 | 5A stage | Bước phễu Ritsu | Cung bậc cảm xúc | Khoảnh khắc quyết định | KPI giai đoạn |

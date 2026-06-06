@@ -32,6 +32,37 @@ last_updated: 2026-06-06
 
 ---
 
+## Ranh giới phân khúc — theo CÔNG VIỆC, không theo môn học (v2.2)
+
+Phân khúc **không phải "sinh viên STEM/ML."** Nó là tất cả những ai làm cùng một **công việc (job)**: *làm chủ một khối tài liệu dày-đặc, có-chấm-điểm, kéo-dài-nhiều-tuần, dưới một deadline rủi-ro-cao, bằng luyện-tập-chủ-động.* Môn học là **lựa chọn beachhead để nhắm**; **công việc** mới là ranh giới. Đây là lý do bản đồ kênh (S9-A) được mở rộng xuyên ngành — và vì sao một số sinh viên "syllabus dày" thì *thuộc* nhóm còn số khác thì *không*.
+
+### Phép thử 3-câu để xác định thành viên (cả ba "có" = thuộc phân khúc)
+
+1. **Làm chủ qua luyện-tập-chủ-động?** Tài liệu có đòi quiz / gợi-nhớ / giải-thích-lại / giải-bài — chứ không chỉ đọc hay viết-luận?
+2. **Deadline chấm-điểm rủi-ro-cao?** Một kỳ thi, board, qualifier, hay chứng chỉ có ngày thật và hậu quả thật?
+3. **Trả tiền vì kết quả đáng giá?** Điểm / bằng cấp / chứng chỉ hành nghề / cửa nghề — đủ để mở ví?
+
+> **Yếu tố phân biệt là *công việc*, không phải "syllabus dày."** Một sinh viên Văn với danh sách đọc 500 trang vẫn có syllabus dày, nhưng job của họ là "viết một lập luận tốt", không phải "gợi-nhớ/giải-bài" → fit yếu. Đây là **avatar-split risk** (S4 §26) áp lên môn học: cùng một nhân khẩu "syllabus dày" có thể giấu hai job ngược nhau.
+
+### Tier có trọng số (điểm fit 0-100 = job + WTP + cộng-đồng-sẵn khớp 1:1 đến đâu)
+
+| Tier | Nhóm | Fit | Vì sao xếp ở đây |
+|---|---|---|---|
+| **① CORE** | **Khoá ML / AI** *(beachhead ra-mắt được nêu tên)* | **95** | Tài liệu suy-luận dày nhất; mức tương tác mình thật sự quan sát được (PDF 63% + video bài giảng 16%); là điểm ra-mắt 100-đầu. |
+| **① CORE** | **STEM cứng** — toán, lý, hoá, kỹ thuật, CS | **90** | Làm chủ qua suy-diễn / giải-bài dưới deadline chấm-điểm — cùng job, khác môn. |
+| **① CORE** | **Y khoa / pre-med** — MCAT, USMLE, điều dưỡng, giải phẫu | **92** | WTP-cho-tool-học **được chứng minh cao nhất** + cộng đồng sẵn đậm đặc nhất + đã quen active-recall (văn-hoá Anki/UWorld). **Ứng-viên co-beachhead** (xem dưới). Lưu ý: thanh chính-xác gắt nhất + thiên memorization. |
+| **② STRONG** | **CFA / tài chính định lượng / kế toán** | **84** | Kỳ thi dày, khốc liệt; WTP tự-trả-tiền cao (Schweser/Kaplan). |
+| **② STRONG** | **Luật** — ôn bar, thi cuối khoá luật | **82** | Đọc án-lệ dày + thi rủi-ro-cao + WTP ôn-thi khổng lồ (BARBRI/Themis). |
+| **③ MODERATE** | **KHXH định lượng** — kinh tế, tâm-lý-có-thống-kê, KHCT-có-dữ-liệu | **76** | Có suy-luận thật + chấm-điểm, nhưng trộn với tiểu-luận; WTP sinh-viên thấp hơn. |
+| **③ MODERATE** | **Thi qualifying cao học** — mọi ngành | **78** | Dày + rủi-ro-cao, nhưng nhỏ + không đồng nhất như một cộng đồng. |
+| **④ WEAK / loại** | **Nhân văn thiên tiểu-luận** — văn, sử, triết | **55** | "Dày" về *khối lượng đọc*, nhưng job là tổng-hợp/lập-luận, không phải làm-chủ-qua-gợi-nhớ → vòng lặp lõi khớp kém. Đây là anti-fit có nguyên tắc. |
+
+*STEM/ML vẫn giữ rank-#1 cho việc ra-mắt (tương tác quan sát được cao nhất); các tier BỔ SUNG những job lân-cận chia sẻ cùng tâm-lý + cùng trigger WTP, xếp theo độ fit.*
+
+### Khuyến nghị co-beachhead — một N=10 song song
+
+100-đầu vẫn **tập trung** vào một cộng đồng để thống trị — nhưng **y khoa / pre-med là ứng-viên beachhead ngang ngửa ML/AI**, và nó *giảm rủi ro cho ẩn-số #1 của wedge (R1, "họ có trả tiền không?")*: sinh viên y đã trả $300-500 cho UWorld / Anki add-ons / Sketchy / Pixorize, nên cái sẵn-lòng-trả-tiền mà cả wedge này dựa vào **đã được chứng minh** ở thị trường lân cận đó. **Khuyến nghị:** chạy một **N=10 song song** — một cohort y/pre-med cạnh cohort ML/AI (SOP-PRODUCT-002) — và để dữ liệu *trả-tiền-tại-giới-hạn-đầu-tiên* chọn beachhead ra-mắt, thay vì mặc định ML/AI. Cái mà y khoa stress-test là **thanh chính-xác không khoan nhượng** (một quiz dược-lý ảo-giác trước board exam là thảm hoạ) — kiểm chứng gấp đôi con-hào SERVQUAL #1 (S13).
+
 ## S1 · Định danh & độ khớp phân khúc
 *(Kotler STP Ch2 + Ritsu wedge · 14 thuộc tính · 4★)*
 

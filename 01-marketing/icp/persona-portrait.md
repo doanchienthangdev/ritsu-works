@@ -3,7 +3,7 @@ title: Ritsu Persona Portrait — The Deadline-Bearing Committed STEM/ML Mastere
 type: persona-portrait
 segment: deadline-bearing-committed-stem-ml-masterer
 template: Ritsu Customer-Segment Persona Template — SUPERSET of the 266-attr EN base + the 308-attr Ritsu-tuned VI template (5-Star BRAVO + Kotler Principles 18e); 17 sections · ~307 attributes · each carries a Core Question + a Confidence probability; S9-A = 628 ranked ad-channel sources (v2)
-status: v2.1 (run ritsu-segment-persona-journey-v1) — S9-A channel map broadened to 628 scored+ranked ad-targetable sources (University Mastery with AI surface) + Vietnamese edition (persona-portrait-vi.pdf / customer-journey-vi.pdf)
+status: v2.1 (run ritsu-segment-persona-journey-v1) — S9-A channel map broadened to 628 scored+ranked ad-targetable sources (University Mastery with AI surface) + Vietnamese edition (persona-portrait-vi.pdf / customer-journey-vi.pdf); v2.2 — segment boundary redefined by the JOB (not subject) + fit-weighted tier table + med/pre-med co-beachhead
 confidence_posture: true-zero — `observed` only where grounded in supabase-analytics; otherwise inferred/hypothesis. Every row now carries an explicit P(answer correct).
 last_updated: 2026-06-06
 ---
@@ -31,6 +31,37 @@ It is week 3 of cs231n (or MIT 6.S191, or Andrew Ng's ML course). **The Masterer
 - Anything touching **payment, organic referral, or "beating free NotebookLM"** is honestly low-confidence — that is the unproven core, not a hedge.
 
 ---
+
+## Segment boundary — the JOB, not the subject (v2.2)
+
+The segment is **not "STEM/ML students."** It is everyone doing one **job**: *master a dense, graded, multi-week body of material under a high-stakes deadline, through active practice.* Subject is the **beachhead-targeting choice**; the **job** is the boundary. This is why the channel map (S9-A) is broadened across disciplines — and why some "dense-syllabus" students are *in* while others are *out*.
+
+### The 3-question membership test (all three "yes" = in the segment)
+
+1. **Active-practice mastery?** Does the material demand quiz / recall / explain-back / solve — not just reading or essay-writing?
+2. **High-stakes graded deadline?** An exam, board, qualifier, or certification with a real date and real consequences?
+3. **Pay because the outcome matters?** Grade / credential / license / career gate — enough to open a wallet?
+
+> **The discriminator is the *job*, not "a dense syllabus."** A literature major with a 500-page reading list has a dense syllabus, but their job is "write a strong argument," not "recall/solve" → weak fit. This is the **avatar-split risk** (S4 §26) applied to subjects: the same "dense syllabus" demographic can hide two opposite jobs.
+
+### Fit-weighted tiers (fit-score 0-100 = how 1:1 the job + WTP + pre-assembled audience match)
+
+| Tier | Group | Fit | Why it sits here |
+|---|---|---|---|
+| **① CORE** | **ML / AI courses** *(named launch beachhead)* | **95** | Densest reasoning material; the engagement we actually observe (PDF 63% + lecture-video 16%); the named first-100 launch. |
+| **① CORE** | **Hard STEM** — math, physics, chemistry, engineering, CS | **90** | Derivation / problem-solving mastery under graded deadlines — the same job, a different subject. |
+| **① CORE** | **Medicine / pre-med** — MCAT, USMLE, nursing, anatomy | **92** | The **highest *proven* study-tool WTP** + densest pre-assembled community + already active-recall-native (Anki/UWorld culture). **Co-beachhead candidate** (below). Caveat: hardest accuracy bar + more memorization-skew. |
+| **② STRONG** | **CFA / quant finance / accounting** | **84** | Dense, brutal graded exams; high out-of-pocket WTP (Schweser/Kaplan). |
+| **② STRONG** | **Law** — bar prep, law-school finals | **82** | Dense case-reading + high-stakes exams + huge prep-WTP (BARBRI/Themis). |
+| **③ MODERATE** | **Quantitative social science** — economics, psych-with-stats, poli-sci-with-data | **76** | Real reasoning + graded, but mixed with essays; lower student WTP. |
+| **③ MODERATE** | **Grad qualifying exams** — any field | **78** | Dense + high-stakes, but small + heterogeneous as a community. |
+| **④ WEAK / out** | **Essay-driven humanities** — literature, history, philosophy | **55** | "Dense" in reading *volume*, but the job is synthesis/argument, not active-recall mastery → the core loop fits poorly. The principled anti-fit. |
+
+*STEM/ML stays rank-#1 for the launch (highest observed engagement); the tiers ADD the adjacent jobs that share the same psychographic + the same WTP trigger, ranked by fit.*
+
+### Co-beachhead recommendation — a parallel N=10
+
+The first-100 still **concentrates** on one community to dominate — but **medicine / pre-med is a co-equal beachhead candidate to ML/AI**, and it *de-risks the wedge's #1 unknown (R1, "do they pay?")*: med students already pay $300-500 for UWorld / Anki add-ons / Sketchy / Pixorize, so the willingness-to-pay this whole wedge rests on is **already demonstrated** in that adjacent market. **Recommendation:** run a **parallel N=10** — a med/pre-med cohort alongside the ML/AI cohort (SOP-PRODUCT-002) — and let the *pay-at-first-limit* data pick the launch beachhead, rather than assuming ML/AI by default. The trade-off med stress-tests is the **unforgiving accuracy bar** (a hallucinated pharmacology quiz before a board exam is catastrophic) — which doubly tests the #1 SERVQUAL moat (S13).
 
 ## S1 · Segment Identity & Scope
 *(Kotler STP Ch2 + Ritsu wedge · 14 attrs · 4★)*

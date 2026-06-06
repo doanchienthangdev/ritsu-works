@@ -19,6 +19,7 @@ ai_synthesis_note: "v0.1 (2026-05-21) AI-synthesized VN-first. v1.0 (2026-05-29)
 
 <!-- updated-by: /update tier1-file v1.1.1 run=7130c72c-dc71-4b6a-89b5-5097eac378f6 @ 2026-05-29 (D-Std override: realign icp-summary to US-led intermarket psychographic-deep ICP matching positioning A+) -->
 <!-- updated 2026-06-06: wedge SHARPENED (episodic "exam-in-3-days" cram → sustained mastery of a hard graded multi-week course; ML/AI beachhead; paying-core-vs-reach split; +R1/R2 risks) per /think mckinsey run ritsu-segment-persona-journey-v1. Persona (254 attrs) + 5A journey seeded in 01-marketing/icp/ (PR #256). -->
+<!-- updated 2026-06-06 (v1.2): segment boundary tiered by the JOB not the subject — §4b adds the 3-Q membership test + fit-weighted tiers (CORE ML/AI+STEM+medicine; STRONG CFA/law; MODERATE quant-social-science/grad-quals; WEAK essay-humanities) + a parallel med/pre-med N=10 co-beachhead. STEM/ML stays rank-#1 for launch. -->
 
 # Ritsu ICP Summary
 
@@ -31,6 +32,8 @@ ai_synthesis_note: "v0.1 (2026-05-21) AI-synthesized VN-first. v1.0 (2026-05-29)
 **The deadline-bearing STEM/ML masterer — a US-led, English-speaking learner gripping a hard, *graded, multi-week* course (ML/AI courses — cs231n, MIT 6.S191, Andrew Ng, fast.ai — as the beachhead) who must *truly master* dense material before a real deadline; believes "I'm not smart enough," is wrong (their method is the problem), and will pay to actually learn.**
 
 This is the **wedge** (narrowest viable entry). **Paying core vs reach:** the *paying core* is the **deadline-bearing committed masterer** — the recurring graded deadline is a *durable* WTP trigger (distinct from a one-shot exam-crammer, who churns post-exam). The **global open-courseware self-learner** is the **reach / top-of-funnel layer** (huge + reachable on Reddit/YouTube/Discord, but *soft* WTP — not the paying core). The broader English-speaking serious learner (grad students, self-directed professionals, the UK/CA/AU/IN intermarket) is the **expansion frame** — same psychographics, served after the wedge proves out. Per ICP discipline: the ideal customer is the one who gets value fastest, refers most, churns least — a single coherent persona, NOT a demographic bucket. *(Sharpened by the segment study — `/think mckinsey ritsu-segment-persona-journey-v1`, 2026-06-06; full persona + 5A journey in `01-marketing/icp/`.)*
+
+> **Segment boundary (v1.2):** the wedge is defined by the **job** — *master dense, graded, multi-week material before a high-stakes deadline via active practice* — **not the subject.** So econ / medicine / (quantitative) social-science students wrestling with dense graded syllabi **can** belong; it is **tiered across disciplines** (see §4b). STEM/ML stays **rank-#1 for launch**, and **medicine/pre-med is a co-beachhead candidate worth a parallel N=10** (it already has *proven* study-tool WTP, de-risking R1).
 
 ## 1. Psychographic profile (the core — leads before demographics)
 
@@ -85,6 +88,25 @@ This is the **wedge** (narrowest viable entry). **Paying core vs reach:** the *p
 **Wedge KPIs (love-test indicators):** time-to-first-aha <60s · upload-again-within-7d >40% · refer-a-friend-by-week-2 >15% · free→paid >5% (rolling 30d).
 
 **What the wedge is NOT:** not "AI tutor for everything" (too abstract); not "study smarter not harder" (cliché); not "ChatGPT for studying" (wrong frame — ChatGPT answers; Ritsu generates practice).
+
+## 4b. Segment boundary — defined by the JOB, not the subject (tiered)
+
+The wedge is **not "STEM/ML students"** — it is everyone doing one **job**: *master a dense, graded, multi-week body of material under a high-stakes deadline, through active practice.* Subject is the **beachhead choice**; the job is the **boundary.** So econ / medicine / (quantitative) social-science students who wrestle with dense, graded syllabi **can** belong — the test is the *job*, not "a dense syllabus."
+
+**Membership test (all three "yes" = in):** ① the material needs **active-practice mastery** (quiz / recall / explain-back / solve), not just reading or essay-writing; ② a **high-stakes graded deadline** (exam / board / qualifier / certification); ③ they will **pay** because the outcome matters (grade / credential / license / career gate). *A literature major with a 500-page reading list has a dense syllabus but the wrong job (write an argument) → out. This is the avatar-split discipline applied to subjects.*
+
+**Fit-weighted tiers (fit-score 0-100 = job × WTP × pre-assembled-audience match):**
+
+| Tier | Group(s) | Fit |
+|---|---|---|
+| **① CORE** | ML/AI courses *(launch beachhead)* · hard STEM (math/physics/chem/engineering/CS) · **medicine/pre-med** (MCAT/USMLE/nursing/anatomy) | **90–95** |
+| **② STRONG** | CFA / quant finance / accounting · law (bar prep, law-school finals) | **82–84** |
+| **③ MODERATE** | quantitative social science (econ, psych-with-stats, poli-sci-with-data) · grad qualifying exams (any field) | **76–78** |
+| **④ WEAK / out** | essay-driven humanities (literature, history, philosophy) — the job is synthesis/argument, not active-recall mastery | **~55** |
+
+*STEM/ML keeps rank-#1 for the launch (highest observed engagement); the tiers ADD adjacent jobs sharing the same psychographic + the same WTP trigger, ranked by fit.*
+
+**★ Co-beachhead (action):** **medicine/pre-med is a co-equal beachhead candidate to ML/AI**, and it **de-risks R1 ("do they pay?")** — med students already pay $300–500 for UWorld / Anki add-ons / Sketchy / Pixorize, so the willingness-to-pay this wedge rests on is *already demonstrated* next door, in the densest pre-assembled, active-recall-native community there is. **Run a parallel N=10** — a med/pre-med cohort alongside the ML/AI cohort (SOP-PRODUCT-002) — and let the *pay-at-first-limit* data pick the launch beachhead, instead of defaulting to ML/AI. Med's trade-off: the **unforgiving accuracy bar** (a hallucinated pharmacology quiz before a board exam is catastrophic) — which doubly stress-tests the #1 SERVQUAL moat (accuracy).
 
 ## 5. What they pay for today (substitution stack + WTP)
 
@@ -143,6 +165,7 @@ Detailed ICP work: `01-marketing/icp/SOP-MARKETING-001-icp-discovery/` (when gro
 | 1.0 | 2026-05-29 | Founder-confirmed + **US-led realignment** via `/update tier1-file` (run 7130c72c, D-Std). Center of gravity demographics→**psychographics** (added §1 with the "I'm not smart enough → wrong method" core). Added §0 single-coherent-ICP, §2 full tactical persona (search/channels/triggers/objections + 3-layer JTBD), §3 MASDA validation, §6 observable proxies. Wedge reframed with WTP + referral velocity; substitution US-calibrated. VN demoted to secondary market (NOT anti-persona). Founder Phase-3 review: US-led VN-secondary · narrow wedge (US college STEM w/ exam) · VN secondary. Grounded in 5-Star BRAVO Audience + growth-playbook ICP + Kotler targeting corpus + Ritsu-observed evidence. Coheres with the new US-led positioning.md (#148). |
 | 1.0.1 | 2026-05-29 | **Pricing accuracy** — aligned price refs to live ritsu.ai/pricing: Ritsu Plus **$29** / Pro **$59** / Ultra **$119** (corrected an earlier "$15-25" estimate). Reframed price-vs-WTP honestly: prices are SET; proven willingness at these points = SOP-PRODUCT-010 pricing-pull-test (unvalidated pre-PMF). |
 | 1.1 | 2026-06-06 | **Wedge SHARPENED** via the segment study (`/think mckinsey ritsu-segment-persona-journey-v1`). §0 + §4 re-centered from episodic "exam-in-3-days" cram → **sustained mastery of a hard, graded, multi-week course** (ML/AI beachhead: cs231n/6.S191/Andrew-Ng/fast.ai); cram reframed as a *trigger event INSIDE* the segment, not the segment. Added the **paying-core** (deadline-bearing committed masterer, durable WTP) vs **reach-layer** (open-courseware self-learner, soft WTP) split + `primary_segment` frontmatter update. §8 +**R1** (payability unproven — the N=10 "pay-at-first-limit" test) +**R2** (free NotebookLM clones the spine, Apr-2026 narrowing → lead on the PATH/mastery/learning-science). Psychographic core (§1), substitution stack (§5), anti-persona (§7) UNCHANGED. Decision-grade persona (254 attrs) + full 5A journey seeded in `01-marketing/icp/` (PR #256). |
+| 1.2 | 2026-06-06 | **Segment boundary tiered by the JOB, not the subject.** New §4b + §0 note: the 3-question membership test + a fit-weighted tier table (CORE = ML/AI 95 + hard-STEM 90 + **medicine/pre-med 92**; STRONG = CFA 84 / law 82; MODERATE = quant-social-science 76 / grad-quals 78; WEAK = essay-humanities ~55) — so dense-graded-syllabus students in med/econ/(quant) social-science **belong**, essay-humanities don't. STEM/ML stays rank-#1 for launch. Added the **parallel med/pre-med N=10 co-beachhead** recommendation (de-risks R1 via med's *proven* study-tool WTP; stress-tests the accuracy moat). Mirrored into `01-marketing/icp/` persona + journey (EN+VI) + the McKinsey report (EN+VI). |
 
 ---
 
