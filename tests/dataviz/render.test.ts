@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 // @ts-ignore — CJS interop
-const { renderChart, valFmt, BUILT } = require("../../scripts/dataviz/render.cjs");
+const { renderChart, valFmt, BUILT, fitLabel, wrapLabel, estTextW } = require("../../scripts/dataviz/render.cjs");
 // @ts-ignore
 const { fmt } = require("../../scripts/dataviz/lib/svg.cjs");
 // @ts-ignore
@@ -198,4 +198,58 @@ describe("renderChart — dispatch coverage (no built type silently falls back t
   const { DISPATCH } = require("../../scripts/dataviz/render.cjs");
   it("every one of the 60 BUILT types has a real dispatch function", () => { expect(BUILT.length).toBe(60); for (const t of BUILT) expect(typeof DISPATCH[t]).toBe("function"); });
   it("beeswarm renders a value-swarm (circles), not a bar fallback", () => { const s = renderChart("beeswarm", { samples: [{ label: "g", values: [1, 2, 3, 4, 5, 6] }] }, SPEC, THEME); expect(s).toContain("<circle"); });
+});
+
+// ============================================================================
+// label-fit (2026-06-07): a narrow region must SHRINK and/or WRAP its label,
+// never clip/overflow. Units: estTextW / wrapLabel / fitLabel (PURE) + funnel
+// & treemap integration. fitLabel is the engine; the renderers wire it.
+// ============================================================================
+describe("estTextW — proportional width estimate (no font metrics in pure SVG)", () => {
+  it("scales as length × fontSize × 0.6", () => expect(estTextW("abcde", 10)).toBeCloseTo(30, 5));
+  it("empty / null → 0", () => { expect(estTextW("", 11)).toBe(0); expect(estTextW(null, 11)).toBe(0); });
+  it("is monotonic in length", () => expect(estTextW("aa", 11)).toBeGreaterThan(estTextW("a", 11)));
+});
+
+describe("wrapLabel — ≤2 balanced lines", () => {
+  it("splits at a ': ' boundary", () => expect(wrapLabel("Paid $29: 12")).toEqual(["Paid $29:", "12"]));
+  it("splits a multi-word label at the most balanced space", () => { const w = wrapLabel("the quick brown fox"); expect(w.length).toBe(2); expect(w.join(" ")).toBe("the quick brown fox"); });
+  it("never splits a single word", () => expect(wrapLabel("Signups")).toEqual(["Signups"]));
+  it("empty → ['']", () => expect(wrapLabel("")).toEqual([""]));
+  it("null → ['']", () => expect(wrapLabel(null)).toEqual([""]));
+  it("a dangling ': ' with nothing after does NOT create an empty 2nd line", () => expect(wrapLabel("Total: ").length).toBe(1));
+});
+
+describe("fitLabel — keep / wrap / shrink / outside", () => {
+  it("keeps base size + one line when it already fits", () => expect(fitLabel("ok", 500, 11, 8)).toEqual({ lines: ["ok"], fs: 11, fits: true }));
+  it("wraps to 2 lines at base size when wrapping makes it fit", () => { const r = fitLabel("Paid $29: 12", 70, 11, 8); expect(r.lines).toEqual(["Paid $29:", "12"]); expect(r.fs).toBe(11); expect(r.fits).toBe(true); });
+  it("shrinks below base (still wrapped) when wrapping at base does not fit", () => { const r = fitLabel("Habit (re-upload <7d): 30", 110, 11, 8); expect(r.fs).toBeLessThan(11); expect(r.fs).toBeGreaterThanOrEqual(8); expect(r.lines.length).toBe(2); expect(r.fits).toBe(true); });
+  it("floors at minFs and reports fits:false when even the floor overflows (caller places it outside)", () => { const r = fitLabel("Enterprise upgrade: 18", 30, 11, 8); expect(r.fs).toBe(8); expect(r.fits).toBe(false); });
+  it("allowWrap=false → single-line shrink only (left-anchored cells, e.g. treemap)", () => { const r = fitLabel("a long treemap cell label", 60, 10, 8, false); expect(r.lines.length).toBe(1); expect(r.fs).toBeLessThanOrEqual(10); });
+  it("maxWidth ≤ 0 → fits:false at the floor (degenerate region, never throws)", () => { const r = fitLabel("x", 0, 11, 8); expect(r.fits).toBe(false); expect(r.fs).toBe(8); });
+  it("an empty label always fits at base", () => expect(fitLabel("", 100, 11, 8)).toEqual({ lines: [""], fs: 11, fits: true }));
+  it("never returns fs above baseFs even for an enormous maxWidth", () => expect(fitLabel("hi", 99999, 11, 8).fs).toBe(11));
+  it("null label is handled (no throw, fits)", () => expect(fitLabel(null, 100, 11, 8).fits).toBe(true));
+});
+
+describe("renderFunnel — label-fit (no overflow on narrow stages)", () => {
+  const FN = { categories: ["Signup", "Activated first upload", "Paid $29 plan"], series: [{ name: "u", values: [100, 55, 8] }] };
+  it("stays deterministic with the label-fit branches (byte-stable)", () => expect(renderChart("funnel", FN, SPEC, THEME)).toBe(renderChart("funnel", FN, SPEC, THEME)));
+  it("a very narrow final stage places its label OUTSIDE the bar (text-anchor=start) — never clipped", () => {
+    const s = renderChart("funnel", FN, SPEC, THEME);
+    expect(s).toContain("Paid $29 plan: 8");                         // the label content survives (not dropped)
+    expect(s).toMatch(/text-anchor="start">Paid \$29 plan: 8</);     // funnel emits start-anchor ONLY for the outside fallback
+  });
+  it("a wide stage keeps its label centered INSIDE as one line at base size", () => {
+    const s = renderChart("funnel", { categories: ["Signup"], series: [{ name: "u", values: [100] }] }, SPEC, THEME);
+    expect(s).toContain(">Signup: 100<");                            // one text node → not wrapped
+    expect(s).toContain('text-anchor="middle"');                     // centered inside
+  });
+  it("emits no NaN/undefined and stays valid SVG", () => { const s = renderChart("funnel", FN, SPEC, THEME); expect(s.includes("NaN")).toBe(false); expect(s.includes("undefined")).toBe(false); expect(s.startsWith("<svg")).toBe(true); });
+});
+
+describe("renderTreemap — label fits the cell (no horizontal overflow)", () => {
+  const TM = { categories: ["A really quite long category name here", "B", "C", "D"], series: [{ name: "v", values: [40, 30, 20, 10] }] };
+  it("is deterministic + valid + no NaN with the shrink-to-cell label", () => { const a = renderChart("treemap", TM, SPEC, THEME); expect(a).toBe(renderChart("treemap", TM, SPEC, THEME)); expect(a.includes("NaN")).toBe(false); expect(a.startsWith("<svg")).toBe(true); });
+  it("keeps the long label present (shrunk, not dropped or clipped to garbage)", () => expect(renderChart("treemap", TM, SPEC, THEME)).toContain("A really quite long category name here"));
 });

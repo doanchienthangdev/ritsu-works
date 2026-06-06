@@ -47,6 +47,53 @@ const SUB_FS = 12;
 const LABEL_FS = 11;
 const SRC_FS = 10;
 
+// ── label-fit ────────────────────────────────────────────────────────────────
+// Pure-Node SVG has no font metrics, so estimate proportional text width. Average
+// advance for a Helvetica/Arial-class sans ≈ 0.55× the font size across mixed text;
+// 0.6 is a slightly conservative bound (shrink a touch early rather than clip a label).
+const AVG_CHAR_W = 0.6;
+function estTextW(s, fs) { return String(s == null ? '' : s).length * fs * AVG_CHAR_W; }
+
+/** Split a label into ≤2 balanced lines — prefer a ": " boundary
+ *  ("Paid $29: 12" → ["Paid $29:", "12"]), else the most-balanced space. Pure. */
+function wrapLabel(label) {
+  const s = String(label == null ? '' : label).trim();
+  if (!s) return [''];
+  const colon = s.indexOf(': ');
+  if (colon > 0 && colon < s.length - 2) return [s.slice(0, colon + 1), s.slice(colon + 2).trim()];
+  const words = s.split(/\s+/);
+  if (words.length < 2) return [s];
+  let best = 1; let bestDiff = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    const diff = Math.abs(words.slice(0, i).join(' ').length - words.slice(i).join(' ').length);
+    if (diff < bestDiff) { bestDiff = diff; best = i; }
+  }
+  return [words.slice(0, best).join(' '), words.slice(best).join(' ')];
+}
+
+/** Fit a label into `maxWidth`: keep `baseFs` if it already fits; else (when allowWrap)
+ *  WRAP to 2 lines at base size; else SHRINK to the largest size that fits, floored at
+ *  `minFs`. Returns {lines, fs, fits}. `fits:false` means even the floor overflows →
+ *  the caller may place the label outside the region instead of clipping it. Pure. */
+function fitLabel(label, maxWidth, baseFs, minFs, allowWrap) {
+  const s = String(label == null ? '' : label);
+  const floor = minFs || 8;
+  const wrap = allowWrap !== false;
+  if (!s) return { lines: [''], fs: baseFs, fits: true };
+  if (!(maxWidth > 0)) return { lines: [s], fs: floor, fits: false };
+  if (estTextW(s, baseFs) <= maxWidth) return { lines: [s], fs: baseFs, fits: true };
+  let layout = { lines: [s], chars: s.length };
+  if (wrap) {
+    const wrapped = wrapLabel(s);
+    const wrappedChars = Math.max(...wrapped.map((l) => l.length));
+    if (wrapped.length > 1 && wrappedChars * baseFs * AVG_CHAR_W <= maxWidth) return { lines: wrapped, fs: baseFs, fits: true };
+    if (wrapped.length > 1 && wrappedChars < s.length) layout = { lines: wrapped, chars: wrappedChars };
+  }
+  const idealFs = maxWidth / (layout.chars * AVG_CHAR_W);
+  const fs = Math.max(floor, Math.min(baseFs, Math.floor(idealFs * 100) / 100));
+  return { lines: layout.lines, fs, fits: layout.chars * fs * AVG_CHAR_W <= maxWidth };
+}
+
 function frame(spec, theme) {
   const W = spec.width;
   const H = spec.height;
@@ -630,7 +677,16 @@ function renderFunnel(data, spec, theme, plot) {
   stages.forEach((st, i) => {
     const w = (st.value / max) * maxW; const yy = plot.y + rowH * i + rowH * 0.16; const h = rowH * 0.6;
     out += rect(cx - w / 2, yy, w, h, { fill: i === 0 ? theme.highlight : lerpHex(theme.highlight, theme.neutral1, Math.min(1, i / Math.max(1, stages.length - 1))) });
-    out += text(`${st.label}: ${valFmt(st.value, spec)}`, { x: cx, y: yy + h / 2 + 4, fill: '#FFFFFF', 'font-size': LABEL_FS, 'font-family': theme.bodyFont, 'text-anchor': 'middle' });
+    const flabel = `${st.label}: ${valFmt(st.value, spec)}`;
+    const ffit = fitLabel(flabel, w - 10, LABEL_FS, 8);
+    if (ffit.fits) {
+      const lh = ffit.fs + 2; const fy0 = yy + h / 2 + 4 - ((ffit.lines.length - 1) * lh) / 2;
+      ffit.lines.forEach((ln, k) => { out += text(ln, { x: cx, y: fy0 + k * lh, fill: '#FFFFFF', 'font-size': ffit.fs, 'font-family': theme.bodyFont, 'text-anchor': 'middle' }); });
+    } else {
+      // bar too narrow even shrunk+wrapped → place the label OUTSIDE-right in ink, before
+      // the conversion-% column (which sits further right at cx + maxW/2 + 10) — never clip.
+      out += text(flabel, { x: cx + w / 2 + 6, y: yy + h / 2 + 4, fill: theme.ink, 'font-size': LABEL_FS - 1, 'font-family': theme.bodyFont, 'text-anchor': 'start' });
+    }
     if (i > 0) { const prev = stages[i - 1].value; const conv = prev ? Math.round((st.value / prev) * 100) : 0; out += text(`${conv}%`, { x: cx + maxW / 2 + 10, y: yy + h / 2 + 4, ...tlab(theme) }); }
   });
   return out;
@@ -1024,7 +1080,7 @@ function renderTreemap(data, spec, theme, plot) {
   if (!items) { const cats = normCats(data); const s = (normSeries(data)[0] || { values: [] }); items = cats.map((c, i) => ({ label: c, v: Math.max(0, s.values[i] || 0) })); }
   items = items.filter((it) => it.v > 0); if (!items.length) return '';
   const rects = squarify(items.map((it) => it.v), plot.x, plot.y + 4, plot.w, plot.h - 8); const cols = seriesColors(theme); let out = '';
-  rects.forEach((r) => { const it = items[r.i]; out += rect(r.x, r.y, Math.max(0, r.w - 2), Math.max(0, r.h - 2), { fill: cols[r.i % cols.length] }); if (r.w > 40 && r.h > 22) out += text(it.label, { x: r.x + 5, y: r.y + 16, fill: '#FFFFFF', 'font-size': LABEL_FS - 1, 'font-family': theme.bodyFont }); });
+  rects.forEach((r) => { const it = items[r.i]; out += rect(r.x, r.y, Math.max(0, r.w - 2), Math.max(0, r.h - 2), { fill: cols[r.i % cols.length] }); if (r.w > 40 && r.h > 22) { const tfit = fitLabel(it.label, r.w - 10, LABEL_FS - 1, 8, false); out += text(tfit.lines[0], { x: r.x + 5, y: r.y + 16, fill: '#FFFFFF', 'font-size': tfit.fs, 'font-family': theme.bodyFont }); } });
   return out;
 }
 
@@ -1195,4 +1251,4 @@ function renderChart(chartType, data, spec, theme) {
   return svgDoc(f.W, f.H, f.head + plotBody + f.foot, theme.bg);
 }
 
-module.exports = { renderChart, valFmt, frame, seriesColor, BUILT, DISPATCH };
+module.exports = { renderChart, valFmt, frame, seriesColor, BUILT, DISPATCH, fitLabel, wrapLabel, estTextW };
