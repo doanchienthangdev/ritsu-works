@@ -57,7 +57,7 @@ tier1_canonical:
           - {file: principles.md, status: v0.1-draft, layer: operating, auto_load: false, revisit_at: 30-paying}
           - {file: glossary.md, status: stub, layer: meta, entry_condition: "first 10 SOPs land"}
           - {file: design-system.md, status: canonical, layer: brand-design, auto_load: false}   # graduated stub→canonical 2026-06-01 (capability design-system-styling, G1); companion folder 00-core/design-system/<name>/ holds the owned DESIGN.md systems
-          - {file: wedge.md, status: stub, layer: strategy, entry_condition: "SOP-PRODUCT-002 N=10 strangers complete"}
+          - {file: wedge.md, status: v0.1-draft, layer: strategy, auto_load: false, entry_condition: "SOP-PRODUCT-002 N=10 strangers complete — CANONIZES; graduated stub→v0.1-draft (hypothesis) 2026-06-07 per run ritsu-foundational-layer-v1"}
           - {file: pricing-philosophy.md, status: stub, layer: strategy, entry_condition: "first SOP-PRODUCT-010 pricing-pull-test"}
           - {file: operating-cadence.md, status: stub, layer: operating, entry_condition: "cofounder formal join OR 50 paying users"}
           - {file: decision-rights-narrative.md, status: stub, layer: operating, entry_condition: "cofounder formal join"}
