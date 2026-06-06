@@ -94,7 +94,7 @@ Per `governance/HITL.md`, any edit to 00-core is **HITL Tier C** (PR-only).
 | INDEX.md | meta | canonical | founder | 2026-05-21 | This file |
 | glossary.md | meta | stub | founder | — | (entry: first 10 SOPs land) |
 | design-system.md | brand-design | stub | founder | — | (entry: first marketing visual needed) |
-| wedge.md | strategy | stub | founder | — | (entry: SOP-PRODUCT-002 N=10 complete) |
+| wedge.md | strategy | v0.1-draft | founder | 2026-06-07 | The sticky-feature wedge (hypothesis; canonizes after N=10) |
 | pricing-philosophy.md | strategy | stub | founder | — | (entry: first SOP-PRODUCT-010) |
 | operating-cadence.md | operating | stub | founder + cofounder | — | (entry: cofounder formal join OR 50 paying) |
 | decision-rights-narrative.md | operating | stub | founder + cofounder | — | (entry: cofounder formal join) |
