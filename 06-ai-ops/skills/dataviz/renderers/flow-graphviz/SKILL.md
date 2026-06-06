@@ -62,7 +62,7 @@ Spec shape: `{"rankdir":"TB","title":"…","clusters":[{"id","label","color"}],"
 | **data / store** | `shape=cylinder` | white | a datastore |
 | **io** | `shape=parallelogram` | white | input/output |
 | **edge** | `color="#5E6B75"` (muted); `color="#C0392B"` red / `#1F7A4D` green / `#B5781F` amber | — | flow; label `yes`/`no`/conditions; `style=dashed` for loops/optional |
-| **swimlane / phase** | `subgraph cluster_X { label="…"; style="filled,rounded"; color="<phase>"; fontcolor=white; …nodes… }` | phase color | group steps by stage/owner |
+| **swimlane / phase** | `subgraph cluster_X { label="…"; style="filled,rounded"; color="<accent>"; fillcolor="<PALE tint>"; fontcolor="<accent>"; penwidth=1.2; …nodes… }` | **pale lane** + accent label/border | group steps by stage/owner — pale fill so the nodes pop |
 
 (When `--style=<brand>` is passed, the brand palette overrides the blue/grey/ink; the
 semantic amber/green/red stay — they encode meaning, not brand.)
@@ -73,8 +73,7 @@ semantic amber/green/red stay — they encode meaning, not brand.)
   for a wide linear process or pipeline.
 - **One idea per node; short labels.** Use `\n` for a second line; keep nodes ≤ ~7 words.
 - **Decisions are diamonds**, with **labeled out-edges** (`yes`/`no`, the condition).
-- **Swimlanes = clusters.** Group by stage (a 5A journey), owner (org swimlane), or phase.
-  Give each cluster a label + a distinct fill; put white text via `fontcolor=white`.
+- **Swimlanes = clusters — PALE fills only.** Group by stage (a 5A journey), owner (org swimlane), or phase. Give each cluster a **light-tint fill** + a **thin accent border** + an **accent-colored label** (`fontcolor=<accent>`, **never white**) — a saturated fill drowns the nodes and the lanes blur into each other. The `--spec` path tints automatically (pass each cluster an `color` accent, or omit it for a harmonious auto-ramp); on the `--dot` path set `fillcolor` to a pale tint yourself (e.g. `#E8F2F7` for a `#1A7FAE` accent).
 - **Use color to mean something:** red = drop/kill, green = happy-path/win, amber =
   the bet / a loop, blue = the key moment. Don't decorate.
 - **Loops** (e.g. a referral flywheel) = a `style=dashed` back-edge with a short label.
@@ -98,7 +97,7 @@ never lost. (For a guaranteed-no-engine caller, svg-native `flowchart` is the fa
 ```dot
 digraph flow {
   "trigger" [fillcolor="#222222", fontcolor=white, label="① See a trigger\nstuck in a hard course; deadline looms"];
-  subgraph "cluster_ask" { label="ASK"; style="filled,rounded"; color="#1A7FAE"; fontcolor=white;
+  subgraph "cluster_ask" { label="ASK"; style="filled,rounded"; color="#1A7FAE"; fillcolor="#E8F2F7"; fontcolor="#1A7FAE"; penwidth=1.2;
     "method" [shape=diamond, fillcolor="#FCEBD2", color="#B5781F", label="Reads as a real METHOD?"];
     "slop"   [fillcolor="#FBEAE7", color="#C0392B", fontcolor="#7A1F14", label="✗ Bounced as AI-slop"]; }
   "trigger" -> "method";

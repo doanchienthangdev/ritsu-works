@@ -50,6 +50,21 @@ function firstFont(stack, fallback) {
 }
 function esc(s) { return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n'); }
 
+/** Mix a hex color toward white by `t` (0..1). Used to make swimlane lanes PALE so the
+ *  nodes inside pop, instead of a saturated block that muddles everything. */
+function tint(hex, t) {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(String(hex || ''));
+  if (!m) return '#EEF2F6';
+  const n = parseInt(m[1], 16);
+  const k = Math.max(0, Math.min(1, Number.isFinite(t) ? t : 0.88));
+  const mix = (c) => Math.round(c + (255 - c) * k);
+  return '#' + [mix((n >> 16) & 255), mix((n >> 8) & 255), mix(n & 255)].map((c) => c.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+// Harmonious, distinguishable accent ramp for swimlanes when a cluster gives no `color`
+// (calm blue→teal sequence + one warm amber close — reads as a journey, stays on-tone).
+const CLUSTER_RAMP = ['#1F5C8B', '#2E86A8', '#3FA0A8', '#5B8AC0', '#B5781F', '#6F6BA8', '#4E9A6B'];
+
 /** Map the dataviz theme (+ semantic flow colors) → a Graphviz palette. */
 function flowPalette(theme) {
   return {
@@ -132,10 +147,13 @@ function specToDot(spec, theme, opts) {
 
   clusters.forEach((c, i) => {
     const cid = c && c.id != null ? c.id : `c${i}`;
-    const col = (c && c.color) || p.highlight;
+    // accent = the lane's identity color (label + thin border); the FILL is a PALE tint of it
+    // so the nodes inside stay legible and the lanes read as harmonious bands, not solid blocks.
+    const accent = (c && c.color) || CLUSTER_RAMP[i % CLUSTER_RAMP.length];
+    const fill = tint(accent, 0.88);
     L.push(`  subgraph "cluster_${esc(cid)}" {`);
-    L.push(`    label="${esc((c && c.label) || cid)}"; labeljust=l; fontname="${p.body}"; fontsize=10; fontcolor="#FFFFFF";`);
-    L.push(`    style="filled,rounded"; color="${col}"; fillcolor="${col}"; penwidth=0; margin=10;`);
+    L.push(`    label="${esc((c && c.label) || cid)}"; labeljust=l; fontname="${p.body}"; fontsize=10.5; fontcolor="${accent}";`);
+    L.push(`    style="filled,rounded"; color="${accent}"; fillcolor="${fill}"; penwidth=1.2; margin=12;`);
     (clusterOf[cid] || []).forEach((n) => L.push(nodeLine(n)));
     L.push('  }');
   });

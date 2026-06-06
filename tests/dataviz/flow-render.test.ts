@@ -53,9 +53,17 @@ describe('flow-render specToDot — happy path', () => {
     const d2 = flow.specToDot({ nodes: [{ id: 'm', label: 'Aha', role: 'moment' }], edges: [] }, theme, {});
     expect(d2).toContain('#005EB8');
   });
-  it('emits a swimlane cluster with a label', () => {
+  it('emits a swimlane cluster: pale fill + accent label/border (not a saturated block)', () => {
     expect(dot).toContain('subgraph "cluster_ph1" {');
     expect(dot).toContain('label="AWARE"');
+    expect(dot).toContain('fontcolor="#034B6F"');                                   // label uses the accent
+    expect(dot).toMatch(/color="#034B6F"; fillcolor="#[0-9A-F]{6}"; penwidth=1\.2/); // accent border + a PALE fill
+    expect(dot).not.toContain('fillcolor="#034B6F"');                               // the SATURATED accent is never the fill
+  });
+  it('clusters with no color get the harmonious auto-ramp (pale, not saturated)', () => {
+    const d3 = flow.specToDot({ clusters: [{ id: 'z', label: 'Z' }], nodes: [{ id: 'a', label: 'A', cluster: 'z' }], edges: [] }, theme, {});
+    expect(d3).toContain('fontcolor="#1F5C8B"');     // CLUSTER_RAMP[0] as the accent
+    expect(d3).not.toContain('fillcolor="#1F5C8B"'); // fill is a pale tint, not the ramp accent
   });
   it('honors edge label, semantic color, and dashed style', () => {
     expect(dot).toMatch(/"d" -> "win" \[[^\]]*label="yes"/);
