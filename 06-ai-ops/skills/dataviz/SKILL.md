@@ -31,7 +31,9 @@ disable-model-invocation: false
 
 ## Pick the renderer (`--use`)
 
-`knowledge/dataviz-renderers.yaml` (split registry, mirror image-adapters): **`svg-native`** (default, installed — the zero-dep pure-Node SVG renderer); `echarts-ssr` + `vega-lite` are registered-not-built stubs (the engine fallbacks). Adding a renderer = a registry row + a generator + a skill — no command-code change.
+`knowledge/dataviz-renderers.yaml` (split registry, mirror image-adapters): **`svg-native`** (default, installed — the zero-dep pure-Node SVG renderer); **`flow-graphviz`** (installed v0.5 — the Flow/workflow family's pro renderer); `echarts-ssr` + `vega-lite` are registered-not-built stubs (the engine fallbacks). Adding a renderer = a registry row + a generator + a skill — no command-code change.
+
+**★ Flow/workflow family → `flow-graphviz` (v0.5 — the upgrade).** A flowchart / workflow / process map / decision tree / swimlane / org chart / user-flow / directed network is NOT a pure-Node-SVG job — auto-layout is the hard problem code can't hand-roll well. For these, **YOU (the calling agent) author a brand-themed Graphviz DOT** (per `06-ai-ops/skills/dataviz/renderers/flow-graphviz/SKILL.md` — the role vocabulary, swimlane clusters, palette, edge semantics) and Graphviz `dot` lays it out → SVG/PNG/PDF. This is the **default for the Flow family on the LLM-native (interactive) path**; svg-native's `flowchart`/`network` stay the **deterministic headless/CRON fallback** (and the `dot`-absent fallback). Invoke: `node scripts/dataviz/flow-render.cjs --dot=<file|inline> --out=… --format=svg|png|pdf [--style=<brand>] [--rankdir=LR]` (or `--spec=<json>` for a structured, no-LLM build). **png/pdf are NATIVE here** (svg-native only does svg/html/inline).
 
 ## The chart-type set (v0.3 — 60 built across all six families)
 
@@ -42,7 +44,7 @@ The full taxonomy + per-type metadata is `scripts/dataviz/lib/taxonomy.cjs` (the
 - **Part-to-whole (14):** `stacked` `stacked100` `pie` `donut` `marimekko` (mekko) `diverging` (Likert) `funnel` `waffle` `treemap` `population-pyramid` `sunburst` `dendrogram` `venn` `semicircle-donut`
 - **Change over time (11):** `line` `area` `stacked-area` `waterfall` (bridge) `bump` `spline` `step-line` `gantt` `candlestick` `ohlc` `barcode`
 - **Distribution (9):** `histogram` `box` `density` `ridgeline` `violin` `strip` `jitter` `beeswarm` `horizon`
-- **Flow (6):** `sankey` `chord` `arc` `network` `flowchart` `tile-map`
+- **Flow (6):** `sankey` `chord` `arc` `tile-map` (svg-native) · **`flowchart` + `network` → the `flow-graphviz` renderer (LLM-authored DOT, Graphviz auto-layout — the PRO path; svg-native versions are the headless fallback)**
 - **KPI (1):** `kpi` (big-number callout)
 
 **Only 14 stay cataloged-but-not-built** (selector maps to the nearest built + an honest reason): **10 anti-McKinsey** (radial-bar, nightingale, pictogram, icon-chart, icon-array, word-cloud, gauge, stream, parallel-coordinates, radial-histogram) + **4 infeasible in a pure zero-dep renderer** (choropleth/geo-heatmap need real boundary polygons; contour needs a continuous-field/marching-squares engine; euler needs general set geometry). **pie/donut are built but McKinsey-DEMOTED** — auto-mode renders a ranked bar; force with `--chart=pie`. **Output wordmark = the Ritsu brand** (the "McKinsey" label is the design *discipline*, not the output brand); `--style=<ds>` overrides it with the design-system name.

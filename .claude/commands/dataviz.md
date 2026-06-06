@@ -60,7 +60,7 @@ the conversation; file modes write to `.archives/dataviz/<date>-<slug>/`).
 | `--format` | `inline` \| `svg` \| `html` | `inline` | output medium (png/pdf raster = v0.2 stretch) |
 | `--ar` / `--width` / `--height` | `W:H` / px / px | `4:3` / 720 | exhibit size (aspect is SEMANTIC — never auto-stretched) |
 | `--unit` / `--decimals` / `--percent` / `--thousands` | … | — | number formatting (stated once, consistent per exhibit) |
-| `--use` | `svg-native` \| (stubs) | `svg-native` | pluggable renderer (`knowledge/dataviz-renderers.yaml`) |
+| `--use` | `svg-native` \| `flow-graphviz` \| (stubs) | `svg-native` | pluggable renderer (`knowledge/dataviz-renderers.yaml`); **flow/workflow charts use `flow-graphviz` — LLM-authored Graphviz DOT, see "Flowcharts & workflows" below** |
 | `--audience` | `exec` \| `analyst` \| `general` | `general` | the audience — the agent (and the fallback selector) simplifies for `exec` (e.g. a long ranking → lollipop) |
 | `--selected-by` | `agent` | — | **v0.4 — the LLM-native path.** Set when YOU (the agent) chose `--chart` by reading the catalog + the situation; records `select_mode=agent` in `run.json` (vs the deterministic fallback or a hard force) |
 | `--select-reason` | string | — | your one-line rationale for the pick (logged to `run.json` for the audit; surfaced by `--explain`) |
@@ -101,14 +101,27 @@ Full when-to-use guidance is in the catalog (`06-ai-ops/skills/dataviz/catalog.m
 - **Part-to-whole (14)** — `stacked` (absolute sub-parts) · `stacked100` (share across categories/time) · `pie` *(demoted→bar)* · `donut` *(demoted→bar)* · `marimekko` (size×share — a McKinsey signature) · `diverging` (Likert/sentiment) · `funnel` (stage drop-off) · `waffle` (grid of squares) · `treemap` (nested rectangles by size) · `population-pyramid` (age/sex) · `sunburst` (radial hierarchy) · `dendrogram` (clustering tree) · `venn` (set overlap) · `semicircle-donut` (half-circle)
 - **Change over time (11)** — `line` (trend, many periods/multi-series) · `area` (single-series magnitude) · `stacked-area` (composition over time) · `waterfall` (bridge A→B) · `bump` (ranking shifts) · `spline` (smoothed) · `step-line` (discrete steps) · `gantt` (project schedule) · `candlestick` / `ohlc` (financial) · `barcode` (temporal ticks)
 - **Distribution (9)** — `histogram` (frequency bins) · `box` (quartiles/outliers) · `density` (probability curve) · `ridgeline` (stacked densities) · `violin` (mirrored density) · `strip` (individual values) · `jitter` / `beeswarm` (categorical points) · `horizon` (compact banded deviations)
-- **Flow / geospatial (6)** — `sankey` (flow between nodes) · `chord` (circular entity links) · `arc` (linear nodes + arcs) · `network` (node-link graph) · `flowchart` (process steps) · `tile-map` (equal-size grid map)
+- **Flow / geospatial (6)** — `sankey` (flow between nodes) · `chord` (circular entity links) · `arc` (linear nodes + arcs) · `tile-map` (equal-size grid map) · **`flowchart` + `network` → the `flow-graphviz` renderer (LLM-authored DOT + Graphviz auto-layout — the PRO path; see "Flowcharts & workflows" below)**
 - **KPI (1)** — `kpi` (big-number callout)
 
 **14 cataloged-but-not-built** (the selector/agent maps to the nearest built form + an honest note — do NOT pass them): **10 anti-McKinsey** (`radial-bar` `nightingale` `pictogram` `icon-chart` `icon-array` `word-cloud` `gauge` `stream` `parallel-coordinates` `radial-histogram`) + **4 infeasible in a pure zero-dep renderer** (`choropleth` `geo-heatmap` need boundary polygons; `contour` needs a continuous-field engine; `euler` needs general set geometry). **Output wordmark = the Ritsu brand** (the "McKinsey" label is the design *discipline*, not the output brand); `--style=<ds>` overrides it.
 
+## Flowcharts & workflows — the `flow-graphviz` renderer (v0.5, the PRO path)
+
+A flowchart / workflow / process map / decision tree / swimlane / org chart / user-flow / directed network is NOT a pure-Node-SVG job — **auto-LAYOUT is the hard problem** hand-rolled code can't do well. So the Flow/workflow family routes to **`flow-graphviz`**: **YOU (Claude Code) author a brand-themed Graphviz DOT graph** — the structure, the right sub-variety, the labels (an LLM's strength) — and Graphviz **`dot` does the auto-layout** (the gold-standard DAG/flowchart engine). "Claude Code draws it + exports the file," robustly.
+
+```bash
+# author your DOT (per the flow-graphviz skill), then render — svg | png | pdf are ALL native here:
+node scripts/dataviz/flow-render.cjs --dot=<file|inline> --out=.archives/dataviz/<slug>/ --format=svg [--style=<brand>] [--rankdir=LR]
+# or a structured, no-LLM build (headless / CRON / test):
+node scripts/dataviz/flow-render.cjs --spec=<flow.json> --out=… --format=png
+```
+
+Author per **`06-ai-ops/skills/dataviz/renderers/flow-graphviz/SKILL.md`** — the role vocabulary (start / step / decision-diamond / moment / success / risk / data), swimlane **clusters**, the brand palette (semantic amber=decision, green=win, red=drop), and edge semantics. A brand theme preamble is injected so unstyled DOT still lands on-brand; `--style=<ds>` overrides the palette (semantics stay). svg-native's `flowchart`/`network` remain the **deterministic headless/CRON fallback** (and the fallback when `dot` is absent — in which case the renderer saves the `.dot` + an install hint, so nothing is lost).
+
 ## Composition
 
-- **`/think mckinsey` (`mckinsey-sell`)** calls `/dataviz` per exhibit — the exhibit's action-title is the `--message`+`--title`, the survey/analysis line is `--source`. (v2.2 integration.)
+- **`/think mckinsey` (`mckinsey-sell`)** calls `/dataviz` per exhibit — the exhibit's action-title is the `--message`+`--title`, the survey/analysis line is `--source`. (v2.2 integration.) **Flow-family exhibits** (process maps, decision flows, issue trees, the user-flow) render through **`flow-graphviz`** → inherit the pro upgrade automatically.
 - **`/deepask`** can route its `chart` format here (the repo's only deterministic McKinsey-grade SVG chart renderer).
 - **`--style`/`--art-style`** flow through as the SAME design context tokens `/image` + `deepask/aesthetic` consume.
 
