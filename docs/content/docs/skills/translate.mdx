@@ -10,8 +10,8 @@ description: |
   Invoke when the user asks to translate a document/book/webpage into another language,
   or runs /translate.
 source_path: 06-ai-ops/skills/translate/SKILL.md
-source_hash: 350aec49afebc7d78c1409720541234f910e070c1ff16bb6679f9faa3ddcf295
-generated_at: '2026-06-07T18:26:01.971Z'
+source_hash: a90cf2c86ce836082f19d37c0c79395b11898fa546aa0dec1b47db54d6b0532a
+generated_at: '2026-06-07T19:34:47.522Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
@@ -19,17 +19,17 @@ language: vi
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-Bộ điều phối lúc chạy. Ba giai đoạn: **plan → translate (Workflow) → build**. Phần
-việc cơ học là Python/Node mang tính tất định (`scripts/translate/`); còn *việc dịch*
-là một đợt fan-out các tác tử LLM được dẫn dắt bởi một bản tóm tắt chung. Đầu ra được đặt ngay cạnh nguồn.
+Bộ điều phối runtime. Ba pha: **plan → translate (Workflow) → build**. Phần việc
+cơ học mang tính tất định bằng Python/Node (`scripts/translate/`); phần *dịch thuật*
+là một đợt fan-out các agent LLM được dẫn dắt bởi một bản brief chung. Kết quả đầu ra nằm ngay cạnh nguồn.
 
-> **Quyền được dịch:** một lần gọi /translate khẳng định rằng người gọi nắm giữ quyền
-> dịch nguồn. Hãy xử lý tài liệu; ghi đầu ra cho mục đích sử dụng của chính người gọi.
+> **Quyền dịch thuật:** một lần gọi /translate khẳng định rằng người gọi nắm giữ quyền
+> dịch nguồn. Hãy xử lý tài liệu; ghi kết quả đầu ra để người gọi tự sử dụng.
 
-## Giai đoạn 1 — Lập kế hoạch
+## Pha 1 — Plan
 
-Chạy trình lập kế hoạch (nó nạp nguồn, phát hiện book/doc/slides, tách thành các đơn vị,
-ghi `brief.md` + `plan.json` vào một thư mục làm việc lúc chạy):
+Chạy bộ lập kế hoạch (nó nạp nguồn, phát hiện book/doc/slides, tách thành các unit,
+ghi `brief.md` + `plan.json` vào một thư mục làm việc runtime):
 
 ```
 node scripts/translate/cli.cjs plan "<src>" [--to=… --out=pdf+epub --style=claude --mode=auto --split=auto --max-cost-usd=8 --dry-run …]
@@ -37,18 +37,18 @@ node scripts/translate/cli.cjs plan "<src>" [--to=… --out=pdf+epub --style=cla
 
 Đọc kết quả JSON: `{workdir, brief, mode, title, units, total_words, cost_estimate_usd, outputs, to, tasks[], warnings[]}`.
 - **Hiển thị mọi cảnh báo.**
-- **`--dry-run`** (hoặc `dry_run:true`): trình bày kế hoạch (mode, số đơn vị, số từ, chi phí, đầu ra) rồi DỪNG. Không dịch.
-- **Cổng chi phí:** nếu `cost_estimate_usd` > giá trị `--max-cost-usd` đã được phân giải, hãy hiển thị ước tính rồi DỪNG để xác nhận (không âm thầm chi tiêu).
+- **`--dry-run`** (hoặc `dry_run:true`): trình bày kế hoạch (mode, số unit, số từ, chi phí, outputs) rồi DỪNG. Không dịch.
+- **Cổng chi phí:** nếu `cost_estimate_usd` > giá trị `--max-cost-usd` đã giải quyết, hãy hiển thị ước tính và DỪNG để xác nhận (không âm thầm chi tiêu).
 
-## Giai đoạn 2 — Dịch tiêu đề, rồi fan-out các đơn vị
+## Pha 2 — Dịch tiêu đề, sau đó fan out các unit
 
-**2a. Tiêu đề.** Tự dịch tiêu đề sách/tài liệu (`plan.title`) sang ngôn ngữ đích
+**2a. Tiêu đề.** Tự dịch tiêu đề của sách/tài liệu (`plan.title`) sang ngôn ngữ đích
 (một dòng) — giữ nguyên danh từ riêng. Giữ nó dưới dạng `TITLE_TRANSLATED` cho bước build.
 
-**2b. Khởi chạy Workflow dịch.** Dùng công cụ Workflow. Nhúng danh sách tác vụ thành một
-`const` trong thân script — **ĐỪNG truyền qua `args`** (`args` lớn sẽ đến dưới dạng chuỗi
-và `.map` sẽ ném lỗi). Mỗi đơn vị một tác tử; mỗi tác tử đọc bản tóm tắt chung + đơn vị nguồn của nó và
-ghi đơn vị đã dịch của nó. Mẫu:
+**2b. Khởi chạy Workflow dịch thuật.** Dùng công cụ Workflow. Nhúng danh sách tác vụ dưới dạng
+một `const` trong thân script — **KHÔNG truyền nó qua `args`** (`args` lớn sẽ đến dưới dạng chuỗi
+và `.map` sẽ ném lỗi). Mỗi agent xử lý một unit; mỗi agent đọc bản brief chung + unit nguồn của nó và
+ghi unit đã dịch của nó. Mẫu:
 
 ```js
 export const meta = { name: 'translate-<slug>', description: 'Parallel translation of <title> into <lang>', phases: [{ title: 'Translate' }] }
@@ -74,30 +74,49 @@ STEP 5 — return {"id":"${t.id}","ok":true,"words":<count>}.`,
 return { ok: results.filter(r=>r&&r.ok).length, total: TASKS.length, failed: results.filter(r=>!r||!r.ok) }
 ```
 
-- Các tác tử kế thừa mô hình của phiên (dùng mô hình mạnh nhất hiện có — chất lượng dịch là mấu chốt).
-- Mức đồng thời tự giới hạn (~8–16); sách lớn chạy theo từng đợt. Workflow chỉ trả về một bản kê nhỏ (các bản dịch được ghi ra file, không bao giờ dồn ngược qua ngữ cảnh).
-- **Chạy lại bất kỳ đơn vị nào thất bại** (file `out` của nó bị thiếu/rỗng) trước khi build.
+- Các agent kế thừa model của phiên (dùng model mạnh nhất hiện có — chất lượng dịch thuật chính là cốt lõi).
+- Mức đồng thời tự giới hạn (~8–16); sách lớn chạy theo từng đợt. Workflow chỉ trả về một manifest nhỏ (các bản dịch được ghi ra file, không bao giờ dồn ngược lại qua context).
+- **Chạy lại bất kỳ unit nào bị lỗi** (file `out` của nó bị thiếu/rỗng) trước khi build.
 
-## Giai đoạn 3 — Build
+## Pha 3 — Build
 
 ```
 node scripts/translate/cli.cjs build <workdir> --title="<TITLE_TRANSLATED>" [--subtitle="…"]
 ```
-Bước này lắp ghép các đơn vị đã dịch (nối các nửa đã tách) và kết xuất mọi định dạng đầu ra được
-yêu cầu bằng hệ thống thiết kế đã phân giải. Đọc kết quả `{ok, outputs[], outDir}`.
+Bước này lắp ráp các unit đã dịch (nối các nửa đã tách) và kết xuất mọi định dạng đầu ra
+được yêu cầu với design system đã giải quyết. Đọc kết quả `{ok, outputs[], outDir}`.
 
-## Giai đoạn 4 — Báo cáo
+## Pha 4 — Báo cáo
 
 Báo cáo các file đã tạo (đường dẫn tuyệt đối), ngôn ngữ đích + style, mọi cảnh báo, và —
-một cách trung thực — các ghi chú độ trung thực từ ma trận của lệnh (pdf/epub/md được trau chuốt; docx sạch sẽ;
-pptx vận hành được). Đầu ra nằm trong thư mục của nguồn trừ khi `--out-dir` được cung cấp.
+một cách trung thực — các ghi chú về độ trung thực từ ma trận của lệnh (pdf/epub/md được trau chuốt; docx sạch sẽ;
+pptx dùng được). Kết quả đầu ra nằm trong thư mục của nguồn trừ khi `--out-dir` được cung cấp.
+
+## v0.2 (STEM) — assets · math · format-preserving · LaTeX
+
+Luồng plan → translate → build không thay đổi; `cli.cjs` định tuyến hành vi v0.2 trong nội bộ,
+nên Workflow bạn khởi chạy là giống hệt. Điều đã thay đổi:
+- **Hình/biểu đồ/bảng (Req 1):** `plan` trích xuất chúng vào `<workdir>/assets/` và chèn
+  các tham chiếu `![alt](assets/…)` (`--no-assets` để bỏ qua). Bản brief yêu cầu các agent **giữ nguyên `(path)`
+  chính xác và chỉ dịch alt text**. Các renderer nhúng chúng (latex `\includegraphics`, pdf
+  base_url, epub items, md copy).
+- **Math (Req 2):** bản brief giữ nguyên `$…$`/`\[…\]`/các environment **y nguyên**. `--out=latex` /
+  `pdf-latex` sắp chữ chúng một cách tự nhiên. Hãy nói với người dùng: với math sắp chữ, hãy dùng các đầu ra LaTeX.
+- **`--preserve` (Req 3):** với **docx/pptx**, `cli.cjs plan` chạy `preserve.py plan` (trích xuất
+  các **segment** văn bản theo thứ tự thành các dòng `⟦S{n}⟧` thay vì markdown), Workflow dịch các
+  segment đó (bản brief yêu cầu giữ nguyên mọi marker `⟦S{n}⟧` chính xác, mỗi dòng một marker, cùng thứ tự), và
+  `build` chèn lại chúng vào một bản sao của bản gốc → **bố cục giống hệt**. Đầu ra = chỉ định dạng nguồn
+  thôi. PDF `--preserve` quay về reflow (v0.2).
+- **LaTeX (Req 4):** `--out=latex` (`.tex`, XeLaTeX, Source Serif 4) + `--out=pdf-latex` (biên dịch
+  bằng **tectonic**, phải có trên PATH). Tốt nhất cho giáo trình STEM / AI-ML / báo cáo khoa học; `.tex` có tính di động
+  (fonts + assets được dàn cạnh nó).
 
 ## Ghi chú
-- **Hosts:** trình lập kế hoạch/trình kết xuất tự động chọn đúng Python (PDF → host WeasyPrint;
-  epub/docx/pptx/md → anaconda). Phông chữ (Source Serif 4 + Inter, đầy đủ tiếng Việt) được tải về +
+- **Hosts:** bộ lập kế hoạch/các renderer tự động chọn Python phù hợp (PDF → WeasyPrint host;
+  epub/docx/pptx/md → anaconda). Fonts (Source Serif 4 + Inter, đầy đủ tiếng Việt) được tải về +
   tạo instance một lần vào `runtime/translate/fonts/` (gitignored).
-- **Phát hiện cấu trúc** mang tính tổng quát (TOC → cỡ phông → dự phòng theo tiêu đề cho PDF; kiểu
-  đoạn văn cho docx; slide cho pptx; thẻ ngữ nghĩa cho HTML). Nó suy giảm một cách nhẹ nhàng.
-- **Thước đo chất lượng:** bản tóm tắt thực thi văn phong trung thực-mà-tự-nhiên, thuật ngữ nhất quán,
-  cấu trúc được giữ nguyên + chỉ số trên trích dẫn — kỷ luật của một dịch giả nhà xuất bản hàng đầu.
-- Skill này là nơi *duy nhất* khởi chạy Workflow dịch; `cli.cjs` không bao giờ làm điều đó.
+- **Phát hiện cấu trúc** mang tính tổng quát (TOC → cỡ font → dự phòng theo heading cho PDF; các style
+  đoạn văn cho docx; slides cho pptx; thẻ ngữ nghĩa cho HTML). Nó suy giảm một cách nhẹ nhàng.
+- **Chuẩn chất lượng:** bản brief thực thi văn xuôi trung thực-nhưng-tự-nhiên, thuật ngữ nhất quán,
+  cấu trúc được giữ nguyên + chỉ số trên cho trích dẫn — sự kỷ luật của một dịch giả nhà xuất bản hàng đầu.
+- Skill này là nơi *duy nhất* khởi chạy Workflow dịch thuật; `cli.cjs` không bao giờ làm điều đó.

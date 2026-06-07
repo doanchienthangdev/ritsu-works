@@ -10,7 +10,7 @@
 sop_id: SOP-AIOPS-013
 slug: translate-runtime-contract
 name: "/translate runtime contract"
-version: "0.1.0"
+version: "0.2.0"          # v0.2 STEM (2026-06-08): assets + math-preserve + --preserve in-place + latex/pdf-latex
 state: operating          # Phase 8: capability operating (built + dogfooded + shipped)
 owner: 06-ai-ops
 owner_role: gps
@@ -78,16 +78,23 @@ steps:
 # Format matrix (v0.1)
 # ----------------------------------------------------------------------
 formats:
-  input:  [pdf, docx, pptx, html, md, txt]     # html includes http(s) URLs (webpages)
-  output: [pdf, epub, docx, pptx, md]
+  input:  [pdf, docx, pptx, html, md, latex, txt]   # html includes http(s) URLs (webpages); latex = .tex (prose translated, math preserved)
+  output: [pdf, epub, docx, pptx, md, latex, pdf-latex]   # latex aliases: tex; pdf-latex aliases: pdflatex/xelatex
   default_output: same_as_source               # html source -> pdf
-  multi_output: "join with + (e.g. --out=pdf+epub)"
+  multi_output: "join with + (e.g. --out=pdf+epub or --out=latex+pdf-latex)"
   fidelity:
     pdf:  polished            # cover, TOC, chapter openers, clay section eyebrows, footnote superscripts
     epub: polished            # reflowable, embedded fonts, nav + cover
     md:   polished            # clean combined markdown
-    docx: clean               # styled headings/quotes/lists, superscripts
-    pptx: functional          # title + bullets per section
+    latex: polished           # XeLaTeX .tex — NATIVE math typesetting, \includegraphics figures, tabular, Source Serif 4 (full VN)
+    pdf-latex: polished       # latex compiled to PDF via tectonic (no system LaTeX needed)
+    docx: clean               # styled headings/quotes/lists, superscripts  (or IDENTICAL with --preserve)
+    pptx: functional          # title + bullets per section                 (or IDENTICAL with --preserve)
+  v0_2_stem:                  # Req 1-4
+    assets: "PDF/docx figures+charts+tables extracted (--keep-assets, default on) into assets/ + carried into pdf/epub/md/latex"
+    math: "math ($...$, \\[..\\], envs) preserved verbatim during translation + typeset natively in latex output; docx OMML best-effort; PDF math kept as figure"
+    preserve: "--preserve = in-place format-preserving translation (docx/pptx identical layout); PDF -> reflow fallback (v0.2)"
+    latex: "scripts/translate/latexout.py (md->.tex + tectonic compile); preserve.py for in-place; tectonic on PATH"
 
 # ----------------------------------------------------------------------
 # Economics

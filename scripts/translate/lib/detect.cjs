@@ -6,7 +6,7 @@
  */
 
 // canonical source formats the ingest layer understands
-const SRC_FORMATS = ['pdf', 'docx', 'pptx', 'html', 'md', 'txt'];
+const SRC_FORMATS = ['pdf', 'docx', 'pptx', 'html', 'md', 'txt', 'latex'];
 
 const EXT_MAP = {
   pdf: 'pdf',
@@ -15,6 +15,7 @@ const EXT_MAP = {
   md: 'md', markdown: 'md', mdx: 'md', mkd: 'md',
   txt: 'txt', text: 'txt',
   html: 'html', htm: 'html', xhtml: 'html',
+  tex: 'latex', latex: 'latex', ltx: 'latex',
 };
 
 /** Return the canonical source format, or null if unknown. */

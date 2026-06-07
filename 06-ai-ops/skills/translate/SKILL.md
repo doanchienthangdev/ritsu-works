@@ -86,6 +86,25 @@ Report the produced files (absolute paths), the target language + style, any war
 honestly — the fidelity notes from the command's matrix (pdf/epub/md polished; docx clean;
 pptx functional). Outputs are in the source's folder unless `--out-dir` was given.
 
+## v0.2 (STEM) — assets · math · format-preserving · LaTeX
+
+The plan → translate → build flow is unchanged; `cli.cjs` routes the v0.2 behaviour internally,
+so the Workflow you launch is identical. What changed:
+- **Figures/charts/tables (Req 1):** `plan` extracts them into `<workdir>/assets/` and inserts
+  `![alt](assets/…)` refs (`--no-assets` to skip). The brief tells agents to **keep the `(path)`
+  exactly and translate only alt text**. Renderers embed them (latex `\includegraphics`, pdf
+  base_url, epub items, md copy).
+- **Math (Req 2):** the brief preserves `$…$`/`\[…\]`/environments **verbatim**. `--out=latex` /
+  `pdf-latex` typeset it natively. Tell the user: for typeset math use the LaTeX outputs.
+- **`--preserve` (Req 3):** for **docx/pptx**, `cli.cjs plan` runs `preserve.py plan` (extracts
+  ordered text **segments** as `⟦S{n}⟧` lines instead of markdown), the Workflow translates those
+  segments (the brief says keep every `⟦S{n}⟧` marker exactly, one per line, same order), and
+  `build` reinserts them into a copy of the original → **identical layout**. Output = source format
+  only. PDF `--preserve` falls back to reflow (v0.2).
+- **LaTeX (Req 4):** `--out=latex` (`.tex`, XeLaTeX, Source Serif 4) + `--out=pdf-latex` (compiled
+  by **tectonic**, must be on PATH). Best for STEM textbooks / AI-ML / papers; `.tex` is portable
+  (fonts + assets staged beside it).
+
 ## Notes
 - **Hosts:** the planner/renderers pick the right Python automatically (PDF → WeasyPrint host;
   epub/docx/pptx/md → anaconda). Fonts (Source Serif 4 + Inter, full Vietnamese) are fetched +

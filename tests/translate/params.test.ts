@@ -247,3 +247,57 @@ describe('resolveConfig', () => {
     });
   });
 });
+
+describe('v0.2 STEM additions', () => {
+  describe('latex source detection', () => {
+    it.each([['paper.tex', 'latex'], ['thesis.latex', 'latex'], ['a.ltx', 'latex']])(
+      'detects %s -> %s', (i, w) => expect(detectFormat(i)).toBe(w));
+  });
+
+  describe('latex + pdf-latex output formats and aliases', () => {
+    it('accepts latex and pdf-latex', () => {
+      expect(parseOut('latex', 'md', [])).toEqual(['latex']);
+      expect(parseOut('pdf-latex', 'md', [])).toEqual(['pdf-latex']);
+    });
+    it('aliases tex->latex, pdflatex/xelatex->pdf-latex', () => {
+      expect(parseOut('tex', 'md', [])).toEqual(['latex']);
+      expect(parseOut('pdflatex', 'md', [])).toEqual(['pdf-latex']);
+      expect(parseOut('xelatex', 'md', [])).toEqual(['pdf-latex']);
+    });
+    it('composes with +', () => {
+      expect(parseOut('pdf+latex+pdf-latex', 'pdf', [])).toEqual(['pdf', 'latex', 'pdf-latex']);
+    });
+    it('a .tex source defaults its output to latex', () => {
+      expect(parseOut(undefined, 'latex', [])).toEqual(['latex']);
+    });
+  });
+
+  describe('preserve / assets / math flags', () => {
+    const base = { src: 'doc.docx', srcFormat: 'docx', cwd: '/w' };
+    it('defaults: preserve off, keepAssets on, math auto', () => {
+      const c = resolveConfig({ ...base, flags: {} });
+      expect(c.preserve).toBe(false);
+      expect(c.keepAssets).toBe(true);
+      expect(c.math).toBe('auto');
+    });
+    it('--preserve enables, --no-preserve wins', () => {
+      expect(resolveConfig({ ...base, flags: { preserve: true } }).preserve).toBe(true);
+      expect(resolveConfig({ ...base, flags: { preserve: true, 'no-preserve': true } }).preserve).toBe(false);
+    });
+    it('--no-assets / --keep-assets=false disable extraction', () => {
+      expect(resolveConfig({ ...base, flags: { 'no-assets': true } }).keepAssets).toBe(false);
+      expect(resolveConfig({ ...base, flags: { 'keep-assets': 'false' } }).keepAssets).toBe(false);
+    });
+    it('--math accepts preserve|off, rejects garbage to auto', () => {
+      expect(resolveConfig({ ...base, flags: { math: 'preserve' } }).math).toBe('preserve');
+      expect(resolveConfig({ ...base, flags: { math: 'off' } }).math).toBe('off');
+      const c = resolveConfig({ ...base, flags: { math: 'wat' } });
+      expect(c.math).toBe('auto');
+      expect(c.warnings.some((w: string) => w.includes('math'))).toBe(true);
+    });
+    it('the v0.2 flags are not flagged as unknown', () => {
+      const c = resolveConfig({ ...base, flags: { preserve: true, 'no-assets': true, math: 'off' } });
+      expect(c.warnings.some((w: string) => w.includes('unknown flag'))).toBe(false);
+    });
+  });
+});

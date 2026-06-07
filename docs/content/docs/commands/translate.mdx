@@ -1,16 +1,18 @@
 ---
-title: 'Command: /translate — capability `translate` v0.1'
+title: 'Command: /translate — capability `translate` v0.2 (STEM)'
 description: |
-  Translate any source document (pdf · docx · pptx · webpage/URL · markdown · txt)
-  into one or more output formats (pdf · epub · docx · pptx · md) in any target
-  language (default Vietnamese), styled by a design system (default claude). Books
-  auto-split into chapters and translate in PARALLEL via a Claude Code Workflow —
-  top-tier literary quality, structure + footnotes preserved. Outputs land next to
-  the source. Tier A; per-run --max-cost-usd breaker; invoking implies the caller
+  Translate any source document (pdf · docx · pptx · webpage/URL · markdown · LaTeX · txt)
+  into one or more output formats (pdf · epub · docx · pptx · md · latex · pdf-latex) in any
+  target language (default Vietnamese), styled by a design system (default claude). v0.2 STEM:
+  figures/charts/tables are extracted and carried into the translation; math/formulas are
+  preserved verbatim and typeset natively in LaTeX output; --preserve keeps docx/pptx layout
+  identical to the original. Books auto-split into chapters and translate in PARALLEL via a
+  Claude Code Workflow — top-tier literary quality, structure + footnotes preserved. Outputs
+  land next to the source. Tier A; per-run --max-cost-usd breaker; invoking implies the caller
   has the right to translate. Thin orchestrator over the `translate` umbrella skill.
 source_path: .claude/commands/translate.md
-source_hash: 6daf6d101d14051b7de5a6a47856f9b8dcf315a6bd60e73f429fa44623ebb7f9
-generated_at: '2026-06-07T18:26:01.828Z'
+source_hash: 17b9502919178006d9b62a1dbc895f4440fa38e8f1711d448f411c2fef7240dd
+generated_at: '2026-06-07T19:34:47.383Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
@@ -19,7 +21,7 @@ language: vi
 {/* generated-by: docs-engine v1.2.0 */}
 
 Giao diện front-end cho capability `translate`. Phân tích các flag, điều khiển skill
-umbrella `translate` (`06-ai-ops/skills/translate/SKILL.md`), và báo cáo các artifact tạo ra.
+tổng `translate` (`06-ai-ops/skills/translate/SKILL.md`), và báo cáo các artifact.
 
 ## Cách dùng
 ```
@@ -31,51 +33,63 @@ umbrella `translate` (`06-ai-ops/skills/translate/SKILL.md`), và báo cáo các
 
 | Flag | Mặc định | Ghi chú |
 |---|---|---|
-| `<src>` | — (bắt buộc) | đường dẫn tệp hoặc URL webpage (vị trí, hoặc `--src=`) |
-| `--to` | `vi` | ngôn ngữ đích — mã (`vi`,`en`,`ja`,`fr`…) hoặc tên (`vietnamese`,`tiếng việt`,`japanese`); mã không xác định được truyền thẳng qua |
+| `<src>` | — (bắt buộc) | đường dẫn tệp hoặc URL trang web (vị trí, hoặc `--src=`) |
+| `--to` | `vi` | ngôn ngữ đích — mã (`vi`,`en`,`ja`,`fr`…) hoặc tên (`vietnamese`,`tiếng việt`,`japanese`); mã không xác định sẽ được giữ nguyên |
 | `--from` | auto | gợi ý ngôn ngữ nguồn (hiếm khi cần) |
-| `--out` | = định dạng nguồn | (các) định dạng đầu ra; **`+` = nhiều định dạng**, ví dụ `--out=pdf+epub`. Hỗ trợ: `pdf epub docx pptx md`. Nguồn là webpage mặc định ra `pdf` |
+| `--out` | = định dạng nguồn | (các) định dạng đầu ra; **`+` = nhiều định dạng**, ví dụ `--out=pdf+epub`. Hỗ trợ: `pdf epub docx pptx md latex pdf-latex` (bí danh `tex`→latex, `pdflatex`/`xelatex`→pdf-latex). Nguồn là trang web sẽ mặc định ra `pdf` |
+| `--preserve` | off | **giữ nguyên định dạng / tại chỗ** (Req 3): dịch văn bản nhưng giữ cấu trúc, kiểu dáng, hình ảnh, bảng và bố cục **giống hệt** bản gốc. v0.2 hỗ trợ **docx · pptx** (đầu ra = định dạng nguồn); các định dạng khác sẽ quay về chế độ reflow kèm cảnh báo |
+| `--keep-assets` / `--no-assets` | on | trích xuất **hình/biểu đồ/bảng** (Req 1) từ nguồn và mang chúng vào các đầu ra |
+| `--math` | `auto` | `auto\|preserve\|off` — công thức/toán học (`$…$`, `\[…\]`, các environment) được giữ **nguyên văn** và sắp chữ bản địa trong đầu ra LaTeX (Req 2) |
 | `--style` | `claude` | design system (bảng màu). `claude` đi kèm sẵn; các hệ khác lấy từ thư viện design-system của repo (`knowledge/design-systems.yaml`) |
-| `--mode` | `auto` | `auto\|book\|doc\|slides` — `auto` phát hiện một cuốn sách (→ chương + bìa + mục lục) so với một tài liệu ngắn so với slide |
+| `--mode` | `auto` | `auto\|book\|doc\|slides` — `auto` nhận diện một cuốn sách (→ chương + bìa + mục lục) so với một tài liệu ngắn hay slide |
 | `--split` | `auto` | tách chương: `auto\|toc\|heading\|none\|count=N` |
 | `--out-dir` | thư mục nguồn | nơi ghi các đầu ra |
-| `--name` | từ nguồn | basename đầu ra (tệp có dạng `<name>.<lang>.<ext>`) |
-| `--workflow` / `--no-workflow` | auto | bắt buộc/vô hiệu hóa Workflow dịch song song (auto = bật cho sách/tài liệu dài) |
+| `--name` | từ nguồn | tên cơ sở của đầu ra (tệp có dạng `<name>.<lang>.<ext>`) |
+| `--workflow` / `--no-workflow` | auto | bật/tắt cưỡng bức Workflow dịch song song (auto = bật cho sách/tài liệu dài) |
 | `--dry-run` | off | chỉ ingest + lập kế hoạch (mode, chương, số từ, ước tính chi phí) — **không dịch** |
-| `--max-cost-usd` | `8.00` | bộ ngắt chi phí mỗi lần chạy (từ chối ngay từ đầu) |
-| `--glossary` | — | đường dẫn tùy chọn tới một glossary của dự án, được nối thêm vào brief của trình dịch |
+| `--max-cost-usd` | `8.00` | bộ ngắt chi phí mỗi lần chạy (từ chối trước) |
+| `--glossary` | — | đường dẫn tùy chọn tới một glossary của dự án, được nối vào bản tóm tắt cho người dịch |
 
-## Luồng (điều phối tới skill umbrella `translate`)
+`<src>` cũng chấp nhận nguồn **LaTeX** (`.tex`) (văn xuôi được dịch, toán học được giữ nguyên).
+
+## Năng lực STEM của v0.2
+- **Hình / biểu đồ / bảng (Req 1)** — được trích xuất từ nguồn (hình ảnh PDF + `find_tables`; hình ảnh và bảng trong docx; theo thứ tự trong tài liệu) vào `assets/` và mang vào **pdf · epub · md · latex** (`\includegraphics`), nhờ đó sơ đồ và bảng được giữ nguyên qua bản dịch. Dùng `--no-assets` để bỏ qua.
+- **Toán học / công thức (Req 2)** — mọi thứ nằm trong `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, hoặc một environment toán học của LaTeX được **giữ nguyên từng byte** trong khi dịch (kỷ luật brief) và **sắp chữ bản địa** trong đầu ra `latex` / `pdf-latex`. Office-Math (OMML) của docx được nắm bắt theo khả năng tốt nhất. Toán học được render trong PDF được giữ lại dưới dạng một hình đã cắt.
+- **Giữ nguyên định dạng (Req 3)** — `--preserve` dịch **docx/pptx tại chỗ**: cùng template, kiểu dáng, hình ảnh, bảng và bố cục — chỉ có ngôn ngữ thay đổi ("giống hệt bản gốc").
+- **Đầu ra LaTeX (Req 4)** — `--out=latex` xuất ra một `.tex` độc lập (XeLaTeX, Source Serif 4, đầy đủ tiếng Việt, toán + hình + bảng); `--out=pdf-latex` biên dịch nó ra PDF bằng **tectonic**. Lý tưởng cho giáo trình STEM, ghi chú AI/ML và các bài báo.
+
+## Luồng (điều phối tới skill tổng `translate`)
 1. **Plan** — `node scripts/translate/cli.cjs plan "<src>" [flags]` → ingest (adapter định dạng) →
-   phát hiện mode → tách thành các đơn vị có thể dịch → ghi `brief.md` + `plan.json` vào một
+   nhận diện mode → tách thành các đơn vị có thể dịch → ghi `brief.md` + `plan.json` vào một
    workdir runtime. `--dry-run` dừng tại đây và in ra kế hoạch.
-2. **Cost gate** — nếu ước tính vượt quá `--max-cost-usd`, hiển thị và dừng lại.
-3. **Translate (Workflow song song)** — skill khởi chạy một Claude Code Workflow: mỗi agent một
-   đơn vị, mỗi agent đọc brief dùng chung + đơn vị nguồn của mình rồi ghi ra đơn vị đã dịch, đạt
-   chất lượng văn học hàng đầu với cấu trúc + chú thích `<sup>` được bảo toàn.
+2. **Cổng chi phí** — nếu ước tính vượt quá `--max-cost-usd`, hiển thị và dừng lại.
+3. **Translate (Workflow song song)** — skill khởi chạy một Claude Code Workflow: mỗi đơn vị một agent,
+   mỗi agent đọc brief dùng chung + đơn vị nguồn của nó và ghi ra đơn vị đã dịch của nó, ở
+   chất lượng văn chương hàng đầu với cấu trúc + chú thích `<sup>` được giữ nguyên.
 4. **Build** — `node scripts/translate/cli.cjs build <workdir> --title="<translated title>"` →
-   ghép các đơn vị đã dịch → render từng định dạng được yêu cầu với design system.
-5. **Report** `{ok, outputs[], outDir, warnings[]}`.
+   lắp ráp các đơn vị đã dịch → render từng định dạng được yêu cầu với design system.
+5. **Báo cáo** `{ok, outputs[], outDir, warnings[]}`.
 
-## Độ trung thực theo định dạng (v0.1, trung thực)
-- **Đầu vào** pdf · docx · pptx · webpage · md · txt — hỗ trợ đầy đủ (PDF dùng TOC → dự phòng theo font/heading).
-- **Đầu ra** **pdf · epub · md** = kiểu chữ sách/tài liệu được trau chuốt (bìa, mục lục, trang mở chương,
-  eyebrow phân mục theo phong cách clay, chú thích dạng số mũ). **docx** = tài liệu sạch, có định kiểu. **pptx** = bộ slide chức năng
-  (tiêu đề + bullet cho mỗi mục). Kiểu chữ = Source Serif 4 + Inter đi kèm sẵn (đầy đủ tiếng Việt);
-  `--style` cung cấp bản sắc màu sắc.
+## Độ trung thực theo định dạng (v0.2, trung thực)
+- **Đầu vào** pdf · docx · pptx · webpage · md · **latex** · txt — được hỗ trợ đầy đủ (PDF dùng TOC → fallback theo font/heading; hình + bảng được trích xuất).
+- **Đầu ra** **pdf · epub · md · latex · pdf-latex** = chỉn chu (LaTeX/pdf-latex sắp chữ toán + hình + bảng bản địa). **docx** = tài liệu được tạo kiểu sạch sẽ (hoặc **giống hệt** với `--preserve`). **pptx** = bộ slide chạy được (hoặc **giống hệt** với `--preserve`). Kiểu chữ = Source Serif 4 + Inter đi kèm sẵn (đầy đủ tiếng Việt); `--style` cung cấp bản sắc màu sắc.
+- **Giới hạn trung thực:** đầu ra không phải LaTeX hiển thị toán học dưới dạng nguyên văn `$…$` (dùng `latex`/`pdf-latex` cho toán đã sắp chữ); việc tách chương PDF tổng quát thô hơn so với một lần chạy được tinh chỉnh thủ công; `--preserve` với PDF quay về chế độ reflow ở v0.2.
 
 ## Ví dụ
 ```
 /translate report.pdf                              # → report.vi.pdf (Vietnamese, claude style)
 /translate the-book.pdf --out=pdf+epub             # book → Vietnamese PDF + EPUB
+/translate paper.pdf --out=pdf-latex --to=vi       # STEM paper → typeset Vietnamese PDF (native math)
+/translate ml-notes.md --out=latex+pdf-latex       # AI/ML notes → .tex + compiled PDF, formulas preserved
+/translate contract.docx --preserve                # docx → identical layout, Vietnamese text (giống hệt bản gốc)
+/translate slides.pptx --preserve --to=en          # pptx → identical deck, English text
+/translate textbook.pdf --out=pdf-latex --to=vi    # textbook: figures + tables + equations carried + typeset
 /translate https://blog.example.com/post --to=ja   # webpage → Japanese PDF
-/translate deck.pptx --out=pptx --to=en            # slides → English deck
-/translate notes.md --out=pdf+docx --style=ritsu   # styled with the Ritsu palette
 /translate big-book.pdf --dry-run                  # plan only: chapters + words + cost
 ```
 
-> **Quyền dịch thuật:** việc gọi `/translate` khẳng định rằng người gọi nắm giữ quyền dịch
-> nguồn. Các đầu ra được ghi ra cho mục đích sử dụng riêng của người gọi, ngay cạnh nguồn.
+> **Quyền dịch:** việc gọi `/translate` khẳng định người gọi nắm giữ quyền dịch
+> nguồn. Các đầu ra được ghi ra để người gọi tự dùng, ngay cạnh nguồn.
 
-Xem `06-ai-ops/sops/SOP-AIOPS-013-translate-runtime-contract/flow.yaml` để biết runtime
-contract và `wiki/capabilities/translate/spec.md` để biết kiến trúc.
+Xem `06-ai-ops/sops/SOP-AIOPS-013-translate-runtime-contract/flow.yaml` để biết hợp đồng
+runtime và `wiki/capabilities/translate/spec.md` để biết kiến trúc.

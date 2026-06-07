@@ -10,7 +10,9 @@
 const path = require('path');
 const { SRC_FORMATS } = require('./detect.cjs');
 
-const OUT_FORMATS = ['pdf', 'epub', 'docx', 'pptx', 'md', 'txt', 'html'];
+const OUT_FORMATS = ['pdf', 'epub', 'docx', 'pptx', 'md', 'txt', 'html', 'latex', 'pdf-latex'];
+// output aliases normalized before validation
+const OUT_ALIASES = { markdown: 'md', tex: 'latex', pdflatex: 'pdf-latex', 'latex-pdf': 'pdf-latex', xelatex: 'pdf-latex' };
 
 // A pragmatic, extensible language table (code -> display + endonym). Unknown
 // codes pass through honestly (name = the code) rather than failing.
@@ -63,7 +65,7 @@ function parseOut(spec, srcFormat, warnings = []) {
   for (let tok of String(spec).split('+')) {
     tok = tok.trim().toLowerCase().replace(/^\./, '');
     if (!tok) continue;
-    const fmt = tok === 'markdown' ? 'md' : tok;
+    const fmt = OUT_ALIASES[tok] || tok;
     if (OUT_FORMATS.includes(fmt)) {
       if (!out.includes(fmt)) out.push(fmt);
     } else {
@@ -116,7 +118,11 @@ const KNOWN_FLAGS = new Set([
   'to', 'from', 'out', 'style', 'mode', 'split', 'out-dir', 'name',
   'workflow', 'no-workflow', 'dry-run', 'max-cost-usd', 'glossary',
   'src', 'from-format',
+  // v0.2 (STEM): assets, math, format-preservation, LaTeX
+  'preserve', 'no-preserve', 'keep-assets', 'no-assets', 'math',
 ]);
+
+const MATH_MODES = ['auto', 'preserve', 'off'];
 
 /** Build the full typed Config from a parsed {src, srcFormat, flags}. */
 function resolveConfig({ src, srcFormat, flags = {}, cwd = process.cwd() }) {
@@ -164,6 +170,16 @@ function resolveConfig({ src, srcFormat, flags = {}, cwd = process.cwd() }) {
     else warnings.push(`invalid --max-cost-usd='${flags['max-cost-usd']}' — using ${maxCost}`);
   }
 
+  // v0.2 (STEM): format-preservation, assets, math
+  let preserve = false;
+  if (flags.preserve === true || String(flags.preserve).toLowerCase() === 'true') preserve = true;
+  if (flags['no-preserve']) preserve = false;
+  let keepAssets = true;
+  if (flags['no-assets'] || flags['keep-assets'] === 'false'
+      || String(flags['keep-assets']).toLowerCase() === 'false') keepAssets = false;
+  let math = String(flags.math || 'auto').toLowerCase();
+  if (!MATH_MODES.includes(math)) { warnings.push(`unknown --math='${flags.math}' — using auto`); math = 'auto'; }
+
   for (const k of Object.keys(flags)) {
     if (!KNOWN_FLAGS.has(k)) warnings.push(`unknown flag --${k} — ignored`);
   }
@@ -176,6 +192,7 @@ function resolveConfig({ src, srcFormat, flags = {}, cwd = process.cwd() }) {
     workflow,
     dryRun: !!flags['dry-run'],
     maxCostUsd: maxCost,
+    preserve, keepAssets, math,
     glossary: (flags.glossary && flags.glossary !== true) ? String(flags.glossary) : null,
     slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'doc',
     warnings: warnings.concat(flags.__warnings || []),
