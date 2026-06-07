@@ -10,6 +10,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE))
 import design  # noqa
+import latexout  # noqa
 
 def opts(argv):
     o = {}
@@ -66,7 +67,8 @@ def render_pdf(wd, out_path, fonts_dir, repo_root):
     html = "<!doctype html><html lang='%s'><head><meta charset='utf-8'></head><body>%s</body></html>" % (
         meta["to"]["code"], (cover + colophon + tocsec if show_front else "") + "".join(parts))
     fc = FontConfiguration()
-    HTML(string=html).write_pdf(out_path, stylesheets=[CSS(string=design.book_css(tokens, fonts_dir), font_config=fc)], font_config=fc)
+    HTML(string=html, base_url=str(Path(wd).resolve())).write_pdf(
+        out_path, stylesheets=[CSS(string=design.book_css(tokens, fonts_dir), font_config=fc)], font_config=fc)
 
 # ----------------------------------------------------------------------------- cover image (PIL) for EPUB
 def cover_png(meta, tokens, fonts_dir, dest):
@@ -228,7 +230,52 @@ def render_md(wd, out_path, fonts_dir, repo_root):
         out += [re.sub(r"^#\s", "## ", md.lstrip(), count=1), ""]
     Path(out_path).write_text("\n".join(out), encoding="utf-8")
 
-RENDERERS = {"pdf": render_pdf, "epub": render_epub, "docx": render_docx, "pptx": render_pptx, "md": render_md}
+# ----------------------------------------------------------------------------- LaTeX / pdf-latex
+def _latex_data(wd, repo_root):
+    data = json.loads((Path(wd) / "book_blocks.json").read_text(encoding="utf-8"))
+    tokens, _ = design.load_tokens(data["meta"]["style"], repo_root)
+    return data, tokens
+
+def _stage(src_fonts, src_assets, dest):
+    """Copy the bundled TTFs (+ assets if any) into dest; return (fonts_subdir, assets_subdir|None)."""
+    import shutil
+    dest = Path(dest)
+    fdir = dest / "fonts"; fdir.mkdir(parents=True, exist_ok=True)
+    for ttf in Path(src_fonts).glob("*.ttf"):
+        d = fdir / ttf.name
+        if not d.exists():
+            shutil.copy2(ttf, d)
+    adir = None
+    if src_assets and Path(src_assets).exists() and any(Path(src_assets).iterdir()):
+        adir = dest / "assets"
+        if not adir.exists():
+            shutil.copytree(src_assets, adir)
+    return fdir, adir
+
+def render_latex(wd, out_path, fonts_dir, repo_root):
+    # portable .tex: stage fonts + assets beside it, reference relatively
+    data, tokens = _latex_data(wd, repo_root)
+    out = Path(out_path); stem = out.stem  # e.g. gd.vi
+    support = out.parent / f"{stem}.support"
+    fdir, adir = _stage(fonts_dir, Path(wd) / "assets", support)
+    rel_f = f"{stem}.support/fonts"
+    rel_a = f"{stem}.support/assets" if adir else ""
+    tex = latexout.to_latex(data, rel_f, rel_a, tokens)
+    out.write_text(tex, encoding="utf-8")
+
+def render_pdflatex(wd, out_path, fonts_dir, repo_root):
+    # compile inside the workdir (in-tree paths satisfy tectonic's sandbox)
+    data, tokens = _latex_data(wd, repo_root)
+    fdir, adir = _stage(fonts_dir, Path(wd) / "assets", Path(wd) / "_tex")
+    tex = latexout.to_latex(data, "fonts", "assets" if adir else "", tokens)  # relative to _tex/ (tectonic cwd)
+    tex_path = Path(wd) / "_tex" / "_compile.tex"; tex_path.write_text(tex, encoding="utf-8")
+    ok, msg = latexout.compile_pdf(tex_path, out_path)
+    if not ok:
+        raise RuntimeError("pdf-latex compile: " + msg)
+
+RENDERERS = {"pdf": render_pdf, "epub": render_epub, "docx": render_docx, "pptx": render_pptx,
+             "md": render_md, "latex": render_latex, "pdf-latex": render_pdflatex}
+EXT = {"md": "md", "latex": "tex", "pdf-latex": "pdf"}
 
 if __name__ == "__main__":
     wd, fmt = sys.argv[1], sys.argv[2]; o = opts(sys.argv[3:])
@@ -238,6 +285,6 @@ if __name__ == "__main__":
     code = meta["to"]["code"]
     name = o.get("name") or "document"
     outdir = o.get("out-dir") or str(Path(wd).resolve())
-    out_path = str(Path(outdir) / f"{name}.{code}.{ 'md' if fmt=='md' else fmt}")
+    out_path = str(Path(outdir) / f"{name}.{code}.{EXT.get(fmt, fmt)}")
     RENDERERS[fmt](wd, out_path, fonts_dir, repo_root)
     print(json.dumps({"fmt": fmt, "out": out_path}))
