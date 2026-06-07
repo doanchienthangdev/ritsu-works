@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 118
+**Total entries:** 119
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1996,6 +1996,27 @@ Cost: zero LLM (template). Forces ~5-15 min upfront thinking that saves
 hours of downstream re-scoping.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/tosca-problem-framing" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/translate
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Umbrella skill for the `translate` capability — the brain behind /translate. Turns a
+source document (pdf/docx/pptx/webpage/md/txt) into one or more output formats
+(pdf/epub/docx/pptx/md) in a target language (default Vietnamese), styled by a design
+system (default claude). Drives the deterministic pipeline (scripts/translate/cli.cjs:
+plan → build) and, between them, launches a parallel Claude Code Workflow that
+translates each unit at top-tier literary quality. Books auto-split into chapters.
+Invoke when the user asks to translate a document/book/webpage into another language,
+or runs /translate.
+
+**Invoke:** `Skill({ skill: "translate" })`
 **HITL tier:** B
 **Side effect:** write
 

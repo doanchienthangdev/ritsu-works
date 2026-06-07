@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 22
+**Total entries:** 23
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -359,6 +359,25 @@ content is original synthesis in the consulting-deck genre, never a copy of a
 source deck).
 
 **Invoke:** `/toolkit`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/translate
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Translate any source document (pdf · docx · pptx · webpage/URL · markdown · txt)
+into one or more output formats (pdf · epub · docx · pptx · md) in any target
+language (default Vietnamese), styled by a design system (default claude). Books
+auto-split into chapters and translate in PARALLEL via a Claude Code Workflow —
+top-tier literary quality, structure + footnotes preserved. Outputs land next to
+the source. Tier A; per-run --max-cost-usd breaker; invoking implies the caller
+has the right to translate. Thin orchestrator over the `translate` umbrella skill.
+
+**Invoke:** `/translate`
 **HITL tier:** A
 **Side effect:** none
 
