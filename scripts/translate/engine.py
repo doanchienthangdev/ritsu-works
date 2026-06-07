@@ -257,6 +257,23 @@ def split_units(md, meta, mode):
         body = md if md.lstrip().startswith("# ") else f"# {title}\n\n{md}"
         chapters.append((title, body.strip()))
 
+    # Merge tiny fragments (title-page echoes, blank dividers, single-line front
+    # matter) into a neighbor so generic book detection doesn't emit junk units.
+    if len(chapters) > 1:
+        merged = []
+        for title, body in chapters:
+            tiny = wc(re.sub(r"(?m)^#.*$", "", body)) < 45
+            if merged and tiny:
+                pt, pb = merged[-1]
+                merged[-1] = (pt, pb + "\n\n" + re.sub(r"^#\s.*\n?", "", body.lstrip(), count=1).strip())
+            elif merged and wc(re.sub(r"(?m)^#.*$", "", merged[-1][1])) < 45:
+                # previous opener was itself tiny -> adopt THIS real title, keep both bodies
+                pt, pb = merged[-1]
+                merged[-1] = (title, pb + "\n\n" + body)
+            else:
+                merged.append((title, body))
+        chapters = merged
+
     units = []
     for ci, (title, cmd) in enumerate(chapters, 1):
         words = wc(cmd)
