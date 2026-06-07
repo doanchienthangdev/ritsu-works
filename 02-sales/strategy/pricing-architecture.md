@@ -334,3 +334,59 @@ This doc is the **02-sales foundation**; it must cohere with the canonical strat
 ---
 
 *This is the pricing **architecture map**: the value-metric, the ladder logic, the money-moment, the WTP evidence, the maturity diagnosis, and the data-gated PSM plan. The **philosophy** — the ethical *why* behind these mechanics — is `00-core/pricing-philosophy.md`, DEFERRED until the first SOP-PRODUCT-010 pricing-pull-test generates both the WTP evidence and the lived stance it will codify. The single most important honest fact in this document: **the wedge has never paid, and the price has never been validated** — `live.payments` holds 2 founder test charges and nothing else. Everything here is the architecture we will test, not the architecture we have proven.*
+
+## 11. Discount architecture — the levers, the policy, and the student-discount question
+
+> *Pricing-Strategy-Selection-Ladder step 5 ("define the discounting policy: maximum discount authorised at each level; exceptions require approval") + Pillar-4 deliverable ("discount policy"). The framework treats discounting as a **designed lever with governance**, not an ad-hoc concession. At true-zero this is a thin pillar — but it must be **stated**, because an undisciplined discount erodes the exact value-based price the whole architecture is trying to defend (a discount given is a reference price the masterer remembers).*
+
+### 11.1 The four discount levers Ritsu actually has
+
+| Lever | Magnitude | Status | Governance |
+|---|---|---|---|
+| **Annual billing** | **−17%** ($29 → ~$24/mo effective) | **LIVE** `[verified · ritsu.ai/pricing]` | Standing list term; no per-deal approval |
+| **Student / .edu discount** | **UNDESIGNED** (the gap, §11.3) | **NOT BUILT** | TBD |
+| **Founder-direct first-cohort onboarding** | case-by-case (free months / comped Plus for the first ~30 SOP-CUSTOMER-006 installs) | **PLANNED** | Founder, HITL Tier C (per-account discount, `governance/HITL.md`) |
+| **Referral / share-loop credit** | UNDESIGNED — a candidate (give-credit / get-credit on a successful referral, riding the existing share-link viral loop, `icp-summary.md` §4) | **NOT BUILT** | TBD — Phase-A candidate |
+
+### 11.2 The annual −17% is the *primary* designed discount — and it is doing WTP work, not margin work
+
+The −17% annual term is **not** a concession; it is an **architecture lever** (§4.2c): it pulls the effective Plus price ($24/mo) **into the $15-25 ICP anchor band** while the headline list stays at $29. For a price-sensitive student this is the de-facto WTP bridge — the masterer who balks at $29/mo may accept ~$24/mo-billed-annually, AND annual billing **front-loads cash + suppresses month-to-month churn** (a retention lever disguised as a discount). **Decision A6:** hold the annual term as the *deliberate* entry-price-softener; if PSM (§7) returns OPP < $25, **lean harder on annual as the real entry price** before cutting the monthly list (the list price is the anchor you protect; annual is the flexibility you flex).
+
+### 11.3 The student-discount question (the real gap — DECISION DEFERRED, not ignored)
+
+The ICP is a **price-sensitive 18-24 US student** ($0-300/mo discretionary, `icp-summary.md` §2/§5) — the exact buyer for whom a **student / .edu discount** is a category-standard lever (every incumbent the masterer compares against — Quizlet, Notion, Coursera — runs one). Ritsu currently has **none**. This is a genuine open decision with a real tension:
+
+- **For a student discount:** lowers the felt entry bar for the *exact* wedge; a recognizable `.edu`/SheerID gate makes it a *targeted* price cut (price-discriminate toward the price-sensitive segment) rather than a blanket list drop — textbook value-based segmentation.
+- **Against (the freemium-overlap risk):** Ritsu **already** discriminates toward the student via the **generous free tier** (the loss-leader on-ramp IS the student price cut). A stacked student discount on Plus risks (a) **cannibalizing** the free→Plus money-moment the whole architecture is built on, and (b) **anchoring the price down** permanently (the selection-ladder pitfall: "a penetration price you can't raise").
+
+> **Decision A7 (deferred, gated):** **do NOT ship a blanket student discount pre-PMF.** The free tier is the student price-discrimination instrument for now. **Re-open this decision at the N=10 data event** — if SOP-PRODUCT-002 shows wedge students hit the fence but **balk at $29 even annually**, a targeted `.edu` discount becomes the lower-entry-rung experiment (run it through SOP-PRODUCT-011, inside the PSM-validated band, never below it). The *ethics* of discount-framing (no fake "50% off" anchors, no manufactured-scarcity promo timers) is a **philosophy** question → `00-core/pricing-philosophy.md` (DEFERRED). This doc fixes only: **the levers exist, the annual term is the designed primary discount, and the student discount is a gated post-N=10 experiment — not a launch feature.**
+
+### 11.4 Discount governance (lean, solo-founder-sized)
+
+The framework's "max discount by sales level" collapses to one rule at a 1-person company: **any per-account discount beyond the standing annual term is a HITL Tier C action** (it touches a customer's billing, `governance/HITL.md`), authored by gtm-orchestrator, approved by founder. There is no rep/manager/VP ladder to govern — the governance *is* the Tier-C gate. **No standing promo codes** are created without a named experiment + a kill date (an open-ended promo code is an un-killable reference-price leak).
+
+## 12. Anti-price-war protocol — holding price against a FREE incumbent (the anti-free-race)
+
+> *Pricing-Strategy-Selection-Ladder step 6 ("define the anti-price-war protocol: if a competitor cuts price, default response = improve VALUE, not match the cut — unless the volume threat is existential"). Ritsu's situation is the framework's hardest case: the threatening competitor (**NotebookLM**) is already at **$0** on the commodity spine. There is no lower price to cut to. So this is not a classic price war (matching cuts) — it is an **anti-free-race**: the discipline to NOT collapse the paid architecture toward free when a free incumbent narrows the feature gap. This section consolidates fragments that were scattered across §2.3, §6, and the R2 risk into one named protocol — because against a free competitor, the defense IS the pricing strategy.*
+
+### 12.1 The threat, stated precisely
+
+**Google NotebookLM (free) clones the doc→quiz→explanation→share-link *spine*** and narrowed the gap further in **April 2026** (added mastery-tracking + a Socratic Learning Guide) `[verified · icp-summary.md §8 R2]`. The reference price for the *commodity spine* is therefore **$0, set by a structurally-unbeatable-on-price incumbent** (Google can run it free indefinitely). Ritsu **cannot win a price race** against free — and must not try.
+
+### 12.2 The protocol — the trigger→response rules
+
+| Trigger (competitor move) | Default response | What we DON'T do |
+|---|---|---|
+| **Free incumbent adds a spine feature** (more activity types, better quiz, a study mode) | **Widen the moat on the PATH, not the spine** — invest in the *multi-week structured mastery path + 17 activity types + concept-level Knowledge Map + learning-science authority* (the preemptive POD, `positioning.md` §6 / `product.md` §9). Never re-message around "we also make quizzes." | Don't drop Plus toward $0 to "compete with free." Don't add the same feature as a me-too. |
+| **A paid competitor undercuts $29** (e.g., a study app launches at $9) | **Improve felt value at the fence** (the money-moment §3: "$29 < your $28+ stack"; "your 6-week path, sustained") **before touching the list price.** Re-rate on *mastery-per-dollar*, the Michelin cost-per-km move (§5.2). | Don't reflexively match. A $9 me-too that lacks the PATH is selling a different (commodity) product. |
+| **Existential volume threat** (the wedge is *demonstrably* choosing free/cheap at scale AND not converting — proven, not feared) | **THEN** consider a structural response: a lower entry rung, a deeper free→paid value gap, or annual-as-entry (§11.2) — run through SOP-PRODUCT-011 inside the PSM band. | Don't invoke "existential" from fear. The bar is *observed* mass-defection data (N=10 + funnel), not a competitor press release. |
+
+### 12.3 Why holding price is the *correct* move here (not just brand pride)
+
+Three reasons the anti-free-race discipline is economically right, not sentimental:
+
+1. **A too-low price actively *undermines* the positioning** (§8): below ~$10/mo a gimmick-distrusting masterer *doubts the rigor* ("is this another free AI hack?", `icp-summary.md` §2). Racing toward free would **destroy the learning-science authority** that is the whole point-of-difference. Price is a *quality signal* for this buyer.
+2. **The free incumbent is the on-ramp, not the enemy** — the Adobe-vs-piracy analog (§6): free NotebookLM *proves the demand exists*; Ritsu's job is to **convert the masterer who has outgrown the free spine** into the paid PATH, exactly as Adobe converted pirates into Creative-Cloud subscribers. You don't out-price free; you **out-value it on the job free can't do** (sustain a multi-week graded course).
+3. **The wedge's WTP is deadline-gated, not price-gated** (§4.2a): the masterer pays $29 *the week before a midterm* on a job NotebookLM's free spine doesn't finish. The defense is to **own the high-stakes deadline job**, where price elasticity is lowest — not to compete in the low-stakes casual-quiz zone where free wins.
+
+> **Decision A8:** Ritsu's pricing posture against free is **value-widening, never price-matching.** The protocol's load-bearing rule: **a competitor's price move changes our VALUE investment (widen the PATH moat), not our PRICE** — and the only thing that may change the price is **our own N=10/PSM data** (§4, §7), never a competitor's. "Existential" is a data threshold (observed mass-defection of the converting wedge), not a fear response — and even then the move is a *structured experiment inside the PSM band*, not a panic cut. This is the pricing-strategy expression of the positioning's core stance: **win on the mastery PATH, never on being-cheaper-than-free.**

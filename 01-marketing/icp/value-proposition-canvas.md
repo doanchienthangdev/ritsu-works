@@ -316,3 +316,35 @@ The Customer Profile is grounded in observed behavior; the **Fit's three load-be
 ---
 
 *This canvas is the canonical answer to "does what we ship fit who we serve, and where doesn't it?" It is decision-grade on the need-side and falsifiable on the value-side. If a product or marketing decision contradicts a top-pain → reliever arrow, that's a signal — fix the surface, or open a PR to fix this canvas. The fit is a hypothesis until the N=10 watch confirms the three unproven arrows; treat it accordingly.*
+
+---
+
+## 9. Domont Pillar-1 coverage check — the 8 sub-components (image-validated 2026-06-07)
+
+> The founder's Domont reference image lists **8 sub-components** for Pillar-1 "Product/Service Positioning & Value Proposition." This section closes the loop: where each is covered, and the genuine gaps this canvas now fills. (Auditor for Pillar-1 was reconstructed by the orchestrator after the fan-out agent did not return.)
+
+| # | Domont sub-component | Status | Where / note |
+|---|---|---|---|
+| 1 | Target market | **full** | `00-core/icp-summary.md` + this canvas §1 (Customer Profile) — the deadline-bearing committed STEM/ML masterer |
+| 2 | Product/service offering | **full** | this canvas §2.1 + `00-core/product.md` §6 (the universal input + 17 activities + 7 modes + mastery engine) |
+| 3 | Product life cycle | **gap → filled below** | not previously analyzed → §9.1 |
+| 4 | Positioning: key attributes · customer benefits · USP | **full** | `00-core/positioning.md` (belief/POD/POP/USP registry) + this canvas §4.2 (differentiation fit) |
+| 5 | Value proposition | **full** | this canvas §5 (the value-proposition statement) |
+| 6 | Product packaging & design | **adapted → cross-ref §9.2** | "packaging" = the credit-tier bundling (`02-sales/strategy/pricing-architecture.md`); "design" = `00-core/design-system/` (Electric-Cyan DESIGN.md) |
+| 7 | Product bundling | **adapted → cross-ref §9.2** | the Free/Plus/Pro/Ultra credit + feature bundles live in `pricing-architecture.md`; not re-derived here |
+| 8 | Customer feedback integration | **partial → §9.3** | the feedback→product loop (`05-customer/.../SOP-CUSTOMER-021`) + this canvas §4.3 (gaps = roadmap input) + the N=10 watch |
+
+### 9.1 Product Life Cycle stage — Ritsu is at INTRODUCTION (the most expensive stage to misread)
+Per the Domont PLC framework, the most costly error is classifying a product into the wrong stage and investing accordingly. **Ritsu is unambiguously at the INTRODUCTION stage** — true-zero (0 paying ever; 25 founder/test profiles; dormant since 2026-05-27 [observed via Door-2]). The PLC implications, which every Pillar decision must honor:
+- **Goal of the stage = ACTIVATION + first proof, not scale.** Spend buys *learning* (the N=10 watch), not volume. This is exactly why the 60-day plan gates engine ACTIVATE on N=10≥40% rather than firing paid at scale.
+- **Pricing at Introduction** = penetration-friendly freemium to remove trial friction (Free 600 credits), NOT skimming — the WTP is unproven and the rival (NotebookLM) is free. (See `pricing-architecture.md`.)
+- **Product investment** = depth on the wedge (the multi-week PATH + accuracy on dense math), not breadth of activity types — breadth is a Growth-stage move.
+- **The risk** = mistaking founder-market-fit (N=1) for product-market-fit and prematurely scaling. The whole study is built to prevent exactly this.
+
+### 9.2 Packaging, design & bundling — where they live (not re-derived here)
+"Product packaging & design" and "bundling" are **deliberately owned by sibling foundations**, to keep one source of truth: the **credit-tier bundling** (what Free/Plus/Pro/Ultra each unlock + why) is the value-ladder in `02-sales/strategy/pricing-architecture.md`; the **visual design system** (logo, palette, typography that "package" the product) is `00-core/design-system/ritsu/DESIGN.md`. This canvas supplies the *value* each bundle must deliver (the §2 value map); pricing-architecture supplies the *boundaries*. A change to a tier boundary that breaks a top-pain→reliever arrow (e.g. gating the multi-week PATH behind a paywall the masterer hits mid-course) is a coherence violation — fix the boundary.
+
+### 9.3 Customer feedback integration — the loop that re-authors this canvas
+At true-zero the value-side is a hypothesis (§6). The feedback-integration mechanism that converts it to fact: **(a)** the N=10 stranger-watch (`SOP-PRODUCT-002`) — observed pay/no-pay + which pains actually bite; **(b)** the founder's 30-paying Collison interviews (`SOP-CUSTOMER-006`) — real audience language replacing the `[inferred]` job/pain/gain labels; **(c)** the standing feedback→product pipeline (`SOP-CUSTOMER-021` + in-app NPS / cancel-flow). Each is a write-back into THIS canvas: when observed data contradicts a ranked pain or a fit arrow, open a PR to this file. The canvas is not a one-time artifact — it is the living need-side truth the feedback loop keeps honest.
+
+**Verdict:** Pillar-1 is **fully covered** against the 8-item Domont checklist — 5 full, 2 adapted (owned by pricing/design siblings), 1 gap now filled (PLC), 1 partial now made explicit (feedback integration).
