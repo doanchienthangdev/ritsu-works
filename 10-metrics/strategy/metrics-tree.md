@@ -46,7 +46,7 @@ Read **bottom-up** (the direction of causation) — but the founder *reports* to
 ```
                         ┌─────────────────────────────────────────────────────┐
    THE COMPOSITE  ▲     │  ★ hundred_paying_who_love_composite  (NORTH STAR)   │
-   (lagging; the  │     │  weighted blend of paying_count × week-4 retention   │
+   (lagging; the  │     │  weighted blend of paying_count + week-4 retention   │
     one tile)     │     │  × Sean-Ellis very-disappointed% → normalized 0-100% │
                         └───────────────────────────▲─────────────────────────┘
                                                      │ rolls up from ↓
@@ -129,7 +129,7 @@ Each node below carries: the **KPI id** (matching `kpi-ownership.yaml`), the **c
 
 | KPI id | Owner | Target | Door-2 source (real columns) | Status |
 |---|---|---|---|---|
-| ★ `activation_rate` | customer / customer-lead | **≥40%** (the top lever) | **PROXY** — `live.learning_sessions.activities_completed` > 0 (since `quiz_attempts`=0) ∩ `live.profiles.onboarding_completed_at` | **PROXY** (def → F9) |
+| Note the window tension: canonical `kpi-ownership.yaml` defines activation_rate as 'signups achieving aha moment WITHIN 24h', whereas this doc/north-star §1.3 frame it as the <60s-first-session lever. The doc correctly defers the exact definition to F9 ('def → F9') — but should explicitly flag that F9 must reconcile the 24h-formula vs <60s-magic-moment window, since one canonical source says 24h. | **PROXY** (def → F9) |
 | ★ `magic_moment_completion_rate` | product / product-orchestrator | ≥40% | same proxy: first session reaching first generated-activity (`activities_completed`, `commands_used`) | **PROXY** (def → F9) |
 | `time_to_first_value` | product / product-orchestrator | <60s (the activation event) | `median(live.learning_sessions.started_at − live.profiles.created_at)` for first session; in-product magic-moment is the canonical clock | **PROXY** |
 | `signup_to_activation_pct` | gtm / gtm-orchestrator | ≥30% (alert <30%/2wk) | `ops.events(signup)` ∩ activation-proxy event | MAPPED-ONLY |

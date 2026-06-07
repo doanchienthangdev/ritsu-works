@@ -32,7 +32,7 @@ source_run: ritsu-foundational-layer-v1
 
 ## 1. The one-paragraph answer
 
-At Ritsu's **verified live prices** (Free $0 / Plus $29 / Pro $59 / Ultra $119 per month, credit-based, annual −17% — `product.md` §10, ritsu.ai/pricing), the **contribution margin per paying user is structurally excellent: ~85-98%** [INF/OBS] — because the dominant variable cost, LLM inference, runs through a cheap default model (Gemini 3 Flash) at an **observed $0.148 per learning session** [OBS], so even a heavy masterer doing 30 sessions/month costs ~$4.43 in infra against a $29 floor. **The entire unit-economics risk is therefore NOT cost — it is the two revenue-side unknowns: do they convert, and do they retain?** Those two numbers are [HYP] at true-zero. The model's load-bearing conclusion: **organic / creator-led / share-loop acquisition (≈$0 cash CAC) is unconditionally profitable; paid acquisition is conditionally profitable and FAILS the north-star "CAC payback < 90 days" guardrail at the realistic 2% paid-yield** unless conversion or retention beat the base case — which is exactly why the 60-day plan gates the paid engine behind the free engines.
+At Ritsu's **verified live prices** (Free $0 / Plus $29 / Pro $59 / Ultra $119 per month, credit-based, annual −17% — `product.md` §10, ritsu.ai/pricing), the **contribution margin per paying user is structurally excellent: ~85-98%** [INF/OBS] — because the dominant variable cost, LLM inference, runs through a cheap default model (Gemini 3 Flash) at an **observed $0.148 per AI-usage session (a session with ≥1 LLM call; ≈163 of 656 sessions)** [OBS], so even a heavy masterer doing 30 sessions/month costs ~$4.43 in infra against a $29 floor. **The entire unit-economics risk is therefore NOT cost — it is the two revenue-side unknowns: do they convert, and do they retain?** Those two numbers are [HYP] at true-zero. The model's load-bearing conclusion: **organic / creator-led / share-loop acquisition (≈$0 cash CAC) is unconditionally profitable; paid acquisition is conditionally profitable and FAILS the north-star "CAC payback < 90 days" guardrail at the realistic 2% paid-yield** unless conversion or retention beat the base case — which is exactly why the 60-day plan gates the paid engine behind the free engines.
 
 ---
 
@@ -117,7 +117,7 @@ Variable cost/active-user/month = (sessions/mo) × $0.148 + small extraction ove
 |---|---|---|---|---|
 | **Light** (8 sessions/mo ≈ 2/wk) | ~$1.18 | **$27.82 (96%)** | $57.82 (98%) | $117.82 (99%) |
 | **Typical** (15 sessions/mo) | ~$2.22 | **$26.78 (92%)** | $56.78 (96%) | $116.78 (98%) |
-| **Heavy power** (30 sessions/mo) | ~$4.43 | **$24.57 (85%)** | $54.57 (92%) | $114.57 (96%) |
+30 × $0.148 = $4.44 (doc rounds to $4.43). Trivial rounding; CM and % unaffected. **$24.57 (85%)** | $54.57 (92%) | $114.57 (96%) |
 
 **Add extraction overhead** (OCR/transcript/render, charged at vendor cost via credits — typically $0.20-1.50/source for a dense PDF or long video). Even loading 10 dense sources/month adds ~$2-15 of credit-metered cost, which the **credit budget caps** (§4.4). The base contribution margin used downstream is **~92%** (typical-usage Plus/Pro blend).
 

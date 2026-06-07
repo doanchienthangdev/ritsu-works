@@ -36,7 +36,7 @@ Per the Domont Phase-1 gate, three questions must be answered unambiguously and 
 
 2. **Why will we win — if we win?** Because the **two dominant competitive forces (Buyer Power + Threat of Substitutes) are both maximal**, and the only defensible response to maximal buyer power and free substitutes is a **switching-cost + authority moat** that the free substitutes structurally lack: the **ordered multi-week mastery PATH + 17 distinct activity types + concept-level Knowledge Map + named, cited learning-science**. We win on the *system*, never on the *feature*. Every cell in this doc that says "we win" traces to exactly that residual moat.
 
-3. **Why might we lose?** Because the deepest competitor cell — **Google NotebookLM, free, which in April 2026 added mastery-tracking and a Socratic "Learning Guide"** — has **commoditized the doc→quiz→grounded-explanation→share spine** that was Ritsu's original product. If the residual PATH/mastery/learning-science moat is *not enough* to justify $29/mo over a free Google product (R2), and if deadline-bearers won't pay at the first hard limit (R1), the diagnosis fails. **The CPM weighted scores are close (Ritsu 3.07 vs NotebookLM 2.96 vs ChatGPT 2.71 `[INFERRED]`); we lead, but by a margin a single Google release could erase.**
+3. **Why might we lose?** Because the deepest competitor cell — **Google NotebookLM, free, which in April 2026 added mastery-tracking and a Socratic "Learning Guide"** — has **commoditized the doc→quiz→grounded-explanation→share spine** that was Ritsu's original product. If the residual PATH/mastery/learning-science moat is *not enough* to justify $29/mo over a free Google product (R2), and if deadline-bearers won't pay at the first hard limit (R1), the diagnosis fails. **The CPM weighted scores are close (Ritsu 3.27 vs NotebookLM 3.06 vs ChatGPT 1.94 `[INFERRED]`); we lead by only 0.21 over the free rival — a margin a single Google release could erase.**
 
 **The one strategic instruction this diagnosis hands the GTM engines:** *lead every message, every channel, every comparison with the PATH + mastery + learning-science — never with "we also make quizzes," because the strongest free rival makes quizzes too.* (This is the SO/ST strategic option set, §6.)
 
@@ -281,7 +281,7 @@ The framework demands one strategic response per dominant force:
 
 **OPPORTUNITIES (external +)**
 - **O1.** The **active + course-pathed white space is genuinely unoccupied** (§4) — Coursera passive, NotebookLM un-pathed. `[INFERRED]`
-- **O2.** **Pre-assembled, reachable, skeptical-but-targetable audience** at zero net-new channel cost (r/learnmachinelearning ~276K, fast.ai forums, #studytwt, study-science creators; 262 mapped placements in persona S9-A). `[INFERRED]`
+- **O2.** **Pre-assembled, reachable, skeptical-but-targetable audience** at zero net-new channel cost (r/learnmachinelearning ~276K, fast.ai forums, #studytwt, study-science creators; 628 mapped placements in persona S9-A v2). `[INFERRED]`
 - **O3.** **Medicine/pre-med adjacent with *proven* WTP** ($300–500 already spent on UWorld/Anki/Sketchy) — de-risks R1 next door (`icp-summary.md` §4b co-beachhead). `[INFERRED]`
 - **O4.** Recurring graded deadlines = a *durable* repeat-pay trigger (vs one-shot cram churn) → potential for real retention (`icp-summary.md` §0). `[HYPOTHESIS]`
 - **O5.** Learning-science authority is an open, un-owned position — no incumbent is doing the cited-method content discipline (`positioning.md` §6). `[INFERRED]`
@@ -356,3 +356,53 @@ This diagnosis is the **input** to the marketing execution layer — it is refer
 ---
 
 *This document is the canonical answer to "where do we compete, and why will we win?" It is a diagnosis, not a destiny — every number is tagged, the two load-bearing bets (R1/R2) are flagged, and the whole thing is built to be falsified by N=10 before a dollar of acquisition spend scales. If a marketing or GTM decision contradicts this diagnosis, that is a signal — re-anchor to the win condition (the system + authority + switching-cost moat in the active-mastery-course-path white space) or open a PR to fix this doc.*
+
+## 1.5 — The SOM→100-paying bridge (the funnel arithmetic the market-size implies)
+
+> The brief the GTM engines need but §1 doesn't yet give: *not* "how big is the market" but "**working backward from 100 paying, how many activated users / signups / qualified visitors must the 4 acquisition engines produce?**" This converts the abstract SOM into the concrete top-of-funnel target the 60-day plan is graded on. **All conversion rates are the canonical leading-indicator targets** (`north-star.md` §1.3 + `icp-summary.md` §4 wedge KPIs) — they are `[HYPOTHESIS]` at true-zero (the funnel has never run end-to-end on a stranger), so this bridge is a *plan to instrument*, not a forecast.
+
+### The backward funnel (100 paying ← qualified traffic)
+
+| Stage | Conversion (canonical target) | Implied volume to yield 100 paying | Confidence |
+|---|---|---|---|
+| **Paying (who love)** | — (the goal) | **100** | the milestone |
+| **Activated free users** (signup → <60s magic moment, ≥1 real session) | **free→paid ≥5%** (rolling 30d; `free_to_plus_conversion`) | **~2,000 activated** | `[HYPOTHESIS]` — 5% is the *target*, unproven; at true-zero free→paid = 0 |
+| **Signups** | **activation ≥40%** (`magic_moment_completion_rate`) | **~5,000 signups** | `[HYPOTHESIS]` — 40% is the north-star target; *first-session* activation is the 4–5× retention lever |
+| **Qualified wedge visitors** (landing from a wedge surface — creator/Reddit/share-link) | **landing→signup ~10–20%** (wedge-qualified traffic converts far above cold; `[INFERRED]` PLG benchmark, NOT yet measured) | **~25,000–50,000 qualified visits** | `[INFERRED]` — the one rate with no Ritsu data at all; the widest error bar |
+
+**Read it:** to land **100 paying who love**, the 4 engines must put **~25K–50K *wedge-qualified* visits** over **~60–120 days** through the funnel — i.e. **~250–800 qualified visits/day**. That is the real target the creator spine + AI-avatar factory + paid message-fit + share-loop are sized against — *not* the $80B TAM, *not* the $3–7M SOM.
+
+### Why the bridge changes the so-what
+
+1. **The binding constraint is the TOP of the funnel, not the market size.** The market is ample (§1); the scarce resource is **~25–50K qualified visits a solo+AI team can generate**. The CPM already said the same thing from the other side (brand/distribution = the 0.07 worst cell). **The bridge quantifies the distribution gap the whole GTM plan exists to close.**
+2. **Each conversion rate is a falsifiable gate, in sequence.** The 5% free→paid is **R1** (do they pay — the N=10 watch). The ≥40% activation is the magic-moment gate (the deepest moat vs free NotebookLM — `customer-journey.md` amber gate 1). The 10–20% landing→signup is the message-fit test (engine 3, the anti-NotebookLM pitch). **If any rate comes in at half-target, the required top-of-funnel doubles** — the bridge is the sensitivity model that tells the founder *which* rate to fix first.
+3. **It hard-gates scale on the N=10.** The bridge is **only run for real after N=10 proves activation ≥40% and pay-at-first-limit > 0** (§6.3 prove-then-scale). Until then these volumes are a *sizing exercise*, not a spend authorization. **Buying 50K cold visits before R1/R2 settle would burn the budget filling a funnel whose conversion is still 0.**
+
+### The honest caveat (carried from §1.4)
+
+Every cell below the goal row is a **target the company has never hit on a stranger** — free→paid is **0** today, activation on cold traffic is **unmeasured**, and the landing→signup rate is a pure `[INFERRED]` benchmark. **This bridge is the instrumentation spec for the N=10 watch and the first paid cohort — the numbers become real only as the funnel actually fires.** It is decision-grade as a *plan* (it tells the engines what to build toward and what to measure), not as a *forecast*.
+
+## 3.5 — The NotebookLM re-score trigger (turning the CPM into an R2 early-warning instrument)
+
+> §3 establishes that NotebookLM is the central R2 threat and §9 says "re-score the CPM on a NotebookLM release" — but the doc gives no **decision rule for when the 0.21 lead actually flips**. R2 is named the company's central bet; a central bet needs a *trip-wire*, not just a worry. This section makes the CPM a live monitor: it names, per moat cell, the NotebookLM move that would erase the lead and the margin threshold that re-opens the strategy.
+
+### The four moat cells and what flips each (the watch-list)
+
+Ritsu's entire 0.21 lead lives in four cells (PATH 0.72 + depth 0.52 + map 0.48 + science 0.40). NotebookLM already beats Ritsu on the other four (accuracy/price/speed/brand), so **the lead is *exactly* the sum of these four**. Each is a tripwire:
+
+| Moat cell (Ritsu weighted) | The NotebookLM move that closes it | CPM impact if it lands | Tripwire |
+|---|---|---|---|
+| **Structured multi-week PATH** (0.72; Ritsu 4 vs NBLM 2) | NotebookLM ships a difficulty-ordered, tracked multi-source *course* view (not per-document) → NBLM 2→4 | NBLM +0.36 → **NBLM 3.42 > Ritsu 3.27. Lead GONE.** | **★ The single highest-value cell to watch — losing it alone flips the matrix.** |
+| **17 activity types + 7 modes** (0.52; Ritsu 4 vs NBLM 2) | NotebookLM adds mindmap/timeline/diagram/code-exercise beyond quiz/flashcard/guide → NBLM 2→3 | NBLM +0.13 → margin 0.21→0.08 (still lead, fragile) | Yellow — narrows but doesn't flip alone |
+| **Concept-level Knowledge Map** (0.48; Ritsu 4 vs NBLM 3) | NotebookLM extends Apr-2026 tracking into a cross-source concept/gap graph → NBLM 3→4 | NBLM +0.12 → margin 0.21→0.09 | Yellow — narrows; flips only combined with another |
+| **Named, cited learning-science** (0.40; Ritsu 4 vs NBLM 2) | LEAST likely — Google has no incentive to *teach* the method (the preemptive POD, `positioning.md` §6) → NBLM 2→3 | NBLM +0.20 → margin 0.21→0.01 | Green-ish — the most durable cell; the authority moat is the structural R2 defense precisely because this is the cell Google won't build |
+
+### The decision rule (the trip-wire)
+
+- **RED — strategy re-open (Tier-C founder review):** *any single move that pushes NotebookLM's total ≥ Ritsu's* (today: the PATH cell alone, or any **two** of depth/map/science landing together). On RED, the wedge thesis ("win on the system NotebookLM lacks") is **falsified by feature-copy** and the diagnosis must re-author the win condition — the moat retreats to switching-cost (accumulated mastery state, §5 response 1) + authority (the one cell Google won't copy) alone.
+- **YELLOW — re-score + message-test:** any move that narrows the margin below **~0.10** without flipping it. On YELLOW, re-run the §2.2 matrix and re-validate the locked anti-NotebookLM comparison line (S15 §16) against the new NotebookLM surface — the *message* must move upstream to whatever cells remain Ritsu-owned.
+- **GREEN — log + continue:** a NotebookLM move on a cell Ritsu already loses (accuracy/price/speed/brand) changes nothing in the moat math — note it, don't react.
+
+### Why this belongs in the diagnosis
+
+The CPM's value is not the day-1 snapshot (which is `[INFERRED]`, un-surveyed) — it's that **the four moat cells ARE the lead**, so the matrix doubles as the R2 sensor. **The PATH cell is the load-bearing 0.72: lose it and the entire lead is gone in one release.** That single fact ranks the product roadmap defensively (deepen the PATH lead fastest, because it's both the biggest moat *and* the most likely NotebookLM target) and tells the founder the *one* competitor release to drop everything for. This converts §9's vague "re-score on a release" into an operational trip-wire — R2 stops being a fear and becomes a number the dashboard watches.

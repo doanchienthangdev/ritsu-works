@@ -251,7 +251,7 @@ This doc stays `draft-hypothesis` until `SOP-PRODUCT-002` (N=10 US strangers obs
 - If **K4 stays at 0** despite H1 succeeding → the *segment* may be soft-WTP reach, not paying-core; re-anchor to the med/pre-med co-beachhead (proven WTP, `icp-summary.md` §4b) or to a deadline-scoped pricing shape (`customer-journey.md` A4: one-week deadline-scoped unlock).
 - If **K2 already passes but K1 can't be measured** → instrumentation is the blocker, not the product; ship the first-quiz event before any further claim.
 
-**On canonization:** when N=10 returns observed pay-at-first-limit + re-upload + (ideally) one organic referral, this doc flips `status: draft-hypothesis → canonical`, the lead hypothesis H1 becomes a stated fact with its observed numbers, and `wedge.md` joins the auto-load identity layer. Until then, **treat every claim here as a bet to test, and the empty activity-outcome tables as the proof that the bet is still open.**
+**On canonization:** when N=10 returns observed pay-at-first-limit + re-upload + (ideally) one organic referral, this doc flips `status: v0.1-draft → canonical`, the lead hypothesis H1 becomes a stated fact with its observed numbers, and `wedge.md` joins the auto-load identity layer. Until then, **treat every claim here as a bet to test, and the empty activity-outcome tables as the proof that the bet is still open.**
 
 ---
 
