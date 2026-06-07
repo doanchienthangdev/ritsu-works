@@ -257,3 +257,24 @@ A downstream SOP/engine can act on these without re-opening strategy:
 - **30-paying signal** → replace inferred channel behavior with observed first-touch data from real customer interviews (`SOP-CUSTOMER-006`); re-score the S9-A map on conversion data, not fit-hypothesis.
 - **Med/pre-med co-beachhead validated** (`icp-summary.md` §4b) → activate the r/Mcat / r/premed / r/medicalschool cluster + the med-creator surface (Cajun Koi 95) as a parallel priority track.
 - **Channel-strategy default refresh:** quarterly, paired with the ICP review cadence.
+
+## 9. Visual brand governance — the asset layer (the missing half of "branding guidelines")
+
+> **Why this section exists (gap closed):** the Domont Pillar-5 spec is explicit that *"brand guidelines govern all digital assets"* (process.md §Pillar-5). This doc already locks the **verbal** half rigorously (decision-rule #7 + cluster-rule #4 → `brand_voice.md` + `positioning.md` §10–§13). It was silent on the **visual** half — and for a *deliberately gimmick-averse, accuracy-first persona* (`customer-journey.md` §6.1 "a trust gauntlet, not a convenience sell"; `persona-portrait.md` S9 attr 13), visual slop reads as untrustworthy exactly the way salesy copy does. Off-brand, AI-generic-looking creative on the landing demo, a share-link preview, or a Shorts thumbnail **breaks the same trust the voice rules protect**. So every digital surface in §1–§6 inherits a single visual identity, not just a single voice.
+
+**The canonical visual system:** `00-core/design-system.md` → `00-core/design-system/ritsu/DESIGN.md` ("Electric Cyan V2": primary `#0ABCD0`, Inter + JetBrains Mono, 8px radius, the four-blade pinwheel mark; logo/mark/favicon assets in `design-system/ritsu/assets/`). It is the **artifact** design system for everything `01-marketing` *emits* (social cards, blog visuals, share-link previews, ad creative, PDFs) — distinct from the **product-UI** system in the product repo (which owns the in-app landing/upload surface itself).
+
+**The four high-leverage surfaces this governs (each maps to a §1–§6 channel):**
+
+| Surface | Channel it serves (§) | Why visual brand is load-bearing here |
+|---|---|---|
+| **Share-link preview / OG card** | Share-Loop, the P0 engine (§1, §5 A5) | The preview is a *stranger's first-ever Ritsu impression* and the success-signal of the whole strategy. It must look like the credible multi-week PATH, not a generic AI quiz — on-brand pinwheel + Electric-Cyan path/Knowledge-Map visual, never a stock-AI thumbnail. |
+| **Landing dense-STEM demo frame** | Website, P0 (§2 rank 3, §3 lever) | The hero demo carries the `#0ABCD0` + Inter/JetBrains-Mono system so the LaTeX/code artifact reads as a *serious tool a serious learner trusts*. (The build is product-repo; the brand spec it must hit is this one.) |
+| **YouTube/Shorts thumbnails + X / Reddit cards** | Social, P1 (§2 ranks 4–5) | A consistent mark + palette compounds recognition across the creator co-sign and #studytwt surfaces; ad-tone-AND-visual-slop is what the policed communities punish (§1 fact 1). |
+| **Paid-probe ad creative** | PPC probe, P2 (§1, §6) | Every capped probe's creative inherits the system, so a winning placement scales a *recognizable* brand, not a one-off look. |
+
+**The decision rule this hands downstream (extends §7):**
+
+> **11. Every digital asset inherits the visual system, not just the voice.** All creative — share-link previews, landing demo frames, social cards, thumbnails, ad units, PDFs — renders in the `ritsu` design system (`00-core/design-system/ritsu/DESIGN.md`; `--style=ritsu` for any `ritsu-works`-emitted artifact). A surface that is on-voice but off-brand-visually (stock-AI imagery, wrong palette, missing mark) **fails the brand mantra exactly as engagement-bait copy does** (`positioning.md` §2) and repels the gimmick-averse persona. Voice-lock (rule #7) and visual-lock (this rule) are the two halves of the same "branding guidelines" the Pillar-5 spec requires.
+
+**Boundary (no scope creep):** this doc governs the **marketing-emitted** assets above. It does **not** redefine the in-product UI (product repo owns that) and does **not** restate the tokens — it *cites* `00-core/design-system.md` as the single source, mirroring how it cites `brand_voice.md` for voice. When the `ritsu` brand evolves, that file changes (PR); this section needs no edit.
