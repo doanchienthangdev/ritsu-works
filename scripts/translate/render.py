@@ -128,8 +128,18 @@ def render_epub(wd, out_path, fonts_dir, repo_root):
               + (f"<div class='a'>{H.escape(meta.get('author',''))}</div>" if meta.get('author') else "")
               + f"<p class='s' style='font-size:.8em'>Bản dịch · {H.escape(meta['to']['name'])}</p></div>")
     spine = ["nav", tp]; toc = []
+    # embed extracted figures (Req 1) so they travel inside the EPUB
+    adir = Path(wd) / "assets"
+    if adir.exists():
+        import mimetypes
+        for img in sorted(adir.glob("*")):
+            if img.is_file():
+                mt = mimetypes.guess_type(img.name)[0] or "image/png"
+                book.add_item(epub.EpubItem(uid="img_" + img.name, file_name="assets/" + img.name,
+                                            content=img.read_bytes(), media_type=mt))
     for i, b in enumerate(blocks, 1):
-        body = f"<div class='orn'>✦</div><h1 class='ct'>{H.escape(b['title'])}</h1><div>{md_html(b['md'])}</div>"
+        chtml = md_html(b["md"]).replace('src="assets/', 'src="../assets/')
+        body = f"<div class='orn'>✦</div><h1 class='ct'>{H.escape(b['title'])}</h1><div>{chtml}</div>"
         it = page(b["id"], f"text/{i:03d}-{b['id']}.xhtml", b["title"], body)
         spine.append(it); toc.append(epub.Link(f"text/{i:03d}-{b['id']}.xhtml", b["title"], b["id"]))
     book.toc = tuple(toc); book.add_item(epub.EpubNcx()); book.add_item(epub.EpubNav()); book.spine = spine
@@ -229,6 +239,13 @@ def render_md(wd, out_path, fonts_dir, repo_root):
         md = b["md"] if b["md"].lstrip().startswith("# ") else f"# {b['title']}\n\n{b['md']}"
         out += [re.sub(r"^#\s", "## ", md.lstrip(), count=1), ""]
     Path(out_path).write_text("\n".join(out), encoding="utf-8")
+    adir = Path(wd) / "assets"  # copy figures beside the .md so refs resolve
+    if adir.exists() and any(adir.iterdir()):
+        import shutil
+        dest = Path(out_path).parent / "assets"; dest.mkdir(exist_ok=True)
+        for f in adir.glob("*"):
+            if f.is_file():
+                shutil.copy2(f, dest / f.name)
 
 # ----------------------------------------------------------------------------- LaTeX / pdf-latex
 def _latex_data(wd, repo_root):

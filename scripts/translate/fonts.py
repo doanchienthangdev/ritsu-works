@@ -36,6 +36,7 @@ def ensure_fonts(dest):
     def inst(src, axes, out):
         f = TTFont(src)
         instantiateVariableFont(f, axes, inplace=True)
+        f.flavor = None  # Inter's source is WOFF2 — force plain SFNT/TTF output (else PIL/XeTeX reject it)
         f.save(out)
 
     for w, name in [(400, "Regular"), (600, "SemiBold"), (700, "Bold")]:
