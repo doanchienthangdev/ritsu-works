@@ -90,6 +90,7 @@
     "thinking-toolkit--root-cause",
     "thinking-toolkit--so-what-test",
     "thinking-toolkit--tosca-problem-framing",
+    "translate",
     "wiki-sync",
     "wiki-sync--adapters--folder-adapter",
     "wiki-sync--adapters--markdown-adapter",

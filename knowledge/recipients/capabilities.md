@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 20
+**Total entries:** 21
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -223,6 +223,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **When to use:** Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills). 16 skills (14 composable thinking tools + the mckinsey-workflow 4S v3.6.0
 
 **Invoke:** `Read("wiki/capabilities/thinking-toolkit/spec.md")` or `/cla update thinking-toolkit`
+
+**Role scope:** *
+**Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/translate
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Document translation (/translate command). OPERATING since 2026-06-08 (Tier-C decision, founder-proxy autonomous build + ship; ops.decisions slug translate-capability-build-approved). Universal document-translation primitive exposed as /translate <src> [flags]: ingest a source document (pdf · docx · pptx · webpage/URL · md · txt) → translate into any target language (default Vietnamese) → render o v0.1.0
+
+**Invoke:** `Read("wiki/capabilities/translate/spec.md")` or `/cla update translate`
 
 **Role scope:** *
 **Status:** operating

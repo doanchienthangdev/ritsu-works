@@ -226,7 +226,7 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
 **Kind:** page
 **Axis:** content
-**When to use:** Tier 1 core doc: wedge
+**When to use:** > The narrowest-viable sticky core of Ritsu, written as a falsifiable hypothesis. This doc graduates the long-empty wedge.md stub from stub → draft-hypothesis. The PG gate (SOP-PRODUCT-002, N=10 strangers observed) is waived to draft-status only — the wedge below is the bet we instrument and test, not declared truth. It canonizes after N=10 when observed pay-at-first-limit data replaces the inferr...
 
 **Invoke:** `Read("00-core/wedge.md")`
 **Authority:** SoR
