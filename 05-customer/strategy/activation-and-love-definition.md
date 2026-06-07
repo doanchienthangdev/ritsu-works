@@ -64,7 +64,7 @@ The aha-proxy is defined as a **two-tier signal that auto-upgrades as instrument
 | Tier | Proxy definition | Door-2 source (live.*) | Populated today? | Use when |
 |---|---|---|---|---|
 | **Tier-1 (target proxy)** | First `learning_sessions` row for the user with a non-null `source_id` **AND** `activities_completed ≥ 1` | `learning_sessions(user_hash, source_id, activities_completed, started_at)` | ✗ (1/656 — instrumentation gap) | The moment `activities_completed` is reliably populated (product-side fix, tracked as a Door-2 dependency) |
-| **Tier-2 (fallback proxy — IN FORCE NOW)** | First `learning_sessions` row for the user with a non-null `source_id` **AND** `duration_minutes ≥ 2` (a real study session on uploaded material, not an open-and-bounce) | `learning_sessions(user_hash, source_id, duration_minutes, started_at)` + `sources(user_hash, status='ready', created_at)` | ✓ (656 sessions, 19 users with sources) | Until Tier-1 is populated |
+| **Tier-2 is NOT usable today: live.learning_sessions.duration_minutes = 0 on ALL 656 rows (min=0, max=0; `>=2` matches 0, even `>0` matches 0). The proxy is itself an instrumentation gap identical to activities_completed — it would report 0% activation, the very failure mode §1.2 says it chose the proxy to avoid. Tier-0 (sources status='ready', 616 rows, processed_at populated) is the only proxy actually populated today; make THAT the in-force fallback until either duration_minutes OR activities_completed flows.** | First `learning_sessions` row for the user with a non-null `source_id` **AND** `duration_minutes ≥ 2` (a real study session on uploaded material, not an open-and-bounce) | `learning_sessions(user_hash, source_id, duration_minutes, started_at)` + `sources(user_hash, status='ready', created_at)` | ✗ — duration_minutes=0 on all 656 (proxy yields 0). Also: only 18 users have source-tied sessions (the proxy's real join); 19 is the distinct source-uploader count. | Until Tier-1 is populated |
 | **Tier-0 (floor proxy — last resort)** | User has ≥1 `sources` row with `status` reaching processed/ready **within the window** (they got *to* the generated plan) | `sources(user_hash, status, processed_at)` | ✓ (756 sources) | Only if `learning_sessions` export ever degrades; weakest — proves upload, not practice |
 
 > **Canonical statement:** **the aha-proxy is Tier-2 today and Tier-1 the moment `activities_completed` flows.** Both encode the same *intent* — "engaged in active practice on their own material in the first session" — so the upgrade does not break any downstream metric's meaning; it only sharpens it. The love-instrumentation hook (§6) MUST read the proxy through this ladder, not hard-code a single column.
@@ -118,7 +118,7 @@ The full path, with where each step is observable in Door-2 today:
 | S1 | Onboarding complete (secondary checkpoint) | `profiles.onboarding_completed_at` | ◐ (8/25 populated) |
 | S2 | First upload | first `sources.created_at` per `user_hash` | ✓ (19 users, 756 sources) |
 | S3 | **Source processed** (plan generated) | `sources.processed_at`, `status` | ✓ |
-| **S4** | **AHA-PROXY = ACTIVATION** (first practice session on uploaded source, §1.3) | `learning_sessions` (source_id + duration/activities) | ◐ (656 sessions; the ≥2-min-on-source proxy is populated; the activities_completed sharpening is not) |
+| **S4** | **AHA-PROXY = ACTIVATION** (first practice session on uploaded source, §1.3) | `learning_sessions` (source_id + duration/activities) | ◐ (656 sessions; Neither is populated: duration_minutes is 0 on all 656 sessions (same gap as activities_completed). Only the Tier-0 sources-ready floor proxy is populated today.) |
 | S5 | Week-1 re-upload (the strongest pre-paywall retention signal) | 2nd `sources.created_at` within 7d of S2 | ✓ (the 4-source/10-session revisit is observed) |
 
 **Activation is the S4 gate.** S0–S3 are the funnel *to* activation (owned jointly by GTM landing→signup and product onboarding); S5 onward is the *retention/love* path (§3–§4).
@@ -145,7 +145,7 @@ This is the operational core. Per `north-star.md` §1.4, **the workforce can onl
 - **`Paid-30d` (L4):** the deadline-gated money-moment (`customer-journey.md` A4) fires at the *first hard limit mid-course*, which for an active deadline-bearer is within the first month of real use. 30d is also the north-star reporting cadence (`north-star.md` §2). 30d.
 - **`Love-survey` (L5):** must be late enough that the user has *formed* an opinion (post-aha, post-re-upload) but early enough to be a leading signal — day-14 to day-30.
 
-**The two metrics observable TODAY** (where love-instrumentation should start, per `customer-journey.md` §6.5): **L1 (aha-proxy via the ≥2-min-on-source fallback)** and **L2 (re-upload via `sources`)**. Both read columns that are populated *right now*. L3b, L4, L5 are zero-today by reality, not by instrumentation — they are the bets the first real cohort settles.
+**The two metrics observable TODAY** (where love-instrumentation should start, per `customer-journey.md` §6.5): Only L2 (re-upload via sources.created_at) is populated right now. L1 via the ≥2-min fallback is NOT (duration_minutes=0); L1 is only computable today via the Tier-0 sources-ready floor.. L3b, L4, L5 are zero-today by reality, not by instrumentation — they are the bets the first real cohort settles.
 
 ---
 
@@ -196,7 +196,7 @@ Every claim in this doc is tagged, per the calibre bar in `persona-portrait.md` 
 | The product is being *used* (sources uploaded, sessions run, revisit pattern) | **observed** | Door-2: 756 sources, 656 sessions, 19 users-with-source, one user at 42src/36sess |
 | `quiz_attempts` / `activity_results` / `flashcard_reviews` are empty → the direct aha signal is unmeasurable today | **observed** | Door-2: 0 / 0 / 0 rows (2026-06-07); `analytics-sync-contract.yaml` Sprint-5 |
 | `activities_completed ≥ 1` is an instrumentation gap, not zero-behavior | **observed** | Door-2: 1/656 sessions populated, on a product with 656 sessions |
-| The ≥2-min-on-source fallback proxy is *populated* and usable now | **observed** | Door-2: 656 sessions with `duration_minutes` + `source_id` |
+| This honesty-ledger line mis-states the evidence: duration_minutes exists as a column but = 0 on all 656 rows, so the ≥2-min proxy is NOT usable now. Correct status: instrumentation gap, not observed-usable. |
 | Activation ≥40% is the right target | **inferred** | `north-star.md` §1.3; PLG telemetry (Amplitude/Mixpanel/Heap) — not yet validated on Ritsu |
 | The aha drives 4–5× retention | **inferred** | replicated PLG telemetry cited in `north-star.md` §1.3 |
 | The 7-day activation window beats 24h for this wedge | **inferred** (strong) | deadline-paced study arc (`icp-summary.md` §4, `customer-journey.md` A4) — to confirm against first cohort |

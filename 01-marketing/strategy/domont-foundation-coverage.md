@@ -17,7 +17,7 @@ source_run: ritsu-foundational-layer-v1 (v2 image-validation)
 
 > **What this is.** The founder supplied the two authoritative Domont reference images — **"Our Toolkit will help you fulfill multiple objectives"** (the 10 objectives) and **"The Toolkit includes a 6-phase approach"** (the 6-phase / 5-pillar map). This doc validates Ritsu's commercial-strategy **foundation layer** against that exact spec: for every component, where it is covered, and how the genuine gaps were closed. It is the answer to *"đã đủ nền tảng chưa?"* — and the index a reader checks against the two images side-by-side.
 >
-> **Headline verdict (2026-06-07, after the v2 image-validation pass):** **every Domont sub-component is now covered** — by a dedicated foundation doc (`full`), by a deliberate + justified B2C-PLG-solo adaptation (`adapted`, e.g. physical-retail channels → digital PLG channels), or by a gap that this pass filled (`gap→filled`: the Strategy-Frameworks doc F12, plus seven targeted top-ups). Phases III–VI (Initiatives → Business Cases → Roadmap → Change Management) are the **30-artifact execution backlog** + the founder/customer SOPs, not a strategy doc — mapped below.
+> **Headline verdict (2026-06-07, after the v2 image-validation pass):** **every Domont sub-component is now covered** — by a dedicated foundation doc (`full`), by a deliberate + justified B2C-PLG-solo adaptation (`adapted`, e.g. physical-retail channels → digital PLG channels), or by a gap that this pass filled (`gap→filled`: the Strategy-Frameworks doc F12, plus targeted top-ups across the pillars). Phases III–VI (Initiatives → Business Cases → Roadmap → Change Management) are the **30-artifact execution backlog** + the founder/customer SOPs, not a strategy doc — mapped below.
 
 ## The 11 foundation docs (the strategy layer, on `main`)
 F1 `00-core/wedge.md` · F2 `01-marketing/icp/value-proposition-canvas.md` · F3 `01-marketing/strategy/market-and-competitive-landscape.md` · F4 `01-marketing/strategy/communication-strategy.md` · F5 `01-marketing/strategy/digital-and-channel-strategy.md` · F6 `02-sales/strategy/distribution-strategy.md` · F7 `02-sales/strategy/pricing-architecture.md` · F8 `03-gtm/strategy/funnel-model.md` · F9 `05-customer/strategy/activation-and-love-definition.md` · F10 `10-metrics/strategy/metrics-tree.md` · F11 `08-finance/strategy/unit-economics-model.md` · **F12 (new) `01-marketing/strategy/strategic-direction.md`** + this map.
@@ -55,9 +55,9 @@ F1 `00-core/wedge.md` · F2 `01-marketing/icp/value-proposition-canvas.md` · F3
 
 | Domont phase | Ritsu home |
 |---|---|
-| **III. Potential Initiatives for each Pillar** | the **30-artifact backlog** (`artifact-backlog.md`) — the prioritized initiative list per pillar |
+| **III. Potential Initiatives for each Pillar** | the **30-artifact backlog** (the `.archives/mckinsey/ritsu-core-artifact-backlog-v1/` study — local scratch, NOT a committed repo file) — the prioritized initiative list per pillar |
 | **IV. Business Cases & Financial Models** | F11 unit-economics-model + the per-artifact effort×impact scoring in the backlog |
-| **V. Project Prioritization, Roadmap & Implementation** | `roadmap.md` (the 60-day sequence + critical path) + the impact×urgency cut |
+| **V. Project Prioritization, Roadmap & Implementation** | the 60-day roadmap (in the same `.archives` study — local) + the impact×urgency cut |
 | **VI. Change Management, Internal Comms & Stakeholder Engagement** | solo+AI ⇒ `09-founder/` cadence (Friday review, HITL batch) + `SOP-CUSTOMER-006` Collison install (the founder's "change" is onboarding the first payers) + F4 §4 stakeholder grid |
 
 ## The 10 objectives (Image 1) → status

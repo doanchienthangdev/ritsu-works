@@ -87,7 +87,7 @@ Each channel scored 1–5 on the five re-cast criteria (§1.2), weighted, summed
 
 | Channel | Reach (20%) | Cash-cost ↓ (20%) | Wedge-fit (25%) | Control (15%) | Founder-effort ↓ (20%) | **Weighted** | **Rank** |
 |---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| **C2 Creator-authority** | 4 | 4 | **5** | 2 | 3 | **3.70** | **①** |
+| **C2 Creator-authority** | 4 | 4 | **5** | 2 | 3 | **3.75** | **①** |
 | **C1 Organic share-loop** | 2 | **5** | **5** | **5** | **5** | **4.40** | **①\*** |
 | **C3 Community-seeding** | 3 | **5** | **5** | 3 | 2 | **3.70** | **③** |
 | **C5 Owned content-SEO** | 3 | 4 | 4 | **5** | 3 | **3.75** | **④** |
@@ -96,12 +96,12 @@ Each channel scored 1–5 on the five re-cast criteria (§1.2), weighted, summed
 **Score reads (the *why* behind each number — this is the decision-grade part):**
 
 - **C1 Organic share-loop (4.40, the structural winner)** — perfect on cash (the loop is free), control (we own the mechanic + the [`view_count` signal is already instrumented](#5-channel-economics-the-contribution-model) `observed`), wedge-fit (a share *is* a peer recommendation inside the exact deadline-cohort — the persona's [`Virality mechanism`](../../01-marketing/icp/persona-portrait.md)), and founder-effort (once built, it runs with zero founder labor). It scores **2/5 on reach for one brutal reason: it has a cold-start problem** — a share-loop with zero activated users produces zero shares. It is the *destination* engine, not the *ignition* engine. **The matrix says C1 is the highest-value channel *and* the one that cannot go first.** This single tension defines the whole sequence (§7).
-- **C2 Creator-authority (3.70, the ignition winner)** — the highest *wedge-fit* of any *cold-start-capable* channel (5/5) because this buyer trusts **expert > peer > numbers** (persona [`Social proof type`](../../01-marketing/icp/persona-portrait.md): "study-science creators carry more weight than testimonials with a method-distrusting audience"). It is cash-cheap relative to paid (a mid-tier host-read or affiliate deal, sometimes performance-only) and *solves C1's cold-start* by injecting the first activated cohort. It scores **2/5 on control** (rented audience, creator can churn) and **3/5 on founder-effort** (deal-making + briefing is founder-time-heavy). **This is the channel that goes first** (highest fit among ignition-capable channels).
+- **C2 Creator-authority (3.75, the ignition winner)** — the highest *wedge-fit* of any *cold-start-capable* channel (5/5) because this buyer trusts **expert > peer > numbers** (persona [`Social proof type`](../../01-marketing/icp/persona-portrait.md): "study-science creators carry more weight than testimonials with a method-distrusting audience"). It is cash-cheap relative to paid (a mid-tier host-read or affiliate deal, sometimes performance-only) and *solves C1's cold-start* by injecting the first activated cohort. It scores **2/5 on control** (rented audience, creator can churn) and **3/5 on founder-effort** (deal-making + briefing is founder-time-heavy). **This is the channel that goes first** (highest fit among ignition-capable channels).
 - **C5 Owned content-SEO (3.75)** — the *compounding* asset: perfect control (owned), the [preemptive learning-science + citation moat](../../00-core/positioning.md) expressed as content (the comparison page "Ritsu vs NotebookLM for lecture PDFs" attacks [R2](../../00-core/icp-summary.md) at the ASK stage). It ranks #4 *today* only because of **latency** (cash 4 / effort 3 are fine, but SEO takes months to rank → low *speed-to-signal*). It is a slow-burn that must *start early* precisely because it's slow — the rank understates its strategic value once PMF is near.
 - **C3 Community-seeding (3.70)** — perfect wedge-fit + cash (free, the communities are pre-assembled), but **2/5 founder-effort** (honest community participation does not scale — it is 1:few, founder-hours-bound, and punishes automation/ad-tone). It is the **N=10 recruiting surface** (`SOP-PRODUCT-002` Collison-install) and a *seeding* tactic, not a *scaling* channel.
 - **C4 Paid acquisition (3.25, deliberately last)** — perfect reach + effort (you buy reach instantly, AI runs the creative), but **1/5 on cash** (it is the only channel that needs real money *before* message-fit is proven) and only **3/5 wedge-fit** (paid targeting on this skeptical audience converts worse than earned authority — ad-tone is a [drop-off trigger at AWARE](../../01-marketing/icp/customer-journey.md)). **The matrix's verdict: paid is the *amplifier of a proven message*, never the *discoverer of one*.** It is gated behind activation proof (§4, §7).
 
-> **The matrix's headline output (the Tesla-equivalent insight):** the two highest-scoring channels are **C1 (share-loop, 4.40) and C2 (creator-authority, 3.70)** — both *organic / earned*, both ~$0 cash. **Paid (C4) scores lowest.** This is not a coincidence of weighting; it is the structural truth of a true-zero B2C-PLG-solo company: **you must earn distribution before you can afford to buy it, and the buyer you've chosen rewards earned trust over bought reach.** The mix is *organic-spine-first by arithmetic, not by preference.*
+> **The matrix's headline output (the Tesla-equivalent insight):** the two highest-scoring channels are C2 (creator-authority, 3.75) — both *organic / earned*, both ~$0 cash. **Paid (C4) scores lowest.** This is not a coincidence of weighting; it is the structural truth of a true-zero B2C-PLG-solo company: **you must earn distribution before you can afford to buy it, and the buyer you've chosen rewards earned trust over bought reach.** The mix is *organic-spine-first by arithmetic, not by preference.*
 
 ---
 
@@ -127,7 +127,7 @@ The Domont matrix's *"essential companion output"* is the **channel economics mo
 
 ### 5.1 The shared contribution figure (what one paying customer is worth)
 
-From the [persona CLV estimate](../../01-marketing/icp/persona-portrait.md) and [live pricing](../../00-core/product.md), grounded where possible in Door-2:
+From the [price-derived contribution estimate](../../00-core/product.md) (the persona headline CLV is ~$200-350; this conservative $130-180 is the contribution basis) and [live pricing](../../00-core/product.md), grounded where possible in Door-2:
 
 | Input | Value | Tag |
 |---|---|---|
