@@ -101,3 +101,33 @@ a per-language glossary library; RTL page direction (ar/he); a second design-sys
 Generalized from the 2026-06-07/08 one-off that produced `raw/elon-musk/Sách-về-Elon-Musk.vi.{pdf,epub}`
 (401 pp → 371 pp, 28 parallel agents, footnotes preserved). CLA artifacts (local-only):
 `.archives/cla/translate/`.
+
+## 9. v0.2 — STEM extension (2026-06-08, /cla extend, founder-proxy)
+
+Four STEM-grade capabilities, all dogfooded end-to-end:
+
+- **Req 1 — figures/charts/tables.** `engine.py` extracts raster images + `find_tables()` from PDF
+  and images + tables from docx, in document order, into `<workdir>/assets/` with `![alt](assets/…)`
+  refs (`--keep-assets`/`--no-assets`). Carried into pdf (base_url), epub (embedded items), md
+  (copied), latex (`\includegraphics`, staged). Repeated logos/watermarks + sub-50px icons skipped.
+- **Req 2 — math/formulas.** The translator brief preserves `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, and
+  LaTeX math environments **byte-for-byte**; LaTeX output typesets them **natively** (amsmath). docx
+  Office-Math (OMML) is captured best-effort as inline `$…$`; PDF-rendered math is preserved as a
+  cropped figure. Honest: non-LaTeX output shows math as `$…$` literal.
+- **Req 3 — format-preserving (`--preserve`).** A parallel pipeline (`preserve.py`): `plan` extracts
+  ordered text **segments** (`⟦S{id}⟧`) keyed by full paragraph index; the same Workflow translates
+  them; `build` reinserts into a copy of the original (first text-run gets the translation, others
+  blanked — keeps styles + images + tables + layout). docx/pptx → **identical** output; PDF → reflow
+  fallback in v0.2. The id scheme is full-paragraph-index (plan and build both enumerate ALL
+  paragraphs) so table cells and figures don't shift the mapping.
+- **Req 4 — LaTeX output.** `latexout.py` converts assembled blocks → a self-contained `.tex`
+  (`\documentclass{book|article}`, XeLaTeX, `\setmainfont` Source Serif 4 for full Vietnamese, clay
+  headings, `\includegraphics`, `tabular`, math passthrough); `--out=pdf-latex` compiles via
+  **tectonic** (relative font/asset paths inside the compile tree to satisfy tectonic's sandbox;
+  fonts referenced by explicit filename since `*` expands to the spaced family name). NEW `.tex`
+  **source** adapter (`ingest_latex`) translates prose, preserves math + structure.
+
+NEW modules `scripts/translate/{latexout.py, preserve.py}`; `fonts.py` flavor-fix (Inter source is
+WOFF2 → `f.flavor=None` for valid TTF, else PIL/XeTeX reject it). NEW flags `--preserve`,
+`--keep-assets`/`--no-assets`, `--math`. Formats: **7 input** (+latex), **7 output** (+latex,
++pdf-latex). Contract tests in `tests/translate/params.test.ts` (the v0.2 block).
