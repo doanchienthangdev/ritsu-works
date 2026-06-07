@@ -1,16 +1,18 @@
 ---
 name: translate
 description: |
-  Translate any source document (pdf · docx · pptx · webpage/URL · markdown · txt)
-  into one or more output formats (pdf · epub · docx · pptx · md) in any target
-  language (default Vietnamese), styled by a design system (default claude). Books
-  auto-split into chapters and translate in PARALLEL via a Claude Code Workflow —
-  top-tier literary quality, structure + footnotes preserved. Outputs land next to
-  the source. Tier A; per-run --max-cost-usd breaker; invoking implies the caller
+  Translate any source document (pdf · docx · pptx · webpage/URL · markdown · LaTeX · txt)
+  into one or more output formats (pdf · epub · docx · pptx · md · latex · pdf-latex) in any
+  target language (default Vietnamese), styled by a design system (default claude). v0.2 STEM:
+  figures/charts/tables are extracted and carried into the translation; math/formulas are
+  preserved verbatim and typeset natively in LaTeX output; --preserve keeps docx/pptx layout
+  identical to the original. Books auto-split into chapters and translate in PARALLEL via a
+  Claude Code Workflow — top-tier literary quality, structure + footnotes preserved. Outputs
+  land next to the source. Tier A; per-run --max-cost-usd breaker; invoking implies the caller
   has the right to translate. Thin orchestrator over the `translate` umbrella skill.
 ---
 
-# /translate — capability `translate` v0.1
+# /translate — capability `translate` v0.2 (STEM)
 
 Front-end for the `translate` capability. Parses flags, drives the `translate`
 umbrella skill (`06-ai-ops/skills/translate/SKILL.md`), reports the artifacts.
