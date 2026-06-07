@@ -2,14 +2,14 @@
 title: "Chương 53 — Capability Case Study: translate (`/translate` — dịch tài liệu đa định dạng, song song, theo design system)"
 description: "Chương 53 — Capability Case Study: translate (`/translate` — dịch tài liệu đa định dạng, song song, theo design system)"
 source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/53-capability-case-translate.md
-source_hash: ac50e93191c0f2cf17c4aa661308188c63a08c25c48d91aeb929dee059134032
-generated_at: '2026-06-07T18:32:49.308Z'
+source_hash: 11443efee38a59e463f5cf551c91369921253fef27f46bad2c8889ea88e2f2c5
+generated_at: '2026-06-07T19:37:12.153Z'
 generated_by: playbook-import v1.0.0
 category: playbook
 language: vi
 translated: true
-translated_source_hash: ac50e93191c0f2cf17c4aa661308188c63a08c25c48d91aeb929dee059134032
-translated_at: '2026-06-07T18:32:49.308Z'
+translated_source_hash: 11443efee38a59e463f5cf551c91369921253fef27f46bad2c8889ea88e2f2c5
+translated_at: '2026-06-07T19:37:12.153Z'
 translated_by: "Founder source (Vietnamese original, no re-translation)"
 chapter_order: 53
 ---
@@ -87,3 +87,14 @@ Dogfood end-to-end: một tài-liệu ngắn qua *đúng đường lệnh* (plan
 3. **Brief là hợp-đồng chất-lượng.** Một brief chung + glossary giữ một cuốn sách mạch-lạc qua N agent song song; `<sup>`-verbatim là bất-biến chấp-nhận.
 4. **Trung-thực về fidelity hơn hứa-hão.** v0.1 nói thẳng pdf/epub/md bóng-bẩy, docx sạch, pptx dùng-được, và generic-split thô hơn tinh-chỉnh-tay — kèm lộ-trình `/cla extend`.
 5. **Tái-dùng trục design-system.** `--style` là DATA (đọc DESIGN.md → palette), không thêm dòng dispatch — đúng bài học Chương 47/48.
+
+## 53.8 v0.2 — Bản nâng STEM (giữ ảnh/bảng · bảo toàn công thức · giữ-nguyên-format · đầu ra LaTeX)
+
+`/cla extend` (founder-proxy) nâng `/translate` lên v0.2 với 4 năng lực phục vụ tài-liệu khoa-học/AI-ML/textbook/paper — mỗi cái dogfood end-to-end:
+
+- **Req 1 — Ảnh / biểu-đồ / bảng.** `engine.py` trích **hình raster + `find_tables()`** từ PDF và **ảnh + bảng** từ docx, **theo đúng thứ-tự trong tài-liệu**, vào `assets/` kèm tham-chiếu `![alt](assets/…)`. Renderer mang theo vào pdf (base_url), epub (nhúng item), md (copy), **latex (`\includegraphics`)**. Logo/watermark lặp + icon \<50px bị loại. Brief dặn agent **giữ nguyên `(path)`, chỉ dịch alt**.
+- **Req 2 — Công thức toán/khoa-học.** Brief giữ **VERBATIM** mọi thứ trong `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, môi-trường toán LaTeX — copy từng ký-tự, KHÔNG dịch tên biến/hàm. Đầu ra **latex typeset công-thức NGUYÊN-BẢN** (amsmath). docx Office-Math (OMML) bắt best-effort thành `$…$`; toán trong PDF giữ dưới dạng hình cắt. Trung-thực: đầu-ra không-latex hiện `$…$` thô — dùng latex để typeset.
+- **Req 3 — Giữ-nguyên-format (`--preserve`).** Một pipeline song-song (`preserve.py`): `plan` trích **các đoạn text** (`⟦S{id}⟧`, khoá theo CHỈ-SỐ-ĐOẠN-ĐẦY-ĐỦ), cùng Workflow dịch, `build` chèn lại vào **bản sao bản gốc** (run text đầu nhận bản dịch, các run khác để trống — giữ style + ảnh + bảng + layout). docx/pptx → **giống hệt bản gốc**, chỉ đổi ngôn-ngữ; PDF → quay về reflow (v0.2). **Bug đã sửa**: id phải là chỉ-số-đoạn-đầy-đủ ở CẢ plan lẫn build (lúc đầu build đếm-chỉ-đoạn-dịch-được → lệch, "Siêu tham số" rơi vào ô bảng) → enumerate MỌI đoạn ở cả hai phía.
+- **Req 4 — Đầu ra LaTeX.** `latexout.py` chuyển block → `.tex` tự-chứa (`\documentclass{book|article}`, XeLaTeX, `\setmainfont` Source Serif 4 đủ-dấu, heading đất-nung, `\includegraphics`, `tabular`, math passthrough); `--out=pdf-latex` biên-dịch qua **tectonic** (KHÔNG cần cài LaTeX hệ-thống). NEW định-dạng **nguồn** `.tex` (`ingest_latex`: dịch prose, giữ toán + cấu-trúc).
+
+**Bẫy kỹ-thuật đã vượt (bài học hệ-thống):** (a) **tectonic sandbox** chặn mở file tuyệt-đối → stage font/asset *bên trong* cây biên-dịch + đường-dẫn *tương-đối* + chạy với `cwd`=thư-mục .tex; (b) **fontspec `*`** nở thành tên-họ có dấu cách "Source Serif 4-Regular" ≠ file `SourceSerif4-Regular.ttf` → tham-chiếu **tên-file tường-minh**; (c) **Inter instanced hỏng** ("unknown file format") vì nguồn là WOFF2 → `f.flavor=None` khi save (PIL + XeTeX đều từ-chối nếu không); (d) LaTeX headings dùng serif (đủ-dấu) thay Inter cho chắc. NEW module `latexout.py` + `preserve.py`; 7 input × 7 output; 73 ca vitest; check-consistency xanh. **Bài học #6:** *một engine biên-dịch tự-chứa (tectonic) + font-tĩnh-instanced biến "đầu ra LaTeX cho STEM" từ "phải cài cả TeXLive" thành một flag.*
