@@ -1,0 +1,75 @@
+---
+name: translate
+description: |
+  Translate any source document (pdf · docx · pptx · webpage/URL · markdown · txt)
+  into one or more output formats (pdf · epub · docx · pptx · md) in any target
+  language (default Vietnamese), styled by a design system (default claude). Books
+  auto-split into chapters and translate in PARALLEL via a Claude Code Workflow —
+  top-tier literary quality, structure + footnotes preserved. Outputs land next to
+  the source. Tier A; per-run --max-cost-usd breaker; invoking implies the caller
+  has the right to translate. Thin orchestrator over the `translate` umbrella skill.
+---
+
+# /translate — capability `translate` v0.1
+
+Front-end for the `translate` capability. Parses flags, drives the `translate`
+umbrella skill (`06-ai-ops/skills/translate/SKILL.md`), reports the artifacts.
+
+## Usage
+```
+/translate <src> [flags]
+```
+`<src>` is a file path or an http(s) URL.
+
+## Flags
+
+| Flag | Default | Notes |
+|---|---|---|
+| `<src>` | — (required) | file path or webpage URL (positional, or `--src=`) |
+| `--to` | `vi` | target language — code (`vi`,`en`,`ja`,`fr`…) or name (`vietnamese`,`tiếng việt`,`japanese`); unknown codes pass through |
+| `--from` | auto | source language hint (rarely needed) |
+| `--out` | = source format | output format(s); **`+` = multiple**, e.g. `--out=pdf+epub`. Supported: `pdf epub docx pptx md`. A webpage source defaults to `pdf` |
+| `--style` | `claude` | design system (palette). `claude` bundled; others via the repo design-system library (`knowledge/design-systems.yaml`) |
+| `--mode` | `auto` | `auto\|book\|doc\|slides` — `auto` detects a book (→ chapters + cover + TOC) vs a short doc vs slides |
+| `--split` | `auto` | chapter splitting: `auto\|toc\|heading\|none\|count=N` |
+| `--out-dir` | source folder | where to write outputs |
+| `--name` | from source | output basename (files are `<name>.<lang>.<ext>`) |
+| `--workflow` / `--no-workflow` | auto | force/disable the parallel translation Workflow (auto = on for books/long docs) |
+| `--dry-run` | off | ingest + plan only (mode, chapters, word count, cost estimate) — **no translation** |
+| `--max-cost-usd` | `8.00` | per-run cost breaker (refuse-up-front) |
+| `--glossary` | — | optional path to a project glossary appended to the translator brief |
+
+## Flow (dispatches to the `translate` umbrella skill)
+1. **Plan** — `node scripts/translate/cli.cjs plan "<src>" [flags]` → ingest (format adapter) →
+   detect mode → split into translatable units → write `brief.md` + `plan.json` to a runtime
+   workdir. `--dry-run` stops here and prints the plan.
+2. **Cost gate** — if the estimate exceeds `--max-cost-usd`, surface and stop.
+3. **Translate (parallel Workflow)** — the skill launches a Claude Code Workflow: one agent per
+   unit, each reads the shared brief + its source unit and writes its translated unit, at
+   top-tier literary quality with structure + `<sup>` footnotes preserved.
+4. **Build** — `node scripts/translate/cli.cjs build <workdir> --title="<translated title>"` →
+   assemble translated units → render each requested format with the design system.
+5. **Report** `{ok, outputs[], outDir, warnings[]}`.
+
+## Fidelity by format (v0.1, honest)
+- **Input** pdf · docx · pptx · webpage · md · txt — fully supported (PDF uses TOC → font/heading fallback).
+- **Output** **pdf · epub · md** = polished book/document typography (cover, TOC, chapter openers,
+  clay section eyebrows, footnote superscripts). **docx** = clean styled document. **pptx** = functional deck
+  (title + bullets per section). Typography = bundled Source Serif 4 + Inter (full Vietnamese); the
+  `--style` supplies the color identity.
+
+## Examples
+```
+/translate report.pdf                              # → report.vi.pdf (Vietnamese, claude style)
+/translate the-book.pdf --out=pdf+epub             # book → Vietnamese PDF + EPUB
+/translate https://blog.example.com/post --to=ja   # webpage → Japanese PDF
+/translate deck.pptx --out=pptx --to=en            # slides → English deck
+/translate notes.md --out=pdf+docx --style=ritsu   # styled with the Ritsu palette
+/translate big-book.pdf --dry-run                  # plan only: chapters + words + cost
+```
+
+> **Right to translate:** invoking `/translate` asserts the caller holds the right to
+> translate the source. Outputs are written for the caller's own use, next to the source.
+
+See `06-ai-ops/sops/SOP-AIOPS-013-translate-runtime-contract/flow.yaml` for the runtime
+contract and `wiki/capabilities/translate/spec.md` for the architecture.

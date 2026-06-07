@@ -147,6 +147,10 @@ economic_budget:
     image-enhance: {unit: usd, cap: 0.10}    # /image --enhance in-session prompt refinement (subscription; hook-enforced — the one /image stage the budget hook sees)
     # capability dataviz v0.1 — cost-bucket ai-ops-dataviz; /dataviz pure-Node SVG render
     dataviz-render: {unit: usd, cap: 0.05}   # /dataviz svg-native render. DOC PLACEHOLDER: the render is in-process PURE Node — ZERO LLM/API calls, nothing to meter; the only LLM cost is the calling agent authoring --message/--data (its own task_kind). No secret/key.
+    # capability translate v0.1 — cost-bucket ai-ops-translate; /translate ingest→parallel-translate→render
+    translate-plan:  {unit: usd, cap: 0.05}   # /translate ingest+split+brief — PURE Node/Python, ZERO LLM. No secret/key.
+    translate-run:   {unit: usd, cap: 8.00}   # /translate parallel translation fan-out (the spend). ADVISORY: in-session Workflow agents; the per-run --max-cost-usd breaker (default $8) is the real guard. Scales with source word count (~$0.06/1k words).
+    translate-build: {unit: usd, cap: 0.05}   # /translate assemble+render (pdf/epub/docx/pptx/md) — PURE Python, ZERO LLM. No secret/key.
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition

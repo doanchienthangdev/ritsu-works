@@ -1,0 +1,111 @@
+# SOP-AIOPS-013 — /translate Runtime Contract
+#
+# Declarative runtime contract for the `translate` capability (/translate command).
+# Read by .claude/commands/translate.md + 06-ai-ops/skills/translate/SKILL.md (umbrella).
+#
+# RUNTIME-CONTRACT SOP (like SOP-AIOPS-004-evolve / 005-deepask / 006-forge /
+# 007-design-system / 008-image), NOT a CLA 8-phase ceremony. The "steps" are the
+# sequence /translate follows to turn a source document + flags into translated artifacts.
+
+sop_id: SOP-AIOPS-013
+slug: translate-runtime-contract
+name: "/translate runtime contract"
+version: "0.1.0"
+state: operating          # Phase 8: capability operating (built + dogfooded + shipped)
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A           # translation is Tier A (reversible, local writes next to source, metered + --max-cost-usd capped); explicit-invoke only
+cost_bucket: ai-ops-translate
+capability_id: translate
+
+# Invoking /translate asserts the caller holds the right to translate the source.
+right_to_translate_asserted_by_invocation: true
+
+# ----------------------------------------------------------------------
+# The translation sequence (source document + flags -> translated artifacts)
+# ----------------------------------------------------------------------
+steps:
+  - id: plan
+    name: "Phase 1 — ingest + structure + split + brief"
+    skill: translate
+    runner: "node scripts/translate/cli.cjs plan <src> [flags]"
+    actions:
+      - detect_format            # scripts/translate/lib/detect.cjs (pdf|docx|pptx|html|md|txt; URL -> html)
+      - resolve_config           # scripts/translate/lib/params.cjs (--to default vi, --out default = src fmt, + = multi, --style default claude)
+      - ingest                   # scripts/translate/engine.py adapters -> normalized markdown + meta
+      - detect_mode              # auto -> book (chapters+cover+TOC) | doc | slides
+      - split_units             # book: chapters at H1/TOC; long units split at section boundary (cap 3500 words)
+      - write_brief              # parameterized top-translator brief for the target language (+ optional --glossary)
+      - emit_plan                # plan.json {mode, units, tasks[], total_words, cost_estimate_usd, outputs}
+    hitl: A
+
+  - id: cost_gate
+    name: "Phase 2a — cost breaker"
+    actions:
+      - refuse_if_over_budget    # cost_estimate_usd > --max-cost-usd (default $8) -> surface + STOP (no silent spend)
+      - stop_if_dry_run          # --dry-run -> present the plan and STOP (no translation)
+    hitl: A
+
+  - id: translate
+    name: "Phase 2b — parallel translation (Claude Code Workflow)"
+    skill: translate
+    actions:
+      - translate_title          # the session translates the title (1 line) -> titleTranslated
+      - fanout_workflow          # one agent per unit; reads brief + src unit; writes translated unit. TASKS embedded as a script const (NOT args)
+      - preserve_discipline      # faithful+natural; keep markdown structure + <sup> footnotes verbatim + proper nouns
+      - retry_failed_units       # any unit whose out file is missing/empty is re-run before build
+    hitl: A
+    notes: "Agents inherit the session model (strongest available — quality is the point). Workflow returns a small manifest only; translations are written to files."
+
+  - id: build
+    name: "Phase 3 — assemble + render each output format"
+    skill: translate
+    runner: "node scripts/translate/cli.cjs build <workdir> --title=<titleTranslated>"
+    actions:
+      - assemble                 # engine.py assemble -> book_blocks.json (concatenate split halves)
+      - render_each_format       # render.py per --out: pdf (WeasyPrint host) | epub | docx | pptx | md (anaconda host)
+      - apply_design_system      # palette from --style (default claude); typography = bundled Source Serif 4 + Inter (full Vietnamese)
+      - write_next_to_source     # outputs to --out-dir (default: the source's folder) as <name>.<lang>.<ext>
+    hitl: A
+
+  - id: report
+    name: "Phase 4 — report"
+    actions:
+      - report_outputs           # {ok, outputs[], outDir, warnings[]} + honest fidelity notes
+    hitl: A
+
+# ----------------------------------------------------------------------
+# Format matrix (v0.1)
+# ----------------------------------------------------------------------
+formats:
+  input:  [pdf, docx, pptx, html, md, txt]     # html includes http(s) URLs (webpages)
+  output: [pdf, epub, docx, pptx, md]
+  default_output: same_as_source               # html source -> pdf
+  multi_output: "join with + (e.g. --out=pdf+epub)"
+  fidelity:
+    pdf:  polished            # cover, TOC, chapter openers, clay section eyebrows, footnote superscripts
+    epub: polished            # reflowable, embedded fonts, nav + cover
+    md:   polished            # clean combined markdown
+    docx: clean               # styled headings/quotes/lists, superscripts
+    pptx: functional          # title + bullets per section
+
+# ----------------------------------------------------------------------
+# Economics
+# ----------------------------------------------------------------------
+economics:
+  cost_bucket: ai-ops-translate
+  per_run_breaker: "--max-cost-usd (default 8.00)"
+  cost_model: "~ $0.06 / 1,000 source words (parallel agents) + negligible deterministic render"
+  gps_task_kinds:
+    translate-plan: 0.05       # deterministic ingest/split (no LLM)
+    translate-run: 8.00        # the parallel translation fan-out (the spend) — advisory; --max-cost-usd is the real guard
+    translate-build: 0.05      # deterministic render (no LLM)
+
+# ----------------------------------------------------------------------
+# Hosts / dependencies
+# ----------------------------------------------------------------------
+hosts:
+  weasyprint_py: "/opt/homebrew/bin/python3 (env TRANSLATE_PY_WEASY) — PDF render"
+  doc_py: "/opt/anaconda3/bin/python3 (env TRANSLATE_PY) — ingest, epub, docx, pptx, md, fonts"
+  fonts_cache: "runtime/translate/fonts/ (gitignored) — Source Serif 4 + Inter, instanced on first run"
+  workdir: "runtime/translate/<slug>-<hash>/ (gitignored)"

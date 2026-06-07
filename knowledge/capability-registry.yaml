@@ -1855,6 +1855,33 @@ capabilities:
       Spec: wiki/capabilities/product-code-readonly-access/spec.md. CLA artifacts
       (local-only): .archives/cla/product-code-readonly-access/.
 
+  - id: translate
+    name: "Document translation (/translate command)"
+    description: "OPERATING since 2026-06-08 (Tier-C decision, founder-proxy autonomous build + ship; ops.decisions slug translate-capability-build-approved). Universal document-translation primitive exposed as /translate <src> [flags]: ingest a source document (pdf · docx · pptx · webpage/URL · md · txt) → translate into any target language (default Vietnamese) → render one or more output formats (pdf · epub · docx · pptx · md; multi via --out=pdf+epub; default = source format) styled by a design system (default the bundled `claude` editorial palette). Books are auto-detected and split into chapters (PDF: TOC → font-size → heading fallback); long units split at section boundaries (cap 3500 source words). The translation itself is a PARALLEL Claude Code Workflow (one agent per unit, shared top-translator brief) launched by the umbrella skill — faithful-but-natural prose with markdown structure + <sup> citation superscripts + proper nouns preserved (the discipline that produced the 371-page Vietnamese 'Book of Elon' that motivated this capability). Deterministic mechanics are scripts/translate/{cli.cjs (Node orchestrator: plan|build), engine.py (ingest/split/assemble), render.py (5 renderers), design.py (DESIGN.md→book CSS), fonts.py (Source Serif 4 + Inter instanced to a gitignored runtime cache, full Vietnamese)}. PDF renders on the WeasyPrint host; epub/docx/pptx/md on anaconda. Outputs land next to the source as <name>.<lang>.<ext>. Tier A; per-run --max-cost-usd breaker (default $8); invoking asserts the right to translate. Reuses the design-system registry for non-claude palettes."
+    version: "0.1.0"
+    state: operating
+    state_since: 2026-06-08
+    proposed_at: 2026-06-08
+    deployed_at: 2026-06-08
+    operating_since: 2026-06-08
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/translate/spec.md
+    cost_bucket: ai-ops-translate
+    notes: |
+      Motivated by a one-off run: a 401-page English book → a 371-page Vietnamese
+      PDF + EPUB via the chapter-split → parallel-translate → render pipeline. This
+      capability generalizes that pipeline (multi-format in/out, any language, any
+      design-system palette) into the reusable /translate command. v0.1 scope:
+      command + umbrella skill (the only launcher of the translation Workflow) +
+      SOP-AIOPS-013-translate-runtime-contract + scripts/translate/* + bundled
+      `claude` style + lib/params+detect with All-Edge vitest coverage + ROLES gps
+      cost-bucket ai-ops-translate + per_task_kind_caps (translate-plan/run/build) +
+      resolver registration (commands.md + INDEX.md). Fidelity (honest): pdf/epub/md
+      polished, docx clean, pptx functional. Hosts: TRANSLATE_PY (anaconda),
+      TRANSLATE_PY_WEASY (homebrew). CLA artifacts (local-only): .archives/cla/translate/.
+      Future /cla extend: epub/odt input, more renderers, ops.translate_runs observability,
+      per-language glossary library, RTL (ar/he) page direction.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:
