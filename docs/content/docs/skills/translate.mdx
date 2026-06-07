@@ -1,0 +1,103 @@
+---
+title: 'Skill: translate'
+description: |
+  Umbrella skill for the `translate` capability — the brain behind /translate. Turns a
+  source document (pdf/docx/pptx/webpage/md/txt) into one or more output formats
+  (pdf/epub/docx/pptx/md) in a target language (default Vietnamese), styled by a design
+  system (default claude). Drives the deterministic pipeline (scripts/translate/cli.cjs:
+  plan → build) and, between them, launches a parallel Claude Code Workflow that
+  translates each unit at top-tier literary quality. Books auto-split into chapters.
+  Invoke when the user asks to translate a document/book/webpage into another language,
+  or runs /translate.
+source_path: 06-ai-ops/skills/translate/SKILL.md
+source_hash: 350aec49afebc7d78c1409720541234f910e070c1ff16bb6679f9faa3ddcf295
+generated_at: '2026-06-07T18:26:01.971Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Bộ điều phối lúc chạy. Ba giai đoạn: **plan → translate (Workflow) → build**. Phần
+việc cơ học là Python/Node mang tính tất định (`scripts/translate/`); còn *việc dịch*
+là một đợt fan-out các tác tử LLM được dẫn dắt bởi một bản tóm tắt chung. Đầu ra được đặt ngay cạnh nguồn.
+
+> **Quyền được dịch:** một lần gọi /translate khẳng định rằng người gọi nắm giữ quyền
+> dịch nguồn. Hãy xử lý tài liệu; ghi đầu ra cho mục đích sử dụng của chính người gọi.
+
+## Giai đoạn 1 — Lập kế hoạch
+
+Chạy trình lập kế hoạch (nó nạp nguồn, phát hiện book/doc/slides, tách thành các đơn vị,
+ghi `brief.md` + `plan.json` vào một thư mục làm việc lúc chạy):
+
+```
+node scripts/translate/cli.cjs plan "<src>" [--to=… --out=pdf+epub --style=claude --mode=auto --split=auto --max-cost-usd=8 --dry-run …]
+```
+
+Đọc kết quả JSON: `{workdir, brief, mode, title, units, total_words, cost_estimate_usd, outputs, to, tasks[], warnings[]}`.
+- **Hiển thị mọi cảnh báo.**
+- **`--dry-run`** (hoặc `dry_run:true`): trình bày kế hoạch (mode, số đơn vị, số từ, chi phí, đầu ra) rồi DỪNG. Không dịch.
+- **Cổng chi phí:** nếu `cost_estimate_usd` > giá trị `--max-cost-usd` đã được phân giải, hãy hiển thị ước tính rồi DỪNG để xác nhận (không âm thầm chi tiêu).
+
+## Giai đoạn 2 — Dịch tiêu đề, rồi fan-out các đơn vị
+
+**2a. Tiêu đề.** Tự dịch tiêu đề sách/tài liệu (`plan.title`) sang ngôn ngữ đích
+(một dòng) — giữ nguyên danh từ riêng. Giữ nó dưới dạng `TITLE_TRANSLATED` cho bước build.
+
+**2b. Khởi chạy Workflow dịch.** Dùng công cụ Workflow. Nhúng danh sách tác vụ thành một
+`const` trong thân script — **ĐỪNG truyền qua `args`** (`args` lớn sẽ đến dưới dạng chuỗi
+và `.map` sẽ ném lỗi). Mỗi đơn vị một tác tử; mỗi tác tử đọc bản tóm tắt chung + đơn vị nguồn của nó và
+ghi đơn vị đã dịch của nó. Mẫu:
+
+```js
+export const meta = { name: 'translate-<slug>', description: 'Parallel translation of <title> into <lang>', phases: [{ title: 'Translate' }] }
+const BRIEF = "<plan.brief abs path>"
+const TASKS = [ /* plan.tasks: {id, title, is_first, src, out} — embed literally */ ]
+const SCHEMA = { type:'object', additionalProperties:false, required:['id','ok','words'],
+  properties:{ id:{type:'string'}, ok:{type:'boolean'}, words:{type:'integer'}, note:{type:'string'} } }
+phase('Translate')
+const results = await parallel(TASKS.map(t => () =>
+  agent(
+`You are a world-class literary translator into <LANGUAGE>.
+STEP 1 — Read the brief (follow it EXACTLY): ${BRIEF}
+STEP 2 — Read the source unit: ${t.src}
+STEP 3 — Translate the ENTIRE unit into <LANGUAGE> at the highest literary standard
+  (faithful + natural). ${t.is_first ? 'This is the FIRST part — begin with the H1 line "# '+t.title+'" (translate the title), blank line, then body.' : 'This is a CONTINUATION part of "'+t.title+'" — do NOT repeat the title; begin with the first translated section/paragraph.'}
+  Preserve every "## "/"### " heading (translated), "> " blockquote (translated),
+  **bold**, lists, tables, and every <sup>N</sup> marker VERBATIM. Keep proper nouns.
+STEP 4 — Write ONLY the translated markdown (no preamble/fences) to: ${t.out}
+STEP 5 — return {"id":"${t.id}","ok":true,"words":<count>}.`,
+    { label:`tr:${t.id}`, schema: SCHEMA }
+  ).catch(e => ({ id:t.id, ok:false, words:0, note:String(e).slice(0,200) }))
+))
+return { ok: results.filter(r=>r&&r.ok).length, total: TASKS.length, failed: results.filter(r=>!r||!r.ok) }
+```
+
+- Các tác tử kế thừa mô hình của phiên (dùng mô hình mạnh nhất hiện có — chất lượng dịch là mấu chốt).
+- Mức đồng thời tự giới hạn (~8–16); sách lớn chạy theo từng đợt. Workflow chỉ trả về một bản kê nhỏ (các bản dịch được ghi ra file, không bao giờ dồn ngược qua ngữ cảnh).
+- **Chạy lại bất kỳ đơn vị nào thất bại** (file `out` của nó bị thiếu/rỗng) trước khi build.
+
+## Giai đoạn 3 — Build
+
+```
+node scripts/translate/cli.cjs build <workdir> --title="<TITLE_TRANSLATED>" [--subtitle="…"]
+```
+Bước này lắp ghép các đơn vị đã dịch (nối các nửa đã tách) và kết xuất mọi định dạng đầu ra được
+yêu cầu bằng hệ thống thiết kế đã phân giải. Đọc kết quả `{ok, outputs[], outDir}`.
+
+## Giai đoạn 4 — Báo cáo
+
+Báo cáo các file đã tạo (đường dẫn tuyệt đối), ngôn ngữ đích + style, mọi cảnh báo, và —
+một cách trung thực — các ghi chú độ trung thực từ ma trận của lệnh (pdf/epub/md được trau chuốt; docx sạch sẽ;
+pptx vận hành được). Đầu ra nằm trong thư mục của nguồn trừ khi `--out-dir` được cung cấp.
+
+## Ghi chú
+- **Hosts:** trình lập kế hoạch/trình kết xuất tự động chọn đúng Python (PDF → host WeasyPrint;
+  epub/docx/pptx/md → anaconda). Phông chữ (Source Serif 4 + Inter, đầy đủ tiếng Việt) được tải về +
+  tạo instance một lần vào `runtime/translate/fonts/` (gitignored).
+- **Phát hiện cấu trúc** mang tính tổng quát (TOC → cỡ phông → dự phòng theo tiêu đề cho PDF; kiểu
+  đoạn văn cho docx; slide cho pptx; thẻ ngữ nghĩa cho HTML). Nó suy giảm một cách nhẹ nhàng.
+- **Thước đo chất lượng:** bản tóm tắt thực thi văn phong trung thực-mà-tự-nhiên, thuật ngữ nhất quán,
+  cấu trúc được giữ nguyên + chỉ số trên trích dẫn — kỷ luật của một dịch giả nhà xuất bản hàng đầu.
+- Skill này là nơi *duy nhất* khởi chạy Workflow dịch; `cli.cjs` không bao giờ làm điều đó.

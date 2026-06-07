@@ -1,0 +1,89 @@
+---
+title: "Chương 53 — Capability Case Study: translate (`/translate` — dịch tài liệu đa định dạng, song song, theo design system)"
+description: "Chương 53 — Capability Case Study: translate (`/translate` — dịch tài liệu đa định dạng, song song, theo design system)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/53-capability-case-translate.md
+source_hash: ac50e93191c0f2cf17c4aa661308188c63a08c25c48d91aeb929dee059134032
+generated_at: '2026-06-07T18:32:49.309Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: ac50e93191c0f2cf17c4aa661308188c63a08c25c48d91aeb929dee059134032
+translated_at: '2026-06-07T18:32:49.309Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 53
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> **Case Study #16.** `/translate` biến *bất kỳ* tài liệu nguồn (pdf · docx · pptx · trang web/URL · markdown · txt) thành *một hoặc nhiều* định dạng đích (pdf · epub · docx · pptx · md), sang *bất kỳ* ngôn ngữ (mặc định tiếng Việt), trình bày theo *bất kỳ* design system (mặc định `claude`). Sách được tự-động nhận-diện và chia thành chương; phần dịch chạy **song song qua một Claude Code Workflow** ở đẳng-cấp dịch-giả-hàng-đầu, giữ nguyên cấu trúc + chú-thích nguồn. Đầu ra nằm cạnh tài liệu gốc. Bài học lớn nhất: **một tác vụ thủ công làm-một-lần, nếu tách đúng pha (ingest → split → song-song-dịch → render), sẽ trở thành một capability dùng-mãi-mãi** — và phần "thông minh" (chất lượng dịch) thuộc về *brief + Workflow*, còn phần cơ-khí (đọc/chia/ghép/đóng-gói) thuộc về *script tất-định*.
+
+## 53.1 Bài toán — từ một bản dịch thủ công đến một primitive
+
+Khởi nguồn là một việc cụ thể: một cuốn sách tiếng Anh 401 trang cần một bản tiếng Việt **thật hay, thật sát**, đóng thành PDF + EPUB theo phong cách Claude. Lần làm đó (Chương này gọi là "run gốc") đã chứng minh một dây chuyền:
+
+1. **Chia chương** từ một PDF không có TOC nhúng — bằng heuristic font-size (đúng nhánh dự-phòng của `wiki/chapter-splitter`).
+2. **Dịch song song** 28 đơn-vị qua một Workflow 28-agent, mỗi agent đọc chung một *brief + glossary*, giữ `<sup>` chú-thích verbatim.
+3. **Đóng sách** PDF (WeasyPrint) + EPUB (ebooklib) theo một design system (cover, TOC, trang ngăn Phần, "lông mày" mục màu đất-nung, drop-cap).
+
+Kết quả: 371 trang tiếng Việt, chú-thích khớp tuyệt-đối với bản gốc. Nhưng đó là *một việc làm tay*. Câu hỏi capability: **tổng-quát-hoá dây chuyền ấy** thành một lệnh chạy được trên *mọi* tài liệu, *mọi* ngôn ngữ, *mọi* định dạng ra, *mọi* palette — `/translate`.
+
+## 53.2 Hình dạng — thin command / umbrella skill / engine tất-định (mirror /image, /deepask, /dataviz)
+
+Đúng khuôn các primitive trước: một **lệnh mỏng** trên một **umbrella skill** trên một **engine tất-định**.
+
+```
+/translate <src> [flags]                       .claude/commands/translate.md
+  └─ 06-ai-ops/skills/translate/SKILL.md         (nơi DUY NHẤT phóng Workflow dịch)
+       └─ scripts/translate/
+            cli.cjs          orchestrator Node: `plan` | `build`
+            lib/params.cjs   parse cờ/out-spec/ngôn-ngữ/style  (vitest: tests/translate/params.test.ts, 61 ca)
+            lib/detect.cjs   nhận-diện định dạng nguồn (đuôi file / URL)
+            engine.py        adapter ingest · nhận-diện cấu-trúc · chia chương · assemble · brief
+            render.py        renderer: pdf · epub · docx · pptx · md
+            design.py        token DESIGN.md → CSS sách (palette theo --style)
+            fonts.py         Source Serif 4 + Inter → TTF tĩnh instanced (cache runtime)
+            styles/claude/   design system mặc-định đóng-gói sẵn (DESIGN.md)
+```
+
+Cú pháp: `/translate <src> [--to=vi --out=pdf+epub --style=claude --mode=auto --split=auto --max-cost-usd=8 --dry-run …]`. `--out=pdf+epub` (dấu `+` = nhiều định dạng); không khai-báo `--out` thì **đầu ra cùng định dạng với nguồn** (trang web → pdf). `--to` mặc-định `vi`. **Gọi `/translate` tức là khẳng-định người gọi có quyền dịch** (chỉ-thị founder).
+
+## 53.3 Kiến trúc 3 pha — plan → translate (Workflow) → build
+
+- **plan** (`cli.cjs plan`, *tất-định, KHÔNG LLM*): nhận-diện định dạng → ingest về markdown chuẩn-hoá → nhận-diện mode (`book`/`doc`/`slides`) → chia đơn-vị (sách: chương tại TOC/H1; đơn-vị dài cắt tại ranh-giới mục, trần 3.500 từ-nguồn) → ghi *brief* dịch theo ngôn-ngữ đích + `plan.json` (kèm danh-sách task per-unit) vào workdir gitignored. `--dry-run` dừng tại đây và in kế-hoạch (mode, số chương, số từ, ước-tính chi-phí).
+- **translate** (do **skill** phóng một **Workflow**): mỗi đơn-vị một agent, đọc *brief + đơn-vị nguồn*, ghi *đơn-vị đã dịch*. Brief ép kỷ-luật: **trung-thành-nhưng-tự-nhiên**, thuật-ngữ nhất-quán, giữ nguyên cấu-trúc markdown (`#`/`##`/`###`, `>` blockquote, `**đậm**`, list, bảng) **+ `<sup>N</sup>` chú-thích verbatim** + danh-từ-riêng. Danh-sách task nhúng làm `const` trong script (KHÔNG qua `args` — args lớn về dạng string làm `.map` ném). Workflow chỉ trả manifest nhỏ; bản dịch ghi ra file (context sạch). Đơn-vị lỗi được chạy lại trước khi build.
+- **build** (`cli.cjs build`, *tất-định, KHÔNG LLM*): ghép đơn-vị đã dịch (nối các nửa đã cắt) → render mỗi định dạng yêu-cầu theo design system → ghi `<tên>.<lang>.<đuôi>` cạnh nguồn.
+
+Điểm mấu chốt kiến trúc: **`cli.cjs` không bao giờ phóng agent**; skill sở-hữu việc fan-out (đúng yêu-cầu "dùng Workflow để dịch song song"). LLM chỉ xuất-hiện ở pha translate; ingest/split/render là Node/Python thuần.
+
+## 53.4 Quyết định khoá
+
+- **D1 — nhận-diện cấu-trúc tổng-quát, không tinh-chỉnh theo từng tài-liệu.** PDF: `get_toc()` → heuristic font-size theo cỡ-thân modal → fallback đậm/heading; header/footer chạy-trang lọc theo lặp-lại; `<sup>` chú-thích qua cờ superscript của PyMuPDF. DOCX: style đoạn. PPTX: theo slide. HTML: thẻ ngữ-nghĩa + trích nội-dung-chính. **Suy-giảm duyên-dáng** (không bao giờ hardcode theo file) — trên cuốn sách gốc, generic chia 39 đơn-vị (thô hơn 23 đơn-vị của run tinh-chỉnh tay; đây là *giới hạn trung thực* của v0.1, để dành cho `/cla extend` về sau).
+- **D2 — palette đổi theo `--style`, typography là bundled.** Source Serif 4 + Inter (đủ dấu tiếng Việt, instanced tĩnh) là cặp chữ đọc cho *mọi* style ở v0.1; design system cấp **bản-sắc-màu**. Giữ mọi đầu-ra ổn-định + đúng-dấu.
+- **D3 — dịch là một Workflow, do skill phóng.** Tách trí-thông-minh (dịch) khỏi cơ-khí (ingest/render).
+- **D4 — đầu ra cạnh nguồn; phần làm-việc trong `runtime/` gitignored.** Thư-mục nguồn chỉ nhận artifact cuối.
+- **D5 — Tier A + cầu-dao `--max-cost-usd`.** Cục-bộ, đảo-ngược-được, đo-đếm. Gọi lệnh = khẳng-định quyền dịch.
+- **D6 — tái-dùng, không fork.** `--style` đọc thư-viện design-system của repo cho palette ngoài-claude; các renderer dùng chung `design.py`.
+
+## 53.5 Chất lượng dịch — brief là tài-sản
+
+Phần "thật hay, thật sát" sống trong `brief.md` được tham-số-hoá theo ngôn-ngữ đích: persona dịch-giả-non-fiction hàng-đầu; *faithful-not-literal*; tái-cấu-trúc cú-pháp về tự-nhiên; idiom → idiom (không calque); giữ danh-từ-riêng + số + đơn-vị; **giữ verbatim `<sup>` + mọi markdown**; nhất-quán thuật-ngữ (kèm `--glossary` tuỳ chọn). Cùng một brief đưa cho mọi agent ⇒ một cuốn sách mạch-lạc dù dịch song song. Đây là cùng kỷ-luật đã cho ra bản "Sách Về Elon" 371 trang.
+
+## 53.6 Ma trận định dạng + fidelity trung thực (v0.1)
+
+| | pdf | epub | docx | pptx | md |
+|---|---|---|---|---|---|
+| **fidelity** | bóng-bẩy | bóng-bẩy | sạch | dùng-được | bóng-bẩy |
+
+Nhập: `pdf · docx · pptx · html/URL · md · txt`. Đầu ra mặc-định = định-dạng nguồn (html → pdf); nhiều định-dạng qua `--out=pdf+epub`. Host: `TRANSLATE_PY` (anaconda: pymupdf/python-docx/python-pptx/bs4/ebooklib/markdown/PIL/fonttools), `TRANSLATE_PY_WEASY` (homebrew: weasyprint cho PDF). Font instanced một-lần vào `runtime/translate/fonts/` (mạng chỉ ở cache lạnh).
+
+## 53.7 Dogfood + bài học
+
+Dogfood end-to-end: một tài-liệu ngắn qua *đúng đường lệnh* (plan → Workflow 1-agent → build) cho ra tiếng Việt thật, render đủ 5 định-dạng, `<sup>` giữ nguyên, "lông mày" mục + folio đất-nung đúng phong-cách Claude. `--dry-run` trên cuốn sách 401 trang chứng-minh nhận-diện book-mode + chia chương trên một cuốn sách thật. 61 ca vitest cho lớp parse (detect/params), `check-consistency` xanh sau đăng-ký (registry + ROLES caps `ai-ops-translate` + resolver catalog/INDEX + SOP-AIOPS-013).
+
+**5 bài học:**
+1. **Tách-pha biến việc-tay thành capability.** Một bản dịch sách thủ-công = ingest + split + (song-song dịch) + render. Đặt tên 4 pha ⇒ một lệnh tổng-quát.
+2. **Trí-thông-minh ở Workflow, cơ-khí ở script.** Dịch (phán-đoán) = agent; đọc/chia/ghép/đóng-gói (tất-định) = Node/Python thuần, testable.
+3. **Brief là hợp-đồng chất-lượng.** Một brief chung + glossary giữ một cuốn sách mạch-lạc qua N agent song song; `<sup>`-verbatim là bất-biến chấp-nhận.
+4. **Trung-thực về fidelity hơn hứa-hão.** v0.1 nói thẳng pdf/epub/md bóng-bẩy, docx sạch, pptx dùng-được, và generic-split thô hơn tinh-chỉnh-tay — kèm lộ-trình `/cla extend`.
+5. **Tái-dùng trục design-system.** `--style` là DATA (đọc DESIGN.md → palette), không thêm dòng dispatch — đúng bài học Chương 47/48.
