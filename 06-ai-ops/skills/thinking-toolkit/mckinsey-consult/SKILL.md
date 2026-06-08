@@ -1,0 +1,325 @@
+---
+name: thinking-toolkit/mckinsey-consult
+description: |
+  The CONSULT checkpoint of the /think mckinsey engine — convene a domain MASTER
+  (a /muse legend: David Ogilvy, Philip Kotler, Eugene Schwartz, Charlie Munger,
+  Chris Voss, …) as another member of the McKinsey team at a checkpoint where the
+  live sub-need is a matter of CRAFT / domain-mastery JUDGMENT, not a fact and not
+  analytical structure. The engine FRAMES the need → SELECTS the right legend
+  (muse:who fit reasoning) → runs an interactive exchange WITH that legend in one
+  of two seats — `auto` (the engine self-plays the client seat from the run
+  context, founder skipped) or `founder` (the founder takes the seat, a real
+  /muse:<persona> session) — → captures the master's recommendation → runs it
+  through the McKinsey validation gate as EVIDENCE-NOT-DECIDER (a legend's word is
+  degree-6/7 expert judgment, never an asserted fact) → records it (consult-log +
+  checkpoint-log kind=consult + toolkit-log + analysis-log [E<n>] receipt) →
+  continues the flow.
+
+  It is the QUALITATIVE complement to the data sweep: the data tools answer "what
+  is TRUE?"; the consult answers "what would a MASTER do here, and why?". Like
+  inviting a legend to collaborate on the work.
+
+  Trigger: invoked BY thinking-toolkit/mckinsey-workflow at a checkpoint (the
+  `--consult` flag + the craft-judgment trigger below), never standalone. Skip
+  when the sub-need is a fact (route to a data tool) or pure analytical structure
+  (route to a /think micro-framework).
+
+  Runs IN THE ACTIVE SESSION (it needs the conversation channel for founder
+  participation + the self-play exchange). /muse is a SYSTEM-level skill — invoked
+  read-only, never modified.
+allowed-tools: [Read, Bash, Skill, AskUserQuestion]
+disable-model-invocation: false
+---
+
+# McKinsey Consult — convene a domain master via /muse
+
+> A McKinsey team is not just analysts. On a craft question — a landing page that
+> must *sell*, a positioning that must *land*, a price that must *feel right*, a
+> negotiation that must get to "that's right" — the team brings in the world's
+> best on that craft. This checkpoint does exactly that: at a /think mckinsey
+> checkpoint where the live sub-need is a **mastery judgment**, convene the right
+> **/muse legend** as a team member, run the exchange, take the master's read
+> through the same validation discipline as any datum, and carry it forward.
+
+This skill is **one checkpoint of the mckinsey-workflow engine** — the `consult`
+team session (the 8th `kind`). It is the executable contract for the founder's
+ask: *"at a checkpoint, McKinsey frames the need, identifies and calls an expert
+X via /muse:X, runs an interactive exchange (I can join or be skipped), takes the
+result, and continues — like inviting a master to collaborate."*
+
+## When to fire a consult (the trigger — a cost-valve, like deepask)
+
+Fire a consult **only** when the live sub-need is a **craft / domain-mastery
+JUDGMENT** where a master's distinctive lens would change the answer, AND the
+sub-need survived knock-out (it is load-bearing — it moves the one-day answer).
+
+Good consult sub-needs (a master sharpens these in a way data + generic structure cannot):
+
+- **Copy / creative that must sell** → `david-ogilvy` ("will it sell, or just win awards?"), `eugene-schwartz` (channel existing desire).
+- **Positioning / marketing strategy / segmentation** → `philip-kotler`, `seth-godin`.
+- **Pricing psychology / willingness-to-pay framing** → `philip-kotler`, `charlie-munger` (invert), `chris-voss` (anchoring).
+- **A first-principles teardown / "is this even the right thing"** → `elon-musk` (delete the requirement), `feynman` (explain it simply).
+- **Product taste / "less but better" / what to cut** → `dieter-rams`, `steve-jobs`.
+- **Negotiation / objection framing / a hard conversation** → `chris-voss`.
+- **Founder/startup strategy judgment (kill the tier? expand? default-alive?)** → `paul-graham`, `peter-thiel`, `steve-blank`.
+- **Investing / capital-allocation / inversion** → `charlie-munger`, `warren-buffett`.
+
+**Do NOT fire a consult for:**
+
+- A **fact / number / metric** → that's a data pull (`data_routing`: supabase-ops / wiki_ask / gbrain / deepask / deep-research). A legend is not a source of facts.
+- **Analytical structure** (decompose a metric, MECE-gate, frame, stress-test) → that's a `/think` micro-framework (driver-tree / mece / hypothesis / pyramid / so-what / 2x2). The micro-frameworks are *operations*; a consult is a *perspective*.
+- A **routine / operational** sub-need with no craft dimension.
+
+**Precedence (the hard rule — consult LAST):** **data → structure → consult.** If a
+data pull (`data_routing`) can resolve it, pull. Else if a `/think` micro-framework
+(driver-tree / mece / hypothesis / pyramid / so-what / 2x2) can resolve it, run that.
+Only what *neither* can reach — an irreducible craft/mastery judgment — is a consult.
+A consult is never the first reach; "heuristics before big guns" applies to legends too.
+
+> The discipline: a consult is a **big-ish gun** (an interactive sub-session). Use
+> it on the few sub-needs where craft mastery is the bottleneck — not on every
+> leaf. Heuristics + data before legends; a legend where data can't reach. **The
+> dominant real-world failure is UNDER-firing** (the master never gets invited
+> because the engine forgot to look) — so when a problem's domain is squarely craft
+> (a landing page, a positioning, a price, a negotiation), actively ask "should a
+> master be at this table?" before Sell. (A mechanical before-Sell WARN on a
+> domain-detected craft problem with zero consults is the v0.2 trigger-loop close.)
+
+## How a consult runs (the 6-move loop)
+
+At the checkpoint, BEFORE you fold the master's input into the answer, run:
+
+### 1 — FRAME the need (what would a master sharpen?)
+
+State, in one line, the **craft judgment** at stake and **why a master changes the
+answer here** (not a fact you could pull). This becomes the consult's `sub-need`
+and the `presented` cell of its `checkpoint-log` row.
+
+> e.g. *"The hero section must convert cold traffic. The live question is craft —
+> does it lead with the offer or with the cleverness? A direct-response master
+> reads this in a way our bounce data can describe but not decide."*
+
+### 2 — SELECT the legend (identify + call expert X — the muse:who reasoning)
+
+Read the installed roster (`/muse:list`, or the persona files under the muse skill
+directory) and pick the **best-fit legend(s)** using muse's own 0-80 fit logic
+(trigger match · question-type fit · domain alignment · thinking-mode resonance ·
+avoid-when penalty). You may instead **delegate the pick** to `/muse:who
+"<sub-need>"` and take its top recommendation.
+
+- **One master** is the default.
+- **A debate** (`muse:debate A vs B`) when two masters would genuinely disagree on
+  the call and the tension is the insight (e.g. `david-ogilvy vs eugene-schwartz`
+  on lead-with-brand vs lead-with-desire; `peter-thiel vs steve-blank` on
+  monopoly-first vs search-first). v0.1 default is single-master; debate/council
+  are natural escalations (and compose with `--workflow`, below).
+- **No fit on the roster?** Default to the **nearest** master + note the gap in the
+  consult-log. ONLY if the founder opts in (or the craft is central + recurring) may
+  you `/muse:build <id> --src=<research>` to create a new legend first — that is a
+  heavier, interactive act; do not do it silently mid-run.
+
+Record the pick (and the runners-up you rejected + why) to `toolkit-log.md` — the
+legend IS the tool you selected at this checkpoint:
+
+```
+| T7 | solve | C6 | craft read on hero copy | checklist | muse:david-ogilvy, muse:eugene-schwartz, deepask | muse:david-ogilvy — direct-response master, "will-it-sell" lens fits | deepask — that's data, not craft; eugene-schwartz — held as the debate foil if ogilvy is inconclusive |
+```
+
+### 3 — CHOOSE THE SEAT (founder participates OR is skipped)
+
+A `/muse:<persona>` session is interactive — the persona asks the *client* a
+question at each stage. Decide who sits in the client seat:
+
+- **`--consult=founder`** (default when mckinsey `--mode=interactive`) — **hand the
+  seat to the founder.** Surface: *"Convening David Ogilvy on the hero copy. Want to
+  take the seat yourself, or shall I run it?"* If the founder takes it, invoke the
+  real `/muse:david-ogilvy "<sub-need + the relevant run context>"` and let the
+  founder answer the persona's stage questions directly. You observe + capture the
+  result.
+- **`--consult=auto`** (default when mckinsey `--mode=auto`) — **the engine
+  self-plays the client seat** (founder skipped). See the self-play protocol below.
+- Even in `auto`, **announce the consult at the open** so a present founder can jump
+  in: `AskUserQuestion` → *"Convening <legend> on <sub-need> — [I take the seat] ·
+  [you run it (auto)] · [skip the consult]"*. Honour "skip" (carry an explicit
+  assumption + sensitivity instead). This is the founder's *"có option tôi tham gia
+  hoặc bỏ qua tôi."*
+
+### 4 — RUN THE EXCHANGE
+
+**Founder seat:** run the normal `/muse:<persona>` session; the founder answers; you
+read the persona's Stage-5 concrete recommendation off the session.
+
+> **Which `/muse` path each seat uses (the seam — do not blur it).** The **founder
+> seat** invokes the real interactive `/muse:<persona>` SESSION.md session (whose
+> contract is *"STOP points are not optional — do not silently skip a stage"*; the
+> founder answers each STOP). The **auto seat does NOT drive that STOP-gated session**
+> — self-answering its STOPs would breach muse's own contract. Auto instead self-plays
+> the persona's **cognitive moves** (the persona-file `signature_moves` — Ogilvy's
+> "will it sell?", Munger's inversion, Voss's "that's right"), which is muse's own
+> documented free-text mode. Never "fix" auto to drive SESSION.md and auto-answer the
+> human's STOPs.
+
+**Auto seat — the self-play protocol (the engine plays an honest client):** run the
+persona's **cognitive moves** (not the STOP-gated session), and instead of stopping
+for the founder at each move, **the engine answers each prompt from the run's
+accumulated truth** — the `problem-statement`, the live `one-day-answer`, the relevant
+`analysis-log` rows, and the framed sub-need. Bias toward the persona's **sharpest,
+most uncomfortable** probe (turn the master's lens on your *own* favorite answer), not
+the soft question that leads where you already want to go. Play it straight, both seats visible:
+
+1. The persona FRAMES (its distinctive reframe of the sub-need). The engine picks
+   the framing option that matches the *real* problem (not the flattering one).
+2. The persona EXAMINES (surfaces an assumption). The engine answers **truthfully
+   from the data** — concede what the data concedes.
+3. The persona TESTS (its signature probe — Ogilvy's "will it sell?", Munger's
+   inversion, Voss's "that's right"). The engine runs the probe against the run's
+   facts and reports what it reveals.
+4. The persona forces the DECIDE fork. The engine takes the side the **evidence +
+   the TOSCA success criteria** support — not the side the persona prefers.
+5. Converge to the persona's Stage-5 **concrete recommendation**.
+
+**The self-play honesty rules** (these are what keep it McKinsey, not theatre):
+
+- **Never fabricate the client's answers.** If the persona asks something only the
+  founder knows (private intent, risk appetite, an unrecorded number), that is an
+  **ask-user** — emit a real `AskUserQuestion` + log the `[H<n>]` hitl receipt — or
+  an explicit **assumption** (degree ≥6 + sensitivity). The self-play plays the
+  *known* truth; it does not invent the unknown.
+- **The persona drives the cognitive moves; the engine supplies the
+  problem-truth.** You are not impersonating the legend's *conclusion* — you are
+  running their *method* honestly against your real situation and seeing where it
+  lands.
+- **Surface the exchange** in the conversation (condensed) — never silently
+  self-play and emit only a file. The founder must be able to read what the master
+  asked and what the engine answered.
+
+### 5 — VALIDATE the master's read (EVIDENCE-NOT-DECIDER — the load-bearing discipline)
+
+A legend's recommendation is **powerful but it is not a fact and not the call.**
+Run it through the McKinsey `validation_gate` like any datum:
+
+- **Knock-out:** does this read actually move the one-day answer? If not, note it and move on.
+- **Degree-of-certainty: 6-7** — expert judgment (Cracked It! eight-degrees: discount degree-7 *expert input* for the legend's own incentives/era). Tag it as a judgment call, never as a fact.
+- **Triangulate vs the pulled data:** does the master's read **cohere** with the analysis-log evidence, or **conflict**? Coherence → high-confidence converging signal (double down). **Conflict → a genuine tension you may NOT resolve silently.** Do not wave the master away as "wrong era" (that's the celebrity-discount inverted into a convenient dismissal — as biased as over-deferring). A `gate-verdict: conflicts` **requires a receipt**, symmetric with the cohere path: either an `[H<n>]` founder adjudication (a real `AskUserQuestion` logged to `hitl-log.md` — "the data says X, Ogilvy says Y; which holds?") OR an explicit logged **assumption** (degree ≥6) + a sensitivity note. The master may be right *or* reading a different context — but the engine doesn't get to decide that unilaterally on a load-bearing leaf.
+- **Honesty-label:** the recommendation enters the answer **as a master's judgment**, attributed, gated — `muse-consult (david-ogilvy) [E1]`, degree 6.
+
+> A legend's word **never launders past the gate.** "Ogilvy said so" is not a
+> proof; it is a degree-6 expert datum that must cohere with the evidence and
+> survive the same scrutiny. The synthesize→recommend judgment stays with the
+> engine (Sell) + the founder. This is the same `evidence-not-decider` discipline
+> the engine applies to `/deepask`.
+
+### 6 — RECORD + CONTINUE
+
+Write the consult into the ledgers (one row each), then re-route per the engine's
+`routing_rules` (the master may **reframe** the problem → porpoise; or **confirm**
+it → double down):
+
+- **`consult-log.md`** (the NEW expert-consultation ledger) — one row per consult:
+
+  ```
+  | id | checkpoint | persona(s) | sub-need | participation | recommendation (one line) | session-ref | degree | gate-verdict |
+  |----|-----------|-----------|----------|---------------|---------------------------|-------------|--------|--------------|
+  | E1 | C6 | david-ogilvy | hero copy: offer-led vs clever | auto (founder skipped) | lead with the offer + a single proof; cut the cleverness; "will it sell" beats "will it win awards" | ~/.muse/sessions/2026-06-08-…-david-ogilvy-hero-copy.md | 6 | coheres-with-bounce-data → double down |
+  ```
+
+  `participation ∈ auto | founder`. `session-ref` = the `~/.muse/sessions/…md` path
+  (founder seat) or `auto-played` (self-play). **For the auto seat, persist the
+  self-played exchange (the persona's probes + the engine's answers) to the run
+  folder by default** (append it under the consult-log row, or a sibling
+  `consult-<E#>.md`) — it is the auto path's *only* audit trail (a founder seat leaves
+  a `~/.muse` session file; auto must not be a black box). `gate-verdict` = the
+  triangulation result (`coheres` / `conflicts` / `inconclusive`) + the route taken.
+
+- **`checkpoint-log.md`** — a `consult`-kind team session: `| C6 | solve | consult | convened david-ogilvy on hero copy (offer-led?) | founder skipped / engine self-played | take: lead with the offer (degree 6, coheres with data) |`.
+- **`toolkit-log.md`** — the legend as the selected tool (step 2 above).
+- **`analysis-log.md`** — the validated read as a datum: `| hero copy gated by offer-clarity not cleverness | rewrite hero offer-led | muse-consult (david-ogilvy) [E1] | 6 | coheres with the 71% bounce on the clever variant |`.
+
+> **The receipt gate (mirror of the HITL receipt).** Every `analysis-log` datum
+> with `muse-consult` provenance **must carry an `[E<n>]` tag resolving to a row in
+> `consult-log.md`** — `scripts/thinking-toolkit/mckinsey-run.cjs check` FAILS a
+> bare `muse-consult` datum with no receipt. Consults are **optional** (not every
+> run consults) — the gate fires only when a consult is *claimed*. Discipline, not
+> proof: the checker can't watch the exchange; it makes *faking* a consult datum a
+> failure and leaves an auditable trail (the consult-log row + the `~/.muse`
+> session path).
+
+## Flags (parsed by mckinsey-workflow from `/think mckinsey … --consult=<value>`)
+
+| `--consult` | meaning |
+|---|---|
+| (unset) | derive from `--mode`: `interactive` → offer the founder the seat per consult; `auto` → self-play. The engine decides WHEN to fire (the craft-judgment trigger). |
+| `auto` | the engine self-plays the client seat at every consult (founder skipped). |
+| `founder` | the founder takes the client seat at every consult (interactive /muse session). |
+| `off` | never fire a consult (pure data-driven run). |
+| `<persona>` | force a specific legend when a consult fires (e.g. `--consult=david-ogilvy`). |
+| `who` | always route the legend pick through `/muse:who` (don't engine-judge it). |
+
+## Composition with `--workflow` (v0.1 note)
+
+When mckinsey runs `--workflow=steps|full`, a consult can fan out as a
+**multi-master panel**: a `parallel()` of N legends each reading the sub-need,
+then a synthesis (consensus / unique-read / genuine-disagreement) — the `muse:all`
+council or a `muse:debate` shape, run as evidence through the gate (a panel must
+not launder a verdict). v0.1 default is single-master or `muse:who`; the panel is
+the natural escalation for the highest-craft, highest-stakes sub-needs.
+
+## Anti-claims
+
+- This is **NOT celebrity-says-so.** A legend's read is a degree-6 expert judgment,
+  attributed + gated + triangulated against the data — never an asserted fact and
+  never the final call.
+- This is **NOT a substitute for the data sweep.** A consult answers "what would a
+  master do?"; you still pull the real data ("what is true?"). The two compose; the
+  consult does not replace the workplan.
+- This does **NOT modify /muse.** /muse is a system-level skill, invoked read-only
+  (`/muse:<persona>`, `/muse:who`, `/muse:debate`, `/muse:build`). The integration
+  lives entirely in the mckinsey engine.
+- The self-play is **NOT impersonating a verdict** — it runs the master's *method*
+  honestly against the run's real truth and reports where it lands; the client
+  seat answers from data, never from a flattering guess.
+
+## References
+
+- The engine: `06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md` + the
+  machine-readable spec `knowledge/mckinsey-workflow.yaml` (the `consult` section,
+  the `muse-consult` `data_routing` row, the `consult-log` artifact, the
+  `checkpoint-log` `consult` kind).
+- The gate: `scripts/thinking-toolkit/mckinsey-run.cjs` (the `consult-log` artifact +
+  the `[E<n>]` receipt reconciliation, mirror of the v1.8 HITL receipt gate).
+- /muse (system skill, read-only): `~/.claude/skills/muse/` — `SESSION.md` (the
+  5-stage persona session), `commands/muse:who.md` (the 0-80 fit rubric),
+  `commands/muse:debate.md`, `commands/muse:build.md`; 29 installed legends incl.
+  david-ogilvy, philip-kotler, eugene-schwartz, charlie-munger, chris-voss,
+  paul-graham, peter-thiel, dieter-rams, elon-musk, steve-jobs, …
+- The discipline this mirrors: the engine's `evidence-not-decider` `composition_guard`
+  (deepask) + the v1.8 HITL receipt gate.
+
+## Worked example — the founder's landing-page case
+
+**Run:** `/think mckinsey "Rewrite the Ritsu landing page to convert cold US-STEM traffic" --consult=auto`
+
+- **Structure** surfaces a workplan leaf: *"the hero section is the conversion
+  bottleneck."* Data tools answer the facts (bounce rate by variant, scroll depth —
+  `supabase-analytics`/`metrics`). But the live sub-need at CP-6 is **craft**: *does
+  the hero lead with the offer or the cleverness?* — a master's call.
+- **FRAME:** craft judgment on hero copy; a direct-response master changes the answer.
+- **SELECT:** `muse:who "hero copy that must convert cold traffic"` → **david-ogilvy**
+  (top fit: direct-response, "will it sell"); eugene-schwartz held as the debate foil.
+  Logged to toolkit-log.
+- **SEAT:** `--consult=auto` → announce *"Convening David Ogilvy on the hero — [I
+  take it] · [auto] · [skip]"*; founder asleep → auto.
+- **EXCHANGE (self-play):** Ogilvy frames *"is this hero a headline that sells, or an
+  ad that wins awards?"*; engine answers from the data (the clever variant bounces
+  71%); Ogilvy's probe — *"the headline is 80% of the spend; does yours promise a
+  specific benefit?"* — the engine concedes it doesn't; Stage-5 read: **lead with the
+  concrete offer + one proof; cut the cleverness.**
+- **VALIDATE:** degree-6 expert judgment; triangulate → **coheres** with the 71%
+  bounce on the clever variant → double down.
+- **RECORD:** `consult-log` E1; `checkpoint-log` C6 kind=consult; `toolkit-log` T7;
+  `analysis-log` `muse-consult (david-ogilvy) [E1]` degree 6. The one-day answer
+  updates: *"the hero must be offer-led; the cleverness is the conversion leak."*
+- **CONTINUE:** Solve proceeds; at Sell, the recommendation carries an attributed,
+  gated master's judgment alongside the pulled data — not "Ogilvy said so", but
+  "the offer-led hero is supported by both the bounce data and a direct-response
+  read, degree-6."
