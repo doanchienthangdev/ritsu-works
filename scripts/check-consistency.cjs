@@ -249,6 +249,8 @@ async function main() {
     ['validate-art-styles.cjs', 'art-styles.yaml ↔ schema + no brand-palette leak'],
     // capability image-platform v0.1 PR-1 — image-adapters.yaml structural + supports⊆universal + installed⇒generator-on-disk
     ['validate-image-adapters.cjs', 'image-adapters.yaml ↔ schema + generator-on-disk'],
+    // capability voice-platform v0.1 — voice-adapters.yaml structural + supports⊆universal + installed⇒generator-on-disk
+    ['validate-voice-adapters.cjs', 'voice-adapters.yaml ↔ schema + generator-on-disk'],
     // capability dataviz v0.1 — dataviz-renderers.yaml structural + supports⊆universal + installed⇒generator-on-disk
     ['validate-dataviz-renderers.cjs', 'dataviz-renderers.yaml ↔ schema + supports⊆universal'],
     // capability thinking-toolkit v1.3 — mckinsey-workflow.yaml 4S catalog: every referenced skill + concept exists on disk

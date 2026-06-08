@@ -1,0 +1,81 @@
+# ============================================================================
+# voice-adapters.yaml — Text-to-speech backend registry (capability voice-platform)
+# ============================================================================
+# Single index for the /voice pluggable adapter layer (--use=<adapter>). SPLIT-
+# registry shape (mirrors image-adapters.yaml): a built adapter carries a
+# `generator` script path that MUST exist on disk; a `registered-not-built` stub
+# carries none (it documents intent + its native param surface for the day it ships).
+#
+# Adding a TTS backend later = drop adapters/<id>/SKILL.md + one row here + one
+# routing-table row in the umbrella skill. NO command-side code change.
+#
+# Schema: knowledge/schemas/voice-adapters.schema.json
+# Gate:   scripts/cross-tier/validate-voice-adapters.cjs (L2 critical — structural +
+#         supports[] ⊆ UNIVERSAL_PARAMS + installed⇒generator-on-disk + preset_of⇒target)
+# Spec:   wiki/capabilities/voice-platform/spec.md (after Phase 8; draft .archives/cla/voice/spec.md)
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/voice-adapters.schema.json
+
+adapters:
+  # ── Gemini TTS — the founder's primary named engine (default) ──────────────
+  # Founder-facing id is "gemini-tts-3.1-flash" (what the founder types). The real
+  # generativelanguage.googleapis.com model id is gemini-3.1-flash-tts-preview —
+  # gen.cjs MODEL_ALIAS maps the friendly id → the real one. Returns raw base64 PCM
+  # (24kHz/16-bit/mono) → wrapped to WAV then ffmpeg-converted to --format.
+  - id: gemini-tts-3.1-flash
+    status: installed
+    generator: scripts/voice/gen.cjs
+    skill: 06-ai-ops/skills/voice/adapters/gemini-tts-3.1-flash
+    default_model: gemini-3.1-flash-tts-preview
+    supports: [voice, pace, instructions, lang, format, markup, multi-speaker]
+    unsupported_warn: [speed, style]
+    auth: { env: GEMINI_API_KEY, billing: out-of-band }
+    voices: 30
+    notes: "Gemini Developer API TTS (generativelanguage v1beta :generateContent, x-goog-api-key). 30 prebuilt voices (scripts/voice/lib/voices.cjs). Style = a natural-language prefix prepended to the text + inline [bracket] audio tags ([whispers]/[very slow]/[excited]…, expressive on 3.1). NO SSML, no rate/pitch param. Output = raw PCM only → WAV-wrapped client-side. --model override accepts gemini-2.5-flash (→ gemini-2.5-flash-preview-tts, cheaper, free tier) or gemini-2.5-pro. Per-request input ~6k chars (run.cjs chunks); ~10.9 min audio max per request on 3.1."
+
+  # ── OpenAI TTS — the founder's "whisper" engine ────────────────────────────
+  # The founder calls this "whisper" (see the `whisper` preset alias below). It is
+  # OpenAI's gpt-4o-mini-tts TEXT-TO-SPEECH model — distinct from Whisper proper
+  # (OpenAI's speech-to-TEXT). Style = the `instructions` field (≤4096 chars).
+  - id: openai-tts
+    status: installed
+    generator: scripts/voice/gen.cjs
+    skill: 06-ai-ops/skills/voice/adapters/openai-tts
+    default_model: gpt-4o-mini-tts
+    supports: [voice, pace, instructions, lang, format]
+    unsupported_warn: [speed, multi-speaker, markup, style]
+    auth: { env: OPENAI_API_KEY, billing: out-of-band }
+    voices: 13
+    notes: "OpenAI Speech API (POST /v1/audio/speech, Bearer). 13 voices (marin/cedar = highest fidelity, recommended). Style = the `instructions` field (gpt-4o-mini-tts only, ≤4096 chars) — natural-language tone/emotion/accent/pacing steering. Numeric `speed` is IGNORED by gpt-4o-mini-tts → pace is baked into instructions. Emits mp3/wav/flac/opus/aac/pcm NATIVELY (no ffmpeg for those); m4a/ogg transcoded. Input ≤4096 chars (run.cjs chunks)."
+
+  # ── whisper — founder-mnemonic preset alias of openai-tts ──────────────────
+  - id: whisper
+    status: installed
+    preset_of: openai-tts
+    generator: scripts/voice/gen.cjs
+    default_model: gpt-4o-mini-tts
+    supports: [voice, pace, instructions, lang, format]
+    unsupported_warn: [speed, multi-speaker, markup, style]
+    auth: { env: OPENAI_API_KEY, billing: out-of-band }
+    notes: "Alias the founder uses for OpenAI TTS (= openai-tts). NB: OpenAI 'Whisper' proper is speech-to-TEXT; this is gpt-4o-mini-tts text-to-SPEECH. --use=whisper resolves to openai-tts."
+
+  # ── Registered-not-built stubs (prove the abstraction; plug these in later) ──
+  - id: elevenlabs
+    status: registered-not-built
+    default_model: eleven_multilingual_v2
+    supports: [voice, pace, instructions, lang, format, markup]
+    unsupported_warn: [speed, multi-speaker, style]
+    auth: { env: ELEVENLABS_API_KEY, billing: out-of-band }
+    voices: 0
+    notes: "ElevenLabs — richest voice cloning + emotional range, SSML-like control. NOT built v0.1 (no key provisioned)."
+
+  - id: azure-tts
+    status: registered-not-built
+    default_model: azure-neural
+    supports: [voice, pace, format, multi-speaker]
+    unsupported_warn: [instructions, markup, speed, style]
+    auth: { env: AZURE_SPEECH_KEY, billing: out-of-band }
+    voices: 0
+    notes: "Azure Cognitive Services Speech — full SSML, hundreds of neural voices, prosody control. NOT built v0.1."

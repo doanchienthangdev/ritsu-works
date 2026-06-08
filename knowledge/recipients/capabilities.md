@@ -2,12 +2,12 @@
 <!-- Per-entry overrides MUST be inside <!-- override-start --> ... <!-- override-end --> markers -->
 <!-- DO NOT manually edit outside override markers; changes will be lost on next sync -->
 
-# Recipient Catalog: capabilities
+# Recipient Catalog: capabilitys
 
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 21
+**Total entries:** 22
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -232,7 +232,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Document translation (/translate command). OPERATING since 2026-06-08 (Tier-C decision, founder-proxy autonomous build + ship; ops.decisions slug translate-capability-build-approved). Universal document-translation primitive exposed as /translate <src> [flags]: ingest a source document (pdf · docx · pptx · webpage/URL · md · txt) → translate into any target language (default Vietnamese) → render o v0.1.0
+**When to use:** Document translation (/translate command). OPERATING since 2026-06-08 (Tier-C decision, founder-proxy autonomous build + ship; ops.decisions slug translate-capability-build-approved). Universal document-translation primitive exposed as /translate <src> [flags]: ingest a source document (pdf · docx · pptx · webpage/URL · md · txt) → translate into any target language (default Vietnamese) → render o v0.2.0
 
 **Invoke:** `Read("wiki/capabilities/translate/spec.md")` or `/cla update translate`
 
@@ -247,6 +247,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **When to use:** Update — Bayesian-update verb for ritsu-works entities (refs-driven). NEW slash command /update <type> <name> --refs=<refs> for refs-driven v1.1.1
 
 **Invoke:** `Read("wiki/capabilities/update/spec.md")` or `/cla update update`
+
+**Role scope:** *
+**Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/voice-platform
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Text-to-speech platform (/voice command). OPERATING since 2026-06-08 (Tier-A runtime; founder-proxy autonomous build + ship). Foundational, build-once-use-forever TEXT-TO-SPEECH primitive exposed as /voice <input> [flags]: a model-agnostic front door with a pluggable adapter layer (--use=<adapter>) so new TTS engines plug in WITHOUT command-side code change (mirrors the image-platform / wiki-sync  v0.1.0
+
+**Invoke:** `Read("wiki/capabilities/voice-platform/spec.md")` or `/cla update voice-platform`
 
 **Role scope:** *
 **Status:** operating

@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "voice-adapters.schema.json",
+  "title": "TTS-backend adapter registry (capability voice-platform)",
+  "description": "Single index for the /voice pluggable adapter layer (--use=<adapter>). SPLIT registry: a built adapter (status=installed) carries a `generator` script path; a `registered-not-built` stub carries none. Structural shape only; supports[] ⊆ UNIVERSAL_PARAMS, installed⇒generator-on-disk, and preset_of⇒target-exists are enforced by scripts/cross-tier/validate-voice-adapters.cjs.",
+  "type": "object",
+  "required": ["version", "adapters"],
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema": { "type": "string" },
+    "adapters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9.-]*$",
+            "description": "Unique adapter slug; the value passed to --use=<id>."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["installed", "registered-not-built"],
+            "description": "installed = a real generator wired (file-existence required). registered-not-built = stub: documents intent + native param surface, no generator yet."
+          },
+          "generator": {
+            "type": "string",
+            "description": "repo-relative path to the generator script. Required (validator) when status=installed; absent for stubs."
+          },
+          "skill": { "type": "string", "description": "repo-relative path to the adapter SKILL.md folder." },
+          "preset_of": {
+            "type": "string",
+            "description": "If set, this id is a PRESET alias of another adapter; preset_flags are applied on top."
+          },
+          "preset_flags": { "type": "object", "description": "Flags layered on when this preset is used." },
+          "default_model": { "type": "string" },
+          "voices": { "type": "integer", "minimum": 0, "description": "Count of prebuilt voices the backend exposes (0 for not-built stubs)." },
+          "supports": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Universal generation-param flags this adapter honors natively. Must be ⊆ UNIVERSAL_PARAMS (scripts/voice/lib/params.cjs)."
+          },
+          "unsupported_warn": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Generation params with no mapping on this backend → WARN (never silent-drop). Must be ⊆ UNIVERSAL_PARAMS."
+          },
+          "auth": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "env": { "type": ["string", "null"], "description": "env var holding the provider key (null = no key)." },
+              "billing": { "type": "string", "enum": ["out-of-band", "in-session", "third-party-bridge"] }
+            }
+          },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}

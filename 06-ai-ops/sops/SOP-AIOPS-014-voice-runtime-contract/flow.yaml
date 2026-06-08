@@ -1,0 +1,120 @@
+# SOP-AIOPS-014 — /voice Runtime Contract
+#
+# Declarative runtime contract for the voice-platform capability (/voice command).
+# Read by .claude/commands/voice.md + 06-ai-ops/skills/voice/SKILL.md (umbrella) +
+# voice/preprocess + the per-backend adapter skills.
+#
+# NOTE: RUNTIME-CONTRACT SOP (like SOP-AIOPS-004-evolve / 005-deepask / 006-forge /
+# 007-design-system / 008-image / 013-translate), NOT a CLA-style 8-phase ceremony.
+# The "steps" are the sequence /voice follows to turn text/a file/a folder into audio.
+
+sop_id: SOP-AIOPS-014
+slug: voice-runtime-contract
+name: "/voice runtime contract"
+version: "1.0.0"
+state: operating
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A           # synthesis is Tier A (reversible, local writes, metered + capped); explicit-invoke only
+cost_bucket: ai-ops-voice
+capability_id: voice-platform
+
+# ----------------------------------------------------------------------
+# The synthesis sequence (how /voice turns input + flags into audio)
+# ----------------------------------------------------------------------
+steps:
+  - id: parse
+    name: "Stage 1 — parse the universal flags + resolve input + --use"
+    skill: voice
+    actions:
+      - parse_universal_args         # scripts/voice/lib/params.cjs (UNIVERSAL_PARAMS — single source of truth)
+      - resolve_input                # resolveInputSpec → text | file | folder (positional auto-classified)
+      - resolve_adapter              # read knowledge/voice-adapters.yaml; --use (default gemini-tts-3.1-flash); preset_of (whisper→openai-tts)
+      - not_built_short_circuit      # registered-not-built adapter (elevenlabs/azure-tts) → clean not_built error citing the registry (NEVER a silent fallback)
+    hitl: A
+
+  - id: preprocess
+    name: "Stage 2 — author the content-aware voice-direction + mark up the script (IN-SESSION)"
+    skill: voice/preprocess
+    actions:
+      - read_in_type_context         # read the content in the context of --type (ads/podcast/story/blog/educational/news/…)
+      - author_voice_direction       # voice/tone/emotion/pace/volume/intonation/pronunciation/pauses → instructions.txt (subscription billing — the value Claude adds)
+      - markup_script                # pauses via punctuation/breaks (both engines) + inline [tags] (Gemini-only; stripped for OpenAI)
+      - fold_pace                     # --pace → spoken-pace words (numeric speed is IGNORED by both engines)
+    hitl: A
+    note: "When this stage is skipped (e.g. headless gen.cjs), params.buildFallbackInstructions(type,pace) is the DETERMINISTIC floor — never the target."
+
+  - id: record
+    name: "Stage 3 — record audio (out-of-band) + chunk + stitch"
+    skill: voice/adapters/<resolved>
+    actions:
+      - chunk_under_cap              # scripts/voice/lib/chunk.cjs — split under the engine input cap (OpenAI ≤3800, Gemini ≤6000), content-preserving at paragraph→sentence→word boundaries
+      - estimate_cost                # scripts/voice/lib/cost.cjs — chars → audio-minutes → USD (per-model $/min)
+      - cost_breaker                 # total estimate vs --max-cost-usd — REFUSE before any API call (never silent overspend)
+      - dry_run_short_circuit        # --dry-run → script + instruction sidecars + plan, NO API call, NO key
+      - call_provider_out_of_band    # scripts/voice/gen.cjs — OpenAI POST /v1/audio/speech (bytes) OR Gemini :generateContent (base64 PCM → pcmToWav). GEMINI_API_KEY / OPENAI_API_KEY (lib/env.cjs); key value never printed
+      - stitch                       # scripts/voice/lib/audio.cjs (ffmpeg concat) — single input → one out/ file; folder → mirrored tree
+    hitl: A
+    execution_modes:
+      inline: "small / single input → scripts/voice/run.cjs (chunk → gen.cjs per chunk → stitch), one deterministic call"
+      workflow: "long input / folder → a Claude Code Workflow fans out preprocess→gen in PARALLEL, then scripts/voice/stitch.cjs (the founder-requested production path)"
+    failure_handling:
+      over_cost_cap: breaker_refusal
+      missing_key_or_bad_param_or_5xx: api_error
+      empty_or_missing_input: input_error
+      not_built_backend: not_built
+
+  - id: report
+    name: "Stage 4 — report the adapter contract"
+    skill: voice
+    actions:
+      - surface_contract             # {ok, outcome, file, chunks, cost_usd, model, voice, warnings[]}
+      - always_surface_warnings      # unsupported params are WARNED, never silently dropped (consequence-honest)
+      - typed_outcome                # success | dry_run | not_built | breaker_refusal | api_error | input_error
+    hitl: A
+
+# ----------------------------------------------------------------------
+# Adapter contract (what every backend must implement) + extension
+# ----------------------------------------------------------------------
+adapter_contract:
+  registry: knowledge/voice-adapters.yaml          # split-registry; supports[]⊆UNIVERSAL_PARAMS; installed⇒generator-on-disk
+  output: "{ ok, outcome, file, chunks, cost_usd, model, voice, warnings[] }"
+  add_a_backend: "drop adapters/<id>/SKILL.md + one registry row + one umbrella routing-table row + a callX in gen.cjs — NO command-side code change"
+  v0_1_backends: "gemini-tts-3.1-flash (installed real, default) + openai-tts (installed real) + whisper (preset of openai-tts) ; elevenlabs/azure-tts (registered-not-built stubs)"
+
+# ----------------------------------------------------------------------
+# Billing lanes
+# ----------------------------------------------------------------------
+billing:
+  record: out-of-band                  # GEMINI_API_KEY / OPENAI_API_KEY via scripts/voice/gen.cjs — Claude can't synthesize speech (same lane as text-embedding-3-small / gpt-image-2). COMPLIANT with the api-key-vs-subscription policy.
+  preprocess: in-session               # subscription — reading + voice-direction authoring is the value Claude adds
+  cost_caps: "gps per_task_kind_caps voice-gen $0.50 (ADVISORY — out-of-band, invisible to the budget hook) / voice-preprocess $0.10 (in-session). Per-run --max-cost-usd (default 1.00) is the REAL spend guard."
+
+guards:
+  - breaker_before_call            # --max-cost-usd refuses up front; never silent overspend
+  - warn_never_drop                # unsupported params WARN with the consequence; audio still generates
+  - no_product_supabase            # local .archives/ artifacts only; never touches Product Supabase
+  - explicit_invoke_only           # synthesis is founder-invoked; never auto-run by another flow without explicit opt-in
+  - keys_never_printed             # lib/env.cjs resolves keys (incl. worktree→main-root) and never logs values
+
+events:
+  - ritsu.voice.generated          # (optional, deferred) one per successful /voice run
+
+# ----------------------------------------------------------------------
+# Observability (Option A+ lean — table-ready)
+# ----------------------------------------------------------------------
+observability:
+  v0_1: "per-run run.json (local, full audit row) + per-chunk NNN.run.json + the per-run --max-cost-usd breaker. run.json columns are a forward-compat superset of a future ops.voice_runs."
+  future: "Option B = a /cla extend voice-platform adds ops.voice_runs (cost_usd + minutes + metadata) + KPIs (voice_gen_count / cost_usd_monthly / warn_rate) + hook/cross-run enforcement. Pure INSERT-wiring (no rework)."
+
+references:
+  - .claude/commands/voice.md
+  - 06-ai-ops/skills/voice/SKILL.md
+  - 06-ai-ops/skills/voice/preprocess/SKILL.md
+  - 06-ai-ops/skills/voice/adapters/gemini-tts-3.1-flash/SKILL.md
+  - 06-ai-ops/skills/voice/adapters/openai-tts/SKILL.md
+  - scripts/voice/{gen,run,stitch}.cjs
+  - scripts/voice/lib/{params,voices,chunk,cost,audio,env}.cjs
+  - knowledge/voice-adapters.yaml
+  - scripts/cross-tier/validate-voice-adapters.cjs
+  - governance/HITL.md

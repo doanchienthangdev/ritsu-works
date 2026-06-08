@@ -1882,6 +1882,36 @@ capabilities:
       Future /cla extend: epub/odt input, more renderers, ops.translate_runs observability,
       per-language glossary library, RTL (ar/he) page direction.
 
+  # === voice-platform (OPERATING 2026-06-08 via /cla — founder-proxy autonomous build + ship) ===
+  - id: voice-platform
+    name: "Text-to-speech platform (/voice command)"
+    description: "OPERATING since 2026-06-08 (Tier-A runtime; founder-proxy autonomous build + ship). Foundational, build-once-use-forever TEXT-TO-SPEECH primitive exposed as /voice <input> [flags]: a model-agnostic front door with a pluggable adapter layer (--use=<adapter>) so new TTS engines plug in WITHOUT command-side code change (mirrors the image-platform / wiki-sync / docs-engine umbrella-skill + adapters/<id>/ + routing-table pattern). Input = inline text · a file · or a folder (one audio file per source file, mirrored). Reads the content in the context of a --type (ads/podcast/story/blog/educational/news/narration/conversational/meditation/announcement/default), AUTHORS a content-aware voice-direction (voice/tone/emotion/--pace/volume/intonation/pauses) + lightly marks up the script (pauses via punctuation/breaks for both engines; inline [bracket] audio tags for Gemini), records OUT-OF-BAND via the provider key, and stitches with ffmpeg. Two LIVE-VERIFIED engines: gemini-tts-3.1-flash (default; Gemini Developer API → gemini-3.1-flash-tts-preview, 30 voices, returns base64 PCM → WAV-wrapped) + openai-tts/whisper (gpt-4o-mini-tts, 13 voices marin/cedar best, native mp3 + instructions field) ; elevenlabs/azure-tts = registered-not-built stubs. Universal sensibly-defaulted parameter vocabulary (--type --pace --voice --gender --format --use --model --instructions --lang --chunk-chars --concurrency --max-cost-usd --dry-run --out --stitch); each adapter declares supports() and WARNS (never silently drops) on unsupported params (--speed ignored by both engines → pace via spoken words; --multi-speaker/--markup Gemini-only). Long inputs / folders fan out through a Claude Code Workflow (preprocess→gen per chunk/file in PARALLEL → stitch). NEW knowledge/voice-adapters.yaml split-registry (+schema, mirrors image-adapters.yaml) + scripts/cross-tier/validate-voice-adapters.cjs (L2 critical, wired into check-consistency.cjs AND .github CI). Adapter output contract {ok, outcome, file, chunks, cost_usd, model, voice, warnings[]}. Cost-bucket ai-ops-voice under gps; GEMINI_API_KEY/OPENAI_API_KEY out-of-band (api-key-vs-subscription compliant); preprocessing in-session/subscription. Tier A runtime; per-run --max-cost-usd breaker; artifacts to .archives/voice/<date>-<slug>/."
+    version: "0.1.0"
+    state: operating
+    state_since: 2026-06-08
+    proposed_at: 2026-06-08
+    deployed_at: 2026-06-08
+    operating_since: 2026-06-08
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/voice-platform/spec.md
+    cost_bucket: ai-ops-voice
+    notes: |
+      Motivated by a founder need: record narration for marketing/product content from
+      text/files/folders with different engines + voices + content-tuned delivery. v0.1
+      scope: umbrella voice skill (dispatcher) + routing table; voice-adapters.yaml + L2
+      validator; gemini-tts-3.1-flash + openai-tts adapters (both REAL, live-verified) +
+      whisper preset alias; voice/preprocess skill (the content-aware voice-direction
+      brain — the value Claude adds); scripts/voice/{gen,run,stitch}.cjs + lib/{params,
+      voices,chunk,cost,audio,env}.cjs (pure param/chunk/cost/voice layer + ffmpeg edge,
+      All-Edge vitest coverage); /voice command (full 30+13 voice catalogs w/ gender +
+      character per founder request); SOP-AIOPS-014-voice-runtime-contract; ROLES gps
+      per_task_kind_caps (voice-gen $0.50 / voice-preprocess $0.10); resolver registration
+      (skills.md + commands.md + sops.md + INDEX.md). NOT v0.1: elevenlabs/azure-tts
+      generation (stubs); ops.voice_runs observability (Option A+ lean — run.json is the
+      forward-compat superset; Option B = /cla extend). CLA artifacts (local-only):
+      .archives/cla/voice/. Future /cla extend: ElevenLabs/Azure backends, multi-speaker
+      dialogue (Gemini), ops.voice_runs + KPIs, voice-clone, SRT/subtitle sidecars.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:
@@ -1924,6 +1954,10 @@ cost_buckets:
   ai-ops-analytics:
     description: "product-db-readonly-access Door 2 — pseudonymized Product→analytics sync + read-only supabase-analytics MCP. NEAR-ZERO ongoing: the sync is in-DB pg_cron on ritsu-analytics (free); the consumer MCP is read-only SELECT as analytics_reader (subscription, no API key — api-key-vs-subscription compliant). One-time build cost only (4 sprints)."
     capabilities: [product-db-readonly-access]
+
+  ai-ops-voice:
+    description: "voice-platform runtime — /voice command + pluggable TTS adapter layer (gemini-tts-3.1-flash + openai-tts real; elevenlabs/azure-tts registered-not-built stubs). Speech synthesis uses GEMINI_API_KEY/OPENAI_API_KEY out-of-band via scripts/voice/gen.cjs (task_kind voice-gen, cap $0.50, ~$0.015-0.03/min audio); voice-direction preprocessing is in-session/subscription (task_kind voice-preprocess, cap $0.10). Per-run --max-cost-usd circuit breaker (default 1.00) is orthogonal. Build-once foundational primitive; ffmpeg stitch; run.json = forward-compat superset of a future ops.voice_runs."
+    capabilities: [voice-platform]
 
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
