@@ -97,6 +97,7 @@ formats:
     latex: "scripts/translate/latexout.py (md->.tex + tectonic compile); preserve.py for in-place; tectonic on PATH"
   v0_3_stem:                  # 2026-06-08 /cla extend — PDF figure/math fidelity
     figures: "PDF figures/tables captured by caption-anchored REGION rendering (engine.py:_caption_figures -> get_pixmap(clip=rect)); captures VECTOR plots that page.get_images() misses; region bounded by nearest body paragraph (never swallows prose); leaked axis-label text suppressed; find_tables de-duped vs crops"
+    paragraphs: "PyMuPDF groups multiple paragraphs into one block -> ingest_pdf splits them back apart by first-line indentation (+ vertical-gap fallback) so paragraphs don't merge into one runaway block; brief reinforces 'one source paragraph = one translated paragraph'"
     math: "default --math=auto: brief instructs RECONSTRUCT scrambled PDF math into native LaTeX (inline/display/aligned/cases) + translate \\text{} label words; --math=crop = display equations as faithful image crops (engine.py:_equation_crops); --math=off = untouched"
     renderer: "latexout.py renders $$ display math even inside a blockquote (pseudocode/algorithm boxes)"
     honest: "math reconstruction is LLM-driven (verify dense notation, or --math=crop); uncaptioned inline diagrams are not auto-cropped"

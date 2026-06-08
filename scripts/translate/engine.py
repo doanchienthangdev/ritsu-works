@@ -255,7 +255,8 @@ def ingest_pdf(path, assets_dir=None, keep_assets=True, math_mode="auto"):
                         txt += tx
                 dom = max(real, key=lambda s: len(s["text"]))
                 infos.append({"t": txt, "raw": "".join(s["text"] for s in spans).strip(),
-                              "sz": dom["size"], "bold": bool(dom["flags"] & 16)})
+                              "sz": dom["size"], "bold": bool(dom["flags"] & 16),
+                              "x0": l["bbox"][0], "y0": l["bbox"][1], "y1": l["bbox"][3]})
             infos = [i for i in infos if i["raw"] and re.sub(r"\d+", "#", i["raw"]) not in strip
                      and not re.fullmatch(r"\d{1,4}", i["raw"])]
             if not infos:
@@ -271,7 +272,26 @@ def ingest_pdf(path, assets_dir=None, keep_assets=True, math_mode="auto"):
             elif bold and short and mx >= body * 0.95:
                 items.append((by0, f"\n## {text}\n"))
             else:
-                items.append((by0, text + "\n"))
+                # PyMuPDF often groups SEVERAL paragraphs into one block → split them back
+                # apart so they don't merge into one runaway paragraph. A new paragraph is
+                # signalled by a first-line INDENT (x0 > body margin) or a large vertical gap.
+                xs = [i["x0"] for i in infos]
+                margin = min(xs)
+                uses_indent = (max(xs) - margin) > 4
+                gaps = sorted(infos[k]["y0"] - infos[k - 1]["y1"] for k in range(1, len(infos)))
+                base_gap = gaps[len(gaps) // 2] if gaps else 0
+                paras, cur, prev_y1 = [], [], None
+                for k, inf in enumerate(infos):
+                    if k > 0 and (
+                        (uses_indent and inf["x0"] > margin + 4)
+                        or (base_gap > 0 and prev_y1 is not None
+                            and (inf["y0"] - prev_y1) > base_gap + max(3, base_gap * 0.7))):
+                        paras.append(cur); cur = []
+                    cur.append(inf); prev_y1 = inf["y1"]
+                if cur:
+                    paras.append(cur)
+                for grp in paras:
+                    items.append((grp[0]["y0"], dehyph([g["t"] for g in grp]) + "\n"))
         items.sort(key=lambda t: t[0])
         for _, m in items:
             out.append(m)
@@ -605,6 +625,8 @@ result must be **faithful AND beautiful** — it should read as if originally wr
    it must sound like a gifted {lang} writer. Maintain a consistent register and a
    consistent voice for each speaker.
 3. **Preserve every bit of structure (markdown):**
+   - **Paragraph breaks** → keep blank lines between paragraphs; one source paragraph =
+     one translated paragraph. NEVER merge separate paragraphs into one block.
    - `#`, `##`, `###` headings → translate the text, keep the level.
    - `>` blockquotes → translate, keep as blockquote.
    - `**bold**`, `*italic*`, lists (`-`, `1.`), and tables → keep the markup (translate cell text).
