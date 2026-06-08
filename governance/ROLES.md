@@ -151,6 +151,9 @@ economic_budget:
     translate-plan:  {unit: usd, cap: 0.05}   # /translate ingest+split+brief — PURE Node/Python, ZERO LLM. No secret/key.
     translate-run:   {unit: usd, cap: 8.00}   # /translate parallel translation fan-out (the spend). ADVISORY: in-session Workflow agents; the per-run --max-cost-usd breaker (default $8) is the real guard. Scales with source word count (~$0.06/1k words).
     translate-build: {unit: usd, cap: 0.05}   # /translate assemble+render (pdf/epub/docx/pptx/md) — PURE Python, ZERO LLM. No secret/key.
+    # capability voice-platform v0.1 — cost-bucket ai-ops-voice; /voice TTS synthesis
+    voice-gen:        {unit: usd, cap: 0.50}   # /voice out-of-band TTS (gemini-tts-3.1-flash / openai-tts) via GEMINI_API_KEY / OPENAI_API_KEY. ADVISORY: out-of-band → invisible to the budget hook; the per-run --max-cost-usd breaker (default $1) is the real enforcement. Scales with audio minutes (~$0.015-0.03/min).
+    voice-preprocess: {unit: usd, cap: 0.10}   # /voice in-session voice-direction authoring + script markup (the voice/preprocess skill). Subscription; hook-enforced — the one /voice stage the budget hook sees.
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition

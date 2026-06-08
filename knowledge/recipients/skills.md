@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 120
+**Total entries:** 124
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -2056,6 +2056,62 @@ Invoke when the user asks to translate a document/book/webpage into another lang
 or runs /translate.
 
 **Invoke:** `Skill({ skill: "translate" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/voice
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Umbrella skill for the voice-platform capability — the brain behind /voice. Turn text, a file, or a folder of files into narrated audio with a pluggable TTS adapter layer (--use=<adapter>): gemini-tts-3.1-flash (default) + openai-tts (a.k.a. whisper). Reads the content in the context of a --type (ads/podcast/story/ blog/educational/news/…), AUTHORS a content-aware voice-direction (tone, pace, emotion, pauses) + lightly marks up the script, then records out-of-band via the provider key and stitches the result. Small inputs run inline; long inputs / folders fan out through a Claude Code Workflow. Default mp3; mp3/wav/opus/aac/flac/m4a/ogg/pcm. Tier A; per-run --max-cost-usd breaker; artifacts to .archives/voice/<date>-<slug>/.
+
+**Invoke:** `Skill({ skill: "voice" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/voice/adapters/gemini-tts-3.1-flash
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The default /voice TTS adapter — Google Gemini TTS via the Gemini Developer API. Founder-facing id "gemini-tts-3.1-flash" maps to the real model gemini-3.1-flash-tts-preview. 30 prebuilt voices; style via a natural-language prefix + inline [bracket] audio tags; returns raw PCM (24kHz/16-bit/mono) → WAV-wrapped → ffmpeg-converted to --format. Wired in scripts/voice/gen.cjs (callGemini). Auth: GEMINI_API_KEY, out-of-band.
+
+**Invoke:** `Skill({ skill: "voice/adapters/gemini-tts-3.1-flash" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/voice/adapters/openai-tts
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The /voice OpenAI TTS adapter (the engine the founder calls "whisper") — OpenAI's gpt-4o-mini-tts text-to-speech. 13 voices (marin/cedar highest fidelity); style via the `instructions` field (≤4096 chars); emits mp3/wav/flac/opus/aac/pcm NATIVELY. Wired in scripts/voice/gen.cjs (callOpenAi). Auth: OPENAI_API_KEY, out-of-band. NB: "Whisper" proper is OpenAI's speech-to-TEXT — this is text-to-SPEECH.
+
+**Invoke:** `Skill({ skill: "voice/adapters/openai-tts" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/voice/preprocess
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The preprocessing brain of /voice — the step that makes the audio sound DESIGNED, not robotic. Reads a script in the context of its --type (ads/podcast/story/blog/ educational/news/narration/conversational/meditation/announcement) and AUTHORS a content-aware voice-direction block (voice, tone, emotion, pace, volume, intonation, pronunciation, pauses) PLUS a lightly marked-up version of the script (pauses via punctuation/breaks for both engines; inline [bracket] audio tags for Gemini). Output is consumed by scripts/voice/gen.cjs as the `instructions` field (OpenAI) / the natural-language style prefix (Gemini). Invoked per input, or per chunk/file in batch.
+
+**Invoke:** `Skill({ skill: "voice/preprocess" })`
 **HITL tier:** B
 **Side effect:** write
 

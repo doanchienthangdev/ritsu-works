@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 58
+**Total entries:** 59
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -806,6 +806,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/update-file-paths.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-voice-adapters
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ voice-adapters.yaml — Text-to-speech backend registry (capability voice-platform) ============================================================================ Single index for the /voice pluggable adapter layer (--use=<adapter>). SPLIT- registry shape (mirrors image-adapters.yaml): a built adapter carries a `generator` sc...
+
+**Invoke:** `Read("knowledge/voice-adapters.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/voice-adapters.yaml
 
 **Role scope:** *
 **Status:** active

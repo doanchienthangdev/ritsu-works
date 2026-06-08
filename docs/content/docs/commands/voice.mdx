@@ -1,0 +1,141 @@
+---
+title: 'Command: /voice — capability `voice-platform` v0.1'
+description: |
+  Turn text, a file, or a folder of files into narrated audio — a model-agnostic
+  front door with a pluggable TTS adapter layer (--use=<adapter>). Default engine
+  gemini-tts-3.1-flash (Gemini Developer API, 30 voices); also openai-tts / whisper
+  (gpt-4o-mini-tts, 13 voices). Reads the content in the context of a --type
+  (ads/podcast/story/blog/educational/news/…), AUTHORS a content-aware voice-direction
+  (tone, pace, emotion, pauses) + marks up the script, records out-of-band, and stitches.
+  Single text/file → one audio file; a folder → one per file. Default mp3 (+ wav/opus/
+  aac/flac/m4a/ogg/pcm). Long inputs / folders fan out via a Claude Code Workflow.
+  Tier A; per-run --max-cost-usd breaker; provider keys out-of-band; artifacts to
+  .archives/voice/<date>-<slug>/. Thin orchestrator over the `voice` umbrella skill.
+source_path: .claude/commands/voice.md
+source_hash: bf924e7e4e6170da5ea5f9302d902a1ac5934adf4f3fcb9ef4f91143ee300f4b
+generated_at: '2026-06-08T08:22:57.784Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+translated: true
+translated_at: '2026-06-08T09:00:00.000Z'
+translated_by: docs-translate v1.1.0
+translated_source_hash: bf924e7e4e6170da5ea5f9302d902a1ac5934adf4f3fcb9ef4f91143ee300f4b
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Giao diện đầu vào cho năng lực voice-platform. Phân tích các cờ, điều khiển skill ô dù `voice`
+(`06-ai-ops/skills/voice/SKILL.md`), báo cáo kết quả. **Cả hai engine đều đã được kiểm chứng
+hoạt động đầu-cuối.**
+
+## Cách dùng
+```
+/voice "<text>" [flags]
+/voice --file=<path> [flags]
+/voice --folder=<dir> [flags]
+```
+Một tham số vị trí sẽ được tự động phân loại: một thư mục đã tồn tại → chế độ folder; một
+tệp đã tồn tại → chế độ file; ngược lại là văn bản nội tuyến.
+
+## Cờ (bộ từ vựng phổ quát — `scripts/voice/lib/params.cjs`)
+
+### Đầu vào & engine
+| Cờ | Mặc định | Ghi chú |
+|---|---|---|
+| `<text>` / `--text=` / `--file=` / `--folder=` | — | đầu vào. Folder → một tệp âm thanh cho mỗi tệp, được nhân bản tương ứng. |
+| `--use` | `gemini-tts-3.1-flash` | id của adapter. Cũng có `openai-tts`, `whisper` (= openai-tts). `elevenlabs`/`azure-tts` = các stub chưa được xây dựng. |
+| `--model` | mặc định của adapter | ghi đè model của engine (ví dụ `--model=gemini-2.5-flash` = rẻ hơn + có gói miễn phí). |
+
+### Định hình giọng đọc (mục đích chính của lệnh)
+| Cờ | Mặc định | Giá trị |
+|---|---|---|
+| `--type` | `default` | `default · ads · podcast · story · blog · educational · news · narration · conversational · meditation · announcement` — điều khiển voice-direction được soạn ra. |
+| `--pace` | `normal` | `very-low · low · normal · fast · very-fast` (được điều hướng thông qua các từ chỉ phong cách nói — tốc độ dạng số bị cả hai engine bỏ qua). |
+| `--voice` | mặc định của adapter | một giọng có tên (xem các danh mục bên dưới; không phân biệt hoa thường). |
+| `--gender` | `any` | `male · female` → tự động chọn giọng mặc định của adapter theo giới tính đó. |
+| `--instructions` | được soạn sẵn | dành cho người dùng nâng cao để ghi đè khối voice-direction. |
+| `--lang` | `auto` | gợi ý ngôn ngữ (cả hai engine đều đa ngôn ngữ). |
+
+### Đầu ra & vận hành
+| Cờ | Mặc định | Ghi chú |
+|---|---|---|
+| `--format` | `mp3` | `mp3 · wav · opus · aac · flac · m4a · ogg · pcm` (được ffmpeg chuyển đổi từ đầu ra của engine). |
+| `--chunk-chars` | giới hạn của engine | số ký tự tối đa cho mỗi yêu cầu TTS (OpenAI ≤3800, Gemini ≤6000); đầu vào dài tự động chia nhỏ + ghép lại. |
+| `--concurrency` | `4` | số worker xử lý song song theo từng chunk/tệp. |
+| `--max-cost-usd` | `1.00` | bộ ngắt mạch cho mỗi lần chạy — từ chối TRƯỚC khi tiêu bất kỳ khoản nào (lớp bảo vệ thật sự). |
+| `--dry-run` | tắt | soạn + chia chunk + ghi các tệp phụ trợ script/instruction, **không tiêu tốn API**. |
+| `--out` | `.archives/voice/<date>-<slug>/` | thư mục đầu ra (gốc `.archives`, chỉ lưu cục bộ). |
+| `--stitch` | bật | gộp các chunk của một đầu vào đơn lẻ thành một tệp (tắt → giữ các phần riêng). |
+
+Chỉ cảnh báo trên các engine hiện tại (không có ánh xạ gốc → không bao giờ bị âm thầm bỏ qua): `--speed`
+(dùng `--pace`), `--multi-speaker` (Gemini-stretch), `--markup` (chỉ Gemini), `--style`.
+
+## Luồng (điều phối tới skill ô dù `voice`)
+1. Phân tích các cờ (`params.cjs`); xác định đầu vào (text/file/folder); phân giải `--use` dựa trên `knowledge/voice-adapters.yaml`.
+2. **Tiền xử lý** (skill `voice/preprocess`) — đọc nội dung trong ngữ cảnh của `--type`; soạn một voice-direction nhận biết nội dung (giọng, tông, cảm xúc, `--pace`, các khoảng dừng, ngữ điệu) → `instructions.txt`; đánh dấu nhẹ cho script (các khoảng dừng; `[tags]` của Gemini).
+3. **Ghi âm** — đầu vào nhỏ/đơn lẻ → `node scripts/voice/run.cjs` (chia chunk → `gen.cjs` cho mỗi chunk → ghép lại). Đầu vào dài / folder → một **Claude Code Workflow** trải song song `preprocess → gen`, rồi `stitch.cjs`.
+4. Báo cáo `{ok, file, chunks, cost_usd, model, voice, warnings[]}` — luôn nêu rõ các cảnh báo; khi gặp `not_built|breaker_refusal|api_error|input_error`, đưa ra lý do đã được phân loại.
+
+## Ví dụ
+```
+/voice "Master any subject in days, not weeks. Try Ritsu free." --type=ads --pace=fast --voice=Puck
+/voice --file=blog/active-learning.md --type=blog --voice=marin --format=mp3
+/voice --file=lesson.md --type=educational --pace=low --gender=female --use=gemini-tts-3.1-flash
+/voice --folder=scripts/episodes/ --type=podcast --voice=Charon   # one mp3 per file, mirrored
+/voice "A bedtime tale…" --type=story --use=openai-tts --voice=ballad --format=wav
+/voice "anything" --dry-run                      # author + cost estimate, no spend
+/voice "x" --use=elevenlabs                       # → not_built (proves the registry)
+```
+
+## Danh mục giọng đọc (tên · giới tính · tính cách)
+
+> Giới tính là cảm nhận được báo cáo rộng rãi, không phải một cam kết chính thức của nhà cung cấp (cả OpenAI
+> lẫn Gemini đều không chính thức gán giới tính cho giọng đọc). `--gender=female|male` phân giải thành giọng
+> mặc định của adapter theo giới tính đó. Nguồn chân lý: `scripts/voice/lib/voices.cjs`.
+
+### `gemini-tts-3.1-flash` — 30 giọng (Gemini Developer API). Mặc định `Kore`.
+
+| Giọng | Giới tính | Tính cách | Giọng | Giới tính | Tính cách |
+|---|---|---|---|---|---|
+| **Kore** *(mặc định)* | nữ | Chắc chắn | Puck | nam | Lạc quan |
+| Zephyr | nữ | Tươi sáng | Charon *(mặc định nam)* | nam | Cung cấp thông tin |
+| Fenrir | nam | Sôi nổi | Leda | nữ | Trẻ trung |
+| Orus | nam | Chắc chắn | Aoede | nữ | Nhẹ nhàng |
+| Callirrhoe | nữ | Thoải mái | Autonoe | nữ | Tươi sáng |
+| Enceladus | nam | Thì thầm | Iapetus | nam | Rõ ràng |
+| Umbriel | nam | Thoải mái | Algieba | nam | Mượt mà |
+| Despina | nữ | Mượt mà | Erinome | nữ | Rõ ràng |
+| Algenib | nam | Khàn đục | Rasalgethi | nam | Cung cấp thông tin |
+| Laomedeia | nữ | Lạc quan | Achernar | nữ | Dịu nhẹ |
+| Alnilam | nam | Chắc chắn | Schedar | nam | Đều đặn |
+| Gacrux | nữ | Chín chắn | Pulcherrima | nữ | Hướng tới |
+| Achird | nam | Thân thiện | Zubenelgenubi | nam | Bình dị |
+| Vindemiatrix | nữ | Nhẹ nhàng | Sadachbia | nam | Sống động |
+| Sadaltager | nam | Hiểu biết | Sulafat | nữ | Ấm áp |
+
+### `openai-tts` / `whisper` — 13 giọng (gpt-4o-mini-tts). Mặc định `marin`. `marin`/`cedar` = độ trung thực cao nhất.
+
+| Giọng | Giới tính | Tính cách |
+|---|---|---|
+| **marin** *(mặc định, nữ)* | nữ | Tươi mới, tự nhiên, độ trung thực cao nhất (khuyến nghị) |
+| **cedar** *(mặc định nam)* | nam | Ấm áp, vững vàng, độ trung thực cao nhất (khuyến nghị) |
+| alloy | trung tính | Trung tính, cân bằng, chuyên nghiệp — giọng làm việc mặc định |
+| ash | nam | Rõ ràng, chính xác, người dẫn dắt đầy uy lực |
+| ballad | nam | Mượt mà, du dương, người kể chuyện giàu cảm xúc |
+| coral | nữ | Ấm áp, thân thiện, người hướng dẫn lạc quan |
+| echo | nam | Vang vọng, rõ ràng, điềm tĩnh |
+| fable | trung tính | Giàu biểu cảm, ấm áp, tự sự (thiên giọng Anh) |
+| nova | nữ | Tươi sáng, tràn năng lượng, trò chuyện |
+| onyx | nam | Trầm, uy lực, chất lượng phát sóng |
+| sage | nữ | Bình tĩnh, sâu sắc, chừng mực |
+| shimmer | nữ | Tươi sáng, vui vẻ, nhẹ nhàng |
+| verse | nam | Đa năng, giàu biểu cảm, năng động |
+
+## Quản trị
+Tier A (có thể hoàn tác, ghi cục bộ, được đo lường + giới hạn). Ghi âm = `GEMINI_API_KEY` /
+`OPENAI_API_KEY` ngoài phiên (tuân thủ chính sách api-key-vs-subscription);
+tiền xử lý = trong phiên/đăng ký. Cost-bucket `ai-ops-voice` (gps):
+`voice-gen` $0.50 (mang tính tư vấn — ngoài phiên; bộ ngắt mạch `--max-cost-usd` mới là lớp bảo vệ
+thật sự), `voice-preprocess` $0.10 (trong phiên). Hợp đồng runtime:
+`SOP-AIOPS-014-voice-runtime-contract`.

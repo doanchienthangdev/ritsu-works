@@ -1,0 +1,39 @@
+---
+title: 'SOP-AIOPS-014: SOP'
+description: ''
+source_path: 06-ai-ops/sops/SOP-AIOPS-014-voice-runtime-contract/flow.yaml
+source_hash: 43c655c07ff79223e46bca51ad5a878dd0115f0440b1d507653ce2c91c2eafa5
+generated_at: '2026-06-08T08:22:58.074Z'
+generated_by: docs-engine v1.2.0
+category: sop
+language: vi
+translated: true
+translated_at: '2026-06-08T09:00:00.000Z'
+translated_by: docs-translate v1.1.0
+translated_source_hash: 43c655c07ff79223e46bca51ad5a878dd0115f0440b1d507653ce2c91c2eafa5
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+**SOP ID:** `SOP-AIOPS-014`
+**Trụ cột:** n/a
+**Cost bucket:** `ai-ops-voice`
+**Năng lực:** `voice-platform`
+
+## Các bước
+
+### Bước parse — Giai đoạn 1 — phân tích các cờ phổ quát + giải quyết đầu vào + --use
+
+- **Skill:** `voice`
+
+### Bước preprocess — Giai đoạn 2 — soạn voice-direction nhận biết nội dung + đánh dấu kịch bản (TRONG PHIÊN)
+
+- **Skill:** `voice/preprocess`
+
+### Bước record — Giai đoạn 3 — ghi âm (ngoài băng tần) + chia khối + ghép nối
+
+- **Skill:** `voice/adapters/<resolved>`
+
+### Bước report — Giai đoạn 4 — báo cáo hợp đồng adapter
+
+- **Skill:** `voice`

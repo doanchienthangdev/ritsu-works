@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 23
+**Total entries:** 24
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -400,6 +400,28 @@ on quality regression. See wiki/capabilities/update/spec.md (after Phase
 8 promotion) or draft .archives/cla/update/spec.md.
 
 **Invoke:** `/update`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/voice
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Turn text, a file, or a folder of files into narrated audio — a model-agnostic
+front door with a pluggable TTS adapter layer (--use=<adapter>). Default engine
+gemini-tts-3.1-flash (Gemini Developer API, 30 voices); also openai-tts / whisper
+(gpt-4o-mini-tts, 13 voices). Reads the content in the context of a --type
+(ads/podcast/story/blog/educational/news/…), AUTHORS a content-aware voice-direction
+(tone, pace, emotion, pauses) + marks up the script, records out-of-band, and stitches.
+Single text/file → one audio file; a folder → one per file. Default mp3 (+ wav/opus/
+aac/flac/m4a/ogg/pcm). Long inputs / folders fan out via a Claude Code Workflow.
+Tier A; per-run --max-cost-usd breaker; provider keys out-of-band; artifacts to
+.archives/voice/<date>-<slug>/. Thin orchestrator over the `voice` umbrella skill.
+
+**Invoke:** `/voice`
 **HITL tier:** A
 **Side effect:** none
 
