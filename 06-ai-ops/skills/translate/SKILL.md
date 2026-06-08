@@ -94,8 +94,16 @@ so the Workflow you launch is identical. What changed:
   `![alt](assets/…)` refs (`--no-assets` to skip). The brief tells agents to **keep the `(path)`
   exactly and translate only alt text**. Renderers embed them (latex `\includegraphics`, pdf
   base_url, epub items, md copy).
-- **Math (Req 2):** the brief preserves `$…$`/`\[…\]`/environments **verbatim**. `--out=latex` /
-  `pdf-latex` typeset it natively. Tell the user: for typeset math use the LaTeX outputs.
+  **v0.3:** PDF figures/tables are captured by **caption-anchored region rendering**
+  (`engine.py:_caption_figures` → `get_pixmap(clip=rect)`), so **vector** plots (matplotlib
+  charts) survive — `page.get_images()` alone was blind to them. The crop is bounded by the
+  nearest wide body paragraph so it never swallows prose; leaked axis-label text is suppressed.
+- **Math (Req 2):** the brief preserves clean `$…$`/`$$…$$`/environments **verbatim**.
+  **v0.3:** the brief also instructs agents to **reconstruct scrambled PDF-extracted math into
+  native LaTeX** (default `--math=auto`) and translate `\text{…}` label words; `--out=latex` /
+  `pdf-latex` then typeset it natively. `--math=crop` instead crops display equations as faithful
+  images (`engine.py:_equation_crops`); `--math=off` leaves math untouched. For typeset math use
+  the LaTeX outputs.
 - **`--preserve` (Req 3):** for **docx/pptx**, `cli.cjs plan` runs `preserve.py plan` (extracts
   ordered text **segments** as `⟦S{n}⟧` lines instead of markdown), the Workflow translates those
   segments (the brief says keep every `⟦S{n}⟧` marker exactly, one per line, same order), and

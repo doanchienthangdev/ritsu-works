@@ -86,12 +86,20 @@ def _body(md, assets_dir):
             while i < len(lines) and lines[i].strip().startswith('|'):
                 tbl.append(lines[i]); i += 1
             out.append(_table(tbl)); continue
-        # blockquote
-        if ln.startswith('> '):
+        # blockquote (accepts bare '>' lines; a quote that wraps a $$…$$ block —
+        # e.g. a reconstructed pseudocode/algorithm box — is rendered directly so the
+        # display math + heading typeset instead of collapsing into the quote text)
+        if ln.startswith('>'):
             q = []
-            while i < len(lines) and lines[i].startswith('> '):
-                q.append(lines[i][2:]); i += 1
-            out += [r'\begin{quote}\itshape', _inline(' '.join(q)), r'\end{quote}']; continue
+            while i < len(lines) and lines[i].startswith('>'):
+                s = lines[i][1:]
+                q.append(s[1:] if s.startswith(' ') else s); i += 1
+            inner = '\n'.join(q).strip()
+            if '$$' in inner:
+                out.append(_body(inner, assets_dir))
+            else:
+                out += [r'\begin{quote}\itshape', _inline(' '.join(x for x in q if x.strip())), r'\end{quote}']
+            continue
         # lists
         if re.match(r'^\s*[-*] ', ln):
             items = []

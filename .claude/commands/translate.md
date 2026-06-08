@@ -33,7 +33,7 @@ umbrella skill (`06-ai-ops/skills/translate/SKILL.md`), reports the artifacts.
 | `--out` | = source format | output format(s); **`+` = multiple**, e.g. `--out=pdf+epub`. Supported: `pdf epub docx pptx md latex pdf-latex` (aliases `tex`→latex, `pdflatex`/`xelatex`→pdf-latex). A webpage source defaults to `pdf` |
 | `--preserve` | off | **format-preserving / in-place** (Req 3): translate the text but keep structure, styling, images, tables, and layout **identical** to the original. v0.2 supports **docx · pptx** (output = source format); other formats fall back to reflow with a warning |
 | `--keep-assets` / `--no-assets` | on | extract **figures/charts/tables** (Req 1) from the source and carry them into the outputs |
-| `--math` | `auto` | `auto\|preserve\|off` — math/formulas (`$…$`, `\[…\]`, environments) are kept **verbatim** and typeset natively in LaTeX output (Req 2) |
+| `--math` | `auto` | `auto\|preserve\|off\|crop` — `auto`/`preserve`: clean LaTeX kept **verbatim** + scrambled PDF math **reconstructed** into native LaTeX (Req 2); `crop`: display equations embedded as faithful image crops (no reconstruction); `off`: leave math untouched |
 | `--style` | `claude` | design system (palette). `claude` bundled; others via the repo design-system library (`knowledge/design-systems.yaml`) |
 | `--mode` | `auto` | `auto\|book\|doc\|slides` — `auto` detects a book (→ chapters + cover + TOC) vs a short doc vs slides |
 | `--split` | `auto` | chapter splitting: `auto\|toc\|heading\|none\|count=N` |
@@ -46,9 +46,9 @@ umbrella skill (`06-ai-ops/skills/translate/SKILL.md`), reports the artifacts.
 
 `<src>` also accepts **LaTeX** (`.tex`) sources (prose translated, math preserved).
 
-## v0.2 STEM capabilities
-- **Figures / charts / tables (Req 1)** — extracted from the source (PDF images + `find_tables`; docx images + tables; in document order) into `assets/` and carried into **pdf · epub · md · latex** (`\includegraphics`), so diagrams and tables survive the translation. `--no-assets` to skip.
-- **Math / formulas (Req 2)** — anything inside `$…$`, `$$…$$`, `\(…\)`, `\[…\]`, or a LaTeX math environment is **preserved byte-for-byte** during translation (brief discipline) and **typeset natively** in `latex` / `pdf-latex` output. docx Office-Math (OMML) is captured best-effort. PDF-rendered math is preserved as a cropped figure.
+## v0.2/v0.3 STEM capabilities
+- **Figures / charts / tables (Req 1)** — **v0.3:** PDF figures/tables are captured by **caption-anchored region rendering** (each `Figure/Table/Hình/Bảng N` caption anchors a `get_pixmap` crop of the adjacent page region), so **vector plots** (matplotlib charts, learning curves, violin plots) survive — not just embedded rasters as in v0.2. docx images + tables extracted as before. Carried into **pdf · epub · md · latex** (`\includegraphics`) in document order; leaked axis-label text is suppressed. `--no-assets` to skip.
+- **Math / formulas (Req 2)** — **v0.3:** clean LaTeX (`$…$`, `$$…$$`, environments) is **preserved byte-for-byte**, AND math that a PDF extracted as **scrambled text** is **reconstructed into native LaTeX** during translation (default `--math=auto`), then **typeset natively** in `latex` / `pdf-latex` output. `\text{…}` labels (pseudocode words) are translated. `--math=crop` instead embeds display equations as faithful image crops; `--math=off` leaves math untouched. docx Office-Math (OMML) best-effort.
 - **Format-preserving (Req 3)** — `--preserve` translates **docx/pptx in place**: same template, styles, images, tables, and layout — only the language changes ("giống hệt bản gốc").
 - **LaTeX output (Req 4)** — `--out=latex` emits a self-contained `.tex` (XeLaTeX, Source Serif 4, full Vietnamese, math + figures + tables); `--out=pdf-latex` compiles it to PDF via **tectonic**. Ideal for STEM textbooks, AI/ML notes, and papers.
 
@@ -64,10 +64,10 @@ umbrella skill (`06-ai-ops/skills/translate/SKILL.md`), reports the artifacts.
    assemble translated units → render each requested format with the design system.
 5. **Report** `{ok, outputs[], outDir, warnings[]}`.
 
-## Fidelity by format (v0.2, honest)
-- **Input** pdf · docx · pptx · webpage · md · **latex** · txt — fully supported (PDF uses TOC → font/heading fallback; figures + tables extracted).
-- **Output** **pdf · epub · md · latex · pdf-latex** = polished (LaTeX/pdf-latex typeset math + figures + tables natively). **docx** = clean styled document (or **identical** with `--preserve`). **pptx** = functional deck (or **identical** with `--preserve`). Typography = bundled Source Serif 4 + Inter (full Vietnamese); `--style` supplies the color identity.
-- **Honest limits:** non-LaTeX output shows math as `$…$` literal (use `latex`/`pdf-latex` for typeset math); generic PDF chapter-split is rougher than a hand-tuned run; PDF `--preserve` falls back to reflow in v0.2.
+## Fidelity by format (v0.3, honest)
+- **Input** pdf · docx · pptx · webpage · md · **latex** · txt — fully supported (PDF uses TOC → font/heading fallback; figures/tables via caption-anchored region-crop; math reconstructed).
+- **Output** **pdf · epub · md · latex · pdf-latex** = polished (LaTeX/pdf-latex typeset reconstructed math + region-cropped figures + tables natively). **docx** = clean styled document (or **identical** with `--preserve`). **pptx** = functional deck (or **identical** with `--preserve`). Typography = bundled Source Serif 4 + Inter (full Vietnamese); `--style` supplies the color identity.
+- **Honest limits:** math reconstruction (`--math=auto`) is LLM-driven during translation — strong on well-formed STEM, but verify dense/unusual notation (or use `--math=crop` for pixel-faithful equation images); non-LaTeX output shows reconstructed math as `$…$` literal (use `latex`/`pdf-latex` to typeset); a figure with no `Figure/Table N` caption (uncaptioned inline diagram) is not auto-cropped; generic PDF chapter-split is rougher than a hand-tuned run; PDF `--preserve` falls back to reflow.
 
 ## Examples
 ```

@@ -288,12 +288,18 @@ describe('v0.2 STEM additions', () => {
       expect(resolveConfig({ ...base, flags: { 'no-assets': true } }).keepAssets).toBe(false);
       expect(resolveConfig({ ...base, flags: { 'keep-assets': 'false' } }).keepAssets).toBe(false);
     });
-    it('--math accepts preserve|off, rejects garbage to auto', () => {
+    it('--math accepts preserve|off|crop, rejects garbage to auto', () => {
       expect(resolveConfig({ ...base, flags: { math: 'preserve' } }).math).toBe('preserve');
       expect(resolveConfig({ ...base, flags: { math: 'off' } }).math).toBe('off');
+      expect(resolveConfig({ ...base, flags: { math: 'crop' } }).math).toBe('crop');   // v0.3
       const c = resolveConfig({ ...base, flags: { math: 'wat' } });
       expect(c.math).toBe('auto');
       expect(c.warnings.some((w: string) => w.includes('math'))).toBe(true);
+    });
+    it('--math=crop is not flagged as unknown and emits no warning', () => {   // v0.3
+      const c = resolveConfig({ ...base, flags: { math: 'crop' } });
+      expect(c.warnings.some((w: string) => w.includes('math'))).toBe(false);
+      expect(c.warnings.some((w: string) => w.includes('unknown'))).toBe(false);
     });
     it('the v0.2 flags are not flagged as unknown', () => {
       const c = resolveConfig({ ...base, flags: { preserve: true, 'no-assets': true, math: 'off' } });
