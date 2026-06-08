@@ -57,6 +57,18 @@ content the source didn't have. Techniques:
 | `conversational` | casual, natural, friendly; contractions; like talking to a friend | normal | natural, slightly loose |
 | `meditation` | soft, slow, soothing; near-whisper; deep calm | very-low | long, gentle pauses; trailing ends |
 | `announcement` | clear, warm, confident; welcoming | normal | crisp pauses between items |
+| `film` | cinematic, dramatic, textured; trailer-grade gravitas; tension + release | varies w/ scene | heavy dramatic pauses; land the final line |
+| `conversation` | a scripted DIALOGUE — shift tone/energy per speaker; natural turns | normal | pause between speaker turns; mark each turn |
+| `language-learning` | very clear, patient, encouraging teacher; over-articulate slightly | low–very-low | deliberate pause after each phrase so a learner can repeat |
+| `public-speaking` | projected, persuasive, rhetorical; keynote/TED/oratory energy | normal | rhetorical pauses for emphasis; let key lines breathe |
+| `audiobook` | warm, immersive, consistent narrator; subtle character voices | low–normal | chapter/section beats; sustain one voice across length |
+| `asmr` | extremely soft, breathy, intimate near-whisper; trigger-friendly calm | very-low | slow, frequent gentle pauses; trailing, unhurried |
+| `sports` | high-energy play-by-play; excited, urgent, rising | fast–very-fast | short bursts; explode on the big moment |
+| `documentary` | authoritative, observational; measured wonder; even gravitas | low–normal | let facts + images settle; reflective beats |
+| `customer-support` | calm, professional, reassuring, patient; clear phone/IVR voice | normal | clean pauses between options/steps; never rushed |
+| `character` | animated voice-acting; exaggerated personality; expressive range | varies | comedic/dramatic timing per character; bold choices |
+| `poetry` | lyrical, rhythmic, expressive; honor meter + line breaks | low–normal | pause at line breaks + stanzas; let the music sound |
+| `comedy` | playful, light, knowing; great comedic timing; setup → punchline | normal | the BEAT before the punchline is everything |
 
 ## Engine notes
 

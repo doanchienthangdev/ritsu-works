@@ -13,7 +13,9 @@ description: |
   .archives/voice/<date>-<slug>/. Thin orchestrator over the `voice` umbrella skill.
 ---
 
-# /voice — capability `voice-platform` v0.1
+# /voice — capability `voice-platform` v0.2
+
+> **v0.2 (/cla extend):** the `--type` register vocabulary grew from 11 → **23** (added `film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`). Each new register carries its own content-aware voice-direction recipe in the `voice/preprocess` skill. No other surface changed.
 
 Front-end for the voice-platform capability. Parses flags, drives the `voice` umbrella
 skill (`06-ai-ops/skills/voice/SKILL.md`), reports the result. **Both engines are
@@ -40,7 +42,7 @@ existing file → file mode; otherwise inline text.
 ### Voice shaping (the point of the command)
 | Flag | Default | Values |
 |---|---|---|
-| `--type` | `default` | `default · ads · podcast · story · blog · educational · news · narration · conversational · meditation · announcement` — drives the authored voice-direction. |
+| `--type` | `default` | **23 registers** — `default · ads · podcast · story · blog · educational · news · narration · conversational · meditation · announcement` **+ v0.2:** `film · conversation · language-learning · public-speaking · audiobook · asmr · sports · documentary · customer-support · character · poetry · comedy`. Drives the authored voice-direction. (`conversation` = a scripted multi-speaker dialogue/scene, distinct from the solo `conversational`.) Full per-register recipes: `06-ai-ops/skills/voice/preprocess`. |
 | `--pace` | `normal` | `very-low · low · normal · fast · very-fast` (steered through spoken-style words — numeric speed is ignored by both engines). |
 | `--voice` | adapter default | a named voice (see catalogs below; case-insensitive). |
 | `--gender` | `any` | `male · female` → auto-picks the adapter's default voice of that gender. |

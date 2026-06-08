@@ -39,6 +39,9 @@ const UNIVERSAL_PARAMS = Object.freeze([
 const TYPES = Object.freeze([
   'default', 'ads', 'podcast', 'story', 'blog', 'educational', 'news',
   'narration', 'conversational', 'meditation', 'announcement',
+  // v0.2 (/cla extend) — expanded register vocabulary
+  'film', 'conversation', 'language-learning', 'public-speaking', 'audiobook',
+  'asmr', 'sports', 'documentary', 'customer-support', 'character', 'poetry', 'comedy',
 ]);
 
 // Speaking PACE → mapped to a model-steering phrase (the reliable lever; numeric
@@ -73,6 +76,19 @@ const TYPE_STYLE = Object.freeze({
   conversational: 'a casual, natural, friendly speaking voice, as if talking to a friend',
   meditation: 'a soft, calm, soothing voice with slow pacing and long, gentle pauses',
   announcement: 'a clear, warm, confident announcer voice',
+  // v0.2 (/cla extend) — expanded registers
+  film: 'a cinematic, dramatic film-voiceover voice with rich texture and gravitas, like a movie trailer or a tense film scene',
+  conversation: 'a natural scripted dialogue, reading each speaker\'s lines with a distinct shift in tone, like a two-person scene',
+  'language-learning': 'a slow, exceptionally clear, encouraging language-teacher voice with crisp enunciation and natural but simplified pacing for learners',
+  'public-speaking': 'a projected, persuasive keynote-speaker voice with rhetorical emphasis and confident command of the room',
+  audiobook: 'a warm, immersive audiobook-narrator voice that sustains one consistent character across long-form reading',
+  asmr: 'a soft, breathy, intimate near-whisper voice with gentle, soothing, deliberately quiet delivery',
+  sports: 'an energetic, fast, excited play-by-play sports-commentary voice that builds to the big moments',
+  documentary: 'an authoritative, observational documentary-narrator voice with measured gravitas and wonder',
+  'customer-support': 'a calm, professional, reassuring customer-support voice — clear, patient, and friendly',
+  character: 'an animated, characterful voice-acting performance with exaggerated personality and expressive range',
+  poetry: 'a lyrical, rhythmic, expressive voice that honors line breaks, meter, and the music of the words',
+  comedy: 'a playful, well-timed comedic voice with a light, knowing delivery and good comedic timing',
 });
 
 const DEFAULT_ADAPTER = 'gemini-tts-3.1-flash';

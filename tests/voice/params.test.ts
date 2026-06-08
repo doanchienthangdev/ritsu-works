@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import * as fs from "fs";
+import * as path from "path";
 // @ts-ignore — Node interop from TS to CJS (repo convention)
 const params = require("../../scripts/voice/lib/params.cjs");
 
@@ -78,6 +80,32 @@ describe("normalizeType / normalizePace / normalizeFormat", () => {
     for (const t of params.TYPES) expect(params.normalizeType(t)).toBe(t);
     for (const p of params.PACES) expect(params.normalizePace(p)).toBe(p);
     for (const f of params.FORMATS) expect(params.normalizeFormat(f)).toBe(f);
+  });
+});
+
+describe("TYPE_STYLE coverage (v0.2 — 23 registers)", () => {
+  const v02 = ["film", "conversation", "language-learning", "public-speaking", "audiobook",
+    "asmr", "sports", "documentary", "customer-support", "character", "poetry", "comedy"];
+  it("TYPES includes every v0.2 register and totals 23", () => {
+    for (const t of v02) expect(params.TYPES, `missing register "${t}"`).toContain(t);
+    expect(params.TYPES.length).toBe(23);
+  });
+  it("every TYPES value has a non-empty TYPE_STYLE recipe (no orphan type)", () => {
+    for (const t of params.TYPES) {
+      expect(typeof params.TYPE_STYLE[t], `TYPE_STYLE missing for "${t}"`).toBe("string");
+      expect(params.TYPE_STYLE[t].length).toBeGreaterThan(10);
+    }
+  });
+  it("buildFallbackInstructions embeds each register's style", () => {
+    for (const t of params.TYPES) {
+      const ins = params.buildFallbackInstructions(t, "normal");
+      expect(ins).toContain("Voice:");
+      expect(ins).toContain(params.TYPE_STYLE[t]);
+    }
+  });
+  it("the command doc lists every v0.2 register (contract 2N)", () => {
+    const doc = fs.readFileSync(path.join(__dirname, "..", "..", ".claude", "commands", "voice.md"), "utf-8");
+    for (const t of v02) expect(doc.includes(t), `register "${t}" missing from /voice doc`).toBe(true);
   });
 });
 
