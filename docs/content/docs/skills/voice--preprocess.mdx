@@ -10,15 +10,15 @@ description: >
   `instructions` field (OpenAI) / the natural-language style prefix (Gemini). Invoked per input, or
   per chunk/file in batch.
 source_path: 06-ai-ops/skills/voice/preprocess/SKILL.md
-source_hash: afbce4de615a6c550a864e22536e6b330e2597cdf80450a3b447047dd0974398
-generated_at: '2026-06-08T08:22:57.941Z'
+source_hash: 2c47bdd9086e8902fabbd3476d8857c35086e48d3d3f9ae0e13c21727fb409e6
+generated_at: '2026-06-08T09:49:33.366Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_at: '2026-06-08T09:00:00.000Z'
+translated_at: '2026-06-08T10:00:00.000Z'
 translated_by: docs-translate v1.1.0
-translated_source_hash: afbce4de615a6c550a864e22536e6b330e2597cdf80450a3b447047dd0974398
+translated_source_hash: 2c47bdd9086e8902fabbd3476d8857c35086e48d3d3f9ae0e13c21727fb409e6
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -68,6 +68,18 @@ không bao giờ thêm nội dung mà nguồn gốc không có. Kỹ thuật:
 | `conversational` | thân tình, tự nhiên, thân thiện; dùng dạng rút gọn; như đang nói chuyện với một người bạn | normal | tự nhiên, hơi thoải mái |
 | `meditation` | nhẹ, chậm, xoa dịu; gần như thì thầm; tĩnh lặng sâu | very-low | những khoảng dừng dài, dịu dàng; kéo dài đuôi câu |
 | `announcement` | rõ ràng, ấm áp, tự tin; chào đón | normal | dừng sắc gọn giữa các mục |
+| `film` | điện ảnh, kịch tính, giàu chất liệu; sự trang trọng cỡ trailer phim; căng thẳng + giải tỏa | thay đổi theo cảnh | những khoảng dừng kịch tính nặng đô; chốt hạ câu cuối |
+| `conversation` | một ĐOẠN HỘI THOẠI có kịch bản — chuyển tông/năng lượng theo từng người nói; lượt thoại tự nhiên | normal | dừng giữa các lượt người nói; đánh dấu từng lượt |
+| `language-learning` | giọng thầy giáo rất rõ ràng, kiên nhẫn, khích lệ; phát âm tròn vành hơi quá một chút | thấp–very-low | dừng có chủ đích sau mỗi cụm để người học có thể lặp lại |
+| `public-speaking` | vang vọng, thuyết phục, hùng biện; năng lượng kiểu keynote/TED/diễn thuyết | normal | những khoảng dừng tu từ để nhấn mạnh; để các câu then chốt được lắng đọng |
+| `audiobook` | giọng kể ấm áp, cuốn hút, nhất quán; giọng nhân vật tinh tế | thấp–normal | nhịp ngắt theo chương/phần; giữ một giọng xuyên suốt độ dài |
+| `asmr` | cực kỳ nhẹ, đầy hơi thở, thân mật như thì thầm sát tai; sự tĩnh lặng kích thích cảm giác dễ chịu | very-low | những khoảng dừng dịu dàng, chậm và thường xuyên; kéo dài đuôi, thong thả |
+| `sports` | tường thuật trực tiếp đầy năng lượng; hào hứng, gấp gáp, dâng trào | nhanh–very-fast | những đợt bùng phát ngắn; bùng nổ vào khoảnh khắc lớn |
+| `documentary` | uy tín, mang tính quan sát; sự trầm trồ chừng mực; trang trọng đều đặn | thấp–normal | để các sự kiện + hình ảnh lắng xuống; những nhịp suy ngẫm |
+| `customer-support` | điềm tĩnh, chuyên nghiệp, trấn an, kiên nhẫn; giọng điện thoại/IVR rõ ràng | normal | dừng sạch sẽ giữa các lựa chọn/bước; không bao giờ vội vã |
+| `character` | lồng tiếng sống động; cá tính phóng đại; biên độ biểu cảm rộng | thay đổi | căn nhịp hài/kịch tính theo từng nhân vật; những lựa chọn táo bạo |
+| `poetry` | trữ tình, giàu nhịp điệu, biểu cảm; tôn trọng nhịp thơ + cách ngắt dòng | thấp–normal | dừng ở các điểm ngắt dòng + khổ thơ; để chất nhạc ngân lên |
+| `comedy` | tinh nghịch, nhẹ nhõm, ý nhị; căn nhịp hài cực tốt; mở màn → câu chốt | normal | NHỊP dừng trước câu chốt là tất cả |
 
 ## Ghi chú về engine
 

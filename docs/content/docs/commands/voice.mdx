@@ -1,5 +1,5 @@
 ---
-title: 'Command: /voice — capability `voice-platform` v0.1'
+title: 'Command: /voice — capability `voice-platform` v0.2'
 description: |
   Turn text, a file, or a folder of files into narrated audio — a model-agnostic
   front door with a pluggable TTS adapter layer (--use=<adapter>). Default engine
@@ -12,18 +12,20 @@ description: |
   Tier A; per-run --max-cost-usd breaker; provider keys out-of-band; artifacts to
   .archives/voice/<date>-<slug>/. Thin orchestrator over the `voice` umbrella skill.
 source_path: .claude/commands/voice.md
-source_hash: bf924e7e4e6170da5ea5f9302d902a1ac5934adf4f3fcb9ef4f91143ee300f4b
-generated_at: '2026-06-08T08:22:57.784Z'
+source_hash: a0a48de9489db8be28f3fe80618eb0c8404bb77699c3324c421da16965256bc2
+generated_at: '2026-06-08T09:49:33.214Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_at: '2026-06-08T09:00:00.000Z'
+translated_at: '2026-06-08T10:00:00.000Z'
 translated_by: docs-translate v1.1.0
-translated_source_hash: bf924e7e4e6170da5ea5f9302d902a1ac5934adf4f3fcb9ef4f91143ee300f4b
+translated_source_hash: a0a48de9489db8be28f3fe80618eb0c8404bb77699c3324c421da16965256bc2
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
+
+> **v0.2 (/cla extend):** bộ từ vựng register của `--type` đã tăng từ 11 → **23** (bổ sung `film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`). Mỗi register mới mang công thức voice-direction nhận biết nội dung riêng trong skill `voice/preprocess`. Không có bề mặt nào khác thay đổi.
 
 Giao diện đầu vào cho năng lực voice-platform. Phân tích các cờ, điều khiển skill ô dù `voice`
 (`06-ai-ops/skills/voice/SKILL.md`), báo cáo kết quả. **Cả hai engine đều đã được kiểm chứng
@@ -50,7 +52,7 @@ tệp đã tồn tại → chế độ file; ngược lại là văn bản nội
 ### Định hình giọng đọc (mục đích chính của lệnh)
 | Cờ | Mặc định | Giá trị |
 |---|---|---|
-| `--type` | `default` | `default · ads · podcast · story · blog · educational · news · narration · conversational · meditation · announcement` — điều khiển voice-direction được soạn ra. |
+| `--type` | `default` | **23 register** — `default · ads · podcast · story · blog · educational · news · narration · conversational · meditation · announcement` **+ v0.2:** `film · conversation · language-learning · public-speaking · audiobook · asmr · sports · documentary · customer-support · character · poetry · comedy`. Điều khiển voice-direction được soạn ra. (`conversation` = một đoạn hội thoại/cảnh nhiều người nói có kịch bản, khác với `conversational` đơn người.) Công thức đầy đủ cho từng register: `06-ai-ops/skills/voice/preprocess`. |
 | `--pace` | `normal` | `very-low · low · normal · fast · very-fast` (được điều hướng thông qua các từ chỉ phong cách nói — tốc độ dạng số bị cả hai engine bỏ qua). |
 | `--voice` | mặc định của adapter | một giọng có tên (xem các danh mục bên dưới; không phân biệt hoa thường). |
 | `--gender` | `any` | `male · female` → tự động chọn giọng mặc định của adapter theo giới tính đó. |
