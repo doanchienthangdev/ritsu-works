@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 119
+**Total entries:** 120
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1693,6 +1693,45 @@ belief first instead of analyzing everything. Pairs naturally with debias
 first) is the built-in guard.
 
 **Invoke:** `Skill({ skill: "thinking-toolkit/hypothesis-driven" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/thinking-toolkit/mckinsey-consult
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The CONSULT checkpoint of the /think mckinsey engine — convene a domain MASTER
+(a /muse legend: David Ogilvy, Philip Kotler, Eugene Schwartz, Charlie Munger,
+Chris Voss, …) as another member of the McKinsey team at a checkpoint where the
+live sub-need is a matter of CRAFT / domain-mastery JUDGMENT, not a fact and not
+analytical structure. The engine FRAMES the need → SELECTS the right legend
+(muse:who fit reasoning) → runs an interactive exchange WITH that legend in one
+of two seats — `auto` (the engine self-plays the client seat from the run
+context, founder skipped) or `founder` (the founder takes the seat, a real
+/muse:<persona> session) — → captures the master's recommendation → runs it
+through the McKinsey validation gate as EVIDENCE-NOT-DECIDER (a legend's word is
+degree-6/7 expert judgment, never an asserted fact) → records it (consult-log +
+checkpoint-log kind=consult + toolkit-log + analysis-log [E<n>] receipt) →
+continues the flow.
+
+It is the QUALITATIVE complement to the data sweep: the data tools answer "what
+is TRUE?"; the consult answers "what would a MASTER do here, and why?". Like
+inviting a legend to collaborate on the work.
+
+Trigger: invoked BY thinking-toolkit/mckinsey-workflow at a checkpoint (the
+`--consult` flag + the craft-judgment trigger below), never standalone. Skip
+when the sub-need is a fact (route to a data tool) or pure analytical structure
+(route to a /think micro-framework).
+
+Runs IN THE ACTIVE SESSION (it needs the conversation channel for founder
+participation + the self-play exchange). /muse is a SYSTEM-level skill — invoked
+read-only, never modified.
+
+**Invoke:** `Skill({ skill: "thinking-toolkit/mckinsey-consult" })`
 **HITL tier:** B
 **Side effect:** write
 

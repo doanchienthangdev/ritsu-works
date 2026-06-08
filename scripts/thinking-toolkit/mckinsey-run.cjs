@@ -40,7 +40,11 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 // v3.5: +'toolkit-log' (the METHOD ledger — which thinking-tool/framework was
 // SELECTED for which sub-need + why, and what was REJECTED + why; the McKinsey
 // crux "excellent tool use" made recorded + auditable, like hitl-log/checkpoint-log).
-const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'hitl-log', 'checkpoint-log', 'toolkit-log', 'one-day-answer', 'synthesis', 'communication'];
+// v3.6: +'consult-log' (the EXPERT-CONSULTATION ledger — every /muse legend
+// convened at a checkpoint: persona + sub-need + participation + recommendation +
+// muse-session ref + degree + gate-verdict; reconciled against muse-consult rows
+// in analysis-log via the [E<n>] receipt gate, mirror of the hitl-log gate).
+const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'hitl-log', 'checkpoint-log', 'toolkit-log', 'consult-log', 'one-day-answer', 'synthesis', 'communication'];
 // The 6 book columns (Bulletproof Exhibit 4.3) + the v1.4 status ledger column.
 const WORKPLAN_COLUMNS = ['issue', 'hypothesis', 'analysis', 'source-of-data', 'owner', 'end-product', 'status'];
 const STATUS_VALUES = ['open', 'pulled', 'validated', 'knocked-out', 'spawned'];
@@ -59,9 +63,10 @@ const TEMPLATES = {
   'synthesis.md': `# Synthesis — the LOGIC (SELL, step 6)\n\n<!-- Pyramid: governing thought (top-line) → MECE key line → support. The argument must stand on its own before any storytelling. -->\n`,
   'communication.md': `# Communication — the STORY (SELL, step 7)\n\n<!-- Render the synthesis for THIS audience: grouping vs SCR/SCQA, action titles, pre-wire. APK guard: lead with the answer; never tell the story-of-the-search. -->\n`,
   'toolkit-log.md': `# Toolkit log (METHOD LEDGER) — which thinking-tool, at which checkpoint, for which sub-need, and WHY\n\n<!-- The McKinsey crux made auditable + PER-CHECKPOINT. At EACH team-session checkpoint (checkpoint-log.md \`id\` column), based on the info-so-far + the toolkit pool, you SELECT the fitting/optimal tools, think + gather, then proceed. Log one row per (checkpoint . sub-need): CLASSIFY (solve_mode analytical|design . analysis_mode description|causation|prediction . framework_shape formula|typology|checklist) -> LOAD knowledge/thinking-tool-index/<step>.md -> SELECT <=3 complementary (Munger latticework) -> RECORD the REJECTED + why (debias). The \`checkpoint\` column binds the choice to the session where it happened (C1, C2, ...). The --before-sell gate REQUIRES every 4S stage that ran a checkpoint to record >=1 selection (you can't run the Solve sessions and select no Solve tools - "khong de day"). DISCIPLINE NOT PROOF. One line per cell - use <br>. id = T1, T2, ... -->\n\n| id | step | checkpoint | sub-need | classify (mode/shape) | loaded (index candidates) | selected (<=3 slug + why-fit) | rejected (+ why-not / debias) |\n|---|---|---|---|---|---|---|---|\n| <T1> | <state/structure/solve/sell> | <C-id from checkpoint-log, e.g. C1> | <what you needed to frame/decompose/analyze/synthesize> | <solve_mode / analysis_mode / framework_shape> | <candidates scanned from thinking-tool-index/<step>.md> | <chosen tool(s) slug + why it fits THIS need> | <a candidate you did NOT pick + why; debias> |\n`,
+  'consult-log.md': `# Consult log (EXPERT CONSULTATION) — every /muse master convened on a craft judgment\n\n<!-- The CONSULT checkpoint ledger (thinking-toolkit/mckinsey-consult). One row per /muse legend convened at a checkpoint where the live sub-need was a CRAFT / domain-mastery JUDGMENT (copy that sells, positioning, pricing psychology, a first-principles teardown) — NOT a fact (route to a data tool) and NOT analytical structure (route to a /think micro-framework). The legend's read is EVIDENCE-NOT-DECIDER: a degree-6/7 expert judgment, triangulated against the pulled data, never an asserted fact and never the final call. participation = auto (the engine self-played the client seat, founder skipped) | founder (the founder took the seat, a real /muse:<persona> session). session-ref = the ~/.muse/sessions/<...>.md path (founder seat) or 'auto-played'. RECEIPT RULE: every analysis-log datum with 'muse-consult (<persona>)' provenance MUST carry an [E<n>] tag resolving to a row here (e.g. 'muse-consult (david-ogilvy) [E1]'); a bare muse-consult datum with no receipt FAILS the gate (mirror of the hitl-log [H<n>] gate). Consults are OPTIONAL — not every run consults; the gate fires only when a consult is CLAIMED. DISCIPLINE NOT PROOF: the checker can't watch the exchange; it makes faking a consult a failure + leaves an auditable trail. One line per cell - use <br>. id = E1, E2, ... -->\n\n| id | checkpoint | persona(s) | sub-need | participation (auto/founder) | recommendation (one line) | session-ref | degree (1-8) | gate-verdict (coheres/conflicts/inconclusive + route) |\n|---|---|---|---|---|---|---|---|---|\n| <E1> | <C-id from checkpoint-log, e.g. C6> | <e.g. david-ogilvy> | <the craft judgment a master sharpens> | <auto / founder> | <the master's concrete recommendation, one line> | <~/.muse/sessions/<...>.md OR auto-played> | <6-7 expert judgment> | <triangulated vs data: coheres/conflicts + the route taken> |\n`,
 };
 
-/** Create the run folder + 10 artifact templates. Idempotent: never overwrites an existing file. */
+/** Create the run folder + 11 artifact templates. Idempotent: never overwrites an existing file. */
 function scaffoldRun(repoRoot, slug) {
   if (typeof slug !== 'string' || !SLUG_RE.test(slug)) {
     return { created: [], skipped: [], errors: [`slug must be kebab-case (^[a-z0-9][a-z0-9-]*$): ${JSON.stringify(slug)}`] };
@@ -141,7 +146,7 @@ function checkRun(repoRoot, slug, opts = {}) {
   const dir = path.join(repoRoot, RUN_BASE, slug);
   if (!fs.existsSync(dir)) return { errors: [`run folder not found: ${RUN_BASE}/${slug}/ (run \`scaffold ${slug}\` first)`], warnings };
 
-  // 1. all 7 artifacts present
+  // 1. all artifacts present
   for (const a of ARTIFACTS) {
     if (!fs.existsSync(path.join(dir, `${a}.md`))) errors.push(`missing artifact: ${a}.md`);
   }
@@ -177,7 +182,9 @@ function checkRun(repoRoot, slug, opts = {}) {
           if (/\bproduct\./i.test(src)) {
             errors.push(`workplan.md: source-of-data references product.* — FIREWALL violation (metrics.* only): "${src}"`);
           }
-          if (src && !/^<.*>$/.test(src) && !/ask-?user|assumption/i.test(src)) wpRealSourceRows++;
+          // muse-consult is expert JUDGMENT, not pulled DATA — like ask-user/assumption it
+          // does NOT satisfy the "pulled real data" discipline (a consult never substitutes a pull).
+          if (src && !/^<.*>$/.test(src) && !/ask-?user|assumption|muse-?consult/i.test(src)) wpRealSourceRows++;
         }
       }
     }
@@ -243,6 +250,51 @@ function checkRun(repoRoot, slug, opts = {}) {
         for (const tag of tags) {
           if (!validHitlIds.has(tag)) {
             errors.push(`hitl gate: analysis-log cites [${tag}] but hitl-log.md has no data row with id ${tag} (log the real question + founder answer, or relabel as 'assumption').`);
+          }
+        }
+      }
+    }
+  }
+
+  // 4b. CONSULT receipt reconciliation (v3.6) — one-way: analysis-log muse-consult → consult-log.
+  //    Mirror of the v1.8 HITL receipt gate. A /muse legend's read enters the analysis-log as a
+  //    datum with provenance 'muse-consult (<persona>) [E<n>]'; that [E<n>] must resolve to a real
+  //    data row in consult-log.md (persona + sub-need + recommendation + muse-session ref). Consults
+  //    are OPTIONAL (not every run consults), so this gate fires ONLY when a consult is CLAIMED in
+  //    the analysis-log — it adds no before-sell requirement. Receipt DISCIPLINE, not proof-of-consult
+  //    (a checker can't watch the exchange): faking a 'muse-consult' datum without a logged consult
+  //    now fails. consult-log rows with no matching datum are allowed (one-way, like hitl-log).
+  const clPath = path.join(dir, 'consult-log.md');
+  const validConsultIds = new Set();
+  if (fs.existsSync(clPath)) {
+    const clt = parseFirstTable(fs.readFileSync(clPath, 'utf8'));
+    if (clt) {
+      const idi = colIndex(clt.headers, ['id']);
+      if (idi >= 0) {
+        for (const row of clt.rows) {
+          if (!isDataRow(row)) continue;                  // skip the pristine <E1> template row
+          const id = (row[idi] || '').trim().toUpperCase();
+          if (/^E\d+$/.test(id)) validConsultIds.add(id); // anchored: "<E1>" can't sneak in
+        }
+      }
+    }
+  }
+  if (fs.existsSync(alPath)) {
+    const t = parseFirstTable(fs.readFileSync(alPath, 'utf8'));
+    const pi = t ? colIndex(t.headers, ['provenance', 'tool', 'source']) : -1;
+    if (t && pi >= 0) {
+      for (const row of t.rows) {
+        if (!isDataRow(row)) continue;
+        const prov = row[pi] || '';                        // read provenance cell ONLY (decoy-proof)
+        if (!/muse-?consult/i.test(prov)) continue;        // only muse-consult provenance needs a receipt
+        const tags = (prov.match(/\[E\d+\]/gi) || []).map((s) => s.slice(1, -1).toUpperCase());
+        if (tags.length === 0) {
+          errors.push(`consult gate: an analysis-log datum has 'muse-consult' provenance but no [E<n>] receipt tag — log the consult in consult-log.md (persona + sub-need + recommendation + muse-session ref) and tag the datum [E<n>], or relabel the provenance. Provenance cell: "${prov.trim()}"`);
+          continue;
+        }
+        for (const tag of tags) {
+          if (!validConsultIds.has(tag)) {
+            errors.push(`consult gate: analysis-log cites [${tag}] but consult-log.md has no data row with id ${tag} (log the real /muse consult — persona, sub-need, recommendation, ~/.muse session path).`);
           }
         }
       }
