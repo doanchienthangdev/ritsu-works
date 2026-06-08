@@ -1,0 +1,80 @@
+---
+title: 'Skill: voice/preprocess'
+description: >
+  The preprocessing brain of /voice — the step that makes the audio sound DESIGNED, not robotic.
+  Reads a script in the context of its --type (ads/podcast/story/blog/
+  educational/news/narration/conversational/meditation/announcement) and AUTHORS a content-aware
+  voice-direction block (voice, tone, emotion, pace, volume, intonation, pronunciation, pauses) PLUS
+  a lightly marked-up version of the script (pauses via punctuation/breaks for both engines; inline
+  [bracket] audio tags for Gemini). Output is consumed by scripts/voice/gen.cjs as the
+  `instructions` field (OpenAI) / the natural-language style prefix (Gemini). Invoked per input, or
+  per chunk/file in batch.
+source_path: 06-ai-ops/skills/voice/preprocess/SKILL.md
+source_hash: afbce4de615a6c550a864e22536e6b330e2597cdf80450a3b447047dd0974398
+generated_at: '2026-06-08T08:22:57.938Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+This is the in-session, subscription-billed step that turns flat text into a great
+read. The model (you) does two things and writes two artifacts.
+
+## A — Author the voice-direction block → `instructions.txt`
+
+Write a tight, vivid block in the same shape OpenAI's `instructions` field and Gemini's
+style prefix expect (see `runtime/tmp/whisper-samples/` for canonical OpenAI examples).
+Cover, in 4–8 short labeled lines, what fits the content:
+
+- **Voice / Affect** — the persona (e.g. "a confident, upbeat brand voice"; "a calm late-night radio host"; "a patient teacher").
+- **Tone & Emotion** — the feeling and its arc across the piece (rising excitement; steady reassurance; intimate warmth).
+- **Pacing** — fold in `--pace` as words, not numbers (numeric speed is ignored by both engines): very-low → "very slowly, with generous pauses"; very-fast → "rapidly but intelligible".
+- **Pauses** — where to breathe: after the hook, before the CTA, between list items, at section breaks.
+- **Pronunciation / Emphasis** — crisp key terms; stress the benefit word; spell out tricky names/acronyms if needed.
+- **Volume / Intonation** — gentle rises and falls; lean in on the punchline; soften the close.
+- **Word choice / Do-nots** — e.g. "no slang" for news; "warm contractions" for conversational.
+
+Make it **specific to THIS script**, not a template. Quality bar: it should read like a
+director's note a voice actor could act on.
+
+## B — Mark up the script for speech → the script text
+
+Lightly edit the text so the engine *performs* it. Never change meaning; never add
+content the source didn't have. Techniques:
+- **Pauses for BOTH engines** — commas, em-dashes (—), ellipses (…), and **paragraph breaks** are the universal pause language. Break a wall of text into short paragraphs at natural beats.
+- **Sentence length** — split run-ons into short, speakable sentences (ads/news especially).
+- **Numbers, dates, symbols** — write how they're SAID ("$29/mo" → "twenty-nine dollars a month"; "Q3" → "Q three") when clarity benefits.
+- **Gemini-only inline tags** (strip these for `--use=openai-tts`): `[pause]`, `[short pause]`, `[excited]`, `[whispers]`, `[sighs]`, `[laughs]`, `[very slow]`, `[extremely fast]`, `[sarcastic]`. Use sparingly and only when they serve the content.
+
+## Per-type recipes (the starting palette — adapt to the actual content)
+
+| `--type` | Voice & emotion | Pace default | Pause discipline |
+|---|---|---|---|
+| `default` | clear, natural, friendly, neutral-warm | normal | honor punctuation |
+| `ads` | energetic, persuasive, confident; build to the CTA | fast-ish | beat before the CTA; punch the benefit |
+| `podcast` | warm, conversational, intimate; light texture, natural imperfection | normal | breathe between thoughts; let it feel live |
+| `story` | expressive narrator; emotional dynamics; distinct shifts for characters/scenes | varies w/ scene | dramatic pauses at tension; slow the climax |
+| `blog` | clear, friendly, informative; like a great article read aloud | normal | pause between sections/H2s |
+| `educational` | patient, structured, encouraging; emphasize key terms; check-understanding cadence | low–normal | pause AFTER each concept so it lands |
+| `news` | authoritative, neutral, crisp; steady cadence; precise articulation | normal | clean stops; no editorializing warmth |
+| `narration` | smooth, measured documentary voice; even gravitas | low–normal | let images settle |
+| `conversational` | casual, natural, friendly; contractions; like talking to a friend | normal | natural, slightly loose |
+| `meditation` | soft, slow, soothing; near-whisper; deep calm | very-low | long, gentle pauses; trailing ends |
+| `announcement` | clear, warm, confident; welcoming | normal | crisp pauses between items |
+
+## Engine notes
+
+- **OpenAI (`openai-tts` / whisper)** — the block becomes the `instructions` field (≤4096 chars); the marked-up text becomes `input`. **Strip inline `[tags]`** (OpenAI reads them literally). Pace = words in `instructions`.
+- **Gemini (`gemini-tts-3.1-flash`)** — `gen.cjs` prepends the block as a natural-language style prefix, then the marked-up text. **Inline `[tags]` are honored** (expressive on 3.1). Pace = words + an optional pace tag.
+
+## Output contract
+
+Write the authored block to `<run>/instructions.txt` (one block per input — the whole
+input narrates in ONE consistent voice). Save the marked-up script (per chunk/file) where
+the recorder reads it. Then hand the paths to `scripts/voice/run.cjs --instructions-file=…`
+(inline) or to the per-unit `gen.cjs` calls (Workflow). When you do NOT author a block,
+`gen.cjs` falls back to `params.buildFallbackInstructions(type, pace)` — the deterministic
+floor, never the target.
+

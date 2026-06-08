@@ -1,0 +1,36 @@
+---
+title: 'SOP-AIOPS-014: SOP'
+description: ''
+source_path: 06-ai-ops/sops/SOP-AIOPS-014-voice-runtime-contract/flow.yaml
+source_hash: 43c655c07ff79223e46bca51ad5a878dd0115f0440b1d507653ce2c91c2eafa5
+generated_at: '2026-06-08T08:22:58.074Z'
+generated_by: docs-engine v1.2.0
+category: sop
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+**SOP ID:** `SOP-AIOPS-014`
+**Pillar:** n/a
+**Cost bucket:** `ai-ops-voice`
+**Capability:** `voice-platform`
+
+## Steps
+
+### Step parse — Stage 1 — parse the universal flags + resolve input + --use
+
+- **Skill:** `voice`
+
+### Step preprocess — Stage 2 — author the content-aware voice-direction + mark up the script (IN-SESSION)
+
+- **Skill:** `voice/preprocess`
+
+### Step record — Stage 3 — record audio (out-of-band) + chunk + stitch
+
+- **Skill:** `voice/adapters/<resolved>`
+
+### Step report — Stage 4 — report the adapter contract
+
+- **Skill:** `voice`
+

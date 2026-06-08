@@ -1,0 +1,44 @@
+---
+title: 'Skill: voice/adapters/openai-tts'
+description: >
+  The /voice OpenAI TTS adapter (the engine the founder calls "whisper") — OpenAI's gpt-4o-mini-tts
+  text-to-speech. 13 voices (marin/cedar highest fidelity); style via the `instructions` field
+  (≤4096 chars); emits mp3/wav/flac/opus/aac/pcm NATIVELY. Wired in scripts/voice/gen.cjs
+  (callOpenAi). Auth: OPENAI_API_KEY, out-of-band. NB: "Whisper" proper is OpenAI's speech-to-TEXT —
+  this is text-to-SPEECH.
+source_path: 06-ai-ops/skills/voice/adapters/openai-tts/SKILL.md
+source_hash: 71a7a3e7513681eb3b2c3513e54aea6ff16a9db00b3e6664e07cb0758870875a
+generated_at: '2026-06-08T08:22:57.936Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_at: '2026-06-08T09:00:00.000Z'
+translated_by: docs-translate v1.1.0
+translated_source_hash: 71a7a3e7513681eb3b2c3513e54aea6ff16a9db00b3e6664e07cb0758870875a
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+TTS của OpenAI, **đã được kiểm chứng hoạt động**. Được triển khai bởi `scripts/voice/gen.cjs#callOpenAi`.
+`--use=whisper` là một bí danh preset trỏ về đây (cách gọi gợi nhớ của founder).
+
+## Hình dạng API
+- `POST https://api.openai.com/v1/audio/speech`; `Authorization: Bearer $OPENAI_API_KEY`; thân yêu cầu JSON.
+- Thân yêu cầu: `model` (`gpt-4o-mini-tts`), `voice`, `input`, `instructions`, `response_format`.
+- **Phản hồi là dữ liệu âm thanh thô dạng BYTE** (không phải JSON) ở định dạng được yêu cầu — ghi trực tiếp cho mp3/wav/flac/opus/aac/pcm; m4a/ogg được chuyển mã qua ffmpeg.
+
+## Điều khiển phong cách
+- Trường **`instructions`** (CHỈ dành cho gpt-4o-mini-tts, ≤4096 ký tự) điều chỉnh giọng điệu, cảm xúc, ngữ điệu, cách nhấn nhá, và **nhịp đọc** bằng ngôn ngữ tự nhiên. Skill `voice/preprocess` soạn nội dung này; các ví dụ chuẩn nằm tại `runtime/tmp/whisper-samples/`.
+- **Tham số số `speed` bị gpt-4o-mini-tts BỎ QUA** → nhịp đọc được nhúng vào `instructions`. (Tham số tốc độ dạng số chỉ hoạt động trên `tts-1`/`tts-1-hd` đời cũ.)
+- Các thẻ `[bracket]` nội dòng sẽ bị đọc nguyên văn → `preprocess` loại bỏ chúng cho adapter này.
+
+## Hỗ trợ / cảnh báo
+- hỗ trợ: `voice, pace, instructions, lang, format`
+- cảnh báo: `speed` (bị gpt-4o-mini-tts bỏ qua), `multi-speaker` (giọng đơn), `markup` (không có thẻ bracket), `style`
+
+## Giọng nói (13)
+Bảng đầy đủ (tên · giới tính · tính cách) nằm trong tài liệu lệnh `/voice` và `scripts/voice/lib/voices.cjs#OPENAI_VOICES`. **`marin`/`cedar` là những giọng mới nhất, độ trung thực cao nhất (khuyến nghị).** Mặc định là `marin` (nữ); `--gender=male` → `cedar`. Đầu vào ≤4096 ký tự/yêu cầu (`run.cjs` OPENAI_INPUT_CAP).
+
+## Định dạng
+`response_format` gốc: `mp3` (mặc định) · `wav` · `flac` · `opus` · `aac` · `pcm` (24kHz/16-bit/LE/mono, không header). `m4a`/`ogg` → được yêu cầu dưới dạng mp3, rồi chuyển mã.

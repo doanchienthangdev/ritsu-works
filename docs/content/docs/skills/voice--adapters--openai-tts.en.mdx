@@ -1,0 +1,41 @@
+---
+title: 'Skill: voice/adapters/openai-tts'
+description: >
+  The /voice OpenAI TTS adapter (the engine the founder calls "whisper") — OpenAI's gpt-4o-mini-tts
+  text-to-speech. 13 voices (marin/cedar highest fidelity); style via the `instructions` field
+  (≤4096 chars); emits mp3/wav/flac/opus/aac/pcm NATIVELY. Wired in scripts/voice/gen.cjs
+  (callOpenAi). Auth: OPENAI_API_KEY, out-of-band. NB: "Whisper" proper is OpenAI's speech-to-TEXT —
+  this is text-to-SPEECH.
+source_path: 06-ai-ops/skills/voice/adapters/openai-tts/SKILL.md
+source_hash: 71a7a3e7513681eb3b2c3513e54aea6ff16a9db00b3e6664e07cb0758870875a
+generated_at: '2026-06-08T08:22:57.936Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+OpenAI's TTS, **verified working**. Implemented by `scripts/voice/gen.cjs#callOpenAi`.
+`--use=whisper` is a preset alias that resolves here (the founder's mnemonic).
+
+## API shape
+- `POST https://api.openai.com/v1/audio/speech`; `Authorization: Bearer $OPENAI_API_KEY`; JSON body.
+- Body: `model` (`gpt-4o-mini-tts`), `voice`, `input`, `instructions`, `response_format`.
+- **Response is raw audio BYTES** (not JSON) in the requested format — written directly for mp3/wav/flac/opus/aac/pcm; m4a/ogg transcoded via ffmpeg.
+
+## Style control
+- The **`instructions`** field (gpt-4o-mini-tts ONLY, ≤4096 chars) steers tone, emotion, accent, intonation, and **pacing** in natural language. The `voice/preprocess` skill authors it; canonical examples live in `runtime/tmp/whisper-samples/`.
+- **`speed` numeric param is IGNORED by gpt-4o-mini-tts** → pace is baked into `instructions`. (Numeric speed only works on legacy `tts-1`/`tts-1-hd`.)
+- Inline `[bracket]` tags are read literally → `preprocess` strips them for this adapter.
+
+## Supports / warns
+- supports: `voice, pace, instructions, lang, format`
+- warns: `speed` (ignored by gpt-4o-mini-tts), `multi-speaker` (single voice), `markup` (no bracket tags), `style`
+
+## Voices (13)
+Full table (name · gender · character) in the `/voice` command doc and `scripts/voice/lib/voices.cjs#OPENAI_VOICES`. **`marin`/`cedar` are the newest, highest-fidelity (recommended).** Default `marin` (female); `--gender=male` → `cedar`. Input ≤4096 chars/request (`run.cjs` OPENAI_INPUT_CAP).
+
+## Formats
+Native `response_format`: `mp3` (default) · `wav` · `flac` · `opus` · `aac` · `pcm` (24kHz/16-bit/LE/mono, headerless). `m4a`/`ogg` → requested as mp3, transcoded.
+

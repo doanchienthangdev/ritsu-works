@@ -1,0 +1,84 @@
+---
+title: 'Skill: voice/preprocess'
+description: >
+  The preprocessing brain of /voice — the step that makes the audio sound DESIGNED, not robotic.
+  Reads a script in the context of its --type (ads/podcast/story/blog/
+  educational/news/narration/conversational/meditation/announcement) and AUTHORS a content-aware
+  voice-direction block (voice, tone, emotion, pace, volume, intonation, pronunciation, pauses) PLUS
+  a lightly marked-up version of the script (pauses via punctuation/breaks for both engines; inline
+  [bracket] audio tags for Gemini). Output is consumed by scripts/voice/gen.cjs as the
+  `instructions` field (OpenAI) / the natural-language style prefix (Gemini). Invoked per input, or
+  per chunk/file in batch.
+source_path: 06-ai-ops/skills/voice/preprocess/SKILL.md
+source_hash: afbce4de615a6c550a864e22536e6b330e2597cdf80450a3b447047dd0974398
+generated_at: '2026-06-08T08:22:57.941Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_at: '2026-06-08T09:00:00.000Z'
+translated_by: docs-translate v1.1.0
+translated_source_hash: afbce4de615a6c550a864e22536e6b330e2597cdf80450a3b447047dd0974398
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Đây là bước chạy trong phiên (in-session), tính phí theo gói thuê bao, biến văn bản
+phẳng thành một bản đọc tuyệt vời. Mô hình (chính bạn) làm hai việc và viết ra hai tạo phẩm.
+
+## A — Soạn khối định hướng giọng đọc → `instructions.txt`
+
+Viết một khối súc tích, sống động theo đúng định dạng mà trường `instructions` của OpenAI
+và phần tiền tố phong cách (style prefix) của Gemini mong đợi (xem `runtime/tmp/whisper-samples/`
+để có các ví dụ chuẩn của OpenAI). Trong 4–8 dòng ngắn có nhãn, hãy bao quát những gì phù hợp
+với nội dung:
+
+- **Voice / Affect** — nhân vật/phong thái (ví dụ: "một giọng thương hiệu tự tin, sôi nổi"; "một người dẫn chương trình radio đêm khuya điềm tĩnh"; "một người thầy kiên nhẫn").
+- **Tone & Emotion** — cảm xúc và cung bậc diễn biến của nó xuyên suốt bài (sự hào hứng dâng lên; sự trấn an đều đặn; sự ấm áp thân mật).
+- **Pacing** — lồng `--pace` vào dưới dạng từ ngữ, không phải con số (cả hai engine đều bỏ qua tốc độ dạng số): very-low → "rất chậm, với những khoảng dừng rộng rãi"; very-fast → "nhanh nhưng vẫn rõ ràng dễ nghe".
+- **Pauses** — chỗ cần lấy hơi: sau câu mồi (hook), trước lời kêu gọi hành động (CTA), giữa các mục danh sách, tại các điểm ngắt đoạn.
+- **Pronunciation / Emphasis** — phát âm rõ các thuật ngữ chính; nhấn mạnh từ chỉ lợi ích; đánh vần các tên/từ viết tắt khó nếu cần.
+- **Volume / Intonation** — lên xuống nhẹ nhàng; nghiêng vào câu chốt (punchline); làm dịu phần kết.
+- **Word choice / Do-nots** — ví dụ: "không dùng tiếng lóng" cho tin tức; "dùng các dạng rút gọn ấm áp" cho phong cách trò chuyện.
+
+Hãy làm cho nó **đặc thù cho CHÍNH kịch bản này**, đừng dùng khuôn mẫu. Tiêu chuẩn chất lượng:
+nó nên đọc lên như một ghi chú đạo diễn mà một diễn viên lồng tiếng có thể diễn theo được.
+
+## B — Đánh dấu kịch bản để đọc thành tiếng → phần văn bản kịch bản
+
+Chỉnh sửa nhẹ phần văn bản để engine *trình diễn* được nó. Không bao giờ thay đổi ý nghĩa;
+không bao giờ thêm nội dung mà nguồn gốc không có. Kỹ thuật:
+- **Khoảng dừng cho CẢ HAI engine** — dấu phẩy, dấu gạch ngang dài (—), dấu ba chấm (…), và **các điểm ngắt đoạn văn** là ngôn ngữ dừng phổ quát. Hãy chia một khối văn bản đặc thành các đoạn ngắn theo những nhịp tự nhiên.
+- **Độ dài câu** — tách các câu lê thê thành những câu ngắn, dễ đọc thành tiếng (đặc biệt với ads/news).
+- **Số, ngày tháng, ký hiệu** — viết theo cách chúng được ĐỌC ("$29/mo" → "twenty-nine dollars a month"; "Q3" → "Q three") khi điều đó giúp rõ nghĩa hơn.
+- **Thẻ inline chỉ dành cho Gemini** (loại bỏ chúng khi dùng `--use=openai-tts`): `[pause]`, `[short pause]`, `[excited]`, `[whispers]`, `[sighs]`, `[laughs]`, `[very slow]`, `[extremely fast]`, `[sarcastic]`. Dùng tiết chế và chỉ khi chúng phục vụ nội dung.
+
+## Công thức theo từng loại (bảng màu khởi đầu — hãy thích ứng theo nội dung thực tế)
+
+| `--type` | Giọng & cảm xúc | Mặc định nhịp độ | Kỷ luật ngắt nghỉ |
+|---|---|---|---|
+| `default` | rõ ràng, tự nhiên, thân thiện, trung tính-ấm | normal | tôn trọng dấu câu |
+| `ads` | tràn năng lượng, thuyết phục, tự tin; dồn dần lên CTA | nhanh vừa | dừng một nhịp trước CTA; nhấn vào lợi ích |
+| `podcast` | ấm áp, trò chuyện, thân mật; có chút chất riêng, sự không hoàn hảo tự nhiên | normal | lấy hơi giữa các ý; để nó nghe như đang trực tiếp |
+| `story` | người kể chuyện biểu cảm; động lực cảm xúc; chuyển giọng rõ rệt cho từng nhân vật/cảnh | thay đổi theo cảnh | dừng kịch tính ở các đoạn căng thẳng; chậm lại ở cao trào |
+| `blog` | rõ ràng, thân thiện, giàu thông tin; như một bài báo hay được đọc lên | normal | dừng giữa các phần/H2 |
+| `educational` | kiên nhẫn, có cấu trúc, khích lệ; nhấn mạnh thuật ngữ chính; nhịp điệu kiểm tra mức độ hiểu | thấp–normal | dừng SAU mỗi khái niệm để nó thấm |
+| `news` | uy tín, trung lập, sắc gọn; nhịp đều đặn; phát âm chính xác | normal | dừng dứt khoát; không pha sự ấm áp mang tính bình luận |
+| `narration` | mượt mà, chừng mực, giọng tài liệu; sự trang trọng đều đặn | thấp–normal | để hình ảnh lắng xuống |
+| `conversational` | thân tình, tự nhiên, thân thiện; dùng dạng rút gọn; như đang nói chuyện với một người bạn | normal | tự nhiên, hơi thoải mái |
+| `meditation` | nhẹ, chậm, xoa dịu; gần như thì thầm; tĩnh lặng sâu | very-low | những khoảng dừng dài, dịu dàng; kéo dài đuôi câu |
+| `announcement` | rõ ràng, ấm áp, tự tin; chào đón | normal | dừng sắc gọn giữa các mục |
+
+## Ghi chú về engine
+
+- **OpenAI (`openai-tts` / whisper)** — khối này trở thành trường `instructions` (≤4096 ký tự); phần văn bản đã đánh dấu trở thành `input`. **Loại bỏ các thẻ `[tags]` inline** (OpenAI đọc chúng theo nghĩa đen). Nhịp độ = từ ngữ trong `instructions`.
+- **Gemini (`gemini-tts-3.1-flash`)** — `gen.cjs` thêm khối này vào đầu như một tiền tố phong cách bằng ngôn ngữ tự nhiên, rồi đến phần văn bản đã đánh dấu. **Các thẻ `[tags]` inline được tôn trọng** (biểu cảm trên 3.1). Nhịp độ = từ ngữ + một thẻ nhịp độ tùy chọn.
+
+## Hợp đồng đầu ra
+
+Ghi khối đã soạn vào `<run>/instructions.txt` (mỗi đầu vào một khối — toàn bộ đầu vào được kể
+bằng MỘT giọng nhất quán). Lưu kịch bản đã đánh dấu (theo từng chunk/file) tại nơi bộ ghi
+âm đọc nó. Sau đó chuyển các đường dẫn cho `scripts/voice/run.cjs --instructions-file=…`
+(inline) hoặc cho các lời gọi `gen.cjs` theo từng đơn vị (Workflow). Khi bạn KHÔNG soạn một
+khối, `gen.cjs` sẽ quay về dùng `params.buildFallbackInstructions(type, pace)` — mức sàn xác
+định, không bao giờ là mục tiêu.

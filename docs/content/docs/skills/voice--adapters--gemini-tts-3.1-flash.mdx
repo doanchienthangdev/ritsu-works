@@ -1,0 +1,50 @@
+---
+title: 'Skill: voice/adapters/gemini-tts-3.1-flash'
+description: >
+  The default /voice TTS adapter — Google Gemini TTS via the Gemini Developer API. Founder-facing id
+  "gemini-tts-3.1-flash" maps to the real model gemini-3.1-flash-tts-preview. 30 prebuilt voices;
+  style via a natural-language prefix + inline [bracket] audio tags; returns raw PCM
+  (24kHz/16-bit/mono) → WAV-wrapped → ffmpeg-converted to --format. Wired in scripts/voice/gen.cjs
+  (callGemini). Auth: GEMINI_API_KEY, out-of-band.
+source_path: 06-ai-ops/skills/voice/adapters/gemini-tts-3.1-flash/SKILL.md
+source_hash: 7ece41a29bea2ae84c70d35355b4f3f0449225f980424839039d2788bcc0dfe4
+generated_at: '2026-06-08T08:22:57.935Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+translated: true
+translated_at: '2026-06-08T09:00:00.000Z'
+translated_by: docs-translate v1.1.0
+translated_source_hash: 7ece41a29bea2ae84c70d35355b4f3f0449225f980424839039d2788bcc0dfe4
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Backend mặc định, **đã kiểm chứng hoạt động**. Được hiện thực bởi `scripts/voice/gen.cjs#callGemini`.
+
+## Hình dạng API (Gemini Developer API)
+- `POST https://generativelanguage.googleapis.com/v1beta/models/<MODEL>:generateContent`
+- Header xác thực `x-goog-api-key: $GEMINI_API_KEY`; `Content-Type: application/json`.
+- Body: `contents[].parts[].text` + `generationConfig.responseModalities:["AUDIO"]` + `generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName` (**phân biệt chữ hoa/thường**).
+- Phản hồi: **PCM** dạng base64 tại `candidates[0].content.parts[0].inlineData.data` (mime `audio/L16;rate=24000`). Không có container → `gen.cjs` bọc lại (`lib/audio.cjs#pcmToWav`, 24kHz/16-bit/mono) rồi chuyển đổi.
+
+## Mô hình (ghi đè bằng `--model`)
+| thân thiện | id thật | chi phí ($/1M out) | ghi chú |
+|---|---|---|---|
+| `gemini-tts-3.1-flash` *(mặc định)* | `gemini-3.1-flash-tts-preview` | $20 | mới nhất, biểu cảm với `[tags]` |
+| `gemini-2.5-flash` | `gemini-2.5-flash-preview-tts` | $10 | rẻ hơn, có gói miễn phí, được kiểm thử nhiều nhất |
+| `gemini-2.5-pro` | `gemini-2.5-pro-preview-tts` | $20 | chất lượng cao nhất, không có gói miễn phí |
+
+## Điều khiển phong cách
+- **Không có SSML, không có tham số rate/pitch.** Toàn bộ bề mặt điều khiển nằm ở phần văn bản: `gen.cjs` chèn phần định hướng giọng đã soạn dưới dạng tiền tố ngôn ngữ tự nhiên, rồi đến kịch bản.
+- **Audio tag nội dòng** (được tôn trọng, biểu cảm trên 3.1): `[whispers] [laughs] [sighs] [excited] [sarcastic] [very slow] [extremely fast] [pause]`. Skill `voice/preprocess` phát ra các tag này cho Gemini và lược bỏ chúng cho OpenAI.
+
+## Hỗ trợ / cảnh báo
+- hỗ trợ: `voice, pace, instructions, lang, format, markup, multi-speaker`
+- cảnh báo (không có ánh xạ native): `speed` (dùng từ chỉ nhịp độ), `style` (gộp vào instructions)
+
+## Giọng nói
+30 giọng dựng sẵn — bảng đầy đủ (tên · giới tính · mô tả) nằm trong tài liệu lệnh `/voice` và `scripts/voice/lib/voices.cjs#GEMINI_VOICES`. Mặc định `Kore` (nữ, Chắc chắn); `--gender=male` → `Charon`.
+
+## Giới hạn
+- Mỗi đoạn dưới ~6,000 ký tự/yêu cầu (`run.cjs` GEMINI_INPUT_CAP); tối đa ~10.9 phút âm thanh mỗi yêu cầu trên 3.1 (đầu ra bị cắt nếu vượt quá). Tất cả mô hình preview → đưa id mô hình vào cấu hình, thử lại khi gặp 429.

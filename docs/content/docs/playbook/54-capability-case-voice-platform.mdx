@@ -1,0 +1,111 @@
+---
+title: "Chương 54 — Capability Case Study: voice-platform (`/voice` — thu giọng đa-engine, đa-giọng, kịch-bản-hoá theo loại nội dung)"
+description: "Chương 54 — Capability Case Study: voice-platform (`/voice` — thu giọng đa-engine, đa-giọng, kịch-bản-hoá theo loại nội dung)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/54-capability-case-voice-platform.md
+source_hash: 8988a240b029667817b22fa1e3c7f28b3a8908c4904645c4d6cc7b325667ae49
+generated_at: '2026-06-08T08:32:06.376Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: 8988a240b029667817b22fa1e3c7f28b3a8908c4904645c4d6cc7b325667ae49
+translated_at: '2026-06-08T08:32:06.376Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 54
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> **Case Study #17.** `/voice` biến *một đoạn text · một file · hoặc cả một thư mục file* thành audio thuyết-minh — một **cửa trước model-agnostic** với **lớp adapter cắm-được** (`--use=<adapter>`), đúng khuôn `/image`. Hai engine **đã kiểm-chứng-chạy-thật**: `gemini-tts-3.1-flash` (mặc-định; Gemini Developer API, 30 giọng) và `openai-tts`/`whisper` (gpt-4o-mini-tts, 13 giọng). Trước khi thu, một **bộ não tiền-xử-lý** đọc nội-dung *trong bối-cảnh `--type`* (ads/podcast/story/blog/educational/news…) rồi **soạn một chỉ-đạo-giọng** (tone, tốc-độ, cảm-xúc, ngắt-nghỉ, ngữ-điệu) + **kịch-bản-hoá** lời cho dễ đọc. Input dài / cả thư mục **fan-out qua một Claude Code Workflow** rồi ghép bằng ffmpeg. Bài học lớn nhất: **phần "thật hay" của audio nằm ở tiền-xử-lý in-session (cái Claude thêm vào), còn phần thu là một cú gọi API ngoài-băng-tần (out-of-band) thuần-cơ-khí** — tách đúng hai làn ấy thì vừa đúng chính-sách chi-phí, vừa cho chất-lượng cao.
+
+## 54.1 Bài toán — thu giọng cho sản-xuất nội-dung, đa-engine, đúng-sắc-thái
+
+Founder cần **thu audio thuyết-minh** từ text / file / thư-mục — cho marketing (ads, social), product (bài học, explainer), nội-dung (blog, podcast) — qua **nhiều engine TTS và nhiều giọng khác nhau**, với cách đọc (tốc-độ, cảm-xúc, ngắt-nghỉ, ngữ-điệu) **phù-hợp với nội-dung và mục-đích của nó**. Hai nhà-cung-cấp có sẵn key trong `runtime/secrets/.env.local`: OpenAI và Gemini.
+
+Đây là một **primitive nền-tảng, xây-một-lần-dùng-mãi** (như `/image`, `/translate`): một cửa trước model-agnostic với lớp adapter cắm-được để engine TTS mới gắn vào **không sửa code lệnh**. Founder gọi tên thẳng `gemini-tts-3.1-flash` (giọng đầu-bảng họ muốn) và "whisper" (cách họ gọi OpenAI TTS).
+
+## 54.2 Hình dạng — thin command / umbrella skill / engine tất-định (mirror /image)
+
+Đúng khuôn các primitive trước: một **lệnh mỏng** trên một **umbrella skill** trên một **engine tất-định**.
+
+```
+/voice <input> [flags]                          .claude/commands/voice.md
+  └─ 06-ai-ops/skills/voice/SKILL.md              (umbrella — điều phối 4 pha)
+       ├─ voice/preprocess/SKILL.md               (BỘ NÃO: soạn chỉ-đạo-giọng + kịch-bản-hoá)
+       ├─ voice/adapters/gemini-tts-3.1-flash     (engine mặc-định, thật)
+       ├─ voice/adapters/openai-tts               (= whisper, thật)
+       └─ scripts/voice/
+            gen.cjs     nguyên-tử: 1 chunk → 1 audio (gọi API out-of-band)
+            run.cjs     1 input → 1 audio ghép (chunk → gen mỗi chunk → stitch)
+            stitch.cjs  CLI ghép (bước cuối của Workflow)
+            lib/params.cjs  UNIVERSAL_PARAMS + parse + chuẩn-hoá + resolveVoice + pace + warn
+            lib/voices.cjs  catalog giọng theo engine (tên · giới-tính · đặc-điểm) — 13 + 30
+            lib/chunk.cjs   chia text giữ-nguyên-nội-dung (đoạn → câu → từ)
+            lib/cost.cjs    ký-tự → phút-audio → USD (đơn-giá $/phút theo model)
+            lib/audio.cjs   pcmToWav (thuần) + ffmpeg convert/stitch (cạnh bẩn)
+            lib/env.cjs     nạp key GEMINI/OPENAI (nhảy worktree→repo-gốc; không in key)
+```
+
+Registry tách (split-registry) `knowledge/voice-adapters.yaml` + schema + validator L2 `validate-voice-adapters.cjs` (gắn cả `check-consistency.cjs` *lẫn* CI .github — luật hai-chỗ-sửa). Thêm một engine = thả `adapters/<id>/SKILL.md` + một dòng registry + một dòng bảng-định-tuyến + một `callX` trong `gen.cjs`. **Không sửa code lệnh.**
+
+## 54.3 Kiến trúc 4 pha — resolve → preprocess → record → stitch
+
+```
+input ──▶ [1 resolve] ──▶ [2 PREPROCESS]   ──▶ [3 RECORD]      ──▶ [4 STITCH] ──▶ audio
+  text/file/folder   skill voice/preprocess   scripts/voice/gen   scripts/voice/
+                     (in-session — cái Claude  (mỗi chunk, API      run.cjs (inline) hoặc
+                      thêm vào)                ngoài-băng-tần)      stitch.cjs (Workflow)
+```
+
+1. **Resolve** — text/file → một audio; thư-mục → **một audio mỗi file**, soi-gương cây thư-mục. `params.resolveInputSpec` tự phân-loại một positional path.
+2. **Preprocess** (in-session, subscription) — skill `voice/preprocess` đọc nội-dung *trong bối-cảnh `--type`* và **soạn một chỉ-đạo-giọng** (giọng, tone, cảm-xúc, tốc-độ, âm-lượng, ngữ-điệu, ngắt-nghỉ) + **kịch-bản-hoá** lời (ngắt-nghỉ bằng dấu câu/xuống-dòng cho cả hai engine; thẻ `[bracket]` cho Gemini). Đây là lớp chất-lượng. Sàn tất-định = `buildFallbackInstructions`.
+3. **Record** (out-of-band) — `gen.cjs` gọi API TTS của nhà-cung-cấp cho mỗi chunk.
+4. **Stitch** — ffmpeg concat (`lib/audio.cjs`) → một file (input đơn) hoặc cây soi-gương (thư-mục).
+
+Input nhỏ/đơn chạy **inline** qua `run.cjs` (chunk → gen → stitch, tất-định). Input dài / thư-mục fan-out qua một **Claude Code Workflow** (preprocess → gen song-song, rồi stitch) — đúng đường sản-xuất founder yêu-cầu.
+
+## 54.4 Hai engine + sự-thật API tải-trọng (research-trước-khi-code)
+
+Hai agent research song-song chốt *chính-xác* hình-dạng API **trước khi viết một dòng code** — bắt được ba cái bẫy tải-trọng:
+
+- **Bẫy tên model Gemini.** Founder gọi `gemini-tts-3.1-flash` — **id đó KHÔNG tồn-tại** ở API. Id thật trên Gemini Developer API là `gemini-3.1-flash-tts-preview` (ngoài ra `gemini-2.5-flash-preview-tts` rẻ hơn + có free-tier). `gen.MODEL_ALIAS` ánh-xạ id founder-gọi → id thật. Endpoint `…/v1beta/models/<M>:generateContent`, header `x-goog-api-key`, body `responseModalities:["AUDIO"]` + `speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName` (**phân-biệt hoa-thường**). Điều-khiển phong-cách = tiền-tố ngôn-ngữ-tự-nhiên + thẻ `[bracket]`; KHÔNG SSML, KHÔNG tham-số rate/pitch.
+- **Bẫy định-dạng Gemini.** Gemini **chỉ trả PCM thô** (base64, 24kHz/16-bit/mono) ở `inlineData.data` — **không có container**. Client phải tự **bọc header WAV 44-byte** (`lib/audio.pcmToWav`) rồi ffmpeg-chuyển sang `--format`.
+- **Bẫy `speed` của OpenAI.** `gpt-4o-mini-tts` **bỏ-qua tham-số `speed` bằng số** → tốc-độ phải nhúng vào *lời* của trường `instructions` (≤4096 ký-tự, riêng model này). OpenAI trả **byte audio** native (mp3/wav/flac/opus/aac/pcm). 13 giọng (marin/cedar đỉnh nhất). Input ≤4096 ký-tự.
+
+`/voice` liệt-kê **đủ 30 + 13 giọng** (tên · giới-tính · đặc-điểm) trong doc lệnh — đúng yêu-cầu founder. Giới-tính là *cảm-nhận phổ-biến* (cả OpenAI lẫn Gemini không chính-thức gán giới-tính), dùng làm tiện-ích cho `--gender=male|female` tự chọn giọng mặc-định.
+
+## 54.5 Tiền-xử-lý — bộ não chất-lượng (cái Claude thêm vào)
+
+Phần "đặc-biệt phù-hợp, thật hay" sống ở skill `voice/preprocess`. Nó làm hai việc và xuất hai artifact:
+
+- **Soạn chỉ-đạo-giọng → `instructions.txt`** — một khối súc-tích đúng hình-dạng trường `instructions` của OpenAI / tiền-tố phong-cách của Gemini (xem `runtime/tmp/whisper-samples/` cho ví-dụ chuẩn): Giọng/Affect · Tone&Cảm-xúc (kèm cung-bậc qua cả bài) · Tốc-độ (nhúng `--pace` thành *lời*) · Ngắt-nghỉ (chỗ nào lấy hơi) · Phát-âm/Nhấn · Âm-lượng/Ngữ-điệu · Chọn-từ/Tránh. Phải **riêng cho CHÍNH kịch-bản này**, không phải template.
+- **Kịch-bản-hoá lời** — ngắt-nghỉ bằng dấu phẩy/gạch-ngang/ba-chấm/xuống-dòng (cả hai engine); câu ngắn dễ đọc; số/ngày/ký-hiệu viết theo cách *đọc*; thẻ `[pause]/[excited]/[very slow]` (chỉ Gemini; bỏ cho OpenAI).
+
+Một **bảng công-thức theo `--type`** (ads punchy + dồn về CTA; meditation chậm + mềm + ngắt dài; news crisp + trung-tính; educational kiên-nhẫn + ngắt-sau-mỗi-khái-niệm; story có cung-bậc cảm-xúc…) là bảng-màu khởi-điểm, agent tinh-chỉnh theo nội-dung thật.
+
+## 54.6 Quyết định khoá
+
+- **D1 — engine mặc-định = `gemini-tts-3.1-flash`** (giọng đầu-bảng founder gọi), đã kiểm-chứng chạy thật; `openai-tts` là phương-án vững; `whisper` là **preset alias** tôn-trọng cách-gọi của founder (kèm ghi-chú: "Whisper" đúng-nghĩa là speech-to-TEXT của OpenAI, còn đây là text-to-SPEECH).
+- **D2 — preprocess in-session, record out-of-band.** Soạn chỉ-đạo-giọng là trí-thông-minh Claude thêm vào (subscription); tổng-hợp giọng đúng-nghĩa là ngoài-băng-tần (key nhà-cung-cấp — Claude không đọc-thành-tiếng được, cùng làn với text-embedding / gpt-image-2). Tách làn sạch, đúng chính-sách api-key-vs-subscription.
+- **D3 — ffmpeg là engine ghép/chuyển** (cài qua brew trong lúc build). PCM của Gemini và các định-dạng không-native của OpenAI đều qua ffmpeg; định-dạng native của OpenAI đi thẳng.
+- **D4 — quan-trắc lean (Option A+).** `run.json` mỗi-lần + `NNN.run.json` mỗi-chunk là tập-hợp-cha tương-thích-trước của một `ops.voice_runs` tương-lai (Option B = `/cla extend`). Không migration Tier-2 ở v0.1.
+- **D5 — Tier A + cầu-dao `--max-cost-usd`.** Cục-bộ, đảo-ngược-được, đo-đếm, từ-chối-trước-khi-chi. Key không bao giờ bị in.
+- **D6 — tái-dùng khuôn /image, không fork.** Cùng split-registry + validator L2 + lớp param universal + supports()/WARN (không bao giờ rơi-thầm-lặng).
+
+## 54.7 Dogfood (đã kiểm-chứng chạy thật) + bài học
+
+Kiểm-chứng end-to-end **trước khi viết doc** (để engine mặc-định là một mặc-định *đã chứng-minh*, không phải hy-vọng):
+
+- Gemini 3.1 flash TTS → mp3 6.24s hợp-lệ (PCM → WAV → mp3). ✅
+- OpenAI gpt-4o-mini-tts (marin) → mp3 5.0s hợp-lệ. ✅
+- `run.cjs` 3-chunk song-song → ghép thành mp3 16.24s (ffprobe xác-nhận). ✅
+- 99 ca vitest cho lớp thuần (params/chunk/cost/audio/voices/gen); `check-consistency` xanh sau đăng-ký (registry + ROLES caps `ai-ops-voice` + resolver catalog/INDEX + SOP-AIOPS-014).
+
+**5 bài học:**
+1. **Soi-gương một precedent đang vận-hành.** Nhân khuôn `image-platform` (registry/schema/validator/gen.cjs/params.cjs/SOP/ROLES caps/registry entry/resolver regen) làm việc build nhanh + mạch-lạc; hai cái bẫy đã-biết (luật hai-chỗ-sửa validator + regen resolver catalog) xử-lý ngay từ đầu.
+2. **Research-rồi-mới-build.** Chốt hình-dạng API trước khi code mới bắt được: `gemini-tts-3.1-flash` *không* là id thật, Gemini trả PCM phải bọc-WAV, `speed` của OpenAI bị bỏ-qua phải nhúng-vào-lời.
+3. **Kiểm-chứng-chạy-thật trước khi viết doc.** Cả hai engine + ghép-nhiều-chunk được chứng-minh bằng API thật (mp3 hợp-lệ, ffprobe) *trước* khi viết doc — mặc-định là mặc-định đã-chứng-minh.
+4. **Tách cạnh-bẩn.** Lớp thuần param/chunk/cost/voice (99 ca, không mock mạng) + cạnh fetch (gen.cjs) + cạnh ffmpeg (audio.cjs) cô-lập → testable trọn-vẹn.
+5. **Trí-thông-minh ở tiền-xử-lý, cơ-khí ở thu.** Soạn chỉ-đạo-giọng (phán-đoán, in-session) là cái Claude thêm vào; tổng-hợp (out-of-band) là cú gọi API thuần — đúng làn chi-phí và đúng nơi đặt chất-lượng.
+
+> **Giới-hạn trung-thực (v0.1):** tốc-độ là *model-điều-hướng* (lời trong chỉ-đạo), không phải đảm-bảo bằng số — vì cả hai engine bỏ-qua speed số; multi-speaker (Gemini) đã đăng-ký nhưng chưa nối vào bề-mặt lệnh; ElevenLabs/Azure là stub. `/cla extend` về sau: backend ElevenLabs/Azure, hội-thoại nhiều-người-nói, `ops.voice_runs` + KPI, voice-clone, sidecar phụ-đề.
