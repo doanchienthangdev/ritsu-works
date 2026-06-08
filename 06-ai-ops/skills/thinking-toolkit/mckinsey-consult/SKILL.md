@@ -70,9 +70,20 @@ Good consult sub-needs (a master sharpens these in a way data + generic structur
 - **Analytical structure** (decompose a metric, MECE-gate, frame, stress-test) → that's a `/think` micro-framework (driver-tree / mece / hypothesis / pyramid / so-what / 2x2). The micro-frameworks are *operations*; a consult is a *perspective*.
 - A **routine / operational** sub-need with no craft dimension.
 
+**Precedence (the hard rule — consult LAST):** **data → structure → consult.** If a
+data pull (`data_routing`) can resolve it, pull. Else if a `/think` micro-framework
+(driver-tree / mece / hypothesis / pyramid / so-what / 2x2) can resolve it, run that.
+Only what *neither* can reach — an irreducible craft/mastery judgment — is a consult.
+A consult is never the first reach; "heuristics before big guns" applies to legends too.
+
 > The discipline: a consult is a **big-ish gun** (an interactive sub-session). Use
 > it on the few sub-needs where craft mastery is the bottleneck — not on every
-> leaf. Heuristics + data before legends; a legend where data can't reach.
+> leaf. Heuristics + data before legends; a legend where data can't reach. **The
+> dominant real-world failure is UNDER-firing** (the master never gets invited
+> because the engine forgot to look) — so when a problem's domain is squarely craft
+> (a landing page, a positioning, a price, a negotiation), actively ask "should a
+> master be at this table?" before Sell. (A mechanical before-Sell WARN on a
+> domain-detected craft problem with zero consults is the v0.2 trigger-loop close.)
 
 ## How a consult runs (the 6-move loop)
 
@@ -138,11 +149,23 @@ question at each stage. Decide who sits in the client seat:
 **Founder seat:** run the normal `/muse:<persona>` session; the founder answers; you
 read the persona's Stage-5 concrete recommendation off the session.
 
+> **Which `/muse` path each seat uses (the seam — do not blur it).** The **founder
+> seat** invokes the real interactive `/muse:<persona>` SESSION.md session (whose
+> contract is *"STOP points are not optional — do not silently skip a stage"*; the
+> founder answers each STOP). The **auto seat does NOT drive that STOP-gated session**
+> — self-answering its STOPs would breach muse's own contract. Auto instead self-plays
+> the persona's **cognitive moves** (the persona-file `signature_moves` — Ogilvy's
+> "will it sell?", Munger's inversion, Voss's "that's right"), which is muse's own
+> documented free-text mode. Never "fix" auto to drive SESSION.md and auto-answer the
+> human's STOPs.
+
 **Auto seat — the self-play protocol (the engine plays an honest client):** run the
-persona's session, but instead of stopping for the founder at each stage, **the
-engine answers each stage prompt from the run's accumulated truth** — the
-`problem-statement`, the live `one-day-answer`, the relevant `analysis-log` rows,
-and the framed sub-need. Play it straight, both seats visible:
+persona's **cognitive moves** (not the STOP-gated session), and instead of stopping
+for the founder at each move, **the engine answers each prompt from the run's
+accumulated truth** — the `problem-statement`, the live `one-day-answer`, the relevant
+`analysis-log` rows, and the framed sub-need. Bias toward the persona's **sharpest,
+most uncomfortable** probe (turn the master's lens on your *own* favorite answer), not
+the soft question that leads where you already want to go. Play it straight, both seats visible:
 
 1. The persona FRAMES (its distinctive reframe of the sub-need). The engine picks
    the framing option that matches the *real* problem (not the flattering one).
@@ -177,7 +200,7 @@ Run it through the McKinsey `validation_gate` like any datum:
 
 - **Knock-out:** does this read actually move the one-day answer? If not, note it and move on.
 - **Degree-of-certainty: 6-7** — expert judgment (Cracked It! eight-degrees: discount degree-7 *expert input* for the legend's own incentives/era). Tag it as a judgment call, never as a fact.
-- **Triangulate vs the pulled data:** does the master's read **cohere** with the analysis-log evidence, or **conflict**? Coherence → high-confidence converging signal (double down). Conflict → a genuine tension to resolve *with the founder*, not by deferring to the celebrity (the master may be right *or* may be reading a different era/context).
+- **Triangulate vs the pulled data:** does the master's read **cohere** with the analysis-log evidence, or **conflict**? Coherence → high-confidence converging signal (double down). **Conflict → a genuine tension you may NOT resolve silently.** Do not wave the master away as "wrong era" (that's the celebrity-discount inverted into a convenient dismissal — as biased as over-deferring). A `gate-verdict: conflicts` **requires a receipt**, symmetric with the cohere path: either an `[H<n>]` founder adjudication (a real `AskUserQuestion` logged to `hitl-log.md` — "the data says X, Ogilvy says Y; which holds?") OR an explicit logged **assumption** (degree ≥6) + a sensitivity note. The master may be right *or* reading a different context — but the engine doesn't get to decide that unilaterally on a load-bearing leaf.
 - **Honesty-label:** the recommendation enters the answer **as a master's judgment**, attributed, gated — `muse-consult (david-ogilvy) [E1]`, degree 6.
 
 > A legend's word **never launders past the gate.** "Ogilvy said so" is not a
@@ -201,9 +224,12 @@ it → double down):
   ```
 
   `participation ∈ auto | founder`. `session-ref` = the `~/.muse/sessions/…md` path
-  (founder seat) or `auto-played` (self-play; the exchange is in the conversation +
-  optionally appended to the run folder). `gate-verdict` = the triangulation result
-  (`coheres` / `conflicts` / `inconclusive`) + the route taken.
+  (founder seat) or `auto-played` (self-play). **For the auto seat, persist the
+  self-played exchange (the persona's probes + the engine's answers) to the run
+  folder by default** (append it under the consult-log row, or a sibling
+  `consult-<E#>.md`) — it is the auto path's *only* audit trail (a founder seat leaves
+  a `~/.muse` session file; auto must not be a black box). `gate-verdict` = the
+  triangulation result (`coheres` / `conflicts` / `inconclusive`) + the route taken.
 
 - **`checkpoint-log.md`** — a `consult`-kind team session: `| C6 | solve | consult | convened david-ogilvy on hero copy (offer-led?) | founder skipped / engine self-played | take: lead with the offer (degree 6, coheres with data) |`.
 - **`toolkit-log.md`** — the legend as the selected tool (step 2 above).

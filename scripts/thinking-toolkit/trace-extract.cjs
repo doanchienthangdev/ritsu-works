@@ -4,7 +4,7 @@
  * scripts/thinking-toolkit/trace-extract.cjs
  *
  * The deterministic core of capability `thinking-toolkit` Reasoning Trace (v3.3+).
- * Reads a COMPLETED /think mckinsey run folder (the 10 persisted artifacts) and
+ * Reads a COMPLETED /think mckinsey run folder (the 11 persisted artifacts) and
  * reconstructs a STRUCTURED, ordered TRACE of the reasoning journey — the
  * timeline of team-session checkpoints, the data pulls + their tools + certainty,
  * the workplan routing, the HITL receipts, and (v3.5) the TOOLKIT-SELECTION ledger
