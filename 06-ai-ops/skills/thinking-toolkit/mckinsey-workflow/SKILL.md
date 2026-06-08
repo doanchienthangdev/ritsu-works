@@ -36,7 +36,7 @@ This is the **spine** of the thinking-toolkit and the one skill that *orchestrat
 
 A brainstorm narrates opinions in four stages. This engine:
 1. **Pulls real data** for every hypothesis (never asserts a number it didn't fetch).
-2. **Produces persisted artifacts** (problem-statement → decomposition → workplan → analysis-log → one-day-answer → synthesis → communication) + the discipline ledgers (hitl-log, checkpoint-log, and **(v3.5) toolkit-log** — the recorded tool-selection method ledger). 10 artifacts total.
+2. **Produces persisted artifacts** (problem-statement → decomposition → workplan → analysis-log → one-day-answer → synthesis → communication) + the discipline ledgers (hitl-log, checkpoint-log, **(v3.5) toolkit-log** — the recorded tool-selection method ledger — and **(v3.6) consult-log** — the /muse expert-consultation ledger, written only when a consult fires). 11 artifacts total.
 3. **Validates every datum** through a gate before it's allowed to move the answer.
 4. **Asks the founder** for data only they hold (HITL) instead of guessing.
 5. **Routes dynamically** — the one-day answer re-ranks remaining work after every analysis; porpoise back when the data reframes the problem.
@@ -46,7 +46,7 @@ A brainstorm narrates opinions in four stages. This engine:
 
 > **The McKinsey rule that governs everything (Bulletproof Problem Solving, Ch 4):** *"We don't do any analysis for which we don't have a hypothesis."* Every data pull traces to a hypothesis it proves or disproves.
 
-## ⓿ Operating model (v2.0) — modes · the 7 team sessions · the protocol
+## ⓿ Operating model (v2.0) — modes · the team sessions (7 core + the v3.6 consult) · the protocol
 
 > The power of McKinsey is not a fast answer — it is the disciplined TEAM process. This engine runs as a sequence of **team problem-solving sessions** (checkpoints): at each, present what we have + how we're thinking + which frameworks we chose & why → **brainstorm as a team** → reach consensus → proceed. Never rush; always surface the thinking; produce a full artifact set + a final sell.
 
@@ -63,6 +63,7 @@ A brainstorm narrates opinions in four stages. This engine:
 | `--sources` | csv `internal,web,brain,analytics,wiki,deepask` \| `all` | `all` | scope/expand the data sweep |
 | `--format` | a `/deepask` medium | template default | the sell rendering medium |
 | `--workflow` | `off` \| `steps` \| `full` | `off` | run each high-leverage step as a dynamic multi-agent WORKFLOW (v2.1; see below) |
+| `--consult` | `auto` \| `founder` \| `off` \| `<persona>` \| `who` | derive from `--mode` | v3.6 — at a checkpoint with a CRAFT judgment, convene a `/muse` master (the `consult` session). `auto` = engine self-plays the client seat (founder skipped); `founder` = the founder takes the seat; `off` = never; `<persona>` = force a legend; `who` = pick via `/muse:who`. See `thinking-toolkit/mckinsey-consult` + §CONSULT below |
 
 ### The two modes
 
@@ -71,7 +72,7 @@ A brainstorm narrates opinions in four stages. This engine:
 
 **Both modes REPORT per-step** — surface the thinking in the conversation as you go; never silently write files (the v1.8 failure was a silent run that emitted only artifacts).
 
-### The 7 team sessions (checkpoints) — logged to `checkpoint-log.md` (`kind` column)
+### The team sessions (checkpoints) — 7 core + the optional `consult` (v3.6) — logged to `checkpoint-log.md` (`kind` column)
 
 | # | kind | when | the session | gate |
 |---|---|---|---|---|
@@ -82,8 +83,9 @@ A brainstorm narrates opinions in four stages. This engine:
 | 5 | **porpoise** | each Solve reframe | "data reframed X→Y; the rethink + revised workplan" | prose (founder-only facts → hitl receipt) |
 | 6 | **dissent** | after Solve | **independently red-team the ANALYSIS**: name the one analysis that, if wrong, flips the answer; hunt disconfirming evidence (≠ pre-mortem, which attacks the *recommendation*; ≠ completeness, which attacks *coverage*) | **ERROR** |
 | 7 | **pre-wire** | before Sell | final one-day answer + synthesis + the **completeness/coverage critic** + the pre-mortem; pre-wire | **ERROR** |
+| 8 | **consult** *(v3.6, optional)* | any checkpoint with a **craft / domain-mastery judgment** | convene a `/muse` MASTER (David Ogilvy, Kotler, Schwartz, Munger, Voss, …) as a team member; run the exchange (auto self-play OR founder seat); take the read through the gate as **evidence-not-decider**. The qualitative complement to the data sweep — see §CONSULT + `thinking-toolkit/mckinsey-consult` | prose (receipt-gated: analysis-log `muse-consult` datum → `consult-log` `[E<n>]`) |
 
-The gate (`mckinsey-run.cjs check <slug> --before-sell`) **blocks Sell** without a `pre-wire` AND a `dissent` session, and **warns** if `frame`/`prioritize` are missing. **Honest ceiling:** the gate can't prove a session happened or was good — it makes *skipping the closing sessions* a failure and leaves an auditable trail. (`--depth=quick` is the accordion escape hatch — inline answer, no folder, no gate.)
+The gate (`mckinsey-run.cjs check <slug> --before-sell`) **blocks Sell** without a `pre-wire` AND a `dissent` session, and **warns** if `frame`/`prioritize` are missing. The `consult` session is **optional** (not every problem needs a master) — when it fires, its analysis-log datum is **receipt-gated** to a `consult-log` row. **Honest ceiling:** the gate can't prove a session happened or was good — it makes *skipping the closing sessions* a failure and leaves an auditable trail. (`--depth=quick` is the accordion escape hatch — inline answer, no folder, no gate.)
 
 ### Tool-selection happens AT EACH checkpoint (the McKinsey execution loop — v3.6)
 
@@ -132,12 +134,13 @@ When `--workflow=steps|full`, the high-leverage steps run as a **Claude Code dyn
 
 For a substantial problem, **scaffold the run folder mechanically** — don't hand-create it:
 ```bash
-node scripts/thinking-toolkit/mckinsey-run.cjs scaffold <slug>   # creates .archives/mckinsey/<slug>/ with 7 artifact templates (idempotent)
+node scripts/thinking-toolkit/mckinsey-run.cjs scaffold <slug>   # creates .archives/mckinsey/<slug>/ with 11 artifact templates (idempotent)
 ```
 ```
 .archives/mckinsey/<slug>/
   problem-statement.md   decomposition.md   workplan.md
-  analysis-log.md        hitl-log.md        checkpoint-log.md   one-day-answer.md
+  analysis-log.md        hitl-log.md        checkpoint-log.md   toolkit-log.md
+  consult-log.md         one-day-answer.md
   synthesis.md           communication.md
 ```
 `one-day-answer.md` is the **living state** — **seeded in STATE as the day-one hypothesis** ("if forced to answer today, we'd say X"; Bulletproof Ch 1), then rewritten after every analysis (situation → observation → resolution). It is *not* born at Solve; Solve only sharpens it. `hitl-log.md` is the **HITL receipt ledger** — also seeded in STATE and appended through Solve; every real `AskUserQuestion` you put to the founder gets a row (`H1`, `H2`, …) with the verbatim one-line answer (see §SOLVE + the receipt rule below). `synthesis.md` (step 6, the logic) and `communication.md` (step 7, the story) are distinct Sell products. For a small problem, the accordion compresses: keep the one-day answer inline and skip the folder.
@@ -232,6 +235,7 @@ Loop until the **stopping criterion** holds → Sell. **You may NOT move to Sell
 | A current metric / number / KPI / count | **supabase-ops query** | `mcp__supabase-ops__query({sql, schema:'metrics'\|'ops'\|'public'})` | A |
 | External market / competitor / benchmark | **deep-research** | `/deepask "<q>"` (repo-native; delegates the web leg to deep-research) or `Skill({skill:"deep-research", args:"<q>"})` | A (research only) |
 | Structuring the analysis itself | **/think skills** | `/think driver-tree\|mece\|hypothesis\|root-cause\|pyramid\|so-what` | A |
+| A **craft / domain-mastery JUDGMENT** a master would sharpen (copy that sells, positioning, pricing psychology, a teardown) | **muse-consult** *(v3.6)* | the `consult` checkpoint → `/muse:<persona>` (or `/muse:who` to pick); auto self-play OR founder seat. See §CONSULT | A |
 | **Data only the founder holds** | **ask-user** | `AskUserQuestion` — show where it changes the answer + a default | human |
 
 Cheapest-sufficient-source first (a number → supabase-ops; a definition → wiki_ask; an entity → gbrain `search`/`recall`). Reserve `/deepask` for genuinely cross-source synthesis, `deep-research` for genuinely external questions, `/brain think` for when search/recall is insufficient.
@@ -260,6 +264,16 @@ A datum must clear a **trust** test (is it true?) and a **relevance** test (does
 Stop and `AskUserQuestion` when: the input is a **degree-6 internal plan/target only they hold**; an **irreducible judgment about their world** (risk appetite, intent, success threshold); a **sensitivity test flips on an unverifiable assumption**; or **scope has drifted** (fire an intermediary checkpoint). **Frame the ask decision-relevantly:** lead with the one-day answer so far → show where this datum changes it → state your interim assumption. Don't disguise an assumption as a fact.
 
 **The receipt gate (v1.8) — what "ask" mechanically means.** Each of the triggers above is now *gated*: when you ask, you **log the question + the founder's verbatim one-line answer to `hitl-log.md`** as `H<n>` and tag the analysis-log datum `ask-user (founder) [H<n>]`. A bare `ask-user` with no receipt **fails `mckinsey-run.cjs check`**. The most dangerous miss is a **porpoise resting on a founder-only fact**: before you reframe on "these accounts are the founder's own," "the power-user is internal," "the real budget is X" — **STOP and confirm.** A degree-3 *"likely internal"* inference may **not** be promoted to an asserted fact (and drive the whole strategy) without a logged receipt — that exact failure (the 2026-06-04 run) is why this gate exists. Honest alternative if you won't ask: keep provenance `assumption`, degree ≥6, with a sensitivity note — never relabel a guess as an answer. **The gate is discipline, not proof:** it can't watch the conversation, so it can't *prove* you asked; it makes *not asking* (or faking the label) a failure and leaves the founder an auditable trail to spot-check.
+
+### CONSULT — convene a domain master via /muse (v3.6 · `consult` section · skill `thinking-toolkit/mckinsey-consult`)
+
+The data tools answer **"what is TRUE?"**. On a **craft / domain-mastery judgment** — a landing page that must *sell*, a positioning that must *land*, a price that must *feel right*, a negotiation that must reach "that's right" — the McKinsey team brings in **the world's best on that craft.** The `consult` checkpoint convenes the right **`/muse` legend** (David Ogilvy, Philip Kotler, Eugene Schwartz, Charlie Munger, Chris Voss, Paul Graham, Dieter Rams, …) as another team member.
+
+**Fire it** only when the live sub-need is a craft/mastery judgment that survived knock-out — **not** a fact (→ a data tool) and **not** analytical structure (→ a `/think` micro-framework). A cost-valve, like deepask: the few high-craft leaves, not every leaf.
+
+**The loop** (the skill carries the full protocol): **FRAME** the craft need → **SELECT** the legend (`/muse:who` fit reasoning, or force one with `--consult=<persona>`) → **CHOOSE THE SEAT** — `--consult=founder` hands the client seat to the founder (a real `/muse:<persona>` session), `--consult=auto` the engine **self-plays** the client seat from the run context (founder skipped); even in auto, **announce** the consult so a present founder can join or skip (the *"có option tôi tham gia hoặc bỏ qua tôi"*) → **RUN** the exchange (the persona drives the cognitive MOVES; the seat answers from the problem-TRUTH, never a flattering guess — a question only the founder can answer is an `ask-user` receipt or an explicit assumption) → **VALIDATE** as **evidence-not-decider** (a legend's read is degree-6/7 expert judgment, triangulated vs the pulled data — coheres → double down, conflicts → a tension to resolve *with the founder*, not by deferring to the celebrity; it never launders past the gate) → **RECORD** to `consult-log.md` (the `E<n>` row) + `checkpoint-log` (`kind: consult`) + `toolkit-log` (the legend as the selected tool) + `analysis-log` (`muse-consult (<persona>) [E<n>]`, degree 6-7). The run-folder gate **receipt-reconciles** every `muse-consult` datum against its `consult-log` row (mirror of the HITL `[H<n>]` gate; discipline-not-proof; optional — fires only when a consult is claimed).
+
+> e.g. *Rewrite the landing-page hero?* → `/muse:who "hero copy that must convert cold traffic"` → **David Ogilvy** → auto self-play → "lead with the offer + one proof; cut the cleverness; *will it sell* beats *will it win awards*" → triangulate vs the 71% bounce on the clever variant → **coheres** → the one-day answer updates. Not "Ogilvy said so" — an attributed, gated, degree-6 master's read that the data also supports. Full worked example + the self-play honesty rules: `thinking-toolkit/mckinsey-consult`.
 
 ### Stopping criterion (Solve → Sell — `stopping_criterion`; the diagram's gates 4-5)
 
@@ -290,6 +304,7 @@ After a substantial run, **`/think trace <slug>`** turns the run folder into a n
 
 - **With the atomic `/think` skills:** this engine *invokes* them — `tosca` (State), `mece`/`driver-tree`/`hypothesis` (Structure), `root-cause`/`design-thinking`/`pre-mortem`/`debias`/`2x2` (Solve), `pyramid`/`so-what` (Sell).
 - **With `/deepask` — composing a heavyweight sub-capability (`composition_guards`, v1.7):** the Solve loop routes a cross-source workplan row to `/deepask`, but under 3 disciplines. **(1) Anti-recursion** — one way only (`mckinsey → deepask → /think micro-frameworks`); deepask never re-enters this engine (the deepask `capability-gate` `RECURSION_DENYLIST` refuses `/think mckinsey` even at Tier-A). **(2) Cost-valve** — `/deepask` is a *big gun* (multi-subagent, resolver-breaker-bounded 20 finds/4h); fire the full loop ONLY on a knock-out-surviving, genuinely multi-source row (`--dry-run` first; budget the breaker across the run — a single number → `supabase-ops`, a concept → `wiki_ask`, an entity → gbrain `search`/`recall`). **(3) Evidence-not-decider** — deepask returns cited evidence + a COMPLETE/PARTIAL verdict you run through the validation gate like any datum; a PARTIAL is a data-blocked branch (→ `ask-user` or carry an explicit assumption with a sensitivity note), and the synthesize→recommend call stays with you (Sell) + the founder. Same shape for `deep-research` + gbrain `think`.
+- **With `/muse` — convening a master (v3.6, `consult` checkpoint):** at a craft/domain-mastery checkpoint the engine convenes a `/muse` legend as a team member (§CONSULT; skill `thinking-toolkit/mckinsey-consult`) under 3 disciplines that mirror the deepask guards. **(1) Trigger** — a craft JUDGMENT only (copy/positioning/pricing/teardown), knock-out-gated; a fact routes to a data tool, structure to a `/think` micro-framework. **(2) Evidence-not-decider** — a legend's read is a degree-6/7 expert datum run through the validation gate + triangulated vs the pulled data; the synthesize→recommend call stays with the engine + founder. **(3) One-way + read-only** — the engine invokes `/muse:<persona>` / `/muse:who` / `/muse:debate`; `/muse` is a SYSTEM skill, never modified, and never re-enters this engine. Participation is the founder's choice per consult (auto self-play vs founder seat). The *manual* analog — `/muse:<persona>` then `/think pyramid`/`so-what` — stays available standalone; the consult is the *in-engine, gated, recorded* form.
 - **With `/cla propose`:** CLA's phases mirror 4S; this engine is the disciplined way to think *inside* a proposal.
 - **Firewall:** company/product data only via `metrics.*` (never `product.*`). **HITL:** all data READS are Tier A; never auto-run a WRITE or a publish — surface it. **Cost:** prefer gbrain `search`/`recall` over `think`; `/deepask` is resolver-breaker-bounded; in-session = subscription billing.
 - **Runs in the active session** (HITL + checkpoints need the conversation channel) — not a fire-and-forget subagent.

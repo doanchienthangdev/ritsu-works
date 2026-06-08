@@ -97,7 +97,27 @@
 # Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
 # ============================================================================
 
-version: "3.5.0"
+version: "3.6.0"
+# v3.6 (The CONSULT checkpoint — convene a /muse master — thinking-toolkit v3.7, 2026-06-08):
+#   adds the 8th team-session: at a checkpoint where the live sub-need is a CRAFT /
+#   domain-mastery JUDGMENT (copy that sells, positioning, pricing psychology, a
+#   first-principles teardown) — not a fact (→ a data tool) and not analytical structure
+#   (→ a /think micro-framework) — the engine convenes the right /muse LEGEND (David
+#   Ogilvy, Philip Kotler, Eugene Schwartz, Charlie Munger, Chris Voss, …) as another
+#   McKinsey team member, runs an interactive exchange in one of two seats — `auto` (the
+#   engine self-plays the client seat from the run context, founder skipped) or `founder`
+#   (the founder takes the seat, a real /muse:<persona> session) — and takes the master's
+#   read through the validation gate as EVIDENCE-NOT-DECIDER (a legend's word is degree-6/7
+#   expert judgment, triangulated against the pulled data, never an asserted fact, never the
+#   final call). The qualitative complement to the data sweep: data tools answer "what is
+#   TRUE?"; the consult answers "what would a MASTER do here, and why?". Additions: the
+#   `muse-consult` data_routing row; the `consult-log` artifact (the expert-consultation
+#   ledger; set-equal across mckinsey-run.cjs ↔ validator ↔ schema ↔ this file); `consult`
+#   added to the checkpoint-log `kind` enum; `solve.produces` += consult-log + `solve.skills`
+#   += thinking-toolkit/mckinsey-consult; a top-level `consult` section (the mechanism). The
+#   run-folder gate gains the [E<n>] consult-receipt reconciliation (mirror of the v1.8 HITL
+#   gate): every analysis-log `muse-consult` datum must resolve to a consult-log row. /muse is
+#   a SYSTEM-level skill — invoked read-only, never modified.
 # v3.5 (Per-checkpoint tool-selection — thinking-toolkit v3.6, 2026-06-06): v3.4 made
 #   tool-selection recorded at the RUN level; v3.5 makes it real AT EACH CHECKPOINT.
 #   toolkit-log gains a `checkpoint` column (binds each selection to its team-session
@@ -150,8 +170,9 @@ artifacts:
     - {name: analysis-log,      stage: solve,     contents: "per workplan row: data pulled (which tool) + result + validation verdict + degree-of-certainty (1-8)"}
     - {name: one-day-answer,    stage: state,     contents: "the LIVING state, SEEDED at State as the day-one hypothesis ('if forced to answer today, we'd say X' — Bulletproof's day-one answer) the moment the problem is framed, then formalized as situation→observation→resolution and UPDATED after every Solve analysis. It is the spine that re-ranks the open workplan rows; it is NOT born at Solve — Solve only sharpens it"}
     - {name: hitl-log,          stage: state,     contents: "v1.8 HITL RECEIPT LEDGER — one row per REAL AskUserQuestion put to the founder (id H1, H2, …; verbatim ONE-LINE answer, <br> for breaks). Seeded at State (Success/Constraint asks), appended through Solve. analysis-log 'ask-user' data rows MUST carry a [H<n>] tag resolving here; the run-folder gate (mckinsey-run.cjs) FAILS a bare 'ask-user' with no receipt. DISCIPLINE NOT PROOF: it cannot prove the ask happened — it makes skipping it a gate failure + gives the founder an auditable spot-check trail. Did not ask → label the datum 'assumption' (degree >=6 + sensitivity), never a fabricated ask-user"}
-    - {name: checkpoint-log,    stage: state,     contents: "v2.0 McKINSEY TEAM-SESSION LEDGER — one row per team problem-solving session. kind ∈ frame|hypothesize|plan|prioritize|porpoise|dissent|pre-wire. Seeded at State, appended through Solve. The Solve→Sell gate (mckinsey-run.cjs --before-sell) REQUIRES a pre-wire row (the close) + a dissent row (red-team the ANALYSIS: name the one analysis that, if wrong, flips the answer — the disconfirmation discipline) and WARNS if frame/prioritize are missing. interactive mode asks the founder-as-team-member 'what would have to be true for this to be WRONG?'. DISCIPLINE NOT PROOF: can't prove the session happened — makes skipping the closing sessions a failure + leaves an auditable trail"}
+    - {name: checkpoint-log,    stage: state,     contents: "v2.0/v3.6 McKINSEY TEAM-SESSION LEDGER — one row per team problem-solving session. kind ∈ frame|hypothesize|plan|prioritize|porpoise|dissent|pre-wire|consult (v3.6: consult = a /muse master convened on a craft judgment — see the consult section + consult-log). Seeded at State, appended through Solve. The Solve→Sell gate (mckinsey-run.cjs --before-sell) REQUIRES a pre-wire row (the close) + a dissent row (red-team the ANALYSIS: name the one analysis that, if wrong, flips the answer — the disconfirmation discipline) and WARNS if frame/prioritize are missing. interactive mode asks the founder-as-team-member 'what would have to be true for this to be WRONG?'. DISCIPLINE NOT PROOF: can't prove the session happened — makes skipping the closing sessions a failure + leaves an auditable trail"}
     - {name: toolkit-log,       stage: structure, contents: "v3.5/v3.6 METHOD LEDGER — PER-CHECKPOINT. One row per (checkpoint · sub-need): the `checkpoint` C-id binding it to the team-session where it happened · the CLASSIFY tags (solve_mode/analysis_mode/framework_shape) · the candidates LOADed from knowledge/thinking-tool-index/<step>.md · the ≤3 SELECTED tools (slug + why-fit) · the REJECTED (+ why-not / debias). The McKinsey crux — excellent, deliberate tool use AT EACH STEP — made RECORDED + auditable. Tool-selection is a live act at every checkpoint (READ info-so-far → CLASSIFY → LOAD → SELECT → APPLY → RECORD → PROCEED), not a ledger filled at the end. The --before-sell gate REQUIRES every 4S stage that ran a checkpoint to record ≥1 selection ('không để đấy') + WARNS on any checkpoint with no selection bound + WARNS if no rejected/debias note. DISCIPLINE NOT PROOF, like hitl-log/checkpoint-log. SURFACED downstream: the Sell report's Method section + the reasoning-trace's toolkit_map (per-checkpoint) + issue_tree charts"}
+    - {name: consult-log,       stage: solve,     contents: "v3.6 EXPERT-CONSULTATION LEDGER — one row per /muse master convened at a checkpoint where the live sub-need was a CRAFT / domain-mastery JUDGMENT (not a fact → a data tool; not analytical structure → a /think micro-framework). Columns: id (E1, E2, …) · checkpoint (the C-id) · persona(s) (e.g. david-ogilvy) · sub-need · participation (auto = engine self-played the client seat, founder skipped | founder = the founder took the seat in a real /muse:<persona> session) · recommendation (one line) · session-ref (~/.muse/sessions/<...>.md OR auto-played) · degree (6-7 expert judgment) · gate-verdict (triangulated vs the pulled data: coheres/conflicts/inconclusive + the route taken). EVIDENCE-NOT-DECIDER: a legend's read is a degree-6/7 expert datum, never an asserted fact, never the call. RECEIPT GATE: every analysis-log 'muse-consult (<persona>)' datum MUST carry an [E<n>] tag resolving here (mirror of the hitl-log [H<n>] gate); a bare muse-consult datum FAILS the run-folder gate. OPTIONAL — not every run consults; the gate fires only when a consult is CLAIMED. Authored by thinking-toolkit/mckinsey-consult"}
     - {name: synthesis,         stage: sell,      contents: "STEP 6 (synthesize the LOGIC): pyramid — governing thought → MECE key line → support; the argument must stand on its own before any storytelling. Built from the final one-day-answer + the analysis-log"}
     - {name: communication,     stage: sell,      contents: "STEP 7 (communicate the STORY): the synthesis rendered for THIS audience — grouping vs SCR/SCQA storyline, action titles, pre-wire plan. APK GUARD: lead with the answer; do NOT parade the analysis (anxious-parade-of-knowledge) or tell the story-of-the-search"}
 
@@ -191,6 +212,11 @@ data_routing:
     invoke: "/think driver-tree|mece|hypothesis|root-cause|pyramid|so-what|2x2"
     hitl: A
     note: "reasoning discipline, not evidence; scaffolds WHAT to pull, then route to a data tool. MICRO-FRAMEWORKS ONLY — never `/think mckinsey` (that IS this engine; re-invoking it recurses — see composition_guards anti-recursion)"
+  - need: "A CRAFT / domain-mastery JUDGMENT a world-class master would sharpen (copy that sells, positioning, pricing psychology, product taste, negotiation framing, a first-principles teardown) — NOT a fact and NOT analytical structure"
+    tool: muse-consult
+    invoke: 'the CONSULT checkpoint (thinking-toolkit/mckinsey-consult): SELECT the legend (/muse:who reasoning) → /muse:<persona> in the auto seat (engine self-plays the client) or the founder seat → capture → gate. e.g. /muse:david-ogilvy for landing-page copy'
+    hitl: A
+    note: "the QUALITATIVE complement to the data sweep — data tools answer 'what is TRUE?', the consult answers 'what would a MASTER do?'. Compose per the `consult` section: knock-out-gated (a craft judgment, not every leaf), EVIDENCE-NOT-DECIDER (a legend's read is a degree-6/7 expert datum triangulated against the pulled data, never an asserted fact, never the call), receipt-gated (analysis-log muse-consult datum → consult-log [E<n>]). Founder participation optional (auto self-play vs founder seat). /muse is a SYSTEM skill — invoked read-only."
   - need: "Data that exists ONLY in the founder's head (private intent, unrecorded decisions, risk appetite, qualitative judgment, degree-6 internal plans)"
     tool: ask-user
     invoke: "AskUserQuestion — surface the gap + show where it changes the one-day answer + a proposed default"
@@ -595,7 +621,7 @@ steps:
       DESIGN BRANCH (ill-defined/human/innovation): empathize → reframe (HMW) →
       ideate → prototype → test, looping until desirability×feasibility×viability.
     bulletproof_7step: ["Conduct analyses"]
-    produces: [analysis-log, one-day-answer, hitl-log, checkpoint-log, toolkit-log]
+    produces: [analysis-log, one-day-answer, hitl-log, checkpoint-log, toolkit-log, consult-log]
     skills:
       - thinking-toolkit/root-cause
       - thinking-toolkit/design-thinking
@@ -603,6 +629,7 @@ steps:
       - thinking-toolkit/debias
       - thinking-toolkit/2x2-synthesis-matrix
       - thinking-toolkit/data-verification
+      - thinking-toolkit/mckinsey-consult
     key_concepts:
       - {book: bulletproof-problem-solving, slug: one-day-answer}
       - {book: bulletproof-problem-solving, slug: heuristics-before-big-guns}
@@ -683,6 +710,33 @@ data_verification:
   decision_rule: "single-source / conflicting + a sensitivity flip on that number → fragile load-bearing input → escalate (deeper research or ask-user). unverified → cannot move the answer as a fact."
   skill: thinking-toolkit/data-verification
   concept: {book: cracked-it, slug: confirmation-bias-in-analysis}
+
+# --------------------------------------------------------------------------
+# CONSULT (v3.6) — convene a /muse MASTER as a McKinsey team member. The 8th
+# team session (`kind: consult`). At a checkpoint where the live sub-need is a
+# CRAFT / domain-mastery JUDGMENT (not a fact → a data tool; not analytical
+# structure → a /think micro-framework), the engine SELECTs the right legend,
+# runs an interactive exchange (auto self-play OR founder seat), and takes the
+# master's read through the validation gate as EVIDENCE-NOT-DECIDER. The
+# qualitative complement to the data sweep. Implemented by the Solve-step skill
+# thinking-toolkit/mckinsey-consult; recorded to consult-log.md + checkpoint-log
+# (kind=consult) + toolkit-log + analysis-log ([E<n>] receipt). /muse is a
+# SYSTEM-level skill — invoked read-only, never modified. (Additive top-level
+# section; the L2 validator ignores unknown sections, schema additionalProperties:true.)
+# --------------------------------------------------------------------------
+consult:
+  fires_when: "the live sub-need at a checkpoint is a CRAFT / domain-mastery JUDGMENT a world-class master would sharpen (copy that sells, positioning/segmentation, pricing psychology, product taste, negotiation framing, a first-principles teardown) AND it survived knock-out (load-bearing — it moves the one-day answer). NOT a fact (→ data_routing) and NOT analytical structure (→ a /think micro-framework). A cost-valve like deepask: a few high-craft leaves, not every leaf."
+  select_legend: "read the installed /muse roster (/muse:list, or ~/.claude/skills/muse/personas/) and pick the best-fit legend by muse:who's 0-80 fit reasoning (trigger · question-type · domain · thinking-mode · avoid-when), OR delegate the pick to /muse:who '<sub-need>'. One master by default; a /muse:debate A-vs-B when two masters genuinely disagree and the tension is the insight. No fit → nearest + note the gap; /muse:build a new legend only on founder opt-in (heavy, interactive)."
+  participation:
+    - {mode: founder, default_when: "mckinsey --mode=interactive", behavior: "hand the client seat to the founder — a real /muse:<persona> session; the founder answers the persona's stage questions; the engine observes + captures the Stage-5 recommendation"}
+    - {mode: auto, default_when: "mckinsey --mode=auto", behavior: "the engine SELF-PLAYS the client seat (founder skipped) — it answers the persona's stage prompts from the run's accumulated truth (problem-statement + live one-day-answer + analysis-log + the framed sub-need). The persona drives the cognitive MOVES; the engine supplies the problem-TRUTH (never a flattering guess). Honesty: a persona question only the founder can answer is an ask-user (hitl receipt) or an explicit assumption — never fabricated. Surface the exchange (condensed) — never silently self-play and emit only a file."}
+    - {mode: announce, always: true, behavior: "even in auto, ANNOUNCE the consult at the open (AskUserQuestion — [I take the seat] / [run it auto] / [skip]) so a present founder can join or skip. The founder's 'có option tôi tham gia hoặc bỏ qua tôi'."}
+  flag: "--consult=auto|founder|off|<persona>|who (parsed by mckinsey-workflow; default derived from --mode). off = never consult; <persona> = force a legend; who = always route the pick through /muse:who."
+  evidence_not_decider: "a legend's recommendation is degree-6/7 EXPERT JUDGMENT (Cracked It! eight-degrees — discount degree-7 expert input for the master's own incentives/era), run through the validation_gate like any datum: knock-out → does it move the answer? · triangulate vs the pulled data (coheres → double down; conflicts → a tension to resolve WITH the founder, not by deferring to the celebrity) · honesty-label (it enters the answer AS an attributed, gated master's judgment). A legend's word NEVER launders past the gate. The synthesize→recommend call stays with the engine (Sell) + the founder."
+  records_to: "consult-log.md (the E<n> ledger row) + checkpoint-log.md (a `consult`-kind session) + toolkit-log.md (the legend as the SELECTED tool at that checkpoint) + analysis-log.md (the validated read as a datum: 'muse-consult (<persona>) [E<n>]', degree 6-7). The [E<n>] receipt gate (mckinsey-run.cjs) reconciles the analysis-log datum against the consult-log row — mirror of the v1.8 HITL receipt gate; discipline-not-proof; OPTIONAL (fires only when a consult is claimed)."
+  composition: "with --workflow=steps|full a consult can fan out as a multi-master PANEL (parallel() of N legends → consensus/unique/disagreement synthesis; the muse:all council or a muse:debate shape) run as evidence through the gate (a panel must not launder a verdict). v0.1 default is single-master or muse:who."
+  skill: thinking-toolkit/mckinsey-consult
+  concept: {book: cracked-it, slug: judgment-call-transparency}
 
 # --------------------------------------------------------------------------
 # REASONING TRACE (v3.2) — the thinking-journal OUTPUT. A DERIVED artifact (NOT one

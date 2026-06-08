@@ -1004,8 +1004,9 @@ capabilities:
   - id: thinking-toolkit
     name: "Thinking Toolkit (McKinsey/Minto-extracted thinking discipline skills)"
     description: |
-      16 skills (14 composable thinking tools + the mckinsey-workflow 4S
-      ENGINE + the mckinsey-sell Sell formatter) extracted from McKinsey/Minto
+      17 skills (14 composable thinking tools + the mckinsey-workflow 4S
+      ENGINE + the mckinsey-sell Sell formatter + the v3.7 mckinsey-consult
+      /muse-master checkpoint) extracted from McKinsey/Minto
       thinking discipline, deployed as a
       parent-namespaced skill folder at
       06-ai-ops/skills/thinking-toolkit/. Skills are guidance documents (zero
@@ -1045,6 +1046,7 @@ capabilities:
         - thinking-toolkit/problem-triage (v3.2 — the ROUTER that makes mckinsey the PRIMARY solver: routes a problem to its weight [mckinsey/deepask/atom/direct] on consequence × shape; first step of SOP-AIOPS-012; @ceo/@cgo/@cpo routing reflex) [v3.2]
         - thinking-toolkit/reasoning-trace (v3.6 — the narrated McKinsey engagement journey: a completed mckinsey run → a client walkthrough → PDF, via /think trace; a 6-beat rhythm per milestone [bối cảnh+info-so-far → options+chart → THE TOOL-CHOICE beat (which tool at this checkpoint, why this/not that) → what-it-revealed insight → kept/dropped → ✓ sign-off], deep + insight-rich (-vi-day-du); foregrounds PER-CHECKPOINT tool-selection via the auto toolkit_map [bound to each C-id] + a MECE issue_tree [kept ✓ · knock-out ★ · cut ✗ + reason]; scripts trace-extract.cjs + trace-build.py [chart-library renderer]) [v3.6]
         - thinking-toolkit/data-verification (v3.3 — the re-check mechanism: triangulate a load-bearing external/degree-≥5 number across ≥2 independent web/deep-research sources → a verification status; wired into the Solve validation gate) [v3.3]
+        - thinking-toolkit/mckinsey-consult (v3.7 — the CONSULT checkpoint: at a craft/domain-mastery JUDGMENT checkpoint, convene a /muse MASTER [David Ogilvy, Kotler, Schwartz, Munger, Voss, …] as a team member; run the exchange auto-self-play OR founder-seat; take the read through the gate as evidence-not-decider [degree-6/7, triangulated vs data, never the celebrity-said-so]; the qualitative complement to the data sweep; records to consult-log + checkpoint-log kind=consult + the [E<n>] receipt gate; /muse invoked read-only) [v3.7]
 
       Origin: Barbara Minto's *Pyramid Principle* (1987), McKinsey internal
       training (TOSCA, driver-tree, So-What), BCG Growth-Share matrix (2x2).
@@ -1137,7 +1139,37 @@ capabilities:
       (C1-C7). Tests: the toolkit gate suite reworked to per-checkpoint (+per-stage ERROR
       +per-checkpoint WARN); trace-extract checkpoint-binding test. Run record:
       .archives/cla/per-checkpoint-toolkit-selection/.
-    version: "3.6.0"
+      v3.7 (2026-06-08, /cla extend, autonomous): the CONSULT checkpoint — convene a
+      /muse MASTER as a McKinsey team member. Founder ask: "integrate a /muse exchange
+      into /think mckinsey — at a checkpoint, McKinsey frames the need, identifies +
+      calls an expert X via /muse:X, runs an interactive exchange (I can join or be
+      skipped), takes the result, continues — like inviting a master to collaborate
+      (e.g. David Ogilvy on a landing-page rewrite)." Adds the 8th team session
+      (kind=consult): at a checkpoint where the live sub-need is a CRAFT / domain-mastery
+      JUDGMENT (copy/positioning/pricing/teardown — not a fact → a data tool, not
+      analytical structure → a /think micro-framework), the engine SELECTs the right
+      legend (muse:who fit reasoning), runs the exchange in one of two seats —
+      `--consult=auto` (engine self-plays the client seat from the run context, founder
+      skipped) or `--consult=founder` (the founder takes the seat in a real /muse:<persona>
+      session; announced either way so a present founder can join/skip) — and takes the
+      master's read through the validation gate as EVIDENCE-NOT-DECIDER (degree-6/7 expert
+      judgment, triangulated vs the pulled data, never an asserted fact, never the call;
+      "Ogilvy said so" never launders past the gate). NEW skill
+      thinking-toolkit/mckinsey-consult. Touches: mckinsey-run.cjs (+`consult-log` ARTIFACT
+      + TEMPLATE + the [E<n>] consult-receipt gate, mirror of the v1.8 HITL gate + muse-consult
+      excluded from the "real data pulled" check) · validate-mckinsey-workflow.cjs ARTIFACTS
+      (set-equal) + TOOLS (+muse-consult) · schema `produces` enum (+consult-log) ·
+      mckinsey-workflow.yaml (3.5.0 → 3.6.0; +muse-consult data_routing row + consult-log
+      artifact + consult kind on checkpoint-log + solve produces/skills + a top-level
+      `consult` section) · mckinsey-workflow SKILL.md (the 8th session + --consult flag +
+      §CONSULT) · think.md (the mckinsey row + --consult + /muse composition note). /muse is
+      a SYSTEM-level skill (~/.claude/skills/muse/, 29 legends incl. david-ogilvy) — invoked
+      read-only, NEVER modified; the integration lives entirely in the mckinsey engine.
+      Tests: +consult-receipt-gate describe in mckinsey-run.test.ts (mirror of the HITL gate
+      suite); mckinsey-workflow.test.ts auto-covers muse-consult via its for-each-TOOLS loop.
+      No new DB table, no migration, no new /think verb. Run record:
+      .archives/cla/mckinsey-muse-consult/.
+    version: "3.7.0"
     state: operating
     state_since: 2026-05-28
     proposed_at: 2026-05-28

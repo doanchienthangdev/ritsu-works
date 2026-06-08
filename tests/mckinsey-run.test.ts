@@ -20,13 +20,14 @@ const {
 // checkRun(repoRoot, slug, opts) from scripts/thinking-toolkit/mckinsey-run.cjs
 // (capability thinking-toolkit v1.6/v1.8/v2.0 — the deterministic run scaffolder + checker).
 //
-// Phase 1 — scaffoldRun: slug-invalid → error; creates dir + 10 templates;
+// Phase 1 — scaffoldRun: slug-invalid → error; creates dir + 11 templates;
 //   idempotent (skip existing, never clobber). checkRun: slug-invalid; dir
 //   missing; missing artifact; workplan no-table / missing-column / bad-status /
 //   product.* firewall; analysis-log missing-provenance-col / missing-degree-col /
 //   row-missing-provenance / degree-out-of-1-8; beforeSell open-rows gate;
 //   v1.8 HITL receipt gate (ask-user [H#] ↔ hitl-log reconciliation);
-//   v2.0 checkpoint gate (pre-wire + dissent required --before-sell; frame/prioritize warn); happy.
+//   v2.0 checkpoint gate (pre-wire + dissent required --before-sell; frame/prioritize warn);
+//   v3.6 consult receipt gate (muse-consult [E#] ↔ consult-log reconciliation); happy.
 // Phase 2 — boundaries: invalid slugs, empty dir, malformed tables, degree
 //   0/9/NaN, status casing, placeholder rows skipped, phantom <H1>/<C1> template row.
 // Uses a fresh tmp repoRoot per test (the helper writes under
@@ -82,7 +83,7 @@ const GOOD_TOOLKIT = `# tk
 `;
 
 describe("scaffoldRun", () => {
-  it("creates the run folder + all 10 artifact templates", () => {
+  it("creates the run folder + all 11 artifact templates", () => {
     const r = scaffoldRun(ROOT, "free-to-paid-stall");
     expect(r.errors).toEqual([]);
     expect(r.created.sort()).toEqual(ARTIFACTS.map((a: string) => `${a}.md`).sort());
@@ -480,6 +481,112 @@ describe("checkRun — HITL receipt gate (v1.8)", () => {
     // 'data source' column literally mentions ask-user; the real provenance col is supabase
     writeArtifact("r", "analysis-log.md", "# al\n| hypothesis | data source | provenance | degree | verdict |\n|---|---|---|---|---|\n| ownership | scraped from an ask-user note | supabase-analytics | 2 | ok |\n");
     expect(hitlErrs("r")).toEqual([]);
+  });
+});
+
+// ---- v3.6: CONSULT receipt gate (analysis-log muse-consult ↔ consult-log reconciliation) ----
+// Mirror of the v1.8 HITL gate: a /muse master's read enters the analysis-log as a datum
+// with provenance 'muse-consult (<persona>) [E<n>]'; that [E<n>] must resolve to a row in
+// consult-log.md. Consults are OPTIONAL — the gate fires only when a muse-consult datum is
+// CLAIMED — and it runs on a NORMAL check (a receipt reconciliation, not a --before-sell gate).
+
+const CONSULT_E1 = `# consult
+| id | checkpoint | persona(s) | sub-need | participation | recommendation | session-ref | degree | gate-verdict |
+|---|---|---|---|---|---|---|---|---|
+| E1 | C6 | david-ogilvy | hero copy offer-led? | auto | lead with the offer; cut the cleverness | auto-played | 6 | coheres |
+`;
+const CONSULT_E1_E2 = `# consult
+| id | checkpoint | persona(s) | sub-need | participation | recommendation | session-ref | degree | gate-verdict |
+|---|---|---|---|---|---|---|---|---|
+| E1 | C6 | david-ogilvy | hero copy | auto | lead with offer | auto-played | 6 | coheres |
+| E2 | C7 | chris-voss | objection framing | founder | label the fear first | ~/.muse/sessions/x.md | 6 | coheres |
+`;
+// analysis-log with one muse-consult datum whose provenance cell is `prov`
+const logConsult = (prov: string) => `# al
+| hypothesis | data pulled | provenance | degree | verdict |
+|---|---|---|---|---|
+| hero offer-led | rewrite hero | ${prov} | 6 | coheres with bounce |
+`;
+const consultErrs = (slug: string) => checkRun(ROOT, slug).errors.filter((e: string) => /consult gate/.test(e));
+
+describe("checkRun — CONSULT receipt gate (v3.6)", () => {
+  it("muse-consult datum WITH a matching [E1] + consult-log row E1 → passes", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logConsult("muse-consult (david-ogilvy) [E1]"));
+    writeArtifact("r", "consult-log.md", CONSULT_E1);
+    expect(checkRun(ROOT, "r").errors).toEqual([]);
+  });
+  it("muse-consult datum with NO [E#] receipt tag → fails (missing receipt)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logConsult("muse-consult (david-ogilvy)"));
+    writeArtifact("r", "consult-log.md", CONSULT_E1);
+    expect(has(consultErrs("r"), "no [E<n>] receipt tag")).toBe(true);
+  });
+  it("muse-consult datum citing [E9] but no consult-log row E9 → fails (dangling ref)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logConsult("muse-consult (kotler) [E9]"));
+    writeArtifact("r", "consult-log.md", CONSULT_E1);
+    expect(has(consultErrs("r"), "no data row with id E9")).toBe(true);
+  });
+  it("the pristine <E1> template row does NOT satisfy a [E1] tag", () => {
+    scaffoldRun(ROOT, "r"); // consult-log.md left as the scaffold template (placeholder <E1> only)
+    writeArtifact("r", "analysis-log.md", logConsult("muse-consult (david-ogilvy) [E1]"));
+    expect(has(consultErrs("r"), "no data row with id E1")).toBe(true);
+  });
+  it("a freshly-scaffolded run (no muse-consult datum) passes — consults are optional", () => {
+    scaffoldRun(ROOT, "r");
+    expect(consultErrs("r")).toEqual([]);
+  });
+  it("a non-consult provenance (supabase) is untouched by the gate → passes", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logConsult("supabase-ops metrics.*"));
+    expect(consultErrs("r")).toEqual([]);
+  });
+  it("a consult-log row with NO matching analysis-log datum is allowed (one-way gate)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", GOOD_LOG); // no muse-consult rows
+    writeArtifact("r", "consult-log.md", CONSULT_E1); // an extra consult (e.g. a sell-stage craft read)
+    expect(checkRun(ROOT, "r").errors).toEqual([]);
+  });
+  it("case-insensitive: MUSE-CONSULT provenance + [e1] tag resolves against consult row E1 → passes", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logConsult("MUSE-CONSULT (david-ogilvy) [e1]"));
+    writeArtifact("r", "consult-log.md", CONSULT_E1);
+    expect(checkRun(ROOT, "r").errors).toEqual([]);
+  });
+  it("multiple tags [E1][E2] on one row: both must resolve (one missing → fail)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logConsult("muse-consult (ogilvy+voss debate) [E1][E2]"));
+    writeArtifact("r", "consult-log.md", CONSULT_E1); // only E1 exists
+    expect(has(consultErrs("r"), "no data row with id E2")).toBe(true);
+  });
+  it("multiple tags [E1][E2] both present → passes", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logConsult("muse-consult (ogilvy+voss) [E1][E2]"));
+    writeArtifact("r", "consult-log.md", CONSULT_E1_E2);
+    expect(checkRun(ROOT, "r").errors).toEqual([]);
+  });
+  it("decoy: 'muse-consult' text in a non-provenance cell does NOT trip the gate (reads provenance col only)", () => {
+    scaffoldRun(ROOT, "r");
+    // 'data pulled' column literally mentions muse-consult; the real provenance col is supabase
+    writeArtifact("r", "analysis-log.md", "# al\n| hypothesis | data pulled | provenance | degree | verdict |\n|---|---|---|---|---|\n| hero | a note about a muse-consult idea | supabase-ops metrics.* | 2 | ok |\n");
+    expect(consultErrs("r")).toEqual([]);
+  });
+  it("a consult datum is NOT mistaken for an ask-user receipt (the two gates are independent)", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "analysis-log.md", logConsult("muse-consult (david-ogilvy) [E1]"));
+    writeArtifact("r", "consult-log.md", CONSULT_E1);
+    // the HITL gate must not fire on a muse-consult datum (it has no 'ask-user')
+    expect(checkRun(ROOT, "r").errors.filter((e: string) => /hitl gate/.test(e))).toEqual([]);
+  });
+  it("muse-consult does NOT count as a 'real pulled source' — an all-consult/assumption workplan WARNS data-pull --before-sell", () => {
+    scaffoldRun(ROOT, "r");
+    writeArtifact("r", "workplan.md", `# wp\n| issue | hypothesis | analysis | source-of-data | owner | end-product | status |\n|---|---|---|---|---|---|---|\n| copy | offer-led wins | ogilvy read | muse-consult (david-ogilvy) | f | hero | validated |\n| price | anchor high | voss read | muse-consult (chris-voss) | f | table | knocked-out |\n`);
+    writeArtifact("r", "one-day-answer.md", GOOD_ODA);
+    writeArtifact("r", "checkpoint-log.md", GOOD_CHECKPOINT);
+    writeArtifact("r", "toolkit-log.md", GOOD_TOOLKIT);
+    const r = checkRun(ROOT, "r", { beforeSell: true });
+    expect(has(r.warnings, "data-pull gate")).toBe(true); // a consult is judgment, not pulled data
   });
 });
 

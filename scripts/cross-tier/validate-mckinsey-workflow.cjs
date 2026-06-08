@@ -48,8 +48,12 @@ const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 //   ARTIFACTS — the catalog↔run-helper coherence check below enforces it).
 // v2.0: +'checkpoint-log' (the McKinsey team-session milestone ledger; set-equal too).
 // v3.5: +'toolkit-log' (the METHOD ledger — recorded tool-selection; set-equal too).
-const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'hitl-log', 'checkpoint-log', 'toolkit-log', 'one-day-answer', 'synthesis', 'communication'];
-const TOOLS = ['deepask', 'wiki_ask', 'gbrain', 'supabase-ops-query', 'deep-research', 'think-skills', 'ask-user'];
+// v3.6: +'consult-log' (the EXPERT-CONSULTATION ledger — /muse legends convened at a
+//   checkpoint on a craft judgment; set-equal to mckinsey-run.cjs ARTIFACTS too).
+const ARTIFACTS = ['problem-statement', 'decomposition', 'workplan', 'analysis-log', 'hitl-log', 'checkpoint-log', 'toolkit-log', 'consult-log', 'one-day-answer', 'synthesis', 'communication'];
+// v3.6: +'muse-consult' — the CONSULT data-routing tool (convene a /muse domain master
+//   for a craft-mastery JUDGMENT; the qualitative complement to the data tools).
+const TOOLS = ['deepask', 'wiki_ask', 'gbrain', 'supabase-ops-query', 'deep-research', 'think-skills', 'ask-user', 'muse-consult'];
 // Engine sections that must each be a non-empty array (v1.4 dynamic engine; each
 // element may carry a `concept` {book,slug} ref that is file-existence-checked).
 // v1.5: +'tool_selection' (the load + select mechanism over the candidate registry).
