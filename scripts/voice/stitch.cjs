@@ -58,8 +58,9 @@ function run(argv) {
   // v0.3 — loudness-normalize each part to one target before concat (default ON). --no-normalize
   // (or --normalize=false) to skip; --target-lufs=<N> to retarget (default -16 LUFS).
   const normalize = !(opts['no-normalize'] || /^(false|0|no|off)$/i.test(String(opts.normalize)));
+  const level = !(opts['no-level'] || /^(false|0|no|off)$/i.test(String(opts.level)));
   const targetLufs = Number.isFinite(Number(opts['target-lufs'])) ? Number(opts['target-lufs']) : -16;
-  const res = stitchAudio(parts, path.resolve(opts.out), format, { normalize, targetLufs });
+  const res = stitchAudio(parts, path.resolve(opts.out), format, { normalize, level, targetLufs });
   return res.ok
     ? { ok: true, file: res.file, parts, normalized: res.normalized, warnings: res.warnings }
     : { ok: false, error: res.error, parts, warnings: res.warnings };

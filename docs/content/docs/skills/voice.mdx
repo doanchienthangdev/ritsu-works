@@ -10,15 +10,15 @@ description: >
   through a Claude Code Workflow. Default mp3; mp3/wav/opus/aac/flac/m4a/ogg/pcm. Tier A; per-run
   --max-cost-usd breaker; artifacts to .archives/voice/<date>-<slug>/.
 source_path: 06-ai-ops/skills/voice/SKILL.md
-source_hash: 6c96131db8223a48e68c37dd30eac5bc6b5de4e0acc3ad7c16c6f398f79a99c7
-generated_at: '2026-06-09T02:02:47.762Z'
+source_hash: 44cac73d72ad17bae2eda3c381f656da72d87f210200a63b5124a7a8fde299b3
+generated_at: '2026-06-09T06:00:48.849Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_at: '2026-06-08T11:00:00.000Z'
+translated_at: '2026-06-08T12:00:00.000Z'
 translated_by: docs-translate v1.1.0
-translated_source_hash: 6c96131db8223a48e68c37dd30eac5bc6b5de4e0acc3ad7c16c6f398f79a99c7
+translated_source_hash: 44cac73d72ad17bae2eda3c381f656da72d87f210200a63b5124a7a8fde299b3
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -62,8 +62,8 @@ Ghi định hướng đã soạn vào `<run>/instructions.txt` và kịch bản 
 - **Đầu vào nhỏ / đơn lẻ** → `node scripts/voice/run.cjs` thực hiện chunk → gen-theo-chunk → stitch trong một lệnh gọi tất định duy nhất. Đây là đường mặc định.
 - **Đầu vào dài hoặc một thư mục** → điều khiển một **Claude Code Workflow** (xem mẫu bên dưới) để các chunk/tệp tiền xử lý + ghi âm SONG SONG, rồi ghép lại. Đây là đường sản xuất nền tảng mà founder yêu cầu.
 
-### 4 — Ghép (cân bằng độ to)
-`run.cjs` ghép trong tiến trình; đường Workflow gọi `scripts/voice/stitch.cjs` sau khi các job gen song song hoàn tất. Đầu vào đơn lẻ → một tệp trong `out/`; thư mục → các tệp được phản chiếu. **v0.3:** khi ghép, độ to của mọi phần được chuẩn hóa về cùng một mục tiêu (`--target-lufs`, mặc định −16 LUFS) trước khi nối lại, nhờ vậy toàn bộ đầu ra phát ở một mức âm lượng ổn định.
+### 4 — Ghép (được cân mức động + cân bằng)
+`run.cjs` ghép trong tiến trình; đường Workflow gọi `scripts/voice/stitch.cjs` sau khi các job gen song song hoàn tất. Đầu vào đơn lẻ → một tệp trong `out/`; thư mục → các tệp được phản chiếu. **v0.3.1:** khi ghép, mọi phần được **cân mức một cách động** (compressor → `dynaudnorm`, đẩy các đoạn nhỏ tiếng lên — `--level`, mặc định BẬT) *rồi* chuẩn hóa về một mục tiêu duy nhất (`--target-lufs`, mặc định −16 LUFS) trước khi nối lại, nhờ vậy toàn bộ đầu ra phát ở một mức âm lượng ổn định *và* mọi đoạn đều ở cùng một mức (không chỉ riêng mức trung bình của từng chunk). Dùng `stitch.cjs --in-dir=parts --out=book.mp3` (cân mức/chuẩn hóa mặc định BẬT; `--no-level`/`--no-normalize` để tắt).
 
 ### Sự nhất quán trên nội dung DÀI / NHIỀU TỆP (v0.3 — hãy làm điều này)
 Các yêu cầu TTS độc lập sẽ trôi dạt về giọng/tông/nhịp độ/âm lượng. **Khóa hồ sơ giọng TRƯỚC KHI chia nhỏ** và áp dụng y hệt cho mọi chunk:

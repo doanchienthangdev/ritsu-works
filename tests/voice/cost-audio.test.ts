@@ -6,7 +6,7 @@ import { spawnSync } from "child_process";
 // @ts-ignore — Node interop from TS to CJS (repo convention)
 const { estimateCost, ratePerMinute, CHARS_PER_MINUTE, DEFAULT_RATE_PER_MIN } = require("../../scripts/voice/lib/cost.cjs");
 // @ts-ignore
-const { pcmToWav, outputArgsFor, ffmpegAvailable, measureLoudness, normalizeLoudness, stitchAudio, DEFAULT_LUFS } = require("../../scripts/voice/lib/audio.cjs");
+const { pcmToWav, outputArgsFor, ffmpegAvailable, measureLoudness, normalizeLoudness, stitchAudio, DEFAULT_LUFS, LEVELING_CHAIN } = require("../../scripts/voice/lib/audio.cjs");
 
 // All-Edge-Cases-Test (global CLAUDE.md). voice-platform v0.1 cost estimator + the PURE
 // audio header wrapper. The ffmpeg shells are live-verified out-of-band (mp3 round-trips);
@@ -159,5 +159,30 @@ d("loudness consistency (loudnorm)", () => {
   });
   it("empty parts → typed error (never throws)", () => {
     expect(stitchAudio([], path.join(tmp, "x.mp3"), "mp3").ok).toBe(false);
+  });
+
+  // v0.3.1 — dynamic leveling CONTRACT. (The efficacy — LRA ~20 → ~4 on real speech, the cure for
+  // "các đoạn tiếng nhỏ" — is an integration fact proven by the A/B measurement, not synthesizable
+  // reliably from tones; here we assert the leveling stage is actually wired + applied.)
+  it("LEVELING_CHAIN compresses then dynamically normalizes (acompressor → dynaudnorm)", () => {
+    expect(LEVELING_CHAIN).toContain("acompressor");
+    expect(LEVELING_CHAIN).toContain("dynaudnorm");
+  });
+  it("normalizeLoudness applies leveling by default, and skips it with level:false", () => {
+    const out1 = path.join(tmp, "lev-on.wav"); const out2 = path.join(tmp, "lev-off.wav");
+    const r1 = normalizeLoudness(loudWav, out1); // default
+    const r2 = normalizeLoudness(loudWav, out2, { level: false });
+    expect(r1.ok).toBe(true); expect(r1.leveled).toBe(true);
+    expect(r2.ok).toBe(true); expect(r2.leveled).toBe(false);
+    expect(fs.existsSync(out1) && fs.existsSync(out2)).toBe(true);
+  });
+  it("stitchAudio reports leveled:true by default and leveled:false with level:false", () => {
+    const a = stitchAudio([loudWav, quietWav], path.join(tmp, "s-lev.mp3"), "mp3");
+    const b = stitchAudio([loudWav, quietWav], path.join(tmp, "s-flat.mp3"), "mp3", { level: false });
+    expect(a.ok).toBe(true); expect(a.leveled).toBe(true);
+    expect(b.ok).toBe(true); expect(b.leveled).toBe(false);
+  });
+  it("DEFAULT_LUFS now targets a tight loudness range (audiobook-uniform)", () => {
+    expect(DEFAULT_LUFS.lra).toBeLessThanOrEqual(6);
   });
 });

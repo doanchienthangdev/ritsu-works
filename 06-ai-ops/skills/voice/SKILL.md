@@ -53,8 +53,8 @@ Write the authored direction to `<run>/instructions.txt` and the marked-up scrip
 - **Small / single input** → `node scripts/voice/run.cjs` does chunk → gen-per-chunk → stitch in one deterministic call. This is the default path.
 - **Long input or a folder** → drive a **Claude Code Workflow** (see template below) so chunks/files preprocess + record in PARALLEL, then stitch. This is the foundational production path the founder asked for.
 
-### 4 — Stitch (loudness-equalized)
-`run.cjs` stitches in-process; the Workflow path calls `scripts/voice/stitch.cjs` after the parallel gen jobs land. Single input → one file in `out/`; folder → mirrored files. **v0.3:** stitching loudness-normalizes every part to one target (`--target-lufs`, default −16 LUFS) before concatenating, so the whole output plays at a steady volume.
+### 4 — Stitch (loudness-leveled + equalized)
+`run.cjs` stitches in-process; the Workflow path calls `scripts/voice/stitch.cjs` after the parallel gen jobs land. Single input → one file in `out/`; folder → mirrored files. **v0.3.1:** stitching **dynamically levels** every part (compressor → `dynaudnorm`, bringing quiet passages up — `--level`, default ON) *then* normalizes to one target (`--target-lufs`, default −16 LUFS) before concatenating, so the whole output plays at a steady volume *and* every passage is the same level (not just every chunk's average). Use `stitch.cjs --in-dir=parts --out=book.mp3` (leveling/normalize default ON; `--no-level`/`--no-normalize` to opt out).
 
 ### Consistency on LONG / MULTI-FILE content (v0.3 — do this)
 Independent TTS requests drift in voice/tone/pace/volume. **Lock the voice profile BEFORE splitting** and apply it identically to every chunk:

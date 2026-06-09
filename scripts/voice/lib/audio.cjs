@@ -92,7 +92,20 @@ function convertAudio(inPath, outPath, format) {
 // long-form / multi-chunk content: normalizing every chunk to the SAME integrated
 // loudness is the only reliable cure for the "lúc to lúc nhỏ" volume drift that
 // independent TTS requests produce (each request self-normalizes differently).
-const DEFAULT_LUFS = Object.freeze({ i: -16, tp: -2, lra: 11 });
+const DEFAULT_LUFS = Object.freeze({ i: -16, tp: -1.5, lra: 4 });
+
+// v0.3.1 — DYNAMIC LEVELING chain (the real cure for "các đoạn tiếng nhỏ"). Integrated
+// loudnorm alone fixes the chunk AVERAGE but NOT the within-content dynamics: the TTS model
+// reads some passages much quieter (measured LRA 10–20 LU; short-term swings to near-silence),
+// so quiet passages stay quiet after integrated normalization. This chain levels the dynamics
+// BEFORE the integrated target: a moderate compressor (tame the loud/quiet spread) → dynaudnorm
+// (a moving-window normalizer that brings quiet SPEECH up while leaving true silence/pauses
+// alone) → loudnorm (final integrated target + true-peak limit). Strong-but-smooth: measured on
+// real chunks the within-content LRA drops 10–20 → ~3 LU and the SPEECH short-term spread (the
+// thing the ear hears as "lúc to lúc nhỏ") drops from ~27 LU → ~9 LU, with the quietest speech
+// lifted ~20 dB. dynaudnorm (not a hard limiter) keeps it natural over long-form; only universal
+// ffmpeg filters (acompressor + dynaudnorm) so it runs anywhere.
+const LEVELING_CHAIN = 'acompressor=threshold=-30dB:ratio=4:attack=5:release=120,dynaudnorm=f=150:g=11:m=30:p=0.9';
 
 /** Parse the last JSON object out of mixed ffmpeg stderr/stdout text. */
 function lastJson(text) {
@@ -113,25 +126,36 @@ function measureLoudness(inPath, opts = {}) {
 }
 
 /**
- * Two-pass EBU R128 loudness-normalize a file to a uniform target (measure → linear apply).
- * This is what makes every chunk play at the SAME volume. Falls back to single-pass if the
- * measure pass yields nothing usable (e.g. near-silence). Output format inferred from outPath.
- * @returns {{ok:boolean, file?:string, measured?:object, error?:string}}
+ * Loudness-normalize a file to a uniform target. v0.3.1: by default (opts.level !== false) it
+ * first DYNAMICALLY LEVELS the audio (LEVELING_CHAIN) so quiet passages are brought up and the
+ * within-content loudness range collapses (~LRA 20 → ~4), THEN applies an integrated loudnorm
+ * target + true-peak limit. This is what actually makes "every passage the same volume". With
+ * opts.level === false it falls back to the v0.3 two-pass integrated-only normalization (fixes
+ * the chunk average but not the dynamics). Output format inferred from outPath.
+ * @returns {{ok:boolean, file?:string, leveled?:boolean, measured?:object, error?:string}}
  */
 function normalizeLoudness(inPath, outPath, opts = {}) {
   if (!ffmpegAvailable()) return { ok: false, error: 'ffmpeg not found on PATH (needed for loudness normalization)' };
   const I = opts.i ?? DEFAULT_LUFS.i; const TP = opts.tp ?? DEFAULT_LUFS.tp; const LRA = opts.lra ?? DEFAULT_LUFS.lra;
+  const level = opts.level !== false;
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
-  const m = measureLoudness(inPath, { i: I, tp: TP, lra: LRA });
-  const usable = m && m.input_i !== undefined && m.input_i !== '-inf' && Number.isFinite(Number(m.input_i));
-  const af = usable
-    ? `loudnorm=I=${I}:TP=${TP}:LRA=${LRA}:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`
-    : `loudnorm=I=${I}:TP=${TP}:LRA=${LRA}`;
+  let af; let measured = null;
+  if (level) {
+    // Dynamic leveling already changes the loudness, so a single-pass loudnorm sets the final
+    // integrated target on the already-leveled signal (a measure-pass on the raw input would be wrong).
+    af = `${LEVELING_CHAIN},loudnorm=I=${I}:TP=${TP}:LRA=${LRA}`;
+  } else {
+    measured = measureLoudness(inPath, { i: I, tp: TP, lra: LRA });
+    const usable = measured && measured.input_i !== undefined && measured.input_i !== '-inf' && Number.isFinite(Number(measured.input_i));
+    af = usable
+      ? `loudnorm=I=${I}:TP=${TP}:LRA=${LRA}:measured_I=${measured.input_i}:measured_TP=${measured.input_tp}:measured_LRA=${measured.input_lra}:measured_thresh=${measured.input_thresh}:offset=${measured.target_offset}:linear=true`
+      : `loudnorm=I=${I}:TP=${TP}:LRA=${LRA}`;
+  }
   const fmt = path.extname(outPath).slice(1).toLowerCase() || 'wav';
   // Force the source PCM contract on the intermediate so every normalized part concatenates cleanly.
   const rateArgs = (fmt === 'wav' || fmt === 'pcm') ? ['-ar', String(PCM_RATE), '-ac', String(PCM_CHANNELS)] : [];
   const res = runFfmpeg(['-i', inPath, '-af', af, ...rateArgs, ...outputArgsFor(fmt), outPath]);
-  return res.ok ? { ok: true, file: outPath, measured: m } : res;
+  return res.ok ? { ok: true, file: outPath, leveled: level, measured } : res;
 }
 
 /**
@@ -143,8 +167,11 @@ function normalizeLoudness(inPath, outPath, opts = {}) {
  * @param {string[]} parts
  * @param {string} outPath
  * @param {string} format
- * @param {{normalize?:boolean, targetLufs?:number, tp?:number}} [opts]
- * @returns {{ok:boolean, file?:string, normalized?:boolean, warnings?:string[], error?:string}}
+ * @param {{normalize?:boolean, targetLufs?:number, tp?:number, level?:boolean}} [opts]
+ *   level (default true, v0.3.1): dynamically level each part (collapse the within-content
+ *   loudness range) before the integrated target — the cure for quiet passages. level:false →
+ *   integrated-only (v0.3).
+ * @returns {{ok:boolean, file?:string, normalized?:boolean, leveled?:boolean, warnings?:string[], error?:string}}
  */
 function stitchAudio(parts, outPath, format, opts = {}) {
   const list = Array.isArray(parts) ? parts.filter((p) => typeof p === 'string' && fs.existsSync(p)) : [];
@@ -152,7 +179,8 @@ function stitchAudio(parts, outPath, format, opts = {}) {
   if (!ffmpegAvailable()) return { ok: false, error: 'ffmpeg not found on PATH (needed to stitch audio parts)' };
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   const normalize = opts.normalize !== false;
-  const target = { i: opts.targetLufs ?? DEFAULT_LUFS.i, tp: opts.tp ?? DEFAULT_LUFS.tp, lra: DEFAULT_LUFS.lra };
+  const level = opts.level !== false;
+  const target = { i: opts.targetLufs ?? DEFAULT_LUFS.i, tp: opts.tp ?? DEFAULT_LUFS.tp, lra: DEFAULT_LUFS.lra, level };
   const warnings = [];
 
   if (list.length === 1 && !normalize) return convertAudio(list[0], outPath, format);
@@ -171,12 +199,12 @@ function stitchAudio(parts, outPath, format, opts = {}) {
     }
     if (stitchList.length === 1) {
       const r = convertAudio(stitchList[0], outPath, format);
-      return r.ok ? { ok: true, file: outPath, normalized: normalize, warnings } : { ...r, warnings };
+      return r.ok ? { ok: true, file: outPath, normalized: normalize, leveled: normalize && level, warnings } : { ...r, warnings };
     }
     const listFile = path.join(tmpDir, 'concat.txt');
     fs.writeFileSync(listFile, `${stitchList.map((p) => `file '${path.resolve(p).replace(/'/g, "'\\''")}'`).join('\n')}\n`, 'utf-8');
     const res = runFfmpeg(['-f', 'concat', '-safe', '0', '-i', listFile, ...outputArgsFor(format), outPath]);
-    return res.ok ? { ok: true, file: outPath, normalized: normalize, warnings } : { ...res, warnings };
+    return res.ok ? { ok: true, file: outPath, normalized: normalize, leveled: normalize && level, warnings } : { ...res, warnings };
   } finally {
     try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_e) { /* best effort */ }
   }
@@ -184,6 +212,6 @@ function stitchAudio(parts, outPath, format, opts = {}) {
 
 module.exports = {
   pcmToWav, ffmpegAvailable, convertAudio, stitchAudio, outputArgsFor,
-  measureLoudness, normalizeLoudness, DEFAULT_LUFS,
+  measureLoudness, normalizeLoudness, DEFAULT_LUFS, LEVELING_CHAIN,
   PCM_RATE, PCM_CHANNELS, PCM_BIT_DEPTH,
 };

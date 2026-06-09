@@ -191,6 +191,7 @@ async function run(argv) {
   // v0.3 — normalize each part to one loudness target before concatenating (the volume-consistency fix).
   const stitched = stitchAudio(parts, finalFile, format, {
     normalize: options.normalize !== false,
+    level: options.level !== false,
     targetLufs: Number.isFinite(Number(options['target-lufs'])) ? Number(options['target-lufs']) : params.DEFAULTS['target-lufs'],
   });
   if (!stitched.ok) {
