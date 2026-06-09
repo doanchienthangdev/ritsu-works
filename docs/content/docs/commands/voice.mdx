@@ -1,5 +1,5 @@
 ---
-title: 'Command: /voice — capability `voice-platform` v0.3'
+title: 'Command: /voice — capability `voice-platform` v0.3.1'
 description: |
   Turn text, a file, or a folder of files into narrated audio — a model-agnostic
   front door with a pluggable TTS adapter layer (--use=<adapter>). Default engine
@@ -12,20 +12,22 @@ description: |
   Tier A; per-run --max-cost-usd breaker; provider keys out-of-band; artifacts to
   .archives/voice/<date>-<slug>/. Thin orchestrator over the `voice` umbrella skill.
 source_path: .claude/commands/voice.md
-source_hash: ecf37d6bd44ee240585189ebb01b8b89afe5c5cc192476e616cfee942cf5e6e9
-generated_at: '2026-06-09T02:12:07.611Z'
+source_hash: 85ee03873d33ff45cb30d6c956f1100dce77e150408c76494b7aca4ecdd69fbb
+generated_at: '2026-06-09T06:00:48.712Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_at: '2026-06-08T11:00:00.000Z'
+translated_at: '2026-06-08T12:00:00.000Z'
 translated_by: docs-translate v1.1.0
-translated_source_hash: ecf37d6bd44ee240585189ebb01b8b89afe5c5cc192476e616cfee942cf5e6e9
+translated_source_hash: 85ee03873d33ff45cb30d6c956f1100dce77e150408c76494b7aca4ecdd69fbb
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-> **v0.3 (/cla extend) — CONSISTENCY cho nội dung dài:** việc chia một tệp dài / thư mục thành nhiều chunk khiến mỗi chunk bị lệch về giọng, tông, tốc độ và **âm lượng** ("lúc to lúc nhỏ") — vì mỗi yêu cầu TTS là độc lập và không có ký ức về các yêu cầu khác. Hai bản vá đã được chốt: **(1)** giọng + tất cả tham số + một **voice-direction đồng nhất** được khóa *trước khi* chia và áp dụng y hệt cho mọi chunk (tự động chèn vào bất kỳ lần chạy nhiều chunk nào); **(2)** mọi chunk được **chuẩn hóa độ to về một mục tiêu duy nhất** (EBU R128 `loudnorm`, mặc định **−16 LUFS**) trước khi ghép — liều thuốc tất định cho hiện tượng lệch âm lượng. Các cờ mới `--normalize` (mặc định BẬT) và `--target-lufs`.
+> **v0.3.1 — DYNAMIC LEVELING (bản vá âm lượng thật sự):** `loudnorm` tích hợp của v0.3 chỉ khớp được *trung bình* của chunk; model vẫn đọc một số *đoạn* nhỏ tiếng (dải độ to LRA 10–20 LU mỗi chunk), nên những chỗ nhỏ vẫn cứ nhỏ. v0.3.1 **cân chỉnh động (dynamically levels)** mọi chunk (compressor → `dynaudnorm` → loudnorm) để dải độ to trong nội dung co lại (**LRA ~20 → ~4, đo được**) — giờ mọi đoạn đều phát ở cùng một âm lượng. `--level` (mặc định BẬT), `--level=false` quay về chế độ chỉ-tích-hợp.
+>
+> **v0.3 — CONSISTENCY cho nội dung dài:** TTS theo chunk bị lệch về giọng/tông/tốc độ/âm lượng vì mỗi yêu cầu là độc lập. **(1)** giọng + các tham số + một **voice-direction đồng nhất** được khóa *trước khi* chia và áp dụng y hệt cho mọi chunk (tự động chèn vào bất kỳ lần chạy nhiều chunk nào); **(2)** độ to được cân bằng tại bước ghép. Kèm độ tin cậy: timeout cho fetch + retry theo từng chunk. Các cờ `--normalize` / `--target-lufs` / `--max-retries`.
 >
 > **v0.2:** bộ từ vựng register của `--type` đã tăng từ 11 → **23** (`film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`).
 
@@ -71,7 +73,8 @@ tệp đã tồn tại → chế độ file; ngược lại là văn bản nội
 | `--dry-run` | tắt | soạn + chia chunk + ghi các tệp phụ trợ script/instruction, **không tiêu tốn API**. |
 | `--out` | `.archives/voice/<date>-<slug>/` | thư mục đầu ra (gốc `.archives`, chỉ lưu cục bộ). |
 | `--stitch` | bật | gộp các chunk của một đầu vào đơn lẻ thành một tệp (tắt → giữ các phần riêng). |
-| `--normalize` | **bật** | *(v0.3)* chuẩn hóa độ to của mọi chunk về một mục tiêu duy nhất trước khi ghép (EBU R128 `loudnorm`) — âm lượng đồng nhất trên toàn bộ đầu ra. `--normalize=false` để giữ nguyên mức âm thô của từng chunk. |
+| `--normalize` | **bật** | *(v0.3)* chuẩn hóa độ to của mọi chunk trước khi ghép — âm lượng đồng nhất trên toàn bộ đầu ra. `--normalize=false` để giữ nguyên mức âm thô của từng chunk. |
+| `--level` | **bật** | *(v0.3.1)* **cân chỉnh động** từng chunk (compressor → `dynaudnorm`) để các đoạn nhỏ tiếng được nâng lên và dải độ to trong chunk co lại (~LRA 20→4) — liều thuốc cho hiện tượng "các đoạn tiếng nhỏ". `--level=false` = chỉ-tích-hợp (v0.3). |
 | `--target-lufs` | `-16` | *(v0.3)* mục tiêu độ to tích hợp (chuẩn audiobook/podcast là −16; dùng −18/−19 cho một bản master nhỏ tiếng hơn). |
 
 Chỉ cảnh báo trên các engine hiện tại (không có ánh xạ gốc → không bao giờ bị âm thầm bỏ qua): `--speed`
@@ -88,18 +91,22 @@ không có ký ức về các yêu cầu khác, nên nếu để mặc thì các
    theo từng đoạn") được chọn một lần và áp dụng **y hệt từng byte cho mọi chunk**.
    Với bất kỳ lần chạy nhiều chunk nào, mệnh đề đồng nhất được chèn tự động (`params.withConsistency`);
    giữ markup tối thiểu + giống hệt nhau giữa các chunk (không có tag sáng tạo theo từng chunk).
-2. **Cân bằng độ to một cách tất định.** Mọi chunk được chuẩn hóa về một mức độ to mục tiêu
-   (`--target-lufs`, mặc định −16) bằng `loudnorm` hai lượt trước khi nối — cách chữa đáng tin cậy duy
-   nhất cho hiện tượng lệch âm lượng "lúc to lúc nhỏ" mà model tạo ra. (Đo được: các chunk thô trải dài
-   từ ~−20…−23 LUFS → tất cả hội tụ về ~−16 ±1.)
-3. **Đừng mất chunk trên một lần chạy dài.** Mỗi lệnh gọi nhà cung cấp được giới hạn bởi một timeout
+2. **Cân chỉnh + chuẩn hóa độ to một cách tất định *(v0.3.1)*.** Riêng chuẩn hóa tích hợp chỉ sửa được
+   *trung bình* của chunk — model đọc một số *đoạn* nhỏ tiếng hơn nhiều (dải độ to đo được
+   **LRA 10–20 LU** mỗi chunk), nên những chỗ nhỏ vẫn cứ nhỏ. Giờ mỗi chunk trước tiên được **cân chỉnh
+   động** (một compressor vừa phải → `dynaudnorm` — nâng phần lời nói nhỏ tiếng lên, để yên các khoảng dừng
+   thật sự là im lặng) để dải độ to trong nội dung co lại (**LRA ~20 → ~4 LU, đo trên các chunk thực tế**),
+   rồi được chuẩn hóa về một mục tiêu duy nhất (`--target-lufs`, mặc định −16) với một giới hạn đỉnh thực
+   (true-peak), trước khi nối. Đây chính là thứ làm cho *mọi đoạn có cùng một âm lượng*. `--level=false`
+   quay về hành vi chỉ-tích-hợp của v0.3.
+3. **Đừng mất chunk trên một lần chạy dài.** Mỗi lệnh gọi nhà cung cấp được giới hạn bởi một timeout cho fetch
    (`VOICE_FETCH_TIMEOUT_MS`, mặc định 180s — một kết nối preview-model bị treo không thể làm đứng cả
    lần render), và mỗi chunk thử lại tối đa `--max-retries` (mặc định 4) khi gặp lỗi tạm thời, để một
    chunk hỏng trong một cuốn sách 100 chunk không làm hỏng toàn bộ lần render.
 
 > Giới hạn cố hữu (nói thẳng): TTS theo chunk vẫn không thể khớp hoàn hảo *âm sắc/ngữ điệu* qua một
 > đường nối, vì model không có trạng thái xuyên-yêu-cầu. Voice-direction đồng nhất + cùng một giọng + cùng
-> một prompt giúp giảm thiểu điều đó; `loudnorm` loại bỏ hoàn toàn thành phần âm lượng. Để có kết quả chặt
+> một prompt giúp giảm thiểu điều đó; loudnorm loại bỏ hoàn toàn thành phần âm lượng. Để có kết quả chặt
 > chẽ nhất, hãy ưu tiên ít chunk hơn/lớn hơn và một register bình thản, đều đặn (`audiobook`/`narration`).
 
 ## Luồng (điều phối tới skill ô dù `voice`)
@@ -170,4 +177,3 @@ tiền xử lý = trong phiên/đăng ký. Cost-bucket `ai-ops-voice` (gps):
 `voice-gen` $0.50 (mang tính tư vấn — ngoài phiên; bộ ngắt mạch `--max-cost-usd` mới là lớp bảo vệ
 thật sự), `voice-preprocess` $0.10 (trong phiên). Hợp đồng runtime:
 `SOP-AIOPS-014-voice-runtime-contract`.
-
