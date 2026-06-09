@@ -92,7 +92,7 @@ function convertAudio(inPath, outPath, format) {
 // long-form / multi-chunk content: normalizing every chunk to the SAME integrated
 // loudness is the only reliable cure for the "lúc to lúc nhỏ" volume drift that
 // independent TTS requests produce (each request self-normalizes differently).
-const DEFAULT_LUFS = Object.freeze({ i: -16, tp: -1.5, lra: 6 });
+const DEFAULT_LUFS = Object.freeze({ i: -16, tp: -1.5, lra: 4 });
 
 // v0.3.1 — DYNAMIC LEVELING chain (the real cure for "các đoạn tiếng nhỏ"). Integrated
 // loudnorm alone fixes the chunk AVERAGE but NOT the within-content dynamics: the TTS model
@@ -100,9 +100,12 @@ const DEFAULT_LUFS = Object.freeze({ i: -16, tp: -1.5, lra: 6 });
 // so quiet passages stay quiet after integrated normalization. This chain levels the dynamics
 // BEFORE the integrated target: a moderate compressor (tame the loud/quiet spread) → dynaudnorm
 // (a moving-window normalizer that brings quiet SPEECH up while leaving true silence/pauses
-// alone) → loudnorm (final integrated target + true-peak limit). Result on real chunks:
-// LRA 20 → ~4 LU, uniform. Tuned moderate so it stays natural (not pumped).
-const LEVELING_CHAIN = 'acompressor=threshold=-27dB:ratio=4:attack=5:release=100,dynaudnorm=f=250:g=15:m=15:p=0.95';
+// alone) → loudnorm (final integrated target + true-peak limit). Strong-but-smooth: measured on
+// real chunks the within-content LRA drops 10–20 → ~3 LU and the SPEECH short-term spread (the
+// thing the ear hears as "lúc to lúc nhỏ") drops from ~27 LU → ~9 LU, with the quietest speech
+// lifted ~20 dB. dynaudnorm (not a hard limiter) keeps it natural over long-form; only universal
+// ffmpeg filters (acompressor + dynaudnorm) so it runs anywhere.
+const LEVELING_CHAIN = 'acompressor=threshold=-30dB:ratio=4:attack=5:release=120,dynaudnorm=f=150:g=11:m=30:p=0.9';
 
 /** Parse the last JSON object out of mixed ffmpeg stderr/stdout text. */
 function lastJson(text) {
