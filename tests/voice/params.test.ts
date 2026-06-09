@@ -229,12 +229,18 @@ describe("slugify", () => {
 });
 
 describe("v0.3 consistency params", () => {
-  it("normalize defaults ON, target-lufs defaults -16", () => {
+  it("normalize defaults ON, target-lufs defaults -16, max-retries defaults 4", () => {
     expect(params.DEFAULTS.normalize).toBe(true);
     expect(params.DEFAULTS["target-lufs"]).toBe(-16);
+    expect(params.DEFAULTS["max-retries"]).toBe(4);
     const { options } = params.parseVoiceArgs([]);
     expect(options.normalize).toBe(true);
     expect(options["target-lufs"]).toBe(-16);
+    expect(options["max-retries"]).toBe(4);
+  });
+  it("--max-retries parses as a number and never warns", () => {
+    expect(params.parseVoiceArgs(["--max-retries=6"]).options["max-retries"]).toBe(6);
+    expect(params.computeWarnings({ supports: [] }, new Set(["max-retries"]))).toEqual([]);
   });
   it("--normalize=false disables; --target-lufs sets a numeric target", () => {
     expect(params.parseVoiceArgs(["--normalize=false"]).options.normalize).toBe(false);

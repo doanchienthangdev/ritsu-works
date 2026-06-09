@@ -155,9 +155,21 @@ async function run(argv) {
   ];
   if (options['dry-run']) baseArgs.push('--dry-run');
 
-  const results = await pool(chunks, concurrency, (chunk, i) => {
-    const name = String(i + 1).padStart(3, '0');
-    return genMod.run([...baseArgs, `--name=${name}`, `--text=${chunk}`]);
+  // Per-chunk retry — long-form reliability. The preview TTS models occasionally return an
+  // empty/transient error or stall (now bounded by gen.cjs's fetch timeout); without retry a
+  // single bad chunk would abort the whole render. Retry up to maxRetries with linear backoff.
+  const maxRetries = Number.isFinite(Number(options['max-retries'])) ? Number(options['max-retries']) : 4;
+  const results = await pool(chunks, concurrency, async (chunk, i) => {
+    const name = String(i + 1).padStart(4, '0');
+    const args = [...baseArgs, `--name=${name}`, `--text=${chunk}`];
+    let r;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      r = await genMod.run(args);
+      if (r && r.ok) return r;
+      if (r && (r.outcome === 'not_built' || r.outcome === 'input_error' || r.outcome === 'breaker_refusal')) return r; // not transient
+      if (attempt < maxRetries) await new Promise((res) => setTimeout(res, 4000 + attempt * 2000));
+    }
+    return r;
   });
 
   const failed = results.filter((r) => !r || !r.ok);

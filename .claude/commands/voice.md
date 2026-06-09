@@ -82,6 +82,10 @@ has no memory of the others, so left alone the chunks drift in voice, tone, pace
    (`--target-lufs`, default −16) with two-pass `loudnorm` before concatenation — the only reliable
    cure for the "lúc to lúc nhỏ" volume drift the model produces. (Measured: raw chunks spanned
    ~−20…−23 LUFS → all converge to ~−16 ±1.)
+3. **Don't lose chunks on a long run.** Each provider call is bounded by a fetch timeout
+   (`VOICE_FETCH_TIMEOUT_MS`, default 180s — a stalled preview-model connection can't hang the
+   render), and each chunk retries up to `--max-retries` (default 4) on a transient failure, so one
+   bad chunk in a 100-chunk book doesn't abort the whole render.
 
 > Inherent limit (honest): chunked TTS still can't perfectly match *timbre/intonation* across a
 > seam, because the model has no cross-request state. The uniformity direction + same voice + same

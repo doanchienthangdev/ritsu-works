@@ -33,7 +33,7 @@ const UNIVERSAL_PARAMS = Object.freeze([
   'text', 'file', 'folder', 'in', 'use', 'type', 'pace', 'voice', 'gender', 'lang',
   'format', 'instructions', 'style', 'speed', 'multi-speaker', 'markup', 'model',
   'out', 'name', 'chunk-chars', 'concurrency', 'stitch', 'max-cost-usd', 'dry-run',
-  'normalize', 'target-lufs', // v0.3 — long-form loudness consistency
+  'normalize', 'target-lufs', 'max-retries', // v0.3 — long-form consistency + reliability
 ]);
 
 // Content TYPE → drives the preprocessing tone. `default` when omitted.
@@ -98,11 +98,11 @@ const DEFAULTS = Object.freeze({
   use: DEFAULT_ADAPTER, type: 'default', pace: 'normal', gender: 'any', format: 'mp3',
   lang: 'auto', 'chunk-chars': 1800, concurrency: 4, stitch: true,
   'max-cost-usd': 1.0, 'dry-run': false,
-  normalize: true, 'target-lufs': -16, // v0.3 — uniform loudness across chunks (default ON)
+  normalize: true, 'target-lufs': -16, 'max-retries': 4, // v0.3 — uniform loudness + per-chunk retry
 });
 
 const BOOL_FLAGS = Object.freeze(['stitch', 'dry-run', 'multi-speaker', 'markup', 'normalize']);
-const NUM_FLAGS = Object.freeze(['chunk-chars', 'concurrency', 'speed', 'max-cost-usd', 'target-lufs']);
+const NUM_FLAGS = Object.freeze(['chunk-chars', 'concurrency', 'speed', 'max-cost-usd', 'target-lufs', 'max-retries']);
 
 /**
  * Parse `/voice` argv into options + the set of explicitly-provided flags.
@@ -240,7 +240,7 @@ const NEVER_WARN = new Set([
   'text', 'file', 'folder', 'in', 'use', 'type', 'gender', 'out', 'name', 'model',
   'lang', 'format', 'chunk-chars', 'concurrency', 'stitch', 'max-cost-usd', 'dry-run',
   'text-file', 'instructions-file', 'prompt-file', // operational file-path plumbing read by gen/run
-  'normalize', 'target-lufs', // v0.3 post-gen loudness consistency (handled at stitch, not the adapter)
+  'normalize', 'target-lufs', 'max-retries', // v0.3 post-gen loudness consistency + per-chunk retry (run.cjs, not the adapter)
 ]);
 const CONSEQUENCE = Object.freeze({
   speed: 'numeric speed is ignored by this backend (gpt-4o-mini-tts/Gemini) — pace is steered through the spoken-style instruction instead',
