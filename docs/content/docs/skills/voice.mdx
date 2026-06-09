@@ -10,15 +10,15 @@ description: >
   through a Claude Code Workflow. Default mp3; mp3/wav/opus/aac/flac/m4a/ogg/pcm. Tier A; per-run
   --max-cost-usd breaker; artifacts to .archives/voice/<date>-<slug>/.
 source_path: 06-ai-ops/skills/voice/SKILL.md
-source_hash: 45106cabdc16a322ad17d4ea676306a2fd9b52c6be64bebcc8e1368395e56f9f
-generated_at: '2026-06-08T08:22:57.935Z'
+source_hash: 6c96131db8223a48e68c37dd30eac5bc6b5de4e0acc3ad7c16c6f398f79a99c7
+generated_at: '2026-06-09T02:02:47.762Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_at: '2026-06-08T09:00:00.000Z'
+translated_at: '2026-06-08T11:00:00.000Z'
 translated_by: docs-translate v1.1.0
-translated_source_hash: 45106cabdc16a322ad17d4ea676306a2fd9b52c6be64bebcc8e1368395e56f9f
+translated_source_hash: 6c96131db8223a48e68c37dd30eac5bc6b5de4e0acc3ad7c16c6f398f79a99c7
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -62,8 +62,16 @@ Ghi định hướng đã soạn vào `<run>/instructions.txt` và kịch bản 
 - **Đầu vào nhỏ / đơn lẻ** → `node scripts/voice/run.cjs` thực hiện chunk → gen-theo-chunk → stitch trong một lệnh gọi tất định duy nhất. Đây là đường mặc định.
 - **Đầu vào dài hoặc một thư mục** → điều khiển một **Claude Code Workflow** (xem mẫu bên dưới) để các chunk/tệp tiền xử lý + ghi âm SONG SONG, rồi ghép lại. Đây là đường sản xuất nền tảng mà founder yêu cầu.
 
-### 4 — Ghép (Stitch)
-`run.cjs` ghép trong tiến trình; đường Workflow gọi `scripts/voice/stitch.cjs` sau khi các job gen song song hoàn tất. Đầu vào đơn lẻ → một tệp trong `out/`; thư mục → các tệp được phản chiếu.
+### 4 — Ghép (cân bằng độ to)
+`run.cjs` ghép trong tiến trình; đường Workflow gọi `scripts/voice/stitch.cjs` sau khi các job gen song song hoàn tất. Đầu vào đơn lẻ → một tệp trong `out/`; thư mục → các tệp được phản chiếu. **v0.3:** khi ghép, độ to của mọi phần được chuẩn hóa về cùng một mục tiêu (`--target-lufs`, mặc định −16 LUFS) trước khi nối lại, nhờ vậy toàn bộ đầu ra phát ở một mức âm lượng ổn định.
+
+### Sự nhất quán trên nội dung DÀI / NHIỀU TỆP (v0.3 — hãy làm điều này)
+Các yêu cầu TTS độc lập sẽ trôi dạt về giọng/tông/nhịp độ/âm lượng. **Khóa hồ sơ giọng TRƯỚC KHI chia nhỏ** và áp dụng y hệt cho mọi chunk:
+- Chọn giọng (một `--voice`) + model + nhịp độ MỘT LẦN. Với một thư mục, hãy thử nghe 2–3 giọng ứng viên trước (rẻ) và chọn một.
+- Soạn MỘT định hướng giọng nhấn mạnh **tính đồng nhất**: "một bản đọc liền mạch; CÙNG MỘT người dẫn duy nhất, cùng âm lượng, nhịp độ ổn định và tông đều cho mọi phần; KHÔNG kịch tính hóa hay tái khắc họa nhân vật theo từng đoạn." `params.withConsistency()` tự động chèn mệnh đề này vào bất kỳ lần render `run.cjs` nhiều chunk nào; ở đường Workflow, hãy viết nó vào `instructions.txt` dùng chung một lần và truyền cho mọi lệnh gọi `gen.cjs`.
+- Giữ phần đánh dấu **tối thiểu và giống hệt** giữa các chunk (chỉ ngắt bằng dấu câu; không dùng các `[tags]` sáng tạo riêng cho từng chunk).
+- Ưu tiên **ít chunk hơn/chunk lớn hơn** (Gemini ~6k ký tự/chunk) và một sắc thái điềm tĩnh (`audiobook`/`narration`) để giảm thiểu các đường nối.
+- **Ghép với `--normalize` BẬT** (mặc định) để độ to đồng nhất — `stitch.cjs --in-dir=parts --out=book.mp3` đã chuẩn hóa sẵn. Việc sửa độ to là tất định; còn tính nhất quán về giọng/tông là nỗ lực tốt nhất có thể (model không có bộ nhớ xuyên-yêu-cầu).
 
 ## Bảng định tuyến adapter (`knowledge/voice-adapters.yaml`)
 

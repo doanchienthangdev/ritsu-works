@@ -10,8 +10,8 @@ description: >
   `instructions` field (OpenAI) / the natural-language style prefix (Gemini). Invoked per input, or
   per chunk/file in batch.
 source_path: 06-ai-ops/skills/voice/preprocess/SKILL.md
-source_hash: 2c47bdd9086e8902fabbd3476d8857c35086e48d3d3f9ae0e13c21727fb409e6
-generated_at: '2026-06-08T09:49:33.365Z'
+source_hash: 48c080c9e6e2e138774fd6950a1927f11a31ac04d00a3246ba9dcf0ca969cf7c
+generated_at: '2026-06-09T02:02:47.765Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -75,6 +75,17 @@ content the source didn't have. Techniques:
 | `character` | animated voice-acting; exaggerated personality; expressive range | varies | comedic/dramatic timing per character; bold choices |
 | `poetry` | lyrical, rhythmic, expressive; honor meter + line breaks | low–normal | pause at line breaks + stanzas; let the music sound |
 | `comedy` | playful, light, knowing; great comedic timing; setup → punchline | normal | the BEAT before the punchline is everything |
+
+## Long-form / multi-file consistency (v0.3)
+
+When the input is long or a folder (it will be split into many chunks generated independently),
+**author the voice-direction ONCE, before splitting, and make it UNIFORMITY-first** — not
+expressive. Replace "expressive / dramatize" language with: "this is ONE continuous reading; keep
+the SAME single narrator, the same steady volume, pace, and even tone for EVERY part; do not
+re-characterize or change energy based on a passage's content." Apply that *same* block to every
+chunk; keep markup minimal + identical (no per-chunk creative `[tags]`). `params.withConsistency()`
+provides the canonical clause. (Loudness drift is fixed separately + deterministically by `loudnorm`
+at stitch time — you don't need to address volume in the direction.)
 
 ## Engine notes
 
