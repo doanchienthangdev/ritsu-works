@@ -1,0 +1,89 @@
+---
+title: 'Lệnh: /write — capability `write-platform` v0.1'
+description: |
+  Viết bất-kỳ loại nội-dung nào (27+: blog · social · ad · email · video-script · article ·
+  research · paper · essay · memo · story · speech · …) cho medium phù-hợp, theo giọng của một
+  tác-giả đã-chưng-cất (vd seth-godin, david-ogilvy), khử mùi AI để đọc như người viết, làm giàu
+  bằng /image + /dataviz ở chỗ nâng chất-lượng, render ra md/html/pdf/docx, và tùy chọn đẩy
+  (gdrive/notion/social). `/write distill` bắt giọng một tác-giả mới từ nguồn tham-khảo thành một
+  artifact tái-sử-dụng, chia-sẻ-github. Tier A; breaker --max-cost-usd mỗi lần chạy; orchestrator
+  mỏng trên umbrella skill `write`.
+source_path: .claude/commands/write.md
+source_hash: a720e986fe5f2698196dda6f5822d461265165bc69540d9cec315b0814442da8
+translated: true
+translated_source_hash: a720e986fe5f2698196dda6f5822d461265165bc69540d9cec315b0814442da8
+generated_at: '2026-06-09T18:26:57.823Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Cửa trước cho nền-tảng viết nội-dung phổ-quát. Phân-tích subcommand + flags, điều-khiển umbrella
+skill `write` (`06-ai-ops/skills/write/SKILL.md`), rồi báo-cáo kết-quả.
+
+## Cách dùng
+```
+/write "<yêu cầu>" [flags]                        # viết nội-dung (mặc-định)
+/write distill <author-slug> --ref-src=<refs>     # chưng-cất giọng một tác-giả
+/write authors | types | templates               # liệt-kê registry (chỉ-đọc)
+/write humanize <text|file>                       # chỉ chạy lượt khử-mùi-AI + bơm-giọng
+```
+
+## Flags (phổ-quát — `scripts/write/lib/params.cjs`)
+
+| Flag | Mặc-định | Ghi-chú |
+|---|---|---|
+| `<request>` | — | viết gì (positional, hoặc `--request=`) |
+| `--type` | suy-luận | 1 trong 27+ (`/write types`). Chấp-nhận alias (vd `blog-post`→`blog`). |
+| `--medium` | mặc-định của type | medium theo từng type (vd blog→substack; ad→facebook; video-script→youtube-short). Lạ → mặc-định của type + cảnh-báo. |
+| `--author-style` | brand/trung-tính | một giọng đã-chưng-cất (`/write authors`): `seth-godin`, `david-ogilvy`, … |
+| `--template` | cấu-trúc của type | một template id đã-đăng-ký HOẶC đường-dẫn `.md` trực-tiếp. |
+| `--mode` | `standard` | `standard \| deep-research` (xương-sống dữ-kiện qua deep-research) `\| workflow` (đa-agent song-song cho bài dài). |
+| `--length` | `medium` | `short\|medium\|long\|very-long\|extremely-long`, hoặc `1000w`, hoặc `5p`. |
+| `--out` | `default` | `default`(inline)`\|md\|html\|pdf\|docx`; `+` để nhiều (vd `--out=md+pdf`). |
+| `--style` | `ritsu` | design system cho đầu-ra render (`knowledge/design-systems.yaml`). |
+| `--lang` | `en` | ngôn-ngữ đầu-ra. |
+| `--image` | `auto` | `auto\|on\|off` — sinh minh-hoạ/bìa qua /image (auto = theo type). |
+| `--dataviz` | `auto` | `auto\|on\|off` — sinh biểu-đồ qua /dataviz khi một chuỗi số kể câu chuyện tốt hơn. |
+| `--humanize` | `on` | `on\|off` — cổng khử-mùi-AI (cốt-lõi; off không khuyến-khích). |
+| `--ref` | — | tài-liệu tham-khảo: file/thư-mục/URL, nối `+` hoặc lặp flag. |
+| `--push` | — | spec đẩy/lưu, vd `googledrive/12042026/post/facebook`. Bề-mặt công-khai = HITL Tier C. |
+| `--max-cost-usd` | `2.00` | breaker mỗi lần chạy (enrich là chi-tiêu out-of-band duy-nhất). |
+| `--dry-run` | off | chỉ lập kế-hoạch (brief + outline + chi-phí), không sinh nội-dung. |
+| `--out-dir` | `.archives/write/<date>-<slug>/` | thư-mục đầu-ra (root `.archives`, local-only). |
+| `--ref-src` | — | (chỉ cho distill) nguồn tham-khảo của tác-giả. |
+
+Flag lạ thì CẢNH-BÁO (forward-compat), không bao giờ âm-thầm bỏ.
+
+## Luồng (dispatch tới umbrella skill `write`)
+1. Phân-tích flags (`params.cjs`) → subcommand + options.
+2. **write**: `node scripts/write/plan.cjs …` → đọc `brief.md` → nạp giọng
+   (`author-styles/<slug>/voice-card.md`) → outline → **draft theo giọng** → enrich (`/image`+`/dataviz`)
+   → **cổng humanize** (`scripts/write/humanize/scan.cjs` đến khi pass) → `render.cjs` → tùy chọn `push.cjs`.
+3. **distill**: `node scripts/write/distill/plan.cjs …` stage nguồn → Workflow fan-out theo hợp-đồng
+   `_TEMPLATE` → ráp 6 file artifact → đăng-ký vào `author-styles.yaml`.
+4. Báo-cáo `{ok, files[], type, medium, author_style, words, humanize{before→after,pass}, cost, warnings[]}` —
+   luôn nêu cảnh-báo; hiển-thị nội-dung inline.
+
+## Ví dụ
+```
+/write "Vì sao active recall thắng đọc-lại khi ôn thi" --type=blog --medium=substack --author-style=seth-godin --length=1200w --out=md+pdf
+/write "Ritsu biến mọi PDF thành gia-sư" --type=ad --medium=facebook --author-style=david-ogilvy --image
+/write "Thread ra-mắt tính-năng ôn-thi-trong-3-ngày" --type=thread --medium=x --author-style=seth-godin
+/write "Báo-cáo retention Q3" --type=memo --template=decision-memo --dataviz --out=docx
+/write distill paul-graham --ref-src=raw/write/paul-graham        # bắt một giọng mới
+/write "bất-cứ-gì" --dry-run                                      # kế-hoạch + chi-phí, không nội-dung
+/write humanize draft.md                                          # khử-mùi-AI một draft có sẵn
+/write authors                                                    # liệt-kê các giọng đã chưng-cất
+```
+
+## Quản-trị
+Tier A (đảo-ngược-được, ghi local, đo + cap). Draft/humanize = in-session/subscription;
+`/image` + `/dataviz` = out-of-band (breaker riêng). `--push` lên bề-mặt công-khai/đa-người-nhận
+leo Tier C per `governance/HITL.md` (surface để duyệt, không bao giờ tự-gửi). Cost-bucket
+`ai-ops-write` (gps `per_task_kind_caps`: write-orchestration $0.50 · write-draft $1.50 advisory ·
+write-distill $2.00 · write-humanize $0.20 · write-research $1.00). Hợp-đồng runtime:
+`06-ai-ops/sops/SOP-AIOPS-015-write-runtime-contract/flow.yaml`. Spec:
+`wiki/capabilities/write-platform/spec.md`.

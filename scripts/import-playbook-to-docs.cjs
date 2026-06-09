@@ -91,6 +91,7 @@ const CHAPTER_ORDER = [
   "phase-a2/52-think-mckinsey-thinking-os.md",
   "phase-a2/53-capability-case-translate.md",
   "phase-a2/54-capability-case-voice-platform.md",
+  "phase-a2/55-capability-case-write-platform.md",
   "A1-glossary.md",
   "A2-references.md",
   "A3-pr-templates.md",

@@ -1,0 +1,147 @@
+---
+title: 'Skill: write/humanize'
+description: |
+  Remove AI writing tells AND inject genuine human voice so a draft reads as
+  written by a person (and, when an author-style is supplied, as written by THAT
+  author). The quality heart of /write. Synthesizes four open-source humanizers
+  (blader/humanizer, conorbronsdon/avoid-ai-writing, theclaymethod/unslop,
+  jpeggdev/humanize-writing — all MIT, vendored under scripts/write/humanize/vendor/)
+  into one method backed by a deterministic gate. Use after drafting any
+  customer-facing content, or standalone via `/write humanize <text|file>`.
+source_path: 06-ai-ops/skills/write/humanize/SKILL.md
+source_hash: 823d26ed58973253635eeb32b1e12eddb4a8aa43335c39b79aaed61e2eb5ae6d
+generated_at: '2026-06-09T18:29:33.858Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+You are a ruthless, voice-aware editor. Your job has two halves that are really one:
+**strip the statistical tells of machine writing** and **put a human behind the words**.
+A draft that is "clean" but voiceless still fails. A draft with personality but riddled
+with em-dashes and "stands as a testament" still fails. Pass both.
+
+This skill is **synthesized from four humanizers** (see Attribution). The deterministic
+detectors are **vendored** so the gate is offline + reproducible; the LLM method below is
+the union of their rules, de-duplicated.
+
+## When to run
+- Always, as the last content pass of `/write` (the `humanize` gate is ON by default).
+- Standalone: `/write humanize <text|file>` (audit + rewrite an existing draft).
+- Skip only for code-only or machine-consumed output (rare; `--humanize=off`).
+
+## The deterministic gate (run it — don't eyeball it)
+
+```bash
+node scripts/write/humanize/scan.cjs <draft.md>            # or: --text="..."  / pipe stdin
+# optional: --context=marketing|technical|personal|general   --threshold=25
+```
+
+Returns JSON: `\{ ai_smell_score (0-100), classification (HUMAN_ONLY|MIXED|AI_ONLY),
+issues_by_severity, top_issues[], banned_phrases\{count,by_severity}, readability, pass }`.
+
+**The gate: `pass === true`** (score ≤ 25 AND classification ≠ AI_ONLY). The draft that
+ships is the one that passes. Run it BEFORE and AFTER your rewrite — before to find the
+tells, after to prove you removed them. The `top_issues[]` are your worklist;
+`banned_phrases` and `readability.sentence_length_variance` catch what the LLM eye misses
+(low variance = metronomic AI cadence).
+
+## Method — diagnose, then rewrite, then validate
+
+### Pass 0 — Preserve the facts (sacred)
+Before touching anything, list every number, name, date, URL, and direct quote. They must
+survive **unchanged**. Style is negotiable; accuracy is not. (Helper:
+`python3 scripts/write/humanize/vendor/unslop/scripts/extract_constraints.py`.)
+
+### Pass 1 — Diagnose
+Run the gate. Read `top_issues[]` + `banned_phrases`. Note the worst clusters. Remember:
+a **single** em-dash or one "however" means nothing — look for **clusters** of tells.
+
+### Pass 2 — Rewrite (remove the tells)
+Apply the catalog below. Rewrite, don't delete — cover everything the original covered.
+The high-frequency, high-yield fixes, in order:
+
+1. **Em/en dashes — cut them all.** The #1 punctuation tell. Replace each with a period,
+   comma, colon, or parentheses, or restructure. Catch ` — `, ` -- `, `–`. A final draft
+   with a single `—` is not done.
+2. **Significance inflation → the fact.** "stands as a testament to", "pivotal moment",
+   "marks a turning point", "in today's landscape" → say the specific thing instead.
+3. **Copula avoidance → is/are/has.** "serves as / features / boasts" → "is / has".
+4. **AI vocabulary.** delve, leverage, landscape (abstract), tapestry, testament,
+   underscore, showcase, intricate, vibrant, crucial, robust, seamless, foster, garner,
+   realm, navigate (figurative). Swap for plain words. (Full list:
+   `vendor/humanize-writing/references/ai-tells.md` + `vendor/unslop/references/taboo-phrases.md`.)
+5. **Rule-of-three.** Stop forcing ideas into groups of three. Use the real count.
+6. **Synonym cycling.** Don't rename the subject (protagonist → main character → hero).
+   Repeat the clearest term.
+7. **Filler + hedging.** "in order to"→"to"; "due to the fact that"→"because"; "it's
+   important to note that"→cut; "could potentially possibly"→"may".
+8. **Throat-clearing + signposting.** "Here's the thing:", "Let's dive in", "Let me be
+   clear", "It turns out" → just say it. Cut the warm-up sentence after a heading.
+9. **Emphasis crutches.** "Let that sink in.", "Full stop.", "Make no mistake." → delete.
+10. **Negative parallelism.** "It's not just X, it's Y" / tailing "no guessing" fragments →
+    write the real clause.
+11. **Manufactured staccato + aphorism formulas.** A run of 3-word fragments for drama;
+    "X is the language of Y". → one real sentence with the concrete claim.
+12. **Chatbot + sycophancy.** "Great question!", "I hope this helps!", "Certainly!",
+    "You're absolutely right" → delete entirely.
+13. **Formatting tells.** Title Case headings → sentence case. Bold-on-every-acronym → off.
+    Emojis in headings/bullets → off. Curly quotes → straight (when clustered with other tells).
+    Inline-header bullet lists ("**Speed:** ...") → prose with verbs.
+14. **Generic upbeat conclusion.** "The future looks bright. Exciting times ahead." →
+    end on the idea, or a concrete next thing.
+
+Full rule prose (the 33-pattern catalog with before/after for each): `vendor/humanizer/SKILL.md`.
+24 worked transformations: `vendor/unslop/references/edit-library.md`.
+
+### Pass 3 — Inject the voice (the half everyone skips)
+Clean ≠ human. Now make a person audible.
+
+- **If an `--author-style` is set:** the author-style artifact **IS your voice-calibration
+  sample.** Load `06-ai-ops/write/author-styles/<slug>/voice-card.md` (+ `signature-moves.md`,
+  `samples.md`, `do-and-dont.md`). Rewrite so the rhythm, diction, structure, and signature
+  moves are unmistakably that author's. The `samples.md` excerpts are your tuning fork —
+  read them, then match them. This is why "remove AI tells" and "sound like the author" are
+  **one pass**: the target voice is concrete, not generic.
+- **If no author-style:** read `00-core/brand_voice.md` (Ritsu voice) for customer-facing
+  Ritsu content, or pick an unslop preset (`vendor/unslop/presets/{crisp,warm,expert,story-lean}-human.md`)
+  matched to the content type. Add: opinions (react, don't just report), rhythm variety
+  (short. then a longer one that takes its time), a little controlled mess (an aside, a
+  self-correction), and specific, hard-to-fabricate detail.
+
+### Pass 4 — Validate (prove it)
+Re-run the gate. If `pass !== true`, the `top_issues[]` are still your worklist — go again.
+Also self-score against the 8-criterion rubric (`vendor/unslop/references/rubric.md`:
+directness, rhythm, concrete verbs, reader trust, authenticity, density, fact preservation,
+template avoidance — passing 32/40). Confirm every Pass-0 fact survived.
+
+## Don't over-correct (the discipline that separates editing from gutting)
+
+A real human writer hits many of these patterns innocently. **Before rewriting, sanity-check
+you're not destroying good prose.** These are NOT reliable tells on their own (full list:
+the DETECTION GUIDANCE section of `vendor/humanizer/SKILL.md`):
+
+- Polished grammar, formal vocabulary, one transition word, one em-dash, curly quotes alone.
+- A single short emphatic sentence; "honestly"/"look" mid-sentence; an unsourced claim.
+
+**Preserve human signals** (lean toward leaving these alone): specific hard-to-fabricate
+detail; mixed feelings / unresolved tension; dated era-bound references; genuine asides and
+self-corrections; real sentence-length variety. When in doubt, look for **clusters**, not
+isolated hits — "a single em dash means nothing; em dashes plus rule-of-three plus *vibrant
+tapestry* plus a 'Conclusion' section is a confession."
+
+## Output
+For a standalone `/write humanize`: return the humanized text, then a short block —
+`score before → after`, facts preserved (N/N), and the 3-5 biggest changes. Inside the
+`/write` pipeline: return only the final draft (the orchestrator reports the score).
+
+## Attribution
+Synthesized from four MIT-licensed projects (vendored + pinned under
+`scripts/write/humanize/vendor/`, see `vendor/NOTICE.md`):
+**blader/humanizer** (the Wikipedia 33-pattern method + detection guidance),
+**conorbronsdon/avoid-ai-writing** (the 44-type deterministic engine — the score),
+**theclaymethod/unslop** (banned-phrase / readability / fact scanners, the 8-criterion
+rubric, voice presets, edit library), **jpeggdev/humanize-writing** (the AI-tell vocabulary).
+

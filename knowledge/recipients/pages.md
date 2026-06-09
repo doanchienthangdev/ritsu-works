@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 59
+**Total entries:** 62
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -330,6 +330,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/art-styles.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-author-styles
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ author-styles.yaml — distilled author-voice registry (capability write-platform) ============================================================================ Index for `/write --author-style=<slug>`. SPLIT registry: the artifact content lives in 06-ai-ops/write/author-styles/<slug>/ (COMMITTED + github-shared, so every us...
+
+**Invoke:** `Read("knowledge/author-styles.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/author-styles.yaml
 
 **Role scope:** *
 **Status:** active
@@ -834,6 +848,34 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/workforce-personas.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-write-templates
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ write-templates.yaml — writing-template registry (capability write-platform) ============================================================================ Index for `/write --template=<id>`. Templates are COMMITTED markdown skeletons under 06-ai-ops/write/templates/<category>/<id>.md — reusable structures the writer fills ...
+
+**Invoke:** `Read("knowledge/write-templates.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/write-templates.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-write-types
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ write-types.yaml — content-type registry (capability write-platform) ============================================================================ The vocabulary of `/write --type=<id>`. Each type carries its popular `mediums[]` (the `/write --medium=<id>` options for that type), a default length, a structure hint that see...
+
+**Invoke:** `Read("knowledge/write-types.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/write-types.yaml
 
 **Role scope:** *
 **Status:** active

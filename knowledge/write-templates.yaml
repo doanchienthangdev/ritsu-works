@@ -1,0 +1,69 @@
+# ============================================================================
+# write-templates.yaml — writing-template registry (capability write-platform)
+# ============================================================================
+# Index for `/write --template=<id>`. Templates are COMMITTED markdown skeletons
+# under 06-ai-ops/write/templates/<category>/<id>.md — reusable structures the
+# writer fills (a hook map, section beats, a checklist). `--template=` accepts a
+# registered id OR a direct path to any .md skeleton.
+#
+# Extensible by design: drop a new .md under a category subfolder, add one row here.
+#
+# Schema: knowledge/schemas/write-templates.schema.json
+# Gate:   scripts/cross-tier/validate-write-registries.cjs (every path must exist)
+# Resolved by: scripts/write/lib/templates.cjs
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/write-templates.schema.json
+
+templates:
+  - id: standard-blog-post
+    category: blog
+    path: 06-ai-ops/write/templates/blog/standard-blog-post.md
+    description: "Hook → promise → body → turn → takeaway. The default essay-style blog structure."
+    applies_to_types: [blog, article, essay]
+  - id: listicle
+    category: blog
+    path: 06-ai-ops/write/templates/blog/listicle.md
+    description: "Numbered-list article where each item earns its place; promise in the title, payoff per item."
+    applies_to_types: [blog, article]
+  - id: single-post
+    category: social
+    path: 06-ai-ops/write/templates/social/single-post.md
+    description: "One social post: scroll-stopper, one idea, concrete detail, soft prompt."
+    applies_to_types: [social-post]
+  - id: x-thread
+    category: social
+    path: 06-ai-ops/write/templates/social/x-thread.md
+    description: "Multi-post thread: post 1 = whole promise; each post one beat; last = payoff + ask."
+    applies_to_types: [thread, social-post]
+  - id: direct-response-ad
+    category: ads
+    path: 06-ai-ops/write/templates/ads/direct-response-ad.md
+    description: "Ogilvy-discipline ad: factual headline, one promise, proof, single CTA. Headline does 80%."
+    applies_to_types: [ad, landing-page]
+  - id: cold-outreach
+    category: email
+    path: 06-ai-ops/write/templates/email/cold-outreach.md
+    description: "Short cold email: relevance line, one idea, one ask. No fluff, no manufactured urgency."
+    applies_to_types: [email]
+  - id: youtube-short
+    category: video-script
+    path: 06-ai-ops/write/templates/video-script/youtube-short.md
+    description: "Vertical short script: 3-second hook, single payoff, [VISUAL] cues, end CTA."
+    applies_to_types: [video-script]
+  - id: feature-article
+    category: article
+    path: 06-ai-ops/write/templates/article/feature-article.md
+    description: "Reported feature: lede → nut graf → scenes/sections → kicker."
+    applies_to_types: [article, blog]
+  - id: research-note
+    category: research
+    path: 06-ai-ops/write/templates/research/research-note.md
+    description: "Question → method → cited findings → synthesis → limits → so-what. Cite, don't assert."
+    applies_to_types: [research, report, paper]
+  - id: decision-memo
+    category: business
+    path: 06-ai-ops/write/templates/business/decision-memo.md
+    description: "Bottom-line-up-front memo: recommendation, context, options, ask + owner + date."
+    applies_to_types: [memo, proposal, report]

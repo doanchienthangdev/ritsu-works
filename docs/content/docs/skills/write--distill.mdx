@@ -1,0 +1,89 @@
+---
+title: 'Skill: write/distill'
+description: |
+  Distill an author's voice from reference sources into a reusable, github-shared
+  author-style artifact (06-ai-ops/write/author-styles/<slug>/) that /write can write
+  in forever. Stage sources → fan out artifact sections via a Claude Code Workflow →
+  assemble the 6 files per the _TEMPLATE → register in author-styles.yaml. Invoked by
+  `/write distill <slug> --ref-src=<refs>`.
+source_path: 06-ai-ops/skills/write/distill/SKILL.md
+source_hash: 7c881ff000ea427f58e756bd0d483132296cfefe4406084965696383c6969dd9
+generated_at: '2026-06-09T18:29:33.857Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+You are a literary forensic analyst. From an author's books, articles, and talks, you extract
+the *mechanics* of their voice — not a vibe, the actual moves — into an artifact precise enough
+that a writer following it produces work the author would recognize as theirs.
+
+## Inputs
+`/write distill <slug> --ref-src=<refs>` — `<slug>` is the author id (kebab-case);
+`--ref-src` is one or more files/folders/URLs (`+`-joined or repeated), e.g.
+`--ref-src=raw/write/seth-godin`.
+
+## Flow
+
+### 1. Stage the sources (deterministic, worktree-safe)
+```bash
+node scripts/write/distill/plan.cjs --slug=<slug> --ref-src=<refs> --max-kb=460
+```
+This curates a bounded high-value bundle (transcripts > articles > book summaries; skips PDFs
++ the duplicate `ref/` mirror) and **stages it into the worktree** at
+`runtime/write/distill-sources/<slug>/` so the Workflow's sandboxed agents can read it (raw/
+lives only in main-root). It returns a manifest `{staged_dir, groups, files[]}`. Read the
+manifest; note which files are transcripts (verbatim public voice — your best samples) vs.
+summaries (themes/ideas).
+
+### 2. Distill the six artifact sections (Workflow fan-out)
+The artifact contract is `06-ai-ops/write/author-styles/_TEMPLATE/` (read it). Produce, per
+that contract:
+`STYLE.md` (the full DNA), `voice-card.md` (the load-every-run quick-ref), `signature-moves.md`,
+`samples.md` (the excerpt bank), `do-and-dont.md`, `meta.yaml` (provenance + copyright).
+
+**Use a Claude Code Workflow** to author the sections in parallel (this is a genuinely parallel,
+read-heavy job — the founder's intended use of workflows). Pattern: one agent per section (or
+per author when distilling several), each reads the **staged** `runtime/write/distill-sources/<slug>/`
+files relevant to its section and returns its section as structured text; you assemble + write
+the files (so there are no write races and you own the final copyright check). The staged dir is
+in the worktree, so the agents can read it.
+
+Distillation discipline:
+- **Evidence over adjectives.** Every claim about the voice must be defensible from the sources.
+  "Short, declarative sentences (avg 8-12 words; see TED 2003)" — not "engaging and clear."
+- **Mechanics, not summary.** Name the actual moves (inversion, the specific-fact-as-proof, the
+  named pattern). The reader of the artifact is a writer who needs to *do* it.
+- **Samples are the tuning fork.** Pull real excerpts that teach a specific mechanic. Prefer
+  transcripts (public talks) + freely-published blog posts for fuller quotes; keep
+  copyrighted-book quotes short (≤ ~25 words). Always attribute.
+- **The voice-card is the distilled distillation** — small enough to load on every write, with
+  the one-sentence voice, top do/don't, signature openings/closings, rhythm + diction rules,
+  and 3 micro-samples.
+
+### 3. Copyright check (before writing committed files)
+The artifact is **transformative style analysis + short attributed fair-use excerpts** — never a
+reproduction. Enforce the posture in `06-ai-ops/write/author-styles/README.md`: ≤ ~25 words from
+copyrighted books; fuller only from freely-published / public-talk / public-domain sources; always
+attributed; `meta.yaml` records the per-author posture. If a source can't meet the bar, narrow to
+characterization.
+
+### 4. Write + register
+- Write the 6 files to `06-ai-ops/write/author-styles/<slug>/`.
+- Add/flip the row in `knowledge/author-styles.yaml`: `status: installed`, `distilled_on`,
+  `confidence`, `source_kinds`, `copyright`, `one_line`. (A new author needs a new row; the
+  validator requires STYLE.md + voice-card.md to exist for `installed`.)
+- `node scripts/cross-tier/validate-write-registries.cjs` must pass.
+- Then refresh the resolver catalog if the author should be discoverable (optional v0.1).
+
+### 5. Report
+`{ ok, slug, files[], confidence, sources: {transcripts, articles, books}, copyright_note }`.
+Show the voice-card so the founder can sanity-check the captured voice immediately.
+
+## Quality bar
+Read the finished `samples.md` + `voice-card.md` and ask: could a writer with only these produce
+a paragraph the author would sign? If not, the distillation is too generic — go back to the
+sources for the specific mechanics.
+

@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 24
+**Total entries:** 25
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -435,6 +435,25 @@ Tier A; per-run --max-cost-usd breaker; provider keys out-of-band; artifacts to
 **When to use:** Project-scoped command for ritsu-works. Front-end for the wiki-sync capability (wiki-sync-from-refs). Thin orchestrator — phase logic lives in the skills under 06-ai-ops/skills/wiki-sync/. Follows the same orchestrator pattern as /cla (delegate to skill; manage HITL gates; persist state).
 
 **Invoke:** `/wiki`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/write
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Write any content type (27+: blog · social · ad · email · video-script · article ·
+research · paper · essay · memo · story · speech · …) for any medium, in any distilled
+author's voice (e.g. seth-godin, david-ogilvy), de-AI'd to read as a human wrote it,
+enriched with /image + /dataviz where they raise quality, rendered to md/html/pdf/docx,
+and optionally pushed (gdrive/notion/social). `/write distill` captures a new author's
+voice from reference sources into a reusable, github-shared artifact. Tier A; per-run
+--max-cost-usd breaker; thin orchestrator over the `write` umbrella skill.
+
+**Invoke:** `/write`
 **HITL tier:** A
 **Side effect:** none
 

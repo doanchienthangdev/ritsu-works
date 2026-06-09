@@ -1,0 +1,151 @@
+# SOP-AIOPS-015 — /write Runtime Contract
+#
+# Declarative runtime contract for the write-platform capability (/write command).
+# Read by .claude/commands/write.md + 06-ai-ops/skills/write/SKILL.md (umbrella) +
+# write/orchestrator + write/distill + write/humanize.
+#
+# NOTE: RUNTIME-CONTRACT SOP (like SOP-AIOPS-004-evolve / 005-deepask / 006-forge /
+# 007-design-system / 008-image / 013-translate / 014-voice), NOT a CLA-style 8-phase
+# ceremony. The "steps" are the sequence /write follows to turn a request into content.
+
+sop_id: SOP-AIOPS-015
+slug: write-runtime-contract
+name: "/write runtime contract"
+version: "1.0.0"
+state: operating
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A           # writing is Tier A (reversible, local writes, metered + capped); --push to a public surface escalates to C
+cost_bucket: ai-ops-write
+capability_id: write-platform
+
+# ----------------------------------------------------------------------
+# The writing sequence (how /write turns a request + flags into content)
+# ----------------------------------------------------------------------
+steps:
+  - id: plan
+    name: "Stage 1 — parse flags + resolve type/medium/voice/template/length → brief"
+    skill: write
+    actions:
+      - parse_universal_args         # scripts/write/lib/params.cjs (UNIVERSAL_PARAMS; subcommand detect; warn-never-drop)
+      - resolve_type_medium          # lib/types.cjs — --type (id|alias) + --medium ∈ type.mediums (else default+warn); infer type if omitted
+      - resolve_voice                # lib/authors.cjs — --author-style → 06-ai-ops/write/author-styles/<slug>/ (installed? else approximate)
+      - resolve_template_length      # lib/templates.cjs (id|path) + lib/length.cjs (preset|Nw|Np → word budget → section budget)
+      - build_brief                  # scripts/write/plan.cjs → brief.md + plan.json in .archives/write/<date>-<slug>/
+      - dry_run_short_circuit        # --dry-run → present the plan + cost note, NO content
+    hitl: A
+
+  - id: draft
+    name: "Stage 2 — load the voice + research + outline + draft IN VOICE (IN-SESSION)"
+    skill: write/orchestrator
+    actions:
+      - load_voice_card              # read author-styles/<slug>/voice-card.md (+ signature-moves/samples/do-and-dont) OR 00-core/brand_voice.md
+      - ground_in_refs               # --ref files/URLs read + cited; --mode=deep-research → deep-research skill for the factual spine
+      - outline                      # template beats OR type.structure_hint, budgeted to plan.section_budget, medium-correct shape
+      - draft_in_voice               # write the whole piece to draft.md — voice fidelity first; earn every line; honest (no fabricated facts/quotes)
+    hitl: A
+    note: "Drafting is the in-session value Claude adds (subscription). The samples.md is the tuning fork — match it."
+
+  - id: enrich
+    name: "Stage 3 — embed /image + /dataviz where they raise quality (out-of-band)"
+    skill: write/orchestrator
+    actions:
+      - image_when_recommended       # plan.enrich.image → scripts/deepask/image-route.cjs (buildImagePlatformInvocation → /image gen.cjs → parse) with --style + --art-style; embed ![alt](file)
+      - dataviz_when_series          # plan.enrich.dataviz + a number series → scripts/deepask/chart-embed.cjs (embedChart → /dataviz); embed the SVG/PNG
+      - degrade_gracefully           # a failed generation never blocks the prose — keep the draft, surface the warning
+    hitl: A
+
+  - id: humanize
+    name: "Stage 4 — de-AI + voice gate (MANDATORY unless --humanize=off)"
+    skill: write/humanize
+    actions:
+      - scan_before                  # scripts/write/humanize/scan.cjs draft.md → ai_smell_score + issues + banned + readability
+      - rewrite_passes               # apply the synthesized 4-repo method: strip tells → inject voice (author-style = the calibration sample)
+      - scan_after_gate              # re-scan until pass===true (score ≤ 25, classification ≠ AI_ONLY); the passing draft ships
+      - preserve_facts               # every number/name/date/quote from the draft survives unchanged
+    hitl: A
+    note: "The gate is a deterministic FLOOR; the bar is 'would the named author publish this?'. Vendored MIT detectors under scripts/write/humanize/vendor/ (NOTICE.md)."
+
+  - id: render
+    name: "Stage 5 — render the requested output formats"
+    skill: write/orchestrator
+    actions:
+      - inline_default               # --out=default → present the content in-conversation (deepask-style), NO file
+      - render_files                 # scripts/write/render.cjs → md (native) / html+pdf+docx via render.py (anaconda markdown+python-docx; pdf via homebrew weasyprint; reuses translate/design.py palette)
+      - style_via_design_system      # --style → 00-core/design-system/<name>/ palette (default ritsu)
+    hitl: A
+    execution_modes:
+      standard: "single-pass excellent draft + one humanize pass (the default)"
+      deep-research: "Stage 2 runs the deep-research skill first for the factual spine"
+      workflow: "length ≥ very-long OR --mode=workflow → a Claude Code Workflow fans section-drafting out in parallel (translate plan→parallel→build), then one humanize pass over the whole"
+
+  - id: push
+    name: "Stage 6 — optional distribution (HITL-gated)"
+    skill: write/orchestrator
+    actions:
+      - parse_push_spec              # scripts/write/push.cjs — <backend>/<segments> (googledrive/12042026/post/facebook | notion/… | x|facebook|linkedin|reddit)
+      - hitl_gate                    # storage backend = Tier B; public/multi-recipient social = Tier C (surfaced for approval, NEVER auto-sent) per governance/HITL.md
+      - typed_outcome                # v0.1 backends registered-not-built → not_built (artifact saved locally); real delivery needs the backend MCP + /cla extend
+    hitl: C   # default to C for push — the highest-stakes step; storage-only pushes are B
+
+  - id: report
+    name: "Stage 7 — report the run"
+    skill: write
+    actions:
+      - surface_result              # {ok, type, medium, author_style, words, humanize{before→after,pass}, files[], inline?, enrich, push?, warnings[]}
+      - always_surface_warnings     # unsupported params + degraded enrichment + approximate-voice are WARNED, never hidden
+    hitl: A
+
+# ----------------------------------------------------------------------
+# distill sub-flow (/write distill <slug> --ref-src=<refs>)
+# ----------------------------------------------------------------------
+distill_flow:
+  hitl: A   # local committed artifacts; the PR is the human gate
+  steps:
+    - stage_sources                 # scripts/write/distill/plan.cjs — curate + stage into runtime/write/distill-sources/<slug>/ (worktree-visible for sandboxed agents)
+    - workflow_fanout               # Claude Code Workflow authors the 6 _TEMPLATE sections in parallel; orchestrator assembles + writes (no write races)
+    - copyright_check               # transformative style analysis + ≤25-word book quotes / fuller public-source quotes; per-author posture in meta.yaml (README is canonical)
+    - register                      # write 06-ai-ops/write/author-styles/<slug>/ + flip knowledge/author-styles.yaml row to installed; validate-write-registries.cjs must pass
+
+# ----------------------------------------------------------------------
+# Billing lanes
+# ----------------------------------------------------------------------
+billing:
+  draft_humanize_plan: in-session   # subscription — writing + de-AI + planning are the value Claude adds
+  enrich: out-of-band               # /image + /dataviz only (OPENAI_API_KEY etc. via their own gen scripts) — each capped by its own --max-cost-usd
+  cost_caps: "gps per_task_kind_caps write-orchestration $0.50 / write-draft $1.50 (advisory) / write-distill $2.00 / write-humanize $0.20 / write-research $1.00. Per-run --max-cost-usd (default 2.00) is the REAL guard for out-of-band enrichment."
+
+guards:
+  - humanize_gate                  # customer-facing content ships only after pass===true (unless --humanize=off, discouraged)
+  - breaker_before_enrich          # --max-cost-usd refuses up front; enrichment never silently overspends
+  - warn_never_drop                # unsupported params WARN with the consequence; content still generates
+  - push_is_hitl                   # publishing to a public surface is Tier C — surfaced, never auto-sent
+  - no_fabrication                 # no invented facts, fake quotes, or manufactured urgency (esp. Ritsu — 00-core/brand_voice.md)
+  - no_product_supabase            # local .archives/ artifacts only; never touches Product Supabase
+  - copyright_respecting           # distilled author artifacts are transformative analysis + fair-use excerpts, never reproductions
+
+events:
+  - ritsu.write.completed          # (optional, deferred) one per successful /write run
+  - ritsu.write.author_distilled   # (optional, deferred) one per /write distill
+
+# ----------------------------------------------------------------------
+# Observability (Option A+ lean — table-ready)
+# ----------------------------------------------------------------------
+observability:
+  v0_1: "per-run plan.json + brief.md (local audit) + the humanize before→after score + the per-run --max-cost-usd breaker. plan.json columns are a forward-compat superset of a future ops.write_runs."
+  future: "Option B = a /cla extend write-platform adds ops.write_runs (type/medium/author/words/humanize_score/cost) + the 3 KPIs (write.humanize_pass_rate / write.author_style_library_size / write.runs_by_type_monthly) + hook/cross-run enforcement. Pure INSERT-wiring."
+
+references:
+  - .claude/commands/write.md
+  - 06-ai-ops/skills/write/SKILL.md
+  - 06-ai-ops/skills/write/orchestrator/SKILL.md
+  - 06-ai-ops/skills/write/distill/SKILL.md
+  - 06-ai-ops/skills/write/humanize/SKILL.md
+  - scripts/write/{plan,render,push}.cjs
+  - scripts/write/lib/{params,types,authors,length,templates,artifact-path}.cjs
+  - scripts/write/humanize/scan.cjs
+  - scripts/write/distill/plan.cjs
+  - knowledge/{write-types,author-styles,write-templates}.yaml
+  - scripts/cross-tier/validate-write-registries.cjs
+  - 06-ai-ops/write/author-styles/README.md
+  - governance/HITL.md

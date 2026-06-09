@@ -1,0 +1,36 @@
+# Provenance for the david-ogilvy author-style artifact.
+slug: david-ogilvy
+full_name: David Ogilvy
+distilled_on: "2026-06-10"
+distilled_by: "/write distill (Claude Code Workflow — analyst + archivist, parallel)"
+confidence: high   # dense evidence across 5 verbatim public talks + the public 'How to Write' memo + curated article quotes
+sources:
+  books:
+    - {title: "Confessions of an Advertising Man", year: 1963, usage: "≤15-word quotes only (key-ideas summary)"}
+    - {title: "Ogilvy on Advertising", year: 1983, usage: "≤15-word quotes only"}
+    - {title: "The Unpublished David Ogilvy", year: 1986, usage: "≤15-word quotes only"}
+    - {title: "Blood, Brains & Beer", year: 1978, usage: "≤15-word quotes only"}
+    - {title: "The Theory and Practice of Selling the AGA Cooker", year: 1935, usage: "public-domain-era source"}
+    - {title: "The King of Madison Avenue (Roman)", year: 2009, usage: "biography — ≤15-word quotes only"}
+  articles:
+    - {title: "How to Write (1982 internal memo)", source: "Ogilvy & Mather", usage: "public memo — verbatim fair-use"}
+    - {title: "Eleven Campaign Commandments", source: "Branding Strategy Insider", usage: "fair-use, verified quotes"}
+    - {title: "At 60 miles an hour (Rolls-Royce ad analysis)", source: "swiped.co", usage: "fair-use + the original ad headline"}
+    - {title: "13 Timeless Lessons", source: "Copyblogger", usage: "fair-use, all 13 quotes"}
+    - {title: "Best-Selling Headlines", source: "ReferralCandy", usage: "fair-use + original headlines"}
+    - {title: "David Ogilvy (businessman)", source: "Wikipedia", usage: "encyclopedic reference"}
+  transcripts:
+    - {title: "The View From Touffou", venue: "Magic Lantern film", year: 1982, usage: "public talk — fuller quotes ok"}
+    - {title: "A Conversation About Advertising", venue: "interview w/ John Crichton", year: 1977, usage: "public interview"}
+    - {title: "We Sell — Or Else", venue: "direct-response keynote", year: 1985, usage: "public keynote"}
+    - {title: "David Ogilvy on Letterman", venue: "Late Night", year: 1983, usage: "public TV appearance"}
+    - {title: "Salesman: The Early Years", venue: "documentary", usage: "public documentary"}
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. Ogilvy d.1999 (historical
+  figure); public talks + the 'How to Write' memo + curated article quotes are fair use; book quotes
+  kept short (longest book quote in this artifact: ≤16 words). Output written in this style is a
+  derivative STYLE, presented as such — never claimed to be Ogilvy's own words.
+notes: |
+  Strongest evidence = the 5 transcripts (esp. The View From Touffou, ~4,900 words) + the verbatim
+  'How to Write' memo + the Eleven Commandments. Future re-distillation could add the Forbes 1982
+  profile and Drayton Bird's Ogilvy-memo archive.

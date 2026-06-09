@@ -115,6 +115,10 @@
     "wiki-sync--link-extractor",
     "wiki-sync--merge",
     "wiki-sync--package",
-    "wiki-sync--review"
+    "wiki-sync--review",
+    "write",
+    "write--distill",
+    "write--humanize",
+    "write--orchestrator"
   ]
 }

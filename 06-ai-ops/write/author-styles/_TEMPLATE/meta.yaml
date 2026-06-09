@@ -1,0 +1,19 @@
+# Provenance for the {{slug}} author-style artifact.
+slug: "{{slug}}"
+full_name: "{{Full Name}}"
+distilled_on: "{{YYYY-MM-DD}}"
+distilled_by: "/write distill"
+confidence: "{{low|medium|high}}"   # coarse self-reported fidelity of the distillation
+sources:
+  # what the style was distilled from (kept as provenance, not reproduced)
+  books: []          # [{title, year, usage: "≤15-word quotes only"}]
+  articles: []       # [{title, source, usage: "fair-use excerpts"}]
+  transcripts: []    # [{title, venue, year, usage: "public talk — fuller quotes ok"}]
+  urls: []           # [public links]
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. {{per-author note:
+  which sources are freely-published / public / public-domain vs. copyrighted-books-quoted-short}}.
+  Output written in this style is a derivative STYLE, presented as such — never claimed to be the
+  author's own words.
+notes: |
+  {{anything a future re-distillation should know — gaps, strongest sources, what to add next}}

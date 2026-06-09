@@ -1,0 +1,34 @@
+# Provenance for the seth-godin author-style artifact.
+slug: seth-godin
+full_name: Seth Godin
+distilled_on: "2026-06-10"
+distilled_by: "/write distill (Claude Code Workflow — analyst + archivist, parallel)"
+confidence: high   # dense evidence across 5 verbatim public talks + freely-published blog articles + 6 book summaries
+sources:
+  books:
+    - {title: "Purple Cow", year: 2003, usage: "≤15-word quotes only (key-ideas summary)"}
+    - {title: "Permission Marketing", year: 1999, usage: "≤15-word quotes only + freely-published first chapters"}
+    - {title: "The Dip", year: 2007, usage: "≤15-word quotes only"}
+    - {title: "Tribes", year: 2008, usage: "≤15-word quotes only"}
+    - {title: "Linchpin", year: 2010, usage: "≤15-word quotes only"}
+    - {title: "This Is Marketing", year: 2018, usage: "≤15-word quotes only"}
+  articles:
+    - {title: "seths.blog archive (2002, 2016, 2020, 2025)", source: seths.blog, usage: "freely-published blog — fuller fair-use quotes"}
+    - {title: "Cause a Ruckus with Your Leadership", source: interview, usage: "fair-use excerpts"}
+    - {title: "Permission Marketing — first four chapters", source: freely-published, usage: "fair-use excerpts"}
+  transcripts:
+    - {title: "How to Get Your Ideas to Spread", venue: "TED 2003", year: 2003, usage: "public talk — fuller quotes ok"}
+    - {title: "The Tribes We Lead", venue: "TED 2009", year: 2009, usage: "public talk"}
+    - {title: "All Marketers Are Liars", venue: "Talks at Google", year: 2005, usage: "public talk"}
+    - {title: "How to Do Work That Matters", venue: "Chase Jarvis Live", year: 2018, usage: "public talk"}
+    - {title: "How to Be a Linchpin", venue: "Impact Theory", year: 2018, usage: "public talk"}
+  urls: ["https://seths.blog"]
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. Blog posts (seths.blog) are
+  freely published; the talks are public; book quotes are kept ≤15 words per the source archive's
+  posture (longest book quote in this artifact: ≤14 words). Output written in this style is a
+  derivative STYLE, presented as such — never claimed to be Godin's own words.
+notes: |
+  Living-persona: interpretive frame (writes in the spirit of how Godin reasons in public).
+  Strongest evidence = the 5 transcripts + the freely-published blog archive. Future re-distillation
+  could add The Practice (2020), All Marketers Are Liars (book), and the Akimbo podcast.

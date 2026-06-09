@@ -62,6 +62,9 @@ const FILE_TO_SCHEMA = {
   'problem-solving-frameworks.yaml': 'problem-solving-frameworks.schema.json',
   'consulting-frameworks.yaml': 'consulting-frameworks.schema.json',
   'consulting-processes.yaml': 'consulting-processes.schema.json',
+  'write-types.yaml': 'write-types.schema.json',
+  'author-styles.yaml': 'author-styles.schema.json',
+  'write-templates.yaml': 'write-templates.schema.json',
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });
