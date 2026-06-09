@@ -100,11 +100,12 @@ steps:
 # distill sub-flow (/write distill <slug> --ref-src=<refs>)
 # ----------------------------------------------------------------------
 distill_flow:
-  - stage_sources                   # scripts/write/distill/plan.cjs — curate + stage into runtime/write/distill-sources/<slug>/ (worktree-visible for sandboxed agents)
-  - workflow_fanout                 # Claude Code Workflow authors the 6 _TEMPLATE sections in parallel; orchestrator assembles + writes (no write races)
-  - copyright_check                 # transformative style analysis + ≤25-word book quotes / fuller public-source quotes; per-author posture in meta.yaml (README is canonical)
-  - register                        # write 06-ai-ops/write/author-styles/<slug>/ + flip knowledge/author-styles.yaml row to installed; validate-write-registries.cjs must pass
   hitl: A   # local committed artifacts; the PR is the human gate
+  steps:
+    - stage_sources                 # scripts/write/distill/plan.cjs — curate + stage into runtime/write/distill-sources/<slug>/ (worktree-visible for sandboxed agents)
+    - workflow_fanout               # Claude Code Workflow authors the 6 _TEMPLATE sections in parallel; orchestrator assembles + writes (no write races)
+    - copyright_check               # transformative style analysis + ≤25-word book quotes / fuller public-source quotes; per-author posture in meta.yaml (README is canonical)
+    - register                      # write 06-ai-ops/write/author-styles/<slug>/ + flip knowledge/author-styles.yaml row to installed; validate-write-registries.cjs must pass
 
 # ----------------------------------------------------------------------
 # Billing lanes
