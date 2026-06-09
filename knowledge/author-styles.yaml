@@ -28,7 +28,7 @@ author_styles:
     category: marketing
     one_line: "Short, declarative, generous. Names the unnamed pattern; inverts the safe default; ships daily."
     path: 06-ai-ops/write/author-styles/seth-godin/
-    status: pending   # flips to `installed` when /write distill writes the artifact (Wave 3)
+    status: installed   # distilled 2026-06-10 via /write distill (Workflow analyst+archivist)
     origin: distilled
     source_kinds: [books, articles, transcripts]
     distilled_on: "2026-06-10"
@@ -40,7 +40,7 @@ author_styles:
     category: copywriting
     one_line: "Research-first, specific over clever, long copy that sells. The fact, not the adjective. Reader as intelligent."
     path: 06-ai-ops/write/author-styles/david-ogilvy/
-    status: pending   # flips to `installed` when /write distill writes the artifact (Wave 3)
+    status: installed   # distilled 2026-06-10 via /write distill (Workflow analyst+archivist)
     origin: distilled
     source_kinds: [books, articles, transcripts]
     distilled_on: "2026-06-10"
