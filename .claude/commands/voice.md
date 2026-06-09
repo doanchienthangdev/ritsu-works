@@ -13,9 +13,11 @@ description: |
   .archives/voice/<date>-<slug>/. Thin orchestrator over the `voice` umbrella skill.
 ---
 
-# /voice — capability `voice-platform` v0.3
+# /voice — capability `voice-platform` v0.3.1
 
-> **v0.3 (/cla extend) — long-form CONSISTENCY:** splitting a long file / folder into many chunks made each chunk drift in voice, tone, pace, and **volume** ("lúc to lúc nhỏ") — because each TTS request is independent and has no memory of the others. Two locked-in fixes: **(1)** the voice + all parameters + a **uniformity voice-direction** are locked *before* splitting and applied identically to every chunk (auto-injected for any multi-chunk run); **(2)** every chunk is **loudness-normalized to one target** (EBU R128 `loudnorm`, default **−16 LUFS**) before stitching — the deterministic cure for volume drift. New flags `--normalize` (default ON) and `--target-lufs`.
+> **v0.3.1 — DYNAMIC LEVELING (the real volume fix):** v0.3's integrated `loudnorm` only matched the chunk *average*; the model still read some *passages* quietly (loudness range LRA 10–20 LU per chunk), so quiet bits stayed quiet. v0.3.1 **dynamically levels** every chunk (compressor → `dynaudnorm` → loudnorm) so the within-content range collapses (**LRA ~20 → ~4, measured**) — every passage now plays at the same volume. `--level` (default ON), `--level=false` reverts to integrated-only.
+>
+> **v0.3 — long-form CONSISTENCY:** chunked TTS drifts in voice/tone/pace/volume because each request is independent. **(1)** the voice + parameters + a **uniformity voice-direction** are locked *before* splitting + applied identically to every chunk (auto-injected for any multi-chunk run); **(2)** loudness is equalized at stitch. Plus reliability: fetch timeout + per-chunk retry. Flags `--normalize` / `--target-lufs` / `--max-retries`.
 >
 > **v0.2:** the `--type` register vocabulary grew 11 → **23** (`film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`).
 
@@ -61,7 +63,8 @@ existing file → file mode; otherwise inline text.
 | `--dry-run` | off | author + chunk + write the script/instruction sidecars, **no API spend**. |
 | `--out` | `.archives/voice/<date>-<slug>/` | output dir (root `.archives`, local-only). |
 | `--stitch` | on | merge a single input's chunks into one file (off → keep parts). |
-| `--normalize` | **on** | *(v0.3)* loudness-normalize every chunk to one target before stitching (EBU R128 `loudnorm`) — uniform volume across the whole output. `--normalize=false` to keep raw per-chunk levels. |
+| `--normalize` | **on** | *(v0.3)* loudness-equalize every chunk before stitching — uniform volume across the whole output. `--normalize=false` to keep raw per-chunk levels. |
+| `--level` | **on** | *(v0.3.1)* **dynamically level** each chunk (compressor → `dynaudnorm`) so quiet passages are brought up and the within-chunk loudness range collapses (~LRA 20→4) — the cure for "các đoạn tiếng nhỏ". `--level=false` = integrated-only (v0.3). |
 | `--target-lufs` | `-16` | *(v0.3)* the integrated-loudness target (audiobook/podcast standard −16; use −18/−19 for a quieter master). |
 
 Warn-only on the current engines (no native mapping → never silently dropped): `--speed`
@@ -78,10 +81,14 @@ has no memory of the others, so left alone the chunks drift in voice, tone, pace
    NOT dramatize per passage") are chosen once and applied **byte-identical to every chunk**.
    For any multi-chunk run the uniformity clause is injected automatically (`params.withConsistency`);
    keep markup minimal + identical across chunks (no per-chunk creative tags).
-2. **Equalize loudness deterministically.** Every chunk is normalized to one target loudness
-   (`--target-lufs`, default −16) with two-pass `loudnorm` before concatenation — the only reliable
-   cure for the "lúc to lúc nhỏ" volume drift the model produces. (Measured: raw chunks spanned
-   ~−20…−23 LUFS → all converge to ~−16 ±1.)
+2. **Level + normalize loudness deterministically *(v0.3.1)*.** Integrated normalization alone only
+   fixes the chunk *average* — the model reads some *passages* much quieter (measured loudness range
+   **LRA 10–20 LU** per chunk), so quiet bits stayed quiet. Now every chunk is first **dynamically
+   leveled** (a moderate compressor → `dynaudnorm` — brings quiet speech up, leaves true pauses
+   silent) so the within-content range collapses (**LRA ~20 → ~4 LU, measured on real chunks**), then
+   normalized to one target (`--target-lufs`, default −16) with a true-peak limit, before
+   concatenation. This is what makes *every passage the same volume*. `--level=false` reverts to the
+   v0.3 integrated-only behavior.
 3. **Don't lose chunks on a long run.** Each provider call is bounded by a fetch timeout
    (`VOICE_FETCH_TIMEOUT_MS`, default 180s — a stalled preview-model connection can't hang the
    render), and each chunk retries up to `--max-retries` (default 4) on a transient failure, so one
