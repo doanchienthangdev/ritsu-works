@@ -1,0 +1,117 @@
+---
+title: "Chương 55 — Capability Case Study: write-platform (`/write` — viết MỌI loại nội dung, theo giọng một bậc thầy, khử sạch mùi AI)"
+description: "Chương 55 — Capability Case Study: write-platform (`/write` — viết MỌI loại nội dung, theo giọng một bậc thầy, khử sạch mùi AI)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/55-capability-case-write-platform.md
+source_hash: 5e8ced6949631892e2101d3de0b20961bf34e3c124175b09b35f71bc9ee07de0
+generated_at: '2026-06-09T18:25:26.127Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 5e8ced6949631892e2101d3de0b20961bf34e3c124175b09b35f71bc9ee07de0
+translated_at: '2026-06-09T18:25:26.127Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 55
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> **Case Study #18.** Năng-lực **quan-trọng bậc nhất** trong sản-xuất: **VIẾT**. `/write "<yêu cầu>" [flags]` tạo ra bất-kỳ loại nội-dung nào trong **27+ loại** (blog · social · ad · email · video-script · article · research · paper · essay · memo · proposal · report · bio · story · poetry · screenplay · speech · faq · review · …), cho **medium** phù-hợp của loại đó, theo **giọng của một tác-giả đã-được-chưng-cất** (vd `seth-godin`, `david-ogilvy` — bắt một-lần bằng `/write distill`, dùng-mãi), **khử mùi AI** để đọc như người viết, **làm giàu** bằng `/image` + `/dataviz` ở chỗ nâng chất-lượng, render ra md/html/pdf/docx, và tùy chọn **đẩy** lên gdrive/notion/social. Bài học lớn nhất: **"sound like the author" và "remove AI tells" là CÙNG một lượt viết** — vì cái artifact giọng-tác-giả chính là *mẫu hiệu-chỉnh-giọng* cho bộ khử-mùi-AI.
+
+## 55.1 Bài toán — viết là năng-lực sản-xuất số một, mà workforce lại chưa có
+
+Workforce đã biết phân-tích (`/think`), truy-xuất (`/deepask`), dịch (`/translate`), vẽ (`/image`), biểu-đồ (`/dataviz`), nói (`/voice`) — nhưng **chưa có cách first-class để VIẾT nội-dung**. Mỗi bài blog, ad, kịch-bản, email, paper đều làm ad-hoc, giọng không nhất-quán, và **đọc ra ngay là AI viết**. Ba thất-bại cần sửa:
+
+1. **Không có engine nội-dung.** Không có cửa trước duy-nhất cho "viết cho tôi một X trên medium Y".
+2. **Không có giọng.** Đầu ra chung-chung; không có cách viết *như* một bậc thầy (Seth Godin, David Ogilvy), và không có artifact tái-sử-dụng nào bắt giọng một-lần rồi phát-lại-mãi.
+3. **Mùi AI.** Văn LLM mặc-định bị phát-hiện: em-dash, rule-of-three, "stands as a testament", thổi-phồng ý-nghĩa, nịnh, nhịp đều-đều như máy. Không chấp-nhận được cho bất-cứ thứ gì khách-hàng đọc.
+
+**Mục tiêu (falsifiable):** `/write "…" --type=ad --medium=facebook --author-style=david-ogilvy` ra một Facebook ad (a) đúng cấu-trúc medium, (b) **không-lẫn-vào-đâu-được là Ogilvy**, (c) **đạt** ngưỡng sạch trên bộ phát-hiện mùi-AI tất-định, (d) người đọc không nhận ra là AI viết.
+
+## 55.2 Hình dạng — thin command / umbrella skill / engine tất-định + 3 registry (mirror /image · /voice)
+
+Đúng khuôn các primitive trước: một **lệnh mỏng** trên một **umbrella skill** dispatcher, trên các **helper tất-định**, với **registry tách (split)** cho từng trục.
+
+```
+/write "<yêu cầu>" [flags]                  .claude/commands/write.md
+  └─ 06-ai-ops/skills/write/SKILL.md          (umbrella — dispatch write|distill|humanize|authors/types/templates)
+       ├─ write/orchestrator/SKILL.md         (BỘ NÃO pipeline: plan→giọng→nghiên-cứu→outline→draft→enrich→humanize→render→push)
+       ├─ write/distill/SKILL.md              (chưng-cất giọng tác-giả từ nguồn tham-khảo)
+       └─ write/humanize/SKILL.md             (lượt KHỬ-MÙI-AI + bơm-giọng — 4 repo tổng-hợp)
+  knowledge/
+       write-types.yaml      (27 loại × medium per-type × length/structure/recommends) + schema
+       author-styles.yaml    (split registry chỉ-mục; nội-dung ở 06-ai-ops/write/author-styles/<slug>/) + schema
+       write-templates.yaml  (10 khung cấu-trúc) + schema
+  06-ai-ops/write/
+       author-styles/<slug>/  (artifact giọng — COMMITTED, chia-sẻ-github, dùng cho MỌI user như wiki)
+       templates/<category>/  (khung cấu-trúc, có thư-mục-con)
+  scripts/write/
+       plan.cjs       BRIEF builder tất-định (resolve mọi trục → brief.md + plan.json; --dry-run dừng ở đây)
+       render.cjs/.py md (native) / html·pdf·docx (render.py: markdown+python-docx; pdf qua homebrew weasyprint; tái-dùng palette /translate)
+       push.cjs       parse đích đẩy → outcome có-kiểu (backend registered-not-built ở v0.1)
+       distill/plan.cjs  curate + stage nguồn vào worktree (cho agent sandbox của Workflow đọc)
+       humanize/scan.cjs + humanize/vendor/  bộ phát-hiện mùi-AI tất-định (4 repo MIT vendored)
+       lib/{params,types,authors,length,templates,artifact-path}.cjs  lớp tất-định, thuần, test đầy-đủ
+  scripts/cross-tier/validate-write-registries.cjs   (L2 critical — trong check-consistency.cjs VÀ .github CI)
+  06-ai-ops/sops/SOP-AIOPS-015-write-runtime-contract/flow.yaml
+```
+
+## 55.3 Năm trục trực-giao — type × medium × author-style × template × length
+
+`/write` resolve **năm trục độc-lập**, mỗi trục từ registry/artifact riêng (helper `plan.cjs` ghép thành một `brief.md` mà người viết draft từ đó):
+
+- **`--type`** — 1 trong 27 loại (7 category: content · marketing · media · research · business · creative · support). Mỗi loại mang **`structure_hint`** gieo mầm outline + **`recommends`** (image/dataviz/research auto).
+- **`--medium`** — medium phổ-biến *của loại đó* (blog→ritsu/substack/medium; ad→facebook/google-search/print; video-script→youtube-long/short/reel/tiktok). Medium lạ → mặc-định của loại + cảnh-báo.
+- **`--author-style`** — một **giọng đã chưng-cất** (xem §55.4).
+- **`--template`** — một khung cấu-trúc đã-đăng-ký (id) HOẶC đường-dẫn `.md` trực-tiếp.
+- **`--length`** — `short..extremely-long` | `1000w` | `5p` → ngân-sách-từ → ngân-sách-section.
+
+Mọi flag đều optional + có default hợp-lý; flag lạ thì **CẢNH-BÁO** (forward-compat), không bao giờ âm-thầm bỏ — đúng quy-ước `params.cjs` của /image · /dataviz.
+
+## 55.4 Giọng tác-giả — bắt một-lần, dùng-mãi, chia-sẻ qua github
+
+Một **giọng đã-chưng-cất** là một artifact **committed, chia-sẻ-github** ở `06-ai-ops/write/author-styles/<slug>/` — với writing đúng như `00-core/design-system/` với visual: một bản-sắc bạn *áp-dụng*, không tái-suy-diễn mỗi lần. Mỗi folder (theo `_TEMPLATE/`, chính là **hợp-đồng chưng-cất**):
+
+| File | Vai trò | Nạp khi |
+|---|---|---|
+| `STYLE.md` | Toàn-bộ DNA giọng — voice/diction/syntax/structure/rhetoric/themes/worldview/anti-patterns/cách-viết-như-họ | mode sâu |
+| `voice-card.md` | Thẻ thao-tác 1-trang (1-câu giọng, do/don't top-7, mở/đóng đặc-trưng, rule nhịp+từ, 3 micro-sample) | **MỖI lượt viết** (rẻ) |
+| `signature-moves.md` | Các "ngón" tu-từ có-tên + khi/cách dùng + ví-dụ | khi draft |
+| `samples.md` | Ngân-hàng trích-đoạn (có-dẫn-nguồn, fair-use) — *âm-thoa hiệu-chỉnh-giọng* | draft + bơm-giọng |
+| `do-and-dont.md` | Bảng Emulate/Avoid + "the one test" | draft + humanize |
+| `meta.yaml` | Xuất-xứ: nguồn, ngày, độ-tin, **lập-trường bản-quyền** | audit |
+
+**`/write distill <slug> --ref-src=<refs>`** sinh ra folder ấy: stage nguồn (transcript > article > tóm-tắt-sách; bỏ PDF + bản-mirror `ref/` trùng) → **fan-out qua một Claude Code Workflow** (1 agent/section, đọc nguồn, trả nội-dung; orchestrator gom + ghi → không đua-ghi) → đăng-ký vào `author-styles.yaml`.
+
+**Lập-trường bản-quyền** (canonical, vì artifact public): **phân-tích-giọng có-tính-chuyển-hoá + trích-đoạn fair-use NGẮN có-dẫn-nguồn** — ≤ ~25 từ với sách bản-quyền; dài-hơn chỉ với blog tự-xuất-bản / talk công-khai / public-domain. Không bao giờ tái-tạo tác-phẩm; không bao giờ tuyên-bố đầu-ra LÀ lời tác-giả — nó là một *giọng phái-sinh*, trình-bày đúng như vậy.
+
+## 55.5 Khử mùi AI — trái-tim chất-lượng (4 repo MIT tổng-hợp + cổng tất-định)
+
+Đây là điểm khác-biệt. Skill `write/humanize` **tổng-hợp bốn dự-án mã-nguồn-mở** (đều MIT, vendored ở `scripts/write/humanize/vendor/` kèm NOTICE + LICENSE + SHA ghim):
+
+- **blader/humanizer** — phương-pháp 33-pattern theo "Signs of AI writing" của Wikipedia + hướng-dẫn-không-quá-tay (đừng moi-ruột văn người tốt).
+- **conorbronsdon/avoid-ai-writing** — **engine phát-hiện 44-type tất-định** (kèm tín-hiệu stylometric: nhịp đều, TTR, entropy trigram hư-từ, burstiness liên-đoạn, ký-tự né-tránh homoglyph) → điểm 0-100 + phân-loại HUMAN_ONLY/MIXED/AI_ONLY. **Đây là điểm chính.**
+- **theclaymethod/unslop** — scanner Python (banned-phrase + readability + fact-preservation) + rubric 8-tiêu-chí + voice preset + edit-library.
+- **jpeggdev/humanize-writing** — bộ từ-vựng AI-tells.
+
+`scan.cjs` bọc engine JS (luôn chạy) + scanner Python (khi có `python3`; suy-giảm-êm) → một báo-cáo gộp + một **cổng pass/fail**: `pass === true` ⇔ điểm ≤ 25 VÀ phân-loại ≠ AI_ONLY. **Đã chứng-minh:** văn-slop-AI = 52 (trượt, 12 lỗi, 11 banned-phrase) · văn-người-sạch = 0 (đạt). Phương-pháp viết: giữ-fact → phát-hiện → bỏ-tells theo cấu-trúc → bỏ-tells theo từ-vựng → sửa-nhịp/burstiness → **bơm-hồn-người KHÓA theo author-style đã chọn** → quét-lại + rubric. Vì author-style chính là mẫu hiệu-chỉnh-giọng, **khử-AI và khớp-giọng là cùng một lượt** — không phải hai.
+
+## 55.6 Pipeline — plan → draft → enrich → humanize → render → push
+
+`write/orchestrator` chạy: (1) **plan** `node scripts/write/plan.cjs …` → đọc `brief.md`; (2) **nạp giọng** (voice-card + samples làm âm-thoa); (3) **nghiên-cứu/ground** theo `--ref` / `--mode=deep-research`; (4) **outline** theo template/structure_hint, ngân-sách theo length; (5) **draft IN-VOICE** — chất-lượng cực cao, đúng medium, không bịa fact/quote; (6) **enrich** — `/image` (bìa/minh-hoạ) + `/dataviz` (chart) qua cầu deepask `image-route`/`chart-embed` ở chỗ nâng-chất-lượng (suy-giảm-êm nếu lỗi); (7) **humanize** — cổng bắt-buộc đến khi pass; (8) **render** — default=inline (như deepask) / md·html·pdf·docx; (9) **push** tùy chọn (HITL). Draft + humanize + plan = **in-session/subscription**; chỉ `/image` + `/dataviz` là chi-tiêu out-of-band, mỗi cái có breaker `--max-cost-usd` riêng.
+
+## 55.7 Chưng-cất Seth Godin + David Ogilvy — song-song qua Workflow
+
+Hai giọng đầu-tiên được chưng-cất **song-song** từ `raw/write/` qua một Claude Code Workflow (4 agent: analyst + archivist cho mỗi tác-giả). **Seth Godin** — câu ngắn tuyên-bố, đoạn-một-dòng, đặt-tên-cái-chưa-có-tên (Purple Cow, smallest viable audience), đảo-khung lật trực-giác (safe is risky), kỷ-luật-ship-hằng-ngày, marketing-là-phụng-sự. **David Ogilvy** — nghiên-cứu-trước-sáng-tạo, *sự-thật chứ không tính-từ* ("At 60 miles an hour the loudest noise comes from the electric clock"), long-copy-bán-được, thương-hiệu-là-nhân-cách-bền-bỉ, memo-như-hạ-tầng-văn-hoá. Cả hai artifact tôn-trọng bản-quyền (phân-tích + trích-đoạn ngắn từ talk công-khai / blog tự-xuất-bản / memo công-khai).
+
+## 55.8 Quản-trị + chi-phí
+
+Tier A runtime (đảo-ngược-được, ghi local, đo + cap). Cost-bucket `ai-ops-write` dưới gps; `per_task_kind_caps`: write-orchestration $0.50 / write-draft $1.50 (advisory) / write-humanize $0.20 / write-distill $2.00 / write-research $1.00. `--push` lên bề-mặt công-khai/đa-người-nhận **leo Tier C** (surface để duyệt, không bao giờ tự-gửi) per `governance/HITL.md`. Breaker `--max-cost-usd` (mặc-định 2.00) là rào chi-tiêu thật cho enrich out-of-band. Bộ scanner khử-AI tất-định = $0.
+
+## 55.9 Bài học
+
+1. **Trục giọng = artifact tái-sử-dụng, không phải prompt một-lần.** Bắt giọng một-lần vào `06-ai-ops/write/author-styles/<slug>/` (chia-sẻ-github như wiki) thì mọi lượt viết sau đều có giọng cụ-thể — và nó kiêm-luôn mẫu hiệu-chỉnh cho bộ khử-AI. *Một* artifact phục-vụ *hai* việc.
+2. **Khử-mùi-AI là một CỔNG tất-định, không phải cảm-tính.** Vendored 44-type detector + banned-phrase + readability → điểm 0-100 + pass/fail. Cổng là *sàn*; thước-đo thật là "tác-giả-được-nêu-tên có ký vào bản này không?".
+3. **Tổng-hợp-rồi-vendored bốn engine OSS hơn là tự-viết.** Bốn repo MIT chồng-lấn bổ-sung nhau; vendored (kèm NOTICE + LICENSE + SHA ghim) cho cổng chạy offline, tái-lập, và ghi-công minh-bạch — đúng cách repo này vendored các engine khác.
+4. **Tái-dùng, đừng xây lại.** Render qua `translate/render.py`; enrich qua cầu deepask `image-route`/`chart-embed`; flag-parse + artifact-path theo quy-ước /image. Không một đường-chi-tiêu trùng-lặp nào.
+5. **Bẫy `type:module`.** Một file `.js` vendored bị coi là ESM → `module.exports` bị bỏ-qua (Node 22 `require(esm)` trả `{}`). Đổi đuôi `.js`→`.cjs` (nội-dung giữ byte-identical) là cách của chính repo này. Một bug nhỏ, một bài học về môi-trường.

@@ -64,7 +64,9 @@ function splitPlus(val) {
  * @returns {{ subcommand:string, options:object, provided:Set<string>, positional:string[] }}
  */
 function parseWriteArgs(argv) {
-  const options = { ...DEFAULTS, out: [...DEFAULTS.out], ref: [], 'ref-src': [] };
+  // `out` starts EMPTY (not the default ['default']) so an explicit --out REPLACES rather
+  // than appends to the default; the empty case is restored to ['default'] at the end.
+  const options = { ...DEFAULTS, out: [], ref: [], 'ref-src': [] };
   const provided = new Set();
   const positional = [];
   for (const raw of Array.isArray(argv) ? argv : []) {
