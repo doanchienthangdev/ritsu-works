@@ -154,6 +154,12 @@ economic_budget:
     # capability voice-platform v0.1 — cost-bucket ai-ops-voice; /voice TTS synthesis
     voice-gen:        {unit: usd, cap: 0.50}   # /voice out-of-band TTS (gemini-tts-3.1-flash / openai-tts) via GEMINI_API_KEY / OPENAI_API_KEY. ADVISORY: out-of-band → invisible to the budget hook; the per-run --max-cost-usd breaker (default $1) is the real enforcement. Scales with audio minutes (~$0.015-0.03/min).
     voice-preprocess: {unit: usd, cap: 0.10}   # /voice in-session voice-direction authoring + script markup (the voice/preprocess skill). Subscription; hook-enforced — the one /voice stage the budget hook sees.
+    # capability write-platform v0.1 — cost-bucket ai-ops-write; /write content generation
+    write-orchestration: {unit: usd, cap: 0.50}   # /write pipeline driver (plan + outline + enrich routing + render + report). In-session/subscription; the orchestrator itself is cheap (the draft is the spend).
+    write-draft:         {unit: usd, cap: 1.50}   # /write in-session drafting + voice-matching (the writing). ADVISORY (subscription, not API-billed) — the per-run --max-cost-usd guards out-of-band enrichment, not this.
+    write-humanize:      {unit: usd, cap: 0.20}   # /write de-AI + voice pass (the write/humanize skill + the vendored scan gate). In-session; deterministic scanners are $0.
+    write-distill:       {unit: usd, cap: 2.00}   # /write distill — author-voice extraction via parallel Workflow fan-out (the heaviest write task). In-session; scales with the source bundle.
+    write-research:      {unit: usd, cap: 1.00}   # /write --mode=deep-research factual spine (delegates to the deep-research skill). In-session.
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition

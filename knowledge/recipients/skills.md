@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 124
+**Total entries:** 128
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -2530,6 +2530,80 @@ Tier B per item. Daily Telegram digest from wiki-review-queue-digest cron
 surfaces backlog.
 
 **Invoke:** `Skill({ skill: "wiki-sync/review" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/write
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The /write content-writing platform — write any of 27+ content types for any
+medium, in any distilled author's voice, de-AI'd to read as human, enriched with
+/image + /dataviz, rendered to md/html/pdf/docx, and optionally pushed. Umbrella
+dispatcher over write/orchestrator (write), write/distill (capture a voice), and
+write/humanize (de-AI). Capability write-platform v0.1. Tier A.
+
+**Invoke:** `Skill({ skill: "write" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/write/distill
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Distill an author's voice from reference sources into a reusable, github-shared
+author-style artifact (06-ai-ops/write/author-styles/<slug>/) that /write can write
+in forever. Stage sources → fan out artifact sections via a Claude Code Workflow →
+assemble the 6 files per the _TEMPLATE → register in author-styles.yaml. Invoked by
+`/write distill <slug> --ref-src=<refs>`.
+
+**Invoke:** `Skill({ skill: "write/distill" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/write/humanize
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Remove AI writing tells AND inject genuine human voice so a draft reads as
+written by a person (and, when an author-style is supplied, as written by THAT
+author). The quality heart of /write. Synthesizes four open-source humanizers
+(blader/humanizer, conorbronsdon/avoid-ai-writing, theclaymethod/unslop,
+jpeggdev/humanize-writing — all MIT, vendored under scripts/write/humanize/vendor/)
+into one method backed by a deterministic gate. Use after drafting any
+customer-facing content, or standalone via `/write humanize <text|file>`.
+
+**Invoke:** `Skill({ skill: "write/humanize" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/write/orchestrator
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The /write pipeline brain — turn a request into exceptional, human-sounding,
+in-voice content for a chosen type + medium, enriched with /image and /dataviz
+where they raise quality, de-AI'd through the humanize gate, and rendered to the
+requested formats. Drives plan.cjs → draft → enrich → humanize → render → push.
+Invoked by the `write` umbrella skill for the default `/write "<request>"` path.
+
+**Invoke:** `Skill({ skill: "write/orchestrator" })`
 **HITL tier:** B
 **Side effect:** write
 

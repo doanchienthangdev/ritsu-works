@@ -2,12 +2,12 @@
 <!-- Per-entry overrides MUST be inside <!-- override-start --> ... <!-- override-end --> markers -->
 <!-- DO NOT manually edit outside override markers; changes will be lost on next sync -->
 
-# Recipient Catalog: capabilitys
+# Recipient Catalog: capabilities
 
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 22
+**Total entries:** 23
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -271,6 +271,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **When to use:** Wiki Sync from External Refs (v4.0 source-grouped distill+extract). v4.0 (2026-05-18): SOURCE-GROUPED layout flip. Same distill+extract v4.4.1
 
 **Invoke:** `Read("wiki/capabilities/wiki-sync-from-refs/spec.md")` or `/cla update wiki-sync-from-refs`
+
+**Role scope:** *
+**Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/write-platform
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Universal content-writing platform (/write command). OPERATING since 2026-06-10 (Tier-A runtime; founder-proxy autonomous overnight build + ship). The single most important production capability: WRITING. /write produces any of 27+ content types (blog/social/ad/email/video-script/article/research/paper/essay/memo/proposal/report/bio/story/poetry/screenplay/speech/faq/review/...) across 7 categorie v0.1.0
+
+**Invoke:** `Read("wiki/capabilities/write-platform/spec.md")` or `/cla update write-platform`
 
 **Role scope:** *
 **Status:** operating

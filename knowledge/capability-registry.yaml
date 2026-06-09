@@ -1944,6 +1944,35 @@ capabilities:
       .archives/cla/voice/. Future /cla extend: ElevenLabs/Azure backends, multi-speaker
       dialogue (Gemini), ops.voice_runs + KPIs, voice-clone, SRT/subtitle sidecars.
 
+  # === write-platform (OPERATING 2026-06-10 via /cla — founder-proxy autonomous build + ship) ===
+  - id: write-platform
+    name: "Universal content-writing platform (/write command)"
+    description: "OPERATING since 2026-06-10 (Tier-A runtime; founder-proxy autonomous overnight build + ship). The single most important production capability: WRITING. /write produces any of 27+ content types (blog/social/ad/email/video-script/article/research/paper/essay/memo/proposal/report/bio/story/poetry/screenplay/speech/faq/review/...) across 7 categories, each with its own per-type mediums. Five orthogonal axes: --type, --medium, --author-style (a DISTILLED, reusable, github-shared voice — e.g. seth-godin, david-ogilvy — captured once by /write distill, replayed forever), --template (committed structure skeletons), --length (short..extremely-long | Nw | Np). Output mirrors /deepask: --out=default(inline)|md|html|pdf|docx, styled by a design system; enriched with /image + /dataviz where they raise quality (reuses the deepask image-route + chart-embed bridges); optionally --push to gdrive/notion/social (public surface = HITL Tier C; v0.1 backends registered-not-built). The quality heart: a HUMANIZER that strips AI tells AND injects the author's voice in one pass — synthesized from FOUR MIT repos (blader/humanizer, conorbronsdon/avoid-ai-writing 44-type detector, theclaymethod/unslop, jpeggdev/humanize-writing), vendored under scripts/write/humanize/vendor/ behind a deterministic scan.cjs GATE (proven AI-slop=52/fail, clean=0/pass). The author-style artifact doubles as the humanizer's voice-calibration sample. Split registries: write-types.yaml (27 types + mediums) + author-styles.yaml (split: content in 06-ai-ops/write/author-styles/<slug>/) + write-templates.yaml (10), gated by scripts/cross-tier/validate-write-registries.cjs (L2 critical, in check-consistency.cjs AND .github CI). Cost-bucket ai-ops-write under gps; drafting/humanizing in-session/subscription; only /image+/dataviz enrichment is out-of-band; per-run --max-cost-usd (default 2.00) breaker. Tier A; artifacts to .archives/write/<date>-<slug>/. First two distilled voices: seth-godin + david-ogilvy (distilled in parallel via a Claude Code Workflow from raw/write/)."
+    version: "0.1.0"
+    state: operating
+    state_since: 2026-06-10
+    proposed_at: 2026-06-10
+    deployed_at: 2026-06-10
+    operating_since: 2026-06-10
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/write-platform/spec.md
+    cost_bucket: ai-ops-write
+    notes: |
+      Motivated by the founder's #1 production need: a first-class way to WRITE any content
+      type, in a master's voice, that reads as human (not AI). v0.1 scope: /write command +
+      write umbrella skill (dispatcher) + write/orchestrator (pipeline brain) + write/distill
+      (author-voice extraction) + write/humanize (de-AI + voice; 4 MIT repos synthesized +
+      vendored) ; 3 split registries (write-types 27 / author-styles / templates 10) + schemas +
+      validate-write-registries.cjs ; scripts/write/{plan,render,push}.cjs + lib/* +
+      humanize/scan.cjs + humanize/vendor/ + distill/plan.cjs ; SOP-AIOPS-015 ; ROLES gps
+      per_task_kind_caps (write-orchestration $0.50 / write-draft $1.50 / write-humanize $0.20 /
+      write-distill $2.00 / write-research $1.00) ; resolver registration ; 2 distilled authors
+      (seth-godin + david-ogilvy). Reuses translate render + deepask image/chart bridges.
+      NOT v0.1 (future /cla extend): real push backends (gdrive/notion/social MCPs),
+      ops.write_runs observability + 3 KPIs (write.humanize_pass_rate / author_style_library_size /
+      runs_by_type_monthly), more distilled authors, --mode=workflow polish. CLA artifacts
+      (local-only): .archives/cla/write-platform/.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:
@@ -1990,6 +2019,10 @@ cost_buckets:
   ai-ops-voice:
     description: "voice-platform runtime — /voice command + pluggable TTS adapter layer (gemini-tts-3.1-flash + openai-tts real; elevenlabs/azure-tts registered-not-built stubs). Speech synthesis uses GEMINI_API_KEY/OPENAI_API_KEY out-of-band via scripts/voice/gen.cjs (task_kind voice-gen, cap $0.50, ~$0.015-0.03/min audio); voice-direction preprocessing is in-session/subscription (task_kind voice-preprocess, cap $0.10). Per-run --max-cost-usd circuit breaker (default 1.00) is orthogonal. Build-once foundational primitive; ffmpeg stitch; run.json = forward-compat superset of a future ops.voice_runs."
     capabilities: [voice-platform]
+
+  ai-ops-write:
+    description: "write-platform runtime — /write content generation + /write distill author-voice capture. Drafting + humanizing + planning are IN-SESSION/subscription (the value Claude adds — task_kinds write-orchestration $0.50, write-draft $1.50 advisory, write-humanize $0.20, write-distill $2.00, write-research $1.00). The ONLY out-of-band spend is /image + /dataviz enrichment, each capped by its own --max-cost-usd; the per-run --max-cost-usd (default 2.00) is the overall guard. The humanizer's deterministic scanners (vendored, MIT) are $0. Build-once foundational primitive; reuses translate render + deepask image/chart bridges (no duplicate spend path); plan.json = forward-compat superset of a future ops.write_runs."
+    capabilities: [write-platform]
 
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
