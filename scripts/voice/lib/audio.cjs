@@ -88,30 +88,102 @@ function convertAudio(inPath, outPath, format) {
   return res.ok ? { ok: true, file: outPath } : res;
 }
 
+// EBU R128 loudness targets — audiobook/podcast standard. The CONSISTENCY fix for
+// long-form / multi-chunk content: normalizing every chunk to the SAME integrated
+// loudness is the only reliable cure for the "lúc to lúc nhỏ" volume drift that
+// independent TTS requests produce (each request self-normalizes differently).
+const DEFAULT_LUFS = Object.freeze({ i: -16, tp: -2, lra: 11 });
+
+/** Parse the last JSON object out of mixed ffmpeg stderr/stdout text. */
+function lastJson(text) {
+  const m = String(text || '').match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  try { return JSON.parse(m[0]); } catch (_e) { return null; }
+}
+
 /**
- * Concatenate `parts` (in order) into one `format` file at outPath via the ffmpeg
- * concat demuxer (re-encoded clean). A single part is just transcoded. Empty → error.
- * @returns {{ok:boolean, file?:string, error?:string}}
+ * Measure a file's loudness (loudnorm analysis pass, print_format=json). Returns the
+ * parsed { input_i, input_tp, input_lra, input_thresh, target_offset, ... } or null.
  */
-function stitchAudio(parts, outPath, format) {
+function measureLoudness(inPath, opts = {}) {
+  const I = opts.i ?? DEFAULT_LUFS.i; const TP = opts.tp ?? DEFAULT_LUFS.tp; const LRA = opts.lra ?? DEFAULT_LUFS.lra;
+  const r = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', inPath, '-af', `loudnorm=I=${I}:TP=${TP}:LRA=${LRA}:print_format=json`, '-f', 'null', '-'], { encoding: 'utf-8' });
+  if (r.error) return null;
+  return lastJson(`${r.stderr || ''}${r.stdout || ''}`);
+}
+
+/**
+ * Two-pass EBU R128 loudness-normalize a file to a uniform target (measure → linear apply).
+ * This is what makes every chunk play at the SAME volume. Falls back to single-pass if the
+ * measure pass yields nothing usable (e.g. near-silence). Output format inferred from outPath.
+ * @returns {{ok:boolean, file?:string, measured?:object, error?:string}}
+ */
+function normalizeLoudness(inPath, outPath, opts = {}) {
+  if (!ffmpegAvailable()) return { ok: false, error: 'ffmpeg not found on PATH (needed for loudness normalization)' };
+  const I = opts.i ?? DEFAULT_LUFS.i; const TP = opts.tp ?? DEFAULT_LUFS.tp; const LRA = opts.lra ?? DEFAULT_LUFS.lra;
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  const m = measureLoudness(inPath, { i: I, tp: TP, lra: LRA });
+  const usable = m && m.input_i !== undefined && m.input_i !== '-inf' && Number.isFinite(Number(m.input_i));
+  const af = usable
+    ? `loudnorm=I=${I}:TP=${TP}:LRA=${LRA}:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`
+    : `loudnorm=I=${I}:TP=${TP}:LRA=${LRA}`;
+  const fmt = path.extname(outPath).slice(1).toLowerCase() || 'wav';
+  // Force the source PCM contract on the intermediate so every normalized part concatenates cleanly.
+  const rateArgs = (fmt === 'wav' || fmt === 'pcm') ? ['-ar', String(PCM_RATE), '-ac', String(PCM_CHANNELS)] : [];
+  const res = runFfmpeg(['-i', inPath, '-af', af, ...rateArgs, ...outputArgsFor(fmt), outPath]);
+  return res.ok ? { ok: true, file: outPath, measured: m } : res;
+}
+
+/**
+ * Concatenate `parts` (in order) into one `format` file at outPath.
+ * CONSISTENCY (default): each part is first loudness-normalized to an identical target
+ * (lossless WAV intermediate) so the whole result plays at one steady volume; then the
+ * normalized parts are concatenated and encoded once. Pass {normalize:false} to skip.
+ * A single part is just transcoded (still normalized unless disabled). Empty → error.
+ * @param {string[]} parts
+ * @param {string} outPath
+ * @param {string} format
+ * @param {{normalize?:boolean, targetLufs?:number, tp?:number}} [opts]
+ * @returns {{ok:boolean, file?:string, normalized?:boolean, warnings?:string[], error?:string}}
+ */
+function stitchAudio(parts, outPath, format, opts = {}) {
   const list = Array.isArray(parts) ? parts.filter((p) => typeof p === 'string' && fs.existsSync(p)) : [];
   if (!list.length) return { ok: false, error: 'no input audio parts to stitch' };
   if (!ffmpegAvailable()) return { ok: false, error: 'ffmpeg not found on PATH (needed to stitch audio parts)' };
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
-  if (list.length === 1) return convertAudio(list[0], outPath, format);
+  const normalize = opts.normalize !== false;
+  const target = { i: opts.targetLufs ?? DEFAULT_LUFS.i, tp: opts.tp ?? DEFAULT_LUFS.tp, lra: DEFAULT_LUFS.lra };
+  const warnings = [];
 
-  const listFile = path.join(os.tmpdir(), `voice-concat-${process.pid}-${list.length}.txt`);
-  const body = list.map((p) => `file '${path.resolve(p).replace(/'/g, "'\\''")}'`).join('\n');
-  fs.writeFileSync(listFile, `${body}\n`, 'utf-8');
+  if (list.length === 1 && !normalize) return convertAudio(list[0], outPath, format);
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'voice-stitch-'));
   try {
+    let stitchList = list;
+    if (normalize) {
+      stitchList = list.map((p, i) => {
+        const tmp = path.join(tmpDir, `${String(i).padStart(4, '0')}.wav`);
+        const r = normalizeLoudness(p, tmp, target);
+        if (r.ok) return tmp;
+        warnings.push(`loudness-normalize failed for ${path.basename(p)} (${r.error || 'unknown'}) → using raw part`);
+        return p;
+      });
+    }
+    if (stitchList.length === 1) {
+      const r = convertAudio(stitchList[0], outPath, format);
+      return r.ok ? { ok: true, file: outPath, normalized: normalize, warnings } : { ...r, warnings };
+    }
+    const listFile = path.join(tmpDir, 'concat.txt');
+    fs.writeFileSync(listFile, `${stitchList.map((p) => `file '${path.resolve(p).replace(/'/g, "'\\''")}'`).join('\n')}\n`, 'utf-8');
     const res = runFfmpeg(['-f', 'concat', '-safe', '0', '-i', listFile, ...outputArgsFor(format), outPath]);
-    return res.ok ? { ok: true, file: outPath } : res;
+    return res.ok ? { ok: true, file: outPath, normalized: normalize, warnings } : { ...res, warnings };
   } finally {
-    try { fs.unlinkSync(listFile); } catch (_e) { /* best effort */ }
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_e) { /* best effort */ }
   }
 }
 
 module.exports = {
   pcmToWav, ffmpegAvailable, convertAudio, stitchAudio, outputArgsFor,
+  measureLoudness, normalizeLoudness, DEFAULT_LUFS,
   PCM_RATE, PCM_CHANNELS, PCM_BIT_DEPTH,
 };

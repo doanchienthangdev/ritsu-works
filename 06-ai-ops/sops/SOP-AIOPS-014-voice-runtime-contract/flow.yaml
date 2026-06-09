@@ -53,7 +53,8 @@ steps:
       - cost_breaker                 # total estimate vs --max-cost-usd — REFUSE before any API call (never silent overspend)
       - dry_run_short_circuit        # --dry-run → script + instruction sidecars + plan, NO API call, NO key
       - call_provider_out_of_band    # scripts/voice/gen.cjs — OpenAI POST /v1/audio/speech (bytes) OR Gemini :generateContent (base64 PCM → pcmToWav). GEMINI_API_KEY / OPENAI_API_KEY (lib/env.cjs); key value never printed
-      - stitch                       # scripts/voice/lib/audio.cjs (ffmpeg concat) — single input → one out/ file; folder → mirrored tree
+      - lock_voice_profile           # v0.3 — for multi-chunk/long-form: lock voice + model + pace + a UNIFORMITY voice-direction (params.withConsistency) BEFORE splitting; apply byte-identical to every chunk (one consistent narrator)
+      - stitch                       # scripts/voice/lib/audio.cjs (ffmpeg concat) — single input → one out/ file; folder → mirrored tree. v0.3: each part is loudness-normalized to one --target-lufs (EBU R128 loudnorm, default -16) BEFORE concat → uniform volume (fixes "lúc to lúc nhỏ")
     hitl: A
     execution_modes:
       inline: "small / single input → scripts/voice/run.cjs (chunk → gen.cjs per chunk → stitch), one deterministic call"

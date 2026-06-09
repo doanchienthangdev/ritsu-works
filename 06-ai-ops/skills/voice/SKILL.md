@@ -53,8 +53,16 @@ Write the authored direction to `<run>/instructions.txt` and the marked-up scrip
 - **Small / single input** → `node scripts/voice/run.cjs` does chunk → gen-per-chunk → stitch in one deterministic call. This is the default path.
 - **Long input or a folder** → drive a **Claude Code Workflow** (see template below) so chunks/files preprocess + record in PARALLEL, then stitch. This is the foundational production path the founder asked for.
 
-### 4 — Stitch
-`run.cjs` stitches in-process; the Workflow path calls `scripts/voice/stitch.cjs` after the parallel gen jobs land. Single input → one file in `out/`; folder → mirrored files.
+### 4 — Stitch (loudness-equalized)
+`run.cjs` stitches in-process; the Workflow path calls `scripts/voice/stitch.cjs` after the parallel gen jobs land. Single input → one file in `out/`; folder → mirrored files. **v0.3:** stitching loudness-normalizes every part to one target (`--target-lufs`, default −16 LUFS) before concatenating, so the whole output plays at a steady volume.
+
+### Consistency on LONG / MULTI-FILE content (v0.3 — do this)
+Independent TTS requests drift in voice/tone/pace/volume. **Lock the voice profile BEFORE splitting** and apply it identically to every chunk:
+- Choose the voice (one `--voice`) + model + pace ONCE. For a folder, also audition 2–3 candidate voices first (cheap) and pick one.
+- Author ONE voice-direction that emphasizes **uniformity**: "one continuous reading; the SAME single narrator, the same steady volume, pace, and even tone for every part; do NOT dramatize or re-characterize per passage." `params.withConsistency()` injects this clause automatically for any multi-chunk `run.cjs` render; in the Workflow path, write it into the shared `instructions.txt` once and pass it to every `gen.cjs` call.
+- Keep markup **minimal and identical** across chunks (punctuation pauses only; no per-chunk creative `[tags]`).
+- Prefer **fewer/larger chunks** (Gemini ~6k chars/chunk) and a calm register (`audiobook`/`narration`) to minimize seams.
+- **Stitch with `--normalize` ON** (default) so loudness is uniform — `stitch.cjs --in-dir=parts --out=book.mp3` already normalizes. The loudness fix is deterministic; the voice/tone consistency is best-effort (the model has no cross-request memory).
 
 ## Adapter routing table (`knowledge/voice-adapters.yaml`)
 

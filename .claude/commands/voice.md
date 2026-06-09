@@ -13,9 +13,11 @@ description: |
   .archives/voice/<date>-<slug>/. Thin orchestrator over the `voice` umbrella skill.
 ---
 
-# /voice — capability `voice-platform` v0.2
+# /voice — capability `voice-platform` v0.3
 
-> **v0.2 (/cla extend):** the `--type` register vocabulary grew from 11 → **23** (added `film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`). Each new register carries its own content-aware voice-direction recipe in the `voice/preprocess` skill. No other surface changed.
+> **v0.3 (/cla extend) — long-form CONSISTENCY:** splitting a long file / folder into many chunks made each chunk drift in voice, tone, pace, and **volume** ("lúc to lúc nhỏ") — because each TTS request is independent and has no memory of the others. Two locked-in fixes: **(1)** the voice + all parameters + a **uniformity voice-direction** are locked *before* splitting and applied identically to every chunk (auto-injected for any multi-chunk run); **(2)** every chunk is **loudness-normalized to one target** (EBU R128 `loudnorm`, default **−16 LUFS**) before stitching — the deterministic cure for volume drift. New flags `--normalize` (default ON) and `--target-lufs`.
+>
+> **v0.2:** the `--type` register vocabulary grew 11 → **23** (`film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`).
 
 Front-end for the voice-platform capability. Parses flags, drives the `voice` umbrella
 skill (`06-ai-ops/skills/voice/SKILL.md`), reports the result. **Both engines are
@@ -59,9 +61,32 @@ existing file → file mode; otherwise inline text.
 | `--dry-run` | off | author + chunk + write the script/instruction sidecars, **no API spend**. |
 | `--out` | `.archives/voice/<date>-<slug>/` | output dir (root `.archives`, local-only). |
 | `--stitch` | on | merge a single input's chunks into one file (off → keep parts). |
+| `--normalize` | **on** | *(v0.3)* loudness-normalize every chunk to one target before stitching (EBU R128 `loudnorm`) — uniform volume across the whole output. `--normalize=false` to keep raw per-chunk levels. |
+| `--target-lufs` | `-16` | *(v0.3)* the integrated-loudness target (audiobook/podcast standard −16; use −18/−19 for a quieter master). |
 
 Warn-only on the current engines (no native mapping → never silently dropped): `--speed`
 (use `--pace`), `--multi-speaker` (Gemini-stretch), `--markup` (Gemini-only), `--style`.
+
+## Consistency on long / multi-file content (v0.3)
+
+A long file or a folder is split into many chunks, and **each TTS request is independent** — it
+has no memory of the others, so left alone the chunks drift in voice, tone, pace, and volume.
+`/voice` locks consistency on two axes:
+
+1. **Lock the voice profile *before* splitting.** The voice, model, pace, and a **uniformity
+   voice-direction** ("one continuous reading; same narrator, same steady tone/pace/volume; do
+   NOT dramatize per passage") are chosen once and applied **byte-identical to every chunk**.
+   For any multi-chunk run the uniformity clause is injected automatically (`params.withConsistency`);
+   keep markup minimal + identical across chunks (no per-chunk creative tags).
+2. **Equalize loudness deterministically.** Every chunk is normalized to one target loudness
+   (`--target-lufs`, default −16) with two-pass `loudnorm` before concatenation — the only reliable
+   cure for the "lúc to lúc nhỏ" volume drift the model produces. (Measured: raw chunks spanned
+   ~−20…−23 LUFS → all converge to ~−16 ±1.)
+
+> Inherent limit (honest): chunked TTS still can't perfectly match *timbre/intonation* across a
+> seam, because the model has no cross-request state. The uniformity direction + same voice + same
+> prompt minimize it; loudnorm removes the volume component entirely. For the tightest result, prefer
+> fewer/larger chunks and a calm, even register (`audiobook`/`narration`).
 
 ## Flow (dispatches to the `voice` umbrella skill)
 1. Parse flags (`params.cjs`); resolve input (text/file/folder); resolve `--use` against `knowledge/voice-adapters.yaml`.

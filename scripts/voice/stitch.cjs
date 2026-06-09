@@ -55,8 +55,14 @@ function run(argv) {
   } else return { ok: false, error: 'pass --parts=a,b,... or --in-dir=<dir>' };
 
   if (!parts.length) return { ok: false, error: 'no audio parts to stitch' };
-  const res = stitchAudio(parts, path.resolve(opts.out), format);
-  return res.ok ? { ok: true, file: res.file, parts } : { ok: false, error: res.error, parts };
+  // v0.3 — loudness-normalize each part to one target before concat (default ON). --no-normalize
+  // (or --normalize=false) to skip; --target-lufs=<N> to retarget (default -16 LUFS).
+  const normalize = !(opts['no-normalize'] || /^(false|0|no|off)$/i.test(String(opts.normalize)));
+  const targetLufs = Number.isFinite(Number(opts['target-lufs'])) ? Number(opts['target-lufs']) : -16;
+  const res = stitchAudio(parts, path.resolve(opts.out), format, { normalize, targetLufs });
+  return res.ok
+    ? { ok: true, file: res.file, parts, normalized: res.normalized, warnings: res.warnings }
+    : { ok: false, error: res.error, parts, warnings: res.warnings };
 }
 
 module.exports = { run, parseArgs, partsFromDir };

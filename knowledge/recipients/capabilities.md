@@ -256,7 +256,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Text-to-speech platform (/voice command). OPERATING since 2026-06-08 (Tier-A runtime; founder-proxy autonomous build + ship). Foundational, build-once-use-forever TEXT-TO-SPEECH primitive exposed as /voice <input> [flags]: a model-agnostic front door with a pluggable adapter layer (--use=<adapter>) so new TTS engines plug in WITHOUT command-side code change (mirrors the image-platform / wiki-sync  v0.2.0
+**When to use:** Text-to-speech platform (/voice command). OPERATING since 2026-06-08 (Tier-A runtime; founder-proxy autonomous build + ship). Foundational, build-once-use-forever TEXT-TO-SPEECH primitive exposed as /voice <input> [flags]: a model-agnostic front door with a pluggable adapter layer (--use=<adapter>) so new TTS engines plug in WITHOUT command-side code change (mirrors the image-platform / wiki-sync  v0.3.0
 
 **Invoke:** `Read("wiki/capabilities/voice-platform/spec.md")` or `/cla update voice-platform`
 

@@ -111,10 +111,14 @@ async function run(argv) {
   if (got.error) return { ok: false, outcome: 'input_error', error: got.error };
   if (!got.text || !got.text.trim()) return { ok: false, outcome: 'input_error', error: 'input is empty' };
 
-  const instructions = readInstructions(options, type, pace);
+  let instructions = readInstructions(options, type, pace);
   const engineCap = target.id.startsWith('gemini') ? GEMINI_INPUT_CAP : OPENAI_INPUT_CAP;
   const cap = Math.min(Number(options['chunk-chars']) || engineCap, engineCap);
   const chunks = chunkText(got.text, cap);
+  // v0.3 — multi-chunk → lock a CONSISTENCY directive into the shared voice-direction so every
+  // chunk reads with one steady narrator (the model has no cross-request memory). Loudness is
+  // separately equalized at stitch time (loudnorm). Both default ON for long-form.
+  if (chunks.length > 1) instructions = params.withConsistency(instructions);
 
   const totalChars = chunks.reduce((s, c) => s + c.length, 0);
   const totalCost = Math.round(estimateCost({ chars: totalChars, model }).usd * 1e4) / 1e4;
@@ -172,7 +176,11 @@ async function run(argv) {
 
   const parts = results.map((r) => r.file).filter(Boolean);
   fs.mkdirSync(outDir, { recursive: true });
-  const stitched = stitchAudio(parts, finalFile, format);
+  // v0.3 — normalize each part to one loudness target before concatenating (the volume-consistency fix).
+  const stitched = stitchAudio(parts, finalFile, format, {
+    normalize: options.normalize !== false,
+    targetLufs: Number.isFinite(Number(options['target-lufs'])) ? Number(options['target-lufs']) : params.DEFAULTS['target-lufs'],
+  });
   if (!stitched.ok) {
     fs.writeFileSync(path.join(runDir, 'run.json'), `${JSON.stringify({ ...manifest, outcome: 'api_error', error: stitched.error, parts }, null, 2)}\n`);
     return { ok: false, outcome: 'api_error', chunks: chunks.length, cost_usd: totalCost, model, voice, warnings: manifest.warnings, error: `stitch failed: ${stitched.error}`, runJson: path.join(runDir, 'run.json') };

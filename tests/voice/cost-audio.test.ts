@@ -1,8 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+import { spawnSync } from "child_process";
 // @ts-ignore — Node interop from TS to CJS (repo convention)
 const { estimateCost, ratePerMinute, CHARS_PER_MINUTE, DEFAULT_RATE_PER_MIN } = require("../../scripts/voice/lib/cost.cjs");
 // @ts-ignore
-const { pcmToWav, outputArgsFor, ffmpegAvailable } = require("../../scripts/voice/lib/audio.cjs");
+const { pcmToWav, outputArgsFor, ffmpegAvailable, measureLoudness, normalizeLoudness, stitchAudio, DEFAULT_LUFS } = require("../../scripts/voice/lib/audio.cjs");
 
 // All-Edge-Cases-Test (global CLAUDE.md). voice-platform v0.1 cost estimator + the PURE
 // audio header wrapper. The ffmpeg shells are live-verified out-of-band (mp3 round-trips);
@@ -97,5 +101,63 @@ describe("outputArgsFor", () => {
 describe("ffmpegAvailable", () => {
   it("returns a boolean (memoized; no throw)", () => {
     expect(typeof ffmpegAvailable()).toBe("boolean");
+  });
+});
+
+// v0.3 loudness-consistency (ffmpeg-backed). Skipped entirely when ffmpeg is absent so the
+// suite stays green in a bare environment. Generates two tones at DIFFERENT loudness and proves
+// normalization converges them to one target (the cure for the "lúc to lúc nhỏ" volume drift).
+const HAVE_FFMPEG = ffmpegAvailable();
+const d = HAVE_FFMPEG ? describe : describe.skip;
+d("loudness consistency (loudnorm)", () => {
+  let tmp: string; let loudWav: string; let quietWav: string;
+  const tone = (out: string, vol: string) => spawnSync("ffmpeg",
+    ["-y", "-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i", "sine=frequency=300:duration=4", "-af", `volume=${vol}`, "-ar", "24000", "-ac", "1", out],
+    { encoding: "utf-8" });
+  beforeAll(() => {
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), "voice-loud-test-"));
+    loudWav = path.join(tmp, "loud.wav"); quietWav = path.join(tmp, "quiet.wav");
+    tone(loudWav, "-3dB"); tone(quietWav, "-18dB");
+  });
+
+  it("DEFAULT_LUFS targets the audiobook standard (-16 LUFS)", () => {
+    expect(DEFAULT_LUFS.i).toBe(-16);
+  });
+  it("measureLoudness reports a numeric input_i for a real file", () => {
+    const m = measureLoudness(loudWav);
+    expect(m).not.toBeNull();
+    expect(Number.isFinite(Number(m.input_i))).toBe(true);
+  });
+  it("the two tones start at DIFFERENT loudness (the inconsistency to fix)", () => {
+    const a = Number(measureLoudness(loudWav).input_i);
+    const b = Number(measureLoudness(quietWav).input_i);
+    expect(Math.abs(a - b)).toBeGreaterThan(5); // clearly audible gap
+  });
+  it("normalizeLoudness converges both to ~ -16 LUFS (gap shrinks below ~2 LU)", () => {
+    const ln = path.join(tmp, "loud-n.wav"); const qn = path.join(tmp, "quiet-n.wav");
+    expect(normalizeLoudness(loudWav, ln, { i: -16 }).ok).toBe(true);
+    expect(normalizeLoudness(quietWav, qn, { i: -16 }).ok).toBe(true);
+    const a = Number(measureLoudness(ln).input_i);
+    const b = Number(measureLoudness(qn).input_i);
+    expect(Math.abs(a - (-16))).toBeLessThan(2.5);
+    expect(Math.abs(b - (-16))).toBeLessThan(2.5);
+    expect(Math.abs(a - b)).toBeLessThan(2); // now uniform
+  });
+  it("stitchAudio with normalize:true joins both into one valid file + reports normalized", () => {
+    const out = path.join(tmp, "stitched.mp3");
+    const r = stitchAudio([loudWav, quietWav], out, "mp3", { normalize: true, targetLufs: -16 });
+    expect(r.ok).toBe(true);
+    expect(r.normalized).toBe(true);
+    expect(fs.existsSync(out)).toBe(true);
+    expect(fs.statSync(out).size).toBeGreaterThan(0);
+  });
+  it("stitchAudio with normalize:false still works (raw concat)", () => {
+    const out = path.join(tmp, "stitched-raw.mp3");
+    const r = stitchAudio([loudWav, quietWav], out, "mp3", { normalize: false });
+    expect(r.ok).toBe(true);
+    expect(fs.existsSync(out)).toBe(true);
+  });
+  it("empty parts → typed error (never throws)", () => {
+    expect(stitchAudio([], path.join(tmp, "x.mp3"), "mp3").ok).toBe(false);
   });
 });

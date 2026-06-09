@@ -70,6 +70,17 @@ content the source didn't have. Techniques:
 | `poetry` | lyrical, rhythmic, expressive; honor meter + line breaks | low–normal | pause at line breaks + stanzas; let the music sound |
 | `comedy` | playful, light, knowing; great comedic timing; setup → punchline | normal | the BEAT before the punchline is everything |
 
+## Long-form / multi-file consistency (v0.3)
+
+When the input is long or a folder (it will be split into many chunks generated independently),
+**author the voice-direction ONCE, before splitting, and make it UNIFORMITY-first** — not
+expressive. Replace "expressive / dramatize" language with: "this is ONE continuous reading; keep
+the SAME single narrator, the same steady volume, pace, and even tone for EVERY part; do not
+re-characterize or change energy based on a passage's content." Apply that *same* block to every
+chunk; keep markup minimal + identical (no per-chunk creative `[tags]`). `params.withConsistency()`
+provides the canonical clause. (Loudness drift is fixed separately + deterministically by `loudnorm`
+at stitch time — you don't need to address volume in the direction.)
+
 ## Engine notes
 
 - **OpenAI (`openai-tts` / whisper)** — the block becomes the `instructions` field (≤4096 chars); the marked-up text becomes `input`. **Strip inline `[tags]`** (OpenAI reads them literally). Pace = words in `instructions`.
