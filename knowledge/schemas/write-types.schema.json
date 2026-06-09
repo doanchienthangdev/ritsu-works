@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "write-types.schema.json",
+  "title": "Content-type registry (capability write-platform)",
+  "description": "The vocabulary of /write --type=<id>. Each type carries its per-type mediums, default length, a structure hint that seeds the orchestrator outline, and recommends flags for auto image/dataviz/research enrichment. Structural shape only; cross-file checks (mediums non-empty, default_medium ∈ mediums, category valid) are enforced by scripts/cross-tier/validate-write-registries.cjs.",
+  "type": "object",
+  "required": ["version", "types"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema": { "type": "string" },
+    "length_presets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["words"],
+        "properties": {
+          "words": { "type": "integer", "minimum": 1 },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "categories": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+      "minItems": 1
+    },
+    "types": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "description", "default_medium", "mediums", "default_length", "structure_hint"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "Unique slug; the value passed to --type=<id>." },
+          "category": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "aliases": { "type": "array", "items": { "type": "string" } },
+          "description": { "type": "string", "minLength": 1 },
+          "default_medium": { "type": "string", "minLength": 1 },
+          "mediums": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "default_length": { "type": "string", "minLength": 1 },
+          "structure_hint": { "type": "string", "minLength": 1 },
+          "recommends": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "image": { "type": ["boolean", "string"] },
+              "dataviz": { "type": ["boolean", "string"] },
+              "research": { "type": ["boolean", "string"] }
+            }
+          },
+          "humanize": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

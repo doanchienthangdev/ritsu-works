@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "author-styles.schema.json",
+  "title": "Author-style registry (capability write-platform)",
+  "description": "Split registry index for distilled author voices. Content lives in 06-ai-ops/write/author-styles/<slug>/ (COMMITTED, github-shared — reusable by every user of the repo, like wiki). registration != materialization: an author may be registered status:pending|planned before /write distill fills the artifact folder; status:installed requires STYLE.md + voice-card.md to exist (enforced by scripts/cross-tier/validate-write-registries.cjs).",
+  "type": "object",
+  "required": ["version", "author_styles"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema": { "type": "string" },
+    "author_styles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["slug", "full_name", "category", "path", "status"],
+        "additionalProperties": true,
+        "properties": {
+          "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "Unique slug; the value passed to --author-style=<slug>." },
+          "full_name": { "type": "string", "minLength": 1 },
+          "category": { "type": "string", "description": "e.g. copywriting, marketing, fiction, essay, business." },
+          "one_line": { "type": "string", "description": "One-line voice summary for the resolver/index." },
+          "path": { "type": "string", "description": "repo-relative folder: 06-ai-ops/write/author-styles/<slug>/" },
+          "status": {
+            "type": "string",
+            "enum": ["planned", "pending", "installed", "deprecated"],
+            "description": "planned = registered, not started. pending = distillation in progress. installed = artifact present (STYLE.md + voice-card.md required). deprecated = retired."
+          },
+          "origin": { "type": "string", "description": "distilled (the only origin in v0.1)." },
+          "source_kinds": { "type": "array", "items": { "type": "string" }, "description": "ref kinds the style was distilled from (books, articles, transcripts, urls)." },
+          "distilled_on": { "type": ["string", "null"], "description": "ISO date of distillation, or null." },
+          "confidence": { "type": ["string", "null"], "enum": ["low", "medium", "high", null], "description": "coarse self-reported fidelity of the distillation." },
+          "copyright": { "type": ["string", "null"], "description": "copyright posture note (fair-use / public-domain / freely-published)." }
+        }
+      }
+    }
+  }
+}

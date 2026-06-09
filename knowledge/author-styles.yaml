@@ -1,0 +1,48 @@
+# ============================================================================
+# author-styles.yaml — distilled author-voice registry (capability write-platform)
+# ============================================================================
+# Index for `/write --author-style=<slug>`. SPLIT registry: the artifact content
+# lives in 06-ai-ops/write/author-styles/<slug>/ (COMMITTED + github-shared, so every
+# user of this repo can write in these voices — exactly like wiki/). The index here
+# is the discovery + provenance + copyright-posture layer.
+#
+# A style is produced by `/write distill <slug> --ref-src=<refs>`. Status flow:
+#   planned → pending (distillation running) → installed (STYLE.md + voice-card.md present).
+#
+# COPYRIGHT POSTURE (canonical): each artifact is TRANSFORMATIVE STYLE ANALYSIS plus
+# short, attributed, fair-use excerpts (≤ ~25 words from copyrighted books; fuller from
+# the author's freely-published blog, public talks, or public-domain). Never a
+# reproduction of a protected work. See 06-ai-ops/write/author-styles/README.md.
+#
+# Schema: knowledge/schemas/author-styles.schema.json
+# Gate:   scripts/cross-tier/validate-write-registries.cjs (installed ⇒ STYLE.md + voice-card.md exist)
+# Resolved by: scripts/write/lib/authors.cjs
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/author-styles.schema.json
+
+author_styles:
+  - slug: seth-godin
+    full_name: Seth Godin
+    category: marketing
+    one_line: "Short, declarative, generous. Names the unnamed pattern; inverts the safe default; ships daily."
+    path: 06-ai-ops/write/author-styles/seth-godin/
+    status: pending   # flips to `installed` when /write distill writes the artifact (Wave 3)
+    origin: distilled
+    source_kinds: [books, articles, transcripts]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Style analysis + short fair-use excerpts. Blog posts (seths.blog) are freely published; talks are public; book quotes kept ≤15 words per the source archive's posture."
+
+  - slug: david-ogilvy
+    full_name: David Ogilvy
+    category: copywriting
+    one_line: "Research-first, specific over clever, long copy that sells. The fact, not the adjective. Reader as intelligent."
+    path: 06-ai-ops/write/author-styles/david-ogilvy/
+    status: pending   # flips to `installed` when /write distill writes the artifact (Wave 3)
+    origin: distilled
+    source_kinds: [books, articles, transcripts]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Style analysis + attributed fair-use excerpts. Ogilvy d.1999; public talks + the 'How to Write' memo + curated article quotes are fair use; book quotes kept short per the source archive's posture."

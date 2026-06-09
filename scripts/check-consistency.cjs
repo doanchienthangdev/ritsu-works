@@ -253,6 +253,8 @@ async function main() {
     ['validate-voice-adapters.cjs', 'voice-adapters.yaml ↔ schema + generator-on-disk'],
     // capability dataviz v0.1 — dataviz-renderers.yaml structural + supports⊆universal + installed⇒generator-on-disk
     ['validate-dataviz-renderers.cjs', 'dataviz-renderers.yaml ↔ schema + supports⊆universal'],
+    // capability write-platform v0.1 — write-types/author-styles/write-templates registries: cross-checks + file-existence
+    ['validate-write-registries.cjs', 'write-platform registries ↔ schema + mediums/template/author paths'],
     // capability thinking-toolkit v1.3 — mckinsey-workflow.yaml 4S catalog: every referenced skill + concept exists on disk
     ['validate-mckinsey-workflow.cjs', 'mckinsey-workflow.yaml ↔ skills + concepts exist'],
     // capability thinking-toolkit v2.0 — mckinsey-templates.yaml Sell registry: structural + no brand-key leak (orthogonal to --style)

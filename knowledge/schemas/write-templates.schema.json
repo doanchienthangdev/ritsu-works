@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "write-templates.schema.json",
+  "title": "Writing-template registry (capability write-platform)",
+  "description": "Index of structure templates the writer can follow (--template=<id>). Templates are COMMITTED markdown skeletons under 06-ai-ops/write/templates/<category>/<id>.md, organized in category subfolders. File-existence is enforced by scripts/cross-tier/validate-write-registries.cjs.",
+  "type": "object",
+  "required": ["version", "templates"],
+  "additionalProperties": true,
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema": { "type": "string" },
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "path", "description"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$", "description": "Unique slug; the value passed to --template=<id> (a bare name resolves through the registry; a path is also accepted by --template=)." },
+          "category": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "path": { "type": "string", "description": "repo-relative path: 06-ai-ops/write/templates/<category>/<id>.md" },
+          "description": { "type": "string", "minLength": 1 },
+          "applies_to_types": { "type": "array", "items": { "type": "string" }, "description": "write-types ids this template fits well (advisory)." }
+        }
+      }
+    }
+  }
+}

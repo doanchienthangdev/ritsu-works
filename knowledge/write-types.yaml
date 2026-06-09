@@ -1,0 +1,319 @@
+# ============================================================================
+# write-types.yaml — content-type registry (capability write-platform)
+# ============================================================================
+# The vocabulary of `/write --type=<id>`. Each type carries its popular
+# `mediums[]` (the `/write --medium=<id>` options for that type), a default
+# length, a structure hint that seeds the orchestrator's outline, and
+# `recommends` flags that drive auto image/dataviz/research enrichment.
+#
+# `humanize: true` is the default for every type — de-AI is the whole point.
+# A type may set `humanize: false` only where AI-tells are irrelevant (none do
+# in v0.1; the field exists for future structured/code-only types).
+#
+# Schema: knowledge/schemas/write-types.schema.json
+# Gate:   scripts/cross-tier/validate-write-registries.cjs
+# Spec:   wiki/capabilities/write-platform/spec.md (after Phase 8; draft .archives/cla/write-platform/spec.md)
+# Resolved by: scripts/write/lib/types.cjs
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/write-types.schema.json
+
+# Length vocabulary shared across types (scripts/write/lib/length.cjs is the resolver).
+# Word targets are approximate; the orchestrator budgets sections against them.
+length_presets:
+  short:            { words: 250,   note: "a tight single idea (≈1 screen)" }
+  medium:           { words: 800,   note: "a standard post / article" }
+  long:             { words: 2000,  note: "a deep article / guide" }
+  very-long:        { words: 4000,  note: "a long-form essay / whitepaper" }
+  extremely-long:   { words: 8000,  note: "a definitive piece / short ebook chapter" }
+# Also accepted at runtime (parsed, not enumerated here): `<N>w` (≈N words) and `<N>p`
+# (≈N pages → N×450 words). e.g. 1500w, 5p.
+
+categories:
+  - marketing       # demand-gen, ads, social, conversion
+  - content         # blog, article, tutorial, long-form
+  - media           # video / podcast / presentation scripts
+  - research        # research notes, papers, analysis
+  - business        # memo, proposal, report, bio
+  - creative        # story, poetry, screenplay, speech
+  - support         # faq, docs, reviews
+
+types:
+  # ── content ──────────────────────────────────────────────────────────────
+  - id: blog
+    category: content
+    aliases: [blog-post, post]
+    description: "A standalone blog article — a hook, an argument or story, a takeaway."
+    default_medium: ritsu
+    mediums: [ritsu, substack, medium, wordpress, ghost, dev-to, hashnode, linkedin-article, personal]
+    default_length: medium
+    structure_hint: "Hook (earn the next line) → promise → body (argument/story/evidence) → turn → memorable takeaway."
+    recommends: { image: auto, dataviz: auto, research: false }
+    humanize: true
+  - id: article
+    category: content
+    aliases: [feature, magazine-article]
+    description: "An edited article — journalistic or feature, reported and structured."
+    default_medium: feature
+    mediums: [feature, news, op-ed, magazine, listicle, explainer, longread]
+    default_length: long
+    structure_hint: "Lede → nut graf (why it matters) → reported body in scenes/sections → kicker."
+    recommends: { image: auto, dataviz: auto, research: true }
+    humanize: true
+  - id: tutorial
+    category: content
+    aliases: [how-to, walkthrough, guide]
+    description: "A step-by-step teaching piece that gets the reader to a working result."
+    default_medium: docs
+    mediums: [docs, blog, dev-to, readme, video-companion]
+    default_length: long
+    structure_hint: "What you'll build + prereqs → numbered steps (each: do this, see this) → verify → troubleshoot → next."
+    recommends: { image: auto, dataviz: false, research: false }
+    humanize: true
+  - id: newsletter
+    category: content
+    aliases: [email-newsletter]
+    description: "A recurring email issue — one clear idea, a personal voice, one CTA."
+    default_medium: substack
+    mediums: [substack, beehiiv, mailchimp, ghost, ritsu]
+    default_length: medium
+    structure_hint: "Subject + preview → personal open → one idea developed → one link/CTA → sign-off."
+    recommends: { image: auto, dataviz: false, research: false }
+    humanize: true
+  # ── marketing ────────────────────────────────────────────────────────────
+  - id: social-post
+    category: marketing
+    aliases: [social, post-social, tweet]
+    description: "A single social post sized and voiced for one platform."
+    default_medium: x
+    mediums: [x, facebook, linkedin, instagram, threads, reddit, bluesky, mastodon, tiktok-caption]
+    default_length: short
+    structure_hint: "Scroll-stopping first line → one idea, no throat-clearing → concrete detail → soft prompt (not engagement-bait)."
+    recommends: { image: auto, dataviz: false, research: false }
+    humanize: true
+  - id: thread
+    category: marketing
+    aliases: [twitter-thread, x-thread]
+    description: "A multi-post thread — one idea per post, each able to stand alone."
+    default_medium: x
+    mediums: [x, linkedin, threads, bluesky]
+    default_length: medium
+    structure_hint: "Post 1 = the whole promise. Each post = one beat that earns the next. Last post = payoff + (optional) ask."
+    recommends: { image: auto, dataviz: auto, research: false }
+    humanize: true
+  - id: ad
+    category: marketing
+    aliases: [ad-copy, advert, advertisement]
+    description: "Persuasion copy that sells one thing to one person on one surface."
+    default_medium: facebook
+    mediums: [facebook, google-search, instagram, tiktok, print, billboard, native, x, youtube-pre-roll]
+    default_length: short
+    structure_hint: "One promise the reader wants → a specific, checkable claim (Ogilvy: the fact, not the adjective) → one CTA. Headline does 80% of the work."
+    recommends: { image: auto, dataviz: false, research: false }
+    humanize: true
+  - id: landing-page
+    category: marketing
+    aliases: [landing, sales-page, lp]
+    description: "A conversion page — promise above the fold, proof, objection-handling, one action."
+    default_medium: saas-hero
+    mediums: [saas-hero, product-launch, lead-magnet, webinar-reg, waitlist]
+    default_length: long
+    structure_hint: "Hero (promise + subhead + CTA) → how it works → proof → objections → pricing/recap → final CTA."
+    recommends: { image: auto, dataviz: auto, research: false }
+    humanize: true
+  - id: email
+    category: marketing
+    aliases: [email-copy, cold-email]
+    description: "A single email with one job — open, read, click (or reply)."
+    default_medium: lifecycle
+    mediums: [cold-outreach, lifecycle, sales-sequence, welcome, re-engagement, transactional]
+    default_length: short
+    structure_hint: "Subject (curiosity or value, not clickbait) → one-line relevance → one idea → one ask. Short wins."
+    recommends: { image: false, dataviz: false, research: false }
+    humanize: true
+  - id: product-description
+    category: marketing
+    aliases: [product-copy, pdp]
+    description: "Copy that makes one product feel worth buying."
+    default_medium: ecommerce
+    mediums: [ecommerce, amazon, shopify, app-store, saas-feature]
+    default_length: short
+    structure_hint: "Benefit-led headline → what it is → who it's for → the one specific reason to trust it → spec/feature recap."
+    recommends: { image: auto, dataviz: false, research: false }
+    humanize: true
+  - id: press-release
+    category: marketing
+    aliases: [pr, press]
+    description: "A news announcement written for a journalist to lift verbatim."
+    default_medium: company-blog
+    mediums: [pr-newswire, company-blog, media-kit]
+    default_length: medium
+    structure_hint: "Headline → dateline → lede (who/what/when/where/why) → quote → boilerplate → contact. Inverted pyramid."
+    recommends: { image: false, dataviz: false, research: true }
+    humanize: true
+  # ── media ────────────────────────────────────────────────────────────────
+  - id: video-script
+    category: media
+    aliases: [script-video, yt-script, vsl]
+    description: "A spoken-word script with visual direction, paced for the platform."
+    default_medium: youtube-long
+    mediums: [youtube-long, youtube-short, reel, tiktok, explainer, ad-spot, vsl, course-lesson]
+    default_length: medium
+    structure_hint: "Hook in 3 seconds → promise of payoff → beats (each with [VISUAL] cue) → retention re-hooks → CTA. Write for the ear."
+    recommends: { image: auto, dataviz: false, research: false }
+    humanize: true
+  - id: podcast-script
+    category: media
+    aliases: [podcast, show-script]
+    description: "A podcast episode outline or full script — solo, interview, or narrative."
+    default_medium: solo
+    mediums: [solo, interview, narrative, cold-open]
+    default_length: long
+    structure_hint: "Cold open / hook → intro → segments (talking points, not a recitation) → transitions → outro + CTA."
+    recommends: { image: false, dataviz: false, research: true }
+    humanize: true
+  - id: presentation
+    category: media
+    aliases: [slides, deck, pitch-deck, talk]
+    description: "A slide-by-slide narrative — one idea per slide, speaker notes optional."
+    default_medium: pitch-deck
+    mediums: [pitch-deck, keynote, webinar, conference, sales-deck, internal-readout]
+    default_length: medium
+    structure_hint: "One assertion per slide (title = the takeaway, not the topic) → support → arc that builds to the ask."
+    recommends: { image: auto, dataviz: auto, research: true }
+    humanize: true
+  # ── research ───────────────────────────────────────────────────────────────
+  - id: research
+    category: research
+    aliases: [research-note, analysis, brief]
+    description: "A rigorous analysis or literature synthesis — claims tied to evidence."
+    default_medium: research-note
+    mediums: [research-note, literature-review, market-analysis, competitive-analysis, survey-writeup]
+    default_length: long
+    structure_hint: "Question → method/scope → findings (each cited) → synthesis → limits → so-what. Cite, don't assert."
+    recommends: { image: false, dataviz: auto, research: true }
+    humanize: true
+  - id: paper
+    category: research
+    aliases: [academic-paper, preprint]
+    description: "An academic-style paper — abstract, structured argument, references."
+    default_medium: preprint
+    mediums: [academic, preprint, conference, journal, technical-report]
+    default_length: very-long
+    structure_hint: "Abstract → intro (gap + contribution) → related work → method → results → discussion → conclusion → references."
+    recommends: { image: false, dataviz: auto, research: true }
+    humanize: true
+  - id: essay
+    category: research
+    aliases: [personal-essay, op-ed-essay]
+    description: "An argued or reflective essay — a mind working through an idea on the page."
+    default_medium: personal
+    mediums: [personal, argumentative, narrative, philosophical, persuasive]
+    default_length: long
+    structure_hint: "An honest entry point → develop the tension, don't resolve it too fast → earn the turn → land somewhere the reader didn't expect but believes."
+    recommends: { image: false, dataviz: false, research: false }
+    humanize: true
+  # ── business ────────────────────────────────────────────────────────────────
+  - id: memo
+    category: business
+    aliases: [internal-memo, brief-memo]
+    description: "A short internal memo that drives a decision (Ogilvy/Bezos discipline)."
+    default_medium: internal
+    mediums: [internal, executive, decision, six-pager, announcement]
+    default_length: medium
+    structure_hint: "Bottom line up front → context → options/recommendation → ask + owner + date. Under 1 page where possible."
+    recommends: { image: false, dataviz: auto, research: false }
+    humanize: true
+  - id: proposal
+    category: business
+    aliases: [pitch, rfp-response]
+    description: "A proposal that wins a yes — understanding, plan, proof, terms."
+    default_medium: business
+    mediums: [business, grant, project, rfp-response, partnership]
+    default_length: long
+    structure_hint: "Their problem in their words → your approach → why you → scope/plan/timeline → price → next step."
+    recommends: { image: auto, dataviz: auto, research: true }
+    humanize: true
+  - id: report
+    category: business
+    aliases: [business-report, status-report]
+    description: "A structured report — findings and recommendations for a decision-maker."
+    default_medium: business
+    mediums: [business, market, internal, board, quarterly]
+    default_length: long
+    structure_hint: "Executive summary → background → findings (evidence) → analysis → recommendations → appendix."
+    recommends: { image: false, dataviz: auto, research: true }
+    humanize: true
+  - id: bio
+    category: business
+    aliases: [about, profile, speaker-bio]
+    description: "A bio or about — who someone is and why it matters, in their register."
+    default_medium: linkedin
+    mediums: [linkedin, speaker, company-about, author, web]
+    default_length: short
+    structure_hint: "Who + what they do + the one credential that earns trust + a human detail. Third person unless personal."
+    recommends: { image: false, dataviz: false, research: false }
+    humanize: true
+  # ── creative ────────────────────────────────────────────────────────────────
+  - id: story
+    category: creative
+    aliases: [fiction, short-story, narrative]
+    description: "A piece of narrative fiction — character, desire, obstacle, change."
+    default_medium: short-story
+    mediums: [short-story, flash-fiction, scene, chapter, micro-fiction]
+    default_length: long
+    structure_hint: "Open in motion → a character who wants something → escalating obstacle → turn → change. Show, don't summarize."
+    recommends: { image: auto, dataviz: false, research: false }
+    humanize: true
+  - id: poetry
+    category: creative
+    aliases: [poem, verse]
+    description: "A poem — compression, image, sound, and a turn."
+    default_medium: free-verse
+    mediums: [free-verse, sonnet, haiku, spoken-word, prose-poem]
+    default_length: short
+    structure_hint: "A concrete image → music (line breaks earn their pauses) → a turn (volta) → an ending that resonates, not concludes."
+    recommends: { image: auto, dataviz: false, research: false }
+    humanize: true
+  - id: screenplay
+    category: creative
+    aliases: [script, screen-script, sketch]
+    description: "A screenplay or sketch — scene-formatted, action and dialogue."
+    default_medium: scene
+    mediums: [scene, short-film, sketch, ad-spot, trailer]
+    default_length: medium
+    structure_hint: "SLUGLINE → action (present tense, visual) → CHARACTER → dialogue (subtext over text) → beat → button."
+    recommends: { image: false, dataviz: false, research: false }
+    humanize: true
+  - id: speech
+    category: creative
+    aliases: [talk, keynote-speech, remarks]
+    description: "A speech written for the ear and the room — rhythm, repetition, a single idea."
+    default_medium: keynote
+    mediums: [keynote, toast, commencement, ted-style, eulogy, sales-kickoff]
+    default_length: medium
+    structure_hint: "One idea → an opening that lands in the room → 3 movements with repetition/refrain → a close they'll quote. Read it aloud."
+    recommends: { image: false, dataviz: false, research: false }
+    humanize: true
+  # ── support ────────────────────────────────────────────────────────────────
+  - id: faq
+    category: support
+    aliases: [faqs, qa]
+    description: "Question-and-answer help content — real questions, direct answers."
+    default_medium: support
+    mediums: [support, product, web, onboarding]
+    default_length: medium
+    structure_hint: "Group by job-to-be-done → question in the user's words → answer first, then detail → link to do-it."
+    recommends: { image: false, dataviz: false, research: false }
+    humanize: true
+  - id: review
+    category: support
+    aliases: [product-review, critique]
+    description: "An evaluative review — honest verdict, evidence, who it's for."
+    default_medium: product
+    mediums: [product, book, restaurant, software, service]
+    default_length: medium
+    structure_hint: "Verdict up front → who it's for → what's good (specific) → what's not → comparison → recommendation."
+    recommends: { image: auto, dataviz: false, research: true }
+    humanize: true
