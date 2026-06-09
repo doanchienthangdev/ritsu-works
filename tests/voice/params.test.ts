@@ -227,3 +227,55 @@ describe("slugify", () => {
     expect(params.slugify("!!!")).toBe("voice");
   });
 });
+
+describe("v0.3 consistency params", () => {
+  it("normalize defaults ON, target-lufs defaults -16, max-retries defaults 4", () => {
+    expect(params.DEFAULTS.normalize).toBe(true);
+    expect(params.DEFAULTS["target-lufs"]).toBe(-16);
+    expect(params.DEFAULTS["max-retries"]).toBe(4);
+    const { options } = params.parseVoiceArgs([]);
+    expect(options.normalize).toBe(true);
+    expect(options["target-lufs"]).toBe(-16);
+    expect(options["max-retries"]).toBe(4);
+  });
+  it("--max-retries parses as a number and never warns", () => {
+    expect(params.parseVoiceArgs(["--max-retries=6"]).options["max-retries"]).toBe(6);
+    expect(params.computeWarnings({ supports: [] }, new Set(["max-retries"]))).toEqual([]);
+  });
+  it("--normalize=false disables; --target-lufs sets a numeric target", () => {
+    expect(params.parseVoiceArgs(["--normalize=false"]).options.normalize).toBe(false);
+    expect(params.parseVoiceArgs(["--normalize=no"]).options.normalize).toBe(false);
+    expect(params.parseVoiceArgs(["--target-lufs=-18"]).options["target-lufs"]).toBe(-18);
+    expect(params.parseVoiceArgs(["--target-lufs=-23"]).options["target-lufs"]).toBe(-23);
+  });
+  it("normalize/target-lufs never warn (handled at stitch, not the adapter)", () => {
+    const caps = { supports: ["voice", "pace"], unsupported_warn: ["speed"] };
+    expect(params.computeWarnings(caps, new Set(["normalize", "target-lufs"]))).toEqual([]);
+  });
+});
+
+describe("withConsistency / consistency directive", () => {
+  it("appends the CONSISTENCY directive to a plain block", () => {
+    const out = params.withConsistency("Voice: a calm voice.");
+    expect(out).toContain("Voice: a calm voice.");
+    expect(out).toContain("CONSISTENCY");
+    expect(out).toContain(params.CONSISTENCY_DIRECTIVE);
+  });
+  it("is idempotent — does not double-append", () => {
+    const once = params.withConsistency("Voice: x.");
+    const twice = params.withConsistency(once);
+    expect((twice.match(/CONSISTENCY —/g) || []).length).toBe(1);
+  });
+  it("detects an existing VI/EN consistency clause and skips", () => {
+    expect(params.withConsistency("giữ một giọng nhất quán xuyên suốt")).not.toContain("CONSISTENCY —");
+    expect(params.withConsistency("one continuous reading by a single narrator")).not.toContain("CONSISTENCY —");
+  });
+  it("empty/falsy input → just the directive", () => {
+    expect(params.withConsistency("")).toBe(params.CONSISTENCY_DIRECTIVE);
+    expect(params.withConsistency(null)).toBe(params.CONSISTENCY_DIRECTIVE);
+  });
+  it("buildFallbackInstructions only adds the directive when consistent=true", () => {
+    expect(params.buildFallbackInstructions("audiobook", "normal")).not.toContain("CONSISTENCY —");
+    expect(params.buildFallbackInstructions("audiobook", "normal", { consistent: true })).toContain("CONSISTENCY —");
+  });
+});

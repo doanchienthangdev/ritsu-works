@@ -112,8 +112,25 @@ function withPace(instructions, pace) {
 }
 
 // ── provider calls ──────────────────────────────────────────────────────────
+// Network timeout (AbortController) — a stalled TTS connection must NOT hang a long-form
+// render forever (a real failure mode on the preview models). Default 180s (generous for a
+// big chunk's audio); override with VOICE_FETCH_TIMEOUT_MS. On timeout the caller retries.
+const FETCH_TIMEOUT_MS = Number(process.env.VOICE_FETCH_TIMEOUT_MS) || 180000;
+async function fetchWithTimeout(url, opts) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw new Error(`TTS request timed out after ${FETCH_TIMEOUT_MS}ms`);
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function callOpenAi({ model, voice, input, instructions, responseFormat }) {
-  const res = await fetch(OPENAI_SPEECH_URL, {
+  const res = await fetchWithTimeout(OPENAI_SPEECH_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
     body: JSON.stringify({ model, voice, input, instructions, response_format: responseFormat }),
@@ -135,7 +152,7 @@ async function callGemini({ model, voice, text }) {
       speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
     },
   };
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
     body: JSON.stringify(body),

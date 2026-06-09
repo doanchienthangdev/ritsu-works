@@ -33,6 +33,7 @@ const UNIVERSAL_PARAMS = Object.freeze([
   'text', 'file', 'folder', 'in', 'use', 'type', 'pace', 'voice', 'gender', 'lang',
   'format', 'instructions', 'style', 'speed', 'multi-speaker', 'markup', 'model',
   'out', 'name', 'chunk-chars', 'concurrency', 'stitch', 'max-cost-usd', 'dry-run',
+  'normalize', 'target-lufs', 'max-retries', // v0.3 — long-form consistency + reliability
 ]);
 
 // Content TYPE → drives the preprocessing tone. `default` when omitted.
@@ -97,10 +98,11 @@ const DEFAULTS = Object.freeze({
   use: DEFAULT_ADAPTER, type: 'default', pace: 'normal', gender: 'any', format: 'mp3',
   lang: 'auto', 'chunk-chars': 1800, concurrency: 4, stitch: true,
   'max-cost-usd': 1.0, 'dry-run': false,
+  normalize: true, 'target-lufs': -16, 'max-retries': 4, // v0.3 — uniform loudness + per-chunk retry
 });
 
-const BOOL_FLAGS = Object.freeze(['stitch', 'dry-run', 'multi-speaker', 'markup']);
-const NUM_FLAGS = Object.freeze(['chunk-chars', 'concurrency', 'speed', 'max-cost-usd']);
+const BOOL_FLAGS = Object.freeze(['stitch', 'dry-run', 'multi-speaker', 'markup', 'normalize']);
+const NUM_FLAGS = Object.freeze(['chunk-chars', 'concurrency', 'speed', 'max-cost-usd', 'target-lufs', 'max-retries']);
 
 /**
  * Parse `/voice` argv into options + the set of explicitly-provided flags.
@@ -197,13 +199,33 @@ function resolveVoice(adapterId, options, aliasMap = {}) {
  * when the caller supplied no preprocessed --instructions. Mirrors the shape of
  * the gpt-4o-mini-tts `instructions` field / the Gemini natural-language prefix.
  */
-function buildFallbackInstructions(type, pace) {
+// v0.3 — the CONSISTENCY directive for long-form / multi-chunk content. A TTS request has
+// no memory of previous requests, so each chunk otherwise drifts in energy/pace/tone driven
+// by ITS OWN content. This locked clause forces one steady, uniform narrator across every
+// chunk. Loudness ("lúc to lúc nhỏ") is fixed deterministically by loudnorm at stitch time;
+// this clause fixes the things loudnorm can't: tone, pace, intonation, and character drift.
+const CONSISTENCY_DIRECTIVE = 'CONSISTENCY — this is ONE continuous reading split into parts that will be joined: use EXACTLY the same single narrator, the same timbre, the same steady volume, the same pace, and the same even, measured tone for EVERY part. Do NOT dramatize, re-characterize, change accent, or vary energy based on the content of any individual passage. Read everything as one calm, uniform, professional narration — as if it were a single unbroken recording.';
+
+/** Append the CONSISTENCY directive to a voice-direction block if it isn't already there. */
+function withConsistency(instructions) {
+  const ins = String(instructions || '').trim();
+  if (/CONSISTENCY|nhất quán|one continuous|single narrator|một giọng/i.test(ins)) return ins;
+  return ins ? `${ins}\n${CONSISTENCY_DIRECTIVE}` : CONSISTENCY_DIRECTIVE;
+}
+
+/**
+ * The DETERMINISTIC style floor: type + pace → a compact instruction block. When `consistent`
+ * is set (multi-chunk / long-form), the CONSISTENCY directive is appended so every chunk reads
+ * with the same steady delivery.
+ */
+function buildFallbackInstructions(type, pace, opts = {}) {
   const style = TYPE_STYLE[normalizeType(type)] || TYPE_STYLE.default;
-  return [
+  const block = [
     `Voice: ${style}.`,
     `Pacing: speak ${paceToPhrase(pace)}.`,
     'Delivery: read the text below naturally, honoring its punctuation, ellipses, and paragraph breaks as pauses; keep pronunciation crisp and the emotion appropriate to the content.',
   ].join('\n');
+  return opts.consistent ? withConsistency(block) : block;
 }
 
 /**
@@ -218,6 +240,7 @@ const NEVER_WARN = new Set([
   'text', 'file', 'folder', 'in', 'use', 'type', 'gender', 'out', 'name', 'model',
   'lang', 'format', 'chunk-chars', 'concurrency', 'stitch', 'max-cost-usd', 'dry-run',
   'text-file', 'instructions-file', 'prompt-file', // operational file-path plumbing read by gen/run
+  'normalize', 'target-lufs', 'max-retries', // v0.3 post-gen loudness consistency + per-chunk retry (run.cjs, not the adapter)
 ]);
 const CONSEQUENCE = Object.freeze({
   speed: 'numeric speed is ignored by this backend (gpt-4o-mini-tts/Gemini) — pace is steered through the spoken-style instruction instead',
@@ -245,6 +268,7 @@ function slugify(s) {
 
 module.exports = {
   UNIVERSAL_PARAMS, TYPES, PACES, PACE_MAP, FORMATS, GENDERS, TYPE_STYLE, DEFAULTS, DEFAULT_ADAPTER,
+  CONSISTENCY_DIRECTIVE,
   parseVoiceArgs, normalizeType, normalizePace, normalizeFormat, resolveInputSpec,
-  paceToSpeed, paceToPhrase, paceToTag, resolveVoice, buildFallbackInstructions, computeWarnings, slugify,
+  paceToSpeed, paceToPhrase, paceToTag, resolveVoice, buildFallbackInstructions, withConsistency, computeWarnings, slugify,
 };

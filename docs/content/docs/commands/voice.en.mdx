@@ -1,5 +1,5 @@
 ---
-title: 'Command: /voice — capability `voice-platform` v0.2'
+title: 'Command: /voice — capability `voice-platform` v0.3'
 description: |
   Turn text, a file, or a folder of files into narrated audio — a model-agnostic
   front door with a pluggable TTS adapter layer (--use=<adapter>). Default engine
@@ -12,8 +12,8 @@ description: |
   Tier A; per-run --max-cost-usd breaker; provider keys out-of-band; artifacts to
   .archives/voice/<date>-<slug>/. Thin orchestrator over the `voice` umbrella skill.
 source_path: .claude/commands/voice.md
-source_hash: a0a48de9489db8be28f3fe80618eb0c8404bb77699c3324c421da16965256bc2
-generated_at: '2026-06-08T09:49:33.213Z'
+source_hash: ecf37d6bd44ee240585189ebb01b8b89afe5c5cc192476e616cfee942cf5e6e9
+generated_at: '2026-06-09T02:12:07.609Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: en
@@ -21,7 +21,9 @@ language: en
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-> **v0.2 (/cla extend):** the `--type` register vocabulary grew from 11 → **23** (added `film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`). Each new register carries its own content-aware voice-direction recipe in the `voice/preprocess` skill. No other surface changed.
+> **v0.3 (/cla extend) — long-form CONSISTENCY:** splitting a long file / folder into many chunks made each chunk drift in voice, tone, pace, and **volume** ("lúc to lúc nhỏ") — because each TTS request is independent and has no memory of the others. Two locked-in fixes: **(1)** the voice + all parameters + a **uniformity voice-direction** are locked *before* splitting and applied identically to every chunk (auto-injected for any multi-chunk run); **(2)** every chunk is **loudness-normalized to one target** (EBU R128 `loudnorm`, default **−16 LUFS**) before stitching — the deterministic cure for volume drift. New flags `--normalize` (default ON) and `--target-lufs`.
+>
+> **v0.2:** the `--type` register vocabulary grew 11 → **23** (`film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`).
 
 Front-end for the voice-platform capability. Parses flags, drives the `voice` umbrella
 skill (`06-ai-ops/skills/voice/SKILL.md`), reports the result. **Both engines are
@@ -65,9 +67,36 @@ existing file → file mode; otherwise inline text.
 | `--dry-run` | off | author + chunk + write the script/instruction sidecars, **no API spend**. |
 | `--out` | `.archives/voice/<date>-<slug>/` | output dir (root `.archives`, local-only). |
 | `--stitch` | on | merge a single input's chunks into one file (off → keep parts). |
+| `--normalize` | **on** | *(v0.3)* loudness-normalize every chunk to one target before stitching (EBU R128 `loudnorm`) — uniform volume across the whole output. `--normalize=false` to keep raw per-chunk levels. |
+| `--target-lufs` | `-16` | *(v0.3)* the integrated-loudness target (audiobook/podcast standard −16; use −18/−19 for a quieter master). |
 
 Warn-only on the current engines (no native mapping → never silently dropped): `--speed`
 (use `--pace`), `--multi-speaker` (Gemini-stretch), `--markup` (Gemini-only), `--style`.
+
+## Consistency on long / multi-file content (v0.3)
+
+A long file or a folder is split into many chunks, and **each TTS request is independent** — it
+has no memory of the others, so left alone the chunks drift in voice, tone, pace, and volume.
+`/voice` locks consistency on two axes:
+
+1. **Lock the voice profile *before* splitting.** The voice, model, pace, and a **uniformity
+   voice-direction** ("one continuous reading; same narrator, same steady tone/pace/volume; do
+   NOT dramatize per passage") are chosen once and applied **byte-identical to every chunk**.
+   For any multi-chunk run the uniformity clause is injected automatically (`params.withConsistency`);
+   keep markup minimal + identical across chunks (no per-chunk creative tags).
+2. **Equalize loudness deterministically.** Every chunk is normalized to one target loudness
+   (`--target-lufs`, default −16) with two-pass `loudnorm` before concatenation — the only reliable
+   cure for the "lúc to lúc nhỏ" volume drift the model produces. (Measured: raw chunks spanned
+   ~−20…−23 LUFS → all converge to ~−16 ±1.)
+3. **Don't lose chunks on a long run.** Each provider call is bounded by a fetch timeout
+   (`VOICE_FETCH_TIMEOUT_MS`, default 180s — a stalled preview-model connection can't hang the
+   render), and each chunk retries up to `--max-retries` (default 4) on a transient failure, so one
+   bad chunk in a 100-chunk book doesn't abort the whole render.
+
+> Inherent limit (honest): chunked TTS still can't perfectly match *timbre/intonation* across a
+> seam, because the model has no cross-request state. The uniformity direction + same voice + same
+> prompt minimize it; loudnorm removes the volume component entirely. For the tightest result, prefer
+> fewer/larger chunks and a calm, even register (`audiobook`/`narration`).
 
 ## Flow (dispatches to the `voice` umbrella skill)
 1. Parse flags (`params.cjs`); resolve input (text/file/folder); resolve `--use` against `knowledge/voice-adapters.yaml`.

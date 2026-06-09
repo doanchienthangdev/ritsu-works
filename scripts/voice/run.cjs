@@ -111,10 +111,14 @@ async function run(argv) {
   if (got.error) return { ok: false, outcome: 'input_error', error: got.error };
   if (!got.text || !got.text.trim()) return { ok: false, outcome: 'input_error', error: 'input is empty' };
 
-  const instructions = readInstructions(options, type, pace);
+  let instructions = readInstructions(options, type, pace);
   const engineCap = target.id.startsWith('gemini') ? GEMINI_INPUT_CAP : OPENAI_INPUT_CAP;
   const cap = Math.min(Number(options['chunk-chars']) || engineCap, engineCap);
   const chunks = chunkText(got.text, cap);
+  // v0.3 — multi-chunk → lock a CONSISTENCY directive into the shared voice-direction so every
+  // chunk reads with one steady narrator (the model has no cross-request memory). Loudness is
+  // separately equalized at stitch time (loudnorm). Both default ON for long-form.
+  if (chunks.length > 1) instructions = params.withConsistency(instructions);
 
   const totalChars = chunks.reduce((s, c) => s + c.length, 0);
   const totalCost = Math.round(estimateCost({ chars: totalChars, model }).usd * 1e4) / 1e4;
@@ -151,9 +155,21 @@ async function run(argv) {
   ];
   if (options['dry-run']) baseArgs.push('--dry-run');
 
-  const results = await pool(chunks, concurrency, (chunk, i) => {
-    const name = String(i + 1).padStart(3, '0');
-    return genMod.run([...baseArgs, `--name=${name}`, `--text=${chunk}`]);
+  // Per-chunk retry — long-form reliability. The preview TTS models occasionally return an
+  // empty/transient error or stall (now bounded by gen.cjs's fetch timeout); without retry a
+  // single bad chunk would abort the whole render. Retry up to maxRetries with linear backoff.
+  const maxRetries = Number.isFinite(Number(options['max-retries'])) ? Number(options['max-retries']) : 4;
+  const results = await pool(chunks, concurrency, async (chunk, i) => {
+    const name = String(i + 1).padStart(4, '0');
+    const args = [...baseArgs, `--name=${name}`, `--text=${chunk}`];
+    let r;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      r = await genMod.run(args);
+      if (r && r.ok) return r;
+      if (r && (r.outcome === 'not_built' || r.outcome === 'input_error' || r.outcome === 'breaker_refusal')) return r; // not transient
+      if (attempt < maxRetries) await new Promise((res) => setTimeout(res, 4000 + attempt * 2000));
+    }
+    return r;
   });
 
   const failed = results.filter((r) => !r || !r.ok);
@@ -172,7 +188,11 @@ async function run(argv) {
 
   const parts = results.map((r) => r.file).filter(Boolean);
   fs.mkdirSync(outDir, { recursive: true });
-  const stitched = stitchAudio(parts, finalFile, format);
+  // v0.3 — normalize each part to one loudness target before concatenating (the volume-consistency fix).
+  const stitched = stitchAudio(parts, finalFile, format, {
+    normalize: options.normalize !== false,
+    targetLufs: Number.isFinite(Number(options['target-lufs'])) ? Number(options['target-lufs']) : params.DEFAULTS['target-lufs'],
+  });
   if (!stitched.ok) {
     fs.writeFileSync(path.join(runDir, 'run.json'), `${JSON.stringify({ ...manifest, outcome: 'api_error', error: stitched.error, parts }, null, 2)}\n`);
     return { ok: false, outcome: 'api_error', chunks: chunks.length, cost_usd: totalCost, model, voice, warnings: manifest.warnings, error: `stitch failed: ${stitched.error}`, runJson: path.join(runDir, 'run.json') };

@@ -10,15 +10,15 @@ description: >
   `instructions` field (OpenAI) / the natural-language style prefix (Gemini). Invoked per input, or
   per chunk/file in batch.
 source_path: 06-ai-ops/skills/voice/preprocess/SKILL.md
-source_hash: 2c47bdd9086e8902fabbd3476d8857c35086e48d3d3f9ae0e13c21727fb409e6
-generated_at: '2026-06-08T09:49:33.366Z'
+source_hash: 48c080c9e6e2e138774fd6950a1927f11a31ac04d00a3246ba9dcf0ca969cf7c
+generated_at: '2026-06-09T02:02:47.765Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_at: '2026-06-08T10:00:00.000Z'
+translated_at: '2026-06-08T11:00:00.000Z'
 translated_by: docs-translate v1.1.0
-translated_source_hash: 2c47bdd9086e8902fabbd3476d8857c35086e48d3d3f9ae0e13c21727fb409e6
+translated_source_hash: 48c080c9e6e2e138774fd6950a1927f11a31ac04d00a3246ba9dcf0ca969cf7c
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -80,6 +80,18 @@ không bao giờ thêm nội dung mà nguồn gốc không có. Kỹ thuật:
 | `character` | lồng tiếng sống động; cá tính phóng đại; biên độ biểu cảm rộng | thay đổi | căn nhịp hài/kịch tính theo từng nhân vật; những lựa chọn táo bạo |
 | `poetry` | trữ tình, giàu nhịp điệu, biểu cảm; tôn trọng nhịp thơ + cách ngắt dòng | thấp–normal | dừng ở các điểm ngắt dòng + khổ thơ; để chất nhạc ngân lên |
 | `comedy` | tinh nghịch, nhẹ nhõm, ý nhị; căn nhịp hài cực tốt; mở màn → câu chốt | normal | NHỊP dừng trước câu chốt là tất cả |
+
+## Tính nhất quán cho bản dài / nhiều file (v0.3)
+
+Khi đầu vào là bản dài hoặc một thư mục (nó sẽ được chia thành nhiều chunk sinh ra một cách
+độc lập), hãy **soạn khối định hướng giọng đọc MỘT LẦN, trước khi chia, và lấy TÍNH ĐỒNG NHẤT
+làm ưu tiên hàng đầu** — chứ không phải tính biểu cảm. Thay những câu chữ kiểu "biểu cảm / kịch
+tính hóa" bằng: "đây là MỘT bản đọc liền mạch; giữ NGUYÊN một giọng kể duy nhất, cùng một mức âm
+lượng, nhịp độ ổn định và tông đều đặn cho MỌI phần; không tái đặc tả nhân vật hay thay đổi năng
+lượng dựa trên nội dung của một đoạn." Áp dụng *cùng* khối đó cho mọi chunk; giữ phần đánh dấu
+tối thiểu + giống hệt nhau (không có `[tags]` sáng tạo riêng cho từng chunk). `params.withConsistency()`
+cung cấp mệnh đề chuẩn. (Sự trôi âm lượng được xử lý riêng + một cách xác định bởi `loudnorm` tại
+thời điểm ghép — bạn không cần đề cập đến âm lượng trong phần định hướng.)
 
 ## Ghi chú về engine
 

@@ -1,5 +1,5 @@
 ---
-title: 'Command: /voice — capability `voice-platform` v0.2'
+title: 'Command: /voice — capability `voice-platform` v0.3'
 description: |
   Turn text, a file, or a folder of files into narrated audio — a model-agnostic
   front door with a pluggable TTS adapter layer (--use=<adapter>). Default engine
@@ -12,20 +12,22 @@ description: |
   Tier A; per-run --max-cost-usd breaker; provider keys out-of-band; artifacts to
   .archives/voice/<date>-<slug>/. Thin orchestrator over the `voice` umbrella skill.
 source_path: .claude/commands/voice.md
-source_hash: a0a48de9489db8be28f3fe80618eb0c8404bb77699c3324c421da16965256bc2
-generated_at: '2026-06-08T09:49:33.214Z'
+source_hash: ecf37d6bd44ee240585189ebb01b8b89afe5c5cc192476e616cfee942cf5e6e9
+generated_at: '2026-06-09T02:12:07.611Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
 translated: true
-translated_at: '2026-06-08T10:00:00.000Z'
+translated_at: '2026-06-08T11:00:00.000Z'
 translated_by: docs-translate v1.1.0
-translated_source_hash: a0a48de9489db8be28f3fe80618eb0c8404bb77699c3324c421da16965256bc2
+translated_source_hash: ecf37d6bd44ee240585189ebb01b8b89afe5c5cc192476e616cfee942cf5e6e9
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
 
-> **v0.2 (/cla extend):** bộ từ vựng register của `--type` đã tăng từ 11 → **23** (bổ sung `film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`). Mỗi register mới mang công thức voice-direction nhận biết nội dung riêng trong skill `voice/preprocess`. Không có bề mặt nào khác thay đổi.
+> **v0.3 (/cla extend) — CONSISTENCY cho nội dung dài:** việc chia một tệp dài / thư mục thành nhiều chunk khiến mỗi chunk bị lệch về giọng, tông, tốc độ và **âm lượng** ("lúc to lúc nhỏ") — vì mỗi yêu cầu TTS là độc lập và không có ký ức về các yêu cầu khác. Hai bản vá đã được chốt: **(1)** giọng + tất cả tham số + một **voice-direction đồng nhất** được khóa *trước khi* chia và áp dụng y hệt cho mọi chunk (tự động chèn vào bất kỳ lần chạy nhiều chunk nào); **(2)** mọi chunk được **chuẩn hóa độ to về một mục tiêu duy nhất** (EBU R128 `loudnorm`, mặc định **−16 LUFS**) trước khi ghép — liều thuốc tất định cho hiện tượng lệch âm lượng. Các cờ mới `--normalize` (mặc định BẬT) và `--target-lufs`.
+>
+> **v0.2:** bộ từ vựng register của `--type` đã tăng từ 11 → **23** (`film`, `conversation`, `language-learning`, `public-speaking`, `audiobook`, `asmr`, `sports`, `documentary`, `customer-support`, `character`, `poetry`, `comedy`).
 
 Giao diện đầu vào cho năng lực voice-platform. Phân tích các cờ, điều khiển skill ô dù `voice`
 (`06-ai-ops/skills/voice/SKILL.md`), báo cáo kết quả. **Cả hai engine đều đã được kiểm chứng
@@ -69,9 +71,36 @@ tệp đã tồn tại → chế độ file; ngược lại là văn bản nội
 | `--dry-run` | tắt | soạn + chia chunk + ghi các tệp phụ trợ script/instruction, **không tiêu tốn API**. |
 | `--out` | `.archives/voice/<date>-<slug>/` | thư mục đầu ra (gốc `.archives`, chỉ lưu cục bộ). |
 | `--stitch` | bật | gộp các chunk của một đầu vào đơn lẻ thành một tệp (tắt → giữ các phần riêng). |
+| `--normalize` | **bật** | *(v0.3)* chuẩn hóa độ to của mọi chunk về một mục tiêu duy nhất trước khi ghép (EBU R128 `loudnorm`) — âm lượng đồng nhất trên toàn bộ đầu ra. `--normalize=false` để giữ nguyên mức âm thô của từng chunk. |
+| `--target-lufs` | `-16` | *(v0.3)* mục tiêu độ to tích hợp (chuẩn audiobook/podcast là −16; dùng −18/−19 cho một bản master nhỏ tiếng hơn). |
 
 Chỉ cảnh báo trên các engine hiện tại (không có ánh xạ gốc → không bao giờ bị âm thầm bỏ qua): `--speed`
 (dùng `--pace`), `--multi-speaker` (Gemini-stretch), `--markup` (chỉ Gemini), `--style`.
+
+## Tính nhất quán trên nội dung dài / nhiều tệp (v0.3)
+
+Một tệp dài hoặc một thư mục được chia thành nhiều chunk, và **mỗi yêu cầu TTS là độc lập** — nó
+không có ký ức về các yêu cầu khác, nên nếu để mặc thì các chunk sẽ bị lệch về giọng, tông, tốc độ và âm lượng.
+`/voice` khóa tính nhất quán trên hai trục:
+
+1. **Khóa hồ sơ giọng *trước khi* chia.** Giọng, model, tốc độ, và một **voice-direction đồng nhất**
+   ("một mạch đọc liên tục; cùng một người dẫn, cùng tông/tốc độ/âm lượng đều đặn; KHÔNG kịch tính hóa
+   theo từng đoạn") được chọn một lần và áp dụng **y hệt từng byte cho mọi chunk**.
+   Với bất kỳ lần chạy nhiều chunk nào, mệnh đề đồng nhất được chèn tự động (`params.withConsistency`);
+   giữ markup tối thiểu + giống hệt nhau giữa các chunk (không có tag sáng tạo theo từng chunk).
+2. **Cân bằng độ to một cách tất định.** Mọi chunk được chuẩn hóa về một mức độ to mục tiêu
+   (`--target-lufs`, mặc định −16) bằng `loudnorm` hai lượt trước khi nối — cách chữa đáng tin cậy duy
+   nhất cho hiện tượng lệch âm lượng "lúc to lúc nhỏ" mà model tạo ra. (Đo được: các chunk thô trải dài
+   từ ~−20…−23 LUFS → tất cả hội tụ về ~−16 ±1.)
+3. **Đừng mất chunk trên một lần chạy dài.** Mỗi lệnh gọi nhà cung cấp được giới hạn bởi một timeout
+   (`VOICE_FETCH_TIMEOUT_MS`, mặc định 180s — một kết nối preview-model bị treo không thể làm đứng cả
+   lần render), và mỗi chunk thử lại tối đa `--max-retries` (mặc định 4) khi gặp lỗi tạm thời, để một
+   chunk hỏng trong một cuốn sách 100 chunk không làm hỏng toàn bộ lần render.
+
+> Giới hạn cố hữu (nói thẳng): TTS theo chunk vẫn không thể khớp hoàn hảo *âm sắc/ngữ điệu* qua một
+> đường nối, vì model không có trạng thái xuyên-yêu-cầu. Voice-direction đồng nhất + cùng một giọng + cùng
+> một prompt giúp giảm thiểu điều đó; `loudnorm` loại bỏ hoàn toàn thành phần âm lượng. Để có kết quả chặt
+> chẽ nhất, hãy ưu tiên ít chunk hơn/lớn hơn và một register bình thản, đều đặn (`audiobook`/`narration`).
 
 ## Luồng (điều phối tới skill ô dù `voice`)
 1. Phân tích các cờ (`params.cjs`); xác định đầu vào (text/file/folder); phân giải `--use` dựa trên `knowledge/voice-adapters.yaml`.
@@ -141,3 +170,4 @@ tiền xử lý = trong phiên/đăng ký. Cost-bucket `ai-ops-voice` (gps):
 `voice-gen` $0.50 (mang tính tư vấn — ngoài phiên; bộ ngắt mạch `--max-cost-usd` mới là lớp bảo vệ
 thật sự), `voice-preprocess` $0.10 (trong phiên). Hợp đồng runtime:
 `SOP-AIOPS-014-voice-runtime-contract`.
+
