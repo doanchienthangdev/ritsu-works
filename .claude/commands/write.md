@@ -33,7 +33,7 @@ Front-end for the universal content-writing platform. Parses the subcommand + fl
 | `--medium` | type default | per-type medium (e.g. blog→substack; ad→facebook; video-script→youtube-short). Unknown → type default + warn. |
 | `--author-style` | brand/neutral | a distilled voice (`/write authors`): `seth-godin`, `david-ogilvy`, … |
 | `--template` | type's structure | a registered template id OR a direct `.md` path. |
-| `--framework` | — | a writing **formula** to apply as the backbone (`/write frameworks`): `pas`, `aida`, `feynman-technique`, `scqa`, `hook-retain-reward`, … (100 in `knowledge/write-frameworks.yaml`). Composes with `--type`/`--template`/`--author-style`. |
+| `--framework` | `auto` | a writing **formula** to apply as the backbone. `auto` (default) = the writer picks the best-fit OR writes **free-style** (not every piece needs one). `none`/`free` = force free-style. `<id>` = a specific formula (`/write frameworks`): `pas`, `aida`, `feynman-technique`, `scqa`, `hook-retain-reward`, … (100 in `knowledge/write-frameworks.yaml`). Composes with `--type`/`--template`/`--author-style`. |
 | `--mode` | `standard` | `standard \| deep-research` (factual spine via deep-research) `\| workflow` (parallel multi-agent for long pieces). |
 | `--length` | `medium` | `short\|medium\|long\|very-long\|extremely-long`, or `1000w`, or `5p`. |
 | `--out` | `default` | `default`(inline)`\|md\|html\|pdf\|docx`; `+` for multiple (e.g. `--out=md+pdf`). |

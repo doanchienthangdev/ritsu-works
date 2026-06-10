@@ -74,14 +74,30 @@ function buildPlan(argv, opts = {}) {
     if (template && !template.exists) warnings.push(`--template "${options.template}" did not resolve to a file → using the type's structure_hint`);
   }
 
-  // framework (a composable structure/formula — knowledge/write-frameworks.yaml)
-  let framework = null;
-  if (options.framework) {
-    try {
-      const fwDoc = Frameworks.loadFrameworks();
-      framework = Frameworks.resolveFramework(options.framework, fwDoc);
-      if (!framework) warnings.push(`--framework "${options.framework}" not in write-frameworks.yaml → ignored. (See /write frameworks)`);
-    } catch (e) { warnings.push(`frameworks registry: ${e.message}`); }
+  // framework — auto (default) | none/free | <id>. A framework is a composable structure/formula.
+  //   auto     → the orchestrator decides: pick the best-fit candidate OR write free-style
+  //              (NOT every piece needs a framework — only when the task fits).
+  //   none/free→ force free-style (use the type's structure_hint).
+  //   <id>     → apply that specific framework.
+  let framework = { mode: 'free' };
+  {
+    const fwVal = String(options.framework == null ? 'auto' : options.framework).trim().toLowerCase();
+    let fwDoc = null;
+    try { fwDoc = Frameworks.loadFrameworks(); } catch (e) { warnings.push(`frameworks registry: ${e.message}`); }
+    const candidatesFor = () => ((fwDoc && type) ? Frameworks.frameworksForType(type.id, fwDoc).slice(0, 6)
+      .map((f) => ({ id: f.id, name: f.name, structure: f.structure, when_to_use: f.when_to_use })) : []);
+    if (['none', 'free', 'off', 'no'].includes(fwVal)) {
+      framework = { mode: 'free' };
+    } else if (fwVal === 'auto') {
+      framework = { mode: 'auto', candidates: candidatesFor() };
+    } else {
+      const hit = fwDoc ? Frameworks.resolveFramework(fwVal, fwDoc) : null;
+      if (hit) framework = { mode: 'explicit', selected: { id: hit.id, name: hit.name, family: hit.family, structure: hit.structure, when_to_use: hit.when_to_use } };
+      else {
+        warnings.push(`--framework "${options.framework}" not in write-frameworks.yaml → falling back to auto-select. (See /write frameworks)`);
+        framework = { mode: 'auto', candidates: candidatesFor() };
+      }
+    }
   }
 
   // length
@@ -124,7 +140,7 @@ function buildPlan(argv, opts = {}) {
     medium: med.medium,
     author_style: author ? { slug: author.slug, full_name: author.full_name, installed: authorInstalled, voice_card: `${author.path}voice-card.md`, one_line: author.one_line || null } : null,
     template: template ? { id: template.id, path: template.path, exists: template.exists } : null,
-    framework: framework ? { id: framework.id, name: framework.name, family: framework.family, structure: framework.structure, when_to_use: framework.when_to_use } : null,
+    framework,   // { mode: 'auto'|'explicit'|'free', selected?, candidates? }
     length: { words: length.words, pages: length.pages, label: length.label, kind: length.kind },
     section_budget: budget,
     mode,
@@ -169,13 +185,23 @@ function renderBrief(plan) {
   }
   L.push('');
   L.push(`## Structure`);
-  if (plan.framework) {
-    L.push(`**Framework — ${plan.framework.name}** (\`${plan.framework.id}\`): ${plan.framework.structure}`);
-    L.push(`_${plan.framework.when_to_use}_  Apply this formula as the backbone${plan.template && plan.template.exists ? ', inside the template below' : ''}.`);
+  const fw = plan.framework || { mode: 'free' };
+  if (fw.mode === 'explicit' && fw.selected) {
+    L.push(`**Framework — ${fw.selected.name}** (\`${fw.selected.id}\`): ${fw.selected.structure}`);
+    L.push(`_${fw.selected.when_to_use}_  Apply this formula as the backbone${plan.template && plan.template.exists ? ', inside the template below' : ''}.`);
+  } else if (fw.mode === 'auto') {
+    L.push(`**Framework: AUTO** — decide whether a writing formula fits this task. **Not every piece needs one** — use a framework when the task is persuasion / structured / marketing; write **free-style** when it's creative, personal, exploratory, or very short. State your choice (framework id or "free-style") + one-line why at the top of \`draft.md\` as a comment, then write.`);
+    if (fw.candidates && fw.candidates.length) {
+      L.push(`Best-fit candidates for type \`${plan.type ? plan.type.id : '(none)'}\` (ranked): ` + fw.candidates.map((c) => `\`${c.id}\` (${c.structure})`).join(' · '));
+    } else {
+      L.push(`No type-specific candidates loaded — if a framework fits, pick one from \`/write frameworks\`; else free-style.`);
+    }
+  } else {
+    L.push(`**Free-style** (no framework). Follow the structure below.`);
   }
   if (plan.template && plan.template.exists) L.push(`Follow the template: \`${plan.template.path}\` (fill the beats, delete the guidance).`);
   else if (plan.type && plan.type.structure_hint) L.push(`${plan.type.structure_hint}`);
-  else if (!plan.framework) L.push(`Choose a structure that fits the request and medium.`);
+  else if (fw.mode === 'free') L.push(`Choose a structure that fits the request and medium.`);
   L.push('');
   L.push(`## Enrichment`);
   L.push(`- Image: ${plan.enrich.image ? 'YES — add an illustration/cover where it raises quality, via /image (scripts/deepask/image-route.cjs).' : 'no'}`);

@@ -856,7 +856,7 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
 **Kind:** page
 **Axis:** content
-**When to use:** ============================================================================ write-frameworks.yaml — writing/sales/marketing/learning framework library ============================================================================ 100 ranked formulas the writer can apply with /write --framework=<id>. Composable WITH --type / --template / --author-style (a framework is a STRUCTURE/formula, not a full...
+**When to use:** ============================================================================ write-frameworks.yaml — writing/sales/marketing/learning framework library ============================================================================ 100 ranked formulas the writer applies with /write --framework=<id> (default auto = the orchestrator picks the best-fit OR writes free-style). Composable WITH --type / --t...
 
 **Invoke:** `Read("knowledge/write-frameworks.yaml")`
 **Authority:** SoR

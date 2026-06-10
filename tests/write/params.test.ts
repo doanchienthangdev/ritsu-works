@@ -189,7 +189,13 @@ describe("contracts", () => {
   it("DEFAULTS are frozen + sane", () => {
     expect(DEFAULTS.humanize).toBe("on");
     expect(DEFAULTS.style).toBe("ritsu");
+    expect(DEFAULTS.framework).toBe("auto");
     expect(() => { (DEFAULTS as any).style = "x"; }).toThrow();
+  });
+  it("--framework defaults to auto, and an explicit value overrides", () => {
+    expect(parseWriteArgs([]).options.framework).toBe("auto");
+    expect(parseWriteArgs(["--framework=pas"]).options.framework).toBe("pas");
+    expect(parseWriteArgs(["--framework=none"]).options.framework).toBe("none");
   });
   it("OUT_FORMATS + UNIVERSAL_PARAMS are non-empty", () => {
     expect(OUT_FORMATS.length).toBeGreaterThan(0);

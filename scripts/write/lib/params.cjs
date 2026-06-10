@@ -42,6 +42,7 @@ const DEFAULTS = Object.freeze({
   image: 'auto',
   dataviz: 'auto',
   humanize: 'on',          // the whole point — on by default
+  framework: 'auto',       // auto = the orchestrator decides best-fit framework OR free-style (not every piece needs one)
   'max-cost-usd': 2.0,
   'dry-run': false,
 });

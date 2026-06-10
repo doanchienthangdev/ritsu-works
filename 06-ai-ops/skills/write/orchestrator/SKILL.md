@@ -47,11 +47,25 @@ cost note, warnings) and **stop**. Do not write content.
   factual spine, THEN write. For internal Ritsu facts, you may consult `/deepask`.
 - No refs: rely on the model + the author's known positions; never fabricate sources or stats.
 
+### 3.5 Framework decision (`plan.framework.mode`)
+The brief carries a framework decision — honor it:
+- **`explicit`** (`--framework=<id>`) → use `plan.framework.selected.structure` as the backbone.
+- **`free`** (`--framework=none`) → no framework; follow the type's structure_hint.
+- **`auto`** (the default) → **YOU decide.** Look at the request + type + medium and the ranked
+  `plan.framework.candidates`. **Not every piece needs a framework** — apply the best-fit one when
+  the task is persuasion / structured / marketing (an ad, a landing page, a sales email, a
+  how-to, a thread, a pitch); write **free-style** when it's creative, personal, exploratory,
+  reflective, or very short (a poem, a personal essay, a quick note, a one-line caption). When a
+  framework fits, read its full `how_to_apply` + `example` in `knowledge/write-frameworks.yaml`.
+  **Record your choice** ("framework: pas — direct-response ad" or "free-style — a personal
+  reflection doesn't need a formula") as the first line of `draft.md` (an HTML comment), then write.
+
 ### 4. Outline
-Build a section plan from the template (`plan.template.path` — fill its beats) or the type's
-`structure_hint`, budgeted to `plan.section_budget` (count × words/section ≈ target length).
-For the medium, respect its native shape (a thread is N posts; an ad is headline-first; a
-short is 3-second-hook-first). Keep it tight — cut a section before padding one.
+Build a section plan from the chosen framework's structure (3.5) + the template
+(`plan.template.path` — fill its beats) or the type's `structure_hint`, budgeted to
+`plan.section_budget` (count × words/section ≈ target length). For the medium, respect its native
+shape (a thread is N posts; an ad is headline-first; a short is 3-second-hook-first). Keep it
+tight — cut a section before padding one.
 
 ### 5. Draft — in the voice, for the medium
 Write the whole piece. Non-negotiables:
