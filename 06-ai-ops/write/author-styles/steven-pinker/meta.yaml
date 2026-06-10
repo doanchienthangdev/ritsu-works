@@ -2,10 +2,46 @@
 slug: steven-pinker
 full_name: "Steven Pinker"
 distilled_on: "2026-06-10"
-distilled_by: /write learn
+distilled_by: "/write distill"
+confidence: high   # coarse self-reported fidelity of the distillation
 sources:
-  - kind: book
-    title: "The Sense of Style"
-    ref: "raw/write/books/ (sense-of-style-pinker)"
-confidence: high
-copyright: "Transformative style analysis of Steven Pinker's *The Sense of Style* (2014); all excerpts are short (≤25 words), attributed fair-use quotations used to teach the voice, never a reproduction of the work."
+  books:
+    - {title: "The Sense of Style", year: 2014, usage: "≤25-word attributed quotes only; primary source for his explicit writing philosophy"}
+    - {title: "Corpus referenced by name only (Enlightenment Now, How the Mind Works, The Better Angels of Our Nature, The Blank Slate, The Language Instinct, Rationality, The Stuff of Thought, Words and Rules, When Everyone Knows That Everyone Knows)", usage: "characterized for themes/worldview; NOT quoted at length"}
+  articles:
+    - {title: "Harvard Derangement Syndrome", source: "The New York Times", year: 2025, usage: "short attributed fair-use excerpts (his authored op-ed)"}
+    - {title: "The Many Roots of Our Suffering: Reflections on Robert Trivers", source: "Quillette", year: 2026, usage: "short attributed fair-use excerpts"}
+    - {title: "Charles Murray's Unscientific Case for the Soul", source: "The Wall Street Journal", year: 2025, usage: "short attributed fair-use excerpts (his authored letter)"}
+    - {title: "Science Is Not Your Enemy", source: "The New Republic / Edge.org", year: 2013, usage: "short attributed fair-use excerpts"}
+    - {title: "1984 revisited", source: "The Times (UK)", year: 2025, usage: "characterization only (paywalled stub)"}
+    - {title: "Real Scenarios That Keep Scientists Up At Night", source: "Edge.org / World Science Festival", year: 2014, usage: "characterization only"}
+  transcripts:
+    - {title: "Harvard Professor Explains The Rules of Writing", venue: "David Perell (YouTube)", year: 2025, usage: "public interview — fuller attributed quotes; primary spoken source on writing craft"}
+    - {title: "Q&A — Linguistics, Style and Writing", venue: "The Royal Institution", year: 2015, usage: "public talk — fuller attributed quotes"}
+    - {title: "How Common Knowledge Shapes the World", venue: "TED", year: 2025, usage: "public talk — fuller attributed quotes"}
+    - {title: "Unraveling the Mystery of the Curse of Knowledge", venue: "podcast (public)", usage: "public interview — characterization"}
+    - {title: "Steven Pinker on Language, Reason, and the Future of Violence", venue: "Conversations with Tyler", usage: "public interview — characterization"}
+    - {title: "Understanding Human Nature", venue: "Conversations with History (UC Berkeley)", usage: "public interview — characterization"}
+    - {title: "Common Knowledge & Social Coordination", venue: "R-Academy #12", usage: "public talk — characterization (themes)"}
+    - {title: "Coordination, Common Knowledge, and the Retreat of Liberal Enlightenment", venue: "public talk", usage: "characterization (themes)"}
+    - {title: "Danger of moral panic over 'fake news'", venue: "public interview", usage: "characterization (themes)"}
+  urls: []
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. Book quotes (chiefly
+  *The Sense of Style*, 2014) are kept ≤25 words and always attributed; his freely-accessible
+  op-eds and letters (NYT, WSJ, Quillette, New Republic) are his own authored work, quoted in
+  short attributed excerpts for voice calibration; his public talks and interviews (TED, the
+  Royal Institution, the David Perell interview) are quoted more fully, always attributed. No
+  passage is reproduced at length. Output written in this style is a derivative STYLE,
+  presented as such — never claimed to be Pinker's own words.
+notes: |
+  Upgrade (2026-06-10): re-distilled from book-only to the full [books, articles, transcripts]
+  corpus in raw/write/08 - Steven Pinker (9 transcripts + 6 articles staged in-session;
+  book PDFs read previously for The Sense of Style). The new evidence deepened the artifact
+  with his ESSAY voice (disarm-then-argue, accumulate-the-specific, the vivid analogy, the
+  borrowed maxim) and his SPOKEN voice (the curse of knowledge in plain words, make-it-visual,
+  example⇄generalization, his diagnosis of bland AI prose). Strongest sources: the David Perell
+  rules-of-writing interview (craft, spoken), the Trivers/Quillette + Harvard/NYT essays (prose
+  in the wild). Best fit in the library for learning-science + explainer content — Pinker is the
+  patron saint of clear explanation. Next re-distillation could mine "The False Allure of Group
+  Selection" (skipped from staging at 105KB) for his long-form academic-argument register.

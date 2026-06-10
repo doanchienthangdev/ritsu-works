@@ -73,12 +73,12 @@ author_styles:
     category: essay
     one_line: "Cognitive scientist explaining hard ideas as one equal pointing something out to another — witty, evidence-led, concrete, with the curse of knowledge as enemy."
     path: 06-ai-ops/write/author-styles/steven-pinker/
-    status: installed
+    status: installed   # re-distilled 2026-06-10 via /write distill (in-session; full corpus: 9 public talks/interviews + 6 freely-published essays read in full, upgrading the prior book-only artifact). Every load-bearing quote grep-verified against source.
     origin: distilled
-    source_kinds: [books]
+    source_kinds: [books, articles, transcripts]
     distilled_on: "2026-06-10"
     confidence: high
-    copyright: "Transformative style analysis of Steven Pinker's *The Sense of Style* (2014); all excerpts are short (≤25 words), attributed fair-use quotations used to teach the voice, never a reproduction of the work."
+    copyright: "Transformative style analysis + short attributed fair-use excerpts. Book quotes (chiefly *The Sense of Style*, 2014) kept ≤25 words; his freely-accessible op-eds + letters (NYT, WSJ, Quillette, New Republic) are his own authored work quoted in short attributed excerpts; his public talks + interviews (TED, the Royal Institution, the David Perell rules-of-writing interview) quoted more fully, always attributed. No passage reproduced at length; output in this style is a derivative STYLE, never claimed to be Pinker's own words."
   - slug: ann-handley
     full_name: "Ann Handley"
     category: marketing
