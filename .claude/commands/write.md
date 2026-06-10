@@ -8,7 +8,7 @@ description: |
   and optionally pushed (gdrive/notion/social). `/write distill` captures a new author's
   voice from reference sources into a reusable, github-shared artifact. Tier A; per-run
   --max-cost-usd breaker; thin orchestrator over the `write` umbrella skill.
-argument-hint: "\"<request>\" [--type --medium --author-style --template --mode --length --out --image --dataviz --humanize --ref --push --style --lang --dry-run] | distill <slug> --ref-src=<refs> | authors | types | templates | humanize <text|file>"
+argument-hint: "\"<request>\" [--type --medium --author-style --template --mode --length --out --image --dataviz --humanize --ref --push --style --lang --dry-run] | distill <slug> --ref-src=<refs> | learn <book|folder> [--dry-run --no-voice --books=] | authors | types | templates | frameworks | humanize <text|file>"
 ---
 
 # /write — capability `write-platform` v0.1
@@ -20,6 +20,7 @@ Front-end for the universal content-writing platform. Parses the subcommand + fl
 ```
 /write "<request>" [flags]                       # write content (default)
 /write distill <author-slug> --ref-src=<refs>    # distill an author's voice
+/write learn <book|folder> [--dry-run --no-voice --books=]  # distill a master book → wiki + enrich /write
 /write authors | types | templates | frameworks # list registries (read-only)
 /write humanize <text|file>                      # run only the de-AI + voice pass
 ```
@@ -61,6 +62,10 @@ Unknown flags WARN (forward-compat), never silently dropped.
    → **humanize gate** (`scripts/write/humanize/scan.cjs` until pass) → `render.cjs` → optional `push.cjs`.
 3. **distill**: `node scripts/write/distill/plan.cjs …` stages sources → Workflow fan-out per the
    `_TEMPLATE` contract → assemble the 6 artifact files → register in `author-styles.yaml`.
+3b. **learn**: `node scripts/write/learn/plan.cjs --src=<book|folder>` stages book text(s) → Workflow
+   fan-out (1 analyst per book) → main-thread routes the distilled craft into 4 lanes (wiki package ·
+   `write-frameworks.yaml` · `06-ai-ops/write/CRAFT.md` · selective `author-styles/`), deduped + validated.
+   See `06-ai-ops/skills/write/learn/SKILL.md`. PR-governed (Tier C) since it edits Tier-1 registries.
 4. Report `{ok, files[], type, medium, author_style, words, humanize{before→after,pass}, cost, warnings[]}` —
    always surface warnings; show the content inline.
 
@@ -78,6 +83,9 @@ Unknown flags WARN (forward-compat), never silently dropped.
 /write "Learning-science book: why testing beats rereading" --type=book --research=deep --out=pdf+docx
 /write "5-part series on active recall" --type=article-series --grounding=wiki
 /write distill paul-graham --ref-src=raw/write/paul-graham        # capture a new voice
+/write learn raw/write/books/                                     # distill a whole shelf of masters → enrich /write
+/write learn "raw/write/books/9 - Scientific Advertising — Hopkins.pdf"  # learn one book
+/write learn raw/write/books/ --dry-run                           # which books + which lanes, no writes
 /write "anything" --dry-run                                       # plan + cost, no content
 /write humanize draft.md                                          # de-AI an existing draft
 /write authors                                                    # list distilled voices

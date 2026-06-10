@@ -20,6 +20,7 @@ sub-skills.
 |---|---|---|
 | `/write "<request>" [flags]` | `write/orchestrator` | Write content. The default path. |
 | `/write distill <slug> --ref-src=<refs>` | `write/distill` | Distill an author's voice into a reusable artifact. |
+| `/write learn <path>` | `write/learn` | Distill a master writing book (or a folder) into the wiki + route its craft into /write (frameworks · CRAFT.md · voices). |
 | `/write humanize <text\|file>` | `write/humanize` | Run only the de-AI + voice pass on existing text. |
 | `/write authors` | (this skill) | List distilled author styles (`knowledge/author-styles.yaml`). |
 | `/write types` | (this skill) | List content types + their mediums (`knowledge/write-types.yaml`). |
@@ -45,6 +46,13 @@ lock a **consistency bible** (single source of truth) → outline parts → **dr
 (a Workflow, parts blind to each other) → **continuity pass** → assemble → one humanize pass. This
 keeps characters/world/timeline/terminology/thesis/evidence/voice consistent across the whole work.
 Per-type bibles + mechanisms: `06-ai-ops/write/longform/`.
+
+**Growing the library** (`/write learn`): the platform's craft is not fixed — `/write learn <book|folder>`
+distills a master writing book into the wiki and routes its transferable craft into the right place:
+reusable formulas → `write-frameworks.yaml`, universal style wisdom → `06-ai-ops/write/CRAFT.md`, a
+master's voice → `author-styles/`. Additive, deduped, traceable to source. This is how `/write` compounds
+toward a toàn-năng (omnipotent) writer by standing on the shoulders of Ogilvy, Cialdini, King, McKee,
+Strunk, Zinsser, Pinker, and the rest. See `write/learn`.
 
 ## The model (why it's built this way)
 

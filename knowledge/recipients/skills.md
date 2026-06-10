@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 130
+**Total entries:** 131
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -2586,6 +2586,25 @@ into one method backed by a deterministic gate. Use after drafting any
 customer-facing content, or standalone via `/write humanize <text|file>`.
 
 **Invoke:** `Skill({ skill: "write/humanize" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/write/learn
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Distill the transferable WRITING CRAFT of a master writing book (or a whole folder
+of them) into the wiki, then route that craft into the RIGHT /write registry —
+reusable formulas to write-frameworks.yaml, universal style wisdom to CRAFT.md, a
+master's voice to author-styles/ — additively, deduped, validated, traceable to
+source. Loops over every book in a folder via a Claude Code Workflow. Invoked by
+`/write learn <path>`. This is how /write stands on the shoulders of the masters.
+
+**Invoke:** `Skill({ skill: "write/learn" })`
 **HITL tier:** B
 **Side effect:** write
 
