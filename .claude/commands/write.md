@@ -34,7 +34,10 @@ Front-end for the universal content-writing platform. Parses the subcommand + fl
 | `--author-style` | brand/neutral | a distilled voice (`/write authors`): `seth-godin`, `david-ogilvy`, … |
 | `--template` | type's structure | a registered template id OR a direct `.md` path. |
 | `--framework` | `auto` | a writing **formula** to apply as the backbone. `auto` (default) = the writer picks the best-fit OR writes **free-style** (not every piece needs one). `none`/`free` = force free-style. `<id>` = a specific formula (`/write frameworks`): `pas`, `aida`, `feynman-technique`, `scqa`, `hook-retain-reward`, … (100 in `knowledge/write-frameworks.yaml`). Composes with `--type`/`--template`/`--author-style`. |
-| `--mode` | `standard` | `standard \| deep-research` (factual spine via deep-research) `\| workflow` (parallel multi-agent for long pieces). |
+| `--mode` | `standard` | `standard \| workflow` (parallel multi-agent). (For research depth use `--research`.) |
+| `--research` | `auto` | external research depth: `off` (model + refs) · `auto` (refs + light lookups) · `deep` (the `deep-research` skill — web fan-out → adversarially verify → cited synthesis). |
+| `--grounding` | `auto` | internal **Ritsu** sources to pull supporting material from: `auto` · `off` · `deepask` · `wiki` · `brain` · `all` (combine with `+`). Gathered at data-collection + shapes the outline; cited. |
+| `--longform` | `auto` | `auto` (detect from type) · `on` · `off`. Long-form types (**book · novel · film-script · research-paper · article-series · course**) run the **bible → parallel-draft → continuity** pipeline for consistency. |
 | `--length` | `medium` | `short\|medium\|long\|very-long\|extremely-long`, or `1000w`, or `5p`. |
 | `--out` | `default` | `default`(inline)`\|md\|html\|pdf\|docx`; `+` for multiple (e.g. `--out=md+pdf`). |
 | `--style` | `ritsu` | design system for rendered output (`knowledge/design-systems.yaml`). |
@@ -69,6 +72,11 @@ Unknown flags WARN (forward-compat), never silently dropped.
 /write "Q3 retention readout" --type=memo --template=decision-memo --dataviz --out=docx
 /write "Why active recall beats rereading" --type=ad --framework=pas --author-style=david-ogilvy --image
 /write "Explain spaced repetition" --type=tutorial --framework=feynman-technique --lang=vi
+/write "State of retrieval-practice research" --type=research-paper --research=deep --grounding=wiki
+/write "How Ritsu compares to Anki for med students" --type=blog --grounding=deepask+wiki --research=auto
+/write "A novel about a student and an AI tutor" --type=novel --author-style=seth-godin --out=pdf+epub  # long-form: bible→parallel→continuity
+/write "Learning-science book: why testing beats rereading" --type=book --research=deep --out=pdf+docx
+/write "5-part series on active recall" --type=article-series --grounding=wiki
 /write distill paul-graham --ref-src=raw/write/paul-graham        # capture a new voice
 /write "anything" --dry-run                                       # plan + cost, no content
 /write humanize draft.md                                          # de-AI an existing draft

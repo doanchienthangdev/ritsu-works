@@ -1,0 +1,73 @@
+---
+name: write/longform
+description: |
+  Produce LONG-FORM works (book · novel · film-script · research-paper · article-series
+  · course) coherently. Not a single pass: lock a consistency BIBLE → outline parts →
+  draft parts in PARALLEL (a Workflow) against the bible → continuity pass → assemble →
+  one humanize pass. Guarantees consistency of characters/world/timeline/terminology/
+  thesis/evidence/voice across the whole work. Invoked by write/orchestrator when the
+  resolved type is longform (or --longform=on).
+---
+
+# write/longform — write something big without it falling apart
+
+The failure mode of long-form is **drift**: chapter 9 contradicts chapter 2, a character's eyes
+change colour, a coined term mutates, the thesis promised in the intro never arrives. The cure is
+a **single source of truth (the bible)** that every part is drafted against, parts drafted in
+**parallel but blind to each other**, then a **continuity pass** that checks the whole against the
+bible. Per-type mechanics + checklists live in `06-ai-ops/write/longform/LONGFORM.md`; per-type
+bible templates in `06-ai-ops/write/longform/bibles/<type>.md`.
+
+## The pipeline (do these in order — do NOT skip the bible)
+
+### 1. Build + LOCK the bible (before drafting a single part)
+Scaffold it: `node scripts/write/longform/plan.cjs --type=<type> --request="..." --words=<N> --out-dir=<dir>`
+→ writes `<dir>/bible.md` (from the type's template) + `<dir>/parts.json` (the part plan). Then
+**fill the bible**: the single source of truth — for fiction: characters, world + rules, timeline,
+POV/voice, plot arc, themes, glossary; for a book: thesis, audience, argument arc, chapter map, key
+terms, evidence ledger, voice, style-sheet; for a paper: research question, contribution,
+claims↔evidence ledger, method, notation, citations, figures plan; for a series: through-line,
+per-installment angle, recurring elements, callbacks; for a course: objectives, learner model,
+module/lesson map, scaffolding, assessment plan. Ground the factual parts via `write/research`
+(deep research + Ritsu grounding) BEFORE locking. **Lock it** (version-stamp). Nothing drafts until
+the argument-arc / character-and-world / evidence-ledger sections are final.
+
+### 2. Outline parts + per-part briefs
+From the bible, produce `parts.json`: one entry per chapter/part/scene/lesson/installment with a
+word budget, what it must accomplish, the bible elements it owns (a chapter's case study, a scene's
+beat, a lesson's objective) — **reserved from the ledger so two parts don't double-book**. Each
+part gets a brief: what the reader knows coming in, what this part must deliver, what they believe
+leaving it.
+
+### 3. Draft parts in PARALLEL (a Claude Code Workflow — the founder-requested production path)
+Fan out one agent per part. **Each part-agent reads ONLY: the bible + its part brief + a short
+summary of the adjacent (preceding + following) parts — NEVER peer drafts** (peer-reads cause
+style-bleed + forced-consistency incoherence; the bible is the only shared state). Each agent
+drafts its part in the locked voice + returns a ~150-word summary for the continuity agent. Use the
+translate/deepask plan→parallel→build pattern (`scripts/deepask/workflow-plan.cjs`). Heavy run →
+raise `--max-cost-usd`.
+
+### 4. Continuity pass (check the whole against the bible)
+Run the type's `continuity_checks` (LONGFORM.md) over the assembled draft: characters/world don't
+contradict the bible; the timeline is monotonic; coined terms are used identically throughout; the
+thesis claimed in part 1 is delivered by part N; no two parts cite contradictory claims/evidence;
+handoffs land (the question part N raises is the one part N+1 opens on). A light deterministic
+helper exists: `node scripts/write/longform/continuity.cjs <draft> --bible=<bible>` flags
+terminology/name drift + missing-bible-terms (a floor, not a substitute for the read). **Fix every
+contradiction before assembly.**
+
+### 5. Assemble + ONE humanize pass + render
+Stitch the parts in order. Run **one unified** `write/humanize` pass over the WHOLE work (not
+per-part) so the parallel-drafting voice variance is smoothed to one voice. Then `render.cjs` to the
+requested `--out` (a book → pdf/epub/docx; a script → pdf; a course → md/docx). Report
+`{ parts, words, bible_locked: true, continuity_issues_fixed, humanize: {...} }`.
+
+## What must stay consistent (universal)
+Characters + their traits/arcs · the world + its rules · the timeline · coined terminology +
+definitions · the thesis/through-line · the evidence (no two parts contradict) · the voice. The
+bible is the contract; the continuity pass is enforcement.
+
+## Quality bar
+Read the assembled work as a reader, start to finish. If you notice a seam, a contradiction, or a
+chapter that could be lifted out without missing the book — it failed. The bible exists so it
+doesn't.

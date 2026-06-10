@@ -34,6 +34,18 @@ one-line · mediums/status). They are read-only (Tier A).
 `plan.cjs` resolves it into `brief.md`; the orchestrator writes to that structure. The 100
 are ranked by fit to Ritsu (learning-science core) + the GTM content engine.
 
+**Research + grounding** (v0.4): `--research=off|auto|deep` (external — `deep` = the
+`deep-research` skill, web fan-out → verify → cited) and `--grounding=auto|off|deepask|wiki|brain|all`
+(internal Ritsu material via `/deepask`, wiki RAG, gbrain). Both run at the data-collection step
+and **shape the outline**, not just the prose. See `write/research`.
+
+**Long-form** (v0.4): the types **book · novel · film-script · research-paper · article-series ·
+course** (`longform: true`) are NOT written in one pass — they run the `write/longform` pipeline:
+lock a **consistency bible** (single source of truth) → outline parts → **draft in PARALLEL**
+(a Workflow, parts blind to each other) → **continuity pass** → assemble → one humanize pass. This
+keeps characters/world/timeline/terminology/thesis/evidence/voice consistent across the whole work.
+Per-type bibles + mechanisms: `06-ai-ops/write/longform/`.
+
 ## The model (why it's built this way)
 
 - **Type → medium → voice → structure → length** are resolved deterministically from three

@@ -36,15 +36,17 @@ steps:
     hitl: A
 
   - id: draft
-    name: "Stage 2 — load the voice + research + outline + draft IN VOICE (IN-SESSION)"
+    name: "Stage 2 — load voice + RESEARCH/GROUNDING + framework + outline + draft IN VOICE (IN-SESSION)"
     skill: write/orchestrator
     actions:
+      - longform_route               # v0.4 — if plan.longform → STOP single-pass; run write/longform (bible → parallel-draft → continuity → assemble). §longform_flow.
       - load_voice_card              # read author-styles/<slug>/voice-card.md (+ signature-moves/samples/do-and-dont) OR 00-core/brand_voice.md
-      - ground_in_refs               # --ref files/URLs read + cited; --mode=deep-research → deep-research skill for the factual spine
-      - outline                      # template beats OR type.structure_hint, budgeted to plan.section_budget, medium-correct shape
-      - draft_in_voice               # write the whole piece to draft.md — voice fidelity first; earn every line; honest (no fabricated facts/quotes)
+      - research_grounding           # v0.4 — write/research: external --research=off|auto|deep (deep = deep-research skill, web fan-out → verify → cited) + internal --grounding (deepask/wiki_ask/gbrain). Gather at data-collection → write research.md → SHAPE THE OUTLINE.
+      - framework_decision           # v0.3 — plan.framework: explicit id | auto (pick best-fit OR free-style; not every piece needs one) | free
+      - outline                      # framework structure + template beats OR type.structure_hint, budgeted to plan.section_budget, medium-correct, grounded in research.md
+      - draft_in_voice               # write the whole piece to draft.md — voice fidelity first; earn every line; honest (no fabricated facts/quotes/Ritsu-facts)
     hitl: A
-    note: "Drafting is the in-session value Claude adds (subscription). The samples.md is the tuning fork — match it."
+    note: "Drafting is the in-session value Claude adds (subscription). samples.md is the tuning fork. Research+grounding shape the PLAN, not just the prose. Long-form routes to write/longform."
 
   - id: enrich
     name: "Stage 3 — embed /image + /dataviz where they raise quality (out-of-band)"
@@ -106,6 +108,20 @@ distill_flow:
     - workflow_fanout               # Claude Code Workflow authors the 6 _TEMPLATE sections in parallel; orchestrator assembles + writes (no write races)
     - copyright_check               # transformative style analysis + ≤25-word book quotes / fuller public-source quotes; per-author posture in meta.yaml (README is canonical)
     - register                      # write 06-ai-ops/write/author-styles/<slug>/ + flip knowledge/author-styles.yaml row to installed; validate-write-registries.cjs must pass
+
+# ----------------------------------------------------------------------
+# long-form sub-flow (v0.4 — type.longform OR --longform=on: book/novel/film-script/research-paper/article-series/course)
+# ----------------------------------------------------------------------
+longform_flow:
+  skill: write/longform
+  steps:
+    - lock_bible                    # scripts/write/longform/plan.cjs scaffolds 06-ai-ops/write/longform/bibles/<type>.md → fill (thesis/characters/world/timeline/terms/evidence/voice) grounded via write/research → LOCK (version-stamp). NOTHING drafts until locked.
+    - outline_parts                 # parts.json — per-part briefs + ledger reservation (no two parts double-book a chapter/scene/case/evidence)
+    - parallel_draft                # a Claude Code Workflow fans out one agent per part; each reads ONLY the bible + its brief + adjacent-part summaries (NEVER peer drafts) → drafts in the locked voice + returns a ~150-word summary
+    - continuity_pass               # scripts/write/longform/continuity.cjs deterministic FLOOR (name/term drift) + the LLM read of the assembled draft against the bible (timeline monotonic, thesis delivered, terminology identical, no contradictory evidence, handoffs land) → FIX before assembly
+    - assemble_humanize             # stitch in order → ONE unified write/humanize pass over the WHOLE (not per-part) → render
+  consistency_contract: "the bible is the single source of truth; the continuity pass is enforcement. characters/world/timeline/terminology/thesis/evidence/voice must not drift across parts. Per-type mechanisms + checks: 06-ai-ops/write/longform/LONGFORM.md."
+  hitl: A
 
 # ----------------------------------------------------------------------
 # Billing lanes

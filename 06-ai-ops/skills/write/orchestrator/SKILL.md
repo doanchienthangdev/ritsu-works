@@ -41,11 +41,24 @@ cost note, warnings) and **stop**. Do not write content.
 - No author-style → read `00-core/brand_voice.md` for Ritsu-facing content, else write in a
   concrete, human, opinionated register. Never default-AI prose.
 
-### 3. Research / grounding (conditional)
+### 2.9 Long-form routing (if `plan.longform`)
+If the resolved type is long-form (book · novel · film-script · research-paper · article-series ·
+course — or `--longform=on`), **STOP the single-pass flow** and follow the **`write/longform`**
+skill instead: lock the bible → outline parts → **draft parts in PARALLEL** (a Workflow) against
+the bible → continuity pass → assemble → one humanize pass. Steps 3 (research) and 7 (humanize)
+still apply, inside that pipeline. The rest of this skill (§4-6 single-pass) is for non-long-form.
+
+### 3. Research / grounding (conditional) — the `write/research` skill
+Apply `plan.research` (off | auto | deep) + `plan.grounding`:
 - `--ref` paths/URLs: read them; ground claims in them; cite specifics, don't assert.
-- `plan.enrich.research` true or `--mode=deep-research`: run the `deep-research` skill for the
-  factual spine, THEN write. For internal Ritsu facts, you may consult `/deepask`.
-- No refs: rely on the model + the author's known positions; never fabricate sources or stats.
+- **External (`plan.research`):** `deep` → run the **`deep-research`** skill (fan-out → verify →
+  cited synthesis) for the factual spine BEFORE writing; `auto` → refs + light lookups; `off` →
+  model + refs only. Never fabricate stats/sources.
+- **Internal Ritsu grounding (`plan.grounding`):** when the piece concerns Ritsu / its product /
+  learning-science positioning, pull material via `/deepask`, `mcp__supabase-ops__wiki_ask`,
+  `mcp__gbrain__search`/`think`, and `00-core/`. **Gather at data-collection; let findings shape
+  the outline** (not just the prose). Write the sources/facts to `<artifact_dir>/research.md` + cite.
+See `06-ai-ops/skills/write/research/SKILL.md`.
 
 ### 3.5 Framework decision (`plan.framework.mode`)
 The brief carries a framework decision — honor it:

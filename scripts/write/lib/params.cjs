@@ -17,17 +17,21 @@ const SUBCOMMANDS = Object.freeze(['write', 'distill', 'authors', 'types', 'temp
 // Canonical flag vocabulary (without leading `--`). Unknown flags are recorded + warned.
 const UNIVERSAL_PARAMS = Object.freeze([
   'type', 'medium', 'author-style', 'template', 'framework', 'mode', 'length',
+  'research', 'grounding', 'longform',
   'out', 'style', 'lang', 'image', 'dataviz', 'humanize',
   'ref', 'ref-src', 'push', 'max-cost-usd', 'dry-run', 'out-dir',
   'request', 'request-file', 'use', 'model',
 ]);
 
+const RESEARCH_LEVELS = Object.freeze(['off', 'auto', 'deep']);       // --research depth
+const GROUNDING_SOURCES = Object.freeze(['off', 'auto', 'deepask', 'wiki', 'brain', 'all']); // --grounding internal Ritsu sources
+
 const MODES = Object.freeze(['standard', 'deep-research', 'workflow']);
 const TRISTATE = Object.freeze(['auto', 'on', 'off']);          // image / dataviz
 const OUT_FORMATS = Object.freeze(['default', 'md', 'docx', 'pdf', 'html', 'txt']);
 
-// Multi-value flags: repeatable AND `+`-joinable (e.g. --ref=a+b --ref=c, --out=md+pdf).
-const MULTI_FLAGS = Object.freeze(['ref', 'ref-src', 'out']);
+// Multi-value flags: repeatable AND `+`-joinable (e.g. --ref=a+b --ref=c, --out=md+pdf, --grounding=deepask+wiki).
+const MULTI_FLAGS = Object.freeze(['ref', 'ref-src', 'out', 'grounding']);
 const BOOL_FLAGS = Object.freeze(['dry-run']);
 const NUM_FLAGS = Object.freeze(['max-cost-usd']);
 // Tri-state flags accept auto|on|off; a bare `--image` means `on`.
@@ -43,6 +47,8 @@ const DEFAULTS = Object.freeze({
   dataviz: 'auto',
   humanize: 'on',          // the whole point — on by default
   framework: 'auto',       // auto = the orchestrator decides best-fit framework OR free-style (not every piece needs one)
+  research: 'auto',        // off | auto (refs + light internal) | deep (deep-research skill + web fan-out + deep Ritsu dig)
+  longform: 'auto',        // auto (detect from type) | on (force bible+parallel+continuity) | off
   'max-cost-usd': 2.0,
   'dry-run': false,
 });
@@ -67,7 +73,7 @@ function splitPlus(val) {
 function parseWriteArgs(argv) {
   // `out` starts EMPTY (not the default ['default']) so an explicit --out REPLACES rather
   // than appends to the default; the empty case is restored to ['default'] at the end.
-  const options = { ...DEFAULTS, out: [], ref: [], 'ref-src': [] };
+  const options = { ...DEFAULTS, out: [], ref: [], 'ref-src': [], grounding: [] };
   const provided = new Set();
   const positional = [];
   for (const raw of Array.isArray(argv) ? argv : []) {
@@ -170,6 +176,8 @@ module.exports = {
   SUBCOMMANDS,
   UNIVERSAL_PARAMS,
   MODES,
+  RESEARCH_LEVELS,
+  GROUNDING_SOURCES,
   TRISTATE,
   OUT_FORMATS,
   MULTI_FLAGS,

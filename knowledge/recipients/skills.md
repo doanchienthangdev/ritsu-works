@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 128
+**Total entries:** 130
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -2593,6 +2593,25 @@ customer-facing content, or standalone via `/write humanize <text|file>`.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/write/longform
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Produce LONG-FORM works (book · novel · film-script · research-paper · article-series
+· course) coherently. Not a single pass: lock a consistency BIBLE → outline parts →
+draft parts in PARALLEL (a Workflow) against the bible → continuity pass → assemble →
+one humanize pass. Guarantees consistency of characters/world/timeline/terminology/
+thesis/evidence/voice across the whole work. Invoked by write/orchestrator when the
+resolved type is longform (or --longform=on).
+
+**Invoke:** `Skill({ skill: "write/longform" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/write/orchestrator
 
 **Kind:** skill
@@ -2604,6 +2623,24 @@ requested formats. Drives plan.cjs → draft → enrich → humanize → render 
 Invoked by the `write` umbrella skill for the default `/write "<request>"` path.
 
 **Invoke:** `Skill({ skill: "write/orchestrator" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/write/research
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The research + grounding step of /write — gather verified external facts and
+internal Ritsu material BEFORE writing, and let the findings shape the outline
+(not just the prose). Drives the --research depth axis (off|auto|deep) and the
+--grounding axis (deepask|wiki|brain). Invoked by write/orchestrator at the
+data-collection + content-planning steps.
+
+**Invoke:** `Skill({ skill: "write/research" })`
 **HITL tier:** B
 **Side effect:** write
 

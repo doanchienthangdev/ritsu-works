@@ -67,4 +67,9 @@ function listTypeIds(doc) {
   return Array.isArray(doc.types) ? doc.types.map((t) => t.id) : [];
 }
 
-module.exports = { loadTypes, resolveType, resolveMedium, listTypeIds, TypesError, DEFAULT_REGISTRY };
+/** True when a type is long-form (needs the bible + parallel-draft + continuity pipeline). */
+function isLongform(type) {
+  return !!(type && type.longform === true);
+}
+
+module.exports = { loadTypes, resolveType, resolveMedium, listTypeIds, isLongform, TypesError, DEFAULT_REGISTRY };
