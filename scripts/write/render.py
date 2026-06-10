@@ -107,8 +107,12 @@ def main():
             with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as fh:
                 fh.write(html_str); tmp = fh.name
             weasy_py = os.environ.get("WRITE_PY_WEASY") or os.environ.get("TRANSLATE_PY_WEASY") or "/opt/homebrew/bin/python3"
+            # base_url = the source markdown's directory so relative embeds
+            # (enrich images ![](01.png) + dataviz charts ![](chart.svg)) resolve;
+            # the temp HTML lives in /tmp, so without this they'd 404 in the PDF.
+            base = os.path.dirname(os.path.abspath(src))
             code = ("from weasyprint import HTML; "
-                    f"HTML(filename={tmp!r}).write_pdf({out!r})")
+                    f"HTML(filename={tmp!r}, base_url={base!r}).write_pdf({out!r})")
             r = subprocess.run([weasy_py, "-c", code], capture_output=True, text=True)
             try: os.unlink(tmp)
             except OSError: pass
