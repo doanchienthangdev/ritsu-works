@@ -11,7 +11,24 @@
 
 const path = require('path');
 
-const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
+// The dir of THIS checkout — the worktree root when running inside .claude/worktrees/<slug>.
+const WORKTREE_ROOT = path.resolve(__dirname, '..', '..', '..');
+
+/**
+ * Resolve the MAIN repo root. When running inside a git worktree
+ * (`<main>/.claude/worktrees/<slug>/`), strip the worktree suffix so /write
+ * artifacts land in the MAIN repo's `.archives/` (where the operator actually
+ * looks) — NOT the worktree's separate, easy-to-miss `.archives/`. Mirrors
+ * scripts/deepask/* + scripts/write/distill/plan.cjs. `.archives/` + `raw/` are
+ * local-only and live at the main root. Pure.
+ */
+function mainRepoRoot() {
+  const i = WORKTREE_ROOT.indexOf('/.claude/worktrees/');
+  return i === -1 ? WORKTREE_ROOT : WORKTREE_ROOT.slice(0, i);
+}
+const MAIN_ROOT = mainRepoRoot();
+// Artifacts base on the MAIN root. REPO_ROOT kept as a back-compat alias → MAIN_ROOT.
+const REPO_ROOT = MAIN_ROOT;
 
 /**
  * Deterministic slug from a request string. NFD-decompose accents, lowercase,
@@ -33,10 +50,10 @@ function deriveSlug(text, maxLen = 48) {
  * @returns {string} e.g. ".archives/write/2026-06-10-purple-cow-launch-post"
  */
 function buildArtifactDir(dateStr, text, opts = {}) {
-  const root = opts.repoRoot || REPO_ROOT;
+  const root = opts.repoRoot || MAIN_ROOT;
   const slug = deriveSlug(text, opts.maxLen || 48);
   const rel = path.join('.archives', 'write', `${dateStr}-${slug}`);
   return opts.absolute ? path.join(root, rel) : rel;
 }
 
-module.exports = { deriveSlug, buildArtifactDir, REPO_ROOT };
+module.exports = { deriveSlug, buildArtifactDir, mainRepoRoot, MAIN_ROOT, WORKTREE_ROOT, REPO_ROOT };

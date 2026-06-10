@@ -134,4 +134,24 @@ describe("artifact-path.cjs", () => {
       expect(d.startsWith("/")).toBe(true);
     });
   });
+  describe("main-root resolution (worktree fix — artifacts go to the MAIN repo .archives)", () => {
+    it("mainRepoRoot() never contains the worktree marker", () => {
+      expect(AP.mainRepoRoot()).not.toContain("/.claude/worktrees/");
+      expect(AP.MAIN_ROOT).not.toContain("/.claude/worktrees/");
+    });
+    it("an absolute artifact dir lands under the MAIN root, not the worktree", () => {
+      const d = AP.buildArtifactDir("2026-06-10", "x", { absolute: true });
+      expect(d).not.toContain("/.claude/worktrees/");
+      expect(d).toContain(".archives/write/");
+    });
+    it("strips only the worktree suffix (a non-worktree root is unchanged)", () => {
+      // mainRepoRoot is pure over WORKTREE_ROOT; on a non-worktree checkout it's a no-op.
+      // Invariant: MAIN_ROOT is a prefix of WORKTREE_ROOT (equal when not in a worktree).
+      expect(AP.WORKTREE_ROOT.startsWith(AP.MAIN_ROOT)).toBe(true);
+    });
+    it("an explicit --out-dir-style repoRoot override is honored", () => {
+      const d = AP.buildArtifactDir("2026-06-10", "x", { absolute: true, repoRoot: "/tmp/custom" });
+      expect(d).toBe("/tmp/custom/.archives/write/2026-06-10-x");
+    });
+  });
 });
