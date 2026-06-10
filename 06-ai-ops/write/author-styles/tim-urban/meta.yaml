@@ -1,0 +1,43 @@
+# Provenance for the tim-urban author-style artifact.
+slug: tim-urban
+full_name: Tim Urban
+distilled_on: "2026-06-10"
+distilled_by: "/write distill (Claude Code, in-session — sources read in full from 'raw/write/05 - Tim Urban (Wait But Why)')"
+confidence: high   # 4 iconic sources read in full across his full range (procrastination cast, cosmic explainer, career framework, time grids); voice saturated + cross-confirmed across spoken (TED) + written (blog) registers
+sources:
+  books:
+    - {title: "What's Our Problem? A Self-Help Book for Societies", year: 2023, usage: "referenced by name/concept only; NOT ingested — paid book (copyright)"}
+    - {title: "Wait But Why Year One / The Elon Musk Blog Series / The AI Revolution (PDF compilations)", usage: "NOT ingested as PDFs; their content is the freely-published blog posts, which were read in their free web form instead"}
+  articles:
+    - {title: "Why Procrastinators Procrastinate", source: "waitbutwhy.com (2013)", usage: "freely published — fuller fair-use quotes, attributed"}
+    - {title: "The AI Revolution: The Road to Superintelligence (Part 1)", source: "waitbutwhy.com (2015)", usage: "freely published — fuller fair-use quotes, attributed"}
+    - {title: "100 Blocks a Day", source: "waitbutwhy.com (2016)", usage: "freely published — fuller fair-use quotes, attributed"}
+    - {title: "How to Pick a Career (That Actually Fits You)", source: "waitbutwhy.com (2018)", usage: "freely published — fuller fair-use quotes, attributed"}
+  transcripts:
+    - {title: "Inside the Mind of a Master Procrastinator", venue: "TED", year: 2016, usage: "public talk — fuller quotes ok, attributed"}
+  urls: ["https://waitbutwhy.com", "https://www.ted.com/talks/tim_urban_inside_the_mind_of_a_master_procrastinator"]
+copyright: |
+  Transformative style analysis + attributed fair-use excerpts. Urban's Wait But Why posts (Why
+  Procrastinators Procrastinate, The AI Revolution, 100 Blocks a Day, How to Pick a Career) are freely
+  published on waitbutwhy.com, and his TED talk is public — those are quoted more fully and always
+  attributed. His paid book "What's Our Problem? A Self-Help Book for Societies" (2023) was NOT
+  ingested; its ideas are referenced by name/concept only, never reproduced. The PDF compilations in
+  the source folder (Wait But Why Year One, The Elon Musk Blog Series, The AI Revolution) were NOT
+  read as PDFs — their content is the same freely-published blog material, read in its free web form.
+  His coined characters/units (the Instant Gratification Monkey, the Panic Monster, the Dark
+  Playground, the Yearning Octopus, the Die Progress Unit) are referenced as style analysis. Output
+  written in this style is a derivative STYLE, presented as such — never claimed to be Urban's own words.
+notes: |
+  Tim Urban is an explainer-who-goes-deep: the truest source of his voice is the freely-published
+  Wait But Why corpus + his public TED talk (read in full), which is where his famous characters live
+  verbatim (the Monkey, the Panic Monster, the Yearning Octopus) and where the cosmic-explainer mode
+  (the 1750 time-machine thought experiment, the Die Progress Unit, exponential-not-linear) lives.
+  Strongest signature: personify the invisible force as a named drawn character → push one thought
+  experiment to absurdity → zoom out to the cosmic/mortality scale → close on a wink — all narrated by
+  a self-deprecating specimen who did the real research and credits it. His procrastination/Monkey work
+  is genuinely learning-science-adjacent (self-regulation, metacognition, "the most important things
+  have no deadline") and his AI Revolution work makes him an apt voice for the AI-era learning angle.
+  ONE calibration caution recorded in STYLE.md §13 + do-and-dont.md: his occasional profanity is
+  authentic but clashes with Ritsu brand voice — keep the irreverence, cut the swearing on Ritsu
+  surfaces. Future re-distillation could add "What's Our Problem?" (short ≤25-word quotes) for his
+  longer-book political/social register, and an interview transcript for finer spoken-craft calibration.
