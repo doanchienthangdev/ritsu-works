@@ -157,3 +157,15 @@ author_styles:
     distilled_on: "2026-06-10"
     confidence: high
     copyright: "Style analysis + attributed fair-use excerpts. jamesclear.com articles + 3-2-1 newsletter are freely published; talks are public; Atomic Habits (book) quotes kept ≤18 words per the source archive's posture."
+
+  - slug: cal-newport
+    full_name: Cal Newport
+    category: writing
+    one_line: "The skeptical professor building a proof: coin a capitalized concept → prove with a named case study + citation → hand over a numbered system. Long-build, short-snap sentences; depth over shallowness."
+    path: 06-ai-ops/write/author-styles/cal-newport/
+    status: installed   # distilled 2026-06-10 via /write distill (Workflow — 4 voice-analysts, parallel)
+    origin: distilled
+    source_kinds: [books, transcripts]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Style analysis + attributed fair-use excerpts. Newport's books (Deep Work, So Good They Can't Ignore You, Digital Minimalism, Slow Productivity, How to Become a Straight-A Student) are copyrighted — book quotes verbatim and kept ≤25 words; the Deep Questions podcast/YouTube talks are public (fuller quotes, lightly cleaned of ASR noise). calnewport.com blog + New Yorker essays characterized, not quoted at length."

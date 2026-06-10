@@ -1,0 +1,33 @@
+# Provenance for the cal-newport author-style artifact.
+slug: cal-newport
+full_name: Cal Newport
+distilled_on: "2026-06-10"
+distilled_by: "/write distill (Claude Code Workflow — 4 voice-analysts, parallel: 2 written-prose + 2 spoken)"
+confidence: high   # 5 books read via extracted prose + 10 full public talks; voice saturated + cross-confirmed across written and spoken registers
+sources:
+  books:
+    - {title: "Deep Work", year: 2016, usage: "≤25-word verbatim quotes only (copyrighted)"}
+    - {title: "So Good They Can't Ignore You", year: 2012, usage: "≤25-word verbatim quotes only (copyrighted)"}
+    - {title: "Digital Minimalism", year: 2019, usage: "≤25-word verbatim quotes only (copyrighted)"}
+    - {title: "Slow Productivity", year: 2024, usage: "≤25-word verbatim quotes only (copyrighted)"}
+    - {title: "How to Become a Straight-A Student", year: 2006, usage: "≤25-word verbatim quotes only (copyrighted); the learning-science source"}
+    - {title: "A World Without Email / Digital Minimalism / Time-Block Planner / How to Win at College", usage: "context only; not quoted"}
+  transcripts:
+    - {title: "Deep Questions podcast / YouTube (10 episodes): Can You Make Learning As Addictive As Social Media; Make Learning As Addictive As Social Media; Learn Any Hard Skill In 2024; How To Stop Wasting Time; How To Reinvent Your Life In 4 Months; How Do I Become AI-Proof; How Do I Reverse Brain Rot; Stop Doom Scrolling; The Perks of Living Without Social Media; Core Idea: Slow Productivity", usage: "public talks — fuller fair-use quotes, lightly cleaned of ASR artifacts, attributed"}
+  urls: ["https://calnewport.com", "https://www.youtube.com/@CalNewportMedia"]
+copyright: |
+  Transformative style analysis + attributed fair-use excerpts. Cal Newport's books are copyrighted —
+  every book excerpt in this artifact is verbatim and kept ≤25 words (verified against the source text).
+  The Deep Questions podcast / YouTube talks are public; those quotes are fuller and lightly cleaned of
+  automatic-transcription noise without changing the words. calnewport.com's Study Hacks blog and his
+  New Yorker essays are characterized but not quoted at length. Output written in this style is a
+  derivative STYLE, presented as such — never claimed to be Newport's own words.
+notes: |
+  Cal Newport is a computer-science professor who writes argument-driven prescriptive nonfiction with a
+  researcher's citation habits. The truest source of his WRITTEN voice is the books (read via extracted
+  prose, ≤25-word quotes); the transcripts saturate his recurring frames and spoken cadence. Strongest
+  signature, holding across both registers: coin-and-capitalize a concept → prove with a named case
+  study + citation → hand over a numbered system, in long-build/short-snap sentences. He is the measured
+  professor building a proof — the deliberate CONTRAST to the existing james-clear voice (short/aphoristic).
+  The learning-science spine ("work accomplished = time spent × intensity of focus"; pseudo-working;
+  deliberate practice = productive strain) maps directly onto Ritsu's active-vs-passive-learning thesis.
