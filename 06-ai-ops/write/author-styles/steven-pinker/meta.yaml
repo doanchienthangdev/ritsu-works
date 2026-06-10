@@ -1,0 +1,11 @@
+# Provenance + copyright posture for the Steven Pinker author-style.
+slug: steven-pinker
+full_name: "Steven Pinker"
+distilled_on: "2026-06-10"
+distilled_by: /write learn
+sources:
+  - kind: book
+    title: "The Sense of Style"
+    ref: "raw/write/books/ (sense-of-style-pinker)"
+confidence: high
+copyright: "Transformative style analysis of Steven Pinker's *The Sense of Style* (2014); all excerpts are short (≤25 words), attributed fair-use quotations used to teach the voice, never a reproduction of the work."

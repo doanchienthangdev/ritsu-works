@@ -1,6 +1,6 @@
 # Writing frameworks — the `/write --framework` library
 
-100 formulas the writer applies with `/write --framework=<id>`. Each carries its **structure** (the steps), **how to apply** (the process + key discipline, so a writer who doesn’t know it can apply it reliably), a concrete **example**, and **when** to reach for it. A framework is composable with `--type` / `--template` / `--author-style`.
+183 formulas the writer applies with `/write --framework=<id>`. Each carries its **structure** (the steps), **how to apply** (the process + key discipline, so a writer who doesn’t know it can apply it reliably), a concrete **example**, and **when** to reach for it. A framework is composable with `--type` / `--template` / `--author-style`.
 
 `--framework` default is **`auto`** — the orchestrator picks the best-fit formula OR writes **free-style** (not every piece needs one). `none`/`free` forces free-style; `<id>` applies a specific one.
 
@@ -631,6 +631,634 @@ Ranked by fit to Ritsu + ritsu-works (Σ max 50: C1 learning-core ×3 · C2 GTM 
 **How to apply:** Write the launch-day press release first — as if the product already shipped, dated in the future, in plain customer-benefit language — then a customer FAQ answering what real users would ask, then an internal FAQ confronting the hard execution, cost, and risk questions. The discipline: work backwards from the customer outcome, not forward from the feature; the failure mode is a press release stuffed with internal jargon and an internal FAQ that dodges the uncomfortable questions instead of answering them.  
 **Example:** PR: "Today Ritsu launched Exam Cram — upload your syllabus, get a personalized 3-day study plan." FAQ: "What if my PDF is scanned?" Internal FAQ: "OCR cost per upload?"  
 **When:** Work-backwards from the launch you want.
+
+
+## From the masters — distilled by `/write learn` (83)
+
+Net-new formulas distilled from 14 master writing books (2026-06-10), routed here by family. Each is traceable to its **source book(s)**; the universal *principles* from these books live in [`CRAFT.md`](CRAFT.md).
+
+### Advertising (Ogilvy · Hopkins · Schwartz)  (4)
+
+#### `offer-service` — Offer Service (Lead With What They Get)  ·  Σ 36.5  ·  fits: landing-page, ad, email, product-description, social-post
+**Structure:** 1) Drop the ask — never open with 'buy', 'choose us', or the brand name as if it mattered. 2) Picture the reader's selfish gain: information they want, a result they crave, a risk removed. 3) Make a service offer that proves the claim at the reader's zero cost (free sample, try-before-pay, money-back). 4) Let the natural result of the value be the purchase — earn the decision instead of demanding it.  
+**How to apply:** Rewrite every 'buy/choose/get our app' line as the service the reader receives, then back it with a no-risk trial — 'the good salesman pictures the customer's side of his service until the natural result is to buy'. The #1 failure mode is talking about YOUR interest; read the draft and delete every sentence that serves the seller, not the reader.  
+**Example:** Not 'Sign up for Ritsu.' Instead 'Upload your hardest chapter — get a free 10-question quiz in 30 seconds. Keep it whether or not you stay.'  
+**When:** Any persuasive piece (ad, landing page, email, product page) where the instinct is to say 'sign up' or 'pick us'.  
+*Sources: scientific-advertising-hopkins*
+
+#### `preemptive-claim` — The Preemptive Claim  ·  Σ 36  ·  fits: landing-page, ad, press-release, blog, product-description
+**Structure:** 1) Find a true fact about how the product or process works that EVERY competitor could also claim but none has bothered to. 2) Be the first to tell it — in vivid, specific process detail. 3) Own it: the public now associates that universal truth with you alone. 4) Bonus: pair it with a coined or descriptive name so rivals can't ride the demand you created.  
+**How to apply:** Audit your process for an unstated-but-ownable mechanism and describe it concretely before anyone else does — Hopkins's brewer detailed filtered air and washing every bottle four times, claims any brewer could have made, and owned the category. The #1 discipline is vivid process specifics, not the abstract claim.  
+**Example:** Every study app says 'AI-powered'. Ritsu instead: 'Every quiz question is traced to a line in YOUR document — tap it to see the exact source sentence. No invented facts.'  
+**When:** Entering a crowded category where everyone makes the same vague claim ('pure', 'effective', 'AI-powered').  
+*Sources: scientific-advertising-hopkins*
+
+#### `big-idea-five-questions` — Big-Idea Five-Question Test  ·  Σ 34  ·  fits: ad, landing-page, video-script, presentation, social-post, blog
+**Structure:** Score any candidate concept against five gates: 1) Did it make me gasp when I first saw it? 2) Do I wish I'd thought of it? 3) Is it unique? 4) Does it fit the strategy to perfection? 5) Could it run for 30 years? A real big idea passes all five.  
+**How to apply:** Generate by stuffing your conscious mind with research then unhooking rational thought (a walk, a shower); then run each survivor through the five questions and kill anything that fails gate 4 (on-strategy) or gate 3 (unique). The #1 failure mode is 'irrelevant brilliance' — a dazzling idea that doesn't fit the strategy.  
+**Example:** 'Your textbook, talking back to you' — a tutor that quizzes from your own pages — passes unique + on-strategy + durable; a generic 'study smarter' tagline fails the gasp test.  
+**When:** Selecting the central creative concept or hook for a campaign or flagship piece before building everything around it.  
+*Sources: ogilvy-on-advertising*
+
+#### `rule-and-example-campaign` — Rule-and-Example Campaign  ·  Σ 33.5  ·  fits: article-series, thread, newsletter, social-post, ad, email
+**Structure:** 1) Find the ONE dominant image or idea. 2) Compress it into a single fixed statement (the 'Rule'). 3) Keep that Rule constant across every piece while varying one element (the 'Example' — a new illustration, angle, or proof) each time. 4) The continuity banks past desire; the variation re-earns attention so the idea feels new again.  
+**How to apply:** Hold the central idea rigid but never re-run the identical headline — present a series of variations, each emerging from the core idea yet different enough to compel a re-read. The #1 discipline is that every variation must still pass the headline test on its own.  
+**Example:** Series rule: 'Turn any document into a tutor.' Examples rotate: a PDF, a YouTube lecture, lecture slides, a research paper — same promise, new proof each post.  
+**When:** Any multi-asset run (a content series, email sequence, thread series, repeated social posts) where one piece isn't enough and repetition would go stale.  
+*Sources: breakthrough-advertising-schwartz*
+
+
+### Copy & conversion  (7)
+
+#### `find-the-core` — Find the Core (Commander's Intent)  ·  Σ 42  ·  fits: blog, email, memo, presentation, landing-page, tutorial, report, speech, course, ad
+**Structure:** 1) List everything you could say. 2) Force-rank to the SINGLE most important thing. 3) Write it as one plain 'Commander's Intent' line a novice could act on alone. 4) Make every later sentence serve that core; cut what competes. 5) State the core FIRST (inverted pyramid — don't bury the lead).  
+**How to apply:** Do forced prioritization — 'if they keep only one idea, which?' — and accept that finding the core means discarding many true, good points. The #1 failure mode is decision paralysis from too many co-equal points; one ranked core beats five unranked tips.  
+**Example:** For a 3-day-exam guide, the core line is 'Active recall over rereading' — every section then serves only that, stated in sentence one.  
+**When:** Any piece where the reader will remember at most one thing — to set what that one thing is.  
+*Sources: made-to-stick-heath*
+
+#### `humanize-the-institution` — Humanize the Institution (I-Ness Warmth)  ·  Σ 38  ·  fits: email, landing-page, product-description, faq, press-release, memo, newsletter, proposal, report, blog, social-post
+**Structure:** 1) Identify where the draft hides behind passive voice and abstraction ('initiatives were undertaken', 'utilization', concept nouns). 2) Put a person back in: switch to I/we/you with active verbs that show someone doing something. 3) If 'I' is forbidden, at least THINK 'I' as you write — or draft in first person and remove the I's afterward. 4) Use contractions and the words you'd say out loud. 5) Address the reader directly with 'you'.  
+**How to apply:** Apply clarity, simplicity, brevity, humanity: 'readers identify with people, not abstractions', so every faceless sentence ('evaluative procedures were established') becomes a human one ('at the end of the year we'll see how we did'). The #1 failure mode is jargon-as-safety-blanket — it feels safe but tells the reader nothing.  
+**Example:** Not 'Ritsu provides enhanced learning environments via multimodal instructional materials.' Instead 'Upload your notes and we'll turn them into quizzes you can actually pass.'  
+**When:** Org-voice copy — onboarding emails, product pages, support replies, FAQ, announcements — that reads cold or corporate.  
+*Sources: on-writing-well-zinsser, ogilvy-on-advertising*
+
+#### `second-person-singular` — Second-Person-Singular Letter Voice  ·  Σ 37.5  ·  fits: email, landing-page, ad, newsletter, blog, social-post, product-description
+**Structure:** 1) Picture ONE reader, alone, reading. 2) Write as if penning that person a personal letter — 'you', singular. 3) Open with a grabber first sentence, never a mushy statement of the obvious. 4) Use short sentences, short paragraphs, everyday words. 5) Tell them what it does for THEM.  
+**How to apply:** Replace stadium-address phrasing ('students everywhere love…') with one-human-to-another address, and make the first paragraph seize attention rather than ease in. The #1 failure mode is opening with the obvious — 'Going on vacation is a pleasure everyone looks forward to' loses the reader in line one.  
+**Example:** 'You've got the exam Friday and 80 pages you haven't touched. Drop the PDF in. In 30 seconds Ritsu hands you a quiz on exactly that chapter.'  
+**When:** Any direct, reader-facing copy where warmth and one-to-one intimacy drive trust and action.  
+*Sources: ogilvy-on-advertising*
+
+#### `so-what-because-ladder` — So What? / Because Ladder  ·  Σ 37  ·  fits: landing-page, email, ad, product-description, blog, social-post, memo, proposal
+**Structure:** 1) State your goal or claim plainly. 2) Ask 'So what?' 3) Answer 'Because ___'. 4) Ask 'So what?' of that answer. 5) Repeat until you hit the reader's real, felt stake. 6) Rewrite the bottom rung as one reader-facing message sentence and pin it at the top of the page.  
+**How to apply:** Run the So-what?/Because volley until you exhaust any ability to come up with an answer — the last rung is the reader's true motivation. The #1 discipline is not stopping at the first 'because' (that's still a feature); the gold is 2-3 rungs down, then express it as a single clear message kept visible as your map pin.  
+**Example:** 'Ritsu makes flashcards from your PDF.' So what? → you stop hand-making cards at 1am. So what? → you sleep AND remember more. → 'Spend exam week learning, not making flashcards.'  
+**When:** Whenever a draft is about you or the product and you need to reframe it around the reader's benefit.  
+*Sources: everybody-writes-handley*
+
+#### `tell-me-without-telling-me` — Tell Me Without Telling Me  ·  Σ 35.5  ·  fits: landing-page, ad, product-description, email, social-post, blog, bio
+**Structure:** 1) Write the literal 'Tell Me' line (the feature or description). 2) Ask: what's it LIKE? how does it FEEL to the reader? 3) Replace the description with an image, action, or sensory clue that dramatizes the benefit — without naming it. 4) Check the reader is front-and-center and can see themselves in it.  
+**How to apply:** Force any 'Tell Me' line through the show-don't-tell test, connecting ALL the dots so the reader doesn't have to infer why it matters — but stop short of explaining the joke. The #1 discipline is pairing it with concrete specifics, because concrete images do the showing.  
+**Example:** Tell Me: 'AI-generated quizzes from any document.' Tell Me Without Telling Me: 'Quiz yourself on tonight's reading before you've finished the chapter.'  
+**When:** Headlines, home-page heroes, product copy, email subject lines — anywhere bloodless description is weakening the line.  
+*Sources: everybody-writes-handley*
+
+#### `specifics-over-superlatives` — Specifics Over Superlatives  ·  Σ 35  ·  fits: ad, landing-page, product-description, email, blog, social-post, report
+**Structure:** 1) Hunt every vague claim and superlative in the draft (best, fastest, world-class, 'a lot', 'less than you think'). 2) Replace each with an exact figure, count, or named mechanism that implies you measured. 3) Prefer a number that sounds tested (78, 130, 2×) over a round invented-looking one. 4) Surface the single most surprising true specific into the headline. 5) If a claim can't be made specific, cut it.  
+**How to apply:** Run a superlative-hunt pass — every 'best/most/leading' is a red flag — and convert to a definite statement, because 'a man who makes a specific claim is either telling the truth or a lie, and people don't expect an advertiser to lie'. The #1 discipline is never shipping a number you couldn't defend; a false specific destroys more trust than a vague claim.  
+**Example:** Not 'Ritsu makes studying way more effective.' Instead 'Ritsu turns 1 PDF into 40 quiz questions and 25 flashcards in 30 seconds.'  
+**When:** Whenever copy is leaning on adjectives and superlatives to do persuasion's job.  
+*Sources: ogilvy-on-advertising, scientific-advertising-hopkins*
+
+#### `intensification-fulfillment-stack` — Intensification (Stack Fresh Fulfillment Images)  ·  Σ 34  ·  fits: landing-page, email, ad, video-script, product-description, blog
+**Structure:** 1) Name the one dominant desire. 2) Present a vivid fulfillment image (product-in-action, the result). 3) Re-present the SAME promise from a fresh angle each time — put the reader inside it, stretch benefits over time, bring in an audience, show experts approving, contrast old-vs-new, picture the downside, show how easy it is, use analogy. 4) Summarize the images, then fold them into the guarantee as the climax.  
+**How to apply:** You are 'the script writer for your prospect's dreams' — translate vague desire into one concrete scene of fulfillment after another. The #1 discipline is never repeating an image: each restatement must use a new viewpoint or you bore and lose the reader, and you stop the moment a new angle stops adding desire.  
+**Example:** Teaching memory: 'Tonight, read 8 pages. Then write 20 facts you could never remember before — without looking back. Tomorrow, amaze your class.'  
+**When:** Body-copy desire-building — when you need to overpower skepticism, lethargy, and price.  
+*Sources: breakthrough-advertising-schwartz*
+
+
+### Headlines  (2)
+
+#### `benefit-or-news-headline` — Benefit-or-News Headline  ·  Σ 38  ·  fits: ad, landing-page, email, blog, social-post, newsletter
+**Structure:** 1) Lead the headline with the single strongest reader BENEFIT or a piece of NEWS. 2) Make the promise concrete and specific (a number, a named gain). 3) Put the brand or product name IN the headline. 4) Flag the target audience by name if it's a niche. 5) Telegraph plainly — no puns, no double meanings, no blind cleverness.  
+**How to apply:** Write 10+ headline variants, then keep only those that promise a benefit or break news, rejecting every 'clever' headline that doesn't say what the thing does. The #1 failure mode is the witty headline that wins at the bar and loses at the cash register — five times as many people read the headline as the body, so a headline that doesn't sell wastes 90% of the work.  
+**Example:** 'How to ace your biology final in 3 days — turn your textbook into 40 quiz questions.' (benefit + news + specific)  
+**When:** Any short, scannable opener where most readers will only ever read that one line.  
+*Sources: ogilvy-on-advertising*
+
+#### `headline-90-10` — Headline Recipe (90% Clear, 10% Clever)  ·  Σ 37  ·  fits: blog, article, newsletter, social-post, thread, ad, email
+**Structure:** 1) Be 90% clear, 10% clever (the headline must stand alone without the story). 2) Open a curiosity gap — but deliver on it, no hyperbole. 3) Put the READER in it. 4) Be specific; use oddball numbers (3½, 17, 37). 5) Signal why now. 6) Prefer 'the/these/their' over 'a/an/some'. 7) Front-load the key words. 8) Write SEVEN headlines, pick the best. 9) Read it aloud.  
+**How to apply:** Spend as much time on the headline as on the piece, then run the 9-point pass and generate seven variants before choosing. The #1 discipline is that clever-without-clear fails, and the curiosity gap must be honest — '14 Surprising Ways…' only works if they're actually surprising.  
+**Example:** Not '14 Study Tips.' Try '7 Things to Quiz Yourself On Before Tomorrow's Exam (Most Students Skip #4)' — reader-in-it, oddball number, why-now, honest gap.  
+**When:** Every headline, blog title, subject line, and social post hook.  
+*Sources: everybody-writes-handley*
+
+
+### Landing & sales pages  (2)
+
+#### `landing-page-five-things` — Landing Page Five-Things (Less Is More)  ·  Σ 36.5  ·  fits: landing-page, email, ad, product-description
+**Structure:** Convey exactly five things and nothing more: 1) Where they are (match the headline to the promise that brought them). 2) What you're making available, and for whom — framed as benefit, not product. 3) Why now. 4) Validation/proof from others. 5) One clear CTA.  
+**How to apply:** Strip the page to the five elements and resist 'arcade-ifying' it with bells and whistles that overwhelm. The #1 discipline is killing 'message mismatch' — the first thing the visitor sees must be exactly what the ad or email promised, and benefit-driven headlines beat product-driven ones.  
+**Example:** Headline: 'Create a full study set from your lecture slides in 10 minutes' (benefit), proof: '12,000 students', why now: 'finals are 2 weeks out', CTA: 'Upload your slides.'  
+**When:** Any single-goal landing page reached from a targeted email, ad, or social campaign.  
+*Sources: everybody-writes-handley*
+
+#### `editorial-not-ad` — Editorial-Not-Ad Format  ·  Σ 33  ·  fits: landing-page, blog, ad, newsletter, social-post, presentation, article
+**Structure:** 1) Make the piece look like editorial content, not a promotion. 2) Order elements the way the eye scans: image → headline-under-image → copy. 3) Put a selling caption under every image (captions out-read body copy). 4) Use clean readable type — dark text on light, serif body. 5) Strip the graphic 'tells' that scream 'skip me'.  
+**How to apply:** Construct it pretending you're an editor — roughly six times as many people read the average article as the average ad. The #1 levers: put the headline BELOW the image (read by ~10% more people) and never run an image without a selling caption carrying the brand name plus the promise.  
+**Example:** A Ritsu blog header reading like a study-skills article — image of an annotated textbook page, headline beneath, caption: 'Ritsu turned this chapter into 40 questions.'  
+**When:** Any visual piece competing for attention where 'looks like an ad' kills readership.  
+*Sources: ogilvy-on-advertising*
+
+
+### Email  (1)
+
+#### `cta-lift-the-a` — Lift the A in CTA  ·  Σ 35.5  ·  fits: email, landing-page, ad, newsletter, social-post, product-description
+**Structure:** 1) Start from the generic CTA ('Download', 'Register', 'Learn more'). 2) Make it literally actionable with a visible action verb. 3) Infuse brand voice or quirk. 4) Swap work-words for outcome-words (Learn → Finally understand; See how → Discover). 5) Optionally rhyme it for memorability.  
+**How to apply:** Lift the A — make the Action vivid and seeable ('Access the ebook' → 'Grab your copy') — and cut words that imply work or don't hint at the outcome, because readers are a little lazy. The #1 lever is the outcome-word swap; rhyme triggers the Rhyme-as-Reason bias so people judge it more true.  
+**Example:** Not 'Start free trial.' Try 'Turn your notes into a quiz — free.' Or rhymed: 'Ace it faster, be the master.'  
+**When:** Every button, link, and call to action in emails, landing pages, ads, and headlines.  
+*Sources: everybody-writes-handley*
+
+
+### Persuasion psychology (Cialdini · Heath)  (14)
+
+#### `success-stickiness-audit` — SUCCESs Stickiness Audit  ·  Σ 42  ·  fits: blog, social-post, email, video-script, presentation, ad, landing-page, course, speech, newsletter
+**Structure:** Run any draft against six checks in order: Simple (find the core, one idea) → Unexpected (break a guessing machine; open a gap) → Concrete (sensory, specific, no abstraction) → Credible (a detail/stat/test the reader can verify) → Emotional (make them care about ONE someone) → Story (a scene they can mentally simulate). Score each present/absent; rewrite the misses.  
+**How to apply:** Treat it as a checklist, not a recipe — draft first, then audit each of the six and fix only the gaps. The #1 failure is stopping at 'Simple + short' (a slogan) and skipping the other five, so force every letter to earn a yes.  
+**Example:** Audit a flashcard tip: Simple yes, Unexpected no, Concrete no — rewrite 'study smart' into 'quiz yourself before you reread — recall, not rereading, is what sticks.'  
+**When:** Pressure-testing or rebuilding any piece that must be remembered and acted on, not just read.  
+*Sources: made-to-stick-heath*
+
+#### `springboard-story` — Springboard Story  ·  Σ 37  ·  fits: blog, email, presentation, proposal, memo, speech, video-script, case-study-blog
+**Structure:** 1) State the change you want the reader to believe is possible. 2) Tell ONE true minimal story of someone who already lived that change (set-up problem → what they did → result). 3) Stop short of preaching the moral — let the reader's inner voice infer it and supply a story of their own. 4) Keep it lean enough that the leap to 'us' is obvious.  
+**How to apply:** Resist 'hitting them between the eyes' with an abstract directive — that invites the reader to argue back; a story invites participation instead. The #1 discipline is engaging the inner skeptic by giving it something to infer, so the reader co-authors the conclusion ('they stole my idea — it became their idea').  
+**Example:** Pitch active recall to skeptical teachers via the one student who replaced rereading with self-quizzing and jumped a letter grade — then let them imagine their own class.  
+**When:** Overcoming skepticism or creating buy-in for a new way of doing things, where a direct argument would trigger pushback.  
+*Sources: made-to-stick-heath*
+
+#### `gradualization` — Gradualization (the Belief-Bridge)  ·  Σ 36  ·  fits: landing-page, email, ad, blog, video-script, course
+**Structure:** 1) Open with a statement the reader already accepts as true (a shared resentment, symptom, or fact) — NOT your strongest claim. 2) Add an inclusion-question they answer 'yes' to. 3) Stack 5-8 more small agreements (symptom lists, 'how many times this week…'). 4) Only now introduce each bigger claim, each one logically bridged from the accepted facts before it. 5) Reach the payoff claim last, when it lands as inevitable.  
+**How to apply:** Build a 'Habit of Agreement': never ask the reader to jump a believability chasm — lay one stepping-stone of already-accepted fact, then the next, each prepared by the one before. The #1 failure mode is leading with your power-claim; one fully-believed promise outsells ten half-believed ones.  
+**Example:** Don't open 'Ace any exam in 3 days.' Open 'Ever crammed all night and still blanked on the test?' → yes → then build to the 3-day claim.  
+**When:** When your true claim is too big, too good, or too unfamiliar to be believed if stated cold — common for any 'you can do X yourself' or transformation promise.  
+*Sources: breakthrough-advertising-schwartz*
+
+#### `mass-desire-selection` — Mass-Desire Selection (Urgency × Staying-Power × Scope)  ·  Σ 36  ·  fits: ad, landing-page, email, blog, video-script, product-description
+**Structure:** 1) List every desire your product could plausibly tap. 2) Score each on three dimensions: Urgency (intensity, demand to be satisfied now), Staying-power (recurring, can't be satiated), and Scope (how many people share it). 3) Pick the ONE desire that scores highest across all three right now. 4) Build the headline and lead on that single desire — every other benefit becomes supporting reinforcement.  
+**How to apply:** Inventory desires and deliberately rank by the three dimensions rather than defaulting to the most obvious one. The #1 discipline is that only ONE desire can lead — 'only one is the key that unlocks maximum power' — and choosing wrong here dooms everything downstream, because the choice is embodied in your headline.  
+**Example:** Ritsu taps 'study' AND 'pass-this-exam-Friday'. Friday's exam wins: urgency sky-high, scope wide, recurring every term — so lead with the deadline, not generic mastery.  
+**When:** At the very start, before writing a word — to choose which existing desire to channel (copy directs desire, it cannot create it).  
+*Sources: breakthrough-advertising-schwartz*
+
+#### `reciprocity-give-first` — Reciprocity Give-First  ·  Σ 36  ·  fits: email, landing-page, ad, newsletter, social-post, blog
+**Structure:** 1) Give something genuinely useful and unrequested FIRST. 2) Make the gift feel meaningful, unexpected, and customized. 3) Only after the gift lands, make the ask — which now rides an obligation to repay.  
+**How to apply:** Lead the piece with the value — a free worked solution, a study plan, a cheat-sheet — delivered with no strings, THEN make the request. The #1 failure mode is asking before giving, or making the 'gift' obviously a sales prop (a coupon is not a gift); the gift must feel like a favor, not a transaction, or the rule doesn't fire.  
+**Example:** 'Here's a free 3-day exam cram plan for your bio final — no signup. Want Ritsu to auto-build one from your actual textbook?'  
+**When:** Any time you need a conversion (signup, upgrade, share) and have a free asset you can hand over before asking.  
+*Sources: influence-cialdini*
+
+#### `commitment-consistency-ladder` — Commitment & Consistency Ladder  ·  Σ 36  ·  fits: email, landing-page, product-description, tutorial, course, social-post
+**Structure:** 1) Secure a tiny initial commitment (foot-in-the-door). 2) Make it active, public, and effortful where possible. 3) Frame it as a freely-chosen self-image. 4) Escalate to the larger ask the reader now wants to stay consistent with.  
+**How to apply:** Ask for something trivial first (answer one question, set one goal aloud), because that small act quietly rewrites the reader's self-image. The #1 lever is making the first commitment ACTIVE + PUBLIC + EFFORTFUL + freely chosen — a commitment that's written, said out loud, or worked for 'grows its own legs' and self-perpetuates without further pressure.  
+**Example:** 'Tap to declare your goal: I'm a person who studies daily. Now Ritsu sends one quiz a day to keep that true.'  
+**When:** Onboarding, habit-forming products, and any funnel where the real goal is a sustained behavior, not a one-time click.  
+*Sources: influence-cialdini*
+
+#### `social-proof-similar-many` — Social Proof of the Similar-Many  ·  Σ 36  ·  fits: landing-page, ad, social-post, email, product-description, review, blog
+**Structure:** 1) State, concretely, how many people are already doing the desired behavior. 2) Make those people maximally SIMILAR to the reader. 3) Imply the behavior is the normal, correct thing to do.  
+**How to apply:** Replace vague claims with a specific count of PEERS performing the exact behavior ('most students like you…'), because people copy the many, especially the similar many, when unsure. The #1 discipline is that the proof must be REAL and similar — faked or generic proof ('thousands love it!') breeds distrust, and proof from dissimilar others barely moves the reader.  
+**Example:** 'Most pre-med students who quizzed daily for 7 days passed their first exam. Join the 4,200 who study this way on Ritsu.'  
+**When:** When the reader is uncertain and you can cite real numbers of similar others taking the action.  
+*Sources: influence-cialdini*
+
+#### `authority-credible-expert` — Authority Credible-Expert Frame  ·  Σ 36  ·  fits: blog, article, tutorial, landing-page, research, paper, email, video-script
+**Structure:** 1) Establish a credible source up front (credentials, evidence, the science). 2) Distinguish being 'an authority' (genuine expertise) from merely 'in authority' (a title). 3) Add an honest, trust-building limitation to make the authority believable.  
+**How to apply:** Front-load real evidence of expertise (cite the study, name the mechanism, show the credential) so the reader can defer to a legitimate authority instead of guessing. The strongest move is pairing the authority claim with an honest admission of a limit — a credible expert who concedes a weakness is trusted far more than one who claims perfection.  
+**Example:** 'Spaced repetition is the most replicated finding in memory science (Ebbinghaus, 1885 → 100+ years of studies). It won't make studying fun — but it works.'  
+**When:** Explaining a method, a claim, or a 'why this works' — anywhere credibility decides whether the reader believes you.  
+*Sources: influence-cialdini*
+
+#### `mechanization` — Mechanization (Name → Describe → Feature the Mechanism)  ·  Σ 35  ·  fits: landing-page, ad, email, product-description, blog, tutorial
+**Structure:** Answer the reader's silent 'How does it work?' at one of three depths set by market sophistication: NAME the mechanism (reader already knows it — just label it, compete on price); DESCRIBE it (Promise → Reason-Why one-two punch; sell the mechanism as hard as the claim); or FEATURE it (the mechanism is so dramatic it becomes the headline itself, making a tired claim believable again).  
+**How to apply:** Don't ask whether to give a mechanism — ask how much, gauged by how saturated the market is; when claims are exhausted, a fresh believable mechanism is what reopens the field. The #1 discipline is that mechanism copy is still SELLING copy: load every line with promise and emotion, never let it become dull scientific discourse.  
+**Example:** 'Why this works: active recall forces your brain to retrieve the answer — and retrieval, not re-reading, is what burns a fact into long-term memory.'  
+**When:** Whenever the reader thinks 'Oh yeah? How?' — to convert a desired result into a believed, deliverable result.  
+*Sources: breakthrough-advertising-schwartz*
+
+#### `redefinition` — Redefinition (Concept-Judo)  ·  Σ 35  ·  fits: landing-page, ad, email, blog, product-description, faq
+**Structure:** Spot the drawback that repels the prospect (too hard / too trivial / too expensive), then redefine it: (a) Simplification — recast a scary task in smaller familiar terms; (b) Escalation — broaden the benefit so the product feels essential; (c) Price-reduction — switch the comparison to a more expensive standard so your price feels cheap; or (d) Flip-flop — turn the very liability into the proof.  
+**How to apply:** Don't argue the objection head-on; give the thing a new definition so the objection dissolves before the reader names it — the flip-flop ('this rather than that') is strongest when available, otherwise lead the reader to the new definition step by step. The #1 discipline: redefine the whole frame BEFORE you bring in the product, because 'innovation without acceptance is valueless'.  
+**Example:** Reframe study from a chore to leverage: 'You're not memorizing 400 pages — you're drilling the 25 ideas that 90% of the exam is built on.'  
+**When:** When a real objection — difficulty, narrow appeal, or price — will kill the sale before the benefit lands.  
+*Sources: breakthrough-advertising-schwartz*
+
+#### `scarcity-loss-frame` — Scarcity Loss-Frame  ·  Σ 35  ·  fits: email, ad, landing-page, social-post, product-description
+**Structure:** 1) Name what the reader stands to LOSE (not gain) by not acting. 2) Make the loss concrete and time-bound (a deadline, limited slots, expiring access). 3) Heighten with genuine uncertainty or competition where it truly exists.  
+**How to apply:** Reframe the benefit as an impending loss and attach a real boundary, because loss aversion makes people fight harder to avoid losing than to gain the identical thing. The non-negotiable discipline is authenticity — manufactured fake urgency, once detected, destroys trust permanently; frame as 'what you lose', not 'what you save'.  
+**Example:** 'Your exam is in 3 days. Every day you don't start a quiz cycle is a topic you won't have time to master. The window is closing, not opening.'  
+**When:** Driving action now rather than later — but only when the scarcity is real.  
+*Sources: influence-cialdini*
+
+#### `rejection-then-retreat` — Rejection-Then-Retreat (Door-in-the-Face)  ·  Σ 34.5  ·  fits: landing-page, email, ad, product-description, social-post
+**Structure:** 1) Open with a larger request you expect to be declined. 2) After the refusal, 'retreat' to the smaller request you wanted all along. 3) The concession triggers a reciprocal concession AND makes the real ask look small by contrast.  
+**How to apply:** Anchor with the big version first (the full course, the annual plan, the 60-minute commitment), let the reader mentally decline, then present the modest real ask as a step-down. The #1 discipline is that the first request must be large but not absurd — an unreasonable opener kills credibility and forfeits the reciprocal-concession effect.  
+**Example:** 'Master the whole textbook this month? Big. Start with just one chapter's quiz tonight — 5 minutes.'  
+**When:** Pricing and offer copy where you want the target tier or commitment to feel like a bargain or a reasonable middle.  
+*Sources: influence-cialdini*
+
+#### `unity-one-of-us` — Unity One-of-Us Framing  ·  Σ 34.5  ·  fits: social-post, thread, email, landing-page, ad, blog, newsletter
+**Structure:** 1) Invoke a shared identity ('one of us'), not mere similarity ('like us'). 2) Use the reader's in-group language, references, and category. 3) Position the product as something the tribe does together.  
+**How to apply:** Write from inside the reader's tribe — use their exact slang, name their shared category (pre-meds, CS majors, MCAT-takers), and frame the action as what 'we' do. The key distinction is shared IDENTITY over surface similarity; the failure mode is generic 'people like you' language that signals you're an outsider looking in.  
+**Example:** 'Fellow med students: we don't cram, we master. Ritsu is how our cohort turns Robbins into recall.'  
+**When:** Community-driven copy and audience-specific content where belonging is the motivator.  
+*Sources: influence-cialdini*
+
+#### `concentration-bad-good` — Concentration (Bad/Good Interweave)  ·  Σ 34  ·  fits: landing-page, blog, ad, email, review, comparison-x-vs-y
+**Structure:** Destroy the alternative ways the reader could satisfy the desire, either: (A) point-by-point — old weakness, your strength; old weakness, your strength across each factor; or (B) time-sequence — narrate the reader's recurring failure with the old way, then introduce your product as the antidote. End by returning to promise copy, now far more powerful.  
+**How to apply:** Iron rule: never attack a weakness unless you supply the cure in the same breath — a one-sided attack reads as biased and breeds dislike. Frame every criticism as being for the reader's own good, and use parallel sentence structure to sharpen each contrast.  
+**Example:** 'Re-reading highlights it and feels productive — but you forget 70% in a week. A 5-minute self-quiz feels harder, and it makes the same facts stick for months.'  
+**When:** When you must crack an incumbent's hold or break a loyalty — especially with a smaller budget against a dominant competitor.  
+*Sources: breakthrough-advertising-schwartz*
+
+
+### Social  (1)
+
+#### `hermit-crab-content` — Hermit Crab Content  ·  Σ 34.5  ·  fits: blog, social-post, newsletter, presentation, ad, thread, video-script
+**Structure:** 1) Pick a familiar, ready-made format ('shell') your audience instantly recognizes — recipe, Rx prescription, magazine profile, game show, dating profile, instruction manual. 2) Move your own message or story into that shell. 3) Keep the borrowed format's conventions so the contrast is the delight. 4) Deliver real utility inside the shell.  
+**How to apply:** Borrow a shell from outside marketing and pour your story in, matching the shell's tone exactly so the juxtaposition lands. The #1 discipline is that the shell must genuinely fit the message and still carry utility — novelty alone, with no payoff, is a gimmick.  
+**Example:** A Ritsu study guide written as a cooking recipe: 'Ingredients: 1 messy PDF, 20 min. Method: upload, let it preheat into a quiz, serve flashcards warm.'  
+**When:** When a topic is dry or over-familiar and you want stop-the-scroll novelty without a big budget.  
+*Sources: everybody-writes-handley*
+
+
+### Blog & article  (2)
+
+#### `lede-kicker` — Lede + Kicker (Open With a Punch, Close With a Kick)  ·  Σ 37  ·  fits: blog, article, newsletter, essay, email, speech, social-post
+**Structure:** OPENINGS (pick one): put the reader in a scene · articulate their pain · set a stage · ask a question the piece answers · open with a surprising stat · offer a curious POV · tell a personal anecdote · use an analogy · start with a quote · the fake-out swerve. CLOSINGS (pick one): recast the biggest takeaway · point to the next resource · add a tonal surprise · let an interviewee have the last word — always with a sense of completion and (if apt) a CTA.  
+**How to apply:** Spend disproportionate love on line one and the last line — 'a good lede invites you to the party and a good kicker makes you wish you could stay longer'. The #1 discipline is never trailing off or ending on the lazy 'So what do you think?', and using the question-lede sparingly so you don't sound like an infomercial.  
+**Example:** Lede (pain): 'It's 11pm. You have 200 pages of bio to know by 8am and no idea where to start.' Kicker (recast + CTA): 'Tomorrow you'll walk in ready. Drop your file in Ritsu tonight.'  
+**When:** The first and last sentences of any piece — the two highest-leverage lines you'll write.  
+*Sources: everybody-writes-handley*
+
+#### `fifteen-angles` — Fifteen Angles to Frame a Piece  ·  Σ 35  ·  fits: blog, article, thread, newsletter, social-post, video-script, course, article-series
+**Structure:** Choose a structural angle for the SAME topic: Quiz · Skeptic · Explainer (plain English) · Case study · Contrarian · How-to · Quick how-to · How NOT to · First person · Comparison · Q&A · Data · Influencers · Outrageous · Insider secrets · Literary treatment.  
+**How to apply:** Hold the topic fixed and rotate the frame — the format often suggests the organization. The #1 discipline is picking the ONE angle that best serves the reader's need right now (a listicle fails when someone needs to learn how your product works); use the list to multiply one idea into a content cluster.  
+**Example:** Topic 'spaced repetition' → Explainer ('Spaced Repetition in Plain English'), How-to ('5 Steps to a Routine'), Contrarian ('Why Cramming Beats Spacing — Sometimes'), Data, Quiz.  
+**When:** Topic-ideation, when one subject must become many pieces, or when a draft feels generic and needs a sharper frame.  
+*Sources: everybody-writes-handley*
+
+
+### Story & narrative (McKee · King · Heath)  (13)
+
+#### `story-gap-loop` — The Story Gap (Expectation vs Result)  ·  Σ 40  ·  fits: blog, story, video-script, email, social-post, thread, landing-page, essay, speech, article
+**Structure:** 1) Character wants something and takes the minimal action they believe will get it. 2) The world reacts more powerfully or differently than expected. 3) A GAP cracks open between expectation and result. 4) Now at greater risk, they take a second, harder action. 5) Repeat, each gap widening, to the climax.  
+**How to apply:** For each beat, name what the reader or character expects, then make reality contradict it; the surprise (the gap) is what compels the next read. The #1 failure mode is the 'non-event' — activity with no gap, where expectation and result match — so if a paragraph merely confirms what the reader already assumed, collapse it or invert it.  
+**Example:** You think rereading the chapter means you know it. Then the first quiz question stumps you. That gap — felt-mastery vs real-mastery — is why Ritsu exists.  
+**When:** Any narrative beat, hook, or sequence that needs to feel alive instead of flat — the universal engine of attention.  
+*Sources: story-mckee*
+
+#### `inciting-incident-upset` — Inciting Incident — Upset the Balance  ·  Σ 39  ·  fits: blog, article, story, video-script, email, newsletter, landing-page, speech, essay, social-post
+**Structure:** 1) Open on a life in relative balance. 2) A single decisive event swings the value-charge sharply positive or negative. 3) The protagonist FEELS life is now out of balance. 4) They form an object of desire to restore it. 5) They actively pursue it. If a setup is needed, pay it off fast — don't strand the reader.  
+**How to apply:** Lead with the dynamic event that breaks equilibrium, not with throat-clearing context, and make sure the reader immediately senses what's now at stake. The #1 discipline is that it must be a real, concrete upset (not 'I felt bored'); if a setup precedes the payoff, don't let life-as-usual fill the gap between them.  
+**Example:** Your exam is Friday. You just opened the 300-page textbook for the first time. The balance of your week just broke — and that's the only sentence the intro needs.  
+**When:** The opening of any piece — to hook in the first lines by knocking the reader's world off balance instead of easing in.  
+*Sources: story-mckee*
+
+#### `controlling-idea` — Controlling Idea (Value + Cause)  ·  Σ 38.5  ·  fits: blog, essay, article, video-script, speech, memo, report, presentation, newsletter, book
+**Structure:** 1) Identify your piece's primary VALUE and its final charge (e.g. mastery, positive). 2) Identify the CAUSE — the chief reason it ended on that charge. 3) Compress to ONE sentence: '<Value> <result> BECAUSE <cause>'. 4) Use that sentence to judge every section — keep what expresses it, cut what's irrelevant.  
+**How to apply:** Write the meaning as a full sentence, never a topic word ('mastery' is a setting, not a theme), and name the Cause, because the Value half alone is only half the meaning. The #1 discipline is one idea only — the more ideas you cram in, the more they implode into 'a rubble of tangential notions, saying nothing'.  
+**Example:** Controlling idea of the post: 'Real understanding sticks BECAUSE the learner did the active work, not because the material was explained well.' Every paragraph must serve that.  
+**When:** Before drafting anything with a thesis — to lock the single irreducible meaning that governs all keep/cut decisions.  
+*Sources: story-mckee*
+
+#### `three-inspirational-plots` — Three Inspirational Plots (Challenge / Connection / Creativity)  ·  Σ 37  ·  fits: blog, social-post, email, video-script, presentation, story, speech, newsletter, course
+**Structure:** Pick the plot to the emotion you want: CHALLENGE (underdog beats a daunting obstacle → makes readers want to try harder); CONNECTION (a relationship bridges a gap → makes readers want to help or belong); CREATIVITY (a mental breakthrough cracks a stuck problem → makes readers want to innovate). Then tell a real one with a visible goal and a real barrier.  
+**How to apply:** Match plot to intended action (kickoff → Challenge; community → Connection; ideation → Creativity), and ensure the obstacle genuinely seems daunting — a barely-stretched protagonist doesn't inspire. The #1 discipline is that spotting a real story beats inventing one; the plot is a lens for finding the story already in your material.  
+**Example:** To motivate exam-week grit, tell a Challenge plot: the failing-physics student who used daily self-quizzing to climb from a D to an A in five weeks.  
+**When:** You need a short true story that energizes the reader toward a specific action or mindset.  
+*Sources: made-to-stick-heath*
+
+#### `value-charge-turn` — The Value-Charge Turn (No Scene That Doesn't Turn)  ·  Σ 37  ·  fits: blog, essay, article, tutorial, report, video-script, newsletter, memo, presentation, book
+**Structure:** 1) At the top of a section, name the value at stake and its charge (+/−). 2) At the end, name the same value's charge. 3) If the charge is unchanged, the section is a 'non-event' → cut it or fold its info elsewhere. 4) If it flipped, you have a true scene.  
+**How to apply:** For every chunk, ask 'what value did I move, from what charge to what charge?' — the same note at both ends means it exists only to deliver information and should be cut or woven in. The #1 discipline is honesty: 'activity' (talking, describing) is not 'action' (change); every kept section must earn its place by turning something.  
+**Example:** Intro section opened at 'this feels impossible' and closed at 'this feels impossible' — non-event, cut. Keep only sections that move the reader from doubt to traction.  
+**When:** The editing pass on any multi-section piece — to ruthlessly delete sections where nothing actually changes.  
+*Sources: story-mckee*
+
+#### `rudolph-customer-as-hero` — Rudolph Framework (Customer-as-Hero Fill-in-the-Blank)  ·  Σ 37  ·  fits: blog, landing-page, video-script, presentation, press-release, social-post, story, case-study-blog
+**Structure:** 1) Once upon a time there was ___ (your product). 2) It has the capacity to ___ (its superpower). 3) Some people doubt it because ___ (the objection). 4) But one day ___ (the inciting 'foggy Christmas Eve' event — why now). 5) Which means ___ (your customer now needs it). 6) For ___ (whom the customer serves). 7) And that matters because ___ (how the CUSTOMER becomes the hero). 8) Someone gets a kiss (the payoff).  
+**How to apply:** Fill the eight blanks, then audit: the product is Rudolph, but the CUSTOMER is Santa — give the customer the credit for the win. The #1 discipline is finding the 'foggy Christmas Eve' (the why-now incident that makes the problem urgent) and resisting making your product the hero.  
+**Example:** Once there was Ritsu → it turns any file into a tutor → doubters say 'AI spits out generic quizzes' → but one day finals week hits → a panicking student must master 200 pages fast → and that matters because she passes and keeps her scholarship (student = hero).  
+**When:** Telling a product or brand story where you must make the customer — not the product — the hero, especially for 'boring' or technical offerings.  
+*Sources: everybody-writes-handley*
+
+#### `six-elements-marketing-story` — Six Elements of a Marketing Story  ·  Σ 37  ·  fits: blog, press-release, presentation, video-script, landing-page, speech, story, case-study-blog
+**Structure:** A compelling story is: 1) True (real people, real data, cited sources). 2) Human (about how it improves actual people's lives — ideally one person). 3) Original (a fresh perspective only you can give). 4) Customer-as-hero (what you do FOR others, not what you do). 5) Emotionally moving. 6) Strategy-aligned (grows from positioning, value, and goals) — but put strategy LAST.  
+**How to apply:** Score the draft against all six; a story missing any one is weaker. The #1 discipline is order — 'start with people, infuse with emotion, align with strategy', because leading with strategy makes the story read like an instruction manual; use the logo-cover test for 'original'.  
+**Example:** A Ritsu student-success story: true (real grade jump) · human (one named learner) · original · student-as-hero · emotional (relief on results day) · strategy (proves the mastery promise) — strategy stated last.  
+**When:** As a pre-publish checklist / quality gate on any brand or product narrative before it ships.  
+*Sources: everybody-writes-handley*
+
+#### `forces-of-antagonism` — The Principle of Antagonism  ·  Σ 36.5  ·  fits: story, blog, video-script, essay, speech, landing-page, ad, article, case-study-blog
+**Structure:** 1) Identify the positive value your protagonist or argument carries. 2) Map the full opposing forces: the Contrary (mildly negative), the Contradictory (direct opposite), and the Negation of the Negation (doubly negative — worse than the opposite). 3) Make those forces strong enough that success looks like an underdog's chance. 4) The stronger the antagonism, the more compelling the win.  
+**How to apply:** Put the energy into the negative side — weak obstacles make a dead piece — and spell out the real difficulty (the 300 pages, the 3-day deadline, the fear of failing) before the solution lands. The #1 discipline is not letting your protagonist win easily: 'a protagonist can only be as compelling as the forces of antagonism make them'.  
+**Example:** Don't write 'studying is easy with Ritsu.' Write: the exam is Friday, the chapter is dense, you procrastinated, you're sure you'll fail — THEN the first quiz lands. The harder the wall, the bigger the win.  
+**When:** Whenever a story, case study, or argument feels weak — strengthen the opposition, not the hero.  
+*Sources: story-mckee*
+
+#### `crisis-dilemma` — The Crisis Dilemma  ·  Σ 35.5  ·  fits: story, blog, video-script, email, speech, essay, report, presentation, case-study-blog
+**Structure:** 1) Build pressure until the protagonist faces a genuine dilemma — two desirable things they can't both have, OR two bad options they must choose between. 2) Hold the decision as a deliberate, static moment (don't skip it). 3) The choice defines character. 4) That choice detonates into the climax.  
+**How to apply:** Make sure the choice is between real values, not right-vs-wrong (a no-brainer isn't a crisis), and freeze the moment so the reader leans in — 'what will they do?' The #1 failure mode is skimming the decision or resolving it by luck; the dilemma IS the drama, so dramatize the deciding, then cut straight to the consequence.  
+**Example:** Cram-study case: she could reread everything (safe, shallow) or quiz herself on what she's avoiding (painful, real). She chose the quiz. That choice is the whole story.  
+**When:** Any narrative, case study, or persuasive arc that needs a true turning point — a forced choice, not a convenient win.  
+*Sources: story-mckee*
+
+#### `what-if-engine` — The What-If Situation Engine  ·  Σ 35.5  ·  fits: story, video-script, course, tutorial, blog, essay, screenplay, podcast-script
+**Structure:** 1) Pose a single What-if question that puts a character in a predicament. 2) State it in one sentence (a person + a predicament). 3) Drop in flat, unfeatured characters. 4) Begin narrating and watch how they try to work free — do NOT pre-plot the escape. 5) Let incidents arise organically from the situation.  
+**How to apply:** Compress your premise to a one-sentence 'What if ___?' that contains a person and a predicament, then write forward from the situation instead of outlining the ending. The #1 failure mode is reaching for plot (the 'jackhammer') to force events — trust the situation to generate the incidents, and if you're manipulating characters to a pre-decided outcome, put the jackhammer down.  
+**Example:** What if a confident pre-med student aced every practice quiz but blanked cold the morning of the real MCAT? Write the hour she discovers why.  
+**When:** Generating a story, scenario, case, or worked example from scratch when you have no plot yet.  
+*Sources: on-writing-king*
+
+#### `reveal-character-by-behavior` — Reveal Character by Behavior, Not Label  ·  Σ 34.5  ·  fits: story, video-script, course, tutorial, essay, screenplay, review, bio
+**Structure:** 1) Decide what the audience should conclude about a character. 2) Refuse to state it. 3) Stage one concrete action or line of speech that lets them infer it. 4) Give even the antagonist their own self-justifying point of view. 5) Trust the reader to draw the conclusion.  
+**How to apply:** Replace every 'X was lazy/brilliant/depressed' with a depicted behavior the reader decodes themselves — 'if I have to tell you, I lose'. The #1 discipline is writing antagonists from the inside: a character who 'seems perfectly sane and reasonable to herself' is far more real than a cackling cartoon, and talk is sneaky — what people say betrays character they don't intend to reveal.  
+**Example:** Don't write 'Sam was a procrastinator.' Show Sam reorganizing his color-coded notes for the third time the night before the final, having opened the textbook zero times.  
+**When:** Building any persona, character, or 'voice' in narrative content — protagonist, learner, villain, or customer.  
+*Sources: on-writing-king*
+
+#### `few-well-chosen-details` — Few Well-Chosen Details (Finish in the Reader)  ·  Σ 34  ·  fits: story, blog, essay, video-script, tutorial, course, speech
+**Structure:** 1) Visualize the place or thing; open all senses. 2) Capture the first 3-4 details that surface. 3) Write only those — stop. 4) Let the reader supply the rest. 5) Cut description further if it isn't load-bearing for the piece.  
+**How to apply:** Run a brief, intense recall of the scene and write down the first few sensory details, because 'description begins in the writer's imagination but should finish in the reader's'. The #1 failure mode is over-description — describing the loser pimple-by-pimple freezes out the reader's own image and breaks the bond; locale and texture beat a head-to-toe inventory.  
+**Example:** Set the exam hall in three strokes — the squeak of chairs, the smell of pencil shavings, one fluorescent tube flickering — and let the reader feel their own test-day dread.  
+**When:** Any scene-setting or concrete illustration where you must evoke a place, object, or person quickly without stalling momentum.  
+*Sources: on-writing-king*
+
+#### `graceful-back-story` — Graceful Back Story  ·  Σ 33.5  ·  fits: story, tutorial, course, video-script, essay, blog, research-paper, screenplay
+**Structure:** 1) Identify the prior events that actually affect the present action. 2) Get them in fast — but with grace, never an info-dump. 3) Prefer a revealing gesture over an expository line. 4) Keep research 'in the back'. 5) Cut the parts your ideal reader found dull.  
+**How to apply:** Two rules govern: 'everyone has a history, and most of it isn't very interesting' — so include only the parts that bear on the front story, and dramatize instead of announcing. The #1 discipline is pushing research and exposition as far into the background as you can; the reader cares about the character, not the facts you learned.  
+**Example:** Don't open with 'You should already know derivatives.' Show the learner reaching for a half-remembered rule, getting it slightly wrong, and self-correcting — the prerequisite surfaces in motion.  
+**When:** Weaving necessary context (history, prerequisites, prior research) into a forward-moving narrative without stalling it.  
+*Sources: on-writing-king*
+
+
+### Screenwriting (Snyder · McKee)  (8)
+
+#### `what-is-it-logline` — The What-Is-It Logline (4 Components)  ·  Σ 36  ·  fits: blog, article, video-script, landing-page, ad, email, social-post, course, story, screenplay
+**Structure:** A one- or two-sentence grabber carrying all four: (1) Irony — an ironic, emotionally involving hook; (2) a compelling mental picture that blooms in the mind, usually with a time frame; (3) audience & cost — the tone and who it's for is implied; (4) a killer title that says what it is, cleverly.  
+**How to apply:** Write the one-line FIRST, then pitch it to real strangers and adjust until their eyes light up — if you can't say what it is in one line, you haven't thought it through. The #1 discipline is leading with the irony and the mental picture, not the plot; the failure mode is describing everything it's NOT instead of what it is.  
+**Example:** 'A student has 3 days to master a 200-page chapter — and only a stack of flashcards an AI built in 30 seconds can save the grade.'  
+**When:** Before writing anything long-form — to force clarity on what the piece IS and prove it's worth someone's attention.  
+*Sources: save-the-cat-snyder*
+
+#### `blake-snyder-beat-sheet` — Blake Snyder Beat Sheet (15 Beats)  ·  Σ 35  ·  fits: story, screenplay, film-script, novel, video-script, course, article-series, essay
+**Structure:** 15 beats on a fixed page-map: Opening Image · Theme Stated · Set-Up (+ '6 things that need fixing') · Catalyst · Debate · Break into Two · B Story · Fun and Games ('promise of the premise') · Midpoint (false peak/false collapse) · Bad Guys Close In · All Is Lost (+ 'whiff of death') · Dark Night of the Soul · Break into Three · Finale · Final Image (opposite of Opening).  
+**How to apply:** Fill every beat in ONE sentence before drafting — if you can't, you don't have the beat yet, you're guessing. The #1 discipline is making Opening and Final Image exact opposites (proof change happened) and the Midpoint and All-Is-Lost inverses of each other; the failure mode is a light Act Three or a hero who drifts in instead of choosing.  
+**Example:** A confident crammer (Image) bombs a mock exam (Catalyst), abandons rereading for active recall (Break into Two), blanks the night before (All Is Lost), then aces it (Final Image).  
+**When:** Plotting or auditing any long narrative so it has momentum, a turning midpoint, a real low point, and visible transformation.  
+*Sources: save-the-cat-snyder*
+
+#### `pope-in-the-pool` — The Pope in the Pool (Bury Exposition Under a Spectacle)  ·  Σ 35  ·  fits: tutorial, video-script, blog, article, product-description, faq, podcast-script, course, presentation
+**Structure:** When you must deliver dull but necessary backstory or explanation, stage it behind something visually or comically arresting, so the audience absorbs the information while watching the distraction.  
+**How to apply:** Pair the boring exposition with an engaging foreground (a striking image, a running gag, a relatable predicament) so the facts land without the reader noticing they're being taught. The #1 discipline is that the distraction must be genuinely interesting, not filler; the failure mode is 'talking the plot' — flatly reciting information no one would say aloud.  
+**Example:** Teach how spaced repetition schedules cards while narrating a student who keeps 'just one more rep'-ing past her bus stop — the algorithm lands painlessly.  
+**When:** Any moment heavy explanation threatens to stall the piece — setup, technical detail, terms-and-conditions, mechanism-of-action.  
+*Sources: save-the-cat-snyder*
+
+#### `is-it-primal` — Is It Primal? (Anchor Every Motive to a Survival Drive)  ·  Σ 35  ·  fits: ad, landing-page, email, blog, video-script, speech, essay, social-post, product-description, story
+**Structure:** Test every goal against caveman-level drives: survival, hunger, mating, protection of loved ones, fear of death, revenge. Whatever the surface topic, the engine underneath must be one of these.  
+**How to apply:** Ask 'would a caveman get it?'; if the stakes are intellectual, re-root them in a primal need until the reader feels them in the gut. The #1 discipline is not flattering your topic as 'too sophisticated' for this — at its core it must resonate at a caveman level; the failure mode is high-falutin' stakes no one viscerally cares about.  
+**Example:** Reframe 'improve retention' as 'don't fail the exam that decides your future' — fear and protection, not metrics, drive the reader.  
+**When:** When a piece feels abstract, cerebral, or fails to connect — and to make it travel across cultures.  
+*Sources: save-the-cat-snyder*
+
+#### `save-the-cat-likeability` — Save the Cat (Earn Allegiance Early)  ·  Σ 34.5  ·  fits: story, screenplay, blog, bio, landing-page, email, video-script, speech, essay, case-study-blog
+**Structure:** In the opening, show the protagonist do something that gets the audience in sync with them and rooting for the win. Adjuncts: (a) when the lead is damaged or unlikable, make their antagonist worse; (b) it need not be literal — just frame the hero's plight so we care.  
+**How to apply:** Give the protagonist an early action that reveals decency, courage, or relatable need so readers choose to be 'with' them, OR raise a worse antagonist to tilt sympathy. The #1 discipline is not assuming we'll like your hero 'just cuz' — take the reader's hand every time; the failure mode is a competent-but-charmless lead the audience never bonds with.  
+**Example:** Open a study case-study with the learner generously tutoring a struggling friend at midnight — now readers root for her exam win.  
+**When:** Whenever a reader must invest in a person, brand, or narrator — opening lines of stories, case studies, founder bios, sales pages.  
+*Sources: save-the-cat-snyder*
+
+#### `the-board` — The Board (Plan in Movable Cards)  ·  Σ 34  ·  fits: course, tutorial, article-series, video-script, report, proposal, book, screenplay, presentation
+**Structure:** A 4-row grid (Act 1 / first half of Act 2 to Midpoint / Midpoint to Break-into-Three / Act 3), ~9-10 cards per row ≈ 40 scenes. Place the burning set-pieces first, nail the major turns (Midpoint → its inverse All-Is-Lost → Break-into-Three), then fill the rest. Tag every card with +/- (emotional shift) and >< (conflict).  
+**How to apply:** Lay scenes or sections on movable cards so you can test order cheaply (easier to move a card than kill a paragraph you love), then strip to ~40 by folding redundant beats. The #1 discipline is that every card must carry one +/- and one >< or the scene has no point; the failure mode is a perfect Board that becomes procrastination.  
+**Example:** Outline a 4-module course as 40 cards; spot that Module 3 ('practice') is empty — your 'black hole' — before writing a single lesson.  
+**When:** Before drafting any structured piece — to SEE the whole shape, find black holes, and balance sections without committing words.  
+*Sources: save-the-cat-snyder*
+
+#### `genre-by-dna` — Genre by DNA (Find the Type Most Like Yours)  ·  Σ 33.5  ·  fits: blog, article, video-script, course, story, screenplay, essay, podcast-script, presentation
+**Structure:** Classify by structural/emotional engine, not surface label: Monster in the House · Golden Fleece (road/quest) · Out of the Bottle (wish/magic) · Dude with a Problem · Rites of Passage · Buddy Love · Whydunit · The Fool Triumphant · Institutionalized (groups) · Superhero. Each type carries its own built-in rules.  
+**How to apply:** Name which of the 10 types your piece IS, then study a dozen of the best examples of that type to steal what works and spot the clichés to break. The #1 discipline is picking ONE type and honoring its rules ('the same thing, only different'); the failure mode is copying surface features of two hits and hoping ('it's X-Men meets Cannonball Run').  
+**Example:** Frame an exam-prep guide as 'Dude with a Problem' (ordinary student, sudden high-stakes deadline) so it inherits a ticking clock and rooting interest.  
+**When:** At the start of any piece — to find the proven template most like what you're making and study its rules before you write.  
+*Sources: save-the-cat-snyder*
+
+#### `emotional-color-wheel` — Emotional Color Wheel (Never Play One Note)  ·  Σ 33.5  ·  fits: blog, article, video-script, newsletter, story, speech, podcast-script, essay, course
+**Structure:** Deliberately cycle the full palette of emotions across a piece — laughter, fear, longing, frustration, near-miss anxiety, triumph — instead of staying all-funny or all-tense. Audit for missing 'colors' and re-tone existing sections to supply them.  
+**How to apply:** List the emotions you're hitting, find the gaps, then take an existing beat and replay it for a missing color — keep the same action and conflict, change the feeling. The #1 discipline is variety: a roller-coaster wrings the reader out and leaves them satisfied; the failure mode is one-note (all drama, all jokes).  
+**Example:** In an exam-prep article, follow a panic passage with a quiet pride moment and a dry-humor study tip — the reader rides the curve, not a flat line.  
+**When:** When a long piece feels flat or monotone, even if each part is individually competent.  
+*Sources: save-the-cat-snyder*
+
+
+### Style & clarity (Williams · Pinker · Zinsser · Strunk · King)  (17)
+
+#### `cut-pass-concision` — Cut Pass (Omit Needless Words)  ·  Σ 40  ·  fits: blog, article, email, memo, report, landing-page, product-description, newsletter, essay, social-post, ad, tutorial
+**Structure:** 1) Finish the draft. 2) Go sentence by sentence asking 'does every word do new work?' 3) Delete: dead words (actually, basically, very, really), doubled pairs (each and every), inferable modifiers (future plans), 'the fact that', who-is/which-was relatives, and adverbs the verb already implies. 4) Replace phrases with one word (due to the fact that → because). 5) Set a hard quota — cut at least 10% (often 50% on a first draft) while keeping story and flavor.  
+**How to apply:** Treat it as deletion against a quota, not optional polishing — re-read each sentence rather than skim, because you believe your draft is already tight when it is not. The #1 discipline is killing preciousness: the phrase you most want to protect because it's 'beautiful' is usually the first to cut.  
+**Example:** 'In the final analysis, students should utilize active recall in order to facilitate retention.' → 'Use active recall to remember more.'  
+**When:** The tightening pass on any draft that feels bloated, padded, or 'written'.  
+*Sources: on-writing-well-zinsser, on-writing-king, style-clarity-grace-williams, elements-of-style-strunk-white*
+
+#### `classic-style-window` — Classic Style (Window onto the World)  ·  Σ 39  ·  fits: blog, tutorial, article, essay, course, newsletter, landing-page, email, faq
+**Structure:** 1) Fix the truth you can already see before writing — you are showing, not figuring out. 2) Cast the idea as concrete objects and people DOING things a reader could watch. 3) Orient the reader's gaze as one equal pointing something out to another in conversation. 4) Trust the reader to connect the dots — no spelling out every step. 5) Present, don't hedge or argue.  
+**How to apply:** Rewrite each abstract sentence as 'a real actor does a visible thing', then read it as if pointing across a table to a friend ('As we have seen…', not 'This section demonstrates…'). The #1 discipline is killing metaconcepts and zombie nouns — if you can't 'see a perspective on the street', cut it and turn the -ance/-ment/-ation noun back into a verb.  
+**Example:** Not 'The acquisition process involves spaced retrieval.' But 'You re-quiz yourself a day later, then a week later, and the fact sticks.'  
+**When:** The default voice for explaining anything clearly — the strongest cure for academese and jargon.  
+*Sources: sense-of-style-pinker*
+
+#### `concrete-image-test` — Concrete-Image Test (See It, Feel It)  ·  Σ 39  ·  fits: tutorial, blog, explainer, course, video-script, presentation, article, faq, landing-page
+**Structure:** 1) Read each sentence and ask: can the reader form a picture or feel a motion? 2) If it names an abstraction (a 'stimulus', an 'assessment'), replace it with the concrete thing it stands for (a tap on the arm, the word TRUE). 3) Prefer the specific over the generic ('the ivory chess set fell off the table' beats 'the set fell off'). 4) Keep idioms and imagery physically coherent so the reader's visual brain stays on.  
+**How to apply:** Underline every abstract noun and ask 'could I point to one on the street?' — if not, swap in the seeable thing, because readers remember concrete language far better. The #1 failure mode is functional fixity: you name things by the role they play for you, not by how they'd look to the reader.  
+**Example:** Not 'Learners exhibit retrieval failure under load.' But 'You blank on the formula the second the timer starts ticking.'  
+**When:** Whenever explaining a concept, process, or finding that risks reading as gray abstraction.  
+*Sources: sense-of-style-pinker, everybody-writes-handley*
+
+#### `characters-as-subjects` — Characters→Subjects, Actions→Verbs  ·  Σ 38  ·  fits: blog, article, tutorial, email, report, essay, memo, proposal, landing-page, product-description, course
+**Structure:** For each dense clause: 1) underline the first 7-8 words and flag two symptoms — an abstract noun as the subject, or 7+ words before the verb. 2) Name the real character (a person, then a concept) the sentence is about. 3) Find the action buried in a nominalization (an -tion/-ment/-ance noun made from a verb). 4) Make the character the subject and turn the buried action back into the main verb. Result: short concrete subject + specific action verb — every sentence a tiny story.  
+**How to apply:** Run it mechanically — underline the openers, then ask 'who is doing what?' as in a fairy tale — because you know your own draft too well to feel its fog by ear. The #1 discipline is resisting the empty verb (is, has, makes, conducts) when a real action verb is hiding inside a noun ('made an improvement' → 'improved').  
+**Example:** 'Our recommendation is the utilization of flashcards for vocabulary acquisition.' → 'We recommend you use flashcards to learn vocabulary.'  
+**When:** Revising prose that reads dense, abstract, or 'academic' even when grammatically fine.  
+*Sources: style-clarity-grace-williams, sense-of-style-pinker*
+
+#### `translate-the-jargon` — Translate the Jargon (Calibrate to the Reader)  ·  Σ 38  ·  fits: tutorial, blog, article, course, video-script, faq, newsletter, presentation, social-post, landing-page, email, product-description
+**Structure:** 1) List the jargon, abbreviations, and named concepts in your draft. 2) For each, ask: is this an entrenched chunk for THIS audience, or only for my clubhouse? 3) State the point once in precise field language, then immediately again in plain everyday words. 4) Spell out every coined abbreviation on first use. 5) When unsure, assume too little — bore a few experts rather than baffle the majority.  
+**How to apply:** Blend formal and colloquial deliberately — state it professionally, then restate it bluntly — and make the everyday version FAITHFUL, not a dumbing-down that distorts. The #1 discipline is assuming readers are as smart as you but happen not to know what you know; clarity is not condescension, and the curse of knowledge hides the gap from you.  
+**Example:** 'Ritsu auto-generates SRS decks from your PDF.' → 'Ritsu turns your PDF into flashcards that resurface right before you'd forget them (spaced repetition).'  
+**When:** Explaining any specialized or abstract concept to a non-expert (the core EdTech job).  
+*Sources: sense-of-style-pinker, they-say-i-say-graff*
+
+#### `generative-analogy` — Generative Analogy & High-Concept Pitch  ·  Σ 38  ·  fits: tutorial, blog, presentation, course, product-description, video-script, article, essay
+**Structure:** 1) Name the unfamiliar idea. 2) Find a schema the reader already owns (a thing, story, or product they know). 3) Map new-onto-known in a few words ('X = known-A meets known-B'). 4) Test that it's GENERATIVE — does the analogy keep yielding CORRECT inferences across cases, not just one? 5) Lead with it, then add the specifics it can't carry.  
+**How to apply:** Borrow an existing schema instead of building one from scratch ('high concept': Die Hard on a bus). The #1 discipline is testing that the analogy generates RIGHT predictions across cases — a vivid-but-misleading metaphor that breaks on the second inference is worse than none.  
+**Example:** Teach recursion as 'a set of Russian nesting dolls — each opens to a smaller identical doll until the tiniest, which opens to nothing (the base case).'  
+**When:** Teaching a brand-new concept fast, or pitching a complex thing in one breath.  
+*Sources: made-to-stick-heath*
+
+#### `given-before-new-flow` — Given-Before-New Flow  ·  Σ 37  ·  fits: blog, article, tutorial, newsletter, report, essay, email, research, course, landing-page, paper
+**Structure:** 1) Open each sentence with information the reader already has — a word from the previous sentence, or knowledge they bring. 2) End each sentence on the new, complex, or unfamiliar idea (the stress slot). 3) Let the new end of one sentence become the familiar start of the next, chaining the passage forward. 4) Use the passive deliberately when it is the only way to put old info first and new info last.  
+**How to apply:** Manage word order at the seams: check that every sentence opens on something already met and closes on what's new, moving a fact's anchor first if it was 'hurled out of the blue'. The #1 discipline is dropping 'never use the passive' as absolute — the passive exists precisely to keep the familiar up front and the protagonist in the spotlight.  
+**Example:** '…you earn a mastery badge. That badge unlocks the next module.' (badge ends sentence 1, opens sentence 2 — the reader glides.)  
+**When:** When a passage reads choppy or 'disconnected' even though each sentence is individually clear.  
+*Sources: style-clarity-grace-williams, sense-of-style-pinker*
+
+#### `stress-position-emphasis` — Stress Position (End-Weight Emphasis)  ·  Σ 37  ·  fits: blog, article, tutorial, email, ad, landing-page, speech, presentation, essay, social-post, newsletter, thread
+**Structure:** 1) Find the most important word or idea in the sentence (usually the new element). 2) Move it to the END — the position of prominence where the reader's voice naturally rises. 3) Strip trailing throat-clearing (qualifiers, attributions like 'studies suggest', stray prepositions) that would bury the payoff. 4) Build simplicity→complexity: short intro, short concrete subject, quick verb, heavy new material last. 5) Scale it up — end paragraphs and whole pieces on their strongest beat too.  
+**How to apply:** Read aloud and hear where your voice lifts; if light words sit in that final slot, relocate the weighty word there. The #1 discipline is end-weight — 'this steel is used for razors because of its hardness' becomes 'because of its hardness, this steel is used for razors' so the payload word lands last.  
+**Example:** Not 'Recall beats rereading, studies suggest.' Use 'Studies suggest one thing beats rereading: active recall.'  
+**When:** Any sentence engineered to land — definitions, takeaways, claims, CTAs, the last line of a paragraph.  
+*Sources: style-clarity-grace-williams, elements-of-style-strunk-white*
+
+#### `parallelism-and-balance` — Parallelism & Climactic Balance  ·  Σ 36  ·  fits: speech, ad, landing-page, social-post, blog, presentation, press-release, essay, bio, tutorial, course, poetry
+**Structure:** 1) Identify ideas of similar content and function (list items, steps, correlatives, a contrast). 2) Cast them in outwardly identical grammatical form. 3) Apply correlatives symmetrically (both…and, not…but, either…or). 4) For a line meant to be memorable, make coordinate parts echo in length and rhythm and load the final slot with the weightiest word. 5) Place the strongest of a parallel series last.  
+**How to apply:** Make form match meaning: 'likeness of form lets the reader recognize the likeness of content', so resist the amateur urge to vary the form for freshness (varied form reads as timid or undecided). The #1 discipline is restraint — draft the plain version first; balance is a finishing move on the few load-bearing sentences, and over-applied it turns purple.  
+**Example:** 'Upload it, master it, prove it.' — three parallel beats, strongest verb last.  
+**When:** Lists, sequences, comparisons, and the few lines meant to be felt — headlines, taglines, openers, closers, speeches.  
+*Sources: elements-of-style-strunk-white, style-clarity-grace-williams*
+
+#### `topic-sentence-paragraph` — Topic-Sentence Paragraph  ·  Σ 36  ·  fits: blog, article, tutorial, essay, report, newsletter, course
+**Structure:** 1) Open the paragraph with a topic sentence stating its single point. 2) Let the middle sentences develop it — restate, define terms, deny the converse, give examples, prove, or show consequences. 3) Close by re-emphasizing the topic sentence or stating an important consequence. 4) Never end on a digression or a trivial detail.  
+**How to apply:** Write the claim first so the reader knows the paragraph's purpose as they begin, make every middle sentence serve it, then loop the ending back to the opening. The #1 failure mode is 'ending with a digression, or an unimportant detail' — guard the last sentence as hard as the first.  
+**Example:** 'Spaced repetition beats cramming. Each review just before you'd forget strengthens recall. Cram and you re-read; space it and you remember — that is the whole difference.'  
+**When:** Any expository or argumentative paragraph where the reader must grasp and retain the point.  
+*Sources: elements-of-style-strunk-white*
+
+#### `coherence-connectives` — Arcs of Coherence (Connective Discipline)  ·  Σ 36  ·  fits: essay, blog, article, report, tutorial, proposal, paper, review, course
+**Structure:** 1) For each pair of adjacent sentences, name what the second does to the first: RESEMBLE (similarity, contrast, elaboration, example, exception), be CONTIGUOUS in time/place (sequence), or CAUSE/ENABLE/PREVENT. 2) Choose the connective that names that exact relation (and, but, because, so, for example, however). 3) For compare/contrast, hold the wording constant and vary ONLY the word carrying the difference (parallel syntax). 4) Never rename the same thing mid-comparison.  
+**How to apply:** After drafting, label the link between each sentence pair with one connective word; if you can't, the logic is missing or the connective is wrong. The #1 failure mode is 'synonymomania' — renaming the same thing while comparing two items makes readers hunt for a second referent that doesn't exist.  
+**Example:** 'Flashcards test recognition; active recall tests retrieval.' (parallel — only the contrasting verbs change).  
+**When:** Any multi-sentence explanation, argument, or comparison where the reader must track the logic.  
+*Sources: sense-of-style-pinker*
+
+#### `topic-string-coherence` — Consistent Topic Strings  ·  Σ 35  ·  fits: blog, article, tutorial, essay, report, research, course, newsletter, proposal
+**Structure:** 1) Before drafting a section, list the characters you'll write about (people AND key concepts). 2) As you draft, keep putting those same characters in the subject slot. 3) After drafting, underline the first few words of every sentence and check they form a small related set (one 'topic string'). 4) If the openers jump around randomly, rewrite so most sentences open on the same handful of topics.  
+**How to apply:** Use the underlined-openers test: if a reader can't see them as one related cluster, neither flow nor focus will land. The #1 discipline is noticing drift — if you haven't named one of your listed characters for several sentences, you've wandered off the topic and the paragraph has lost its spine.  
+**Example:** A 'how spaced repetition works' section keeps opening sentences on 'the algorithm… it… each review… the algorithm…' — one tight topic string the reader can hold.  
+**When:** Diagnosing a paragraph that feels 'out of focus' or 'disorganized' despite individually clear sentences.  
+*Sources: style-clarity-grace-williams*
+
+#### `state-it-positive` — State It in the Positive  ·  Σ 35  ·  fits: ad, landing-page, email, blog, product-description, social-post, press-release, faq, tutorial, memo
+**Structure:** 1) Scan for negations — not just no/not/never but hidden ones (few, seldom, fails to, avoid, ignore, deny). 2) Count them; more than one in a sentence is a warning sign. 3) Rewrite as the affirmative the negation implies ('not honest' → 'dishonest', 'did not remember' → 'forgot'). 4) Keep a negation only for true denial or sharp antithesis ('Not charity, but justice'), or when correcting a belief the reader already holds.  
+**How to apply:** Ask 'what IS true?' instead of stating what isn't, because the reader 'wishes to be told what is', and every negation is mental homework — to read 'X is not Y' the mind first believes 'X is Y', then tags it false. The #1 failure mode is misnegation: stack two negatives and you often say the literal opposite of what you meant ('No head injury is too trivial to ignore' tells you to ignore them).  
+**Example:** 'Don't forget you won't pass unless you review.' → 'Review a little each day and you'll pass.'  
+**When:** Whenever copy feels tame, hedged, or non-committal — and in quiz items and instructions carrying logical conditions.  
+*Sources: elements-of-style-strunk-white, sense-of-style-pinker*
+
+#### `reverse-engineer-prose` — Reverse-Engineer Good Prose  ·  Σ 35  ·  fits: blog, thread, social-post, essay, article, video-script, newsletter
+**Structure:** 1) Collect 3-4 passages that genuinely move you in your genre. 2) Read each slowly, phrase by phrase. 3) For every striking phrase, name WHY it works — fresh wording? concrete image? parallel syntax? planned surprise? a telling detail vs telling us? 4) Extract the reusable move. 5) Practice that move on your own material.  
+**How to apply:** Annotate sentence-by-sentence like a code review — write the reason beside each phrase, not just 'nice'. The #1 discipline is naming the MECHANISM, because only a named move is reusable; admiring prose without dissecting it transfers nothing.  
+**Example:** Study one viral study-tips thread; label each line ('hook = stark claim', 'proof = concrete number', 'turn = surprise') and reuse that skeleton for a Ritsu exam-prep thread.  
+**When:** Building a 'writerly ear' and a personal toolbox before drafting a new content type.  
+*Sources: sense-of-style-pinker*
+
+#### `name-names-specificity` — Name Names (Specificity Ladder)  ·  Σ 35  ·  fits: blog, article, story, ad, social-post, essay, bio, video-script, review
+**Structure:** 1) Spot the generic noun in a sentence (flower, dog, client, food truck). 2) Replace it with the most specific true instance (poppy; a fat pug named Carl; Mabel from Finance; a Vietnamese sandwich truck). 3) Check it's 'specific enough to be believable, universal enough to be credible'. 4) Keep the detail that paints a picture; cut detail that doesn't.  
+**How to apply:** Trade the category word for a named, concrete instance — 'give things the dignity of their names'. The #1 discipline is that specificity must be TRUE and load-bearing (minivan is funnier than car because the detail carries character); don't over-specify into noise — pick the one detail that creates the image.  
+**Example:** Not 'a student studying' but 'a pre-med sophomore cramming organic chemistry at 2am with 14 browser tabs open.'  
+**When:** Any sentence that feels flat, abstract, or could describe a hundred companies — also when you want humor (specific is funnier).  
+*Sources: everybody-writes-handley*
+
+#### `signpost-sparingly` — Signpost Sparingly (Kill Metadiscourse)  ·  Σ 34  ·  fits: tutorial, blog, article, essay, course, report, newsletter, presentation
+**Structure:** 1) Cut throat-clearing previews that read like a scrunched-up table of contents ('This section will discuss X'). 2) Replace them with a question ('What makes X happen?') or the vision metaphor ('As we have seen…', 'Now we arrive at…'). 3) Lay the material in an obvious sequence (general→specific, big→small) so each turn is self-evident. 4) Keep only light conversational signposts ('In other words', 'To make a long story short').  
+**How to apply:** Delete every sentence that talks ABOUT the text instead of advancing it, then make the route so clear that signposts become unnecessary. The #1 discipline is the cost test: a signpost must save the reader more work than decoding it costs, or it's just professional narcissism.  
+**Example:** Not 'In this guide, we will first cover, then discuss, then summarize spaced repetition.' But 'Why do you forget what you studied last week?'  
+**When:** Longer explainers, guides, and essays prone to academic over-structuring.  
+*Sources: sense-of-style-pinker*
+
+#### `control-sprawl-modifiers` — Control Sprawl (Resumptive / Summative / Free Modifiers)  ·  Σ 32  ·  fits: essay, article, report, research, blog, speech, book, novel, screenplay, proposal, paper
+**Structure:** When a sentence must run long, reach a complete subject-verb-object first, then extend AFTER it with one named move: RESUMPTIVE (pause with a comma, repeat a key noun, continue with 'that…'); SUMMATIVE (end a clause, add a noun summing it up, continue with 'that…'); or FREE (add an -ing/-ed/adjective phrase commenting on the subject). Avoid stacking subordinate clause onto subordinate clause.  
+**How to apply:** Get to a grammatically complete statement, then graft the extension on with deliberate punctuation and one of the three moves. The #1 discipline is never letting a 'which… that… because…' chain dangle off the tail — free modifiers are the most versatile and can also lead the sentence, adding texture while keeping the spine clean.  
+**Example:** 'Ritsu turns a PDF into a study plan — a plan that orders topics by difficulty and auto-builds a quiz for each.' (resumptive on 'plan')  
+**When:** Writing an inevitably long, detail-rich sentence without it collapsing into a train of ungainly clauses.  
+*Sources: style-clarity-grace-williams*
+
+
+### Academic argument (They Say / I Say)  (5)
+
+#### `they-say-i-say` — They Say / I Say  ·  Σ 38  ·  fits: essay, blog, article, newsletter, social-post, video-script, email, landing-page, speech, review
+**Structure:** 1) THEY SAY — open by summarizing the existing view or conversation you're entering. 2) I SAY — state your own claim explicitly as a RESPONSE to it. 3) Keep returning to the 'they say' at strategic points so the response never loses its motivation.  
+**How to apply:** Never lead with your own claim cold — first name the view you're correcting, adding to, or complicating, then present your thesis as the answer, stating the two together up front. The #1 failure mode is the 'isolation-booth' draft that asserts smart things with no 'they say', so the reader sees WHAT you say but never WHY.  
+**Example:** 'Most students think re-reading their notes is studying. In fact, recall — being quizzed — is what makes it stick, which is why Ritsu drills you instead of showing you.'  
+**When:** Any persuasive or explanatory piece that needs a reason-for-being, not just true statements floating in a vacuum.  
+*Sources: they-say-i-say-graff*
+
+#### `plant-a-naysayer` — Plant a Naysayer  ·  Σ 37  ·  fits: essay, blog, article, proposal, memo, landing-page, email, speech, report, review
+**Structure:** 1) Surface the strongest objection a skeptic would raise ('some might object…'). 2) Give it a real, fair hearing — even a full paragraph. 3) Answer it convincingly, or honestly concede the limited point. 4) Optionally NAME the naysayer (a school of thought, a labelled group) for precision.  
+**How to apply:** Voice the counterargument BEFORE the reader thinks of it — this preemptive strike disarms critics and signals you respect the reader as a critical thinker. The #1 discipline is giving the objection a genuine, non-strawman hearing (don't dispatch it in half a sentence); naming the naysayer adds precision over a faceless 'anybody'.  
+**Example:** 'Some will object that AI-made quizzes can't match a teacher's. It's a fair worry — a wrong question teaches the wrong thing. That's exactly why every Ritsu item is graded against your source.'  
+**When:** Whenever a claim is contestable and you want to pre-empt doubt and look credible rather than one-sided.  
+*Sources: they-say-i-say-graff*
+
+#### `so-what-who-cares` — So What? / Who Cares?  ·  Σ 37  ·  fits: essay, blog, article, landing-page, email, newsletter, social-post, proposal, presentation, video-script, ad
+**Structure:** WHO CARES? — name a specific person or group with a stake in your claim (often the people whose old belief you're correcting). SO WHAT? — link the claim to a larger consequence the reader already cares about. State both explicitly, up front.  
+**How to apply:** Answer both questions IN the text rather than assuming the reader supplies them — 'who cares?' identifies an invested party, 'so what?' ties your point to something already deemed important (grades, money, time). The #1 failure mode is a clear, correct claim with no stated stakes, which 'ultimately loses your audience's interest'.  
+**Example:** 'So what if you forget 80% within a week? For an exam-taker, that's the difference between a B and an A — and it's why spacing your reviews, not cramming, is the whole game.'  
+**When:** Any piece at risk of a 'sounds-true-but-why-should-I-care' shrug — the stakes-setting layer.  
+*Sources: they-say-i-say-graff*
+
+#### `quotation-sandwich` — Quotation Sandwich  ·  Σ 36  ·  fits: essay, article, blog, research, paper, report, newsletter, review, presentation, email
+**Structure:** Top slice: a lead-in that says WHO is speaking and sets up the point. Filling: the quotation (or cited fact/stat). Bottom slice: a follow-up that explains in your own words what it means and how it bears on YOUR argument.  
+**How to apply:** Frame every quotation both before AND after — introduce the source, then restate its meaning in your own words and connect it to your point. The #1 failure mode is the 'hit-and-run' quotation slapped in and abandoned; a bare quote does NOT speak for itself, so if you don't say what it means, the reader won't know why it's there.  
+**Example:** 'Education researchers studied the testing effect. One found students who self-quizzed recalled 50% more a week later. In other words, the quiz isn't the assessment — it IS the studying.'  
+**When:** Any time you drop in a quote, statistic, study, or external source and need it to actually land.  
+*Sources: they-say-i-say-graff*
+
+#### `yes-no-okay-but` — Yes / No / Okay-But (Three Ways to Respond)  ·  Σ 35  ·  fits: review, blog, essay, social-post, thread, newsletter, memo, article, email
+**Structure:** Pick one stance and declare it plainly early: AGREE ('yes, and here's a fresh angle'), DISAGREE ('no, and here's why'), or BOTH ('I agree that X, but I cannot agree that Y'). Then unfold the complexity within that frame.  
+**How to apply:** State agree/disagree/both with a direct, no-nonsense formula BEFORE the mass of detail, so readers can place you on their mental map. The disciplines: when agreeing, 'agree with a difference' (add new evidence, don't parrot); when disagreeing, give REASONS, not just a 'not'; the strongest option is agreeing and disagreeing at once inside an 'on the one hand / on the other' frame.  
+**Example:** 'Yes — flashcards work. But raw flashcards aren't enough: without spacing and active recall they're just pretty re-reading, which is why Ritsu schedules them for you.'  
+**When:** Any response, reaction, take, or review where the reader must quickly locate where you stand.  
+*Sources: they-say-i-say-graff*
+
+
+### Business & ops  (5)
+
+#### `ideal-reader-test` — The Ideal-Reader Test (Close the Loop)  ·  Σ 36  ·  fits: blog, article, tutorial, course, newsletter, email, essay, landing-page, press-release, product-description, proposal, faq
+**Structure:** 1) Pick ONE specific person you write for; during drafting, keep asking 'what will they think of this part?' 2) Finish the draft. 3) Hand it to 1-3 people resembling that reader (or anyone not you). 4) Ask what was confusing, not whether they liked it — and watch WHERE they set it down (that's the boring part). 5) Revise a point only when more than one reader flags it; when reactions split, tie goes to the writer.  
+**How to apply:** Get a real signal — trying harder to imagine the reader does NOT cure the curse of knowledge; only actual readers reveal what's obvious to you but not them. The #1 discipline is NOT implementing every note: weight by agreement, because 'good prose is never written by committee' and pandering to every comment produces incoherent non-sequiturs.  
+**Example:** Before shipping a Ritsu onboarding email, have two non-power-users read it and circle the first sentence that made them pause.  
+**When:** Calibrating pace, clarity, and 'is this landing?' for any audience-facing piece before publishing.  
+*Sources: on-writing-king, sense-of-style-pinker*
+
+#### `do-your-homework` — Do-Your-Homework Pre-Write  ·  Σ 36  ·  fits: ad, landing-page, email, blog, article, product-description, proposal, press-release
+**Structure:** Before writing a word: 1) Study the product until a surprising fact surfaces. 2) Study competitors' messaging and results. 3) Talk to real prospects — learn the language THEY use and what promise would move them. 4) Decide positioning: 'what it does, and who it's for.' 5) Only then write.  
+**How to apply:** Spend disproportionate time reading and interviewing before drafting — Ogilvy spent three weeks on Rolls-Royce and found the 'electric clock' line that became the headline. The #1 discipline is that even informal talks with half-a-dozen real users beat writing from your own assumptions; skipping homework risks 'the slippery surface of irrelevant brilliance'.  
+**Example:** Before writing Ritsu's exam-cram page, interview 6 students mid-finals; the phrase 'I just need it to quiz me on THIS chapter' becomes the headline.  
+**When:** Front-loading any persuasive piece so the copy rests on a real, differentiating fact rather than invention.  
+*Sources: ogilvy-on-advertising*
+
+#### `brand-voice-four-words` — Brand Voice in Four Words  ·  Σ 36  ·  fits: blog, email, social-post, landing-page, newsletter, ad, faq, product-description
+**Structure:** 1) Define your Youness: pick 4 adjectives, ideally placing yourself on the four axes (funny↔serious, formal↔casual, respectful↔irreverent, enthusiastic↔matter-of-fact). 2) Translate each word into a style with sentences and anecdotes. 3) Document it in a living doc with a 'Like This / Not Like This' chart. 4) Look for nonobvious places to apply it (CTAs, confirmation emails, the first bill, 404 pages).  
+**How to apply:** Build the 4-word kit, then make each word concrete with examples and revisit it quarterly. The #1 discipline is avoiding table-stakes words (friendly, reliable) and buzzwords (cutting-edge); run the logo-cover test — mask the logo, read aloud, and check you still sound like you, not your competitors.  
+**Example:** Ritsu's four words → Encouraging · Concrete · Calm · Honest. 'Encouraging' = 'Nice — you just mastered cell respiration. One topic down.' Not: 'Leverage our AI-powered learning paradigm.'  
+**When:** Establishing or auditing a brand's written voice so any writer sounds like the brand, not like everyone else.  
+*Sources: everybody-writes-handley*
+
+#### `closed-door-open-door` — Closed Door / Open Door (Write for Self, Revise for Reader)  ·  Σ 35  ·  fits: story, essay, blog, article, book, novel, course, research, report, video-script
+**Structure:** 1) Draft 1 with the door shut — write only for yourself, fast, no audience. 2) Let it rest weeks until it reads like 'an alien relic'. 3) Open the door: re-read, then show it to a few trusted readers. 4) Revise for coherence, theme, and the reader's experience.  
+**How to apply:** Keep the two modes strictly separate — with the door closed, silence the audience and chase the story, because momentum dies if you edit while creating. The #1 discipline is the rest period: distance lets you 'kill someone else's darlings' (your own, now estranged) and spot plot holes big enough to drive a truck through, before you ever open the door.  
+**Example:** Write the whole 'why spaced repetition works' explainer in one sitting for yourself; shelve it a week; reopen it cold and cut everything the reader won't need.  
+**When:** Structuring any non-trivial writing project into a private creation phase and a public refinement phase.  
+*Sources: on-writing-king*
+
+#### `test-before-scale` — Test-Before-Scale  ·  Σ 34.5  ·  fits: ad, email, landing-page, social-post, newsletter
+**Structure:** 1) Before committing budget to one version, run 2+ variants of the load-bearing element (headline, offer, subject line) against a small real audience. 2) Measure to the outcome that matters — cost per CUSTOMER or per action, not per click or applause. 3) Keep only the winner; the difference between variants is routinely 5-10×. 4) Scale the proven version unchanged.  
+**How to apply:** Pick the single highest-leverage element (usually the headline), write several honest variants, ship them small, and read the keyed return — 'go to the court of last resort: the buyers of your product'. The #1 failure mode is judging by what YOU admire: 'the appeals we like best will rarely prove best, because we do not know enough people to average up their desires'.  
+**Example:** A/B three email subject lines to 500 trial users — 'Your exam is in 3 days' vs 'Finish your study guide tonight' vs 'You uploaded a PDF — here's your quiz' — scale only the one with the most opens-to-activation.  
+**When:** Any time you'd otherwise pick the 'best' copy by opinion around a table.  
+*Sources: scientific-advertising-hopkins*
+
+
+### Learning  (2)
+
+#### `one-idea-per-sentence` — One-Idea-Per-Sentence (Linear Sequencing)  ·  Σ 38.5  ·  fits: tutorial, course, article, research-paper, faq, report, presentation, essay, blog
+**Structure:** 1) Write the explanation. 2) Find any sentence carrying two dissimilar thoughts and split it at the period. 3) Ensure each sentence contains exactly one idea, delivered in the order the learner needs it. 4) Front-load mood-changers (but, yet, however, meanwhile) so the reader is primed for a turn before it happens. 5) Read aloud to confirm each step lands before the next begins.  
+**How to apply:** Remember 'readers process one idea at a time, in linear sequence', so never make one sentence do too much work — break a long sentence into two or three. The #1 failure mode is the dense compound sentence that forces the learner to re-read; most writers don't reach the period soon enough.  
+**Example:** Split 'Mitosis copies the DNA which then condenses into chromosomes that line up so the cell can divide' into four plain steps, one per sentence.  
+**When:** Explaining technical, sequential, or unfamiliar material a learner must follow step by step.  
+*Sources: on-writing-well-zinsser*
+
+#### `wiify-self-interest-lead` — WIIFY Self-Interest Lead  ·  Σ 38.5  ·  fits: email, tutorial, course, landing-page, ad, social-post, video-script, newsletter
+**Structure:** 1) Find the reader's real benefit, then the benefit OF that benefit ('quarter-inch holes', not drill bits). 2) Open with it — promise the want plainly. 3) Keep the 'self' in self-interest: 'YOU will…', not 'people will…'. 4) Spell out the dot-connection so a distracted reader can't miss it. 5) Then deliver the how.  
+**How to apply:** Answer the student refrain 'how will I ever use this?' up front, in second person. The #1 failure mode is feature-dumping ('17 activity types!') and assuming the benefit is obvious — name the payoff in the reader's own life in the first line.  
+**Example:** Open an algebra lesson: 'In 20 minutes you'll set up the equations that price a game's loot boxes — same math, your world.'  
+**When:** Lessons, intros, or emails where the reader is silently asking 'why should I care / when will I ever use this?'  
+*Sources: made-to-stick-heath*
+
 
 ---
 _Generated from `knowledge/write-frameworks.yaml`. To add a framework: append to the yaml + regenerate._

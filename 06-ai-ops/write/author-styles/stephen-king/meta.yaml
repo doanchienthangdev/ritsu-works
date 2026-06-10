@@ -1,0 +1,11 @@
+# Provenance + copyright posture for the Stephen King author-style.
+slug: stephen-king
+full_name: "Stephen King"
+distilled_on: "2026-06-10"
+distilled_by: /write learn
+sources:
+  - kind: book
+    title: "On Writing: A Memoir of the Craft"
+    ref: "raw/write/books/ (on-writing-king)"
+confidence: high
+copyright: "Transformative style analysis plus short attributed fair-use excerpts (≤25 words) from the copyrighted memoir \"On Writing: A Memoir of the Craft\" (Scribner, 2000), always attributed and never reproduced at length. Output written in this style is a derivative STYLE, presented as such — never claimed to be King's own words."

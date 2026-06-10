@@ -46,3 +46,102 @@ author_styles:
     distilled_on: "2026-06-10"
     confidence: high
     copyright: "Style analysis + attributed fair-use excerpts. Ogilvy d.1999; public talks + the 'How to Write' memo + curated article quotes are fair use; book quotes kept short per the source archive's posture."
+  - slug: stephen-king
+    full_name: "Stephen King"
+    category: fiction
+    one_line: "A blue-collar storyteller writing plain Anglo-Saxon prose to one reader he calls \"Constant Reader\" — concrete, profane-when-honest, allergic to adverbs, warm under the grit."
+    path: 06-ai-ops/write/author-styles/stephen-king/
+    status: installed
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Transformative style analysis plus short attributed fair-use excerpts (≤25 words) from the copyrighted memoir \"On Writing: A Memoir of the Craft\" (Scribner, 2000), always attributed and never reproduced at length. Output written in this style is a derivative STYLE, presented as such — never claimed to be King's own words."
+  - slug: william-zinsser
+    full_name: "William Zinsser"
+    category: essay
+    one_line: "The plain-style craftsman of nonfiction: warm, clear, ruthlessly de-cluttered prose that talks to one reader on paper, writes by ear, and trusts the concrete over the grand."
+    path: 06-ai-ops/write/author-styles/william-zinsser/
+    status: installed
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Transformative style analysis of William Zinsser's *On Writing Well* (© William K. Zinsser, 1976–2001); every excerpt is ≤25 words and explicitly attributed, used for voice-calibration under fair use — no passage is reproduced at length, and the artifact teaches the mechanics rather than republishing the book."
+  - slug: steven-pinker
+    full_name: "Steven Pinker"
+    category: essay
+    one_line: "Cognitive scientist explaining hard ideas as one equal pointing something out to another — witty, evidence-led, concrete, with the curse of knowledge as enemy."
+    path: 06-ai-ops/write/author-styles/steven-pinker/
+    status: installed
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Transformative style analysis of Steven Pinker's *The Sense of Style* (2014); all excerpts are short (≤25 words), attributed fair-use quotations used to teach the voice, never a reproduction of the work."
+  - slug: ann-handley
+    full_name: "Ann Handley"
+    category: marketing
+    one_line: "A warm, funny coach who writes in short percussive sentences, greets the reader like a friend, and turns every craft lesson into a homely metaphor and a before/after pair."
+    path: 06-ai-ops/write/author-styles/ann-handley/
+    status: installed
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Transformative style analysis of Ann Handley's voice, with short attributed fair-use excerpts (≤25 words each) from the copyrighted book *Everybody Writes* (2nd ed., Wiley, 2023), always attributed; no passage is reproduced at length, and any text written in this style is a derivative STYLE presented as such, never claimed to be Handley's own words."
+  - slug: eugene-schwartz
+    full_name: "Eugene Schwartz"
+    category: copywriting
+    one_line: "Channels existing mass desire onto the product; matches copy to the prospect’s state of awareness + market sophistication."
+    path: 06-ai-ops/write/author-styles/eugene-schwartz/
+    status: planned
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-10"
+    confidence: null
+    copyright: "Style analysis only until distilled. Source: Breakthrough Advertising."
+  - slug: claude-hopkins
+    full_name: "Claude C. Hopkins"
+    category: copywriting
+    one_line: "Salesmanship in print: specific reason-why claims, tested relentlessly, never clever for its own sake."
+    path: 06-ai-ops/write/author-styles/claude-hopkins/
+    status: planned
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-10"
+    confidence: null
+    copyright: "Style analysis only until distilled. Scientific Advertising is public domain."
+  - slug: blake-snyder
+    full_name: "Blake Snyder"
+    category: copywriting
+    one_line: "Breezy, beat-driven screenwriting coach — logline-first, structure-obsessed, reader-as-friend."
+    path: 06-ai-ops/write/author-styles/blake-snyder/
+    status: planned
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-10"
+    confidence: null
+    copyright: "Style analysis only until distilled. Source: Save the Cat!."
+  - slug: robert-mckee
+    full_name: "Robert McKee"
+    category: fiction
+    one_line: "Story as the deep principle: the gap between expectation and result, the controlling idea, value at stake."
+    path: 06-ai-ops/write/author-styles/robert-mckee/
+    status: planned
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-10"
+    confidence: null
+    copyright: "Style analysis only until distilled. Source: Story."
+  - slug: strunk-white
+    full_name: "Strunk & White"
+    category: nonfiction
+    one_line: "Terse, imperative, rule-bound clarity: omit needless words; the rules as commandments."
+    path: 06-ai-ops/write/author-styles/strunk-white/
+    status: planned
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-10"
+    confidence: null
+    copyright: "Style analysis only until distilled. The Elements of Style (Strunk 1918 portions public domain)."

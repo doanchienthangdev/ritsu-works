@@ -1,0 +1,11 @@
+# Provenance + copyright posture for the Ann Handley author-style.
+slug: ann-handley
+full_name: "Ann Handley"
+distilled_on: "2026-06-10"
+distilled_by: /write learn
+sources:
+  - kind: book
+    title: "Everybody Writes"
+    ref: "raw/write/books/ (everybody-writes-handley)"
+confidence: high
+copyright: "Transformative style analysis of Ann Handley's voice, with short attributed fair-use excerpts (≤25 words each) from the copyrighted book *Everybody Writes* (2nd ed., Wiley, 2023), always attributed; no passage is reproduced at length, and any text written in this style is a derivative STYLE presented as such, never claimed to be Handley's own words."
