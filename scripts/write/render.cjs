@@ -18,7 +18,8 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const HERE = __dirname;
-const REPO_ROOT = path.resolve(HERE, '..', '..');
+const REPO_ROOT = path.resolve(HERE, '..', '..');           // worktree root (for render.py --repo-root → design palette)
+const { MAIN_ROOT } = require('./lib/artifact-path.cjs');   // main root (for the OUTPUT dir, where the operator looks)
 const ANACONDA = process.env.WRITE_PY || process.env.TRANSLATE_PY || '/opt/anaconda3/bin/python3';
 const RENDER_PY = path.join(HERE, 'render.py');
 
@@ -48,7 +49,10 @@ function render(src, opt) {
   let inline = null;
   if (!src || !fs.existsSync(src)) return { ok: false, error: `draft not found: ${src}`, files, warnings };
   const md = fs.readFileSync(src, 'utf8');
-  const outDir = opt.outDir || path.dirname(src);
+  // A relative --out-dir resolves against the MAIN repo root (not the worktree cwd) so
+  // rendered files land alongside the rest of the artifact, where the operator looks.
+  let outDir = opt.outDir || path.dirname(src);
+  if (outDir && !path.isAbsolute(outDir)) outDir = path.join(MAIN_ROOT, outDir);
   fs.mkdirSync(outDir, { recursive: true });
   const name = opt.name || path.basename(src).replace(/\.md$/, '') || 'document';
 

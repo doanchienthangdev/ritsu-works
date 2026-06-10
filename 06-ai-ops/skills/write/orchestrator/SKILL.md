@@ -22,10 +22,13 @@ would attribute it to that author.
 node scripts/write/plan.cjs "<request>" --type=.. --medium=.. --author-style=.. --template=.. \
   --length=.. --out=.. --image=.. --dataviz=.. --lang=.. --style=.. --ref=.. --push=.. [--dry-run]
 ```
-This writes `brief.md` + `plan.json` to the artifact dir and resolves type→medium→voice→
-template→length→enrichment→output. **Read `brief.md`** — it is your assignment. If
-`--type` was omitted, infer the best-fit type from the request (see `knowledge/write-types.yaml`
-via `/write types`) and re-run plan with it, or proceed freeform using the closest structure.
+This writes `brief.md` + `plan.json` and resolves type→medium→voice→template→length→
+enrichment→output. The JSON output carries an **absolute `dir`** (under the MAIN repo
+root's `.archives/write/<date>-<slug>/`, even when running inside a worktree — that's where
+the operator looks). **Write `draft.md` into that `dir`, and run scan/render against it**, so
+every artifact lands together. **Read `brief.md`** — it is your assignment. If `--type` was
+omitted, infer the best-fit type from the request (see `knowledge/write-types.yaml` via
+`/write types`) and re-run plan with it, or proceed freeform using the closest structure.
 
 If `--dry-run`: present the plan (type, medium, voice, length, sections, enrichment, output,
 cost note, warnings) and **stop**. Do not write content.

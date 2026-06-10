@@ -179,7 +179,9 @@ function renderBrief(plan) {
 }
 
 function writePlan(plan, opts = {}) {
-  const absDir = path.isAbsolute(plan.out_dir) ? plan.out_dir : path.join(opts.repoRoot || REPO_ROOT, plan.out_dir);
+  // Resolve the relative out_dir against the MAIN repo root (not the worktree) so
+  // artifacts land where the operator looks — see scripts/write/lib/artifact-path.cjs.
+  const absDir = path.isAbsolute(plan.out_dir) ? plan.out_dir : path.join(opts.repoRoot || AP.MAIN_ROOT, plan.out_dir);
   fs.mkdirSync(absDir, { recursive: true });
   const briefPath = path.join(absDir, 'brief.md');
   const planPath = path.join(absDir, 'plan.json');
@@ -193,7 +195,9 @@ if (require.main === module) {
   const plan = buildPlan(argv);
   let written = {};
   try { written = writePlan(plan); } catch (e) { plan.warnings.push(`write plan: ${e.message}`); }
-  process.stdout.write(JSON.stringify({ ok: plan.ok, plan, briefPath: written.briefPath, planPath: written.planPath, warnings: plan.warnings }) + '\n');
+  // `dir` is the ABSOLUTE artifact dir (under the MAIN repo root) — the orchestrator should
+  // write draft.md + run scan/render against this, so outputs land where the operator looks.
+  process.stdout.write(JSON.stringify({ ok: plan.ok, plan, dir: written.dir, briefPath: written.briefPath, planPath: written.planPath, warnings: plan.warnings }) + '\n');
 }
 
 module.exports = { buildPlan, renderBrief, writePlan, sectionBudget };
