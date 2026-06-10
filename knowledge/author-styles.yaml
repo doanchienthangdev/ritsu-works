@@ -157,3 +157,15 @@ author_styles:
     distilled_on: "2026-06-10"
     confidence: high
     copyright: "Style analysis + attributed fair-use excerpts. jamesclear.com articles + 3-2-1 newsletter are freely published; talks are public; Atomic Habits (book) quotes kept ≤18 words per the source archive's posture."
+
+  - slug: scott-young
+    full_name: Scott Young
+    category: essay
+    one_line: "The analyst-experimenter of learning science: calm, evidence-led, mechanism-first. Sets up what 'one would expect,' breaks it with a named study, anchors every abstraction to a homely object, fences every claim with an honest caveat."
+    path: 06-ai-ops/write/author-styles/scott-young/
+    status: installed   # distilled 2026-06-10 via /write distill (Workflow analyst+archivist)
+    origin: distilled
+    source_kinds: [books, articles, transcripts]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Transformative style analysis + attributed fair-use excerpts. scotthyoung.com essays + public talks/podcasts are freely published (fuller quotes, attributed); the two books (Ultralearning, Get Better at Anything) are characterized only — PDFs intentionally not ingested, no book text quoted. Output is a derivative STYLE, never claimed to be Young's own words."
