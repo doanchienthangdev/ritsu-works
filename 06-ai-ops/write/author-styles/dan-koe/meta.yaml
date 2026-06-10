@@ -1,0 +1,51 @@
+# Provenance for the dan-koe author-style artifact.
+slug: dan-koe
+full_name: Dan Koe
+distilled_on: "2026-06-10"
+distilled_by: "/write distill (Claude Code — staged corpus → Workflow analyst×4 + archivist → sections assembled in-session; every load-bearing quote grep-verified character-for-character against the staged sources)"
+confidence: high   # 9 freely-published newsletter "letters" + 9 public YouTube transcripts, read across 5 analytic lenses; voice saturated + cross-confirmed across written + spoken registers; quotes verified (one paraphrased closing caught + dropped)
+sources:
+  books:
+    - {title: "The Art of Focus", year: 2023, usage: "referenced by name only; NOT ingested — copyright. His own freely-published book SUMMARY (article + transcript) WAS read."}
+    - {title: "Purpose and Profit", usage: "referenced by name only; NOT ingested — copyright"}
+  articles:
+    - {title: "How To Think Originally", source: "thedankoe.com (2025)", usage: "freely-published newsletter — fuller fair-use quotes, attributed"}
+    - {title: "The Future-Proof Skill Stack (Learn In This Order)", source: "thedankoe.com (2024)", usage: "freely-published"}
+    - {title: "How to use AI better than 99% of people", source: "letters.thedankoe.com (2025)", usage: "freely-published"}
+    - {title: "The Value Creator (A New Internet Career Path For Intelligent People)", source: "thedankoe.com (2023)", usage: "freely-published"}
+    - {title: "Every ambitious person must learn this skill", source: "letters.thedankoe.com (2025)", usage: "freely-published"}
+    - {title: "How To Profit From Solving Your Own Problems", source: "thedankoe.com (2022)", usage: "freely-published"}
+    - {title: "Solve Your Own Problems & Sell The Solution", source: "thedankoe.com (2023)", usage: "freely-published"}
+    - {title: "The One-Person Business Model (How To Productize Yourself)", source: "thedankoe.com (2022)", usage: "freely-published"}
+    - {title: "The Synthesizer: A Digital Career Path For Curious People", source: "thedankoe.com", usage: "freely-published"}
+    - {title: "The Art Of Focus — Official Book Summary By The Author", source: "thedankoe.com", usage: "freely-published (his own summary of his book)"}
+  transcripts:
+    - {title: "How To Get Ahead Of 99% Of People (In 6-12 Months)", venue: "YouTube", year: 2022, usage: "public talk"}
+    - {title: "Change Your Life In 6 Months (My Deep Work Routine)", venue: "YouTube", year: 2023, usage: "public talk"}
+    - {title: "The Most Profitable Niche Is You (Create Your Niche Of One)", venue: "YouTube", year: 2023, usage: "public talk"}
+    - {title: "Get Ahead Of 99% Of People With Deep Work & Monk Mode", venue: "YouTube", usage: "public talk"}
+    - {title: "How To Become More Intelligent Than 99% Of People", venue: "YouTube", usage: "public talk"}
+    - {title: "The Daily Routine That Changed My Life (4 Habits Most People Ignore)", venue: "YouTube", usage: "public talk"}
+    - {title: "This High-Income Skill Will Make You Irreplaceable (Full Guide)", venue: "YouTube", usage: "public talk"}
+    - {title: "The One-Person Business Model (How To Productize Yourself)", venue: "YouTube", usage: "public talk"}
+    - {title: "How To Get Ahead Of 99% Of People (In 6-12 Months) — short", venue: "YouTube", usage: "public talk"}
+  urls: ["https://thedankoe.com", "https://letters.thedankoe.com", "https://www.youtube.com/@thedankoe"]
+copyright: |
+  Transformative style analysis + attributed fair-use excerpts. Dan Koe's newsletter "letters"
+  (thedankoe.com / letters.thedankoe.com) are freely published and his YouTube talks are public —
+  those are quoted more fully and always attributed. His two copyrighted books (The Art of Focus,
+  Purpose and Profit) were NOT ingested and are referenced by name only; his own freely-published
+  book-summary article + transcript were read. Output written in this style is a derivative STYLE,
+  presented as such — never claimed to be Koe's own words.
+notes: |
+  Dan Koe is an internet-native writer-creator-philosopher; the truest source of his voice is the
+  freely-published newsletter + public YouTube corpus (read across 5 lenses). Strongest signature:
+  one-sentence paragraphs stacked into anaphora, a contrarian inversion as the hook, business ×
+  philosophy synthesis, a coined Capitalized framework, and the plain "– Dan" sign-off.
+  Two /write gate caveats are baked into voice-card.md: his "Here's the thing:" signpost is a flagged
+  AI tell, and his em-dashes are stripped by the humanizer — the writer is told to use his other
+  signposts ("The point:", "In other words,", "Why?") + periods/colons instead, and to carry emphasis
+  in italics (which survive). His AI thesis ("AI as digital employee / leverage, not substitute; you
+  become what you consume") makes him an unusually apt voice for Ritsu's active-learning positioning.
+  Future re-distillation could add the two books directly (≤25-word quotes) for finer book-register
+  calibration, plus the larger Monk Mode + intelligence transcripts read in full.

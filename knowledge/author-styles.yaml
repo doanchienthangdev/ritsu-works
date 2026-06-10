@@ -181,3 +181,15 @@ author_styles:
     distilled_on: "2026-06-10"
     confidence: high
     copyright: "Transformative style analysis + attributed fair-use excerpts. Urban's Wait But Why posts (Why Procrastinators Procrastinate, The AI Revolution, 100 Blocks a Day, How to Pick a Career) are freely published and his TED talk is public — quoted more fully, always attributed. His paid book What's Our Problem? (2023) was NOT ingested; its ideas are referenced by concept only. Coined characters (Instant Gratification Monkey, Panic Monster, Yearning Octopus, Die Progress Unit) referenced as style analysis, never reproduced."
+
+  - slug: dan-koe
+    full_name: Dan Koe
+    category: creator-economy
+    one_line: "Internet-native writer-philosopher of the one-person business: one-sentence paragraphs stacked into anaphora, a contrarian inversion as the hook, business × philosophy synthesis, a coined Capitalized framework, and the plain '– Dan' sign-off."
+    path: 06-ai-ops/write/author-styles/dan-koe/
+    status: installed   # distilled 2026-06-10 via /write distill (Workflow analyst×4 + archivist; every load-bearing quote grep-verified)
+    origin: distilled
+    source_kinds: [articles, transcripts]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Transformative style analysis + attributed fair-use excerpts. Koe's newsletter 'letters' (thedankoe.com / letters.thedankoe.com) are freely published and his YouTube talks are public — quoted more fully, always attributed. His copyrighted books (The Art of Focus, Purpose and Profit) were NOT ingested; referenced by name only (his own freely-published book-summary was read)."
