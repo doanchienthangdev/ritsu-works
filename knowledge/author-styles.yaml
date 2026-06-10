@@ -46,3 +46,15 @@ author_styles:
     distilled_on: "2026-06-10"
     confidence: high
     copyright: "Style analysis + attributed fair-use excerpts. Ogilvy d.1999; public talks + the 'How to Write' memo + curated article quotes are fair use; book quotes kept short per the source archive's posture."
+
+  - slug: james-clear
+    full_name: James Clear
+    category: writing
+    one_line: "Story → plainly-named principle → one quotable line. Concrete nouns, short sentences, systems over goals."
+    path: 06-ai-ops/write/author-styles/james-clear/
+    status: installed   # distilled 2026-06-10 via /write distill (Workflow analyst+archivist)
+    origin: distilled
+    source_kinds: [books, articles, transcripts]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Style analysis + attributed fair-use excerpts. jamesclear.com articles + 3-2-1 newsletter are freely published; talks are public; Atomic Habits (book) quotes kept ≤18 words per the source archive's posture."
