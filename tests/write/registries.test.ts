@@ -104,6 +104,47 @@ describe("templates.cjs", () => {
   });
 });
 
+// @ts-ignore
+const Frameworks = require("../../scripts/write/lib/frameworks.cjs");
+
+describe("frameworks.cjs", () => {
+  const doc = Frameworks.loadFrameworks();
+  it("loads the real registry with 100 frameworks (founder requirement)", () => {
+    expect(Frameworks.listFrameworkIds(doc).length).toBe(100);
+  });
+  it("resolveFramework by id, case-insensitive; unknown → null", () => {
+    expect(Frameworks.resolveFramework("pas", doc)?.family).toBe("copy");
+    expect(Frameworks.resolveFramework("PAS", doc)?.id).toBe("pas");
+    expect(Frameworks.resolveFramework("nope", doc)).toBeNull();
+    expect(Frameworks.resolveFramework("", doc)).toBeNull();
+  });
+  it("every framework has structure + when_to_use + a non-empty applies_to_types (contract)", () => {
+    for (const f of doc.frameworks) {
+      expect(typeof f.structure).toBe("string");
+      expect(f.structure.length).toBeGreaterThan(0);
+      expect(typeof f.when_to_use).toBe("string");
+      expect(Array.isArray(f.applies_to_types) && f.applies_to_types.length).toBeTruthy();
+    }
+  });
+  it("frameworksForType returns rank-ordered matches for a type", () => {
+    const forAd = Frameworks.frameworksForType("ad", doc);
+    expect(forAd.length).toBeGreaterThan(0);
+    expect(forAd.map((f: any) => f.id)).toContain("pas");
+    // rank-ordered ascending
+    const ranks = forAd.map((f: any) => f.rank);
+    expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
+  });
+  it("frameworksInFamily filters by family", () => {
+    const learn = Frameworks.frameworksInFamily("learn", doc);
+    expect(learn.length).toBeGreaterThan(0);
+    expect(learn.every((f: any) => f.family === "learn")).toBe(true);
+  });
+  it("ids are unique", () => {
+    const ids = Frameworks.listFrameworkIds(doc);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
 describe("artifact-path.cjs", () => {
   describe("deriveSlug", () => {
     it("kebab-cases plain text", () => {

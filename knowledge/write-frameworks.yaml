@@ -1,0 +1,1089 @@
+# ============================================================================
+# write-frameworks.yaml — writing/sales/marketing/learning framework library
+# ============================================================================
+# 100 ranked formulas the writer can apply with /write --framework=<id>. Composable
+# WITH --type / --template / --author-style (a framework is a STRUCTURE/formula, not a
+# full skeleton). Ranked by fit to Ritsu + ritsu-works (an AI-Native Company that markets a
+# learning product) via the rubric below (Σ max 50; C1 Ritsu-learning-core is weighted highest).
+#
+# Schema: knowledge/schemas/write-frameworks.schema.json
+# Gate:   scripts/cross-tier/validate-write-registries.cjs
+# Resolved by: scripts/write/lib/frameworks.cjs ; reference: 06-ai-ops/write/FRAMEWORKS.md
+# ============================================================================
+
+version: 1.0.0
+schema: knowledge/schemas/write-frameworks.schema.json
+families:
+  - learn
+  - headline
+  - blog
+  - story
+  - video
+  - social
+  - copy
+  - ops
+  - landing
+  - email
+rubric:
+  c1_ritsu_learning_core: 3
+  c2_gtm_marketing: 2.5
+  c3_frequency_breadth: 2
+  c4_template_ability: 1.5
+  c5_evidence_authority: 1
+  max: 50
+frameworks:
+  - id: tutorial-step-by-step
+    name: Step-by-Step Tutorial
+    family: learn
+    rank: 1
+    score: 46.5
+    structure: Prereqs → numbered steps (do → see) → verify → troubleshoot → next
+    when_to_use: 'The default teaching structure: get the reader to a working result.'
+    applies_to_types:
+      - tutorial
+      - video-script
+  - id: how-to-headline
+    name: '"How to" Headline'
+    family: headline
+    rank: 2
+    score: 46
+    structure: How to [achieve desired outcome] [without the feared obstacle]
+    when_to_use: The highest-utility headline — also teaches.
+    applies_to_types:
+      - blog
+      - ad
+      - video-script
+  - id: ultimate-guide
+    name: Ultimate Guide / Pillar Page
+    family: blog
+    rank: 3
+    score: 44
+    structure: Promise mastery → chaptered sections → internal links → CTA
+    when_to_use: The definitive resource that owns a topic + teaches.
+    applies_to_types:
+      - article
+      - blog
+      - tutorial
+  - id: abt
+    name: ABT (And-But-Therefore)
+    family: story
+    rank: 4
+    score: 43.5
+    structure: Setup AND context → BUT the problem → THEREFORE the resolution
+    when_to_use: One-sentence narrative engine (great for science communication).
+    applies_to_types:
+      - essay
+      - blog
+      - speech
+      - social-post
+  - id: explainer-ps
+    name: Explainer (Problem-Solution-How)
+    family: video
+    rank: 5
+    score: 42.5
+    structure: Problem → solution → how it works → CTA
+    when_to_use: A 60-90s explainer that also teaches.
+    applies_to_types:
+      - video-script
+  - id: scqa
+    name: SCQA / Minto (Situation-Complication-Question-Answer)
+    family: story
+    rank: 6
+    score: 42.5
+    structure: Situation → Complication → Question → Answer
+    when_to_use: Open any doc or pitch with a tight, logical setup.
+    applies_to_types:
+      - memo
+      - proposal
+      - report
+      - essay
+  - id: hook-retain-reward
+    name: Hook-Retain-Reward
+    family: social
+    rank: 7
+    score: 42
+    structure: 3-sec hook → retain (open loops) → reward (payoff) → CTA
+    when_to_use: The short-video retention spine (Reel/Short/TikTok).
+    applies_to_types:
+      - video-script
+      - social-post
+  - id: x-thread-formula
+    name: X / Thread Formula
+    family: social
+    rank: 8
+    score: 42
+    structure: Post 1 = whole promise → one beat per post → payoff + ask
+    when_to_use: A thread where each post earns the next.
+    applies_to_types:
+      - thread
+      - social-post
+  - id: listicle-post
+    name: Listicle Article
+    family: blog
+    rank: 9
+    score: 42
+    structure: Title number = promise → each item a claim + payoff → through-line close
+    when_to_use: A scannable list where every item earns its place.
+    applies_to_types:
+      - blog
+      - article
+  - id: tiktok-hcp
+    name: TikTok Hook-Context-Payoff
+    family: social
+    rank: 10
+    score: 41
+    structure: Hook → minimal context → payoff → one CTA
+    when_to_use: Vertical short script optimized for completion.
+    applies_to_types:
+      - video-script
+      - social-post
+  - id: skyscraper
+    name: Skyscraper
+    family: blog
+    rank: 11
+    score: 41
+    structure: Find the best existing piece → make it more complete/current → promote
+    when_to_use: Rank by out-doing the top result.
+    applies_to_types:
+      - blog
+      - article
+  - id: aida
+    name: AIDA
+    family: copy
+    rank: 12
+    score: 41
+    structure: Attention → Interest → Desire → Action
+    when_to_use: The universal persuasion arc for ads, emails, pages.
+    applies_to_types:
+      - ad
+      - landing-page
+      - email
+      - social-post
+  - id: pas
+    name: PAS (Problem-Agitate-Solution)
+    family: copy
+    rank: 13
+    score: 41
+    structure: Problem → Agitate (twist the knife) → Solution
+    when_to_use: Lead with the reader's pain; the workhorse of direct response.
+    applies_to_types:
+      - ad
+      - email
+      - landing-page
+      - social-post
+  - id: feynman-technique
+    name: Feynman Technique
+    family: learn
+    rank: 14
+    score: 40.5
+    structure: Concept → explain to a 12-year-old → find the gaps → simplify + analogy
+    when_to_use: Teach/explain any concept so the reader truly gets it (and to expose what they don't).
+    applies_to_types:
+      - tutorial
+      - essay
+      - blog
+      - video-script
+  - id: worked-example
+    name: Worked Example
+    family: learn
+    rank: 15
+    score: 40.5
+    structure: State problem → show every step + the why → fade to a you-try
+    when_to_use: Teach a procedure/skill by showing then fading the scaffolding.
+    applies_to_types:
+      - tutorial
+      - blog
+  - id: problem-solution-blog
+    name: Problem-Solution Article
+    family: blog
+    rank: 16
+    score: 40.5
+    structure: Name the problem → why it persists → the solution → how to apply
+    when_to_use: The default helpful-content shape (teaches + ranks).
+    applies_to_types:
+      - blog
+      - article
+      - tutorial
+  - id: pixar-spine
+    name: Pixar Story Spine
+    family: story
+    rank: 17
+    score: 40.5
+    structure: Once upon a time… every day… until one day… because of that… until finally…
+    when_to_use: A reliable mini-story skeleton.
+    applies_to_types:
+      - story
+      - social-post
+      - speech
+  - id: pyramid-principle
+    name: Pyramid Principle (Minto)
+    family: ops
+    rank: 18
+    score: 40
+    structure: Answer first → grouped supporting arguments → data
+    when_to_use: Structure any argument top-down, MECE.
+    applies_to_types:
+      - memo
+      - report
+      - proposal
+      - research
+  - id: comparison-x-vs-y
+    name: Comparison (X vs Y)
+    family: blog
+    rank: 19
+    score: 40
+    structure: Frame the decision → criteria → head-to-head → who-should-pick-what
+    when_to_use: Capture high-intent "X vs Y" search + help a real choice.
+    applies_to_types:
+      - blog
+      - article
+      - review
+  - id: heros-journey
+    name: Hero's Journey
+    family: story
+    rank: 20
+    score: 40
+    structure: Ordinary world → call → trials → transformation → return changed
+    when_to_use: Epic narrative arc for brand/origin/case stories.
+    applies_to_types:
+      - story
+      - video-script
+      - speech
+  - id: bab
+    name: Before-After-Bridge
+    family: copy
+    rank: 21
+    score: 40
+    structure: Before (pain world) → After (dream world) → Bridge (your offer)
+    when_to_use: Fast, vivid framing for ads, emails, hooks.
+    applies_to_types:
+      - ad
+      - email
+      - social-post
+      - landing-page
+  - id: 4u-headline
+    name: 4 U's Headline
+    family: headline
+    rank: 22
+    score: 40
+    structure: Useful + Urgent + Unique + Ultra-specific
+    when_to_use: Score and sharpen any headline/subject line.
+    applies_to_types:
+      - ad
+      - blog
+      - email
+      - social-post
+  - id: hero-section
+    name: Hero Section
+    family: landing
+    rank: 23
+    score: 40
+    structure: Promise headline → subhead → CTA → instant proof
+    when_to_use: The above-the-fold that earns the scroll.
+    applies_to_types:
+      - landing-page
+  - id: educational-video-khan
+    name: Khan-style Explainer
+    family: learn
+    rank: 24
+    score: 39.5
+    structure: Start where they are → one idea → narrate the work → check understanding
+    when_to_use: A calm, build-from-zero teaching video (Ritsu's house style).
+    applies_to_types:
+      - video-script
+  - id: case-study-blog
+    name: Case Study
+    family: blog
+    rank: 25
+    score: 39.5
+    structure: Subject + goal → problem → approach → result (numbers) → takeaway
+    when_to_use: Proof-driven story that sells without selling.
+    applies_to_types:
+      - blog
+      - article
+      - proposal
+  - id: inverted-pyramid
+    name: Inverted Pyramid
+    family: blog
+    rank: 26
+    score: 39.5
+    structure: Most important first → supporting detail → background
+    when_to_use: 'Journalism''s structure: the reader can stop anytime.'
+    applies_to_types:
+      - article
+      - press-release
+      - blog
+  - id: exam-cram-3-day
+    name: Exam-in-3-Days Plan
+    family: learn
+    rank: 27
+    score: 39
+    structure: Triage by weight → active recall blocks → spaced reviews → simulate the test
+    when_to_use: 'Ritsu''s sharpest wedge: a high-stakes timed study plan.'
+    applies_to_types:
+      - tutorial
+      - blog
+      - email
+  - id: story-lesson-application
+    name: Story-Lesson-Application
+    family: social
+    rank: 28
+    score: 39
+    structure: A small true story → the lesson → how the reader applies it
+    when_to_use: Teach through narrative on social (Ritsu-friendly).
+    applies_to_types:
+      - social-post
+      - blog
+      - essay
+  - id: myth-vs-fact
+    name: Myth vs Fact
+    family: social
+    rank: 29
+    score: 39
+    structure: State the myth → the fact → the evidence
+    when_to_use: Bust a common misconception (teaching + shareable; Ritsu-friendly).
+    applies_to_types:
+      - social-post
+      - blog
+      - faq
+  - id: number-listicle-headline
+    name: Number/Listicle Headline
+    family: headline
+    rank: 30
+    score: 39
+    structure: '[N] [things] that [specific payoff]'
+    when_to_use: A countable promise that earns the click.
+    applies_to_types:
+      - blog
+      - social-post
+      - ad
+  - id: linkedin-hsl
+    name: LinkedIn Hook-Story-Lesson
+    family: social
+    rank: 31
+    score: 39
+    structure: Hook line → short story → the lesson → soft CTA
+    when_to_use: The native LinkedIn post that gets read + shared.
+    applies_to_types:
+      - social-post
+  - id: definition-post
+    name: Definition / "What is X" Post
+    family: blog
+    rank: 32
+    score: 38.5
+    structure: Plain definition → why it matters → example → related
+    when_to_use: Own the "what is X" query and teach the basics.
+    applies_to_types:
+      - blog
+      - faq
+      - tutorial
+  - id: 5-awareness-levels
+    name: 5 Stages of Awareness (Schwartz)
+    family: copy
+    rank: 33
+    score: 38.5
+    structure: Unaware → Problem → Solution → Product → Most-aware
+    when_to_use: Match the message to what the reader already knows — pick the lead.
+    applies_to_types:
+      - ad
+      - landing-page
+      - email
+  - id: value-prop-canvas
+    name: Value Proposition Canvas
+    family: landing
+    rank: 34
+    score: 38.5
+    structure: Jobs → pains → gains ↔ pain-relievers → gain-creators → product
+    when_to_use: Engineer messaging from what the customer actually wants.
+    applies_to_types:
+      - landing-page
+      - memo
+      - ad
+  - id: open-loop
+    name: Open Loop
+    family: social
+    rank: 35
+    score: 38.5
+    structure: Pose the intrigue → delay the answer → pay it off
+    when_to_use: Hold attention by keeping a question alive.
+    applies_to_types:
+      - social-post
+      - video-script
+      - thread
+  - id: contrarian-take
+    name: Contrarian Take
+    family: social
+    rank: 36
+    score: 38.5
+    structure: State the consensus → flip it → defend with one proof
+    when_to_use: Earn attention by credibly disagreeing.
+    applies_to_types:
+      - social-post
+      - thread
+      - blog
+  - id: carousel
+    name: Carousel / Slide Deck Post
+    family: social
+    rank: 37
+    score: 38.5
+    structure: Cover hook → one idea per slide → recap → CTA
+    when_to_use: A swipeable mini-lesson or argument.
+    applies_to_types:
+      - social-post
+      - presentation
+  - id: youtube-hivc
+    name: YouTube Hook-Intro-Value-CTA
+    family: video
+    rank: 38
+    score: 38.5
+    structure: Hook → promise/intro → value beats → CTA
+    when_to_use: Long-form YouTube retention structure.
+    applies_to_types:
+      - video-script
+  - id: jobs-to-be-done
+    name: Jobs To Be Done
+    family: copy
+    rank: 39
+    score: 38.5
+    structure: When [situation], I want to [job], so I can [outcome]
+    when_to_use: Write from the job the customer hires the product to do.
+    applies_to_types:
+      - landing-page
+      - ad
+      - memo
+      - product-description
+  - id: star-case
+    name: STAR (Situation-Task-Action-Result)
+    family: ops
+    rank: 40
+    score: 38.5
+    structure: Situation → Task → Action → Result
+    when_to_use: Bios, case studies, and accomplishment write-ups.
+    applies_to_types:
+      - bio
+      - report
+      - proposal
+  - id: newsletter-3-2-1
+    name: Newsletter 3-2-1 (Clear)
+    family: email
+    rank: 41
+    score: 38.5
+    structure: 3 ideas (you) · 2 quotes (others) · 1 question — recurring
+    when_to_use: A scannable, shareable recurring newsletter format.
+    applies_to_types:
+      - newsletter
+      - email
+  - id: retrieval-practice-prompt
+    name: Retrieval-Practice Prompt
+    family: learn
+    rank: 42
+    score: 38
+    structure: One atomic question → recall-before-reveal → immediate feedback → spaced repeat
+    when_to_use: Write a quiz/flashcard prompt that forces recall (Ritsu's core mechanic).
+    applies_to_types:
+      - faq
+      - tutorial
+  - id: deliberate-practice-loop
+    name: Deliberate-Practice Loop
+    family: learn
+    rank: 43
+    score: 38
+    structure: Specific goal → full focus → immediate feedback → repeat at the edge of ability
+    when_to_use: Design practice that actually builds skill (Ericsson).
+    applies_to_types:
+      - tutorial
+      - blog
+  - id: pastor
+    name: PASTOR
+    family: copy
+    rank: 44
+    score: 38
+    structure: Problem → Amplify → Story → Transformation → Offer → Response
+    when_to_use: Long-form persuasion that sells with a story.
+    applies_to_types:
+      - landing-page
+      - email
+      - video-script
+  - id: fab
+    name: FAB (Features-Advantages-Benefits)
+    family: copy
+    rank: 45
+    score: 38
+    structure: Feature → Advantage → Benefit (so-what to the reader)
+    when_to_use: Turn product specs into reasons to care.
+    applies_to_types:
+      - product-description
+      - ad
+      - landing-page
+  - id: cold-email-rva
+    name: Cold Email (Relevance-Value-Ask)
+    family: email
+    rank: 46
+    score: 38
+    structure: Relevance line → one idea/value → one low-friction ask
+    when_to_use: Get a stranger to read + reply in the preview pane.
+    applies_to_types:
+      - email
+  - id: app-intro
+    name: APP Intro (Agree-Promise-Preview)
+    family: blog
+    rank: 47
+    score: 38
+    structure: Agree (with their problem) → Promise (a fix) → Preview (what's coming)
+    when_to_use: Brian Dean's sticky intro that beats the bounce.
+    applies_to_types:
+      - blog
+      - article
+  - id: quest
+    name: QUEST
+    family: copy
+    rank: 48
+    score: 37.5
+    structure: Qualify → Understand → Educate → Stimulate → Transition
+    when_to_use: Educate-then-sell — bridges teaching and selling (good for Ritsu).
+    applies_to_types:
+      - landing-page
+      - email
+      - blog
+  - id: content-pillars
+    name: Content Pillars (Hub & Spoke)
+    family: social
+    rank: 49
+    score: 37.5
+    structure: 3-5 pillar themes → many spoke posts → recurring cadence
+    when_to_use: Plan a whole channel's content around a few owned topics.
+    applies_to_types:
+      - social-post
+      - blog
+  - id: tofu-mofu-bofu
+    name: TOFU-MOFU-BOFU
+    family: blog
+    rank: 50
+    score: 37.5
+    structure: Top (awareness) → Middle (consideration) → Bottom (decision) content
+    when_to_use: Map a content piece to its funnel stage + intent.
+    applies_to_types:
+      - blog
+      - article
+      - landing-page
+  - id: ogilvy-headline
+    name: Ogilvy Headline (the specific fact)
+    family: headline
+    rank: 51
+    score: 37.5
+    structure: A precise, checkable claim — the fact, not the adjective
+    when_to_use: Win belief with specificity (Rolls-Royce clock).
+    applies_to_types:
+      - ad
+      - blog
+  - id: long-form-sales-letter
+    name: Long-Form Sales Letter
+    family: landing
+    rank: 52
+    score: 37.5
+    structure: Headline → lead → problem → mechanism → offer → proof → objections → CTA → P.S.
+    when_to_use: The full direct-response page for high-stakes offers.
+    applies_to_types:
+      - landing-page
+      - email
+  - id: dual-coding
+    name: Dual Coding (words + visuals)
+    family: learn
+    rank: 53
+    score: 37
+    structure: Pair each idea with a diagram/image that carries the same meaning
+    when_to_use: Make explanations stick by combining text and a picture (use /image).
+    applies_to_types:
+      - tutorial
+      - presentation
+      - blog
+  - id: concept-example-question
+    name: Concept → Example → Question loop
+    family: learn
+    rank: 54
+    score: 37
+    structure: Concept → concrete example → a question that makes them apply it
+    when_to_use: 'The Ritsu micro-loop: never explain without an example + a check.'
+    applies_to_types:
+      - tutorial
+      - blog
+      - faq
+  - id: the-one-thing
+    name: The One Message
+    family: copy
+    rank: 55
+    score: 37
+    structure: Cut to the single idea the piece must land
+    when_to_use: Resist saying five things; say one thing well.
+    applies_to_types:
+      - ad
+      - social-post
+      - email
+  - id: sparkline
+    name: Sparkline (Duarte)
+    family: story
+    rank: 56
+    score: 37
+    structure: 'Oscillate: what is ↔ what could be → end on new bliss'
+    when_to_use: Persuasive talk structure that builds tension to a vision.
+    applies_to_types:
+      - speech
+      - presentation
+  - id: 3-sentence-email
+    name: 3-Sentence Email
+    family: email
+    rank: 57
+    score: 37
+    structure: Why you → one idea → the ask. Done.
+    when_to_use: Respect-their-time outreach that gets replies.
+    applies_to_types:
+      - email
+  - id: spaced-repetition-card
+    name: Spaced-Repetition Card (Matuschak rules)
+    family: learn
+    rank: 58
+    score: 36.5
+    structure: One fact per card → focused + tractable + consistent + effortful → minimal cue
+    when_to_use: Author flashcards that actually build durable memory.
+    applies_to_types:
+      - faq
+  - id: welcome-sequence
+    name: Welcome / Onboarding Sequence
+    family: email
+    rank: 59
+    score: 36.5
+    structure: Welcome → quick win → core value → habit → ask
+    when_to_use: Activate a new signup (Ritsu's activation moment).
+    applies_to_types:
+      - email
+  - id: 4ps-copy
+    name: 4 Ps (Promise-Picture-Proof-Push)
+    family: copy
+    rank: 60
+    score: 36.5
+    structure: Promise → Picture → Proof → Push
+    when_to_use: 'Balanced persuasion: claim, vision, evidence, CTA.'
+    applies_to_types:
+      - ad
+      - landing-page
+      - email
+  - id: pppp
+    name: PPPP (Picture-Promise-Prove-Push)
+    family: copy
+    rank: 61
+    score: 36.5
+    structure: Picture → Promise → Prove → Push
+    when_to_use: Henry Hoke's classic ad arc.
+    applies_to_types:
+      - ad
+      - landing-page
+  - id: vsl
+    name: VSL (Video Sales Letter)
+    family: landing
+    rank: 62
+    score: 36.5
+    structure: Hook → problem → unique mechanism → proof → offer → urgency → CTA
+    when_to_use: Script a video that sells.
+    applies_to_types:
+      - video-script
+      - landing-page
+  - id: storybrand-sb7
+    name: StoryBrand SB7
+    family: story
+    rank: 63
+    score: 36.5
+    structure: Hero → problem → guide → plan → CTA → stakes → success
+    when_to_use: Make the customer the hero, your brand the guide.
+    applies_to_types:
+      - landing-page
+      - ad
+      - email
+      - bio
+  - id: rule-of-one
+    name: Rule of One
+    family: copy
+    rank: 64
+    score: 36.5
+    structure: One reader · one big idea · one promise · one CTA
+    when_to_use: The discipline that makes any piece convert.
+    applies_to_types:
+      - ad
+      - email
+      - landing-page
+      - social-post
+  - id: blooms-taxonomy
+    name: Bloom's Taxonomy
+    family: learn
+    rank: 65
+    score: 36
+    structure: Remember → Understand → Apply → Analyze → Evaluate → Create
+    when_to_use: Design quizzes/activities that climb cognitive levels, not just recall.
+    applies_to_types:
+      - faq
+      - tutorial
+      - research
+  - id: mind-map
+    name: Mind Map
+    family: learn
+    rank: 66
+    score: 35.5
+    structure: Central idea → branches → sub-branches → cross-links
+    when_to_use: Show how concepts connect (a Ritsu activity type; use /dataviz).
+    applies_to_types:
+      - tutorial
+      - research
+  - id: nut-graf
+    name: Nut Graf
+    family: blog
+    rank: 67
+    score: 35.5
+    structure: Lede (scene) → nut graf (why it matters now) → body
+    when_to_use: Earn the rest of a feature with a why-care paragraph.
+    applies_to_types:
+      - article
+      - blog
+  - id: usp
+    name: Unique Selling Proposition (Reeves)
+    family: copy
+    rank: 68
+    score: 35.5
+    structure: One specific benefit only you can claim, stated as a fact
+    when_to_use: Find + state the one reason to buy you.
+    applies_to_types:
+      - ad
+      - landing-page
+      - product-description
+  - id: curiosity-gap
+    name: Curiosity Gap
+    family: headline
+    rank: 69
+    score: 35.5
+    structure: Open a loop the reader needs closed (without clickbait lying)
+    when_to_use: Create a knowledge gap that pulls the reader in.
+    applies_to_types:
+      - social-post
+      - blog
+      - ad
+      - email
+  - id: above-the-fold
+    name: Above-the-Fold Checklist
+    family: landing
+    rank: 70
+    score: 35.5
+    structure: What is it · who for · why care · what to do — visible without scrolling
+    when_to_use: Make the first screen answer the four questions.
+    applies_to_types:
+      - landing-page
+  - id: marketing-mix-4ps
+    name: Marketing Mix (4 Ps)
+    family: copy
+    rank: 71
+    score: 35.5
+    structure: Product · Price · Place · Promotion
+    when_to_use: Frame a go-to-market or campaign brief (Kotler).
+    applies_to_types:
+      - memo
+      - report
+      - proposal
+  - id: gradual-release
+    name: Gradual Release (I do / We do / You do)
+    family: learn
+    rank: 72
+    score: 35
+    structure: I do (model) → We do (guided) → You do (independent)
+    when_to_use: Structure a lesson or how-to so the reader ends up doing it alone.
+    applies_to_types:
+      - tutorial
+      - video-script
+  - id: analogy-teaching
+    name: Analogy / Bridge
+    family: learn
+    rank: 73
+    score: 35
+    structure: Unknown ← map to → a familiar known → note where the analogy breaks
+    when_to_use: Make an abstract idea felt via something the reader already knows.
+    applies_to_types:
+      - tutorial
+      - essay
+      - blog
+  - id: pov-hook
+    name: POV / Pattern-Interrupt Hook
+    family: social
+    rank: 74
+    score: 35
+    structure: A surprising first line that breaks the scroll pattern
+    when_to_use: Stop the thumb in the first second.
+    applies_to_types:
+      - social-post
+      - video-script
+  - id: fascination-bullets
+    name: Fascination Bullets
+    family: headline
+    rank: 75
+    score: 35
+    structure: What + the hidden benefit/curiosity, stacked
+    when_to_use: Tease content/benefits so the reader must have it.
+    applies_to_types:
+      - landing-page
+      - email
+      - ad
+  - id: three-act
+    name: Three-Act Structure
+    family: story
+    rank: 76
+    score: 34.5
+    structure: Setup → confrontation → resolution
+    when_to_use: Classic dramatic shape for stories/scripts.
+    applies_to_types:
+      - story
+      - screenplay
+      - video-script
+  - id: bluf
+    name: BLUF (Bottom Line Up Front)
+    family: ops
+    rank: 77
+    score: 34.5
+    structure: Decision/ask first → context → options → next step
+    when_to_use: Get a decision made fast; lead with the answer.
+    applies_to_types:
+      - memo
+      - report
+      - email
+  - id: pricing-anchor
+    name: Pricing-Page Anchoring
+    family: landing
+    rank: 78
+    score: 34.5
+    structure: Anchor high → contrast → "most popular" → value recap → CTA
+    when_to_use: Frame tiers so the target plan feels obvious.
+    applies_to_types:
+      - landing-page
+      - product-description
+  - id: feel-felt-found
+    name: Feel-Felt-Found
+    family: copy
+    rank: 79
+    score: 34.5
+    structure: I understand how you feel → others felt the same → here's what they found
+    when_to_use: Handle an objection with empathy, not argument.
+    applies_to_types:
+      - email
+      - landing-page
+      - faq
+  - id: kwl
+    name: KWL (Know / Want / Learned)
+    family: learn
+    rank: 80
+    score: 34
+    structure: What I Know → what I Want to know → (after) what I Learned
+    when_to_use: Frame a study session or article around the learner's gap.
+    applies_to_types:
+      - tutorial
+      - blog
+  - id: mnemonic-device
+    name: Mnemonic Device
+    family: learn
+    rank: 81
+    score: 34
+    structure: Map the to-remember to an acronym, image, story, or memory palace
+    when_to_use: Make a list or set durable with a memory hook.
+    applies_to_types:
+      - tutorial
+      - faq
+  - id: market-sophistication
+    name: 5 Stages of Market Sophistication (Schwartz)
+    family: copy
+    rank: 82
+    score: 34
+    structure: Claim → bigger claim → mechanism → bigger mechanism → identification
+    when_to_use: Decide how hard to push the claim given how jaded the market is.
+    applies_to_types:
+      - ad
+      - landing-page
+  - id: 4cs
+    name: 4 Cs (Clear-Concise-Compelling-Credible)
+    family: copy
+    rank: 83
+    score: 34
+    structure: Clear → Concise → Compelling → Credible (an edit checklist)
+    when_to_use: A quality gate for any persuasive copy.
+    applies_to_types:
+      - ad
+      - email
+      - landing-page
+  - id: 5e-instructional
+    name: 5E Instructional Model
+    family: learn
+    rank: 84
+    score: 33.5
+    structure: Engage → Explore → Explain → Elaborate → Evaluate
+    when_to_use: Build an inquiry-based lesson that ends in self-check.
+    applies_to_types:
+      - tutorial
+      - presentation
+  - id: misconception-correction
+    name: Misconception → Correction
+    family: learn
+    rank: 85
+    score: 33.5
+    structure: Name the common wrong belief → why it feels right → the correct model → proof
+    when_to_use: Teach by dismantling the specific error learners actually make.
+    applies_to_types:
+      - blog
+      - tutorial
+      - faq
+  - id: learning-by-teaching
+    name: Learning by Teaching (Protégé Effect)
+    family: learn
+    rank: 86
+    score: 33.5
+    structure: Learn it → prepare to teach it → explain it aloud → answer questions
+    when_to_use: Frame content so the reader learns by having to teach it back.
+    applies_to_types:
+      - tutorial
+      - essay
+      - social-post
+  - id: metacognition
+    name: Metacognition (Plan-Monitor-Evaluate)
+    family: learn
+    rank: 87
+    score: 33.5
+    structure: Plan the approach → monitor understanding mid-way → evaluate + adjust
+    when_to_use: Teach learners to manage their own learning.
+    applies_to_types:
+      - tutorial
+      - blog
+  - id: chunking
+    name: Chunking
+    family: learn
+    rank: 88
+    score: 33.5
+    structure: Break content into 5-7 meaningful chunks → label each → connect
+    when_to_use: Beat cognitive overload; make material learnable.
+    applies_to_types:
+      - tutorial
+      - presentation
+      - blog
+  - id: prfaq
+    name: Amazon PR/FAQ (6-pager)
+    family: ops
+    rank: 89
+    score: 33.5
+    structure: Future press release → customer FAQ → internal FAQ
+    when_to_use: Work-backwards from the launch you want.
+    applies_to_types:
+      - proposal
+      - memo
+      - report
+  - id: re-engagement-email
+    name: Re-engagement Email
+    family: email
+    rank: 90
+    score: 33.5
+    structure: Notice the silence → remind of value → one easy step back
+    when_to_use: Win back a lapsed user (Ritsu retention).
+    applies_to_types:
+      - email
+  - id: gagne-9-events
+    name: Gagné's 9 Events of Instruction
+    family: learn
+    rank: 91
+    score: 32.5
+    structure: Attention → objective → recall prior → present → guide → practice → feedback → assess → transfer
+    when_to_use: Full lesson scaffold for a course/module.
+    applies_to_types:
+      - tutorial
+      - presentation
+  - id: interleaving
+    name: Interleaving
+    family: learn
+    rank: 92
+    score: 32.5
+    structure: Mix related topics/problem-types instead of blocking one
+    when_to_use: Design practice sets that build flexible, durable skill.
+    applies_to_types:
+      - tutorial
+      - faq
+  - id: oath-awareness
+    name: OATH (Oblivious-Apathetic-Thinking-Hurting)
+    family: copy
+    rank: 93
+    score: 32.5
+    structure: Match message to the reader's pain stage
+    when_to_use: Pick the lead by how much the reader is already hurting.
+    applies_to_types:
+      - ad
+      - email
+      - landing-page
+  - id: soap-opera-sequence
+    name: Soap-Opera Sequence (Brunson)
+    family: email
+    rank: 94
+    score: 32
+    structure: Drama hook → backstory → epiphany → hidden benefit → CTA, across days
+    when_to_use: Build a serialized email story that sells.
+    applies_to_types:
+      - email
+  - id: reason-why
+    name: Reason-Why Copy
+    family: copy
+    rank: 95
+    score: 32
+    structure: Make a claim → give the concrete reason it's true
+    when_to_use: Earn belief by always answering "why should I believe that?"
+    applies_to_types:
+      - ad
+      - landing-page
+      - email
+  - id: slippery-slide
+    name: Slippery Slide (Sugarman)
+    family: copy
+    rank: 96
+    score: 32
+    structure: 'Every element''s only job: get the next line read'
+    when_to_use: Engineer momentum so the reader can't stop.
+    applies_to_types:
+      - landing-page
+      - email
+      - ad
+  - id: elaborative-interrogation
+    name: Elaborative Interrogation
+    family: learn
+    rank: 97
+    score: 31.5
+    structure: For each fact, ask "why is this true?" and answer it
+    when_to_use: Deepen understanding by forcing the reader to justify each claim.
+    applies_to_types:
+      - tutorial
+      - research
+  - id: pretest-effect
+    name: Pretest / Prequestioning
+    family: learn
+    rank: 98
+    score: 31.5
+    structure: Ask before teaching → reveal → the wrong guesses prime real learning
+    when_to_use: Open with a quiz the reader will get wrong — then teach.
+    applies_to_types:
+      - tutorial
+      - faq
+      - blog
+  - id: socratic-questioning
+    name: Socratic Questioning
+    family: learn
+    rank: 99
+    score: 31.5
+    structure: Ask → let them answer → probe the answer → arrive at the insight themselves
+    when_to_use: Lead the reader to discover the conclusion instead of telling them.
+    applies_to_types:
+      - essay
+      - tutorial
+      - social-post
+  - id: cornell-notes
+    name: Cornell Notes
+    family: learn
+    rank: 100
+    score: 31
+    structure: Notes column + cue column + summary
+    when_to_use: A note-taking structure that builds review-able recall.
+    applies_to_types:
+      - tutorial

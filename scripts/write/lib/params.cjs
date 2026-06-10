@@ -12,11 +12,11 @@
 
 // Subcommands of /write. The first positional token, if it matches one of these,
 // is the subcommand; otherwise the subcommand is 'write' and positionals are the request.
-const SUBCOMMANDS = Object.freeze(['write', 'distill', 'authors', 'types', 'templates', 'humanize']);
+const SUBCOMMANDS = Object.freeze(['write', 'distill', 'authors', 'types', 'templates', 'frameworks', 'humanize']);
 
 // Canonical flag vocabulary (without leading `--`). Unknown flags are recorded + warned.
 const UNIVERSAL_PARAMS = Object.freeze([
-  'type', 'medium', 'author-style', 'template', 'mode', 'length',
+  'type', 'medium', 'author-style', 'template', 'framework', 'mode', 'length',
   'out', 'style', 'lang', 'image', 'dataviz', 'humanize',
   'ref', 'ref-src', 'push', 'max-cost-usd', 'dry-run', 'out-dir',
   'request', 'request-file', 'use', 'model',
