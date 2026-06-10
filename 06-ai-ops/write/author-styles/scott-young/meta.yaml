@@ -1,0 +1,40 @@
+# Provenance for the scott-young author-style artifact.
+slug: scott-young
+full_name: Scott Young
+distilled_on: "2026-06-10"
+distilled_by: "/write distill (Claude Code Workflow — analyst + archivist, parallel)"
+confidence: high   # 16 sources read in full (9 scotthyoung.com articles + 7 public talks/podcasts); voice saturated + cross-confirmed against primary text
+sources:
+  books:
+    - {title: "Ultralearning: Master Hard Skills, Outsmart the Competition, and Accelerate Your Career", year: 2019, usage: "CHARACTERIZED ONLY — book PDF intentionally NOT ingested (copyright); no book text quoted in this artifact"}
+    - {title: "Get Better at Anything: 12 Maxims for Mastery", year: 2024, usage: "CHARACTERIZED ONLY — book PDF intentionally NOT ingested (copyright); no book text quoted in this artifact"}
+  articles:
+    - {title: "scotthyoung.com essays (The Complete Guide to Memory, Twenty-Five Useful Thinking Tools, Five Scientific Steps to Ace Your Next Exam, How to Learn a Language in Record Time, The Hardest Part About Learning Hard Things, Learning to Code is Easy, Why is it So Hard to Create Permanent Habits?, If you want to be an author don't start writing, Unraveling the Enigma of Reason)", source: scotthyoung.com, usage: "freely-published — fuller fair-use quotes, attributed"}
+  transcripts:
+    - {title: "10 Mental Models for Learning", venue: "Scott Young YouTube", usage: "public talk"}
+    - {title: "Learn Faster with The Feynman Technique", venue: "Scott Young YouTube", usage: "public talk"}
+    - {title: "Build the foundation first", venue: "Scott Young YouTube", usage: "public talk"}
+    - {title: "Finish Work Faster by Copying How Olympic Athletes Train", venue: "Scott Young YouTube", usage: "public talk"}
+    - {title: "Should You Listen to Music While Studying (w/ Dr. Barb Oakley)", venue: "public podcast", usage: "public talk"}
+    - {title: "Building A Second Brain (w/ Tiago Forte)", venue: "public podcast", usage: "public talk"}
+    - {title: "Surely You're Joking, Mr. Feynman (Book Club, Aug 2017)", venue: "public book-club recording", usage: "public talk"}
+  urls: ["https://www.scotthyoung.com"]
+copyright: |
+  Transformative style analysis + attributed fair-use excerpts. scotthyoung.com essays are freely
+  published and the talks/podcasts are public, so quotes from those are fuller and always attributed.
+  The two books (Ultralearning, Get Better at Anything) were CHARACTERIZED ONLY — their PDFs were
+  intentionally not ingested and NO book text is quoted anywhere in this artifact. Output written in
+  this style is a derivative STYLE, presented as such — never claimed to be Scott Young's own words.
+notes: |
+  Scott Young is fundamentally an evidence-led ESSAYIST — the scotthyoung.com articles (read in full)
+  are the truest instrument of his written voice; the transcripts add his spoken cadence and persona.
+  His voice is the analyst-experimenter, NOT the aphorist: measured expository sentences, the
+  Expectation-Trap reveal built on a NAMED study, every abstraction anchored to a homely object, every
+  strong claim fenced by an honest caveat, and himself as the recurring experimental subject (the MIT
+  Challenge, the Year Without English, learning salsa). The single most fingerprint-able move is the
+  cited-study reversal ("one would expect… however, this was not the case"). Distinct from james-clear
+  (compressed aphorism) and cal-newport-adjacent productivity writing — keep him mechanism-first and
+  citation-dense. His themes (active recall over rereading, the testing effect, spacing, the Feynman
+  Technique, transfer, the illusion of explanatory depth) map closely onto Ritsu's learning-science
+  positioning, making him a natural voice for active-learning content. Future re-distillation could add
+  the Ultralearning principles (from public talks/interviews, not the book) and his newsletter archive.
