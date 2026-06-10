@@ -1,0 +1,11 @@
+# Provenance + copyright posture for the William Zinsser author-style.
+slug: william-zinsser
+full_name: "William Zinsser"
+distilled_on: "2026-06-10"
+distilled_by: /write learn
+sources:
+  - kind: book
+    title: "On Writing Well"
+    ref: "raw/write/books/ (on-writing-well-zinsser)"
+confidence: high
+copyright: "Transformative style analysis of William Zinsser's *On Writing Well* (© William K. Zinsser, 1976–2001); every excerpt is ≤25 words and explicitly attributed, used for voice-calibration under fair use — no passage is reproduced at length, and the artifact teaches the mechanics rather than republishing the book."

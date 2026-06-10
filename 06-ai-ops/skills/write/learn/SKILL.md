@@ -1,0 +1,136 @@
+---
+name: write/learn
+description: |
+  Distill the transferable WRITING CRAFT of a master writing book (or a whole folder
+  of them) into the wiki, then route that craft into the RIGHT /write registry —
+  reusable formulas to write-frameworks.yaml, universal style wisdom to CRAFT.md, a
+  master's voice to author-styles/ — additively, deduped, validated, traceable to
+  source. Loops over every book in a folder via a Claude Code Workflow. Invoked by
+  `/write learn <path>`. This is how /write stands on the shoulders of the masters.
+---
+
+# write/learn — turn a master's book into /write capability
+
+You are a master writing teacher AND a literary-forensic analyst. From a book that
+teaches writing, you extract the *transferable mechanics* — the formulas, the moves, the
+durable principles, the voice — and fold each into the part of `/write` built to hold it.
+The rule above all: **additive, deduped, routed, traceable. Never break the existing
+pipeline ("không làm nát quy trình").**
+
+This is the sibling of `write/distill`: distill captures a *voice*; learn captures a
+book's *craft* and routes it across four lanes.
+
+## The 4-lane integration router
+
+A master book carries several *kinds* of knowledge. Route each to its home:
+
+| Lane | Knowledge kind | Target | Discipline |
+|---|---|---|---|
+| **1. Wiki** (always) | the book's distilled craft essence | `wiki/write-craft/<slug>/{source.md, craft.md}` | the durable "notes about the world" record |
+| **2. Frameworks** | reusable formulas / structures / headline+beat patterns | append `knowledge/write-frameworks.yaml` + `06-ai-ops/write/FRAMEWORKS.md` | **dedupe vs the existing library**; new families allowed; tag `source_book` |
+| **3. Craft principles** | universal style/clarity wisdom (NOT formula-shaped) | append `06-ai-ops/write/CRAFT.md` | grouped by theme; every principle attributed |
+| **4. Author voice** (selective) | a master's singular, replayable prose voice | `06-ai-ops/write/author-styles/<slug>/` via `write/distill` | only for a strong singular voice; honor copyright |
+
+Lane 2 is structured + validated (the framework schema already routes per-type via
+`applies_to_types`). Lane 3 is prose, consulted by the orchestrator at draft time. Lane 4
+is optional and selective. Lane 1 always runs.
+
+## Inputs
+
+`/write learn <path>` — `<path>` is a book PDF **or a folder of books**. Flags:
+`--dry-run` (stage + plan only), `--no-voice` (skip Lane 4), `--books=<slug,slug>`
+(restrict to named books in a folder).
+
+## Flow
+
+### 1. Stage (deterministic, worktree-safe)
+```bash
+node scripts/write/learn/plan.cjs --src=<path> [--books=<slug,slug>]
+```
+This enumerates the book(s), derives a stable kebab `slug` each, runs `pdftotext` into the
+worktree at `runtime/write/learn-sources/<slug>/text.txt` (Workflow agents are
+worktree-sandboxed; `raw/` is main-root-only — same trick as `write/distill`), and returns
+a manifest `{books:[{slug,title,pages,text_kb,coverage,staged_path}], warnings}`. Read it.
+**Heed `coverage`** — a `low` book is likely a scanned PDF (needs OCR; flag it, don't
+silently produce a thin distillation). `--dry-run` stops here: present the plan and the lanes
+each book will likely touch.
+
+### 2. Distill (Workflow fan-out — one analyst per book)
+**Use a Claude Code Workflow** — this is a genuinely parallel, read-heavy job (the founder's
+intended use of workflows). One agent per book; each reads its **staged** `text.txt` and
+returns a **schema-constrained** craft object:
+
+- `frameworks[]` — reusable formulas/structures. Each: `{id, name, family, structure,
+  when_to_use, how_to_apply, example, applies_to_types[], source_note}`. **Inject the
+  existing framework id list into every agent prompt** so it proposes NET-NEW only; if the
+  book is the canonical source of an existing one, it returns `enriches:<id>` instead.
+  Examples must be Ritsu/learning-relevant; `applies_to_types` ∈ the 33 write-types.
+- `craft_principles[]` — universal craft wisdom. Each: `{id, principle, rule, why,
+  source_quote(≤25w, attributed), applies}`.
+- `voice{}` — `{worth_distilling, slug, full_name, category, one_line, rationale}`.
+- `wiki_craft_md` — a 700–1300 word craft digest (becomes `craft.md`).
+- `headline_takeaways[]` — 3–5 one-line gifts.
+
+The reference Workflow contract lives in `.archives/cla/write-learn/` (the spec). Agents
+read the staged dir in the worktree, so there are no write-races; **you** assemble.
+
+### 3. Route + assemble (you, the main thread — owns dedup + validation)
+Collect every agent result. Then, per lane:
+
+- **Lane 1 — wiki:** for each book write `wiki/write-craft/<slug>/source.md` (a RECORD page
+  with frontmatter: title, author, source PDF path, distilled_on, a one-line + the
+  `headline_takeaways`) and `wiki/write-craft/<slug>/craft.md` (= the agent's `wiki_craft_md`).
+- **Lane 2 — frameworks:** **dedupe** every proposed framework against the existing
+  `write-frameworks.yaml` ids/names AND against each other. For genuine net-new: assign a
+  unique kebab `id`, set `family` (add any new family to `families[]`: `persuasion`,
+  `screenwriting`, `style`, `academic`, `advertising`), append after the current max `rank`,
+  estimate a `score` by the rubric, and add `source_book: <slug>`. For an `enriches:<id>`
+  hit: deepen that entry's `how_to_apply` (don't add a duplicate). Append the same entries
+  to `06-ai-ops/write/FRAMEWORKS.md` (the human reference) in the matching family section.
+- **Lane 3 — craft principles:** assemble/extend `06-ai-ops/write/CRAFT.md`, grouped by
+  theme (Clarity & concision · Structure & flow · Persuasion psychology · Narrative &
+  story · Voice & humanity · Revision). Each principle: the imperative, the rule, the why,
+  and the attributed source. Dedupe near-identical principles across books (keep the
+  best-stated, list the corroborating books).
+- **Lane 4 — voice (selective, unless `--no-voice`):** for the 1–3 highest-value
+  voice-worthy authors NOT already installed, run the `write/distill` path
+  (`--ref-src=runtime/write/learn-sources/<slug>` — the staged book text is a valid source).
+  Otherwise register `status: planned` rows in `author-styles.yaml` with the rationale.
+
+### 4. Validate + report
+- Bump `write-frameworks.yaml` `version` (minor) + note the source books in its header.
+- `node scripts/cross-tier/validate-write-registries.cjs` must pass; then `pnpm check`.
+- Report `{books_learned, frameworks_added, frameworks_enriched, principles_added,
+  voices[], wiki_packages[], warnings[]}`. Show the new framework names + the CRAFT.md
+  theme counts so the founder sees exactly what /write gained.
+
+## Wiring back into /write (so the craft is actually used)
+- Frameworks → already consumed by the orchestrator's framework decision (§3.5) and
+  `/write --framework` / `/write frameworks`.
+- CRAFT.md → the orchestrator's draft step (§5) and the humanize skill consult it for
+  universal craft discipline (the orchestrator carries a one-line pointer).
+- Per-type craft → the new frameworks' `applies_to_types` surface the right ones when a
+  user passes `--type=ad` / `--type=screenplay` / `--type=essay`.
+- Voices → `/write --author-style=<slug>`.
+
+## Discipline (the whole point)
+- **Additive only.** Append; never rewrite an existing framework entry or the orchestrator
+  flow. Enrich-don't-duplicate.
+- **Dedupe hard.** The existing library already holds AIDA, PAS, Schwartz's awareness
+  states, the Ogilvy headline, Hopkins' reason-why. Don't re-add them — deepen them.
+- **Route by fit.** Advertising books → ad/email/landing frameworks; screenwriting →
+  story/screenplay; style books → CRAFT.md principles; persuasion → copy/persuasion
+  frameworks that apply across types.
+- **Trace everything.** Every framework tagged `source_book`; every principle attributed;
+  every book gets a wiki RECORD.
+- **Copyright.** Transformative craft analysis + short attributed fair-use excerpts (≤ ~25
+  words from copyrighted books, always attributed) — never reproduce passages. Same posture
+  as `06-ai-ops/write/author-styles/README.md`.
+- **Validate before commit.** `validate-write-registries.cjs` + `pnpm check` clean, or fix.
+
+## Governance
+Tier A runtime (the distillation is in-session subscription drafting; no out-of-band spend
+except optional Lane-4 voice distillation, also in-session). The Tier-1 registry/CRAFT
+edits ship via PR (Tier C). Cost-bucket `ai-ops-write`. Spec:
+`.archives/cla/write-learn/spec.md` (promoted to `wiki/capabilities/write-platform/` on the
+next Phase-8). Runtime contract: `06-ai-ops/sops/SOP-AIOPS-015-write-runtime-contract`.

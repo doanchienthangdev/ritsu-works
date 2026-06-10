@@ -89,6 +89,10 @@ Write the whole piece. Non-negotiables:
 - **Medium-correct.** Length, formatting, and register match `--medium`.
 - **Honest.** No invented facts, fake quotes, or manufactured urgency (esp. for Ritsu — see
   `00-core/brand_voice.md`; ads still respect SOP discipline).
+- **Craft discipline.** Consult `06-ai-ops/write/CRAFT.md` — the distilled universal craft of the
+  masters (Strunk/Zinsser/Williams/Pinker on clarity; Cialdini/Heath on persuasion; King/McKee on
+  story). Use it as the revision checklist (omit needless words; concrete over abstract; old-before-new
+  cohesion; verbs carry the action). It's the human ceiling above the humanizer's floor.
 Write the draft to `<artifact_dir>/draft.md`.
 
 ### 6. Enrich (where it raises quality, not as decoration)
