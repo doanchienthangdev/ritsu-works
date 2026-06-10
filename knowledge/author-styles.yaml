@@ -169,3 +169,15 @@ author_styles:
     distilled_on: "2026-06-10"
     confidence: high
     copyright: "Transformative style analysis + attributed fair-use excerpts. Oakley's articles (India Today, MinuteHack) are freely published and her talks (TEDx, Talks at Google, UFM lectures, Nelda interview) are public — quoted more fully, always attributed. Her copyrighted books (A Mind for Numbers, Learning How to Learn, Uncommon Sense Teaching) were NOT ingested; their coinages (chunking, focused/diffuse mode) are referenced by name only, never reproduced."
+
+  - slug: tim-urban
+    full_name: Tim Urban
+    category: explainer
+    one_line: "The brilliant-goofball deep-diver: personify the invisible force as a named character (the Instant Gratification Monkey, the Panic Monster), push one thought experiment to absurdity, zoom out to the cosmic/mortality scale, then wink."
+    path: 06-ai-ops/write/author-styles/tim-urban/
+    status: installed   # distilled 2026-06-10 via /write distill (in-session; freely-published Wait But Why posts + public TED talk read in full)
+    origin: distilled
+    source_kinds: [articles, transcripts]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Transformative style analysis + attributed fair-use excerpts. Urban's Wait But Why posts (Why Procrastinators Procrastinate, The AI Revolution, 100 Blocks a Day, How to Pick a Career) are freely published and his TED talk is public — quoted more fully, always attributed. His paid book What's Our Problem? (2023) was NOT ingested; its ideas are referenced by concept only. Coined characters (Instant Gratification Monkey, Panic Monster, Yearning Octopus, Die Progress Unit) referenced as style analysis, never reproduced."
