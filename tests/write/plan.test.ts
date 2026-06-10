@@ -112,3 +112,39 @@ describe("renderBrief", () => {
     expect(brief).toMatch(/brand_voice|neutral/);
   });
 });
+
+describe("framework selection (auto | explicit | free)", () => {
+  it("defaults to AUTO and surfaces ranked candidates for the type", () => {
+    const p = buildPlan(["ad for exam prep", "--type=ad"], OPTS);
+    expect(p.framework.mode).toBe("auto");
+    expect(Array.isArray(p.framework.candidates)).toBe(true);
+    expect(p.framework.candidates.length).toBeGreaterThan(0);
+    expect(p.framework.candidates.map((c: any) => c.id)).toContain("pas");
+  });
+  it("--framework=auto is explicitly the auto mode", () => {
+    expect(buildPlan(["x", "--type=ad", "--framework=auto"], OPTS).framework.mode).toBe("auto");
+  });
+  it("an explicit id selects that framework", () => {
+    const p = buildPlan(["x", "--type=ad", "--framework=pas"], OPTS);
+    expect(p.framework.mode).toBe("explicit");
+    expect(p.framework.selected.id).toBe("pas");
+    expect(p.framework.selected.structure).toMatch(/Problem/);
+  });
+  it.each(["none", "free", "off", "no"])("--framework=%s forces free-style", (v) => {
+    expect(buildPlan(["x", "--type=essay", `--framework=${v}`], OPTS).framework.mode).toBe("free");
+  });
+  it("an unknown framework id falls back to auto + warns", () => {
+    const p = buildPlan(["x", "--type=ad", "--framework=zzz-nope"], OPTS);
+    expect(p.framework.mode).toBe("auto");
+    expect(p.warnings.join(" ")).toMatch(/falling back to auto-select/);
+  });
+  it("AUTO brief tells the writer to decide framework-or-free-style", () => {
+    const brief = renderBrief(buildPlan(["a tweet", "--type=social-post"], OPTS));
+    expect(brief).toMatch(/Framework: AUTO/);
+    expect(brief).toMatch(/Not every piece needs one/);
+  });
+  it("explicit brief names the formula as the backbone", () => {
+    const brief = renderBrief(buildPlan(["x", "--type=ad", "--framework=aida"], OPTS));
+    expect(brief).toMatch(/Framework — AIDA/);
+  });
+});
