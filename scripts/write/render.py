@@ -36,8 +36,14 @@ def load_palette(style, repo_root):
         tokens, _ = design.load_tokens(style, repo_root)
         # design.load_tokens shape varies; pull common keys defensively.
         if isinstance(tokens, dict):
+            # NOTE muted: prefer a *foreground* token (readable grey for h3/byline/blockquote text).
+            # design.load_tokens emits both `mutedForeground` (readable) and `muted` (a LIGHT surface
+            # tint, e.g. claude #F1ECE2). Picking `muted` first made muted-colored text near-invisible
+            # on light pages; prefer the foreground tokens and keep `muted`/`secondary` as last resort.
             cmap = {"accent": ["accent", "primary", "brand"], "ink": ["ink", "text", "foreground"],
-                    "bg": ["bg", "background"], "muted": ["muted", "secondary"], "rule": ["rule", "border"]}
+                    "bg": ["bg", "background"],
+                    "muted": ["mutedForeground", "muted-foreground", "muted-soft", "secondary", "muted"],
+                    "rule": ["rule", "border", "hairline"]}
             for k, cands in cmap.items():
                 for c in cands:
                     if tokens.get(c):
@@ -90,6 +96,10 @@ def main():
     warns = []
     try:
         md = Path(src).read_text(encoding="utf-8")
+        # Drop leading HTML comment(s) — the /write orchestrator records the framework
+        # choice as an HTML comment on line 1 (write/orchestrator §3.5). It's scaffolding,
+        # never output, and (being line 1) it otherwise defeats the title H1-strip below.
+        md = re.sub(r"^\s*(?:<!--.*?-->\s*)+", "", md, flags=re.S)
         # strip a leading H1 (we render title separately for pdf/html/docx)
         if title:
             md = re.sub(r"^#\s+.*\n", "", md.lstrip(), count=1)
