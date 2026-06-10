@@ -197,6 +197,17 @@ describe("contracts", () => {
     expect(parseWriteArgs(["--framework=pas"]).options.framework).toBe("pas");
     expect(parseWriteArgs(["--framework=none"]).options.framework).toBe("none");
   });
+  it("--research + --longform default to auto", () => {
+    expect(DEFAULTS.research).toBe("auto");
+    expect(DEFAULTS.longform).toBe("auto");
+    expect(parseWriteArgs([]).options.research).toBe("auto");
+    expect(parseWriteArgs(["--research=deep"]).options.research).toBe("deep");
+  });
+  it("--grounding is multi-value (+ and repeated)", () => {
+    expect(parseWriteArgs(["--grounding=deepask+wiki"]).options.grounding).toEqual(["deepask", "wiki"]);
+    expect(parseWriteArgs(["--grounding=deepask", "--grounding=brain"]).options.grounding).toEqual(["deepask", "brain"]);
+    expect(parseWriteArgs([]).options.grounding).toEqual([]);
+  });
   it("OUT_FORMATS + UNIVERSAL_PARAMS are non-empty", () => {
     expect(OUT_FORMATS.length).toBeGreaterThan(0);
     expect(UNIVERSAL_PARAMS).toContain("author-style");

@@ -317,3 +317,70 @@ types:
     structure_hint: "Verdict up front → who it's for → what's good (specific) → what's not → comparison → recommendation."
     recommends: { image: auto, dataviz: false, research: true }
     humanize: true
+  # ── long-form (longform: true → bible + parallel-draft + continuity pass; see 06-ai-ops/write/longform/) ──
+  - id: book
+    category: content
+    aliases: [non-fiction-book, ebook-full]
+    description: "A full-length non-fiction book — multi-chapter, one thesis carried across the whole."
+    default_medium: trade-nonfiction
+    mediums: [trade-nonfiction, self-published, technical, how-to-book, ebook]
+    default_length: extremely-long
+    structure_hint: "Thesis → promise → part/chapter map (each chapter one argument that advances the thesis) → through-line → conclusion that pays off chapter 1."
+    recommends: { image: auto, dataviz: auto, research: true }
+    longform: true
+    humanize: true
+  - id: novel
+    category: creative
+    aliases: [fiction-book, long-fiction]
+    description: "A fiction novel — characters with desire, a world with rules, a plot that changes them."
+    default_medium: literary
+    mediums: [literary, genre, ya, serialized, ebook]
+    default_length: extremely-long
+    structure_hint: "Open in motion → inciting incident → escalating obstacles (arc per character) → midpoint reversal → climax → resolution. Consistency = the bible."
+    recommends: { image: auto, dataviz: false, research: false }
+    longform: true
+    humanize: true
+  - id: film-script
+    category: creative
+    aliases: [screenplay-feature, feature-film, movie-script]
+    description: "A feature-length screenplay — industry format, acts/sequences/scenes, ~90-120 pages."
+    default_medium: feature
+    mediums: [feature, tv-pilot, short-film, streaming, stage-play]
+    default_length: extremely-long
+    structure_hint: "Logline → 3-act beat sheet (setup → confrontation/midpoint → resolution) → sequences → sluglined scenes (action present-tense, dialogue subtext). Consistency = the bible."
+    recommends: { image: auto, dataviz: false, research: false }
+    longform: true
+    humanize: true
+  - id: research-paper
+    category: research
+    aliases: [academic-paper-full, journal-paper]
+    description: "A full academic research paper — rigorous, cited, claims tied to evidence."
+    default_medium: journal
+    mediums: [journal, conference, preprint, thesis-chapter, technical-report]
+    default_length: very-long
+    structure_hint: "Abstract → intro (gap + contribution) → related work → method → results → discussion → conclusion → references. Every claim ↔ evidence."
+    recommends: { image: false, dataviz: auto, research: true }
+    longform: true
+    humanize: true
+  - id: article-series
+    category: content
+    aliases: [blog-series, content-series]
+    description: "A connected multi-part article/blog series — a through-line across N installments."
+    default_medium: blog-series
+    mediums: [blog-series, newsletter-series, substack-series, docs-series]
+    default_length: very-long
+    structure_hint: "Series promise → per-installment angle (each stands alone AND advances the arc) → callbacks + escalation → finale that resolves the through-line."
+    recommends: { image: auto, dataviz: auto, research: true }
+    longform: true
+    humanize: true
+  - id: course
+    category: content
+    aliases: [curriculum, learning-path]
+    description: "A structured learning course — modules → lessons → activities → assessments (Ritsu's domain)."
+    default_medium: online-course
+    mediums: [online-course, cohort, microlearning, workshop, bootcamp]
+    default_length: extremely-long
+    structure_hint: "Learning objectives → prereqs → module/lesson map (scaffolded, gradual release) → per-lesson concept→example→practice→check → assessments aligned to objectives."
+    recommends: { image: auto, dataviz: auto, research: true }
+    longform: true
+    humanize: true

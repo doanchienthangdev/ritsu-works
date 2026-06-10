@@ -148,3 +148,36 @@ describe("framework selection (auto | explicit | free)", () => {
     expect(brief).toMatch(/Framework — AIDA/);
   });
 });
+
+describe("research + grounding + long-form (v0.4)", () => {
+  it("research defaults to auto; --research=deep|off honored; unknown→auto", () => {
+    expect(buildPlan(["x", "--type=blog"], OPTS).research).toBe("auto");
+    expect(buildPlan(["x", "--research=deep"], OPTS).research).toBe("deep");
+    expect(buildPlan(["x", "--research=off"], OPTS).research).toBe("off");
+    expect(buildPlan(["x", "--research=turbo"], OPTS).research).toBe("auto");
+  });
+  it("grounding: default auto; explicit sources; all→3; off→[]", () => {
+    expect(buildPlan(["x"], OPTS).grounding).toBe("auto");
+    expect(buildPlan(["x", "--grounding=deepask+wiki"], OPTS).grounding).toEqual(["deepask", "wiki"]);
+    expect(buildPlan(["x", "--grounding=all"], OPTS).grounding).toEqual(["deepask", "wiki", "brain"]);
+    expect(buildPlan(["x", "--grounding=off"], OPTS).grounding).toEqual([]);
+  });
+  it("long-form auto-detects from the type", () => {
+    expect(buildPlan(["x", "--type=novel"], OPTS).longform).toBe(true);
+    expect(buildPlan(["x", "--type=research-paper"], OPTS).longform).toBe(true);
+    expect(buildPlan(["x", "--type=blog"], OPTS).longform).toBe(false);
+  });
+  it("--longform=on|off overrides the type default", () => {
+    expect(buildPlan(["x", "--type=blog", "--longform=on"], OPTS).longform).toBe(true);
+    expect(buildPlan(["x", "--type=novel", "--longform=off"], OPTS).longform).toBe(false);
+  });
+  it("brief shows the research + grounding section, and long-form pipeline when long-form", () => {
+    const lf = renderBrief(buildPlan(["a novel", "--type=novel"], OPTS));
+    expect(lf).toMatch(/Research & grounding/);
+    expect(lf).toMatch(/Long-form — consistency pipeline/);
+    expect(lf).toMatch(/Lock the bible/);
+    const blog = renderBrief(buildPlan(["a post", "--type=blog"], OPTS));
+    expect(blog).toMatch(/Research & grounding/);
+    expect(blog).not.toMatch(/Long-form — consistency pipeline/);
+  });
+});

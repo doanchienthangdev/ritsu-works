@@ -50,7 +50,8 @@
               "research": { "type": ["boolean", "string"] }
             }
           },
-          "humanize": { "type": "boolean" }
+          "humanize": { "type": "boolean" },
+          "longform": { "type": "boolean", "description": "true → bible + parallel-draft + continuity pass (book/novel/film-script/research-paper/article-series/course)." }
         }
       }
     }

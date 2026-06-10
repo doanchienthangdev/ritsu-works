@@ -100,6 +100,25 @@ function buildPlan(argv, opts = {}) {
     }
   }
 
+  // research depth (off | auto | deep) + Ritsu grounding (deepask/wiki/brain) + long-form
+  const researchLevel = ['off', 'auto', 'deep'].includes(String(options.research || 'auto').toLowerCase())
+    ? String(options.research || 'auto').toLowerCase() : 'auto';
+  let grounding;
+  {
+    const g = (Array.isArray(options.grounding) ? options.grounding : []).map((s) => String(s).toLowerCase()).filter(Boolean);
+    if (g.includes('off') || g.includes('none')) grounding = [];
+    else if (g.length === 0 || g.includes('auto')) grounding = 'auto';
+    else if (g.includes('all')) grounding = ['deepask', 'wiki', 'brain'];
+    else { grounding = g.filter((s) => ['deepask', 'wiki', 'brain'].includes(s)); if (!grounding.length) { warnings.push(`--grounding "${options.grounding}" had no known source (deepask|wiki|brain|all|off) → auto`); grounding = 'auto'; } }
+  }
+  const lfVal = String(options.longform || 'auto').toLowerCase();
+  const longform = (lfVal === 'on' || lfVal === 'true') ? true
+    : (lfVal === 'off' || lfVal === 'false') ? false : Types.isLongform(type);
+  // deep research / long-form lift the cost ceiling — note it (don't silently cap).
+  if ((researchLevel === 'deep' || longform) && (options['max-cost-usd'] === undefined || options['max-cost-usd'] <= 2.0)) {
+    warnings.push(`${longform ? 'long-form' : 'deep research'} is heavier — consider raising --max-cost-usd (default 2.00) if a run is truncated.`);
+  }
+
   // length
   const presets = typesDoc && typesDoc.length_presets
     ? Object.fromEntries(Object.entries(typesDoc.length_presets).map(([k, v]) => [k, v.words]))
@@ -141,6 +160,9 @@ function buildPlan(argv, opts = {}) {
     author_style: author ? { slug: author.slug, full_name: author.full_name, installed: authorInstalled, voice_card: `${author.path}voice-card.md`, one_line: author.one_line || null } : null,
     template: template ? { id: template.id, path: template.path, exists: template.exists } : null,
     framework,   // { mode: 'auto'|'explicit'|'free', selected?, candidates? }
+    research: researchLevel,   // off | auto | deep
+    grounding,                 // 'auto' | [] | ['deepask','wiki','brain'] subset
+    longform,                  // boolean — bible + parallel-draft + continuity
     length: { words: length.words, pages: length.pages, label: length.label, kind: length.kind },
     section_budget: budget,
     mode,
@@ -208,6 +230,28 @@ function renderBrief(plan) {
   L.push(`- Dataviz: ${plan.enrich.dataviz ? 'YES — add a chart where a number series tells the story, via /dataviz (scripts/deepask/chart-embed.cjs).' : 'no'}`);
   L.push(`- Research: ${plan.enrich.research ? 'YES — ground claims in refs/' + (plan.mode === 'deep-research' ? ' + deep-research.' : ' sources; cite, don\'t assert.') : 'no'}`);
   if (plan.refs.length) { L.push(''); L.push(`## References (ground in these)`); for (const r of plan.refs) L.push(`- ${r}`); }
+  L.push('');
+  L.push(`## Research & grounding`);
+  const grSrc = Array.isArray(plan.grounding) ? plan.grounding : (plan.grounding === 'auto' ? 'auto' : []);
+  L.push(`- **External research (\`--research=${plan.research}\`):** ` + (
+    plan.research === 'deep' ? 'DEEP — run the `deep-research` skill (fan-out web search → fetch → adversarially verify → cited synthesis) for the factual spine BEFORE writing; for long pieces this is a parallel Workflow.'
+      : plan.research === 'off' ? 'OFF — model knowledge + provided refs only; no external search.'
+      : 'AUTO — use `--ref` + light lookups; escalate to deep only if the topic clearly needs verified external facts.'));
+  L.push(`- **Internal Ritsu grounding (\`--grounding\`):** ` + (
+    grSrc === 'auto' ? 'AUTO — if the piece concerns Ritsu / its product / learning-science positioning, pull supporting material: `/deepask` (federated internal answer, cited), `mcp__supabase-ops__wiki_ask` (wiki RAG), `mcp__gbrain__search`/`think` (operational brain). Cite what you use; never fabricate Ritsu facts.'
+      : grSrc.length ? grSrc.map((s) => s === 'deepask' ? '`/deepask`' : s === 'wiki' ? '`wiki_ask`' : '`gbrain`').join(' + ') + ' — query these for supporting material at the data-collection step; thread findings into the outline + cite.'
+      : 'OFF.'));
+  L.push(`  Gather at the **data-collection** step; let findings shape the **outline** (the plan), not just the prose.`);
+  if (plan.longform) {
+    L.push('');
+    L.push(`## Long-form — consistency pipeline (REQUIRED for type \`${plan.type ? plan.type.id : ''}\`)`);
+    L.push(`This is a long-form work. Do NOT write it in one pass. Follow \`06-ai-ops/skills/write/longform/SKILL.md\`:`);
+    L.push(`1. **Lock the bible** (\`06-ai-ops/write/longform/bibles/${plan.type ? plan.type.id : 'TYPE'}.md\`) — the single source of truth (thesis/characters/world/timeline/terms/evidence/voice as applies). Fill + LOCK it before drafting a word.`);
+    L.push(`2. **Outline parts/chapters** + per-part briefs derived from the bible.`);
+    L.push(`3. **Draft parts in PARALLEL** via a Claude Code Workflow — each part-agent reads ONLY the bible + its part brief + adjacent-part summaries (never peer drafts).`);
+    L.push(`4. **Continuity pass** — check the assembled draft against the bible (characters/world/timeline/terminology/thesis/evidence don't drift); fix.`);
+    L.push(`5. **Assemble** + one unified **humanize** pass over the whole; render. See \`06-ai-ops/write/longform/LONGFORM.md\` for this type's mechanisms + checks.`);
+  }
   L.push('');
   L.push(`## Humanize gate`);
   L.push(plan.humanize
