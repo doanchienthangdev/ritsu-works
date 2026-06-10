@@ -157,3 +157,15 @@ author_styles:
     distilled_on: "2026-06-10"
     confidence: high
     copyright: "Style analysis + attributed fair-use excerpts. jamesclear.com articles + 3-2-1 newsletter are freely published; talks are public; Atomic Habits (book) quotes kept ≤18 words per the source archive's posture."
+
+  - slug: barbara-oakley
+    full_name: Barbara Oakley
+    category: learning-science
+    one_line: "The reformed flunky who teaches the brain with homely metaphors: drop a pinball machine on your brain, name the science, translate it, hand you a technique you can use today."
+    path: 06-ai-ops/write/author-styles/barbara-oakley/
+    status: installed   # distilled 2026-06-10 via /write distill (in-session; public talks + freely-published articles read in full)
+    origin: distilled
+    source_kinds: [transcripts, articles]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Transformative style analysis + attributed fair-use excerpts. Oakley's articles (India Today, MinuteHack) are freely published and her talks (TEDx, Talks at Google, UFM lectures, Nelda interview) are public — quoted more fully, always attributed. Her copyrighted books (A Mind for Numbers, Learning How to Learn, Uncommon Sense Teaching) were NOT ingested; their coinages (chunking, focused/diffuse mode) are referenced by name only, never reproduced."

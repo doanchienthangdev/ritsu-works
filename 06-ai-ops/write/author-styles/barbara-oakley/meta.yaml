@@ -1,0 +1,39 @@
+# Provenance for the barbara-oakley author-style artifact.
+slug: barbara-oakley
+full_name: Barbara Oakley
+distilled_on: "2026-06-10"
+distilled_by: "/write distill (Claude Code, in-session — sources read in full from raw/write/04 - Barbara Oakley)"
+confidence: high   # 5 public talks + 2 freely-published articles + the Memory Paradox lecture read in full; voice saturated + cross-confirmed across spoken + written registers
+sources:
+  books:
+    - {title: "A Mind for Numbers", year: 2014, usage: "referenced by name/coinage only (chunking, the law of serendipity, Einstellung); NOT ingested — copyright"}
+    - {title: "Learning How to Learn", year: 2018, usage: "referenced by name only; NOT ingested"}
+    - {title: "Uncommon Sense Teaching", year: 2021, usage: "referenced by name only; NOT ingested"}
+    - {title: "Learn Like a Pro / Mindshift", usage: "referenced by name only; NOT ingested"}
+  articles:
+    - {title: "Four keys to teaching and learning effectively", source: "India Today (2021)", usage: "freely-published — fuller fair-use quotes, attributed"}
+    - {title: "Three Powerful Ways To Develop Your Intuition", source: "MinuteHack (2021)", usage: "freely-published — fuller fair-use quotes, attributed"}
+  transcripts:
+    - {title: "Learning how to learn", venue: "TEDxOaklandUniversity", year: 2014, usage: "public talk"}
+    - {title: "Learning How to Learn", venue: "Talks at Google", year: 2015, usage: "public talk"}
+    - {title: "Techniques to Deal with Procrastination", venue: "Nelda Studios interview", year: 2020, usage: "public interview"}
+    - {title: "The Memory Paradox", venue: "UFM lecture", year: 2025, usage: "public talk"}
+    - {title: "Accelerate Your Learning with ChatGPT", venue: "UFM lecture", year: 2025, usage: "public talk"}
+  urls: ["https://barbaraoakley.com", "https://www.coursera.org/learn/learning-how-to-learn"]
+copyright: |
+  Transformative style analysis + attributed fair-use excerpts. Oakley's articles (India Today,
+  MinuteHack) are freely published and her talks (TEDx, Talks at Google, the UFM lectures, the Nelda
+  interview) are public — those are quoted more fully and always attributed. Her copyrighted books
+  (A Mind for Numbers, Learning How to Learn, Uncommon Sense Teaching, Learn Like a Pro, Mindshift)
+  were NOT ingested; their coined mental models (chunking, focused/diffuse mode, the law of
+  serendipity, Einstellung) are referenced by name as style analysis, never reproduced. Output written
+  in this style is a derivative STYLE, presented as such — never claimed to be Oakley's own words.
+notes: |
+  Barbara Oakley is a teacher-translator: the truest source of her written/spoken voice is the
+  public-talk + freely-published-article corpus (read in full), which is also where her famous
+  metaphors live verbatim (pinball machine, the Octopus of Attention, metabolic vampires, race-car
+  vs hiker). Strongest signature: metaphor → science-named-then-translated → a concrete technique,
+  all wrapped in reformed-flunky warmth and closed on a small encouraging reframe. Her 2025 "Memory
+  Paradox" thesis ("AI shows, but I'm the only one who knows") makes her an unusually apt voice for
+  learning-science writing in the AI era. Future re-distillation could add A Mind for Numbers / Learn
+  Like a Pro directly (short ≤25-word quotes) for finer book-register calibration.
