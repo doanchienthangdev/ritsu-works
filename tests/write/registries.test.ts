@@ -109,8 +109,14 @@ const Frameworks = require("../../scripts/write/lib/frameworks.cjs");
 
 describe("frameworks.cjs", () => {
   const doc = Frameworks.loadFrameworks();
-  it("loads the real registry with 100 frameworks (founder requirement)", () => {
-    expect(Frameworks.listFrameworkIds(doc).length).toBe(100);
+  it("loads the real registry (100+ frameworks; grows via /write learn)", () => {
+    // Base library was 100; /write learn appends net-new master-book formulas
+    // (183 after the 14-book distill). Assert the floor + a clean, unique, non-empty set
+    // rather than a brittle exact count that every /write learn run would re-break.
+    const ids = Frameworks.listFrameworkIds(doc);
+    expect(ids.length).toBeGreaterThanOrEqual(100);
+    expect(new Set(ids).size).toBe(ids.length); // all unique
+    expect(ids.every((id: string) => typeof id === "string" && id.length > 0)).toBe(true);
   });
   it("resolveFramework by id, case-insensitive; unknown → null", () => {
     expect(Frameworks.resolveFramework("pas", doc)?.family).toBe("copy");
