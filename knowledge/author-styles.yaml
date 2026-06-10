@@ -193,3 +193,15 @@ author_styles:
     distilled_on: "2026-06-10"
     confidence: high
     copyright: "Transformative style analysis + attributed fair-use excerpts. Koe's newsletter 'letters' (thedankoe.com / letters.thedankoe.com) are freely published and his YouTube talks are public — quoted more fully, always attributed. His copyrighted books (The Art of Focus, Purpose and Profit) were NOT ingested; referenced by name only (his own freely-published book-summary was read)."
+
+  - slug: richard-feynman
+    full_name: Richard P. Feynman
+    category: science-explainer
+    one_line: "The plain-spoken, mischievous physicist who teaches by thinking out loud: a homely analogy for every abstraction, the name-vs-the-thing distinction, guess-compute-compare, a cheerful confession of ignorance, and one rule under all of it — you must not fool yourself, for nature cannot be fooled."
+    path: 06-ai-ops/write/author-styles/richard-feynman/
+    status: installed   # distilled 2026-06-10 via /write distill (in-session; verbatim public-talk + public-domain sources read in full; every load-bearing quote source-verified)
+    origin: distilled
+    source_kinds: [transcripts, articles]
+    distilled_on: "2026-06-10"
+    confidence: high
+    copyright: "Transformative style analysis + attributed fair-use excerpts. The verbatim sources are PUBLIC: the 1964 Messenger Lectures ('The Character of Physical Law', Cornell, BBC-filmed), the 1973 Yorkshire TV documentary, and a 1985 public lecture Q&A — quoted more fully, always attributed. Appendix F of the 1986 Rogers Commission report is a U.S. government publication (PUBLIC DOMAIN), quoted freely. Cargo Cult Science (1974 Caltech address, Engineering & Science) is freely published; its canonical lines are universally attested. Feynman's copyrighted books (The Feynman Lectures on Physics, Surely You're Joking, etc.) were NOT ingested; referenced by name only."

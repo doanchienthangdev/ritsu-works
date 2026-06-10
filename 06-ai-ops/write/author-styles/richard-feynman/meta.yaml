@@ -1,0 +1,47 @@
+# Provenance for the richard-feynman author-style artifact.
+slug: richard-feynman
+full_name: Richard P. Feynman
+distilled_on: "2026-06-10"
+distilled_by: "/write distill (Claude Code, in-session — verbatim public-talk + public-domain sources read in full from raw/write/07 - Richard Feynman)"
+confidence: high   # 4 verbatim sources read in full across spoken (1964, 1973, 1985) + written (1986) registers, cross-confirmed; the canonical Cargo Cult Science (1974) lines are universally attested + freely published. Voice saturated.
+sources:
+  transcripts:
+    - {title: "The Character of Physical Law", venue: "Messenger Lectures, Cornell University", year: 1964, usage: "public lecture series, videotaped by the BBC; transcript derived from the BBC subtitles (feynmanlectures.caltech.edu) — quoted more fully, always attributed"}
+    - {title: "Take the World from Another Point of View", venue: "Yorkshire Television documentary (with Fred Hoyle)", year: 1973, usage: "public broadcast — quoted more fully, attributed; the bird-name story, the Martian, the streetlight parable live here verbatim"}
+    - {title: "Can Machines Think? (AI Q&A)", venue: "public lecture Q&A", year: 1985, usage: "public talk; rough auto-transcription — only the clean, well-attested fragments quoted, lightly normalized for transcription noise, attributed"}
+  documents:
+    - {title: "Personal Observations on the Reliability of the Shuttle (Appendix F)", source: "Report of the Presidential (Rogers) Commission on the Space Shuttle Challenger Accident, Vol. 2", year: 1986, usage: "U.S. government publication — PUBLIC DOMAIN; quoted fully, attributed. The truest sample of his WRITTEN register."}
+  articles:
+    - {title: "Cargo Cult Science", source: "Caltech commencement address; Engineering & Science (Caltech), June 1974", year: 1974, usage: "freely published + universally attested; the iconic lines quoted, attributed. (Source PDF in the archive is a scanned image with no text layer; quotes are the canonical attested lines.)"}
+  books:
+    - {title: "The Feynman Lectures on Physics (Vols I–III)", usage: "referenced by name only; NOT ingested — copyright (Caltech/Addison-Wesley/Basic Books)"}
+    - {title: "Surely You're Joking, Mr. Feynman!", year: 1985, usage: "referenced by name only; NOT ingested — copyright. (The bird story + cargo cult also appear here, but are sourced above from the public talk / freely-published address.)"}
+    - {title: "What Do You Care What Other People Think?", year: 1988, usage: "referenced by name only; NOT ingested"}
+    - {title: "The Meaning of It All / The Pleasure of Finding Things Out / QED / Six Not So Easy Pieces / Quantum Mechanics and Path Integrals / Feynman Lectures on Computation / The Quotable Feynman / Perfectly Reasonable Deviations", usage: "referenced by name only; NOT ingested — copyright"}
+  urls:
+    - "https://www.feynmanlectures.caltech.edu/messenger.html"
+    - "https://www.nasa.gov/history/rogersrep/v2appf.htm"
+copyright: |
+  Transformative style analysis + attributed fair-use excerpts. The verbatim sources read in full are
+  PUBLIC: the 1964 Messenger Lectures (BBC-filmed public lectures, "The Character of Physical Law"), the
+  1973 Yorkshire TV documentary, and a 1985 public lecture Q&A — quoted more fully and always attributed.
+  Appendix F of the 1986 Rogers Commission report is a U.S. government publication (PUBLIC DOMAIN) and is
+  quoted freely. Cargo Cult Science (1974 Caltech address, published in Engineering & Science) is freely
+  published and its canonical lines are universally attested. Feynman's copyrighted books (The Feynman
+  Lectures on Physics, Surely You're Joking, What Do You Care, etc.) were NOT ingested; they are referenced
+  by name only, never reproduced. Output written in this style is a derivative STYLE, presented as such —
+  never claimed to be Feynman's own words.
+notes: |
+  Feynman is a teacher-by-demonstration and an honesty absolutist. The truest source of his voice is the
+  public-talk corpus (read in full), where his most load-bearing moves live verbatim: the bird-name story
+  ("names don't constitute knowledge"), the Martian fresh-eyes reframe, the guess-compute-compare method
+  ("if it disagrees with experiment, it's wrong"), the cheerful confession of ignorance ("nobody understands
+  quantum mechanics"), the streetlight parable, and the audible delight ("nature's imagination far surpasses
+  our own"). His written register (Appendix F) closes on the artifact's keystone line — "For a successful
+  technology, reality must take precedence over public relations, for nature cannot be fooled." Two cautions
+  baked into the do/don't: (1) Feynman is a PHYSICIST — his examples are physical/scientific; when writing him
+  on other topics, keep the *mechanics* (plain words, homely analogy, honesty, do-it-yourself) without faking
+  physics expertise; (2) his "dopey-guy" self-deprecation is real humility about knowledge, never false modesty
+  or anti-intellectual posturing — he reveres getting it right, he just refuses to revere getting it fancy.
+  This makes him an unusually apt voice for learning-science writing: his entire pedagogy is that understanding
+  is not vocabulary, you must not fool yourself, and the only learning that counts is the kind you do yourself.
