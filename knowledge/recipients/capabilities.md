@@ -280,7 +280,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Universal content-writing platform (/write command). OPERATING since 2026-06-10 (Tier-A runtime; founder-proxy autonomous overnight build + ship). The single most important production capability: WRITING. /write produces any of 27+ content types (blog/social/ad/email/video-script/article/research/paper/essay/memo/proposal/report/bio/story/poetry/screenplay/speech/faq/review/...) across 7 categorie v0.1.0
+**When to use:** Universal content-writing platform (/write command). OPERATING since 2026-06-10 (Tier-A runtime; founder-proxy autonomous overnight build + ship). The single most important production capability: WRITING. /write produces any of 27+ content types (blog/social/ad/email/video-script/article/research/paper/essay/memo/proposal/report/bio/story/poetry/screenplay/speech/faq/review/...) across 7 categorie v0.2.0
 
 **Invoke:** `Read("wiki/capabilities/write-platform/spec.md")` or `/cla update write-platform`
 

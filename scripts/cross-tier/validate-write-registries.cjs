@@ -34,8 +34,10 @@ const K = path.join(REPO_ROOT, 'knowledge');
 const TYPES = path.join(K, 'write-types.yaml');
 const AUTHORS = path.join(K, 'author-styles.yaml');
 const TEMPLATES = path.join(K, 'write-templates.yaml');
+const FRAMEWORKS = path.join(K, 'write-frameworks.yaml');
 
 const SLUG_RE = /^[a-z][a-z0-9-]*$/;
+const FW_ID_RE = /^[a-z0-9][a-z0-9-]*$/;   // framework ids may start with a digit (4u-headline, 5e-instructional, 3-sentence-email)
 const AUTHOR_DIR = '06-ai-ops/write/author-styles';
 const TEMPLATE_DIR = '06-ai-ops/write/templates';
 const TRISTATE = new Set(['true', 'false', 'auto', 'on', 'off']);
@@ -113,16 +115,40 @@ function validateTemplates(doc, typeIds, errs, warns) {
   }
 }
 
+function validateFrameworks(doc, typeIds, errs, warns) {
+  if (!doc) return;
+  const ids = new Set();
+  const families = new Set(Array.isArray(doc.families) ? doc.families : []);
+  if (!Array.isArray(doc.frameworks) || doc.frameworks.length === 0) { errs.push('[FAIL] write-frameworks.yaml: frameworks[] missing/empty'); return; }
+  for (const f of doc.frameworks) {
+    const tag = `write-frameworks[${f && f.id}]`;
+    if (!f || !f.id) { errs.push(`[FAIL] ${tag}: missing id`); continue; }
+    if (!FW_ID_RE.test(f.id)) errs.push(`[FAIL] ${tag}: id not a slug`);
+    if (ids.has(f.id)) errs.push(`[FAIL] ${tag}: duplicate id`);
+    ids.add(f.id);
+    if (families.size && !families.has(f.family)) errs.push(`[FAIL] ${tag}: family "${f.family}" ∉ families[]`);
+    if (!f.structure) errs.push(`[FAIL] ${tag}: missing structure`);
+    if (!f.when_to_use) errs.push(`[FAIL] ${tag}: missing when_to_use`);
+    if (!Array.isArray(f.applies_to_types) || f.applies_to_types.length === 0) { errs.push(`[FAIL] ${tag}: applies_to_types empty`); continue; }
+    for (const ty of f.applies_to_types) {
+      if (typeIds.size && !typeIds.has(ty)) warns.push(`[warn] ${tag}: applies_to_types "${ty}" ∉ write-types ids`);
+    }
+  }
+  return ids;
+}
+
 function main() {
   const errs = [];
   const warns = [];
   const typesDoc = loadYaml(TYPES, errs, 'write-types.yaml');
   const authorsDoc = loadYaml(AUTHORS, errs, 'author-styles.yaml');
   const templatesDoc = loadYaml(TEMPLATES, errs, 'write-templates.yaml');
+  const frameworksDoc = loadYaml(FRAMEWORKS, errs, 'write-frameworks.yaml');
 
   const typeIds = validateTypes(typesDoc, errs);
   validateAuthors(authorsDoc, errs);
   validateTemplates(templatesDoc, typeIds, errs, warns);
+  const fwIds = validateFrameworks(frameworksDoc, typeIds, errs, warns) || new Set();
 
   for (const w of warns) console.log(w);
   if (errs.length) {
@@ -130,7 +156,7 @@ function main() {
     console.error(`\n[FAIL] validate-write-registries: ${errs.length} error(s).`);
     process.exit(1);
   }
-  console.log(`[OK] write-platform registries clean (${typeIds.size} types, ${(authorsDoc && authorsDoc.author_styles || []).length} authors, ${(templatesDoc && templatesDoc.templates || []).length} templates).`);
+  console.log(`[OK] write-platform registries clean (${typeIds.size} types, ${(authorsDoc && authorsDoc.author_styles || []).length} authors, ${(templatesDoc && templatesDoc.templates || []).length} templates, ${fwIds.size} frameworks).`);
   process.exit(0);
 }
 

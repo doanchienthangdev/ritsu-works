@@ -22,6 +22,7 @@ const Len = require('./lib/length.cjs');
 const Types = require('./lib/types.cjs');
 const Authors = require('./lib/authors.cjs');
 const Templates = require('./lib/templates.cjs');
+const Frameworks = require('./lib/frameworks.cjs');
 const AP = require('./lib/artifact-path.cjs');
 
 /** Rough section budget from a word target. */
@@ -73,6 +74,16 @@ function buildPlan(argv, opts = {}) {
     if (template && !template.exists) warnings.push(`--template "${options.template}" did not resolve to a file → using the type's structure_hint`);
   }
 
+  // framework (a composable structure/formula — knowledge/write-frameworks.yaml)
+  let framework = null;
+  if (options.framework) {
+    try {
+      const fwDoc = Frameworks.loadFrameworks();
+      framework = Frameworks.resolveFramework(options.framework, fwDoc);
+      if (!framework) warnings.push(`--framework "${options.framework}" not in write-frameworks.yaml → ignored. (See /write frameworks)`);
+    } catch (e) { warnings.push(`frameworks registry: ${e.message}`); }
+  }
+
   // length
   const presets = typesDoc && typesDoc.length_presets
     ? Object.fromEntries(Object.entries(typesDoc.length_presets).map(([k, v]) => [k, v.words]))
@@ -113,6 +124,7 @@ function buildPlan(argv, opts = {}) {
     medium: med.medium,
     author_style: author ? { slug: author.slug, full_name: author.full_name, installed: authorInstalled, voice_card: `${author.path}voice-card.md`, one_line: author.one_line || null } : null,
     template: template ? { id: template.id, path: template.path, exists: template.exists } : null,
+    framework: framework ? { id: framework.id, name: framework.name, family: framework.family, structure: framework.structure, when_to_use: framework.when_to_use } : null,
     length: { words: length.words, pages: length.pages, label: length.label, kind: length.kind },
     section_budget: budget,
     mode,
@@ -157,9 +169,13 @@ function renderBrief(plan) {
   }
   L.push('');
   L.push(`## Structure`);
+  if (plan.framework) {
+    L.push(`**Framework — ${plan.framework.name}** (\`${plan.framework.id}\`): ${plan.framework.structure}`);
+    L.push(`_${plan.framework.when_to_use}_  Apply this formula as the backbone${plan.template && plan.template.exists ? ', inside the template below' : ''}.`);
+  }
   if (plan.template && plan.template.exists) L.push(`Follow the template: \`${plan.template.path}\` (fill the beats, delete the guidance).`);
   else if (plan.type && plan.type.structure_hint) L.push(`${plan.type.structure_hint}`);
-  else L.push(`Choose a structure that fits the request and medium.`);
+  else if (!plan.framework) L.push(`Choose a structure that fits the request and medium.`);
   L.push('');
   L.push(`## Enrichment`);
   L.push(`- Image: ${plan.enrich.image ? 'YES — add an illustration/cover where it raises quality, via /image (scripts/deepask/image-route.cjs).' : 'no'}`);

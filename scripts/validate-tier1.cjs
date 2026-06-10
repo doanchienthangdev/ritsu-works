@@ -65,6 +65,7 @@ const FILE_TO_SCHEMA = {
   'write-types.yaml': 'write-types.schema.json',
   'author-styles.yaml': 'author-styles.schema.json',
   'write-templates.yaml': 'write-templates.schema.json',
+  'write-frameworks.yaml': 'write-frameworks.schema.json',
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });

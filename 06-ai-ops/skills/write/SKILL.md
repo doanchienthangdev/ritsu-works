@@ -24,9 +24,15 @@ sub-skills.
 | `/write authors` | (this skill) | List distilled author styles (`knowledge/author-styles.yaml`). |
 | `/write types` | (this skill) | List content types + their mediums (`knowledge/write-types.yaml`). |
 | `/write templates` | (this skill) | List structure templates (`knowledge/write-templates.yaml`). |
+| `/write frameworks` | (this skill) | List the 100 writing formulas (`knowledge/write-frameworks.yaml`; reference `06-ai-ops/write/FRAMEWORKS.md`). |
 
 For the listing subcommands, read the registry and print a compact table (id · category ·
 one-line · mediums/status). They are read-only (Tier A).
+
+**`--framework=<id>`** applies a writing FORMULA (e.g. `pas`, `aida`, `feynman-technique`,
+`scqa`) as the structural backbone — composable with `--type`/`--template`/`--author-style`.
+`plan.cjs` resolves it into `brief.md`; the orchestrator writes to that structure. The 100
+are ranked by fit to Ritsu (learning-science core) + the GTM content engine.
 
 ## The model (why it's built this way)
 

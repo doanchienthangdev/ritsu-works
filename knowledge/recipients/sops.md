@@ -313,8 +313,8 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 **When to use:** Standard Operating Procedure SOP-AIOPS-015-write-runtime-contract
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-015-write-runtime-contract/flow.yaml")`
-**HITL tier:** B
-**Side effect:** write
+**HITL tier:** A
+**Side effect:** none
 
 **Role scope:** *
 **Status:** active
