@@ -1,0 +1,26 @@
+# Provenance for the james-clear author-style artifact.
+slug: james-clear
+full_name: James Clear
+distilled_on: "2026-06-10"
+distilled_by: "/write distill (Claude Code Workflow — analyst + archivist, parallel)"
+confidence: high   # 12+ freely-published jamesclear.com articles read in full + public talks; voice saturated + cross-confirmed
+sources:
+  books:
+    - {title: "Atomic Habits", year: 2018, usage: "≤18-word quotes only (copyrighted; longest quote in this artifact ≤18 words)"}
+  articles:
+    - {title: "jamesclear.com essays (Goldilocks Rule, Zanshin, Luck vs Hard Work, Creativity Is a Process, Saying No, Giving Up, Habit Tracker, 80/20, How Experts Focus, Stay on the Bus, Kasparov Confidence, Journaling One Sentence, 5-Step Creative Process, 30 One-Sentence Stories)", source: jamesclear.com, usage: "freely-published — fuller fair-use quotes, attributed"}
+  transcripts:
+    - {title: "Atomic Habits: How to Get 1% Better Every Day", venue: "APB Speakers talk", year: 2018, usage: "public talk"}
+    - {title: "Q&A: Atomic Habits with James Clear", venue: "public Q&A", usage: "public talk"}
+    - {title: "Every Billionaire Uses These Success Habits", venue: "Lewis Howes podcast", usage: "public podcast"}
+  urls: ["https://jamesclear.com", "https://jamesclear.com/3-2-1"]
+copyright: |
+  Transformative style analysis + attributed fair-use excerpts. jamesclear.com articles + the 3-2-1
+  newsletter are freely published; the talks are public; book quotes (Atomic Habits) kept short
+  (longest ≤18 words). Output written in this style is a derivative STYLE, presented as such — never
+  claimed to be Clear's own words.
+notes: |
+  James Clear is a WRITER first — the jamesclear.com articles (read in full) are the truest source of
+  his written voice; the Atomic Habits PDF was NOT ingested (copyright + the articles echo its ideas).
+  Strongest signature: story → plainly-named principle → one quotable aphorism on its own line, every
+  sentence concrete + short. Future re-distillation could add the 3-2-1 newsletter archive.
