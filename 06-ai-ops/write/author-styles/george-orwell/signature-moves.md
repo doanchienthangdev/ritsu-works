@@ -37,7 +37,7 @@
 **When:** Whenever a big noun (oppression, engagement, progress, efficiency) is doing work that specific facts should do. Also his indictment form: the charge sheet is a list.
 
 **Example:** "torture, the use of hostages, forced labour, mass deportations, imprisonment without trial, forgery, assassination, the bombing of civilians" — *Notes on Nationalism* (1945)
-**Example:** "The wretched prisoners huddling in the stinking cages of the lock-ups, the grey, cowed faces of the long-term convicts, the scarred buttocks of the men who had been Bogged with bamboos – all these oppressed me with an intolerable sense of guilt." — *Shooting an Elephant* (1936)
+**Example:** "The wretched prisoners huddling in the stinking cages of the lock-ups, the grey, cowed faces of the long-term convicts, the scarred buttocks of the men who had been flogged with bamboos – all these oppressed me with an intolerable sense of guilt." — *Shooting an Elephant* (1936)
 **Example:** "He is worn down by solitude, toothache, lack of tobacco, bright lights glaring in his eyes, and continuous questioning" — *Arthur Koestler* (1944), the grand and the homely in one list
 
 ---
