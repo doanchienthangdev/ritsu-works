@@ -277,3 +277,15 @@ author_styles:
     distilled_on: "2026-06-11"
     confidence: high
     copyright: "Transformative style analysis + short attributed fair-use excerpts. The six essays (Why I Write, Politics and the English Language, Shooting an Elephant, Notes on Nationalism, The Prevention of Literature, Arthur Koestler) are sourced from the Orwell Foundation's freely accessible texts (reproduced there with the Orwell Estate's permission); Orwell d. Jan 1950, so his works are PUBLIC DOMAIN in the UK/EU and most life+70 jurisdictions since 1 Jan 2021, while remaining in US copyright term (95y from publication) — excerpts kept short, always attributed by essay + year. The books (Animal Farm, 1984, Wigan Pier) were NOT ingested; only universally-attested one-liners quoted short + attributed. Documentary transcripts about Orwell mined for biography/analysis only, never presented as his prose. Output in this style is a derivative STYLE, never claimed to be Orwell's own words."
+
+  - slug: jared-diamond
+    full_name: Jared Diamond
+    category: science-history
+    one_line: "The field scientist explaining a solved historical case to an intelligent juror: a giant question framed as a concrete puzzle, the surprising verdict stated baldly up front, evidence walked in pre-announced numbered steps, every abstraction cashed into a named place, species, date, and number, one eyewitness New Guinea scene as the visceral proof, and a close on open questions or 51-percent cautious optimism — never a sermon."
+    path: 06-ai-ops/write/author-styles/jared-diamond/
+    status: installed   # distilled 2026-06-11 via /write distill (3 parallel reader digests over 11 staged sources spanning 1987-2025 + in-session assembly; every load-bearing quote machine-verified by grep against the staged sources)
+    origin: distilled
+    source_kinds: [articles, transcripts]
+    distilled_on: "2026-06-11"
+    confidence: high
+    copyright: "Transformative style analysis + attributed fair-use excerpts. Fuller quotes are from PUBLIC talks/interviews (Royal Institution 2013, UCSB/UCTV 2005, Upfront Summit 2020, People I (Mostly) Admire 2023, World Knowledge Forum 2025, UCLA 2025) and the freely-published Edge.org talk-essay (1997); quotes from the copyrighted magazine essays (Discover 1987, The New Yorker 2008, The Guardian 2014) are kept ≤ ~30 words, attributed. His books (Guns, Germs, and Steel; Collapse; The Third Chimpanzee; The World Until Yesterday; Upheaval) were NOT ingested — referenced by name only, zero quoted words. Output in this style is a derivative STYLE, never claimed to be Diamond's own words."
