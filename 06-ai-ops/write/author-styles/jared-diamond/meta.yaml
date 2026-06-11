@@ -1,0 +1,68 @@
+# Provenance for the jared-diamond author-style artifact.
+slug: jared-diamond
+full_name: Jared Diamond
+distilled_on: "2026-06-11"
+distilled_by: "/write distill (Claude Code — 3 parallel reader digests over the staged corpus + in-session assembly; every load-bearing quote machine-verified verbatim by grep against the staged sources)"
+confidence: high   # 11 sources spanning his three registers (written essay, prepared lecture, unscripted interview), 1987-2025; the voice mechanics converge across all three groups; 40+ quotes grep-verified against the staged files. Book PDFs deliberately NOT ingested, so the written-essay register rests on 4 magazine/web essays (rich ones); a future re-distillation could add Guns/Collapse chapter analysis if the copyright posture is revisited.
+sources:
+  # What the style was distilled from (kept as provenance, not reproduced).
+  articles:
+    - {title: "The Worst Mistake in the History of the Human Race", source: "Discover Magazine (discovermagazine.com)", year: 1987, usage: "copyrighted magazine essay freely accessible online; quotes ≤ ~30 words, attributed — the spine of his written-essay mechanics (widening-frame opening, steelman demolition, announced enumeration, rice-bag anecdote, 24-hour-clock close)"}
+    - {title: "Why Did Human History Unfold Differently On Different Continents For The Last 13,000 Years?", source: "Edge.org talk-essay (edge.org)", year: 1997, usage: "freely published by Edge; the Guns, Germs, and Steel argument compressed — the modest-task opening, counterfactual question-cascade, proximate-to-ultimate causation ladder, [you guess] dry wit"}
+    - {title: "Vengeance Is Ours", source: "The New Yorker (newyorker.com)", year: 2008, usage: "copyrighted magazine essay; quotes ≤ ~30 words, attributed — the in-medias-res dated-case opening, exact-count climax (twenty-nine killings, three hundred pigs), particular-to-universal pivot"}
+    - {title: "Jared Diamond: 'Humans, 150,000 years ago, wouldn't figure on a list of the five most interesting species on Earth'", source: "The Guardian profile/interview by Oliver Burkeman (theguardian.com)", year: 2014, usage: "his quoted speech inside a copyrighted profile; quotes ≤ ~30 words, attributed — how he handles critics ('geographic determinism') and the constructive-paranoia framing"}
+    - {title: "The Last Americans", source: "Harper's via globalclimatechange.wikidot.com mirror", year: 2003, usage: "staged file was a navigation-shell stub with negligible Diamond text; not used for quotes"}
+  transcripts:
+    - {title: "What can we learn from traditional societies?", venue: "The Royal Institution (Ri event, filmed 2013-10-01; YouTube)", year: 2013, usage: "public talk — fuller quotes ok; do-the-numbers compound risk (dead trees, 5,475 showers), Max's 147 snakes, the ego-meter deadpan, 'forgiving is difficult but not forgiving is harder'"}
+    - {title: "Jared Diamond (UCSB 'Voices' lecture on Collapse)", venue: "University of California Television (UCTV Show ID 9390; filmed April 2005)", year: 2005, usage: "public lecture — fuller quotes ok; the five-factor checklist announcement, the last-palm-tree student question, Norse-starved-amidst-fish irony, cautious-optimist close with the communication advantage"}
+    - {title: "Jared Diamond on How Geography Affects our Globalized World Today", venue: "Upfront Summit (Upfront Ventures; YouTube)", year: 2020, usage: "public talk — fuller quotes ok; premise-inversion opening ('begs a yes answer which I'll show you is wrong'), Africa-as-Big-Mac rescale, homework-assignment device, Argentina pampas bluntness"}
+    - {title: "Jared Diamond on the Downfall of Civilizations — and His Optimism for Ours (People I (Mostly) Admire, ep. 55, w/ Steve Levitt)", venue: "Freakonomics Radio Network (YouTube)", year: 2023, usage: "podcast interview — fuller quotes ok; the Genghis-Khan-tree-rings worked example, the Norse/horse-kidneys uncomfortable mirror, 51/49 quantified optimism, academics-love-to-explain learning method"}
+    - {title: "An Era of Upheaval: The Fall and Rise of Civilizations", venue: "World Knowledge Forum (YouTube)", year: 2025, usage: "public session — fuller quotes ok; the four-global-challenges pre-announced enumeration, the Korean-pottery absurdist-accumulation humor, Sarajevo-1914 globalization threshold"}
+    - {title: "The Rise and Fall of World Civilizations: A Conversation with Professor Jared Diamond", venue: "UCLA Women & Philanthropy (YouTube)", year: 2025, usage: "conversation — fuller quotes ok; the collapse-as-marriage analogy reframe, exact-figure habit in Q&A"}
+  books:
+    # Deliberately NOT ingested (PDFs skipped by the distill stager). Referenced by NAME/IDEA only; zero quoted words.
+    - {title: "Guns, Germs, and Steel: The Fates of Human Societies (W. W. Norton, 1997)", usage: "referenced by name only — its argument is sourced from the freely-published Edge.org talk-essay above"}
+    - {title: "Collapse: How Societies Choose to Fail or Succeed (Penguin, 2005)", usage: "referenced by name only — its argument is sourced from the public UCSB/UCTV lecture above"}
+    - {title: "The Third Chimpanzee (1991); The World Until Yesterday (2012); Upheaval (2019)", usage: "referenced by name only"}
+    - {title: "Why Nations Fail (Acemoglu & Robinson)", usage: "present in the raw folder but NOT a Diamond work — excluded entirely"}
+  urls:
+    - "https://www.discovermagazine.com/the-worst-mistake-in-the-history-of-the-human-race-12157"
+    - "https://www.edge.org/conversation/why-did-human-history-unfold-differently-on-different-continents-for-the-last-13000-years"
+    - "https://www.newyorker.com/magazine/2008/04/21/vengeance-is-ours"
+    - "https://www.theguardian.com/books/2014/oct/24/jared-diamond-bestselling-biogeographer-answers-critics"
+    - "https://www.youtube.com/watch?v=ceLuaf7low4"
+    - "https://www.youtube.com/watch?v=bc4bXIg8JDk"
+    - "https://www.youtube.com/watch?v=Wi5ogL3TmE4"
+    - "https://www.youtube.com/watch?v=abJXrMa7EnU"
+    - "https://www.youtube.com/watch?v=T8d-3Ky4-jU"
+    - "https://www.youtube.com/watch?v=CoQaaXz9HFI"
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. The fuller quotes come from
+  PUBLIC TALKS and interviews (Royal Institution 2013, UCSB/UCTV 2005, Upfront Summit 2020,
+  People I (Mostly) Admire 2023, World Knowledge Forum 2025, UCLA 2025 — all publicly posted video
+  transcripts, quoted with the auto-transcript's verbatim casing). The Edge.org talk-essay (1997) is
+  freely published by Edge. Quotes from the copyrighted magazine essays (Discover 1987, The New Yorker
+  2008, The Guardian 2014) are kept ≤ ~30 words each, always attributed. Diamond's BOOKS were NOT
+  ingested (the PDFs in the raw folder were deliberately skipped): Guns, Germs, and Steel / Collapse /
+  The Third Chimpanzee / The World Until Yesterday / Upheaval are referenced by name or idea only, with
+  zero quoted words. Every excerpt in the artifact was machine-verified verbatim (grep) against the
+  staged sources. Output written in this style is a derivative STYLE, presented as such — never claimed
+  to be Diamond's own words.
+notes: |
+  Diamond's voice is unusually METHOD-shaped: the mechanics (modest-task opening, premise inversion,
+  steelman demolition, announced enumeration, self-posed question, do-the-numbers, rice-bag anecdote,
+  time-machine rescale, uncomfortable mirror, cautious-optimist close) recur nearly identically across
+  his written essays, prepared lectures, and unscripted interviews from 1987 to 2025, which is what makes
+  the artifact high-confidence despite the books not being ingested. Three cautions for writers:
+  (1) His authority is that the cases and counts are REAL — a writer using this style on a new topic must
+  bring real examples and real numbers (the style collapses into parody with invented ones); keep the
+  mechanics, never counterfeit the anecdote. (2) He is comma/colon/parenthesis-punctuated; the /write
+  humanizer strips em-dashes, which costs this voice nothing — render asides with commas, parentheses,
+  or a period plus a short sentence. (3) The closes are the easiest place to break the illusion: he never
+  exhorts. End on open questions or quantified hope, not "we must" or uplift.
+  Strongest sources: Discover 1987 (written mechanics), Edge 1997 (the question-cascade + causation
+  ladder), Royal Institution 2013 (do-the-numbers + warmth), Freakonomics 2023 (the mirror + 51/49).
+  A natural fit for learning-science and Ritsu writing: comparison-as-method, test-the-received-wisdom,
+  do-the-numbers, and his stated learning method ("the vast majority of academics... love to explain it")
+  map directly onto active-learning arguments. What to add next: if posture allows, chapter-level analysis
+  of Guns/Collapse prologues (Yali's question; the five-point framework in written form).
