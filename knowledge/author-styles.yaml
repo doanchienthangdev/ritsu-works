@@ -229,3 +229,15 @@ author_styles:
     distilled_on: "2026-06-11"
     confidence: high
     copyright: "Transformative style analysis + short attributed fair-use excerpts (≤25 words each) from the copyrighted book Influence: The Psychology of Persuasion (New & Expanded ed., © Robert B. Cialdini, 2021, Harper Business), always attributed; no passage reproduced at length and the seven-principle framework is characterized, not republished. The HBR article 'Harnessing the Science of Persuasion' (2001) + Cialdini's public talks are referenced by name as freely-published/public sources but not quoted; Pre-Suasion (2016) was NOT ingested. Output in this style is a derivative STYLE, never claimed to be Cialdini's own words."
+
+  - slug: paul-graham
+    full_name: Paul Graham
+    category: essay
+    one_line: "The hacker-turned-essayist who writes the way he'd talk to a smart friend: plain words and no jargon, starting from something he noticed himself, following his curiosity instead of defending a thesis, grounding every idea in a real example, qualifying every claim exactly as far as he believes it, and compressing the finding into a sticky handle you can carry around — do things that don't scale, keep your identity small, the top idea in your mind."
+    path: 06-ai-ops/write/author-styles/paul-graham/
+    status: installed   # distilled 2026-06-11 via /write distill (in-session; 9 freely-published essays read/verified verbatim live from paulgraham.com — the writing-craft trio talk/useful/essay + writing44/ds/top/love/startupideas/identity; every load-bearing quote source-verified)
+    origin: distilled
+    source_kinds: [articles]
+    distilled_on: "2026-06-11"
+    confidence: high
+    copyright: "Transformative style analysis + short attributed fair-use excerpts, verified verbatim against the live source. Paul Graham self-publishes his ENTIRE essay corpus for free on paulgraham.com; the excerpts are his own authored, freely-accessible work, quoted short and always attributed (the cleanest possible posture — the whole corpus is free). His ideas (the usefulness recipe, the coined handles, essay-as-discovery) are characterized, not reproduced at length. His print collection Hackers & Painters is referenced by name only — never ingested — since the same essays are free on his site. Output in this style is a derivative STYLE, never claimed to be Graham's own words."
