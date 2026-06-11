@@ -1,0 +1,72 @@
+# Provenance for the rutger-bregman author-style artifact.
+slug: rutger-bregman
+full_name: Rutger Bregman
+distilled_on: "2026-06-11"
+distilled_by: "/write distill (Claude Code Workflow — 3 parallel forensic analysts over 15 staged sources: written prose / spoken worldview / debate stance; 104 harvested quotes, 95 verified verbatim against the staged sources, the other 9 verified-with-artifacts-stripped: transcript timestamps + [music] markers only)"
+confidence: high   # 7 authored articles (his written voice, full text) + 7 public talk/interview transcripts (his spoken voice, ~520KB) + 1 profile; the same set pieces recur across years and venues (the Mead brutal re-read, the 96%-being-asked reveal, the hinge inversion), so the mechanics are saturated, not sampled.
+sources:
+  # The written voice comes from Bregman's own authored, freely-published essays (The Guardian
+  # is openly readable; The Correspondent pieces were freely published). His English-language
+  # articles are professionally translated from Dutch (The Correspondent credited translators,
+  # e.g. Elizabeth Manton / Erica Moore) — the artifact deliberately captures the PUBLISHED
+  # English-language Bregman voice, which is the voice his English readers know.
+  articles:
+    - {title: "The real Lord of the Flies: what happened when six boys were shipwrecked for 15 months", source: "The Guardian", year: 2020, usage: "freely published (an adapted excerpt promoting Humankind, sourced from the Guardian text); the rug-pull reveal + era-scale opening + found-artifact close"}
+    - {title: "Poverty isn't a lack of character. It's a lack of cash", source: "The Correspondent", year: 2020, usage: "freely published; the dateline cold open, the freezing-computer analogy, 'Genes can't be undone. Poverty can.', the title-repaid close"}
+    - {title: "No, wealth isn't created at the top. It is merely devoured there", source: "The Correspondent", year: 2017, usage: "freely published; the hinge inversion with anaphora, the tapeworm metaphor, 'Because it can.', the sardonic parenthetical stat-aside"}
+    - {title: "Has the time finally come for universal basic income?", source: "The Correspondent", year: 2020, usage: "freely published; the telegraphic dateline, Take Simon, enumerate-and-snap ('no, no, and yes'), the priced comparison, 'And that's how all progress begins.'"}
+    - {title: "No, you're not fine just the way you are: time to quit your pointless job, become morally ambitious and change the world", source: "The Guardian", year: 2025, usage: "freely published; the superlative-aphorism opening, the 80,000-hours number ladder, the ventriloquized reader, the mock-imperative volley"}
+    - {title: "The neoliberal era is ending. What comes next?", source: "The Correspondent", year: 2020, usage: "freely published; the Mont Pèlerin ideas-from-margins-to-mainstream manual, the Overton window, the sober-hope close"}
+    - {title: "Rutger Bregman: 'What if we give children the freedom to play and learn on their own?'", source: "The Guardian", year: 2021, usage: "freely published; the burden-flip close ('The question is not… The question is…')"}
+    - {title: "Rutger Bregman: the Dutch historian who rocked Davos and unearthed the real Lord of the Flies (PROFILE by Andrew Anthony)", source: "The Guardian / The Observer", year: 2020, usage: "journalist's profile ABOUT Bregman — used ONLY for context + Bregman's directly-quoted speech (the deugen precision-correction); the journalist's prose never treated as his voice"}
+  transcripts:
+    - {title: "The Crisis of Meaning Has an Antidote", venue: "public talk/interview", year: 2025, usage: "public talk — fuller quotes ok; the definition gate, the number ladder, the jumbo-jet conversion, Benjamin Lay thumbnail, the failure tour"}
+    - {title: "Rutger Bregman: How to Be Morally Ambitious", venue: "How To Change The World podcast #17", year: 2026, usage: "public interview; moral envy coin-then-translate, the 96%-being-asked reveal, 'History is just history', the social-virus model, self-deprecation with domestic witness"}
+    - {title: "Moral Ambition and How to ACTUALLY Make the World a Better Place", venue: "Lavin Voices", year: 2025, usage: "public interview; the brutal Mead re-read, the future-historian mirror, the chiasmus closer, the Europe/US antithesis"}
+    - {title: "James O'Brien meets Rutger Bregman", venue: "Full Disclosure podcast", year: 2026, usage: "public interview; receipt-level sourcing (the NS NS NS appendix), the calibrated superlative ('most openly corrupt'), the Davos register ('you idiots, you cowards'), 'Awareness is completely overrated', the Clarkson story engine"}
+    - {title: "How Should We Solve Inequality? Sam Harris & Rutger Bregman", venue: "Making Sense podcast", year: 2025, usage: "public interview; concede-then-flip under challenge, confess-before-accuse (the kidneys line), the moral-blackmail refusal of guilt-based ethics"}
+    - {title: "Rutger Bregman says America is in a neo-fascist moment", venue: "New Statesman podcast", year: 2026, usage: "public interview; the suspense-stat reveal retold, Robin-Hoods-of-talent label, hypocrisy-has-its-uses nuance, the recruitment close ('We can hack a nation's honor code.')"}
+    - {title: "Rutger Bregman on elites, survival of the friendliest, rethinking human history", venue: "public interview", year: 2020, usage: "public interview; claim-shrinking under methodological attack ('the only thing that I'm saying is…')"}
+  books:
+    - {title: "Utopia for Realists (2017)", usage: "NOT ingested (PDF excluded by staging policy); referenced by name only — its arguments reached the artifact via his freely-published Correspondent essays covering the same ground"}
+    - {title: "Humankind: A Hopeful History (2020)", usage: "NOT ingested; referenced by name only — the real-Lord-of-the-Flies material is sourced from his freely-published Guardian adaptation"}
+    - {title: "Moral Ambition: Stop Wasting Your Talent and Start Making a Difference (2025)", usage: "NOT ingested; referenced by name only — the moral-ambition material is sourced from his 2025 Guardian essay + public talks"}
+  urls:
+    - "https://www.theguardian.com/books/2020/may/09/the-real-lord-of-the-flies-what-happened-when-six-boys-were-shipwrecked-for-15-months"
+    - "https://thecorrespondent.com/ (Bregman's freely-published essays archive)"
+    - "https://www.moralambition.org/ (The School for Moral Ambition)"
+copyright: |
+  Transformative style analysis + attributed fair-use excerpts. The written excerpts are from
+  Bregman's own authored essays freely published in The Guardian and The Correspondent — openly
+  readable, quoted in short attributed excerpts. The spoken excerpts are from public talks and
+  podcast interviews (fuller quotes ok per the public-talk posture), quoted from the source
+  archive's transcripts with timestamps/[music] markers stripped, never re-worded. His copyrighted
+  books (Utopia for Realists, Humankind, Moral Ambition) were NOT ingested — referenced by name
+  only; where a book's idea appears it is sourced from his own freely-published essay or talk on
+  the same material. The one journalist-authored profile was used only for context and for
+  Bregman's directly-quoted speech. Output written in this style is a derivative STYLE, presented
+  as such — never claimed to be Bregman's own words.
+notes: |
+  Bregman is a historian-recruiter: the voice is Dutch directness + receipts + hope-as-action.
+  The three load-bearing mechanics, in order: (1) the HINGE INVERSION — state the consensus
+  fairly, flip it in one anaphoric sentence, then pay for the flip in receipts (researcher +
+  institution + year + number; never "studies show"); (2) the BIMODAL RHYTHM — 30-45-word
+  evidence freight snapped shut by a 2-7-word stinger as its own paragraph ("This story never
+  happened."), with fragment self-interviews ("The cost? Some £50,000 a year.") as transitions;
+  (3) the RECRUITMENT CLOSE — circle back to the opening and hand the reader the burden
+  ("The question is not… The question is…"), always agency, never doom, never guilt (cap guilt
+  at 20%; "80% should be enthusiasm").
+  Three cautions for /write: (a) his print twists ride spaced dashes; the humanizer strips
+  dashes — render asides with parentheses, colons, a one-word question ("Harsh? Perhaps…"), or
+  a period + short sentence; (b) his authority is that the receipts are REAL — inventing a study,
+  number, or named case to sound like him is the unforgivable move (keep the mechanics, source
+  real evidence for the actual topic); (c) the spoken tics ("right?", "I was like", self-repairs)
+  belong to TALKS — in written pieces keep the spoken energy but the print discipline (the
+  articles never use "right?" tags).
+  Strongest sources if re-distilling: the five Correspondent/Guardian essays (written mechanics)
+  + the O'Brien Full Disclosure interview (under-challenge stance). Gaps a future pass could add:
+  his Davos 2019 panel remarks verbatim (the "taxes, taxes, taxes" register is currently sourced
+  via his own retellings), the TED talk, and any natively-English book chapter (Moral Ambition was
+  written in English) for book-length pacing. A natural voice for Ritsu/learning-science content:
+  his entire method is counterintuitive-evidence-to-hopeful-action, which maps 1:1 onto
+  active-learning-beats-passive-consumption.
