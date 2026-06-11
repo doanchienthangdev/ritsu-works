@@ -253,3 +253,15 @@ author_styles:
     distilled_on: "2026-06-11"
     confidence: high
     copyright: "Transformative style analysis + attributed fair-use excerpts. Written excerpts are from Bregman's own authored essays freely published in The Guardian and The Correspondent; spoken excerpts are from public talks/podcast interviews (fuller quotes ok, cleaned of timestamps only). His copyrighted books (Utopia for Realists, Humankind, Moral Ambition) were NOT ingested — referenced by name only; their ideas reach the artifact via his own freely-published essays/talks on the same material. Output in this style is a derivative STYLE, never claimed to be Bregman's own words."
+
+  - slug: george-orwell
+    full_name: George Orwell
+    category: essay
+    one_line: "The windowpane plain-stylist with a moral motive: open on the witnessed particular, name the lie the piece exists to expose, build with comma-strung lists of concrete facts in short Saxon words and active voice, demolish the euphemism by exhibiting what it hides, land each paragraph on a blunt unhedged verdict sentence ('Nationalism is power hunger tempered by self-deception'), hedge the facts but never the morals, convict yourself before anyone else — and end cold, reader implicated: don't let it happen; it depends on you."
+    path: 06-ai-ops/write/author-styles/george-orwell/
+    status: installed   # distilled 2026-06-11 via /write distill (3 core craft essays read in full in-session + 3 essays + 5 transcripts mined via parallel Workflow; 65 load-bearing quotes grep-verified verbatim against the staged Orwell Foundation sources)
+    origin: distilled
+    source_kinds: [articles, transcripts]
+    distilled_on: "2026-06-11"
+    confidence: high
+    copyright: "Transformative style analysis + short attributed fair-use excerpts. The six essays (Why I Write, Politics and the English Language, Shooting an Elephant, Notes on Nationalism, The Prevention of Literature, Arthur Koestler) are sourced from the Orwell Foundation's freely accessible texts (reproduced there with the Orwell Estate's permission); Orwell d. Jan 1950, so his works are PUBLIC DOMAIN in the UK/EU and most life+70 jurisdictions since 1 Jan 2021, while remaining in US copyright term (95y from publication) — excerpts kept short, always attributed by essay + year. The books (Animal Farm, 1984, Wigan Pier) were NOT ingested; only universally-attested one-liners quoted short + attributed. Documentary transcripts about Orwell mined for biography/analysis only, never presented as his prose. Output in this style is a derivative STYLE, never claimed to be Orwell's own words."

@@ -1,0 +1,61 @@
+# Provenance for the george-orwell author-style artifact.
+slug: george-orwell
+full_name: George Orwell
+distilled_on: "2026-06-11"
+distilled_by: "/write distill (Claude Code — 3 core craft essays read in full in-session; 3 further essays + 5 transcripts mined via parallel Workflow; load-bearing quotes grep-verified against the staged sources)"
+confidence: high   # The voice spine comes from Orwell's own craft essays (Why I Write + Politics and the English Language) read in full, plus his narrative masterpiece (Shooting an Elephant) and three polemic essays — all verbatim Orwell prose. Six rules, windowpane, verdict sentences, euphemism demolition all sourced from his own statements of method and verified in his practice.
+sources:
+  # The 6 essays are Orwell's own verbatim prose, sourced from the Orwell Foundation's freely
+  # accessible texts (reproduced there with the Orwell Estate's permission). Orwell died 21 Jan 1950:
+  # his works are PUBLIC DOMAIN in the UK/EU and most life+70 jurisdictions since 1 Jan 2021, but
+  # remain in US copyright term (95 years from publication: 1936 essays → 2032; 1944-46 essays →
+  # 2040-42; Animal Farm → 2041; Nineteen Eighty-Four → 2045). Posture: short attributed excerpts,
+  # transformative style analysis, never reproduction at length.
+  articles:
+    - {title: "Why I Write", source: "orwellfoundation.com (Gangrel, No. 4)", year: 1946, usage: "read in full in-session; the motive spine (lie-to-expose, four motives, windowpane, political-writing-into-an-art); short attributed excerpts"}
+    - {title: "Politics and the English Language", source: "orwellfoundation.com (Horizon)", year: 1946, usage: "read in full in-session; the craft spine (six rules, six questions, let-meaning-choose-the-word, euphemism demolition, cuttlefish/soft-snow/hen-house similes); short attributed excerpts"}
+    - {title: "Shooting an Elephant", source: "orwellfoundation.com (New Writing, 2)", year: 1936, usage: "read in full in-session; the narrative voice (witnessed opening, exact prices, mask aphorism, self-incriminating close); short attributed excerpts"}
+    - {title: "Notes on Nationalism", source: "orwellfoundation.com (Polemic)", year: 1945, usage: "Workflow-mined; stipulative definitions, taxonomy structure, verdict aphorisms, the implicating close; short attributed excerpts"}
+    - {title: "The Prevention of Literature", source: "orwellfoundation.com (Polemic)", year: 1946, usage: "Workflow-mined; eyewitness opening, operational definitions, Meccano/wild-animals similes, think-fearlessly epigram; short attributed excerpts"}
+    - {title: "Arthur Koestler", source: "orwellfoundation.com (written 1944; Critical Essays, 1946)", year: 1944, usage: "Workflow-mined; concede-then-assert, antithetical aphorisms, grand-and-homely particulars, irony tongs; short attributed excerpts"}
+  books:
+    - {title: "Animal Farm (1945)", usage: "NOT ingested (PDF skipped at staging); the universally-attested one-liner ('All animals are equal…') quoted short, attributed"}
+    - {title: "Nineteen Eighty-Four (1949)", usage: "NOT ingested (PDF skipped at staging); referenced by name + the universally-attested coinages (doublethink, Newspeak, two-plus-two) characterized, not reproduced"}
+    - {title: "The Road to Wigan Pier (1937), Homage to Catalonia (1938), Down and Out in Paris and London (1933)", usage: "NOT ingested; referenced by name as biographical/method context only"}
+  transcripts:
+    - {title: "Orwell's Final Warning (panel, incl. D.J. Taylor)", venue: "YouTube", usage: "documentary ABOUT Orwell — narrator voice never used as Orwell; mined for the 1949 press statement ('Don't let it happen. It depends on you.'), reported method analysis, biography"}
+    - {title: "Lecture 3: Orwell's Prophetic Vision", venue: "YouTube", usage: "documentary ABOUT Orwell; technique analysis + embedded attested quotes only"}
+    - {title: "George Orwell documentary (x2, long-form 'sleep' documentaries)", venue: "YouTube", usage: "documentary ABOUT Orwell; biography spine (Eton, Burma 1922-27, Wigan 1936, Spain throat wound 1937, BBC 1941-43, Jura, TB, d. 21 Jan 1950) + narrator analyses of method (particulars-first, revision-made plainness, clarity-as-ethics)"}
+    - {title: "Power, Propaganda, and Hope: All of George Orwell's Philosophy", venue: "YouTube", usage: "documentary ABOUT Orwell; themes + coinage context; transcript renderings of book lines NOT used as verbatim (canonical forms used instead, short + attributed)"}
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. The six essays are sourced from
+  the Orwell Foundation's freely accessible texts (reproduced there with the kind permission of the
+  Orwell Estate); George Orwell died in January 1950, so his works are public domain in the UK, EU,
+  and most life+70 jurisdictions since 1 January 2021, while remaining in US copyright term (95 years
+  from publication). Excerpts are kept short (typically well under 45 words), always attributed by
+  essay + year, and used to teach the mechanics of the voice — never to reproduce a work. The books
+  (Animal Farm, Nineteen Eighty-Four, Wigan Pier, etc.) were NOT ingested; only their universally-
+  attested one-liners are quoted, short and attributed. Documentary transcripts about Orwell were
+  mined for biography and reported analysis, never presented as his prose. Output written in this
+  style is a derivative STYLE, presented as such — never claimed to be Orwell's own words.
+notes: |
+  Orwell is the straightest possible fit for the /write humanize gate: his own six rules (cut every
+  cuttable word, active voice, no stale figures, everyday English) ARE a de-AI checklist from 1946.
+  The truest sources of the voice are the two craft essays where he states his method explicitly —
+  "Why I Write" (the lie-to-expose motive, the four motives, the windowpane) and "Politics and the
+  English Language" (the six rules, the six questions, let-the-meaning-choose-the-word, the euphemism
+  demolition) — and the practice matches the preaching across the other four essays. His most
+  load-bearing distinctive moves: the BLUNT VERDICT SENTENCE after accumulation ("Nationalism is
+  power hunger tempered by self-deception"), the LIST OF PARTICULARS demolishing an abstraction
+  (pacification), the SELF-INCRIMINATING CONFESSION ("solely to avoid looking a fool"), and the
+  HOMELY SIMILE (cuttlefish, soft snow, Meccano set). Calibration asymmetry is the subtle tell:
+  hedge facts, never morals. Two cautions baked into do-and-dont: (1) his authority is testimony —
+  the witnessed scene and the exact figure must be REAL; inventing one is the unforgivable move
+  (parallel to the feynman/cialdini/paul-graham don't-fake-the-evidence rule). (2) He uses spaced
+  dashes for interpolation; the /write humanizer strips em-dashes, so render his asides with
+  parentheses, colons, or paired commas. For Ritsu content: his frame maps perfectly onto
+  learning-science writing — the comfortable lie (rereading feels like studying), the euphemism
+  audit (edtech marketing cant: 'engagement', 'gamified', 'personalized'), the exact figure
+  (retention percentages, hours wasted), and the verdict sentence. Period-language caution: some
+  passages in the 1936-45 essays carry colonial-era racial vocabulary; the artifact samples were
+  chosen to avoid it, and nothing in the style requires it.
