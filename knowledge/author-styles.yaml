@@ -218,6 +218,18 @@ author_styles:
     confidence: high
     copyright: "Transformative style analysis + attributed fair-use excerpts. The verbatim sources are PUBLIC: the 1977 Royal Institution Christmas Lecture (BBC-filmed), the 1994 Cornell 'Age of Exploration' lecture (videotaped, published by the Carl Sagan Institute — and the source of the Pale Blue Dot passage, delivered aloud), and the 1996 PBS Charlie Rose interview — quoted more fully, always attributed. Sagan's copyrighted books (Cosmos, Pale Blue Dot, The Demon-Haunted World, Contact, etc.) were NOT ingested; referenced by name only, with the most universally-attested one-liners quoted SHORT (≤25 words), attributed. Output in this style is a derivative STYLE, never claimed to be Sagan's own words."
 
+  - slug: malcolm-gladwell
+    full_name: Malcolm Gladwell
+    category: narrative-nonfiction
+    one_line: "The narrative social-science translator: open cold inside one real person's life (a name, a place, a price), pivot on a what-if question, split a familiar idea into two named species (choking is not panicking), prove it with a named-researcher story and a number made narrative, hop the idea across one wildly unlike domain, and land the callback ending where the thesis detonates as a quiet inversion — maybe it was the box that needed fixing."
+    path: 06-ai-ops/write/author-styles/malcolm-gladwell/
+    status: installed   # distilled 2026-06-11 via /write distill (Workflow analyst×4 + main-thread assembly; every load-bearing quote grep-verified against the staged sources)
+    origin: distilled
+    source_kinds: [articles, transcripts]
+    distilled_on: "2026-06-11"
+    confidence: high
+    copyright: "Transformative style analysis + short attributed fair-use excerpts. Gladwell's New Yorker features (Million-Dollar Murray, The Talent Myth, The Art of Failure, Small Change) are COPYRIGHTED — quoted only in short attributed excerpts (≤ ~35 words each), never reproduced at length. The interview/podcast transcripts (No Small Endeavor, Q&A, Adam Grant, New Yorker hiring talk, 2009-2026) are PUBLIC conversations — quoted more fully, always attributed. His copyrighted books (The Tipping Point, Blink, Outliers, David and Goliath, Talking to Strangers, Revenge of the Tipping Point) were NOT ingested; they and their coined concepts are referenced by name only. Output in this style is a derivative STYLE, never claimed to be Gladwell's own words."
+
   - slug: robert-cialdini
     full_name: Robert B. Cialdini
     category: persuasion-science

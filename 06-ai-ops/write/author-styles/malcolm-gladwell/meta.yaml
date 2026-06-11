@@ -1,0 +1,78 @@
+# Provenance for the malcolm-gladwell author-style artifact.
+slug: malcolm-gladwell
+full_name: Malcolm Gladwell
+distilled_on: "2026-06-11"
+distilled_by: "/write distill (Claude Code — Workflow analyst×4 + main-thread assembly; every load-bearing quote grep-verified against the staged sources)"
+confidence: high   # The written voice is saturated from 4 full New Yorker features (his canonical form, 2000-2010) + 8 public interview/podcast transcripts (2009-2026) where he describes his own method explicitly. Books NOT ingested (quote ceiling respected); the article excerpts are kept short + attributed.
+sources:
+  # What the style was distilled from (kept as provenance, not reproduced).
+  articles:
+    # Gladwell's New Yorker features — his canonical written form. COPYRIGHTED (Condé Nast);
+    # freely accessible in his public archive (gladwell.com / newyorker.com) but quoted here
+    # only in SHORT attributed fair-use excerpts (≤ ~35 words each).
+    - {title: "Million-Dollar Murray", source: "The New Yorker", year: 2006, usage: "short attributed excerpts — the anecdotal lede, power-law argument, the named-cop quotes, the callback ending"}
+    - {title: "The Talent Myth", source: "The New Yorker", year: 2002, usage: "short attributed excerpts — the institutional puzzle, named-researcher narration, the box-needed-fixing inversion ending"}
+    - {title: "The Art of Failure", source: "The New Yorker", year: 2000, usage: "short attributed excerpts — the Novotna scene lede, the choking-vs-panicking category distinction, explicit/implicit learning"}
+    - {title: "Small Change", source: "The New Yorker", year: 2010, usage: "short attributed excerpts — the Greensboro scene, strong-vs-weak-tie distinction, the sardonic closing"}
+    - {title: "BLOWUP", source: "The New Yorker", year: 1996, usage: "staged clipping was mostly cookie-banner junk — content did not survive web clipping; provenance recorded, not used as evidence"}
+  transcripts:
+    # Public interviews/podcasts — his spoken voice + his own description of his method.
+    # Fuller quotes permitted (public talks posture).
+    - {title: "No Small Endeavor — Full Exclusive Interview", venue: "No Small Endeavor (YouTube)", year: 2024, usage: "public interview — fuller quotes; craft self-description, faith/redemption themes"}
+    - {title: "244: Unabridged Interview", venue: "No Small Endeavor (YouTube)", year: 2026, usage: "public interview — fuller quotes; Revenge of the Tipping Point era self-descriptions"}
+    - {title: "Full Video — Malcolm Gladwell", venue: "No Small Endeavor (YouTube)", year: 2026, usage: "public interview — fuller quotes"}
+    - {title: "Q&A: Malcolm Gladwell", venue: "public Q&A (YouTube)", year: 2009, usage: "public talk — fuller quotes; what-the-dog-saw era method descriptions (puzzle selection, the reader contract)"}
+    - {title: "The Big Idea Extra: Malcolm Gladwell Interview", venue: "The Big Idea (YouTube)", year: 2016, usage: "public interview — fuller quotes"}
+    - {title: "Malcolm Gladwell on Revenge of the Tipping Point", venue: "YouTube", year: 2024, usage: "public interview — fuller quotes"}
+    - {title: "Malcolm Gladwell on the Challenge of Hiring in the Modern World", venue: "The New Yorker (YouTube)", year: 2014, usage: "public conversation — fuller quotes; talent/hiring themes"}
+    - {title: "Malcolm Gladwell with Adam Grant on Underdogs, Misfits…", venue: "YouTube", year: 2013, usage: "public conversation — fuller quotes; David and Goliath advantage-inversion themes"}
+  books:
+    # NOT ingested — the staged bundle skips PDFs by design. Referenced by NAME only; their
+    # coined concepts (the Tipping Point, thin-slicing, the 10,000-hour rule, Mavens/
+    # Connectors/Salesmen) are referenced as named concepts, never reproduced.
+    - {title: "The Tipping Point (2000)", usage: "referenced by name only — NOT ingested"}
+    - {title: "Blink (2005)", usage: "referenced by name only — NOT ingested"}
+    - {title: "Outliers (2008)", usage: "referenced by name only — NOT ingested"}
+    - {title: "David and Goliath (2013)", usage: "referenced by name only — NOT ingested"}
+    - {title: "Talking to Strangers (2019)", usage: "referenced by name only — NOT ingested"}
+    - {title: "Revenge of the Tipping Point (2024)", usage: "referenced by name only — NOT ingested"}
+  not_ingested_notes: |
+    Four further New Yorker articles in the source folder were skipped by the staging budget
+    (How Do We Build a Safer Car?, The Physical Genius, The Coolhunt, The Pitchman) — natural
+    candidates for a future re-distillation. Two third-party PDFs in the folder (Duncan Watts,
+    "Everything Is Obvious"; Philip Rosenzweig, "The Halo Effect" — critiques adjacent to
+    Gladwell's method) are NOT Gladwell sources and were correctly not staged.
+  urls:
+    - "https://www.newyorker.com/magazine/2006/02/13/million-dollar-murray"
+    - "https://www.newyorker.com/magazine/2002/07/22/the-talent-myth"
+    - "https://www.newyorker.com/magazine/2000/08/21/the-art-of-failure"
+    - "https://www.newyorker.com/magazine/2010/10/04/small-change-malcolm-gladwell"
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. Gladwell's New Yorker
+  features are COPYRIGHTED (Condé Nast) — freely accessible in his public archive but quoted
+  here only in short attributed excerpts (≤ ~35 words each), never reproduced at length. The
+  interview/podcast transcripts are PUBLIC conversations — quoted more fully, always attributed.
+  His copyrighted books (The Tipping Point, Blink, Outliers, David and Goliath, Talking to
+  Strangers, Revenge of the Tipping Point) were NOT ingested; they and their coined concepts
+  (the Tipping Point, thin-slicing, the 10,000-hour rule, Mavens/Connectors/Salesmen) are
+  referenced by name only. Output written in this style is a derivative STYLE, presented as
+  such — never claimed to be Gladwell's own words.
+notes: |
+  Gladwell is a NARRATIVE social-science translator: his unit of work is the puzzle, not the
+  thesis. The voice lives in the architecture more than the sentence: the in-medias-res
+  anecdotal lede (a named person, a place, a date, one vivid detail); the pivot from story to
+  a counterintuitive question; the named-researcher experiment narrated as a mini-story; the
+  CATEGORY DISTINCTION (choking is not panicking; strong ties are not weak ties) deployed as
+  the analytic engine; the number made narrative (a cost, a percentile, a power-law skew);
+  the generous-to-everyone tone (even his villains are reasonable people inside a bad system);
+  and the CALLBACK ENDING that returns to the opening character with the thesis now visible —
+  often as a quiet inversion ("maybe it was the box that needed fixing"). His sentences are
+  longer and more classical than Godin/Clear — comma-spliced narration with embedded
+  quotation, the patient accumulation of concrete detail — but always plain words; the
+  intellectual showmanship is structural, never lexical. Strongest sources: the 4 usable
+  New Yorker features for the written mechanics; the No Small Endeavor + Q&A transcripts for
+  his self-described method (start with the story, be interesting before being right, give
+  ideas away as conversation-starters). A future re-distillation should stage The Physical
+  Genius + The Coolhunt (skipped on budget) and consider the David and Goliath intro chapter.
+  CAUTION baked into do-and-dont: his authority is REAL named people + REAL named studies —
+  inventing a person, study, or number to sound like him is the one unforgivable move.
