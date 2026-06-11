@@ -1,0 +1,66 @@
+# Provenance for the robert-cialdini author-style artifact.
+slug: robert-cialdini
+full_name: Robert B. Cialdini
+distilled_on: "2026-06-11"
+distilled_by: "/write distill (Claude Code, in-session — the foundational voice chapters of Influence read in full from the source PDF: Preface, Introduction, and Chapter 1 'Levers of Influence', where Cialdini's method + voice are established and most saturated)"
+confidence: high   # Preface + Introduction + Chapter 1 read verbatim from the source — his self-described style ("nonacademic, conversational"), the patsy persona, the participant-observation method, "click, run", the named-experiment-as-proof move, and the seven-principle architecture all live here. The principle chapters repeat this same architecture; the voice is captured at the root.
+sources:
+  books:
+    - title: "Influence: The Psychology of Persuasion (New and Expanded edition)"
+      author: "Robert B. Cialdini, Ph.D."
+      publisher: "Harper Business / HarperCollins"
+      year: 2021
+      usage: >-
+        The Preface, Introduction, and Chapter 1 ('Levers of Influence: (Power) Tools of the Trades')
+        were read IN FULL from the source PDF and are the basis of this artifact — that is where the
+        voice and the repeatable chapter architecture are established. Short attributed fair-use
+        excerpts only (≤ ~25 words each); no passage reproduced at length. The book's enduring frame —
+        the seven universal principles (reciprocation, liking, social proof, authority, scarcity,
+        commitment & consistency, unity) — is characterized as transformative style analysis, never
+        reproduced. NOTE: this 2021 edition updates the famous older refrain "click, whirr" to
+        "click, run"; quotes follow the edition actually read.
+  articles:
+    - title: "Harnessing the Science of Persuasion"
+      source: "Harvard Business Review (October 2001)"
+      usage: "Referenced by name as a freely-published Cialdini source that states the same six classic principles for a business audience; NOT quoted here — all excerpts in this artifact are sourced from the book pages read in full, kept short and attributed."
+  transcripts:
+    - title: "Public talks + interviews on Influence / Pre-Suasion"
+      usage: "Referenced as Cialdini's public-talk corpus (his principles are delivered near-verbatim in many public lectures); NOT transcribed or quoted here — the excerpt bank is sourced from the book."
+  related_books_not_ingested:
+    - {title: "Pre-Suasion: A Revolutionary Way to Influence and Persuade", year: 2016, usage: "referenced by name only; NOT ingested — copyright. Its central idea (the 'privileged moment' / channeling attention before the message) is referenced as concept, never reproduced."}
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. The verbatim source read in full
+  is the copyrighted book "Influence: The Psychology of Persuasion" (New and Expanded ed., © Robert B.
+  Cialdini, 2021, Harper Business). Every excerpt is ≤ ~25 words and explicitly attributed, used for
+  voice-calibration under fair use; no passage is reproduced at length and the seven-principle framework
+  is characterized, not republished. The HBR article "Harnessing the Science of Persuasion" (2001) and
+  Cialdini's public talks are referenced by name as freely-published / public sources but are not quoted.
+  Pre-Suasion (2016) was NOT ingested; referenced by name only. Output written in this style is a
+  derivative STYLE, presented as such — never claimed to be Cialdini's own words.
+notes: |
+  Cialdini is a research psychologist who chose, deliberately and against his field's instincts, to
+  write for "the popular reader" in "a nonacademic, conversational style" — and the whole voice follows
+  from that choice. His most load-bearing moves, all established in the chapters read in full:
+  (1) the puzzle-first opening — he starts with a real behavior that makes no sense (the jewelry-store
+  turquoise that sold faster at DOUBLE the price) and only then reveals the hidden lever; (2) the
+  self-as-patsy confession — "All my life I've been a patsy" — which disarms the reader so the book
+  never lectures; (3) the coined handle — he names the phenomenon ("expensive = good," "Captainitis,"
+  "click, run," "the contrast principle") so it becomes portable; (4) the animal-ethology parallel —
+  fixed-action patterns and trigger features, "click, run," to show humans run the same preset programs;
+  (5) the named controlled experiment with EXACT numbers as proof (Langer's photocopier study: 94% vs
+  60% vs 93%) — never an assertion without a study; (6) the vivid mechanism-metaphor (jujitsu: the
+  exploiter uses the principle's own force; the lever; the weapon); (7) the inclusive "you and I," which
+  puts author and reader in the same boat; (8) the fair-minded cost-benefit — the shortcuts are
+  rational most of the time ("a close look offers a kinder view"; without them we'd "stand frozen"), so
+  he never shames the reader for using them; and (9) the defensive turn — every chapter ends by ARMING
+  the reader against the "profiteer," because the ethical line is real: a genuine signal may be
+  commissioned, a counterfeit one must be refused. Two cautions baked into the do/don't: (1) Cialdini's
+  authority is EVIDENCE — never invent a study, a statistic, or a percentage to sound like him; a
+  fabricated "research shows" is the one unforgivable move, the exact opposite of what he stands for;
+  cite only real, checkable findings, and if you don't have one, make the claim weaker, not the data
+  fake. (2) His persona is the affable, self-implicating scientist, never the cynical manipulator — he
+  teaches influence so you can DEFEND yourself, so keep the ethics-and-defense beat; dropping it turns
+  the voice into the very "profiteer" it warns against. This makes him an unusually apt voice for
+  learning-science writing: behavior change, motivation, and habit all run on the same automatic
+  machinery he maps, and his discipline — name the lever, prove it with a real study, then hand the
+  reader the defense — is exactly the discipline good learning-science writing needs.

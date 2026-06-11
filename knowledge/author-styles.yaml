@@ -217,3 +217,15 @@ author_styles:
     distilled_on: "2026-06-11"
     confidence: high
     copyright: "Transformative style analysis + attributed fair-use excerpts. The verbatim sources are PUBLIC: the 1977 Royal Institution Christmas Lecture (BBC-filmed), the 1994 Cornell 'Age of Exploration' lecture (videotaped, published by the Carl Sagan Institute — and the source of the Pale Blue Dot passage, delivered aloud), and the 1996 PBS Charlie Rose interview — quoted more fully, always attributed. Sagan's copyrighted books (Cosmos, Pale Blue Dot, The Demon-Haunted World, Contact, etc.) were NOT ingested; referenced by name only, with the most universally-attested one-liners quoted SHORT (≤25 words), attributed. Output in this style is a derivative STYLE, never claimed to be Sagan's own words."
+
+  - slug: robert-cialdini
+    full_name: Robert B. Cialdini
+    category: persuasion-science
+    one_line: "The undercover research psychologist of 'yes': open on a behavior that makes no sense, reveal the hidden lever, prove it with a named experiment and its exact number, picture the mechanism as 'click, run' / jujitsu, be fair to the shortcut, then arm the reader against the profiteer — and never lecture, because he's the lifelong patsy and the biggest mark in the room."
+    path: 06-ai-ops/write/author-styles/robert-cialdini/
+    status: installed   # distilled 2026-06-11 via /write distill (in-session; the foundational voice chapters of Influence — Preface + Introduction + Chapter 1 — read in full from the source PDF; every load-bearing quote source-verified, all book excerpts ≤25 words)
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-11"
+    confidence: high
+    copyright: "Transformative style analysis + short attributed fair-use excerpts (≤25 words each) from the copyrighted book Influence: The Psychology of Persuasion (New & Expanded ed., © Robert B. Cialdini, 2021, Harper Business), always attributed; no passage reproduced at length and the seven-principle framework is characterized, not republished. The HBR article 'Harnessing the Science of Persuasion' (2001) + Cialdini's public talks are referenced by name as freely-published/public sources but not quoted; Pre-Suasion (2016) was NOT ingested. Output in this style is a derivative STYLE, never claimed to be Cialdini's own words."
