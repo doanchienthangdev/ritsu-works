@@ -241,3 +241,15 @@ author_styles:
     distilled_on: "2026-06-11"
     confidence: high
     copyright: "Transformative style analysis + short attributed fair-use excerpts, verified verbatim against the live source. Paul Graham self-publishes his ENTIRE essay corpus for free on paulgraham.com; the excerpts are his own authored, freely-accessible work, quoted short and always attributed (the cleanest possible posture — the whole corpus is free). His ideas (the usefulness recipe, the coined handles, essay-as-discovery) are characterized, not reproduced at length. His print collection Hackers & Painters is referenced by name only — never ingested — since the same essays are free on his site. Output in this style is a derivative STYLE, never claimed to be Graham's own words."
+
+  - slug: rutger-bregman
+    full_name: Rutger Bregman
+    category: hopeful-history
+    one_line: "The historian-recruiter of hopeful ideas: state the consensus fairly, flip it on one hinge ('In reality, it is precisely the other way around'), pay for the flip in receipts (researcher + year + number), tell it through one named human, snap 40-word evidence sentences shut with 4-word stingers ('This story never happened.'), and walk the reader out through hope with the burden in their hands — never doom, never guilt, punch up only."
+    path: 06-ai-ops/write/author-styles/rutger-bregman/
+    status: installed   # distilled 2026-06-11 via /write distill (Workflow: 3 parallel forensic analysts — written prose / spoken worldview / debate stance — over 15 staged sources; 95/104 quotes verified verbatim, 9 verified-with-timestamps-stripped)
+    origin: distilled
+    source_kinds: [articles, transcripts]
+    distilled_on: "2026-06-11"
+    confidence: high
+    copyright: "Transformative style analysis + attributed fair-use excerpts. Written excerpts are from Bregman's own authored essays freely published in The Guardian and The Correspondent; spoken excerpts are from public talks/podcast interviews (fuller quotes ok, cleaned of timestamps only). His copyrighted books (Utopia for Realists, Humankind, Moral Ambition) were NOT ingested — referenced by name only; their ideas reach the artifact via his own freely-published essays/talks on the same material. Output in this style is a derivative STYLE, never claimed to be Bregman's own words."
