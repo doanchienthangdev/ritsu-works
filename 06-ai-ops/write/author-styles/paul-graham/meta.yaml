@@ -1,0 +1,66 @@
+# Provenance for the paul-graham author-style artifact.
+slug: paul-graham
+full_name: Paul Graham
+distilled_on: "2026-06-11"
+distilled_by: "/write distill (Claude Code, in-session — freely-published essays read/verified live from paulgraham.com)"
+confidence: high   # 9 essays' load-bearing quotes verified verbatim against the live freely-published source this session, across his writing-craft corpus (talk/useful/essay/writing44) + his most-cited idea essays (ds/top/love/startupideas/identity). Voice saturated; his entire corpus is freely self-published, so no copyright-quote ceiling.
+sources:
+  # Paul Graham self-publishes every essay for free on paulgraham.com. They are his own authored work,
+  # freely accessible — the cleanest possible copyright posture (cf. the Pinker freely-published-essays
+  # case, but with the whole corpus free). Quoted in short attributed excerpts; ideas characterized, not
+  # reproduced at length. Load-bearing quotes were fetched + verified verbatim against the live source.
+  articles:
+    - {title: "Write Like You Talk", source: "paulgraham.com/talk.html", year: 2015, usage: "freely self-published; verified verbatim — the prose-mechanic spine (write-like-you-talk, the friend-test, the clank, athletic-clothing analogy)"}
+    - {title: "How to Write Usefully", source: "paulgraham.com/useful.html", year: 2020, usage: "freely self-published; verified verbatim — the usefulness recipe (importance + novelty + correctness + strength), surprise-detector, write-simply, don't-publish-if-not-right"}
+    - {title: "The Age of the Essay", source: "paulgraham.com/essay.html", year: 2004, usage: "freely self-published; verified verbatim — essay-as-discovery (figure-it-out, don't-defend), aim-for-surprise, the river/flow-interesting metaphor, train-of-thought"}
+    - {title: "Writing, Briefly", source: "paulgraham.com/writing44.html", year: 2005, usage: "freely self-published; the compression method (bad version 1 fast, rewrite, cut everything unnecessary) — the canonical opening line quoted, attributed"}
+    - {title: "Do Things That Don't Scale", source: "paulgraham.com/ds.html", year: 2013, usage: "freely self-published; verified verbatim — the coined-handle exemplar; Airbnb door-to-door + Stripe 'give me your laptop' (Collison installation); 'founders make them take off'"}
+    - {title: "The Top Idea in Your Mind", source: "paulgraham.com/top.html", year: 2010, usage: "freely self-published; verified verbatim — the shower opening, the top-idea handle, the attention thesis, the 'just take a shower' close"}
+    - {title: "How to Do What You Love", source: "paulgraham.com/love.html", year: 2006, usage: "freely self-published; verified verbatim — prestige-as-magnet analogy, 'Always produce', enjoy-vs-admire, the honest qualifier"}
+    - {title: "How to Get Startup Ideas", source: "paulgraham.com/startupideas.html", year: 2012, usage: "freely self-published; verified verbatim — the contrarian inversion ('not to try to think of startup ideas'), notice-not-think-up, 'live in the future, then build what's missing'"}
+    - {title: "Keep Your Identity Small", source: "paulgraham.com/identity.html", year: 2009, usage: "freely self-published; verified verbatim — first-principles opening, the keep-identity-small handle, 'the more labels… the dumber they make you'"}
+  books:
+    - {title: "Hackers & Painters: Big Ideas from the Computer Age (O'Reilly, 2004)", usage: "referenced by name only; it is a print collection of the freely-published essays — the essays themselves are sourced above from the free site, never from the book"}
+  referenced_by_name_only:
+    # Famous handles/titles referenced in the artifact as named concepts (factually attested), NOT quoted verbatim:
+    - "Maker's Schedule, Manager's Schedule (2009)"
+    - "Schlep Blindness (2012)"
+    - "Default Alive or Default Dead? (2015)"
+    - "Cities and Ambition (2008)"
+    - "Life Is Short (2016)"
+    - "What You Can't Say (2004)"
+    - "Make something people want (Y Combinator motto, attributed to PG/YC)"
+  urls:
+    - "https://paulgraham.com/articles.html"
+    - "https://paulgraham.com/talk.html"
+    - "https://paulgraham.com/useful.html"
+    - "https://paulgraham.com/essay.html"
+    - "https://paulgraham.com/ds.html"
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. Paul Graham self-publishes his
+  entire essay corpus for FREE on paulgraham.com; the excerpts here are his own authored, freely-
+  accessible work, quoted in short attributed excerpts under fair use and verified verbatim against the
+  live source. His ideas (the usefulness recipe, the coined handles, the essay-as-discovery method) are
+  CHARACTERIZED, not reproduced at length; no essay is republished. His print collection (Hackers &
+  Painters) is referenced by name only — never ingested — because the same essays are available free on
+  his site and are sourced there. Output written in this style is a derivative STYLE, presented as such —
+  never claimed to be Graham's own words.
+notes: |
+  Paul Graham is an essayist who thinks by writing and a builder talking to other builders. The truest
+  source of his voice is his writing-craft trio (Write Like You Talk, How to Write Usefully, The Age of
+  the Essay) where he describes his own method explicitly: write like you talk (the friend-test, the
+  clank), aim for surprise ("tell people something true and important they didn't already know"), and
+  treat the essay as discovery ("something you write to try to figure something out"), not defense. His
+  most load-bearing distinctive move is the COINED HANDLE — naming a real pattern in three plain sticky
+  words (do things that don't scale; keep your identity small; the top idea in your mind) — paired with
+  the CONCRETE REAL EXAMPLE (Airbnb door-to-door; Stripe's laptop) and the HONEST QUALIFIER ("I think,"
+  "probably"). Two cautions baked into the do/don't: (1) his authority is that the examples are REAL —
+  inventing a startup anecdote or a stat to sound like him is the one unforgivable move (parallel to the
+  feynman/cialdini "don't fake the evidence" rule); keep the mechanics (plain words, named pattern, real
+  example, honest qualifier) on any topic without counterfeiting cases. (2) He uses em-dashes, parentheses,
+  and numbered footnotes heavily in his real prose; the /write humanizer strips em-dashes, so render his
+  aside-heavy rhythm with parentheses, colons, or a period + a new short sentence — never a dash. This
+  makes him an unusually apt voice for learning-science + startup/ambition writing: his whole pedagogy is
+  that you write to figure things out, that the important ideas hide in plain sight (notice, don't think
+  up), and that curiosity — not prestige — is the engine. A natural fit for Ritsu (active learning,
+  curiosity, build-something-people-want).
