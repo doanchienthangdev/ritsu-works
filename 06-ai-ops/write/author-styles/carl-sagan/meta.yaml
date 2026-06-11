@@ -1,0 +1,50 @@
+# Provenance for the carl-sagan author-style artifact.
+slug: carl-sagan
+full_name: Carl Sagan
+distilled_on: "2026-06-11"
+distilled_by: "/write distill (Claude Code, in-session — verbatim public-talk + broadcast-interview sources read in full from raw/write/09 - Carl Sagan)"
+confidence: high   # 3 verbatim public sources read in full across spoken-lecture (1977, 1994) + broadcast-interview (1996) registers, cross-confirmed; the canonical Cosmos / Demon-Haunted World / Contact lines are universally attested + freely circulated. The Pale Blue Dot passage is captured from the 1994 PUBLIC lecture (delivered aloud), not the book. Voice saturated.
+sources:
+  transcripts:
+    - {title: "The Planets", venue: "Royal Institution Christmas Lectures (BBC-filmed), London", year: 1977, usage: "public lecture, broadcast; clip via The Royal Institution. The alien-message demonstration — Sagan hands a coded signal to his own Cornell grad students and makes THEM decode it ('you have to think about it') — is quoted more fully, attributed. The truest sample of his pedagogy-in-action."}
+    - {title: "The Age of Exploration (the 'Lost Lecture')", venue: "Cornell University (Sagan's ~60th-birthday lecture)", year: 1994, usage: "public lecture, videotaped; published by the Carl Sagan Institute. He delivers the PALE BLUE DOT passage aloud here, plus 'the great demotions', 'geocentrists with a heliocentric veneer', 'absence of evidence is not evidence of absence', the hunter-gatherer + chimp-apprenticeship pedagogy, and the 'no one is coming to save us' moral turn — quoted more fully, attributed. The richest verbatim long-form source."}
+    - {title: "Charlie Rose interview / cosmic-evolution remarks", venue: "PBS (final years; aired before his death in 1996)", year: 1996, usage: "public broadcast interview. His written-register thesis lines live here verbatim: 'science is more than a body of knowledge, it is a way of thinking', 'the essence of the scientific method is the willingness to admit you're wrong', 'error is the aperture to finding out what's right', the 'combustible mixture of ignorance and power', 'what is faith — belief in the absence of evidence', and the late-parents/skepticism passage — quoted more fully, attributed."}
+  books:
+    - {title: "Cosmos", year: 1980, usage: "referenced by name; NOT ingested — copyright (Random House). The universally-attested one-liners ('we are made of star-stuff', 'we are a way for the cosmos to know itself', 'extraordinary claims require extraordinary evidence', 'if you wish to make an apple pie from scratch, you must first invent the universe') are quoted SHORT (≤ ~25 words) and attributed for voice-calibration only."}
+    - {title: "Pale Blue Dot: A Vision of the Human Future in Space", year: 1994, usage: "referenced by name; the famous passage is sourced from the 1994 PUBLIC LECTURE where Sagan delivered it aloud, NOT reproduced from the copyrighted book. Short, attributed."}
+    - {title: "The Demon-Haunted World: Science as a Candle in the Dark", year: 1995, usage: "referenced by name; NOT ingested — copyright (Random House). The baloney detection kit, the dragon-in-the-garage, the 'born scientist / extinguished by school' education argument, and the 'I would love to believe… wishful thinking' line are characterized + the canonical lines quoted SHORT, attributed. (A YouTube essay summarizing this book's philosophy is in the source archive and informs §7 themes, but is a secondary analysis, not Sagan's verbatim words.)"}
+    - {title: "Contact", year: 1985, usage: "referenced by name; NOT ingested — copyright. The attested line 'for small creatures such as we the vastness is bearable only through love' may be quoted SHORT, attributed."}
+    - {title: "The Dragons of Eden / Broca's Brain / Shadows of Forgotten Ancestors / Billions and Billions / The Varieties of Scientific Experience / Comet / The Cosmic Connection / Murmurs of Earth", usage: "referenced by name only; NOT ingested — copyright. (PDFs present in the source archive were not reproduced.)"}
+  articles:
+    - {title: "Nuclear Winter: Global Consequences of Multiple Nuclear Explosions (the TTAPS paper)", year: 1983, usage: "co-authored scientific paper, referenced for biographical/thematic context (the ethics-of-extinction strand); his dry technical register noted, not quoted at length."}
+  urls:
+    - "https://www.youtube.com/watch?v=hbFq0I7YrYQ"   # 1977 Royal Institution Christmas Lecture clip
+    - "https://www.youtube.com/watch?v=6_-jtyhAVTc"   # 1994 Cornell 'Lost Lecture'
+copyright: |
+  Transformative style analysis + attributed fair-use excerpts. The verbatim sources read in full are
+  PUBLIC: the 1977 Royal Institution Christmas Lecture (BBC-filmed), the 1994 Cornell "Age of Exploration"
+  lecture (videotaped, published by the Carl Sagan Institute — and the source of the Pale Blue Dot passage,
+  delivered aloud), and the 1996 PBS Charlie Rose interview — quoted more fully and always attributed.
+  Sagan's copyrighted books (Cosmos, Pale Blue Dot, The Demon-Haunted World, Contact, etc.) were NOT
+  ingested; they are referenced by name, with only the most universally-attested one-liners quoted SHORT
+  (≤ ~25 words) and attributed for voice-calibration. Output written in this style is a derivative STYLE,
+  presented as such — never claimed to be Sagan's own words.
+notes: |
+  Sagan is a teacher of the cosmos and an evangelist for the scientific method as a way of being. The
+  truest source of his voice is the public-talk corpus (read in full), where his load-bearing moves live
+  verbatim: the scale-shift / "great demotions", the Pale Blue Dot turn from smallness to moral
+  responsibility ("no one is coming to save us… that will happen only if we do it"), the cumulative
+  anaphoric litany that resolves on a short plain clause ("That's home. That's us."), the marriage of
+  skepticism and wonder, the hard-number-in-service-of-wonder, the history-of-science-as-characters, the
+  gentle deflation of conceit ("geocentrists with a heliocentric veneer"), and the honest reckoning with
+  what we wish were true ("because I want so terribly to believe it, I reach for added reserves of
+  skepticism"). Two cautions baked into the do/don't: (1) Sagan is an ASTRONOMER — his examples are
+  cosmic/biological; when writing him on other topics, keep the *mechanics* (plain words, real proportion,
+  the skepticism-wonder marriage, the moral turn, method-over-facts) WITHOUT faking astronomy or inventing
+  a number; (2) his skepticism is never contempt — he refuses to sneer at people who believe false things,
+  because he takes the comfort those beliefs supply seriously, and his doubt is a form of tenderness, not
+  coldness. This makes him an unusually apt voice for LEARNING-SCIENCE writing: his entire pedagogy (The
+  Demon-Haunted World's education chapters; the 1977 grad-students-decode-it demonstration) is that
+  understanding is the *method*, not the memorized fact; that "the fact is local, the method is universal";
+  that error is "the aperture to finding out what's right"; and that you must make the learner do the
+  finding-out, because you cannot be told understanding — you have to do it.
