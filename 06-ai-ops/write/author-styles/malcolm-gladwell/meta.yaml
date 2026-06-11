@@ -3,7 +3,7 @@ slug: malcolm-gladwell
 full_name: Malcolm Gladwell
 distilled_on: "2026-06-11"
 distilled_by: "/write distill (Claude Code — Workflow analyst×4 + main-thread assembly; every load-bearing quote grep-verified against the staged sources)"
-confidence: high   # The written voice is saturated from 4 full New Yorker features (his canonical form, 1996-2010) + 8 public interview/podcast transcripts (2009-2026) where he describes his own method explicitly. Books NOT ingested (quote ceiling respected); the article excerpts are kept short + attributed.
+confidence: high   # The written voice is saturated from 4 full New Yorker features (his canonical form, 2000-2010) + 8 public interview/podcast transcripts (2009-2026) where he describes his own method explicitly. Books NOT ingested (quote ceiling respected); the article excerpts are kept short + attributed.
 sources:
   # What the style was distilled from (kept as provenance, not reproduced).
   articles:
