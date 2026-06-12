@@ -1,0 +1,74 @@
+# Provenance for the nir-eyal author-style artifact.
+slug: nir-eyal
+full_name: Nir Eyal
+distilled_on: "2026-06-12"
+distilled_by: "/write distill (Claude Code — 4 parallel reader digests over the staged corpus via a Workflow + in-session assembly; every load-bearing quote machine-verified verbatim by grep against the staged sources)"
+confidence: high   # 14 sources spanning his three registers (his own freely-published blog essays, prepared Talks-at-Google lectures, and long unscripted podcast interviews), ~2014-2025; the voice mechanics converge across all three groups (the escape-discomfort root cause, distraction-vs-traction, time-management-is-pain-management, anti-moral-panic, the named-tool handoff). 40+ quotes grep-verified against the staged files. Book PDFs deliberately NOT ingested, so the written register rests on 6 of his own nirandfar.com essays; a future re-distillation could add Hooked/Indistractable chapter analysis if the copyright posture is revisited.
+sources:
+  # What the style was distilled from (kept as provenance, not reproduced).
+  articles:
+    # Nir's OWN posts on nirandfar.com (freely published; fuller quotes ok, attributed).
+    - {title: "Control Your Calendar (Not Your To-Do List) and Success Will Follow", source: "nirandfar.com", year: 2024, usage: "his own freely-published essay — the input-vs-output reframe, the timeboxing/values spine, the parallel-triple close ('Plan your time, control your attention, and the outcome will follow')"}
+    - {title: "The Pain Paradox: How Fear of Pain Creates More Pain", source: "nirandfar.com", year: 2025, usage: "his own essay — the named-protagonist cold-open (Sophie), the 'how did she get there?' pivot, route-back-to-my-model ('Readers of my book Indistractable will notice...'), the callback-image-as-imperative close ('Throw some ass instead.')"}
+    - {title: "How Successful People Timebox", source: "nirandfar.com", usage: "his own essay — values-as-guiding-star, the honest under-promise ('effective and hard'), the anti-moral-panic permission ('great! Do it!'), 'the goal of timeboxing is not to finish anything'"}
+    - {title: "Is Psychiatry Keeping Us Sick?", source: "nirandfar.com", usage: "his own essay — the contrarian/anti-over-medication register, 'pills don't teach skills', 'His environment, not his brain, was the problem', the caveat-emptor concede-then-caution close"}
+    - {title: "Sales Psychology: Why You Make Terrible Buying Choices", source: "nirandfar.com", usage: "his own essay — define-in-bold-then-translate ('Hedonic adaptation is...'), the rhetorical-question-then-wry-answer ('I'll give you one guess'), the reformed-insider stance"}
+    - {title: "Work Productivity Hacks & Tips for Today's Workplace", source: "nirandfar.com", usage: "his own essay — the stat-shock open (Gallup 9% of GDP), the explicit framework-anchoring transition ('Drawing from my insights in Indistractable, here are nine actionable tips')"}
+  transcripts:
+    # Public talks + interviews where Nir is the speaker (fuller quotes ok, attributed).
+    - {title: "Nir Eyal | Indistractable: How to Control Your Attention and Choose Your Life", venue: "Talks at Google (YouTube)", usage: "prepared talk — the distraction-vs-traction etymology (trahere → A-C-T-I-O-N), 'time management is pain management', the anti-moral-panic flat denial ('that's just not true'), responsibility-without-fault, the 10-minute rule, 'I write books not because I know the answer but because I need the answer'"}
+    - {title: "Nir Eyal | Beyond Belief", venue: "Talks at Google (YouTube)", usage: "prepared talk — the participatory failure-demo (checkerboard), the escalating-guess gap (Curt Richter rats, 240 times), 'all motivation is about one thing... the desire to escape discomfort', 'beliefs are tools, not truths', 'You don't guarantee success if you persist, but you guarantee failure if you quit', concede-the-kernel (mental contrasting)"}
+    - {title: "\"Everything You Do Is Escaping Discomfort!\" No.1 Behavior Expert Nir Eyal On How To Break Any Habit!", venue: "public podcast interview (YouTube)", usage: "unscripted interview — the escape-discomfort thesis as first principle, 'you can't call something a distraction unless you know what you got distracted from', the 90/10 internal-vs-external-trigger inversion"}
+    - {title: "No.1 Habit & Procrastination Expert: We've Got ADHD Wrong! Break Any Habit & Never Be Distracted!", venue: "public podcast interview (YouTube)", usage: "unscripted interview — 'Skills before pills', the ADHD-as-identity-is-dangerous flag, 'addiction comes from addictio in Latin, which means slave', the undiagnosis challenge, the incentive audit ('where are the disincentives?')"}
+    - {title: "How To Stay Focused, Beat Distraction, and Get Things Done | Nir Eyal", venue: "public interview (YouTube)", usage: "interview — the pain-unification move ('Time management is pain management. Money management is pain management. Weight management just pain management'), the permission-frame 10-minute rule ('not right now... in 10 minutes')"}
+    - {title: "Manifestation is BS (this is what actually works) - Nir Eyal", venue: "public interview (YouTube)", usage: "interview — the anti-manifestation inoculation ('cosmic slot machine that Santa Claus is going to give me'), the label-limit equation ('when you become the diagnosis, your labels become your limits')"}
+    - {title: "The Science Behind Why You Can't Trust Your Own Thoughts | Nir Eyal - NYT Bestselling Author", venue: "public interview (YouTube)", usage: "interview — beliefs-as-tools cognition material, the brain-as-prediction-machine, the number-drop ('11 million bits... 50 bits')"}
+    - {title: "Your Brain Is Lying to You About Reality (Here's Proof) | Nir Eyal", venue: "public interview (YouTube)", usage: "interview — the self-indictment confession (the daughter/phone scene), perception-as-disciplined-hallucination, the rat-to-reader leap"}
+  books:
+    # Deliberately NOT ingested (PDFs skipped by the distill stager). Referenced by NAME/IDEA only; zero quoted words.
+    - {title: "Hooked: How to Build Habit-Forming Products (Portfolio/Penguin, 2014)", usage: "referenced by name/idea only (the Hook Model: trigger -> action -> variable reward -> investment); its themes surface through his public talks + interviews, not the book"}
+    - {title: "Indistractable: How to Control Your Attention and Choose Your Life (BenBella, 2019)", usage: "referenced by name only — the four-step model + distraction-vs-traction are sourced from the public Talks-at-Google lecture and interviews above"}
+    - {title: "Beyond Belief (Nir Eyal)", usage: "referenced by name only — sourced from the public Beyond Belief Talks-at-Google lecture above, not the PDF"}
+    - {title: "Nudge (Thaler & Sunstein); The Power of Habit (Duhigg); Don't Make Me Think (Krug); Designing for Behavior Change (Wendel)", usage: "present in the raw Books folder but NOT Nir Eyal works — excluded entirely"}
+  excluded_from_distillation:
+    # On his blog / in the raw folder but NOT Nir's own voice — explicitly excluded so the artifact stays his.
+    - {title: "Decoding Self-Serving Bias: A Spy's Guide to Clear Thinking", reason: "a Shane Parrish book excerpt (from 'Clear Thinking') that Nir ran on his blog; the first-person 'I' is the ex-spy Parrish, not Nir — removed from staging, zero quotes used"}
+    - {title: "The Magic of Now, Not How", reason: "guest post by Noah Kagan (AppSumo) — the AppSumo story is Kagan's, not Nir's — excluded"}
+    - {title: "Why You're Always Busy but Never Productive (and How to Fix It)", reason: "guest post by Sahil Bloom — excluded"}
+    - {title: "The 4 Secrets to Storytelling for Business", reason: "guest post by Will Storr — excluded"}
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. The fuller quotes come from
+  Nir Eyal's OWN freely-published essays on nirandfar.com (his personal blog) and from his PUBLIC
+  talks and interviews (two Talks at Google lectures; publicly posted podcast/YouTube interviews),
+  quoted with the auto-transcript's verbatim casing. His BOOKS were NOT ingested (the PDFs in the raw
+  folder were deliberately skipped): Hooked / Indistractable / Beyond Belief are referenced by name or
+  idea only, with zero quoted words. Material on his blog that is NOT his own writing — a Shane Parrish
+  book excerpt and three guest posts (Noah Kagan, Sahil Bloom, Will Storr) — was excluded from
+  distillation entirely so the captured voice is Nir Eyal's and no one else's. Every excerpt in the
+  artifact was machine-verified verbatim (grep) against the staged sources. Output written in this style
+  is a derivative STYLE, presented as such — never claimed to be Nir Eyal's own words.
+notes: |
+  Nir Eyal's voice is unusually FRAMEWORK-shaped: the article exists to route the reader to a named
+  proprietary concept (traction, internal/external triggers, timeboxing, pacts, the four steps) and one
+  do-it-today tool. The mechanics recur nearly identically across his blog essays, prepared lectures,
+  and unscripted interviews, which is what makes the artifact high-confidence even though the books were
+  not ingested. Four cautions for writers using this style:
+  (1) His authority is that the studies and numbers are REAL and the researchers are NAMED. A writer
+      using this voice on a new topic must bring real examples, real (cited) studies, and a real number,
+      and should route the fix back to an actual framework — never counterfeit a stat or invent a study;
+      the voice collapses into self-help parody the moment a number is faked.
+  (2) He uses em-dashes liberally for his signature define-in-place gloss. The /write humanizer strips
+      em-dashes, which costs this voice almost nothing — render the gloss with parentheses, a colon, or
+      a comma instead. The gloss is the move; the dash is incidental.
+  (3) The contrarian edge is load-bearing but must stay constructive: deflate the moral panic, then hand
+      over agency and a tool. Done without the tool, it reads as mere reactance; done without the
+      empathy (the inclusive 'we', the self-indictment), it reads as scolding. Keep both.
+  (4) The closes are the easiest place to break the illusion. He never ends on a concept or a sermon —
+      he ends on a callback image turned into a command, a portable slogan, or a do-it-tonight action.
+  Strongest sources: the two Talks at Google (the cleanest prepared-voice mechanics), 'The Pain Paradox'
+  and 'Control Your Calendar' (his written essay architecture), and the ADHD interview (the sharpest
+  contrarian register). A natural fit for learning-science and Ritsu writing: active-effort-over-passive,
+  test-the-received-wisdom, do-the-work-not-the-magic, identity-based change, and 'time management is
+  pain management' map directly onto active-recall and habit-of-study arguments. What to add next: if the
+  posture allows, chapter-level analysis of the Hooked Hook Model and the Indistractable four-step model
+  in their written forms.
