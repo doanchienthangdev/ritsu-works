@@ -301,3 +301,15 @@ author_styles:
     distilled_on: "2026-06-12"
     confidence: high
     copyright: "Transformative style analysis + short attributed fair-use excerpts. All five books (Antifragile, The Black Swan, Skin in the Game, The Bed of Procrustes, Fooled by Randomness) are COPYRIGHTED (N. N. Taleb / Random House, 2001-2018); their prologues/aphorisms were read as LOCAL-ONLY staged text for analysis and are NOT reproduced — every committed book quote is ≤ 25 words, attributed, and machine-verified verbatim. Fuller quotes come from PUBLIC talks/interviews (The James Altucher Show, Seeking Wisdom, Bloomberg Odd Lots, Bloomberg Invest, Antifragile Mindset), quoted with the auto-transcript's verbatim wording. One staged transcript (the EFN 'Skin in the Game' interview) is in Swedish and was excluded from quotation; the technical papers were not quoted. Output in this style is a derivative STYLE, never claimed to be Taleb's own words."
+
+  - slug: nir-eyal
+    full_name: Nir Eyal
+    category: behavioral-science
+    one_line: "The reformed behavioral designer who teaches like a stand-up science lecturer: opens with a named person in a vivid scene or his own confessed failure (never a thesis), makes your intuition fail a quick test, relocates the cause one level upstream ('the opposite of distraction is not focus, it's traction'), states the load-bearing line and repeats it verbatim, cashes every claim into a named expert and a decimal-precise number, flattens the moral panic in one blunt line, routes the fix into his own four-step model, hands you exactly one named do-it-today tool, and closes by turning the opening image into a command — agency and a checklist, never a scold."
+    path: 06-ai-ops/write/author-styles/nir-eyal/
+    status: installed   # distilled 2026-06-12 via /write distill (4 parallel reader digests over 14 staged sources — 6 of his own nirandfar.com essays + 8 public talks/interviews — via a Workflow + in-session assembly; 40+ load-bearing quotes machine-verified by grep against the staged sources; guest posts + a Shane Parrish blog excerpt excluded so the voice is his alone)
+    origin: distilled
+    source_kinds: [articles, transcripts]
+    distilled_on: "2026-06-12"
+    confidence: high
+    copyright: "Transformative style analysis + short attributed fair-use excerpts. Fuller quotes are from Nir Eyal's OWN freely-published nirandfar.com essays and his PUBLIC talks/interviews (two Talks at Google; public podcast/YouTube interviews), quoted with the auto-transcript's verbatim casing. His books (Hooked, Indistractable, Beyond Belief) were NOT ingested — referenced by name/idea only, zero quoted words. Material on his blog that is NOT his own writing — a Shane Parrish book excerpt and three guest posts (Noah Kagan, Sahil Bloom, Will Storr) — was excluded from distillation entirely so the captured voice is his alone. Every excerpt grep-verified verbatim against the staged sources. Output in this style is a derivative STYLE, never claimed to be Nir Eyal's own words."
