@@ -289,3 +289,15 @@ author_styles:
     distilled_on: "2026-06-11"
     confidence: high
     copyright: "Transformative style analysis + attributed fair-use excerpts. Fuller quotes are from PUBLIC talks/interviews (Royal Institution 2013, UCSB/UCTV 2005, Upfront Summit 2020, People I (Mostly) Admire 2023, World Knowledge Forum 2025, UCLA 2025) and the freely-published Edge.org talk-essay (1997); quotes from the copyrighted magazine essays (Discover 1987, The New Yorker 2008, The Guardian 2014) are kept ≤ ~30 words, attributed. His books (Guns, Germs, and Steel; Collapse; The Third Chimpanzee; The World Until Yesterday; Upheaval) were NOT ingested — referenced by name only, zero quoted words. Output in this style is a derivative STYLE, never claimed to be Diamond's own words."
+
+  - slug: nassim-taleb
+    full_name: Nassim Nicholas Taleb
+    category: essay
+    one_line: "The practitioner-essayist who proves by living not citing: sort the world into named columns (fragile/robust/antifragile), build a long comma-and-semicolon-stacked sentence and land it on a bare axiom he refuses to soften, pivot every overturned cliché on a semicolon ('for the robust, an error is information; for the fragile, an error is an error'), coin a Capitalized noun that is both analytic tool and insult (the Black Swan, the turkey, the fragilista), refuse to forecast the event and name the fragility instead, cash every abstraction into a coffee cup or a deadlift, and name the charlatan deadpan, mid-sentence, as if 'idiot' were a technical term."
+    path: 06-ai-ops/write/author-styles/nassim-taleb/
+    status: installed   # distilled 2026-06-12 via /write distill (Workflow: written-essay + aphoristic/coinage register analysts over staged book front-matter, + a spoken-register analyst over 8 English transcripts; in-session assembly; 50+ load-bearing quotes machine-verified verbatim, every book quote ≤ 25 words)
+    origin: distilled
+    source_kinds: [books, transcripts]
+    distilled_on: "2026-06-12"
+    confidence: high
+    copyright: "Transformative style analysis + short attributed fair-use excerpts. All five books (Antifragile, The Black Swan, Skin in the Game, The Bed of Procrustes, Fooled by Randomness) are COPYRIGHTED (N. N. Taleb / Random House, 2001-2018); their prologues/aphorisms were read as LOCAL-ONLY staged text for analysis and are NOT reproduced — every committed book quote is ≤ 25 words, attributed, and machine-verified verbatim. Fuller quotes come from PUBLIC talks/interviews (The James Altucher Show, Seeking Wisdom, Bloomberg Odd Lots, Bloomberg Invest, Antifragile Mindset), quoted with the auto-transcript's verbatim wording. One staged transcript (the EFN 'Skin in the Game' interview) is in Swedish and was excluded from quotation; the technical papers were not quoted. Output in this style is a derivative STYLE, never claimed to be Taleb's own words."

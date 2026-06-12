@@ -1,0 +1,76 @@
+# Provenance for the nassim-taleb author-style artifact.
+slug: nassim-taleb
+full_name: Nassim Nicholas Taleb
+distilled_on: "2026-06-12"
+distilled_by: "/write distill (Claude Code — 3 register analysts: written-essay + aphoristic/coinage over staged book front-matter, and spoken over 8 English transcripts; in-session assembly; every load-bearing quote machine-verified verbatim against the staged sources, normalizing whitespace + curly/straight glyphs)"
+confidence: high   # His voice is unusually METHOD-shaped and the mechanics converge hard across all three registers (architectural written prose, compressed aphorism, digressive spoken interview), 2001-2025. 50+ quotes machine-verified. Book PDFs were read only as local-only staged front-matter for analysis; every committed book quote is <= 25 words. The strongest gap is that the books' BODIES (beyond the prologues/aphorisms) were not ingested; a future re-distillation could add the antifragility-by-layers and barbell chapters if the posture is revisited.
+sources:
+  # The style was distilled from these. Book front-matter was extracted (pdftotext) into LOCAL-ONLY
+  # staging (runtime/, gitignored) for analysis; it is NOT reproduced here beyond <= 25-word quotes.
+  books:
+    - {title: "Antifragile: Things That Gain from Disorder (Random House, 2012)", year: 2012, usage: "prologue + front matter read as staged text for analysis; quotes <= 25 words, attributed — the Triad/two-types device, the fragilista contempt, the coined-Capital-as-weapon, the long-build-axiom-landing, the first ethical rule ('If you see fraud...'), 'I eat my own cooking' practitioner ethos"}
+    - {title: "The Black Swan: The Impact of the Highly Improbable (Random House, 2007/2010)", year: 2007, usage: "prologue read as staged text; quotes <= 25 words, attributed — Mediocristan/Extremistan, the GIF coinage, 'what you don't know' epistemic inversion, the empty-suit expert, 'Ideas come and go, stories stay'"}
+    - {title: "Skin in the Game: Hidden Asymmetries in Daily Life (Random House, 2018)", year: 2018, usage: "prologue read as staged text; quotes <= 25 words, attributed — the moral spine, the named-villain indictment (the Bob Rubin trade), via negativa stated as principle, 'tell me what's in your portfolio', the suits-and-ties tell"}
+    - {title: "The Bed of Procrustes: Philosophical and Practical Aphorisms (Random House, 2010/2016)", year: 2010, usage: "aphorisms read as staged text; quotes <= 25 words (aphorisms are self-contained and short), attributed — the semicolon flip, the opposite-of-X demolition, the biconditional definition, the insult-as-wisdom, the two-types split, the asymmetry one-liner"}
+    - {title: "Fooled by Randomness: The Hidden Role of Chance in Life and in the Markets (Random House, 2001/2004)", year: 2001, usage: "preface/prologue read as staged text; quotes <= 25 words, attributed — the lucky fool / survivorship, alternative histories, noise vs signal, the steelman-then-amputate ('Of course chance favors the prepared!'), the Tragic vs Utopian Vision, the first-person trader-philosopher stance"}
+  transcripts:
+    - {title: "Why You Should Embrace Uncertainty (Ep. 45)", venue: "The James Altucher Show (podcast; YouTube)", usage: "public interview — fuller quotes ok; the RICHEST spoken source: the coffee-cup origin of fragility, 'can I generalize to everything?', the Lindy rule, systems-learn-through-filter, weightlifting/walking/diet phenomenology, the openly-enjoyed combat with charlatans"}
+    - {title: "5 Rules For A Robust Life", venue: "Seeking Wisdom (talk; YouTube)", usage: "public talk — fuller quotes ok; his most rehearsed/aphoristic spoken register: the 18-year-old mirror test, the doorman rule, the list-of-absences close ('Muscles without strength...')"}
+    - {title: "Nassim Taleb on Living a Good Life in an Age of Volatility", venue: "Bloomberg Odd Lots (live podcast)", usage: "public interview — fuller quotes ok; 'we're programmed to feel useful', the truck/bridge fragility-not-forecast line, 'Fat tales means the smallest number of event explains the largest', the dentist/bread tariff reductio"}
+    - {title: "Universa's Taleb on Inflation, Global Financial Markets, & Crypto", venue: "Bloomberg Invest (Tom Keene; TV)", usage: "public interview — fuller quotes ok; 'we just buy options, we have absolutely no notion of the future', the Bitcoin 'not even good for money laundering' provocation, '330 years for the plague' connectivity anchor"}
+    - {title: "Not Everyone Is Built to Have a Boss / on Stable Income", venue: "Antifragile Mindset (interview; YouTube)", usage: "public interview — fuller quotes ok; 'you must survive', 'the best predictor was stable income before' (the 2008 fund database), employment-as-fragility, 'physically impossible for me to have a boss'"}
+    - {title: "Rich People Will Never Tell You This / on Business & Trading", venue: "Antifragile Mindset (interview; YouTube)", usage: "public interview — fuller quotes ok; the quiz/Socratic trap (which business made/lost the most money), convexity 'make more when right than you lose when wrong', the one-over-N, 'the basis of everything is trial and error'"}
+    - {title: "This Will End the War (on US/Trump/Putin/Russia/Ukraine/EU)", venue: "Antifragile Mindset (interview; YouTube)", usage: "public interview — fuller quotes ok; scaling-as-master-key in politics ('Communism works in a kibbutz'), 'you double the stone, you have four times the harm', the city-state vs nation-state argument"}
+    - {title: "Nassim Taleb Warns About Software Bankruptcies, Volatility", venue: "Bloomberg (TV)", usage: "public interview — terser spoken register; structural-risk pivots and the refusal to give short-game commentary"}
+  articles:
+    # 9 quantitative-finance / technical PDFs present in the raw folder. PDFs are skipped by the
+    # distill stager and were NOT used for quotes (they are math papers — fat tails, tail-risk,
+    # Bitcoin fragility, single-point forecasts, mask studies). They informed the THEMES (fat tails,
+    # convexity, single-point forecasts are foolish) only; zero quoted words.
+    - {title: "On Single Point Forecasts for Fat-Tailed Variables; Tail Risk of Contagious Diseases; Bitcoin, Currencies, and Fragility; Tail Option Pricing Under Power Laws; Working With Convex Responses (Antifragility from Finance to Oncology); and 4 others", usage: "technical register — referenced for theme grounding only, not quoted"}
+  urls:
+    - "https://www.youtube.com (the eight English transcripts above are public talks/interviews on YouTube / Bloomberg)"
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. All five books (Antifragile,
+  The Black Swan, Skin in the Game, The Bed of Procrustes, Fooled by Randomness) are COPYRIGHTED
+  (Nassim Nicholas Taleb / Random House, 2001-2018). Their prologues/front-matter/aphorisms were
+  extracted to LOCAL-ONLY staging (runtime/, gitignored) for analysis and are NOT reproduced here:
+  every committed book quote is <= 25 words, attributed by title, and machine-verified verbatim.
+  The fuller quotes come from PUBLIC talks and interviews (The James Altucher Show, Seeking Wisdom,
+  Bloomberg Odd Lots, Bloomberg Invest, Antifragile Mindset) — publicly posted, quoted with the
+  auto-transcript's verbatim wording (including its mishearings, which are flagged in the artifact).
+  One staged transcript (the EFN "Skin in the Game" interview) is in SWEDISH and was excluded
+  entirely from quotation. The technical papers were not quoted. Output written in this style is a
+  derivative STYLE, presented as such — never claimed to be Taleb's own words.
+notes: |
+  Taleb's voice is unusually METHOD-shaped: the mechanics (the Triad/two-types split, the semicolon
+  flip, the coined-Capital-as-weapon, long-build-axiom-landing, detect-fragility-not-forecast, the
+  concrete-object generalization, contempt-inside-rigor, via negativa, skin-in-the-game-as-proof,
+  steelman-then-amputate) recur nearly identically across his written prologues, his aphorisms, and
+  his unscripted interviews, which is what makes the artifact high-confidence. Three cautions for
+  writers:
+  (1) His authority is that the cases and the risk are REAL and his own. A writer using this style
+  must bring real mechanisms and real (or honestly-framed) examples; invented statistics or a faked
+  anecdote collapse the voice into parody. Keep the mechanics; never counterfeit the proof.
+  (2) He is SEMICOLON- and colon-punctuated; in print he also leans on em-dashes, which the /write
+  humanizer strips, costing this voice nothing. Render the chiastic flip on a semicolon and the
+  verdict on a colon. No em-dashes in /write output.
+  (3) The combat is load-bearing but DIRECTED. In his own work it names real people and professions
+  and asterisks profanity. For RITSU output, aim the contempt at methods and ideas (rereading, the
+  fluency illusion, passive study, "study hacks"), never at named individuals, and drop the
+  profanity, per 00-core/brand_voice.md and 06-ai-ops/write/author-styles/nassim-taleb/do-and-dont.md.
+  The combat survives; the target changes.
+  Auto-transcript mishearings reproduced verbatim where quoted ("fil filter" for filter; "Fat tales"
+  for fat tails); in GENERATED prose, spell coinages correctly (antifragile, Sharpe ratio).
+  Strongest sources: Antifragile prologue + The Bed of Procrustes (the written + aphoristic spine),
+  the James Altucher interview (the spoken texture + the coffee-cup generalization), Skin in the
+  Game prologue (the moral spine + named-villain indictment + via negativa).
+  A natural fit for learning-science and Ritsu writing: antifragility maps onto desirable
+  difficulties and the testing effect (the struggle to retrieve IS the learning); the turkey / fat
+  tails map onto the fluency illusion and the exam as a one-day fat-tailed event; skin in the game
+  maps onto self-testing (cheap exposure to being wrong now) vs passive rereading (no exposure);
+  via negativa maps onto subtractive mastery (find and remove the illusion of knowing).
+  What to add next: if posture allows, the antifragility-by-layers / barbell / "touristification"
+  chapters of Antifragile and the minority-rule chapter of Skin in the Game, for the body-of-book
+  register beyond the prologues; and the IYI ("Intellectual Yet Idiot") essay if a public version is
+  staged (the coinage is referenced by name in the spoken sources but was not quoted).
