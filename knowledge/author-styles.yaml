@@ -313,3 +313,15 @@ author_styles:
     distilled_on: "2026-06-12"
     confidence: high
     copyright: "Transformative style analysis + short attributed fair-use excerpts. Fuller quotes are from Nir Eyal's OWN freely-published nirandfar.com essays and his PUBLIC talks/interviews (two Talks at Google; public podcast/YouTube interviews), quoted with the auto-transcript's verbatim casing. His books (Hooked, Indistractable, Beyond Belief) were NOT ingested — referenced by name/idea only, zero quoted words. Material on his blog that is NOT his own writing — a Shane Parrish book excerpt and three guest posts (Noah Kagan, Sahil Bloom, Will Storr) — was excluded from distillation entirely so the captured voice is his alone. Every excerpt grep-verified verbatim against the staged sources. Output in this style is a derivative STYLE, never claimed to be Nir Eyal's own words."
+
+  - slug: maria-montessori
+    full_name: Maria Montessori
+    category: learning-science
+    one_line: "The physician-scientist who carried the laboratory into the schoolroom and knelt at what she saw: she builds every argument from one precisely-watched child (an age, an exact act, 'forty-two times'), extracts the law in a short flat verdict, redefines the reader's sure words by reversal (discipline, reward, 'teacher'), makes the invisible mind visible with an embryo parable or a homely picture, condemns the prize as 'the bench of the soul', and lifts the single child up the scale until he is 'fashioning humanity itself' — reverent, never cynical, closing on hope."
+    path: 06-ai-ops/write/author-styles/maria-montessori/
+    status: installed   # distilled 2026-06-13 via /write distill (4 parallel forensic reader digests, one per book, over the full OCR'd text of her four own works + in-session assembly; every load-bearing quote machine-verified against the OCR-normalized source by grep)
+    origin: distilled
+    source_kinds: [books]
+    distilled_on: "2026-06-13"
+    confidence: high
+    copyright: "Transformative style analysis + short attributed fair-use excerpts. Montessori d.1952; her original Italian works are public domain in life+70 jurisdictions (since 2023). Fuller quotes are from THE MONTESSORI METHOD in the 1912 Anne E. George American translation — PUBLIC DOMAIN in the US (pre-1929), quoted freely, attributed. Quotes from the still-in-copyright English translations of her later works (The Absorbent Mind, tr. Claremont 1949; The Secret of Childhood, tr. Carter 1936; To Educate the Human Potential 1948) are kept ≤25 words, attributed. The 'Interview with Maria Montessori' podcast (a present-day host reconstruction) and the Angeline Lillard 'Montessori: The Science' transcripts were EXCLUDED as voice sources (they are about her / not her verbatim words); her biographies were not ingested. Output in this style is a derivative STYLE, never claimed to be Montessori's own words."

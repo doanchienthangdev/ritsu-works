@@ -1,0 +1,59 @@
+# Provenance for the maria-montessori author-style artifact.
+slug: maria-montessori
+full_name: Maria Montessori
+distilled_on: "2026-06-13"
+distilled_by: "/write distill (Claude Code — 4 parallel forensic reader digests, one per book, over the full OCR'd text of her four own works + in-session assembly; every load-bearing quote machine-verified against the OCR-normalized source by grep, with obvious scanning artifacts silently corrected)"
+confidence: high   # Distilled from HER OWN authored prose across four books spanning her whole career (1912-1949) — the foundational scientific-pedagogy register (The Montessori Method, 1912), the lyrical-polemical register (The Secret of Childhood, 1936), the cosmic-education register (To Educate the Human Potential, 1948), and the mature synthesizing register (The Absorbent Mind, 1949). The voice mechanics — scene-as-proof, reframe-by-fact, redefinition-by-reversal, the embryo parable, the homely picture, the cosmic ascent, the indictment, the bench-of-the-soul condemnation of rewards — converge nearly identically across all four, which is what makes the artifact high-confidence. Caveat: her English is a translator's (George/Claremont/Carter), so the period DICTION belongs to the translators while the rhetorical ARCHITECTURE is unmistakably hers; and the sources are OCR'd scans, so quotes are verified against the OCR-normalized text rather than a pristine edition.
+sources:
+  # What the style was distilled from (kept as provenance, not reproduced).
+  books:
+    # Her OWN authored prose — the basis of the distillation (one parallel reader digest each).
+    - {title: "The Montessori Method (The Method of Scientific Pedagogy Applied to Child Education in the Children's Houses)", edition: "1912 American edition, translated by Anne E. George (Frederick A. Stokes); 1965 Robert Bentley reprint scanned", year: 1912, usage: "PUBLIC DOMAIN (US, pre-1929). Her foundational physician-scientist / reformer voice — the polemic against the old school, scene-as-proof, redefinition-by-reversal ('the teacher teaches little and observes much... directress'), 'the bench of the soul', 'Life is a superb goddess', the Kant close. Fuller quotes used freely."}
+    - {title: "The Absorbent Mind", edition: "1st ed. 1949, translated from the Italian by Claude A. Claremont (Kalakshetra), drawn from her 1948 Ahmedabad lectures", year: 1949, usage: "her final, synthesizing, lecture-derived voice — 'it is the child who makes the man', 'absorb'/'incarnate', the inner teacher, 'act as if the child does not exist', the St. Paul / 'God is love' close. Translation copyright respected: quotes kept <=25 words, attributed."}
+    - {title: "The Secret of Childhood", edition: "1936; translated by Barbara Barclay Carter (Orient Longman scan)", year: 1936, usage: "her most lyrical and polemical voice — the 'spiritual embryo', the child as the suffering/risen Christ and the adult as defendant, 'Man builds himself through working', 'the deadly sin... is Anger', the forty-two-times counted observation, 'He must increase: but I must decrease'. Translation copyright respected: quotes kept <=25 words, attributed."}
+    - {title: "To Educate the Human Potential", edition: "1948 (Kalakshetra Publications)", year: 1948, usage: "her 'Cosmic Education' voice for the 6-12 child — 'a vision of the whole universe', imagination over memory ('not... to force him to memorise, but to touch his imagination'), 'interest... never... induced from without', 'shed omnipotence and become a joyous observer', Nature's Tribunal with speaking creatures, scale-shock by numbers. Quotes kept <=25 words, attributed."}
+    # Available in the raw folder but NOT distilled as voice.
+    - {title: "The Discovery of the Child (Clio Montessori Series, New Ed. 1988)", usage: "her own work but largely overlapping The Montessori Method (a later revision of the same material); spot-checked, NOT run through the forensic fan-out to avoid redundant weighting. No load-bearing quotes drawn from it."}
+  excluded_about_her_not_by_her:
+    # Present in the raw folder; deliberately NOT used as voice samples (they are ABOUT Montessori, not BY her).
+    - {title: "'Interview with Maria Montessori' (The Montessori Education Podcast, Jesse McCarthy, 2022; YouTube transcript)", reason: "a present-day podcast RECONSTRUCTION narrated by the host, not Montessori's verbatim recorded voice ('we can't know for certain... she p[assed]'). Excluded entirely from voice samples."}
+    - {title: "'Montessori: The Science' Parts 1-10 (Angeline Stoll Lillard) transcripts", reason: "Lillard's voice explaining the modern evidence FOR Montessori, not Montessori's own prose. Used only as background for the learning-science framing of test essays, never quoted as her voice."}
+    - {title: "Modern articles (Forbes 'Montessori Manager', 'Embracing the Future', the '100-year-old method' pieces) + the French RCT study", reason: "secondary, about Montessori; never quoted as her voice."}
+    - {title: "Biographies — Rita Kramer (2017), E. M. Standing (1957), Angeline Stoll Lillard 'Montessori: The Science Behind the Genius' (2005)", reason: "ABOUT her; not ingested for voice. Referenced for context only, zero quoted words attributed to Montessori."}
+copyright: |
+  Transformative style analysis + short attributed fair-use excerpts. Maria Montessori died in 1952,
+  so her ORIGINAL ITALIAN works are public domain in life+70 jurisdictions (since 1 Jan 2023). The
+  fuller quotes in this artifact are taken from THE MONTESSORI METHOD in the 1912 Anne E. George
+  American translation, which is PUBLIC DOMAIN in the United States (published pre-1929) — quoted
+  freely, always attributed. Quotes from the still-in-copyright English TRANSLATIONS of her later
+  works (The Absorbent Mind, tr. Claremont 1949; The Secret of Childhood, tr. Carter 1936; To Educate
+  the Human Potential, 1948) are kept short (<= ~25 words each) and always attributed, on the same
+  posture as the other distilled authors. Her works were read in full from OCR'd Internet-Archive
+  scans staged locally (never committed); every load-bearing quote was verified against the
+  OCR-normalized text by grep, with obvious scanning artifacts (dropped fl-ligatures, an "I" misread
+  as "IJ", mid-sentence line breaks) silently corrected to the faithful reading. Output written in
+  this style is a derivative STYLE, presented as such — never claimed to be Montessori's own words.
+notes: |
+  Montessori's voice is unusually METHOD-shaped and METHOD-CONSISTENT: the same mechanics (scene-as-
+  proof then the law, reframe-by-fact, redefinition-by-reversal, the embryo parable, the homely
+  picture, the cosmic ascent, the indictment of the adult, the bench-of-the-soul condemnation of
+  rewards) recur nearly identically across four books and four decades, which is what carries the
+  high-confidence rating. Three cautions for writers:
+  (1) Her authority is that the CASE is real and the CHILD was watched. A writer using this style on a
+      new topic must bring a real observed learner and a real number; the style collapses into pious
+      mush with invented children or counted "facts" that were never counted. Keep the mechanics;
+      never counterfeit the scene.
+  (2) Reverence is the STANCE, not a coat of paint. The voice is tender toward the learner's dignity
+      and severe toward the system that wrongs it — but it never coos, never moralises the small
+      child, and never ends cynical. The closes are the easiest place to break the illusion: she
+      ascends to hope; she does not exhort ("we must") and she does not despair.
+  (3) She is semicolon/colon/parenthesis-punctuated and fond of the em-dash for the spoken aside; the
+      /write humanizer strips em-dashes, which costs this voice nothing — render the aside with a
+      comma, a colon, a parenthesis, or a period plus a short sentence, all of which she already uses.
+  A natural, almost native fit for learning-science and Ritsu writing: active-learning-over-passive,
+  intrinsic-motivation-over-rewards, observation-over-instruction, the prepared environment, embodied
+  cognition, sensitive periods, and concentration as sacred all come straight from her own pages and
+  map directly onto retrieval practice, autonomy-supportive design, and an AI tutor that hands the
+  learner the work rather than doing it for them. What to add next, if the posture is revisited:
+  a forensic pass over The Discovery of the Child and her 1946 London Lectures for additional verbatim
+  classroom scenes.
