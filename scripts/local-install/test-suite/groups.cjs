@@ -80,8 +80,8 @@ const TEST_GROUPS = [
     // The supabase-ops MCP runs via `tsx src/server.ts` (no compiled dist needed),
     // so the meaningful check is "does it type-check" — `pnpm typecheck`
     // (tsc -p tsconfig.json --noEmit), the same check the analytics group uses.
-    // (The package's `pnpm build` references a tsconfig.build.json that does not
-    // exist — a dormant, separate mcp-server bug; the emitted dist is unused.)
+    // (The package's `pnpm build` is now a typecheck alias too — same
+    // tsc -p tsconfig.json --noEmit; the package is tsx-only so no dist is emitted.)
     label: 'supabase-ops MCP type-checks (tsc)',
     required: 'hard',
     slow: false,
