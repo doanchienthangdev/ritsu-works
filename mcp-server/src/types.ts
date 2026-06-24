@@ -2,13 +2,20 @@
  * Shared types for supabase-ops MCP shim.
  */
 
-import type { KnownRole } from "./lib/env.ts";
+import type { AuthMode, KnownRole } from "./lib/env.ts";
 
 /**
  * HITL tiers from governance/HITL.md.
  * Ordered by escalation: A (autonomous) < B (notify-after) < C (approve-before) < D-Std < D-MAX.
  */
 export type HitlTier = "A" | "B" | "C" | "D-Std" | "D-MAX";
+
+/**
+ * Per-human authority tiers (capability multi-user-auth). The authority in
+ * per-human mode comes from the server-issued Supabase Auth JWT claim
+ * app_metadata.tier — never from MCP_CALLER_ROLE. Hierarchical: owner ⊇ admin ⊇ user.
+ */
+export type OperatorTier = "owner" | "admin" | "user";
 
 export const TIER_RANK: Record<HitlTier, number> = {
   A: 0,
@@ -23,7 +30,12 @@ export const TIER_RANK: Record<HitlTier, number> = {
  * Subset of governance/ROLES.md fields the shim needs at runtime.
  */
 export interface CallerContext {
-  role: KnownRole;
+  /**
+   * The authority principal. In service-key mode this is the (self-asserted)
+   * MCP_CALLER_ROLE; in per-human mode it is the verified JWT tier
+   * (owner|admin|user) — the DB RLS is the real backstop either way.
+   */
+  role: KnownRole | OperatorTier;
   sessionId: string;
   /** Maximum tier this role is allowed to attempt. */
   hitlMaxTier: HitlTier;
@@ -31,6 +43,16 @@ export interface CallerContext {
   tier2SchemasRead: string[];
   /** Tables (fully-qualified) this role may INSERT into. */
   tier2SchemasWrite: string[];
+  /**
+   * Which authority model produced this context. Default 'service-key' (current
+   * behavior). When 'per-human', reads route through the SECURITY INVOKER RPC so
+   * per-tier RLS enforces, and audit attributes the human principal below.
+   */
+  authMode: AuthMode;
+  /** Verified human email (per-human mode only) — for server-side audit attribution. */
+  humanEmail?: string | null;
+  /** Verified Supabase Auth sub/uuid (per-human mode only). */
+  humanSub?: string | null;
 }
 
 /**

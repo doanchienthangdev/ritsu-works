@@ -143,8 +143,15 @@ export async function handleQuery(
   // 00026; it should not fire in normal operation.
   // Note: `.schema('ops')` is required because supabase-js defaults to looking up
   // RPC functions in the `public` schema; `ops_run_select` lives in `ops`.
+  // RPC selection by authority mode (capability multi-user-auth):
+  //   service-key → ops_run_select       (SECURITY DEFINER; RLS bypassed; gated
+  //                                        by the canReadSchema check above)
+  //   per-human   → ops_run_select_rls   (SECURITY INVOKER; runs as the
+  //                                        authenticated caller so per-tier RLS
+  //                                        on ops.* actually enforces the read)
+  const rpcName = ctx.authMode === "per-human" ? "ops_run_select_rls" : "ops_run_select";
   const startedAt = Date.now();
-  const { data, error } = await client.schema("ops").rpc("ops_run_select", {
+  const { data, error } = await client.schema("ops").rpc(rpcName, {
     sql_text: parsed.sql,
     bind_params: parsed.params ?? [],
     row_limit: parsed.row_limit ?? 100,

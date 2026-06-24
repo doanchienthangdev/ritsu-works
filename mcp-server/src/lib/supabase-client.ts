@@ -19,6 +19,36 @@ export function getClient(env: ServerEnv): SupabaseClient {
   // Product, this catches it before any HTTP request.
   assertProjectRefAllowed(env.url);
 
+  // --- per-human mode (capability multi-user-auth) -------------------------
+  // Connect as `authenticated`: anon key + the operator's JWT in the
+  // Authorization header. Every request then carries the verified human
+  // identity, so Supabase enforces per-tier RLS (migration 00049). NO
+  // service_role. The token is NOT trusted locally for authority — the DB
+  // verifies its signature; a tampered token simply gets denied server-side.
+  if (env.authMode === "per-human") {
+    const anon = env.anonKey;
+    const token = env.perHumanAccessToken;
+    if (!anon || !token) {
+      // loadEnv guards this; defense-in-depth here.
+      throw new Error("per-human mode requires both anon key and operator access token");
+    }
+    // Cache key includes the token so a rotated token rebuilds the client.
+    const cacheKey = `per-human:${token}`;
+    if (cached && cachedKey === cacheKey) return cached;
+    cached = createClient(env.url, anon, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        headers: {
+          "X-Client-Info": "supabase-ops-mcp/0.1.0",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    });
+    cachedKey = cacheKey;
+    return cached;
+  }
+
+  // --- service-key mode (default, unchanged) -------------------------------
   const key = env.serviceKey ?? env.anonKey;
   if (!key) throw new Error("No key available — this should have been caught at boot");
 

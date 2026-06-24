@@ -91,6 +91,18 @@ export const KNOWN_ROLES = [
 
 export type KnownRole = (typeof KNOWN_ROLES)[number];
 
+/**
+ * Authority model (capability multi-user-auth).
+ *   - 'service-key' (default): the current behavior. Connect as service_role,
+ *     authority = the self-asserted MCP_CALLER_ROLE, reads via the SECURITY
+ *     DEFINER RPC (RLS bypassed).
+ *   - 'per-human': connect as `authenticated` carrying a per-human Supabase Auth
+ *     JWT; authority = the verified app_metadata.tier claim; reads via the
+ *     SECURITY INVOKER RPC so per-tier RLS enforces. MCP_CALLER_ROLE is NOT an
+ *     authority source in this mode.
+ */
+export type AuthMode = "service-key" | "per-human";
+
 export interface ServerEnv {
   url: string;
   projectRef: string;
@@ -100,6 +112,10 @@ export interface ServerEnv {
   callerSessionId: string;
   /** Repo root absolute path — needed by hitl-tier-check to load knowledge/mcp-tools.yaml */
   repoRoot: string;
+  /** Authority model — defaults to 'service-key' (current behavior). */
+  authMode: AuthMode;
+  /** Per-human Supabase Auth access token (JWT). Required iff authMode='per-human'. */
+  perHumanAccessToken: string | null;
 }
 
 /**
@@ -167,6 +183,29 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): ServerEnv {
     env.MCP_CALLER_SESSION_ID?.trim() ||
     `cc-${process.pid}-${Date.now().toString(36)}`;
 
+  // --- Authority model (capability multi-user-auth) ----------------------
+  // Default 'service-key' = current behavior, byte-for-byte. 'per-human'
+  // requires a per-human JWT + anon key (connects as `authenticated`).
+  const authMode = (env.RITSU_AUTH_MODE?.trim() || "service-key") as AuthMode;
+  if (authMode !== "service-key" && authMode !== "per-human") {
+    throw new MissingEnvError(
+      `RITSU_AUTH_MODE must be 'service-key' or 'per-human' (got "${authMode}")`,
+    );
+  }
+  const perHumanAccessToken = env.RITSU_OPERATOR_ACCESS_TOKEN?.trim() || null;
+  if (authMode === "per-human") {
+    if (!perHumanAccessToken) {
+      throw new MissingEnvError(
+        "RITSU_OPERATOR_ACCESS_TOKEN (required when RITSU_AUTH_MODE=per-human)",
+      );
+    }
+    if (!anonKey) {
+      throw new MissingEnvError(
+        "SUPABASE_OPS_ANON_KEY/SUPABASE_ANON_KEY (per-human mode connects as 'authenticated' via the anon key + operator JWT; service_role is not used)",
+      );
+    }
+  }
+
   const repoRoot =
     env.RITSU_REPO_ROOT?.trim() ||
     // When invoked via `npm --prefix mcp-server run doctor`, npm sets the
@@ -183,6 +222,8 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): ServerEnv {
     callerRole,
     callerSessionId,
     repoRoot,
+    authMode,
+    perHumanAccessToken,
   };
 }
 
@@ -226,6 +267,8 @@ export function summarizeEnv(e: ServerEnv): string {
     `service_key=${e.serviceKey ? "set(******)" : "unset"}`,
     `anon_key=${e.anonKey ? "set(******)" : "unset"}`,
     `role=${e.callerRole}`,
+    `auth_mode=${e.authMode}`,
+    `operator_token=${e.perHumanAccessToken ? "set(******)" : "unset"}`,
     `session=${e.callerSessionId}`,
     `repo_root=${e.repoRoot}`,
   ].join(" | ");

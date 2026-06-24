@@ -18,7 +18,8 @@
  */
 
 import type { KnownRole } from "../lib/env.ts";
-import type { CallerContext, HitlTier } from "../types.ts";
+import type { CallerContext, HitlTier, OperatorTier } from "../types.ts";
+import type { HumanIdentity } from "./operator-identity.ts";
 
 interface RoleSpec {
   hitlMaxTier: HitlTier;
@@ -180,6 +181,69 @@ export function resolveRole(role: KnownRole, sessionId: string): CallerContext {
     hitlMaxTier: spec.hitlMaxTier,
     tier2SchemasRead: spec.tier2SchemasRead,
     tier2SchemasWrite: spec.tier2SchemasWrite,
+    authMode: "service-key",
+  };
+}
+
+/**
+ * Per-human authority spec (capability multi-user-auth). Mirrors
+ * knowledge/operator-tiers.yaml at the DB-scope granularity. This is the
+ * APP-LAYER mirror for fail-fast + audit; per-tier RLS (migration 00049) is the
+ * authoritative backstop (it constrains owner_only tables that 'admin' lists as
+ * ops.* here — RLS WITH CHECK denies the writes RLS-side).
+ */
+const OPERATOR_TIER_SPEC: Record<OperatorTier, RoleSpec> = {
+  owner: {
+    hitlMaxTier: "D-MAX",
+    tier2SchemasRead: ["ops.*", "metrics.*", "public.*"],
+    tier2SchemasWrite: ["ops.*", "metrics.*", "public.*"],
+  },
+  admin: {
+    hitlMaxTier: "C",
+    // ops only — metrics.* (Product-mirror DAU/MRR + cost) is OWNER-ONLY at the
+    // DB (migration 00049 §5.5). RLS further constrains admin within ops: ALL on
+    // the data plane, append-only on the forensic trail, NOTHING on the owner_only
+    // set. NB (red-team #7): an admin read of an owner_only ops table returns
+    // silent-empty (RLS), not an error — documented; admin never sees the data.
+    tier2SchemasRead: ["ops.*"],
+    tier2SchemasWrite: ["ops.*"], // RLS denies owner_only + makes the forensic trail append-only
+  },
+  user: {
+    hitlMaxTier: "A",
+    tier2SchemasRead: [], // content-production only — no ops/data access
+    tier2SchemasWrite: [],
+  },
+};
+
+export class MissingTierError extends Error {
+  constructor() {
+    super(
+      "per-human auth: the operator JWT carries no valid app_metadata.tier " +
+        "(owner|admin|user). Fail-closed — the server will not start. The token " +
+        "must be issued by the enrollment broker with a tier claim.",
+    );
+    this.name = "MissingTierError";
+  }
+}
+
+/**
+ * Resolve a per-human caller context from the decoded JWT identity. Fail-closed:
+ * a token without a valid tier throws (server refuses to start). The decoded
+ * tier is advisory (RLS is authoritative); this context drives fast app-layer
+ * denial + per-human audit attribution.
+ */
+export function resolveOperator(identity: HumanIdentity, sessionId: string): CallerContext {
+  if (!identity.tier) throw new MissingTierError();
+  const spec = OPERATOR_TIER_SPEC[identity.tier];
+  return {
+    role: identity.tier,
+    sessionId,
+    hitlMaxTier: spec.hitlMaxTier,
+    tier2SchemasRead: spec.tier2SchemasRead,
+    tier2SchemasWrite: spec.tier2SchemasWrite,
+    authMode: "per-human",
+    humanEmail: identity.email,
+    humanSub: identity.sub,
   };
 }
 
