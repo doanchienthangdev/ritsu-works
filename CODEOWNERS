@@ -1,0 +1,34 @@
+# CODEOWNERS — owner-gated Tier-1 / security / governance paths
+# Capability multi-user-auth (Sprint 0). Pairs with GitHub branch protection
+# (founder action: require review from Code Owners on `main`). Until branch
+# protection is configured to require Code Owner review, this file is advisory.
+#
+# Owners (the `owner` tier in governance/operators.yaml). Add co-equal owners'
+# GitHub handles here as they are enrolled at the owner tier.
+#
+# Per the spec (.archives/cla/multi-user-auth/01-spec.md §4.2): only owners may
+# change governance, the security model, the firewall hooks, MCP wiring, the
+# tier map, the operator registry, and DB migrations.
+
+# --- the security/governance core ---
+/governance/                      @doanchienthangdev
+/00-core/                         @doanchienthangdev
+/.claude/hooks/                   @doanchienthangdev
+/.claude/settings.json            @doanchienthangdev
+/.mcp.json                        @doanchienthangdev
+/CODEOWNERS                       @doanchienthangdev
+
+# --- the multi-user-auth contract + registry ---
+/governance/operators.yaml        @doanchienthangdev
+/knowledge/operator-tiers.yaml    @doanchienthangdev
+
+# --- schema / migrations / cross-tier truth ---
+/supabase/migrations/             @doanchienthangdev
+/knowledge/manifest.yaml          @doanchienthangdev
+/knowledge/mcp-tools.yaml         @doanchienthangdev
+/knowledge/cross-tier-invariants.yaml  @doanchienthangdev
+
+# --- the auth/identity server-side enforcement (Sprint 1+) ---
+/mcp-server/src/governance/       @doanchienthangdev
+/mcp-server/src/lib/env.ts        @doanchienthangdev
+/mcp-server-analytics/src/governance/  @doanchienthangdev

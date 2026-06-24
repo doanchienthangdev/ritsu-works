@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "operator-tiers.schema.json",
+  "title": "Operator Tiers — human authority tier → capability map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "status", "tiers"],
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema": { "type": "string" },
+    "status": { "type": "string", "enum": ["advisory-v0", "enforced"] },
+    "enforcement_sprint": { "type": "integer" },
+    "tiers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["user", "admin", "owner"],
+      "properties": {
+        "user": { "$ref": "#/$defs/tier" },
+        "admin": { "$ref": "#/$defs/tier" },
+        "owner": { "$ref": "#/$defs/tier" }
+      }
+    },
+    "forbidden_for_non_owner": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["action", "enforced_by"],
+        "properties": {
+          "action": { "type": "string" },
+          "enforced_by": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "tier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "description", "inherits", "commands", "mcp", "db_schemas", "git", "publish", "user_management"],
+      "properties": {
+        "label": { "type": "string" },
+        "description": { "type": "string" },
+        "inherits": { "type": ["string", "null"], "enum": ["user", "admin", "owner", null] },
+        "commands": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allow"],
+          "properties": {
+            "allow": { "type": "array", "items": { "type": "string" } },
+            "system": { "type": "array", "items": { "type": "string" } },
+            "deny_categories": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "mcp": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["read", "write"],
+          "properties": {
+            "read": { "type": "array", "items": { "type": "string" } },
+            "write": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "db_schemas": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["read", "write"],
+          "properties": {
+            "read": { "type": "array", "items": { "type": "string" } },
+            "write": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "git": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tier1_edit", "merge_main", "push_branch"],
+          "properties": {
+            "tier1_edit": { "type": "boolean" },
+            "merge_main": { "type": "boolean" },
+            "push_branch": { "type": "boolean" }
+          }
+        },
+        "publish": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["external_stores", "brand_channels", "requires_hitl"],
+          "properties": {
+            "external_stores": { "type": "boolean" },
+            "brand_channels": { "type": "boolean" },
+            "requires_hitl": { "type": "boolean" }
+          }
+        },
+        "user_management": { "type": "boolean" }
+      }
+    }
+  }
+}

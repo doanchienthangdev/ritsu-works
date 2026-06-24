@@ -1,0 +1,113 @@
+# ============================================================================
+# operator-tiers.yaml — Human operator authority tiers (capability multi-user-auth)
+# ============================================================================
+# Tier 1 declarative file. The CONTRACT that maps each HUMAN operator tier
+# (owner / admin / user) → the capabilities that tier may use. This is a NEW
+# layer ABOVE the ~25 AI agent roles in governance/ROLES.md: an enrolled human
+# is assigned a tier here; the tier bounds which agent roles + commands + data
+# systems + git/publish surfaces they may reach. It does NOT redefine the agent
+# roles — it gates them.
+#
+# STATUS: advisory-v0. Sprint 0 ships this contract + the registry + the surface.
+# ENFORCEMENT lands in Sprint 1 (per-human Supabase Auth → JWT tier claim →
+# per-tier RLS on ops.* + the server-side broker). Until then the real
+# boundaries remain GitHub branch protection + the Product-DB firewall.
+#
+# Hierarchy: owner ⊇ admin ⊇ user  (via `inherits`). A tier's effective grants
+# = its own grants ∪ all inherited grants. The validator checks the chain.
+#
+# See: .archives/cla/multi-user-auth/01-spec.md (§2 tier model, §4 architecture)
+#      governance/operators.yaml (the human→tier registry)
+#      06-ai-ops/sops/SOP-AIOPS-017-multi-user-authz-contract/flow.yaml
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/operator-tiers.schema.json
+status: advisory-v0
+enforcement_sprint: 1
+
+tiers:
+  user:
+    label: "User"
+    description: "Content producers. May run content-PRODUCTION commands and publish produced content to external stores (with HITL). No shared-data writes, no system/self-modifying commands, no Tier-1."
+    inherits: null
+    commands:
+      # content-production commands — produce local artifacts from the user's own inputs
+      allow: [write, think, voice, image, dataviz, translate, toolkit]
+      deny_categories: [system, data-write, user-management]
+    mcp:
+      read: []
+      write: []
+    db_schemas:
+      read: []
+      write: []
+    git:
+      tier1_edit: false
+      merge_main: false
+      push_branch: true     # may push feature branches → PR (review-gated); cannot merge
+    publish:
+      external_stores: true     # Drive / Notion etc.
+      brand_channels: false     # no posting as the Ritsu brand (social)
+      requires_hitl: true
+    user_management: false
+
+  admin:
+    label: "Admin"
+    description: "Trusted co-founders. Inherits user. Adds: connect to data systems (read/write the shared ops DB + gbrain, read analytics) and knowledge-augmentation commands (wiki sync, gbrain writes, deepask)."
+    inherits: user
+    commands:
+      allow: [deepask, wiki, brain, resolver, core]    # data + knowledge surfaces (core = read)
+      deny_categories: [system, user-management]
+    mcp:
+      read: [supabase-ops, gbrain, supabase-analytics]
+      write: [supabase-ops, gbrain]
+    db_schemas:
+      read: [ops, metrics]
+      write: [ops]            # RLS-scoped to admin-writable tables in Sprint 1
+    git:
+      tier1_edit: false
+      merge_main: false
+      push_branch: true
+    publish:
+      external_stores: true
+      brand_channels: false
+      requires_hitl: true
+    user_management: false
+
+  owner:
+    label: "Owner"
+    description: "The founder + co-equal owners. Inherits admin. The ONLY tier that may run system / self-modifying commands (/cla /evolve /update /forge), edit Tier-1 + merge to main, manage users, and move money. Root of trust."
+    inherits: admin
+    commands:
+      allow: ["*"]
+      system: [cla, evolve, update, forge, core, check-drift, mcp-doctor, users, playbook, docs]
+      deny_categories: []
+    mcp:
+      read: ["*"]
+      write: ["*"]
+    db_schemas:
+      read: ["*"]
+      write: ["*"]
+    git:
+      tier1_edit: true
+      merge_main: true
+      push_branch: true
+    publish:
+      external_stores: true
+      brand_channels: true
+      requires_hitl: false
+    user_management: true
+
+# Actions FORBIDDEN to every non-owner tier (enforced server-side in Sprints 1-2;
+# documented here as the contract). Mirrors governance/HITL.md Tier-D + SECRETS.md.
+forbidden_for_non_owner:
+  - action: "money / Stripe write (refunds, payouts, charges)"
+    enforced_by: "no Stripe key in any non-owner credential; founder-only broker action (Sprint 2)"
+  - action: "Tier-1 edits (00-core/, governance/, SOPs, .claude/hooks/, .mcp.json) + merge to main"
+    enforced_by: "CODEOWNERS + GitHub branch protection (owner review required)"
+  - action: "system / self-modifying commands (/cla, /evolve, /update, /forge)"
+    enforced_by: "owner-tier command gate (advisory v0 → broker-enforced Sprint 2)"
+  - action: "user management (/users add|revoke|tier)"
+    enforced_by: "owner credential checked server-side by the broker (Sprint 1)"
+  - action: "Product Supabase (ritsu) access of any kind"
+    enforced_by: "the pre-tool-supabase-product firewall + no Product credential in any operator's .env.local"

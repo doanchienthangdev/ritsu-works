@@ -66,6 +66,8 @@ const FILE_TO_SCHEMA = {
   'author-styles.yaml': 'author-styles.schema.json',
   'write-templates.yaml': 'write-templates.schema.json',
   'write-frameworks.yaml': 'write-frameworks.schema.json',
+  // capability multi-user-auth Sprint 0 — human operator tier → capability map
+  'operator-tiers.yaml': 'operator-tiers.schema.json',
 };
 
 const ajv = new Ajv({ allErrors: true, strict: false });

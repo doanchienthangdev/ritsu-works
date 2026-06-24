@@ -275,6 +275,9 @@ async function main() {
     // read-only invariant; secret-gate (committed-remote-tree); external-source registered;
     // consumer_allowlist ↔ role_scope no-drift; >=1 live active read mode.
     ['validate-product-code-source.cjs', 'product-code-source-contract ↔ external-source + read-only + secret-gate'],
+    // capability multi-user-auth Sprint 0 — operator registry ↔ tiers + invariants
+    // (≥1 active owner, unique emails, added_by-is-owner, no secrets in the registry)
+    ['validate-operators.cjs', 'operators registry ↔ operator-tiers + invariants'],
   ]) {
     const r = runNodeCheck(v[1], path.join(CT_DIR, v[0]));
     if (!r.passed) criticalFailures += 1;

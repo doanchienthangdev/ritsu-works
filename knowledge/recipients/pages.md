@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 63
+**Total entries:** 64
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -722,6 +722,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/muse-personas.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-operator-tiers
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ operator-tiers.yaml — Human operator authority tiers (capability multi-user-auth) ============================================================================ Tier 1 declarative file. The CONTRACT that maps each HUMAN operator tier (owner / admin / user) → the capabilities that tier may use. This is a NEW layer ABOVE the ...
+
+**Invoke:** `Read("knowledge/operator-tiers.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/operator-tiers.yaml
 
 **Role scope:** *
 **Status:** active

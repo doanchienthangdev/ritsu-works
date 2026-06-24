@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 28
+**Total entries:** 29
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -451,6 +451,23 @@ the current branch (refuses over a dirty tree), re-installs workspace deps,
 then points you to /test-ritsu-works. Capability local-install-platform v0.1.
 
 **Invoke:** `/update-ritsu-works`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/users
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Owner-only operator management for ritsu-works multi-user: add / list / revoke /
+re-tier human operators (owner · admin · user). Capability multi-user-auth.
+Sprint 0 = ADVISORY (edits governance/operators.yaml via PR + previews the
+email-invite); Sprint 1 makes it server-enforced (broker issues a per-human
+credential, /install blocks until enrolled). NOT a content command.
+
+**Invoke:** `/users`
 **HITL tier:** A
 **Side effect:** none
 

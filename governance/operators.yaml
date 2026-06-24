@@ -1,0 +1,31 @@
+# ============================================================================
+# operators.yaml — Human operator registry (capability multi-user-auth)
+# ============================================================================
+# Tier 1, OWNER-PR-GOVERNED (CODEOWNERS-locked). The canonical MAP of every
+# human operator → their authority tier → status. This file holds NO SECRETS —
+# only identity + tier + lifecycle status. Credentials, invite hashes, and
+# runtime enrollment state live in `ops.operators` (Tier 2, written ONLY by the
+# owner-broker via SECURITY DEFINER functions — Sprint 1), never here.
+#
+# Tiers (owner ⊇ admin ⊇ user) + per-tier capabilities: knowledge/operator-tiers.yaml.
+# Change policy: D-Std PR, OWNER-approved (CODEOWNERS). Adding/removing an
+# operator or changing a tier is an access-control change.
+#
+# STATUS: advisory-v0 (Sprint 0). Enforcement (the broker reading this map +
+# the per-human credential) lands in Sprint 1. Until then this is the declared
+# intent; the real boundaries remain GitHub branch protection + the Product firewall.
+#
+# Lifecycle status: invited → active → revoked (terminal) | expired (terminal).
+# `added_by` MUST be an existing owner's email (the validator enforces this).
+# ============================================================================
+
+version: "1.0.0"
+
+operators:
+  - email: "thangdoanchien@gmail.com"
+    tier: owner
+    status: active
+    github_login: doanchienthangdev
+    added_by: "thangdoanchien@gmail.com"   # genesis owner (self-rooted)
+    added_at: "2026-06-24"
+    note: "Founder — genesis owner / root of trust."

@@ -1,0 +1,106 @@
+# SOP-AIOPS-017 — Multi-user identity, authorization & enrollment contract
+#
+# Declarative runtime contract for capability multi-user-auth. Read by /users +
+# the operator-management skill + (Sprint 1+) the install enrollment step + the
+# server-side broker. RUNTIME-CONTRACT SOP (like SOP-AIOPS-014/015/016).
+#
+# STATUS: advisory-v0 (Sprint 0). The contract + registry + surface ship now;
+# server-side enforcement (per-human Supabase Auth + per-tier RLS + the broker)
+# lands Sprint 1+. The TWO boundaries that hold today: GitHub branch protection
+# + the Product-DB firewall. Spec: .archives/cla/multi-user-auth/01-spec.md.
+
+sop_id: SOP-AIOPS-017
+slug: multi-user-authz-contract
+name: "Multi-user identity, authorization & enrollment contract"
+version: "0.1.0"
+state: architecting       # Sprint 0 foundation; flips to operating when Sprint 1 enforcement lands
+owner: 06-ai-ops
+owner_role: founder        # owner-tier only governs this capability
+hitl_default: C            # changing the security model is Tier C (owner PR review)
+capability_id: multi-user-auth
+
+# ----------------------------------------------------------------------
+# The load-bearing principle
+# ----------------------------------------------------------------------
+principle: >
+  Privileged power must NOT live on the user's laptop. It lives server-side behind
+  authentication of a per-human credential the user cannot forge. The local client
+  (Claude Code, MCP code, hooks, the role env var) is UNTRUSTED. A human's blast
+  radius = exactly their tier's server-granted capabilities. Editing local files or
+  self-asserting a role grants NOTHING server-side.
+
+# ----------------------------------------------------------------------
+# The tier model (owner ⊇ admin ⊇ user) — source: knowledge/operator-tiers.yaml
+# ----------------------------------------------------------------------
+tiers:
+  user:  "content-production commands (/write /think /voice /image /dataviz /translate) + publish-to-stores (HITL). No data writes, no system commands, no Tier-1."
+  admin: "user + data systems (ops DB + gbrain read/write, analytics read) + knowledge (/wiki /deepask /brain)."
+  owner: "admin + system/self-modifying commands (/cla /evolve /update /forge) + Tier-1 + GitHub merge + money + user management. Root of trust."
+
+# ----------------------------------------------------------------------
+# Enforcement planes (where each tier is actually bounded)
+# ----------------------------------------------------------------------
+enforcement:
+  identity:       "Sprint 1: per-human Supabase Auth (email magic-link → mailbox proof) → JWT with server-only app_metadata.tier. System/Tier-1 tier via GitHub identity."
+  ops_db:         "Sprint 1: per-human JWT + per-tier RLS (drop service_role for humans). Today: service_role (advisory tier gate in the MCP)."
+  gbrain_analytics:"Sprint 2: per-human identity (same JWT model)."
+  money_publish_system:"Sprint 2: hosted Edge-Function broker, decision keyed on the AUTHENTICATED identity (never a client-sent tier)."
+  git_tier1:      "GitHub per-human identity + CODEOWNERS + branch protection (owner review on Tier-1). REAL today once branch protection configured."
+  product_db:     "the pre-tool-supabase-product firewall + no Product credential in any operator .env.local. REAL today."
+
+# ----------------------------------------------------------------------
+# Registry split
+# ----------------------------------------------------------------------
+registry:
+  tier1: "governance/operators.yaml — human→tier→status MAP, owner-PR (CODEOWNERS), NO secrets."
+  tier2: "ops.operators (Sprint 1 migration) — credential/invite HASHES + enrollment runtime state, written ONLY by owner-broker SECURITY DEFINER fns, never client SQL."
+  validator: "scripts/cross-tier/validate-operators.cjs (L2 critical) — ≥1 active owner · unique emails · added_by-is-owner · no secrets."
+  resolver: "scripts/local-install/lib/operator-tier.cjs — can(email, cap, registry, tiers); fail-closed."
+
+# ----------------------------------------------------------------------
+# Enrollment lifecycle: invited → active → revoked|expired
+# ----------------------------------------------------------------------
+enrollment_steps:
+  - id: invite
+    name: "owner /users add <email> --tier"
+    actions: [owner_check, append_registry_pr, validate, broker_create_auth_user_and_email_invite_S1]
+    hitl: C
+    note: "refuse --tier=owner without joint-owner approval"
+  - id: enroll
+    name: "/install Step 2.5 (Sprint 1) — operator redeems the magic-link"
+    actions: [redeem_magic_link_proves_mailbox, broker_issues_per_human_credential, write_refresh_token_to_env_local, status_active]
+    hitl: A
+    note: "BLOCKS install until authenticated (Sprint 1)"
+  - id: revoke
+    name: "owner /users revoke <email>"
+    actions: [status_revoked_pr, broker_global_signout_ban_S1, ensure_ge1_active_owner]
+    hitl: C
+    note: "admin/user = single revoke, zero rotation; owner = + rotate shared keys + joint approval"
+
+credential_hygiene:
+  - short_ttl_jwt_~1h
+  - rotating_refresh_token   # reuse of a rotated token = theft signal → auto-revoke
+  - invite_single_use_email_bound_le_24h
+  - owner_key_in_hardware_webauthn_S3
+  - joint_authority_ge2_owners_for_owner_tier_actions
+
+guards:
+  - never_client_asserted_authority   # tier derives ONLY from the server-verified credential, never MCP_CALLER_ROLE or a client claim
+  - fail_closed                       # resolver + validator deny/fail on any uncertainty
+  - no_secrets_in_tier1_registry      # operators.yaml carries identity only
+  - product_firewall_is_a_credential_property  # no human credential can reach Product, ever
+  - codeowners_owner_review_on_tier1
+
+observability:
+  v0: "governance/operators.yaml (the map) + the validator. Sprint 1: ops.operators runtime + per-human audit attribution stamped server-side on every action; audit log made UPDATE/DELETE-proof + hash-chained."
+
+references:
+  - .claude/commands/users.md
+  - 06-ai-ops/skills/operator-management/SKILL.md
+  - governance/operators.yaml
+  - knowledge/operator-tiers.yaml
+  - scripts/cross-tier/validate-operators.cjs
+  - scripts/local-install/lib/operator-tier.cjs
+  - CODEOWNERS
+  - governance/{ROLES,SECRETS,IDENTITY,HITL}.md
+  - .archives/cla/multi-user-auth/01-spec.md
