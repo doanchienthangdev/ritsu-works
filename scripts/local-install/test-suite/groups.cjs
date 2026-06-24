@@ -77,11 +77,16 @@ const TEST_GROUPS = [
   },
   {
     id: 'mcp-build',
-    label: 'supabase-ops MCP type-checks + builds',
+    // The supabase-ops MCP runs via `tsx src/server.ts` (no compiled dist needed),
+    // so the meaningful check is "does it type-check" — `pnpm typecheck`
+    // (tsc -p tsconfig.json --noEmit), the same check the analytics group uses.
+    // (The package's `pnpm build` references a tsconfig.build.json that does not
+    // exist — a dormant, separate mcp-server bug; the emitted dist is unused.)
+    label: 'supabase-ops MCP type-checks (tsc)',
     required: 'hard',
     slow: false,
     kind: 'shell',
-    command: 'pnpm build',
+    command: 'pnpm typecheck',
     cwd: 'mcp-server',
     remedy: 'Fix the MCP server TypeScript errors.',
     autoRemedy: { command: 'pnpm install', cwd: 'mcp-server' },
