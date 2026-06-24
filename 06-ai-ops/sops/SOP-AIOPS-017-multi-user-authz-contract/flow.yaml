@@ -94,6 +94,28 @@ guards:
 observability:
   v0: "governance/operators.yaml (the map) + the validator. Sprint 1: ops.operators runtime + per-human audit attribution stamped server-side on every action; audit log made UPDATE/DELETE-proof + hash-chained."
 
+# ----------------------------------------------------------------------
+# Sprint 1 status + the per-human CUTOVER (founder-gated)
+# ----------------------------------------------------------------------
+sprint1_done:
+  - "GitHub branch protection on main (require PR + CI checks + no force-push/deletions). Required-review/code-owner deferred until a 2nd owner is enrolled (1 owner self-approval-deadlocks)."
+  - "Supabase Auth owner identity provisioned on ritsu-ops (app_metadata.tier=owner, magic-link only)."
+  - "Migration 00049 APPLIED to live ritsu-ops: jwt-tier helpers + ops.operators + broker SECURITY DEFINER fns + audit-immutability + tier RLS (ops + metrics + public CRM) + the SECURITY INVOKER read RPC. ADDITIVE + INERT — service_role bypasses it, so the running system is unchanged."
+  - "MCP per-human path shipped flag-gated (RITSU_AUTH_MODE, default service-key = no behavior change)."
+
+cutover_preconditions:   # do ALL before flipping RITSU_AUTH_MODE=per-human in production
+  - "Verify the owner's operator access token DECODES to app_metadata.tier='owner' BEFORE flipping (a token minted before the tier was set lacks it → MissingTierError → MCP refuses to boot → owner locked out; refresh the token after the admin-API tier set). [red-team #L1]"
+  - "With a SINGLE owner there is no recovery path if the owner credential is lost — enroll a 2nd owner (joint authority) before relying on per-human mode as the sole access."
+  - "Run the per-human path against a staging/throwaway connection first; confirm owner full access, admin data-plane + append-only forensic, user denied."
+  - "Only after the above: set RITSU_AUTH_MODE=per-human + provision RITSU_OPERATOR_ACCESS_TOKEN; then strip service_role/Stripe/bot keys from .env.example (now safe)."
+
+residual_risks:   # documented, accepted for Sprint 1; hardened in Sprints 2-3
+  - "admin reads of owner_only ops tables return SILENT-EMPTY (RLS), not an error — admin never sees the data, but an empty result is indistinguishable from a truly empty table. [red-team #7]"
+  - "owner-mint is enforced PROCEDURALLY (broker fns block tier=owner; the table CHECK allows it for the genesis/joint-authority service_role path). A future broker fn that forgets the guard could set owner — defense-in-depth trigger deferred. [red-team #8]"
+  - "decodeJwtClaims does NOT verify the JWT signature (the DB does, via RLS — a forged token is denied server-side). The decoded tier must NEVER be the sole gate for any action; for actions whose only gate is the client-side HITL check, a forged local token could bypass the client gate (but any DB effect still fails). Audit attribution from the unsigned claim could be poisoned on a forged token whose action nonetheless fails — Sprint 2 broker verifies identity server-side. [red-team #L3]"
+  - "operator_redeem trusts the caller verified the invite secret + mailbox proof. It is service_role-EXECUTE-only (a raw authenticated human cannot call it), so the broker is the gate; in-fn invite_hash verification deferred to Sprint 2. [red-team #L4]"
+  - "A new sensitive ops table must be added to the migration's owner_only-by-omission (it defaults to owner-only — fail-safe — but to grant admin it must be added to admin_data_rw/admin_append explicitly). A CI validator asserting every ops table is classified is deferred to Sprint 3. [red-team #9]"
+
 references:
   - .claude/commands/users.md
   - 06-ai-ops/skills/operator-management/SKILL.md

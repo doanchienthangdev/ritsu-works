@@ -280,10 +280,21 @@ describe("analyzeMigrations — offense detection", () => {
 
 // ==========================================================================
 describe("real repo — analyzeRepo()", () => {
-  it("finds exactly the 3 known SECURITY DEFINER functions in ops", () => {
+  it("finds exactly the 7 known SECURITY DEFINER functions in ops", () => {
+    // 3 original (00026/secdef RPCs) + 4 multi-user-auth broker fns (00049) — all
+    // hardened (search_path WITHOUT public, service_role-only EXECUTE). The
+    // multi-user-auth INVOKER RPC ops_run_select_rls is SECURITY INVOKER → absent here.
     const { functions } = analyzeRepo();
     const secdef = [...functions.values()].filter((s: any) => s.defined && s.securityDefiner).map((s: any) => s.name).sort();
-    expect(secdef).toEqual(["get_ops_rls_state", "get_ops_tables", "ops_run_select"]);
+    expect(secdef).toEqual([
+      "get_ops_rls_state",
+      "get_ops_tables",
+      "operator_invite",
+      "operator_redeem",
+      "operator_revoke",
+      "operator_set_tier",
+      "ops_run_select",
+    ]);
   });
 
   it("reports ZERO offenses now that migration 00047 hardened all three", () => {

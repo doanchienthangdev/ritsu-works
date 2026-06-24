@@ -26,7 +26,8 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { loadEnv, summarizeEnv } from "./lib/env.ts";
 import { getClient } from "./lib/supabase-client.ts";
-import { resolveRole } from "./governance/role-resolver.ts";
+import { resolveOperator, resolveRole } from "./governance/role-resolver.ts";
+import { decodeJwtClaims } from "./governance/operator-identity.ts";
 import {
   enforceTier,
   loadRegistry,
@@ -55,8 +56,17 @@ async function main(): Promise<void> {
   const registry = loadRegistry(env.repoRoot);
   logStderr(`registry loaded | tools=${TOOLS.map((t) => t.name).join(",")} | source=${registry.version}`);
 
-  const ctx = resolveRole(env.callerRole, env.callerSessionId);
-  logStderr(`caller resolved | role=${ctx.role} hitl_max=${ctx.hitlMaxTier}`);
+  // Authority resolution. service-key (default): self-asserted MCP_CALLER_ROLE.
+  // per-human: the verified JWT tier (app_metadata.tier) — fail-closed if the
+  // token carries no tier. RLS (migration 00049) is the authoritative backstop.
+  const ctx =
+    env.authMode === "per-human"
+      ? resolveOperator(decodeJwtClaims(env.perHumanAccessToken), env.callerSessionId)
+      : resolveRole(env.callerRole, env.callerSessionId);
+  logStderr(
+    `caller resolved | auth_mode=${ctx.authMode} role=${ctx.role} hitl_max=${ctx.hitlMaxTier}` +
+      (ctx.humanEmail ? ` human=${ctx.humanEmail}` : ""),
+  );
 
   const client = getClient(env);
 

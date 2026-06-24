@@ -139,10 +139,17 @@ export function enforceTier(
   const tool = findTool(registry, toolId);
   if (!tool) throw new UnknownToolError(toolId);
 
-  if (tool.role_scope && !tool.role_scope.includes(ctx.role)) {
+  // role_scope is the AGENT-role allowlist (the service-key authority axis). In
+  // per-human mode the authority is the verified JWT tier, and access is gated by
+  // the tier's table-scope (canReadSchema/canWriteTable) + per-tier RLS — so the
+  // agent-role allowlist does not apply. The HITL tier check below still runs
+  // (against the tier's hitlMaxTier).
+  if (ctx.authMode !== "per-human" && tool.role_scope && !tool.role_scope.includes(ctx.role)) {
     throw new ToolNotInRoleScopeError(toolId, ctx.role);
   }
 
+  // tier_per_role is keyed by agent role; in per-human mode ctx.role is a tier,
+  // so this naturally falls through to tier_default.
   const required = tool.tier_per_role?.[ctx.role] ?? tool.tier_default;
 
   if (TIER_RANK[required] > TIER_RANK[ctx.hitlMaxTier]) {
