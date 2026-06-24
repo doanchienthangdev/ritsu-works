@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 25
+**Total entries:** 28
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -266,6 +266,23 @@ Tier A; per-run --max-cost-usd breaker; OPENAI_API_KEY out-of-band; artifacts to
 **Role scope:** *
 **Status:** active
 
+## command/install-ritsu-works
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Install everything ritsu-works needs to run on THIS machine (macOS / Windows /
+Linux), auto-detecting the platform + package manager, with live progress.
+Installs dependencies, scaffolds runtime/secrets/.env.local, sets up git hooks,
+then guides you to fill credentials and run /test-ritsu-works. Capability
+local-install-platform v0.1 — thin orchestrator over scripts/local-install/.
+
+**Invoke:** `/install-ritsu-works`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
 ## command/mcp-doctor
 
 **Kind:** command
@@ -303,6 +320,24 @@ table.
 **When to use:** Lookup PLATFORM v3 (JIT Loading). Founder/operator surface for resolver. Mode A2 delegates to mcp__supabase-ops__resolver_find for ~10K INDEX + drill-down via MCP. Mode C keyword fallback retained for CRON/edge. v2.2 ambient (55K catalog) deprecated post-cutover.
 
 **Invoke:** `/resolver`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/test-ritsu-works
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Run the full ritsu-works system test suite on THIS machine and prove the
+install works end-to-end — runtime, deps, Tier-1 schemas, cross-tier drift,
+the full vitest suite, MCP server build + handshake, env wiring, capability
+integrity. Streams per-group progress, self-heals failures, and reports a
+clear "installation successful — ready" verdict. Capability
+local-install-platform v0.1.
+
+**Invoke:** `/test-ritsu-works`
 **HITL tier:** A
 **Side effect:** none
 
@@ -400,6 +435,22 @@ on quality regression. See wiki/capabilities/update/spec.md (after Phase
 8 promotion) or draft .archives/cla/update/spec.md.
 
 **Invoke:** `/update`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/update-ritsu-works
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Update this local ritsu-works checkout to the latest from GitHub and re-sync
+dependencies, cross-platform (macOS / Windows / Linux). Fetches, fast-forwards
+the current branch (refuses over a dirty tree), re-installs workspace deps,
+then points you to /test-ritsu-works. Capability local-install-platform v0.1.
+
+**Invoke:** `/update-ritsu-works`
 **HITL tier:** A
 **Side effect:** none
 

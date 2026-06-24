@@ -1,0 +1,46 @@
+---
+name: local-install/test
+description: |
+  The verify verb of local-install-platform — drives
+  scripts/local-install/test-suite/run.cjs to run the full ritsu-works system
+  test suite (runtime, deps, Tier-1 schemas, cross-tier drift, full vitest,
+  MCP build + handshake, env wiring, capability integrity, optional docs build),
+  streaming per-group progress and self-healing failures, then reporting a clear
+  ready verdict. Invoked by /test-ritsu-works. Tier A.
+---
+
+# local-install/test
+
+> The verification brain. Prove a local ritsu-works install actually works,
+> end-to-end, and self-heal what's fixable.
+
+## Run
+`node scripts/local-install/test-suite/run.cjs --heal` (the default full suite,
+self-heal on). Flags: `--quick` (skip slow `unit` vitest) · `--full` (also cold-
+build docs) · `--only=<ids>` · `--json`.
+
+The runner streams `[i/N] ▶ <group>` then `[i/N] ✓/⚠/✗/⊘ <group>  <detail>  <secs>`.
+**Relay each line** so the user sees live progress + which group runs.
+
+## Groups (hard must pass; recommended/feature = warn)
+`env` · `workspaces` · `tier1` · `drift` (pnpm check) · `unit` (full vitest) ·
+`mcp-build` · `mcp-analytics` · `mcp-smoke` (skip if no env) · `env-wiring` ·
+`commands` · `docs-build` (`--full` only).
+
+## Self-heal playbook (when a HARD group fails after --heal)
+- `workspaces` → `node scripts/local-install/install.cjs --apply`
+- `drift` → fix the flagged validator; resolver-v3 INDEX mtime → `pnpm resolver:index`
+- `unit` → inspect failing tests. **Pre-existing flake** (timing/perf or a stale
+  hardcoded count) → realign the test honestly to current source (never weaken a
+  real assertion). **Real regression** → fix the code.
+- `mcp-build`/`mcp-analytics` → `pnpm install` in that workspace, then fix the TS error.
+- `tier1` → fix the flagged YAML against its schema.
+Re-run the single group (`--only=<id> --heal`), then the full suite to confirm.
+
+## Verdict
+On `Installation successful — ritsu-works is ready`, report it plainly. The
+`unit` group may leave `_shared/*.generated.ts` modified (bundler tests) — that's
+cosmetic and `update.cjs` ignores it.
+
+Engine: `scripts/local-install/test-suite/{run,groups}.cjs`. Contract: `SOP-AIOPS-016`.
+Umbrella: `local-install`.

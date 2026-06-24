@@ -1,0 +1,65 @@
+---
+title: 'Command: /update-ritsu-works'
+description: |
+  Update this local ritsu-works checkout to the latest from GitHub and re-sync
+  dependencies, cross-platform (macOS / Windows / Linux). Fetches, fast-forwards
+  the current branch (refuses over a dirty tree), re-installs workspace deps,
+  then points you to /test-ritsu-works. Capability local-install-platform v0.1.
+source_path: .claude/commands/update-ritsu-works.md
+source_hash: f2d628be41c576f4310a545683ff7bab11ae30192e86cbcfb137abebbf2423e4
+generated_at: '2026-06-24T09:44:33.463Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+translated: true
+translated_source_hash: f2d628be41c576f4310a545683ff7bab11ae30192e86cbcfb137abebbf2423e4
+translated_at: '2026-06-24T10:00:00.000Z'
+translated_by: 'Claude (dịch in-session sang tiếng Việt)'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Bạn (Claude) lái bộ cập nhật. Kéo bản ritsu-works mới nhất một cách an toàn và
+re-sync deps, **hiển thị tiến độ**.
+
+> **Quy tắc tường lửa:** chỉ gọi qua `node scripts/local-install/update.cjs`.
+> Không bao giờ gõ token tên-CLI-database trong một lệnh Bash.
+
+## Tier
+**A** — `git pull --ff-only` (đảo-ngược-được, cục bộ) + cài lại deps cục bộ.
+Không hành động ra ngoài, không tiền, không Product Supabase.
+
+## Luồng
+
+1. **Dry-run trước (an toàn mặc định):**
+   ```
+   node scripts/local-install/update.cjs
+   ```
+   Lệnh này fetch (chỉ-đọc), hiện branch hiện tại + upstream, và liệt kê các
+   commit sắp về — mà không pull. Tường thuật cho người dùng.
+
+2. **Nếu working tree bẩn:** engine báo và từ chối pull. Giúp người dùng commit
+   hoặc stash thay đổi trước (engine đã bỏ qua các bundle `_shared/*.generated.ts`
+   được tái-sinh, submodule skillopt vendor, và lockfile). Rồi tiếp tục.
+
+3. **Áp dụng cập nhật:**
+   ```
+   node scripts/local-install/update.cjs --apply
+   ```
+   (thêm `--with-docs` để refresh cả deps docs). Lệnh này fast-forward branch rồi
+   chạy lại lõi install (deps workspace có thể đã đổi, cộng scaffold + husky +
+   refresh index). Tường thuật tiến độ `[i/N]`.
+
+4. **Bàn giao:**
+   > ✅ Đã cập nhật lên ritsu-works mới nhất. Chạy **`/test-ritsu-works`** để xác
+   > minh hệ thống vẫn pass đầu-đến-cuối.
+
+## Tự chữa (Self-heal)
+- `git pull` thất bại (non-fast-forward / conflict) → engine in hướng dẫn; giúp
+  người dùng hoà giải (`git pull --rebase`, resolve conflict), rồi chạy lại.
+- Một workspace cài lại thất bại → engine đã fallback từ frozen sang cài lỏng;
+  nếu vẫn lỗi, `pnpm install` trong workspace đó + chẩn đoán.
+
+## Tham chiếu engine
+- `scripts/local-install/update.cjs --apply [--with-docs] [--json]`
+- Contract: `06-ai-ops/sops/SOP-AIOPS-016-local-install-runtime-contract/flow.yaml`

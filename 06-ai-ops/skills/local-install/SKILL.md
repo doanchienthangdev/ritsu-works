@@ -1,0 +1,71 @@
+---
+name: local-install
+description: |
+  Umbrella for the local-install-platform capability — the brain behind
+  /install-ritsu-works, /update-ritsu-works, /test-ritsu-works. The cross-platform
+  (macOS / Windows / Linux) engine that lets any co-founder clone ritsu-works,
+  install every dependency, scaffold runtime/secrets/.env.local, and verify the
+  whole system works with a self-healing full test suite. Auto-detects platform +
+  package manager. Deterministic, dependency-injected, unit-tested Node engine
+  under scripts/local-install/; thin commands orchestrate it. Tier A (local,
+  reversible, no money, no Product Supabase).
+---
+
+# local-install (umbrella) — capability `local-install-platform` v0.1
+
+> The install / update / verify brain for running ritsu-works on a co-founder's
+> own machine. Three verbs, one cross-platform Node engine.
+
+## The three verbs
+
+| Command | Sub-skill | Engine | Verb |
+|---|---|---|---|
+| `/install-ritsu-works` | `local-install/install` | `scripts/local-install/install.cjs` | install deps + scaffold env + husky + index |
+| `/update-ritsu-works` | `local-install/update` | `scripts/local-install/update.cjs` | `git pull --ff-only` + re-sync deps |
+| `/test-ritsu-works` | `local-install/test` | `scripts/local-install/test-suite/run.cjs` | full system test suite + self-heal |
+
+Probe anything first with `node scripts/local-install/doctor.cjs` (`--json` for structured).
+
+## Cross-platform contract
+- **Detection** (`lib/platform.cjs`): `process.platform` → `macos` / `windows` /
+  `linux`; `os.arch()`; PATH-probe for package managers (brew · apt/dnf/pacman/
+  zypper/apk · winget/choco/scoop).
+- **Once Node exists, everything is Node** — no bash/ps1 divergence. The only
+  shell-specific files are `preflight.{sh,ps1}`, which ONLY bootstrap Node + pnpm.
+- All paths via `node:path`; all execution via `lib/exec.cjs` (`run`/`which`),
+  which handles Windows `PATHEXT` / `.cmd` shims.
+
+## The dependency matrix (`dependencies.cjs`)
+Single source of truth. `hard`: node ≥20, pnpm ≥9, git. `recommended`: gh,
+Supabase CLI. `feature`: python3 (PDF), ffmpeg (/voice), bun (gbrain). Each
+declares detect + per-platform/per-package-manager install commands +
+min-version + a feature note.
+
+## The full test suite (`test-suite/groups.cjs`)
+`env` · `workspaces` · `tier1` (validate:tier1) · `drift` (pnpm check) · `unit`
+(full vitest) · `mcp-build` · `mcp-analytics` · `mcp-smoke` · `env-wiring` ·
+`commands` · `docs-build` (opt-in `--full`). Success = every **hard** group
+passes; recommended/feature failures are warnings. `--heal` runs each group's
+`autoRemedy` once and retries.
+
+## Firewall discipline (important)
+The product-firewall hook (`pre-tool-supabase-product`) fails closed on any Bash
+command text containing the database-CLI token. So:
+- That token lives ONLY inside these scripts (run via the engine's `spawnSync`,
+  invisible to the hook). Command-level calls (`node scripts/local-install/…`,
+  `pnpm check`, `pnpm test`) never spell it.
+- Installing that CLI goes through `install.cjs --install-deps=supabase-cli --apply`,
+  not a raw Bash command.
+
+## Governance
+- **Tier A** throughout (local, reversible, metered-not-spent). Privileged
+  installs (`sudo`/package managers) are surfaced for user consent — never
+  silent escalation. No Product Supabase, no company-DB writes, no external
+  publish, no money. `--dry-run`/`--apply` gating on install + update.
+- Contract: `06-ai-ops/sops/SOP-AIOPS-016-local-install-runtime-contract/flow.yaml`.
+
+## Composes with
+`scripts/local-install/{doctor,install,update}.cjs` · `scripts/local-install/test-suite/{groups,run}.cjs` ·
+`scripts/local-install/lib/{version,exec,platform,report}.cjs` · `scripts/local-install/dependencies.cjs` ·
+`.env.example` · `scripts/check-consistency.cjs` (`pnpm check`) · `scripts/validate-tier1.cjs` · `vitest` ·
+`mcp-server/` + `mcp-server-analytics/` (build/typecheck/doctor) · `.scripts/bootstrap.sh` (legacy shim).

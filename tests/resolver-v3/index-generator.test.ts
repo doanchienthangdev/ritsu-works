@@ -189,10 +189,12 @@ describe("resolver-v3 index-generator", () => {
 
     it("INDEX excludes stub/deprecated/planned entries (heuristic check)", () => {
       const r = gen.generate();
-      // ~493 active after gbrain's 74 live MCP tools joined the catalog (v3.0.5);
-      // stubs/planned/deprecated still filtered. Loose sanity band, not an exact count.
+      // ~603 active after local-install-platform's commands/skills/sop joined the
+      // catalog; stubs/planned/deprecated still filtered. Loose sanity band, not an
+      // exact count — the ceiling carries headroom so it does not flake as the
+      // catalog grows (the point is "stubs are excluded", not a pinned total).
       expect(r.totalActive).toBeGreaterThanOrEqual(100);
-      expect(r.totalActive).toBeLessThanOrEqual(600);
+      expect(r.totalActive).toBeLessThanOrEqual(800);
     });
 
     it("deterministic — same input → same output (modulo timestamp)", () => {
