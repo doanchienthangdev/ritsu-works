@@ -1,0 +1,78 @@
+---
+title: 'Command: /test-ritsu-works'
+description: |
+  Run the full ritsu-works system test suite on THIS machine and prove the
+  install works end-to-end — runtime, deps, Tier-1 schemas, cross-tier drift,
+  the full vitest suite, MCP server build + handshake, env wiring, capability
+  integrity. Streams per-group progress, self-heals failures, and reports a
+  clear "installation successful — ready" verdict. Capability
+  local-install-platform v0.1.
+source_path: .claude/commands/test-ritsu-works.md
+source_hash: d29f88dcef8a6ea346bab8c32b440f4bb395beae1173133727124d8e47e4555f
+generated_at: '2026-06-24T09:44:33.455Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+You (Claude) drive the full system test suite. Run the engine, **relay progress
+group-by-group**, self-heal anything fixable, and give a clear final verdict.
+
+> **Firewall rule:** invoke only via `node scripts/local-install/test-suite/run.cjs`.
+> The suite runs `pnpm check` / `pnpm test` / MCP checks INSIDE the runner
+> (firewall-invisible); never type the database-CLI token in a Bash command.
+
+## Tier
+**A** — read-only verification (runs builds + tests locally; no external action,
+no money, no Product Supabase).
+
+## What it checks (groups, in order)
+`env` (Node≥20/pnpm≥9/git) · `workspaces` (node_modules) · `tier1` (`pnpm validate:tier1`) ·
+`drift` (`pnpm check`) · `unit` (full `pnpm test`) · `mcp-build` (supabase-ops MCP `tsc`) ·
+`mcp-analytics` (analytics `typecheck`) · `mcp-smoke` (MCP doctor handshake — skipped if no env) ·
+`env-wiring` (.env.local keys) · `commands` (the 3 commands + skills intact) ·
+`docs-build` (cold `next build` — only with `--full`).
+
+`hard` groups must pass for success; `recommended`/`feature` failures are warnings.
+
+## Flow
+
+1. **Run the suite with self-heal:**
+   ```
+   node scripts/local-install/test-suite/run.cjs --heal
+   ```
+   - `--quick` → skip the slow `unit` (vitest) group for a fast smoke.
+   - `--full` → also cold-build the docs site (the MDX gate; slow).
+   - `--only=drift,unit` → run just those groups.
+
+   The runner prints `[i/N] ▶ <group>` before each group and `[i/N] ✓/⚠/✗/⊘ <group>  <detail>  <secs>` after. **Relay each line to the user as it appears** so they see progress + which group is running.
+
+2. **Read the verdict.** On `Installation successful — ritsu-works is ready`, report it plainly and stop.
+
+3. **If a HARD group fails** even after `--heal`:
+   - Read the `remedy:` line the runner printed for that group.
+   - Apply the root-cause fix:
+     - `workspaces` → `node scripts/local-install/install.cjs --apply`
+     - `drift` → run the specific validator's fix; if it's the resolver-v3 INDEX mtime, `pnpm resolver:index`
+     - `unit` → inspect the failing test(s); if a *pre-existing* flake (timing/perf or a stale hardcoded count), fix the test honestly (realign to current source — never weaken a real assertion); if a real regression, fix the code
+     - `mcp-build` / `mcp-analytics` → `pnpm install` in that workspace, then fix any TS error
+     - `tier1` → fix the flagged YAML against its schema
+   - Re-run just that group: `node scripts/local-install/test-suite/run.cjs --only=<id> --heal`, then re-run the full suite to confirm.
+
+4. **Report.** When all hard groups pass, tell the user:
+   > ✅ Installation successful — ritsu-works is verified ready. You can now operate Ritsu in this Claude Code session. (warnings, if any: …)
+
+## Notes
+- The `unit` group runs the full vitest suite (~1 min) and may leave
+  `supabase/functions/_shared/*.generated.ts` modified (the bundler tests rewrite
+  them); that's cosmetic and `update.cjs` ignores it.
+- `mcp-smoke` is skipped if `.env.local` isn't wired yet — that's expected on a
+  first run; wire env then re-run for the live handshake.
+
+## Engine reference
+- `scripts/local-install/test-suite/run.cjs --heal [--quick|--full] [--only=<ids>] [--json]`
+- Group spec: `scripts/local-install/test-suite/groups.cjs`
+- Contract: `06-ai-ops/sops/SOP-AIOPS-016-local-install-runtime-contract/flow.yaml`
+

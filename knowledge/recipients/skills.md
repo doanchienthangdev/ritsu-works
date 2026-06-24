@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 131
+**Total entries:** 135
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1304,6 +1304,81 @@ and NEITHER generates an image. Records before/after into run.json.prompt_enhanc
 chosen base into run.json.pro_max). Cost-bucket ai-ops-image task_kind image-enhance.
 
 **Invoke:** `Skill({ skill: "image/enhance" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/local-install
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Umbrella for the local-install-platform capability — the brain behind
+/install-ritsu-works, /update-ritsu-works, /test-ritsu-works. The cross-platform
+(macOS / Windows / Linux) engine that lets any co-founder clone ritsu-works,
+install every dependency, scaffold runtime/secrets/.env.local, and verify the
+whole system works with a self-healing full test suite. Auto-detects platform +
+package manager. Deterministic, dependency-injected, unit-tested Node engine
+under scripts/local-install/; thin commands orchestrate it. Tier A (local,
+reversible, no money, no Product Supabase).
+
+**Invoke:** `Skill({ skill: "local-install" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/local-install/install
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The install verb of local-install-platform — drives scripts/local-install/install.cjs
+to set up ritsu-works on a fresh machine: ensure Node+pnpm, install missing
+system deps per platform, install workspace deps (root + 2 MCP servers),
+scaffold runtime/secrets/.env.local from .env.example, set up husky, refresh
+the resolver index. Invoked by /install-ritsu-works. Tier A.
+
+**Invoke:** `Skill({ skill: "local-install/install" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/local-install/test
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The verify verb of local-install-platform — drives
+scripts/local-install/test-suite/run.cjs to run the full ritsu-works system
+test suite (runtime, deps, Tier-1 schemas, cross-tier drift, full vitest,
+MCP build + handshake, env wiring, capability integrity, optional docs build),
+streaming per-group progress and self-healing failures, then reporting a clear
+ready verdict. Invoked by /test-ritsu-works. Tier A.
+
+**Invoke:** `Skill({ skill: "local-install/test" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/local-install/update
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The update verb of local-install-platform — drives
+scripts/local-install/update.cjs to pull the latest ritsu-works from GitHub
+(git fetch + fast-forward, refusing over a dirty tree) and re-sync workspace
+dependencies, cross-platform. Invoked by /update-ritsu-works. Tier A.
+
+**Invoke:** `Skill({ skill: "local-install/update" })`
 **HITL tier:** B
 **Side effect:** write
 

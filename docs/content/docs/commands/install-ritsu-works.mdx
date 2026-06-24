@@ -1,0 +1,105 @@
+---
+title: 'Command: /install-ritsu-works'
+description: |
+  Install everything ritsu-works needs to run on THIS machine (macOS / Windows /
+  Linux), auto-detecting the platform + package manager, with live progress.
+  Installs dependencies, scaffolds runtime/secrets/.env.local, sets up git hooks,
+  then guides you to fill credentials and run /test-ritsu-works. Capability
+  local-install-platform v0.1 — thin orchestrator over scripts/local-install/.
+source_path: .claude/commands/install-ritsu-works.md
+source_hash: 0cfc706f88940882bbf839fd01d9a8e03f622f50cad5df940d1fca14bdc95ef5
+generated_at: '2026-06-24T09:44:33.453Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+translated: true
+translated_source_hash: 0cfc706f88940882bbf839fd01d9a8e03f622f50cad5df940d1fca14bdc95ef5
+translated_at: '2026-06-24T10:00:00.000Z'
+translated_by: 'Claude (dịch in-session sang tiếng Việt)'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Bạn (Claude) là người điều phối cài đặt. Một co-founder vừa clone `ritsu-works`
+và muốn chạy nó cục bộ. Hãy lái engine tất định trong `scripts/local-install/`,
+xử lý các phần phụ-thuộc-nền-tảng / cần-quyền bằng phán đoán, và **hiển thị tiến
+độ ở mỗi bước**.
+
+> **Quy tắc tường lửa (quan trọng):** đừng bao giờ đặt token tên-CLI-database
+> nguyên văn vào một lệnh Bash — hook product-firewall fail-closed trên nó.
+> Engine giữ token đó bên trong các script của nó. Để cài CLI đó, dùng
+> `node scripts/local-install/install.cjs --install-deps=supabase-cli --apply`
+> (nó chạy việc cài bên trong). Mọi thứ khác (`pnpm`, `node`, `git`, `gh`,
+> `brew`, `apt`, `winget`) chạy trực tiếp đều ổn.
+
+## Tier
+**A** — cục bộ, đảo-ngược-được, không tiền, không publish ra ngoài, không Product
+Supabase, không ghi DB công ty. Các cài đặt cần quyền (`sudo`, package manager)
+được đưa ra cho người dùng đồng ý; không bao giờ tự nâng quyền âm thầm.
+
+## Luồng
+
+### Bước 0 — Đảm bảo Node + pnpm (phần pre-Node duy nhất)
+Engine là Node, nên Node phải có trước.
+1. Chạy `node --version`. Nếu lỗi hoặc in ra `< v20`:
+   - Dò package manager của nền tảng và cài Node LTS:
+     - macOS: `brew install node` (hoặc hướng dẫn dùng nvm/fnm nếu thiếu brew)
+     - Linux: `sudo apt-get install -y nodejs` / `sudo dnf install -y nodejs` / `sudo pacman -S --noconfirm nodejs npm` (nếu Node đóng gói \< 20, dùng nvm/fnm)
+     - Windows: `winget install -e --id OpenJS.NodeJS.LTS` (hoặc choco/scoop)
+   - Hoặc, chạy một lần preflight: `bash scripts/local-install/preflight.sh` (macOS/Linux) / `powershell -ExecutionPolicy Bypass -File scripts\local-install\preflight.ps1` (Windows).
+2. Chạy `pnpm --version`. Nếu thiếu: `corepack enable pnpm && corepack prepare pnpm@latest --activate` (fallback `npm install -g pnpm@latest`).
+
+### Bước 1 — Dò máy
+Chạy `node scripts/local-install/doctor.cjs`. Nó báo nền tảng, từng dependency
+(có/version/thiếu), trạng thái cài workspace, và tình trạng nối dây env. Hiển thị
+báo cáo cho người dùng.
+
+### Bước 2 — Cài system deps còn thiếu
+Với mỗi dep **required** hoặc **recommended** mà doctor báo thiếu:
+- Chạy lệnh cài theo nền tảng mà doctor in ra (để prompt mật khẩu `sudo` hiện ra
+  cho người dùng nhập; không chặn prompt).
+- Riêng **Supabase CLI** (recommended), chạy qua engine để khỏi đụng tường lửa:
+  `node scripts/local-install/install.cjs --install-deps=supabase-cli --apply`
+- Các dep **feature** (python/ffmpeg/bun) là tuỳ chọn — chỉ cài nếu người dùng
+  muốn capability tương ứng (PDF / /voice / gbrain). Nhắc đến, đừng ép.
+
+### Bước 3 — Chạy lõi tất định
+Chạy `node scripts/local-install/install.cjs --apply` (thêm `--with-docs` nếu
+người dùng truyền `--with-docs`). Nó stream tiến độ `[i/N]` cho:
+1. ensure pnpm  2. cài root deps (frozen)  3. cài deps supabase-ops MCP
+4. cài deps analytics MCP  5. scaffold `runtime/` + `.env.local`  6. husky
+7. refresh resolver index.
+
+Tường thuật tiến độ cho người dùng khi nó chạy. Nếu một workspace cài thất bại,
+chạy lại `pnpm install` của workspace đó (engine đã tự fallback từ
+`--frozen-lockfile` sang cài lỏng).
+
+> Nếu có `--dry-run`, chạy `install.cjs` KHÔNG `--apply` trước để hiện kế hoạch;
+> chỉ tiến tới `--apply` khi được xác nhận.
+
+### Bước 4 — Hướng dẫn env
+Scaffold đã tạo `runtime/secrets/.env.local` từ `.env.example` (hoặc giữ nguyên
+nếu đã có). Báo người dùng, từng bước rõ ràng:
+> **Sửa `runtime/secrets/.env.local`** và điền tối thiểu:
+> - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY` (dự án ritsu-ops của bạn)
+> - `MCP_CALLER_ROLE=founder` (hoặc `cofounder`) cho các phiên tương tác
+> - Khoá LLM là tuỳ chọn (chế độ subscription-only chạy được mà không cần chúng)
+>
+> Xem `.env.example` cho danh sách chú thích đầy đủ + 3 chế độ truy cập.
+
+### Bước 5 — Bàn giao
+Báo người dùng rõ ràng:
+> ✅ Cài đặt xong. Tiếp theo:
+> 1. Điền `runtime/secrets/.env.local` (ở trên).
+> 2. Chạy **`/test-ritsu-works`** — nó chạy bộ test hệ thống đầy đủ và báo cho bạn
+>    khi ritsu-works đã được xác minh sẵn sàng.
+
+## Tự chữa (Self-heal)
+Nếu bước nào thất bại, chẩn đoán từ output của engine + báo cáo doctor, sửa
+nguyên nhân gốc (cài lại một workspace, cài tool còn thiếu, sửa PATH), rồi chạy
+lại bước đó. Đừng báo thành công cho tới khi Bước 3 hoàn tất sạch sẽ.
+
+## Tham chiếu engine
+- `scripts/local-install/doctor.cjs --json` — probe có cấu trúc
+- `scripts/local-install/install.cjs --apply [--with-docs] [--install-deps=<ids>] [--json]`
+- Thiết kế đầy đủ: `scripts/local-install/README.md`; contract: `06-ai-ops/sops/SOP-AIOPS-016-local-install-runtime-contract/flow.yaml`

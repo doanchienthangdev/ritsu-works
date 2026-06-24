@@ -1,0 +1,202 @@
+---
+title: "Chương 56 (Tutorial) — Cài đặt · Cập nhật · Kiểm thử ritsu-works trên máy local"
+description: "Chương 56 (Tutorial) — Cài đặt · Cập nhật · Kiểm thử ritsu-works trên máy local"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/56-tutorial-local-install-platform.md
+source_hash: 34465835bb626b058a0be5900d61e43d6629954b448dfc46047528fc821afc19
+generated_at: '2026-06-24T09:42:30.551Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: en
+translated: true
+translated_source_hash: 34465835bb626b058a0be5900d61e43d6629954b448dfc46047528fc821afc19
+translated_at: '2026-06-24T09:42:30.551Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 56
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> **Một chương HƯỚNG DẪN, không phải case study.** Các capability case study ở Phần VI kể bạn nghe *chúng tôi đã xây gì và học được gì*. Tutorial này dạy một co-founder *cách đưa ritsu-works lên chạy được trên máy của chính mình* — từ một clone trắng tinh, trên macOS, Windows, hoặc Linux, đến một hệ thống đã được kiểm thử đầu-đến-cuối và sẵn sàng vận hành Ritsu trong Claude Code.
+
+> **Vì sao chương này tồn tại.** Ritsu giờ có nhiều co-founder. Mỗi người cần **phiên bản ritsu-works của riêng mình** trên máy của mình: checkout từ GitHub, tự điền `runtime/secrets/.env.local`, và vận hành Operating AI ngay trong môi trường Claude Code local. Trước đây, con đường duy nhất là `.scripts/bootstrap.sh` — một script chỉ-bash (nên hỏng trên Windows), đã cũ (trỏ tới playbook `v2.4` và một lệnh `pnpm test:integration` không tồn tại), giả định Node + pnpm đã có sẵn, và **không có bước kiểm chứng** rằng việc cài đặt thực sự hoạt động. Capability `local-install-platform` thay thế con đường đó bằng ba lệnh và một engine đa nền tảng.
+
+> **Ba lệnh, đọc theo thứ tự:** `/install-ritsu-works` → điền `.env.local` → `/test-ritsu-works`. Và sau này: `/update-ritsu-works`. Chương được viết để đọc tuần tự — Section 1 nêu vấn đề, Section 2 vẽ bức tranh lớn, Section 3-6 là quy trình thực hành, Section 7 mở nắp engine, Section 8 là xử lý sự cố + bài học.
+
+---
+
+## 1. Vấn đề — vì sao "clone rồi chạy" lại khó
+
+`ritsu-works` không phải một app đơn giản. Nó là một **Operating OS**: hàng trăm file Markdown (commands, skills, SOPs, governance), nhiều workspace Node (`mcp-server/`, `mcp-server-analytics/`, `docs/`), migrations Supabase, một site Fumadocs, và một bộ secrets cục bộ. Để một co-founder *vận hành* nó, máy của họ cần đúng runtime (Node ≥ 20, pnpm ≥ 9, git), đúng dependencies trong từng workspace, một `runtime/secrets/.env.local` được điền đúng, git hooks (husky) đã cài, và — quan trọng nhất — **một cách để biết chắc rằng tất cả đã thật sự hoạt động**, chứ không phải "có vẻ ổn".
+
+Bốn ràng buộc khiến việc này không tầm thường:
+
+1. **Đa nền tảng.** Co-founder có thể dùng macOS, Windows, hoặc Linux. Mỗi nền tảng có package manager khác nhau (Homebrew · apt/dnf/pacman/zypper/apk · winget/choco/scoop), đường dẫn khác nhau, shell khác nhau. Một script bash thuần là vô dụng trên Windows.
+
+2. **Vòng luẩn quẩn pre-Node.** Phần lớn logic nên là Node (vì Node đa nền tảng), nhưng *cài Node* lại là việc phải làm *trước khi có Node*. Bản thân Claude Code có thể được cài standalone (không cần Node), nên ta không thể giả định Node đã có.
+
+3. **Kiểm chứng thật, không phải niềm tin.** "Cài xong" phải có nghĩa là một bộ test đầy đủ đã chạy xanh — Tier-1 schemas hợp lệ, cross-tier không drift, toàn bộ vitest pass, MCP server build được, env đã nối dây. Founder yêu cầu: *khi xong bộ test, người dùng phải dùng được ritsu-works thực sự.*
+
+4. **Tường lửa.** Hook `pre-tool-supabase-product` (xem Chương 51) fail-closed trên *bất kỳ* lệnh Bash nào chứa token tên-CLI-database — kể cả một lệnh `git checkout` vô hại đi qua một đường dẫn `supabase/`. Bộ cài đặt phải tôn trọng tường lửa này, không được vô tình kích nó.
+
+---
+
+## 2. Bức tranh lớn — 3 lệnh, 1 engine đa nền tảng
+
+```
+   git clone … && cd ritsu-works && claude        (co-founder mở Claude Code trong thư mục)
+              │
+   ┌──────────▼───────────┐   ┌──────────────────┐   ┌──────────────────────┐
+   │ /install-ritsu-works │ → │ điền .env.local  │ → │  /test-ritsu-works   │
+   └──────────┬───────────┘   └──────────────────┘   └──────────┬───────────┘
+              │                                                   │
+   detect platform → ensure Node+pnpm →                bộ test đầy đủ + self-heal
+   cài system deps → cài workspace deps →              [i/N] streamed progress →
+   scaffold runtime/ + .env.local → husky →            "installation successful — ready"
+   refresh resolver index   (live [i/N] progress)
+              ⋮
+   (về sau)   /update-ritsu-works  → git pull --ff-only + re-sync deps → /test-ritsu-works
+```
+
+**Quyết định kiến trúc (Option B).** Một **shell bootstrap mỏng pre-Node** (`scripts/local-install/preflight.{sh,ps1}` — file *duy nhất* phụ-thuộc-nền-tảng, và chúng *chỉ* đảm bảo Node ≥ 20 + pnpm) + một **engine Node thuần** (đa nền tảng ngay khi đã có Node, dependency-injected, unit-tested) + **ba command mỏng** đóng vai bộ não điều phối. Sau cái "preflight" tí hon, *mọi* dòng logic đều là một codebase Node duy nhất — không còn cảnh duy trì song song bash với PowerShell.
+
+Đã cân nhắc và loại:
+- **Option A — script shell thuần (bash + ps1).** Loại: nhân đôi chi phí bảo trì, không unit-test được, dễ vỡ.
+- **Option C — một CLI npm đóng gói (`npx ritsu-works-install`).** Loại cho v0.1: publish lên npm là ngoài phạm vi và thêm gánh nặng release; command + scripts trong repo đã đủ.
+
+---
+
+## 3. Cài đặt — `/install-ritsu-works` (từng bước, đa nền tảng)
+
+Co-founder clone repo, mở Claude Code *trong thư mục đã clone*, gõ:
+
+```
+/install-ritsu-works
+```
+
+Claude (bộ não điều phối) chạy tuần tự, **hiển thị tiến độ ở mỗi bước**:
+
+1. **Đảm bảo Node + pnpm** (bước pre-Node duy nhất). Nếu `node --version` báo lỗi hoặc \< 20, cài Node LTS qua package manager của nền tảng (brew / apt / dnf / pacman / winget / choco / scoop); nếu Node đóng gói quá cũ, dùng nvm/fnm. Nếu thiếu pnpm: `corepack enable pnpm && corepack prepare pnpm@latest --activate` (fallback `npm install -g pnpm@latest`). *Hoặc* chạy một lần `bash scripts/local-install/preflight.sh` (macOS/Linux) / `powershell -ExecutionPolicy Bypass -File scripts\local-install\preflight.ps1` (Windows).
+
+2. **Dò máy** — `node scripts/local-install/doctor.cjs`. In ra nền tảng, từng dependency (có/version/thiếu), trạng thái cài workspace, và tình trạng env. Đây là bức tranh "máy này đang có gì".
+
+3. **Cài system deps còn thiếu** — với mỗi dep `required`/`recommended` mà doctor báo thiếu, chạy lệnh cài theo nền tảng (để prompt `sudo` hiện ra cho người dùng nhập — *không* bao giờ tự nâng quyền âm thầm). **Supabase CLI** cài qua engine để khỏi đụng tường lửa: `node scripts/local-install/install.cjs --install-deps=supabase-cli --apply`.
+
+4. **Chạy lõi tất định** — `node scripts/local-install/install.cjs --apply`. Stream `[i/N]` cho: ensure pnpm → cài root deps (frozen) → cài deps supabase-ops MCP → cài deps analytics MCP → scaffold `runtime/` + `.env.local` → husky → refresh resolver index.
+
+5. **Hướng dẫn env** — scaffold đã tạo `runtime/secrets/.env.local` từ `.env.example` (hoặc giữ nguyên nếu đã có). Claude bảo người dùng điền các khoá tối thiểu.
+
+6. **Bàn giao** — "Điền `.env.local`, rồi chạy `/test-ritsu-works`."
+
+**Ma trận dependency** (`scripts/local-install/dependencies.cjs` — nguồn sự thật duy nhất): mỗi dep khai báo `required` (hard/recommended/feature), `minVersion`, lệnh `detect`, và lệnh cài theo *từng* nền tảng × *từng* package manager.
+
+| dep | mức | vì sao |
+|---|---|---|
+| node (≥ 20) | hard | runtime của tất cả |
+| pnpm (≥ 9) | hard | package manager (`pnpm check`, `pnpm test`, cài deps) |
+| git | hard | clone / update |
+| gh | recommended | thao tác PR/CI (`/ship`) |
+| Supabase CLI | recommended | `pnpm check --remote`, migrations |
+| python3 (+ weasyprint, matplotlib) | feature | build PDF playbook (chỉ maintainer) |
+| ffmpeg | feature | ghép audio cho `/voice` |
+| bun | feature | engine gbrain MCP |
+
+---
+
+## 4. Cấu hình `runtime/secrets/.env.local`
+
+Scaffold đã copy `.env.example` thành `runtime/secrets/.env.local` (và *không bao giờ* ghi đè nếu file đã tồn tại). Mở nó và điền tối thiểu:
+
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY` — dự án ritsu-ops của bạn.
+- `MCP_CALLER_ROLE=founder` (hoặc `cofounder`) cho các phiên tương tác (cho phép D-MAX khi cần).
+- Các khoá LLM (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) là **tuỳ chọn** — chế độ subscription-only chạy được mà không cần chúng (xem 3 chế độ truy cập LLM trong `.env.example`).
+
+`.env.example` là bản chú thích đầy đủ. Quy tắc bí mật của repo vẫn áp dụng: `runtime/` là local-only, không bao giờ commit; husky pre-commit chặn mọi file `.env*` bị stage nhầm.
+
+---
+
+## 5. Kiểm thử — `/test-ritsu-works` (bộ test đầy đủ + tự chữa)
+
+```
+/test-ritsu-works
+```
+
+Lệnh này chạy `node scripts/local-install/test-suite/run.cjs --heal` và **tường thuật tiến độ theo từng nhóm**. Engine in `[i/N] ▶ <nhóm>` trước, rồi `[i/N] ✓/⚠/✗/⊘ <nhóm>  <chi tiết>  <giây>` sau — nên người dùng luôn thấy đang chạy gì, tiến tới đâu.
+
+**Các nhóm test** (nhóm `hard` phải pass để thành công; `recommended`/`feature` chỉ là cảnh báo):
+
+| nhóm | mức | kiểm |
+|---|---|---|
+| `env` | hard | Node ≥ 20 / pnpm ≥ 9 / git |
+| `workspaces` | hard | node_modules ở root + 2 MCP server |
+| `tier1` | hard | `pnpm validate:tier1` (Tier-1 YAML hợp schema) |
+| `drift` | hard | `pnpm check` (cross-tier không drift) |
+| `unit` | hard | toàn bộ vitest (`pnpm test`) |
+| `mcp-build` | hard | supabase-ops MCP type-check + build (tsc) |
+| `mcp-analytics` | recommended | analytics MCP type-check |
+| `mcp-smoke` | recommended | MCP doctor handshake (bỏ qua nếu chưa có env) |
+| `env-wiring` | recommended | `.env.local` có khoá Supabase |
+| `commands` | hard | 3 command + skills + file engine còn nguyên |
+| `docs-build` | feature | cold `next build` (cổng MDX — chỉ với `--full`) |
+
+**Tự chữa (self-heal).** `--heal` chạy `autoRemedy` của mỗi nhóm một lần rồi thử lại. Ví dụ: `drift` thất bại vì kiểm-mtime của resolver-v3 INDEX trên một clone mới → autoRemedy `pnpm resolver:index` (idempotent: nội dung không đổi → không tạo diff git, chỉ làm mới mtime) → pass. `workspaces` thiếu → `install.cjs --apply`. Nếu một nhóm `hard` vẫn thất bại sau `--heal`, bộ não command áp dụng remedy sâu hơn (cài lại workspace, sửa lỗi TS, sửa YAML lỗi), rồi chạy lại nhóm đó.
+
+Khi mọi nhóm `hard` pass, verdict in ra: **"Installation successful — ritsu-works is ready."** Từ lúc này, co-founder vận hành Ritsu thật sự trong phiên Claude Code của mình.
+
+> Một lưu ý trung thực: nhóm `unit` chạy toàn bộ vitest (~1 phút) và có thể để lại `supabase/functions/_shared/*.generated.ts` ở trạng thái đã-sửa (các bundler test viết lại chúng) — đây là chuyện cosmetic và `update.cjs` đã bỏ qua chúng.
+
+---
+
+## 6. Cập nhật — `/update-ritsu-works`
+
+Khi có phiên bản ritsu-works mới trên GitHub:
+
+```
+/update-ritsu-works
+```
+
+Engine `update.cjs`: `git fetch` (chỉ-đọc) → liệt kê commit mới (dry-run mặc định) → nếu working tree bẩn thì **từ chối** pull (báo người dùng commit/stash trước; nó đã bỏ qua các bundle `_shared/*.generated.ts`, submodule skillopt, và lockfile) → `git pull --ff-only` (không bao giờ tạo merge commit bất ngờ) → chạy lại lõi install (deps có thể đã đổi). Rồi gợi ý `/test-ritsu-works` để xác minh.
+
+---
+
+## 7. Kiến trúc engine — đa nền tảng · firewall-safe · test được
+
+```
+scripts/local-install/
+  lib/version.cjs     parse/so-sánh version từ output --version lộn xộn (thuần)
+  lib/exec.cjs        run() + which() đa nền tảng (injectable; xử lý PATHEXT/.cmd của Windows)
+  lib/platform.cjs    detect OS/arch/shell/package-manager (injectable)
+  lib/report.cjs      Reporter [i/N] progress + summary (formatting thuần, sink injectable)
+  dependencies.cjs    ma trận dependency đa nền tảng (data thuần + helper)
+  doctor.cjs          dò deps + workspaces + env  ·  --json
+  install.cjs         engine cài  ·  --apply --with-docs --install-deps=<ids> --json
+  update.cjs          engine cập nhật  ·  --apply --with-docs --json
+  test-suite/groups.cjs  spec các nhóm test (data thuần)
+  test-suite/run.cjs     bộ chạy + self-heal  ·  --heal --quick --full --only=<ids> --json
+  preflight.sh / .ps1    bootstrap pre-Node (chỉ đảm bảo Node>=20 + pnpm), rồi bàn giao
+```
+
+Ba nguyên lý giữ nó vững:
+
+1. **Đa nền tảng = Node.** Detect qua `process.platform` + `os.arch()` + dò PATH cho package manager. Mọi đường dẫn qua `node:path`; mọi thực thi qua `lib/exec`. File phụ-thuộc-nền-tảng duy nhất là `preflight.{sh,ps1}`, và chúng chỉ bootstrap Node + pnpm.
+
+2. **Dependency injection ở khắp nơi** (`run`, `which`, `fs`, `platform`, `write`). Vì thế engine **unit-test tất định** mà không đụng máy thật — `tests/local-install/` truyền các fake và khẳng định hành vi cho cả macOS/Windows/Linux từ một máy duy nhất.
+
+3. **Firewall-safe.** Hook `pre-tool-supabase-product` fail-closed trên *bất kỳ* lệnh Bash chứa token tên-CLI-database. Nên token đó *chỉ* sống bên trong các script (chạy qua `spawnSync` của engine — vô hình với hook); các lời gọi cấp-command (`node scripts/local-install/…`, `pnpm check`, `pnpm test`) không bao giờ viết ra token đó. Cài chính CLI đó đi qua `install.cjs --install-deps=supabase-cli`, không phải một lệnh Bash thô.
+
+**Governance.** Tier A xuyên suốt (local, đảo-ngược-được, đo-không-tiêu, không Product Supabase, không ghi DB công ty, không tiền, không publish ra ngoài). Các cài đặt cần quyền (`sudo`/package manager) được *đưa ra cho người dùng đồng ý* — không tự nâng quyền. `--dry-run`/`--apply` gating trên install + update. Contract: `SOP-AIOPS-016-local-install-runtime-contract`.
+
+---
+
+## 8. Xử lý sự cố + bài học
+
+**Sự cố thường gặp:**
+- *"vitest: command not found"* trên một worktree/clone mới → `node_modules` chưa cài; chạy `/install-ritsu-works` (hoặc `pnpm install`). Lưu ý: `require()` của Node leo lên `node_modules` của cây cha, nhưng binary `.bin` thì không — nên một clone chưa cài deps vẫn pass vài check nhưng `pnpm test` sẽ hỏng.
+- *nhóm `drift` đỏ vì "resolver-v3 INDEX.md older than skills.md"* → flake mtime trên clone mới; `--heal` tự chạy `pnpm resolver:index`. (Validator này không nằm trong GitHub CI, nên không bao giờ chặn merge.)
+- *Windows: "node not found" ngay sau khi cài* → mở terminal MỚI để PATH refresh, rồi chạy lại.
+- *analytics MCP "frozen-lockfile" lỗi* → workspace này không commit lockfile; engine tự cài non-frozen.
+
+**Bốn bài học:**
+1. **Một bước pre-Node, phần còn lại là Node.** Đừng duy trì song song bash + PowerShell cho toàn bộ logic; chỉ bootstrap Node rồi để một codebase Node lo phần đa nền tảng.
+2. **Dependency injection biến "script hệ thống" thành "code test được".** Truyền `run`/`which`/`fs`/`platform` làm cho engine kiểm thử được cho cả ba HĐH từ một máy.
+3. **"Cài xong" phải có nghĩa là "đã kiểm chứng xanh."** Một bộ test đầy đủ + tự-chữa là khác biệt giữa "có vẻ ổn" và "thật sự sẵn sàng".
+4. **Tôn trọng tường lửa bằng kiến trúc, không bằng ngoại lệ.** Giữ token nhạy-cảm bên trong script (vô hình với hook) thay vì xin một lỗ hổng — false-positive của tường lửa là rẻ, một false-negative thì không.

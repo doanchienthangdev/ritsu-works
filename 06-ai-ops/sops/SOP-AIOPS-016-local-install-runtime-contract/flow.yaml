@@ -1,0 +1,143 @@
+# SOP-AIOPS-016 — local-install Runtime Contract
+#
+# Declarative runtime contract for the local-install-platform capability — the
+# three commands /install-ritsu-works, /update-ritsu-works, /test-ritsu-works.
+# Read by those commands + the local-install umbrella/sub-skills.
+#
+# RUNTIME-CONTRACT SOP (like SOP-AIOPS-004/005/006/007/008/011/013/014/015),
+# NOT a CLA 8-phase ceremony — sop_id/slug/steps shape. The "steps" describe the
+# sequence each verb follows.
+
+sop_id: SOP-AIOPS-016
+slug: local-install-runtime-contract
+name: "/install|update|test-ritsu-works runtime contract"
+version: "1.0.0"
+state: operating
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A          # local, reversible, metered-not-spent; explicit-invoke only
+cost_bucket: ai-ops-local-install
+capability_id: local-install-platform
+
+# ----------------------------------------------------------------------
+# Cross-platform contract
+# ----------------------------------------------------------------------
+platform:
+  detection: "scripts/local-install/lib/platform.cjs — process.platform → macos|windows|linux; os.arch(); PATH-probe package managers (brew · apt/dnf/pacman/zypper/apk · winget/choco/scoop)"
+  principle: "Once Node exists, ALL logic is one Node codebase. Only preflight.{sh,ps1} are shell-specific, and only to bootstrap Node + pnpm."
+  paths: "node:path everywhere; lib/exec.cjs which() handles Windows PATHEXT / .cmd shims"
+
+# ----------------------------------------------------------------------
+# /install-ritsu-works
+# ----------------------------------------------------------------------
+install_steps:
+  - id: ensure-node-pnpm
+    name: "ensure Node >= 20 + pnpm (the only pre-Node step)"
+    actions: [detect_node, install_node_if_missing_per_platform, ensure_pnpm_corepack_or_npm_g]
+    hitl: A
+  - id: probe
+    name: "doctor probe"
+    runs: "node scripts/local-install/doctor.cjs"
+    actions: [detect_platform, probe_dependencies, probe_workspaces, probe_env]
+    hitl: A
+  - id: system-deps
+    name: "install missing required/recommended system deps (per platform)"
+    actions:
+      - install_per_platform_command       # brew/apt/dnf/pacman/winget/choco — sudo prompts surfaced, never silent
+      - supabase_cli_via_engine            # install.cjs --install-deps=supabase-cli (token stays inside the script → firewall-safe)
+    hitl: A
+  - id: core
+    name: "deterministic core (install.cjs --apply)"
+    runs: "node scripts/local-install/install.cjs --apply [--with-docs]"
+    actions: [ensure_pnpm, install_root_frozen, install_mcp_server_frozen, install_analytics_no_lockfile, scaffold_runtime_and_env, husky, refresh_resolver_index]
+    progress: "streams [i/N] per step"
+    hitl: A
+  - id: guide-env
+    name: "guide the user to fill runtime/secrets/.env.local"
+    actions: [point_to_env_example, list_required_keys]   # SUPABASE_URL/ANON/SERVICE + MCP_CALLER_ROLE; LLM keys optional
+    hitl: A
+  - id: handoff
+    name: "tell the user to run /test-ritsu-works"
+    hitl: A
+
+# ----------------------------------------------------------------------
+# /update-ritsu-works
+# ----------------------------------------------------------------------
+update_steps:
+  - id: dry-run
+    name: "fetch + show incoming commits (no pull)"
+    runs: "node scripts/local-install/update.cjs"
+    hitl: A
+  - id: dirty-guard
+    name: "refuse pull over a dirty tree"
+    note: "ignores _shared/*.generated.ts bundles + vendor/skillopt + lockfiles"
+    hitl: A
+  - id: apply
+    name: "git pull --ff-only + re-sync deps"
+    runs: "node scripts/local-install/update.cjs --apply [--with-docs]"
+    hitl: A
+  - id: handoff
+    name: "suggest /test-ritsu-works"
+    hitl: A
+
+# ----------------------------------------------------------------------
+# /test-ritsu-works — the full system test suite
+# ----------------------------------------------------------------------
+test_suite:
+  runs: "node scripts/local-install/test-suite/run.cjs --heal [--quick|--full] [--only=<ids>]"
+  spec: scripts/local-install/test-suite/groups.cjs
+  groups:
+    - { id: env,           required: hard,        check: "node≥20 / pnpm≥9 / git" }
+    - { id: workspaces,    required: hard,        check: "node_modules in root + 2 MCP servers", autoRemedy: "install.cjs --apply" }
+    - { id: tier1,         required: hard,        check: "pnpm validate:tier1" }
+    - { id: drift,         required: hard,        check: "pnpm check", autoRemedy: "pnpm resolver:index" }
+    - { id: unit,          required: hard, slow:  true, check: "pnpm test (full vitest)" }
+    - { id: mcp-build,     required: hard,        check: "supabase-ops MCP tsc build", autoRemedy: "pnpm install (mcp-server)" }
+    - { id: mcp-analytics, required: recommended, check: "analytics MCP typecheck", autoRemedy: "pnpm install (mcp-server-analytics)" }
+    - { id: mcp-smoke,     required: recommended, check: "MCP doctor handshake", skipIfNoEnv: true }
+    - { id: env-wiring,    required: recommended, check: ".env.local Supabase keys set" }
+    - { id: commands,      required: hard,        check: "3 commands + skills + engine files intact" }
+    - { id: docs-build,    required: feature, slow: true, optIn: true, check: "cold next build (MDX gate)" }
+  verdict: "success iff every HARD group passes; recommended/feature failures are warnings"
+  self_heal: "--heal runs each group's autoRemedy once then retries; the command brain applies deeper remedies"
+  progress: "streams [i/N] ▶/✓/⚠/✗/⊘ per group with timing"
+
+# ----------------------------------------------------------------------
+# Firewall discipline (defense in depth)
+# ----------------------------------------------------------------------
+firewall:
+  rule: "pre-tool-supabase-product fails closed on any Bash command containing the database-CLI token"
+  contract:
+    - "that token lives ONLY inside scripts (run via the engine's spawnSync → invisible to the hook)"
+    - "command-level invocations (node scripts/local-install/…, pnpm check, pnpm test) never spell it"
+    - "installing that CLI goes through install.cjs --install-deps=supabase-cli, never a raw Bash command"
+
+guards:
+  - dry_run_default            # install + update default to a plan; --apply executes
+  - never_overwrite_env        # existing runtime/secrets/.env.local is left untouched
+  - ff_only_pull               # update never creates surprise merge commits; refuses dirty tree
+  - surface_privileged         # sudo / package-manager installs are surfaced for user consent
+  - no_product_supabase        # local artifacts only; never touches Product Supabase or company DB
+  - explicit_invoke_only       # founder/co-founder-invoked; never auto-run
+
+# ----------------------------------------------------------------------
+# Observability (A+ lean — no Tier-2 migration in v0.1)
+# ----------------------------------------------------------------------
+observability:
+  v0_1: "doctor --json + test-suite/run --json emit structured reports (run on operators' own machines). Forward-compat superset of a future ops.install_runs if a /cla extend ever wants cross-machine telemetry."
+
+references:
+  - .claude/commands/install-ritsu-works.md
+  - .claude/commands/update-ritsu-works.md
+  - .claude/commands/test-ritsu-works.md
+  - 06-ai-ops/skills/local-install/SKILL.md
+  - 06-ai-ops/skills/local-install/{install,update,test}/SKILL.md
+  - scripts/local-install/README.md
+  - scripts/local-install/{doctor,install,update}.cjs
+  - scripts/local-install/test-suite/{groups,run}.cjs
+  - scripts/local-install/lib/{version,exec,platform,report}.cjs
+  - scripts/local-install/dependencies.cjs
+  - scripts/local-install/preflight.{sh,ps1}
+  - .env.example
+  - .claude/hooks/pre-tool-supabase-product.md   # the firewall contract this capability respects
+  - governance/HITL.md

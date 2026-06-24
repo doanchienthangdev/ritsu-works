@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 23
+**Total entries:** 24
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -139,6 +139,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 **When to use:** Image generation platform (/image command). OPERATING since 2026-06-02 (Tier-C decision d7e92ec2-bcfb-4b7f-a140-bfb14a12dacf; PR #197 foundation + #198 surface + the Phase-8 promotion PR; ops.capability_runs id f494f9c9-b4be-4308-a1c2-d006a0e0476e). Foundational, build-once-use-forever image-generation primitive exposed as /image <prompt> [flags]: a model-agnostic front door with a pluggable adapt v0.4.0
 
 **Invoke:** `Read("wiki/capabilities/image-platform/spec.md")` or `/cla update image-platform`
+
+**Role scope:** *
+**Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/local-install-platform
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Local install / update / test platform (/install|update|test-ritsu-works). OPERATING since 2026-06-24 (Tier-A runtime; founder-proxy autonomous build — multiple co-founders now run their OWN local ritsu-works instance from the GitHub repo). Foundational distribution primitive: any co-founder clones the repo, opens Claude Code, and runs /install-ritsu-works to get every dependency installed (platfo v0.1.0
+
+**Invoke:** `Read("wiki/capabilities/local-install-platform/spec.md")` or `/cla update local-install-platform`
 
 **Role scope:** *
 **Status:** operating
@@ -280,7 +292,7 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Kind:** capability
 **Axis:** meta
-**When to use:** Universal content-writing platform (/write command). OPERATING since 2026-06-10 (Tier-A runtime; founder-proxy autonomous overnight build + ship). The single most important production capability: WRITING. /write produces any of 27+ content types (blog/social/ad/email/video-script/article/research/paper/essay/memo/proposal/report/bio/story/poetry/screenplay/speech/faq/review/...) across 7 categorie v0.4.0
+**When to use:** Universal content-writing platform (/write command). OPERATING since 2026-06-10 (Tier-A runtime; founder-proxy autonomous overnight build + ship). The single most important production capability: WRITING. /write produces any of 27+ content types (blog/social/ad/email/video-script/article/research/paper/essay/memo/proposal/report/bio/story/poetry/screenplay/speech/faq/review/...) across 7 categorie v0.5.0
 
 **Invoke:** `Read("wiki/capabilities/write-platform/spec.md")` or `/cla update write-platform`
 

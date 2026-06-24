@@ -1,0 +1,55 @@
+---
+title: 'Skill: local-install/install'
+description: |
+  The install verb of local-install-platform — drives scripts/local-install/install.cjs
+  to set up ritsu-works on a fresh machine: ensure Node+pnpm, install missing
+  system deps per platform, install workspace deps (root + 2 MCP servers),
+  scaffold runtime/secrets/.env.local from .env.example, set up husky, refresh
+  the resolver index. Invoked by /install-ritsu-works. Tier A.
+source_path: 06-ai-ops/skills/local-install/install/SKILL.md
+source_hash: bc1d1d4f43fd53cbd3962eb7f09e50ef9ef7bfa0bcd342acf8cfc95f6e98f56a
+generated_at: '2026-06-24T09:45:36.129Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> The install brain. Turn a fresh `ritsu-works` clone into a working local
+> instance on macOS / Windows / Linux.
+
+## Sequence
+1. **Pre-Node:** ensure `node --version` ≥ 20 and `pnpm` exist (install Node via
+   brew/apt/dnf/pacman/winget/choco; pnpm via corepack → npm-g fallback). Or run
+   `scripts/local-install/preflight.{sh,ps1}` once.
+2. **Probe:** `node scripts/local-install/doctor.cjs` — show what's present/missing.
+3. **System deps:** install each missing required/recommended dep with the
+   doctor's per-platform command (let `sudo` prompts through). The Supabase CLI
+   goes via `install.cjs --install-deps=supabase-cli --apply` (firewall-safe).
+4. **Core:** `node scripts/local-install/install.cjs --apply` (+`--with-docs`
+   to include the docs site). Streams `[i/N]`: ensure-pnpm → root deps (frozen) →
+   supabase-ops MCP deps → analytics MCP deps → scaffold runtime/+.env.local →
+   husky → refresh index. Relay progress.
+5. **Guide env:** the scaffold made `runtime/secrets/.env.local` from
+   `.env.example` (or kept an existing one). Tell the user to fill
+   `SUPABASE_URL/ANON_KEY/SERVICE_KEY` + `MCP_CALLER_ROLE`; LLM keys optional.
+6. **Hand off:** "fill .env.local, then run /test-ritsu-works."
+
+## Flags
+`--apply` (execute; default is a dry-run plan) · `--with-docs` · `--install-deps=<ids>` · `--json`.
+
+## Self-heal
+Workspace install fails → the engine already falls back from `--frozen-lockfile`
+to a loose install; if still failing, `pnpm install` in that workspace + diagnose.
+Never report success until the core completes cleanly.
+
+## Notes
+- Idempotent: existing `.env.local` is never overwritten; existing runtime/ dirs
+  are left alone; the index refresh is a no-op diff if the catalog is in sync.
+- The analytics MCP workspace has no committed lockfile → installs non-frozen
+  (the engine handles this automatically).
+
+Engine: `scripts/local-install/install.cjs` · `doctor.cjs` · `dependencies.cjs`.
+Contract: `SOP-AIOPS-016`. Umbrella: `local-install`.
+

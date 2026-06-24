@@ -1,0 +1,81 @@
+---
+title: 'Command: /test-ritsu-works'
+description: |
+  Run the full ritsu-works system test suite on THIS machine and prove the
+  install works end-to-end — runtime, deps, Tier-1 schemas, cross-tier drift,
+  the full vitest suite, MCP server build + handshake, env wiring, capability
+  integrity. Streams per-group progress, self-heals failures, and reports a
+  clear "installation successful — ready" verdict. Capability
+  local-install-platform v0.1.
+source_path: .claude/commands/test-ritsu-works.md
+source_hash: d29f88dcef8a6ea346bab8c32b440f4bb395beae1173133727124d8e47e4555f
+generated_at: '2026-06-24T09:44:33.456Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+translated: true
+translated_source_hash: d29f88dcef8a6ea346bab8c32b440f4bb395beae1173133727124d8e47e4555f
+translated_at: '2026-06-24T10:00:00.000Z'
+translated_by: 'Claude (dịch in-session sang tiếng Việt)'
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Bạn (Claude) lái bộ test hệ thống đầy đủ. Chạy engine, **tường thuật tiến độ
+theo từng nhóm**, tự chữa mọi thứ sửa-được, và đưa ra một verdict cuối rõ ràng.
+
+> **Quy tắc tường lửa:** chỉ gọi qua `node scripts/local-install/test-suite/run.cjs`.
+> Bộ test chạy `pnpm check` / `pnpm test` / các kiểm tra MCP BÊN TRONG runner
+> (vô hình với tường lửa); không bao giờ gõ token tên-CLI-database trong lệnh Bash.
+
+## Tier
+**A** — kiểm chứng chỉ-đọc (chạy build + test cục bộ; không hành động ra ngoài,
+không tiền, không Product Supabase).
+
+## Nó kiểm những gì (các nhóm, theo thứ tự)
+`env` (Node≥20/pnpm≥9/git) · `workspaces` (node_modules) · `tier1` (`pnpm validate:tier1`) ·
+`drift` (`pnpm check`) · `unit` (toàn bộ `pnpm test`) · `mcp-build` (supabase-ops MCP `tsc`) ·
+`mcp-analytics` (analytics `typecheck`) · `mcp-smoke` (MCP doctor handshake — bỏ qua nếu không có env) ·
+`env-wiring` (khoá .env.local) · `commands` (3 lệnh + skills còn nguyên) ·
+`docs-build` (cold `next build` — chỉ với `--full`).
+
+Nhóm `hard` phải pass để thành công; thất bại `recommended`/`feature` chỉ là cảnh báo.
+
+## Luồng
+
+1. **Chạy bộ test với self-heal:**
+   ```
+   node scripts/local-install/test-suite/run.cjs --heal
+   ```
+   - `--quick` → bỏ nhóm chậm `unit` (vitest) để smoke nhanh.
+   - `--full` → cold-build thêm site docs (cổng MDX; chậm).
+   - `--only=drift,unit` → chỉ chạy những nhóm đó.
+
+   Runner in `[i/N] ▶ <nhóm>` trước mỗi nhóm và `[i/N] ✓/⚠/✗/⊘ <nhóm>  <chi tiết>  <giây>` sau. **Tường thuật từng dòng cho người dùng khi nó hiện ra** để họ thấy tiến độ + nhóm nào đang chạy.
+
+2. **Đọc verdict.** Khi thấy `Installation successful — ritsu-works is ready`, báo rõ ràng rồi dừng.
+
+3. **Nếu một nhóm HARD thất bại** kể cả sau `--heal`:
+   - Đọc dòng `remedy:` runner đã in cho nhóm đó.
+   - Áp dụng cách sửa nguyên-nhân-gốc:
+     - `workspaces` → `node scripts/local-install/install.cjs --apply`
+     - `drift` → chạy cách sửa của validator cụ thể; nếu là mtime của resolver-v3 INDEX, `pnpm resolver:index`
+     - `unit` → soi (các) test thất bại; nếu là một flake *có-sẵn* (timing/perf hoặc một count hardcode đã cũ), sửa test một cách trung thực (realign về source hiện tại — không bao giờ làm yếu một assertion thật); nếu là regression thật, sửa code
+     - `mcp-build` / `mcp-analytics` → `pnpm install` trong workspace đó, rồi sửa lỗi TS
+     - `tier1` → sửa YAML bị gắn cờ theo schema của nó
+   - Chạy lại đúng nhóm đó: `node scripts/local-install/test-suite/run.cjs --only=<id> --heal`, rồi chạy lại toàn bộ để xác nhận.
+
+4. **Báo cáo.** Khi mọi nhóm hard pass, báo người dùng:
+   > ✅ Cài đặt thành công — ritsu-works đã được xác minh sẵn sàng. Bạn có thể vận hành Ritsu trong phiên Claude Code này. (cảnh báo, nếu có: …)
+
+## Ghi chú
+- Nhóm `unit` chạy toàn bộ vitest (~1 phút) và có thể để lại
+  `supabase/functions/*.generated.ts` ở trạng thái đã-sửa (các bundler test viết
+  lại chúng); đây là chuyện cosmetic và `update.cjs` đã bỏ qua.
+- `mcp-smoke` bị bỏ qua nếu `.env.local` chưa nối dây — điều này là bình thường ở
+  lần chạy đầu; nối dây env rồi chạy lại để có handshake thật.
+
+## Tham chiếu engine
+- `scripts/local-install/test-suite/run.cjs --heal [--quick|--full] [--only=<ids>] [--json]`
+- Spec nhóm: `scripts/local-install/test-suite/groups.cjs`
+- Contract: `06-ai-ops/sops/SOP-AIOPS-016-local-install-runtime-contract/flow.yaml`

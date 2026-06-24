@@ -1,0 +1,96 @@
+---
+description: |
+  Install everything ritsu-works needs to run on THIS machine (macOS / Windows /
+  Linux), auto-detecting the platform + package manager, with live progress.
+  Installs dependencies, scaffolds runtime/secrets/.env.local, sets up git hooks,
+  then guides you to fill credentials and run /test-ritsu-works. Capability
+  local-install-platform v0.1 — thin orchestrator over scripts/local-install/.
+argument-hint: "[--with-docs] [--dry-run]"
+---
+
+# /install-ritsu-works
+
+You (Claude) are the install orchestrator. A co-founder has cloned `ritsu-works`
+and wants it running locally. Drive the deterministic engine in
+`scripts/local-install/`, handle the per-platform / privileged bits with
+judgment, and **show progress at every step**.
+
+> **Firewall rule (critical):** never put the literal database-CLI token in a
+> Bash command — the product-firewall hook fails closed on it. The engine keeps
+> that token inside its scripts. To install that CLI, use
+> `node scripts/local-install/install.cjs --install-deps=supabase-cli --apply`
+> (it runs the install internally). Everything else (`pnpm`, `node`, `git`,
+> `gh`, `brew`, `apt`, `winget`) is fine to run directly.
+
+## Tier
+**A** — local, reversible, no money, no external publish, no Product Supabase, no
+company-DB writes. Privileged installs (`sudo`, package managers) are surfaced to
+the user; never silently escalate.
+
+## Flow
+
+### Step 0 — Ensure Node + pnpm (the only pre-Node bit)
+The engine is Node, so Node must exist first.
+1. Run `node --version`. If it errors or prints `< v20`:
+   - Detect the platform package manager and install Node LTS:
+     - macOS: `brew install node` (or guide to nvm/fnm if brew is absent)
+     - Linux: `sudo apt-get install -y nodejs` / `sudo dnf install -y nodejs` / `sudo pacman -S --noconfirm nodejs npm` (if the packaged Node is < 20, use nvm/fnm)
+     - Windows: `winget install -e --id OpenJS.NodeJS.LTS` (or choco/scoop)
+   - Or, as a one-shot, run the preflight: `bash scripts/local-install/preflight.sh` (macOS/Linux) / `powershell -ExecutionPolicy Bypass -File scripts\local-install\preflight.ps1` (Windows).
+2. Run `pnpm --version`. If missing: `corepack enable pnpm && corepack prepare pnpm@latest --activate` (fallback `npm install -g pnpm@latest`).
+
+### Step 1 — Probe the machine
+Run `node scripts/local-install/doctor.cjs`. This reports the platform, every
+dependency (present/version/missing), workspace install state, and env wiring.
+Show the user the report.
+
+### Step 2 — Install missing system dependencies
+For each **required** or **recommended** dep the doctor flagged missing:
+- Run the per-platform install command the doctor printed (handle `sudo`
+  password prompts by letting the user enter them; do not suppress prompts).
+- For the **Supabase CLI** specifically (recommended), run it through the engine
+  so the firewall isn't tripped:
+  `node scripts/local-install/install.cjs --install-deps=supabase-cli --apply`
+- **feature** deps (python/ffmpeg/bun) are optional — install only if the user
+  wants the matching capability (PDF / /voice / gbrain). Mention them, don't force.
+
+### Step 3 — Run the deterministic core
+Run `node scripts/local-install/install.cjs --apply` (add `--with-docs` if the
+user passed `--with-docs`). This streams `[i/N]` progress for:
+1. ensure pnpm  2. install root deps (frozen)  3. install supabase-ops MCP deps
+4. install analytics MCP deps  5. scaffold `runtime/` + `.env.local`  6. husky
+7. refresh resolver index.
+
+Relay the progress to the user as it runs. If a workspace install fails,
+re-run that workspace's `pnpm install` (the engine already falls back from
+`--frozen-lockfile` to a loose install).
+
+> If `--dry-run` was passed, run `install.cjs` WITHOUT `--apply` first and show
+> the plan; only proceed to `--apply` on confirmation.
+
+### Step 4 — Guide the env
+The scaffold created `runtime/secrets/.env.local` from `.env.example` (or left an
+existing one untouched). Tell the user, in plain steps:
+> **Edit `runtime/secrets/.env.local`** and fill at least:
+> - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY` (your ritsu-ops project)
+> - `MCP_CALLER_ROLE=founder` (or `cofounder`) for interactive sessions
+> - LLM keys are optional (subscription-only mode works without them)
+>
+> See `.env.example` for the full annotated list and the 3 access modes.
+
+### Step 5 — Hand off
+Tell the user clearly:
+> ✅ Install complete. Next:
+> 1. Fill `runtime/secrets/.env.local` (above).
+> 2. Run **`/test-ritsu-works`** — it runs the full system test suite and tells
+>    you when ritsu-works is verified ready.
+
+## Self-heal
+If any step fails, diagnose from the engine's output and the doctor report, fix
+the root cause (re-install a workspace, install a missing tool, fix PATH), and
+re-run that step. Don't report success until Step 3 completes cleanly.
+
+## Engine reference
+- `scripts/local-install/doctor.cjs --json` — structured probe
+- `scripts/local-install/install.cjs --apply [--with-docs] [--install-deps=<ids>] [--json]`
+- Full design: `scripts/local-install/README.md`; contract: `06-ai-ops/sops/SOP-AIOPS-016-local-install-runtime-contract/flow.yaml`

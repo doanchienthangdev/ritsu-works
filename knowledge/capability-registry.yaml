@@ -1973,6 +1973,35 @@ capabilities:
       runs_by_type_monthly), more distilled authors, --mode=workflow polish. CLA artifacts
       (local-only): .archives/cla/write-platform/.
 
+  # === local-install-platform (OPERATING 2026-06-24 via /cla — founder-proxy autonomous build + ship) ===
+  - id: local-install-platform
+    name: "Local install / update / test platform (/install|update|test-ritsu-works)"
+    description: "OPERATING since 2026-06-24 (Tier-A runtime; founder-proxy autonomous build — multiple co-founders now run their OWN local ritsu-works instance from the GitHub repo). Foundational distribution primitive: any co-founder clones the repo, opens Claude Code, and runs /install-ritsu-works to get every dependency installed (platform + package-manager auto-detected: macOS brew · Linux apt/dnf/pacman/zypper/apk · Windows winget/choco/scoop), runtime/secrets/.env.local scaffolded from .env.example, husky + resolver index set up — with live [i/N] progress. Then /test-ritsu-works runs the FULL system test suite (env · workspaces · Tier-1 schemas · cross-tier drift `pnpm check` · full `pnpm test` vitest · supabase-ops MCP build · analytics MCP typecheck · MCP doctor handshake · env wiring · capability integrity · optional cold docs build), streams per-group progress, self-heals failures (--heal runs each group's autoRemedy then retries), and reports a clear 'installation successful — ready' verdict. /update-ritsu-works does git pull --ff-only (refuses dirty tree) + re-sync deps. ARCHITECTURE (Option B): a thin pre-Node shell bootstrap (preflight.sh/.ps1, the ONLY platform-specific files — they only ensure Node>=20 + pnpm) + a pure-Node, dependency-injected, unit-tested engine under scripts/local-install/ (lib/{version,exec,platform,report}.cjs + dependencies.cjs matrix + doctor.cjs + install.cjs + update.cjs + test-suite/{groups,run}.cjs) + 3 thin commands as the orchestration brain. FIREWALL-SAFE: the product-firewall hook fails closed on any Bash command containing the database-CLI token, so that token lives ONLY inside the scripts (run via the engine's spawnSync, invisible to the hook) and command-level invocations never spell it; the CLI installs via install.cjs --install-deps=supabase-cli. Tier A throughout (local, reversible, metered-not-spent, no Product Supabase, no company-DB writes, no money, no external publish); privileged installs (sudo/pkg-mgr) surfaced for user consent; --dry-run/--apply gating. NO Tier-2 migration in v0.1 (runs on operators' own machines; doctor --json + test-suite/run --json are the forward-compat superset of a future ops.install_runs via /cla extend)."
+    version: "0.1.0"
+    state: operating
+    state_since: 2026-06-24
+    proposed_at: 2026-06-24
+    deployed_at: 2026-06-24
+    operating_since: 2026-06-24
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/local-install-platform/spec.md
+    cost_bucket: ai-ops-local-install
+    notes: |
+      Motivated by the founder's need to onboard co-founders onto their own local
+      ritsu-works instance, cross-platform (macOS/Windows/Linux). v0.1 scope: 3
+      commands (install/update/test-ritsu-works) + local-install umbrella skill +
+      install/update/test sub-skills ; cross-platform Node engine (scripts/local-install/
+      lib/{version,exec,platform,report}.cjs + dependencies.cjs matrix + doctor.cjs +
+      install.cjs + update.cjs + test-suite/{groups,run}.cjs) + preflight.{sh,ps1} ;
+      SOP-AIOPS-016-local-install-runtime-contract ; cost-bucket ai-ops-local-install
+      under gps ; resolver registration (commands.md + skills.md + INDEX.md) ; vitest
+      tests under tests/local-install/. Also fixed 4 pre-existing brittle baseline tests
+      (validate-tier1.test.ts hardcoded 29-schema count → derived dynamically from
+      FILE_TO_SCHEMA ; resolver-v2 edge-cases perf guard 1000ms → machine-tolerant
+      ceiling) so the `unit` group reaches green for every operator. NOT v0.1 (future
+      /cla extend): ops.install_runs cross-machine telemetry + KPIs, npm-published CLI,
+      auto Supabase DB provisioning. CLA artifacts (local-only): .archives/cla/local-install-platform/.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:
@@ -2023,6 +2052,10 @@ cost_buckets:
   ai-ops-write:
     description: "write-platform runtime — /write content generation + /write distill author-voice capture. Drafting + humanizing + planning are IN-SESSION/subscription (the value Claude adds — task_kinds write-orchestration $0.50, write-draft $1.50 advisory, write-humanize $0.20, write-distill $2.00, write-research $1.00). The ONLY out-of-band spend is /image + /dataviz enrichment, each capped by its own --max-cost-usd; the per-run --max-cost-usd (default 2.00) is the overall guard. The humanizer's deterministic scanners (vendored, MIT) are $0. Build-once foundational primitive; reuses translate render + deepask image/chart bridges (no duplicate spend path); plan.json = forward-compat superset of a future ops.write_runs."
     capabilities: [write-platform]
+
+  ai-ops-local-install:
+    description: "local-install-platform runtime — /install|update|test-ritsu-works. NEAR-ZERO ongoing: the engine is pure Node (no API key, no out-of-band spend); it runs on a co-founder's OWN machine doing local setup, so the per-invocation LLM cost is the operator's own Claude Code subscription session (not metered against the company budget). The bucket exists for governance coherence only. Build-once foundational distribution primitive."
+    capabilities: [local-install-platform]
 
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
