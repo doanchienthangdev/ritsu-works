@@ -2002,6 +2002,25 @@ capabilities:
       /cla extend): ops.install_runs cross-machine telemetry + KPIs, npm-published CLI,
       auto Supabase DB provisioning. CLA artifacts (local-only): .archives/cla/local-install-platform/.
 
+  # === multi-user-auth (ARCHITECTING 2026-06-24 via /cla — malicious-insider-resistant owner/admin/user) ===
+  - id: multi-user-auth
+    name: "Multi-user identity, authorization & enrollment (owner/admin/user)"
+    description: "ARCHITECTING since 2026-06-24. Follow-on to local-install-platform (PR #300/#301), which turned the single-operator system into multi-human-user. Defends against a MALICIOUS INSIDER (possibly >1 owner) via a 3-tier human authority model (owner ⊇ admin ⊇ user) enforced SERVER-SIDE. Load-bearing principle: privileged power must NOT live on the user's laptop — it lives behind authentication of a per-human credential the user cannot forge; the local client (Claude Code, MCP code, hooks, the MCP_CALLER_ROLE env var) is UNTRUSTED; a human's blast radius = exactly their tier's server-granted capabilities. Architecture (hardened by a 5-agent design + 2 red-team Workflow): per-human Supabase Auth (email magic-link = mailbox proof) → JWT with server-only app_metadata.tier; ops DB via per-tier RLS (drop service_role for humans — kills the query.ts RLS-bypass); gbrain/analytics under the same JWT; money/publish/system via a hosted Edge-Function broker keyed on the authenticated identity; git/Tier-1 via GitHub identity + CODEOWNERS + branch protection; the Product firewall becomes a server-side property of the credential. Registry = governance/operators.yaml (Tier-1, owner-PR, no secrets) + ops.operators (Tier-2, owner-broker-write-only). Enrollment: owner /users add <email> --tier → magic-link invite → /install blocks until enrolled. Offboarding = single revoke (admin/user: zero rotation). Sprint 0 (THIS) ships the SAFE additive foundation: operator-tiers.yaml + schema + validate-operators.cjs (L2) + operator-tier.cjs resolver + governance/operators.yaml + CODEOWNERS + .env.example warnings + /users command + operator-management skill + SOP-AIOPS-017 — all advisory/non-activating (no live-system change). Sprints 1-3 (founder-gated: Supabase Auth enablement + per-tier RLS migration on the shared DB + the MCP rewrite off service_role + the hosted broker + owner hardware key) land the real enforcement."
+    version: "0.1.0"
+    state: architecting
+    state_since: 2026-06-24
+    proposed_at: 2026-06-24
+    pillar_owner: 06-ai-ops
+    spec_path: .archives/cla/multi-user-auth/01-spec.md
+    notes: |
+      Founder decision: defend against malicious insider; build the full capability.
+      Sprint 0 = foundation (safe, additive, flag-gated; ships now). Sprints 1-3 are
+      founder-infra-gated (Supabase Auth console + D-MAX RLS migration on the shared
+      ritsu-ops DB + a hosted broker) and land the enforcement. The TWO boundaries
+      that already hold: GitHub branch protection + the pre-tool-supabase-product
+      firewall. Design + red-team artifacts: .archives/cla/multi-user-auth/ +
+      .archives/brainstorming/multi-user-security-2026-06-24/.
+
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
 dependencies:

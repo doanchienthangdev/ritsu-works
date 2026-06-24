@@ -1,0 +1,59 @@
+---
+description: |
+  Owner-only operator management for ritsu-works multi-user: add / list / revoke /
+  re-tier human operators (owner · admin · user). Capability multi-user-auth.
+  Sprint 0 = ADVISORY (edits governance/operators.yaml via PR + previews the
+  email-invite); Sprint 1 makes it server-enforced (broker issues a per-human
+  credential, /install blocks until enrolled). NOT a content command.
+argument-hint: "add <email> --tier=admin|user | list | revoke <email> | tier <email> --set=<tier>"
+---
+
+# /users — operator management (capability `multi-user-auth`)
+
+Owner-only. Manage the humans who may operate ritsu-works and their authority tier.
+The tier model + per-tier capabilities live in `knowledge/operator-tiers.yaml`; the
+registry of who's enrolled lives in `governance/operators.yaml` (owner-PR, CODEOWNERS-locked).
+
+> **Tier (advisory v0):** this command's effects are gated by the caller being an
+> **owner**. In Sprint 0 that check is advisory (the real gate is CODEOWNERS on
+> `operators.yaml` + branch protection). Sprint 1 makes it server-enforced: the
+> broker verifies the caller's per-human owner credential before mutating anything,
+> and issues/revokes the enrollee's credential.
+
+> **Firewall:** never type the database-CLI token in a Bash command. Registry reads
+> use the Read tool / the resolver helper; Sprint-1 DB writes go through the broker.
+
+## Tiers (summary — full map: `knowledge/operator-tiers.yaml`)
+- **owner** — everything: system commands (`/cla`, `/evolve`, `/update`, `/forge`), Tier-1 + GitHub merge, money, **user management**.
+- **admin** — data systems (ops DB + gbrain read/write, analytics read) + content + knowledge (`/wiki`, `/deepask`, `/brain`).
+- **user** — content production only (`/write`, `/think`, `/voice`, `/image`, `/dataviz`, `/translate`) + publish to stores (HITL).
+
+## Preflight (every subcommand)
+1. Confirm the CALLER is an owner: resolve the caller's operator email against
+   `governance/operators.yaml` and require `tier: owner, status: active`. (Sprint 0:
+   advisory — print a warning if not verifiable; Sprint 1: the broker enforces.)
+   Helper: `scripts/local-install/lib/operator-tier.cjs` → `can(callerEmail, {kind:'user-management'}, registry, tiers)`.
+
+## `add <email> --tier=admin|user`
+1. Validate the email + tier; refuse `--tier=owner` unless joint-owner approval (≥2 owners) — owner creation is the highest-stakes action.
+2. Append a record to `governance/operators.yaml`: `{email, tier, status: invited, added_by: <owner email>, added_at: <today>}`. Open it as a **PR** (CODEOWNERS → owner review).
+3. Run `node scripts/cross-tier/validate-operators.cjs` — must pass (≥1 owner, unique email, added_by-is-owner, no secrets).
+4. **Sprint 1:** the broker creates the Supabase Auth user with `app_metadata.tier`, generates a single-use ≤24h email-bound magic-link, and sends it via Resend. **Sprint 0:** print the invite instructions for the owner to send manually + mark the record `invited`.
+5. Tell the new operator: clone the repo → `/install-ritsu-works` → (Sprint 1) authenticate with the emailed link before install completes.
+
+## `list`
+Read `governance/operators.yaml` + render a table: email · tier · status · added_by · added_at · github_login. Flag any `invited` older than the invite TTL (stale) and any tier mismatch vs `app_metadata` (Sprint 1).
+
+## `revoke <email>`
+1. Set the operator's `status: revoked` in `governance/operators.yaml` (PR).
+2. **Sprint 1:** the broker does a global Supabase Auth signOut + ban → the human is invalid within one JWT TTL. **Offboarding:** admin/user = single revoke, **zero secret rotation** (they never held shared keys); **owner** removal = revoke + rotate the shared admin keys + joint-owner approval.
+3. Validate; confirm ≥1 active owner remains (the validator FAILs otherwise).
+
+## `tier <email> --set=<tier>`
+Change an operator's tier (PR). Same owner-only + joint-approval-for-owner rules. Re-validate.
+
+## Engine / contract
+- Registry: `governance/operators.yaml` · Tier map: `knowledge/operator-tiers.yaml`
+- Validator: `scripts/cross-tier/validate-operators.cjs` · Resolver: `scripts/local-install/lib/operator-tier.cjs`
+- Contract: `06-ai-ops/sops/SOP-AIOPS-017-multi-user-authz-contract/flow.yaml`
+- Spec: `.archives/cla/multi-user-auth/01-spec.md`

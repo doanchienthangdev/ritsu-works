@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 135
+**Total entries:** 136
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1405,6 +1405,24 @@ This skill does NOT make Tier 1 changes itself. It only proposes.
 Founder approval converts a candidate into a PR.
 
 **Invoke:** `Skill({ skill: "monthly-learning-review" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/operator-management
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The brain behind /users — owner-only management of human operators (owner /
+admin / user tiers) for the multi-user-auth capability. Resolves the caller's
+tier, mutates governance/operators.yaml via PR, validates the registry, and
+(Sprint 1) drives the server-side broker that issues/revokes per-human
+credentials + the email-invite enrollment. Sprint 0 = advisory. NOT content.
+
+**Invoke:** `Skill({ skill: "operator-management" })`
 **HITL tier:** B
 **Side effect:** write
 

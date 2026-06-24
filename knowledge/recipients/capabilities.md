@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 24
+**Total entries:** 25
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -154,6 +154,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Role scope:** *
 **Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/multi-user-auth
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Multi-user identity, authorization & enrollment (owner/admin/user). ARCHITECTING since 2026-06-24. Follow-on to local-install-platform (PR #300/#301), which turned the single-operator system into multi-human-user. Defends against a MALICIOUS INSIDER (possibly >1 owner) via a 3-tier human authority model (owner ⊇ admin ⊇ user) enforced SERVER-SIDE. Load-bearing principle: privileged power must NOT  v0.1.0
+
+**Invoke:** `Read("wiki/capabilities/multi-user-auth/spec.md")` or `/cla update multi-user-auth`
+
+**Role scope:** *
+**Status:** architecting
 **Pillar:** 06-ai-ops
 
 ## capability/playbook-builder
