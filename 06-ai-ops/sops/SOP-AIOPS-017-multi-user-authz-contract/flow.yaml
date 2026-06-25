@@ -102,12 +102,20 @@ sprint1_done:
   - "Supabase Auth owner identity provisioned on ritsu-ops (app_metadata.tier=owner, magic-link only)."
   - "Migration 00049 APPLIED to live ritsu-ops: jwt-tier helpers + ops.operators + broker SECURITY DEFINER fns + audit-immutability + tier RLS (ops + metrics + public CRM) + the SECURITY INVOKER read RPC. ADDITIVE + INERT — service_role bypasses it, so the running system is unchanged."
   - "MCP per-human path shipped flag-gated (RITSU_AUTH_MODE, default service-key = no behavior change)."
+  - "Phase A VALIDATED live (14/14): real owner/admin/user JWTs proved owner reads owner-only, admin+user blocked, admin append-only forensic, user denied all ops, write-denies fire. Throwaway test identities cleaned up."
+
+sprint2_done:
+  - "Refresh-token lifecycle in the MCP (RITSU_OPERATOR_REFRESH_TOKEN): the MCP exchanges the refresh token for a fresh ~1h access token at boot + auto-refreshes for the life of the process → NO hourly re-paste. This removes the blocker that made Phase C non-viable. VALIDATED live (5/5)."
+
+sprint2_remaining:   # still founder-infra-gated
+  - "Hosted Edge-Function action-broker (money/publish/system + enrollment/redeem), keyed on the server-authenticated identity. Code can be written; DEPLOY needs founder."
+  - "Bring gbrain (external bun binary) + analytics MCP under the same per-human identity."
 
 cutover_preconditions:   # do ALL before flipping RITSU_AUTH_MODE=per-human in production
-  - "Verify the owner's operator access token DECODES to app_metadata.tier='owner' BEFORE flipping (a token minted before the tier was set lacks it → MissingTierError → MCP refuses to boot → owner locked out; refresh the token after the admin-API tier set). [red-team #L1]"
-  - "With a SINGLE owner there is no recovery path if the owner credential is lost — enroll a 2nd owner (joint authority) before relying on per-human mode as the sole access."
-  - "Run the per-human path against a staging/throwaway connection first; confirm owner full access, admin data-plane + append-only forensic, user denied."
-  - "Only after the above: set RITSU_AUTH_MODE=per-human + provision RITSU_OPERATOR_ACCESS_TOKEN; then strip service_role/Stripe/bot keys from .env.example (now safe)."
+  - "Enroll a 2nd owner at a DIFFERENT mailbox (recovery) — with a single owner there is NO recovery if the owner credential/mailbox is lost (the broker refuses to mint owners). The owner's own email does NOT count (same mailbox = no recovery)."
+  - "Mint the owner's REFRESH token (magic-link enrollment) and confirm it decodes to app_metadata.tier='owner' (a token minted before the tier was set lacks it → MissingTierError → fail-closed boot). [red-team #L1 — now mitigated by the refresh path: the boot exchange surfaces a bad token immediately]."
+  - "Phase A already proved enforcement live; re-run against your real refresh token if desired."
+  - "Then: set RITSU_AUTH_MODE=per-human + RITSU_OPERATOR_REFRESH_TOKEN (NOT service_role) in the operator's .env.local + restart (⌘Q). Verify owner works + an admin/user token is correctly constrained. Then strip service_role/Stripe/bot keys from .env.example (now safe for non-owner installs). Rollback = RITSU_AUTH_MODE=service-key + ⌘Q."
 
 residual_risks:   # documented, accepted for Sprint 1; hardened in Sprints 2-3
   - "admin reads of owner_only ops tables return SILENT-EMPTY (RLS), not an error — admin never sees the data, but an empty result is indistinguishable from a truly empty table. [red-team #7]"
