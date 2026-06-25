@@ -2,9 +2,9 @@
 description: |
   Owner-only operator management for ritsu-works multi-user: add / list / revoke /
   re-tier human operators (owner · admin · user). Capability multi-user-auth.
-  Sprint 0 = ADVISORY (edits governance/operators.yaml via PR + previews the
-  email-invite); Sprint 1 makes it server-enforced (broker issues a per-human
-  credential, /install blocks until enrolled). NOT a content command.
+  Sprint 0 = ADVISORY (operators.yaml PR). Sprint 2 = SERVER-ENFORCED via the
+  deployed operator-broker Edge Function (owner JWT verified server-side; invite/
+  redeem/revoke/list with an immutable audit trail). NOT a content command.
 argument-hint: "add <email> --tier=admin|user | list | revoke <email> | tier <email> --set=<tier>"
 ---
 
@@ -14,11 +14,25 @@ Owner-only. Manage the humans who may operate ritsu-works and their authority ti
 The tier model + per-tier capabilities live in `knowledge/operator-tiers.yaml`; the
 registry of who's enrolled lives in `governance/operators.yaml` (owner-PR, CODEOWNERS-locked).
 
-> **Tier (advisory v0):** this command's effects are gated by the caller being an
-> **owner**. In Sprint 0 that check is advisory (the real gate is CODEOWNERS on
-> `operators.yaml` + branch protection). Sprint 1 makes it server-enforced: the
-> broker verifies the caller's per-human owner credential before mutating anything,
-> and issues/revokes the enrollee's credential.
+> **Server-enforced (Sprint 2 — DEPLOYED):** the real gate is now the
+> **operator-broker Edge Function** (`<SUPABASE_URL>/functions/v1/operator-broker`,
+> deployed to ritsu-ops). It verifies the caller's per-human Supabase Auth JWT
+> server-side and gates owner-only actions on the verified `app_metadata.tier`
+> (never a client-sent value). A co-founder's laptop never holds `service_role` —
+> the broker holds it. The `operators.yaml` PR + CODEOWNERS remain the Tier-1 map.
+>
+> **Broker actions** (POST `{action, ...}` with `Authorization: Bearer <your owner JWT>`):
+> - `whoami` — any authenticated caller; returns your verified `{email, tier, sub}`.
+> - `invite {email, tier: admin|user}` — OWNER only. Creates the Supabase Auth user
+>   (tier set server-side), records `ops.operators` (status=invited), writes an audit
+>   row, returns a single-use magic-link (forward it — no email sender configured).
+>   Refuses re-tiering an existing owner (409) + minting owners (joint authority).
+> - `redeem` — SELF-SERVICE: the invitee (after clicking the magic-link) flips their
+>   own row invited→active.
+> - `revoke {email}` — OWNER only. Bans the Auth user + status=revoked + audit;
+>   refuses the last active owner (409). NB: an already-issued access token stays
+>   valid ~1h — rotate the JWT secret for instant lockout.
+> - `list` — OWNER only.
 
 > **Firewall:** never type the database-CLI token in a Bash command. Registry reads
 > use the Read tool / the resolver helper; Sprint-1 DB writes go through the broker.
