@@ -57,6 +57,12 @@ describe("env.loadEnv — RITSU_AUTH_MODE", () => {
       loadEnv({ SUPABASE_URL: OPS_URL, SUPABASE_SERVICE_KEY: "svc", RITSU_REPO_ROOT: "/tmp", RITSU_AUTH_MODE: "per-human", RITSU_OPERATOR_REFRESH_TOKEN: "r" } as NodeJS.ProcessEnv),
     ).toThrow(/ANON_KEY/);
   });
+  it("per-human with ONLY a refresh-token FILE path parses (production path — survives restarts)", () => {
+    const e = loadEnv({ ...base, RITSU_AUTH_MODE: "per-human", RITSU_OPERATOR_REFRESH_TOKEN_FILE: "/run/secrets/op.json" });
+    expect(e.authMode).toBe("per-human");
+    expect(e.perHumanRefreshTokenFile).toBe("/run/secrets/op.json");
+    expect(e.perHumanRefreshToken).toBeNull();
+  });
 });
 
 describe("decodeJwtClaims — fail-closed", () => {

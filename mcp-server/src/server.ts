@@ -67,11 +67,13 @@ async function main(): Promise<void> {
   let ctx: CallerContext;
   if (env.authMode === "per-human") {
     let accessToken: string | null;
-    if (env.perHumanRefreshToken) {
+    if (env.perHumanRefreshToken || env.perHumanRefreshTokenFile) {
       const refreshed = await refreshPerHumanClient(env); // throws (fail-closed) on a bad token
       client = refreshed.client;
       accessToken = refreshed.accessToken;
-      logStderr("per-human session established via refresh token (auto-refresh on)");
+      logStderr(
+        `per-human session established via refresh token (auto-refresh on${env.perHumanRefreshTokenFile ? "; persisted to file" : ""})`,
+      );
     } else {
       client = getClient(env); // static access-token path
       accessToken = env.perHumanAccessToken;
