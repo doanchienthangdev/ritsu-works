@@ -105,11 +105,20 @@ sprint1_done:
   - "Phase A VALIDATED live (14/14): real owner/admin/user JWTs proved owner reads owner-only, admin+user blocked, admin append-only forensic, user denied all ops, write-denies fire. Throwaway test identities cleaned up."
 
 sprint2_done:
-  - "Refresh-token lifecycle in the MCP (RITSU_OPERATOR_REFRESH_TOKEN): the MCP exchanges the refresh token for a fresh ~1h access token at boot + auto-refreshes for the life of the process → NO hourly re-paste. This removes the blocker that made Phase C non-viable. VALIDATED live (5/5)."
+  - "Refresh-token lifecycle in the MCP (RITSU_OPERATOR_REFRESH_TOKEN[_FILE]): the MCP exchanges the refresh token for a fresh ~1h access token at boot + auto-refreshes + PERSISTS each rotated token to the credential file → NO hourly re-paste, survives restarts. VALIDATED live (5/5)."
+  - "Phase C EXECUTED — RITSU_AUTH_MODE=per-human is LIVE (the owner's daily MCP authenticates as the owner; confirmed by resolver caller_role='owner')."
+  - "operator-broker Edge Function DEPLOYED to ritsu-ops (supabase/functions/operator-broker + _shared/operator-broker-core.ts; verify_jwt=true). The SERVER-SIDE privilege holder: verifies the caller's JWT (getUser, signature-checked), gates owner-only actions on the VERIFIED app_metadata.tier, performs privileged ops with the auto-injected service_role (off-laptop). Actions: whoami / invite (owner) / redeem (self-service) / revoke (owner) / list (owner). Immutable ops.audit_log row per invite/revoke/redeem. Hardened by a 3-agent red-team (4 high fixed: owner-immutable on re-tier, exact .eq email match, app_metadata merge, revoke TTL disclosure). VALIDATED LIVE: 12/12 broker + 4/4 enrollment-lifecycle; 31 core unit tests."
 
-sprint2_remaining:   # still founder-infra-gated
-  - "Hosted Edge-Function action-broker (money/publish/system + enrollment/redeem), keyed on the server-authenticated identity. Code can be written; DEPLOY needs founder."
-  - "Bring gbrain (external bun binary) + analytics MCP under the same per-human identity."
+enrollment_lifecycle_live:   # the full multi-user onboarding loop now works
+  - "owner: POST operator-broker {action:invite, email, tier:admin|user} → Auth user created (tier server-set) + ops.operators(invited) + audit + magic-link returned."
+  - "owner forwards the magic-link (no email sender) → invitee clicks → Supabase Auth session (mailbox proven)."
+  - "invitee: /install-ritsu-works writes their refresh token to THEIR .env.local credential file; POST operator-broker {action:redeem} → ops.operators invited→active."
+  - "offboard: owner POST {action:revoke, email} → ban + status=revoked + audit (≥1 active owner guaranteed)."
+
+sprint2_remaining:   # follow-on increments (separate integration efforts)
+  - "Bring gbrain (external bun binary, NON-Supabase auth) + the analytics MCP (fixed analytics_reader role) under the per-human tier. Each is a distinct integration; the ops-DB + enrollment core (the load-bearing Sprint 2) is done."
+  - "The broader money/publish action-broker surface (Stripe/social) — belongs with those integrations; the operator-lifecycle broker is the Sprint-2 deliverable."
+  - "DB-side INSTANT revocation (read path checks ops.operators.status, not just the JWT) to close the ~1h access-token window — Sprint 3 hardening."
 
 cutover_preconditions:   # do ALL before flipping RITSU_AUTH_MODE=per-human in production
   - "Enroll a 2nd owner at a DIFFERENT mailbox (recovery) — with a single owner there is NO recovery if the owner credential/mailbox is lost (the broker refuses to mint owners). The owner's own email does NOT count (same mailbox = no recovery)."

@@ -23,3 +23,10 @@ verify_jwt = false
 
 [functions.scheduled-run-dispatcher]
 verify_jwt = false
+
+# operator-broker (capability multi-user-auth, Sprint 2) — UNLIKE the cron
+# functions, this one REQUIRES a caller JWT. verify_jwt = true makes the gateway
+# reject unauthenticated requests; the function additionally re-verifies via
+# getUser and gates owner-only actions on the verified app_metadata.tier.
+[functions.operator-broker]
+verify_jwt = true
