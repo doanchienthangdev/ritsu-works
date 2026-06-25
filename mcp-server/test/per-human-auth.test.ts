@@ -32,18 +32,30 @@ describe("env.loadEnv — RITSU_AUTH_MODE", () => {
   it("rejects an invalid mode", () => {
     expect(() => loadEnv({ ...base, RITSU_AUTH_MODE: "bogus" })).toThrow(MissingEnvError);
   });
-  it("per-human requires an operator access token", () => {
-    expect(() => loadEnv({ ...base, RITSU_AUTH_MODE: "per-human" })).toThrow(/RITSU_OPERATOR_ACCESS_TOKEN/);
+  it("per-human requires a token (access OR refresh) — neither → throw", () => {
+    expect(() => loadEnv({ ...base, RITSU_AUTH_MODE: "per-human" })).toThrow(/RITSU_OPERATOR_REFRESH_TOKEN|RITSU_OPERATOR_ACCESS_TOKEN/);
   });
   it("per-human requires an anon key (no service_role in this mode)", () => {
     expect(() =>
       loadEnv({ SUPABASE_URL: OPS_URL, SUPABASE_SERVICE_KEY: "svc", RITSU_REPO_ROOT: "/tmp", RITSU_AUTH_MODE: "per-human", RITSU_OPERATOR_ACCESS_TOKEN: "tok" } as NodeJS.ProcessEnv),
     ).toThrow(/ANON_KEY/);
   });
-  it("per-human with token + anon parses", () => {
+  it("per-human with access token + anon parses", () => {
     const e = loadEnv({ ...base, RITSU_AUTH_MODE: "per-human", RITSU_OPERATOR_ACCESS_TOKEN: "tok-123" });
     expect(e.authMode).toBe("per-human");
     expect(e.perHumanAccessToken).toBe("tok-123");
+    expect(e.perHumanRefreshToken).toBeNull();
+  });
+  it("per-human with ONLY a refresh token parses (preferred production path)", () => {
+    const e = loadEnv({ ...base, RITSU_AUTH_MODE: "per-human", RITSU_OPERATOR_REFRESH_TOKEN: "refresh-xyz" });
+    expect(e.authMode).toBe("per-human");
+    expect(e.perHumanRefreshToken).toBe("refresh-xyz");
+    expect(e.perHumanAccessToken).toBeNull();
+  });
+  it("per-human with a refresh token still requires the anon key", () => {
+    expect(() =>
+      loadEnv({ SUPABASE_URL: OPS_URL, SUPABASE_SERVICE_KEY: "svc", RITSU_REPO_ROOT: "/tmp", RITSU_AUTH_MODE: "per-human", RITSU_OPERATOR_REFRESH_TOKEN: "r" } as NodeJS.ProcessEnv),
+    ).toThrow(/ANON_KEY/);
   });
 });
 

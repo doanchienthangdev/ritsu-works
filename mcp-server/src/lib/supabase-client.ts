@@ -66,6 +66,45 @@ export function getClient(env: ServerEnv): SupabaseClient {
   return cached;
 }
 
+/**
+ * Per-human REFRESH-token path (capability multi-user-auth, Sprint 2).
+ *
+ * Exchanges the operator's long-lived refresh token for a fresh ~1h access token
+ * and returns a session-managed client with autoRefreshToken ON, so the
+ * long-lived MCP process keeps a valid `authenticated` JWT without re-pasting a
+ * token hourly. All .from()/.rpc() calls then carry the live session token, so
+ * per-tier RLS (migration 00049) enforces. Returns the fresh access token too, so
+ * the caller can decode app_metadata.tier for the CallerContext + audit.
+ *
+ * Throws if there is no refresh token, no anon key, or the refresh is rejected
+ * (e.g. a revoked/rotated token) — fail-closed: the MCP refuses to boot.
+ */
+export async function refreshPerHumanClient(
+  env: ServerEnv,
+): Promise<{ client: SupabaseClient; accessToken: string }> {
+  assertProjectRefAllowed(env.url);
+  const anon = env.anonKey;
+  const refreshToken = env.perHumanRefreshToken;
+  if (!anon) throw new Error("per-human refresh requires the anon key");
+  if (!refreshToken) throw new Error("per-human refresh requires RITSU_OPERATOR_REFRESH_TOKEN");
+
+  const client = createClient(env.url, anon, {
+    auth: { persistSession: false, autoRefreshToken: true },
+    global: { headers: { "X-Client-Info": "supabase-ops-mcp/0.1.0" } },
+  });
+  const { data, error } = await client.auth.refreshSession({ refresh_token: refreshToken });
+  if (error || !data?.session?.access_token) {
+    throw new Error(
+      `per-human refresh failed (token revoked/expired/rotated?): ${error?.message ?? "no session returned"}`,
+    );
+  }
+  // refreshSession sets the in-memory session; with autoRefreshToken the client
+  // keeps it fresh, and supabase-js attaches it to every PostgREST request.
+  cached = client;
+  cachedKey = `per-human-refresh:${data.session.access_token}`;
+  return { client, accessToken: data.session.access_token };
+}
+
 /** Reset cache — for tests. */
 export function resetClient(): void {
   cached = null;

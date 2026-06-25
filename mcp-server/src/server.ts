@@ -24,8 +24,9 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadEnv, summarizeEnv } from "./lib/env.ts";
-import { getClient } from "./lib/supabase-client.ts";
+import { getClient, refreshPerHumanClient } from "./lib/supabase-client.ts";
 import { resolveOperator, resolveRole } from "./governance/role-resolver.ts";
 import { decodeJwtClaims } from "./governance/operator-identity.ts";
 import {
@@ -38,7 +39,7 @@ import {
 import { ProjectRefViolationError, assertProjectRefAllowed } from "./governance/project-ref-guard.ts";
 import { findToolDef, TOOLS } from "./tools/index.ts";
 import { writeAudit, writeProjectRefAlert } from "./governance/audit.ts";
-import { MCPToolError, type ToolResult } from "./types.ts";
+import { MCPToolError, type CallerContext, type ToolResult } from "./types.ts";
 
 const SERVER_NAME = "supabase-ops";
 const SERVER_VERSION = "0.1.0";
@@ -56,19 +57,34 @@ async function main(): Promise<void> {
   const registry = loadRegistry(env.repoRoot);
   logStderr(`registry loaded | tools=${TOOLS.map((t) => t.name).join(",")} | source=${registry.version}`);
 
-  // Authority resolution. service-key (default): self-asserted MCP_CALLER_ROLE.
-  // per-human: the verified JWT tier (app_metadata.tier) — fail-closed if the
-  // token carries no tier. RLS (migration 00049) is the authoritative backstop.
-  const ctx =
-    env.authMode === "per-human"
-      ? resolveOperator(decodeJwtClaims(env.perHumanAccessToken), env.callerSessionId)
-      : resolveRole(env.callerRole, env.callerSessionId);
+  // Authority resolution + client construction.
+  //   service-key (default): self-asserted MCP_CALLER_ROLE + service_role client.
+  //   per-human: the verified JWT tier (app_metadata.tier), fail-closed if the
+  //     token carries no tier. Prefer the refresh token (exchanged for a fresh
+  //     access token + auto-refresh, Sprint 2); fall back to a static access
+  //     token. RLS (migration 00049) is the authoritative backstop either way.
+  let client: SupabaseClient;
+  let ctx: CallerContext;
+  if (env.authMode === "per-human") {
+    let accessToken: string | null;
+    if (env.perHumanRefreshToken) {
+      const refreshed = await refreshPerHumanClient(env); // throws (fail-closed) on a bad token
+      client = refreshed.client;
+      accessToken = refreshed.accessToken;
+      logStderr("per-human session established via refresh token (auto-refresh on)");
+    } else {
+      client = getClient(env); // static access-token path
+      accessToken = env.perHumanAccessToken;
+    }
+    ctx = resolveOperator(decodeJwtClaims(accessToken), env.callerSessionId);
+  } else {
+    client = getClient(env);
+    ctx = resolveRole(env.callerRole, env.callerSessionId);
+  }
   logStderr(
     `caller resolved | auth_mode=${ctx.authMode} role=${ctx.role} hitl_max=${ctx.hitlMaxTier}` +
       (ctx.humanEmail ? ` human=${ctx.humanEmail}` : ""),
   );
-
-  const client = getClient(env);
 
   const server = new Server(
     { name: SERVER_NAME, version: SERVER_VERSION },

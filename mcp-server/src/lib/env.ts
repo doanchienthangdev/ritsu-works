@@ -114,8 +114,17 @@ export interface ServerEnv {
   repoRoot: string;
   /** Authority model — defaults to 'service-key' (current behavior). */
   authMode: AuthMode;
-  /** Per-human Supabase Auth access token (JWT). Required iff authMode='per-human'. */
+  /**
+   * Per-human Supabase Auth ACCESS token (JWT). Short-lived (~1h). Usable
+   * standalone for a brief window; prefer the refresh token for daily use.
+   */
   perHumanAccessToken: string | null;
+  /**
+   * Per-human Supabase Auth REFRESH token. Preferred for production per-human
+   * mode: the MCP exchanges it for a fresh ~1h access token at boot and
+   * auto-refreshes for the life of the process (no hourly re-paste). Sprint 2.
+   */
+  perHumanRefreshToken: string | null;
 }
 
 /**
@@ -193,10 +202,11 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): ServerEnv {
     );
   }
   const perHumanAccessToken = env.RITSU_OPERATOR_ACCESS_TOKEN?.trim() || null;
+  const perHumanRefreshToken = env.RITSU_OPERATOR_REFRESH_TOKEN?.trim() || null;
   if (authMode === "per-human") {
-    if (!perHumanAccessToken) {
+    if (!perHumanAccessToken && !perHumanRefreshToken) {
       throw new MissingEnvError(
-        "RITSU_OPERATOR_ACCESS_TOKEN (required when RITSU_AUTH_MODE=per-human)",
+        "RITSU_OPERATOR_REFRESH_TOKEN (preferred — auto-refreshes) or RITSU_OPERATOR_ACCESS_TOKEN (short-lived) is required when RITSU_AUTH_MODE=per-human",
       );
     }
     if (!anonKey) {
@@ -224,6 +234,7 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): ServerEnv {
     repoRoot,
     authMode,
     perHumanAccessToken,
+    perHumanRefreshToken,
   };
 }
 
@@ -268,7 +279,8 @@ export function summarizeEnv(e: ServerEnv): string {
     `anon_key=${e.anonKey ? "set(******)" : "unset"}`,
     `role=${e.callerRole}`,
     `auth_mode=${e.authMode}`,
-    `operator_token=${e.perHumanAccessToken ? "set(******)" : "unset"}`,
+    `operator_access_token=${e.perHumanAccessToken ? "set(******)" : "unset"}`,
+    `operator_refresh_token=${e.perHumanRefreshToken ? "set(******)" : "unset"}`,
     `session=${e.callerSessionId}`,
     `repo_root=${e.repoRoot}`,
   ].join(" | ");
