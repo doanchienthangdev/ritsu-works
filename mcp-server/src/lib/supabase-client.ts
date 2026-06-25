@@ -9,6 +9,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { assertProjectRefAllowed } from "../governance/project-ref-guard.ts";
+import { readRefreshToken, persistRefreshToken } from "../governance/operator-credential.ts";
 import type { ServerEnv } from "./env.ts";
 
 let cached: SupabaseClient | null = null;
@@ -84,20 +85,49 @@ export async function refreshPerHumanClient(
 ): Promise<{ client: SupabaseClient; accessToken: string }> {
   assertProjectRefAllowed(env.url);
   const anon = env.anonKey;
-  const refreshToken = env.perHumanRefreshToken;
   if (!anon) throw new Error("per-human refresh requires the anon key");
-  if (!refreshToken) throw new Error("per-human refresh requires RITSU_OPERATOR_REFRESH_TOKEN");
+  const refreshToken = readRefreshToken(env); // file (source of truth) > inline seed
+  if (!refreshToken) {
+    throw new Error("per-human refresh requires a refresh token (RITSU_OPERATOR_REFRESH_TOKEN_FILE / _TOKEN)");
+  }
 
   const client = createClient(env.url, anon, {
     auth: { persistSession: false, autoRefreshToken: true },
     global: { headers: { "X-Client-Info": "supabase-ops-mcp/0.1.0" } },
   });
+
+  // Persist every rotated refresh token (boot exchange + each mid-session
+  // TOKEN_REFRESHED) so the credential file is always current → per-human
+  // survives restarts despite Supabase's refresh-token rotation.
+  const file = env.perHumanRefreshTokenFile;
+  if (file) {
+    client.auth.onAuthStateChange((_event, session) => {
+      if (session?.refresh_token) {
+        try {
+          persistRefreshToken(file, session.refresh_token, new Date().toISOString());
+        } catch {
+          /* non-fatal: a failed persist just means the next boot falls back to the seed */
+        }
+      }
+    });
+  }
+
   const { data, error } = await client.auth.refreshSession({ refresh_token: refreshToken });
   if (error || !data?.session?.access_token) {
     throw new Error(
       `per-human refresh failed (token revoked/expired/rotated?): ${error?.message ?? "no session returned"}`,
     );
   }
+  // Belt-and-suspenders: persist the boot-exchanged token now (onAuthStateChange
+  // may fire asynchronously), so even an immediate crash leaves a valid file.
+  if (file && data.session.refresh_token) {
+    try {
+      persistRefreshToken(file, data.session.refresh_token, new Date().toISOString());
+    } catch {
+      /* non-fatal */
+    }
+  }
+
   // refreshSession sets the in-memory session; with autoRefreshToken the client
   // keeps it fresh, and supabase-js attaches it to every PostgREST request.
   cached = client;

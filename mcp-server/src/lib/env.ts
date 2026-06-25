@@ -120,11 +120,18 @@ export interface ServerEnv {
    */
   perHumanAccessToken: string | null;
   /**
-   * Per-human Supabase Auth REFRESH token. Preferred for production per-human
-   * mode: the MCP exchanges it for a fresh ~1h access token at boot and
-   * auto-refreshes for the life of the process (no hourly re-paste). Sprint 2.
+   * Per-human Supabase Auth REFRESH token (inline). Seed for the first boot; the
+   * MCP exchanges it for a fresh ~1h access token + auto-refreshes. Sprint 2.
    */
   perHumanRefreshToken: string | null;
+  /**
+   * Path to a local credential file ({refresh_token}) — the PRODUCTION per-human
+   * path. Supabase rotates refresh tokens on use, so a static inline token goes
+   * stale after one session. With a file, the MCP reads the current token from it
+   * AND persists each rotated token back, so per-human survives restarts. The
+   * inline token (if also set) seeds the file on first boot. Sprint 2 part 1.5.
+   */
+  perHumanRefreshTokenFile: string | null;
 }
 
 /**
@@ -203,10 +210,11 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): ServerEnv {
   }
   const perHumanAccessToken = env.RITSU_OPERATOR_ACCESS_TOKEN?.trim() || null;
   const perHumanRefreshToken = env.RITSU_OPERATOR_REFRESH_TOKEN?.trim() || null;
+  const perHumanRefreshTokenFile = env.RITSU_OPERATOR_REFRESH_TOKEN_FILE?.trim() || null;
   if (authMode === "per-human") {
-    if (!perHumanAccessToken && !perHumanRefreshToken) {
+    if (!perHumanAccessToken && !perHumanRefreshToken && !perHumanRefreshTokenFile) {
       throw new MissingEnvError(
-        "RITSU_OPERATOR_REFRESH_TOKEN (preferred — auto-refreshes) or RITSU_OPERATOR_ACCESS_TOKEN (short-lived) is required when RITSU_AUTH_MODE=per-human",
+        "RITSU_OPERATOR_REFRESH_TOKEN_FILE (preferred — survives restarts) or RITSU_OPERATOR_REFRESH_TOKEN or RITSU_OPERATOR_ACCESS_TOKEN is required when RITSU_AUTH_MODE=per-human",
       );
     }
     if (!anonKey) {
@@ -235,6 +243,7 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): ServerEnv {
     authMode,
     perHumanAccessToken,
     perHumanRefreshToken,
+    perHumanRefreshTokenFile,
   };
 }
 
@@ -281,6 +290,7 @@ export function summarizeEnv(e: ServerEnv): string {
     `auth_mode=${e.authMode}`,
     `operator_access_token=${e.perHumanAccessToken ? "set(******)" : "unset"}`,
     `operator_refresh_token=${e.perHumanRefreshToken ? "set(******)" : "unset"}`,
+    `operator_refresh_file=${e.perHumanRefreshTokenFile ?? "unset"}`,
     `session=${e.callerSessionId}`,
     `repo_root=${e.repoRoot}`,
   ].join(" | ");

@@ -19,13 +19,20 @@
 # `added_by` MUST be an existing owner's email (the validator enforces this).
 # ============================================================================
 
-version: "1.0.0"
+version: "1.1.0"
 
 operators:
+  - email: "doanchienthangdev@gmail.com"
+    tier: owner
+    status: active
+    github_login: doanchienthangdev
+    added_by: "doanchienthangdev@gmail.com"   # PRIMARY / genesis owner (self-rooted)
+    added_at: "2026-06-25"
+    note: "Founder — PRIMARY (main) owner / root of trust. Supabase Auth tier=owner (620ed850)."
   - email: "thangdoanchien@gmail.com"
     tier: owner
     status: active
     github_login: doanchienthangdev
-    added_by: "thangdoanchien@gmail.com"   # genesis owner (self-rooted)
-    added_at: "2026-06-24"
-    note: "Founder — genesis owner / root of trust."
+    added_by: "doanchienthangdev@gmail.com"   # enrolled by the primary owner
+    added_at: "2026-06-25"
+    note: "Founder — 2nd owner (recovery / joint authority; distinct mailbox). Supabase Auth tier=owner (8b59ac6d)."
