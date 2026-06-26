@@ -463,9 +463,9 @@ then points you to /test-ritsu-works. Capability local-install-platform v0.1.
 **Axis:** capability
 **When to use:** Owner-only operator management for ritsu-works multi-user: add / list / revoke /
 re-tier human operators (owner · admin · user). Capability multi-user-auth.
-Sprint 0 = ADVISORY (edits governance/operators.yaml via PR + previews the
-email-invite); Sprint 1 makes it server-enforced (broker issues a per-human
-credential, /install blocks until enrolled). NOT a content command.
+Sprint 0 = ADVISORY (operators.yaml PR). Sprint 2 = SERVER-ENFORCED via the
+deployed operator-broker Edge Function (owner JWT verified server-side; invite/
+redeem/revoke/list with an immutable audit trail). NOT a content command.
 
 **Invoke:** `/users`
 **HITL tier:** A
