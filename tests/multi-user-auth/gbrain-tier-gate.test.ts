@@ -155,6 +155,40 @@ describe("decideGbrainTier", () => {
       expect(() => decideGbrainTier({} as never)).not.toThrow();
       expect(() => decideGbrainTier(null as never)).not.toThrow();
     });
+    it("missing/NaN nowMs falls back to wall-clock so expiry is NOT silently disabled", () => {
+      // an owner token expired in the REAL past (1970) must still block with no nowMs.
+      const realPast = makeJwt({ app_metadata: { tier: "owner" }, exp: 1000 });
+      const d = decideGbrainTier({ toolName: "mcp__gbrain__search", authMode: "per-human", accessToken: realPast, tiersDoc } as never);
+      expect(d.decision).toBe("block");
+      expect(d.matchRule).toBe("unresolved-or-expired");
+      // a NaN nowMs is treated the same (falls back to Date.now())
+      const d2 = decideGbrainTier({ toolName: "mcp__gbrain__search", authMode: "per-human", accessToken: realPast, tiersDoc, nowMs: NaN } as never);
+      expect(d2.decision).toBe("block");
+      // and a genuinely-future owner token still allows with no nowMs
+      const realFuture = makeJwt({ app_metadata: { tier: "owner" }, exp: Math.floor(Date.now() / 1000) + 3600 });
+      const d3 = decideGbrainTier({ toolName: "mcp__gbrain__search", authMode: "per-human", accessToken: realFuture, tiersDoc } as never);
+      expect(d3.decision).toBe("allow");
+    });
+  });
+
+  describe("exp boundary + case-sensitivity (All-Edge supplement)", () => {
+    it("exp*1000 == nowMs is NOT expired (boundary: < nowMs, not <=)", () => {
+      const exact = Math.floor(NOW_MS / 1000); // exact*1000 may be <= NOW_MS by the floor remainder
+      const atNow = makeJwt({ app_metadata: { tier: "owner" }, exp: Math.ceil(NOW_MS / 1000) });
+      // ceil(NOW_MS/1000)*1000 >= NOW_MS → not < nowMs → valid
+      expect(decide({ accessToken: atNow }).decision).toBe("allow");
+      // one second before now → expired
+      const justBefore = makeJwt({ app_metadata: { tier: "owner" }, exp: exact - 1 });
+      const d = decide({ accessToken: justBefore });
+      expect(d.decision).toBe("block");
+      expect(d.matchRule).toBe("unresolved-or-expired");
+    });
+    it("GBRAIN_TOOL_RE is case-sensitive: an upper-cased tool name is NOT treated as gbrain (allowed as non-gbrain)", () => {
+      // real gbrain tool names are lowercase; a differently-cased name belongs to no gbrain server
+      const d = decide({ toolName: "MCP__GBRAIN__SEARCH", accessToken: tierJwt("user") });
+      expect(d.decision).toBe("allow");
+      expect(d.matchRule).toBe("not-gbrain");
+    });
     it("a maliciously self-referential `inherits` chain in tiers.yaml → no infinite loop; still fail-closed", () => {
       // effectiveTier guards cycles with a `seen` Set. A user-corrupted tiers.yaml
       // with inheritance cycles must neither hang nor fail-open.

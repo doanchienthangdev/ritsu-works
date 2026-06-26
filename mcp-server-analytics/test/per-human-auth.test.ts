@@ -199,6 +199,66 @@ describe("role-allowlist — tier gate + mode-aware denial", () => {
   });
 });
 
+// ── Supplementary All-Edge: decoder hardening, exp precedence, env parsing ───
+describe("All-Edge supplement — decodeJwtClaims hardening", () => {
+  it("a 4-segment (or 1/2-segment) token → all-null (only 3-part JWTs decode)", () => {
+    expect(decodeJwtClaims("a.b.c.d")).toStrictEqual({ email: null, tier: null, sub: null, exp: null });
+    expect(decodeJwtClaims("a.b")).toStrictEqual({ email: null, tier: null, sub: null, exp: null });
+  });
+  it("payload that is a JSON array / number / literal-null → tier+exp null (not an object with claims)", () => {
+    const seg = (o: unknown) => Buffer.from(JSON.stringify(o)).toString("base64url");
+    const tok = (payload: unknown) => `${seg({ alg: "HS256" })}.${seg(payload)}.sig`;
+    expect(decodeJwtClaims(tok([1, 2, 3])).tier).toBeNull();
+    expect(decodeJwtClaims(tok(12345)).tier).toBeNull();
+    expect(decodeJwtClaims(tok(null)).tier).toBeNull();
+  });
+  it("app_metadata that is an array / null / string → tier null (must be a plain object)", () => {
+    expect(decodeJwtClaims(makeJwt({ app_metadata: ["owner"] })).tier).toBeNull();
+    expect(decodeJwtClaims(makeJwt({ app_metadata: null })).tier).toBeNull();
+    expect(decodeJwtClaims(makeJwt({ app_metadata: "owner" })).tier).toBeNull();
+  });
+  it("exp accepts negative / zero / float numbers verbatim (rejection is resolveOperatorTier's job, not decode's)", () => {
+    expect(decodeJwtClaims(makeJwt({ app_metadata: { tier: "owner" }, exp: -5 })).exp).toBe(-5);
+    expect(decodeJwtClaims(makeJwt({ app_metadata: { tier: "owner" }, exp: 0 })).exp).toBe(0);
+    expect(decodeJwtClaims(makeJwt({ app_metadata: { tier: "owner" }, exp: 1.9 })).exp).toBe(1.9);
+    expect(decodeJwtClaims(makeJwt({ app_metadata: { tier: "owner" }, exp: Infinity })).exp).toBeNull(); // not finite
+  });
+});
+
+describe("All-Edge supplement — resolveOperatorTier precedence + expiry", () => {
+  let dir: string;
+  beforeEach(() => { dir = mkdtempSync(join(tmpdir(), "an-supp-")); });
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+  const env = (over: Partial<ReturnType<typeof loadEnv>>) => ({ ...loadEnv(base), ...over });
+
+  it("an EXPIRED inline token does NOT fall through to a valid file token (fail-closed precedence)", () => {
+    const f = join(dir, "valid.json");
+    writeFileSync(f, JSON.stringify({ access_token: tierJwt("owner") }));
+    // inline is selected (truthy string), decodes to owner but is expired → null, file NOT consulted
+    expect(resolveOperatorTier(env({ perHumanAccessToken: tierJwt("owner", PAST_EXP), perHumanRefreshTokenFile: f }))).toBeNull();
+  });
+  it("a token expiring exactly at/just-after now is still valid (boundary)", () => {
+    const justFuture = Math.floor(Date.now() / 1000) + 5; // +5s — robust against test latency
+    expect(resolveOperatorTier(env({ perHumanAccessToken: tierJwt("admin", justFuture) }))).toBe("admin");
+  });
+});
+
+describe("All-Edge supplement — env parsing", () => {
+  it("RITSU_AUTH_MODE is trimmed (whitespace tolerated)", () => {
+    const e = loadEnv({ ...base, RITSU_AUTH_MODE: "  per-human  ", RITSU_OPERATOR_ACCESS_TOKEN: "t" });
+    expect(e.authMode).toBe("per-human");
+  });
+  it("an uppercase/typo RITSU_AUTH_MODE is rejected (only exact 'per-human'/'service-key')", () => {
+    expect(() => loadEnv({ ...base, RITSU_AUTH_MODE: "PER-HUMAN" })).toThrow(MissingEnvError);
+    expect(() => loadEnv({ ...base, RITSU_AUTH_MODE: "perhuman" })).toThrow(MissingEnvError);
+  });
+  it("whitespace-only credential values are treated as absent in per-human (fail fast)", () => {
+    expect(() =>
+      loadEnv({ ...base, RITSU_AUTH_MODE: "per-human", RITSU_OPERATOR_ACCESS_TOKEN: "   ", RITSU_OPERATOR_REFRESH_TOKEN_FILE: "  " }),
+    ).toThrow(MissingPerHumanCredentialError);
+  });
+});
+
 // ── handlers end-to-end through the ctx ──────────────────────────────────────
 describe("handlers — per-human tier gate end-to-end", () => {
   const fakeQuerier: AnalyticsQuerier = {

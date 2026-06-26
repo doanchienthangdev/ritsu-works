@@ -54,16 +54,19 @@ function parsePayload() {
 }
 
 /** Minimal .env.local reader (regex; tolerant). The hook can't assume shell env. */
-function readEnvLocal() {
+function readEnvLocal(filePath = ENV_FILE) {
   const out = {};
   let raw;
   try {
-    raw = fs.readFileSync(ENV_FILE, 'utf8');
+    raw = fs.readFileSync(filePath, 'utf8');
   } catch {
     return out; // absent (worktree/CI) → caller treats as service-key (no-op)
   }
   const get = (key) => {
-    const m = raw.match(new RegExp('^\\s*' + key + "\\s*=\\s*[\"']?([^\"'\\n#]+)", 'm'));
+    // Value chars stop at quote/newline/hash; the post-`=` whitespace is HORIZONTAL
+    // only ([ \t], not \s) so an empty-valued key (`KEY=\n`) does NOT greedily
+    // swallow the next line's content as its value.
+    const m = raw.match(new RegExp('^[ \\t]*' + key + "[ \\t]*=[ \\t]*[\"']?([^\"'\\n#]+)", 'm'));
     return m ? m[1].trim() : null;
   };
   for (const k of ['RITSU_AUTH_MODE', 'RITSU_OPERATOR_REFRESH_TOKEN_FILE', 'RITSU_OPERATOR_ACCESS_TOKEN']) {
@@ -185,4 +188,8 @@ function main() {
   }
 }
 
-main();
+// Exported for unit tests (the pure-ish I/O helpers). main() runs only when the
+// hook is invoked directly by Claude Code (not when required by a test).
+module.exports = { readEnvLocal, readAccessToken };
+
+if (require.main === module) main();

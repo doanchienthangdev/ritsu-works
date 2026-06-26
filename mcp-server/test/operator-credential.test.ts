@@ -1,7 +1,7 @@
 // All-Edge tests for the refresh-token persistence (Sprint 2 part 1.5).
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { readFileSync, existsSync, rmSync, mkdtempSync } from "node:fs";
+import { readFileSync, existsSync, rmSync, mkdtempSync, statSync, writeFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { readRefreshToken, persistRefreshToken, readAccessToken } from "../src/governance/operator-credential.ts";
@@ -100,6 +100,51 @@ describe("operator-credential", () => {
       const f = join(dir, "weird.json");
       require("node:fs").writeFileSync(f, JSON.stringify({ refresh_token: "R", access_token: 12345 }));
       expect(readAccessToken(f)).toBeNull();
+    });
+  });
+
+  // ── Supplementary All-Edge: file permissions, falsy tokens, temp hygiene ──
+  describe("credential-file hardening (All-Edge supplement)", () => {
+    it("the persisted file is mode 0600 (owner-only — it now holds a live access token)", () => {
+      const f = join(dir, "perm.json");
+      persistRefreshToken(f, "R", "t", "A");
+      const mode = statSync(f).mode & 0o777;
+      expect(mode).toBe(0o600);
+    });
+    it("re-persist over a PRE-EXISTING loose-perm file still ends up 0600 (unique-temp born 0600)", () => {
+      const f = join(dir, "loose.json");
+      writeFileSync(f, "{}", { mode: 0o644 }); // a stale, world-readable file
+      persistRefreshToken(f, "R", "t", "A");
+      expect(statSync(f).mode & 0o777).toBe(0o600);
+    });
+    it("an empty-string access token is treated as absent (not written) — readAccessToken null", () => {
+      const f = join(dir, "empty-tok.json");
+      persistRefreshToken(f, "R", "t", "");
+      expect(JSON.parse(readFileSync(f, "utf8")).access_token).toBeUndefined();
+      expect(readAccessToken(f)).toBeNull();
+      // null access token same
+      const f2 = join(dir, "null-tok.json");
+      persistRefreshToken(f2, "R", "t", null);
+      expect(readAccessToken(f2)).toBeNull();
+    });
+    it("no stray .tmp files linger after many rapid rotations (unique-temp + rename cleanup)", () => {
+      const f = join(dir, "rot.json");
+      for (let i = 0; i < 25; i++) persistRefreshToken(f, `R-${i}`, `t-${i}`, `A-${i}`);
+      expect(readRefreshToken(env({ perHumanRefreshTokenFile: f }))).toBe("R-24");
+      expect(readAccessToken(f)).toBe("A-24");
+      const strays = readdirSync(dir).filter((n) => n.includes(".tmp"));
+      expect(strays).toStrictEqual([]);
+    });
+    it("readAccessToken on a JSON array / number / null payload → null (not a {access_token} object)", () => {
+      const fa = join(dir, "arr.json");
+      writeFileSync(fa, JSON.stringify(["A"]));
+      expect(readAccessToken(fa)).toBeNull();
+      const fn = join(dir, "num.json");
+      writeFileSync(fn, "12345");
+      expect(readAccessToken(fn)).toBeNull();
+      const fz = join(dir, "jnull.json");
+      writeFileSync(fz, "null");
+      expect(readAccessToken(fz)).toBeNull();
     });
   });
 });

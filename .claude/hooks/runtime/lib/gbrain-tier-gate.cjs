@@ -93,6 +93,10 @@ function tierMayUseGbrain(tier, tiersDoc) {
  */
 function decideGbrainTier(p) {
   const { toolName, authMode, accessToken, tiersDoc, nowMs } = p || {};
+  // Defensive: a missing/NaN nowMs would make `exp*1000 < nowMs` silently false
+  // (NaN comparison), disabling the expiry gate. Default to wall-clock so a caller
+  // that forgets nowMs still rejects expired tokens.
+  const now = Number.isFinite(nowMs) ? nowMs : Date.now();
 
   // service-key (or anything not per-human) → no-op. The hook enforces ONLY in
   // per-human mode; default installs / CI / worktrees (no per-human creds) are
@@ -112,7 +116,7 @@ function decideGbrainTier(p) {
   // No clock-skew grace by design: a fresh token has ~1h runway + supabase-ops
   // auto-refreshes/re-persists before expiry, so only a >1h-fast local clock or a
   // >1h-dead refresher reads it expired — both are genuine unresolvable-tier, not skew.
-  if (exp == null || exp * 1000 < nowMs) {
+  if (exp == null || exp * 1000 < now) {
     return {
       decision: 'block',
       matchRule: 'unresolved-or-expired',
