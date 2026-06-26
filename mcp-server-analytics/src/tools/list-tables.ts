@@ -8,6 +8,7 @@
  */
 
 import type { AnalyticsCallerContext, AnalyticsQuerier, ToolResult } from "../types.ts";
+import { analyticsDenialReason } from "../governance/role-allowlist.ts";
 
 export const listTablesDescription = `List the tables available in the pseudonymized ritsu-analytics dataset (schema "live"). \
 No input. Output: { tables: [{ table_name, table_type }], count }. \
@@ -24,14 +25,12 @@ export async function handleListTables(
   querier: AnalyticsQuerier,
 ): Promise<ToolResult> {
   if (!ctx.allowedAnalytics) {
+    const r = analyticsDenialReason(ctx);
     return {
       state: "denied",
-      output: {
-        error: "role_not_allowed",
-        detail: `Role "${ctx.role}" is not on the analytics consumer allowlist. See governance/ROLES.md.`,
-      },
-      errorCode: "role_not_allowed",
-      errorDetail: `Role "${ctx.role}" not allowed`,
+      output: { error: r.code, detail: r.detail },
+      errorCode: r.code,
+      errorDetail: r.detail,
     };
   }
 

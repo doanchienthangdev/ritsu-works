@@ -1161,6 +1161,10 @@ The 17 READ-only-elsewhere roles get NO analytics access (default-deny is the po
 
 The 6 allowlisted roles above gain `supabase-analytics` MCP access. All tools are read-only (Tier A): `query` (SELECT over `live.*`), `list_tables`. The L0 firewall (`pre-tool-supabase-product.cjs` v1.2) already treats `mcp__supabase-analytics__*` as `safe-mcp`. No WRITE tools exist on this MCP.
 
+### Per-human tier gate (capability multi-user-auth, Sprint 2 — added 2026-06-26)
+
+The `analytics_affinity` table above governs the DEFAULT **service-key** auth mode (identity = the self-asserted agent role). When `RITSU_AUTH_MODE=per-human`, the analytics MCP instead gates on the operator's **verified human tier** (`knowledge/operator-tiers.yaml`): **`owner` + `admin` may query/list_tables; `user` is denied** (`tier_not_allowed`); a null/unknown tier is denied (fail-closed). The tier is read from `app_metadata.tier` in the access token that the supabase-ops MCP persists to the per-human credential file (read-only — the analytics MCP never refreshes the token, so it cannot race supabase-ops's refresh-token rotation). This is **least-privilege defense-in-depth**: the least-priv `analytics_reader` DB role (read-only, pseudonymized, isolated project) remains the REAL confidentiality boundary, so even a malicious laptop owner who forges a local tier claim reaches only read-only, pseudonymized, non-PII data. An expired access token is rejected (fail-closed) so a stale tier cannot keep granting access. Runtime: `mcp-server-analytics/src/governance/{role-allowlist.ts,operator-credential.ts}`. The same credential file is intended to back the future gbrain per-human tier gate (Sprint 2 remaining work).
+
 ### Activation
 
 CONTRACT-level (this file is policy). Runtime gate is `mcp-server-analytics/src/governance/role-allowlist.ts`; the L2 validator `validate-analytics-readonly.cjs` + invariant `analytics-allowlist-no-drift` catch drift between this contract and that runtime. The `.mcp.json` registration (D-MAX) lands in the Sprint 2 PR.

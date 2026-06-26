@@ -100,6 +100,7 @@ forbidden_content_tables:
 # Which ops roles may query the supabase-analytics MCP at all (default-deny).
 # MUST equal ANALYTICS_ALLOWED_ROLES in
 # mcp-server-analytics/src/governance/role-allowlist.ts — the validator enforces.
+# Applies in the DEFAULT service-key auth mode (agent-role identity).
 consumer_allowlist:
   - founder
   - cofounder
@@ -107,6 +108,26 @@ consumer_allowlist:
   - product-orchestrator
   - gtm-orchestrator
   - feedback-aggregator
+
+# Per-human authorization (capability multi-user-auth, Sprint 2 — ITEM A).
+# When RITSU_AUTH_MODE=per-human the analytics MCP gates by the operator's
+# VERIFIED tier (read from app_metadata.tier in the access token supabase-ops
+# persists to the credential file — read-only, never refreshed → no token-rotation
+# race), NOT the self-asserted agent role. Per knowledge/operator-tiers.yaml.
+# Fail-closed: a null/unknown tier is denied (tier_not_allowed). This is
+# least-privilege defense-in-depth — the least-priv analytics_reader DB role
+# (SELECT-only over pseudonymized live.*, no PII, isolated project) stays the
+# REAL confidentiality boundary, so even a malicious laptop owner who forges a
+# local token reaches only that read-only, pseudonymized, non-PII data.
+per_human_tier_gate:
+  allowed_tiers: [owner, admin]      # ANALYTICS_ALLOWED_TIERS in role-allowlist.ts
+  denied_tiers: [user]               # + null/unknown/expired → denied (fail-closed)
+  real_boundary: "analytics_reader DB role (read-only, pseudonymized, isolated) — unchanged"
+  exp_enforced: true                 # unlike supabase-ops (RLS re-checks server-side), the analytics
+                                     # local decode is the ONLY gate, so an EXPIRED access token is
+                                     # rejected → a stale tier cannot keep granting. Caps the
+                                     # downgrade/revocation blind spot to the token lifetime (~1h).
+  staleness_note: "tier from a non-expired ≤~1h access token; DB-side instant revocation is Sprint 3"
 
 mcp_server: supabase-analytics       # must be registered in .mcp.json (validator checks)
 

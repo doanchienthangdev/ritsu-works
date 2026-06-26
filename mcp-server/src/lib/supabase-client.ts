@@ -104,7 +104,15 @@ export async function refreshPerHumanClient(
     client.auth.onAuthStateChange((_event, session) => {
       if (session?.refresh_token) {
         try {
-          persistRefreshToken(file, session.refresh_token, new Date().toISOString());
+          // Persist the rotated refresh token + the fresh access token (Sprint 2):
+          // the access token lets the read-only per-human consumers (analytics MCP,
+          // gbrain hook) decode the operator tier without racing this refresher.
+          persistRefreshToken(
+            file,
+            session.refresh_token,
+            new Date().toISOString(),
+            session.access_token,
+          );
         } catch {
           /* non-fatal: a failed persist just means the next boot falls back to the seed */
         }
@@ -119,10 +127,16 @@ export async function refreshPerHumanClient(
     );
   }
   // Belt-and-suspenders: persist the boot-exchanged token now (onAuthStateChange
-  // may fire asynchronously), so even an immediate crash leaves a valid file.
+  // may fire asynchronously), so even an immediate crash leaves a valid file —
+  // including the fresh access token for the read-only per-human consumers.
   if (file && data.session.refresh_token) {
     try {
-      persistRefreshToken(file, data.session.refresh_token, new Date().toISOString());
+      persistRefreshToken(
+        file,
+        data.session.refresh_token,
+        new Date().toISOString(),
+        data.session.access_token,
+      );
     } catch {
       /* non-fatal */
     }

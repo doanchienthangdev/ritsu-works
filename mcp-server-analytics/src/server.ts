@@ -27,7 +27,8 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { loadEnv, summarizeEnv } from "./lib/env.ts";
 import { createQuerier } from "./lib/pg-client.ts";
-import { isRoleAllowedAnalytics } from "./governance/role-allowlist.ts";
+import { isRoleAllowedAnalytics, isTierAllowedAnalytics } from "./governance/role-allowlist.ts";
+import { resolveOperatorTier } from "./governance/operator-credential.ts";
 import { findToolDef, TOOLS } from "./tools/index.ts";
 import type { AnalyticsCallerContext, ToolResult } from "./types.ts";
 
@@ -43,14 +44,43 @@ async function main(): Promise<void> {
   const env = loadEnv();
   logStderr("starting |", summarizeEnv(env));
 
-  const ctx: AnalyticsCallerContext = {
-    role: env.callerRole,
-    sessionId: env.callerSessionId,
-    allowedAnalytics: isRoleAllowedAnalytics(env.callerRole),
-  };
+  const perHuman = env.authMode === "per-human";
+
+  // Resolve the per-call caller context.
+  //   service-key (default): the MCP_CALLER_ROLE allowlist, resolved once at boot.
+  //   per-human: the operator's VERIFIED tier, resolved FRESH per call — the access
+  //     token supabase-ops persists may appear a moment after boot (cold-start), and
+  //     re-reading each call also picks up a re-enrolled/rotated token. Fail-closed:
+  //     a null/unknown tier denies. The analytics_reader DB role stays the real
+  //     confidentiality boundary; this is least-privilege defense-in-depth.
+  function resolveCtx(): AnalyticsCallerContext {
+    if (!perHuman) {
+      return {
+        role: env.callerRole,
+        sessionId: env.callerSessionId,
+        allowedAnalytics: isRoleAllowedAnalytics(env.callerRole),
+        authMode: "service-key",
+        tier: null,
+      };
+    }
+    const tier = resolveOperatorTier(env);
+    return {
+      role: `operator:${tier ?? "unknown"}`,
+      sessionId: env.callerSessionId,
+      allowedAnalytics: isTierAllowedAnalytics(tier),
+      authMode: "per-human",
+      tier,
+    };
+  }
+
+  const bootCtx = resolveCtx();
   logStderr(
-    `caller resolved | role=${ctx.role} allowed_analytics=${ctx.allowedAnalytics}` +
-      (ctx.allowedAnalytics ? "" : " (every call will be DENIED — role not on analytics allowlist)"),
+    `caller resolved | auth_mode=${bootCtx.authMode} role=${bootCtx.role} allowed_analytics=${bootCtx.allowedAnalytics}` +
+      (bootCtx.allowedAnalytics
+        ? ""
+        : perHuman
+          ? " (calls DENIED unless the operator tier is owner/admin — resolved per call)"
+          : " (every call will be DENIED — role not on analytics allowlist)"),
   );
 
   const querier = createQuerier(env);
@@ -72,6 +102,10 @@ async function main(): Promise<void> {
     const { name, arguments: args = {} } = request.params;
     const startedAt = Date.now();
     let result: ToolResult;
+
+    // Re-resolve per call: in per-human mode the verified tier is read fresh from
+    // the credential file each call (service-key returns the boot decision).
+    const ctx = perHuman ? resolveCtx() : bootCtx;
 
     try {
       const tool = findToolDef(name);

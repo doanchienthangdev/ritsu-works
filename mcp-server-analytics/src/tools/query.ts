@@ -20,6 +20,7 @@
 import type { AnalyticsCallerContext, AnalyticsQuerier, ToolResult } from "../types.ts";
 import { MCPToolError } from "../types.ts";
 import { assertReadOnlySql, SqlGuardError } from "../lib/sql-guard.ts";
+import { analyticsDenialReason } from "../governance/role-allowlist.ts";
 
 export const queryDescription = `Execute a read-only SELECT over the pseudonymized ritsu-analytics dataset (schema "live"). \
 Inputs: { sql: SELECT-only string (use $1,$2,… for params), params?: array, row_limit?: 1..1000 (default 100) }. \
@@ -83,12 +84,10 @@ export async function handleQuery(
   ctx: AnalyticsCallerContext,
   querier: AnalyticsQuerier,
 ): Promise<ToolResult> {
-  // Gate 1 — role allowlist (default-deny).
+  // Gate 1 — caller allowed? service-key: role allowlist; per-human: verified tier.
   if (!ctx.allowedAnalytics) {
-    return denied(
-      "role_not_allowed",
-      `Role "${ctx.role}" is not on the analytics consumer allowlist. See governance/ROLES.md.`,
-    );
+    const r = analyticsDenialReason(ctx);
+    return denied(r.code, r.detail);
   }
 
   let parsed: QueryInput;

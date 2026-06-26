@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { readFileSync, existsSync, rmSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { readRefreshToken, persistRefreshToken } from "../src/governance/operator-credential.ts";
+import { readRefreshToken, persistRefreshToken, readAccessToken } from "../src/governance/operator-credential.ts";
 import type { ServerEnv } from "../src/lib/env.ts";
 
 const env = (over: Partial<ServerEnv>): ServerEnv => ({
@@ -63,6 +63,43 @@ describe("operator-credential", () => {
     });
     it("neither file nor inline → null (fail-closed upstream)", () => {
       expect(readRefreshToken(env({}))).toBeNull();
+    });
+  });
+
+  describe("access-token persistence (Sprint 2 — gbrain/analytics per-human)", () => {
+    it("persists the access token alongside the refresh token; readAccessToken reads it", () => {
+      const f = join(dir, "cred.json");
+      persistRefreshToken(f, "R-1", "t1", "ACCESS-JWT-1");
+      const raw = JSON.parse(readFileSync(f, "utf8"));
+      expect(raw.refresh_token).toBe("R-1");
+      expect(raw.access_token).toBe("ACCESS-JWT-1");
+      expect(readAccessToken(f)).toBe("ACCESS-JWT-1");
+    });
+    it("a rotated pair overwrites both fields atomically", () => {
+      const f = join(dir, "cred.json");
+      persistRefreshToken(f, "R-1", "t1", "A-1");
+      persistRefreshToken(f, "R-2", "t2", "A-2");
+      expect(readRefreshToken(env({ perHumanRefreshTokenFile: f }))).toBe("R-2");
+      expect(readAccessToken(f)).toBe("A-2");
+    });
+    it("omitting the access token writes a refresh-only file (back-compat) — readAccessToken → null", () => {
+      const f = join(dir, "cred.json");
+      persistRefreshToken(f, "R-1", "t1"); // legacy 3-arg call
+      expect(JSON.parse(readFileSync(f, "utf8")).access_token).toBeUndefined();
+      expect(readAccessToken(f)).toBeNull();
+    });
+    it("readAccessToken fail-closed on missing file, corrupt file, and null path", () => {
+      expect(readAccessToken(join(dir, "nope.json"))).toBeNull();
+      const f = join(dir, "corrupt.json");
+      require("node:fs").writeFileSync(f, "{ not json");
+      expect(readAccessToken(f)).toBeNull();
+      expect(readAccessToken(null)).toBeNull();
+      expect(readAccessToken(undefined)).toBeNull();
+    });
+    it("readAccessToken ignores a non-string access_token field (fail-closed)", () => {
+      const f = join(dir, "weird.json");
+      require("node:fs").writeFileSync(f, JSON.stringify({ refresh_token: "R", access_token: 12345 }));
+      expect(readAccessToken(f)).toBeNull();
     });
   });
 });
