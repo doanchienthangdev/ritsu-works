@@ -7,7 +7,7 @@
 This file is THE source of truth for hook recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 
-**Total entries:** 15
+**Total entries:** 16
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -159,6 +159,20 @@ Read in any Claude Code session via `@knowledge/recipients/hooks.md` import.
 **When to use:** > The runtime safety net for customer-facing AI disclosure compliance. Per EU AI Act Article 50, missing disclosure is not a UX issue — it's a regulatory violation. This hook prevents shipping non-compliant messages.
 
 **Invoke:** Auto-triggered (PreToolUse) for tools matching: `*`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## hook/pre-tool-gbrain-tier
+
+**Kind:** hook
+**Axis:** capability
+**When to use:** > Per-human tier gate for gbrain (capability multi-user-auth, Sprint 2). In RITSUAUTHMODE=per-human it BLOCKS every mcpgbrain tool call for a user-tier operator (admin + owner allowed), reading the operator's verified tier from the access token supabase-ops persists to the credential file. Service-key mode is a no-op.
+
+**Invoke:** Auto-triggered (pre-tool) for tools matching: `mcp__gbrain__*`
 **HITL tier:** B
 **Side effect:** write
 

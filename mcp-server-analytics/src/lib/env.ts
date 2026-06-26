@@ -54,6 +54,26 @@ export class InvalidRoleError extends Error {
   }
 }
 
+export class MissingPerHumanCredentialError extends Error {
+  constructor() {
+    super(
+      "MissingPerHumanCredential: RITSU_AUTH_MODE=per-human requires " +
+        "RITSU_OPERATOR_REFRESH_TOKEN_FILE (the credential file supabase-ops persists, preferred) " +
+        "or RITSU_OPERATOR_ACCESS_TOKEN (inline). Without either, every analytics call is denied.",
+    );
+    this.name = "MissingPerHumanCredentialError";
+  }
+}
+
+/**
+ * Authority model (capability multi-user-auth, Sprint 2). Mirrors mcp-server.
+ *   - 'service-key' (default): unchanged. The MCP_CALLER_ROLE allowlist gates.
+ *   - 'per-human': gate by the operator's VERIFIED tier (read from the access
+ *     token supabase-ops persists to the credential file). owner/admin allowed;
+ *     user/unknown denied. The analytics_reader DB role stays the real boundary.
+ */
+export type AuthMode = "service-key" | "per-human";
+
 /** The DB user (role) the connection MUST authenticate as. */
 export const REQUIRED_DB_ROLE = "analytics_reader";
 
@@ -97,6 +117,16 @@ export interface AnalyticsServerEnv {
   callerSessionId: string;
   /** When true, verify the server TLS cert chain. Default false (Supabase pooler). */
   sslStrict: boolean;
+  /** Authority model — defaults to 'service-key' (current behavior). */
+  authMode: AuthMode;
+  /** Per-human Supabase Auth ACCESS token (inline; live-validation / direct path). */
+  perHumanAccessToken: string | null;
+  /**
+   * Path to the credential file supabase-ops persists ({refresh_token, access_token}).
+   * Per-human reads the access_token from it to decode the operator tier (read-only;
+   * never refreshes — supabase-ops is the sole refresher).
+   */
+  perHumanRefreshTokenFile: string | null;
 }
 
 interface ParsedConn {
@@ -181,6 +211,24 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): AnalyticsServerEn
     env.ANALYTICS_READER_SSL_STRICT === "1" ||
     env.ANALYTICS_READER_SSL_STRICT === "true";
 
+  // --- Authority model (capability multi-user-auth, Sprint 2) ----------------
+  // Default 'service-key' = current behavior, byte-for-byte (the role allowlist
+  // gates). 'per-human' gates by the operator's verified tier instead.
+  const authMode = (env.RITSU_AUTH_MODE?.trim() || "service-key") as AuthMode;
+  if (authMode !== "service-key" && authMode !== "per-human") {
+    throw new MissingEnvError(
+      `RITSU_AUTH_MODE must be 'service-key' or 'per-human' (got "${authMode}")`,
+    );
+  }
+  const perHumanAccessToken = env.RITSU_OPERATOR_ACCESS_TOKEN?.trim() || null;
+  const perHumanRefreshTokenFile = env.RITSU_OPERATOR_REFRESH_TOKEN_FILE?.trim() || null;
+  if (authMode === "per-human" && !perHumanAccessToken && !perHumanRefreshTokenFile) {
+    // The credential SOURCE must be configured. The token need not be present yet
+    // (supabase-ops persists it a moment after boot); per-call resolution is lazy
+    // + fail-closed. But neither source set at all is a misconfiguration → fail fast.
+    throw new MissingPerHumanCredentialError();
+  }
+
   return {
     dbUrl,
     projectRef: parsed.ref,
@@ -189,16 +237,22 @@ export function loadEnv(env: NodeJS.ProcessEnv = process.env): AnalyticsServerEn
     callerRole,
     callerSessionId,
     sslStrict,
+    authMode,
+    perHumanAccessToken,
+    perHumanRefreshTokenFile,
   };
 }
 
-/** Render env for stderr boot log. NEVER logs the password / raw URL. */
+/** Render env for stderr boot log. NEVER logs the password / raw URL / token. */
 export function summarizeEnv(e: AnalyticsServerEnv): string {
   return [
     `host=${e.host}`,
     `db_role=${e.dbRole}`,
     `project_ref=${e.projectRef ?? "(unresolved)"}`,
     `caller_role=${e.callerRole}`,
+    `auth_mode=${e.authMode}`,
+    `operator_access_token=${e.perHumanAccessToken ? "set(******)" : "unset"}`,
+    `operator_refresh_file=${e.perHumanRefreshTokenFile ?? "unset"}`,
     `session=${e.callerSessionId}`,
     `ssl_strict=${e.sslStrict}`,
   ].join(" | ");

@@ -17,8 +17,16 @@ export type HitlTier = "A" | "B" | "C" | "D-Std" | "D-MAX";
 export interface AnalyticsCallerContext {
   role: string;
   sessionId: string;
-  /** Whether `role` is on the analytics consumer allowlist (governance/ROLES.md brain_affinity analog). */
+  /**
+   * Whether this caller may use analytics. In service-key mode this is the
+   * role allowlist decision; in per-human mode it is the verified-tier decision
+   * (owner/admin allowed, user/unknown denied). The handlers only read this.
+   */
   allowedAnalytics: boolean;
+  /** Authority model that produced `allowedAnalytics`. Default 'service-key'. */
+  authMode?: "service-key" | "per-human";
+  /** Per-human operator tier (owner|admin|user) when authMode='per-human', else null. */
+  tier?: "owner" | "admin" | "user" | null;
 }
 
 /**

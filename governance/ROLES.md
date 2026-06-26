@@ -1128,6 +1128,10 @@ Field semantics:
 
 The 8 roles with `mcp_servers: [gbrain]` grant (gbrain-maintainer + founder + cofounder + 5 customer-facing WRITE-enabled + product-orchestrator + eval-evo-orchestrator) gain full MCP tool access subject to per-tool HITL tier (see `governance/HITL.md` Appendix A). The 17 READ-only roles can invoke gbrain READ tools (Tier A: search, get_page, list_pages, traverse_graph, find_*, code_*, etc.) without an explicit `mcp_servers` grant — READ tools have permissive default allowlists per `knowledge/mcp-tools.yaml`. WRITE tools (Tier B/C/D-Std) require the explicit role allowlist match.
 
+### Per-human tier gate (capability multi-user-auth, Sprint 2 — added 2026-06-26)
+
+The `brain_affinity` matrix above governs the DEFAULT **service-key** mode (per agent role). When `RITSU_AUTH_MODE=per-human`, gbrain access is additionally gated by the operator's **verified human tier** (`knowledge/operator-tiers.yaml`): **`owner` + `admin` may use gbrain; `user` is denied** every `mcp__gbrain__*` tool; a null/unknown/expired tier is denied (fail-closed). gbrain is an external bun binary that does NOT understand the Supabase JWT, so this cannot be RLS-enforced — it is a **PreToolUse hook** (`pre-tool-gbrain-tier`) that reads the operator tier from the access token supabase-ops persists to the credential file (read-only — no token-rotation race) and blocks disallowed gbrain calls. **HONEST framing:** the hook runs on the untrusted laptop (a malicious admin could disable it), so it is least-privilege / non-malicious gating + closes the "local tool-tier enforcement" gap — NOT a cryptographic boundary. The REAL gbrain bounds remain the **$100/mo cost cap** (`scripts/pre-budget-check.sh`) + gbrain holding no money/Product/secret credentials. Per-tool read-vs-write HITL (Appendix A) is an orthogonal axis, unchanged. Runtime: `.claude/hooks/{pre-tool-gbrain-tier.md, runtime/pre-tool-gbrain-tier.cjs, runtime/lib/gbrain-tier-gate.cjs}`. Mirrors the analytics per-human tier gate (same credential file).
+
 ### Activation
 
 These role configurations are CONTRACT-level (this file is policy). The runtime `.claude/agents/<role>.md` config files are updated in Sprint 2 PR to mirror this contract. Until Sprint 2 lands, the contract is canonical and the runtime is being aligned. L2 validator `gbrain-l2-role-allowlist-consistency` (registered in `knowledge/cross-tier-invariants.yaml`) catches drift between this contract and `knowledge/mcp-roles.yaml`.
@@ -1160,6 +1164,10 @@ The 17 READ-only-elsewhere roles get NO analytics access (default-deny is the po
 ### `mcp_servers: [supabase-analytics]` grant
 
 The 6 allowlisted roles above gain `supabase-analytics` MCP access. All tools are read-only (Tier A): `query` (SELECT over `live.*`), `list_tables`. The L0 firewall (`pre-tool-supabase-product.cjs` v1.2) already treats `mcp__supabase-analytics__*` as `safe-mcp`. No WRITE tools exist on this MCP.
+
+### Per-human tier gate (capability multi-user-auth, Sprint 2 — added 2026-06-26)
+
+The `analytics_affinity` table above governs the DEFAULT **service-key** auth mode (identity = the self-asserted agent role). When `RITSU_AUTH_MODE=per-human`, the analytics MCP instead gates on the operator's **verified human tier** (`knowledge/operator-tiers.yaml`): **`owner` + `admin` may query/list_tables; `user` is denied** (`tier_not_allowed`); a null/unknown tier is denied (fail-closed). The tier is read from `app_metadata.tier` in the access token that the supabase-ops MCP persists to the per-human credential file (read-only — the analytics MCP never refreshes the token, so it cannot race supabase-ops's refresh-token rotation). This is **least-privilege defense-in-depth**: the least-priv `analytics_reader` DB role (read-only, pseudonymized, isolated project) remains the REAL confidentiality boundary, so even a malicious laptop owner who forges a local tier claim reaches only read-only, pseudonymized, non-PII data. An expired access token is rejected (fail-closed) so a stale tier cannot keep granting access. Runtime: `mcp-server-analytics/src/governance/{role-allowlist.ts,operator-credential.ts}`. The same credential file is intended to back the future gbrain per-human tier gate (Sprint 2 remaining work).
 
 ### Activation
 
