@@ -119,7 +119,18 @@ enrollment_lifecycle_live:   # the full multi-user onboarding loop now works
 sprint2_remaining:   # follow-on increments (separate integration efforts)
   - "DONE 2026-06-26 (PR #308 + ITEM B PR): gbrain + analytics MCP under the per-human tier (see sprint2_done). The ops-DB + enrollment core remains the load-bearing Sprint 2."
   - "The broader money/publish action-broker surface (Stripe/social) — belongs with those integrations; the operator-lifecycle broker is the Sprint-2 deliverable."
-  - "DB-side INSTANT revocation (read path checks ops.operators.status, not just the JWT) to close the ~1h access-token window — Sprint 3 hardening. NB the gbrain/analytics tier gates now ENFORCE exp, so a stale token is rejected at the access-token lifetime even before DB-side instant revocation lands."
+  - "DB-side INSTANT revocation — BUILT in Sprint 3 (migration 00050, see sprint3). NB the gbrain/analytics tier gates already ENFORCE exp, so a stale token is rejected at the access-token lifetime even before instant revocation is applied."
+
+sprint3:   # hardening — BUILT this session; the DB apply + the founder-physical items are founder-gated
+  built_ready_to_apply:
+    - "migration 00050_instant_revocation.sql — DB-side INSTANT revocation. ANDs ops.operator_not_revoked() (a SECURITY DEFINER, caller-scoped, search_path-pinned-no-public helper reading ops.operators.status) into ops.is_owner()/is_admin_or_above(), so a revoked operator is denied at the DB IMMEDIATELY (within one statement) even with a still-valid ~1h access token — closing the stale-token window. ALL 70 per-human RLS policies + the broker fns funnel through those two helpers, so the single change propagates everywhere. ADDITIVE + INERT under the live service_role path (BYPASSRLS, no JWT → the helpers were already falsy); enforces only in per-human mode. Genesis owners NOT in ops.operators are NOT locked out (NULL status → not_revoked()=true → JWT-tier-gated). Security-reviewed (security-auditor: LOW risk, sound for apply, no fail-open, no owner-lockout; FORCE-RLS recursion tripwire + mcp_calls audit-insert fail-open documented in the migration). 11 structural tests."
+  founder_applies:
+    - "APPLY migration 00050 to ritsu-ops (standard migration apply / Management API — like 00049). It is additive + inert under service_role, so it does not change the running service-key system. NOT applied this session: applying a shared-prod-DB migration unattended was declined (correctly) while the founder was away."
+    - "VALIDATE post-apply: `set -a; . runtime/secrets/.env.local; set +a; node scripts/multi-user-auth/validate-instant-revocation.cjs` — proves owner-not-locked-out + an enrolled active admin allowed + the SAME token DENIED after a status='revoked' flip (instant revocation). Creates + deletes throwaway *@example.com identities."
+  founder_physical_remaining:   # genuinely need the founder; NOT buildable headless
+    - "Owner hardware key (WebAuthn/passkey) — requires the founder to register a hardware authenticator (Touch ID / security key) via a browser ceremony. Cannot be done headless."
+    - "Joint authority (≥2 owners approve owner-tier actions) — extends the operator-broker; testing needs 2 owner actions. Both owners are enrolled (operators.yaml v1.1.0), but the broker enforcement + the dual-approval flow are a founder-present build."
+    - "Hash-chained / WORM audit log (tamper-evidence on ops.audit_log) — a further additive migration; deferred to keep this session's DB-write surface minimal."
 
 cutover_preconditions:   # do ALL before flipping RITSU_AUTH_MODE=per-human in production
   - "Enroll a 2nd owner at a DIFFERENT mailbox (recovery) — with a single owner there is NO recovery if the owner credential/mailbox is lost (the broker refuses to mint owners). The owner's own email does NOT count (same mailbox = no recovery)."
