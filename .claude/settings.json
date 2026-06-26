@@ -26,6 +26,15 @@
         ]
       },
       {
+        "matcher": "mcp__gbrain__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/runtime/pre-tool-gbrain-tier.cjs"
+          }
+        ]
+      },
+      {
         "matcher": "Edit",
         "hooks": [
           {

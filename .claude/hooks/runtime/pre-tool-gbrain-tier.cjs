@@ -1,0 +1,188 @@
+#!/usr/bin/env node
+'use strict';
+/**
+ * .claude/hooks/runtime/pre-tool-gbrain-tier.cjs
+ *
+ * Runtime PreToolUse hook for the per-human gbrain tier gate.
+ * Implements `.claude/hooks/pre-tool-gbrain-tier.md` (capability multi-user-auth,
+ * Sprint 2 — ITEM B). Thin wrapper: read the PreToolUse payload → self-configure
+ * from .env.local (the hook process does NOT inherit the shell env in Claude
+ * Desktop; the MCP wrappers source .env.local, so this hook reads it too) → read
+ * the operator tier from the access token supabase-ops persists → delegate to the
+ * pure engine (lib/gbrain-tier-gate.cjs) → emit a Claude Code decision.
+ *
+ * Block contract (Claude Code PreToolUse): exit code 2 with the reason on stderr
+ * blocks the tool. Allow: exit 0. We also write a structured decision to stdout.
+ *
+ * Posture:
+ *   - service-key mode / non-gbrain tool / no .env.local (worktree/CI) → fast ALLOW
+ *     (no-op; default behavior byte-identical).
+ *   - per-human + gbrain tool → committed to FAIL-CLOSED: a bad/expired/absent
+ *     token, a disallowed tier, OR an internal error (e.g. a locally-corrupted
+ *     operator-tiers.yaml) all BLOCK. Only an explicit engine 'allow' (owner/admin)
+ *     passes. (Genuine cold-start before supabase-ops persists self-resolves on
+ *     retry; gbrain calls are interactive, well after boot.)
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
+const ENV_FILE = path.join(REPO_ROOT, 'runtime', 'secrets', '.env.local');
+const TIERS_YAML = path.join(REPO_ROOT, 'knowledge', 'operator-tiers.yaml');
+const LOG_DIR = path.join(REPO_ROOT, 'runtime');
+const LOG_FILE = path.join(LOG_DIR, 'gbrain-tier-gate-events.jsonl');
+
+const { decideGbrainTier, GBRAIN_TOOL_RE, GBRAIN_TIER_GATE_VERSION } = require('./lib/gbrain-tier-gate.cjs');
+
+function readStdinSync() {
+  try {
+    return fs.readFileSync(0, 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+function parsePayload() {
+  try {
+    const raw = readStdinSync();
+    if (!raw.trim()) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+/** Minimal .env.local reader (regex; tolerant). The hook can't assume shell env. */
+function readEnvLocal() {
+  const out = {};
+  let raw;
+  try {
+    raw = fs.readFileSync(ENV_FILE, 'utf8');
+  } catch {
+    return out; // absent (worktree/CI) → caller treats as service-key (no-op)
+  }
+  const get = (key) => {
+    const m = raw.match(new RegExp('^\\s*' + key + "\\s*=\\s*[\"']?([^\"'\\n#]+)", 'm'));
+    return m ? m[1].trim() : null;
+  };
+  for (const k of ['RITSU_AUTH_MODE', 'RITSU_OPERATOR_REFRESH_TOKEN_FILE', 'RITSU_OPERATOR_ACCESS_TOKEN']) {
+    const v = get(k);
+    if (v) out[k] = v;
+  }
+  return out;
+}
+
+/** Read the access token: inline env first, else the credential file's access_token. */
+function readAccessToken(env) {
+  if (env.RITSU_OPERATOR_ACCESS_TOKEN) return env.RITSU_OPERATOR_ACCESS_TOKEN;
+  const file = env.RITSU_OPERATOR_REFRESH_TOKEN_FILE;
+  if (!file) return null;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (typeof parsed.access_token === 'string' && parsed.access_token) return parsed.access_token;
+  } catch {
+    /* missing/corrupt → no token (fail-closed downstream) */
+  }
+  return null;
+}
+
+function hashSessionId(s) {
+  if (!s) return 'anon';
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(36);
+}
+
+function tryAppendLog(entry) {
+  try {
+    if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
+    fs.appendFileSync(LOG_FILE, JSON.stringify(entry) + '\n', { encoding: 'utf8' });
+  } catch {
+    /* never fail the hook on a log error */
+  }
+}
+
+function emitAllow(reason) {
+  process.stdout.write(
+    JSON.stringify({
+      hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'allow' },
+      decision: 'allow',
+      reason,
+    }) + '\n',
+  );
+  process.exit(0);
+}
+
+function emitBlock(decision, payload) {
+  process.stdout.write(
+    JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: decision.reason,
+      },
+      decision: 'block',
+      reason: decision.reason,
+      match_rule: decision.matchRule,
+    }) + '\n',
+  );
+  process.stderr.write(`[pre-tool-gbrain-tier] BLOCKED (${decision.matchRule}): ${decision.reason}\n`);
+  tryAppendLog({
+    ts: new Date().toISOString(),
+    hook: 'pre-tool-gbrain-tier',
+    hook_version: GBRAIN_TIER_GATE_VERSION,
+    event_type: 'security.gbrain_tier_block',
+    severity: 'medium',
+    tool: payload && (payload.tool_name || payload.toolName),
+    match_rule: decision.matchRule,
+    tier: decision.tier,
+    caller_session_hash: hashSessionId(payload && (payload.session_id || payload.sessionId)),
+  });
+  process.exit(2);
+}
+
+function main() {
+  const payload = parsePayload();
+  const toolName = (payload && (payload.tool_name || payload.toolName)) || '';
+
+  const env = readEnvLocal();
+  const authMode = env.RITSU_AUTH_MODE || 'service-key';
+
+  // Fast, safe exits (allow) — service-key, non-gbrain, or no per-human config.
+  if (authMode !== 'per-human') return emitAllow('service-key mode — gbrain tier gate is a no-op');
+  if (!GBRAIN_TOOL_RE.test(toolName)) return emitAllow('not a gbrain tool');
+
+  // Committed to enforcing: per-human + gbrain tool → FAIL-CLOSED on any error.
+  try {
+    const yaml = require('js-yaml');
+    const tiersDoc = yaml.load(fs.readFileSync(TIERS_YAML, 'utf8'));
+    const accessToken = readAccessToken(env);
+    const decision = decideGbrainTier({
+      toolName,
+      authMode,
+      accessToken,
+      tiersDoc,
+      nowMs: Date.now(),
+    });
+    if (decision.decision === 'block') return emitBlock(decision, payload);
+    return emitAllow(decision.reason);
+  } catch (err) {
+    // A user-corrupted operator-tiers.yaml (or any internal error) must NOT become
+    // a bypass: fail-closed for a per-human gbrain call.
+    const hint =
+      err && err.code === 'MODULE_NOT_FOUND'
+        ? ' (dependencies missing — run `pnpm install` at the repo root)'
+        : '';
+    return emitBlock(
+      {
+        reason: `gbrain tier gate internal error on a per-human gbrain call — failing closed: ${err && err.message}${hint}`,
+        matchRule: 'hook-error-fail-closed',
+        tier: null,
+      },
+      payload,
+    );
+  }
+}
+
+main();

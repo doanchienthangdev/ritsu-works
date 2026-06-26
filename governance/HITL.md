@@ -459,6 +459,10 @@ Every gbrain MCP call logs to `ops.cost_attributions` with `cost_bucket = gbrain
 
 Per `knowledge/mcp-tools.yaml`, each tool entry lists `allowed_roles`. Roles not in the allowlist receive `403 Forbidden` at MCP call time. The 6 WRITE-enabled roles (`customer-lead`, `feedback-aggregator`, `gtm-orchestrator`, `cs-coach`, `product-orchestrator`, `eval-evo-orchestrator`) plus `gbrain-maintainer` are the only roles in Tier B/C/D-Std allowlists. All other roles have READ-only access (Tier A tools only).
 
+### Per-human tier gate (orthogonal — capability multi-user-auth, Sprint 2, added 2026-06-26)
+
+The per-tool tiers above (A/B/C) classify *what HITL ceremony a gbrain operation needs* and are orthogonal to *which human tier may use gbrain at all*. When `RITSU_AUTH_MODE=per-human`, a **PreToolUse hook** (`pre-tool-gbrain-tier`, registered in `.claude/settings.json` on `mcp__gbrain.*`) enforces the `knowledge/operator-tiers.yaml` contract: **`owner` + `admin` may use gbrain; `user` is denied** every `mcp__gbrain__*` tool; a null/unknown/expired tier is denied (fail-closed). It reads the operator tier from the access token the supabase-ops MCP persists to the credential file (read-only — no token-rotation race). gbrain is an external bun binary that can't be RLS-gated, so this hook is **local least-privilege defense-in-depth** — a malicious laptop owner could disable it; the REAL gbrain bounds remain the `$100/mo` cost cap (`scripts/pre-budget-check.sh`) + gbrain holding no money/Product/secret credentials. In the default service-key mode the hook is a no-op (the `allowed_roles` + per-tool tiers above are unchanged).
+
 ---
 
 *This file is sacred. The hooks in `.claude/hooks/` will eventually enforce it in code. Until then, every agent reading this file is on the honor system. Treat it accordingly.*
