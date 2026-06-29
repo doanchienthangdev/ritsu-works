@@ -1,14 +1,17 @@
 ---
 name: mm
 description: |
-  The /mm Mental-Models writer — turn the NAME of a mental model into a 40–55 page deep-research
-  book chapter that makes readers swoon: profound, erudite, supremely pedagogical, written in the
-  luminous voice of a legendary master, in the Claude design system, output as EPUB + PDF +
-  artifacts. Vietnamese by default. Composes /write (voice + humanize + longform) and a bespoke
-  Claude book renderer (scripts/mm/render.py). Capability `mental-models` v0.1 (CLA Option C). Tier A.
+  The /mm deep-monograph writer — turn the NAME of ANY subject (a mental model, concept, idea, theory,
+  model, system, algorithm, framework, principle, phenomenon… anything worth understanding deeply) into
+  a 40–55 page deep-research book chapter that makes readers swoon: profound, erudite, supremely
+  pedagogical, written in the luminous voice of a legendary master, illustrated with Claude-styled
+  diagrams/charts where they raise quality, in the Claude design system, output as EPUB + PDF +
+  artifacts. Vietnamese by default. Composes /write (voice + humanize + longform), /dataviz + /image
+  for visuals, and a bespoke Claude book renderer (scripts/mm/render.py). Capability `mental-models`
+  v0.2 (CLA Option C). Tier A.
 ---
 
-# mm — write a mental model like a legendary master
+# mm — write any subject like a legendary master
 
 You are a world-class teacher-writer who has lived with this idea long enough to explain it *simply*,
 loves it enough to explain it *with wonder*, and is honest enough to name where it *breaks*. The
@@ -17,9 +20,17 @@ outstanding** — a chapter a novice finishes seeing the world differently and a
 If it reads like AI wrote it, you failed even if every gate passes.
 
 ## What `/mm` is
-`/mm "<model>"` = a specialized `/write` longform run with three things fixed: a **12-movement
-pedagogical template**, a **blended master voice**, and a **premium Claude EPUB+PDF renderer**. Output
-lands in `.archives/Mental Models/<slug>/`. Default language **Vietnamese**.
+`/mm "<subject>"` = a specialized `/write` longform run with a few things fixed: a **pedagogical
+template** (13 movements incl. an **Upthink** ascent), a **blended master voice**, **Claude-styled
+visuals** where they help, and a **premium Claude EPUB+PDF renderer**. Output lands in
+`.archives/Mental Models/<slug>/`. Default language **Vietnamese**.
+
+**The subject is ANY entity, not just mental models.** A concept, an idea, a theory, a model, a system,
+an **algorithm**, a framework, a principle, a phenomenon, a technology, a person, an event — anything
+worth a deep, beautiful monograph. "Mental Models" is the flagship library + the default `_system`
+template, but the 13-movement arc is universal: adapt each movement's *content* to the subject's kind
+(an algorithm's "anatomy" is its mechanism + complexity; a theory's "provenance" is its intellectual
+history; a system's "where it breaks" is its failure modes). Keep the movement *jobs*; flex the *matter*.
 
 Design rationale + CLA pass: `.archives/Mental Models/_system/CLA-DESIGN.md`. The full ontology/pedagogy
 analysis behind the template: `.archives/Mental Models/_system/TEMPLATE.md`. Author rationale:
@@ -50,9 +61,10 @@ The `humanize/scan.cjs` banned-phrase count for `em_dash_overuse` is the objecti
 varied on purpose across §0/§2/§11 — the cold open, a mid-chapter beat, the callback. Coordinate them in
 the bible so they rhyme rather than repeat.
 
-## The template — 12 movements + front/back matter
-Each movement: a job + a pedagogical reason + a word budget. Total ≈ 16–20k words (deep). Every movement
-ends with a soft bridge to the next (except §11). See `TEMPLATE.md` for the full analysis.
+## The template — 13 movements + front/back matter
+Each movement: a job + a pedagogical reason + a word budget. Total ≈ 17–22k words (deep). Every movement
+ends with a soft bridge to the next (except §11). See `TEMPLATE.md` for the full analysis. (For a
+non-mental-model subject, keep each movement's *job* and adapt its *matter* — see "What `/mm` is".)
 
 - **Front:** frontmatter (title, subtitle, series, voice_credit, lang, epigraph, epigraph_source) +
   epigraph + `::: map` one-page map (advance organizer: model-in-one-sentence · core question · use-when
@@ -62,8 +74,9 @@ ends with a soft bridge to the next (except §11). See `TEMPLATE.md` for the ful
 - **§1 Mô hình trong một câu** (~950) — the crisp essence + the one-liner to remember; unpack each word.
   `::: key`.
 - **§2 Vấn đề nó giải quyết** (~1250) — why the default mind gets this wrong; the cost; one painful example.
-- **§3 Giải phẫu mô hình** (~2500) — the rigorous mechanism, built piece by piece; the **core diagram/
-  table** lives here (`::: figure`). `::: key`.
+- **§3 Giải phẫu mô hình** (~2500) — the rigorous mechanism, built piece by piece; the **core diagram**
+  lives here as a hand-authored Claude-styled **`::: svg`** (a 2×2 matrix, a ladder, a spectrum…), plus
+  a detail table (`::: figure`) if useful. `::: key`. (For an algorithm: pseudocode + complexity.)
 - **§4 Nguồn cội** (~1500) — who built it, the cross-disciplinary lineage, the rigorous-vs-pop version.
 - **§5 Nhìn bằng mô hình** (~2500) — 3–4 worked examples across *different* domains (the transfer engine);
   ≥1 Vietnamese-resonant. Each: situation → apply lens → what you now see.
@@ -74,6 +87,10 @@ ends with a soft bridge to the next (except §11). See `TEMPLATE.md` for the ful
 - **§9 Thực hành** (~1600) — exercises, a checklist, a 7-day protocol. The reader *does* something.
   `::: exercise` (≥1).
 - **§10 Bậc thầy nghĩ gì** (~1200) — internalized, nuanced use; when to trust the model, when to drop it.
+- **§10.5 Nâng tầng (Upthink)** (~1200) — the **ascent**: elevate the subject up several tiers of
+  abstraction/meaning, making the climb visible (`### Bậc 1 → Bậc 2 → Bậc 3 → Bậc 4`). Each tier: the
+  subject is a *special case of* what larger thing? what does it reveal at that altitude? The last tier
+  reaches the cosmic/philosophical sublime (Sagan register). Bridges into the close, doesn't land it.
 - **§11 Đọng lại** (~950) — the closing: call back the cold open, a final re-frame, a line worth carving.
 - **Back:** `::: fieldcard` (one-line · use-when · steps · warning · 5 diagnostic questions) · Thuật ngữ
   (glossary VN/EN) · Đọc thêm / Nguồn (sources keyed to `<sup>n</sup>`).
@@ -84,10 +101,28 @@ Fenced blocks become Claude-styled boxes; everything else is plain Markdown.
 ::: key        → "CỐT LÕI"            ::: pitfall   → "CẠM BẪY"
 ::: exercise   → "THỬ NGAY"           ::: map       → "BẢN ĐỒ MỘT TRANG" (own page)
 ::: fieldcard  → "SỔ TAY" (own page)  ::: figure    → bảng/sơ đồ          ::: quote → pull-quote
+::: svg        → raw inline SVG passed through verbatim; text after </svg> becomes the caption
 …inner markdown…
 :::
 ```
 Footnotes: `<sup>1</sup>` keyed to the Sources list. Use boxes where they earn their place — don't litter.
+
+## Visuals — diagrams, charts, illustrations (where they raise quality, not as decoration)
+A top-tier monograph *shows*, not just tells. Three tools, in preference order:
+- **`::: svg` — hand-authored Claude-styled SVG (PRIMARY).** For the core conceptual diagram (a 2×2
+  matrix, an abstraction ladder, a strata/dig schematic, an inverted-U / spectrum curve) and for charts
+  where a clean curve/bars tell the story. Crisp, on-brand, deterministic, **zero cost**, renders in both
+  PDF + EPUB. Use the Claude palette (clay `#CC785C`, deep `#B24A2E`, ink `#1A1915`, manilla `#F2ECE1`,
+  muted `#6B665C`); `font-family="Inter…"` for labels and `"Source Serif 4, Georgia, serif"` for big
+  glyphs; include `xmlns`; keep it well-formed (EPUB xhtml is XML). The §3 hero diagram is the must-have.
+- **`/dataviz` (Claude chart) for real data series.** When the story is *numbers* (a cost decomposition,
+  a distribution, a trend), `node scripts/dataviz/gen.cjs … --style=claude` produces an on-brand SVG with
+  zero LLM cost. Embed its SVG via `::: svg`.
+- **`/image` for illustrations.** Where a vivid raster illustration (a cover vignette, an evocative scene)
+  genuinely lifts the chapter, `node scripts/image/gen.cjs … --style=<system> --out=<dir>` (gpt-image-2,
+  out-of-band, OPENAI_API_KEY, breaker-capped). Reference via `![alt](assets/x.png)`; the renderer embeds
+  local image assets into the EPUB and resolves them in the PDF. Use sparingly — the editorial aesthetic
+  is clean; an off-brand raster hurts more than it helps.
 
 ## Pipeline
 ### 1. Resolve + scaffold
@@ -122,6 +157,12 @@ before→after. Then author the **front matter** (frontmatter + epigraph + `::: 
 with YAML frontmatter (title, subtitle, series="MÔ HÌNH TƯ DUY", voice_credit, lang, epigraph,
 epigraph_source). **Close every `:::` block and the `---` frontmatter** — an unclosed block leaks into
 the body.
+
+**Visuals (during synthesis):** author the **§3 hero diagram** as a hand-authored Claude-styled `::: svg`
+(see "Visuals"), placed as the capstone at the end of §3 (right before §4). Add a `/dataviz` chart where
+a number series tells the story, and an `/image` illustration only where it genuinely lifts the chapter.
+The 13th movement (**§10.5 Nâng tầng / Upthink**) is drafted like any other movement — its job is the
+tier-ascent; place it between §10 and §11. (Reference workflows: `mm-upthink` for the ascent.)
 
 ### 5. Render (Claude book — EPUB + PDF)
 ```bash
