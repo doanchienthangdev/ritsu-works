@@ -84,6 +84,16 @@ def transform_boxes_and_md(body):
         if plain.strip():
             out.append(md_inline(plain))
         btype = m.group(1).lower()
+        if btype == "svg":
+            # raw inline SVG passthrough (NO markdown); text after </svg> becomes a caption.
+            raw = m.group(2)
+            end = raw.rfind("</svg>")
+            svg = raw[:end + 6] if end != -1 else raw
+            cap = raw[end + 6:].strip() if end != -1 else ""
+            cap_html = f'<div class="mm-figcap">{md_inline(cap)}</div>' if cap else ""
+            out.append(f'<div class="mm-figure mm-svgfig">{svg}{cap_html}</div>')
+            pos = m.end()
+            continue
         inner_html = md_inline(m.group(2))
         label = BOX_LABELS.get(btype)
         if btype == "quote":
@@ -219,6 +229,10 @@ pre code {{ background:none; padding:0; }}
 .mm-figure {{ background:{t['paper']}; border:1px solid {t['rule']}; border-radius:4px; padding:12pt 14pt;
   margin:1.4em 0; break-inside:avoid; }}
 .mm-figure table {{ margin:.3em 0; }}
+.mm-svgfig {{ text-align:center; }}
+.mm-svgfig svg {{ display:block; width:100%; height:auto; max-width:100%; margin:0 auto; }}
+.mm-figcap {{ font-family:Inter; font-size:9pt; font-style:italic; color:{t['mutedForeground']}; margin-top:8pt; text-align:center; }}
+.mm-figcap p {{ text-indent:0; margin:0; }}
 .mm-pull {{ font-family:'Source Serif 4'; font-style:italic; font-weight:600; font-size:16pt;
   line-height:1.42; color:{t['primaryDeep']}; text-align:center; margin:1.6em 8%; break-inside:avoid; }}
 .mm-pull p {{ text-indent:0; margin:0; }}

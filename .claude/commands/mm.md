@@ -1,20 +1,25 @@
 ---
 name: mm
 description: |
-  Viết một chương sách deep-research về MỘT mô hình tư duy (mental model) — 40–55 trang, sâu
-  sắc, uyên bác, sư phạm cực cao, trong sáng như một bậc thầy huyền thoại, trình bày theo Claude
-  Design System, xuất ra EPUB + PDF + artifacts. Mặc định TIẾNG VIỆT. Thin orchestrator: dựng
-  giọng "Bậc thầy Mô hình Tư duy" (blend Feynman·Tim Urban·Sagan·James Clear·Oakley), bám khuôn
-  mẫu 12 chuyển động, drive pipeline longform của /write (bible → draft song song → liền mạch →
-  humanize), rồi render qua scripts/mm/render.py. Output → ".archives/Mental Models/<slug>/".
-argument-hint: "\"<Tên mô hình>\" [--lang=vi|en --author-style=<blend|slug> --length=deep --out=epub+pdf --refs=<paths|urls> --max-cost-usd=3 --dry-run] | template | authors | rubric"
+  Viết một chương sách deep-research về MỘT chủ thể bất kỳ — mô hình tư duy, khái niệm, ý tưởng, lý
+  thuyết, mô hình, hệ thống, THUẬT TOÁN, khung, nguyên lý, hiện tượng… bất kỳ thứ gì đáng hiểu sâu.
+  40–55 trang, sâu sắc, uyên bác, sư phạm cực cao, trong sáng như một bậc thầy huyền thoại, CÓ sơ đồ/
+  biểu đồ Claude-styled khi cần, trình bày theo Claude Design System, xuất ra EPUB + PDF + artifacts.
+  Mặc định TIẾNG VIỆT. Thin orchestrator: dựng giọng "Bậc thầy" (blend Feynman·Tim Urban·Sagan·James
+  Clear·Oakley), bám khuôn mẫu 13 chuyển động (có phần NÂNG TẦNG/upthink), drive pipeline longform của
+  /write + dựng visual qua /dataviz + /image, rồi render qua scripts/mm/render.py. Output →
+  ".archives/Mental Models/<slug>/".
+argument-hint: "\"<Tên chủ thể>\" [--lang=vi|en --author-style=<blend|slug> --length=deep --out=epub+pdf --visuals=auto --upthink=on --refs=<paths|urls> --max-cost-usd=3 --dry-run] | template | authors | rubric"
 ---
 
-# /mm — Mental Models writer (capability `mental-models` v0.1, Option C)
+# /mm — deep-monograph writer for ANY subject (capability `mental-models` v0.2, Option C)
 
-Front-end để biến **tên một mô hình tư duy** thành **một chương sách khiến người đọc ngất ngây**.
-Composes `/write` (giọng + humanize + longform) + một renderer Claude-styled cho EPUB/PDF. Brain nằm
-ở skill `06-ai-ops/skills/mm/SKILL.md` — đọc nó rồi thực thi.
+Front-end để biến **tên một chủ thể bất kỳ** (mô hình tư duy · khái niệm · ý tưởng · lý thuyết · mô hình
+· hệ thống · **thuật toán** · khung · nguyên lý · hiện tượng…) thành **một chương sách khiến người đọc
+ngất ngây**. Mental Models là thư viện chủ lực + template mặc định, nhưng `/mm` viết được về *bất kỳ thực
+thể nào* — giữ NHIỆM VỤ của 13 chuyển động, uốn NỘI DUNG theo loại chủ thể. Composes `/write` (giọng +
+humanize + longform) + `/dataviz` + `/image` cho visual + một renderer Claude-styled cho EPUB/PDF. Brain
+nằm ở skill `06-ai-ops/skills/mm/SKILL.md` — đọc nó rồi thực thi.
 
 ## Cách dùng
 ```
@@ -27,12 +32,14 @@ Composes `/write` (giọng + humanize + longform) + một renderer Claude-styled
 ## Cờ (flags)
 | Cờ | Mặc định | Ghi chú |
 |---|---|---|
-| `<Tên mô hình>` | — | tên mô hình tư duy (positional). Vd "The AQAL Matrix", "Mô hình Mạng nhện Munger". |
+| `<Tên chủ thể>` | — | tên chủ thể bất kỳ (positional). Vd "The AQAL Matrix", "Thuật toán Dijkstra", "Thuyết tương đối hẹp", "Hệ thống miễn dịch". |
 | `--lang` | `vi` | `vi`\|`en`. **Tiếng Việt mặc định**; chỉ `en` khi được yêu cầu rõ. |
 | `--author-style` | `mm-master-blend` | blend mặc định, HOẶC một voice đơn `installed` (vd `richard-feynman`, `tim-urban`, `carl-sagan`, `james-clear`). |
-| `--length` | `deep` | `standard`(≈10k chữ) \| `deep`(≈16–20k chữ / 40–55tr) \| `epic`(≈24k+). |
+| `--length` | `deep` | `standard`(≈10k chữ) \| `deep`(≈17–22k chữ / 40–55tr) \| `epic`(≈26k+). |
 | `--out` | `epub+pdf` | `epub`\|`pdf`\|`md`\|`html`, nối bằng `+`. |
 | `--style` | `claude` | design system render (Claude editorial mặc định). |
+| `--visuals` | `auto` | `auto`\|`on`\|`off` — dựng sơ đồ `::: svg` (hero §3) + biểu đồ /dataviz + ảnh /image khi cần. |
+| `--upthink` | `on` | `on`\|`off` — phần "Nâng tầng" (§10.5): leo thang tư duy lên mấy bậc tới đỉnh triết học/vũ trụ. |
 | `--refs` | — | nguồn bổ sung để ground (files/URLs, `+`-joined). |
 | `--research` | `deep` | `off`\|`auto`\|`deep` — độ sâu nghiên cứu ngoài để chính xác + uyên bác. |
 | `--grounding` | `auto` | `auto`\|`off`\|`wiki`\|`deepask`\|`brain`\|`all` — nguồn nội bộ Ritsu. |
@@ -44,13 +51,13 @@ Cờ lạ → WARN (forward-compat), không bỏ thầm.
 
 ## Luồng (dispatch sang skill `mm`)
 1. Parse cờ → slug hoá tên mô hình → tạo `.archives/Mental Models/<slug>/{,artifacts/}` (root repo).
-2. **Bible:** dựng nguồn-chân-lý cho mô hình — facts (ground qua `--research`/`--grounding`) + thuật ngữ
-   Việt khoá + giọng blend + brief từng phần theo khuôn mẫu 12 chuyển động. **Khoá bible.**
+2. **Bible:** dựng nguồn-chân-lý cho chủ thể — facts (ground qua `--research`/`--grounding`) + thuật ngữ
+   Việt khoá + giọng blend + brief từng phần theo khuôn mẫu **13 chuyển động** (gồm Nâng tầng). **Khoá bible.**
 3. **Draft:** longform song-song-mù (một agent/chuyển động) qua Claude Code Workflow, bám bible, tiếng
    Việt, đúng giọng + hộp + ngân sách chữ.
-4. **Synthesize:** ráp theo thứ tự → liền mạch + làm mượt mối nối → **humanize gate**
-   (`scripts/write/humanize/scan.cjs`) đến khi pass → tự viết bìa trước (frontmatter + đề từ + bản-đồ-
-   một-trang) và bìa sau (sổ tay + thuật ngữ + nguồn) cho chính xác.
+4. **Synthesize + Visualize:** ráp theo thứ tự → liền mạch + master-editor (cắt gạch ngang) → **humanize
+   gate** đến khi pass → dựng **sơ đồ hero `::: svg`** (§3) + biểu đồ /dataviz + ảnh /image khi cần →
+   tự viết bìa trước (frontmatter + đề từ + bản-đồ-một-trang) và bìa sau (sổ tay + thuật ngữ + nguồn).
 5. **Render:** `scripts/mm/render.py <slug>.md --out=epub+pdf --style=claude --out-dir=<dir> --name=<slug>`
    (chạy bằng anaconda python + `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`).
 6. **Report:** files[], số chữ, humanize before→after, cost, warnings[]. Giữ bible/research/nháp trong
@@ -58,9 +65,12 @@ Cờ lạ → WARN (forward-compat), không bỏ thầm.
 
 ## Ví dụ
 ```
-/mm "The AQAL Matrix"                                  # chương deep, tiếng Việt, epub+pdf, Claude style
+/mm "The AQAL Matrix"                                  # mô hình tư duy: deep, tiếng Việt, epub+pdf
+/mm "Thuật toán Dijkstra"                               # THUẬT TOÁN: cùng template, §3 = cơ chế + độ phức tạp
+/mm "Thuyết tương đối hẹp"                              # lý thuyết khoa học
+/mm "Hệ thống miễn dịch của cơ thể"                     # một hệ thống
 /mm "Inversion" --author-style=richard-feynman          # ép một giọng đơn
-/mm "First Principles Thinking" --lang=en --out=pdf
+/mm "First Principles Thinking" --lang=en --out=pdf --upthink=off
 /mm "Mô hình Mạng nhện của Munger" --refs=raw/munger/   # ground thêm từ refs
 /mm "Second-Order Thinking" --dry-run                   # chỉ kế hoạch + cost
 /mm template                                            # xem khuôn mẫu
