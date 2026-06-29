@@ -87,10 +87,18 @@ non-mental-model subject, keep each movement's *job* and adapt its *matter* — 
 - **§9 Thực hành** (~1600) — exercises, a checklist, a 7-day protocol. The reader *does* something.
   `::: exercise` (≥1).
 - **§10 Bậc thầy nghĩ gì** (~1200) — internalized, nuanced use; when to trust the model, when to drop it.
-- **§10.5 Nâng tầng (Upthink)** (~1200) — the **ascent**: elevate the subject up several tiers of
-  abstraction/meaning, making the climb visible (`### Bậc 1 → Bậc 2 → Bậc 3 → Bậc 4`). Each tier: the
-  subject is a *special case of* what larger thing? what does it reveal at that altitude? The last tier
-  reaches the cosmic/philosophical sublime (Sagan register). Bridges into the close, doesn't land it.
+- **§10.5 Nâng tầng (Upthink)** (~1800–2100) — the **ascent**, and the chapter's **intellectual crown**:
+  this section must be a genuine *masterpiece* of higher-order thinking, not merely good. Climb 4–5 visible
+  tiers (`### Bậc 1 → Bậc 5`); **each tier lands a non-obvious, earned insight that re-frames everything
+  below** (no flat "zoom out for show"). At the high tiers, **light up the latticework** — connect the
+  subject *precisely* to deep ideas across domains (Gödel/incompleteness, information theory & compression,
+  the measurement problem, Schrödinger/Prigogine & negentropy, the axiomatic method, evolution, Kant,
+  Camus, and the *other chapters in the series*) without jargon-flexing, each pulled back to a graspable
+  image. Include the **self-reflexive meta-move** (apply the model to the act of modeling; apply the climb
+  to itself) — the signature of real higher-order thought. The final tier (**Sagan register**) must *earn*
+  a true vertigo of awe that changes the reader, with a last line worth carving in stone. Density over
+  length: every paragraph rewards re-reading. Bridges into the close, doesn't land it. (Reference workflow:
+  `mm-upthink-masterpiece` — a draft → adversarial-elevate pipeline from a hand-thought ascent scaffold.)
 - **§11 Đọng lại** (~950) — the closing: call back the cold open, a final re-frame, a line worth carving.
 - **Back:** `::: fieldcard` (one-line · use-when · steps · warning · 5 diagnostic questions) · Thuật ngữ
   (glossary VN/EN) · Đọc thêm / Nguồn (sources keyed to `<sup>n</sup>`).
