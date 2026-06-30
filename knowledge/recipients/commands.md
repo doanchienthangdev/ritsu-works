@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 29
+**Total entries:** 30
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -294,6 +294,27 @@ row count. Output: HEALTHY | DEGRADED | UNHEALTHY plus a per-check
 table.
 
 **Invoke:** `/mcp-doctor`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/mm
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Write a deep-research book chapter about ANY subject — a mental model, concept, idea,
+theory, model, system, ALGORITHM, framework, principle, phenomenon… anything worth
+understanding deeply. 40–55 pages, profound, erudite, intensely pedagogical, lucid as a
+legendary master, WITH Claude-styled diagrams/charts where they earn their place, laid out
+in the Claude Design System, exported to EPUB + PDF + artifacts. Output defaults to
+VIETNAMESE. Thin orchestrator: builds the "Master" voice (a blend of Feynman·Tim Urban·
+Sagan·James Clear·Oakley), follows the 13-movement template (including the NÂNG TẦNG /
+Upthink crown), drives the /write longform pipeline + builds visuals via /dataviz + /image,
+then renders through scripts/mm/render.py. Output → ".archives/Mental Models/<slug>/".
+
+**Invoke:** `/mm`
 **HITL tier:** A
 **Side effect:** none
 

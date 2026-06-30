@@ -1,0 +1,133 @@
+---
+title: "Chương 57 — Capability Case Study: mental-models (`/mm` — biến tên một chủ thể thành một chương sách khiến người đọc ngất ngây)"
+description: "Chương 57 — Capability Case Study: mental-models (`/mm` — biến tên một chủ thể thành một chương sách khiến người đọc ngất ngây)"
+source_path: .archives/ritsu-handoff-bundle/playbook/chapters/phase-a2/57-capability-case-mental-models.md
+source_hash: f086c4f062c69a5e2d74a44733fc1ec5191b031ff9452ff57e10798c7b040721
+generated_at: '2026-06-30T09:00:25.682Z'
+generated_by: playbook-import v1.0.0
+category: playbook
+language: vi
+translated: true
+translated_source_hash: f086c4f062c69a5e2d74a44733fc1ec5191b031ff9452ff57e10798c7b040721
+translated_at: '2026-06-30T09:00:25.682Z'
+translated_by: "Founder source (Vietnamese original, no re-translation)"
+chapter_order: 57
+---
+
+{/* generated-by: playbook-import v1.0.0 */}
+
+> **Case Study #19.** `/mm` nhận vào **một cái tên** — "The AQAL Matrix", "Luật Nhân Quả", "Thuật toán Dijkstra" — và trả ra **một chương sách deep-monograph 40–55 trang**: sâu sắc, uyên bác, sư phạm cực cao, viết bằng giọng một bậc thầy huyền thoại, có sơ đồ Claude-styled, xuất ra EPUB + PDF. Không phải bản tóm tắt, không phải trang wiki — một *chương sách thật*. Bài học lớn nhất của capability này không nằm ở renderer hay pipeline: nó nằm ở chỗ **thứ khó không phải VIẾT DÀI, mà là viết TRUNG THỰC về những ý tưởng mà ai cũng muốn thần-thánh-hoá** — và ở một bộ máy đối-kháng buộc mỗi chương phải xứng đáng với chữ "ngất ngây".
+
+## 57.1 Bài toán — "hiểu sâu một ý tưởng" là một sản phẩm, không phải một câu trả lời
+
+Một câu hỏi như "giải thích cho tôi mô hình AQAL" có một câu trả lời tốt dài ba đoạn. Nhưng *thật sự hiểu* AQAL — đủ để nó đổi cách bạn nhìn — cần một thứ khác hẳn: một hành trình có mở màn gây sốc, một ẩn dụ xương sống đi suốt, các tầng đào sâu, những chỗ thú nhận giới hạn, một đỉnh triết học, và một cú hạ cánh ở lại với người đọc. Đó là một *chương sách*, và một chương sách hay là một **sản phẩm thủ công** chứ không phải một lần xuất chữ.
+
+Ba ràng buộc khiến bài toán khó:
+
+1. **Độ sâu + độ chính xác đồng thời.** 40–55 trang về một ý tưởng lớn dễ rơi vào hai hố: nông (kéo dài một bài blog) hoặc sai (bịa cho kêu). Phải uyên bác THẬT — ground vào nguồn ngoài — mà vẫn trong sáng.
+2. **Giọng.** Một chương đáng đọc nghe như **một con người cụ thể** đang giảng, không như "một AI viết bài". Đây là chỗ hầu hết văn-bản-do-máy-sinh chết.
+3. **Trung thực trí tuệ.** Các chủ thể đắt nhất — Nhất Thể Tính, Nhân Quả, Tiến Hoá, Đột Khởi — đều là nam-châm hút sự thần-thánh-hoá. Viết về chúng mà không lén tuồn siêu hình vào, cũng không khô khan giết chết cái đẹp, là phần khó nhất.
+
+## 57.2 Quyết định khoá — Option C: KHÔNG xây cỗ máy viết mới; cưỡi lên `/write`
+
+Phản-xạ sai là xây một "engine viết sách". Ritsu đã có `/write` — một nền-tảng viết 27+ loại nội dung với giọng-tác-giả-đã-chưng-cất, bộ humanize khử mùi AI, và pipeline longform. Xây lại tất cả những thứ đó cho `/mm` là nhân đôi công sức và nhân đôi chỗ để hỏng.
+
+**Option C** (quyết định kiến trúc): `/mm` là một **thin orchestrator** — nó *soạn* (compose) chứ không *xây*:
+
+- giọng + humanize + longform ← `/write`
+- sơ đồ + biểu đồ ← `/dataviz` + `/image`
+- bản in EPUB/PDF ← một renderer Claude-styled (`scripts/mm/render.py`, tái dùng design tokens + font Source Serif 4/Inter của `/translate`)
+
+Cái `/mm` thật sự sở hữu chỉ là ba thứ mà không capability nào khác có: **(a)** khuôn mẫu 13 chuyển động, **(b)** giọng blend "Bậc thầy", **(c)** quy trình sản xuất + cổng chất lượng đối-kháng. Mọi thứ còn lại là tái dùng. Đây là cùng một kỷ luật đã làm nên `/image`, `/dataviz`, `/voice`: *xây một lần, cắm vào nhiều chỗ; đừng động vào cái đang chạy.*
+
+## 57.3 Xương sống — khuôn mẫu 13 chuyển động (giữ NHIỆM VỤ, uốn NỘI DUNG)
+
+Mỗi chương đi theo một chuỗi chuyển động cố định, mỗi chuyển động có một *nhiệm vụ sư phạm* rõ ràng: mở màn gây sốc → đặt tên vấn đề → ẩn dụ xương sống → giải phẫu cơ chế → các tầng đào sâu → khi-nào-nó-gãy → thực hành → góc nhìn bậc thầy → **Nâng tầng (§10.5)** → đọng lại → sổ tay + thuật ngữ + nguồn.
+
+Điểm tinh tế: khuôn mẫu khoá *cấu trúc*, không khoá *nội dung*. Cùng một bộ 13 chuyển động phục vụ một mô hình tư duy (AQAL), một thuật toán (Dijkstra — §giải phẫu = cơ chế + độ phức tạp), một lý thuyết khoa học (thuyết tương đối hẹp), hay một hệ thống (miễn dịch). `/mm` giữ NHIỆM VỤ của từng chuyển động và uốn NỘI DUNG theo loại chủ thể. Đó là vì sao v0.2 tổng quát hoá được từ "mental models" sang "bất kỳ thực thể nào đáng hiểu sâu" mà không phải viết lại template.
+
+## 57.4 Đặc trưng ký tên — trục TRUNG THỰC hai-tầng
+
+Nếu chương này chỉ giữ lại một ý, thì là ý này. Mỗi chủ thể lớn được viết quanh một **firewall trung thực hai-tầng**:
+
+- **Tầng 1 — cái dùng được, có bằng chứng.** Thuật toán/cơ chế/quan hệ thật sự mua cho bạn điều gì.
+- **Tầng 2 — cái người ta GÁN vào.** Các khẳng định siêu hình / huyền thoại bám theo ý tưởng.
+
+Và chương *gọi tên đường ranh giữa hai tầng*, thay vì xoá nó đi:
+
+| Chương | Tầng 1 (dùng được) | Tầng 2 (gán vào, được gọi tên) |
+|---|---|---|
+| Nhất Thể Tính | liên-kết đo-được, phụ-thuộc-lẫn-nhau | "tất cả là Một" siêu hình, huyền-học-lượng-tử |
+| Nhân Quả & Duyên Khởi | tính-điều-kiện dùng-được | nghiệp-luân-hồi, định-mệnh, đổ-lỗi-nạn-nhân |
+| Đột Khởi của Mạng Lưới | đột-khởi YẾU (khoa học vững) | đột-khởi MẠNH (ý thức, nhân-quả-từ-trên-xuống — còn tranh cãi) |
+| Tiến Hoá | thuật toán biến-dị–chọn-lọc–di-truyền | tiến-bộ/mục-đích, "phù hợp"≠"đáng giá", Darwin xã hội |
+
+Đây là cái biến `/mm` từ "máy sinh nội dung cảm hứng" thành thứ đáng tin. Một giám khảo honesty chấm chương Đột Khởi 9/10 với nhận xét "trung thực trí tuệ ở mức hiếm thấy" — vì chương *cải-trang-siêu-hình-thành-khoa-học* bị nêu tên thẳng. Trung thực không phải sự khô khan; nó là kỷ luật để cái đẹp còn đứng được.
+
+## 57.5 Giọng "Bậc thầy" — một blend, không một sự bắt chước
+
+Giọng mặc định `mm-master-blend` là hợp của năm bậc thầy giảng giải, mỗi người góp một phẩm chất: **Feynman** (sự trong sáng tàn nhẫn), **Tim Urban** (ẩn dụ đời thường + nhịp hài), **Sagan** (sự kính sợ vũ trụ), **James Clear** (đòn bẩy thực hành), **Oakley** (kiến trúc sư phạm). Blend, không bắt chước — `/mm` không giả vờ *là* Feynman; nó học cái *làm cho* Feynman rõ ràng. `--author-style` cho phép ép một giọng đơn `installed` khi muốn.
+
+Kỷ luật văn phong khoá ở tầng Bible: tiếng Việt trong sáng, **kỷ luật gạch ngang** (≲1 dấu "—" mỗi đoạn — đây là một AI-tell hàng đầu), không sáo ngữ AI. Cái này đi qua **cổng humanize** của `/write` (`scan.cjs`) cho tới khi `ai_smell_score = 0`.
+
+## 57.6 Pipeline sản xuất — Bible khoá → nháp song-song-mù → ráp → humanize → visual
+
+Sáu pha, mỗi pha một bài học:
+
+1. **Scaffold** — slug hoá tên → `.archives/Mental Models/<slug>/{,artifacts/}`.
+2. **Bible (nguồn-chân-lý, KHOÁ).** Trước khi viết một chữ prose: ground facts (qua `--research`/`--grounding`), khoá thuật ngữ Việt, chọn ẩn dụ xương sống, dựng trục trung thực hai-tầng, và viết brief từng-chuyển-động. **Khoá Bible** rồi mới viết. Đây là khác biệt then chốt với one-pass: một nguồn-sự-thật chung khiến 11 nháp song song không mâu thuẫn nhau.
+3. **Draft song-song-mù.** Một agent cho mỗi chuyển động, chạy **song song và MÙ** (không thấy nháp của nhau) qua một **Claude Code Workflow**, mỗi agent bám Bible + đúng giọng + hộp thị giác + ngân sách chữ. Song-song để nhanh; mù để mỗi chuyển động có giọng tươi, không nhiễu lẫn nhau; bám-Bible để vẫn nhất quán.
+4. **Synthesize + Visualize.** Ráp theo thứ tự → làm mượt mối nối + một pass master-editor (cắt gạch ngang, gỡ trùng lặp) → **humanize gate** đến khi pass → dựng **sơ đồ hero `::: svg`** (§3) + biểu đồ `/dataviz` + ảnh `/image` khi cần → tự viết bìa trước (frontmatter + đề từ + bản-đồ-một-trang) và bìa sau (sổ tay + thuật ngữ + nguồn).
+5. **Render.** `scripts/mm/render.py <slug>.md --out=epub+pdf --style=claude` (anaconda python + `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`).
+6. **Report.** files[], số chữ, humanize before→after, cost, warnings. Bible/research/nháp ở lại `<slug>/artifacts/`.
+
+## 57.7 Thị giác — sơ đồ hero tự dựng, đúng-thương-hiệu, thắng raster
+
+Một bài học nhỏ mà đắt: với một *sơ đồ*, một SVG `::: svg` **tự tay dựng** đánh bại một ảnh `/image` sinh-ra. Vector, chi phí 0, in ra sắc, và — quan trọng nhất — *đúng* (một ảnh sinh-ra hay bịa nhãn). Mỗi chương có đúng một sơ đồ hero, dựng vừa khít với mô hình, đúng bảng màu Claude (clay/cream, KHÔNG dùng cyan off-brand). Ví dụ: ma trận AQAL 2×2, lưới nút Lưới-Indra, dây-chuyền-tuyến-tính → mạng-điều-kiện, sơ đồ đột-khởi hai-cấp của đàn chim, vòng lặp biến-dị → chọn-lọc → di-truyền. `/dataviz` (60 loại chart, 6 họ) vào cuộc chỉ khi chủ thể thật sự có dữ liệu; `/image` thì hiếm.
+
+## 57.8 Vương miện — phần "Nâng tầng" (Upthink) thành KIỆT TÁC
+
+Chuyển động §10.5 — "Nâng tầng" — là thứ tách một chương hay khỏi một chương đáng-nhớ. Nó leo thang tư duy qua **5 bậc**, mỗi bậc một insight không-hiển-nhiên, mạng lưới liên ngành sáng lên (Gödel · lý thuyết thông tin · bài toán đo lường lượng tử · Schrödinger/Prigogine · Hume · Camus), một cú lật tự-quy-chiếu, rồi hạ cánh siêu phàm. Quy trình của riêng phần này: draft → **ELEVATE đối kháng** (skill `mm-upthink-masterpiece`).
+
+Ví dụ (Tiến Hoá): đời-là-cỗ-máy-chắp-vá → "bạn là bản nháp đang được sửa" (Popper) → cỗ-máy-không-đạo-đức + **cuộc nổi loạn của con người** (is/ought của Hume; Camus nói KHÔNG) → cỗ-máy-mù-hé-một-con-mắt (Sagan) → "ngay cả 'tiến hoá' cũng tiến hoá". Đỉnh phải cao mà KHÔNG phản bội firewall trung thực — không lén gán-lại-mục-đích kể cả ở vương miện.
+
+## 57.9 Cái ratchet chất lượng — hội đồng 5 giám khảo đối kháng
+
+Đây là cơ chế khiến chữ "ngất ngây" không phải lời tự khen. Mỗi chương sau khi ráp đi qua một **hội đồng 5 giám khảo đối kháng**, mỗi người một lăng kính: **văn phong & giọng · trung thực trí tuệ & chính xác · sư phạm & cấu trúc · trung thành framing người đặt hàng · người đọc đối kháng** (một chuyên gia trong ngành của chủ thể). Hội đồng chấm 10 tiêu chí, nêu lỗi theo mức critical/high/medium → **revision pass** → **re-verify 2 giám khảo** → render lại. Quỹ đạo điển hình: **8.x → ~9.3**.
+
+Nó bắt lỗi THẬT, không phải lỗi chính tả:
+
+- **[P0] Teleology lén dựng lại** (chương Tiến Hoá): cú "vũ trụ tự nhìn mình" ở Bậc 4 nghe như con người là ĐỈNH tiến hoá — đúng human-exceptionalism mà chương vừa đập. Sửa: thêm nhịp tự-phản-biện ngay trong Bậc 4 (ý thức không cao hơn lá xanh quang hợp, chỉ KHÁC; "vũ trụ tự nhìn mình" là ẩn dụ TA GÁN VÀO).
+- **[CRITICAL] Mâu thuẫn nội tại** (chương Đột Khởi): Bậc 4 khẳng định "cấp cao lái cấp thấp" như đã-chốt, mâu thuẫn nhãn "còn tranh cãi" ở mọi chỗ khác. Sửa: tách nghĩa-YẾU khỏi nghĩa-MẠNH; nói thẳng "không lén rút đột-khởi-mạnh ra ở đây".
+- **[MEDIUM] Lỗi số + mâu thuẫn nội bộ** (Tiến Hoá): "bốn triệu tế bào bắt sáng" (sai ~30×) → "cả trăm triệu"; "gần một trăm tỉ neuron" → "khoảng tám mươi sáu tỉ" (chuẩn Herculano-Houzel).
+
+Một bộ máy đối-kháng tốt là khác biệt giữa "viết dài" và "viết đáng đọc".
+
+## 57.10 Tiến hoá v0.1 → v0.2 → v0.2.1
+
+- **v0.1** — mental models, 12 chuyển động, compose `/write` + renderer. Chứng minh Option C chạy.
+- **v0.2** (`/cla extend`) — ba nâng cấp: **(1) visual** (sơ đồ hero `::: svg` + `/dataviz` + `/image`); **(2) Nâng tầng/Upthink** (chuyển động §10.5); **(3) tổng quát hoá** — `/mm` viết về *bất kỳ thực thể nào*, không chỉ mental model. 13 chuyển động.
+- **v0.2.1** — Upthink thành **kiệt tác**: 5 bậc, mạng liên ngành, cú lật tự-quy-chiếu, quy trình draft→ELEVATE đối kháng.
+
+## 57.11 Thư viện — 8 chương đã ship (đều ~9.3–9.4/10)
+
+| Chương | Trang | Sơ đồ hero |
+|---|---|---|
+| Ma Trận AQAL (Ken Wilber) | 79 | ma trận 2×2 |
+| Bản Đồ Không Phải Là Lãnh Thổ (Korzybski) | 76 | thang trừu tượng |
+| Tư Duy Nguyên Lý Gốc (Aristotle·Descartes·Musk) | 81 | đào-tới-đá-tảng |
+| Trật Tự và Hỗn Loạn | 80 | đường cong sức-sống |
+| Luật Nhất Thể Tính | 71 | Lưới Indra |
+| Luật Nhân Quả và Lý Duyên Khởi | 73 | dây-chuyền → mạng-điều-kiện |
+| Tính Đột Khởi của Mạng Lưới | 72 | đột-khởi hai-cấp |
+| Luật Tiến Hoá | 76 | vòng lặp VSR |
+
+Bốn chương sau cùng đều qua hội đồng 5-giám-khảo + revision + re-verify. Thư viện sống trong `.archives/Mental Models/` (local-only); bộ khung lệnh (`/mm` + skill + renderer) sống trong repo.
+
+## 57.12 Năm bài học
+
+1. **Soạn, đừng xây lại (Option C).** `/mm` cưỡi lên `/write` + `/dataviz` + `/image`; nó chỉ sở hữu template + giọng + quy trình. Tái dùng cái đang chạy, đừng nhân đôi nó.
+2. **Trục trung thực hai-tầng là linh hồn.** Tách cái-dùng-được khỏi cái-gán-vào, và *gọi tên đường ranh*. Đây là cái biến cảm-hứng-do-máy thành thứ đáng tin — và là thứ giám khảo honesty khen "hiếm thấy".
+3. **Bible khoá + nháp song-song-mù > one-pass.** Một nguồn-sự-thật chung khiến nhiều nháp song song nhanh mà không mâu thuẫn; mù khiến mỗi chuyển động giữ giọng tươi.
+4. **Hội đồng đối-kháng là cái ratchet.** Nó bắt P0 thật (teleology lén, mâu thuẫn nội tại, lỗi số), không phải lỗi cú pháp. "Ngất ngây" là kết quả của một cổng, không phải một lời hứa.
+5. **Sơ đồ tự-dựng đúng-thương-hiệu thắng raster sinh-ra.** Với một schematic: vector, chi phí 0, in sắc, và *đúng*. `/image` chỉ cho cái mà một sơ đồ không làm được.
