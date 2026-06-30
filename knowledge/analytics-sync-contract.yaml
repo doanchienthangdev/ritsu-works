@@ -128,6 +128,18 @@ per_human_tier_gate:
                                      # rejected → a stale tier cannot keep granting. Caps the
                                      # downgrade/revocation blind spot to the token lifetime (~1h).
   staleness_note: "tier from a non-expired ≤~1h access token; DB-side instant revocation is Sprint 3"
+  # Downgrade lag (audit 2026-06-30 completeness gap). The two LOCAL tier gates
+  # (this analytics gate + the gbrain hook) decode the tier from a still-valid
+  # access token, so an admin→user (or any) demotion does NOT take effect until
+  # that token expires/rotates — i.e. up to the access-token lifetime (~1h).
+  # IMPORTANT: migration 00050 (DB-side INSTANT revocation) ANDs ops.operators.status
+  # into the ops.* RLS helpers and therefore covers ONLY the supabase-ops DB path —
+  # it does NOT cover these two local-decode gates (analytics never transmits the
+  # token; gbrain is an external binary). For analytics+gbrain, instant demotion
+  # requires upstream token revocation (sign-out / refresh-token revoke) or a
+  # shorter access-token TTL. Accepted tradeoff; bounded by exp_enforced + the real
+  # least-priv analytics_reader DB boundary.
+  downgrade_lag: "~1h (access-token lifetime); 00050 instant-revocation does NOT cover the local gates"
 
 mcp_server: supabase-analytics       # must be registered in .mcp.json (validator checks)
 

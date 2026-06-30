@@ -70,6 +70,33 @@ describe("readEnvLocal — tolerant .env.local parser", () => {
     const f = write("  RITSU_AUTH_MODE = per-human \n");
     expect(readEnvLocal(f).RITSU_AUTH_MODE).toBe("per-human");
   });
+  // audit 2026-06-30 (C2-keystone-3): the .mcp.json wrappers source .env.local
+  // via `set -a; . .env.local`, which exports `export KEY=v` the same as `KEY=v`.
+  // The hook must read both, else `export RITSU_AUTH_MODE=per-human` would parse
+  // as null → silent service-key no-op (fail-open) while ops/analytics enforced.
+  it("honors an `export `-prefixed line (parity with `set -a; . .env.local`)", () => {
+    const f = write(
+      [
+        "export RITSU_AUTH_MODE=per-human",
+        "export RITSU_OPERATOR_REFRESH_TOKEN_FILE=/c/r.json",
+        "export RITSU_OPERATOR_ACCESS_TOKEN=tok-x",
+      ].join("\n"),
+    );
+    expect(readEnvLocal(f)).toStrictEqual({
+      RITSU_AUTH_MODE: "per-human",
+      RITSU_OPERATOR_REFRESH_TOKEN_FILE: "/c/r.json",
+      RITSU_OPERATOR_ACCESS_TOKEN: "tok-x",
+    });
+  });
+  it("honors an indented `  export KEY=v` line", () => {
+    const f = write("  export RITSU_AUTH_MODE=per-human\n");
+    expect(readEnvLocal(f).RITSU_AUTH_MODE).toBe("per-human");
+  });
+  it("does not let `export` bleed into a non-matching key (exportRITSU... is not a match)", () => {
+    // `export` must be followed by whitespace; a glued token is NOT the key.
+    const f = write("exportRITSU_AUTH_MODE=nope\nRITSU_AUTH_MODE=per-human\n");
+    expect(readEnvLocal(f).RITSU_AUTH_MODE).toBe("per-human");
+  });
 });
 
 describe("readAccessToken — inline-then-file precedence, fail-closed", () => {

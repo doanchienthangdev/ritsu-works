@@ -32,6 +32,28 @@
  * GRANT / REVOKE / DROP), so a hardening migration that runs AFTER the original
  * CREATE (exactly what 00047 does) clears the flag.
  *
+ * SECOND CHECK — public MATERIALIZED VIEWs (added 2026-06-30, audit finding
+ * D1-1/D1-2). A SECURITY INVOKER function relies on RLS for protection, which is
+ * why the secdef rule above (intentionally) skips INVOKER functions. But the
+ * per-human read RPC `ops.ops_run_select_rls` (00049) is an `authenticated`-
+ * reachable INVOKER that runs caller-supplied SELECT with `public` in its
+ * search_path, and a MATERIALIZED VIEW *cannot carry RLS*. So any public matview
+ * left readable by `authenticated`/`anon` (the Supabase default grant) is PII-
+ * exposed via that path (and via PostgREST). This scanner therefore ALSO fails if
+ * any MATERIALIZED VIEW in `public` is not REVOKEd from BOTH `authenticated` and
+ * `anon` (same fail-safe model as functions: exposed-by-default → must opt out).
+ * The deny is a REVOKE, not RLS, because matviews can't be RLS-gated. See 00051.
+ *
+ * KNOWN STATIC-ANALYSIS LIMITS (forward-drift hygiene, shared with the function
+ * check): this guard folds only DDL/ACL statements present in the migration SQL.
+ * It does NOT model `WITH GRANT OPTION`, schema-wide `GRANT … ON ALL TABLES`, a
+ * `CASCADE/RESTRICT` modifier on a REVOKE, or a matview created OUTSIDE the
+ * committed migrations. ritsu-ops `public` currently has exactly one matview
+ * (mv_customer_360, declared in 00007) and no such patterns, so these do not
+ * affect the current repo; a future migration using them would need its own
+ * coverage. Only matviews in schema `public` (unqualified or `public.`-prefixed)
+ * are checked — a matview in another schema is intentionally out of scope.
+ *
  * Registered in scripts/check-consistency.cjs L2-critical list.
  * Exit 0 = clean, 1 = exposure drift detected, 2 = script error.
  *
@@ -165,6 +187,15 @@ const DROP_FN = /^DROP\s+FUNCTION\s+(?:IF\s+EXISTS\s+)?ops\.([a-z_][a-z0-9_]*)\b
 const GRANT_FN = /^GRANT\b[\s\S]*?\bON\s+FUNCTION\s+ops\.([a-z_][a-z0-9_]*)\b/i;
 const REVOKE_FN = /^REVOKE\b[\s\S]*?\bON\s+FUNCTION\s+ops\.([a-z_][a-z0-9_]*)\b/i;
 
+// Public MATERIALIZED VIEWs (the second check). A matview lives in `public`
+// (default schema) unless qualified; we track by bare name (optional `public.`).
+const CREATE_MATVIEW = /^CREATE\s+MATERIALIZED\s+VIEW\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?\b/i;
+const DROP_MATVIEW = /^DROP\s+MATERIALIZED\s+VIEW\s+(?:IF\s+EXISTS\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?\b/i;
+// GRANT/REVOKE on a non-function object (TABLE/VIEW/MATERIALIZED VIEW). Excludes
+// `ON FUNCTION …` so it never shadows the function grant/revoke handling above.
+const GRANT_OBJ = /^GRANT\b[\s\S]*?\bON\s+(?!FUNCTION\b)(?:TABLE\s+)?(?:MATERIALIZED\s+VIEW\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?\s+TO\b/i;
+const REVOKE_OBJ = /^REVOKE\b[\s\S]*?\bON\s+(?!FUNCTION\b)(?:TABLE\s+)?(?:MATERIALIZED\s+VIEW\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?\s+FROM\b/i;
+
 // ---------------------------------------------------------------------------
 // 3. Folder — compute effective final state per ops.<function>.
 // ---------------------------------------------------------------------------
@@ -180,6 +211,14 @@ function freshState(name) {
   };
 }
 
+// Fail-safe default for a public matview: a freshly-created public object is
+// SELECT-able by authenticated + anon (Supabase default privileges) until a
+// migration explicitly REVOKEs each. Matviews can't carry RLS, so REVOKE is the
+// only deny.
+function freshMatviewState(name) {
+  return { name, defined: false, authRead: false, anonRead: false, definedFile: null };
+}
+
 /**
  * @param {{file: string, sql: string}[]} migrations  ordered by filename
  * @returns {{functions: Map<string, object>, offenses: object[]}}
@@ -189,6 +228,21 @@ function analyzeMigrations(migrations) {
   const get = (name) => {
     if (!functions.has(name)) functions.set(name, freshState(name));
     return functions.get(name);
+  };
+
+  const matviews = new Map();
+  const getMv = (name) => {
+    if (!matviews.has(name)) matviews.set(name, freshMatviewState(name));
+    return matviews.get(name);
+  };
+  // PUBLIC pseudo-role covers authenticated + anon for object SELECT.
+  const clearObjReads = (mv, grantees) => {
+    if (grantees.includes('public') || grantees.includes('authenticated')) mv.authRead = false;
+    if (grantees.includes('public') || grantees.includes('anon')) mv.anonRead = false;
+  };
+  const setObjReads = (mv, grantees) => {
+    if (grantees.includes('public') || grantees.includes('authenticated')) mv.authRead = true;
+    if (grantees.includes('public') || grantees.includes('anon')) mv.anonRead = true;
   };
 
   for (const { file, sql } of migrations) {
@@ -218,6 +272,16 @@ function analyzeMigrations(migrations) {
         }
         if (/\bSECURITY\s+DEFINER\b/i.test(stmt)) st.securityDefiner = true;
         else if (/\bSECURITY\s+INVOKER\b/i.test(stmt)) st.securityDefiner = false;
+      } else if ((m = CREATE_MATVIEW.exec(stmt))) {
+        const mv = getMv(m[1]);
+        const firstTime = !mv.defined;
+        mv.defined = true;
+        if (!mv.definedFile) mv.definedFile = file;
+        // Only a FIRST create establishes the default authenticated/anon read
+        // grant (CREATE … IF NOT EXISTS re-run preserves the ACL).
+        if (firstTime) { mv.authRead = true; mv.anonRead = true; }
+      } else if ((m = DROP_MATVIEW.exec(stmt))) {
+        matviews.delete(m[1]);
       } else if ((m = GRANT_FN.exec(stmt))) {
         const st = get(m[1]);
         const g = parseGrantees(stmt);
@@ -228,11 +292,20 @@ function analyzeMigrations(migrations) {
         const g = parseGrantees(stmt);
         if (g.includes('public')) st.publicExec = false;
         if (g.includes('authenticated')) st.authExec = false;
+      } else if ((m = GRANT_OBJ.exec(stmt))) {
+        // Only meaningful for objects we track (public matviews); ignore others.
+        if (matviews.has(m[1])) setObjReads(getMv(m[1]), parseGrantees(stmt));
+      } else if ((m = REVOKE_OBJ.exec(stmt))) {
+        if (matviews.has(m[1])) clearObjReads(getMv(m[1]), parseGrantees(stmt));
       }
     }
   }
 
-  return { functions, offenses: computeOffenses(functions) };
+  return {
+    functions,
+    matviews,
+    offenses: [...computeOffenses(functions), ...computeMatviewOffenses(matviews)],
+  };
 }
 
 function computeOffenses(functions) {
@@ -245,6 +318,21 @@ function computeOffenses(functions) {
       offenses.push({ name: st.name, reason: 'unpinned_search_path', searchPath: null, file: st.definedFile });
     } else if (st.searchPath.includes('public')) {
       offenses.push({ name: st.name, reason: 'public_in_search_path', searchPath: st.searchPath.join(', '), file: st.definedFile });
+    }
+  }
+  return offenses;
+}
+
+// A public matview that is still SELECT-able by authenticated or anon is PII-
+// exposed (matviews can't carry RLS; the per-human INVOKER read path resolves
+// them). Must REVOKE from BOTH roles (or DROP the matview) to clear.
+function computeMatviewOffenses(matviews) {
+  const offenses = [];
+  for (const mv of matviews.values()) {
+    if (!mv.defined) continue;
+    if (mv.authRead || mv.anonRead) {
+      const exposedTo = [mv.authRead && 'authenticated', mv.anonRead && 'anon'].filter(Boolean).join(', ');
+      offenses.push({ name: mv.name, reason: 'public_matview_exposed', searchPath: exposedTo, file: mv.definedFile });
     }
   }
   return offenses;
@@ -272,20 +360,29 @@ function main() {
     console.error(`[ERROR] validate-secdef-rpc-exposure: ${e.message}`);
     process.exit(2);
   }
-  const { functions, offenses } = result;
+  const { functions, matviews, offenses } = result;
 
   if (offenses.length === 0) {
     const secdef = [...functions.values()].filter((s) => s.defined && s.securityDefiner);
+    const mvs = [...matviews.values()].filter((mv) => mv.defined);
     console.log(
       `[OK] validate-secdef-rpc-exposure: ${secdef.length} SECURITY DEFINER function(s) in schema ops` +
         (secdef.length ? ` (${secdef.map((s) => s.name).join(', ')})` : '') +
-        '; none expose public/unpinned search_path to authenticated/PUBLIC.',
+        '; none expose public/unpinned search_path to authenticated/PUBLIC. ' +
+        `${mvs.length} public matview(s)` +
+        (mvs.length ? ` (${mvs.map((mv) => mv.name).join(', ')})` : '') +
+        '; none readable by authenticated/anon.',
     );
     process.exit(0);
   }
 
-  console.error('[FAIL] SECURITY DEFINER RLS-bypass / PII-exposure drift in schema ops:');
+  console.error('[FAIL] RLS-bypass / PII-exposure drift in schema ops/public:');
   for (const o of offenses) {
+    if (o.reason === 'public_matview_exposed') {
+      console.error(`  ✗ public.${o.name}  (matview, defined in ${o.file})`);
+      console.error(`      MATERIALIZED VIEW still SELECT-able by [${o.searchPath}] — matviews cannot carry RLS`);
+      continue;
+    }
     const what =
       o.reason === 'public_in_search_path'
         ? `search_path includes 'public' [${o.searchPath}]`
@@ -299,7 +396,9 @@ function main() {
   );
   console.error("    1. REVOKE EXECUTE ... FROM PUBLIC, authenticated, anon;  (keep service_role)");
   console.error("    2. pin search_path WITHOUT 'public' (e.g. `SET search_path = ops, metrics, pg_temp`).");
-  console.error('  See migration 00047 + governance/HITL.md (Tier C schema change).');
+  console.error('  A public MATERIALIZED VIEW reachable by the per-human INVOKER read path must:');
+  console.error('    REVOKE ALL ON public.<matview> FROM authenticated, anon;  (matviews cannot carry RLS — see 00051)');
+  console.error('  See migrations 00047 + 00051 + governance/HITL.md (Tier C schema change).');
   process.exit(1);
 }
 
@@ -310,6 +409,7 @@ module.exports = {
   parseGrantees,
   analyzeMigrations,
   computeOffenses,
+  computeMatviewOffenses,
   analyzeRepo,
 };
 

@@ -206,4 +206,28 @@ describe("decideGbrainTier", () => {
       expect(o.decision).toBe("allow");
     });
   });
+
+  // audit 2026-06-30 completeness gap — downgrade lag. The gate decodes the tier
+  // from a still-valid access token, so an admin→user demotion does NOT take
+  // effect locally until the token expires/rotates (~1h). This is an ACCEPTED,
+  // documented tradeoff (knowledge/analytics-sync-contract.yaml downgrade_lag;
+  // SOP-AIOPS-017). NOTE: migration 00050 (DB-side instant revocation) covers
+  // ONLY the ops.* DB path — NOT this local gate. These tests PIN the accepted
+  // behavior so a future "make it instant" change is a deliberate decision, not
+  // an accident: instant demotion here needs upstream token revocation / shorter TTL.
+  describe("downgrade lag (accepted tradeoff — pinned + documented)", () => {
+    it("a still-valid (non-expired) admin token is ALLOWED even if the operator was demoted server-side", () => {
+      // The gate cannot see a server-side demotion; only the token's tier+exp.
+      const d = decide({ accessToken: tierJwt("admin", FUTURE) });
+      expect(d.decision).toBe("allow");
+      expect(d.tier).toBe("admin");
+    });
+    it("instant demotion DOES land the moment the token expires (exp is the only revocation lever here)", () => {
+      // Same admin, token now past exp → blocked. The lag is bounded by the
+      // access-token lifetime; there is no longer-lived grant.
+      const d = decide({ accessToken: tierJwt("admin", PAST) });
+      expect(d.decision).toBe("block");
+      expect(d.matchRule).toBe("unresolved-or-expired");
+    });
+  });
 });
