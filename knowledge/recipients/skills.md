@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 136
+**Total entries:** 137
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1379,6 +1379,27 @@ scripts/local-install/update.cjs to pull the latest ritsu-works from GitHub
 dependencies, cross-platform. Invoked by /update-ritsu-works. Tier A.
 
 **Invoke:** `Skill({ skill: "local-install/update" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/mm
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The /mm deep-monograph writer — turn the NAME of ANY subject (a mental model, concept, idea, theory,
+model, system, algorithm, framework, principle, phenomenon… anything worth understanding deeply) into
+a 40–55 page deep-research book chapter that makes readers swoon: profound, erudite, supremely
+pedagogical, written in the luminous voice of a legendary master, illustrated with Claude-styled
+diagrams/charts where they raise quality, in the Claude design system, output as EPUB + PDF +
+artifacts. Vietnamese by default. Composes /write (voice + humanize + longform), /dataviz + /image
+for visuals, and a bespoke Claude book renderer (scripts/mm/render.py). Capability `mental-models`
+v0.2 (CLA Option C). Tier A.
+
+**Invoke:** `Skill({ skill: "mm" })`
 **HITL tier:** B
 **Side effect:** write
 
