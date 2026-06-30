@@ -66,7 +66,13 @@ function readEnvLocal(filePath = ENV_FILE) {
     // Value chars stop at quote/newline/hash; the post-`=` whitespace is HORIZONTAL
     // only ([ \t], not \s) so an empty-valued key (`KEY=\n`) does NOT greedily
     // swallow the next line's content as its value.
-    const m = raw.match(new RegExp('^[ \\t]*' + key + "[ \\t]*=[ \\t]*[\"']?([^\"'\\n#]+)", 'm'));
+    // An optional `export ` prefix is honored: the .mcp.json wrappers source
+    // .env.local via `set -a; . .env.local`, which exports BOTH `KEY=v` and
+    // `export KEY=v`. Without this, an honest operator using the common
+    // `export RITSU_AUTH_MODE=per-human` style would have RITSU_AUTH_MODE read as
+    // null here → the gate would silently no-op to service-key while the ops +
+    // analytics MCPs DID enforce (audit 2026-06-30 finding C2-keystone-3 fail-open).
+    const m = raw.match(new RegExp('^[ \\t]*(?:export[ \\t]+)?' + key + "[ \\t]*=[ \\t]*[\"']?([^\"'\\n#]+)", 'm'));
     return m ? m[1].trim() : null;
   };
   for (const k of ['RITSU_AUTH_MODE', 'RITSU_OPERATOR_REFRESH_TOKEN_FILE', 'RITSU_OPERATOR_ACCESS_TOKEN']) {

@@ -279,10 +279,92 @@ describe("analyzeMigrations — offense detection", () => {
 });
 
 // ==========================================================================
+// Second check — public MATERIALIZED VIEWs (audit 2026-06-30, finding D1-1).
+// A matview can't carry RLS, so the per-human INVOKER read path can reach it
+// unless authenticated+anon SELECT is REVOKEd. Same fail-safe model as functions.
+describe("analyzeMigrations — public matview PII exposure", () => {
+  const MV = "CREATE MATERIALIZED VIEW IF NOT EXISTS mv_pii AS SELECT id, primary_email FROM customers;";
+
+  it("flags a public matview with no REVOKE (default authenticated+anon readable)", () => {
+    const { offenses } = analyze(mig("00001_mv.sql", MV));
+    expect(offenses).toHaveLength(1);
+    expect(offenses[0]).toMatchObject({ name: "mv_pii", reason: "public_matview_exposed" });
+    expect(offenses[0].searchPath).toBe("authenticated, anon");
+    expect(offenses[0].file).toBe("00001_mv.sql");
+  });
+
+  it("clears when a later migration REVOKEs ALL from authenticated, anon (the 00051 pattern)", () => {
+    const { offenses } = analyze(
+      mig("00001_mv.sql", MV),
+      mig("00002_fix.sql", "REVOKE ALL ON public.mv_pii FROM authenticated, anon;"),
+    );
+    expect(offenses).toHaveLength(0);
+  });
+
+  it("still flags when only authenticated is revoked (anon retains read)", () => {
+    const { offenses } = analyze(
+      mig("00001_mv.sql", MV),
+      mig("00002_partial.sql", "REVOKE ALL ON public.mv_pii FROM authenticated;"),
+    );
+    expect(offenses).toHaveLength(1);
+    expect(offenses[0]).toMatchObject({ name: "mv_pii", reason: "public_matview_exposed" });
+    expect(offenses[0].searchPath).toBe("anon");
+  });
+
+  it("a single REVOKE ... FROM PUBLIC clears both authenticated and anon (PUBLIC pseudo-role)", () => {
+    const { offenses } = analyze(
+      mig("00001_mv.sql", MV),
+      mig("00002_pub.sql", "REVOKE ALL ON public.mv_pii FROM PUBLIC;"),
+    );
+    expect(offenses).toHaveLength(0);
+  });
+
+  it("DROP MATERIALIZED VIEW removes a previously-flagged matview", () => {
+    const { offenses } = analyze(
+      mig("00001_mv.sql", MV),
+      mig("00002_drop.sql", "DROP MATERIALIZED VIEW IF EXISTS public.mv_pii;"),
+    );
+    expect(offenses).toHaveLength(0);
+  });
+
+  it("a re-GRANT to authenticated after a REVOKE re-exposes (fail-safe fold)", () => {
+    const { offenses } = analyze(
+      mig("00001_mv.sql", MV),
+      mig("00002_fix.sql", "REVOKE ALL ON public.mv_pii FROM authenticated, anon;"),
+      mig("00003_oops.sql", "GRANT SELECT ON public.mv_pii TO authenticated;"),
+    );
+    expect(offenses).toHaveLength(1);
+    expect(offenses[0]).toMatchObject({ name: "mv_pii", reason: "public_matview_exposed" });
+  });
+
+  it("a function REVOKE does not clear a matview, and a matview REVOKE does not touch functions", () => {
+    const { offenses } = analyze(
+      mig("00001.sql", VULN), // ops.foo: secdef + public + authenticated → function offense
+      mig("00002_mv.sql", MV), // mv_pii → matview offense
+      // a function-scoped revoke must NOT be mistaken for the matview, and vice-versa
+      mig("00003.sql", "REVOKE EXECUTE ON FUNCTION ops.foo(text, jsonb) FROM authenticated;"),
+    );
+    // foo's search_path still includes public AND PUBLIC still has EXECUTE (only
+    // authenticated was revoked) → foo remains a function offense; mv_pii remains.
+    expect(names(offenses)).toEqual(["foo", "mv_pii"]);
+  });
+
+  it("CREATE ... IF NOT EXISTS re-run preserves a prior REVOKE (does not re-expose)", () => {
+    const { offenses } = analyze(
+      mig("00001_mv.sql", MV),
+      mig("00002_fix.sql", "REVOKE ALL ON public.mv_pii FROM authenticated, anon;"),
+      mig("00003_mv.sql", MV), // idempotent re-create
+    );
+    expect(offenses).toHaveLength(0);
+  });
+});
+
+// ==========================================================================
 describe("real repo — analyzeRepo()", () => {
-  it("finds exactly the 7 known SECURITY DEFINER functions in ops", () => {
-    // 3 original (00026/secdef RPCs) + 4 multi-user-auth broker fns (00049) — all
-    // hardened (search_path WITHOUT public, service_role-only EXECUTE). The
+  it("finds exactly the 9 known SECURITY DEFINER functions in ops", () => {
+    // 3 original (00026/secdef RPCs) + 4 multi-user-auth broker fns (00049) +
+    // 2 instant-revocation helpers (00050: operator_status_self, operator_not_revoked)
+    // — all hardened (search_path WITHOUT public, service_role-only EXECUTE). The
     // multi-user-auth INVOKER RPC ops_run_select_rls is SECURITY INVOKER → absent here.
     const { functions } = analyzeRepo();
     const secdef = [...functions.values()].filter((s: any) => s.defined && s.securityDefiner).map((s: any) => s.name).sort();
@@ -290,9 +372,11 @@ describe("real repo — analyzeRepo()", () => {
       "get_ops_rls_state",
       "get_ops_tables",
       "operator_invite",
+      "operator_not_revoked",
       "operator_redeem",
       "operator_revoke",
       "operator_set_tier",
+      "operator_status_self",
       "ops_run_select",
     ]);
   });
@@ -300,6 +384,26 @@ describe("real repo — analyzeRepo()", () => {
   it("reports ZERO offenses now that migration 00047 hardened all three", () => {
     const { offenses } = analyzeRepo();
     expect(offenses).toEqual([]);
+  });
+
+  it("tracks public.mv_customer_360 and confirms 00051 REVOKEd authenticated+anon (no PII offense)", () => {
+    const { matviews, offenses } = analyzeRepo();
+    const mv = matviews.get("mv_customer_360");
+    expect(mv).toBeTruthy();
+    expect(mv.defined).toBe(true);
+    expect(mv.authRead).toBe(false);
+    expect(mv.anonRead).toBe(false);
+    expect(offenses.find((o: any) => o.name === "mv_customer_360")).toBeUndefined();
+  });
+
+  it("WOULD have flagged mv_customer_360 before 00051 (regression: the audit finding)", () => {
+    const preFix = listMigrationFiles()
+      .filter((f: string) => !f.startsWith("00051"))
+      .map((f: string) => ({ file: f, sql: readFileSync(join(MIGRATIONS_DIR, f), "utf8") }));
+    const { offenses } = analyzeMigrations(preFix);
+    const mv = offenses.find((o: any) => o.name === "mv_customer_360");
+    expect(mv).toBeTruthy();
+    expect(mv.reason).toBe("public_matview_exposed");
   });
 
   it("WOULD have flagged all three before 00047 (regression: the original finding)", () => {
