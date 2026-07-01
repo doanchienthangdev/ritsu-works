@@ -460,6 +460,32 @@ describe("doctor.cjs", () => {
       expect(res.keys.every((k: any) => k.state === "set")).toBe(true);
     });
 
+    // multi-user: a per-human (co-founder) install does NOT need service_role.
+    it("per-human profile: NO SERVICE_KEY required; a token source IS required", () => {
+      const text = [
+        "RITSU_AUTH_MODE=per-human",
+        "SUPABASE_URL=https://abc.supabase.co",
+        "SUPABASE_ANON_KEY=anon-1",
+        "RITSU_OPERATOR_REFRESH_TOKEN_FILE=/Users/x/.operator-refresh.json",
+      ].join("\n");
+      const fs = fakeFs({ existing: new Set([envPath]), files: { [envPath]: text } });
+      const res = probeEnv(secretsRoot, fs);
+      const byKey = Object.fromEntries(res.keys.map((k: any) => [k.key, k.state]));
+      expect(res.profile).toBe("per-human");
+      expect("SUPABASE_SERVICE_KEY" in byKey).toBe(false); // not required for a co-founder
+      expect(byKey["SUPABASE_URL"]).toBe("set");
+      expect(byKey["SUPABASE_ANON_KEY"]).toBe("set");
+      expect(byKey["RITSU_OPERATOR_REFRESH_TOKEN_FILE"]).toBe("set");
+    });
+
+    it("per-human profile with NO token source -> the credential key is 'missing'", () => {
+      const text = "RITSU_AUTH_MODE=per-human\nSUPABASE_URL=https://abc.supabase.co\nSUPABASE_ANON_KEY=anon-1";
+      const fs = fakeFs({ existing: new Set([envPath]), files: { [envPath]: text } });
+      const res = probeEnv(secretsRoot, fs);
+      const byKey = Object.fromEntries(res.keys.map((k: any) => [k.key, k.state]));
+      expect(byKey["RITSU_OPERATOR_REFRESH_TOKEN_FILE"]).toBe("missing");
+    });
+
     it("never returns the raw value under any key entry", () => {
       const text = "SUPABASE_URL=https://abc.supabase.co\nSUPABASE_ANON_KEY=secret-token\nSUPABASE_SERVICE_KEY=svc-99";
       const fs = fakeFs({ existing: new Set([envPath]), files: { [envPath]: text } });

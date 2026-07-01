@@ -48,13 +48,17 @@ install_steps:
     hitl: A
   - id: core
     name: "deterministic core (install.cjs --apply)"
-    runs: "node scripts/local-install/install.cjs --apply [--with-docs]"
+    runs: "node scripts/local-install/install.cjs --apply [--with-docs] [--profile=owner|per-human]"
     actions: [ensure_pnpm, install_root_frozen, install_mcp_server_frozen, install_analytics_no_lockfile, scaffold_runtime_and_env, husky, refresh_resolver_index]
     progress: "streams [i/N] per step"
+    profile: "owner (default) scaffolds .env.local from .env.example (full keys incl. service_role); per-human scaffolds from .env.per-human.example (co-founder admin/user — NO service_role/Stripe/bot tokens; RITSU_AUTH_MODE=per-human). Falls back to .env.example if the per-human template is absent."
     hitl: A
   - id: guide-env
     name: "guide the user to fill runtime/secrets/.env.local"
-    actions: [point_to_env_example, list_required_keys]   # SUPABASE_URL/ANON/SERVICE + MCP_CALLER_ROLE; LLM keys optional
+    actions: [owner_vs_cofounder_branch, point_to_env_template, list_required_keys]
+    # OWNER: SUPABASE_URL/ANON/SERVICE + MCP_CALLER_ROLE=founder; LLM keys optional.
+    # CO-FOUNDER (per-human): SUPABASE_URL/ANON only + seed the per-human refresh token
+    #   (redeem the owner's magic-link); NO service_role; MCP_CALLER_ROLE ignored.
     hitl: A
   - id: handoff
     name: "tell the user to run /test-ritsu-works"
@@ -138,6 +142,7 @@ references:
   - scripts/local-install/lib/{version,exec,platform,report}.cjs
   - scripts/local-install/dependencies.cjs
   - scripts/local-install/preflight.{sh,ps1}
-  - .env.example
+  - .env.example                     # OWNER template (full keys)
+  - .env.per-human.example           # CO-FOUNDER (admin/user) template — god-key-free
   - .claude/hooks/pre-tool-supabase-product.md   # the firewall contract this capability respects
   - governance/HITL.md

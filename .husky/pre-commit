@@ -15,8 +15,8 @@ if [ -n "$RUNTIME_FILES" ]; then
   exit 1
 fi
 
-# Reject if .env files staged (except .env.example)
-ENV_FILES=$(git diff --cached --name-only | grep -E "^\.env" | grep -v "^\.env\.example$" | grep -v "^\.env\.template$" || true)
+# Reject if .env files staged (except the committed templates .env.example / .env.per-human.example / .env.template)
+ENV_FILES=$(git diff --cached --name-only | grep -E "^\.env" | grep -v "^\.env\.example$" | grep -v "^\.env\.per-human\.example$" | grep -v "^\.env\.template$" || true)
 if [ -n "$ENV_FILES" ]; then
   echo "❌ ERROR: Attempting to commit .env file!"
   echo ""
