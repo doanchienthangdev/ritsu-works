@@ -21,7 +21,29 @@
  * Never prints secret values. Exit 0 = all checks pass.
  */
 
-const { createClient } = require('@supabase/supabase-js');
+// @supabase/supabase-js is a WORKSPACE dependency (mcp-server), NOT hoisted to the
+// repo root, so a bare require from this root-level script fails. Resolve it from
+// whichever workspace provides it. Run `pnpm install` if none is found.
+const { createRequire } = require('node:module');
+const nodePath = require('node:path');
+function loadCreateClient() {
+  const repoRoot = nodePath.join(__dirname, '..', '..');
+  // A createRequire base is resolved relative to its DIRECTORY; the file need not exist.
+  const bases = [
+    __filename,
+    nodePath.join(repoRoot, 'mcp-server', 'noop.js'),
+    nodePath.join(repoRoot, 'mcp-server-analytics', 'noop.js'),
+    nodePath.join(repoRoot, 'noop.js'),
+  ];
+  for (const base of bases) {
+    try { return createRequire(base)('@supabase/supabase-js').createClient; } catch { /* try next */ }
+  }
+  throw new Error(
+    "@supabase/supabase-js not found. It lives in the mcp-server workspace — run `pnpm install` " +
+    "(or `cd mcp-server && pnpm install`) at the repo root, then re-run this script.",
+  );
+}
+const createClient = loadCreateClient();
 
 const REF = 'mntobbmieuoaxipnjaau'; // ritsu-ops
 const URL_ = process.env.SUPABASE_URL;
