@@ -16,10 +16,27 @@
  * reuses install.cjs's deterministic core.
  */
 
+const nodeFs = require('node:fs');
+const nodePath = require('node:path');
 const { run: defaultRun, which: defaultWhich } = require('./lib/exec.cjs');
 const { repoRootFrom } = require('./doctor.cjs');
-const { runInstall } = require('./install.cjs');
+const { runInstall, generateMcpConfig } = require('./install.cjs');
+const { detectPlatform } = require('./lib/platform.cjs');
 const { Reporter } = require('./lib/report.cjs');
+
+/** Detect the install profile from runtime/secrets/.env.local (per-human vs owner). */
+function detectProfile(repoRoot) {
+  try {
+    const body = nodeFs.readFileSync(nodePath.join(repoRoot, 'runtime', 'secrets', '.env.local'), 'utf8');
+    return /^[ \t]*(?:export[ \t]+)?RITSU_AUTH_MODE[ \t]*=[ \t]*['"]?per-human/m.test(body) ? 'per-human' : 'owner';
+  } catch { return 'owner'; }
+}
+
+/** Is .mcp.json marked skip-worktree? (git ls-files -v tags it 'S'.) */
+function mcpSkipWorktree(git) {
+  const r = git(['ls-files', '-v', '.mcp.json']);
+  return !!(r.ok && /^S\s/.test((r.stdout || '').trim()));
+}
 
 /** Inspect the git working tree. Pure over an injected runner. */
 function gitStatus(ctx) {
@@ -85,18 +102,40 @@ function runUpdate(opts = {}) {
     return finish(reporter, true, opts);
   }
 
+  // A per-human co-founder install marks .mcp.json skip-worktree with this machine's
+  // absolute paths. If the committed .mcp.json ever changes upstream, `git pull --ff-only`
+  // aborts ("local changes would be overwritten") — confusing for a non-git-fluent
+  // co-founder. Neutralize it around the pull (un-skip + restore the committed copy so ff
+  // is clean), then ALWAYS regenerate the portable .mcp.json (deterministic, no data lost).
+  const profile = detectProfile(repoRoot);
+  const platform = detectPlatform({ which });
+  const regenMcp = () => { try { generateMcpConfig({ fs: nodeFs, repoRoot, run, profile, platform }); } catch { /* best-effort */ } };
+  let neutralizedMcp = false;
+
   // 4. pull --ff-only
   if (incoming.length > 0) {
+    if (profile === 'per-human' && mcpSkipWorktree(git)) {
+      git(['update-index', '--no-skip-worktree', '.mcp.json']);
+      git(['checkout', '--', '.mcp.json']);
+      neutralizedMcp = true;
+      reporter.note('.mcp.json temporarily reset for a clean fast-forward (regenerated after pull)');
+    }
     reporter.header('Pull');
     const pullArgs = status.upstream ? ['pull', '--ff-only'] : ['pull', '--ff-only', 'origin', 'main'];
     const pullRes = git(pullArgs);
     if (pullRes.ok) reporter.ok('pulled (fast-forward)');
-    else { reporter.fail(`git pull failed: ${(pullRes.stderr || '').slice(-200)}`); reporter.note('Resolve manually (e.g. `git pull --rebase`), then re-run.'); return finish(reporter, false, opts); }
+    else {
+      if (neutralizedMcp) regenMcp(); // restore the co-founder's bootable .mcp.json before bailing
+      reporter.fail(`git pull failed: ${(pullRes.stderr || '').slice(-200)}`);
+      reporter.note('Resolve manually (e.g. `git pull --rebase`), then re-run.');
+      return finish(reporter, false, opts);
+    }
   }
 
-  // 5. re-install deps (they may have changed)
+  // 5. re-install deps (they may have changed) — profile-aware so the per-human .mcp.json
+  //    is regenerated + re-skip-worktree'd by the gen-mcp step.
   reporter.header('Re-sync dependencies');
-  const install = runInstall({ apply: true, withDocs: opts.withDocs, run, which, repoRoot, reporter });
+  const install = runInstall({ apply: true, withDocs: opts.withDocs, run, which, repoRoot, reporter, profile });
 
   const ok = install.ok;
   if (ok) reporter.verdict('ok', 'Update complete. Run /test-ritsu-works to verify the system.');
@@ -128,4 +167,4 @@ if (require.main === module) {
   main(process.argv);
 }
 
-module.exports = { gitStatus, runUpdate, parseArgs };
+module.exports = { gitStatus, runUpdate, parseArgs, detectProfile, mcpSkipWorktree };

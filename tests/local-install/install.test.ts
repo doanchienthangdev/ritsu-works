@@ -9,7 +9,9 @@ import {
   buildPlan as _buildPlan,
   installWorkspace as _installWorkspace,
   scaffoldRuntime as _scaffoldRuntime,
+  generateMcpConfig as _generateMcpConfig,
   installDepInternally as _installDepInternally,
+  rewriteEnvKey as _rewriteEnvKey,
   parseArgs as _parseArgs,
   RUNTIME_DIRS as _RUNTIME_DIRS,
   WORKSPACE_INSTALLS as _WORKSPACE_INSTALLS,
@@ -22,7 +24,9 @@ import installMod from "../../scripts/local-install/install.cjs";
 const buildPlan = _buildPlan ?? installMod.buildPlan;
 const installWorkspace = _installWorkspace ?? installMod.installWorkspace;
 const scaffoldRuntime = _scaffoldRuntime ?? installMod.scaffoldRuntime;
+const generateMcpConfig = _generateMcpConfig ?? installMod.generateMcpConfig;
 const installDepInternally = _installDepInternally ?? installMod.installDepInternally;
+const rewriteEnvKey = _rewriteEnvKey ?? installMod.rewriteEnvKey;
 const parseArgs = _parseArgs ?? installMod.parseArgs;
 const RUNTIME_DIRS = _RUNTIME_DIRS ?? installMod.RUNTIME_DIRS;
 const WORKSPACE_INSTALLS = _WORKSPACE_INSTALLS ?? installMod.WORKSPACE_INSTALLS;
@@ -144,11 +148,11 @@ describe("buildPlan", () => {
       expect(Array.isArray(plan.coreSteps)).toBe(true);
     });
 
-    it("includes scaffold-runtime, husky, refresh-index in that order at the tail", () => {
+    it("includes scaffold-runtime, gen-mcp, husky, refresh-index in that order at the tail", () => {
       const plan = buildPlan(healthyReport(), {});
       const ids = idsOf(plan.coreSteps);
-      const tail = ids.slice(-3);
-      expect(tail).toStrictEqual(["scaffold-runtime", "husky", "refresh-index"]);
+      const tail = ids.slice(-4);
+      expect(tail).toStrictEqual(["scaffold-runtime", "gen-mcp", "husky", "refresh-index"]);
     });
   });
 
@@ -415,6 +419,41 @@ describe("parseArgs", () => {
 });
 
 // ============================================================================
+// rewriteEnvKey — pure .env line rewriter
+// ============================================================================
+describe("rewriteEnvKey", () => {
+  it("replaces the value of an uncommented KEY= line", () => {
+    const out = rewriteEnvKey("A=1\nTOK=/Users/you/x\nB=2\n", "TOK", "/abs/y");
+    expect(out).toBe("A=1\nTOK=/abs/y\nB=2\n");
+  });
+
+  it("preserves an `export ` prefix", () => {
+    expect(rewriteEnvKey("export TOK=old\n", "TOK", "new")).toBe("export TOK=new\n");
+  });
+
+  it("leaves the body unchanged when the key is absent", () => {
+    const body = "A=1\nB=2\n";
+    expect(rewriteEnvKey(body, "TOK", "z")).toBe(body);
+  });
+
+  it("does NOT touch a commented-out key (never uncomments/appends)", () => {
+    const body = "# TOK=placeholder\nA=1\n";
+    expect(rewriteEnvKey(body, "TOK", "z")).toBe(body);
+  });
+
+  it("rewrites only the first matching occurrence", () => {
+    const out = rewriteEnvKey("TOK=a\nTOK=b\n", "TOK", "z");
+    expect(out).toBe("TOK=z\nTOK=b\n");
+  });
+
+  it("does not partial-match a longer key name (TOK vs TOK_FILE)", () => {
+    // rewriting TOK must not hit TOK_FILE
+    const out = rewriteEnvKey("TOK_FILE=/p\n", "TOK", "z");
+    expect(out).toBe("TOK_FILE=/p\n");
+  });
+});
+
+// ============================================================================
 // scaffoldRuntime — REAL temp dirs (the only allowed real side effect)
 // ============================================================================
 describe("scaffoldRuntime", () => {
@@ -516,12 +555,99 @@ describe("scaffoldRuntime", () => {
     expect(res.detail).toContain("per-human"); // still labeled per-human profile
   });
 
+  it("per-human profile PINS the placeholder RITSU_OPERATOR_REFRESH_TOKEN_FILE to this machine's absolute path", () => {
+    nodeFs.writeFileSync(
+      nodePath.join(repoRoot, ".env.per-human.example"),
+      "RITSU_AUTH_MODE=per-human\nRITSU_OPERATOR_REFRESH_TOKEN_FILE=/Users/you/ritsu-works/runtime/secrets/.operator-refresh.json\n",
+    );
+    const res = scaffoldRuntime({ ...ctx(), profile: "per-human" });
+    const body = nodeFs.readFileSync(target(), "utf8");
+    const expectedPath = nodePath
+      .join(secretsRoot, "runtime", "secrets", ".operator-refresh.json")
+      .replace(/\\/g, "/");
+    expect(body).toContain(`RITSU_OPERATOR_REFRESH_TOKEN_FILE=${expectedPath}`);
+    expect(body).not.toContain("/Users/you/"); // placeholder is gone
+    expect(res.detail).toContain("pinned RITSU_OPERATOR_REFRESH_TOKEN_FILE");
+  });
+
+  it("owner profile does NOT rewrite the token-file line (only per-human pins it)", () => {
+    nodeFs.writeFileSync(
+      nodePath.join(repoRoot, ".env.example"),
+      "RITSU_OPERATOR_REFRESH_TOKEN_FILE=/Users/you/x\n",
+    );
+    scaffoldRuntime(ctx()); // owner
+    expect(nodeFs.readFileSync(target(), "utf8")).toBe("RITSU_OPERATOR_REFRESH_TOKEN_FILE=/Users/you/x\n");
+  });
+
   it("owner profile (default) uses .env.example even when the per-human template also exists", () => {
     writeOwnerTpl();
     writePerHumanTpl();
     const res = scaffoldRuntime(ctx()); // no profile → owner
     expect(nodeFs.readFileSync(target(), "utf8")).toBe("SUPABASE_SERVICE_KEY=owner-god-key\n");
     expect(res.profile).toBe("owner");
+  });
+});
+
+// generateMcpConfig — per-machine .mcp.json (co-founder onboarding).
+describe("generateMcpConfig", () => {
+  let tmpRoot: string;
+  let repoRoot: string;
+  beforeEach(() => {
+    tmpRoot = nodeFs.mkdtempSync(nodePath.join(nodeOs.tmpdir(), "install-mcp-"));
+    repoRoot = nodePath.join(tmpRoot, "repo");
+    nodeFs.mkdirSync(repoRoot, { recursive: true });
+  });
+  afterEach(() => nodeFs.rmSync(tmpRoot, { recursive: true, force: true }));
+
+  const mcpPath = () => nodePath.join(repoRoot, ".mcp.json");
+  // run() is only used for the skip-worktree best-effort; a no-op stub is fine.
+  const ctx = (profile: string, os = "windows") => ({
+    fs: nodeFs,
+    repoRoot,
+    profile,
+    platform: { os },
+    run: () => ({ ok: true }),
+  });
+
+  it("per-human writes an ops-only .mcp.json when absent", () => {
+    const res = generateMcpConfig(ctx("per-human"));
+    expect(res.ok).toBe(true);
+    const cfg = JSON.parse(nodeFs.readFileSync(mcpPath(), "utf8"));
+    expect(Object.keys(cfg.mcpServers)).toStrictEqual(["supabase-ops"]);
+    expect(cfg.mcpServers["supabase-ops"].command).toBe("npx");
+  });
+
+  it("per-human OVERWRITES an existing (owner's-machine) .mcp.json", () => {
+    nodeFs.writeFileSync(mcpPath(), JSON.stringify({ mcpServers: { "supabase-ops": { command: "/bin/sh" } } }));
+    generateMcpConfig(ctx("per-human"));
+    const cfg = JSON.parse(nodeFs.readFileSync(mcpPath(), "utf8"));
+    expect(cfg.mcpServers["supabase-ops"].command).toBe("npx"); // rewritten, not /bin/sh
+  });
+
+  it("owner does NOT overwrite an existing .mcp.json (founder's live config preserved)", () => {
+    nodeFs.writeFileSync(mcpPath(), '{"KEEP":true}');
+    const res = generateMcpConfig(ctx("owner", "macos"));
+    expect(res.detail).toContain("left untouched");
+    expect(nodeFs.readFileSync(mcpPath(), "utf8")).toBe('{"KEEP":true}');
+  });
+
+  it("owner writes all 3 servers when absent (macOS)", () => {
+    generateMcpConfig(ctx("owner", "macos"));
+    const cfg = JSON.parse(nodeFs.readFileSync(mcpPath(), "utf8"));
+    expect(Object.keys(cfg.mcpServers).sort()).toStrictEqual(["gbrain", "supabase-analytics", "supabase-ops"]);
+  });
+
+  it("per-human reports git skip-worktree when the run succeeds", () => {
+    const res = generateMcpConfig({ fs: nodeFs, repoRoot, profile: "per-human", platform: { os: "windows" }, run: () => ({ ok: true }) });
+    expect(res.detail).toContain("git skip-worktree");
+    expect(res.detail).not.toContain("could not");
+  });
+
+  it("per-human WARNS (does not silently ignore) when git skip-worktree fails", () => {
+    const res = generateMcpConfig({ fs: nodeFs, repoRoot, profile: "per-human", platform: { os: "windows" }, run: () => ({ ok: false }) });
+    expect(res.ok).toBe(true); // still wrote the file
+    expect(res.detail).toContain("could not git skip-worktree");
+    expect(nodeFs.existsSync(mcpPath())).toBe(true);
   });
 });
 

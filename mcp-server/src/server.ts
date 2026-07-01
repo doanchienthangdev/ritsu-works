@@ -26,6 +26,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadEnv, summarizeEnv } from "./lib/env.ts";
+import { autoloadEnvLocal, repoRootFromHere } from "./lib/env-file.ts";
 import { getClient, refreshPerHumanClient } from "./lib/supabase-client.ts";
 import { resolveOperator, resolveRole } from "./governance/role-resolver.ts";
 import { decodeJwtClaims } from "./governance/operator-identity.ts";
@@ -51,6 +52,11 @@ function logStderr(...parts: unknown[]): void {
 
 async function main(): Promise<void> {
   // --- Boot ----------------------------------------------------------------
+  // Self-load runtime/secrets/.env.local (portable, no shell) so .mcp.json can use
+  // a plain `npx tsx <server>` command on any OS. No-op if the env is already set
+  // (legacy shell-sourcing wrapper) or the file is absent.
+  const sourced = autoloadEnvLocal(repoRootFromHere());
+  if (sourced) logStderr(`env self-loaded from ${sourced}`);
   const env = loadEnv();
   logStderr("starting |", summarizeEnv(env));
 

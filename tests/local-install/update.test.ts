@@ -1,13 +1,18 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import * as nodeFs from "node:fs";
+import * as nodeOs from "node:os";
+import * as nodePath from "node:path";
 
 // vitest supports named imports from CommonJS module.exports; fall back below if undefined.
 import * as updateMod from "../../scripts/local-install/update.cjs";
 import { Reporter } from "../../scripts/local-install/lib/report.cjs";
 
-const { gitStatus, runUpdate, parseArgs } = updateMod as unknown as {
+const { gitStatus, runUpdate, parseArgs, detectProfile, mcpSkipWorktree } = updateMod as unknown as {
   gitStatus: (ctx: any) => any;
   runUpdate: (opts?: any) => any;
   parseArgs: (argv: string[]) => any;
+  detectProfile: (repoRoot: string) => string;
+  mcpSkipWorktree: (git: (args: string[]) => any) => boolean;
 };
 
 /**
@@ -352,6 +357,75 @@ describe("gitStatus", () => {
       expect(lastOpts.cwd).toBe(REPO);
       expect(lastOpts.shell).toBe(false);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// detectProfile — reads runtime/secrets/.env.local
+// ---------------------------------------------------------------------------
+describe("detectProfile", () => {
+  let tmp: string;
+  beforeEach(() => { tmp = nodeFs.mkdtempSync(nodePath.join(nodeOs.tmpdir(), "upd-profile-")); });
+  afterEach(() => nodeFs.rmSync(tmp, { recursive: true, force: true }));
+
+  const writeEnv = (body: string) => {
+    const dir = nodePath.join(tmp, "runtime", "secrets");
+    nodeFs.mkdirSync(dir, { recursive: true });
+    nodeFs.writeFileSync(nodePath.join(dir, ".env.local"), body);
+  };
+
+  it("returns 'per-human' when RITSU_AUTH_MODE=per-human", () => {
+    writeEnv("SUPABASE_URL=x\nRITSU_AUTH_MODE=per-human\n");
+    expect(detectProfile(tmp)).toBe("per-human");
+  });
+
+  it("returns 'owner' when RITSU_AUTH_MODE is service-key (or anything else)", () => {
+    writeEnv("RITSU_AUTH_MODE=service-key\n");
+    expect(detectProfile(tmp)).toBe("owner");
+  });
+
+  it("returns 'owner' when the key is absent", () => {
+    writeEnv("SUPABASE_URL=x\n");
+    expect(detectProfile(tmp)).toBe("owner");
+  });
+
+  it("returns 'owner' (safe default) when .env.local does not exist", () => {
+    expect(detectProfile(tmp)).toBe("owner");
+  });
+
+  it("handles an `export ` prefix and a quoted value", () => {
+    writeEnv('export RITSU_AUTH_MODE="per-human"\n');
+    expect(detectProfile(tmp)).toBe("per-human");
+  });
+
+  it("does NOT match a commented-out per-human line", () => {
+    writeEnv("# RITSU_AUTH_MODE=per-human\nRITSU_AUTH_MODE=service-key\n");
+    expect(detectProfile(tmp)).toBe("owner");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// mcpSkipWorktree — parses `git ls-files -v .mcp.json`
+// ---------------------------------------------------------------------------
+describe("mcpSkipWorktree", () => {
+  it("true when git ls-files -v tags .mcp.json with 'S' (skip-worktree)", () => {
+    const git = () => ({ ok: true, stdout: "S .mcp.json\n" });
+    expect(mcpSkipWorktree(git)).toBe(true);
+  });
+
+  it("false when tracked normally (tag 'H')", () => {
+    const git = () => ({ ok: true, stdout: "H .mcp.json\n" });
+    expect(mcpSkipWorktree(git)).toBe(false);
+  });
+
+  it("false when the git call fails", () => {
+    const git = () => ({ ok: false, stdout: "" });
+    expect(mcpSkipWorktree(git)).toBe(false);
+  });
+
+  it("false on empty output (file not tracked)", () => {
+    const git = () => ({ ok: true, stdout: "" });
+    expect(mcpSkipWorktree(git)).toBe(false);
   });
 });
 
