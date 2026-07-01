@@ -45,12 +45,13 @@ Ask (or infer from `--profile`): **is this an OWNER install or a CO-FOUNDER (adm
 - **Co-founder** (admin/user tier): a **per-human** install — they authenticate with a
   personal Supabase credential and NEVER get `service_role`/Stripe/bot tokens. Profile `per-human`.
 
-A co-founder must FIRST be enrolled by an owner:
-1. Owner runs `/users add <email> --tier=admin|user` → the operator-broker creates their
-   Supabase Auth identity + returns a single-use magic-link (owner forwards it).
-2. Co-founder clicks the link (proves their mailbox), then runs this install with
-   `--profile=per-human`, then completes enrollment by seeding their per-human refresh
-   token into the credential file (the `redeem` step).
+A co-founder must FIRST be enrolled by an owner (now automated by 2 helpers):
+1. **Owner** runs `/users add <email> --tier=admin|user` (the operators.yaml PR), then
+   `node scripts/multi-user-auth/invite.cjs <email> --tier=admin` → creates their Supabase
+   Auth identity via the broker + prints a single-use **magic-link** (owner forwards it).
+2. **Co-founder** installs with `--profile=per-human` (Step 3), fills `SUPABASE_URL`+`ANON`
+   (Step 4), then runs `node scripts/multi-user-auth/enroll.cjs "<magic-link>"` → it
+   follows the link, writes their credential file, and redeems (invited→active). One command.
 
 Carry the chosen profile into Steps 3–4 below. When unsure, ask; default to `owner`.
 
@@ -75,8 +76,10 @@ user passed `--with-docs`; add **`--profile=per-human`** for a CO-FOUNDER instal
 this scaffolds `.env.local` from `.env.per-human.example`, the god-key-free template,
 instead of `.env.example`). This streams `[i/N]` progress for:
 1. ensure pnpm  2. install root deps (frozen)  3. install supabase-ops MCP deps
-4. install analytics MCP deps  5. scaffold `runtime/` + `.env.local`  6. husky
-7. refresh resolver index.
+4. install analytics MCP deps  5. scaffold `runtime/` + `.env.local`
+6. **generate `.mcp.json`** (per-machine, portable — for per-human this WRITES an
+   ops-only, shell-free, absolute-path config that boots on Windows; for owner it's
+   left untouched if present)  7. husky  8. refresh resolver index.
 
 Relay the progress to the user as it runs. If a workspace install fails,
 re-run that workspace's `pnpm install` (the engine already falls back from
@@ -101,8 +104,15 @@ left an existing one untouched).
 > **Edit `runtime/secrets/.env.local`** (scaffolded from `.env.per-human.example`) and:
 > - Fill `SUPABASE_URL` + `SUPABASE_ANON_KEY` (public values — ask the owner). These are the ONLY Supabase values you need.
 > - **Do NOT add `SUPABASE_SERVICE_KEY`** — you don't have one and don't need it (per-tier RLS is your access).
-> - Complete enrollment: after clicking the owner's magic-link, seed your per-human REFRESH token into the file named by `RITSU_OPERATOR_REFRESH_TOKEN_FILE` (JSON `{"refresh_token":"…"}`), then POST the broker `{action:"redeem"}` to flip your `ops.operators` row invited→active. The supabase-ops MCP then auto-refreshes + persists your access token there.
 > - `RITSU_AUTH_MODE=per-human` is already set; leave `MCP_CALLER_ROLE` unset (ignored in per-human mode).
+> - `RITSU_OPERATOR_REFRESH_TOKEN_FILE` was already pinned to your clone's absolute path by the installer — don't touch it.
+>
+> Then complete enrollment in ONE command (do NOT click the magic-link in a browser first — it's single-use, let the script consume it):
+> ```
+> node scripts/multi-user-auth/enroll.cjs "<the magic-link the owner sent you>"
+> ```
+> It follows the link, writes your credential file (`runtime/secrets/.operator-refresh.json`), and redeems (invited→active). Fallback if you already opened the link in a browser: copy the tokens from the browser URL fragment and run `enroll.cjs --refresh-token=<rt> --access-token=<at>`.
+> The installer already wrote a Windows-portable `.mcp.json` (ops-only, git skip-worktree). Finally: fully restart Claude Code and approve the MCP server.
 >
 > See `.env.per-human.example` + SOP-AIOPS-017 for the full enrollment flow.
 

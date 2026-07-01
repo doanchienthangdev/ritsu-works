@@ -33,6 +33,7 @@ const { run: defaultRun, which: defaultWhich } = require('./lib/exec.cjs');
 const { getDependency, resolveInstallCommand } = require('./dependencies.cjs');
 const { runDoctor, repoRootFrom, resolveSecretsRoot } = require('./doctor.cjs');
 const { Reporter } = require('./lib/report.cjs');
+const { renderMcpJson } = require('./lib/gen-mcp-json.cjs');
 
 const RUNTIME_DIRS = [
   'runtime/secrets',
@@ -82,6 +83,7 @@ function buildPlan(report, opts = {}) {
     coreSteps.push({ id: `install-${ws.id}`, label: `install ${ws.id} deps`, kind: 'workspace', workspace: ws });
   }
   coreSteps.push({ id: 'scaffold-runtime', label: 'scaffold runtime/ + .env.local', kind: 'scaffold' });
+  coreSteps.push({ id: 'gen-mcp', label: 'generate .mcp.json (per-machine, portable)', kind: 'gen-mcp' });
   coreSteps.push({ id: 'husky', label: 'set up git hooks (husky)', kind: 'husky' });
   // Refresh the resolver INDEX so its mtime is newer than the catalog on a
   // fresh clone (the resolver-v3 INDEX validator does a local mtime compare).
@@ -102,6 +104,18 @@ function installWorkspace(ws, ctx) {
   }
   const res = run('pnpm install', [], { cwd, shell: true, timeout: 600000 });
   return { ok: res.ok, detail: res.ok ? 'installed' : (res.stderr || 'install failed').slice(-200) };
+}
+
+/**
+ * Replace the value of an UNCOMMENTED `KEY=...` line in a .env body (first match
+ * only). Leaves the file unchanged if the key is absent or only appears commented
+ * out — never appends. Preserves an optional `export ` prefix and everything else.
+ * Pure.
+ */
+function rewriteEnvKey(body, key, value) {
+  const re = new RegExp(`^([ \\t]*(?:export[ \\t]+)?${key}[ \\t]*=).*$`, 'm');
+  if (!re.test(body)) return body;
+  return body.replace(re, `$1${value}`);
 }
 
 /**
@@ -129,10 +143,69 @@ function scaffoldRuntime(ctx) {
   } else if (fs.existsSync(source)) {
     fs.copyFileSync(source, envTarget);
     envDetail = `created runtime/secrets/.env.local from ${nodePath.basename(source)} (${perHuman ? 'per-human / co-founder' : 'owner'} profile) — FILL IT IN`;
+    // per-human: the template ships RITSU_OPERATOR_REFRESH_TOKEN_FILE as a placeholder
+    // (/Users/you/...). Rewrite it to THIS machine's absolute path so the co-founder
+    // never has to edit it and it is correct on Windows (enroll.cjs writes there + the
+    // MCP reads there — one source of truth). Idempotent on the freshly-copied file.
+    if (perHuman) {
+      const credFile = nodePath
+        .join(secretsRoot, 'runtime', 'secrets', '.operator-refresh.json')
+        .replace(/\\/g, '/');
+      try {
+        const body = fs.readFileSync(envTarget, 'utf8');
+        const rewritten = rewriteEnvKey(body, 'RITSU_OPERATOR_REFRESH_TOKEN_FILE', credFile);
+        if (rewritten !== body) {
+          fs.writeFileSync(envTarget, rewritten, 'utf8');
+          envDetail += ` (pinned RITSU_OPERATOR_REFRESH_TOKEN_FILE → ${credFile})`;
+        }
+      } catch { /* non-fatal: co-founder can still edit the path by hand */ }
+    }
   } else {
     envDetail = 'env template missing — cannot scaffold .env.local';
   }
   return { ok: true, detail: envDetail, createdDirs: created, profile: perHuman ? 'per-human' : 'owner' };
+}
+
+/**
+ * Generate a per-machine, portable .mcp.json (capability local-install-platform).
+ * Writes <repoRoot>/.mcp.json ONLY if absent — never clobbers an existing one (the
+ * owner's working config stays put; delete it first to regenerate). Profile-aware:
+ * per-human → supabase-ops only; owner → all 3 (gbrain/analytics on POSIX only).
+ */
+function generateMcpConfig(ctx) {
+  const { fs, repoRoot, run } = ctx;
+  const target = nodePath.join(repoRoot, '.mcp.json');
+  const perHuman = ctx.profile === 'per-human';
+  // OWNER: never clobber an existing .mcp.json (the founder's live, CODEOWNERS-gated
+  // config). PER-HUMAN: a co-founder clone ships the OWNER's machine-specific .mcp.json
+  // (absolute macOS paths + /bin/sh) which won't boot on their machine — so overwrite it
+  // with this machine's portable, supabase-ops-only config.
+  if (fs.existsSync(target) && !perHuman) {
+    return { ok: true, detail: '.mcp.json exists (owner: left untouched — delete to regenerate)' };
+  }
+  const platformOs = ctx.platform && ctx.platform.os; // 'windows' | 'macos' | 'linux'
+  const content = renderMcpJson({ repoRoot, profile: perHuman ? 'per-human' : 'owner', platformOs });
+  fs.writeFileSync(target, content, 'utf8');
+  let extra = '';
+  if (perHuman && run) {
+    // .mcp.json is a git-tracked file we just rewrote with per-MACHINE paths. Mark it
+    // skip-worktree so git ignores the local edit: no accidental commit of machine paths
+    // (CODEOWNERS also gates it), no pull conflict. Best-effort — but if it fails, WARN,
+    // because otherwise the co-founder's .mcp.json shows as a tracked modification they
+    // could accidentally commit.
+    let skipOk = false;
+    try {
+      const r = run('git update-index --skip-worktree .mcp.json', [], { cwd: repoRoot, shell: true, timeout: 15000 });
+      skipOk = !!(r && r.ok);
+    } catch { /* best-effort */ }
+    extra = skipOk
+      ? ', git skip-worktree'
+      : ', ⚠ could not git skip-worktree — do NOT `git commit` .mcp.json (it holds this machine\'s paths)';
+  }
+  return {
+    ok: true,
+    detail: `wrote .mcp.json (${perHuman ? 'per-human: supabase-ops only' : 'owner: all servers'}, portable absolute paths${extra})`,
+  };
 }
 
 /** Run an install command string internally (firewall-invisible; stdio inherited). */
@@ -211,6 +284,8 @@ function runInstall(opts = {}) {
       result = installWorkspace(step.workspace, ctx);
     } else if (step.kind === 'scaffold') {
       result = scaffoldRuntime(ctx);
+    } else if (step.kind === 'gen-mcp') {
+      result = generateMcpConfig(ctx);
     } else if (step.kind === 'husky') {
       const r = run('pnpm prepare', [], { cwd: repoRoot, shell: true, timeout: 120000 });
       result = { ok: r.ok, detail: r.ok ? 'hooks installed' : 'husky prepare failed (non-fatal)' };
@@ -264,8 +339,10 @@ if (require.main === module) {
 
 module.exports = {
   buildPlan,
+  generateMcpConfig,
   installWorkspace,
   scaffoldRuntime,
+  rewriteEnvKey,
   installDepInternally,
   runInstall,
   parseArgs,

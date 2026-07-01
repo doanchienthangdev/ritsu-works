@@ -49,9 +49,10 @@ install_steps:
   - id: core
     name: "deterministic core (install.cjs --apply)"
     runs: "node scripts/local-install/install.cjs --apply [--with-docs] [--profile=owner|per-human]"
-    actions: [ensure_pnpm, install_root_frozen, install_mcp_server_frozen, install_analytics_no_lockfile, scaffold_runtime_and_env, husky, refresh_resolver_index]
+    actions: [ensure_pnpm, install_root_frozen, install_mcp_server_frozen, install_analytics_no_lockfile, scaffold_runtime_and_env, gen_mcp_json, husky, refresh_resolver_index]
     progress: "streams [i/N] per step"
-    profile: "owner (default) scaffolds .env.local from .env.example (full keys incl. service_role); per-human scaffolds from .env.per-human.example (co-founder admin/user — NO service_role/Stripe/bot tokens; RITSU_AUTH_MODE=per-human). Falls back to .env.example if the per-human template is absent."
+    profile: "owner (default) scaffolds .env.local from .env.example (full keys incl. service_role); per-human scaffolds from .env.per-human.example (co-founder admin/user — NO service_role/Stripe/bot tokens; RITSU_AUTH_MODE=per-human). Falls back to .env.example if the per-human template is absent. per-human also PINS RITSU_OPERATOR_REFRESH_TOKEN_FILE in the scaffolded .env.local to this machine's absolute <repoRoot>/runtime/secrets/.operator-refresh.json (rewriteEnvKey) so the co-founder never edits the placeholder path and it is Windows-correct."
+    gen_mcp_json: "scripts/local-install/lib/gen-mcp-json.cjs writes a PER-MACHINE, portable .mcp.json. supabase-ops launches shell-free via `npx tsx <abs>/mcp-server/src/server.ts` (the server self-loads runtime/secrets/.env.local via mcp-server/src/lib/env-file.ts — no /bin/sh, no secrets, boots on Windows). owner → all 3 servers (gbrain/analytics keep the POSIX /bin/sh wrapper, non-Windows) and is left untouched if .mcp.json already exists. per-human → supabase-ops only, OVERWRITES the owner-machine .mcp.json shipped in the clone, and marks it git skip-worktree (CODEOWNERS also gates .mcp.json)."
     hitl: A
   - id: guide-env
     name: "guide the user to fill runtime/secrets/.env.local"
@@ -79,6 +80,7 @@ update_steps:
   - id: apply
     name: "git pull --ff-only + re-sync deps"
     runs: "node scripts/local-install/update.cjs --apply [--with-docs]"
+    note: "profile-aware: a per-human co-founder's .mcp.json is skip-worktree'd with machine paths; if the committed .mcp.json changed upstream, update.cjs un-skips + restores it for a clean fast-forward, then the gen-mcp step regenerates + re-skips the portable per-human .mcp.json (no manual git needed)."
     hitl: A
   - id: handoff
     name: "suggest /test-ritsu-works"
