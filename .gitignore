@@ -73,6 +73,7 @@ build/
 *.cert
 .env*
 !.env.example
+!.env.per-human.example
 secrets.yaml
 secrets.json
 

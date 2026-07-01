@@ -32,7 +32,7 @@ jobs:
 
       - name: Check for committed .env files
         run: |
-          ENV_FILES=$(git ls-files | grep -E "^\.env" | grep -v "^\.env\.example$" | grep -v "^\.env\.template$" || true)
+          ENV_FILES=$(git ls-files | grep -E "^\.env" | grep -v "^\.env\.example$" | grep -v "^\.env\.per-human\.example$" | grep -v "^\.env\.template$" || true)
           if [ -n "$ENV_FILES" ]; then
             echo "❌ .env file in repo!"
             echo "$ENV_FILES"

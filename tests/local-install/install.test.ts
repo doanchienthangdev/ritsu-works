@@ -352,12 +352,20 @@ describe("parseArgs", () => {
       withDocs: true,
       json: true,
       installDeps: ["supabase-cli", "gh"],
+      profile: "owner",
     });
   });
 
-  it("returns defaults (all false, empty installDeps) for no flags", () => {
+  it("returns defaults (all false, empty installDeps, owner profile) for no flags", () => {
     const opts = parseArgs(["node", "x"]);
-    expect(opts).toStrictEqual({ apply: false, withDocs: false, json: false, installDeps: [] });
+    expect(opts).toStrictEqual({ apply: false, withDocs: false, json: false, installDeps: [], profile: "owner" });
+  });
+
+  it("parses --profile=per-human and rejects an unknown profile (falls back to owner)", () => {
+    expect(parseArgs(["node", "x", "--profile=per-human"]).profile).toBe("per-human");
+    expect(parseArgs(["node", "x", "--profile=owner"]).profile).toBe("owner");
+    expect(parseArgs(["node", "x", "--profile=root"]).profile).toBe("owner"); // unknown → safe default
+    expect(parseArgs(["node", "x"]).profile).toBe("owner");
   });
 
   it("sets only apply when only --apply is passed", () => {
@@ -484,6 +492,36 @@ describe("scaffoldRuntime", () => {
     expect(res.createdDirs).not.toContain("runtime/logs");
     expect(res.createdDirs).toContain("runtime/tmp");
     expect(res.ok).toBe(true);
+  });
+
+  // multi-user: per-human (co-founder) profile — god-key-free template.
+  const target = () => nodePath.join(secretsRoot, "runtime", "secrets", ".env.local");
+  const writeOwnerTpl = () => nodeFs.writeFileSync(nodePath.join(repoRoot, ".env.example"), "SUPABASE_SERVICE_KEY=owner-god-key\n");
+  const writePerHumanTpl = () => nodeFs.writeFileSync(nodePath.join(repoRoot, ".env.per-human.example"), "RITSU_AUTH_MODE=per-human\n");
+
+  it("per-human profile copies from .env.per-human.example (NOT .env.example)", () => {
+    writeOwnerTpl();
+    writePerHumanTpl();
+    const res = scaffoldRuntime({ ...ctx(), profile: "per-human" });
+    expect(nodeFs.readFileSync(target(), "utf8")).toBe("RITSU_AUTH_MODE=per-human\n");
+    expect(nodeFs.readFileSync(target(), "utf8")).not.toContain("SERVICE_KEY");
+    expect(res.detail).toContain("per-human");
+    expect(res.profile).toBe("per-human");
+  });
+
+  it("per-human profile FALLS BACK to .env.example when the per-human template is absent", () => {
+    writeOwnerTpl(); // only the owner template present
+    const res = scaffoldRuntime({ ...ctx(), profile: "per-human" });
+    expect(nodeFs.readFileSync(target(), "utf8")).toBe("SUPABASE_SERVICE_KEY=owner-god-key\n");
+    expect(res.detail).toContain("per-human"); // still labeled per-human profile
+  });
+
+  it("owner profile (default) uses .env.example even when the per-human template also exists", () => {
+    writeOwnerTpl();
+    writePerHumanTpl();
+    const res = scaffoldRuntime(ctx()); // no profile → owner
+    expect(nodeFs.readFileSync(target(), "utf8")).toBe("SUPABASE_SERVICE_KEY=owner-god-key\n");
+    expect(res.profile).toBe("owner");
   });
 });
 

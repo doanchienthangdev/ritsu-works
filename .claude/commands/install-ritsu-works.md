@@ -39,6 +39,21 @@ The engine is Node, so Node must exist first.
    - Or, as a one-shot, run the preflight: `bash scripts/local-install/preflight.sh` (macOS/Linux) / `powershell -ExecutionPolicy Bypass -File scripts\local-install\preflight.ps1` (Windows).
 2. Run `pnpm --version`. If missing: `corepack enable pnpm && corepack prepare pnpm@latest --activate` (fallback `npm install -g pnpm@latest`).
 
+### Step 0.5 — Owner or co-founder? (multi-user)
+Ask (or infer from `--profile`): **is this an OWNER install or a CO-FOUNDER (admin/user) install?**
+- **Owner** (the founder's own machine): full keys incl. `service_role`. Profile `owner` (default).
+- **Co-founder** (admin/user tier): a **per-human** install — they authenticate with a
+  personal Supabase credential and NEVER get `service_role`/Stripe/bot tokens. Profile `per-human`.
+
+A co-founder must FIRST be enrolled by an owner:
+1. Owner runs `/users add <email> --tier=admin|user` → the operator-broker creates their
+   Supabase Auth identity + returns a single-use magic-link (owner forwards it).
+2. Co-founder clicks the link (proves their mailbox), then runs this install with
+   `--profile=per-human`, then completes enrollment by seeding their per-human refresh
+   token into the credential file (the `redeem` step).
+
+Carry the chosen profile into Steps 3–4 below. When unsure, ask; default to `owner`.
+
 ### Step 1 — Probe the machine
 Run `node scripts/local-install/doctor.cjs`. This reports the platform, every
 dependency (present/version/missing), workspace install state, and env wiring.
@@ -56,7 +71,9 @@ For each **required** or **recommended** dep the doctor flagged missing:
 
 ### Step 3 — Run the deterministic core
 Run `node scripts/local-install/install.cjs --apply` (add `--with-docs` if the
-user passed `--with-docs`). This streams `[i/N]` progress for:
+user passed `--with-docs`; add **`--profile=per-human`** for a CO-FOUNDER install —
+this scaffolds `.env.local` from `.env.per-human.example`, the god-key-free template,
+instead of `.env.example`). This streams `[i/N]` progress for:
 1. ensure pnpm  2. install root deps (frozen)  3. install supabase-ops MCP deps
 4. install analytics MCP deps  5. scaffold `runtime/` + `.env.local`  6. husky
 7. refresh resolver index.
@@ -68,15 +85,26 @@ re-run that workspace's `pnpm install` (the engine already falls back from
 > If `--dry-run` was passed, run `install.cjs` WITHOUT `--apply` first and show
 > the plan; only proceed to `--apply` on confirmation.
 
-### Step 4 — Guide the env
-The scaffold created `runtime/secrets/.env.local` from `.env.example` (or left an
-existing one untouched). Tell the user, in plain steps:
+### Step 4 — Guide the env (branch on profile)
+The scaffold created `runtime/secrets/.env.local` from the profile's template (or
+left an existing one untouched).
+
+**OWNER install** — tell the user:
 > **Edit `runtime/secrets/.env.local`** and fill at least:
 > - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY` (your ritsu-ops project)
-> - `MCP_CALLER_ROLE=founder` (or `cofounder`) for interactive sessions
+> - `MCP_CALLER_ROLE=founder` for interactive sessions
 > - LLM keys are optional (subscription-only mode works without them)
 >
 > See `.env.example` for the full annotated list and the 3 access modes.
+
+**CO-FOUNDER (per-human) install** — tell the user:
+> **Edit `runtime/secrets/.env.local`** (scaffolded from `.env.per-human.example`) and:
+> - Fill `SUPABASE_URL` + `SUPABASE_ANON_KEY` (public values — ask the owner). These are the ONLY Supabase values you need.
+> - **Do NOT add `SUPABASE_SERVICE_KEY`** — you don't have one and don't need it (per-tier RLS is your access).
+> - Complete enrollment: after clicking the owner's magic-link, seed your per-human REFRESH token into the file named by `RITSU_OPERATOR_REFRESH_TOKEN_FILE` (JSON `{"refresh_token":"…"}`), then POST the broker `{action:"redeem"}` to flip your `ops.operators` row invited→active. The supabase-ops MCP then auto-refreshes + persists your access token there.
+> - `RITSU_AUTH_MODE=per-human` is already set; leave `MCP_CALLER_ROLE` unset (ignored in per-human mode).
+>
+> See `.env.per-human.example` + SOP-AIOPS-017 for the full enrollment flow.
 
 ### Step 5 — Hand off
 Tell the user clearly:

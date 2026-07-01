@@ -136,7 +136,12 @@ function probeEnv(secretsRoot, fs = nodeFs) {
   } catch {
     return { exists: true, path: envPath, keys: REQUIRED_ENV_KEYS.map((k) => ({ key: k, state: 'unreadable' })) };
   }
-  const keys = REQUIRED_ENV_KEYS.map((key) => {
+  // Profile-aware: a per-human (co-founder) install has NO service_role by design —
+  // it needs the public Supabase URL/anon key + a per-human credential source, not
+  // the god key. Owner (default) keeps the full REQUIRED_ENV_KEYS.
+  const perHuman = parsed.RITSU_AUTH_MODE === 'per-human';
+  const requiredKeys = perHuman ? ['SUPABASE_URL', 'SUPABASE_ANON_KEY'] : REQUIRED_ENV_KEYS;
+  const keys = requiredKeys.map((key) => {
     const val = parsed[key];
     let state;
     if (val === undefined) state = 'missing';
@@ -144,7 +149,12 @@ function probeEnv(secretsRoot, fs = nodeFs) {
     else state = 'set';
     return { key, state };
   });
-  return { exists: true, path: envPath, keys };
+  if (perHuman) {
+    // the co-founder credential source: the persisted token file OR an inline refresh token.
+    const src = parsed.RITSU_OPERATOR_REFRESH_TOKEN_FILE || parsed.RITSU_OPERATOR_REFRESH_TOKEN;
+    keys.push({ key: 'RITSU_OPERATOR_REFRESH_TOKEN_FILE', state: src ? 'set' : 'missing' });
+  }
+  return { exists: true, path: envPath, keys, profile: perHuman ? 'per-human' : 'owner' };
 }
 
 /** Run the full doctor probe. Returns a structured DoctorReport. */

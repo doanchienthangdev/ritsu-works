@@ -104,26 +104,35 @@ function installWorkspace(ws, ctx) {
   return { ok: res.ok, detail: res.ok ? 'installed' : (res.stderr || 'install failed').slice(-200) };
 }
 
-/** Scaffold runtime dirs + .env.local from .env.example (idempotent). */
+/**
+ * Scaffold runtime dirs + .env.local from a template (idempotent).
+ * profile 'owner' (default) → .env.example (full keys incl. service_role).
+ * profile 'per-human'       → .env.per-human.example (co-founder: per-human token,
+ *   NO service_role / Stripe / bot tokens). Falls back to .env.example if the
+ *   per-human template is absent, so older checkouts still scaffold.
+ */
 function scaffoldRuntime(ctx) {
   const { fs, secretsRoot, repoRoot } = ctx;
+  const perHuman = ctx.profile === 'per-human';
   const created = [];
   for (const rel of RUNTIME_DIRS) {
     const dir = nodePath.join(secretsRoot, rel);
     if (!fs.existsSync(dir)) { fs.mkdirSync(dir, { recursive: true }); created.push(rel); }
   }
   const envTarget = nodePath.join(secretsRoot, 'runtime', 'secrets', '.env.local');
-  const envExample = nodePath.join(repoRoot, '.env.example');
+  const perHumanExample = nodePath.join(repoRoot, '.env.per-human.example');
+  const ownerExample = nodePath.join(repoRoot, '.env.example');
+  const source = perHuman && fs.existsSync(perHumanExample) ? perHumanExample : ownerExample;
   let envDetail;
   if (fs.existsSync(envTarget)) {
     envDetail = '.env.local already exists (left untouched)';
-  } else if (fs.existsSync(envExample)) {
-    fs.copyFileSync(envExample, envTarget);
-    envDetail = 'created runtime/secrets/.env.local from .env.example — FILL IT IN';
+  } else if (fs.existsSync(source)) {
+    fs.copyFileSync(source, envTarget);
+    envDetail = `created runtime/secrets/.env.local from ${nodePath.basename(source)} (${perHuman ? 'per-human / co-founder' : 'owner'} profile) — FILL IT IN`;
   } else {
-    envDetail = '.env.example missing — cannot scaffold .env.local';
+    envDetail = 'env template missing — cannot scaffold .env.local';
   }
-  return { ok: true, detail: envDetail, createdDirs: created };
+  return { ok: true, detail: envDetail, createdDirs: created, profile: perHuman ? 'per-human' : 'owner' };
 }
 
 /** Run an install command string internally (firewall-invisible; stdio inherited). */
@@ -148,7 +157,7 @@ function runInstall(opts = {}) {
   const repoRoot = opts.repoRoot || repoRootFrom(__dirname);
   const secretsRoot = opts.secretsRoot || resolveSecretsRoot(repoRoot);
   const reporter = opts.reporter || new Reporter({ json: opts.json });
-  const ctx = { run, which, fs, platform, repoRoot, secretsRoot };
+  const ctx = { run, which, fs, platform, repoRoot, secretsRoot, profile: opts.profile || 'owner' };
 
   const report = runDoctor({ run, which, fs, platform, repoRoot, secretsRoot });
   const plan = buildPlan(report, { withDocs });
@@ -230,13 +239,15 @@ function runInstall(opts = {}) {
 
 function parseArgs(argv) {
   const args = argv.slice(2);
-  const opts = { apply: false, withDocs: false, json: false, installDeps: [] };
+  const opts = { apply: false, withDocs: false, json: false, installDeps: [], profile: 'owner' };
   for (const a of args) {
     if (a === '--apply') opts.apply = true;
     else if (a === '--with-docs') opts.withDocs = true;
     else if (a === '--json') opts.json = true;
     else if (a.startsWith('--install-deps=')) opts.installDeps = a.slice('--install-deps='.length).split(',').map((s) => s.trim()).filter(Boolean);
+    else if (a.startsWith('--profile=')) opts.profile = a.slice('--profile='.length).trim();
   }
+  if (opts.profile !== 'owner' && opts.profile !== 'per-human') opts.profile = 'owner';
   return opts;
 }
 
