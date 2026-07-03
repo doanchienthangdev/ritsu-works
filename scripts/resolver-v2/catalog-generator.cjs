@@ -165,7 +165,10 @@ function walkDir(dir, pattern, excludePattern) {
   const out = [];
   function recurse(d) {
     for (const ent of fs.readdirSync(d, { withFileTypes: true })) {
-      const fp = path.join(d, ent.name);
+      // Normalize to forward slashes so the source patterns (e.g. /\/SKILL\.md$/)
+      // and the slug extractors below — all written with `/` — match on Windows
+      // checkouts too, where path.join would otherwise yield backslashes.
+      const fp = path.join(d, ent.name).split(path.sep).join('/');
       if (ent.isDirectory()) recurse(fp);
       else if (pattern.test(fp) && (!excludePattern || !excludePattern.test(fp))) {
         out.push(fp);

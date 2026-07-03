@@ -106,7 +106,9 @@ if (!fs.existsSync(ROLES_PATH)) {
   console.error(`[FAIL] ${ROLES_PATH} not found`);
   process.exit(1);
 }
-const lines = fs.readFileSync(ROLES_PATH, 'utf8').split('\n');
+// Tolerate CRLF (Windows checkouts): a trailing \r would otherwise be absorbed
+// into the value and defeat the inline-`# comment` stripping in the entry regex.
+const lines = fs.readFileSync(ROLES_PATH, 'utf8').split(/\r?\n/);
 
 const findings = []; // { line, taskKind, classification, expected, actual }
 
