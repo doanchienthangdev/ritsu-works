@@ -67,7 +67,10 @@ function probeDependency(dep, ctx) {
   let version = null;
   let versionRaw = null;
   if (foundPath) {
-    const res = run(cmdUsed, dep.detect.args || ['--version'], { timeout: 15000 });
+    // On Windows many CLIs (pnpm, gh, supabase) are `.CMD`/`.BAT` shims that
+    // spawnSync cannot execute directly — they need a shell (cmd.exe). Real
+    // `.exe` (node, git) run either way, so shell-on-Windows is safe for all.
+    const res = run(cmdUsed, dep.detect.args || ['--version'], { timeout: 15000, shell: platform.isWindows });
     const text = `${res.stdout || ''}${res.stderr || ''}`.trim();
     versionRaw = text.split('\n')[0] || null;
     version = parseVersion(text);

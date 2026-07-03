@@ -81,10 +81,12 @@ function typeOf(slug) {
 }
 
 function parseFrontmatter(txt) {
-  const m = txt.match(/^---\n([\s\S]*?)\n---/);
+  // Tolerate CRLF (Windows checkouts): `---\r\n` must still match the fence,
+  // and lines must split on \r?\n so values don't keep a trailing \r.
+  const m = txt.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   const fm = {};
   if (!m) return fm;
-  for (const line of m[1].split('\n')) {
+  for (const line of m[1].split(/\r?\n/)) {
     const mm = line.match(/^([a-z][a-z0-9_]*):\s*(.*)$/i);
     if (mm) fm[mm[1]] = mm[2].trim();
   }

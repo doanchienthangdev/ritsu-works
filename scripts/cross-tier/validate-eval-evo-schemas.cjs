@@ -72,7 +72,8 @@ loadYaml(caseSchemaPath);
 function parseFrontmatter(mdPath) {
   if (!fs.existsSync(mdPath)) return null;
   const content = fs.readFileSync(mdPath, 'utf8');
-  const m = content.match(/^---\n([\s\S]*?)\n---/);
+  // Tolerate CRLF (Windows checkouts): `---\r\n` must still match the fence.
+  const m = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!m) return null;
   try {
     return yaml.load(m[1]);

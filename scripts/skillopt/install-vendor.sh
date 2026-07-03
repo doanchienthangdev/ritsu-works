@@ -36,6 +36,31 @@ BACKEND_BASENAME="ritsu_file_queue.py"
 ROUTER_REL="skillopt/model/router.py"
 BACKEND_DEST_REL="skillopt/model/${BACKEND_BASENAME}"
 
+# --- Windows/autocrlf robustness -------------------------------------------
+# `git apply` reports "corrupt patch" on a CRLF-converted patch file, and "does
+# not apply" when an LF patch's context doesn't match a CRLF-converted target.
+# On Windows checkouts (core.autocrlf=true, no .gitattributes) both the .patch
+# files and the vendored (upstream-LF) sources arrive as CRLF. Normalize both to
+# LF before applying. On LF checkouts (macOS/Linux) these are no-ops.
+_strip_cr() {  # _strip_cr <file> — in-place CRLF→LF; no-op if absent/already LF
+  [[ -f "$1" ]] || return 0
+  local tmp; tmp="$(mktemp)"
+  tr -d '\r' < "$1" > "$tmp" && mv "$tmp" "$1"
+}
+apply_vendor_patch() {  # apply_vendor_patch <patch_abs> <target_rel> <label>
+  local patch_abs="$1" target_rel="$2" label="$3"
+  _strip_cr "${VENDOR_DIR}/${target_rel}"
+  local lf_patch; lf_patch="$(mktemp)"
+  tr -d '\r' < "${patch_abs}" > "${lf_patch}"
+  if ! ( cd "${VENDOR_DIR}" && git apply --check "${lf_patch}" ); then
+    rm -f "${lf_patch}"
+    echo "[install-vendor] FATAL: ${label} does not apply cleanly. Possible upstream change at the pinned SHA. See scripts/skillopt/UPSTREAM-DEVIATION.md for refresh procedure." >&2
+    exit 1
+  fi
+  ( cd "${VENDOR_DIR}" && git apply "${lf_patch}" )
+  rm -f "${lf_patch}"
+}
+
 # 1. Submodule init (idempotent)
 echo "[install-vendor] ensuring submodule ${VENDOR_DIR} is initialized..."
 git submodule update --init -- "${VENDOR_DIR}" >/dev/null
@@ -128,11 +153,7 @@ else
     exit 1
   fi
   echo "[install-vendor] applying router.patch..."
-  ( cd "${VENDOR_DIR}" && git apply --check "${REPO_ROOT}/${PATCHES_DIR}/router.patch" 2>&1 ) || {
-    echo "[install-vendor] FATAL: router.patch does not apply cleanly. Possible upstream change at the pinned SHA. See scripts/skillopt/UPSTREAM-DEVIATION.md for refresh procedure." >&2
-    exit 1
-  }
-  ( cd "${VENDOR_DIR}" && git apply "${REPO_ROOT}/${PATCHES_DIR}/router.patch" )
+  apply_vendor_patch "${REPO_ROOT}/${PATCHES_DIR}/router.patch" "${ROUTER_REL}" "router.patch"
   echo "[install-vendor] router.patch applied."
 fi
 
@@ -160,11 +181,7 @@ else
     exit 1
   fi
   echo "[install-vendor] applying train.patch..."
-  ( cd "${VENDOR_DIR}" && git apply --check "${REPO_ROOT}/${PATCHES_DIR}/train.patch" 2>&1 ) || {
-    echo "[install-vendor] FATAL: train.patch does not apply cleanly. Possible upstream change at the pinned SHA. See scripts/skillopt/UPSTREAM-DEVIATION.md for refresh procedure." >&2
-    exit 1
-  }
-  ( cd "${VENDOR_DIR}" && git apply "${REPO_ROOT}/${PATCHES_DIR}/train.patch" )
+  apply_vendor_patch "${REPO_ROOT}/${PATCHES_DIR}/train.patch" "${TRAIN_REL}" "train.patch"
   echo "[install-vendor] train.patch applied."
 fi
 

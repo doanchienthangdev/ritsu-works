@@ -201,7 +201,10 @@ function parseEntry(headerLine, bodyLines, sourceFile) {
  * Skips header/metadata sections; only `## <id>` headings start entries.
  */
 function parseFile(filePath, content) {
-  const lines = content.split('\n');
+  // Tolerate CRLF: on Windows checkouts (core.autocrlf) the catalog files carry
+  // \r\n, which would otherwise leave a trailing \r on every line and break the
+  // `**Field:** value` regex (reading required fields like Kind as missing).
+  const lines = content.split(/\r?\n/);
   const entries = [];
   let inHeader = true;
   let currentHeader = null;
