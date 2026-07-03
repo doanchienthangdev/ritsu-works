@@ -116,6 +116,24 @@ enrollment_lifecycle_live:   # the full multi-user onboarding loop now works
   - "invitee: /install-ritsu-works writes their refresh token to THEIR .env.local credential file; POST operator-broker {action:redeem} → ops.operators invited→active."
   - "offboard: owner POST {action:revoke, email} → ban + status=revoked + audit (≥1 active owner guaranteed)."
 
+onboarding_delivery:   # v0.2 (2026-07-03) — hardened after the FIRST real co-founder onboarding (Tran, admin, Windows)
+  default_path_prefetch_proof:   # the DEFAULT — a token COMMAND, no url to consume
+    - "owner: invite.cjs <email> --tier=admin|user  → creates the Auth identity + ops.operators row via the broker."
+    - "owner: mint.cjs <email>  → admin generate_link({type:magiclink}) + follow (redirect:'manual') HERE (the ONE clean consume, no channel in the loop) → extract {access_token, refresh_token} from the redirect fragment → write a 0600 file with a TOKEN command:  enroll.cjs --refresh-token=<rt> --access-token=<at>  (NO url). Refuses to mint an OWNER as a co-founder."
+    - "owner: `cat` the file, send the single command line (any channel is safe — nothing to prefetch; byte-exact, no retyping)."
+    - "co-founder: paste the command → enroll seeds the credential file + redeems (invited→active) in one shot. The access token lives ~1h → deliver promptly; on a 401, boot Claude Code once (the MCP refreshes + persists a fresh access token) then re-run the printed follow-up command."
+  fallback_path_raw_link:   # documented, but FRAGILE
+    - "owner forwards invite.cjs's raw magic-link; co-founder runs  enroll.cjs \"<link>\". Zalo / Gmail / Messenger / Outlook-SafeLinks previews AUTO-OPEN the URL to build a link-preview → CONSUME the single-use link → enroll sees #error=access_denied (\"already used\", hit TWICE on the first onboarding). Prefer mint."
+  owner_token_self_heal:   # invite.cjs no longer dies on a stale owner token
+    - "invite.cjs's owner ACCESS token is refreshed ONLY by the supabase-ops MCP booting per-human at the MAIN ROOT (a worktree has no runtime/secrets/.env.local → never boots per-human → never refreshes; a prior boot may also rotate the refresh token without persisting the replacement → refresh_token_already_used). When invite.cjs detects a stale/missing/rejected (401) owner token AND SUPABASE_SERVICE_KEY is present, it AUTO-RESEEDS a fresh owner session (admin generate_link for the owner → follow → atomic 0600 seed of .operator-refresh.json; a NEW session is created, nothing is revoked) and retries once. Force it up front with --reseed (or --reseed=<owner-email> to disambiguate 2 owner mailboxes). Standalone form: reseed-owner.cjs <owner-email>. Reseed refuses to write a non-owner session into the owner credential file."
+  helpers:
+    - "scripts/multi-user-auth/mint.cjs — owner mints a prefetch-proof enroll COMMAND (default onboarding delivery)."
+    - "scripts/multi-user-auth/reseed-owner.cjs — owner reseeds their own credential file (service_role, non-destructive; no fresh owner token needed)."
+    - "scripts/multi-user-auth/invite.cjs — broker invite + auto-reseed of a stale owner token + --reseed."
+    - "scripts/multi-user-auth/enroll.cjs — co-founder seeds credential + redeems (token-command form OR raw-magic-link fallback)."
+    - "scripts/multi-user-auth/lib/session.cjs — shared, unit-tested primitives: ritsu-ops ref-guard, magic-link host-guard, redirect-fragment token extraction, atomic 0600 credential write, JWT decode + staleness."
+    - "tests/multi-user-auth/onboarding-helpers.test.ts — All-Edge coverage of the above (DI'd fetch + temp dirs; no live project)."
+
 sprint2_remaining:   # follow-on increments (separate integration efforts)
   - "DONE 2026-06-26 (PR #308 + ITEM B PR): gbrain + analytics MCP under the per-human tier (see sprint2_done). The ops-DB + enrollment core remains the load-bearing Sprint 2."
   - "The broader money/publish action-broker surface (Stripe/social) — belongs with those integrations; the operator-lifecycle broker is the Sprint-2 deliverable."
@@ -150,11 +168,18 @@ residual_risks:   # documented, accepted for Sprint 1; hardened in Sprints 2-3
 
 references:
   - .claude/commands/users.md
+  - .claude/commands/install-ritsu-works.md
   - 06-ai-ops/skills/operator-management/SKILL.md
   - governance/operators.yaml
   - knowledge/operator-tiers.yaml
   - scripts/cross-tier/validate-operators.cjs
   - scripts/local-install/lib/operator-tier.cjs
+  - scripts/multi-user-auth/mint.cjs           # v0.2 — prefetch-proof onboarding (default)
+  - scripts/multi-user-auth/reseed-owner.cjs   # v0.2 — owner-token reseed
+  - scripts/multi-user-auth/invite.cjs         # broker invite + auto-reseed
+  - scripts/multi-user-auth/enroll.cjs         # co-founder seed + redeem
+  - scripts/multi-user-auth/lib/session.cjs    # shared, unit-tested primitives
+  - .env.per-human.example
   - CODEOWNERS
   - governance/{ROLES,SECRETS,IDENTITY,HITL}.md
   - .archives/cla/multi-user-auth/01-spec.md
