@@ -1,3 +1,10 @@
+import {
+  CREDENTIAL_REMEDIATION,
+  describeCredential,
+  type CredentialReason,
+  type OperatorCredential,
+} from "./operator-credential.ts";
+
 /**
  * Which ops roles may query the analytics MCP at all.
  *
@@ -44,23 +51,81 @@ export function isTierAllowedAnalytics(tier: string | null | undefined): boolean
 /**
  * The denial reason for a caller that may not use analytics — mode-aware so the
  * message + error code reflect WHY (service-key: role not allowlisted; per-human:
- * tier too low). Used by every tool handler's allow gate.
+ * tier too low, or the tier could not be established at all). Used by every tool
+ * handler's allow gate.
+ *
+ * `code` is the coarse, stable wire category (`role_not_allowed` /
+ * `tier_not_allowed`); `reason` is the fine, machine-readable discriminator.
+ * A per-human denial has exactly one of two shapes:
+ *
+ *   - a tier WAS decoded but isn't owner/admin  → reason `tier_not_permitted`
+ *   - no tier could be established               → reason = the credential fault
+ *     (`token_expired`, `credential_file_missing`, `token_no_tier_claim`, …)
+ *
+ * Before this split, all of the latter collapsed to tier "unknown", which told an
+ * operator nothing about whether their token was stale, their file was missing, or
+ * their account simply had no tier. Fail-closed posture is unchanged: every branch
+ * here is still a denial.
  */
+export interface AnalyticsDenial {
+  code: "role_not_allowed" | "tier_not_allowed";
+  reason: CredentialReason | "tier_not_permitted" | "role_not_allowlisted";
+  detail: string;
+  remediation: string;
+}
+
 export function analyticsDenialReason(ctx: {
   authMode?: "service-key" | "per-human";
   role: string;
   tier?: "owner" | "admin" | "user" | null;
-}): { code: string; detail: string } {
-  if (ctx.authMode === "per-human") {
+  credential?: OperatorCredential;
+}): AnalyticsDenial {
+  if (ctx.authMode !== "per-human") {
     return {
-      code: "tier_not_allowed",
-      detail:
-        `Operator tier "${ctx.tier ?? "unknown"}" may not use analytics (owner/admin only). ` +
-        `See knowledge/operator-tiers.yaml.`,
+      code: "role_not_allowed",
+      reason: "role_not_allowlisted",
+      detail: `Role "${ctx.role}" is not on the analytics consumer allowlist. See governance/ROLES.md.`,
+      remediation:
+        "Set MCP_CALLER_ROLE to one of the analytics consumer roles, or add the role to the " +
+        "allowlist in governance/ROLES.md (Tier C) and role-allowlist.ts.",
     };
   }
+
+  // per-human. A decoded-but-unpermitted tier is a different fault from an
+  // unresolvable credential — say which.
+  const cred = ctx.credential;
+  if (cred && cred.reason !== "ok") {
+    return {
+      code: "tier_not_allowed",
+      reason: cred.reason,
+      detail:
+        `Operator tier could not be established, so analytics is denied (owner/admin only). ` +
+        `${describeCredential(cred)} Fail-closed. See knowledge/analytics-sync-contract.yaml ` +
+        `per_human_tier_gate.`,
+      remediation: CREDENTIAL_REMEDIATION[cred.reason],
+    };
+  }
+
+  const tier = cred?.tier ?? ctx.tier ?? null;
+  if (tier) {
+    return {
+      code: "tier_not_allowed",
+      reason: "tier_not_permitted",
+      detail:
+        `Operator tier "${tier}" may not use analytics (owner/admin only). ` +
+        `See knowledge/operator-tiers.yaml.`,
+      remediation: "Ask an owner to raise your tier: `/users retier <email> --tier=admin`.",
+    };
+  }
+
+  // No credential was threaded through (e.g. a hand-built context). Stay generic
+  // rather than guess — still a denial.
   return {
-    code: "role_not_allowed",
-    detail: `Role "${ctx.role}" is not on the analytics consumer allowlist. See governance/ROLES.md.`,
+    code: "tier_not_allowed",
+    reason: "no_credential_source",
+    detail:
+      `Operator tier "unknown" may not use analytics (owner/admin only). ` +
+      `See knowledge/operator-tiers.yaml.`,
+    remediation: CREDENTIAL_REMEDIATION.no_credential_source,
   };
 }

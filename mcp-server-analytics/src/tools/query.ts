@@ -87,7 +87,7 @@ export async function handleQuery(
   // Gate 1 — caller allowed? service-key: role allowlist; per-human: verified tier.
   if (!ctx.allowedAnalytics) {
     const r = analyticsDenialReason(ctx);
-    return denied(r.code, r.detail);
+    return denied(r.code, r.detail, r.reason, r.remediation);
   }
 
   let parsed: QueryInput;
@@ -163,10 +163,20 @@ export async function handleQuery(
   };
 }
 
-function denied(code: string, detail: string): ToolResult {
+function denied(
+  code: string,
+  detail: string,
+  reason?: string,
+  remediation?: string,
+): ToolResult {
   return {
     state: "denied",
-    output: { error: code, detail },
+    output: {
+      error: code,
+      detail,
+      ...(reason ? { reason } : {}),
+      ...(remediation ? { remediation } : {}),
+    },
     errorCode: code,
     errorDetail: detail,
   };

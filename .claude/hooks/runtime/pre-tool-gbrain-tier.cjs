@@ -15,20 +15,56 @@
  * blocks the tool. Allow: exit 0. We also write a structured decision to stdout.
  *
  * Posture:
- *   - service-key mode / non-gbrain tool / no .env.local (worktree/CI) → fast ALLOW
- *     (no-op; default behavior byte-identical).
+ *   - service-key mode / non-gbrain tool / no .env.local anywhere (a fresh clone or
+ *     CI — i.e. no per-human install at all) → fast ALLOW (no-op; default behavior
+ *     byte-identical).
  *   - per-human + gbrain tool → committed to FAIL-CLOSED: a bad/expired/absent
  *     token, a disallowed tier, OR an internal error (e.g. a locally-corrupted
  *     operator-tiers.yaml) all BLOCK. Only an explicit engine 'allow' (owner/admin)
  *     passes. (Genuine cold-start before supabase-ops persists self-resolves on
  *     retry; gbrain calls are interactive, well after boot.)
+ *
+ * WORKTREES (fixed 2026-07-10): `runtime/` is local-only and absent from git
+ * worktrees, so resolving .env.local relative to this file put it at
+ * <worktree>/runtime/secrets/.env.local — which never exists. readEnvLocal() then
+ * returned {}, authMode defaulted to 'service-key', and the gate SILENTLY NO-OPPED
+ * for every gbrain call made from a worktree session: a fail-OPEN on the one
+ * per-human surface that has no server-side backstop. We now walk out of
+ * `.claude/worktrees/<name>/` to the main root to find .env.local — the same marker
+ * scripts/cross-tier/check-analytics-sync-health.cjs uses. A machine with no
+ * per-human install still no-ops, exactly as before.
+ *
+ * Only .env.local is main-root-resolved: operator-tiers.yaml is committed (so the
+ * worktree checkout has it) and the event log stays worktree-local.
  */
 
 const fs = require('fs');
 const path = require('path');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
-const ENV_FILE = path.join(REPO_ROOT, 'runtime', 'secrets', '.env.local');
+
+/**
+ * The main repo root — `dir` unless it sits inside `.claude/worktrees/<name>/`, in
+ * which case it's the path above that marker. Pure; `dir` injected for tests.
+ */
+function resolveMainRoot(dir = REPO_ROOT) {
+  const marker = `${path.sep}.claude${path.sep}worktrees${path.sep}`;
+  const i = dir.indexOf(marker);
+  return i === -1 ? dir : dir.slice(0, i);
+}
+
+/**
+ * Where .env.local lives: the tree's own copy if it has one, else the main root's.
+ * Returns null when neither exists — the caller treats that as "no per-human
+ * install" and no-ops. Never invents a path.
+ */
+function resolveEnvFile(repoRoot = REPO_ROOT) {
+  const local = path.join(repoRoot, 'runtime', 'secrets', '.env.local');
+  if (fs.existsSync(local)) return local;
+  const main = path.join(resolveMainRoot(repoRoot), 'runtime', 'secrets', '.env.local');
+  return fs.existsSync(main) ? main : null;
+}
+
 const TIERS_YAML = path.join(REPO_ROOT, 'knowledge', 'operator-tiers.yaml');
 const LOG_DIR = path.join(REPO_ROOT, 'runtime');
 const LOG_FILE = path.join(LOG_DIR, 'gbrain-tier-gate-events.jsonl');
@@ -53,14 +89,18 @@ function parsePayload() {
   }
 }
 
-/** Minimal .env.local reader (regex; tolerant). The hook can't assume shell env. */
-function readEnvLocal(filePath = ENV_FILE) {
+/**
+ * Minimal .env.local reader (regex; tolerant). The hook can't assume shell env.
+ * With no argument it resolves the file itself (worktree-aware). An explicitly
+ * passed path is used verbatim — no fallback — so tests stay hermetic.
+ */
+function readEnvLocal(filePath = resolveEnvFile()) {
   const out = {};
   let raw;
   try {
     raw = fs.readFileSync(filePath, 'utf8');
   } catch {
-    return out; // absent (worktree/CI) → caller treats as service-key (no-op)
+    return out; // no per-human install anywhere → caller treats as service-key (no-op)
   }
   const get = (key) => {
     // Value chars stop at quote/newline/hash; the post-`=` whitespace is HORIZONTAL
@@ -196,6 +236,6 @@ function main() {
 
 // Exported for unit tests (the pure-ish I/O helpers). main() runs only when the
 // hook is invoked directly by Claude Code (not when required by a test).
-module.exports = { readEnvLocal, readAccessToken };
+module.exports = { readEnvLocal, readAccessToken, resolveMainRoot, resolveEnvFile };
 
 if (require.main === module) main();

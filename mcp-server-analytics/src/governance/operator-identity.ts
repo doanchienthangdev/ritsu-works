@@ -38,21 +38,40 @@ function decodeBase64Url(segment: string): string {
 }
 
 /**
+ * Decode a JWT's payload to a plain claims object, or null when the token is not a
+ * decodable 3-part JWT with an object payload.
+ *
+ * Exists so callers can tell "this token is garbage" apart from "this token is a
+ * real JWT that happens to lack the claim I want" — `decodeJwtClaims` collapses
+ * both to all-null, which makes a denial undiagnosable. Additive: `decodeJwtClaims`
+ * is unchanged in behavior (it now delegates the parse), so this file stays
+ * behaviour-identical to mcp-server's copy for `tier`.
+ */
+export function decodeJwtPayload(
+  token: string | null | undefined,
+): Record<string, unknown> | null {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  let payload: unknown;
+  try {
+    payload = JSON.parse(decodeBase64Url(parts[1]!));
+  } catch {
+    return null;
+  }
+  // Arrays/numbers/null are valid JSON but not a claims object.
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return null;
+  return payload as Record<string, unknown>;
+}
+
+/**
  * Decode a JWT payload's claims. Returns all-null on any malformed input
  * (fail-closed: a token we can't parse yields no identity → no grant).
  */
 export function decodeJwtClaims(token: string | null | undefined): HumanIdentity {
   const empty: HumanIdentity = { email: null, tier: null, sub: null, exp: null };
-  if (!token || typeof token !== "string") return empty;
-  const parts = token.split(".");
-  if (parts.length !== 3) return empty;
-  let payload: Record<string, unknown>;
-  try {
-    payload = JSON.parse(decodeBase64Url(parts[1])) as Record<string, unknown>;
-  } catch {
-    return empty;
-  }
-  if (!payload || typeof payload !== "object") return empty;
+  const payload = decodeJwtPayload(token);
+  if (!payload) return empty;
 
   const email = typeof payload.email === "string" ? payload.email.toLowerCase() : null;
   const sub = typeof payload.sub === "string" ? payload.sub : null;

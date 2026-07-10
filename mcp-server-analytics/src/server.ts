@@ -28,7 +28,10 @@ import {
 import { loadEnv, summarizeEnv } from "./lib/env.ts";
 import { createQuerier } from "./lib/pg-client.ts";
 import { isRoleAllowedAnalytics, isTierAllowedAnalytics } from "./governance/role-allowlist.ts";
-import { resolveOperatorTier } from "./governance/operator-credential.ts";
+import {
+  describeCredential,
+  resolveOperatorCredential,
+} from "./governance/operator-credential.ts";
 import { findToolDef, TOOLS } from "./tools/index.ts";
 import type { AnalyticsCallerContext, ToolResult } from "./types.ts";
 
@@ -63,13 +66,14 @@ async function main(): Promise<void> {
         tier: null,
       };
     }
-    const tier = resolveOperatorTier(env);
+    const credential = resolveOperatorCredential(env);
     return {
-      role: `operator:${tier ?? "unknown"}`,
+      role: `operator:${credential.tier ?? "unknown"}`,
       sessionId: env.callerSessionId,
-      allowedAnalytics: isTierAllowedAnalytics(tier),
+      allowedAnalytics: isTierAllowedAnalytics(credential.tier),
       authMode: "per-human",
-      tier,
+      tier: credential.tier,
+      credential,
     };
   }
 
@@ -79,9 +83,18 @@ async function main(): Promise<void> {
       (bootCtx.allowedAnalytics
         ? ""
         : perHuman
-          ? " (calls DENIED unless the operator tier is owner/admin — resolved per call)"
+          ? ` (calls DENIED until the operator tier is owner/admin — resolved per call)`
           : " (every call will be DENIED — role not on analytics allowlist)"),
   );
+  // Surface WHY at boot, so a broken credential is visible in the MCP log before
+  // the first denied tool call. This is the diagnosis that used to be missing:
+  // an expired token, a missing file and a tier-less account all looked alike.
+  if (bootCtx.credential) {
+    logStderr(
+      `operator credential | reason=${bootCtx.credential.reason} source=${bootCtx.credential.source} — ` +
+        describeCredential(bootCtx.credential),
+    );
+  }
 
   const querier = createQuerier(env);
 
@@ -132,7 +145,10 @@ async function main(): Promise<void> {
     const durationMs = Date.now() - startedAt;
     logStderr(
       `tool=${name} state=${result.state} ms=${durationMs} role=${ctx.role}` +
-        (result.errorCode ? ` err=${result.errorCode}` : ""),
+        (result.errorCode ? ` err=${result.errorCode}` : "") +
+        (ctx.credential && ctx.credential.reason !== "ok"
+          ? ` credential=${ctx.credential.reason}`
+          : ""),
     );
 
     return {
