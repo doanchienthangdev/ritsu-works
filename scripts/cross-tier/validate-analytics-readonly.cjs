@@ -13,6 +13,11 @@
  *                             Set in mcp-server-analytics/src/governance/role-allowlist.ts
  *   3. mcp-registered       — contract.mcp_server is present in .mcp.json mcpServers
  *   4. shape                — read_surface_schema == 'live'; consumer + product_export roles set
+ *   5. sync_all-no-drift    — the live.sync_all() table array in
+ *                             mcp-server-analytics/sql/analytics-machinery.sql == synced_tables
+ *                             (as a set). A table in the contract but not in sync_all() never
+ *                             syncs (silent data gap); a table in sync_all() but not in the
+ *                             contract bypasses check 1 (no-content-in-sync).
  *
  * (The product-side invariants — "no direct-identifier/JSONB/*_token column in any
  * analytics_export.* view", "salt product-only", "PII-canary per text col" — live in
@@ -39,6 +44,7 @@ const ALLOWLIST_TS = path.join(
   'role-allowlist.ts',
 );
 const MCP_JSON = path.join(REPO_ROOT, '.mcp.json');
+const MACHINERY_SQL = path.join(REPO_ROOT, 'mcp-server-analytics', 'sql', 'analytics-machinery.sql');
 
 function fail(msg, extra) {
   console.error(`[FAIL] analytics-sync-contract: ${msg}`);
@@ -56,6 +62,24 @@ function parseAllowlistTs(src) {
   let g;
   while ((g = re.exec(inner)) !== null) roles.push(g[1]);
   return roles;
+}
+
+/**
+ * Extract the quoted table names from the `tables text[] := array[ ... ]` literal
+ * inside `create or replace procedure live.sync_all()`. Returns null when the
+ * procedure or its array literal cannot be located (treated as a validation failure —
+ * fail-closed, never "assume it matches").
+ */
+function parseSyncAllTables(src) {
+  const m = src.match(
+    /create\s+or\s+replace\s+procedure\s+live\.sync_all\s*\(\s*\)[\s\S]*?tables\s+text\s*\[\s*\]\s*:=\s*array\s*\[([^\]]*)\]/i,
+  );
+  if (!m) return null;
+  const tables = [];
+  const re = /'([^']+)'/g;
+  let g;
+  while ((g = re.exec(m[1])) !== null) tables.push(g[1]);
+  return tables;
 }
 
 function main() {
@@ -138,13 +162,48 @@ function main() {
     }
   }
 
+  // ── 5. sync_all() drift vs contract.synced_tables ──────────────────────
+  // Sprint 5 grew the live proc 17 → 30 without touching the committed file; the
+  // header calls it "idempotent — safe to re-apply", so re-applying would have
+  // silently dropped 13 tables (incl. every revenue table). Pin both directions.
+  if (synced) {
+    if (!fs.existsSync(MACHINERY_SQL)) {
+      errs.push('mcp-server-analytics/sql/analytics-machinery.sql missing — cannot verify sync_all()');
+    } else {
+      const syncAll = parseSyncAllTables(fs.readFileSync(MACHINERY_SQL, 'utf-8'));
+      if (!syncAll) {
+        errs.push('could not parse the live.sync_all() table array from analytics-machinery.sql');
+      } else {
+        const dupes = syncAll.filter((t, i) => syncAll.indexOf(t) !== i);
+        if (dupes.length) errs.push(`sync_all() lists duplicate table(s): ${[...new Set(dupes)].join(', ')}`);
+
+        const syncedSet = new Set(synced);
+        const syncAllSet = new Set(syncAll);
+        const missing = synced.filter((t) => !syncAllSet.has(t));
+        const extra = syncAll.filter((t) => !syncedSet.has(t));
+        if (missing.length) {
+          errs.push(
+            `sync_all() DRIFT — in contract.synced_tables but NOT synced (silent data gap): ${missing.join(', ')}`,
+          );
+        }
+        if (extra.length) {
+          errs.push(
+            `sync_all() DRIFT — synced but NOT in contract.synced_tables (bypasses no-content-in-sync): ${extra.join(', ')}`,
+          );
+        }
+      }
+    }
+  }
+
   if (errs.length) fail(`${errs.length} issue(s):`, errs);
 
   console.log(
     `[PASS] analytics-sync-contract (${synced.length} synced, ${allowlist.length} allowlisted roles; ` +
-      `no content leak; allowlist + .mcp.json in sync)`,
+      `no content leak; allowlist + .mcp.json + sync_all() in sync)`,
   );
   process.exit(0);
 }
 
-main();
+module.exports = { parseAllowlistTs, parseSyncAllTables };
+
+if (require.main === module) main();

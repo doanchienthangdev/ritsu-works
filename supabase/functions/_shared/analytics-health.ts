@@ -41,6 +41,10 @@ export interface HealthResult {
 export const SLO_WARN_HOURS = 26;
 export const SLO_CRIT_HOURS = 48;
 const STALE_INFINITY = 1e9;
+/** Per-table sqlerrm carried into the alert — long enough to diagnose, short enough for Telegram. */
+export const MAX_DETAIL_CHARS = 120;
+/** Failed tables enumerated with their reason; any remainder is reported as "+N more", never dropped silently. */
+export const MAX_FAILED_LISTED = 5;
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const grp = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -51,6 +55,30 @@ const fmtUtc = (ms: number) => {
   return `${i.slice(8, 10)}/${i.slice(5, 7)} ${i.slice(11, 19)}`;
 };
 const fmtVn = (ms: number) => fmtUtc(ms + 7 * 3_600_000);
+
+// ── failure reasons. sync_one logs sqlerrm to _sync_runs.detail on every abort path
+//    (canary trip / 0-row guard / a remote FDW error such as "permission denied for
+//    table pok_progress"). Without it the alert names a table but not a cause, and the
+//    reader has to go query the analytics DB by hand to learn anything. Carry it. ──
+/** First line of sqlerrm, whitespace-collapsed + truncated. "" when there is no usable detail. */
+const fmtDetail = (detail: string | null): string => {
+  const first = (detail ?? "").split("\n")[0].replace(/\s+/g, " ").trim();
+  if (!first) return "";
+  return first.length > MAX_DETAIL_CHARS ? `${first.slice(0, MAX_DETAIL_CHARS - 1)}…` : first;
+};
+
+/** "table (reason)", or a bare table name when the row carried no detail. */
+const describeFailure = (r: SyncRunLatest): string => {
+  const d = fmtDetail(r.detail);
+  return d ? `${r.table_name} (${d})` : r.table_name;
+};
+
+/** Enumerate failed tables with reasons, capping the list EXPLICITLY (no silent truncation). */
+const listFailures = (rows: SyncRunLatest[]): string => {
+  const shown = rows.slice(0, MAX_FAILED_LISTED).map(describeFailure).join("; ");
+  const rest = rows.length - MAX_FAILED_LISTED;
+  return rest > 0 ? `${shown}; +${rest} more` : shown;
+};
 
 export function computeHealth(input: HealthInput): HealthResult {
   const freshnessHours =
@@ -89,7 +117,7 @@ export function computeHealth(input: HealthInput): HealthResult {
   if (failures > 0) {
     level = "critical";
     alerts.push({ id: "analytics_sync_table_failed", severity: "critical",
-      message: `${failures} table(s) failed: ${failedRows.map((r) => r.table_name).join(", ")}.` });
+      message: `${failures} table(s) failed: ${listFailures(failedRows)}.` });
   }
   if (freshnessHours > SLO_CRIT_HOURS) {
     level = "critical";

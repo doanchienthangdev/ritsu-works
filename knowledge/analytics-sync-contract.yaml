@@ -11,6 +11,10 @@
 #      mcp-server-analytics/src/governance/role-allowlist.ts  (no allowlist drift)
 #   3. mcp_server is registered in .mcp.json
 #   4. read_surface_schema == 'live' and the two roles are present
+#   5. synced_tables == the live.sync_all() table array in
+#      mcp-server-analytics/sql/analytics-machinery.sql (no sync-scope drift, both
+#      directions: a table missing there never syncs; a table there but not here
+#      bypasses check 1)
 #
 # Owner: founder
 # Change policy: PR + founder review (Tier C). Expanding synced_tables also
@@ -32,7 +36,7 @@ roles:
   consumer: analytics_reader         # least-priv: LOGIN, SELECT on live.* only; read-only txn + statement_timeout (role-level). The MCP connects AS this.
   product_export: analytics_export_ro  # product-side FDW export role: SELECT on the PII-stripped analytics_export.* views only
 
-# The ONLY tables synced Product → analytics (Door 2). 17 as of Sprint 3.
+# The ONLY tables synced Product → analytics (Door 2). 30 as of Sprint 5.
 # Each is a PII-stripped + HMAC-hashed VIEW product-side (analytics_export.*),
 # pulled via postgres_fdw into ext.*, validated in staging, swapped into live.*.
 # Every user column is uh()-hashed (user_hash); enums cast ::text in the view;

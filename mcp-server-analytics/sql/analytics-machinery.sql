@@ -98,15 +98,31 @@ exception when others then
     values (tbl, v_start, clock_timestamp(), 'failed', sqlerrm);
 end $sp$;
 
--- ── sync_all — the 17-table set (sync_one self-logs both paths → plain loop).
+-- ── sync_all — the 30-table set (sync_one self-logs both paths → plain loop).
 --    Runs as ONE transaction (the nightly pg_cron / a single Management-API call),
---    so all swaps commit atomically — consumers never see a cross-table mix. ──────
+--    so all swaps commit atomically — consumers never see a cross-table mix.
+--
+--    This array MUST equal knowledge/analytics-sync-contract.yaml `synced_tables`
+--    (as a set) — enforced by scripts/cross-tier/validate-analytics-readonly.cjs.
+--    Both directions matter: a table missing here never syncs (silent data gap),
+--    and a table here but not in the contract bypasses the no-content-in-sync check.
+--    Sprint 5 expanded the live proc 17 → 30 but left this file at 17, so re-applying
+--    this "idempotent" file would have silently dropped 13 tables — incl. all revenue. ──
 create or replace procedure live.sync_all() language plpgsql as $sa$
 declare t text; tables text[] := array[
+  -- PoC-3 + Sprint 3 — behavioral / billing (user_hash-keyed)
   'profiles','learning_sessions','learning_progress','sources','learning_projects',
   'learning_plans','learning_units','pok_progress','session_shares','ai_usage_logs',
-  'credit_transactions','user_pok_analytics','tier_limits','ai_providers','ai_models',
-  'command_model_configs','onboarding_categories'];
+  'credit_transactions','user_pok_analytics',
+  -- Sprint 3 — config / reference (no user data)
+  'tier_limits','ai_providers','ai_models','command_model_configs','onboarding_categories',
+  -- Sprint 5 — REVENUE (LemonSqueezy)
+  'payments','lemon_variants','credit_packs',
+  -- Sprint 5 — learning-research / engagement (user_hash-keyed)
+  'quiz_attempts','flashcard_reviews','activity_results','user_achievements',
+  'achievements','resource_providers',
+  -- Sprint 5 — anonymous content engagement (session_hash, NO user_id)
+  'blog_post_views','docs_article_views','docs_article_feedback','learn_tutorial_views'];
 begin
   foreach t in array tables loop call live.sync_one(t); end loop;
 end $sa$;
