@@ -8,20 +8,31 @@ project_id = "ritsu-ops"
 # ----------------------------------------------------------------------------
 # `verify_jwt = false` is required for our cron-driven functions because
 # pg_cron's `net.http_post` cannot inject a per-request `Authorization: Bearer
-# <anon_key>` header. Both functions authenticate at the application layer:
-#   - minion-worker            uses X-Worker-Auth     (WORKER_SECRET)
-#   - scheduled-run-dispatcher uses x-dispatcher-auth (DISPATCHER_SECRET)
+# <anon_key>` header. All three authenticate at the application layer:
+#   - minion-worker            uses X-Worker-Auth            (WORKER_SECRET)
+#   - scheduled-run-dispatcher uses x-dispatcher-auth        (DISPATCHER_SECRET)
+#   - analytics-sync-health    uses x-analytics-health-auth  (ANALYTICS_HEALTH_SECRET)
 # Without verify_jwt=false, the Supabase gateway rejects with 401 before the
 # function sees the request — which is the pre-2026-05-14 bug we hit during
-# v1.0c smoke testing (Path A runbook).
+# v1.0c smoke testing (Path A runbook), and hit again on 2026-07-10 when
+# analytics-sync-health was redeployed while missing from this file: its original
+# deploy had relied on the non-persisted `--no-verify-jwt` workaround, so the
+# redeploy silently re-enabled the gateway check and the 12:00 UTC cron POST
+# (headers: x-analytics-health-auth only) would have 401'd with no alert at all.
 #
 # Without this file, `supabase functions deploy` defaults to verify_jwt=true.
 # Per-call workarounds (`--no-verify-jwt`) are not persisted across deploys.
+#
+# INVARIANT: every directory under supabase/functions/ (except _shared) MUST declare
+# a block here with an explicit verify_jwt. Pinned by tests/edge-function-config.test.ts.
 
 [functions.minion-worker]
 verify_jwt = false
 
 [functions.scheduled-run-dispatcher]
+verify_jwt = false
+
+[functions.analytics-sync-health]
 verify_jwt = false
 
 # operator-broker (capability multi-user-auth, Sprint 2) — UNLIKE the cron
