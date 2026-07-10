@@ -27,7 +27,9 @@ import {
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadEnv, summarizeEnv } from "./lib/env.ts";
 import { autoloadEnvLocal, repoRootFromHere } from "./lib/env-file.ts";
-import { getClient, refreshPerHumanClient } from "./lib/supabase-client.ts";
+import { getClient, ensurePerHumanClient } from "./lib/supabase-client.ts";
+import { establishPerHumanSession } from "./governance/per-human-session.ts";
+import { notifyFounder } from "./lib/alert.ts";
 import { resolveOperator, resolveRole } from "./governance/role-resolver.ts";
 import { decodeJwtClaims } from "./governance/operator-identity.ts";
 import {
@@ -74,11 +76,15 @@ async function main(): Promise<void> {
   if (env.authMode === "per-human") {
     let accessToken: string | null;
     if (env.perHumanRefreshToken || env.perHumanRefreshTokenFile) {
-      const refreshed = await refreshPerHumanClient(env); // throws (fail-closed) on a bad token
-      client = refreshed.client;
-      accessToken = refreshed.accessToken;
+      // Refreshes only if we win the credential lock AND the persisted token is near
+      // expiry; self-heals a revoked session on an owner machine; alerts either way.
+      const session = await establishPerHumanSession(env); // fail-closed
+      client = session.client;
+      accessToken = session.accessToken;
       logStderr(
-        `per-human session established via refresh token (auto-refresh on${env.perHumanRefreshTokenFile ? "; persisted to file" : ""})`,
+        `per-human session established | role=${session.role}` +
+          (session.selfHealed ? " | SELF-HEALED after a revoked token" : "") +
+          (env.perHumanRefreshTokenFile ? " | credential file is the source of truth" : ""),
       );
     } else {
       client = getClient(env); // static access-token path
@@ -89,6 +95,17 @@ async function main(): Promise<void> {
     client = getClient(env);
     ctx = resolveRole(env.callerRole, env.callerSessionId);
   }
+
+  /**
+   * Per-call client. A FOLLOWER never auto-refreshes, so the token it booted with expires
+   * within the hour; re-resolving per call lets it pick up whatever the leader last
+   * persisted (one file read + a base64 decode when the token is still fresh). In
+   * service-key mode this is the same cached client, every time.
+   */
+  const liveClient = async (): Promise<SupabaseClient> =>
+    env.authMode === "per-human" && (env.perHumanRefreshToken || env.perHumanRefreshTokenFile)
+      ? (await ensurePerHumanClient(env)).client
+      : client;
   logStderr(
     `caller resolved | auth_mode=${ctx.authMode} role=${ctx.role} hitl_max=${ctx.hitlMaxTier}` +
       (ctx.humanEmail ? ` human=${ctx.humanEmail}` : ""),
@@ -114,6 +131,12 @@ async function main(): Promise<void> {
     const startedAt = Date.now();
     let result: ToolResult;
     let requiredTier: string = "A";
+    // Falls back to the boot client so the alert path below always has one. But a per-human
+    // FOLLOWER's boot client is pinned to a token that expires within the hour and is never
+    // refreshed, so writing the audit row on it would be denied by RLS — silently losing the
+    // audit for exactly the credential-fault calls we most want recorded. Track usability.
+    let conn: SupabaseClient = client;
+    let connUsable = env.authMode !== "per-human";
 
     try {
       const tool = findToolDef(name);
@@ -126,12 +149,16 @@ async function main(): Promise<void> {
       // Gate 2 — per-call project_ref defense in depth
       assertProjectRefAllowed(env.url);
 
+      // Gate 3 — a follower's access token expires within the hour; pick up the leader's.
+      conn = await liveClient();
+      connUsable = true;
+
       // Run handler
-      result = await tool.handler(args, ctx, client);
+      result = await tool.handler(args, ctx, conn);
     } catch (err) {
       if (err instanceof ProjectRefViolationError) {
         // P0 — also write to ops.alerts
-        writeProjectRefAlert(client, ctx, name, err).catch((e) =>
+        writeProjectRefAlert(conn, ctx, name, err).catch((e) =>
           logStderr("ALERT WRITE FAILED:", (e as Error).message),
         );
         result = {
@@ -178,7 +205,12 @@ async function main(): Promise<void> {
     );
 
     // Audit — fire-and-forget. Failures logged to stderr but never block the call.
-    writeAudit(client, {
+    // Skipped when the per-human token could not be re-resolved: `conn` is then the expired
+    // boot client and the INSERT would be denied by RLS, so we say so rather than pretend.
+    if (!connUsable) {
+      logStderr(`AUDIT SKIPPED for ${name}: no usable client (per-human credential fault)`);
+    } else
+    writeAudit(conn, {
       toolId: name,
       callerCtx: ctx,
       input: args,
@@ -214,8 +246,29 @@ function snakeName(s: string): string {
     .toLowerCase();
 }
 
-main().catch((err) => {
-  process.stderr.write(`[supabase-ops] FATAL: ${(err as Error).message}\n`);
+main().catch(async (err) => {
+  const msg = (err as Error).message;
+  process.stderr.write(`[supabase-ops] FATAL: ${msg}\n`);
   process.stderr.write(`${(err as Error).stack ?? ""}\n`);
+
+  // A guard that dies quietly is worse than no guard. On 2026-07-03 this exact path wrote
+  // FATAL to a stderr nobody reads, and every per-human gate went dark for seven days.
+  // establishPerHumanSession already alerts on a revoked credential; this catches every
+  // OTHER fatal (bad env, unreachable DB, project-ref violation at boot). Best-effort:
+  // notifyFounder never throws, so an alerting failure cannot mask the real error.
+  //
+  // A CredentialBusyError survived its retries: a live leader simply never published. That
+  // is transient and self-correcting on the next launch — paging the founder for it is the
+  // alert fatigue that makes real alarms invisible.
+  const transient = (err as Error).name === "CredentialBusyError";
+  if (transient) {
+    process.stderr.write(`[supabase-ops] transient: another instance holds the credential lock. Retry.\n`);
+  }
+  if (!transient && !/session revoked/i.test(msg)) {
+    const r = await notifyFounder(
+      `🔴 Ritsu · supabase-ops KHÔNG BOOT ĐƯỢC\n⚠️ ${msg}\n📉 analytics + gbrain sẽ từ chối sau ~1h.`,
+    );
+    if (!r.delivered) process.stderr.write(`[supabase-ops] alert not delivered: ${r.reason}\n`);
+  }
   process.exit(1);
 });
