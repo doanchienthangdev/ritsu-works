@@ -9,7 +9,9 @@
 
 import { describe, it, expect } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { resolve, join } from "node:path";
+import yaml from "js-yaml";
 
 import { createRequire } from "node:module";
 const cjsRequire = createRequire(import.meta.url);
@@ -183,6 +185,76 @@ describe("validate-hitl-hooks.cjs", () => {
 // Integration: all 3 CRITICAL validators must pass on a clean repo
 // (regression test — if this fails, the consistency engine itself drifted)
 // ============================================================================
+
+describe("validate-analytics-readonly — sync_all drift guard", () => {
+  // Regression: Sprint 5 grew live.sync_all() 17 → 30 tables but left the committed
+  // mcp-server-analytics/sql/analytics-machinery.sql at 17, while its header still
+  // advertised "idempotent — safe to re-apply". Re-applying it would have silently
+  // dropped 13 tables from the nightly sync, including every revenue table.
+  const MACHINERY = join(REPO, "mcp-server-analytics", "sql", "analytics-machinery.sql");
+  const CONTRACT = join(REPO, "knowledge", "analytics-sync-contract.yaml");
+  const mod = cjsRequire(join(CT, "validate-analytics-readonly.cjs"));
+
+  const machinerySrc = (): string => readFileSync(MACHINERY, "utf-8");
+  const contractTables = (): string[] =>
+    (yaml.load(readFileSync(CONTRACT, "utf-8")) as { synced_tables: string[] }).synced_tables;
+
+  it("requiring the validator does not execute main() (spawn-only CLI)", () => {
+    expect(typeof mod.parseSyncAllTables).toBe("function");
+  });
+
+  it("parses every quoted table out of the real sync_all() array literal", () => {
+    const tables: string[] | null = mod.parseSyncAllTables(machinerySrc());
+    expect(tables).not.toBeNull();
+    expect(tables!.length).toBe(30);
+    expect(tables).toContain("user_pok_analytics");
+    expect(tables).toContain("payments"); // the revenue table the 17-table body dropped
+  });
+
+  it("ignores the inline SQL comments interleaved in the array literal", () => {
+    const tables: string[] = mod.parseSyncAllTables(machinerySrc());
+    expect(tables.every((t) => /^[a-z_][a-z0-9_]*$/.test(t))).toBe(true);
+  });
+
+  it("the committed sync_all() equals contract.synced_tables as a set", () => {
+    const a = [...mod.parseSyncAllTables(machinerySrc())].sort();
+    const b = [...contractTables()].sort();
+    expect(a).toEqual(b);
+  });
+
+  it("lists no duplicate table (a dupe would full-replace twice per night)", () => {
+    const tables: string[] = mod.parseSyncAllTables(machinerySrc());
+    expect(new Set(tables).size).toBe(tables.length);
+  });
+
+  it("returns null when the sync_all procedure is absent (fail-closed, not 'assume ok')", () => {
+    expect(mod.parseSyncAllTables("create table foo(id int);")).toBeNull();
+  });
+
+  it("returns null when sync_all exists but carries no array literal", () => {
+    const src = "create or replace procedure live.sync_all() language plpgsql as $sa$ begin end $sa$;";
+    expect(mod.parseSyncAllTables(src)).toBeNull();
+  });
+
+  it("detects the historical 17-table body as drift against the contract", () => {
+    const shrunk = machinerySrc().replace(
+      /tables text\[\] := array\[[\s\S]*?\];/,
+      "tables text[] := array['profiles','learning_sessions'];",
+    );
+    const parsed: string[] = mod.parseSyncAllTables(shrunk);
+    expect(parsed).toEqual(["profiles", "learning_sessions"]);
+    const missing = contractTables().filter((t) => !parsed.includes(t));
+    expect(missing).toContain("payments");
+    expect(missing.length).toBe(28);
+  });
+
+  it("passes on the live repo at HEAD", () => {
+    const r = runValidator("validate-analytics-readonly.cjs");
+    expect(r.status, `should exit 0; stderr=${r.stderr}`).toBe(0);
+    expect(r.stdout).toContain("30 synced");
+    expect(r.stdout).toContain("sync_all() in sync");
+  });
+});
 
 describe("v1.0a consistency engine smoke test", () => {
   it("all 3 critical L2 validators pass on the live repo at HEAD", () => {
