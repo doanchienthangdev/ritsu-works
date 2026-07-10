@@ -67,9 +67,46 @@ export function isTierAllowedAnalytics(tier: string | null | undefined): boolean
  * their account simply had no tier. Fail-closed posture is unchanged: every branch
  * here is still a denial.
  */
+/**
+ * Every `reason` a denial can carry. `ok` is deliberately excluded: analyticsDenialReason()
+ * guards on `cred.reason !== "ok"` before it ever reaches a denial, so the type now states
+ * what the code already guarantees.
+ */
+export type AnalyticsDenialReason =
+  | Exclude<CredentialReason, "ok">
+  | "tier_not_permitted"
+  | "role_not_allowlisted";
+
+/**
+ * Runtime mirror of AnalyticsDenialReason. `knowledge/analytics-sync-contract.yaml`
+ * (per_human_tier_gate.denial_reasons) documents this exact set for operators and
+ * auditors; test/denial-reasons-contract.test.ts pins the two together, so the yaml's
+ * claim to be authoritative is enforced rather than asserted. The AssertEqual below
+ * makes TypeScript reject a union member missing here — or an extra one added here.
+ */
+export const ANALYTICS_DENIAL_REASONS = [
+  "no_credential_source",
+  "credential_file_missing",
+  "credential_file_unreadable",
+  "credential_file_no_access_token",
+  "token_undecodable",
+  "token_no_exp",
+  "token_expired",
+  "token_no_tier_claim",
+  "tier_not_permitted",
+  "role_not_allowlisted",
+] as const;
+
+type AssertEqual<A, B> = [A] extends [B] ? ([B] extends [A] ? true : never) : never;
+const _denialReasonsAreExhaustive: AssertEqual<
+  AnalyticsDenialReason,
+  (typeof ANALYTICS_DENIAL_REASONS)[number]
+> = true;
+void _denialReasonsAreExhaustive;
+
 export interface AnalyticsDenial {
   code: "role_not_allowed" | "tier_not_allowed";
-  reason: CredentialReason | "tier_not_permitted" | "role_not_allowlisted";
+  reason: AnalyticsDenialReason;
   detail: string;
   remediation: string;
 }

@@ -42,17 +42,11 @@ const env = (over: Partial<ReturnType<typeof loadEnv>>) => ({ ...loadEnv(base), 
 const resolve = (over: Partial<ReturnType<typeof loadEnv>>) =>
   resolveOperatorCredential(env(over), NOW);
 
-const ALL_REASONS: CredentialReason[] = [
-  "ok",
-  "no_credential_source",
-  "credential_file_missing",
-  "credential_file_unreadable",
-  "credential_file_no_access_token",
-  "token_undecodable",
-  "token_no_exp",
-  "token_expired",
-  "token_no_tier_claim",
-];
+// DERIVED, not hand-listed. CREDENTIAL_REMEDIATION is a Record<CredentialReason, string>,
+// so TypeScript already forces it to carry every union member; reading its keys makes the
+// "for every reason" tests below genuinely total. A hand-written literal would silently
+// under-cover the day a 10th CredentialReason is added.
+const ALL_REASONS = Object.keys(CREDENTIAL_REMEDIATION) as CredentialReason[];
 
 describe("credential diagnostics", () => {
   let dir: string;
