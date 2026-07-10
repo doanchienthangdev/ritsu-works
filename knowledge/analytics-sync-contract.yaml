@@ -145,6 +145,40 @@ per_human_tier_gate:
   # least-priv analytics_reader DB boundary.
   downgrade_lag: "~1h (access-token lifetime); 00050 instant-revocation does NOT cover the local gates"
 
+  # The tier is resolved FRESH per tool call (server.ts resolveCtx), not once at boot:
+  # supabase-ops may persist the access token a moment after analytics starts, and a
+  # later refresh must unblock analytics without an MCP restart.
+  tier_resolution: per_call
+
+  # Denial diagnosability (2026-07-10). Previously EVERY way of failing to establish a
+  # tier collapsed into tier "unknown", so an operator could not tell an expired token
+  # from a missing credential file from an account with no tier claim. The denial now
+  # carries a machine-readable `reason` + a `remediation`, while the coarse wire code
+  # (`role_not_allowed` / `tier_not_allowed`) is unchanged. This is a DIAGNOSIS, not a
+  # permission: every reason below still DENIES (fail-closed).
+  #
+  #   Source of truth: the AnalyticsDenialReason union in
+  #   mcp-server-analytics/src/governance/role-allowlist.ts, mirrored at runtime by
+  #   ANALYTICS_DENIAL_REASONS. The list below is pinned set-equal to that constant by
+  #   mcp-server-analytics/test/denial-reasons-contract.test.ts, so this contract cannot
+  #   silently drift from the code.
+  #
+  # NOTE: `ok` is a CredentialReason but never a denial reason — a denial is only built
+  # once `cred.reason !== "ok"` — so it is absent here by construction.
+  denial_reasons:
+    # credential faults (per-human): no tier could be established at all
+    - no_credential_source            # neither inline token nor credential-file path configured
+    - credential_file_missing         # supabase-ops has never persisted
+    - credential_file_unreadable      # exists but unreadable / not a JSON object
+    - credential_file_no_access_token # cold start: refresh token persisted, access token not yet
+    - token_undecodable               # not a decodable 3-part JWT
+    - token_no_exp                    # undated token — refused (could otherwise grant forever)
+    - token_expired                   # the common one: supabase-ops is not running / its refresh token is spent
+    - token_no_tier_claim             # live token, no app_metadata.tier
+    # authorization faults: an identity WAS established, and it is not permitted
+    - tier_not_permitted              # per-human: a real tier was decoded, but it is 'user'
+    - role_not_allowlisted            # service-key: MCP_CALLER_ROLE not on the consumer allowlist
+
 mcp_server: supabase-analytics       # must be registered in .mcp.json (validator checks)
 
 privacy:

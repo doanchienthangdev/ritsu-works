@@ -28,7 +28,7 @@ export async function handleListTables(
     const r = analyticsDenialReason(ctx);
     return {
       state: "denied",
-      output: { error: r.code, detail: r.detail },
+      output: { error: r.code, detail: r.detail, reason: r.reason, remediation: r.remediation },
       errorCode: r.code,
       errorDetail: r.detail,
     };

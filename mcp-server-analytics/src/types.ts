@@ -6,6 +6,8 @@
  * Postgres role. It never writes, never reaches Product, never touches raw PII.
  */
 
+import type { OperatorCredential } from "./governance/operator-credential.ts";
+
 /** HITL tiers from governance/HITL.md (kept for audit parity with supabase-ops). */
 export type HitlTier = "A" | "B" | "C" | "D-Std" | "D-MAX";
 
@@ -27,6 +29,12 @@ export interface AnalyticsCallerContext {
   authMode?: "service-key" | "per-human";
   /** Per-human operator tier (owner|admin|user) when authMode='per-human', else null. */
   tier?: "owner" | "admin" | "user" | null;
+  /**
+   * The full per-human credential resolution (tier + WHY). Present in per-human
+   * mode; lets a denial name its cause (expired token vs missing file vs no tier
+   * claim) instead of reporting tier "unknown" for all of them.
+   */
+  credential?: OperatorCredential;
 }
 
 /**

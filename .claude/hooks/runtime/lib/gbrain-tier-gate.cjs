@@ -122,8 +122,11 @@ function decideGbrainTier(p) {
       matchRule: 'unresolved-or-expired',
       tier: null,
       reason:
-        "per-human: the operator tier could not be established (no / undated / expired access token). " +
-        "The supabase-ops MCP persists the access token after it authenticates — make sure it is running, then retry. Fail-closed.",
+        'per-human: the operator tier could not be established (no / undated / expired access token). ' +
+        'The supabase-ops MCP is the sole refresher — it persists a fresh access token once it ' +
+        'authenticates. Check that it started; if its boot log shows `Invalid Refresh Token: Already ' +
+        'Used`, the stored refresh token is spent — re-enroll with ' +
+        '`node scripts/multi-user-auth/enroll.cjs "<magic-link>"`. Fail-closed.',
     };
   }
   if (!tier) {
