@@ -131,9 +131,12 @@ async function main(): Promise<void> {
     const startedAt = Date.now();
     let result: ToolResult;
     let requiredTier: string = "A";
-    // Falls back to the boot client so the audit + alert paths below always have one,
-    // even when re-resolving the per-human token is what threw.
+    // Falls back to the boot client so the alert path below always has one. But a per-human
+    // FOLLOWER's boot client is pinned to a token that expires within the hour and is never
+    // refreshed, so writing the audit row on it would be denied by RLS — silently losing the
+    // audit for exactly the credential-fault calls we most want recorded. Track usability.
     let conn: SupabaseClient = client;
+    let connUsable = env.authMode !== "per-human";
 
     try {
       const tool = findToolDef(name);
@@ -148,6 +151,7 @@ async function main(): Promise<void> {
 
       // Gate 3 — a follower's access token expires within the hour; pick up the leader's.
       conn = await liveClient();
+      connUsable = true;
 
       // Run handler
       result = await tool.handler(args, ctx, conn);
@@ -201,6 +205,11 @@ async function main(): Promise<void> {
     );
 
     // Audit — fire-and-forget. Failures logged to stderr but never block the call.
+    // Skipped when the per-human token could not be re-resolved: `conn` is then the expired
+    // boot client and the INSERT would be denied by RLS, so we say so rather than pretend.
+    if (!connUsable) {
+      logStderr(`AUDIT SKIPPED for ${name}: no usable client (per-human credential fault)`);
+    } else
     writeAudit(conn, {
       toolId: name,
       callerCtx: ctx,
@@ -247,7 +256,15 @@ main().catch(async (err) => {
   // establishPerHumanSession already alerts on a revoked credential; this catches every
   // OTHER fatal (bad env, unreachable DB, project-ref violation at boot). Best-effort:
   // notifyFounder never throws, so an alerting failure cannot mask the real error.
-  if (!/session revoked/i.test(msg)) {
+  //
+  // A CredentialBusyError survived its retries: a live leader simply never published. That
+  // is transient and self-correcting on the next launch — paging the founder for it is the
+  // alert fatigue that makes real alarms invisible.
+  const transient = (err as Error).name === "CredentialBusyError";
+  if (transient) {
+    process.stderr.write(`[supabase-ops] transient: another instance holds the credential lock. Retry.\n`);
+  }
+  if (!transient && !/session revoked/i.test(msg)) {
     const r = await notifyFounder(
       `🔴 Ritsu · supabase-ops KHÔNG BOOT ĐƯỢC\n⚠️ ${msg}\n📉 analytics + gbrain sẽ từ chối sau ~1h.`,
     );

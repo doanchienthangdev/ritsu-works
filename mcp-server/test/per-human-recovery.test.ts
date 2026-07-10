@@ -293,6 +293,7 @@ describe("establishPerHumanSession", () => {
       heal: vi.fn(),
       reset: vi.fn(),
       notify: vi.fn().mockResolvedValue({ delivered: true }),
+      sleep: vi.fn().mockResolvedValue(undefined),
       ...over,
     }) as never;
 
@@ -312,7 +313,9 @@ describe("establishPerHumanSession", () => {
   });
 
   it("revoked + eligible → heals, resets the cached client, re-establishes, alerts", async () => {
-    writeCred({ access_token: tokenFor({ expMs: NOW }) });
+    // A revoked credential is a DEAD one: its access token must be in the past, or
+    // establishPerHumanSession rightly concludes a sibling already healed and skips.
+    writeCred({ access_token: tokenFor({ expMs: Date.now() - 60_000 }) });
     const ensure = vi
       .fn()
       .mockRejectedValueOnce(new CredentialRevokedError("Already Used"))
@@ -328,7 +331,7 @@ describe("establishPerHumanSession", () => {
   });
 
   it("revoked + NOT eligible → alerts loudly with the remedy, then dies closed", async () => {
-    writeCred({ access_token: tokenFor({ expMs: NOW }) });
+    writeCred({ access_token: tokenFor({ expMs: Date.now() - 60_000 }) });
     const d = deps({
       ensure: vi.fn().mockRejectedValue(new CredentialRevokedError("Already Used")),
       eligible: vi.fn().mockReturnValue({ ok: false, reason: "no_service_key" }),
@@ -342,7 +345,7 @@ describe("establishPerHumanSession", () => {
   });
 
   it("still dies closed when the alert itself fails", async () => {
-    writeCred({ access_token: tokenFor({ expMs: NOW }) });
+    writeCred({ access_token: tokenFor({ expMs: Date.now() - 60_000 }) });
     const d = deps({
       ensure: vi.fn().mockRejectedValue(new CredentialRevokedError("Already Used")),
       eligible: vi.fn().mockReturnValue({ ok: false, reason: "no_service_key" }),

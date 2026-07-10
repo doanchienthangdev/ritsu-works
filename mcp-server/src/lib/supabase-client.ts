@@ -28,8 +28,10 @@ import {
   readCredential,
   persistRefreshToken,
   isAccessTokenFresh,
+  accessTokenExpiryMs,
   isRevokedRefreshError,
   CredentialRevokedError,
+  FRESH_MARGIN_MS,
 } from "../governance/operator-credential.ts";
 import {
   tryAcquireCredentialLock,
@@ -128,6 +130,43 @@ const NOOP_LOCK: LockHandle = {
   release() {},
 };
 
+/** One pending follower wake-up at a time. `unref`'d, so it never holds the process open. */
+let followerTimer: ReturnType<typeof setTimeout> | null = null;
+/** Never wake sooner than this, however close to expiry the token already is. */
+const MIN_WAKE_MS = 30_000;
+
+/**
+ * Followers only re-resolve when a tool call arrives. Leadership therefore changes hands
+ * only on demand — so when a busy session (the leader) closes while other sessions sit idle,
+ * NOBODY refreshes, and the credential file expires under two components that merely read it
+ * (the analytics MCP and the gbrain hook). This one-shot timer wakes a follower just before
+ * its token stops being fresh; whoever finds the lock free becomes the new leader.
+ */
+function scheduleFollowerWake(env: ServerEnv, accessToken: string): void {
+  if (leader) return;
+  if (followerTimer) clearTimeout(followerTimer);
+  const exp = accessTokenExpiryMs(accessToken);
+  if (exp == null) return;
+  // Fire a little before the token stops counting as fresh, so the takeover is not a scramble.
+  const delay = Math.max(MIN_WAKE_MS, exp - FRESH_MARGIN_MS - 30_000 - Date.now());
+  followerTimer = setTimeout(() => {
+    followerTimer = null;
+    // Transient failures are fine: the next tool call, or the next wake, retries.
+    void ensurePerHumanClient(env).catch(() => {});
+  }, delay);
+  followerTimer.unref?.();
+}
+
+/** Build the follower result and arm the wake-up. */
+function asFollower(
+  env: ServerEnv,
+  anon: string,
+  token: string,
+): { client: SupabaseClient; accessToken: string; role: "follower" } {
+  scheduleFollowerWake(env, token);
+  return { client: bearerClient(env.url, anon, token), accessToken: token, role: "follower" };
+}
+
 /**
  * Step down. Called when we lapsed and were stolen from, or when the background refresh
  * died. Both cases MUST stop this process refreshing: a leader that keeps its auto-refresh
@@ -196,11 +235,7 @@ export async function ensurePerHumanClient(
   if (!lock) {
     // Someone else leads. A fresh token is all a follower needs.
     if (stored?.accessToken && storedIsFresh) {
-      return {
-        client: bearerClient(env.url, anon, stored.accessToken),
-        accessToken: stored.accessToken,
-        role: "follower",
-      };
+      return asFollower(env, anon, stored.accessToken);
     }
     // The leader is mid-refresh. Wait briefly for it to publish.
     const deadline = Date.now() + FOLLOWER_WAIT_MS;
@@ -208,11 +243,7 @@ export async function ensurePerHumanClient(
       await sleep(FOLLOWER_POLL_MS);
       const again = readCredential(file);
       if (again?.accessToken && isAccessTokenFresh(again.accessToken, Date.now())) {
-        return {
-          client: bearerClient(env.url, anon, again.accessToken),
-          accessToken: again.accessToken,
-          role: "follower",
-        };
+        return asFollower(env, anon, again.accessToken);
       }
     }
     throw new CredentialBusyError(
@@ -321,6 +352,10 @@ async function becomeLeader(
     lock.release();
   });
 
+  if (followerTimer) {
+    clearTimeout(followerTimer);
+    followerTimer = null;
+  }
   cached = client;
   cachedKey = "per-human-leader";
   leader = { client, accessToken, lock, stopHeartbeat };
@@ -341,6 +376,10 @@ export async function refreshPerHumanClient(
 
 /** Reset cache — for tests. */
 export function resetClient(): void {
+  if (followerTimer) {
+    clearTimeout(followerTimer);
+    followerTimer = null;
+  }
   if (leader) {
     leader.stopHeartbeat();
     leader.lock.release();
