@@ -1,23 +1,32 @@
-// The load-bearing assertion of the whole fix: a process must NOT spend a refresh-token
-// rotation unless it is the lock holder AND the persisted access token is near expiry.
+// Two claims hold this fix up, and they pull against each other:
 //
-// Everything else in this PR is scaffolding around that one sentence. Supabase revokes the
-// entire session when a rotated refresh token is presented outside a 10s window, so "two
-// processes both refreshed" is not a performance bug — it is a permanent lockout, and it is
-// what silently killed supabase-ops on 2026-07-03.
+//   (1) A process must NEVER spend a refresh-token rotation unless it holds the lock.
+//       Supabase revokes the entire session when a rotated token is presented outside a
+//       10s window, so "two processes both refreshed" is a permanent lockout. That is what
+//       killed supabase-ops on 2026-07-03.
+//
+//   (2) SOMEONE must keep the credential file current. The analytics MCP and the gbrain
+//       hook only READ the access token persisted there. If no process holds a session with
+//       auto-refresh on, both go dark the moment the token expires.
+//
+// Satisfying (1) alone is easy and wrong — the first draft of this PR did exactly that, and
+// would have traded a revoked-credential outage for a silently-expiring one. The leader
+// therefore ADOPTS a still-fresh session (`setSession`, no rotation) instead of skipping
+// leadership entirely.
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdtempSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const refreshSession = vi.fn();
+const setSession = vi.fn();
 const createdWith: Array<Record<string, unknown>> = [];
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: (_url: string, _key: string, opts: Record<string, unknown>) => {
     createdWith.push(opts);
-    return { auth: { refreshSession, onAuthStateChange: vi.fn() } };
+    return { auth: { refreshSession, setSession, onAuthStateChange: vi.fn() } };
   },
 }));
 
@@ -43,52 +52,32 @@ const writeCred = (access: string, refresh = "rt-1") =>
 const foreignLock = () =>
   writeFileSync(`${file}.lock`, JSON.stringify({ pid: process.pid + 1, host: "other", acquired_at: "x" }));
 
+const lastAuthOpts = () => createdWith.at(-1)?.auth as Record<string, unknown> | undefined;
+
 beforeEach(() => {
   dir = mkdtempSync(join(tmpdir(), "leader-"));
   file = join(dir, ".operator-refresh.json");
   refreshSession.mockReset();
+  setSession.mockReset();
   createdWith.length = 0;
   resetClient();
   refreshSession.mockResolvedValue({
     data: { session: { access_token: FRESH(), refresh_token: "rt-2" } },
     error: null,
   });
+  setSession.mockImplementation(async ({ access_token }: { access_token: string }) => ({
+    data: { session: { access_token, refresh_token: "rt-1" } },
+    error: null,
+  }));
 });
 afterEach(() => {
   resetClient();
   rmSync(dir, { recursive: true, force: true });
 });
 
-describe("ensurePerHumanClient — who is allowed to refresh", () => {
-  it("a FRESH persisted token is used as-is: zero refreshes, zero rotations", async () => {
-    writeCred(FRESH());
-    const r = await ensurePerHumanClient(env());
-    expect(r.role).toBe("follower");
-    expect(refreshSession).not.toHaveBeenCalled();
-  });
-
-  it("a follower's client never auto-refreshes", async () => {
-    writeCred(FRESH());
-    await ensurePerHumanClient(env());
-    expect(createdWith.at(-1)?.auth).toMatchObject({ autoRefreshToken: false });
-  });
-
-  it("a follower takes no lock — 15 sessions booting on a fresh token contend for nothing", async () => {
-    writeCred(FRESH());
-    await ensurePerHumanClient(env());
-    expect(existsSync(`${file}.lock`)).toBe(false);
-  });
-
-  it("N sequential followers still perform ZERO refreshes", async () => {
-    writeCred(FRESH());
-    for (let i = 0; i < 5; i++) {
-      resetClient();
-      await ensurePerHumanClient(env());
-    }
-    expect(refreshSession).not.toHaveBeenCalled();
-  });
-
-  it("a STALE token + a free lock makes us the leader, and we refresh exactly once", async () => {
+// ── claim (1): never rotate unless you lead ─────────────────────────────────────
+describe("only the lock holder may spend a rotation", () => {
+  it("a stale token + a free lock makes us leader; exactly one refresh", async () => {
     writeCred(STALE());
     const r = await ensurePerHumanClient(env());
     expect(r.role).toBe("leader");
@@ -96,58 +85,114 @@ describe("ensurePerHumanClient — who is allowed to refresh", () => {
     expect(refreshSession).toHaveBeenCalledWith({ refresh_token: "rt-1" });
   });
 
-  it("only the leader's client auto-refreshes", async () => {
+  it("persists the rotated refresh token immediately", async () => {
     writeCred(STALE());
     await ensurePerHumanClient(env());
-    expect(createdWith.at(-1)?.auth).toMatchObject({ autoRefreshToken: true });
+    expect(JSON.parse(readFileSync(file, "utf8")).refresh_token).toBe("rt-2");
   });
 
-  it("the leader persists the rotated refresh token immediately", async () => {
-    writeCred(STALE());
-    await ensurePerHumanClient(env());
-    const after = JSON.parse(require("node:fs").readFileSync(file, "utf8")) as { refresh_token: string };
-    expect(after.refresh_token).toBe("rt-2");
-  });
-
-  it("once leading, repeat calls do not refresh again", async () => {
-    writeCred(STALE());
-    await ensurePerHumanClient(env());
-    await ensurePerHumanClient(env());
-    await ensurePerHumanClient(env());
-    expect(refreshSession).toHaveBeenCalledTimes(1);
-  });
-
-  it("a stale token under a LIVE foreign lock never refreshes — the race, prevented", async () => {
+  it("a stale token under a LIVE foreign lock NEVER refreshes — the race, prevented", async () => {
     writeCred(STALE());
     foreignLock();
-    // The peer publishes a fresh token while we wait, exactly as a real leader would.
-    setTimeout(() => writeCred(FRESH(), "rt-9"), 250);
+    setTimeout(() => writeCred(FRESH(), "rt-9"), 250); // the peer publishes, as a leader would
     const r = await ensurePerHumanClient(env());
     expect(r.role).toBe("follower");
     expect(refreshSession).not.toHaveBeenCalled();
   });
 
-  it("gives up with CredentialBusyError if the leader never publishes", async () => {
+  it("gives up with CredentialBusyError rather than refreshing behind the leader's back", async () => {
     writeCred(STALE());
     foreignLock();
     await expect(ensurePerHumanClient(env())).rejects.toBeInstanceOf(CredentialBusyError);
     expect(refreshSession).not.toHaveBeenCalled();
   }, 10_000);
 
-  it("re-reads under the lock: a peer that published just before we acquired wins", async () => {
-    // Simulates the interleaving where we saw a stale token, then the peer released the
-    // lock having persisted a fresh one, then we acquired it. We must NOT refresh.
+  it("once leading, repeat calls neither re-refresh nor re-adopt", async () => {
     writeCred(STALE());
-    const original = ensurePerHumanClient;
-    // Publish fresh content between the fast-path read and the under-lock read by
-    // exploiting that the lock file does not exist: acquire happens, then re-read.
-    writeCred(FRESH()); // stand-in for the peer's publish
-    const r = await original(env());
-    expect(r.role).toBe("follower");
-    expect(refreshSession).not.toHaveBeenCalled();
-    expect(existsSync(`${file}.lock`)).toBe(false); // and we released what we took
+    await ensurePerHumanClient(env());
+    await ensurePerHumanClient(env());
+    await ensurePerHumanClient(env());
+    expect(refreshSession).toHaveBeenCalledTimes(1);
+    expect(setSession).not.toHaveBeenCalled();
+  });
+});
+
+// ── claim (2): someone must keep the file current ───────────────────────────────
+describe("a fresh token still gets a leader — the regression this PR nearly shipped", () => {
+  it("ADOPTS the live session instead of skipping leadership", async () => {
+    writeCred(FRESH());
+    const r = await ensurePerHumanClient(env());
+    expect(r.role).toBe("leader");
   });
 
+  it("adoption spends NO rotation", async () => {
+    writeCred(FRESH());
+    await ensurePerHumanClient(env());
+    expect(refreshSession).not.toHaveBeenCalled();
+    expect(setSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("adopts with BOTH tokens, so supabase-js can refresh before expiry", async () => {
+    const at = FRESH();
+    writeCred(at, "rt-1");
+    await ensurePerHumanClient(env());
+    expect(setSession).toHaveBeenCalledWith({ access_token: at, refresh_token: "rt-1" });
+  });
+
+  it("the leader's client auto-refreshes — otherwise analytics + gbrain go dark at expiry", async () => {
+    writeCred(FRESH());
+    await ensurePerHumanClient(env());
+    expect(lastAuthOpts()).toMatchObject({ autoRefreshToken: true });
+  });
+
+  it("falls back to a real refresh when adoption fails — a rotation beats a dark gate", async () => {
+    writeCred(FRESH());
+    setSession.mockResolvedValue({ data: null, error: { message: "setSession blew up" } });
+    const r = await ensurePerHumanClient(env());
+    expect(r.role).toBe("leader");
+    expect(refreshSession).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── followers ──────────────────────────────────────────────────────────────────
+describe("followers", () => {
+  it("a fresh token under a foreign lock yields a follower that touches nothing", async () => {
+    writeCred(FRESH());
+    foreignLock();
+    const r = await ensurePerHumanClient(env());
+    expect(r.role).toBe("follower");
+    expect(refreshSession).not.toHaveBeenCalled();
+    expect(setSession).not.toHaveBeenCalled();
+  });
+
+  it("a follower's client never auto-refreshes", async () => {
+    writeCred(FRESH());
+    foreignLock();
+    await ensurePerHumanClient(env());
+    expect(lastAuthOpts()).toMatchObject({ autoRefreshToken: false });
+  });
+
+  it("a follower does not evict the leader's lock", async () => {
+    writeCred(FRESH());
+    foreignLock();
+    await ensurePerHumanClient(env());
+    expect(JSON.parse(readFileSync(`${file}.lock`, "utf8")).pid).toBe(process.pid + 1);
+  });
+
+  it("15 sessions on a fresh token perform ZERO rotations between them", async () => {
+    writeCred(FRESH());
+    await ensurePerHumanClient(env()); // the first leads (adopts)
+    foreignLock(); // it now holds the lock, as far as everyone else can see
+    for (let i = 0; i < 14; i++) {
+      resetClient();
+      expect((await ensurePerHumanClient(env())).role).toBe("follower");
+    }
+    expect(refreshSession).not.toHaveBeenCalled();
+  });
+});
+
+// ── failure surfaces ───────────────────────────────────────────────────────────
+describe("failures", () => {
   it("surfaces a revoked session as CredentialRevokedError so boot can self-heal", async () => {
     writeCred(STALE());
     refreshSession.mockResolvedValue({ data: null, error: { message: "Invalid Refresh Token: Already Used" } });

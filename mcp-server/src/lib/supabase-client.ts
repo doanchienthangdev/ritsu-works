@@ -145,21 +145,26 @@ export async function ensurePerHumanClient(
   if (leader) return { client: leader.client, accessToken: leader.accessToken, role: "leader" };
 
   const file = env.perHumanRefreshTokenFile;
-
-  // Fast path — a token someone else already refreshed is good enough.
   const stored = readCredential(file);
-  if (stored?.accessToken && isAccessTokenFresh(stored.accessToken, nowMs)) {
-    return {
-      client: bearerClient(env.url, anon, stored.accessToken),
-      accessToken: stored.accessToken,
-      role: "follower",
-    };
-  }
+  const storedIsFresh = isAccessTokenFresh(stored?.accessToken, nowMs);
 
-  // Stale. Only the lock holder may spend a rotation.
+  // Try to LEAD even when the token is fresh. Someone must keep the file current: the
+  // analytics MCP and the gbrain hook only ever READ the access token persisted here, so
+  // if no process holds a session with auto-refresh on, both go dark the moment it expires.
+  // The leader with a fresh token adopts the session (`setSession`) rather than refreshing —
+  // no rotation is spent, and supabase-js then refreshes it *before* expiry, as before.
   const lock = file ? tryAcquireCredentialLock(file) : NOOP_LOCK;
+
   if (!lock) {
-    // A live leader is refreshing right now. Wait briefly for it to publish.
+    // Someone else leads. A fresh token is all a follower needs.
+    if (stored?.accessToken && storedIsFresh) {
+      return {
+        client: bearerClient(env.url, anon, stored.accessToken),
+        accessToken: stored.accessToken,
+        role: "follower",
+      };
+    }
+    // The leader is mid-refresh. Wait briefly for it to publish.
     const deadline = Date.now() + FOLLOWER_WAIT_MS;
     while (Date.now() < deadline) {
       await sleep(FOLLOWER_POLL_MS);
@@ -178,28 +183,29 @@ export async function ensurePerHumanClient(
   }
 
   try {
-    // Re-read under the lock: the previous holder may have persisted while we waited.
+    // Re-read under the lock: a previous holder may have persisted while we were acquiring.
     const underLock = readCredential(file);
-    if (underLock?.accessToken && isAccessTokenFresh(underLock.accessToken, Date.now())) {
-      lock.release();
-      return {
-        client: bearerClient(env.url, anon, underLock.accessToken),
-        accessToken: underLock.accessToken,
-        role: "follower",
-      };
-    }
-    return await becomeLeader(env, anon, lock);
+    return await becomeLeader(env, anon, lock, underLock ?? stored);
   } catch (err) {
     lock.release();
     throw err;
   }
 }
 
-/** Perform the one refresh this machine is allowed, and hold the lock for our lifetime. */
+/**
+ * Take the one session this machine is allowed to drive, and hold the lock for our lifetime.
+ *
+ * Two ways in. If `stored` still carries a live access token we ADOPT it (`setSession`) —
+ * no rotation is spent, and supabase-js schedules the refresh before expiry. Only when the
+ * token is stale (or adoption fails) do we spend a rotation via `refreshSession`. Either
+ * way this process, and only this process, keeps the credential file current for the
+ * read-only consumers.
+ */
 async function becomeLeader(
   env: ServerEnv,
   anon: string,
   lock: LockHandle,
+  stored: { accessToken: string | null; refreshToken: string | null } | null,
 ): Promise<{ client: SupabaseClient; accessToken: string; role: "leader" }> {
   const refreshToken = readRefreshToken(env); // file (source of truth) > inline seed
   if (!refreshToken) {
@@ -228,21 +234,35 @@ async function becomeLeader(
     });
   }
 
-  const { data, error } = await client.auth.refreshSession({ refresh_token: refreshToken });
-  if (error || !data?.session?.access_token) {
-    const detail = error?.message ?? "no session returned";
-    if (isRevokedRefreshError(detail)) {
-      throw new CredentialRevokedError(`per-human refresh failed (session revoked): ${detail}`);
-    }
-    throw new Error(`per-human refresh failed (token revoked/expired/rotated?): ${detail}`);
+  // ADOPT — the token is still good. Costs no rotation; supabase-js takes over from here.
+  let accessToken: string | null = null;
+  if (stored?.accessToken && isAccessTokenFresh(stored.accessToken, Date.now())) {
+    const { data, error } = await client.auth.setSession({
+      access_token: stored.accessToken,
+      refresh_token: refreshToken,
+    });
+    if (!error && data?.session?.access_token) accessToken = data.session.access_token;
+    // On error we fall through to a real refresh: a rotation is cheaper than a dark gate.
   }
 
-  // Belt-and-suspenders: onAuthStateChange may fire asynchronously, so persist now too.
-  if (file && data.session.refresh_token) {
-    try {
-      persistRefreshToken(file, data.session.refresh_token, new Date().toISOString(), data.session.access_token);
-    } catch {
-      /* non-fatal */
+  // REFRESH — the token is stale (or adoption failed). This is the one rotation.
+  if (!accessToken) {
+    const { data, error } = await client.auth.refreshSession({ refresh_token: refreshToken });
+    if (error || !data?.session?.access_token) {
+      const detail = error?.message ?? "no session returned";
+      if (isRevokedRefreshError(detail)) {
+        throw new CredentialRevokedError(`per-human refresh failed (session revoked): ${detail}`);
+      }
+      throw new Error(`per-human refresh failed (token revoked/expired/rotated?): ${detail}`);
+    }
+    accessToken = data.session.access_token;
+    // Belt-and-suspenders: onAuthStateChange may fire asynchronously, so persist now too.
+    if (file && data.session.refresh_token) {
+      try {
+        persistRefreshToken(file, data.session.refresh_token, new Date().toISOString(), accessToken);
+      } catch {
+        /* non-fatal */
+      }
     }
   }
 
@@ -254,8 +274,8 @@ async function becomeLeader(
 
   cached = client;
   cachedKey = "per-human-leader";
-  leader = { client, accessToken: data.session.access_token, lock, stopHeartbeat };
-  return { client, accessToken: data.session.access_token, role: "leader" };
+  leader = { client, accessToken, lock, stopHeartbeat };
+  return { client, accessToken, role: "leader" };
 }
 
 /**
