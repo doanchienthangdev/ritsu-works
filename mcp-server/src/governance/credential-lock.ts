@@ -29,7 +29,8 @@
  * this module misbehaves on a machine we cannot reach.
  */
 
-import { writeFileSync, readFileSync, unlinkSync, utimesSync, statSync } from "node:fs";
+import { writeFileSync, readFileSync, unlinkSync, utimesSync, statSync, renameSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 import { hostname } from "node:os";
 
 /** Heartbeat cadence. Must be comfortably below `staleMs`. */
@@ -40,8 +41,16 @@ export const DEFAULT_STALE_MS = 120_000;
 export interface LockHandle {
   readonly lockPath: string;
   readonly stolen: boolean;
-  /** Refresh the heartbeat so a live leader is never mistaken for a dead one. */
-  touch(): void;
+  /** Do we still own the lock on disk? False once someone has stolen it from us. */
+  isOwned(): boolean;
+  /**
+   * Refresh the heartbeat. Returns FALSE when the lock is no longer ours — a stolen-from
+   * leader must learn this, because it is still holding an auto-refreshing session and is
+   * one tick away from rotating the shared refresh token concurrently with the new leader.
+   * Blindly touching a lock we do not own also keeps the NEW owner's lock artificially
+   * alive, which is how a zombie starves everyone.
+   */
+  touch(): boolean;
   /** Idempotent. Only removes the lock if this process still owns it. */
   release(): void;
 }
@@ -81,13 +90,21 @@ function create(lockPath: string, stolen: boolean): LockHandle {
   const handle: LockHandle = {
     lockPath,
     stolen,
+    isOwned() {
+      return !released && ownedByUs(lockPath);
+    },
     touch() {
-      if (released) return;
+      if (released) return false;
+      // Ownership guard: without it a stolen-from leader keeps bumping the mtime of the
+      // NEW owner's lock file, so that lock never looks stale and nobody can ever recover.
+      if (!ownedByUs(lockPath)) return false;
       try {
         const now = new Date();
         utimesSync(lockPath, now, now);
+        return true;
       } catch {
-        /* best-effort: a failed touch only risks being stolen, never corruption */
+        // best-effort: a failed touch only risks being stolen, never corruption
+        return true;
       }
     },
     release() {
@@ -118,7 +135,7 @@ export function tryAcquireCredentialLock(
 ): LockHandle | null {
   if ((process.env.RITSU_CREDENTIAL_LOCK ?? "").trim() === "off") {
     // Escape hatch: pretend we always lead. Restores pre-fix behaviour exactly.
-    return { lockPath: "", stolen: false, touch() {}, release() {} };
+    return { lockPath: "", stolen: false, isOwned: () => true, touch: () => true, release() {} };
   }
 
   const lockPath = lockPathFor(credentialPath);
@@ -134,26 +151,55 @@ export function tryAcquireCredentialLock(
   // Someone holds it. Alive?
   if (heartbeatAgeMs(lockPath, nowMs) <= staleMs) return null;
 
-  // Stale → steal. If a peer steals first, our `wx` create loses and we return null:
-  // exactly one thief wins, and a simultaneous double-steal is harmless (see header).
+  // Stale → steal.
+  //
+  // The obvious `unlinkSync` + `create(...,'wx')` is a TOCTOU: thief B's unlink can delete
+  // the fresh lock thief A just created under O_EXCL, and then B's own create succeeds too.
+  // Both processes come away believing they lead, which is precisely the two-refreshers
+  // state that revokes the session. The naked unlink defeats the exclusivity `wx` provides.
+  //
+  // `rename` is the exclusive primitive: exactly one process can rename an existing path
+  // away. The loser gets ENOENT and yields. Only the winner then races for the fresh lock.
+  const tomb = `${lockPath}.dead.${randomBytes(4).toString("hex")}`;
   try {
-    unlinkSync(lockPath);
+    renameSync(lockPath, tomb);
   } catch {
-    /* a peer already removed it — fall through and try to create */
+    // A peer stole it first (ENOENT), or it vanished. Either way we are not the thief.
+    return null;
+  }
+  try {
+    unlinkSync(tomb);
+  } catch {
+    /* leftover tombstone is inert */
   }
   try {
     return create(lockPath, true);
   } catch {
+    // A brand-new process (not a thief) took the now-free lock. Fine — one leader.
     return null;
   }
 }
 
 /**
- * Start a heartbeat for a held lock. The timer is `unref`'d so it never keeps the
- * process alive, and `release()` on the returned stopper is idempotent.
+ * Start a heartbeat for a held lock. The timer is `unref`'d so it never keeps the process
+ * alive, and the returned stopper is idempotent.
+ *
+ * `onLost` fires the moment the lock is no longer ours — we lapsed (laptop sleep, a blocked
+ * event loop) and were legitimately stolen from. The caller MUST stop refreshing when this
+ * fires: a stolen-from leader that keeps its auto-refresh ticker running is a second,
+ * unsanctioned refresher, which is exactly what revokes the whole session.
  */
-export function startHeartbeat(handle: LockHandle, everyMs: number = HEARTBEAT_MS): () => void {
-  const t = setInterval(() => handle.touch(), everyMs);
+export function startHeartbeat(
+  handle: LockHandle,
+  everyMs: number = HEARTBEAT_MS,
+  onLost?: () => void,
+): () => void {
+  const t = setInterval(() => {
+    if (!handle.touch()) {
+      clearInterval(t);
+      onLost?.();
+    }
+  }, everyMs);
   t.unref?.();
   return () => clearInterval(t);
 }

@@ -120,7 +120,37 @@ function bearerClient(url: string, anon: string, token: string): SupabaseClient 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** The no-op handle used when there is no credential file or the escape hatch is on. */
-const NOOP_LOCK: LockHandle = { lockPath: "", stolen: false, touch() {}, release() {} };
+const NOOP_LOCK: LockHandle = {
+  lockPath: "",
+  stolen: false,
+  isOwned: () => true,
+  touch: () => true,
+  release() {},
+};
+
+/**
+ * Step down. Called when we lapsed and were stolen from, or when the background refresh
+ * died. Both cases MUST stop this process refreshing: a leader that keeps its auto-refresh
+ * ticker after losing the lock becomes a second refresher, and a leader whose refresh is
+ * dead but whose heartbeat still beats starves every follower out of taking over. Either
+ * way the next `ensurePerHumanClient` re-resolves us from the file, as a follower.
+ */
+function demoteLeader(reason: string): void {
+  if (!leader) return;
+  const { client, lock, stopHeartbeat } = leader;
+  leader = null;
+  cached = null;
+  cachedKey = null;
+  stopHeartbeat();
+  try {
+    // Silence supabase-js's own refresh ticker. Optional-chained: older clients lack it.
+    (client.auth as { stopAutoRefresh?: () => void }).stopAutoRefresh?.();
+  } catch {
+    /* best-effort */
+  }
+  lock.release(); // no-op unless we still own it
+  process.stderr.write(`[supabase-ops] leader demoted: ${reason}\n`);
+}
 
 /**
  * Resolve a usable per-human client, refreshing only if this process is the leader AND the
@@ -141,8 +171,16 @@ export async function ensurePerHumanClient(
   const anon = env.anonKey;
   if (!anon) throw new Error("per-human refresh requires the anon key");
 
-  // Already leading: supabase-js owns the session and keeps it fresh. Nothing to read.
-  if (leader) return { client: leader.client, accessToken: leader.accessToken, role: "leader" };
+  // Already leading — but only if we still hold the lock. A lapsed leader (laptop sleep,
+  // blocked event loop) can have been legitimately stolen from; it must not keep refreshing.
+  // The heartbeat normally catches this; this per-call check closes the window between the
+  // theft and the next 30s tick.
+  if (leader) {
+    if (leader.lock.isOwned()) {
+      return { client: leader.client, accessToken: leader.accessToken, role: "leader" };
+    }
+    demoteLeader("lock was stolen while we lapsed");
+  }
 
   const file = env.perHumanRefreshTokenFile;
   const stored = readCredential(file);
@@ -222,7 +260,7 @@ async function becomeLeader(
 
   const file = env.perHumanRefreshTokenFile;
   if (file) {
-    client.auth.onAuthStateChange((_event, session) => {
+    client.auth.onAuthStateChange((event, session) => {
       if (session?.refresh_token) {
         try {
           persistRefreshToken(file, session.refresh_token, new Date().toISOString(), session.access_token);
@@ -230,6 +268,14 @@ async function becomeLeader(
         } catch {
           /* non-fatal: the next boot re-reads whatever did land */
         }
+        return;
+      }
+      // No session: the background refresh failed, or the session was signed out/revoked.
+      // Persisting nothing and beating on regardless is the ZOMBIE LEADER — the credential
+      // file freezes at a dead token while our heartbeat keeps every follower from taking
+      // over. Step down so someone else can.
+      if (event === "SIGNED_OUT" || session === null) {
+        demoteLeader(`auth state '${event}' with no session — background refresh is dead`);
       }
     });
   }
@@ -266,7 +312,10 @@ async function becomeLeader(
     }
   }
 
-  const stopHeartbeat = startHeartbeat(lock);
+  // The heartbeat also WATCHES: the moment the lock stops being ours, we stand down.
+  const stopHeartbeat = startHeartbeat(lock, undefined, () =>
+    demoteLeader("heartbeat found the lock no longer ours"),
+  );
   process.once("exit", () => {
     stopHeartbeat();
     lock.release();
