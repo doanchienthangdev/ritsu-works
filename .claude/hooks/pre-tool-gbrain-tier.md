@@ -41,18 +41,23 @@ The hook reads the **access token** that the supabase-ops MCP persists to the sh
 
 The hook self-configures from `runtime/secrets/.env.local` (it does not inherit the shell env in Claude Desktop — the MCP wrappers source `.env.local`, so the hook reads it directly).
 
+**Worktree resolution (fixed 2026-07-10).** `runtime/` is local-only and absent from git worktrees, so resolving `.env.local` relative to the hook file put it at `<worktree>/runtime/secrets/.env.local` — which never exists. `readEnvLocal()` returned `{}`, `RITSU_AUTH_MODE` fell back to its `service-key` default, and **the gate silently no-opped for every gbrain call made from a worktree session** — a fail-OPEN on the one per-human surface with no server-side backstop. The hook now walks out of `.claude/worktrees/<name>/` to the main root (mirroring `scripts/cross-tier/check-analytics-sync-health.cjs`) before reading `.env.local`. A machine with no per-human install (fresh clone / CI) still no-ops exactly as before. Pinned by `tests/multi-user-auth/gbrain-hook-worktree.test.ts`.
+
 ## Decision logic
 
 ```
-authMode != per-human (or no .env.local: worktree / CI)  → allow (no-op)
-tool is not mcp__gbrain__*                                → allow
+authMode != per-human (no .env.local at the MAIN ROOT: fresh clone / CI)  → allow (no-op)
+tool is not mcp__gbrain__*                                                → allow
 per-human + mcp__gbrain__* :
-  access token missing / undated / EXPIRED               → BLOCK (fail-closed)
+  access token missing / undated / EXPIRED                → BLOCK (fail-closed)
   token has no app_metadata.tier                          → BLOCK (fail-closed)
   tier may use gbrain (owner / admin)                     → allow
   tier may NOT use gbrain (user)                          → BLOCK (tier-denied)
   internal error (e.g. locally-corrupted tiers.yaml)      → BLOCK (fail-closed)
 ```
+
+Note the first line reads **main root**, not "cwd": running from a worktree on a per-human
+machine now gates, exactly as running from the main root does.
 
 Fast, safe exits (allow) cover service-key / non-gbrain / no-config so default installs are byte-identical and a hook bug can't brick non-gbrain work. Once committed to a per-human gbrain call, every error path **fails closed** so a user-corrupted local `operator-tiers.yaml` cannot become a bypass. A genuine cold-start (a gbrain call firing before supabase-ops has *completed* its boot persist — stacking guarantees the writer exists, but the two MCPs spawn in parallel with no ordering guarantee, so the first interactive call could momentarily see no `access_token`) transiently blocks the owner and **self-resolves on retry** — gbrain calls are interactive, well after the ~sub-second persist. This is the fail-closed trade: a transient owner retry in exchange for never letting a user through on an unresolved tier.
 
@@ -77,6 +82,8 @@ Claude Code `PreToolUse`: **exit 2** + the reason on stderr blocks the tool and 
 | 4 | per-human, `mcp__gbrain__put_page`, admin | allow |
 | 5 | per-human, `mcp__gbrain__search`, user | BLOCK (tier-denied) |
 | 6 | per-human, gbrain, no access token | BLOCK (unresolved-or-expired) |
+| 7 | per-human machine, hook invoked from a **worktree** | BLOCK — resolves `.env.local` at the main root (was: silent allow) |
+| 8 | fresh clone / CI, no `.env.local` anywhere | allow (no-op) — unchanged |
 | 7 | per-human, gbrain, EXPIRED owner token | BLOCK (unresolved-or-expired) |
 | 8 | per-human, gbrain, token without tier claim | BLOCK (no-tier) |
 | 9 | per-human, gbrain, unknown tier string | BLOCK (no-tier) |
