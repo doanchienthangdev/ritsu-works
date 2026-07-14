@@ -37,6 +37,20 @@ Two halves, both deliberate:
 
 > **The wedge is the *stay* mechanism, not the *try* mechanism.** Every downstream SOP that optimizes "activation" is optimizing the on-ramp; the SOPs that optimize re-upload / week-4 retention / referral are optimizing the wedge. Do not confuse them (this is the §1.3 leading-ladder error in `north-star.md`).
 
+### 🔴 The sentence above is the TARGET. It is not the STATE. (code-verified 2026-07-14)
+
+The half of §1 that reads *"a concept-level gap-map that tracks mastery **across sessions**"* — **that half is not built.**
+
+`GET /api/learning/knowledge-map?sessionId=<uuid>` takes **`sessionId` as its only parameter.** There is no `projectId`. In `lib/knowledge-map/types.ts`, a knowledge item's `sources` are `KiSource = { u, p }` — **(unit, point-of-knowledge) inside one document.** Corroborated structurally: `learning_plans` is 1:1 with `session_id` (665/665); `learning_sessions.source_id` is singular; `learning_plans.source_type` is singular.
+
+**Ritsu ships an ordered ~6-unit path and a concept-level mastery map — per document.** A `learning_project` groups the sessions of a course, but nothing orders or rolls up mastery across it. The map stops at the edge of the PDF.
+
+**So the wedge — the thing this document says NotebookLM cannot replicate — is the one thing Ritsu has not yet built.** And the homepage already sells it: *"CROSS-SOURCE LINKS — connects ideas across every chapter, file, and video in one project."*
+
+**The gap is a merge, not a rewrite.** Add `?projectId=`; aggregate the project's sessions; merge knowledge items by `kiKey` so a concept appearing in the chapter *and* the lecture *and* the problem set becomes **one node with three source documents**; extend `KiSource` → `{ sourceId, u, p }`. The derivation, the scoring, `mastery-check`, `mastery-ring`, `tier-styles` all exist and are tested. **What is missing is the merge.**
+
+**Do not remove the target sentence.** It is the right wedge. Build it, then delete this box.
+
 ---
 
 ## 2. The transition wedge — who it's for (paying-core vs reach)
@@ -145,12 +159,36 @@ These are the wedge's **love-test indicators** (inherited from `icp-summary.md` 
 
 | # | KPI | Target | What it tests | Door-2 buildability (true-zero) |
 |---|---|---|---|---|
-| **K1** | **Time-to-first-aha** | **< 60s** (signup → first quiz from own material) | The TRY mechanism (magic moment) works on dense material | ⚠ **PROXY required — `quiz_attempts` = 0 ROWS (observed).** Use `live.learning_sessions.activities_completed ≥ 1` timed from `started_at`, anchored to `profiles.onboarding_completed_at`. The "first quiz" event itself is **not yet logged** — instrument it (see §9). |
+| **K1** | **Time-to-first-aha** | **< 60s** (signup → first quiz from own material) | The TRY mechanism (magic moment) works on dense material | 🔴 **NOT MEASURABLE — and the prescribed proxy is dead too.** See the code-verified note below. |
 | **K2** | **Upload-again-within-7d** | **> 40%** | The STAY mechanism — they came back to continue the PATH (the masterer fingerprint) | ✓ **Buildable now**: 2nd `live.sources` row for a `user_hash` within 7d of their 1st (`sources.created_at`). The 42-src/36-session user *is* this signal `observed`. |
 | **K3** | **Refer-a-friend-by-week-2** | **> 15%** | The flywheel — a result legibly theirs → a share to a cohort-mate | ⚠ **Buildable mechanically but currently 0 organic**: `live.session_shares` exists (15 rows) but **all 15 are founder** (`observed`). First *non-founder* share = ignition. |
 | **K4** | **Free→paid** | **> 5%** (rolling 30d) | The MONEY-MOMENT — they pay at the first hard limit with a live deadline (THE wedge bet) | ⚠ **Buildable but 0 real**: `live.profiles.subscription_status` (only 2 paid, both founder test cards — `observed`). This is **R1, the single unproven load-bearing number.** |
 
-> **The honesty that makes this decision-grade:** of the four love-KPIs, **K2 is observable today and already shows the right shape** (sustained revisit beyond the founder). **K1, K3, K4 cannot be measured from existing logs** — K1 needs a first-quiz event that isn't instrumented, and K3/K4 have only founder data. **The wedge's truth therefore lives in instrumenting K1 + getting K3/K4 above zero at N=10.** Do not report K1/K3/K4 as "passing" until real (non-founder) rows exist. The empty `quiz_attempts`/`activity_results`/`flashcard_reviews` tables are not a data gap to paper over — they are *the reason the wedge is still a hypothesis.*
+> **The honesty that makes this decision-grade:** of the four love-KPIs, **K2 is observable today and already shows the right shape** (sustained revisit beyond the founder). **K1, K3, K4 cannot be measured from existing logs** — K1 needs a first-quiz event that isn't instrumented, and K3/K4 have only founder data. **The wedge's truth therefore lives in instrumenting K1 + getting K3/K4 above zero at N=10.** Do not report K1/K3/K4 as "passing" until real (non-founder) rows exist.
+
+### 🔴 K1 — hardened 2026-07-14 (code-verified). This §5 was right; it is worse than it said.
+
+The prior version described `quiz_attempts` as *"0 ROWS (observed)"* — implying an empty table at true-zero that would fill as users arrived. **It will not fill. It is dead schema.**
+
+`gh search code` across the product repo:
+
+| Table | Where it appears |
+|---|---|
+| `quiz_attempts` | `supabase/migrations/*` **only** |
+| `flashcard_reviews` | `supabase/migrations/*` **only** |
+| `activity_results` | `supabase/migrations/*` **only** |
+
+**No application code writes to any of them.** They were created in the initial migration, given RLS policies, and never used. The Door-2 sync is *correct* — `live._sync_runs` reports `status: ok · rows_synced: 0` because the source genuinely has zero rows.
+
+**And the prescribed proxy is also dead:** `learning_sessions.activities_completed` is non-zero on **1 of 763** sessions — and that one is almost certainly `apps/web/scripts/seed-sample-session.ts`. Same for `commands_used`.
+
+**Say it plainly: Ritsu records that a command *ran*. It records nothing about what *happened*.** `/quiz` fired **271 times** (`live.ai_usage_logs`); nothing anywhere records whether the learner answered, was right, or learned. `ai_usage_logs` is a billing/telemetry log, not a learning-outcome log.
+
+**Consequence — this gates the company's most expensive experiment.** `SOP-PRODUCT-002` (the N=10 stranger watch) exists to answer *"does the aha fire on real strangers?"* **Run today, it would produce no reading at all.** You would watch ten people use Ritsu and come away with zero data on whether any of them hit the moment.
+
+**The fix (product repo, ~days):** extend `apps/web/src/app/api/learning/analytics/completion/route.ts` — which *already* writes `pok_progress` and `mastery_check_passed` — to record every activity outcome (answered / correct / which concept), and make `learning_sessions.activities_completed` + `commands_used` actually persist. Reviving the three dead tables is the alternative; extending the existing route is likely smaller.
+
+> **Instrument the outcome before running N=10.** This now outranks the wedge itself in `§9`'s priority order: **you cannot test the wedge until you can read the instrument.**
 
 ---
 

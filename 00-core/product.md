@@ -91,11 +91,27 @@ Verified-named on the homepage (8 of 12+): **PDF, PPTX, DOCX, YouTube, web URL, 
 
 → **Benefit:** start from whatever you already have — zero setup friction; your real study material becomes practice in seconds.
 
-### 6.2 Interactive learning — 17+ activity types
+### 6.2 Interactive learning — 47 commands, in 5 categories
 
-Verified-named (9 of 17+): **Quiz, Flashcard, Mindmap, Timeline, Crossword, Drag-and-drop, Diagram, Code exercise, Match.** All auto-generated from the user's material — not templates.
+**Source of truth (code-verified 2026-07-14):** `apps/web/src/app/(protected)/learning/lib/commands/*.cmd.ts` in the product repo defines **47 commands**. **41 of them are used in production** (`live.ai_usage_logs.command_name`).
 
-In-product slash commands: `/quiz`, `/flashcard`, `/mindmap`, `/timeline`, `/crossword`, `/diagram`, `/code`, `/match`. The repo claims **185+ commands** total — that is the superset including activities + modes + utilities, not just activity types. For the full current activity list, fetch https://ritsu.ai.
+| Category | Commands |
+|---|---|
+| **assessment** (10) | `/quiz` `/flashcard` `/exercise` `/solve` `/askme` `/practice` `/test` `/code` `/dragndrop` `/write` |
+| **learning** (22) | `/eli5` `/explain` `/why` `/how` `/analogy` `/intuition` `/derive` `/prereq` `/counter-example` `/what-if` `/compare` `/contrast` `/expand` `/deep` `/simplify` `/summary` `/example` `/context` `/upthink` `/adaptive` `/plan` `/visualize` |
+| **reference** (8) | `/concepts` `/mindmap` `/diagram` `/timeline` `/crossword` `/mermaid` `/search` `/generate` |
+| **navigation** (3) | `/start` `/next` `/back` |
+| **system** (4) | `/help` `/progress` `/lang` `/clear` |
+
+All auto-generated from the user's own material — not from a template bank.
+
+> **The strategic reading (added 2026-07-14):** the differentiator is **not** the count. A chat box can, in principle, produce any of these — but nobody types *"construct a counter-example showing where this claim breaks."* A **named command turns a rare expert move into a one-word habit.** `/derive` · `/prereq` · `/counter-example` · `/intuition` · `/contrast` are not features; they are **the moves a good tutor makes, made addressable.**
+>
+> **ChatGPT has a chat box. NotebookLM has a chat box. Ritsu has a vocabulary for learning.** Lead with that, not with a count — a count reads as feature-bloat to the rigor-respecting ICP (`icp-summary.md` §1).
+
+**Two corrections to the prior version of this section** (both were live on the marketing surface):
+- ~~"185+ commands"~~ → **47.** The 185 figure has no basis in the code.
+- ~~`/match`~~ → **`/dragndrop`.** There is no `/match` command; the homepage lists one.
 
 → **Benefit:** practice in the exact format that makes *this* material stick → actually master it, not just re-read it.
 
@@ -114,11 +130,19 @@ Two additional modes visible in-product but not enumerated on marketing surface.
 
 ### 6.4 Mastery engine — built for understanding, not memorization
 
-Concept maps connect ideas across chapters. Named techniques applied to user's material: **Compare, Analogies, Deep Explain, Feynman-style breakdowns.**
+The **Knowledge Map** surfaces concept connections visually and tracks mastery per concept — Basic at Plus tier, Full (with sharing + export) at Pro tier. Named techniques applied to the user's material: **Compare, Analogies, Deep Explain, Feynman-style breakdowns.**
 
-The **Knowledge Map** feature surfaces these connections visually — Basic at Plus tier, Full (with sharing + export) at Pro tier.
+> ### ⚠️ SCOPE — the map is per-DOCUMENT, not per-COURSE (code-verified 2026-07-14)
+>
+> The prior version of this section said *"Concept maps connect ideas across chapters."* **That is not what ships.**
+>
+> `GET /api/learning/knowledge-map?sessionId=<uuid>` takes **`sessionId` as its only parameter**. In `lib/knowledge-map/types.ts`, a knowledge item's `sources` are `KiSource = { u, p }` — **(unit index, point-of-knowledge index) inside a single document.** One plan = one session = one source (`learning_plans` is 1:1 with `session_id`; `learning_sessions.source_id` is singular).
+>
+> **The homepage currently claims** *"CROSS-SOURCE LINKS — connects ideas across every chapter, file, and video in one project."* **It does not.** This is the headline claim of the wedge, and unlike a marketing overstatement, **a user can discover it by using the product.**
+>
+> **The gap is a merge, not a rewrite.** Add `?projectId=`, aggregate the sessions in a project, merge knowledge items by `kiKey`, and extend `KiSource` to `{ sourceId, u, p }`. The derivation, the scoring (`heatForScore` / `tierForScore` / `isMastered`), `mastery-check`, `mastery-ring` and `tier-styles` all already exist and are tested. See `wedge.md` §1 — **this is the wedge.**
 
-→ **Benefit:** see how ideas connect — the difference between memorizing facts and actually understanding a subject.
+→ **Benefit:** see how ideas connect — the difference between memorizing facts and actually understanding a subject. *(At course scale, pending the project-level rollup above.)*
 
 ### 6.5 Emotional AI — 10 personality styles
 
