@@ -1,0 +1,116 @@
+---
+title: 'Skill: thinking-toolkit/mckinsey-sell'
+description: |
+  The Sell formatter for the /think mckinsey engine (v2.0). Renders the final
+  deliverable — the "sell" — from the run's synthesis + analysis-log + checkpoint-log,
+  conforming to a McKinsey deliverable TEMPLATE (knowledge/mckinsey-templates.yaml)
+  and rendered in any of /deepask's formats + design-systems. It does NOT rebuild a
+  format engine: it builds the McKinsey-template-structured synthesis IR, then hands
+  it to `deepask/format` with `--style` (brand) + `--art-style` (genre) as design
+  context. Structure (McKinsey template) and design (--style/--art-style) are ORTHOGONAL.
+
+  Invoked at Sell (step 7) by thinking-toolkit/mckinsey-workflow. Parameters:
+  --sell=<template-id|auto>, --audience=receptive|skeptical, --style=<design-system>,
+  --art-style=<genre>, --format=<deepask medium>. Not a standalone /think verb.
+source_path: 06-ai-ops/skills/thinking-toolkit/mckinsey-sell/SKILL.md
+source_hash: e9e1f97e3126e069ef00cb5c228a4b03f8c90b780cb106ac12a9090feb2fe752
+generated_at: '2026-07-14T15:59:15.599Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> The Sell phase has TWO moves (Bulletproof steps 6→7): **synthesize the LOGIC** (`synthesis.md` — the bare pyramid that must stand on its own), then **communicate the STORY** (this skill — render that logic for THIS audience as a McKinsey deliverable). This skill owns move 7. It conforms the story to a McKinsey **template** and renders it in any `/deepask` **format** + **design-system** — structure and design kept orthogonal.
+
+## The one architectural rule: compose, don't rebuild
+
+`mckinsey-sell` is a **thin composer over `deepask/format`** (`06-ai-ops/skills/deepask/format/SKILL.md`). The McKinsey synthesis IR is the SAME shape `deepask/format` consumes, so:
+
+1. **Build the McKinsey-template-structured synthesis IR** (below) from `synthesis.md` + `analysis-log.md` (cited, degree-tagged evidence) + `checkpoint-log.md` (the pre-wire consensus + the dissent/coverage).
+2. **Render** by invoking `deepask/format` with that IR + `--format=<medium>` + `--style=<design-system>` + `--art-style=<genre>`. `--style`/`--art-style` are **data-only design context** (resolved once via `scripts/design-system/resolve-style.cjs` + `scripts/deepask/art-style.cjs`); they never change the McKinsey structure. Brand palette always wins over genre; legibility wins over both.
+
+### The synthesis IR contract (what `deepask/format` consumes — stated inline)
+
+```
+{ verdict, sections[], claims[] (cited + degree), tables[], charts[], diagrams[],
+  conflicts[], coverage (from the CP-PREWIRE completeness-critic), sources[] }
+```
+`mckinsey-sell` populates this IR but **orders + labels it per the chosen McKinsey template** before handing off. The `coverage` field carries the data-sweep breadth statement (R3); `claims` carry the analysis-log degree tags so the deliverable never launders a judgment as a fact.
+
+## Pick the template (`--sell`)
+
+**Classify the GENRE first (v2.2 — the single biggest discipline).** McKinsey has no ONE house format — it has a **genre-keyed format system** (grounded in 3 real reports): **brand/impact** (visual-TOC + signed letter; two-register topic-label headers; ~no charts) · **survey/data** (numbered "Key findings" In-Brief; action-title section AND exhibit headers; exhibit-dense + commentary panels) · **thought-leadership POV** (boxed "At a glance" bold-italic In-Brief; topic-label section headers BUT action-title exhibit titles; SCR spine) · **decision-memo/deck** (the pyramid templates). The genre matrix in the anatomy doc routes the front-matter device, the header style, the close, and the methodology placement. **The most common bug: applying survey/POV action-titles to a brand piece, or brand two-register headers to a data report whose exhibit titles MUST be action sentences.**
+
+Read `knowledge/mckinsey-templates.yaml` (9 templates) — and **read `mckinsey-deliverable-anatomy.md` (co-located here)**: the real McKinsey deliverable anatomy EXTRACTED FROM ACTUAL REPORTS (primary-source, v2.2) (the In-Brief box, action-title exhibit captions + source footers, the "where to start" block, the methodology/appendix, the author box). The templates are grounded in it (`grounded_in` cites the real reports); render to match what McKinsey actually ships, not a guess. `--sell=<id>` selects one; `--sell=auto` (default) picks by `--audience` + the deliverable kind:
+- **receptive memo** → `governing-thought-memo` (lead with the answer, grouped support).
+- **skeptical** → `scr-storyline` or `scqa-memo` (argument-led; walk them from shared context to the answer).
+- A presentation → `action-titled-deck`; a board paper → `pyramid-doc`; a time-poor exec one-pager → `exec-one-pager`; a **boxed C-suite summary** → `executive-briefing`.
+- A **deep evidence-heavy fact base** → `mgi-research-report`; a **short thought-leadership / trend / survey piece** → `insights-article`.
+
+Each template gives a `structure` (the ordered skeleton) + `rules` (the McKinsey standards the IR must satisfy) + a `default_format` + `grounded_in` (its real-report provenance). **Apply the rules to the IR before rendering** — they are non-negotiable:
+- **Governing-thought-first (Minto Pyramid)** — the answer is the first thing; everything else supports it.
+- **The In-Brief box** — for report/briefing templates, lead with a boxed 3-5-bullet summary (answer first), DISTINCT from the exec summary (the real McKinsey "In Brief").
+- **Action titles — genre-matched** — for ANALYTICAL/RECOMMENDATION deliverables, every section header is a full declarative sentence AND **every quantitative exhibit caption is itself an action-title conclusion** ("Technology giants dominate investment in AI"); read top-to-bottom the titles ARE the storyline. **For survey/trend pieces (`insights-article`), TOPIC-LABEL headers are correct** — match header style to genre (the v2.1 grounding fix).
+- **Source footer** — every quantitative exhibit/claim carries a source line ("Source: \<data>; McKinsey analysis").
+- **MECE key line** — 2-5 supports (3 optimal), non-overlapping + collectively exhaustive; "don't boil the ocean."
+- **The "where to start" block** — end with a NAMED implications/act-now section (next actions, owner + date), not just a conclusion.
+- **APK guard** — lead with the answer; never tell the story-of-the-search. The reader wants the answer first; analysis is support, surfaced as needed.
+- **so-what** — every observation must imply an action, or it's not an insight (`/think so-what`).
+- **pre-wire** — the deliverable matches what was agreed at CP-PREWIRE; nothing in it is a surprise.
+- **(mgi-research-report)** carry the **methodology/technical appendix + the survey-N** + the **city-tagged author box** — the rigor that earns the authority.
+
+## The storyline was built at STRUCTURE — Sell FILLS it, never invents it
+
+The action-titled storyline skeleton + the dummy/ghost exhibits already exist: the workplan's `end-product` column IS the dummy exhibit (Bulletproof Exhibit 4.3), drawn at Structure before the data existed. **`mckinsey-sell` fills + pre-wires that pre-built storyline; it does not invent a new one at Sell.** If you find yourself inventing the story here, you skipped the Structure discipline — go back. (This is the EM correction: building the story at Sell re-creates "analyze first, story later.")
+
+## Render via /deepask format
+
+```
+Skill({skill: "deepask/format", args: "<IR + --format=<medium> --style=<ds> --art-style=<genre>>"})
+```
+- `--format` defaults to the template's `default_format` (`article`/`pdf`/`pptx`/`html`/…). For a visual deck, `pptx`/`img-slide`; for a memo, `article`/`pdf`.
+- `--style=<design-system>` brands the deliverable (logo, palette, type) where the format is code-rendered/visual; a no-op for plain text. Logo embeds as a base64 data URI (the deepask logo-embed contract), never a sibling path.
+- `--art-style=<genre>` adds an artistic genre for image formats; a no-op for non-visual.
+
+The final deliverable is written alongside `communication.md` in the run folder (the "sell" = `communication.md` [the storyline] + the rendered artifact). The full run artifact set (`problem-statement → … → checkpoint-log → synthesis → communication` + the rendered deliverable) ships WITH the deliverable so the founder can audit the reasoning behind the answer.
+
+## Exhibits via `/dataviz` (v2.2 — McKinsey-grade charts from the data)
+
+The McKinsey deliverable is **exhibit-led** (a survey report is ~1 chart/page). For every exhibit in the synthesis IR's `charts[]` (series-data, not pixels), call **`/dataviz`** — the McKinsey-caliber chart capability — instead of describing a chart in prose:
+
+```
+node scripts/dataviz/gen.cjs --message="<the exhibit's action-title>" --data=<series-data> \
+  --source="<the source line>" --style=<design-system> --format=svg
+```
+
+- **The exhibit's action-title is the `--message`** — `/dataviz` chooses the chart type FROM that message (Zelazny) AND uses it as the chart caption; so the exhibit caption is an **action sentence** (survey/POV genre) or a **topic label** (`--title-style=topic`, brand/survey-trend genre) — matching the genre matrix above.
+- **The `--source` carries the verbatim source-footer form** (`Source: <data>; McKinsey analysis` OR the survey form `Source: <survey>, <dates>, n=<N>; <countries>`) — `/dataviz` mandates a source footer on every exhibit, exactly as the real reports do.
+- **`--style`/`--art-style` flow the brand** (the SAME design context the deliverable uses) — structure ⊥ brand.
+- `/dataviz` encodes the McKinsey data-viz discipline (one-highlight, data-ink minimalism, direct labels, zero-baseline) so the exhibit is genuinely McKinsey-grade, not a generic chart. The rendered SVG drops into the deliverable alongside the storyline. (See `06-ai-ops/skills/dataviz/SKILL.md`.)
+- **v0.2 — the intelligent selector picks the right exhibit type from the action-title.** `/dataviz` now builds 27 chart types across all six families, including the McKinsey signatures (marimekko, waterfall, dumbbell, slope, bullet, diverging/Likert, 2×2 quadrant, bubble). With `--chart=auto` (default) the selector reads the exhibit's action-title + the series-data shape and picks the BEST form — so a "winners-vs-laggards" title → grouped/dumbbell, a "how we got from A to B" → waterfall, a "share by segment over time" → 100%-stacked, a survey "agree/disagree" → diverging. Pass `--audience=exec` to bias toward simpler forms; add `--explain` to see the selector's rationale + alternatives + anti-pattern warnings (e.g. it will demote a >6-slice pie to a ranked bar). The ghost-exhibit's intended message drives the pick — Sell fills it, it does not invent it.
+
+- **v0.5 — flow-family exhibits render PRO via `flow-graphviz`.** When the exhibit is a **process map / decision flow / issue tree / workflow / swimlane / user-flow** (not a statistical chart), `/dataviz` routes it to the **`flow-graphviz`** renderer: YOU author a brand-themed Graphviz DOT and `dot` does the auto-layout — `node scripts/dataviz/flow-render.cjs --dot=<file> --out=… --format=png` (per `06-ai-ops/skills/dataviz/renderers/flow-graphviz/SKILL.md`). So a McKinsey issue-tree / process exhibit is a genuine auto-laid-out flowchart, not a hand-drawn box-and-arrow — the Sell engine inherits this upgrade automatically.
+
+The ghost-exhibit built at STRUCTURE (the workplan `end-product` column) names the chart's intended message + shape; Sell fills it with real data via `/dataviz` — it does not invent it.
+
+## Surface the METHOD — the MECE tree + the tool choices (v3.5)
+
+McKinsey authority comes from *visible rigor*. The deliverable MUST carry a **Method / Phương pháp** surface (the methodology/technical appendix for report templates; a one-page "How we reached this" close for a memo/deck) that shows the two things a reader needs in order to trust the answer — neither of which the old reports surfaced:
+
+- **The MECE issue-tree** — the decomposition that scoped the work (built at STRUCTURE, in `decomposition.md`): the branches we analyzed (kept) + the branches we **deliberately cut** (out-of-scope) each with a one-line reason. Render it as an exhibit (`/dataviz` `flowchart`/`dendrogram`, or a clean nested list) — the reader sees what was in scope and what was consciously excluded.
+- **The tool-selection table** — from `toolkit-log.md`: per 4S step, which thinking-tool/framework was SELECTED for which sub-need and WHY (+ the notable rejected alternative / debias). This is the McKinsey crux — *excellent, deliberate tool use* — made auditable in the **report**, not only the trace. A study that hides its method has hidden its most important work.
+
+Both already exist as recorded artifacts (`decomposition` + `toolkit-log`); the Sell **surfaces** them, it does not invent them. The reasoning-trace (`/think trace`) carries the *narrated, journey-side* version of the same two artifacts (the `issue_tree` + `toolkit_map` charts); the report carries the *answer-side* method summary. Both must be present — the founder's directive: tool-selection + the MECE tree can be absent from neither the official report nor the reasoning-trace.
+
+## Anti-claims
+
+- This is NOT a new format engine — it composes `deepask/format`. New media are added in deepask, not here.
+- A template carries STRUCTURE prose only — never a color/brand/logo token (enforced by `validate-mckinsey-templates.cjs` `FORBIDDEN_BRAND_KEYS`). Brand/design is the orthogonal `--style` axis.
+- It does NOT decide the answer — Sell renders the answer the engine + the founder already reached (CP-PREWIRE). A beautifully formatted deliverable does not make a wrong answer right; that is what the validation gate, the dissent session, and the disconfirmation discipline are for.
+
+## References
+
+`knowledge/mckinsey-templates.yaml` (the 9 grounded templates) · `mckinsey-deliverable-anatomy.md` (co-located — the real anatomy extracted from actual McKinsey reports, with citations) · `06-ai-ops/skills/deepask/format/SKILL.md` + `deepask/aesthetic/SKILL.md` (the render engine) · `scripts/design-system/resolve-style.cjs` + `scripts/deepask/art-style.cjs` (the design resolvers) · Minto (1987) *The Pyramid Principle* · Garrette/Phelps/Sibony (2018) *Cracked It!* Ch 10 (pyramid / SCR / pre-wire) · Conn & McLean (2018) *Bulletproof Problem Solving* (synthesis ≠ storytelling; Exhibit 4.3 dummy exhibits at Structure).
+

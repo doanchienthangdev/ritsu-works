@@ -13,8 +13,10 @@
     "pre-llm-call-budget",
     "pre-persona-resolve",
     "pre-tool-customer-message",
+    "pre-tool-gbrain-tier",
     "pre-tool-publish",
     "pre-tool-secrets",
-    "pre-tool-supabase-product"
+    "pre-tool-supabase-product",
+    "pre-write-mckinsey-gate"
   ]
 }

@@ -7,8 +7,8 @@ description: |
   dispatcher over write/orchestrator (write), write/distill (capture a voice), and
   write/humanize (de-AI). Capability write-platform v0.1. Tier A.
 source_path: 06-ai-ops/skills/write/SKILL.md
-source_hash: 1cb63741f141ef13f9799eac60c20b794d7ce0c24d3e9db2f6ff635d54c83d6f
-generated_at: '2026-06-09T18:29:33.856Z'
+source_hash: c6acc2d5601e002cadbe1ecad5a5f36a5d5aaa0a3ce03802b34f0e6e4849f2a0
+generated_at: '2026-07-14T15:59:15.650Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -26,13 +26,39 @@ sub-skills.
 |---|---|---|
 | `/write "<request>" [flags]` | `write/orchestrator` | Write content. The default path. |
 | `/write distill <slug> --ref-src=<refs>` | `write/distill` | Distill an author's voice into a reusable artifact. |
+| `/write learn <path>` | `write/learn` | Distill a master writing book (or a folder) into the wiki + route its craft into /write (frameworks · CRAFT.md · voices). |
 | `/write humanize <text\|file>` | `write/humanize` | Run only the de-AI + voice pass on existing text. |
 | `/write authors` | (this skill) | List distilled author styles (`knowledge/author-styles.yaml`). |
 | `/write types` | (this skill) | List content types + their mediums (`knowledge/write-types.yaml`). |
 | `/write templates` | (this skill) | List structure templates (`knowledge/write-templates.yaml`). |
+| `/write frameworks` | (this skill) | List the 100 writing formulas (`knowledge/write-frameworks.yaml`; reference `06-ai-ops/write/FRAMEWORKS.md`). |
 
 For the listing subcommands, read the registry and print a compact table (id · category ·
 one-line · mediums/status). They are read-only (Tier A).
+
+**`--framework=<id>`** applies a writing FORMULA (e.g. `pas`, `aida`, `feynman-technique`,
+`scqa`) as the structural backbone — composable with `--type`/`--template`/`--author-style`.
+`plan.cjs` resolves it into `brief.md`; the orchestrator writes to that structure. The 100
+are ranked by fit to Ritsu (learning-science core) + the GTM content engine.
+
+**Research + grounding** (v0.4): `--research=off|auto|deep` (external — `deep` = the
+`deep-research` skill, web fan-out → verify → cited) and `--grounding=auto|off|deepask|wiki|brain|all`
+(internal Ritsu material via `/deepask`, wiki RAG, gbrain). Both run at the data-collection step
+and **shape the outline**, not just the prose. See `write/research`.
+
+**Long-form** (v0.4): the types **book · novel · film-script · research-paper · article-series ·
+course** (`longform: true`) are NOT written in one pass — they run the `write/longform` pipeline:
+lock a **consistency bible** (single source of truth) → outline parts → **draft in PARALLEL**
+(a Workflow, parts blind to each other) → **continuity pass** → assemble → one humanize pass. This
+keeps characters/world/timeline/terminology/thesis/evidence/voice consistent across the whole work.
+Per-type bibles + mechanisms: `06-ai-ops/write/longform/`.
+
+**Growing the library** (`/write learn`): the platform's craft is not fixed — `/write learn <book|folder>`
+distills a master writing book into the wiki and routes its transferable craft into the right place:
+reusable formulas → `write-frameworks.yaml`, universal style wisdom → `06-ai-ops/write/CRAFT.md`, a
+master's voice → `author-styles/`. Additive, deduped, traceable to source. This is how `/write` compounds
+toward a toàn-năng (omnipotent) writer by standing on the shoulders of Ogilvy, Cialdini, King, McKee,
+Strunk, Zinsser, Pinker, and the rest. See `write/learn`.
 
 ## The model (why it's built this way)
 

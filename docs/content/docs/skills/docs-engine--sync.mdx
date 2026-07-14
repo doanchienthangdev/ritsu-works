@@ -7,8 +7,8 @@ description: |
   performs 3-way diff on `<!-- generated-by -->` marked pages (CTO mod #1),
   writes MDX to `docs/content/`, emits events, snapshots KPI.
 source_path: 06-ai-ops/skills/docs-engine/sync/SKILL.md
-source_hash: e446c382c0e11d5dae2f69e7f4db16cd5e0e6edd7d5061bddc9510507ce6821f
-generated_at: '2026-05-22T01:09:07.388Z'
+source_hash: 404d7964f6105798b3a50bcdbbfa7aa72ab748f9c9bdc9c082e6af36ec52539a
+generated_at: '2026-07-14T15:59:15.518Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
@@ -37,7 +37,7 @@ Implements SOP-AIOPS-003 steps 1-10 (see `06-ai-ops/sops/SOP-AIOPS-003-docs-sync
 3. Secret redaction layer 1 (walker-exclude check).
 4. Dispatch each source to its adapter via `06-ai-ops/skills/docs-engine/adapters/<kind>-adapter`.
 5. Secret redaction layer 2 (MDX regex scrub).
-6. 3-way diff on `<!-- generated-by: docs-engine vN -->` marked pages (CTO mod #1). Abort + write conflict report if hand-edit would be lost.
+6. 3-way diff on `` marked pages (CTO mod #1). Abort + write conflict report if hand-edit would be lost.
 7. Write MDX to `docs/content/`.
 8. `pnpm check` post-validation (validate-docs-coverage.cjs).
 9. Emit `ritsu.docs.synced` + maybe `ritsu.docs.drift_detected`.
@@ -71,6 +71,30 @@ Tier A. Escalates to Tier B if:
 - Full walk: ~$0.40-1.00 (~215 pages × adapter cost ÷ batching).
 - Area-scoped: $0.05-0.40 depending on area.
 - Cost-bucket: `ai-ops-docs`. Cap: `docs-sync-full-walk` ≤ $1.00.
+
+## Post-sync composition: playbook-builder
+
+After sync writes MDX, check `knowledge/playbook-chapter-source-map.yaml`
+(if present — capability `playbook-builder` may not be deployed). For each
+mapping entry where any `sources:` glob/path matches a file in this sync's
+write set:
+
+1. Collect the affected chapter file paths (dedup across mappings)
+2. Invoke `/playbook build` (or `Skill: playbook-builder/build` directly)
+3. The build skill detects which chapters need rebuild via its own change detection — single invocation handles all affected chapters
+
+Skip gracefully if:
+- `knowledge/playbook-chapter-source-map.yaml` missing (capability not deployed)
+- `.archives/ritsu-handoff-bundle/playbook/` missing (clean clones / CI environment)
+- No mapping entry matches this sync's write set
+
+This integration makes "update Tier 1 docs → auto-sync playbook" enforceable
+without founder reminding. Per playbook-builder v1.0.0 spec §3.6.
+
+Compose contract:
+- /docs sync owns the trigger condition (its write set)
+- /playbook build owns the actual rebuild logic (idempotent, no-op if up-to-date)
+- No coupling: docs-engine reads source-map config only; doesn't know playbook internals
 
 ## See also
 

@@ -2,14 +2,15 @@
 title: 'Skill: deepask/format (capability `deepask` v1.0)'
 description: ''
 source_path: 06-ai-ops/skills/deepask/format/SKILL.md
-source_hash: c6c5ef868c76a2186d405e7f9d084a391fe6e2f25986223b1cd0ca0149833007
-generated_at: '2026-05-31T03:54:41.181Z'
+source_hash: 53c44820775b02c481e2fce3389ec8f9cebca8ff4910d28a658c46deedb083e9
+generated_at: '2026-07-14T15:59:15.478Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
 translated_at: '2026-05-31T11:00:00Z'
 translated_source_hash: c6c5ef868c76a2186d405e7f9d084a391fe6e2f25986223b1cd0ca0149833007
+needs_retranslation: true
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -86,4 +87,5 @@ Tier A (rendering là local/in-session). Cost-bucket `ai-ops-deepask`. PDF/docx/
 ## Tests (per spec §10)
 
 `scripts/deepask/format-select.cjs` unit-tested (`tests/deepask/format-select.test.ts`, 23 cases — mỗi intent × availability, fallback flag, validation). Skill-level (land per sprint): mỗi doc adapter render IR → valid artifact; **smartauto picks sane format per intent**; **`answer.md` luôn được written**; artifact dir layout đúng; **graceful-degrade path** viết answer.md + note khi reuse-skill missing.
+
 

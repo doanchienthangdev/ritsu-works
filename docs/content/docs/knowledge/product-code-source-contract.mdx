@@ -1,0 +1,56 @@
+---
+title: 'Tier 1 yaml: product-code-source-contract'
+description: Schema overview for `knowledge/product-code-source-contract.yaml`.
+source_path: knowledge/product-code-source-contract.yaml
+source_hash: 11884d39f6944e375f151c69993e1241b71a709b558c65392b70de2e6f7e8601
+generated_at: '2026-07-14T15:59:16.081Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+Product Code Source Contract — capability product-code-readonly-access
+
+The committed ops-side contract governing HOW ritsu-works reads the Product
+source CODE repo (github.com/doanchienthangdev/ritsu) as a READ-ONLY
+source-of-truth. The CODE sibling of product-db-readonly-access (DATA).
+
+Validated by scripts/cross-tier/validate-product-code-source.cjs (L2 critical):
+  1. read_only == true AND repo.write_forbidden == true   (read-only invariant)
+  2. read_surface == 'committed-remote-tree'              (secret-gate by construction —
+     the REMOTE committed tree only; never the local clone with uncommitted .env)
+  3. secret_denylist non-empty AND covers '.env'          (the secret-gate)
+  4. external_source_id registered in external-sources.yaml with
+     source_type == 'code-repo-readonly' AND status active
+  5. consumer_allowlist == that external-source's role_scope (no drift)
+  6. read_modes: >=1 'active' mode with freshness 'live'; every status known
+
+Owner: founder
+Change policy: PR + founder review (Tier C — affects what the workforce reads).
+Enabling the gbrain v1.1 ingestion is a SEPARATE founder decision (embedding +
+code-graph parse cost vs the $100/mo gbrain cap); the hook write-block is a
+Tier C/D-Std safety-hook edit. Both are flagged in `deferred`, neither auto-done.
+
+## Top-level keys
+
+- `version`
+- `last_updated`
+- `owner`
+- `capability_id`
+- `external_source_id`
+- `enforcement`
+- `repo`
+- `read_only`
+- `read_surface`
+- `secret_denylist`
+- `read_modes`
+- `consumer_allowlist`
+- `consumers`
+- `delivered_in_v1_1`
+- `deferred`
+
+> Live values in [`knowledge/product-code-source-contract.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/product-code-source-contract.yaml). This page describes the schema; not the data.

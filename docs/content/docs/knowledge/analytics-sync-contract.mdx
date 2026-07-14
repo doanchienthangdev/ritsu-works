@@ -1,0 +1,54 @@
+---
+title: 'Tier 1 yaml: analytics-sync-contract'
+description: Schema overview for `knowledge/analytics-sync-contract.yaml`.
+source_path: knowledge/analytics-sync-contract.yaml
+source_hash: 104a0258e41fa64c53add552c6e812f2e90c7bcb05dc4e200abe61e29e763e29
+generated_at: '2026-07-14T15:59:15.952Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+Analytics Sync Contract — capability product-db-readonly-access (Door 2)
+
+The single COMMITTED, repo-side source of truth for the pseudonymized
+Product→analytics data path. Everything product-side (the stripped views, the
+salt, the FDW) lives in the product DB and a local-only SQL file; THIS file is
+the ops-side contract a validator can check deterministically.
+
+Validated by scripts/cross-tier/validate-analytics-readonly.cjs (L2 critical):
+  1. synced_tables ∩ forbidden_content_tables == ∅  (no content table ever synced)
+  2. consumer_allowlist == ANALYTICS_ALLOWED_ROLES in
+     mcp-server-analytics/src/governance/role-allowlist.ts  (no allowlist drift)
+  3. mcp_server is registered in .mcp.json
+  4. read_surface_schema == 'live' and the two roles are present
+  5. synced_tables == the live.sync_all() table array in
+     mcp-server-analytics/sql/analytics-machinery.sql (no sync-scope drift, both
+     directions: a table missing there never syncs; a table there but not here
+     bypasses check 1)
+
+Owner: founder
+Change policy: PR + founder review (Tier C). Expanding synced_tables also
+requires a founder D-MAX product-side DDL touch (Sprint 3).
+
+## Top-level keys
+
+- `version`
+- `last_updated`
+- `owner`
+- `capability_id`
+- `project`
+- `roles`
+- `synced_tables`
+- `forbidden_content_tables`
+- `consumer_allowlist`
+- `per_human_tier_gate`
+- `mcp_server`
+- `privacy`
+- `schedule`
+
+> Live values in [`knowledge/analytics-sync-contract.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/analytics-sync-contract.yaml). This page describes the schema; not the data.

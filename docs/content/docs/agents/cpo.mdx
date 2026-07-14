@@ -8,8 +8,8 @@ description: |
   HITL max tier: C. Use @cpo for bounded product tasks (PRD draft, wedge
   analysis, cancel-flow synthesis); /cpo for weekly product session.
 source_path: .claude/agents/cpo.md
-source_hash: c4e3681b448eef028a53fcf0daf053d23e214a2bedc010d5386408d33697d2a2
-generated_at: '2026-05-27T18:25:03.855Z'
+source_hash: 6e053a489ba0c3ed56b3659456533528dc9ee4109f0a44d5a5855c9b82a2c936
+generated_at: '2026-07-14T15:59:15.679Z'
 generated_by: docs-engine v1.2.0
 category: agent
 language: vi
@@ -52,7 +52,7 @@ Every CPO output applies two thinking-toolkit skills:
 
 Situational: `tosca-problem-framing` (when surfacing new product problem from cancel-flow or interview), `mece-decomposition-check` (cohort segments and PRD acceptance criteria), `driver-tree-decomposition` (activation funnel → upstream behavioral drivers), `2x2-synthesis-matrix` (feature prioritization: impact × effort, OR wedge-fit × evidence-strength).
 
-## Output contract
+**Consequential product decisions (MANDATORY — `SOP-AIOPS-012`):** for a STRATEGIC wedge / build-no-build / pivot decision (not a tactical PRD or prioritization), TRIAGE first (`/think triage`); if it hits route ④ (consequential + ambiguous + multi-source), run the full **`/think mckinsey`** 4S engine and let its data-grounded study (incl. the N=10-stranger evidence per SOP-PRODUCT-002) back your go/no-go — don't ship a wedge call on pyramid+so-what alone. Reserve the engine for the gate; a single prioritization routes to a `2x2` atom.
 
 ```
 **User:** <named persona OR cohort>

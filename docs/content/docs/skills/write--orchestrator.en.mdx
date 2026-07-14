@@ -7,8 +7,8 @@ description: |
   requested formats. Drives plan.cjs → draft → enrich → humanize → render → push.
   Invoked by the `write` umbrella skill for the default `/write "<request>"` path.
 source_path: 06-ai-ops/skills/write/orchestrator/SKILL.md
-source_hash: 7e84917ab7122a06d0ed3fbf10add382f5998106e0e40d8befedd95c1699b4a1
-generated_at: '2026-06-09T18:29:33.858Z'
+source_hash: c7e4c6776ef1544c45b8036fefb027f8ab780cf582d9db2f24a00628948162a2
+generated_at: '2026-07-14T15:59:15.662Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -28,10 +28,13 @@ would attribute it to that author.
 node scripts/write/plan.cjs "<request>" --type=.. --medium=.. --author-style=.. --template=.. \
   --length=.. --out=.. --image=.. --dataviz=.. --lang=.. --style=.. --ref=.. --push=.. [--dry-run]
 ```
-This writes `brief.md` + `plan.json` to the artifact dir and resolves type→medium→voice→
-template→length→enrichment→output. **Read `brief.md`** — it is your assignment. If
-`--type` was omitted, infer the best-fit type from the request (see `knowledge/write-types.yaml`
-via `/write types`) and re-run plan with it, or proceed freeform using the closest structure.
+This writes `brief.md` + `plan.json` and resolves type→medium→voice→template→length→
+enrichment→output. The JSON output carries an **absolute `dir`** (under the MAIN repo
+root's `.archives/write/<date>-<slug>/`, even when running inside a worktree — that's where
+the operator looks). **Write `draft.md` into that `dir`, and run scan/render against it**, so
+every artifact lands together. **Read `brief.md`** — it is your assignment. If `--type` was
+omitted, infer the best-fit type from the request (see `knowledge/write-types.yaml` via
+`/write types`) and re-run plan with it, or proceed freeform using the closest structure.
 
 If `--dry-run`: present the plan (type, medium, voice, length, sections, enrichment, output,
 cost note, warnings) and **stop**. Do not write content.
@@ -44,17 +47,44 @@ cost note, warnings) and **stop**. Do not write content.
 - No author-style → read `00-core/brand_voice.md` for Ritsu-facing content, else write in a
   concrete, human, opinionated register. Never default-AI prose.
 
-### 3. Research / grounding (conditional)
+### 2.9 Long-form routing (if `plan.longform`)
+If the resolved type is long-form (book · novel · film-script · research-paper · article-series ·
+course — or `--longform=on`), **STOP the single-pass flow** and follow the **`write/longform`**
+skill instead: lock the bible → outline parts → **draft parts in PARALLEL** (a Workflow) against
+the bible → continuity pass → assemble → one humanize pass. Steps 3 (research) and 7 (humanize)
+still apply, inside that pipeline. The rest of this skill (§4-6 single-pass) is for non-long-form.
+
+### 3. Research / grounding (conditional) — the `write/research` skill
+Apply `plan.research` (off | auto | deep) + `plan.grounding`:
 - `--ref` paths/URLs: read them; ground claims in them; cite specifics, don't assert.
-- `plan.enrich.research` true or `--mode=deep-research`: run the `deep-research` skill for the
-  factual spine, THEN write. For internal Ritsu facts, you may consult `/deepask`.
-- No refs: rely on the model + the author's known positions; never fabricate sources or stats.
+- **External (`plan.research`):** `deep` → run the **`deep-research`** skill (fan-out → verify →
+  cited synthesis) for the factual spine BEFORE writing; `auto` → refs + light lookups; `off` →
+  model + refs only. Never fabricate stats/sources.
+- **Internal Ritsu grounding (`plan.grounding`):** when the piece concerns Ritsu / its product /
+  learning-science positioning, pull material via `/deepask`, `mcp__supabase-ops__wiki_ask`,
+  `mcp__gbrain__search`/`think`, and `00-core/`. **Gather at data-collection; let findings shape
+  the outline** (not just the prose). Write the sources/facts to `<artifact_dir>/research.md` + cite.
+See `06-ai-ops/skills/write/research/SKILL.md`.
+
+### 3.5 Framework decision (`plan.framework.mode`)
+The brief carries a framework decision — honor it:
+- **`explicit`** (`--framework=<id>`) → use `plan.framework.selected.structure` as the backbone.
+- **`free`** (`--framework=none`) → no framework; follow the type's structure_hint.
+- **`auto`** (the default) → **YOU decide.** Look at the request + type + medium and the ranked
+  `plan.framework.candidates`. **Not every piece needs a framework** — apply the best-fit one when
+  the task is persuasion / structured / marketing (an ad, a landing page, a sales email, a
+  how-to, a thread, a pitch); write **free-style** when it's creative, personal, exploratory,
+  reflective, or very short (a poem, a personal essay, a quick note, a one-line caption). When a
+  framework fits, read its full `how_to_apply` + `example` in `knowledge/write-frameworks.yaml`.
+  **Record your choice** ("framework: pas — direct-response ad" or "free-style — a personal
+  reflection doesn't need a formula") as the first line of `draft.md` (an HTML comment), then write.
 
 ### 4. Outline
-Build a section plan from the template (`plan.template.path` — fill its beats) or the type's
-`structure_hint`, budgeted to `plan.section_budget` (count × words/section ≈ target length).
-For the medium, respect its native shape (a thread is N posts; an ad is headline-first; a
-short is 3-second-hook-first). Keep it tight — cut a section before padding one.
+Build a section plan from the chosen framework's structure (3.5) + the template
+(`plan.template.path` — fill its beats) or the type's `structure_hint`, budgeted to
+`plan.section_budget` (count × words/section ≈ target length). For the medium, respect its native
+shape (a thread is N posts; an ad is headline-first; a short is 3-second-hook-first). Keep it
+tight — cut a section before padding one.
 
 ### 5. Draft — in the voice, for the medium
 Write the whole piece. Non-negotiables:
@@ -65,6 +95,10 @@ Write the whole piece. Non-negotiables:
 - **Medium-correct.** Length, formatting, and register match `--medium`.
 - **Honest.** No invented facts, fake quotes, or manufactured urgency (esp. for Ritsu — see
   `00-core/brand_voice.md`; ads still respect SOP discipline).
+- **Craft discipline.** Consult `06-ai-ops/write/CRAFT.md` — the distilled universal craft of the
+  masters (Strunk/Zinsser/Williams/Pinker on clarity; Cialdini/Heath on persuasion; King/McKee on
+  story). Use it as the revision checklist (omit needless words; concrete over abstract; old-before-new
+  cohesion; verbs carry the action). It's the human ceiling above the humanizer's floor.
 Write the draft to `<artifact_dir>/draft.md`.
 
 ### 6. Enrich (where it raises quality, not as decoration)

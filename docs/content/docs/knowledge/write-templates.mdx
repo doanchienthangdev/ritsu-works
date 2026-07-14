@@ -1,0 +1,37 @@
+---
+title: 'Tier 1 yaml: write-templates'
+description: Schema overview for `knowledge/write-templates.yaml`.
+source_path: knowledge/write-templates.yaml
+source_hash: 9234c97ec7a0989cdb2175a59533cad2e6780d9d005f965d51def08bc468ed71
+generated_at: '2026-07-14T15:59:16.099Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+write-templates.yaml — writing-template registry (capability write-platform)
+============================================================================
+Index for `/write --template=<id>`. Templates are COMMITTED markdown skeletons
+under 06-ai-ops/write/templates/\<category>/\<id>.md — reusable structures the
+writer fills (a hook map, section beats, a checklist). `--template=` accepts a
+registered id OR a direct path to any .md skeleton.
+
+Extensible by design: drop a new .md under a category subfolder, add one row here.
+
+Schema: knowledge/schemas/write-templates.schema.json
+Gate:   scripts/cross-tier/validate-write-registries.cjs (every path must exist)
+Resolved by: scripts/write/lib/templates.cjs
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `templates`
+
+> Live values in [`knowledge/write-templates.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/write-templates.yaml). This page describes the schema; not the data.

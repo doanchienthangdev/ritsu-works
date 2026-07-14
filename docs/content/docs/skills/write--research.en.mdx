@@ -1,0 +1,69 @@
+---
+title: 'Skill: write/research'
+description: |
+  The research + grounding step of /write — gather verified external facts and
+  internal Ritsu material BEFORE writing, and let the findings shape the outline
+  (not just the prose). Drives the --research depth axis (off|auto|deep) and the
+  --grounding axis (deepask|wiki|brain). Invoked by write/orchestrator at the
+  data-collection + content-planning steps.
+source_path: 06-ai-ops/skills/write/research/SKILL.md
+source_hash: 9b0d3e65a63906c2c5463ce6238681ae8397ff530764ecc63bd4042bb1c09fa6
+generated_at: '2026-07-14T15:59:15.666Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+A piece is only as trustworthy as what it's built on. This step runs **before** the outline
+and feeds it. Two independent axes from `plan.json`:
+
+## Axis 1 — External research (`plan.research` = off | auto | deep)
+- **`off`** — model knowledge + provided `--ref` only. No external search. (Fast, creative,
+  or offline pieces.)
+- **`auto`** (default) — use `--ref` + light lookups. Escalate to a deeper search only if the
+  topic clearly needs verified external facts you don't have.
+- **`deep`** — run the **`deep-research`** skill: fan-out web searches → fetch sources →
+  **adversarially verify** claims → synthesize a **cited** report. Use this for anything where
+  being wrong is costly (a whitepaper, a research-paper, a claims-heavy article). For long
+  pieces, deep-research itself fans out as a parallel Workflow. **Write from the verified
+  spine**, not from memory; carry the citations into the draft.
+
+Never fabricate a statistic, study, quote, or source. If a fact can't be verified, say it's
+unknown or cut it (the humanizer flags fabricated-authority tells anyway).
+
+## Axis 2 — Internal Ritsu grounding (`plan.grounding`)
+When the piece concerns Ritsu, its product, its learning-science positioning, the company's
+own data/decisions, or anything the workforce already knows — pull that material rather than
+inventing it. Sources (use the ones in `plan.grounding`; `auto` = pick what fits):
+- **`/deepask "<question>"`** — federated, cited synthesis over the ENTIRE internal IA (wiki +
+  ops + capabilities + brain). The best single call for "what does Ritsu know/say about X". Use
+  inline mode for a quick cited answer.
+- **`mcp__supabase-ops__wiki_ask({ question })`** — citation-disciplined RAG over `wiki/`
+  (Kotler, 5-star, competitor notes, distilled refs). For market/marketing/learning-science depth.
+- **`mcp__gbrain__search` / `mcp__gbrain__think`** — the operational brain (people, companies,
+  decisions, meetings, takes). For company-specific facts + reasoning.
+- Also available: `00-core/` (product.md, positioning.md, icp-summary.md, brand_voice.md) for
+  canonical product + voice facts — read directly.
+
+**Cite what you use.** Thread internal findings into the brief + outline; if a claim about Ritsu
+matters, ground it in a real source (deepask/wiki/brain/00-core), never a guess.
+
+## Where this plugs into the pipeline (the two integration points)
+1. **Data collection** — run the external + internal queries; collect the facts/quotes/citations
+   into a short research note (`<artifact_dir>/research.md`).
+2. **Content planning (the outline)** — let the findings **shape the plan**: which sections exist,
+   what each claims, what evidence backs it. A grounded outline beats a grounded paragraph — the
+   research changes the *structure*, not just the supporting sentences.
+
+## Output
+A `research.md` (sources + key facts + citations) the writer drafts from, and an outline whose
+sections are each tied to a fact/source where the content is factual. Surface a one-line note in
+the run report: `research: deep (12 sources verified)` or `grounding: deepask+wiki (8 cited)`.
+
+## Governance
+External web research = in-session (`deep-research` is a subscription skill; its web fetch is the
+out-of-band part it manages). Internal grounding = in-session reads (deepask/wiki/brain under
+their own caps; gbrain under the $100/mo global cap). No fabrication. No Product-Supabase access.
+

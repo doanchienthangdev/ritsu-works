@@ -1,0 +1,52 @@
+---
+title: 'Tier 1 yaml: problem-solving-frameworks'
+description: Schema overview for `knowledge/problem-solving-frameworks.yaml`.
+source_path: knowledge/problem-solving-frameworks.yaml
+source_hash: a9800ba74e9856f719b8923bb8851d185713230a1461e2ce73331190469d626a
+generated_at: '2026-07-14T15:59:16.080Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+problem-solving-frameworks.yaml — the McKinsey toolkit CANDIDATE REGISTRY
+============================================================================
+Capability: thinking-toolkit v1.5. The structured, filterable, extensible pool
+of 207 problem-solving frameworks / models / heuristics / techniques /
+concepts / biases distilled from the two McKinsey books — the LOAD substrate
+for the mckinsey-workflow `tool_selection` layer. The engine FILTERs this
+registry (by fours_step + type) to shortlist candidates for a sub-need, then
+reads each candidate's content via wiki_path (or wiki_ask) at SELECT time.
+
+Why this exists (founder, 2026-06-03): the ~207 candidates EXISTED as wiki
+files, but there was no structured/classified/enumerable registry — wiki_ask
+is fuzzy RAG (can't filter "Structure-step frameworks"), and the resolver
+indexes recipients, not individual concepts. This is that registry.
+
+SEEDED by scripts/thinking-toolkit/gen-frameworks-registry.cjs (deterministic:
+fours_step from source chapter, type from slug keyword) then HAND-MAINTAINABLE
+(fix a mis-typed entry by editing here; re-run the generator with --check to
+find concepts newly synced into the wiki — extensible). `type` is a coarse
+filter hint; the engine reads the real content to decide.
+
+Schema:    knowledge/schemas/problem-solving-frameworks.schema.json
+Validator: scripts/cross-tier/validate-frameworks-registry.cjs (L2 critical;
+           check-consistency.cjs + CI). Proves COMPLETENESS (every book concept
+           is registered) + every wiki_path exists + enums valid.
+
+Counts: 207 total | by step \{"cross":55,"sell":37,"state":20,"solve":59,"structure":36} | by type \{"concept":109,"antipattern":12,"technique":23,"framework":43,"bias":12,"heuristic":8}
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `source_books`
+- `frameworks`
+
+> Live values in [`knowledge/problem-solving-frameworks.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/problem-solving-frameworks.yaml). This page describes the schema; not the data.

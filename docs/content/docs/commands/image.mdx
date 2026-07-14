@@ -9,8 +9,8 @@ description: |
   Tier A; circuit breaker --max-cost-usd mỗi lần chạy; OPENAI_API_KEY out-of-band; artifact ghi vào
   .archives/image/<date>-<slug>/. Orchestrator mỏng trên skill umbrella `image`.
 source_path: .claude/commands/image.md
-source_hash: 3efe6b5a60cd8790cbef51e81a696390a23a387d26dfb804297e78ca39b7c669
-generated_at: '2026-06-02T12:03:00.834Z'
+source_hash: 56fdad9145868bdc518f3a99abc137b3881649069c2369369d3ee670e7ac7c8d
+generated_at: '2026-07-14T15:59:15.718Z'
 generated_by: docs-engine v1.2.0
 category: command
 language: vi
@@ -18,6 +18,7 @@ translated: true
 translated_at: '2026-06-02T12:12:00.000Z'
 translated_by: docs-translate v1.1.0
 translated_source_hash: 3efe6b5a60cd8790cbef51e81a696390a23a387d26dfb804297e78ca39b7c669
+needs_retranslation: true
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -82,3 +83,4 @@ Các nút chỉ-dành-cho-MJ `--stylize/--raw/--variety/--weird/--tile` là từ
 
 ## Quản trị
 Tier A (đảo ngược được, ghi local, có đo + có chặn ngưỡng). Tạo ảnh = `OPENAI_API_KEY` out-of-band (tuân thủ); `--enhance` = trong-phiên/subscription. Cost-bucket `ai-ops-image` (gps): `image-gen` $0.50 (tư vấn — out-of-band; breaker `--max-cost-usd` mới là chốt-chặn thực sự), `image-enhance` $0.10 (hook thực thi). Runtime contract: `SOP-AIOPS-008-image-runtime-contract` (PR-3). deepask là một consumer ngang hàng riêng — không đổi.
+

@@ -1,0 +1,138 @@
+---
+title: 'Tier 1 yaml: mckinsey-workflow'
+description: Schema overview for `knowledge/mckinsey-workflow.yaml`.
+source_path: knowledge/mckinsey-workflow.yaml
+source_hash: ff59319d80341bc3400f5c5792193d65d5f117d947c6cace5632eb4d97580b4d
+generated_at: '2026-07-14T15:59:16.072Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+mckinsey-workflow.yaml — the 4S problem-solving ENGINE catalog
+============================================================================
+Capability: thinking-toolkit v1.4 (/cla extend). The machine-readable spec of
+a world-class McKinsey problem-solving process — NOT a static map of "which
+skill at which stage", but a DYNAMIC, DATA-DRIVEN ENGINE:
+  frame → structure → WORKPLAN (route every hypothesis to a data source) →
+  analyze-loop (pull real data · validate · update the one-day answer ·
+  re-prioritize · porpoise) → synthesize → sell — with intermediate
+  artifacts persisted, findings flowing BACKWARD, and the user asked for
+  data only they hold.
+
+Source: *Bulletproof Problem Solving* (Conn & McLean 2018, the 7-step) +
+*Cracked It!* (Garrette/Phelps/Sibony 2018, the 4S). Spine = 4S; the 7-step
+is the finer cross-map. The load-bearing mechanics distilled from the books:
+  - 6-column WORKPLAN (Exhibit 4.3, verbatim): issue · hypothesis · analysis ·
+    source-of-data · responsibility · end-product. "We don't do any analysis
+    for which we don't have a hypothesis." This is the data-routing spine.
+  - ONE-DAY ANSWER (situation-observation-resolution): the living state,
+    updated after every analysis, re-ranks the remaining workplan rows.
+  - PORPOISING: dive into data → resurface a sharper problem statement.
+  - VALIDATION GATE + DIALECTIC: every datum gated before it moves the answer.
+  - MARGINAL-ANALYSIS stopping rule: stop when no cheap, answer-moving
+    analysis remains.
+
+v1.3 was a static reading-list index (audited: 0/6 real-engine capabilities;
+`porpoising` + `analysis-plan` existed in the wiki but were bound to ZERO
+steps). v1.4 bound them and added the engine sections: artifacts, data_routing,
+validation_gate, routing_rules, hitl_triggers, back_edges, stopping_criterion.
+
+v1.5 (the "load + select the right tool" upgrade) adds the missing mechanism:
+  - tool_selection: HOW the engine CLASSIFIEs a sub-need (book decision-trees)
+    → LOADs candidates (the registry below + ritsu JIT) → SELECTs + COMBINEs
+    (latticework + debias). The candidate pool is a NEW dedicated registry,
+    knowledge/problem-solving-frameworks.yaml — 207 classified candidates from
+    the two books (FILTERable by 4S step + type), extensible as more sync in.
+  - 4 fact-check gap-fixes vs the source process: the one-day-answer is now
+    SEEDED at State (a day-one hypothesis), not first born at Solve; the
+    analytics-tool decision tree (causation vs prediction) is bound; Sell now
+    SPLITS synthesize (step 6, the logic) from communicate (step 7, the story)
+    as two artifacts with an APK (anxious-parade-of-knowledge) guard; and the
+    design-thinking 5-phase branch is a first-class solve_mode in tool_selection.
+
+v1.6 (the "enforce the discipline mechanically" upgrade): a deterministic
+  helper, scripts/thinking-toolkit/mckinsey-run.cjs, scaffolds the run folder
+  and CHECKS it — the 6-column + status workplan, a provenance + degree(1-8)
+  tag on every analysis-log datum, the product firewall on source-of-data, and
+  the stopping gate (no `open` row before Sell). The engine's discipline is now
+  a gate, not just prose. The registry also gains source_chapter provenance
+  (every candidate traces to a book chapter) + a per-step coverage invariant
+  (every 4S step has ≥1 selectable candidate). artifact name `decomposition`
+  is canonical across catalog ↔ run-folder ↔ checker (coherence-guarded).
+
+v1.7 (the "compose deepask without recursion / runaway cost / ceded judgment"
+  upgrade): data_routing already lists deepask as a Solve data tool (since
+  v1.4), but the INTEGRATION CONTRACT was implicit. v1.7 makes it a first-class,
+  validated `composition_guards` engine section — 3 disciplines for composing a
+  HEAVYWEIGHT sub-capability (deepask first; gbrain `think` + deep-research share
+  the shape): (1) ANTI-RECURSION one-way layering (mckinsey → deepask → /think
+  micro-frameworks; deepask never re-enters /think mckinsey — breaks the latent
+  mckinsey→deepask→think-skills→mckinsey cycle; enforced deterministically by
+  scripts/deepask/capability-gate.cjs RECURSION_DENYLIST); (2) COST-VALVE — a
+  full /deepask loop fires ONLY on a knock-out-surviving, genuinely multi-source
+  workplan row (--dry-run first; budget the resolver breaker across the run;
+  heuristics before big guns); (3) EVIDENCE-NOT-DECIDER — deepask returns cited
+  evidence + a COMPLETE/PARTIAL verdict, not the call; a PARTIAL is a
+  data-blocked branch (ask-user or carry an explicit assumption), and the
+  synthesize→recommend judgment stays with the engine (Sell) + the owner.
+
+v3.1 (the "restore the 4S diagram topology + close the coherence gap" upgrade,
+  2026-06-05 audit fix): the 2026-06-05 audit found the engine had FLATTENED the
+  Cracked It! Fig 3.1 routing map — the three PATHS (hypothesis-driven / issue-
+  driven / design-thinking) existed only as prose, the five DECISION DIAMONDS were
+  softened into heuristics, and design-thinking was buried entirely in Solve
+  (the diagram spreads it Empathize=State → Ideate=Structure → Prototype=Solve).
+  It also found the human docs' tool counts had DRIFTED (460/667/19 vs the real
+  424/631/20) with NOTHING in CI checking them. v3.1 adds three sections —
+  `paths` (the 3 paths + their band_staging), `decision_gates` (the 5 diamonds +
+  YES/NO routing), and `tool_library` (the full v3.0 candidate pool reconciled
+  INTO the spec, closing the "spec lagged the SKILL" gap) — and a NEW coherence
+  validator (scripts/cross-tier/validate-mckinsey-coherence.cjs) that makes the
+  stated counts a falsifiable CI invariant. Plus an auto-run enforcement hook
+  (.claude/hooks/runtime/pre-write-mckinsey-gate.cjs) that fires the run-folder
+  gate the moment a Sell artifact is written, and a deeper before-sell checker
+  (decomposition ≥2 branches · non-trivial disconfirmation · ≥1 real data pull).
+
+Schema:    knowledge/schemas/mckinsey-workflow.schema.json
+Validator: scripts/cross-tier/validate-mckinsey-workflow.cjs (L2 critical;
+           check-consistency.cjs + CI + validate-tier1 FILE_TO_SCHEMA). Proves
+           every referenced skill + concept file exists, every `produces` +
+           `data_routing.tool` + `artifacts.files[].stage` is from a known set,
+           and the engine sections (incl. tool_selection) are present + non-empty.
+Registry:  knowledge/problem-solving-frameworks.yaml (the candidate pool;
+           validate-frameworks-registry.cjs proves it complete + on-disk).
+Skill:     06-ai-ops/skills/thinking-toolkit/mckinsey-workflow/SKILL.md
+           (the executable playbook reflecting this spec). /think mckinsey.
+Maintenance: hand-maintained, like design-systems.yaml / art-styles.yaml.
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `spine`
+- `source_books`
+- `artifacts`
+- `data_routing`
+- `composition_guards`
+- `tool_selection`
+- `validation_gate`
+- `routing_rules`
+- `hitl_triggers`
+- `back_edges`
+- `stopping_criterion`
+- `paths`
+- `decision_gates`
+- `tool_library`
+- `steps`
+- `data_verification`
+- `consult`
+- `reasoning_trace`
+
+> Live values in [`knowledge/mckinsey-workflow.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/mckinsey-workflow.yaml). This page describes the schema; not the data.

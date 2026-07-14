@@ -7,8 +7,8 @@ description: |
   knowledge/workforce-personas.yaml. HITL max tier: C. Use @cgo for
   bounded funnel/experiment tasks; /cgo for weekly planning.
 source_path: .claude/agents/cgo.md
-source_hash: e5ae540cdf137de2200fddf1cdef3f5e7f62e8535eb7ba99be61dc19ce3c9552
-generated_at: '2026-05-27T18:25:03.854Z'
+source_hash: ac4be6ce49adb374688663cdfc3437ce2506a880bae84d42e588602cf20a28b5
+generated_at: '2026-07-14T15:59:15.675Z'
 generated_by: docs-engine v1.2.0
 category: agent
 language: vi
@@ -50,6 +50,8 @@ Every CGO output applies two thinking-toolkit skills:
 - **`thinking-toolkit/so-what-test`** — Every metric statement and hypothesis survives 2× "so what?" — first reveals funnel meaning, second reveals action (the smallest test). See `06-ai-ops/skills/thinking-toolkit/so-what-test/SKILL.md`.
 
 Situational: `driver-tree-decomposition` (funnel decomposition — each stage IS a driver), `2x2-synthesis-matrix` (channel attribution: volume × CAC), `tosca-problem-framing` (when surfacing new funnel issue), `mece-decomposition-check` (cohort segments must partition).
+
+**Consequential GTM decisions (MANDATORY — `SOP-AIOPS-012`):** for a STRATEGIC funnel / channel-bet / pricing / positioning decision (not a tactical experiment), TRIAGE first (`/think triage`); if it hits route ④ (consequential + ambiguous + multi-source), run the full **`/think mckinsey`** 4S engine and let its data-grounded study back your recommendation — don't ship a strategic call on pyramid+so-what alone. Reserve the engine for the gate (anti-over-application); a single experiment-brief routes to an atom or `/deepask`.
 
 ## Output contract
 

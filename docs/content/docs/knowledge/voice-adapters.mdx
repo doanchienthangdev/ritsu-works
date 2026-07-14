@@ -1,0 +1,39 @@
+---
+title: 'Tier 1 yaml: voice-adapters'
+description: Schema overview for `knowledge/voice-adapters.yaml`.
+source_path: knowledge/voice-adapters.yaml
+source_hash: 1751d46b37149f43af4e9357a479d0815af4b2d2f7bcbe499370991065f21fd1
+generated_at: '2026-07-14T15:59:16.086Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+voice-adapters.yaml — Text-to-speech backend registry (capability voice-platform)
+============================================================================
+Single index for the /voice pluggable adapter layer (--use=\<adapter>). SPLIT-
+registry shape (mirrors image-adapters.yaml): a built adapter carries a
+`generator` script path that MUST exist on disk; a `registered-not-built` stub
+carries none (it documents intent + its native param surface for the day it ships).
+
+Adding a TTS backend later = drop adapters/\<id>/SKILL.md + one row here + one
+routing-table row in the umbrella skill. NO command-side code change.
+
+Schema: knowledge/schemas/voice-adapters.schema.json
+Gate:   scripts/cross-tier/validate-voice-adapters.cjs (L2 critical — structural +
+        supports[] ⊆ UNIVERSAL_PARAMS + installed⇒generator-on-disk + preset_of⇒target)
+Spec:   wiki/capabilities/voice-platform/spec.md (after Phase 8; draft .archives/cla/voice/spec.md)
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `adapters`
+
+> Live values in [`knowledge/voice-adapters.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/voice-adapters.yaml). This page describes the schema; not the data.

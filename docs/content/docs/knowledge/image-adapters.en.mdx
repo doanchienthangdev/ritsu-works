@@ -1,0 +1,40 @@
+---
+title: 'Tier 1 yaml: image-adapters'
+description: Schema overview for `knowledge/image-adapters.yaml`.
+source_path: knowledge/image-adapters.yaml
+source_hash: bcd7be6b090db3ef81d56eed62a76e1aa93160c993fcaa38bed4c5c9c703d9ec
+generated_at: '2026-07-14T15:59:15.982Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+image-adapters.yaml — Image-backend registry (capability image-platform)
+============================================================================
+Single index for the /image pluggable adapter layer (--use=\<adapter>). SPLIT-
+registry shape (mirrors design-systems.yaml): a built adapter carries a
+`generator` script path that MUST exist on disk; a `registered-not-built` stub
+carries none (it documents intent + its native param surface for the day it ships).
+
+Adding a model later = drop adapters/\<id>/SKILL.md + one row here + one routing-
+table row in the umbrella skill. NO command-side code change.
+
+Schema: knowledge/schemas/image-adapters.schema.json
+Gate:   scripts/cross-tier/validate-image-adapters.cjs (L2 critical — structural +
+        supports[] ⊆ UNIVERSAL_PARAMS + installed⇒generator-on-disk + preset_of⇒target)
+Spec:   wiki/capabilities/image-platform/spec.md (after Phase 8; draft .archives/cla/image-platform/spec.md)
+Decision: ops.decisions d7e92ec2-bcfb-4b7f-a140-bfb14a12dacf (Tier C, 2026-06-02).
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `adapters`
+
+> Live values in [`knowledge/image-adapters.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/image-adapters.yaml). This page describes the schema; not the data.

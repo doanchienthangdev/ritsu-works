@@ -1,0 +1,44 @@
+---
+title: 'Tier 1 yaml: dataviz-renderers'
+description: Schema overview for `knowledge/dataviz-renderers.yaml`.
+source_path: knowledge/dataviz-renderers.yaml
+source_hash: 103bbcb60a3064353320a030122afd81177d114562877bff9f43d7540b5e206f
+generated_at: '2026-07-14T15:59:15.979Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+dataviz-renderers.yaml — /dataviz pluggable renderer registry
+(capability `dataviz` v0.1 — McKinsey-caliber data visualization)
+============================================================================
+Mirrors knowledge/image-adapters.yaml (the split-registry convention): a built
+renderer carries `status: installed` + a `generator` path that MUST exist on disk;
+a `registered-not-built` stub carries none (documents intent + the engine surface,
+awaiting implementation). Each renderer's supports[]/supports_stretch[]/
+unsupported_warn[] must each be ⊆ UNIVERSAL_PARAMS (scripts/dataviz/lib/params.cjs)
+— enforced by scripts/cross-tier/validate-dataviz-renderers.cjs (L2 critical;
+wired into check-consistency.cjs AND .github/workflows/cross-tier-consistency.yml).
+
+v0.1 ships ONE real backend: svg-native (the zero-dependency, pure-Node, byte-
+stable SVG-string renderer). echarts-ssr + vega-lite are documented stubs (the
+engine fallbacks if hand-rolled layout ever outruns budget — both are no-DOM/
+no-native-build SVG paths; vega-lite's accurate-text path historically pulls
+node-canvas, so it is the LAST resort).
+
+Schema:    knowledge/schemas/dataviz-renderers.schema.json
+Consumer:  06-ai-ops/skills/dataviz/SKILL.md (--use=\<renderer>)
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `renderers`
+
+> Live values in [`knowledge/dataviz-renderers.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/dataviz-renderers.yaml). This page describes the schema; not the data.
