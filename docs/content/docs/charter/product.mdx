@@ -2,21 +2,19 @@
 title: Ritsu — Product Charter
 description: ''
 source_path: 00-core/product.md
-source_hash: fab465492e41d65ee7e0ccf27e45ef2ed7c52364b1a91bc9564c8bdefed2c34b
-generated_at: '2026-05-29T17:31:50.185Z'
+source_hash: 40b801507000fa56dad9e0b81d4e8f19789b1f861132f200b04d11cf69b7f7da
+generated_at: '2026-07-14T15:30:30.773Z'
 generated_by: docs-engine v1.2.0
 category: charter
 language: vi
 translated: true
 translated_at: '2026-05-29T17:36:47Z'
 translated_by: docs-translate v1.2.0 (subagent)
-translation_model: claude-haiku-4-5
 translated_source_hash: fab465492e41d65ee7e0ccf27e45ef2ed7c52364b1a91bc9564c8bdefed2c34b
+needs_retranslation: true
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
-
-
 
 # Ritsu — Product Charter
 
@@ -88,11 +86,27 @@ Mỗi năng lực dưới đây kết hợp tính năng đã xác minh với **l
 
 → **Lợi ích:** bắt đầu từ bất cứ thứ gì bạn đã có — không có ma sát thiết lập; tài liệu học thực tế của bạn trở thành bài luyện tập trong vài giây.
 
-### 6.2 Học tập tương tác — 17+ loại hoạt động
+### 6.2 Học tập tương tác — 47 lệnh, chia 5 nhóm
 
-Được đặt tên đã xác minh (9 trong số 17+): **Quiz, Flashcard, Mindmap, Timeline, Crossword, Drag-and-drop, Diagram, Code exercise, Match.** Tất cả được tạo tự động từ tài liệu của người dùng — không phải mẫu có sẵn.
+**Nguồn sự thật (đã xác minh từ code 2026-07-14):** `apps/web/src/app/(protected)/learning/lib/commands/*.cmd.ts` trong product repo định nghĩa **47 lệnh**. **41 lệnh trong số đó đang được dùng thật trên production** (`live.ai_usage_logs.command_name`).
 
-Lệnh slash trong sản phẩm: `/quiz`, `/flashcard`, `/mindmap`, `/timeline`, `/crossword`, `/diagram`, `/code`, `/match`. Repository tuyên bố **185+ lệnh** tổng cộng — đó là tập hợp bao gồm cả hoạt động + chế độ + tiện ích, không chỉ riêng các loại hoạt động. Để có danh sách hoạt động hiện tại đầy đủ, tải https://ritsu.ai.
+| Nhóm | Lệnh |
+|---|---|
+| **assessment** (10) | `/quiz` `/flashcard` `/exercise` `/solve` `/askme` `/practice` `/test` `/code` `/dragndrop` `/write` |
+| **learning** (22) | `/eli5` `/explain` `/why` `/how` `/analogy` `/intuition` `/derive` `/prereq` `/counter-example` `/what-if` `/compare` `/contrast` `/expand` `/deep` `/simplify` `/summary` `/example` `/context` `/upthink` `/adaptive` `/plan` `/visualize` |
+| **reference** (8) | `/concepts` `/mindmap` `/diagram` `/timeline` `/crossword` `/mermaid` `/search` `/generate` |
+| **navigation** (3) | `/start` `/next` `/back` |
+| **system** (4) | `/help` `/progress` `/lang` `/clear` |
+
+Tất cả được sinh tự động từ chính tài liệu của người học — không phải từ một kho mẫu có sẵn.
+
+> **Cách đọc chiến lược (thêm 2026-07-14):** khác biệt **không** nằm ở con số. Một ô chat, về nguyên tắc, có thể tạo ra bất kỳ lệnh nào ở trên — nhưng **không ai gõ** *"hãy dựng một phản ví dụ cho thấy luận điểm này gãy ở đâu."* Một **lệnh có tên biến một nước đi hiếm của chuyên gia thành một thói quen một chữ.** `/derive` · `/prereq` · `/counter-example` · `/intuition` · `/contrast` không phải là tính năng; chúng là **những nước đi mà một gia sư giỏi thực hiện, được đặt tên để gọi ra.**
+>
+> **ChatGPT có một ô chat. NotebookLM có một ô chat. Ritsu có một bộ từ vựng để học.** Hãy dẫn dắt bằng điều đó, đừng dẫn bằng con số — một con số sẽ bị ICP trọng-sự-nghiêm-túc đọc ra là phình tính năng (`icp-summary.md` §1).
+
+**Hai đính chính so với phiên bản trước của mục này** (cả hai đều đang chạy trên bề mặt marketing):
+- ~~"185+ lệnh"~~ → **47.** Con số 185 không có cơ sở nào trong code.
+- ~~`/match`~~ → **`/dragndrop`.** Không tồn tại lệnh `/match`; homepage đang liệt kê nó.
 
 → **Lợi ích:** luyện tập theo đúng định dạng giúp *tài liệu này* ghi nhớ → thực sự master nó, không chỉ đọc lại.
 
@@ -111,11 +125,19 @@ Hai chế độ bổ sung có thể thấy trong sản phẩm nhưng không đư
 
 ### 6.4 Công cụ mastery — xây dựng để hiểu, không phải để ghi nhớ
 
-Bản đồ khái niệm kết nối các ý tưởng xuyên suốt các chương. Các kỹ thuật có tên được áp dụng cho tài liệu của người dùng: **Compare, Analogies, Deep Explain, Feynman-style breakdowns.**
+**Knowledge Map** hiển thị trực quan các kết nối giữa khái niệm và theo dõi mức mastery theo từng khái niệm — Basic ở tầng Plus, Full (có chia sẻ + xuất) ở tầng Pro. Các kỹ thuật có tên được áp dụng lên tài liệu của người học: **Compare, Analogies, Deep Explain, Feynman-style breakdowns.**
 
-Tính năng **Knowledge Map** hiển thị các kết nối này trực quan — cơ bản ở tầng Plus, đầy đủ (có chia sẻ + xuất) ở tầng Pro.
+> ### ⚠️ PHẠM VI — bản đồ là theo TÀI LIỆU, không phải theo KHOÁ HỌC (xác minh từ code 2026-07-14)
+>
+> Phiên bản trước của mục này viết *"Bản đồ khái niệm kết nối các ý tưởng xuyên suốt các chương."* **Đó không phải thứ đang ship.**
+>
+> `GET /api/learning/knowledge-map?sessionId=<uuid>` nhận **`sessionId` làm tham số duy nhất**. Trong `lib/knowledge-map/types.ts`, `sources` của một knowledge item là `KiSource = { u, p }` — **(chỉ số unit, chỉ số point-of-knowledge) bên trong MỘT tài liệu.** Một plan = một session = một nguồn (`learning_plans` là 1:1 với `session_id`; `learning_sessions.source_id` là số ít).
+>
+> **Homepage hiện đang tuyên bố** *"CROSS-SOURCE LINKS — connects ideas across every chapter, file, and video in one project."* **Nó không làm vậy.** Đây là claim đầu bảng của wedge, và khác với một lời nói quá trong marketing, **người dùng có thể tự phát hiện ra bằng cách dùng sản phẩm.**
+>
+> **Khoảng cách là một phép merge, không phải viết lại.** Thêm `?projectId=`, gộp các session trong một project, merge knowledge item theo `kiKey`, và mở rộng `KiSource` thành `{ sourceId, u, p }`. Phần derivation, phần chấm điểm (`heatForScore` / `tierForScore` / `isMastered`), `mastery-check`, `mastery-ring` và `tier-styles` đều đã tồn tại và đã có test. Xem `wedge.md` §1 — **đây chính là wedge.**
 
-→ **Lợi ích:** thấy cách các ý tưởng kết nối với nhau — sự khác biệt giữa ghi nhớ các sự kiện và thực sự hiểu một môn học.
+→ **Lợi ích:** thấy cách các ý tưởng kết nối với nhau — khác biệt giữa ghi nhớ sự kiện và thực sự hiểu một môn học. *(Ở quy mô khoá học, chờ phần rollup cấp project ở trên.)*
 
 ### 6.5 Emotional AI — 10 phong cách tính cách
 
@@ -314,3 +336,4 @@ Bộ ba **"CÁI GÌ"** — `product.md` (Ritsu LÀ gì) + `positioning.md` (ph�
 ---
 
 *Tài liệu này là câu trả lời quy chuẩn cho "Ritsu là gì?" Mọi tài liệu marketing, sales và support khác đều phải nhất quán với nó. Nếu bạn tìm thấy mâu thuẫn, mâu thuẫn đó là một lỗi — hãy sửa nguồn, không phải triệu chứng.*
+
