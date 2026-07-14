@@ -1,0 +1,38 @@
+---
+title: 'Tier 1 yaml: design-systems'
+description: Schema overview for `knowledge/design-systems.yaml`.
+source_path: knowledge/design-systems.yaml
+source_hash: 823050bbcd84030db5595607d5842132055ebfa81bd3a5df4bb00fa644e3849e
+generated_at: '2026-07-14T15:59:15.980Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+design-systems.yaml — Design-system registry (capability design-system-styling)
+============================================================================
+Single index for the universal --style=\<name> output layer. SPLIT registry:
+  - owned/canonical  → Tier-1 00-core/design-system/\<name>/ (PR-governed identity)
+  - downloaded/built  → runtime/design-systems/\<name>/ (gitignored, re-downloadable cache)
+
+registration != materialization (AD-2): a system may be registered metadata-
+first (status: not_cached / pending) and materialized lazily on first --style use.
+
+Schema: knowledge/schemas/design-systems.schema.json
+Gate:   scripts/cross-tier/validate-design-systems.cjs (structural + file-existence)
+Spec:   wiki/capabilities/design-system-styling/spec.md (after Phase 8 promotion;
+        draft .archives/cla/design-system-styling/spec.md). Decision bf3a6323.
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `design_systems`
+
+> Live values in [`knowledge/design-systems.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/design-systems.yaml). This page describes the schema; not the data.

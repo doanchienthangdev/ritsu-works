@@ -13,8 +13,8 @@ description: |
   then runs scripts/image/gen.cjs (out-of-band OpenAI). Tier A; per-run
   --max-cost-usd breaker. Invoked by `.claude/commands/image.md`.
 source_path: 06-ai-ops/skills/image/SKILL.md
-source_hash: 3575201bd38bff7453f88ae3578c9cc5bf47d5116bed34920a835880c5f9e425
-generated_at: '2026-06-02T12:03:00.962Z'
+source_hash: 4131d76bb84d422358cdcc1e9fe8790fa3bc37cde0bd02f94114b6e52dcf9b8d
+generated_at: '2026-07-14T15:59:15.547Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: en
@@ -42,7 +42,8 @@ Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a bac
 | `--use` | Adapter | Status | Generator |
 |---|---|---|---|
 | `gpt-image-2` *(default)* | `adapters/gpt-image-2` | installed | `scripts/image/gen.cjs` |
-| `gpt-image-2-pro-max` | `adapters/gpt-image-2` (preset) | installed | `gen.cjs` + `--enhance --quality=high` |
+| `pro-max` *(v0.4)* | `adapters/gpt-image-2` (preset) | installed | `gen.cjs` + `--enhance --enhance-mode=pro-max --quality=high` |
+| `gpt-image-2-pro-max` | alias of `pro-max` | installed | same as `pro-max` |
 | `nano-banana` | — | registered-not-built | (stub → `not_built` error) |
 | `midjourney` | — | registered-not-built | (stub → `not_built` error) |
 | `flux` | — | registered-not-built | (stub → `not_built` error) |
@@ -52,12 +53,13 @@ Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a bac
 ## Run flow
 
 1. **Parse** flags (`params.cjs`). Resolve `--use` against the registry.
-2. **(optional) `--enhance`** → dispatch to `image/enhance` (in-session prompt refinement; subscription billing; NEVER an external API). Records `prompt_enhanced` (before/after) for `run.json`.
+2. **(optional) `--enhance` / `--use=pro-max`** → dispatch to `image/enhance` (in-session prompt refinement). **Two modes:** (a) **generic** (`--enhance`) = pure in-session rewrite; (b) **pro-max** (`--use=pro-max` / `--enhance-mode=pro-max`, v0.4) = the vendored `gpt-image-2-pro-max` media-designer loop — `scripts/image/pro-max/search.cjs` searches the hosted community-prompt corpus (free, key-less; `external-source/gpt-image-2-prompts-backend`), picks a mood-aligned base, refactors + resolves it WITH author attribution, and falls back to generic if the backend is unreachable. Records `prompt_enhanced` (before/after) + the chosen base into `run.json` (`pro_max.base` via `--pro-max-base`). The enhanced prompt is the **content brief only** — brand/genre/logo are still the deterministic blocks below.
 3. **`--style` / `--art-style` → gen.cjs** (v0.2: composition is now **deterministic**, not in-session). The command just passes the flags; `scripts/image/gen.cjs` calls `scripts/image/lib/compose.cjs`, which:
    - **BRAND block** — `resolveStyle(--style)` (`scripts/design-system/resolve-style.cjs`) injects the DESIGN.md palette / typography / personality. Omitted or uncached (non-interactive AD-3 miss) → plain + warn, never crash.
    - **GENRE block** — `resolveArtStyle(--art-style)` (`scripts/deepask/art-style.cjs`) → `assets` (the lever — concrete objects to DRAW) + layout / tone / display + a SECONDARY accent only.
    - **Precedence:** brand core palette/logo/type **>** genre (secondary accent only). The only **in-session** prompt step is the optional `--enhance` (step 2); brand/genre composition is fully deterministic.
 4. **Generate** — call the resolved adapter's generator (`scripts/image/gen.cjs`). gen.cjs: composes (step 3), resolves size (R2 flexible native), estimates cost (R3), enforces the `--max-cost-usd` breaker BEFORE the call, **routes to the `/v1/images/edits` multipart endpoint when `--ref`/`--mask` are set** (reference-guided generation; else `/generations`), writes PNG(s) + typed `run.json` + prompt sidecar. See `adapters/gpt-image-2/SKILL.md`.
+   - **v0.3 brand corner LOGO OVERLAY** — when the resolved `--style` declares a `logo.overlay` policy AND a `--ref` is given (e.g. `--style=ritsu --ref=<asset>`), gen.cjs does NOT use the edits endpoint (a square logo there comes out big + centered). It forces `/generations` for a clean base (compose.cjs appends a `hasRef`-gated *"draw no logo, keep the corner clean"* directive) and then **composites the brand's canonical LOCKUP — `logo.asset` (the mark + "Ritsu" wordmark, matching ritsu.ai) — small in the policy corner** via `scripts/image/lib/png-overlay.cjs` (dependency-free, zlib-only PNG decode/downscale/composite/encode). The `--ref` is the **trigger** (any ritsu asset works); compose.cjs resolves `logo.asset` → an absolute path; gen.cjs falls back to the `--ref` only if the policy declares no asset. Deterministic + pixel-perfect; graceful fallback (warn, keep the base) on failure; PNG-only.
 5. **Report** — surface the adapter's output contract `{ok, files[], model, cost_usd, warnings[]}`. **Always surface `warnings[]`** (unsupported params are warned, never silently dropped). On `outcome ∈ {not_built, breaker_refusal, moderation_block, api_error}`, report the typed reason + remedy.
 
 ## Output contract (uniform across adapters)
@@ -70,5 +72,5 @@ Read `knowledge/image-adapters.yaml`; resolve `--use` to its entry. Adding a bac
 - **`--ref`/`--mask`** (v0.2): reference-guided generation via the `/v1/images/edits` multipart endpoint (`gen.cjs callOpenAiEdit`) — `--ref=<image[,image2]>`, optional `--mask=<png>` inpaint region.
 
 ## Composes with
-`scripts/image/{gen,lib/params}.cjs` · `scripts/design-system/resolve-style.cjs` · `scripts/deepask/art-style.cjs` · `deepask/image-compose` (§1/§1b technique) · `deepask/aesthetic` (Part 3) · `knowledge/{image-adapters,design-systems,art-styles}.yaml`.
+`scripts/image/{gen,lib/params,lib/compose,lib/png-overlay,pro-max/search}.cjs` · `scripts/design-system/resolve-style.cjs` · `scripts/deepask/art-style.cjs` · `deepask/image-compose` (§1/§1b technique) · `deepask/aesthetic` (Part 3) · `knowledge/{image-adapters,design-systems,art-styles,external-sources}.yaml` · `00-core/design-system/ritsu/DESIGN.md` (`logo:` overlay policy) · `vendor/gpt-image-2-pro-max/` (the MIT media-designer skill — v0.4 `--use=pro-max`).
 

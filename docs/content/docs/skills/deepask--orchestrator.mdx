@@ -7,14 +7,15 @@ description: >-
   writes ops.deepask_runs/coverage. deepask has ZERO routing of its own — it consumes ResolverPlan
   v1 from resolver-plan. Invoked by /deepask.
 source_path: 06-ai-ops/skills/deepask/orchestrator/SKILL.md
-source_hash: b1a1f55db1184b529daed7abdd4ef0d7bdcf2a93562332147f14414a70e4c5b4
-generated_at: '2026-05-31T03:54:41.186Z'
+source_hash: f2c8d16bfd2ea56346c0b9b443ad6539273207fa9cf65dcc61c8c7fdd148f566
+generated_at: '2026-07-14T15:59:15.485Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
 translated_at: '2026-05-31T11:00:00Z'
 translated_source_hash: b1a1f55db1184b529daed7abdd4ef0d7bdcf2a93562332147f14414a70e4c5b4
+needs_retranslation: true
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -91,4 +92,5 @@ Subscription (trong session) — cost-bucket `ai-ops-deepask`; logged to `ops.co
 
 ## Tests
 `scripts/deepask/breaker-budget.cjs` is unit-tested (`tests/deepask/breaker-budget.test.ts`, 27 cases incl. the cap off-by-one + honest-PARTIAL exhaustion). Loop-level tests (decompose MECE, firewall block, zero-routing trong plan.json, dry-run writes only a dry-run row) land per the spec §10 test matrix as their stages ship.
+
 

@@ -1,0 +1,80 @@
+---
+title: 'Command: /users — operator management (capability `multi-user-auth`)'
+description: |
+  Owner-only operator management for ritsu-works multi-user: add / list / revoke /
+  re-tier human operators (owner · admin · user). Capability multi-user-auth.
+  Sprint 0 = ADVISORY (operators.yaml PR). Sprint 2 = SERVER-ENFORCED via the
+  deployed operator-broker Edge Function (owner JWT verified server-side; invite/
+  redeem/revoke/list with an immutable audit trail). NOT a content command.
+source_path: .claude/commands/users.md
+source_hash: 62240ed6a9932a4e7c04cccf39dce959daecc0e575d6242c974f91a88ef3ff9d
+generated_at: '2026-07-14T15:59:15.777Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Owner-only. Manage the humans who may operate ritsu-works and their authority tier.
+The tier model + per-tier capabilities live in `knowledge/operator-tiers.yaml`; the
+registry of who's enrolled lives in `governance/operators.yaml` (owner-PR, CODEOWNERS-locked).
+
+> **Server-enforced (Sprint 2 — DEPLOYED):** the real gate is now the
+> **operator-broker Edge Function** (`<SUPABASE_URL>/functions/v1/operator-broker`,
+> deployed to ritsu-ops). It verifies the caller's per-human Supabase Auth JWT
+> server-side and gates owner-only actions on the verified `app_metadata.tier`
+> (never a client-sent value). A co-founder's laptop never holds `service_role` —
+> the broker holds it. The `operators.yaml` PR + CODEOWNERS remain the Tier-1 map.
+>
+> **Broker actions** (POST `{action, ...}` with `Authorization: Bearer <your owner JWT>`):
+> - `whoami` — any authenticated caller; returns your verified `{email, tier, sub}`.
+> - `invite {email, tier: admin|user}` — OWNER only. Creates the Supabase Auth user
+>   (tier set server-side), records `ops.operators` (status=invited), writes an audit
+>   row, returns a single-use magic-link (forward it — no email sender configured).
+>   Refuses re-tiering an existing owner (409) + minting owners (joint authority).
+> - `redeem` — SELF-SERVICE: the invitee (after clicking the magic-link) flips their
+>   own row invited→active.
+> - `revoke {email}` — OWNER only. Bans the Auth user + status=revoked + audit;
+>   refuses the last active owner (409). NB: an already-issued access token stays
+>   valid ~1h — rotate the JWT secret for instant lockout.
+> - `list` — OWNER only.
+
+> **Firewall:** never type the database-CLI token in a Bash command. Registry reads
+> use the Read tool / the resolver helper; Sprint-1 DB writes go through the broker.
+
+## Tiers (summary — full map: `knowledge/operator-tiers.yaml`)
+- **owner** — everything: system commands (`/cla`, `/evolve`, `/update`, `/forge`), Tier-1 + GitHub merge, money, **user management**.
+- **admin** — data systems (ops DB + gbrain read/write, analytics read) + content + knowledge (`/wiki`, `/deepask`, `/brain`).
+- **user** — content production only (`/write`, `/think`, `/voice`, `/image`, `/dataviz`, `/translate`) + publish to stores (HITL).
+
+## Preflight (every subcommand)
+1. Confirm the CALLER is an owner: resolve the caller's operator email against
+   `governance/operators.yaml` and require `tier: owner, status: active`. (Sprint 0:
+   advisory — print a warning if not verifiable; Sprint 1: the broker enforces.)
+   Helper: `scripts/local-install/lib/operator-tier.cjs` → `can(callerEmail, {kind:'user-management'}, registry, tiers)`.
+
+## `add <email> --tier=admin|user`
+1. Validate the email + tier; refuse `--tier=owner` unless joint-owner approval (≥2 owners) — owner creation is the highest-stakes action.
+2. Append a record to `governance/operators.yaml`: `{email, tier, status: invited, added_by: <owner email>, added_at: <today>}`. Open it as a **PR** (CODEOWNERS → owner review).
+3. Run `node scripts/cross-tier/validate-operators.cjs` — must pass (≥1 owner, unique email, added_by-is-owner, no secrets).
+4. **Sprint 1:** the broker creates the Supabase Auth user with `app_metadata.tier`, generates a single-use ≤24h email-bound magic-link, and sends it via Resend. **Sprint 0:** print the invite instructions for the owner to send manually + mark the record `invited`.
+5. Tell the new operator: clone the repo → `/install-ritsu-works` → (Sprint 1) authenticate with the emailed link before install completes.
+
+## `list`
+Read `governance/operators.yaml` + render a table: email · tier · status · added_by · added_at · github_login. Flag any `invited` older than the invite TTL (stale) and any tier mismatch vs `app_metadata` (Sprint 1).
+
+## `revoke <email>`
+1. Set the operator's `status: revoked` in `governance/operators.yaml` (PR).
+2. **Sprint 1:** the broker does a global Supabase Auth signOut + ban → the human is invalid within one JWT TTL. **Offboarding:** admin/user = single revoke, **zero secret rotation** (they never held shared keys); **owner** removal = revoke + rotate the shared admin keys + joint-owner approval.
+3. Validate; confirm ≥1 active owner remains (the validator FAILs otherwise).
+
+## `tier <email> --set=<tier>`
+Change an operator's tier (PR). Same owner-only + joint-approval-for-owner rules. Re-validate.
+
+## Engine / contract
+- Registry: `governance/operators.yaml` · Tier map: `knowledge/operator-tiers.yaml`
+- Validator: `scripts/cross-tier/validate-operators.cjs` · Resolver: `scripts/local-install/lib/operator-tier.cjs`
+- Contract: `06-ai-ops/sops/SOP-AIOPS-017-multi-user-authz-contract/flow.yaml`
+- Spec: `.archives/cla/multi-user-auth/01-spec.md`
+

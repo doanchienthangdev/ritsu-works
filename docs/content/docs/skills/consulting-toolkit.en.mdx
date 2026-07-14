@@ -1,0 +1,101 @@
+---
+title: 'Skill: consulting-toolkit'
+description: |
+  Reconstruct a partial consulting toolkit or framework deck (a "clue" — e.g.
+  a Domont/Slidebooks-style overview preview that reveals a process spine +
+  named frameworks + a few sample slides) into a COMPLETE, executable process
+  artifact bundle: a detailed handbook PDF, a McKinsey/Domont-genre 16:9 deck,
+  a machine-readable process.yaml spine, and per-framework anatomy files
+  (description · visual · step-by-step tutorial · real example · template ·
+  pitfalls). Use when turning consultant framework previews, a process outline,
+  or a methodology sketch into a full step-by-step, do-able business process —
+  not just a list of framework names. Pairs with `thinking-toolkit` (atomic
+  thinking disciplines + the McKinsey workflow engine), `dataviz`/`image`
+  (visuals) and `design-system` (styling). Invoked by the `/toolkit` command.
+source_path: 06-ai-ops/skills/consulting-toolkit/SKILL.md
+source_hash: 6de294893e6345548f4766a65264ff98c43bdb986d23301a0c6bcad351760086
+generated_at: '2026-07-14T15:59:15.420Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> Turn a partial consulting-toolkit "clue" into a full, executable process bundle.
+> The companion to `thinking-toolkit`: thinking-toolkit gives you the *atomic
+> disciplines* (MECE, pyramid, driver-tree, the McKinsey 4S engine); this gives
+> you whole reconstructed *domain processes* (strategy, M&A, supply chain, Lean
+> Six Sigma, …) as runnable playbooks + board-ready decks.
+
+## What it does
+
+Input: a "clue" — a preview/overview that reveals a toolkit's **process spine**
+(phases → modules → named frameworks) and a few **sample slides**. Output: a
+complete bundle (per [`STRUCTURE.md`](STRUCTURE.md)) — handbook PDF, 16:9 deck,
+`process.yaml`, `frameworks/*.md`, templates, sources, README.
+
+The non-negotiable principle (the whole point):
+
+> **A process is executable when every step names its goal, the framework/tool
+> that does the work, the concrete how-to, the input it consumes, the output it
+> produces, and the gate that ends the phase.** A list of framework names is not
+> a process. Every framework carries the 6-part anatomy — description · visual ·
+> step-by-step tutorial · real example · fill-in template · pitfalls — because the
+> tutorial and template are what make it *do-able*, not merely *known*.
+
+## The two contracts (read these)
+
+1. [`STRUCTURE.md`](STRUCTURE.md) — the bundle structure (deliverable #1) + the
+   `bundle-spec.json` shape the reconstruction emits and the renderer consumes +
+   the §7 quality checklist.
+2. [`domont-deliverable-anatomy.md`](domont-deliverable-anatomy.md) — the slide
+   visual grammar (palette, chrome, the 20-layout catalog, the deck spine).
+
+## The pipeline
+
+```
+clue PDF ── pdftotext ──► _extractions/NN-raw.txt ── build-briefs.cjs ──► briefs.json
+                                                                            │ (split per-toolkit)
+                                              runtime/consulting-toolkit/briefs/<slug>.md
+                                                                            │
+                       reconstruct.workflow.js (Workflow):                  ▼
+                         Stage 1 "Reconstruct" (1 agent/toolkit, deep) ─► specs/<slug>.core.json
+                         Stage 2 "Deck"        (1 agent/toolkit) ────────► specs/<slug>.deck.json
+                                                                            │
+                                      build-all.cjs (merge + validate) ─────┤
+                                                                            ▼
+                              render.cjs ─► <slug>-handbook.pdf (weasyprint, A4)
+                                        └─► <slug>-deck.pdf      (headless Chrome, 16:9)
+                                        + process.md/.yaml, frameworks/*, templates/*, README, sources
+```
+
+Scripts (all under `scripts/consulting-toolkit/`, pure Node + 2 renderers):
+- `build-briefs.cjs` — extractions → `briefs.json` (boilerplate-trimmed clue per toolkit).
+- `reconstruct.workflow.js` — the Workflow (Stage 1 reconstruct on the strong model; Stage 2 deck on Sonnet). Agents write spec JSON to the worktree; nothing large flows through the orchestrator's context.
+- `build-all.cjs` — merge `core`+`deck` → `bundle-spec.json`, validate, dispatch `render.cjs`.
+- `render.cjs` (+ `lib/{styles,md,chart,deck,doc}.cjs`) — deterministic HTML→PDF renderer.
+
+## Why agents write to disk (architecture note)
+
+Workflow subagents are **worktree-sandboxed**: they can read/write the worktree
+filesystem but cannot read the main-root `raw/` source PDFs. So the clue is
+extracted in the main loop, split into worktree-local per-toolkit briefs, and the
+agents write their `bundle-spec` JSON to the worktree `runtime/`. The renderer
+(main loop) reads those and writes the finished bundles wherever you point `--out`.
+This keeps the orchestrator's context near-empty regardless of corpus size.
+
+## Invoke
+
+`/toolkit` — see [`.claude/commands/toolkit.md`](../../../.claude/commands/toolkit.md).
+Typical: `/toolkit reconstruct <slug>` (one), `/toolkit build-all` (merge+render),
+`/toolkit render <slug>` (re-render after editing a `bundle-spec.json`).
+
+## HITL
+
+Tier A (guidance + local artifact generation). Rendering and reconstruction touch
+only local files (`raw/` is local-only). Shipping the *capability* (skill, command,
+scripts) is a normal Tier-C PR. The reconstructed *content* stays local in
+`raw/consultant/tookits/` — it is original synthesis in the consulting-deck genre,
+never a copy of any source deck, and is not redistributed.
+

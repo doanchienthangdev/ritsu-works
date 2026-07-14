@@ -2,8 +2,8 @@
 title: Agent Roles & Permissions
 description: ''
 source_path: governance/ROLES.md
-source_hash: 7e2ed027cd26bc3595f319170dac145378a57ab79b725c90b3a1be5983cda80d
-generated_at: '2026-05-27T18:25:03.899Z'
+source_hash: f194ac5d66908bc300e143bd25d22dbed7dbb1d4003235d036bcd7eb71365067
+generated_at: '2026-07-14T15:59:15.866Z'
 generated_by: docs-engine v1.2.0
 category: governance
 language: vi
@@ -143,6 +143,34 @@ economic_budget:
     # v1.1 tagged form (capability evolve v1.1, 2026-05-27). USD caps.
     parent-orchestration: {unit: usd, cap: 0.50}    # GPS itself shouldn't cost much per orchestration; subagents do the work
     cost-report-query:    {unit: usd, cap: 0.05}
+    # capability book-to-capability (/forge) v0.1 Sprint 2 — gps is /forge's bound role (router, not worker)
+    forge-orchestration:  {unit: usd, cap: 0.50}    # /forge loop: assemble + frame + funnel + classify + record (delegates the build to /update//cla)
+    forge-funnel-gate:    {unit: usd, cap: 0.15}    # 5-gate selection-funnel (gate-1 distill is the main spend)
+    forge-route-classify: {unit: usd, cap: 0.10}    # resolver_find + deterministic route-classify.cjs
+    # capability design-system-styling v1.0 (Sprint 3) — cost-bucket ai-ops-design-system
+    design-system-build:   {unit: usd, cap: 0.50}    # build --from=<repo> → DESIGN.md generation (LLM token extraction + rationale)
+    design-system-resolve: {unit: usd, cap: 0.02}    # --style resolution (mostly deterministic; parse-design-md)
+    design-system-add:     {unit: usd, cap: 0.05}    # add <name> (getdesign fetch / metadata register)
+    # capability deepask v1.1 (image formats) — gps-bucketed (cost-bucket ai-ops-deepask); gpt-image-2 spend
+    deepask-image-gen:     {unit: usd, cap: 0.50}    # /deepask --format=infographics|img-slide image generation; soft monthly ceiling beyond the per-run --max-cost-usd breaker
+    # capability image-platform v0.1 (Sprint 2) — cost-bucket ai-ops-image; /image gpt-image-2 spend
+    image-gen:     {unit: usd, cap: 0.50}    # /image out-of-band gpt-image-2 generation. ADVISORY (MF1): out-of-band → invisible to the budget hook; the per-run --max-cost-usd breaker is the real enforcement. Hook/cross-run enforcement arrives with a future ops.image_runs /cla extend.
+    image-enhance: {unit: usd, cap: 0.10}    # /image --enhance in-session prompt refinement (subscription; hook-enforced — the one /image stage the budget hook sees)
+    # capability dataviz v0.1 — cost-bucket ai-ops-dataviz; /dataviz pure-Node SVG render
+    dataviz-render: {unit: usd, cap: 0.05}   # /dataviz svg-native render. DOC PLACEHOLDER: the render is in-process PURE Node — ZERO LLM/API calls, nothing to meter; the only LLM cost is the calling agent authoring --message/--data (its own task_kind). No secret/key.
+    # capability translate v0.1 — cost-bucket ai-ops-translate; /translate ingest→parallel-translate→render
+    translate-plan:  {unit: usd, cap: 0.05}   # /translate ingest+split+brief — PURE Node/Python, ZERO LLM. No secret/key.
+    translate-run:   {unit: usd, cap: 8.00}   # /translate parallel translation fan-out (the spend). ADVISORY: in-session Workflow agents; the per-run --max-cost-usd breaker (default $8) is the real guard. Scales with source word count (~$0.06/1k words).
+    translate-build: {unit: usd, cap: 0.05}   # /translate assemble+render (pdf/epub/docx/pptx/md) — PURE Python, ZERO LLM. No secret/key.
+    # capability voice-platform v0.1 — cost-bucket ai-ops-voice; /voice TTS synthesis
+    voice-gen:        {unit: usd, cap: 0.50}   # /voice out-of-band TTS (gemini-tts-3.1-flash / openai-tts) via GEMINI_API_KEY / OPENAI_API_KEY. ADVISORY: out-of-band → invisible to the budget hook; the per-run --max-cost-usd breaker (default $1) is the real enforcement. Scales with audio minutes (~$0.015-0.03/min).
+    voice-preprocess: {unit: usd, cap: 0.10}   # /voice in-session voice-direction authoring + script markup (the voice/preprocess skill). Subscription; hook-enforced — the one /voice stage the budget hook sees.
+    # capability write-platform v0.1 — cost-bucket ai-ops-write; /write content generation
+    write-orchestration: {unit: usd, cap: 0.50}   # /write pipeline driver (plan + outline + enrich routing + render + report). In-session/subscription; the orchestrator itself is cheap (the draft is the spend).
+    write-draft:         {unit: usd, cap: 1.50}   # /write in-session drafting + voice-matching (the writing). ADVISORY (subscription, not API-billed) — the per-run --max-cost-usd guards out-of-band enrichment, not this.
+    write-humanize:      {unit: usd, cap: 0.20}   # /write de-AI + voice pass (the write/humanize skill + the vendored scan gate). In-session; deterministic scanners are $0.
+    write-distill:       {unit: usd, cap: 2.00}   # /write distill — author-voice extraction via parallel Workflow fan-out (the heaviest write task). In-session; scales with the source bundle.
+    write-research:      {unit: usd, cap: 1.00}   # /write --mode=deep-research factual spine (delegates to the deep-research skill). In-session.
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition
@@ -189,13 +217,7 @@ permissions:
     - google-search-console (read)
     - google-analytics (read)
     - posthog (read)
-  skills:
-    - seo-research
-    - blog-post-drafting
-    - social-post-drafting
-    - email-campaign-design
-    - landing-page-copywriting
-    - ad-copy-iteration
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: seo-research, blog-post-drafting, social-post-drafting, email-campaign-design, landing-page-copywriting, ad-copy-iteration
   secrets:
     - ANTHROPIC_API_KEY
     - GITHUB_TOKEN_GROWTH
@@ -238,10 +260,7 @@ permissions:
     - intercom OR helpscout (TBD — depends on chosen support tool)
     - email-sender (single-recipient transactional only)
     - github (read product changelog only)
-  skills:
-    - faq-classification
-    - reply-drafting
-    - escalation-routing
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: faq-classification, reply-drafting, escalation-routing
   secrets:
     - ANTHROPIC_API_KEY
     - SUPPORT_TOOL_API_KEY
@@ -280,11 +299,7 @@ permissions:
   mcp_servers:
     # NONE that can publish. Only read-only research.
     - web-fetch (read public URLs)
-  skills:
-    - blog-post-drafting
-    - email-drafting
-    - social-post-drafting
-    - support-reply-drafting
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: blog-post-drafting, email-drafting, social-post-drafting, support-reply-drafting
   secrets:
     - ANTHROPIC_API_KEY
 hitl_max_tier: A    # drafting is internal
@@ -312,10 +327,7 @@ permissions:
     - ops.agent_runs (own log)
   mcp_servers:
     - github (read repos, post review comments — NOT approve, NOT merge)
-  skills:
-    - code-review
-    - security-review
-    - test-coverage-check
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: code-review, security-review, test-coverage-check
   secrets:
     - ANTHROPIC_API_KEY
     - GITHUB_TOKEN_REVIEWER   # scope: pull_requests:write but not approve/merge
@@ -373,14 +385,11 @@ permissions:
     - supabase-ops (full)
     - supabase-product (read-only, via dedicated read role)
     - vector-store (write)
-  skills:
-    - schema-migration
-    - embedding-rebuild
-    - cross-tier-sync
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: schema-migration, embedding-rebuild, cross-tier-sync
   secrets:
     - ANTHROPIC_API_KEY
     - SUPABASE_OPS_SERVICE_KEY
-    - SUPABASE_PRODUCT_READ_KEY      # the ONE role that holds this
+    - SUPABASE_PRODUCT_READONLY_ETL_KEY      # the ONE role that holds this
     - VECTOR_STORE_WRITE_KEY
 hitl_max_tier: B    # routine ETL is autonomous; schema changes are PR (Tier C)
 budget:
@@ -390,7 +399,7 @@ notify_on_completion: false  # logs only; daily summary
 escalation_role: gps
 ```
 
-> **Critical:** etl-runner is the **only** role that holds `SUPABASE_PRODUCT_READ_KEY`. Any other role that needs product data must request it via metrics.* tables that etl-runner populates. This is the single most important access boundary in the company.
+> **Critical:** etl-runner is the **only** role that holds `SUPABASE_PRODUCT_READONLY_ETL_KEY`. Any other role that needs product data must request it via metrics.* tables that etl-runner populates. This is the single most important access boundary in the company.
 
 ### `trust-safety` — T&S triage and policy
 
@@ -417,11 +426,7 @@ permissions:
     - github (PR for policy updates)
     - email-sender (single-recipient — DMCA counter-notices, ToS notifications)
     - support-tool (to interact with ticket holders)
-  skills:
-    - dmca-evaluation
-    - tos-violation-classification
-    - copyright-fair-use-analysis
-    - hallucination-incident-triage
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: dmca-evaluation, tos-violation-classification, copyright-fair-use-analysis, hallucination-incident-triage
   secrets:
     - ANTHROPIC_API_KEY
     - GITHUB_TOKEN_TS
@@ -462,11 +467,7 @@ permissions:
     - bank (READ-ONLY — Vietnam banking integration when available)
     - accounting-tool (TBD — Misa, Bravo, or international like Xero)
     - email-sender (single recipient — invoice delivery)
-  skills:
-    - transaction-categorization
-    - invoice-drafting
-    - vat-classification-vn
-    - vendor-payment-prep
+  skills: []   # planned, not yet built — add as `- <name>` when each ships: transaction-categorization, invoice-drafting, vat-classification-vn, vendor-payment-prep
   secrets:
     - ANTHROPIC_API_KEY
     - STRIPE_READ_KEY                  # NOT secret key
@@ -1138,9 +1139,50 @@ Field semantics:
 
 The 8 roles with `mcp_servers: [gbrain]` grant (gbrain-maintainer + founder + cofounder + 5 customer-facing WRITE-enabled + product-orchestrator + eval-evo-orchestrator) gain full MCP tool access subject to per-tool HITL tier (see `governance/HITL.md` Appendix A). The 17 READ-only roles can invoke gbrain READ tools (Tier A: search, get_page, list_pages, traverse_graph, find_*, code_*, etc.) without an explicit `mcp_servers` grant — READ tools have permissive default allowlists per `knowledge/mcp-tools.yaml`. WRITE tools (Tier B/C/D-Std) require the explicit role allowlist match.
 
+### Per-human tier gate (capability multi-user-auth, Sprint 2 — added 2026-06-26)
+
+The `brain_affinity` matrix above governs the DEFAULT **service-key** mode (per agent role). When `RITSU_AUTH_MODE=per-human`, gbrain access is additionally gated by the operator's **verified human tier** (`knowledge/operator-tiers.yaml`): **`owner` + `admin` may use gbrain; `user` is denied** every `mcp__gbrain__*` tool; a null/unknown/expired tier is denied (fail-closed). gbrain is an external bun binary that does NOT understand the Supabase JWT, so this cannot be RLS-enforced — it is a **PreToolUse hook** (`pre-tool-gbrain-tier`) that reads the operator tier from the access token supabase-ops persists to the credential file (read-only — no token-rotation race) and blocks disallowed gbrain calls. **HONEST framing:** the hook runs on the untrusted laptop (a malicious admin could disable it), so it is least-privilege / non-malicious gating + closes the "local tool-tier enforcement" gap — NOT a cryptographic boundary. The REAL gbrain bounds remain the **$100/mo cost cap** (`scripts/pre-budget-check.sh`) + gbrain holding no money/Product/secret credentials. Per-tool read-vs-write HITL (Appendix A) is an orthogonal axis, unchanged. Runtime: `.claude/hooks/{pre-tool-gbrain-tier.md, runtime/pre-tool-gbrain-tier.cjs, runtime/lib/gbrain-tier-gate.cjs}`. Mirrors the analytics per-human tier gate (same credential file).
+
 ### Activation
 
 These role configurations are CONTRACT-level (this file is policy). The runtime `.claude/agents/<role>.md` config files are updated in Sprint 2 PR to mirror this contract. Until Sprint 2 lands, the contract is canonical and the runtime is being aligned. L2 validator `gbrain-l2-role-allowlist-consistency` (registered in `knowledge/cross-tier-invariants.yaml`) catches drift between this contract and `knowledge/mcp-roles.yaml`.
+
+---
+
+## v1.2 analytics integration (added 2026-06-03 — capability `product-db-readonly-access` Sprint 2)
+
+> Tier-C decision `0647e301-4ad2-495f-806e-d17c3b130072`. Door 2: read-only ops access to **pseudonymized** Product behavioral data through the isolated `ritsu-analytics` project + the `supabase-analytics` MCP (Sprint 1, PR #220). This section is the v1.2 ADDITIVE delta for analytics access only. Contract: `knowledge/analytics-sync-contract.yaml`; runtime: `SOP-AIOPS-009`.
+
+### NEW DB role (not an agent role): `analytics_reader`
+
+`analytics_reader` is a **Postgres role on ritsu-analytics**, not a workforce agent role — so it has no `.claude/agents/<role>.md`. It is the principal the `supabase-analytics` MCP connects as: `LOGIN`, `SELECT` on `live.*` ONLY (no writes, no `ext`/`staging`/FDW, no PII), plus role-level `default_transaction_read_only=on` + `statement_timeout`. The DB role IS the security boundary (mirror-image of supabase-ops, which fronts `service_role` with an app-layer guard). Its connection string is `ANALYTICS_READER_DB_URL` (local-only `.env.local`; documented in `governance/SECRETS.md` — founder D-MAX follow-up).
+
+### `analytics_affinity` — which workforce roles may query the analytics MCP
+
+Default-deny. The consumer allowlist is the SAME 6 roles encoded in `mcp-server-analytics/src/governance/role-allowlist.ts` (kept in lockstep by the L2 invariant `analytics-allowlist-no-drift`):
+
+| Role | analytics MCP access | Rationale |
+|---|---|---|
+| `founder` / `cofounder` | ✅ query + list_tables | full operator access |
+| `customer-lead` | ✅ | retention / activation / churn questions |
+| `product-orchestrator` | ✅ | feature-usage / wedge / behavioral analysis |
+| `gtm-orchestrator` | ✅ | funnel / cohort / unit-economics |
+| `feedback-aggregator` | ✅ | behavioral signal for the feedback pipeline |
+| **all other roles** | ❌ default-deny | not granted; the MCP returns `role_not_allowed` |
+
+The 17 READ-only-elsewhere roles get NO analytics access (default-deny is the point — product-derived behavioral data is more sensitive than ops state). `etl-runner` is **excluded** (it already holds the Product read key; analytics is a different, narrower surface).
+
+### `mcp_servers: [supabase-analytics]` grant
+
+The 6 allowlisted roles above gain `supabase-analytics` MCP access. All tools are read-only (Tier A): `query` (SELECT over `live.*`), `list_tables`. The L0 firewall (`pre-tool-supabase-product.cjs` v1.2) already treats `mcp__supabase-analytics__*` as `safe-mcp`. No WRITE tools exist on this MCP.
+
+### Per-human tier gate (capability multi-user-auth, Sprint 2 — added 2026-06-26)
+
+The `analytics_affinity` table above governs the DEFAULT **service-key** auth mode (identity = the self-asserted agent role). When `RITSU_AUTH_MODE=per-human`, the analytics MCP instead gates on the operator's **verified human tier** (`knowledge/operator-tiers.yaml`): **`owner` + `admin` may query/list_tables; `user` is denied** (`tier_not_allowed`); a null/unknown tier is denied (fail-closed). The tier is read from `app_metadata.tier` in the access token that the supabase-ops MCP persists to the per-human credential file (read-only — the analytics MCP never refreshes the token, so it cannot race supabase-ops's refresh-token rotation). This is **least-privilege defense-in-depth**: the least-priv `analytics_reader` DB role (read-only, pseudonymized, isolated project) remains the REAL confidentiality boundary, so even a malicious laptop owner who forges a local tier claim reaches only read-only, pseudonymized, non-PII data. An expired access token is rejected (fail-closed) so a stale tier cannot keep granting access. Runtime: `mcp-server-analytics/src/governance/{role-allowlist.ts,operator-credential.ts}`. The same credential file is intended to back the future gbrain per-human tier gate (Sprint 2 remaining work).
+
+### Activation
+
+CONTRACT-level (this file is policy). Runtime gate is `mcp-server-analytics/src/governance/role-allowlist.ts`; the L2 validator `validate-analytics-readonly.cjs` + invariant `analytics-allowlist-no-drift` catch drift between this contract and that runtime. The `.mcp.json` registration (D-MAX) lands in the Sprint 2 PR.
 
 ---
 

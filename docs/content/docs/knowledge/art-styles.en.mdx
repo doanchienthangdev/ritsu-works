@@ -1,0 +1,48 @@
+---
+title: 'Tier 1 yaml: art-styles'
+description: Schema overview for `knowledge/art-styles.yaml`.
+source_path: knowledge/art-styles.yaml
+source_hash: a51bac69f7311ecc3a032a06bfbc3d10d5bbe23b8692690e7b0a1d260fcbde87
+generated_at: '2026-07-14T15:59:15.954Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+art-styles.yaml — deepask artistic-genre registry (capability deepask v1.2-image)
+============================================================================
+The SECOND, orthogonal aesthetic axis for deepask image formats (img-slide,
+infographics). Multiplies AGAINST the brand --style axis (knowledge/design-
+systems.yaml): brand owns palette/logo/body-type; a genre owns composition
+(layout) + material/motifs (assets) + mood (tone) + a SECONDARY accent
+(secondary_palette) + display-headline character (display_type).
+
+Orthogonality is STRUCTURAL: a genre has NO `colors`/`background`/`primary`
+token — only `secondary_palette` PROSE — so it can never shadow the brand core
+palette (@cto Phase-5 R5; the merge precedence brand > legibility > genre is in
+06-ai-ops/skills/deepask/image-compose + aesthetic). Resolved by
+scripts/deepask/art-style.cjs (resolveArtStyle, AD-3 non-interactive hard-fail).
+
+Seeded from the founder-supplied 80-style library (all 80; the founder elected
+the full corpus over the Muse "ship 3" restraint — ops.decisions
+'deepask-image-uplift-v1-2-artistic-genre-axis'). This YAML is the source of
+truth and is hand-maintained thereafter (NOT re-generated in CI), exactly like
+design-systems.yaml. Bootstrap: scripts/deepask/gen-art-styles-registry.cjs.
+
+Schema:    knowledge/schemas/art-styles.schema.json
+Validator: scripts/cross-tier/validate-art-styles.cjs (L2 critical; wired into
+           check-consistency.cjs AND .github/workflows/cross-tier-consistency.yml)
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `art_styles`
+
+> Live values in [`knowledge/art-styles.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/art-styles.yaml). This page describes the schema; not the data.

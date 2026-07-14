@@ -25,9 +25,11 @@
     "resolver",
     "test-ritsu-works",
     "think",
+    "toolkit",
     "translate",
     "update",
     "update-ritsu-works",
+    "users",
     "voice",
     "wiki",
     "write"

@@ -7,14 +7,15 @@ description: >-
   HITL approval; refuses D-MAX), delegating the external-web leg to deep-research. Firewall-aware
   (product only via metrics.*), gbrain-cap-aware, bounded self-correct on error.
 source_path: 06-ai-ops/skills/deepask/execute/SKILL.md
-source_hash: 3e84268e6b1a415e81213578aeee59c451e3c24148e2a906bbc64de6dd058b02
-generated_at: '2026-05-30T16:11:31.629Z'
+source_hash: ea7f016e634e85952f69da4b9e0e4e50f95a5b6087a9d102f8afa21727d75256
+generated_at: '2026-07-14T15:59:15.469Z'
 generated_by: docs-engine v1.2.0
 category: skill
 language: vi
 translated: true
-translated_source_hash: 3e84268e6b1a415e81213578aeee59c451e3c24148e2a906bbc64de6dd058b02
 translated_at: '2026-05-30T16:30:00Z'
+translated_source_hash: 3e84268e6b1a415e81213578aeee59c451e3c24148e2a906bbc64de6dd058b02
+needs_retranslation: true
 ---
 
 {/* generated-by: docs-engine v1.2.0 */}
@@ -98,3 +99,4 @@ Tier A cho the read legs + auto-run Tier-A capability legs. Tier-B+ capability l
 
 ## Tests (per spec §10)
 `scripts/deepask/capability-gate.cjs` unit-tested (`tests/deepask/capability-gate.test.ts`, 25 cases — exactly one auto_run combo, D-MAX always refuses, everything else surfaces). Skill-level (land với this sprint): Tier-A auto-runs; **Tier-B+ surfaced never auto-run** (both paths); **D-MAX refused** (boundary honesty); product.* blocked (firewall); gbrain-cap degrade → gap not crash; deep-research invoked ONLY trên một web-needing sub-need; partial-failure của one leg doesn't sink the run; invalid column → re-read schema → retry → honest no_coverage (never fabricated rows).
+

@@ -1,0 +1,48 @@
+---
+title: 'Tier 1 yaml: operator-tiers'
+description: Schema overview for `knowledge/operator-tiers.yaml`.
+source_path: knowledge/operator-tiers.yaml
+source_hash: 3b049b49ee4feee9a782fb22954d2629c8702b8d0840b0ff5f0fdc8f972e2ee1
+generated_at: '2026-07-14T15:59:16.077Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+operator-tiers.yaml — Human operator authority tiers (capability multi-user-auth)
+============================================================================
+Tier 1 declarative file. The CONTRACT that maps each HUMAN operator tier
+(owner / admin / user) → the capabilities that tier may use. This is a NEW
+layer ABOVE the ~25 AI agent roles in governance/ROLES.md: an enrolled human
+is assigned a tier here; the tier bounds which agent roles + commands + data
+systems + git/publish surfaces they may reach. It does NOT redefine the agent
+roles — it gates them.
+
+STATUS: advisory-v0. Sprint 0 ships this contract + the registry + the surface.
+ENFORCEMENT lands in Sprint 1 (per-human Supabase Auth → JWT tier claim →
+per-tier RLS on ops.* + the server-side broker). Until then the real
+boundaries remain GitHub branch protection + the Product-DB firewall.
+
+Hierarchy: owner ⊇ admin ⊇ user  (via `inherits`). A tier's effective grants
+= its own grants ∪ all inherited grants. The validator checks the chain.
+
+See: .archives/cla/multi-user-auth/01-spec.md (§2 tier model, §4 architecture)
+     governance/operators.yaml (the human→tier registry)
+     06-ai-ops/sops/SOP-AIOPS-017-multi-user-authz-contract/flow.yaml
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `status`
+- `enforcement_sprint`
+- `tiers`
+- `forbidden_for_non_owner`
+
+> Live values in [`knowledge/operator-tiers.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/operator-tiers.yaml). This page describes the schema; not the data.

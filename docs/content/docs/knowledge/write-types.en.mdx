@@ -1,0 +1,42 @@
+---
+title: 'Tier 1 yaml: write-types'
+description: Schema overview for `knowledge/write-types.yaml`.
+source_path: knowledge/write-types.yaml
+source_hash: edc3b2594101689ab740404231177e5ad4d6b5961c8adea010524992fef53972
+generated_at: '2026-07-14T15:59:16.099Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+write-types.yaml — content-type registry (capability write-platform)
+============================================================================
+The vocabulary of `/write --type=<id>`. Each type carries its popular
+`mediums[]` (the `/write --medium=<id>` options for that type), a default
+length, a structure hint that seeds the orchestrator's outline, and
+`recommends` flags that drive auto image/dataviz/research enrichment.
+
+`humanize: true` is the default for every type — de-AI is the whole point.
+A type may set `humanize: false` only where AI-tells are irrelevant (none do
+in v0.1; the field exists for future structured/code-only types).
+
+Schema: knowledge/schemas/write-types.schema.json
+Gate:   scripts/cross-tier/validate-write-registries.cjs
+Spec:   wiki/capabilities/write-platform/spec.md (after Phase 8; draft .archives/cla/write-platform/spec.md)
+Resolved by: scripts/write/lib/types.cjs
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `length_presets`
+- `categories`
+- `types`
+
+> Live values in [`knowledge/write-types.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/write-types.yaml). This page describes the schema; not the data.

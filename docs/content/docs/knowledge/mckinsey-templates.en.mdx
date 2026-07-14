@@ -1,0 +1,51 @@
+---
+title: 'Tier 1 yaml: mckinsey-templates'
+description: Schema overview for `knowledge/mckinsey-templates.yaml`.
+source_path: knowledge/mckinsey-templates.yaml
+source_hash: cbc52754d0a1511530073262b05f6e8f0bb312ea88a12e7a857fc4512ea78bb3
+generated_at: '2026-07-14T15:59:16.057Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+mckinsey-templates.yaml — McKinsey deliverable-template registry
+(capability thinking-toolkit v2.0 → v2.1 — the /think mckinsey Sell layer)
+============================================================================
+The STRUCTURE layer of the McKinsey Sell phase. `mckinsey-sell` (06-ai-ops/
+skills/thinking-toolkit/mckinsey-sell) builds the synthesis IR per ONE of these
+9 templates, then hands it to deepask/format for rendering — with --style (brand
+design-system) + --art-style (genre) as the DESIGN layer. Structure ⟂ design: a
+template owns the McKinsey STRUCTURE (pyramid, action titles, In-Brief, SCR/SCQA,
+MECE, "where to start", source footers) as PROSE only; it carries NO color/brand
+token (FORBIDDEN_BRAND_KEYS in validate-mckinsey-templates.cjs).
+
+v2.1 GROUNDING: every template carries a REQUIRED `grounded_in` citation array —
+the structural anatomy is EXTRACTED FROM REAL McKinsey reports (the In-Brief box,
+action-title exhibit captions + source footers, the "where to start"/"act now"
+block, the methodology/appendix + survey-N, the city-tagged author box), NOT
+guessed from principles. Full extracted anatomy + citations:
+06-ai-ops/skills/thinking-toolkit/mckinsey-sell/mckinsey-deliverable-anatomy.md.
+Genre nuance (v2.1 fix): action titles are for ANALYTICAL/RECOMMENDATION
+deliverables; TOPIC-LABEL headers are correct for survey/trend pieces (insights-
+article) — real McKinsey uses both.
+
+Source of truth, hand-maintained (NOT re-generated in CI), like art-styles.yaml.
+Schema:    knowledge/schemas/mckinsey-templates.schema.json
+Validator: scripts/cross-tier/validate-mckinsey-templates.cjs (L2 critical; wired
+           into check-consistency.cjs AND .github/workflows/cross-tier-consistency.yml)
+Consumer:  06-ai-ops/skills/thinking-toolkit/mckinsey-sell/SKILL.md (--sell=\<id>)
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `mckinsey_templates`
+
+> Live values in [`knowledge/mckinsey-templates.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/mckinsey-templates.yaml). This page describes the schema; not the data.

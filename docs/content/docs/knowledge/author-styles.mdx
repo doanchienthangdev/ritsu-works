@@ -1,0 +1,43 @@
+---
+title: 'Tier 1 yaml: author-styles'
+description: Schema overview for `knowledge/author-styles.yaml`.
+source_path: knowledge/author-styles.yaml
+source_hash: 713c654f6e5cd321b0f3736390f4a1f09dc5dd5cd2cc56161a96a3dd379c60de
+generated_at: '2026-07-14T15:59:15.959Z'
+generated_by: docs-engine v1.2.0
+category: tier1-yaml
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+## Description
+
+============================================================================
+author-styles.yaml — distilled author-voice registry (capability write-platform)
+============================================================================
+Index for `/write --author-style=<slug>`. SPLIT registry: the artifact content
+lives in 06-ai-ops/write/author-styles/\<slug>/ (COMMITTED + github-shared, so every
+user of this repo can write in these voices — exactly like wiki/). The index here
+is the discovery + provenance + copyright-posture layer.
+
+A style is produced by `/write distill <slug> --ref-src=<refs>`. Status flow:
+  planned → pending (distillation running) → installed (STYLE.md + voice-card.md present).
+
+COPYRIGHT POSTURE (canonical): each artifact is TRANSFORMATIVE STYLE ANALYSIS plus
+short, attributed, fair-use excerpts (≤ ~25 words from copyrighted books; fuller from
+the author's freely-published blog, public talks, or public-domain). Never a
+reproduction of a protected work. See 06-ai-ops/write/author-styles/README.md.
+
+Schema: knowledge/schemas/author-styles.schema.json
+Gate:   scripts/cross-tier/validate-write-registries.cjs (installed ⇒ STYLE.md + voice-card.md exist)
+Resolved by: scripts/write/lib/authors.cjs
+============================================================================
+
+## Top-level keys
+
+- `version`
+- `schema`
+- `author_styles`
+
+> Live values in [`knowledge/author-styles.yaml`](https://github.com/doanchienthangdev/ritsu-works/blob/main/knowledge/author-styles.yaml). This page describes the schema; not the data.

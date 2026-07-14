@@ -1,0 +1,71 @@
+---
+title: 'Command: /toolkit'
+description: |
+  Project-scoped command for ritsu-works. Front-end for the
+  **consulting-toolkit** capability. Reconstructs a partial consulting toolkit
+  or framework deck (a "clue" — a Domont/Slidebooks-style overview, a process
+  outline, a methodology sketch) into a COMPLETE, executable process artifact
+  bundle: a detailed handbook PDF, a McKinsey/Domont-genre 16:9 deck, a
+  machine-readable process.yaml, and per-framework anatomy files
+  (description · visual · step-by-step tutorial · real example · template ·
+  pitfalls).
+
+  Use when you have a consultant framework preview / process outline and want
+  the full step-by-step, do-able process rebuilt — not just a list of framework
+  names. Complements `/think` (atomic thinking disciplines + McKinsey workflow).
+
+  Tier A — local artifact generation only (output is local; reconstructed
+  content is original synthesis in the consulting-deck genre, never a copy of a
+  source deck).
+source_path: .claude/commands/toolkit.md
+source_hash: fac23e60d330f058a6760ea19c75ae0ea570c51f4a0746278f003542ef26b2ff
+generated_at: '2026-07-14T15:59:15.768Z'
+generated_by: docs-engine v1.2.0
+category: command
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+Front-end for the **consulting-toolkit** capability. The discipline lives in
+`06-ai-ops/skills/consulting-toolkit/` ([SKILL.md](../../06-ai-ops/skills/consulting-toolkit/SKILL.md),
+[STRUCTURE.md](../../06-ai-ops/skills/consulting-toolkit/STRUCTURE.md),
+[domont-deliverable-anatomy.md](../../06-ai-ops/skills/consulting-toolkit/domont-deliverable-anatomy.md)).
+The command is a thin orchestrator over the pipeline scripts in
+`scripts/consulting-toolkit/`.
+
+## Subcommands
+
+| Invocation | Does |
+|---|---|
+| `/toolkit` | Show this menu + current bundle status (`build-all.cjs --no-pdf` dry summary). |
+| `/toolkit list` | List the toolkit registry (`scripts/consulting-toolkit/lib/toolkits.cjs`) + which specs/bundles exist. |
+| `/toolkit extract` | (Re)build `briefs.json` from `_extractions/*-raw.txt` via `build-briefs.cjs`, then split per-toolkit briefs into the worktree. |
+| `/toolkit reconstruct <slug>` | Run the reconstruction Workflow for one toolkit (Stage 1 core + Stage 2 deck → `runtime/consulting-toolkit/specs/`). |
+| `/toolkit build-all [--only <slugs>]` | Merge `core`+`deck` → `bundle-spec.json`, validate, render each bundle (handbook PDF + deck PDF + files) into `raw/consultant/tookits/<NN>-<slug>/`. |
+| `/toolkit render <slug>` | Re-render one bundle from its edited `bundle-spec.json` (no re-reconstruction). |
+| `/toolkit "<clue>"` | Reconstruct an ad-hoc process from a freeform clue/outline pasted inline (writes a one-off bundle). |
+
+## How to run the full corpus (the reference flow)
+
+```bash
+# 1. extract clues (main loop — reads main-root raw/ PDFs)
+pdftotext -layout "<deck>.pdf" _extractions/NN-raw.txt   # per source
+node scripts/consulting-toolkit/build-briefs.cjs          # → briefs.json
+
+# 2. reconstruct (Workflow — agents write specs to the worktree)
+Workflow({ scriptPath: "scripts/consulting-toolkit/reconstruct.workflow.js",
+           args: { base: "<worktree-abs>", toolkits: [ {num,slug,title,domain}, ... ] } })
+
+# 3. merge + render (main loop — writes finished bundles)
+node scripts/consulting-toolkit/build-all.cjs             # all available specs
+node scripts/consulting-toolkit/build-all.cjs --only management-consulting   # one
+```
+
+## Notes
+
+- **Renderers:** deck → headless Google Chrome (exact 16:9, `CHROME_BIN` overridable); handbook → weasyprint (`DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`, paged page-numbers). Both are deterministic and dependency-light.
+- **Output location:** `raw/consultant/tookits/` is local-only (`raw/` is gitignored). The capability ships; the reconstructed content stays the operator's private asset.
+- **Editing:** every bundle keeps its `bundle-spec.json`; edit it and `/toolkit render <slug>` to regenerate both PDFs. Edit `slides/deck.html` directly for one-off slide tweaks.
+- **Quality bar:** see STRUCTURE.md §7. Every phase + named framework from the clue must appear; every framework carries the full 6-part anatomy.
+

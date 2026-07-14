@@ -1,0 +1,70 @@
+---
+title: 'Skill: operator-management'
+description: |
+  The brain behind /users — owner-only management of human operators (owner /
+  admin / user tiers) for the multi-user-auth capability. Resolves the caller's
+  tier, mutates governance/operators.yaml via PR, validates the registry, and
+  (Sprint 1) drives the server-side broker that issues/revokes per-human
+  credentials + the email-invite enrollment. Sprint 0 = advisory. NOT content.
+source_path: 06-ai-ops/skills/operator-management/SKILL.md
+source_hash: d32a5d289d4bcc252cfe7487baa5618ed76d14836823e9151ac86f41e1548e66
+generated_at: '2026-07-14T15:59:15.578Z'
+generated_by: docs-engine v1.2.0
+category: skill
+language: vi
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+> The decision + lifecycle brain for human operators. Owner adds/lists/revokes/
+> re-tiers operators; the tier bounds which commands + data systems + git/publish
+> surfaces each human reaches. Sprint 0 ships the contract + advisory surface;
+> Sprint 1 wires server-side enforcement (per-human Supabase Auth + per-tier RLS).
+
+## The model (two layers)
+- **Operator tier** (this capability): owner ⊇ admin ⊇ user — a HUMAN authority
+  layer ABOVE the ~25 AI agent roles in `governance/ROLES.md`. It gates, it does
+  not redefine, the agent roles.
+- **Registry** `governance/operators.yaml` (Tier-1, owner-PR, CODEOWNERS): human →
+  tier → status (invited/active/revoked/expired). No secrets.
+- **Tier map** `knowledge/operator-tiers.yaml`: tier → \{commands, mcp r/w, db
+  schemas, git, publish, user_management}. Hierarchical via `inherits`.
+- **Resolver** `scripts/local-install/lib/operator-tier.cjs`: `can(email, cap,
+  registry, tiers)` → fail-closed allow/deny. The reference decision function;
+  Sprint 1 calls it with the SERVER-verified tier (not a self-asserted env var).
+
+## Owner check (always first)
+`can(callerEmail, {kind:'user-management'}, registry, tiers)` must allow. Only an
+active owner manages operators. Sprint 0: advisory (warn if unverifiable; the real
+gate is CODEOWNERS + branch protection on `operators.yaml`). Sprint 1: the broker
+verifies the caller's per-human owner credential before any mutation.
+
+## Lifecycle (the state machine)
+`invited → active → revoked (terminal) | expired (terminal)`.
+- **add**: append `{email, tier, status:invited, added_by, added_at}` (PR) → validate
+  → (Sprint 1) broker creates the Auth user + `app_metadata.tier` + single-use ≤24h
+  email-bound magic-link via Resend. Refuse `--tier=owner` without joint-owner approval.
+- **enroll** (on the operator's machine, Sprint 1): `/install` blocks until the
+  operator redeems the magic-link (proves mailbox control) → broker issues the
+  per-human credential to `.env.local` → status `active`.
+- **revoke**: status `revoked` (PR) → (Sprint 1) broker global signOut + ban
+  (invalid within one JWT TTL). admin/user = single revoke, zero rotation; owner =
+  + rotate shared admin keys + joint-owner approval. Validator enforces ≥1 active owner.
+- **tier**: change tier (PR), same owner-only + joint-approval-for-owner rules.
+
+## Invariants (validator: `scripts/cross-tier/validate-operators.cjs`)
+≥1 active owner · unique emails (case-insensitive) · `added_by` is an existing
+owner (genesis self-root exception) · valid tier/status · **NO secrets in the
+registry** (secrets → `ops.operators`, Sprint 1). Fail-closed: any drift FAILs `pnpm check`.
+
+## Firewall + safety
+Never spell the database-CLI token in a Bash command. Registry reads via Read/
+resolver; Sprint-1 DB writes go through the broker. The resolver denies on any
+uncertainty (unknown email, non-active status, unknown tier, unknown capability,
+missing files).
+
+## Composes with
+`/users` command · `governance/operators.yaml` · `knowledge/operator-tiers.yaml` ·
+`scripts/local-install/lib/operator-tier.cjs` · `scripts/cross-tier/validate-operators.cjs` ·
+`CODEOWNERS` · `SOP-AIOPS-017` · `governance/{ROLES,SECRETS,IDENTITY,HITL}.md`.
+

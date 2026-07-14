@@ -1,0 +1,40 @@
+---
+title: 'SOP-AIOPS-009: SOP'
+description: ''
+source_path: 06-ai-ops/sops/SOP-AIOPS-009-analytics-sync-contract/flow.yaml
+source_hash: 12a21e284d768a2c7c358bc03a1fdf34d5cbf6f849075a90422ed7ae1d29d4d6
+generated_at: '2026-07-14T15:59:15.917Z'
+generated_by: docs-engine v1.2.0
+category: sop
+language: en
+---
+
+{/* generated-by: docs-engine v1.2.0 */}
+
+**SOP ID:** `SOP-AIOPS-009`
+**Pillar:** n/a
+**Cost bucket:** `ai-ops-analytics`
+**Capability:** `product-db-readonly-access`
+
+## Steps
+
+### Step export — Stage 1 — Product builds PII-stripped + HMAC-hashed views (PRODUCT-SIDE, founder D-MAX)
+
+- **Skill:** `none`
+
+### Step pull — Stage 2 — analytics pulls ONLY the stripped views via postgres_fdw
+
+- **Skill:** `none`
+
+### Step validate — Stage 3 — stage + PII-canary + row-count guard BEFORE swap
+
+- **Skill:** `none`
+
+### Step swap — Stage 4 — atomic swap into live.* + re-grant
+
+- **Skill:** `none`
+
+### Step consume — Stage 5 — ops queries the pseudonymized result via the supabase-analytics MCP
+
+- **Skill:** `none`
+
