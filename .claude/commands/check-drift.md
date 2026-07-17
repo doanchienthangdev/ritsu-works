@@ -22,9 +22,9 @@ or when you want to trigger the L3 live-DB sweep instead of waiting for 03:00.
 
 | Invocation | Scope | Time | Cost |
 |---|---|---|---|
-| `/check-drift` | L1 + 3 critical L2 (manifest↔DB, skills↔tables, schedules↔registry) | ~3s | $0 |
-| `/check-drift --full` | + 2 warn-tier validators (ROLES.md, HITL.md heuristic) | ~5s | $0 |
-| `/check-drift --remote` | full + invokes ritsu-ops L3 sweep + waits 75s + queries result | ~80s | ~$0 |
+| `/check-drift` | L1 + 3 critical L2 (manifest↔DB, skills↔tables, schedules↔registry) | ~3s | USD 0 |
+| `/check-drift --full` | + 2 warn-tier validators (ROLES.md, HITL.md heuristic) | ~5s | USD 0 |
+| `/check-drift --remote` | full + invokes ritsu-ops L3 sweep + waits 75s + queries result | ~80s | ~USD 0 |
 
 ## How to invoke
 

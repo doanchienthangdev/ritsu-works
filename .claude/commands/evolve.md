@@ -110,7 +110,7 @@ v1.0 path alone lacked (spec §19.1).
    > "Sandbox at <sandbox_path> has no <example> blocks.
    >  Pillar 1 (gold) gen-data extraction needs ≥1.
    >  How to proceed?
-   >  [Auto-generate 5 via Sonnet 4.6 (~$0.05) /
+   >  [Auto-generate 5 via Sonnet 4.6 (~USD 0.05) /
    >   Skip — use Pillar 3 wiki-RAG only (lower signal) /
    >   Edit manually then re-run /
    >   Abort]"
@@ -299,7 +299,7 @@ Negative-signal corrections (M found in ops.corrections):
   · <date>: "<reason>"
   · ...
 
-Cost budget: $0.50/iter × <N> iters = $<estimate>; outside-voice $<x or 0> (Tier <B or C+>)
+Cost budget: USD 0.50/iter × <N> iters = USD <estimate>; outside-voice USD <x or 0> (Tier <B or C+>)
 Tier: <B or C+>  Mode: <in-place or PR-after-loop>
 
 Iter 1 [running]: judge scoring on 10 criteria…
@@ -328,7 +328,7 @@ Eval+Evo result for <type>/<name>
 ═══════════════════════════════════════
 Iters: <K> of <N> (<exit reason>)
 Score trajectory: <S0> → <S1> → <S2> → ... (final <Sn>, +<delta> from start)
-Total cost: $<actual> of $2.50 budget
+Total cost: USD <actual> of USD 2.50 budget
 Drift: clean (pnpm check ✓)
 Tier B: installed in-place. Run-id: &lt;run-id&gt;.
 

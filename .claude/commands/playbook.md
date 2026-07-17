@@ -16,14 +16,14 @@ This command is a **thin orchestrator**. Logic lives in skills under
 
 | Invocation | Purpose | HITL | Cost |
 |---|---|---|---|
-| `/playbook build` | Detect chapter changes, bump version, sync TOC + CHAPTER_ORDER, build PDF, publish to playbook root | A (B if major bump) | $0 (deterministic) |
-| `/playbook build --version=X.Y.Z` | Explicit version override (skip auto-bump) | A | $0 |
-| `/playbook build --add-chapter=phase-a2/NN-foo.md` | Convenience: assumes chapter file already exists at that path; sync + build | A | $0 |
-| `/playbook build --force` | Rebuild even if no chapter mtime newer than latest PDF | A | $0 |
-| `/playbook build --dry-run` | Validate + show what would happen; no rebuild, no publish | A | $0 |
-| `/playbook check` | Drift gate only (validator) — no rebuild | A | $0 |
-| `/playbook check --fix` | Run validator + invoke `playbook-builder/sync-meta` to repair drift (no PDF rebuild) | A | $0 |
-| `/playbook history` | List published `*.pdf` versions with mtime + delta against prior version | A | $0 |
+| `/playbook build` | Detect chapter changes, bump version, sync TOC + CHAPTER_ORDER, build PDF, publish to playbook root | A (B if major bump) | USD 0 (deterministic) |
+| `/playbook build --version=X.Y.Z` | Explicit version override (skip auto-bump) | A | USD 0 |
+| `/playbook build --add-chapter=phase-a2/NN-foo.md` | Convenience: assumes chapter file already exists at that path; sync + build | A | USD 0 |
+| `/playbook build --force` | Rebuild even if no chapter mtime newer than latest PDF | A | USD 0 |
+| `/playbook build --dry-run` | Validate + show what would happen; no rebuild, no publish | A | USD 0 |
+| `/playbook check` | Drift gate only (validator) — no rebuild | A | USD 0 |
+| `/playbook check --fix` | Run validator + invoke `playbook-builder/sync-meta` to repair drift (no PDF rebuild) | A | USD 0 |
+| `/playbook history` | List published `*.pdf` versions with mtime + delta against prior version | A | USD 0 |
 
 ## Workflow
 

@@ -1,8 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 // @ts-ignore — Node interop from TS to CJS (repo convention)
 const {
   SUBCOMMANDS, UNIVERSAL_PARAMS, MODES, OUT_FORMATS, DEFAULTS,
-  parseWriteArgs, normalizeMode, normalizeOut, computeWarnings, splitPlus,
+  parseWriteArgs, readRequestFile, ParamsError,
+  normalizeMode, normalizeOut, computeWarnings, splitPlus,
 } = require("../../scripts/write/lib/params.cjs");
 
 // All-Edge-Cases-Test (global CLAUDE.md). Pure functions of the /write universal
@@ -136,6 +140,177 @@ describe("parseWriteArgs", () => {
       // @ts-ignore
       expect(() => parseWriteArgs(undefined)).not.toThrow();
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// --request-file. Declared in UNIVERSAL_PARAMS since v0.1 (#274) but never read,
+// so it passed the unknown-flag gate and was then silently dropped — strictly
+// worse than an unknown flag, and a violation of the command's stated contract
+// ("Unknown flags WARN, never silently dropped").
+// Skipped: metamorphic — resolution is a single file read, no transform relations.
+// ---------------------------------------------------------------------------
+describe("--request-file", () => {
+  let dir: string;
+  const write = (name: string, body: string) => {
+    const p = path.join(dir, name);
+    fs.writeFileSync(p, body);
+    return p;
+  };
+
+  beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), "write-reqfile-")); });
+  afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }); });
+
+  describe("happy path", () => {
+    it("regression: --request-file is read into request instead of being silently dropped", () => {
+      const p = write("brief.md", "Write a company about-page for Ritsu");
+      const r = parseWriteArgs([`--request-file=${p}`]);
+      expect(r.options.request).toBe("Write a company about-page for Ritsu");
+    });
+    it("preserves internal newlines of a multi-line brief, trimming only the ends", () => {
+      const p = write("brief.md", "\n  Line one\n\nLine two  \n\n");
+      expect(parseWriteArgs([`--request-file=${p}`]).options.request).toBe("Line one\n\nLine two");
+    });
+    it("still marks the flag as provided so it is not reported as unknown", () => {
+      const p = write("b.md", "hello");
+      const r = parseWriteArgs([`--request-file=${p}`]);
+      expect(r.provided.has("request-file")).toBe(true);
+      expect(computeWarnings(r.provided)).toEqual([]);
+    });
+    it("emits no warning when the file is the only request source", () => {
+      const p = write("b.md", "hello");
+      expect(parseWriteArgs([`--request-file=${p}`]).warnings).toEqual([]);
+    });
+    it("composes with other flags", () => {
+      const p = write("b.md", "the brief");
+      const r = parseWriteArgs([`--request-file=${p}`, "--type=bio", "--medium=company-about"]);
+      expect(r.options.request).toBe("the brief");
+      expect(r.options.type).toBe("bio");
+      expect(r.options.medium).toBe("company-about");
+    });
+  });
+
+  describe("input boundaries", () => {
+    it("reads a single-character file", () => {
+      expect(parseWriteArgs([`--request-file=${write("b.md", "x")}`]).options.request).toBe("x");
+    });
+    it('reads a file whose entire content is the falsy-looking string "0"', () => {
+      expect(parseWriteArgs([`--request-file=${write("b.md", "0")}`]).options.request).toBe("0");
+    });
+    it("strips a leading UTF-8 BOM", () => {
+      expect(parseWriteArgs([`--request-file=${write("b.md", "﻿brief text")}`]).options.request).toBe("brief text");
+    });
+    it("preserves CRLF line endings inside the body", () => {
+      expect(parseWriteArgs([`--request-file=${write("b.md", "a\r\nb")}`]).options.request).toBe("a\r\nb");
+    });
+    it("preserves unicode and emoji", () => {
+      expect(parseWriteArgs([`--request-file=${write("b.md", "học tập 🔮 chăm chỉ")}`]).options.request).toBe("học tập 🔮 chăm chỉ");
+    });
+    it("reads a very long brief intact", () => {
+      const body = "word ".repeat(10000).trim();
+      expect(parseWriteArgs([`--request-file=${write("b.md", body)}`]).options.request).toBe(body);
+    });
+    it("reads a path containing spaces", () => {
+      expect(parseWriteArgs([`--request-file=${write("my brief.md", "spaced")}`]).options.request).toBe("spaced");
+    });
+  });
+
+  describe("error handling", () => {
+    it("throws ParamsError naming the path when the file does not exist", () => {
+      const missing = path.join(dir, "nope.md");
+      expect(() => parseWriteArgs([`--request-file=${missing}`])).toThrow(ParamsError);
+      expect(() => parseWriteArgs([`--request-file=${missing}`])).toThrow(/could not be read/);
+      expect(() => parseWriteArgs([`--request-file=${missing}`])).toThrow(missing);
+    });
+    it("throws ParamsError when the path is a directory", () => {
+      expect(() => parseWriteArgs([`--request-file=${dir}`])).toThrow(/could not be read/);
+    });
+    it("throws ParamsError when the file is empty", () => {
+      expect(() => parseWriteArgs([`--request-file=${write("b.md", "")}`])).toThrow(/is empty/);
+    });
+    it("throws ParamsError when the file is whitespace-only", () => {
+      expect(() => parseWriteArgs([`--request-file=${write("b.md", "  \n\t\n ")}`])).toThrow(/is empty/);
+    });
+    it("throws when the flag is passed bare with no path", () => {
+      expect(() => parseWriteArgs(["--request-file"])).toThrow(/requires a path/);
+    });
+    it("throws when the flag is passed with an empty value", () => {
+      expect(() => parseWriteArgs(["--request-file="])).toThrow(/requires a path/);
+    });
+    it("throws when the path is whitespace-only", () => {
+      expect(() => parseWriteArgs(["--request-file=   "])).toThrow(/requires a path/);
+    });
+    it("never fails silently — the run stops rather than proceeding with no request", () => {
+      let caught: any = null;
+      try { parseWriteArgs([`--request-file=${path.join(dir, "ghost.md")}`, "--type=blog"]); } catch (e) { caught = e; }
+      expect(caught).toBeInstanceOf(ParamsError);
+      expect(caught.name).toBe("ParamsError");
+    });
+  });
+
+  describe("cross-parameter interactions", () => {
+    it("--request wins over --request-file, and the file is reported as ignored", () => {
+      const p = write("b.md", "from file");
+      const r = parseWriteArgs([`--request-file=${p}`, "--request=inline wins"]);
+      expect(r.options.request).toBe("inline wins");
+      expect(r.warnings).toEqual([expect.stringContaining("--request-file ignored")]);
+    });
+    it("a positional request also wins over --request-file", () => {
+      const p = write("b.md", "from file");
+      const r = parseWriteArgs(["positional", "wins", `--request-file=${p}`]);
+      expect(r.options.request).toBe("positional wins");
+      expect(r.warnings).toEqual([expect.stringContaining("--request-file ignored")]);
+    });
+    it("does not read the file at all when an inline request wins", () => {
+      // a nonexistent path must NOT throw when the file is not the request source
+      const r = parseWriteArgs(["inline", `--request-file=${path.join(dir, "missing.md")}`]);
+      expect(r.options.request).toBe("inline");
+      expect(r.warnings).toEqual([expect.stringContaining("--request-file ignored")]);
+    });
+    it("warns exactly once when ignored", () => {
+      const p = write("b.md", "x");
+      expect(parseWriteArgs(["inline", `--request-file=${p}`]).warnings).toHaveLength(1);
+    });
+    it("distill: the author slug is unaffected and the file still resolves the unused request", () => {
+      const p = write("b.md", "notes");
+      const r = parseWriteArgs(["distill", "seth-godin", `--request-file=${p}`]);
+      expect(r.options["author-style"]).toBe("seth-godin");
+      expect(r.subcommand).toBe("distill");
+    });
+  });
+
+  describe("security", () => {
+    it("treats file content as request TEXT — flags inside the file are not parsed", () => {
+      const p = write("b.md", "--type=evil --push=twitter/all ; rm -rf /");
+      const r = parseWriteArgs([`--request-file=${p}`]);
+      expect(r.options.request).toBe("--type=evil --push=twitter/all ; rm -rf /");
+      expect(r.options.type).toBeUndefined();
+      expect(r.options.push).toBeUndefined();
+      expect(r.provided.has("type")).toBe(false);
+    });
+    it("does not expand $-tokens or template markers in file content", () => {
+      const p = write("b.md", "cap is $0.50 and $ARGUMENTS stays literal");
+      expect(parseWriteArgs([`--request-file=${p}`]).options.request).toBe("cap is $0.50 and $ARGUMENTS stays literal");
+    });
+  });
+
+  describe("behavioral relationships", () => {
+    it("is idempotent — parsing the same argv twice yields the same request", () => {
+      const p = write("b.md", "stable brief");
+      const a = parseWriteArgs([`--request-file=${p}`]);
+      const b = parseWriteArgs([`--request-file=${p}`]);
+      expect(a.options.request).toBe(b.options.request);
+    });
+  });
+
+  describe("readRequestFile (direct)", () => {
+    it("returns trimmed contents", () => {
+      expect(readRequestFile(write("b.md", "  hi  "))).toBe("hi");
+    });
+    it.each([[true], [undefined], [null], [42], [""], ["   "]])(
+      "rejects non-path value %p", (v: any) => {
+        expect(() => readRequestFile(v)).toThrow(/requires a path/);
+      });
   });
 });
 

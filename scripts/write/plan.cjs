@@ -39,7 +39,8 @@ function todayISO(dateStr) {
 
 function buildPlan(argv, opts = {}) {
   const warnings = [];
-  const { subcommand, options, provided } = P.parseWriteArgs(argv);
+  const { subcommand, options, provided, warnings: parseWarnings } = P.parseWriteArgs(argv);
+  warnings.push(...parseWarnings);
   warnings.push(...P.computeWarnings(provided));
 
   // resolve type (explicit; inference is the orchestrator/LLM's job when omitted)
@@ -278,7 +279,15 @@ function writePlan(plan, opts = {}) {
 
 if (require.main === module) {
   const argv = process.argv.slice(2);
-  const plan = buildPlan(argv);
+  let plan;
+  try {
+    plan = buildPlan(argv);
+  } catch (e) {
+    // Fail LOUDLY but still on the documented contract (one line of JSON), so the
+    // orchestrator reports the cause instead of an unhandled stack trace.
+    process.stdout.write(JSON.stringify({ ok: false, error: e.message, warnings: [e.message] }) + '\n');
+    process.exit(1);
+  }
   let written = {};
   try { written = writePlan(plan); } catch (e) { plan.warnings.push(`write plan: ${e.message}`); }
   // `dir` is the ABSOLUTE artifact dir (under the MAIN repo root) — the orchestrator should

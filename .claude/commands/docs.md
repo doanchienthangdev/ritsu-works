@@ -42,7 +42,7 @@ with build-time secret redaction (per founder Phase 1 Q4 answer).
 7. First sync: run `/docs sync --area=all` automatically.
 8. Emit `ritsu.docs.built` event.
 
-**Cost:** ~$0.50 LLM (mostly the source.config.ts boilerplate generation). One-time per repo.
+**Cost:** ~USD 0.50 LLM (mostly the source.config.ts boilerplate generation). One-time per repo.
 
 ### `/docs sync` (the workhorse)
 
@@ -59,7 +59,7 @@ Dispatches to skill `docs-engine/sync` which orchestrates SOP-AIOPS-003 step 1-1
 9. **Emit events** — `ritsu.docs.synced` + maybe `ritsu.docs.drift_detected`.
 10. **KPI snapshot** — `docs_drift_count`.
 
-**Cost:** ~$0.40-1.00 per full sync (215 pages × adapter cost ÷ batching). Per-task-kind cap: $1.
+**Cost:** ~USD 0.40-1.00 per full sync (215 pages × adapter cost ÷ batching). Per-task-kind cap: USD 1.
 
 ### `/docs translate` (v1.2)
 
@@ -78,9 +78,9 @@ Incremental Vietnamese translation. Dispatches Claude Code subagents in parallel
 6. **Local build** — `cd docs && pnpm build`. If fails, ABORT.
 7. **Commit + push** — typical message: `feat(docs-engine): incremental translation — N files`.
 
-**Cost:** ~$0-$9 (free via Claude Code subscription if dispatched inside Desktop session; ~$0.05-0.15 per file via haiku API).
+**Cost:** ~USD 0-9 (free via Claude Code subscription if dispatched inside Desktop session; ~USD 0.05-0.15 per file via haiku API).
 
-**Per-task-kind cap:** $5.
+**Per-task-kind cap:** USD 5.
 
 ### `/docs check`
 

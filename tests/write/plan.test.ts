@@ -1,4 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 // @ts-ignore
 const { buildPlan, renderBrief, sectionBudget } = require("../../scripts/write/plan.cjs");
 
@@ -20,6 +23,42 @@ describe("sectionBudget", () => {
   });
   it("a tiny target still yields >= 3 sections", () => {
     expect(sectionBudget(50).count).toBeGreaterThanOrEqual(3);
+  });
+});
+
+// Contract boundary: parseWriteArgs (upstream) → buildPlan (downstream). Uses the REAL
+// upstream parse, not hand-crafted options, per the All-Edge-Cases contract rule.
+describe("buildPlan × --request-file", () => {
+  let dir: string;
+  beforeEach(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), "plan-reqfile-")); });
+  afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }); });
+
+  it("carries the file's contents into plan.request and the rendered brief", () => {
+    const p = path.join(dir, "brief.md");
+    fs.writeFileSync(p, "Write a company about-page for Ritsu");
+    const plan = buildPlan([`--request-file=${p}`, "--type=blog"], OPTS);
+    expect(plan.ok).toBe(true);
+    expect(plan.request).toBe("Write a company about-page for Ritsu");
+    expect(renderBrief(plan)).toMatch(/Write a company about-page for Ritsu/);
+  });
+
+  it("surfaces the ignored-file warning in plan.warnings when an inline request wins", () => {
+    const p = path.join(dir, "brief.md");
+    fs.writeFileSync(p, "from file");
+    const plan = buildPlan(["inline request", `--request-file=${p}`, "--type=blog"], OPTS);
+    expect(plan.request).toBe("inline request");
+    expect(plan.warnings).toEqual(expect.arrayContaining([expect.stringContaining("--request-file ignored")]));
+  });
+
+  it("propagates the hard error for an unreadable file rather than planning an empty request", () => {
+    expect(() => buildPlan([`--request-file=${path.join(dir, "missing.md")}`], OPTS)).toThrow(/could not be read/);
+  });
+
+  it("does not warn that --request-file is an unknown flag", () => {
+    const p = path.join(dir, "brief.md");
+    fs.writeFileSync(p, "a brief");
+    const plan = buildPlan([`--request-file=${p}`, "--type=blog"], OPTS);
+    expect(plan.warnings.join(" ")).not.toMatch(/unknown flag --request-file/);
   });
 });
 

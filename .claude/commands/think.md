@@ -269,7 +269,7 @@ No code changes to `/think` command itself for new frameworks — the table is t
 
 ## State persistence
 
-Each `/think <subcommand>` invocation = single `ops.agent_runs` row (agent_slug=`thinking-toolkit/<skill-name>`). Cost-bucket: `ai-ops-skill-library`. Per-invocation LLM cost: $0 (skills are guidance documents; LLM cost is attributed to the calling agent's existing reasoning budget, not a separate `/think` cost line).
+Each `/think <subcommand>` invocation = single `ops.agent_runs` row (agent_slug=`thinking-toolkit/<skill-name>`). Cost-bucket: `ai-ops-skill-library`. Per-invocation LLM cost: USD 0 (skills are guidance documents; LLM cost is attributed to the calling agent's existing reasoning budget, not a separate `/think` cost line).
 
 ## Drift gates
 
@@ -279,7 +279,7 @@ Each `/think <subcommand>` invocation = single `ops.agent_runs` row (agent_slug=
 ## HITL discipline
 
 - All operations Tier A. No HITL escalation in any subcommand.
-- This is the highest-frequency-acceptable-invocation surface in the workforce (founder can call `/think` hundreds of times per month at $0 LLM cost).
+- This is the highest-frequency-acceptable-invocation surface in the workforce (founder can call `/think` hundreds of times per month at USD 0 LLM cost).
 
 ## Errors
 
