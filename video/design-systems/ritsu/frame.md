@@ -32,10 +32,36 @@ colors:
   cyan-line:    "rgba(10,188,208,0.35)"   # hairline / chip border
   cyan-glow:    "rgba(10,188,208,0.40)"   # the one glow (0 0 20px)
   cyan-hint:    "rgba(10,188,208,0.08)"   # faint grid / wash
+  # — SECONDARY palette (product data-viz / diagram hues) — NOT a second brand accent.
+  # Drawn from the ritsu.ai Features + Use-Cases pages (the product's chart + 8-way diagram
+  # palette; source 00-core/design-system/ritsu/DESIGN.md). Use ONLY inside a genuine
+  # multi-series data-viz / diagram frame — cyan still leads; one hue = one meaning.
+  violet:   "#7C3AED"   # chart-2 · concepts / links (Knowledge Map)
+  orange:   "#F97316"   # chart-3 · attention / the gaps (Exam-in-3-days)
+  green:    "#16A34A"   # chart-4 · mastered / correct
+  rose:     "#E11D48"   # chart-5 · risk / weak spot
+  amber:    "#F59E0B"   # 8-way diagram extension
+  emerald:  "#10B981"   # 8-way diagram extension
+  sky:      "#0EA5E9"   # 8-way diagram extension
+  pink:     "#EC4899"   # 8-way diagram extension
+  # — status (functional only; never decorative) —
+  success:  "#30A66D"
+  warning:  "#FFA600"
+  info:     "#0090FF"
+  danger:   "#EF4444"
 
 gradient:
   signature:    "linear-gradient(135deg, #0ABCD0, #19DEF4)"          # cyan → bright cyan
   mark:         "linear-gradient(135deg, #12A58D, #0ABCD0, #19DEF4)"  # teal → cyan (the aperture)
+
+logo:
+  mark:      assets/ritsu-mark.png      # the four-blade aperture (256px, teal→cyan gradient) — favicons / small
+  logo:      assets/ritsu-logo.png      # hi-res mark (1000px) — the big brand-frame emblem
+  lockup:    assets/ritsu-lockup.png    # mark + "Ritsu" cyan-gradient wordmark (~3.4:1) — the default lockup
+  wordmark:  "Ritsu"                     # live text alt: Inter 800, {gradient.signature} bg-clip
+  source:    00-core/design-system/ritsu/assets   # canonical brand assets (mirrored into ./assets/)
+  clearspace: "≥ one blade-width"
+  rule:      "teal–cyan family only, never recolored; never on a busy ground; glow only at brand moments"
 
 typography:
   # — reading ramp —
@@ -197,9 +223,14 @@ or bright surface, text is **`{colors.ink}` dark slate** (≈ 5.4:1) — never n
 on slate, dark text lives on cyan. This is the one place a Ritsu frame differs visibly from
 broadside's ink-on-fire absolute: same discipline (one color, committed), inverted luminance.
 
-**No second accent color.** Emphasis is weight, size, opacity, or the glow — never a new hue.
-The 5-way chart palette (`#0ABCD0 · #7C3AED · #F97316 · #16A34A · #E11D48`) is allowed **only** in a
-genuine multi-series data-viz frame, and even then cyan leads.
+**No second accent color — but a secondary palette exists for data.** Emphasis is weight, size,
+opacity, or the glow — never a new hue on text or chrome. The **secondary palette** (frontmatter
+`colors.secondary`: violet `#7C3AED` · orange `#F97316` · green `#16A34A` · rose `#E11D48` · amber ·
+emerald · sky · pink — the product's chart + 8-way diagram hues, drawn from the ritsu.ai
+Features/Use-Cases pages) is allowed **only** inside a genuine multi-series data-viz / diagram frame,
+and even then cyan leads. Use **one hue per meaning** — green = mastered, orange = the gaps, rose =
+weak spot, violet = concepts/links. Status colors (`success/warning/info/danger`) are functional
+only, never decorative.
 
 ## Typography
 
@@ -238,6 +269,23 @@ Rounded, friendly, not bubbly (the brand's shape language):
 - **8px** base radius (`lg`); **12px** large cards (`xl`), **18px** the quiz/product card; inputs 6px;
   chips + pills **fully round**. Nav dots 50%. Consistent radius across a frame. (Broadside's
   0-radius sharpness is explicitly NOT Ritsu.)
+
+## Logo & brand assets
+
+Ritsu has a **symbol mark** and a **wordmark** (frontmatter `logo`). The mark is a four-blade
+**pinwheel / camera-aperture** — four curved petals in a **teal → cyan** gradient (`{gradient.mark}`),
+reading as motion + transformation (raw material reshaped into mastery). The real assets ship in
+`./assets/` (mirrored from `00-core/design-system/ritsu/assets/`), never redrawn:
+
+- **`assets/ritsu-mark.png`** (256px) — the compact mark; favicons, small chrome, the spinning-mark motif.
+- **`assets/ritsu-logo.png`** (1000px) — hi-res mark; the big brand-frame emblem (*Brand/Lockup*, *CTA*).
+- **`assets/ritsu-lockup.png`** (799×237, ~3.4:1) — mark + "Ritsu" cyan-gradient wordmark; the default lockup.
+- **Wordmark as live text** — "Ritsu" in Inter 800 with `{gradient.signature}` bg-clip, when it must animate.
+
+Rules: keep the blades in the **teal–cyan family** (never recolor off-brand); **≥ one blade-width**
+clear space; never place the gradient mark on a busy ground (use it on slate); the **glow** sits
+behind the mark only at brand moments (*Brand/Lockup*, *CTA*). In *Brand/Lockup* the mark may
+self-draw or fade-scale in; elsewhere it holds still.
 
 ## Motion
 
