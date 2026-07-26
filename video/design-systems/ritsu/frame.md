@@ -416,5 +416,7 @@ Fine-tuned from the HyperFrames **broadside** frame pack
 (`.archives/broadside-frame-pack/FRAME.md` · https://www.hyperframes.dev/design/broadside): its
 structure, rigor, and treatment-recipe format are retained; its DNA (ink-black/fire-orange,
 lowercase Barlow, flat protest poster) is fully re-skinned to Ritsu. Brand truth =
-`00-core/design-system/ritsu/DESIGN.md`; this file adds the frame + motion layer. The look is already
-demonstrated in `../../hyperframes/ritsu-launch-25s/` (25s launch film) and `../../hyperframes/hf-billboard/`.
+`00-core/design-system/ritsu/DESIGN.md`; this file adds the frame + motion layer. The look was
+demonstrated by the reference builds `ritsu-launch-25s` (25s launch film) and `hf-billboard` — these
+live in `../../hyperframes/`, which is a **local-only** per-operator plane (not committed; see
+`../../hyperframes/README.md`), so build your own projects against this spec.

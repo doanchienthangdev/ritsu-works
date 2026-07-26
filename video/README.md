@@ -1,35 +1,32 @@
 # video — Ritsu video production
 
-Home for every Ritsu video: the **design systems** that define how a video looks
-and moves, and the **HyperFrames projects** that render them.
+Home for Ritsu video: the **design systems** (shared) that define how a video looks and
+moves, and a **local plane** where each operator builds their own HyperFrames projects.
 
-Committed to `ritsu-works` and PR-governed. Independent of any git worktree.
+## Two planes
 
-## Layout
+| Path | Pushed to GitHub? | What |
+|---|---|---|
+| `design-systems/<name>/` | ✅ **committed (shared)** | Video/motion design systems — one folder = one bundle (`frame.md` / `DESIGN.md` + `assets/`). Every operator's videos follow these. Start from `_TEMPLATE/`. |
+| `hyperframes/` | ❌ **local-only (per-operator)** | Where you build video projects on your machine. `.gitignore`d like `raw/` — not pushed ("mỗi user sẽ khác nhau"). Only its `README.md` + `.gitkeep` are versioned. `git add -f` to share one canonical video. |
 
-| Path | What |
-|---|---|
-| `design-systems/<name>/` | A video/motion **design system** — one folder = one artifact bundle (`DESIGN.md` + `assets/`). Start from `design-systems/_TEMPLATE/`. |
-| `hyperframes/<slug>/` | A **HyperFrames project** — one folder per video (`index.html`, `hyperframes.json`, `assets/`). |
+Independent of any git worktree; committed to `ritsu-works` and PR-governed.
 
 ## Conventions
 
-- **One design system per look.** `design-systems/ritsu/` is the house style for Ritsu
-  videos. It **extends** the company brand system at `00-core/design-system/ritsu/DESIGN.md`
-  (same palette + type + logo) and adds the video-only layer: motion doctrine, scene
-  timing, easing, letterbox, audio. Don't re-hardcode brand tokens — reference them.
-- **One project per video.** Name folders by intent + length, e.g. `ritsu-launch-25s`.
-- **Renders are build output, not source.** `*.mp4` and `snapshots/` are `.gitignore`d
-  (reproducible via `npx hyperframes render` / `snapshot`). Keep a final cut here locally;
-  `git add -f <file>.mp4` only if you deliberately want it versioned.
+- **One design system per look.** `design-systems/ritsu/` is the house style; its
+  authoritative spec is **`frame.md`** (HyperFrames loads it as brand truth). It
+  **extends** the company brand system at `00-core/design-system/ritsu/DESIGN.md` —
+  reference brand tokens, don't re-hardcode them.
+- **Projects are yours + local.** Build them under `hyperframes/`; they aren't pushed.
 
 ## Build a video
 
 ```bash
-cd video/hyperframes/<slug>
-npx hyperframes check          # lint + runtime + layout + contrast gate
-npx hyperframes preview        # scrub in HyperFrames Studio (open the localhost URL in your browser)
+cd video/hyperframes
+npx hyperframes init <slug> --non-interactive --example blank --resolution landscape
+cd <slug> && npx hyperframes check && npx hyperframes preview
 npx hyperframes render --quality high --output <slug>.mp4
 ```
 
-Authoring skills: `npx skills add heygen-com/hyperframes` (installs the `/hyperframes` skill pack).
+Authoring skills: `npx skills add heygen-com/hyperframes`. Follow `../design-systems/ritsu/frame.md`.

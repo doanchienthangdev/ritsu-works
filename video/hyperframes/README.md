@@ -1,22 +1,33 @@
-# hyperframes — Ritsu HyperFrames projects
+# hyperframes — your local HyperFrames projects (NOT pushed)
 
-One folder per video. Each is a standalone HyperFrames composition (HTML → video).
+This is a **per-operator, local-only plane** — like `raw/`. Individual video projects
+live here on your machine but are **not committed to GitHub**: each operator makes their
+own videos ("mỗi user sẽ khác nhau"). Only this `README.md` and `.gitkeep` are versioned;
+everything else under `hyperframes/` is `.gitignore`d.
 
-| Project | What |
-|---|---|
-| `ritsu-launch-25s/` | 25s product-launch film for ritsu.ai — dark, cinematic, design-system-accurate, beat-synced score. |
-| `hf-billboard/` | 8s "for beginners" HyperFrames billboard (demo). |
+The **shared** part of video production — the design system every video follows — lives
+one level up in `../design-systems/ritsu/` (committed). Author against that.
 
-## Work on one
+## Make a video
 
 ```bash
-cd video/hyperframes/<slug>
-npx hyperframes check                                   # gate: lint + runtime + layout + contrast
-npx hyperframes preview                                 # scrub in Studio (open the localhost URL in your browser)
+cd video/hyperframes            # your local plane
+npx hyperframes init <slug> --non-interactive --example blank --resolution landscape
+cd <slug>
+npx hyperframes check           # gate: lint + runtime + layout + contrast
+npx hyperframes preview         # scrub in Studio (open the localhost URL in your browser)
 npx hyperframes render --quality high --output <slug>.mp4
 ```
 
-- Renders (`*.mp4`), `snapshots/`, and `.thumbnails/` are `.gitignore`d — reproducible from source.
-- The look should follow `../design-systems/ritsu/`.
-- The `AGENTS.md` / `CLAUDE.md` inside each project are the HyperFrames scaffold's
-  own agent instructions (project-scoped) — leave them.
+- Follow the look in `../design-systems/ritsu/frame.md`.
+- Name folders by intent + length, e.g. `ritsu-launch-25s`, `exam-in-3-days-15s`.
+
+## Sharing a canonical video (opt-in)
+
+If a specific video IS an official company asset worth versioning for everyone:
+
+```bash
+git add -f video/hyperframes/<slug>     # force past the ignore
+```
+
+Prefer this over committing every experiment.
