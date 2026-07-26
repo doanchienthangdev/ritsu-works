@@ -1,0 +1,11 @@
+# Renders — reproducible from source (npx hyperframes render). Keep locally; not versioned.
+*.mp4
+*.webm
+*.mov
+# HyperFrames working artifacts
+**/snapshots/
+**/.thumbnails/
+**/.hyperframes/
+# Deps + media caches
+**/node_modules/
+**/.media/
