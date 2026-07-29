@@ -74,6 +74,22 @@ This is the canonical mapping. Every secret listed must:
 
 > **Note:** `ANTHROPIC_API_KEY_PRODUCT` (used by the Ritsu product itself) lives in the product repo's secret store, not here. Operating AI never holds it.
 
+### Media / TTS & generation (out-of-band)
+
+Voice / image generation keys. **Out-of-band only** (API-key-vs-subscription policy): consumed by `/voice`,
+`/image`, and direct generation calls that produce files — never in-session reasoning. Held for the `gps`
+role (the capabilities' bound role), gated by each capability's per-run `--max-cost-usd` breaker. Values live
+only in local-only `runtime/secrets/.env.local`, never committed.
+
+| Secret | Used by roles | Scope | Rotation |
+|---|---|---|---|
+| `GEMINI_API_KEY` | `gps` (out-of-band `/voice`, `/image`) | Gemini Developer API — TTS (`gemini-3.1-flash-tts-preview`) + image | 90d |
+| `OPENAI_API_KEY` | `gps` (out-of-band `/voice`, `/image`) | OpenAI Speech (`gpt-4o-mini-tts`) + `gpt-image-2` + embeddings | 90d |
+| `ELEVENLABS_API_KEY` | `gps` (out-of-band `/voice --use=elevenlabs`) | ElevenLabs TTS (`eleven_v3` / `eleven_multilingual_v2`); key MUST have `text_to_speech` + `voices_read` scopes | 90d |
+
+> Voice IDs (`KAI_VOICE_ID`, `MAYA_VOICE_ID`) sit beside these in `.env.local` but are **not secrets** (public
+> ElevenLabs voice references). A scoped `ELEVENLABS_API_KEY` missing `voices_read` returns 401 `missing_permissions`.
+
 ### Supabase
 
 | Secret | Used by roles | Scope | Rotation |
