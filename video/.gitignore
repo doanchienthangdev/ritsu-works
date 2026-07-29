@@ -1,0 +1,18 @@
+# ── hyperframes/ — per-operator LOCAL-ONLY plane (like raw/) ──────────────────
+# Individual video projects live here but are NOT pushed — each operator makes
+# their own ("mỗi user sẽ khác nhau"). Only README.md + .gitkeep are committed.
+# To share ONE specific canonical video, force it past the ignore:
+#   git add -f video/hyperframes/<slug>
+hyperframes/*
+!hyperframes/README.md
+!hyperframes/.gitkeep
+
+# ── renders / working artifacts (anywhere under video/) — reproducible ────────
+*.mp4
+*.webm
+*.mov
+**/snapshots/
+**/.thumbnails/
+**/.hyperframes/
+**/node_modules/
+**/.media/

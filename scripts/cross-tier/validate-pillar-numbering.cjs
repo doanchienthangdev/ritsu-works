@@ -48,6 +48,9 @@ const NON_PILLAR_TOPLEVEL = new Set([
   // wiki/capabilities/evolve/spec.md §19 (after Phase 8 promotion) and
   // scripts/skillopt/UPSTREAM-DEVIATION.md.
   'vendor',
+  // video/ is the Ritsu video-production workspace (design-systems + hyperframes
+  // projects), not a pillar. See video/README.md.
+  'video',
 ]);
 
 // Conventional directory names that appear inside pillars but are NOT sub-pillars.
