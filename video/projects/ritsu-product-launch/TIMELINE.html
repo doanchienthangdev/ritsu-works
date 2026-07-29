@@ -1,0 +1,193 @@
+<meta charset="utf-8"/>
+<title>Ritsu Launch Film — Timeline</title>
+<style>
+  :root{
+    --slate:#020817;--raise:#0B1524;--panel:#151C29;--border:#1E2C40;
+    --fg:#F8FAFC;--muted:#94A3B8;--hint:#64748B;
+    --cyan:#0ABCD0;--bright:#19DEF4;--teal:#12A58D;--ink:#04141C;
+    --violet:#7C3AED;--orange:#F97316;--green:#16A34A;--rose:#E11D48;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--slate);color:var(--fg);
+    font-family:Inter,-apple-system,system-ui,sans-serif;padding:44px 40px 80px;
+    background-image:radial-gradient(70% 50% at 50% 0%,rgba(10,188,208,.08),transparent 70%)}
+  .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  h1{font-size:40px;font-weight:800;letter-spacing:-.03em;margin-bottom:8px}
+  h1 .cy{background:linear-gradient(100deg,var(--bright),var(--cyan) 58%,var(--teal));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:15px;margin-bottom:6px}
+  .kick{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px}
+  .wrap{max-width:1780px;margin:0 auto}
+
+  .facts{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 34px}
+  .fact{background:var(--panel);border:1px solid var(--border);border-top:2px solid var(--cyan);
+    border-radius:10px;padding:12px 18px;min-width:150px}
+  .fact b{display:block;font-size:22px;font-weight:700;color:var(--bright);letter-spacing:-.02em}
+  .fact span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--hint)}
+
+  .tl{position:relative;background:linear-gradient(180deg,rgba(11,21,36,.9),rgba(2,8,23,.9));
+    border:1px solid var(--border);border-radius:14px;padding:0 0 18px;overflow:hidden}
+  .ruler{position:relative;height:34px;border-bottom:1px solid var(--border);
+    background:rgba(2,8,23,.6)}
+  .tick{position:absolute;top:0;height:34px;border-left:1px solid rgba(30,44,64,.9)}
+  .tick span{position:absolute;left:6px;top:10px;font-size:10px;color:var(--hint);letter-spacing:.1em}
+  .lane{position:relative;height:46px;border-bottom:1px solid rgba(30,44,64,.55)}
+  .lane:last-child{border-bottom:none}
+  .lane-label{position:absolute;left:0;top:0;width:126px;height:100%;
+    display:flex;align-items:center;padding-left:16px;font-size:10px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--hint);background:rgba(2,8,23,.85);
+    border-right:1px solid var(--border);z-index:3}
+  .track{position:absolute;left:126px;right:14px;top:0;height:100%}
+  .blk{position:absolute;top:7px;height:32px;border-radius:6px;
+    font-size:11px;display:flex;align-items:center;padding:0 8px;overflow:hidden;
+    white-space:nowrap;border:1px solid rgba(255,255,255,.10)}
+  .beat{position:absolute;top:6px;height:34px;border-radius:7px;
+    display:flex;align-items:center;padding:0 10px;font-size:12px;font-weight:700;
+    letter-spacing:-.01em;overflow:hidden;white-space:nowrap}
+  .avatar{background:linear-gradient(135deg,rgba(124,58,237,.42),rgba(124,58,237,.18));
+    border:1px solid rgba(124,58,237,.75);color:#DDD0FF}
+  .faceless{background:linear-gradient(135deg,rgba(10,188,208,.34),rgba(10,188,208,.14));
+    border:1px solid rgba(10,188,208,.68);color:#BFF3FA}
+  .sc{background:rgba(10,188,208,.20);border-color:rgba(10,188,208,.55);color:#9EE8F4}
+  .la{background:rgba(249,115,22,.18);border-color:rgba(249,115,22,.5);color:#FFC79A}
+  .av{background:rgba(124,58,237,.24);border-color:rgba(124,58,237,.6);color:#D9C9FF}
+  .mg{background:rgba(22,163,74,.18);border-color:rgba(22,163,74,.5);color:#A7E9BE}
+  .vo{background:rgba(25,222,244,.20);border-color:rgba(25,222,244,.55);color:#B8F1FA}
+  .avau{background:rgba(124,58,237,.24);border-color:rgba(124,58,237,.6);color:#D9C9FF}
+  .mus{background:rgba(148,163,184,.14);border-color:rgba(148,163,184,.4);color:#C7D2DE}
+  .txt{background:rgba(248,250,252,.10);border-color:rgba(248,250,252,.24);color:#E7EDF4}
+
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin:18px 0 34px;font-size:12px;color:var(--muted)}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:7px;
+    vertical-align:-2px;border:1px solid rgba(255,255,255,.18)}
+
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+  th{text-align:left;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--hint);padding:10px 12px;border-bottom:1px solid var(--border);font-weight:500}
+  td{padding:11px 12px;border-bottom:1px solid rgba(30,44,64,.5);vertical-align:top;color:var(--fg)}
+  td.t{color:var(--bright);white-space:nowrap;font-size:12px}
+  td.m{color:var(--muted);font-size:12.5px}
+  tr:hover td{background:rgba(10,188,208,.045)}
+  .pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:10px;
+    letter-spacing:.12em;text-transform:uppercase;border:1px solid}
+  .p-av{border-color:rgba(124,58,237,.7);color:#C9B4FF;background:rgba(124,58,237,.15)}
+  .p-fl{border-color:rgba(10,188,208,.6);color:#9EE8F4;background:rgba(10,188,208,.12)}
+  code{background:rgba(10,188,208,.12);border:1px solid rgba(10,188,208,.28);
+    border-radius:5px;padding:1px 6px;font-size:11.5px;color:#9EE8F4;
+    font-family:"JetBrains Mono",ui-monospace,monospace}
+  h2{font-size:20px;font-weight:700;letter-spacing:-.02em;margin:44px 0 6px}
+  .note{background:rgba(10,188,208,.07);border:1px solid rgba(10,188,208,.26);
+    border-left:3px solid var(--cyan);border-radius:9px;padding:16px 20px;margin:18px 0;
+    font-size:13.5px;color:#CFE3EA;line-height:1.62}
+  .note b{color:var(--bright)}
+</style>
+<div class="wrap">
+  <div class="kick">Ritsu — Product Launch Film</div>
+  <h1>Timeline — <span class="cy">Turn Raw Materials Into True Mastery</span></h1>
+  <div class="sub">1920×1080 · 30 fps · 11 beats · one paused, seek-safe GSAP timeline · built against <code>video/design-systems/ritsu/frame.md</code></div>
+
+  <div class="facts">
+    <div class="fact"><b>2:55</b><span>Runtime (175 s)</span></div>
+    <div class="fact"><b>11</b><span>Beats</span></div>
+    <div class="fact"><b>4 / 7</b><span>Avatar / Faceless</span></div>
+    <div class="fact"><b>22</b><span>Screen captures</span></div>
+    <div class="fact"><b>13</b><span>Live-action clips</span></div>
+    <div class="fact"><b>±0.3 LU</b><span>Narration spread</span></div>
+    <div class="fact"><b>4 + 4</b><span>Music / SFX</span></div>
+  </div>
+
+  <div class="tl" id="tl"></div>
+
+  <div class="legend">
+    <span><i style="background:rgba(124,58,237,.42);border-color:rgba(124,58,237,.75)"></i>Avatar (HeyGen)</span>
+    <span><i style="background:rgba(10,188,208,.34);border-color:rgba(10,188,208,.68)"></i>Faceless</span>
+    <span><i style="background:rgba(10,188,208,.20)"></i>SC — screen capture</span>
+    <span><i style="background:rgba(249,115,22,.18)"></i>LA — live action</span>
+    <span><i style="background:rgba(22,163,74,.18)"></i>MG — motion graphics</span>
+    <span><i style="background:rgba(25,222,244,.20)"></i>VO — ElevenLabs KAI</span>
+    <span><i style="background:rgba(148,163,184,.14)"></i>Music bed</span>
+  </div>
+
+  <h2>Beat sheet</h2>
+  <table id="sheet">
+    <thead><tr><th style="width:52px">#</th><th style="width:118px">Time</th><th style="width:104px">Mode</th>
+      <th style="width:290px">Beat</th><th>On screen — real product footage</th><th style="width:132px">Narration</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Post decisions worth knowing</h2>
+  <div class="note">
+    <b>Loudness matched across sources.</b> HeyGen avatar audio came in at −15.8…−17.7 LUFS while the
+    ElevenLabs voice-over sat at −13.1…−15.5 — a <b>4.6 LU</b> jump at the worst seam (VO‑11 → AV‑03),
+    clearly audible. Every narration source is normalised to <b>−16 LUFS / −1.5 dBTP</b>, closing the
+    spread to <b>0.6 LU</b>. Music ducks to ~0.14 under narration and lifts to ~0.30 in the gaps.
+  </div>
+  <div class="note">
+    <b>Veo ambient audio muted.</b> The live-action clips carried incidental beds at −31…−46 LUFS
+    (inconsistent and unusable). All are silent; the score is four HeyGen catalogue tracks
+    (<code>MUS-01…04</code>) cross-faded at the beat seams, plus whoosh / impact / riser / tick SFX.
+  </div>
+  <div class="note">
+    <b>Screen recordings reframed, not just placed.</b> Sources are 2880×1800 (16:10) — cropped to 16:9
+    at 2560×1440 so every shot has real zoom headroom, then pushed and pulled in GSAP.
+    Framing rule: sit at ~1.0× (whole app, no edge slice) <i>or</i> past ~1.26× with an x-shift so the
+    left rail clears frame — never slice it mid-word.
+  </div>
+  <div class="note">
+    <b>Claims corrected to what the product actually shows.</b> The script called for a fabricated
+    "7/10". The real capture shows <b>6.0 out of 10</b> with a question breakdown — so the film uses the
+    real number and the real grading feedback. The forgetting curve and the 1·3·7·16·35 review ladder are
+    also real in-product UI, not invented motion graphics. Knowledge Map stays <b>per-source</b>
+    per the <code>frame.md</code> integrity guardrail.
+  </div>
+</div>
+
+<script>
+const T = 175, PX = 1;
+const BEATS = [
+ [1,'Cold open — betrayed effort',0,11.4,'AVATAR','AV-01 full-bleed, slow push-in; hard 0.9 s cut-ins on LA-01 highlighter + LA-02 tired student','AV-01'],
+ [2,'Pain montage',11.4,26.0,'FACELESS','LA-03 desk time-lapse → LA-04 highlighter coating a page → self-drawing forgetting curve → five disconnected app tiles + cyan “?”','VO-02'],
+ [3,'The turn',26.0,40.2,'AVATAR','Split frame — AV-02 right window, mark + “Turn Raw Materials Into True Mastery” left','AV-02'],
+ [4,'Magic moment — drop → plan',40.2,59.8,'FACELESS','LA-05 papers drop → SC-01 upload → pipeline (Uploading·Processing·Generating) with 0→30 s count-up → plan “4 Units” → SC-02 YouTube (Fetching·Extracting Transcript) → SC-03 slides','VO-04'],
+ [5,'Active learning + vocabulary',59.8,79.6,'FACELESS','SC-04 command palette (/quiz /askme /explain /derive /solve) → SC-05 Configure /quiz (Bloom + pedagogy) → /askme fires → typed answer → graded feedback → real 6.0 / 10 card','VO-05'],
+ [6,'Knowledge Map',79.6,96.2,'FACELESS','SC-06 mastery sidebar (Mastery Score /100) → MG constellation built from the capture’s real concepts','VO-06'],
+ [7,'Spaced review',96.2,110.0,'FACELESS','SC-07 “Due now” review queue → real in-product forgetting curve → MG ladder 1·3·7·16·35','VO-07'],
+ [8,'Situations montage',110.0,131.8,'FACELESS','Five situations, 4.36 s each — LA plate then SC inset: Exam prep mode · YouTube · research paper · /solve · /code','VO-08'],
+ [9,'Differentiation',131.8,147.2,'AVATAR','Split frame mirrored — AV-03 left; five competitor tiles collapse into the Ritsu mark','AV-03'],
+ [10,'Proof',147.2,160.4,'FACELESS','Three testimonial cards with portrait stills, counting numerals, 4.9 / 5 chip + “Individual results. Not typical.”','VO-10'],
+ [11,'CTA / close',160.4,175.0,'AVATAR','AV-04 full-bleed → end card: lockup, Start Learning Free (back.out pop + sparkle), ritsu.ai','AV-04'],
+];
+const LANES = [
+ ['Beats', BEATS.map(b=>[b[2],b[3],(b[0])+' · '+b[1], b[4]==='AVATAR'?'avatar':'faceless','beat'])],
+ ['Avatar', [[0.8,10.42,'AV-01','av'],[26.2,39.41,'AV-02','av'],[132.0,146.36,'AV-03','av'],[160.6,166.5,'AV-04','av']]],
+ ['Screen', [[42.4,45.4,'s1-drop','sc'],[45.4,49.4,'s1-pipe','sc'],[49.4,53.4,'s1-plan','sc'],[53.4,56,'s2-pipe','sc'],[56,58,'s2-plan','sc'],[58,59.8,'s3-plan','sc'],[59.8,63.3,'vocab','sc'],[63.3,66.3,'config','sc'],[66.3,69.3,'askme','sc'],[69.3,71.8,'typing','sc'],[71.8,76.8,'feedback','sc'],[76.8,79.6,'score 6/10','sc'],[79.6,86.1,'kmap','sc'],[96.2,100.7,'review','sc'],[100.7,106.2,'curve','sc'],[111.4,114.36,'exam','sc'],[115.76,118.72,'yt','sc'],[120.12,123.08,'steps','sc'],[124.48,127.44,'solve','sc'],[128.84,131.8,'code','sc']]],
+ ['Footage', [[6.4,7.3,'hl','la'],[7.85,8.75,'stu','la'],[11.4,14,'desk','la'],[14,16.6,'page','la'],[40.2,42.4,'drop','la'],[110,113,'calendar','la'],[114.36,117.36,'lecture','la'],[118.72,121.72,'paper','la'],[123.08,126.08,'problem','la'],[127.44,130.44,'docs','la']]],
+ ['Motion gfx', [[16.6,21.5,'forgetting curve','mg'],[21.4,25.95,'5 apps disconnected','mg'],[86.1,96.2,'knowledge constellation','mg'],[106.2,110,'review ladder','mg'],[166.2,175,'end card','mg']]],
+ ['Narration', [[1.2,10.82,'AV-01','avau'],[11.9,25.34,'VO-02','vo'],[26.4,39.61,'AV-02','avau'],[40.9,59.14,'VO-04','vo'],[60.4,78.96,'VO-05','vo'],[80.2,95.56,'VO-06','vo'],[96.8,109.44,'VO-07','vo'],[110.5,131.22,'VO-08','vo'],[132.2,146.56,'AV-03','avau'],[147.8,159.8,'VO-10','vo'],[161,169.4,'AV-04','avau']]],
+ ['Music', [[0,40,'MUS-01 dark','mus'],[38,71,'MUS-02 build','mus'],[70,132,'MUS-03 drive','mus'],[130,175,'MUS-04 close','mus']]],
+];
+const tl = document.getElementById('tl');
+let html = '<div class="ruler"><div class="lane-label" style="border-bottom:none">Time</div>';
+for(let s=0;s<=T;s+=10){
+  html += `<div class="tick" style="left:calc(126px + ${(s/T*100).toFixed(4)}% - ${(126*s/T).toFixed(2)}px)"><span class="mono">${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}</span></div>`;
+}
+html += '</div>';
+for(const [name,items] of LANES){
+  html += `<div class="lane"><div class="lane-label">${name}</div><div class="track">`;
+  for(const [s,e,label,cls,kind] of items){
+    const l=(s/T*100).toFixed(4), w=((e-s)/T*100).toFixed(4);
+    html += `<div class="${kind==='beat'?'beat':'blk'} ${cls}" style="left:${l}%;width:${w}%" title="${label} — ${s}s→${e}s">${label}</div>`;
+  }
+  html += '</div></div>';
+}
+tl.innerHTML = html;
+
+const tb = document.querySelector('#sheet tbody');
+tb.innerHTML = BEATS.map(b=>{
+  const mm=(x)=>`${Math.floor(x/60)}:${String(Math.round(x%60)).padStart(2,'0')}`;
+  return `<tr><td class="t mono">${String(b[0]).padStart(2,'0')}</td>
+   <td class="t mono">${mm(b[2])} – ${mm(b[3])}</td>
+   <td><span class="pill ${b[4]==='AVATAR'?'p-av':'p-fl'}">${b[4]}</span></td>
+   <td><b>${b[1]}</b></td><td class="m">${b[5]}</td><td class="t mono">${b[6]}</td></tr>`;
+}).join('');
+</script>

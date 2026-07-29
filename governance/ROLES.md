@@ -160,6 +160,12 @@ economic_budget:
     write-humanize:      {unit: usd, cap: 0.20}   # /write de-AI + voice pass (the write/humanize skill + the vendored scan gate). In-session; deterministic scanners are $0.
     write-distill:       {unit: usd, cap: 2.00}   # /write distill — author-voice extraction via parallel Workflow fan-out (the heaviest write task). In-session; scales with the source bundle.
     write-research:      {unit: usd, cap: 1.00}   # /write --mode=deep-research factual spine (delegates to the deep-research skill). In-session.
+    # capability video-platform v0.1 — cost-bucket ai-ops-video; /video production pipeline
+    video-plan:      {unit: usd, cap: 0.30}   # /video script brainstorm or transform of a supplied source into the standard SCRIPT.md shape (delegates craft to /write --type=video-script). In-session/subscription.
+    video-generate:  {unit: usd, cap: 1.50}   # /video asset generation — narration via /voice (ElevenLabs), avatars + score via the HeyGen catalog. ADVISORY: all of it is out-of-band → invisible to the budget hook; the per-run --max-cost-usd breaker (default $5, refuse-BEFORE-spend) is the real enforcement. Scales with runtime + avatar minutes.
+    video-compose:   {unit: usd, cap: 0.75}   # /video composition authoring against video/design-systems/<ds>/frame.md (delegates to the HyperFrames skills). In-session.
+    video-qc:        {unit: usd, cap: 0.05}   # /video gates — loudness, stage lint, verify-render, filmstrip. PURE ffmpeg/Node, ZERO LLM: nothing to meter. No secret/key. Listed for governance coherence only.
+    video-publish:   {unit: usd, cap: 0.20}   # /video timeline view + publishing kit (YOUTUBE.md). In-session. Posting publicly stays Tier C — the founder posts.
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition

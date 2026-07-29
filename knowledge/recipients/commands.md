@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 30
+**Total entries:** 31
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -489,6 +489,25 @@ deployed operator-broker Edge Function (owner JWT verified server-side; invite/
 redeem/revoke/list with an immutable audit trail). NOT a content command.
 
 **Invoke:** `/users`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/video
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Produce a complete video — script → assets → composition → render → QC → publishing kit —
+plus its full artifact folder at video/projects/<slug>/. Type-driven front door with an
+extensible production-line registry (--type=explainer is line #1; --type=default is the
+fallback); adding a line is a registry edit, not a command change. Auto-generates everything
+a key exists for (narration via /voice, avatars + score via HeyGen) and HANDS OFF what it
+cannot (screen recording, live-action), then --resume picks up when those land. Tier A
+runtime; per-run --max-cost-usd breaker; artifacts to video/projects/<slug>/.
+
+**Invoke:** `/video`
 **HITL tier:** A
 **Side effect:** none
 

@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 140
+**Total entries:** 141
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -2170,6 +2170,20 @@ Invoke when the user asks to translate a document/book/webpage into another lang
 or runs /translate.
 
 **Invoke:** `Skill({ skill: "translate" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/video
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Umbrella skill for the video-platform capability — the brain behind /video. Owns the project contract, the asset-code system, pipeline state + resume, and the enforcement gates; ORCHESTRATES the HyperFrames suite, /voice, /image, media-use and /write rather than reimplementing them. Routes to per-stage and per-type sub-skills.
+
+**Invoke:** `Skill({ skill: "video" })`
 **HITL tier:** B
 **Side effect:** write
 
