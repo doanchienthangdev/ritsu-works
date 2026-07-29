@@ -253,6 +253,10 @@ async function main() {
     ['validate-voice-adapters.cjs', 'voice-adapters.yaml ↔ schema + generator-on-disk'],
     // capability dataviz v0.1 — dataviz-renderers.yaml structural + supports⊆universal + installed⇒generator-on-disk
     ['validate-dataviz-renderers.cjs', 'dataviz-renderers.yaml ↔ schema + supports⊆universal'],
+    // capability video-platform v0.1 Sprint 1 — video-types.yaml structural + asset_slots⊆universal +
+    // installed⇒skill-on-disk + PINS the loudness floor (-16 LUFS / -1.5 dBTP) and the render gates
+    // (bitrate floor + filmstrip + blank-segment stddev) so no future video line can silently opt out.
+    ['validate-video-types.cjs', 'video-types.yaml ↔ schema + asset_slots⊆universal + pinned gates'],
     // capability write-platform v0.1 — write-types/author-styles/write-templates registries: cross-checks + file-existence
     ['validate-write-registries.cjs', 'write-platform registries ↔ schema + mediums/template/author paths'],
     // capability thinking-toolkit v1.3 — mckinsey-workflow.yaml 4S catalog: every referenced skill + concept exists on disk

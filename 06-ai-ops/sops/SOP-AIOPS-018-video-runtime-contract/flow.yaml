@@ -1,0 +1,176 @@
+# ============================================================================
+# SOP-AIOPS-018 — /video runtime contract (capability video-platform v0.1)
+# ============================================================================
+id: SOP-AIOPS-018-video-runtime-contract
+name: /video runtime contract
+pillar: 06-ai-ops
+owner: gps
+version: 0.1.0
+status: active
+hitl_tier: A          # producing a video is Tier A; PUBLISHING it is Tier C
+cost_bucket: ai-ops-video
+capability: video-platform
+
+summary: >
+  The runtime contract for /video. Defines the delegation seam (what /video owns vs
+  orchestrates), the enforcement gates and when each runs, the SLOT-level state model
+  and resume semantics, and the cost breaker. The registry (knowledge/video-types.yaml)
+  holds per-line DATA; this SOP holds the RUNTIME rules that are identical for every line.
+
+trigger:
+  kind: command
+  invocation: "/video [<brief>] [--type=<line>] [--script=<ref>] [--resume]"
+
+# ── The seam. NORMATIVE. A build that violates this is wrong even if it works. ──
+seam:
+  owns:
+    - project contract (video/projects/<slug>/, artifact naming, commit/ignore boundary)
+    - type resolution (knowledge/video-types.yaml)
+    - the asset-code system (FOOTAGE.md: beat -> slot -> file -> sha256)
+    - pipeline state + --resume
+    - the enforcement gates
+    - total cost accounting across sub-generators
+  delegates:
+    compose_check_render: hyperframes-cli        # never wrap-and-drift from its flags
+    loudness: scripts/voice/lib/audio.cjs        # DEFAULT_LUFS is already {i:-16, tp:-1.5}
+    narration_tts: /voice --use=elevenlabs       # NEVER call ElevenLabs directly
+    bgm_sfx_stock: media-use
+    stills: /image
+    script_craft: /write --type=video-script
+    brand_tokens: video/design-systems/<ds>/frame.md
+
+steps:
+  - id: doctor
+    name: Toolchain probe
+    run: node scripts/video/gates/selfcheck.cjs
+    hitl: A
+    fail: abort
+    note: >
+      Fails LOUDLY rather than half-running. Probes ffmpeg FILTER capability rather than
+      assuming — this machine has no drawtext. HeyGen auth is optional; without it the
+      avatar and score stages hand off instead of generating.
+
+  - id: script
+    name: Script — brainstorm or transform
+    skill: 06-ai-ops/skills/video/plan
+    hitl: B
+    note: >
+      --script absent -> brainstorm WITH the founder using the line's beat structure.
+      --script=<ref> present -> ingest and TRANSFORM into the standard SCRIPT.md shape.
+      Craft is delegated to /write --type=video-script.
+
+  - id: assets
+    name: Asset ledger, generation and hand-off
+    skill: 06-ai-ops/skills/video/assets
+    hitl: A
+    note: >
+      Generates what a key exists for. Slots listed in the line's `handoff` (screen,
+      footage) CANNOT be generated: emit exact record specs + ready-to-paste prompts,
+      mark the slots `requested`, and PARK. This is a legitimate wait-state, not a failure.
+
+  - id: gate_loudness
+    name: Narration loudness gate
+    run: node scripts/video/gates/check-loudness.cjs --dir=<project>/build/vo --type=<type>
+    hitl: A
+    fail: block
+    note: >
+      Lesson 1. Avatar audio arrives 2-4.6 LU quieter than TTS; unfixed the film jumps at
+      every avatar<->voice cut. Also flags SPREAD between sources, which is what the ear
+      actually catches. Targets are registry data and are pinned by the L2 validator.
+
+  - id: compose
+    name: Composition authoring
+    skill: 06-ai-ops/skills/video/compose
+    hitl: A
+
+  - id: gate_lint
+    name: Static stage lint (pre-render)
+    run: node scripts/video/gates/lint-stage-video.cjs --html=<project>/index.html
+    hitl: A
+    fail: block
+    note: >
+      Lesson 2, cheap layer. HONEST LIMIT: a purpose-built tokenizer cannot resolve
+      external stylesheets or the real cascade, so a PASS here is NOT proof. It catches
+      the common authoring mistake at zero cost; verify-render is authoritative.
+
+  - id: render
+    name: Render
+    run: npx hyperframes render --output <project>/out/<slug>.mp4
+    hitl: A
+
+  - id: gate_render
+    name: Post-render verification (THE keystone)
+    run: node scripts/video/gates/verify-render.cjs --render=<mp4> --type=<type> --regions=<regions.json>
+    hitl: A
+    fail: block
+    note: >
+      Lesson 2+3. `hyperframes check` AND `snapshot` BOTH pass while stacked <video>
+      render blank — only the finished mp4 tells the truth. Two deterministic tells:
+      bitrate floor (58MB/175s=2.6Mbps broken vs 93MB/175s=4.3Mbps correct) and per-region
+      luma std-dev (real UI 19.6 vs flat 3.8). Emits out/filmstrip.jpg, which is COMMITTED
+      as the only auditable evidence the render was verified.
+
+  - id: publish
+    name: Timeline view + publishing kit
+    skill: 06-ai-ops/skills/video/publish
+    hitl: A
+    note: "Produces TIMELINE.* and YOUTUBE.md. POSTING is Tier C — the founder posts."
+
+# ── State + resume ──────────────────────────────────────────────────────────
+state:
+  location: video/projects/<slug>/run.json      # COMMITTED (a few KB)
+  granularity: slot                              # NOT stage — blocking is per-asset
+  no_ops_table_in_v0_1: true
+  rationale: >
+    Same Option A+ precedent as /voice and /image (SOP-AIOPS-014 observability.v0_1).
+    run.json fields are a forward-compatible superset of a future ops.video_runs, so
+    promoting it is INSERT-wiring, not rework. Cost attribution is already served by
+    ops.cost_attributions + the ai-ops-video bucket.
+  resume:
+    rule: reconcile-by-probe
+    detail: >
+      assets/ build/ out/ are gitignored, so a fresh clone shows a composed project with
+      ZERO media. Recorded state is a hint; the DISK is the authority. --resume re-probes
+      every slot, compares sha256, downgrades placed->requested when a file is missing,
+      re-runs the cheap gates, and invalidates a render verdict whose mp4 checksum moved.
+
+# ── Sync contract (founder decision 2026-07-29) ─────────────────────────────
+sync_contract:
+  committed: [SCRIPT.md, FOOTAGE.md, TIMELINE.md, TIMELINE.html, YOUTUBE.md, index.html, README.md, run.json, out/filmstrip.jpg]
+  local_only: [assets/, build/, out/]
+  enforced_by: video/.gitignore
+  note: >
+    Text is the IP and is shared so teammates can review a film. Media is heavy
+    (1.8 GB assets + 93 MB render for one 3-minute explainer) and reproducible.
+    out/filmstrip.jpg is the ONE committed binary: the QC audit trail.
+
+# ── Cost ─────────────────────────────────────────────────────────────────────
+cost:
+  bucket: ai-ops-video
+  breaker: "--max-cost-usd (default 5) — REFUSES BEFORE SPENDING"
+  note: >
+    Media generation is out-of-band and therefore invisible to the in-session budget
+    hook; ROLES.md caps are advisory for it. The per-run breaker is the real guard.
+  task_kinds: [video-plan, video-generate, video-compose, video-qc, video-publish]
+
+# ── Extension ────────────────────────────────────────────────────────────────
+add_a_production_line:
+  steps:
+    - Add a row to knowledge/video-types.yaml (status starts registered-not-built).
+    - Drop 06-ai-ops/skills/video/types/<id>/SKILL.md with the judgment for that line.
+    - Flip status to installed.
+  invariant: >
+    ZERO change to .claude/commands/video.md or scripts/video/run.cjs. The L2 validator
+    (scripts/cross-tier/validate-video-types.cjs) pins narration.target_lufs == -16,
+    true_peak <= -1.5, and the render gates for every installed type, so a new line
+    cannot silently opt out of the discipline.
+  registry_vs_skill_test: >
+    If a GATE or a FLAG DEFAULT reads it -> YAML. If only an LLM reads it -> the skill.
+
+references:
+  command: .claude/commands/video.md
+  umbrella_skill: 06-ai-ops/skills/video/SKILL.md
+  registry: knowledge/video-types.yaml
+  validator: scripts/cross-tier/validate-video-types.cjs
+  spec: .archives/cla/video-platform/spec.md
+  decision: ops.decisions[23c2c7f4-08e8-4761-a9f5-14d3893f0930]

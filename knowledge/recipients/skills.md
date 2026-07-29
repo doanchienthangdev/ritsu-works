@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 137
+**Total entries:** 142
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -2177,6 +2177,62 @@ or runs /translate.
 **Status:** active
 **Pillar:** 06-ai-ops
 
+## skill/video
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Umbrella skill for the video-platform capability — the brain behind /video. Owns the project contract, the asset-code system, pipeline state + resume, and the enforcement gates; ORCHESTRATES the HyperFrames suite, /voice, /image, media-use and /write rather than reimplementing them. Routes to per-stage and per-type sub-skills.
+
+**Invoke:** `Skill({ skill: "video" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/video/types/default
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The general-purpose /video line — used when --type is omitted or the brief matches no specific line. Narrated video with no avatar assumption and no fixed beat count. Holds the JUDGMENT for the fallback; enumerable data lives in knowledge/video-types.yaml.
+
+**Invoke:** `Skill({ skill: "video/types/default" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/video/types/explainer
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The explainer production line for /video — a narrated product/concept film with avatar anchor beats and a faceless, screen-capture-led product core. Holds the JUDGMENT for this line: beat rhetoric, shot selection, what "good" looks like. Enumerable data (durations, gates, slots, loudness floor) lives in knowledge/video-types.yaml, not here.
+
+**Invoke:** `Skill({ skill: "video/types/explainer" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/video/types/social-short
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The vertical short production line for /video (--type=social-short) — 9:16 for Reels, Shorts and TikTok. Hook in the first two seconds, caption-forward, sound-off legible, no letterbox. Holds the JUDGMENT for this line; enumerable data lives in knowledge/video-types.yaml.
+
+**Invoke:** `Skill({ skill: "video/types/social-short" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
 ## skill/voice
 
 **Kind:** skill
@@ -2184,6 +2240,20 @@ or runs /translate.
 **When to use:** Umbrella skill for the voice-platform capability — the brain behind /voice. Turn text, a file, or a folder of files into narrated audio with a pluggable TTS adapter layer (--use=<adapter>): gemini-tts-3.1-flash (default) + openai-tts (a.k.a. whisper). Reads the content in the context of a --type (ads/podcast/story/ blog/educational/news/…), AUTHORS a content-aware voice-direction (tone, pace, emotion, pauses) + lightly marks up the script, then records out-of-band via the provider key and stitches the result. Small inputs run inline; long inputs / folders fan out through a Claude Code Workflow. Default mp3; mp3/wav/opus/aac/flac/m4a/ogg/pcm. Tier A; per-run --max-cost-usd breaker; artifacts to .archives/voice/<date>-<slug>/.
 
 **Invoke:** `Skill({ skill: "voice" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/voice/adapters/elevenlabs
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The ElevenLabs TTS backend for /voice (--use=elevenlabs). Carries the Ritsu brand voice (KAI). Default model eleven_v3 — the only one that reads inline [audio tags], which is how emotion is steered here. Built 2026-07-29 by capability video-platform Sprint 1, because /video routes all narration through /voice.
+
+**Invoke:** `Skill({ skill: "voice/adapters/elevenlabs" })`
 **HITL tier:** B
 **Side effect:** write
 

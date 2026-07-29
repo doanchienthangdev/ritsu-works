@@ -7,7 +7,7 @@
 This file is THE source of truth for capability recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/capabilities.md` import.
 
-**Total entries:** 25
+**Total entries:** 26
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -274,6 +274,18 @@ Read in any Claude Code session via `@knowledge/recipients/capabilities.md` impo
 
 **Role scope:** *
 **Status:** operating
+**Pillar:** 06-ai-ops
+
+## capability/video-platform
+
+**Kind:** capability
+**Axis:** meta
+**When to use:** Video production platform (/video command). Packages the video production run by hand for the Ritsu launch film into a repeatable, ENFORCEABLE capability. /video is a thin orchestrator (same family as /image, /voice, /write, /translate, /dataviz) turning a request into a finished video PLUS its full artifact folder at video/projects/<slug>/. Type-driven via knowledge/video-types.yaml following the v0.2.0
+
+**Invoke:** `Read("wiki/capabilities/video-platform/spec.md")` or `/cla update video-platform`
+
+**Role scope:** *
+**Status:** implementing
 **Pillar:** 06-ai-ops
 
 ## capability/voice-platform

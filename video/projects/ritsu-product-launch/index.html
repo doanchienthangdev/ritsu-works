@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Ritsu — Turn Raw Materials Into True Mastery (Launch Film)</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root{
+        --slate:#020817; --raise:#0B1524; --panel:#151C29; --border:#1E2C40;
+        --fg:#F8FAFC; --muted:#94A3B8; --hint:#64748B;
+        --cyan:#0ABCD0; --bright:#19DEF4; --teal:#12A58D; --ink:#04141C;
+        --tint:rgba(10,188,208,0.14); --line:rgba(10,188,208,0.35);
+        --glow:rgba(10,188,208,0.40); --faint:rgba(10,188,208,0.08);
+        --orange:#F97316; --green:#16A34A; --violet:#7C3AED;
+      }
+      *{margin:0;padding:0;box-sizing:border-box}
+      html,body{width:1920px;height:1080px;overflow:hidden;background:var(--slate)}
+      body{font-family:"Inter",system-ui,sans-serif;color:var(--fg);
+           -webkit-font-smoothing:antialiased}
+      #root{position:relative;width:1920px;height:1080px;overflow:hidden;
+            container-type:size;background:var(--slate)}
+      .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+
+      /* ============ persistent ground ============ */
+      .bg-fill{position:absolute;inset:0;
+        background:radial-gradient(62% 58% at 50% 44%,rgba(10,188,208,0.09),rgba(2,8,23,0) 72%),
+                   radial-gradient(125% 125% at 50% 50%,#071324 0%,#030b18 56%,#010509 100%)}
+      .bg-grid{position:absolute;inset:-100px;
+        background-image:linear-gradient(rgba(10,188,208,0.045) 1px,transparent 1px),
+                         linear-gradient(90deg,rgba(10,188,208,0.045) 1px,transparent 1px);
+        background-size:72px 72px;
+        -webkit-mask-image:radial-gradient(72% 72% at 50% 45%,#000 28%,transparent 76%);
+        mask-image:radial-gradient(72% 72% at 50% 45%,#000 28%,transparent 76%)}
+      .bg-glow{position:absolute;top:50%;left:50%;width:1500px;height:1050px;
+        margin:-525px 0 0 -750px;
+        background:radial-gradient(ellipse at center,rgba(10,188,208,0.17),rgba(10,188,208,0) 62%);
+        filter:blur(34px)}
+      .bg-vig{position:absolute;inset:0;
+        background:radial-gradient(circle at 50% 48%,transparent 46%,rgba(0,0,0,0.66) 100%)}
+      .grain{position:absolute;inset:0;opacity:.05;mix-blend-mode:overlay;
+        background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.5) 0 1px,transparent 1px 2px),
+                         repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 1px,transparent 1px 3px)}
+
+      /* ============ cinematic letterbox + HUD ============ */
+      .bar{position:absolute;left:0;width:1920px;height:66px;background:#000;z-index:60}
+      .bar.top{top:0;border-bottom:1px solid rgba(10,188,208,0.18)}
+      .bar.bot{bottom:0;border-top:1px solid rgba(10,188,208,0.18)}
+      .prog-rail{position:absolute;left:0;bottom:66px;width:1920px;height:2px;
+        background:rgba(10,188,208,0.10);z-index:61}
+      .prog-fill{position:absolute;left:0;bottom:66px;width:1920px;height:2px;
+        background:linear-gradient(90deg,var(--teal),var(--cyan),var(--bright));
+        transform-origin:0% 50%;transform:scaleX(0);z-index:62;
+        box-shadow:0 0 10px rgba(10,188,208,.55)}
+      .hud{position:absolute;z-index:63;font-size:15px;letter-spacing:.20em;
+        text-transform:uppercase;color:var(--muted)}
+      .hud.tl{left:56px;top:22px}
+      .hud.tr{right:56px;top:22px;color:var(--cyan)}
+
+      /* ============ stages (untimed video wrappers) ============ */
+      .stage{position:absolute;overflow:hidden;background:transparent}
+      /* MUST be absolute: multiple videos share one stage. In normal flow each
+         height:100% box stacks vertically and overflow:hidden clips every one
+         after the first (renders blank). Absolute makes them overlap. */
+      .stage video{position:absolute;inset:0;width:100%;height:100%;
+                   object-fit:cover;display:block}
+      .st-full{left:0;top:0;width:1920px;height:1080px}
+      .st-hero{left:160px;top:92px;width:1600px;height:900px;border-radius:16px}
+      .st-right{left:900px;top:236px;width:900px;height:506px;border-radius:14px}
+      .st-left{left:120px;top:236px;width:900px;height:506px;border-radius:14px}
+      .st-inset{left:430px;top:196px;width:1060px;height:596px;border-radius:14px}
+
+      /* window chrome (timed clip, drawn over the stage) */
+      .win{position:absolute;border-radius:16px;pointer-events:none;
+        border:1px solid rgba(10,188,208,0.30);
+        box-shadow:0 0 0 1px rgba(255,255,255,0.03) inset,0 30px 90px rgba(0,0,0,.62),
+                   0 0 46px rgba(10,188,208,.14)}
+      .win-hero{left:160px;top:92px;width:1600px;height:900px}
+      .win-right{left:900px;top:236px;width:900px;height:506px;border-radius:14px}
+      .win-left{left:120px;top:236px;width:900px;height:506px;border-radius:14px}
+      .win-inset{left:430px;top:196px;width:1060px;height:596px;border-radius:14px}
+
+      /* scrims so type stays legible over footage */
+      .scrim{position:absolute;inset:0}
+      .scrim-b{background:linear-gradient(to top,rgba(2,8,23,.94) 0%,rgba(2,8,23,.72) 20%,rgba(2,8,23,0) 52%)}
+      .scrim-l{background:linear-gradient(to right,rgba(2,8,23,.95) 0%,rgba(2,8,23,.66) 34%,rgba(2,8,23,0) 62%)}
+      .scrim-r{background:linear-gradient(to left,rgba(2,8,23,.95) 0%,rgba(2,8,23,.62) 34%,rgba(2,8,23,0) 62%)}
+      .scrim-dark{background:rgba(2,8,23,.52)}
+
+      /* ============ type ============ */
+      .kicker{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:19px;
+        font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan)}
+      /* overflow clips the mask-rise; pad + negative margin so descenders (g,y,p) survive */
+      .line{overflow:hidden;display:block;padding-bottom:.20em;margin-bottom:-.20em}
+      .line > span{display:block}
+      .d1{font-size:104px;font-weight:800;line-height:.99;letter-spacing:-.032em}
+      .d2{font-size:82px;font-weight:800;line-height:1.03;letter-spacing:-.028em}
+      .d3{font-size:60px;font-weight:800;line-height:1.08;letter-spacing:-.022em}
+      .d4{font-size:44px;font-weight:700;line-height:1.14;letter-spacing:-.015em}
+      .lead{font-size:29px;font-weight:400;line-height:1.5;color:var(--muted)}
+      .cy{background:linear-gradient(100deg,var(--bright),var(--cyan) 58%,var(--teal));
+          -webkit-background-clip:text;background-clip:text;color:transparent}
+      .glowtext{filter:drop-shadow(0 0 22px rgba(10,188,208,.42))}
+
+      /* ============ components ============ */
+      .chip{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;
+        background:var(--tint);border:1px solid var(--line);color:var(--bright);
+        font-family:"JetBrains Mono",ui-monospace,monospace;font-size:24px;font-weight:500}
+      .tag{display:inline-flex;align-items:center;padding:9px 17px;border-radius:8px;
+        background:rgba(21,28,41,.88);border:1px solid var(--border);color:var(--muted);
+        font-family:"JetBrains Mono",ui-monospace,monospace;font-size:17px;letter-spacing:.13em;
+        text-transform:uppercase}
+      .card{background:linear-gradient(180deg,rgba(21,28,41,.96),rgba(11,21,36,.96));
+        border:1px solid var(--border);border-top:2px solid var(--cyan);border-radius:14px}
+      .cta-btn{display:inline-flex;align-items:center;gap:14px;padding:26px 54px;border-radius:12px;
+        background:linear-gradient(135deg,var(--cyan),var(--bright));color:var(--ink);
+        font-size:34px;font-weight:800;letter-spacing:-.01em;
+        box-shadow:0 0 34px rgba(10,188,208,.46)}
+
+      /* generic positioning helpers */
+      .abs{position:absolute}
+      .ctr{position:absolute;inset:0;display:grid;place-items:center}
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0"
+         data-width="1920" data-height="1080" data-duration="175" data-fps="30"
+         data-layout-allow-overflow>
+
+      <!-- ================= persistent ground ================= -->
+      <div class="bg-fill"></div>
+      <div class="bg-grid" id="bgGrid"></div>
+      <div class="bg-glow" id="bgGlow"></div>
+      <div class="bg-vig"></div>
+
+      <!-- ================= STAGES (untimed wrappers) ================= -->
+      <div class="stage st-full" id="stFull1">
+        <video id="v-av1" src="build/av/AV-01-b1.mp4" data-start="0.8" data-duration="9.62" data-track-index="30" muted playsinline></video>
+      </div>
+      <div class="stage st-full" id="stFull2">
+        <video id="v-b1hl" src="build/la/b1-highlighter.mp4" data-start="6.40" data-duration="0.90" data-track-index="31" muted playsinline></video>
+        <video id="v-b1st" src="build/la/b1-student.mp4"     data-start="7.85" data-duration="0.90" data-track-index="32" muted playsinline></video>
+        <video id="v-b2desk" src="build/la/b2-desk.mp4"      data-start="11.40" data-duration="2.60" data-track-index="33" muted playsinline></video>
+        <video id="v-b2page" src="build/la/b2-page.mp4"      data-start="14.00" data-duration="2.60" data-track-index="34" muted playsinline></video>
+        <video id="v-b4drop" src="build/la/b4-drop.mp4"      data-start="40.20" data-duration="2.20" data-track-index="35" muted playsinline></video>
+      </div>
+
+      <!-- B3 avatar (right window) -->
+      <div class="stage st-right" id="stB3">
+        <video id="v-av2" src="build/av/AV-02-b3.mp4" data-start="26.20" data-duration="13.21" data-track-index="36" muted playsinline></video>
+      </div>
+
+      <!-- B4 hero product window -->
+      <div class="stage st-hero" id="stB4">
+        <video id="v-b4a" src="build/sc/b4-s1-drop.mp4" data-start="42.40" data-duration="3.00" data-track-index="37" muted playsinline></video>
+        <video id="v-b4b" src="build/sc/b4-s1-pipe.mp4" data-start="45.40" data-duration="4.00" data-track-index="38" muted playsinline></video>
+        <video id="v-b4c" src="build/sc/b4-s1-plan.mp4" data-start="49.40" data-duration="4.00" data-track-index="39" muted playsinline></video>
+        <video id="v-b4d" src="build/sc/b4-s2-pipe.mp4" data-start="53.40" data-duration="2.60" data-track-index="40" muted playsinline></video>
+        <video id="v-b4e" src="build/sc/b4-s2-plan.mp4" data-start="56.00" data-duration="2.00" data-track-index="41" muted playsinline></video>
+        <video id="v-b4f" src="build/sc/b4-s3-plan.mp4" data-start="58.00" data-duration="1.80" data-track-index="42" muted playsinline></video>
+      </div>
+
+      <!-- B5 product window -->
+      <div class="stage st-hero" id="stB5">
+        <video id="v-b5a" src="build/sc/b5-vocab.mp4"    data-start="59.80" data-duration="3.50" data-track-index="43" muted playsinline></video>
+        <video id="v-b5b" src="build/sc/b5-config.mp4"   data-start="63.30" data-duration="3.00" data-track-index="44" muted playsinline></video>
+        <video id="v-b5c" src="build/sc/b5-askme.mp4"    data-start="66.30" data-duration="3.00" data-track-index="45" muted playsinline></video>
+        <video id="v-b5d" src="build/sc/b5-typing.mp4"   data-start="69.30" data-duration="2.50" data-track-index="46" muted playsinline></video>
+        <video id="v-b5e" src="build/sc/b5-feedback.mp4" data-start="71.80" data-duration="5.00" data-track-index="47" muted playsinline></video>
+        <video id="v-b5f" src="build/sc/b5-score.mp4"    data-start="76.80" data-duration="2.80" data-track-index="48" muted playsinline></video>
+      </div>
+
+      <!-- B6 / B7 product window -->
+      <div class="stage st-hero" id="stB67">
+        <video id="v-b6a" src="build/sc/b6-kmap.mp4"   data-start="79.60" data-duration="6.50" data-track-index="49" muted playsinline></video>
+        <video id="v-b7a" src="build/sc/b7-review.mp4" data-start="96.20" data-duration="4.50" data-track-index="50" muted playsinline></video>
+        <video id="v-b7b" src="build/sc/b7-curve.mp4"  data-start="100.70" data-duration="5.50" data-track-index="51" muted playsinline></video>
+      </div>
+
+      <!-- B8 situations: LA full-bleed base + SC inset -->
+      <div class="stage st-full" id="stB8la">
+        <video id="v-b8l1" src="build/la/b8-calendar.mp4" data-start="110.00" data-duration="3.00" data-track-index="52" muted playsinline></video>
+        <video id="v-b8l2" src="build/la/b8-lecture.mp4"  data-start="114.36" data-duration="3.00" data-track-index="53" muted playsinline></video>
+        <video id="v-b8l3" src="build/la/b8-paper.mp4"    data-start="118.72" data-duration="3.00" data-track-index="54" muted playsinline></video>
+        <video id="v-b8l4" src="build/la/b8-problem.mp4"  data-start="123.08" data-duration="3.00" data-track-index="55" muted playsinline></video>
+        <video id="v-b8l5" src="build/la/b8-docs.mp4"     data-start="127.44" data-duration="3.00" data-track-index="56" muted playsinline></video>
+      </div>
+      <div class="stage st-inset" id="stB8sc">
+        <video id="v-b8s1" src="build/sc/b8-exam.mp4"     data-start="111.40" data-duration="2.96" data-track-index="57" muted playsinline></video>
+        <video id="v-b8s2" src="build/sc/b8-yt.mp4"       data-start="115.76" data-duration="2.96" data-track-index="58" muted playsinline></video>
+        <video id="v-b8s3" src="build/sc/b8-steps.mp4"    data-start="120.12" data-duration="2.96" data-track-index="59" muted playsinline></video>
+        <video id="v-b8s4" src="build/sc/b8-solvecfg.mp4" data-start="124.48" data-duration="2.96" data-track-index="60" muted playsinline></video>
+        <video id="v-b8s5" src="build/sc/b8-code.mp4"     data-start="128.84" data-duration="2.96" data-track-index="61" muted playsinline></video>
+      </div>
+
+      <!-- B9 avatar (left window) -->
+      <div class="stage st-left" id="stB9">
+        <video id="v-av3" src="build/av/AV-03-b9.mp4" data-start="132.00" data-duration="14.36" data-track-index="62" muted playsinline></video>
+      </div>
+
+      <!-- B11 avatar full-bleed -->
+      <div class="stage st-full" id="stB11">
+        <video id="v-av4" src="build/av/AV-04-b11.mp4" data-start="160.60" data-duration="5.90" data-track-index="63" muted playsinline></video>
+      </div>
+
+      <!-- ================= AUDIO ================= -->
+      <audio id="a-av1" src="build/av/AV-01-b1.mp3"  data-start="1.20"   data-duration="9.62"  data-track-index="80" data-volume="1"></audio>
+      <audio id="a-vo2" src="build/vo/VO-02-b2.mp3"  data-start="11.90"  data-duration="13.44" data-track-index="81" data-volume="1"></audio>
+      <audio id="a-av2" src="build/av/AV-02-b3.mp3"  data-start="26.40"  data-duration="13.21" data-track-index="82" data-volume="1"></audio>
+      <audio id="a-vo4" src="build/vo/VO-04-b4.mp3"  data-start="40.90"  data-duration="18.24" data-track-index="83" data-volume="1"></audio>
+      <audio id="a-vo5" src="build/vo/VO-05-b5.mp3"  data-start="60.40"  data-duration="18.56" data-track-index="84" data-volume="1"></audio>
+      <audio id="a-vo6" src="build/vo/VO-06-b6.mp3"  data-start="80.20"  data-duration="15.36" data-track-index="85" data-volume="1"></audio>
+      <audio id="a-vo7" src="build/vo/VO-07-b7.mp3"  data-start="96.80"  data-duration="12.64" data-track-index="86" data-volume="1"></audio>
+      <audio id="a-vo8" src="build/vo/VO-08-b8.mp3"  data-start="110.50" data-duration="20.72" data-track-index="87" data-volume="1"></audio>
+      <audio id="a-av3" src="build/av/AV-03-b9.mp3"  data-start="132.20" data-duration="14.36" data-track-index="88" data-volume="1"></audio>
+      <audio id="a-vo10" src="build/vo/VO-10-b10.mp3" data-start="147.80" data-duration="12.00" data-track-index="89" data-volume="1"></audio>
+      <audio id="a-av4" src="build/av/AV-04-b11.mp3" data-start="161.00" data-duration="8.40"  data-track-index="90" data-volume="1"></audio>
+
+      <audio id="m1" src="build/mus/MUS-01-dark.mp3"  data-start="0"      data-duration="40" data-track-index="91" data-volume="0.30"></audio>
+      <audio id="m2" src="build/mus/MUS-02-build.mp3" data-start="38.00"  data-duration="33" data-track-index="92" data-volume="0.26"></audio>
+      <audio id="m3" src="build/mus/MUS-03-drive.mp3" data-start="70.00"  data-duration="62" data-track-index="93" data-volume="0.24"></audio>
+      <audio id="m4" src="build/mus/MUS-04-close.mp3" data-start="130.00" data-duration="45" data-track-index="94" data-volume="0.26"></audio>
+
+      <audio id="s-w1" src="build/mus/SFX-01-whoosh.mp3" data-start="11.30"  data-duration="1.2" data-track-index="100" data-volume="0.34"></audio>
+      <audio id="s-w2" src="build/mus/SFX-01-whoosh.mp3" data-start="25.90"  data-duration="1.2" data-track-index="101" data-volume="0.34"></audio>
+      <audio id="s-w3" src="build/mus/SFX-01-whoosh.mp3" data-start="40.10"  data-duration="1.2" data-track-index="102" data-volume="0.34"></audio>
+      <audio id="s-w4" src="build/mus/SFX-01-whoosh.mp3" data-start="59.70"  data-duration="1.2" data-track-index="103" data-volume="0.30"></audio>
+      <audio id="s-w5" src="build/mus/SFX-01-whoosh.mp3" data-start="79.50"  data-duration="1.2" data-track-index="104" data-volume="0.30"></audio>
+      <audio id="s-w6" src="build/mus/SFX-01-whoosh.mp3" data-start="96.10"  data-duration="1.2" data-track-index="105" data-volume="0.30"></audio>
+      <audio id="s-w7" src="build/mus/SFX-01-whoosh.mp3" data-start="109.90" data-duration="1.2" data-track-index="106" data-volume="0.36"></audio>
+      <audio id="s-w8" src="build/mus/SFX-01-whoosh.mp3" data-start="114.26" data-duration="1.0" data-track-index="107" data-volume="0.28"></audio>
+      <audio id="s-w9" src="build/mus/SFX-01-whoosh.mp3" data-start="118.62" data-duration="1.0" data-track-index="108" data-volume="0.28"></audio>
+      <audio id="s-w10" src="build/mus/SFX-01-whoosh.mp3" data-start="122.98" data-duration="1.0" data-track-index="109" data-volume="0.28"></audio>
+      <audio id="s-w11" src="build/mus/SFX-01-whoosh.mp3" data-start="127.34" data-duration="1.0" data-track-index="110" data-volume="0.28"></audio>
+      <audio id="s-w12" src="build/mus/SFX-01-whoosh.mp3" data-start="131.70" data-duration="1.2" data-track-index="111" data-volume="0.34"></audio>
+      <audio id="s-w13" src="build/mus/SFX-01-whoosh.mp3" data-start="147.10" data-duration="1.2" data-track-index="112" data-volume="0.30"></audio>
+      <audio id="s-i1" src="build/mus/SFX-02-impact.mp3" data-start="26.10"  data-duration="4.0" data-track-index="113" data-volume="0.30"></audio>
+      <audio id="s-i2" src="build/mus/SFX-02-impact.mp3" data-start="166.20" data-duration="6.0" data-track-index="114" data-volume="0.34"></audio>
+      <audio id="s-r1" src="build/mus/SFX-03-riser.mp3"  data-start="108.10" data-duration="1.9" data-track-index="115" data-volume="0.26"></audio>
+      <audio id="s-r2" src="build/mus/SFX-03-riser.mp3"  data-start="164.40" data-duration="1.9" data-track-index="116" data-volume="0.26"></audio>
+      <audio id="s-t1" src="build/mus/SFX-04-tick.mp3"   data-start="60.45"  data-duration="0.5" data-track-index="117" data-volume="0.22"></audio>
+      <audio id="s-t2" src="build/mus/SFX-04-tick.mp3"   data-start="60.62"  data-duration="0.5" data-track-index="118" data-volume="0.22"></audio>
+      <audio id="s-t3" src="build/mus/SFX-04-tick.mp3"   data-start="60.79"  data-duration="0.5" data-track-index="119" data-volume="0.22"></audio>
+      <audio id="s-t4" src="build/mus/SFX-04-tick.mp3"   data-start="60.96"  data-duration="0.5" data-track-index="120" data-volume="0.22"></audio>
+      <audio id="s-t5" src="build/mus/SFX-04-tick.mp3"   data-start="61.13"  data-duration="0.5" data-track-index="121" data-volume="0.22"></audio>
+
+      <!-- ================= BEAT 1 · cold open ================= -->
+      <div id="b1-scrim" class="clip abs" data-start="0.6" data-duration="10.4" data-track-index="1"
+           style="left:0;top:0;width:1920px;height:1080px">
+        <div class="scrim scrim-b"></div><div class="scrim scrim-l" style="opacity:.85"></div>
+      </div>
+      <div id="b1-txt" class="clip abs" data-start="1.6" data-duration="9.6" data-track-index="2"
+           style="left:130px;top:604px;width:1080px" data-layout-allow-overflow>
+        <div class="line" style="margin-bottom:26px"><span class="kicker" id="b1-k">01 — The problem</span></div>
+        <div class="line"><span class="d1" id="b1-l1">You read it.</span></div>
+        <div class="line" style="margin-top:6px"><span class="d1" id="b1-l2">It's still not yours.</span></div>
+      </div>
+
+      <!-- ================= BEAT 2 · pain ================= -->
+      <div id="b2-scrim" class="clip abs" data-start="11.40" data-duration="5.30" data-track-index="3"
+           style="left:0;top:0;width:1920px;height:1080px">
+        <div class="scrim scrim-dark"></div><div class="scrim scrim-b"></div>
+      </div>
+      <div id="b2-sweep" class="clip abs" data-start="11.90" data-duration="4.60" data-track-index="4"
+           style="left:0;top:0;width:1920px;height:1080px" data-layout-ignore>
+        <div id="b2-hl" class="abs" style="left:250px;top:470px;width:1420px;height:140px;
+             background:linear-gradient(90deg,rgba(10,188,208,.30),rgba(25,222,244,.16));
+             border-left:3px solid var(--bright);transform-origin:0% 50%"></div>
+      </div>
+      <div id="b2-t1" class="clip abs" data-start="12.10" data-duration="4.40" data-track-index="5"
+           style="left:130px;top:700px;width:1300px" data-layout-allow-overflow>
+        <div class="line" style="margin-bottom:20px"><span class="tag mono" id="b2-cnt">0 IDEAS CHOSEN</span></div>
+        <div class="line"><span class="d2" id="b2-l1">Re-reading feels like progress.</span></div>
+      </div>
+
+      <!-- shot 2 — forgetting curve -->
+      <div id="b2-curve" class="clip abs" data-start="16.60" data-duration="4.90" data-track-index="6"
+           style="left:0;top:0;width:1920px;height:1080px" data-layout-allow-overflow>
+        <svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none">
+          <line x1="360" y1="800" x2="1600" y2="800" stroke="#1E2C40" stroke-width="1"/>
+          <line x1="360" y1="300" x2="360" y2="800" stroke="#1E2C40" stroke-width="1"/>
+          <path id="b2-p1" d="M360 760 C 430 500, 500 380, 620 356"
+                stroke="#0ABCD0" stroke-width="4" stroke-linecap="round"/>
+          <path id="b2-p2" d="M620 356 C 780 360, 900 590, 1060 690 C 1220 762, 1400 786, 1596 794"
+                stroke="#94A3B8" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 12"/>
+          <path id="b2-fill" d="M620 356 C 780 360, 900 590, 1060 690 C 1220 762, 1400 786, 1596 794 L1596 800 L620 800 Z"
+                fill="rgba(148,163,184,0.10)"/>
+        </svg>
+        <div class="abs mono" id="b2-days" style="left:360px;top:824px;font-size:20px;letter-spacing:.24em;color:var(--hint)">DAY 1&nbsp;&nbsp;·&nbsp;&nbsp;3&nbsp;&nbsp;·&nbsp;&nbsp;7&nbsp;&nbsp;·&nbsp;&nbsp;14&nbsp;&nbsp;·&nbsp;&nbsp;30</div>
+      </div>
+      <div id="b2-t2" class="clip abs" data-start="17.10" data-duration="4.40" data-track-index="7"
+           style="left:1050px;top:300px;width:640px;text-align:right" data-layout-allow-overflow>
+        <div class="line"><span class="d3" id="b2-l2">Most of it fades</span></div>
+        <div class="line"><span class="d3" id="b2-l3">within days.</span></div>
+      </div>
+
+      <!-- shot 3 — disconnected apps -->
+      <div id="b2-apps" class="clip abs" data-start="21.40" data-duration="4.55" data-track-index="8"
+           style="left:0;top:0;width:1920px;height:1080px" data-layout-allow-overflow>
+        <div class="app abs" id="ap1" style="left:300px;top:330px">Anki</div>
+        <div class="app abs" id="ap2" style="left:640px;top:262px">Quizlet</div>
+        <div class="app abs" id="ap3" style="left:1010px;top:344px">Kahoot</div>
+        <div class="app abs" id="ap4" style="left:430px;top:560px">ChatGPT</div>
+        <div class="app abs" id="ap5" style="left:900px;top:596px">Notion</div>
+        <div class="abs" id="ap-q" style="left:1330px;top:400px;font-size:150px;font-weight:800;
+             color:var(--cyan);filter:drop-shadow(0 0 26px rgba(10,188,208,.42))">?</div>
+      </div>
+      <div id="b2-t3" class="clip abs" data-start="21.90" data-duration="4.05" data-track-index="9"
+           style="left:130px;top:790px;width:1300px" data-layout-allow-overflow>
+        <div class="line"><span class="d2" id="b2-l4">Five apps. None of them talk.</span></div>
+      </div>
+
+      <!-- ================= BEAT 3 · the turn ================= -->
+      <div id="b3-scrim" class="clip abs" data-start="26.00" data-duration="14.0" data-track-index="10"
+           style="left:0;top:0;width:1920px;height:1080px"><div class="scrim scrim-l"></div></div>
+      <div id="b3-win" class="clip win win-right" data-start="26.20" data-duration="13.4" data-track-index="11"></div>
+      <div id="b3-txt" class="clip abs" data-start="27.00" data-duration="13.0" data-track-index="12"
+           style="left:130px;top:330px;width:760px" data-layout-allow-overflow>
+        <div class="line" style="margin-bottom:26px"><span class="kicker" id="b3-k">02 — The turn</span></div>
+        <div class="line"><span class="d2" id="b3-l1">Turn Raw Materials</span></div>
+        <div class="line" style="margin-top:2px"><span class="d2" id="b3-l2">Into</span></div>
+        <div class="line" style="margin-top:2px"><span class="d2 cy glowtext" id="b3-l3">True Mastery.</span></div>
+        <div style="margin-top:34px"><span class="lead" id="b3-sub">Drop in anything you already have.<br/>Get a tutor in about thirty seconds.</span></div>
+      </div>
+      <div id="b3-mark" class="clip abs" data-start="30.60" data-duration="9.2" data-track-index="13"
+           style="left:130px;top:170px;width:120px;height:120px" data-layout-ignore>
+        <div class="abs" id="b3-mark-glow" style="left:-60px;top:-60px;width:240px;height:240px;
+             background:radial-gradient(circle,rgba(10,188,208,.42),rgba(10,188,208,0) 66%);filter:blur(12px)"></div>
+        <img id="b3-mark-img" src="assets/brand/ritsu-mark.png" width="120" height="120" alt="" style="position:relative;display:block"/>
+      </div>
+
+      <!-- ================= BEAT 4 · magic moment ================= -->
+      <div id="b4-scrim" class="clip abs" data-start="40.20" data-duration="2.30" data-track-index="14"
+           style="left:0;top:0;width:1920px;height:1080px"><div class="scrim scrim-dark"></div><div class="scrim scrim-b"></div></div>
+      <div id="b4-win" class="clip win win-hero" data-start="42.40" data-duration="17.4" data-track-index="15"></div>
+      <div id="b4-src1" class="clip abs" data-start="42.40" data-duration="10.90" data-track-index="16"
+           style="left:196px;top:128px" data-layout-ignore>
+        <span class="tag mono">PDF — 4 UNITS</span>
+      </div>
+      <div id="b4-src2" class="clip abs" data-start="53.40" data-duration="4.50" data-track-index="126"
+           style="left:196px;top:128px" data-layout-ignore>
+        <span class="tag mono">YOUTUBE — 3 UNITS</span>
+      </div>
+      <div id="b4-src3" class="clip abs" data-start="58.00" data-duration="1.80" data-track-index="127"
+           style="left:196px;top:128px" data-layout-ignore>
+        <span class="tag mono">SLIDES — 7 UNITS</span>
+      </div>
+      <div id="b4-count" class="clip abs" data-start="45.60" data-duration="3.60" data-track-index="17"
+           style="left:1330px;top:126px;text-align:right" data-layout-ignore>
+        <span class="mono" id="b4-sec" style="font-size:60px;font-weight:700;color:var(--bright);
+              filter:drop-shadow(0 0 20px rgba(10,188,208,.45))">0s</span>
+      </div>
+      <div id="b4-t1" class="clip abs" data-start="40.70" data-duration="5.10" data-track-index="18"
+           style="left:130px;top:812px;width:1300px" data-layout-allow-overflow>
+        <div class="line"><span class="d3" id="b4-l1">Most tools open your file.</span></div>
+      </div>
+      <div id="b4-t2" class="clip abs" data-start="46.40" data-duration="13.4" data-track-index="19"
+           style="left:224px;top:846px;width:1400px" data-layout-allow-overflow>
+        <div class="abs" style="left:-64px;top:-96px;width:1560px;height:290px;
+             background:linear-gradient(to top,rgba(2,8,23,.98) 34%,rgba(2,8,23,.86) 62%,rgba(2,8,23,0));
+             border-radius:0 0 16px 16px"></div>
+        <div class="line" style="position:relative"><span class="d3" id="b4-l2">Ritsu <span class="cy glowtext">actually reads it.</span></span></div>
+      </div>
+
+      <!-- ================= BEAT 5 · active learning ================= -->
+      <div id="b5-win" class="clip win win-hero" data-start="59.80" data-duration="19.6" data-track-index="20"></div>
+      <div id="b5-chips" class="clip abs" data-start="60.30" data-duration="3.20" data-track-index="21"
+           style="left:224px;top:130px;width:1480px" data-layout-ignore>
+        <div class="abs" style="left:-64px;top:-52px;width:1560px;height:220px;
+             background:linear-gradient(to bottom,rgba(2,8,23,.97) 40%,rgba(2,8,23,.80) 66%,rgba(2,8,23,0));
+             border-radius:16px 16px 0 0"></div>
+        <span class="chip" id="c1" style="position:relative">/quiz</span>
+        <span class="chip" id="c2" style="position:relative;margin-left:14px">/askme</span>
+        <span class="chip" id="c3" style="position:relative;margin-left:14px">/explain</span>
+        <span class="chip" id="c4" style="position:relative;margin-left:14px">/derive</span>
+        <span class="chip" id="c5" style="position:relative;margin-left:14px">/solve</span>
+      </div>
+      <div id="b5-t1" class="clip abs" data-start="60.60" data-duration="5.60" data-track-index="22"
+           style="left:224px;top:842px;width:1400px" data-layout-allow-overflow>
+        <div class="abs" style="left:-64px;top:-96px;width:1560px;height:290px;
+             background:linear-gradient(to top,rgba(2,8,23,.98) 34%,rgba(2,8,23,.86) 62%,rgba(2,8,23,0));
+             border-radius:0 0 16px 16px"></div>
+        <div class="line" style="position:relative"><span class="d3" id="b5-l1">A vocabulary for learning.</span></div>
+      </div>
+      <div id="b5-t2" class="clip abs" data-start="71.90" data-duration="7.30" data-track-index="23"
+           style="left:224px;top:812px;width:1420px" data-layout-allow-overflow>
+        <div class="abs" style="left:-64px;top:-96px;width:1560px;height:290px;
+             background:linear-gradient(to top,rgba(2,8,23,.98) 34%,rgba(2,8,23,.86) 62%,rgba(2,8,23,0));
+             border-radius:0 0 16px 16px"></div>
+        <div class="line" style="position:relative"><span class="d4" id="b5-l2">It doesn't just ask.</span></div>
+        <div class="line" style="position:relative;margin-top:4px"><span class="d3 cy glowtext" id="b5-l3">It grades you — out of ten.</span></div>
+      </div>
+
+      <!-- ================= BEAT 6 · knowledge map ================= -->
+      <div id="b6-win" class="clip win win-hero" data-start="79.60" data-duration="6.40" data-track-index="25"></div>
+      <div id="b6-t1" class="clip abs" data-start="80.70" data-duration="5.20" data-track-index="26"
+           style="left:224px;top:842px;width:1400px" data-layout-allow-overflow>
+        <div class="abs" style="left:-64px;top:-96px;width:1560px;height:290px;
+             background:linear-gradient(to top,rgba(2,8,23,.98) 34%,rgba(2,8,23,.86) 62%,rgba(2,8,23,0));
+             border-radius:0 0 16px 16px"></div>
+        <div class="line" style="position:relative"><span class="d3" id="b6-l1">Your score <span class="cy glowtext">can't be fooled.</span></span></div>
+      </div>
+
+      <!-- MG knowledge map (real concepts + real scores from the capture) -->
+      <div id="b6-map" class="clip abs" data-start="86.10" data-duration="10.1" data-track-index="27"
+           style="left:0;top:0;width:1920px;height:1080px" data-layout-allow-overflow>
+        <svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" id="b6-svg">
+          <path id="e1" d="M960 540 L620 356" stroke="rgba(10,188,208,0.35)" stroke-width="2"/>
+          <path id="e2" d="M960 540 L1330 372" stroke="rgba(10,188,208,0.35)" stroke-width="2"/>
+          <path id="e3" d="M960 540 L560 700" stroke="rgba(10,188,208,0.35)" stroke-width="2"/>
+          <path id="e4" d="M960 540 L1300 726" stroke="rgba(10,188,208,0.35)" stroke-width="2"/>
+          <path id="e5" d="M960 540 L910 810" stroke="rgba(10,188,208,0.35)" stroke-width="2"/>
+        </svg>
+        <div class="nd hub abs" id="n0" style="left:876px;top:496px">Language&nbsp;Model</div>
+        <div class="nd abs" id="n1" style="left:520px;top:326px">Next-Token Prediction</div>
+        <div class="nd abs" id="n2" style="left:1232px;top:342px">Data, Compute &amp; Architecture</div>
+        <div class="nd abs" id="n3" style="left:452px;top:670px">n-grams vs RNNs</div>
+        <div class="nd abs" id="n4" style="left:1196px;top:696px">Architectural Paradigms</div>
+        <div class="nd abs" id="n5" style="left:806px;top:780px">Parameter Growth</div>
+      </div>
+      <div id="b6-t2" class="clip abs" data-start="91.30" data-duration="4.90" data-track-index="28"
+           style="left:130px;top:150px;width:900px" data-layout-allow-overflow>
+        <div class="line" style="margin-bottom:18px"><span class="kicker" id="b6-k">Mastery — per source</span></div>
+        <div class="line"><span class="d3" id="b6-l2">Stop guessing</span></div>
+        <div class="line"><span class="d3" id="b6-l3">what to revise.</span></div>
+      </div>
+
+      <!-- ================= BEAT 7 · spaced review ================= -->
+      <div id="b7-win" class="clip win win-hero" data-start="96.20" data-duration="9.9" data-track-index="29"></div>
+      <div id="b7-t1" class="clip abs" data-start="97.40" data-duration="8.5" data-track-index="64"
+           style="left:224px;top:842px;width:1400px" data-layout-allow-overflow>
+        <div class="abs" style="left:-64px;top:-96px;width:1560px;height:290px;
+             background:linear-gradient(to top,rgba(2,8,23,.98) 34%,rgba(2,8,23,.86) 62%,rgba(2,8,23,0));
+             border-radius:0 0 16px 16px"></div>
+        <div class="line" style="position:relative"><span class="d3" id="b7-l1">Beat the <span class="cy glowtext">forgetting curve.</span></span></div>
+      </div>
+      <div id="b7-ladder" class="clip abs" data-start="106.20" data-duration="3.80" data-track-index="65"
+           style="left:0;top:0;width:1920px;height:1080px" data-layout-allow-overflow>
+        <div class="ctr">
+          <div style="text-align:center">
+            <div class="mono" style="font-size:22px;letter-spacing:.30em;color:var(--muted);margin-bottom:40px">REVIEW LADDER — DAYS</div>
+            <div style="display:flex;gap:34px;align-items:center;justify-content:center">
+              <span class="rung mono" id="r1">1</span><span class="rdot"></span>
+              <span class="rung mono" id="r2">3</span><span class="rdot"></span>
+              <span class="rung mono" id="r3">7</span><span class="rdot"></span>
+              <span class="rung mono" id="r4">16</span><span class="rdot"></span>
+              <span class="rung mono" id="r5">35</span>
+            </div>
+            <div class="lead" id="b7-sub" style="margin-top:44px">Learn it once. Keep it.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= BEAT 8 · situations ================= -->
+      <div id="b8-scrim" class="clip abs" data-start="110.00" data-duration="21.8" data-track-index="66"
+           style="left:0;top:0;width:1920px;height:1080px"><div class="scrim scrim-dark"></div><div class="scrim scrim-b"></div></div>
+      <div id="b8-win" class="clip win win-inset" data-start="111.40" data-duration="20.4" data-track-index="67"></div>
+      <div id="b8-lab1" class="clip abs sit" data-start="110.10" data-duration="4.16" data-track-index="68" style="left:130px;top:836px" data-layout-allow-overflow>
+        <div class="line" style="margin-bottom:14px"><span class="kicker">Situation 01</span></div>
+        <div class="line"><span class="d3">Exam in three days</span></div>
+      </div>
+      <div id="b8-lab2" class="clip abs sit" data-start="114.46" data-duration="4.16" data-track-index="69" style="left:130px;top:836px" data-layout-allow-overflow>
+        <div class="line" style="margin-bottom:14px"><span class="kicker">Situation 02</span></div>
+        <div class="line"><span class="d3">A two-hour lecture</span></div>
+      </div>
+      <div id="b8-lab3" class="clip abs sit" data-start="118.82" data-duration="4.16" data-track-index="70" style="left:130px;top:836px" data-layout-allow-overflow>
+        <div class="line" style="margin-bottom:14px"><span class="kicker">Situation 03</span></div>
+        <div class="line"><span class="d3">A dense research paper</span></div>
+      </div>
+      <div id="b8-lab4" class="clip abs sit" data-start="123.18" data-duration="4.16" data-track-index="71" style="left:130px;top:836px" data-layout-allow-overflow>
+        <div class="line" style="margin-bottom:14px"><span class="kicker">Situation 04</span></div>
+        <div class="line"><span class="d3">A problem set</span></div>
+      </div>
+      <div id="b8-lab5" class="clip abs sit" data-start="127.54" data-duration="4.26" data-track-index="72" style="left:130px;top:836px" data-layout-allow-overflow>
+        <div class="line" style="margin-bottom:14px"><span class="kicker">Situation 05</span></div>
+        <div class="line"><span class="d3">A new framework</span></div>
+      </div>
+
+      <!-- ================= BEAT 9 · differentiation ================= -->
+      <div id="b9-scrim" class="clip abs" data-start="131.80" data-duration="15.4" data-track-index="73"
+           style="left:0;top:0;width:1920px;height:1080px"><div class="scrim scrim-r"></div></div>
+      <div id="b9-win" class="clip win win-left" data-start="132.00" data-duration="14.6" data-track-index="74"></div>
+      <div id="b9-k" class="clip abs" data-start="132.60" data-duration="14.0" data-track-index="75"
+           style="left:1090px;top:250px;width:720px" data-layout-allow-overflow>
+        <div class="line"><span class="kicker" id="b9-kk">03 — The difference</span></div>
+      </div>
+      <div id="b9-tiles" class="clip abs" data-start="136.40" data-duration="7.0" data-track-index="76"
+           style="left:1060px;top:330px;width:780px;height:330px" data-layout-ignore>
+        <div class="app sm abs" id="t1" style="left:20px;top:16px">Anki</div>
+        <div class="app sm abs" id="t2" style="left:250px;top:0px">Quizlet</div>
+        <div class="app sm abs" id="t3" style="left:500px;top:24px">Kahoot</div>
+        <div class="app sm abs" id="t4" style="left:110px;top:150px">ChatGPT</div>
+        <div class="app sm abs" id="t5" style="left:400px;top:170px">Notion</div>
+        <div class="abs" id="t-mark" style="left:330px;top:88px;width:120px;height:120px;opacity:0">
+          <div class="abs" style="left:-60px;top:-60px;width:240px;height:240px;
+               background:radial-gradient(circle,rgba(10,188,208,.45),rgba(10,188,208,0) 66%);filter:blur(12px)"></div>
+          <img id="b9-mark-img" src="assets/brand/ritsu-logo.png" width="120" height="120" alt="" style="position:relative;display:block"/>
+        </div>
+      </div>
+      <div id="b9-txt" class="clip abs" data-start="143.30" data-duration="3.9" data-track-index="77"
+           style="left:1090px;top:398px;width:760px" data-layout-allow-overflow>
+        <div class="line"><span class="d3" id="b9-l1">Replace your</span></div>
+        <div class="line"><span class="d3 cy glowtext" id="b9-l2">entire study stack.</span></div>
+      </div>
+
+      <!-- ================= BEAT 10 · proof ================= -->
+      <div id="b10-k" class="clip abs" data-start="147.60" data-duration="12.6" data-track-index="78"
+           style="left:130px;top:158px;width:900px" data-layout-allow-overflow>
+        <div class="line"><span class="kicker" id="b10-kk">04 — What learners say</span></div>
+      </div>
+      <div id="b10-cards" class="clip abs" data-start="148.00" data-duration="12.2" data-track-index="79"
+           style="left:0;top:0;width:1920px;height:1080px" data-layout-allow-overflow>
+        <div class="card abs qc" id="qc1" style="left:130px;top:262px">
+          <img src="build/still/b10-medical.jpg" alt="" class="qimg"/>
+          <div class="qnum mono"><span id="q1n">0</span> pts</div>
+          <div class="qtxt">higher on my boards after switching from highlighting.</div>
+          <div class="qwho mono">Sarah C. — Medical Student</div>
+        </div>
+        <div class="card abs qc" id="qc2" style="left:700px;top:262px">
+          <img src="build/still/b10-engineer.jpg" alt="" class="qimg"/>
+          <div class="qnum mono"><span id="q2n">0</span>%</div>
+          <div class="qtxt">less ramp-up time on every new project.</div>
+          <div class="qwho mono">Marcus J. — Engineer</div>
+        </div>
+        <div class="card abs qc" id="qc3" style="left:1270px;top:262px">
+          <img src="build/still/b10-career.jpg" alt="" class="qimg"/>
+          <div class="qnum mono"><span id="q3n">0</span> courses</div>
+          <div class="qtxt">finished in two months, while working full time.</div>
+          <div class="qwho mono">Patricia W. — Career Changer</div>
+        </div>
+      </div>
+      <div id="b10-rate" class="clip abs" data-start="154.80" data-duration="5.4" data-track-index="122"
+           style="left:130px;top:840px" data-layout-allow-overflow>
+        <span class="chip" id="b10-chip" style="font-size:30px;padding:14px 28px">4.9 / 5</span>
+      </div>
+      <div id="b10-super" class="clip abs" data-start="155.80" data-duration="4.4" data-track-index="123"
+           style="right:130px;top:868px;text-align:right" data-layout-allow-overflow>
+        <span class="mono" id="b10-sup" style="font-size:17px;letter-spacing:.14em;color:var(--hint)">Individual results. Not typical.</span>
+      </div>
+
+      <!-- ================= BEAT 11 · CTA ================= -->
+      <div id="b11-scrim" class="clip abs" data-start="160.60" data-duration="6.0" data-track-index="124"
+           style="left:0;top:0;width:1920px;height:1080px"><div class="scrim scrim-b"></div></div>
+      <div id="b11-end" class="clip abs" data-start="166.20" data-duration="8.8" data-track-index="125"
+           style="left:0;top:0;width:1920px;height:1080px" data-layout-allow-overflow>
+        <div class="abs" id="b11-bloom" style="left:50%;top:46%;width:1500px;height:1000px;margin:-500px 0 0 -750px;
+             background:radial-gradient(ellipse at center,rgba(10,188,208,.22),rgba(10,188,208,0) 62%);filter:blur(34px)"></div>
+        <div class="ctr">
+          <div style="text-align:center;position:relative">
+            <img id="b11-lockup" src="assets/brand/ritsu-lockup.png" width="520" alt=""
+                 style="display:block;margin:0 auto 54px"/>
+            <div id="b11-btn" class="cta-btn">Start Learning Free</div>
+            <div id="b11-spark" class="abs" style="left:50%;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;
+                 border-radius:50%;background:#fff;box-shadow:0 0 26px 10px rgba(255,255,255,.85);opacity:0"></div>
+            <div class="line" style="margin-top:40px"><span class="lead" id="b11-sub" style="font-size:26px">Free forever. No credit card.</span></div>
+            <div class="line" style="margin-top:26px"><span class="mono" id="b11-url"
+                 style="font-size:30px;letter-spacing:.30em;color:var(--cyan)">ritsu.ai</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= letterbox + HUD (top-most) ================= -->
+      <div class="bar top"></div>
+      <div class="bar bot"></div>
+      <div class="prog-rail"></div>
+      <div class="prog-fill" id="progFill"></div>
+      <div class="hud tl mono" id="hudL">RITSU — LAUNCH FILM</div>
+      <div class="hud tr mono" id="hudR">RITSU.AI</div>
+      <div class="grain"></div>
+
+      <style>
+        .app{padding:26px 40px;border-radius:14px;background:rgba(21,28,41,.9);
+             border:1px solid var(--border);color:var(--muted);font-size:34px;font-weight:600;
+             letter-spacing:-.01em;filter:grayscale(1)}
+        .app.sm{padding:16px 26px;font-size:24px;border-radius:11px}
+        .nd{padding:16px 26px;border-radius:12px;background:rgba(21,28,41,.94);
+            border:1px solid var(--line);color:var(--fg);font-size:23px;font-weight:600;
+            white-space:nowrap}
+        .nd.hub{background:linear-gradient(135deg,rgba(10,188,208,.22),rgba(25,222,244,.12));
+            border-color:var(--cyan);font-size:27px;
+            box-shadow:0 0 30px rgba(10,188,208,.28)}
+        .rung{display:grid;place-items:center;width:118px;height:118px;border-radius:50%;
+              background:rgba(10,188,208,.10);border:2px solid var(--line);
+              font-size:44px;font-weight:600;color:var(--bright)}
+        .rdot{width:10px;height:10px;border-radius:50%;background:rgba(10,188,208,.4)}
+        .qc{width:520px;height:520px;padding:0 0 30px;overflow:hidden}
+        .qimg{width:520px;height:206px;object-fit:cover;display:block;opacity:.72}
+        .qnum{font-size:54px;font-weight:700;color:var(--bright);padding:22px 30px 0}
+        .qtxt{font-size:25px;line-height:1.40;color:var(--fg);padding:10px 30px 0}
+        .qwho{font-size:16px;letter-spacing:.13em;text-transform:uppercase;
+              color:var(--muted);padding:18px 30px 0}
+      </style>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const q = (s) => document.querySelector(s);
+
+      /* helper: mask-rise a set of .line > span */
+      function rise(sel, at, stagger){
+        tl.fromTo(sel, {yPercent:112}, {yPercent:0, duration:.78, ease:"power4.out",
+          stagger: stagger||0.075}, at);
+      }
+      /* helper: fade + scale */
+      function fadeScale(sel, at, dur, from){
+        tl.fromTo(sel, {autoAlpha:0, scale: from||0.93},
+          {autoAlpha:1, scale:1, duration: dur||0.72, ease:"power3.out"}, at);
+      }
+      /* helper: numeric count-up written into an element */
+      function countUp(sel, from, to, at, dur, dec, suffix){
+        const el = q(sel); if(!el) return;
+        const o = {v:from};
+        tl.to(o, {v:to, duration:dur||1.2, ease:"power2.out", onUpdate(){
+          el.textContent = o.v.toFixed(dec||0) + (suffix||"");
+        }}, at);
+      }
+      /* helper: SVG self-draw */
+      function draw(sel, at, dur, ease){
+        const el = q(sel); if(!el) return;
+        const len = el.getTotalLength ? el.getTotalLength() : 1200;
+        el.style.strokeDasharray = len; el.style.strokeDashoffset = len;
+        tl.to(el, {strokeDashoffset:0, duration:dur||1.1, ease:ease||"power1.inOut"}, at);
+      }
+      /* helper: video zoom / pan inside its stage */
+      function cam(sel, at, dur, fromO, toO, easeName){
+        tl.fromTo(sel, {scale:fromO.s, xPercent:fromO.x||0, yPercent:fromO.y||0},
+          {scale:toO.s, xPercent:toO.x||0, yPercent:toO.y||0,
+           duration:dur, ease:easeName||"none"}, at);
+      }
+
+      /* ---------- persistent: the one continuous camera ---------- */
+      tl.fromTo("#progFill", {scaleX:0}, {scaleX:1, duration:175, ease:"none"}, 0);
+      tl.fromTo("#bgGlow", {xPercent:-16, yPercent:8}, {xPercent:16, yPercent:-8,
+        duration:175, ease:"sine.inOut"}, 0);
+      tl.fromTo("#bgGrid", {xPercent:0, yPercent:0}, {xPercent:-1.6, yPercent:-1.1,
+        duration:175, ease:"none"}, 0);
+      tl.fromTo(".bar.top", {yPercent:-100}, {yPercent:0, duration:.9, ease:"power3.out"}, 0);
+      tl.fromTo(".bar.bot", {yPercent:100}, {yPercent:0, duration:.9, ease:"power3.out"}, 0);
+      tl.fromTo("#hudL", {autoAlpha:0}, {autoAlpha:1, duration:1.0}, 0.7);
+      tl.fromTo("#hudR", {autoAlpha:0}, {autoAlpha:1, duration:1.0}, 0.7);
+
+      /* ================= BEAT 1 ================= */
+      cam("#v-av1", 0.8, 9.62, {s:1.10}, {s:1.20}, "none");         // slow push-in
+      tl.fromTo("#v-av1", {autoAlpha:0}, {autoAlpha:1, duration:1.0, ease:"power2.out"}, 0.8);
+      tl.fromTo("#b1-scrim", {autoAlpha:0}, {autoAlpha:1, duration:1.0}, 0.8);
+      rise("#b1-k", 2.0);
+      rise("#b1-l1, #b1-l2", 4.55, 0.10);
+      /* hard b-roll cut-ins */
+      cam("#v-b1hl", 6.40, 0.90, {s:1.14}, {s:1.20});
+      cam("#v-b1st", 7.85, 0.90, {s:1.16}, {s:1.22});
+      tl.to("#b1-txt", {autoAlpha:.15, duration:.10}, 6.40);
+      tl.to("#b1-txt", {autoAlpha:1, duration:.16}, 7.30);
+      tl.to("#b1-txt", {autoAlpha:.15, duration:.10}, 7.85);
+      tl.to("#b1-txt", {autoAlpha:1, duration:.16}, 8.75);
+      tl.to("#b1-txt, #b1-scrim", {autoAlpha:0, duration:.55, ease:"power2.in"}, 10.30);
+
+      /* ================= BEAT 2 ================= */
+      cam("#v-b2desk", 11.40, 2.60, {s:1.12}, {s:1.20});
+      cam("#v-b2page", 14.00, 2.60, {s:1.14}, {s:1.22});
+      tl.fromTo("#b2-scrim", {autoAlpha:0}, {autoAlpha:1, duration:.5}, 11.40);
+      rise("#b2-l1", 12.30);
+      tl.fromTo("#b2-cnt", {autoAlpha:0, y:14}, {autoAlpha:1, y:0, duration:.5}, 12.05);
+      tl.fromTo("#b2-hl", {scaleX:0, autoAlpha:.9}, {scaleX:1, duration:1.5, ease:"power2.inOut"}, 12.20);
+      tl.to("#b2-hl", {autoAlpha:.35, duration:.8}, 14.20);
+      tl.to("#b2-scrim, #b2-t1, #b2-sweep", {autoAlpha:0, duration:.45, ease:"power2.in"}, 16.10);
+
+      /* forgetting curve */
+      draw("#b2-p1", 16.85, 0.75, "power2.out");
+      draw("#b2-p2", 17.70, 1.65, "power1.inOut");
+      tl.fromTo("#b2-fill", {autoAlpha:0}, {autoAlpha:1, duration:1.1}, 18.20);
+      tl.fromTo("#b2-days", {autoAlpha:0, y:12}, {autoAlpha:1, y:0, duration:.7}, 18.60);
+      rise("#b2-l2, #b2-l3", 17.30, 0.09);
+      tl.to("#b2-curve, #b2-t2", {autoAlpha:0, duration:.42, ease:"power2.in"}, 21.05);
+
+      /* disconnected apps */
+      tl.fromTo("#ap1,#ap2,#ap3,#ap4,#ap5",
+        {autoAlpha:0, scale:.9, rotation:0},
+        {autoAlpha:1, scale:1, duration:.62, ease:"power3.out", stagger:.085}, 21.50);
+      tl.to("#ap1", {rotation:-3, duration:.6, ease:"power2.out"}, 21.50);
+      tl.to("#ap2", {rotation:2.4, duration:.6, ease:"power2.out"}, 21.59);
+      tl.to("#ap3", {rotation:-2, duration:.6, ease:"power2.out"}, 21.67);
+      tl.to("#ap4", {rotation:3, duration:.6, ease:"power2.out"}, 21.76);
+      tl.to("#ap5", {rotation:-2.6, duration:.6, ease:"power2.out"}, 21.84);
+      tl.fromTo("#ap-q", {autoAlpha:0, scale:.7}, {autoAlpha:1, scale:1, duration:.6, ease:"back.out(1.6)"}, 22.70);
+      tl.to("#ap-q", {autoAlpha:.55, duration:.7, ease:"sine.inOut", yoyo:true, repeat:2}, 23.30);
+      rise("#b2-l4", 22.10);
+      tl.to("#b2-apps, #b2-t3", {autoAlpha:0, duration:.5, ease:"power2.in"}, 25.45);
+
+      /* ================= BEAT 3 ================= */
+      cam("#v-av2", 26.20, 13.21, {s:1.34}, {s:1.42});
+      tl.fromTo("#v-av2", {autoAlpha:0}, {autoAlpha:1, duration:.8}, 26.20);
+      tl.fromTo("#b3-win", {autoAlpha:0, scale:.965}, {autoAlpha:1, scale:1, duration:.9, ease:"power3.out"}, 26.20);
+      tl.fromTo("#b3-scrim", {autoAlpha:0}, {autoAlpha:1, duration:.8}, 26.10);
+      rise("#b3-k", 27.10);
+      rise("#b3-l1, #b3-l2, #b3-l3", 28.30, 0.11);
+      tl.fromTo("#b3-sub", {autoAlpha:0, y:20}, {autoAlpha:1, y:0, duration:.8, ease:"power3.out"}, 30.90);
+      fadeScale("#b3-mark", 30.60, .85, .78);
+      tl.fromTo("#b3-mark-glow", {autoAlpha:.2}, {autoAlpha:.55, duration:1.1,
+        ease:"sine.inOut", yoyo:true, repeat:5}, 31.40);
+      tl.to("#b3-mark", {scale:1.018, duration:1.1, ease:"sine.inOut", yoyo:true, repeat:4}, 32.60);
+      tl.to("#b3-txt, #b3-mark, #b3-win, #b3-scrim", {autoAlpha:0, duration:.5, ease:"power2.in"}, 39.50);
+
+      /* ================= BEAT 4 ================= */
+      cam("#v-b4drop", 40.20, 2.20, {s:1.12}, {s:1.20});
+      tl.fromTo("#b4-scrim", {autoAlpha:0}, {autoAlpha:1, duration:.45}, 40.20);
+      rise("#b4-l1", 41.00);
+      tl.to("#b4-t1, #b4-scrim", {autoAlpha:0, duration:.4, ease:"power2.in"}, 45.35);
+
+      tl.fromTo("#b4-win", {autoAlpha:0, scale:.97}, {autoAlpha:1, scale:1, duration:.75, ease:"power3.out"}, 42.40);
+      tl.fromTo("#b4-src1", {autoAlpha:0, x:-16}, {autoAlpha:1, x:0, duration:.6}, 42.70);
+      tl.fromTo("#b4-src2", {autoAlpha:0, x:-16}, {autoAlpha:1, x:0, duration:.45}, 53.42);
+      tl.fromTo("#b4-src3", {autoAlpha:0, x:-16}, {autoAlpha:1, x:0, duration:.40}, 58.02);
+      /* framing rule: sit at ~1.0 (whole app, no edge slice) OR push past ~1.26 with an
+         x-shift so the left rail clears frame entirely — never slice it mid-word. */
+      cam("#v-b4a", 42.40, 3.00, {s:1.00}, {s:1.06});                        // the drop zone
+      cam("#v-b4b", 45.40, 4.00, {s:1.28, x:-7, y:3}, {s:1.38, x:-8, y:1});  // into the pipeline
+      cam("#v-b4c", 49.40, 4.00, {s:1.36, x:-8, y:5}, {s:1.27, x:-8, y:0});  // ease back onto the plan
+      cam("#v-b4d", 53.40, 2.60, {s:1.28, x:-7, y:2}, {s:1.36, x:-8, y:0});
+      cam("#v-b4e", 56.00, 2.00, {s:1.34, x:-8, y:3}, {s:1.27, x:-8, y:0});
+      cam("#v-b4f", 58.00, 1.80, {s:1.34, x:-8, y:3}, {s:1.27, x:-8, y:0});
+      countUp("#b4-sec", 0, 30, 45.70, 3.30, 0, "s");
+      tl.fromTo("#b4-count", {autoAlpha:0, scale:.85}, {autoAlpha:1, scale:1, duration:.5, ease:"back.out(1.5)"}, 45.60);
+      tl.to("#b4-count", {autoAlpha:0, duration:.4}, 48.90);
+      rise("#b4-l2", 46.60);
+      tl.to("#b4-win, #b4-src1, #b4-src2, #b4-src3, #b4-t2",
+        {autoAlpha:0, duration:.42, ease:"power2.in"}, 59.30);
+      tl.set("#b4-win, #b4-src1, #b4-src2, #b4-src3, #b4-t2", {autoAlpha:0}, 59.76);
+
+      /* ================= BEAT 5 ================= */
+      tl.fromTo("#b5-win", {autoAlpha:0, scale:.97}, {autoAlpha:1, scale:1, duration:.7, ease:"power3.out"}, 59.80);
+      cam("#v-b5a", 59.80, 3.50, {s:1.22, x:8}, {s:1.34, x:6});     // the command list
+      cam("#v-b5b", 63.30, 3.00, {s:1.04}, {s:1.16});               // configure /quiz
+      cam("#v-b5c", 66.30, 3.00, {s:1.16, x:-3}, {s:1.26, x:-2});   // /askme fires
+      cam("#v-b5d", 69.30, 2.50, {s:1.26, y:12}, {s:1.34, y:10});   // typing the answer
+      cam("#v-b5e", 71.80, 5.00, {s:1.10, y:-6}, {s:1.38, y:-13});  // push INTO the grading text
+      cam("#v-b5f", 76.80, 2.80, {s:1.02, x:6}, {s:1.11, x:5});     // pull back onto the 6.0/10 card
+      tl.fromTo("#c1,#c2,#c3,#c4,#c5", {autoAlpha:0, y:26, scale:.9},
+        {autoAlpha:1, y:0, scale:1, duration:.55, ease:"power3.out", stagger:.085}, 60.40);
+      tl.to("#b5-chips", {autoAlpha:0, duration:.35}, 63.10);
+      rise("#b5-l1", 60.90);
+      tl.to("#b5-t1", {autoAlpha:0, duration:.35}, 65.90);
+      rise("#b5-l2, #b5-l3", 72.20, 0.12);
+      tl.to("#b5-win, #b5-t2", {autoAlpha:0, duration:.42, ease:"power2.in"}, 79.08);
+      tl.set("#b5-win, #b5-t2", {autoAlpha:0}, 79.56);
+
+      /* ================= BEAT 6 ================= */
+      tl.fromTo("#b6-win", {autoAlpha:0, scale:.97}, {autoAlpha:1, scale:1, duration:.7, ease:"power3.out"}, 79.60);
+      cam("#v-b6a", 79.60, 6.50, {s:1.02}, {s:1.46, x:-16});        // drift into the mastery sidebar
+      rise("#b6-l1", 81.10);
+      tl.to("#b6-win, #b6-t1", {autoAlpha:0, duration:.45, ease:"power2.in"}, 85.70);
+      /* MG constellation — real concepts, real scores */
+      draw("#e1", 86.60, .8); draw("#e2", 86.75, .8); draw("#e3", 86.90, .8);
+      draw("#e4", 87.05, .8); draw("#e5", 87.20, .8);
+      fadeScale("#n0", 86.30, .7, .82);
+      tl.fromTo("#n1,#n2,#n3,#n4,#n5", {autoAlpha:0, scale:.82},
+        {autoAlpha:1, scale:1, duration:.6, ease:"back.out(1.5)", stagger:.11}, 87.10);
+      tl.to("#n0", {scale:1.018, duration:1.1, ease:"sine.inOut", yoyo:true, repeat:4}, 88.60);
+      rise("#b6-k", 91.40);
+      rise("#b6-l2, #b6-l3", 92.10, 0.10);
+      tl.to("#b6-map, #b6-t2", {autoAlpha:0, duration:.5, ease:"power2.in"}, 95.60);
+
+      /* ================= BEAT 7 ================= */
+      tl.fromTo("#b7-win", {autoAlpha:0, scale:.97}, {autoAlpha:1, scale:1, duration:.7, ease:"power3.out"}, 96.20);
+      cam("#v-b7a", 96.20, 4.50, {s:1.04}, {s:1.16, y:4});
+      cam("#v-b7b", 100.70, 5.50, {s:1.12, y:14}, {s:1.40, y:20});   // into the forgetting-curve chart
+      rise("#b7-l1", 97.60);
+      tl.to("#b7-win, #b7-t1", {autoAlpha:0, duration:.45, ease:"power2.in"}, 105.58);
+      tl.set("#b7-win, #b7-t1", {autoAlpha:0}, 106.16);
+      tl.fromTo("#r1,#r2,#r3,#r4,#r5", {autoAlpha:0, scale:.72},
+        {autoAlpha:1, scale:1, duration:.5, ease:"back.out(1.7)", stagger:.13}, 106.45);
+      tl.fromTo(".rdot", {autoAlpha:0}, {autoAlpha:1, duration:.3, stagger:.13}, 106.62);
+      tl.fromTo("#b7-sub", {autoAlpha:0, y:18}, {autoAlpha:1, y:0, duration:.6, ease:"power3.out"}, 107.60);
+      tl.to("#b7-ladder", {autoAlpha:0, duration:.42, ease:"power2.in"}, 109.42);
+      tl.set("#b7-ladder", {autoAlpha:0}, 109.94);
+
+      /* ================= BEAT 8 ================= */
+      tl.fromTo("#b8-scrim", {autoAlpha:0}, {autoAlpha:1, duration:.4}, 110.00);
+      const sits = [
+        [110.00, "#v-b8l1", "#v-b8s1", "#b8-lab1", 111.40],
+        [114.36, "#v-b8l2", "#v-b8s2", "#b8-lab2", 115.76],
+        [118.72, "#v-b8l3", "#v-b8s3", "#b8-lab3", 120.12],
+        [123.08, "#v-b8l4", "#v-b8s4", "#b8-lab4", 124.48],
+        [127.44, "#v-b8l5", "#v-b8s5", "#b8-lab5", 128.84]
+      ];
+      sits.forEach(([t, la, sc, lab, scAt], i) => {
+        cam(la, t, 3.00, {s:1.12}, {s:1.22});
+        cam(sc, scAt, 2.96, {s:1.06}, {s:1.16});
+        tl.fromTo(lab + " .line > span", {yPercent:112}, {yPercent:0, duration:.62,
+          ease:"power4.out", stagger:.07}, t + 0.14);
+        tl.to(lab, {autoAlpha:0, duration:.24, ease:"power2.in"}, t + 3.86);
+      });
+      tl.fromTo("#b8-win", {autoAlpha:0, scale:.94, y:22},
+        {autoAlpha:1, scale:1, y:0, duration:.62, ease:"power3.out"}, 111.40);
+      /* the inset window re-pops on each situation */
+      [115.76, 120.12, 124.48, 128.84].forEach(t=>{
+        tl.fromTo("#b8-win", {scale:.965, autoAlpha:.6}, {scale:1, autoAlpha:1,
+          duration:.44, ease:"power3.out"}, t);
+      });
+      tl.to("#b8-win, #b8-scrim", {autoAlpha:0, duration:.4, ease:"power2.in"}, 131.28);
+      tl.set("#b8-win, #b8-scrim", {autoAlpha:0}, 131.76);
+
+      /* ================= BEAT 9 ================= */
+      cam("#v-av3", 132.00, 14.36, {s:1.34}, {s:1.42});
+      tl.fromTo("#v-av3", {autoAlpha:0}, {autoAlpha:1, duration:.8}, 132.00);
+      tl.fromTo("#b9-win", {autoAlpha:0, scale:.965}, {autoAlpha:1, scale:1, duration:.85, ease:"power3.out"}, 132.00);
+      tl.fromTo("#b9-scrim", {autoAlpha:0}, {autoAlpha:1, duration:.8}, 131.90);
+      rise("#b9-kk", 132.70);
+      tl.fromTo("#t1,#t2,#t3,#t4,#t5", {autoAlpha:0, scale:.86},
+        {autoAlpha:1, scale:1, duration:.55, ease:"power3.out", stagger:.10}, 136.60);
+      /* collapse into the mark */
+      tl.to("#t1", {x:330, y:100, scale:.18, autoAlpha:0, duration:.85, ease:"power2.inOut"}, 141.10);
+      tl.to("#t2", {x:110, y:120, scale:.18, autoAlpha:0, duration:.85, ease:"power2.inOut"}, 141.16);
+      tl.to("#t3", {x:-140, y:96, scale:.18, autoAlpha:0, duration:.85, ease:"power2.inOut"}, 141.22);
+      tl.to("#t4", {x:250, y:-38, scale:.18, autoAlpha:0, duration:.85, ease:"power2.inOut"}, 141.28);
+      tl.to("#t5", {x:-40, y:-58, scale:.18, autoAlpha:0, duration:.85, ease:"power2.inOut"}, 141.34);
+      tl.fromTo("#t-mark", {autoAlpha:0, scale:.5}, {autoAlpha:1, scale:1,
+        duration:.7, ease:"back.out(1.7)"}, 141.85);
+      tl.to("#t-mark", {autoAlpha:0, scale:.9, duration:.45, ease:"power2.in"}, 143.20);
+      rise("#b9-l1, #b9-l2", 143.55, 0.11);
+      tl.to("#b9-txt, #b9-k, #b9-win, #b9-scrim", {autoAlpha:0, duration:.5, ease:"power2.in"}, 146.45);
+
+      /* ================= BEAT 10 ================= */
+      rise("#b10-kk", 147.70);
+      tl.fromTo("#qc1", {autoAlpha:0, y:44, scale:.95}, {autoAlpha:1, y:0, scale:1, duration:.78, ease:"power3.out"}, 148.20);
+      tl.fromTo("#qc2", {autoAlpha:0, y:44, scale:.95}, {autoAlpha:1, y:0, scale:1, duration:.78, ease:"power3.out"}, 149.55);
+      tl.fromTo("#qc3", {autoAlpha:0, y:44, scale:.95}, {autoAlpha:1, y:0, scale:1, duration:.78, ease:"power3.out"}, 150.90);
+      countUp("#q1n", 0, 15, 149.00, 1.0, 0, "");
+      countUp("#q2n", 0, 50, 150.35, 1.0, 0, "");
+      countUp("#q3n", 0, 3,  151.70, 1.0, 0, "");
+      tl.fromTo("#b10-chip", {autoAlpha:0, scale:.86}, {autoAlpha:1, scale:1, duration:.55, ease:"back.out(1.6)"}, 154.95);
+      tl.fromTo("#b10-sup", {autoAlpha:0}, {autoAlpha:1, duration:.7}, 155.95);
+      tl.to("#b10-cards, #b10-k, #b10-rate, #b10-super",
+        {autoAlpha:0, duration:.5, ease:"power2.in"}, 159.70);
+
+      /* ================= BEAT 11 ================= */
+      cam("#v-av4", 160.60, 5.90, {s:1.12}, {s:1.20});
+      tl.fromTo("#v-av4", {autoAlpha:0}, {autoAlpha:1, duration:.7}, 160.60);
+      tl.fromTo("#b11-scrim", {autoAlpha:0}, {autoAlpha:1, duration:.7}, 160.60);
+      tl.to("#v-av4", {autoAlpha:0, duration:.55, ease:"power2.inOut"}, 165.95);
+      tl.to("#b11-scrim", {autoAlpha:0, duration:.55}, 165.95);
+
+      tl.fromTo("#b11-bloom", {autoAlpha:0, scale:.8}, {autoAlpha:1, scale:1, duration:1.3, ease:"power2.out"}, 166.20);
+      fadeScale("#b11-lockup", 166.35, .95, .90);
+      tl.fromTo("#b11-btn", {autoAlpha:0, scale:.72, y:18},
+        {autoAlpha:1, scale:1, y:0, duration:.85, ease:"back.out(1.7)"}, 167.45);
+      tl.fromTo("#b11-spark", {autoAlpha:0, scale:.2}, {autoAlpha:1, scale:1, duration:.16}, 168.05);
+      tl.to("#b11-spark", {autoAlpha:0, scale:2.4, duration:.55, ease:"power2.out"}, 168.21);
+      tl.fromTo("#b11-sub", {autoAlpha:0, y:16}, {autoAlpha:1, y:0, duration:.7, ease:"power3.out"}, 168.60);
+      rise("#b11-url", 169.30);
+      tl.to("#b11-lockup", {scale:1.016, duration:1.4, ease:"sine.inOut", yoyo:true, repeat:2}, 170.20);
+      tl.to("#b11-bloom", {autoAlpha:.72, duration:1.4, ease:"sine.inOut", yoyo:true, repeat:2}, 170.20);
+
+      /* ================= MUSIC — duck under narration ================= */
+      tl.fromTo("#m1", {volume:0}, {volume:0.34, duration:1.0, ease:"power1.out"}, 0);
+      tl.to("#m1", {volume:0.15, duration:1.1}, 1.10);
+      tl.to("#m1", {volume:0.30, duration:0.9}, 10.60);
+      tl.to("#m1", {volume:0.15, duration:0.8}, 11.90);
+      tl.to("#m1", {volume:0.28, duration:0.9}, 25.20);
+      tl.to("#m1", {volume:0.0,  duration:2.0, ease:"power1.in"}, 38.00);
+      tl.fromTo("#m2", {volume:0}, {volume:0.30, duration:2.0, ease:"power1.out"}, 38.00);
+      tl.to("#m2", {volume:0.14, duration:0.9}, 40.90);
+      tl.to("#m2", {volume:0.26, duration:0.9}, 59.20);
+      tl.to("#m2", {volume:0.0,  duration:1.6, ease:"power1.in"}, 69.40);
+      tl.fromTo("#m3", {volume:0}, {volume:0.26, duration:1.8, ease:"power1.out"}, 70.00);
+      tl.to("#m3", {volume:0.13, duration:0.8}, 80.20);
+      tl.to("#m3", {volume:0.24, duration:0.8}, 95.70);
+      tl.to("#m3", {volume:0.13, duration:0.8}, 96.80);
+      tl.to("#m3", {volume:0.30, duration:1.4}, 108.10);
+      tl.to("#m3", {volume:0.16, duration:0.8}, 110.60);
+      tl.to("#m3", {volume:0.0,  duration:1.8, ease:"power1.in"}, 130.20);
+      tl.fromTo("#m4", {volume:0}, {volume:0.28, duration:2.0, ease:"power1.out"}, 130.00);
+      tl.to("#m4", {volume:0.14, duration:0.9}, 132.20);
+      tl.to("#m4", {volume:0.26, duration:0.9}, 146.70);
+      tl.to("#m4", {volume:0.14, duration:0.8}, 147.80);
+      tl.to("#m4", {volume:0.28, duration:1.0}, 159.90);
+      tl.to("#m4", {volume:0.15, duration:0.8}, 161.00);
+      tl.to("#m4", {volume:0.34, duration:1.6}, 166.20);
+      tl.to("#m4", {volume:0.0,  duration:2.6, ease:"power1.in"}, 172.40);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

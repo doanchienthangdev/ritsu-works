@@ -132,6 +132,19 @@ const TEST_GROUPS = [
     remedy: 'Capability files missing/corrupt — re-pull the repo (/update-ritsu-works).',
   },
   {
+    // capability video-platform v0.1 Sprint 1. Without this group /test-ritsu-works
+    // reports SUCCESS on a machine where /video cannot run — the exact broken promise
+    // @cto flagged. `feature` (not `hard`) because video tooling is per-operator and
+    // an operator who never makes video should not be blocked by it.
+    id: 'video',
+    label: '/video toolchain (ffmpeg filters + hyperframes + gates)',
+    required: 'feature',
+    slow: false,
+    kind: 'shell',
+    command: 'node scripts/video/gates/selfcheck.cjs',
+    remedy: 'Install the /video toolchain: ffmpeg (brew install ffmpeg) and the HyperFrames skills (npx --yes skills add heygen-com/hyperframes). HeyGen CLI auth is optional — without it, avatar/music stages hand off instead of generating.',
+  },
+  {
     id: 'docs-build',
     label: 'Docs site cold-builds (MDX gate)',
     required: 'feature',

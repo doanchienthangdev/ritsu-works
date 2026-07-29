@@ -1,13 +1,27 @@
-# ── hyperframes/ — per-operator LOCAL-ONLY plane (like raw/) ──────────────────
-# Individual video projects live here but are NOT pushed — each operator makes
-# their own ("mỗi user sẽ khác nhau"). Only README.md + .gitkeep are committed.
-# To share ONE specific canonical video, force it past the ignore:
-#   git add -f video/hyperframes/<slug>
-hyperframes/*
-!hyperframes/README.md
-!hyperframes/.gitkeep
+# ── video/projects/ — TEXT is shared, MEDIA is local ─────────────────────────
+# Founder decision 2026-07-29 (capability video-platform). A video project's TEXT
+# is the actual IP and belongs in the repo so teammates can read, review and edit
+# each other's films. Its MEDIA is heavy (one 3-minute explainer = 1.8 GB of source
+# assets + a 93 MB render) and reproducible, so it stays on the operator's machine.
+#
+# COMMITTED : SCRIPT.md · FOOTAGE.md · TIMELINE.md/.html · YOUTUBE.md · index.html
+#             README.md · run.json   (~130 KB per project)
+# LOCAL     : assets/ · build/ · out/
+# EXCEPTION : out/filmstrip.jpg — the ONE committed binary. Because media is
+#             ignored, this contact sheet is the only auditable evidence that a
+#             render was actually verified. ~200 KB, worth its weight.
+#
+# Consequence /video is built around: a fresh clone has the composition but none
+# of the bytes, so `--resume` RE-PROBES the disk and never trusts run.json.
+projects/*/assets/
+projects/*/build/
+projects/*/out/
+!projects/*/out/
+!projects/*/out/filmstrip.jpg
 
 # ── renders / working artifacts (anywhere under video/) — reproducible ────────
+# NB: *.mp4 also blocks committing a reference clip. Intentional — if one must be
+# shared, put it in cloud storage and cite the URL in FOOTAGE.md.
 *.mp4
 *.webm
 *.mov

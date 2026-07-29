@@ -33,6 +33,7 @@ const { ensureKey, REPO_ROOT } = require('./lib/env.cjs');
 const params = require('./lib/params.cjs');
 const { estimateCost } = require('./lib/cost.cjs');
 const { pcmToWav, convertAudio } = require('./lib/audio.cjs');
+const voicesLib = require('./lib/voices.cjs');
 
 const REGISTRY_PATH = path.join(REPO_ROOT, 'knowledge', 'voice-adapters.yaml');
 const OPENAI_SPEECH_URL = 'https://api.openai.com/v1/audio/speech';
@@ -50,6 +51,21 @@ const MODEL_ALIAS = Object.freeze({
 
 // OpenAI response_format keywords the API emits natively (extension = key).
 const OPENAI_NATIVE = new Set(['mp3', 'wav', 'flac', 'opus', 'aac', 'pcm']);
+
+// ElevenLabs emits its container via an output_format QUERY param, not a body
+// field. Only these come back ready-to-write; everything else is requested as
+// mp3 and transcoded through the shared ffmpeg convert path.
+const ELEVEN_NATIVE = new Set(['mp3', 'pcm']);
+const ELEVEN_OUTPUT_FORMAT = Object.freeze({
+  mp3: 'mp3_44100_128',
+  pcm: 'pcm_44100',
+  wav: 'mp3_44100_128',
+  flac: 'mp3_44100_128',
+  opus: 'mp3_44100_128',
+  aac: 'mp3_44100_128',
+  m4a: 'mp3_44100_128',
+  ogg: 'mp3_44100_128',
+});
 
 function loadRegistry() {
   if (!fs.existsSync(REGISTRY_PATH)) throw new Error('knowledge/voice-adapters.yaml missing (capability voice-platform)');
@@ -139,6 +155,42 @@ async function callOpenAi({ model, voice, input, instructions, responseFormat })
     let detail = (await res.text()).slice(0, 400);
     try { detail = JSON.stringify(JSON.parse(detail).error || detail).slice(0, 400); } catch (_e) { /* raw */ }
     throw new Error(`OpenAI speech API ${res.status}: ${detail}`);
+  }
+  return Buffer.from(await res.arrayBuffer());
+}
+
+/**
+ * ElevenLabs TTS. Distinct from the other two backends in three ways:
+ *   · the voice is an opaque voice_id in the URL, not a body field (see
+ *     lib/voices.cjs resolveElevenVoiceId — friendly name → env-held id)
+ *   · style/emotion is carried by inline [audio tags] in the TEXT itself
+ *     (eleven_v3 is the only model that reads them), not a separate field
+ *   · auth header is `xi-api-key`, not Bearer
+ * Returns the encoded audio bytes for `outputFormat` (native, no transcode).
+ */
+async function callElevenLabs({ model, voiceId, text, outputFormat, stability, similarityBoost }) {
+  const url = `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`
+    + `?output_format=${encodeURIComponent(outputFormat || 'mp3_44100_128')}`;
+  const voice_settings = {};
+  if (Number.isFinite(stability)) voice_settings.stability = stability;
+  if (Number.isFinite(similarityBoost)) voice_settings.similarity_boost = similarityBoost;
+  const res = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'xi-api-key': process.env.ELEVENLABS_API_KEY,
+      'Content-Type': 'application/json',
+      accept: 'audio/mpeg',
+    },
+    body: JSON.stringify({
+      text,
+      model_id: model,
+      ...(Object.keys(voice_settings).length ? { voice_settings } : {}),
+    }),
+  });
+  if (!res.ok) {
+    let detail = (await res.text()).slice(0, 400);
+    try { detail = JSON.stringify(JSON.parse(detail).detail || detail).slice(0, 400); } catch (_e) { /* raw */ }
+    throw new Error(`ElevenLabs TTS API ${res.status}: ${detail}`);
   }
   return Buffer.from(await res.arrayBuffer());
 }
@@ -261,7 +313,8 @@ async function run(argv) {
   }
 
   const isGemini = target.id.startsWith('gemini');
-  const keyName = isGemini ? 'GEMINI_API_KEY' : 'OPENAI_API_KEY';
+  const isEleven = target.id === 'elevenlabs';
+  const keyName = isGemini ? 'GEMINI_API_KEY' : (isEleven ? 'ELEVENLABS_API_KEY' : 'OPENAI_API_KEY');
   if (!ensureKey(keyName)) {
     const runJson = writeRunSidecar(outBase, { ...baseRun, outcome: 'api_error', error: `${keyName} not set/found in runtime/secrets/.env.local` });
     return { ok: false, outcome: 'api_error', model, voice, warnings, error: `${keyName} not set/found`, runJson };
@@ -276,6 +329,24 @@ async function run(argv) {
       const prompt = `${instructions}\n\n${tag ? `${tag} ` : ''}Now read the following text aloud in exactly that voice and style:\n\n${text}`;
       const pcm = await callGemini({ model, voice, text: prompt });
       written = writeGeminiAudio(pcm, outBase, format);
+    } else if (isEleven) {
+      // ElevenLabs steering lives in inline [audio tags] inside the text itself
+      // (eleven_v3 reads them). The `instructions` block is NOT a separate API
+      // field here, so it is preserved in the run sidecar for provenance only.
+      const voiceId = voicesLib.resolveElevenVoiceId(voice);
+      if (!voiceId) {
+        throw new Error(
+          `ElevenLabs voice "${voice}" did not resolve to a voice_id. ` +
+          'Use a catalog name (KAI/MAYA) with its id in runtime/secrets/.env.local, or pass a raw voice_id.'
+        );
+      }
+      const buf = await callElevenLabs({
+        model, voiceId, text,
+        outputFormat: ELEVEN_OUTPUT_FORMAT[format] || 'mp3_44100_128',
+      });
+      // ElevenLabs returns the requested container natively for mp3/pcm; other
+      // formats route through the shared ffmpeg convert path.
+      written = writeOpenAiAudio(buf, outBase, ELEVEN_NATIVE.has(format) ? format : 'mp3');
     } else {
       const responseFormat = OPENAI_NATIVE.has(format) ? format : 'mp3';
       const buf = await callOpenAi({ model, voice, input: text, instructions, responseFormat });
@@ -292,7 +363,8 @@ async function run(argv) {
 
 module.exports = {
   run, loadRegistry, resolveAdapter, resolveModel, parseArgs, withPace,
-  callOpenAi, callGemini, writeOpenAiAudio, writeGeminiAudio, MODEL_ALIAS, OPENAI_NATIVE, REGISTRY_PATH,
+  callOpenAi, callGemini, callElevenLabs, writeOpenAiAudio, writeGeminiAudio,
+  MODEL_ALIAS, OPENAI_NATIVE, ELEVEN_NATIVE, ELEVEN_OUTPUT_FORMAT, REGISTRY_PATH,
 };
 
 if (require.main === module) {

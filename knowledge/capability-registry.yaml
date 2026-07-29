@@ -2023,6 +2023,38 @@ capabilities:
 
 # === Capability dependencies ===
 # Some capabilities depend on others being deployed first.
+  # === video-platform (Sprints 1-2 shipped 2026-07-29 via /cla — PR #333 + this PR) ===
+  - id: video-platform
+    name: "Video production platform (/video command)"
+    description: "Packages the video production run by hand for the Ritsu launch film into a repeatable, ENFORCEABLE capability. /video is a thin orchestrator (same family as /image, /voice, /write, /translate, /dataviz) turning a request into a finished video PLUS its full artifact folder at video/projects/<slug>/. Type-driven via knowledge/video-types.yaml following the /write YAML model (explicitly NOT /voice's in-code const TYPES, which would have broken registry-driven extensibility on day one): adding a production line is a registry row + one type skill, ZERO command change. Architecture = deterministic Node spine (scaffold, asset ledger, media prep, render, QC gates, SLOT-level run.json state) with LLM skills only at the creative seams. Auto-generates everything a key exists for (narration via /voice --use=elevenlabs, avatars + score via the HeyGen catalog) and HANDS OFF what it cannot (screen recording, live-action), emitting exact record specs then parking; --resume RECONCILES BY PROBING THE DISK rather than trusting run.json, because the sync contract gitignores media. Sync contract (founder): text committed (~130KB, the real IP) + media local, EXCEPT out/filmstrip.jpg committed as the only auditable evidence a render was verified. Deprecated and absorbed the former video/hyperframes/ per-operator plane (3 projects migrated; relative paths survived, identical depth). SEVEN hard-won lessons ENFORCED not documented, each a script with a non-zero exit: loudness -16 LUFS/-1.5 dBTP (avatar audio arrives 2-4.6 LU quieter than TTS), stacked-video-renders-blank (hyperframes check AND snapshot both pass; only the finished mp4 tells the truth via a bitrate floor 2.6 vs 4.3 Mbps + per-region luma std-dev 19.6 vs 3.8), mandatory filmstrip, mask-rise descender clipping, screen-capture framing band, no-invented-figures citation spine, ffmpeg filter probing (this build has no drawtext). Side effect: promoted the /voice elevenlabs adapter from registered-not-built to installed, since /video routes ALL narration through /voice rather than forking the TTS lane."
+    version: "0.2.0"
+    state: implementing
+    state_since: 2026-07-29
+    proposed_at: 2026-07-29
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/video-platform/spec.md
+    retrospective_path: wiki/capabilities/video-platform/retrospective.md
+    cost_bucket: ai-ops-video
+    notes: |
+      CLA run ccf9d3b3-a6b0-4c6c-9bba-c4d27f2db1a9; Tier-C decision
+      ops.decisions[23c2c7f4-08e8-4761-a9f5-14d3893f0930] (Option B — deterministic
+      spine + LLM at the seams). Draft spec .archives/cla/video-platform/spec.md,
+      promoted to wiki/ at Phase 8.
+
+      @cto review returned request-changes; all three must-fixes were independently
+      verified against the code before acceptance and fixed in Sprint 1:
+        1. voice-adapters.yaml elevenlabs was registered-not-built (voices: 0) — the
+           automation contract could not execute. Adapter built + live-tested.
+        2. hyperframes appeared NOWHERE in tracked repo code (skills live globally in
+           ~/.claude/skills, pinned nowhere) — a co-founder could install, watch
+           /test-ritsu-works report SUCCESS, and still be unable to run /video.
+           Added a video dependency block + test group + selfcheck doctor.
+        3. Type registry had to follow /write's YAML model, not /voice's in-code one.
+
+      Sprint 3 (pending): build social-short as the abstraction test — adding it must
+      touch ZERO lines of video.md or run.cjs; resolver registration; Phase 8 promotion.
+
+
 dependencies:
   # capability_id: [list of prerequisite capability ids]
   # Example:
@@ -2075,6 +2107,10 @@ cost_buckets:
   ai-ops-local-install:
     description: "local-install-platform runtime — /install|update|test-ritsu-works. NEAR-ZERO ongoing: the engine is pure Node (no API key, no out-of-band spend); it runs on a co-founder's OWN machine doing local setup, so the per-invocation LLM cost is the operator's own Claude Code subscription session (not metered against the company budget). The bucket exists for governance coherence only. Build-once foundational distribution primitive."
     capabilities: [local-install-platform]
+
+  ai-ops-video:
+    description: "video-platform runtime — /video production pipeline. Task kinds: video-plan $0.30 (script brainstorm/transform, in-session), video-generate $1.50 ADVISORY (narration via /voice + avatars/score via HeyGen — ALL out-of-band, so invisible to the budget hook; the per-run --max-cost-usd breaker with refuse-BEFORE-spend semantics is the real enforcement), video-compose $0.75 (in-session), video-qc $0.05 (PURE ffmpeg/Node, zero LLM — listed for coherence only), video-publish $0.20. Reuses /voice, /image, media-use and the HyperFrames CLI rather than forking any generation lane, so there is no duplicate spend path. run.json = forward-compat superset of a future ops.video_runs."
+    capabilities: [video-platform]
 
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"
