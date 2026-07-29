@@ -1,0 +1,158 @@
+# ============================================================================
+# video-types.yaml — video production-line registry (capability video-platform)
+# ============================================================================
+# Single index for the /video type layer (--type=<id>). Adding a video LINE later
+# = drop 06-ai-ops/skills/video/types/<id>/SKILL.md + one row here. NO command-side
+# code change. That property is the whole point of this file, and Sprint 3's exit
+# gate is exactly that test.
+#
+# Pattern note (deliberate): this follows the /write YAML model
+# (knowledge/write-types.yaml), NOT /voice's in-code model, where 23 types live as
+# `const TYPES` in scripts/voice/lib/params.cjs. /voice is the closest sibling and
+# the WRONG pattern to copy — types in code cannot be extended by a registry edit.
+#
+#   Registry-vs-skill test: if a GATE or a FLAG DEFAULT reads it → here (data).
+#                           if only an LLM reads it → the type's SKILL.md (judgment).
+#
+# Schema: knowledge/schemas/video-types.schema.json
+# Gate:   scripts/cross-tier/validate-video-types.cjs (L2 critical — structural +
+#         asset_slots ⊆ UNIVERSAL_SLOTS + installed⇒skill-on-disk + PINS the
+#         loudness floor and the render gates so no type can opt out)
+# Spec:   wiki/capabilities/video-platform/spec.md (after Phase 8;
+#         draft .archives/cla/video-platform/spec.md)
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/video-types.schema.json
+
+types:
+  # ── explainer — production line #1 ────────────────────────────────────────
+  # Reference output: the 2:55 Ritsu launch film this capability was extracted
+  # from. Narrated product/concept explainer: avatar anchors + faceless product
+  # core, screen-capture led, one continuous GSAP timeline.
+  - id: explainer
+    aliases: [product-explainer, launch-film]
+    status: installed
+    default: false
+    description: >
+      Narrated product/concept explainer. Avatar anchor beats + a faceless
+      product core driven by real screen recordings. Beat-structured, one paused
+      GSAP timeline, cinematic letterbox. The line the platform was extracted from.
+    resolution: 1920x1080
+    fps: 30
+    aspect: "16:9"
+    duration: { target_s: 175, min_s: 60, max_s: 300 }
+    beats: { min: 6, max: 14, default: 11 }
+    asset_slots: [screen, footage, voice, avatar, music, sfx, brand, mg]
+    handoff: [screen, footage]
+    narration: { source: voice, target_lufs: -16, true_peak: -1.5 }
+    framing: { forbidden_zoom_band: [1.10, 1.25], safe_at_or_below: 1.0, safe_at_or_above: 1.26 }
+    gates:
+      min_bitrate_kbps: 3500
+      require_filmstrip: true
+      filmstrip_frames: 30
+      min_region_stddev: 8
+    design_system: ritsu
+    artifacts: [SCRIPT.md, FOOTAGE.md, TIMELINE.md, TIMELINE.html, YOUTUBE.md, index.html, run.json]
+    publish_targets: [youtube]
+    write_type: video-script
+    skill: 06-ai-ops/skills/video/types/explainer
+    notes: >
+      Gate values are empirical, from the reference production (2026-07-29):
+      bitrate 2.6 Mbps when stages rendered blank vs 4.3 Mbps correct → floor 3500;
+      luma stddev 19.6 (real UI) vs 3.8 (flat) → threshold 8. The forbidden zoom
+      band is the screen-recording framing rule: sit at ≤1.0× or ≥1.26×, never
+      between, or the side rail is sliced mid-word.
+
+  # ── default — the general fallback (--type omitted) ───────────────────────
+  # Deliberately looser: fewer required slots, no avatar assumption, wider
+  # duration window. Same non-negotiable loudness + render floors — those are
+  # never relaxed, and the validator enforces that for EVERY type.
+  - id: default
+    aliases: [general]
+    status: installed
+    default: true
+    description: >
+      General-purpose narrated video. No avatar assumption, no fixed beat count.
+      The fallback when --type is omitted or the brief does not match a line.
+    resolution: 1920x1080
+    fps: 30
+    aspect: "16:9"
+    duration: { target_s: 60, min_s: 10, max_s: 600 }
+    beats: { min: 2, max: 20, default: 5 }
+    asset_slots: [footage, voice, music, sfx, brand, mg]
+    handoff: [footage]
+    narration: { source: voice, target_lufs: -16, true_peak: -1.5 }
+    framing: { forbidden_zoom_band: [1.10, 1.25], safe_at_or_below: 1.0, safe_at_or_above: 1.26 }
+    gates:
+      min_bitrate_kbps: 2500
+      require_filmstrip: true
+      filmstrip_frames: 20
+      min_region_stddev: 8
+    design_system: ritsu
+    artifacts: [SCRIPT.md, FOOTAGE.md, TIMELINE.md, index.html, run.json]
+    publish_targets: [none]
+    write_type: video-script
+    skill: 06-ai-ops/skills/video/types/default
+    notes: >
+      Lower bitrate floor than explainer because a short, motion-graphics-heavy
+      piece legitimately compresses smaller; the blank-render gate still applies
+      via min_region_stddev, which is the layer that actually catches stacking.
+
+  # ── Registered-not-built lines (prove the abstraction; Sprint 3 builds one) ─
+  - id: social-short
+    aliases: [reel, short, tiktok]
+    status: registered-not-built
+    default: false
+    description: >
+      Vertical 9:16 short for Reels / Shorts / TikTok. Fast cut, caption-forward,
+      hook in the first 2 seconds, no letterbox.
+    resolution: 1080x1920
+    fps: 30
+    aspect: "9:16"
+    duration: { target_s: 30, min_s: 8, max_s: 90 }
+    beats: { min: 2, max: 8, default: 4 }
+    asset_slots: [screen, footage, voice, music, sfx, brand, mg]
+    handoff: [screen, footage]
+    narration: { source: voice, target_lufs: -16, true_peak: -1.5 }
+    framing: { forbidden_zoom_band: [1.10, 1.25], safe_at_or_below: 1.0, safe_at_or_above: 1.26 }
+    gates:
+      min_bitrate_kbps: 3000
+      require_filmstrip: true
+      filmstrip_frames: 12
+      min_region_stddev: 8
+    design_system: ritsu
+    artifacts: [SCRIPT.md, FOOTAGE.md, TIMELINE.md, index.html, run.json]
+    publish_targets: [tiktok, instagram, youtube]
+    write_type: video-script
+    notes: >
+      NOT built in Sprint 1/2. Sprint 3 builds it as the abstraction test: adding
+      this line must touch ZERO lines of .claude/commands/video.md or
+      scripts/video/run.cjs — only this row's status flip plus a type SKILL.md.
+
+  - id: ads
+    aliases: [ad-spot, commercial]
+    status: registered-not-built
+    default: false
+    description: >
+      Short paid-media spot. Single claim, hard CTA, built for sound-off viewing
+      with burned-in captions.
+    resolution: 1920x1080
+    fps: 30
+    aspect: "16:9"
+    duration: { target_s: 30, min_s: 6, max_s: 60 }
+    beats: { min: 2, max: 6, default: 3 }
+    asset_slots: [screen, footage, voice, music, sfx, brand, mg]
+    handoff: [screen, footage]
+    narration: { source: voice, target_lufs: -16, true_peak: -1.5 }
+    framing: { forbidden_zoom_band: [1.10, 1.25], safe_at_or_below: 1.0, safe_at_or_above: 1.26 }
+    gates:
+      min_bitrate_kbps: 3500
+      require_filmstrip: true
+      filmstrip_frames: 12
+      min_region_stddev: 8
+    design_system: ritsu
+    artifacts: [SCRIPT.md, FOOTAGE.md, TIMELINE.md, index.html, run.json]
+    publish_targets: [youtube, x, linkedin]
+    write_type: ad
+    notes: "NOT built. Registered to prove the vocabulary generalises beyond explainer."

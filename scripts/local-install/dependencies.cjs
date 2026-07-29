@@ -155,7 +155,41 @@ const DEPENDENCIES = [
       windows: { winget: 'winget install -e --id Gyan.FFmpeg', choco: 'choco install ffmpeg -y', scoop: 'scoop install ffmpeg' },
     },
     manual: 'https://ffmpeg.org/download.html',
-    note: 'Only needed for the /voice capability (text-to-speech stitching).',
+    note: 'Required by /voice (TTS stitching) AND /video (media prep + the render QC gates: bitrate probe, blank-segment detection, filmstrip). This build may lack the `drawtext` filter — /video probes for it and picks a text strategy rather than assuming.',
+  },
+  {
+    // capability video-platform v0.1 Sprint 1. @cto's #1 rot risk: /video rests on an
+    // out-of-repo, unversioned, un-installed dependency — a co-founder could run
+    // /install-ritsu-works, watch /test-ritsu-works report SUCCESS, and still have a
+    // machine where /video cannot run. These two entries close that gap.
+    id: 'hyperframes',
+    label: 'HyperFrames CLI + authoring skills',
+    category: 'feature',
+    required: 'feature',
+    feature: '/video composition, check, snapshot and render',
+    detect: { cmd: 'npx', aliases: ['npx'], args: ['--yes', 'hyperframes', '--version'] },
+    install: {
+      macos: { npm: 'npx --yes skills add heygen-com/hyperframes' },
+      linux: { npm: 'npx --yes skills add heygen-com/hyperframes' },
+      windows: { npm: 'npx --yes skills add heygen-com/hyperframes' },
+    },
+    manual: 'https://hyperframes.heygen.com/quickstart',
+    note: 'Installs the hyperframes authoring skills into ~/.claude/skills (global, per-operator). /video ORCHESTRATES these; it does not reimplement composition authoring. Requires Node >= 22.',
+  },
+  {
+    id: 'heygen-cli',
+    label: 'HeyGen CLI (avatar + audio catalog)',
+    category: 'feature',
+    required: 'feature',
+    feature: '/video avatar segments, background music and SFX',
+    detect: { cmd: 'heygen', aliases: ['heygen'], args: ['--version'] },
+    install: {
+      macos: { manual: 'Install from https://heygen.com, then run: heygen auth login --oauth' },
+      linux: { manual: 'Install from https://heygen.com, then run: heygen auth login --oauth' },
+      windows: { manual: 'Install from https://heygen.com, then run: heygen auth login --oauth' },
+    },
+    manual: 'https://heygen.com',
+    note: 'Auth is per-operator (`heygen auth login --oauth`). /video uses it for avatar renders and the background-music/SFX catalog. Without auth those stages hand off to the human instead of generating.',
   },
   {
     id: 'bun',

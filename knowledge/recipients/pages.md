@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 64
+**Total entries:** 65
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -834,6 +834,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/update-file-paths.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-video-types
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ video-types.yaml — video production-line registry (capability video-platform) ============================================================================ Single index for the /video type layer (--type=<id>). Adding a video LINE later = drop 06-ai-ops/skills/video/types/<id>/SKILL.md + one row here. NO command-side code c...
+
+**Invoke:** `Read("knowledge/video-types.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/video-types.yaml
 
 **Role scope:** *
 **Status:** active

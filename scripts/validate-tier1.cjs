@@ -57,6 +57,8 @@ const FILE_TO_SCHEMA = {
   'image-adapters.yaml': 'image-adapters.schema.json',
   'voice-adapters.yaml': 'voice-adapters.schema.json',
   'dataviz-renderers.yaml': 'dataviz-renderers.schema.json',
+  // capability video-platform v0.1 Sprint 1 — video production-line registry
+  'video-types.yaml': 'video-types.schema.json',
   'mckinsey-workflow.yaml': 'mckinsey-workflow.schema.json',
   'mckinsey-templates.yaml': 'mckinsey-templates.schema.json',
   'problem-solving-frameworks.yaml': 'problem-solving-frameworks.schema.json',

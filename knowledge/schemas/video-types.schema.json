@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ritsu.ai/schemas/video-types.schema.json",
+  "title": "video-types.yaml — video production-line registry (capability video-platform)",
+  "description": "Structural schema for knowledge/video-types.yaml. Cross-file and semantic invariants (asset_slots ⊆ UNIVERSAL_SLOTS, installed⇒skill-on-disk, loudness floor pinning, exactly-one-default, write_type ∈ write-types.yaml) are enforced by scripts/cross-tier/validate-video-types.cjs, not here.",
+  "type": "object",
+  "required": ["version", "types"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema": { "type": "string" },
+    "types": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/videoType" }
+    }
+  },
+  "definitions": {
+    "videoType": {
+      "type": "object",
+      "required": [
+        "id", "status", "description", "resolution", "fps", "aspect",
+        "duration", "beats", "asset_slots", "narration", "framing", "gates",
+        "design_system", "artifacts", "publish_targets", "write_type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "aliases": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" } },
+        "status": { "enum": ["installed", "registered-not-built"] },
+        "default": { "type": "boolean" },
+        "description": { "type": "string", "minLength": 10 },
+        "resolution": { "type": "string", "pattern": "^\\d{2,5}x\\d{2,5}$" },
+        "fps": { "enum": [24, 25, 30, 60] },
+        "aspect": { "type": "string", "pattern": "^\\d+:\\d+$" },
+        "duration": {
+          "type": "object",
+          "required": ["target_s", "min_s", "max_s"],
+          "additionalProperties": false,
+          "properties": {
+            "target_s": { "type": "number", "exclusiveMinimum": 0 },
+            "min_s": { "type": "number", "exclusiveMinimum": 0 },
+            "max_s": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "beats": {
+          "type": "object",
+          "required": ["min", "max", "default"],
+          "additionalProperties": false,
+          "properties": {
+            "min": { "type": "integer", "minimum": 1 },
+            "max": { "type": "integer", "minimum": 1 },
+            "default": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "asset_slots": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "handoff": {
+          "type": "array", "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "narration": {
+          "type": "object",
+          "required": ["source", "target_lufs", "true_peak"],
+          "additionalProperties": false,
+          "properties": {
+            "source": { "type": "string" },
+            "target_lufs": { "type": "number" },
+            "true_peak": { "type": "number" }
+          }
+        },
+        "framing": {
+          "type": "object",
+          "required": ["forbidden_zoom_band"],
+          "additionalProperties": false,
+          "properties": {
+            "forbidden_zoom_band": {
+              "type": "array", "minItems": 2, "maxItems": 2,
+              "items": { "type": "number", "exclusiveMinimum": 0 }
+            },
+            "safe_at_or_below": { "type": "number", "exclusiveMinimum": 0 },
+            "safe_at_or_above": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "gates": {
+          "type": "object",
+          "required": ["min_bitrate_kbps", "require_filmstrip", "filmstrip_frames", "min_region_stddev"],
+          "additionalProperties": false,
+          "properties": {
+            "min_bitrate_kbps": { "type": "number", "exclusiveMinimum": 0 },
+            "require_filmstrip": { "type": "boolean" },
+            "filmstrip_frames": { "type": "integer", "minimum": 1 },
+            "min_region_stddev": { "type": "number", "minimum": 0 }
+          }
+        },
+        "design_system": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "artifacts": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+        "publish_targets": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+        "write_type": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "skill": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

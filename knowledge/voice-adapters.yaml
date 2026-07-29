@@ -62,14 +62,22 @@ adapters:
     notes: "Alias the founder uses for OpenAI TTS (= openai-tts). NB: OpenAI 'Whisper' proper is speech-to-TEXT; this is gpt-4o-mini-tts text-to-SPEECH. --use=whisper resolves to openai-tts."
 
   # ── Registered-not-built stubs (prove the abstraction; plug these in later) ──
+  # ── ElevenLabs — the Ritsu brand voice (KAI). Built 2026-07-29. ────────────
+  # Promoted from registered-not-built by capability video-platform Sprint 1:
+  # /video's automation contract routes ALL narration through /voice, so the
+  # lane the launch film actually used had to become a real adapter rather than
+  # a one-off script. Voice ids are opaque and the key is text_to_speech-scoped
+  # (no voices_read), so lib/voices.cjs maps friendly name → env-held id.
   - id: elevenlabs
-    status: registered-not-built
-    default_model: eleven_multilingual_v2
-    supports: [voice, pace, instructions, lang, format, markup]
-    unsupported_warn: [speed, multi-speaker, style]
+    status: installed
+    generator: scripts/voice/gen.cjs
+    skill: 06-ai-ops/skills/voice/adapters/elevenlabs
+    default_model: eleven_v3
+    supports: [voice, lang, format, markup]
+    unsupported_warn: [pace, instructions, speed, multi-speaker, style]
     auth: { env: ELEVENLABS_API_KEY, billing: out-of-band }
-    voices: 0
-    notes: "ElevenLabs — richest voice cloning + emotional range, SSML-like control. NOT built v0.1 (no key provisioned)."
+    voices: 2
+    notes: "ElevenLabs TTS (POST /v1/text-to-speech/{voice_id}, xi-api-key header). Default model eleven_v3 — the ONLY model that reads inline [audio tags] ([sighs] [warmly] [confident] [pause]…), which is how style/emotion is steered here; there is no separate instructions field, so --instructions is warned-not-applied and preserved in the run sidecar for provenance. Voice = an opaque voice_id: pass a catalog name (KAI/MAYA → resolved from KAI_VOICE_ID/MAYA_VOICE_ID in runtime/secrets/.env.local) or a raw id. Container comes from the output_format QUERY param; mp3/pcm native, everything else transcoded via ffmpeg. Alternates: eleven_multilingual_v2 (stable, ignores tags), eleven_turbo_v2_5 (fast/cheap)."
 
   - id: azure-tts
     status: registered-not-built
