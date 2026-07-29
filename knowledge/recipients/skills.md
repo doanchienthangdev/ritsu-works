@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 141
+**Total entries:** 142
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -2212,6 +2212,20 @@ or runs /translate.
 **When to use:** The explainer production line for /video — a narrated product/concept film with avatar anchor beats and a faceless, screen-capture-led product core. Holds the JUDGMENT for this line: beat rhetoric, shot selection, what "good" looks like. Enumerable data (durations, gates, slots, loudness floor) lives in knowledge/video-types.yaml, not here.
 
 **Invoke:** `Skill({ skill: "video/types/explainer" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/video/types/social-short
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The vertical short production line for /video (--type=social-short) — 9:16 for Reels, Shorts and TikTok. Hook in the first two seconds, caption-forward, sound-off legible, no letterbox. Holds the JUDGMENT for this line; enumerable data lives in knowledge/video-types.yaml.
+
+**Invoke:** `Skill({ skill: "video/types/social-short" })`
 **HITL tier:** B
 **Side effect:** write
 

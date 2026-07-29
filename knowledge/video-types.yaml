@@ -99,10 +99,15 @@ types:
       piece legitimately compresses smaller; the blank-render gate still applies
       via min_region_stddev, which is the layer that actually catches stacking.
 
-  # ── Registered-not-built lines (prove the abstraction; Sprint 3 builds one) ─
+  # ── social-short — production line #2, THE ABSTRACTION TEST ───────────────
+  # Built in Sprint 3 by adding this status flip + one type SKILL.md. It touched
+  # ZERO lines of .claude/commands/video.md and ZERO lines of the pipeline
+  # scripts. That property is the capability's exit gate: if a future line ever
+  # needs a command change, the abstraction has failed and THAT is the bug.
   - id: social-short
     aliases: [reel, short, tiktok]
-    status: registered-not-built
+    status: installed
+    skill: 06-ai-ops/skills/video/types/social-short
     default: false
     description: >
       Vertical 9:16 short for Reels / Shorts / TikTok. Fast cut, caption-forward,
