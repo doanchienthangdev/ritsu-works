@@ -80,8 +80,8 @@ Built on the principle that **active learning beats passive learning**. Reading,
 Per Kotler's "three levels of product," Ritsu is best understood core-value-first — **lead with what the buyer is really buying, then the features that deliver it:**
 
 - **Core value** — *mastery / true understanding.* The fundamental benefit; everything below exists to deliver it.
-- **Actual product** — the universal input (§6.1), the 17+ activity types (§6.2), the 7 tutoring modes (§6.3), the mastery engine (§6.4), and the UI.
-- **Augmented product** — personalized learning paths, emotional-AI personalities (§6.5), the Knowledge Map, progress heatmap, and cross-session memory.
+- **Actual product** — the universal input (§6.1), the command library (§6.2), session preferences (§6.3), the mastery engine (§6.4), and the UI.
+- **Augmented product** — personalized learning paths, mascot sticker packs (§6.5), the Knowledge Map, progress heatmap, and cross-session memory.
 
 Each capability below pairs the verified feature with the **benefit** it creates (benefits-not-features discipline).
 
@@ -113,20 +113,99 @@ All auto-generated from the user's own material — not from a template bank.
 - ~~"185+ commands"~~ → **47.** The 185 figure has no basis in the code.
 - ~~`/match`~~ → **`/dragndrop`.** There is no `/match` command; the homepage lists one.
 
+> #### ⚠️ CODE-DEFINED (47) ≠ USER-FACING (42) — UI-verified 2026-07-30
+>
+> The table above is the **code** inventory. The in-product **Command Browser** — the
+> only surface a user actually sees — reads **`42 commands available.`** and groups
+> them differently:
+>
+> | In-product category | Count | Delta vs the code table above |
+> |---|---|---|
+> | `Learning` | **22** | unchanged |
+> | `Assessment` | **9** | `/practice` not exposed |
+> | **`Visualize`** | **6** | renamed from `reference`; `/search` + `/generate` not exposed |
+> | `Navigation` | **2** | `/start` not exposed |
+> | `System` | **3** | `/clear` not exposed |
+>
+> **Any user-facing artefact must say 42**, because the number is printed on the
+> screen next to the list. Cite 47 only when talking about the code. The five
+> unexposed commands (`/practice` `/search` `/generate` `/start` `/clear`) should be
+> either shipped or deleted — carrying them in the charter as user-facing is the
+> same failure mode as §6.4's cross-source claim.
+>
+> Two descriptions worth reusing verbatim, because they name the method inside the
+> product: `/eli5` — *"Explain a concept in the simplest possible terms **(Feynman
+> Technique)**"*; `/solve` — *"DIY (write + grade + retry + solution), Show (hints +
+> solution), or **Guided (Socratic milestone discovery)**"*.
+
+**Each command is a configured activity, not a prompt shortcut.** Opening any command
+in the Command Browser shows `USAGE`, `EXAMPLES`, `HOW IT WORKS`, `PARAMETERS`, plus an
+**`Options` panel that writes the command for you** as you click. Example, composed
+entirely by clicking three buttons and typing one line of free text:
+
+```
+/why --mode="guided" --audience="undergrad" --check="on"
+     --concept="self-attention beats recurrence" use a concrete example from the chapter
+```
+
+`--mode=guided` runs a **Socratic guided-discovery dialogue** that deliberately surfaces
+a tempting wrong cause before revealing the load-bearing one; `--check=on` adds a
+comprehension check that **counts toward the Knowledge Map**. Free text after the flags
+is passed through as extra instruction. Verified end-to-end 2026-07-30.
+
+**Three ways to work a single Point of Knowledge** — a layer absent from every prior
+version of this document:
+
+| Mode | Command | What it does |
+|---|---|---|
+| Free | (type anything) | You choose the command and the order |
+| **Plan** | **`/plan`** | Generates *"a curated sequence of Ritsu commands … each item is clickable"* built so that completing it **conquers the full Knowledge Map of that PoK**. Dials: `Coverage` (all KIs / gaps only / core essentials) · `Time` (4 / 6-8 / 10-12 items) · `Level` |
+| **Adaptive** | **`/adaptive`** | A **TAOR loop — Think · Act · Observe · Repeat** — that *"continues until you've individually mastered **every criterion (each ≥85%)**"*. Dials include `Level` (4→8 criteria) and **`Bloom` — "Cognitive depth (Bloom's taxonomy)"**: Remember · Understand · Apply · Analyze · Evaluate · Create |
+
+> **Bloom's taxonomy is a first-class UI control**, and the Feynman Technique is named
+> inside `/eli5`. Together with the `≥85%`-per-criterion mastery bar, this is the
+> strongest learning-science evidence in the product — and it is all on screen, so
+> marketing never has to assert it. This is the material §6.7 (reliability) is built on.
+
 → **Benefit:** practice in the exact format that makes *this* material stick → actually master it, not just re-read it.
 
-### 6.3 Tutoring modes — 7 modes
+### 6.3 Session preferences — 3 Modes, 6 presets, 5 dials
 
-Verified-named (5 of 7): **Ask Me, Exercise, Solve, Upthink, Adaptive.**
+> **CORRECTED 2026-07-30 (UI-verified).** The prior version of this section claimed
+> *"Tutoring modes — 7 modes: Ask Me, Exercise, Solve, Upthink, Adaptive."*
+> **No such picker exists.** Those five are **commands** (`/askme` `/exercise` `/solve`
+> `/upthink` `/adaptive`) already counted in §6.2 — the charter was double-counting
+> commands as modes and had no name for the real Mode axis. What actually ships is the
+> **`Session preferences`** dialog, reachable from `Preferences` on the new-session screen.
 
-- **Ask Me** — challenges the user to explain concepts back.
-- **Exercise** — gives problems to solve step by step.
-- **Solve** — poses real-world scenarios.
-- **Upthink, Adaptive** — see in-product picker for descriptions.
+**`Session preferences`** — *"Shape how your learning plan is generated. Defaults match the standard experience."*
 
-Two additional modes visible in-product but not enumerated on marketing surface.
+**`MODE` (3)** — the real fork, chosen before the plan is generated:
 
-→ **Benefit:** the tutor adapts to *how* you need to engage right now — recall, application, or stretch.
+| Mode | What it produces |
+|---|---|
+| **`Learning`** *(default)* | *"A guided study plan built from your document or topic."* |
+| **`Exam & Test`** | Assessment-shaped plan |
+| **`Problem Set`** | Exercise-shaped plan |
+
+**Presets (6)** — one-click shorthands: `Balanced` *(default — "the standard, well-rounded plan")* · `Deep dive` · `Crash course` · `Exam prep` · `Practice` · `Fast learning`.
+
+**`CUSTOMIZE` (5 dials)**:
+
+| Dial | Values |
+|---|---|
+| `Goal` | Balanced · Deep mastery · Exam prep · Practice-heavy · Fast grasp |
+| `Difficulty` | Auto · Beginner · Intermediate · Advanced |
+| `Detail` | Concise · Standard · Comprehensive · Key points |
+| `Style` | Default · **Socratic** · Practical · Academic · Storytelling · Visual |
+| `Thinking` | Normal · Heavy |
+
+The dialog states the cost trade-off honestly in-product: *"Deeper and longer plans use
+more credits."* Chosen settings are **echoed back on the generated plan** as meta chips
+(e.g. `Intermediate` · `3 Units` · `~2 hours` · `Fast grasp` · `Key points`), so the user
+can see the plan obeyed them.
+
+→ **Benefit:** the same document becomes a crash course or a deep dive, on your terms — and defaults are good enough that you never have to open this.
 
 ### 6.4 Mastery engine — built for understanding, not memorization
 
@@ -144,17 +223,43 @@ The **Knowledge Map** surfaces concept connections visually and tracks mastery p
 
 → **Benefit:** see how ideas connect — the difference between memorizing facts and actually understanding a subject. *(At course scale, pending the project-level rollup above.)*
 
-### 6.5 Emotional AI — 10 personality styles
+### 6.5 Emotional AI — Mascot sticker packs
 
-Verified-named (6 of 10): **Funny, Supportive, Nerdy, Chill, Energetic, Sarcastic.** Four additional styles in-product. Animated stickers + emotional messages at milestones. Pitch: "learning should feel as good as getting it right."
+> **CORRECTED 2026-07-30 (UI-verified).** The prior version claimed *"10 personality
+> styles: Funny, Supportive, Nerdy, Chill, Energetic, Sarcastic."* **There is no
+> named-tone picker in the product.** `Settings → Mascot` offers **`Sticker Packs`** —
+> *"Choose a tutor persona and sticker style"* — where the mascot **is** the persona.
 
-Personality availability gates by tier: **Free gets 3 of the stock personalities; Plus / Pro / Ultra get the full 10**; **Ultra additionally unlocks unlimited custom personalities + custom characters** (per https://ritsu.ai/pricing, verified 2026-05-29).
+`Settings → Mascot → Sticker Packs`: **`No stickers`** (*"Disable stickers and emotional
+messages entirely"*) plus 12+ character packs, each with a `Preview` and a sticker count —
+`Ant Animation Pack` (36) · `Pumpkin Animation Pack` (30) · `Elephant Cartoon Pack` (30) ·
+`Scary Face Pack` (30) · `Creepy Face Pack` (31) · `Koala Bear Pack` (27) · `Cat Emoji Pack`
+(20) · `Monkey Expressions Pack` (20) · `Cat Stickers Pack` (14) · `Monster Animation Pack`
+(13) · `Duck Cartoon Pack` · `Bear Animation Pack`. Stickers + emotional messages fire at
+milestones. Pitch: "learning should feel as good as getting it right."
 
-→ **Benefit:** learning that feels human and encouraging → you keep going (the psychological hook that turns a tool into a habit).
+**Tier gating needs re-verification.** The prior claim — *"Free gets 3 of the stock
+personalities; Plus/Pro/Ultra get the full 10; Ultra unlocks unlimited custom
+personalities + custom characters"* — was written against a personality model that does
+not exist. Re-derive the gating against **packs**, from https://ritsu.ai/pricing, before
+quoting it anywhere.
+
+→ **Benefit:** learning that feels human and encouraging → you keep going (the psychological hook that turns a tool into a habit) — and it can be switched off entirely.
 
 ### 6.6 Multi-language — 10 languages
 
-All tiers support 10 languages (per https://ritsu.ai/pricing). **English-first; US-led intermarket** per `00-core/icp-summary.md` — the first-100-paying wedge is the US-led, English-speaking serious learner. **Vietnamese is now a secondary market** (served, not targeted-first; the legal operating entity remains in Vietnam — see §12). The other 8 languages are not enumerated on marketing surface — verify in-product locale picker.
+All tiers support 10 languages (per https://ritsu.ai/pricing). **English-first; US-led intermarket** per `00-core/icp-summary.md` — the first-100-paying wedge is the US-led, English-speaking serious learner. **Vietnamese is now a secondary market** (served, not targeted-first; the legal operating entity remains in Vietnam — see §12).
+
+> **CORRECTED 2026-07-30 (UI-verified).** The prior version said *"verify in-product
+> locale picker."* **There is no locale picker.** `Settings` contains only
+> `General` (profile) · `Mascot` · `Account` · `Billing` · `Usage` — no language setting.
+> Language is selected two other ways:
+> 1. **It follows your input.** A Vietnamese prompt against an **English** PDF produced a
+>    fully Vietnamese plan (session `Làm Chủ Tư Duy Nguyên Lý Gốc`, 7 units). No setting touched.
+> 2. **`/lang`** — *"Set the session language for all AI-generated content"* (System category, §6.2).
+>
+> The marketing framing should be **"write in your language"**, not "choose your language" —
+> the former is both accurate and a stronger demo.
 
 → **Benefit:** learn in your language; the same "exam in 3 days" job exists identically across the English-speaking world (an intermarket segment).
 
@@ -336,6 +441,7 @@ The **"WHAT" trio** — `product.md` (what Ritsu IS) + `positioning.md` (what to
 | 1.0 | 2026-05-02 | Initial canonical charter. |
 | 1.1 | 2026-05-28 | Refreshed via `/update tier1-file` from `.archives/brainstorming/product-md-revision-2026-05-28/`. Reconciled feature counts (12+ formats, 17+ activities, 7 modes, 10 personalities, 10 languages) with live site; pillar references updated to v1.0.1 codes; Voice & tone section collapsed to single-line pointer at `brand_voice.md`; credit-based monetization model + 4-tier naming added (no $ numbers); new Multi-language § 6.6; new Technology context § 13; new Cross-references § 15; new Versioning § 16; "fetch live" markers added on dynamic data. Stale TODO ("brand_voice.md (TODO)") removed. |
 | 1.2 | 2026-05-29 | A+ refresh via `/update tier1-file` (run 6fb167a2, D-Std). **US-led realignment** (§6.6 English-first; §8 operating-priority = US serious learner; §12 US-led market, VN entity-only) to cohere with positioning #148 + icp #149. **Product-theory structure**: §6.0 three-product-levels lead (core value = mastery foregrounded); benefits-not-features lines on §6.1-6.6; NEW §6.7 service quality (SERVQUAL, accuracy = #1); §4 desirable-vs-pleasing product framing; §5 +"NOT an AI-does-it-for-you tool"; §7 framed as activation / PLG engine; §10 "more for more". **All product FACTS unchanged + still live-verified 2026-05-28** (framing-only refresh). |
+| 1.4 | 2026-07-30 | **UI-verification pass against the live logged-in app** (not code, not marketing). Four corrections, all of the class the doc itself warns about — claims a user disproves by opening the product. **§6.2**: code defines 47 commands but the in-product Command Browser reads **`42 commands available`**; `reference`→**`Visualize`**; `/practice` `/search` `/generate` `/start` `/clear` are NOT exposed. Added the per-command `Options` panel (self-writing commands + free-text passthrough) and the **three PoK modes** (free · `/plan` · `/adaptive` TAOR ≥85%-per-criterion, with **Bloom's taxonomy as a UI dial**). **§6.3**: ~~"7 tutoring modes"~~ → the real **`Session preferences`** (3 Modes · 6 presets · 5 dials); the old "modes" were commands already counted in §6.2. **§6.5**: ~~"10 personality styles"~~ → `Settings → Mascot` → **Sticker Packs** (12+ character packs); tier gating flagged for re-derivation. **§6.6**: ~~"verify in-product locale picker"~~ → **there is none**; language follows your input, plus `/lang`. Evidence: 25 screenshots at `.archives/video-series/starting-with-ritsu/ui-evidence/`. No pricing or positioning facts changed. |
 | 1.3 | 2026-05-29 | **Pricing accuracy** (hand-edit PR, not /update): §10 now carries verified prices — Free **$0** / Plus **$29** / Pro **$59** / Ultra **$119** (USD/mo, verified against ritsu.ai/pricing 2026-05-29; annual −17%); credits + per-source limits added. Fixed §6.5 personality gating (Free gets **3** stock personalities, not 10). Pricing-discipline note added (dated snapshot + fetch-live for current). Paired with `icp-summary.md` v1.0.1 (same correction). |
 
 ---
