@@ -25,7 +25,7 @@ const path = require('path');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const PROJECTS_DIR = path.join(REPO_ROOT, 'video', 'projects');
-const { UNIVERSAL_SLOTS, SLUG_RE } = require('./lib/params.cjs');
+const { UNIVERSAL_SLOTS, PROJECT_SLUG_RE } = require('./lib/params.cjs');
 const state = require('./lib/state.cjs');
 
 function loadTypes() {
@@ -155,7 +155,7 @@ or produces them externally (live action). \`/video\` emits exact specs and park
 function main() {
   const args = parseArgs(process.argv.slice(2));
   if (!args.slug) { console.error('usage: scaffold.cjs --slug=<slug> [--type=<id>] [--style=<ds>] [--title=".."]'); process.exit(2); }
-  if (!SLUG_RE.test(args.slug)) { console.error(`[FAIL] slug "${args.slug}" must match ${SLUG_RE}`); process.exit(1); }
+  if (!PROJECT_SLUG_RE.test(args.slug)) { console.error(`[FAIL] slug "${args.slug}" must match ${PROJECT_SLUG_RE}\n       (flat "my-film" or one level of series nesting "my-series/ep01-name")`); process.exit(1); }
 
   const types = loadTypes();
   const t = resolveType(types, args.type);

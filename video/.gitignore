@@ -13,11 +13,24 @@
 #
 # Consequence /video is built around: a fresh clone has the composition but none
 # of the bytes, so `--resume` RE-PROBES the disk and never trusts run.json.
+# Depth 1 — a flat project:  video/projects/<slug>/
 projects/*/assets/
 projects/*/build/
 projects/*/out/
 !projects/*/out/
 !projects/*/out/filmstrip.jpg
+
+# Depth 2 — a SERIES:  video/projects/<series>/<episode>/
+# These lines are load-bearing. `projects/*/assets/` matches exactly one level, so
+# without them an episode's assets/ would NOT be ignored and a series would commit
+# gigabytes of source media on the first `git add`. Nesting is capped at one level
+# (PROJECT_SLUG_RE in scripts/video/lib/params.cjs) precisely so this list stays
+# finite and auditable — if you ever widen that regex, widen this file first.
+projects/*/*/assets/
+projects/*/*/build/
+projects/*/*/out/
+!projects/*/*/out/
+!projects/*/*/out/filmstrip.jpg
 
 # ── renders / working artifacts (anywhere under video/) — reproducible ────────
 # NB: *.mp4 also blocks committing a reference clip. Intentional — if one must be
