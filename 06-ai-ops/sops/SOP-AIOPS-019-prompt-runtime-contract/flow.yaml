@@ -1,0 +1,178 @@
+# SOP-AIOPS-019 — /prompt Runtime Contract
+#
+# Declarative runtime contract for the prompt-platform capability (/prompt command).
+# Read by .claude/commands/prompt.md + 06-ai-ops/skills/prompt/SKILL.md (umbrella)
+# + directions/<id>/ + realism/ + enhance/.
+#
+# RUNTIME-CONTRACT SOP (like SOP-AIOPS-004/005/006/007/008/011), NOT a CLA 8-phase
+# ceremony. The "steps" are the sequence /prompt follows to turn an idea + flags into
+# a prompt a photographer and a director would sign off on.
+
+sop_id: SOP-AIOPS-019
+slug: prompt-runtime-contract
+name: "/prompt runtime contract"
+version: "1.0.0"
+state: operating
+owner: 06-ai-ops
+owner_role: gps
+hitl_default: A           # pure authoring, local writes, NO money/external/secret — Tier A
+cost_bucket: ai-ops-prompt
+capability_id: prompt-platform
+
+# billing: authoring runs on the SESSION model (subscription) + pure-Node helpers.
+# ZERO API key, ZERO external call, ZERO metered spend. The ONLY spending path is
+# --generate, which chains into /image — and /image owns that budget + its own
+# --max-cost-usd breaker. The gps per_task_kind_caps below are advisory ceilings on
+# in-session effort, not metered API spend.
+
+registry: knowledge/prompt-directions.yaml
+schema: knowledge/schemas/prompt-directions.schema.json
+gate: scripts/cross-tier/validate-prompt-directions.cjs   # L2 critical, in pnpm check AND GitHub CI
+
+steps:
+  - id: parse
+    name: "Stage 1 — parse argv + resolve direction/model against the registry"
+    helper: scripts/prompt/lib/params.cjs
+    deterministic: true
+    contract: |
+      Returns {ok, direction, model, verb, input, flags, warnings, errors}.
+      errors → REFUSE and print verbatim; never proceed past a refusal.
+      warnings → ALWAYS surface, then continue. A registered flag the direction does
+      not support is KEPT and warned, never silently dropped (the /image contract).
+      direction.status != installed → refuse with reason_not_built.
+      --ref accepts BOTH a file path and the `attached` sentinel (attached, attached:2,
+      upload) for an image attached to the conversation. params.cjs cannot see the chat,
+      so the ORCHESTRATOR must inject --ref=attached when the founder attached an image
+      and did not pass --ref. A path ref that does not exist on disk is a REFUSAL.
+
+  - id: brief
+    name: "Stage 2 — read the brief"
+    skill: prompt/directions/image
+    contract: |
+      Extract subject kind · job of the image · platform · realism target · emotional
+      beat · constraints. Vietnamese input is read in Vietnamese; the PROMPT is written
+      in English (models are trained on English captions) unless --lang says otherwise.
+
+  - id: type
+    name: "Stage 2b — when --type is set, the template takes over"
+    skill: prompt/types/character-turnaround
+    optional: true
+    contract: |
+      A type is a FIXED-STRUCTURE template with slots, registered in prompt-directions.yaml
+      under `types:`. Read types/<id>/template.md and substitute ONLY the declared slots;
+      emit everything else byte-identical. Do NOT paraphrase, shorten, or merge clauses —
+      the repetitive rotation/consistency wording is what makes the sheet work.
+      A type may carry default_ar / default_model / realism_override and may waive a
+      pinned anchor via waives_anchors + waiver_reason. params.cjs applies those defaults
+      only where the caller left the flag unset, and surfaces the waiver as a warning.
+      requires_ref types refuse without --ref. The L2 validator enforces that every
+      declared slot exists in the template and vice versa.
+
+  - id: clarify
+    name: "Stage 3 — ask, do not invent"
+    skill: prompt
+    hitl: A
+    contract: |
+      If a parameter would MATERIALLY change the output and the input does not settle
+      it, ask via AskUserQuestion (max 4). Typical: platform⇒ratio unknown, casting for
+      a specific market, ambiguous reference intent, a real brand/product/person.
+      Do NOT ask about choices a competent director would simply make (lens, exact mood
+      word, bokeh character) — decide those and defend them in the rationale.
+
+  - id: select
+    name: "Stage 4 — choose parameters in build order"
+    skill: prompt/directions/image
+    helper: scripts/prompt/lib/library.cjs
+    contract: |
+      Build order: intent+ratio → medium → subject → expression/pose/action →
+      environment/hour/weather/props → camera → composition → lighting+colour →
+      texture+post → mood (1-2 words ONLY) → style (usually empty) → negative.
+      The library is queried ON DEMAND (list/tiers/values/get/search), never loaded
+      whole (~450 KB).
+      Values are SUGGESTIVE, not restrictive: a listed value, a combination of listed
+      values, or an invented value are all valid — optimality for the brief decides.
+
+  - id: realism
+    name: "Stage 5 — enforce the anti-AI contract"
+    skill: prompt/realism
+    reads: 06-ai-ops/skills/prompt/library/REALISM-PLAYBOOK.md
+    contract: |
+      --realism=max ⇒ all three PINNED anchors present:
+        1. skin            — ≥2 texture/imperfection values (people only)
+        2. situational-lighting — light must be physically possible for place+hour;
+                             add the literal "no studio lighting" outside a studio
+        3. camera-background   — iPhone/candid/uncontrolled-background language
+                             (waivable for e-commerce/campaign/headshot WITH a stated reason)
+      Model lever from the registry: gpt-image-2 ⇒ append `photorealism` as the FINAL
+      word; midjourney ⇒ `--style raw`. Suppressed when --realism=off.
+      Banned phrases (registry `banned_phrases`) are NEVER emitted.
+
+  - id: crosscheck
+    name: "Stage 6 — four cross-checks before printing"
+    skill: prompt/directions/image
+    gate: true
+    contract: |
+      (a) light plausibility vs environment+hour
+      (b) detail budget matches shot size (close-up⇒expression, wide⇒pose)
+      (c) none of the 7 conflict pairs in library/00-MASTER-REFERENCE.md §7
+      (d) realism anchor coverage
+      A failed check is REPAIRED, then NAMED in the rationale line. Silent repair is
+      a defect — the founder must see what changed.
+
+  - id: render
+    name: "Stage 7 — emit the chosen surface"
+    helper: scripts/prompt/render.cjs
+    deterministic: true
+    contract: |
+      --output=default  → fenced code blocks. render.cjs writes them to STDOUT, and in
+                          Claude Code stdout is shown to the AGENT, not to the founder.
+                          The orchestrator MUST therefore reproduce the block verbatim in
+                          its own reply. Pointing at Bash output ("the prompt is above")
+                          delivers an empty screen — observed on a real run 2026-07-30.
+                          Writing the fenced block directly into the reply, with no Bash
+                          call at all, is an equally valid way to satisfy this surface.
+      --output=markdown → prompts.md + run.json (report the path)
+      --output=artifact → prompts.html with a real per-prompt Copy button; the caller
+                          then publishes it with the Artifact tool (load artifact-design
+                          first; keep the file path stable across redeploys) and reports
+                          the URL
+      pdf/docx/excel are REGISTERED-NOT-BUILT → warn + fall back to default.
+      run.json is written next to every file output — the forward-compatible superset
+      of a future ops.prompt_runs row (Option A+: no Tier-2 table in v0.1).
+
+  - id: rationale
+    name: "Stage 8 — always explain the decision"
+    contract: |
+      1-3 sentences: which parameters carry the weight and why, plus anything a
+      cross-check changed. The founder must be able to disagree with a DECISION,
+      not reverse-engineer one.
+
+  - id: chain
+    name: "Stage 9 — optional /generate passthrough"
+    optional: true
+    contract: |
+      --generate → invoke /image "<prompt>" --use=<model> --ar=<ar> AFTER printing.
+      ANNOUNCE the spend before calling. With --count>1 this chains N runs — say so
+      first. This is the only path in /prompt that costs money.
+
+hitl_matrix:
+  - action: "author or repair a prompt (any mode, any output)"
+    tier: A
+    rationale: "pure authoring; local writes to .archives/ only; no money, no external surface, no secret"
+  - action: "--output=artifact (publishes a page on claude.ai)"
+    tier: A
+    rationale: "artifacts are default-PRIVATE; the founder chooses whether to share the URL"
+  - action: "--generate (chains into /image)"
+    tier: B
+    rationale: "spends via /image's OPENAI_API_KEY; /image's own --max-cost-usd breaker applies; announce before calling"
+
+kpis:
+  - id: prompt.crosscheck_violation_rate
+    target: "< 5%"
+    source: run.json (warnings/changes)
+  - id: prompt.realism_anchor_coverage
+    target: "100% of --realism=max runs carry all three anchors"
+    source: run.json
+  - id: prompt.founder_edit_rate
+    target: "< 30%"
+    source: founder feedback / ops.corrections
