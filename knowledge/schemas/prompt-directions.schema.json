@@ -1,0 +1,179 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ritsu.ai/schemas/prompt-directions.schema.json",
+  "title": "prompt-directions.yaml — /prompt direction registry (capability prompt-platform)",
+  "description": "Structural schema for knowledge/prompt-directions.yaml. Cross-file and semantic invariants (installed⇒skill+library on disk, exactly-one default per axis, exactly-one default model per installed direction, supported_modes ⊆ modes, supported_outputs ⊆ installed outputs, the three realism anchors pinned, banned_phrases non-empty) are enforced by scripts/cross-tier/validate-prompt-directions.cjs, not here.",
+  "type": "object",
+  "required": ["version", "modes", "outputs", "types", "verbs", "realism_levels", "realism_anchors", "banned_phrases", "directions"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "schema": { "type": "string" },
+    "modes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/vocabEntry" }
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/outputEntry" }
+    },
+    "types": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/promptType" }
+    },
+    "verbs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/vocabEntry" }
+    },
+    "realism_levels": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/vocabEntry" }
+    },
+    "realism_anchors": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/definitions/realismAnchor" }
+    },
+    "banned_phrases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 3 }
+    },
+    "directions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/direction" }
+    }
+  },
+  "definitions": {
+    "vocabEntry": {
+      "type": "object",
+      "required": ["id", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "default": { "type": "boolean" },
+        "description": { "type": "string", "minLength": 10 }
+      }
+    },
+    "outputEntry": {
+      "type": "object",
+      "required": ["id", "status", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "default": { "type": "boolean" },
+        "status": { "enum": ["installed", "registered-not-built"] },
+        "description": { "type": "string", "minLength": 10 },
+        "reason": { "type": "string", "minLength": 10 }
+      }
+    },
+    "promptType": {
+      "type": "object",
+      "required": ["id", "status", "directions", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "aliases": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" } },
+        "status": { "enum": ["installed", "registered-not-built"] },
+        "reason_not_built": { "type": "string", "minLength": 10 },
+        "directions": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" } },
+        "template": { "type": "string", "pattern": "^06-ai-ops/skills/prompt/types/.+\\.md$" },
+        "skill": { "type": "string", "pattern": "^06-ai-ops/skills/prompt/types/.+SKILL\\.md$" },
+        "slots": { "type": "array", "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" } },
+        "requires_ref": { "type": "boolean" },
+        "compatible_modes": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" } },
+        "default_ar": { "type": "string", "pattern": "^\\d+:\\d+$" },
+        "default_model": { "type": "string", "pattern": "^[a-z][a-z0-9.-]*$" },
+        "realism_override": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "waives_anchors": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" } },
+        "waiver_reason": { "type": "string", "minLength": 20 },
+        "description": { "type": "string", "minLength": 20 }
+      }
+    },
+    "realismAnchor": {
+      "type": "object",
+      "required": ["id", "rank", "label", "remedy_params", "example"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "rank": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "label": { "type": "string", "minLength": 5 },
+        "remedy_params": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "example": { "type": "string", "minLength": 10 }
+      }
+    },
+    "direction": {
+      "type": "object",
+      "required": ["id", "status", "description", "supported_modes", "supported_outputs"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "status": { "enum": ["installed", "registered-not-built"] },
+        "default": { "type": "boolean" },
+        "description": { "type": "string", "minLength": 20 },
+        "reason_not_built": { "type": "string", "minLength": 10 },
+        "skill": { "type": "string", "pattern": "^06-ai-ops/skills/prompt/.+SKILL\\.md$" },
+        "library_path": { "type": "string" },
+        "library_index": { "type": "string" },
+        "realism_playbook": { "type": "string" },
+        "param_count": { "type": "integer", "minimum": 1 },
+        "supported_modes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "supported_outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "supported_types": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "default_ar": { "type": "string", "pattern": "^\\d+:\\d+$" },
+        "chains_to": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "models": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/model" }
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["id", "syntax"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9.-]*$" },
+        "default": { "type": "boolean" },
+        "syntax": { "enum": ["prose", "prose-plus-params"] },
+        "realism_keyword": { "type": "string", "minLength": 3 },
+        "keyword_position": { "enum": ["start", "end"] },
+        "param_flags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 2 }
+        },
+        "strengths": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        },
+        "notes": { "type": "string", "minLength": 10 }
+      }
+    }
+  }
+}
