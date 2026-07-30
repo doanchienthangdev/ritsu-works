@@ -2055,6 +2055,37 @@ capabilities:
       touch ZERO lines of video.md or run.cjs; resolver registration; Phase 8 promotion.
 
 
+  - id: prompt-platform
+    name: "Prompt authoring platform (/prompt command)"
+    description: "The layer that was missing IN FRONT of /image and /video: /image generates from a prompt that is already good; /prompt is what makes it good. Direction-based front door — `/prompt <direction> [build|enhance] \"<idea>\"` — where direction resolves from knowledge/prompt-directions.yaml, so a new direction is a registry row + one skill and ZERO command change (the /write YAML model, same as video-types). v0.1 ships ONE real direction (image; video registered-not-built and refuses with its reason). Runs on a Tier-1 library of 28 parameters / 2264 values (built from the founder's Notion catalog: 12 params / 632 values, of which Facial Expression and Gesture were declared but EMPTY — 100% of the 632 preserved and reclassified, +1603 added) plus REALISM-PLAYBOOK.md distilled from 5 AVB source lessons. The differentiator is the realism contract: the THREE AI giveaways are PINNED in the registry and enforced by the L2 validator — plastic skin (rank 1), studio lighting where it could not physically exist (rank 2), and too-perfect camera/background (rank 3). Ranks 2 and 3 are what almost every prompt misses. Nine banned phrases the source framework names (cinematic masterpiece, hyper-detailed, ultra-glossy, perfect lighting, …) are never emitted, and `enhance` flags them in the input. Four modes (text long prose · json full object · ref preserve/change against a reference image · smart shortest-that-still-lands), two verbs, five per-model syntax profiles (gpt-image-2 default, auto-appends the literal `photorealism` as the final word per the OpenAI-engineer tip; midjourney gets trailing --ar/--style raw instead of prose). Output: terminal fenced block by default, markdown file, or a published Artifact with a real per-prompt Copy button; pdf/docx/excel registered-not-built. Values are SUGGESTIVE not restrictive — the skill may take a listed value, combine several, or invent one. Architecture: deterministic Node spine (params/library/render — pure, unit-tested, no API key) with LLM skills only at the judgement seams."
+    version: "0.1.0"
+    state: implementing
+    state_since: 2026-07-30
+    proposed_at: 2026-07-30
+    pillar_owner: 06-ai-ops
+    spec_path: wiki/capabilities/prompt-platform/spec.md
+    cost_bucket: ai-ops-prompt
+    estimated_cost_setup_usd: 0      # autonomous build; no external spend
+    estimated_cost_recurring_usd: 0  # in-session authoring + pure-Node helpers; zero API per invocation
+    notes: |
+      CLA run 86651855-b1cb-43a2-bb5a-5ddf789c043d. Draft spec
+      .archives/cla/prompt-platform/spec.md, promoted to wiki/ at Phase 8.
+
+      Four founder decisions taken at Phase 4 (all four as recommended):
+        1. Library location → Tier-1 IN the capability (06-ai-ops/skills/prompt/library/),
+           NOT .archives/. Reason: .archives/** is gitignored, so a library living there
+           would make /prompt unrunnable after a fresh clone, invisible to
+           /install-ritsu-works, and unprotected by check-drift. It is operating data,
+           not scratch.
+        2. Output surface → terminal code block by DEFAULT + --output=artifact for a real
+           Copy button (Claude Code's terminal has no clickable copy).
+        3. v0.1 formats → default + markdown + artifact; pdf/docx/excel deferred to a
+           /cla extend that reuses the existing /write + /translate renderers.
+        4. Model targeting → yes, --model with per-engine profiles; gpt-image-2 default.
+
+      Sprint 3 (pending): social direction-abstraction test — adding direction `video`
+      must touch ZERO lines of prompt.md or params.cjs; Phase 8 promotion.
+
 dependencies:
   # capability_id: [list of prerequisite capability ids]
   # Example:
@@ -2111,6 +2142,10 @@ cost_buckets:
   ai-ops-video:
     description: "video-platform runtime — /video production pipeline. Task kinds: video-plan $0.30 (script brainstorm/transform, in-session), video-generate $1.50 ADVISORY (narration via /voice + avatars/score via HeyGen — ALL out-of-band, so invisible to the budget hook; the per-run --max-cost-usd breaker with refuse-BEFORE-spend semantics is the real enforcement), video-compose $0.75 (in-session), video-qc $0.05 (PURE ffmpeg/Node, zero LLM — listed for coherence only), video-publish $0.20. Reuses /voice, /image, media-use and the HyperFrames CLI rather than forking any generation lane, so there is no duplicate spend path. run.json = forward-compat superset of a future ops.video_runs."
     capabilities: [video-platform]
+
+  ai-ops-prompt:
+    description: "prompt-platform runtime — /prompt <direction> [build|enhance] prompt authoring. ZERO out-of-band spend: authoring runs on the SESSION model (subscription) + pure-Node helpers (params/library/render), no API key, no external call. Task kinds: prompt-author $0.30 (build a new prompt: read brief → select parameters → realism contract → cross-checks), prompt-enhance $0.20 (diagnose an existing prompt against the 6-part framework + repair + diff), prompt-render $0.00 (PURE Node — terminal/markdown/artifact; nothing to meter, listed for coherence only). The ONLY spending path is --generate, which chains into /image and is governed by ai-ops-image + /image's own --max-cost-usd breaker — no duplicate spend path. Build-once foundational primitive sitting IN FRONT of /image and /video. run.json = forward-compat superset of a future ops.prompt_runs."
+    capabilities: [prompt-platform]
 
   # lead-acquisition:
   #   description: "All capabilities related to acquiring new customers"

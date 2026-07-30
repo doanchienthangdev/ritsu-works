@@ -44,7 +44,7 @@ describe("resolveAdapter", () => {
     expect(r.target).toBeUndefined();
   });
   it("a registered-not-built stub resolves (status checked downstream in run())", () => {
-    const r = gen.resolveAdapter(adapters, "elevenlabs");
+    const r = gen.resolveAdapter(adapters, "azure-tts");
     expect(r.error).toBeUndefined();
     expect(r.target.status).toBe("registered-not-built");
   });
@@ -105,7 +105,7 @@ describe("run — pure short-circuits (no network)", () => {
     expect(r.outcome).toBe("api_error");
   });
   it("registered-not-built adapter → not_built", async () => {
-    const r = await gen.run(["--use=elevenlabs", "--text=hi"]);
+    const r = await gen.run(["--use=azure-tts", "--text=hi"]);
     expect(r.ok).toBe(false);
     expect(r.outcome).toBe("not_built");
   });

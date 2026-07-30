@@ -166,6 +166,10 @@ economic_budget:
     video-compose:   {unit: usd, cap: 0.75}   # /video composition authoring against video/design-systems/<ds>/frame.md (delegates to the HyperFrames skills). In-session.
     video-qc:        {unit: usd, cap: 0.05}   # /video gates — loudness, stage lint, verify-render, filmstrip. PURE ffmpeg/Node, ZERO LLM: nothing to meter. No secret/key. Listed for governance coherence only.
     video-publish:   {unit: usd, cap: 0.20}   # /video timeline view + publishing kit (YOUTUBE.md). In-session. Posting publicly stays Tier C — the founder posts.
+    # capability prompt-platform v0.1 — cost-bucket ai-ops-prompt; /prompt prompt authoring
+    prompt-author:   {unit: usd, cap: 0.30}   # /prompt <direction> build — read brief → select parameters from the 28-param library → realism contract → 4 cross-checks → prose. IN-SESSION/subscription; ZERO API key, ZERO out-of-band call. The only spending path in /prompt is --generate, which chains to /image and is metered under ai-ops-image (no duplicate spend path).
+    prompt-enhance:  {unit: usd, cap: 0.20}   # /prompt <direction> enhance — diagnose an existing prompt against the 6-part AVB framework, repair it, report the diff. In-session; cheaper than build (no parameter selection from scratch).
+    prompt-render:   {unit: usd, cap: 0.00}   # /prompt output rendering (terminal / markdown / artifact HTML). PURE Node, ZERO LLM: nothing to meter. No secret/key. Listed for governance coherence only.
   preferred_models:
     default: claude-sonnet-4-6     # GPS reasoning is cheap; use Sonnet
     expensive_tasks: claude-opus-4-7  # complex multi-pillar decomposition

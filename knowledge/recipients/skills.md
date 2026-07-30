@@ -7,7 +7,7 @@
 This file is THE source of truth for skill recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/skills.md` import.
 
-**Total entries:** 142
+**Total entries:** 147
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -1483,6 +1483,115 @@ Deterministic transform — no LLM. Invoked by playbook-builder/build at
 Step 5 OR by founder for manual `/playbook check --fix` workflow.
 
 **Invoke:** `Skill({ skill: "playbook-builder/sync-meta" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/prompt
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Umbrella for the prompt-platform capability — the `/prompt` command's brain.
+A direction-based prompt AUTHORING front door: `/prompt <direction> [build|enhance]
+"<idea>"`. Direction (image · video-stub) resolves from knowledge/prompt-directions.yaml,
+so a new direction plugs in WITHOUT command-side code change (mirrors image/dataviz:
+umbrella + directions/<id>/ + registry). v0.1 ships ONE real direction (image) running
+on the 28-parameter / 2264-value library in library/ plus REALISM-PLAYBOOK.md distilled
+from the AVB source lessons. Four modes (text · json · ref · smart), two verbs
+(build · enhance), five model profiles (gpt-image-2 default + photorealism keyword).
+Output goes to a terminal code block by default, or a markdown file / a published
+Artifact with real Copy buttons. Tier A — pure authoring, ZERO API spend, no secret;
+/image is what spends. Invoked by `.claude/commands/prompt.md`.
+
+**Invoke:** `Skill({ skill: "prompt" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/prompt/directions/image
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The image direction of /prompt — the craft skill. Turns an idea into a prompt a
+legendary photographer and director would sign off on: shot size chosen because it
+sells the emotion, lighting described as source + direction + quality (never
+"cinematic lighting"), physically possible light for the place and hour, and the three
+AI giveaways actively neutralised. Runs on the 28-parameter library in
+06-ai-ops/skills/prompt/library/ but is explicitly allowed to combine or invent values.
+Emits four shapes — text (long prose), json (full object), ref (preserve/change against
+a reference image), smart (shortest prompt that still lands) — and adapts syntax per
+model (gpt-image-2 prose + trailing `photorealism`, Midjourney prose + `--ar --style raw`).
+Invoked by the `prompt` umbrella for verb=build.
+
+**Invoke:** `Skill({ skill: "prompt/directions/image" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/prompt/enhance
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The `enhance` verb of /prompt — diagnose an EXISTING image prompt against the 6-part AVB
+framework, name which parts are missing/weak/unclear, repair them, and report the diff.
+Implements the framework's own diagnosis rule ("if a result looks generic, do not blame
+the model first — check which part was missing") plus the auto-enhance warning from the
+source lessons: an enhancer that silently adds detail the author never asked for is a
+bug, so every change is reported. Strips banned phrases. Invoked by the `prompt` umbrella
+when verb=enhance.
+
+**Invoke:** `Skill({ skill: "prompt/enhance" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/prompt/realism
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** The anti-AI contract for /prompt. Enforces the three giveaways that make an AI image
+readable as AI — plastic skin, studio lighting where it could not physically exist, and
+perfect camera/background framing — in that priority order, and adds the per-model
+realism lever (trailing `photorealism` for gpt-image-2, `--style raw` for Midjourney).
+Also owns the banned-phrase guard. Runs on every /prompt run except --realism=off.
+Source of truth: 06-ai-ops/skills/prompt/library/REALISM-PLAYBOOK.md, distilled from the
+AVB lessons; the three anchors are PINNED in knowledge/prompt-directions.yaml and a
+direction cannot drop one without failing the L2 validator.
+
+**Invoke:** `Skill({ skill: "prompt/realism" })`
+**HITL tier:** B
+**Side effect:** write
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## skill/prompt/types/character-turnaround
+
+**Kind:** skill
+**Axis:** capability
+**When to use:** Fills the two slots of the character-turnaround type — a six-column photorealistic
+model sheet (0° front · 45° left · 90° left profile · 90° right profile · 45° right ·
+180° back), each column pairing a full-body view with a rotation-matched portrait.
+The template is a PRECISION INSTRUMENT emitted verbatim; this skill only decides what
+goes into {{CHARACTER_DESCRIPTION}} and {{STYLING_NOTES}}, which is where every real
+decision lives — including the one place a deliberate change to the reference is
+allowed. Requires --ref. Implements step 7 of the avatar workflow in
+library/REALISM-PLAYBOOK.md §6. Invoked when --type=character-turnaround.
+
+**Invoke:** `Skill({ skill: "prompt/types/character-turnaround" })`
 **HITL tier:** B
 **Side effect:** write
 

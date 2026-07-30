@@ -257,6 +257,11 @@ async function main() {
     // installed⇒skill-on-disk + PINS the loudness floor (-16 LUFS / -1.5 dBTP) and the render gates
     // (bitrate floor + filmstrip + blank-segment stddev) so no future video line can silently opt out.
     ['validate-video-types.cjs', 'video-types.yaml ↔ schema + asset_slots⊆universal + pinned gates'],
+    // capability prompt-platform v0.1 — prompt-directions.yaml structural + supported_modes⊆modes +
+    // supported_outputs⊆INSTALLED outputs + installed⇒skill/library/playbook-on-disk + param_count↔files-on-disk
+    // + PINS the three realism anchors (skin / situational-lighting / camera-background) and the four
+    // banned phrases the source framework names, so no direction can silently drop the realism contract.
+    ['validate-prompt-directions.cjs', 'prompt-directions.yaml ↔ schema + pinned realism anchors + library on disk'],
     // capability write-platform v0.1 — write-types/author-styles/write-templates registries: cross-checks + file-existence
     ['validate-write-registries.cjs', 'write-platform registries ↔ schema + mediums/template/author paths'],
     // capability thinking-toolkit v1.3 — mckinsey-workflow.yaml 4S catalog: every referenced skill + concept exists on disk

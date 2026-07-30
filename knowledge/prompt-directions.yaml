@@ -1,0 +1,230 @@
+# ============================================================================
+# prompt-directions.yaml — direction registry (capability prompt-platform)
+# ============================================================================
+# Single index for the /prompt direction layer (`/prompt <direction> …`). Adding a
+# NEW direction later = drop 06-ai-ops/skills/prompt/directions/<id>/SKILL.md +
+# one row here. NO command-side code change. That property is the whole point of
+# this file.
+#
+# Why one registry and not three: `models` and `modes` are PER-DIRECTION (image
+# models ≠ video models; `--mode=ref` means something different for video). Split
+# registries would need a join and a second validator for no gain.
+#
+#   Registry-vs-skill test: if a GATE or a FLAG DEFAULT reads it → here (data).
+#                           if only an LLM reads it → the direction's SKILL.md (judgment).
+#
+# Schema: knowledge/schemas/prompt-directions.schema.json
+# Gate:   scripts/cross-tier/validate-prompt-directions.cjs (L2 critical — structural
+#         + installed⇒skill+library-on-disk + exactly-one-default-model per direction
+#         + PINS the three realism anchors so no direction can opt out)
+# Spec:   wiki/capabilities/prompt-platform/spec.md (after Phase 8;
+#         draft .archives/cla/prompt-platform/spec.md)
+# ============================================================================
+
+version: "1.0.0"
+schema: knowledge/schemas/prompt-directions.schema.json
+
+# ── Universal vocabulary ────────────────────────────────────────────────────
+# Registered everywhere, honored per-direction. A direction that does not support
+# a registered value must WARN, never silently drop (the /image contract).
+
+modes:
+  - id: text
+    default: true
+    description: >
+      One long prose prompt carrying ~14-20 parameters in AVB order. The default:
+      paste straight into GPT Image / Nano Banana / Flux.
+  - id: json
+    description: >
+      Full parameter object. For storage, diffing, reuse, and feeding pipelines.
+  - id: ref
+    description: >
+      Preserve/change instruction built around one or more reference images.
+      Requires --ref. This is the mode for character and product consistency.
+  - id: smart
+    description: >
+      The SHORTEST prompt that still hits the goal — parameters that would not
+      change the output are deliberately omitted. For strong models where a long
+      prompt adds noise instead of direction.
+
+outputs:
+  - id: default
+    default: true
+    status: installed
+    description: Fenced code block per prompt, printed in the terminal.
+  - id: markdown
+    status: installed
+    description: A .md file, one fenced block per prompt.
+  - id: artifact
+    status: installed
+    description: A published HTML page with a real per-prompt Copy button.
+  - id: pdf
+    status: registered-not-built
+    reason: "v0.2 — will reuse scripts/mm/render.py (needs anaconda python + DYLD_FALLBACK_LIBRARY_PATH)."
+  - id: docx
+    status: registered-not-built
+    reason: "v0.2 — will reuse the /translate docx renderer."
+  - id: excel
+    status: registered-not-built
+    reason: "v0.2 — one row per prompt + parameter columns; needs a new lib."
+
+# ── Types (v0.2) ────────────────────────────────────────────────────────────
+# Named --type, matching /write, /video and /voice — the repo already uses that word
+# for exactly this concept, and a second word for the same idea is just friction.
+#
+# A type is a FIXED-STRUCTURE template with slots, not a prompt assembled from the
+# 28-parameter library. Some deliverables (a turnaround sheet, a storyboard) are
+# precision instruments: their value is in the exact wording and the exact layout
+# spec, and "improving" the prose would break them. Those live here as template
+# files; the skill fills the slots and leaves everything else byte-identical.
+#
+# Adding a type   = one row here + types/<id>/{template.md,SKILL.md}. NO command
+# change, NO params.cjs change. That is the whole point of this axis.
+types:
+  - id: character-turnaround
+    aliases: [character-sheet, turnaround, model-sheet]
+    status: installed
+    directions: [image]
+    template: 06-ai-ops/skills/prompt/types/character-turnaround/template.md
+    skill: 06-ai-ops/skills/prompt/types/character-turnaround/SKILL.md
+    slots: [CHARACTER_DESCRIPTION, STYLING_NOTES]
+    requires_ref: true
+    compatible_modes: [text, json]
+    default_ar: "16:9"
+    default_model: gpt-image-2
+    realism_override: balanced
+    waives_anchors: [camera-background]
+    waiver_reason: >
+      A turnaround sheet is a TECHNICAL reference, not a photograph pretending to be
+      candid. A neutral studio background and controlled DSLR lighting are the CORRECT
+      answer here — "candid framing, uncontrolled background" would destroy the
+      readability the sheet exists for. Anchor 1 (skin texture) still applies; anchor 2
+      is satisfied because a studio genuinely IS the situation.
+    description: >
+      Six-column photorealistic character turnaround sheet (0° front · 45° left ·
+      90° left profile · 90° right profile · 45° right · 180° back), each column
+      carrying a full-body view above a rotation-matched close-up portrait. The
+      identity anchor for every downstream avatar scene: upload this sheet as the
+      reference and the same person survives across outfits, locations and poses.
+      Implements step 7 of the avatar workflow in library/REALISM-PLAYBOOK.md §6.
+
+verbs:
+  - id: build
+    default: true
+    description: Author a NEW prompt from the user's idea.
+  - id: enhance
+    description: >
+      Diagnose an EXISTING prompt against the framework and repair it. Reports
+      which of the six AVB parts was missing, weak, or unclear.
+
+realism_levels:
+  - id: max
+    default: true
+    description: >
+      All three anti-AI anchors enforced (skin · situational lighting · imperfect
+      camera+background). For anything meant to read as a real photograph.
+  - id: balanced
+    description: Anchors applied but not stacked; for polished commercial work.
+  - id: off
+    description: >
+      No anchors. Correct for anime / 3D / illustration / graphic work, where
+      "imperfect skin texture" is meaningless.
+
+# The three giveaways that make an AI image readable as AI, in the priority order
+# taught in the source lessons. PINNED here so a direction cannot silently drop one.
+realism_anchors:
+  - id: skin
+    rank: 1
+    label: "Airbrushed plastic skin"
+    remedy_params: [texture, casting]
+    example: "natural skin pores visible, light skin imperfections, matte skin finish"
+  - id: situational-lighting
+    rank: 2
+    label: "Perfect studio lighting where it could not physically exist"
+    remedy_params: [lighting, environment, time-of-day]
+    example: "lighting must match the situation — no ring light on a face that is outdoors"
+  - id: camera-background
+    rank: 3
+    label: "Perfect camera framing and unnaturally clean background"
+    remedy_params: [camera, camera-body, composition, environment]
+    example: "shot on an iPhone 15, candid scene with natural framing, real uncontrolled background"
+
+# Words that push an image toward the fake, over-polished AI look. /prompt never
+# emits these, and `enhance` flags them when found in the input prompt.
+banned_phrases:
+  - cinematic masterpiece
+  - hyper-detailed
+  - ultra-glossy
+  - perfect lighting
+  - award-winning
+  - 8k ultra HD
+  - trending on artstation
+  - masterpiece
+  - best quality
+
+# ── Directions ──────────────────────────────────────────────────────────────
+
+directions:
+  - id: image
+    aliases: [img, picture, photo]
+    status: installed
+    default: true
+    description: >
+      Still-image prompts. Runs on the 28-parameter / 2264-value library distilled
+      from the AVB prompt framework, applied with a photographer's and a director's
+      eye: shot size sells emotion, lighting must be physically possible, and the
+      three AI giveaways are actively neutralised.
+    skill: 06-ai-ops/skills/prompt/directions/image/SKILL.md
+    library_path: 06-ai-ops/skills/prompt/library/
+    library_index: 06-ai-ops/skills/prompt/library/00-MASTER-REFERENCE.md
+    realism_playbook: 06-ai-ops/skills/prompt/library/REALISM-PLAYBOOK.md
+    param_count: 28
+    supported_modes: [text, json, ref, smart]
+    supported_outputs: [default, markdown, artifact]
+    supported_types: [character-turnaround]
+    # Founder default (2026-07-30): 16:9. /prompt is a general-purpose front door, not a
+    # social-first one — a wide frame is the most reusable starting point and crops down
+    # more gracefully than a square crops out. Override per run with --ar.
+    default_ar: "16:9"
+    chains_to: image        # /image --use=<model> can consume the output
+    models:
+      - id: gpt-image-2
+        default: true
+        syntax: prose
+        realism_keyword: photorealism
+        keyword_position: end
+        notes: >
+          OpenAI engineers stated the literal word "photorealism" carries real
+          weight for realism. Appended at the very end unless --realism=off.
+        strengths: [realism, instruction-following, text-in-image]
+      - id: nano-banana-pro
+        syntax: prose
+        strengths: [reference-consistency, faces, natural-skin]
+        notes: "Strongest sibling to gpt-image-2 for repeatable avatars."
+      - id: midjourney
+        syntax: prose-plus-params
+        param_flags: ["--ar", "--style raw", "--s", "--no"]
+        notes: >
+          Takes trailing parameter flags, not prose instructions, for ratio and
+          stylization. `--style raw` is the realism lever; `--no` is the negative.
+        strengths: [aesthetics, art-direction]
+      - id: flux
+        syntax: prose
+        strengths: [prose-adherence, anatomy]
+      - id: generic
+        syntax: prose
+        notes: "Model-agnostic prose. No engine-specific keyword or flag is added."
+
+  - id: video
+    aliases: [vid, clip]
+    status: registered-not-built
+    default: false
+    description: >
+      Motion prompts — the same library plus camera movement, action beats, and
+      shutter/frame-rate. The library already carries these parameters (17, 07, 16);
+      what is missing is the direction skill and the per-engine model profiles.
+    reason_not_built: >
+      v0.1 scoped to image on founder instruction. Building this = add the
+      direction SKILL.md + a models list here; no command-side change.
+    supported_modes: [text, json, ref, smart]
+    supported_outputs: [default, markdown, artifact]
