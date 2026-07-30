@@ -7,7 +7,7 @@
 This file is THE source of truth for sop recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 
-**Total entries:** 123
+**Total entries:** 124
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -355,6 +355,20 @@ Read in any Claude Code session via `@knowledge/recipients/sops.md` import.
 **When to use:** Standard Operating Procedure SOP-AIOPS-018-video-runtime-contract
 
 **Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-018-video-runtime-contract/flow.yaml")`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+**Pillar:** 06-ai-ops
+
+## sop/SOP-AIOPS-019-prompt-runtime-contract
+
+**Kind:** sop
+**Axis:** capability
+**When to use:** Standard Operating Procedure SOP-AIOPS-019-prompt-runtime-contract
+
+**Invoke:** Triggered by event subscriptions, or `Read("06-ai-ops/sops/SOP-AIOPS-019-prompt-runtime-contract/flow.yaml")`
 **HITL tier:** A
 **Side effect:** none
 

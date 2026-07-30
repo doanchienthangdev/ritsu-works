@@ -7,7 +7,7 @@
 This file is THE source of truth for command recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/commands.md` import.
 
-**Total entries:** 31
+**Total entries:** 32
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -328,6 +328,28 @@ then renders through scripts/mm/render.py. Output → ".archives/Mental Models/<
 **When to use:** Project-scoped command for ritsu-works. Front-end for the playbook-builder capability (v1.0.0). Capability spec at wiki/capabilities/playbook-builder/ spec.md (after Phase 8 promotion; current draft .archives/cla/playbook-builder/ spec.md).
 
 **Invoke:** `/playbook`
+**HITL tier:** A
+**Side effect:** none
+
+**Role scope:** *
+**Status:** active
+
+## command/prompt
+
+**Kind:** command
+**Axis:** capability
+**When to use:** Author a generation prompt — direction-based front door: `/prompt <direction>
+[build|enhance] "<idea>"`. v0.1 ships direction `image` (video registered-not-built),
+running on a 28-parameter / 2264-value library plus a realism playbook distilled from
+the AVB lessons. Four modes (--mode text|json|ref|smart), two verbs (build authors,
+enhance diagnoses+repairs), five model profiles (gpt-image-2 default, auto-appends
+`photorealism`). Enforces the three anti-AI anchors — plastic skin, impossible studio
+lighting, too-perfect camera/background — and never emits the framework's banned
+phrases. Output: terminal code block by default, or --output=markdown|artifact (real
+Copy buttons). Tier A, ZERO API spend; only --generate (chains to /image) costs money.
+Thin orchestrator over the `prompt` umbrella skill.
+
+**Invoke:** `/prompt`
 **HITL tier:** A
 **Side effect:** none
 

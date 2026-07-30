@@ -7,7 +7,7 @@
 This file is THE source of truth for page recipients in the resolver v2 catalog.
 Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 
-**Total entries:** 65
+**Total entries:** 66
 **Format spec:** `.archives/cla/resolver-v2/spec.md` §3
 
 ---
@@ -778,6 +778,20 @@ Read in any Claude Code session via `@knowledge/recipients/pages.md` import.
 **Authority:** SoR
 **Freshness:** static
 **Grounding:** knowledge/product-code-source-contract.yaml
+
+**Role scope:** *
+**Status:** active
+
+## page/knowledge-prompt-directions
+
+**Kind:** page
+**Axis:** content
+**When to use:** ============================================================================ prompt-directions.yaml — direction registry (capability prompt-platform) ============================================================================ Single index for the /prompt direction layer (`/prompt <direction> …`). Adding a NEW direction later = drop 06-ai-ops/skills/prompt/directions/<id>/SKILL.md + one row here. ...
+
+**Invoke:** `Read("knowledge/prompt-directions.yaml")`
+**Authority:** SoR
+**Freshness:** static
+**Grounding:** knowledge/prompt-directions.yaml
 
 **Role scope:** *
 **Status:** active
