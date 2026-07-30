@@ -43,6 +43,8 @@ const ALL_IDS = [
   "supabase-cli",
   "python3",
   "ffmpeg",
+  "hyperframes",
+  "heygen-cli",
   "bun",
 ];
 
@@ -55,12 +57,12 @@ describe("local-install dependencies module", () => {
       expect(Array.isArray(DEPENDENCIES)).toBe(true);
     });
 
-    it("contains exactly the 8 expected dependency ids in declaration order", () => {
+    it("contains exactly the 10 expected dependency ids in declaration order", () => {
       expect(DEPENDENCIES.map((d: any) => d.id)).toEqual(ALL_IDS);
     });
 
-    it("has 8 entries", () => {
-      expect(DEPENDENCIES.length).toBe(8);
+    it("has 10 entries", () => {
+      expect(DEPENDENCIES.length).toBe(10);
     });
 
     it.each(ALL_IDS)("entry %s has id/label/required/detect fields", (id) => {
@@ -181,12 +183,12 @@ describe("local-install dependencies module", () => {
       expect(ids).toEqual(expect.arrayContaining(["python3", "ffmpeg", "bun"]));
     });
 
-    it("level 'feature' contains exactly python3/ffmpeg/bun", () => {
+    it("level 'feature' contains exactly python3/ffmpeg/hyperframes/heygen-cli/bun", () => {
       const ids = dependenciesByLevel("feature").map((d: any) => d.id).sort();
-      expect(ids).toEqual(["bun", "ffmpeg", "python3"]);
+      expect(ids).toEqual(["bun", "ffmpeg", "heygen-cli", "hyperframes", "python3"]);
     });
 
-    it("the three levels partition all 8 dependencies", () => {
+    it("the three levels partition all 10 dependencies", () => {
       const total =
         dependenciesByLevel("hard").length +
         dependenciesByLevel("recommended").length +
