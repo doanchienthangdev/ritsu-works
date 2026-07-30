@@ -91,7 +91,35 @@ const GATE_DEFAULTS = Object.freeze({
 const VALID_STATUSES = Object.freeze(['installed', 'registered-not-built']);
 const VALID_FPS = Object.freeze([24, 25, 30, 60]);
 const RESOLUTION_RE = /^\d{2,5}x\d{2,5}$/;
+// Identifier slug — a video TYPE id in knowledge/video-types.yaml. Flat, always.
 const SLUG_RE = /^[a-z][a-z0-9-]*$/;
+
+// PROJECT slug — the folder under video/projects/. Accepts a flat project
+// (`ritsu-product-launch`) OR one level of series nesting
+// (`ritsu-getting-started/ep01-what-is-ritsu`).
+//
+// Deliberately a SEPARATE regex from SLUG_RE. The two are validated by different
+// callers — scaffold.cjs checks project slugs, validate-video-types.cjs checks
+// type ids — and loosening the shared one would have silently allowed a type id
+// like `explainer/foo`.
+//
+// EXACTLY ONE level of nesting. Two reasons, both load-bearing:
+//   1. video/.gitignore enumerates the media dirs per depth (`projects/*/assets/`
+//      and `projects/*/*/assets/`). Arbitrary depth would silently un-ignore
+//      gigabytes of source media — the ignore file is the real constraint here,
+//      not this regex.
+//   2. A series of episodes is the actual use case. Deeper trees are a filing
+//      system, not a production.
+const PROJECT_SLUG_RE = /^[a-z][a-z0-9-]*(\/[a-z][a-z0-9-]*)?$/;
+
+/** Split a project slug into its series (or null) and leaf name. */
+function splitProjectSlug(slug) {
+  if (typeof slug !== 'string' || !PROJECT_SLUG_RE.test(slug)) return null;
+  const i = slug.indexOf('/');
+  return i === -1
+    ? { series: null, leaf: slug, depth: 1 }
+    : { series: slug.slice(0, i), leaf: slug.slice(i + 1), depth: 2 };
+}
 
 /** Asset-code filename for a slot. `<PREFIX>-<NN>-b<BEAT>.<ext>` */
 function assetCode(slotKind, ordinal, beat) {
@@ -113,5 +141,6 @@ module.exports = {
   KNOWN_ARTIFACTS, KNOWN_TARGETS, UNIVERSAL_PARAMS, STAGES,
   NARRATION_TARGET_LUFS, NARRATION_MAX_TRUE_PEAK, LOUDNESS_TOLERANCE_LU,
   GATE_DEFAULTS, VALID_STATUSES, VALID_FPS, RESOLUTION_RE, SLUG_RE,
+  PROJECT_SLUG_RE, splitProjectSlug,
   assetCode, inForbiddenZoomBand,
 };

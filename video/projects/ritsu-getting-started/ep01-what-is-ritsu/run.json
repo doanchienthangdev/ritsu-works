@@ -1,0 +1,658 @@
+{
+  "state_version": 1,
+  "slug": "ritsu-getting-started/ep01-what-is-ritsu",
+  "type": "explainer",
+  "style": "ritsu",
+  "created_at": "2026-07-30T06:06:08.544Z",
+  "updated_at": "2026-07-30T06:24:16.548Z",
+  "stage": "assets",
+  "resolution": "1920x1080",
+  "fps": 30,
+  "aspect": "16:9",
+  "beats": [],
+  "slots": [
+    {
+      "code": "VO-01-b1",
+      "kind": "voice",
+      "beat": "1",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-01-b1.mp3",
+      "prepped_path": "assets/voice/VO-01-b1.mp3",
+      "sha256": "d254cc93254d1c0fda22a8cd6444e3707ac1bbb0aef078910df193b08db4053e",
+      "bytes": 46509,
+      "duration_s": 11.52,
+      "supplied_at": "2026-07-30T06:22:11.828Z",
+      "prepped_at": "2026-07-30T06:22:11.828Z"
+    },
+    {
+      "code": "VO-02-b2",
+      "kind": "voice",
+      "beat": "2",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-02-b2.mp3",
+      "prepped_path": "assets/voice/VO-02-b2.mp3",
+      "sha256": "0536bf43a6ec827a8f6654d4cdeeb1ac12a7e42b8fdaee5bc1e0c811f737c279",
+      "bytes": 28941,
+      "duration_s": 7.12,
+      "supplied_at": "2026-07-30T06:22:12.252Z",
+      "prepped_at": "2026-07-30T06:22:12.252Z"
+    },
+    {
+      "code": "VO-03-b3",
+      "kind": "voice",
+      "beat": "3",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-03-b3.mp3",
+      "prepped_path": "assets/voice/VO-03-b3.mp3",
+      "sha256": "195886598b47dd147a06b9d0da2c3e61926732206761b7fd349dbe71f3421921",
+      "bytes": 19053,
+      "duration_s": 2.32,
+      "supplied_at": "2026-07-30T06:22:12.520Z",
+      "prepped_at": "2026-07-30T06:22:12.520Z"
+    },
+    {
+      "code": "VO-04-b3a",
+      "kind": "voice",
+      "beat": "3a",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-04-b3a.mp3",
+      "prepped_path": "assets/voice/VO-04-b3a.mp3",
+      "sha256": "3917ac0f218da8e1f458754240016c3995ee7136afe1be16673118f7abe784d9",
+      "bytes": 19629,
+      "duration_s": 2.4,
+      "supplied_at": "2026-07-30T06:22:12.710Z",
+      "prepped_at": "2026-07-30T06:22:12.710Z"
+    },
+    {
+      "code": "VO-05-b3b",
+      "kind": "voice",
+      "beat": "3b",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-05-b3b.mp3",
+      "prepped_path": "assets/voice/VO-05-b3b.mp3",
+      "sha256": "32945dd463471680c04c0538537c5a7433f887ee3c3545c10bb1e8836421972a",
+      "bytes": 84909,
+      "duration_s": 10.56,
+      "supplied_at": "2026-07-30T06:22:13.252Z",
+      "prepped_at": "2026-07-30T06:22:13.252Z"
+    },
+    {
+      "code": "VO-06-b6",
+      "kind": "voice",
+      "beat": "6",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-06-b6.mp3",
+      "prepped_path": "assets/voice/VO-06-b6.mp3",
+      "sha256": "13eeade1eef20e01d0068c6963f9bb718b1d60c7b06aeaa2841575c1087a3285",
+      "bytes": 162477,
+      "duration_s": 20.24,
+      "supplied_at": "2026-07-30T06:22:14.320Z",
+      "prepped_at": "2026-07-30T06:22:14.320Z"
+    },
+    {
+      "code": "VO-07-b7",
+      "kind": "voice",
+      "beat": "7",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-07-b7.mp3",
+      "prepped_path": "assets/voice/VO-07-b7.mp3",
+      "sha256": "4ac60a060ed50c4e0bd539f2ee2e771ca09e6813583f4b2a5e317aa78b681371",
+      "bytes": 27021,
+      "duration_s": 6.64,
+      "supplied_at": "2026-07-30T06:22:15.110Z",
+      "prepped_at": "2026-07-30T06:22:15.110Z"
+    },
+    {
+      "code": "VO-08-b8",
+      "kind": "voice",
+      "beat": "8",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-08-b8.mp3",
+      "prepped_path": "assets/voice/VO-08-b8.mp3",
+      "sha256": "c03c8c5539a8439e3f0225aa012d96b3567b0fde6d951b44804f64eb2b007875",
+      "bytes": 18381,
+      "duration_s": 4.48,
+      "supplied_at": "2026-07-30T06:22:15.397Z",
+      "prepped_at": "2026-07-30T06:22:15.397Z"
+    },
+    {
+      "code": "VO-09-b9",
+      "kind": "voice",
+      "beat": "9",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-09-b9.mp3",
+      "prepped_path": "assets/voice/VO-09-b9.mp3",
+      "sha256": "f9942e0a14449261945f1c30cdf6d40bdf9f36caf24e42759d85b10477f1a07b",
+      "bytes": 19629,
+      "duration_s": 2.4,
+      "supplied_at": "2026-07-30T06:22:15.686Z",
+      "prepped_at": "2026-07-30T06:22:15.686Z"
+    },
+    {
+      "code": "VO-10-b10",
+      "kind": "voice",
+      "beat": "10",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-10-b10.mp3",
+      "prepped_path": "assets/voice/VO-10-b10.mp3",
+      "sha256": "8e5a38f164bfa627c3e9cd59e4beb3e14ade4e4cb7ff7a5a3bbbbc4922e07d6b",
+      "bytes": 91437,
+      "duration_s": 11.36,
+      "supplied_at": "2026-07-30T06:22:16.242Z",
+      "prepped_at": "2026-07-30T06:22:16.242Z"
+    },
+    {
+      "code": "VO-11-b11",
+      "kind": "voice",
+      "beat": "11",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-11-b11.mp3",
+      "prepped_path": "assets/voice/VO-11-b11.mp3",
+      "sha256": "449b31f83e7f377e250d4ce65b624fbcdfac5c3add65dd0d29270392c0f2e8e9",
+      "bytes": 24141,
+      "duration_s": 5.92,
+      "supplied_at": "2026-07-30T06:22:16.649Z",
+      "prepped_at": "2026-07-30T06:22:16.649Z"
+    },
+    {
+      "code": "VO-12-b12",
+      "kind": "voice",
+      "beat": "12",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-12-b12.mp3",
+      "prepped_path": "assets/voice/VO-12-b12.mp3",
+      "sha256": "b6fe08eee9d049518e2effc4b500d225090728781617f6bb011dc689b356d702",
+      "bytes": 29613,
+      "duration_s": 7.28,
+      "supplied_at": "2026-07-30T06:22:17.013Z",
+      "prepped_at": "2026-07-30T06:22:17.013Z"
+    },
+    {
+      "code": "VO-13-b13",
+      "kind": "voice",
+      "beat": "13",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-13-b13.mp3",
+      "prepped_path": "assets/voice/VO-13-b13.mp3",
+      "sha256": "8c2e349720733a871c8376150a89d2e9af20b9b544887a093afaa901c1671d85",
+      "bytes": 63213,
+      "duration_s": 15.68,
+      "supplied_at": "2026-07-30T06:22:17.554Z",
+      "prepped_at": "2026-07-30T06:22:17.554Z"
+    },
+    {
+      "code": "VO-14-b14",
+      "kind": "voice",
+      "beat": "14",
+      "state": "prepped",
+      "spec": {
+        "engine": "elevenlabs",
+        "voice": "KAI",
+        "lufs": -16,
+        "tp": -1.5
+      },
+      "source_path": "assets/voice/VO-14-b14.mp3",
+      "prepped_path": "assets/voice/VO-14-b14.mp3",
+      "sha256": "32a7339394c55b74b4fdd1130ca935accbad7d00b204f0d7d5f994cb3edc54e6",
+      "bytes": 61869,
+      "duration_s": 7.68,
+      "supplied_at": "2026-07-30T06:22:18.208Z",
+      "prepped_at": "2026-07-30T06:22:18.208Z"
+    },
+    {
+      "code": "SC-01-b7",
+      "kind": "screen",
+      "beat": "7",
+      "state": "requested",
+      "spec": {
+        "handoff": true,
+        "note": "record spec in FOOTAGE.md §4"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "SC-02-b8",
+      "kind": "screen",
+      "beat": "8",
+      "state": "requested",
+      "spec": {
+        "handoff": true,
+        "note": "record spec in FOOTAGE.md §4"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "SC-03-b9",
+      "kind": "screen",
+      "beat": "9",
+      "state": "requested",
+      "spec": {
+        "handoff": true,
+        "note": "record spec in FOOTAGE.md §4"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "SC-04-b10",
+      "kind": "screen",
+      "beat": "10",
+      "state": "requested",
+      "spec": {
+        "handoff": true,
+        "note": "record spec in FOOTAGE.md §4"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "SC-05-b11",
+      "kind": "screen",
+      "beat": "11",
+      "state": "requested",
+      "spec": {
+        "handoff": true,
+        "note": "record spec in FOOTAGE.md §4"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "SC-06-b13",
+      "kind": "screen",
+      "beat": "13",
+      "state": "requested",
+      "spec": {
+        "handoff": true,
+        "note": "record spec in FOOTAGE.md §4"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "SC-07-b14",
+      "kind": "screen",
+      "beat": "14",
+      "state": "requested",
+      "spec": {
+        "handoff": true,
+        "note": "record spec in FOOTAGE.md §4"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "LA-01-b12",
+      "kind": "footage",
+      "beat": "12",
+      "state": "requested",
+      "spec": {
+        "handoff": true,
+        "note": "generic chat window, no logos"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "AV-01-b4",
+      "kind": "avatar",
+      "beat": "4",
+      "state": "requested",
+      "spec": {
+        "engine": "heygen",
+        "voice": "KAI"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "AV-02-b5",
+      "kind": "avatar",
+      "beat": "5",
+      "state": "requested",
+      "spec": {
+        "engine": "heygen",
+        "voice": "KAI"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "AV-03-b15",
+      "kind": "avatar",
+      "beat": "15",
+      "state": "requested",
+      "spec": {
+        "engine": "heygen",
+        "voice": "KAI"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "MG-01-b1",
+      "kind": "mg",
+      "beat": "1",
+      "state": "requested",
+      "spec": {
+        "authored_in": "index.html"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "MG-02-b2",
+      "kind": "mg",
+      "beat": "2",
+      "state": "requested",
+      "spec": {
+        "authored_in": "index.html"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "MG-03-b3",
+      "kind": "mg",
+      "beat": "3",
+      "state": "requested",
+      "spec": {
+        "authored_in": "index.html"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "MG-04-b3a",
+      "kind": "mg",
+      "beat": "3a",
+      "state": "requested",
+      "spec": {
+        "authored_in": "index.html"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "MG-05-b3b",
+      "kind": "mg",
+      "beat": "3b",
+      "state": "requested",
+      "spec": {
+        "authored_in": "index.html"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "MG-06-b6",
+      "kind": "mg",
+      "beat": "6",
+      "state": "requested",
+      "spec": {
+        "authored_in": "index.html"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "MG-07-b14",
+      "kind": "mg",
+      "beat": "14",
+      "state": "requested",
+      "spec": {
+        "authored_in": "index.html"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "MUS-01-all",
+      "kind": "music",
+      "beat": null,
+      "state": "requested",
+      "spec": {
+        "source": "heygen-catalog",
+        "lufs": -26
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "SFX-01-b3",
+      "kind": "sfx",
+      "beat": "3",
+      "state": "requested",
+      "spec": {
+        "lufs": -24
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "SFX-02-b14",
+      "kind": "sfx",
+      "beat": "14",
+      "state": "requested",
+      "spec": {
+        "lufs": -24
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    },
+    {
+      "code": "BR-01-all",
+      "kind": "brand",
+      "beat": null,
+      "state": "requested",
+      "spec": {
+        "asset": "ritsu mark"
+      },
+      "source_path": null,
+      "prepped_path": null,
+      "sha256": null,
+      "bytes": null,
+      "duration_s": null,
+      "supplied_at": null,
+      "prepped_at": null
+    }
+  ],
+  "gates": [],
+  "renders": [],
+  "cost": {
+    "spent_usd": 0.0701,
+    "entries": [
+      {
+        "stage": "assets",
+        "usd": 0.0701,
+        "detail": null,
+        "at": "2026-07-30T06:24:16.548Z"
+      }
+    ]
+  }
+}

@@ -609,3 +609,91 @@ describe("selfcheck — the /video toolchain doctor", () => {
     expect(heygen.hard).toBe(false);
   });
 });
+
+// ── series projects (nested slug) ──────────────────────────────────────────
+// Added when the "Starting With Ritsu" series needed
+// video/projects/<series>/<episode>/ instead of 11 sibling top-level projects.
+// The regex is the cheap half; the .gitignore is the half that matters, because
+// `projects/*/assets/` matches exactly ONE level — without the depth-2 lines an
+// episode would commit gigabytes of source media.
+describe("PROJECT_SLUG_RE — series nesting", () => {
+  const { PROJECT_SLUG_RE, splitProjectSlug, SLUG_RE } = require("../../scripts/video/lib/params.cjs");
+
+  it("accepts a flat project slug", () => {
+    expect(PROJECT_SLUG_RE.test("ritsu-product-launch")).toBe(true);
+  });
+
+  it("accepts exactly one level of series nesting", () => {
+    expect(PROJECT_SLUG_RE.test("ritsu-getting-started/ep01-what-is-ritsu")).toBe(true);
+  });
+
+  it("rejects two levels of nesting", () => {
+    expect(PROJECT_SLUG_RE.test("a/b/c")).toBe(false);
+  });
+
+  it.each([
+    ["leading slash", "/ep01"],
+    ["trailing slash", "series/"],
+    ["empty segment", "series//ep"],
+    ["leading digit in segment", "series/1ep"],
+    ["uppercase", "Series/ep01"],
+    ["underscore", "series/ep_01"],
+    ["path traversal", "series/../../etc"],
+    ["dot segment", "series/./ep"],
+    ["space", "series/ep 01"],
+    ["empty string", ""],
+  ])("rejects %s", (_label, slug) => {
+    expect(PROJECT_SLUG_RE.test(slug)).toBe(false);
+  });
+
+  it("leaves the type-id regex flat — a type id may never contain a slash", () => {
+    // Regression guard: SLUG_RE is shared with validate-video-types.cjs. Loosening
+    // it instead of adding PROJECT_SLUG_RE would have allowed a type id `explainer/foo`.
+    expect(SLUG_RE.test("explainer/foo")).toBe(false);
+    expect(SLUG_RE.test("explainer")).toBe(true);
+  });
+
+  it("splits a nested slug into series and leaf", () => {
+    expect(splitProjectSlug("ritsu-getting-started/ep01-what-is-ritsu")).toEqual({
+      series: "ritsu-getting-started",
+      leaf: "ep01-what-is-ritsu",
+      depth: 2,
+    });
+  });
+
+  it("reports depth 1 and a null series for a flat slug", () => {
+    expect(splitProjectSlug("ritsu-product-launch")).toEqual({
+      series: null,
+      leaf: "ritsu-product-launch",
+      depth: 1,
+    });
+  });
+
+  it("returns null for an invalid slug rather than throwing", () => {
+    expect(splitProjectSlug("a/b/c")).toBeNull();
+    expect(splitProjectSlug(undefined as any)).toBeNull();
+  });
+});
+
+describe("video/.gitignore — depth-2 media must stay ignored", () => {
+  const ignore = fs.readFileSync(path.join(REPO_ROOT, "video", ".gitignore"), "utf-8");
+
+  it.each(["assets", "build", "out"])(
+    "ignores projects/*/*/%s/ so a series never commits media",
+    (dir) => {
+      expect(ignore).toContain(`projects/*/*/${dir}/`);
+    },
+  );
+
+  it("keeps the filmstrip exception at depth 2", () => {
+    // filmstrip.jpg is the ONE committed binary — the only auditable evidence a
+    // render was verified. It must survive the depth-2 ignore just as it does at depth 1.
+    expect(ignore).toContain("!projects/*/*/out/filmstrip.jpg");
+  });
+
+  it("still ignores depth-1 media (no regression)", () => {
+    for (const dir of ["assets", "build", "out"]) {
+      expect(ignore).toContain(`projects/*/${dir}/`);
+    }
+  });
+});
