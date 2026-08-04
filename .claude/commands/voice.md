@@ -164,6 +164,6 @@ has no memory of the others, so left alone the chunks drift in voice, tone, pace
 Tier A (reversible, local writes, metered + capped). Recording = `GEMINI_API_KEY` /
 `OPENAI_API_KEY` out-of-band (compliant with the api-key-vs-subscription policy);
 preprocessing = in-session/subscription. Cost-bucket `ai-ops-voice` (gps):
-`voice-gen` $0.50 (advisory — out-of-band; the `--max-cost-usd` breaker is the real
-guard), `voice-preprocess` $0.10 (in-session). Runtime contract:
+`voice-gen` USD 0.50 (advisory — out-of-band; the `--max-cost-usd` breaker is the real
+guard), `voice-preprocess` USD 0.10 (in-session). Runtime contract:
 `SOP-AIOPS-014-voice-runtime-contract`.

@@ -142,7 +142,7 @@ CAPABILITY:    gbrain-operational-brain v1.0 (operating since 2026-05-25)
 ENGINE:        gbrain v0.40.2.0 (postgres)
 PAGES:         N (by type: M note, P person, Q company, ...)
 BRAIN SCORE:   X/100   HEALTH: status
-CAP STATUS:    $X.XX / $100 monthly (rolling 30d)
+CAP STATUS:    USD X.XX / USD 100 monthly (rolling 30d)
 
 📖 READ — search & retrieval (10)
   /brain search "<q>"            — semantic search top 5
@@ -227,7 +227,7 @@ CAP STATUS:    $X.XX / $100 monthly (rolling 30d)
 1. **Invoke** `mcp__gbrain__think` with `question` (+ optional `anchor` slug to scope to one entity's subgraph; + optional `since`/`until` time window).
 2. **gbrain orchestrates** multi-hop retrieval: pulls evidence from pages + takes + graph.
 3. **Returns** cited answer with conflict + gap analysis.
-4. **Cost** depends on `model` override (default Opus). Typical $0.10-0.50 per call.
+4. **Cost** depends on `model` override (default Opus). Typical USD 0.10-0.50 per call.
 5. **Display** answer + citations table.
 
 This is the highest-value brain operation. Use when a single search isn't enough — you need composition across multiple pages with reasoning.
@@ -314,9 +314,9 @@ Aggregation: `metrics.gbrain_cost_daily` view + `metrics.sum_gbrain_cost_rolling
 ## Hard-cap behavior (Hard-cap Option B graceful degrade)
 
 Per `scripts/pre-budget-check.sh` (Sprint 5, v1.0.1 hotfix):
-- $80-100: alert tier — `/brain status` shows ⚠
-- $100-150: graceful degrade — WRITE subcommands return error; READ continues
-- ≥$150: MCP fails to load — subcommands return "MCP not available"
+- USD 80-100: alert tier — `/brain status` shows ⚠
+- USD 100-150: graceful degrade — WRITE subcommands return error; READ continues
+- ≥USD 150: MCP fails to load — subcommands return "MCP not available"
 
 When write blocked: "Cap reached. Use `/cla extend gbrain-operational-brain` to raise OR wait month rollover."
 

@@ -32,7 +32,7 @@ fallback selector), `lib/{theme,params,svg,catalog}.cjs`. The umbrella skill
 Per `governance/HITL.md`, `/dataviz` is **Tier A** — pure compute, no money, no
 external surface, no user impact, **no secret/API key** (the renderer is pure/offline,
 unlike `/image`'s `OPENAI_API_KEY`). Cost-bucket `ai-ops-dataviz`; the per-run cost is
-~$0 (deterministic; the only LLM cost is the *calling* agent authoring `--message`/`--data`).
+~USD 0 (deterministic; the only LLM cost is the *calling* agent authoring `--message`/`--data`).
 
 ## Run
 

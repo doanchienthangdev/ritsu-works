@@ -61,7 +61,7 @@ For "should we change pricing?" / "is the wedge wrong?" / "should we rebuild X?"
 
 - Tier A (analysis, PRD draft): execute, surface.
 - Tier B (internal scratch, recruit pre-approved strangers): execute, surface "Telegram notification will fire."
-- Tier C (paying-user A/B, pricing change, recruitment > $50): surface dry-run + ceremony.
+- Tier C (paying-user A/B, pricing change, recruitment > USD 50): surface dry-run + ceremony.
 - Tier D: refuse; surface for founder magic-phrase.
 
 ## Specific to CPO sessions

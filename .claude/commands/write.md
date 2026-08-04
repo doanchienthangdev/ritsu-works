@@ -30,6 +30,7 @@ Front-end for the universal content-writing platform. Parses the subcommand + fl
 | Flag | Default | Notes |
 |---|---|---|
 | `<request>` | — | what to write (positional, or `--request=`) |
+| `--request-file` | — | read `<request>` from a file — for a long brief you don't want to shell-quote. An inline request (positional/`--request=`) wins and the file is reported as ignored. Unreadable/empty file = hard error, never a contentless run. |
 | `--type` | inferred | one of 27+ (`/write types`). Aliases accepted (e.g. `blog-post`→`blog`). |
 | `--medium` | type default | per-type medium (e.g. blog→substack; ad→facebook; video-script→youtube-short). Unknown → type default + warn. |
 | `--author-style` | brand/neutral | a distilled voice (`/write authors`): `seth-godin`, `david-ogilvy`, … |
@@ -95,7 +96,7 @@ Unknown flags WARN (forward-compat), never silently dropped.
 Tier A (reversible, local writes, metered + capped). Drafting/humanizing = in-session/subscription;
 `/image` + `/dataviz` = out-of-band (their own breakers). `--push` to a public/multi-recipient
 surface escalates to Tier C per `governance/HITL.md` (surfaced for approval, never auto-sent).
-Cost-bucket `ai-ops-write` (gps `per_task_kind_caps`: write-orchestration $0.50 · write-draft $1.50
-advisory · write-distill $2.00 · write-humanize $0.20 · write-research $1.00). Runtime contract:
+Cost-bucket `ai-ops-write` (gps `per_task_kind_caps`: write-orchestration USD 0.50 · write-draft USD 1.50
+advisory · write-distill USD 2.00 · write-humanize USD 0.20 · write-research USD 1.00). Runtime contract:
 `06-ai-ops/sops/SOP-AIOPS-015-write-runtime-contract/flow.yaml`. Spec:
 `wiki/capabilities/write-platform/spec.md`.

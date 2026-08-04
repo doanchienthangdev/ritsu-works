@@ -345,7 +345,7 @@ Score: <pre> → <post> (delta=<d>); K4 outcome: <kept|reverted>
 Tests: <N> generated at <test-dir>/<diff-id>.test.cjs (run via vitest)
 Diff: <in-place|PR <url>>
 Marker written: <updated-by: /update v1.0 <run-id> @ <ts>>
-Cost: $<actual> of $1.50 budget
+Cost: USD <actual> of USD 1.50 budget
 Drift: <clean|skipped>
 Run-id: <uuid>
 ```
@@ -355,9 +355,9 @@ Run-id: <uuid>
 | Mechanism | When | Cost | Discipline |
 |---|---|---|---|
 | Hand-edit | Sub-10-LOC tweaks | Free | None |
-| `/update` | Mid-weight refs-driven refresh | ~$0.70/run | Citation + K4 ratchet + audit |
-| `/cla extend` | Structural change (>100 LOC; new components) | $1.50-3 | Full ceremony |
-| `/evolve` | Self-improvement (no refs) | ~$0.50/run | K4 strict (no ±5pt slack) |
+| `/update` | Mid-weight refs-driven refresh | ~USD 0.70/run | Citation + K4 ratchet + audit |
+| `/cla extend` | Structural change (>100 LOC; new components) | USD 1.50-3 | Full ceremony |
+| `/evolve` | Self-improvement (no refs) | ~USD 0.50/run | K4 strict (no ±5pt slack) |
 
 ## v1.0 scope + v1.1 additions
 

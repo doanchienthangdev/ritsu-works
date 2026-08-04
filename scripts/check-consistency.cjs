@@ -243,6 +243,8 @@ async function main() {
     ['validate-roles-task-kind-caps-units.cjs', 'ROLES.md per_task_kind_caps ↔ spec unit expectations'],
     // capability playbook-builder v1.0 — TOC ↔ CHAPTER_ORDER ↔ pdf_path ↔ cover-meta coherence
     ['validate-playbook-coherence.cjs', 'playbook bundle coherence (TOC ↔ build_pdf.py)'],
+    // .claude/commands/*.md — no `$<digit>` token the arg-substitution engine would rewrite
+    ['validate-command-arg-substitution.cjs', 'command docs ↔ arg-substitution safety'],
     // capability design-system-styling v1.0 Sprint 1 — design-systems.yaml structural + file-existence
     ['validate-design-systems.cjs', 'design-systems.yaml ↔ schema + owned paths'],
     // capability deepask v1.2-image Sprint 1 — art-styles.yaml structural + no brand-palette leak (genre axis)

@@ -72,10 +72,10 @@ adapter ships).
 
 | Mode | When | Latency | Cost |
 |---|---|---|---|
-| **A — ambient INDEX** (post-v3-cutover) | You see INDEX.md in CLAUDE.md preamble (~11K tokens); reason naturally about what kinds + entries exist | 0ms | $0 |
-| **A2 — JIT MCP `find()`** (NEW v3) | Need full details for a recipient (composes_with, recency, role_scope) | ~80ms MCP + session ranking | $0 (subscription billing) |
-| **B — explicit `/resolver query`** | Founder CLI ergonomics; delegates to `mcp__supabase-ops__resolver_find` per Q3.4 | ~80ms + session ranking | $0 in-session |
-| **C — keyword fallback** | CRON/edge function (no LLM in loop) | <5ms | $0 |
+| **A — ambient INDEX** (post-v3-cutover) | You see INDEX.md in CLAUDE.md preamble (~11K tokens); reason naturally about what kinds + entries exist | 0ms | USD 0 |
+| **A2 — JIT MCP `find()`** (NEW v3) | Need full details for a recipient (composes_with, recency, role_scope) | ~80ms MCP + session ranking | USD 0 (subscription billing) |
+| **B — explicit `/resolver query`** | Founder CLI ergonomics; delegates to `mcp__supabase-ops__resolver_find` per Q3.4 | ~80ms + session ranking | USD 0 in-session |
+| **C — keyword fallback** | CRON/edge function (no LLM in loop) | <5ms | USD 0 |
 
 **Per Q3.4 resolution**: `/resolver query` (Mode B) is now a thin wrapper that
 invokes `mcp__supabase-ops__resolver_find` internally. Single source of truth (MCP tool)
@@ -237,12 +237,12 @@ Recall acknowledged ~30% (keyword-only); use Mode A whenever possible.
 | `/resolver query` Mode B = in-session LLM | `/resolver query` delegates to `mcp__supabase-ops__resolver_find` |
 | ~80% recall (Mode A reads full catalog) | ~89% recall (session model picks from 20 keyword-pre-filtered) |
 | Catalog grows linearly into ambient (failure at ~800 entries) | Scales to 1500+ entries (INDEX size capped at 15K) |
-| Per-call API cost via Mode B = $0 (in-session) | Per-call API cost = $0 (still in-session per `external-source/anthropic-api`) |
+| Per-call API cost via Mode B = USD 0 (in-session) | Per-call API cost = USD 0 (still in-session per `external-source/anthropic-api`) |
 
 **iter4 policy enforcement**: Original v3 spec proposed Haiku-via-API for L3
 ranking inside MCP subprocess. Founder caught violation of
 `external-source/anthropic-api` policy. Switched L3 to session-model ranking.
-$0 API cost preserved.
+USD 0 API cost preserved.
 
 ## Writes + Events (per subcommand)
 

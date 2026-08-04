@@ -74,4 +74,4 @@ MJ-only knobs `--stylize/--raw/--variety/--weird/--tile` are registered vocabula
 ```
 
 ## Governance
-Tier A (reversible, local writes, metered + capped). Generation = `OPENAI_API_KEY` out-of-band (compliant); `--enhance` = in-session/subscription. Cost-bucket `ai-ops-image` (gps): `image-gen` $0.50 (advisory — out-of-band; the `--max-cost-usd` breaker is the real guard), `image-enhance` $0.10 (hook-enforced). Runtime contract: `SOP-AIOPS-008-image-runtime-contract` (PR-3). deepask is a separate peer consumer — unchanged.
+Tier A (reversible, local writes, metered + capped). Generation = `OPENAI_API_KEY` out-of-band (compliant); `--enhance` = in-session/subscription. Cost-bucket `ai-ops-image` (gps): `image-gen` USD 0.50 (advisory — out-of-band; the `--max-cost-usd` breaker is the real guard), `image-enhance` USD 0.10 (hook-enforced). Runtime contract: `SOP-AIOPS-008-image-runtime-contract` (PR-3). deepask is a separate peer consumer — unchanged.

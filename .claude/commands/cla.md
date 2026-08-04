@@ -214,26 +214,26 @@ acquisition + lineage chain semantics. Per-sub-flow phase lists below
 
 ### `/cla fix <id>` — bug fix (HITL B)
 Phases: 0 (preflight) → 1-delta (problem-framer in fix mode — what's broken?) → 7 (implementation, single PR via @cto) → 8-light (registry version bump patch++, no spec promotion).
-Time: ~30 min. Cost: ~$0.50.
+Time: ~30 min. Cost: ~USD 0.50.
 Spec.md NOT changed (unless bug was a spec bug — in that case escalate to `:revise`).
 
 ### `/cla extend <id>` — scope expansion (HITL B → C)
 Phases: 0 → 1-delta (what's new?) → 3 (system inventory + dependency-scanner) → 5-delta (architect produces spec.md diff; if diff substantial, escalate Tier C) → 6 (sprint plan) → 7 (multi-PR) → 8 (registry minor++, spec.md promotion w/ archive of prior).
-Time: ~2-4h. Cost: ~$1.50-3.
+Time: ~2-4h. Cost: ~USD 1.50-3.
 
 ### `/cla revise <id>` — architecture revision (HITL C)
 Phases: 0 → 1-delta (what fundamentally changes?) → 3 (inventory + deps) → 4 (options regenerate) → 5 (full architect + @cto + Muse panel) → 6 → 7 → 8 (registry major++, spec.md promotion).
-Time: ~1-2 weeks (multi-session). Cost: ~$3-5.
+Time: ~1-2 weeks (multi-session). Cost: ~USD 3-5.
 **This is the heaviest sub-flow.** Use only when fundamental architecture changes (e.g., re-platforming).
 
 ### `/cla tune <id>` — KPI re-tuning (HITL B)
 Phases: 0 → 1-delta (which KPI? new target?) → 8-tune (registry edit only — no spec change, no skill change).
-Time: ~10 min. Cost: ~$0.10.
+Time: ~10 min. Cost: ~USD 0.10.
 Spec.md NOT changed. Version patch++ for tracking.
 
 ### `/cla deprecate <id>` — sunset (HITL C)
 Phases: 0 → 1-delta (why deprecate?) → 3-deps (dependency-scanner — block if dependents) → 8-deprecate (state→`deprecated`, cancel any scheduled SOPs, move CATALOG.md row to Deprecated section).
-Time: ~30 min. Cost: ~$0.30.
+Time: ~30 min. Cost: ~USD 0.30.
 **Irreversible.** Confirms via founder Tier C ceremony per HITL.md. No version bump (state transition only).
 
 ### `/cla history <id>` — read-only timeline (HITL A)
@@ -242,9 +242,9 @@ Queries `ops.v_capability_lineage WHERE capability_id = <id>`. Outputs chronolog
 ```
 chain_depth | version | state       | proposed_at         | sub_flow  | cost  | duration
 ------------|---------|-------------|---------------------|-----------|-------|--------
-0           | 1.0.0   | superseded  | 2026-05-04 12:00    | (initial) | $4.20 | 8 days
-1           | 1.0.1   | superseded  | 2026-05-12 09:00    | fix       | $0.45 | 2 hours
-2           | 1.1.0   | operating   | 2026-05-15 14:00    | extend    | $2.10 | 2 days
+0           | 1.0.0   | superseded  | 2026-05-04 12:00    | (initial) | USD 4.20 | 8 days
+1           | 1.0.1   | superseded  | 2026-05-12 09:00    | fix       | USD 0.45 | 2 hours
+2           | 1.1.0   | operating   | 2026-05-15 14:00    | extend    | USD 2.10 | 2 days
 ```
 
 ### `/cla force-unlock <id>` — break stuck lock (HITL D-Std)

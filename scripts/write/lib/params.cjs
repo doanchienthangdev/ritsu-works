@@ -1,14 +1,18 @@
 // ============================================================================
 // scripts/write/lib/params.cjs — /write universal parameter layer
 // ============================================================================
-// Capability `write-platform` v0.1. PURE, deterministic flag parsing + the
+// Capability `write-platform` v0.1. Deterministic flag parsing + the
 // consequence-honest WARN engine, shared by scripts/write/*.cjs and the skills.
-// No I/O, no network (registry/file reads live in the sibling libs). Mirrors the
-// image/dataviz params convention exactly (parseArgs → {options, provided};
-// unsupported flags WARN, never silently drop).
+// No network. I/O is confined to `readRequestFile` (the one `--request-file`
+// read) — every other function here is pure, and parsing stays pure unless
+// `--request-file` is passed. Mirrors the image/dataviz params convention
+// exactly (parseArgs → {options, provided}; unsupported flags WARN, never
+// silently drop).
 // ============================================================================
 
 'use strict';
+
+const fs = require('fs');
 
 // Subcommands of /write. The first positional token, if it matches one of these,
 // is the subcommand; otherwise the subcommand is 'write' and positionals are the request.
@@ -59,16 +63,45 @@ const CONSEQUENCE = Object.freeze({
   model: 'reserved; the session model is used',
 });
 
+class ParamsError extends Error {
+  constructor(message) { super(message); this.name = 'ParamsError'; }
+}
+
 function splitPlus(val) {
   return String(val).split('+').map((s) => s.trim()).filter(Boolean);
 }
 
 /**
+ * Read `--request-file=<path>` into the request text. The ONLY I/O in this module.
+ * Throws rather than returning empty: the request IS the input, so a missing or
+ * blank file must stop the run, not produce a contentless draft.
+ * @param {string|boolean} filePath value of the --request-file flag
+ * @returns {string} trimmed file contents
+ */
+function readRequestFile(filePath) {
+  if (typeof filePath !== 'string' || !filePath.trim()) {
+    throw new ParamsError('--request-file requires a path (e.g. --request-file=brief.md)');
+  }
+  let raw;
+  try {
+    raw = fs.readFileSync(filePath, 'utf8');
+  } catch (e) {
+    throw new ParamsError(`--request-file "${filePath}" could not be read: ${e.message}`);
+  }
+  // .trim() also strips a leading UTF-8 BOM (U+FEFF is WhiteSpace per ECMA-262).
+  const text = raw.trim();
+  if (!text) throw new ParamsError(`--request-file "${filePath}" is empty — no request to write about`);
+  return text;
+}
+
+/**
  * Parse `/write` argv into a subcommand + options + the set of explicitly-provided flags.
- * Pure. Positional (non-`--`) tokens: first may be a subcommand; the rest join into the
+ * Pure unless `--request-file` is passed (the one read; see `readRequestFile`).
+ * Positional (non-`--`) tokens: first may be a subcommand; the rest join into the
  * request (for `write`/`humanize`) or the target slug (for `distill`).
+ * Throws ParamsError when `--request-file` is given but unusable.
  * @param {string[]} argv
- * @returns {{ subcommand:string, options:object, provided:Set<string>, positional:string[] }}
+ * @returns {{ subcommand:string, options:object, provided:Set<string>, positional:string[], warnings:string[] }}
  */
 function parseWriteArgs(argv) {
   // `out` starts EMPTY (not the default ['default']) so an explicit --out REPLACES rather
@@ -76,6 +109,7 @@ function parseWriteArgs(argv) {
   const options = { ...DEFAULTS, out: [], ref: [], 'ref-src': [], grounding: [] };
   const provided = new Set();
   const positional = [];
+  const warnings = [];
   for (const raw of Array.isArray(argv) ? argv : []) {
     if (typeof raw !== 'string') continue;
     if (!raw.startsWith('--')) { positional.push(raw); continue; }
@@ -129,13 +163,24 @@ function parseWriteArgs(argv) {
     options.request = reqTokens.join(' ');
   }
 
+  // --request-file: read the request from a file, so a long brief needs no shell
+  // quoting. An inline request (--request= or positional) WINS; the file is then
+  // reported as ignored rather than silently dropped.
+  if (provided.has('request-file')) {
+    if (options.request === undefined) {
+      options.request = readRequestFile(options['request-file']);
+    } else {
+      warnings.push('--request-file ignored — an inline request was also given (--request/positional wins)');
+    }
+  }
+
   // out: dedupe + flatten (already split on + by MULTI handling)
   if (Array.isArray(options.out)) {
     options.out = [...new Set(options.out.flatMap(splitPlus))];
     if (options.out.length === 0) options.out = ['default'];
   }
 
-  return { subcommand, options, provided, positional };
+  return { subcommand, options, provided, positional, warnings };
 }
 
 /** Normalize --mode (unknown → 'standard', never throw). */
@@ -173,6 +218,7 @@ function computeWarnings(provided) {
 }
 
 module.exports = {
+  ParamsError,
   SUBCOMMANDS,
   UNIVERSAL_PARAMS,
   MODES,
@@ -185,6 +231,7 @@ module.exports = {
   TRISTATE_FLAGS,
   DEFAULTS,
   parseWriteArgs,
+  readRequestFile,
   normalizeMode,
   normalizeOut,
   computeWarnings,
