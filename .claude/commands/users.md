@@ -53,7 +53,7 @@ registry of who's enrolled lives in `governance/operators.yaml` (owner-PR, CODEO
 2. Append a record to `governance/operators.yaml`: `{email, tier, status: invited, added_by: <owner email>, added_at: <today>}`. Open it as a **PR** (CODEOWNERS → owner review).
 3. Run `node scripts/cross-tier/validate-operators.cjs` — must pass (≥1 owner, unique email, added_by-is-owner, no secrets).
 4. **Sprint 1:** the broker creates the Supabase Auth user with `app_metadata.tier`, generates a single-use ≤24h email-bound magic-link, and sends it via Resend. **Sprint 0:** print the invite instructions for the owner to send manually + mark the record `invited`.
-5. Tell the new operator: clone the repo → `/install-ritsu-works` → (Sprint 1) authenticate with the emailed link before install completes.
+5. Tell the new operator: clone the repo → `/install-ritsu-works --profile=per-human`. DELIVER their session the **prefetch-proof** way: run `node scripts/multi-user-auth/invite.cjs <email> --tier=<tier>`, then `node scripts/multi-user-auth/mint.cjs <email>`, `cat` the emitted 0600 file, and send them the single `enroll.cjs --refresh-token=… --access-token=…` line (a raw magic-link gets auto-consumed by chat/email link-previews). If `invite.cjs` hits a stale owner token it auto-reseeds (`--reseed` to force). Full flow: SOP-AIOPS-017 `onboarding_delivery`.
 
 ## `list`
 Read `governance/operators.yaml` + render a table: email · tier · status · added_by · added_at · github_login. Flag any `invited` older than the invite TTL (stale) and any tier mismatch vs `app_metadata` (Sprint 1).

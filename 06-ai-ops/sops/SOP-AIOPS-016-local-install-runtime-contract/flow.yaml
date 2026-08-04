@@ -58,8 +58,10 @@ install_steps:
     name: "guide the user to fill runtime/secrets/.env.local"
     actions: [owner_vs_cofounder_branch, point_to_env_template, list_required_keys]
     # OWNER: SUPABASE_URL/ANON/SERVICE + MCP_CALLER_ROLE=founder; LLM keys optional.
-    # CO-FOUNDER (per-human): SUPABASE_URL/ANON only + seed the per-human refresh token
-    #   (redeem the owner's magic-link); NO service_role; MCP_CALLER_ROLE ignored.
+    # CO-FOUNDER (per-human): SUPABASE_URL/ANON only + seed the per-human refresh token by
+    #   pasting the token COMMAND the owner sent (mint.cjs → enroll.cjs --refresh-token= --access-token=;
+    #   the prefetch-proof default. raw magic-link is a fragile fallback). NO service_role;
+    #   MCP_CALLER_ROLE ignored. Enrollment contract: SOP-AIOPS-017 onboarding_delivery.
     hitl: A
   - id: handoff
     name: "tell the user to run /test-ritsu-works"

@@ -45,13 +45,27 @@ Ask (or infer from `--profile`): **is this an OWNER install or a CO-FOUNDER (adm
 - **Co-founder** (admin/user tier): a **per-human** install — they authenticate with a
   personal Supabase credential and NEVER get `service_role`/Stripe/bot tokens. Profile `per-human`.
 
-A co-founder must FIRST be enrolled by an owner (now automated by 2 helpers):
+A co-founder must FIRST be enrolled by an owner (3 helpers automate it):
 1. **Owner** runs `/users add <email> --tier=admin|user` (the operators.yaml PR), then
    `node scripts/multi-user-auth/invite.cjs <email> --tier=admin` → creates their Supabase
-   Auth identity via the broker + prints a single-use **magic-link** (owner forwards it).
-2. **Co-founder** installs with `--profile=per-human` (Step 3), fills `SUPABASE_URL`+`ANON`
-   (Step 4), then runs `node scripts/multi-user-auth/enroll.cjs "<magic-link>"` → it
-   follows the link, writes their credential file, and redeems (invited→active). One command.
+   Auth identity + `ops.operators` row via the broker.
+   - If `invite.cjs` fails with a stale/expired owner token (the token is refreshed only by
+     the MCP booting per-human at the **main root**), it **auto-reseeds** a fresh owner session
+     (needs `SUPABASE_SERVICE_KEY`; a new session is created, nothing is revoked). Force it up
+     front with `--reseed` (or `--reseed=<your-owner-email>` if you have 2 owner mailboxes).
+2. **Owner** then runs `node scripts/multi-user-auth/mint.cjs <email>` — the **DEFAULT,
+   prefetch-proof delivery**. It writes a **0600 file containing a token-based enrollment
+   COMMAND** (no url). `cat` it and send the single `node …enroll.cjs …` line to the co-founder
+   through any channel.
+   > **Why not just forward the magic-link?** Chat/email/SafeLinks previews auto-OPEN URLs to
+   > build a link-preview, which CONSUMES the single-use magic-link → the co-founder's `enroll`
+   > then sees `#error=access_denied` ("already used"). A token COMMAND has no url for a preview
+   > to prefetch. The raw magic-link `invite.cjs` prints is a documented **FALLBACK** only.
+3. **Co-founder** installs with `--profile=per-human` (Step 3), fills `SUPABASE_URL`+`ANON`
+   (Step 4), then pastes the command they were sent:
+   `node scripts/multi-user-auth/enroll.cjs --refresh-token=<rt> --access-token=<at>` → it seeds
+   their credential file and redeems (invited→active) in one shot.
+   (Fallback path: `enroll.cjs "<magic-link>"` — only if the owner forwarded a raw link.)
 
 Carry the chosen profile into Steps 3–4 below. When unsure, ask; default to `owner`.
 
@@ -107,11 +121,12 @@ left an existing one untouched).
 > - `RITSU_AUTH_MODE=per-human` is already set; leave `MCP_CALLER_ROLE` unset (ignored in per-human mode).
 > - `RITSU_OPERATOR_REFRESH_TOKEN_FILE` was already pinned to your clone's absolute path by the installer — don't touch it.
 >
-> Then complete enrollment in ONE command (do NOT click the magic-link in a browser first — it's single-use, let the script consume it):
+> Then complete enrollment. The owner sends you ONE command line — the DEFAULT, prefetch-proof path. Paste it exactly (byte-for-byte; don't retype long tokens):
 > ```
-> node scripts/multi-user-auth/enroll.cjs "<the magic-link the owner sent you>"
+> node scripts/multi-user-auth/enroll.cjs --refresh-token=<rt> --access-token=<at>
 > ```
-> It follows the link, writes your credential file (`runtime/secrets/.operator-refresh.json`), and redeems (invited→active). Fallback if you already opened the link in a browser: copy the tokens from the browser URL fragment and run `enroll.cjs --refresh-token=<rt> --access-token=<at>`.
+> It seeds your credential file (`runtime/secrets/.operator-refresh.json`) and redeems (invited→active) in one shot. Run it **promptly** — the access token lives ~1h; if redeem 401s, start Claude Code once (the MCP refreshes the token) then re-run the printed follow-up command.
+> Fallback (only if the owner forwarded a RAW magic-link): `node scripts/multi-user-auth/enroll.cjs "<magic-link>"` — do NOT open the link in a browser first (single-use). If it errors `access_denied`/"already used", a chat/email preview consumed it → ask the owner to run `mint.cjs` and send the token command instead.
 > The installer already wrote a Windows-portable `.mcp.json` (ops-only, git skip-worktree). Finally: fully restart Claude Code and approve the MCP server.
 >
 > See `.env.per-human.example` + SOP-AIOPS-017 for the full enrollment flow.
