@@ -122,7 +122,7 @@ const KNOWN_FLAGS = new Set([
   'preserve', 'no-preserve', 'keep-assets', 'no-assets', 'math',
 ]);
 
-const MATH_MODES = ['auto', 'preserve', 'off'];
+const MATH_MODES = ['auto', 'preserve', 'off', 'crop'];
 
 /** Build the full typed Config from a parsed {src, srcFormat, flags}. */
 function resolveConfig({ src, srcFormat, flags = {}, cwd = process.cwd() }) {

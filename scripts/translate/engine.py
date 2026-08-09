@@ -30,21 +30,131 @@ def dehyph(lines):
     return re.sub(r"[ \t]+", " ", out).strip()
 
 # ----------------------------------------------------------------------------- PDF
-def ingest_pdf(path, assets_dir=None, keep_assets=True):
+# v0.3 STEM figure/table fidelity (capability `translate` extend). PyMuPDF's
+# page.get_images() only returns EMBEDDED RASTER xrefs — so VECTOR figures (matplotlib
+# violin plots, learning curves, parameter studies) are invisible to it and were dropped,
+# leaving caption-only gaps. Instead we anchor on each "Figure/Table/Hình/Bảng N" caption
+# and render the adjacent page REGION to a PNG via get_pixmap(clip=rect), capturing vector
+# AND raster faithfully. --math=crop reuses the same machinery for display equations.
+def _area(r):
+    return max(0.0, r.x1 - r.x0) * max(0.0, r.y1 - r.y0)
+
+def _inter_area(a, b):
+    return (max(0.0, min(a.x1, b.x1) - max(a.x0, b.x0))
+            * max(0.0, min(a.y1, b.y1) - max(a.y0, b.y0)))
+
+def _overlap_frac(a, b):
+    """Fraction of rect a that lies inside rect b."""
+    aa = _area(a)
+    return (_inter_area(a, b) / aa) if aa > 0 else 0.0
+
+def _union(rects):
+    import fitz
+    return fitz.Rect(min(r.x0 for r in rects), min(r.y0 for r in rects),
+                     max(r.x1 for r in rects), max(r.y1 for r in rects))
+
+def _graphic_rects(page):
+    """Bounding rects of vector drawings + raster images — the figure-bearing elements.
+    Vector drawings are exactly what page.get_images() misses."""
+    import fitz
+    out = []
+    try:
+        for d in page.get_drawings():
+            r = fitz.Rect(d["rect"])
+            if r.width > 3 and r.height > 3:
+                out.append(r)
+    except Exception:
+        pass
+    try:
+        for im in page.get_images(full=True):
+            for r in page.get_image_rects(im[0]):
+                out.append(fitz.Rect(r))
+    except Exception:
+        pass
+    return out
+
+_CAPTION_RE = re.compile(r"^\s*(figure|fig\.?|hình|table|bảng)\s*\d", re.I)
+
+def _caption_figures(page, content):
+    """Caption-anchored figure/table regions: [{rect, cap_rect, cap_y, caption, kind}].
+    The crop is bounded by the nearest WIDE body paragraph (above the caption for figures,
+    below it for tables) so it spans the whole graphic (incl. stacked subplots) yet can
+    never swallow prose; it spans the content width so axis labels are both captured in the
+    image and suppressed from the text stream."""
+    import fitz
+    pr = page.rect
+    blocks = [b for b in page.get_text("dict")["blocks"] if b.get("lines")]
+    def _chars(b):
+        return sum(len(s["text"]) for l in b["lines"] for s in l["spans"])
+    # body paragraphs = wide + substantial text (figure axis labels are short → excluded)
+    body_blocks = [fitz.Rect(b["bbox"]) for b in blocks
+                   if (b["bbox"][2] - b["bbox"][0]) > content.width * 0.5 and _chars(b) > 80]
+    caps = []
+    for b in blocks:
+        first = "".join(s["text"] for s in b["lines"][0]["spans"]).strip()
+        if _CAPTION_RE.match(first):
+            full = " ".join("".join(s["text"] for s in l["spans"]) for l in b["lines"])
+            kind = "table" if re.match(r"^\s*(table|bảng)", first, re.I) else "figure"
+            caps.append((fitz.Rect(b["bbox"]), re.sub(r"\s+", " ", full).strip(), kind))
+    if not caps:
+        return []
+    graphics = _graphic_rects(page)
+    out = []
+    for cap_rect, cap_text, kind in caps:
+        # band = the vertical gap between the caption and the nearest body paragraph on the
+        # figure's side. Tables sit below their caption; figures above.
+        if kind == "table":
+            bound = min([r.y0 for r in body_blocks if r.y0 >= cap_rect.y1 - 2] or [pr.y1])
+            lo, hi = cap_rect.y1, bound
+        else:
+            bound = max([r.y1 for r in body_blocks if r.y1 <= cap_rect.y0 + 2] or [pr.y0])
+            lo, hi = bound, cap_rect.y0
+        # every graphic overlapping the band, clipped to it (no width filter — vector plots
+        # render as many thin path segments). The union's y-extent is the figure's height.
+        clipped = [(max(g.y0, lo), min(g.y1, hi)) for g in graphics if g.y1 > lo + 1 and g.y0 < hi - 1]
+        clipped = [(a, b) for a, b in clipped if b - a > 1]
+        if not clipped:
+            continue
+        y0 = max(pr.y0, min(a for a, _ in clipped))
+        y1 = min(pr.y1, max(b for _, b in clipped))
+        if (y1 - y0) < pr.height * 0.045:
+            continue
+        reg = fitz.Rect(content.x0, y0, content.x1, y1)
+        out.append({"rect": reg, "cap_rect": cap_rect, "cap_y": cap_rect.y0,
+                    "caption": cap_text.replace("]", ")").strip(), "kind": kind})
+    return out
+
+_MATHY_RE = re.compile(r"[=≈≤≥<>∑∏∫√±×·∂πΑ-Ωα-ω⌘⇤⇣→]|\\frac|\^|_\{|\.=")
+
+def _equation_crops(page, body_size, content):
+    """--math=crop only: display-equation regions (short, horizontally inset/centered,
+    math-symbol-dense or carrying a trailing (N.M) number). Best-effort heuristic."""
+    import fitz
+    out = []
+    for b in page.get_text("dict")["blocks"]:
+        if not b.get("lines") or len(b["lines"]) > 6:
+            continue
+        bb = fitz.Rect(b["bbox"])
+        txt = " ".join("".join(s["text"] for s in l["spans"]) for l in b["lines"]).strip()
+        if not (2 <= len(txt) <= 260):
+            continue
+        inset = bb.x0 > content.x0 + content.width * 0.08 and bb.x1 < content.x1 - content.width * 0.02
+        has_num = bool(re.search(r"\(\d+\.\d+[a-z]?\)\s*$", txt))
+        sym = sum(1 for c in txt if not (c.isalnum() or c.isspace()))
+        dense = sym / max(1, len(txt)) > 0.16
+        if (has_num or (inset and dense)) and _MATHY_RE.search(txt):
+            m = re.search(r"\((\d+\.\d+[a-z]?)\)\s*$", txt)
+            out.append({"rect": bb, "num": m.group(1) if m else None})
+    return out
+
+def ingest_pdf(path, assets_dir=None, keep_assets=True, math_mode="auto"):
     import fitz
     doc = fitz.open(path)
     meta = {"title": (doc.metadata or {}).get("title") or "", "author": (doc.metadata or {}).get("author") or "",
             "format": "pdf", "n": doc.page_count}
     toc = doc.get_toc() or []
-    # figures/charts (Req 1): collect xrefs that repeat on many pages (logos/watermarks) to skip
-    repeated = set()
     if keep_assets and assets_dir:
         Path(assets_dir).mkdir(parents=True, exist_ok=True)
-        xc = collections.Counter()
-        for p in doc:
-            for im in p.get_images(full=True):
-                xc[im[0]] += 1
-        repeated = {x for x, c in xc.items() if c > max(3, doc.page_count * 0.3)}
     # body font size = modal size weighted by char count
     sizes = collections.Counter()
     for p in doc:
@@ -71,23 +181,63 @@ def ingest_pdf(path, assets_dir=None, keep_assets=True):
 
     out = []
     nfig = 0
+    zoom_fig = fitz.Matrix(2.8, 2.8)   # ~200 dpi region render (vector + raster faithfully)
+    zoom_eq = fitz.Matrix(3.4, 3.4)    # crisper for --math=crop equation crops
     for pno, p in enumerate(doc):
         if pno in toc_starts:
             out.append(f"\n# {toc_starts[pno].strip()}\n")
-        items = []  # (y_top, markdown) — text, tables, figures interleaved by position
+        pr = p.rect
+        cmargin = pr.width * 0.04
+        content = fitz.Rect(pr.x0 + cmargin, pr.y0, pr.x1 - cmargin, pr.y1)
+        items = []        # (y_top, markdown) — text, tables, figures interleaved by position
+        crop_rects = []   # regions whose leaked text must be suppressed (now in a crop image)
+
+        # caption-anchored figure/table crops (Req 1): render the page REGION so vector
+        # plots are captured, not lost like the embedded-raster path.
+        if keep_assets and assets_dir:
+            for fr in _caption_figures(p, content):
+                nfig += 1
+                fn = f"fig-{pno + 1:03d}-{nfig:02d}.png"
+                try:
+                    p.get_pixmap(matrix=zoom_fig, clip=fr["rect"]).save(str(Path(assets_dir) / fn))
+                except Exception:
+                    continue
+                items.append((fr["cap_y"], f"\n![{fr['caption']}](assets/{fn})\n"))
+                crop_rects.append(fr["rect"])
+                crop_rects.append(fr["cap_rect"])   # caption now lives in the alt text
+            if math_mode == "crop":
+                for er in _equation_crops(p, body, content):
+                    nfig += 1
+                    fn = f"eq-{pno + 1:03d}-{nfig:02d}.png"
+                    try:
+                        p.get_pixmap(matrix=zoom_eq, clip=er["rect"]).save(str(Path(assets_dir) / fn))
+                    except Exception:
+                        continue
+                    alt = f"Eq. {er['num']}" if er.get("num") else ""
+                    items.append((er["rect"].y0, f"\n![{alt}](assets/{fn})\n"))
+                    crop_rects.append(er["rect"])
+
+        # grid-lined tables via find_tables, unless they overlap a cropped figure/equation
         table_bboxes = []
         if keep_assets:
             try:
                 for tb in p.find_tables().tables:
+                    tbr = fitz.Rect(tb.bbox)
+                    if any(_overlap_frac(tbr, cr) > 0.5 for cr in crop_rects):
+                        continue
                     mt = tb.to_markdown()
                     if mt and mt.count("|") >= 4:
                         items.append((tb.bbox[1], "\n" + mt.strip() + "\n"))
                         table_bboxes.append(tb.bbox)
             except Exception:
                 pass
+
         blocks = [b for b in p.get_text("dict")["blocks"] if "lines" in b]
         for b in blocks:
+            bb = fitz.Rect(b["bbox"])
             by0, by1 = b["bbox"][1], b["bbox"][3]
+            if any(_overlap_frac(bb, cr) > 0.55 for cr in crop_rects):
+                continue  # leaked figure/equation text — captured by the crop image
             if any(tb[1] - 2 <= by0 and by1 <= tb[3] + 2 for tb in table_bboxes):
                 continue  # text already captured by the table markdown
             infos = []
@@ -105,7 +255,8 @@ def ingest_pdf(path, assets_dir=None, keep_assets=True):
                         txt += tx
                 dom = max(real, key=lambda s: len(s["text"]))
                 infos.append({"t": txt, "raw": "".join(s["text"] for s in spans).strip(),
-                              "sz": dom["size"], "bold": bool(dom["flags"] & 16)})
+                              "sz": dom["size"], "bold": bool(dom["flags"] & 16),
+                              "x0": l["bbox"][0], "y0": l["bbox"][1], "y1": l["bbox"][3]})
             infos = [i for i in infos if i["raw"] and re.sub(r"\d+", "#", i["raw"]) not in strip
                      and not re.fullmatch(r"\d{1,4}", i["raw"])]
             if not infos:
@@ -121,25 +272,26 @@ def ingest_pdf(path, assets_dir=None, keep_assets=True):
             elif bold and short and mx >= body * 0.95:
                 items.append((by0, f"\n## {text}\n"))
             else:
-                items.append((by0, text + "\n"))
-        if keep_assets and assets_dir:
-            for im in p.get_images(full=True):
-                xref = im[0]
-                if xref in repeated:
-                    continue
-                try:
-                    rects = p.get_image_rects(xref)
-                except Exception:
-                    rects = []
-                base = doc.extract_image(xref)
-                if not base or base.get("width", 0) < 50 or base.get("height", 0) < 50:
-                    continue
-                nfig += 1
-                ext = base.get("ext", "png")
-                fn = f"fig-{pno + 1:03d}-{nfig}.{ext}"
-                (Path(assets_dir) / fn).write_bytes(base["image"])
-                y = rects[0].y0 if rects else 1e6
-                items.append((y, f"\n![Figure {nfig}](assets/{fn})\n"))
+                # PyMuPDF often groups SEVERAL paragraphs into one block → split them back
+                # apart so they don't merge into one runaway paragraph. A new paragraph is
+                # signalled by a first-line INDENT (x0 > body margin) or a large vertical gap.
+                xs = [i["x0"] for i in infos]
+                margin = min(xs)
+                uses_indent = (max(xs) - margin) > 4
+                gaps = sorted(infos[k]["y0"] - infos[k - 1]["y1"] for k in range(1, len(infos)))
+                base_gap = gaps[len(gaps) // 2] if gaps else 0
+                paras, cur, prev_y1 = [], [], None
+                for k, inf in enumerate(infos):
+                    if k > 0 and (
+                        (uses_indent and inf["x0"] > margin + 4)
+                        or (base_gap > 0 and prev_y1 is not None
+                            and (inf["y0"] - prev_y1) > base_gap + max(3, base_gap * 0.7))):
+                        paras.append(cur); cur = []
+                    cur.append(inf); prev_y1 = inf["y1"]
+                if cur:
+                    paras.append(cur)
+                for grp in paras:
+                    items.append((grp[0]["y0"], dehyph([g["t"] for g in grp]) + "\n"))
         items.sort(key=lambda t: t[0])
         for _, m in items:
             out.append(m)
@@ -341,7 +493,7 @@ def ingest_latex(path):
 
 def ingest(cfg, assets_dir=None, keep_assets=True):
     fmt, src = cfg["srcFormat"], cfg["src"]
-    if fmt == "pdf": return ingest_pdf(src, assets_dir, keep_assets)
+    if fmt == "pdf": return ingest_pdf(src, assets_dir, keep_assets, cfg.get("math", "auto"))
     if fmt == "docx": return ingest_docx(src, assets_dir, keep_assets)
     if fmt == "pptx": return ingest_pptx(src)
     if fmt == "html": return ingest_html(src, cfg["isUrl"])
@@ -424,6 +576,40 @@ def write_brief(workdir, cfg):
     gloss = ""
     if cfg.get("glossary") and Path(cfg["glossary"]).exists():
         gloss = "\n\n## Project glossary (use consistently)\n\n" + Path(cfg["glossary"]).read_text(encoding="utf-8")
+    # v0.3: math rule branches on --math. Default (auto/preserve) = preserve clean LaTeX AND
+    # reconstruct garbled math (PDF text-layer extraction mangles equations); crop = display
+    # equations arrive as image crops (don't reconstruct); off = leave math untouched.
+    math_mode = cfg.get("math", "auto")
+    if math_mode == "off":
+        rule4 = (
+            "4. **MATH & FORMULAS — leave EXACTLY as-is.** Do not translate, alter, or "
+            "reconstruct anything that looks like a formula or symbol. Translate only the "
+            "surrounding prose.")
+    elif math_mode == "crop":
+        rule4 = (
+            "4. **MATH & FORMULAS.** Display equations are supplied as IMAGE CROPS — "
+            "`![Eq. N](assets/eq-...png)` lines: keep the `(assets/...)` path EXACTLY, do "
+            "not reconstruct them. Any already-clean inline `$...$` → copy byte-for-byte. "
+            "Translate only the surrounding prose.")
+    else:
+        rule4 = (
+            "4. **MATH & FORMULAS — native LaTeX (preserve clean, reconstruct garbled):**\n"
+            "   - Anything already in clean LaTeX — `$...$`, `$$...$$`, `\\(...\\)`, `\\[...\\]`, or a\n"
+            "     math environment (`aligned`, `cases`, `matrix`, …) — **copy BYTE-FOR-BYTE** (every\n"
+            "     symbol, sub/superscript, `\\command`, brace). Keep `$$` blocks on their own lines.\n"
+            "   - This source may be a PDF whose math extracted as **scrambled text** (broken glyphs\n"
+            "     like `q⇤(a) .= E[Rt|At=a]`, multi-line equations shattered into fragments, subscripts\n"
+            "     mis-tagged as `<sup>`). When you see mangled math, **RECONSTRUCT the intended formula\n"
+            "     into proper LaTeX** using the surrounding prose for context: inline → `$...$`, display\n"
+            "     → `$$...$$` on its own lines (multi-line derivations → `\\begin{aligned}…\\end{aligned}`,\n"
+            "     numbered → trailing `\\qquad (N.M)`). Use `\\doteq`, `\\varepsilon`, `\\mathbf{1}` for the\n"
+            "     indicator, `\\operatorname*{arg\\,max}`, etc. Reconstruct the MATH only — never invent content.\n"
+            "   - **Algorithm/pseudocode boxes** → a bold heading line, then a TOP-LEVEL\n"
+            "     `$$\\begin{aligned}…\\end{aligned}$$` block (use `\\begin{cases}` for branches). Do NOT\n"
+            "     wrap pseudocode in a `>` blockquote.\n"
+            "   - **`\\text{…}` spans inside math** (pseudocode words, worded labels like NewEstimate):\n"
+            "     translate the natural-language words into " + lang + ", keep all symbols/commands/braces.\n"
+            "   - Do NOT translate variable names, operators, or function names inside math.")
     brief = f"""# Translator brief — into {lang} ({endo})
 
 You are a **world-class literary/non-fiction translator into {lang}** — the caliber a
@@ -439,18 +625,15 @@ result must be **faithful AND beautiful** — it should read as if originally wr
    it must sound like a gifted {lang} writer. Maintain a consistent register and a
    consistent voice for each speaker.
 3. **Preserve every bit of structure (markdown):**
+   - **Paragraph breaks** → keep blank lines between paragraphs; one source paragraph =
+     one translated paragraph. NEVER merge separate paragraphs into one block.
    - `#`, `##`, `###` headings → translate the text, keep the level.
    - `>` blockquotes → translate, keep as blockquote.
    - `**bold**`, `*italic*`, lists (`-`, `1.`), and tables → keep the markup (translate cell text).
    - **`<sup>N</sup>` footnote markers → keep VERBATIM**, attached to the preceding word.
    - **Image/figure references `![alt](path)` → keep the `(path)` EXACTLY; translate only the
      alt/caption text inside `[...]`.** Never alter, drop, or reorder a figure reference.
-4. **MATH & FORMULAS — preserve VERBATIM (do not translate inside math):**
-   Anything inside `$...$`, `$$...$$`, `\\(...\\)`, `\\[...\\]`, or a LaTeX math environment
-   (`\\begin{{equation}}`, `align`, `aligned`, `matrix`, `cases`, …) is a formula. **Copy it
-   byte-for-byte** — every symbol, subscript, superscript, `\\command`, and brace. Do NOT
-   translate variable names, operators, or function names inside math. You MAY translate the
-   surrounding prose. If you see placeholder tokens like `⟦EQ7⟧`, keep them exactly as-is.
+{rule4}
 5. **Proper nouns & terms:** keep personal names, brands, and product names in their
    original form (e.g. Tesla, SpaceX). Localize only well-established place names per
    {lang} convention. Keep numbers, units, dates, and currency as-is.
